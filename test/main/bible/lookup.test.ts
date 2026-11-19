@@ -107,7 +107,7 @@ describe('Bible lookup session', () => {
       const {session} = await setup();
       const reply = await session.lookup(request(input));
       expect(reply.result).toMatchObject({ok: false, error: {code}});
-      expect(reply.suggestions).toHaveLength(1);
+      expect(reply.suggestions[0]?.bookId).toBe(43);
       expect(reply.suggestions[0]?.resolved).toBeUndefined();
     },
   );
@@ -181,6 +181,15 @@ describe('Bible lookup session', () => {
       43, 62, 63, 64, 66,
     ]);
     expect(answer.suggestions[0]?.input).toBe('요한복음 3:16');
+    expect(
+      (await session.lookup(request('ㅅㅈ 1:1'))).suggestions[0]?.bookId,
+    ).toBe(52);
+    expect(
+      (await session.lookup(request('tw 1:1'))).suggestions[0]?.bookId,
+    ).toBe(52);
+    expect(
+      (await session.lookup(request('요한1서 1:1'))).suggestions[0]?.bookId,
+    ).toBe(62);
     expect(
       (await session.lookup(request('1 John 1:1'))).suggestions[0],
     ).toMatchObject({

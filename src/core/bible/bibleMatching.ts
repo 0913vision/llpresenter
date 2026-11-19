@@ -191,6 +191,12 @@ const ADDITIONAL_ENGLISH_ABBREVIATIONS: Readonly<
   66: ['Re'],
 };
 
+// NOTE(0913vision): The requested keyboard alias is not the literal 두벌식
+// spelling of 살전; keep this exact alias without adding fuzzy matching.
+const KEYBOARD_ALIASES: Readonly<Record<number, readonly string[]>> = {
+  52: ['tkftjs'],
+};
+
 function normalize(text: string): string {
   return text
     .normalize('NFKC')
@@ -215,56 +221,140 @@ function letters(text: string): string {
   );
 }
 
-const names = BIBLE_BOOKS.map(book => {
-  const code = COPIBLE_CODES[book.id];
-  return {
-    book,
-    plain: [
-      book.korean,
-      book.koreanShort,
-      book.english,
-      book.englishShort,
-      ENGLISH_ABBREVIATIONS[book.id - 1] ?? '',
-      ...(ADDITIONAL_ENGLISH_ABBREVIATIONS[book.id] ?? []),
-      ...(code === undefined ? [] : [code]),
-    ].map(normalize),
-    korean: [book.korean, book.koreanShort].map(letters),
-  };
-});
-
-function keyboardLetters(input: string): string {
-  return letters(
-    Array.from(
-      input,
-      key => SHIFTED[key] ?? KEYBOARD[key.toLowerCase()] ?? key,
-    ).join(''),
+function initials(text: string): string {
+  return normalize(
+    Array.from(text.normalize('NFC'), character => {
+      const code = character.charCodeAt(0);
+      return code >= FIRST_SYLLABLE && code <= LAST_SYLLABLE
+        ? (INITIALS[
+            Math.floor((code - FIRST_SYLLABLE) / SYLLABLES_PER_INITIAL)
+          ] ?? character)
+        : character;
+    }).join(''),
   );
 }
 
-export function exactBibleBook(input: string): BibleBook | undefined {
-  const plain = normalize(input);
-  const keyboard = keyboardLetters(input);
-  return (
-    names.find(entry => entry.plain.includes(plain)) ??
-    names.find(entry => entry.korean.includes(keyboard))
-  )?.book;
+const names = BIBLE_BOOKS.map(book => {
+  const code = COPIBLE_CODES[book.id];
+  const numberedJohn =
+    book.id >= 62 && book.id <= 64 ? `요한${book.id - 61}서` : undefined;
+  return {
+    book,
+    short: [
+      book.koreanShort,
+      book.englishShort,
+      ENGLISH_ABBREVIATIONS[book.id - 1] ?? '',
+      ...(ADDITIONAL_ENGLISH_ABBREVIATIONS[book.id] ?? []),
+      ...(KEYBOARD_ALIASES[book.id] ?? []),
+      ...(code === undefined ? [] : [code]),
+    ].map(normalize),
+    full: [
+      book.korean,
+      book.english,
+      ...(numberedJohn === undefined ? [] : [numberedJohn]),
+    ].map(normalize),
+    shortLetters: letters(book.koreanShort),
+    fullLetters: letters(book.korean),
+    shortInitials:
+      book.koreanShort.length >= 2 ? initials(book.koreanShort) : '',
+    fullInitials: initials(book.korean),
+  };
+});
+
+function keyboardText(input: string): string {
+  return Array.from(
+    input,
+    key => SHIFTED[key] ?? KEYBOARD[key.toLowerCase()] ?? key,
+  ).join('');
 }
 
-/** Returns every containment match in canonical order, at most 66 books. */
+interface Query {
+  readonly plain: string;
+  readonly keyboard: string;
+  readonly originalLetters: string;
+  readonly keyboardLetters: string;
+  readonly initialKeys: readonly string[];
+  readonly partialLetters: boolean;
+}
+
+function queryOf(input: string): Query {
+  const keyboard = keyboardText(input);
+  const originalLetters = letters(input);
+  const keyboardLetters = letters(keyboard);
+  const initialKeys = [originalLetters, keyboardLetters].filter(value =>
+    /^[\u1100-\u1112]+$/u.test(value),
+  );
+  return {
+    plain: normalize(input),
+    keyboard: normalize(keyboard),
+    originalLetters,
+    keyboardLetters,
+    initialKeys,
+    partialLetters:
+      /[\u1100-\u1112]$/u.test(normalize(keyboard)) && /[a-z]/iu.test(input),
+  };
+}
+
+function rank(entry: (typeof names)[number], query: Query): number {
+  const {
+    plain,
+    keyboard,
+    originalLetters,
+    keyboardLetters,
+    initialKeys,
+    partialLetters,
+  } = query;
+  const exactLetters = (value: string): boolean =>
+    value === originalLetters || value === keyboardLetters;
+  const starts = (value: string): boolean =>
+    value.startsWith(plain) || value.startsWith(keyboard);
+  const letterStarts = (value: string): boolean =>
+    partialLetters && value.startsWith(keyboardLetters);
+  if (entry.short.includes(plain) || exactLetters(entry.shortLetters)) return 0;
+  if (entry.full.includes(plain) || exactLetters(entry.fullLetters)) return 1;
+  if (entry.short.some(starts) || letterStarts(entry.shortLetters)) return 2;
+  if (entry.full.some(starts) || letterStarts(entry.fullLetters)) return 3;
+  if (entry.shortInitials !== '' && initialKeys.includes(entry.shortInitials)) {
+    return 4;
+  }
+  if (initialKeys.includes(entry.fullInitials)) return 5;
+  if (
+    entry.shortInitials !== '' &&
+    initialKeys.some(key => entry.shortInitials.startsWith(key))
+  ) {
+    return 6;
+  }
+  if (initialKeys.some(key => entry.fullInitials.startsWith(key))) return 7;
+  if (
+    [...entry.short, ...entry.full].some(value => value.includes(plain)) ||
+    entry.shortLetters.includes(originalLetters) ||
+    entry.fullLetters.includes(originalLetters) ||
+    entry.shortLetters.includes(keyboardLetters) ||
+    entry.fullLetters.includes(keyboardLetters)
+  ) {
+    return 8;
+  }
+  return 9;
+}
+
+export function exactBibleBook(input: string): BibleBook | undefined {
+  const query = queryOf(input);
+  if (query.plain === '') return undefined;
+  return (
+    names.find(entry => rank(entry, query) === 0)?.book ??
+    names.find(entry => rank(entry, query) === 1)?.book
+  );
+}
+
+/** Returns all matches in relevance order, breaking ties by canonical order. */
 export function findBibleBooks(input: string): readonly BibleBook[] {
-  const plain = normalize(input);
-  if (plain === '') return [];
-  const original = letters(input);
-  const keyboard = keyboardLetters(input);
+  const query = queryOf(input);
+  if (query.plain === '') return [];
   return names
-    .filter(
-      entry =>
-        entry.plain.some(name => name.includes(plain)) ||
-        entry.korean.some(
-          name => name.includes(original) || name.includes(keyboard),
-        ),
-    )
-    .map(({book}) => book);
+    .map(entry => ({entry, score: rank(entry, query)}))
+    .filter(value => value.score < 9)
+    .sort((a, b) => a.score - b.score || a.entry.book.id - b.entry.book.id)
+    .map(({entry}) => entry.book);
 }
 
 /** Preserves exact-name priority and the lookup suggestion cap. */

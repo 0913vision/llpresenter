@@ -870,12 +870,12 @@ name. Chapter and verse bounds always use the built-in GAE number table.
   chapter are known, the end field placeholder is the last verse number. Ctrl B
   opens the compact reference modal. The same component is used in 준비 항목
   추가 성경 구절.
-- 책 lists every containment match in canonical order, using Korean full and
-  short names by jamo, English names and codes, and IME-off QWERTY input (02).
-  Current codes include `ezk`, `jol`, `jnh`, `nam`, `mrk`, `jhn`, and `php`; the
-  previous `eze`, `joe`, `jon`, `nah`, `mar`, `joh`, and `phi` still work. An
-  exact code wins over an incidental IME-off containment match: `mrk` completes
-  to 마가복음. Nothing is highlighted initially. With 책 empty and no suggestion
+- 책 lists matching Korean names, standard abbreviations, 초성, English names
+  and codes, and IME-off QWERTY input in relevance order (02). Current codes
+  include `ezk`, `jol`, `jnh`, `nam`, `mrk`, `jhn`, and `php`; the previous
+  `eze`, `joe`, `jon`, `nah`, `mar`, `joh`, and `phi` still work. An exact code
+  wins over an incidental IME-off containment match: `mrk` completes to
+  마가복음. Nothing is highlighted initially. With 책 empty and no suggestion
   pointed, forward Tab moves on like in any field, because there is nothing to
   complete (lead decision, November 2). With text in 책, forward Tab or Enter
   completes an exact match or a sole candidate to the full name and moves to 장.
@@ -1148,7 +1148,7 @@ integration use this contract, with a distinct cancellable ID per lookup.
   of the recent list (up to 10, proposal). A passage that is already in the list
   (same reference and translation) moves to the front instead of appearing
   twice, and the oldest one drops off past 10 (proposal).
-- The 책 suggestions list all matching books in canonical order (창세기 first),
+- The 책 suggestions use the same relevance order in each Bible entry point,
   bounded by the 66 books.
 - Choosing a row in the 예배 순서 closes the Bible panel and returns to the
   슬라이드 panel (proposal).

@@ -9,9 +9,14 @@ import {
 } from '@core/schema/bibleLookup';
 import type {Logger} from '../log';
 import {BibleLibrary, loadBibleLibrary} from './library';
-import {matchBooks} from '@core/bible/bibleMatching';
+import {
+  BOOK_SUGGESTION_LIMIT,
+  findBibleBooks,
+  matchBooks,
+} from '@core/bible/bibleMatching';
 
-const BOOK_PREFIX = /^((?:[1-3]\s*)?[\p{L}\p{M}\s]+)(.*)$/u;
+const BOOK_PREFIX =
+  /^((?:[1-3]\s*)?(?:[\p{L}\p{M}\s]|(?<=\p{L})[1-3](?=\p{L}))+)(.*)$/u;
 const WARNED_FILE_LIMIT = 128;
 
 export interface BibleLookupOptions {
@@ -25,7 +30,7 @@ async function suggestions(request: BibleLookupRequest, library: BibleLibrary) {
   const [, name = '', range = ''] =
     BOOK_PREFIX.exec(request.input.trim()) ?? [];
   const candidates = [];
-  for (const book of matchBooks(name)) {
+  for (const book of findBibleBooks(name).slice(0, BOOK_SUGGESTION_LIMIT)) {
     const input = `${book.korean} ${range.trim()}`.trim();
     if (input.length > BIBLE_LOOKUP_LIMITS.input) continue;
     const result = await library.resolve(

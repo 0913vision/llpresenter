@@ -7,6 +7,154 @@ import {
   matchBooks,
 } from '@core/bible/bibleMatching';
 
+const INITIALS = 'ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ';
+const MEDIALS = 'ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ';
+const FINALS = ' ㄱㄲㄳㄴㄵㄶㄷㄹㄺㄻㄼㄽㄾㄿㅀㅁㅂㅄㅅㅆㅇㅈㅊㅋㅌㅍㅎ';
+const KEYS: Readonly<Record<string, string>> = {
+  ㄱ: 'r',
+  ㄲ: 'R',
+  ㄴ: 's',
+  ㄷ: 'e',
+  ㄸ: 'E',
+  ㄹ: 'f',
+  ㅁ: 'a',
+  ㅂ: 'q',
+  ㅃ: 'Q',
+  ㅅ: 't',
+  ㅆ: 'T',
+  ㅇ: 'd',
+  ㅈ: 'w',
+  ㅉ: 'W',
+  ㅊ: 'c',
+  ㅋ: 'z',
+  ㅌ: 'x',
+  ㅍ: 'v',
+  ㅎ: 'g',
+  ㅏ: 'k',
+  ㅐ: 'o',
+  ㅑ: 'i',
+  ㅒ: 'O',
+  ㅓ: 'j',
+  ㅔ: 'p',
+  ㅕ: 'u',
+  ㅖ: 'P',
+  ㅗ: 'h',
+  ㅛ: 'y',
+  ㅜ: 'n',
+  ㅠ: 'b',
+  ㅡ: 'm',
+  ㅣ: 'l',
+  ㅘ: 'hk',
+  ㅙ: 'ho',
+  ㅚ: 'hl',
+  ㅝ: 'nj',
+  ㅞ: 'np',
+  ㅟ: 'nl',
+  ㅢ: 'ml',
+  ㄳ: 'rt',
+  ㄵ: 'sw',
+  ㄶ: 'sg',
+  ㄺ: 'fr',
+  ㄻ: 'fa',
+  ㄼ: 'fq',
+  ㄽ: 'ft',
+  ㄾ: 'fx',
+  ㄿ: 'fv',
+  ㅀ: 'fg',
+  ㅄ: 'qt',
+};
+
+function initialsOf(text: string): string {
+  return Array.from(text, character => {
+    const syllable = character.charCodeAt(0) - 0xac00;
+    return syllable >= 0 && syllable < 11172
+      ? (INITIALS[Math.floor(syllable / 588)] ?? character)
+      : character;
+  }).join('');
+}
+
+function keyboardOf(text: string): string {
+  return Array.from(text, character => {
+    const syllable = character.charCodeAt(0) - 0xac00;
+    if (syllable < 0 || syllable >= 11172) return KEYS[character] ?? character;
+    const initial = INITIALS[Math.floor(syllable / 588)] ?? '';
+    const medial = MEDIALS[Math.floor(syllable / 28) % 21] ?? '';
+    const final = FINALS[syllable % 28] ?? ' ';
+    return `${KEYS[initial] ?? ''}${KEYS[medial] ?? ''}${KEYS[final] ?? ''}`;
+  }).join('');
+}
+
+// NOTE(0913vision): Abbreviation initials precede full-name initials; other
+// collisions go to the earlier book in canonical order.
+const FULL_INITIAL_WINNER: Readonly<Record<number, number>> = {
+  22: 18,
+  29: 62,
+  63: 62,
+  65: 13,
+};
+const SHORT_INITIAL_WINNER: Readonly<Record<number, number>> = {
+  53: 10,
+  55: 14,
+  63: 62,
+  64: 11,
+};
+
+describe('all 66 book search keys', () => {
+  it.each(BIBLE_BOOKS)(
+    'finds $korean by name, abbreviation and keyboard keys',
+    book => {
+      for (const text of [book.korean, book.koreanShort]) {
+        expect(findBibleBooks(text)[0]?.id, text).toBe(book.id);
+        expect(findBibleBooks(keyboardOf(text))[0]?.id, keyboardOf(text)).toBe(
+          book.id,
+        );
+      }
+      const fullInitials = initialsOf(book.korean);
+      for (const input of [fullInitials, keyboardOf(fullInitials)]) {
+        expect(findBibleBooks(input)[0]?.id, input).toBe(
+          FULL_INITIAL_WINNER[book.id] ?? book.id,
+        );
+      }
+      if (book.koreanShort.length >= 2) {
+        const shortInitials = initialsOf(book.koreanShort);
+        for (const input of [shortInitials, keyboardOf(shortInitials)]) {
+          expect(findBibleBooks(input)[0]?.id, input).toBe(
+            SHORT_INITIAL_WINNER[book.id] ?? book.id,
+          );
+        }
+      }
+    },
+  );
+
+  it.each([
+    ['수', 6],
+    ['삿', 7],
+    ['사', 23],
+    ['요', 43],
+    ['전', 21],
+    ['ㅅㅅㄱ', 7],
+    ['ㄷㅅㄹㄴㄱㅈㅅ', 52],
+    ['ㅅㅈ', 52],
+    ['tw', 52],
+    ['ㄱㅈ', 46],
+    ['tkftjs', 52],
+    ['tkt', 7],
+    ['요한1서', 62],
+    ['요한2서', 63],
+    ['요한3서', 64],
+  ])('ranks %s first as book %i', (input, id) => {
+    expect(findBibleBooks(input)[0]?.id).toBe(id);
+  });
+
+  it('ranks exact abbreviations before name prefixes and containment', () => {
+    expect(
+      findBibleBooks('사')
+        .slice(0, 5)
+        .map(book => book.id),
+    ).toEqual([23, 7, 9, 10, 44]);
+  });
+});
+
 describe('four-field book candidates', () => {
   it('matches short names with invisible input markers and Korean composition', () => {
     expect(findBibleBooks('\u200b\ud569\ufeff').map(book => book.id)).toContain(
@@ -49,7 +197,7 @@ describe('four-field book candidates', () => {
   it('keeps every containment match even when a short name matches exactly', () => {
     const matches = findBibleBooks('요');
     expect(matches.map(book => book.id)).toEqual([
-      18, 29, 32, 43, 62, 63, 64, 66,
+      43, 62, 63, 64, 29, 32, 66, 18,
     ]);
     expect(exactBibleBook('요')?.id).toBe(43);
     expect(findBibleBooks('서')).toHaveLength(
@@ -59,13 +207,13 @@ describe('four-field book candidates', () => {
   });
 
   it.each([
-    ['베', [49, 60, 61]],
+    ['베', [60, 61, 49]],
     ['dhkd', [11, 12]],
     ['왕', [11, 12]],
     ['qpe', [60, 61]],
     ['dPfp', [24, 25]],
     ['요한', [43, 62, 63, 64, 66]],
-  ])('matches jamo and IME-off text %s in canonical order', (input, ids) => {
+  ])('matches jamo and IME-off text %s in relevance order', (input, ids) => {
     expect(findBibleBooks(input).map(book => book.id)).toEqual(ids);
   });
 
@@ -126,9 +274,9 @@ describe('matchBooks', () => {
 
   it('offers ambiguous prefixes in canonical order and gives exact names priority', () => {
     expect(matchBooks('베').map(book => book.korean)).toEqual([
-      '에베소서',
       '베드로전서',
       '베드로후서',
+      '에베소서',
     ]);
     expect(matchBooks('요한').map(book => book.id)).toEqual([
       43, 62, 63, 64, 66,
