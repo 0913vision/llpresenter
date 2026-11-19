@@ -30,6 +30,17 @@ import {prepareLiturgy} from '@renderer/features/service/items/quickAddLiturgy';
 import {newLiturgyItem} from '@core/services/liturgy';
 import {SUNDAY_SECTIONS} from '@core/themes/sundaySections';
 import {isItemOfKind} from '@core/schema/service';
+import {settingsDocument} from '@fixtures/core/settingsDocument';
+
+vi.mock('@renderer/rendering/bibleMeasure', async importOriginal => ({
+  ...(await importOriginal<
+    typeof import('@renderer/rendering/bibleMeasure')
+  >()),
+  createBibleMeasureContext: () => ({
+    font: '',
+    measureText: (text: string) => ({width: text.length * 10}),
+  }),
+}));
 
 vi.mock('@renderer/features/service/items/quickAddLiturgy', () => ({
   prepareLiturgy: vi.fn(),
@@ -101,6 +112,9 @@ function mockBible(
     return {ok: true, value: {id: 'bible', revision}};
   });
   vi.spyOn(api.settings, 'get').mockImplementation(async request => {
+    if (request.name === 'bibleCuts') {
+      return settingsDocument('bibleCuts', {entries: {}});
+    }
     if (request.name !== 'bible') return readSettings(request);
     const parsed = parseSettingsDocument({
       name: 'bible',

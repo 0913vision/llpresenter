@@ -12,6 +12,7 @@ import * as bibleMeasure from '@renderer/rendering/bibleMeasure';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {createDefaultThemes} from '@core/themes/defaults';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
+import {useShow} from '@renderer/session/showStore';
 
 const translation = v.parse(translationIdSchema, 'krv');
 
@@ -91,6 +92,8 @@ describe('quick add Bible passages', () => {
     const getContext = vi
       .spyOn(bibleMeasure, 'createBibleMeasureContext')
       .mockReturnValue(canvas);
+    const serviceId = '00000000-0000-4000-8000-000000000199';
+    useShow.setState({serviceId});
     try {
       const transition = {kind: 'wipe', dir: 'left', sec: 0.7} as const;
       const result = await passageItemWithParts(
@@ -106,53 +109,60 @@ describe('quick add Bible passages', () => {
             verses: [{chapter: 3, verse: 17, text: '처음 다음'}],
           },
         },
-        mockLlpApi({
-          settings: {
-            get: async request => {
-              if (request.name === 'themes') {
-                return settingsDocument('themes', createDefaultThemes());
-              }
-              if (request.name === 'screens') {
-                return settingsDocument('screens', {
-                  screens: [
-                    {
-                      id: STARTER_SCREEN_IDS.main,
-                      name: '청중',
-                      kind: 'audience',
-                      method: 'fullscreen',
+        {
+          serviceId,
+          api: mockLlpApi({
+            settings: {
+              get: async request => {
+                if (request.name === 'themes') {
+                  return settingsDocument('themes', createDefaultThemes());
+                }
+                if (request.name === 'screens') {
+                  return settingsDocument('screens', {
+                    screens: [
+                      {
+                        id: STARTER_SCREEN_IDS.main,
+                        name: '청중',
+                        kind: 'audience',
+                        method: 'fullscreen',
+                      },
+                    ],
+                  });
+                }
+                return settingsDocument('bibleCuts', {
+                  entries: {
+                    [translation]: {
+                      '35:3:17': entryFor(
+                        '처음 다음',
+                        [1],
+                        '2026-11-15T00:00:00.000Z',
+                      ),
                     },
-                  ],
-                });
-              }
-              return settingsDocument('bibleCuts', {
-                entries: {
-                  [translation]: {
-                    '35:3:17': entryFor(
-                      '처음 다음',
-                      [1],
-                      '2026-11-15T00:00:00.000Z',
-                    ),
                   },
-                },
-              });
+                });
+              },
             },
-          },
-        }),
+          }),
+        },
       );
-      if (result === null || !isItemOfKind(result, 'bible')) {
+      if (
+        !result.ok ||
+        result.value === null ||
+        !isItemOfKind(result.value, 'bible')
+      ) {
         throw Error('Missing Bible item');
       }
-      expect(result.bibleTransitions?.length ?? 0).toBeGreaterThan(1);
-      expect(result.bibleTransitions?.map(entry => entry.part)).toEqual(
-        result.bibleTransitions?.map((_, index) => index + 1),
+      const item = result.value;
+      expect(item.bibleTransitions?.length ?? 0).toBeGreaterThan(1);
+      expect(item.bibleTransitions?.map(entry => entry.part)).toEqual(
+        item.bibleTransitions?.map((_, index) => index + 1),
       );
       expect(
-        result.bibleTransitions?.every(
-          entry => entry.transition === transition,
-        ),
+        item.bibleTransitions?.every(entry => entry.transition === transition),
       ).toBe(true);
     } finally {
       getContext.mockRestore();
+      useShow.setState({serviceId: null});
     }
   });
 });

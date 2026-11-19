@@ -1,6 +1,10 @@
 import {useState, type JSX} from 'react';
 import {useSlideDefaults} from '@renderer/features/songs/editor/useSlideDefaults';
-import {createServiceItemId, type SongId} from '@core/schema/ids';
+import {
+  createServiceItemId,
+  type ServiceId,
+  type SongId,
+} from '@core/schema/ids';
 import {isItemOfKind, type ServiceItem} from '@core/schema/service';
 import {useHeaderRename} from '@renderer/session/headerRename';
 import {useShow} from '@renderer/session/show';
@@ -52,12 +56,19 @@ export function ServiceTableFooter({
           : undefined;
   const disabled = reason !== undefined || editing.busy;
   const append = (
-    source: ServiceItem | (() => Promise<ServiceItem | null>),
+    source:
+      | ServiceItem
+      | ((id: ServiceId) => ReturnType<typeof passageItemWithParts>),
   ): void => {
     const {rows, openItemId} = useShow.getState();
     const before = quickAddBefore(rows, openItemId);
     editing.run(async (edits, id) => {
-      const item = typeof source === 'function' ? await source() : source;
+      const prepared =
+        typeof source === 'function'
+          ? await source(id)
+          : {ok: true as const, value: source};
+      if (!prepared.ok) return prepared;
+      const item = prepared.value;
       if (item === null) return {ok: true, value: false};
       if ('header' in item) useHeaderRename.getState().request(item.id);
       const result = await edits.insertItem(
@@ -92,7 +103,7 @@ export function ServiceTableFooter({
   const appendPassage = (ref: string, defaults: PassageDefaults): void => {
     const api = window.llp;
     if (api !== undefined) {
-      append(() => passageItemWithParts(ref, defaults, api));
+      append(id => passageItemWithParts(ref, defaults, {api, serviceId: id}));
     }
   };
   const insertSong = (song: SongId): void => {

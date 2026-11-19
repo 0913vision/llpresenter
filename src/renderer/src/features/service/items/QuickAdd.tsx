@@ -1,6 +1,10 @@
 import {useState, type JSX} from 'react';
 import {isItemOfKind, type ServiceItem} from '@core/schema/service';
-import {createServiceItemId, type SongId} from '@core/schema/ids';
+import {
+  createServiceItemId,
+  type ServiceId,
+  type SongId,
+} from '@core/schema/ids';
 import {useServiceOrderEditing} from '@renderer/features/service/order/useServiceOrderEditing';
 import {useShow} from '@renderer/session/show';
 import {useOrderFull} from '@renderer/session/orderFull';
@@ -51,7 +55,9 @@ export function ServiceQuickAdd({
   const insertPassage = (ref: string, defaults: PassageDefaults): void => {
     const api = window.llp;
     if (api !== undefined) {
-      insertItem(() => passageItemWithParts(ref, defaults, api));
+      insertItem(id =>
+        passageItemWithParts(ref, defaults, {api, serviceId: id}),
+      );
     }
   };
   const insertSong = (song: SongId): void => {
@@ -59,14 +65,21 @@ export function ServiceQuickAdd({
     editing.run((edits, id) => insertSelectedSong(edits, id, song));
   };
   const insertItem = (
-    source: ServiceItem | (() => Promise<ServiceItem | null>),
+    source:
+      | ServiceItem
+      | ((id: ServiceId) => ReturnType<typeof passageItemWithParts>),
   ): void => {
     const api = window.llp;
     if (api === undefined) return;
     const {rows, openItemId} = useShow.getState();
     const before = quickAddBefore(rows, openItemId);
     editing.run(async (edits, id) => {
-      const item = typeof source === 'function' ? await source() : source;
+      const prepared =
+        typeof source === 'function'
+          ? await source(id)
+          : {ok: true as const, value: source};
+      if (!prepared.ok) return prepared;
+      const item = prepared.value;
       if (item === null) return {ok: true, value: false};
       if ('header' in item) useHeaderRename.getState().request(item.id);
       const result = await edits.insertItem(
