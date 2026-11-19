@@ -1,14 +1,7 @@
-.controls,
 .gallery,
 .directions {
   display: flex;
   gap: var(--space-6);
-}
-
-.controls {
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-16);
 }
 
 .gallery {
@@ -42,13 +35,6 @@
   fill: var(--accent-fill);
 }
 
-.inherited {
-  fill: none;
-  stroke: var(--text-3);
-  stroke-width: 2;
-  stroke-dasharray: 4 3;
-}
-
 .next {
   fill: var(--label-orange);
 }
@@ -57,13 +43,6 @@
   fill: none;
   stroke: var(--text);
   stroke-width: 2;
-}
-
-.group {
-  display: grid;
-  gap: var(--space-6);
-  color: var(--text-3);
-  font: var(--type-label);
 }
 
 .directions button {
@@ -93,8 +72,4 @@
   background: var(--bg-well);
   color: var(--text-off);
   cursor: default;
-}
-
-.time {
-  --field-number-width: calc(var(--space-20) * 3);
 }

@@ -479,6 +479,19 @@ function OtherPrepEditor({
   readonly sizeClass: SizeClass;
   readonly onBack: () => void;
 }) {
+  const itemId = itemState.item?.id;
+  const serviceId = itemState.service?.service.id;
+  useEffect(() => {
+    const current = useShow.getState();
+    if (
+      itemId !== undefined &&
+      serviceId !== undefined &&
+      current.serviceId === serviceId &&
+      current.openItemId === itemId
+    ) {
+      prep.items.show({serviceId, itemId});
+    }
+  }, [prep.items, itemId, serviceId]);
   const serviceName = useShow(view => view.serviceName);
   const item = itemState.item;
   const [manualSplitRequest, setManualSplitRequest] = useState(0);

@@ -13,8 +13,11 @@ import type {SlidesListSession} from '../slides/slidesListSession';
 import {Panel, PanelBody} from '@renderer/ui/Panel';
 import {Properties, PropertyGroup, PropertyRow} from '@renderer/ui/PropertyRow';
 import {PrepInspectorContent} from './PrepInspectorContent';
-import {TransitionPicker, TransitionRows} from './TransitionRows';
-import {slideTransitionUndo} from '@renderer/features/songs/editor/slideTransitionSelection';
+import {TransitionSection, useTransitionSelection} from './TransitionSection';
+import {
+  sameSlideTransition,
+  slideTransitionUndo,
+} from '@renderer/features/songs/editor/slideTransitionSelection';
 import {LabelMenu} from '@renderer/features/songs/editor/LabelMenu';
 import type {SongEditorStore} from '@renderer/features/songs/editor/songEditorStore';
 import {Button} from '@renderer/ui/Button';
@@ -60,9 +63,12 @@ export function SlidesInspector({
     ),
   ];
   const value = effects[0] ?? {kind: 'none' as const, sec: 0.5};
-  const mixed = effects.some(
-    effect => JSON.stringify(effect) !== JSON.stringify(value),
-  );
+  const mixed = effects.some(effect => !sameSlideTransition(effect, value));
+  const transition = useTransitionSelection({
+    session,
+    disabled: false,
+    onApplyAll,
+  });
   const applySelected = (change: SlideTransition | number): void => {
     const current = session.draft.snapshot.item;
     const update = (
@@ -145,26 +151,22 @@ export function SlidesInspector({
                       </PropertyRow>
                     </PropertyGroup>
                   )}
-                  {card === undefined ? (
-                    <TransitionRows
-                      session={session}
-                      disabled={false}
-                      onApplyAll={onApplyAll}
-                    />
-                  ) : (
-                    <TransitionPicker
-                      value={value}
-                      mixed={mixed}
-                      disabled={session.readOnly}
-                      selectionKey={selectedSlides
-                        .map(entry => entry.id)
-                        .join(',')}
-                      onChange={applySelected}
-                      onSeconds={applySelected}
-                      onApplyAll={() => onApplyAll?.(value)}
-                      allowAll={onApplyAll !== undefined}
-                    />
-                  )}
+                  <TransitionSection
+                    {...(card === undefined
+                      ? transition
+                      : {
+                          value,
+                          mixed,
+                          disabled: session.readOnly,
+                          selectionKey: selectedSlides
+                            .map(entry => entry.id)
+                            .join(','),
+                          onChange: applySelected,
+                          onSeconds: applySelected,
+                          onApplyAll: () => onApplyAll?.(value),
+                          allowAll: onApplyAll !== undefined,
+                        })}
+                  />
                 </Properties>
                 {store === undefined || anchor === null ? null : (
                   <LabelMenu

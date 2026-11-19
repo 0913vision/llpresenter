@@ -1,15 +1,6 @@
-import type {JSX, ReactNode} from 'react';
-import {
-  SLIDE_TRANSITION_LIMITS,
-  type SlideTransition,
-} from '@core/schema/slideTransition';
-import {NumberField} from './NumberField';
+import type {JSX} from 'react';
+import type {SlideTransition} from '@core/schema/slideTransition';
 import styles from './SlideTransitionControl.module.css';
-import {SLIDE_EFFECTS, SLIDE_DIRECTIONS} from './slideTransitionChoices';
-
-export type SlideTransitionChange = (
-  current: SlideTransition,
-) => SlideTransition;
 
 export function EffectPicture({
   kind,
@@ -47,96 +38,5 @@ export function EffectPicture({
         </>
       ) : null}
     </svg>
-  );
-}
-
-/** The slide effects gallery shared by preferences and slide editing. */
-export function SlideTransitionControl({
-  value,
-  onChange,
-  label,
-  disabled = false,
-  mixed = false,
-  children,
-}: {
-  readonly value: SlideTransition;
-  readonly onChange: (update: SlideTransitionChange) => void;
-  readonly label: string;
-  readonly disabled?: boolean;
-  readonly mixed?: boolean;
-  readonly children?: ReactNode;
-}): JSX.Element {
-  const own = !mixed;
-  const directional = own && (value.kind === 'push' || value.kind === 'wipe');
-  return (
-    <div className={styles.controls} role="group" aria-label={label}>
-      <div className={styles.group}>
-        <div className={styles.gallery} role="group" aria-label="효과">
-          {SLIDE_EFFECTS.map(([kind, name]) => (
-            <button
-              key={kind}
-              type="button"
-              className={styles.tile}
-              disabled={disabled}
-              aria-pressed={own && value.kind === kind}
-              onClick={() =>
-                onChange(current => {
-                  const {dir, ...rest} = current;
-                  return {
-                    ...rest,
-                    kind,
-                    ...(kind === 'push' || kind === 'wipe'
-                      ? {dir: dir ?? 'left'}
-                      : {}),
-                  };
-                })
-              }
-            >
-              <EffectPicture kind={kind} />
-              <span>{name}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-      <div className={styles.group}>
-        <span>방향</span>
-        <div className={styles.directions}>
-          {SLIDE_DIRECTIONS.map(([dir, arrow, name]) => (
-            <button
-              key={dir}
-              type="button"
-              disabled={disabled || !directional}
-              aria-label={name}
-              title={name}
-              aria-pressed={directional && (value.dir ?? 'left') === dir}
-              onClick={() =>
-                onChange(current =>
-                  current.kind === 'push' || current.kind === 'wipe'
-                    ? {...current, dir}
-                    : current,
-                )
-              }
-            >
-              {arrow}
-            </button>
-          ))}
-        </div>
-      </div>
-      <div className={styles.group}>
-        <span>시간</span>
-        <NumberField
-          className={styles.time}
-          aria-label={`${label} 시간`}
-          value={value.sec}
-          formatValue={seconds => String(Math.round(seconds * 100) / 100)}
-          {...SLIDE_TRANSITION_LIMITS}
-          unit="초"
-          disabled={disabled || !own || value.kind === 'none'}
-          updateOn="commit"
-          onChange={sec => onChange(current => ({...current, sec}))}
-        />
-        {children}
-      </div>
-    </div>
   );
 }

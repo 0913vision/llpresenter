@@ -1,4 +1,4 @@
-import {useSyncExternalStore, type JSX} from 'react';
+import {useRef, useSyncExternalStore, type JSX} from 'react';
 import {isItemOfKind, type ServiceItemOf} from '@core/schema/service';
 import {
   LITURGY,
@@ -76,7 +76,12 @@ export function LiturgyEditor({
   readonly ui?: Pick<UiApi, 'setLayout'> | undefined;
 }): JSX.Element | null {
   const current = useSyncExternalStore(items.subscribe, items.getSnapshot);
-  const state = shownItem ?? current;
+  const state =
+    shownItem !== undefined &&
+    (shownItem.item?.id !== current.item?.id ||
+      shownItem.service?.service.id !== current.service?.service.id)
+      ? shownItem
+      : current;
   const item = state.item;
   if (
     item === null ||
@@ -87,6 +92,7 @@ export function LiturgyEditor({
   }
   return (
     <LiturgyContent
+      key={item.id}
       items={items}
       item={item}
       position={state.position}
@@ -121,6 +127,14 @@ function LiturgyContent({
   });
   const texts = LITURGY_SLIDES[item.liturgy.kind][item.liturgy.translation];
   const offset = cardOffset(item);
+  const anchor = useRef(Math.max(0, position - offset));
+  const selected = (
+    shownItem.bibleSelection.length > 0
+      ? shownItem.bibleSelection
+      : !shownItem.cardSelected && position >= offset
+        ? [position - offset]
+        : []
+  ).filter(index => index >= 0 && index < texts.length);
   return (
     <section
       className={styles.editor}
@@ -133,11 +147,43 @@ function LiturgyContent({
           aria-label="슬라이드 편집 목록"
         >
           {card === undefined ? null : (
-            <LeadingSlideCardView
-              card={card}
-              mode={mode}
-              style={{position: 'relative'}}
-            />
+            <div
+              role="option"
+              aria-label="타이틀"
+              aria-selected={
+                shownItem.cardSelected ||
+                (position === 0 && selected.length === 0)
+              }
+              onClick={event => {
+                if (event.target instanceof HTMLInputElement) return;
+                const ctrl = event.ctrlKey || event.metaKey;
+                const alreadySelected =
+                  shownItem.cardSelected ||
+                  (position === 0 && selected.length === 0);
+                if (ctrl && alreadySelected && selected.length > 0) {
+                  items.setCardSelected(false);
+                  items.selectPosition((selected.at(-1) ?? 0) + offset);
+                } else {
+                  if (!ctrl && !event.shiftKey) items.setBibleSelection([]);
+                  if (event.shiftKey) {
+                    items.setBibleSelection(
+                      Array.from(
+                        {length: Math.min(anchor.current + 1, texts.length)},
+                        (_, index) => index,
+                      ),
+                    );
+                  }
+                  items.setCardSelected(true);
+                  items.selectPosition(0);
+                }
+              }}
+            >
+              <LeadingSlideCardView
+                card={card}
+                mode={mode}
+                style={{position: 'relative'}}
+              />
+            </div>
           )}
           {texts.map((text, index) => {
             const layer =
@@ -151,11 +197,41 @@ function LiturgyContent({
               <div
                 key={index}
                 className={styles.row}
-                data-selected={position === index + offset}
+                data-selected={selected.includes(index)}
                 data-song-slide={String(index)}
                 role="option"
-                aria-selected={position === index + offset}
-                onClick={() => items.selectPosition(index + offset)}
+                aria-selected={selected.includes(index)}
+                onClick={event => {
+                  const ctrl = event.ctrlKey || event.metaKey;
+                  if (
+                    (ctrl || event.shiftKey) &&
+                    offset > 0 &&
+                    position === 0
+                  ) {
+                    items.setCardSelected(true);
+                  }
+                  let next: number[];
+                  if (event.shiftKey) {
+                    const previous = Math.min(anchor.current, texts.length - 1);
+                    const start = Math.min(previous, index);
+                    const end = Math.max(previous, index);
+                    const range = Array.from(
+                      {length: end - start + 1},
+                      (_, i) => start + i,
+                    );
+                    next = ctrl ? [...new Set([...selected, ...range])] : range;
+                  } else {
+                    anchor.current = index;
+                    next = ctrl
+                      ? selected.includes(index)
+                        ? selected.filter(entry => entry !== index)
+                        : [...selected, index]
+                      : [index];
+                  }
+                  if (!ctrl && !event.shiftKey) items.setCardSelected(false);
+                  items.setBibleSelection(next.length === 0 ? [index] : next);
+                  items.selectPosition(index + offset);
+                }}
               >
                 <div className={styles.thumbnail}>
                   <div className={styles.canvas}>

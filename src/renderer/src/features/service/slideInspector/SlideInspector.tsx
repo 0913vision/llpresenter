@@ -1,11 +1,15 @@
 import {useState, useSyncExternalStore, type JSX} from 'react';
+import type {SlideTransition} from '@core/schema/slideTransition';
 import {formatSlideHotKey} from '@renderer/ui/SlideThumbnail';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
 import {PrepInspectorContent} from './PrepInspectorContent';
 import {useSongSlideAppearance} from '@renderer/features/songs/editor/useSongSlideAppearance';
 import {LabelMenu} from '@renderer/features/songs/editor/LabelMenu';
-import {TransitionPicker, TransitionRows} from './TransitionRows';
-import {slideTransitionUndo} from '@renderer/features/songs/editor/slideTransitionSelection';
+import {TransitionSection, useTransitionSelection} from './TransitionSection';
+import {
+  sameSlideTransition,
+  slideTransitionUndo,
+} from '@renderer/features/songs/editor/slideTransitionSelection';
 import type {SongEditorStore} from '@renderer/features/songs/editor/songEditorStore';
 import {Button} from '@renderer/ui/Button';
 import {labelInk} from '@renderer/ui/labelInk';
@@ -82,8 +86,15 @@ function InspectorContent({
   ];
   const effect = effects[0] ?? {kind: 'none' as const, sec: 0.5};
   const mixedEffect = effects.some(
-    value => JSON.stringify(value) !== JSON.stringify(effect),
+    value => !sameSlideTransition(value, effect),
   );
+  const transition = useTransitionSelection({
+    session,
+    disabled: busy,
+    onApplyAll: session.itemSession
+      ? value => session.changeItemTransitions(value, true, true)
+      : undefined,
+  });
 
   if (selected.length === 0) return null;
   return (
@@ -159,36 +170,22 @@ function InspectorContent({
                 )}
               </PropertyRow>
             </PropertyGroup>
-            {card === undefined ? (
-              <TransitionRows
-                session={session}
-                disabled={busy}
-                song
-                onApplyAll={
-                  session.itemSession
-                    ? transition =>
-                        session.changeItemTransitions(transition, true, true)
-                    : undefined
-                }
-              />
-            ) : (
-              <TransitionPicker
-                value={effect}
-                mixed={mixedEffect}
-                disabled={busy || session.readOnly}
-                selectionKey={selected.map(item => item.id).join(',')}
-                onChange={transition =>
-                  session.changeItemTransitions(transition, true)
-                }
-                onSeconds={seconds =>
-                  session.changeItemTransitions(seconds, true)
-                }
-                onApplyAll={() =>
-                  session.changeItemTransitions(effect, true, true)
-                }
-                song
-              />
-            )}
+            <TransitionSection
+              {...(card === undefined
+                ? transition
+                : {
+                    value: effect,
+                    mixed: mixedEffect,
+                    disabled: busy || session.readOnly,
+                    selectionKey: selected.map(item => item.id).join(','),
+                    onChange: (value: SlideTransition) =>
+                      session.changeItemTransitions(value, true),
+                    onSeconds: (seconds: number) =>
+                      session.changeItemTransitions(seconds, true),
+                    onApplyAll: () =>
+                      session.changeItemTransitions(effect, true, true),
+                  })}
+            />
             <PropertyGroup>
               <PropertyRow label="단축키">
                 {() => (

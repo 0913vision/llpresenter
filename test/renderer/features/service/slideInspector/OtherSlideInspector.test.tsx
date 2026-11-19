@@ -19,8 +19,14 @@ import {ServiceItemStore} from '@renderer/features/service/items/serviceItemStor
 import {OtherSlideInspector} from '@renderer/features/service/slideInspector/OtherSlideInspector';
 import {useContext, useLayoutEffect, useRef} from 'react';
 import {PictureReadiness} from '@renderer/rendering/PictureReadiness';
+import {newLiturgyItem} from '@core/services/liturgy';
+import {isItemOfKind} from '@core/schema/service';
 
-vi.mock('@renderer/session/show', () => ({useShow: () => []}));
+const showTiles = vi.hoisted(() => {
+  const value: Array<{label: null; labelColor: string; lines: string[]}> = [];
+  return {value};
+});
+vi.mock('@renderer/session/show', () => ({useShow: () => showTiles.value}));
 vi.mock('@renderer/features/bible/useBibleProjections', () => ({
   useBibleTileProjection: ({itemId}: {itemId: string | null}) =>
     itemId === null
@@ -110,7 +116,16 @@ vi.mock('@renderer/features/media/MediaPropertiesPanel', () => ({
 }));
 
 async function setup(
-  kind: 'image' | 'video' | 'bible' | 'bible-card' | 'slide-card' | 'sermon',
+  kind:
+    | 'image'
+    | 'video'
+    | 'bible'
+    | 'bible-card'
+    | 'slide-card'
+    | 'sermon'
+    | 'creed'
+    | 'prayer',
+  omitSecondLiturgyTransition = false,
 ) {
   const fixture = itemFixture();
   const old = fixture.service();
@@ -120,58 +135,73 @@ async function setup(
       : '50000000-0000-4000-8000-000000000099',
   );
   const item =
-    kind === 'sermon'
-      ? {
-          id: itemId,
-          sermon: {
-            title: 'Sermon',
-            passage: {
-              translation: parse(translationIdSchema, 'sample'),
-              ref: 'John 1:1',
-              split: 'verse' as const,
-              reference: 'every' as const,
-              verseNumbers: true,
-              translationName: false,
-            },
-          },
-        }
-      : kind === 'bible' || kind === 'bible-card'
+    kind === 'creed' || kind === 'prayer'
+      ? (() => {
+          const liturgy = newLiturgyItem(itemId, {kind, translation: 'new'});
+          return omitSecondLiturgyTransition
+            ? {
+                ...liturgy,
+                liturgy: {
+                  ...liturgy.liturgy,
+                  transitions: (liturgy.liturgy.transitions ?? []).filter(
+                    entry => entry.index !== 1,
+                  ),
+                },
+              }
+            : liturgy;
+        })()
+      : kind === 'sermon'
         ? {
             id: itemId,
-            ...(kind === 'bible-card'
-              ? {
-                  sectionCard: {
-                    name: '예배 시작',
-                    english: 'WELCOME',
-                    theme: createThemeId(
-                      '00000000-0000-4000-8000-000000000100',
-                    ),
-                  },
-                }
-              : {}),
-            bible: {
-              translation: parse(translationIdSchema, 'sample'),
-              ref: '창세기 1:1',
-              split: 'verse' as const,
-              reference: 'every' as const,
-              verseNumbers: true,
-              translationName: false,
+            sermon: {
+              title: 'Sermon',
+              passage: {
+                translation: parse(translationIdSchema, 'sample'),
+                ref: 'John 1:1',
+                split: 'verse' as const,
+                reference: 'every' as const,
+                verseNumbers: true,
+                translationName: false,
+              },
             },
           }
-        : kind === 'slide-card'
+        : kind === 'bible' || kind === 'bible-card'
           ? {
               id: itemId,
-              sectionCard: {
-                name: '예배 시작',
-                english: 'WELCOME',
-                theme: createThemeId('00000000-0000-4000-8000-000000000100'),
+              ...(kind === 'bible-card'
+                ? {
+                    sectionCard: {
+                      name: '예배 시작',
+                      english: 'WELCOME',
+                      theme: createThemeId(
+                        '00000000-0000-4000-8000-000000000100',
+                      ),
+                    },
+                  }
+                : {}),
+              bible: {
+                translation: parse(translationIdSchema, 'sample'),
+                ref: '창세기 1:1',
+                split: 'verse' as const,
+                reference: 'every' as const,
+                verseNumbers: true,
+                translationName: false,
               },
-              slides: {form: 'blank' as const, name: 'Section', slides: []},
             }
-          : {
-              id: itemId,
-              media: kind === 'image' ? fixtureMedia.warm : fixtureMedia.dawn,
-            };
+          : kind === 'slide-card'
+            ? {
+                id: itemId,
+                sectionCard: {
+                  name: '예배 시작',
+                  english: 'WELCOME',
+                  theme: createThemeId('00000000-0000-4000-8000-000000000100'),
+                },
+                slides: {form: 'blank' as const, name: 'Section', slides: []},
+              }
+            : {
+                id: itemId,
+                media: kind === 'image' ? fixtureMedia.warm : fixtureMedia.dawn,
+              };
   fixture.pushService({
     ...old,
     revision: old.revision + 1,
@@ -193,6 +223,89 @@ async function setup(
   }
   return {view, items, editor, fixture};
 }
+
+it.each(['creed', 'prayer'] as const)(
+  'applies a transition to selected %s slides in one undo step',
+  async kind => {
+    showTiles.value = [
+      {label: null, labelColor: 'none', lines: ['First']},
+      {label: null, labelColor: 'none', lines: ['Second']},
+      {label: null, labelColor: 'none', lines: ['Third']},
+    ];
+    const {view, items, editor} = await setup(kind);
+    try {
+      const before = structuredClone(items.getSnapshot().item);
+      act(() => {
+        items.setBibleSelection([0, 1]);
+        items.selectPosition(1);
+      });
+      await userEvent.click(
+        await screen.findByRole('button', {name: '디졸브'}),
+      );
+      await waitFor(() => {
+        const item = items.getSnapshot().item;
+        if (item === null || !isItemOfKind(item, 'liturgy')) {
+          throw new Error('Missing liturgy item');
+        }
+        expect(
+          item.liturgy.transitions?.find(entry => entry.index === 0)?.transition
+            .kind,
+        ).toBe('dissolve');
+        expect(
+          item.liturgy.transitions?.find(entry => entry.index === 1)?.transition
+            .kind,
+        ).toBe('dissolve');
+      });
+      await act(() => items.replayItemEdit('undo'));
+      await waitFor(() => expect(items.getSnapshot().item).toEqual(before));
+    } finally {
+      showTiles.value = [];
+      view.unmount();
+      items.dispose();
+      await editor.dispose();
+    }
+  },
+);
+
+it.each(['creed', 'prayer'] as const)(
+  'keeps an unset %s transition unset when editing a mixed duration',
+  async kind => {
+    showTiles.value = [
+      {label: null, labelColor: 'none', lines: ['First']},
+      {label: null, labelColor: 'none', lines: ['Second']},
+    ];
+    const {view, items, editor} = await setup(kind, true);
+    try {
+      act(() => {
+        items.setBibleSelection([0, 1]);
+        items.selectPosition(1);
+      });
+      const time = await screen.findByLabelText('전환 시간');
+      expect(time.getAttribute('placeholder')).toBe('혼합');
+      const user = userEvent.setup();
+      await user.clear(time);
+      await user.type(time, '2{Enter}');
+      await waitFor(() => {
+        const item = items.getSnapshot().item;
+        if (item === null || !isItemOfKind(item, 'liturgy')) {
+          throw new Error('Missing liturgy item');
+        }
+        expect(
+          item.liturgy.transitions?.find(entry => entry.index === 0)?.transition
+            .sec,
+        ).toBe(2);
+        expect(
+          item.liturgy.transitions?.find(entry => entry.index === 1),
+        ).toBeUndefined();
+      });
+    } finally {
+      showTiles.value = [];
+      view.unmount();
+      items.dispose();
+      await editor.dispose();
+    }
+  },
+);
 it.each(['sermon', 'bible', 'bible-card', 'slide-card'] as const)(
   'provides property layout and spacing for %s transition rows',
   async kind => {
@@ -201,6 +314,14 @@ it.each(['sermon', 'bible', 'bible-card', 'slide-card'] as const)(
     expect(group.closest('[class*="properties"]')).not.toBeNull();
     const rows = group.querySelector('[class*="transitionRows"]');
     expect(rows?.children).toHaveLength(4);
+    expect(
+      Array.from(rows?.children ?? []).map(
+        row => row.querySelector('label')?.textContent ?? '',
+      ),
+    ).toEqual(['효과', '방향', '시간', '']);
+    expect(
+      screen.getByRole('button', {name: '전체 슬라이드에 적용'}),
+    ).toBeTruthy();
     for (const row of Array.from(rows?.children ?? []).slice(0, 3)) {
       expect(row.querySelector('label')).not.toBeNull();
       expect(row.querySelector('label')?.nextElementSibling).not.toBeNull();

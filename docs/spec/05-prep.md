@@ -1196,6 +1196,10 @@ ordinary text, label, order, save, and clipboard edits (02).
   slides is a single undo step. None selects a cut, and thumbnails mark explicit
   effects. Mixed selections show their differing values, and read-only or
   blocked sessions cannot edit them.
+- Songs, blank and advertisement slides, Bible, sermon titles, liturgy, section
+  titles and waiting screens use the same effect, direction, time and 전체
+  슬라이드에 적용 rows. Creed and prayer editors support Ctrl toggles and Shift
+  ranges, including their opening card, for transition edits to multiple slides.
 - The local preview redraws immediately without animation when typing, selecting
   slides, editing a theme or changing effects. Effect settings remain editable
   metadata; they play only on output and its live preview in 진행 (03).
