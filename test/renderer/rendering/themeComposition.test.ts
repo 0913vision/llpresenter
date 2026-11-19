@@ -1,6 +1,7 @@
 import {CREED_PRAYER_THEME_ID} from '@core/themes/creedPrayer';
 import {PREPARATION_THEME_ID} from '@core/themes/sundayStandby';
 import {SERMON_TITLE_THEME_ID} from '@core/themes/sundayScripture';
+import {LIGHT_SONG_THEME_ID} from '@core/themes/lightSong';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLayers, type LiveLayers} from '@core/live/state';
 import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
@@ -109,6 +110,131 @@ afterEach(() => {
 });
 
 describe('theme composition drawing', () => {
+  it.each([
+    ['song', 'stage'],
+    ['bible', 'stage'],
+    ['blank', 'stage'],
+    ['ad', 'stage'],
+    ['song', 'broadcast'],
+    ['bible', 'broadcast'],
+    ['blank', 'broadcast'],
+    ['ad', 'broadcast'],
+  ] as const)(
+    'keeps the built-in %s item background off the %s layout',
+    (itemKind, screenKind) => {
+      const {root, view, text} = setup();
+      const id = createScreenId(STARTER_SCREEN_IDS[screenKind]);
+      const theme = createDefaultThemes().themes.find(
+        entry => entry.id === LIGHT_SONG_THEME_ID,
+      );
+      const layout = theme?.screens[id];
+      if (!theme || !layout) throw Error('Missing built-in screen layout');
+      const item = {id: 'invented', kind: itemKind, source: 'service' as const};
+      const base = frame(layout.elements, {themeId: theme.id, layout, item});
+      if (base.theme === undefined) throw Error('Missing theme frame');
+      const active = {
+        ...base,
+        theme: base.theme,
+        screen: {id, kind: screenKind},
+        transitions: false,
+      };
+      const live = {...song, media: {mediaId, loop: true, startedAt: 1000}};
+      view.render(live, active);
+      const background = root.querySelector<HTMLElement>(
+        '[data-theme-background]',
+      );
+      const original = background?.style.background;
+      view.render(live, {
+        ...active,
+        theme: {
+          ...active.theme,
+          item: {
+            ...item,
+            backgroundOverride: {kind: 'media', mediaId, loop: true},
+          },
+        },
+      });
+      expect(
+        root.querySelector<HTMLElement>('[data-theme-background]')?.style
+          .background,
+      ).toBe(original);
+      expect(root.querySelector(`video[src*="${mediaId}"]`)).toBeNull();
+      expect(root.querySelector(`img[src*="${mediaId}"]`)).toBeNull();
+      expect(text('currentText')).toContain('Invented line');
+      if (screenKind === 'stage') {
+        expect(root.querySelector('[data-kind="clock"]')).not.toBeNull();
+      }
+      view.dispose();
+    },
+  );
+
+  it.each(['stage', 'broadcast'] as const)(
+    'draws an item background inside the custom %s background element',
+    screenKind => {
+      const {root, view} = setup();
+      const background = {
+        ...themeElementBase(806),
+        kind: 'background' as const,
+        frame: {x: 110, y: 220, w: 800, h: 450},
+        fit: 'fit' as const,
+        radius: 32,
+      };
+      const item = {
+        id: 'invented',
+        kind: 'song' as const,
+        source: 'service' as const,
+        backgroundOverride: {kind: 'media' as const, mediaId, loop: true},
+      };
+      view.render(
+        {...song, media: {mediaId, loop: true, startedAt: 1000}},
+        {
+          ...frame([background], {item}),
+          screen: {id: THEME_MAIN, kind: screenKind},
+          transitions: false,
+        },
+      );
+      const element = root.querySelector<HTMLElement>(
+        '[data-kind="background"]',
+      );
+      expect(element?.style.left).toBe('110px');
+      expect(element?.style.top).toBe('220px');
+      expect(element?.style.width).toBe('800px');
+      expect(element?.style.height).toBe('450px');
+      expect(element?.style.borderRadius).toBe('32px');
+      const video = element?.querySelector<HTMLVideoElement>(
+        `video[src*="${mediaId}"]`,
+      );
+      expect(video?.style.objectFit).toBe('contain');
+      view.dispose();
+    },
+  );
+
+  it('keeps a transparent broadcast free of item backgrounds even when the layout has a background element', () => {
+    const {root, view} = setup(true);
+    const background = {
+      ...themeElementBase(806),
+      kind: 'background' as const,
+      fit: 'fill' as const,
+      radius: 0,
+    };
+    view.render(
+      {...song, media: {mediaId, loop: true, startedAt: 1000}},
+      {
+        ...frame([background], {
+          item: {
+            id: 'invented',
+            kind: 'song',
+            source: 'service',
+            backgroundOverride: {kind: 'media', mediaId, loop: true},
+          },
+        }),
+        screen: {id: THEME_MAIN, kind: 'broadcast'},
+        transitions: false,
+      },
+    );
+    expect(root.querySelector(`video[src*="${mediaId}"]`)).toBeNull();
+    view.dispose();
+  });
   it('backs stage clock and timer only while a picture is the live content', () => {
     const {root, view, text} = setup();
     const timerId = createTimerId('00000000-0000-4000-8000-000000000701');

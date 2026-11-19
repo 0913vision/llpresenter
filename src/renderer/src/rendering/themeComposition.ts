@@ -37,6 +37,14 @@ interface ThemePage {
 const TICK_MS = 250;
 const STAGE_NEXT_RATIO = 2 / 3;
 
+function itemBackgroundOverride(frame: RenderFrame, transparent: boolean) {
+  const theme = frame.theme;
+  if (theme === undefined || transparent) return undefined;
+  return frame.screen?.kind === 'audience'
+    ? theme.item?.backgroundOverride
+    : undefined;
+}
+
 /** Keeps at most two compositions during a whole-screen theme dissolve. */
 export class ThemeCompositionView {
   private readonly root = document.createElement('div');
@@ -287,7 +295,7 @@ export class ThemeCompositionView {
     const signature = JSON.stringify([
       theme.themeId,
       theme.layout,
-      theme.item?.backgroundOverride,
+      itemBackgroundOverride(frame, this.options.transparent === true),
     ]);
     const previous = this.page?.frame.slide ?? this.page?.layers.slide;
     const incoming = frame.slide ?? layers.slide;
@@ -444,7 +452,10 @@ export class ThemeCompositionView {
     page.dataset['themePage'] = theme.themeId;
     page.className = `${classes.layer} ${classes.instant}`;
     const background = document.createElement('div');
-    const override = frame.theme?.item?.backgroundOverride;
+    const override = itemBackgroundOverride(
+      frame,
+      this.options.transparent === true,
+    );
     background.dataset['themeBackground'] = '';
     Object.assign(background.style, {
       position: 'absolute',
