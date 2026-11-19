@@ -19,20 +19,20 @@ const states = new WeakMap<
 
 /** Shows the selected launch design while the control window starts. */
 export function createSplash(mode: WindowMode): BrowserWindow {
-  const icon = nativeImage
-    .createFromPath(appIconPath)
-    .resize({width: 104, height: 104})
-    .toDataURL();
   const window = new BrowserWindow({
     width: 560,
     height: 300,
     frame: false,
-    show: false,
+    show: mode === 'normal',
     resizable: false,
     skipTaskbar: mode === 'offscreen',
     backgroundColor: '#1f4170',
     webPreferences: {offscreen: mode === 'offscreen', sandbox: true},
   });
+  const icon = nativeImage
+    .createFromPath(appIconPath)
+    .resize({width: 104, height: 104})
+    .toDataURL();
   states.set(window, {done: new Set(), loaded: false});
   const html = `<!doctype html><html lang="ko"><meta charset="utf-8"><style>
     *{box-sizing:border-box}body{margin:0;color:#fff;font-family:Pretendard,"Malgun Gothic",sans-serif;background:linear-gradient(135deg,#172f51,#24548d)}main{height:300px;display:flex;flex-direction:column;align-items:center;padding:20px 38px 24px}img{width:104px;height:104px}h1{margin:8px 0 0;font-size:29px;font-weight:700;letter-spacing:-.5px}footer{width:100%;margin-top:auto;font-size:13px;color:#e1eaf6}.track{height:4px;background:#ffffff42;margin-top:10px}.bar{height:100%;width:0;background:#fff}
@@ -46,7 +46,6 @@ export function createSplash(mode: WindowMode): BrowserWindow {
   window
     .loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`)
     .catch((error: unknown) => console.error('Could not load splash', error));
-  if (mode === 'normal') window.once('ready-to-show', () => window.show());
   return window;
 }
 

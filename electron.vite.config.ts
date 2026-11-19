@@ -25,7 +25,10 @@ export default defineConfig({
           index: resolve('src/main/index.ts'),
           powerpointWorker: resolve('src/main/import/powerpointWorker.ts'),
         },
-        output: {entryFileNames: '[name].js'},
+        output: {
+          entryFileNames: '[name].js',
+          chunkFileNames: '[name]-[hash].js',
+        },
       },
     },
     plugins: [

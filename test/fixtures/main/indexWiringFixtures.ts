@@ -121,6 +121,7 @@ const mocks = vi.hoisted(() => {
         on: vi.fn(),
         removeListener: vi.fn(),
       },
+      protocol: {registerSchemesAsPrivileged: vi.fn()},
       app: {
         setPath: vi.fn(),
         getPath: vi.fn<(name: string) => string>(),
@@ -158,7 +159,11 @@ const mocks = vi.hoisted(() => {
     mediaRoots: vi.fn<() => readonly string[]>(),
     mediaOptions,
     opened,
-    splash: {isDestroyed: vi.fn(() => false), close: vi.fn(), once: vi.fn()},
+    splash: {
+      isDestroyed: vi.fn(() => false),
+      close: vi.fn(),
+      once: vi.fn<(_event: string, callback: () => void) => void>(),
+    },
     splashStep: vi.fn(),
     controlWindow: {
       isMinimized: vi.fn(() => true),
@@ -450,7 +455,9 @@ export function deferred(): {promise: Promise<void>; resolve: () => void} {
 beforeEach(async () => {
   mocks.splash.isDestroyed.mockReset().mockReturnValue(false);
   mocks.splash.close.mockReset();
-  mocks.splash.once.mockReset();
+  mocks.splash.once
+    .mockReset()
+    .mockImplementation((_event, callback) => callback());
   mocks.splashStep.mockReset();
   mocks.updateContexts.length = 0;
   mocks.updateStop.mockClear();
