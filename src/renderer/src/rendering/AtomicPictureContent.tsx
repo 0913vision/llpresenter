@@ -11,6 +11,7 @@ export function AtomicPictureContent({
   waitForPicture = false,
   pictureCount = 1,
   aside = null,
+  initialReady = false,
 }: {
   readonly identity: string;
   readonly pending: boolean;
@@ -20,8 +21,12 @@ export function AtomicPictureContent({
   readonly pictureCount?: number;
   /** Rendered beside the content, outside what is held and staged. */
   readonly aside?: ReactNode;
+  /** The initial content was already prepared by an enclosing frame. */
+  readonly initialReady?: boolean;
 }): JSX.Element {
-  const [displayed, setDisplayed] = useState<string | null>(null);
+  const [displayed, setDisplayed] = useState<string | null>(
+    initialReady ? identity : null,
+  );
   const [held, setHeld] = useState<JSX.Element | null>(initial);
   const staging = !pending && displayed !== identity;
   const [choice, setChoice] = useState({identity, staging, version: 0});

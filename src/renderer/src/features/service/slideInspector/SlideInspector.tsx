@@ -8,10 +8,11 @@ import {TransitionPicker, TransitionRows} from './TransitionRows';
 import {slideTransitionUndo} from '@renderer/features/songs/editor/slideTransitionSelection';
 import type {SongEditorStore} from '@renderer/features/songs/editor/songEditorStore';
 import {Button} from '@renderer/ui/Button';
-import {labelInk} from '@renderer/ui/labelInk';
 import {Panel, PanelBody} from '@renderer/ui/Panel';
 import {Properties, PropertyGroup, PropertyRow} from '@renderer/ui/PropertyRow';
 import styles from './SlideInspector.module.css';
+import {SlidePreview, usePreviewScreen} from '../details/SlidePreview';
+import {useItemSettings} from '../items/useItemSources';
 import {SongTitleLayoutControl} from '@renderer/features/songs/editor/SongTitleLayoutControl';
 
 /** Local inspection of the current song slide and its shared selection. */
@@ -61,7 +62,15 @@ function InspectorContent({
     session.slideModel.subscribe,
     session.slideModel.getSnapshot,
   );
-  const appearance = useSongSlideAppearance(session);
+  const screens = useItemSettings(store.api.settings, 'screens');
+  const previewScreen = usePreviewScreen(
+    screens.document?.name === 'screens' ? screens.document.value.screens : [],
+  );
+  const target = previewScreen.target;
+  const appearance = useSongSlideAppearance(session, {
+    api: store.api,
+    ...(target === undefined ? {} : {role: target.kind, screenId: target.id}),
+  });
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const snapshot = session.history.snapshot;
   const selected = view.slides.filter(slide =>
@@ -97,48 +106,45 @@ function InspectorContent({
             slideTransitionUndo(event, session, busy || session.readOnly)
           }
         >
-          <div className={styles.picture} data-background-picture>
-            {appearance === undefined || slide === undefined ? null : (
-              <SlidePicture
-                output
-                {...appearance}
-                background={slide.picture ?? appearance.background}
-                songSource={{songId: snapshot.song.id, slideId: slide.id}}
-                slide={{
-                  itemId: snapshot.song.id,
-                  position: snapshot.selection.block,
-                  lines: slide.lines,
-                  label: slide.label ?? null,
-                  ...(slide.titleSlide === undefined
-                    ? {}
-                    : {titleSlide: slide.titleSlide}),
-                  ...(slide.titleLineCount === undefined
-                    ? {}
-                    : {titleLineCount: slide.titleLineCount}),
-                  ...(slide.titleLayout === undefined
-                    ? {}
-                    : {titleLayout: slide.titleLayout}),
-                  ...(slide.lyricFormat === undefined
-                    ? {}
-                    : {lyricFormat: slide.lyricFormat}),
-                }}
-              />
-            )}
-          </div>
-          <div
-            className={styles.caption}
-            style={labelInk(
+          <SlidePreview
+            screen={previewScreen}
+            number={snapshot.selection.block + 1}
+            label={slide?.label}
+            color={
               store
                 .getSnapshot()
                 .labels?.value.labels.find(entry => entry.name === slide?.label)
-                ?.color ?? 'none',
-            )}
-          >
-            {slide?.label ?? ''}
-            <span>
-              {snapshot.selection.block + 1} / {view.slides.length}
-            </span>
-          </div>
+                ?.color ?? 'none'
+            }
+            picture={
+              appearance === undefined || slide === undefined ? null : (
+                <SlidePicture
+                  output
+                  {...appearance}
+                  background={slide.picture ?? appearance.background}
+                  songSource={{songId: snapshot.song.id, slideId: slide.id}}
+                  slide={{
+                    itemId: snapshot.song.id,
+                    position: snapshot.selection.block,
+                    lines: slide.lines,
+                    label: slide.label ?? null,
+                    ...(slide.titleSlide === undefined
+                      ? {}
+                      : {titleSlide: slide.titleSlide}),
+                    ...(slide.titleLineCount === undefined
+                      ? {}
+                      : {titleLineCount: slide.titleLineCount}),
+                    ...(slide.titleLayout === undefined
+                      ? {}
+                      : {titleLayout: slide.titleLayout}),
+                    ...(slide.lyricFormat === undefined
+                      ? {}
+                      : {lyricFormat: slide.lyricFormat}),
+                  }}
+                />
+              )
+            }
+          />
           <SongTitleLayoutControl session={session} disabled={busy} />
           <Properties>
             <PropertyGroup>

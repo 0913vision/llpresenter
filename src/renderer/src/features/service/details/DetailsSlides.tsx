@@ -8,6 +8,7 @@ import {
 import type {LabelColor} from '@core/labels/colors';
 import {SlideThumbnail, ThumbnailGrid} from '@renderer/ui/SlideThumbnail';
 import {detailsGridGeometry} from './detailsGridGeometry';
+import styles from './DetailsSlides.module.css';
 
 const COLUMNS = 2;
 const INITIAL_COUNT = 8;
@@ -65,7 +66,7 @@ export function DetailsSlides({
     end: Math.min(count, INITIAL_COUNT),
     stride: 0,
     columns: COLUMNS,
-    tileWidth: 0,
+    tileWidth: detailsGridGeometry(0, 0, scale).tileWidth,
   });
   useLayoutEffect(() => {
     const element = host.current;
@@ -191,6 +192,7 @@ export function DetailsSlides({
         label="슬라이드"
         columns={range.columns}
         tileWidth={range.tileWidth}
+        className={styles.grid}
         positionOffset={start}
         setSize={count}
         selected={

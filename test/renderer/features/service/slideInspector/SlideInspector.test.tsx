@@ -20,17 +20,15 @@ vi.mock(
   () => import('@fixtures/renderer/picture'),
 );
 
-vi.mock('@renderer/platform/useSettingsDocument', () => ({
-  useSettingsDocument: () => null,
-  useApiSettingsDocument: () => null,
-}));
 vi.mock('@renderer/rendering/SlidePicture', () => ({
   SlidePicture: ({
     slide,
     background,
+    screen,
   }: {
     slide: {lines: readonly string[]};
     background?: string;
+    screen?: {kind: string};
   }) => {
     const ready = useContext(PictureReadiness);
     const source = useRef({});
@@ -38,12 +36,46 @@ vi.mock('@renderer/rendering/SlidePicture', () => ({
       ready?.(source.current);
     }, [ready]);
     return (
-      <div data-testid="picture" data-background={background}>
+      <div
+        data-testid="picture"
+        data-background={background}
+        data-screen={screen?.kind}
+      >
         {slide.lines.join(' ')}
       </div>
     );
   },
 }));
+
+it('previews the selected song slide on audience, broadcast and stage screens', async () => {
+  const {store, session} = await editorSetup();
+  const inspector = render(<SlideInspector store={store} />);
+  try {
+    const controls = await within(inspector.container).findByRole(
+      'radiogroup',
+      {name: '미리보기 화면'},
+    );
+    const picture = () => within(inspector.container).getByTestId('picture');
+    expect(picture().getAttribute('data-screen')).toBe('audience');
+    for (const [name, role] of [
+      ['방송', 'broadcast'],
+      ['무대', 'stage'],
+      ['청중', 'audience'],
+    ] as const) {
+      await userEvent.click(within(controls).getByRole('radio', {name}));
+      expect(picture().getAttribute('data-screen')).toBe(role);
+    }
+    act(() => session.select({block: 1, start: 0, end: 0}));
+    expect(picture().textContent).toBe(
+      session.history.snapshot.song.slides[1]?.lines.join(' '),
+    );
+    expect(
+      inspector.container.querySelector('[data-preview-band]')?.textContent,
+    ).toContain('2');
+  } finally {
+    inspector.unmount();
+  }
+});
 
 it.each([
   {
