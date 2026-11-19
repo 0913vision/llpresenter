@@ -662,8 +662,8 @@ Source: the user's decision from the m3-check3 check, October 26.
     item IDs. Song references, independent slide decks, background overrides,
     start 매크로, and memos copy as they are. A section comes along if it or any
     of its children is checked. The new service becomes the current service. The
-    output doesn't change. The flow creates an empty service, copies only the
-    checked items, and then opens it.
+    live item stops and all outputs return to standby. The flow creates an empty
+    service, copies only the checked items, and then opens it.
   - A `write-failed` result from creation or copying means the edit is already
     applied in main, with a pending disk save. Continue with the applied service
     id after creation and continue to opening after copying. Keep the copied

@@ -19,6 +19,7 @@ import {startMediaAnalysis} from './media/analysis';
 import {registerMediaBackend} from './media/register';
 import {registerSongReveal} from './store/revealSong';
 import {LiveStore, dispatchLogged} from './live/store';
+import {serviceStandby} from './live/serviceStandby';
 import {startOverlays} from './live/overlays';
 import {registerMacros} from './macros/register';
 import {registerRecoveryChannels} from './live/recovery/channels';
@@ -162,10 +163,7 @@ export function start(
         log,
         launchIdle: launchIdle.ready,
         isAnyOutputOn: () => isAnyOutputOn(store.state),
-        onServiceChanged: () => {
-          if (store.state.blackScreen) store.dispatch({type: 'black.toggle'});
-          store.dispatch({type: 'item.stop'});
-        },
+        onServiceChanged: () => serviceStandby(store),
         appConfig,
         problems: problems.feed,
       });
