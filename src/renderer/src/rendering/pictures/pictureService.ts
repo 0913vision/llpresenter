@@ -4,6 +4,7 @@ import type {FontCatalogSnapshot} from '@core/schema/fontCatalog';
 import type {SongSlideSource} from '@core/schema/showService';
 import {pictureKey} from '@core/output/pictureKey';
 import {themeOverlay} from '@core/themes/content';
+import {OUTPUT_REVEAL_DEADLINE_MS} from '@core/output/revealDeadline';
 import {LocalPicturePainter} from './localPicturePainter';
 
 /** What the output compositor draws into a still. */
@@ -294,8 +295,8 @@ export class PictureService {
     const entry = this.request(spec, this.inputs(spec));
     if (switchSlot !== undefined) this.prioritizeHandoff(entry);
     if (!entry.available || !(await entry.attempt)) return false;
-    if (switchSlot !== undefined) {
-      await this.prepareDisplay(entry, switchSlot).ready;
+    if (switchSlot !== undefined && typeof entry.image?.source === 'string') {
+      return (await this.prepareDisplay(entry, switchSlot).ready) !== undefined;
     }
     return true;
   }
@@ -320,7 +321,9 @@ export class PictureService {
           const element = await this.decodeDisplay(picture.source).finally(
             release,
           );
-          display = {picture, element, consume: () => displays.delete(slot)};
+          if (element !== undefined) {
+            display = {picture, element, consume: () => displays.delete(slot)};
+          }
         }
         // NOTE(0913vision): React can read a decoded display on its first render.
         Reflect.set(ready, 'status', 'fulfilled');
@@ -338,19 +341,27 @@ export class PictureService {
     return ticket;
   }
 
-  private async decodeDisplay(url: string): Promise<HTMLImageElement> {
+  private async decodeDisplay(
+    url: string,
+  ): Promise<HTMLImageElement | undefined> {
     const element = new Image();
     element.alt = '';
     element.draggable = false;
     element.decoding = 'sync';
     element.src = url;
+    let deadline: ReturnType<typeof setTimeout> | undefined;
     try {
-      await element.decode();
-      return element;
+      return await Promise.race([
+        element.decode().then(() => element),
+        new Promise<undefined>(resolve => {
+          deadline = setTimeout(resolve, OUTPUT_REVEAL_DEADLINE_MS);
+        }),
+      ]);
     } catch (error) {
       console.error('Could not decode a slide display', error);
-      await new Promise<void>(resolve => setTimeout(resolve, 250));
-      return this.decodeDisplay(url);
+      return undefined;
+    } finally {
+      clearTimeout(deadline);
     }
   }
 

@@ -96,6 +96,15 @@ function mockLog() {
   } satisfies Logger;
 }
 
+function liveWindow() {
+  const window = {
+    isDestroyed: () => false,
+    webContents: {isDestroyed: () => false, send: vi.fn()},
+  };
+  electron.windows.add(window);
+  return window;
+}
+
 function sendCommand(value: unknown): void {
   electron.listeners.get(liveEndpoints.command.channel)?.({}, value);
 }
@@ -149,16 +158,8 @@ describe('registerIpc live commands', () => {
         ...mockStore(),
         state: change === 'launch' ? emptyLiveState() : first,
       };
-      const control = {
-        isDestroyed: () => false,
-        webContents: {isDestroyed: () => false, send: vi.fn()},
-      };
-      const output = {
-        isDestroyed: () => false,
-        webContents: {isDestroyed: () => false, send: vi.fn()},
-      };
-      electron.windows.add(control);
-      electron.windows.add(output);
+      const control = liveWindow();
+      const output = liveWindow();
       const dispose = registerIpc(store, mockLog(), {
         windowMode: 'offscreen',
         app: FACTS,
@@ -199,6 +200,63 @@ describe('registerIpc live commands', () => {
       }
     },
   );
+
+  it('publishes blackout immediately while the first quick Bible frame is pending', () => {
+    const control = liveWindow();
+    const output = liveWindow();
+    const store = mockStore();
+    const next: LiveState = {
+      ...store.state,
+      version: 1,
+      themeItem: {
+        id: 'bible:fixture',
+        kind: 'bible',
+        source: 'external',
+        title: 'John 3:16',
+      },
+      layers: {
+        ...store.state.layers,
+        slide: {
+          itemId: 'bible:fixture',
+          position: 0,
+          lines: ['Text'],
+          label: null,
+        },
+      },
+    };
+    const blackedOut = {...next, version: 2, blackScreen: true};
+    store.dispatch.mockImplementation(command => {
+      if (command.type === 'black.toggle') store.publish(blackedOut);
+      return true;
+    });
+    const dispose = registerIpc(store, mockLog(), {
+      windowMode: 'offscreen',
+      app: FACTS,
+      isControlWindow: window =>
+        Object.is(window.webContents, control.webContents),
+    });
+    try {
+      store.publish(next);
+      expect(control.webContents.send).toHaveBeenCalledExactlyOnceWith(
+        liveEndpoints.changed.channel,
+        {...next, waitingForControl: true},
+      );
+      expect(output.webContents.send).not.toHaveBeenCalled();
+
+      sendCommand({type: 'black.toggle'});
+      expect(output.webContents.send).toHaveBeenCalledExactlyOnceWith(
+        liveEndpoints.changed.channel,
+        blackedOut,
+      );
+      electron.listeners.get(liveEndpoints.controlFrameReady.channel)?.(
+        {sender: control.webContents},
+        next.version,
+      );
+      expect(output.webContents.send).toHaveBeenCalledOnce();
+    } finally {
+      dispose();
+    }
+  });
 
   it('logs each malformed batch child, dispatches the rest, and stops on dispose', () => {
     const store = mockStore();

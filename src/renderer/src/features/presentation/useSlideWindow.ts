@@ -3,7 +3,13 @@ import {
   onWorkspaceVisible,
   workspaceFrame,
 } from '@renderer/ui/workspaceVisibility';
-import {useLayoutEffect, useRef, useState, type RefObject} from 'react';
+import {
+  useEffectEvent,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type RefObject,
+} from 'react';
 import {flushSync} from 'react-dom';
 
 const OVERSCAN_ROWS = 1;
@@ -65,6 +71,7 @@ export function useSlideWindow(
     gap,
     live,
     itemId,
+    startAtTop = false,
   }: {
     readonly count: number;
     readonly columns: number;
@@ -73,6 +80,7 @@ export function useSlideWindow(
     readonly gap: number;
     readonly live: number | null;
     readonly itemId: string | null;
+    readonly startAtTop?: boolean;
   },
 ) {
   const [measure, setMeasure] = useState({
@@ -81,7 +89,15 @@ export function useSlideWindow(
     band: 0,
     rowGap: 0,
   });
-  const [scrollTop, setScrollTop] = useState(0);
+  const [scroll, setScroll] = useState({itemId, top: 0});
+  const scrollTop = startAtTop && scroll.itemId !== itemId ? 0 : scroll.top;
+  const setScrollTop = useEffectEvent((top: number) => {
+    setScroll(previous =>
+      previous.itemId === itemId && previous.top === top
+        ? previous
+        : {itemId, top},
+    );
+  });
   const geometry = useRef<{
     itemId: string | null;
     tracks: number;
@@ -222,11 +238,20 @@ export function useSlideWindow(
   useLayoutEffect(() => {
     const last = read.current;
     read.current = {itemId, count};
+    const viewport = keeper.current?.parentElement;
+    if (
+      startAtTop &&
+      last.itemId !== itemId &&
+      viewport &&
+      viewport.scrollTop !== 0
+    ) {
+      viewport.scrollTo({top: 0, behavior: 'instant'});
+    }
     if (measured.current && last.itemId === itemId && last.count === count) {
       return;
     }
     remeasure.current();
-  }, [itemId, count]);
+  }, [keeper, itemId, count, startAtTop]);
   const tracks =
     tileWidth > 0
       ? Math.max(1, Math.floor((width + gap) / (tileWidth + gap)))

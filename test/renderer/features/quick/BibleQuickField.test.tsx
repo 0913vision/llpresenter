@@ -80,7 +80,57 @@ afterEach(() => {
 });
 
 describe('BibleQuickField', () => {
-  it('keeps the last grid and holds Enter output until the new pictures are ready', async () => {
+  it.each([true, false])(
+    'outputs Enter after picture preparation returns %s',
+    async ready => {
+      const fixture = panelApi();
+      window.llp = fixture.api;
+      const drawing = deferred<boolean>();
+      const drawInPlace = vi
+        .spyOn(pictures, 'drawInPlace', 'get')
+        .mockReturnValue(false);
+      const prepare = vi
+        .spyOn(biblePictures, 'prepareBiblePictures')
+        .mockReturnValue(drawing.promise);
+      try {
+        const previous = await passage('요한복음 3:17');
+        openBiblePassage(previous);
+        const previousId = useShow.getState().openItemId;
+        render(<BibleQuickField api={fixture.api} />);
+        fireEvent.change(await book(), {target: {value: '요'}});
+        fireEvent.change(screen.getByRole('textbox', {name: '장'}), {
+          target: {value: '3'},
+        });
+        const start = screen.getByRole('textbox', {name: '시작절'});
+        fireEvent.change(start, {target: {value: '16'}});
+        fireEvent.keyDown(start, {key: 'Enter'});
+        await waitFor(() => expect(prepare).toHaveBeenCalledOnce());
+        expect(useShow.getState().openItemId).toBe(previousId);
+        expect(fixture.send).not.toHaveBeenCalled();
+
+        await act(async () => drawing.resolve(ready));
+        expect(
+          lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0]),
+        ).toMatchObject({
+          type: 'slide.show',
+          slide: {itemId: 'bible:sample:요한복음 3:16'},
+        });
+        expect(useShow.getState().readyPassage).toEqual(
+          ready
+            ? expect.objectContaining({
+                previous: previousId,
+                id: 'bible:sample:요한복음 3:16',
+              })
+            : null,
+        );
+      } finally {
+        prepare.mockRestore();
+        drawInPlace.mockRestore();
+      }
+    },
+  );
+
+  it('outputs once when picture preparation outlasts the Enter deadline', async () => {
     const fixture = panelApi();
     window.llp = fixture.api;
     const drawing = deferred<boolean>();
@@ -91,33 +141,31 @@ describe('BibleQuickField', () => {
       .spyOn(biblePictures, 'prepareBiblePictures')
       .mockReturnValue(drawing.promise);
     try {
-      const previous = await passage('요한복음 3:17');
-      openBiblePassage(previous);
-      const previousId = useShow.getState().openItemId;
       render(<BibleQuickField api={fixture.api} />);
-      fireEvent.change(await book(), {target: {value: '요'}});
+      const bookField = await book();
+      vi.useFakeTimers();
+      fireEvent.change(bookField, {target: {value: '요'}});
       fireEvent.change(screen.getByRole('textbox', {name: '장'}), {
         target: {value: '3'},
       });
       const start = screen.getByRole('textbox', {name: '시작절'});
       fireEvent.change(start, {target: {value: '16'}});
       fireEvent.keyDown(start, {key: 'Enter'});
-      await waitFor(() => expect(prepare).toHaveBeenCalledOnce());
-      expect(useShow.getState().openItemId).toBe(previousId);
-      expect(fixture.send).not.toHaveBeenCalled();
 
-      await act(async () => drawing.resolve(true));
-      expect(
-        lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0]),
-      ).toMatchObject({
+      await act(async () => vi.advanceTimersByTimeAsync(0));
+      expect(prepare).toHaveBeenCalledOnce();
+      await act(async () => vi.advanceTimersByTimeAsync(2499));
+      expect(fixture.send).not.toHaveBeenCalled();
+      await act(async () => vi.advanceTimersByTimeAsync(1));
+      expect(fixture.send).toHaveBeenCalledOnce();
+      expect(lastLiveCommand(fixture.send.mock.calls[0]?.[0])).toMatchObject({
         type: 'slide.show',
         slide: {itemId: 'bible:sample:요한복음 3:16'},
       });
-      expect(useShow.getState().readyPassage).toMatchObject({
-        previous: previousId,
-        id: 'bible:sample:요한복음 3:16',
-      });
+      await act(async () => drawing.resolve(true));
+      expect(fixture.send).toHaveBeenCalledOnce();
     } finally {
+      vi.useRealTimers();
       prepare.mockRestore();
       drawInPlace.mockRestore();
     }

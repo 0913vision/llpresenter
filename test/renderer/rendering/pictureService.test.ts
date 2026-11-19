@@ -159,6 +159,37 @@ it('draws a requested handoff before the pending visible pictures', async () => 
   );
 });
 
+it('reports a display decode failure while keeping the cached source available', async () => {
+  const decode = vi
+    .fn<() => Promise<void>>()
+    .mockResolvedValueOnce(undefined)
+    .mockRejectedValue(new Error('Display refused to decode'));
+  vi.stubGlobal(
+    'Image',
+    class {
+      src = '';
+      decode = decode;
+    },
+  );
+  vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  vi.stubGlobal('llp', {
+    picture: {paint: vi.fn().mockResolvedValue(new Uint8Array([0xff]))},
+    media: {
+      get: vi.fn().mockResolvedValue({revision: 0, value: {items: []}}),
+      subscribe: vi.fn(),
+    },
+    fonts: {
+      snapshot: vi.fn().mockRejectedValue(new Error('No font catalog')),
+      subscribe: vi.fn(),
+    },
+  });
+  const service = new PictureService();
+  await expect(service.whenDrawn(spec, 'requested:0')).resolves.toBe(false);
+  await expect(service.whenDrawn(spec)).resolves.toBe(true);
+  await vi.advanceTimersByTimeAsync(1000);
+  expect(decode).toHaveBeenCalledTimes(2);
+});
+
 it('publishes the edited picture inside the source paint event', async () => {
   const paint = vi.fn();
   vi.stubGlobal('llp', {

@@ -34,6 +34,28 @@ import {useBibleDisplayDefaults} from '../bible/useBibleDisplayDefaults';
 import {RecentPassages} from '../bible/RecentPassages';
 import {prepareBiblePictures} from '../bible/prepareBiblePictures';
 
+const PICTURE_WAIT_MS = 2500;
+
+async function picturePreparation(
+  passage: BibleLookupPassage,
+  options: BiblePreviewOptions,
+): Promise<boolean> {
+  let deadline: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      prepareBiblePictures(passage, options),
+      new Promise<false>(resolve => {
+        deadline = setTimeout(() => resolve(false), PICTURE_WAIT_MS);
+      }),
+    ]);
+  } catch (error) {
+    console.error('Could not prepare the Bible passage pictures', error);
+    return false;
+  } finally {
+    clearTimeout(deadline);
+  }
+}
+
 /** The quick-panel mount; previewing never writes output or recent history. */
 export function BibleQuickField({
   api,
@@ -91,13 +113,7 @@ export function BibleQuickField({
       previous.options.reference === options.reference &&
       previous.options.translationName === options.translationName
         ? previous.ready
-        : prepareBiblePictures(passage, options).catch((error: unknown) => {
-            console.error(
-              'Could not prepare the Bible passage pictures',
-              error,
-            );
-            return false;
-          });
+        : picturePreparation(passage, options);
     staged.current = {passage, options, ready};
     ready
       .then(drawn => {
