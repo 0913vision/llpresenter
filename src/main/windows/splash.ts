@@ -35,8 +35,8 @@ export function createSplash(mode: WindowMode): BrowserWindow {
   });
   states.set(window, {done: new Set(), loaded: false});
   const html = `<!doctype html><html lang="ko"><meta charset="utf-8"><style>
-    *{box-sizing:border-box}body{margin:0;color:#fff;font-family:Pretendard,"Malgun Gothic",sans-serif;background:linear-gradient(135deg,#172f51,#24548d)}main{height:240px;display:flex;flex-direction:column;align-items:center;padding:20px 38px 20px}svg{width:104px;height:104px}h1{margin:8px 0 0;font-size:29px;font-weight:700;letter-spacing:-.5px}footer{width:100%;margin-top:18px;font-size:13px;color:#e1eaf6}.track{height:4px;background:#ffffff42;margin-top:10px}.bar{height:100%;width:0;background:#fff}
-  </style><main>${icon}<h1>LoveLight Presenter</h1><footer><span id="status">설정 불러오는 중</span><div class="track" role="progressbar" aria-label="시작 진행률" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="bar"></div></div></footer></main></html>`;
+    *{box-sizing:border-box}body{margin:0;color:#fff;font-family:Pretendard,"Malgun Gothic",sans-serif;background:linear-gradient(135deg,#172f51,#24548d)}main{height:240px;display:flex;flex-direction:column;align-items:center;padding:20px 38px 20px}svg{order:1;width:104px;height:104px}h1{order:2;margin:8px 0 0;font-size:29px;font-weight:700;letter-spacing:-.5px}footer{order:3;width:100%;margin-top:18px;font-size:13px;color:#e1eaf6}.track{height:4px;background:#ffffff42;margin-top:10px}.bar{height:100%;width:0;background:#fff}
+  </style><main><footer><span id="status">설정 불러오는 중</span><div class="track" role="progressbar" aria-label="시작 진행률" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="bar" style="width:0%"></div></div></footer>${icon}<h1>LoveLight Presenter</h1></main></html>`;
   window.webContents.once('did-finish-load', () => {
     const state = states.get(window);
     if (state === undefined) return;
