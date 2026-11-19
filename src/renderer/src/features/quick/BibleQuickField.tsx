@@ -159,7 +159,7 @@ export function BibleQuickField({
       when: () => recents[index] !== undefined && display !== null,
       run: () => {
         const recent = recents[index];
-        if (recent) return pick(recent);
+        return recent === undefined ? undefined : pick(recent);
       },
     })),
   );

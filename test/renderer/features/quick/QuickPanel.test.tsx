@@ -170,12 +170,13 @@ describe('quick panel integration', () => {
       fireEvent.click(await screen.findByRole('button', {name: '저장된 곡'}));
       const field = screen.getByRole<HTMLInputElement>('combobox');
       await waitFor(() => expect(field.disabled).toBe(false));
-      fireEvent.focus(field);
       if (method === 'mouse') {
-        fireEvent.click(screen.getByRole('option', {name: recent.input}));
+        fireEvent.click(
+          await screen.findByRole('button', {name: /창세기 1:1/}),
+        );
       } else {
-        fireEvent.keyDown(field, {key: 'ArrowDown'});
-        fireEvent.keyDown(field, {key: 'Enter'});
+        await screen.findByRole('button', {name: /창세기 1:1/});
+        fireEvent.keyDown(field, {key: '1', code: 'Digit1', altKey: true});
       }
       await waitFor(() => expect(fixture.lookup).toHaveBeenCalledWith(recent));
       await act(async () => song.resolve(fixture.song));
@@ -184,7 +185,6 @@ describe('quick panel integration', () => {
       expect(screen.getByRole<HTMLInputElement>('combobox').value).toBe('');
       await act(async () => passage.resolve(lookupReply(recent)));
       expect(useShow.getState().bibleSource?.passage.ref).toBe(recent.input);
-      fireEvent.keyDown(screen.getByRole('combobox'), {key: 'Enter'});
       expect(fixture.send).toHaveBeenCalledOnce();
       expect(lastLiveCommand(fixture.send.mock.calls[0]?.[0])).toMatchObject({
         type: 'slide.show',
