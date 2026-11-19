@@ -463,9 +463,7 @@ export function deferred(): {promise: Promise<void>; resolve: () => void} {
 beforeEach(async () => {
   mocks.splash.isDestroyed.mockReset().mockReturnValue(false);
   mocks.splash.close.mockReset();
-  mocks.splash.once
-    .mockReset()
-    .mockImplementation((_event, callback) => callback());
+  mocks.splash.once.mockReset();
   mocks.splashStep.mockReset();
   mocks.electron.dialog.showErrorBox.mockReset();
   mocks.updateContexts.length = 0;

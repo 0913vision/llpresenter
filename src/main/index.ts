@@ -42,12 +42,13 @@ if (problem !== null) {
       const readyUptimeMs = Math.round(process.uptime() * 1000);
       const mode = windowModeFrom(process.env, app.isPackaged);
       const splash = createSplash(mode);
-      await new Promise<void>(resolve => splash.once('ready-to-show', resolve));
-      const paintUptimeMs = Math.round(process.uptime() * 1000);
-      log.info('launch window first paint', {
-        readyUptimeMs,
-        paintUptimeMs,
-        afterReadyMs: paintUptimeMs - readyUptimeMs,
+      splash.once('ready-to-show', () => {
+        const paintUptimeMs = Math.round(process.uptime() * 1000);
+        log.info('launch window first paint', {
+          readyUptimeMs,
+          paintUptimeMs,
+          afterReadyMs: paintUptimeMs - readyUptimeMs,
+        });
       });
       try {
         const application = await import('./application');
