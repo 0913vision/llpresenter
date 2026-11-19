@@ -349,8 +349,14 @@ function SongBlocks({
               `[data-editor-block="${selection.block}"] button:not([data-slide-gap], [role="checkbox"])`,
             )
           : input;
-      (target ?? input).focus({preventScroll: true});
-      if (target === input) {
+      if ((target ?? input) !== document.activeElement) {
+        (target ?? input).focus({preventScroll: true});
+      }
+      if (
+        target === input &&
+        (input.selectionStart !== selection.start ||
+          input.selectionEnd !== selection.end)
+      ) {
         input.setSelectionRange(selection.start, selection.end);
       }
       owner.restoring = false;
