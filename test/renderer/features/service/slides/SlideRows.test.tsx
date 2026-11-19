@@ -218,13 +218,13 @@ describe('slide row editing surface', () => {
       <Harness
         draft={draft}
         leadingCard={{
-          label: '구역 이름',
+          label: '타이틀',
           render: () => <span>Card</span>,
           onDelete,
         }}
       />,
     );
-    await userEvent.click(screen.getByLabelText('구역 이름'));
+    await userEvent.click(screen.getByLabelText('타이틀'));
     await userEvent.keyboard('{Delete}');
     expect(onDelete).toHaveBeenCalledOnce();
     expect(draft.snapshot.item.slides.slides).toHaveLength(0);

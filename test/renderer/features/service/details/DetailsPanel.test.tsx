@@ -243,7 +243,7 @@ it('updates the first picture when a section is chosen', async () => {
     />,
   );
   try {
-    const field = await screen.findByRole('button', {name: '구역 이름'});
+    const field = await screen.findByRole('button', {name: '타이틀'});
     expect(field.textContent).toContain('없음');
     await userEvent.click(field);
     await userEvent.click(screen.getByRole('menuitemradio', {name: '찬양'}));

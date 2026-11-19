@@ -12,7 +12,7 @@ import type {SlideTransition} from '../schema/slideTransition';
 
 export function newSectionCard(transition?: SlideTransition): SectionCard {
   return {
-    name: '구역 이름',
+    name: '타이틀',
     english: '',
     theme: SECTION_THEME_ID,
     ...(transition === undefined ? {} : {transition}),

@@ -29,7 +29,7 @@ export function detailsKindLine(
 ): string {
   if (item !== null && isItemOfKind(item, 'slides')) {
     if (item.sectionCard !== undefined && item.slides.slides.length === 0) {
-      return '구역 이름';
+      return '타이틀';
     }
     if (item.slides.form === 'blank') return `슬라이드 ${count}개`;
   }

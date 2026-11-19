@@ -205,13 +205,13 @@ it('makes a valid file with built-in themes and a standby clock and timer on sta
     '사도신경, 주기도문',
     '이미지 슬라이드',
     '설교 제목',
-    '구역 이름 청록',
-    '구역 이름 적갈',
-    '구역 이름 초록',
-    '구역 이름 자주',
-    '구역 이름 청록초록',
-    '구역 이름 남보라',
-    '구역 이름 올리브',
+    '타이틀 청록',
+    '타이틀 적갈',
+    '타이틀 초록',
+    '타이틀 자주',
+    '타이틀 청록초록',
+    '타이틀 남보라',
+    '타이틀 올리브',
     '예배 준비',
   ]);
   const stage =
@@ -544,8 +544,7 @@ it('uses readable stage defaults and cover for built-in audience media', () => {
     for (const element of theme.screens[audience]?.elements ?? []) {
       if (element.kind !== 'background' && element.kind !== 'media') continue;
       const sectionBackground =
-        theme.name.startsWith('\uad6c\uc5ed \uc774\ub984') &&
-        element.kind === 'background';
+        theme.name.startsWith('타이틀') && element.kind === 'background';
       expect(element.fit).toBe(sectionBackground ? 'stretch' : 'fill');
     }
   }

@@ -69,7 +69,7 @@ it('uses the matching gradient in every section theme without a media background
 it('adds an editable section theme without changing the kind defaults or other screen layouts', () => {
   const defaults = createDefaultThemes();
   const theme = defaults.themes.find(theme => theme.id === SECTION_THEME_ID);
-  expect(theme?.name).toBe('구역 이름 청록');
+  expect(theme?.name).toBe('타이틀 청록');
   expect(Object.values(defaults.defaults)).not.toContain(SECTION_THEME_ID);
   const layout = theme?.screens[createScreenId(STARTER_SCREEN_IDS.main)];
   expect(layout?.background).toEqual(sectionGradient('청록'));

@@ -19,7 +19,7 @@ export function saveField(
   items
     .submitItemEdit({
       target: {serviceId: service.service.id, itemId: item.id},
-      failure: '\uad6c\uc5ed \uc774\ub984 \uc800\uc7a5 \uc2e4\ud328',
+      failure: '타이틀 \uc800\uc7a5 \uc2e4\ud328',
       change: current => {
         if (!hasSectionCard(current)) {
           return null;

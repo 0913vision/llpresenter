@@ -135,7 +135,7 @@ it('shows the picture and transition control for a card-only slide item', async 
     ...item,
     slides: {
       ...item.slides,
-      name: '구역 이름',
+      name: '타이틀',
       slides: [
         {
           id: createSlideId('00000000-0000-4000-8000-000000000122'),

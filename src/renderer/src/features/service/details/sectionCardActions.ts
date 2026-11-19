@@ -31,7 +31,7 @@ export function sectionCardEntries(
     {
       kind: 'item',
       id: 'section-card',
-      label: '구역 이름 슬라이드 추가',
+      label: '타이틀 슬라이드 추가',
       disabled,
       title: disabled
         ? '\uc9c0\uae08\uc740 \ucd94\uac00\ud560 \uc218 \uc5c6\uc2b5\ub2c8\ub2e4'
@@ -79,7 +79,7 @@ export function saveCard(
   items
     .submitItemEdit({
       target: {serviceId: service.service.id, itemId: item.id},
-      failure: '구역 이름 저장 실패',
+      failure: '타이틀 저장 실패',
       change: current => {
         if (
           !isItemOfKind(current, 'song') &&

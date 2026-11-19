@@ -37,12 +37,12 @@ export function ItemCardRow({
     ? `custom:${selected.id}`
     : (item.sectionCard?.name ?? '');
   return (
-    <PropertyRow label="구역 이름">
+    <PropertyRow label="타이틀">
       {({controlId}) => (
         <SelectMenu
           id={controlId}
           block
-          menuLabel="구역 이름"
+          menuLabel="타이틀"
           value={value}
           valueText={item.sectionCard?.name ?? '없음'}
           options={[

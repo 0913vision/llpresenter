@@ -172,7 +172,7 @@ it('uses the shared section, liturgy and blank factories for every remaining ele
         },
         createDefaultThemes(),
       )?.name,
-    ).toBe(`구역 이름 ${section.color}`);
+    ).toBe(`타이틀 ${section.color}`);
   }
   for (const kind of ['creed', 'prayer'] as const) {
     for (const translation of ['new', 'old'] as const) {

@@ -59,7 +59,7 @@ export function CustomSections({
       setEditing(null);
       setMenu(null);
     } catch {
-      setError('구역 이름을 저장하지 못했습니다. 다시 시도해 주세요.');
+      setError('타이틀을 저장하지 못했습니다. 다시 시도해 주세요.');
     } finally {
       setBusy(false);
     }
@@ -109,13 +109,13 @@ export function CustomSections({
           setEditing({id: crypto.randomUUID(), name: '', english: ''});
         }}
       >
-        + 구역 이름
+        + 타이틀
       </button>
       {error && editing === null ? <span role="alert">{error}</span> : null}
       {menu ? (
         <Menu
           context
-          label="구역 이름 관리"
+          label="타이틀 관리"
           anchor={menu.anchor}
           onClose={() => setMenu(null)}
           entries={[
@@ -141,7 +141,7 @@ export function CustomSections({
       ) : null}
       {editing ? (
         <Dialog
-          title="구역 이름"
+          title="타이틀"
           size="s"
           onCancel={() => setEditing(null)}
           primary={{
