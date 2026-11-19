@@ -1,3 +1,4 @@
+import {EventEmitter} from 'node:events';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {createAlphaMirror, unpremultiplyBgra} from '@main/outputs/alphaMirror';
 
@@ -38,6 +39,61 @@ describe('transparent NDI preview', () => {
     mirror.ack();
     await vi.advanceTimersByTimeAsync(200);
     expect(source.capturePage).toHaveBeenCalledTimes(2);
+  });
+
+  it('paints only on changes while previewing an inactive output', async () => {
+    vi.useFakeTimers();
+    const events = new EventEmitter();
+    let painting = false;
+    const image = {
+      isEmpty: () => false,
+      getSize: () => ({width: 640, height: 360}),
+      resize: () => ({toBitmap: () => new Uint8Array(640 * 360 * 4)}),
+    };
+    const source = {
+      isDestroyed: () => false,
+      isPainting: () => painting,
+      startPainting: vi.fn(() => {
+        painting = true;
+      }),
+      stopPainting: vi.fn(() => {
+        painting = false;
+      }),
+      capturePage: vi.fn().mockResolvedValue(image),
+      on: events.on.bind(events),
+      removeListener: events.removeListener.bind(events),
+    };
+    let active = false;
+    const mirror = createAlphaMirror({
+      source: () => source,
+      send: vi.fn(),
+      outputActive: () => active,
+    });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(source.startPainting).toHaveBeenCalledOnce();
+    expect(source.capturePage).toHaveBeenCalledOnce();
+    mirror.ack();
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(source.capturePage).toHaveBeenCalledOnce();
+    events.emit('paint');
+    await vi.advanceTimersByTimeAsync(50);
+    expect(source.capturePage).toHaveBeenCalledTimes(2);
+    active = true;
+    mirror.stop();
+    expect(source.stopPainting).not.toHaveBeenCalled();
+    expect(events.listenerCount('paint')).toBe(0);
+
+    painting = false;
+    active = false;
+    const hidden = createAlphaMirror({
+      source: () => source,
+      send: vi.fn(),
+      outputActive: () => active,
+    });
+    await vi.advanceTimersByTimeAsync(0);
+    hidden.stop();
+    expect(source.stopPainting).toHaveBeenCalledOnce();
+    expect(events.listenerCount('paint')).toBe(0);
   });
 
   it('contains a wide output inside the preview without stretching it', async () => {

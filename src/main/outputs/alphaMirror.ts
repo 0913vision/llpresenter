@@ -33,9 +33,15 @@ export function unpremultiplyBgra(source: Uint8Array): Uint8Array {
 export function createAlphaMirror({
   source,
   send,
+  outputActive = () => false,
 }: {
   readonly source: () => {
     isDestroyed(): boolean;
+    isPainting?(): boolean;
+    startPainting?(): void;
+    stopPainting?(): void;
+    on?(event: 'paint', listener: () => void): unknown;
+    removeListener?(event: 'paint', listener: () => void): unknown;
     capturePage(): Promise<{
       isEmpty(): boolean;
       getSize(): {width: number; height: number};
@@ -45,30 +51,80 @@ export function createAlphaMirror({
     }>;
   } | null;
   readonly send: (frame: Uint8Array) => void;
+  readonly outputActive?: () => boolean;
 }): {ack(): void; stop(): void} {
   let active = true;
   let generation = 0;
   let inFlight = false;
+  let capturing = false;
   let due = 0;
   let timer: ReturnType<typeof setTimeout> | undefined;
+  let watched: ReturnType<typeof source> = null;
+  let paintingForPreview = false;
+  let dirty = true;
+  const onPaint = (): void => {
+    dirty = true;
+    schedule(Math.max(0, due - performance.now()));
+  };
+  const detach = (): void => {
+    watched?.removeListener?.('paint', onPaint);
+    if (
+      paintingForPreview &&
+      watched &&
+      !watched.isDestroyed() &&
+      !outputActive()
+    ) {
+      watched.stopPainting?.();
+    }
+    watched = null;
+    paintingForPreview = false;
+  };
+  const watch = (): void => {
+    const next = source();
+    if (next !== watched) {
+      detach();
+      generation++;
+      watched = next;
+      watched?.on?.('paint', onPaint);
+      dirty = true;
+      schedule(0);
+    }
+    if (watched && !watched.isDestroyed() && watched.isPainting?.() === false) {
+      watched.startPainting?.();
+      paintingForPreview = true;
+      dirty = true;
+      schedule(0);
+    }
+  };
   const schedule = (delay: number): void => {
-    if (!active || inFlight || timer !== undefined) return;
+    if (!active || inFlight || capturing || timer !== undefined) return;
     timer = setTimeout(() => {
       timer = undefined;
       capture().catch(() => schedule(500));
     }, delay);
   };
   const capture = async (): Promise<void> => {
-    if (!active || inFlight) return;
-    const contents = source();
+    if (!active || inFlight || capturing) return;
+    watch();
+    const contents = watched;
     if (contents === null || contents.isDestroyed()) {
       schedule(500);
       return;
     }
+    dirty = false;
     due = performance.now() + INTERVAL_MS;
     const own = generation;
-    const image = await contents.capturePage();
-    if (own !== generation) return;
+    capturing = true;
+    let image: Awaited<ReturnType<typeof contents.capturePage>>;
+    try {
+      image = await contents.capturePage();
+    } finally {
+      capturing = false;
+    }
+    if (own !== generation) {
+      schedule(0);
+      return;
+    }
     if (image.isEmpty()) {
       schedule(500);
       return;
@@ -102,17 +158,23 @@ export function createAlphaMirror({
     inFlight = true;
     send(frame);
   };
+  const heartbeat = setInterval(watch, 500);
+  watch();
   schedule(0);
   return {
     ack: () => {
       if (!active || !inFlight) return;
       inFlight = false;
-      schedule(Math.max(0, due - performance.now()));
+      if (dirty || watched?.on === undefined) {
+        schedule(Math.max(0, due - performance.now()));
+      }
     },
     stop: () => {
       active = false;
       generation++;
       if (timer !== undefined) clearTimeout(timer);
+      clearInterval(heartbeat);
+      detach();
       timer = undefined;
     },
   };

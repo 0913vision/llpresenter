@@ -303,6 +303,7 @@ export function startOutputs({
         screenId,
         createAlphaMirror({
           source: () => outputs.previewContents(screenId),
+          outputActive: () => store.state.outputs[screenId] === true,
           send: sink,
         }),
       );
