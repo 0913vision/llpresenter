@@ -78,7 +78,10 @@ export class OpenServiceFeed {
   private refreshing: Promise<void> | null = null;
   private disposed = false;
   private initialized = false;
-  private readonly bibleProjections = new Map<string, BibleProjectionPayload>();
+  private readonly bibleProjections = new Map<
+    string,
+    {readonly item: string; readonly projection: BibleProjectionPayload}
+  >();
   private originalTiles: ShowService['tiles'] = {};
   private readonly liveLoads = new Map<string, 'loading' | 'failed' | 'done'>();
   private readonly liveQueue: Array<{
@@ -98,35 +101,40 @@ export class OpenServiceFeed {
     return this.shown;
   }
 
-  private validProjection(next: BibleProjectionPayload): boolean {
-    const service =
-      this.sources.serviceId === null
-        ? undefined
-        : this.sources.content.storedService(this.sources.serviceId);
-    const item = service?.data.order.find(item => item.id === next.itemId);
+  private projectionSettingsMatch(next: BibleProjectionPayload): boolean {
     const settings = this.sources.settings;
     return (
-      service?.data.id === next.serviceId &&
-      service.revision === next.revision &&
-      item !== undefined &&
-      isItemOfKind(item, 'bible') &&
       settings?.get('themes').revision === next.measurement.themes &&
-      settings.get('screens').revision === next.measurement.screens &&
-      settings.get('bibleCuts').revision === next.measurement.bibleCuts
+      settings.get('screens').revision === next.measurement.screens
     );
   }
 
   acceptBibleProjection(next: BibleProjectionPayload): void {
-    if (this.disposed || !this.validProjection(next)) return;
+    if (this.disposed || !this.projectionSettingsMatch(next)) return;
+    const service =
+      this.sources.serviceId === null
+        ? undefined
+        : this.sources.content.storedService(this.sources.serviceId);
+    if (
+      service?.data.id !== next.serviceId ||
+      service.revision !== next.revision
+    ) {
+      return;
+    }
+    const item = service.data.order.find(item => item.id === next.itemId);
+    if (item === undefined || !isItemOfKind(item, 'bible')) return;
     const original = this.originalTiles[next.itemId];
     if (original === undefined || !matchingVerses(original, next.tiles)) return;
     if (
-      JSON.stringify(this.bibleProjections.get(next.itemId)) ===
+      JSON.stringify(this.bibleProjections.get(next.itemId)?.projection) ===
       JSON.stringify(next)
     ) {
       return;
     }
-    this.bibleProjections.set(next.itemId, next);
+    this.bibleProjections.set(next.itemId, {
+      item: JSON.stringify(item),
+      projection: next,
+    });
     this.refresh().catch(this.reportError);
   }
 
@@ -284,6 +292,7 @@ export class OpenServiceFeed {
             reportError: this.reportError,
             isCurrent: () => this.canPublish(),
           });
+    if (!this.canPublish()) return null;
     const loading =
       passages === undefined
         ? new Set<string>()
@@ -300,10 +309,13 @@ export class OpenServiceFeed {
     });
     this.originalTiles = built.tiles;
     const tiles = {...built.tiles};
-    for (const [id, projection] of this.bibleProjections) {
+    const items = new Map(service.data.order.map(item => [item.id, item]));
+    for (const [id, {item, projection}] of this.bibleProjections) {
       const original = tiles[id];
       if (
-        !this.validProjection(projection) ||
+        projection.serviceId !== service.data.id ||
+        !this.projectionSettingsMatch(projection) ||
+        item !== JSON.stringify(items.get(projection.itemId)) ||
         original === undefined ||
         !matchingVerses(original, projection.tiles)
       ) {

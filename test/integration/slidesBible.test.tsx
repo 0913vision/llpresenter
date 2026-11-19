@@ -352,8 +352,8 @@ async function chooseRange(
 
 async function confirmRange(beforeConfirm: () => void): Promise<void> {
   for (const verse of ['요한복음 3:16', '요한복음 3:17']) {
-    const review = await screen.findByRole('dialog', {name: '절 나누기'});
-    await within(review).findByText(verse);
+    await screen.findByText(verse);
+    const review = screen.getByRole('dialog', {name: '절 나누기'});
     const confirm = within(review).getByRole('button', {name: '확정'});
     await waitFor(() =>
       expect(confirm.getAttribute('aria-disabled')).not.toBe('true'),

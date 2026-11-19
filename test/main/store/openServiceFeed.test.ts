@@ -184,30 +184,35 @@ describe('OpenServiceFeed', () => {
         },
       });
     let revision = 1;
+    let cutsRevision = 1;
     const settings: SettingsReader = {
-      get: () => settingsDocument('bibleCuts', {entries: {}}, revision),
+      get: name =>
+        settingsDocument(
+          'bibleCuts',
+          {entries: {}},
+          name === 'bibleCuts' ? cutsRevision : revision,
+        ),
       preferences: () => defaultPreferences,
       subscribe: () => () => undefined,
     };
     const {feed, content, current} = await setUp(undefined, {lookup}, settings);
     const id = createServiceItemId(itemId(62));
+    const item = {
+      id,
+      bible: {
+        translation: request.value.translation,
+        ref: request.value.input,
+        split: 'verse',
+        reference: 'every' as const,
+        verseNumbers: true,
+        translationName: false,
+      },
+    };
     content.storedService.mockReturnValue({
       ...current,
       data: {
         ...current.data,
-        order: [
-          {
-            id,
-            bible: {
-              translation: request.value.translation,
-              ref: request.value.input,
-              split: 'verse',
-              reference: 'every',
-              verseNumbers: true,
-              translationName: false,
-            },
-          },
-        ],
+        order: [item],
       },
     });
     await feed.refresh();
@@ -262,6 +267,33 @@ describe('OpenServiceFeed', () => {
       '요3:17',
       '요3:18',
     ]);
+    cutsRevision = 2;
+    await feed.refresh();
+    expect(feed.current()?.tiles[id]).toEqual(projection.value.tiles);
+    content.storedService.mockReturnValue({
+      ...current,
+      revision: 2,
+      data: {
+        ...current.data,
+        order: [item, {...item, id: createServiceItemId(itemId(63))}],
+      },
+    });
+    let finishLookup = (): void => undefined;
+    let reading = false;
+    const waiting = new Promise<void>(resolve => {
+      finishLookup = resolve;
+    });
+    lookup.mockImplementationOnce(async request => {
+      reading = true;
+      await waiting;
+      return lookup(request);
+    });
+    const first = feed.refresh();
+    await vi.waitFor(() => expect(reading).toBe(true));
+    const latest = feed.refresh();
+    finishLookup();
+    await Promise.all([first, latest]);
+    expect(feed.current()?.tiles[id]).toEqual(projection.value.tiles);
     revision = 2;
     await feed.refresh();
     expect(feed.current()?.tiles[id]).toHaveLength(3);

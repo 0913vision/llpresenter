@@ -285,7 +285,15 @@ function selectSavedPassage(lookup: typeof passage) {
   vi.spyOn(api.services, 'get').mockImplementation(async () => doc);
   vi.spyOn(api.content, 'edit').mockImplementation(async request => {
     if (request.type !== 'service.update') throw Error('Unexpected edit');
-    doc = {...doc, revision: doc.revision + 1, service: request.service};
+    const parsed = parseServiceDocument({
+      ...doc,
+      revision: doc.revision + 1,
+      service: request.service,
+    });
+    if (!parsed.ok || parsed.value === null) {
+      throw Error('Invalid service edit');
+    }
+    doc = parsed.value;
     publish();
     return {ok: true, value: {id: serviceId, revision: doc.revision}};
   });

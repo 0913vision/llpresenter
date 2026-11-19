@@ -150,11 +150,7 @@ async function createContent(
   );
   const removeSettingsListener =
     settings?.subscribe(document => {
-      if (
-        ['labels', 'bible', 'themes', 'screens', 'bibleCuts'].includes(
-          document.name,
-        )
-      ) {
+      if (['labels', 'bible', 'themes', 'screens'].includes(document.name)) {
         feed
           .refresh()
           .catch((error: unknown) =>

@@ -1,4 +1,10 @@
-import {useEffect, useRef, useSyncExternalStore, type JSX} from 'react';
+import {
+  useEffectEvent,
+  useLayoutEffect,
+  useRef,
+  useSyncExternalStore,
+  type JSX,
+} from 'react';
 import type {RecentPassage} from '@core/schema/bible';
 import {recentPassages} from '@core/bible/bibleRecents';
 import {displayReference} from '@core/bible/displayReference';
@@ -40,47 +46,48 @@ export function RecentPassages({
         }))
       : [],
   );
-  useEffect(() => {
+  const pickInDialog = useEffectEvent((event: KeyboardEvent): void => {
+    const dialog = root.current?.closest('[role="dialog"]');
+    if (
+      !dialog ||
+      !(event.target instanceof Node) ||
+      !dialog.contains(event.target) ||
+      event.defaultPrevented ||
+      isInputMethodKey(event) ||
+      editsText(event) ||
+      event.repeat ||
+      disabled
+    ) {
+      return;
+    }
+    const index = entries.findIndex((_entry, at) =>
+      commandBindings(`bible.recent${at + 1}`, bindings).some(binding =>
+        matchesBinding(event, binding),
+      ),
+    );
+    const recent = entries[index];
+    if (!recent) return;
+    if (
+      commandBindingStore
+        .conflicts()
+        .some(
+          conflict =>
+            conflict.second === `bible.recent${index + 1}` &&
+            matchesBinding(event, conflict.binding),
+        )
+    ) {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    onPick(recent);
+  });
+  useLayoutEffect(() => {
     if (scope !== 'dialog') return undefined;
-    const keydown = (event: KeyboardEvent): void => {
-      const dialog = root.current?.closest('[role="dialog"]');
-      if (
-        !dialog ||
-        !(event.target instanceof Node) ||
-        !dialog.contains(event.target) ||
-        event.defaultPrevented ||
-        isInputMethodKey(event) ||
-        editsText(event) ||
-        event.repeat ||
-        disabled
-      ) {
-        return;
-      }
-      const index = entries.findIndex((_entry, at) =>
-        commandBindings(`bible.recent${at + 1}`, bindings).some(binding =>
-          matchesBinding(event, binding),
-        ),
-      );
-      const recent = entries[index];
-      if (!recent) return;
-      if (
-        commandBindingStore
-          .conflicts()
-          .some(
-            conflict =>
-              conflict.second === `bible.recent${index + 1}` &&
-              matchesBinding(event, conflict.binding),
-          )
-      ) {
-        return;
-      }
-      event.preventDefault();
-      event.stopPropagation();
-      onPick(recent);
-    };
+    const keydown = (event: KeyboardEvent): void => pickInDialog(event);
     window.addEventListener('keydown', keydown, true);
     return () => window.removeEventListener('keydown', keydown, true);
-  }, [scope, bindings, entries, disabled, onPick]);
+  }, [scope]);
   return (
     <div ref={root} className={styles.recents} aria-label="최근 성경 구절">
       {Array.from({length: 10}, (_, index) => {
