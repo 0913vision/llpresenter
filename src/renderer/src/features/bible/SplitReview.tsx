@@ -1,16 +1,51 @@
 import {useEffect, useMemo, useRef, useState, type JSX} from 'react';
 import {BIBLE_BOOKS} from '@core/bible/bibleBooks';
 import {cutsOfVerse, type VerseInput} from '@core/bible/split/splitVerses';
-import {planSlides} from '@core/bible/split/manualSplit';
+import {
+  offsetsFromChunks,
+  planSlides,
+  planSlidesAtOffsets,
+} from '@core/bible/split/manualSplit';
+import type {BibleCutSelection} from '@core/schema/bibleCuts';
 import type {BibleProjection} from './splitProjection';
 import {verseKey} from './BibleRefinements';
 import {SplitEditor} from './SplitEditor';
+
+function reviewPlan(
+  projection: BibleProjection,
+  verse: VerseInput,
+  suggestion: readonly number[] | undefined,
+) {
+  const key = verseKey(verse.reference);
+  const parts = projection.parts.filter(
+    part => verseKey(part.reference) === key,
+  );
+  const prefix = projection.numbered ? `${verse.reference.verse} ` : '';
+  const layout = {...projection.layout, prefix};
+  const cuts = suggestion ?? cutsOfVerse(parts, verse.reference);
+  const plan = planSlides(verse.text, cuts, layout);
+  const sameParts =
+    parts.length === plan.slides.length &&
+    parts.every((part, index) => part.text === plan.slides[index]?.text);
+  if (plan.ok && (suggestion !== undefined || sameParts)) return {cuts, plan};
+
+  const offsets = offsetsFromChunks(verse.text, parts);
+  const automatic =
+    offsets === undefined
+      ? null
+      : planSlidesAtOffsets(verse.text, offsets, layout);
+  if (automatic?.ok && offsets !== undefined) {
+    return {cuts: automatic.cuts, plan: automatic, offsets};
+  }
+  return {cuts, plan};
+}
 
 /** Reads later pages from current results while the visible page keeps its own edits. */
 export function SplitReview({
   projection,
   references,
   pending,
+  suggestCuts,
   onConfirm,
   onComplete,
   onCancel,
@@ -18,9 +53,12 @@ export function SplitReview({
   readonly projection: BibleProjection;
   readonly references: ReadonlyArray<VerseInput['reference']>;
   readonly pending: ReadonlySet<string>;
+  readonly suggestCuts?:
+    | ((verse: VerseInput, prefix: string) => readonly number[] | undefined)
+    | undefined;
   readonly onConfirm: (
     verse: VerseInput,
-    cuts: readonly number[],
+    cuts: BibleCutSelection,
   ) => Promise<void>;
   readonly onComplete: () => void;
   readonly onCancel: () => void;
@@ -41,14 +79,13 @@ export function SplitReview({
           verse => verseKey(verse.reference) === key,
         );
         if (verse === undefined) return [];
-        const cuts = cutsOfVerse(projection.parts, reference);
         const prefix = projection.numbered ? `${reference.verse} ` : '';
-        const plan = pending.has(key)
+        const prepared = pending.has(key)
           ? undefined
-          : planSlides(verse.text, cuts, {...projection.layout, prefix});
-        return [{key, verse, cuts, prefix, plan}];
+          : reviewPlan(projection, verse, suggestCuts?.(verse, prefix));
+        return [{key, verse, prefix, prepared}];
       }),
-    [references, projection, pending],
+    [references, projection, pending, suggestCuts],
   );
   const entry = queue[position];
   if (entry === undefined) return null;
@@ -57,19 +94,24 @@ export function SplitReview({
     <SplitEditor
       key={entry.key}
       verse={entry.verse}
-      cuts={entry.cuts}
+      cuts={entry.prepared?.cuts ?? []}
       prefix={entry.prefix}
       label={`${BIBLE_BOOKS.find(book => book.id === reference.book)?.korean ?? '성경'} ${reference.chapter}:${reference.verse}`}
       layout={projection.layout}
       element={projection.element}
       appearance={projection.appearance}
       pending={pending.has(entry.key)}
-      preparedPlan={entry.plan}
+      preparedPlan={entry.prepared?.plan}
+      ruleBased={entry.prepared?.offsets !== undefined}
       position={position}
       total={queue.length}
       onCancel={onCancel}
       onConfirm={async cuts => {
-        await onConfirm(entry.verse, cuts);
+        const offsets = entry.prepared?.offsets;
+        await onConfirm(
+          entry.verse,
+          offsets === undefined ? {cuts} : {cuts: offsets, unit: 'character'},
+        );
         if (!active.current) return;
         if (position + 1 < queue.length) setPosition(position + 1);
         else onComplete();

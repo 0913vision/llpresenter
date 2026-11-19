@@ -56,11 +56,8 @@ it.each(['click', 'shortcut'] as const)(
     if (method === 'click') fireEvent.click(tenth);
     else {
       fireEvent.blur(window);
-      fireEvent.keyDown(screen.getByRole('combobox', {name: '책'}), {
-        key: '0',
-        code: 'Digit0',
-        altKey: true,
-      });
+      screen.getByRole('combobox', {name: '책'}).focus();
+      await userEvent.setup().keyboard('[AltLeft>][Digit0][/AltLeft]');
     }
     expect(fixture.lookup).toHaveBeenCalledWith({
       input: '\uC694\uD55C\uBCF5\uC74C 3:10',

@@ -350,6 +350,20 @@ async function chooseRange(
   return screen.findByRole('dialog');
 }
 
+async function confirmRange(beforeConfirm: () => void): Promise<void> {
+  for (const verse of ['요한복음 3:16', '요한복음 3:17']) {
+    await screen.findByText(verse);
+    const review = screen.getByRole('dialog', {name: '절 나누기'});
+    const confirm = within(review).getByRole('button', {name: '확정'});
+    await waitFor(() =>
+      expect(confirm.getAttribute('aria-disabled')).not.toBe('true'),
+    );
+    beforeConfirm();
+    fireEvent.click(confirm);
+  }
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+}
+
 it('inserts the range without review when automatic opening is off', async () => {
   const f = fixture(slidesItem('blank'), true);
   vi.spyOn(f.api.preferences, 'get').mockResolvedValue({
@@ -381,12 +395,13 @@ it('inserts the range without review when automatic opening is off', async () =>
   view.unmount();
 });
 
-it('inserts the automatically split range after selection as one undo step, saves references only, and reopens cuts with Ctrl E', async () => {
+it('inserts the reviewed range after selection as one undo step, saves references only, and reopens cuts with Ctrl E', async () => {
   const f = fixture(slidesItem('blank'), true);
   const session = new ControlSession(f.api);
   const view = render(<SlidesEditorHarness session={session} />);
   try {
-    await chooseRange();
+    await chooseRange(false);
+    await confirmRange(() => expect(f.content).not.toHaveBeenCalled());
     expect(screen.queryByRole('dialog')).toBeNull();
     await waitFor(() =>
       expect(view.container.querySelectorAll('[data-slide-id]')).toHaveLength(
@@ -427,7 +442,9 @@ it('inserts the automatically split range after selection as one undo step, save
       throw Error('Missing saved slides');
     }
     expect(item.slides.slides[1]).toHaveProperty('verse.verse', 16);
+    expect(item.slides.slides[1]).toHaveProperty('cut.cuts');
     expect(item.slides.slides[2]).toHaveProperty('verse.verse', 17);
+    expect(item.slides.slides[2]).toHaveProperty('cut.cuts');
     expect(item.slides.slides[3]).toHaveProperty('media', SLIDE_PICTURE);
     expect(JSON.stringify(item)).not.toContain(MOCK_LONG_VERSE);
     fireEvent.keyDown(selected, {code: 'KeyZ', key: 'z', ctrlKey: true});
@@ -438,6 +455,60 @@ it('inserts the automatically split range after selection as one undo step, save
     );
     expect(view.container.querySelectorAll('[data-slide-id]')).toHaveLength(5);
     expect(f.send).not.toHaveBeenCalled();
+  } finally {
+    view.unmount();
+    await session.dispose();
+  }
+});
+
+it('keeps existing verse rows when an overlapping insertion is cancelled after one confirmation', async () => {
+  const f = fixture(slidesBibleItem(), true);
+  const session = new ControlSession(f.api);
+  const view = render(<SlidesEditorHarness session={session} />);
+  const existingPart = () =>
+    previewSpec(
+      view.container.querySelector(`[data-slide-id="${VERSE_SLIDE}"]`),
+    )?.layers.slide;
+  try {
+    await waitFor(() => expect(existingPart()?.biblePart).toBe(1));
+    const before = existingPart();
+    await chooseRange(false);
+    const review = () => screen.getByRole('dialog', {name: '절 나누기'});
+    await waitFor(() => within(review()).getByText('요한복음 3:16'));
+    const first = review();
+    const name = /에서 자르기$/;
+    const [suggested] = within(first).getAllByRole('button', {
+      name,
+      pressed: true,
+    });
+    const [extra] = within(first).getAllByRole('button', {
+      name,
+      pressed: false,
+    });
+    if (suggested === undefined || extra === undefined) {
+      throw Error('Missing cut controls');
+    }
+    // NOTE(0913vision): Restore the suggested gap as a manual cut to carry over the other gaps.
+    fireEvent.click(suggested);
+    fireEvent.click(suggested);
+    fireEvent.click(extra);
+    const confirm = within(first).getByRole('button', {name: '확정'});
+    expect(confirm.getAttribute('aria-disabled')).not.toBe('true');
+    fireEvent.click(confirm);
+    await waitFor(() => within(review()).getByText('요한복음 3:17'));
+    const cuts = f.documents.get('bibleCuts');
+    expect(
+      cuts?.name === 'bibleCuts' && Object.keys(cuts.value.entries),
+    ).toHaveLength(1);
+    expect(existingPart()).toEqual(before);
+    fireEvent.keyDown(review(), {
+      code: 'Escape',
+      key: 'Escape',
+    });
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(existingPart()).toEqual(before);
+    expect(view.container.querySelectorAll('[data-slide-id]')).toHaveLength(6);
+    expect(f.content).not.toHaveBeenCalled();
   } finally {
     view.unmount();
     await session.dispose();
@@ -493,7 +564,10 @@ it.each([true, false])(
     const session = new ControlSession(f.api);
     const view = render(<SlidesEditorHarness session={session} />);
     try {
-      await chooseRange();
+      await chooseRange(!autoOpen);
+      if (autoOpen) {
+        await confirmRange(() => expect(f.content).not.toHaveBeenCalled());
+      }
       expect(screen.queryByRole('dialog')).toBeNull();
       await waitFor(() =>
         expect(view.container.querySelectorAll('[data-slide-id]')).toHaveLength(

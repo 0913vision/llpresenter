@@ -1,6 +1,7 @@
 import {rememberLiveAnchor, resolveLiveAnchor} from './liveAnchor';
 import {acceptSongPictureDrafts} from '@core/presentation/songPictureDrafts';
 import {QUICK_BIBLE_TRANSITION} from '@core/bible/quickTransition';
+import {retainedBibleSelection} from '@core/bible/selection';
 import {beginQuickPassage, finishQuickPassage} from './quickReturn';
 import {parseReference} from '@core/bible/reference';
 import type {ShowRow} from '@core/schema/showService';
@@ -772,9 +773,23 @@ function keptSelection(
   if (isLibrarySource(view, openItemId) || isBibleSource(view, openItemId)) {
     return {openItemId, selectedTile};
   }
-  const stillThere =
-    openItemId !== null && service.rows.some(row => row.id === openItemId);
-  if (!stillThere) return {openItemId: null, selectedTile: 0};
+  const row = service.rows.find(row => row.id === openItemId);
+  if (row === undefined || openItemId === null) {
+    return {openItemId: null, selectedTile: 0};
+  }
+  if (row.kind === 'bible') {
+    return {
+      openItemId,
+      selectedTile: retainedBibleSelection(
+        tilesForView(view, openItemId),
+        selectedTile,
+        tilesForView(
+          {...view, rows: service.rows, tiles: service.tiles},
+          openItemId,
+        ),
+      ),
+    };
+  }
   const last = Math.max(0, (service.tiles[openItemId]?.length ?? 0) - 1);
   return {openItemId, selectedTile: Math.min(selectedTile, last)};
 }

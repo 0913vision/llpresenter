@@ -38,6 +38,9 @@ export class BibleRefinements {
   ): readonly number[] | undefined {
     return this.cuts.get(this.key(verse, element, prefix));
   }
+  clear(): void {
+    this.cuts.clear();
+  }
   put(
     verse: VerseInput,
     element: BibleTextElement,
@@ -51,8 +54,6 @@ export class BibleRefinements {
     this.cuts.set(key, [...cuts]);
   }
 }
-
-export const bibleRefinements = new BibleRefinements();
 
 export interface RefinementProgress {
   readonly initialized: boolean;
@@ -77,8 +78,18 @@ export class BibleRefinementRun {
   constructor(
     private readonly api: LlpApi['bible'] | undefined,
     private readonly projection: BibleProjection | null,
-    private readonly cache = bibleRefinements,
+    private readonly cache = new BibleRefinements(),
   ) {}
+
+  readonly suggestCuts = (
+    verse: VerseInput,
+    prefix: string,
+  ): readonly number[] | undefined => {
+    const element = this.projection?.element;
+    return element === undefined
+      ? undefined
+      : this.cache.get(verse, element, prefix);
+  };
 
   private publish(pending: ReadonlySet<string>, initialized = true): void {
     this.progress = {initialized, pending};
@@ -87,6 +98,7 @@ export class BibleRefinementRun {
 
   readonly cancel = (): void => {
     this.generation++;
+    this.cache.clear();
     const lookupId = this.lookupId;
     this.lookupId = undefined;
     this.publish(new Set());
@@ -99,7 +111,11 @@ export class BibleRefinementRun {
     }
   };
 
-  async start(): Promise<void> {
+  async start({
+    references,
+  }: {
+    readonly references?: ReadonlyArray<VerseInput['reference']> | undefined;
+  } = {}): Promise<void> {
     const generation = ++this.generation;
     const current = (): boolean => this.generation === generation;
     const projection = this.projection;
@@ -112,12 +128,14 @@ export class BibleRefinementRun {
       this.publish(new Set());
       return;
     }
-    const references = new Set(versesToReview(projection.parts).map(verseKey));
+    const requested = new Set(
+      (references ?? versesToReview(projection.parts)).map(verseKey),
+    );
     const prefixOf = (verse: VerseInput): string =>
       projection.numbered ? `${verse.reference.verse} ` : '';
     const verses = projection.verses.filter(
       verse =>
-        references.has(verseKey(verse.reference)) &&
+        requested.has(verseKey(verse.reference)) &&
         this.cache.get(verse, projection.element, prefixOf(verse)) ===
           undefined,
     );

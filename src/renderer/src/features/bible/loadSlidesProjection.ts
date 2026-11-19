@@ -7,9 +7,11 @@ import {colorSlideLabels, projectSlides} from '@core/presentation/slides';
 import {createBibleMeasureContext} from '@renderer/rendering/bibleMeasure';
 import {BibleProjections} from './splitProjection';
 
+type VerseLookup = Pick<VerseSlide, 'id' | 'verse'>;
+
 export async function loadVersePassages(
   api: LlpApi['bible'],
-  references: readonly VerseSlide[],
+  references: readonly VerseLookup[],
   isCurrent: () => boolean = () => true,
 ): Promise<ReadonlyMap<string, BibleLookupPassage>> {
   const passages = new Map<string, BibleLookupPassage>();
@@ -59,26 +61,20 @@ export async function loadSlidesProjection(
   const references = item.slides.slides.filter(
     (slide): slide is VerseSlide => 'verse' in slide,
   );
-  const [themes, screens, cuts, labels, passages, preferences] =
-    await Promise.all([
-      api.settings.get({name: 'themes'}),
-      api.settings.get({name: 'screens'}),
-      api.settings.get({name: 'bibleCuts'}),
-      item.slides.slides.some(slide => slide.label !== undefined)
-        ? api.settings.get({name: 'labels'}).catch(() => null)
-        : Promise.resolve(null),
-      loadVersePassages(api.bible, references, isCurrent),
-      window.llp?.preferences.get(),
-    ]);
+  const [themes, screens, labels, passages, preferences] = await Promise.all([
+    api.settings.get({name: 'themes'}),
+    api.settings.get({name: 'screens'}),
+    item.slides.slides.some(slide => slide.label !== undefined)
+      ? api.settings.get({name: 'labels'}).catch(() => null)
+      : Promise.resolve(null),
+    loadVersePassages(api.bible, references, isCurrent),
+    window.llp?.preferences.get(),
+  ]);
   if (!isCurrent()) return null;
   if (passages.size !== references.length) {
     throw Error('성경 구절 불러오기 실패');
   }
-  if (
-    themes.name !== 'themes' ||
-    screens.name !== 'screens' ||
-    cuts.name !== 'bibleCuts'
-  ) {
+  if (themes.name !== 'themes' || screens.name !== 'screens') {
     throw Error('테마 불러오기 실패');
   }
   const canvas = createBibleMeasureContext();
@@ -86,7 +82,7 @@ export async function loadSlidesProjection(
   const projection = new BibleProjections({
     themes: themes.value,
     screens: screens.value.screens,
-    saved: cuts.value,
+    saved: undefined,
     canvas,
     slideBibleDefaults: preferences?.bible.defaults,
   }).get({
@@ -105,6 +101,7 @@ export async function loadSlidesProjection(
     reference: 'every',
     translationName: false,
     source: 'service',
+    review: false,
     ...(item.background === undefined ? {} : {background: item.background}),
     ...(item.theme === undefined ? {} : {theme: item.theme}),
   });

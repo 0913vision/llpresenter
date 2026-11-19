@@ -1,23 +1,10 @@
 import type {BibleLookupPassage} from '@core/schema/bibleLookup';
 import {outputTile, useShow} from '@renderer/session/show';
-import {
-  beginOutputRequest,
-  isOutputRequestCurrent,
-} from '@renderer/session/showOutput';
+import {beginOutputRequest} from '@renderer/session/showOutput';
 import {useLive} from '@renderer/session/live';
 import {bibleSourceFor, tilesForView} from '@renderer/session/showLibrary';
 import {bibleSource, type BiblePreviewOptions} from '@core/bible/source';
 import {retainedBibleSelection} from '@core/bible/selection';
-
-type ReviewHandler = (sourceId: string, output: () => void) => boolean;
-let reviewHandler: ReviewHandler | null = null;
-
-export function installBibleReviewHandler(handler: ReviewHandler): () => void {
-  reviewHandler = handler;
-  return () => {
-    if (reviewHandler === handler) reviewHandler = null;
-  };
-}
 
 function samePassage(
   first: BibleLookupPassage,
@@ -32,7 +19,10 @@ export function openBiblePassage(
   {
     ready = false,
     waitForLive = false,
-  }: {readonly ready?: boolean; readonly waitForLive?: boolean} = {},
+  }: {
+    readonly ready?: boolean;
+    readonly waitForLive?: boolean;
+  } = {},
 ): void {
   const source = bibleSource(passage, options);
   const view = useShow.getState();
@@ -118,18 +108,6 @@ export function showBiblePassage(
   );
   const view = useShow.getState();
   if (view.openItemId !== null) {
-    const id = view.openItemId;
-    const request = beginOutputRequest();
-    const version = useLive.getState().commandVersion;
-    const output = (): void => {
-      const current = useShow.getState();
-      if (
-        current.openItemId === id &&
-        isOutputRequestCurrent(request, version)
-      ) {
-        outputTile({itemId: id, index: current.selectedTile});
-      }
-    };
-    if (reviewHandler?.(id, output) !== true) output();
+    outputTile({itemId: view.openItemId, index: view.selectedTile});
   }
 }

@@ -139,13 +139,24 @@ describe('Bible refinement run', () => {
     expect(f.api.chooseBoundary).not.toHaveBeenCalled();
   });
 
-  it('reuses unsaved refinements for the same text and layout and uses rules with AI unavailable', async () => {
+  it('starts a fresh review without reusing unconfirmed suggestions', async () => {
     const f = setup();
-    await new BibleRefinementRun(f.api, f.projection, f.cache).start();
-    expect(f.api.chooseBoundary).toHaveBeenCalled();
+    const verse = f.projection.verses[0];
+    if (verse === undefined) throw Error('Missing verse');
+    const first = new BibleRefinementRun(f.api, f.projection);
+    await first.start();
+    expect(first.suggestCuts(verse, '')).toBeDefined();
+    first.cancel();
+    expect(first.suggestCuts(verse, '')).toBeUndefined();
+    const next = new BibleRefinementRun(f.api, f.projection);
+    expect(next.suggestCuts(verse, '')).toBeUndefined();
     vi.mocked(f.api.chooseBoundary).mockClear();
-    await new BibleRefinementRun(f.api, f.projection, f.cache).start();
-    expect(f.api.chooseBoundary).not.toHaveBeenCalled();
+    await next.start();
+    expect(f.api.chooseBoundary).toHaveBeenCalled();
+  });
+
+  it('uses rules with AI unavailable', async () => {
+    const f = setup();
     vi.spyOn(f.api, 'getLlmStatus').mockResolvedValue({
       status: 'missing',
       available: false,

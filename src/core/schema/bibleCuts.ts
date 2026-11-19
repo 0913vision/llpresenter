@@ -21,6 +21,7 @@ const cutSchema = v.pipe(
 );
 export const bibleCutEntrySchema = jsonObject({
   hash: v.pipe(v.string(), v.regex(/^[0-9a-f]{8}$/)),
+  unit: v.exactOptional(v.literal('character')),
   cuts: v.pipe(
     v.array(cutSchema),
     v.maxLength(BIBLE_CUTS_LIMITS.cuts),
@@ -43,6 +44,12 @@ const verseKeySchema = v.pipe(
       verse <= BIBLE_LOOKUP_LIMITS.verses
     );
   }, 'Expected a book:chapter:verse key'),
+);
+
+/** Confirmed cuts owned by a single passage. */
+export const bibleVerseCutsSchema = v.pipe(
+  jsonRecord(verseKeySchema, bibleCutEntrySchema),
+  v.maxEntries(10_000),
 );
 
 export const bibleCutsSchema = jsonObject({
@@ -74,6 +81,7 @@ export const bibleCutsSchema = jsonObject({
 export type BibleCutEntry = ReadonlyKnown<
   v.InferOutput<typeof bibleCutEntrySchema>
 >;
+export type BibleCutSelection = Pick<BibleCutEntry, 'cuts' | 'unit'>;
 export type BibleCutsFile = ReadonlyKnown<
   v.InferOutput<typeof bibleCutsSchema>
 >;

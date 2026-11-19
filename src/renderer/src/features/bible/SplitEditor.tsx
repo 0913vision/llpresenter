@@ -29,6 +29,7 @@ import styles from './SplitEditor.module.css';
 export interface SplitEditorProps {
   readonly pending?: boolean;
   readonly preparedPlan?: ReturnType<typeof planSlides> | undefined;
+  readonly ruleBased?: boolean;
   readonly verse: VerseInput;
   readonly label: string;
   readonly cuts: readonly number[];
@@ -224,6 +225,13 @@ function VerseSplitEditor(
       return;
     }
     event.stopPropagation();
+    if (props.ruleBased) {
+      event.preventDefault();
+      if (!event.repeat && (event.key === 'Enter' || event.code === 'Space')) {
+        confirm();
+      } else if (event.code === 'Escape') cancel();
+      return;
+    }
     if (event.ctrlKey) {
       if (event.code !== 'KeyZ' && event.code !== 'KeyY') return;
       event.preventDefault();
@@ -290,49 +298,52 @@ function VerseSplitEditor(
         }
       >
         <div className={styles.words}>
-          {plan.words.map((word, index) => {
-            const label = labels[index];
-            const matches = label?.startsWith(buffer) === true;
-            return (
-              <span key={word.start}>
-                <span className={styles.group}>
-                  <button
-                    type="button"
-                    className={styles.word}
-                    disabled={index === plan.words.length - 1 || busy}
-                    onClick={() => cut(index + 1)}
-                  >
-                    {word.text}
-                  </button>
-                  {label === undefined ? null : (
-                    <>
-                      {' '}
+          {props.ruleBased ? <p>규칙 기반 분할</p> : null}
+          {props.ruleBased
+            ? null
+            : plan.words.map((word, index) => {
+                const label = labels[index];
+                const matches = label?.startsWith(buffer) === true;
+                return (
+                  <span key={word.start}>
+                    <span className={styles.group}>
                       <button
                         type="button"
-                        className={styles.hint}
-                        aria-label={`${label.toUpperCase()}에서 자르기`}
-                        aria-pressed={plan.cuts.includes(index + 1)}
-                        data-match={buffer === '' || matches}
-                        disabled={busy}
+                        className={styles.word}
+                        disabled={index === plan.words.length - 1 || busy}
                         onClick={() => cut(index + 1)}
                       >
-                        {buffer !== '' && matches ? (
-                          <>
-                            <span className={styles.typed}>
-                              {buffer.toUpperCase()}
-                            </span>
-                            {label.slice(buffer.length).toUpperCase()}
-                          </>
-                        ) : (
-                          label.toUpperCase()
-                        )}
+                        {word.text}
                       </button>
-                    </>
-                  )}
-                </span>{' '}
-              </span>
-            );
-          })}
+                      {label === undefined ? null : (
+                        <>
+                          {' '}
+                          <button
+                            type="button"
+                            className={styles.hint}
+                            aria-label={`${label.toUpperCase()}에서 자르기`}
+                            aria-pressed={plan.cuts.includes(index + 1)}
+                            data-match={buffer === '' || matches}
+                            disabled={busy}
+                            onClick={() => cut(index + 1)}
+                          >
+                            {buffer !== '' && matches ? (
+                              <>
+                                <span className={styles.typed}>
+                                  {buffer.toUpperCase()}
+                                </span>
+                                {label.slice(buffer.length).toUpperCase()}
+                              </>
+                            ) : (
+                              label.toUpperCase()
+                            )}
+                          </button>
+                        </>
+                      )}
+                    </span>{' '}
+                  </span>
+                );
+              })}
         </div>
         <div
           ref={previews}

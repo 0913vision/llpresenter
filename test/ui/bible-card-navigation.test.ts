@@ -160,18 +160,16 @@ it(
       );
       const result = await page.evaluate<boolean>(`(async () => {
         const entry = ${JSON.stringify(entry)};
-        const doc = await window.llp.settings.get({name: 'bibleCuts'});
-        if (doc.name !== 'bibleCuts') return false;
-        const edit = await window.llp.settings.edit({
-          type: 'settings.update',
-          name: 'bibleCuts',
+        const doc = await window.llp.services.get('${SERVICE}');
+        if (!doc) return false;
+        const edit = await window.llp.content.edit({
+          type: 'service.update',
           baseRevision: doc.revision,
-          value: {
-            ...doc.value,
-            entries: {
-              ...doc.value.entries,
-              sample: {...doc.value.entries.sample, '43:3:16': entry},
-            },
+          service: {
+            ...doc.service,
+            order: doc.service.order.map(item => item.id === '${CARD}'
+              ? {...item, bible: {...item.bible, cuts: {...item.bible.cuts, '43:3:16': entry}}}
+              : item),
           },
         });
         return edit.ok;

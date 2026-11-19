@@ -25,8 +25,9 @@ class CutPlanner {
   constructor(
     private readonly text: string,
     private readonly layout: PlanLayout,
+    words = tokenize(text),
   ) {
-    this.words = tokenize(text);
+    this.words = words;
   }
 
   private slice(i: number, j: number): string {
@@ -116,6 +117,57 @@ export function planSlides(
   layout: PlanLayout,
 ) {
   return new CutPlanner(normalizeVerse(rawText), layout).plan(rawCuts);
+}
+
+/** Replays the UTF-16 boundaries of a fitting split inside an oversized word. */
+export function planSlidesAtOffsets(
+  rawText: string,
+  offsets: readonly number[],
+  layout: PlanLayout,
+): ReturnType<typeof planSlides> | null {
+  const text = normalizeVerse(rawText);
+  const cuts = normalizeCuts(offsets, text.length);
+  if (cuts.length !== offsets.length) return null;
+  const words: Token[] = [];
+  let next = 0;
+  let boundary = cuts[next];
+  for (const word of tokenize(text)) {
+    while (boundary !== undefined && boundary <= word.start) {
+      boundary = cuts[++next];
+    }
+    let start = word.start;
+    while (boundary !== undefined && boundary < word.end) {
+      const end = boundary;
+      if (/[\uDC00-\uDFFF]/u.test(text.charAt(end))) return null;
+      words.push({start, end, text: text.slice(start, end)});
+      start = end;
+      boundary = cuts[++next];
+    }
+    words.push({start, end: word.end, text: text.slice(start, word.end)});
+  }
+  const starts = new Set(cuts);
+  const indices = words.flatMap((word, index) =>
+    starts.has(word.start) ? [index] : [],
+  );
+  if (indices.length !== cuts.length) return null;
+  return new CutPlanner(text, layout, words).plan(indices);
+}
+
+/** Maps fitting chunks back to the exact verse without inventing word gaps. */
+export function offsetsFromChunks(
+  rawText: string,
+  chunks: ReadonlyArray<{readonly text: string}>,
+): readonly number[] | undefined {
+  const text = normalizeVerse(rawText);
+  const offsets: number[] = [];
+  let at = 0;
+  for (const chunk of chunks) {
+    if (text[at] === ' ') at++;
+    if (!text.startsWith(chunk.text, at)) return undefined;
+    if (at > 0) offsets.push(at);
+    at += chunk.text.length;
+  }
+  return at === text.length ? offsets : undefined;
 }
 
 export function goodBoundaries(words: readonly Token[]): readonly number[] {

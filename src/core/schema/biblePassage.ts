@@ -3,6 +3,7 @@ import type {ReadonlyKnown} from './fileFormat';
 import {translationIdSchema} from './ids';
 import {jsonObject, nonBlankText} from './primitives';
 import {slideTransitionSchema} from './slideTransition';
+import {bibleVerseCutsSchema} from './bibleCuts';
 
 /** Which slides of a passage show its reference. */
 export const bibleReferenceSchema = v.picklist([
@@ -20,6 +21,7 @@ export const biblePassageSchema = jsonObject({
   verseNumbers: v.boolean(),
   translationName: v.boolean(),
   transition: v.exactOptional(slideTransitionSchema),
+  cuts: v.exactOptional(bibleVerseCutsSchema),
 });
 
 /**

@@ -40,7 +40,11 @@ export function projectSlides(
         ...assigned,
         lines: verse === undefined ? [] : bibleOutputLines(verse.text),
         reference: `${book?.korean ?? '성경'} ${reference.chapter}:${reference.verse}`,
-        verse: {reference, ...(verse === undefined ? {} : {text: verse.text})},
+        verse: {
+          reference,
+          ...(slide.cut === undefined ? {} : {cut: slide.cut}),
+          ...(verse === undefined ? {} : {text: verse.text}),
+        },
         kind: item.slides.form,
       };
     }

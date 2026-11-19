@@ -51,7 +51,12 @@ export function BibleServiceProjection(): null {
         },
         tiles: projection.tiles,
       };
-      const signature = JSON.stringify(payload);
+      const signature = JSON.stringify([
+        row.sourceRevision,
+        themes.revision,
+        screens.revision,
+        projection.tiles,
+      ]);
       if (published.current.get(row.id) === signature) continue;
       const parsed = parseBibleProjection(payload);
       if (!parsed.ok) continue;

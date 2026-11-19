@@ -61,6 +61,7 @@ import {useLaunchReady} from './useLaunchReady';
 import {UPDATE_NOTICE_KEY, useUpdate} from './update/useUpdate';
 import {addNotice} from '@renderer/ui/notices';
 import {BibleServiceProjection} from '@renderer/features/bible/BibleServiceProjection';
+import {BibleInsertionReview} from '@renderer/features/bible/BibleInsertionReview';
 import {LoadReadiness, LoadReadinessContext} from '@renderer/ui/loadReadiness';
 
 const noEditorSubscription = (): (() => void) => () => undefined;
@@ -201,6 +202,7 @@ function ControlApp({
   const content = (
     <div className={styles.app} data-size={sizeClass}>
       <BibleServiceProjection />
+      <BibleInsertionReview />
       <NumberJumpOverlay />
       <ToolObjectShortcuts api={session.api} onProblem={session.report} />
       <QuickObjectShortcuts api={session.api} onProblem={session.report} />

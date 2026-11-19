@@ -11,9 +11,10 @@ import {themeElementText} from '@core/themes/content';
 import {emptyLayers} from '@core/live/state';
 import {panelPassage} from '@fixtures/contracts/ipc/bibleApi';
 import {QUICK_BIBLE_TRANSITION} from '@core/bible/quickTransition';
-import {bibleRefinements} from '@renderer/features/bible/BibleRefinements';
+import {cacheKey, entryFor} from '@core/bible/split/splitCache';
+import {settingsDocument} from '@fixtures/core/settingsDocument';
 
-it('keeps an existing passage unchanged when an overlapping passage receives an AI suggestion', () => {
+it('confirms cuts on a new overlapping passage without resplitting the earlier item', () => {
   const passage = panelPassage();
   const overlap = {chapter: 3, verse: 16, text: 'Shared overlapping verse'};
   const first = {
@@ -25,29 +26,43 @@ it('keeps an existing passage unchanged when an overlapping passage receives an 
     translationName: false,
     reference: 'every',
   } as const;
-  const projections = new BibleProjections({
+  const context = {
     themes: null,
     screens: undefined,
     saved: undefined,
-    canvas: {font: '', measureText: text => ({width: text.length * 30})},
-  });
-  const before = projections.get(first);
+    canvas: {
+      font: '',
+      measureText: (text: string) => ({width: text.length * 30}),
+    },
+  };
+  const before = new BibleProjections(context).get(first);
   const verse = before?.verses[0];
   if (before === null || verse === undefined) throw Error('Missing passage');
   expect(before.tiles).toHaveLength(1);
 
-  bibleRefinements.put(verse, before.element, {cuts: [1], prefix: ''});
+  const cuts = {
+    [cacheKey(verse.reference)]: entryFor(
+      verse.text,
+      [1],
+      '2026-11-19T00:00:00Z',
+    ),
+  };
+  const saved = settingsDocument('bibleCuts', {
+    entries: {[passage.translation]: cuts},
+  });
+  if (saved.name !== 'bibleCuts') throw Error('Missing cuts document');
+  const projections = new BibleProjections({...context, saved: saved.value});
   const added = projections.get({
     ...first,
     id: 'added-passage',
+    cuts,
     passage: {
       ...passage,
       verses: [overlap, {chapter: 3, verse: 17, text: 'Second verse'}],
     },
   });
 
-  expect(added?.tiles).toHaveLength(2);
-  expect(projections.get(first)).toBe(before);
+  expect(added?.tiles).toHaveLength(3);
   expect(projections.get(first)?.tiles).toEqual(before.tiles);
 });
 
@@ -241,6 +256,53 @@ it('keeps an assigned label while numbering the parts of an inserted verse', () 
     parts.map((_, index) => `Chorus (${index + 1})`),
   );
   expect(parts.every(tile => tile.slideLabel === 'Chorus')).toBe(true);
+});
+
+it('uses only the cut saved on each blank-slide verse row', () => {
+  const passage = panelPassage();
+  const reference = {
+    translation: passage.translation,
+    book: 43,
+    chapter: 3,
+    verse: 16,
+  };
+  const text = '가 나 다';
+  const local = entryFor(text, [1], '2026-11-20T00:00:00Z');
+  const document = settingsDocument('bibleCuts', {
+    entries: {
+      [reference.translation]: {
+        [cacheKey(reference)]: entryFor(text, [1, 2], '2026-11-20T00:01:00Z'),
+      },
+    },
+  });
+  if (document.name !== 'bibleCuts') throw Error('Missing cuts fixture');
+  const input = {
+    label: null,
+    labelColor: 'none' as const,
+    lines: [],
+    verse: {reference, text},
+  };
+  const projection = projectBible(
+    {
+      id: 'blank',
+      kind: 'slides',
+      source: 'service',
+      verseNumbers: false,
+      reference: 'every',
+      translationName: false,
+      input: [{...input, verse: {...input.verse, cut: local}}, input],
+    },
+    {
+      element: {...themeElementBase(), kind: 'currentText'},
+      layout: mockSplitLayout(),
+      saved: document.value,
+    },
+  );
+  expect(projection?.partsByTile.map(part => part?.text)).toEqual([
+    '가',
+    '나 다',
+    '가 나 다',
+  ]);
 });
 
 it('preserves the sermon title before all measured Bible parts', () => {

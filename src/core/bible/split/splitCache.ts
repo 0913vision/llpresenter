@@ -1,6 +1,7 @@
 import {
   BIBLE_CUTS_LIMITS,
   type BibleCutEntry,
+  type BibleCutSelection,
   type BibleCutsFile,
 } from '../../schema/bibleCuts';
 import type {VerseSlide} from '../../schema/service';
@@ -23,10 +24,11 @@ export function textHash(text: string): string {
 
 export function entryFor(
   text: string,
-  cuts: readonly number[],
+  cuts: readonly number[] | BibleCutSelection,
   confirmedAt: string,
 ): BibleCutEntry {
-  return {hash: textHash(text), cuts: [...cuts], confirmedAt};
+  const choice = 'cuts' in cuts ? cuts : {cuts};
+  return {hash: textHash(text), ...choice, cuts: [...choice.cuts], confirmedAt};
 }
 
 export function knownCutsFor(
@@ -34,8 +36,16 @@ export function knownCutsFor(
   reference: VerseSlide['verse'],
   text: string,
 ): readonly number[] | undefined {
+  return knownCutEntryFor(file, reference, text)?.cuts;
+}
+
+export function knownCutEntryFor(
+  file: BibleCutsFile,
+  reference: VerseSlide['verse'],
+  text: string,
+): BibleCutEntry | undefined {
   const entry = file.entries[reference.translation]?.[cacheKey(reference)];
-  return entry?.hash === textHash(text) ? entry.cuts : undefined;
+  return entry?.hash === textHash(text) ? entry : undefined;
 }
 
 /** Refuses a full cache without discarding existing confirmations. */
