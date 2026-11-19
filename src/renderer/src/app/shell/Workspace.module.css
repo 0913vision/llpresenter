@@ -66,11 +66,8 @@
   );
   --item-preview-height: calc(
     var(--item-preview-height-bare) + var(--space-12) +
-      min(
-        (var(--preview-picture) - var(--space-8)) / 2,
-        var(--size-preview-small-max)
-      ) *
-      9 / 16 + var(--size-control-sm)
+      (var(--preview-picture) - var(--space-8)) / 2 * 9 / 16 +
+      var(--size-control-sm)
   );
   --preview-reserve: calc(
     var(--tools-min-height) + var(--size-clear-button) + 2 * var(--space-8) +
@@ -202,6 +199,12 @@
 }
 
 .fit[style*='height:'] {
+  max-height: none;
+}
+
+/* NOTE(0913vision): The show column scrolls when the preview needs more room. */
+.workspace[data-workspace-layout='show'] .fit:not([style*='height:']) {
+  flex: 0 0 var(--item-preview-height);
   max-height: none;
 }
 
