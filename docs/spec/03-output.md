@@ -546,6 +546,9 @@ existing appearance. A stage message appears above the theme in a full-width
 bottom band, including on the standby screen. It shows up to three lines and
 truncates longer text with an ellipsis.
 
+A song slide labelled 전주 shows the (전주) cue on stage whether it contains
+lyrics, a title, or no extracted text, including a picture-backed slide.
+
 - The control window sends the next 슬라이드 with the live one, from the
   sequence it already walks, and main checks it like the rest of the command
   (lead decision, October 26). If the item deck changes while a 슬라이드 is

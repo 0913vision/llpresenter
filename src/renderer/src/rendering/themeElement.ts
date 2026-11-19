@@ -365,7 +365,8 @@ export class ThemeElementView {
       stage &&
       element.kind === 'currentText' &&
       slide !== null &&
-      slide.picture === undefined &&
+      (slide.picture === undefined ||
+        ((slide.kind ?? item?.kind) === 'song' && !!slide.label?.trim())) &&
       slide.sectionCard === undefined &&
       item?.contentCleared !== true &&
       !(
