@@ -58,7 +58,7 @@ export function NewServiceDialog({
         }}
         primary={{
           label: '만들기',
-          onSelect: () => guard.request(state.create),
+          onSelect: () => guard.request({kind: 'create'}, state.create),
           disabled: !state.canCreate,
           title: state.name.trim() === '' ? NAME_NEEDED : undefined,
         }}

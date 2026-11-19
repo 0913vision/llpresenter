@@ -18,29 +18,47 @@ export function serviceChangeNeedsConfirmation(
 }
 
 export function useServiceSwitchGuard() {
-  const [pending, setPending] = useState<(() => void) | null>(null);
-  const request = (proceed: () => void): void => {
+  const [pending, setPending] = useState<{
+    readonly kind: 'open' | 'create';
+    readonly name: string;
+    readonly proceed: () => void;
+  } | null>(null);
+  const request = (
+    target:
+      | {readonly kind: 'open'; readonly name: string}
+      | {readonly kind: 'create'},
+    proceed: () => void,
+  ): void => {
     if (serviceChangeNeedsConfirmation(useLive.getState().state)) {
-      setPending(() => proceed);
+      setPending({
+        kind: target.kind,
+        name: target.kind === 'open' ? target.name : '',
+        proceed,
+      });
     } else proceed();
   };
   const dialog =
     pending === null ? null : (
       <AlertDialog
         icon="warning"
-        title={'\uc608\ubc30\ub97c \ubc14\uafc0\uae4c\uc694?'}
+        title={
+          pending.kind === 'open'
+            ? `‘${pending.name}’ \uc608\ubc30\ub97c \uc5f4\uae4c\uc694?`
+            : '\uc0c8 \uc608\ubc30\ub97c \ub9cc\ub4e4\uae4c\uc694?'
+        }
         meta={[
-          '\uc9c0\uae08 \uc1a1\ucd9c \uc911\uc785\ub2c8\ub2e4. \uc608\ubc30\ub97c \ubc14\uafb8\uba74 \uccad\uc911, \ubb34\ub300, \ubc29\uc1a1 \ud654\uba74\uc774 \ubaa8\ub450 \ub300\uae30 \ud654\uba74\uc73c\ub85c \ubc14\ub00c\ub2c8\ub2e4.',
+          '\uc1a1\ucd9c \uc911\uc778 \ud654\uba74\uc774 \ub300\uae30 \ud654\uba74\uc73c\ub85c \ubc14\ub00c\ub2c8\ub2e4',
         ]}
         initialFocus="cancel"
         onCancel={() => setPending(null)}
         actions={[
           {
-            label: '\ubc14\uafb8\uae30',
+            label:
+              pending.kind === 'open' ? '\uc5f4\uae30' : '\ub9cc\ub4e4\uae30',
             primary: true,
             onSelect: () => {
               setPending(null);
-              pending();
+              pending.proceed();
             },
           },
         ]}

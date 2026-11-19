@@ -149,7 +149,7 @@ export function useServicePicker(onProblem: (notice: Notice) => void) {
       return;
     }
     close();
-    guard.request(() => {
+    guard.request({kind: 'open', name: entry.name}, () => {
       choose(entry).catch((cause: unknown) => {
         console.error('Failed to report a service selection:', cause);
       });
