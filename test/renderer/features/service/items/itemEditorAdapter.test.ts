@@ -112,14 +112,17 @@ describe('the shared item editor session', () => {
       adapter.preview(
         {kind: 'slide', itemId: document.song.id, slideId: first.id},
         'stage',
-      ).role,
+      )?.role,
     ).toBe('stage');
+    expect(
+      adapter.preview({kind: 'card', itemId: 'another item'}, 'audience'),
+    ).toBeNull();
     adapter.command({type: 'duplicate'});
     expect(
       adaptItemEditor({...options, view: session.slideModel.getSnapshot()})
         .canUndo,
     ).toBe(true);
-    session.edit('undo');
+    adapter.edit('undo');
     expect(session.slideModel.getSnapshot().slides).toHaveLength(
       document.song.slides.length,
     );

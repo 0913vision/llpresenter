@@ -88,7 +88,8 @@ export interface ItemEditorAdapter<T extends SlideListItem> {
   ): {
     readonly identity: ItemEditorIdentity<T['id']>;
     readonly role: 'audience' | 'broadcast' | 'stage';
-  };
+    readonly entry: ItemEditorEntry<T>;
+  } | null;
 }
 
 export function adaptItemEditor<T extends SlideListItem>(options: {
@@ -144,6 +145,25 @@ export function adaptItemEditor<T extends SlideListItem>(options: {
     cut: () => session.cutSlides(),
     paste: text => session.pasteSlides(text),
     edit: action => session.edit(action),
-    preview: (identity, role) => ({identity, role}),
+    preview: (identity, role) => {
+      if (identity.itemId !== itemId) return null;
+      if (identity.kind === 'card') {
+        return hasCard
+          ? {identity, role, entry: {identity, selected: cardSelected}}
+          : null;
+      }
+      const slide = view.slides.find(entry => entry.id === identity.slideId);
+      return slide === undefined
+        ? null
+        : {
+            identity,
+            role,
+            entry: {
+              identity,
+              slide,
+              selected: view.selection.ids.has(slide.id),
+            },
+          };
+    },
   };
 }
