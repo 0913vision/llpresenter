@@ -1,3 +1,4 @@
+import {withLiveBible} from '@core/bible/liveTranslation';
 import {useEffect, useRef, useState, type JSX} from 'react';
 import type {BibleLookupApi} from '@contracts/ipc/bible';
 import type {BibleLookupPassage} from '@core/schema/bibleLookup';
@@ -103,6 +104,8 @@ export function BiblePassageDialog({
       <RecentPassages
         scope="dialog"
         recents={document?.value.recents ?? []}
+        translations={withLiveBible(document?.value.translations ?? [])}
+        translation={recent?.value.translation ?? translation}
         onPick={pick}
       />
     </Dialog>

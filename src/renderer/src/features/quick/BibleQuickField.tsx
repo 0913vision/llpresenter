@@ -192,6 +192,10 @@ export function BibleQuickField({
   const translations = document
     ? withLiveBible(document.value.translations)
     : [];
+  const currentTranslation =
+    display === null
+      ? undefined
+      : (translations.find(item => item.default) ?? translations[0])?.id;
   const show = (passage: BibleLookupPassage, reusePreview = true): void => {
     if (display === null) return;
     const view = useShow.getState();
@@ -271,11 +275,7 @@ export function BibleQuickField({
         submitAnyField
         key={`${selectionVersion}:${session}`}
         api={api.bible}
-        translation={
-          display === null
-            ? undefined
-            : (translations.find(item => item.default) ?? translations[0])?.id
-        }
+        translation={currentTranslation}
         recents={[]}
         onIntent={() => {
           beginOutputRequest();
@@ -324,6 +324,8 @@ export function BibleQuickField({
       <RecentPassages
         scope={overlayOpen ? 'dialog' : 'show'}
         recents={document?.value.recents ?? []}
+        translations={translations}
+        translation={currentTranslation}
         disabled={display === null}
         onPick={recent => {
           pick(recent).catch((error: unknown) => console.error(error));
