@@ -22,6 +22,10 @@ import {
 import {SelectMenu} from '@renderer/ui/SelectMenu';
 import {NumberField} from '@renderer/ui/NumberField';
 import {SLIDE_EFFECTS} from '@renderer/ui/slideTransitionChoices';
+import {sectionDraft} from '../service/sectionDraft';
+import {PALETTE_SECTIONS} from '../service/items/paletteItems';
+import {CustomSections} from '../service/items/CustomSections';
+import paletteStyles from '../service/items/PrepPalette.module.css';
 import type {PreferenceEdits} from './usePreferenceEdits';
 import {
   ActionRow,
@@ -80,39 +84,53 @@ export function GeneralPage({edits}: PageProps): JSX.Element | null {
   if (preferences === null) return null;
   const disabled = lockedReason !== undefined;
   return (
-    <PropertyGroup>
-      <SelectRow
-        label="화면 확대"
-        disabled={zoom.percent === null}
-        options={ZOOM_OPTIONS}
-        value={String(zoom.percent ?? UI_ZOOM.defaultPercent)}
-        onChange={percent => zoom.setPercent(Number(percent))}
-      />
-      <CheckboxRow
-        label="시작할 때 최대화"
-        disabled={disabled}
-        title={lockedReason}
-        checked={preferences.general.startMaximized}
-        onChange={startMaximized =>
-          change(stored => ({
-            ...stored,
-            general: {...stored.general, startMaximized},
-          }))
-        }
-      />
-      <CheckboxRow
-        label="Windows 시작할 때 실행"
-        disabled={disabled}
-        title={lockedReason}
-        checked={preferences.general.launchAtLogin}
-        onChange={launchAtLogin =>
-          change(stored => ({
-            ...stored,
-            general: {...stored.general, launchAtLogin},
-          }))
-        }
-      />
-    </PropertyGroup>
+    <>
+      <PropertyGroup>
+        <SelectRow
+          label="화면 확대"
+          disabled={zoom.percent === null}
+          options={ZOOM_OPTIONS}
+          value={String(zoom.percent ?? UI_ZOOM.defaultPercent)}
+          onChange={percent => zoom.setPercent(Number(percent))}
+        />
+        <CheckboxRow
+          label="시작할 때 최대화"
+          disabled={disabled}
+          title={lockedReason}
+          checked={preferences.general.startMaximized}
+          onChange={startMaximized =>
+            change(stored => ({
+              ...stored,
+              general: {...stored.general, startMaximized},
+            }))
+          }
+        />
+        <CheckboxRow
+          label="Windows 시작할 때 실행"
+          disabled={disabled}
+          title={lockedReason}
+          checked={preferences.general.launchAtLogin}
+          onChange={launchAtLogin =>
+            change(stored => ({
+              ...stored,
+              general: {...stored.general, launchAtLogin},
+            }))
+          }
+        />
+      </PropertyGroup>
+      {sectionDraft() === 'a' ? (
+        <PropertyGroup title="구역 이름">
+          <div style={{display: 'flex', flexWrap: 'wrap', gap: 6}}>
+            {PALETTE_SECTIONS.map(section => (
+              <span key={section.name} className={paletteStyles.chip}>
+                {section.name}
+              </span>
+            ))}
+            <CustomSections disabled={disabled} insert={() => undefined} />
+          </div>
+        </PropertyGroup>
+      ) : null}
+    </>
   );
 }
 

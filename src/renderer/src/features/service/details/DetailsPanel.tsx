@@ -18,6 +18,8 @@ import {sermonPreviewRow} from '@renderer/platform/sermonPreview';
 import {useBibleTileProjection} from '@renderer/features/bible/useBibleProjections';
 import {BibleLoadNotice} from '@renderer/features/bible/BibleLoadNotice';
 import {Panel, PanelBody, PanelFooter, PanelTabs} from '@renderer/ui/Panel';
+import {Checkbox} from '@renderer/ui/Checkbox';
+import {sectionDraft} from '../sectionDraft';
 import {ThumbnailSizeControl} from '@renderer/ui/ThumbnailSizeControl';
 import type {SizeClass} from '@renderer/ui/sizeClass';
 import {SlideThumbnailBand} from '@renderer/ui/SlideThumbnail';
@@ -103,6 +105,7 @@ function DetailsPanelContent({
   sizeClass,
   onOpenPrep,
 }: DetailsPanelProps): JSX.Element {
+  const [draftShowSection, setDraftShowSection] = useState(true);
   const serviceId = useShow(view => view.serviceId);
   const scale = detailsScale.use(sizeClass);
   const itemId = target?.kind === 'item' ? target.itemId : null;
@@ -445,6 +448,15 @@ function DetailsPanelContent({
               {item.header}
             </div>
             <div className={styles.meta}>구역, 항목 {itemCount}개</div>
+            {sectionDraft() === 'b' ? (
+              <label style={{display: 'flex', gap: 8, marginTop: 24}}>
+                <Checkbox
+                  checked={draftShowSection}
+                  onChange={setDraftShowSection}
+                />
+                구역 이름 슬라이드 보이기
+              </label>
+            ) : null}
           </DetailsShell>
         }
       />
@@ -491,7 +503,12 @@ function DetailsPanelContent({
           </AheadBox>
         )
       }
-      waitForPicture={waitForPicture}
+      waitForPicture={
+        typeof localStorage !== 'undefined' &&
+        localStorage.getItem('llp.section-draft-capture') === '1'
+          ? false
+          : waitForPicture
+      }
       pending={pending}
       content={
         <DetailsShell

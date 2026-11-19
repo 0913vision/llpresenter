@@ -24,6 +24,8 @@ import {useServiceSongMenu} from '../order/useServiceSongMenu';
 import {songUsage} from '@renderer/features/songs/editor/songUsage';
 import {Tooltip} from '@renderer/ui/Tooltip';
 import {ItemCardRow} from '../items/ItemCardRow';
+import {sectionDraft} from '../sectionDraft';
+import {SERMON_TITLE_THEME_ID} from '@core/themes/sundayScripture';
 import {LiturgyVersion} from '../items/LiturgyEditor';
 import styles from './DetailsInfo.module.css';
 
@@ -121,7 +123,12 @@ export function DetailsInfo({
               lockReason={reason}
               macroId={item.macro}
             />
-            <ItemCardRow items={items} item={item} reason={reason} />
+            {sectionDraft() === 'b' ||
+            (sectionDraft() === 'a' &&
+              (isItemOfKind(item, 'sermon') ||
+                item.theme === SERMON_TITLE_THEME_ID)) ? null : (
+              <ItemCardRow items={items} item={item} reason={reason} />
+            )}
             <PropertyRow label="메모" alignTop>
               {() => (
                 <ItemMemo
