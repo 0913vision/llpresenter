@@ -205,22 +205,6 @@
   max-height: none;
 }
 
-/* NOTE(0913vision): Keep the show preview at its collapsed-media size; the column scrolls when
-   the open media bin leaves less room. Dragged panel heights remain explicit. */
-.column:has(> [data-resize-panel='show.preview'])
-  > .fit:not([style*='height:']) {
-  flex: 0 0
-    min(
-      var(--item-preview-height),
-      max(
-        var(--preview-min-height),
-        100cqh - var(--size-panel-header) - var(--panel-gap) -
-          var(--preview-reserve)
-      )
-    );
-  max-height: none;
-}
-
 .fit > section {
   flex: 1;
   min-height: 0;
