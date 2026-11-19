@@ -32,6 +32,7 @@ import {usePreferenceEdits} from '@renderer/features/preferences/usePreferenceEd
 import {fullScreenRow, useFullScreen} from './viewToggles';
 import type {Workspace} from './Toolbar';
 import {isInTextEntry} from '@renderer/ui/textEntry';
+import {focusMenu} from '@renderer/ui/useMenuNavigation';
 
 const EDIT_MENU = '편집';
 const WINDOW_MENU = '창';
@@ -409,6 +410,14 @@ export function MenuBar({
   };
   useMenuBarEntryKeys(bar.focusBar);
   const openName = active?.name;
+  const openedByHover = active?.openedByHover;
+  useEffect(() => {
+    if (openName === undefined || openedByHover !== false) return;
+    const menu = [
+      ...document.querySelectorAll<HTMLElement>('[role="menu"]'),
+    ].find(element => element.getAttribute('aria-label') === openName);
+    if (menu !== undefined) focusMenu(menu);
+  }, [openName, openedByHover]);
   useEffect(() => {
     if (openName === undefined) return undefined;
     // NOTE(0913vision): A menu leaves ← and → alone when they open or close

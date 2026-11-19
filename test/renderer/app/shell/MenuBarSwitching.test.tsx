@@ -102,3 +102,34 @@ describe('switching menu bar menus', () => {
     expect(screen.queryByRole('menu')).toBeNull();
   });
 });
+
+it('returns slide keys after clicking from one live menu to another and pressing Escape', async () => {
+  const onSlideKey = vi.fn();
+  render(
+    <>
+      <MenuBar title="" />
+      <main data-workspace-layout="show">
+        <div data-show-slide-grid>
+          <div
+            role="listbox"
+            aria-label={'\uc2ac\ub77c\uc774\ub4dc'}
+            tabIndex={0}
+            onKeyDown={onSlideKey}
+          />
+        </div>
+      </main>
+    </>,
+  );
+  const grid = screen.getByRole('listbox', {name: '\uc2ac\ub77c\uc774\ub4dc'});
+  grid.focus();
+  await userEvent.click(screen.getByRole('menuitem', {name: '\uc9c4\ud589'}));
+  await userEvent.click(screen.getByRole('menuitem', {name: '\ubcf4\uae30'}));
+  expect(screen.getByRole('menu', {name: '\ubcf4\uae30'})).toBe(
+    document.activeElement,
+  );
+  await userEvent.keyboard('{Escape}');
+  expect(screen.queryByRole('menu')).toBeNull();
+  expect(document.activeElement).toBe(grid);
+  await userEvent.keyboard('{ArrowRight}');
+  expect(onSlideKey).toHaveBeenCalled();
+});
