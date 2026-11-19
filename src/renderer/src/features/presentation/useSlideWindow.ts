@@ -151,7 +151,10 @@ export function useSlideWindow(
       measured.current = true;
     };
     remeasure.current = () => readNow(false);
-    const unwatch = onWorkspaceVisible(frame, () => readNow(true));
+    const unwatch = onWorkspaceVisible(frame, () => {
+      readNow(true);
+      current.current('instant');
+    });
     // NOTE(0913vision): A grid shown again keeps its size; the first resize
     // observation checks it in the frame, before it paints, so showing the
     // grid reads no layout first.
@@ -224,6 +227,9 @@ export function useSlideWindow(
     current.current = (behavior = 'smooth') => {
       if (
         live !== null &&
+        !isHiddenWorkspace(
+          keeper.current ? workspaceFrame(keeper.current) : null,
+        ) &&
         !dragging.current &&
         Date.now() >= pausedUntil.current
       ) {

@@ -199,3 +199,28 @@ it('remeasures a hidden resize and follows the live slide when ?? is revealed', 
   expect(viewport.scrollTop).toBeGreaterThan(0);
   expect(screen.getByRole('option', {name: '61'})).toBeDefined();
 });
+
+it('follows the latest live slide when a kept frame returns without a size change', async () => {
+  const view = render(
+    <div data-workspace-frame="show" aria-hidden="false">
+      <Grid live={0} />
+    </div>,
+  );
+  const viewport = screen.getByTestId('viewport');
+  view.rerender(
+    <div data-workspace-frame="show" aria-hidden="true">
+      <Grid live={60} />
+    </div>,
+  );
+  expect(viewport.scrollTop).toBe(0);
+  await act(async () => {
+    view.rerender(
+      <div data-workspace-frame="show" aria-hidden="false">
+        <Grid live={60} />
+      </div>,
+    );
+    await Promise.resolve();
+  });
+  expect(viewport.scrollTop).toBeGreaterThan(0);
+  expect(screen.getByRole('option', {name: '61'})).toBeDefined();
+});
