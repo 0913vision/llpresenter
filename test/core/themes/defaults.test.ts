@@ -544,8 +544,7 @@ it('uses readable stage defaults and cover for built-in audience media', () => {
     for (const element of theme.screens[audience]?.elements ?? []) {
       if (element.kind !== 'background' && element.kind !== 'media') continue;
       const sectionBackground =
-        theme.name.startsWith('\uad6c\uc5ed \uc774\ub984') &&
-        element.kind === 'background';
+        theme.name.startsWith('제목') && element.kind === 'background';
       expect(element.fit).toBe(sectionBackground ? 'stretch' : 'fill');
     }
   }

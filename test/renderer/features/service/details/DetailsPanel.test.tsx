@@ -335,7 +335,6 @@ it('shows the first picture and resets the tab and selection when the item chang
     await editor.dispose();
   }
 });
-import {newSlidesItem} from '@core/services/slidesEdits';
 import {
   createMediaId,
   createServiceItemId,

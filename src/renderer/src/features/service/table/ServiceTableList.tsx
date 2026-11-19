@@ -59,6 +59,7 @@ export function ServiceTableList({
         ];
       },
       header: <ServiceTableHeader />,
+      footer: null,
       rowClass: styles.row,
       sectionClass: styles.section,
       cellsOf: (row, detail, rowLabel) => (
