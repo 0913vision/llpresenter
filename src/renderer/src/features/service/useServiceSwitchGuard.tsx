@@ -2,6 +2,7 @@ import {useState} from 'react';
 import {isAnyOutputOn, hasAnyLayer, type LiveState} from '@core/live/state';
 import {useLive} from '@renderer/session/live';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
+import {objectParticle} from '@renderer/ui/korean';
 
 export function serviceChangeNeedsConfirmation(
   state: LiveState | null,
@@ -43,7 +44,7 @@ export function useServiceSwitchGuard() {
         icon="warning"
         title={
           pending.kind === 'open'
-            ? `${pending.name} 예배를 열까요?`
+            ? `${pending.name}${objectParticle(pending.name)} 열까요?`
             : '새 예배를 만들까요?'
         }
         meta={['모든 화면이 대기 화면으로 바뀝니다']}

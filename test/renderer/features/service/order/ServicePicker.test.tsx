@@ -162,7 +162,7 @@ describe('service picker', () => {
       screen.getByRole('menuitemradio', {name: /\uc800\ub141 \uc608\ubc30/}),
     );
     const dialog = await screen.findByRole('alertdialog', {
-      name: '저녁 예배 예배를 열까요?',
+      name: '저녁 예배를 열까요?',
     });
     expect(
       within(dialog).getByText('모든 화면이 대기 화면으로 바뀝니다'),

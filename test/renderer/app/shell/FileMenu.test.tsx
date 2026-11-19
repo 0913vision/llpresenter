@@ -121,7 +121,7 @@ describe('the 파일 menu', () => {
     vi.spyOn(api.services, 'list').mockResolvedValue([
       {
         id,
-        name: 'Evening service',
+        name: 'Evening sermon',
         date: '2026-11-09T19:00',
         access: 'editable',
       },
@@ -129,7 +129,7 @@ describe('the 파일 menu', () => {
     const open = vi.spyOn(api.service, 'open').mockResolvedValue({
       id,
       revision: 1,
-      name: 'Evening service',
+      name: 'Evening sermon',
       readOnly: false,
       rows: [],
       tiles: {},
@@ -141,10 +141,10 @@ describe('the 파일 menu', () => {
     render(<MenuBar title="" />);
     await userEvent.keyboard('{Control>}o{/Control}');
     await userEvent.click(
-      await screen.findByRole('menuitemradio', {name: /Evening service/}),
+      await screen.findByRole('menuitemradio', {name: /Evening sermon/}),
     );
     const dialog = await screen.findByRole('alertdialog', {
-      name: 'Evening service 예배를 열까요?',
+      name: 'Evening sermon을 열까요?',
     });
     expect(document.activeElement).toBe(
       within(dialog).getByRole('button', {name: '\ucde8\uc18c'}),
