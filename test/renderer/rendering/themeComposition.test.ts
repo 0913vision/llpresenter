@@ -221,7 +221,7 @@ describe('theme composition drawing', () => {
       expect(root.querySelector(`img[src*="${fixedId}"]`)).not.toBeNull();
       expect(
         root.querySelector<HTMLElement>('[data-theme-background]')?.style
-          .background,
+          .backgroundColor,
       ).toBe('rgb(18, 52, 86)');
       view.dispose();
     },

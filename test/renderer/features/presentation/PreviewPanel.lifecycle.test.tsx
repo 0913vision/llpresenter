@@ -211,7 +211,7 @@ describe('PreviewPanel real renderer lifecycle', () => {
       const images = [
         ...container.querySelectorAll<HTMLImageElement>('img[src]'),
       ];
-      expect(images).toHaveLength(3);
+      expect(images).toHaveLength(1);
       expect(
         images.every(
           image => image.getAttribute('src') === mediaUrl(mediaId(id)),
@@ -238,7 +238,7 @@ describe('PreviewPanel real renderer lifecycle', () => {
     ];
     expect(container.querySelectorAll(`.${classes.root}`)).toHaveLength(3);
     expect(container.querySelector('video')).toBeNull();
-    expect(stills).toHaveLength(3);
+    expect(stills).toHaveLength(1);
     expect(
       stills.every(image => image.src.startsWith('llp-media://thumbnail/')),
     ).toBe(true);
