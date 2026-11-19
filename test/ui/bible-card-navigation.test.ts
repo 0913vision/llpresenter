@@ -107,16 +107,30 @@ it(
     await expect
       .poll(() => grid.getByRole('option').count(), {timeout: 30000})
       .toBeGreaterThanOrEqual(3);
+    const waitGridLive = async (position: string) =>
+      expect
+        .poll(
+          () =>
+            grid
+              .locator('[role="option"][data-state~="live"]')
+              .getAttribute('aria-posinset'),
+          {timeout: 30000},
+        )
+        .toBe(position);
     await grid.getByRole('option').first().click();
     await waitLabel('Card');
+    await waitGridLive('1');
     await page.keyboard.press('Shift+ArrowLeft');
     expect((await live()).label).toBe('Card');
     await page.keyboard.press('Shift+ArrowRight');
     await waitLabel('\uC6943:16');
+    await waitGridLive('2');
     await page.keyboard.press('ArrowLeft');
     await waitLabel('Card');
+    await waitGridLive('1');
     await page.keyboard.press('ArrowRight');
     await waitLabel('\uC6943:16');
+    await waitGridLive('2');
     await page.keyboard.press('Shift+ArrowLeft');
     await waitLabel('\uC6943:15');
     await order.getByRole('option', {name: '요한복음 3:16~17'}).click();
