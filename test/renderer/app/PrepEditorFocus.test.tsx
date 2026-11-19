@@ -572,7 +572,7 @@ it('selects the source slide and focuses commands after opening from the right g
 
 it('shows a library song on a single click without opening its editor', async () => {
   const f = setup();
-  vi.spyOn(f.api.library, 'showSong').mockResolvedValue({
+  const response = {
     songId: f.first.song.id,
     songRevision: f.first.revision,
     title: f.first.song.title,
@@ -582,14 +582,34 @@ it('shows a library song on a single click without opening its editor', async ()
       labelColor: 'none' as const,
       lines: slide.lines,
     })),
+  };
+  let release: (() => void) | undefined;
+  const pending = new Promise<typeof response>(resolve => {
+    release = () => resolve(response);
   });
+  const showSong = vi
+    .spyOn(f.api.library, 'showSong')
+    .mockReturnValueOnce(pending)
+    .mockResolvedValue(response);
   const live = vi.spyOn(f.api.live, 'send');
   await userEvent.click(screen.getByRole('tab', {name: '곡'}));
   const library = screen.getByRole('listbox', {name: '라이브러리 곡'});
   await userEvent.click(
     await within(library).findByRole('option', {name: f.first.song.title}),
   );
-  await screen.findByRole('tab', {name: '슬라이드'});
+  await waitFor(() =>
+    expect(showSong).toHaveBeenCalledWith({songId: f.first.song.id}),
+  );
+  if (release === undefined) throw new Error('Missing library response');
+  await act(async () => {
+    release?.();
+    await pending;
+  });
+  await waitFor(
+    () => expect(useShow.getState().librarySong?.songId).toBe(f.first.song.id),
+    {timeout: 5000},
+  );
+  await screen.findByRole('tab', {name: '슬라이드'}, {timeout: 5000});
   const details = screen.getByRole('region', {name: '세부정보'});
   await within(details).findByText(
     `곡, 슬라이드 ${f.first.song.slides.length}개`,

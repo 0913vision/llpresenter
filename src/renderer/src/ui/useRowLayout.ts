@@ -1,3 +1,8 @@
+import {
+  isHiddenWorkspace,
+  onWorkspaceVisible,
+  workspaceFrame,
+} from '@renderer/ui/workspaceVisibility';
 import {useLayoutEffect, useRef, useState, type RefObject} from 'react';
 import {
   isPanelRowId,
@@ -206,6 +211,7 @@ export function useRowLayout({
     if (rows.length < 2) return undefined;
     applied.current = {parent, rows, deps};
     const lifetime: DragLifetime = {active: false, alive: true};
+    const frame = workspaceFrame(parent);
     const updateMovable = (): void => {
       const next = rows.slice(0, -1).map((_, index) => {
         const [before, after] = rowPair(rows, index);
@@ -227,7 +233,9 @@ export function useRowLayout({
       );
     };
     const refit = (): void => {
-      if (!lifetime.alive || lifetime.active) return;
+      if (!lifetime.alive || lifetime.active || isHiddenWorkspace(frame)) {
+        return;
+      }
       const saved = store.loadRows?.(sizeClass);
       if (
         !saved ||
@@ -277,6 +285,7 @@ export function useRowLayout({
     if (!shownAgain || observer === undefined) refit();
     observer?.observe(parent);
     window.addEventListener('resize', refit);
+    const unwatch = onWorkspaceVisible(frame, refit);
     begin.current = index =>
       beginRowDrag({
         parent,
@@ -293,6 +302,7 @@ export function useRowLayout({
       begin.current = () => undefined;
       observer?.disconnect();
       window.removeEventListener('resize', refit);
+      unwatch();
     };
   }, [
     container,

@@ -63,6 +63,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
   vi.useRealTimers();
 });
 
@@ -158,4 +159,68 @@ it('reveals a new live slide, adapts to zoom, and clamps after the list shrinks'
 it('keeps the initial unmeasured window bounded', () => {
   render(<Grid tileWidth={0} width={0} />);
   expect(screen.getAllByRole('option')).toHaveLength(16);
+});
+
+it('remeasures a hidden resize and follows the live slide when ?? is revealed', async () => {
+  let notify = (): void => undefined;
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      constructor(callback: ResizeObserverCallback) {
+        notify = () => callback([], this);
+      }
+      observe(): void {}
+      unobserve(): void {}
+      disconnect(): void {}
+    },
+  );
+  const view = render(
+    <div data-workspace-frame="show" aria-hidden="false">
+      <Grid live={60} />
+    </div>,
+  );
+  const frame = view.container.querySelector('[data-workspace-frame]');
+  const viewport = screen.getByTestId('viewport');
+  if (!frame) throw new Error('Missing workspace frame');
+  let height = 360;
+  Object.defineProperty(viewport, 'clientHeight', {
+    configurable: true,
+    get: () => height,
+  });
+  frame.setAttribute('aria-hidden', 'true');
+  viewport.scrollTop = 0;
+  height = 180;
+  act(() => notify());
+  expect(viewport.scrollTop).toBe(0);
+  await act(async () => {
+    frame.setAttribute('aria-hidden', 'false');
+    await Promise.resolve();
+  });
+  expect(viewport.scrollTop).toBeGreaterThan(0);
+  expect(screen.getByRole('option', {name: '61'})).toBeDefined();
+});
+
+it('follows the latest live slide when a kept frame returns without a size change', async () => {
+  const view = render(
+    <div data-workspace-frame="show" aria-hidden="false">
+      <Grid live={0} />
+    </div>,
+  );
+  const viewport = screen.getByTestId('viewport');
+  view.rerender(
+    <div data-workspace-frame="show" aria-hidden="true">
+      <Grid live={60} />
+    </div>,
+  );
+  expect(viewport.scrollTop).toBe(0);
+  await act(async () => {
+    view.rerender(
+      <div data-workspace-frame="show" aria-hidden="false">
+        <Grid live={60} />
+      </div>,
+    );
+    await Promise.resolve();
+  });
+  expect(viewport.scrollTop).toBeGreaterThan(0);
+  expect(screen.getByRole('option', {name: '61'})).toBeDefined();
 });

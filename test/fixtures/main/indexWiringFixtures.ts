@@ -151,6 +151,7 @@ const mocks = vi.hoisted(() => {
     frameRates: vi.fn<() => readonly unknown[]>(() => []),
     storeDispose: vi.fn<() => Promise<void>>(),
     storeSavePending: vi.fn<() => Promise<boolean>>(),
+    appConfigGate: {promise: Promise.resolve()},
     appConfig: {
       flush: vi.fn<() => Promise<void>>(),
       savePending: vi.fn<() => Promise<boolean>>(),
@@ -363,7 +364,7 @@ vi.mock('@main/soak', () => ({
 vi.mock('@main/store/appConfigFile', () => ({
   openAppConfig: vi.fn(() => {
     mocks.order.push('app.json');
-    return Promise.resolve(mocks.appConfig);
+    return mocks.appConfigGate.promise.then(() => mocks.appConfig);
   }),
 }));
 vi.mock('@main/store/register', () => ({
@@ -440,7 +441,15 @@ export async function startMain(): Promise<
   });
   vi.resetModules();
   await import('@main/index');
-  await vi.waitFor(() => expect(mocks.opened.control).not.toBeNull());
+  // NOTE(0913vision): Main starts asynchronously after its dynamic import;
+  // a one-second polling timeout can leave startup running into the next test.
+  await vi.waitFor(
+    () => {
+      expect(mocks.opened.control).not.toBeNull();
+      expect(mocks.updateContexts).toHaveLength(1);
+    },
+    {timeout: ENTRY_TEST_TIMEOUT_MS - 5000},
+  );
   const control = mocks.opened.control;
   if (
     !(control instanceof EventEmitter) ||
@@ -541,6 +550,7 @@ beforeEach(async () => {
   mocks.outputContexts.length = 0;
   mocks.storeDispose.mockReset();
   mocks.storeSavePending.mockReset().mockResolvedValue(true);
+  mocks.appConfigGate.promise = Promise.resolve();
   mocks.appConfig.flush.mockReset();
   mocks.appConfig.savePending.mockReset().mockImplementation(async () => {
     await mocks.appConfig.flush();
