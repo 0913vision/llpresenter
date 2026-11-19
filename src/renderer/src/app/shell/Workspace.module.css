@@ -202,12 +202,6 @@
   max-height: none;
 }
 
-/* NOTE(0913vision): The show column scrolls when the preview needs more room. */
-.workspace[data-workspace-layout='show'] .fit:not([style*='height:']) {
-  flex: 0 0 var(--item-preview-height);
-  max-height: none;
-}
-
 .fit > section {
   flex: 1;
   min-height: 0;

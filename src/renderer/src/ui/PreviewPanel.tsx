@@ -57,15 +57,19 @@ export function PreviewPanel<Id extends string>({
         className={styles.body}
         data-preview-tiles={(room || !visible) && !blank ? 'on' : 'off'}
       >
-        <PreviewFrame
-          {...frame}
-          sizing="content"
-          largeVisible={visible}
-          tiles={(room || !visible) && !blank}
-          caption={
-            blank ? () => <span aria-hidden="true">&nbsp;</span> : frame.caption
-          }
-        />
+        <div className={styles.frame}>
+          <PreviewFrame
+            {...frame}
+            sizing="content"
+            largeVisible={visible}
+            tiles={(room || !visible) && !blank}
+            caption={
+              blank
+                ? () => <span aria-hidden="true">&nbsp;</span>
+                : frame.caption
+            }
+          />
+        </div>
         {children}
       </div>
     </Panel>

@@ -98,6 +98,9 @@ describe('PreviewFrame', () => {
       expect(grid?.style.gridTemplateColumns).toBe(
         `repeat(${count}, minmax(0, 1fr))`,
       );
+      expect(grid?.style.getPropertyValue('--preview-slots')).toBe(
+        String(count),
+      );
       const small = [
         ...container.querySelectorAll<HTMLElement>('[data-role="small"]'),
       ];

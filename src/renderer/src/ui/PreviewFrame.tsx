@@ -1,4 +1,4 @@
-import type {JSX, ReactNode} from 'react';
+import type {CSSProperties, JSX, ReactNode} from 'react';
 import {classNames} from './classNames';
 import {Icon, type IconSize} from './Icon';
 import {titleTooltip, useTooltip} from './Tooltip';
@@ -317,6 +317,10 @@ export function PreviewFrame<Id extends string>({
   const others = largeVisible
     ? screens.filter(screen => screen.id !== big)
     : screens;
+  const gridStyle: CSSProperties & {'--preview-slots': number} = {
+    gridTemplateColumns: `repeat(${Math.max(1, tiles ? others.length : 1)}, minmax(0, 1fr))`,
+    '--preview-slots': Math.max(1, others.length),
+  };
   return (
     <div
       className={classNames(
@@ -326,9 +330,7 @@ export function PreviewFrame<Id extends string>({
         !tiles && styles.single,
         !largeVisible && styles.withoutLarge,
       )}
-      style={{
-        gridTemplateColumns: `repeat(${Math.max(1, tiles ? others.length : 1)}, minmax(0, 1fr))`,
-      }}
+      style={gridStyle}
     >
       {screens.map(screen => {
         const isBig = largeVisible && screen.id === big;
