@@ -12,6 +12,29 @@ export type PictureSpec = PictureRequest['spec'] & {
   readonly songSource?: SongSlideSource | undefined;
 };
 
+function collectThemeMedia(
+  theme: PictureSpec['appearance']['theme'],
+  spec: PictureSpec,
+  ids: Set<string>,
+): void {
+  for (const element of theme.layout.elements) {
+    if (element.kind === 'image') ids.add(element.mediaId);
+    if (element.kind !== 'overlay') continue;
+    const content = themeOverlay(
+      theme.item,
+      spec.layers,
+      theme.sourceScreenId,
+    )?.content;
+    if (
+      content !== undefined &&
+      'media' in content &&
+      typeof content.media === 'string'
+    ) {
+      ids.add(content.media);
+    }
+  }
+}
+
 type Listener = () => void;
 
 export interface PictureImage {
@@ -237,24 +260,9 @@ export class PictureService {
     const ids = new Set<string>();
     const mediaId = spec.layers.media?.mediaId;
     if (mediaId !== undefined) ids.add(mediaId);
-    const {theme} = spec.appearance;
-    for (const element of theme.layout.elements) {
-      if (element.kind === 'image') ids.add(element.mediaId);
-      if (element.kind === 'overlay') {
-        const overlay = themeOverlay(
-          theme.item,
-          spec.layers,
-          theme.sourceScreenId,
-        );
-        const content = overlay?.content;
-        if (
-          content !== undefined &&
-          'media' in content &&
-          typeof content.media === 'string'
-        ) {
-          ids.add(content.media);
-        }
-      }
+    collectThemeMedia(spec.appearance.theme, spec, ids);
+    if (spec.appearance.audience !== undefined) {
+      collectThemeMedia(spec.appearance.audience.theme, spec, ids);
     }
     return JSON.stringify([
       this.fontStamp,

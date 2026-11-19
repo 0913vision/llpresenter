@@ -4,6 +4,7 @@ import {slideTheme} from '@renderer/platform/useSlideTheme';
 import {pictureKey} from '@core/output/pictureKey';
 import {outputSlideSpec} from '@renderer/rendering/OutputSlidePicture';
 import {createMediaId} from '@core/schema/ids';
+import {themeScreens} from '@fixtures/core/themeOutput';
 
 it('shares the output picture of a media tile with the item preview', () => {
   const theme = slideTheme(
@@ -34,4 +35,27 @@ it('shares the output picture of a media tile with the item preview', () => {
       outputSlideSpec({...theme, slide, background: mediaId, mediaOnly: true}),
     ),
   );
+});
+
+it('carries the audience composition when producing a stage slide picture', () => {
+  const theme = slideTheme(
+    {id: 'song', kind: 'song', title: 'Song'},
+    {
+      source: 'service',
+      file: undefined,
+      screens: themeScreens,
+      role: 'stage',
+      stageLyricLabelPosition: 'off',
+    },
+  );
+  expect(theme?.screen.kind).toBe('stage');
+  expect(theme?.audience?.screen.kind).toBe('audience');
+  expect(theme?.stageLyricLabelPosition).toBe('off');
+  if (theme === undefined) throw new Error('No stage theme');
+  const spec = outputSlideSpec({
+    ...theme,
+    slide: {itemId: 'song', position: 0, label: null, lines: ['Words']},
+  });
+  expect(spec.appearance.audience).toEqual(theme.audience);
+  expect(spec.appearance.stageLyricLabelPosition).toBe('off');
 });

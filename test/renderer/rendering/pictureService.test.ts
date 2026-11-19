@@ -2,7 +2,12 @@ import {afterEach, beforeEach, expect, it, onTestFinished, vi} from 'vitest';
 import {emptyLayers} from '@core/live/state';
 import {pictureKey} from '@core/output/pictureKey';
 import {parsePictureRequest} from '@core/schema/picture';
-import {pictureBounds} from '@renderer/rendering/pictures/drawPicture';
+import {
+  drawPicture,
+  pictureBounds,
+} from '@renderer/rendering/pictures/drawPicture';
+import {OutputRenderer} from '@renderer/rendering/outputRenderer';
+import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {createScreenId, createThemeId} from '@core/schema/ids';
 import {OUTPUT_REVEAL_DEADLINE_MS} from '@core/output/revealDeadline';
 import {
@@ -369,4 +374,58 @@ it('separates split editor pictures by their fixed line budget', () => {
       inputs: '',
     }).ok,
   ).toBe(false);
+});
+
+it('passes audience sizing and stage label preferences into cached stage drawings', () => {
+  const audience = {
+    screen: spec.appearance.screen,
+    theme: spec.appearance.theme,
+  };
+  const stage = {
+    ...spec,
+    appearance: {
+      ...spec.appearance,
+      screen: {...spec.appearance.screen, kind: 'stage' as const},
+      audience,
+      stageLyricLabelPosition: 'line' as const,
+    },
+  };
+  expect(parsePictureRequest({spec: stage, inputs: ''}).ok).toBe(true);
+  const host = document.createElement('div');
+  const renderer = new OutputRenderer(host, {
+    textStyle: DEFAULT_TEXT_STYLE,
+    mediaUrl: id => id,
+    onError: vi.fn(),
+  });
+  drawPicture(renderer, host, stage);
+  expect(mocks.render).toHaveBeenLastCalledWith(
+    stage.layers,
+    expect.objectContaining({audience, stageLyricLabelPosition: 'line'}),
+  );
+});
+
+it('shares cache entries when the default stage label option is implicit', () => {
+  const stage = {
+    ...spec,
+    appearance: {
+      ...spec.appearance,
+      screen: {...spec.appearance.screen, kind: 'stage' as const},
+    },
+  };
+  const line = {
+    ...stage,
+    appearance: {...stage.appearance, stageLyricLabelPosition: 'line' as const},
+  };
+  const off = {
+    ...stage,
+    appearance: {...stage.appearance, stageLyricLabelPosition: 'off' as const},
+  };
+  expect(pictureKey(stage)).toBe(pictureKey(line));
+  expect(pictureKey(stage)).not.toBe(pictureKey(off));
+  expect(pictureKey(spec)).toBe(
+    pictureKey({
+      ...spec,
+      appearance: {...spec.appearance, stageLyricLabelPosition: 'line'},
+    }),
+  );
 });

@@ -5,14 +5,43 @@ import {createScreenId, parseMediaId, type ThemeId} from '@core/schema/ids';
 import type {ItemRow} from '@core/presentation/model';
 import type {Screen} from '@core/schema/screens';
 import type {ThemesFile} from '@core/schema/themes';
+import {
+  withPreferenceDefaults,
+  type StageLyricLabelPosition,
+} from '@core/schema/preferences';
 import type {LlpApi} from '@contracts/ipc/api';
 import {useApiSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {pictureSizeForScreen} from '@core/screens/pictureSize';
+
+function pictureScreen(screen: Screen) {
+  const pictureSize = pictureSizeForScreen(screen);
+  return {
+    id: screen.id,
+    name: screen.name,
+    kind: screen.kind,
+    method: screen.method,
+    ...(pictureSize === undefined ? {} : {pictureSize}),
+    ...(screen.songCaption === undefined
+      ? {}
+      : {songCaption: screen.songCaption}),
+    ...((screen.edgeMargin ?? 0) !== 0 ||
+    (screen.offset?.x ?? 0) !== 0 ||
+    (screen.offset?.y ?? 0) !== 0
+      ? {
+          correction: {
+            edgeMargin: screen.edgeMargin ?? 0,
+            offset: screen.offset ?? {x: 0, y: 0},
+          },
+        }
+      : {}),
+  };
+}
 
 interface SlideThemeOptions {
   readonly role?: 'audience' | 'stage' | 'broadcast';
   readonly theme?: ThemeId;
   readonly screenId?: string;
+  readonly stageLyricLabelPosition?: StageLyricLabelPosition | undefined;
 }
 
 export function useSlideTheme(
@@ -33,8 +62,19 @@ export function useSlideTheme(
     name: enabled ? 'screens' : null,
     title: '화면',
   });
+  const preferences = useApiSettingsDocument({
+    api,
+    name: enabled && options.role === 'stage' ? 'preferences' : null,
+    title: '????',
+  });
   return slideTheme(row, {
     ...options,
+    ...(preferences === null
+      ? {}
+      : {
+          stageLyricLabelPosition: withPreferenceDefaults(preferences.value)
+            .output.stageLyricLabelPosition,
+        }),
     source,
     file: file?.value,
     screens: screens?.value.screens,
@@ -100,41 +140,53 @@ export function slideTheme(
           loop: background.loop,
         }
       : undefined;
-  const pictureSize = pictureSizeForScreen(screen);
+  const item = {
+    id: row.id,
+    kind,
+    source,
+    title: row.title,
+    ...(backgroundOverride === undefined ? {} : {backgroundOverride}),
+  } as const;
+  const audienceScreen =
+    screen.kind === 'stage'
+      ? targets.find(target => target.kind === 'audience')
+      : undefined;
+  const audienceLayout =
+    audienceScreen === undefined
+      ? undefined
+      : resolveThemeScreen(theme, audienceScreen.id, targets);
+  const audience =
+    audienceScreen === undefined || audienceLayout === undefined
+      ? undefined
+      : {
+          screen: pictureScreen(audienceScreen),
+          theme: {
+            themeId: theme.id,
+            revision: 0,
+            missing: [],
+            sourceScreenId: audienceLayout.sourceScreenId,
+            layout: audienceLayout.layout,
+            emptyColor: emptyScreenColor(
+              targets.find(
+                target => target.id === audienceLayout.sourceScreenId,
+              ) ?? audienceScreen,
+            ),
+            item,
+          },
+        };
   return {
     themeId: theme.id,
     sourceScreenId: resolved.sourceScreenId,
-    screen: {
-      id: screen.id,
-      name: screen.name,
-      kind: screen.kind,
-      method: screen.method,
-      ...(pictureSize === undefined ? {} : {pictureSize}),
-      ...(screen.songCaption === undefined
-        ? {}
-        : {songCaption: screen.songCaption}),
-      ...((screen.edgeMargin ?? 0) !== 0 ||
-      (screen.offset?.x ?? 0) !== 0 ||
-      (screen.offset?.y ?? 0) !== 0
-        ? {
-            correction: {
-              edgeMargin: screen.edgeMargin ?? 0,
-              offset: screen.offset ?? {x: 0, y: 0},
-            },
-          }
-        : {}),
-    },
+    screen: pictureScreen(screen),
+    ...(audience === undefined ? {} : {audience}),
+    ...(screen.kind === 'stage' && options.stageLyricLabelPosition !== undefined
+      ? {stageLyricLabelPosition: options.stageLyricLabelPosition}
+      : {}),
     layout: resolved.layout,
     emptyColor: emptyScreenColor(
       targets.find(target => target.id === resolved.sourceScreenId) ?? screen,
     ),
-    item: {
-      id: row.id,
-      kind,
-      source,
-      title: row.title,
-      ...(backgroundOverride === undefined ? {} : {backgroundOverride}),
-    } as const,
+    item,
     background: background?.mediaId,
   };
 }

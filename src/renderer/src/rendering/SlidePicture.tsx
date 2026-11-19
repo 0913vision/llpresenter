@@ -6,6 +6,7 @@ import type {ThemeScreenLayout} from '@core/schema/themes';
 import {OutputSlidePicture} from './OutputSlidePicture';
 import type {ScreenId, ThemeId} from '@core/schema/ids';
 import type {RenderScreen} from './layer';
+import type {PictureSpec} from './pictures/pictureService';
 import {usePrepPictureSwitch} from './PrepPictureSwitch';
 
 /** Shared slide canvas for presentation tiles, item previews, and slide editors. */
@@ -18,6 +19,8 @@ export function SlidePicture({
   themeId,
   screen,
   sourceScreenId,
+  audience,
+  stageLyricLabelPosition,
   songSource,
   mediaOnly = false,
   drawn,
@@ -31,6 +34,9 @@ export function SlidePicture({
   readonly themeId?: ThemeId | undefined;
   readonly screen?: RenderScreen | undefined;
   readonly sourceScreenId?: ScreenId | undefined;
+  readonly audience?: PictureSpec['appearance']['audience'] | undefined;
+  readonly stageLyricLabelPosition?:
+    PictureSpec['appearance']['stageLyricLabelPosition'] | undefined;
   readonly songSource?: SongSlideSource | undefined;
   readonly mediaOnly?: boolean | undefined;
   /** Controls when the shared cached picture is shown. */
@@ -48,6 +54,8 @@ export function SlidePicture({
       themeId={themeId}
       screen={screen}
       sourceScreenId={sourceScreenId}
+      audience={audience}
+      stageLyricLabelPosition={stageLyricLabelPosition}
       songSource={songSource}
       mediaOnly={mediaOnly}
       drawn={

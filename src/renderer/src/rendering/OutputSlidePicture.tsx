@@ -27,6 +27,9 @@ export interface SlideInput {
   readonly themeId?: ThemeId | undefined;
   readonly screen?: RenderScreen | undefined;
   readonly sourceScreenId?: ScreenId | undefined;
+  readonly audience?: PictureSpec['appearance']['audience'] | undefined;
+  readonly stageLyricLabelPosition?:
+    PictureSpec['appearance']['stageLyricLabelPosition'] | undefined;
   readonly songSource?: SongSlideSource | undefined;
   readonly mediaOnly?: boolean | undefined;
 }
@@ -41,6 +44,8 @@ export function outputSlideSpec({
   themeId,
   screen = {id: screenId, kind: 'audience', method: 'fullscreen'},
   sourceScreenId = screen.id,
+  audience,
+  stageLyricLabelPosition,
   songSource,
   mediaOnly = false,
 }: SlideInput): PictureSpec {
@@ -64,6 +69,10 @@ export function outputSlideSpec({
     },
     appearance: {
       screen,
+      ...(audience === undefined ? {} : {audience}),
+      ...(stageLyricLabelPosition === undefined
+        ? {}
+        : {stageLyricLabelPosition}),
       theme: {
         themeId: themeId ?? defaultThemeId,
         revision: 0,

@@ -52,7 +52,6 @@ function PreviewBody({
               <ScreenPreview
                 screenId={screen.id}
                 chroma={screen.method === 'capture'}
-                keep={false}
               />
             )
           ) : null}

@@ -10,7 +10,6 @@ import {ScreenPreview} from '@renderer/features/presentation/ScreenPreview';
 import {ScreenSummariesContext} from '@renderer/platform/ScreenSummaries';
 import {summarizeScreens} from '@renderer/platform/screens';
 import {classes} from '@renderer/rendering/classes';
-import {releaseKeptDrawings} from '@renderer/rendering/keptDrawings';
 
 beforeEach(() => {
   useLive.setState({state: null});
@@ -92,8 +91,6 @@ function setup() {
   };
 }
 
-const SETTINGS_FEEDS_PER_PREVIEW = 4;
-
 describe('preview overlay wiring', () => {
   it('subscribes to the three output mirrors without drawing the overlays again', async () => {
     const {store, snapshot, removals, stopSettings, screens, previewSource} =
@@ -122,33 +119,23 @@ describe('preview overlay wiring', () => {
     ).toHaveLength(0);
     view.unmount();
     expect(stopSettings).not.toHaveBeenCalled();
-    releaseKeptDrawings();
-    expect(stopSettings).not.toHaveBeenCalled();
     for (const remove of removals) expect(remove).toHaveBeenCalledTimes(1);
   });
 
-  it('keeps the prior identity drawing when it switches and frees both on release', async () => {
-    const {removals, stopSettings} = setup();
+  it('uses the actual output for overlays and releases subscriptions on switching', async () => {
+    const {removals, stopSettings, previewSource} = setup();
     const view = render(<ScreenPreview screenId={MAIN} chroma={false} />);
     await act(async () => {});
-    expect(
-      view.container.querySelector(`[data-layer="message"] .${classes.shown}`)
-        ?.textContent,
-    ).toBe('Main message');
+    expect(view.container.querySelector('video')).not.toBeNull();
+    expect(previewSource).toHaveBeenCalledWith(MAIN);
     view.rerender(<ScreenPreview screenId={STAGE} chroma={false} />);
     await act(async () => {});
-    expect(view.container.querySelectorAll(`.${classes.root}`)).toHaveLength(1);
+    expect(previewSource).toHaveBeenCalledWith(STAGE);
     expect(
-      view.container.querySelector(`[data-layer="message"] .${classes.shown}`),
-    ).toBeNull();
-    expect(
-      view.container.querySelector('[data-stage-message-band]:not([hidden])')
-        ?.textContent,
-    ).toBe('Stage cue');
-    expect(stopSettings).not.toHaveBeenCalled();
+      view.container.querySelectorAll(`[data-layer="message"]`),
+    ).toHaveLength(0);
     view.unmount();
-    releaseKeptDrawings();
-    expect(stopSettings).toHaveBeenCalledTimes(2 * SETTINGS_FEEDS_PER_PREVIEW);
+    expect(stopSettings).toHaveBeenCalledTimes(8);
     for (const remove of removals) expect(remove).toHaveBeenCalledTimes(1);
   });
 });

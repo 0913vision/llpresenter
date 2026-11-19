@@ -13,6 +13,7 @@ import type {Label} from '@core/schema/labels';
 import type {ShowTile} from '@core/schema/showService';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import type {LiveThemeItem} from '@core/schema/liveTheme';
+import {withPreferenceDefaults} from '@core/schema/preferences';
 import {slideCountOf} from '@core/songs/blockEdits';
 import {RolePreview} from './RolePreview';
 import {Picture} from '@renderer/rendering/pictures/Picture';
@@ -30,7 +31,9 @@ function usePreviewSettings(api: LlpApi['settings']) {
     const accept = (document: SettingsDocument): void => {
       if (
         !alive ||
-        (document.name !== 'themes' && document.name !== 'screens')
+        (document.name !== 'themes' &&
+          document.name !== 'screens' &&
+          document.name !== 'preferences')
       ) {
         return;
       }
@@ -48,7 +51,7 @@ function usePreviewSettings(api: LlpApi['settings']) {
       });
     };
     const stop = api.subscribe(accept);
-    for (const name of ['themes', 'screens'] as const) {
+    for (const name of ['themes', 'screens', 'preferences'] as const) {
       void api.get({name}).then(accept, (error: unknown) => {
         if (alive) console.error('Could not read song preview settings', error);
       });
@@ -61,6 +64,7 @@ function usePreviewSettings(api: LlpApi['settings']) {
   return {
     themes: documents.find(item => item.name === 'themes')?.value,
     screens: documents.find(item => item.name === 'screens')?.value,
+    preferences: documents.find(item => item.name === 'preferences')?.value,
   };
 }
 
@@ -141,6 +145,11 @@ export function ContentPreviewFrame({
         role: of,
         themes: documents.themes,
         screens: documents.screens,
+        stageLyricLabelPosition:
+          documents.preferences === undefined
+            ? undefined
+            : withPreferenceDefaults(documents.preferences).output
+                .stageLyricLabelPosition,
         item:
           activeItem === undefined
             ? undefined
@@ -156,7 +165,13 @@ export function ContentPreviewFrame({
       stage: appearanceOf('stage'),
       broadcast: appearanceOf('broadcast'),
     };
-  }, [documents.themes, documents.screens, item, picture]);
+  }, [
+    documents.themes,
+    documents.screens,
+    documents.preferences,
+    item,
+    picture,
+  ]);
   const appearance = appearances[role];
   const songPicture =
     picture !== null && 'song' in picture ? picture : undefined;

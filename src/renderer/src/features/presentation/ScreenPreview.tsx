@@ -1,25 +1,60 @@
-import {useLayoutEffect, useRef, type JSX} from 'react';
-import {emptyLayers, type LiveLayers} from '@core/live/state';
-import {mediaUrl} from '@contracts/ipc/mediaUrls';
-import type {LlpApi} from '@contracts/ipc/api';
-import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
-import {OUTPUT_REVEAL_DEADLINE_MS} from '@core/output/revealDeadline';
-import {OutputRenderer} from '@renderer/rendering/outputRenderer';
-import {openPreviewMedia} from '@renderer/rendering/previewMedia';
-import {fontsLoading, previewReady} from '@renderer/rendering/fontsLoading';
+import {useLayoutEffect, useState, type JSX} from 'react';
+import {emptyLayers, type LiveLayers, type LiveState} from '@core/live/state';
 import {ScreenFrames} from '@renderer/rendering/screenFrames';
 import type {RenderFrame} from '@renderer/rendering/layer';
-import {keepDrawing} from '@renderer/rendering/keptDrawings';
+import {themeBackgroundColor} from '@renderer/rendering/themeBackground';
+import {Picture} from '@renderer/rendering/pictures/Picture';
+import {pictureBounds} from '@renderer/rendering/pictures/drawPicture';
+import type {PictureSpec} from '@renderer/rendering/pictures/pictureService';
 import {useLive} from '@renderer/session/live';
+import {OutputMirror} from './OutputMirror';
 import styles from './ScreenPreview.module.css';
 
 const noLayers = emptyLayers();
 
-interface View {
-  readonly host: HTMLDivElement;
-  readonly renderer: OutputRenderer;
-  readonly key: string;
-  readonly bibleKey: string | null;
+/** A static slide can share the cached output picture. */
+export function cachedScreenPicture(
+  layers: LiveLayers,
+  frame: RenderFrame,
+  state: LiveState | null,
+): PictureSpec | undefined {
+  const {screen, theme} = frame;
+  if (
+    screen === undefined ||
+    theme === undefined ||
+    layers.slide === null ||
+    layers.prop !== null ||
+    layers.audio !== null ||
+    layers.message !== null ||
+    frame.blackScreen === true ||
+    frame.testPattern === true ||
+    frame.stageMessage != null ||
+    (state?.clearEffects?.length ?? 0) !== 0 ||
+    theme.layout.elements.some(
+      element => element.kind === 'clock' || element.kind === 'timer',
+    )
+  ) {
+    return undefined;
+  }
+  return {
+    layers: {
+      ...layers,
+      media: layers.media === null ? null : {...layers.media, startedAt: 0},
+    },
+    appearance: {
+      screen,
+      theme,
+      ...(frame.audience === undefined ? {} : {audience: frame.audience}),
+      ...(frame.stageLyricLabelPosition === undefined
+        ? {}
+        : {stageLyricLabelPosition: frame.stageLyricLabelPosition}),
+      background: themeBackgroundColor(
+        theme.layout.background,
+        theme.emptyColor,
+      ),
+      checker: false,
+    },
+  };
 }
 
 function reportDrawingError(message: string, error: unknown): void {
@@ -27,283 +62,82 @@ function reportDrawingError(message: string, error: unknown): void {
   window.llp?.log.write({level: 'error', message, detail});
 }
 
-function release(view: View | null): void {
-  view?.renderer.dispose();
-  view?.host.remove();
-}
-
-function quickBibleFrameKey(
-  layers: LiveLayers,
-  frame: RenderFrame,
-): string | null {
-  const item = frame.theme?.item;
-  if (
-    frame.theme === undefined ||
-    item?.kind !== 'bible' ||
-    !layers.slide?.itemId.startsWith('bible:') ||
-    layers.media !== null ||
-    layers.prop !== null
-  ) {
-    return null;
-  }
-  return JSON.stringify([
-    frame.screen,
-    frame.theme.layout,
-    frame.theme.emptyColor,
-    frame.theme.sourceScreenId,
-    item.overlays,
-  ]);
-}
-
-/**
- * Draws one screen from the live state into whichever element holds it. While
- * no panel shows it, it waits in an off-page holder of the panel's last size
- * and keeps following the live state, so the panel that shows it again has the
- * current picture in its first frame and never an old one.
- */
-class ScreenDrawing {
-  attached = true;
-  get disposed(): boolean {
-    return this.stopped;
-  }
-  private container: HTMLElement;
-  private size = {width: 0, height: 0};
-  private holder: HTMLDivElement | null = null;
-  private readonly sizes: ResizeObserver | null;
-  private front: View | null = null;
-  private pending: View | null = null;
-  private animation = 0;
-  private stopped = false;
-  private readonly media: ReturnType<typeof openPreviewMedia>;
-  private readonly frames: ScreenFrames | null;
-  private readonly stopLive: () => void;
-  private readonly forget: () => void;
-
-  constructor(
-    api: LlpApi | undefined,
-    screenId: string,
-    container: HTMLElement,
-  ) {
-    this.container = container;
-    // NOTE(0913vision): The size is read from layout the browser does anyway,
-    // never asked for while 진행 is being put on the page.
-    this.sizes =
-      typeof ResizeObserver === 'undefined'
-        ? null
-        : new ResizeObserver(entries => {
-            const box = entries.at(-1)?.contentRect;
-            if (box !== undefined && box.width > 0 && box.height > 0) {
-              this.size = {width: box.width, height: box.height};
-            }
-          });
-    this.sizes?.observe(container);
-    this.media = openPreviewMedia(api);
-    this.frames =
-      api === undefined
-        ? null
-        : new ScreenFrames({
-            fonts: api.fonts,
-            settings: api.settings,
-            clock: () => api.live.clock(),
-            wallClock: api.live,
-            screenId,
-            onChange: () => this.draw(),
-            onError: reportDrawingError,
-          });
-    this.draw();
-    this.stopLive = useLive.subscribe((next, previous) => {
-      if (next.state !== previous.state) this.draw();
-    });
-    this.forget = keepDrawing(() => this.dispose());
-  }
-
-  attach(container: HTMLElement): void {
-    this.attached = true;
-    this.container = container;
-    for (const view of [this.front, this.pending]) {
-      if (view !== null) container.append(view.host);
-    }
-    this.holder?.remove();
-    this.holder = null;
-    this.sizes?.observe(container);
-  }
-
-  detach(): void {
-    this.attached = false;
-    this.sizes?.disconnect();
-    const holder = document.createElement('div');
-    holder.setAttribute('aria-hidden', 'true');
-    Object.assign(holder.style, {
-      position: 'fixed',
-      left: '-100000px',
-      top: '0',
-      width: `${this.size.width}px`,
-      height: `${this.size.height}px`,
-      overflow: 'hidden',
-      pointerEvents: 'none',
-    });
-    document.documentElement.append(holder);
-    for (const view of [this.front, this.pending]) {
-      if (view !== null) holder.append(view.host);
-    }
-    this.holder = holder;
-    this.container = holder;
-  }
-
-  dispose(): void {
-    if (this.stopped) return;
-    this.forget();
-    this.stopLive();
-    this.stopped = true;
-    this.sizes?.disconnect();
-    cancelAnimationFrame(this.animation);
-    this.frames?.dispose();
-    release(this.pending);
-    release(this.front);
-    this.pending = null;
-    this.front = null;
-    this.media?.dispose();
-    this.holder?.remove();
-    this.holder = null;
-  }
-
-  private draw(): void {
-    if (this.stopped) return;
-    const state = useLive.getState().state;
-    const layers = state?.layers ?? noLayers;
-    try {
-      const frame = this.frames?.frame(state);
-      if (frame === undefined) return;
-      const instant = {...frame, transitions: false};
-      const key = JSON.stringify([layers, instant]);
-      if (
-        this.pending?.key === key ||
-        (this.pending === null && this.front?.key === key)
-      ) {
-        return;
-      }
-      cancelAnimationFrame(this.animation);
-      release(this.pending);
-      this.pending = null;
-      if (this.front?.key === key) return;
-      const bibleKey = quickBibleFrameKey(layers, instant);
-      if (bibleKey !== null && this.front?.bibleKey === bibleKey) {
-        this.front.renderer.render(layers, instant);
-        this.front = {...this.front, key};
-        return;
-      }
-      const host = document.createElement('div');
-      Object.assign(host.style, {
-        position: 'absolute',
-        inset: '0',
-        visibility: 'hidden',
-      });
-      this.container.append(host);
-      const renderer = new OutputRenderer(host, {
-        textStyle: DEFAULT_TEXT_STYLE,
-        mediaUrl,
-        previewMedia: this.media,
-        onError: reportDrawingError,
-        mode: 'preview',
-      });
-      const view: View = {host, renderer, key, bibleKey};
-      this.pending = view;
-      renderer.render(layers, instant);
-      const start = performance.now();
-      const check = (): void => {
-        if (this.stopped || this.pending !== view) return;
-        const expired = performance.now() - start >= OUTPUT_REVEAL_DEADLINE_MS;
-        if (
-          (!previewReady(renderer) || fontsLoading(document.fonts)) &&
-          !expired
-        ) {
-          this.animation = requestAnimationFrame(check);
-          return;
-        }
-        if (expired) renderer.revealIncomplete();
-        const previous = this.front;
-        previous?.host.remove();
-        // NOTE(0913vision): A finished picture stops hiding itself rather than
-        // forcing itself visible, so a picture prepared inside a hidden stage
-        // (the next item's grid, pictures drawn ahead) stays out of sight.
-        host.style.removeProperty('visibility');
-        this.front = view;
-        this.pending = null;
-        release(previous);
-      };
-      this.animation = requestAnimationFrame(check);
-    } catch (error) {
-      reportDrawingError('could not update the screen preview', error);
-    }
-  }
-}
-
-const kept = new WeakMap<LlpApi, Map<string, ScreenDrawing>>();
-
-function showDrawing(
-  api: LlpApi | undefined,
-  screenId: string,
-  container: HTMLElement,
-): ScreenDrawing {
-  const drawings = api === undefined ? undefined : kept.get(api);
-  const waiting = drawings?.get(screenId);
-  if (waiting !== undefined && !waiting.attached && !waiting.disposed) {
-    waiting.attach(container);
-    return waiting;
-  }
-  const drawing = new ScreenDrawing(api, screenId, container);
-  if (api !== undefined && (waiting === undefined || waiting.disposed)) {
-    const map = drawings ?? new Map<string, ScreenDrawing>();
-    kept.set(api, map);
-    map.set(screenId, drawing);
-  }
-  return drawing;
-}
-
-function leaveDrawing(
-  api: LlpApi | undefined,
-  screenId: string,
-  drawing: ScreenDrawing,
-): void {
-  if (api !== undefined && kept.get(api)?.get(screenId) === drawing) {
-    drawing.detach();
-    return;
-  }
-  drawing.dispose();
-}
-
-/**
- * The picture of one screen: the output renderer, scaled into its parent frame,
- * fed with the live layers. It draws what the live state holds, never the
- * selection, and a change of the live state does not render React. The drawing
- * of each screen outlives the panel, so leaving 진행 and coming back shows the
- * current picture at once.
- *
- * @param chroma - Draws the empty picture green, as the 방송 화면 does.
- */
+/** Shows a cached still when possible and the actual output for dynamic states. */
 export function ScreenPreview({
   screenId,
   chroma,
-  keep = true,
 }: {
   readonly screenId: string;
   readonly chroma: boolean;
-  readonly keep?: boolean;
 }): JSX.Element {
-  const screenRef = useRef<HTMLDivElement>(null);
-
+  const [snapshot, setSnapshot] = useState<{
+    screenId: string;
+    picture: PictureSpec | undefined;
+  }>();
+  const picture =
+    snapshot?.screenId === screenId ? snapshot.picture : undefined;
   useLayoutEffect(() => {
-    const screen = screenRef.current;
-    if (!screen) return undefined;
     const api = window.llp;
-    const drawing = showDrawing(api, screenId, screen);
-    return () => {
-      if (keep) leaveDrawing(api, screenId, drawing);
-      else drawing.dispose();
+    if (api === undefined) return undefined;
+    let stopped = false;
+    const holder: {frames?: ScreenFrames} = {};
+    const update = (): void => {
+      const frames = holder.frames;
+      if (stopped || frames === undefined) return;
+      const state = useLive.getState().state;
+      try {
+        const frame = frames.frame(state);
+        setSnapshot({
+          screenId,
+          picture:
+            frame === undefined
+              ? undefined
+              : cachedScreenPicture(state?.layers ?? noLayers, frame, state),
+        });
+      } catch (error) {
+        reportDrawingError('could not update the screen preview', error);
+      }
     };
-  }, [screenId, keep]);
-
+    const frames = new ScreenFrames({
+      fonts: api.fonts,
+      settings: api.settings,
+      clock: () => api.live.clock(),
+      wallClock: api.live,
+      screenId,
+      onChange: update,
+      onError: reportDrawingError,
+    });
+    holder.frames = frames;
+    update();
+    const stopLive = useLive.subscribe((next, previous) => {
+      if (next.state !== previous.state) update();
+    });
+    return () => {
+      stopped = true;
+      stopLive();
+      frames.dispose();
+    };
+  }, [screenId]);
   const classes = [styles.screen];
   if (chroma) classes.push(styles.chroma);
-  return <div ref={screenRef} className={classes.join(' ')} />;
+  const bounds = pictureBounds(picture?.appearance.screen.pictureSize);
+  return (
+    <div className={classes.join(' ')}>
+      {picture === undefined ? (
+        <OutputMirror screenId={screenId} />
+      ) : (
+        <div
+          className={styles.picture}
+          style={{
+            width: `${(1920 / bounds.width) * 100}%`,
+            height: `${(1080 / bounds.height) * 100}%`,
+            left: `${(-bounds.x / bounds.width) * 100}%`,
+            top: `${(-bounds.y / bounds.height) * 100}%`,
+          }}
+        >
+          <Picture {...picture} />
+        </div>
+      )}
+    </div>
+  );
 }

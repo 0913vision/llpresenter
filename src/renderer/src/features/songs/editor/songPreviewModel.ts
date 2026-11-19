@@ -11,6 +11,7 @@ import {themeBackgroundColor} from '@renderer/rendering/themeBackground';
 import {resolveThemeOutput} from '@core/themes/output';
 import type {Song} from '@core/schema/song';
 import {linearSlidesOf} from '@core/songs/blockEdits';
+import type {StageLyricLabelPosition} from '@core/schema/preferences';
 
 const ROLE_LABELS = {
   audience: '청중 화면',
@@ -36,12 +37,14 @@ export function previewAppearance({
   screens,
   item = {id: 'preview', kind: 'song', source: 'external'},
   screenId,
+  stageLyricLabelPosition,
 }: {
   readonly role: PreviewRole;
   readonly themes: ThemesFile | undefined;
   readonly screens: ScreensFile | undefined;
   readonly item?: LiveThemeItem | undefined;
   readonly screenId?: string | undefined;
+  readonly stageLyricLabelPosition?: StageLyricLabelPosition | undefined;
 }) {
   const configured =
     screens?.screens.find(
@@ -55,10 +58,15 @@ export function previewAppearance({
     kind: role,
     method: role === 'broadcast' ? 'capture' : 'fullscreen',
   };
-  const all =
+  const configuredScreens =
     configured === undefined
       ? [...(screens?.screens ?? []), target]
       : (screens?.screens ?? [target]);
+  const audienceTarget =
+    role === 'stage'
+      ? configuredScreens.find(value => value.kind === 'audience')
+      : undefined;
+  const all = configuredScreens;
   const output = resolveThemeOutput({
     file: themes ?? null,
     screens: all,
@@ -79,6 +87,27 @@ export function previewAppearance({
     kind: target.kind,
     method: target.method,
   };
+  const audienceComposition =
+    audienceTarget === undefined
+      ? undefined
+      : output.screens[audienceTarget.id];
+  const audienceScreen =
+    audienceTarget === undefined
+      ? undefined
+      : resolveRenderScreen(audienceTarget.id, all);
+  const audience =
+    audienceComposition === undefined || audienceScreen === undefined
+      ? undefined
+      : {
+          screen: audienceScreen,
+          theme: {
+            ...audienceComposition,
+            themeId: output.themeId,
+            revision: output.revision,
+            missing: output.missing,
+            item,
+          },
+        };
   const deleted = themes?.deletedThemes?.find(
     entry => entry.id === output.themeId,
   );
@@ -89,6 +118,10 @@ export function previewAppearance({
   return {
     screen,
     theme,
+    ...(audience === undefined ? {} : {audience}),
+    ...(role === 'stage' && stageLyricLabelPosition !== undefined
+      ? {stageLyricLabelPosition}
+      : {}),
     themeName:
       deleted !== undefined
         ? `(${deleted.name})`

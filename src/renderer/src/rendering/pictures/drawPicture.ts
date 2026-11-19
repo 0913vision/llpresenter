@@ -52,6 +52,12 @@ export function drawPicture(
   renderer.render(layers, {
     screen: appearance.screen,
     theme: appearance.theme,
+    ...(appearance.audience === undefined
+      ? {}
+      : {audience: appearance.audience}),
+    ...(appearance.stageLyricLabelPosition === undefined
+      ? {}
+      : {stageLyricLabelPosition: appearance.stageLyricLabelPosition}),
     transitions: false,
     standby: true,
     ...(layers.slide === null ? {} : {slide: layers.slide}),

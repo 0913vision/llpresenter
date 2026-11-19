@@ -15,12 +15,6 @@ import {useLive} from '@renderer/session/live';
 import {emptyLiveState} from '@core/live/state';
 import {MAIN_ID, screensDocument} from '@fixtures/core/screenDocuments';
 
-const drawn = vi.hoisted(() => {
-  const created: Array<{mode?: string}> = [];
-  const frames: unknown[] = [];
-  return {created, frames};
-});
-
 vi.mock('@renderer/features/presentation/OutputMirror', () => ({
   OutputMirror: ({screenId}: {screenId: string}) => (
     <div data-testid="output-mirror">{screenId}</div>
@@ -29,20 +23,6 @@ vi.mock('@renderer/features/presentation/OutputMirror', () => ({
 
 vi.mock('@renderer/ui/useElementSize', () => ({
   useElementSize: () => [vi.fn(), {width: 600, height: 600}],
-}));
-
-vi.mock('@renderer/rendering/outputRenderer', () => ({
-  OutputRenderer: class {
-    ready = () => true;
-    revealIncomplete = () => undefined;
-    constructor(_parent: unknown, options: {mode?: string}) {
-      drawn.created.push(options);
-    }
-    render = (_layers: unknown, frame?: unknown) => {
-      drawn.frames.push(frame);
-    };
-    dispose = vi.fn();
-  },
 }));
 
 const monitors: MonitorList = [
@@ -77,8 +57,6 @@ function setup(document = screensDocument(), active = true) {
 }
 
 beforeEach(() => {
-  drawn.created.length = 0;
-  drawn.frames.length = 0;
   useScreensSelection.setState({selection: {id: null}});
 });
 
@@ -111,7 +89,7 @@ describe('the output preview', () => {
     expect(patternCommands()).toHaveLength(1);
   });
 
-  it('mirrors an active output and returns to its inactive preview when switched off', async () => {
+  it('mirrors an active output and preserves dynamic preview when switched off', async () => {
     setup();
     await screen.findByRole('button', {
       name: '\ud14c\uc2a4\ud2b8 \ud654\uba74',
@@ -122,7 +100,7 @@ describe('the output preview', () => {
     );
     expect(screen.getByTestId('output-mirror').textContent).toBe(MAIN_ID);
     act(() => useLive.setState({state}));
-    expect(screen.queryByTestId('output-mirror')).toBeNull();
+    expect(screen.getByTestId('output-mirror').textContent).toBe(MAIN_ID);
   });
 
   it('fits the configured output aspect ratio in the available space', async () => {
@@ -147,7 +125,7 @@ describe('the output preview', () => {
     expect(picture?.style.height).toBe('450px');
   });
 
-  it('draws the pattern through the preview with the screen correction', async () => {
+  it('shows the actual output mirror for a test pattern', async () => {
     const corrected = settingsDocument('screens', {
       screens: [
         {
@@ -181,13 +159,7 @@ describe('the output preview', () => {
     );
 
     await waitFor(() =>
-      expect(drawn.frames.at(-1)).toMatchObject({
-        testPattern: true,
-        screen: {
-          name: '청중 화면',
-          correction: {edgeMargin: 10, offset: {x: 20, y: -10}},
-        },
-      }),
+      expect(screen.getByTestId('output-mirror').textContent).toBe(MAIN_ID),
     );
   });
 
