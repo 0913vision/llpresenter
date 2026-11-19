@@ -76,6 +76,38 @@ function smallNames(): Array<string | null> {
 }
 
 describe('PreviewFrame', () => {
+  it.each([1, 2, 3])(
+    'gives %i small previews equal flexible columns',
+    count => {
+      const others = Array.from({length: count}, (_, index) => ({
+        id: `other-${index}`,
+        name: `Other ${index}`,
+        status: {kind: 'on' as const},
+      }));
+      const {container} = render(
+        <PreviewFrame
+          screens={[main, ...others]}
+          big="main"
+          sizing="content"
+          onBigChange={() => {}}
+          renderScreen={() => null}
+        />,
+      );
+      const large = container.querySelector<HTMLElement>('[data-role="large"]');
+      const grid = large?.parentElement;
+      expect(grid?.style.gridTemplateColumns).toBe(
+        `repeat(${count}, minmax(0, 1fr))`,
+      );
+      const small = [
+        ...container.querySelectorAll<HTMLElement>('[data-role="small"]'),
+      ];
+      expect(small).toHaveLength(count);
+      expect(small.map(tile => tile.style.gridColumn)).toEqual(
+        others.map((_, index) => String(index + 1)),
+      );
+    },
+  );
+
   it('shows transition caption and progress on the audience screen only', () => {
     render(
       <PreviewFrame
