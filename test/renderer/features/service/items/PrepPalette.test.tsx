@@ -24,7 +24,7 @@ describe('preparation palette', () => {
       'true',
     );
     expect(screen.getByText('순서')).toBeTruthy();
-    expect(screen.getByText('구역 이름')).toBeTruthy();
+    expect(screen.queryByText('구역 이름')).toBeNull();
     expect(screen.getAllByRole('button', {name: '사도신경'})).toHaveLength(1);
     expect(screen.getAllByRole('button', {name: '광고'})).toHaveLength(1);
     expect(screen.queryByRole('tab', {name: '미디어'})).not.toBeTruthy();
@@ -36,8 +36,7 @@ describe('preparation palette', () => {
     const creed = screen.getByRole('button', {name: '사도신경'});
     fireEvent.keyDown(creed, {key: 'Enter'});
     expect(insert).toHaveBeenCalledWith('creed');
-    fireEvent.doubleClick(screen.getByRole('button', {name: '묵상기도'}));
-    expect(insert).toHaveBeenCalledWith('card:묵상기도');
+    expect(screen.queryByRole('button', {name: '묵상기도'})).toBeNull();
     fireEvent.contextMenu(creed);
     fireEvent.click(screen.getByRole('menuitem', {name: '옛 번역'}));
     expect(insert).toHaveBeenCalledWith('creed', undefined, 'old');

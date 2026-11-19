@@ -30,5 +30,5 @@ export const THEME_BACKGROUNDS: readonly ThemePicture[] = [
 /** Decorations keep their names when selected in an existing theme. */
 export const THEME_DECORATIONS: readonly ThemePicture[] = [
   {id: SUNDAY_NOTICE_DIVIDER_ID, name: '광고 사선'},
-  {id: SECTION_RULES_ID, name: '구역 이름 선'},
+  {id: SECTION_RULES_ID, name: '제목 선'},
 ];

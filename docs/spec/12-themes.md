@@ -514,8 +514,8 @@ as every settings file does (02).
 
 ### Defaults
 
-- New libraries include seven 구역 이름 color themes for a blank 슬라이드 item.
-  항목 이름 supplies the Korean name without inserted spaces; its one slide text
+- New libraries include seven 제목 color themes for a blank 슬라이드 item. 항목
+  이름 supplies the Korean name without inserted spaces; its one slide text
   supplies the English name, which may be empty. On 청중 화면 both use white
   KoPubWorldDotum without shadow or outline: Bold 152 px at y=412, tracking 52
   px, and Light 56 px at y=613, tracking 34 px. The Korean frame is 240 px high
@@ -536,7 +536,7 @@ as every settings file does (02).
   share the overrides, including renaming and scaling.
 - Changing a service item's theme also updates its section card theme in the
   same undo step, including when the item returns to its kind default.
-- Each section card selects its color's 구역 이름 theme, with no item background
+- Each section card selects its color's 제목 theme, with no item background
   media. Its audience layout uses the matching `GRADIENT_PRESETS` gradient
   directly, including OKLCH mixing and dither. The seven generated section PNGs
   are not shipped. The core section list contains, in order: 묵상기도, 사도신경,
@@ -695,9 +695,9 @@ release.
 The theme editor's image picker lists a 기본 배경 group before user 미디어: 광고
 배경, 말씀 배경, 예배 안내 배경 (밝게), 예배 안내 배경 (어둡게), and 예배 준비
 배경. Search and keyboard selection reach both groups. Adding or replacing an
-image uses the selected asset ID without importing it. 광고 사선 and 구역 이름
-선 remain embedded decorations in their themes and never appear as choices.
-Their existing elements still show the correct picture name.
+image uses the selected asset ID without importing it. 광고 사선 and 제목 선
+remain embedded decorations in their themes and never appear as choices. Their
+existing elements still show the correct picture name.
 
 ## Where the rest of the spec uses 테마
 

@@ -127,17 +127,6 @@ it.each([
   ['standby', '예배 준비'],
   ['creed', '사도신경'],
   ['ad', '광고'],
-  ...PALETTE_SECTIONS.filter(section =>
-    [
-      '묵상기도',
-      '회개와간구의기도',
-      '찬양',
-      '합심기도',
-      '봉헌',
-      '봉헌기도',
-      '축도',
-    ].includes(section.name),
-  ).map(section => [`card:${section.name}`, section.name]),
 ])(
   'builds %s exactly as the Sunday template does, except ids',
   async (key, name) => {
@@ -172,7 +161,7 @@ it('uses the shared section, liturgy and blank factories for every remaining ele
         },
         createDefaultThemes(),
       )?.name,
-    ).toBe(`구역 이름 ${section.color}`);
+    ).toBe(`제목 ${section.color}`);
   }
   for (const kind of ['creed', 'prayer'] as const) {
     for (const translation of ['new', 'old'] as const) {

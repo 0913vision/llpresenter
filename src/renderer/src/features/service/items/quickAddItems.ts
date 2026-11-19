@@ -12,8 +12,6 @@ import {newSlidesItem} from '@core/services/slidesEdits';
 import type {SlideTransitionDefaults} from '@core/schema/preferences';
 import {LITURGY} from '@core/services/liturgy';
 import {prepareLiturgy} from './quickAddLiturgy';
-import {SUNDAY_SECTIONS} from '@core/themes/sundaySections';
-import {prepareSection} from './quickAddSection';
 import {mediaAddAvailability} from '@renderer/platform/mediaAddAvailability';
 
 const SECTION_NAME = '새 구역';
@@ -78,7 +76,6 @@ export function otherItemEntries({
       label: '구역 추가',
       onSelect: () => onInsert({id: newId(), header: SECTION_NAME}),
     },
-    laterRow('other:cue', '빈 항목 추가'),
     menuSeparator('other:items'),
     ...(['blank', 'ad'] as const).map(form => ({
       kind: 'item' as const,
@@ -107,17 +104,6 @@ export function otherItemEntries({
         onSelect: () => onInsert(() => prepareLiturgy(kind, translation)),
       })),
     })),
-    {
-      kind: 'item',
-      id: 'other:section-card',
-      label: '구역 이름',
-      submenu: SUNDAY_SECTIONS.map(section => ({
-        kind: 'item' as const,
-        id: `section-card:${section.name}`,
-        label: section.name,
-        onSelect: () => onInsert(() => prepareSection(section)),
-      })),
-    },
     {
       kind: 'item',
       id: 'other:media',

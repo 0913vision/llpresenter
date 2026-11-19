@@ -39,6 +39,7 @@ import {DeviceRow} from './DeviceRow';
 import type {useAudioOutputs} from './useAudioOutputs';
 import type {LibraryLocationsState} from './useLibraryLocations';
 import {useUiZoom} from './useUiZoom';
+import {CustomSections} from '@renderer/features/service/items/CustomSections';
 
 /** The pages of the 환경설정 list, in the order it shows them. */
 export const preferencePages = [
@@ -276,81 +277,87 @@ export function PrepPage({edits}: PageProps): JSX.Element | null {
   if (preferences === null) return null;
   const disabled = lockedReason !== undefined;
   return (
-    <PropertyGroup title="새 슬라이드 기본 전환">
-      {(
-        [
-          ['songTitle', '곡 제목'],
-          ['song', '곡'],
-          ['blank', '빈 슬라이드'],
-          ['ad', '광고'],
-          ['section', '구역 이름'],
-          ['sermonTitle', '설교 제목'],
-          ['creed', '사도신경'],
-          ['prayer', '주기도문'],
-          ['bible', '성경 말씀'],
-        ] as const satisfies ReadonlyArray<
-          readonly [TransitionDefaultKind, string]
-        >
-      ).map(([key, label]) => {
-        const value = preferences.show.slideDefaults[key];
-        const update = (next: SlideTransition): void =>
-          change(stored => ({
-            ...stored,
-            show: {
-              ...stored.show,
-              slideDefaults: {...stored.show?.slideDefaults, [key]: next},
-            },
-          }));
-        return (
-          <PropertyRow key={key} label={label}>
-            {({controlId}) => (
-              <>
-                <SelectMenu
-                  id={controlId}
-                  aria-label={`${label} 효과`}
-                  value={value.kind}
-                  options={SLIDE_EFFECTS.map(([value, label]) => ({
-                    value,
-                    label,
-                  }))}
-                  disabled={disabled}
-                  onChange={kind =>
-                    update({
-                      kind,
-                      sec: value.sec,
-                      ...(kind === 'push' || kind === 'wipe'
-                        ? {dir: value.dir ?? 'left'}
-                        : {}),
-                    })
-                  }
-                />
-                <SelectMenu
-                  aria-label={`${label} 방향`}
-                  value={value.dir ?? 'left'}
-                  options={SLIDE_DIRECTIONS.map(([value, label]) => ({
-                    value,
-                    label,
-                  }))}
-                  disabled={
-                    disabled || (value.kind !== 'push' && value.kind !== 'wipe')
-                  }
-                  onChange={dir => update({...value, dir})}
-                />
-                <NumberField
-                  aria-label={`${label} 시간`}
-                  value={value.sec}
-                  {...SLIDE_TRANSITION_LIMITS}
-                  unit="초"
-                  disabled={disabled || value.kind === 'none'}
-                  updateOn="commit"
-                  onChange={sec => update({...value, sec})}
-                />
-              </>
-            )}
-          </PropertyRow>
-        );
-      })}
-    </PropertyGroup>
+    <>
+      <PropertyGroup title="제목 목록">
+        <PropertyRow label="제목">{() => <CustomSections />}</PropertyRow>
+      </PropertyGroup>
+      <PropertyGroup title="새 슬라이드 기본 전환">
+        {(
+          [
+            ['songTitle', '곡 제목'],
+            ['song', '곡'],
+            ['blank', '빈 슬라이드'],
+            ['ad', '광고'],
+            ['section', '제목'],
+            ['sermonTitle', '설교 제목'],
+            ['creed', '사도신경'],
+            ['prayer', '주기도문'],
+            ['bible', '성경 말씀'],
+          ] as const satisfies ReadonlyArray<
+            readonly [TransitionDefaultKind, string]
+          >
+        ).map(([key, label]) => {
+          const value = preferences.show.slideDefaults[key];
+          const update = (next: SlideTransition): void =>
+            change(stored => ({
+              ...stored,
+              show: {
+                ...stored.show,
+                slideDefaults: {...stored.show?.slideDefaults, [key]: next},
+              },
+            }));
+          return (
+            <PropertyRow key={key} label={label}>
+              {({controlId}) => (
+                <>
+                  <SelectMenu
+                    id={controlId}
+                    aria-label={`${label} 효과`}
+                    value={value.kind}
+                    options={SLIDE_EFFECTS.map(([value, label]) => ({
+                      value,
+                      label,
+                    }))}
+                    disabled={disabled}
+                    onChange={kind =>
+                      update({
+                        kind,
+                        sec: value.sec,
+                        ...(kind === 'push' || kind === 'wipe'
+                          ? {dir: value.dir ?? 'left'}
+                          : {}),
+                      })
+                    }
+                  />
+                  <SelectMenu
+                    aria-label={`${label} 방향`}
+                    value={value.dir ?? 'left'}
+                    options={SLIDE_DIRECTIONS.map(([value, label]) => ({
+                      value,
+                      label,
+                    }))}
+                    disabled={
+                      disabled ||
+                      (value.kind !== 'push' && value.kind !== 'wipe')
+                    }
+                    onChange={dir => update({...value, dir})}
+                  />
+                  <NumberField
+                    aria-label={`${label} 시간`}
+                    value={value.sec}
+                    {...SLIDE_TRANSITION_LIMITS}
+                    unit="초"
+                    disabled={disabled || value.kind === 'none'}
+                    updateOn="commit"
+                    onChange={sec => update({...value, sec})}
+                  />
+                </>
+              )}
+            </PropertyRow>
+          );
+        })}
+      </PropertyGroup>
+    </>
   );
 }
 

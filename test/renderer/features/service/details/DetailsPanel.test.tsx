@@ -18,6 +18,7 @@ import {ServiceItemStore} from '@renderer/features/service/items/serviceItemStor
 import {SongEditorStore} from '@renderer/features/songs/editor';
 import {useShow} from '@renderer/session/show';
 import {isItemOfKind} from '@core/schema/service';
+import {newSlidesItem} from '@core/services/slidesEdits';
 import {useContext, useLayoutEffect, useRef} from 'react';
 import {PictureReadiness} from '@renderer/rendering/PictureReadiness';
 
@@ -227,6 +228,18 @@ it('preserves a song title slide in the prepared picture', async () => {
 
 it('updates the first picture when a section is chosen', async () => {
   const f = itemFixture();
+  const document = f.service();
+  f.pushService({
+    ...document,
+    service: {
+      ...document.service,
+      order: document.service.order.map(item =>
+        item.id === fixtureItems.arranged
+          ? newSlidesItem('blank', item.id)
+          : item,
+      ),
+    },
+  });
   useShow.setState({
     serviceId: fixtureServiceId,
     openItemId: fixtureItems.arranged,
@@ -243,7 +256,7 @@ it('updates the first picture when a section is chosen', async () => {
     />,
   );
   try {
-    const field = await screen.findByRole('button', {name: '구역 이름'});
+    const field = await screen.findByRole('button', {name: '제목'});
     expect(field.textContent).toContain('없음');
     await userEvent.click(field);
     await userEvent.click(screen.getByRole('menuitemradio', {name: '찬양'}));
@@ -322,7 +335,6 @@ it('shows the first picture and resets the tab and selection when the item chang
     await editor.dispose();
   }
 });
-import {newSlidesItem} from '@core/services/slidesEdits';
 import {
   createMediaId,
   createServiceItemId,

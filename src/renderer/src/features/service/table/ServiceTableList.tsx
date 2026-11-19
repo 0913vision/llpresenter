@@ -5,18 +5,14 @@ import {ItemMemoDialog} from './ItemMemoDialog';
 import {menuAvailability} from '@renderer/ui/menuModel';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useShow} from '@renderer/session/show';
-import type {Notice} from '@renderer/ui/notices';
 import type {ServiceItemStore} from '../items/serviceItemStore';
 import {ServiceOrderList} from '../order/ServiceOrderList';
 import type {ServiceTableParts} from '../order/serviceTableParts';
 import {handleCellKey} from './cellKeys';
 import {ServiceTableCells} from './ServiceTableCells';
-import {ServiceTableFooter} from './ServiceTableFooter';
 import {ServiceTableHeader} from './ServiceTableHeader';
 import {useServiceTableData, type TableApi} from './useServiceTableData';
 import styles from './ServiceTable.module.css';
-
-const noProblem = (): void => undefined;
 
 /** The 예배 순서 of 준비 as a table: one row per item, edited in place. */
 export function ServiceTableList({
@@ -36,7 +32,6 @@ export function ServiceTableList({
     title: string;
     value: string;
   } | null>(null);
-  const onProblem: (notice: Notice) => void = list.onProblem ?? noProblem;
   const table = useMemo<ServiceTableParts>(
     () => ({
       setBackground: (serviceId, itemId, mediaId) =>
@@ -64,6 +59,7 @@ export function ServiceTableList({
         ];
       },
       header: <ServiceTableHeader />,
+      footer: null,
       rowClass: styles.row,
       sectionClass: styles.section,
       cellsOf: (row, detail, rowLabel) => (
@@ -81,12 +77,8 @@ export function ServiceTableList({
           readOnly={readOnly}
         />
       ),
-      footer:
-        serviceId === null ? null : (
-          <ServiceTableFooter onProblem={onProblem} />
-        ),
     }),
-    [data, items, serviceId, readOnly, onProblem],
+    [data, items, serviceId, readOnly],
   );
   return (
     <div className={styles.table} onKeyDownCapture={handleCellKey}>

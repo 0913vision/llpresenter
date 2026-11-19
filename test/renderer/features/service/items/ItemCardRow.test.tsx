@@ -17,7 +17,43 @@ import {ServiceItemStore} from '@renderer/features/service/items/serviceItemStor
 import {SongEditorStore} from '@renderer/features/songs/editor';
 import {serviceOrderEditsFor} from '@renderer/session/serviceOrderEdits';
 
-it.each(['song', 'bible', 'slides', 'standalone'] as const)(
+it('hides the title selector for songs and sermons', () => {
+  const fixture = itemFixture();
+  const editor = new SongEditorStore(fixture.api, vi.fn());
+  const items = new ServiceItemStore(fixture.api, editor, vi.fn());
+  const source = fixture
+    .service()
+    .service.order.find(row => isItemOfKind(row, 'song'));
+  if (!source || !isItemOfKind(source, 'song')) throw new Error('Missing song');
+  const passage = panelPassage();
+  const sermon = {
+    id: source.id,
+    sermon: {
+      title: '설교',
+      passage: {
+        translation: passage.translation,
+        ref: passage.ref,
+        split: 'verse' as const,
+        reference: 'every' as const,
+        verseNumbers: true,
+        translationName: false,
+      },
+    },
+  };
+  const view = render(
+    <ItemCardRow items={items} item={source} reason={undefined} />,
+  );
+  expect(screen.queryByRole('button', {name: '제목'})).toBeNull();
+  view.rerender(<ItemCardRow items={items} item={sermon} reason={undefined} />);
+  expect(screen.queryByRole('button', {name: '제목'})).toBeNull();
+  onTestFinished(async () => {
+    view.unmount();
+    items.dispose();
+    await editor.dispose();
+  });
+});
+
+it.each(['bible', 'slides', 'standalone'] as const)(
   'adds, replaces, removes and undoes a card for %s',
   async kind => {
     const fixture = itemFixture();
@@ -30,27 +66,25 @@ it.each(['song', 'bible', 'slides', 'standalone'] as const)(
     }
     const passage = panelPassage();
     const target =
-      kind === 'song'
-        ? source
-        : kind === 'bible'
-          ? {
-              id: source.id,
-              bible: {
-                translation: passage.translation,
-                ref: passage.ref,
-                split: 'verse' as const,
-                reference: 'every' as const,
-                verseNumbers: true,
-                translationName: false,
-              },
-            }
-          : kind === 'slides'
-            ? newSlidesItem('blank', source.id)
-            : {
-                ...newSlidesItem('blank', source.id),
-                sectionCard: newSectionCard(),
-                slides: {form: 'blank' as const, name: 'Card', slides: []},
-              };
+      kind === 'bible'
+        ? {
+            id: source.id,
+            bible: {
+              translation: passage.translation,
+              ref: passage.ref,
+              split: 'verse' as const,
+              reference: 'every' as const,
+              verseNumbers: true,
+              translationName: false,
+            },
+          }
+        : kind === 'slides'
+          ? newSlidesItem('blank', source.id)
+          : {
+              ...newSlidesItem('blank', source.id),
+              sectionCard: newSectionCard(),
+              slides: {form: 'blank' as const, name: 'Card', slides: []},
+            };
     fixture.pushService({
       ...document,
       service: {
@@ -82,7 +116,7 @@ it.each(['song', 'bible', 'slides', 'standalone'] as const)(
       items.dispose();
       await editor.dispose();
     });
-    const field = await screen.findByRole('button', {name: '구역 이름'});
+    const field = await screen.findByRole('button', {name: '제목'});
     const choose = async (name: string) => {
       await waitFor(() =>
         expect(field.getAttribute('aria-disabled')).not.toBe('true'),
@@ -95,7 +129,7 @@ it.each(['song', 'bible', 'slides', 'standalone'] as const)(
       second = SUNDAY_SECTIONS[1];
     if (!first || !second) throw Error('Missing sections');
     await userEvent.click(field);
-    const menu = screen.getByRole('menu', {name: '구역 이름'});
+    const menu = screen.getByRole('menu', {name: '제목'});
     expect(
       within(menu)
         .getAllByRole('menuitemradio')
@@ -169,7 +203,9 @@ it('keeps a custom name and English text until another choice is made', async ()
     service: {
       ...document.service,
       order: document.service.order.map(row =>
-        row.id === fixtureItems.arranged ? {...row, sectionCard: custom} : row,
+        row.id === fixtureItems.arranged
+          ? {...newSlidesItem('blank', row.id), sectionCard: custom}
+          : row,
       ),
     },
   });
@@ -188,7 +224,7 @@ it('keeps a custom name and English text until another choice is made', async ()
     items.dispose();
     await editor.dispose();
   });
-  const field = await screen.findByRole('button', {name: '구역 이름'});
+  const field = await screen.findByRole('button', {name: '제목'});
   expect(field.textContent).toContain('우리 이름');
   expect(items.getSnapshot().item).toMatchObject({sectionCard: custom});
   await userEvent.click(field);

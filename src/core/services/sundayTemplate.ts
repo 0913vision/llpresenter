@@ -7,7 +7,7 @@ import type {ServiceItem, Template} from '../schema/service';
 import {SUNDAY_SECTIONS} from '../themes/sundaySections';
 import {PREPARATION_THEME_ID} from '../themes/sundayStandby';
 import {newLiturgyItem, type LiturgyTranslation} from './liturgy';
-import {newSectionItem, sectionCardOf} from './sectionCards';
+import {sectionCardOf} from './sectionCards';
 import {newSlidesItem} from './slidesEdits';
 import {defaultSlideTransitions} from '../schema/preferences';
 
@@ -83,8 +83,6 @@ export function sundayTemplate(): Template {
       order.push(newSundayCreed(itemId()));
     } else if (name === '광고') {
       order.push(newSundayAnnouncement(itemId()));
-    } else {
-      order.push(newSectionItem(itemId(), section));
     }
   }
   return {

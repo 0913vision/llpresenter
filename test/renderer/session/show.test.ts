@@ -919,6 +919,46 @@ describe('show state', () => {
     });
   });
 
+  it('shows the item title before the standby cue, both initially and on refresh', () => {
+    const section = SUNDAY_SECTIONS.find(value => value.name === '축도');
+    if (!section) throw new Error('Missing title');
+    useShow.setState(state => ({
+      rows: [
+        ...state.rows.filter(row => row.id === 'song-morning'),
+        {kind: 'slides', id: 'waiting', title: '대기 화면', form: 'blank'},
+      ],
+      tiles: {
+        ...state.tiles,
+        waiting: [
+          {
+            label: section.name,
+            labelColor: 'none',
+            lines: [section.english],
+            sectionCard: sectionCardOf(section),
+          },
+          {label: null, labelColor: 'none', lines: ['']},
+        ],
+      },
+    }));
+    setAtLastSlide('nextItem');
+    setLive('song-morning', 3);
+    openItem('song-morning');
+    expect(sent.at(-1)).toMatchObject({
+      type: 'stage.next.set',
+      next: {title: '축도', lines: []},
+    });
+    outputTile({itemId: 'song-morning', index: 3});
+    expect(slides().at(-1)).toMatchObject({
+      slide: {next: {title: '축도', lines: []}},
+    });
+    setLive('waiting', 0);
+    openItem('waiting');
+    expect(sent.at(-1)).toMatchObject({
+      type: 'stage.next.set',
+      next: {stageStandby: true},
+    });
+  });
+
   it('does not infer standby from an unavailable live projection', () => {
     useShow.setState({tiles: {}});
     setLive('song-morning', 0);

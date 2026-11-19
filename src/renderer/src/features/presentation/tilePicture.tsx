@@ -1,3 +1,4 @@
+import {sectionCardBackground} from '@core/services/sectionCards';
 import type {ReactNode} from 'react';
 import type {SlideLayer} from '@core/live/state';
 import {
@@ -52,6 +53,7 @@ export function serviceTileThemes(
           form: 'blank' as const,
           title: card.name,
           theme: card.theme,
+          ...sectionCardBackground(card),
         };
   const sermonRow =
     row.kind === 'bible' &&
