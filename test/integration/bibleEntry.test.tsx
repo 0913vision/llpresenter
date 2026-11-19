@@ -67,6 +67,44 @@ it.each(['click', 'shortcut'] as const)(
   },
 );
 
+it.each(['\uC694\uD55C\uBCF5\uC74C 3', '\uC694\uD55C\uBCF5\uC74C 3:16-4:2'])(
+  'looks up the complete stored recent reference %s in the add dialog',
+  async ref => {
+    const fixture = panelApi();
+    window.llp = fixture.api;
+    onTestFinished(() => {
+      delete window.llp;
+    });
+    const translation = lookupRequest().translation;
+    const document = fixture.document();
+    fixture.push({
+      ...document,
+      revision: 2,
+      value: {...document.value, recents: [{translation, ref}]},
+    });
+    const onChoose = vi.fn<(passage: BibleLookupPassage) => void>();
+    render(
+      <BiblePassageDialog
+        api={fixture.api.bible}
+        translation={translation}
+        onChoose={onChoose}
+        onClose={vi.fn()}
+      />,
+    );
+    fireEvent.click(
+      await screen.findByRole('button', {
+        name: new RegExp(ref.replace('-', '~')),
+      }),
+    );
+    await waitFor(() =>
+      expect(onChoose).toHaveBeenCalledExactlyOnceWith(
+        expect.objectContaining({ref}),
+      ),
+    );
+    expect(fixture.lookup).toHaveBeenCalledWith({input: ref, translation});
+  },
+);
+
 it('adds from the dialog when Enter immediately follows the last digit', async () => {
   const onChoose = vi.fn<(passage: BibleLookupPassage) => void>();
   render(

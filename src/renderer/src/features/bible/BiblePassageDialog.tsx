@@ -23,6 +23,7 @@ export function BiblePassageDialog({
   readonly onClose: () => void;
 }): JSX.Element {
   const [passage, setPassage] = useState<BibleLookupPassage | null>(null);
+  const [resolving, setResolving] = useState(false);
   const [recent, setRecent] = useState<{
     value: RecentPassage;
     generation: number;
@@ -46,6 +47,25 @@ export function BiblePassageDialog({
     pending.current = request;
     setRecent({value, generation: request});
     setPassage(null);
+    setResolving(true);
+    api
+      .lookup({input: value.ref, translation: value.translation})
+      .then(reply => {
+        if (generation.current !== request) return;
+        pending.current = null;
+        setResolving(false);
+        if (reply.result.ok) {
+          setPassage(reply.result.value);
+          choose(reply.result.value);
+        }
+      })
+      .catch((error: unknown) => {
+        if (generation.current === request) {
+          pending.current = null;
+          setResolving(false);
+          console.error('Could not read recent Bible passage', error);
+        }
+      });
   };
   return (
     <Dialog
@@ -54,7 +74,7 @@ export function BiblePassageDialog({
       onCancel={onClose}
       primary={{
         label: '추가',
-        disabled: passage === null || !fits(passage),
+        disabled: resolving || passage === null || !fits(passage),
         title:
           passage !== null && !fits(passage)
             ? '슬라이드가 너무 많아 추가할 수 없습니다'
@@ -70,13 +90,10 @@ export function BiblePassageDialog({
         onIntent={() => {
           generation.current += 1;
           pending.current = null;
+          setResolving(false);
         }}
         onReady={value => {
-          setPassage(value);
-          if (value !== null && pending.current === generation.current) {
-            pending.current = null;
-            choose(value);
-          }
+          if (pending.current === null) setPassage(value);
         }}
         onPreview={() => undefined}
         onSubmit={choose}

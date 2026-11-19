@@ -910,11 +910,10 @@ name. Chapter and verse bounds always use the built-in GAE number table.
   oversized 끝절 to the chapter's last verse; Enter also normalizes the
   displayed end. A reversed end blocks lookup. Shift Tab keeps backward
   navigation and IME composition keeps its keys.
-- Suggestions open below 책. The 책 group lists all matching books, without the
-  former eight-book cap. 최근 lists up to ten stored passages. Choosing a recent
-  clears the manual fields and previews its original stored range, including
-  whole chapters and cross-chapter ranges. Enter then outputs that selected
-  passage. Editing any field starts a new manual reference.
+- Suggestions open below 책 and list matching books without the former
+  eight-book cap. Recent passages appear in the separate ten-row list below the
+  quick fields. Selecting one outputs its original stored range, including whole
+  chapters and cross-chapter ranges.
 - As soon as the fields form a valid reference, the Bible panel opens in place
   of the 슬라이드 panel in the center column.
 - In quick run, Enter in 장, 시작절 or 끝절 outputs a valid passage and focuses

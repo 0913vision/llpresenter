@@ -48,6 +48,11 @@ export function BibleQuickField({
     };
   }, []);
   const [overlayOpen, setOverlayOpen] = useState(false);
+  const finderGeneration = useRef(0);
+  const closeFinder = (): void => {
+    finderGeneration.current += 1;
+    setOverlayOpen(false);
+  };
   const bindings = useSyncExternalStore(
     commandBindingStore.subscribe,
     commandBindingStore.get,
@@ -57,7 +62,10 @@ export function BibleQuickField({
       id: 'bible.focus',
       // NOTE(0913vision): The key that opens the passage finder closes it
       // again, like Escape.
-      run: () => setOverlayOpen(open => !open),
+      run: () => {
+        if (overlayOpen) closeFinder();
+        else setOverlayOpen(true);
+      },
     },
   ]);
   useEffect(() => {
@@ -133,6 +141,8 @@ export function BibleQuickField({
     setSession(value => value + 1);
     const request = beginOutputRequest();
     const version = useLive.getState().commandVersion;
+    const finderRequest = overlayOpen;
+    const finderAtStart = finderGeneration.current;
     try {
       const reply = await api.bible.lookup({
         input: recent.ref,
@@ -140,6 +150,7 @@ export function BibleQuickField({
       });
       if (
         mounted.current &&
+        (!finderRequest || finderGeneration.current === finderAtStart) &&
         reply.result.ok &&
         isOutputRequestCurrent(request, version)
       ) {
@@ -165,13 +176,13 @@ export function BibleQuickField({
         ) {
           event.preventDefault();
           event.stopPropagation();
-          if (!event.repeat) setOverlayOpen(false);
+          if (!event.repeat) closeFinder();
         }
       }}
     >
       <BibleReferenceField
         overlayLabels={overlayOpen}
-        onEscape={overlayOpen ? () => setOverlayOpen(false) : undefined}
+        onEscape={overlayOpen ? closeFinder : undefined}
         submitAnyField
         key={`${selectionVersion}:${session}`}
         api={api.bible}
@@ -232,7 +243,7 @@ export function BibleQuickField({
     </div>
   );
   return overlayOpen ? (
-    <DraftOverlay kind="bible" onClose={() => setOverlayOpen(false)}>
+    <DraftOverlay kind="bible" onClose={closeFinder}>
       {field}
     </DraftOverlay>
   ) : (

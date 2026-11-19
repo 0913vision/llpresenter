@@ -188,6 +188,36 @@ describe('BibleQuickField', () => {
     );
     expect(fixture.send.mock.calls).toHaveLength(count);
   });
+  it('does not output a finder recent after Escape dismisses it', async () => {
+    const fixture = panelApi();
+    window.llp = fixture.api;
+    const ref = '\uC694\uD55C\uBCF5\uC74C 3:16-18';
+    const settings = fixture.document();
+    fixture.push({
+      ...settings,
+      revision: 2,
+      value: {
+        ...settings.value,
+        recents: [{translation: lookupRequest().translation, ref}],
+      },
+    });
+    render(<BibleQuickField api={fixture.api} />);
+    await book();
+    fireEvent.keyDown(document.body, {code: 'KeyB', key: 'b', ctrlKey: true});
+    const dialog = screen.getByRole('dialog');
+    let finish: (value: BibleLookupReply) => void = () => undefined;
+    fixture.lookup.mockReturnValueOnce(
+      new Promise(resolve => {
+        finish = resolve;
+      }),
+    );
+    fireEvent.click(await screen.findByRole('button', {name: /3:16~18/}));
+    fireEvent.keyDown(await book(), {key: 'Escape', code: 'Escape'});
+    expect(dialog.isConnected).toBe(false);
+    const count = fixture.send.mock.calls.length;
+    await act(async () => finish(await formLookupReply(lookupRequest(ref))));
+    expect(fixture.send.mock.calls).toHaveLength(count);
+  });
   it('shows ten fixed recent slots and runs the configured shortcut from a text field', async () => {
     const fixture = panelApi();
     window.llp = fixture.api;
