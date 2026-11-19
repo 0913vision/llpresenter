@@ -94,16 +94,18 @@ function enterFullScreen(win: BrowserWindow, monitorBounds: Rect): void {
   win.setFullScreen(true);
 }
 
-function listen(win: BrowserWindow, events: OutputWindowEvents): void {
+function listen(win: BrowserWindow, events: OutputWindowEvents): () => void {
   win.on('close', event => {
     event.preventDefault();
     events.onCloseRequested();
   });
   win.on('page-title-updated', event => event.preventDefault());
-  win.on('resize', () => events.onSizeChanged?.());
+  const onResize = (): void => events.onSizeChanged?.();
+  win.on('resize', onResize);
   win.webContents.on('render-process-gone', (_event, {reason, exitCode}) =>
     events.onRendererGone({reason, exitCode}),
   );
+  return () => win.removeListener('resize', onResize);
 }
 
 type OutputPresentation = Pick<
@@ -321,7 +323,7 @@ export function createElectronOutputWindow(
         });
   win.removeMenu();
   blockNavigation(win);
-  listen(win, events);
+  const releaseSize = listen(win, events);
   loadPage(win, page, log);
   const releaseKeys = forwardOutputKeys(win.webContents, options.control, log);
   const {dispose: releasePresentation, ...presentation} = presentationFor(
@@ -330,6 +332,7 @@ export function createElectronOutputWindow(
   );
   const dispose = (): void => {
     releaseProblems?.();
+    releaseSize();
     releaseKeys();
     releasePresentation();
   };
