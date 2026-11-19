@@ -337,12 +337,14 @@ The independent `show.continuousGrid` preference is off by default. When on, the
 show grid displays the service in order in one windowed grid. Each item starts
 on a new row with a band naming it and giving its slide count. Service section
 headers use the order list's heading style without a count, and items without
-slides have a band without a count. Slide numbers remain service-wide. Selecting
-an order item smoothly scrolls to its band; the order selection follows the band
-at the top. Clicking a tile outputs it. When off, the grid shows only the open
-item. The grid stays where the operator scrolled; it moves only when the live
-tile leaves the view, or when a key moves the live tile down past the lower part
-of the view, including across items. A click on a tile never moves it. While the
+slides have a band without a count. The panel header shows the live item's name
+and its position within that item; when no slide is live it shows the item at
+the top of the view. Slide numbers remain service-wide. Selecting an order item
+smoothly scrolls to its band; the order selection follows the band at the top.
+Clicking a tile outputs it. When off, the grid shows only the open item. The
+grid stays where the operator scrolled; it moves only when the live tile leaves
+the view, or when a key moves the live tile down past the lower part of the
+view, including across items. A click on a tile never moves it. While the
 continuous grid shows, the footer has 현 위치로, which smoothly brings the live
 tile back to the reading line; it is off while the live tile is in view. This
 choice does not change the last-slide action.

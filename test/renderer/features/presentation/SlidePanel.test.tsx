@@ -13,6 +13,8 @@ import type {ShowLibrarySong} from '@core/schema/showLibrarySong';
 import {seedThumbnailScale} from '@renderer/platform/thumbnailScale';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
 import {previewSpec} from '@fixtures/renderer/picture';
+import {liveReturn} from '@renderer/features/presentation/liveReturn';
+import {revealSlideItem} from '@renderer/session/visibleSlideItem';
 import {
   SlidePanelBody,
   SlidePanelMeta,
@@ -89,6 +91,8 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
+  liveReturn.offer(null);
+  revealSlideItem(null);
   vi.unstubAllGlobals();
   delete window.llp;
 });
@@ -137,6 +141,29 @@ describe('SlidePanelMeta', () => {
       await screen.findByText('맑은 시냇물', {}, {timeout: 3000}),
     ).toBeTruthy();
     expect(screen.getByText('3개')).toBeTruthy();
+  });
+
+  it('shows the live item and position while a different item is in the continuous view', () => {
+    openItem('song-river');
+    setLiveSlide('song-morning', 2);
+    liveReturn.offer(() => {});
+    revealSlideItem('song-river');
+    const {container} = render(<SlidePanelMeta />);
+    expect(container.textContent).toBe('아침이 밝아 오네3 / 4');
+    act(() => revealSlideItem('psalm-23'));
+    expect(container.textContent).toBe('아침이 밝아 오네3 / 4');
+    act(() => setLiveSlide('song-river', 1));
+    expect(container.textContent).toBe('맑은 시냇물2 / 3');
+  });
+
+  it('shows the item at the top of the continuous view when nothing is live', () => {
+    openItem('song-morning');
+    liveReturn.offer(() => {});
+    revealSlideItem('song-river');
+    const {container} = render(<SlidePanelMeta />);
+    expect(container.textContent).toBe('맑은 시냇물');
+    act(() => revealSlideItem('psalm-23'));
+    expect(container.textContent).toBe('시편 23편 1절부터 6절');
   });
 });
 

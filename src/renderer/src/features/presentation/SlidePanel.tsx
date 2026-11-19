@@ -1,8 +1,10 @@
 import {useSyncExternalStore, type JSX} from 'react';
+import {useShallow} from 'zustand/react/shallow';
 import {defaultThumbnailColumns, type SizeClass} from '@renderer/ui/sizeClass';
 import {useShow} from '@renderer/session/show';
 import {
   isLibrarySource,
+  projectedLiveCursor,
   shownTilesFor,
   tilesForView,
   useLiveTileIndex,
@@ -27,6 +29,7 @@ import {READ_ONLY_TIP} from '../../platform/problemReasons';
 import styles from './SlidePanel.module.css';
 import {useVisibleSlideItem} from '@renderer/session/visibleSlideItem';
 import {useShownItemId} from '@renderer/session/shownItem';
+import {useLive} from '@renderer/session/live';
 
 const PROBLEM_ICON_SIZE = 14;
 
@@ -67,7 +70,19 @@ export function SlidePanelMeta({
 }: {
   readonly onProblem?: ((notice: Notice) => void) | undefined;
 }): JSX.Element | null {
-  const openItemId = useVisibleSlideItem();
+  const visibleItemId = useVisibleSlideItem();
+  const continuous = useSyncExternalStore(liveReturn.subscribe, liveReturn.get);
+  const slide = useLive(view => view.state?.layers.slide ?? null);
+  const liveCursor = useShow(
+    useShallow(view => {
+      if (continuous === 'none') return null;
+      const cursor = projectedLiveCursor(view, slide);
+      return cursor !== null && view.rows.some(row => row.id === cursor.itemId)
+        ? cursor
+        : null;
+    }),
+  );
+  const openItemId = liveCursor?.itemId ?? visibleItemId;
   const source = useShow(view =>
     isLibrarySource(view, openItemId) ? view.librarySong : null,
   );
@@ -88,7 +103,9 @@ export function SlidePanelMeta({
   const count = useShow(view =>
     openItemId === null ? 0 : tilesForView(view, openItemId).length,
   );
-  const livePosition = useLiveTileIndex();
+  const selectedLivePosition = useLiveTileIndex();
+  const livePosition =
+    continuous === 'none' ? selectedLivePosition : (liveCursor?.index ?? null);
   if (title === undefined) return null;
   const position =
     livePosition === null ? undefined : `${livePosition + 1} / ${count}`;
