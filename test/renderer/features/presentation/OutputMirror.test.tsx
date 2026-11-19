@@ -23,6 +23,16 @@ afterEach(() => {
 });
 
 describe('output mirror', () => {
+  it('crops the presenter frame to the actual output aspect ratio', () => {
+    vi.stubGlobal('llp', mockLlpApi());
+    const view = render(
+      <OutputMirror screenId="one" cropSize={{width: 1024, height: 768}} />,
+    );
+    const canvas = view.container.querySelector('canvas');
+    expect(canvas?.style.width).toBe(`${(1920 / 1440) * 100}%`);
+    expect(canvas?.style.left).toBe(`${(-240 / 1440) * 100}%`);
+    expect(canvas?.style.height).toBe('100%');
+  });
   it('switches to the presenter frame, acknowledges it, and resumes the output stream when it ends', async () => {
     const stop = vi.fn();
     const track = {stop, onended: null};

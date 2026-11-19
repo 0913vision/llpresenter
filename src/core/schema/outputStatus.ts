@@ -1,6 +1,7 @@
 import * as v from 'valibot';
 import type {Result} from '../common/result';
 import {FRAME_RATE_MAX} from './ipcPayloads';
+import {pixelSize} from './primitives';
 import {
   parsePayload,
   payloadObject,
@@ -43,6 +44,7 @@ const outputScreenStatusSchema = payloadObject({
     v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(FRAME_RATE_MAX)),
   ),
   fpsLow: v.boolean(),
+  contentSize: v.exactOptional(pixelSize),
   ndiAcceleration: v.exactOptional(
     v.picklist(['pending', 'hardware', 'bitmap']),
   ),

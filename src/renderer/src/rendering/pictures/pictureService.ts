@@ -2,6 +2,8 @@ import type {PictureRequest} from '@core/schema/picture';
 import type {MediaDocument} from '@core/schema/mediaEdit';
 import type {FontCatalogSnapshot} from '@core/schema/fontCatalog';
 import type {SongSlideSource} from '@core/schema/showService';
+import type {LlpApi} from '@contracts/ipc/api';
+import type {OutputStatuses} from '@core/schema/outputStatus';
 import {pictureKey} from '@core/output/pictureKey';
 import {themeOverlay} from '@core/themes/content';
 import {OUTPUT_REVEAL_DEADLINE_MS} from '@core/output/revealDeadline';
@@ -155,6 +157,10 @@ export class PictureService {
   private readonly displays = new WeakMap<Entry, Map<string, DisplayTicket>>();
   private media: MediaDocument | undefined;
   private records = new Map<string, MediaDocument['value']['items'][number]>();
+  private readonly screenSizes = new Map<
+    string,
+    {readonly width: number; readonly height: number}
+  >();
   private fontStamp = '';
   private fontUpdate = 0;
   private initialized = false;
@@ -169,6 +175,47 @@ export class PictureService {
   private importScope = new AbortController();
 
   constructor(private readonly options: {waitForReady?: boolean} = {}) {}
+
+  /** Last measured output size, or the configured size while unavailable. */
+  screenSize(
+    screen:
+      | {
+          readonly id: string;
+          readonly pictureSize?:
+            {readonly width: number; readonly height: number} | undefined;
+        }
+      | undefined,
+  ): {readonly width: number; readonly height: number} | undefined {
+    if (this.options.waitForReady) return pictures.screenSize(screen);
+    this.initialize();
+    if (screen === undefined) return undefined;
+    return this.screenSizes.get(screen.id) ?? screen.pictureSize;
+  }
+
+  private withScreenSizes(spec: PictureSpec): PictureSpec {
+    const screen = spec.appearance.screen;
+    const size = this.screenSize(screen);
+    const audience = spec.appearance.audience;
+    const audienceSize = this.screenSize(audience?.screen);
+    return {
+      ...spec,
+      appearance: {
+        ...spec.appearance,
+        screen: size === undefined ? screen : {...screen, pictureSize: size},
+        ...(audience === undefined
+          ? {}
+          : {
+              audience: {
+                ...audience,
+                screen:
+                  audienceSize === undefined
+                    ? audience.screen
+                    : {...audience.screen, pictureSize: audienceSize},
+              },
+            }),
+      },
+    };
+  }
 
   /** Handoffs need a renderer that lays out and prepares pictures. */
   get drawInPlace(): boolean {
@@ -207,7 +254,7 @@ export class PictureService {
       .then(() => {
         if (this.paintingEditor) return;
         this.editorPainter ??= new LocalPicturePainter();
-        this.editorPainter.warm(spec);
+        this.editorPainter.warm(this.withScreenSizes(spec));
       })
       .catch((error: unknown) => console.error(error));
   }
@@ -266,6 +313,8 @@ export class PictureService {
     }
     return JSON.stringify([
       this.fontStamp,
+      this.screenSize(spec.appearance.screen),
+      this.screenSize(spec.appearance.audience?.screen),
       [...ids].sort().map(id => [id, this.records.get(id) ?? null]),
     ]);
   }
@@ -278,6 +327,7 @@ export class PictureService {
       editing = false,
     }: {immediate?: boolean; editing?: boolean} = {},
   ): Entry {
+    spec = this.withScreenSizes(spec);
     const key = JSON.stringify([pictureKey(spec), inputs]);
     let entry = this.entries.get(key);
     if (entry === undefined) {
@@ -422,11 +472,48 @@ export class PictureService {
         notify();
       }
     };
+    const acceptSizes = (statuses: OutputStatuses): void => {
+      let changed = false;
+      for (const [id, status] of Object.entries(statuses)) {
+        const size = status.contentSize;
+        const previous = this.screenSizes.get(id);
+        if (size === undefined) {
+          if (this.screenSizes.delete(id)) changed = true;
+        } else if (
+          previous?.width !== size.width ||
+          previous.height !== size.height
+        ) {
+          this.screenSizes.set(id, size);
+          changed = true;
+        }
+      }
+      for (const id of this.screenSizes.keys()) {
+        if (!(id in statuses)) {
+          this.screenSizes.delete(id);
+          changed = true;
+        }
+      }
+      if (changed) notify();
+    };
+    const maybeApi: Partial<LlpApi> = api;
+    const output = maybeApi.output;
+    let pushedSizes = false;
+    output?.subscribeStatus(statuses => {
+      pushedSizes = true;
+      acceptSizes(statuses);
+    });
+    const statusReady = output?.getStatus().then(
+      statuses => {
+        if (!pushedSizes) acceptSizes(statuses);
+      },
+      () => undefined,
+    );
     api.media.subscribe(acceptMedia);
     api.fonts.subscribe(catalog => {
       acceptFonts(catalog).catch((error: unknown) => console.error(error));
     });
     this.inputsReady = Promise.all([
+      statusReady,
       api.media.get().then(acceptMedia, () => undefined),
       api.fonts
         .snapshot()

@@ -2,6 +2,7 @@ import {describe, expect, it, vi} from 'vitest';
 import type {FrameRate} from '@main/outputs/frameRates';
 import type {ScreenOutputState} from '@main/outputs/manager';
 import {OutputStatusBoard} from '@main/outputs/statusBoard';
+import {parseOutputStatuses} from '@core/schema/outputStatus';
 
 function setUp() {
   const states = new Map<string, ScreenOutputState>([
@@ -10,16 +11,34 @@ function setUp() {
   const rates = new Map<string, FrameRate>([
     ['main', {fps: 59.9, status: 'normal'}],
   ]);
+  const sizes = new Map<string, {width: number; height: number}>();
   const board = new OutputStatusBoard({
     screenStates: () => states,
     frameRate: screenId => rates.get(screenId) ?? null,
+    contentSize: screenId => sizes.get(screenId),
   });
   const listener = vi.fn();
   board.subscribe(listener);
-  return {board, states, rates, listener};
+  return {board, states, rates, sizes, listener};
 }
 
 describe('OutputStatusBoard', () => {
+  it('publishes changed actual output content sizes', () => {
+    const {board, sizes, listener} = setUp();
+    sizes.set('main', {width: 1280, height: 720});
+    board.refresh();
+    expect(parseOutputStatuses(board.snapshot()).ok).toBe(true);
+    expect(listener.mock.lastCall?.[0]).toMatchObject({
+      main: {contentSize: {width: 1280, height: 720}},
+    });
+    sizes.set('main', {width: 1024, height: 768});
+    board.refresh();
+    board.refresh();
+    expect(listener).toHaveBeenCalledTimes(2);
+    expect(listener.mock.lastCall?.[0]).toMatchObject({
+      main: {contentSize: {width: 1024, height: 768}},
+    });
+  });
   it('publishes actual NDI acceleration changes and their reason', () => {
     const {board, states, listener} = setUp();
     states.set('main', {placement: 'ndi', renderer: 'running'});

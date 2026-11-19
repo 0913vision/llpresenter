@@ -3,6 +3,10 @@ import {emptyLayers} from '@core/live/state';
 import {pictureKey} from '@core/output/pictureKey';
 import {parsePictureRequest} from '@core/schema/picture';
 import {
+  parseOutputStatuses,
+  type OutputStatuses,
+} from '@core/schema/outputStatus';
+import {
   drawPicture,
   pictureBounds,
 } from '@renderer/rendering/pictures/drawPicture';
@@ -428,4 +432,62 @@ it('shares cache entries when the default stage label option is implicit', () =>
       appearance: {...spec.appearance, stageLyricLabelPosition: 'line'},
     }),
   );
+});
+
+it('uses actual output size for shared cache keys and redraws after resizing', () => {
+  let receive: (value: OutputStatuses) => void = () => undefined;
+  vi.stubGlobal('llp', {
+    picture: {paint: vi.fn()},
+    media: {
+      get: vi.fn().mockResolvedValue({revision: 0, value: {items: []}}),
+      subscribe: vi.fn(),
+    },
+    fonts: {
+      snapshot: vi.fn().mockRejectedValue(new Error('No fonts')),
+      subscribe: vi.fn(),
+    },
+    output: {
+      getStatus: vi.fn().mockResolvedValue({}),
+      subscribeStatus: (listener: (value: OutputStatuses) => void) => {
+        receive = listener;
+        return () => undefined;
+      },
+    },
+  });
+  const service = new PictureService();
+  service.inputs(spec);
+  const status = (width: number, height: number): OutputStatuses => {
+    const parsed = parseOutputStatuses({
+      [screen]: {
+        placement: 'window',
+        renderer: 'running',
+        fps: null,
+        fpsLow: false,
+        contentSize: {width, height},
+      },
+    });
+    if (!parsed.ok) throw new Error('Invalid output status');
+    return parsed.value;
+  };
+  receive(status(1280, 720));
+  const first = service.request(spec, service.inputs(spec));
+  expect(first.spec.appearance.screen.pictureSize).toEqual({
+    width: 1280,
+    height: 720,
+  });
+  receive(status(1024, 768));
+  const resized = service.request(spec, service.inputs(spec));
+  expect(resized).not.toBe(first);
+  expect(resized.spec.appearance.screen.pictureSize).toEqual({
+    width: 1024,
+    height: 768,
+  });
+  receive(status(1024, 768));
+  expect(service.request(spec, service.inputs(spec))).toBe(resized);
+  const off = parseOutputStatuses({
+    [screen]: {placement: 'off', renderer: 'running', fps: null, fpsLow: false},
+  });
+  if (!off.ok) throw new Error('Invalid off status');
+  receive(off.value);
+  expect(service.screenSize(spec.appearance.screen)).toBeUndefined();
 });

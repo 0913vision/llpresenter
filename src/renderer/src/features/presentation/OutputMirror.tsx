@@ -4,14 +4,18 @@ import {
   workspaceFrame,
 } from '@renderer/ui/workspaceVisibility';
 import styles from './OutputMirror.module.css';
+import {pictureBounds} from '@renderer/rendering/pictures/drawPicture';
 
 /** A stream of the actual output web contents; no second picture renderer. */
 export function OutputMirror({
   screenId,
   targetKind,
+  cropSize,
 }: {
   readonly screenId: string;
   readonly targetKind?: string | undefined;
+  readonly cropSize?:
+    {readonly width: number; readonly height: number} | undefined;
 }): JSX.Element {
   const ref = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -157,6 +161,7 @@ export function OutputMirror({
       stop();
     };
   }, [screenId, targetKind]);
+  const bounds = pictureBounds(cropSize);
   return (
     <div className={styles.mirror}>
       <video ref={ref} className={styles.surface} muted playsInline />
@@ -165,6 +170,17 @@ export function OutputMirror({
         className={styles.surface}
         width={640}
         height={360}
+        style={
+          cropSize === undefined
+            ? undefined
+            : {
+                position: 'absolute',
+                width: `${(1920 / bounds.width) * 100}%`,
+                height: `${(1080 / bounds.height) * 100}%`,
+                left: `${(-bounds.x / bounds.width) * 100}%`,
+                top: `${(-bounds.y / bounds.height) * 100}%`,
+              }
+        }
         hidden
       />
     </div>

@@ -203,6 +203,9 @@ export function startOutputs({
   const board = new OutputStatusBoard({
     screenStates: () => outputs.screenStates(),
     frameRate: screenId => frameRates.current(screenId),
+    contentSize: screenId =>
+      outputs.shownOutputs().find(value => value.screen.id === screenId)
+        ?.contentSize,
   });
   const makeElectronWindow = (
     screen: OutputScreen,

@@ -1,9 +1,10 @@
-import {useLayoutEffect, useState, type JSX} from 'react';
+import {useLayoutEffect, useState, useSyncExternalStore, type JSX} from 'react';
 import {emptyLayers, type LiveLayers, type LiveState} from '@core/live/state';
 import {ScreenFrames} from '@renderer/rendering/screenFrames';
 import type {RenderFrame} from '@renderer/rendering/layer';
 import {themeBackgroundColor} from '@renderer/rendering/themeBackground';
 import {Picture} from '@renderer/rendering/pictures/Picture';
+import {pictures} from '@renderer/rendering/pictures/pictureService';
 import {pictureBounds} from '@renderer/rendering/pictures/drawPicture';
 import type {PictureSpec} from '@renderer/rendering/pictures/pictureService';
 import {useLive} from '@renderer/session/live';
@@ -73,6 +74,7 @@ export function ScreenPreview({
   const [snapshot, setSnapshot] = useState<{
     screenId: string;
     picture: PictureSpec | undefined;
+    screen: RenderFrame['screen'];
   }>();
   const picture =
     snapshot?.screenId === screenId ? snapshot.picture : undefined;
@@ -89,6 +91,7 @@ export function ScreenPreview({
         const frame = frames.frame(state);
         setSnapshot({
           screenId,
+          screen: frame?.screen,
           picture:
             frame === undefined
               ? undefined
@@ -120,11 +123,15 @@ export function ScreenPreview({
   }, [screenId]);
   const classes = [styles.screen];
   if (chroma) classes.push(styles.chroma);
-  const bounds = pictureBounds(picture?.appearance.screen.pictureSize);
+  const screen = snapshot?.screenId === screenId ? snapshot.screen : undefined;
+  const size = useSyncExternalStore(pictures.subscribeInputs, () =>
+    pictures.screenSize(screen ?? {id: screenId}),
+  );
+  const bounds = pictureBounds(size);
   return (
     <div className={classes.join(' ')}>
       {picture === undefined ? (
-        <OutputMirror screenId={screenId} />
+        <OutputMirror screenId={screenId} cropSize={size} />
       ) : (
         <div
           className={styles.picture}

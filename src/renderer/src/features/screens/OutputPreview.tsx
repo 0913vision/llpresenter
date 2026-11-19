@@ -1,4 +1,4 @@
-import {useMemo, type JSX} from 'react';
+import {useMemo, useSyncExternalStore, type JSX} from 'react';
 import type {Screen} from '@core/schema/screens';
 import {showTestPattern} from './showTestPattern';
 import {ScreenPreview} from '@renderer/features/presentation/ScreenPreview';
@@ -19,6 +19,7 @@ import {fitAspect} from '@core/canvas/fitAspect';
 import {useElementSize} from '@renderer/ui/useElementSize';
 import {REFERENCE_SCREEN} from '@core/themes/textStyle';
 import {pictureSizeForScreen} from '@core/screens/pictureSize';
+import {pictures} from '@renderer/rendering/pictures/pictureService';
 
 const LOAD_TITLE = '화면';
 const noScreens: readonly Screen[] = [];
@@ -34,7 +35,11 @@ function PreviewBody({
 }): JSX.Element {
   const [watchPicture, available] = useElementSize();
   const outputActive = useLive(view => view.state?.outputs[screen.id] === true);
-  const outputSize = pictureSizeForScreen(screen) ?? REFERENCE_SCREEN;
+  const configuredSize = useMemo(() => pictureSizeForScreen(screen), [screen]);
+  const measuredSize = useSyncExternalStore(pictures.subscribeInputs, () =>
+    pictures.screenSize({id: screen.id, pictureSize: configuredSize}),
+  );
+  const outputSize = measuredSize ?? configuredSize ?? REFERENCE_SCREEN;
   const picture =
     available === undefined
       ? undefined
@@ -47,7 +52,7 @@ function PreviewBody({
         <div className={styles.frame} style={picture} data-preview-picture>
           {pictureEnabled ? (
             outputActive ? (
-              <OutputMirror screenId={screen.id} />
+              <OutputMirror screenId={screen.id} cropSize={outputSize} />
             ) : (
               <ScreenPreview
                 screenId={screen.id}

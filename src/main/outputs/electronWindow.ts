@@ -100,6 +100,7 @@ function listen(win: BrowserWindow, events: OutputWindowEvents): void {
     events.onCloseRequested();
   });
   win.on('page-title-updated', event => event.preventDefault());
+  win.on('resize', () => events.onSizeChanged?.());
   win.webContents.on('render-process-gone', (_event, {reason, exitCode}) =>
     events.onRendererGone({reason, exitCode}),
   );

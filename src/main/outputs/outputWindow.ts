@@ -59,6 +59,7 @@ export interface OutputWindowEvents {
   readonly onRendererGone: (details: RendererGoneDetails) => void;
   /** The operator clicked the close button of a window-mode output. */
   readonly onCloseRequested: () => void;
+  readonly onSizeChanged?: () => void;
 }
 
 export type CreateOutputWindowHandle = (
@@ -75,6 +76,7 @@ export interface OutputWindowOptions {
   readonly liveVersion: () => number;
   /** Hears every change of the renderer state. */
   readonly onRendererState?: (state: RendererState) => void;
+  readonly onSizeChanged?: () => void;
 }
 
 /**
@@ -385,6 +387,7 @@ export class OutputWindow {
         if (!this.disposed) this.recovery.crashed(details);
       },
       onCloseRequested: this.options.onCloseRequested,
+      onSizeChanged: () => this.options.onSizeChanged?.(),
     });
     this.handle = handle;
     return handle;
