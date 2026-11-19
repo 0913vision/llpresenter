@@ -14,8 +14,33 @@
 
 .content {
   grid-template-rows: auto auto;
-  flex: 0 0 auto;
+  width: min(
+    100cqw,
+    calc(
+      (
+          100cqh - var(--size-control-md) - var(--size-control-sm) -
+            var(--space-12)
+        ) *
+        16 / 9 * var(--preview-slots) / (var(--preview-slots) + 1) +
+        var(--space-8) * (var(--preview-slots) - 1) / (var(--preview-slots) + 1)
+    )
+  );
   height: auto;
+  margin-inline: auto;
+}
+
+.content.single {
+  width: min(100cqw, calc((100cqh - var(--size-control-md)) * 16 / 9));
+}
+
+.content.withoutLarge {
+  width: min(
+    100cqw,
+    calc(
+      (100cqh - var(--size-control-sm)) * 16 / 9 * var(--preview-slots) +
+        var(--space-8) * (var(--preview-slots) - 1)
+    )
+  );
 }
 
 .main {

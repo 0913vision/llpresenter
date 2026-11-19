@@ -9,3 +9,9 @@
   overflow: auto;
   scrollbar-gutter: stable;
 }
+
+.frame {
+  flex: 1 1 auto;
+  min-height: 0;
+  container-type: size;
+}
