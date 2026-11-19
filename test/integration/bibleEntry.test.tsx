@@ -63,7 +63,7 @@ it.each(['click', 'shortcut'] as const)(
       });
     }
     expect(fixture.lookup).toHaveBeenCalledWith({
-      input: '???? 3:10',
+      input: '\uC694\uD55C\uBCF5\uC74C 3:10',
       translation: lookupRequest().translation,
     });
     await waitFor(() =>
