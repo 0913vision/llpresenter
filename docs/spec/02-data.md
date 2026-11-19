@@ -234,8 +234,9 @@ Only `blank` items may hold a verse slide. Its `verse` is
 characters), a book number from 1 to 66, a chapter from 1 to 150, and a verse
 from 1 to 40,000, using the Bible lookup caps. It stores neither the verse text
 nor rendered parts. A verse slide cannot have `text`, `name`, `media`, or
-`continued`. Its parts are calculated from the installed text, the current theme
-measurement, and the saved Bible cuts below.
+`continued`. Its optional `cut` uses the confirmed Bible cut format below. Its
+parts use the installed text, the current theme measurement, and its own cut.
+Without a usable cut, it uses the rule-based splitter.
 
 The open-service feed may carry temporary resolved verse text with each source
 slide ID and the service revision. These values are not written to the service
@@ -701,8 +702,10 @@ Source: `Shortcuts`, `KeyCap` README, 10.
 by `book:chapter:verse` (for example `krv` and `43:3:16`). Each value is
 `{hash, cuts, confirmedAt}`. `hash` is Copible 1.6's eight-character lowercase
 FNV-1a hash of the whitespace-normalized verse text. `cuts` is a sorted, unique
-list of positive word indices: cut `j` means before word `j`. `confirmedAt` is a
-UTC timestamp. The file contains no Bible text.
+list of positive word indices, where cut `j` means before word `j`. A fitting
+rule-based split that breaks an oversized word can use `unit: "character"` to
+store UTF-16 offsets in the normalized verse. `confirmedAt` is a UTC timestamp.
+The file contains no Bible text.
 
 There are at most 200 translations and 40,000 entries in total. An entry has at
 most 1,296 cuts, each no greater than 20,000 (the Bible text cap). Refuse

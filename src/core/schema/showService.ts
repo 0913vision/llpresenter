@@ -8,7 +8,7 @@ import type {Result} from '../common/result';
 import type {ReadonlyKnown} from './fileFormat';
 import {biblePartSchema, mediaChoiceSchema} from './liveState';
 import {BIBLE_LOOKUP_LIMITS, bibleLookupPassageSchema} from './bibleLookup';
-import {bibleVerseCutsSchema} from './bibleCuts';
+import {bibleCutEntrySchema, bibleVerseCutsSchema} from './bibleCuts';
 import {
   bibleVerseReferenceSchema,
   biblePartTransitionsSchema,
@@ -182,6 +182,7 @@ export const showTileSchema = v.pipe(
     verse: v.exactOptional(
       payloadObject({
         reference: bibleVerseReferenceSchema,
+        cut: v.exactOptional(bibleCutEntrySchema),
         text: v.exactOptional(
           v.pipe(v.string(), v.maxLength(BIBLE_LOOKUP_LIMITS.verseText)),
         ),

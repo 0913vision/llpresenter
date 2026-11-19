@@ -1,8 +1,8 @@
 import type {BibleCutEntry, BibleCutsFile} from '../../schema/bibleCuts';
 import type {VerseSlide} from '../../schema/service';
 import {CONT_MARKER, type SplitLayout} from './layout';
-import {cutsFromChunks, planSlides} from './manualSplit';
-import {knownCutsFor, textHash} from './splitCache';
+import {cutsFromChunks, planSlides, planSlidesAtOffsets} from './manualSplit';
+import {knownCutEntryFor, textHash} from './splitCache';
 import {splitVerse} from './splitter';
 
 export interface VerseInput {
@@ -27,12 +27,11 @@ export function firstSlidePrefix(
   return singleVerse ? '' : `${verse.reference.verse} `;
 }
 
-export function itemsFromCuts(
+function partsOfPlan(
   verse: VerseInput,
-  cuts: readonly number[],
-  layout: SplitLayout & {readonly prefix?: string},
+  plan: ReturnType<typeof planSlides>,
+  manual: boolean,
 ): readonly VersePart[] {
-  const plan = planSlides(verse.text, cuts, layout);
   return plan.slides.map((slide, index) => ({
     reference: verse.reference,
     text: slide.text,
@@ -41,7 +40,7 @@ export function itemsFromCuts(
     lines: slide.lines,
     part: index + 1,
     partCount: plan.slideCount,
-    manual: true,
+    manual,
   }));
 }
 
@@ -75,29 +74,26 @@ export function splitVerseParts(
   } = {},
 ): readonly VersePart[] {
   try {
-    const cuts =
+    const entry =
       confirmed !== undefined
         ? confirmed.hash === textHash(verse.text)
-          ? confirmed.cuts
+          ? confirmed
           : undefined
         : saved === undefined
           ? undefined
-          : knownCutsFor(saved, verse.reference, verse.text);
+          : knownCutEntryFor(saved, verse.reference, verse.text);
     const plan =
-      cuts === undefined
+      entry === undefined
         ? undefined
-        : planSlides(verse.text, cuts, {...layout, prefix});
-    if (plan?.ok && plan.cuts.length === cuts?.length) {
-      return itemsFromCuts(verse, plan.cuts, {...layout, prefix});
+        : entry.unit === 'character'
+          ? planSlidesAtOffsets(verse.text, entry.cuts, {...layout, prefix})
+          : planSlides(verse.text, entry.cuts, {...layout, prefix});
+    if (plan?.ok && plan.cuts.length === entry?.cuts.length) {
+      return partsOfPlan(verse, plan, true);
     }
-    if (
-      refined !== undefined &&
-      planSlides(verse.text, refined, {...layout, prefix}).ok
-    ) {
-      return itemsFromCuts(verse, refined, {...layout, prefix}).map(part => ({
-        ...part,
-        manual: false,
-      }));
+    if (refined !== undefined) {
+      const suggested = planSlides(verse.text, refined, {...layout, prefix});
+      if (suggested.ok) return partsOfPlan(verse, suggested, false);
     }
     const result = splitVerse(verse.text, layout, {prefix});
     if (result.chunks.length > 0) {

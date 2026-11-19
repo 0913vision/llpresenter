@@ -442,7 +442,9 @@ it('inserts the reviewed range after selection as one undo step, saves reference
       throw Error('Missing saved slides');
     }
     expect(item.slides.slides[1]).toHaveProperty('verse.verse', 16);
+    expect(item.slides.slides[1]).toHaveProperty('cut.cuts');
     expect(item.slides.slides[2]).toHaveProperty('verse.verse', 17);
+    expect(item.slides.slides[2]).toHaveProperty('cut.cuts');
     expect(item.slides.slides[3]).toHaveProperty('media', SLIDE_PICTURE);
     expect(JSON.stringify(item)).not.toContain(MOCK_LONG_VERSE);
     fireEvent.keyDown(selected, {code: 'KeyZ', key: 'z', ctrlKey: true});
@@ -453,6 +455,43 @@ it('inserts the reviewed range after selection as one undo step, saves reference
     );
     expect(view.container.querySelectorAll('[data-slide-id]')).toHaveLength(5);
     expect(f.send).not.toHaveBeenCalled();
+  } finally {
+    view.unmount();
+    await session.dispose();
+  }
+});
+
+it('keeps existing verse rows when an overlapping insertion is cancelled after one confirmation', async () => {
+  const f = fixture(slidesBibleItem(), true);
+  const session = new ControlSession(f.api);
+  const view = render(<SlidesEditorHarness session={session} />);
+  const existingLines = () =>
+    previewSpec(
+      view.container.querySelector(`[data-slide-id="${VERSE_SLIDE}"]`),
+    )?.layers.slide?.lines;
+  try {
+    await waitFor(() => expect(existingLines()?.length).toBeGreaterThan(0));
+    const before = existingLines();
+    await chooseRange(false);
+    const review = () => screen.getByRole('dialog', {name: '절 나누기'});
+    await waitFor(() => within(review()).getByText('요한복음 3:16'));
+    const first = review();
+    fireEvent.click(within(first).getByRole('button', {name: 'A에서 자르기'}));
+    fireEvent.click(within(first).getByRole('button', {name: '확정'}));
+    await waitFor(() => within(review()).getByText('요한복음 3:17'));
+    const cuts = f.documents.get('bibleCuts');
+    expect(
+      cuts?.name === 'bibleCuts' && Object.keys(cuts.value.entries),
+    ).toHaveLength(1);
+    expect(existingLines()).toEqual(before);
+    fireEvent.keyDown(review(), {
+      code: 'Escape',
+      key: 'Escape',
+    });
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(existingLines()).toEqual(before);
+    expect(view.container.querySelectorAll('[data-slide-id]')).toHaveLength(6);
+    expect(f.content).not.toHaveBeenCalled();
   } finally {
     view.unmount();
     await session.dispose();

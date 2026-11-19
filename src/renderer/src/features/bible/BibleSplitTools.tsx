@@ -20,7 +20,7 @@ import {confirmBibleCuts} from './saveBibleCuts';
 import {updateServiceItem} from '@renderer/session/serviceItemUpdate';
 import {isItemOfKind} from '@core/schema/service';
 import {biblePartEffect, setBiblePartEffect} from '@core/bible/partTransitions';
-import {cacheKey, entryFor} from '@core/bible/split/splitCache';
+import {cacheKey} from '@core/bible/split/splitCache';
 import {useBibleProjections} from './useBibleProjections';
 import {installBiblePictureProjection} from './prepareBiblePictures';
 
@@ -175,7 +175,7 @@ export function BibleSplitTools({
       onConfirm={async (verse, cuts) => {
         const api = window.llp;
         if (api === undefined) throw new Error('절 나누기 저장 실패');
-        await confirmBibleCuts(api.settings, verse, cuts);
+        const entry = await confirmBibleCuts(api.settings, verse, cuts);
         const serviceId = useShow.getState().serviceId;
         if (
           current.source.source !== 'service' ||
@@ -191,9 +191,8 @@ export function BibleSplitTools({
             part.reference.chapter === verse.reference.chapter &&
             part.reference.verse === verse.reference.verse,
         ).length;
-        const entry = entryFor(verse.text, cuts, new Date().toISOString());
         const transition =
-          cuts.length + 1 > oldParts
+          entry.cuts.length + 1 > oldParts
             ? (await api.preferences.get()).show.slideDefaults.bible
             : undefined;
         const result = await updateServiceItem(api, {
@@ -214,7 +213,11 @@ export function BibleSplitTools({
               cuts: {...passage.cuts, [cacheKey(verse.reference)]: entry},
             };
             let transitions = item.bibleTransitions ?? [];
-            for (let part = oldParts + 1; part <= cuts.length + 1; part++) {
+            for (
+              let part = oldParts + 1;
+              part <= entry.cuts.length + 1;
+              part++
+            ) {
               if (
                 transition !== undefined &&
                 biblePartEffect(transitions, verse.reference, part) ===

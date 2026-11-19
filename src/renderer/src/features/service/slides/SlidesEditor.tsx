@@ -349,7 +349,7 @@ function SlidesEditorBody({
   const {appearance, themes} = useSlidesAppearance(api, item);
   const {projection} = useSlidesVerseProjection(api, item);
   const [bibleDialog, setBibleDialog] = useState<{
-    reference?: VerseSlide['verse'];
+    slideId?: VerseSlide['id'];
   } | null>(null);
   const [picker, setPicker] = useState<{
     anchor: HTMLElement;
@@ -422,7 +422,7 @@ function SlidesEditorBody({
     ) {
       event.preventDefault();
       event.stopPropagation();
-      setBibleDialog({reference: verse.verse});
+      setBibleDialog({slideId: verse.id});
       return;
     }
     if (
@@ -612,9 +612,16 @@ function SlidesEditorBody({
           api={api}
           item={item}
           selected={at}
-          {...(bibleDialog.reference === undefined
+          {...(bibleDialog.slideId === undefined
             ? {}
-            : {reference: bibleDialog.reference})}
+            : {slideId: bibleDialog.slideId})}
+          onConfirmCut={(id, cut) => {
+            const index = rows.findIndex(slide => slide.id === id);
+            const slide = rows[index];
+            if (slide !== undefined && 'verse' in slide) {
+              changeSlide(index, {...slide, cut}, 'bibleCut');
+            }
+          }}
           onInsert={slides => {
             model.session?.requestReveal();
             if (draft.insert(slides)) {

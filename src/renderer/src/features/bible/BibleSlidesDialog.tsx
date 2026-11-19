@@ -1,11 +1,13 @@
 import {useEffect, useRef, useState, type JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {BibleLookupPassage} from '@core/schema/bibleLookup';
+import type {BibleCutEntry} from '@core/schema/bibleCuts';
 import {createSlideId} from '@core/schema/ids';
 import {SLIDES_LIMITS, type VerseSlide} from '@core/schema/service';
 import type {SlidesItem} from '@core/services/slidesEdits';
 import {passageBook} from '@core/bible/adjacentVerses';
 import {versesToReview} from '@core/bible/split/splitVerses';
+import {knownCutEntryFor} from '@core/bible/split/splitCache';
 import {Dialog} from '@renderer/ui/Dialog';
 import {useBibleTranslation} from './useBibleTranslation';
 import {BiblePassageDialog} from './BiblePassageDialog';
@@ -14,15 +16,24 @@ import {BibleAddSplitReview} from './BibleAddSplitReview';
 import {verseKey} from './BibleRefinements';
 import {confirmBibleCuts} from './saveBibleCuts';
 import {loadSlidesProjection} from './loadSlidesProjection';
-import {useSlidesVerseProjection} from './useSlidesVerseProjection';
 import type {BibleProjection} from './splitProjection';
 
 interface Review {
-  readonly item: SlidesItem;
   readonly projection: BibleProjection;
   readonly references: ReadonlyArray<VerseSlide['verse']>;
   readonly added: readonly VerseSlide[];
-  readonly explicit: boolean;
+  readonly slideId?: VerseSlide['id'];
+}
+
+function forRows(
+  projection: BibleProjection,
+  ids: ReadonlySet<string>,
+): BibleProjection {
+  const parts = projection.partsByTile.flatMap((part, index) => {
+    const id = projection.tiles[index]?.sourceSlideId;
+    return part !== null && id !== undefined && ids.has(id) ? [part] : [];
+  });
+  return {...projection, parts};
 }
 
 /** Confirms all required cuts before inserting the range as one local draft edit. */
@@ -30,28 +41,25 @@ export function BibleSlidesDialog({
   api,
   item,
   selected,
-  reference,
+  slideId,
   onInsert,
+  onConfirmCut,
   onClose,
 }: {
   readonly api: LlpApi;
   readonly item: SlidesItem;
   readonly selected: number;
-  readonly reference?: VerseSlide['verse'];
+  readonly slideId?: VerseSlide['id'];
   readonly onInsert: (slides: readonly VerseSlide[]) => void;
+  readonly onConfirmCut?: (id: VerseSlide['id'], cut: BibleCutEntry) => void;
   readonly onClose: () => void;
 }): JSX.Element {
   const translation = useBibleTranslation(api);
   const [review, setReview] = useState<Review | null>(null);
-  const [loading, setLoading] = useState(reference !== undefined);
+  const [loading, setLoading] = useState(slideId !== undefined);
   const [problem, setProblem] = useState<string | null>(null);
   const active = useRef(true);
-  const {projection: refreshed, failed: refreshFailed} =
-    useSlidesVerseProjection(
-      api,
-      review?.item ?? item,
-      review?.explicit === true,
-    );
+  const confirmed = useRef(new Map<string, BibleCutEntry>());
   const cancel = (): void => {
     active.current = false;
     onClose();
@@ -74,22 +82,21 @@ export function BibleSlidesDialog({
         () => active.current,
       );
       if (projection === null || !active.current) return;
-      const addedKeys = new Set(added.map(slide => verseKey(slide.verse)));
-      const references = versesToReview(projection.parts).filter(ref =>
-        addedKeys.has(verseKey(ref)),
+      const proposed = forRows(
+        projection,
+        new Set(added.map(slide => slide.id)),
       );
+      const references = versesToReview(proposed.parts);
       if (!autoOpen || references.length === 0) {
         finish(added);
       } else {
         setReview({
-          item: target,
           projection: {
-            ...projection,
+            ...proposed,
             source: {...projection.source, review: true},
           },
           references,
           added,
-          explicit: false,
         });
       }
     } catch (error: unknown) {
@@ -102,30 +109,33 @@ export function BibleSlidesDialog({
       if (active.current) setLoading(false);
     }
   };
-  const initial = useRef({api, item, reference});
+  const initial = useRef({api, item, slideId});
   useEffect(() => {
     active.current = true;
     const value = initial.current;
-    if (value.reference !== undefined) {
+    const id = value.slideId;
+    if (id !== undefined) {
       void loadSlidesProjection(
         value.api,
         value.item,
         () => active.current,
       ).then(
         projection => {
-          if (
-            projection === null ||
-            !active.current ||
-            value.reference === undefined
-          ) {
+          if (projection === null || !active.current) {
+            return;
+          }
+          const chosen = forRows(projection, new Set([id]));
+          const part = chosen.parts[0];
+          if (part === undefined) {
+            setProblem('성경 구절 불러오기 실패');
+            setLoading(false);
             return;
           }
           setReview({
-            item: value.item,
-            projection,
-            references: [value.reference],
+            projection: chosen,
+            references: [part.reference],
             added: [],
-            explicit: true,
+            slideId: id,
           });
           setLoading(false);
         },
@@ -152,18 +162,29 @@ export function BibleSlidesDialog({
       return;
     }
     setLoading(true);
-    const preferences = await api.preferences.get();
+    const [preferences, saved] = await Promise.all([
+      api.preferences.get(),
+      api.settings.get({name: 'bibleCuts'}),
+    ]);
     if (!active.current) return;
-    const added = passage.verses.map(verse => ({
-      id: createSlideId(crypto.randomUUID()),
-      verse: {
+    const added = passage.verses.map((verse): VerseSlide => {
+      const reference = {
         translation: passage.translation,
         book: book.id,
         chapter: verse.chapter,
         verse: verse.verse,
-      },
-      transition: preferences.show.slideDefaults.bible,
-    }));
+      };
+      const cut =
+        saved.name === 'bibleCuts'
+          ? knownCutEntryFor(saved.value, reference, verse.text)
+          : undefined;
+      return {
+        id: createSlideId(crypto.randomUUID()),
+        verse: reference,
+        transition: preferences.show.slideDefaults.bible,
+        ...(cut === undefined ? {} : {cut}),
+      };
+    });
     const at = Math.min(selected + 1, item.slides.slides.length);
     const target = {
       ...item,
@@ -176,16 +197,7 @@ export function BibleSlidesDialog({
         ],
       },
     };
-    setLoading(true);
-    prepare(target, added, preferences.bible.splitEditorAutoOpen).catch(
-      (error: unknown) => {
-        if (active.current) {
-          setProblem(
-            error instanceof Error ? error.message : '성경 구절 불러오기 실패',
-          );
-        }
-      },
-    );
+    await prepare(target, added, preferences.bible.splitEditorAutoOpen);
   };
   if (problem !== null) {
     return (
@@ -202,7 +214,7 @@ export function BibleSlidesDialog({
   if (review === null && loading) {
     return (
       <Dialog
-        title={reference === undefined ? '성경 구절' : '절 나누기'}
+        title={slideId === undefined ? '성경 구절' : '절 나누기'}
         size="s"
         onCancel={cancel}
         initialFocus="surface"
@@ -234,29 +246,37 @@ export function BibleSlidesDialog({
       />
     );
   }
-  const projection =
-    !review.explicit || refreshFailed
-      ? review.projection
-      : (refreshed ?? review.projection);
-  if (!review.explicit) {
+  const reviewedSlide = review.slideId;
+  if (reviewedSlide === undefined) {
     return (
       <BibleAddSplitReview
         api={api}
-        projection={projection}
+        projection={review.projection}
         references={review.references}
         onCancel={cancel}
-        onComplete={() => finish(review.added)}
+        onConfirmed={(verse, entry) =>
+          confirmed.current.set(verseKey(verse.reference), entry)
+        }
+        onComplete={() =>
+          finish(
+            review.added.map(slide => {
+              const cut = confirmed.current.get(verseKey(slide.verse));
+              return cut === undefined ? slide : {...slide, cut};
+            }),
+          )
+        }
       />
     );
   }
   return (
     <SplitReview
-      projection={projection}
+      projection={review.projection}
       references={review.references}
       pending={new Set()}
       onCancel={cancel}
       onConfirm={async (verse, cuts) => {
-        await confirmBibleCuts(api.settings, verse, cuts);
+        const entry = await confirmBibleCuts(api.settings, verse, cuts);
+        if (active.current) onConfirmCut?.(reviewedSlide, entry);
       }}
       onComplete={() => finish(review.added)}
     />

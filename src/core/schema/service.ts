@@ -3,6 +3,7 @@ import * as v from 'valibot';
 import type {Result} from '../common/result';
 import {isRecord} from '../common/guards';
 import {biblePassageSchema} from './biblePassage';
+import {bibleCutEntrySchema} from './bibleCuts';
 import {BIBLE_LOOKUP_LIMITS} from './bibleLookup';
 import {
   parseFile,
@@ -108,6 +109,7 @@ export type BiblePartTransition = ReadonlyKnown<
 export const verseSlideSchema = jsonObject({
   id: slideIdSchema,
   verse: bibleVerseReferenceSchema,
+  cut: v.exactOptional(bibleCutEntrySchema),
   label: v.exactOptional(slideLabelSchema),
   transition: v.exactOptional(slideTransitionSchema),
 });

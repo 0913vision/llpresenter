@@ -16,9 +16,9 @@ export function useSlidesVerseProjection(
   item: SlidesItem,
   enabled = true,
 ) {
-  const references = item.slides.slides.filter(
-    (slide): slide is VerseSlide => 'verse' in slide,
-  );
+  const references = item.slides.slides
+    .filter((slide): slide is VerseSlide => 'verse' in slide)
+    .map(({id, verse}) => ({id, verse}));
   const key = JSON.stringify(references);
   const [request, setRequest] = useState({key, references});
   if (request.key !== key) setRequest({key, references});
@@ -43,11 +43,6 @@ export function useSlidesVerseProjection(
         ? 'labels'
         : null,
     title: '\uc774\ub984\ud45c',
-  });
-  const cuts = useApiSettingsDocument({
-    api,
-    name: active ? 'bibleCuts' : null,
-    title: '절 나누기',
   });
   const [measurement, setMeasurement] = useState(() => ({
     active,
@@ -102,18 +97,13 @@ export function useSlidesVerseProjection(
     }
     const themeFile = themes;
     const screenFile = screens;
-    const cutFile = cuts;
-    if (
-      themeFile?.name !== 'themes' ||
-      screenFile?.name !== 'screens' ||
-      cutFile?.name !== 'bibleCuts'
-    ) {
+    if (themeFile?.name !== 'themes' || screenFile?.name !== 'screens') {
       return null;
     }
     return new BibleProjections({
       themes: themeFile.value,
       screens: screenFile.value.screens,
-      saved: cutFile.value,
+      saved: undefined,
       canvas: measurement.canvas,
       slideBibleDefaults,
     }).get({
@@ -143,7 +133,6 @@ export function useSlidesVerseProjection(
     measurement,
     themes,
     screens,
-    cuts,
     labels,
     item,
     slideBibleDefaults,

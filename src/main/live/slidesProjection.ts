@@ -79,7 +79,7 @@ export function registerSlidesProjection({
       content = source;
       settings = reader;
       stopSettings = reader?.subscribe(document => {
-        if (!['themes', 'screens', 'bibleCuts'].includes(document.name)) return;
+        if (!['themes', 'screens'].includes(document.name)) return;
         projection = null;
         for (const listener of listeners) listener();
       });
@@ -92,8 +92,7 @@ export function registerSlidesProjection({
     try {
       return (
         settings.get('themes').revision === next.measurement.themes &&
-        settings.get('screens').revision === next.measurement.screens &&
-        settings.get('bibleCuts').revision === next.measurement.bibleCuts
+        settings.get('screens').revision === next.measurement.screens
       );
     } catch (error: unknown) {
       log.warn('Could not read slides measurement revisions', error);

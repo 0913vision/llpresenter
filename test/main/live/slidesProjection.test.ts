@@ -87,6 +87,7 @@ it('retains one revision-bound sequence and rejects mismatched sources without r
   );
   expect(changed).toHaveBeenCalledOnce();
   source.settings.update(settingsDocument('props', {props: []}, 2));
+  source.settings.update(settingsDocument('bibleCuts', {entries: {}}, 2));
   expect(changed).toHaveBeenCalledOnce();
   expect(
     owner.get(source.value.serviceId, source.value.itemId, 2),
@@ -146,7 +147,7 @@ it('disposes before a delayed source is ready and ignores subsequent messages', 
   expect(source.settings.listeners.size).toBe(0);
 });
 
-it.each(['bibleCuts', 'themes', 'screens'] as const)(
+it.each(['themes', 'screens'] as const)(
   'pauses timed output after %s changes outside Show until a current measurement arrives',
   async name => {
     vi.useFakeTimers();

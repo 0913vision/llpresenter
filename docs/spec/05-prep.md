@@ -184,11 +184,13 @@ not dim when focus leaves. 진행 retains its existing thumbnail style.
   opens 절 나누기 before creating the item or inserting the verse rows. The
   review opens when the first unconfirmed verse that needs more than one slide
   is ready. Later suggestions arrive in the same window. The rule-based split
-  supplies a suggestion when AI is unavailable. Each confirmation saves that
-  verse immediately. Esc cancels the insertion and keeps prior confirmations.
-  With the preference disabled, insert with the saved or rule-based cuts. Bible
-  and sermon items retain their own confirmed cuts. Ctrl E on a verse row opens
-  절 나누기 to edit its cuts without changing the draft's references.
+  supplies a suggestion when AI is unavailable and can be confirmed when a long
+  word has to span slides. Each confirmation saves that verse immediately. Esc
+  cancels the insertion and keeps prior confirmations for future additions. With
+  the preference disabled, insert with the saved or rule-based cuts. Bible and
+  sermon items and individual verse rows retain their own confirmed cuts. Ctrl E
+  opens 절 나누기 for the selected verse row and saves the edited cuts to that
+  row.
 - 퀵 실행 (Ctrl+B) uses saved confirmed cuts or the rule-based splitter and
   makes no AI request. Suggestions belong to the active 절 나누기 review and
   only confirmed cuts are saved.

@@ -258,6 +258,53 @@ it('keeps an assigned label while numbering the parts of an inserted verse', () 
   expect(parts.every(tile => tile.slideLabel === 'Chorus')).toBe(true);
 });
 
+it('uses only the cut saved on each blank-slide verse row', () => {
+  const passage = panelPassage();
+  const reference = {
+    translation: passage.translation,
+    book: 43,
+    chapter: 3,
+    verse: 16,
+  };
+  const text = '가 나 다';
+  const local = entryFor(text, [1], '2026-11-20T00:00:00Z');
+  const document = settingsDocument('bibleCuts', {
+    entries: {
+      [reference.translation]: {
+        [cacheKey(reference)]: entryFor(text, [1, 2], '2026-11-20T00:01:00Z'),
+      },
+    },
+  });
+  if (document.name !== 'bibleCuts') throw Error('Missing cuts fixture');
+  const input = {
+    label: null,
+    labelColor: 'none' as const,
+    lines: [],
+    verse: {reference, text},
+  };
+  const projection = projectBible(
+    {
+      id: 'blank',
+      kind: 'slides',
+      source: 'service',
+      verseNumbers: false,
+      reference: 'every',
+      translationName: false,
+      input: [{...input, verse: {...input.verse, cut: local}}, input],
+    },
+    {
+      element: {...themeElementBase(), kind: 'currentText'},
+      layout: mockSplitLayout(),
+      saved: document.value,
+    },
+  );
+  expect(projection?.partsByTile.map(part => part?.text)).toEqual([
+    '가',
+    '나 다',
+    '가 나 다',
+  ]);
+});
+
 it('preserves the sermon title before all measured Bible parts', () => {
   const projection = projectBible(
     {
