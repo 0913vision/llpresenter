@@ -327,7 +327,7 @@ export function PreviewFrame<Id extends string>({
         !largeVisible && styles.withoutLarge,
       )}
       style={{
-        gridTemplateColumns: `repeat(${Math.max(1, tiles ? others.length : 1)}, minmax(var(--size-preview-compact), 1fr))`,
+        gridTemplateColumns: `repeat(${Math.max(1, tiles ? others.length : 1)}, minmax(0, 1fr))`,
       }}
     >
       {screens.map(screen => {

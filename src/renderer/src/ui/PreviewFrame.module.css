@@ -13,7 +13,9 @@
 }
 
 .content {
-  grid-template-rows: minmax(0, auto) auto;
+  grid-template-rows: auto auto;
+  flex: 0 0 auto;
+  height: auto;
 }
 
 .main {
@@ -125,7 +127,6 @@
   grid-row: 2;
   flex-direction: column;
   width: 100%;
-  max-width: var(--size-preview-small-max);
   min-width: 0;
 }
 
@@ -146,7 +147,6 @@
   grid-row: 2;
   flex-direction: column;
   width: 100%;
-  max-width: var(--size-preview-small-max);
   min-width: 0;
   padding: 0;
   border: 0;
