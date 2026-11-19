@@ -16,6 +16,7 @@ import type {LabelColor} from '@core/labels/colors';
 import {SlideThumbnailBand} from '@renderer/ui/SlideThumbnail';
 import {isComposing} from '@renderer/ui/ime';
 import {linearSlidesOf, type EditorSlideItem} from '@core/songs/blockEdits';
+import {linesOf} from '@core/songs/blockModel';
 import {adjacentBlock, editorCommand} from './editorKeys';
 import type {SongSession} from './songSession';
 import {
@@ -31,7 +32,10 @@ import {SONG_LIMITS} from '@core/schema/song';
 import type {SlideCardRenderer} from './SlideCardRenderer';
 import {Picture} from '@renderer/rendering/pictures/Picture';
 import {usePrepPictureSwitch} from '@renderer/rendering/PrepPictureSwitch';
-import type {PictureSpec} from '@renderer/rendering/pictures/pictureService';
+import {
+  pictures,
+  type PictureSpec,
+} from '@renderer/rendering/pictures/pictureService';
 
 export interface EditorFocus {
   inputs: Array<HTMLTextAreaElement | null>;
@@ -376,12 +380,24 @@ export const SongBlock = memo(
                   if (locked) return;
                   const input = event.currentTarget;
                   const {value, selectionStart, selectionEnd} = input;
-                  select(input);
-                  session.edit({
-                    type: 'text',
-                    text: value,
-                    start: selectionStart,
-                    end: selectionEnd,
+                  if (picture !== undefined && !slide.titleSlide) {
+                    pictures.prepareEditedLyrics(picture, linesOf(value));
+                  }
+                  flushSync(() => {
+                    select(input);
+                    session.edit({
+                      type: 'text',
+                      text: value,
+                      start: selectionStart,
+                      end: selectionEnd,
+                    });
+                    if (picture !== undefined && slide.titleSlide) {
+                      const edited =
+                        session.history.model.getContent().slides[block];
+                      if (edited !== undefined) {
+                        pictures.prepareEditedLyrics(picture, edited.lines);
+                      }
+                    }
                   });
                 }}
                 onPaste={event => {

@@ -1,9 +1,13 @@
 import {act, fireEvent} from '@testing-library/react';
-import {expect, it, vi} from 'vitest';
+import {beforeEach, expect, it, vi} from 'vitest';
 import {
   editorSetup,
   lyrics,
 } from '@fixtures/renderer/features/songs/editor/editorTesting';
+
+const prepareEditedLyrics = vi.hoisted(() =>
+  vi.fn<(picture: unknown, lines: readonly string[]) => void>(),
+);
 
 vi.mock(
   '@renderer/rendering/pictures/Picture',
@@ -11,6 +15,7 @@ vi.mock(
 );
 vi.mock('@renderer/rendering/pictures/pictureService', () => ({
   pictures: {
+    prepareEditedLyrics,
     inputs: () => '',
     subscribeInputs: () => () => undefined,
     request: () => ({
@@ -20,6 +25,10 @@ vi.mock('@renderer/rendering/pictures/pictureService', () => ({
     }),
   },
 }));
+
+beforeEach(() => {
+  prepareEditedLyrics.mockClear();
+});
 
 function replaceSelection(
   input: HTMLTextAreaElement,
@@ -50,6 +59,7 @@ it('keeps a zero-delay lyric burst and its caret in order while the picture is p
   const input = lyrics(2);
   act(() => input.focus());
   input.select();
+  const restoreCaret = vi.spyOn(input, 'setSelectionRange');
   let expected = '';
   for (const character of '주님 앞에 이 몸을 맡길 때') {
     replaceSelection(input, character);
@@ -59,7 +69,9 @@ it('keeps a zero-delay lyric burst and its caret in order while the picture is p
       expected.length,
       expected.length,
     ]);
+    expect(prepareEditedLyrics.mock.lastCall?.[1]).toEqual([expected]);
   }
+  expect(restoreCaret).not.toHaveBeenCalled();
   expect(session.history.snapshot.song.slides[1]?.lines).toEqual([expected]);
 });
 
@@ -76,10 +88,12 @@ it('keeps the Korean IME replacement range and accepts the next character', asyn
     replaceSelection(input, syllable, true);
     expect(input.value).toBe(`앞 ${syllable}`);
     expect([input.selectionStart, input.selectionEnd]).toEqual([3, 3]);
+    expect(prepareEditedLyrics.mock.lastCall?.[1]).toEqual([`앞 ${syllable}`]);
   }
   fireEvent.compositionEnd(input, {data: '한'});
   replaceSelection(input, '글');
   expect(input.value).toBe('앞 한글');
   expect([input.selectionStart, input.selectionEnd]).toEqual([4, 4]);
+  expect(prepareEditedLyrics.mock.lastCall?.[1]).toEqual(['앞 한글']);
   expect(session.history.snapshot.song.slides[1]?.lines).toEqual(['앞 한글']);
 });

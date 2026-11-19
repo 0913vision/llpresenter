@@ -4,7 +4,6 @@ import type {FontCatalogSnapshot} from '@core/schema/fontCatalog';
 import type {SongSlideSource} from '@core/schema/showService';
 import {pictureKey} from '@core/output/pictureKey';
 import {themeOverlay} from '@core/themes/content';
-import {flushSync} from 'react-dom';
 import {LocalPicturePainter} from './localPicturePainter';
 
 /** What the output compositor draws into a still. */
@@ -48,6 +47,7 @@ class Entry {
   image: PictureImage | undefined;
   done = false;
   editing = false;
+  editorDraw: Promise<HTMLCanvasElement> | undefined;
   immediate = false;
   failures = 0;
   retryAt = 0;
@@ -140,6 +140,7 @@ export class PictureService {
   private bytes = 0;
   private scheduled = false;
   private editorPainter: LocalPicturePainter | undefined;
+  private paintingEditor = false;
   private editing = Promise.resolve();
   private importScope = new AbortController();
 
@@ -179,10 +180,47 @@ export class PictureService {
     if (!LocalPicturePainter.available()) return;
     this.editing
       .then(() => {
+        if (this.paintingEditor) return;
         this.editorPainter ??= new LocalPicturePainter();
         this.editorPainter.warm(spec);
       })
       .catch((error: unknown) => console.error(error));
+  }
+
+  /** Requests the editor's picture as part of accepting the native input. */
+  prepareEditedLyrics(picture: PictureSpec, lines: readonly string[]): void {
+    const {slide} = picture.layers;
+    if (slide === null || !LocalPicturePainter.available()) return;
+    const next = {
+      ...picture,
+      layers: {...picture.layers, slide: {...slide, lines}},
+    };
+    const entry = this.request(next, this.inputs(next), {editing: true});
+    if (this.foreground.has(entry) && !this.paintingEditor) {
+      entry.editorDraw ??= this.paintEditor(entry);
+    }
+  }
+
+  private paintEditor(entry: Entry): Promise<HTMLCanvasElement> {
+    const start = async (): Promise<HTMLCanvasElement> => {
+      this.editorPainter ??= new LocalPicturePainter();
+      this.paintingEditor = true;
+      return this.editorPainter
+        .paint(entry.spec, undefined, canvas => {
+          const bytes = canvas.width * canvas.height * 4;
+          this.bytes += bytes;
+          entry.complete({source: canvas, bytes});
+        })
+        .finally(() => {
+          this.paintingEditor = false;
+        });
+    };
+    const result = this.paintingEditor ? this.editing.then(start) : start();
+    this.editing = result.then(
+      () => undefined,
+      () => undefined,
+    );
+    return result;
   }
 
   readonly subscribeInputs = (listener: Listener): (() => void) => {
@@ -448,26 +486,10 @@ export class PictureService {
         return;
       }
       if (entry.editing && LocalPicturePainter.available()) {
-        const draw = this.editing.then(() => {
-          this.editorPainter ??= new LocalPicturePainter();
-          return this.editorPainter.paint(entry.spec);
-        });
-        this.editing = draw.then(
-          () => undefined,
-          () => undefined,
-        );
+        const draw = entry.editorDraw ?? this.paintEditor(entry);
         const canvas = await draw.catch(() => undefined);
+        entry.editorDraw = undefined;
         if (canvas !== undefined) {
-          const bytes = canvas.width * canvas.height * 4;
-          this.bytes += bytes;
-          await new Promise<void>(resolve => {
-            // NOTE(0913vision): The canvas capture runs during paint. Publish
-            // the image and prepared textarea before layout of the next frame.
-            requestAnimationFrame(() => {
-              flushSync(() => entry.complete({source: canvas, bytes}));
-              resolve();
-            });
-          });
           requestIdleCallback(() => this.remember(canvas, entry), {
             timeout: 1000,
           });

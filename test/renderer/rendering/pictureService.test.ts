@@ -1,4 +1,4 @@
-import {afterEach, beforeEach, expect, it, vi} from 'vitest';
+import {afterEach, beforeEach, expect, it, onTestFinished, vi} from 'vitest';
 import {emptyLayers} from '@core/live/state';
 import {createScreenId, createThemeId} from '@core/schema/ids';
 import {OUTPUT_REVEAL_DEADLINE_MS} from '@core/output/revealDeadline';
@@ -10,12 +10,13 @@ import {LocalPicturePainter} from '@renderer/rendering/pictures/localPicturePain
 
 const mocks = vi.hoisted(() => ({
   ready: false,
+  render: vi.fn(),
   dispose: vi.fn(),
   incomplete: vi.fn(),
 }));
 vi.mock('@renderer/rendering/outputRenderer', () => ({
   OutputRenderer: class {
-    render(): void {}
+    render = mocks.render;
     dispose = mocks.dispose;
     revealIncomplete = mocks.incomplete;
   },
@@ -83,6 +84,7 @@ beforeEach(() => {
     },
   );
   mocks.ready = false;
+  mocks.render.mockClear();
   mocks.dispose.mockClear();
   mocks.incomplete.mockClear();
 });
@@ -125,4 +127,40 @@ it('disposes a pending import picture when its owner cancels', async () => {
   service.reset();
   await expect(pending).resolves.toBe(false);
   expect(mocks.dispose).toHaveBeenCalledOnce();
+});
+
+it('publishes the edited picture inside the source paint event', async () => {
+  const paint = vi.fn();
+  vi.stubGlobal('llp', {
+    picture: {paint},
+    media: {
+      get: vi.fn().mockResolvedValue({revision: 0, value: {items: []}}),
+      subscribe: vi.fn(),
+    },
+    fonts: {
+      snapshot: vi.fn().mockRejectedValue(new Error('No font catalog')),
+      subscribe: vi.fn(),
+    },
+  });
+  const service = new PictureService();
+  const slide = {itemId: 'song', position: 0, label: null, lines: ['첫 줄']};
+  const picture = {...spec, layers: {...spec.layers, slide}};
+  const lines = ['첫 줄을 고침'];
+  const next = {
+    ...picture,
+    layers: {...picture.layers, slide: {...slide, lines}},
+  };
+  service.prepareEditedLyrics(picture, lines);
+  expect(mocks.render.mock.calls[0]?.[0]).toEqual(next.layers);
+  const entry = service.request(next, service.inputs(next));
+  await vi.advanceTimersByTimeAsync(0);
+  const canvas = document.querySelector('body > canvas');
+  if (canvas === null) throw Error('Missing editor painter');
+  onTestFinished(() => canvas.remove());
+  expect(entry.done).toBe(false);
+  mocks.ready = true;
+  canvas.dispatchEvent(new Event('paint'));
+  expect(entry.done).toBe(true);
+  expect(entry.image?.source).toBeInstanceOf(HTMLCanvasElement);
+  expect(paint).not.toHaveBeenCalled();
 });
