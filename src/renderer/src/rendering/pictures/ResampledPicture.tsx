@@ -2,19 +2,37 @@ import {useLayoutEffect, useRef, type JSX} from 'react';
 import type {PictureImage} from './pictureService';
 import styles from './Picture.module.css';
 
-let pending = Promise.resolve();
+const pending = new Map<symbol, () => Promise<void>>();
+let idle: number | undefined;
+let resizing = false;
 
-function queueResampling(
-  active: () => boolean,
-  draw: () => Promise<void>,
-): void {
-  pending = pending
-    .then(async () => {
-      if (!active()) return;
-      await new Promise<void>(resolve => requestIdleCallback(() => resolve()));
-      if (active()) await draw();
-    })
-    .catch(() => undefined);
+function scheduleResampling(): void {
+  if (resizing || idle !== undefined || pending.size === 0) return;
+  idle = requestIdleCallback(
+    () => {
+      idle = undefined;
+      const next = pending.entries().next();
+      if (next.done) return;
+      const [tile, draw] = next.value;
+      pending.delete(tile);
+      resizing = true;
+      void draw()
+        .catch(() => undefined)
+        .finally(() => {
+          resizing = false;
+          scheduleResampling();
+        });
+    },
+    {timeout: 200},
+  );
+}
+
+function cancelResampling(tile: symbol): void {
+  pending.delete(tile);
+  if (pending.size === 0 && idle !== undefined) {
+    cancelIdleCallback(idle);
+    idle = undefined;
+  }
 }
 
 async function resizedPicture(
@@ -52,6 +70,7 @@ export function ResampledPicture({
         ? (prepared ?? host.querySelector('img'))
         : source;
     if (image === null) return;
+    const tile = Symbol();
     let drawn = '';
     let revision = 0;
     let shownUrl: string | undefined;
@@ -89,10 +108,10 @@ export function ResampledPicture({
       if (width < 1 || height < 1 || size === drawn) return;
       drawn = size;
       const turn = ++revision;
-      queueResampling(
-        () => turn === revision,
-        async () => swap(await resizedPicture(image, width, height), turn),
+      pending.set(tile, async () =>
+        swap(await resizedPicture(image, width, height), turn),
       );
+      scheduleResampling();
     };
     draw();
     image.addEventListener('load', draw);
@@ -103,6 +122,7 @@ export function ResampledPicture({
     observer?.observe(host, {box: 'device-pixel-content-box'});
     return () => {
       revision++;
+      cancelResampling(tile);
       image.removeEventListener('load', draw);
       observer?.disconnect();
       overlay.replaceChildren();
