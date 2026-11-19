@@ -1,5 +1,6 @@
 import {isItemOfKind, type ServiceItem} from '@core/schema/service';
-import type {SlideListItem} from '@core/songs/slideListEdits';
+import type {SlideListCommand, SlideListItem} from '@core/songs/slideListEdits';
+import type {SlideSelectionAction} from '@core/songs/slideListSelection';
 import type {SlideListView} from '@core/songs/slideListModel';
 import type {SlideListSession} from './slideListSession';
 
@@ -75,7 +76,12 @@ export interface ItemEditorAdapter<T extends SlideListItem> {
   readonly readOnly: boolean;
   readonly canUndo: boolean;
   readonly canRedo: boolean;
-  readonly session: SlideListSession<T>;
+  select(action: SlideSelectionAction<T['id']>): void;
+  command(command: SlideListCommand<T>): void;
+  copy(): string | null;
+  cut(): string | null;
+  paste(text?: string): void;
+  edit(action: 'undo' | 'redo'): void;
   preview(
     identity: ItemEditorIdentity<T['id']>,
     role: 'audience' | 'broadcast' | 'stage',
@@ -132,7 +138,12 @@ export function adaptItemEditor<T extends SlideListItem>(options: {
     readOnly: blocked || session.readOnly,
     canUndo: session.canUndo ?? view.canUndo,
     canRedo: session.canRedo ?? view.canRedo,
-    session,
+    select: action => session.selectSlides(action),
+    command: command => session.commandSlides(command),
+    copy: () => session.copySlides(),
+    cut: () => session.cutSlides(),
+    paste: text => session.pasteSlides(text),
+    edit: action => session.edit(action),
     preview: (identity, role) => ({identity, role}),
   };
 }

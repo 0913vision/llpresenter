@@ -9,6 +9,7 @@ it('keeps the common add bar after the editor content', () => {
     <ItemEditorShell
       label="Editor"
       className="editor"
+      header={<div>Editor header</div>}
       footer={
         <ItemEditorAddBar
           adapter={editorCapabilities('bible')}
@@ -21,7 +22,8 @@ it('keeps the common add bar after the editor content', () => {
     </ItemEditorShell>,
   );
   const editor = getByRole('region', {name: 'Editor'});
-  expect(editor.firstElementChild?.textContent).toBe('Slide content');
+  expect(editor.firstElementChild?.textContent).toBe('Editor header');
+  expect(editor.children[1]?.textContent).toBe('Slide content');
   expect(editor.lastElementChild?.tagName).toBe('FOOTER');
   expect(within(editor).getByRole('button', {name: 'Title'})).toBeDefined();
 });

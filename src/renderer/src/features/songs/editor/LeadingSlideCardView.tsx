@@ -8,11 +8,13 @@ export function LeadingSlideCardView({
   mode,
   style,
   onHeight,
+  selected,
 }: {
   readonly card: LeadingSlideCard;
   readonly mode: SlideSurfaceMode;
   readonly style: CSSProperties;
   readonly onHeight?: ((height: number) => void) | undefined;
+  readonly selected?: boolean | undefined;
 }): JSX.Element {
   const ref = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
@@ -34,6 +36,8 @@ export function LeadingSlideCardView({
       className={styles.leading}
       style={style}
       data-leading-card
+      role={selected === undefined ? undefined : 'option'}
+      aria-selected={selected}
       tabIndex={-1}
       aria-label={card.label}
     >

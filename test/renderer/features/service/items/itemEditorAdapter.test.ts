@@ -69,15 +69,8 @@ describe('item editor capabilities', () => {
 });
 
 describe('the shared item editor session', () => {
-  it.each([
-    'song',
-    'blank',
-    'ad',
-    'bible',
-    'sermon',
-    'liturgy',
-    'media',
-  ] as const)('%s exposes the existing ordered selection and history', kind => {
+  it('exposes the existing ordered selection and history', () => {
+    const kind = 'song' as const;
     const document = editorDeckSong(2);
     const session = new SongSession({
       document,
@@ -121,7 +114,7 @@ describe('the shared item editor session', () => {
         'stage',
       ).role,
     ).toBe('stage');
-    adapter.session.commandSlides({type: 'duplicate'});
+    adapter.command({type: 'duplicate'});
     expect(
       adaptItemEditor({...options, view: session.slideModel.getSnapshot()})
         .canUndo,

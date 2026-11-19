@@ -104,10 +104,10 @@ export function SongSlideSurface<T extends SlideListItem>({
   const selectCard = (preserve = false): void => {
     if (leadingCard === undefined) return;
     if (leadingSelected) {
-      if (!preserve) session.selectSlides({type: 'clear'});
+      if (!preserve) adapter.select({type: 'clear'});
       return;
     }
-    if (!preserve) session.selectSlides({type: 'clear'});
+    if (!preserve) adapter.select({type: 'clear'});
     setCardSelection({documentId: session.slideDocumentId, selected: true});
     leadingCard.onSelectChange?.(true);
   };
@@ -127,7 +127,7 @@ export function SongSlideSurface<T extends SlideListItem>({
     }
     const first = view.slides[0];
     if (first !== undefined) {
-      session.selectSlides({type: 'click', id: first.id});
+      adapter.select({type: 'click', id: first.id});
     }
   };
   const [menu, setMenu] = useState<MenuAnchor | null>(null);
@@ -177,7 +177,7 @@ export function SongSlideSurface<T extends SlideListItem>({
   }, []);
   const copy = (cut = false): void => {
     if (cut) surfaceRef.current?.focus({preventScroll: true});
-    const text = cut ? session.cutSlides() : session.copySlides();
+    const text = cut ? adapter.cut() : adapter.copy();
     if (text !== null) {
       writeSlideText(session.clipboardOwner, text);
     }
@@ -199,10 +199,10 @@ export function SongSlideSurface<T extends SlideListItem>({
         if (!current()) return;
         try {
           const text = await readSlideText(session.clipboardOwner);
-          if (current()) session.pasteSlides(text);
+          if (current()) adapter.paste(text);
         } catch (error) {
           console.error('Could not read slide text', error);
-          if (current()) session.pasteSlides();
+          if (current()) adapter.paste();
         }
       },
     );
@@ -268,7 +268,7 @@ export function SongSlideSurface<T extends SlideListItem>({
         session.slideModel.getSnapshot() === snapshot,
       () => {
         surfaceRef.current?.focus();
-        session.commandSlides({type: 'delete'});
+        adapter.command({type: 'delete'});
       },
     );
   };
@@ -327,14 +327,14 @@ export function SongSlideSurface<T extends SlideListItem>({
       fixedBindings: [{code: 'KeyA', mods: ['ctrl']}],
       context: 'song',
       when: owns,
-      run: () => session.selectSlides({type: 'all'}),
+      run: () => adapter.select({type: 'all'}),
     },
     {
       id: 'edit.duplicate',
       context: 'song',
       when: owns,
       unavailable: () => duplicateReason,
-      run: () => session.commandSlides({type: 'duplicate'}),
+      run: () => adapter.command({type: 'duplicate'}),
     },
     {
       id: 'edit.delete',
@@ -352,7 +352,7 @@ export function SongSlideSurface<T extends SlideListItem>({
         (adapter.canUndo ? undefined : '실행 취소할 변경이 없습니다'),
       run: () => {
         surfaceRef.current?.focus();
-        session.edit('undo');
+        adapter.edit('undo');
       },
     },
     {
@@ -364,7 +364,7 @@ export function SongSlideSurface<T extends SlideListItem>({
         (adapter.canRedo ? undefined : '다시 실행할 변경이 없습니다'),
       run: () => {
         surfaceRef.current?.focus();
-        session.edit('redo');
+        adapter.edit('redo');
       },
     },
   ]);
@@ -449,7 +449,7 @@ export function SongSlideSurface<T extends SlideListItem>({
       label: selectionLabel('복제', view.selection.ids.size),
       meta: 'Ctrl D',
       ...menuAvailability(duplicateReason),
-      onSelect: () => session.commandSlides({type: 'duplicate'}),
+      onSelect: () => adapter.command({type: 'duplicate'}),
     },
     {
       kind: 'item',
@@ -474,7 +474,7 @@ export function SongSlideSurface<T extends SlideListItem>({
             ? NEWER_FILE_REASON
             : undefined,
       ),
-      onSelect: () => session.edit('undo'),
+      onSelect: () => adapter.edit('undo'),
     },
     {
       kind: 'item',
@@ -489,7 +489,7 @@ export function SongSlideSurface<T extends SlideListItem>({
             ? NEWER_FILE_REASON
             : undefined,
       ),
-      onSelect: () => session.edit('redo'),
+      onSelect: () => adapter.edit('redo'),
     },
   ];
   return (
@@ -508,7 +508,7 @@ export function SongSlideSurface<T extends SlideListItem>({
           return;
         }
         if (isInTextEntry(event.target)) return;
-        const text = session.copySlides();
+        const text = adapter.copy();
         if (text === null) return;
         event.preventDefault();
         event.stopPropagation();
@@ -523,7 +523,7 @@ export function SongSlideSurface<T extends SlideListItem>({
         }
         if (contentLocked || isInTextEntry(event.target)) return;
         surfaceRef.current?.focus({preventScroll: true});
-        const text = session.cutSlides();
+        const text = adapter.cut();
         if (text === null) return;
         event.preventDefault();
         event.stopPropagation();
@@ -540,7 +540,7 @@ export function SongSlideSurface<T extends SlideListItem>({
         event.preventDefault();
         event.stopPropagation();
         surfaceRef.current?.focus({preventScroll: true});
-        session.pasteSlides(event.clipboardData.getData('text/plain'));
+        adapter.paste(event.clipboardData.getData('text/plain'));
       }}
       onPointerDownCapture={event => {
         dragClick.props.onPointerDownCapture();
@@ -586,6 +586,7 @@ export function SongSlideSurface<T extends SlideListItem>({
           const emptyPlate =
             slide !== null &&
             slide === event.target &&
+            !slide.hasAttribute('data-fixed-slide') &&
             slide.getBoundingClientRect().width > 0 &&
             slide.getBoundingClientRect().height > 0;
           if (
@@ -595,7 +596,7 @@ export function SongSlideSurface<T extends SlideListItem>({
             event.currentTarget.contains(viewport)
           ) {
             clearCard();
-            session.selectSlides({
+            adapter.select({
               type: 'gap',
               index: emptySlideGap(viewport, {
                 x: event.clientX,
@@ -624,7 +625,7 @@ export function SongSlideSurface<T extends SlideListItem>({
               view.slides[0] !== undefined &&
               view.selection.ids.size > 0
             ) {
-              session.selectSlides({
+              adapter.select({
                 type: 'click',
                 id: view.slides[0].id,
                 shift: true,
@@ -692,7 +693,7 @@ export function SongSlideSurface<T extends SlideListItem>({
             slide !== undefined &&
             view.selection.caret === null
           ) {
-            session.selectSlides({type: 'click', id: slide.id, ctrl: true});
+            adapter.select({type: 'click', id: slide.id, ctrl: true});
           }
           return;
         }
@@ -715,7 +716,7 @@ export function SongSlideSurface<T extends SlideListItem>({
             event.preventDefault();
             event.stopPropagation();
             surfaceRef.current?.focus({preventScroll: true});
-            session.selectSlides({type: 'click', id: slide.id});
+            adapter.select({type: 'click', id: slide.id});
             return;
           }
         }
@@ -733,7 +734,7 @@ export function SongSlideSurface<T extends SlideListItem>({
           targetSlide !== undefined &&
           !view.selection.ids.has(targetSlide.id)
         ) {
-          session.selectSlides({type: 'click', id: targetSlide.id});
+          adapter.select({type: 'click', id: targetSlide.id});
         }
         setMenu({
           kind: 'element',
@@ -797,7 +798,7 @@ export function SongSlideSurface<T extends SlideListItem>({
               ];
             if (first !== undefined) {
               clearCard();
-              session.selectSlides({type: 'click', id: first.id});
+              adapter.select({type: 'click', id: first.id});
               event.preventDefault();
               event.stopPropagation();
               surfaceRef.current?.focus();
@@ -827,7 +828,7 @@ export function SongSlideSurface<T extends SlideListItem>({
             )?.dataset.slideColumns ?? 1,
           );
           run = () =>
-            session.selectSlides({
+            adapter.select({
               type: 'arrow',
               delta:
                 key === 'arrowup'
@@ -848,12 +849,12 @@ export function SongSlideSurface<T extends SlideListItem>({
               slide === undefined ||
               !selected
             ) {
-              session.selectSlides({
+              adapter.select({
                 type: 'gap',
                 index: key === 'home' ? 0 : view.slides.length,
               });
             } else {
-              session.selectSlides({
+              adapter.select({
                 type: 'click',
                 id: slide.id,
                 shift: event.shiftKey,
@@ -863,7 +864,7 @@ export function SongSlideSurface<T extends SlideListItem>({
         } else if (key === 'escape') {
           run = () => {
             if (selected || view.selection.caret !== null) {
-              session.selectSlides({type: 'clear'});
+              adapter.select({type: 'clear'});
             } else onBack?.();
           };
         }
@@ -902,7 +903,7 @@ export function SongSlideSurface<T extends SlideListItem>({
           Number(row?.dataset.slideIndex ?? session.selectedOccurrence),
         );
         if (slide !== undefined && !view.selection.ids.has(slide.id)) {
-          session.selectSlides({type: 'click', id: slide.id});
+          adapter.select({type: 'click', id: slide.id});
         }
         event.preventDefault();
         event.stopPropagation();
@@ -928,7 +929,7 @@ export function SongSlideSurface<T extends SlideListItem>({
           return;
         }
         if (!view.selection.ids.has(slide.id)) {
-          session.selectSlides({type: 'click', id: slide.id});
+          adapter.select({type: 'click', id: slide.id});
         }
         event.dataTransfer.setData(
           'application/x-llp-song-slide-move',
@@ -988,7 +989,7 @@ export function SongSlideSurface<T extends SlideListItem>({
         }
         event.preventDefault();
         event.stopPropagation();
-        session.commandSlides({type: 'move', index});
+        adapter.command({type: 'move', index});
       }}
       onDragEnd={() => {
         clearDrop();
@@ -1004,7 +1005,7 @@ export function SongSlideSurface<T extends SlideListItem>({
           selected={
             view.slides.find(slide => view.selection.ids.has(slide.id))?.label
           }
-          onChoose={label => session.commandSlides({type: 'label', label})}
+          onChoose={label => adapter.command({type: 'label', label})}
           onClose={() => {
             setLabelAnchor(null);
             labelAnchor.focus({preventScroll: true});
