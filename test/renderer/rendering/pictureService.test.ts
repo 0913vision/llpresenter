@@ -1,5 +1,6 @@
 import {afterEach, beforeEach, expect, it, onTestFinished, vi} from 'vitest';
 import {emptyLayers} from '@core/live/state';
+import {pictureKey} from '@core/output/pictureKey';
 import {createScreenId, createThemeId} from '@core/schema/ids';
 import {OUTPUT_REVEAL_DEADLINE_MS} from '@core/output/revealDeadline';
 import {
@@ -224,4 +225,17 @@ it('publishes the edited picture inside the source paint event', async () => {
   expect(entry.done).toBe(true);
   expect(entry.image?.source).toBeInstanceOf(HTMLCanvasElement);
   expect(paint).not.toHaveBeenCalled();
+});
+
+it('keeps pictures from distinct output screens in separate cache entries', () => {
+  const otherScreen = createScreenId('00000000-0000-4000-8000-000000000003');
+  const other = {
+    ...spec,
+    appearance: {
+      ...spec.appearance,
+      screen: {...spec.appearance.screen, id: otherScreen},
+    },
+  };
+  expect(pictureKey(other)).not.toBe(pictureKey(spec));
+  expect(pictureKey({...spec})).toBe(pictureKey(spec));
 });

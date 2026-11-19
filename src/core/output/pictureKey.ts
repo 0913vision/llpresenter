@@ -28,6 +28,7 @@ export function pictureKey({layers, appearance}: PictureSpec): string {
     ? themeOverlay(item, layers, theme.sourceScreenId)
     : undefined;
   return JSON.stringify([
+    screen.id,
     screen.kind,
     screen.method === 'ndi' || screen.method === 'capture'
       ? screen.method
