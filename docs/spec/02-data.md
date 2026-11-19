@@ -385,8 +385,8 @@ Don't save whether a screen output is on. At launch, the 환경설정 option 켤
 
 Built-in themes and the standby layout come from the running version. The file
 contains user themes and only built-in themes explicitly saved after editing,
-marked `edited: true`. Unmarked built-in entries are ignored and removed on
-load. An unedited `standby` is omitted from storage. Theme IDs and defaults
+marked `edited: true`. Saved built-in entries and a saved `standby` are read as
+stored. An unedited `standby` is omitted from storage. Theme IDs and defaults
 remain stable, so existing item references continue to resolve. Up to 200 user
 themes may coexist with the built-in themes.
 

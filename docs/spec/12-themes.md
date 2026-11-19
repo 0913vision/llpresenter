@@ -312,9 +312,8 @@ not preset names or indices, so the rename does not change existing themes.
 
 A gap never blanks a screen:
 
-- If the item's 테마 no longer exists, a retired built-in ID first resolves to
-  its replacement: the former two-line sermon title (107) uses 설교 제목 (106).
-  Otherwise the screen uses the item's kind's default 테마.
+- If the item's theme no longer exists, the screen uses the item's kind's
+  default theme.
 - If that is gone too, or `themes.json` can't be read or hasn't been read yet,
   the screen uses the built-in 테마 of the kind: 현재 슬라이드 글 full screen in
   the 기본 text style over 배경, and 성경 출처 for Bible items.
@@ -442,8 +441,8 @@ deletion of the selected theme.
 
 Built-in themes and the standby layout come from the running version. The file
 contains user themes and only built-in themes explicitly saved after editing,
-marked `edited: true`. Unmarked built-in entries are ignored and removed on
-load. An unedited `standby` is omitted from storage. Theme IDs and defaults
+marked `edited: true`. Saved built-in entries and a saved `standby` are read as
+stored. An unedited `standby` is omitted from storage. Theme IDs and defaults
 remain stable, so existing item references continue to resolve. Up to 200 user
 themes may coexist with the built-in themes. `themeOrder` optionally stores the
 ordered theme IDs independently of built-in theme contents; newly introduced
@@ -544,9 +543,8 @@ as every settings file does (02).
   묵상기도; the others use Apostle's Creed, Repentance Prayer, Praise, Corporate
   Prayer, Offering, Offering Prayer, Holy Communion, Blessing, Baptism,
   Supplication Prayer, Notice, Benediction. These themes are not kind defaults;
-  Stage shows only the Korean name as current text. Untouched saved section
-  layouts resolve the same way; edited layouts stay unchanged. The stage choice
-  follows the November 11 user decision.
+  Stage shows only the Korean name as current text. Saved section layouts are
+  used as stored. The stage choice follows the November 11 user decision.
 - In new libraries, 찬양 on 청중 화면 uses white NanumSquare ExtraBold
   (weight 800) at 108 px, centered horizontally and top aligned, with -3 px
   tracking, 137 px line spacing, and no shadow or outline. Its text frame is
@@ -594,8 +592,7 @@ as every settings file does (02).
   gradient band, expanded upward for two centered lines: the smaller passage
   above the larger sermon title. 무대 left-aligns the smaller passage above the
   title at the Bible text edge, with sizes 52 px and 83 px, and retains its
-  clock and next-slide areas. Unedited saved sermon screens receive these
-  layouts; individually customized screens are preserved.
+  clock and next-slide areas. Saved sermon screens are used as stored.
 - `defaults.blank` selects 말씀 and `defaults.ad` selects 광고 in a new
   `themes.json`. Both can be changed like the other kind defaults.
 - On 청중 화면 the 광고 theme uses a shipped 1920 x 1080 blue-purple picture and
@@ -811,11 +808,8 @@ the next item.
 The built-in 이미지 슬라이드 theme displays a slide picture fitted within a
 black canvas on 청중 and 무대 screens; the stage also shows its clock. 방송
 screens are transparent and have no elements. PowerPoint picture imports use
-this theme with their privately owned slide pictures. The image theme uses ID
-108; earlier imports used 107, which collided with the retired sermon title. On
-load, a 107 item containing picture slides uses 108; other 107 items use the
-retired-theme fallback. The service file is updated on its next save. An edited
-legacy image theme is retained when recognizable.
+this theme with their privately owned slide pictures. The image theme uses
+ID 108. The built-in sermon title theme uses ID 106.
 
 The theme editor displays the fitted built-in broadcast band, text and title
 using a representative slide, including the generated song title. Position, size

@@ -16,10 +16,7 @@ import {itemThemeCell} from '@core/themes/itemThemeCell';
 import {createServiceItemId} from '@core/schema/ids';
 import {newSlidesItem} from '@core/services/slidesEdits';
 import {SERMON_TITLE_THEME_ID} from '@core/themes/sundayScripture';
-import {
-  IMAGE_SLIDES_THEME_ID,
-  legacySermonTitleLayout,
-} from '@core/themes/defaults';
+import {IMAGE_SLIDES_THEME_ID} from '@core/themes/defaults';
 import {BIBLE_THEME_ID} from '@core/themes/defaults';
 
 describe('published theme compositions', () => {
@@ -94,7 +91,7 @@ describe('published theme compositions', () => {
     expect(unrelatedOverride.themeId).not.toBe(original.id);
     expect(unrelatedOverride.missing).toContain(original.id);
   });
-  it('updates the former sermon broadcast layout but retains a custom layout', () => {
+  it('retains a saved former sermon broadcast layout and custom layout', () => {
     const theme = themeFile().themes.find(
       entry => entry.id === SERMON_TITLE_THEME_ID,
     );
@@ -116,7 +113,7 @@ describe('published theme compositions', () => {
     };
     const saved = {...theme, screens: {...theme.screens, [screen.id]: old}};
     expect(resolveThemeScreen(saved, screen.id, themeScreens).layout).toEqual(
-      current,
+      old,
     );
     const custom = {...old, background: '#123456'};
     expect(
@@ -127,7 +124,7 @@ describe('published theme compositions', () => {
       ).layout,
     ).toEqual(custom);
   });
-  it('updates the former Bible stage frames together and keeps custom frames', () => {
+  it('retains saved former Bible stage frames and custom frames', () => {
     const theme = themeFile().themes.find(entry => entry.id === BIBLE_THEME_ID);
     const stage = themeScreens.find(screen => screen.id === THEME_STAGE);
     if (!theme || !stage) throw Error('Missing Bible stage');
@@ -149,7 +146,7 @@ describe('published theme compositions', () => {
     };
     const saved = {...theme, screens: {...theme.screens, [stage.id]: old}};
     expect(resolveThemeScreen(saved, stage.id, themeScreens).layout).toEqual(
-      current,
+      old,
     );
     const custom = {
       ...old,
@@ -167,43 +164,7 @@ describe('published theme compositions', () => {
       ).layout,
     ).toEqual(custom);
   });
-  it('updates an untouched saved Bible stage reference without replacing other edits', () => {
-    const file = themeFile();
-    const theme = file.themes.find(entry => entry.id === BIBLE_THEME_ID);
-    const stage = themeScreens.find(screen => screen.id === THEME_STAGE);
-    if (!theme || !stage) throw Error('Missing Bible stage');
-    const old = legacySermonTitleLayout(stage);
-    const edited = {
-      ...theme,
-      edited: true,
-      screens: {...theme.screens, [stage.id]: {...old, background: '#112233'}},
-    };
-    const resolved = resolveThemeScreen(edited, stage.id, themeScreens).layout;
-    expect(resolved.background).toBe('#112233');
-    expect(
-      resolved.elements.find(element => element.kind === 'reference'),
-    ).toMatchObject({frame: {y: 120, h: 104}, text: {size: 72}});
-    const custom = {
-      ...edited,
-      screens: {
-        ...edited.screens,
-        [stage.id]: {
-          ...old,
-          elements: old.elements.map(element =>
-            element.kind === 'reference'
-              ? {...element, text: {...element.text, size: 60}}
-              : element,
-          ),
-        },
-      },
-    };
-    expect(
-      resolveThemeScreen(custom, stage.id, themeScreens).layout.elements.find(
-        element => element.kind === 'reference',
-      ),
-    ).toMatchObject({text: {size: 60}});
-  });
-  it('left-aligns unchanged saved sermon stage text while preserving custom text', () => {
+  it('preserves saved sermon stage text alignment and custom text', () => {
     const file = themeFile();
     const theme = file.themes.find(entry => entry.id === SERMON_TITLE_THEME_ID);
     const stage = themeScreens.find(screen => screen.id === THEME_STAGE);
@@ -226,10 +187,10 @@ describe('published theme compositions', () => {
     const result = resolveThemeScreen(saved, stage.id, themeScreens).layout;
     expect(
       result.elements.find(element => element.kind === 'itemName'),
-    ).toMatchObject({frame: {x: 154}, text: {size: 52, align: 'left'}});
+    ).toMatchObject({frame: {x: 154}, text: {size: 52, align: 'center'}});
     expect(
       result.elements.find(element => element.kind === 'currentText'),
-    ).toMatchObject({frame: {x: 154}, text: {size: 83, align: 'left'}});
+    ).toMatchObject({frame: {x: 154}, text: {size: 83, align: 'center'}});
     const custom = {
       ...saved,
       screens: {
@@ -247,70 +208,10 @@ describe('published theme compositions', () => {
     const retained = resolveThemeScreen(custom, stage.id, themeScreens).layout;
     expect(
       retained.elements.find(element => element.kind === 'itemName'),
-    ).toMatchObject({text: {align: 'left'}});
+    ).toMatchObject({text: {align: 'center'}});
     expect(
       retained.elements.find(element => element.kind === 'currentText'),
     ).toMatchObject({text: {size: 91, align: 'center'}});
-  });
-  it('updates untouched legacy sermon screens while preserving edited layouts', () => {
-    const file = themeFile();
-    const theme = file.themes.find(entry => entry.id === SERMON_TITLE_THEME_ID);
-    const broadcast = themeScreens.find(screen => screen.id === THEME_CAPTURE);
-    const stage = themeScreens.find(screen => screen.id === THEME_STAGE);
-    if (!theme || !broadcast || !stage) throw Error('Missing sermon screens');
-    const legacy = {
-      ...theme,
-      edited: true,
-      screens: {
-        ...theme.screens,
-        [broadcast.id]: legacySermonTitleLayout(broadcast),
-        [stage.id]: legacySermonTitleLayout(stage),
-      },
-    };
-    const request = {
-      file: {
-        ...file,
-        themes: file.themes.map(entry =>
-          entry.id === theme.id ? legacy : entry,
-        ),
-      },
-      screens: themeScreens,
-      item: {
-        id: 'sermon',
-        kind: 'blank' as const,
-        source: 'service' as const,
-        theme: theme.id,
-        title: '마태복음 11:29~30',
-      },
-      revision: 1,
-    };
-    const output = resolveThemeOutput(request);
-    expect(output.screens[THEME_MAIN]?.layout).toEqual(
-      theme.screens[THEME_MAIN],
-    );
-    expect(output.screens[THEME_CAPTURE]?.layout).toEqual(
-      theme.screens[THEME_CAPTURE],
-    );
-    expect(output.screens[THEME_STAGE]?.layout).toEqual(
-      theme.screens[THEME_STAGE],
-    );
-    const custom = {
-      ...legacy,
-      screens: {
-        ...legacy.screens,
-        [broadcast.id]: {mode: {kind: 'own' as const}, elements: []},
-      },
-    };
-    const customOutput = resolveThemeOutput({
-      ...request,
-      file: {
-        ...file,
-        themes: file.themes.map(entry =>
-          entry.id === theme.id ? custom : entry,
-        ),
-      },
-    });
-    expect(customOutput.screens[THEME_CAPTURE]?.layout.elements).toEqual([]);
   });
   it('uses the edited standby for an explicit item on every screen and in previews', () => {
     const initial = themeFile();
@@ -486,35 +387,17 @@ describe('published theme compositions', () => {
     ).toBe(true);
   });
 
-  it('renders the retired sermon theme exactly like its replacement on every screen', () => {
+  it('uses the item default when the former sermon theme is missing', () => {
     const file = themeFile();
-    const retired = createThemeId('00000000-0000-4000-8000-000000000107');
-    const item = {
-      id: 'sermon',
-      kind: 'blank',
-      source: 'service',
-      title: '갈라디아서 5:25~26',
-    } as const;
-    const request = {file, screens: themeScreens, revision: 1};
-    const old = resolveThemeOutput({
-      ...request,
-      item: {...item, theme: retired},
+    const former = createThemeId('00000000-0000-4000-8000-000000000107');
+    const output = resolveThemeOutput({
+      file,
+      screens: themeScreens,
+      revision: 1,
+      item: {id: 'sermon', kind: 'blank', source: 'service', theme: former},
     });
-    const replacement = resolveThemeOutput({
-      ...request,
-      item: {...item, theme: SERMON_TITLE_THEME_ID},
-    });
-    expect(old.themeId).toBe(SERMON_TITLE_THEME_ID);
-    expect(old.screens).toEqual(replacement.screens);
-    expect(old.missing).toEqual([retired]);
-    for (const screen of themeScreens) {
-      expect(
-        old.screens[screen.id]?.layout.elements.some(
-          element =>
-            element.kind === 'itemName' || element.kind === 'currentText',
-        ),
-      ).toBe(true);
-    }
+    expect(output.themeId).toBe(file.defaults.blank);
+    expect(output.missing).toEqual([former]);
   });
 
   it('uses the item kind default when an unknown theme is missing', () => {

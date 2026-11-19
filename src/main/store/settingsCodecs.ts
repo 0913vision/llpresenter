@@ -20,37 +20,9 @@ import type {ParseFile} from './readFiles';
 import {createDefaultThemes} from '@core/themes/defaults';
 import {isRecord} from '@core/common/guards';
 import {isBuiltInThemeId} from '@core/themes/builtInIds';
-import {
-  IMAGE_SLIDES_THEME_ID,
-  LEGACY_IMAGE_SLIDES_THEME_ID,
-} from '@core/themes/imageThemeIds';
-
 const builtIns = createDefaultThemes();
 const isBuiltIn = (id: unknown) =>
   typeof id === 'string' && isBuiltInThemeId(id);
-
-function migrateEditedImageTheme(theme: unknown): unknown {
-  if (
-    !isRecord(theme) ||
-    theme.id !== LEGACY_IMAGE_SLIDES_THEME_ID ||
-    theme.edited !== true ||
-    !isRecord(theme.screens)
-  ) {
-    return theme;
-  }
-  const layouts = Object.values(theme.screens).filter(isRecord);
-  const elements = layouts.flatMap(layout =>
-    Array.isArray(layout.elements) ? layout.elements.filter(isRecord) : [],
-  );
-  const imageTheme =
-    theme.name === '이미지 슬라이드' ||
-    (elements.some(element => element.kind === 'media') &&
-      !elements.some(
-        element =>
-          element.kind === 'itemName' || element.kind === 'currentText',
-      ));
-  return imageTheme ? {...theme, id: IMAGE_SLIDES_THEME_ID} : theme;
-}
 
 function parseStoredThemes(text: string, file: string) {
   let raw: unknown;
@@ -62,29 +34,24 @@ function parseStoredThemes(text: string, file: string) {
   if (!isRecord(raw) || !Array.isArray(raw.themes)) {
     return themes.parseThemes(text, file);
   }
-  const entries: readonly unknown[] = raw.themes.map(migrateEditedImageTheme);
-  const saved = entries.filter(
-    theme => !isRecord(theme) || !isBuiltIn(theme.id) || theme.edited === true,
-  );
+  const standby = raw.standby === undefined ? builtIns.standby : raw.standby;
+  const validated = themes.parseThemes(JSON.stringify({...raw, standby}), file);
+  if (!validated.ok) return validated;
+  const saved: readonly unknown[] = raw.themes;
   const overrides = new Map(
     saved.filter(isRecord).map(theme => [theme.id, theme]),
   );
-  const standby =
-    isRecord(raw.standby) && raw.standby.edited === true
-      ? raw.standby
-      : builtIns.standby;
   const merged = [
     ...builtIns.themes.map(theme => overrides.get(theme.id) ?? theme),
-    ...saved.filter(theme => !isRecord(theme) || !isBuiltIn(theme.id)),
+    ...saved.filter(
+      theme =>
+        !isRecord(theme) ||
+        !builtIns.themes.some(entry => entry.id === theme.id),
+    ),
   ];
-  const storedOrder: readonly unknown[] = Array.isArray(raw.themeOrder)
+  const order: readonly unknown[] = Array.isArray(raw.themeOrder)
     ? raw.themeOrder
     : [];
-  const order = storedOrder.includes(IMAGE_SLIDES_THEME_ID)
-    ? storedOrder.filter(id => id !== LEGACY_IMAGE_SLIDES_THEME_ID)
-    : storedOrder.map(id =>
-        id === LEGACY_IMAGE_SLIDES_THEME_ID ? IMAGE_SLIDES_THEME_ID : id,
-      );
   const positions = new Map(order.map((id, index) => [id, index]));
   merged.sort((a, b) => {
     const left = isRecord(a) ? positions.get(a.id) : undefined;

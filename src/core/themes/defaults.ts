@@ -428,50 +428,6 @@ export function sermonTitleScreenLayout(
       : sermonTitleStageLayout(layoutFor(screen, 'bible'));
 }
 
-/** Former sermon title layout used to recognize untouched saved screens. */
-export function legacySermonTitleLayout(
-  screen: ThemeScreen,
-): ThemeScreenLayout {
-  const layout = layoutFor(screen, 'bible');
-  if (screen.kind !== 'stage') return layout;
-  return {
-    ...layout,
-    elements: layout.elements.map(element =>
-      element.kind === 'reference'
-        ? {
-            ...element,
-            frame: {...element.frame, y: 130, h: 90},
-            text: {...element.text, size: 48},
-          }
-        : element,
-    ),
-  };
-}
-
-/** The former unmodified section layout, used only when resolving saved defaults. */
-export function legacySectionLayout(screen: ThemeScreen): ThemeScreenLayout {
-  if (screen.kind === 'broadcast') {
-    return {mode: {kind: 'own'}, elements: audienceElements(true, 'blank')};
-  }
-  const layout = layoutFor(screen, 'blank');
-  return screen.kind !== 'stage'
-    ? layout
-    : {
-        ...layout,
-        elements: layout.elements.map(element =>
-          element.kind === 'currentText'
-            ? {...element, text: {...element.text, size: 170}}
-            : element.kind === 'clock'
-              ? {...element, frame: {x: 1460, y: 982, w: 400, h: 80}}
-              : element.kind === 'timer'
-                ? {...element, frame: {x: 1640, y: 20, w: 220, h: 65}}
-                : element.kind === 'stageMessage'
-                  ? {...element, frame: {x: 770, y: 53, w: 490, h: 42}}
-                  : element,
-        ),
-      };
-}
-
 /** Builds a fallback for the configured screens, including newly added screen IDs. */
 export function builtInTheme(
   kind: ThemeItemKind,

@@ -9,7 +9,6 @@ import {createDefaultThemes, withStageStandby} from './defaults';
 export {withStageStandby} from './defaults';
 import {resolveItemTheme, resolveThemeScreen} from './resolve';
 import {emptyScreenColor} from '../screens/emptyColor';
-import {retiredThemeReplacement} from './retiredThemes';
 
 /** Resolves one immutable composition for every configured output and preview. */
 export function resolveThemeOutput({
@@ -43,15 +42,9 @@ export function resolveThemeOutput({
           : undefined));
   if (requested !== undefined && chosen === undefined) missing.push(requested);
   const defaultId = file?.defaults[kind];
-  const hasRetiredReplacement =
-    mode?.kind !== 'manual' &&
-    item?.source === 'service' &&
-    requested !== undefined &&
-    retiredThemeReplacement(requested) !== undefined;
   if (
     item !== null &&
     chosen === undefined &&
-    !hasRetiredReplacement &&
     (defaultId === undefined ||
       !file?.themes.some(theme => theme.id === defaultId))
   ) {
