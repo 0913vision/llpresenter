@@ -82,6 +82,25 @@ describe('recent Bible passages', () => {
     expect(previous).toHaveLength(15);
   });
 
+  it('deduplicates equivalent stored and looked-up references while keeping translations distinct', () => {
+    const other = parsedTranslation({...parsedTranslation(), id: 'other'}).id;
+    const old = {
+      ref: '\uD558\uBC15\uAD6D 3:17~19',
+      translation,
+      custom: 'kept',
+    };
+    const same = {ref: '\uD558\uBC15\uAD6D 3:17-19', translation};
+    const differentTranslation = {...old, translation: other};
+    expect(recentPassages([same, old, differentTranslation])).toEqual([
+      same,
+      differentTranslation,
+    ]);
+    expect(rememberPassage([differentTranslation, old], same)).toEqual([
+      {...same, custom: 'kept'},
+      differentTranslation,
+    ]);
+  });
+
   it('distinguishes translations and deduplicates earlier entries without mutating them', () => {
     const other = parsedTranslation({...parsedTranslation(), id: 'other'}).id;
     const first = {ref: '요한복음 3:16', translation};
