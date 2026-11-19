@@ -177,7 +177,7 @@ README, `Main` decision "구성대로 진행".
   저장 (save the current service as a 템플릿). These three actions are not
   implemented yet. See 05.
 - Choosing or creating a service while a screen shows live content opens a
-  confirmation. Opening asks "<service name>을/를 열까요?" with 열기; creation
+  confirmation. Opening asks "‘<service name>’을/를 열까요?" with 열기; creation
   asks "새 예배를 만들까요?" with 만들기. Both say "모든 화면이 대기 화면으로
   바뀝니다". 취소 is focused and is the default and Escape action. With no live
   content on an enabled output, switch without a dialog.
