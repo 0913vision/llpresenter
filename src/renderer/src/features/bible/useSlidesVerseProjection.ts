@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useState, useSyncExternalStore} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {BibleLookupPassage} from '@core/schema/bibleLookup';
 import type {VerseSlide} from '@core/schema/service';
@@ -9,7 +9,6 @@ import {useApiSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {BibleProjections} from './splitProjection';
 import {loadVersePassages} from './loadSlidesProjection';
 import {useBibleDisplayDefaults} from './useBibleDisplayDefaults';
-import {bibleRefinements} from './BibleRefinements';
 
 /** Resolves only the verse slots of a local draft, dropping stale lookup replies. */
 export function useSlidesVerseProjection(
@@ -17,10 +16,6 @@ export function useSlidesVerseProjection(
   item: SlidesItem,
   enabled = true,
 ) {
-  const refinementRevision = useSyncExternalStore(
-    bibleRefinements.subscribe,
-    bibleRefinements.getSnapshot,
-  );
   const references = item.slides.slides.filter(
     (slide): slide is VerseSlide => 'verse' in slide,
   );
@@ -121,27 +116,25 @@ export function useSlidesVerseProjection(
       saved: cutFile.value,
       canvas: measurement.canvas,
       slideBibleDefaults,
-    }).get(
-      {
-        kind: 'slides',
-        id: item.id,
-        input: colorSlideLabels(
-          projectSlides(item, undefined, loaded.passages),
-          new Map(
-            (labels?.name === 'labels' ? labels.value.labels : []).map(
-              label => [label.name, label.color],
-            ),
-          ),
+    }).get({
+      kind: 'slides',
+      id: item.id,
+      input: colorSlideLabels(
+        projectSlides(item, undefined, loaded.passages),
+        new Map(
+          (labels?.name === 'labels' ? labels.value.labels : []).map(label => [
+            label.name,
+            label.color,
+          ]),
         ),
-        verseNumbers: true,
-        reference: 'every',
-        translationName: false,
-        source: 'service',
-        ...(item.background === undefined ? {} : {background: item.background}),
-        ...(item.theme === undefined ? {} : {theme: item.theme}),
-      },
-      refinementRevision,
-    );
+      ),
+      verseNumbers: true,
+      reference: 'every',
+      translationName: false,
+      source: 'service',
+      ...(item.background === undefined ? {} : {background: item.background}),
+      ...(item.theme === undefined ? {} : {theme: item.theme}),
+    });
   }, [
     active,
     loaded,
@@ -152,7 +145,6 @@ export function useSlidesVerseProjection(
     cuts,
     labels,
     item,
-    refinementRevision,
     slideBibleDefaults,
   ]);
   return {

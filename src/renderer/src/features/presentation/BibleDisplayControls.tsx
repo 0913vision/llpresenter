@@ -16,7 +16,6 @@ import {SelectMenu} from '@renderer/ui/SelectMenu';
 import {openBiblePassage} from '../bible/actions';
 import type {BibleSource} from '@core/bible/source';
 import styles from './BiblePanel.module.css';
-import {BibleAiStatus} from '../bible/BibleAiStatus';
 
 /** Changes this preview's supported display options without changing defaults. */
 export function BibleDisplayControls({
@@ -91,6 +90,7 @@ export function BibleDisplayControls({
         reference: source.reference,
         translationName: source.translationName,
         transition: source.transition,
+        review: source.review,
         enteredRef: source.enteredRef ?? source.passage.ref,
         enteredTranslation:
           source.enteredTranslation ?? source.passage.translation,
@@ -160,7 +160,6 @@ export function BibleDisplayControls({
             );
           }}
         />
-        <BibleAiStatus api={api?.bible} />
       </div>
       <CheckRow
         label="절 번호"
@@ -172,6 +171,7 @@ export function BibleDisplayControls({
             reference: source.reference,
             translationName: source.translationName,
             transition: source.transition,
+            review: source.review,
             enteredRef: source.enteredRef,
             enteredTranslation: source.enteredTranslation,
           });

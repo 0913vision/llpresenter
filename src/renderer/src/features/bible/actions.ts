@@ -103,7 +103,7 @@ export function showBiblePassage(
           transition: prepared.transition,
           enteredRef: prepared.enteredRef,
           enteredTranslation: prepared.enteredTranslation,
-          review: true,
+          review: prepared.review,
         }
       : undefined);
   openBiblePassage(passage, {

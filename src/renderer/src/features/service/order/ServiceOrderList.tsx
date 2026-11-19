@@ -198,7 +198,7 @@ function ItemRows({
 }): JSX.Element {
   const show = useShow(view => view);
   const tiles = show.tiles;
-  const {projections, refinementRevision} = useBibleProjections({
+  const {projections} = useBibleProjections({
     enabled: items.some(
       row => row.kind === 'bible' && row.sermonTitle !== undefined,
     ),
@@ -208,8 +208,7 @@ function ItemRows({
       return tiles[row.id]?.length ?? 0;
     }
     const source = splitSourceFor(show, row.id);
-    const measured =
-      source === null ? null : projections?.get(source, refinementRevision);
+    const measured = source === null ? null : projections?.get(source);
     return measured == null
       ? tilesForView(show, row.id).length
       : measured.tiles.length +

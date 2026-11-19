@@ -52,8 +52,9 @@ export function BibleSplitTools({
 }): JSX.Element | null {
   const api = window.llp;
   const autoOpen = useBibleReviewPreference(api?.preferences);
-  const {projections, themes, screens, saved, refinementRevision} =
-    useBibleProjections({onProblem});
+  const {projections, themes, screens, saved} = useBibleProjections({
+    onProblem,
+  });
   const [session, setSession] = useState<EditorSession | null>(null);
   const active = useRef(true);
   useEffect(() => {
@@ -87,14 +88,17 @@ export function BibleSplitTools({
             bibleCuts: saved.revision,
           },
     );
-  }, [projections, themes, screens, saved, refinementRevision]);
+  }, [projections, themes, screens, saved]);
   const shownItemId = useShownItemId();
   const projection = useShow(view => {
     if (shownItemId === null || projections === null) return null;
     const source = splitSourceFor(view, shownItemId);
     return source === null ? null : projections.get(source);
   });
-  const refinement = useBibleRefinement(api?.bible, projection);
+  const refinement = useBibleRefinement(
+    api?.bible,
+    allowReview ? projection : null,
+  );
   if (
     session !== null &&
     session.identity === null &&

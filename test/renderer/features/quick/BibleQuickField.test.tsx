@@ -26,6 +26,8 @@ import {formLookupReply} from '@fixtures/core/bibleReplies';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
 import {openBiblePassage} from '@renderer/features/bible/actions';
 import {BibleQuickField} from '@renderer/features/quick/BibleQuickField';
+import {BiblePanel} from '@renderer/features/presentation/BiblePanel';
+import {BibleSplitTools} from '@renderer/features/bible/BibleSplitTools';
 import {commandBindingStore} from '@renderer/ui/commandBindings';
 import {useLive} from '@renderer/session/live';
 import {openItem, useShow} from '@renderer/session/show';
@@ -75,6 +77,49 @@ afterEach(() => {
 });
 
 describe('BibleQuickField', () => {
+  it('outputs a quick passage with no AI request or indicator and keeps AI off after display changes', async () => {
+    const fixture = panelApi();
+    window.llp = fixture.api;
+    const status = vi
+      .spyOn(fixture.api.bible, 'getLlmStatus')
+      .mockResolvedValue({
+        status: 'ready',
+        available: true,
+        reason: '',
+      });
+    const subscribe = vi.spyOn(fixture.api.bible, 'onLlmStatus');
+    const chooseBoundary = vi.spyOn(fixture.api.bible, 'chooseBoundary');
+    render(
+      <>
+        <BibleQuickField api={fixture.api} />
+        <BibleSplitTools onProblem={vi.fn()} />
+        <BiblePanel sizeClass="normal" />
+      </>,
+    );
+    fireEvent.change(await book(), {target: {value: '요'}});
+    fireEvent.change(screen.getByRole('textbox', {name: '장'}), {
+      target: {value: '3'},
+    });
+    const start = screen.getByRole('textbox', {name: '시작절'});
+    fireEvent.change(start, {target: {value: '16'}});
+    fireEvent.keyDown(start, {key: 'Enter', code: 'Enter'});
+    await waitFor(() =>
+      expect(lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0])?.type).toBe(
+        'slide.show',
+      ),
+    );
+
+    fireEvent.click(await screen.findByRole('checkbox', {name: '절 번호'}));
+    expect(useShow.getState().bibleSource).toMatchObject({
+      review: false,
+      verseNumbers: false,
+    });
+    expect(status).not.toHaveBeenCalled();
+    expect(subscribe).not.toHaveBeenCalled();
+    expect(chooseBoundary).not.toHaveBeenCalled();
+    expect(screen.queryByText('AI 켜짐')).toBeNull();
+  });
+
   it.each([
     {code: 'KeyB', key: 'b', ctrlKey: true},
     {code: 'F8', key: 'F8', ctrlKey: false},

@@ -17,7 +17,7 @@ import type {
 /** Splits verse slots while keeping text and picture slots in their original order. */
 export function projectSlidesBible(
   source: Extract<SplitSource, {kind: 'slides'}>,
-  {element, layout, saved, refined}: ProjectionLayout,
+  {element, layout, saved}: ProjectionLayout,
 ): BibleProjection {
   const numbered =
     source.verseNumbers &&
@@ -39,7 +39,6 @@ export function projectSlidesBible(
     const next = splitVerseParts(input, layout, {
       saved,
       prefix,
-      refined: refined?.(input, prefix),
     });
     if (tiles.length + next.length > SHOW_SERVICE_LIMITS.tiles) {
       return {

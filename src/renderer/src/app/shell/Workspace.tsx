@@ -1,4 +1,3 @@
-import {AutoConfirmBible} from '@renderer/features/bible/AutoConfirmBible';
 import {PaletteEditingProvider} from '@renderer/features/service/items/PaletteEditing';
 import type {SongId} from '@core/schema/ids';
 import {
@@ -236,9 +235,6 @@ export function Workspace({
         mediaOpen && api !== undefined && styles.mediaOpen,
       )}
     >
-      {visibleId === 'prep' ? (
-        <AutoConfirmBible onProblem={onProblem ?? logPanelProblem} />
-      ) : null}
       {visibleId === 'show' ? (
         <ShowShortcuts onProblem={onProblem ?? logPanelProblem} />
       ) : null}

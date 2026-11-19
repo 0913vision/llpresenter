@@ -13,10 +13,9 @@ export function OpenItemPrefetch(): null {
   const rows = useShow(view => view.rows);
   const allTiles = useShow(view => view.tiles);
   const openItemId = useShow(view => view.openItemId);
-  const {themes, screens, projections, refinementRevision} =
-    useBibleProjections({
-      enabled: rows.length > 0,
-    });
+  const {themes, screens, projections} = useBibleProjections({
+    enabled: rows.length > 0,
+  });
   useEffect(() => {
     if (themes === null || screens === null) return undefined;
     const items = rows
@@ -31,8 +30,7 @@ export function OpenItemPrefetch(): null {
       const row = items[itemIndex++];
       if (row === undefined) return;
       const source = splitSourceFor(view, row.id);
-      const bible =
-        source === null ? null : projections?.get(source, refinementRevision);
+      const bible = source === null ? null : projections?.get(source);
       const tiles = tilesForView(view, row.id);
       const tileThemes = serviceTileThemes(row, tiles, {
         themes: themes.value,
@@ -52,14 +50,6 @@ export function OpenItemPrefetch(): null {
     };
     if (items.length > 0) idle = requestIdleCallback(next, {timeout: 1000});
     return () => cancelIdleCallback(idle);
-  }, [
-    allTiles,
-    openItemId,
-    projections,
-    refinementRevision,
-    rows,
-    screens,
-    themes,
-  ]);
+  }, [allTiles, openItemId, projections, rows, screens, themes]);
   return null;
 }

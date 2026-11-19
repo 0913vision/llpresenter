@@ -11,6 +11,45 @@ import {themeElementText} from '@core/themes/content';
 import {emptyLayers} from '@core/live/state';
 import {panelPassage} from '@fixtures/contracts/ipc/bibleApi';
 import {QUICK_BIBLE_TRANSITION} from '@core/bible/quickTransition';
+import {bibleRefinements} from '@renderer/features/bible/BibleRefinements';
+
+it('keeps an existing passage unchanged when an overlapping passage receives an AI suggestion', () => {
+  const passage = panelPassage();
+  const overlap = {chapter: 3, verse: 16, text: 'Shared overlapping verse'};
+  const first = {
+    id: 'first-passage',
+    kind: 'bible',
+    source: 'service',
+    passage: {...passage, verses: [overlap]},
+    verseNumbers: false,
+    translationName: false,
+    reference: 'every',
+  } as const;
+  const projections = new BibleProjections({
+    themes: null,
+    screens: undefined,
+    saved: undefined,
+    canvas: {font: '', measureText: text => ({width: text.length * 30})},
+  });
+  const before = projections.get(first);
+  const verse = before?.verses[0];
+  if (before === null || verse === undefined) throw Error('Missing passage');
+  expect(before.tiles).toHaveLength(1);
+
+  bibleRefinements.put(verse, before.element, {cuts: [1], prefix: ''});
+  const added = projections.get({
+    ...first,
+    id: 'added-passage',
+    passage: {
+      ...passage,
+      verses: [overlap, {chapter: 3, verse: 17, text: 'Second verse'}],
+    },
+  });
+
+  expect(added?.tiles).toHaveLength(2);
+  expect(projections.get(first)).toBe(before);
+  expect(projections.get(first)?.tiles).toEqual(before.tiles);
+});
 
 it('keeps the item range in Bible preview compositions without replacing individual verse metadata', () => {
   const passage = panelPassage();
