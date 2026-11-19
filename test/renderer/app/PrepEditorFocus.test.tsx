@@ -412,7 +412,7 @@ it('retains the section card when the details panel unmounts for the editor', as
   const row = screen.getByRole('option', {name: 'Section item'});
   await userEvent.click(row);
   await userEvent.dblClick(row);
-  const card = await screen.findByRole('textbox', {name: '구역 이름'});
+  const card = await screen.findByRole('textbox', {name: '타이틀'});
   expect(card).toHaveProperty('value', 'Section');
   await waitFor(() =>
     expect(document.querySelector('[data-leading-card]')).not.toBeNull(),
@@ -422,7 +422,7 @@ it('retains the section card when the details panel unmounts for the editor', as
 it('binds a service song card while switching from details to the editor', async () => {
   setup(false, true);
   await userEvent.dblClick(screen.getByRole('option', {name: /Service song/}));
-  const field = await screen.findByRole('textbox', {name: '구역 이름'});
+  const field = await screen.findByRole('textbox', {name: '타이틀'});
   expect(field).toHaveProperty('value', 'Song section');
   expect(document.querySelector('[data-leading-card]')).not.toBeNull();
 });

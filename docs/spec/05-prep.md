@@ -102,11 +102,11 @@ Shift and Ctrl keep their range and toggle behavior. Text fields retain normal
 Space entry. The grid has no Checkbox, including hover and focus. Selection does
 not dim when focus leaves. 진행 retains its existing thumbnail style.
 
-- 항목 추가 offers 구역 이름 with the ordered section names from the shared
-  Sunday section list (12), without inserted spaces. Choosing a name inserts an
+- 항목 추가 offers 타이틀 with the ordered section names from the shared Sunday
+  section list (12), without inserted spaces. Choosing a name inserts an
   editable 빈 슬라이드 after the selection, or appends without a selection,
-  selects it and opens 슬라이드 편집. The item uses its Korean name, the 구역
-  이름 theme, the section's ordinary background picture, one text slide with the
+  selects it and opens 슬라이드 편집. The item uses its Korean name, the 타이틀
+  theme, the section's ordinary background picture, one text slide with the
   English name (empty for 묵상기도), and manual advance. Item name, slide text
   and background remain editable through the normal controls. A missing theme
   definition is added for the configured screens; an existing theme is
@@ -298,7 +298,7 @@ Source: `Reflow`, `PrepService`, `AddSongs`, `ListRow` README.
   left wipe; existing slides retain their saved transitions. Creeds and prayers
   use the new translation by default; their context menu also offers the old
   translation. 사도신경 and 광고 include their section card.
-- 구역 이름 offers the remaining Sunday section cards as wrapping chips. Double
+- 타이틀 offers the remaining Sunday section cards as wrapping chips. Double
   click or Enter inserts an element after the current item or at the end of the
   selected section; dragging inserts at the order drop line. 성경 구절 opens the
   passage dialog.
@@ -547,16 +547,16 @@ Source: `Reflow`, `ImportEdit`, `LabelChip` README, `LabelColorPicker` README,
 The right column shows 세부정보 for the selected item: its first slide picture,
 title and kind with slide count, followed by 정보 and 슬라이드 tabs. 정보 groups
 the applicable settings under 이번 예배 and source details under 원본, with
-left-aligned values in a common property grid. The 구역 이름 select adds,
-changes, or removes the opening card of a song, Bible, or slides item. For a
-standalone card it changes the section; the row is deleted to remove the card.
-슬라이드 shows the item's pictures in a grid with a remembered, independently
-adjustable thumbnail size; selection is local and a double click opens the
-editor at that slide. The item keeps its own slide count, theme and slides even
-when its library source changes. The picture and both tabs share one scroll. The
-screen selector chooses any configured output screen for the picture and slide
-tiles, using the same theme, content, screen correction and NDI transparency as
-its output. The first audience screen is selected initially.
+left-aligned values in a common property grid. The 타이틀 select adds, changes,
+or removes the opening card of a song, Bible, or slides item. For a standalone
+card it changes the section; the row is deleted to remove the card. 슬라이드
+shows the item's pictures in a grid with a remembered, independently adjustable
+thumbnail size; selection is local and a double click opens the editor at that
+slide. The item keeps its own slide count, theme and slides even when its
+library source changes. The picture and both tabs share one scroll. The screen
+selector chooses any configured output screen for the picture and slide tiles,
+using the same theme, content, screen correction and NDI transparency as its
+output. The first audience screen is selected initially.
 
 ### What belongs to the service and what belongs to the song
 
@@ -1231,7 +1231,7 @@ confirmation cannot delete a changed document or layout.
 
 Song, Bible, and slides items can add an opening section card from the slide
 menu. Its Korean and English text can be edited and the card removed
-independently. The standalone 구역 이름 item remains available.
+independently. The standalone 타이틀 item remains available.
 
 Adding or removing an opening card leaves overlay ranges attached to their
 content slides; the card itself does not display those overlays.
@@ -1275,9 +1275,9 @@ on the right, with 목록 and 격자 accessible names and tooltips. Grid view al
 shows the size control there. In list view each row has one numbered picture
 strip; the song strip opens its label menu.
 
-An opening 구역 이름 card is the first row or cell, and its Korean and English
+An opening 타이틀 card is the first row or cell, and its Korean and English
 names are editable. The card cannot be moved, and content slides cannot be moved
-ahead of it. Delete removes the selected card. A standalone 구역 이름 item opens
+ahead of it. Delete removes the selected card. A standalone 타이틀 item opens
 with that card as its only slide. Bible verse text remains read-only. Each text
 slide has an editable field and an immediately updated picture in both views.
 The view and grid size belong to the window. Grid size can be adjusted with the

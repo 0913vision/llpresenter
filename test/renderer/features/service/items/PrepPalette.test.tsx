@@ -24,7 +24,7 @@ describe('preparation palette', () => {
       'true',
     );
     expect(screen.getByText('순서')).toBeTruthy();
-    expect(screen.getByText('구역 이름')).toBeTruthy();
+    expect(screen.getByText('타이틀')).toBeTruthy();
     expect(screen.getAllByRole('button', {name: '사도신경'})).toHaveLength(1);
     expect(screen.getAllByRole('button', {name: '광고'})).toHaveLength(1);
     expect(screen.queryByRole('tab', {name: '미디어'})).not.toBeTruthy();

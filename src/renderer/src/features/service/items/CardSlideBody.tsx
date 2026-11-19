@@ -83,11 +83,11 @@ export function CardSlideBody({
             />
           )}
         </div>
-        <SlideThumbnailBand number={1} label="구역 이름" />
+        <SlideThumbnailBand number={1} label="타이틀" />
       </div>
       <div className={styles.fields} data-view={mode}>
         <label>
-          구역 이름
+          타이틀
           <input
             value={draft.name}
             maxLength={SLIDES_LIMITS.name}

@@ -87,7 +87,7 @@ export function PrepPalette({
         <PanelBody tab="elements" variant="flush" className={styles.body}>
           <div className={styles.group}>순서</div>
           {ORDER_ELEMENTS.map(item => button(item.id, item.label, item.icon))}
-          <div className={styles.group}>구역 이름</div>
+          <div className={styles.group}>타이틀</div>
           <div className={styles.chips}>
             {PALETTE_SECTIONS.map(section =>
               button(`card:${section.name}`, section.name),

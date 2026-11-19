@@ -110,7 +110,7 @@ export function otherItemEntries({
     {
       kind: 'item',
       id: 'other:section-card',
-      label: '구역 이름',
+      label: '타이틀',
       submenu: SUNDAY_SECTIONS.map(section => ({
         kind: 'item' as const,
         id: `section-card:${section.name}`,

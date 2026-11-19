@@ -283,7 +283,7 @@ export function PrepPage({edits}: PageProps): JSX.Element | null {
           ['song', '곡'],
           ['blank', '빈 슬라이드'],
           ['ad', '광고'],
-          ['section', '구역 이름'],
+          ['section', '타이틀'],
           ['sermonTitle', '설교 제목'],
           ['creed', '사도신경'],
           ['prayer', '주기도문'],

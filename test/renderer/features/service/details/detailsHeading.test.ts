@@ -77,7 +77,7 @@ it('formats the kind line for every item kind and a library song', () => {
       offset: 0,
       expected: `슬라이드 ${blank.slides.slides.length}개`,
     },
-    {item: card, rawCount: 0, offset: 1, expected: '구역 이름'},
+    {item: card, rawCount: 0, offset: 1, expected: '타이틀'},
     {
       item: mixed,
       rawCount: 0,

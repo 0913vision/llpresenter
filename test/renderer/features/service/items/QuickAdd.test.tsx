@@ -285,7 +285,7 @@ describe('항목 추가', () => {
         ],
       });
       await user.click(screen.getByRole('button', {name: '항목 추가'}));
-      await user.click(screen.getByRole('menuitem', {name: '구역 이름'}));
+      await user.click(screen.getByRole('menuitem', {name: '타이틀'}));
       await user.click(await screen.findByRole('menuitem', {name}));
       await waitFor(() => expect(open).toHaveBeenCalledOnce());
       expect(preparePictures).not.toHaveBeenCalled();

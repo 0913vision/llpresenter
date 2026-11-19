@@ -64,13 +64,13 @@ describe('song editor view', () => {
       view.rerender(
         <SongEditor
           store={store}
-          addCard={<button type="button">구역 이름</button>}
+          addCard={<button type="button">타이틀</button>}
         />,
       );
       const slides = view.container.querySelector('[data-editor-block]');
       if (slides === null) throw Error('Missing slide');
       const add = screen.getByRole('button', {name: '슬라이드 추가'});
-      const card = screen.getByRole('button', {name: '구역 이름'});
+      const card = screen.getByRole('button', {name: '타이틀'});
       expect(add.closest('footer')).not.toBeNull();
       expect(add.closest('[data-slide-columns]')).toBeNull();
       expect(

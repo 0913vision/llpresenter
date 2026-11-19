@@ -95,7 +95,7 @@ it('keeps the displayed liturgy section card after the store retargets', async (
   });
   expect(
     screen.getByRole<HTMLInputElement>('textbox', {
-      name: '\uad6c\uc5ed \uc774\ub984',
+      name: '타이틀',
     }).value,
   ).toBe('Retained card');
   act(() =>
@@ -106,7 +106,7 @@ it('keeps the displayed liturgy section card after the store retargets', async (
   );
   expect(
     screen.getByRole<HTMLInputElement>('textbox', {
-      name: '\uad6c\uc5ed \uc774\ub984',
+      name: '타이틀',
     }).value,
   ).toBe('Retained card');
 });

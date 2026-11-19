@@ -82,7 +82,7 @@ it.each(['song', 'bible', 'slides', 'standalone'] as const)(
       items.dispose();
       await editor.dispose();
     });
-    const field = await screen.findByRole('button', {name: '구역 이름'});
+    const field = await screen.findByRole('button', {name: '타이틀'});
     const choose = async (name: string) => {
       await waitFor(() =>
         expect(field.getAttribute('aria-disabled')).not.toBe('true'),
@@ -95,7 +95,7 @@ it.each(['song', 'bible', 'slides', 'standalone'] as const)(
       second = SUNDAY_SECTIONS[1];
     if (!first || !second) throw Error('Missing sections');
     await userEvent.click(field);
-    const menu = screen.getByRole('menu', {name: '구역 이름'});
+    const menu = screen.getByRole('menu', {name: '타이틀'});
     expect(
       within(menu)
         .getAllByRole('menuitemradio')
@@ -188,7 +188,7 @@ it('keeps a custom name and English text until another choice is made', async ()
     items.dispose();
     await editor.dispose();
   });
-  const field = await screen.findByRole('button', {name: '구역 이름'});
+  const field = await screen.findByRole('button', {name: '타이틀'});
   expect(field.textContent).toContain('우리 이름');
   expect(items.getSnapshot().item).toMatchObject({sectionCard: custom});
   await userEvent.click(field);
