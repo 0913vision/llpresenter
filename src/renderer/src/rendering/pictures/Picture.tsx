@@ -35,31 +35,83 @@ interface PictureProps extends PictureSpec {
 
 function SlideImage({
   source,
+  canvasMode,
+  prepared,
+  ticket,
 }: {
   readonly source: PictureImage['source'];
+  readonly canvasMode: boolean;
+  readonly prepared?: HTMLImageElement | undefined;
+  readonly ticket: Pick<
+    ReturnType<PictureService['request']>,
+    'image' | 'subscribe'
+  >;
 }): JSX.Element {
   const canvas = useRef<HTMLCanvasElement>(null);
+  const still = useRef<HTMLImageElement>(null);
+  const painted = useRef<
+    {node: HTMLCanvasElement; image: CanvasImageSource} | undefined
+  >(undefined);
   useLayoutEffect(() => {
-    if (typeof source !== 'string') {
-      canvas.current?.getContext('2d')?.drawImage(source, 0, 0);
-    }
-  }, [source]);
-  return typeof source === 'string' ? (
-    <img
-      className={styles.image}
-      src={source}
-      alt=""
-      decoding="async"
-      draggable={false}
-    />
-  ) : (
-    <canvas
-      ref={canvas}
-      className={styles.image}
-      width={1920}
-      height={1080}
-      aria-hidden="true"
-    />
+    const node = canvas.current;
+    const image =
+      typeof source === 'string' ? (prepared ?? still.current) : source;
+    if (node === null || image === null) return;
+    const draw = (image: HTMLImageElement | HTMLCanvasElement): void => {
+      if (
+        image instanceof HTMLImageElement &&
+        (!image.complete || image.naturalWidth === 0)
+      ) {
+        return;
+      }
+      if (painted.current?.node === node && painted.current.image === image) {
+        return;
+      }
+      const context = node.getContext('2d');
+      if (context === null) return;
+      context.clearRect(0, 0, node.width, node.height);
+      context.drawImage(image, 0, 0, node.width, node.height);
+      painted.current = {node, image};
+    };
+    const seed = (): void => {
+      const source = ticket.image?.source;
+      draw(source instanceof HTMLCanvasElement ? source : image);
+    };
+    seed();
+    image.addEventListener('load', seed);
+    const stop = ticket.subscribe(() => {
+      const source = ticket.image?.source;
+      if (source instanceof HTMLCanvasElement) draw(source);
+    });
+    return () => {
+      stop();
+      image.removeEventListener('load', seed);
+    };
+  }, [source, canvasMode, prepared, ticket]);
+  return (
+    <>
+      {canvasMode || typeof source !== 'string' ? (
+        <canvas
+          ref={canvas}
+          className={
+            canvasMode ? `${styles.image} ${styles.editorCanvas}` : styles.image
+          }
+          width={1920}
+          height={1080}
+          aria-hidden="true"
+        />
+      ) : null}
+      {typeof source === 'string' && prepared === undefined ? (
+        <img
+          ref={still}
+          className={styles.image}
+          src={source}
+          alt=""
+          decoding="async"
+          draggable={false}
+        />
+      ) : null}
+    </>
   );
 }
 
@@ -102,6 +154,9 @@ export const Picture = memo(
     useSyncExternalStore(ticket.subscribe, ticket.snapshot);
     const done = ticket.done;
     const image = ticket.image ?? previous;
+    // NOTE(0913vision): Chromium can update pixels of a mounted canvas in
+    // the current paint. Mounting a new canvas there would cost another frame.
+    const canvasMode = editing || draft !== undefined;
     const attached = displayed?.picture === image ? displayed : undefined;
     const prepared =
       attached === undefined && switchSlot !== undefined && ticket.available
@@ -147,8 +202,14 @@ export const Picture = memo(
         }}
         data-checker={appearance.checker || undefined}
       >
-        {image === undefined || display !== undefined ? null : (
-          <SlideImage source={image.source} />
+        {image === undefined ||
+        (display !== undefined && !canvasMode) ? null : (
+          <SlideImage
+            source={image.source}
+            canvasMode={canvasMode}
+            prepared={display?.element}
+            ticket={ticket}
+          />
         )}
       </div>
     );

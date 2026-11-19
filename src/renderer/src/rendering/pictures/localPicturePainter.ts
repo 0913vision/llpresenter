@@ -25,7 +25,8 @@ const HEIGHT = 1080;
 
 /** Keeps the edited slide's output composition in one canvas paint subtree. */
 export class LocalPicturePainter {
-  private readonly canvas = document.createElement('canvas');
+  private readonly canvas: HTMLCanvasElement & {requestPaint?: () => void} =
+    document.createElement('canvas');
   private readonly host = document.createElement('div');
   private readonly media = openPreviewMedia(window.llp);
   private readonly context: ElementCanvasContext | undefined;
@@ -124,6 +125,7 @@ export class LocalPicturePainter {
   async paint(
     spec: PictureSpec,
     importSignal?: AbortSignal,
+    onCapture?: (image: HTMLCanvasElement) => void,
   ): Promise<HTMLCanvasElement> {
     importSignal?.throwIfAborted();
     const context = this.context;
@@ -152,6 +154,7 @@ export class LocalPicturePainter {
             throw new Error('Could not create a slide image');
           }
           bitmap.drawImage(this.canvas, 0, 0);
+          onCapture?.(image);
           resolve(image);
         } catch (error) {
           reject(error instanceof Error ? error : new Error(String(error)));
@@ -178,6 +181,7 @@ export class LocalPicturePainter {
           : undefined;
       this.canvas.addEventListener('paint', capture);
       importSignal?.addEventListener('abort', abort, {once: true});
+      this.canvas.requestPaint?.();
     });
   }
 }
