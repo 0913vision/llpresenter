@@ -91,6 +91,8 @@ function biblePicture(
       slide={slide}
       themeId={theme.themeId}
       screen={screen}
+      audience={bibleAppearance?.audience}
+      stageLyricLabelPosition={bibleAppearance?.stageLyricLabelPosition}
       layout={theme.layout}
       emptyColor={theme.emptyColor}
       item={theme.item}
