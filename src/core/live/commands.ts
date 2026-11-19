@@ -77,6 +77,8 @@ export function interruptsSongOutput(command: LiveCommand): boolean {
       return ['all', 'slide', 'media'].includes(command.target);
     case 'live.batch':
       return command.commands.some(interruptsSongOutput);
+    case 'screen.testPattern.set':
+      return command.on;
     case 'message.show':
     case 'media.properties.refresh':
     case 'output.set':
@@ -103,7 +105,6 @@ export function interruptsSongOutput(command: LiveCommand): boolean {
     case 'item.start':
     case 'theme.set':
     case 'themes.refresh':
-    case 'screen.testPattern.set':
     case 'monitors.identify':
     case 'screen.settings.apply':
       return false;

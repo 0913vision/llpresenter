@@ -17,10 +17,12 @@ describe('screen commands', () => {
     {type: 'screen.testPattern.set', screenId: ID, on: false},
     {type: 'monitors.identify'},
     {type: 'screen.settings.apply', screenId: ID},
-  ])('accepts $type and leaves song navigation alone', value => {
+  ])('accepts $type and classifies its effect on song navigation', value => {
     const command = expectSuccess(parseLiveCommand(value));
     expect(command).toEqual(value);
-    expect(interruptsSongOutput(command)).toBe(false);
+    expect(interruptsSongOutput(command)).toBe(
+      command.type === 'screen.testPattern.set' && command.on,
+    );
   });
 
   it('keeps only the saved screen ID through both boundary parsers and batches', () => {

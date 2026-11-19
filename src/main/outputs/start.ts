@@ -34,7 +34,6 @@ import {OutputManager} from './manager';
 import {MonitorNumbers} from './monitorNumbers';
 import {openNumberWindow} from './numberWindow';
 import {OutputStatusBoard} from './statusBoard';
-import {guardTestPatterns} from './testPatternGuard';
 import {WakeKeeper, keepAwakeWhileOutputsOn} from './wakeLock';
 import {assignInitialMonitors} from './initialMonitors';
 import {findControlMonitor} from '../displays/monitor';
@@ -276,7 +275,6 @@ export function startOutputs({
     stopInitialMonitors,
     releaseResync,
     releaseNumbers,
-    guardTestPatterns({control, store, log}),
     () => numbers.dispose(),
     stopRetaining,
     answerWindows(outputEndpoints.frameReady.channel, (_event, value) => {

@@ -141,12 +141,10 @@ export interface ContinuousRow {
 export function workspaceMenu({
   onWorkspace,
   onMedia,
-  testPattern,
   fullScreen,
 }: {
   readonly onWorkspace: ((workspace: Workspace) => void) | undefined;
   readonly onMedia: (() => void) | undefined;
-  readonly testPattern: MenuItem;
   readonly fullScreen: MenuItem;
 }): readonly MenuEntry[] {
   return [
@@ -184,7 +182,6 @@ export function workspaceMenu({
         openPalette(onWorkspace);
       },
     },
-    testPattern,
     menuSeparator('preview'),
     laterRow('preview', '미리보기', {submenu: true}),
     menuSeparator('full-screen'),

@@ -385,7 +385,7 @@ function start(): void {
         zoom,
         mode: windowMode,
         log,
-        screens: {store, config: appConfig},
+        screens: {config: appConfig},
       });
       const editorWindowContext = {
         get control() {

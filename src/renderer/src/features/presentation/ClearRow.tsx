@@ -15,8 +15,16 @@ import {clearButtons, type ClearButtonSpec} from '@core/live/clear';
 import styles from './ClearRow.module.css';
 
 function ItemOffButton({compact}: {readonly compact: boolean}): JSX.Element {
-  const hasItem = useLive(view => view.state?.themeItem != null);
-  const restores = useLive(view => view.state?.canRestoreItem ?? false);
+  const hasItem = useLive(
+    view =>
+      view.state?.themeItem != null ||
+      (view.state?.testPatterns?.length ?? 0) > 0,
+  );
+  const restores = useLive(
+    view =>
+      (view.state?.testPatterns?.length ?? 0) === 0 &&
+      (view.state?.canRestoreItem ?? false),
+  );
   const active = hasItem || restores;
   const name = restores ? '항목 되돌리기' : '대기 화면으로';
   const {targetProps, tooltip} = useTooltip({

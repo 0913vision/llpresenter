@@ -15,6 +15,7 @@ describe('interruptsSongOutput', () => {
         slide: {itemId: 'a', position: 0, label: null, lines: []},
       },
       {type: 'media.show', media: {mediaId: 'a', loop: false}},
+      {type: 'screen.testPattern.set', screenId: MAIN_SCREEN, on: true},
       {type: 'clear.undo'},
       {type: 'item.restore'},
       {type: 'layer.clear', target: 'all'},
@@ -47,6 +48,23 @@ describe('interruptsSongOutput', () => {
           {type: 'message.show', message: {messageId: 'a', text: ''}},
           {type: 'layer.clear', target: 'message'},
         ],
+      }),
+    ).toBe(false);
+  });
+
+  it('interrupts pending output only when showing a test pattern', () => {
+    expect(
+      interruptsSongOutput({
+        type: 'screen.testPattern.set',
+        screenId: MAIN_SCREEN,
+        on: true,
+      }),
+    ).toBe(true);
+    expect(
+      interruptsSongOutput({
+        type: 'screen.testPattern.set',
+        screenId: MAIN_SCREEN,
+        on: false,
       }),
     ).toBe(false);
   });

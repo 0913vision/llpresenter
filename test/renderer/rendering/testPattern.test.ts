@@ -165,7 +165,7 @@ describe('TestPatternView', () => {
 });
 
 describe('the 테스트 패턴 layer', () => {
-  it('covers every other layer of the screen the frame marks', () => {
+  it('covers content while leaving the stage message above it', () => {
     const parent = document.createElement('div');
     const renderer = new OutputRenderer(parent, {
       textStyle: DEFAULT_TEXT_STYLE,
@@ -175,10 +175,16 @@ describe('the 테스트 패턴 layer', () => {
     const box = parent.querySelector<HTMLElement>(
       '[data-layer="test-pattern"]',
     );
-    const orders = [
-      ...parent.querySelectorAll<HTMLElement>('[data-layer]'),
-    ].map(({style}) => Number(style.zIndex));
+    const orders = [...parent.querySelectorAll<HTMLElement>('[data-layer]')]
+      .filter(layer => layer.dataset['layer'] !== 'stage-message')
+      .map(({style}) => Number(style.zIndex));
     expect(Number(box?.style.zIndex)).toBe(Math.max(...orders));
+    const stage = parent.querySelector<HTMLElement>(
+      '[data-layer="stage-message"]',
+    );
+    expect(Number(stage?.style.zIndex)).toBeGreaterThan(
+      Number(box?.style.zIndex),
+    );
     const pattern = box?.firstElementChild;
     renderer.render(emptyLayers(), {screen: SCREEN, testPattern: true});
     expect(pattern instanceof HTMLElement && pattern.hidden).toBe(false);

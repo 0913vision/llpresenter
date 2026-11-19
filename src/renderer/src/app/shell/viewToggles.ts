@@ -1,51 +1,5 @@
 import {useEffect, useState} from 'react';
-import {createScreenId} from '@core/schema/ids';
-import {sendLive} from '@renderer/session/live';
-import {menuAvailability, type MenuItem} from '@renderer/ui/menuModel';
-
-/** Why 테스트 화면 is off: no screen has its output on. */
-export const NO_SCREEN_ON = '출력 꺼짐';
-
-/**
- * 보기 › 테스트 화면: shows the 테스트 패턴 on every screen whose output is on,
- * or takes it off them all (spec 06, "Output preview"). A screen whose output
- * is off is left alone: it has no window to show it on, and its pattern goes
- * off with its output. The row is checked while every screen that is on shows
- * the pattern.
- */
-export function testPatternRow({
-  screens: saved,
-  outputs,
-  patterns,
-}: {
-  /** The saved screens; only they can show the pattern. */
-  readonly screens: ReadonlyArray<{readonly id: string}>;
-  readonly outputs: Readonly<Record<string, boolean>>;
-  readonly patterns: readonly string[] | undefined;
-}): MenuItem {
-  const screens = saved
-    .filter(screen => outputs[screen.id] === true)
-    .map(screen => screen.id);
-  const checked =
-    screens.length > 0 && screens.every(id => patterns?.includes(id) === true);
-  return {
-    kind: 'item',
-    id: 'test-patterns',
-    label: '테스트 화면',
-    check: 'checkbox',
-    checked,
-    ...menuAvailability(screens.length === 0 ? NO_SCREEN_ON : undefined),
-    onSelect: () => {
-      for (const screenId of screens) {
-        sendLive({
-          type: 'screen.testPattern.set',
-          screenId: createScreenId(screenId),
-          on: !checked,
-        });
-      }
-    },
-  };
-}
+import type {MenuItem} from '@renderer/ui/menuModel';
 
 /**
  * Whether the control window is full screen now: read once, then followed as

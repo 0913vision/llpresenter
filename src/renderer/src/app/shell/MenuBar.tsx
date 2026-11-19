@@ -29,9 +29,7 @@ import styles from './MenuBar.module.css';
 import {useClipboardAvailability} from './useClipboardAvailability';
 import {workspaceMenu, showMenu, type ContinuousRow} from './workspaceCommands';
 import {usePreferenceEdits} from '@renderer/features/preferences/usePreferenceEdits';
-import {fullScreenRow, testPatternRow, useFullScreen} from './viewToggles';
-import {useLive, useOutputs} from '@renderer/session/live';
-import {useScreenSummaries} from '../../platform/ScreenSummaries';
+import {fullScreenRow, useFullScreen} from './viewToggles';
 import type {Workspace} from './Toolbar';
 import {isInTextEntry} from '@renderer/ui/textEntry';
 
@@ -399,9 +397,6 @@ export function MenuBar({
       })),
   };
   const fullScreen = useFullScreen();
-  const screens = useScreenSummaries();
-  const outputs = useOutputs();
-  const patterns = useLive(view => view.state?.testPatterns);
   const {status: clipboard, check: checkClipboard} =
     useClipboardAvailability(clipboardAvailable);
   const bar = useMenuBarNavigation<MenuName>(MENU_NAMES);
@@ -495,7 +490,6 @@ export function MenuBar({
             workspaceMenu({
               onWorkspace,
               onMedia,
-              testPattern: testPatternRow({screens, outputs, patterns}),
               fullScreen: fullScreenRow(fullScreen),
             })
           }

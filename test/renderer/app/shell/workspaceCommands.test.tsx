@@ -10,7 +10,7 @@ import {
   workspaceShortcuts,
 } from '@renderer/app/shell/workspaceCommands';
 import {menuItems} from '@renderer/ui/menuModel';
-import {fullScreenRow, testPatternRow} from '@renderer/app/shell/viewToggles';
+import {fullScreenRow} from '@renderer/app/shell/viewToggles';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 
 afterEach(() => {
@@ -157,11 +157,6 @@ describe('workspace defaults from S1', () => {
 });
 
 const CONTINUOUS_OFF = {on: false, reason: undefined, toggle: () => undefined};
-const idleTestPattern = testPatternRow({
-  screens: [],
-  outputs: {},
-  patterns: undefined,
-});
 const idleFullScreen = fullScreenRow(false);
 
 describe('workspaceMenu', () => {
@@ -207,7 +202,6 @@ describe('workspaceMenu', () => {
       workspaceMenu({
         onWorkspace: undefined,
         onMedia: undefined,
-        testPattern: idleTestPattern,
         fullScreen: idleFullScreen,
       }),
     );
@@ -233,7 +227,6 @@ describe('workspaceMenu', () => {
     const entries = workspaceMenu({
       onWorkspace,
       onMedia: () => undefined,
-      testPattern: idleTestPattern,
       fullScreen: idleFullScreen,
     });
     const timer = entries.find(entry => entry.id === 'tool.timer');
@@ -248,7 +241,6 @@ describe('workspaceMenu', () => {
     const item = workspaceMenu({
       onWorkspace,
       onMedia: undefined,
-      testPattern: idleTestPattern,
       fullScreen: idleFullScreen,
     }).find(entry => entry.id === 'palette');
     if (item?.kind !== 'item') throw new Error('Missing palette row');

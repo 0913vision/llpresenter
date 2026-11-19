@@ -6,6 +6,7 @@ import {LiveStore} from '@main/live/store';
 import {
   CAPTIONS,
   MAIN,
+  STAGE,
   overlaySettings,
   overlayUuid,
 } from '@fixtures/core/overlays';
@@ -57,16 +58,57 @@ describe('screen.testPattern.set', () => {
     expect(store.state).not.toHaveProperty('testPatterns');
   });
 
-  it('survives clears and their undo', () => {
+  it('does not restore a previously cleared slide when clear follows a test pattern', () => {
     const {store, set} = setup();
     const slide = {itemId: 'item-1', position: 0, label: null, lines: ['줄']};
     store.dispatch({type: 'slide.show', slide});
+    store.dispatch({type: 'layer.clear.toggle', target: 'all'});
+    expect(store.state.clearToggles).toContain('all');
+    set(MAIN, true);
+    expect(store.state.clearToggles ?? []).not.toContain('all');
+    store.dispatch({type: 'layer.clear.toggle', target: 'all'});
+    expect(store.state.layers.slide).toBeNull();
+    expect(store.state.testPatterns ?? []).toEqual([]);
+  });
+
+  it('keeps patterns when stage messages and patterns are sent in either order', () => {
+    const {store, set} = setup();
+    set(MAIN, true);
+    set(STAGE, true);
+    store.dispatch({type: 'stage.message.set', text: 'Stage message'});
+    expect(store.state.stageMessage).toBe('Stage message');
+    expect(store.state.testPatterns).toEqual([MAIN, STAGE]);
+    set(STAGE, false);
+    store.dispatch({type: 'stage.message.set', text: 'Stage message'});
+    expect(store.state.testPatterns).toEqual([MAIN]);
+    set(STAGE, true);
+    expect(store.state.stageMessage).toBe('Stage message');
+    store.dispatch({type: 'stage.message.set', text: null});
+    expect(store.state.testPatterns).toEqual([MAIN, STAGE]);
+  });
+
+  it('replaces the pattern with a slide, standby, or clear', () => {
+    const {store, set} = setup();
+    store.connectThemes({reduce: ({after}) => after});
+    const slide = {itemId: 'item-1', position: 0, label: null, lines: ['줄']};
+    set(MAIN, true);
+    store.dispatch({type: 'slide.show', slide});
+    expect(store.state.testPatterns ?? []).toEqual([]);
+    set(MAIN, true);
+    store.dispatch({type: 'item.stop'});
+    expect(store.state.testPatterns ?? []).toEqual([]);
     set(MAIN, true);
     store.dispatch({type: 'layer.clear', target: 'all'});
-    expect(store.state.layers.slide).toBeNull();
-    expect(store.state.testPatterns).toEqual([MAIN]);
-    store.dispatch({type: 'clear.undo'});
-    expect(store.state.layers.slide).toEqual(slide);
+    expect(store.state.testPatterns ?? []).toEqual([]);
+  });
+
+  it('keeps the pattern when standby is rejected before themes are ready', () => {
+    const {store, set, skipped} = setup();
+    set(MAIN, true);
+    store.dispatch({type: 'item.stop'}, undefined, skipped);
+    expect(skipped).toHaveBeenCalledWith(
+      expect.objectContaining({reason: 'invalid-overlay'}),
+    );
     expect(store.state.testPatterns).toEqual([MAIN]);
   });
 

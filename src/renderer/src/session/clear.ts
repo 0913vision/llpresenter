@@ -4,13 +4,18 @@ import {sendLive, useLive} from './live';
 
 /** Stops the live item while leaving independent overlays and audio running. */
 export function stopItem(): void {
-  if (useLive.getState().state?.themeItem) sendLive({type: 'item.stop'});
+  const state = useLive.getState().state;
+  if (state?.themeItem || state?.testPatterns?.length) {
+    sendLive({type: 'item.stop'});
+  }
 }
 
 /** Restores the item button's capture, or takes the active item off. */
 export function toggleItem(): void {
   const state = useLive.getState().state;
-  if (state?.canRestoreItem && state.themeItem == null) {
+  if (state?.testPatterns?.length) {
+    stopItem();
+  } else if (state?.canRestoreItem && state.themeItem == null) {
     sendLive({type: 'item.restore'});
   } else stopItem();
 }
@@ -19,7 +24,8 @@ export function toggleItem(): void {
 export function useSomethingToClear(target: ClearTarget): boolean {
   return useLive(view =>
     view.state
-      ? hasSomethingToClear(view.state.layers, target) ||
+      ? (target === 'all' && (view.state.testPatterns?.length ?? 0) > 0) ||
+        hasSomethingToClear(view.state.layers, target) ||
         (view.state.clearToggles?.includes(target) ?? false)
       : false,
   );
@@ -35,7 +41,8 @@ export function clearLayer(target: ClearTarget): void {
   const state = useLive.getState().state;
   if (
     !state ||
-    (!hasSomethingToClear(state.layers, target) &&
+    (!(target === 'all' && state.testPatterns?.length) &&
+      !hasSomethingToClear(state.layers, target) &&
       !state.clearToggles?.includes(target))
   ) {
     return;

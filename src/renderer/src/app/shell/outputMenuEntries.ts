@@ -1,3 +1,5 @@
+import {createScreenId} from '@core/schema/ids';
+import {showTestPattern} from '@renderer/features/screens/showTestPattern';
 import type {ThemeId} from '@core/schema/ids';
 import type {ThemesFile} from '@core/schema/themes';
 import {screenOutputSections} from '@renderer/features/screens/outputMenuEntries';
@@ -48,6 +50,18 @@ export function outputMenuEntries(
     ...(warningRows.length > 0
       ? [menuSeparator('warnings'), ...warningRows]
       : []),
+    menuSeparator('test-pattern'),
+    {
+      kind: 'item',
+      id: 'test-patterns',
+      label: '테스트 화면',
+      submenu: screens.map(screen => ({
+        kind: 'item' as const,
+        id: `pattern:${screen.id}`,
+        label: screen.statusLabel,
+        onSelect: () => showTestPattern(createScreenId(screen.id)),
+      })),
+    },
     ...sections.settings,
   ];
 }

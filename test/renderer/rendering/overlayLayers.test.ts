@@ -73,6 +73,7 @@ function setup() {
     renderer.render(store.state.layers, {
       screen,
       stageMessage: store.state.stageMessage ?? null,
+      testPattern: store.state.testPatterns?.includes(screen.id) === true,
       clearEffects: store.state.clearEffects ?? [],
       timers: {
         list: [],
@@ -80,7 +81,8 @@ function setup() {
         now: () => ({timer: Date.now(), wall: Date.now()}),
       },
     });
-  const box = (kind: string) => parent.querySelector(`[data-layer="${kind}"]`);
+  const box = (kind: string) =>
+    parent.querySelector<HTMLElement>(`[data-layer="${kind}"]`);
   const shownText = (kind: string) =>
     kind === 'stage-message'
       ? (box(kind)?.querySelector('[data-stage-message-band]:not([hidden])')
@@ -100,6 +102,43 @@ function setup() {
 }
 
 describe('registered overlay layers', () => {
+  it.each(['pattern first', 'message first'])(
+    'draws the stage message over the pattern: %s',
+    order => {
+      const {send, render, box, shownText, store} = setup();
+      const pattern = () =>
+        send({type: 'screen.testPattern.set', screenId: STAGE, on: true});
+      const message = () =>
+        send({type: 'stage.message.set', text: 'Stage cue'});
+      if (order === 'pattern first') {
+        pattern();
+        render({id: STAGE, kind: 'stage'});
+        message();
+      } else {
+        message();
+        render({id: STAGE, kind: 'stage'});
+        pattern();
+      }
+      render({id: STAGE, kind: 'stage'});
+      expect(store.state.testPatterns).toContain(STAGE);
+      expect(shownText('stage-message')).toBe('Stage cue');
+      expect(
+        box('test-pattern')?.firstElementChild?.hasAttribute('hidden'),
+      ).toBe(false);
+      expect(Number(box('stage-message')?.style.zIndex)).toBeGreaterThan(
+        Number(box('test-pattern')?.style.zIndex),
+      );
+    },
+  );
+
+  it('shows a stage message immediately on a fresh output', () => {
+    const {send, render, box, shownText} = setup();
+    render({id: STAGE, kind: 'stage'});
+    send({type: 'stage.message.set', text: 'First message'});
+    render({id: STAGE, kind: 'stage'});
+    expect(shownText('stage-message')).toBe('First message');
+    expect(box('stage-message')?.style.opacity).not.toBe('0');
+  });
   it.each([
     [1200, 200],
     [200, 1200],
