@@ -10,6 +10,7 @@ import {SourceList} from './SourceList';
 import {SourceTree} from './SourceTree';
 import {useSourceActions} from './useSourceActions';
 import {useNewService} from './useNewService';
+import {useServiceSwitchGuard} from '../useServiceSwitchGuard';
 
 const DIALOG_HEIGHT = 700;
 const NAME_NEEDED = '이름을 적어야 만들 수 있습니다';
@@ -36,6 +37,7 @@ export function NewServiceDialog({
     | undefined;
 }): JSX.Element {
   const state = useNewService({onProblem, onDone: onClose});
+  const guard = useServiceSwitchGuard();
   const actions = useSourceActions({onProblem});
   // NOTE(0913vision): Open once the lists and the chosen source's items have
   // answered, so the dialog never draws empty and then fills in.
@@ -56,7 +58,7 @@ export function NewServiceDialog({
         }}
         primary={{
           label: '만들기',
-          onSelect: state.create,
+          onSelect: () => guard.request({kind: 'create'}, state.create),
           disabled: !state.canCreate,
           title: state.name.trim() === '' ? NAME_NEEDED : undefined,
         }}
@@ -121,6 +123,7 @@ export function NewServiceDialog({
           empty={state.missing ? MISSING : undefined}
         />
       </Dialog>
+      {guard.dialog}
       {actions.overlays}
     </>
   );

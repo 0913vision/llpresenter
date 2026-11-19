@@ -37,6 +37,7 @@ export interface AlertDialogProps {
   /** [취소] at the left end; Esc presses it. */
   readonly onCancel?: (() => void) | undefined;
   readonly cancelLabel?: string | undefined;
+  readonly initialFocus?: 'primary' | 'cancel' | undefined;
   /** The buttons on the right, the primary one last. */
   readonly actions: readonly AlertAction[];
   /** A section of states to pick, such as 복구할 상태 and its check rows. */
@@ -132,6 +133,7 @@ export function AlertDialog({
   meta = [],
   onCancel,
   cancelLabel = CANCEL_LABEL,
+  initialFocus = 'primary',
   actions,
   list,
 }: AlertDialogProps): JSX.Element {
@@ -144,7 +146,7 @@ export function AlertDialog({
   const onKeyDown = useModal({
     surface,
     onEscape: escapeAction(onCancel, actions),
-    onEnter: enterAction(actions),
+    onEnter: initialFocus === 'cancel' ? onCancel : enterAction(actions),
     initialFocus: 'primary',
   });
   return (
@@ -189,7 +191,12 @@ export function AlertDialog({
         )}
         <div className={styles.actions}>
           {onCancel === undefined ? null : (
-            <Button size="md" className={styles.cancel} onClick={onCancel}>
+            <Button
+              size="md"
+              className={styles.cancel}
+              onClick={onCancel}
+              {...(initialFocus === 'cancel' ? PRIMARY_MARK : {})}
+            >
               {cancelLabel}
             </Button>
           )}
@@ -201,7 +208,9 @@ export function AlertDialog({
               disabled={action.disabled}
               title={action.title}
               onClick={action.onSelect}
-              {...(action.primary === true ? PRIMARY_MARK : {})}
+              {...(action.primary === true && initialFocus !== 'cancel'
+                ? PRIMARY_MARK
+                : {})}
             >
               {action.label}
             </Button>

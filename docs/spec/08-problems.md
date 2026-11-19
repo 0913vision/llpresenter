@@ -439,9 +439,10 @@ writing rules.
 - Never let saving, backups, imports, media analysis, or search indexing stall
   the output. Do them asynchronously or in a helper process. Don't run automatic
   backups during a service.
-- Never change the output because of a workspace switch, a service switch, or
-  the 환경설정 window. In 화면 설정, only the test pattern, which the operator
-  turns on, changes an output.
+- Never change the output because of a workspace switch or the settings window.
+  Opening a different service stops the live item and returns outputs to
+  standby. In screen settings, only the test pattern, which the operator turns
+  on, changes an output.
 - Never let the display sleep or a screen saver start while an output is on
   (fixed; no setting, 10).
 - Never lose an output because a monitor disconnects. Fall back to a window.

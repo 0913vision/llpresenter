@@ -16,6 +16,8 @@ import type {ServiceOpenRequest} from '@core/schema/serviceOpen';
 import type {ShowService} from '@core/schema/showService';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {applyService, useShow} from '@renderer/session/show';
+import {useLive} from '@renderer/session/live';
+import {emptyLiveState} from '@core/live/state';
 import {sampleService} from '@fixtures/renderer/session/sampleService';
 import {
   hoverForTooltip,
@@ -111,6 +113,7 @@ beforeEach(() => {
   );
   vi.useFakeTimers({toFake: ['Date'], now: new Date(2026, 9, 26, 8, 40)});
   applyService(null);
+  useLive.setState({state: null});
 });
 
 afterEach(() => {
@@ -189,6 +192,40 @@ describe('NewServiceDialog', () => {
     expect(useShow.getState().serviceId).toBe(ids.created);
     expect(sent).toEqual([]);
     expect(onProblem).not.toHaveBeenCalled();
+  });
+
+  it('confirms live output before creating anything and preserves it on Escape', async () => {
+    const {edits, open, onClose} = setup();
+    const initial = emptyLiveState();
+    const live = {
+      ...initial,
+      outputs: {screen: true},
+      stageMessage: 'Live message',
+    };
+    useLive.setState({state: live});
+    await screen.findByRole('treeitem', {name: titles.first});
+    await userEvent.click(createButton());
+    const guard = await screen.findByRole('alertdialog', {
+      name: '새 예배를 만들까요?',
+    });
+    expect(
+      within(guard).getByText('모든 화면이 대기 화면으로 바뀝니다'),
+    ).toBeTruthy();
+    expect(document.activeElement).toBe(
+      within(guard).getByRole('button', {name: '\ucde8\uc18c'}),
+    );
+    await userEvent.keyboard('{Escape}');
+    expect(edits).toEqual([]);
+    expect(open).not.toHaveBeenCalled();
+    expect(useLive.getState().state).toBe(live);
+    await userEvent.click(createButton());
+    await userEvent.click(
+      within(await screen.findByRole('alertdialog')).getByRole('button', {
+        name: '만들기',
+      }),
+    );
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+    expect(open).toHaveBeenCalledWith({serviceId: ids.created});
   });
 
   it('stays open while a create is on its way, then closes', async () => {
