@@ -33,7 +33,11 @@ export async function prepareBiblePictures(
   if (projected == null || appearance === undefined) return false;
   const {tiles} = projected;
   const {screen, theme, background} = appearance;
-  const waits = tiles.slice(0, 24).flatMap((_, index) => {
+  const grid = document.querySelector<HTMLElement>(
+    '[data-workspace-frame="show"]:not([inert]) [data-slide-window-size]',
+  );
+  const windowSize = Number(grid?.dataset['slideWindowSize']) || 24;
+  const waits = tiles.slice(0, windowSize).flatMap((_, index) => {
     const slide = slideLayerOf({itemId: id, index}, () => tiles);
     return slide === null
       ? []

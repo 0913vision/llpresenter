@@ -25,6 +25,9 @@ import {lookupReply, lookupRequest} from '@fixtures/core/bibleLookups';
 import {formLookupReply} from '@fixtures/core/bibleReplies';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
 import {openBiblePassage} from '@renderer/features/bible/actions';
+import * as biblePictures from '@renderer/features/bible/prepareBiblePictures';
+import {pictures} from '@renderer/rendering/pictures/pictureService';
+import {deferred} from '@fixtures/renderer/features/tools/quickTesting';
 import {BibleQuickField} from '@renderer/features/quick/BibleQuickField';
 import {BiblePanel} from '@renderer/features/presentation/BiblePanel';
 import {BibleSplitTools} from '@renderer/features/bible/BibleSplitTools';
@@ -77,6 +80,49 @@ afterEach(() => {
 });
 
 describe('BibleQuickField', () => {
+  it('keeps the last grid and holds Enter output until the new pictures are ready', async () => {
+    const fixture = panelApi();
+    window.llp = fixture.api;
+    const drawing = deferred<boolean>();
+    const drawInPlace = vi
+      .spyOn(pictures, 'drawInPlace', 'get')
+      .mockReturnValue(false);
+    const prepare = vi
+      .spyOn(biblePictures, 'prepareBiblePictures')
+      .mockReturnValue(drawing.promise);
+    try {
+      const previous = await passage('요한복음 3:17');
+      openBiblePassage(previous);
+      const previousId = useShow.getState().openItemId;
+      render(<BibleQuickField api={fixture.api} />);
+      fireEvent.change(await book(), {target: {value: '요'}});
+      fireEvent.change(screen.getByRole('textbox', {name: '장'}), {
+        target: {value: '3'},
+      });
+      const start = screen.getByRole('textbox', {name: '시작절'});
+      fireEvent.change(start, {target: {value: '16'}});
+      fireEvent.keyDown(start, {key: 'Enter'});
+      await waitFor(() => expect(prepare).toHaveBeenCalledOnce());
+      expect(useShow.getState().openItemId).toBe(previousId);
+      expect(fixture.send).not.toHaveBeenCalled();
+
+      await act(async () => drawing.resolve(true));
+      expect(
+        lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0]),
+      ).toMatchObject({
+        type: 'slide.show',
+        slide: {itemId: 'bible:sample:요한복음 3:16'},
+      });
+      expect(useShow.getState().readyPassage).toMatchObject({
+        previous: previousId,
+        id: 'bible:sample:요한복음 3:16',
+      });
+    } finally {
+      prepare.mockRestore();
+      drawInPlace.mockRestore();
+    }
+  });
+
   it('outputs a quick passage with no AI request or indicator and keeps AI off after display changes', async () => {
     const fixture = panelApi();
     window.llp = fixture.api;

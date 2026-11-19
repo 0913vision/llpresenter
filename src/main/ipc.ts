@@ -281,8 +281,8 @@ export function registerIpc(
     const control = BrowserWindow.getAllWindows().find(isControlWindow);
     if (
       quickBibleFrame(state) &&
-      published.themeItem?.kind === 'bible' &&
-      published.themeItem.title !== state.themeItem?.title &&
+      (published.themeItem?.title !== state.themeItem?.title ||
+        published.layers.slide?.itemId !== state.layers.slide?.itemId) &&
       control !== undefined
     ) {
       pendingFrame = state;

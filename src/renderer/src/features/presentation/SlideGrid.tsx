@@ -181,6 +181,7 @@ export function SlideGrid({
         }
       }}
       data-show-slide-grid="true"
+      data-slide-window-size={window.windowSize}
       style={{height: window.height}}
     >
       {row !== undefined && row.kind !== 'header' ? (

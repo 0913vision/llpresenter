@@ -123,6 +123,7 @@ const UNMOUNTED_RETRIES = 2;
 /** Shares decoded sources and gives visible requests priority over preload. */
 export class PictureService {
   private readonly entries = new Map<string, Entry>();
+  private readonly handoffs = new Set<Entry>();
   private readonly foreground = new Set<Entry>();
   private readonly background = new Set<Entry>();
   private readonly inputListeners = new Set<Listener>();
@@ -163,6 +164,7 @@ export class PictureService {
     this.importScope = new AbortController();
     this.editorPainter?.dispose();
     this.editorPainter = undefined;
+    this.handoffs.clear();
     this.foreground.clear();
     this.background.clear();
     for (const entry of this.entries.values()) {
@@ -290,11 +292,16 @@ export class PictureService {
   /** Reports whether this attempt finished with a decoded image. */
   async whenDrawn(spec: PictureSpec, switchSlot?: string): Promise<boolean> {
     const entry = this.request(spec, this.inputs(spec));
+    if (switchSlot !== undefined) this.prioritizeHandoff(entry);
     if (!entry.available || !(await entry.attempt)) return false;
     if (switchSlot !== undefined) {
       await this.prepareDisplay(entry, switchSlot).ready;
     }
     return true;
+  }
+
+  private prioritizeHandoff(entry: Entry): void {
+    if (this.foreground.delete(entry)) this.handoffs.add(entry);
   }
 
   /** Decodes the exact element that will be attached during an item switch. */
@@ -412,9 +419,13 @@ export class PictureService {
     queueMicrotask(() => {
       this.scheduled = false;
       const queue =
-        this.foreground.size > 0 ? this.foreground : this.background;
+        this.handoffs.size > 0
+          ? this.handoffs
+          : this.foreground.size > 0
+            ? this.foreground
+            : this.background;
       const limit =
-        queue === this.foreground && !this.options.waitForReady
+        queue !== this.background && !this.options.waitForReady
           ? FOREGROUND_LIMIT
           : 1;
       while (this.active < limit) {
@@ -422,7 +433,7 @@ export class PictureService {
         if (entry === undefined) return;
         queue.delete(entry);
         this.active++;
-        this.load(entry)
+        this.load(entry, queue === this.handoffs)
           .finally(() => {
             this.active--;
             this.schedule();
@@ -432,7 +443,7 @@ export class PictureService {
     });
   }
 
-  private async load(entry: Entry): Promise<void> {
+  private async load(entry: Entry, handoff: boolean): Promise<void> {
     const signal = this.importScope.signal;
     try {
       await (this.options.waitForReady
@@ -442,6 +453,7 @@ export class PictureService {
       const inputs = this.inputs(entry.spec);
       if (inputs !== entry.inputs) {
         const next = this.request(entry.spec, inputs, {editing: entry.editing});
+        if (handoff) this.prioritizeHandoff(next);
         next.attempt
           .then(ok => {
             if (!ok) entry.fail();

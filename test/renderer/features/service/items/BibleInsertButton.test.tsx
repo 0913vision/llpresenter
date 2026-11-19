@@ -225,6 +225,7 @@ it('saves the built-in split when the defaults cannot be read', async () => {
 
 it('uses changed defaults after reopening the Bible panel and releases its subscription', async () => {
   const view = setup();
+  const previewId = useShow.getState().openItemId;
   await view.user.click(view.button);
   await waitFor(() => expect(view.service().service.order).toHaveLength(6));
   expect(view.service().service.order[3]).toMatchObject({
@@ -240,7 +241,10 @@ it('uses changed defaults after reopening the Bible panel and releases its subsc
       ],
     })),
   );
-  expect(useShow.getState().openItemId).toBe(firstAdded.id);
+  expect(useShow.getState().openItemId).toBe(previewId);
+  expect(view.button.isConnected).toBe(true);
+  expect(view.output).not.toHaveBeenCalled();
+  act(() => useShow.setState({openItemId: firstAdded.id}));
   act(() =>
     view.pushPreferences({
       ...defaultPreferences,

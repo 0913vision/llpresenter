@@ -560,7 +560,13 @@ export class ServiceOrderEdits {
   insertItemInSection(
     serviceId: ServiceId,
     selectedId: string | null,
-    prepare: () => Promise<ServiceItem>,
+    {
+      prepare,
+      selectAdded = true,
+    }: {
+      readonly prepare: () => Promise<ServiceItem>;
+      readonly selectAdded?: boolean;
+    },
   ) {
     let item: ServiceItem | undefined;
     return this.update(
@@ -575,7 +581,7 @@ export class ServiceOrderEdits {
         return {ok: true, value: order};
       },
       {
-        selectAdded: true,
+        selectAdded,
         beforeRead: async () => {
           item = await prepare();
         },

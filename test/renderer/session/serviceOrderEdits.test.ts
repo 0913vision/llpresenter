@@ -215,7 +215,9 @@ describe('service order edits', () => {
         verseNumbers: true,
       },
     };
-    await edits.insertItemInSection(serviceId, first, async () => bible);
+    await edits.insertItemInSection(serviceId, first, {
+      prepare: async () => bible,
+    });
     expect(ids()).toEqual([first, second, third, bible.id, next]);
   });
   it('moves noncontiguous selected items across a section header and undoes once', async () => {

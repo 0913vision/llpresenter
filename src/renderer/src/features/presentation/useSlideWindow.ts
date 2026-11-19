@@ -9,6 +9,16 @@ import {flushSync} from 'react-dom';
 const OVERSCAN_ROWS = 1;
 const INITIAL_ROWS = 2;
 
+export function firstSlideWindowSize(
+  tracks: number,
+  height: number,
+  stride: number,
+): number {
+  const visible =
+    height > 0 && stride > 1 ? Math.ceil(height / stride) : INITIAL_ROWS;
+  return (visible + OVERSCAN_ROWS * 2) * tracks;
+}
+
 function follow(
   viewport: HTMLElement | null | undefined,
   index: number,
@@ -237,7 +247,8 @@ export function useSlideWindow(
     ),
   );
   const start = first * tracks;
-  const end = Math.min(count, (first + visible + OVERSCAN_ROWS * 2) * tracks);
+  const windowSize = firstSlideWindowSize(tracks, measure.height, stride);
+  const end = Math.min(count, start + windowSize);
   useLayoutEffect(() => {
     const viewport = keeper.current?.parentElement;
     const old = geometry.current;
@@ -334,6 +345,7 @@ export function useSlideWindow(
     reveal: (): void => current.current(),
     start,
     end,
+    windowSize,
     offset: first * stride,
     height: Math.max(0, rows * stride - measure.rowGap) + measure.inset * 2,
   };
