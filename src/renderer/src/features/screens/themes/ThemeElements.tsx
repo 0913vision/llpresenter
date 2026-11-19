@@ -25,6 +25,7 @@ import type {MenuAnchor} from '@renderer/ui/Menu';
 import type {ThemeModel} from './useThemeEditor';
 import {themeElementNames} from './themeNames';
 import styles from './Themes.module.css';
+import {useReflow} from '@renderer/ui/useReflow';
 
 export const THEME_TILE_DRAG = 'application/x-llp-theme-kind';
 export const THEME_ELEMENT_DRAG = 'application/x-llp-theme-element';
@@ -64,6 +65,13 @@ export function ThemeElements({
     [model.theme?.id, model.screen?.id],
   );
   const topFirst = [...elements].reverse();
+  const list = useRef<HTMLDivElement>(null);
+  useReflow(list, {
+    ids: topFirst.map(element => element.id),
+    selector: '[role="option"][data-value]',
+    attribute: 'data-value',
+    scope: `${model.theme?.id ?? ''}:${model.screen?.id ?? ''}`,
+  });
   const drop = (event: DragEvent, index: number): void => {
     event.preventDefault();
     event.stopPropagation();
@@ -101,6 +109,7 @@ export function ThemeElements({
           <PanelTitle title="요소" />
         </PanelHeader>
         <div
+          ref={list}
           className={styles.elements}
           {...editorEvents}
           onDragOver={event => {

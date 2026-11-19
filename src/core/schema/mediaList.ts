@@ -148,6 +148,7 @@ export type MediaList = ReadonlyKnown<v.InferOutput<typeof mediaListSchema>>;
  * it, and absolute otherwise. An absent property means its default.
  */
 export type MediaItem = MediaList['items'][number];
+export const MEDIA_DELETE_HISTORY_LIMIT = 100;
 
 export type MediaPlaylist = MediaList['playlists'][number];
 

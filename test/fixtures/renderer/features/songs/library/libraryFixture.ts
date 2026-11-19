@@ -45,6 +45,8 @@ export function libraryFixture(
   const listListeners = new Set<(songs: readonly LibrarySong[]) => void>();
   const songListeners = new Set<(change: SongChange) => void>();
   let sequence = initial.length + 1;
+  const deleted: SongDocument[] = [];
+  const restored: SongDocument[] = [];
   const list = (): readonly LibrarySong[] =>
     [...documents.values()].map(document => ({
       id: document.song.id,
@@ -178,6 +180,9 @@ export function libraryFixture(
           });
         }
         if (edit.type === 'song.delete') {
+          const old = documents.get(edit.songId);
+          if (old) deleted.push(old);
+          restored.length = 0;
           documents.delete(edit.songId);
           pushSong({songId: edit.songId, document: null});
           pushList();
@@ -185,6 +190,32 @@ export function libraryFixture(
             ok: true,
             value: {id: edit.songId, revision: null},
           });
+        }
+        if (edit.type === 'content.undoDelete' && edit.area === 'song') {
+          const song = deleted.pop();
+          if (song) {
+            documents.set(song.song.id, song);
+            restored.push(song);
+            pushSong({songId: song.song.id, document: song});
+            pushList();
+            return Promise.resolve({
+              ok: true,
+              value: {id: song.song.id, revision: song.revision},
+            });
+          }
+        }
+        if (edit.type === 'content.redoDelete' && edit.area === 'song') {
+          const song = restored.pop();
+          if (song) {
+            documents.delete(song.song.id);
+            deleted.push(song);
+            pushSong({songId: song.song.id, document: null});
+            pushList();
+            return Promise.resolve({
+              ok: true,
+              value: {id: song.song.id, revision: null},
+            });
+          }
         }
         return Promise.resolve({
           ok: false,

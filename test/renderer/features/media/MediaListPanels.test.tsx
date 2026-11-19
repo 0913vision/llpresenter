@@ -343,38 +343,29 @@ describe('media list panels', () => {
     );
   });
 
-  it('deletes an audio playlist after asking', async () => {
+  it('deletes an audio playlist without asking', async () => {
     const {edit} = setup();
     fireEvent.contextMenu(await row('오디오 재생목록', /Hymns/));
     fireEvent.click(await screen.findByRole('menuitem', {name: '삭제'}));
-    const dialog = await screen.findByRole('alertdialog');
-    expect(dialog.textContent).toContain('Hymns');
-    expect(edit).not.toHaveBeenCalled();
-    fireEvent.click(within(dialog).getByRole('button', {name: '삭제'}));
+    expect(screen.queryByRole('alertdialog')).toBeNull();
     await vi.waitFor(() =>
-      expect(screen.queryByRole('alertdialog')).toBeNull(),
+      expect(edit).toHaveBeenCalledWith({
+        type: 'media.playlist.delete',
+        playlist: {kind: 'audio', id: audioPlaylistId(1)},
+      }),
     );
-    expect(edit).toHaveBeenCalledWith({
-      type: 'media.playlist.delete',
-      playlist: {kind: 'audio', id: audioPlaylistId(1)},
-    });
   });
 
   it.each([
-    ['one item', /Backgrounds/, '미디어 1개는 모든 미디어에 남습니다'],
-    ['no item', /이름 없는 재생목록/, null],
-  ])(
-    'tells what stays when a playlist with %s is deleted',
-    async (_name, playlist, line) => {
-      setup();
-      fireEvent.contextMenu(await row('미디어 목록', playlist));
-      fireEvent.click(await screen.findByRole('menuitem', {name: '삭제'}));
-      const dialog = await screen.findByRole('alertdialog');
-      const text = dialog.textContent;
-      if (line === null) expect(text).not.toContain('모든 미디어에 남습니다');
-      else expect(text).toContain(line);
-    },
-  );
+    ['one item', /Backgrounds/],
+    ['no item', /이름 없는 재생목록/],
+  ])('deletes a playlist with %s without asking', async (_name, playlist) => {
+    const {edit} = setup();
+    fireEvent.contextMenu(await row('미디어 목록', playlist));
+    fireEvent.click(await screen.findByRole('menuitem', {name: '삭제'}));
+    expect(screen.queryByRole('alertdialog')).toBeNull();
+    await vi.waitFor(() => expect(edit).toHaveBeenCalledOnce());
+  });
 
   it('names a new playlist in its row', async () => {
     const {edit, pushDocument} = setup();

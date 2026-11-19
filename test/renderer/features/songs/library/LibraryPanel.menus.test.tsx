@@ -1,12 +1,5 @@
 import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
-import {
-  act,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-  within,
-} from '@testing-library/react';
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
 import {hoverForTooltip} from '@fixtures/renderer/ui/tooltipTesting';
 import type {Notice} from '@renderer/ui/notices';
@@ -179,11 +172,7 @@ describe('library panel', () => {
     );
     fireEvent.contextMenu(screen.getByRole('option', {name: '찬송 10'}));
     await user.click(screen.getByRole('menuitem', {name: '삭제'}));
-    await user.click(
-      within(screen.getByRole('alertdialog')).getByRole('button', {
-        name: '삭제',
-      }),
-    );
+    await waitFor(() => expect(onProblem).toHaveBeenCalled());
     expect(onProblem.mock.lastCall?.[0]).toMatchObject({
       key: 'library:delete',
       title: '곡 삭제 실패',

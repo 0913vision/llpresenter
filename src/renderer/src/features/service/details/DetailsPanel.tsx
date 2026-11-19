@@ -250,6 +250,27 @@ function DetailsPanelContent({
         ? media.document?.value.items.find(file => file.id === item.media)?.name
         : undefined,
   });
+  const reflowCounts = new Map<string, number>();
+  const detailsIds = Array.from({length: count}, (_, index) => {
+    const position = index - offset;
+    const identity =
+      index === 0 && card !== undefined
+        ? 'section-card'
+        : item !== null && isItemOfKind(item, 'slides')
+          ? item.slides.slides[position]?.id
+          : raw[position]?.id;
+    const base =
+      identity ??
+      JSON.stringify(
+        library?.tiles[index] ??
+          bibleTiles?.[position] ??
+          raw[position] ??
+          index,
+      );
+    const ordinal = reflowCounts.get(base) ?? 0;
+    reflowCounts.set(base, ordinal + 1);
+    return `${base}:${ordinal}`;
+  });
   const itemTheme =
     item?.theme ??
     (item !== null && isItemOfKind(item, 'song')
@@ -586,6 +607,8 @@ function DetailsPanelContent({
             <PictureReadiness.Provider value={null}>
               <DetailsSlides
                 count={count}
+                ids={detailsIds}
+                scope={detailsKey}
                 scale={scale}
                 selected={selectedIndex}
                 onSelect={select}

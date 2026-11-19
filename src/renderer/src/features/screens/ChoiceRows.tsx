@@ -1,4 +1,5 @@
 import {isUnchangedSelectionMove} from '@core/common/selectionOrder';
+import {useReflow} from '@renderer/ui/useReflow';
 import {contextMenuTarget, openMenuFromKey} from '@renderer/ui/contextMenu';
 import {
   useLayoutEffect,
@@ -53,6 +54,12 @@ export function ChoiceRows<T extends Choice>({
   readonly onDelete?: (choice: T) => void;
 }): JSX.Element {
   const viewport = useRef<HTMLDivElement>(null);
+  useReflow(viewport, {
+    ids: choices.map(choice => choice.id),
+    selector: '[role="option"][data-value]',
+    attribute: 'data-value',
+    scope: label,
+  });
   const focusNext = useRef<string | null>(null);
   const dragged = useRef<string | null>(null);
   const [drop, setDrop] = useState<{id: string; after: boolean} | null>(null);

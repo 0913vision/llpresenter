@@ -18,7 +18,11 @@ export type MediaListEdit = Exclude<
   MediaEdit,
   {
     readonly type:
-      'media.relink' | 'media.import.cancel' | 'media.sections.prepare';
+      | 'media.relink'
+      | 'media.import.cancel'
+      | 'media.sections.prepare'
+      | 'media.undoDelete'
+      | 'media.redoDelete';
   }
 >;
 export type PlaylistRef = NonNullable<

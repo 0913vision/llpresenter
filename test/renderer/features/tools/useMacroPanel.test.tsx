@@ -172,16 +172,11 @@ it('duplicates the selected macro', async () => {
   );
 });
 
-it('counts service items before deleting a macro', async () => {
+it('deletes a macro immediately without counting uses', async () => {
   const f = mockMacroPanel();
   const {result} = await mount();
   act(() => result.current.menuHandlers(firstMacro(result.current)).remove());
-  expect(result.current.editor).toMatchObject({kind: 'delete', uses: null});
-  expect(f.edit).not.toHaveBeenCalled();
-  await waitFor(() =>
-    expect(result.current.editor).toMatchObject({kind: 'delete', uses: 2}),
-  );
-  act(() => result.current.deleteMacro());
+  expect(result.current.editor).toBeNull();
   await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
   const edit = f.edit.mock.calls[0]?.[0];
   if (edit?.name !== 'macros') throw new Error('Missing macro edit');
@@ -210,8 +205,7 @@ it('keeps the selected collection when deleting another collection', async () =>
   if (!removed) throw new Error('Missing other collection');
   act(() => result.current.selectCollection(collection.id));
   act(() => result.current.askDeleteCollection(removed));
-  act(() => result.current.deleteCollection());
-  await waitFor(() => expect(result.current.collectionDialog).toBeNull());
+  await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
   expect(result.current.currentCollection).toBe(collection.id);
   expect(f.edit).toHaveBeenCalledOnce();
   const deletion = f.edit.mock.calls[0]?.[0];
@@ -244,9 +238,7 @@ it('does not reset a newer selection after a cancelled pending deletion', async 
   if (!selected) throw new Error('Missing other collection');
   act(() => result.current.selectCollection(collection.id));
   act(() => result.current.askDeleteCollection(collection));
-  act(() => result.current.deleteCollection());
   await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
-  act(() => result.current.closeCollection());
   act(() => result.current.selectCollection(selected.id));
   await act(async () => {
     pending.resolve({ok: true, value: {id: 'macros', revision: 3}});

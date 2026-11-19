@@ -61,6 +61,420 @@ function edit(label: string, baseRevision: number) {
 }
 
 describe('settings edits and saves', () => {
+  it('undoes and redoes a settings deletion with its removed shortcuts', async () => {
+    const id = '44000000-0000-4000-8000-000000000001';
+    const macros = settingsDocument('macros', {
+      macros: [{id, name: '점검', icon: 'macro', color: 'teal', actions: []}],
+      collections: [],
+    });
+    const shortcuts = settingsDocument('shortcuts', {
+      bindings: {[`macro.${id}`]: [{code: 'F8', mods: []}]},
+    });
+    const {store} = setup('editable', [macros, shortcuts]);
+    const remove = expectSuccess(
+      parseSettingsEdit({
+        type: 'settings.update',
+        name: 'macros',
+        baseRevision: 1,
+        value: {...macros.value, macros: []},
+      }),
+    );
+    const deleted = store.apply(remove);
+    await vi.advanceTimersByTimeAsync(500);
+    expect((await deleted).ok).toBe(true);
+    const undo = store.apply(
+      expectSuccess(
+        parseSettingsEdit({
+          type: 'settings.undoDelete',
+          name: 'delete-history',
+          area: 'macros',
+          expectedRevision: 2,
+        }),
+      ),
+    );
+    await vi.advanceTimersByTimeAsync(500);
+    expect((await undo).ok).toBe(true);
+    expect(store.get('macros').value).toEqual(macros.value);
+    expect(store.get('shortcuts').value).toEqual(shortcuts.value);
+    const redo = store.apply(
+      expectSuccess(
+        parseSettingsEdit({
+          type: 'settings.redoDelete',
+          name: 'delete-history',
+          area: 'macros',
+          expectedRevision: 2,
+        }),
+      ),
+    );
+    await vi.advanceTimersByTimeAsync(500);
+    expect((await redo).ok).toBe(true);
+    expect(store.get('macros').value).toMatchObject({macros: []});
+  });
+
+  it('restores a deleted timer, its quick item, and its shortcuts together', async () => {
+    const timerId = '44000000-0000-4000-8000-000000000011';
+    const quickId = '44000000-0000-4000-8000-000000000012';
+    const timers = settingsDocument('timers', {
+      timers: [{id: timerId, name: 'Clock', kind: 'clock'}],
+    });
+    const quick = settingsDocument('quick', {
+      items: [{id: quickId, kind: 'timer', name: 'Clock', ref: timerId}],
+    });
+    const shortcuts = settingsDocument('shortcuts', {
+      bindings: {
+        [`timer.${timerId}.toggle`]: [{code: 'F8', mods: []}],
+        [`quick.${quickId}`]: [{code: 'F9', mods: []}],
+      },
+    });
+    const {store} = setup('editable', [timers, quick, shortcuts]);
+    const deleted = store.apply(
+      expectSuccess(
+        parseSettingsEdit({type: 'timer.delete', name: 'timers', timerId}),
+      ),
+    );
+    await vi.advanceTimersByTimeAsync(500);
+    expect((await deleted).ok).toBe(true);
+    const undo = store.apply(
+      expectSuccess(
+        parseSettingsEdit({
+          type: 'settings.undoDelete',
+          name: 'delete-history',
+          area: 'timers',
+          expectedRevision: 2,
+        }),
+      ),
+    );
+    await vi.advanceTimersByTimeAsync(500);
+    expect((await undo).ok).toBe(true);
+    expect(store.get('timers').value).toEqual(timers.value);
+    expect(store.get('quick').value).toEqual(quick.value);
+    expect(store.get('shortcuts').value).toEqual(shortcuts.value);
+  });
+
+  it('restores actions removed from a macro as one deletion', async () => {
+    const macros = settingsDocument('macros', {
+      macros: [
+        {
+          id: '44000000-0000-4000-8000-000000000001',
+          name: 'Macro',
+          icon: 'macro',
+          color: 'teal',
+          actions: [{kind: 'clearAll'}, {kind: 'clearAll'}],
+        },
+      ],
+      collections: [],
+    });
+    if (macros.name !== 'macros') throw new Error('Missing macro settings');
+    const {store} = setup('editable', [macros]);
+    const removed = store.apply(
+      expectSuccess(
+        parseSettingsEdit({
+          type: 'settings.update',
+          name: 'macros',
+          baseRevision: 1,
+          value: {
+            ...macros.value,
+            macros: macros.value.macros.map(macro => ({...macro, actions: []})),
+          },
+        }),
+      ),
+    );
+    await vi.advanceTimersByTimeAsync(500);
+    expect((await removed).ok).toBe(true);
+    const undo = store.apply(
+      expectSuccess(
+        parseSettingsEdit({
+          type: 'settings.undoDelete',
+          name: 'delete-history',
+          area: 'macros',
+          expectedRevision: 2,
+        }),
+      ),
+    );
+    await vi.advanceTimersByTimeAsync(500);
+    expect((await undo).ok).toBe(true);
+    expect(store.get('macros').value).toEqual(macros.value);
+  });
+
+  it('does not undo another window’s later deletion', async () => {
+    const macros = settingsDocument('macros', {
+      macros: [
+        {
+          id: '44000000-0000-4000-8000-000000000001',
+          name: 'One',
+          icon: 'macro',
+          color: 'teal',
+          actions: [],
+        },
+        {
+          id: '44000000-0000-4000-8000-000000000002',
+          name: 'Two',
+          icon: 'macro',
+          color: 'teal',
+          actions: [],
+        },
+      ],
+      collections: [],
+    });
+    if (macros.name !== 'macros') throw new Error('Missing macro settings');
+    const {store} = setup('editable', [macros]);
+    const first = store.apply(
+      expectSuccess(
+        parseSettingsEdit({
+          type: 'settings.update',
+          name: 'macros',
+          baseRevision: 1,
+          value: {...macros.value, macros: macros.value.macros.slice(1)},
+        }),
+      ),
+    );
+    await vi.advanceTimersByTimeAsync(500);
+    expect((await first).ok).toBe(true);
+    const second = store.apply(
+      expectSuccess(
+        parseSettingsEdit({
+          type: 'settings.update',
+          name: 'macros',
+          baseRevision: 2,
+          value: {...macros.value, macros: []},
+        }),
+      ),
+    );
+    await vi.advanceTimersByTimeAsync(500);
+    expect((await second).ok).toBe(true);
+    expect(
+      await store.apply(
+        expectSuccess(
+          parseSettingsEdit({
+            type: 'settings.undoDelete',
+            name: 'delete-history',
+            area: 'macros',
+            expectedRevision: 2,
+          }),
+        ),
+      ),
+    ).toMatchObject({ok: false, error: {reason: 'stale'}});
+    expect(store.get('macros').value).toMatchObject({macros: []});
+  });
+
+  it('restores a deleted row while preserving a later settings edit', async () => {
+    const id = '44000000-0000-4000-8000-000000000001';
+    const macros = settingsDocument('macros', {
+      macros: [{id, name: '점검', icon: 'macro', color: 'teal', actions: []}],
+      collections: [],
+    });
+    const {store} = setup('editable', [macros]);
+    const deleted = store.apply(
+      expectSuccess(
+        parseSettingsEdit({
+          type: 'settings.update',
+          name: 'macros',
+          baseRevision: 1,
+          value: {...macros.value, macros: []},
+        }),
+      ),
+    );
+    await vi.advanceTimersByTimeAsync(500);
+    expect((await deleted).ok).toBe(true);
+    const later = store.apply(
+      expectSuccess(
+        parseSettingsEdit({
+          type: 'settings.update',
+          name: 'macros',
+          baseRevision: 2,
+          value: {
+            ...macros.value,
+            macros: [],
+            collections: [
+              {
+                id: '44000000-0000-4000-8000-000000000002',
+                name: 'Later',
+                macroIds: [],
+              },
+            ],
+          },
+        }),
+      ),
+    );
+    await vi.advanceTimersByTimeAsync(500);
+    expect((await later).ok).toBe(true);
+    const undo = store.apply(
+      expectSuccess(
+        parseSettingsEdit({
+          type: 'settings.undoDelete',
+          name: 'delete-history',
+          area: 'macros',
+          expectedRevision: 2,
+        }),
+      ),
+    );
+    await vi.advanceTimersByTimeAsync(500);
+    expect((await undo).ok).toBe(true);
+    expect(store.get('macros').value).toMatchObject({
+      macros: [{id}],
+      collections: [{name: 'Later'}],
+    });
+  });
+
+  it('undoes consecutive deletions after an unrelated row was edited', async () => {
+    const macros = settingsDocument('macros', {
+      macros: [
+        {
+          id: '44000000-0000-4000-8000-000000000001',
+          name: 'A',
+          icon: 'macro',
+          color: 'teal',
+          actions: [],
+        },
+        {
+          id: '44000000-0000-4000-8000-000000000002',
+          name: 'B',
+          icon: 'macro',
+          color: 'teal',
+          actions: [],
+        },
+        {
+          id: '44000000-0000-4000-8000-000000000003',
+          name: 'C',
+          icon: 'macro',
+          color: 'teal',
+          actions: [],
+        },
+      ],
+      collections: [],
+    });
+    if (macros.name !== 'macros') throw new Error('Missing macros');
+    const {store} = setup('editable', [macros]);
+    for (const [revision, rows] of [
+      [1, macros.value.macros.slice(1)],
+      [2, macros.value.macros.slice(2)],
+    ] as const) {
+      const edit = store.apply(
+        expectSuccess(
+          parseSettingsEdit({
+            type: 'settings.update',
+            name: 'macros',
+            baseRevision: revision,
+            value: {...macros.value, macros: rows},
+          }),
+        ),
+      );
+      await vi.advanceTimersByTimeAsync(500);
+      expect((await edit).ok).toBe(true);
+    }
+    const later = store.apply(
+      expectSuccess(
+        parseSettingsEdit({
+          type: 'settings.update',
+          name: 'macros',
+          baseRevision: 3,
+          value: {
+            ...macros.value,
+            macros: [{...macros.value.macros[2], name: 'Changed C'}],
+          },
+        }),
+      ),
+    );
+    await vi.advanceTimersByTimeAsync(500);
+    expect((await later).ok).toBe(true);
+    for (const expectedRevision of [3, 2]) {
+      const undo = store.apply(
+        expectSuccess(
+          parseSettingsEdit({
+            type: 'settings.undoDelete',
+            name: 'delete-history',
+            area: 'macros',
+            expectedRevision,
+          }),
+        ),
+      );
+      await vi.advanceTimersByTimeAsync(500);
+      expect((await undo).ok).toBe(true);
+    }
+    expect(store.get('macros').value).toMatchObject({
+      macros: [{name: 'A'}, {name: 'B'}, {name: 'Changed C'}],
+    });
+  });
+
+  it('restores references and shortcuts while preserving later changes', async () => {
+    const id = '44000000-0000-4000-8000-000000000001';
+    const other = '44000000-0000-4000-8000-000000000002';
+    const group = '44000000-0000-4000-8000-000000000003';
+    const macros = settingsDocument('macros', {
+      macros: [
+        {id, name: 'Removed', icon: 'macro', color: 'teal', actions: []},
+        {id: other, name: 'Other', icon: 'macro', color: 'teal', actions: []},
+      ],
+      collections: [{id: group, name: 'Group', macroIds: [id, other]}],
+    });
+    const shortcuts = settingsDocument('shortcuts', {
+      bindings: {
+        [`macro.${id}`]: [{code: 'F8', mods: []}],
+        'future.command': [],
+      },
+    });
+    if (macros.name !== 'macros' || shortcuts.name !== 'shortcuts') {
+      throw new Error('Missing settings');
+    }
+    const {store} = setup('editable', [macros, shortcuts]);
+    const deleted = store.apply(
+      expectSuccess(
+        parseSettingsEdit({
+          type: 'settings.update',
+          name: 'macros',
+          baseRevision: 1,
+          value: {
+            ...macros.value,
+            macros: macros.value.macros.slice(1),
+            collections: [{...macros.value.collections[0], macroIds: [other]}],
+          },
+        }),
+      ),
+    );
+    await vi.advanceTimersByTimeAsync(500);
+    expect((await deleted).ok).toBe(true);
+    const current = store.get('shortcuts');
+    if (current.name !== 'shortcuts') throw new Error('Missing shortcuts');
+    const changed = store.apply(
+      expectSuccess(
+        parseSettingsEdit({
+          type: 'settings.update',
+          name: 'shortcuts',
+          baseRevision: current.revision,
+          value: {
+            ...current.value,
+            bindings: {
+              ...current.value.bindings,
+              'future.command': [{code: 'F9', mods: []}],
+            },
+          },
+        }),
+      ),
+    );
+    await vi.advanceTimersByTimeAsync(500);
+    expect((await changed).ok).toBe(true);
+    const undo = store.apply(
+      expectSuccess(
+        parseSettingsEdit({
+          type: 'settings.undoDelete',
+          name: 'delete-history',
+          area: 'macros',
+          expectedRevision: 2,
+        }),
+      ),
+    );
+    await vi.advanceTimersByTimeAsync(500);
+    expect((await undo).ok).toBe(true);
+    expect(store.get('macros').value).toMatchObject({
+      collections: [{macroIds: [id, other]}],
+    });
+    expect(store.get('shortcuts').value).toMatchObject({
+      bindings: {
+        [`macro.${id}`]: [{code: 'F8'}],
+        'future.command': [{code: 'F9'}],
+      },
+    });
+  });
   it('broadcasts and persists shortcut removal in the same object deletion batch', async () => {
     const id = '44000000-0000-4000-8000-000000000001';
     const macros = settingsDocument('macros', {

@@ -42,6 +42,83 @@ describe('ContentStore lists', () => {
 });
 
 describe('ContentStore persistence and notifications', () => {
+  it('restores deleted songs with their original identity and refuses a stale redo', async () => {
+    const {store, song} = setUp();
+    expect((await store.apply({type: 'song.delete', songId: SONG})).ok).toBe(
+      true,
+    );
+    expect(store.song(SONG)).toBeNull();
+    expect(
+      (await store.apply({type: 'content.undoDelete', area: 'song', id: SONG}))
+        .ok,
+    ).toBe(true);
+    const restored = store.song(SONG);
+    expect(restored?.song).toEqual(song.data);
+    expect(restored?.revision).toBeGreaterThan(1);
+    if (!restored) throw new Error('Missing restored song');
+    await store.apply({
+      type: 'song.update',
+      song: {...restored.song, title: 'Changed'},
+      baseRevision: restored.revision,
+    });
+    expect(
+      await store.apply({type: 'content.redoDelete', area: 'song', id: SONG}),
+    ).toMatchObject({ok: false, error: {reason: 'stale'}});
+    expect(store.song(SONG)?.song.title).toBe('Changed');
+  });
+
+  it('never undoes a different window’s newer deletion', async () => {
+    const {store} = setUp();
+    const made = await store.apply({type: 'song.create'});
+    if (!made.ok) throw new Error('Could not create song');
+    const created = store.song(made.value.id);
+    if (!created) throw new Error('Missing song');
+    await store.apply({type: 'song.delete', songId: SONG});
+    await store.apply({type: 'song.delete', songId: created.song.id});
+    expect(
+      await store.apply({type: 'content.undoDelete', area: 'song', id: SONG}),
+    ).toMatchObject({ok: false, error: {reason: 'stale'}});
+    expect(store.song(SONG)).toBeNull();
+    expect(store.song(created.song.id)).toBeNull();
+  });
+
+  it('refuses to restore a deleted song when another song took its title', async () => {
+    const {store, song} = setUp();
+    await store.apply({type: 'song.delete', songId: SONG});
+    const created = await store.apply({type: 'song.saveAs', song: song.data});
+    expect(created.ok).toBe(true);
+    expect(
+      await store.apply({type: 'content.undoDelete', area: 'song', id: SONG}),
+    ).toMatchObject({ok: false, error: {reason: 'duplicate-title'}});
+    expect(store.song(SONG)).toBeNull();
+  });
+
+  it('undoes and redoes a service deletion without deleting an open service', async () => {
+    const {store} = setUp([serviceFile(SUNDAY_ID, [])]);
+    expect(
+      (await store.apply({type: 'service.delete', serviceId: SUNDAY})).ok,
+    ).toBe(true);
+    expect(
+      (
+        await store.apply({
+          type: 'content.undoDelete',
+          area: 'service',
+          id: SUNDAY,
+        })
+      ).ok,
+    ).toBe(true);
+    expect(store.service(SUNDAY)?.service.id).toBe(SUNDAY);
+    expect(
+      (
+        await store.apply({
+          type: 'content.redoDelete',
+          area: 'service',
+          id: SUNDAY,
+        })
+      ).ok,
+    ).toBe(true);
+    expect(store.service(SUNDAY)).toBeNull();
+  });
   it('serializes a save and deletion while the first write waits', async () => {
     const {store, files} = setUp([
       serviceFile(SUNDAY_ID, [

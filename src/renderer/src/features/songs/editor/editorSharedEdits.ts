@@ -58,15 +58,22 @@ export class EditorSharedEdits {
     this.renamedSongs.clear();
   }
 
-  updateLabels(labels: readonly Label[]): Promise<boolean> {
+  updateLabels(
+    labels: readonly Label[],
+    onRevision?: (revision: number) => void,
+  ): Promise<boolean> {
     const document = this.context.catalog.labelsDocument;
     if (document === null) return Promise.resolve(false);
-    return this.editLabels({
-      type: 'settings.update',
-      name: 'labels',
-      value: {...document.value, labels},
-      baseRevision: document.revision,
-    });
+    return this.editLabels(
+      {
+        type: 'settings.update',
+        name: 'labels',
+        value: {...document.value, labels},
+        baseRevision: document.revision,
+      },
+      undefined,
+      onRevision,
+    );
   }
 
   renameLabel(
@@ -131,6 +138,7 @@ export class EditorSharedEdits {
   private editLabels(
     edit: SettingsEdit,
     onApplied?: RenameApplied,
+    onRevision?: (revision: number) => void,
   ): Promise<boolean> {
     if (
       !this.context.host.alive() ||
@@ -140,13 +148,14 @@ export class EditorSharedEdits {
       return Promise.resolve(false);
     }
     return this.context.host.runOperation(() =>
-      this.writeLabels(edit, onApplied),
+      this.writeLabels(edit, onApplied, onRevision),
     );
   }
 
   private async writeLabels(
     edit: SettingsEdit,
     onApplied?: RenameApplied,
+    onRevision?: (revision: number) => void,
   ): Promise<boolean> {
     try {
       if (edit.type === 'labels.rename') {
@@ -162,6 +171,12 @@ export class EditorSharedEdits {
         this.context.host.problem('이름표 변경 실패');
         return false;
       }
+      const revision = result.ok
+        ? result.value.revision
+        : result.error.reason === 'write-failed'
+          ? result.error.applied.revision
+          : null;
+      if (revision !== null) onRevision?.(revision);
       if (edit.type === 'labels.rename') {
         await this.acceptRename(edit.from, edit.to);
         this.renamedSongs.clear();

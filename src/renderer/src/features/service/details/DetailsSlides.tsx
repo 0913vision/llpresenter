@@ -9,6 +9,7 @@ import type {LabelColor} from '@core/labels/colors';
 import {SlideThumbnail, ThumbnailGrid} from '@renderer/ui/SlideThumbnail';
 import {detailsGridGeometry} from './detailsGridGeometry';
 import styles from './DetailsSlides.module.css';
+import {useReflow} from '@renderer/ui/useReflow';
 
 const COLUMNS = 2;
 const INITIAL_COUNT = 8;
@@ -49,6 +50,8 @@ export function DetailsSlides({
   labelAt,
   colorAt,
   picture,
+  ids,
+  scope,
 }: {
   readonly count: number;
   readonly scale?: number | undefined;
@@ -58,8 +61,18 @@ export function DetailsSlides({
   readonly labelAt: (index: number) => string | undefined;
   readonly colorAt: (index: number) => LabelColor;
   readonly picture: (index: number) => ReactNode;
+  readonly ids?: readonly string[] | undefined;
+  readonly scope?: string | undefined;
 }): JSX.Element {
   const host = useRef<HTMLDivElement>(null);
+  const reflowIds =
+    ids ?? Array.from({length: count}, (_, index) => String(index));
+  useReflow(host, {
+    ids: reflowIds,
+    selector: '[data-reflow-id]',
+    attribute: 'data-reflow-id',
+    scope: scope ?? 'details',
+  });
   const pendingFocus = useRef<number | null>(null);
   const [range, setRange] = useState<Range>({
     start: 0,
@@ -204,7 +217,8 @@ export function DetailsSlides({
           const index = start + local;
           return (
             <SlideThumbnail
-              key={index}
+              key={reflowIds[index] ?? index}
+              reflowId={reflowIds[index]}
               number={index + 1}
               label={labelAt(index)}
               labelColor={colorAt(index)}

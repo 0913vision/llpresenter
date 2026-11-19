@@ -24,6 +24,7 @@ import {useItemSlides, type ItemSlide} from './useItemSlides';
 import {useOverlayControl} from './useOverlayControl';
 import {useOverlayEditing} from './useOverlayEditing';
 import styles from './ItemOverlays.module.css';
+import {useReflow} from '@renderer/ui/useReflow';
 
 const GRID_LABEL = '슬라이드';
 const COLUMNS = 4;
@@ -68,6 +69,20 @@ export function ItemSlideGrid({
     [projection, rawSlides],
   );
   const grid = useRef<HTMLDivElement>(null);
+  const counts = new Map<string, number>();
+  const reflowIds = slides.map(slide => {
+    const identity =
+      slide.id ?? JSON.stringify([slide.text, slide.label, slide.media]);
+    const occurrence = counts.get(identity) ?? 0;
+    counts.set(identity, occurrence + 1);
+    return `${identity}:${occurrence}`;
+  });
+  useReflow(grid, {
+    ids: reflowIds,
+    selector: '[data-reflow-id]',
+    attribute: 'data-reflow-id',
+    scope: state.item?.id ?? null,
+  });
   const {width, gap} = useGridMeasure(grid, '[role="listbox"]');
   const scale = useThumbnailScale(sizeClass);
   const tileWidth = bible
@@ -192,7 +207,8 @@ export function ItemSlideGrid({
         >
           {slides.map((slide, index) => (
             <SlideThumbnail
-              key={index}
+              key={reflowIds[index] ?? index}
+              reflowId={reflowIds[index]}
               number={index + 1 + offset}
               selectionStyle="plate"
               label={slide.label === '' ? undefined : slide.label}

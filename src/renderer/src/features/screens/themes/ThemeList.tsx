@@ -1,51 +1,22 @@
 import {limitReason} from '@core/common/limitReason';
 import {useEffect, useRef, useState, type JSX} from 'react';
 import {createThemeId, type ThemeId} from '@core/schema/ids';
-import type {Theme, ThemesFile} from '@core/schema/themes';
+import type {Theme} from '@core/schema/themes';
 import {THEME_LIMITS, themeItemKinds} from '@core/themes/elementRules';
 import {isBuiltInThemeId, userThemeCount} from '@core/themes/builtInIds';
 import {isSectionTheme} from '@core/themes/sundaySections';
 import {editThemeList, type ThemeListEdit} from '@core/themes/themeEdits';
-import {countServiceItemUses} from '@renderer/features/service/serviceItemUsage';
-import {AlertDialog} from '@renderer/ui/AlertDialog';
-import {countedMeta} from '@renderer/ui/countedMeta';
+import {deleteSelection} from '@renderer/ui/useSelectionDelete';
 import {IconButton} from '@renderer/ui/IconButton';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
 import {Panel, PanelHeader, PanelTitle, PanelActions} from '@renderer/ui/Panel';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
-import {
-  USAGE_LABEL,
-  USAGE_LOADING,
-  USAGE_UNAVAILABLE,
-  usageMeta,
-} from '@renderer/ui/usageText';
 import {ChoiceRows} from '../ChoiceRows';
 import {themeKindNames, themeProblems} from './themeNames';
 import type {ThemeModel} from './useThemeEditor';
 import styles from './Themes.module.css';
-
-/** Where a 테마 is used, for the question before it is deleted. */
-function usedMeta(
-  theme: Theme,
-  uses: number | 'failed',
-  file: ThemesFile | null,
-): readonly string[] {
-  const kinds = themeItemKinds.filter(
-    kind => file?.defaults[kind] === theme.id,
-  );
-  const lines = [
-    ...(uses === 'failed'
-      ? [USAGE_UNAVAILABLE]
-      : usageMeta(uses, '예배 순서 항목')),
-    ...countedMeta(
-      kinds.length,
-      `${USAGE_LABEL}: ${kinds.map(kind => themeKindNames[kind]).join(', ')} 기본`,
-    ),
-  ];
-  return lines;
-}
 
 export function ThemeList({
   model,
@@ -58,12 +29,6 @@ export function ThemeList({
     null,
   );
   const [renaming, setRenaming] = useState<string | null>(null);
-  const [confirm, setConfirm] = useState<{
-    readonly theme: Theme;
-    readonly uses: number | 'failed';
-  } | null>(null);
-  const [checking, setChecking] = useState(false);
-  const lookup = useRef<AbortController | null>(null);
   const alive = useRef(true);
   const focusCreated = useRef<ThemeId | null>(null);
   useEffect(() => {
@@ -81,7 +46,6 @@ export function ThemeList({
     alive.current = true;
     return () => {
       alive.current = false;
-      lookup.current?.abort();
     };
   }, []);
   const renameAfterMenu = useMenuHandoff<Theme>(menu !== null, theme => {
@@ -113,39 +77,17 @@ export function ThemeList({
     execute(edit).catch(model.reportError);
   };
   const requestDelete = (theme: Theme): void => {
-    if (
-      checking ||
-      model.reason !== undefined ||
-      model.file === null ||
-      theme.id === model.file.standby.id ||
-      isBuiltInThemeId(theme.id)
-    ) {
-      return;
-    }
-    const api = window.llp;
-    if (api === undefined) return;
-    lookup.current?.abort();
-    const controller = new AbortController();
-    lookup.current = controller;
-    setChecking(true);
-    countServiceItemUses(
-      api,
-      item => item.theme === theme.id,
-      controller.signal,
-    )
-      .then(uses => {
-        if (!alive.current || controller.signal.aborted) return;
-        setConfirm({theme, uses});
-      })
-      .catch((error: unknown) => {
-        if (!alive.current || controller.signal.aborted) return;
-        console.error('Could not look up where the theme is used', error);
-        setConfirm({theme, uses: 'failed'});
-      })
-      .finally(() => {
-        if (alive.current) setChecking(false);
-      });
+    deleteSelection(
+      1,
+      () =>
+        model.reason === undefined &&
+        model.file !== null &&
+        theme.id !== model.file.standby.id &&
+        !isBuiltInThemeId(theme.id),
+      () => run({kind: 'delete', id: theme.id, confirmed: true}),
+    );
   };
+  const deleteAfterMenu = useMenuHandoff<Theme>(menu !== null, requestDelete);
   const full = userThemeCount(model.file?.themes ?? []) >= THEME_LIMITS.themes;
   const duplicateReason =
     model.reason ??
@@ -233,11 +175,12 @@ export function ThemeList({
               model.reason ??
                 (!regular || isBuiltInThemeId(target.id)
                   ? themeProblems['built-in']
-                  : checking
-                    ? USAGE_LOADING
-                    : undefined),
+                  : undefined),
             ),
-            onSelect: () => requestDelete(target),
+            onSelect: () => {
+              deleteAfterMenu(target);
+              setMenu(null);
+            },
           },
         ];
   const choices =
@@ -334,24 +277,6 @@ export function ThemeList({
           anchor={menu.anchor}
           entries={entries}
           onClose={() => setMenu(null)}
-        />
-      )}
-      {confirm === null ? null : (
-        <AlertDialog
-          icon="layers"
-          title={`‘${confirm.theme.name}’ 테마를 삭제할까요?`}
-          meta={usedMeta(confirm.theme, confirm.uses, model.file)}
-          onCancel={() => setConfirm(null)}
-          actions={[
-            {
-              label: '삭제',
-              primary: true,
-              onSelect: () => {
-                run({kind: 'delete', id: confirm.theme.id, confirmed: true});
-                setConfirm(null);
-              },
-            },
-          ]}
         />
       )}
     </>

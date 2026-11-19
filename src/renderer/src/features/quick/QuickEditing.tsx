@@ -1,5 +1,4 @@
 import {displayReference} from '@core/bible/displayReference';
-import {AlertDialog} from '@renderer/ui/AlertDialog';
 import {RenameDialog} from '@renderer/ui/RenameDialog';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {contextMenuTarget, openMenuFromKey} from '@renderer/ui/contextMenu';
@@ -304,6 +303,7 @@ export function QuickRowEditor({
   onPinChange,
   activate,
   activateReason,
+  onDelete,
 }: {
   readonly api: LlpApi;
   readonly item: QuickItem;
@@ -319,12 +319,12 @@ export function QuickRowEditor({
   readonly children: ReactNode;
   readonly activate?: (() => void) | undefined;
   readonly activateReason?: string | undefined;
+  readonly onDelete: () => void;
   readonly insertBefore?: boolean;
   readonly onPinChange?: ((id: string, active: boolean) => void) | undefined;
 }): JSX.Element {
   const [menu, setMenu] = useState<MenuAnchor | null>(null);
   const [renaming, setRenaming] = useState(false);
-  const [deleting, setDeleting] = useState(false);
   const change = useTimerEditDialog({
     api,
     timer,
@@ -335,13 +335,14 @@ export function QuickRowEditor({
   const renameAfterMenu = useMenuHandoff(menu !== null, () =>
     setRenaming(true),
   );
+  const deleteAfterMenu = useMenuHandoff(menu !== null, onDelete);
   const duplicateReason = quickCopyReason(item, {locked, full, timersFull});
   const duplicate = (): void => duplicateQuickItem(item, save);
   useEffect(() => {
-    if (!menu && !renaming && !deleting) return undefined;
+    if (!menu && !renaming) return undefined;
     onPinChange?.(item.id, true);
     return () => onPinChange?.(item.id, false);
-  }, [item.id, menu, renaming, deleting, onPinChange]);
+  }, [item.id, menu, renaming, onPinChange]);
   return (
     <div
       data-quick-id={item.id}
@@ -390,28 +391,11 @@ export function QuickRowEditor({
               },
               duplicate,
               duplicateReason,
-              remove: () => setDeleting(true),
-            }),
-          ]}
-        />
-      ) : null}
-      {deleting ? (
-        <AlertDialog
-          icon="bolt"
-          title={`‘${item.name}’ 빠른 실행 항목을 삭제할까요?`}
-          onCancel={() => setDeleting(false)}
-          actions={[
-            {
-              label: '삭제',
-              primary: true,
-              disabled: locked,
-              onSelect: () => {
-                setDeleting(false);
-                save({kind: 'delete', id: item.id}).catch((cause: unknown) =>
-                  console.error('Quick delete callback failed:', cause),
-                );
+              remove: () => {
+                deleteAfterMenu(true);
+                setMenu(null);
               },
-            },
+            }),
           ]}
         />
       ) : null}

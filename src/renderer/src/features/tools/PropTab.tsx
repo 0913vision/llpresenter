@@ -1,9 +1,11 @@
-import {useRef, useState, type JSX} from 'react';
+import {useLayoutEffect, useRef, useState, type JSX} from 'react';
 import {limitReason} from '@core/common/limitReason';
 import {createPropId} from '@core/schema/ids';
 import type {Prop} from '@core/schema/props';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
-import {AlertDialog, IconButton, Menu} from '@renderer/ui';
+import {IconButton, Menu} from '@renderer/ui';
+import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
+import {deleteSelection} from '@renderer/ui/useSelectionDelete';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
 import {PropDialog} from './PropDialog';
@@ -12,11 +14,14 @@ import {MAX_PROPS, savePropEdit, type PropEdit} from './propEdits';
 import {useAudioMedia} from './useAudioMedia';
 import {focusedOptionIndex, useDuplicateShortcut} from './useDuplicateShortcut';
 import {useToolEditing} from './useToolEditing';
+import {useToolDeleteShortcuts} from '@renderer/platform/useToolDeleteShortcuts';
+import {focusHistorySurface} from '@renderer/ui/focusHistorySurface';
+import {useReflow} from '@renderer/ui/useReflow';
 import styles from './PropGrid.module.css';
 import {menuAvailability} from '@renderer/ui/menuModel';
 import {propMenuEntries, toolMenuReason} from './toolMenuEntries';
 
-type Editor = {kind: 'add'} | {kind: 'edit' | 'delete'; prop: Prop};
+type Editor = {kind: 'add'} | {kind: 'edit'; prop: Prop};
 
 export function PropTab({
   onProblem,
@@ -33,12 +38,18 @@ export function PropTab({
     activate: () => void;
     reason: string | undefined;
   } | null>(null);
-  const {busy, run} = useToolEditing({
+  const editing = useToolEditing({
     api: window.llp,
     write: savePropEdit,
     onProblem,
-    area: {key: 'props', label: '그래픽', log: 'Could not edit props'},
+    area: {
+      key: 'props',
+      label: '그래픽',
+      log: 'Could not edit props',
+      history: 'props',
+    },
   });
+  const {busy, run} = editing;
   const locked = busy || document?.access !== 'editable' || !screens || !media;
   const full = (document?.value.props.length ?? 0) >= MAX_PROPS;
   const duplicateReason = locked
@@ -53,6 +64,23 @@ export function PropTab({
       copyId: createPropId(crypto.randomUUID()),
     });
   const root = useRef<HTMLDivElement>(null);
+  useToolDeleteShortcuts(root, editing);
+  const props = document?.value.props ?? [];
+  useLayoutEffect(() => {
+    root.current
+      ?.querySelectorAll<HTMLElement>('[role="option"]')
+      .forEach((option, index) => {
+        const id = props[index]?.id;
+        if (id === undefined) option.removeAttribute('data-reflow-id');
+        else option.setAttribute('data-reflow-id', id);
+      });
+  });
+  useReflow(root, {
+    ids: props.map(prop => prop.id),
+    selector: '[data-reflow-id]',
+    attribute: 'data-reflow-id',
+    scope: 'props',
+  });
   useDuplicateShortcut({
     itemAt: event => {
       const at = focusedOptionIndex(root.current, event.target);
@@ -74,6 +102,16 @@ export function PropTab({
         }),
     );
   };
+  const deleteAfterMenu = useMenuHandoff<Prop>(menu !== null, prop => {
+    deleteSelection(
+      1,
+      () => !locked && document.value.props.some(row => row.id === prop.id),
+      () => {
+        focusHistorySurface(root.current);
+        save({kind: 'delete', id: prop.id});
+      },
+    );
+  });
   return (
     <div className={styles.root} ref={root}>
       <div className={styles.tools}>
@@ -112,26 +150,15 @@ export function PropTab({
               edit: () => setEditor({kind: 'edit', prop: menu.prop}),
               duplicate: () => duplicate(menu.prop),
               duplicateReason,
-              remove: () => setEditor({kind: 'delete', prop: menu.prop}),
+              remove: () => {
+                deleteAfterMenu(menu.prop);
+                setMenu(null);
+              },
             }),
           ]}
         />
       ) : null}
-      {editor?.kind === 'delete' ? (
-        <AlertDialog
-          icon="component"
-          title={`‘${editor.prop.name}’ 그래픽을 삭제할까요?`}
-          onCancel={() => setEditor(null)}
-          actions={[
-            {
-              label: '삭제',
-              primary: true,
-              disabled: locked,
-              onSelect: () => save({kind: 'delete', id: editor.prop.id}),
-            },
-          ]}
-        />
-      ) : editor ? (
+      {editor ? (
         <PropDialog
           initial={editor.kind === 'edit' ? editor.prop : undefined}
           screens={screens?.value.screens ?? []}

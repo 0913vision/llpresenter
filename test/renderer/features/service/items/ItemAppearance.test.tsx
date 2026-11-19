@@ -587,20 +587,15 @@ it('draws one bar for each row of slides with › where it runs on, and drags an
   );
 });
 
-it('confirms deletion in the popover and clears the last overlay', async () => {
-  const {user, stored} = await setup();
+it('deletes an overlay without confirmation and restores it through undo', async () => {
+  const {user, stored, items} = await setup();
   await addOverlay(user, 1);
   await user.click(await screen.findByRole('button', {name: /^오버레이 1,/}));
   await user.click(screen.getByRole('button', {name: '오버레이 삭제'}));
-  const dialog = screen.getByRole('alertdialog');
-  expect(stored()?.overlays).toHaveLength(1);
-  await user.click(within(dialog).getByRole('button', {name: '취소'}));
-  expect(stored()?.overlays).toHaveLength(1);
-  await user.click(screen.getByRole('button', {name: '오버레이 삭제'}));
-  await user.click(
-    within(screen.getByRole('alertdialog')).getByRole('button', {name: '삭제'}),
-  );
+  expect(screen.queryByRole('alertdialog')).toBeNull();
   await waitFor(() => expect(stored()).not.toHaveProperty('overlays'));
+  await act(async () => items.replayItemEdit('undo'));
+  await waitFor(() => expect(stored()?.overlays).toHaveLength(1));
 });
 
 it.each(['bible', 'media'] as const)(

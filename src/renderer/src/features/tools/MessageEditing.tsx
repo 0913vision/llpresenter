@@ -1,13 +1,14 @@
 import {limitReason} from '@core/common/limitReason';
 import {contextMenuTarget, isContextMenuKey} from '@renderer/ui/contextMenu';
-import {useState, type JSX, type ReactNode} from 'react';
+import {useRef, useState, type JSX, type ReactNode} from 'react';
+import {deleteSelection} from '@renderer/ui/useSelectionDelete';
+import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {createMessageTemplateId} from '@core/schema/ids';
 import type {Screen} from '@core/schema/screens';
 import type {MessageTemplate} from '@core/schema/messages';
 import {MAX_MESSAGE_CHARACTERS} from '@core/overlays/messageText';
 import type {NamedDocument} from '@renderer/platform/useSettingsDocument';
 import {
-  AlertDialog,
   Button,
   SelectMenu,
   Dialog,
@@ -22,6 +23,9 @@ import type {MenuAnchor} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
 import {useDuplicateShortcut} from './useDuplicateShortcut';
 import {useToolEditing} from './useToolEditing';
+import {useToolDeleteShortcuts} from '@renderer/platform/useToolDeleteShortcuts';
+import {focusHistorySurface} from '@renderer/ui/focusHistorySurface';
+import {useReflow} from '@renderer/ui/useReflow';
 import {
   MAX_MESSAGE_TEMPLATES,
   MESSAGE_NAME_LIMIT,
@@ -37,8 +41,7 @@ import {messageMenuEntries, toolMenuReason} from './toolMenuEntries';
 
 type Editor =
   | {readonly kind: 'add'}
-  | {readonly kind: 'edit'; readonly item: MessageTemplate}
-  | {readonly kind: 'delete'; readonly item: MessageTemplate};
+  | {readonly kind: 'edit'; readonly item: MessageTemplate};
 
 function TemplateDialog({
   editor,
@@ -47,7 +50,7 @@ function TemplateDialog({
   onCancel,
   onSave,
 }: {
-  readonly editor: Exclude<Editor, {kind: 'delete'}>;
+  readonly editor: Editor;
   readonly screens: readonly Screen[];
   readonly locked: boolean;
   readonly onCancel: () => void;
@@ -204,7 +207,7 @@ export function MessageEditing({
     item: MessageTemplate;
   } | null>(null);
   const [editor, setEditor] = useState<Editor | null>(null);
-  const {busy, run} = useToolEditing({
+  const editing = useToolEditing({
     api: window.llp,
     write: saveMessageEdit,
     onProblem,
@@ -212,7 +215,17 @@ export function MessageEditing({
       key: 'messages',
       label: '메시지',
       log: 'Could not edit message templates',
+      history: 'messages',
     },
+  });
+  const {busy, run} = editing;
+  const root = useRef<HTMLDivElement>(null);
+  useToolDeleteShortcuts(root, editing);
+  useReflow(root, {
+    ids: document?.value.templates.map(item => item.id) ?? [],
+    selector: '[role="option"][data-value]',
+    attribute: 'data-value',
+    scope: 'messages',
   });
   const locked =
     document?.access !== 'editable' || window.llp === undefined || busy;
@@ -248,6 +261,21 @@ export function MessageEditing({
       id: item.id,
       copyId: createMessageTemplateId(crypto.randomUUID()),
     });
+  const deleteAfterMenu = useMenuHandoff<MessageTemplate>(
+    menu !== null,
+    item => {
+      deleteSelection(
+        1,
+        () =>
+          !locked &&
+          document.value.templates.some(value => value.id === item.id),
+        () => {
+          focusHistorySurface(root.current);
+          save({kind: 'delete', id: item.id});
+        },
+      );
+    },
+  );
   const duplicateReason = locked
     ? toolMenuReason(locked, busy)
     : full
@@ -280,6 +308,7 @@ export function MessageEditing({
         />
       </div>
       <div
+        ref={root}
         onContextMenu={event => {
           if (
             openMenu(event.target, {
@@ -323,27 +352,14 @@ export function MessageEditing({
             duplicateReason: full
               ? limitReason('메시지', MAX_MESSAGE_TEMPLATES)
               : undefined,
-            remove: () => setEditor({kind: 'delete', item: menu.item}),
+            remove: () => {
+              deleteAfterMenu(menu.item);
+              setMenu(null);
+            },
           })}
         />
       ) : null}
-      {editor?.kind === 'delete' ? (
-        <AlertDialog
-          icon="msg"
-          title={`‘${editor.item.name}’ 메시지를 삭제할까요?`}
-          onCancel={() => setEditor(null)}
-          actions={[
-            {
-              label: '삭제',
-              primary: true,
-              disabled: locked,
-              onSelect: () => {
-                save({kind: 'delete', id: editor.item.id});
-              },
-            },
-          ]}
-        />
-      ) : editor ? (
+      {editor ? (
         <TemplateDialog
           editor={editor}
           screens={screens}

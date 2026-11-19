@@ -5,10 +5,12 @@ import type {FileError} from '@core/schema/fileFormat';
 import {
   mergeMediaDocument,
   type MediaDocument,
+  type MediaEdit,
   type MediaEditResult,
 } from '@core/schema/mediaEdit';
 import {
   MEDIA_LIMITS,
+  MEDIA_DELETE_HISTORY_LIMIT,
   serializeMediaList,
   type MediaItem,
 } from '@core/schema/mediaList';
@@ -24,6 +26,13 @@ import {
   type MediaListEdit,
   type PlaylistRef,
 } from './mediaEdits';
+import {
+  captureMediaDeletion,
+  deletionEdit,
+  redoMediaDeletion,
+  undoMediaDeletion,
+  type MediaDeletion,
+} from './mediaDeletionHistory';
 import {buildMediaLibrary, type MediaLibrary} from './mediaLibrary';
 import {SettingsPersistence} from './settingsPersistence';
 
@@ -53,6 +62,8 @@ export class MediaStore implements MediaLibrary {
   private readonly listeners = new Set<MediaListener>();
   private readonly saves: SettingsPersistence;
   private closing: Promise<void> | null = null;
+  private readonly deleteUndo: MediaDeletion[] = [];
+  private deleteRedo: MediaDeletion[] = [];
 
   constructor(private readonly options: MediaStoreOptions) {
     this.document = options.document;
@@ -95,14 +106,66 @@ export class MediaStore implements MediaLibrary {
     };
   }
 
-  apply(edit: MediaListEdit): Promise<MediaEditResult> {
+  apply(
+    edit:
+      | MediaListEdit
+      | Extract<MediaEdit, {type: 'media.undoDelete' | 'media.redoDelete'}>,
+  ): Promise<MediaEditResult> {
     return this.safely(() => {
+      if (
+        edit.type === 'media.undoDelete' ||
+        edit.type === 'media.redoDelete'
+      ) {
+        const undo = edit.type === 'media.undoDelete';
+        const from = undo ? this.deleteUndo : this.deleteRedo;
+        const to = undo ? this.deleteRedo : this.deleteUndo;
+        const step = from.at(-1);
+        const refusal = this.refusal(undefined);
+        if (refusal !== null) {
+          return Promise.resolve({ok: false, error: refusal});
+        }
+        if (!step) {
+          return Promise.resolve(
+            mediaRefusal('not-found', 'No media deletion to undo'),
+          );
+        }
+        const before = this.document.value;
+        const change = undo
+          ? undoMediaDeletion(before, step)
+          : redoMediaDeletion(before, step);
+        if (!change.ok) return Promise.resolve(change);
+        const revision = this.document.revision;
+        const result = this.commit(change.value, true);
+        if (this.document.revision !== revision) {
+          from.pop();
+          to.push(
+            undo
+              ? step
+              : (captureMediaDeletion(before, deletionEdit(step)) ?? step),
+          );
+        }
+        return result;
+      }
       const refusal = this.refusal(
         'baseRevision' in edit ? edit.baseRevision : undefined,
       );
       if (refusal !== null) return Promise.resolve({ok: false, error: refusal});
       const change = editMediaList(this.document.value, edit);
-      return change.ok ? this.commit(change.value) : Promise.resolve(change);
+      if (!change.ok) return Promise.resolve(change);
+      const before = this.document.value;
+      const revision = this.document.revision;
+      const deleting =
+        edit.type === 'media.delete' || edit.type === 'media.playlist.delete';
+      const result = this.commit(change.value, deleting);
+      if (deleting && this.document.revision !== revision) {
+        const step = captureMediaDeletion(before, edit);
+        if (step) this.deleteUndo.push(step);
+        if (this.deleteUndo.length > MEDIA_DELETE_HISTORY_LIMIT) {
+          this.deleteUndo.shift();
+        }
+        this.deleteRedo = [];
+      }
+      return result;
     });
   }
 
@@ -291,7 +354,10 @@ export class MediaStore implements MediaLibrary {
     });
   }
 
-  private commit(change: MediaChange): Promise<MediaEditResult> {
+  private commit(
+    change: MediaChange,
+    keepDeleteHistory = false,
+  ): Promise<MediaEditResult> {
     const parsed = mergeMediaDocument(this.document, change.value);
     if (!parsed.ok) {
       return Promise.resolve(
@@ -328,6 +394,9 @@ export class MediaStore implements MediaLibrary {
     const text = serializeMediaList(next.value, this.options.file);
     if (!text.ok) {
       return Promise.resolve(mediaRefusal('invalid', text.error.message));
+    }
+    if (!keepDeleteHistory) {
+      this.deleteRedo = [];
     }
     this.document = next;
     this.library = built.library;

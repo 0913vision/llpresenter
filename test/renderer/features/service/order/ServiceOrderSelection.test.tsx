@@ -1,7 +1,6 @@
-import {act, fireEvent, screen, waitFor} from '@testing-library/react';
+import {fireEvent, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {describe, expect, it, vi} from 'vitest';
-import {useShow} from '@renderer/session/show';
 import {createMediaId} from '@core/schema/ids';
 import {powerpointImageItem} from '@core/services/powerpointImages';
 import {
@@ -118,7 +117,7 @@ describe.each(['show', 'prep'] as const)('%s service selection', workspace => {
       await waitFor(() => expect(ids()).toEqual([headerId, firstId, lastId]));
     },
   );
-  it('reports a stale confirmation through the host notification channel', async () => {
+  it('deletes selected rows immediately without a notice', async () => {
     const {ids, onProblem} = setup(workspace);
     const first = screen.getByRole('option', {name: '첫 곡'});
     const last = screen.getByRole('option', {name: '다음 곡'});
@@ -126,24 +125,16 @@ describe.each(['show', 'prep'] as const)('%s service selection', workspace => {
     fireEvent.click(last, {ctrlKey: true});
     fireEvent.contextMenu(first);
     await userEvent.click(screen.getByRole('menuitem', {name: '2개 삭제'}));
-    expect(screen.getByRole('alertdialog')).toBeDefined();
-    act(() => useShow.setState(state => ({rows: [...state.rows]})));
-    await userEvent.click(screen.getByRole('button', {name: '삭제'}));
-    expect(ids()).toEqual([headerId, firstId, lastId]);
-    expect(onProblem).toHaveBeenCalledExactlyOnceWith(
-      expect.objectContaining({
-        key: 'selection-delete:stale',
-        kind: 'info',
-        title: '항목이 변경되어 삭제하지 않았습니다',
-      }),
-    );
+    await waitFor(() => expect(ids()).toEqual([headerId]));
+    expect(screen.queryByRole('alertdialog')).toBeNull();
+    expect(onProblem).not.toHaveBeenCalled();
     expect(
       screen.queryByRole('status', {
         name: '항목이 변경되어 삭제하지 않았습니다',
       }),
     ).toBeNull();
   });
-  it('keeps the selected set for its menu, confirms once, and restores all with one undo', async () => {
+  it('deletes the selected set from its menu and restores all with one undo', async () => {
     const {ids, api, send, list} = setup(workspace);
     const first = screen.getByRole('option', {name: '첫 곡'});
     const last = screen.getByRole('option', {name: '다음 곡'});
@@ -155,11 +146,7 @@ describe.each(['show', 'prep'] as const)('%s service selection', workspace => {
     await userEvent.click(
       await screen.findByRole('menuitem', {name: '2개 삭제'}),
     );
-    expect(
-      screen.getByRole('alertdialog', {name: '2개를 삭제할까요?'}),
-    ).toBeDefined();
-    expect(api.content.edit).not.toHaveBeenCalled();
-    await userEvent.click(screen.getByRole('button', {name: '삭제'}));
+    expect(screen.queryByRole('alertdialog')).toBeNull();
     await waitFor(() => expect(ids()).toEqual([headerId]));
     expect(api.content.edit).toHaveBeenCalledTimes(1);
     fireEvent.keyDown(list(), {key: 'z', code: 'KeyZ', ctrlKey: true});

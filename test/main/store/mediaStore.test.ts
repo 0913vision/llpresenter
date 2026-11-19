@@ -5,7 +5,11 @@ import {
   createMediaPlaylistId,
   createAudioPlaylistId,
 } from '@core/schema/ids';
-import {parseMediaDocument, type MediaEditResult} from '@core/schema/mediaEdit';
+import {
+  parseMediaDocument,
+  type MediaEdit,
+  type MediaEditResult,
+} from '@core/schema/mediaEdit';
 import {MEDIA_LIMITS} from '@core/schema/mediaList';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {recordingLogger} from '@fixtures/main/displays/testing';
@@ -111,7 +115,12 @@ async function saved(result: Promise<MediaEditResult>) {
   return result;
 }
 
-async function apply(store: MediaStore, edit: MediaListEdit) {
+async function apply(
+  store: MediaStore,
+  edit:
+    | MediaListEdit
+    | Extract<MediaEdit, {type: 'media.undoDelete' | 'media.redoDelete'}>,
+) {
   return saved(store.apply(edit));
 }
 
@@ -256,6 +265,111 @@ describe('media list edits and saves', () => {
     expect(store.get().value.playlists[0]?.items).toEqual([IMAGE]);
     expect(store.get().value.audioPlaylists[0]?.items).toEqual([]);
     expect(remove).not.toHaveBeenCalled();
+  });
+
+  it('undoes and redoes consecutive media deletions including playlist memberships', async () => {
+    const {store} = setup();
+    const original = store.get().value;
+    await apply(store, {type: 'media.delete', mediaId: VIDEO});
+    await apply(store, {type: 'media.delete', mediaId: AUDIO});
+    expect((await apply(store, {type: 'media.undoDelete'})).ok).toBe(true);
+    expect(store.get().value.items.some(item => item.id === AUDIO)).toBe(true);
+    expect((await apply(store, {type: 'media.undoDelete'})).ok).toBe(true);
+    expect(store.get().value).toEqual(original);
+    expect((await apply(store, {type: 'media.redoDelete'})).ok).toBe(true);
+    expect(store.get().value.items.some(item => item.id === VIDEO)).toBe(false);
+  });
+
+  it('restores a deletion without overwriting a later edit to another media item', async () => {
+    const {store} = setup();
+    await apply(store, {type: 'media.delete', mediaId: VIDEO});
+    await apply(store, {
+      type: 'media.properties.update',
+      mediaId: IMAGE,
+      changes: {name: 'Changed'},
+      baseRevision: store.get().revision,
+    });
+    expect((await apply(store, {type: 'media.undoDelete'})).ok).toBe(true);
+    expect(store.get().value.items.find(item => item.id === IMAGE)?.name).toBe(
+      'Changed',
+    );
+    expect(store.get().value.items.some(item => item.id === VIDEO)).toBe(true);
+    expect(store.get().value.playlists[0]?.items).toContain(VIDEO);
+  });
+
+  it('restores a deleted item between repeated playlist occurrences', async () => {
+    const {store} = setup();
+    const playlist = store.get().value.playlists[0];
+    if (!playlist) throw new Error('Missing playlist');
+    await apply(store, {
+      type: 'media.playlist.update',
+      playlist: {
+        kind: 'media',
+        value: {...playlist, items: [IMAGE, VIDEO, IMAGE]},
+      },
+      baseRevision: store.get().revision,
+    });
+    await apply(store, {type: 'media.delete', mediaId: VIDEO});
+    expect((await apply(store, {type: 'media.undoDelete'})).ok).toBe(true);
+    expect(store.get().value.playlists[0]?.items).toEqual([
+      IMAGE,
+      VIDEO,
+      IMAGE,
+    ]);
+  });
+
+  it('retains at most 100 media deletions', async () => {
+    const {store} = setup();
+    const items = Array.from({length: 101}, (_, index) => ({
+      id: createMediaId(uuid(index + 100)),
+      name: `Item ${index}`,
+      kind: 'image' as const,
+      file: `file-${index}.png`,
+      size: 1,
+    }));
+    expect(
+      (
+        await saved(
+          store.add({baseRevision: store.get().revision, items}, null),
+        )
+      ).ok,
+    ).toBe(true);
+    for (const item of items) {
+      expect(
+        (await apply(store, {type: 'media.delete', mediaId: item.id})).ok,
+      ).toBe(true);
+    }
+    for (let index = 0; index < 100; index++) {
+      expect((await apply(store, {type: 'media.undoDelete'})).ok).toBe(true);
+    }
+    expect(await apply(store, {type: 'media.undoDelete'})).toMatchObject({
+      ok: false,
+      error: {reason: 'not-found'},
+    });
+    expect(store.get().value.items.some(item => item.id === items[0]?.id)).toBe(
+      false,
+    );
+  });
+
+  it('undoes and redoes deleting a playlist with its items', async () => {
+    const {store} = setup();
+    const playlist = store.get().value.playlists[0];
+    if (!playlist) throw new Error('Missing playlist');
+    await apply(store, {
+      type: 'media.playlist.delete',
+      playlist: {kind: 'media', id: playlist.id},
+    });
+    expect(
+      store.get().value.playlists.some(value => value.id === playlist.id),
+    ).toBe(false);
+    expect((await apply(store, {type: 'media.undoDelete'})).ok).toBe(true);
+    expect(
+      store.get().value.playlists.find(value => value.id === playlist.id),
+    ).toEqual(playlist);
+    expect((await apply(store, {type: 'media.redoDelete'})).ok).toBe(true);
+    expect(
+      store.get().value.playlists.some(value => value.id === playlist.id),
+    ).toBe(false);
   });
 
   it('keeps applied state and returns failed files, then retries the newest content', async () => {

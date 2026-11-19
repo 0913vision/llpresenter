@@ -14,6 +14,8 @@ import {
 } from '@core/schema/service';
 import type {LabelRename} from '@core/schema/settingsDocuments';
 import {randomUUID} from 'node:crypto';
+import {normalizeSongTitle} from '@core/songs/songTitle';
+import {dirname, extname, join} from 'node:path';
 import type {Logger} from '../log';
 import {
   createContentAnnouncements,
@@ -74,6 +76,17 @@ const TEMPLATE: Kind<Template> = {
   serialize: serializeTemplate,
 };
 
+type DeleteArea = 'song' | 'service' | 'template';
+interface DeleteStep {
+  readonly id: string;
+  undo(): Promise<EditResult>;
+  redo(): Promise<EditResult>;
+}
+interface DeleteStack {
+  undo: DeleteStep[];
+  redo: DeleteStep[];
+}
+
 /**
  * The songs, 예배 순서, and 템플릿 in the main process, and the edits windows ask
  * for. A whole-document update applies over the stored file, so unknown
@@ -92,7 +105,15 @@ export class ContentStore {
   private readonly writes: ContentWritePort;
   private readonly announcements: ContentAnnouncements;
   private readonly commandContext: ContentCommandContext;
-  private readonly commands: Omit<ContentHandlers, 'saves.retry'>;
+  private readonly commands: Omit<
+    ContentHandlers,
+    'saves.retry' | 'content.undoDelete' | 'content.redoDelete'
+  >;
+  private readonly deletions: Record<DeleteArea, DeleteStack> = {
+    song: {undo: [], redo: []},
+    service: {undo: [], redo: []},
+    template: {undo: [], redo: []},
+  };
 
   constructor(private readonly options: ContentStoreOptions) {
     this.currentServiceId = options.openServiceId ?? null;
@@ -246,11 +267,153 @@ export class ContentStore {
       const content = await this.writes.retryPending();
       return answer({id: 'saves', revision: null}, [...settings, ...content]);
     }
-    return this.applyDocumentEdit(edit);
+    if (
+      edit.type === 'content.undoDelete' ||
+      edit.type === 'content.redoDelete'
+    ) {
+      const undo = edit.type === 'content.undoDelete';
+      const stack = this.deletions[edit.area];
+      const from = undo ? stack.undo : stack.redo;
+      const to = undo ? stack.redo : stack.undo;
+      const step = from.at(-1);
+      if (!step) return refuse('not-found', 'No deletion to restore');
+      if (step.id !== edit.id) {
+        return refuse('stale', 'Another document was deleted more recently');
+      }
+      const result = await (undo ? step.undo() : step.redo());
+      if (result.ok || result.error.reason === 'write-failed') {
+        from.pop();
+        to.push(step);
+      }
+      return result;
+    }
+    const deletion = this.prepareDeletion(edit);
+    const result = await this.applyDocumentEdit(edit);
+    if (deletion && (result.ok || result.error.reason === 'write-failed')) {
+      deletion.record(!result.ok);
+    }
+    return result;
+  }
+
+  private prepareDeletion(
+    edit: Exclude<
+      ContentEdit,
+      {type: 'saves.retry' | 'content.undoDelete' | 'content.redoDelete'}
+    >,
+  ): {record: (failed: boolean) => void} | undefined {
+    if (edit.type === 'song.delete') {
+      return this.deletionStep({
+        area: 'song',
+        documents: this.songs,
+        kind: SONG,
+        id: edit.songId,
+        announce: () => this.announcements.announceSong(edit.songId),
+      });
+    }
+    if (edit.type === 'service.delete') {
+      return this.deletionStep({
+        area: 'service',
+        documents: this.services,
+        kind: SERVICE,
+        id: edit.serviceId,
+        announce: () => this.announcements.announceService(edit.serviceId),
+      });
+    }
+    if (edit.type === 'template.delete') {
+      return this.deletionStep({
+        area: 'template',
+        documents: this.templates,
+        kind: TEMPLATE,
+        id: edit.templateId,
+        announce: () => this.announcements.announceTemplate(edit.templateId),
+      });
+    }
+    return undefined;
+  }
+
+  private deletionStep<T extends {readonly id: string}>({
+    area,
+    documents,
+    kind,
+    id,
+    announce,
+  }: {
+    area: DeleteArea;
+    documents: DocumentCollection<T>;
+    kind: Kind<T>;
+    id: string;
+    announce: () => void;
+  }): {record: (failed: boolean) => void} | undefined {
+    const original = documents.get(id);
+    if (!original) return undefined;
+    let saved: StoredDocument<T> = original;
+    let deleteFailed = false;
+    const step: DeleteStep = {
+      id,
+      undo: async () => {
+        if (documents.get(id)) {
+          return refuse('stale', 'The deleted document already exists');
+        }
+        if (area === 'song') {
+          const title: unknown = Reflect.get(saved.data, 'title');
+          if (
+            typeof title !== 'string' ||
+            this.songs
+              .all()
+              .some(
+                song =>
+                  normalizeSongTitle(song.data.title) ===
+                  normalizeSongTitle(title),
+              )
+          ) {
+            return refuse(
+              'duplicate-title',
+              'Another song already has this title',
+            );
+          }
+        }
+        const file = deleteFailed
+          ? saved.file
+          : join(dirname(saved.file), `${randomUUID()}${extname(saved.file)}`);
+        const full = this.writes.savesFull([file]);
+        if (full) return full;
+        saved = documents.restore(saved, file);
+        const written = await this.writes.write(kind, saved);
+        announce();
+        return answer({id, revision: saved.revision}, [written]);
+      },
+      redo: async () => {
+        const current = documents.get(id);
+        if (!current || current !== saved) {
+          return refuse('stale', 'The restored document changed');
+        }
+        if (area === 'service' && id === this.currentServiceId) {
+          return refuse('invalid', 'The open service cannot be deleted');
+        }
+        const full = this.writes.savesFull([current.file]);
+        if (full) return full;
+        documents.remove(id);
+        const written = await this.writes.remove(kind, current);
+        deleteFailed = !written.result.ok;
+        announce();
+        return answer({id, revision: null}, [written]);
+      },
+    };
+    return {
+      record: failed => {
+        deleteFailed = failed;
+        const stack = this.deletions[area];
+        stack.undo.push(step);
+        stack.redo = [];
+      },
+    };
   }
 
   private applyDocumentEdit<
-    K extends Exclude<ContentEdit['type'], 'saves.retry'>,
+    K extends Exclude<
+      ContentEdit['type'],
+      'saves.retry' | 'content.undoDelete' | 'content.redoDelete'
+    >,
   >(edit: ContentCommand<K>): EditResult | Promise<EditResult> {
     return this.commands[edit.type](edit);
   }

@@ -16,7 +16,11 @@ import {Dialog} from '@renderer/ui/Dialog';
 import {IconButton} from '@renderer/ui/IconButton';
 import {Icon} from '@renderer/ui/Icon';
 import {LabelColorControl} from '@renderer/ui/LabelColorPopover';
-import {LabelDeleteDialog} from './LabelDeleteDialog';
+import {settingsDeleteHistory} from '@renderer/platform/settingsDeleteHistory';
+import {useToolDeleteShortcuts} from '@renderer/platform/useToolDeleteShortcuts';
+import {deleteSelection} from '@renderer/ui/useSelectionDelete';
+import {useReflow} from '@renderer/ui/useReflow';
+import {isInTextEntry} from '@renderer/ui/textEntry';
 import {LabelNameField} from './LabelNameField';
 import {useLabelRows} from './useLabelRows';
 import {editorTask} from './editorTask';
@@ -50,12 +54,24 @@ export function LabelManager({
   );
   const labels = document?.value.labels ?? EMPTY_LABELS;
   const locked = busy || document?.access !== 'editable';
-  const [deleting, setDeleting] = useState<string | null>(null);
   const [focusRequest, setFocusRequest] = useState<{
     name: string | null;
   } | null>(null);
   const focused = useRef(focusRequest);
   const body = useRef<HTMLDivElement>(null);
+  const pageRoot = useRef<HTMLDivElement>(null);
+  const history = settingsDeleteHistory(store.api, 'labels');
+  const historyState = useSyncExternalStore(history.subscribe, history.get);
+  useToolDeleteShortcuts(frame.placement === 'page' ? pageRoot : body, {
+    history: historyState,
+    replay: kind => history.replay(kind),
+  });
+  useReflow(body, {
+    ids: labels.map(label => label.name),
+    selector: '[data-reflow-id]',
+    attribute: 'data-reflow-id',
+    scope: 'labels',
+  });
   const addButton = useRef<HTMLButtonElement>(null);
   const drafts = useRef(new Map<number, () => Promise<boolean>>());
   const acting = useRef(false);
@@ -171,11 +187,40 @@ export function LabelManager({
     </Button>
   );
   const content = (
-    <div ref={body} className={styles.settings}>
+    <div
+      ref={body}
+      className={styles.settings}
+      onKeyDown={event => {
+        if (
+          !event.ctrlKey ||
+          event.altKey ||
+          event.metaKey ||
+          isInTextEntry(event.target)
+        ) {
+          return;
+        }
+        const key = event.key.toLowerCase();
+        const kind =
+          key === 'z'
+            ? event.shiftKey
+              ? 'redo'
+              : 'undo'
+            : key === 'y' && !event.shiftKey
+              ? 'redo'
+              : null;
+        if (kind === null || historyState.busy || historyState[kind] === 0) {
+          return;
+        }
+        event.preventDefault();
+        event.stopPropagation();
+        editorTask(history.replay(kind));
+      }}
+    >
       {rows.map(({label, key}, index) => (
         <div
           key={key}
           role="group"
+          data-reflow-id={label.name}
           aria-label={label.name}
           className={styles.settingsRow}
           data-drop={
@@ -326,9 +371,31 @@ export function LabelManager({
             disabled={locked}
             onClick={() =>
               editorTask(
-                runAction(() => {
+                runAction(async () => {
                   const name = currentLabels()[index]?.name;
-                  if (name !== undefined) setDeleting(name);
+                  let removal: Promise<boolean> | undefined;
+                  deleteSelection(
+                    name === undefined ? 0 : 1,
+                    () => !locked && name !== undefined,
+                    () => {
+                      if (name === undefined) return;
+                      body.current?.setAttribute('tabindex', '-1');
+                      body.current?.focus({preventScroll: true});
+                      body.current?.removeAttribute('tabindex');
+                      removal = store.updateLabels(
+                        currentLabels().filter(label => label.name !== name),
+                        revision => history.record(revision),
+                      );
+                    },
+                  );
+                  if (removal && (await removal)) {
+                    if (
+                      frame.placement === 'page' &&
+                      currentLabels().length === 0
+                    ) {
+                      addButton.current?.focus();
+                    }
+                  }
                 }),
               )
             }
@@ -352,27 +419,10 @@ export function LabelManager({
           {content}
         </Dialog>
       ) : (
-        <div data-label-manager className={styles.page}>
+        <div ref={pageRoot} data-label-manager className={styles.page}>
           {content}
           <footer>{add}</footer>
         </div>
-      )}
-      {deleting === null ? null : (
-        <LabelDeleteDialog
-          name={deleting}
-          labels={labels}
-          store={store}
-          locked={locked}
-          onClose={() => {
-            setDeleting(null);
-            const labels = currentLabels();
-            setFocusRequest({
-              name: labels.some(label => label.name === deleting)
-                ? deleting
-                : (labels[0]?.name ?? null),
-            });
-          }}
-        />
       )}
     </>
   );

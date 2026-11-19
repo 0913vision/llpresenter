@@ -32,6 +32,9 @@ import {mockCanvasViewport} from '@fixtures/renderer/ui/canvasTesting';
 import {ThemeLeaveGuard} from '@renderer/features/screens/themes/themeLeaveGuard';
 import {useThemePanels} from '@renderer/features/screens/themes/useThemePanels';
 import userEvent from '@testing-library/user-event';
+import {HistoryButtons} from '@renderer/app/shell/HistoryButtons';
+import {editMenuEntries} from '@renderer/app/shell/editMenuEntries';
+import {menuItems} from '@renderer/ui/menuModel';
 
 const MAIN = createScreenId('00000000-0000-4000-8000-000000000001');
 const STAGE = createScreenId('00000000-0000-4000-8000-000000000003');
@@ -51,10 +54,12 @@ function setup({
   screenOrder,
   userThemes = 0,
   userDefault = false,
+  historyControls = false,
 }: {
   readonly idle?: boolean;
   readonly userThemes?: number;
   readonly userDefault?: boolean;
+  readonly historyControls?: boolean;
   /** A 대기 화면 saved before it had any screen layout. */
   readonly oldStandby?: boolean;
   readonly services?: Partial<LlpApi['services']>;
@@ -166,11 +171,12 @@ function setup({
   function Workspace() {
     const panels = useThemePanels(true, report, guard);
     return (
-      <>
+      <div data-workspace-layout={historyControls ? 'screens' : undefined}>
+        {historyControls ? <HistoryButtons /> : null}
         {panels.left}
         {panels.canvas}
         {panels.right}
-      </>
+      </div>
     );
   }
   render(<Workspace />);
@@ -293,6 +299,48 @@ it('keeps standby first and LIVE before kind tags, and saves theme duplication a
   expect(listeners.size).toBe(0);
 });
 
+it('keeps native inline-rename history for keyboard, toolbar, and Edit menu', async () => {
+  const {value, edit} = setup({historyControls: true});
+  Object.defineProperty(document, 'queryCommandEnabled', {
+    configurable: true,
+    value: () => true,
+  });
+  try {
+    const api = window.llp;
+    if (!api) throw new Error('Missing API');
+    const native = vi.spyOn(api.window, 'editText');
+    const list = await screen.findByRole('listbox', {name: '테마'});
+    const song = await within(list).findByRole('option', {name: '찬양'});
+    fireEvent.contextMenu(song);
+    fireEvent.click(await screen.findByRole('menuitem', {name: '복제'}));
+    const copied = await within(list).findByRole('option', {
+      name: '찬양 복사본',
+    });
+    fireEvent.contextMenu(copied);
+    fireEvent.click(await screen.findByRole('menuitem', {name: '이름 바꾸기'}));
+    const input = await within(copied).findByRole('textbox');
+    input.focus();
+    fireEvent.change(input, {target: {value: '임시 이름'}});
+    const writes = edit.mock.calls.length;
+    expect(
+      fireEvent.keyDown(input, {key: 'z', code: 'KeyZ', ctrlKey: true}),
+    ).toBe(true);
+    fireEvent.click(screen.getByRole('button', {name: '실행 취소'}));
+    expect(native).toHaveBeenCalledWith('undo');
+    const undo = menuItems(editMenuEntries(input)).find(
+      row => row.id === 'undo',
+    );
+    undo?.onSelect?.();
+    await waitFor(() => expect(native).toHaveBeenCalledTimes(2));
+    expect(edit).toHaveBeenCalledTimes(writes);
+    expect(value().themes.some(theme => theme.name === '찬양 복사본')).toBe(
+      true,
+    );
+  } finally {
+    Reflect.deleteProperty(document, 'queryCommandEnabled');
+  }
+});
+
 it.each([
   [184, false],
   [199, false],
@@ -333,7 +381,7 @@ it('duplicates the focused 테마 with Ctrl D, the way its 복제 row does', asy
   expect(await screen.findByRole('option', {name: '찬양 복사본'})).toBeTruthy();
 });
 
-it('asks before every 테마 delete, says where a 테마 is the default, and keeps it on cancel', async () => {
+it('deletes a theme immediately and restores it and its defaults with undo', async () => {
   const {value} = setup({userThemes: 1, userDefault: true});
   const themes = await screen.findByRole('listbox', {name: '테마'});
   fireEvent.contextMenu(within(themes).getByRole('option', {name: '찬양'}), {
@@ -345,15 +393,13 @@ it('asks before every 테마 delete, says where a 테마 is the default, and kee
 
   fireEvent.contextMenu(copied, {clientX: 10, clientY: 10});
   fireEvent.click(await screen.findByRole('menuitem', {name: '삭제'}));
-  const unused = await screen.findByRole('alertdialog');
-  expect(unused.textContent).toContain('‘찬양 복사본’ 테마를 삭제할까요?');
-  expect(unused.textContent).not.toContain('에서 씀');
-  fireEvent.click(within(unused).getByRole('button', {name: '취소'}));
-  expect(value().themes.some(theme => theme.name === '찬양 복사본')).toBe(true);
-
-  const current = within(themes).getByRole('option', {name: '찬양 복사본'});
-  current.focus();
-  fireEvent.keyDown(current, {key: 'End'});
+  await waitFor(() =>
+    expect(value().themes.some(theme => theme.name === '찬양 복사본')).toBe(
+      false,
+    ),
+  );
+  expect(screen.queryByRole('alertdialog')).toBeNull();
+  const defaults = value().defaults;
   fireEvent.contextMenu(
     await within(themes).findByRole('option', {name: 'User 0'}),
     {
@@ -362,9 +408,15 @@ it('asks before every 테마 delete, says where a 테마 is the default, and kee
     },
   );
   fireEvent.click(await screen.findByRole('menuitem', {name: '삭제'}));
-  const used = await screen.findByRole('alertdialog');
-  expect(used.textContent).toContain('쓰는 곳: 성경, 빈 슬라이드 기본');
-  fireEvent.click(within(used).getByRole('button', {name: '삭제'}));
+  await waitFor(() =>
+    expect(value().themes.some(theme => theme.name === 'User 0')).toBe(false),
+  );
+  fireEvent.keyDown(document.body, {key: 'z', code: 'KeyZ', ctrlKey: true});
+  await waitFor(() =>
+    expect(value().themes.some(theme => theme.name === 'User 0')).toBe(true),
+  );
+  expect(value().defaults).toEqual(defaults);
+  fireEvent.keyDown(document.body, {key: 'y', code: 'KeyY', ctrlKey: true});
   await waitFor(() =>
     expect(value().themes.some(theme => theme.name === 'User 0')).toBe(false),
   );
@@ -382,8 +434,7 @@ it('shows why a built-in theme cannot be deleted', async () => {
   );
 });
 
-it('says the use of a 테마 cannot be checked instead of showing no use', async () => {
-  const logged = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+it('deletes without consulting service usage or showing a notice', async () => {
   setup({
     services: {list: vi.fn().mockRejectedValue(new Error('Unreachable'))},
   });
@@ -396,12 +447,11 @@ it('says the use of a 테마 cannot be checked instead of showing no use', async
   const copied = await screen.findByRole('option', {name: '찬양 복사본'});
   fireEvent.contextMenu(copied, {clientX: 10, clientY: 10});
   fireEvent.click(await screen.findByRole('menuitem', {name: '삭제'}));
-  const question = await screen.findByRole('alertdialog');
-  expect(question.textContent).toContain('‘찬양 복사본’ 테마를 삭제할까요?');
-  expect(question.textContent).toContain('쓰는 곳 확인 실패');
-  expect(question.textContent).not.toContain('쓰는 곳: 예배');
+  await waitFor(() =>
+    expect(screen.queryByRole('option', {name: '찬양 복사본'})).toBeNull(),
+  );
+  expect(screen.queryByRole('alertdialog')).toBeNull();
   expect(screen.queryAllByRole('alert')).toEqual([]);
-  expect(logged).toHaveBeenCalledTimes(1);
 });
 
 it('shows clean geometry after selection and preserves explicitly typed precision', async () => {
@@ -1295,10 +1345,9 @@ it('shows, selects and edits the clock and timer of an older 대기 화면 witho
   });
 });
 
-it('reports a stale group deletion through the theme notice channel', async () => {
+it('deletes selected elements without a dialog or notice', async () => {
   const {report} = setup();
   await screen.findByRole('button', {name: '현재 슬라이드 글'});
-  const target = screen.getByRole('button', {name: '무대 화면 편집'});
   const list = screen.getByRole('listbox', {name: '요소'});
   const [first, second] = within(list).getAllByRole('option');
   if (!first || !second) throw new Error('Missing elements');
@@ -1306,18 +1355,12 @@ it('reports a stale group deletion through the theme notice channel', async () =
   fireEvent.click(second, {ctrlKey: true});
   fireEvent.contextMenu(first);
   await userEvent.click(screen.getByRole('menuitem', {name: /2개 삭제/}));
-  expect(screen.getByRole('alertdialog')).toBeDefined();
-  fireEvent.click(target);
-  await userEvent.click(screen.getByRole('button', {name: '삭제'}));
-  expect(report).toHaveBeenCalledExactlyOnceWith(
-    expect.objectContaining({
-      key: 'selection-delete:stale',
-      kind: 'info',
-    }),
-  );
+  expect(screen.queryByRole('alertdialog')).toBeNull();
+  expect(within(list).getAllByRole('option')).toHaveLength(1);
+  expect(report).not.toHaveBeenCalled();
 });
 
-it('keeps a selected element set for context commands and confirms one deletion with one undo', async () => {
+it('deletes a selected element set with one undo', async () => {
   setup();
   await screen.findByRole('button', {name: '현재 슬라이드 글'});
   const list = screen.getByRole('listbox', {name: '요소'});
@@ -1331,10 +1374,7 @@ it('keeps a selected element set for context commands and confirms one deletion 
     screen.getByRole('menuitem', {name: '2개 맨 앞으로 가져오기'}),
   ).toBeDefined();
   await userEvent.click(screen.getByRole('menuitem', {name: /2개 삭제/}));
-  expect(
-    screen.getByRole('alertdialog', {name: '2개를 삭제할까요?'}),
-  ).toBeDefined();
-  await userEvent.click(screen.getByRole('button', {name: '삭제'}));
+  expect(screen.queryByRole('alertdialog')).toBeNull();
   expect(within(list).getAllByRole('option')).toHaveLength(1);
   fireEvent.keyDown(document.body, {key: 'z', code: 'KeyZ', ctrlKey: true});
   expect(within(list).getAllByRole('option')).toHaveLength(3);

@@ -100,6 +100,8 @@ export function editorFixture() {
     revision: 1,
     access: 'editable',
   });
+  const deletedLabels: Array<typeof labels> = [];
+  const restoredLabels: Array<typeof labels> = [];
   const refuse = (
     reason: 'not-found' | 'stale' | 'read-only' | 'invalid' | 'duplicate-title',
   ): EditResult => ({ok: false, error: {reason, message: 'Fixture refusal'}});
@@ -238,6 +240,26 @@ export function editorFixture() {
       edit: async edit => {
         await Promise.resolve();
         labelEdits.push(edit);
+        if (
+          (edit.type === 'settings.undoDelete' ||
+            edit.type === 'settings.redoDelete') &&
+          edit.area === 'labels'
+        ) {
+          const from =
+            edit.type === 'settings.undoDelete'
+              ? deletedLabels
+              : restoredLabels;
+          const to =
+            edit.type === 'settings.undoDelete'
+              ? restoredLabels
+              : deletedLabels;
+          const previous = from.pop();
+          if (!previous) return refuse('not-found');
+          to.push(labels);
+          labels = labelsDocument({...previous, revision: labels.revision + 1});
+          for (const listener of settings) listener(labels);
+          return {ok: true, value: {id: 'labels', revision: labels.revision}};
+        }
         if (edit.name !== 'labels') return refuse('invalid');
         if (edit.baseRevision !== labels.revision) return refuse('stale');
         const value =
@@ -249,6 +271,13 @@ export function editorFixture() {
                   label.name === edit.from ? {...label, name: edit.to} : label,
                 ),
               };
+        if (
+          edit.type === 'settings.update' &&
+          value.labels.length < labels.value.labels.length
+        ) {
+          deletedLabels.push(labels);
+          restoredLabels.length = 0;
+        }
         labels = labelsDocument({
           ...labels,
           value,

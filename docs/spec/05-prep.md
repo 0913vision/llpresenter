@@ -201,16 +201,16 @@ not dim when focus leaves. 진행 retains its existing thumbnail style.
   after the last tile, including at the beginning of a new row. The same rule
   applies to song and slide-item editors.
 - Drag moves the whole selection in document order with a count badge. Delete
-  outside a text field is immediate for one item; more than one asks once with
-  the count. It removes the selection as one undo step. The row and gap context
-  menus expose clipboard, duplicate, delete, undo, and redo commands with
-  shortcuts. Text fields keep native text selection and clipboard behavior. Ctrl
-  Z and Ctrl Y undo and redo local item edits and row commands in one shared,
-  100-step history, restoring row selection and the caret. Removing rows focuses
-  the list command surface, including an empty list, so keyboard undo remains
-  available. The preview has 청중 화면, 무대 화면, and 방송 화면 tabs and a
-  position caption. Automatic saves keep typing focus and text selection.
-  Acknowledging a write does not break the current typing undo group.
+  outside a text field immediately removes the selection as one undo step,
+  without a confirmation or notice. The row and gap context menus expose
+  clipboard, duplicate, delete, undo, and redo commands with shortcuts. Text
+  fields keep native text selection and clipboard behavior. Ctrl Z and Ctrl Y
+  undo and redo local item edits and row commands in one shared, 100-step
+  history, restoring row selection and the caret. Removing rows focuses the list
+  command surface, including an empty list, so keyboard undo remains available.
+  The preview has 청중 화면, 무대 화면, and 방송 화면 tabs and a position
+  caption. Automatic saves keep typing focus and text selection. Acknowledging a
+  write does not break the current typing undo group.
 - Service item edits save automatically through the service edit path, the same
   as song items. There is no 저장 button or save/discard question on leaving;
   only a library song retains explicit 저장. Both local item history and the
@@ -279,13 +279,13 @@ endpoint slide IDs (02), so moves keep the endpoints attached.
   center. Slide and section-card items use the slide editor.
 - The operator drags rows to reorder them. Dragging a 구역 moves it with its
   items, up to the next 구역, as one section (user decision, October 26). Delete
-  is immediate for one row and asks once with the selected count for more than
-  one. It removes all selected rows, and Ctrl Z restores them in one step. The
-  selection, counted drag image, duplicate and context-menu rules are shared
-  with 진행 (04, 11). Ctrl Z and 편집 > 실행 취소 undo every edit of an item the
-  same way, one step each: a change in its cells or the right column (메모,
-  테마, 배경, 시작할 때, 오버레이) as well as the order edits (10, "Focus
-  precedence"). The right-click menu has 삭제 (delete) (proposal).
+  immediately removes all selected rows without a confirmation or notice, and
+  Ctrl Z restores them in one step. The selection, counted drag image, duplicate
+  and context-menu rules are shared with 진행 (04, 11). Ctrl Z and 편집 > 실행
+  취소 undo every edit of an item the same way, one step each: a change in its
+  cells or the right column (메모, 테마, 배경, 시작할 때, 오버레이) as well as
+  the order edits (10, "Focus precedence"). The right-click menu has 삭제
+  (delete) (proposal).
 - The list accepts 라이브러리 songs dropped on it (see "Adding items to the 예배
   순서").
 
@@ -361,10 +361,8 @@ Source: `Reflow`, `PrepService`, `AddSongs`, `ListRow` README.
 
 ### Deleting a song (proposal)
 
-- The right-click menu of a 라이브러리 row has 삭제. It opens a confirmation
-  dialog, for example "‘만복의 근원 하나님’ 곡을 삭제할까요?" (Delete this
-  song?), with the detail "쓰는 곳: 예배 2곳" (used in 2 services), and the
-  buttons 취소 (cancel) and 삭제.
+- The right-click menu of a 라이브러리 row has 삭제. It deletes immediately
+  without a confirmation or notice; undo restores the song.
 - After the delete, 예배 순서 items that point to the song show the problem
   state, with the tooltip "곡을 찾을 수 없습니다" (song not found), and can't
   output.
@@ -524,14 +522,13 @@ name.
   Copies receive fresh IDs and no conflicting slide keys. Plain text from
   outside splits at blank lines. Repeated fast paste waits for copy and stays
   one undo step per paste; moving focus or selection cancels a delayed paste.
-- Ctrl D duplicates after the selection; Delete is immediate for one slide, asks
-  once with the count for more than one, and removes the whole selection as one
-  undo step. Selected right-click targets preserve the set; unselected targets
-  first become the only selection. Menus hide commands that apply to only one
-  member and count set-wide commands. Drag moves it together. These operations
-  use the same 100-step history as typing, labels, split and merge. A library
-  retains at least one slide; an item may be empty. Read-only decks allow
-  selection and copy.
+- Ctrl D duplicates after the selection; Delete immediately removes the whole
+  selection as one undo step. Selected right-click targets preserve the set;
+  unselected targets first become the only selection. Menus hide commands that
+  apply to only one member and count set-wide commands. Drag moves it together.
+  These operations use the same 100-step history as typing, labels, split and
+  merge. A library retains at least one slide; an item may be empty. Read-only
+  decks allow selection and copy.
 - The preview follows selection without output. Esc in a slide's lyrics, 글,
   이름, or 내용 field leaves text editing and selects that row, focusing the
   list command surface without changing its text. The next Esc clears selection
@@ -781,9 +778,10 @@ The service list opens from the service name in the 예배 순서 header in both
   document and uses its current revision, so a concurrent change refuses the
   rename and keeps the newer document intact. A refusal keeps the rename dialog
   and reports 이름을 바꿀 수 없음.
-- 삭제 asks for confirmation. The open service can't be deleted: the menu item
-  is unavailable with the tooltip 열린 예배는 삭제할 수 없습니다, and main also
-  refuses the delete. A refused delete reports 삭제할 수 없음.
+- 삭제 acts immediately without a confirmation or notice. The open service can't
+  be deleted: the menu item is unavailable with the tooltip 열린 예배는 삭제할
+  수 없습니다, and main also refuses the delete. A refused delete reports 삭제할
+  수 없음.
 - Both prompts wait for their operation's result before dismissal. A rename's
   document read and write both take part in the window's close flush, so the
   window can't close before an already-started rename reaches main; closing also
@@ -1147,8 +1145,7 @@ remains ASCII.
 - Dragging tiles onto a playlist in the left column adds them to that playlist
   (proposal).
 - The right-click menu of a tile has 재생목록에서 빼기 (remove from playlist)
-  and 삭제 (delete from the media list). Deleting media that songs or items use
-  asks in a confirmation dialog (proposal).
+  and 삭제 (delete from the media list). Deletion is immediate and undoable.
 - 새 재생목록 adds a playlist named "새 재생목록" in rename mode (proposal).
 - Selecting an audio playlist shows its tracks in the center as a list
   (proposal).
@@ -1236,9 +1233,8 @@ a selected element preserves the set; another element selects only itself.
 Z-order commands and list drags move the whole set in its existing stacking
 order. Canvas drags translate all selected elements by the same delta, clamping
 the group at the canvas boundary without changing gaps. Both drag surfaces show
-the count. Delete from a key or menu is immediate for one element; more than one
-asks once with the count. Each deletion records one undo step. A pending
-confirmation cannot delete a changed document or layout.
+the count. Delete from a key or menu immediately removes the selected elements
+without a confirmation or notice. Each deletion records one undo step.
 
 Song, Bible, and slides items can add an opening section card from the slide
 menu. Its Korean and English text can be edited and the card removed

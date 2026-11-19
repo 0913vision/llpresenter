@@ -70,6 +70,7 @@ export function NewServiceDialog({
             onSelect={state.choose}
             withEmpty
             onRetry={state.lists.failed ? state.lists.retry : undefined}
+            onHistoryKey={actions.onHistoryKey}
             onRowMenu={(event, row) => {
               state.choose(row.source);
               actions.openMenu(event, row);

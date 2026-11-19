@@ -6,6 +6,7 @@ import {THEME_LIMITS} from '@core/themes/elementRules';
 import {newOverlaySpan, overlayAt} from '@core/themes/overlayRanges';
 import {editorTask} from '@renderer/features/songs/editor/editorTask';
 import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
+import {deleteSelection} from '@renderer/ui/useSelectionDelete';
 import {ItemOverlayContent} from './ItemOverlayContent';
 import type {OverlayEditing} from './overlayEditing';
 
@@ -78,13 +79,18 @@ export function useOverlayControl(editing: OverlayEditing): OverlayControl {
       current.map(row => (row.id === id ? {...row, content} : row)),
     );
   const remove = (id: ItemOverlayId): void => {
-    if (reason !== undefined) return;
-    editorTask(
-      editing
-        .change(current => current.filter(row => row.id !== id))
-        .then(saved => {
-          if (saved) choose(current => (current === id ? null : current));
-        }),
+    deleteSelection(
+      1,
+      () => reason === undefined && overlays.some(row => row.id === id),
+      () => {
+        editorTask(
+          editing
+            .change(current => current.filter(row => row.id !== id))
+            .then(saved => {
+              if (saved) choose(current => (current === id ? null : current));
+            }),
+        );
+      },
     );
   };
   const dropMedia = (position: number, media: MediaId): void => {

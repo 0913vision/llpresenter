@@ -6,6 +6,7 @@ import {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
   type JSX,
   type ReactNode,
 } from 'react';
@@ -35,11 +36,17 @@ import type {MenuAnchor} from '@renderer/ui/Menu';
 import {useScreenRowActions} from './useScreenRowActions';
 import {useScreenListWindow} from './useScreenListWindow';
 import {useMonitors} from './useMonitors';
+import {settingsDeleteHistory} from '@renderer/platform/settingsDeleteHistory';
+import {useToolDeleteShortcuts} from '@renderer/platform/useToolDeleteShortcuts';
+import {useReflow} from '@renderer/ui/useReflow';
 
 const LIST_LABEL = '화면';
 const GROUP_LABELS = {audience: '청중', stage: '무대', broadcast: '방송'};
 const LOAD_TITLE = '화면';
 const noScreens: readonly Screen[] = [];
+const noHistory = {undo: 0, redo: 0, busy: false};
+const emptyHistory = () => noHistory;
+const noSubscribe = () => () => undefined;
 
 function RowView({
   row,
@@ -112,7 +119,33 @@ export function ScreenList({
   const create = useScreenCreation(document, onProblem, screenId =>
     sendLive({type: 'output.set', screenId, on: true}),
   );
-  const actions = useScreenRowActions(document, onProblem);
+  const listRoot = useRef<HTMLDivElement>(null);
+  const history = useMemo(
+    () => (window.llp ? settingsDeleteHistory(window.llp, 'screens') : null),
+    [],
+  );
+  const historyState = useSyncExternalStore(
+    history?.subscribe ?? noSubscribe,
+    history?.get ?? emptyHistory,
+  );
+  useToolDeleteShortcuts(listRoot, {
+    history: historyState,
+    replay: kind => history?.replay(kind) ?? Promise.resolve(false),
+  });
+  const actions = useScreenRowActions(document, onProblem, {
+    onDeleted: revision => history?.record(revision),
+    focusList: () => {
+      const list =
+        listRoot.current?.querySelector<HTMLElement>('[role="listbox"]');
+      if (list) {
+        const old = list.getAttribute('tabindex');
+        list.tabIndex = -1;
+        list.focus({preventScroll: true});
+        if (old === null) list.removeAttribute('tabindex');
+        else list.setAttribute('tabindex', old);
+      }
+    },
+  });
   const click = useDragClickGuard();
   const statuses = useOutputStatuses();
   const outputs = useOutputs();
@@ -120,6 +153,12 @@ export function ScreenList({
   const selection = useScreensSelection(view => view.selection);
   const select = useScreensSelection(view => view.select);
   const screens = document?.value.screens ?? noScreens;
+  useReflow(listRoot, {
+    ids: screens.map(screen => screen.id),
+    selector: '[role="option"][data-value]',
+    attribute: 'data-value',
+    scope: 'screens',
+  });
   const groups = useMemo(
     () => screenGroups(screens, {statuses, outputs, monitors}),
     [screens, statuses, outputs, monitors],
@@ -134,7 +173,6 @@ export function ScreenList({
       })),
     [groups],
   );
-  const listRoot = useRef<HTMLDivElement>(null);
   const [focusedId, setFocusedId] = useState<string | null>(null);
   const selectScreen = useCallback((id: string) => select(id), [select]);
   const windowed = useScreenListWindow({

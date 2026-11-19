@@ -38,20 +38,49 @@ async function openRemoval() {
   const row = await screen.findByRole('group', {name: '첫 타이머'});
   fireEvent.contextMenu(row, {clientX: 50, clientY: 50});
   fireEvent.click(await screen.findByRole('menuitem', {name: '삭제'}));
-  return screen.getByRole('alertdialog');
 }
 
-it('asks before deleting and cancels without sending an edit', async () => {
+it('deletes immediately and routes undo to the shared settings history', async () => {
   const f = setup();
-  render(<TimerTab />);
-  const dialog = await openRemoval();
-  expect(dialog.textContent).toContain('연결된 빠른 실행 항목도 삭제');
-  fireEvent.click(within(dialog).getByRole('button', {name: '취소'}));
+  f.edit.mockResolvedValue({ok: true, value: {id, revision: 2}});
+  render(
+    <div data-workspace-layout="show">
+      <div data-show-slide-grid>
+        <div role="listbox" aria-label="슬라이드" tabIndex={-1} />
+      </div>
+      <TimerTab />
+    </div>,
+  );
+  await openRemoval();
+  await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
   expect(screen.queryByRole('alertdialog')).toBeNull();
-  expect(f.edit).not.toHaveBeenCalled();
+  expect(
+    document.activeElement?.contains(
+      screen.getByRole('list', {name: '타이머 목록'}),
+    ),
+  ).toBe(true);
+  expect(
+    fireEvent.keyDown(document.activeElement ?? document.body, {
+      key: 'ArrowRight',
+      code: 'ArrowRight',
+    }),
+  ).toBe(true);
+  fireEvent.keyDown(document.activeElement ?? document.body, {
+    key: 'z',
+    code: 'KeyZ',
+    ctrlKey: true,
+  });
+  await waitFor(() =>
+    expect(f.edit).toHaveBeenCalledWith({
+      type: 'settings.undoDelete',
+      name: 'delete-history',
+      area: 'timers',
+      expectedRevision: 2,
+    }),
+  );
 });
 
-it('keeps the confirmation and persistence warning alive after the row unmounts', async () => {
+it('reports persistence failure after the row unmounts without stealing later focus', async () => {
   const f = setup();
   const reply = deferred<EditResult>();
   const notice = vi.fn();
@@ -61,12 +90,11 @@ it('keeps the confirmation and persistence warning alive after the row unmounts'
     return reply.promise;
   });
   render(<TimerTab onProblem={notice} />);
-  const dialog = await openRemoval();
-  fireEvent.click(within(dialog).getByRole('button', {name: '삭제'}));
+  await openRemoval();
   await waitFor(() =>
     expect(screen.queryByRole('group', {name: '첫 타이머'})).toBeNull(),
   );
-  expect(screen.getByRole('alertdialog')).toBeDefined();
+  expect(screen.queryByRole('alertdialog')).toBeNull();
   expect(f.edit).toHaveBeenCalledExactlyOnceWith({
     type: 'timer.delete',
     name: 'timers',
@@ -94,14 +122,9 @@ it('keeps the confirmation and persistence warning alive after the row unmounts'
   expect(notice).toHaveBeenCalledWith(
     expect.objectContaining({title: '타이머 저장 실패'}),
   );
-  await waitFor(() =>
-    expect(document.activeElement).toBe(
-      screen.getByRole('list', {name: '타이머 목록'}),
-    ),
-  );
 });
 
-it('keeps the confirmation open after refusal and blocks a read-only change', async () => {
+it('reports refusal and blocks a read-only deletion', async () => {
   const f = setup();
   const notice = vi.fn();
   f.edit.mockResolvedValue({
@@ -109,38 +132,37 @@ it('keeps the confirmation open after refusal and blocks a read-only change', as
     error: {reason: 'read-only', message: 'Fixture access'},
   });
   render(<TimerTab onProblem={notice} />);
-  const dialog = await openRemoval();
-  fireEvent.click(within(dialog).getByRole('button', {name: '삭제'}));
+  await openRemoval();
   await waitFor(() =>
     expect(notice).toHaveBeenCalledWith(
       expect.objectContaining({title: '타이머 변경 실패'}),
     ),
   );
-  expect(screen.getByRole('alertdialog')).toBeDefined();
+  expect(screen.queryByRole('alertdialog')).toBeNull();
   act(() =>
     f.push({
       ...settingsDocument('timers', {timers: [timer, other]}, 2),
       access: 'readOnly',
     }),
   );
+  const row = await screen.findByRole('group', {name: '첫 타이머'});
+  fireEvent.contextMenu(row);
   expect(
-    within(dialog)
-      .getByRole('button', {name: '삭제'})
-      .getAttribute('aria-disabled'),
+    (await screen.findByRole('menuitem', {name: '삭제'})).getAttribute(
+      'aria-disabled',
+    ),
   ).toBe('true');
-  fireEvent.click(within(dialog).getByRole('button', {name: '삭제'}));
+  fireEvent.click(screen.getByRole('menuitem', {name: '삭제'}));
   expect(f.edit).toHaveBeenCalledTimes(1);
 });
 
-it('lets the operator dismiss a pending deletion and continue running another timer', async () => {
+it('lets the operator run another timer while a deletion is pending', async () => {
   const f = setup();
   const reply = deferred<EditResult>();
   const notice = vi.fn();
   f.edit.mockReturnValue(reply.promise);
   render(<TimerTab onProblem={notice} />);
-  const dialog = await openRemoval();
-  fireEvent.click(within(dialog).getByRole('button', {name: '삭제'}));
-  fireEvent.click(within(dialog).getByRole('button', {name: '닫기'}));
+  await openRemoval();
   expect(screen.queryByRole('alertdialog')).toBeNull();
   const start = within(
     screen.getByRole('group', {name: '둘째 타이머'}),

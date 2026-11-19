@@ -1,9 +1,14 @@
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
-import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
+import {
+  NEWER_FILE_REASON,
+  NOTHING_TO_UNDO,
+  NOTHING_TO_REDO,
+} from '@renderer/platform/problemReasons';
+import {deleteSelection} from '@renderer/ui/useSelectionDelete';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
-import {useState, type JSX} from 'react';
-import {AlertDialog} from '@renderer/ui/AlertDialog';
-import {countedMeta} from '@renderer/ui/countedMeta';
+import {useRef, useState, type JSX} from 'react';
+import {useReflow} from '@renderer/ui/useReflow';
+import {focusHistorySurface} from '@renderer/ui/focusHistorySurface';
 import {IconButton} from '@renderer/ui/IconButton';
 import {
   ListBox,
@@ -68,10 +73,31 @@ function usePlaylistEditing(kind: 'media' | 'audio') {
     readonly anchor: MenuAnchor;
   } | null>(null);
   const renameAfterMenu = useMenuHandoff(menu !== null, setRenaming);
-  const [deleting, setDeleting] = useState<string | null>(null);
   const playlistOf = (id: string | null) =>
     id === null ? null : chosenPlaylist(view.document, {kind, id});
   const editable = view.document?.access === 'editable';
+  const remove = (id: string, target: HTMLElement | undefined): void => {
+    const playlist = playlistOf(id);
+    deleteSelection(
+      playlist ? 1 : 0,
+      () => editable,
+      () => {
+        if (!playlist) return;
+        focusHistorySurface(
+          target?.closest<HTMLElement>('[data-playlist-history]') ?? null,
+        );
+        library
+          .deletePlaylist(playlist)
+          .catch((cause: unknown) =>
+            console.error('Deleting a playlist failed:', cause),
+          );
+      },
+    );
+  };
+  const deleteAfterMenu = useMenuHandoff<{
+    id: string;
+    target: HTMLElement | undefined;
+  }>(menu !== null, ({id, target}) => remove(id, target));
   const renameOf = (id: string): GroupRename | undefined =>
     renaming === id
       ? {
@@ -110,6 +136,34 @@ function usePlaylistEditing(kind: 'media' | 'audio') {
       });
   };
   useWindowShortcuts([
+    ...(['undo', 'redo'] as const).map(action => ({
+      id: `edit.${action}`,
+      context: 'service' as const,
+      when: (event: KeyboardEvent) =>
+        event.target instanceof Element &&
+        event.target.closest(`[data-playlist-history="${kind}"]`) !== null,
+      unavailable: () =>
+        (action === 'undo' ? library.canUndoDelete() : library.canRedoDelete())
+          ? undefined
+          : action === 'undo'
+            ? NOTHING_TO_UNDO
+            : NOTHING_TO_REDO,
+      run: () => library.historyDelete(action),
+    })),
+    {
+      id: 'edit.delete',
+      when: event => focusedPlaylist(event, kind) !== undefined,
+      unavailable: () => (editable ? undefined : NEWER_FILE_REASON),
+      run: event => {
+        const id = focusedPlaylist(event, kind);
+        if (id !== undefined) {
+          remove(
+            id,
+            event.target instanceof HTMLElement ? event.target : undefined,
+          );
+        }
+      },
+    },
     {
       id: 'edit.duplicate',
       when: event => focusedPlaylist(event, kind) !== undefined,
@@ -121,7 +175,6 @@ function usePlaylistEditing(kind: 'media' | 'audio') {
     },
   ]);
   const menuPlaylist = playlistOf(menu?.id ?? null);
-  const doomed = playlistOf(deleting);
   const overlays = (
     <>
       {menu !== null && menuPlaylist !== null ? (
@@ -146,7 +199,7 @@ function usePlaylistEditing(kind: 'media' | 'audio') {
                 return {
                   ...entry,
                   onSelect: () => {
-                    setDeleting(menu.id);
+                    deleteAfterMenu({id: menu.id, target: menu.anchor.target});
                     setMenu(null);
                   },
                 };
@@ -156,31 +209,6 @@ function usePlaylistEditing(kind: 'media' | 'audio') {
           )}
         />
       ) : null}
-      {doomed === null ? null : (
-        <AlertDialog
-          icon={kind === 'media' ? 'film' : 'audio'}
-          title={`‘${doomed.name || UNNAMED_PLAYLIST}’ 재생목록을 삭제할까요?`}
-          meta={countedMeta(
-            doomed.items.length,
-            `미디어 ${doomed.items.length}개는 모든 미디어에 남습니다`,
-          )}
-          onCancel={() => setDeleting(null)}
-          actions={[
-            {
-              label: '삭제',
-              primary: true,
-              onSelect: () => {
-                library.deletePlaylist(doomed).then(
-                  () => setDeleting(null),
-                  (cause: unknown) => {
-                    console.error('Deleting a playlist failed:', cause);
-                  },
-                );
-              },
-            },
-          ]}
-        />
-      )}
     </>
   );
   return {renameOf, onContextMenu, overlays, startRename: setRenaming};
@@ -229,6 +257,16 @@ export function MediaListsPanel(): JSX.Element {
     view.document?.value.items.filter(item => item.internal !== true).length ??
     0;
   const playlists = view.document?.value.playlists ?? [];
+  const list = useRef<HTMLDivElement>(null);
+  useReflow(list, {
+    ids: [
+      ALL,
+      ...playlists.map(playlist => keyOf({kind: 'media', id: playlist.id})),
+    ],
+    selector: '[role="option"][data-value]',
+    attribute: 'data-value',
+    scope: 'media-playlists',
+  });
   return (
     <Panel label="미디어" className={styles.panel}>
       <PanelHeader>
@@ -249,6 +287,8 @@ export function MediaListsPanel(): JSX.Element {
       </PanelHeader>
       <PanelBody tab="media" variant="list">
         <div
+          ref={list}
+          data-playlist-history="media"
           className={styles.lists}
           onContextMenu={editing.onContextMenu}
           onKeyDown={editing.onContextMenu}
@@ -296,6 +336,13 @@ export function AudioListsPanel(): JSX.Element {
   const editing = usePlaylistEditing('audio');
   const {create, disabledReason} = useCreate('audio', editing.startRename);
   const playlists = view.document?.value.audioPlaylists ?? [];
+  const list = useRef<HTMLDivElement>(null);
+  useReflow(list, {
+    ids: playlists.map(playlist => keyOf({kind: 'audio', id: playlist.id})),
+    selector: '[role="option"][data-value]',
+    attribute: 'data-value',
+    scope: 'audio-playlists',
+  });
   return (
     <Panel label="오디오" className={styles.panel}>
       <PanelHeader>
@@ -316,6 +363,8 @@ export function AudioListsPanel(): JSX.Element {
       </PanelHeader>
       <PanelBody tab="audio" variant="list">
         <div
+          ref={list}
+          data-playlist-history="audio"
           className={styles.lists}
           onContextMenu={editing.onContextMenu}
           onKeyDown={editing.onContextMenu}

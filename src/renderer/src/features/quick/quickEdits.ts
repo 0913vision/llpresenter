@@ -37,6 +37,11 @@ export type QuickEdit =
     }
   | {readonly kind: 'delete'; readonly id: QuickItem['id']}
   | {
+      readonly kind: 'restore';
+      readonly item: QuickItem;
+      readonly before: QuickItem['id'] | null;
+    }
+  | {
       readonly kind: 'duplicate';
       readonly id: QuickItem['id'];
       readonly copyId: QuickItem['id'];
@@ -82,6 +87,20 @@ function applyEdit(
       );
     case 'delete':
       return items.filter(item => item.id !== edit.id);
+    case 'restore': {
+      if (items.some(item => item.id === edit.item.id)) {
+        throw new Error('The quick item already exists');
+      }
+      if (items.length >= MAX_QUICK_ITEMS) {
+        throw new Error('The quick list is full');
+      }
+      const index =
+        edit.before === null
+          ? items.length
+          : items.findIndex(item => item.id === edit.before);
+      const at = index < 0 ? items.length : index;
+      return [...items.slice(0, at), edit.item, ...items.slice(at)];
+    }
     case 'duplicate':
       return duplicateAfter(items, edit, {
         limit: MAX_QUICK_ITEMS,

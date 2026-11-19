@@ -1,4 +1,10 @@
-import {useMemo, type JSX, type ReactNode} from 'react';
+import {
+  useMemo,
+  useRef,
+  type JSX,
+  type KeyboardEvent,
+  type ReactNode,
+} from 'react';
 import type {ServiceEntry, TemplateEntry} from '@core/schema/contentDocuments';
 import {Button} from '@renderer/ui/Button';
 import {ListBox, ListGroup, ListRow} from '@renderer/ui/ListRow';
@@ -7,6 +13,7 @@ import type {SourceRow} from './useSourceActions';
 import {EMPTY_SOURCE, sourceKey, type ServiceSource} from './useServiceSources';
 import styles from './ServiceDialogs.module.css';
 import {isContextMenuKey, type ContextMenuEvent} from '../../../ui/contextMenu';
+import {useReflow} from '@renderer/ui/useReflow';
 
 const names = new Intl.Collator('ko', {numeric: true});
 
@@ -70,6 +77,7 @@ export function SourceList({
   withEmpty,
   onRetry,
   onRowMenu,
+  onHistoryKey,
 }: {
   readonly templates: readonly TemplateEntry[];
   readonly services: readonly ServiceEntry[];
@@ -80,8 +88,21 @@ export function SourceList({
   /** Opens the right-click menu of a 템플릿 or 예배 순서 row. */
   readonly onRowMenu?:
     ((event: ContextMenuEvent, row: SourceRow) => void) | undefined;
+  readonly onHistoryKey?:
+    ((event: KeyboardEvent<HTMLDivElement>) => void) | undefined;
 }): JSX.Element {
   const sorted = useMemo(() => newestFirst(services), [services]);
+  const root = useRef<HTMLDivElement>(null);
+  useReflow(root, {
+    ids: [
+      ...(withEmpty ? [sourceKey(EMPTY_SOURCE)] : []),
+      ...templates.map(entry => sourceKey(templateSource(entry))),
+      ...sorted.map(entry => sourceKey(serviceSource(entry))),
+    ],
+    selector: '[role="option"][data-value]',
+    attribute: 'data-value',
+    scope: 'service-sources',
+  });
   const sources = useMemo(
     () =>
       new Map(
@@ -94,7 +115,7 @@ export function SourceList({
     [templates, services],
   );
   return (
-    <>
+    <div ref={root} style={{display: 'contents'}} onKeyDown={onHistoryKey}>
       <ListBox
         label="시작할 예배"
         selected={selected === null ? undefined : sourceKey(selected)}
@@ -165,6 +186,6 @@ export function SourceList({
           </Button>
         </div>
       )}
-    </>
+    </div>
   );
 }

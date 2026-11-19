@@ -1,9 +1,8 @@
-import {useEffect, useRef, useState, type JSX, type RefCallback} from 'react';
+import {useEffect, useRef, type JSX, type RefCallback} from 'react';
 import {createPortal} from 'react-dom';
 import type {ItemOverlay} from '@core/schema/itemOverlays';
 import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import {editorTask} from '@renderer/features/songs/editor/editorTask';
-import {AlertDialog} from '@renderer/ui/AlertDialog';
 import {Button} from '@renderer/ui/Button';
 import {Checkbox} from '@renderer/ui/Checkbox';
 import {Icon} from '@renderer/ui/Icon';
@@ -56,7 +55,6 @@ export function OverlayPopover({
   const {editing} = control;
   const {reason} = editing;
   const surface = useRef<HTMLDivElement | null>(null);
-  const [deleting, setDeleting] = useState(false);
   const update = (patch: Partial<ItemOverlay>): void =>
     editorTask(
       editing.change(current =>
@@ -73,7 +71,7 @@ export function OverlayPopover({
       onClose();
     };
     const escape = (event: KeyboardEvent): void => {
-      if (event.key === 'Escape' && !deleting) onClose();
+      if (event.key === 'Escape') onClose();
     };
     document.addEventListener('pointerdown', away, true);
     document.addEventListener('keydown', escape);
@@ -81,7 +79,7 @@ export function OverlayPopover({
       document.removeEventListener('pointerdown', away, true);
       document.removeEventListener('keydown', escape);
     };
-  }, [onClose, deleting]);
+  }, [onClose]);
   const mediaContent = 'media' in overlay.content ? overlay.content : undefined;
   const file = editing.media.find(item => item.id === mediaContent?.media);
   const place = placeBelow(anchor);
@@ -217,30 +215,13 @@ export function OverlayPopover({
         icon="trash"
         disabled={reason !== undefined}
         title={reason}
-        onClick={() => setDeleting(true)}
+        onClick={() => {
+          onClose();
+          control.remove(overlay.id);
+        }}
       >
         오버레이 삭제
       </Button>
-      {deleting ? (
-        <AlertDialog
-          icon="layers"
-          title={`‘${overlay.name}’ 오버레이를 삭제할까요?`}
-          onCancel={() => setDeleting(false)}
-          actions={[
-            {
-              label: '삭제',
-              primary: true,
-              disabled: reason !== undefined,
-              title: reason,
-              onSelect: () => {
-                setDeleting(false);
-                onClose();
-                control.remove(overlay.id);
-              },
-            },
-          ]}
-        />
-      ) : null}
     </div>,
     layerContainer('popover'),
   );

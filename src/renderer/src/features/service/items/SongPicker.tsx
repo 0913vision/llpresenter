@@ -1,4 +1,11 @@
-import {useEffect, useId, useState, type JSX, type KeyboardEvent} from 'react';
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type JSX,
+  type KeyboardEvent,
+} from 'react';
 import type {LibrarySong} from '@core/schema/contentDocuments';
 import type {SongId} from '@core/schema/ids';
 import {LIBRARY_SEARCH_LIMITS} from '@core/schema/librarySearch';
@@ -8,6 +15,7 @@ import {TextField} from '@renderer/ui/TextField';
 import {isComposing} from '@renderer/ui/ime';
 import {hasModifier} from '@renderer/ui/modifierKeys';
 import styles from './SongPicker.module.css';
+import {useReflow} from '@renderer/ui/useReflow';
 
 /** Chooses an existing library song for a service order. */
 export function SongPicker({
@@ -83,6 +91,13 @@ export function SongPicker({
     query.trim() === ''
       ? songs
       : songs.filter(song => matchingIds.has(song.id));
+  const listRoot = useRef<HTMLDivElement>(null);
+  useReflow(listRoot, {
+    ids: shown.map(song => song.id),
+    selector: '[role="option"][data-value]',
+    attribute: 'data-value',
+    scope: query,
+  });
   const choice =
     shown.find(song => song.id === selected) ??
     (query.trim() === '' ? undefined : shown.at(0));
@@ -127,7 +142,7 @@ export function SongPicker({
         },
       }}
     >
-      <div className={styles.content}>
+      <div ref={listRoot} className={styles.content}>
         <TextField
           aria-label="곡 검색"
           role="combobox"

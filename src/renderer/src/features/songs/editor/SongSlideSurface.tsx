@@ -1,5 +1,6 @@
 import {isUnchangedSelectionMove} from '@core/common/selectionOrder';
 import {useSelectionDelete} from '@renderer/ui/useSelectionDelete';
+import {useReflow} from '@renderer/ui/useReflow';
 import {selectionLabel, selectionDragImage} from '@renderer/ui/selectionDrag';
 import {
   useEffect,
@@ -39,7 +40,6 @@ export function SongSlideSurface<T extends SlideListItem>({
   className,
   onBack,
   store,
-  report,
   onEdit,
   onHotKey,
   extraMenu,
@@ -135,10 +135,13 @@ export function SongSlideSurface<T extends SlideListItem>({
   const [labelAnchor, setLabelAnchor] = useState<HTMLElement | null>(null);
   const labelAfterMenu = useMenuHandoff(menu !== null, setLabelAnchor);
   const surfaceRef = useRef<HTMLDivElement>(null);
-  const deletion = useSelectionDelete(notice => {
-    if (report !== undefined) report(notice);
-    else store?.reportNotice(notice);
+  useReflow(surfaceRef, {
+    ids: view.slides.map(slide => slide.id),
+    selector: '[data-song-slide]',
+    attribute: 'data-song-slide',
+    scope: session.slideDocumentId,
   });
+  const deletion = useSelectionDelete();
   const releaseDrag = useRef<(() => void) | undefined>(undefined);
   useEffect(() => () => releaseDrag.current?.(), []);
   const dragClick = useDragClickGuard();

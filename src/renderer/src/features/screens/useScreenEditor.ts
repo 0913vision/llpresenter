@@ -85,8 +85,11 @@ export function useScreenEditor(
     rename: (screenId: string, name: string) =>
       editor.current?.rename(screenId, name) ??
       Promise.resolve({ok: true, value: false} as const),
-    remove: (screenId: string): Promise<boolean> =>
-      editor.current?.remove(screenId) ?? Promise.resolve(false),
+    remove: (
+      screenId: string,
+      onApplied?: (revision: number) => void,
+    ): Promise<boolean> =>
+      editor.current?.remove(screenId, onApplied) ?? Promise.resolve(false),
     change: (screenId: string, change: ScreenChange): void =>
       run(current => current.change(screenId, change)),
     assign: (screenId: string, monitor: MonitorInfo): void =>

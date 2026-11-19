@@ -383,7 +383,6 @@ describe('slide row editing surface', () => {
       expect(rows()).toHaveLength(5);
       keys('a', {ctrlKey: true});
       keys('Delete');
-      fireEvent.click(screen.getByRole('button', {name: '삭제'}));
       expect(rows()).toHaveLength(0);
       expect(document.activeElement).toBe(screen.getByRole('group'));
       keys('z', {ctrlKey: true});
@@ -391,7 +390,7 @@ describe('slide row editing surface', () => {
     },
   );
 
-  it('reports a stale group deletion to the slides session notification channel', () => {
+  it('deletes a group immediately without a notice', () => {
     const draft = makeDraft();
     const report = vi.fn();
     const session = new SlidesListSession(draft, {
@@ -403,16 +402,9 @@ describe('slide row editing surface', () => {
     fireEvent.click(row(1));
     fireEvent.click(row(3), {ctrlKey: true});
     keys('Delete');
-    expect(screen.getByRole('alertdialog')).toBeDefined();
-    act(() => session.selectSlides({type: 'clear'}));
-    fireEvent.click(screen.getByRole('button', {name: '삭제'}));
-    expect(rows()).toHaveLength(4);
-    expect(report).toHaveBeenCalledExactlyOnceWith(
-      expect.objectContaining({
-        key: 'selection-delete:stale',
-        kind: 'info',
-      }),
-    );
+    expect(screen.queryByRole('alertdialog')).toBeNull();
+    expect(rows()).toHaveLength(2);
+    expect(report).not.toHaveBeenCalled();
   });
 
   it.each(['list', 'grid'] as const)(
@@ -492,7 +484,6 @@ describe('slide row editing surface', () => {
     expect(rows()).toHaveLength(6);
     expect(selected()).toEqual([row(4), row(5)]);
     keys('Delete');
-    fireEvent.click(screen.getByRole('button', {name: '삭제'}));
     expect(rows()).toHaveLength(4);
   });
 

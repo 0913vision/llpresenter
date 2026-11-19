@@ -1,6 +1,5 @@
 import {useSelectionDelete} from '@renderer/ui/useSelectionDelete';
 import {selectionLabel} from '@renderer/ui/selectionDrag';
-import type {Notice} from '@renderer/ui/notices';
 import {
   useCallback,
   useEffect,
@@ -38,13 +37,12 @@ import styles from './Themes.module.css';
 export function useThemeSurfaces(
   model: ThemeModel,
   liveId: string | undefined,
-  report: ((notice: Notice) => void) | undefined,
 ) {
   const [menu, setMenu] = useState<{
     id: string | null;
     anchor: MenuAnchor;
   } | null>(null);
-  const deletion = useSelectionDelete(notice => report?.(notice));
+  const deletion = useSelectionDelete();
   const current = useRef(model);
   useLayoutEffect(() => {
     current.current = model;

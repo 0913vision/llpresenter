@@ -77,7 +77,7 @@ export function useThemeWrites(
 
   const reason = document?.access !== 'editable' ? THEME_READ_ONLY : undefined;
 
-  const change = async (
+  const rawChange = async (
     transform: (value: ThemesFile) => ThemeEditResult,
     completion: 'applied' | 'saved' = 'applied',
   ) => {
@@ -87,6 +87,26 @@ export function useThemeWrites(
     return editor.current.change(transform, completion);
   };
 
+  const drafts = useThemeDraft({saved, reason, change: rawChange, report});
+  const change = async (
+    transform: (value: ThemesFile) => ThemeEditResult,
+    completion: 'applied' | 'saved' = 'applied',
+  ) => {
+    let before: ThemesFile | undefined;
+    let after: ThemesFile | undefined;
+    const result = await rawChange(file => {
+      const transformed = transform(file);
+      if (transformed.ok) {
+        before = file;
+        after = transformed.value;
+      }
+      return transformed;
+    }, completion);
+    if (mounted.current && result.ok && result.value && before && after) {
+      drafts.recordSaved(before, after);
+    }
+    return result;
+  };
   const apply = (
     transform: (value: ThemesFile) => ThemeEditResult,
     completed?: (saved: boolean) => void,
@@ -102,7 +122,6 @@ export function useThemeWrites(
         completed?.(false);
       });
   };
-  const drafts = useThemeDraft({saved, reason, change, report});
   return {
     ...drafts,
     saved,

@@ -1,4 +1,4 @@
-import {useState, type JSX} from 'react';
+import {useRef, useState, type JSX} from 'react';
 import type {Macro} from '@core/schema/macros';
 import type {Notice} from '@renderer/ui/notices';
 import {MacroView} from './MacroView';
@@ -16,7 +16,8 @@ export function MacroPanel({
   readonly lastRunId?: Macro['id'] | undefined;
   readonly onProblem?: ((notice: Notice) => void) | undefined;
 }): JSX.Element {
-  const model = useMacroPanel({onProblem});
+  const root = useRef<HTMLDivElement>(null);
+  const model = useMacroPanel({onProblem, root});
   const {
     macros,
     collections,
@@ -43,7 +44,7 @@ export function MacroPanel({
   const [paletteDragging, setPaletteDragging] = useState(false);
   return (
     <>
-      <div className={styles.panel}>
+      <div className={styles.panel} ref={root}>
         <MacroView
           macros={macros}
           collections={collections}
@@ -63,6 +64,7 @@ export function MacroPanel({
           onNew={create}
           newDisabledReason={newDisabledReason}
           onDuplicate={item => menuHandlers(item).duplicate()}
+          onDelete={item => menuHandlers(item).remove()}
           duplicateReason={macroDuplicateReason({
             locked,
             lockReason,

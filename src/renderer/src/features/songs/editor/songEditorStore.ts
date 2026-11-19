@@ -258,8 +258,11 @@ export class SongEditorStore {
     return true;
   }
 
-  updateLabels(labels: readonly Label[]): Promise<boolean> {
-    return this.sharedEdits.updateLabels(labels);
+  updateLabels(
+    labels: readonly Label[],
+    onApplied?: (revision: number) => void,
+  ): Promise<boolean> {
+    return this.sharedEdits.updateLabels(labels, onApplied);
   }
 
   /** The authoritative catalog, excluding colors still being previewed. */

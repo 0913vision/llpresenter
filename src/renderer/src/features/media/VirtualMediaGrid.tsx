@@ -14,6 +14,7 @@ import {isComposing} from '@renderer/ui/ime';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import styles from './MediaView.module.css';
 import {mediaGridLayout} from './mediaGridLayout';
+import {useReflow} from '@renderer/ui/useReflow';
 
 /** The rows mounted beyond the visible ones, above and below. */
 export const OVERSCAN_ROWS = 1;
@@ -100,6 +101,7 @@ export interface VirtualMediaGridProps {
   /** The list name for assistive technology, such as 모든 미디어. */
   readonly label: string;
   readonly count: number;
+  readonly ids?: readonly string[] | undefined;
   readonly columns: number;
   readonly view?: 'grid' | 'list';
   /** Automatic size may add columns so a whole tile fits the viewport. */
@@ -125,6 +127,7 @@ export interface VirtualMediaGridProps {
 export function VirtualMediaGrid({
   label,
   count,
+  ids = [],
   columns: requestedColumns,
   view = 'grid',
   fitHeight = false,
@@ -168,6 +171,21 @@ export function VirtualMediaGrid({
     count,
     (firstRow + visible + OVERSCAN_ROWS * 2) * columns,
   );
+  useLayoutEffect(() => {
+    viewport.current
+      ?.querySelectorAll<HTMLElement>(OPTION)
+      .forEach((option, local) => {
+        const id = ids[start + local];
+        if (id === undefined) option.removeAttribute('data-reflow-id');
+        else option.setAttribute('data-reflow-id', id);
+      });
+  });
+  useReflow(viewport, {
+    ids,
+    selector: '[data-reflow-id]',
+    attribute: 'data-reflow-id',
+    scope: label,
+  });
   useLayoutEffect(() => {
     const node = viewport.current;
     if (node !== null && selected !== undefined) {
