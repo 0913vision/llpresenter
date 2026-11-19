@@ -376,12 +376,11 @@ function VersePicture({
   const appearance = projection?.appearance;
   const layer = slideLayerOf({itemId, index}, () => verses);
   if (layer?.sermonTitle === true && sermonTheme !== undefined) {
-    return <SlidePicture output {...sermonTheme} slide={layer} />;
+    return <SlidePicture {...sermonTheme} slide={layer} />;
   }
   if (appearance === undefined || layer === null) return null;
   return (
     <SlidePicture
-      output
       screen={appearance.screen}
       themeId={appearance.theme.themeId}
       background={appearance.background}

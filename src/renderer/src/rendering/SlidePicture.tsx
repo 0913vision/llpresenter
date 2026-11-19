@@ -28,13 +28,12 @@ export function SlidePicture({
   readonly emptyColor?: string;
   readonly item?: LiveThemeItem | null;
   readonly background?: string | undefined;
-  readonly output?: boolean;
   readonly themeId?: ThemeId | undefined;
   readonly screen?: RenderScreen | undefined;
   readonly sourceScreenId?: ScreenId | undefined;
   readonly songSource?: SongSlideSource | undefined;
   readonly mediaOnly?: boolean | undefined;
-  /** Output pictures only: drawn through the picture service. */
+  /** Controls when the shared cached picture is shown. */
   readonly drawn?: 'wait' | 'place' | undefined;
   readonly editing?: boolean | undefined;
 }): JSX.Element {

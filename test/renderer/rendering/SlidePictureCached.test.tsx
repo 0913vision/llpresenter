@@ -6,13 +6,11 @@ vi.mock('@renderer/rendering/OutputSlidePicture', () => ({
   OutputSlidePicture: () => <div data-testid="cached-output-picture" />,
 }));
 
-it('uses the shared output picture regardless of the former output flag', () => {
+it('uses the shared output picture for slides', () => {
   const props = {
     slide: {itemId: 'song', position: 0, label: null, lines: ['Words']},
     layout: {mode: {kind: 'own' as const}, elements: []},
   };
-  const view = render(<SlidePicture {...props} />);
-  expect(screen.getByTestId('cached-output-picture')).toBeTruthy();
-  view.rerender(<SlidePicture {...props} output={false} />);
+  render(<SlidePicture {...props} />);
   expect(screen.getByTestId('cached-output-picture')).toBeTruthy();
 });
