@@ -5,6 +5,7 @@ import {parsePictureRequest} from '@core/schema/picture';
 import {fontsLoading, previewReady} from '../rendering/fontsLoading';
 import {OutputRenderer} from '../rendering/outputRenderer';
 import {openPreviewMedia} from '../rendering/previewMedia';
+import {drawPicture} from '../rendering/pictures/drawPicture';
 
 /** Installs the drawing entry point in the isolated painter page. */
 export function startPainter(root: HTMLElement): void {
@@ -36,16 +37,7 @@ export function startPainter(root: HTMLElement): void {
     }
     const renderer = source;
     try {
-      root.style.background = transparent
-        ? 'transparent'
-        : appearance.background;
-      renderer.render(layers, {
-        screen: appearance.screen,
-        theme: appearance.theme,
-        transitions: false,
-        standby: true,
-        ...(layers.slide === null ? {} : {slide: layers.slide}),
-      });
+      drawPicture(renderer, root, {layers, appearance});
       await new Promise<void>((resolve, reject) => {
         let frame = 0;
         const timeout = setTimeout(() => {

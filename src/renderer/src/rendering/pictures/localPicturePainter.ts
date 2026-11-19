@@ -5,6 +5,7 @@ import {fontsLoading, previewReady} from '../fontsLoading';
 import {OutputRenderer} from '../outputRenderer';
 import {openPreviewMedia} from '../previewMedia';
 import type {PictureSpec} from './pictureService';
+import {drawPicture} from './drawPicture';
 
 interface ElementCanvasContext extends CanvasRenderingContext2D {
   drawElementImage(element: HTMLElement, x: number, y: number): DOMMatrix;
@@ -98,16 +99,7 @@ export class LocalPicturePainter {
       });
       this.transparent = transparent;
     }
-    this.host.style.background = transparent
-      ? 'transparent'
-      : appearance.background;
-    this.renderer.render(layers, {
-      screen: appearance.screen,
-      theme: appearance.theme,
-      transitions: false,
-      standby: true,
-      ...(layers.slide === null ? {} : {slide: layers.slide}),
-    });
+    drawPicture(this.renderer, this.host, {layers, appearance});
     return this.renderer;
   }
 
