@@ -14,7 +14,6 @@ import {themeMediaAudible, themeOverlayAudio} from '@core/themes/audio';
 import {themeOverlay} from '@core/themes/content';
 
 const mediaId = createMediaId('00000000-0000-4000-8000-000000000701');
-const audienceScreens = new Set<string>([THEME_MAIN]);
 function fixture(): LiveState {
   const file = themeFile();
   const theme = file.themes[0];
@@ -90,15 +89,12 @@ describe('theme sound selection', () => {
     expect(
       themeOverlayAudio({...state, outputs: {[THEME_CAPTURE]: true}})?.mediaId,
     ).toBe(mediaId);
-    expect(themeMediaAudible(state, audienceScreens)).toBe(true);
+    expect(themeMediaAudible(state)).toBe(false);
     expect(
-      themeMediaAudible(
-        {
-          ...state,
-          themeItem: {id: 'media', kind: 'media', source: 'external'},
-        },
-        audienceScreens,
-      ),
+      themeMediaAudible({
+        ...state,
+        themeItem: {id: 'media', kind: 'media', source: 'external'},
+      }),
     ).toBe(false);
   });
 
@@ -130,13 +126,11 @@ describe('theme sound selection', () => {
     expect(
       themeOverlayAudio({...state, themeItem: {...item, contentCleared: true}}),
     ).toBeNull();
-    expect(themeMediaAudible({...state, outputs: {}}, audienceScreens)).toBe(
-      false,
-    );
+    expect(themeMediaAudible({...state, outputs: {}})).toBe(false);
   });
 
-  it.each([THEME_STAGE, THEME_CAPTURE])(
-    'does not play an item background when only non-audience screen %s is on',
+  it.each([THEME_MAIN, THEME_STAGE, THEME_CAPTURE])(
+    'never plays an item background on screen %s',
     id => {
       const state = fixture();
       const output = state.themeOutput;
@@ -147,13 +141,7 @@ describe('theme sound selection', () => {
         outputs: {[id]: true},
         themeOutput: {...output, screens: {...output.screens, [id]: layout}},
       };
-      expect(themeMediaAudible(custom, audienceScreens)).toBe(false);
-      expect(
-        themeMediaAudible(
-          {...custom, outputs: {[THEME_MAIN]: true}},
-          audienceScreens,
-        ),
-      ).toBe(true);
+      expect(themeMediaAudible(custom)).toBe(false);
     },
   );
 
@@ -176,19 +164,28 @@ describe('theme sound selection', () => {
         ],
       },
     };
+    const mediaItem: LiveState = {
+      ...state,
+      themeItem: {id: 'media', kind: 'media', source: 'service'},
+      outputs: {[THEME_STAGE]: true},
+      layers: {
+        ...state.layers,
+        media: {mediaId, itemId: 'media', loop: true, startedAt: 1000},
+      },
+      themeOutput: {
+        ...output,
+        screens: {...output.screens, [THEME_STAGE]: screen},
+      },
+    };
+    expect(themeMediaAudible(mediaItem)).toBe(true);
     expect(
-      themeMediaAudible(
-        {
-          ...state,
-          themeItem: {id: 'media', kind: 'media', source: 'external'},
-          outputs: {[THEME_STAGE]: true},
-          themeOutput: {
-            ...output,
-            screens: {...output.screens, [THEME_STAGE]: screen},
-          },
+      themeMediaAudible({
+        ...mediaItem,
+        layers: {
+          ...mediaItem.layers,
+          media: {mediaId, loop: true, startedAt: 1001},
         },
-        audienceScreens,
-      ),
-    ).toBe(true);
+      }),
+    ).toBe(false);
   });
 });

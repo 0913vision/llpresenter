@@ -90,6 +90,7 @@ function setup() {
   });
   const state: LiveState = {
     ...emptyLiveState(),
+    themeItem: {id: 'media', kind: 'media', source: 'external'},
     themeOutput: {
       themeId: createThemeId('00000000-0000-4000-8000-000000000005'),
       missing: [],

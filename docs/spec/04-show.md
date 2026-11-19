@@ -551,9 +551,8 @@ panel past the resizable border or disappears below that border.
 - 반복 is saved with the playlist (`audioPlaylists[].loop`, 02).
 - 페이드 아웃 lowers the sound over 3 seconds and then stops (proposal).
 - Volume changes live while the operator drags. It applies only to the audio
-  layer, not to the sound of background videos (proposal). The range is 0 to
-  100, it starts at 100 at launch, and it isn't saved: it's part of the output
-  state (proposal).
+  layer. Background videos are always muted. The range is 0 to 100, it starts at
+  100 at launch, and it isn't saved: it's part of the output state (proposal).
 - Sound plays on the Windows default output device (proposal).
 - The audio clear (F5) stops playback (see 03).
 

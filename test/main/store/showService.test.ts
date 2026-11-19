@@ -753,7 +753,12 @@ describe('buildShowService media items', () => {
       {kind: 'media', id: itemId(1), title: '광고 배경'},
     ]);
     expect(show.tiles[itemId(1)]).toEqual([
-      {label: null, labelColor: 'none', lines: ['광고 배경'], media: choice},
+      {
+        label: null,
+        labelColor: 'none',
+        lines: ['광고 배경'],
+        media: {...choice, itemId: itemId(1)},
+      },
     ]);
   });
 
