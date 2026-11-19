@@ -5,7 +5,8 @@ import {
   useSyncExternalStore,
   type JSX,
 } from 'react';
-import type {RecentPassage} from '@core/schema/bible';
+import type {RecentPassage, Translation} from '@core/schema/bible';
+import type {TranslationId} from '@core/schema/ids';
 import {recentPassages} from '@core/bible/bibleRecents';
 import {displayReference} from '@core/bible/displayReference';
 import {commandBindings} from '@core/shortcuts/bindings';
@@ -19,11 +20,15 @@ import styles from './RecentPassages.module.css';
 /** Shared recent-passage list. The caller owns lookup and the next step. */
 export function RecentPassages({
   recents,
+  translations,
+  translation,
   onPick,
   scope = 'show',
   disabled = false,
 }: {
   readonly recents: readonly RecentPassage[];
+  readonly translations: readonly Translation[];
+  readonly translation: TranslationId | undefined;
   readonly onPick: (passage: RecentPassage) => void;
   readonly scope?: 'show' | 'dialog';
   readonly disabled?: boolean;
@@ -92,6 +97,19 @@ export function RecentPassages({
     <div ref={root} className={styles.recents} aria-label="최근 성경 구절">
       {Array.from({length: 10}, (_, index) => {
         const recent = entries[index];
+        const otherTranslation = recent && recent.translation !== translation;
+        const entry = translations.find(
+          item => item.id === recent?.translation,
+        );
+        const name = entry?.name ?? recent?.translation;
+        const ambiguous =
+          entry &&
+          translations.some(
+            item => item.id !== entry.id && item.name === entry.name,
+          );
+        const translationName = ambiguous
+          ? `${name} (${recent?.translation})`
+          : name;
         const binding = commandBindings(
           `bible.recent${index + 1}`,
           bindings,
@@ -109,6 +127,9 @@ export function RecentPassages({
                 <span className={styles.ref}>
                   {displayReference(recent.ref)}
                 </span>
+                {otherTranslation ? (
+                  <span className={styles.translation}>{translationName}</span>
+                ) : null}
                 {binding ? (
                   <span className={styles.keys}>
                     {shortcutNames(binding).join('+')}
