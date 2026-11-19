@@ -25,6 +25,7 @@ import {parseLiveCommand} from '@core/schema/liveCommand';
 import * as bibleRendering from '@renderer/rendering/bibleMeasure';
 import type {Notice} from '@renderer/ui/notices';
 import {BibleSplitTools} from '@renderer/features/bible/BibleSplitTools';
+import {bibleRefinements} from '@renderer/features/bible/BibleRefinements';
 import {BibleQuickField} from '@renderer/features/quick/BibleQuickField';
 import {QuickPanel} from '@renderer/features/quick/QuickPanel';
 import {BiblePanel} from '@renderer/features/presentation/BiblePanel';
@@ -359,11 +360,12 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
         },
       });
       f.documents.set('timers', settingsDocument('timers', {timers: []}));
-      vi.spyOn(api.bible, 'getLlmStatus').mockResolvedValue({
+      const status = vi.spyOn(api.bible, 'getLlmStatus').mockResolvedValue({
         status: 'ready',
         available: true,
         reason: '',
       });
+      const subscribe = vi.spyOn(api.bible, 'onLlmStatus');
       const chooser = vi
         .spyOn(api.bible, 'chooseBoundary')
         .mockResolvedValue(0);
@@ -395,28 +397,25 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
           item.focus();
           await userEvent.setup().keyboard('{Enter}');
         }
-        await waitFor(() => expect(f.send).toHaveBeenCalled());
-        const panel = screen.getByRole('region', {name: '성경'});
-        await within(panel).findByText('AI 켜짐');
+        await waitFor(() => {
+          const source = useShow.getState().bibleSource;
+          expect(source?.passage.ref).toBe(range.ref);
+          expect(lastLiveCommand(f.send.mock.calls.at(-1)?.[0])).toMatchObject({
+            type: 'slide.show',
+            slide: {itemId: source?.id, position: 0},
+          });
+        });
+        const panel = await screen.findByRole('region', {name: '성경'});
         expect(
           within(panel).getByRole('checkbox', {name: '역본 이름'}),
         ).toBeDefined();
+        expect(within(panel).queryByText('AI 켜짐')).toBeNull();
         expect(screen.queryByRole('dialog')).toBeNull();
+        expect(status).not.toHaveBeenCalled();
+        expect(subscribe).not.toHaveBeenCalled();
         expect(chooser).not.toHaveBeenCalled();
         expect(opened.length).toBeGreaterThan(0);
         expect(opened.every(review => review === false)).toBe(true);
-        expect(lastLiveCommand(f.send.mock.calls.at(-1)?.[0])).toMatchObject({
-          type: 'slide.show',
-          slide: {position: 0},
-        });
-        await act(async () => openBiblePassage(range, {verseNumbers: false}));
-        await waitFor(() => expect(chooser).toHaveBeenCalled());
-        expect(
-          chooser.mock.calls.every(
-            ([request]) => request.candidates.length > 1,
-          ),
-        ).toBe(true);
-        expect(screen.queryByRole('dialog')).toBeNull();
       } finally {
         stop();
         view.unmount();
@@ -428,7 +427,7 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
     const f = setup();
     const api = window.llp;
     if (api === undefined) throw Error('Missing API');
-    vi.spyOn(api.bible, 'getLlmStatus').mockResolvedValue({
+    const status = vi.spyOn(api.bible, 'getLlmStatus').mockResolvedValue({
       status: 'ready',
       available: true,
       reason: '',
@@ -463,58 +462,103 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
     );
     await waitFor(() => expect(f.send).toHaveBeenCalled());
     expect(useShow.getState().bibleSource?.review).toBe(false);
+    expect(status).not.toHaveBeenCalled();
     expect(chooser).not.toHaveBeenCalled();
     expect(screen.queryByRole('dialog')).toBeNull();
     view.unmount();
   });
-  it('does not open review in show when AI refinement finishes', async () => {
+  it('keeps the rule-based Show tiles when an unconfirmed AI suggestion arrives', async () => {
     vi.spyOn(bibleRendering, 'bibleMeasure').mockReturnValue(mockSplitLayout());
     setup();
     const api = window.llp;
     if (api === undefined) throw Error('Missing API');
-    vi.spyOn(api.bible, 'getLlmStatus').mockResolvedValue({
+    const status = vi.spyOn(api.bible, 'getLlmStatus').mockResolvedValue({
       status: 'ready',
       available: true,
       reason: '',
     });
     const chooser = vi.spyOn(api.bible, 'chooseBoundary').mockResolvedValue(0);
     openBiblePassage(passage, {verseNumbers: false});
-    const view = render(<BibleSplitTools onProblem={vi.fn()} />);
-    await waitFor(() => expect(chooser).toHaveBeenCalled());
-    expect(screen.queryByRole('dialog', {name: '? ???'})).toBeNull();
+    const id = useShow.getState().openItemId;
+    if (id === null) throw Error('Missing Bible source');
+    const view = render(
+      <>
+        <BibleSplitTools onProblem={vi.fn()} />
+        <BiblePanel sizeClass="normal" />
+      </>,
+    );
+    await waitFor(() =>
+      expect(tilesOf(id).length).toBeGreaterThan(passage.verses.length),
+    );
+    const tiles = tilesOf(id);
+    const element = previewSpec(
+      screen.getAllByRole('option')[0],
+    )?.appearance.theme.layout.elements.find(
+      element => element.kind === 'currentText',
+    );
+    const verse = passage.verses[1];
+    if (element === undefined || verse === undefined) {
+      throw Error('Missing verse or preview element');
+    }
+    act(() =>
+      bibleRefinements.put(
+        {
+          reference: {
+            translation: passage.translation,
+            book: 43,
+            chapter: verse.chapter,
+            verse: verse.verse,
+          },
+          text: verse.text,
+        },
+        element,
+        {prefix: '', cuts: [1]},
+      ),
+    );
+    expect(tilesOf(id)).toEqual(tiles);
+    expect(status).not.toHaveBeenCalled();
+    expect(chooser).not.toHaveBeenCalled();
+    expect(screen.queryByRole('dialog')).toBeNull();
     view.unmount();
   });
 
-  it('refines without automatic review, and manual editing reuses the current cuts without AI', async () => {
-    vi.spyOn(bibleRendering, 'bibleMeasure').mockReturnValue(mockSplitLayout());
-    setup();
+  it('opens manual review on the rule-based parts without requesting AI', async () => {
+    const layout = mockSplitLayout();
+    vi.spyOn(bibleRendering, 'bibleMeasure').mockReturnValue(layout);
+    const {edit} = setup();
     const api = window.llp;
     if (api === undefined) throw Error('Missing API');
     vi.spyOn(api.preferences, 'get').mockResolvedValue({
       ...defaultPreferences,
       bible: {...defaultPreferences.bible, splitEditorAutoOpen: false},
     });
-    vi.spyOn(api.bible, 'getLlmStatus').mockResolvedValue({
+    const status = vi.spyOn(api.bible, 'getLlmStatus').mockResolvedValue({
       status: 'ready',
       available: true,
       reason: '',
     });
     const chooser = vi.spyOn(api.bible, 'chooseBoundary').mockResolvedValue(0);
+    const text = MOCK_LONG_VERSE.replace('작은', '밝은');
     openBiblePassage({
       ...passage,
-      verses: [
-        {chapter: 3, verse: 16, text: MOCK_LONG_VERSE.replace('작은', '밝은')},
-      ],
+      verses: [{chapter: 3, verse: 16, text}],
     });
+    const id = useShow.getState().openItemId;
+    if (id === null) throw Error('Missing Bible source');
     const view = render(<BibleSplitTools enableManual onProblem={vi.fn()} />);
-    await waitFor(() => expect(chooser).toHaveBeenCalled());
+    const expected = splitVerse(text, layout).chunks.map(chunk => chunk.lines);
+    await waitFor(() =>
+      expect(tilesOf(id).map(tile => tile.lines)).toEqual(expected),
+    );
     expect(screen.queryByRole('dialog')).toBeNull();
-    const before = chooser.mock.calls.length;
     await act(async () =>
       fireEvent.keyDown(document.body, {key: 'e', code: 'KeyE', ctrlKey: true}),
     );
     await screen.findByRole('dialog', {name: '절 나누기'});
-    expect(chooser.mock.calls.length).toBe(before);
+    expect(tilesOf(id).map(tile => tile.lines)).toEqual(expected);
+    expect(status).not.toHaveBeenCalled();
+    expect(chooser).not.toHaveBeenCalled();
+    expect(edit).not.toHaveBeenCalled();
     view.unmount();
   });
   it.each([false, true])(

@@ -177,8 +177,9 @@ export function ContinuousSlideGrid({
   const initialized = useRef(false);
   const slide = useLive(view => view.state?.layers.slide ?? null);
   const view = useShow();
-  const {themes, screens, projections, refinementRevision} =
-    useBibleProjections({enabled: view.rows.length > 0});
+  const {themes, screens, projections} = useBibleProjections({
+    enabled: view.rows.length > 0,
+  });
   const projected = projectedLiveCursor(view, slide);
   const cursorItem = projected?.itemId;
   const cursorIndex = projected?.index;
@@ -487,10 +488,7 @@ export function ContinuousSlideGrid({
         )
         .map(section => {
           const source = splitSourceFor(view, section.row.id);
-          const bible =
-            source === null
-              ? null
-              : projections?.get(source, refinementRevision);
+          const bible = source === null ? null : projections?.get(source);
           const first = Math.max(
             0,
             Math.floor((metrics.top - section.top - BAND) / stride) - 1,

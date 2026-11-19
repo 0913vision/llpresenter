@@ -1,11 +1,10 @@
-import {useEffect, useMemo, useState, useSyncExternalStore} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {createBibleMeasureContext} from '@renderer/rendering/bibleMeasure';
 import {useShow} from '@renderer/session/show';
 import type {Notice} from '@renderer/ui/notices';
 import {BibleProjections, splitSourceFor} from './splitProjection';
 import {useBibleDisplayDefaults} from './useBibleDisplayDefaults';
-import {bibleRefinements} from './BibleRefinements';
 
 /** Shares the output measurement rules and follows settings, fonts and unsaved cuts. */
 export function useBibleProjections({
@@ -26,10 +25,6 @@ export function useBibleProjections({
   );
   const slideBibleDefaults = useBibleDisplayDefaults(
     hasSlideVerses ? window.llp?.preferences : undefined,
-  );
-  const refinementRevision = useSyncExternalStore(
-    bibleRefinements.subscribe,
-    bibleRefinements.getSnapshot,
   );
   const themes = useSettingsDocument(
     enabled ? 'themes' : null,
@@ -80,7 +75,7 @@ export function useBibleProjections({
           }),
     [themes, screens, saved, measurement, slideBibleDefaults],
   );
-  return {projections, themes, screens, saved, refinementRevision};
+  return {projections, themes, screens, saved};
 }
 
 /** Reads a measured item for thumbnails without starting a refinement or review. */
@@ -100,7 +95,7 @@ export function useBibleTileProjection({
       (serviceId === undefined || serviceId === view.serviceId) &&
       splitSourceFor(view, itemId) !== null,
   );
-  const {projections, refinementRevision} = useBibleProjections({enabled});
+  const {projections} = useBibleProjections({enabled});
   return useShow(view => {
     if (
       !enabled ||
@@ -112,6 +107,6 @@ export function useBibleTileProjection({
       return null;
     }
     const source = splitSourceFor(view, itemId);
-    return source === null ? null : projections.get(source, refinementRevision);
+    return source === null ? null : projections.get(source);
   });
 }

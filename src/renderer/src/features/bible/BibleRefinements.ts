@@ -16,16 +16,9 @@ export const verseKey = (reference: VerseInput['reference']): string =>
 
 const CACHE_LIMIT = 256;
 
-/** Bounded, unsaved AI cuts shared by projections in this window. */
+/** Bounded, unsaved suggestions from Bible refinement runs. */
 export class BibleRefinements {
   private readonly cuts = new Map<string, readonly number[]>();
-  private readonly listeners = new Set<() => void>();
-  private revision = 0;
-  readonly getSnapshot = (): number => this.revision;
-  readonly subscribe = (listener: () => void): (() => void) => {
-    this.listeners.add(listener);
-    return () => this.listeners.delete(listener);
-  };
   private key(
     verse: VerseInput,
     element: BibleTextElement,
@@ -56,8 +49,6 @@ export class BibleRefinements {
       if (oldest !== undefined) this.cuts.delete(oldest);
     }
     this.cuts.set(key, [...cuts]);
-    this.revision++;
-    for (const listener of this.listeners) listener();
   }
 }
 

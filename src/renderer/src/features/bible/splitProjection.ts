@@ -31,7 +31,6 @@ import {bibleSourceFor} from '@renderer/session/showLibrary';
 import type {ShowView} from '@renderer/session/showStore';
 import {projectSlidesBible} from './projectSlidesBible';
 import type {RenderScreen, ThemeFrame} from '@renderer/rendering/layer';
-import {bibleRefinements} from './BibleRefinements';
 
 export interface SplitAppearance {
   readonly background?: string | undefined;
@@ -66,9 +65,6 @@ export function sourceContent(source: SplitSource): object {
 }
 
 export interface ProjectionLayout {
-  readonly refined?:
-    | ((verse: VerseInput, prefix: string) => readonly number[] | undefined)
-    | undefined;
   readonly element: BibleTextElement;
   readonly layout: SplitLayout;
   readonly saved?: BibleCutsFile | undefined;
@@ -176,10 +172,10 @@ export function splitSourceFor(
 
 export function projectBible(
   source: SplitSource,
-  {element, layout, saved, refined}: ProjectionLayout,
+  {element, layout, saved}: ProjectionLayout,
 ): BibleProjection | null {
   if (source.kind === 'slides') {
-    return projectSlidesBible(source, {element, layout, saved, refined});
+    return projectSlidesBible(source, {element, layout, saved});
   }
   const book = passageBook(source.passage);
   if (book === undefined) return null;
@@ -213,7 +209,6 @@ export function projectBible(
     const next = splitVerseParts(verse, layout, {
       saved,
       prefix,
-      refined: refined?.(verse, prefix),
     });
     if (
       parts.length + next.length + (source.sermonTitle === undefined ? 0 : 2) >
@@ -294,7 +289,6 @@ export function projectBible(
 /** Owns only a bounded cache of derived projections; changing settings replaces it. */
 export class BibleProjections {
   private readonly cache = new Map<string, BibleProjection>();
-  private refinementRevision = bibleRefinements.getSnapshot();
   constructor(
     private readonly context: {
       readonly themes: ThemesFile | null;
@@ -305,10 +299,7 @@ export class BibleProjections {
     },
   ) {}
 
-  get(
-    source: SplitSource,
-    revision = bibleRefinements.getSnapshot(),
-  ): BibleProjection | null {
+  get(source: SplitSource): BibleProjection | null {
     if (source.kind === 'slides' && this.context.slideBibleDefaults != null) {
       const defaults = this.context.slideBibleDefaults;
       source = {
@@ -317,10 +308,6 @@ export class BibleProjections {
         reference: defaults.reference ?? 'every',
         translationName: defaults.translationName ?? false,
       };
-    }
-    if (this.refinementRevision !== revision) {
-      this.refinementRevision = revision;
-      this.cache.clear();
     }
     const cached = this.cache.get(source.id);
     if (
@@ -362,10 +349,6 @@ export class BibleProjections {
       element,
       layout: bibleMeasure(element, this.context.canvas),
       saved: this.context.saved,
-      refined:
-        source.review === false
-          ? undefined
-          : (verse, prefix) => bibleRefinements.get(verse, element, prefix),
     });
     if (projected === null) return null;
     const projection: BibleProjection = {

@@ -7,8 +7,7 @@ import {parseBibleProjection} from '@core/schema/bibleProjection';
 /** Publish the same measured tiles for every saved Bible item in the open service. */
 export function BibleServiceProjection(): null {
   const view = useShow();
-  const {projections, themes, screens, saved, refinementRevision} =
-    useBibleProjections();
+  const {projections, themes, screens, saved} = useBibleProjections();
   const published = useRef(new Map<string, string>());
   const publishedService = useRef<string | null>(null);
   useEffect(() => {
@@ -33,7 +32,7 @@ export function BibleServiceProjection(): null {
       if (source?.kind !== 'bible' || source.source !== 'service') {
         continue;
       }
-      const projection = projections.get(source, refinementRevision);
+      const projection = projections.get(source);
       if (
         !projection ||
         projection.problem ||
@@ -59,6 +58,6 @@ export function BibleServiceProjection(): null {
       api.service.bibleProjection(parsed.value);
       published.current.set(row.id, signature);
     }
-  }, [view, projections, themes, screens, saved, refinementRevision]);
+  }, [view, projections, themes, screens, saved]);
   return null;
 }
