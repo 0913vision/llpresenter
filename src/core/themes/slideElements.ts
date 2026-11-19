@@ -3,6 +3,7 @@ import type {Screen} from '../schema/screens';
 import type {Theme} from '../schema/themes';
 import type {ThemeElementKind} from './elementRules';
 import {resolveThemeScreen} from './resolve';
+import {AD_THEME_ID} from './defaults';
 
 /** Lists content that cannot appear because the selected theme lacks its element. */
 export function missingSlideElements(
@@ -26,6 +27,15 @@ export function missingSlideElements(
   }
   return screens.flatMap(screen => {
     const {layout} = resolveThemeScreen(theme, screen.id, screens);
+    // NOTE(0913vision): The built-in ad theme intentionally leaves broadcast
+    // empty; that screen does not promise to show advertisement content.
+    if (
+      theme.id === AD_THEME_ID &&
+      screen.kind === 'broadcast' &&
+      layout.elements.length === 0
+    ) {
+      return [];
+    }
     const kinds = [...required].filter(
       kind => !layout.elements.some(element => element.kind === kind),
     );

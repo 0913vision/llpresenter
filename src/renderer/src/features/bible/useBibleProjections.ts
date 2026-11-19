@@ -41,6 +41,11 @@ export function useBibleProjections({
     '절 나누기',
     onProblem,
   );
+  const labels = useSettingsDocument(
+    enabled ? 'labels' : null,
+    '이름표',
+    onProblem,
+  );
   const [measurement, setMeasurement] = useState(() => ({
     enabled,
     canvas: enabled ? createBibleMeasureContext() : null,
@@ -72,8 +77,12 @@ export function useBibleProjections({
             saved: saved.value,
             canvas: measurement.canvas,
             slideBibleDefaults,
+            labelColors: new Map(
+              labels?.value.labels.map(label => [label.name, label.color]) ??
+                [],
+            ),
           }),
-    [themes, screens, saved, measurement, slideBibleDefaults],
+    [themes, screens, saved, labels, measurement, slideBibleDefaults],
   );
   return {projections, themes, screens, saved};
 }

@@ -26,7 +26,9 @@ import {
   slideCountOf,
   type EditorSlideItem,
 } from '@core/songs/blockEdits';
-import {PanelFooter} from '@renderer/ui/Panel';
+import {ItemEditorAddBar} from '@renderer/platform/ItemEditorAddBar';
+import {ItemEditorShell} from '@renderer/platform/ItemEditorShell';
+import {editorCapabilities} from '@renderer/platform/itemEditorAdapter';
 import {Button} from '@renderer/ui/Button';
 import {useSongBlockWindow} from './useSongBlockWindow';
 import {visibleGridInsertionPosition} from './gridInsertionPosition';
@@ -88,7 +90,37 @@ export function SongEditor({
   return (
     <section ref={root} aria-label="곡 편집" className={styles.editor}>
       {state.session === null ? null : (
-        <div key={state.session.document.song.id} className={styles.content}>
+        <ItemEditorShell
+          key={state.session.document.song.id}
+          as="div"
+          className={styles.content}
+          footer={
+            <ItemEditorAddBar
+              adapter={editorCapabilities('song')}
+              end={<SlideSurfaceView ui={ui} />}
+              count={
+                slideCountOf(state.session.history.snapshot.song) +
+                (leadingCard === undefined ? 0 : 1)
+              }
+              title={addCard}
+              slide={
+                <Button
+                  variant="ghost"
+                  icon="plus"
+                  disabled={
+                    state.busy ||
+                    state.session.readOnly ||
+                    state.session.history.snapshot.song.slides.length >=
+                      SONG_LIMITS.slides
+                  }
+                  onClick={() => state.session?.edit({type: 'insert'})}
+                >
+                  슬라이드 추가
+                </Button>
+              }
+            />
+          }
+        >
           <SongHeader
             store={store}
             session={state.session}
@@ -157,29 +189,7 @@ export function SongEditor({
               leadingCard={leadingCard}
             />
           </SongSlideSurface>
-          <PanelFooter
-            end={<SlideSurfaceView ui={ui} />}
-            count={
-              slideCountOf(state.session.history.snapshot.song) +
-              (leadingCard === undefined ? 0 : 1)
-            }
-          >
-            <Button
-              variant="ghost"
-              icon="plus"
-              disabled={
-                state.busy ||
-                state.session.readOnly ||
-                state.session.history.snapshot.song.slides.length >=
-                  SONG_LIMITS.slides
-              }
-              onClick={() => state.session?.edit({type: 'insert'})}
-            >
-              슬라이드 추가
-            </Button>
-            {addCard}
-          </PanelFooter>
-        </div>
+        </ItemEditorShell>
       )}
     </section>
   );

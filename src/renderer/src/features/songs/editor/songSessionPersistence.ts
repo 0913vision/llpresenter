@@ -11,6 +11,7 @@ export interface EditorSongDocument {
   readonly itemTarget?: NonNullable<SongEditorTarget['from']>;
   readonly itemTheme?: ThemeId;
   readonly itemCardTransition?: SlideTransition | null;
+  readonly itemCardLabel?: string | null;
   readonly song: Song;
   readonly revision: number;
   readonly access: 'editable' | 'readOnly';
@@ -24,6 +25,7 @@ export interface SongDraftCapture {
   readonly titleDraft: string | undefined;
   readonly background: MediaId | undefined;
   readonly itemCardTransition?: SlideTransition | null | undefined;
+  readonly itemCardLabel?: string | null | undefined;
 }
 
 /** Borrows the session's only history and drafts for its private writer. */
@@ -224,6 +226,9 @@ export class SongSessionPersistence {
                 ...(capture.itemCardTransition === undefined
                   ? {}
                   : {itemCardTransition: capture.itemCardTransition}),
+                ...(capture.itemCardLabel === undefined
+                  ? {}
+                  : {itemCardLabel: capture.itemCardLabel}),
                 song: {
                   ...this.document.song,
                   ...draft,

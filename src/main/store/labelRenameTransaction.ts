@@ -7,6 +7,7 @@ import {
 import type {SettingsStore} from './settingsStore';
 import type {ContentCommandContext} from './contentCommands';
 import {SONG_LIMITS} from '@core/schema/song';
+import {hasSectionCard} from '@core/services/sectionCards';
 
 /**
  * Prepares the existing label/reference rewrite and returns its pending save
@@ -56,7 +57,16 @@ export async function prepareLabelRename(
     (isItemOfKind(item, 'song') &&
       item.slides.some(slide => slide.label === edit.from)) ||
     (isItemOfKind(item, 'slides') &&
-      item.slides.slides.some(slide => slide.label === edit.from));
+      item.slides.slides.some(slide => slide.label === edit.from)) ||
+    (isItemOfKind(item, 'liturgy') &&
+      (item.liturgy.labels ?? []).some(entry => entry.label === edit.from)) ||
+    (hasSectionCard(item) && item.sectionCard.label === edit.from) ||
+    ((isItemOfKind(item, 'bible') || isItemOfKind(item, 'sermon')) &&
+      (item.bibleLabels ?? []).some(entry => entry.label === edit.from)) ||
+    (isItemOfKind(item, 'sermon') &&
+      (item.sermon.openingLabel === edit.from ||
+        item.sermon.closingLabel === edit.from)) ||
+    (isItemOfKind(item, 'media') && item.slideLabel === edit.from);
   const services = context.services
     .all()
     .filter(document => document.data.order.some(usesLabel));
@@ -100,8 +110,36 @@ export async function prepareLabelRename(
       ),
     }),
   );
-  const renameItem = (item: ServiceItem): ServiceItem =>
-    isItemOfKind(item, 'song')
+  const renameItem = (original: ServiceItem): ServiceItem => {
+    const item =
+      hasSectionCard(original) && original.sectionCard.label === edit.from
+        ? {...original, sectionCard: {...original.sectionCard, label: name}}
+        : original;
+    if (isItemOfKind(item, 'media') && item.slideLabel === edit.from) {
+      return {...item, slideLabel: name};
+    }
+    if (isItemOfKind(item, 'bible') || isItemOfKind(item, 'sermon')) {
+      const bibleLabels = item.bibleLabels?.map(entry =>
+        entry.label === edit.from ? {...entry, label: name} : entry,
+      );
+      if (isItemOfKind(item, 'sermon')) {
+        return {
+          ...item,
+          ...(bibleLabels === undefined ? {} : {bibleLabels}),
+          sermon: {
+            ...item.sermon,
+            ...(item.sermon.openingLabel === edit.from
+              ? {openingLabel: name}
+              : {}),
+            ...(item.sermon.closingLabel === edit.from
+              ? {closingLabel: name}
+              : {}),
+          },
+        };
+      }
+      return {...item, ...(bibleLabels === undefined ? {} : {bibleLabels})};
+    }
+    return isItemOfKind(item, 'song')
       ? {
           ...item,
           slides: item.slides.map(slide =>
@@ -118,7 +156,18 @@ export async function prepareLabelRename(
               ),
             },
           }
-        : item;
+        : isItemOfKind(item, 'liturgy') && item.liturgy.labels !== undefined
+          ? {
+              ...item,
+              liturgy: {
+                ...item.liturgy,
+                labels: item.liturgy.labels.map(entry =>
+                  entry.label === edit.from ? {...entry, label: name} : entry,
+                ),
+              },
+            }
+          : item;
+  };
   const changedServices = services.map(document =>
     context.services.replace(document, {
       ...document.data,

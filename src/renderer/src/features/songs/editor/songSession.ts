@@ -5,7 +5,7 @@ import type {SongSlideSource} from '@core/schema/showService';
 import {type Song, type SongSlide} from '@core/schema/song';
 import type {BlockCommand, BlockSelection} from '@core/songs/blockEdits';
 import {SongSlideHistory} from './songSlideHistory';
-import {ITEM_CARD_TRANSITION} from './itemCardTransition';
+import {ITEM_CARD_LABEL, ITEM_CARD_TRANSITION} from './itemCardTransition';
 import type {SlideListClipboard} from './slideListModel';
 import type {SlideListCommand} from '@core/songs/slideListEdits';
 import type {SlideTransition} from '@core/schema/slideTransition';
@@ -302,9 +302,39 @@ export class SongSession {
     const result = this.history.model.edit({
       ...state,
       slides,
-      context: card === undefined ? {} : {cardTransition: card},
+      context: {
+        ...state.context,
+        ...(card === undefined ? {} : {cardTransition: card}),
+      },
     });
     if (result.ok && result.value) {
+      this.dirty = true;
+      this.endTyping();
+      this.options.changed();
+    }
+  }
+
+  /** Applies a label to the selected card and slides in one undo step. */
+  changeItemLabels(label: string | undefined, cardSelected: boolean): void {
+    if (!this.acceptsEdits || !this.itemSession) return;
+    const state = this.history.model.getSnapshot();
+    const slides = state.slides.map(slide => {
+      if (!state.selection.ids.has(slide.id)) return slide;
+      const {label: _label, ...rest} = slide;
+      return label === undefined ? rest : {...rest, label};
+    });
+    const context =
+      cardSelected && state.context?.cardLabel !== undefined
+        ? {...state.context, cardLabel: label ?? null}
+        : state.context;
+    this.history.endTyping();
+    const result = this.history.model.edit({
+      ...state,
+      slides,
+      ...(context === undefined ? {} : {context}),
+    });
+    if (result.ok && result.value) {
+      this.intent++;
       this.dirty = true;
       this.endTyping();
       this.options.changed();
@@ -390,6 +420,7 @@ export class SongSession {
       this.itemSession &&
       this.clean &&
       document.revision >= this.document.revision &&
+      document.itemCardLabel === this.document.itemCardLabel &&
       JSON.stringify(document.itemCardTransition) ===
         JSON.stringify(this.document.itemCardTransition) &&
       JSON.stringify(document.song.slides) ===
@@ -489,6 +520,13 @@ export class SongSession {
               this.history.model.getSnapshot().context?.cardTransition,
           }
         : {}),
+      ...(this.itemSession &&
+      this.history.model.getSnapshot().context?.cardLabel !== undefined
+        ? {
+            [ITEM_CARD_LABEL]:
+              this.history.model.getSnapshot().context?.cardLabel,
+          }
+        : {}),
       title,
       slides: followTitle(draft.slides, this.title.nextValue, title),
       ...(this.background === undefined ? {} : {background: this.background}),
@@ -510,6 +548,10 @@ export class SongSession {
       song,
       draft,
       lyricsDirty,
+      ...(this.itemSession &&
+      this.history.model.getSnapshot().context?.cardLabel !== undefined
+        ? {itemCardLabel: this.history.model.getSnapshot().context?.cardLabel}
+        : {}),
       titleDraft,
       background,
       ...(this.itemSession &&
@@ -552,6 +594,7 @@ export class SongSession {
   ): SongSlideHistory {
     return new SongSlideHistory(song, this.options.clipboard, {
       minimum: this.options.itemSession ? 0 : 1,
+      cardLabel: this.options.itemSession ? document.itemCardLabel : undefined,
       cardTransition: this.options.itemSession
         ? document.itemCardTransition
         : undefined,

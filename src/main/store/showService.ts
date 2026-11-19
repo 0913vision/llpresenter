@@ -94,7 +94,7 @@ export function buildShowService({
   }
 
   for (const [itemId, tiles] of passages?.tiles ?? []) {
-    itemTiles[itemId] = tiles;
+    itemTiles[itemId] = colorSlideLabels(tiles, colors);
   }
   for (const item of order) {
     const tiles = otherTiles(item, {backgrounds, media, passages, colors});
@@ -117,7 +117,10 @@ export function buildShowService({
       itemTiles[item.id] = [];
       continue;
     }
-    itemTiles[item.id] = withSectionCard(item.sectionCard, tiles);
+    itemTiles[item.id] = colorSlideLabels(
+      withSectionCard(item.sectionCard, tiles),
+      colors,
+    );
   }
   const rowSources: RowSources = {
     songs,
@@ -169,8 +172,21 @@ function otherTiles(
   if (isItemOfKind(item, 'liturgy')) {
     return LITURGY_SLIDES[item.liturgy.kind][item.liturgy.translation].map(
       (text, index) => ({
-        label: text.split('\n')[0] ?? '',
-        labelColor: NO_LABEL_COLOR,
+        label:
+          item.liturgy.labels?.find(entry => entry.index === index)?.label ??
+          text.split('\n')[0] ??
+          '',
+        ...(() => {
+          const label = item.liturgy.labels?.find(
+            entry => entry.index === index,
+          )?.label;
+          return label === undefined ? {} : {slideLabel: label};
+        })(),
+        labelColor:
+          colors.get(
+            item.liturgy.labels?.find(entry => entry.index === index)?.label ??
+              '',
+          ) ?? NO_LABEL_COLOR,
         lines: [text],
         kind: 'blank' as const,
         ...(() => {
@@ -195,8 +211,12 @@ function otherTiles(
     if (choice === undefined || found === undefined) return [];
     return [
       {
-        label: null,
-        labelColor: NO_LABEL_COLOR,
+        label: item.slideLabel ?? null,
+        ...(item.slideLabel === undefined ? {} : {slideLabel: item.slideLabel}),
+        labelColor:
+          item.slideLabel === undefined
+            ? NO_LABEL_COLOR
+            : (colors.get(item.slideLabel) ?? NO_LABEL_COLOR),
         lines: [mediaTitle(found)],
         media: {...choice, itemId: item.id},
       },
@@ -307,6 +327,14 @@ function rowOf(item: ServiceItem, sources: RowSources): ShowRow {
               ...bible,
               ...(sermonTitle === undefined ? {} : {sermonTitle}),
               ...(isItemOfKind(item, 'sermon') &&
+              item.sermon.openingLabel !== undefined
+                ? {sermonOpeningLabel: item.sermon.openingLabel}
+                : {}),
+              ...(isItemOfKind(item, 'sermon') &&
+              item.sermon.closingLabel !== undefined
+                ? {sermonClosingLabel: item.sermon.closingLabel}
+                : {}),
+              ...(isItemOfKind(item, 'sermon') &&
               item.sermon.openingTransition !== undefined
                 ? {sermonOpeningTransition: item.sermon.openingTransition}
                 : {}),
@@ -324,6 +352,9 @@ function rowOf(item: ServiceItem, sources: RowSources): ShowRow {
               ...(item.bibleTransitions === undefined
                 ? {}
                 : {transitions: item.bibleTransitions}),
+              ...(item.bibleLabels === undefined
+                ? {}
+                : {labels: item.bibleLabels}),
               ...(item.theme === undefined ? {} : {theme: item.theme}),
             },
           }),

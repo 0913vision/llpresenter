@@ -28,7 +28,10 @@ import {MediaPicker} from '@renderer/features/songs/editor/MediaPicker';
 import {editorTask} from '@renderer/features/songs/editor/editorTask';
 import {useSlideDefaults} from '@renderer/features/songs/editor/useSlideDefaults';
 import {useEditorFocus} from '@renderer/features/songs/editor/useEditorFocus';
-import {Button, Checkbox, PanelFooter, TextField} from '@renderer/ui';
+import {Button, Checkbox, TextField} from '@renderer/ui';
+import {ItemEditorAddBar} from '@renderer/platform/ItemEditorAddBar';
+import {ItemEditorShell} from '@renderer/platform/ItemEditorShell';
+import {itemEditorAdapter} from '@renderer/platform/itemEditorAdapter';
 import {TextArea} from '@renderer/ui/TextArea';
 import {SlideThumbnailBand} from '@renderer/ui/SlideThumbnail';
 import {SelectMenu} from '@renderer/ui/SelectMenu';
@@ -149,37 +152,41 @@ function SlidesHeader({
               }}
             />
           </span>
-          <span className={styles.setting}>
-            <span>넘기기</span>
-            <SelectMenu
-              aria-label="넘기기"
-              disabled={disabled}
-              size="sm"
-              value={String(item.slides.advance ?? '')}
-              options={[
-                {value: '', label: '손으로'},
-                ...ADVANCES.map(seconds => ({
-                  value: String(seconds),
-                  label: `${seconds}초마다`,
-                })),
-              ]}
-              onChange={value => {
-                const slides = {...item.slides};
-                if (value === '') delete slides.advance;
-                else slides.advance = Number(value);
-                change(slides);
-              }}
-            />
-          </span>
-          <span className={styles.setting}>
-            <Checkbox
-              aria-label="반복"
-              disabled={disabled}
-              checked={item.slides.loop ?? false}
-              onChange={loop => change({...item.slides, loop})}
-            />
-            <span>반복</span>
-          </span>
+          {itemEditorAdapter(item).timedAdvance ? (
+            <>
+              <span className={styles.setting}>
+                <span>넘기기</span>
+                <SelectMenu
+                  aria-label="넘기기"
+                  disabled={disabled}
+                  size="sm"
+                  value={String(item.slides.advance ?? '')}
+                  options={[
+                    {value: '', label: '손으로'},
+                    ...ADVANCES.map(seconds => ({
+                      value: String(seconds),
+                      label: `${seconds}초마다`,
+                    })),
+                  ]}
+                  onChange={value => {
+                    const slides = {...item.slides};
+                    if (value === '') delete slides.advance;
+                    else slides.advance = Number(value);
+                    change(slides);
+                  }}
+                />
+              </span>
+              <span className={styles.setting}>
+                <Checkbox
+                  aria-label="반복"
+                  disabled={disabled}
+                  checked={item.slides.loop ?? false}
+                  onChange={loop => change({...item.slides, loop})}
+                />
+                <span>반복</span>
+              </span>
+            </>
+          ) : null}
         </div>
       </header>
     </>
@@ -454,7 +461,75 @@ function SlidesEditorBody({
       aria-label="슬라이드 편집"
       onKeyDownCapture={keyDown}
     >
-      <div className={styles.left}>
+      <ItemEditorShell
+        as="div"
+        className={styles.left}
+        footer={
+          <ItemEditorAddBar
+            adapter={itemEditorAdapter(item)}
+            end={<SlideSurfaceView ui={api.ui} />}
+            count={rows.length + (leadingCard === undefined ? 0 : 1)}
+            title={addCard}
+            picture={
+              <Button
+                variant="ghost"
+                icon="plus"
+                disabled={
+                  model.stopped ||
+                  model.session?.readOnly === true ||
+                  bibleDialog !== null ||
+                  picker !== null ||
+                  rows.length >= SLIDES_LIMIT
+                }
+                onClick={event => showPicker(event.currentTarget)}
+              >
+                그림 추가
+              </Button>
+            }
+            verse={
+              <Button
+                variant="ghost"
+                icon="plus"
+                disabled={
+                  model.stopped ||
+                  model.session?.readOnly === true ||
+                  bibleDialog !== null ||
+                  picker !== null ||
+                  rows.length >= SLIDES_LIMIT
+                }
+                onClick={() => setBibleDialog({})}
+              >
+                성경 구절 추가…
+              </Button>
+            }
+            slide={
+              <Button
+                variant="ghost"
+                icon="plus"
+                disabled={
+                  model.stopped ||
+                  model.session?.readOnly === true ||
+                  bibleDialog !== null ||
+                  picker !== null ||
+                  rows.length >= SLIDES_LIMIT
+                }
+                onClick={() => {
+                  model.session?.requestReveal();
+                  draft.insert([
+                    newTextSlide(
+                      item.slides.form,
+                      slideDefaults[item.slides.form],
+                    ),
+                  ]);
+                  update();
+                }}
+              >
+                슬라이드 추가
+              </Button>
+            }
+          />
+        }
+      >
         <SlidesHeader
           draft={draft}
           disabled={model.stopped || model.session?.readOnly === true}
@@ -537,65 +612,7 @@ function SlidesEditorBody({
             )}
           />
         </fieldset>
-        <PanelFooter
-          end={<SlideSurfaceView ui={api.ui} />}
-          count={rows.length + (leadingCard === undefined ? 0 : 1)}
-        >
-          {addCard}
-
-          <Button
-            variant="ghost"
-            icon="plus"
-            disabled={
-              model.stopped ||
-              model.session?.readOnly === true ||
-              bibleDialog !== null ||
-              picker !== null ||
-              rows.length >= SLIDES_LIMIT
-            }
-            onClick={event => showPicker(event.currentTarget)}
-          >
-            그림 추가
-          </Button>
-          {item.slides.form !== 'blank' ? null : (
-            <Button
-              variant="ghost"
-              icon="plus"
-              disabled={
-                model.stopped ||
-                model.session?.readOnly === true ||
-                bibleDialog !== null ||
-                picker !== null ||
-                rows.length >= SLIDES_LIMIT
-              }
-              onClick={() => setBibleDialog({})}
-            >
-              성경 구절 추가…
-            </Button>
-          )}
-
-          <Button
-            variant="ghost"
-            icon="plus"
-            disabled={
-              model.stopped ||
-              model.session?.readOnly === true ||
-              bibleDialog !== null ||
-              picker !== null ||
-              rows.length >= SLIDES_LIMIT
-            }
-            onClick={() => {
-              model.session?.requestReveal();
-              draft.insert([
-                newTextSlide(item.slides.form, slideDefaults[item.slides.form]),
-              ]);
-              update();
-            }}
-          >
-            슬라이드 추가
-          </Button>
-        </PanelFooter>
-      </div>
+      </ItemEditorShell>
       {onBack !== undefined ? null : (
         <div className={styles.side}>
           <SlidesPreview

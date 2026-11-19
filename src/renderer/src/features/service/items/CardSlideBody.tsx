@@ -83,7 +83,7 @@ export function CardSlideBody({
             />
           )}
         </div>
-        <SlideThumbnailBand number={1} label="타이틀" />
+        <SlideThumbnailBand number={1} label={card.label ?? '타이틀'} />
       </div>
       <div className={styles.fields} data-view={mode}>
         <label>

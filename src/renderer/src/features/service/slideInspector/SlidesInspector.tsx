@@ -52,8 +52,12 @@ export function SlidesInspector({
   const selectedSlides = view.slides.filter(entry =>
     view.selection.ids.has(entry.id),
   );
-  const label = selectedSlides[0]?.label;
-  const mixedLabel = selectedSlides.some(entry => entry.label !== label);
+  const labels = [
+    ...(card === undefined ? [] : [card.label]),
+    ...selectedSlides.map(entry => entry.label),
+  ];
+  const label = labels[0];
+  const mixedLabel = labels.some(entry => entry !== label);
   const effects = [
     ...(card === undefined
       ? []
@@ -99,6 +103,34 @@ export function SlidesInspector({
       },
       selected,
       'transition-selected',
+    );
+    session.draft.endTyping();
+  };
+  const applyLabel = (name: string | undefined): void => {
+    if (!cardSelected) {
+      session.commandSlides({type: 'label', label: name});
+      return;
+    }
+    const current = session.draft.snapshot.item;
+    const card = current.sectionCard;
+    if (card === undefined) return;
+    const {label: _cardLabel, ...cardWithoutLabel} = card;
+    const slides = current.slides.slides.map(entry => {
+      if (!view.selection.ids.has(entry.id)) return entry;
+      const {label: _label, ...rest} = entry;
+      return {...rest, ...(name === undefined ? {} : {label: name})};
+    });
+    session.draft.change(
+      {
+        ...current,
+        sectionCard: {
+          ...cardWithoutLabel,
+          ...(name === undefined ? {} : {label: name}),
+        },
+        slides: {...current.slides, slides},
+      },
+      selected,
+      'label-selected',
     );
     session.draft.endTyping();
   };
@@ -173,9 +205,7 @@ export function SlidesInspector({
                     store={store}
                     anchor={anchor}
                     selected={mixedLabel ? undefined : label}
-                    onChoose={name =>
-                      session.commandSlides({type: 'label', label: name})
-                    }
+                    onChoose={applyLabel}
                     onClose={restore => {
                       setAnchor(null);
                       if (restore) anchor.focus();

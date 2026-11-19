@@ -13,7 +13,9 @@ import {CREED_PRAYER_THEME_ID} from '@core/themes/creedPrayer';
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
 import {SlideThumbnailBand} from '@renderer/ui/SlideThumbnail';
-import {PanelFooter} from '@renderer/ui/Panel';
+import {ItemEditorShell} from '@renderer/platform/ItemEditorShell';
+import {ItemEditorAddBar} from '@renderer/platform/ItemEditorAddBar';
+import {itemEditorAdapter} from '@renderer/platform/itemEditorAdapter';
 import {TextArea} from '@renderer/ui/TextArea';
 import type {UiApi} from '@contracts/ipc/ui';
 import {
@@ -136,9 +138,16 @@ function LiturgyContent({
         : []
   ).filter(index => index >= 0 && index < texts.length);
   return (
-    <section
+    <ItemEditorShell
       className={styles.editor}
-      aria-label={`${LITURGY[item.liturgy.kind].name} 편집`}
+      label={`${LITURGY[item.liturgy.kind].name} 편집`}
+      footer={
+        <ItemEditorAddBar
+          adapter={itemEditorAdapter(item)}
+          count={texts.length + offset}
+          end={<SlideSurfaceView ui={ui} />}
+        />
+      }
     >
       <div className={styles.surface}>
         <div
@@ -239,7 +248,14 @@ function LiturgyContent({
                       <SlidePicture output {...theme} slide={layer} />
                     )}
                   </div>
-                  <SlideThumbnailBand number={index + 1 + offset} />
+                  <SlideThumbnailBand
+                    number={index + 1 + offset}
+                    label={
+                      item.liturgy.labels?.find(entry => entry.index === index)
+                        ?.label
+                    }
+                    labelColor={tiles?.[index + offset]?.labelColor}
+                  />
                 </div>
                 <TextArea
                   className={styles.verse}
@@ -254,10 +270,6 @@ function LiturgyContent({
           })}
         </div>
       </div>
-      <PanelFooter
-        count={texts.length + offset}
-        end={<SlideSurfaceView ui={ui} />}
-      />
-    </section>
+    </ItemEditorShell>
   );
 }

@@ -159,7 +159,11 @@ export class SlideListModel<T extends SlideListItem, Context = unknown> {
   };
 
   /** An accepted catalog rename also changes undo/redo without adding a step. */
-  readonly renameLabel = (from: string, to: string): void => {
+  readonly renameLabel = (
+    from: string,
+    to: string,
+    renameContext?: (context: Context) => Context,
+  ): void => {
     const rename = (
       snapshot: SlideListSnapshot<T, Context>,
     ): SlideListSnapshot<T, Context> => ({
@@ -167,6 +171,9 @@ export class SlideListModel<T extends SlideListItem, Context = unknown> {
       slides: snapshot.slides.map(slide =>
         slide.label === from ? {...slide, label: to} : slide,
       ),
+      ...(snapshot.context === undefined || renameContext === undefined
+        ? {}
+        : {context: renameContext(snapshot.context)}),
     });
     this.replace({
       present: rename(this.history.present),

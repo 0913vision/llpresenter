@@ -71,6 +71,37 @@ it('projects a liturgy background and a song explicit-empty choice', () => {
   expect(result.rows[1]).not.toHaveProperty('background');
 });
 
+it('projects assigned liturgy and title-card labels with their catalog colors', () => {
+  const item = newLiturgyItem(createServiceItemId(itemId(1)), {
+    kind: 'creed',
+    translation: 'new',
+  });
+  const labelled = {
+    ...item,
+    sectionCard: {
+      name: 'Opening',
+      english: '',
+      theme: createThemeId('00000000-0000-4000-8000-000000000100'),
+      label: 'Chorus',
+    },
+    liturgy: {...item.liturgy, labels: [{index: 0, label: 'Chorus'}]},
+  };
+  const result = buildShowService({
+    service: loadedService([labelled]),
+    songs: new Map(),
+    labels: [{name: 'Chorus', color: '#5FB8C2', key: null}],
+    revision: 1,
+  });
+  expect(result.tiles[item.id]?.[0]).toMatchObject({
+    slideLabel: 'Chorus',
+    labelColor: '#5FB8C2',
+  });
+  expect(result.tiles[item.id]?.[1]).toMatchObject({
+    slideLabel: 'Chorus',
+    labelColor: '#5FB8C2',
+  });
+});
+
 it.each(['creed', 'prayer'] as const)(
   'projects dedicated %s wording with the established slides and theme',
   kind => {

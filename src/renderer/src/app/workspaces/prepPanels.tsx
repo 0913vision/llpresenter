@@ -59,6 +59,7 @@ import {isLibrarySource, openLibrarySong} from '@renderer/session/showLibrary';
 import {useLeadingItemCard} from '@renderer/features/service/items/useLeadingItemCard';
 import {BibleSplitTools} from '@renderer/features/bible/BibleSplitTools';
 import {BibleInlineEditor} from '@renderer/features/service/items/BibleInlineEditor';
+import {itemEditorAdapter} from '@renderer/platform/itemEditorAdapter';
 import type {LeadingSlideCard} from '@renderer/features/songs/editor';
 import type {ReactNode} from 'react';
 import {isItemOfKind} from '@core/schema/service';
@@ -80,10 +81,8 @@ function SlidesCardInspector({
   readonly state: ServiceItemState;
 }): ReactNode {
   const model = session.slideModel;
-  const selection = useSyncExternalStore(
-    model.subscribe,
-    () => model.getSnapshot().selection.ids.size,
-  );
+  const selection = useSyncExternalStore(model.subscribe, model.getSnapshot)
+    .selection.ids.size;
   const applyAll = (transition: SlideTransition): void => {
     if (session.readOnly) return;
     const item = session.draft.snapshot.item;
@@ -115,6 +114,25 @@ function SlidesCardInspector({
         editor={prep.editor}
         shownItem={state}
         applyAll={applyAll}
+        replayDraft={action => session.edit(action)}
+        cardLabel={session.draft.snapshot.item.sectionCard?.label ?? null}
+        changeLabel={name => {
+          const item = session.draft.snapshot.item;
+          if (item.sectionCard === undefined || session.readOnly) return;
+          const {label: _label, ...card} = item.sectionCard;
+          session.draft.change(
+            {
+              ...item,
+              sectionCard: {
+                ...card,
+                ...(name === undefined ? {} : {label: name}),
+              },
+            },
+            session.draft.snapshot.selected,
+            'label-selected',
+          );
+          session.draft.endTyping();
+        }}
       />
     );
   }
@@ -139,10 +157,8 @@ function SongCardInspector({
   readonly itemState: ServiceItemState;
 }): ReactNode {
   const model = session.slideModel;
-  const selection = useSyncExternalStore(
-    model.subscribe,
-    () => model.getSnapshot().selection.ids.size,
-  );
+  const selection = useSyncExternalStore(model.subscribe, model.getSnapshot)
+    .selection.ids.size;
   if (
     session.itemSession &&
     itemState.item !== null &&
@@ -155,6 +171,9 @@ function SongCardInspector({
         items={prep.items}
         editor={prep.editor}
         shownItem={itemState}
+        replayDraft={action => session.edit(action)}
+        cardLabel={session.slideModel.getSnapshot().context?.cardLabel ?? null}
+        changeLabel={name => session.changeItemLabels(name, true)}
         cardTransition={
           session.slideModel.getSnapshot().context?.cardTransition
         }
@@ -544,7 +563,11 @@ function OtherPrepEditor({
           ui={prep.api.ui}
           onBack={onBack}
           hideHeader
-          onSplit={() => setManualSplitRequest(value => value + 1)}
+          onSplit={
+            itemEditorAdapter(item).splitVerses
+              ? () => setManualSplitRequest(value => value + 1)
+              : undefined
+          }
         />
       ) : item !== null &&
         (isItemOfKind(item, 'song') || isItemOfKind(item, 'slides')) ? null : (

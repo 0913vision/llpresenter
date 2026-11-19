@@ -12,6 +12,16 @@ import {CREED_PRAYER_THEME_ID} from '@core/themes/creedPrayer';
 const id = createServiceItemId('50000000-0000-4000-8000-000000000371');
 
 describe('built-in liturgy slides', () => {
+  it('retains a saved paragraph label in its slide adapter', () => {
+    const item = newLiturgyItem(id, {kind: 'creed', translation: 'new'});
+    const labelled = {
+      ...item,
+      liturgy: {...item.liturgy, labels: [{index: 1, label: 'Verse'}]},
+    };
+    const slides = liturgyAsSlides(labelled).slides.slides;
+    expect(slides[1]?.label).toBe('Verse');
+    expect(slides[0]?.label).toBeUndefined();
+  });
   for (const kind of ['creed', 'prayer'] as const) {
     for (const translation of ['new', 'old'] as const) {
       it(`stores ${kind} ${translation} as a dedicated item with fixed paragraphs`, () => {

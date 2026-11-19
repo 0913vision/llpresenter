@@ -26,7 +26,8 @@ import {SongSlideSurface} from '@renderer/features/songs/editor/SongSlideSurface
 import {visibleGridInsertionPosition} from '@renderer/features/songs/editor/gridInsertionPosition';
 import {useShow} from '@renderer/session/show';
 import {Button} from '@renderer/ui/Button';
-import {PanelFooter} from '@renderer/ui/Panel';
+import {ItemEditorShell} from '@renderer/platform/ItemEditorShell';
+import {ItemEditorAddBar} from '@renderer/platform/ItemEditorAddBar';
 import {SlideThumbnailBand} from '@renderer/ui/SlideThumbnail';
 import {
   bibleEditorData,
@@ -36,6 +37,7 @@ import {
 import {useLeadingItemCard} from './useLeadingItemCard';
 import {AddSectionCard} from './AddSectionCard';
 import {BibleSlideSession} from './BibleSlideSession';
+import {itemEditorAdapter} from '@renderer/platform/itemEditorAdapter';
 import {MeasuredRow} from '../slides/SlideRows';
 import type {ServiceItemStore} from './serviceItemStore';
 import styles from './BibleInlineEditor.module.css';
@@ -187,7 +189,24 @@ function BibleEditorContent({
           2,
         );
   return (
-    <section className={styles.editor} aria-label="성경 편집">
+    <ItemEditorShell
+      className={styles.editor}
+      label="성경 편집"
+      footer={
+        <ItemEditorAddBar
+          adapter={itemEditorAdapter(item)}
+          count={data.slides.length}
+          end={<SlideSurfaceView ui={ui} />}
+          title={
+            <AddSectionCard
+              items={items}
+              itemId={item.id}
+              shownItem={shownItem}
+            />
+          }
+        />
+      }
+    >
       {hideHeader ? null : (
         <header className={styles.header}>
           <Button onClick={onBack}>‹ 예배 순서</Button>
@@ -328,20 +347,9 @@ function BibleEditorContent({
               />
             )}
           </div>
-          <div className={styles.add}>
-            <AddSectionCard
-              items={items}
-              itemId={item.id}
-              shownItem={shownItem}
-            />
-          </div>
         </div>
       </SongSlideSurface>
-      <PanelFooter
-        count={data.slides.length}
-        end={<SlideSurfaceView ui={ui} />}
-      />
-    </section>
+    </ItemEditorShell>
   );
 }
 

@@ -1,7 +1,7 @@
 import {bibleVerseTiles} from '@core/bible/bibleTiles';
 import {BIBLE_BOOKS} from '@core/bible/bibleBooks';
 import {passageBook} from '@core/bible/adjacentVerses';
-import {biblePartEffect} from '@core/bible/partTransitions';
+import {biblePartEffect, biblePartLabel} from '@core/bible/partTransitions';
 import type {RecentPassage} from '@core/schema/bible';
 import {
   parseBibleLookupRequest,
@@ -120,7 +120,10 @@ export async function resolveServicePassages(
       ...(isItemOfKind(item, 'sermon')
         ? [
             {
-              label: null,
+              label: item.sermon.openingLabel ?? null,
+              ...(item.sermon.openingLabel === undefined
+                ? {}
+                : {slideLabel: item.sermon.openingLabel}),
               labelColor: 'none' as const,
               lines: item.sermon.title.split(/\r?\n/),
               reference: passage.displayRef,
@@ -140,22 +143,27 @@ export async function resolveServicePassages(
         const verse = passage.verses[index];
         const book = passageBook(passage);
         if (verse === undefined || book === undefined) return tile;
-        const transition = biblePartEffect(
-          item.bibleTransitions,
-          {
-            translation: passage.translation,
-            book: book.id,
-            chapter: verse.chapter,
-            verse: verse.verse,
-          },
-          1,
-        );
-        return transition === undefined ? tile : {...tile, transition};
+        const reference = {
+          translation: passage.translation,
+          book: book.id,
+          chapter: verse.chapter,
+          verse: verse.verse,
+        };
+        const transition = biblePartEffect(item.bibleTransitions, reference, 1);
+        const label = biblePartLabel(item.bibleLabels, reference, 1);
+        return {
+          ...tile,
+          ...(transition === undefined ? {} : {transition}),
+          ...(label === undefined ? {} : {label, slideLabel: label}),
+        };
       }),
       ...(isItemOfKind(item, 'sermon')
         ? [
             {
-              label: null,
+              label: item.sermon.closingLabel ?? null,
+              ...(item.sermon.closingLabel === undefined
+                ? {}
+                : {slideLabel: item.sermon.closingLabel}),
               labelColor: 'none' as const,
               lines: item.sermon.title.split(/\r?\n/),
               reference: passage.displayRef,

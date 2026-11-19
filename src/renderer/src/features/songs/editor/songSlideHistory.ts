@@ -29,6 +29,7 @@ export function songSlideClipboardFor(
 
 export interface SongSlideContext {
   readonly cardTransition?: SlideTransition | null;
+  readonly cardLabel?: string | null;
 }
 
 /** Adapts text rows and persistence to the shared slide selection and history. */
@@ -43,9 +44,10 @@ export class SongSlideHistory {
     options: {
       readonly minimum?: 0 | 1;
       readonly cardTransition?: SlideTransition | null | undefined;
+      readonly cardLabel?: string | null | undefined;
     } = {},
   ) {
-    const {minimum = 1, cardTransition} = options;
+    const {minimum = 1, cardTransition, cardLabel} = options;
     this.value = blockSnapshot(song);
     this.model = new SlideListModel({
       slides: song.slides,
@@ -53,7 +55,10 @@ export class SongSlideHistory {
         minimum: song.slides.length === 0 ? 0 : minimum,
       }),
       clipboard,
-      context: cardTransition === undefined ? {} : {cardTransition},
+      context: {
+        ...(cardTransition === undefined ? {} : {cardTransition}),
+        ...(cardLabel === undefined ? {} : {cardLabel}),
+      },
     });
     const first = song.slides[0];
     if (first !== undefined) this.model.select({type: 'click', id: first.id});
@@ -180,7 +185,9 @@ export class SongSlideHistory {
   }
   renameLabel(from: string, to: string): void {
     this.endTyping();
-    this.model.renameLabel(from, to);
+    this.model.renameLabel(from, to, context =>
+      context.cardLabel === from ? {...context, cardLabel: to} : context,
+    );
   }
   undo(): BlockSnapshot {
     this.endTyping();

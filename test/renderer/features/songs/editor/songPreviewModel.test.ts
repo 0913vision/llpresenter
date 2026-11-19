@@ -13,6 +13,21 @@ import {
 } from '@renderer/features/songs/editor/songPreviewModel';
 
 describe('local song preview model', () => {
+  it('names the standby theme when a service item uses it', () => {
+    const {themes, screens} = editorPreviewFixture();
+    const preview = previewAppearance({
+      role: 'audience',
+      themes: themes.value,
+      screens: screens.value,
+      item: {
+        id: 'waiting',
+        kind: 'blank',
+        source: 'service',
+        theme: themes.value.standby.id,
+      },
+    });
+    expect(preview.themeName).toBe(themes.value.standby.name);
+  });
   it.each(['song', 'bible', 'blank', 'ad', 'media'] as const)(
     'uses the live composition for %s on all screen roles',
     kind => {
