@@ -115,12 +115,14 @@ const mocks = vi.hoisted(() => {
     playbackProblemsStop: vi.fn<() => void>(),
     appHandlers,
     electron: {
+      dialog: {showErrorBox: vi.fn()},
       ipcMain: {
         handle: vi.fn(),
         removeHandler: vi.fn(),
         on: vi.fn(),
         removeListener: vi.fn(),
       },
+      protocol: {registerSchemesAsPrivileged: vi.fn()},
       app: {
         setPath: vi.fn(),
         getPath: vi.fn<(name: string) => string>(),
@@ -158,10 +160,19 @@ const mocks = vi.hoisted(() => {
     mediaRoots: vi.fn<() => readonly string[]>(),
     mediaOptions,
     opened,
+    splash: {
+      isDestroyed: vi.fn(() => false),
+      close: vi.fn(),
+      once: vi.fn<(_event: string, callback: () => void) => void>(),
+    },
+    splashStep: vi.fn(),
     controlWindow: {
       isMinimized: vi.fn(() => true),
       restore: vi.fn(),
       focus: vi.fn(),
+      isDestroyed: vi.fn(() => false),
+      isMaximized: vi.fn(() => true),
+      destroy: vi.fn(),
     },
   };
 });
@@ -177,7 +188,11 @@ vi.mock('@main/update/register', () => ({
 vi.mock('@main/windows/settingsWindow', () => ({
   registerSettingsWindow: (context: unknown) => {
     mocks.screensWindowContexts.push(context);
-    return {close: mocks.screensWindowClose, dispose: mocks.screensWindowStop};
+    return {
+      close: mocks.screensWindowClose,
+      dispose: mocks.screensWindowStop,
+      replaceControl: vi.fn(),
+    };
   },
 }));
 vi.mock('@main/windows/slidesEditor', () => ({
@@ -403,6 +418,10 @@ vi.mock('@main/windows/control', () => ({
     return win;
   },
 }));
+vi.mock('@main/windows/splash', () => ({
+  createSplash: () => mocks.splash,
+  completeSplashStep: mocks.splashStep,
+}));
 
 export async function startMain(): Promise<
   EventEmitter & {webContents: EventEmitter}
@@ -442,6 +461,11 @@ export function deferred(): {promise: Promise<void>; resolve: () => void} {
 }
 
 beforeEach(async () => {
+  mocks.splash.isDestroyed.mockReset().mockReturnValue(false);
+  mocks.splash.close.mockReset();
+  mocks.splash.once.mockReset();
+  mocks.splashStep.mockReset();
+  mocks.electron.dialog.showErrorBox.mockReset();
   mocks.updateContexts.length = 0;
   mocks.updateStop.mockClear();
   mocks.screensWindowContexts.length = 0;

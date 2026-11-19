@@ -7,10 +7,82 @@ import {
   beforeQuit,
 } from '@fixtures/main/indexWiringFixtures';
 import {join} from 'node:path';
+import {EventEmitter} from 'node:events';
 import {describe, expect, it, vi} from 'vitest';
 import {MAIN_SCREEN} from '@fixtures/core/screenIds';
 
 describe('main entry lifecycle', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
+  it('starts the control window without waiting for the splash paint', async () => {
+    const control = await startMain();
+    expect(control).toBeTruthy();
+    expect(mocks.splash.once).toHaveBeenCalledWith(
+      'ready-to-show',
+      expect.any(Function),
+    );
+  });
+
+  it('reports real startup milestones to the splash', async () => {
+    const control = await startMain();
+    expect(mocks.splashStep).toHaveBeenCalledWith(mocks.splash, 'settings');
+    expect(mocks.splashStep).toHaveBeenCalledWith(mocks.splash, 'content');
+    expect(mocks.splashStep).toHaveBeenCalledWith(mocks.splash, 'window');
+    expect(mocks.splashStep).not.toHaveBeenCalledWith(mocks.splash, 'paint');
+    control.webContents.emit('did-finish-load');
+    control.emit('ready-to-show');
+    expect(mocks.splashStep).toHaveBeenCalledWith(mocks.splash, 'renderer');
+    expect(mocks.splashStep).toHaveBeenCalledWith(mocks.splash, 'paint');
+  });
+
+  it('closes the splash when the control window shows', async () => {
+    const control = await startMain();
+    expect(mocks.splash.close).not.toHaveBeenCalled();
+    control.emit('ready-to-show');
+    expect(mocks.splash.close).not.toHaveBeenCalled();
+    control.emit('show');
+    expect(mocks.splash.close).toHaveBeenCalledOnce();
+  });
+
+  it('closes the splash when the offscreen control window is ready', async () => {
+    mocks.electron.app.isPackaged = false;
+    vi.stubEnv('LLP_TEST_WINDOWS', 'offscreen');
+    const control = await startMain();
+    control.emit('ready-to-show');
+    expect(mocks.splash.close).toHaveBeenCalledOnce();
+  });
+
+  it('hands off to the replacement control window after startup GPU recovery', async () => {
+    const original = await startMain();
+    await vi.waitFor(() =>
+      expect(mocks.outputContexts.length).toBeGreaterThan(0),
+    );
+    for (const handler of mocks.appHandlers.get('child-process-gone') ?? []) {
+      handler({}, {type: 'GPU', reason: 'crashed', exitCode: 1});
+    }
+    await vi.waitFor(() => expect(mocks.opened.control).not.toBe(original));
+    const replacement = mocks.opened.control;
+    if (!(replacement instanceof EventEmitter)) {
+      throw new Error('Missing replacement control window');
+    }
+    original.emit('show');
+    expect(mocks.splash.close).not.toHaveBeenCalled();
+    replacement.emit('show');
+    expect(mocks.splash.close).toHaveBeenCalledOnce();
+  });
+
+  it('closes the splash and reports a control page load failure', async () => {
+    const control = await startMain();
+    control.webContents.emit('did-fail-load', {}, -3, 'aborted', '', true);
+    control.webContents.emit('did-fail-load', {}, -2, 'failed', '', false);
+    expect(mocks.splash.close).not.toHaveBeenCalled();
+    control.webContents.emit('did-fail-load', {}, -2, 'failed', '', true);
+    expect(mocks.splash.close).toHaveBeenCalledOnce();
+    expect(mocks.electron.dialog.showErrorBox).toHaveBeenCalledWith(
+      '시작 오류',
+      expect.stringContaining('화면을 불러오지 못했습니다'),
+    );
+    expect(mocks.electron.app.quit).toHaveBeenCalled();
+  });
+
   it('reads the UI state before the control window opens', async () => {
     await startMain();
     expect(mocks.order).toEqual([

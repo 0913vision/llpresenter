@@ -90,12 +90,12 @@ describe('never during a service', () => {
     ).toEqual([]);
   });
 
-  it('asks nothing natively: main shows no message box or error box', () => {
+  it('confines native error boxes to the startup-only failure handler', () => {
     expect(
       mentions(
         /dialog\.(showMessageBox|showMessageBoxSync|showErrorBox)/,
         filesUnder(join(SOURCE, 'main'), ['.ts']),
       ),
-    ).toEqual([]);
+    ).toEqual(['src/main/windows/startupError.ts']);
   });
 });
