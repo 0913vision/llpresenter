@@ -7,7 +7,14 @@ afterEach(() => {
   document.body.replaceChildren();
 });
 
-function setup(fixed = false, minimum = false, preserveCollapsed = false) {
+function setup(
+  fixed = false,
+  minimum = false,
+  {
+    preserveCollapsed = false,
+    keptFrame = false,
+  }: {preserveCollapsed?: boolean; keptFrame?: boolean} = {},
+) {
   const parent = document.createElement('div');
   parent.style.setProperty('--panel-gap', '4px');
   parent.style.setProperty('--size-panel-header', '34px');
@@ -44,6 +51,12 @@ function setup(fixed = false, minimum = false, preserveCollapsed = false) {
     Object.defineProperty(workspace, 'clientHeight', {value: 654});
     workspace.append(parent);
     document.body.append(workspace);
+  } else if (keptFrame) {
+    const frame = document.createElement('div');
+    frame.dataset['workspaceFrame'] = 'show';
+    frame.setAttribute('aria-hidden', 'false');
+    frame.append(parent);
+    document.body.append(frame);
   } else {
     document.body.append(parent);
   }
@@ -82,7 +95,7 @@ function setup(fixed = false, minimum = false, preserveCollapsed = false) {
 
 describe('useRowLayout', () => {
   it('keeps a dragged preview height when opening the media bin', () => {
-    const h = setup(true, false, true);
+    const h = setup(true, false, {preserveCollapsed: true});
     const drag = h.result.current.begin(0);
     if (!drag) throw Error('Missing drag');
     act(() => drag.move(30));
@@ -140,6 +153,30 @@ describe('useRowLayout', () => {
     expect(h.result.current.canResize(0)).toBe(false);
     expect(h.result.current.begin(0)).toBeUndefined();
     expect(h.store.saveRows).not.toHaveBeenCalled();
+    h.unmount();
+  });
+
+  it('refits saved panel heights after resizing while ?? is hidden', async () => {
+    const h = setup(false, false, {keptFrame: true});
+    const frame = h.parent.parentElement;
+    if (!frame) throw new Error('Missing workspace frame');
+    const drag = h.result.current.begin(0);
+    if (!drag) throw new Error('Missing drag');
+    act(() => {
+      drag.move(1000);
+      drag.end();
+    });
+    expect(h.heights()).toEqual([400, 200]);
+    frame.setAttribute('aria-hidden', 'true');
+    h.resize(304);
+    expect(h.heights()).toEqual([400, 200]);
+    await act(async () => {
+      frame.setAttribute('aria-hidden', 'false');
+      await Promise.resolve();
+    });
+    expect(h.heights()).toEqual([100, 200]);
+    h.resize(604);
+    expect(h.heights()).toEqual([400, 200]);
     h.unmount();
   });
 
