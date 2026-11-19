@@ -62,6 +62,10 @@ it.each(['click', 'shortcut'] as const)(
         altKey: true,
       });
     }
+    expect(fixture.lookup).toHaveBeenCalledWith({
+      input: '???? 3:10',
+      translation: lookupRequest().translation,
+    });
     await waitFor(() =>
       expect(onChoose).toHaveBeenCalledExactlyOnceWith(
         expect.objectContaining({ref: '요한복음 3:10'}),
