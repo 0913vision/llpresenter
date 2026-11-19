@@ -11,7 +11,6 @@ import type {LiveThemeItem} from '@core/schema/liveTheme';
 import type {SongSlideSource} from '@core/schema/showService';
 import type {ThemeScreenLayout} from '@core/schema/themes';
 import {themeBackgroundColor} from './themeBackground';
-import {OutputPreviewPicture} from './OutputPreviewPicture';
 import {Picture} from './pictures/Picture';
 import type {PictureSpec} from './pictures/pictureService';
 import type {RenderScreen} from './layer';
@@ -94,9 +93,5 @@ export function OutputSlidePicture({
   readonly editing?: boolean | undefined;
 }): JSX.Element {
   const spec = outputSlideSpec(input);
-  return drawn === undefined && !editing ? (
-    <OutputPreviewPicture {...spec} />
-  ) : (
-    <Picture wait={drawn === 'wait'} editing={editing} {...spec} />
-  );
+  return <Picture wait={drawn === 'wait'} editing={editing} {...spec} />;
 }
