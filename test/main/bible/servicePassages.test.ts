@@ -57,7 +57,6 @@ describe('saved Bible passage resolution', () => {
       id: original.id,
       sermon: {
         title: 'Sermon',
-        reference: 'Custom passage reference',
         passage: original.bible,
         openingTransition: {kind: 'wipe', dir: 'left', sec: 1},
         closingTransition: {kind: 'dissolve', sec: 2},
@@ -71,13 +70,11 @@ describe('saved Bible passage resolution', () => {
     expect(tiles?.[0]).toMatchObject({
       sermonTitle: true,
       lines: ['Sermon'],
-      reference: 'Custom passage reference',
       transition: {kind: 'wipe', sec: 1},
     });
     expect(tiles?.at(-1)).toMatchObject({
       sermonTitle: true,
       lines: ['Sermon'],
-      reference: 'Custom passage reference',
       transition: {kind: 'dissolve', sec: 2},
     });
     expect(tiles).toHaveLength(5);

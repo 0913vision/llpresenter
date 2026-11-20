@@ -4,7 +4,6 @@ import {isItemOfKind} from '@core/schema/service';
 import {displayReference} from '@core/bible/displayReference';
 import {Button} from '@renderer/ui/Button';
 import {TextArea} from '@renderer/ui/TextArea';
-import {TextField} from '@renderer/ui/TextField';
 import {editorTask} from '@renderer/features/songs/editor/editorTask';
 import {SermonQuickAdd} from './SermonQuickAdd';
 import type {ServiceItemStore} from './serviceItemStore';
@@ -48,33 +47,6 @@ function SermonTitleField({
   );
 }
 
-function SermonReferenceField({
-  reference,
-  disabled,
-  onCommit,
-}: {
-  readonly reference: string;
-  readonly disabled: boolean;
-  readonly onCommit: (value: string) => void;
-}): JSX.Element {
-  const [draft, setDraft] = useState(reference);
-  return (
-    <label className={styles.reference}>
-      본문 주소
-      <TextField
-        aria-label="본문 주소"
-        value={draft}
-        maxLength={4000}
-        disabled={disabled}
-        onChange={setDraft}
-        onBlur={() => {
-          if (draft !== reference) onCommit(draft);
-        }}
-      />
-    </label>
-  );
-}
-
 /** Edit title and passage with the same fields used when adding a sermon. */
 export function SermonInlineEditor({
   items,
@@ -110,32 +82,6 @@ export function SermonInlineEditor({
                 isItemOfKind(current, 'sermon')
                   ? {...current, sermon: {...current.sermon, title}}
                   : null,
-            }),
-          );
-        }}
-      />
-      <SermonReferenceField
-        key={`${item.id}:${item.sermon.reference ?? item.sermon.passage.ref}`}
-        reference={
-          item.sermon.reference ?? displayReference(item.sermon.passage.ref)
-        }
-        disabled={state.busy || state.service.access === 'readOnly'}
-        onCommit={reference => {
-          editorTask(
-            items.submitItemEdit({
-              target: {serviceId, itemId: item.id},
-              failure: '\uc124\uad50 \uc800\uc7a5 \uc2e4\ud328',
-              change: current => {
-                if (!isItemOfKind(current, 'sermon')) return null;
-                const {reference: _previous, ...sermon} = current.sermon;
-                return {
-                  ...current,
-                  sermon:
-                    reference.trim() === ''
-                      ? sermon
-                      : {...sermon, reference},
-                };
-              },
             }),
           );
         }}

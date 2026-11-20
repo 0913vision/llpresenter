@@ -126,7 +126,7 @@ export async function resolveServicePassages(
                 : {slideLabel: item.sermon.openingLabel}),
               labelColor: 'none' as const,
               lines: item.sermon.title.split(/\r?\n/),
-              reference: item.sermon.reference ?? passage.displayRef,
+              reference: passage.displayRef,
               sermonTitle: true as const,
               ...(item.sermon.openingTransition === undefined
                 ? {}
@@ -166,7 +166,7 @@ export async function resolveServicePassages(
                 : {slideLabel: item.sermon.closingLabel}),
               labelColor: 'none' as const,
               lines: item.sermon.title.split(/\r?\n/),
-              reference: item.sermon.reference ?? passage.displayRef,
+              reference: passage.displayRef,
               sermonTitle: true as const,
               ...(item.sermon.closingTransition === undefined
                 ? {}

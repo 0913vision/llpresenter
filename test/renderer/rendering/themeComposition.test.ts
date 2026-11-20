@@ -843,7 +843,7 @@ describe('theme composition drawing', () => {
         layout,
         item: {
           id: 'invented',
-          kind: 'blank',
+          kind: 'bible',
           source: 'service',
           title: 'A different item name',
         },
@@ -854,6 +854,8 @@ describe('theme composition drawing', () => {
           slide: {
             ...song.slide,
             label: null,
+            kind: 'bible',
+            sermonTitle: true,
             reference: '마태복음 11:29~30',
             lines: ['동행의 열매 : 온유'],
           },

@@ -63,7 +63,6 @@ const bibleReferenceSchema = v.pipe(
     ),
     ref: v.pipe(nonBlankText, v.maxLength(BIBLE_LOOKUP_LIMITS.input)),
     sermonTitle: v.exactOptional(v.pipe(nonBlankText, v.maxLength(1000))),
-    sermonReference: v.exactOptional(v.pipe(v.string(), v.maxLength(4000))),
     sermonOpeningLabel: v.exactOptional(v.pipe(nonBlankText, v.maxLength(64))),
     sermonClosingLabel: v.exactOptional(v.pipe(nonBlankText, v.maxLength(64))),
     sermonOpeningTransition: v.exactOptional(slideTransitionSchema),

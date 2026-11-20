@@ -11,12 +11,6 @@
   grid-column: 1 / -1;
 }
 
-.reference {
-  grid-column: 1 / -1;
-  display: grid;
-  gap: var(--space-8);
-}
-
 .passage {
   min-width: 0;
   color: var(--text-2);
