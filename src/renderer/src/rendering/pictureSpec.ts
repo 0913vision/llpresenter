@@ -151,7 +151,9 @@ export interface TileThemes {
   readonly cardTheme: Omit<SlideInput, 'slide'> | undefined;
   readonly sermonTheme: Omit<SlideInput, 'slide'> | undefined;
   readonly bibleAppearance:
-    | Pick<PictureSpec['appearance'], 'screen' | 'theme' | 'background'>
+    | (Pick<PictureSpec['appearance'], 'screen' | 'theme'> & {
+        readonly background?: string | undefined;
+      })
     | undefined;
   readonly switchSlot?: string | undefined;
 }
