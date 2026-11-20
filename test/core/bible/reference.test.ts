@@ -21,6 +21,11 @@ describe('Bible reference grammar and lookup', () => {
     ['시 23:1-6', 19, 23, 1, 6],
     ['고전13:4', 46, 13, 4, 4],
     ['요일4:8', 62, 4, 8, 8],
+    ['요한1서 4:8', 62, 4, 8, 8],
+    ['요한 1서 4:8', 62, 4, 8, 8],
+    ['요한1서 4 8', 62, 4, 8, 8],
+    ['요한2서 1:3', 63, 1, 3, 3],
+    ['요한3서 1:4', 64, 1, 4, 4],
     ['마5:3-12', 40, 5, 3, 12],
     ['John 3:16', 43, 3, 16, 16],
     ['요 3 16', 43, 3, 16, 16],
@@ -128,7 +133,7 @@ describe('Bible reference grammar and lookup', () => {
   it('offers ambiguous book choices and resolves numbered and IME-off names', async () => {
     expect(parseReference('베1:1')).toMatchObject({
       ok: false,
-      error: {suggestions: [{id: 49}, {id: 60}, {id: 61}]},
+      error: {suggestions: [{id: 60}, {id: 61}, {id: 49}]},
     });
     expect(parseReference('ckd1:1')).toMatchObject({
       ok: true,

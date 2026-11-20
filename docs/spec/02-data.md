@@ -977,13 +977,16 @@ whole chapters and ranges across chapters. Typing a complete single-chapter
 reference in 책 and pressing Enter resolves it; Tab fills the numeric fields.
 Whole-chapter input retains its chapter reference.
 
-- 책 lists every Korean full-name or short-name jamo containment match and every
-  English name or code containment match, including input interpreted as Korean
-  typed with the IME off, in canonical order. The list is bounded by the 66
-  books, with no initial highlight. Exact matches remain in this list along with
-  other containment matches. Tab completes the exact match or the only candidate
-  to the full name and moves to 장. With several candidates and no exact match,
-  Tab stays until an arrow-key selection is made.
+- 책 lists Korean names, standard abbreviations, their 초성, English names and
+  codes, and Korean text typed with the IME off. It ranks exact abbreviations,
+  exact full names, abbreviation prefixes, name prefixes, exact abbreviation
+  initials, exact name initials, initial prefixes, then containment; ties keep
+  canonical order. One-syllable abbreviations do not contribute initials. The
+  list is bounded by the 66 books, with no initial highlight. Exact matches
+  remain in this list along with other containment matches. Tab completes the
+  exact match or the only candidate to the full name and moves to 장. With
+  several candidates and no exact match, Tab stays until an arrow-key selection
+  is made.
 - 장 is an integer from 1 to the book's chapter count. 시작절 is an integer from
   1 to the selected chapter's verse count. 끝절 is empty for one verse, or an
   integer from 시작절 through the chapter's last verse. Changing 시작절 clears

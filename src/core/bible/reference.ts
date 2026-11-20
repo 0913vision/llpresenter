@@ -55,13 +55,13 @@ export interface BiblePassageSource extends Pick<
 const COLON =
   /^(.+?)\s*(\d+)(?:\s*:\s*(\d+)(?:\s*[-~\uFF5E]\s*(?:(\d+)\s*:\s*)?(\d+))?)?$/u;
 const SPACE_VERSES =
-  /^((?:[1-3]\s*)?[\p{L}\p{M}]+(?:\s+[\p{L}\p{M}]+)*)\s*(\d+)\s+(\d+)(?:\s+(\d+))?$/u;
+  /^(요한\s*[1-3]\s*서|(?:[1-3]\s*)?[\p{L}\p{M}]+(?:\s+[\p{L}\p{M}]+)*)\s*(\d+)\s+(\d+)(?:\s+(\d+))?$/u;
 const KOREAN_CHAPTER = /^(.+?)\s*(\d+)\s*[장편]$/u;
 const KOREAN_VERSES =
   /^(.+?)\s*(\d+)\s*[장편]\s*(\d+)(?:\s*[-~\uFF5E]\s*(\d+))?\s*절$/u;
 const KOREAN_CROSS =
   /^(.+?)\s*(\d+)\s*장\s*(\d+)\s*절\s*[-~\uFF5E]\s*(\d+)\s*장\s*(\d+)\s*절$/u;
-const BOOK_NAME = /^(?:[1-3]\s*)?[\p{L}\p{M}\s]+$/u;
+const BOOK_NAME = /^(?:요한\s*[1-3]\s*서|(?:[1-3]\s*)?[\p{L}\p{M}\s]+)$/u;
 
 function error(
   code: ReferenceErrorCode,
