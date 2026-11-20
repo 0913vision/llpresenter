@@ -92,7 +92,6 @@ export function sundayTemplate(): Template {
     schemaVersion: 1,
     id: createTemplateId(crypto.randomUUID()),
     name: '주일 2부 예배',
-    time: '11:30',
     order,
   };
 }

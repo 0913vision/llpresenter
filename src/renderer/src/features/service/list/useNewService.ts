@@ -40,10 +40,6 @@ type NewServiceApi = Pick<
   'content' | 'service' | 'services' | 'templates' | 'songs' | 'log'
 >;
 
-function currentHour(): string {
-  return `${String(new Date().getHours()).padStart(2, '0')}:00`;
-}
-
 function defaultName(document: SourceDocument | null): string {
   if (document === null) return '';
   return document.source.kind === 'empty' ? DEFAULT_NAME : document.name;
@@ -154,9 +150,6 @@ export function useNewService({
   const name = typedName ?? defaultName(document);
   const [today] = useState(() => new Date());
   const [date, setDate] = useState(() => localDate(today));
-  const [hour] = useState(currentHour);
-  const [typedTime, setTime] = useState<string | null>(null);
-  const time = typedTime ?? document?.time ?? hour;
 
   const [busy, setBusy] = useState(false);
   const alive = useRef(true);
@@ -175,7 +168,7 @@ export function useNewService({
     createService({
       api,
       name: trimmed,
-      date: `${date}T${time}`,
+      date: `${date}T00:00`,
       document,
       itemIds: selectedIds(rows, selection),
     })
@@ -205,11 +198,8 @@ export function useNewService({
     setSelection,
     name,
     setName,
-    today,
     date,
     setDate,
-    time,
-    setTime,
     busy,
     canCreate,
     create,

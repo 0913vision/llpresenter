@@ -124,7 +124,7 @@ afterEach(() => {
 });
 
 describe('NewServiceDialog', () => {
-  it('starts from the first 템플릿 with every item checked and its name and time', async () => {
+  it('starts from the first 템플릿 with every item checked and no time field', async () => {
     setup();
     expect(
       await screen.findByRole('treeitem', {name: titles.first}),
@@ -147,9 +147,7 @@ describe('NewServiceDialog', () => {
     expect(screen.getByRole('button', {name: '날짜'}).textContent).toBe(
       '10월 26일 월요일',
     );
-    expect(screen.getByRole('button', {name: '시간'}).textContent).toBe(
-      '오전 11:00',
-    );
+    expect(screen.queryByRole('button', {name: '시간'})).toBeNull();
     expect(screen.getByRole('option', {name: /빈 예배/})).toBeDefined();
     expect(
       screen.getByRole('option', {name: /지난 주일 예배/}).textContent,
@@ -178,7 +176,7 @@ describe('NewServiceDialog', () => {
       {
         type: 'service.create',
         name: '주일 예배',
-        date: '2026-10-26T11:00',
+        date: '2026-10-26T00:00',
         templateId: null,
       },
       {
@@ -286,7 +284,7 @@ describe('NewServiceDialog', () => {
     expect(tooltip?.textContent).toBe('이름을 적어야 만들 수 있습니다');
   });
 
-  it('creates an empty service from 빈 예배 with the current hour', async () => {
+  it('creates an empty service from 빈 예배 without using the current hour', async () => {
     const {edits, onClose} = setup();
     await userEvent.click(await screen.findByRole('option', {name: /빈 예배/}));
     expect(screen.getByRole('textbox', {name: '이름'})).toHaveProperty(
@@ -294,22 +292,20 @@ describe('NewServiceDialog', () => {
       '새 예배',
     );
     expect(screen.queryByRole('checkbox', {name: '예배 순서'})).toBeNull();
-    expect(screen.getByRole('button', {name: '시간'}).textContent).toBe(
-      '오전 8:00',
-    );
+    expect(screen.queryByRole('button', {name: '시간'})).toBeNull();
     await userEvent.click(createButton());
     await waitFor(() => expect(onClose).toHaveBeenCalled());
     expect(edits).toEqual([
       {
         type: 'service.create',
         name: '새 예배',
-        date: '2026-10-26T08:00',
+        date: '2026-10-26T00:00',
         templateId: null,
       },
     ]);
   });
 
-  it('starts from a past service with its items checked and its time', async () => {
+  it('starts from a past service with its items checked without copying its time', async () => {
     const {edits, onClose} = setup();
     await userEvent.click(
       await screen.findByRole('option', {name: /지난 주일 예배/}),
@@ -319,11 +315,13 @@ describe('NewServiceDialog', () => {
         'aria-checked',
       ),
     ).toBe('true');
-    expect(screen.getByRole('button', {name: '시간'}).textContent).toBe(
-      '오전 9:30',
-    );
+    expect(screen.queryByRole('button', {name: '시간'})).toBeNull();
     await userEvent.click(createButton());
     await waitFor(() => expect(onClose).toHaveBeenCalled());
+    expect(edits[0]).toMatchObject({
+      type: 'service.create',
+      date: '2026-10-26T00:00',
+    });
     expect(edits[1]).toEqual({
       type: 'service.importItems',
       serviceId: ids.created,

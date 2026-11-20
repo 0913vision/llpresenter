@@ -409,7 +409,7 @@ const templateFormat: FileFormat<typeof templateSchema> = {
 export type Service = ReadonlyKnown<v.InferOutput<typeof serviceSchema>>;
 
 /**
- * A 템플릿: the service file format with no `date` and an optional default `time`.
+ * A 템플릿: the service file format with no `date` and an optional legacy `time`.
  * It lives in the 템플릿 folder.
  */
 export type Template = ReadonlyKnown<v.InferOutput<typeof templateSchema>>;

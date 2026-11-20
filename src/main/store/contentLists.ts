@@ -1,3 +1,4 @@
+import {serviceDay} from '@core/services/serviceDate';
 import {
   ENTRY_ITEM_COUNT_MAX,
   type LibrarySong,
@@ -55,7 +56,7 @@ export function serviceEntries(
       access,
       itemCount: itemCount(data),
     }))
-    .sort((a, b) => b.date.localeCompare(a.date));
+    .sort((a, b) => serviceDay(b.date).localeCompare(serviceDay(a.date)));
 }
 
 /** The 템플릿 list by name. */

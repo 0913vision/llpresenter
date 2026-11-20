@@ -124,7 +124,7 @@ describe('ContentStore 예배 순서 and 템플릿 edits', () => {
     expect(store.service(SUNDAY)?.service.order).toEqual([]);
   });
 
-  it('saves a 예배 순서 as a 템플릿 with its time and new item ids', async () => {
+  it('saves a 예배 순서 as a 템플릿 with new item ids and no time', async () => {
     const {store, events} = setUp([
       serviceFile(SUNDAY_ID, [{id: itemId(1), header: '찬양'}]),
     ]);
@@ -138,9 +138,9 @@ describe('ContentStore 예배 순서 and 템플릿 edits', () => {
     const id = answer.ok ? answer.value.id : '';
     expect(store.template(id)?.template).toMatchObject({
       name: '주일 오전',
-      time: '11:00',
       order: [{header: '찬양'}],
     });
+    expect(store.template(id)?.template).not.toHaveProperty('time');
     expect(store.template(id)?.template.order[0]?.id).not.toBe(itemId(1));
     expect(events.templatesListChanged).toHaveBeenCalledTimes(1);
   });

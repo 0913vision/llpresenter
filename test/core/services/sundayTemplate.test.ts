@@ -17,9 +17,9 @@ it('ships the church order with fixed editable cards and empty places for local 
     format: 'llservice',
     schemaVersion: 1,
     name: '주일 2부 예배',
-    time: '11:30',
   });
   expect(template).not.toHaveProperty('date');
+  expect(template).not.toHaveProperty('time');
   const groups: Array<{name: string; items: ServiceItem[]}> = [];
   for (const item of template.order) {
     if (isItemOfKind(item, 'header')) {

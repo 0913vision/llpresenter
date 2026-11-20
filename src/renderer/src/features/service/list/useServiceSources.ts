@@ -16,8 +16,6 @@ export const EMPTY_SOURCE: ServiceSource = {kind: 'empty'};
 export interface SourceDocument {
   readonly source: ServiceSource;
   readonly name: string;
-  /** HH:mm: the 템플릿's default time, or the past service's time. */
-  readonly time: string | undefined;
   readonly order: readonly ServiceItem[];
 }
 
@@ -30,7 +28,6 @@ type ListRead<T> =
   | {readonly kind: 'loading' | 'failed'}
   | {readonly kind: 'ready'; readonly value: T};
 
-const TIME_OF_DATE = /T(\d{2}:\d{2})$/;
 const LOADING: ListRead<never> = {kind: 'loading'};
 const FAILED: ListRead<never> = {kind: 'failed'};
 const NO_TITLES: ReadonlyMap<string, string> = new Map();
@@ -77,18 +74,18 @@ async function readSource(
   source: ServiceSource,
 ): Promise<SourceDocument | null> {
   if (source.kind === 'empty') {
-    return {source, name: '', time: undefined, order: []};
+    return {source, name: '', order: []};
   }
   if (source.kind === 'template') {
     const document = await api.templates.get(source.id);
     if (document === null) return null;
-    const {name, time, order} = document.template;
-    return {source, name, time, order};
+    const {name, order} = document.template;
+    return {source, name, order};
   }
   const document = await api.services.get(source.id);
   if (document === null) return null;
-  const {name, date, order} = document.service;
-  return {source, name, time: TIME_OF_DATE.exec(date)?.[1], order};
+  const {name, order} = document.service;
+  return {source, name, order};
 }
 
 // NOTE(0913vision): One list read on its own, so a failed read keeps the

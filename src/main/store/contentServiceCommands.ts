@@ -18,7 +18,6 @@ import type {ContentCommandContext, ContentHandlers} from './contentCommands';
 
 const SCHEMA_VERSION = 1;
 const SERVICE_EXTENSION = '.llservice';
-const TIME_OF_DATE = /T(\d{2}:\d{2})$/;
 
 type ServiceContentCommandsHandlers = Pick<
   ContentHandlers,
@@ -195,13 +194,11 @@ class ServiceContentCommands {
       );
     }
     const id = createTemplateId(this.context.newId());
-    const time = TIME_OF_DATE.exec(service.data.date)?.[1];
     const template: Template = {
       format: 'llservice',
       schemaVersion: SCHEMA_VERSION,
       id,
       name,
-      ...(time === undefined ? {} : {time}),
       order: copiedItems(service.data.order),
     };
     const file = join(
