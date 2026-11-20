@@ -33,14 +33,22 @@ describe('output mirror', () => {
     });
     vi.stubGlobal('ImageData', vi.fn());
     vi.stubGlobal('navigator', {mediaDevices: {getUserMedia: capture}});
-    vi.stubGlobal('llp', mockLlpApi({output: {
-      previewSource: async () => 'relay',
-      previewControl: control,
-      subscribePreviewFrame: next => { listener.current = next; return () => undefined; },
-    }}));
+    vi.stubGlobal(
+      'llp',
+      mockLlpApi({output: {
+        previewSource: async () => 'relay',
+        previewControl: control,
+        subscribePreviewFrame: next => {
+          listener.current = next;
+          return () => undefined;
+        },
+      }}),
+    );
     const view = render(<OutputMirror screenId="one" />);
     await waitFor(() => expect(listener.current).toBeDefined());
-    act(() => listener.current?.({screenId: 'one', frame: new Uint8Array(640 * 360 * 4)}));
+    act(() =>
+      listener.current?.({screenId: 'one', frame: new Uint8Array(640 * 360 * 4)}),
+    );
     expect(view.container.querySelector('canvas')?.hidden).toBe(false);
     expect(capture).not.toHaveBeenCalled();
     expect(control).toHaveBeenCalledWith({screenId: 'one', action: 'ack'});
@@ -55,25 +63,48 @@ describe('output mirror', () => {
       'cancelVideoFrameCallback',
     );
     const callback: {current?: VideoFrameRequestCallback} = {};
-    Object.defineProperty(HTMLVideoElement.prototype, 'requestVideoFrameCallback', {
-      configurable: true,
-      value: (next: VideoFrameRequestCallback) => {
-        callback.current = next;
-        return 1;
+    Object.defineProperty(
+      HTMLVideoElement.prototype,
+      'requestVideoFrameCallback',
+      {
+        configurable: true,
+        value: (next: VideoFrameRequestCallback) => {
+          callback.current = next;
+          return 1;
+        },
       },
-    });
-    Object.defineProperty(HTMLVideoElement.prototype, 'cancelVideoFrameCallback', {
-      configurable: true,
-      value: vi.fn(),
-    });
+    );
+    Object.defineProperty(
+      HTMLVideoElement.prototype,
+      'cancelVideoFrameCallback',
+      {configurable: true, value: vi.fn()},
+    );
     onTestFinished(() => {
-      if (originalRequest) Object.defineProperty(HTMLVideoElement.prototype, 'requestVideoFrameCallback', originalRequest);
-      else Reflect.deleteProperty(HTMLVideoElement.prototype, 'requestVideoFrameCallback');
-      if (originalCancel) Object.defineProperty(HTMLVideoElement.prototype, 'cancelVideoFrameCallback', originalCancel);
-      else Reflect.deleteProperty(HTMLVideoElement.prototype, 'cancelVideoFrameCallback');
+      if (originalRequest) {
+        Object.defineProperty(
+          HTMLVideoElement.prototype,
+          'requestVideoFrameCallback',
+          originalRequest,
+        );
+      } else {
+        Reflect.deleteProperty(HTMLVideoElement.prototype, 'requestVideoFrameCallback');
+      }
+      if (originalCancel) {
+        Object.defineProperty(
+          HTMLVideoElement.prototype,
+          'cancelVideoFrameCallback',
+          originalCancel,
+        );
+      } else {
+        Reflect.deleteProperty(HTMLVideoElement.prototype, 'cancelVideoFrameCallback');
+      }
     });
-    vi.spyOn(HTMLVideoElement.prototype, 'videoWidth', 'get').mockReturnValue(640);
-    vi.spyOn(HTMLVideoElement.prototype, 'videoHeight', 'get').mockReturnValue(360);
+    vi.spyOn(HTMLVideoElement.prototype, 'videoWidth', 'get').mockReturnValue(
+      640,
+    );
+    vi.spyOn(HTMLVideoElement.prototype, 'videoHeight', 'get').mockReturnValue(
+      360,
+    );
     Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
       configurable: true,
       value: () => ({
@@ -83,19 +114,32 @@ describe('output mirror', () => {
       }),
     });
     const track = {stop: vi.fn(), onended: null};
-    const capture = vi.fn().mockResolvedValue({getTracks: () => [track], getVideoTracks: () => [track]});
+    const capture = vi.fn().mockResolvedValue({
+      getTracks: () => [track],
+      getVideoTracks: () => [track],
+    });
     vi.stubGlobal('navigator', {mediaDevices: {getUserMedia: capture}});
     vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue(undefined);
-    const relay: {current?: (value: {screenId: string; enabled: boolean}) => void} = {};
+    const relay: {
+      current?: (value: {screenId: string; enabled: boolean}) => void;
+    } = {};
     const publish = vi.fn<(value: PreviewFrame) => void>();
-    vi.stubGlobal('llp', mockLlpApi({output: {
-      previewSource: async () => 'AAAAAAAAAAAAAAAAAAAAAA==',
-      subscribePreviewRelay: listener => { relay.current = listener; return () => undefined; },
-      publishPreview: publish,
-    }}));
+    vi.stubGlobal(
+      'llp',
+      mockLlpApi({output: {
+        previewSource: async () => 'AAAAAAAAAAAAAAAAAAAAAA==',
+        subscribePreviewRelay: listener => {
+          relay.current = listener;
+          return () => undefined;
+        },
+        publishPreview: publish,
+      }}),
+    );
     render(<OutputMirror screenId="one" />);
     await waitFor(() => expect(capture).toHaveBeenCalledOnce());
-    await waitFor(() => expect(document.querySelector('video')?.srcObject).toBeTruthy());
+    await waitFor(() =>
+      expect(document.querySelector('video')?.srcObject).toBeTruthy(),
+    );
     act(() => relay.current?.({screenId: 'one', enabled: true}));
     expect(publish).toHaveBeenCalledOnce();
     expect(callback.current).toBeDefined();

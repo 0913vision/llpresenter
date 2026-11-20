@@ -41,7 +41,9 @@ describe('transparent output preview', () => {
     });
     try {
       events.emit('paint', {}, {}, image);
-      await vi.waitFor(() => expect(send).toHaveBeenCalledOnce(), {timeout: 5000});
+      await vi.waitFor(() => expect(send).toHaveBeenCalledOnce(), {
+        timeout: 5000,
+      });
       expect(send.mock.calls[0]?.[0].slice(0, 4)).toEqual(
         new Uint8Array([255, 0, 0, 128]),
       );
@@ -50,10 +52,14 @@ describe('transparent output preview', () => {
       await new Promise(resolve => setTimeout(resolve, 150));
       expect(send).toHaveBeenCalledOnce();
       mirror.ack();
-      await vi.waitFor(() => expect(send).toHaveBeenCalledTimes(2), {timeout: 5000});
+      await vi.waitFor(() => expect(send).toHaveBeenCalledTimes(2), {
+        timeout: 5000,
+      });
       mirror.ack();
       events.emit('paint', {}, {}, image);
-      await vi.waitFor(() => expect(send).toHaveBeenCalledTimes(3), {timeout: 5000});
+      await vi.waitFor(() => expect(send).toHaveBeenCalledTimes(3), {
+        timeout: 5000,
+      });
       expect((sentAt[2] ?? 0) - (sentAt[1] ?? 0)).toBeGreaterThanOrEqual(95);
       expect(capturePage).not.toHaveBeenCalled();
       expect(startPainting).not.toHaveBeenCalled();

@@ -70,7 +70,14 @@ export function createAlphaMirror({
   let worker: Worker | undefined;
 
   const schedule = (): void => {
-    if (!active || !outputActive() || inFlight || converting || !latest || timer) {
+    if (
+      !active ||
+      !outputActive() ||
+      inFlight ||
+      converting ||
+      !latest ||
+      timer
+    ) {
       return;
     }
     timer = setTimeout(() => {

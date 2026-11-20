@@ -463,7 +463,9 @@ export function startOutputs({
         captureOwners.get(screenId) !== sender ||
         store.state.outputs[screenId] !== true ||
         performance.now() < (relayDue.get(screenId) ?? 0)
-      ) return;
+      ) {
+        return;
+      }
       relayDue.set(screenId, performance.now() + 100);
       fanouts.get(screenId)?.publish(frame.value.frame, sender);
     }),
@@ -538,8 +540,7 @@ export function startOutputs({
               relayDue.delete(screenId);
             }
             stopAlpha(screenId);
-          }
-          else ensureAlpha(screenId);
+          } else ensureAlpha(screenId);
         },
       );
       previewSubscriptions.set(screenId, () => {

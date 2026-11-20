@@ -93,7 +93,11 @@ function screensWithRole(
   ).map(item => item.dataset['screen']);
 }
 
-const allOn = {main: true, stage: true, broadcast: true};
+const allOn = {
+  [MAIN_SCREEN]: true,
+  [STAGE_SCREEN]: true,
+  [BROADCAST_SCREEN]: true,
+};
 const slide = {itemId: 'a', position: 0, label: null, lines: ['x']};
 
 beforeEach(() => {
@@ -227,7 +231,7 @@ describe('PreviewPanel swap', () => {
 
 describe('PreviewPanel states', () => {
   it('shows an off screen without starting a live mirror', () => {
-    setLayers({slide}, {main: false, stage: true, broadcast: true});
+    setLayers({slide}, {...allOn, [MAIN_SCREEN]: false});
     const {container} = render(<PreviewPanel />);
     const large = itemOf(container, MAIN_SCREEN);
     expect(large.getAttribute('data-state')).toBe('off');

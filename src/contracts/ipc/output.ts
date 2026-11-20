@@ -52,7 +52,10 @@ export const outputEndpoints = {
     parsePreviewControl,
   ),
   previewFrame: push<PreviewFrame>('output:preview:frame', parsePreviewFrame),
-  previewPublish: message<PreviewFrame>('output:preview:publish', parsePreviewFrame),
+  previewPublish: message<PreviewFrame>(
+    'output:preview:publish',
+    parsePreviewFrame,
+  ),
   previewRelay: push<PreviewRelay>('output:preview:relay', parsePreviewRelay),
   previewSource: request<OutputShowWindowRequest, string | null>(
     'output:preview:source',

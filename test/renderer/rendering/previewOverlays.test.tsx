@@ -59,7 +59,12 @@ function setup() {
     item: themeItem,
     revision: 1,
   });
-  const snapshot = () => ({...store.state, themeItem, themeOutput});
+  const snapshot = () => ({
+    ...store.state,
+    outputs: {[MAIN]: true, [STAGE]: true, [CAPTIONS]: true},
+    themeItem,
+    themeOutput,
+  });
   useLive.setState({state: snapshot()});
   const removals: Array<ReturnType<typeof vi.fn>> = [];
   const originalSubscribe = useLive.subscribe;
@@ -122,15 +127,15 @@ describe('preview overlay wiring', () => {
     for (const remove of removals) expect(remove).toHaveBeenCalledTimes(1);
   });
 
-  it('uses the actual output for overlays and releases subscriptions on switching', async () => {
+  it('keeps inactive screen previews static and releases subscriptions on switching', async () => {
     const {removals, stopSettings, previewSource} = setup();
     const view = render(<ScreenPreview screenId={MAIN} chroma={false} />);
     await act(async () => {});
-    expect(view.container.querySelector('video')).not.toBeNull();
-    expect(previewSource).toHaveBeenCalledWith(MAIN);
+    expect(view.container.querySelector('video')).toBeNull();
+    expect(previewSource).not.toHaveBeenCalled();
     view.rerender(<ScreenPreview screenId={STAGE} chroma={false} />);
     await act(async () => {});
-    expect(previewSource).toHaveBeenCalledWith(STAGE);
+    expect(previewSource).not.toHaveBeenCalled();
     expect(
       view.container.querySelectorAll(`[data-layer="message"]`),
     ).toHaveLength(0);

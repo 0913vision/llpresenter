@@ -46,7 +46,9 @@ export function OutputMirror({
         !stream ||
         lifetime.stopped ||
         isHiddenWorkspace(frame)
-      ) return;
+      ) {
+        return;
+      }
       if (now >= relayDue && video.videoWidth > 0 && video.videoHeight > 0) {
         if (relayCanvas === undefined) {
           relayCanvas = document.createElement('canvas');

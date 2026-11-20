@@ -19,11 +19,7 @@ export function cachedScreenPicture(
   state: LiveState | null,
 ): PictureSpec | undefined {
   const {screen, theme} = frame;
-  if (
-    screen === undefined ||
-    theme === undefined ||
-    state === null
-  ) {
+  if (screen === undefined || theme === undefined || state === null) {
     return undefined;
   }
   return {

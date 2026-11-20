@@ -60,7 +60,11 @@ function captureMirror() {
       mirrorInFlight = true;
       mirrorDue = performance.now() + 100;
       post({type: 'mirror-frame', frame});
-    } else if (!mirrorPending && mirrorDirty && performance.now() >= mirrorDue) {
+    } else if (
+      !mirrorPending &&
+      mirrorDirty &&
+      performance.now() >= mirrorDue
+    ) {
       if (presenter.requestMirror()) {
         mirrorDirty = false;
         mirrorPending = true;
