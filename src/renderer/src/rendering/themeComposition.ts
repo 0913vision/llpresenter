@@ -102,7 +102,7 @@ export class ThemeCompositionView {
     this.root.style.zIndex = '1';
     this.root.hidden = true;
     parent.append(this.root);
-    this.gaps = new ThemeGaps(options.onError);
+    this.gaps = new ThemeGaps(options.onError, options.onDrawFailure);
     if (typeof document.fonts !== 'undefined') {
       document.fonts.addEventListener('loadingdone', this.onFontsLoaded);
     }
@@ -436,7 +436,9 @@ export class ThemeCompositionView {
       };
       return fitted;
     } catch (error) {
-      this.options.onError('could not fit the broadcast band', error);
+      const message = 'could not fit the broadcast band';
+      this.options.onDrawFailure?.(message, error);
+      this.options.onError(message, error);
       return previous?.layout ?? layout;
     }
   }
@@ -532,7 +534,7 @@ export class ThemeCompositionView {
             }),
           );
         } catch (error) {
-          this.gaps.failed(element.id, error);
+          this.gaps.failed(element.id, error, 'draw');
         }
       }
     }
@@ -675,7 +677,7 @@ export class ThemeCompositionView {
         );
       }
     } catch (error) {
-      this.gaps.failed('item-background', error);
+      this.gaps.failed('item-background', error, 'draw');
     }
     const video =
       page.elements.find(view => view.element.kind === 'media')?.remaining() ??
@@ -712,7 +714,7 @@ export class ThemeCompositionView {
           content.frame.screen?.kind === 'stage',
         );
       } catch (error) {
-        this.gaps.failed(view.element.id, error);
+        this.gaps.failed(view.element.id, error, 'draw');
       }
     }
     positionFollowingBoxes(page.elements);

@@ -323,7 +323,9 @@ export class OutputRenderer {
       ];
     } catch (error) {
       box.remove();
-      this.options.onError(`could not create the ${layer.kind} layer`, error);
+      const message = `could not create the ${layer.kind} layer`;
+      this.options.onDrawFailure?.(message, error);
+      this.options.onError(message, error);
       return [];
     }
   }
@@ -336,7 +338,9 @@ export class OutputRenderer {
     try {
       action();
     } catch (error) {
-      this.options.onError(`could not ${operation} the ${kind} layer`, error);
+      const message = `could not ${operation} the ${kind} layer`;
+      if (operation === 'draw') this.options.onDrawFailure?.(message, error);
+      this.options.onError(message, error);
     }
   }
 
