@@ -1,7 +1,8 @@
 # PreviewFrame
 
-The live monitoring panel shows one output screen large, at the full width of
-the panel, and a row of small tiles for the other screens only. The screen shown
+In the three-screen layout, the live monitoring panel shows one output screen
+large, at the full width of the panel, and a row of small tiles for the other
+screens only. The screen shown
 large never appears as a tile: there is no marker tile and no second picture of
 it. A click on a tile makes that screen the large one. There is one rendered
 picture per screen.
@@ -18,6 +19,13 @@ another small).
 
 Use SlideThumbnail for slide thumbnails. Screen settings and 테마 editing use
 their editing canvases instead.
+
+## Layout selector
+
+The selector sits at the right end of the preview header. It has exactly two
+choices: `한 화면` shows one large screen and the screen picker below it;
+`세 화면` shows one large screen and the other two as small tiles.
+Selecting a screen does not change the layout.
 
 ## Anatomy
 

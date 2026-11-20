@@ -1,10 +1,4 @@
-import {
-  useContext,
-  useEffect,
-  useRef,
-  useSyncExternalStore,
-  type JSX,
-} from 'react';
+import {useState, useSyncExternalStore, type JSX} from 'react';
 import {isItemOfKind} from '@core/schema/service';
 import {
   biblePartEffect,
@@ -17,8 +11,6 @@ import {editorTask} from '@renderer/features/songs/editor/editorTask';
 import {inspectorTransition} from './TransitionSection';
 import {cardOffset, hasSectionCard} from '@core/services/sectionCards';
 import {slideLayerOf} from '@core/presentation/slideLayer';
-import {mediaUrl} from '@contracts/ipc/mediaUrls';
-import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import {useShow} from '@renderer/session/show';
 import {useBibleTileProjection} from '@renderer/features/bible/useBibleProjections';
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
@@ -29,7 +21,6 @@ import {
   cardPictureLayer,
 } from '@renderer/rendering/pictureSpec';
 import {SlideInspectorView} from './SlideInspectorView';
-import {PictureReadiness} from '@renderer/rendering/PictureReadiness';
 import type {MediaItem} from '@core/schema/mediaList';
 import {MediaProperties} from '@renderer/features/media/MediaPropertiesPanel';
 import {labelInk} from '@renderer/ui/labelInk';
@@ -37,46 +28,166 @@ import {LITURGY} from '@core/services/liturgy';
 import {LITURGY_SLIDES} from '@core/services/liturgySlides';
 import {CREED_PRAYER_THEME_ID} from '@core/themes/creedPrayer';
 import type {SongEditorStore} from '@renderer/features/songs/editor/songEditorStore';
-import {useItemMedia} from '../items/useItemSources';
+import {useItemMedia, useItemSettings} from '../items/useItemSources';
 import {savedItemTiles, savedPassageTiles} from '../items/bibleItemModel';
 import type {ServiceItemStore} from '../items/serviceItemStore';
 import styles from './SlideInspector.module.css';
+import {RolePreview} from '@renderer/features/songs/editor/RolePreview';
+import {
+  PREVIEW_ROLES,
+  previewAppearance,
+  type PreviewRole,
+} from '@renderer/features/songs/editor/songPreviewModel';
+import {withPreferenceDefaults} from '@core/schema/preferences';
 
-function InspectorMediaPicture({
+function OtherRolePicture({
+  mode,
+  role,
+  item,
+  card,
+  liturgy,
+  liturgyLayer,
+  layer,
+  tile,
   file,
+  editor,
+  baseAppearance,
 }: {
-  readonly file: MediaItem;
+  readonly mode: 'file' | 'card' | 'liturgy' | 'bible';
+  readonly role: PreviewRole;
+  readonly item: NonNullable<
+    ReturnType<ServiceItemStore['getSnapshot']>['item']
+  >;
+  readonly card: import('@core/schema/service').SectionCard | undefined;
+  readonly liturgy:
+    import('@core/schema/service').ServiceItemOf<'liturgy'> | null;
+  readonly liturgyLayer: ReturnType<typeof slideLayerOf>;
+  readonly layer: ReturnType<typeof slideLayerOf>;
+  readonly tile: import('@core/schema/showService').ShowTile | undefined;
+  readonly file: MediaItem | undefined;
+  readonly editor: SongEditorStore;
+  readonly baseAppearance: NonNullable<
+    ReturnType<typeof useBibleTileProjection>
+  >['appearance'];
 }): JSX.Element {
-  const ready = useContext(PictureReadiness);
-  const source = useRef({});
-  const alive = useRef(true);
-  useEffect(() => {
-    alive.current = true;
-    return () => {
-      alive.current = false;
-    };
-  }, []);
+  const themes = useItemSettings(editor.api.settings, 'themes');
+  const screens = useItemSettings(editor.api.settings, 'screens');
+  const preferences = useItemSettings(
+    editor.api.settings,
+    'preferences',
+    role === 'stage',
+  );
+  const cardTheme = useSlideTheme(
+    card === undefined
+      ? undefined
+      : {
+          id: item.id,
+          kind: 'slides',
+          form: 'blank',
+          title: card.name,
+          theme: card.theme,
+        },
+    'service',
+    {role},
+  );
+  const liturgyTheme = useSlideTheme(
+    liturgy === null
+      ? undefined
+      : {
+          id: liturgy.id,
+          kind: 'slides',
+          form: 'blank',
+          title: LITURGY[liturgy.liturgy.kind].name,
+          theme: liturgy.theme ?? CREED_PRAYER_THEME_ID,
+        },
+    'service',
+    {role},
+  );
+  const sermonTheme = useSlideTheme(
+    isItemOfKind(item, 'sermon')
+      ? sermonPreviewRow(item.id, item.sermon.passage.ref)
+      : undefined,
+    'service',
+    {role},
+  );
+  const mediaTheme = useSlideTheme(
+    isItemOfKind(item, 'media')
+      ? {
+          id: item.id,
+          kind: 'media',
+          title: file?.name ?? '',
+          ...(item.theme === undefined ? {} : {theme: item.theme}),
+        }
+      : undefined,
+    'service',
+    {role},
+  );
+  const appearance =
+    baseAppearance?.theme.item === undefined
+      ? undefined
+      : previewAppearance({
+          role,
+          themes:
+            themes.document?.name === 'themes'
+              ? themes.document.value
+              : undefined,
+          screens:
+            screens.document?.name === 'screens'
+              ? screens.document.value
+              : undefined,
+          stageLyricLabelPosition:
+            preferences.document?.name === 'preferences'
+              ? withPreferenceDefaults(preferences.document.value).output
+                  .stageLyricLabelPosition
+              : undefined,
+          item: {
+            ...baseAppearance.theme.item,
+            ...(item.theme === undefined ? {} : {theme: item.theme}),
+          },
+        });
+  let picture: JSX.Element | null = null;
+  if (
+    mode === 'file' &&
+    file !== undefined &&
+    file.kind !== 'audio' &&
+    mediaTheme !== undefined
+  ) {
+    picture = (
+      <SlidePicture
+        {...mediaTheme}
+        mediaOnly
+        background={file.id}
+        slide={{itemId: item.id, position: 0, label: null, lines: []}}
+      />
+    );
+  } else if (mode === 'card' && card !== undefined && cardTheme !== undefined) {
+    picture = (
+      <SlidePicture {...cardTheme} slide={cardPictureLayer(item.id, card)} />
+    );
+  } else if (
+    mode === 'liturgy' &&
+    liturgy !== null &&
+    liturgyLayer !== null &&
+    liturgyTheme !== undefined
+  ) {
+    picture = <SlidePicture {...liturgyTheme} slide={liturgyLayer} />;
+  } else if (
+    mode === 'bible' &&
+    tile !== undefined &&
+    layer !== null &&
+    appearance !== undefined
+  ) {
+    picture =
+      tile.sermonTitle === true && sermonTheme !== undefined ? (
+        <SlidePicture {...sermonTheme} slide={layer} />
+      ) : (
+        <SlidePicture {...biblePictureInput(layer, appearance)} />
+      );
+  }
   return (
-    <img
-      className={styles.mediaPicture}
-      src={file.kind === 'video' ? thumbnailSrc(file.id) : mediaUrl(file.id)}
-      alt=""
-      onError={event => {
-        event.currentTarget.style.visibility = 'hidden';
-        ready?.(source.current);
-      }}
-      onLoad={event => {
-        const image = event.currentTarget;
-        image.style.visibility = '';
-        if (ready === null) return;
-        const finish = (): void => {
-          if (alive.current) ready(source.current);
-        };
-        if (typeof image.decode === 'function') {
-          image.decode().then(finish, finish);
-        } else finish();
-      }}
-    />
+    <div className={styles.picture} data-background-picture>
+      <div className={styles.canvas}>{picture}</div>
+    </div>
   );
 }
 
@@ -103,6 +214,7 @@ export function OtherSlideInspector({
   readonly editor: SongEditorStore;
   readonly shownItem?: ReturnType<ServiceItemStore['getSnapshot']> | undefined;
 }): JSX.Element {
+  const [big, setBig] = useState<PreviewRole>('audience');
   const current = useSyncExternalStore(items.subscribe, items.getSnapshot);
   const editorState = useSyncExternalStore(
     editor.subscribe,
@@ -205,11 +317,6 @@ export function OtherSlideInspector({
           title: card.name,
           theme: card.theme,
         },
-  );
-  const sermonTheme = useSlideTheme(
-    item !== null && isItemOfKind(item, 'sermon')
-      ? sermonPreviewRow(item.id, item.sermon.passage.ref)
-      : undefined,
   );
   const tile = index >= 0 ? tiles[index] : undefined;
   const layer =
@@ -526,6 +633,34 @@ export function OtherSlideInspector({
       }),
     );
   };
+  const renderPreview = (
+    mode: 'file' | 'card' | 'liturgy' | 'bible',
+  ): JSX.Element | null =>
+    item === null ? null : (
+      <RolePreview
+        big={big}
+        onBigChange={setBig}
+        naturalHeight
+        renderRole={role => (
+          <OtherRolePicture
+            mode={mode}
+            role={role}
+            item={item}
+            card={card}
+            liturgy={liturgy}
+            liturgyLayer={liturgyLayer}
+            layer={layer}
+            tile={tile}
+            file={file}
+            editor={editor}
+            baseAppearance={appearance}
+          />
+        )}
+        caption={role =>
+          PREVIEW_ROLES.find(entry => entry.value === role)?.label
+        }
+      />
+    );
   return (
     <SlideInspectorView
       identity={`${item?.id ?? 'none'}:${position}:${bibleSelection.join(',')}:${cardSelected}`}
@@ -541,14 +676,12 @@ export function OtherSlideInspector({
         (tile !== undefined && (layer === null || appearance === undefined))
       }
       waitForPicture={pictureCount > 0}
-      pictureCount={pictureCount}
+      pictureCount={pictureCount * 3}
       preview={
         <>
           {file === undefined || file.kind === 'audio' ? null : (
             <>
-              <div className={styles.picture} data-background-picture>
-                <InspectorMediaPicture file={file} />
-              </div>
+              {renderPreview('file')}
               <div
                 onKeyDownCapture={event => {
                   if (
@@ -582,14 +715,7 @@ export function OtherSlideInspector({
           cardTheme === undefined ||
           item === null ? null : (
             <>
-              <div className={styles.picture} data-background-picture>
-                <div className={styles.canvas}>
-                  <SlidePicture
-                    {...cardTheme}
-                    slide={cardPictureLayer(item.id, card)}
-                  />
-                </div>
-              </div>
+              {renderPreview('card')}
               <div className={styles.caption} style={labelInk(cardColor)}>
                 {card.label ?? card.name}
                 <span>1 / {count}</span>
@@ -601,11 +727,7 @@ export function OtherSlideInspector({
           liturgyLayer !== null &&
           liturgyTheme !== undefined ? (
             <>
-              <div className={styles.picture} data-background-picture>
-                <div className={styles.canvas}>
-                  <SlidePicture {...liturgyTheme} slide={liturgyLayer} />
-                </div>
-              </div>
+              {renderPreview('liturgy')}
               <div className={styles.caption} style={labelInk('none')}>
                 {LITURGY[liturgy.liturgy.kind].name}
                 <span>
@@ -618,15 +740,7 @@ export function OtherSlideInspector({
           layer === null ||
           appearance === undefined ? null : (
             <>
-              <div className={styles.picture} data-background-picture>
-                <div className={styles.canvas}>
-                  {tile.sermonTitle === true && sermonTheme !== undefined ? (
-                    <SlidePicture {...sermonTheme} slide={layer} />
-                  ) : (
-                    <SlidePicture {...biblePictureInput(layer, appearance)} />
-                  )}
-                </div>
-              </div>
+              {renderPreview('bible')}
               <div className={styles.caption} style={labelInk(tile.labelColor)}>
                 {tile.slideLabel ?? tile.label ?? ''}
                 <span>

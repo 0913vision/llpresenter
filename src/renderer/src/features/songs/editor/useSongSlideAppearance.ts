@@ -11,7 +11,10 @@ export function resolveSongSlideBackground(
 }
 
 /** The same local theme and effective background for every editor picture. */
-export function useSongSlideAppearance(session: SongSession) {
+export function useSongSlideAppearance(
+  session: SongSession,
+  role?: 'audience' | 'stage' | 'broadcast',
+) {
   const song = session.history.snapshot.song;
   const row = useShow(view => view.rows.find(entry => entry.id === song.id));
   const itemRow = row?.kind === 'song' ? row : undefined;
@@ -25,6 +28,7 @@ export function useSongSlideAppearance(session: SongSession) {
           ...(song.theme === undefined ? {} : {theme: song.theme}),
         },
     session.itemSession || song.theme !== undefined ? 'service' : 'external',
+    role === undefined ? {} : {role},
   );
   return theme === undefined
     ? undefined

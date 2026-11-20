@@ -1,4 +1,4 @@
-import {useSyncExternalStore, type JSX} from 'react';
+import {useState, useSyncExternalStore, type JSX} from 'react';
 import type {SlideTransition} from '@core/schema/slideTransition';
 import {formatSlideHotKey} from '@renderer/ui/SlideThumbnail';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
@@ -12,6 +12,41 @@ import {labelInk} from '@renderer/ui/labelInk';
 import {PropertyGroup, PropertyRow} from '@renderer/ui/PropertyRow';
 import styles from './SlideInspector.module.css';
 import {SongTitleLayoutControl} from '@renderer/features/songs/editor/SongTitleLayoutControl';
+import {RolePreview} from '@renderer/features/songs/editor/RolePreview';
+import {
+  PREVIEW_ROLES,
+  type PreviewRole,
+} from '@renderer/features/songs/editor/songPreviewModel';
+
+function SongRolePicture({
+  session,
+  role,
+}: {
+  readonly session: NonNullable<
+    ReturnType<SongEditorStore['getSnapshot']>['session']
+  >;
+  readonly role: PreviewRole;
+}): JSX.Element {
+  const appearance = useSongSlideAppearance(session, role);
+  const snapshot = session.history.snapshot;
+  const slide = snapshot.song.slides[snapshot.selection.block];
+  return (
+    <div className={styles.picture} data-background-picture>
+      {appearance === undefined || slide === undefined ? null : (
+        <SlidePicture
+          {...appearance}
+          background={slide.picture ?? appearance.background}
+          songSource={{songId: snapshot.song.id, slideId: slide.id}}
+          slide={songPictureLayer(
+            snapshot.song.id,
+            snapshot.selection.block,
+            slide,
+          )}
+        />
+      )}
+    </div>
+  );
+}
 
 /** Adapts the current song session to the shared inspector. */
 export function SlideInspector({
@@ -57,6 +92,7 @@ function InspectorContent({
     session.slideModel.getSnapshot,
   );
   const appearance = useSongSlideAppearance(session);
+  const [big, setBig] = useState<PreviewRole>('audience');
   const snapshot = session.history.snapshot;
   const selected = view.slides.filter(slide =>
     view.selection.ids.has(slide.id),
@@ -95,22 +131,20 @@ function InspectorContent({
       identity={`${session.slideDocumentId}:${snapshot.selection.block}:${selected.map(item => item.id).join(',')}:${cardSelected}`}
       pending={appearance === undefined || slide === undefined}
       waitForPicture
+      pictureCount={3}
       preview={
         <>
-          <div className={styles.picture} data-background-picture>
-            {appearance === undefined || slide === undefined ? null : (
-              <SlidePicture
-                {...appearance}
-                background={slide.picture ?? appearance.background}
-                songSource={{songId: snapshot.song.id, slideId: slide.id}}
-                slide={songPictureLayer(
-                  snapshot.song.id,
-                  snapshot.selection.block,
-                  slide,
-                )}
-              />
+          <RolePreview
+            big={big}
+            onBigChange={setBig}
+            naturalHeight
+            renderRole={role => (
+              <SongRolePicture session={session} role={role} />
             )}
-          </div>
+            caption={role =>
+              PREVIEW_ROLES.find(entry => entry.value === role)?.label
+            }
+          />
           <div
             className={styles.caption}
             style={labelInk(

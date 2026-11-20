@@ -116,9 +116,9 @@ it.each([
       const gridPicture = previewSpec(
         view.container.querySelector('[data-editor-block="0"]'),
       );
-      const inspectorPicture = within(inspector.container).getByTestId(
+      const inspectorPicture = within(inspector.container).getAllByTestId(
         'picture',
-      );
+      )[0];
       if (gridPicture === undefined) throw new Error('Missing grid picture');
       expect(gridPicture.layers.media?.mediaId).toBe(expected);
       expect(inspectorPicture.getAttribute('data-background')).toBe(
@@ -146,7 +146,7 @@ it.each(['list', 'grid'] as const)(
       const expected = session.history.snapshot.song.slides[1];
       if (expected === undefined) throw new Error('Missing slide data');
       expect(
-        within(inspector.container).getByTestId('picture').textContent,
+        within(inspector.container).getAllByTestId('picture')[0].textContent,
       ).toBe(expected.lines.join(' '));
     } finally {
       inspector.unmount();
@@ -158,11 +158,18 @@ it.each(['list', 'grid'] as const)(
 it('updates its local picture as the selected lyrics change', async () => {
   const {store, session} = await editorSetup();
   const view = render(<SlideInspector store={store} />);
-  const picture = within(view.container).getByTestId('picture');
   act(() =>
     session.edit({type: 'text', text: '새로운 가사', start: 6, end: 6}),
   );
-  expect(picture.textContent).toContain('새로운 가사');
+  expect(
+    within(view.container)
+      .getAllByTestId('picture')
+      .map(picture => picture.textContent),
+  ).toEqual(['새로운 가사', '새로운 가사', '새로운 가사']);
+  act(() => session.edit({type: 'paste', text: ' 붙여넣기'}));
+  for (const picture of within(view.container).getAllByTestId('picture')) {
+    expect(picture.textContent).toContain('붙여넣기');
+  }
   act(() => session.selectSlides({type: 'clear'}));
   expect(within(view.container).queryByTestId('picture')).toBeNull();
   view.unmount();

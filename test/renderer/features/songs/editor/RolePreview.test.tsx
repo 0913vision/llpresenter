@@ -21,6 +21,22 @@ function Preview(): JSX.Element {
 }
 
 describe('RolePreview', () => {
+  it('uses the shared single-screen picker without changing the selection mode', () => {
+    const {container} = render(<Preview />);
+    fireEvent.click(screen.getByRole('radio', {name: '한 화면'}));
+    expect(container.querySelectorAll('[data-preview-slot]')).toHaveLength(0);
+    fireEvent.click(screen.getByRole('radio', {name: '무대 화면'}));
+    expect(
+      container
+        .querySelector('[data-role="large"]')
+        ?.getAttribute('data-screen'),
+    ).toBe('stage');
+    expect(
+      screen.getByRole('radio', {name: '한 화면'}).getAttribute('aria-checked'),
+    ).toBe('true');
+    fireEvent.click(screen.getByRole('radio', {name: '세 화면'}));
+    expect(container.querySelectorAll('[data-preview-slot]')).toHaveLength(2);
+  });
   it('shows the chosen screen large and the other two as tiles, one picture each', () => {
     const {container} = render(<Preview />);
 

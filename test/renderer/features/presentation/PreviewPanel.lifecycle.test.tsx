@@ -15,8 +15,12 @@ import {useLive} from '@renderer/session/live';
 const stop = vi.fn();
 const capture = vi.fn();
 const source = vi.fn();
+const requestFrame = Object.getOwnPropertyDescriptor(HTMLVideoElement.prototype, 'requestVideoFrameCallback');
+const cancelFrame = Object.getOwnPropertyDescriptor(HTMLVideoElement.prototype, 'cancelVideoFrameCallback');
 
 beforeEach(() => {
+  Object.defineProperty(HTMLVideoElement.prototype, 'requestVideoFrameCallback', {configurable: true, value: vi.fn(() => 1)});
+  Object.defineProperty(HTMLVideoElement.prototype, 'cancelVideoFrameCallback', {configurable: true, value: vi.fn()});
   stop.mockReset();
   source.mockReset().mockResolvedValue('AAAAAAAAAAAAAAAAAAAAAA==');
   capture.mockReset().mockImplementation(async () => {
@@ -41,6 +45,10 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
+  if (requestFrame) Object.defineProperty(HTMLVideoElement.prototype, 'requestVideoFrameCallback', requestFrame);
+  else Reflect.deleteProperty(HTMLVideoElement.prototype, 'requestVideoFrameCallback');
+  if (cancelFrame) Object.defineProperty(HTMLVideoElement.prototype, 'cancelVideoFrameCallback', cancelFrame);
+  else Reflect.deleteProperty(HTMLVideoElement.prototype, 'cancelVideoFrameCallback');
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
   delete window.llp;

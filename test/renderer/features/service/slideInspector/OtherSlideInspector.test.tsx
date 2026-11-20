@@ -9,7 +9,6 @@ import {
 } from '@core/schema/ids';
 import {parse} from 'valibot';
 import {fixtureMedia} from '@fixtures/core/mediaList';
-import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import {
   fixtureServiceId,
   itemFixture,
@@ -88,12 +87,22 @@ vi.mock('@renderer/features/bible/useBibleProjections', () => ({
           },
 }));
 vi.mock('@renderer/rendering/SlidePicture', () => ({
-  SlidePicture: ({slide}: {slide: {label: string; sectionCard?: unknown}}) => {
+  SlidePicture: ({
+    slide,
+    mediaOnly,
+    background,
+  }: {
+    slide: {label: string; sectionCard?: unknown};
+    mediaOnly?: boolean;
+    background?: string;
+  }) => {
     const ready = useContext(PictureReadiness);
     const source = useRef({});
     useLayoutEffect(() => {
       ready?.(source.current);
     }, [ready]);
+    if (mediaOnly)
+      {return <div data-testid="media-picture" data-background={background} />;}
     return (
       <div
         data-testid={
@@ -229,15 +238,7 @@ async function setup(
   act(() => items.show({serviceId: fixtureServiceId, itemId}));
   const view = render(<OtherSlideInspector items={items} editor={editor} />);
   await waitFor(() => expect(items.getSnapshot().item).not.toBeNull());
-  if (kind === 'image' || kind === 'video') {
-    await waitFor(() =>
-      expect(view.container.querySelector('[inert] img')).not.toBeNull(),
-    );
-    const image = view.container.querySelector('[inert] img');
-    if (image === null) throw new Error('Missing staged image');
-    fireEvent.load(image);
-    await waitFor(() => expect(image.closest('[inert]')).toBeNull());
-  }
+
   return {view, items, editor, fixture};
 }
 
@@ -381,7 +382,9 @@ it('saves opening and closing sermon title transitions independently', async () 
 });
 it('shows the card-only slide item in the inspector', async () => {
   const {view, items, editor} = await setup('slide-card');
-  expect(screen.getByTestId('card-picture').textContent).toBe('예배 시작');
+  expect(screen.getAllByTestId('card-picture')[0].textContent).toBe(
+    '예배 시작',
+  );
   expect(screen.getByText('1 / 1')).toBeTruthy();
   view.unmount();
   items.dispose();
@@ -392,20 +395,10 @@ it.each(['image', 'video'] as const)(
   async kind => {
     const {view, items, editor} = await setup(kind);
     await screen.findByText(`media settings ${kind}`);
-    expect(view.container.querySelector('img')?.getAttribute('src')).toContain(
-      fixtureMedia[kind === 'image' ? 'warm' : 'dawn'],
-    );
-    if (kind === 'video') {
-      expect(view.container.querySelector('img')?.getAttribute('src')).toBe(
-        thumbnailSrc(fixtureMedia.dawn),
-      );
-    }
-    const image = view.container.querySelector('img');
-    if (image === null) throw new Error('Missing media picture');
-    fireEvent.error(image);
-    expect(image.style.visibility).toBe('hidden');
-    fireEvent.load(image);
-    expect(image.style.visibility).toBe('');
+    expect(screen.getAllByTestId('media-picture')).toHaveLength(3);
+    expect(
+      screen.getAllByTestId('media-picture')[0].getAttribute('data-background'),
+    ).toBe(fixtureMedia[kind === 'image' ? 'warm' : 'dawn']);
     view.unmount();
     items.dispose();
     await editor.dispose();
@@ -413,9 +406,9 @@ it.each(['image', 'video'] as const)(
 );
 it('shows the selected Bible picture, label and transition picker', async () => {
   const {view, items, editor} = await setup('bible');
-  expect(screen.getByTestId('bible-picture')).toBeTruthy();
-  expect(screen.getAllByText('1:1')).toHaveLength(2);
-  expect(screen.getByLabelText('효과')).toBeTruthy();
+  expect(screen.getAllByTestId('bible-picture')[0]).toBeTruthy();
+  expect(screen.getAllByText('1:1')).toHaveLength(4);
+  expect(screen.getByLabelText('\uD6A8\uACFC')).toBeTruthy();
   act(() => items.show(null));
   expect(screen.queryByTestId('bible-picture')).toBeNull();
   expect(screen.queryByText('1:1')).toBeNull();
@@ -519,14 +512,16 @@ it('stores a label for an image item', async () => {
 
 it('shows the Bible opening card and offsets verse positions past it', async () => {
   const {view, items, editor} = await setup('bible-card');
-  expect(screen.getByTestId('card-picture').textContent).toBe('예배 시작');
+  expect(screen.getAllByTestId('card-picture')[0].textContent).toBe(
+    '예배 시작',
+  );
   expect(screen.getByText('1 / 3')).toBeTruthy();
   expect(screen.queryByTestId('bible-picture')).toBeNull();
   act(() => items.selectPosition(1));
-  expect(screen.getByTestId('bible-picture').textContent).toBe('1:1');
+  expect(screen.getAllByTestId('bible-picture')[0].textContent).toBe('1:1');
   expect(screen.queryByTestId('card-picture')).toBeNull();
   act(() => items.selectPosition(2));
-  expect(screen.getByTestId('bible-picture').textContent).toBe('1:2');
+  expect(screen.getAllByTestId('bible-picture')[0].textContent).toBe('1:2');
   view.unmount();
   items.dispose();
   await editor.dispose();
