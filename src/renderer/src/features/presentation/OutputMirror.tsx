@@ -35,6 +35,29 @@ export function OutputMirror({
     let relayDue = 0;
     let relayCanvas: HTMLCanvasElement | undefined;
     let nativeActive = false;
+    let retainedFrame = false;
+    let videoFrame: number | undefined;
+    const showVideo = (): void => {
+      videoFrame = undefined;
+      if (lifetime.stopped || nativeActive || isHiddenWorkspace(frame)) return;
+      canvas.hidden = true;
+      video.hidden = false;
+    };
+    const retainVideo = (): void => {
+      if (video.hidden || video.videoWidth === 0 || video.videoHeight === 0) {
+        return;
+      }
+      try {
+        const context = canvas.getContext('2d');
+        if (context === null) return;
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        retainedFrame = true;
+        canvas.hidden = false;
+        video.hidden = true;
+      } catch {
+        // NOTE(0913vision): Capture can end between the size check and draw.
+      }
+    };
     const stopRelay = (): void => {
       if (relayFrame !== undefined) video.cancelVideoFrameCallback(relayFrame);
       relayFrame = undefined;
@@ -89,6 +112,10 @@ export function OutputMirror({
     const stop = (): void => {
       generation++;
       stopRelay();
+      if (videoFrame !== undefined) {
+        video.cancelVideoFrameCallback(videoFrame);
+        videoFrame = undefined;
+      }
       if (retry !== undefined) clearTimeout(retry);
       retry = undefined;
       stream?.getTracks().forEach(track => {
@@ -141,6 +168,14 @@ export function OutputMirror({
           };
         });
         await video.play();
+        if (
+          retainedFrame &&
+          typeof video.requestVideoFrameCallback === 'function'
+        ) {
+          videoFrame = video.requestVideoFrameCallback(() => {
+            if (own === generation) showVideo();
+          });
+        }
         startRelay();
       } catch {
         if (own === generation && !isHiddenWorkspace(frame)) {
@@ -165,8 +200,10 @@ export function OutputMirror({
           if (id !== screenId) return;
           if (pixels === null) {
             nativeActive = false;
-            canvas.hidden = true;
-            video.hidden = false;
+            if (!retainedFrame) {
+              canvas.hidden = true;
+              video.hidden = false;
+            }
             start().catch(() => undefined);
             return;
           }
@@ -183,6 +220,7 @@ export function OutputMirror({
                   )
                 : Uint8ClampedArray.from(pixels);
             context.putImageData(new ImageData(bytes, 640, 360), 0, 0);
+            retainedFrame = true;
             if (!nativeActive) {
               nativeActive = true;
               stop();
@@ -205,10 +243,13 @@ export function OutputMirror({
       stopRelay();
       window.llp?.output.previewControl({screenId, action: 'stop'});
       nativeActive = false;
-      canvas.hidden = true;
-      video.hidden = false;
+      if (!retainedFrame) {
+        canvas.hidden = true;
+        video.hidden = false;
+      }
     };
     const observer = new MutationObserver(() => {
+      if (isHiddenWorkspace(frame)) retainVideo();
       stop();
       stopNative();
       if (!isHiddenWorkspace(frame)) {
