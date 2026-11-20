@@ -3,9 +3,7 @@ import {Button} from '@renderer/ui/Button';
 import {Dialog, DialogField} from '@renderer/ui/Dialog';
 import {DateSelect} from '@renderer/ui/DateSelect';
 import type {Notice} from '@renderer/ui/notices';
-import {SelectMenu} from '@renderer/ui/SelectMenu';
 import {TextField} from '@renderer/ui/TextField';
-import {timeChoices} from './serviceDates';
 import {SourceList} from './SourceList';
 import {SourceTree} from './SourceTree';
 import {useSourceActions} from './useSourceActions';
@@ -104,14 +102,6 @@ export function NewServiceDialog({
                 aria-label="날짜"
                 value={state.date}
                 onChange={state.setDate}
-              />
-            </DialogField>
-            <DialogField label="시간">
-              <SelectMenu
-                aria-label="시간"
-                options={timeChoices(state.time)}
-                value={state.time}
-                onChange={state.setTime}
               />
             </DialogField>
           </>

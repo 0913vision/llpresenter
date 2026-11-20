@@ -650,7 +650,7 @@ Source: the user's decision from the m3-check3 check, October 26.
   - Right: the "예배 순서" box with a check-all box and the count ("항목 9개"),
     and a tree of sections and items with check boxes. Empty sections stay
     visible and can be checked on their own.
-  - Bottom bar: 이름 (name), 날짜 (date), and 시간 (time).
+  - Bottom bar: 이름 (name) and 날짜 (date).
   - Footer: 취소 (cancel) and 만들기 (create).
 - Behavior:
   - 지난 예배 lists every service, including the open service and future-dated
@@ -664,11 +664,9 @@ Source: the user's decision from the m3-check3 check, October 26.
     shows the mixed state. An empty section is checked on its own and is copied
     when checked, so a template's empty sections survive creation.
   - The name defaults to the name of the chosen 템플릿 or service, or "새 예배"
-    for 빈 예배. The date defaults to today. The time defaults to the 템플릿's
-    `time` or the past service's time, or the current hour for 빈 예배. In M3,
-    날짜 selects today or one of the next 13 days, retaining a chosen date
-    outside that range. 시간 offers 30-minute steps and retains a chosen time
-    between steps. The calendar popover is a UI follow-up.
+    for 빈 예배. The date defaults to today and is chosen with a calendar. New
+    files store `T00:00` to satisfy the existing date-time format; a source
+    template's time and a past service's time do not affect the new service.
   - 만들기 is unavailable while the name is empty, with the reason in a tooltip.
   - 만들기 creates a new service file with the checked items, in order, with new
     item IDs. Song references, independent slide decks, background overrides,
@@ -714,7 +712,8 @@ Source: the user's decision from the m3-check3 check, October 26.
 Source: `NewService`, `Main` decision "새 예배", `Dialog` README, `Checkbox`
 README, product log version 63. Implementation decisions: accepted P4 requests
 `docs/reviews/spec-48.md` through `docs/reviews/spec-53.md`, including the
-lead's date/time choice and source-menu decision recorded in those requests.
+lead's date and source-menu decisions recorded in those requests. QA-110
+supersedes the earlier time choice.
 
 ## Importing from another service
 

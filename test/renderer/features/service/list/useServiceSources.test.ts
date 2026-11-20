@@ -116,23 +116,23 @@ describe('useSourceDocument', () => {
     services: {get: () => Promise.resolve(pastDocument)},
   });
 
-  it('reads a 템플릿 with its name, time, and items', async () => {
+  it('reads a 템플릿 with its name and items', async () => {
     const {result} = renderHook(() => useSourceDocument(api, template));
     expect(result.current.document).toBeNull();
     await waitFor(() => expect(result.current.document).not.toBeNull());
     expect(result.current.document).toMatchObject({
       source: template,
       name: '주일 예배',
-      time: '11:00',
       order: templateDocument.template.order,
     });
     expect(result.current.missing).toBe(false);
   });
 
-  it('takes a past service time from its date', async () => {
+  it('reads a past service without using its time', async () => {
     const {result} = renderHook(() => useSourceDocument(api, past));
-    await waitFor(() => expect(result.current.document?.time).toBe('09:30'));
+    await waitFor(() => expect(result.current.document).not.toBeNull());
     expect(result.current.document?.name).toBe('지난 주일 예배');
+    expect(result.current.document).not.toHaveProperty('time');
   });
 
   it('gives 빈 예배 no name and no items, and waits without a source', async () => {
@@ -141,7 +141,6 @@ describe('useSourceDocument', () => {
       expect(empty.result.current.document).toEqual({
         source: EMPTY_SOURCE,
         name: '',
-        time: undefined,
         order: [],
       }),
     );

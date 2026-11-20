@@ -388,6 +388,13 @@ describe('parseService', () => {
     expect(expectSuccess(parse(service)).data.date).toBe('2028-02-29T09:30');
   });
 
+  it('round-trips an existing service time unchanged', () => {
+    const original = {...sundayService(), date: '2026-11-01T17:35'};
+    const service = expectSuccess(parse(original)).data;
+    const text = expectSuccess(serializeService(service, FILE));
+    expect(expectSuccess(parseService(text, FILE)).data).toEqual(original);
+  });
+
   it('rejects a template, which has no date', () => {
     expect(expectFailure(parse(sundayTemplate())).field).toBe('date');
   });

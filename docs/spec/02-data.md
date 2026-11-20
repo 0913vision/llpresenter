@@ -286,8 +286,10 @@ the slot behavior in the earlier service samples and draft boards.
 
 - A 템플릿 uses the service file format (`format: "llservice"`). Store it in the
   `Templates\` folder of the data folder (proposal).
-- A 템플릿 has no `date`. It can have a `time` (`HH:mm`) that sets the default
-  time of a new service (proposal).
+- A 템플릿 has no `date`. Existing optional `time` (`HH:mm`) values remain
+  readable and preserved, but do not set a new service's time. New services use
+  `T00:00` in the existing date-time format; old service dates are preserved.
+  Service ordering and startup selection compare dates without legacy times.
 - A 템플릿 holds empty sections where content will be added later. Empty
   sections stay in its order and in the 새 예배 source tree. It can also hold
   content such as songs, media. For example, the `NewService` board shows 예배
@@ -297,14 +299,13 @@ Source: `Main` service notes (same file format), `NewService`, and the user's
 decision from the m3-check3 check, October 26 (empty sections replace slot
 items).
 
-New data folders include **주일 2부 예배**, with default time **11:30**. Its
-sections remain grouping rows. The 사도신경 and 광고 items carry an optional
-opening `sectionCard` with bounded `name`, `english`, and `theme` fields; their
-content and item theme remain independent. Other named sections retain
-standalone cards, and 말씀 remains empty. Existing data folders are unchanged.
-Song, Bible, slides, and liturgy items may carry the same optional card without
-migration. The card name must not be blank; unknown fields are preserved as for
-other data objects.
+New data folders include **주일 2부 예배**. Its sections remain grouping rows.
+The 사도신경 and 광고 items carry an optional opening `sectionCard` with bounded
+`name`, `english`, and `theme` fields; their content and item theme remain
+independent. Other named sections retain standalone cards, and 말씀 remains
+empty. Existing data folders are unchanged. Song, Bible, slides, and liturgy
+items may carry the same optional card without migration. The card name must not
+be blank; unknown fields are preserved as for other data objects.
 
 사도신경 and 주기도문 use the dedicated `liturgy` item kind, with bounded `kind`
 (`creed` or `prayer`) and `translation` (`new` or `old`) choices. Their text and

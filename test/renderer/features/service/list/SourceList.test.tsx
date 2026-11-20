@@ -18,6 +18,24 @@ function names(): readonly string[] {
 }
 
 describe('SourceList', () => {
+  it('orders services on the same day by name, not legacy time', () => {
+    render(
+      <SourceList
+        templates={[]}
+        services={[
+          {...newer, name: '가 예배', date: '2026-11-01T01:00'},
+          {...newer, id: ids.past, name: '나 예배', date: '2026-11-01T23:00'},
+        ]}
+        selected={null}
+        onSelect={() => undefined}
+        withEmpty={false}
+      />,
+    );
+    expect(names()).toEqual([
+      '가 예배11월 1일 일요일',
+      '나 예배11월 1일 일요일',
+    ]);
+  });
   it('lists 빈 예배, the 템플릿, and the services newest first with dates and counts', () => {
     render(
       <SourceList

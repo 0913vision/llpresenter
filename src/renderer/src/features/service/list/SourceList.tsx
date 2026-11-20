@@ -14,6 +14,7 @@ import {EMPTY_SOURCE, sourceKey, type ServiceSource} from './useServiceSources';
 import styles from './ServiceDialogs.module.css';
 import {isContextMenuKey, type ContextMenuEvent} from '../../../ui/contextMenu';
 import {useReflow} from '@renderer/ui/useReflow';
+import {serviceDay} from '@core/services/serviceDate';
 
 const names = new Intl.Collator('ko', {numeric: true});
 
@@ -26,7 +27,7 @@ function newestFirst(
 ): readonly ServiceEntry[] {
   return [...entries].sort(
     (left, right) =>
-      right.date.localeCompare(left.date) ||
+      serviceDay(right.date).localeCompare(serviceDay(left.date)) ||
       names.compare(left.name, right.name),
   );
 }

@@ -1,3 +1,4 @@
+import {serviceDay} from '@core/services/serviceDate';
 import type {Result} from '@core/common/result';
 import type {FileError, LoadedFile} from '@core/schema/fileFormat';
 import {parseMediaList} from '@core/schema/mediaList';
@@ -121,7 +122,7 @@ export function chooseOpenService(
   }
   let newest: Service | null = null;
   for (const {data} of services.values()) {
-    if (newest === null || data.date > newest.date) {
+    if (newest === null || serviceDay(data.date) > serviceDay(newest.date)) {
       newest = data;
     }
   }

@@ -71,7 +71,7 @@ describe('loadStore', () => {
     expect(store.songs.size).toBe(0);
     expect(store.services.size).toBe(0);
     expect([...store.templates.values()].map(({data}) => data)).toMatchObject([
-      {name: '주일 2부 예배', time: '11:30'},
+      {name: '주일 2부 예배'},
     ]);
     expect(store.openServiceId).toBeNull();
     expect(store.problems).toEqual([]);
@@ -156,7 +156,7 @@ describe('loadStore', () => {
     const services = join(dataRoot(context), 'Services');
     await writeJson(
       join(services, 'a.llservice'),
-      service(SUNDAY_ID, '2026-11-01T11:00', []),
+      service(SUNDAY_ID, '2026-10-31T11:00', []),
     );
     await writeJson(
       join(services, 'b.llservice'),

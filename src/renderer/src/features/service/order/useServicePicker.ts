@@ -3,6 +3,7 @@ import type {ServiceEntry} from '@core/schema/contentDocuments';
 import {applyService, useShow} from '@renderer/session/show';
 import {useServiceSwitchGuard} from '../useServiceSwitchGuard';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
+import {serviceDay} from '@core/services/serviceDate';
 
 const names = new Intl.Collator('ko', {numeric: true});
 const problemTitles = {
@@ -24,7 +25,7 @@ function problemNotice(cause: keyof typeof problemTitles): Notice {
 function sorted(entries: readonly ServiceEntry[]): readonly ServiceEntry[] {
   return [...entries].sort(
     (left, right) =>
-      right.date.localeCompare(left.date) ||
+      serviceDay(right.date).localeCompare(serviceDay(left.date)) ||
       names.compare(left.name, right.name) ||
       left.id.localeCompare(right.id),
   );
