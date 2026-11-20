@@ -436,7 +436,9 @@ export class ThemeCompositionView {
       };
       return fitted;
     } catch (error) {
-      this.options.onError('could not fit the broadcast band', error);
+      const message = 'could not fit the broadcast band';
+      this.options.onDrawFailure?.(message, error);
+      this.options.onError(message, error);
       return previous?.layout ?? layout;
     }
   }
