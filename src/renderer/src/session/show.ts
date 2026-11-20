@@ -611,6 +611,35 @@ function refreshStageNext(): void {
   });
 }
 
+function refreshEditedBibleText(
+  before: ShowRow | undefined,
+  after: ShowRow | undefined,
+): void {
+  if (
+    before?.kind !== 'bible' ||
+    after?.kind !== 'bible' ||
+    JSON.stringify(before.bible?.editedVerses) ===
+      JSON.stringify(after.bible?.editedVerses)
+  ) {
+    return;
+  }
+  const live = useLive.getState().state?.layers.slide;
+  if (live?.itemId !== after.id || live.bibleVerse === undefined) return;
+  const cursor = projectedLiveCursor(useShow.getState(), live);
+  const slide = cursor === null ? null : stageSlideOf(cursor);
+  if (
+    slide !== null &&
+    (JSON.stringify(slide.lines) !== JSON.stringify(live.lines) ||
+      JSON.stringify(slide.bibleItemSlides) !==
+        JSON.stringify(live.bibleItemSlides))
+  ) {
+    sendLive({
+      type: 'slide.text.set',
+      slide: {...slide, position: live.position},
+    });
+  }
+}
+
 /**
  * Outputs the next 장. On the last 장 of an item it stops, or with 다음 항목
  * starts the next item on its first 장 and opens it in the 장 panel, the way
@@ -801,6 +830,7 @@ export function applyService(service: ShowService | null): void {
     const id = useLive.getState().state?.themeItem?.id;
     const before = view.rows.find(row => row.id === id);
     const after = service.rows.find(row => row.id === id);
+    refreshEditedBibleText(before, after);
     const appearance = (row: typeof before) =>
       row === undefined || row.kind === 'header'
         ? null

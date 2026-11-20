@@ -346,6 +346,9 @@ function rowOf(item: ServiceItem, sources: RowSources): ShowRow {
               translationName: settings.translationName,
               reference: settings.reference,
               ...(settings.cuts === undefined ? {} : {cuts: settings.cuts}),
+              ...(settings.editedVerses === undefined
+                ? {}
+                : {editedVerses: settings.editedVerses}),
               ...(settings.transition === undefined
                 ? {}
                 : {transition: settings.transition}),

@@ -38,6 +38,20 @@ function matchingVerses(
     tile.lines.join('').replace(/\s|\(계속\)/gu, '');
   const verses = original.filter(tile => tile.sectionCard === undefined);
   for (const verse of verses) {
+    if (verse.biblePart !== undefined) {
+      const part = parts[index++];
+      if (
+        part?.biblePart !== verse.biblePart ||
+        part.continued !== verse.continued ||
+        verse.bibleVerse === undefined ||
+        part.bibleVerse === undefined ||
+        !sameBibleVerse(verse.bibleVerse, part.bibleVerse) ||
+        content(part) !== content(verse)
+      ) {
+        return false;
+      }
+      continue;
+    }
     let text = '';
     let count = 0;
     let continued = true;

@@ -4,6 +4,8 @@ import type {BibleLookupPassage} from '../schema/bibleLookup';
 import type {BiblePassage} from '../schema/biblePassage';
 import {LIVE_STATE_LIMITS} from '../schema/liveLimits';
 import type {ShowTile} from '../schema/showService';
+import {cacheKey} from './split/splitCache';
+import {CONT_MARKER} from './split/layout';
 
 export function bibleOutputLines(text: string): readonly string[] {
   const lines: string[] = [];
@@ -17,6 +19,17 @@ export function bibleOutputLines(text: string): readonly string[] {
   }
   lines.push(line);
   return lines;
+}
+
+/** Edited text has the same hard line breaks as the other slide editors. */
+export function bibleEditedOutputLines(
+  text: string,
+  prefix: string,
+  continued: boolean,
+): readonly string[] {
+  return (prefix + text + (continued ? CONT_MARKER : ''))
+    .split(/\r?\n/u)
+    .flatMap(bibleOutputLines);
 }
 
 /**
@@ -41,6 +54,7 @@ export interface TileOptions {
   /** Which slides show the reference; none when absent. */
   readonly reference?: BiblePassage['reference'];
   readonly transition?: BiblePassage['transition'] | undefined;
+  readonly editedVerses?: BiblePassage['editedVerses'];
 }
 
 /**
@@ -63,29 +77,68 @@ export function bibleVerseTiles(
     translationName && passage.translationLabel
       ? ` (${passage.translationLabel})`
       : '';
-  return passage.verses.map((verse, index) => ({
-    label: `${shortBook}${verse.chapter}:${verse.verse}`,
-    ...(bookInfo === undefined
-      ? {}
-      : {
-          bibleVerse: {
+  const tiles = passage.verses.flatMap((verse): ShowTile[] => {
+    const bibleVerse =
+      bookInfo === undefined
+        ? undefined
+        : {
             translation: passage.translation,
             book: bookInfo.id,
             chapter: verse.chapter,
             verse: verse.verse,
-          },
-        }),
-    labelColor: NO_LABEL_COLOR,
-    ...(options.transition === undefined
-      ? {}
-      : {transition: options.transition}),
-    ...(reference === 'every' ||
-    (reference === 'first' && index === 0) ||
-    (reference === 'last' && index === passage.verses.length - 1)
-      ? {reference: `${book} ${verse.chapter}:${verse.verse}${translation}`}
-      : {}),
-    lines: bibleOutputLines(
-      verseNumbers ? `${verse.verse} ${verse.text}` : verse.text,
-    ),
-  }));
+          };
+    const edited =
+      bibleVerse === undefined
+        ? undefined
+        : options.editedVerses?.[cacheKey(bibleVerse)];
+    const base = {
+      label: `${shortBook}${verse.chapter}:${verse.verse}`,
+      labelColor: NO_LABEL_COLOR,
+      ...(bibleVerse === undefined ? {} : {bibleVerse}),
+      ...(options.transition === undefined
+        ? {}
+        : {transition: options.transition}),
+      reference: `${book} ${verse.chapter}:${verse.verse}${translation}`,
+    };
+    if (edited === undefined) {
+      return [
+        {
+          ...base,
+          lines: bibleOutputLines(
+            verseNumbers ? `${verse.verse} ${verse.text}` : verse.text,
+          ),
+        },
+      ];
+    }
+    return edited.map((part, index) => {
+      const continued = index < edited.length - 1;
+      const prefix =
+        index === 0 && verseNumbers && passage.verses.length > 1
+          ? `${verse.verse} `
+          : '';
+      return {
+        ...base,
+        label:
+          edited.length === 1 ? base.label : `${base.label} (${index + 1})`,
+        biblePart: index + 1,
+        continued,
+        lines: bibleEditedOutputLines(
+          part.text ?? part.source.trimEnd(),
+          prefix,
+          continued,
+        ),
+      };
+    });
+  });
+  return tiles.map((tile, index) => {
+    if (
+      reference === 'every' ||
+      (reference === 'first' && index === 0) ||
+      (reference === 'last' && index === tiles.length - 1)
+    ) {
+      return tile;
+    }
+    const {reference: _reference, ...rest} = tile;
+    return rest;
+  });
 }

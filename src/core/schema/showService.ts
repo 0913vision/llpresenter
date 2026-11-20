@@ -16,7 +16,10 @@ import {
   sectionCardSchema,
   SLIDES_LIMITS,
 } from './service';
-import {bibleReferenceSchema as bibleReferenceFrequencySchema} from './biblePassage';
+import {
+  bibleEditedVersesSchema,
+  bibleReferenceSchema as bibleReferenceFrequencySchema,
+} from './biblePassage';
 import {
   mediaIdSchema,
   slideIdSchema,
@@ -74,6 +77,7 @@ const bibleReferenceSchema = v.pipe(
     theme: v.exactOptional(themeIdSchema),
     transitions: v.exactOptional(biblePartTransitionsSchema),
     cuts: v.exactOptional(bibleVerseCutsSchema),
+    editedVerses: v.exactOptional(bibleEditedVersesSchema),
     labels: v.exactOptional(biblePartLabelsSchema),
     passage: v.exactOptional(
       v.pipe(

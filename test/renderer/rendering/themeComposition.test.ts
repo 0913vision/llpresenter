@@ -33,6 +33,10 @@ import type {RenderFrame, ThemeFrame} from '@renderer/rendering/layer';
 import {ThemeCompositionView} from '@renderer/rendering/themeComposition';
 import {classes} from '@renderer/rendering/classes';
 import {bibleVerseTiles} from '@core/bible/bibleTiles';
+import {projectBible} from '@renderer/features/bible/splitProjection';
+import {mockSplitLayout} from '@fixtures/core/bibleSplit';
+import {outputSlideSpec} from '@renderer/rendering/outputSlideSpec';
+import {pictureKey} from '@core/output/pictureKey';
 import {projectSlides, slidesOutput} from '@core/presentation/slides';
 import {slideLayerOf} from '@core/presentation/slideLayer';
 import {parseLiveCommand} from '@core/schema/liveCommand';
@@ -114,6 +118,117 @@ afterEach(() => {
 });
 
 describe('theme composition drawing', () => {
+  it.each(['audience', 'stage', 'broadcast'] as const)(
+    'draws edited Bible and sermon bodies with the reference and continuation on %s',
+    kind => {
+      const passage = {
+        ...panelPassage(),
+        verses: [
+          {chapter: 3, verse: 16, text: 'Original first part and second part'},
+        ],
+      };
+      const original = {source: 'Original first part '};
+      const editedVerses = {
+        '43:3:16': [
+          {...original, text: 'Revised slide body'},
+          {source: 'and second part'},
+        ],
+      };
+      const settings = {
+        verseNumbers: false,
+        reference: 'every',
+        translationName: false,
+      } as const;
+      const theme = currentBuiltInTheme('bible');
+      const id = createScreenId(
+        kind === 'audience'
+          ? STARTER_SCREEN_IDS.main
+          : STARTER_SCREEN_IDS[kind],
+      );
+      const layout = theme.screens[id];
+      if (!layout) throw Error('Missing screen layout');
+      const renderScreen = {id, kind};
+      for (const sermon of [false, true]) {
+        const source = {
+          ...settings,
+          id: 'edited-item',
+          kind: 'bible' as const,
+          source: 'service' as const,
+          passage,
+          ...(sermon ? {sermonTitle: 'Sermon title'} : {}),
+        };
+        const measure = {
+          element: {...themeElementBase(), kind: 'currentText' as const},
+          layout: mockSplitLayout(60),
+        };
+        const before = projectBible(source, measure);
+        const edited = projectBible({...source, editedVerses}, measure);
+        if (!edited || !before) throw Error('Missing projection');
+        const index = Number(sermon);
+        const cursor = {itemId: source.id, index};
+        const baseline = slideLayerOf(cursor, () => before.tiles);
+        const slide = slideLayerOf(cursor, () => edited.tiles);
+        if (baseline === null || slide === null) {
+          throw Error('Missing verse slide');
+        }
+        expect(edited.tiles[index]?.lines.join(' ')).toBe(
+          'Revised slide body (계속)',
+        );
+        expect(edited.tiles[index + 1]?.lines.join(' ')).toBe(
+          'and second part',
+        );
+        expect(slide.reference).toBe(baseline.reference);
+        expect(slide.continued).toBe(true);
+        if (sermon) expect(edited.tiles[0]?.lines).toEqual(['Sermon title']);
+
+        const parsed = parseLiveCommand({type: 'slide.show', slide});
+        if (!parsed.ok || parsed.value.type !== 'slide.show') {
+          throw Error('Invalid live slide');
+        }
+        const liveSlide = parsed.value.slide;
+        const item = {
+          id: source.id,
+          kind: source.kind,
+          source: source.source,
+          title: passage.displayRef,
+        };
+        const input = {
+          themeId: theme.id,
+          layout,
+          emptyColor: '#000000',
+          item,
+          screen: {...renderScreen, method: 'fullscreen' as const},
+        };
+        const preview = outputSlideSpec({...input, slide: liveSlide});
+        expect(preview.layers.slide?.lines).toEqual(liveSlide.lines);
+        expect(pictureKey(preview)).not.toBe(
+          pictureKey(outputSlideSpec({...input, slide: baseline})),
+        );
+
+        const {root, view, text, onError} = setup();
+        view.render(preview.layers, {
+          ...frame(layout.elements, {
+            themeId: theme.id,
+            sourceScreenId: id,
+            item,
+            layout,
+          }),
+          screen: renderScreen,
+          transitions: false,
+        });
+        expect(text('currentText')).toContain('Revised slide body');
+        expect(text('reference')).toContain('3:16');
+        expect(
+          root.querySelector(
+            '[data-kind="currentText"] [data-bible-continuation]',
+          )?.textContent,
+        ).toBe(' (계속)');
+        expect(onError).not.toHaveBeenCalled();
+        view.dispose();
+      }
+    },
+  );
+
   it.each(['blank', 'ad'] as const)(
     'draws referenced %s text like the same Bible passage on all three screens',
     form => {

@@ -1,5 +1,6 @@
 import type {MediaChoice, SlideLayer} from '@core/live/state';
-import {setLayer, updateLayer, type LiveHistory} from '../history';
+import {sameBibleVerse} from '@core/bible/selection';
+import {setLayer, updateLayer, withLayers, type LiveHistory} from '../history';
 import {defineSlice} from '../slice';
 
 function clearPreviousPicture(
@@ -40,10 +41,68 @@ function showMedia(
   return setLayer(history, 'media', {...playback, ...choice});
 }
 
+function sameTextSlide(
+  current: SlideLayer | null,
+  incoming: SlideLayer,
+): current is SlideLayer {
+  if (current === null) return false;
+  if (
+    current.itemId !== incoming.itemId ||
+    current.position !== incoming.position ||
+    current.picture !== undefined ||
+    incoming.picture !== undefined ||
+    current.sectionCard !== undefined ||
+    incoming.sectionCard !== undefined ||
+    current.sermonTitle ||
+    incoming.sermonTitle
+  ) {
+    return false;
+  }
+  if (current.bibleVerse !== undefined || incoming.bibleVerse !== undefined) {
+    return (
+      current.bibleVerse !== undefined &&
+      incoming.bibleVerse !== undefined &&
+      sameBibleVerse(current.bibleVerse, incoming.bibleVerse) &&
+      (current.biblePart ?? 1) === (incoming.biblePart ?? 1)
+    );
+  }
+  return (
+    current.sourceSlideId !== undefined &&
+    current.sourceSlideId === incoming.sourceSlideId &&
+    (current.kind === 'blank' || current.kind === 'ad') &&
+    current.kind === incoming.kind &&
+    current.biblePart === undefined &&
+    incoming.biblePart === undefined
+  );
+}
+
+function withSlideText(current: SlideLayer, incoming: SlideLayer): SlideLayer {
+  const {
+    reference: _reference,
+    continued: _continued,
+    bibleItemSlides: _bibleItemSlides,
+    ...slide
+  } = current;
+  return {
+    ...slide,
+    lines: incoming.lines,
+    ...(incoming.reference === undefined
+      ? {}
+      : {reference: incoming.reference}),
+    ...(incoming.continued === undefined
+      ? {}
+      : {continued: incoming.continued}),
+    ...(incoming.bibleItemSlides === undefined
+      ? {}
+      : {bibleItemSlides: incoming.bibleItemSlides}),
+  };
+}
+
 /** Puts content on a layer: a slide, a background, or a message. */
 export const contentSlice = defineSlice({
   commands: [
     'slide.show',
+    'slide.text.set',
     'bible.passage.title.set',
     'stage.next.set',
     'media.show',
@@ -53,6 +112,35 @@ export const contentSlice = defineSlice({
   initial: {layers: {slide: null, media: null, message: null}},
   reduce: (history, command, context) => {
     switch (command.type) {
+      case 'slide.text.set': {
+        const {layers} = history.state;
+        const current = layers.slide;
+        const incoming = command.slide;
+        if (
+          !sameTextSlide(current, incoming) ||
+          (current.reference === incoming.reference &&
+            current.continued === incoming.continued &&
+            JSON.stringify(current.lines) === JSON.stringify(incoming.lines) &&
+            JSON.stringify(current.bibleItemSlides) ===
+              JSON.stringify(incoming.bibleItemSlides))
+        ) {
+          return history;
+        }
+        const {undo} = history;
+        return withLayers(
+          history,
+          {...layers, slide: withSlideText(current, incoming)},
+          undo !== null && sameTextSlide(undo.layers.slide, incoming)
+            ? {
+                ...undo,
+                layers: {
+                  ...undo.layers,
+                  slide: withSlideText(undo.layers.slide, incoming),
+                },
+              }
+            : undo,
+        );
+      }
       case 'bible.passage.title.set': {
         const slide = history.state.layers.slide;
         const item = history.state.themeItem;

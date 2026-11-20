@@ -71,6 +71,32 @@ function withItem(item: object) {
 }
 
 describe('parseService', () => {
+  it('round-trips edited Bible parts and rejects malformed slide edits', () => {
+    const edited = [
+      {source: 'Original first '},
+      {source: 'second', text: 'Edited\nline'},
+    ];
+    const item = {
+      id: itemId(4),
+      bible: {...PASSAGE, editedVerses: {'43:3:16': edited}},
+    };
+    const saved = expectSuccess(parse(withItem(item))).data;
+    const written = expectSuccess(serializeService(saved, FILE));
+    expect(expectSuccess(parseService(written, FILE)).data.order[0]).toEqual(
+      item,
+    );
+    for (const editedVerses of [
+      {'43:3:0': edited},
+      {'43:3:16': [{source: 'Original only'}]},
+      {'43:3:16': [{source: 'Original', text: 'x'.repeat(4001)}]},
+      {'43:3:16': [{source: 'Original', text: '\n'.repeat(1000)}]},
+    ]) {
+      expect(
+        parse(withItem({...item, bible: {...PASSAGE, editedVerses}})).ok,
+      ).toBe(false);
+    }
+  });
+
   it('round-trips confirmed cuts owned by one Bible passage and rejects invalid entries', () => {
     const entry = {
       hash: '1234abcd',

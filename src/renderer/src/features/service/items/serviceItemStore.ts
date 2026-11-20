@@ -74,6 +74,10 @@ export class ServiceItemStore {
   private readonly memos: ItemMemoDrafts;
   private readonly source: ItemSourceFollower;
   private readonly stopWrites: () => void;
+  private readonly bibleDrafts = new Map<
+    string,
+    {readonly text: string; readonly request: ItemEditRequest}
+  >();
   private target: ItemTarget | null = null;
   private position = 0;
   private bibleSelection: readonly number[] = [];
@@ -135,8 +139,10 @@ export class ServiceItemStore {
     const history = serviceOrderEditsFor(this.api);
     return action === 'undo' ? history.canUndo(id) : history.canRedo(id);
   }
-  async replayItemEdit(action: 'undo' | 'redo'): Promise<void> {
-    const id = this.state.service?.service.id;
+  async replayItemEdit(
+    action: 'undo' | 'redo',
+    id = this.state.service?.service.id,
+  ): Promise<void> {
     if (id === undefined || this.state.busy) return;
     const history = serviceOrderEditsFor(this.api);
     const result = await (action === 'undo'
@@ -151,6 +157,29 @@ export class ServiceItemStore {
   /** Submits a captured field request through the single item-write queue. */
   submitItemEdit(request: ItemEditRequest): Promise<boolean> {
     return this.edits.submit(request);
+  }
+  bibleTextDraft(key: string): string | undefined {
+    return this.bibleDrafts.get(key)?.text;
+  }
+  typeBibleText(key: string, text: string, request: ItemEditRequest): void {
+    this.bibleDrafts.set(key, {text, request});
+  }
+  saveBibleText(key: string): Promise<boolean> {
+    return this.bibleDrafts.has(key)
+      ? this.edits.run(() => this.writeBibleText(key))
+      : Promise.resolve(true);
+  }
+  private async writeBibleText(key: string): Promise<boolean> {
+    const draft = this.bibleDrafts.get(key);
+    if (draft === undefined) return true;
+    const saved = await this.edits.apply({
+      ...draft.request,
+      retry: () => this.saveBibleText(key),
+    });
+    if (saved && this.bibleDrafts.get(key) === draft) {
+      this.bibleDrafts.delete(key);
+    }
+    return saved;
   }
   /** Omitting the theme follows the item's kind default. */
   setTheme(
@@ -193,8 +222,14 @@ export class ServiceItemStore {
     return this.memos.hasRoom(target);
   }
   /** Saves all retained drafts after running edits, including during close preflight. */
-  flushDrafts(): Promise<boolean> {
-    return this.memos.flush();
+  async flushDrafts(): Promise<boolean> {
+    const memos = await this.memos.flush();
+    const verses = await Promise.all(
+      [...this.bibleDrafts.keys()].map(key =>
+        this.edits.enqueue(() => this.writeBibleText(key)),
+      ),
+    );
+    return memos && verses.every(Boolean) && this.bibleDrafts.size === 0;
   }
   dispose(): void {
     this.alive = false;

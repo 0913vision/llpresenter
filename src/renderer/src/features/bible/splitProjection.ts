@@ -3,6 +3,7 @@ import type {BibleSource} from '@core/bible/source';
 import {bibleOutputLines} from '@core/bible/bibleTiles';
 import {passageBook} from '@core/bible/adjacentVerses';
 import {
+  projectEditedVerse,
   splitVerseParts,
   type VerseInput,
   type VersePart,
@@ -52,6 +53,7 @@ interface SplitOptions {
   readonly transitions?: readonly BiblePartTransition[];
   readonly transition?: SlideTransition;
   readonly cuts?: BiblePassage['cuts'];
+  readonly editedVerses?: BiblePassage['editedVerses'];
   readonly id: string;
   readonly verseNumbers: boolean;
   readonly reference: BiblePassage['reference'];
@@ -88,6 +90,16 @@ export interface BibleProjection {
   readonly numbered: boolean;
   readonly tiles: readonly SlideTile[];
   readonly problem?: 'tile-limit';
+}
+
+export function canReviewBiblePart(
+  projection: BibleProjection | null,
+  index: number,
+): boolean {
+  const part = projection?.partsByTile[index];
+  if (part == null) return false;
+  const edited = projection?.source.editedVerses?.[cacheKey(part.reference)];
+  return edited === undefined || edited.some(piece => piece.text === undefined);
 }
 
 const defaultScreens: readonly ThemeScreen[] = [
@@ -181,6 +193,9 @@ export function splitSourceFor(
       ? {}
       : {transitions: row.bible.transitions}),
     ...(row.bible.cuts === undefined ? {} : {cuts: row.bible.cuts}),
+    ...(row.bible.editedVerses === undefined
+      ? {}
+      : {editedVerses: row.bible.editedVerses}),
     source: 'service',
     review: false,
     ...(row.bible.theme === undefined ? {} : {theme: row.bible.theme}),
@@ -223,11 +238,16 @@ export function projectBible(
       source.verseNumbers && verses.length > 1
         ? `${verse.reference.verse} `
         : '';
-    const next = splitVerseParts(verse, layout, {
-      saved: source.source === 'external' ? saved : undefined,
-      confirmed: source.cuts?.[cacheKey(verse.reference)],
-      prefix,
-    });
+    const key = cacheKey(verse.reference);
+    const edited = source.editedVerses?.[key];
+    const next =
+      edited === undefined
+        ? splitVerseParts(verse, layout, {
+            saved: source.source === 'external' ? saved : undefined,
+            confirmed: source.cuts?.[key],
+            prefix,
+          })
+        : projectEditedVerse(verse, edited, {layout, prefix});
     if (
       parts.length + next.length + (source.sermonTitle === undefined ? 0 : 2) >
       SHOW_SERVICE_LIMITS.tiles
@@ -358,6 +378,7 @@ export class BibleProjections {
       cached.source.translationName === source.translationName &&
       cached.source.transitions === source.transitions &&
       cached.source.cuts === source.cuts &&
+      cached.source.editedVerses === source.editedVerses &&
       cached.source.transition === source.transition &&
       cached.source.review === source.review
     ) {

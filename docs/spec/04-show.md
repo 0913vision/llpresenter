@@ -957,6 +957,11 @@ advance pauses until a projection using the current revisions arrives. A clear
 or item stop stays stopped through projection updates and workspace changes;
 only explicitly outputting a slide starts advance again.
 
+Saved text edits to a Bible or sermon item feed the same slide in the grid,
+details, previews, and all outputs. The item retains its Bible theme, reference
+and verse-number settings together with its slide labels and transitions. Saving
+or undoing an edit also refreshes that slide if it is already live.
+
 Rules split all verses first. Valid confirmed cuts skip both AI and review. If
 the local AI is ready when a lookup starts, unconfirmed multi-part verses are
 refined in queue order, one at a time. A fitting candidate is forced when it is
@@ -1021,8 +1026,9 @@ has a 2px live ring, a solid live guide and light live overflow text over live
 hatching, at the configured font size. 확정 stays disabled and Enter or Space
 shakes the overflowing results. The footer's left side shows only a save
 failure. Confirming saves only the verse hash, word indices and time through the
-settings store. A failed save keeps the dialog open and reports the failure.
-There is no editable verse text.
+settings store. A failed save keeps the dialog open and reports the failure. The
+split editor edits boundaries. The Bible item editor in 준비 edits the slide
+text and keeps that slide intact when neighboring parts are split again.
 
 ### Local AI boundary chooser
 

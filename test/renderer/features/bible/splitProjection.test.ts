@@ -13,6 +13,66 @@ import {panelPassage} from '@fixtures/contracts/ipc/bibleApi';
 import {QUICK_BIBLE_TRANSITION} from '@core/bible/quickTransition';
 import {cacheKey, entryFor} from '@core/bible/split/splitCache';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
+import {bibleVerseTiles} from '@core/bible/bibleTiles';
+import {
+  bibleSplitGap,
+  replaceBibleSplitGap,
+  remapBibleSplitPart,
+} from '@core/bible/editedVerses';
+import {slideLayerOf} from '@core/presentation/slideLayer';
+
+it('keeps edited parts when splitting neighboring text and uses the saved body on output', () => {
+  const passage = {
+    ...panelPassage(),
+    verses: [
+      {chapter: 3, verse: 16, text: 'Start of the verse final original'},
+      {chapter: 3, verse: 17, text: 'Following verse'},
+    ],
+  };
+  const original = [
+    {source: 'Start of the verse '},
+    {source: 'final original', text: 'Revised\nreading'},
+  ];
+  const gap = bibleSplitGap(original, 0);
+  if (gap === undefined) throw Error('Expected untouched beginning');
+  const parts = replaceBibleSplitGap(original, gap, {cuts: [2]});
+  expect(parts).toEqual([
+    {source: 'Start of '},
+    {source: 'the verse '},
+    original[1],
+  ]);
+  expect(remapBibleSplitPart(2, gap, 2)).toBe(3);
+  const editedVerses = {'43:3:16': parts};
+  const options = {
+    verseNumbers: true,
+    reference: 'every',
+    translationName: false,
+    editedVerses,
+  } as const;
+  const source = {
+    id: 'saved-bible',
+    kind: 'bible',
+    source: 'service',
+    passage,
+    ...options,
+  } as const;
+  const measured = projectBible(source, {
+    element: {...themeElementBase(), kind: 'currentText'},
+    layout: mockSplitLayout(),
+  });
+  if (measured === null) throw Error('Expected a Bible projection');
+  for (const tiles of [measured.tiles, bibleVerseTiles(passage, options)]) {
+    const slide = slideLayerOf({itemId: source.id, index: 2}, () => tiles);
+    expect(slide).toMatchObject({
+      lines: ['Revised', 'reading'],
+      biblePart: 3,
+      bibleVerse: {chapter: 3, verse: 16},
+    });
+    expect(slide?.reference).toContain('3:16');
+    expect(tiles[0]?.lines.join(' ')).toContain('16 Start');
+    expect(tiles[3]?.lines.join(' ')).toContain('Following verse');
+  }
+});
 
 it('confirms cuts on a new overlapping passage without resplitting the earlier item', () => {
   const passage = panelPassage();

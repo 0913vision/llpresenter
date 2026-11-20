@@ -2,6 +2,8 @@ import {expect, it} from 'vitest';
 import type {ClearTarget} from '@core/live/commands';
 import {emptyLiveState, layerKinds} from '@core/live/state';
 import {LiveStore} from '@main/live/store';
+import {lookupRequest} from '@fixtures/core/bibleLookups';
+import {parseLiveCommand} from '@core/schema/liveCommand';
 
 const slide = {itemId: 'fixture', position: 0, label: null, lines: ['Current']};
 function setup() {
@@ -64,6 +66,37 @@ it('updates the live Bible passage title without changing the slide, black state
   expect(store.state.layers.media?.mediaId).toBe('background');
   expect(store.state.themeItem?.title).toBe('요한복음 3:16~17');
   expect(store.state.layers.slide?.title).toBe('요한복음 3:16~17');
+});
+
+it('refreshes the matching Bible part in place and preserves blackout and clear undo', () => {
+  const store = setup();
+  const verse = {
+    translation: lookupRequest().translation,
+    book: 43,
+    chapter: 3,
+    verse: 16,
+  };
+  const current = {
+    ...slide,
+    bibleVerse: verse,
+    biblePart: 1,
+    reference: '요한복음 3:16',
+  };
+  store.dispatch({type: 'slide.show', slide: current});
+  store.dispatch({type: 'layer.clear', target: 'media'});
+  store.dispatch({type: 'black.toggle'});
+  const edited = {...current, lines: ['Revised (계속)'], continued: true};
+  const parsed = parseLiveCommand({type: 'slide.text.set', slide: edited});
+  if (!parsed.ok) throw Error('Invalid live text edit');
+  expect(store.dispatch(parsed.value)).toBe(true);
+  expect(store.state.layers.slide).toEqual(edited);
+  expect(store.state.blackScreen).toBe(true);
+  expect(
+    store.dispatch({type: 'slide.text.set', slide: {...edited, biblePart: 2}}),
+  ).toBe(false);
+  store.dispatch({type: 'clear.undo'});
+  expect(store.state.layers.slide).toEqual(edited);
+  expect(store.state.layers.media?.mediaId).toBe('background');
 });
 
 it.each<ClearTarget>(['all', ...layerKinds])(

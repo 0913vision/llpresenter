@@ -11,6 +11,7 @@ import {useLive} from '@renderer/session/live';
 import {useShow} from '@renderer/session/show';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {
+  canReviewBiblePart,
   splitSourceFor,
   sourceContent,
   type BibleProjection,
@@ -23,10 +24,33 @@ import {biblePartEffect, setBiblePartEffect} from '@core/bible/partTransitions';
 import {cacheKey} from '@core/bible/split/splitCache';
 import {useBibleProjections} from './useBibleProjections';
 import {installBiblePictureProjection} from './prepareBiblePictures';
+import {
+  applyEditedVerseReview,
+  editedVerseReview,
+  type EditedVerseReview,
+} from './editedVerseReview';
 
 interface EditorSession {
   readonly source: BibleProjection;
   readonly references: ReadonlyArray<VerseSlide['verse']>;
+  readonly serviceId: string | null;
+  readonly edited?: EditedVerseReview;
+}
+
+function reviewSession(
+  source: BibleProjection,
+  index: number,
+  serviceId: string | null,
+): EditorSession | null {
+  const part = source.partsByTile[index];
+  if (part == null || !canReviewBiblePart(source, index)) return null;
+  const edited = editedVerseReview(source, part);
+  return {
+    source,
+    references: [part.reference],
+    serviceId,
+    ...(edited === undefined ? {} : {edited}),
+  };
 }
 
 /** Installs one shared projection for saved Bible items, the panel, and live navigation. */
@@ -129,14 +153,16 @@ export function BibleSplitTools({
   useEffect(() => {
     if (lastManualRequest.current === manualRequest) return;
     lastManualRequest.current = manualRequest;
-    const part = projection?.partsByTile[selected];
-    if (!enableManual || projection === null || part == null) return;
+    if (!enableManual || projection === null) return;
+    const next = reviewSession(
+      projection,
+      selected,
+      useShow.getState().serviceId,
+    );
+    if (next === null) return;
     queueMicrotask(() => {
       if (active.current) {
-        setSession({
-          source: projection,
-          references: [part.reference],
-        });
+        setSession(next);
       }
     });
   }, [manualRequest, enableManual, projection, selected]);
@@ -145,15 +171,13 @@ export function BibleSplitTools({
       id: 'bible.splitEdit',
       when: () =>
         enableManual &&
-        projection?.partsByTile[selected] != null &&
+        canReviewBiblePart(projection, selected) &&
         session === null,
       run: () => {
-        const part = projection?.partsByTile[selected];
-        if (projection !== null && part != null) {
-          setSession({
-            source: projection,
-            references: [part.reference],
-          });
+        if (projection !== null) {
+          setSession(
+            reviewSession(projection, selected, useShow.getState().serviceId),
+          );
         }
       },
     },
@@ -168,15 +192,26 @@ export function BibleSplitTools({
   return (
     <SplitReview
       key={current.source.id}
-      projection={current}
+      projection={session.edited?.projection ?? current}
       references={session.references}
       pending={new Set()}
       onCancel={() => setSession(null)}
       onConfirm={async (verse, cuts) => {
         const api = window.llp;
         if (api === undefined) throw new Error('절 나누기 저장 실패');
-        const entry = await confirmBibleCuts(api.settings, verse, cuts);
+        const {edited, serviceId: origin} = session;
         const serviceId = useShow.getState().serviceId;
+        if (origin !== serviceId) throw new Error('절 나누기 저장 실패');
+        if (edited !== undefined && serviceId !== null) {
+          const result = await updateServiceItem(api, {
+            serviceId,
+            itemId: session.source.source.id,
+            change: item => applyEditedVerseReview(item, edited, cuts),
+          });
+          if (!result.ok) throw new Error('절 나누기 저장 실패');
+          return;
+        }
+        const entry = await confirmBibleCuts(api.settings, verse, cuts);
         if (
           current.source.source !== 'service' ||
           current.source.kind !== 'bible' ||

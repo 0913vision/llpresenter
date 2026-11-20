@@ -1,9 +1,11 @@
 import type {BibleCutEntry, BibleCutsFile} from '../../schema/bibleCuts';
 import type {VerseSlide} from '../../schema/service';
-import {CONT_MARKER, type SplitLayout} from './layout';
+import {CONT_MARKER, layoutText, type SplitLayout} from './layout';
 import {cutsFromChunks, planSlides, planSlidesAtOffsets} from './manualSplit';
 import {knownCutEntryFor, textHash} from './splitCache';
 import {splitVerse} from './splitter';
+import type {BibleEditedVerse} from '../../schema/biblePassage';
+import {bibleEditedOutputLines} from '../bibleTiles';
 
 export interface VerseInput {
   readonly reference: VerseSlide['verse'];
@@ -17,7 +19,41 @@ export interface VersePart extends VerseInput {
   readonly part: number;
   readonly partCount: number;
   readonly manual: boolean;
+  readonly edited?: true;
   readonly problem?: 'measurement';
+}
+
+/** Projects the saved boundaries of a verse that was edited in the item. */
+export function projectEditedVerse(
+  verse: VerseInput,
+  edited: BibleEditedVerse,
+  {layout, prefix}: {readonly layout: SplitLayout; readonly prefix: string},
+): readonly VersePart[] {
+  return edited.map((part, index) => {
+    const text = part.text ?? part.source.trimEnd();
+    const continued = index < edited.length - 1;
+    const number = index === 0 ? prefix : '';
+    const exact = bibleEditedOutputLines(text, number, continued);
+    let lines = exact;
+    if (part.text === undefined) {
+      try {
+        lines = layoutText(number + text, layout, continued).lines;
+      } catch {
+        lines = exact;
+      }
+    }
+    return {
+      reference: verse.reference,
+      text,
+      display: text + (continued ? CONT_MARKER : ''),
+      continued,
+      lines,
+      part: index + 1,
+      partCount: edited.length,
+      manual: true,
+      ...(part.text === undefined ? {} : {edited: true as const}),
+    };
+  });
 }
 
 export function firstSlidePrefix(

@@ -1,4 +1,10 @@
-import {render, screen, waitFor, within} from '@testing-library/react';
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {expect, it, onTestFinished, vi} from 'vitest';
 import {parseServiceDocument} from '@core/schema/contentDocuments';
@@ -13,15 +19,27 @@ import {ServiceItemStore} from '@renderer/features/service/items/serviceItemStor
 import {SongEditorStore} from '@renderer/features/songs/editor';
 import {useShow} from '@renderer/session/show';
 import {seedSlideSurfaceView} from '@renderer/features/songs/editor/SlideSurfaceView';
+import {
+  projectBible,
+  type BibleProjection,
+} from '@renderer/features/bible/splitProjection';
+import {panelPassage} from '@fixtures/contracts/ipc/bibleApi';
+import {mockSplitLayout} from '@fixtures/core/bibleSplit';
+import {themeElementBase} from '@fixtures/core/themeOutput';
+
+const measured = vi.hoisted(() => {
+  const state: {projection: BibleProjection | null} = {projection: null};
+  return state;
+});
 
 vi.mock('@renderer/features/bible/useBibleProjections', () => ({
-  useBibleTileProjection: () => null,
+  useBibleTileProjection: () => measured.projection,
 }));
 vi.mock('@renderer/platform/useSlideTheme', () => ({
   useSlideTheme: () => undefined,
 }));
 
-it('shows an editable card and read-only Bible verses in both views', async () => {
+it('shows an editable card and read-only fallback verses in both views', async () => {
   seedSlideSurfaceView({});
   const fixture = itemFixture();
   const current = fixture.service();
@@ -145,6 +163,94 @@ it('shows an editable card and read-only Bible verses in both views', async () =
   await userEvent.keyboard('{Delete}');
   expect(screen.getByText('First verse')).toBeDefined();
 });
+
+it.each(['bible', 'sermon'] as const)(
+  'edits the %s body in place and saves, undoes and redoes the item edit',
+  async kind => {
+    seedSlideSurfaceView({});
+    const fixture = itemFixture();
+    const current = fixture.service();
+    const passage = {
+      ...panelPassage(),
+      verses: [{chapter: 3, verse: 16, text: 'Original body'}],
+    };
+    const bible = {
+      translation: passage.translation,
+      ref: passage.ref,
+      split: 'verse',
+      reference: 'every',
+      verseNumbers: false,
+      translationName: false,
+    } as const;
+    const title = 'Sermon title';
+    const fields = (settings: object) =>
+      kind === 'bible'
+        ? {bible: settings}
+        : {sermon: {title, passage: settings}};
+    const parsed = parseServiceDocument({
+      ...current,
+      service: {
+        ...current.service,
+        order: [{id: fixtureItems.arranged, ...fields(bible)}],
+      },
+    });
+    if (!parsed.ok || parsed.value === null) throw Error('Invalid service');
+    measured.projection = projectBible(
+      {
+        ...bible,
+        id: fixtureItems.arranged,
+        passage,
+        source: 'service',
+        kind: 'bible',
+        ...(kind === 'sermon' ? {sermonTitle: title} : {}),
+      },
+      {
+        element: {...themeElementBase(), kind: 'currentText'},
+        layout: mockSplitLayout(60),
+      },
+    );
+    fixture.pushService(parsed.value);
+    const editor = new SongEditorStore(fixture.api, vi.fn());
+    const items = new ServiceItemStore(fixture.api, editor, vi.fn());
+    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.arranged});
+    const view = render(
+      <BibleInlineEditor items={items} ui={fixture.api.ui} onBack={vi.fn()} />,
+    );
+    onTestFinished(async () => {
+      view.unmount();
+      items.dispose();
+      measured.projection = null;
+      await editor.dispose();
+    });
+    const field = await screen.findByRole<HTMLTextAreaElement>('textbox', {
+      name: '성경 본문',
+    });
+    await userEvent.click(field);
+    expect(field.value).toBe('Original body');
+    fireEvent.change(field, {target: {value: ''}});
+    expect(field.value).toBe('');
+    fireEvent.change(field, {target: {value: 'Edited\nbody'}});
+    await userEvent.tab();
+    const saved = () => fixture.service().service.order[0];
+    const edits = {
+      '43:3:16': [{source: 'Original body', text: 'Edited\nbody'}],
+    };
+    await waitFor(() =>
+      expect(saved()).toMatchObject(fields({...bible, editedVerses: edits})),
+    );
+
+    fireEvent.keyDown(field, {ctrlKey: true, key: 'z'});
+    const address = kind === 'bible' ? 'bible' : 'sermon.passage';
+    await waitFor(() =>
+      expect(saved()).not.toHaveProperty(`${address}.editedVerses`),
+    );
+    expect(saved()).toMatchObject(fields(bible));
+    fireEvent.keyDown(field, {ctrlKey: true, key: 'y'});
+    await waitFor(() =>
+      expect(saved()).toMatchObject(fields({...bible, editedVerses: edits})),
+    );
+  },
+);
 
 it.each(['list', 'grid'] as const)(
   'positions measured card and multiline verses in %s',

@@ -7,10 +7,14 @@ import {
   type JSX,
 } from 'react';
 import type {UiApi} from '@contracts/ipc/ui';
+import type {ServiceId} from '@core/schema/ids';
 import {isItemOfKind, type ServiceItemOf} from '@core/schema/service';
 import {slideLayerOf} from '@core/presentation/slideLayer';
 import {useBibleTileProjection} from '@renderer/features/bible/useBibleProjections';
-import type {BibleProjection} from '@renderer/features/bible/splitProjection';
+import {
+  canReviewBiblePart,
+  type BibleProjection,
+} from '@renderer/features/bible/splitProjection';
 import type {ShowTile} from '@core/schema/showService';
 import {useMeasuredRows} from '@renderer/ui/useMeasuredRows';
 import {
@@ -40,6 +44,7 @@ import {AddSectionCard} from './AddSectionCard';
 import {BibleSlideSession} from './BibleSlideSession';
 import {itemEditorAdapter} from '@renderer/platform/itemEditorAdapter';
 import {MeasuredRow} from '../slides/SlideRows';
+import {BibleSlideText} from './BibleSlideText';
 import type {ServiceItemStore} from './serviceItemStore';
 import styles from './BibleInlineEditor.module.css';
 
@@ -76,6 +81,7 @@ export function BibleInlineEditor({
       serviceId={state.service.service.id}
       position={state.position}
       locked={state.busy || state.service.access === 'readOnly'}
+      readOnly={state.service.access === 'readOnly'}
       ui={ui}
       onBack={onBack}
       hideHeader={hideHeader}
@@ -95,17 +101,19 @@ function BibleEditorContent({
   hideHeader,
   onSplit,
   locked,
+  readOnly,
 }: {
   readonly onSplit?: (() => void) | undefined;
   readonly items: ServiceItemStore;
   readonly shownItem?: ReturnType<ServiceItemStore['getSnapshot']> | undefined;
   readonly item: ServiceItemOf<'bible' | 'sermon'>;
-  readonly serviceId: string;
+  readonly serviceId: ServiceId;
   readonly position: number;
   readonly ui: Pick<UiApi, 'setLayout'>;
   readonly onBack: () => void;
   readonly hideHeader: boolean;
   readonly locked: boolean;
+  readonly readOnly: boolean;
 }): JSX.Element {
   const saved = useShow(view =>
     shownItem === undefined
@@ -219,7 +227,7 @@ function BibleEditorContent({
             <Button
               className={styles.split}
               disabled={
-                locked || projection?.partsByTile[position - offset] == null
+                locked || !canReviewBiblePart(projection, position - offset)
               }
               onClick={onSplit}
             >
@@ -252,6 +260,7 @@ function BibleEditorContent({
             {windowed.indices.map(index => {
               const slide = data.slides[index];
               if (slide === undefined) return null;
+              const part = projection?.partsByTile[index - offset];
               const id = ids[index];
               if (id === undefined) throw new Error('Missing Bible slide ID');
               const style = {
@@ -299,7 +308,7 @@ function BibleEditorContent({
                     data-selected={session.slideModel
                       .getSnapshot()
                       .selection.ids.has(String(index - offset))}
-                    aria-readonly={slide.readOnly}
+                    aria-readonly={readOnly || part == null}
                     data-song-slide={String(index - offset)}
                     data-slide-index={index - offset}
                     tabIndex={0}
@@ -331,7 +340,23 @@ function BibleEditorContent({
                     </div>
                     <div className={styles.verse}>
                       <strong>{slide.tile.label}</strong>
-                      <span>{slide.tile.lines.join('\n')}</span>
+                      {part == null || projection === null ? (
+                        <span>{slide.tile.lines.join('\n')}</span>
+                      ) : (
+                        <BibleSlideText
+                          key={JSON.stringify([
+                            item.id,
+                            part.reference,
+                            part.part,
+                          ])}
+                          items={items}
+                          item={item}
+                          serviceId={serviceId}
+                          part={part}
+                          projection={projection}
+                          readOnly={readOnly}
+                        />
+                      )}
                     </div>
                   </div>
                 </MeasuredRow>

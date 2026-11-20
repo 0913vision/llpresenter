@@ -26,6 +26,7 @@ const singleCommandOptions = [
   messageExpirySchema,
   overlayClearSchema,
   v.object({type: v.literal('slide.show'), slide: layerSchemas.slide}),
+  v.object({type: v.literal('slide.text.set'), slide: layerSchemas.slide}),
   v.object({
     type: v.literal('bible.passage.title.set'),
     itemId: v.pipe(v.string(), v.nonEmpty()),

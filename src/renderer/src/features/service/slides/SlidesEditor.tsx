@@ -32,7 +32,7 @@ import {Button, Checkbox, TextField} from '@renderer/ui';
 import {ItemEditorAddBar} from '@renderer/platform/ItemEditorAddBar';
 import {ItemEditorShell} from '@renderer/platform/ItemEditorShell';
 import {itemEditorAdapter} from '@renderer/platform/itemEditorAdapter';
-import {TextArea} from '@renderer/ui/TextArea';
+import {SlideTextEditor} from './SlideTextEditor';
 import {SlideThumbnailBand} from '@renderer/ui/SlideThumbnail';
 import {SelectMenu} from '@renderer/ui/SelectMenu';
 import {useShow} from '@renderer/session/show';
@@ -57,7 +57,6 @@ import headerStyles from '../../songs/editor/SongHeader.module.css';
 import {SlideTransitionMark} from '@renderer/ui/SlideTransitionMark';
 
 const ADVANCES = [3, 5, 8, 10, 15, 20, 30];
-const TEXT_LIMIT = SLIDES_LIMITS.text;
 const NAME_LIMIT = SLIDES_LIMITS.name;
 
 function SlidesHeader({
@@ -260,11 +259,10 @@ function SlideFields({
         </>
       ) : null}
       {form === 'ad' ? <label htmlFor={`text-${slide.id}`}>내용</label> : null}
-      <TextArea
+      <SlideTextEditor
         id={`text-${slide.id}`}
         aria-label={form === 'ad' ? '내용' : '글'}
         value={slide.text}
-        maxLength={TEXT_LIMIT}
         onChange={text => change({...slide, text}, 'text')}
         onBlur={endTyping}
       />
@@ -272,7 +270,7 @@ function SlideFields({
       <TextField
         id={`reference-${slide.id}`}
         value={typeof reference === 'string' ? reference : ''}
-        maxLength={TEXT_LIMIT}
+        maxLength={SLIDES_LIMITS.text}
         onChange={value => {
           const next =
             value === '' ? textSlide : {...textSlide, reference: value};
