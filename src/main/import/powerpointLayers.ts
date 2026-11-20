@@ -47,6 +47,18 @@ const DEFAULT_MAPPING = new Map([
   ['tx2', 'dk2'],
 ]);
 const isOff = (value: string | null) => value === '0' || value === 'false';
+const unsupportedBlip = (node: Element): boolean =>
+  descendants(node, 'blip').some(blip =>
+    children(blip).some(child => {
+      if (['lum', 'alphaModFix', 'grayscl'].includes(child.localName)) {
+        return false;
+      }
+      if (child.localName !== 'extLst') return true;
+      return children(child).some(ext =>
+        children(ext).some(value => value.localName !== 'useLocalDpi'),
+      );
+    }),
+  );
 
 /** Match the text and placeholder shapes removed before PowerPoint exports. */
 function decorationXml(root: Element): string {
@@ -247,6 +259,8 @@ export class PowerPointLayerReader {
       .reverse()
       .find(part => descendants(part.root, 'bg')[0]);
     if (backgroundPart) {
+      const background = descendants(backgroundPart.root, 'bg')[0];
+      if (background && unsupportedBlip(background)) skipped++;
       append(
         this.background(
           {part: backgroundPart, palette, theme, matrix, scope: 'background'},
@@ -355,9 +369,24 @@ export class PowerPointLayerReader {
       ) {
         continue;
       }
-      if (shape.localName !== 'pic' && shape.localName !== 'sp') continue;
+      if (shape.localName !== 'pic' && shape.localName !== 'sp') {
+        if (['graphicFrame', 'cxnSp'].includes(shape.localName)) skipped++;
+        continue;
+      }
       const props = named(shape, 'spPr')[0];
       if (!props) continue;
+      if (
+        unsupportedBlip(shape) ||
+        descendants(shape, 'effectRef').some(
+          ref => ref.getAttribute('idx') !== '0',
+        ) ||
+        descendants(props, 'effectDag').length > 0 ||
+        descendants(props, 'effectLst').some(
+          effect => children(effect).length > 0,
+        )
+      ) {
+        skipped++;
+      }
       const xfrm = named(props, 'xfrm')[0];
       const matrix = multiply(context.matrix, shapeTransform(xfrm));
       if (

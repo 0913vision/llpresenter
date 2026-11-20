@@ -11,11 +11,13 @@ import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {editorFixture} from '@fixtures/renderer/features/songs/editor/editorFixture';
 import {SongEditorStore} from '@renderer/features/songs/editor/songEditorStore';
 import {PowerPointImportFlow} from '@renderer/features/songs/import/PowerPointImportFlow';
+import {preparePowerPointImages} from '@renderer/features/songs/import/preparePowerPointImages';
 
 vi.mock('@renderer/features/songs/import/preparePowerPointImages', () => ({
   PowerPointPreviewLimitError: class extends Error {},
   preparePowerPointImages: vi.fn(async () => ({
     ids: new Map(),
+    full: new Map(),
     release: () => undefined,
   })),
 }));
@@ -57,6 +59,59 @@ vi.mock('@renderer/features/songs/import/composePowerPointBackground', () => ({
 const mockScene = {key: 'a'.repeat(64), layers: [], pictures: [], skipped: 0};
 
 describe('PowerPoint import dialog', () => {
+  it('reuses the full preview image when the import is confirmed', async () => {
+    vi.mocked(preparePowerPointImages).mockResolvedValueOnce({
+      ids: new Map(),
+      full: new Map([
+        ['background', new Blob([new Uint8Array([1, 2])], {type: 'image/png'})],
+      ]),
+      release: () => undefined,
+    });
+    const fixture = editorFixture();
+    const store = new SongEditorStore(fixture.api, vi.fn());
+    onTestFinished(() => store.dispose());
+    const background = vi.fn(async () => 'C:/temp/ppt.png');
+    const api = mockLlpApi({
+      ...fixture.api,
+      powerpoint: {
+        read: async () => ({
+          ok: true,
+          value: {
+            fileName: 'deck.pptx',
+            widescreen: true,
+            slides: [
+              {
+                number: 1,
+                background: 'background',
+                shapes: [{body: true, lines: ['Title']}],
+              },
+            ],
+          },
+        }),
+        background,
+        match: async () =>
+          createMediaId('00000000-0000-4000-8000-000000000123'),
+        release: async () => true,
+      },
+    });
+    const onEdit = vi.fn();
+    render(
+      <PowerPointImportFlow
+        api={api}
+        store={store}
+        onDone={vi.fn()}
+        onEdit={onEdit}
+        onProblem={vi.fn()}
+      />,
+    );
+    await screen.findByRole('textbox', {name: '제목'});
+    fireEvent.click(screen.getByRole('button', {name: '편집'}));
+    await waitFor(() => expect(onEdit).toHaveBeenCalledOnce());
+    expect(background).toHaveBeenCalledWith({
+      index: 0,
+      image: {mime: 'image/png', bytes: new Uint8Array([1, 2])},
+    });
+  });
   it('waits for the actual theme before opening the preview', async () => {
     const fixture = editorFixture();
     const store = new SongEditorStore(fixture.api, vi.fn());

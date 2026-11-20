@@ -56,6 +56,8 @@ describe('PowerPoint background layers', () => {
     const second = read(fixture(shadow));
     expect(first.layers).toEqual(second.layers);
     expect(first.key).not.toBe(second.key);
+    expect(first.skipped).toBe(0);
+    expect(second.skipped).toBeGreaterThan(0);
   });
   it('uses only the slide’s layout picture and preserves its asymmetric crop', () => {
     const picture = (id: string, image: string) =>
