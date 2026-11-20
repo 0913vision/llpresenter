@@ -1,4 +1,4 @@
-import {useSyncExternalStore, type JSX} from 'react';
+import {useState, useSyncExternalStore, type JSX} from 'react';
 import type {SlideTransition} from '@core/schema/slideTransition';
 import type {LlpApi} from '@contracts/ipc/api';
 import {useItemMedia} from '../items/useItemSources';
@@ -14,6 +14,40 @@ import {SlideInspectorView} from './SlideInspectorView';
 import {inspectorTransition, useTransitionSelection} from './TransitionSection';
 import type {SongEditorStore} from '@renderer/features/songs/editor/songEditorStore';
 import styles from './SlideInspector.module.css';
+import {RolePreview} from '@renderer/features/songs/editor/RolePreview';
+import {
+  PREVIEW_ROLES,
+  type PreviewRole,
+} from '@renderer/features/songs/editor/songPreviewModel';
+
+function SlidesRolePicture({
+  api,
+  item,
+  index,
+  projection,
+  role,
+}: {
+  readonly api: LlpApi;
+  readonly item: Parameters<typeof useSlidesAppearance>[1];
+  readonly index: number;
+  readonly projection: ReturnType<
+    typeof useSlidesVerseProjection
+  >['projection'];
+  readonly role: PreviewRole;
+}): JSX.Element {
+  const {appearance} = useSlidesAppearance(api, item, {role});
+  return (
+    <div className={styles.picture} data-background-picture>
+      <SlidesCanvas
+        key={`${item.id}:${index}:${role}`}
+        item={item}
+        index={index}
+        appearance={appearance}
+        projection={projection}
+      />
+    </div>
+  );
+}
 
 /** Adapts a local slide draft and selection to the shared inspector. */
 export function SlidesInspector({
@@ -36,7 +70,8 @@ export function SlidesInspector({
   const {item: draftItem, selected} = session.draft.snapshot;
   const item = useSlidesItemWithBackground(draftItem);
   const media = useItemMedia(api.media).document?.value.items ?? [];
-  const {appearance, ready} = useSlidesAppearance(api, item);
+  const {ready} = useSlidesAppearance(api, item);
+  const [big, setBig] = useState<PreviewRole>('audience');
   const {projection} = useSlidesVerseProjection(api, item);
   const slide = view.slides[selected];
   const card = cardSelected ? draftItem.sectionCard : undefined;
@@ -133,16 +168,26 @@ export function SlidesInspector({
       identity={`${item.id}:${selected}:${selectedSlides.map(entry => entry.id).join(',')}:${cardSelected}`}
       pending={!ready}
       waitForPicture
+      pictureCount={3}
       preview={
         <>
-          <div className={styles.picture} data-background-picture>
-            <SlidesCanvas
-              item={item}
-              index={selected}
-              appearance={appearance}
-              projection={projection}
-            />
-          </div>
+          <RolePreview
+            big={big}
+            onBigChange={setBig}
+            naturalHeight
+            renderRole={role => (
+              <SlidesRolePicture
+                api={api}
+                item={item}
+                index={selected}
+                projection={projection}
+                role={role}
+              />
+            )}
+            caption={role =>
+              PREVIEW_ROLES.find(entry => entry.value === role)?.label
+            }
+          />
           <div className={styles.caption}>
             {slideBand(slide, media)}
             <span>

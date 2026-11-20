@@ -723,6 +723,12 @@ export function usePrepPanels({
   const otherId =
     other?.serviceId === serviceId && otherExists ? other.itemId : null;
   if (other !== undefined && otherId === null) setOther(undefined);
+  const otherItems = prep?.items;
+  useEffect(() => {
+    if (otherItems !== undefined && serviceId !== null && otherId !== null) {
+      otherItems.show({serviceId, itemId: otherId});
+    }
+  }, [otherItems, serviceId, otherId]);
   const requestedItem = useShow(view => view.openItemId);
   const selectedItem =
     retainedItem === undefined ? requestedItem : retainedItem;

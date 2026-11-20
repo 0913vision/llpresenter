@@ -12,6 +12,8 @@ import {isItemOfKind} from '@core/schema/service';
 import {hasSectionCard} from '@core/services/sectionCards';
 import type {ServiceItemId, SongId} from '@core/schema/ids';
 import type {LlpApi} from '@contracts/ipc/api';
+import type {Screen} from '@core/schema/screens';
+import type {ThemeId} from '@core/schema/ids';
 import {noticeTime} from '@renderer/ui/notices';
 import type {ShowLibrarySong} from '@core/schema/showLibrarySong';
 import {useShow} from '@renderer/session/show';
@@ -99,6 +101,89 @@ function SelectedPreview({
       initialReady
       content={content}
     />
+  );
+}
+
+/** Resolve each preview from its own screen, without opening an output mirror. */
+function DetailsScreenPicture({
+  screen,
+  context,
+  index,
+  api,
+  title,
+  itemTheme,
+  appearance,
+}: {
+  readonly screen: Screen;
+  readonly context: Parameters<typeof detailsPicture>[0];
+  readonly index: number;
+  readonly api: LlpApi;
+  readonly title: string;
+  readonly itemTheme: ThemeId | undefined;
+  readonly appearance: Pick<
+    Parameters<typeof previewAppearance>[0],
+    'themes' | 'screens' | 'stageLyricLabelPosition'
+  >;
+}): JSX.Element | null {
+  const {item, library, card, projection} = context;
+  const options = {api, role: screen.kind, screenId: screen.id};
+  const theme = useSlideTheme(
+    item === null && library === null
+      ? undefined
+      : {
+          id: item?.id ?? library?.songId ?? '',
+          kind: item !== null && isItemOfKind(item, 'media') ? 'media' : 'song',
+          title,
+          ...(itemTheme === undefined ? {} : {theme: itemTheme}),
+        },
+    library === null ? 'service' : 'external',
+    options,
+  );
+  const sermonTheme = useSlideTheme(
+    item !== null && isItemOfKind(item, 'sermon')
+      ? sermonPreviewRow(item.id, item.sermon.passage.ref)
+      : undefined,
+    'service',
+    options,
+  );
+  const cardTheme = useSlideTheme(
+    card === undefined || item === null
+      ? undefined
+      : {
+          id: item.id,
+          kind: 'slides',
+          form: 'blank',
+          title: card.name,
+          theme: card.theme,
+        },
+    'service',
+    options,
+  );
+  const bibleAppearance =
+    item !== null && projection?.appearance?.theme.item
+      ? previewAppearance({
+          ...appearance,
+          role: screen.kind,
+          screenId: screen.id,
+          item: {
+            ...projection.appearance.theme.item,
+            ...(item.theme === undefined ? {} : {theme: item.theme}),
+          },
+        })
+      : undefined;
+  return (
+    detailsPicture(
+      {
+        ...context,
+        role: screen.kind,
+        screenId: screen.id,
+        bibleAppearance,
+        theme,
+        cardTheme,
+        sermonTheme,
+      },
+      index,
+    ) ?? null
   );
 }
 
@@ -230,7 +315,7 @@ function DetailsPanelContent({
   const previewPreferences = useItemSettings(
     api.settings,
     'preferences',
-    bible && role === 'stage',
+    bible,
   );
   const screenId = targetScreen?.id;
   const aheadIdentity = `${detailsKey}:${screenId ?? ''}`;
@@ -346,28 +431,26 @@ function DetailsPanelContent({
     'service',
     {api, role, ...(screenId === undefined ? {} : {screenId})},
   );
+  const pictureContext = {
+    item,
+    library,
+    song: state.song,
+    raw,
+    projectedTiles,
+    role,
+    screenId,
+    bibleAppearance,
+    card,
+    offset,
+    theme,
+    cardTheme,
+    sermonTheme,
+    projection,
+    bibleTiles,
+    editor,
+  };
   const picture = (index: number): JSX.Element | undefined =>
-    detailsPicture(
-      {
-        item,
-        library,
-        song: state.song,
-        raw,
-        projectedTiles,
-        role,
-        screenId,
-        bibleAppearance,
-        card,
-        offset,
-        theme,
-        cardTheme,
-        sermonTheme,
-        projection,
-        bibleTiles,
-        editor,
-      },
-      index,
-    );
+    detailsPicture(pictureContext, index);
   const labelAt = (index: number): string | undefined => {
     if (index === 0 && card !== undefined) return card.label ?? card.name;
     if (item !== null && isItemOfKind(item, 'slides')) {
@@ -579,9 +662,33 @@ function DetailsPanelContent({
             waitForPicture={waitForPicture}
             content={
               <SlidePreview
-                picture={
+                screens={screens}
+                renderScreen={screen =>
                   passageProblem === undefined ? (
-                    firstPicture
+                    <DetailsScreenPicture
+                      screen={screen}
+                      context={pictureContext}
+                      index={selectedIndex}
+                      api={api}
+                      title={title}
+                      itemTheme={itemTheme}
+                      appearance={{
+                        themes:
+                          themeSettings.document?.name === 'themes'
+                            ? themeSettings.document.value
+                            : undefined,
+                        screens:
+                          screenSettings.document?.name === 'screens'
+                            ? screenSettings.document.value
+                            : undefined,
+                        stageLyricLabelPosition:
+                          previewPreferences.document?.name === 'preferences'
+                            ? withPreferenceDefaults(
+                                previewPreferences.document.value,
+                              ).output.stageLyricLabelPosition
+                            : undefined,
+                      }}
+                    />
                   ) : (
                     <BibleLoadNotice row={passageProblem} />
                   )

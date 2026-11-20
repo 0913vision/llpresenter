@@ -358,6 +358,19 @@ describe('usePrepPanels', () => {
     ).toBe(true);
   });
 
+  it('loads an other item when opening its editor directly from the sidebar', async () => {
+    const {fixture, items, result} = setup();
+    const show = vi.spyOn(items, 'show');
+    result.current.partsOf(SERVICE_ORDER);
+    const openOther =
+      vi.mocked(serviceOrderParts).mock.lastCall?.[0].onOpenOther;
+    await act(async () => openOther?.('bible-item'));
+    expect(show).toHaveBeenCalledWith({
+      serviceId: fixture.service().service.id,
+      itemId: 'bible-item',
+    });
+  });
+
   it('draws the 예배 순서 as the table, not the plain list', () => {
     const {fixture, result} = setup();
     result.current.partsOf(SERVICE_ORDER);

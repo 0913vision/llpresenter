@@ -23,12 +23,16 @@ export function PreviewPanel<Id extends string>({
   visible = true,
   onVisibleChange,
   children,
+  alwaysShowTiles = false,
+  naturalHeight = false,
   ...frame
 }: Omit<PreviewFrameProps<Id>, 'compact' | 'sizing' | 'tiles'> & {
   readonly blank?: boolean;
   readonly visible?: boolean;
   readonly onVisibleChange?: (visible: boolean) => void;
   readonly children?: ReactNode;
+  readonly alwaysShowTiles?: boolean;
+  readonly naturalHeight?: boolean;
 }): JSX.Element {
   const root = useRef<HTMLDivElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
@@ -65,6 +69,7 @@ export function PreviewPanel<Id extends string>({
           </PanelActions>
         )}
         {!visible ||
+        alwaysShowTiles ||
         room ||
         sizing !== null ||
         blank ||
@@ -80,15 +85,24 @@ export function PreviewPanel<Id extends string>({
         ref={root}
         className={styles.body}
         data-preview-tiles={
-          visible && (room || sizing !== null) && !blank ? 'on' : 'off'
+          visible && (alwaysShowTiles || room || sizing !== null) && !blank
+            ? 'on'
+            : 'off'
         }
       >
-        <div className={styles.frame} ref={frameRef}>
+        <div
+          className={
+            naturalHeight ? `${styles.frame} ${styles.natural}` : styles.frame
+          }
+          ref={frameRef}
+        >
           <PreviewFrame
             {...frame}
             sizing="content"
             largeVisible
-            tiles={visible && (room || sizing !== null) && !blank}
+            tiles={
+              visible && (alwaysShowTiles || room || sizing !== null) && !blank
+            }
             split={
               sizing !== null && visible && !blank && frame.screens.length > 1
                 ? {

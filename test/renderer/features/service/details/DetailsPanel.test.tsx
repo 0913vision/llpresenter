@@ -89,18 +89,18 @@ it('keeps the previous picture and properties until the next picture is ready', 
   );
   const view = render(panel(fixtureItems.arranged));
   try {
-    const picture = await screen.findByTestId('picture');
+    const picture = (await screen.findAllByTestId('picture'))[0];
     readiness.hold = true;
     view.rerender(panel(fixtureItems.plain));
     await waitFor(() => expect(readiness.release).toBeDefined());
     const visible = screen.getByRole('region', {name: '세부정보'});
-    expect(within(visible).getByTestId('picture')).toBe(picture);
+    expect(within(visible).getAllByTestId('picture')[0]).toBe(picture);
     expect(picture.closest('[inert]')).not.toBeNull();
     act(() => readiness.release?.());
     expect(
-      within(screen.getByRole('region', {name: '세부정보'})).getByTestId(
+      within(screen.getByRole('region', {name: '세부정보'})).getAllByTestId(
         'picture',
-      ),
+      )[0],
     ).not.toBe(picture);
   } finally {
     view.unmount();
@@ -124,7 +124,7 @@ it('keeps the previous details in place while the next item loads', async () => 
     />,
   );
   try {
-    await screen.findByTestId('picture');
+    await screen.findAllByTestId('picture');
     vi.spyOn(f.api.songs, 'get').mockImplementation(
       () => new Promise(() => {}),
     );
@@ -137,7 +137,9 @@ it('keeps the previous details in place while the next item loads', async () => 
         items={items}
       />,
     );
-    expect(screen.getByTestId('picture').closest('[inert]')).not.toBeNull();
+    expect(
+      screen.getAllByTestId('picture')[0].closest('[inert]'),
+    ).not.toBeNull();
   } finally {
     view.unmount();
     items.dispose();
@@ -164,13 +166,21 @@ it('switches the prepared picture to the chosen output screen', async () => {
     />,
   );
   try {
-    await screen.findByTestId('picture');
-    await userEvent.click(await screen.findByRole('radio', {name: '방송'}));
-    await waitFor(() =>
-      expect(screen.getByTestId('picture').getAttribute('data-screen')).toBe(
-        'broadcast',
-      ),
+    await screen.findAllByTestId('picture');
+    expect(
+      screen
+        .getAllByTestId('picture')
+        .map(picture => picture.getAttribute('data-screen'))
+        .sort(),
+    ).toEqual(['audience', 'broadcast', 'stage']);
+    await userEvent.click(
+      await screen.findByRole('button', {name: /broadcast/}),
     );
+    expect(
+      document
+        .querySelector('[data-role="large"] [data-testid="picture"]')
+        ?.getAttribute('data-screen'),
+    ).toBe('broadcast');
   } finally {
     view.unmount();
     items.dispose();
@@ -215,7 +225,7 @@ it('preserves a song title slide in the prepared picture', async () => {
   try {
     await waitFor(() =>
       expect(
-        screen.getByTestId('picture').getAttribute('data-title-slide'),
+        screen.getAllByTestId('picture')[0].getAttribute('data-title-slide'),
       ).toBe('true'),
     );
   } finally {
@@ -248,9 +258,9 @@ it('updates the first picture when a section is chosen', async () => {
     await userEvent.click(field);
     await userEvent.click(screen.getByRole('menuitemradio', {name: '찬양'}));
     await waitFor(() =>
-      expect(screen.getByTestId('picture').getAttribute('data-card')).toBe(
-        '찬양',
-      ),
+      expect(
+        screen.getAllByTestId('picture')[0].getAttribute('data-card'),
+      ).toBe('찬양'),
     );
     expect(field.textContent).toContain('찬양');
   } finally {
@@ -292,7 +302,7 @@ it('shows the first picture and resets the tab and selection when the item chang
   try {
     const panel = () => screen.getByRole('region', {name: '세부정보'});
     await screen.findByText(`곡, 슬라이드 ${f.first.song.slides.length}개`);
-    expect(within(panel()).getByTestId('picture')).toBeTruthy();
+    expect(within(panel()).getAllByTestId('picture')[0]).toBeTruthy();
     await userEvent.click(within(panel()).getByRole('tab', {name: '슬라이드'}));
     const options = within(panel()).getAllByRole('option');
     if (options[1] === undefined) throw new Error('Expected two slides');
@@ -446,7 +456,9 @@ it.each(['bible', 'ad', 'media', 'card'] as const)(
       ).toBeTruthy();
       if (kind === 'card') {
         expect(
-          within(panel()).getByTestId('picture').getAttribute('data-card'),
+          within(panel())
+            .getAllByTestId('picture')[0]
+            .getAttribute('data-card'),
         ).toBe('찬양');
       }
       await userEvent.click(
@@ -638,7 +650,7 @@ it('shows section item counts and restores item details when switching targets',
     await expectSection('빈 구역', 0);
     view.rerender(panelFor(first.id));
     await screen.findByText(`곡, 슬라이드 ${f.first.song.slides.length}개`);
-    expect(within(panel()).getByTestId('picture')).toBeTruthy();
+    expect(within(panel()).getAllByTestId('picture')[0]).toBeTruthy();
     expect(within(panel()).getByRole('tab', {name: '정보'})).toBeTruthy();
     expect(within(panel()).getByRole('tab', {name: '슬라이드'})).toBeTruthy();
     view.rerender(panelFor(section.id));
@@ -676,7 +688,7 @@ it('shows an empty panel without selection and restores it after an item is clea
     expectEmpty();
     view.rerender(panelFor(true));
     await screen.findByText(`곡, 슬라이드 ${f.first.song.slides.length}개`);
-    expect(within(panel()).getByTestId('picture')).toBeTruthy();
+    expect(within(panel()).getAllByTestId('picture')[0]).toBeTruthy();
     expect(within(panel()).getByRole('tab', {name: '정보'})).toBeTruthy();
     expect(within(panel()).getByRole('tab', {name: '슬라이드'})).toBeTruthy();
     view.rerender(panelFor(false));
@@ -725,7 +737,7 @@ it('keeps the panel empty while an item loads and when the item is deleted', asy
     await waitFor(() => expect(release).toBeDefined());
     await act(async () => release?.(document));
     await screen.findByText(`곡, 슬라이드 ${f.first.song.slides.length}개`);
-    expect(within(panel()).getByTestId('picture')).toBeTruthy();
+    expect(within(panel()).getAllByTestId('picture')[0]).toBeTruthy();
     expect(within(panel()).getByRole('tab', {name: '정보'})).toBeTruthy();
     act(() =>
       f.pushService({

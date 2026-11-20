@@ -1,55 +1,61 @@
 import {useState, type JSX, type ReactNode} from 'react';
 import type {Screen} from '@core/schema/screens';
 import type {LabelColor} from '@core/labels/colors';
-import {SegmentedControl} from '@renderer/ui/SegmentedControl';
+import {PreviewPanel} from '@renderer/ui/PreviewPanel';
 import {SlideThumbnailBand} from '@renderer/ui/SlideThumbnail';
 import styles from './SlidePreview.module.css';
 
-/** The screen selected for a local slide preview. */
+/** The screen selected for local slide thumbnails. */
 export function usePreviewScreen(screens: readonly Screen[]) {
   const [selected, setSelected] = useState<string | null>(null);
   const target =
     screens.find(screen => screen.id === selected) ??
     screens.find(screen => screen.kind === 'audience') ??
     screens[0];
-  const choices = screens.map(screen => ({
-    value: screen.id,
-    label:
-      screens.filter(other => other.kind === screen.kind).length === 1
-        ? ({audience: '청중', stage: '무대', broadcast: '방송'} as const)[
-            screen.kind
-          ]
-        : screen.name,
-  }));
-  return {target, choices, setSelected};
+  return {target, setSelected};
 }
 
-/** The shared local picture, screen selector and selected-slide band. */
+/** Draw the selected slide on every configured screen. */
 export function SlidePreview({
-  picture,
+  screens,
+  renderScreen,
   screen,
   number,
   label,
   color,
 }: {
-  readonly picture: ReactNode;
+  readonly screens: readonly Screen[];
+  readonly renderScreen: (screen: Screen) => ReactNode;
   readonly screen: ReturnType<typeof usePreviewScreen>;
   readonly number?: number | undefined;
   readonly label?: string | undefined;
   readonly color?: LabelColor | undefined;
 }): JSX.Element {
+  const [visible, setVisible] = useState(true);
+  const previewScreens = screens.map(value => ({
+    id: value.id,
+    name: value.name,
+    status: {kind: 'on' as const},
+  }));
   return (
     <>
-      <div className={styles.picture} data-background-picture>
-        {picture}
-      </div>
       {screen.target === undefined ? null : (
-        <SegmentedControl
-          label="미리보기 화면"
-          fill
-          options={screen.choices}
-          value={screen.target.id}
-          onChange={screen.setSelected}
+        <PreviewPanel
+          screens={previewScreens}
+          big={screen.target.id}
+          onBigChange={screen.setSelected}
+          alwaysShowTiles
+          naturalHeight
+          visible={visible}
+          onVisibleChange={setVisible}
+          renderScreen={value => {
+            const target = screens.find(candidate => candidate.id === value.id);
+            return target === undefined ? null : (
+              <div className={styles.picture} data-background-picture>
+                {renderScreen(target)}
+              </div>
+            );
+          }}
         />
       )}
       {number === undefined ? null : (
