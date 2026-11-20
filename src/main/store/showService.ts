@@ -25,7 +25,7 @@ import type {ServicePassages} from '../bible/servicePassages';
 import {LITURGY, liturgySlideTextKey} from '@core/services/liturgy';
 import {LITURGY_SLIDES} from '@core/services/liturgySlides';
 import {CREED_PRAYER_THEME_ID} from '@core/themes/creedPrayer';
-import {songSlidePicture} from '@core/songs/songBackground';
+import {songItemBackground, songSlidePicture} from '@core/songs/songBackground';
 
 export {SHOW_SERVICE_LIMITS} from '@core/schema/showService';
 
@@ -81,10 +81,11 @@ export function buildShowService({
       {
         id: item.song,
         slides: item.slides,
-        background:
-          item.backgroundNone === true
-            ? undefined
-            : (item.background ?? songs.get(item.song)?.data.background),
+        background: songItemBackground({
+          backgroundNone: item.backgroundNone,
+          item: item.background,
+          song: songs.get(item.song)?.data.background,
+        }),
       },
       colors,
     );
@@ -412,9 +413,11 @@ export function songBackgroundId(
   item: ServiceItemOf<'song'>,
   song: Song,
 ): string | undefined {
-  return item.backgroundNone === true
-    ? undefined
-    : (item.background ?? song.background);
+  return songItemBackground({
+    backgroundNone: item.backgroundNone,
+    item: item.background,
+    song: song.background,
+  });
 }
 
 function songRow(

@@ -15,6 +15,7 @@ import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import type {LiveThemeItem} from '@core/schema/liveTheme';
 import {withPreferenceDefaults} from '@core/schema/preferences';
 import {slideCountOf} from '@core/songs/blockEdits';
+import {songItemBackground} from '@core/songs/songBackground';
 import {useShow} from '@renderer/session/show';
 import {RolePreview} from './RolePreview';
 import {Picture} from '@renderer/rendering/pictures/Picture';
@@ -369,14 +370,17 @@ export function SongPreviewPanel({
               song: snapshot.song,
               block: snapshot.selection.block,
               nextBlock: next === undefined ? undefined : next - 1,
-              background:
-                target === undefined
-                  ? session.background
-                  : itemRow?.kind === 'song' && itemRow.backgroundNone === true
-                    ? undefined
-                    : ((itemRow?.kind === 'song'
-                        ? itemRow.background?.mediaId
-                        : undefined) ?? session.background),
+              background: songItemBackground({
+                backgroundNone:
+                  target !== undefined &&
+                  itemRow?.kind === 'song' &&
+                  itemRow.backgroundNone,
+                item:
+                  target !== undefined && itemRow?.kind === 'song'
+                    ? itemRow.background?.mediaId
+                    : undefined,
+                song: session.background,
+              }),
               position: snapshot.selection.block + 1,
               total: slideCountOf(snapshot.song),
             }

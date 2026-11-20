@@ -1,14 +1,7 @@
 import type {SongSession} from './songSession';
 import {useShow} from '@renderer/session/show';
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
-
-/** An item override wins over its library song background. */
-export function resolveSongSlideBackground(
-  item: string | undefined,
-  library: string | undefined,
-): string | undefined {
-  return item ?? library;
-}
+import {songItemBackground} from '@core/songs/songBackground';
 
 /** The same local theme and effective background for every editor picture. */
 export function useSongSlideAppearance(session: SongSession) {
@@ -30,18 +23,15 @@ export function useSongSlideAppearance(session: SongSession) {
     ? undefined
     : {
         ...theme,
-        songBackground:
-          itemRow?.backgroundNone === true
-            ? undefined
-            : session.itemSession
-              ? (itemRow?.background?.mediaId ?? session.background)
-              : session.background,
-        background:
-          itemRow?.backgroundNone === true
-            ? undefined
-            : resolveSongSlideBackground(
-                session.itemSession ? theme.background : session.background,
-                session.itemSession ? session.background : theme.background,
-              ),
+        songBackground: songItemBackground({
+          backgroundNone: itemRow?.backgroundNone,
+          item: session.itemSession ? itemRow?.background?.mediaId : undefined,
+          song: session.background,
+        }),
+        background: songItemBackground({
+          backgroundNone: itemRow?.backgroundNone,
+          item: session.itemSession ? theme.background : session.background,
+          song: session.itemSession ? session.background : theme.background,
+        }),
       };
 }

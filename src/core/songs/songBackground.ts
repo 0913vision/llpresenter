@@ -13,3 +13,15 @@ export function songSlidePicture(
 ): string | undefined {
   return background === undefined ? picture : undefined;
 }
+/** An explicit absence wins, then the item override, then the song default. */
+export function songItemBackground({
+  backgroundNone,
+  item,
+  song,
+}: {
+  readonly backgroundNone?: boolean | undefined;
+  readonly item?: string | undefined;
+  readonly song?: string | undefined;
+}): string | undefined {
+  return backgroundNone === true ? undefined : (item ?? song);
+}
