@@ -1,5 +1,6 @@
 .monitor {
   --z-slot: 1;
+  --preview-tile-min: 120px;
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
   column-gap: var(--space-8);
@@ -34,13 +35,20 @@
 }
 
 .content.withoutLarge {
-  width: min(
-    100cqw,
+  width: max(
     calc(
-      (100cqh - var(--size-control-sm)) * 16 / 9 * var(--preview-slots) +
-        var(--space-8) * (var(--preview-slots) - 1)
+      var(--preview-tile-min) * var(--preview-slots) + var(--space-8) *
+        (var(--preview-slots) - 1)
+    ),
+    min(
+      100cqw,
+      calc(
+        (100cqh - var(--size-control-sm)) * 16 / 9 * var(--preview-slots) +
+          var(--space-8) * (var(--preview-slots) - 1)
+      )
     )
   );
+  min-height: calc(var(--preview-tile-min) * 9 / 16 + var(--size-control-sm));
 }
 
 .adjustable {
@@ -48,31 +56,44 @@
     0px,
     100cqh - var(--size-control-md) - var(--size-control-sm) - var(--space-12)
   );
-  --split-block-width: min(
-    100cqw,
-    var(--split-space) * var(--preview-ratio) * 16 / 9
+  --split-small-height: max(
+    calc(var(--preview-tile-min) * 9 / 16),
+    var(--split-space) * (1 - var(--preview-ratio))
   );
-  --split-tile-width: min(
-    calc(var(--split-space) * (1 - var(--preview-ratio)) * 16 / 9),
+  --split-large-height: max(
+    0px,
+    var(--split-space) - var(--split-small-height)
+  );
+  --split-block-width: max(
     calc(
-      (var(--split-block-width) - var(--space-8) * (var(--preview-slots) - 1)) /
-        var(--preview-slots)
+      var(--preview-tile-min) * var(--preview-slots) + var(--space-8) *
+        (var(--preview-slots) - 1)
+    ),
+    min(100cqw, var(--split-large-height) * 16 / 9)
+  );
+  --split-tile-width: max(
+    var(--preview-tile-min),
+    min(
+      calc(var(--split-small-height) * 16 / 9),
+      calc(
+        (
+            var(--split-block-width) - var(--space-8) *
+              (var(--preview-slots) - 1)
+          ) /
+          var(--preview-slots)
+      )
     )
   );
   width: var(--split-block-width);
   height: 100%;
+  min-height: calc(
+    var(--size-control-md) + var(--space-12) + var(--size-control-sm) +
+      var(--preview-tile-min) * 9 / 16
+  );
   grid-template-rows:
-    minmax(
-      0,
-      calc(var(--split-space) * var(--preview-ratio) + var(--size-control-md))
-    )
+    minmax(0, calc(var(--split-large-height) + var(--size-control-md)))
     var(--space-12)
-    minmax(
-      0,
-      calc(
-        var(--split-space) * (1 - var(--preview-ratio)) + var(--size-control-sm)
-      )
-    );
+    minmax(0, calc(var(--split-small-height) + var(--size-control-sm)));
   column-gap: var(--space-8);
   row-gap: 0;
   justify-content: space-between;
@@ -85,11 +106,17 @@
 }
 
 .balanced {
-  --split-block-width: min(
-    100cqw,
-    var(--split-space) * var(--preview-ratio) * 16 / 9,
-    var(--split-space) * (1 - var(--preview-ratio)) * 16 / 9 *
-      var(--preview-slots) + var(--space-8) * (var(--preview-slots) - 1)
+  --split-block-width: max(
+    calc(
+      var(--preview-tile-min) * var(--preview-slots) + var(--space-8) *
+        (var(--preview-slots) - 1)
+    ),
+    min(
+      100cqw,
+      var(--split-large-height) * 16 / 9,
+      var(--split-small-height) * 16 / 9 * var(--preview-slots) +
+        var(--space-8) * (var(--preview-slots) - 1)
+    )
   );
 }
 
@@ -232,6 +259,7 @@
 }
 
 .small .name {
+  min-width: max-content;
   color: var(--text-2);
   font: var(--type-caption);
 }

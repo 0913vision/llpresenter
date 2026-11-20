@@ -1,0 +1,50 @@
+import {useContext} from 'react';
+import {cleanup, fireEvent, render, screen} from '@testing-library/react';
+import {afterEach, expect, it, vi} from 'vitest';
+import {PanelColumn} from '@renderer/app/shell/PanelColumn';
+import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
+import {PreviewSizingContext} from '@renderer/ui/PreviewSizingContext';
+
+const layout = vi.hoisted(() => ({reset: vi.fn()}));
+vi.mock('@renderer/ui/useRowLayout', () => ({
+  useRowLayout: () => ({
+    begin: vi.fn(),
+    canResize: () => true,
+    reset: layout.reset,
+  }),
+}));
+
+afterEach(() => {
+  cleanup();
+  vi.clearAllMocks();
+});
+
+function Ratio() {
+  const sizing = useContext(PreviewSizingContext);
+  return <span data-testid="ratio">{sizing?.ratio}</span>;
+}
+
+it('clamps a stored preview ratio on load and resets it with the outer divider', () => {
+  const store = createMemoryColumnWidthStore();
+  store.saveRows?.('normal', {'show.previewRatio': 32000});
+  const {container} = render(
+    <PanelColumn
+      workspace="show"
+      titles={['\uBBF8\uB9AC\uBCF4\uAE30', '\uC9C4\uD589 \uB3C4\uAD6C']}
+      partsOf={() => ({embedded: <Ratio />})}
+      store={store}
+      sizeClass="normal"
+      draft={false}
+      warningHeight={0}
+    />,
+  );
+  expect(screen.getAllByTestId('ratio')[0]?.textContent).toBe('0.85');
+  const divider = container.querySelector(
+    '[data-row-gap="show.\uBBF8\uB9AC\uBCF4\uAE30"]',
+  );
+  if (divider === null) throw new Error('Missing preview divider');
+  fireEvent.doubleClick(divider);
+  expect(layout.reset).toHaveBeenCalledOnce();
+  expect(screen.getAllByTestId('ratio')[0]?.textContent).toBe('0.667');
+  expect(store.loadRows?.('normal')?.['show.previewRatio']).toBe(667);
+});
