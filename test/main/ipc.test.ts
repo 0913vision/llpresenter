@@ -138,7 +138,7 @@ describe('registerIpc live clock', () => {
 
 describe('registerIpc live commands', () => {
   it.each(['launch', 'range change'] as const)(
-    'holds a quick Bible %s until the matching control frame is committed',
+    'publishes a quick Bible %s to every output immediately',
     change => {
       const itemId = 'bible:fixture';
       const first: LiveState = {
@@ -180,17 +180,8 @@ describe('registerIpc live commands', () => {
         store.publish(next);
         expect(control.webContents.send).toHaveBeenCalledExactlyOnceWith(
           liveEndpoints.changed.channel,
-          {...next, waitingForControl: true},
+          next,
         );
-        expect(output.webContents.send).not.toHaveBeenCalled();
-        const ready = electron.listeners.get(
-          liveEndpoints.controlFrameReady.channel,
-        );
-        ready?.({sender: output.webContents}, next.version);
-        ready?.({sender: control.webContents}, -1);
-        ready?.({sender: control.webContents}, 0);
-        expect(output.webContents.send).not.toHaveBeenCalled();
-        ready?.({sender: control.webContents}, next.version);
         expect(output.webContents.send).toHaveBeenCalledExactlyOnceWith(
           liveEndpoints.changed.channel,
           next,
@@ -201,7 +192,7 @@ describe('registerIpc live commands', () => {
     },
   );
 
-  it('publishes blackout immediately while the first quick Bible frame is pending', () => {
+  it('publishes blackout immediately after a quick Bible launch', () => {
     const control = liveWindow();
     const output = liveWindow();
     const store = mockStore();
@@ -239,20 +230,19 @@ describe('registerIpc live commands', () => {
       store.publish(next);
       expect(control.webContents.send).toHaveBeenCalledExactlyOnceWith(
         liveEndpoints.changed.channel,
-        {...next, waitingForControl: true},
+        next,
       );
-      expect(output.webContents.send).not.toHaveBeenCalled();
+      expect(output.webContents.send).toHaveBeenCalledExactlyOnceWith(
+        liveEndpoints.changed.channel,
+        next,
+      );
 
       sendCommand({type: 'black.toggle'});
-      expect(output.webContents.send).toHaveBeenCalledExactlyOnceWith(
+      expect(output.webContents.send).toHaveBeenNthCalledWith(
+        2,
         liveEndpoints.changed.channel,
         blackedOut,
       );
-      electron.listeners.get(liveEndpoints.controlFrameReady.channel)?.(
-        {sender: control.webContents},
-        next.version,
-      );
-      expect(output.webContents.send).toHaveBeenCalledOnce();
     } finally {
       dispose();
     }
