@@ -58,12 +58,14 @@ export function songTitleLayout(
   const lyrics = layout.elements.find(
     element => element.kind === 'currentText',
   );
+  const value =
+    lyrics && 'manualText' in lyrics ? lyrics.manualText : undefined;
+  const lines = typeof value === 'string' ? value.split('\n') : slide.lines;
   const imported = slide.lyricFormat;
   if (
-    imported?.lines.length === slide.lines.length &&
+    imported?.lines.length === lines.length &&
     imported.lines.every(
-      (line, index) =>
-        line.runs.map(run => run.text).join('') === slide.lines[index],
+      (line, index) => line.runs.map(run => run.text).join('') === lines[index],
     )
   ) {
     const color =
@@ -79,7 +81,7 @@ export function songTitleLayout(
           ),
           kind: 'text',
           clearTarget: 'slide',
-          content: slide.lines[index] ?? '',
+          content: lines[index] ?? '',
           frame: {
             x: line.left ?? 0,
             y: line.top ?? (index === 0 ? 181 : 345),
@@ -117,7 +119,7 @@ export function songTitleLayout(
     id: createThemeElementId('00000000-0000-4000-8000-000000000383'),
     kind: 'text',
     clearTarget: 'slide',
-    content: slide.lines[0] ?? '',
+    content: lines[0] ?? '',
     frame: {x: 339, y: spacing.titleTop, w: 1242, h: 160},
     text,
   };
@@ -125,7 +127,8 @@ export function songTitleLayout(
     id: createThemeElementId('00000000-0000-4000-8000-000000000384'),
     kind: 'text',
     clearTarget: 'slide',
-    content: slide.lines[1] ?? '',
+    content:
+      typeof value === 'string' ? lines.slice(1).join('\n') : (lines[1] ?? ''),
     frame: {x: 252, y: spacing.subtitleTop, w: 1416, h: 90},
     text: {...text, weight: 400, size: 64, tracking: spacing.subtitleTracking},
   };

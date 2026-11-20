@@ -4,10 +4,17 @@ import {LIVE_STATE_LIMITS, liveNonBlankTextSchema} from './liveLimits';
 import type {ReadonlyKnown} from './fileFormat';
 
 const key = v.pipe(nonBlankText, v.maxLength(320));
+const text = v.pipe(
+  liveNonBlankTextSchema,
+  v.check(
+    value => value.split('\n').length <= LIVE_STATE_LIMITS.slideLines,
+    'Too many slide lines',
+  ),
+);
 
 /** A missing binding uses the automatic text in the theme. */
 export const slideTextOverridesSchema = v.pipe(
-  jsonRecord(key, liveNonBlankTextSchema),
+  jsonRecord(key, text),
   v.maxEntries(128),
 );
 

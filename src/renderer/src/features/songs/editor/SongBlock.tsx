@@ -69,6 +69,7 @@ interface BlockProps {
   readonly caret?: boolean;
   readonly picture?: PictureSpec | undefined;
   readonly renderCard?: SlideCardRenderer<EditorSlideItem> | undefined;
+  readonly hideSourceText?: boolean | undefined;
 }
 
 /** Keeps untouched blocks out of the typing render path. */
@@ -97,6 +98,7 @@ export const SongBlock = memo(
     caret,
     picture,
     renderCard,
+    hideSourceText,
   }: BlockProps): JSX.Element => {
     const labelButtonRef = useRef<HTMLButtonElement | null>(null);
     const blockRef = useRef<HTMLDivElement>(null);
@@ -377,64 +379,68 @@ export const SongBlock = memo(
               )}
             </div>
             <div className={styles.text} data-grid-text>
-              <textarea
-                ref={input => {
-                  focus.current.inputs[block] = input;
-                }}
-                aria-label={`슬라이드 ${block + 1 + numberOffset} ${slide.titleSlide ? '제목 및 부제' : '가사'}`}
-                title={
-                  slide.titleSlide
-                    ? `제목 및 부제: 두 줄, 각 ${SONG_LIMITS.titleLine}자`
-                    : undefined
-                }
-                className={`${field.textarea} ${styles.lyrics}`}
-                value={text}
-                data-empty={text === '' || undefined}
-                rows={Math.max(1, slide.lines.length)}
-                readOnly={locked}
-                wrap="off"
-                spellCheck={false}
-                onFocus={event => {
-                  select(event.currentTarget);
-                }}
-                onBlur={() => {
-                  focus.current.composing = false;
-                  session.endTyping();
-                }}
-                onSelect={event => {
-                  if (event.currentTarget === document.activeElement) {
-                    select(event.currentTarget);
+              {hideSourceText ? (
+                <p>{text}</p>
+              ) : (
+                <textarea
+                  ref={input => {
+                    focus.current.inputs[block] = input;
+                  }}
+                  aria-label={`슬라이드 ${block + 1 + numberOffset} ${slide.titleSlide ? '제목 및 부제' : '가사'}`}
+                  title={
+                    slide.titleSlide
+                      ? `제목 및 부제: 두 줄, 각 ${SONG_LIMITS.titleLine}자`
+                      : undefined
                   }
-                }}
-                onCompositionStart={() => {
-                  focus.current.composing = true;
-                }}
-                onCompositionEnd={() => {
-                  focus.current.composing = false;
-                }}
-                onKeyDown={keyDown}
-                onChange={event => {
-                  if (locked) return;
-                  const input = event.currentTarget;
-                  const {value, selectionStart, selectionEnd} = input;
-                  applyTextInput(input, {
-                    type: 'text',
-                    text: value,
-                    start: selectionStart,
-                    end: selectionEnd,
-                  });
-                }}
-                onPaste={event => {
-                  if (locked || focus.current.composing) return;
-                  const text = event.clipboardData.getData('text/plain');
-                  event.preventDefault();
-                  if (text === '') return;
-                  applyTextInput(event.currentTarget, {
-                    type: 'paste',
-                    text,
-                  });
-                }}
-              />
+                  className={`${field.textarea} ${styles.lyrics}`}
+                  value={text}
+                  data-empty={text === '' || undefined}
+                  rows={Math.max(1, slide.lines.length)}
+                  readOnly={locked}
+                  wrap="off"
+                  spellCheck={false}
+                  onFocus={event => {
+                    select(event.currentTarget);
+                  }}
+                  onBlur={() => {
+                    focus.current.composing = false;
+                    session.endTyping();
+                  }}
+                  onSelect={event => {
+                    if (event.currentTarget === document.activeElement) {
+                      select(event.currentTarget);
+                    }
+                  }}
+                  onCompositionStart={() => {
+                    focus.current.composing = true;
+                  }}
+                  onCompositionEnd={() => {
+                    focus.current.composing = false;
+                  }}
+                  onKeyDown={keyDown}
+                  onChange={event => {
+                    if (locked) return;
+                    const input = event.currentTarget;
+                    const {value, selectionStart, selectionEnd} = input;
+                    applyTextInput(input, {
+                      type: 'text',
+                      text: value,
+                      start: selectionStart,
+                      end: selectionEnd,
+                    });
+                  }}
+                  onPaste={event => {
+                    if (locked || focus.current.composing) return;
+                    const text = event.clipboardData.getData('text/plain');
+                    event.preventDefault();
+                    if (text === '') return;
+                    applyTextInput(event.currentTarget, {
+                      type: 'paste',
+                      text,
+                    });
+                  }}
+                />
+              )}
             </div>
           </>
         )}

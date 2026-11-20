@@ -97,6 +97,18 @@ export interface BibleProjection {
   readonly problem?: 'tile-limit';
 }
 
+export function canReviewBiblePart(
+  projection: BibleProjection | null,
+  index: number,
+): boolean {
+  const part = projection?.partsByTile[index];
+  return (
+    part != null &&
+    projection?.source.pinnedVerses?.[textVerseKey(part.reference)] ===
+      undefined
+  );
+}
+
 const defaultScreens: readonly ThemeScreen[] = [
   {
     id: createScreenId(STARTER_SCREEN_IDS.main),
@@ -152,6 +164,9 @@ export function splitSourceFor(
       reference: 'every',
       translationName: false,
       ...(row.theme === undefined ? {} : {theme: row.theme}),
+      ...(row.textOverrides === undefined
+        ? {}
+        : {textOverrides: row.textOverrides}),
       ...(row.background === undefined
         ? {}
         : {background: row.background.mediaId}),
@@ -205,7 +220,11 @@ export function projectBible(
   {element, layout, saved}: ProjectionLayout,
 ): BibleProjection | null {
   if (source.kind === 'slides') {
-    return projectSlidesBible(source, {element, layout, saved});
+    const projected = projectSlidesBible(source, {element, layout, saved});
+    return {
+      ...projected,
+      tiles: textOverridesForTiles(projected.tiles, source.textOverrides),
+    };
   }
   const book = passageBook(source.passage);
   if (book === undefined) return null;

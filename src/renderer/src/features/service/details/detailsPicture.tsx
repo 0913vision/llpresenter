@@ -61,7 +61,7 @@ function cardPicture(context: PictureContext): JSX.Element | undefined {
       {...cardTheme}
       slide={
         stageSlideOf({itemId: item.id, index: 0}) ??
-        cardPictureLayer(item.id, card)
+        cardPictureLayer(item.id, card, item.textOverrides?.['section'])
       }
     />
   );

@@ -11,6 +11,7 @@ import {useLive} from '@renderer/session/live';
 import {useShow} from '@renderer/session/show';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {
+  canReviewBiblePart,
   splitSourceFor,
   sourceContent,
   type BibleProjection,
@@ -127,17 +128,14 @@ export function BibleSplitTools({
     });
   }, [projection, onProblem]);
   const lastManualRequest = useRef(manualRequest);
-  const selectedPart = projection?.partsByTile[selected];
-  const canReview =
-    selectedPart != null &&
-    projection?.source.pinnedVerses?.[textVerseKey(selectedPart.reference)] ===
-      undefined;
+  const canReview = canReviewBiblePart(projection, selected);
   useEffect(() => {
     if (lastManualRequest.current === manualRequest) return;
     lastManualRequest.current = manualRequest;
     const part = projection?.partsByTile[selected];
-    if (!enableManual || !canReview || projection === null || part == null)
-      {return;}
+    if (!enableManual || !canReview || projection === null || part == null) {
+      return;
+    }
     queueMicrotask(() => {
       if (active.current) {
         setSession({

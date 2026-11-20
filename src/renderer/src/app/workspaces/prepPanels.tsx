@@ -214,7 +214,10 @@ function ItemCardBinding({
       items.show({serviceId, itemId});
     }
   }, [items, itemId, serviceId]);
-  const card = useLeadingItemCard(items, itemId, shownItem ?? undefined);
+  const card = useLeadingItemCard(items, itemId, {
+    shownItem: shownItem ?? undefined,
+    themeTextEditing: shownItem !== null,
+  });
   return (
     <div className={itemCardStyles.root}>
       {children(
@@ -389,6 +392,17 @@ function prepPanelParts({
                   onBack={back}
                   leadingCard={card}
                   addCard={addCard}
+                  renderTextFields={
+                    itemState === null
+                      ? undefined
+                      : index => (
+                          <SlideTextFields
+                            items={prep.items}
+                            state={itemState}
+                            position={itemState.cardSelected ? 0 : index}
+                          />
+                        )
+                  }
                 />
               )}
             </ItemCardBinding>
@@ -420,6 +434,18 @@ function prepPanelParts({
                 shownSession={songSession}
                 leadingCard={card}
                 addCard={addCard}
+                textOverrides={itemState?.item?.textOverrides}
+                renderTextFields={
+                  itemState === null || songSession?.itemSession !== true
+                    ? undefined
+                    : index => (
+                        <SlideTextFields
+                          items={prep.items}
+                          state={itemState}
+                          position={itemState.cardSelected ? 0 : index}
+                        />
+                      )
+                }
                 ui={prep.api.ui}
                 renderDesign={songItemDesign(prep.api, prep.items)}
                 onImportedSave={prep.onImportedSave}
@@ -539,11 +565,13 @@ function OtherPrepEditor({
           <strong>{displayReference(item.sermon.passage.ref)}</strong>
         ) : null}
       </header>
-      {splitVerses ? (
-        <SlideTextFields items={prep.items} state={itemState} />
-      ) : null}
+      <SlideTextFields items={prep.items} state={itemState} />
       {item !== null && isItemOfKind(item, 'sermon') ? (
-        <SermonInlineEditor items={prep.items} shownItem={itemState} />
+        <SermonInlineEditor
+          items={prep.items}
+          shownItem={itemState}
+          showSourceTitle={false}
+        />
       ) : null}
       {item !== null &&
       (isItemOfKind(item, 'bible') || isItemOfKind(item, 'sermon')) ? (
@@ -559,6 +587,7 @@ function OtherPrepEditor({
           items={prep.items}
           shownItem={itemState}
           ui={prep.api.ui}
+          themeTextEditing
         />
       ) : item !== null &&
         (isItemOfKind(item, 'bible') || isItemOfKind(item, 'sermon')) ? (
@@ -568,6 +597,7 @@ function OtherPrepEditor({
           ui={prep.api.ui}
           onBack={onBack}
           hideHeader
+          themeTextEditing
           onSplit={
             splitVerses
               ? () => setManualSplitRequest(value => value + 1)

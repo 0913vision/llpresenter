@@ -22,7 +22,7 @@ import {
 import {colorSlideLabels, projectSlides} from '@core/presentation/slides';
 import {textOverridesForTiles} from '@core/presentation/textOverrides';
 import type {ServicePassages} from '../bible/servicePassages';
-import {LITURGY} from '@core/services/liturgy';
+import {LITURGY, liturgySlideTextKey} from '@core/services/liturgy';
 import {LITURGY_SLIDES} from '@core/services/liturgySlides';
 import {CREED_PRAYER_THEME_ID} from '@core/themes/creedPrayer';
 
@@ -179,7 +179,7 @@ function otherTiles(
   if (isItemOfKind(item, 'liturgy')) {
     return LITURGY_SLIDES[item.liturgy.kind][item.liturgy.translation].map(
       (text, index) => ({
-        textSlideKey: `liturgy:${item.liturgy.kind}:${item.liturgy.translation}:${index}`,
+        textSlideKey: liturgySlideTextKey(item.liturgy, index),
         label:
           item.liturgy.labels?.find(entry => entry.index === index)?.label ??
           text.split('\n')[0] ??
@@ -283,6 +283,9 @@ function rowOf(item: ServiceItem, sources: RowSources): ShowRow {
       id,
       title: item.slides.name,
       form: item.slides.form,
+      ...(item.textOverrides === undefined
+        ? {}
+        : {textOverrides: item.textOverrides}),
       ...(sources.serviceRevision === undefined
         ? {}
         : {sourceRevision: sources.serviceRevision}),

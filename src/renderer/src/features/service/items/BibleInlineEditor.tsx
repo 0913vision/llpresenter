@@ -10,7 +10,10 @@ import type {UiApi} from '@contracts/ipc/ui';
 import {isItemOfKind, type ServiceItemOf} from '@core/schema/service';
 import {slideLayerOf} from '@core/presentation/slideLayer';
 import {useBibleTileProjection} from '@renderer/features/bible/useBibleProjections';
-import type {BibleProjection} from '@renderer/features/bible/splitProjection';
+import {
+  canReviewBiblePart,
+  type BibleProjection,
+} from '@renderer/features/bible/splitProjection';
 import type {ShowTile} from '@core/schema/showService';
 import {useMeasuredRows} from '@renderer/ui/useMeasuredRows';
 import {
@@ -50,6 +53,7 @@ export function BibleInlineEditor({
   onBack,
   hideHeader = false,
   onSplit,
+  themeTextEditing = false,
 }: {
   readonly onSplit?: (() => void) | undefined;
   readonly items: ServiceItemStore;
@@ -57,6 +61,7 @@ export function BibleInlineEditor({
   readonly ui: Pick<UiApi, 'setLayout'>;
   readonly onBack: () => void;
   readonly hideHeader?: boolean;
+  readonly themeTextEditing?: boolean;
 }): JSX.Element | null {
   const current = useSyncExternalStore(items.subscribe, items.getSnapshot);
   const state = shownItem ?? current;
@@ -80,6 +85,7 @@ export function BibleInlineEditor({
       onBack={onBack}
       hideHeader={hideHeader}
       onSplit={onSplit}
+      themeTextEditing={themeTextEditing}
     />
   );
 }
@@ -95,6 +101,7 @@ function BibleEditorContent({
   hideHeader,
   onSplit,
   locked,
+  themeTextEditing,
 }: {
   readonly onSplit?: (() => void) | undefined;
   readonly items: ServiceItemStore;
@@ -106,6 +113,7 @@ function BibleEditorContent({
   readonly onBack: () => void;
   readonly hideHeader: boolean;
   readonly locked: boolean;
+  readonly themeTextEditing: boolean;
 }): JSX.Element {
   const saved = useShow(view =>
     shownItem === undefined
@@ -121,7 +129,10 @@ function BibleEditorContent({
     () => bibleEditorData(item, saved, projection?.tiles),
     [item, saved, projection?.tiles],
   );
-  const card = useLeadingItemCard(items, item.id, shownItem);
+  const card = useLeadingItemCard(items, item.id, {
+    shownItem,
+    themeTextEditing,
+  });
   const sermonTheme = useSlideTheme(
     isItemOfKind(item, 'sermon')
       ? sermonPreviewRow(item.id, item.sermon.passage.ref)
@@ -219,7 +230,7 @@ function BibleEditorContent({
             <Button
               className={styles.split}
               disabled={
-                locked || projection?.partsByTile[position - offset] == null
+                locked || !canReviewBiblePart(projection, position - offset)
               }
               onClick={onSplit}
             >

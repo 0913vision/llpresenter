@@ -601,7 +601,7 @@ export class ThemeElementView {
         vAlign:
           stage && element.kind === 'nextText'
             ? 'top'
-            : cue !== undefined
+            : cue !== undefined && manualText === undefined
               ? 'middle'
               : isThemeTextElement(element)
                 ? themeTextVAlign(element, layers.slide?.lines.join('\n') ?? '')

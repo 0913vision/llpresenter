@@ -308,13 +308,19 @@ export class ThemeCompositionView {
       this.clear();
       return;
     }
+    const slide = frame.slide ?? layers.slide;
+    const hideManualText = (key: string, value: unknown): unknown =>
+      key === 'manualText' ? undefined : value;
     const signature = JSON.stringify(
       [
         theme.themeId,
         theme.layout,
         itemBackgroundOverride(frame, this.options.transparent === true),
       ],
-      (key, value: unknown) => (key === 'manualText' ? undefined : value),
+      slide?.textOverrides === undefined &&
+        slide?.next?.textOverrides === undefined
+        ? undefined
+        : hideManualText,
     );
     const previous = this.page?.frame.slide ?? this.page?.layers.slide;
     const incoming = frame.slide ?? layers.slide;

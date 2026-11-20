@@ -9,7 +9,14 @@ import type {ServiceItemStore} from './serviceItemStore';
 export function useLeadingItemCard(
   items: ServiceItemStore,
   itemId: string | undefined,
-  shownItem?: ReturnType<ServiceItemStore['getSnapshot']>,
+  {
+    shownItem,
+    themeTextEditing = false,
+  }: {
+    readonly shownItem?:
+      ReturnType<ServiceItemStore['getSnapshot']> | undefined;
+    readonly themeTextEditing?: boolean;
+  } = {},
 ): LeadingSlideCard | undefined {
   const current = useSyncExternalStore(items.subscribe, items.getSnapshot);
   const {item, service, busy} = shownItem ?? current;
@@ -31,6 +38,8 @@ export function useLeadingItemCard(
         itemId={item.id}
         card={card}
         mode={mode}
+        hideSourceFields={themeTextEditing}
+        textOverrides={item.textOverrides?.['section']}
         disabled={disabled}
         onChange={(field, value) => {
           if (items.getSnapshot().item?.id === item.id) {

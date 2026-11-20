@@ -51,9 +51,11 @@ function SermonTitleField({
 export function SermonInlineEditor({
   items,
   shownItem,
+  showSourceTitle = true,
 }: {
   readonly items: ServiceItemStore;
   readonly shownItem?: ReturnType<ServiceItemStore['getSnapshot']> | undefined;
+  readonly showSourceTitle?: boolean;
 }): JSX.Element | null {
   const current = useSyncExternalStore(items.subscribe, items.getSnapshot);
   const state = shownItem ?? current;
@@ -68,24 +70,26 @@ export function SermonInlineEditor({
   }
   const serviceId = state.service.service.id;
   return (
-    <section aria-label={'설교 편집'} className={styles.editor}>
-      <SermonTitleField
-        key={item.sermon.title}
-        title={item.sermon.title}
-        disabled={state.busy || state.service.access === 'readOnly'}
-        onCommit={title => {
-          editorTask(
-            items.submitItemEdit({
-              target: {serviceId, itemId: item.id},
-              failure: '설교 저장 실패',
-              change: current =>
-                isItemOfKind(current, 'sermon')
-                  ? {...current, sermon: {...current.sermon, title}}
-                  : null,
-            }),
-          );
-        }}
-      />
+    <section aria-label="설교 편집" className={styles.editor}>
+      {showSourceTitle ? (
+        <SermonTitleField
+          key={item.sermon.title}
+          title={item.sermon.title}
+          disabled={state.busy || state.service.access === 'readOnly'}
+          onCommit={title => {
+            editorTask(
+              items.submitItemEdit({
+                target: {serviceId, itemId: item.id},
+                failure: '설교 저장 실패',
+                change: current =>
+                  isItemOfKind(current, 'sermon')
+                    ? {...current, sermon: {...current.sermon, title}}
+                    : null,
+              }),
+            );
+          }}
+        />
+      ) : null}
       <span className={styles.passage}>
         {displayReference(item.sermon.passage.ref)}
       </span>

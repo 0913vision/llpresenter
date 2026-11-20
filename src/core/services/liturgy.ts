@@ -21,37 +21,53 @@ export const LITURGY = {
 export type LiturgyKind = keyof typeof LITURGY;
 export type LiturgyTranslation = 'new' | 'old';
 
+export function liturgySlideTextKey(
+  liturgy: Pick<ServiceItemOf<'liturgy'>['liturgy'], 'kind' | 'translation'>,
+  index: number,
+): string {
+  return `liturgy:${liturgy.kind}:${liturgy.translation}:${index}`;
+}
+
 /** A transient rendering adapter; it is never persisted as the item. */
 export function liturgyAsSlides(
   item: ServiceItemOf<'liturgy'>,
 ): ServiceItemOf<'slides'> {
   const {liturgy, ...common} = item;
+  const slides = LITURGY_SLIDES[liturgy.kind][liturgy.translation];
+  const textOverrides = {...item.textOverrides};
+  for (let index = 0; index < slides.length; index++) {
+    const override = item.textOverrides?.[liturgySlideTextKey(liturgy, index)];
+    if (override === undefined) continue;
+    const id = createSlideId(
+      `${item.id.slice(0, -4)}${index.toString(16).padStart(4, '0')}`,
+    );
+    textOverrides[`slide:${id}`] = override;
+  }
   return {
     ...common,
+    ...(item.textOverrides === undefined ? {} : {textOverrides}),
     theme: item.theme ?? CREED_PRAYER_THEME_ID,
     slides: {
       form: 'blank',
       name: LITURGY[liturgy.kind].name,
-      slides: LITURGY_SLIDES[liturgy.kind][liturgy.translation].map(
-        (text, index) => ({
-          id: createSlideId(
-            `${item.id.slice(0, -4)}${index.toString(16).padStart(4, '0')}`,
-          ),
-          text,
-          ...(() => {
-            const label = liturgy.labels?.find(
-              entry => entry.index === index,
-            )?.label;
-            return label === undefined ? {} : {label};
-          })(),
-          ...(() => {
-            const transition = liturgy.transitions?.find(
-              entry => entry.index === index,
-            )?.transition;
-            return transition === undefined ? {} : {transition};
-          })(),
-        }),
-      ),
+      slides: slides.map((text, index) => ({
+        id: createSlideId(
+          `${item.id.slice(0, -4)}${index.toString(16).padStart(4, '0')}`,
+        ),
+        text,
+        ...(() => {
+          const label = liturgy.labels?.find(
+            entry => entry.index === index,
+          )?.label;
+          return label === undefined ? {} : {label};
+        })(),
+        ...(() => {
+          const transition = liturgy.transitions?.find(
+            entry => entry.index === index,
+          )?.transition;
+          return transition === undefined ? {} : {transition};
+        })(),
+      })),
     },
   };
 }

@@ -292,6 +292,7 @@ export function SlidesEditor({
   renderCard,
   leadingCard,
   addCard,
+  renderTextFields,
 }: {
   readonly api: LlpApi;
   readonly model: SlidesEditorModel;
@@ -300,6 +301,7 @@ export function SlidesEditor({
   readonly renderCard?: SlideCardRenderer | undefined;
   readonly leadingCard?: LeadingSlideCard | undefined;
   readonly addCard?: ReactNode;
+  readonly renderTextFields?: ((index: number) => ReactNode) | undefined;
 }): JSX.Element | null {
   const {draft} = model;
   if (draft === null) return null;
@@ -314,6 +316,7 @@ export function SlidesEditor({
       renderCard={renderCard}
       leadingCard={leadingCard}
       addCard={addCard}
+      renderTextFields={renderTextFields}
     />
   );
 }
@@ -327,6 +330,7 @@ function SlidesEditorBody({
   renderCard,
   leadingCard,
   addCard,
+  renderTextFields,
 }: {
   readonly api: LlpApi;
   readonly model: SlidesEditorModel;
@@ -336,6 +340,7 @@ function SlidesEditorBody({
   readonly renderCard?: SlideCardRenderer | undefined;
   readonly leadingCard?: LeadingSlideCard | undefined;
   readonly addCard?: ReactNode;
+  readonly renderTextFields?: ((index: number) => ReactNode) | undefined;
 }): JSX.Element {
   const {item: draftItem, selected} = draft.snapshot;
   const slideDefaults = useSlideDefaults();
@@ -562,6 +567,7 @@ function SlidesEditorBody({
           </>
         }
       >
+        {renderTextFields?.(selected + Number(leadingCard !== undefined))}
         <fieldset
           className={styles.editable}
           disabled={model.stopped || model.session?.readOnly === true}
@@ -617,15 +623,19 @@ function SlidesEditorBody({
                     }
                   />
                 </div>
-                <SlideFields
-                  slide={slide}
-                  form={item.slides.form}
-                  name={slideBand(slide, media)}
-                  projection={projection}
-                  replace={button => showPicker(button, slide.id)}
-                  change={(next, field) => changeSlide(index, next, field)}
-                  endTyping={() => draft.endTyping()}
-                />
+                {renderTextFields !== undefined && 'text' in slide ? (
+                  <p>{slide.text}</p>
+                ) : (
+                  <SlideFields
+                    slide={slide}
+                    form={item.slides.form}
+                    name={slideBand(slide, media)}
+                    projection={projection}
+                    replace={button => showPicker(button, slide.id)}
+                    change={(next, field) => changeSlide(index, next, field)}
+                    endTyping={() => draft.endTyping()}
+                  />
+                )}
               </>
             )}
           />

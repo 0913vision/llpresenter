@@ -20,13 +20,13 @@ import {CREED_PRAYER_THEME_ID} from '@core/themes/creedPrayer';
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
 import {SlideThumbnailBand} from '@renderer/ui/SlideThumbnail';
+import {TextArea} from '@renderer/ui/TextArea';
 import {ItemEditorShell} from '@renderer/platform/ItemEditorShell';
 import {SongSlideSurface} from '@renderer/features/songs/editor/SongSlideSurface';
 import {BibleSlideSession} from './BibleSlideSession';
 import type {ShowTile} from '@core/schema/showService';
 import {ItemEditorAddBar} from '@renderer/platform/ItemEditorAddBar';
 import {itemEditorAdapter} from '@renderer/platform/itemEditorAdapter';
-import {TextArea} from '@renderer/ui/TextArea';
 import type {UiApi} from '@contracts/ipc/ui';
 import {
   SlideSurfaceView,
@@ -82,10 +82,12 @@ export function LiturgyEditor({
   items,
   shownItem,
   ui,
+  themeTextEditing = false,
 }: {
   readonly items: ServiceItemStore;
   readonly shownItem?: ReturnType<ServiceItemStore['getSnapshot']> | undefined;
   readonly ui?: Pick<UiApi, 'setLayout'> | undefined;
+  readonly themeTextEditing?: boolean;
 }): JSX.Element | null {
   const current = useSyncExternalStore(items.subscribe, items.getSnapshot);
   const state =
@@ -110,6 +112,7 @@ export function LiturgyEditor({
       position={state.position}
       shownItem={state}
       ui={ui}
+      themeTextEditing={themeTextEditing}
     />
   );
 }
@@ -120,18 +123,23 @@ function LiturgyContent({
   position,
   shownItem,
   ui,
+  themeTextEditing,
 }: {
   readonly ui?: Pick<UiApi, 'setLayout'> | undefined;
   readonly items: ServiceItemStore;
   readonly item: ServiceItemOf<'liturgy'>;
   readonly position: number;
+  readonly themeTextEditing: boolean;
   readonly shownItem: ReturnType<ServiceItemStore['getSnapshot']>;
 }): JSX.Element {
   const {mode, scale} = useSlideSurfaceView();
   const gridStyle: CSSProperties & {'--liturgy-tile-width': string} = {
     '--liturgy-tile-width': `${(180 * scale) / 100}px`,
   };
-  const card = useLeadingItemCard(items, item.id, shownItem);
+  const card = useLeadingItemCard(items, item.id, {
+    shownItem,
+    themeTextEditing,
+  });
   const tiles = useShow(view => view.tiles[item.id]);
   const theme = useSlideTheme({
     kind: 'slides',
@@ -255,14 +263,18 @@ function LiturgyContent({
                     labelColor={tiles?.[index + offset]?.labelColor}
                   />
                 </div>
-                <TextArea
-                  className={styles.verse}
-                  value={text}
-                  onChange={() => undefined}
-                  rows={4}
-                  readOnly
-                  aria-label={`${index + 1}번 예식문`}
-                />
+                {themeTextEditing ? (
+                  <p className={styles.verse}>{text}</p>
+                ) : (
+                  <TextArea
+                    className={styles.verse}
+                    value={text}
+                    onChange={() => undefined}
+                    rows={4}
+                    readOnly
+                    aria-label={`${index + 1}번 예식문`}
+                  />
+                )}
               </div>
             );
           })}

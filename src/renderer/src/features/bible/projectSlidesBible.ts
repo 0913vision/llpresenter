@@ -59,7 +59,7 @@ export function projectSlidesBible(
       parts.push(...next);
       seen.add(key);
     }
-    const {verse: _verse, ...tile} = raw;
+    const {verse: _verse, textOverrides: _overrides, ...tile} = raw;
     next.forEach(part => {
       partsByTile.push(part);
       tiles.push({

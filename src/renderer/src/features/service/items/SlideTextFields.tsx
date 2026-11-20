@@ -1,4 +1,4 @@
-import {useState, type JSX} from 'react';
+import {useEffect, useEffectEvent, useRef, useState, type JSX} from 'react';
 import {cacheKey} from '@core/bible/split/splitCache';
 import {pinVerseParts} from '@core/bible/split/splitVerses';
 import {sameBibleVerse} from '@core/bible/selection';
@@ -18,15 +18,28 @@ import {CREED_PRAYER_THEME_ID} from '@core/themes/creedPrayer';
 import {isThemeTextElement, themeElementText} from '@core/themes/content';
 import {resolveThemeOutput} from '@core/themes/output';
 import {SERMON_TITLE_THEME_ID} from '@core/themes/sundayScripture';
-import {themeTextSlot} from '@core/themes/textSlots';
+import {
+  manualThemeText,
+  themeTextSlot,
+  withSlideTextOverrides,
+} from '@core/themes/textSlots';
+import {TYPING_PAUSE_MS} from '@core/songs/songHistory';
+import {timerText} from '@core/timers/timerClock';
 import {useBibleTileProjection} from '@renderer/features/bible/useBibleProjections';
 import {editorTask} from '@renderer/features/songs/editor/editorTask';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {themeElementNames} from '@renderer/rendering/themeNames';
+import {STAGE_TICK_MS, stageClockText} from '@renderer/rendering/stageClock';
+import {useLive} from '@renderer/session/live';
 import {useShow} from '@renderer/session/show';
 import {TextArea} from '@renderer/ui/TextArea';
 import type {ServiceItemState, ServiceItemStore} from './serviceItemStore';
 import styles from './SlideTextFields.module.css';
+
+const readTime = () => ({
+  wall: Date.now(),
+  timer: performance.timeOrigin + performance.now(),
+});
 
 function TextSlot({
   name,
@@ -38,6 +51,25 @@ function TextSlot({
   readonly save: (text: string) => Promise<boolean>;
 }): JSX.Element {
   const [draft, setDraft] = useState<string | null>(null);
+  const pending = useRef<string | null>(null);
+  const flush = (): void => {
+    const text = pending.current;
+    if (text === null) return;
+    pending.current = null;
+    editorTask(
+      save(text).then(ok => {
+        if (ok) setDraft(current => (current === text ? null : current));
+        else pending.current ??= text;
+      }),
+    );
+  };
+  const flushIdle = useEffectEvent(flush);
+  useEffect(() => {
+    if (draft === null) return;
+    const timer = setTimeout(() => flushIdle(), TYPING_PAUSE_MS);
+    return () => clearTimeout(timer);
+  }, [draft]);
+  useEffect(() => () => flushIdle(), []);
   return (
     <label>
       {name}
@@ -45,15 +77,11 @@ function TextSlot({
         aria-label={name}
         maxLength={4000}
         value={draft ?? value}
-        onChange={setDraft}
-        onBlur={() => {
-          if (draft === null) return;
-          editorTask(
-            save(draft).then(ok => {
-              if (ok) setDraft(current => (current === draft ? null : current));
-            }),
-          );
+        onChange={text => {
+          pending.current = text;
+          setDraft(text);
         }}
+        onBlur={flush}
       />
     </label>
   );
@@ -63,11 +91,13 @@ function TextSlot({
 export function SlideTextFields({
   items,
   state,
+  position = state.position,
 }: {
   readonly items: ServiceItemStore;
   readonly state: ServiceItemState;
+  readonly position?: number;
 }): JSX.Element | null {
-  const {item, service, position} = state;
+  const {item, service} = state;
   const id = item?.id ?? null;
   const serviceId = service?.service.id;
   const row = useShow(view =>
@@ -83,8 +113,30 @@ export function SlideTextFields({
     ...(serviceId === undefined ? {} : {serviceId}),
     anyItem: true,
   });
-  const themes = useSettingsDocument(id === null ? null : 'themes', '테마');
-  const screens = useSettingsDocument(id === null ? null : 'screens', '화면');
+  const themes = useSettingsDocument(
+    id === null ? null : 'themes',
+    '테마',
+    items.reportNotice,
+  );
+  const screens = useSettingsDocument(
+    id === null ? null : 'screens',
+    '화면',
+    items.reportNotice,
+  );
+  const timers = useSettingsDocument(
+    id === null ? null : 'timers',
+    '타이머',
+    items.reportNotice,
+  );
+  const stageMessage = useLive(view => view.state?.stageMessage);
+  const timerRuns = useLive(view => view.state?.timers);
+  const stageTimerId = useLive(view => view.state?.stageTimerId);
+  const [now, setNow] = useState(readTime);
+  useEffect(() => {
+    if (id === null) return;
+    const timer = setInterval(() => setNow(readTime()), STAGE_TICK_MS);
+    return () => clearInterval(timer);
+  }, [id]);
   if (
     !item ||
     !serviceId ||
@@ -102,7 +154,8 @@ export function SlideTextFields({
           'sectionCard' in item ? item.sectionCard : undefined,
           projection.tiles,
         );
-  const tile = tiles[position];
+  const selected = Math.min(position, Math.max(0, tiles.length - 1));
+  const tile = tiles[selected];
   if (!tile) return null;
   if (
     tile.bibleVerse !== undefined &&
@@ -112,7 +165,7 @@ export function SlideTextFields({
     return null;
   }
   const key = textSlideKey(tile);
-  const slide = slideLayerOf({itemId: item.id, index: position}, () => tiles);
+  const slide = slideLayerOf({itemId: item.id, index: selected}, () => tiles);
   if (key === undefined || slide === null) return null;
   const kind = tile.sectionCard
     ? 'blank'
@@ -122,7 +175,8 @@ export function SlideTextFields({
   const themeId =
     tile.sectionCard?.theme ??
     (tile.sermonTitle ? SERMON_TITLE_THEME_ID : undefined) ??
-    (isItemOfKind(item, 'liturgy') ? CREED_PRAYER_THEME_ID : item.theme);
+    item.theme ??
+    (isItemOfKind(item, 'liturgy') ? CREED_PRAYER_THEME_ID : undefined);
   const themeItem = {
     id: item.id,
     kind,
@@ -138,15 +192,32 @@ export function SlideTextFields({
     revision: 0,
   });
   const slots = new Map<string, {name: string; text: string}>();
-  for (const screen of screens.value.screens) {
-    const layout = output.screens[screen.id];
-    for (const element of layout.layout.elements) {
+  const layers = {...emptyLayers(), slide};
+  for (const layout of Object.values(output.screens)) {
+    const binding = {...layout, themeId: output.themeId};
+    for (const element of withSlideTextOverrides(binding, slide).elements) {
       if (!isThemeTextElement(element)) continue;
-      const slot = themeTextSlot({...layout, themeId: output.themeId}, element);
-      const text = themeElementText(element, {
-        layers: {...emptyLayers(), slide},
-        item: themeItem,
-      });
+      const slot = themeTextSlot(binding, element);
+      const timerId =
+        element.kind === 'timer'
+          ? (element.timerId ?? stageTimerId)
+          : undefined;
+      const timer = timers?.value.timers.find(timer => timer.id === timerId);
+      const text =
+        manualThemeText(element) ??
+        themeElementText(element, {
+          layers,
+          item: themeItem,
+          stageMessage,
+          clock:
+            element.kind === 'clock'
+              ? stageClockText(now.wall, element.clockFormat, element.seconds)
+              : undefined,
+          timer:
+            timer === undefined
+              ? undefined
+              : timerText(timer, timerRuns?.[timer.id], now),
+        });
       if (!slots.has(slot) || (slots.get(slot)?.text === '' && text)) {
         slots.set(slot, {
           name:

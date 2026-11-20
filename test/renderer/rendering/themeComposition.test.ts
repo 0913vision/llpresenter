@@ -158,8 +158,8 @@ describe('theme composition drawing', () => {
         if (!slide) throw Error('Missing slide');
         const picture = outputSlideSpec({...appearance, slide});
         view.render(picture.layers, {
-          ...frame(layout.elements, {
-            layout,
+          ...frame(appearance.layout.elements, {
+            layout: appearance.layout,
             item,
             themeId: theme.id,
             sourceScreenId: id,

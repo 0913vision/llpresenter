@@ -4,6 +4,8 @@ import type {SongSlide} from '@core/schema/song';
 import type {SectionCard} from '@core/schema/service';
 import {slideLayerOf} from '@core/presentation/slideLayer';
 import {projectSlides} from '@core/presentation/slides';
+import {textOverridesForTiles} from '@core/presentation/textOverrides';
+import type {SlideTextOverrides} from '@core/schema/slideTextOverrides';
 import {withSectionCard} from '@core/services/sectionCards';
 import type {SlideTile} from '@core/presentation/model';
 import type {PictureSpec} from './pictures/pictureService';
@@ -21,12 +23,15 @@ export function songPictureLayer(
     | 'titleLineCount'
     | 'titleLayout'
     | 'lyricFormat'
-  >,
+  > & {readonly textOverrides?: SlideTextOverrides | undefined},
 ): SlideLayer {
   return {
     itemId,
     position,
     lines: slide.lines,
+    ...(slide.textOverrides === undefined
+      ? {}
+      : {textOverrides: slide.textOverrides}),
     label: slide.label ?? null,
     ...(slide.titleSlide === undefined ? {} : {titleSlide: slide.titleSlide}),
     ...(slide.titleLineCount === undefined
@@ -45,6 +50,7 @@ export function songPictureLayer(
 export function cardPictureLayer(
   itemId: string,
   card: SectionCard,
+  textOverrides?: SlideTextOverrides,
 ): SlideLayer {
   return {
     itemId,
@@ -52,6 +58,7 @@ export function cardPictureLayer(
     label: card.name,
     lines: [card.english],
     sectionCard: card,
+    ...(textOverrides === undefined ? {} : {textOverrides}),
   };
 }
 
@@ -106,7 +113,9 @@ export function slideLayers(
     const background = tile?.picture ?? item.background;
     return {
       ...emptyLayers(),
-      slide: slideLayerOf({itemId: item.id, index: at}, () => projection.tiles),
+      slide: slideLayerOf({itemId: item.id, index: at}, () =>
+        textOverridesForTiles(projection.tiles, item.textOverrides),
+      ),
       media:
         background === undefined
           ? null

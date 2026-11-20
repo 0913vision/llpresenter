@@ -254,6 +254,7 @@ function fitSong(
   // NOTE(0913vision): an empty song slide shows the song title (the user's rule)
   // and a title slide only its first line; decorative subtitles stay off.
   const raw =
+    manualThemeText(body) ??
     intent.songTitle ??
     themeElementText(body, {layers: {...emptyLayers(), slide}, item}) ??
     '';
