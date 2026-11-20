@@ -74,5 +74,6 @@ it('passes a library song theme to the shared slide appearance', () => {
   expect(useSlideTheme).toHaveBeenLastCalledWith(
     expect.objectContaining({theme: LIGHT_SONG_THEME_ID}),
     'service',
+    {},
   );
 });

@@ -41,7 +41,8 @@ it('shows the locally selected item slide in its picture', async () => {
   );
   try {
     await waitFor(() => expect(items.getSnapshot().song).not.toBeNull());
-    const picture = screen.getByTestId('picture');
+    const picture = screen.getAllByTestId('picture')[0];
+    if (picture === undefined) throw new Error('Missing preview picture');
     expect(picture.getAttribute('data-position')).toBe('0');
     act(() => items.selectPosition(1));
     expect(picture.getAttribute('data-position')).toBe('1');
