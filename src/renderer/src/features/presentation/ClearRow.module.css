@@ -52,7 +52,6 @@
 .standby {
   flex: 1.4;
   min-width: max-content;
-  margin-inline-end: var(--space-8);
 }
 
 .all {
@@ -125,7 +124,6 @@
   .standby {
     flex: 1;
     min-width: 0;
-    margin-inline-end: 0;
   }
 
   .divider {
