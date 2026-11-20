@@ -5,8 +5,7 @@ import {
   type ServiceItemStore,
 } from '@renderer/features/service/items/serviceItemStore';
 import type {SongEditorStore} from '@renderer/features/songs/editor';
-import {ItemThemeRow} from '@renderer/features/service/details/ItemThemeRow';
-import {ItemBackgroundRow} from '@renderer/features/service/details/ItemSettingsRows';
+import {ItemAppearanceRows} from '@renderer/features/service/details/ItemAppearanceRows';
 import {themeRequest} from '@renderer/features/service/items/itemAppearanceCommands';
 import {backgroundRequest} from '@renderer/features/service/items/itemPlaybackCommands';
 import {LiturgyVersion} from '@renderer/features/service/items/LiturgyEditor';
@@ -59,28 +58,22 @@ export function EditorItemSettings({
             )}
           </PropertyRow>
         ) : null}
-        <ItemThemeRow
-          api={editor.api.settings}
-          items={items}
-          item={item}
-          reason={reason}
-          setTheme={async (theme, file) =>
-            (await flush()) &&
-            items.submitItemEdit(themeRequest(target, theme, file))
-          }
-        />
-        <ItemBackgroundRow
-          items={items}
-          api={editor.api}
-          lockReason={reason}
-          item={item}
-          setBackground={async id =>
-            (await flush()) &&
-            items.submitItemEdit(backgroundRequest(target, id))
-          }
-          {...(isItemOfKind(item, 'song') && state.song !== null
-            ? {session: state.song}
-            : {})}
+        <ItemAppearanceRows
+          adapter={{
+            api: editor.api,
+            items,
+            item,
+            reason,
+            setTheme: async (theme, file) =>
+              (await flush()) &&
+              items.submitItemEdit(themeRequest(target, theme, file)),
+            setBackground: async id =>
+              (await flush()) &&
+              items.submitItemEdit(backgroundRequest(target, id)),
+            ...(isItemOfKind(item, 'song') && state.song !== null
+              ? {session: state.song}
+              : {}),
+          }}
         />
       </PropertyGroup>
     </Properties>
