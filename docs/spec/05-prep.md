@@ -176,9 +176,11 @@ not dim when focus leaves. 진행 retains its existing thumbnail style.
   one reference-only row per verse after the selected row. The entire range is
   one local undo step, and a range exceeding the remaining 200-row capacity is
   refused before insertion. Ad items do not offer this action.
-- The passage dialog shares the ten recent references from 빠른 실행. Clicking
-  one or pressing its configured Alt+1 through Alt+0 shortcut fills the
-  reference and continues through the normal passage-add flow.
+- The shared passage dialog shows the same recent references and keyboard
+  controls as Ctrl+B in Show. Enter chooses the highlighted recent or submits
+  the typed reference, and Alt+1 through Alt+0 choose a recent directly. Escape
+  clears typed fields first and closes an empty dialog. A selected passage
+  continues through the normal passage-add flow.
 - With 환경설정 › 성경 › 절 나누기 창 저절로 열기 enabled (the default), adding
   a passage from the palette, the order, the Bible preview, or a blank item
   opens 절 나누기 before creating the item or inserting the verse rows. The

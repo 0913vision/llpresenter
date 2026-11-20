@@ -223,6 +223,43 @@ describe('BibleQuickField', () => {
     expect(screen.queryByText('AI 켜짐')).toBeNull();
   });
 
+  it('selects a finder recent with arrows while keeping the book caret', async () => {
+    const fixture = panelApi();
+    window.llp = fixture.api;
+    const settings = fixture.document();
+    const translation = lookupRequest().translation;
+    fixture.push({
+      ...settings,
+      revision: 2,
+      value: {
+        ...settings.value,
+        recents: [
+          {translation, ref: '\uC694\uD55C\uBCF5\uC74C 3:16'},
+          {translation, ref: '\uC694\uD55C\uBCF5\uC74C 3:17'},
+        ],
+      },
+    });
+    render(<BibleQuickField api={fixture.api} />);
+    await book();
+    fireEvent.keyDown(document.body, {key: 'b', code: 'KeyB', ctrlKey: true});
+    const field = await book();
+    await screen.findByRole('button', {name: /3:17/});
+    fireEvent.keyDown(field, {key: 'ArrowDown'});
+    fireEvent.keyDown(field, {key: 'ArrowDown'});
+    expect(document.activeElement).toBe(field);
+    expect(
+      screen
+        .getByRole('button', {name: /3:17/})
+        .getAttribute('data-highlighted'),
+    ).toBe('true');
+    fireEvent.keyDown(field, {key: 'Enter'});
+    await waitFor(() =>
+      expect(fixture.lookup).toHaveBeenCalledWith({
+        input: '\uC694\uD55C\uBCF5\uC74C 3:17',
+        translation,
+      }),
+    );
+  });
   it('shows and outputs the tenth recent with Alt+0', async () => {
     const fixture = panelApi();
     window.llp = fixture.api;

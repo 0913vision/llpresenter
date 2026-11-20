@@ -38,6 +38,8 @@ import styles from './BibleReferenceField.module.css';
 
 export interface BibleReferenceFormProps {
   readonly initialRef?: string | undefined;
+  readonly dialogMode?: boolean;
+  readonly onEffectiveTranslation?: ((id: TranslationId) => void) | undefined;
   readonly overlayLabels?: boolean;
   readonly api: BibleLookupApi;
   readonly translation: TranslationId | undefined;
@@ -192,6 +194,11 @@ export function BibleReferenceForm(
     input: selectedRecent?.ref ?? state.input,
   });
   const passage = reply?.result.ok ? reply.result.value : undefined;
+  const effective = passage?.translation ?? metadata?.effectiveTranslation;
+  const onEffectiveTranslation = props.onEffectiveTranslation;
+  useEffect(() => {
+    if (effective) onEffectiveTranslation?.(effective);
+  }, [effective, onEffectiveTranslation]);
   const liveTranslation =
     (passage?.translation ?? metadata?.effectiveTranslation) === LIVE_BIBLE_ID;
   const pendingSubmit = useRef<{
@@ -396,6 +403,38 @@ export function BibleReferenceForm(
       return;
     }
     if (event.altKey || event.ctrlKey || event.metaKey) return;
+    if (props.dialogMode && event.key === 'Escape') {
+      event.preventDefault();
+      event.stopPropagation();
+      pendingSubmit.current = null;
+      if (
+        [fields.book, fields.chapter, fields.start, fields.end].some(
+          value => value !== '',
+        )
+      ) {
+        props.onIntent?.();
+        setFields(EMPTY_REFERENCE);
+        setRecent(null);
+        setOpen(false);
+        setBlocked(null);
+        focusPart(root.current, 'book');
+      } else props.onEscape?.();
+      return;
+    }
+    if (
+      props.dialogMode &&
+      event.key === 'Backspace' &&
+      event.currentTarget.value === '' &&
+      part !== 'book'
+    ) {
+      event.preventDefault();
+      const index = NUMBER_PARTS.indexOf(part);
+      focusPart(
+        root.current,
+        index <= 0 ? 'book' : (NUMBER_PARTS[index - 1] ?? 'book'),
+      );
+      return;
+    }
     if (event.key === 'Escape' && expanded) {
       pendingSubmit.current = null;
       event.preventDefault();
@@ -550,7 +589,9 @@ export function BibleReferenceForm(
   return (
     <div
       ref={root}
-      className={styles.form}
+      className={
+        props.dialogMode ? `${styles.form} ${styles.dialogForm}` : styles.form
+      }
       role="group"
       aria-label="성경 구절"
       onBlur={event => {
@@ -568,7 +609,7 @@ export function BibleReferenceForm(
           block
           icon="book"
           affix={props.overlayLabels ? '\ucc45' : undefined}
-          clearable
+          clearable={!props.dialogMode}
           autoFocus={props.autoFocus}
           aria-label="책"
           data-reference-part="book"
@@ -607,39 +648,53 @@ export function BibleReferenceForm(
         />
       </div>
       {NUMBER_PARTS.map(part => (
-        <TextField
+        <span
           key={part}
-          size={props.overlayLabels ? 'md' : 'sm'}
-          block
-          affix={props.overlayLabels ? LABELS[part] : undefined}
-          inputMode="numeric"
-          aria-label={LABELS[part]}
-          placeholder={
-            part === 'end' && lastVerse !== undefined
-              ? String(lastVerse)
-              : props.overlayLabels
-                ? ''
-                : LABELS[part]
-          }
-          data-reference-part={part}
-          maxLength={BIBLE_LOOKUP_LIMITS.input}
-          value={fields[part]}
-          onChange={value => change(part, value)}
-          onKeyDown={event => onKeyDown(part, event)}
-          onBlur={() => {
-            advancedBook.current = null;
-          }}
-          onCompositionStart={() => {
-            advancedBook.current = null;
-          }}
-          disabled={props.translation === undefined || !state.enabled[part]}
-          invalid={reason(part) !== undefined}
-          invalidReason={reason(part)}
-        />
+          className={props.dialogMode ? styles.argument : undefined}
+          data-part={part}
+        >
+          <TextField
+            size={props.overlayLabels ? 'md' : 'sm'}
+            block
+            affix={props.overlayLabels ? LABELS[part] : undefined}
+            inputMode="numeric"
+            aria-label={LABELS[part]}
+            placeholder={
+              props.dialogMode
+                ? part === 'chapter' && metadataBook
+                  ? `1~${metadataBook.chapters}`
+                  : part !== 'chapter' && chapterNumber > 0
+                    ? lastVerse === undefined
+                      ? '\uBD88\uB7EC\uC624\uB294 \uC911...'
+                      : `${part === 'end' && fields.start ? fields.start : 1}~${lastVerse}`
+                    : LABELS[part]
+                : part === 'end' && lastVerse !== undefined
+                  ? String(lastVerse)
+                  : props.overlayLabels
+                    ? ''
+                    : LABELS[part]
+            }
+            data-reference-part={part}
+            maxLength={BIBLE_LOOKUP_LIMITS.input}
+            value={fields[part]}
+            onChange={value => change(part, value)}
+            onKeyDown={event => onKeyDown(part, event)}
+            onBlur={() => {
+              advancedBook.current = null;
+            }}
+            onCompositionStart={() => {
+              advancedBook.current = null;
+            }}
+            disabled={props.translation === undefined || !state.enabled[part]}
+            invalid={reason(part) !== undefined}
+            invalidReason={reason(part)}
+          />
+        </span>
       ))}
-      {props.overlayLabels ||
-      props.onEscape !== undefined ||
-      liveTranslation ? (
+      {!props.dialogMode &&
+      (props.overlayLabels ||
+        props.onEscape !== undefined ||
+        liveTranslation) ? (
         <span
           className={styles.translation}
           role={liveTranslation ? 'status' : undefined}

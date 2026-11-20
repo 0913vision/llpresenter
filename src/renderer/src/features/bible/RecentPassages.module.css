@@ -35,3 +35,48 @@
 .keys {
   color: var(--text-2);
 }
+
+.dialog {
+  height: auto;
+  max-height: min(440px, 50vh);
+  padding: 8px;
+}
+.dialog .heading {
+  padding: 8px 20px;
+  color: var(--text-3);
+  font: 400 13px/1.2 var(--font-ui);
+}
+.dialog .recentSlot {
+  height: 44px;
+}
+.dialog .recent {
+  border-radius: 8px;
+  padding: 0 14px;
+  font: 400 15px/1.2 var(--font-ui);
+}
+.dialog .recent[data-highlighted='true'] {
+  background: var(--bg-raised);
+}
+.dialog .recent > [aria-hidden='true'] {
+  color: var(--text-3);
+}
+.dialog .ref {
+  flex: 0 1 auto;
+}
+.dialog .translation {
+  color: var(--text-3);
+  font: 400 13px/1 var(--font-ui);
+}
+.dialog .keys {
+  margin-left: auto;
+}
+.dialog .keys kbd {
+  background: var(--bg-inset);
+  color: var(--text-3);
+  font: 400 12px/20px var(--font-ui);
+  min-width: 0;
+  padding: 0 3px;
+}
+.dialog .recent[data-highlighted='true'] .keys kbd {
+  color: var(--text-2);
+}

@@ -28,7 +28,7 @@ import {pictures} from '@renderer/rendering/pictures/pictureService';
 import {BibleReferenceField} from '../bible/BibleReferenceField';
 import {openBiblePassage, showBiblePassage} from '../bible/actions';
 import {focusSlideGrid} from '../presentation/focusSlideGrid';
-import {DraftOverlay} from '../presentation/DraftOverlay';
+import {PassageDialog} from '../bible/PassageDialog';
 import {useBibleDisplayDefaults} from '../bible/useBibleDisplayDefaults';
 import {RecentPassages} from '../bible/RecentPassages';
 import {prepareBiblePictures} from '../bible/prepareBiblePictures';
@@ -334,9 +334,36 @@ export function BibleQuickField({
     </div>
   );
   return overlayOpen ? (
-    <DraftOverlay kind="bible" onClose={closeFinder}>
-      {field}
-    </DraftOverlay>
+    <PassageDialog
+      api={api.bible}
+      translation={currentTranslation}
+      translations={translations}
+      recents={document?.value.recents ?? []}
+      action={'\uB760\uC6B0\uAE30'}
+      onClose={closeFinder}
+      onSubmit={passage => show(passage)}
+      onPick={recent => {
+        pick(recent).catch((error: unknown) => console.error(error));
+      }}
+      onIntent={() => {
+        beginOutputRequest();
+        focusItem.current = null;
+        onIntent?.();
+      }}
+      onKeyDownCapture={event => {
+        if (
+          !isInputMethodKey(event.nativeEvent) &&
+          !editsText(event.nativeEvent) &&
+          commandBindings('bible.focus', bindings).some(binding =>
+            matchesBinding(event.nativeEvent, binding),
+          )
+        ) {
+          event.preventDefault();
+          event.stopPropagation();
+          if (!event.repeat) closeFinder();
+        }
+      }}
+    />
   ) : (
     field
   );

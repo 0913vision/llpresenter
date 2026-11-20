@@ -1,3 +1,5 @@
+import {Icon} from '@renderer/ui/Icon';
+import {KeyCombo} from '@renderer/ui/KeyCap';
 import {
   useEffectEvent,
   useLayoutEffect,
@@ -25,6 +27,8 @@ export function RecentPassages({
   onPick,
   scope = 'show',
   disabled = false,
+  highlight = -1,
+  showTranslation = true,
 }: {
   readonly recents: readonly RecentPassage[];
   readonly translations: readonly Translation[];
@@ -32,6 +36,8 @@ export function RecentPassages({
   readonly onPick: (passage: RecentPassage) => void;
   readonly scope?: 'show' | 'dialog';
   readonly disabled?: boolean;
+  readonly highlight?: number;
+  readonly showTranslation?: boolean;
 }): JSX.Element {
   const root = useRef<HTMLDivElement>(null);
   const bindings = useSyncExternalStore(
@@ -94,52 +100,78 @@ export function RecentPassages({
     return () => window.removeEventListener('keydown', keydown, true);
   }, [scope]);
   return (
-    <div ref={root} className={styles.recents} aria-label="최근 성경 구절">
-      {Array.from({length: 10}, (_, index) => {
-        const recent = entries[index];
-        const otherTranslation = recent && recent.translation !== translation;
-        const entry = translations.find(
-          item => item.id === recent?.translation,
-        );
-        const name = entry?.name ?? recent?.translation;
-        const ambiguous =
-          entry &&
-          translations.some(
-            item => item.id !== entry.id && item.name === entry.name,
+    <div
+      ref={root}
+      className={
+        scope === 'dialog'
+          ? `${styles.recents} ${styles.dialog}`
+          : styles.recents
+      }
+      aria-label="최근 성경 구절"
+    >
+      {scope === 'dialog' ? (
+        <div className={styles.heading}>{'\uCD5C\uADFC'}</div>
+      ) : null}
+      {Array.from(
+        {length: scope === 'dialog' ? entries.length : 10},
+        (_, index) => {
+          const recent = entries[index];
+          const otherTranslation =
+            showTranslation && recent && recent.translation !== translation;
+          const entry = translations.find(
+            item => item.id === recent?.translation,
           );
-        const translationName = ambiguous
-          ? `${name} (${recent?.translation})`
-          : name;
-        const binding = commandBindings(
-          `bible.recent${index + 1}`,
-          bindings,
-        )[0];
-        return (
-          <div className={styles.recentSlot} key={index}>
-            {recent ? (
-              <button
-                type="button"
-                className={styles.recent}
-                disabled={disabled}
-                onClick={() => onPick(recent)}
-              >
-                <span>{index + 1}</span>
-                <span className={styles.ref}>
-                  {displayReference(recent.ref)}
-                </span>
-                {otherTranslation ? (
-                  <span className={styles.translation}>{translationName}</span>
-                ) : null}
-                {binding ? (
-                  <span className={styles.keys}>
-                    {shortcutNames(binding).join('+')}
+          const name = entry?.name ?? recent?.translation;
+          const ambiguous =
+            entry &&
+            translations.some(
+              item => item.id !== entry.id && item.name === entry.name,
+            );
+          const translationName = ambiguous
+            ? `${name} (${recent?.translation})`
+            : name;
+          const binding = commandBindings(
+            `bible.recent${index + 1}`,
+            bindings,
+          )[0];
+          return (
+            <div className={styles.recentSlot} key={index}>
+              {recent ? (
+                <button
+                  type="button"
+                  className={styles.recent}
+                  data-highlighted={scope === 'dialog' && highlight === index}
+                  disabled={disabled}
+                  onClick={() => onPick(recent)}
+                >
+                  {scope === 'dialog' ? (
+                    <Icon name="book" size={16} />
+                  ) : (
+                    <span>{index + 1}</span>
+                  )}
+                  <span className={styles.ref}>
+                    {displayReference(recent.ref)}
                   </span>
-                ) : null}
-              </button>
-            ) : null}
-          </div>
-        );
-      })}
+                  {otherTranslation ? (
+                    <span className={styles.translation}>
+                      {translationName}
+                    </span>
+                  ) : null}
+                  {binding ? (
+                    <span className={styles.keys}>
+                      {scope === 'dialog' ? (
+                        <KeyCombo keys={shortcutNames(binding)} />
+                      ) : (
+                        shortcutNames(binding).join('+')
+                      )}
+                    </span>
+                  ) : null}
+                </button>
+              ) : null}
+            </div>
+          );
+        },
+      )}
     </div>
   );
 }

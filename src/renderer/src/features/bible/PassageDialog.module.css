@@ -1,0 +1,65 @@
+.scrim {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  z-index: var(--z-dialog);
+  background: var(--scrim);
+}
+.dialog {
+  width: 640px;
+  max-width: 100%;
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: var(--bg-dialog);
+  box-shadow: var(--shadow-dialog);
+  color: var(--text);
+}
+.header {
+  position: relative;
+  flex: none;
+}
+.accessory {
+  position: absolute;
+  right: 20px;
+  top: 24px;
+  color: var(--text-3);
+  font: 400 13px/1 var(--font-ui);
+  pointer-events: none;
+}
+.footer {
+  height: 44px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 20px;
+  border-top: 1px solid var(--line);
+  color: var(--text);
+  font: 400 13px/1 var(--font-ui);
+}
+.footer span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.footer .title {
+  margin-right: auto;
+  color: var(--text-3);
+}
+.footer .next {
+  border-left: 1px solid var(--line-strong);
+  padding-left: 16px;
+  color: var(--text-2);
+}
+.footer kbd {
+  min-width: 0;
+  padding: 0 4px;
+  background: var(--bg-inset);
+  color: var(--text-3);
+  font: 400 12px/20px var(--font-ui);
+}

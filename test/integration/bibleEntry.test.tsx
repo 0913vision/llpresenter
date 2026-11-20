@@ -52,7 +52,7 @@ it.each(['click', 'shortcut'] as const)(
       />,
     );
     const tenth = await screen.findByRole('button', {name: /요한복음 3:10/});
-    expect(tenth.textContent).toContain('Alt+0');
+    expect(tenth.textContent).toContain('Alt0');
     if (method === 'click') fireEvent.click(tenth);
     else {
       fireEvent.blur(window);
@@ -112,6 +112,98 @@ it.each(['\uC694\uD55C\uBCF5\uC74C 3', '\uC694\uD55C\uBCF5\uC74C 3:16-4:2'])(
   },
 );
 
+it('navigates recent passages and clears the preparation dialog with Escape', async () => {
+  const fixture = panelApi();
+  window.llp = fixture.api;
+  onTestFinished(() => {
+    delete window.llp;
+  });
+  const settings = fixture.document();
+  const translation = lookupRequest().translation;
+  fixture.push({
+    ...settings,
+    revision: 2,
+    value: {
+      ...settings.value,
+      recents: [
+        {translation, ref: '\uC694\uD55C\uBCF5\uC74C 3:16'},
+        {translation, ref: '\uC694\uD55C\uBCF5\uC74C 3:17'},
+      ],
+    },
+  });
+  const onClose = vi.fn();
+  const onChoose = vi.fn<(passage: BibleLookupPassage) => void>();
+  render(
+    <BiblePassageDialog
+      api={fixture.api.bible}
+      translation={translation}
+      onChoose={onChoose}
+      onClose={onClose}
+    />,
+  );
+  await screen.findByRole('button', {name: /3:17/});
+  const book = screen.getByRole<HTMLInputElement>('combobox', {name: '\uCC45'});
+  book.focus();
+  fireEvent.keyDown(book, {key: 'ArrowDown'});
+  fireEvent.keyDown(book, {key: 'ArrowDown'});
+  expect(document.activeElement).toBe(book);
+  expect(
+    screen.getByRole('button', {name: /3:17/}).getAttribute('data-highlighted'),
+  ).toBe('true');
+  fireEvent.change(book, {target: {value: '\u3145'}});
+  expect(
+    screen.getByRole('button', {name: /3:17/}).getAttribute('data-highlighted'),
+  ).toBe('false');
+  fireEvent.keyDown(book, {key: 'Escape'});
+  const clearedBook = screen.getByRole<HTMLInputElement>('combobox', {
+    name: '\uCC45',
+  });
+  expect(clearedBook.value).toBe('');
+  expect(onClose).not.toHaveBeenCalled();
+  fireEvent.keyDown(clearedBook, {key: 'Escape'});
+  expect(onClose).toHaveBeenCalledOnce();
+});
+
+it('shows range placeholders and moves back from an empty argument', async () => {
+  const onClose = vi.fn();
+  render(
+    <BiblePassageDialog
+      api={{lookup: formLookupReply}}
+      translation={lookupRequest().translation}
+      onChoose={vi.fn()}
+      onClose={onClose}
+    />,
+  );
+  const book = screen.getByRole<HTMLInputElement>('combobox', {name: '\uCC45'});
+  fireEvent.change(book, {target: {value: '\uC694\uD55C\uBCF5\uC74C'}});
+  const chapter = screen.getByRole<HTMLInputElement>('textbox', {
+    name: '\uC7A5',
+  });
+  await waitFor(() => expect(chapter.placeholder).toBe('1~21'));
+  fireEvent.change(chapter, {target: {value: '3'}});
+  const start = screen.getByRole<HTMLInputElement>('textbox', {
+    name: '\uC2DC\uC791\uC808',
+  });
+  await waitFor(() => expect(start.placeholder).toBe('1~36'));
+  fireEvent.change(start, {target: {value: '16'}});
+  const end = screen.getByRole<HTMLInputElement>('textbox', {
+    name: '\uB05D\uC808',
+  });
+  expect(end.placeholder).toBe('16~36');
+  end.focus();
+  fireEvent.keyDown(end, {key: 'Backspace'});
+  expect(document.activeElement).toBe(start);
+  fireEvent.keyDown(start, {key: 'Escape'});
+  expect(
+    screen.getByRole<HTMLInputElement>('combobox', {name: '\uCC45'}).value,
+  ).toBe('');
+  expect(onClose).not.toHaveBeenCalled();
+  fireEvent.keyDown(screen.getByRole('combobox', {name: '\uCC45'}), {
+    key: 'Escape',
+  });
+  expect(onClose).toHaveBeenCalledOnce();
+});
+
 it('adds from the dialog when Enter immediately follows the last digit', async () => {
   const onChoose = vi.fn<(passage: BibleLookupPassage) => void>();
   render(
@@ -142,88 +234,78 @@ it('adds from the dialog when Enter immediately follows the last digit', async (
   );
 });
 
-it.each(['Tab', 'Enter'])(
-  'adds a passage with %s using a converted 66-book placeholder translation',
-  async key => {
-    const folder = await makeTempDir();
-    const source = join(folder, 'source-v1.llbible');
-    await writeFile(source, fullTranslationText());
-    await convertBibleFile(source, join(folder, 'sample.llbible'));
-    const bibleSettings = settingsDocument('bible', {
-      translations: [
-        {
-          id: 'sample',
-          name: 'Invented',
-          lang: 'ko',
-          file: 'sample.llbible',
-          default: true,
-        },
-      ],
-      recents: [],
-    });
-    const session = new BibleLookupSession({
-      folder,
-      settings: Promise.resolve({
-        get: () => bibleSettings,
-        preferences: () => defaultPreferences,
-        subscribe: () => () => undefined,
-      }),
-      log: recordingLogger(),
-    });
-    onTestFinished(() => session.dispose());
-    for (const book of BIBLE_BOOKS) {
-      const reply = await session.lookup(lookupRequest(book.korean));
-      expect(reply.bounds?.bookId).toBe(book.id);
-      expect(reply.bounds?.chapterVerses).toHaveLength(book.chapters);
-    }
-    HTMLElement.prototype.scrollIntoView = vi.fn();
-    const onChoose = vi.fn<(passage: BibleLookupPassage) => void>();
-    const lookup = vi.fn((request: BibleLookupRequest) =>
-      session.lookup(request),
-    );
-    render(
-      <BiblePassageDialog
-        api={{lookup}}
-        translation={lookupRequest().translation}
-        onChoose={onChoose}
-        onClose={vi.fn()}
-      />,
-    );
-    const user = userEvent.setup();
-    const book = screen.getByRole<HTMLInputElement>('combobox', {name: '책'});
-    const chapter = screen.getByRole('textbox', {name: '장'});
-    const start = screen.getByRole<HTMLInputElement>('textbox', {
-      name: '시작절',
-    });
-    const end = screen.getByRole('textbox', {name: '끝절'});
-    await user.type(book, 'ckd');
-    await user.keyboard(`{${key}}`);
-    expect(book.value).toBe('창세기');
-    expect(document.activeElement).toBe(chapter);
-    await user.type(chapter, '1');
-    await waitFor(() => expect(start.disabled).toBe(false));
-    expect(book.getAttribute('aria-invalid')).toBeNull();
-    await user.keyboard(`{${key}}`);
-    expect(document.activeElement).toBe(start);
-    await user.type(start, '1');
-    await user.keyboard(`{${key}}`);
-    expect(document.activeElement).toBe(end);
-    expect(onChoose).not.toHaveBeenCalled();
-    await waitFor(() =>
-      expect(
-        screen
-          .getByRole('button', {name: '추가'})
-          .getAttribute('aria-disabled'),
-      ).toBeNull(),
-    );
-    await user.keyboard('{Enter}');
-    expect(onChoose).toHaveBeenCalledExactlyOnceWith(
-      expect.objectContaining({
-        ref: '창세기 1:1',
-      }),
-    );
-    const chosen = onChoose.mock.calls[0]?.[0];
-    expect(chosen?.verses).toHaveLength(1);
-    expect(chosen?.verses[0]?.text).toContain('Invented book 1');
-  },
-);
+it('adds a passage using Tab and Enter with a converted 66-book placeholder translation', async () => {
+  const folder = await makeTempDir();
+  const source = join(folder, 'source-v1.llbible');
+  await writeFile(source, fullTranslationText());
+  await convertBibleFile(source, join(folder, 'sample.llbible'));
+  const bibleSettings = settingsDocument('bible', {
+    translations: [
+      {
+        id: 'sample',
+        name: 'Invented',
+        lang: 'ko',
+        file: 'sample.llbible',
+        default: true,
+      },
+    ],
+    recents: [],
+  });
+  const session = new BibleLookupSession({
+    folder,
+    settings: Promise.resolve({
+      get: () => bibleSettings,
+      preferences: () => defaultPreferences,
+      subscribe: () => () => undefined,
+    }),
+    log: recordingLogger(),
+  });
+  onTestFinished(() => session.dispose());
+  for (const book of BIBLE_BOOKS) {
+    const reply = await session.lookup(lookupRequest(book.korean));
+    expect(reply.bounds?.bookId).toBe(book.id);
+    expect(reply.bounds?.chapterVerses).toHaveLength(book.chapters);
+  }
+  HTMLElement.prototype.scrollIntoView = vi.fn();
+  const onChoose = vi.fn<(passage: BibleLookupPassage) => void>();
+  const lookup = vi.fn((request: BibleLookupRequest) =>
+    session.lookup(request),
+  );
+  render(
+    <BiblePassageDialog
+      api={{lookup}}
+      translation={lookupRequest().translation}
+      onChoose={onChoose}
+      onClose={vi.fn()}
+    />,
+  );
+  const user = userEvent.setup();
+  const book = screen.getByRole<HTMLInputElement>('combobox', {name: '책'});
+  const chapter = screen.getByRole('textbox', {name: '장'});
+  const start = screen.getByRole<HTMLInputElement>('textbox', {
+    name: '시작절',
+  });
+  const end = screen.getByRole('textbox', {name: '끝절'});
+  await user.type(book, 'ckd');
+  await user.keyboard('{Tab}');
+  expect(book.value).toBe('창세기');
+  expect(document.activeElement).toBe(chapter);
+  await user.type(chapter, '1');
+  await waitFor(() => expect(start.disabled).toBe(false));
+  expect(book.getAttribute('aria-invalid')).toBeNull();
+  await user.keyboard('{Tab}');
+  expect(document.activeElement).toBe(start);
+  await user.type(start, '1');
+  await user.keyboard('{Tab}');
+  expect(document.activeElement).toBe(end);
+  expect(onChoose).not.toHaveBeenCalled();
+  await user.keyboard('{Enter}');
+  expect(onChoose).toHaveBeenCalledExactlyOnceWith(
+    expect.objectContaining({
+      ref: '창세기 1:1',
+    }),
+  );
+  const chosen = onChoose.mock.calls[0]?.[0];
+  expect(chosen?.verses).toHaveLength(1);
+  expect(chosen?.verses[0]?.text).toContain('Invented book 1');
+});
