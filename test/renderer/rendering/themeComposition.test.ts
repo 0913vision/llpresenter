@@ -123,23 +123,26 @@ describe('theme composition drawing', () => {
         throw Error('Missing source slides');
       }
       const reference = '하박국 3:17~19';
-      const text = '17 비록 무화과나무가\n무성하지 못하며';
+      const text = '17 비록 무화과나무가\n무성하지 못하며 (계속)';
       const longerText = '18 나는 여호와로 말미암아 즐거워하며';
       const tiles = projectSlides({
         ...item,
         slides: {
           ...item.slides,
           slides: [
-            {id: first.id, text, reference},
+            {id: first.id, text: `${text}  \n`, reference},
             {id: second.id, text: longerText, reference},
           ],
         },
       });
-      const bibleTiles = tiles.map(({kind: _kind, name: _name, ...tile}) => ({
-        ...tile,
-        lines: tile.lines.flatMap(line => line.split('\n')),
-        biblePart: 1,
-      }));
+      const bibleTiles = tiles.map(
+        ({kind: _kind, name: _name, ...tile}, index) => ({
+          ...tile,
+          lines: tile.lines.flatMap(line => line.trimEnd().split('\n')),
+          biblePart: 1,
+          continued: index === 0,
+        }),
+      );
       const theme = currentBuiltInTheme('bible');
       const screens = [
         {kind: 'audience', id: createScreenId(STARTER_SCREEN_IDS.main)},
@@ -203,6 +206,9 @@ describe('theme composition drawing', () => {
         const shown = body?.querySelector<HTMLElement>(`.${classes.shown}`);
         const block = shown?.querySelector<HTMLElement>(`.${classes.block}`);
         if (!body || !shown || !block) throw Error('Missing rendered body');
+        const marker = block.querySelector<HTMLElement>(
+          '[data-bible-continuation]',
+        );
         const result = {
           element: body.dataset['themeElement'],
           frame: [
@@ -219,6 +225,10 @@ describe('theme composition drawing', () => {
             block.style.lineHeight,
           ],
           lines: Array.from(block.children, row => row.textContent),
+          marker: marker && {
+            text: marker.textContent,
+            size: marker.style.fontSize,
+          },
           reference: page?.querySelector(
             `[data-kind="reference"] .${classes.shown}`,
           )?.textContent,
@@ -244,6 +254,10 @@ describe('theme composition drawing', () => {
         target.mockClear();
         expect(render(false, screen), screen.kind).toEqual(bible);
         expect(bible.reference).toBe(reference);
+        expect(bible.marker?.text).toBe(' (계속)');
+        expect(Number.parseFloat(bible.marker?.size ?? '')).toBeLessThan(
+          Number.parseFloat(bible.font[1] ?? ''),
+        );
         if (screen.kind === 'audience') {
           expect(bible.alignment[1]).toBe('flex-start');
         }
