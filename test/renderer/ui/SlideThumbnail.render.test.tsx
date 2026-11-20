@@ -1,4 +1,4 @@
-﻿import {render, screen} from '@testing-library/react';
+import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import type {LabelColor} from '@core/labels/colors';
@@ -77,4 +77,3 @@ describe('slide transition mark', () => {
     }
   });
 });
-
