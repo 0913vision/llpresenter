@@ -35,6 +35,17 @@ function setUp() {
 afterEach(() => vi.restoreAllMocks());
 
 describe('SlideLayerView', () => {
+  it('reads wrapped audience line boxes while retaining authored rows', () => {
+    const range = document.createRange();
+    Object.defineProperty(range, 'getClientRects', {
+      value: () => [new DOMRect(0, range.startOffset < 8 ? 0 : 40, 10, 20)],
+    });
+    vi.spyOn(document, 'createRange').mockReturnValue(range);
+    const {view} = setUp();
+    view.show({...VERSE, lines: ['abcdefghijk', 'short']}, false);
+    expect(view.renderedLines()).toEqual(['abcdefgh', 'ijk', 'short']);
+    view.dispose();
+  });
   it('keeps the first lyric line anchored when fitting changes its font size', () => {
     vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(200);
     vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(500);
@@ -141,7 +152,7 @@ describe('SlideLayerView', () => {
       scrollHeight.mockRestore();
     }
   });
-  it('keeps song source lines whole until the readable minimum requires wrapping', () => {
+  it('keeps stage song lines whole even when they must shrink below 48px', () => {
     vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(200);
     vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(500);
     const width = vi
@@ -186,11 +197,9 @@ describe('SlideLayerView', () => {
       expect(
         shownPage()?.querySelector<HTMLElement>(`.${classes.block}`)?.style,
       ).toMatchObject({
-        fontSize: '48px',
-        whiteSpace: '',
-        textWrap: 'balance',
-        wordBreak: 'keep-all',
-        overflowWrap: 'normal',
+        fontSize: '20px',
+        whiteSpace: 'pre',
+        textWrap: '',
       });
       expect(
         shownPage()?.querySelector(`.${classes.block}`)?.children,

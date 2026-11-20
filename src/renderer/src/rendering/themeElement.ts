@@ -438,11 +438,6 @@ export class ThemeElementView {
         : nextEmpty
           ? ((nextLabel ? `(${nextLabel})` : undefined) ?? '(없음)')
           : undefined;
-    this.text?.setMinimumSize(
-      stage && element.kind === 'nextText'
-        ? Math.max(STAGE_NEXT_MIN_SIZE, element.minimumTextSize ?? 0)
-        : element.minimumTextSize,
-    );
     const kind =
       element.kind === 'nextText'
         ? (layers.slide?.next?.itemKind ?? item?.kind)
@@ -455,6 +450,13 @@ export class ThemeElementView {
       (element.kind === 'nextText' ||
         (element.kind === 'currentText' &&
           layers.slide?.sectionCard === undefined));
+    this.text?.setMinimumSize(
+      stage && isSong
+        ? undefined
+        : stage && element.kind === 'nextText'
+          ? Math.max(STAGE_NEXT_MIN_SIZE, element.minimumTextSize ?? 0)
+          : element.minimumTextSize,
+    );
     const importedSlide = layers.slide;
     this.text?.setFixedLineSpacing(
       isSong &&
@@ -533,7 +535,11 @@ export class ThemeElementView {
       }
     } else {
       const displayedText =
-        cue ?? this.textContent(layers, frame, videoRemaining);
+        cue ??
+        (stage && isSong && element.kind === 'currentText' && !slide?.titleSlide
+          ? frame.stageSongLines?.join('\n')
+          : undefined) ??
+        this.textContent(layers, frame, videoRemaining);
       const inlineLabel =
         stage && frame.stageLyricLabelPosition === 'inline' && cue === undefined
           ? element.kind === 'currentText' &&
@@ -1116,6 +1122,10 @@ export class ThemeElementView {
 
   fittedTextSize(): number | undefined {
     return this.text?.fittedSize();
+  }
+
+  renderedTextLines(): readonly string[] | undefined {
+    return this.text?.renderedLines();
   }
 
   targetTextSize(target: number | undefined): void {
