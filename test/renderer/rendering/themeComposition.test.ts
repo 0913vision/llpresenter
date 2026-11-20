@@ -3673,7 +3673,14 @@ it('keeps current song rows unwrapped on stage when they fit above 48 pixels', (
   const {root, view} = setup();
   if (song.slide === null) throw Error('Missing slide');
   view.render(
-    {...song, slide: {...song.slide, kind: 'song', lines: ['First', 'Second']}},
+    {
+      ...song,
+      slide: {
+        ...song.slide,
+        kind: 'song',
+        lines: ['우리로 여호와의 심으신 의의 나무 되어', '주께 영광 돌리라'],
+      },
+    },
     {
       ...frame([{...themeElementBase(), kind: 'currentText'}]),
       screen: {id: THEME_MAIN, kind: 'stage'},
@@ -3685,6 +3692,10 @@ it('keeps current song rows unwrapped on stage when they fit above 48 pixels', (
   );
   expect(block?.style.whiteSpace).toBe('pre');
   expect(block?.children).toHaveLength(2);
+  expect(Array.from(block?.children ?? [], row => row.textContent)).toEqual([
+    '우리로 여호와의 심으신 의의 나무 되어',
+    '주께 영광 돌리라',
+  ]);
   view.dispose();
 });
 

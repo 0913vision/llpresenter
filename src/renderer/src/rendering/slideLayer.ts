@@ -778,9 +778,11 @@ export class SlideLayerView {
       });
       block.dataset['keepWords'] = String(keepWords);
     }
-    block.style.whiteSpace = this.lineMode === 'normal' || wraps ? '' : 'pre';
     const balance = this.balanceWrap && (wraps || this.lineMode === 'normal');
+    block.style.whiteSpace = '';
     block.style.textWrap = balance ? 'balance' : '';
+    // NOTE(0913vision): text-wrap resets part of white-space, so set pre last.
+    if (this.lineMode !== 'normal' && !wraps) block.style.whiteSpace = 'pre';
     block.style.wordBreak = keepWords || balance ? 'keep-all' : '';
     block.style.overflowWrap = keepWords || balance ? 'normal' : '';
     setSize(
