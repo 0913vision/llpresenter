@@ -8,6 +8,10 @@
   color: var(--text-2);
 }
 
+.meta:first-child {
+  margin-left: 0;
+}
+
 .name {
   min-width: 0;
   overflow: hidden;

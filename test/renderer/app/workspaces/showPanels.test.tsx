@@ -1,4 +1,4 @@
-import {act, renderHook} from '@testing-library/react';
+import {act, render, renderHook} from '@testing-library/react';
 import {isValidElement, type ReactNode} from 'react';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {bibleSource} from '@core/bible/source';
@@ -8,8 +8,11 @@ import {
   serviceOrderParts,
 } from '@renderer/app/workspaces/serviceOrderPanel';
 import {useShowPanels} from '@renderer/app/workspaces/showPanels';
+import {Panel} from '@renderer/app/shell/WorkspacePanel';
 import {BiblePanel} from '@renderer/features/presentation/BiblePanel';
 import {useShow} from '@renderer/session/show';
+import {revealSlideItem} from '@renderer/session/visibleSlideItem';
+import type {ServiceRow} from '@core/presentation/model';
 import type {SizeClass} from '@renderer/ui/sizeClass';
 
 vi.mock('@renderer/features/presentation/BiblePanel', () => ({
@@ -47,6 +50,23 @@ beforeEach(() => {
 });
 
 describe('useShowPanels', () => {
+  it.each<ServiceRow>([
+    {kind: 'song', id: 'example', title: 'Example'},
+    {kind: 'slides', form: 'blank', id: 'example', title: 'Example'},
+    {kind: 'slides', form: 'ad', id: 'example', title: 'Example'},
+    {kind: 'bible', id: 'example', title: 'Example'},
+    {kind: 'media', id: 'example', title: 'Example'},
+    {kind: 'unknown', id: 'example', title: 'Example'},
+  ])('shows only the item name in the slide header for $kind', row => {
+    useShow.setState({rows: [row]});
+    revealSlideItem(row.id);
+    const parts = panels().current.partsOf('슬라이드');
+    const view = render(<Panel title="슬라이드" parts={{header: parts.header}} />);
+    expect(view.container.querySelector('section > div')?.textContent).toBe(
+      'Example',
+    );
+    revealSlideItem(null);
+  });
   it.each(['narrow', 'normal', 'wide'] as const)(
     'puts the Bible panel in the slide column at the %s size while a passage is open',
     sizeClass => {

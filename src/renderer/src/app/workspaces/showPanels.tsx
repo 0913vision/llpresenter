@@ -101,7 +101,7 @@ function showPanelParts({
       }
       return {
         body: <SlidePanelBody sizeClass={sizeClass} onOpenPrep={onOpenPrep} />,
-        meta: <SlidePanelMeta onProblem={onProblem} />,
+        header: <SlidePanelMeta onProblem={onProblem} />,
         footer: <SlidePanelFooter sizeClass={sizeClass} />,
         stableScrollbar: true,
       };
