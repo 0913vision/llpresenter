@@ -710,6 +710,42 @@ describe('automatic inline slides editor', () => {
     await f.session.dispose();
   });
 
+  it.each(['blank', 'ad'] as const)(
+    'saves the %s slide reference, removes it on clear, and shares undo and redo',
+    async form => {
+      const f = setup(form);
+      const reference = '하박국 3:17~19';
+      const field = await screen.findByRole('textbox', {name: '본문 주소'});
+      await userEvent.click(field);
+      fireEvent.change(field, {target: {value: reference}});
+      await waitFor(() =>
+        expect(savedItem(f).slides.slides[0]).toMatchObject({
+          text: '첫 내용',
+          reference,
+        }),
+      );
+      await userEvent.tab();
+      await userEvent.click(field);
+      fireEvent.change(field, {target: {value: ''}});
+      await waitFor(() =>
+        expect(savedItem(f).slides.slides[0]).not.toHaveProperty('reference'),
+      );
+      await userEvent.keyboard('{Control>}z{/Control}');
+      await waitFor(() =>
+        expect(savedItem(f).slides.slides[0]).toHaveProperty(
+          'reference',
+          reference,
+        ),
+      );
+      await userEvent.keyboard('{Control>}y{/Control}');
+      await waitFor(() =>
+        expect(savedItem(f).slides.slides[0]).not.toHaveProperty('reference'),
+      );
+      f.view.unmount();
+      await f.session.dispose();
+    },
+  );
+
   it('allows more typing and immediate back while a write is in flight, then drains the latest text', async () => {
     const f = setup('blank');
     const field = await screen.findByRole<HTMLTextAreaElement>('textbox', {
