@@ -610,11 +610,11 @@ Source: `AddSongs`, `ListRow` README.
   operator has not moved the selection while it was saving.
 - Other items (proposal):
   - 구역 추가: inserts an empty section named "새 구역" in rename mode.
-  - Bible and sermon passage entry use the shared passage dialog (04),
-    including recent passages, reference matching and validation. Sermon entry
-    also has its title field in the dialog; changing an existing sermon keeps
-    its title and reference unless edited. Enter submits a valid passage; Tab
-    moves between fields. Escape clears the reference first, then closes.
+  - Bible and sermon passage entry use the shared passage dialog (04), including
+    recent passages, reference matching and validation. Sermon entry also has
+    its title field in the dialog; changing an existing sermon keeps its title
+    and reference unless edited. Enter submits a valid passage; Tab moves
+    between fields. Escape clears the reference first, then closes.
   - 미디어: a submenu with the media list. Missing files cannot be added and
     show the reason in a tooltip.
 
