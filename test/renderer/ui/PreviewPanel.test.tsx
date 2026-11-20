@@ -100,6 +100,31 @@ describe('shared preview panel', () => {
     expect(clampPreviewRatio(-1)).toBe(0.15);
     expect(clampPreviewRatio(Number.NaN)).toBe(0.667);
   });
+  it('resets the saved split when either preview layout is selected', () => {
+    const save = vi.fn();
+    const change = vi.fn();
+    const panel = (visible: boolean) => (
+      <PreviewSizingContext.Provider value={{ratio: 0.85, save}}>
+        <PreviewPanel
+          screens={screens}
+          big="audience"
+          visible={visible}
+          onVisibleChange={change}
+          onBigChange={vi.fn()}
+          renderScreen={() => null}
+        />
+      </PreviewSizingContext.Provider>
+    );
+    const view = render(panel(true));
+    fireEvent.click(screen.getByRole('radio', {name: '3개 작게'}));
+    expect(save).toHaveBeenLastCalledWith(0.667);
+    expect(change).toHaveBeenLastCalledWith(false);
+    view.rerender(panel(false));
+    fireEvent.click(screen.getByRole('radio', {name: '메인 1 + 2'}));
+    expect(save).toHaveBeenCalledTimes(2);
+    expect(save).toHaveBeenLastCalledWith(0.667);
+    expect(change).toHaveBeenLastCalledWith(true);
+  });
   it('replaces tiles with the ordered header picker when space runs out', () => {
     const select = vi.fn();
     const panel = () => (

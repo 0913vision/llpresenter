@@ -53,7 +53,13 @@ export function PreviewPanel<Id extends string>({
               {value: 'small', label: '3개 작게'},
             ]}
             value={visible ? 'main' : 'small'}
-            onChange={value => onVisibleChange(value === 'main')}
+            onChange={value => {
+              const nextVisible = value === 'main';
+              if (nextVisible === visible) return;
+              setDragRatio(null);
+              sizing?.save(DEFAULT_PREVIEW_RATIO);
+              onVisibleChange(nextVisible);
+            }}
           />
         )}
         {room || sizing !== null || blank || frame.screens.length < 2 ? null : (
