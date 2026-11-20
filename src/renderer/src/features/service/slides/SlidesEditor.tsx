@@ -241,6 +241,8 @@ function SlideFields({
       </div>
     );
   }
+  const {reference, ...textSlide} =
+    'reference' in slide ? slide : {...slide, reference: undefined};
   return (
     <div className={styles.fields} data-form={form}>
       {form === 'ad' ? (
@@ -264,6 +266,18 @@ function SlideFields({
         value={slide.text}
         maxLength={TEXT_LIMIT}
         onChange={text => change({...slide, text}, 'text')}
+        onBlur={endTyping}
+      />
+      <label htmlFor={`reference-${slide.id}`}>본문 주소</label>
+      <TextField
+        id={`reference-${slide.id}`}
+        value={typeof reference === 'string' ? reference : ''}
+        maxLength={TEXT_LIMIT}
+        onChange={value => {
+          const next =
+            value === '' ? textSlide : {...textSlide, reference: value};
+          change(next, 'reference');
+        }}
         onBlur={endTyping}
       />
     </div>
