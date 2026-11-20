@@ -17,7 +17,9 @@ import {
 import {SongEditorStore} from '@renderer/features/songs/editor/songEditorStore';
 import {ServiceItemStore} from '@renderer/features/service/items/serviceItemStore';
 import {OtherSlideInspector} from '@renderer/features/service/slideInspector/OtherSlideInspector';
-import {useContext, useLayoutEffect, useRef} from 'react';
+import {useContext, useLayoutEffect, useRef, useSyncExternalStore} from 'react';
+import {SongSession} from '@renderer/features/songs/editor/songSession';
+import {editorDeckSong} from '@fixtures/renderer/features/songs/editor/editorFixture';
 import {PictureReadiness} from '@renderer/rendering/PictureReadiness';
 import {newLiturgyItem} from '@core/services/liturgy';
 import {isItemOfKind} from '@core/schema/service';
@@ -122,6 +124,7 @@ async function setup(
     | 'bible'
     | 'bible-card'
     | 'slide-card'
+    | 'song-card'
     | 'sermon'
     | 'creed'
     | 'prayer',
@@ -188,20 +191,34 @@ async function setup(
                 translationName: false,
               },
             }
-          : kind === 'slide-card'
+          : kind === 'song-card'
             ? {
                 id: itemId,
+                song: editorDeckSong(1).song.id,
+                slides: [],
                 sectionCard: {
-                  name: '예배 시작',
+                  name: 'Opening',
                   english: 'WELCOME',
                   theme: createThemeId('00000000-0000-4000-8000-000000000100'),
                 },
-                slides: {form: 'blank' as const, name: 'Section', slides: []},
               }
-            : {
-                id: itemId,
-                media: kind === 'image' ? fixtureMedia.warm : fixtureMedia.dawn,
-              };
+            : kind === 'slide-card'
+              ? {
+                  id: itemId,
+                  sectionCard: {
+                    name: '예배 시작',
+                    english: 'WELCOME',
+                    theme: createThemeId(
+                      '00000000-0000-4000-8000-000000000100',
+                    ),
+                  },
+                  slides: {form: 'blank' as const, name: 'Section', slides: []},
+                }
+              : {
+                  id: itemId,
+                  media:
+                    kind === 'image' ? fixtureMedia.warm : fixtureMedia.dawn,
+                };
   fixture.pushService({
     ...old,
     revision: old.revision + 1,
@@ -547,4 +564,87 @@ it('applies one transition to a Bible card and selected parts and undoes them to
   view.unmount();
   items.dispose();
   await editor.dispose();
+});
+
+it.each(['bible', 'sermon', 'creed', 'prayer', 'bible-card'] as const)(
+  'replays %s item transition history from a focused inspector control',
+  async kind => {
+    showTiles.value = [
+      {label: null, labelColor: 'none', lines: ['First']},
+      {label: null, labelColor: 'none', lines: ['Second']},
+    ];
+    const {view, items, editor} = await setup(kind);
+    try {
+      const before = structuredClone(items.getSnapshot().item);
+      const effect = await screen.findByRole('button', {
+        name: '\uBC00\uC5B4\uB0B4\uAE30',
+      });
+      await userEvent.click(effect);
+      let changed: typeof before = null;
+      await waitFor(() => {
+        changed = structuredClone(items.getSnapshot().item);
+        expect(changed).not.toEqual(before);
+      });
+      effect.focus();
+      expect(document.activeElement).toBe(effect);
+      fireEvent.keyDown(effect, {key: 'z', ctrlKey: true});
+      await waitFor(() => expect(items.getSnapshot().item).toEqual(before));
+      fireEvent.keyDown(effect, {key: 'y', ctrlKey: true});
+      await waitFor(() => expect(items.getSnapshot().item).toEqual(changed));
+    } finally {
+      showTiles.value = [];
+      view.unmount();
+      items.dispose();
+      await editor.dispose();
+    }
+  },
+);
+
+it('replays a song card transition through draft history from a focused inspector control', async () => {
+  const {view, items, editor, fixture} = await setup('song-card');
+  const session = new SongSession({
+    document: {...editorDeckSong(1), itemCardTransition: null},
+    api: fixture.api.content,
+    changed: () => undefined,
+    problem: () => undefined,
+    persistence: 'manual',
+    itemSession: true,
+  });
+  function DraftInspector() {
+    const model = useSyncExternalStore(
+      session.slideModel.subscribe,
+      session.slideModel.getSnapshot,
+    );
+    return (
+      <OtherSlideInspector
+        items={items}
+        editor={editor}
+        cardTransition={model.context?.cardTransition}
+        changeSelected={change => session.changeItemTransitions(change, true)}
+        replayDraft={action => session.edit(action)}
+      />
+    );
+  }
+  try {
+    view.rerender(<DraftInspector />);
+    const effect = await screen.findByRole('button', {
+      name: '\uB514\uC878\uBE0C',
+    });
+    await userEvent.click(effect);
+    expect(session.slideModel.getSnapshot().context?.cardTransition?.kind).toBe(
+      'dissolve',
+    );
+    effect.focus();
+    expect(document.activeElement).toBe(effect);
+    fireEvent.keyDown(effect, {key: 'z', ctrlKey: true});
+    expect(session.slideModel.getSnapshot().context?.cardTransition).toBeNull();
+    fireEvent.keyDown(effect, {key: 'y', ctrlKey: true});
+    expect(session.slideModel.getSnapshot().context?.cardTransition?.kind).toBe(
+      'dissolve',
+    );
+  } finally {
+    view.unmount();
+    items.dispose();
+    await editor.dispose();
+  }
 });

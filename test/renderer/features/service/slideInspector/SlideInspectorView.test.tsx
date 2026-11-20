@@ -123,7 +123,7 @@ it('does not replay history while editing is locked or composing', () => {
     />,
   );
   fireEvent.keyDown(screen.getByTestId('preview'), {
-    key: 'Process',
+    key: 'z',
     ctrlKey: true,
     isComposing: true,
   });
