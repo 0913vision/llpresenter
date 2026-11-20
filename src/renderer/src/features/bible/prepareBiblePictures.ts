@@ -1,4 +1,8 @@
-import {bibleSource, type BiblePreviewOptions} from '@core/bible/source';
+import {
+  biblePassagePictureKey,
+  bibleSource,
+  type BiblePreviewOptions,
+} from '@core/bible/source';
 import type {BibleLookupPassage} from '@core/schema/bibleLookup';
 import {slideLayerOf} from '@core/presentation/slideLayer';
 import {useShow} from '@renderer/session/showStore';
@@ -24,6 +28,7 @@ export async function prepareBiblePictures(
 ): Promise<boolean> {
   const bibleSourceValue = bibleSource(passage, options);
   const id = bibleSourceValue.id;
+  const passagePictureKey = biblePassagePictureKey(bibleSourceValue);
   const source = splitSourceFor(
     {...useShow.getState(), bibleSource: bibleSourceValue},
     id,
@@ -43,14 +48,17 @@ export async function prepareBiblePictures(
       ? []
       : [
           pictures.whenDrawn(
-            pictureSpec({
-              kind: 'slide',
-              input: biblePictureInput(slide, appearance, {
-                background,
-                sourceScreenId: theme.sourceScreenId,
-              }),
-            }).spec,
-            `${id}:${index}`,
+            {
+              ...pictureSpec({
+                kind: 'slide',
+                input: biblePictureInput(slide, appearance, {
+                  background,
+                  sourceScreenId: theme.sourceScreenId,
+                }),
+              }).spec,
+              passagePictureKey,
+            },
+            `${passagePictureKey}:${index}`,
           ),
         ];
   });

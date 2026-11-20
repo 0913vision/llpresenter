@@ -131,6 +131,7 @@ export const Picture = memo(
     layers,
     appearance,
     songSource,
+    passagePictureKey,
   }: PictureProps): JSX.Element => {
     const follow = useCallback(
       (listener: () => void) => followSongPictureDraft(songSource, listener),
@@ -141,6 +142,7 @@ export const Picture = memo(
     );
     const spec = {
       appearance,
+      ...(passagePictureKey === undefined ? {} : {passagePictureKey}),
       layers:
         layers.slide === null || draft === undefined
           ? layers

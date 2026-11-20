@@ -10,7 +10,7 @@ import {
 } from 'react';
 import {outputTile, useShow} from '@renderer/session/show';
 import {
-  isBibleSource,
+  bibleSourceFor,
   liveTileIndex,
   shownTilesFor,
 } from '@renderer/session/showLibrary';
@@ -39,6 +39,7 @@ import {useSlideTransitionProgress} from './useSlideTransitionProgress';
 import {tilePicture} from './tilePicture';
 import {tileReflowIds} from './tileReflowIds';
 import {useReflow} from '@renderer/ui/useReflow';
+import {biblePassagePictureKey} from '@core/bible/source';
 
 const GRID_SELECTOR = '[role="listbox"]';
 
@@ -58,7 +59,10 @@ export function SlideGrid({
   onOpenPrep,
 }: SlideGridProps): JSX.Element {
   const openItemId = useShownItemId();
-  const bibleLookup = useShow(view => isBibleSource(view, openItemId));
+  const bibleSource = useShow(view => bibleSourceFor(view, openItemId));
+  const bibleLookup = bibleSource !== null;
+  const passagePictureKey =
+    bibleSource === null ? undefined : biblePassagePictureKey(bibleSource);
   const drawInPlace = useShow(
     view => bibleLookup && view.immediateBibleItemId === openItemId,
   );
@@ -247,9 +251,10 @@ export function SlideGrid({
                   cardTheme,
                   sermonTheme,
                   bibleAppearance: bible?.appearance,
+                  passagePictureKey,
                   switchSlot:
                     switching || drawInPlace
-                      ? `${openItemId}:${index}`
+                      ? `${passagePictureKey ?? openItemId}:${index}`
                       : undefined,
                   drawInPlace,
                 })}

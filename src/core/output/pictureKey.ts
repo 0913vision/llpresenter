@@ -15,7 +15,11 @@ function layoutKey(layout: Layout): string {
 }
 
 /** Uses the inputs that affect a still, independent of where it is shown. */
-export function pictureKey({layers, appearance}: PictureSpec): string {
+export function pictureKey({
+  layers,
+  appearance,
+  passagePictureKey,
+}: PictureSpec): string {
   const {slide, media, prop, message, audio} = layers;
   const {screen, theme} = appearance;
   const {layout, emptyColor, item} = theme;
@@ -99,5 +103,6 @@ export function pictureKey({layers, appearance}: PictureSpec): string {
     prop,
     message,
     stage ? audio : null,
+    ...(passagePictureKey === undefined ? [] : [passagePictureKey]),
   ]);
 }

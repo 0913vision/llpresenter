@@ -75,11 +75,18 @@ export function tilePictureSpec(
 export function tilePicture(
   tile: SlideTile,
   slide: SlideLayer | null,
-  themes: TileThemes & {readonly drawInPlace?: boolean},
+  themes: TileThemes & {
+    readonly drawInPlace?: boolean;
+    readonly passagePictureKey?: string | undefined;
+  },
 ): ReactNode {
-  const spec = tilePictureSpec(tile, slide, themes);
+  const source = tilePictureSpec(tile, slide, themes);
   if (tile.media !== undefined && pictures.drawInPlace) return undefined;
-  if (spec === undefined) return undefined;
+  if (source === undefined) return undefined;
+  const spec =
+    themes.passagePictureKey === undefined
+      ? source
+      : {...source, passagePictureKey: themes.passagePictureKey};
   const picture = (
     <Picture
       {...spec}

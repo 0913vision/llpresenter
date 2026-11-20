@@ -4,6 +4,7 @@ import type {BiblePassage} from '../schema/biblePassage';
 import {bibleVerseTiles} from './bibleTiles';
 import type {SlideTile} from '../presentation/model';
 import type {SlideTransition} from '../schema/slideTransition';
+import {textHash} from './split/splitCache';
 
 export interface BibleDisplayOptions {
   readonly verseNumbers: boolean;
@@ -28,6 +29,28 @@ export interface BibleSource extends BiblePreviewOptions {
     readonly serviceId: string | null;
     readonly itemId: string | null;
   };
+}
+
+const passageHashes = new WeakMap<BibleLookupPassage, string>();
+
+/** Picture identity follows the resolved passage and its display options. */
+export function biblePassagePictureKey(source: BibleSource): string {
+  const {passage} = source;
+  let verses = passageHashes.get(passage);
+  if (verses === undefined) {
+    verses = textHash(JSON.stringify(passage.verses));
+    passageHashes.set(passage, verses);
+  }
+  return JSON.stringify([
+    passage.translation,
+    passage.ref,
+    passage.displayRef,
+    passage.translationLabel,
+    verses,
+    source.verseNumbers,
+    source.reference,
+    source.translationName,
+  ]);
 }
 
 export function bibleSource(

@@ -8,12 +8,18 @@ import {
   within,
 } from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {useShow, revealLiveItem, selectTile} from '@renderer/session/show';
+import {
+  useShow,
+  revealLiveItem,
+  selectTile,
+  openItem,
+} from '@renderer/session/show';
 import {useLive} from '@renderer/session/live';
 import {ShownItemProvider} from '@renderer/session/shownItem';
 import {emptyLiveState} from '@core/live/state';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
 import {BiblePanel} from '@renderer/features/presentation/BiblePanel';
+import {SlideGrid} from '@renderer/features/presentation/SlideGrid';
 import {panelApi, panelPassage} from '@fixtures/contracts/ipc/bibleApi';
 import {
   openBiblePassage,
@@ -30,6 +36,7 @@ vi.mock('@renderer/features/presentation/PreviewPanel', () => ({
 vi.mock('@renderer/features/tools/ShowToolsPanel', () => ({
   ShowToolsPanel: () => null,
 }));
+vi.mock('@renderer/rendering/pictures/Picture', () => ({Picture: () => null}));
 beforeEach(() => {
   HTMLElement.prototype.scrollIntoView = vi.fn();
   useShow.setState({
@@ -56,42 +63,51 @@ afterEach(() => {
 });
 
 describe('Bible panel integration', () => {
-  it('switches the grid A, B, A ahead of the deferred workspace frame', () => {
-    const fixture = panelApi();
-    window.llp = fixture.api;
-    const passageA = panelPassage();
-    const passageB = {
-      ...passageA,
-      ref: '요한복음 4:16-18',
-      displayRef: '요한복음 4:16-18',
-      verses: passageA.verses.map(verse => ({
-        ...verse,
-        chapter: 4,
-        text: `New passage ${verse.verse}`,
-      })),
-    };
-    showBiblePassage(passageA);
-    const first = useShow.getState().openItemId;
-    render(
-      <ShownItemProvider shownItem={first} trackLive>
-        <BiblePanel sizeClass="normal" />
-      </ShownItemProvider>,
-    );
-    const tiles = () =>
-      within(screen.getByRole('listbox', {name: '슬라이드'}))
-        .getAllByRole('option')
-        .map(tile => tile.getAttribute('aria-label'));
-    expect(tiles()[0]).toContain('Invented verse 16');
-    act(() => showBiblePassage(passageB));
-    expect(tiles()[0]).toContain('New passage 16');
-    expect(tiles().some(label => label?.includes('Invented verse'))).toBe(
-      false,
-    );
-    act(() => showBiblePassage(passageA));
-    expect(tiles()[0]).toContain('Invented verse 16');
-    expect(tiles().some(label => label?.includes('New passage'))).toBe(false);
-    expect(fixture.send).toHaveBeenCalledTimes(3);
-  });
+  it.each([false, true])(
+    'switches the grid A, B, A with intervening service item %s',
+    intervening => {
+      const fixture = panelApi();
+      window.llp = fixture.api;
+      const passageA = panelPassage();
+      const passageB = {
+        ...passageA,
+        ref: '요한복음 4:16-18',
+        displayRef: '요한복음 4:16-18',
+        verses: passageA.verses.map(verse => ({
+          ...verse,
+          chapter: 4,
+          text: `New passage ${verse.verse}`,
+        })),
+      };
+      showBiblePassage(passageA);
+      const first = useShow.getState().openItemId;
+      const grid = (item: string | null) => (
+        <ShownItemProvider shownItem={item} trackLive>
+          <SlideGrid columns={4} scalePercent={100} />
+        </ShownItemProvider>
+      );
+      const view = render(grid(first));
+      const tiles = () =>
+        within(screen.getByRole('listbox', {name: '슬라이드'}))
+          .getAllByRole('option')
+          .map(tile => tile.getAttribute('aria-label'));
+      expect(tiles()[0]).toContain('Invented verse 16');
+      if (intervening) {
+        act(() => openItem('song-morning'));
+        view.rerender(grid('song-morning'));
+        expect(tiles()[0]).toContain('아침이 밝아 오네');
+      }
+      act(() => showBiblePassage(passageB));
+      expect(tiles()[0]).toContain('New passage 16');
+      expect(tiles().some(label => label?.includes('Invented verse'))).toBe(
+        false,
+      );
+      act(() => showBiblePassage(passageA));
+      expect(tiles()[0]).toContain('Invented verse 16');
+      expect(tiles().some(label => label?.includes('New passage'))).toBe(false);
+      expect(fixture.send).toHaveBeenCalledTimes(3);
+    },
+  );
 
   it('disables slide editing for a Bible preview without a prep handoff', async () => {
     const fixture = panelApi();

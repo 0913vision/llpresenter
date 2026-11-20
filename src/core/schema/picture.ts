@@ -43,6 +43,7 @@ const pictureThemeSchema = payloadObject({
 });
 
 const pictureSpecSchema = payloadObject({
+  passagePictureKey: v.exactOptional(v.pipe(v.string(), v.maxLength(4096))),
   layers: payloadObject({
     media: v.nullable(layerSchemas.media),
     slide: v.nullable(layerSchemas.slide),
