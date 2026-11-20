@@ -75,6 +75,11 @@ export function mergeSlidesChanges(
     edited.sectionCard?.transition,
     fresh.sectionCard?.transition,
   );
+  const cardLabel = mergeValue(
+    base.sectionCard?.label,
+    edited.sectionCard?.label,
+    fresh.sectionCard?.label,
+  );
   if (
     name === MERGE_CONFLICT ||
     advance === MERGE_CONFLICT ||
@@ -83,10 +88,13 @@ export function mergeSlidesChanges(
     theme === MERGE_CONFLICT ||
     cardTheme === MERGE_CONFLICT ||
     cardTransition === MERGE_CONFLICT ||
+    cardLabel === MERGE_CONFLICT ||
     (JSON.stringify(base.sectionCard?.transition) !==
       JSON.stringify(edited.sectionCard?.transition) &&
       fresh.sectionCard === undefined) ||
     (base.sectionCard?.theme !== edited.sectionCard?.theme &&
+      fresh.sectionCard === undefined) ||
+    (base.sectionCard?.label !== edited.sectionCard?.label &&
       fresh.sectionCard === undefined)
   ) {
     return null;
@@ -106,6 +114,13 @@ export function mergeSlidesChanges(
     merged.sectionCard = {
       ...card,
       ...(cardTransition === undefined ? {} : {transition: cardTransition}),
+    };
+  }
+  if (merged.sectionCard !== undefined) {
+    const {label: _label, ...card} = merged.sectionCard;
+    merged.sectionCard = {
+      ...card,
+      ...(cardLabel === undefined ? {} : {label: cardLabel}),
     };
   }
   return merged;

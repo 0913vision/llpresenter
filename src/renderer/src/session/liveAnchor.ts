@@ -30,6 +30,10 @@ function identity(tile: SlideTile): string | null {
   if (tile.sourceSlideId !== undefined) {
     return `slide:${tile.sourceSlideId}:${tile.biblePart ?? 1}`;
   }
+  if (tile.bibleVerse !== undefined) {
+    const {translation, book, chapter, verse} = tile.bibleVerse;
+    return `verse:${translation}:${book}:${chapter}:${verse}:${tile.biblePart ?? 1}`;
+  }
   if (tile.biblePart !== undefined) {
     return `verse:${tile.label}:${tile.biblePart}`;
   }

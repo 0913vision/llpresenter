@@ -235,12 +235,27 @@ describe('Bible slide source', () => {
         itemId: useShow.getState().openItemId,
         position: 1,
         sequenceLength: 3,
+        bibleVerse: {
+          translation: panelPassage().translation,
+          book: 43,
+          chapter: 3,
+          verse: 17,
+        },
         label: '\uC6943:17',
         reference: '요한복음 3:17',
         kind: 'bible',
         title: panelPassage().displayRef,
         lines: ['17 Invented verse 17'],
-        next: {label: '\uC6943:18', lines: ['18 Invented verse 18']},
+        next: {
+          label: '\uC6943:18',
+          lines: ['18 Invented verse 18'],
+          bibleVerse: {
+            translation: panelPassage().translation,
+            book: 43,
+            chapter: 3,
+            verse: 18,
+          },
+        },
       },
     });
     openBiblePassage({

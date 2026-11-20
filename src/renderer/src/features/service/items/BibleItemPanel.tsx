@@ -50,11 +50,12 @@ export function BibleItemPanel({
   const scale = useThumbnailScale(sizeClass);
   const projected = useMemo(
     () => ({
-      slides: tiles.map(tile =>
-        tile.label === null
+      slides: tiles.map(tile => {
+        const label = tile.slideLabel ?? tile.label;
+        return label === null
           ? {lines: tile.lines}
-          : {label: tile.label, lines: tile.lines},
-      ),
+          : {label, lines: tile.lines};
+      }),
     }),
     [tiles],
   );

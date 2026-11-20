@@ -39,6 +39,12 @@ export function liturgyAsSlides(
           ),
           text,
           ...(() => {
+            const label = liturgy.labels?.find(
+              entry => entry.index === index,
+            )?.label;
+            return label === undefined ? {} : {label};
+          })(),
+          ...(() => {
             const transition = liturgy.transitions?.find(
               entry => entry.index === index,
             )?.transition;

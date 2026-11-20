@@ -187,3 +187,12 @@ it('projects the opening card transition onto its slide tile', () => {
   };
   expect(withSectionCard(card, [])[0]?.transition).toEqual(card.transition);
 });
+
+it('projects a card label separately from the card title', () => {
+  const card = {...newSectionCard(), label: 'Intro'};
+  expect(withSectionCard(card, [])[0]).toMatchObject({
+    label: 'Intro',
+    slideLabel: 'Intro',
+    sectionCard: {name: card.name},
+  });
+});

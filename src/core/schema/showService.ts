@@ -12,6 +12,7 @@ import {bibleCutEntrySchema, bibleVerseCutsSchema} from './bibleCuts';
 import {
   bibleVerseReferenceSchema,
   biblePartTransitionsSchema,
+  biblePartLabelsSchema,
   sectionCardSchema,
   SLIDES_LIMITS,
 } from './service';
@@ -62,6 +63,8 @@ const bibleReferenceSchema = v.pipe(
     ),
     ref: v.pipe(nonBlankText, v.maxLength(BIBLE_LOOKUP_LIMITS.input)),
     sermonTitle: v.exactOptional(v.pipe(nonBlankText, v.maxLength(1000))),
+    sermonOpeningLabel: v.exactOptional(v.pipe(nonBlankText, v.maxLength(64))),
+    sermonClosingLabel: v.exactOptional(v.pipe(nonBlankText, v.maxLength(64))),
     sermonOpeningTransition: v.exactOptional(slideTransitionSchema),
     sermonClosingTransition: v.exactOptional(slideTransitionSchema),
     verseNumbers: v.exactOptional(v.boolean()),
@@ -71,6 +74,7 @@ const bibleReferenceSchema = v.pipe(
     theme: v.exactOptional(themeIdSchema),
     transitions: v.exactOptional(biblePartTransitionsSchema),
     cuts: v.exactOptional(bibleVerseCutsSchema),
+    labels: v.exactOptional(biblePartLabelsSchema),
     passage: v.exactOptional(
       v.pipe(
         bibleLookupPassageSchema,
@@ -177,6 +181,7 @@ export const showTileSchema = v.pipe(
     kind: v.exactOptional(v.picklist(['blank', 'ad'])),
     continued: v.exactOptional(v.boolean()),
     biblePart: v.exactOptional(biblePartSchema),
+    bibleVerse: v.exactOptional(bibleVerseReferenceSchema),
     sourceSlideId: v.exactOptional(slideIdSchema),
     transition: v.exactOptional(slideTransitionSchema),
     verse: v.exactOptional(

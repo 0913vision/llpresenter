@@ -176,6 +176,7 @@ function setup() {
       }),
     ],
     ['bibleCuts', settingsDocument('bibleCuts', {entries: {}})],
+    ['labels', settingsDocument('labels', {labels: []})],
     [
       'bible',
       settingsDocument('bible', {
@@ -791,7 +792,9 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
     Reflect.deleteProperty(document, 'fonts');
     const unsubscribe = vi.fn();
     if (window.llp === undefined) throw Error('Missing API');
-    vi.spyOn(window.llp.settings, 'subscribe').mockReturnValue(unsubscribe);
+    const subscribe = vi
+      .spyOn(window.llp.settings, 'subscribe')
+      .mockReturnValue(unsubscribe);
     const view = render(<BibleSplitTools onProblem={vi.fn()} />);
     act(() => openBiblePassage(passage, {verseNumbers: true, review: false}));
     await waitFor(() =>
@@ -800,7 +803,8 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
       ).toBeGreaterThan(2),
     );
     view.unmount();
-    expect(unsubscribe).toHaveBeenCalledTimes(3);
+    expect(subscribe).toHaveBeenCalled();
+    expect(unsubscribe).toHaveBeenCalledTimes(subscribe.mock.calls.length);
     expect(fixture.send).not.toHaveBeenCalled();
   });
 

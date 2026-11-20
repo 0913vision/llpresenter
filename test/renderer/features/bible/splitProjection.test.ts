@@ -189,6 +189,18 @@ it('applies the quick default to every split part and preserves per-part overrid
   const overridden = projectBible(
     {
       ...source,
+      labels: [
+        {
+          verse: {
+            translation: passage.translation,
+            book: 35,
+            chapter: 3,
+            verse: 17,
+          },
+          part: 2,
+          label: 'Refrain',
+        },
+      ],
       transitions: [
         {
           verse: {
@@ -210,6 +222,15 @@ it('applies the quick default to every split part and preserves per-part overrid
     sec: 0.7,
   });
   expect(overridden?.tiles[1]?.transition).toEqual({kind: 'none', sec: 0.7});
+  expect(overridden?.tiles[1]?.slideLabel).toBe('Refrain');
+  expect(overridden?.tiles[1]?.label).toContain('3:17');
+  expect(overridden?.tiles[1]?.bibleVerse).toEqual({
+    translation: passage.translation,
+    book: 35,
+    chapter: 3,
+    verse: 17,
+  });
+  expect(overridden?.tiles[0]?.slideLabel).toBeUndefined();
   const {transition: _default, ...oldSource} = source;
   expect(
     projectBible({...oldSource, source: 'service'}, options)?.tiles.every(
@@ -316,6 +337,8 @@ it('preserves the sermon title before all measured Bible parts', () => {
       translationName: false,
       reference: 'every',
       sermonTitle: 'Sermon',
+      sermonOpeningLabel: 'Opening',
+      sermonClosingLabel: 'Closing',
       sermonOpeningTransition: {kind: 'wipe', dir: 'left', sec: 1},
       sermonClosingTransition: {kind: 'dissolve', sec: 2},
     },
@@ -327,6 +350,7 @@ it('preserves the sermon title before all measured Bible parts', () => {
   expect(projection?.tiles[0]).toMatchObject({
     sermonTitle: true,
     lines: ['Sermon'],
+    slideLabel: 'Opening',
   });
   expect(projection?.tiles[0]?.transition).toMatchObject({
     kind: 'wipe',
@@ -335,6 +359,7 @@ it('preserves the sermon title before all measured Bible parts', () => {
   expect(projection?.tiles.at(-1)).toMatchObject({
     sermonTitle: true,
     lines: ['Sermon'],
+    slideLabel: 'Closing',
     transition: {kind: 'dissolve', sec: 2},
   });
   expect(projection?.partsByTile.at(-1)).toBeNull();

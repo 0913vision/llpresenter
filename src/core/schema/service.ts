@@ -106,6 +106,26 @@ export type BiblePartTransition = ReadonlyKnown<
   v.InferOutput<typeof biblePartTransitionSchema>
 >;
 
+export const biblePartLabelsSchema = v.pipe(
+  v.array(
+    jsonObject({
+      verse: bibleVerseReferenceSchema,
+      part: v.pipe(positiveInteger, v.maxValue(10_000)),
+      label: slideLabelSchema,
+    }),
+  ),
+  v.maxLength(10_000),
+  v.check(
+    entries =>
+      new Set(entries.map(entry => JSON.stringify([entry.verse, entry.part])))
+        .size === entries.length,
+    'Duplicate Bible part label',
+  ),
+);
+export type BiblePartLabel = ReadonlyKnown<
+  v.InferOutput<typeof biblePartLabelsSchema>[number]
+>;
+
 export const verseSlideSchema = jsonObject({
   id: slideIdSchema,
   verse: bibleVerseReferenceSchema,
@@ -181,6 +201,7 @@ export const sectionCardSchema = jsonObject({
     v.check(name => name.trim().length > 0, 'Expected a non-empty card name'),
   ),
   english: slideTextSchema,
+  label: v.exactOptional(slideLabelSchema),
   theme: themeIdSchema,
   transition: v.exactOptional(slideTransitionSchema),
 });
@@ -230,6 +251,7 @@ const itemSchemas = {
     sectionCard: v.exactOptional(sectionCardSchema),
     bible: biblePassageSchema,
     bibleTransitions: v.exactOptional(biblePartTransitionsSchema),
+    bibleLabels: v.exactOptional(biblePartLabelsSchema),
     ...startFields,
   }),
   sermon: jsonObject({
@@ -237,6 +259,8 @@ const itemSchemas = {
     sectionCard: v.exactOptional(sectionCardSchema),
     sermon: jsonObject({
       title: sermonTitleSchema,
+      openingLabel: v.exactOptional(slideLabelSchema),
+      closingLabel: v.exactOptional(slideLabelSchema),
       openingTransition: v.exactOptional(slideTransitionSchema),
       closingTransition: v.exactOptional(slideTransitionSchema),
       passage: biblePassageSchema,
@@ -246,6 +270,7 @@ const itemSchemas = {
       originalTitleText: v.exactOptional(sermonTitleSchema),
     }),
     bibleTransitions: v.exactOptional(biblePartTransitionsSchema),
+    bibleLabels: v.exactOptional(biblePartLabelsSchema),
     ...startFields,
   }),
   liturgy: jsonObject({
@@ -254,6 +279,23 @@ const itemSchemas = {
     liturgy: jsonObject({
       kind: v.picklist(['creed', 'prayer']),
       translation: v.picklist(['new', 'old']),
+      labels: v.exactOptional(
+        v.pipe(
+          v.array(
+            jsonObject({
+              index: v.pipe(nonNegativeInteger, v.maxValue(199)),
+              label: slideLabelSchema,
+            }),
+          ),
+          v.maxLength(200),
+          v.check(
+            entries =>
+              new Set(entries.map(entry => entry.index)).size ===
+              entries.length,
+            'Duplicate liturgy slide label',
+          ),
+        ),
+      ),
       transitions: v.exactOptional(
         v.pipe(
           v.array(
@@ -275,7 +317,12 @@ const itemSchemas = {
     ...startFields,
   }),
   slides: slidesItemSchema,
-  media: jsonObject({...itemFields, media: mediaIdSchema, ...startFields}),
+  media: jsonObject({
+    ...itemFields,
+    media: mediaIdSchema,
+    slideLabel: v.exactOptional(slideLabelSchema),
+    ...startFields,
+  }),
 };
 
 const unknownItemSchema = jsonObject(itemFields);

@@ -411,6 +411,99 @@ it('shows the selected Bible picture, label and transition picker', async () => 
   await editor.dispose();
 });
 
+it('stores a label on selected liturgy slides and undoes it as one edit', async () => {
+  showTiles.value = [
+    {label: null, labelColor: 'none', lines: ['First']},
+    {label: null, labelColor: 'none', lines: ['Second']},
+  ];
+  const {view, items, editor} = await setup('creed');
+  try {
+    act(() => {
+      items.setBibleSelection([0, 1]);
+      items.selectPosition(1);
+    });
+    await userEvent.click(screen.getByRole('button', {name: '이름표'}));
+    await userEvent.click(screen.getByRole('menuitem', {name: '이름 적기…'}));
+    await userEvent.type(
+      screen.getByLabelText('이름 적기'),
+      'New label{Enter}',
+    );
+    await waitFor(() => {
+      const item = items.getSnapshot().item;
+      if (item === null || !isItemOfKind(item, 'liturgy')) {
+        throw Error('Missing liturgy');
+      }
+      expect(item.liturgy.labels).toEqual([
+        {index: 0, label: 'New label'},
+        {index: 1, label: 'New label'},
+      ]);
+    });
+    await act(() => items.replayItemEdit('undo'));
+    await waitFor(() => {
+      const item = items.getSnapshot().item;
+      if (item === null || !isItemOfKind(item, 'liturgy')) {
+        throw Error('Missing liturgy');
+      }
+      expect(item.liturgy.labels).toBeUndefined();
+    });
+  } finally {
+    showTiles.value = [];
+    view.unmount();
+    items.dispose();
+    await editor.dispose();
+  }
+});
+
+it.each(['sermon', 'bible-card', 'slide-card'] as const)(
+  'stores an assigned label on the selected %s title',
+  async kind => {
+    const {view, items, editor} = await setup(kind);
+    try {
+      await userEvent.click(screen.getByRole('button', {name: '이름표'}));
+      await userEvent.click(screen.getByRole('menuitem', {name: '이름 적기…'}));
+      await userEvent.type(
+        screen.getByLabelText('이름 적기'),
+        'New label{Enter}',
+      );
+      await waitFor(() => {
+        const item = items.getSnapshot().item;
+        if (item === null) throw Error('Missing item');
+        if (isItemOfKind(item, 'sermon')) {
+          expect(item.sermon.openingLabel).toBe('New label');
+        } else {
+          expect('sectionCard' in item && item.sectionCard.label).toBe(
+            'New label',
+          );
+        }
+      });
+    } finally {
+      view.unmount();
+      items.dispose();
+      await editor.dispose();
+    }
+  },
+);
+
+it('stores a label for an image item', async () => {
+  const {view, items, editor} = await setup('image');
+  try {
+    await userEvent.click(screen.getByRole('button', {name: '이름표'}));
+    await userEvent.click(screen.getByRole('menuitem', {name: '이름 적기…'}));
+    await userEvent.type(screen.getByLabelText('이름 적기'), 'Picture{Enter}');
+    await waitFor(() => {
+      const item = items.getSnapshot().item;
+      if (item === null || !isItemOfKind(item, 'media')) {
+        throw Error('Missing media');
+      }
+      expect(item.slideLabel).toBe('Picture');
+    });
+  } finally {
+    view.unmount();
+    items.dispose();
+    await editor.dispose();
+  }
+});
+
 it('shows the Bible opening card and offsets verse positions past it', async () => {
   const {view, items, editor} = await setup('bible-card');
   expect(screen.getByTestId('card-picture').textContent).toBe('예배 시작');

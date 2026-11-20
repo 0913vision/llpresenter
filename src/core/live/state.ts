@@ -57,6 +57,7 @@ export interface NextSlide {
   readonly lines: readonly string[];
   readonly continued?: boolean;
   readonly biblePart?: number;
+  readonly bibleVerse?: import('../schema/service').VerseSlide['verse'];
   readonly titleSlide?: true;
   readonly titleLineCount?: number;
   readonly sermonTitle?: true;
@@ -89,8 +90,9 @@ export interface SlideLayer {
   readonly position: number;
   /** One-based position among an ad item's text slides; pictures are excluded. */
   readonly textSlideNumber?: number;
-  /** One-based part within the Bible verse named by label, independent of position. */
+  /** One-based part within a Bible verse, independent of position. */
   readonly biblePart?: number;
+  readonly bibleVerse?: import('../schema/service').VerseSlide['verse'];
   readonly sourceSlideId?: SlideId;
   readonly label: string | null;
   /** The current label repeats the preceding slide's label within this item. */

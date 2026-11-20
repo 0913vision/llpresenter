@@ -92,7 +92,7 @@ export function useItemSlides(
         .filter(tile => tile.sectionCard === undefined)
         .map(tile => ({
           text: tile.lines.join('\n'),
-          label: tile.label ?? undefined,
+          label: tile.slideLabel ?? tile.label ?? undefined,
           color: tile.labelColor,
           media: undefined,
         }));
@@ -102,7 +102,7 @@ export function useItemSlides(
         .slides.filter(slide => slide.kind === 'verse')
         .map(({tile}) => ({
           text: tile.lines.join('\n'),
-          label: tile.label ?? undefined,
+          label: tile.slideLabel ?? tile.label ?? undefined,
           color: tile.labelColor,
           media: undefined,
         }));

@@ -33,3 +33,24 @@ it('uses slide forms as theme kinds and warns only about content needing absent 
     missingSlideElements(slidesItem('blank'), theme, screens)[0]?.kinds,
   ).toEqual(['currentText', 'media']);
 });
+
+it('does not warn about the intentionally empty default ad broadcast', () => {
+  const screens = [
+    {
+      id: createScreenId('00000000-0000-4000-8000-000000000001'),
+      name: 'Audience',
+      kind: 'audience',
+      method: 'fullscreen',
+    },
+    {
+      id: createScreenId('00000000-0000-4000-8000-000000000002'),
+      name: 'Broadcast',
+      kind: 'broadcast',
+      method: 'capture',
+    },
+  ] as const;
+  const file = createDefaultThemes(screens);
+  const ad = file.themes.find(theme => theme.id === file.defaults.ad);
+  if (ad === undefined) throw Error('Missing ad theme');
+  expect(missingSlideElements(slidesItem(), ad, screens)).toEqual([]);
+});

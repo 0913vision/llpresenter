@@ -128,6 +128,7 @@ function ItemSongTiles({
   useEffect(() => items.selectPosition(at + offset), [items, at, offset]);
   return (
     <SongSlideSurface
+      itemKind={'song'}
       session={session}
       onBack={onBack}
       store={editor}

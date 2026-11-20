@@ -82,9 +82,10 @@ export function previewAppearance({
   const deleted = themes?.deletedThemes?.find(
     entry => entry.id === output.themeId,
   );
-  const themeName = themes?.themes.find(
-    entry => entry.id === output.themeId,
-  )?.name;
+  const themeName =
+    themes?.standby.id === output.themeId
+      ? themes.standby.name
+      : themes?.themes.find(entry => entry.id === output.themeId)?.name;
   return {
     screen,
     theme,

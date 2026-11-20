@@ -1,4 +1,10 @@
-import {useRef, useSyncExternalStore, type JSX} from 'react';
+import {
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+  type JSX,
+} from 'react';
 import {isItemOfKind, type ServiceItemOf} from '@core/schema/service';
 import {
   LITURGY,
@@ -13,7 +19,12 @@ import {CREED_PRAYER_THEME_ID} from '@core/themes/creedPrayer';
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
 import {SlideThumbnailBand} from '@renderer/ui/SlideThumbnail';
-import {PanelFooter} from '@renderer/ui/Panel';
+import {ItemEditorShell} from '@renderer/platform/ItemEditorShell';
+import {SongSlideSurface} from '@renderer/features/songs/editor/SongSlideSurface';
+import {BibleSlideSession} from './BibleSlideSession';
+import type {ShowTile} from '@core/schema/showService';
+import {ItemEditorAddBar} from '@renderer/platform/ItemEditorAddBar';
+import {itemEditorAdapter} from '@renderer/platform/itemEditorAdapter';
 import {TextArea} from '@renderer/ui/TextArea';
 import type {UiApi} from '@contracts/ipc/ui';
 import {
@@ -127,63 +138,74 @@ function LiturgyContent({
   });
   const texts = LITURGY_SLIDES[item.liturgy.kind][item.liturgy.translation];
   const offset = cardOffset(item);
-  const anchor = useRef(Math.max(0, position - offset));
-  const selected = (
-    shownItem.bibleSelection.length > 0
-      ? shownItem.bibleSelection
-      : !shownItem.cardSelected && position >= offset
-        ? [position - offset]
-        : []
-  ).filter(index => index >= 0 && index < texts.length);
+  const fixedTiles = useMemo<readonly ShowTile[]>(
+    () => texts.map(text => ({label: null, labelColor: 'none', lines: [text]})),
+    [texts],
+  );
+  const locked = shownItem.busy || shownItem.service?.access !== 'editable';
+  const initialCardSelected =
+    offset > 0 && (shownItem.cardSelected || position === 0);
+  const [initialCardSelection] = useState(initialCardSelected);
+  useEffect(() => {
+    if (
+      offset > 0 &&
+      position === 0 &&
+      !shownItem.cardSelected &&
+      items.getSnapshot().item?.id === item.id
+    ) {
+      items.setCardSelected(true);
+    }
+  }, [items, item.id, offset, position, shownItem.cardSelected]);
+  const session = useMemo(
+    () =>
+      new BibleSlideSession(item.id, fixedTiles, {
+        items,
+        offset,
+        readOnly: locked,
+        initialCardSelected: initialCardSelection,
+      }),
+    [item.id, fixedTiles, items, offset, locked, initialCardSelection],
+  );
+  const selection = useSyncExternalStore(
+    session.slideModel.subscribe,
+    session.slideModel.getSnapshot,
+  );
   return (
-    <section
+    <ItemEditorShell
       className={styles.editor}
-      aria-label={`${LITURGY[item.liturgy.kind].name} 편집`}
+      label={`${LITURGY[item.liturgy.kind].name} 편집`}
+      footer={
+        <ItemEditorAddBar
+          adapter={itemEditorAdapter(item)}
+          count={texts.length + offset}
+          end={<SlideSurfaceView ui={ui} />}
+        />
+      }
     >
-      <div className={styles.surface}>
+      <SongSlideSurface
+        itemKind="liturgy"
+        session={session}
+        leadingCard={card}
+        mixedLeadingSelection
+        initialLeadingSelected={initialCardSelected}
+        contentReadOnly
+        className={styles.surface}
+      >
         <div
           className={`${styles.rows} ${liturgyStyles.rows}`}
           data-view={mode}
           aria-label="슬라이드 편집 목록"
         >
           {card === undefined ? null : (
-            <div
-              role="option"
-              aria-label="타이틀"
-              aria-selected={
+            <LeadingSlideCardView
+              card={card}
+              selected={
                 shownItem.cardSelected ||
-                (position === 0 && selected.length === 0)
+                (position === 0 && selection.selection.ids.size === 0)
               }
-              onClick={event => {
-                if (event.target instanceof HTMLInputElement) return;
-                const ctrl = event.ctrlKey || event.metaKey;
-                const alreadySelected =
-                  shownItem.cardSelected ||
-                  (position === 0 && selected.length === 0);
-                if (ctrl && alreadySelected && selected.length > 0) {
-                  items.setCardSelected(false);
-                  items.selectPosition((selected.at(-1) ?? 0) + offset);
-                } else {
-                  if (!ctrl && !event.shiftKey) items.setBibleSelection([]);
-                  if (event.shiftKey) {
-                    items.setBibleSelection(
-                      Array.from(
-                        {length: Math.min(anchor.current + 1, texts.length)},
-                        (_, index) => index,
-                      ),
-                    );
-                  }
-                  items.setCardSelected(true);
-                  items.selectPosition(0);
-                }
-              }}
-            >
-              <LeadingSlideCardView
-                card={card}
-                mode={mode}
-                style={{position: 'relative'}}
-              />
-            </div>
+              mode={mode}
+              style={{position: 'relative'}}
+            />
           )}
           {texts.map((text, index) => {
             const layer =
@@ -197,41 +219,21 @@ function LiturgyContent({
               <div
                 key={index}
                 className={styles.row}
-                data-selected={selected.includes(index)}
+                data-selected={selection.selection.ids.has(String(index))}
                 data-song-slide={String(index)}
+                data-fixed-slide
                 role="option"
-                aria-selected={selected.includes(index)}
-                onClick={event => {
-                  const ctrl = event.ctrlKey || event.metaKey;
-                  if (
-                    (ctrl || event.shiftKey) &&
-                    offset > 0 &&
-                    position === 0
-                  ) {
-                    items.setCardSelected(true);
-                  }
-                  let next: number[];
-                  if (event.shiftKey) {
-                    const previous = Math.min(anchor.current, texts.length - 1);
-                    const start = Math.min(previous, index);
-                    const end = Math.max(previous, index);
-                    const range = Array.from(
-                      {length: end - start + 1},
-                      (_, i) => start + i,
-                    );
-                    next = ctrl ? [...new Set([...selected, ...range])] : range;
-                  } else {
-                    anchor.current = index;
-                    next = ctrl
-                      ? selected.includes(index)
-                        ? selected.filter(entry => entry !== index)
-                        : [...selected, index]
-                      : [index];
-                  }
-                  if (!ctrl && !event.shiftKey) items.setCardSelected(false);
-                  items.setBibleSelection(next.length === 0 ? [index] : next);
-                  items.selectPosition(index + offset);
-                }}
+                aria-selected={selection.selection.ids.has(String(index))}
+                data-slide-index={index}
+                tabIndex={0}
+                onClick={event =>
+                  session.selectSlides({
+                    type: 'click',
+                    id: String(index),
+                    ctrl: event.ctrlKey || event.metaKey,
+                    shift: event.shiftKey,
+                  })
+                }
               >
                 <div className={styles.thumbnail}>
                   <div className={styles.canvas}>
@@ -239,7 +241,14 @@ function LiturgyContent({
                       <SlidePicture output {...theme} slide={layer} />
                     )}
                   </div>
-                  <SlideThumbnailBand number={index + 1 + offset} />
+                  <SlideThumbnailBand
+                    number={index + 1 + offset}
+                    label={
+                      item.liturgy.labels?.find(entry => entry.index === index)
+                        ?.label
+                    }
+                    labelColor={tiles?.[index + offset]?.labelColor}
+                  />
                 </div>
                 <TextArea
                   className={styles.verse}
@@ -253,11 +262,7 @@ function LiturgyContent({
             );
           })}
         </div>
-      </div>
-      <PanelFooter
-        count={texts.length + offset}
-        end={<SlideSurfaceView ui={ui} />}
-      />
-    </section>
+      </SongSlideSurface>
+    </ItemEditorShell>
   );
 }

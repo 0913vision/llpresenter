@@ -56,13 +56,16 @@ it.each(['click', 'shortcut'] as const)(
     if (method === 'click') fireEvent.click(tenth);
     else {
       fireEvent.blur(window);
-      screen.getByRole('combobox', {name: '책'}).focus();
-      await userEvent.setup().keyboard('[AltLeft>][Digit0][/AltLeft]');
+      const field = screen.getByRole('combobox', {name: '\uCC45'});
+      field.focus();
+      fireEvent.keyDown(field, {key: '0', code: 'Digit0', altKey: true});
     }
-    expect(fixture.lookup).toHaveBeenCalledWith({
-      input: '\uC694\uD55C\uBCF5\uC74C 3:10',
-      translation: lookupRequest().translation,
-    });
+    await waitFor(() =>
+      expect(fixture.lookup).toHaveBeenCalledWith({
+        input: '\uC694\uD55C\uBCF5\uC74C 3:10',
+        translation: lookupRequest().translation,
+      }),
+    );
     await waitFor(() =>
       expect(onChoose).toHaveBeenCalledExactlyOnceWith(
         expect.objectContaining({ref: '요한복음 3:10'}),

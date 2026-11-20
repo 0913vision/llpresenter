@@ -355,7 +355,7 @@ function DetailsPanelContent({
       index,
     );
   const labelAt = (index: number): string | undefined => {
-    if (index === 0 && card !== undefined) return card.name;
+    if (index === 0 && card !== undefined) return card.label ?? card.name;
     if (item !== null && isItemOfKind(item, 'slides')) {
       const slide = item.slides.slides[index - offset];
       return slide === undefined
@@ -364,13 +364,14 @@ function DetailsPanelContent({
     }
     return (
       library?.tiles[index]?.label ??
+      bibleTiles?.[index - offset]?.slideLabel ??
       bibleTiles?.[index - offset]?.label ??
       raw[index - offset]?.label
     );
   };
   const labelColorAt = (index: number) =>
     index === 0 && card !== undefined
-      ? 'none'
+      ? (projectedTiles?.[0]?.labelColor ?? 'none')
       : (library?.tiles[index]?.labelColor ??
         bibleTiles?.[index - offset]?.labelColor ??
         raw[index - offset]?.color ??

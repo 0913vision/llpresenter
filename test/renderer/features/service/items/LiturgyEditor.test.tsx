@@ -98,6 +98,46 @@ it('can include the title card in a liturgy slide selection', async () => {
   expect(card.getAttribute('aria-selected')).toBe('true');
 });
 
+it('opens with the title selected and includes it when extending selection', async () => {
+  const fixture = itemFixture();
+  const item = {
+    ...newLiturgyItem(fixtureItems.plain, {kind: 'creed', translation: 'new'}),
+    sectionCard: {
+      name: 'Welcome',
+      english: 'Welcome',
+      theme: createThemeId('00000000-0000-4000-8000-000000000111'),
+    },
+  };
+  const document = fixture.service();
+  fixture.pushService({
+    ...document,
+    service: {...document.service, order: [item]},
+  });
+  const editor = new SongEditorStore(fixture.api, vi.fn());
+  const items = new ServiceItemStore(fixture.api, editor, vi.fn());
+  items.show({serviceId: fixtureServiceId, itemId: item.id});
+  const view = render(<LiturgyEditor items={items} />);
+  onTestFinished(async () => {
+    view.unmount();
+    items.dispose();
+    await editor.dispose();
+  });
+  const card = await screen.findByRole('option', {name: '\uD0C0\uC774\uD2C0'});
+  const first = view.container.querySelector('[data-song-slide="0"]');
+  const second = view.container.querySelector('[data-song-slide="1"]');
+  if (first === null || second === null) throw Error('Missing liturgy slides');
+  expect(card.getAttribute('aria-selected')).toBe('true');
+  expect(first.getAttribute('aria-selected')).toBe('false');
+  expect(items.getSnapshot().position).toBe(0);
+  const user = userEvent.setup();
+  await user.keyboard('{Shift>}');
+  await user.click(second);
+  await user.keyboard('{/Shift}');
+  expect(items.getSnapshot().cardSelected).toBe(true);
+  expect(items.getSnapshot().bibleSelection).toEqual([0, 1]);
+  expect(card.getAttribute('aria-selected')).toBe('true');
+});
+
 it('keeps the displayed liturgy section card after the store retargets', async () => {
   const fixture = itemFixture();
   const item = {

@@ -140,6 +140,67 @@ describe('song rows using shared slide history', () => {
     expect(undone.slides[0]).not.toHaveProperty('transition');
     session.discard();
   });
+  it('saves and undoes a card and selected song label together', async () => {
+    const fixture = itemFixture();
+    const service = fixture.service();
+    const item = service.service.order.find(
+      entry => entry.id === fixtureItems.arranged,
+    );
+    if (item === undefined || !isItemOfKind(item, 'song')) {
+      throw Error('Missing song item');
+    }
+    fixture.pushService({
+      ...service,
+      service: {
+        ...service.service,
+        order: [{...item, sectionCard: newSectionCard()}],
+      },
+    });
+    const target = {serviceId: fixtureServiceId, itemId: item.id};
+    const document = await loadItemSong(fixture.api, target, item.song);
+    if (document === null) throw Error('Missing item document');
+    const session = new SongSession({
+      document,
+      api: itemSongContent(fixture.api, target, item.song),
+      itemSession: true,
+      persistence: 'manual',
+      changed: vi.fn(),
+      problem: vi.fn(),
+    });
+    const previousLabel = item.slides[0]?.label;
+    session.changeItemLabels('Chorus', true);
+    expect(await session.commit()).toBe(true);
+    const saved = fixture.service().service.order[0];
+    if (saved === undefined || !isItemOfKind(saved, 'song')) {
+      throw Error('Missing song item');
+    }
+    expect(saved.sectionCard?.label).toBe('Chorus');
+    expect(saved.slides[0]?.label).toBe('Chorus');
+    session.edit('undo');
+    expect(await session.commit()).toBe(true);
+    const undone = fixture.service().service.order[0];
+    if (undone === undefined || !isItemOfKind(undone, 'song')) {
+      throw Error('Missing song item');
+    }
+    expect(undone.sectionCard?.label).toBeUndefined();
+    expect(undone.slides[0]?.label).toBe(previousLabel);
+    session.discard();
+  });
+  it('keeps a renamed card label renamed through undo and redo', () => {
+    const history = new SongSlideHistory(editorDeckSong(2).song, undefined, {
+      cardLabel: 'Before',
+    });
+    const state = history.model.getSnapshot();
+    history.model.edit({
+      ...state,
+      context: {...state.context, cardLabel: 'Other'},
+    });
+    history.renameLabel('Before', 'After');
+    history.undo();
+    expect(history.model.getSnapshot().context?.cardLabel).toBe('After');
+    history.redo();
+    expect(history.model.getSnapshot().context?.cardLabel).toBe('Other');
+  });
   it('coalesces typing and restores the text caret around structural edits in one history', () => {
     const history = new SongSlideHistory(editorDeckSong(3).song);
     history.select({block: 1, start: 0, end: 0});

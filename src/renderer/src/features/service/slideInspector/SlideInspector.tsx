@@ -72,8 +72,14 @@ function InspectorContent({
     view.selection.ids.has(slide.id),
   );
   const slide = snapshot.song.slides[snapshot.selection.block];
-  const label = selected[0]?.label;
-  const mixedLabel = selected.some(item => item.label !== label);
+  const labels = [
+    ...(session.itemSession && cardSelected
+      ? [view.context?.cardLabel ?? undefined]
+      : []),
+    ...selected.map(item => item.label),
+  ];
+  const label = labels[0];
+  const mixedLabel = labels.some(value => value !== label);
   const card =
     session.itemSession && cardSelected
       ? view.context?.cardTransition
@@ -211,7 +217,9 @@ function InspectorContent({
               anchor={anchor}
               selected={mixedLabel ? undefined : label}
               onChoose={name =>
-                session.commandSlides({type: 'label', label: name})
+                session.itemSession && cardSelected
+                  ? session.changeItemLabels(name, true)
+                  : session.commandSlides({type: 'label', label: name})
               }
               onClose={restore => {
                 setAnchor(null);

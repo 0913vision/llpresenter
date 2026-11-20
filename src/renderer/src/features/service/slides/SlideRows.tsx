@@ -174,6 +174,7 @@ export function SlideRows({
   );
   return (
     <SongSlideSurface
+      itemKind={item.slides.form}
       session={commands}
       store={store}
       leadingCard={leadingCard}

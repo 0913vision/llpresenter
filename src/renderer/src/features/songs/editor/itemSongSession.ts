@@ -1,7 +1,7 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import {slideTransitionSchema} from '@core/schema/slideTransition';
 import {parsePayload} from '@core/schema/payload';
-import {ITEM_CARD_TRANSITION} from './itemCardTransition';
+import {ITEM_CARD_LABEL, ITEM_CARD_TRANSITION} from './itemCardTransition';
 import type {ServiceDocument} from '@core/schema/contentDocuments';
 import type {SongEditorTarget} from '@renderer/features/songs/editor/songEditorRequests';
 import {createSongId} from '@core/schema/ids';
@@ -54,7 +54,10 @@ export function itemSongDocument(
     itemTarget: target,
     ...(item.sectionCard === undefined
       ? {}
-      : {itemCardTransition: item.sectionCard.transition ?? null}),
+      : {
+          itemCardTransition: item.sectionCard.transition ?? null,
+          itemCardLabel: item.sectionCard.label ?? null,
+        }),
     ...(item.theme === undefined ? {} : {itemTheme: item.theme}),
     access: service.access,
     revision: service.revision,
@@ -109,6 +112,19 @@ export function itemSongContent(
         ITEM_CARD_TRANSITION in edit.song
           ? edit.song[ITEM_CARD_TRANSITION]
           : undefined;
+      const labelMarker =
+        ITEM_CARD_LABEL in edit.song ? edit.song[ITEM_CARD_LABEL] : undefined;
+      if (
+        (labelMarker !== undefined &&
+          labelMarker !== null &&
+          typeof labelMarker !== 'string') ||
+        (labelMarker !== undefined && item.sectionCard === undefined)
+      ) {
+        return {
+          ok: false,
+          error: {reason: 'invalid', message: 'The section card changed'},
+        };
+      }
       const parsed =
         marker === undefined || marker === null
           ? undefined
@@ -127,6 +143,11 @@ export function itemSongContent(
         const {transition: _previous, ...rest} = sectionCard;
         sectionCard =
           parsed?.ok === true ? {...rest, transition: parsed.value} : rest;
+      }
+      if (labelMarker !== undefined && sectionCard !== undefined) {
+        const {label: _previous, ...rest} = sectionCard;
+        sectionCard =
+          labelMarker === null ? rest : {...rest, label: labelMarker};
       }
       const {background: removed, ...kept} = item;
       const updated = {

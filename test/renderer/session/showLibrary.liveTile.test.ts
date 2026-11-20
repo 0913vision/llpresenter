@@ -5,6 +5,8 @@ import type {BibleLookupPassage} from '@core/schema/bibleLookup';
 import {createThemeId, translationIdSchema} from '@core/schema/ids';
 import {bibleSource, type BibleSource} from '@core/bible/source';
 import {liveTileIndex} from '@renderer/session/showLibrary';
+import {slideLayerOf} from '@core/presentation/slideLayer';
+import {parseLiveCommand} from '@core/schema/liveCommand';
 import {useShow, type ShowView} from '@renderer/session/showStore';
 
 interface PassageFixture {
@@ -55,6 +57,46 @@ function liveSlide(source: BibleSource, position: number): SlideLayer {
 const live = bibleSource(passage({book: '요한복음', first: 16, last: 18}));
 
 describe('liveTileIndex', () => {
+  it('keeps the live verse when several verses have the same assigned label', () => {
+    const tiles = live.tiles
+      .slice(0, 2)
+      .map(tile => ({...tile, slideLabel: 'Reading', biblePart: 1}));
+    const source = {...live, tiles};
+    const slide = slideLayerOf({itemId: live.id, index: 1}, () => tiles);
+    if (slide === null) throw Error('Missing verse');
+    expect(slide).toMatchObject({
+      label: 'Reading',
+      bibleVerse: tiles[1]?.bibleVerse,
+    });
+    const parsed = parseLiveCommand({type: 'slide.show', slide});
+    expect(parsed).toMatchObject({
+      ok: true,
+      value: {type: 'slide.show', slide: {bibleVerse: tiles[1]?.bibleVerse}},
+    });
+    expect(
+      parseLiveCommand({
+        type: 'slide.show',
+        slide: {...slide, bibleVerse: {...slide.bibleVerse, verse: 0}},
+      }).ok,
+    ).toBe(false);
+    const reordered = {
+      ...source,
+      tiles: [tiles[1], tiles[0]].filter(tile => tile !== undefined),
+    };
+    expect(liveTileIndex(view(reordered, reordered), slide)).toBe(0);
+    expect(liveTileIndex(view(source, source), slide)).toBe(1);
+    const fallbackTiles = live.tiles
+      .slice(0, 2)
+      .map(tile => ({...tile, slideLabel: 'Reading'}));
+    const fallback = {...live, tiles: fallbackTiles};
+    const fallbackSlide = slideLayerOf(
+      {itemId: live.id, index: 1},
+      () => fallbackTiles,
+    );
+    if (fallbackSlide === null) throw Error('Missing fallback verse');
+    expect(liveTileIndex(view(fallback, fallback), fallbackSlide)).toBe(1);
+  });
+
   it('uses verse and part identity after cuts move identical live text, clamping a removed part', () => {
     const tile = (label: string, biblePart: number) => ({
       label,

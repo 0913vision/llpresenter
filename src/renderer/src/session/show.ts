@@ -548,6 +548,7 @@ function nextKey(next: NextSlide | null | undefined): string {
         next.lines,
         next.continued ?? null,
         next.biblePart ?? null,
+        next.bibleVerse ?? null,
         next.titleSlide ?? null,
         next.sermonTitle ?? null,
         next.stageReference ?? null,

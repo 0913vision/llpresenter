@@ -10,15 +10,17 @@ import {
 import type {BibleCutsFile} from '@core/schema/bibleCuts';
 import type {BibleLookupPassage} from '@core/schema/bibleLookup';
 import type {BiblePassage} from '@core/schema/biblePassage';
-import type {BiblePartTransition} from '@core/schema/service';
+import type {BiblePartLabel, BiblePartTransition} from '@core/schema/service';
 import type {SlideTransition} from '@core/schema/slideTransition';
-import {biblePartEffect} from '@core/bible/partTransitions';
+import {biblePartEffect, biblePartLabel} from '@core/bible/partTransitions';
 import {cacheKey} from '@core/bible/split/splitCache';
 import {createScreenId, type ThemeId} from '@core/schema/ids';
 import type {ThemeScreen} from '@core/themes/defaults';
 import type {ThemesFile} from '@core/schema/themes';
 import type {SlideTile} from '@core/presentation/model';
 import {NO_LABEL_COLOR} from '@core/labels/colors';
+import type {LabelColor} from '@core/labels/colors';
+import {colorSlideLabels} from '@core/presentation/slides';
 import {SHOW_SERVICE_LIMITS} from '@core/schema/showService';
 import {resolveItemTheme, resolveThemeScreen} from '@core/themes/resolve';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
@@ -42,6 +44,9 @@ export interface SplitAppearance {
 interface SplitOptions {
   readonly background?: string;
   readonly sermonTitle?: string;
+  readonly sermonOpeningLabel?: string;
+  readonly sermonClosingLabel?: string;
+  readonly labels?: readonly BiblePartLabel[];
   readonly sermonOpeningTransition?: SlideTransition;
   readonly sermonClosingTransition?: SlideTransition;
   readonly transitions?: readonly BiblePartTransition[];
@@ -153,6 +158,13 @@ export function splitSourceFor(
     ...(row.bible.sermonTitle === undefined
       ? {}
       : {sermonTitle: row.bible.sermonTitle}),
+    ...(row.bible.sermonOpeningLabel === undefined
+      ? {}
+      : {sermonOpeningLabel: row.bible.sermonOpeningLabel}),
+    ...(row.bible.sermonClosingLabel === undefined
+      ? {}
+      : {sermonClosingLabel: row.bible.sermonClosingLabel}),
+    ...(row.bible.labels === undefined ? {} : {labels: row.bible.labels}),
     ...(row.bible.sermonOpeningTransition === undefined
       ? {}
       : {sermonOpeningTransition: row.bible.sermonOpeningTransition}),
@@ -237,6 +249,11 @@ export function projectBible(
     const reference = `${name} ${part.reference.chapter}:${part.reference.verse}${translation}`;
     return {
       label: `${book.koreanShort}${part.reference.chapter}:${part.reference.verse}${part.partCount > 1 ? ` (${part.part})` : ''}`,
+      bibleVerse: part.reference,
+      ...(() => {
+        const label = biblePartLabel(source.labels, part.reference, part.part);
+        return label === undefined ? {} : {slideLabel: label};
+      })(),
       labelColor: NO_LABEL_COLOR,
       lines: part.lines ?? bibleOutputLines(prefix + part.display),
       continued: part.continued,
@@ -267,7 +284,10 @@ export function projectBible(
         ? tiles
         : [
             {
-              label: null,
+              label: source.sermonOpeningLabel ?? null,
+              ...(source.sermonOpeningLabel === undefined
+                ? {}
+                : {slideLabel: source.sermonOpeningLabel}),
               labelColor: NO_LABEL_COLOR,
               lines: [source.sermonTitle],
               reference: source.passage.displayRef,
@@ -278,7 +298,10 @@ export function projectBible(
             },
             ...tiles,
             {
-              label: null,
+              label: source.sermonClosingLabel ?? null,
+              ...(source.sermonClosingLabel === undefined
+                ? {}
+                : {slideLabel: source.sermonClosingLabel}),
               labelColor: NO_LABEL_COLOR,
               lines: [source.sermonTitle],
               reference: source.passage.displayRef,
@@ -301,6 +324,7 @@ export class BibleProjections {
       readonly screens: readonly ThemeScreen[] | undefined;
       readonly saved: BibleCutsFile | undefined;
       readonly canvas: BibleFontMeasure;
+      readonly labelColors?: ReadonlyMap<string, LabelColor>;
       readonly slideBibleDefaults?: BibleDisplayOptions | null | undefined;
     },
   ) {}
@@ -320,6 +344,9 @@ export class BibleProjections {
       cached !== undefined &&
       sourceContent(cached.source) === sourceContent(source) &&
       cached.source.sermonTitle === source.sermonTitle &&
+      cached.source.sermonOpeningLabel === source.sermonOpeningLabel &&
+      cached.source.sermonClosingLabel === source.sermonClosingLabel &&
+      cached.source.labels === source.labels &&
       cached.source.sermonOpeningTransition ===
         source.sermonOpeningTransition &&
       cached.source.sermonClosingTransition ===
@@ -360,6 +387,9 @@ export class BibleProjections {
     if (projected === null) return null;
     const projection: BibleProjection = {
       ...projected,
+      ...(this.context.labelColors === undefined
+        ? {}
+        : {tiles: colorSlideLabels(projected.tiles, this.context.labelColors)}),
       appearance: {
         background: source.background,
         screen,

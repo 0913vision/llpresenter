@@ -26,7 +26,8 @@ import {SongSlideSurface} from '@renderer/features/songs/editor/SongSlideSurface
 import {visibleGridInsertionPosition} from '@renderer/features/songs/editor/gridInsertionPosition';
 import {useShow} from '@renderer/session/show';
 import {Button} from '@renderer/ui/Button';
-import {PanelFooter} from '@renderer/ui/Panel';
+import {ItemEditorShell} from '@renderer/platform/ItemEditorShell';
+import {ItemEditorAddBar} from '@renderer/platform/ItemEditorAddBar';
 import {SlideThumbnailBand} from '@renderer/ui/SlideThumbnail';
 import {
   bibleEditorData,
@@ -36,6 +37,7 @@ import {
 import {useLeadingItemCard} from './useLeadingItemCard';
 import {AddSectionCard} from './AddSectionCard';
 import {BibleSlideSession} from './BibleSlideSession';
+import {itemEditorAdapter} from '@renderer/platform/itemEditorAdapter';
 import {MeasuredRow} from '../slides/SlideRows';
 import type {ServiceItemStore} from './serviceItemStore';
 import styles from './BibleInlineEditor.module.css';
@@ -187,25 +189,47 @@ function BibleEditorContent({
           2,
         );
   return (
-    <section className={styles.editor} aria-label="성경 편집">
-      {hideHeader ? null : (
-        <header className={styles.header}>
-          <Button onClick={onBack}>‹ 예배 순서</Button>
-          <strong>{displayReference(data.reference.ref)}</strong>
-        </header>
-      )}
-      {onSplit === undefined ? null : (
-        <Button
-          className={styles.split}
-          disabled={
-            locked || projection?.partsByTile[position - offset] == null
+    <ItemEditorShell
+      className={styles.editor}
+      label="성경 편집"
+      footer={
+        <ItemEditorAddBar
+          adapter={itemEditorAdapter(item)}
+          count={data.slides.length}
+          end={<SlideSurfaceView ui={ui} />}
+          title={
+            <AddSectionCard
+              items={items}
+              itemId={item.id}
+              shownItem={shownItem}
+            />
           }
-          onClick={onSplit}
-        >
-          {'\uc808 \ub098\ub204\uae30'}
-        </Button>
-      )}
+        />
+      }
+      header={
+        <>
+          {hideHeader ? null : (
+            <header className={styles.header}>
+              <Button onClick={onBack}>‹ 예배 순서</Button>
+              <strong>{displayReference(data.reference.ref)}</strong>
+            </header>
+          )}
+          {onSplit === undefined ? null : (
+            <Button
+              className={styles.split}
+              disabled={
+                locked || projection?.partsByTile[position - offset] == null
+              }
+              onClick={onSplit}
+            >
+              {'\uc808 \ub098\ub204\uae30'}
+            </Button>
+          )}
+        </>
+      }
+    >
       <SongSlideSurface
+        itemKind={itemEditorAdapter(item).kind}
         session={session}
         leadingCard={card}
         mixedLeadingSelection
@@ -299,7 +323,9 @@ function BibleEditorContent({
                       </div>
                       <SlideThumbnailBand
                         number={index + 1}
-                        label={slide.tile.label ?? undefined}
+                        label={
+                          slide.tile.slideLabel ?? slide.tile.label ?? undefined
+                        }
                       />
                     </div>
                     <div className={styles.verse}>
@@ -328,20 +354,9 @@ function BibleEditorContent({
               />
             )}
           </div>
-          <div className={styles.add}>
-            <AddSectionCard
-              items={items}
-              itemId={item.id}
-              shownItem={shownItem}
-            />
-          </div>
         </div>
       </SongSlideSurface>
-      <PanelFooter
-        count={data.slides.length}
-        end={<SlideSurfaceView ui={ui} />}
-      />
-    </section>
+    </ItemEditorShell>
   );
 }
 
