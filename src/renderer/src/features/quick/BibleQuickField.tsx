@@ -25,7 +25,8 @@ import {
   isOutputRequestCurrent,
 } from '@renderer/session/showOutput';
 import {pictures} from '@renderer/rendering/pictures/pictureService';
-import {BibleReferenceField} from '../bible/BibleReferenceField';
+import {BibleReferenceForm} from '../bible/BibleReferenceForm';
+import referenceStyles from '../bible/BibleReferenceField.module.css';
 import {openBiblePassage, showBiblePassage} from '../bible/actions';
 import {focusSlideGrid} from '../presentation/focusSlideGrid';
 import {PassageDialog} from '../bible/PassageDialog';
@@ -283,57 +284,59 @@ export function BibleQuickField({
         }
       }}
     >
-      <BibleReferenceField
-        overlayLabels={overlayOpen}
-        onEscape={overlayOpen ? closeFinder : undefined}
-        key={`${selectionVersion}:${session}`}
-        api={api.bible}
-        translation={currentTranslation}
-        recents={[]}
-        onIntent={() => {
-          beginOutputRequest();
-          focusItem.current = null;
-          onIntent?.();
-        }}
-        onEdit={equivalent => {
-          const view = useShow.getState();
-          const source = view.bibleSource;
-          if (
-            source?.id === view.openItemId &&
-            source.enteredRef !== undefined
-          ) {
+      <div className={referenceStyles.field}>
+        <BibleReferenceForm
+          overlayLabels={overlayOpen}
+          onEscape={overlayOpen ? closeFinder : undefined}
+          key={`${selectionVersion}:${session}`}
+          api={api.bible}
+          translation={currentTranslation}
+          recents={[]}
+          onIntent={() => {
+            beginOutputRequest();
+            focusItem.current = null;
+            onIntent?.();
+          }}
+          onEdit={equivalent => {
+            const view = useShow.getState();
+            const source = view.bibleSource;
             if (
-              equivalent?.ref === source.enteredRef &&
-              (source.enteredTranslation ?? source.passage.translation) ===
-                equivalent.translation &&
-              display !== null
+              source?.id === view.openItemId &&
+              source.enteredRef !== undefined
             ) {
-              openBiblePassage(equivalent, {
+              if (
+                equivalent?.ref === source.enteredRef &&
+                (source.enteredTranslation ?? source.passage.translation) ===
+                  equivalent.translation &&
+                display !== null
+              ) {
+                openBiblePassage(equivalent, {
+                  ...display,
+                  review: false,
+                  transition: QUICK_BIBLE_TRANSITION,
+                });
+              } else {
+                useShow.setState({
+                  bibleSource: {...source, enteredRef: undefined},
+                });
+              }
+            }
+          }}
+          onPreview={passage => {
+            if (display !== null) {
+              const options = {
                 ...display,
                 review: false,
                 transition: QUICK_BIBLE_TRANSITION,
-              });
-            } else {
-              useShow.setState({
-                bibleSource: {...source, enteredRef: undefined},
+              };
+              withPictures(passage, options, ready => {
+                if (!overlayOpen) openBiblePassage(passage, options, {ready});
               });
             }
-          }
-        }}
-        onPreview={passage => {
-          if (display !== null) {
-            const options = {
-              ...display,
-              review: false,
-              transition: QUICK_BIBLE_TRANSITION,
-            };
-            withPictures(passage, options, ready => {
-              if (!overlayOpen) openBiblePassage(passage, options, {ready});
-            });
-          }
-        }}
-        onShow={passage => show(passage)}
-      />
+          }}
+          onSubmit={passage => show(passage)}
+        />
+      </div>
     </div>
   );
   return overlayOpen ? (

@@ -2,7 +2,7 @@ import {act, fireEvent, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import type {BibleLookupReply} from '@core/schema/bibleLookup';
-import {BibleReferenceField} from '@renderer/features/bible/BibleReferenceField';
+import {BibleReferenceForm as BibleReferenceField} from '@renderer/features/bible/BibleReferenceForm';
 import {formLookupReply} from '@fixtures/core/bibleReplies';
 import {lookupRequest} from '@fixtures/core/bibleLookups';
 
@@ -22,7 +22,7 @@ function setup(
     translation: lookupRequest().translation,
     recents: refs.map(ref => ({ref, translation: recentTranslation})),
     onPreview,
-    onShow,
+    onSubmit: onShow,
   };
   const view = render(<BibleReferenceField {...props} />);
   return {
@@ -141,7 +141,7 @@ describe('Show Bible reference mount', () => {
       expect(screen.getByRole('option').getAttribute('aria-selected')).toBe(
         'false',
       );
-      await view.user.keyboard('{ArrowDown}{Enter}');
+      await view.user.click(screen.getByRole('option'));
       expect(view.onShow).not.toHaveBeenCalled();
       await waitFor(() =>
         expect(view.onPreview).toHaveBeenCalledWith(

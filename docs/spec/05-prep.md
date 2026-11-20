@@ -613,9 +613,9 @@ Source: `AddSongs`, `ListRow` README.
   - 성경 구절: opens the shared four-field passage dialog (04). 책 accepts
     Korean full/short names, 초성, English names/codes, partial jamo and IME-off
     keys. Tab completes the book name and moves through 장, 시작절 and 끝절;
-    matching partial names are not marked red. `ckd` completes to 창세기,
-    while `chd` has no match. Enter in any field inserts the validated passage
-    with the default settings. Escape clears the fields, then closes the dialog.
+    matching partial names are not marked red. `ckd` completes to 창세기, while
+    `chd` has no match. Enter in any field inserts the validated passage with
+    the default settings. Escape clears the fields, then closes the dialog.
   - 미디어: a submenu with the media list. Missing files cannot be added and
     show the reason in a tooltip.
 
