@@ -16,9 +16,21 @@ import {
   SLIDE_DIRECTIONS,
 } from '@renderer/ui/slideTransitionChoices';
 import {
-  selectedSlideTransition,
   applySlideTransitionToAll,
+  sameSlideTransition,
+  INITIAL_SLIDE_EFFECT,
 } from '@renderer/features/songs/editor/slideTransitionSelection';
+
+/** Summarizes selected effects consistently for every item adapter. */
+export function inspectorTransition(
+  values: ReadonlyArray<SlideTransition | undefined>,
+): {readonly value: SlideTransition; readonly mixed: boolean} {
+  const value = values[0] ?? INITIAL_SLIDE_EFFECT;
+  return {
+    value,
+    mixed: values.some(effect => !sameSlideTransition(effect, value)),
+  };
+}
 
 function TimeField({
   id,
@@ -93,7 +105,10 @@ export function useTransitionSelection<T extends SlideListItem>({
   const selected = view.slides.filter(slide =>
     view.selection.ids.has(slide.id),
   );
-  const {current: first, mixed, value} = selectedSlideTransition(view);
+  const first = selected[0]?.transition;
+  const summary = inspectorTransition(selected.map(slide => slide.transition));
+  const mixed = summary.mixed;
+  const value = mixed ? INITIAL_SLIDE_EFFECT : summary.value;
   const locked = disabled || session.readOnly || selected.length === 0;
   const set = (transition: SlideTransition | undefined): void =>
     session.commandSlides({type: 'transition', transition});
@@ -114,7 +129,7 @@ export function useTransitionSelection<T extends SlideListItem>({
   };
 }
 
-interface TransitionSectionProps {
+export interface TransitionSectionProps {
   readonly allowAll?: boolean | undefined;
   readonly value: SlideTransition;
   readonly mixed: boolean;
