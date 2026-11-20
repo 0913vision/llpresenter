@@ -1,3 +1,4 @@
+import {HistoryButtons} from './HistoryButtons';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useMenuShortcuts} from '@renderer/ui/useMenuShortcuts';
 import {MenuWarmup} from '@renderer/ui/MenuWarmup';
@@ -522,6 +523,7 @@ export function MenuBar({
         />
         <HelpMenu control={controlFor(HELP_MENU)} />
       </div>
+      <HistoryButtons />
       <span className={styles.title}>{title}</span>
       <div className={styles.controls}>
         {windowControls.map(control => (

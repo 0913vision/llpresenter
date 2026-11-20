@@ -63,6 +63,19 @@ afterEach(() => {
   useLive.setState({state: null});
 });
 
+it('retains the last still while the live frame is temporarily unavailable', async () => {
+  render(<ScreenPreview screenId={MAIN_SCREEN} chroma={false} />);
+  await waitFor(() =>
+    expect(screen.getByTestId('cached-picture').textContent).toBe(
+      'Current frame',
+    ),
+  );
+  act(() => useLive.setState({state: null}));
+  expect(screen.getByTestId('cached-picture').textContent).toBe(
+    'Current frame',
+  );
+});
+
 it('uses a cached picture for a static audience slide and follows changes', async () => {
   render(<ScreenPreview screenId={MAIN_SCREEN} chroma={false} />);
   await waitFor(() =>

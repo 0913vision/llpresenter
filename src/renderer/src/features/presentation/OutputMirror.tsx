@@ -1,4 +1,4 @@
-import {useEffect, useRef, type JSX} from 'react';
+import {useEffect, useRef, useState, type JSX, type ReactNode} from 'react';
 import {
   isHiddenWorkspace,
   workspaceFrame,
@@ -11,12 +11,16 @@ export function OutputMirror({
   screenId,
   targetKind,
   cropSize,
+  fallback,
 }: {
   readonly screenId: string;
+  readonly fallback?: ReactNode;
   readonly targetKind?: string | undefined;
   readonly cropSize?:
     {readonly width: number; readonly height: number} | undefined;
 }): JSX.Element {
+  const [readyScreen, setReadyScreen] = useState<string>();
+  const hasFallback = fallback !== undefined;
   const ref = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
@@ -35,6 +39,34 @@ export function OutputMirror({
     let relayDue = 0;
     let relayCanvas: HTMLCanvasElement | undefined;
     let nativeActive = false;
+    let hasFrame = false;
+    let nextVideoFrame: number | undefined;
+    const retainVideoFrame = (): void => {
+      if (nativeActive || stream === null) return;
+      const restoreFallback = (): void => {
+        if (!hasFrame && hasFallback && !lifetime.stopped) {
+          video.hidden = true;
+          setReadyScreen(undefined);
+        }
+      };
+      if (video.videoWidth === 0 || video.videoHeight === 0) {
+        restoreFallback();
+        return;
+      }
+      try {
+        const context = canvas.getContext('2d');
+        if (context === null) {
+          restoreFallback();
+          return;
+        }
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        hasFrame = true;
+        canvas.hidden = false;
+        video.hidden = true;
+      } catch {
+        restoreFallback();
+      }
+    };
     const stopRelay = (): void => {
       if (relayFrame !== undefined) video.cancelVideoFrameCallback(relayFrame);
       relayFrame = undefined;
@@ -88,6 +120,11 @@ export function OutputMirror({
     };
     const stop = (): void => {
       generation++;
+      if (nextVideoFrame !== undefined) {
+        video.cancelVideoFrameCallback(nextVideoFrame);
+      }
+      nextVideoFrame = undefined;
+      retainVideoFrame();
       stopRelay();
       if (retry !== undefined) clearTimeout(retry);
       retry = undefined;
@@ -141,6 +178,19 @@ export function OutputMirror({
           };
         });
         await video.play();
+        if (own !== generation) return;
+        if (hasFrame || hasFallback) {
+          nextVideoFrame = video.requestVideoFrameCallback(() => {
+            nextVideoFrame = undefined;
+            if (own !== generation || lifetime.stopped) return;
+            canvas.hidden = true;
+            video.hidden = false;
+            setReadyScreen(screenId);
+          });
+        } else {
+          canvas.hidden = true;
+          video.hidden = false;
+        }
         startRelay();
       } catch {
         if (own === generation && !isHiddenWorkspace(frame)) {
@@ -165,8 +215,6 @@ export function OutputMirror({
           if (id !== screenId) return;
           if (pixels === null) {
             nativeActive = false;
-            canvas.hidden = true;
-            video.hidden = false;
             start().catch(() => undefined);
             return;
           }
@@ -183,6 +231,8 @@ export function OutputMirror({
                   )
                 : Uint8ClampedArray.from(pixels);
             context.putImageData(new ImageData(bytes, 640, 360), 0, 0);
+            hasFrame = true;
+            setReadyScreen(screenId);
             if (!nativeActive) {
               nativeActive = true;
               stop();
@@ -205,8 +255,6 @@ export function OutputMirror({
       stopRelay();
       window.llp?.output.previewControl({screenId, action: 'stop'});
       nativeActive = false;
-      canvas.hidden = true;
-      video.hidden = false;
     };
     const observer = new MutationObserver(() => {
       stop();
@@ -232,11 +280,20 @@ export function OutputMirror({
       stopNative();
       stop();
     };
-  }, [screenId, targetKind]);
+  }, [screenId, targetKind, hasFallback]);
   const bounds = pictureBounds(cropSize);
   return (
     <div className={styles.mirror}>
-      <video ref={ref} className={styles.surface} muted playsInline />
+      {hasFallback && readyScreen !== screenId ? (
+        <div className={styles.fallback}>{fallback}</div>
+      ) : null}
+      <video
+        ref={ref}
+        className={styles.surface}
+        muted
+        playsInline
+        hidden={hasFallback}
+      />
       <canvas
         ref={canvasRef}
         className={styles.surface}

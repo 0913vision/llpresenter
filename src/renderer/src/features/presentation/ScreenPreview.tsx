@@ -75,15 +75,18 @@ export function ScreenPreview({
       const state = useLive.getState().state;
       try {
         const frame = frames.frame(state);
-        setSnapshot({
-          screenId,
-          screen: frame?.screen,
-          blackScreen: frame?.blackScreen === true,
-          picture:
-            frame === undefined
-              ? undefined
-              : cachedScreenPicture(state?.layers ?? noLayers, frame, state),
-        });
+        const picture =
+          frame === undefined
+            ? undefined
+            : cachedScreenPicture(state?.layers ?? noLayers, frame, state);
+        if (picture !== undefined || frame?.blackScreen === true) {
+          setSnapshot({
+            screenId,
+            screen: frame?.screen,
+            blackScreen: frame?.blackScreen === true,
+            picture,
+          });
+        }
       } catch (error) {
         reportDrawingError('could not update the screen preview', error);
       }

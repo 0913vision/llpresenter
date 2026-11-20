@@ -63,9 +63,10 @@ feature we lack), Moved, Removed.
   for any selection count, without a confirmation, toast, or notice. A single
   undo restores the whole deletion. Rows and tiles glide to their new positions
   when items are added, removed, moved, or pasted; reduced motion disables this.
-- 준비 and 테마 put 실행 취소 and 다시 실행 icon buttons in the top bar, with
+- All workspaces keep undo and redo icon buttons in the fixed menu bar, with
   their action and shortcut in the tooltip. They use the same history as the
-  편집 menu and keys and are disabled when their action is unavailable.
+  edit menu and keys and are disabled when their action is unavailable. The
+  icons are Phosphor Regular arrow-u-up-left and arrow-u-up-right.
 - **Wording:** 이름 바꾸기 everywhere (not 이름 변경). An ellipsis marks a
   command that asks for input in a dialog or another window (수정…, 전환 효과…).
   Inline editors, workspace or tool-tab switches, and menus or pickers have no
