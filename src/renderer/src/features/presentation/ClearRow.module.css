@@ -118,7 +118,7 @@
     height: var(--size-clear-button-compact);
   }
 
-  .button:not(.all) .label {
+  .button .label {
     display: none;
   }
 
