@@ -1,5 +1,6 @@
 const {Buffer} = require('node:buffer');
 const {performance} = require('node:perf_hooks');
+const {transitionProgress} = require('./transitionProgress.cjs');
 const k = require('koffi');
 
 // NOTE(0913vision): Chromium paces every window by the primary display's
@@ -287,9 +288,9 @@ let classRegistered = false;
 
 /**
  * Creates the presenter for one output monitor. `bounds` are in physical
- * pixels; `hz` is the monitor's refresh rate.
+ * pixels.
  */
-function createPresenter({x, y, width, height, hz, topmost}) {
+function createPresenter({x, y, width, height, topmost}) {
   const instance = GetModuleHandleW(null);
   if (!classRegistered) {
     RegisterClassExW({
@@ -624,8 +625,7 @@ function createPresenter({x, y, width, height, hz, topmost}) {
   viewport.writeFloatLE(1, 20);
   const params = Buffer.alloc(32);
   const message = Buffer.alloc(48);
-  const refresh = hz > 0 ? hz : 60;
-  let blend = {mode: MODES.cut, dir: 0, frames: 0, step: 0};
+  let blend = {mode: MODES.cut, dir: 0, start: 0, duration: 0, progress: 1};
   let visible = false;
   let hasFrame = false;
   let closed = false;
@@ -719,8 +719,7 @@ function createPresenter({x, y, width, height, hz, topmost}) {
     viewport.writeFloatLE(y, 4);
     viewport.writeFloatLE(drawWidth, 8);
     viewport.writeFloatLE(drawHeight, 12);
-    const progress =
-      state.frames > 0 ? Math.min(1, state.step / state.frames) : 1;
+    const progress = state.progress;
     params.writeFloatLE(progress >= 1 ? MODES.cut : state.mode, 0);
     params.writeFloatLE(progress, 4);
     params.writeFloatLE(state.dir, 8);
@@ -963,14 +962,20 @@ function createPresenter({x, y, width, height, hz, topmost}) {
     },
     /** Starts a transition from what is shown now to the live picture. */
     transition({kind, dir, sec}) {
+      blend.progress = transitionProgress(
+        blend.start,
+        blend.duration,
+        performance.now(),
+      );
       draw(spare.target, blend);
       [held, spare] = [spare, held];
       const mode = MODES[kind] ?? MODES.cut;
       blend = {
         mode,
         dir: DIRECTIONS[dir] ?? 0,
-        frames: mode === MODES.cut ? 0 : Math.max(1, Math.round(sec * refresh)),
-        step: 0,
+        start: performance.now(),
+        duration: mode === MODES.cut ? 0 : Math.max(0, sec * 1000),
+        progress: mode === MODES.cut || sec <= 0 ? 1 : 0,
       };
     },
     /** Draws and presents one frame; blocks until the monitor takes it. */
@@ -980,8 +985,14 @@ function createPresenter({x, y, width, height, hz, topmost}) {
         DispatchMessageW(message);
       }
       if (!visible || closed) return false;
-      const moving = blend.frames > 0 && blend.step < blend.frames;
-      if (moving) blend.step++;
+      const moving = blend.progress < 1;
+      if (moving) {
+        blend.progress = transitionProgress(
+          blend.start,
+          blend.duration,
+          performance.now(),
+        );
+      }
       draw(backTarget[0], blend);
       if (mirror !== null && mirror.requested) {
         try {
@@ -996,7 +1007,7 @@ function createPresenter({x, y, width, height, hz, topmost}) {
             frameCalls.clear(mirror.scaled.target, mirror.clear);
             draw(
               mirror.scaled.target,
-              {mode: MODES.cut, dir: 0, frames: 0, step: 0},
+              {mode: MODES.cut, dir: 0, progress: 1},
               w,
               h,
               (640 - w) / 2,
@@ -1059,7 +1070,7 @@ function createPresenter({x, y, width, height, hz, topmost}) {
       return intervals.splice(0);
     },
     get busy() {
-      return blend.frames > 0 && blend.step < blend.frames;
+      return blend.progress < 1;
     },
     close() {
       if (closed) return;
