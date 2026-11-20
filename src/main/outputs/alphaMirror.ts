@@ -104,7 +104,8 @@ export function createAlphaMirror({
     }
   };
   const produce = (): void => {
-    if (!active || !outputActive() || inFlight || converting || !latest) return;
+    if (!active || !outputActive()) return;
+    if (inFlight || converting || !latest) return;
     const image = latest;
     latest = undefined;
     const size = image.getSize();
@@ -145,17 +146,15 @@ export function createAlphaMirror({
       });
       worker = created;
     }
-    worker.once(
-      'message',
-      (result: {frame: Uint8Array; generation: number}) => {
-        converting = false;
-        if (active && outputActive() && result.generation === generation) {
-          inFlight = true;
-          due = performance.now() + INTERVAL_MS;
-          send(result.frame);
-        } else schedule();
-      },
-    );
+    const deliver = (result: {frame: Uint8Array; generation: number}): void => {
+      converting = false;
+      if (active && outputActive() && result.generation === generation) {
+        inFlight = true;
+        due = performance.now() + INTERVAL_MS;
+        send(result.frame);
+      } else schedule();
+    };
+    worker.once('message', deliver);
     const data = new Uint8Array(bitmap);
     converting = true;
     worker.postMessage({data, width, height, generation}, [data.buffer]);
