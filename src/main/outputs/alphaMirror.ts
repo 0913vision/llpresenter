@@ -77,15 +77,18 @@ export function createAlphaMirror({
   const schedule = (): void => {
     if (!active || !outputActive()) return;
     if (inFlight || converting || !latest || timer) return;
-    timer = setTimeout(() => {
-      timer = undefined;
-      try {
-        produce();
-      } catch {
-        converting = false;
-        schedule();
-      }
-    }, Math.max(0, due - performance.now()));
+    timer = setTimeout(
+      () => {
+        timer = undefined;
+        try {
+          produce();
+        } catch {
+          converting = false;
+          schedule();
+        }
+      },
+      Math.max(0, due - performance.now()),
+    );
   };
   const onPaint: PaintListener = (_event, _dirty, image) => {
     if (!active || !outputActive() || !image || image.isEmpty()) return;
