@@ -1,5 +1,5 @@
 import {act, render, waitFor} from '@testing-library/react';
-import {beforeEach, describe, expect, it, vi} from 'vitest';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {createMediaId} from '@core/schema/ids';
 import type {ServiceDocument} from '@core/schema/contentDocuments';
 import type {PowerPointImageExportResult} from '@core/schema/powerpointImport';
@@ -19,6 +19,10 @@ beforeEach(() => {
     readOnly: false,
     openItemId: null,
   });
+});
+
+afterEach(() => {
+  useShow.setState(useShow.getInitialState(), true);
 });
 
 function cancelFrom(

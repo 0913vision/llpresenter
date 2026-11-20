@@ -144,6 +144,7 @@ beforeEach(() => {
 afterEach(() => {
   resetTooltips();
   cleanup();
+  useLive.setState({state: null});
   delete window.llp;
 });
 

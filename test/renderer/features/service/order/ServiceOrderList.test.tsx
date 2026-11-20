@@ -72,6 +72,9 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
+  setBibleTileResolver(null);
+  applyService(null);
+  useLive.setState({state: null});
   delete window.llp;
 });
 

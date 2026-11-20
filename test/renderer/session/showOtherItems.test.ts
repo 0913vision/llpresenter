@@ -70,6 +70,8 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  applyService(null);
+  useLive.setState({state: null, lastStartedItemId: null, commandVersion: 0});
   delete window.llp;
 });
 

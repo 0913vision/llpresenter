@@ -2,7 +2,7 @@
 // module.
 import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import {beforeEach, vi} from 'vitest';
+import {afterEach, beforeEach, vi} from 'vitest';
 import {resetTooltips} from '@fixtures/renderer/ui/tooltipTesting';
 import type {Notice} from '@renderer/ui/notices';
 import {libraryFixture} from '@fixtures/renderer/features/songs/library/libraryFixture';
@@ -23,13 +23,33 @@ export class FixedObserver implements ResizeObserver {
   }
 }
 
+let previousRowSize = '';
+let previousRowPriority = '';
+
 beforeEach(() => {
   applyService(null);
   resetTooltips();
   FixedObserver.instances.length = 0;
   vi.stubGlobal('ResizeObserver', FixedObserver);
-  document.documentElement.style.setProperty('--size-row', '30px');
+  const style = document.documentElement.style;
+  previousRowSize = style.getPropertyValue('--size-row');
+  previousRowPriority = style.getPropertyPriority('--size-row');
+  style.setProperty('--size-row', '30px');
   vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(300);
+});
+
+afterEach(() => {
+  const style = document.documentElement.style;
+  if (previousRowSize) {
+    style.setProperty('--size-row', previousRowSize, previousRowPriority);
+  } else {
+    style.removeProperty('--size-row');
+  }
+  FixedObserver.instances.length = 0;
+  resetTooltips();
+  applyService(null);
+  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
 });
 
 export async function setup(fixture = libraryFixture()) {
