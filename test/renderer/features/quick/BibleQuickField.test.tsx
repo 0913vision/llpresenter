@@ -1,3 +1,4 @@
+import {LIVE_BIBLE_ID} from '@core/bible/liveTranslation';
 import {
   beginQuickPassage,
   finishQuickPassage,
@@ -80,6 +81,33 @@ afterEach(() => {
 });
 
 describe('BibleQuickField', () => {
+  it('labels only recent rows that differ from the effective panel translation', async () => {
+    const fixture = panelApi();
+    window.llp = fixture.api;
+    const settings = fixture.document();
+    const translation = lookupRequest().translation;
+    const ref = '\uC694\uD55C\uBCF5\uC74C 3:16-18';
+    fixture.push({
+      ...settings,
+      revision: 2,
+      value: {
+        ...settings.value,
+        recents: [
+          {ref, translation: LIVE_BIBLE_ID},
+          {ref, translation},
+        ],
+      },
+    });
+    fixture.lookup.mockImplementation(async request => ({
+      ...(await formLookupReply(request)),
+      effectiveTranslation: LIVE_BIBLE_ID,
+    }));
+    render(<BibleQuickField api={fixture.api} />);
+    const rows = await screen.findAllByRole('button', {name: /3:16~18/});
+    await waitFor(() => expect(rows[1]?.textContent).toContain('Invented'));
+    expect(rows[0]?.textContent).not.toContain('Invented');
+    expect(rows[0]?.textContent).not.toContain('\uC2E4\uC2DC\uAC04');
+  });
   it.each([true, false])(
     'outputs Enter after picture preparation returns %s',
     async ready => {

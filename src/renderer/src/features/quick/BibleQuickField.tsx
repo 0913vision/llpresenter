@@ -1,6 +1,7 @@
 import {withLiveBible} from '@core/bible/liveTranslation';
 import type {RecentPassage} from '@core/schema/bible';
 import type {BibleLookupPassage} from '@core/schema/bibleLookup';
+import type {TranslationId} from '@core/schema/ids';
 import {QUICK_BIBLE_TRANSITION} from '@core/bible/quickTransition';
 import {useRef, useSyncExternalStore} from 'react';
 import {commandBindings} from '@core/shortcuts/bindings';
@@ -196,6 +197,45 @@ export function BibleQuickField({
     display === null
       ? undefined
       : (translations.find(item => item.default) ?? translations[0])?.id;
+  const [resolvedTranslation, setResolvedTranslation] = useState<{
+    provided: TranslationId;
+    value: TranslationId;
+  } | null>(null);
+  const panelLookupVersion = useRef(0);
+  const firstRecentRef = document?.value.recents[0]?.ref;
+  useEffect(() => {
+    let active = true;
+    const version = ++panelLookupVersion.current;
+    if (currentTranslation !== undefined && firstRecentRef !== undefined) {
+      api.bible
+        .lookup({translation: currentTranslation, input: firstRecentRef})
+        .then(reply => {
+          if (!active || panelLookupVersion.current !== version) return;
+          const value =
+            reply.effectiveTranslation ??
+            (reply.result.ok
+              ? reply.result.value.translation
+              : currentTranslation);
+          setResolvedTranslation({provided: currentTranslation, value});
+        })
+        .catch(() => {
+          if (active && panelLookupVersion.current === version) {
+            setResolvedTranslation({
+              provided: currentTranslation,
+              value: currentTranslation,
+            });
+          }
+        });
+    }
+    return () => {
+      active = false;
+    };
+  }, [api.bible, currentTranslation, firstRecentRef]);
+  const panelTranslation =
+    resolvedTranslation !== null &&
+    resolvedTranslation.provided === currentTranslation
+      ? resolvedTranslation.value
+      : currentTranslation;
   const show = (passage: BibleLookupPassage, reusePreview = true): void => {
     if (display === null) return;
     const view = useShow.getState();
@@ -276,6 +316,17 @@ export function BibleQuickField({
         key={`${selectionVersion}:${session}`}
         api={api.bible}
         translation={currentTranslation}
+        onEffectiveTranslation={value => {
+          panelLookupVersion.current += 1;
+          if (currentTranslation !== undefined) {
+            setResolvedTranslation(previous =>
+              previous?.provided === currentTranslation &&
+              previous.value === value
+                ? previous
+                : {provided: currentTranslation, value},
+            );
+          }
+        }}
         recents={[]}
         onIntent={() => {
           beginOutputRequest();
@@ -325,7 +376,12 @@ export function BibleQuickField({
         scope={overlayOpen ? 'dialog' : 'show'}
         recents={document?.value.recents ?? []}
         translations={translations}
-        translation={currentTranslation}
+        translation={panelTranslation}
+        showTranslation={
+          firstRecentRef === undefined ||
+          (resolvedTranslation !== null &&
+            resolvedTranslation.provided === currentTranslation)
+        }
         disabled={display === null}
         onPick={recent => {
           pick(recent).catch((error: unknown) => console.error(error));

@@ -25,14 +25,20 @@
   background: var(--bg-raised);
 }
 .ref {
-  flex: 1;
+  flex: none;
+  white-space: nowrap;
+}
+.translation {
+  flex: 0 1 auto;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: var(--text-2);
 }
-.translation,
 .keys {
+  flex: none;
+  margin-left: auto;
   color: var(--text-2);
 }
 
@@ -61,7 +67,7 @@
   color: var(--text-3);
 }
 .dialog .ref {
-  flex: 0 1 auto;
+  flex: none;
 }
 .dialog .translation {
   color: var(--text-3);
