@@ -1,4 +1,11 @@
-import {useCallback, useRef, useState, type JSX, type ReactNode} from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type JSX,
+  type ReactNode,
+} from 'react';
 import {PictureReadiness} from './PictureReadiness';
 import styles from './AtomicPictureContent.module.css';
 
@@ -12,6 +19,7 @@ export function AtomicPictureContent({
   pictureCount = 1,
   aside = null,
   initialReady = false,
+  showLoading = false,
 }: {
   readonly identity: string;
   readonly pending: boolean;
@@ -23,6 +31,7 @@ export function AtomicPictureContent({
   readonly aside?: ReactNode;
   /** The initial content was already prepared by an enclosing frame. */
   readonly initialReady?: boolean;
+  readonly showLoading?: boolean;
 }): JSX.Element {
   const [displayed, setDisplayed] = useState<string | null>(
     initialReady ? identity : null,
@@ -83,7 +92,28 @@ export function AtomicPictureContent({
           </PictureReadiness.Provider>
         </div>
       ) : null}
+      {showLoading && (pending || staging) ? (
+        <DelayedLoading key={`loading:${identity}`} />
+      ) : null}
       {aside}
     </div>
   );
+}
+
+/** Shows only when the replacement remains pending for a perceptible time. */
+function DelayedLoading(): JSX.Element | null {
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setVisible(true), 150);
+    return () => clearTimeout(timer);
+  }, []);
+  return visible ? (
+    <span
+      className={styles.loading}
+      role="status"
+      aria-label="\uBD88\uB7EC\uC624\uB294 \uC911"
+    >
+      <span className={styles.spinner} />
+    </span>
+  ) : null;
 }

@@ -1,6 +1,6 @@
 import {act, render, screen} from '@testing-library/react';
 import {useContext, useLayoutEffect, useRef, type JSX} from 'react';
-import {expect, it} from 'vitest';
+import {expect, it, vi} from 'vitest';
 import {AtomicPictureContent} from '@renderer/rendering/AtomicPictureContent';
 import {PictureReadiness} from '@renderer/rendering/PictureReadiness';
 
@@ -49,4 +49,61 @@ it('waits for every distinct picture before exposing the next content', () => {
   expect(screen.queryByText('previous')).toBeNull();
   expect(screen.getByText('first').closest('[aria-hidden="true"]')).toBeNull();
   view.unmount();
+});
+
+it('shows the delayed loading indicator only for a pending replacement', () => {
+  vi.useFakeTimers();
+  try {
+    const view = render(
+      <AtomicPictureContent
+        identity="a"
+        pending
+        showLoading
+        content={<p>next</p>}
+      />,
+    );
+    act(() => {
+      vi.advanceTimersByTime(149);
+    });
+    expect(screen.queryByRole('status')).toBeNull();
+    act(() => {
+      vi.advanceTimersByTime(1);
+    });
+    expect(screen.getByRole('status')).toBeTruthy();
+    view.rerender(
+      <AtomicPictureContent
+        identity="a"
+        pending={false}
+        showLoading
+        content={<p>next</p>}
+      />,
+    );
+    expect(screen.queryByRole('status')).toBeNull();
+    view.rerender(
+      <AtomicPictureContent
+        identity="b"
+        pending
+        showLoading
+        content={<p>later</p>}
+      />,
+    );
+    act(() => {
+      vi.advanceTimersByTime(100);
+    });
+    view.rerender(
+      <AtomicPictureContent
+        identity="b"
+        pending={false}
+        showLoading
+        content={<p>later</p>}
+      />,
+    );
+    act(() => {
+      vi.advanceTimersByTime(100);
+    });
+    expect(screen.queryByRole('status')).toBeNull();
+    view.unmount();
+  } finally {
+    vi.useRealTimers();
+  }
 });

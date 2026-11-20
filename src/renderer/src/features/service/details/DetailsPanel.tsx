@@ -474,6 +474,7 @@ function DetailsPanelContent({
       <AtomicPictureContent
         initial={<DetailsShell />}
         identity={detailsKey}
+        showLoading
         pending={target !== null && !deleted}
         content={<DetailsShell />}
       />
@@ -532,6 +533,7 @@ function DetailsPanelContent({
     <AtomicPictureContent
       initial={<DetailsShell />}
       identity={identity}
+      showLoading
       aside={
         ahead === null ? null : (
           <AheadBox>
