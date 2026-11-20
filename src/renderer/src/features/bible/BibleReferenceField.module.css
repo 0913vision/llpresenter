@@ -20,6 +20,12 @@
   min-width: 0;
 }
 
+.form:not(.dialogForm) [data-reference-part='chapter'],
+.form:not(.dialogForm) [data-reference-part='start'],
+.form:not(.dialogForm) [data-reference-part='end'] {
+  text-align: center;
+}
+
 .popup {
   position: fixed;
   z-index: var(--z-popover);

@@ -1,4 +1,5 @@
 .fields {
   display: grid;
   gap: var(--space-6);
+  padding: var(--space-12) var(--space-20) 0;
 }

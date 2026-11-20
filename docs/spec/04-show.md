@@ -864,11 +864,12 @@ name. Chapter and verse bounds always use the built-in GAE number table.
 ### Finding a passage
 
 - The 빠른 실행 Bible input has four fields, 책, 장, 시작절, and optional 끝절
-  (user decision, October 26). 책 occupies the first row; the three number
-  fields share the next row so they also fit the narrow workspace. Once book and
-  chapter are known, the end field placeholder is the last verse number. Ctrl B
-  opens the compact reference modal. The same component is used in 준비 항목
-  추가 성경 구절.
+  (user decision, October 26). The three number fields center their contents and
+  placeholders. 책 occupies the first row; the three number fields share the
+  next row so they also fit the narrow workspace. Once book and chapter are
+  known, the end field placeholder is the last verse number. Ctrl B opens the
+  compact reference modal. The same component is used in 준비 항목 추가 성경
+  구절.
 - 책 lists matching Korean names, standard abbreviations, 초성, English names
   and codes, and IME-off QWERTY input in relevance order (02). Current codes
   include `ezk`, `jol`, `jnh`, `nam`, `mrk`, `jhn`, and `php`; the previous
@@ -1280,14 +1281,14 @@ grouping the sermon passage with the sermon title item.
 
 ### Sermon element
 
-In preparation, a sermon adds a title and main Bible passage using the usual
-Bible reference fields. A directly adjacent sermon-title item and Bible passage
-can be bound as one sermon, and the resulting item can be split again; both
-operations are undoable. An existing section card on the Bible item remains the
-first slide of the sermon and returns to the Bible item when split. The sermon
-title follows the card and uses the sermon-title theme and passage reference;
-Bible passage slides follow with their existing display settings, followed by
-the same sermon title again. The stage previews that closing title after the
-last verse. Both title slides have separately editable transitions. Sermon title
-thumbnails and previews resolve the sermon-title theme for the selected screen.
-The service list counts both title slides and measured passage parts.
+In preparation, a sermon adds a title and main Bible passage in the shared
+passage dialog. A directly adjacent sermon-title item and Bible passage can be
+bound as one sermon, and the resulting item can be split again; both operations
+are undoable. An existing section card on the Bible item remains the first slide
+of the sermon and returns to the Bible item when split. The sermon title follows
+the card and uses the sermon-title theme and passage reference; Bible passage
+slides follow with their existing display settings, followed by the same sermon
+title again. The stage previews that closing title after the last verse. Both
+title slides have separately editable transitions. Sermon title thumbnails and
+previews resolve the sermon-title theme for the selected screen. The service
+list counts both title slides and measured passage parts.
