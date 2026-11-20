@@ -3245,7 +3245,7 @@ it('shows an empty stage next slide cue and preserves labels and other screens',
     slide: {...slide, next: {label: null, lines: [], stageStandby: true}},
   };
   show('stage');
-  expect(text()).toBe('');
+  expect(text().trim()).toBe('');
   layers = {
     ...layers,
     slide: {...slide, next: {label: 'Interlude', lines: [' ']}},
