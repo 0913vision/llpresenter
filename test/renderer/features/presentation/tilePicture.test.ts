@@ -2,7 +2,7 @@ import {expect, it} from 'vitest';
 import {tilePictureSpec} from '@renderer/features/presentation/tilePicture';
 import {slideTheme} from '@renderer/platform/useSlideTheme';
 import {pictureKey} from '@core/output/pictureKey';
-import {outputSlideSpec} from '@renderer/rendering/OutputSlidePicture';
+import {outputSlideSpec} from '@renderer/rendering/outputSlideSpec';
 import {createMediaId} from '@core/schema/ids';
 import {themeScreens} from '@fixtures/core/themeOutput';
 

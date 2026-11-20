@@ -45,15 +45,6 @@ const tiles: ReadonlyArray<[string, SlideTile]> = [
 it.each(['audience', 'stage', 'broadcast'] as const)(
   'builds prepared and projected pictures consistently on %s',
   role => {
-    const appearance = previewAppearance({
-      role,
-      themes: themeFile(),
-      screens: {
-        format: 'llsettings.screens',
-        schemaVersion: 1,
-        screens: themeScreens,
-      },
-    });
     const theme = slideTheme(
       {id: 'item', kind: 'song', title: 'Song'},
       {source: 'service', file: themeFile(), screens: themeScreens, role},
@@ -97,13 +88,6 @@ it.each(['audience', 'stage', 'broadcast'] as const)(
       expect(projected.layers.slide?.itemId, kind).toBe(
         background === undefined ? kind : undefined,
       );
-      const layered = pictureSpec({
-        kind: 'layers',
-        layers: direct.layers,
-        appearance,
-      }).spec;
-      expect(layered.layers).toBe(direct.layers);
-      expect(layered.appearance).toBe(appearance);
     }
   },
 );

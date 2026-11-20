@@ -11,7 +11,6 @@ import {useSlidesVerseProjection} from '@renderer/features/bible/useSlidesVerseP
 import {Button} from '@renderer/ui/Button';
 import {Picture} from '@renderer/rendering/pictures/Picture';
 import {pictureSpec} from '@renderer/rendering/pictureSpec';
-export {slideLayers} from '@renderer/rendering/pictureSpec';
 import {usePrepPictureSwitch} from '@renderer/rendering/PrepPictureSwitch';
 import {
   previewAppearance,

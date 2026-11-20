@@ -9,7 +9,7 @@ import {
 } from '@fixtures/renderer/features/service/items/itemFixture';
 import {SongEditorStore} from '@renderer/features/songs/editor';
 import {ServiceItemStore} from '@renderer/features/service/items/serviceItemStore';
-import {setItemCard} from '@renderer/features/service/items/cardSlideModel';
+import {saveCard} from '@renderer/features/service/items/sectionCardActions';
 import {useLeadingItemCard} from '@renderer/features/service/items/useLeadingItemCard';
 
 it('binds the leading card to the selected item and deletes only that card', async () => {
@@ -29,13 +29,7 @@ it('binds the leading card to the selected item and deletes only that card', asy
   expect(view.result.current).toBeUndefined();
   const section = SUNDAY_SECTIONS[1];
   if (section === undefined) throw Error('missing section');
-  await act(async () => {
-    await items.submitItemEdit({
-      target: {serviceId: fixtureServiceId, itemId: fixtureItems.arranged},
-      failure: 'failed',
-      change: item => setItemCard(item, sectionCardOf(section)),
-    });
-  });
+  act(() => saveCard(items, sectionCardOf(section)));
   await waitFor(() => expect(view.result.current).toBeDefined());
   act(() => view.result.current?.onDelete());
   await waitFor(() => expect(view.result.current).toBeUndefined());
