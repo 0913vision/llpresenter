@@ -636,11 +636,9 @@ as every settings file does (02).
   white bold 72 px text, 1.25 line height and at most two lines, shrinking to
   fit. The band text has a 0 2px 6px black shadow at 80%; text-only uses a 4 px
   shadow at 80% and 2 px offset plus a 24 px glow at 55%. All song lines use the
-  same style. An empty song slide uses its title, not its label. Hymn lyric
-  slides show the normalized hymn title at x=96 in lighter 48 px semibold text;
-  ordinary song lyric slides have no small title. Title slides and text-only
-  captions have no small title. The capture fallback uses an unblurred hard
-  shadow.
+  same style. An empty song slide uses its title, not its label. Lyric slides of
+  songs and hymns have no separate title; the title slide keeps the name. The
+  capture fallback uses an unblurred hard shadow.
 - Broadcast section cards use a 234 px horizontal black fade from y=756 to
   y=990: transparent at the edges and 88% black from 18% to 82% of the width.
   The Korean item name alone is centered in white Pretendard Variable bold 88 px
@@ -813,16 +811,14 @@ screens are transparent and have no elements. PowerPoint picture imports use
 this theme with their privately owned slide pictures. The image theme uses
 ID 108. The built-in sermon title theme uses ID 106.
 
-The theme editor displays the fitted built-in broadcast band, text and title
-using a representative slide, including the generated song title. Position, size
-and text-style edits for fitted elements are stored as optional per-element
-`broadcastEdits` in that theme's broadcast layout. Missing edits retain the
-computed defaults. Broadcast output uses the same fitting and overrides. The
-song band retains a fixed height across slides, its lyrics stay in the band, and
-the title remains at its top left without overlapping the lyric area. A song
-title stays on one line, fitting down to 24 px and then using an ellipsis. An
+The theme editor displays the fitted built-in broadcast band and text using a
+representative slide. Position, size and text-style edits for fitted elements
+are stored as optional per-element `broadcastEdits` in that theme's broadcast
+layout. Missing edits retain the computed defaults. Broadcast output uses the
+same fitting and overrides. The song band retains a fixed height across slides,
+its lyrics stay in the band, and the lyrics remain centered in the band. An
 edited Bible reference remains within its tab and the body fits below the tab.
-The overrides are limited to the screen element limit plus one generated title.
+Existing title overrides are retained but do not create a title on lyric slides.
 
 Transitions belong to individual slides, not themes.
 

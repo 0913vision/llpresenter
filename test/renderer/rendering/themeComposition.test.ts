@@ -125,14 +125,15 @@ describe('theme composition drawing', () => {
       const reference = '하박국 3:17~19';
       const text = '17 비록 무화과나무가\n무성하지 못하며 (계속)';
       const longerText = '18 나는 여호와로 말미암아 즐거워하며';
+      const legacySlides = [
+        {id: first.id, text: `${text}  \n`, reference},
+        {id: second.id, text: longerText, reference},
+      ];
       const tiles = projectSlides({
         ...item,
         slides: {
           ...item.slides,
-          slides: [
-            {id: first.id, text: `${text}  \n`, reference},
-            {id: second.id, text: longerText, reference},
-          ],
+          slides: legacySlides,
         },
       });
       const bibleTiles = tiles.map(
@@ -277,9 +278,10 @@ describe('theme composition drawing', () => {
       throw Error('Missing text slide');
     }
     const reference = '하박국 3:17~19';
+    const legacySlide = {...first, reference};
     const tiles = projectSlides({
       ...item,
-      slides: {...item.slides, slides: [{...first, reference}]},
+      slides: {...item.slides, slides: [legacySlide]},
     });
     expect(tiles[0]?.reference).toBe(reference);
     const slide = slideLayerOf({itemId: item.id, index: 0}, () => tiles);
