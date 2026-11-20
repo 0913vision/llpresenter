@@ -15,5 +15,5 @@
 .screen .black {
   position: absolute;
   inset: 0;
-  background: rgb(0 0 0);
+  background: var(--output-black);
 }
