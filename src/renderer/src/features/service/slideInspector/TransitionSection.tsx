@@ -37,12 +37,14 @@ function TimeField({
   value,
   mixed,
   disabled,
+  empty,
   onCommit,
 }: {
   readonly id: string;
   readonly value: number;
   readonly mixed: boolean;
   readonly disabled: boolean;
+  readonly empty: boolean;
   readonly onCommit: (seconds: number) => void;
 }): JSX.Element {
   const [draft, setDraft] = useState<string | null>(null);
@@ -64,7 +66,11 @@ function TimeField({
         inputMode="decimal"
         placeholder={mixed ? '혼합' : undefined}
         disabled={disabled}
-        value={draft ?? (mixed ? '' : String(Math.round(value * 100) / 100))}
+        value={
+          empty
+            ? ''
+            : (draft ?? (mixed ? '' : String(Math.round(value * 100) / 100)))
+        }
         onChange={setDraft}
         onBlur={commit}
         onKeyDown={event => {
@@ -221,11 +227,12 @@ export function TransitionSection({
         <PropertyRow label="시간">
           {({controlId}) => (
             <TimeField
-              key={selectionKey}
+              key={`${selectionKey}:${value.kind}`}
               id={controlId}
               value={value.sec}
               mixed={mixed}
               disabled={locked || (!mixed && value.kind === 'none')}
+              empty={!mixed && value.kind === 'none'}
               onCommit={onSeconds}
             />
           )}

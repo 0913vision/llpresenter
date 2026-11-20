@@ -4,7 +4,10 @@ import {
   SlideInspectorView,
   type InspectorAdapter,
 } from '@renderer/features/service/slideInspector/SlideInspectorView';
-import {inspectorTransition} from '@renderer/features/service/slideInspector/TransitionSection';
+import {
+  inspectorTransition,
+  TransitionSection,
+} from '@renderer/features/service/slideInspector/TransitionSection';
 
 it.each([
   'song',
@@ -142,4 +145,29 @@ it('summarizes unset and mixed transitions identically for every adapter', () =>
       {kind: 'wipe', dir: 'left', sec: 1},
     ]),
   ).toEqual({value: {kind: 'push', dir: 'left', sec: 1}, mixed: true});
+});
+
+it('clears and disables the duration for no effect and restores it for an effect', () => {
+  const props = {
+    mixed: false,
+    disabled: false,
+    selectionKey: 'one',
+    onChange: vi.fn(),
+    onSeconds: vi.fn(),
+    onApplyAll: vi.fn(),
+  };
+  const view = render(
+    <TransitionSection {...props} value={{kind: 'none', sec: 2}} />,
+  );
+  let field = screen.getByLabelText<HTMLInputElement>(
+    '\uC804\uD658 \uC2DC\uAC04',
+  );
+  expect(field.disabled).toBe(true);
+  expect(field.value).toBe('');
+  view.rerender(
+    <TransitionSection {...props} value={{kind: 'dissolve', sec: 2}} />,
+  );
+  field = screen.getByLabelText<HTMLInputElement>('\uC804\uD658 \uC2DC\uAC04');
+  expect(field.disabled).toBe(false);
+  expect(field.value).toBe('2');
 });
