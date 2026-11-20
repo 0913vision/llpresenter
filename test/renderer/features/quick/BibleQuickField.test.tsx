@@ -575,6 +575,8 @@ describe('BibleQuickField', () => {
 
   it.each(
     [
+      ['book', '16', '', '\uc694\ud55c\ubcf5\uc74c 3:16'],
+      ['end', '16', '18', '\uc694\ud55c\ubcf5\uc74c 3:16-18'],
       ['start', '16', '', '\uc694\ud55c\ubcf5\uc74c 3:16'],
       ['start', '16', '18', '\uc694\ud55c\ubcf5\uc74c 3:16-18'],
       ['chapter', '', '', '\uc694\ud55c\ubcf5\uc74c 3'],
@@ -603,7 +605,14 @@ describe('BibleQuickField', () => {
       fireEvent.change(chapter, {target: {value: '3'}});
       if (start) fireEvent.change(startField, {target: {value: start}});
       if (end) fireEvent.change(endField, {target: {value: end}});
-      const target = part === 'chapter' ? chapter : startField;
+      const target =
+        part === 'book'
+          ? await book()
+          : part === 'chapter'
+            ? chapter
+            : part === 'end'
+              ? endField
+              : startField;
       target.focus();
       fireEvent.keyDown(target, {key: 'Enter', code: 'Enter'});
       await waitFor(() =>

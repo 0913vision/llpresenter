@@ -146,7 +146,15 @@ export function PassageDialog({
           ),
         ),
       );
-    } else if (event.key === 'Enter' && highlight >= 0) {
+    } else if (
+      event.key === 'Enter' &&
+      highlight >= 0 &&
+      !Array.from(
+        surface.current?.querySelectorAll<HTMLInputElement>(
+          '[data-reference-part]',
+        ) ?? [],
+      ).some(field => field.value !== '')
+    ) {
       const recent = entries[highlight];
       if (recent) {
         event.preventDefault();
@@ -171,7 +179,6 @@ export function PassageDialog({
           <BibleReferenceForm
             key={resetKey}
             dialogMode
-            submitAnyField
             autoFocus
             api={api}
             translation={translation}

@@ -612,12 +612,10 @@ Source: `AddSongs`, `ListRow` README.
   - 구역 추가: inserts an empty section named "새 구역" in rename mode.
   - 성경 구절: opens the shared four-field passage dialog (04). 책 accepts
     Korean full/short names, 초성, English names/codes, partial jamo and IME-off
-    keys. Tab or Enter completes the book name and moves through 장, 시작절,
-    끝절; matching partial names are not marked red. `ckd` completes to 창세기,
-    while `chd` has no match. Enter in 끝절 or 추가 inserts the validated
-    passage with the default settings; earlier Enter presses never insert it.
-    Escape closes an open suggestion list first, then closes the dialog without
-    clearing the unfinished reference.
+    keys. Tab completes the book name and moves through 장, 시작절 and 끝절;
+    matching partial names are not marked red. `ckd` completes to 창세기,
+    while `chd` has no match. Enter in any field inserts the validated passage
+    with the default settings. Escape clears the fields, then closes the dialog.
   - 미디어: a submenu with the media list. Missing files cannot be added and
     show the reason in a tooltip.
 

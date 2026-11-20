@@ -286,7 +286,6 @@ export function BibleQuickField({
       <BibleReferenceField
         overlayLabels={overlayOpen}
         onEscape={overlayOpen ? closeFinder : undefined}
-        submitAnyField
         key={`${selectionVersion}:${session}`}
         api={api.bible}
         translation={currentTranslation}
