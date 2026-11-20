@@ -342,8 +342,12 @@ export function startOutputs({
   };
   const ensureAlpha = (screenId: string): boolean => {
     const screen = screens.list().find(item => item.id === screenId);
+    if (screen?.target === 'ndi') {
+      stopAlpha(screenId);
+      return true;
+    }
     const contents = outputs.previewContents(screenId);
-    const needed = screen?.target === 'ndi' || contents?.isOffscreen() === true;
+    const needed = contents?.isOffscreen() === true;
     if (store.state.outputs[screenId] !== true) {
       stopAlpha(screenId);
       return needed;
@@ -412,6 +416,7 @@ export function startOutputs({
         .find(item => item.id === request.value.screenId);
       if (screen === undefined) return null;
       if (store.state.outputs[screen.id] !== true) return null;
+      if (screen.target === 'ndi') return null;
       if (ensureAlpha(screen.id)) return 'alpha';
       const owner = captureOwners.get(screen.id);
       if (owner !== undefined && owner !== event.sender.id) {

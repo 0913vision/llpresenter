@@ -22,7 +22,7 @@ import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 const NO_STILL_SCREENS: ReadonlySet<string> = new Set();
 
 function renderScreen(screen: PreviewScreen<string>): JSX.Element {
-  return screen.status.kind === 'on' ? (
+  return screen.status.kind === 'on' && screen.target?.kind !== 'ndi' ? (
     <OutputMirror screenId={screen.id} targetKind={screen.target?.kind} />
   ) : (
     <ScreenPreview screenId={screen.id} chroma={screen.chroma === true} />

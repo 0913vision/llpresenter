@@ -1,4 +1,9 @@
-import {cleanup, fireEvent, waitFor} from '@testing-library/react';
+import {
+  cleanup,
+  fireEvent,
+  render as renderRaw,
+  waitFor,
+} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {
   BROADCAST_SCREEN,
@@ -11,6 +16,7 @@ import {renderWithScreenSummaries as render} from '@fixtures/renderer/platform/s
 import {PreviewPanel} from '@renderer/features/presentation/PreviewPanel';
 import {usePreview} from '@renderer/session/preview';
 import {useLive} from '@renderer/session/live';
+import {ScreenSummariesContext} from '@renderer/platform/ScreenSummaries';
 
 const stop = vi.fn();
 const capture = vi.fn();
@@ -48,6 +54,29 @@ afterEach(() => {
 });
 
 describe('PreviewPanel mirror lifecycle', () => {
+  it('uses the drawn preview without capturing the NDI output', () => {
+    const {container} = renderRaw(
+      <ScreenSummariesContext
+        value={[
+          {
+            id: BROADCAST_SCREEN,
+            icon: 'capture',
+            toolbarLabel: '방송 화면',
+            statusLabel: '방송 화면',
+            target: 'NDI',
+            targetKind: 'ndi',
+            chroma: true,
+            kind: 'broadcast',
+          },
+        ]}
+      >
+        <PreviewPanel />
+      </ScreenSummariesContext>,
+    );
+    expect(container.querySelector('video')).toBeNull();
+    expect(source).not.toHaveBeenCalled();
+    expect(capture).not.toHaveBeenCalled();
+  });
   it('opens one stream per screen and keeps them when the main screen changes', async () => {
     const {container, unmount} = render(<PreviewPanel />);
     await waitFor(() => expect(capture).toHaveBeenCalledTimes(3));
