@@ -16,6 +16,7 @@ let mirrorEnabled = false;
 let mirrorInFlight = false;
 let mirrorDue = 0;
 let mirrorDirty = false;
+let mirrorPending = false;
 
 function post(message) {
   process.parentPort.postMessage(message);
@@ -53,13 +54,17 @@ function captureMirror() {
     return;
   }
   try {
-    const frame = presenter.takeMirror();
+    const frame = mirrorPending ? presenter.takeMirror() : null;
     if (frame !== null) {
+      mirrorPending = false;
       mirrorInFlight = true;
       mirrorDue = performance.now() + 100;
       post({type: 'mirror-frame', frame});
-    } else if (mirrorDirty && performance.now() >= mirrorDue) {
-      if (presenter.requestMirror()) mirrorDirty = false;
+    } else if (!mirrorPending && mirrorDirty && performance.now() >= mirrorDue) {
+      if (presenter.requestMirror()) {
+        mirrorDirty = false;
+        mirrorPending = true;
+      }
     }
   } catch (error) {
     mirrorEnabled = false;
@@ -113,6 +118,7 @@ process.parentPort.on('message', event => {
       case 'open': {
         close();
         mirrorInFlight = false;
+        mirrorPending = false;
         mirrorDue = 0;
         mirrorDirty = mirrorEnabled;
         onTop = message.topmost !== false;
@@ -154,6 +160,7 @@ process.parentPort.on('message', event => {
       case 'mirror':
         mirrorEnabled = message.enabled === true;
         mirrorInFlight = false;
+        mirrorPending = false;
         mirrorDue = 0;
         mirrorDirty = mirrorEnabled;
         applyMirror();

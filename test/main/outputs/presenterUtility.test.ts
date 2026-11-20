@@ -23,11 +23,11 @@ it('mirrors changed presenter frames at most ten times per second', () => {
     startMirror: vi.fn(),
     stopMirror: vi.fn(),
     requestMirror,
-    takeMirror: () => {
+    takeMirror: vi.fn(() => {
       if (!pending) return null;
       pending = false;
       return new Uint8Array(640 * 360 * 4);
-    },
+    }),
   };
   const source = readFileSync(
     new URL(
@@ -69,6 +69,7 @@ it('mirrors changed presenter frames at most ten times per second', () => {
   now = 1000;
   tick();
   expect(requestMirror).toHaveBeenCalledTimes(1);
+  expect(presenter.takeMirror).toHaveBeenCalledTimes(1);
   message({type: 'frame', pid: 1, handle: 'fixture'});
   tick();
   tick();
