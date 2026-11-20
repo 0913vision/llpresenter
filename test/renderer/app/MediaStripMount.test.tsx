@@ -89,7 +89,8 @@ it('releases workspace media feeds while retaining audio shortcut state until ap
   expect(stopCopies).toHaveBeenCalledOnce();
   expect(send).not.toHaveBeenCalled();
   unmount();
-  expect(stopMedia).toHaveBeenCalledTimes(subscribe.mock.calls.length);
+  // NOTE(0913vision): The picture cache keeps an application-wide subscription.
+  expect(stopMedia).toHaveBeenCalledTimes(subscribe.mock.calls.length - 1);
 });
 
 it('finishes an import and opens prep after its media panel is collapsed', async () => {

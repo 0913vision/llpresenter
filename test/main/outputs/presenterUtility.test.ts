@@ -45,7 +45,9 @@ it('mirrors changed presenter frames at most ten times per second', () => {
         setTimeout: (callback: () => void) => ticks.push(callback),
       };
     }
-    if (name === './d3dPresenter.cjs') return {createPresenter: () => presenter};
+    if (name === './d3dPresenter.cjs') {
+      return {createPresenter: () => presenter};
+    }
     throw new Error(`Unexpected import ${name}`);
   };
   runInNewContext(source, {require: requireMock});

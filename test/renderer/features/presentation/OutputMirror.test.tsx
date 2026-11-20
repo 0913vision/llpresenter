@@ -35,19 +35,24 @@ describe('output mirror', () => {
     vi.stubGlobal('navigator', {mediaDevices: {getUserMedia: capture}});
     vi.stubGlobal(
       'llp',
-      mockLlpApi({output: {
-        previewSource: async () => 'relay',
-        previewControl: control,
-        subscribePreviewFrame: next => {
-          listener.current = next;
-          return () => undefined;
+      mockLlpApi({
+        output: {
+          previewSource: async () => 'relay',
+          previewControl: control,
+          subscribePreviewFrame: next => {
+            listener.current = next;
+            return () => undefined;
+          },
         },
-      }}),
+      }),
     );
     const view = render(<OutputMirror screenId="one" />);
     await waitFor(() => expect(listener.current).toBeDefined());
     act(() =>
-      listener.current?.({screenId: 'one', frame: new Uint8Array(640 * 360 * 4)}),
+      listener.current?.({
+        screenId: 'one',
+        frame: new Uint8Array(640 * 360 * 4),
+      }),
     );
     expect(view.container.querySelector('canvas')?.hidden).toBe(false);
     expect(capture).not.toHaveBeenCalled();
@@ -87,7 +92,10 @@ describe('output mirror', () => {
           originalRequest,
         );
       } else {
-        Reflect.deleteProperty(HTMLVideoElement.prototype, 'requestVideoFrameCallback');
+        Reflect.deleteProperty(
+          HTMLVideoElement.prototype,
+          'requestVideoFrameCallback',
+        );
       }
       if (originalCancel) {
         Object.defineProperty(
@@ -96,7 +104,10 @@ describe('output mirror', () => {
           originalCancel,
         );
       } else {
-        Reflect.deleteProperty(HTMLVideoElement.prototype, 'cancelVideoFrameCallback');
+        Reflect.deleteProperty(
+          HTMLVideoElement.prototype,
+          'cancelVideoFrameCallback',
+        );
       }
     });
     vi.spyOn(HTMLVideoElement.prototype, 'videoWidth', 'get').mockReturnValue(
@@ -126,14 +137,16 @@ describe('output mirror', () => {
     const publish = vi.fn<(value: PreviewFrame) => void>();
     vi.stubGlobal(
       'llp',
-      mockLlpApi({output: {
-        previewSource: async () => 'AAAAAAAAAAAAAAAAAAAAAA==',
-        subscribePreviewRelay: listener => {
-          relay.current = listener;
-          return () => undefined;
+      mockLlpApi({
+        output: {
+          previewSource: async () => 'AAAAAAAAAAAAAAAAAAAAAA==',
+          subscribePreviewRelay: listener => {
+            relay.current = listener;
+            return () => undefined;
+          },
+          publishPreview: publish,
         },
-        publishPreview: publish,
-      }}),
+      }),
     );
     render(<OutputMirror screenId="one" />);
     await waitFor(() => expect(capture).toHaveBeenCalledOnce());
