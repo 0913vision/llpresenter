@@ -83,10 +83,16 @@ jobs:
           path: node_modules/.cache/prettier
           key: prettier-${{ runner.os }}-${{ hashFiles('package-lock.json', '.prettierrc.json', '.prettierignore') }}-${{ github.sha }}
           restore-keys: prettier-${{ runner.os }}-${{ hashFiles('package-lock.json', '.prettierrc.json', '.prettierignore') }}-
+      - name: Cache ESLint results
+        uses: actions/cache@v6.1.0
+        with:
+          path: node_modules/.cache/eslint
+          key: eslint-${{ runner.os }}-${{ hashFiles('package-lock.json', 'scripts/lint/**', 'tsconfig*.json') }}-${{ github.sha }}
+          restore-keys: eslint-${{ runner.os }}-${{ hashFiles('package-lock.json', 'scripts/lint/**', 'tsconfig*.json') }}-
       - if: needs.changes.outputs.code == 'true'
         run: npm run typecheck
       - if: needs.changes.outputs.code == 'true'
-        run: npm run lint -- --concurrency auto
+        run: npm run lint -- --concurrency auto --cache --cache-strategy content --cache-location node_modules/.cache/eslint/
       - run: npm run format:check
       - if: needs.changes.outputs.code == 'true'
         run: npm run build
@@ -99,7 +105,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4, 5, 6]
+        shard: [1, 2, 3, 4]
     steps:
       - uses: actions/checkout@v7.0.1
         with:
@@ -123,12 +129,47 @@ jobs:
           restore-keys: electron-${{ runner.os }}-
       - if: steps.modules.outputs.cache-hit != 'true'
         run: npm ci
-      - run: npx --no-install vitest run --shard=${{ matrix.shard }}/6
+      - run: npx --no-install vitest run --project node --project renderer --shard=${{ matrix.shard }}/4
+        env:
+          LLP_CI_TEST_WORKERS: '1'
+
+  # NOTE(0913vision): Each real Electron test takes 10 to 40 s alone. In the
+  # shards they made one shard run twice as long as the others, so they run
+  # in their own job beside the shards.
+  electron:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 24.20.0
+          cache: npm
+      - name: Cache installed packages
+        id: modules
+        uses: actions/cache@v6.1.0
+        with:
+          path: node_modules
+          key: modules-${{ runner.os }}-node24.20.0-${{ hashFiles('package-lock.json') }}
+      - name: Cache Electron downloads
+        if: steps.modules.outputs.cache-hit != 'true'
+        uses: actions/cache@v6.1.0
+        with:
+          path: ~\AppData\Local\electron\Cache
+          key: electron-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: electron-${{ runner.os }}-
+      - if: steps.modules.outputs.cache-hit != 'true'
+        run: npm ci
+      - run: npx --no-install vitest run --project electron
         env:
           LLP_CI_TEST_WORKERS: '1'
 
   installer:
-    needs: [changes, checks, tests]
+    needs: [changes, checks, tests, electron]
     if: github.event_name == 'push' && github.ref != 'refs/heads/main' && needs.changes.outputs.installer == 'true'
     runs-on: windows-latest
     timeout-minutes: 30
@@ -255,3 +296,48 @@ jobs:
 
       - name: Push the bump commit and its tag
         run: git push --atomic --follow-tags origin HEAD:refs/heads/main
+
+  # NOTE(0913vision): Nov 20 an urgent merge left main failing typecheck and
+  # every branch failed on it. Main now gets the full typecheck, lint, and
+  # format check on each push; its lint and format results also seed the
+  # caches that branch runs start from.
+  main-checks:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 24.20.0
+          cache: npm
+      - name: Cache installed packages
+        id: modules
+        uses: actions/cache@v6.1.0
+        with:
+          path: node_modules
+          key: modules-${{ runner.os }}-node24.20.0-${{ hashFiles('package-lock.json') }}
+      - name: Cache Electron downloads
+        if: steps.modules.outputs.cache-hit != 'true'
+        uses: actions/cache@v6.1.0
+        with:
+          path: ~\AppData\Local\electron\Cache
+          key: electron-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: electron-${{ runner.os }}-
+      - if: steps.modules.outputs.cache-hit != 'true'
+        run: npm ci
+      - name: Save ESLint results
+        uses: actions/cache@v6.1.0
+        with:
+          path: node_modules/.cache/eslint
+          key: eslint-${{ runner.os }}-${{ hashFiles('package-lock.json', 'scripts/lint/**', 'tsconfig*.json') }}-${{ github.sha }}
+      - name: Save Prettier results
+        uses: actions/cache@v6.1.0
+        with:
+          path: node_modules/.cache/prettier
+          key: prettier-${{ runner.os }}-${{ hashFiles('package-lock.json', '.prettierrc.json', '.prettierignore') }}-${{ github.sha }}
+      - run: npm run typecheck
+      - run: npm run lint -- --concurrency auto --cache --cache-strategy content --cache-location node_modules/.cache/eslint/
+      - run: npm run format:check

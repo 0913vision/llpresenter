@@ -7,6 +7,15 @@ import {configDefaults, defineConfig} from 'vitest/config';
  */
 export const RENDERER_NODE_TESTS = 'test/renderer/**/*.node.test.ts';
 
+/**
+ * Tests that start the real Electron app. They form their own project so CI
+ * can run them in a separate job.
+ */
+export const ELECTRON_TESTS = [
+  'test/ui/**/*.test.ts',
+  'test/**/*.electron.test.ts',
+];
+
 /** Keep local concurrent verification bounded; CI shards run on separate runners. */
 export function testWorkerLimit(env: NodeJS.ProcessEnv): '50%' | '100%' {
   return env['LLP_CI_TEST_WORKERS'] === '1' ? '100%' : '50%';
@@ -71,6 +80,16 @@ export default defineConfig({
             'test/fixtures/{core,contracts,main,preload}/**/*.test.ts',
             RENDERER_NODE_TESTS,
           ],
+          exclude: [...configDefaults.exclude, ...ELECTRON_TESTS],
+          environment: 'node',
+          setupFiles: ['test/setup/compileCache.ts'],
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: 'electron',
+          include: ELECTRON_TESTS,
           environment: 'node',
           setupFiles: ['test/setup/compileCache.ts'],
         },
