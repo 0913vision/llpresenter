@@ -25,6 +25,7 @@ import {
   outputPrevious,
   outputTile,
   setAtLastSlide,
+  stageSlideOf,
   useShow,
 } from '@renderer/session/show';
 import {
@@ -76,6 +77,54 @@ afterEach(() => {
 });
 
 describe('show state', () => {
+  it.each([
+    ['song', 'song'],
+    ['title', 'blank'],
+    ['bible', 'bible'],
+    ['sermon', 'blank'],
+    ['creed', 'blank'],
+    ['notice', 'ad'],
+    ['standby', 'blank'],
+    ['media', 'media'],
+  ] as const)(
+    'uses the same next caption on first output and refresh for %s',
+    (_name, kind) => {
+      const row =
+        kind === 'song' || kind === 'bible' || kind === 'media'
+          ? {kind, id: 'deck', title: 'Deck'}
+          : {
+              kind: 'slides' as const,
+              id: 'deck',
+              title: 'Deck',
+              form: 'blank' as const,
+            };
+      const first = {
+        label: null,
+        labelColor: 'none' as const,
+        lines: ['First'],
+      };
+      const second = {
+        label: null,
+        labelColor: 'none' as const,
+        lines: ['Next'],
+        ...(kind === 'ad' ? {kind: 'ad' as const, name: 'Notice'} : {}),
+        ...(kind === 'bible' ? {biblePart: 1} : {}),
+      };
+      applyService({
+        ...sampleService,
+        revision: 2,
+        rows: [row],
+        tiles: {deck: [first, second]},
+      });
+      const initial = stageSlideOf({itemId: 'deck', index: 0});
+      expect(initial?.next).toBeDefined();
+      setLive('deck', 0);
+      sent.length = 0;
+      setAtLastSlide('stop');
+      const refreshed = sent.find(command => command.type === 'stage.next.set');
+      expect(refreshed?.next).toEqual(initial?.next);
+    },
+  );
   it('refreshes a live background without showing the slide or clearing blackout', () => {
     const background = {mediaId: 'background', loop: true};
     const rows = sampleService.rows.map(row =>
