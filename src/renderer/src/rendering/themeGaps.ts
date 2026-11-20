@@ -1,4 +1,4 @@
-import type {RenderFrame} from './layer';
+import type {RenderFrame, RenderLayerOptions} from './layer';
 
 export const MAX_THEME_GAPS = 32;
 
@@ -9,7 +9,8 @@ export class ThemeGaps {
   private screen = '';
 
   constructor(
-    private readonly report: (message: string, error: unknown) => void,
+    private readonly report: RenderLayerOptions['onError'],
+    private readonly onDrawFailure?: RenderLayerOptions['onDrawFailure'],
   ) {}
 
   follow(frame: RenderFrame): void {
@@ -32,11 +33,13 @@ export class ThemeGaps {
     );
   }
 
-  failed(id: string, error: unknown): void {
+  failed(id: string, error: unknown, during?: 'draw'): void {
+    const message = `could not draw theme element ${id} on screen ${this.screen}`;
+    if (during === 'draw') this.onDrawFailure?.(message, error);
     const key = `element:${id}`;
     if (this.reported.has(key) || this.reported.size >= MAX_THEME_GAPS) return;
     this.reported.add(key);
-    this.report(`could not draw theme element ${id} on screen ${this.screen}`, {
+    this.report(message, {
       screenId: this.screen,
       id,
       error,

@@ -95,6 +95,8 @@ export interface RenderLayerOptions {
   readonly readableImages?: boolean;
   /** Receives drawing errors, which never reach the other layers. */
   readonly onError: (message: string, error: unknown) => void;
+  /** Signals an incomplete draw to a caller that captures the resulting frame. */
+  readonly onDrawFailure?: (message: string, error: unknown) => void;
   /** A preview draws still pictures without video elements; `output` when absent. */
   readonly mode?: RenderMode;
   readonly muted?: boolean;
