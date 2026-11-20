@@ -33,7 +33,7 @@ export function RecentPassages({
   readonly translations: readonly Translation[];
   readonly translation: TranslationId | undefined;
   readonly onPick: (passage: RecentPassage) => void;
-  readonly scope?: 'dialog';
+  readonly scope?: 'show' | 'dialog';
   readonly disabled?: boolean;
   readonly highlight?: number;
   readonly showTranslation?: boolean;
