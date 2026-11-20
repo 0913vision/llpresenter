@@ -3,6 +3,10 @@ import {PreviewSizingContext} from '@renderer/ui/PreviewSizingContext';
 import type {PanelRowId} from '@core/schema/panelRows';
 import {ResizeGap} from '@renderer/ui/ResizeGap';
 import {useRowLayout} from '@renderer/ui/useRowLayout';
+import {
+  clampPreviewRatio,
+  DEFAULT_PREVIEW_RATIO,
+} from '@renderer/ui/previewRatio';
 import type {SizeClass} from '@renderer/ui/sizeClass';
 import type {ColumnWidthStore} from './columnWidthStore';
 import {Panel, type WorkspacePanels} from './WorkspacePanel';
@@ -49,12 +53,21 @@ export function PanelColumn({
   const container = useRef<HTMLDivElement>(null);
   const [savedRatio, setSavedRatio] = useState(() => ({
     sizeClass,
-    value: (store.loadRows?.(sizeClass)?.['show.previewRatio'] ?? 667) / 1000,
+    value: clampPreviewRatio(
+      (store.loadRows?.(sizeClass)?.['show.previewRatio'] ?? 667) / 1000,
+    ),
   }));
   const ratio =
     savedRatio.sizeClass === sizeClass
       ? savedRatio.value
-      : (store.loadRows?.(sizeClass)?.['show.previewRatio'] ?? 667) / 1000;
+      : clampPreviewRatio(
+          (store.loadRows?.(sizeClass)?.['show.previewRatio'] ?? 667) / 1000,
+        );
+  const savePreviewRatio = (value: number): void => {
+    const safe = clampPreviewRatio(value);
+    setSavedRatio({sizeClass, value: safe});
+    store.saveRows?.(sizeClass, {'show.previewRatio': Math.round(safe * 1000)});
+  };
   const drag = useRowLayout({
     container,
     store,
@@ -80,12 +93,7 @@ export function PanelColumn({
               workspace === 'show' && title === '미리보기'
                 ? {
                     ratio,
-                    save: value => {
-                      setSavedRatio({sizeClass, value});
-                      store.saveRows?.(sizeClass, {
-                        'show.previewRatio': Math.round(value * 1000),
-                      });
-                    },
+                    save: savePreviewRatio,
                   }
                 : null
             }
@@ -103,7 +111,10 @@ export function PanelColumn({
               name={`${workspace}.${title}`}
               begin={() => drag.begin(index)}
               onReset={() => {
-                if (workspace === 'show' && title === '미리보기') drag.reset();
+                if (workspace === 'show' && title === '미리보기') {
+                  drag.reset();
+                  savePreviewRatio(DEFAULT_PREVIEW_RATIO);
+                }
               }}
               disabled={!drag.canResize(index)}
             />

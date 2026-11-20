@@ -4,6 +4,7 @@ import {PreviewPanel} from '@renderer/ui/PreviewPanel';
 import {usePreviewRoom} from '@renderer/ui/usePreviewRoom';
 import type {PreviewScreen} from '@renderer/ui/PreviewFrame';
 import {PreviewSizingContext} from '@renderer/ui/PreviewSizingContext';
+import {clampPreviewRatio} from '@renderer/ui/previewRatio';
 
 vi.mock('@renderer/ui/usePreviewRoom', () => ({usePreviewRoom: vi.fn()}));
 
@@ -55,6 +56,49 @@ describe('shared preview panel', () => {
     if (!divider) throw Error('Missing preview divider');
     fireEvent.doubleClick(divider);
     expect(save).toHaveBeenCalledWith(0.667);
+  });
+  it('clamps a stored bad split and restores the starting split after dragging back', () => {
+    const save = vi.fn();
+    HTMLElement.prototype.setPointerCapture = vi.fn();
+    const {container} = render(
+      <PreviewSizingContext.Provider value={{ratio: 8, save}}>
+        <PreviewPanel
+          screens={screens}
+          big="audience"
+          onBigChange={vi.fn()}
+          renderScreen={() => null}
+        />
+      </PreviewSizingContext.Provider>,
+    );
+    const divider = container.querySelector<HTMLElement>(
+      '[data-row-gap="preview.split"]',
+    );
+    const monitor = container.querySelector<HTMLElement>(
+      '[style*="--preview-ratio"]',
+    );
+    if (divider === null || monitor?.parentElement == null) {
+      throw new Error('Missing split');
+    }
+    Object.defineProperty(monitor.parentElement, 'clientHeight', {
+      configurable: true,
+      value: 400,
+    });
+    expect(monitor.style.getPropertyValue('--preview-ratio')).toBe('0.85');
+    fireEvent.pointerDown(divider, {pointerId: 1, button: 0, clientY: 100});
+    fireEvent.pointerMove(divider, {pointerId: 1, clientY: -100});
+    expect(
+      Number(monitor.style.getPropertyValue('--preview-ratio')),
+    ).toBeCloseTo(0.35);
+    fireEvent.pointerMove(divider, {pointerId: 1, clientY: 100});
+    fireEvent.pointerUp(divider, {pointerId: 1, clientY: 100});
+    expect(save).toHaveBeenLastCalledWith(0.85);
+    fireEvent.doubleClick(divider);
+    expect(save).toHaveBeenLastCalledWith(0.667);
+  });
+  it('clamps invalid and out-of-range saved ratios', () => {
+    expect(clampPreviewRatio(9)).toBe(0.85);
+    expect(clampPreviewRatio(-1)).toBe(0.15);
+    expect(clampPreviewRatio(Number.NaN)).toBe(0.667);
   });
   it('replaces tiles with the ordered header picker when space runs out', () => {
     const select = vi.fn();

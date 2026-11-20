@@ -7,6 +7,7 @@ import {usePreviewRoom} from './usePreviewRoom';
 import styles from './PreviewPanel.module.css';
 import {PreviewSizingContext} from './PreviewSizingContext';
 import {ResizeGap} from './ResizeGap';
+import {clampPreviewRatio, DEFAULT_PREVIEW_RATIO} from './previewRatio';
 
 function extraHeight(anchor: HTMLElement): number {
   let height = 0;
@@ -33,7 +34,9 @@ export function PreviewPanel<Id extends string>({
   const frameRef = useRef<HTMLDivElement>(null);
   const sizing = useContext(PreviewSizingContext);
   const [dragRatio, setDragRatio] = useState<number | null>(null);
-  const ratio = dragRatio ?? sizing?.ratio ?? 0.667;
+  const ratio = clampPreviewRatio(
+    dragRatio ?? sizing?.ratio ?? DEFAULT_PREVIEW_RATIO,
+  );
   const room = usePreviewRoom(root, {
     tiles: Math.max(0, frame.screens.length - 1),
     extra: extraHeight,
@@ -82,7 +85,7 @@ export function PreviewPanel<Id extends string>({
                       <ResizeGap
                         axis="row"
                         name="preview.split"
-                        onReset={() => sizing.save(0.667)}
+                        onReset={() => sizing.save(DEFAULT_PREVIEW_RATIO)}
                         begin={() => {
                           const height = frameRef.current?.clientHeight ?? 0;
                           if (height <= 0) return undefined;
@@ -90,10 +93,7 @@ export function PreviewPanel<Id extends string>({
                           let next = start;
                           return {
                             move: delta => {
-                              next = Math.max(
-                                0.15,
-                                Math.min(0.85, start + delta / height),
-                              );
+                              next = clampPreviewRatio(start + delta / height);
                               setDragRatio(next);
                             },
                             end: () => {

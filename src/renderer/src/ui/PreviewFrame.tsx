@@ -325,8 +325,8 @@ export function PreviewFrame<Id extends string>({
     '--preview-ratio': number;
   } = {
     gridTemplateColumns: split
-      ? `repeat(${Math.max(1, others.length)}, minmax(0, var(--split-tile-width)))`
-      : `repeat(${Math.max(1, tiles ? others.length : 1)}, minmax(0, 1fr))`,
+      ? `repeat(${Math.max(1, others.length)}, minmax(max-content, var(--split-tile-width)))`
+      : `repeat(${Math.max(1, tiles ? others.length : 1)}, minmax(${largeVisible ? '0' : 'max-content'}, 1fr))`,
     '--preview-slots': Math.max(1, others.length),
     '--preview-ratio': split?.ratio ?? 0.667,
   };
