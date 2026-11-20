@@ -411,6 +411,7 @@ function stageStandbyNext(live: TileCursor, next: TileCursor | null): boolean {
 function stageNext(
   live: TileCursor | null,
   cursor: TileCursor | null,
+  liveItemId: string,
 ): NextSlide | null {
   const view = useShow.getState();
   const row =
@@ -420,9 +421,7 @@ function stageNext(
   const tiles = cursor === null ? [] : tilesOf(cursor.itemId);
   const tile = cursor === null ? undefined : tiles[cursor.index];
   const kind =
-    row === undefined ||
-    row.kind === 'header' ||
-    cursor?.itemId === live?.itemId
+    row === undefined || row.kind === 'header' || cursor?.itemId === liveItemId
       ? undefined
       : row.kind === 'slides'
         ? (tile?.kind ?? 'blank')
@@ -439,7 +438,7 @@ function stageNext(
         : nextSlideOf(tile, kind, {
             title: kind === undefined ? undefined : row?.title,
             previous:
-              live !== null && live.itemId !== cursor.itemId
+              liveItemId !== cursor.itemId
                 ? undefined
                 : tiles[cursor.index - 1],
             after: tiles[cursor.index + 1],
@@ -465,7 +464,7 @@ export function stageSlideOf(cursor: TileCursor) {
   );
   const slide = slideLayerOf(cursor, tilesOf);
   if (slide === null) return null;
-  const projected = stageNext(cursor, next);
+  const projected = stageNext(cursor, next, cursor.itemId);
   const {next: _next, ...current} = slide;
   return projected === null ? current : {...current, next: projected};
 }
@@ -582,7 +581,7 @@ function refreshStageNext(): void {
           view.rows,
           atLastSlide,
         );
-  const next = stageNext(live, cursor);
+  const next = stageNext(live, cursor, slide.itemId);
   const key = nextKey(next);
   if (
     pendingStageNext !== undefined &&
