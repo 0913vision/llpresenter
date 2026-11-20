@@ -4,6 +4,7 @@ const path = require('node:path');
 const koffi = require('koffi');
 const {setTimeout, clearTimeout} = require('node:timers');
 const {previewPixels} = require('./previewPixels.cjs');
+const {takeLatestFrame} = require('./previewFrames.cjs');
 
 let stopped = false;
 let inFlight = false;
@@ -101,8 +102,14 @@ function start(name) {
 }
 
 function captureFrame() {
-  const image = {};
-  if (capture(receiver, image, null, null, 0) !== 1) return;
+  const image = takeLatestFrame(
+    () => {
+      const next = {};
+      return capture(receiver, next, null, null, 0) === 1 ? next : null;
+    },
+    previous => freeVideo(receiver, previous),
+  );
+  if (image === null) return;
   try {
     const {xres: width, yres: height, line_stride_in_bytes: stride} = image;
     if (width <= 0 || height <= 0 || stride < width * 4) return;
@@ -118,7 +125,7 @@ function captureFrame() {
       image.FourCC === 0x41524742,
     );
     inFlight = true;
-    due = Date.now() + 100;
+    due = Date.now() + 200;
     process.parentPort.postMessage({type: 'frame', frame: pixels});
   } finally {
     freeVideo(receiver, image);

@@ -47,6 +47,7 @@ export default defineConfig({
             'dirty.cjs',
             'gpu-utility.cjs',
             'preview-receiver.cjs',
+            'previewFrames.cjs',
             'previewPixels.cjs',
             'd3d.cjs',
           ]) {
