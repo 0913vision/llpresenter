@@ -1,4 +1,3 @@
-import {isBroadcastHymnTitle} from '@core/songs/broadcastSongTitle';
 import type {SlideLayer} from '@core/live/state';
 import {emptyLayers} from '@core/live/state';
 import type {LiveThemeItem} from '@core/schema/liveTheme';
@@ -257,27 +256,8 @@ function fitSong(
   if (value.split('\n').length > geometry.songLines) {
     value = value.replace(/\s*\n\s*/gu, ' ');
   }
-  const title =
-    item?.kind === 'song'
-      ? ((item.broadcastSongTitle ?? item.title ?? '')
-          .split(/\r?\n/u)[0]
-          ?.trim() ?? '')
-      : '';
-  const showTitle =
-    caption === 'band' &&
-    isBroadcastHymnTitle(title) &&
-    title !== '' &&
-    slide?.titleSlide !== true &&
-    intent.songTitle === undefined &&
-    value.trim().replace(/\s+/gu, ' ') !==
-      (item?.title ?? '').trim().replace(/\s+/gu, ' ') &&
-    value.trim().replace(/\s+/gu, ' ') !== title.replace(/\s+/gu, ' ');
-  // NOTE(0913vision): the title sits in the empty left part of the band, so the
-  // band keeps its height; the lyrics keep the screen center in a narrower box.
-  const lyricX = showTitle ? geometry.songTitleX + 364 : geometry.songX;
-  const lyricWidth = showTitle
-    ? geometry.screenWidth - 2 * lyricX
-    : geometry.songWidth;
+  const lyricX = geometry.songX;
+  const lyricWidth = geometry.songWidth;
   const fitted = fittedText({
     element: body,
     value,
@@ -303,65 +283,41 @@ function fitSong(
   };
   const effect = caption === 'band' ? ('bandText' as const) : ('text' as const);
   const titleSpace = 0;
-  const elements = layout.elements.map((e): ResolvedThemeElement => {
-    if (e.id === BROADCAST_LOOK_BAND_ID && e.kind === 'box') {
-      return {
-        ...e,
-        frame: {
-          x: 0,
-          y: top - padding - titleSpace,
-          w: geometry.screenWidth,
-          h: height + padding * 2 + titleSpace,
-        },
-        box: {
-          ...e.box,
-          on: true,
-          fill: geometry.shadowColor,
-          opacity: geometry.songBandOpacity,
-        },
-        runtimeHidden: !visible || caption === 'text',
-        clearTarget: 'slide',
-        broadcastSong: 'band',
-      };
-    }
-    if (e.id === BROADCAST_LOOK_SONG_ID && e.kind === 'currentText') {
-      return {
-        ...e,
-        frame: {x: lyricX, y: top, w: lyricWidth, h: height},
-        text,
-        minimumTextSize: size,
-        broadcastText: visible ? value : '',
-        broadcastSong: effect,
-      };
-    }
-    return e;
-  });
-  if (showTitle) {
-    elements.push({
-      id: BROADCAST_LOOK_SONG_TITLE_ID,
-      kind: 'text',
-      content: visible ? title.replace(/\s+/gu, ' ').trim() : '',
-      broadcastSingleLine: true,
-      minimumTextSize: 24,
-      clearTarget: 'slide',
-      runtimeHidden: !visible,
-      frame: {
-        x: geometry.songTitleX,
-        y: top - padding + 12,
-        w: 340,
-        h: height + padding,
-      },
-      text: {
-        ...body.text,
-        size: geometry.songTitleSize,
-        weight: 600,
-        align: 'left',
-        vAlign: 'top',
-        color: '#E6E6E6',
-        lineHeight: 1.25,
-      },
+  const elements = layout.elements
+    .filter(e => e.id !== BROADCAST_LOOK_SONG_TITLE_ID)
+    .map((e): ResolvedThemeElement => {
+      if (e.id === BROADCAST_LOOK_BAND_ID && e.kind === 'box') {
+        return {
+          ...e,
+          frame: {
+            x: 0,
+            y: top - padding - titleSpace,
+            w: geometry.screenWidth,
+            h: height + padding * 2 + titleSpace,
+          },
+          box: {
+            ...e.box,
+            on: true,
+            fill: geometry.shadowColor,
+            opacity: geometry.songBandOpacity,
+          },
+          runtimeHidden: !visible || caption === 'text',
+          clearTarget: 'slide',
+          broadcastSong: 'band',
+        };
+      }
+      if (e.id === BROADCAST_LOOK_SONG_ID && e.kind === 'currentText') {
+        return {
+          ...e,
+          frame: {x: lyricX, y: top, w: lyricWidth, h: height},
+          text,
+          minimumTextSize: size,
+          broadcastText: visible ? value : '',
+          broadcastSong: effect,
+        };
+      }
+      return e;
     });
-  }
   return {...layout, elements};
 }
 

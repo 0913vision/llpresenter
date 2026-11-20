@@ -314,61 +314,43 @@ describe('built-in broadcast look', () => {
       runtimeHidden: true,
     });
   });
-  it('keeps lyrics centered in a narrower box beside the song title', () => {
+  it.each([
+    '고요한 노래',
+    '새벽의 노래',
+    '기쁜 노래',
+    '새찬송가 91장 슬픈 마음 있는 사람',
+    '새찬송가 310장 아 하나님의 은혜로',
+  ])('omits the lyric-band title for %s and retains its title slide', title => {
     const layout = builtInTheme('song').screens[screen];
     if (!layout) throw Error('missing song');
     const song = {
       ...item,
       kind: 'song' as const,
-      title: '슬픈 마음 있는 사람',
-      broadcastSongTitle: '새찬송가 91장 슬픈 마음 있는 사람',
+      title,
+      broadcastSongTitle: title,
     };
-    const without = fitBroadcastLook(
-      layout,
-      {...slide, lines: ['첫째 줄', '둘째 줄']},
-      {...song, title: '', broadcastSongTitle: ''},
-    );
-    const withTitle = fitBroadcastLook(
-      layout,
-      {...slide, lines: ['첫째 줄', '둘째 줄']},
-      song,
-    );
-    expect(element(withTitle, BROADCAST_LOOK_SONG_ID).frame).toMatchObject({
-      x: 460,
-      w: 1000,
-    });
-    expect(element(without, BROADCAST_LOOK_SONG_ID).frame).toMatchObject({
-      x: 160,
-      w: 1600,
-    });
-    const band = element(withTitle, BROADCAST_LOOK_BAND_ID).frame;
-    const baseline = element(without, BROADCAST_LOOK_BAND_ID).frame;
-    const lyrics = element(withTitle, BROADCAST_LOOK_SONG_ID).frame;
-    const title = element(withTitle, BROADCAST_LOOK_SONG_TITLE_ID).frame;
-    expect(title.x + title.w).toBeLessThanOrEqual(lyrics.x);
-    expect(title.y).toBe(band.y + 12);
-    expect(lyrics.y).toBeGreaterThanOrEqual(band.y);
-    expect(lyrics.y + lyrics.h).toBeLessThanOrEqual(band.y + band.h);
-    expect(band.y + band.h).toBe(baseline.y + baseline.h);
-    expect(band).toEqual(baseline);
-    const titleSlide = fitBroadcastLook(
-      layout,
-      {...slide, titleSlide: true, lines: ['Song']},
-      song,
-    );
-    expect(element(titleSlide, BROADCAST_LOOK_BAND_ID).frame).toEqual(band);
-    expect(
-      titleSlide.elements.some(e => e.id === BROADCAST_LOOK_SONG_TITLE_ID),
-    ).toBe(false);
-    expect(element(withTitle, BROADCAST_LOOK_SONG_TITLE_ID)).toMatchObject({
-      content: '새찬송가 91장 슬픈 마음 있는 사람',
-      frame: {x: 96, h: 220},
-      text: {size: 48, weight: 600, color: '#E6E6E6', align: 'left'},
-    });
-    const textOnly = fitLook(layout, slide, {item: song, songCaption: 'text'});
-    expect(
-      textOnly.elements.some(e => e.id === BROADCAST_LOOK_SONG_TITLE_ID),
-    ).toBe(false);
+    for (const songCaption of ['band', 'text'] as const) {
+      const lyric = fitLook(
+        layout,
+        {...slide, lines: ['첫째 줄', '둘째 줄']},
+        {item: song, songCaption},
+      );
+      expect(
+        lyric.elements.some(e => e.id === BROADCAST_LOOK_SONG_TITLE_ID),
+      ).toBe(false);
+      expect(element(lyric, BROADCAST_LOOK_SONG_ID)).toMatchObject({
+        frame: {x: 160, w: 1600},
+        broadcastText: '첫째 줄\n둘째 줄',
+      });
+      const titleSlide = fitLook(
+        layout,
+        {...slide, titleSlide: true, lines: [title]},
+        {item: song, songCaption},
+      );
+      expect(element(titleSlide, BROADCAST_LOOK_SONG_ID)).toMatchObject({
+        broadcastText: title,
+      });
+    }
   });
   it('applies a resized Bible band and saved reference to the output', () => {
     const layout = plain();
@@ -456,7 +438,7 @@ describe('built-in broadcast look', () => {
     expect(body.y).toBeGreaterThanOrEqual(tab.y + tab.h);
     expect(body.y + body.h).toBeLessThanOrEqual(panel.y + panel.h);
   });
-  it('persists a fixed song band and a separate title size across lyric slides', () => {
+  it('keeps lyrics in an edited song band without reviving saved title edits', () => {
     const layout = builtInTheme('song').screens[screen];
     if (!layout) throw Error('missing song');
     const song = {
@@ -464,76 +446,47 @@ describe('built-in broadcast look', () => {
       kind: 'song' as const,
       title: '새찬송가 91장 Song title',
     };
-    const initial = fitBroadcastLook(layout, slide, song);
-    const band = element(initial, BROADCAST_LOOK_BAND_ID);
-    const title = element(initial, BROADCAST_LOOK_SONG_TITLE_ID);
-    if (title.kind !== 'text') throw Error('missing title');
-    const frame = {...band.frame, y: band.frame.y - 80, h: band.frame.h + 80};
+    const body = layout.elements.find(e => e.id === BROADCAST_LOOK_SONG_ID);
+    if (body?.kind !== 'currentText') throw Error('missing lyric');
+    const oldTitle = {
+      ...body,
+      id: BROADCAST_LOOK_SONG_TITLE_ID,
+      kind: 'text' as const,
+      content: song.title,
+    };
+    const band = element(
+      fitBroadcastLook(layout, slide, song),
+      BROADCAST_LOOK_BAND_ID,
+    );
+    const frame = {
+      ...band.frame,
+      x: 200,
+      w: 1100,
+      y: band.frame.y - 80,
+      h: band.frame.h + 80,
+    };
     const edited = {
       ...layout,
+      elements: [...layout.elements, oldTitle],
       broadcastEdits: {
         [band.id]: {frame},
-        [title.id]: {text: {...title.text, size: 70}},
+        [BROADCAST_LOOK_SONG_TITLE_ID]: {frame: {x: 96, y: 0, w: 340, h: 100}},
       },
     };
     for (const current of [slide, {...slide, lines: ['another', 'verse']}]) {
       const fitted = fitBroadcastLook(edited, current, song);
       expect(element(fitted, BROADCAST_LOOK_BAND_ID).frame).toEqual(frame);
-      expect(element(fitted, BROADCAST_LOOK_SONG_TITLE_ID)).toMatchObject({
-        frame: {y: frame.y + 12},
-        text: {size: 70},
-      });
+      expect(
+        fitted.elements.some(e => e.id === BROADCAST_LOOK_SONG_TITLE_ID),
+      ).toBe(false);
       const lyric = element(fitted, BROADCAST_LOOK_SONG_ID).frame;
+      expect(lyric.x).toBeGreaterThanOrEqual(frame.x);
+      expect(lyric.x + lyric.w).toBeLessThanOrEqual(frame.x + frame.w);
       expect(lyric.y).toBeGreaterThanOrEqual(frame.y);
       expect(lyric.y + lyric.h).toBeLessThanOrEqual(frame.y + frame.h);
     }
-    expect(
-      element(fitBroadcastLook(layout, slide, song), BROADCAST_LOOK_BAND_ID)
-        .frame,
-    ).toEqual(band.frame);
   });
-  it('keeps both song elements within a narrower moved band', () => {
-    const layout = builtInTheme('song').screens[screen];
-    if (!layout) throw Error('missing song');
-    const song = {
-      ...item,
-      kind: 'song' as const,
-      title: '새찬송가 91장 Song title',
-    };
-    const base = fitBroadcastLook(layout, slide, song);
-    const band = element(base, BROADCAST_LOOK_BAND_ID);
-    const frame = {...band.frame, x: 200, w: 1100};
-    const fitted = fitBroadcastLook(
-      {...layout, broadcastEdits: {[band.id]: {frame}}},
-      slide,
-      song,
-    );
-    const lyric = element(fitted, BROADCAST_LOOK_SONG_ID).frame;
-    const title = element(fitted, BROADCAST_LOOK_SONG_TITLE_ID).frame;
-    expect(title.x).toBeGreaterThanOrEqual(frame.x);
-    expect(title.x + title.w).toBeLessThanOrEqual(lyric.x);
-    expect(lyric.x + lyric.w).toBeLessThanOrEqual(frame.x + frame.w);
-  });
-  it('limits long song captions to a single line with a readable minimum', () => {
-    const layout = builtInTheme('song').screens[screen];
-    if (!layout) throw Error('missing song');
-    const song = {
-      ...item,
-      kind: 'song' as const,
-      title: '새찬송가 91장 아주 긴 노래 제목 여러 줄로 보이지 않아야 합니다',
-    };
-    const title = element(
-      fitBroadcastLook(layout, slide, song),
-      BROADCAST_LOOK_SONG_TITLE_ID,
-    );
-    expect(title).toMatchObject({
-      kind: 'text',
-      broadcastSingleLine: true,
-      minimumTextSize: 24,
-      content: '새찬송가 91장 아주 긴 노래 제목 여러 줄로 보이지 않아야 합니다',
-    });
-  });
-  it('shows the small song title only when the band is showing lyrics', () => {
+  it('keeps empty and title slides while omitting a separate lyric title', () => {
     const layout = builtInTheme('song').screens[screen];
     if (!layout) throw Error('missing song');
     const song = {...item, kind: 'song' as const, title: '임재'};
