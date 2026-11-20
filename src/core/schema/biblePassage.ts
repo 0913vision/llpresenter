@@ -7,6 +7,21 @@ import {bibleVerseCutsSchema} from './bibleCuts';
 import {BIBLE_LOOKUP_LIMITS} from './bibleLookup';
 import {LIVE_STATE_LIMITS} from './liveLimits';
 
+export const deletedBibleSlidesSchema = v.pipe(
+  v.array(
+    v.pipe(
+      nonBlankText,
+      v.maxLength(320),
+      v.regex(/^(?:sermon:(?:opening|closing)|verse:.+:\d+:\d+:\d+:\d+)$/u),
+    ),
+  ),
+  v.maxLength(LIVE_STATE_LIMITS.bibleItemSlides),
+  v.check(
+    keys => new Set(keys).size === keys.length,
+    'Expected distinct deleted Bible slides',
+  ),
+);
+
 export const pinnedBibleVersesSchema = v.pipe(
   jsonRecord(
     v.pipe(nonBlankText, v.maxLength(256)),
@@ -49,6 +64,7 @@ export const biblePassageSchema = jsonObject({
   transition: v.exactOptional(slideTransitionSchema),
   cuts: v.exactOptional(bibleVerseCutsSchema),
   pinnedVerses: v.exactOptional(pinnedBibleVersesSchema),
+  deletedSlides: v.exactOptional(deletedBibleSlidesSchema),
 });
 
 /**

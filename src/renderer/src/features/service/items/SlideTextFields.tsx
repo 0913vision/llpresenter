@@ -418,9 +418,10 @@ export function SlideTextEditor({
             return null;
           }
           const {[pinKey]: _prior, ...otherPins} = {...passage.pinnedVerses};
-          const pinsVerse = Object.keys(textOverrides).some(key =>
-            key.startsWith(`verse:${pinKey}:`),
-          );
+          const pinsVerse = [
+            ...Object.keys(textOverrides),
+            ...(passage.deletedSlides ?? []),
+          ].some(key => key.startsWith(`verse:${pinKey}:`));
           const pinnedVerses = pinsVerse
             ? {...otherPins, [pinKey]: parts}
             : otherPins;

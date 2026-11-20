@@ -360,6 +360,9 @@ function rowOf(item: ServiceItem, sources: RowSources): ShowRow {
               ...(settings.pinnedVerses === undefined
                 ? {}
                 : {pinnedVerses: settings.pinnedVerses}),
+              ...(settings.deletedSlides === undefined
+                ? {}
+                : {deletedSlides: settings.deletedSlides}),
               ...(item.textOverrides === undefined
                 ? {}
                 : {textOverrides: item.textOverrides}),

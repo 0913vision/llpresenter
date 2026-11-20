@@ -9,6 +9,11 @@ import type {ServiceItem} from '@core/schema/service';
 import {isItemOfKind} from '@core/schema/service';
 import {SHOW_SERVICE_LIMITS} from '@core/schema/showService';
 import {resolvePassage} from '@core/bible/reference';
+import {
+  bibleTextSlideKey,
+  textSlideKey,
+  textVerseKey,
+} from '@core/presentation/textOverrides';
 import {passageSource} from '@fixtures/core/bible/testFiles';
 import {resolveServicePassages} from '@main/bible/servicePassages';
 import type {BibleLookupSession} from '@main/bible/lookup';
@@ -48,6 +53,53 @@ function fixture() {
 }
 
 describe('saved Bible passage resolution', () => {
+  it('keeps a deleted sermon opening and verse part out of live fallback after reopening', async () => {
+    const original = items('John 3:16-18')[0];
+    if (!original || !isItemOfKind(original, 'bible')) {
+      throw Error('Missing Bible');
+    }
+    const bible = fixture();
+    const resolved = await resolveServicePassages([original], bible, {
+      reportError: bible.report,
+    });
+    const first = resolved.tiles.get(original.id)?.[0]?.bibleVerse;
+    const raw = resolved.references.get(original.id)?.passage?.verses[0]?.text;
+    if (first === undefined || raw === undefined) throw Error('Missing verse');
+    const split = raw.indexOf(' ') + 1;
+    expect(split).toBeGreaterThan(0);
+    const removed = bibleTextSlideKey(first, 1);
+    const sermon: ServiceItem = {
+      id: original.id,
+      sermon: {
+        title: 'Sermon',
+        passage: {
+          ...original.bible,
+          pinnedVerses: {
+            [textVerseKey(first)]: [raw.slice(0, split), raw.slice(split)],
+          },
+          deletedSlides: ['sermon:opening', removed],
+        },
+      },
+    };
+    const reopened = await resolveServicePassages([sermon], bible, {
+      reportError: bible.report,
+    });
+    const tiles = reopened.tiles.get(sermon.id);
+    expect(tiles).toHaveLength(4);
+    expect(tiles?.map(textSlideKey)).not.toContain(removed);
+    expect(tiles?.map(textSlideKey)).not.toContain('sermon:opening');
+    expect(tiles?.[0]).toMatchObject({
+      bibleVerse: first,
+      biblePart: 2,
+      lines: [raw.slice(split)],
+    });
+    expect(tiles?.at(-1)?.textSlideKey).toBe('sermon:closing');
+    expect(bible.lookup).toHaveBeenLastCalledWith(
+      expect.objectContaining({input: original.bible.ref}),
+      true,
+    );
+  });
+
   it('projects the sermon title first and then its ordinary Bible verse tiles', async () => {
     const original = items('John 3:16-18')[0];
     if (!original || !isItemOfKind(original, 'bible')) {

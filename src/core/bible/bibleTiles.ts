@@ -4,7 +4,7 @@ import type {BibleLookupPassage} from '../schema/bibleLookup';
 import type {BiblePassage} from '../schema/biblePassage';
 import {LIVE_STATE_LIMITS} from '../schema/liveLimits';
 import type {ShowTile} from '../schema/showService';
-import {textVerseKey} from '../presentation/textOverrides';
+import {textSlideKey, textVerseKey} from '../presentation/textOverrides';
 import {CONT_MARKER} from './split/layout';
 
 export function bibleOutputLines(text: string): readonly string[] {
@@ -44,6 +44,7 @@ export interface TileOptions {
   readonly reference?: BiblePassage['reference'];
   readonly transition?: BiblePassage['transition'] | undefined;
   readonly pinnedVerses?: BiblePassage['pinnedVerses'];
+  readonly deletedSlides?: BiblePassage['deletedSlides'];
 }
 
 /**
@@ -91,17 +92,8 @@ export function bibleVerseTiles(
           : '';
       return {
         ...(pinned === undefined ? {} : {biblePart: index + 1, continued}),
-        label: `${shortBook}${verse.chapter}:${verse.verse}`,
-        ...(bookInfo === undefined
-          ? {}
-          : {
-              bibleVerse: {
-                translation: passage.translation,
-                book: bookInfo.id,
-                chapter: verse.chapter,
-                verse: verse.verse,
-              },
-            }),
+        label: `${shortBook}${verse.chapter}:${verse.verse}${parts.length > 1 ? ` (${index + 1})` : ''}`,
+        ...(bibleVerse === undefined ? {} : {bibleVerse}),
         labelColor: NO_LABEL_COLOR,
         ...(options.transition === undefined
           ? {}
@@ -115,15 +107,28 @@ export function bibleVerseTiles(
       };
     });
   });
-  return tiles.map((tile, index) => {
+  const visible = withoutDeletedBibleSlides(tiles, options.deletedSlides);
+  return visible.map((tile, index) => {
     if (
       reference === 'every' ||
       (reference === 'first' && index === 0) ||
-      (reference === 'last' && index === tiles.length - 1)
+      (reference === 'last' && index === visible.length - 1)
     ) {
       return tile;
     }
     const {reference: _reference, ...other} = tile;
     return other;
+  });
+}
+
+export function withoutDeletedBibleSlides(
+  tiles: readonly ShowTile[],
+  hidden: BiblePassage['deletedSlides'],
+): readonly ShowTile[] {
+  if (!hidden?.length) return tiles;
+  const deleted = new Set(hidden);
+  return tiles.filter(tile => {
+    const key = textSlideKey(tile);
+    return key === undefined || !deleted.has(key);
   });
 }

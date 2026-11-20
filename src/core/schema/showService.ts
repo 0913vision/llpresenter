@@ -23,6 +23,7 @@ import {
 import {
   bibleReferenceSchema as bibleReferenceFrequencySchema,
   pinnedBibleVersesSchema,
+  deletedBibleSlidesSchema,
 } from './biblePassage';
 import {
   mediaIdSchema,
@@ -82,6 +83,7 @@ const bibleReferenceSchema = v.pipe(
     transitions: v.exactOptional(biblePartTransitionsSchema),
     cuts: v.exactOptional(bibleVerseCutsSchema),
     pinnedVerses: v.exactOptional(pinnedBibleVersesSchema),
+    deletedSlides: v.exactOptional(deletedBibleSlidesSchema),
     textOverrides: v.exactOptional(itemTextOverridesSchema),
     labels: v.exactOptional(biblePartLabelsSchema),
     passage: v.exactOptional(

@@ -13,6 +13,82 @@ import {panelPassage} from '@fixtures/contracts/ipc/bibleApi';
 import {QUICK_BIBLE_TRANSITION} from '@core/bible/quickTransition';
 import {cacheKey, entryFor} from '@core/bible/split/splitCache';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
+import {
+  bibleTextSlideKey,
+  textSlideKey,
+  textVerseKey,
+} from '@core/presentation/textOverrides';
+import {pinVerseParts} from '@core/bible/split/splitVerses';
+
+it('keeps a removed verse part out of the grid after confirming cuts for another verse', () => {
+  const lookup = panelPassage();
+  const source = {
+    id: 'stored-passage',
+    kind: 'bible',
+    source: 'service',
+    passage: {
+      ...lookup,
+      verses: [
+        {chapter: 3, verse: 16, text: MOCK_LONG_VERSE},
+        {chapter: 3, verse: 17, text: 'Short verse'},
+      ],
+    },
+    verseNumbers: false,
+    translationName: false,
+    reference: 'first',
+  } as const;
+  const layout = {
+    element: {...themeElementBase(), kind: 'currentText' as const},
+    layout: mockSplitLayout(),
+  };
+  const original = projectBible(source, layout);
+  const first = original?.verses[0];
+  const second = original?.verses[1];
+  if (!original || !first || !second) throw Error('Missing split verses');
+  const parts = original.parts.filter(part => part.reference.verse === 16);
+  const pinned = pinVerseParts(first.text, parts);
+  if (!pinned || pinned.length < 2) throw Error('Missing split in first verse');
+  const deleted = bibleTextSlideKey(first.reference, 1);
+  const saved = {
+    ...source,
+    pinnedVerses: {[textVerseKey(first.reference)]: pinned},
+    deletedSlides: [deleted],
+  };
+  const beforeReview = projectBible(saved, layout);
+  const afterReview = projectBible(
+    {
+      ...saved,
+      cuts: {
+        [cacheKey(second.reference)]: entryFor(
+          second.text,
+          [1],
+          '2026-11-19T00:00:00Z',
+        ),
+      },
+    },
+    layout,
+  );
+  if (!afterReview || !beforeReview) {
+    throw Error('Missing projection of stored passage');
+  }
+  expect(afterReview.tiles.map(textSlideKey)).not.toContain(deleted);
+  expect(afterReview.tiles[0]?.biblePart).toBe(2);
+  expect(afterReview.tiles[0]?.reference).toContain('3:16');
+  expect(afterReview.partsByTile[0]).toMatchObject({
+    part: 2,
+    reference: first.reference,
+  });
+  expect(
+    beforeReview.tiles.filter(tile => tile.bibleVerse?.verse === 17),
+  ).toHaveLength(1);
+  expect(
+    afterReview.tiles.filter(tile => tile.bibleVerse?.verse === 17),
+  ).toHaveLength(2);
+  expect(
+    afterReview.tiles.filter(tile => tile.bibleVerse?.verse === 16),
+  ).toEqual(beforeReview.tiles.filter(tile => tile.bibleVerse?.verse === 16));
+  expect(afterReview.source).toMatchObject({passage: {ref: lookup.ref}});
+});
 
 it('confirms cuts on a new overlapping passage without resplitting the earlier item', () => {
   const passage = panelPassage();

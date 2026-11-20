@@ -947,6 +947,12 @@ name. Chapter and verse bounds always use the built-in GAE number table.
 
 ### 절 나누기
 
+In 준비, Delete and the slide context menu remove the selected Bible or sermon
+slides, including a multi-selection, in one undoable edit. Reopening the item
+keeps the removed slides out of the editor and outputs. The item keeps its
+passage reference. The app preserves the boundaries of verses with deleted parts
+so splits made in other verses do not bring them back.
+
 Blank slides items also resolve each stored verse reference into these parts,
 interleaved with their text and picture slides in source order. Each part is a
 separate navigation position, uses the item's theme, and shows its own Bible

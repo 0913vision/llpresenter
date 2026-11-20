@@ -41,6 +41,8 @@ import {
 import {useLeadingItemCard} from './useLeadingItemCard';
 import {AddSectionCard} from './AddSectionCard';
 import {BibleSlideSession} from './BibleSlideSession';
+import {deleteBibleSlides} from './deleteBibleSlides';
+import {editorTask} from '@renderer/features/songs/editor/editorTask';
 import {itemEditorAdapter} from '@renderer/platform/itemEditorAdapter';
 import {MeasuredRow} from '../slides/SlideRows';
 import type {ServiceItemStore} from './serviceItemStore';
@@ -161,6 +163,41 @@ function BibleEditorContent({
     session.slideModel.subscribe,
     session.slideModel.getSnapshot,
   );
+  const deleteSelection = (removeCard: boolean): void => {
+    const selected = [...session.slideModel.getSnapshot().selection.ids]
+      .map(Number)
+      .sort((left, right) => left - right);
+    const tiles = selected.flatMap(index => {
+      const tile = verses[index];
+      return tile === undefined ? [] : [tile];
+    });
+    const first = selected[0] ?? 0;
+    editorTask(
+      deleteBibleSlides({
+        items,
+        serviceId,
+        item,
+        tiles,
+        projection,
+        removeCard,
+      }).then(saved => {
+        const current = items.getSnapshot();
+        if (
+          !saved ||
+          current.item?.id !== item.id ||
+          current.service?.service.id !== serviceId
+        ) {
+          return;
+        }
+        const nextOffset = removeCard ? 0 : offset;
+        const remaining = verses.length - tiles.length;
+        items.setBibleSelection([]);
+        items.selectPosition(
+          Math.max(0, Math.min(first, remaining - 1) + nextOffset),
+        );
+      }),
+    );
+  };
   const viewportRef = useRef<HTMLDivElement>(null);
   const scope = `${item.id}:${mode}:${scale}`;
   const ids = useMemo(
@@ -247,6 +284,7 @@ function BibleEditorContent({
         leadingCard={card}
         mixedLeadingSelection
         contentReadOnly
+        deleteSelection={deleteSelection}
         onBack={onBack}
         className={styles.surface}
       >

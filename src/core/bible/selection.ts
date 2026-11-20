@@ -48,7 +48,11 @@ export function biblePartIndex(
       indices.push(index);
     }
   });
-  return indices[Math.min(part - 1, indices.length - 1)] ?? null;
+  return (
+    indices.find(index => tiles[index]?.biblePart === part) ??
+    indices[Math.min(part - 1, indices.length - 1)] ??
+    null
+  );
 }
 
 /** Keeps the verse and its part when inserting adjacent verses or remeasuring text. */
@@ -61,6 +65,12 @@ export function retainedBibleSelection(
   if (current?.sectionCard !== undefined) {
     const card = next.findIndex(tile => tile.sectionCard !== undefined);
     return card < 0 ? Math.max(0, Math.min(selected, next.length - 1)) : card;
+  }
+  if (current?.sermonTitle && current.textSlideKey !== undefined) {
+    const title = next.findIndex(
+      tile => tile.textSlideKey === current.textSlideKey,
+    );
+    return title < 0 ? Math.max(0, Math.min(selected, next.length - 1)) : title;
   }
   const first = previous.findIndex(
     tile =>

@@ -145,6 +145,31 @@ describe('parseService', () => {
     ).toBe(false);
   });
 
+  it('round-trips removed verse and sermon card identities without modifying the reference', () => {
+    const versePart = 'verse:krv:43:3:16:2';
+    const passage = {...PASSAGE, deletedSlides: ['sermon:opening', versePart]};
+    const item = {id: itemId(4), sermon: {title: 'Sermon', passage}};
+    const service = expectSuccess(parse(withItem(item))).data;
+    const written = expectSuccess(serializeService(service, FILE));
+    expect(expectSuccess(parseService(written, FILE)).data.order[0]).toEqual(
+      item,
+    );
+    for (const deletedSlides of [
+      [versePart, versePart],
+      ['sermon:title'],
+      [2],
+    ]) {
+      expect(
+        parse(
+          withItem({
+            ...item,
+            sermon: {...item.sermon, passage: {...passage, deletedSlides}},
+          }),
+        ).ok,
+      ).toBe(false);
+    }
+  });
+
   it('accepts per-item background overrides and rejects malformed choices', () => {
     const items = [
       {id: itemId(20), song: SONG_ID, slides: []},

@@ -11,6 +11,13 @@ export function textVerseKey(verse: VerseSlide['verse']): string {
   return `${verse.translation}:${cacheKey(verse)}`;
 }
 
+export function bibleTextSlideKey(
+  verse: VerseSlide['verse'],
+  part: number,
+): string {
+  return `verse:${textVerseKey(verse)}:${part}`;
+}
+
 /** Identifies a particular slide within its service item. */
 export function textSlideKey(tile: ShowTile): string | undefined {
   if (tile.textSlideKey !== undefined) return tile.textSlideKey;
@@ -21,9 +28,7 @@ export function textSlideKey(tile: ShowTile): string | undefined {
     return `slide:${id}${part === 1 ? '' : `:${part}`}`;
   }
   const verse = tile.bibleVerse;
-  return verse === undefined
-    ? undefined
-    : `verse:${textVerseKey(verse)}:${part}`;
+  return verse === undefined ? undefined : bibleTextSlideKey(verse, part);
 }
 
 export function textOverridesForTiles(

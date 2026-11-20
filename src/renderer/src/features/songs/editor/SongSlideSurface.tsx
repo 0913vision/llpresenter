@@ -52,6 +52,7 @@ export function SongSlideSurface<T extends SlideListItem>({
   editLabel = windowCommandLabels.editSong,
   leadingCard,
   contentReadOnly = false,
+  deleteSelection,
   mixedLeadingSelection = leadingCard?.mixedSelection ?? false,
   itemKind,
   initialLeadingSelected = false,
@@ -62,6 +63,8 @@ export function SongSlideSurface<T extends SlideListItem>({
   readonly children: ReactNode;
   readonly leadingCard?: LeadingSlideCard | undefined;
   readonly contentReadOnly?: boolean | undefined;
+  readonly deleteSelection?:
+    ((includeLeadingCard: boolean) => void) | undefined;
   readonly mixedLeadingSelection?: boolean;
   readonly className?: string | undefined;
   readonly onBack?: (() => void) | undefined;
@@ -248,16 +251,24 @@ export function SongSlideSurface<T extends SlideListItem>({
     }
   };
   const selectionReason = selected ? undefined : '선택한 슬라이드가 없습니다';
-  const deleteReason = leadingSelected
-    ? editReason
-    : (contentEditReason ??
-      selectionReason ??
-      (view.slides.length - view.selection.ids.size <
-      session.slideModel.limits.minSlides
-        ? '곡에는 슬라이드가 하나 이상 있어야 합니다'
-        : undefined));
+  const deleteReason =
+    deleteSelection !== undefined
+      ? (editReason ?? (leadingSelected ? undefined : selectionReason))
+      : leadingSelected
+        ? editReason
+        : (contentEditReason ??
+          selectionReason ??
+          (view.slides.length - view.selection.ids.size <
+          session.slideModel.limits.minSlides
+            ? '곡에는 슬라이드가 하나 이상 있어야 합니다'
+            : undefined));
   const askDelete = (): void => {
     if (deleteReason !== undefined) return;
+    if (deleteSelection !== undefined) {
+      deleteSelection(leadingSelected);
+      if (leadingSelected) clearCard();
+      return;
+    }
     if (leadingSelected) {
       clearCard();
       leadingCard.onDelete();
@@ -317,7 +328,7 @@ export function SongSlideSurface<T extends SlideListItem>({
       fixedBindings: [{code: 'KeyX', mods: ['ctrl']}],
       context: 'song',
       when: owns,
-      unavailable: () => deleteReason,
+      unavailable: () => contentEditReason ?? deleteReason,
       run: () => copy(true),
     },
     {
@@ -436,7 +447,7 @@ export function SongSlideSurface<T extends SlideListItem>({
       contextGroup: 'clipboard',
       label: selectionLabel('잘라내기', view.selection.ids.size),
       meta: 'Ctrl X',
-      ...menuAvailability(deleteReason),
+      ...menuAvailability(contentEditReason ?? deleteReason),
       onSelect: () => copy(true),
     },
     {
@@ -461,7 +472,11 @@ export function SongSlideSurface<T extends SlideListItem>({
       kind: 'item',
       id: 'delete',
       contextGroup: 'delete',
-      label: selectionLabel('삭제', view.selection.ids.size),
+      label: selectionLabel(
+        '삭제',
+        view.selection.ids.size +
+          Number(deleteSelection !== undefined && leadingSelected),
+      ),
       meta: 'Delete',
       ...menuAvailability(deleteReason),
       onSelect: askDelete,
@@ -887,13 +902,12 @@ export function SongSlideSurface<T extends SlideListItem>({
         ) {
           return;
         }
-        if (
-          isInTextEntry(event.target) ||
-          (event.target instanceof Element &&
-            event.target.closest('[data-leading-card]'))
-        ) {
-          return;
-        }
+        if (isInTextEntry(event.target)) return;
+        const card =
+          event.target instanceof Element
+            ? event.target.closest<HTMLElement>('[data-leading-card]')
+            : null;
+        if (card !== null && deleteSelection === undefined) return;
         const row =
           event.target instanceof Element
             ? event.target.closest<HTMLElement>('[data-song-slide]')
@@ -908,7 +922,10 @@ export function SongSlideSurface<T extends SlideListItem>({
         setMenuIndex(
           Number(row?.dataset.slideIndex ?? session.selectedOccurrence),
         );
-        if (slide !== undefined && !view.selection.ids.has(slide.id)) {
+        if (card !== null) {
+          selectCard(leadingSelected);
+        } else if (slide !== undefined && !view.selection.ids.has(slide.id)) {
+          if (deleteSelection !== undefined) clearCard();
           adapter.select({type: 'click', id: slide.id});
         }
         event.preventDefault();
@@ -916,7 +933,8 @@ export function SongSlideSurface<T extends SlideListItem>({
         surfaceRef.current?.focus({preventScroll: true});
         setMenu({
           ...contextMenuAnchor(event),
-          targets: menuTargets(event.currentTarget, id),
+          targets:
+            card === null ? menuTargets(event.currentTarget, id) : [card],
         });
       }}
       onDragStart={event => {
