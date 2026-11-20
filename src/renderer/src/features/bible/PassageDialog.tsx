@@ -45,6 +45,7 @@ export function PassageDialog({
   const submissionVersion = useRef(0);
   const formVersion = submissionVersion.current;
   const [highlight, setHighlight] = useState(-1);
+  const [ready, setReady] = useState<BibleLookupPassage | null>(null);
   const [resetKey, setResetKey] = useState(0);
   const [resolved, setResolved] = useState<{
     provided: TranslationId | undefined;
@@ -190,6 +191,7 @@ export function PassageDialog({
             }}
             onEscape={onClose}
             onPreview={() => undefined}
+            onReady={setReady}
             onSubmit={passage => {
               if (submissionVersion.current === formVersion) onSubmit(passage);
             }}
@@ -213,7 +215,7 @@ export function PassageDialog({
             <Icon name="book" size={16} />
             {'\uC131\uACBD \uAD6C\uC808'}
           </span>
-          <span>
+          <span aria-disabled={ready === null}>
             {action}
             <KeyCombo keys={['Enter']} />
           </span>

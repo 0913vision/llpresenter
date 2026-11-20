@@ -3,18 +3,18 @@
   inset: 0;
   display: grid;
   place-items: center;
-  padding: 24px;
+  padding: var(--space-24);
   z-index: var(--z-dialog);
   background: var(--scrim);
 }
 .dialog {
-  width: 640px;
+  width: var(--size-passage-dialog);
   max-width: 100%;
-  max-height: calc(100vh - 48px);
+  max-height: calc(100vh - var(--size-passage-window-gap));
   display: flex;
   flex-direction: column;
   border: 1px solid var(--line-strong);
-  border-radius: 12px;
+  border-radius: var(--radius-menu);
   background: var(--bg-dialog);
   box-shadow: var(--shadow-dialog);
   color: var(--text);
@@ -25,19 +25,19 @@
 }
 .accessory {
   position: absolute;
-  right: 20px;
-  top: 24px;
+  right: var(--space-20);
+  top: var(--space-24);
   color: var(--text-3);
   font: 400 13px/1 var(--font-ui);
   pointer-events: none;
 }
 .footer {
-  height: 44px;
+  height: var(--size-dialog-header);
   flex: none;
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 0 20px;
+  gap: var(--space-16);
+  padding: 0 var(--space-20);
   border-top: 1px solid var(--line);
   color: var(--text);
   font: 400 13px/1 var(--font-ui);
@@ -45,7 +45,7 @@
 .footer span {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-6);
 }
 .footer .title {
   margin-right: auto;
@@ -53,12 +53,12 @@
 }
 .footer .next {
   border-left: 1px solid var(--line-strong);
-  padding-left: 16px;
+  padding-left: var(--space-16);
   color: var(--text-2);
 }
 .footer kbd {
   min-width: 0;
-  padding: 0 4px;
+  padding: 0 var(--space-4);
   background: var(--bg-inset);
   color: var(--text-3);
   font: 400 12px/20px var(--font-ui);

@@ -151,6 +151,14 @@
   --size-clear-divider: 32px;
   --size-clear-divider-compact: 24px;
   --size-clear-button-compact: 40px;
+  --size-passage-dialog: 640px;
+  --size-passage-header: 64px;
+  --size-passage-argument: 34px;
+  --size-passage-book-min: 60px;
+  --size-passage-book-max: 150px;
+  --size-passage-query-min: 2em;
+  --size-passage-recent-max: 440px;
+  --size-passage-window-gap: 48px;
   --size-dialog-header: 44px;
   --size-dialog-footer: 52px;
   --size-dialog-aside: 260px;

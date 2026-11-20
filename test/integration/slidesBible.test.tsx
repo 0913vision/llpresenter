@@ -337,16 +337,21 @@ async function chooseRange(
     await waitFor(() => expect(field.disabled).toBe(false));
     fireEvent.change(field, {target: {value}});
   }
-  const add = within(dialog).getByRole('button', {name: '추가'});
   await waitFor(() =>
-    expect(add.getAttribute('aria-disabled')).not.toBe('true'),
+    expect(
+      within(dialog).getByText('\uCD94\uAC00').getAttribute('aria-disabled'),
+    ).toBe('false'),
   );
   beforeAdd();
-  fireEvent.click(add);
+  fireEvent.keyDown(
+    within(dialog).getByRole('textbox', {name: '\uB05D\uC808'}),
+    {key: 'Enter'},
+  );
   if (waitForCuts) {
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     return dialog;
   }
+  await waitFor(() => expect(dialog.isConnected).toBe(false));
   return screen.findByRole('dialog');
 }
 
@@ -382,13 +387,10 @@ it('inserts the range without review when automatic opening is off', async () =>
       target: {value: values[i]},
     }),
   );
-  await waitFor(() =>
-    expect(
-      screen.getByRole('button', {name: '추가'}).getAttribute('aria-disabled'),
-    ).not.toBe('true'),
-  );
   await act(async () =>
-    fireEvent.click(screen.getByRole('button', {name: '추가'})),
+    fireEvent.keyDown(screen.getByRole('textbox', {name: '\uB05D\uC808'}), {
+      key: 'Enter',
+    }),
   );
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
   expect(screen.queryByRole('status', {name: 'AI 준비 중'})).toBeNull();

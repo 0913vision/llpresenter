@@ -83,9 +83,9 @@
 .dialogForm {
   display: flex;
   align-items: center;
-  gap: 6px;
-  min-height: 64px;
-  padding: 0 150px 0 20px;
+  gap: var(--space-6);
+  min-height: var(--size-passage-header);
+  padding: 0 var(--size-passage-book-max) 0 var(--space-20);
   border-bottom: 1px solid var(--line);
 }
 .dialogForm .book {
@@ -95,7 +95,7 @@
 .dialogForm .book > span {
   display: flex;
   width: fit-content;
-  min-width: 60px;
+  min-width: var(--size-passage-book-min);
   background: transparent;
   box-shadow: none !important;
   outline: none !important;
@@ -103,13 +103,13 @@
 .dialogForm .book input {
   field-sizing: content;
   width: auto;
-  min-width: 2em;
-  max-width: 150px;
+  min-width: var(--size-passage-query-min);
+  max-width: var(--size-passage-book-max);
   font: 400 20px/1 var(--font-ui);
 }
 .dialogForm .book [aria-hidden='true'] {
-  width: 20px !important;
-  height: 20px !important;
+  width: var(--space-20) !important;
+  height: var(--space-20) !important;
   color: var(--text-3);
 }
 .dialogForm .argument {
@@ -120,23 +120,23 @@
 .dialogForm .argument[data-part='start']::before {
   content: ':';
   color: var(--text-3);
-  margin-right: 6px;
+  margin-right: var(--space-6);
 }
 .dialogForm .argument[data-part='end']::before {
   content: '~';
   color: var(--text-3);
-  margin-right: 6px;
+  margin-right: var(--space-6);
 }
 .dialogForm .argument > span {
   width: fit-content;
-  height: 34px;
+  height: var(--size-passage-argument);
   border: 0;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.07);
-  padding: 0 12px;
+  border-radius: var(--radius-2xl);
+  background: color-mix(in srgb, var(--text) 7%, transparent);
+  padding: 0 var(--space-12);
 }
 .dialogForm .argument > span:focus-within {
-  background: rgba(255, 255, 255, 0.16);
+  background: color-mix(in srgb, var(--text) 16%, transparent);
   outline: 0;
   box-shadow: none;
 }

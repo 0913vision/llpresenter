@@ -38,20 +38,20 @@
 
 .dialog {
   height: auto;
-  max-height: min(440px, 50vh);
-  padding: 8px;
+  max-height: min(var(--size-passage-recent-max), 50vh);
+  padding: var(--space-8);
 }
 .dialog .heading {
-  padding: 8px 20px;
+  padding: var(--space-8) var(--space-20);
   color: var(--text-3);
   font: 400 13px/1.2 var(--font-ui);
 }
 .dialog .recentSlot {
-  height: 44px;
+  height: var(--size-dialog-header);
 }
 .dialog .recent {
-  border-radius: 8px;
-  padding: 0 14px;
+  border-radius: var(--radius-2xl);
+  padding: 0 var(--space-14);
   font: 400 15px/1.2 var(--font-ui);
 }
 .dialog .recent[data-highlighted='true'] {
@@ -75,7 +75,7 @@
   color: var(--text-3);
   font: 400 12px/20px var(--font-ui);
   min-width: 0;
-  padding: 0 3px;
+  padding: 0 var(--radius-sm);
 }
 .dialog .recent[data-highlighted='true'] .keys kbd {
   color: var(--text-2);
