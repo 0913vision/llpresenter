@@ -56,9 +56,15 @@ export const SLIDES_LIMITS = {
   slides: 200,
   text: LIVE_STATE_LIMITS.textCharacters,
   name: SONG_NAME_MAX_LENGTH,
+  reference: SONG_NAME_MAX_LENGTH,
 } as const;
 
 const slideNameSchema = v.pipe(v.string(), v.maxLength(SLIDES_LIMITS.name));
+/** A typed passage reference shown in the theme's reference box. */
+const slideReferenceSchema = v.pipe(
+  v.string(),
+  v.maxLength(SLIDES_LIMITS.reference),
+);
 const slideLabelSchema = v.pipe(
   v.string(),
   v.trim(),
@@ -147,6 +153,7 @@ export const slideSchema = v.pipe(
             label: v.exactOptional(slideLabelSchema),
             transition: v.exactOptional(slideTransitionSchema),
             name: v.exactOptional(slideNameSchema),
+            reference: v.exactOptional(slideReferenceSchema),
           }),
           jsonObject({
             id: slideIdSchema,

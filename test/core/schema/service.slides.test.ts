@@ -38,6 +38,19 @@ const accepts = (value: object) =>
   v.safeParse(serviceSchema, {...service, order: [value]}).success;
 
 describe('slides items', () => {
+  it('keeps a typed slide reference and rejects an oversized or non-text one', () => {
+    const withReference = (reference: unknown) => ({
+      ...item,
+      slides: {...slides, slides: [{...textSlide, reference}]},
+    });
+    expect(accepts(withReference('하박국 3:17~19'))).toBe(true);
+    expect(accepts(withReference(''))).toBe(true);
+    expect(
+      accepts(withReference('가'.repeat(SLIDES_LIMITS.reference + 1))),
+    ).toBe(false);
+    expect(accepts(withReference(3))).toBe(false);
+  });
+
   it('round-trips reference-only verses alongside text and pictures in blank items', () => {
     const raw = {
       ...service,

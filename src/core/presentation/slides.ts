@@ -2,7 +2,7 @@ import type {LiveBatch, SingleLiveCommand} from '../live/commands';
 import type {MediaChoice, SlideLayer} from '../live/state';
 import {NO_LABEL_COLOR, type LabelColor} from '../labels/colors';
 import type {MediaItem} from '../schema/mediaList';
-import {SLIDES_LIMITS, type ServiceItemOf} from '../schema/service';
+import type {ServiceItemOf} from '../schema/service';
 import type {ShowTile} from '../schema/showService';
 import type {BibleLookupPassage} from '../schema/bibleLookup';
 import {BIBLE_BOOKS} from '../bible/bibleBooks';
@@ -50,12 +50,9 @@ export function projectSlides(
       };
     }
     const storedReference = 'reference' in slide ? slide.reference : undefined;
-    const reference =
-      typeof storedReference === 'string' &&
-      storedReference.trim() !== '' &&
-      storedReference.length <= SLIDES_LIMITS.text
-        ? {reference: storedReference}
-        : {};
+    const reference = storedReference?.trim()
+      ? {reference: storedReference}
+      : {};
     if ('media' in slide) {
       const picture = media.get(slide.media);
       return {
