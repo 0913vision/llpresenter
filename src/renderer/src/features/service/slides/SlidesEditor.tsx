@@ -271,8 +271,8 @@ function SlideFields({
       <label htmlFor={`reference-${slide.id}`}>본문 주소</label>
       <TextField
         id={`reference-${slide.id}`}
-        value={typeof reference === 'string' ? reference : ''}
-        maxLength={TEXT_LIMIT}
+        value={reference ?? ''}
+        maxLength={SLIDES_LIMITS.reference}
         onChange={value => {
           const next =
             value === '' ? textSlide : {...textSlide, reference: value};
