@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react';
+﻿import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import type {LabelColor} from '@core/labels/colors';
@@ -52,3 +52,29 @@ describe('ThumbnailGrid rendering', () => {
     expect(inkRenders.toSorted()).toEqual(['#5FB8C2', '#D6B35F']);
   });
 });
+
+describe('slide transition mark', () => {
+  it('only marks slides with a transition effect', () => {
+    const {rerender} = render(<SlideThumbnail number={1} label="hymn" />);
+    expect(screen.queryByRole('img')).toBeNull();
+    rerender(
+      <SlideThumbnail
+        number={1}
+        label="hymn"
+        transition={{kind: 'none', sec: 0.5}}
+      />,
+    );
+    expect(screen.queryByRole('img')).toBeNull();
+    for (const kind of ['dissolve', 'push', 'wipe'] as const) {
+      rerender(
+        <SlideThumbnail
+          number={1}
+          label="hymn"
+          transition={{kind, sec: 0.5}}
+        />,
+      );
+      expect(screen.getByRole('img')).toBeTruthy();
+    }
+  });
+});
+
