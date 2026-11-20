@@ -3,8 +3,13 @@ import type {PowerPointSource} from '@core/schema/powerpointImport';
 import {lendPreviewImage} from '@renderer/rendering/previewMedia';
 import {composePowerPointBackground} from './composePowerPointBackground';
 import {thumbnailPowerPointImage} from './thumbnailPowerPointImage';
+import {
+  POWERPOINT_BACKGROUND_LIMITS,
+  type PowerPointScene,
+} from '@core/songs/powerpointLayers';
 
 const BATCH_SIZE = 200;
+const RETAIN_LIMIT = POWERPOINT_BACKGROUND_LIMITS.totalImageBytes;
 
 /** The preview cannot hold more temporary image data. */
 export class PowerPointPreviewLimitError extends Error {}
@@ -45,6 +50,45 @@ async function fallback(api: LlpApi, index: number): Promise<Blob> {
   return new Blob([new Uint8Array(image.bytes).buffer], {type: image.mime});
 }
 
+/** Only use ZIP images where the complete background is a plain full-slide picture. */
+function simplePicture(scene: PowerPointScene): boolean {
+  if (scene.skipped !== 0 || scene.pictures.length !== 1) return false;
+  const picture = scene.layers.at(-1);
+  if (picture?.kind !== 'picture' || scene.layers.length > 2) {
+    return false;
+  }
+  if (scene.layers.length === 2) {
+    const base = scene.layers[0];
+    if (
+      base?.kind !== 'shape' ||
+      base.geometry !== 'rect' ||
+      base.fill?.kind !== 'solid' ||
+      base.outline !== null
+    ) {
+      return false;
+    }
+  }
+  const {a, b, c, d, e, f} = picture.matrix;
+  const near = (left: number, right: number): boolean =>
+    Math.abs(left - right) < 0.01;
+  return (
+    near(Math.abs(a), 1920) &&
+    near(Math.abs(d), 1080) &&
+    near(b, 0) &&
+    near(c, 0) &&
+    near(e, a < 0 ? 1920 : 0) &&
+    near(f, d < 0 ? 1080 : 0) &&
+    picture.alpha === 1 &&
+    picture.brightness === 0 &&
+    picture.contrast === 0 &&
+    !picture.grayscale &&
+    !picture.tile &&
+    (picture.geometry === undefined || picture.geometry === 'rect') &&
+    Object.values(picture.crop).every(value => value === 0) &&
+    Object.values(picture.stretch).every(value => value === 0)
+  );
+}
+
 async function picture(
   api: LlpApi,
   entry: Entry,
@@ -82,28 +126,62 @@ async function prepareBatch({
   lent,
   options,
   report,
+  full,
+  simpleCache,
 }: {
   readonly api: LlpApi;
   readonly batch: readonly Entry[];
   readonly lent: Map<string, LentImage>;
   readonly options: PrepareOptions;
+  readonly full: Map<string, Blob>;
+  readonly simpleCache: Map<string, Blob>;
   readonly report: (
     done: number,
     phase: 'export' | 'prepare',
     position: number,
   ) => void;
 }): Promise<boolean> {
+  const direct = new Map<number, Blob>();
+  for (const entry of batch) {
+    if (!options.active()) return false;
+    const scene = await api.powerpoint
+      .layers({index: entry.index})
+      .catch(() => null);
+    if (!scene || !simplePicture(scene)) continue;
+    const key = JSON.stringify(scene.layers);
+    let blob = simpleCache.get(key);
+    if (!blob) {
+      try {
+        const image = await composePowerPointBackground(scene);
+        blob = new Blob([new Uint8Array(image.bytes).buffer], {
+          type: image.mime,
+        });
+      } catch {
+        continue;
+      }
+      const used = [...simpleCache.values()].reduce(
+        (sum, value) => sum + value.size,
+        0,
+      );
+      if (used + blob.size > RETAIN_LIMIT) continue;
+      simpleCache.set(key, blob);
+    }
+    direct.set(entry.index, blob);
+  }
+  const pending = batch.filter(entry => !direct.has(entry.index));
   const unsubscribe = api.powerpoint.subscribeImageProgress(({done}) => {
-    const entry = batch[done - 1];
+    const entry = pending[done - 1];
     if (options.active() && entry !== undefined) {
       report(0, 'export', done);
     }
   });
   let paths: Awaited<ReturnType<typeof api.powerpoint.decorationBatch>>;
   try {
-    paths = await api.powerpoint.decorationBatch({
-      indices: batch.map(entry => entry.index),
-    });
+    paths = pending.length
+      ? await api.powerpoint.decorationBatch({
+          indices: pending.map(entry => entry.index),
+        })
+      : null;
   } finally {
     unsubscribe();
   }
@@ -112,8 +190,20 @@ async function prepareBatch({
     const byIndex = new Map(paths?.map(item => [item.index, item.path]) ?? []);
     for (const [position, entry] of batch.entries()) {
       if (!options.active()) return false;
-      const blob = await picture(api, entry, byIndex.get(entry.index));
+      const blob =
+        direct.get(entry.index) ??
+        (await picture(api, entry, byIndex.get(entry.index)));
       if (!options.active()) return false;
+      if (
+        [...new Set(full.values())].reduce(
+          (total, value) => total + value.size,
+          0,
+        ) +
+          (new Set(full.values()).has(blob) ? 0 : blob.size) <=
+        RETAIN_LIMIT
+      ) {
+        full.set(entry.key, blob);
+      }
       const thumbnail = await thumbnailPowerPointImage(blob);
       if (!options.active()) return false;
       const hash = await crypto.subtle.digest(
@@ -146,9 +236,12 @@ export async function preparePowerPointImages(
   options: PrepareOptions,
 ): Promise<{
   readonly ids: ReadonlyMap<string, string>;
+  readonly full: ReadonlyMap<string, Blob>;
   readonly release: () => void;
 } | null> {
   const lent = new Map<string, LentImage>();
+  const full = new Map<string, Blob>();
+  const simpleCache = new Map<string, Blob>();
   const entries = distinctBackgrounds(slides);
   let complete = false;
   const ready = new Set<string>();
@@ -183,7 +276,17 @@ export async function preparePowerPointImages(
           });
         }
       };
-      if (!(await prepareBatch({api, batch, lent, options, report}))) {
+      if (
+        !(await prepareBatch({
+          api,
+          batch,
+          lent,
+          options,
+          report,
+          full,
+          simpleCache,
+        }))
+      ) {
         return null;
       }
     }
@@ -197,6 +300,7 @@ export async function preparePowerPointImages(
     complete = true;
     return {
       ids: new Map([...lent].map(([key, image]) => [key, image.id])),
+      full,
       release: () => releaseImages(lent),
     };
   } finally {

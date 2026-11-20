@@ -19,6 +19,56 @@ vi.mock('@renderer/features/songs/import/composePowerPointBackground', () => ({
   })),
 }));
 
+it('reuses one composed ZIP picture for repeated full-slide backgrounds', async () => {
+  vi.mocked(lendPreviewImage).mockReturnValue({
+    id: 'preview',
+    release: vi.fn(),
+  });
+  const decorationBatch = vi.fn();
+  const api = mockLlpApi({
+    powerpoint: {
+      decorationBatch,
+      layers: async () => ({
+        key: 'a'.repeat(64),
+        skipped: 0,
+        pictures: [
+          {
+            part: 'ppt/media/image1.png',
+            mime: 'image/png',
+            bytes: new Uint8Array([1]),
+          },
+        ],
+        layers: [
+          {
+            kind: 'picture',
+            id: 'picture',
+            part: 'ppt/media/image1.png',
+            matrix: {a: -1920, b: 0, c: 0, d: 1080, e: 1920, f: 0},
+            crop: {left: 0, top: 0, right: 0, bottom: 0},
+            stretch: {left: 0, top: 0, right: 0, bottom: 0},
+            alpha: 1,
+            brightness: 0,
+            contrast: 0,
+            grayscale: false,
+          },
+        ],
+      }),
+    },
+  });
+  const result = await preparePowerPointImages(
+    api,
+    [
+      {number: 1, shapes: [], background: 'first'},
+      {number: 2, shapes: [], background: 'second'},
+    ],
+    {active: () => true, progress: () => undefined},
+  );
+  expect(decorationBatch).not.toHaveBeenCalled();
+  expect(result?.full.get('first')).toBe(result?.full.get('second'));
+  expect(result?.full.get('first')?.type).toBe('image/png');
+  result?.release();
+});
+
 it('prepares distinct backgrounds once and reports every slide', async () => {
   const release = vi.fn();
   vi.mocked(lendPreviewImage).mockReturnValue({id: 'preview', release});
@@ -156,7 +206,7 @@ it('keeps successful exports and falls back only for missing slides, with monoto
     ],
     {active: () => true, progress},
   );
-  expect(layers).toHaveBeenCalledTimes(1);
+  expect(layers).toHaveBeenCalledTimes(3);
   expect(layers).toHaveBeenCalledWith({index: 1});
   expect(previewImage).toHaveBeenCalledWith({path: 'success.png'});
   expect(progress.mock.calls.map(([value]) => value.done)).toEqual([3, 4, 4]);

@@ -102,12 +102,14 @@ async function importSelectedBackground(
     decoration,
     isActive,
     exporting,
+    prepared,
   }: {
     readonly index: number;
     readonly title: string;
     readonly decoration: boolean;
     readonly isActive: () => boolean;
     readonly exporting: {current: boolean};
+    readonly prepared?: Blob | undefined;
   },
 ): Promise<TextImportDraft['background']> {
   const previous = backgroundQueue;
@@ -119,7 +121,18 @@ async function importSelectedBackground(
     await previous;
     if (!isActive()) return undefined;
     let path: string | null = null;
-    if (decoration) {
+    if (
+      prepared &&
+      (prepared.type === 'image/png' || prepared.type === 'image/jpeg')
+    ) {
+      path = await api.powerpoint.background({
+        index,
+        image: {
+          mime: prepared.type,
+          bytes: new Uint8Array(await prepared.arrayBuffer()),
+        },
+      });
+    } else if (decoration) {
       exporting.current = true;
       try {
         path = await api.powerpoint.background({index, decoration: true});
@@ -162,12 +175,14 @@ async function importBackgrounds(
     title,
     isActive,
     exporting,
+    full,
   }: {
     readonly range: PowerPointSource['slides'];
     readonly start: number;
     readonly title: string;
     readonly isActive: () => boolean;
     readonly exporting: {current: boolean};
+    readonly full: ReadonlyMap<string, Blob>;
   },
 ): Promise<Map<string, NonNullable<TextImportDraft['background']>>> {
   const pictures = new Map<
@@ -182,6 +197,7 @@ async function importBackgrounds(
       decoration: true,
       isActive,
       exporting,
+      prepared: full.get(slide.background),
     });
     if (!isActive()) break;
     picture ??= await importSelectedBackground(api, {
@@ -418,6 +434,7 @@ function PowerPointPreparing({
         store={store}
         source={source}
         images={prepared.ids}
+        full={prepared.full}
         pictures={pictures}
         onDone={onDone}
         onEdit={onEdit}
@@ -432,6 +449,7 @@ function PowerPointDialog({
   store,
   source,
   images,
+  full,
   pictures,
   onDone,
   onEdit,
@@ -441,6 +459,7 @@ function PowerPointDialog({
   readonly store: SongEditorStore;
   readonly source: PowerPointSource;
   readonly images: ReadonlyMap<string, string>;
+  readonly full: ReadonlyMap<string, Blob>;
   readonly pictures: PictureService;
   readonly onDone: () => void;
   readonly onEdit: () => void;
@@ -531,6 +550,7 @@ function PowerPointDialog({
           title: shownTitle,
           isActive: () => active.current,
           exporting,
+          full,
         });
         if (!active.current) return;
         pictures = decorated;
