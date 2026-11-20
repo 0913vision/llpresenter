@@ -165,33 +165,6 @@ function ThemeScreenProperties({
           )}
         </PropertyRow>
         <ThemeBackgroundProperties model={model} />
-        {screen.kind === 'stage' && layout.mode.kind === 'own' ? (
-          <PropertyRow label="가사 이름표 위치">
-            {({controlId, labelId}) => (
-              <SegmentedControl
-                id={controlId}
-                labelledBy={labelId}
-                value={layout.stageLyricLabelPosition ?? 'default'}
-                disabled={model.reason !== undefined}
-                title={model.reason}
-                options={[
-                  {value: 'default', label: '출력 설정 따름'},
-                  {value: 'line', label: '위'},
-                  {value: 'inline', label: '앞'},
-                ]}
-                onChange={position =>
-                  model.layoutChange(current => {
-                    const {stageLyricLabelPosition: _position, ...rest} =
-                      current;
-                    return position === 'line' || position === 'inline'
-                      ? {...rest, stageLyricLabelPosition: position}
-                      : rest;
-                  })
-                }
-              />
-            )}
-          </PropertyRow>
-        ) : null}
         <PropertyValue
           label="크기"
           value={`${THEME_LIMITS.width} × ${THEME_LIMITS.height}`}

@@ -195,12 +195,6 @@ export class ThemeCompositionView {
       const slide = frame.slide ?? layers.slide;
       frame = {
         ...frame,
-        ...(frame.theme.layout.stageLyricLabelPosition === undefined
-          ? {}
-          : {
-              stageLyricLabelPosition:
-                frame.theme.layout.stageLyricLabelPosition,
-            }),
         theme: {
           ...frame.theme,
           layout: songTitleLayout(
@@ -277,9 +271,7 @@ export class ThemeCompositionView {
             frame.theme.layout,
             slide,
             (slide?.kind ?? frame.theme.item?.kind) === 'song' &&
-              (frame.theme.layout.stageLyricLabelPosition ??
-                frame.stageLyricLabelPosition ??
-                'line') === 'line',
+              (frame.stageLyricLabelPosition ?? 'line') === 'line',
           ),
         },
       };

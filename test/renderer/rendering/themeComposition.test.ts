@@ -3461,34 +3461,6 @@ it('uses the selected song label position without changing Bible labels', () => 
   view.dispose();
 });
 
-it('uses a stage layout label choice ahead of the output preference', () => {
-  const {root, view} = setup();
-  if (song.slide === null) throw Error('Missing slide');
-  const base = frame([{...themeElementBase(), kind: 'currentText'}]);
-  if (!base.theme) throw Error('Missing theme');
-  view.render(
-    {
-      ...song,
-      slide: {...song.slide, kind: 'song', label: 'Verse', lines: ['Line']},
-    },
-    {
-      ...base,
-      screen: {id: THEME_MAIN, kind: 'stage'},
-      stageLyricLabelPosition: 'line',
-      theme: {
-        ...base.theme,
-        layout: {...base.theme.layout, stageLyricLabelPosition: 'inline'},
-      },
-      transitions: false,
-    },
-  );
-  expect(
-    root.querySelector(`[data-kind="currentText"] .${classes.shown}`)
-      ?.textContent,
-  ).toBe('(Verse) Line');
-  view.dispose();
-});
-
 it('keeps current song rows unwrapped on stage when they fit above 48 pixels', () => {
   const {root, view} = setup();
   if (song.slide === null) throw Error('Missing slide');
