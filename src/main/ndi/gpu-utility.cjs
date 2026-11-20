@@ -19,7 +19,7 @@ let mirrorDirty = false;
 let mirrorDue = 0;
 let mirrorTimer = null;
 
-function mirror() {
+function mirrorFrame() {
   if (!mirrorEnabled || !mirrorDirty || mirrorInFlight || !hasFrame) return;
   const delay = mirrorDue - performance.now();
   if (delay > 0) {
@@ -49,6 +49,18 @@ function mirror() {
   mirrorInFlight = true;
   mirrorDue = performance.now() + 100;
   process.parentPort.postMessage({type: 'mirror-frame', frame: pixels});
+}
+
+function mirror() {
+  try {
+    mirrorFrame();
+  } catch {
+    mirrorEnabled = false;
+    mirrorInFlight = false;
+    mirrorDirty = false;
+    if (mirrorTimer !== null) clearTimeout(mirrorTimer);
+    mirrorTimer = null;
+  }
 }
 const probe = process.env?.LLP_NDI_PROBE === '1';
 const pacer = createPacer(() => sender.send(frame), frameRate());

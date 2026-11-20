@@ -20,6 +20,7 @@ describe('transparent output preview', () => {
       isDestroyed: () => false,
       capturePage,
       startPainting,
+      invalidate: vi.fn(),
       on: events.on.bind(events),
       removeListener: events.removeListener.bind(events),
     };
@@ -75,6 +76,7 @@ describe('transparent output preview', () => {
     const source = {
       isDestroyed: () => false,
       startPainting,
+      invalidate: vi.fn(),
       on: events.on.bind(events),
       removeListener: events.removeListener.bind(events),
     };
@@ -86,7 +88,37 @@ describe('transparent output preview', () => {
     });
     expect(events.listenerCount('paint')).toBe(0);
     expect(startPainting).not.toHaveBeenCalled();
+    expect(source.invalidate).not.toHaveBeenCalled();
     expect(send).not.toHaveBeenCalled();
     mirror.stop();
+  });
+
+  it('requests one paint when attaching to an active static output', async () => {
+    const events = new EventEmitter();
+    const image = {
+      isEmpty: () => false,
+      getSize: () => ({width: 640, height: 360}),
+      resize: () => ({toBitmap: () => new Uint8Array(640 * 360 * 4)}),
+    };
+    const source = {
+      isDestroyed: () => false,
+      on: events.on.bind(events),
+      removeListener: events.removeListener.bind(events),
+      invalidate: vi.fn(() => events.emit('paint', {}, {}, image)),
+    };
+    const send = vi.fn();
+    const mirror = createAlphaMirror({
+      source: () => source,
+      outputActive: () => true,
+      send,
+    });
+    try {
+      await vi.waitFor(() => expect(send).toHaveBeenCalledOnce(), {
+        timeout: 5000,
+      });
+      expect(source.invalidate).toHaveBeenCalledOnce();
+    } finally {
+      mirror.stop();
+    }
   });
 });

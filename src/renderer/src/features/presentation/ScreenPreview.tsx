@@ -60,6 +60,7 @@ export function ScreenPreview({
     screenId: string;
     picture: PictureSpec | undefined;
     screen: RenderFrame['screen'];
+    blackScreen: boolean;
   }>();
   const picture =
     snapshot?.screenId === screenId ? snapshot.picture : undefined;
@@ -77,6 +78,7 @@ export function ScreenPreview({
         setSnapshot({
           screenId,
           screen: frame?.screen,
+          blackScreen: frame?.blackScreen === true,
           picture:
             frame === undefined
               ? undefined
@@ -115,7 +117,9 @@ export function ScreenPreview({
   const bounds = pictureBounds(size);
   return (
     <div className={classes.join(' ')}>
-      {picture === undefined ? null : (
+      {snapshot?.screenId === screenId && snapshot.blackScreen ? (
+        <div className={styles.black} data-black-screen />
+      ) : picture === undefined ? null : (
         <div
           className={styles.picture}
           style={{

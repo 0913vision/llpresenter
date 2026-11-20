@@ -104,6 +104,9 @@ it('uses cached stills instead of waking inactive stage or audience outputs', as
   if (state === null) throw new Error('Missing state');
   act(() => useLive.setState({state: {...state, blackScreen: true}}));
   expect(screen.queryByTestId('mirror')).toBeNull();
+  expect(screen.queryByTestId('cached-picture')).toBeNull();
+  expect(view.container.querySelector('[data-black-screen]')).not.toBeNull();
+  act(() => useLive.setState({state: {...state, blackScreen: false}}));
   expect(screen.getByTestId('cached-picture').textContent).toBe(
     'Current frame',
   );

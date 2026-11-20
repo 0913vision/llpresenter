@@ -47,6 +47,7 @@ interface PaintSource {
   isDestroyed(): boolean;
   on(event: 'paint', listener: PaintListener): unknown;
   removeListener(event: 'paint', listener: PaintListener): unknown;
+  invalidate(): void;
 }
 
 interface ConvertedFrame {
@@ -109,6 +110,11 @@ export function createAlphaMirror({
     if (next && !next.isDestroyed()) {
       watched = next;
       next.on('paint', onPaint);
+      try {
+        next.invalidate();
+      } catch {
+        // NOTE(0913vision): The output can close while the preview attaches.
+      }
     }
   };
   const produce = (): void => {
