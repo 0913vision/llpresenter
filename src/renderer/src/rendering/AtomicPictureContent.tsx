@@ -20,6 +20,7 @@ export function AtomicPictureContent({
   aside = null,
   initialReady = false,
   showLoading = false,
+  loadingIndicator = null,
 }: {
   readonly identity: string;
   readonly pending: boolean;
@@ -32,6 +33,7 @@ export function AtomicPictureContent({
   /** The initial content was already prepared by an enclosing frame. */
   readonly initialReady?: boolean;
   readonly showLoading?: boolean;
+  readonly loadingIndicator?: ReactNode;
 }): JSX.Element {
   const [displayed, setDisplayed] = useState<string | null>(
     initialReady ? identity : null,
@@ -93,7 +95,10 @@ export function AtomicPictureContent({
         </div>
       ) : null}
       {showLoading && (pending || staging) ? (
-        <DelayedLoading key={`loading:${identity}`} />
+        <DelayedLoading
+          key={`loading:${identity}`}
+          indicator={loadingIndicator}
+        />
       ) : null}
       {aside}
     </div>
@@ -101,19 +106,19 @@ export function AtomicPictureContent({
 }
 
 /** Shows only when the replacement remains pending for a perceptible time. */
-function DelayedLoading(): JSX.Element | null {
+function DelayedLoading({
+  indicator,
+}: {
+  readonly indicator: ReactNode;
+}): JSX.Element | null {
   const [visible, setVisible] = useState(false);
   useEffect(() => {
     const timer = setTimeout(() => setVisible(true), 150);
     return () => clearTimeout(timer);
   }, []);
   return visible ? (
-    <span
-      className={styles.loading}
-      role="status"
-      aria-label="\uBD88\uB7EC\uC624\uB294 \uC911"
-    >
-      <span className={styles.spinner} />
+    <span className={styles.loading} role="status" aria-label="불러오는 중">
+      {indicator}
     </span>
   ) : null;
 }

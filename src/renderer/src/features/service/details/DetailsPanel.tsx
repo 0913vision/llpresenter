@@ -20,6 +20,7 @@ import {sermonPreviewRow} from '@renderer/platform/sermonPreview';
 import {useBibleTileProjection} from '@renderer/features/bible/useBibleProjections';
 import {BibleLoadNotice} from '@renderer/features/bible/BibleLoadNotice';
 import {Panel, PanelBody, PanelFooter, PanelTabs} from '@renderer/ui/Panel';
+import {Spinner} from '@renderer/ui/Spinner';
 import {ThumbnailSizeControl} from '@renderer/ui/ThumbnailSizeControl';
 import type {SizeClass} from '@renderer/ui/sizeClass';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
@@ -475,6 +476,7 @@ function DetailsPanelContent({
         initial={<DetailsShell />}
         identity={detailsKey}
         showLoading
+        loadingIndicator={<Spinner size="sm" />}
         pending={target !== null && !deleted}
         content={<DetailsShell />}
       />
@@ -534,6 +536,7 @@ function DetailsPanelContent({
       initial={<DetailsShell />}
       identity={identity}
       showLoading
+      loadingIndicator={<Spinner size="sm" />}
       aside={
         ahead === null ? null : (
           <AheadBox>

@@ -69,7 +69,7 @@ it('shows the delayed loading indicator only for a pending replacement', () => {
     act(() => {
       vi.advanceTimersByTime(1);
     });
-    expect(screen.getByRole('status')).toBeTruthy();
+    expect(screen.getByRole('status', {name: '불러오는 중'})).toBeTruthy();
     view.rerender(
       <AtomicPictureContent
         identity="a"
