@@ -224,13 +224,17 @@ export class PowerPointLayerReader {
       (part): part is Part => part !== undefined,
     );
     const palette = this.palette(parts, theme);
+    const scale = Math.min(
+      LIMITS.width / size.width,
+      LIMITS.height / size.height,
+    );
     const matrix = {
-      a: LIMITS.width / size.width,
+      a: scale,
       b: 0,
       c: 0,
-      d: LIMITS.height / size.height,
-      e: 0,
-      f: 0,
+      d: scale,
+      e: (LIMITS.width - size.width * scale) / 2,
+      f: (LIMITS.height - size.height * scale) / 2,
     };
     const layers: PowerPointLayer[] = [];
     let skipped = 0;

@@ -451,8 +451,9 @@ function PowerPointDialog({
   const [title, setTitle] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [lyrics, setLyrics] = useState(true);
-  const backgroundAvailable =
-    source.widescreen && source.slides.some(slide => slide.background !== null);
+  const backgroundAvailable = source.slides.some(
+    slide => slide.background !== null,
+  );
   const [background, setBackground] = useState(backgroundAvailable);
   const [replacement, setReplacement] = useState<TextImportDraft | null>(null);
   const active = useRef(true);
@@ -623,9 +624,9 @@ function PowerPointDialog({
                 checked={background}
                 disabled={!backgroundAvailable}
                 title={
-                  source.widescreen
+                  backgroundAvailable
                     ? '선택한 슬라이드에서 가장 많이 사용된 배경'
-                    : '16:9 슬라이드만'
+                    : '가져올 배경이 없습니다'
                 }
                 onChange={value => {
                   if (value || lyrics) setBackground(value);

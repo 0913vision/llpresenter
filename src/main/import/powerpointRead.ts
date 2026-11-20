@@ -12,6 +12,7 @@ import {
 } from './powerpointXml';
 import {PowerPointLayerReader} from './powerpointLayers';
 import type {PowerPointScene} from '@core/songs/powerpointLayers';
+import {isPowerPointFourThree} from './powerpointSize';
 
 import type {
   PowerPointSlide,
@@ -129,7 +130,9 @@ export function readPowerPoint(bytes: Buffer): PowerPointDeck {
     ) {
       throw new Error('PowerPoint text exceeds its limit');
     }
-    const drawing = widescreen ? layers.read(slidePath, {width, height}) : null;
+    const drawing = isPowerPointFourThree(width, height)
+      ? null
+      : layers.read(slidePath, {width, height});
     slides.push({
       number: index + 1,
       lyricColor: layers.lyricColor(slidePath),
