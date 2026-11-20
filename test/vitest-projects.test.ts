@@ -105,7 +105,7 @@ describe('CI test workers', () => {
       'stylelint "src/**/*.css" --max-warnings 0 && eslint --max-warnings 0 .',
     );
     const workflow = await readFile('.github/workflows/ci.yml', 'utf8');
-    expect(workflow).toContain('npm run lint -- --concurrency auto');
+    expect(workflow).toContain('npm run lint -- --concurrency auto --cache');
   });
 
   it('keeps all checks on branches and measures coverage only on main', async () => {
@@ -123,9 +123,12 @@ describe('CI test workers', () => {
     for (const command of ['typecheck', 'lint', 'format:check', 'build']) {
       expect(checks).toContain(`npm run ${command}`);
     }
-    expect(shards).toContain('shard: [1, 2, 3]');
+    expect(shards).toContain('shard: [1, 2, 3, 4]');
     expect(shards).toContain('fail-fast: false');
-    expect(shards).toContain('vitest run --shard=${{ matrix.shard }}/3');
+    expect(shards).toContain(
+      'vitest run --project node --project renderer --shard=${{ matrix.shard }}/4',
+    );
+    expect(shards).toContain('vitest run --project electron');
     expect(shards).not.toContain('--coverage');
     expect(coverage).toContain("github.ref == 'refs/heads/main'");
     expect(coverage).toContain('vitest run --coverage');
