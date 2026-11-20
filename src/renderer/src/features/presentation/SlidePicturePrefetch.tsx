@@ -1,12 +1,42 @@
 import {useEffect} from 'react';
-import {isItemRow} from '@core/presentation/model';
-import {slideLayerOf} from '@core/presentation/slideLayer';
+import {
+  isItemRow,
+  type ServiceRow,
+  type SlideTile,
+} from '@core/presentation/model';
+import type {Screen} from '@core/schema/screens';
+import type {ThemesFile} from '@core/schema/themes';
+import type {TileThemes} from '@renderer/rendering/pictureSpec';
+import {pictureSpec} from '@renderer/rendering/pictureSpec';
 import {useShow} from '@renderer/session/show';
 import {tilesForView} from '@renderer/session/showLibrary';
 import {pictures} from '@renderer/rendering/pictures/pictureService';
 import {useBibleProjections} from '../bible/useBibleProjections';
 import {splitSourceFor} from '../bible/splitProjection';
-import {serviceTileThemes, tilePictureSpec} from './tilePicture';
+import {serviceTileThemes} from './tilePicture';
+
+/** Uses the same resolved item and Bible appearance as the visible grid. */
+export function prefetchPictureSpecs(
+  row: ServiceRow,
+  tiles: readonly SlideTile[],
+  settings: {
+    readonly themes: ThemesFile | undefined;
+    readonly screens: readonly Screen[] | undefined;
+    readonly bibleAppearance: TileThemes['bibleAppearance'];
+  },
+) {
+  const tileThemes = serviceTileThemes(row, tiles, settings);
+  return tiles.flatMap((_, index) => {
+    const result = pictureSpec({
+      kind: 'sequence',
+      itemId: row.id,
+      index,
+      tiles,
+      themes: tileThemes,
+    });
+    return result === undefined ? [] : [result.spec];
+  });
+}
 
 /** Preloads the service in the background, starting at the open item. */
 export function OpenItemPrefetch(): null {
@@ -32,18 +62,10 @@ export function OpenItemPrefetch(): null {
       const source = splitSourceFor(view, row.id);
       const bible = source === null ? null : projections?.get(source);
       const tiles = tilesForView(view, row.id);
-      const tileThemes = serviceTileThemes(row, tiles, {
+      const specs = prefetchPictureSpecs(row, tiles, {
         themes: themes.value,
         screens: screens.value.screens,
         bibleAppearance: bible?.appearance,
-      });
-      const specs = tiles.flatMap((tile, index) => {
-        const spec = tilePictureSpec(
-          tile,
-          slideLayerOf({itemId: row.id, index}, () => tiles),
-          tileThemes,
-        );
-        return spec === undefined ? [] : [spec];
       });
       pictures.prepare(specs);
       idle = requestIdleCallback(next, {timeout: 1000});

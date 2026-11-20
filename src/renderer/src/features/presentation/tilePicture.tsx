@@ -7,7 +7,8 @@ import {
 } from '@core/presentation/model';
 import type {Screen} from '@core/schema/screens';
 import type {ThemesFile} from '@core/schema/themes';
-import {outputSlideSpec} from '@renderer/rendering/OutputSlidePicture';
+import {pictureSpec, type TileThemes} from '@renderer/rendering/pictureSpec';
+export type {TileThemes} from '@renderer/rendering/pictureSpec';
 import {Picture} from '@renderer/rendering/pictures/Picture';
 import {
   pictures,
@@ -15,21 +16,6 @@ import {
 } from '@renderer/rendering/pictures/pictureService';
 import {slideTheme} from '@renderer/platform/useSlideTheme';
 import {sermonPreviewRow} from '@renderer/platform/sermonPreview';
-import type {useBibleTileProjection} from '../bible/useBibleProjections';
-
-type SlideTheme = ReturnType<typeof slideTheme>;
-type BibleAppearance = NonNullable<
-  ReturnType<typeof useBibleTileProjection>
->['appearance'];
-
-/** The themes a presentation tile can draw with. */
-export interface TileThemes {
-  readonly theme: SlideTheme;
-  readonly cardTheme: SlideTheme;
-  readonly sermonTheme: SlideTheme;
-  readonly bibleAppearance: BibleAppearance | undefined;
-  readonly switchSlot?: string | undefined;
-}
 
 /** Resolves the three possible theme sources for a service item. */
 export function serviceTileThemes(
@@ -42,7 +28,7 @@ export function serviceTileThemes(
   }: {
     readonly themes: ThemesFile | undefined;
     readonly screens: readonly Screen[] | undefined;
-    readonly bibleAppearance: BibleAppearance | undefined;
+    readonly bibleAppearance: TileThemes['bibleAppearance'];
   },
 ): TileThemes {
   const card = tiles.find(tile => tile.sectionCard !== undefined)?.sectionCard;
@@ -77,40 +63,12 @@ export function tilePictureSpec(
   slide: SlideLayer | null,
   {theme, cardTheme, sermonTheme, bibleAppearance}: TileThemes,
 ): PictureSpec | undefined {
-  if (slide === null) return undefined;
-  if (tile.media?.mediaId !== undefined) {
-    return theme === undefined
-      ? undefined
-      : outputSlideSpec({
-          ...theme,
-          slide,
-          background: tile.media.mediaId,
-          mediaOnly: true,
-        });
-  }
-  const content = {slide, songSource: tile.sourceSlide};
-  if (tile.sectionCard !== undefined && cardTheme !== undefined) {
-    return outputSlideSpec({...cardTheme, ...content});
-  }
-  if (tile.sermonTitle === true && sermonTheme !== undefined) {
-    return outputSlideSpec({...sermonTheme, ...content});
-  }
-  const appearance = tile.biblePart === undefined ? undefined : bibleAppearance;
-  if (appearance !== undefined) {
-    return outputSlideSpec({
-      screen: appearance.screen,
-      sourceScreenId: appearance.theme.sourceScreenId,
-      themeId: appearance.theme.themeId,
-      ...content,
-      layout: appearance.theme.layout,
-      emptyColor: appearance.theme.emptyColor,
-      item: appearance.theme.item,
-      background: appearance.background,
-    });
-  }
-  return theme === undefined
-    ? undefined
-    : outputSlideSpec({...theme, ...content});
+  return pictureSpec({
+    kind: 'tile',
+    slide,
+    tile,
+    themes: {theme, cardTheme, sermonTheme, bibleAppearance},
+  })?.spec;
 }
 
 export function tilePicture(

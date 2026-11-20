@@ -15,6 +15,11 @@ import {resolveSongSlideBackground} from '@renderer/features/songs/editor/useSon
 import {useBibleTileProjection} from '@renderer/features/bible/useBibleProjections';
 import {slideLayerOf} from '@core/presentation/slideLayer';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
+import {
+  biblePictureInput,
+  cardPictureLayer,
+  songPictureLayer,
+} from '@renderer/rendering/pictureSpec';
 import {stageSlideOf} from '@renderer/session/show';
 import {SlidesCanvas, useSlidesAppearance} from '../slides/SlidesVisuals';
 import type {useItemSlides} from '../items/useItemSlides';
@@ -37,7 +42,10 @@ interface PictureContext {
   readonly theme: ReturnType<typeof useSlideTheme>;
   readonly cardTheme: ReturnType<typeof useSlideTheme>;
   readonly sermonTheme: ReturnType<typeof useSlideTheme>;
-  readonly projection: ReturnType<typeof useBibleTileProjection>;
+  readonly projection: Pick<
+    NonNullable<ReturnType<typeof useBibleTileProjection>>,
+    'tiles' | 'appearance'
+  > | null;
   readonly bibleTiles:
     NonNullable<ReturnType<typeof useBibleTileProjection>>['tiles'] | undefined;
   readonly editor: SongEditorStore;
@@ -52,13 +60,8 @@ function cardPicture(context: PictureContext): JSX.Element | undefined {
     <SlidePicture
       {...cardTheme}
       slide={
-        stageSlideOf({itemId: item.id, index: 0}) ?? {
-          itemId: item.id,
-          position: 0,
-          label: card.name,
-          lines: [card.english],
-          sectionCard: card,
-        }
+        stageSlideOf({itemId: item.id, index: 0}) ??
+        cardPictureLayer(item.id, card)
       }
     />
   );
@@ -85,17 +88,15 @@ function biblePicture(
   if (slide.sermonTitle === true && sermonTheme !== undefined) {
     return <SlidePicture {...sermonTheme} slide={slide} />;
   }
-  const {theme, screen} = bibleAppearance ?? projection.appearance;
   return (
     <SlidePicture
-      slide={slide}
-      themeId={theme.themeId}
-      screen={screen}
-      audience={bibleAppearance?.audience}
-      stageLyricLabelPosition={bibleAppearance?.stageLyricLabelPosition}
-      layout={theme.layout}
-      emptyColor={theme.emptyColor}
-      item={theme.item}
+      {...biblePictureInput(slide, bibleAppearance ?? projection.appearance, {
+        background: projection.appearance.background,
+        sourceScreenId: (bibleAppearance ?? projection.appearance).theme
+          .sourceScreenId,
+        audience: bibleAppearance?.audience,
+        stageLyricLabelPosition: bibleAppearance?.stageLyricLabelPosition,
+      })}
     />
   );
 }
@@ -124,18 +125,23 @@ function songPicture(
       }
       songSource={projectedTiles?.[index]?.sourceSlide}
       slide={
-        projected ?? {
-          itemId: item.id,
-          position: index,
-          label: slide.label ?? null,
+        projected ??
+        songPictureLayer(item.id, index, {
           lines: slide.text.split('\n'),
+          ...(slide.label == null ? {} : {label: slide.label}),
           ...(slide.titleSlide === undefined
             ? {}
             : {titleSlide: slide.titleSlide}),
+          ...(slide.titleLineCount === undefined
+            ? {}
+            : {titleLineCount: slide.titleLineCount}),
+          ...(slide.lyricFormat === undefined
+            ? {}
+            : {lyricFormat: slide.lyricFormat}),
           ...(slide.titleLayout === undefined
             ? {}
             : {titleLayout: slide.titleLayout}),
-        }
+        })
       }
     />
   );
@@ -146,27 +152,19 @@ function libraryPicture(
   index: number,
 ): JSX.Element | undefined {
   const {library, theme} = context;
-  const slide = library?.tiles[index];
-  if (library === null || slide === undefined || theme === undefined) {
-    return undefined;
-  }
+  if (library === null || theme === undefined) return undefined;
+  const tile = library.tiles[index];
+  const slide = slideLayerOf(
+    {itemId: library.songId, index},
+    () => library.tiles,
+  );
+  if (tile === undefined || slide === null) return undefined;
   return (
     <SlidePicture
       {...theme}
       background={library.background?.mediaId}
-      songSource={slide.sourceSlide}
-      slide={{
-        itemId: library.songId,
-        position: index,
-        label: slide.label,
-        lines: slide.lines,
-        ...(slide.titleSlide === undefined
-          ? {}
-          : {titleSlide: slide.titleSlide}),
-        ...(slide.titleLayout === undefined
-          ? {}
-          : {titleLayout: slide.titleLayout}),
-      }}
+      songSource={tile.sourceSlide}
+      slide={slide}
     />
   );
 }
