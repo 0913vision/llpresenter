@@ -49,6 +49,11 @@ interface PaintSource {
   removeListener(event: 'paint', listener: PaintListener): unknown;
 }
 
+interface ConvertedFrame {
+  readonly frame: Uint8Array;
+  readonly generation: number;
+}
+
 /** Reuses output paint images, with conversion away from the main process. */
 export function createAlphaMirror({
   source,
@@ -146,7 +151,7 @@ export function createAlphaMirror({
       });
       worker = created;
     }
-    const deliver = (result: {frame: Uint8Array; generation: number}): void => {
+    const deliver = (result: ConvertedFrame): void => {
       converting = false;
       if (active && outputActive() && result.generation === generation) {
         inFlight = true;
