@@ -17,8 +17,9 @@ import {
   type ServiceItemState,
   type ServiceItemStore,
 } from '../items/serviceItemStore';
-import {ItemThemeRow, type useItemTheme} from './ItemThemeRow';
-import {ItemBackgroundRow, ItemMemo, ItemStartRow} from './ItemSettingsRows';
+import type {useItemTheme} from './ItemThemeRow';
+import {ItemAppearanceRows} from './ItemAppearanceRows';
+import {ItemMemo, ItemStartRow} from './ItemSettingsRows';
 import type {useItemMedia} from '../items/useItemSources';
 import {useServiceSongMenu} from '../order/useServiceSongMenu';
 import {songUsage} from '@renderer/features/songs/editor/songUsage';
@@ -98,22 +99,18 @@ export function DetailsInfo({
                 )}
               </PropertyRow>
             ) : null}
-            <ItemThemeRow
-              api={editor.api.settings}
-              items={items}
-              item={item}
-              reason={reason}
-              themeData={themeData}
-            />
-            <ItemBackgroundRow
-              items={items}
-              api={editor.api}
-              lockReason={reason}
-              item={item}
-              {...(isItemOfKind(item, 'song') && state.song !== null
-                ? {session: state.song}
-                : {})}
-              mediaDocument={media}
+            <ItemAppearanceRows
+              adapter={{
+                api: editor.api,
+                items,
+                item,
+                reason,
+                themeData,
+                mediaDocument: media,
+                ...(isItemOfKind(item, 'song') && state.song !== null
+                  ? {session: state.song}
+                  : {}),
+              }}
             />
             <ItemStartRow
               items={items}
