@@ -50,8 +50,9 @@ export function RecentPassages({
       const row = root.current?.querySelector<HTMLElement>(
         '[data-highlighted="true"]',
       );
-      if (row && typeof row.scrollIntoView === 'function')
+      if (row && typeof row.scrollIntoView === 'function') {
         row.scrollIntoView({block: 'nearest'});
+      }
     }
   }, [scope, highlight]);
   useWindowShortcuts(
