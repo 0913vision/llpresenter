@@ -205,7 +205,7 @@ describe('SongPreviewFrame', () => {
       screen.getByRole('button', {name: '방송 화면 크게 보기'}),
     );
     expect(shown()?.appearance.screen.kind).toBe('broadcast');
-    expect(shown()?.layers.slide?.label).toBe('\uC6943:16');
+    expect(shown()?.layers.slide?.label).toBe('요3:16');
     push({
       ...themes,
       revision: 2,
@@ -227,6 +227,6 @@ describe('SongPreviewFrame', () => {
     push({...themes, revision: 3});
 
     expect(shown()?.appearance.theme.layout.mode.kind).toBe('own');
-    expect(shown()?.layers.slide?.label).toBe('\uC6943:16');
+    expect(shown()?.layers.slide?.label).toBe('요3:16');
   });
 });

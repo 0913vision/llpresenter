@@ -39,20 +39,20 @@ export function SermonQuickAdd({
   if (window.llp === undefined) return null;
   return (
     <Dialog
-      title={'\uc124\uad50'}
+      title={'설교'}
       closeOnOutside={initial !== undefined}
       size="s"
       onCancel={onClose}
       primary={{
-        label: initial === undefined ? '\ucd94\uac00' : '\ubcc0\uacbd',
+        label: initial === undefined ? '추가' : '변경',
         disabled: title.trim() === '' || passage === null,
         onSelect: () => choose(passage),
       }}
     >
       <div className={styles.fields}>
         <TextArea
-          aria-label={'\uc81c\ubaa9'}
-          placeholder={'\uc81c\ubaa9'}
+          aria-label={'제목'}
+          placeholder={'제목'}
           value={title}
           rows={2}
           maxLength={SLIDES_LIMITS.name}

@@ -615,11 +615,11 @@ describe('built-in broadcast look', () => {
     for (const songCaption of ['band', 'text'] as const) {
       const result = fitLook(
         layout,
-        {...slide, lines: ['\uc8fc \ud558\ub098\ub2d8', 'Hallelujah']},
+        {...slide, lines: ['주 하나님', 'Hallelujah']},
         {item: {...item, kind: 'song'}, songCaption},
       );
       expect(element(result, BROADCAST_LOOK_SONG_ID)).toMatchObject({
-        broadcastText: '\uc8fc \ud558\ub098\ub2d8\nHallelujah',
+        broadcastText: '주 하나님\nHallelujah',
         text: {size: 72},
       });
       expect(

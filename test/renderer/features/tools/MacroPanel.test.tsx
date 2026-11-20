@@ -276,7 +276,7 @@ it('opens the palette and drops an action on the target macro without running it
   const secondId = '00000000-0000-4000-8000-000000000007';
   const second = {...macro, id: secondId, name: 'Second'};
   render(<MacroPanel />);
-  await screen.findByRole('option', {name: '\ucc2c\uc591'});
+  await screen.findByRole('option', {name: '찬양'});
   act(() =>
     f.push(
       settingsDocument(
@@ -287,13 +287,9 @@ it('opens the palette and drops an action on the target macro without running it
     ),
   );
   await screen.findByRole('option', {name: 'Second'});
-  await openActionSubmenu('\ub3d9\uc791 \ucd94\uac00');
-  fireEvent.click(
-    screen.getByRole('menuitem', {name: '\ub3d9\uc791 \ud314\ub808\ud2b8'}),
-  );
-  expect(
-    screen.getByRole('region', {name: '\ub3d9\uc791 \ud314\ub808\ud2b8'}),
-  ).toBeDefined();
+  await openActionSubmenu('동작 추가');
+  fireEvent.click(screen.getByRole('menuitem', {name: '동작 팔레트'}));
+  expect(screen.getByRole('region', {name: '동작 팔레트'})).toBeDefined();
   const dataTransfer = {
     types: ['application/x-llpresenter-macro-action'],
     getData: () => 'clearAll',
@@ -302,7 +298,7 @@ it('opens the palette and drops an action on the target macro without running it
     dropEffect: '',
   };
   const source = screen.getByRole('button', {
-    name: '\ubaa8\ub450 \uc9c0\uc6b0\uae30',
+    name: '모두 지우기',
   });
   const palette = source.closest('[data-dragging], [class*="palette"]');
   if (!palette) throw new Error('Missing palette');
@@ -314,15 +310,13 @@ it('opens the palette and drops an action on the target macro without running it
   fireEvent.drop(target, {dataTransfer});
   fireEvent.dragEnd(source, {dataTransfer});
   expect(palette.hasAttribute('data-dragging')).toBe(false);
-  await screen.findByRole('dialog', {name: '\ub3d9\uc791 \uc124\uc815'});
+  await screen.findByRole('dialog', {name: '동작 설정'});
   await waitFor(() =>
     expect(
-      screen
-        .getByRole('button', {name: '\uc801\uc6a9'})
-        .getAttribute('aria-disabled'),
+      screen.getByRole('button', {name: '적용'}).getAttribute('aria-disabled'),
     ).not.toBe('true'),
   );
-  fireEvent.click(screen.getByRole('button', {name: '\uc801\uc6a9'}));
+  fireEvent.click(screen.getByRole('button', {name: '적용'}));
   await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
   const edit = f.edit.mock.calls[0]?.[0];
   if (edit?.name !== 'macros') throw new Error('Missing edit');
@@ -330,18 +324,16 @@ it('opens the palette and drops an action on the target macro without running it
   expect(f.send).not.toHaveBeenCalled();
   fireEvent.click(
     screen.getByRole('button', {
-      name: '\ub3d9\uc791 \ud314\ub808\ud2b8 \ub2eb\uae30',
+      name: '동작 팔레트 닫기',
     }),
   );
-  expect(
-    screen.queryByRole('region', {name: '\ub3d9\uc791 \ud314\ub808\ud2b8'}),
-  ).toBeNull();
+  expect(screen.queryByRole('region', {name: '동작 팔레트'})).toBeNull();
 });
 
 it('ignores unknown external action drops', async () => {
   const f = fixture();
   render(<MacroPanel />);
-  const tile = await screen.findByRole('option', {name: '\ucc2c\uc591'});
+  const tile = await screen.findByRole('option', {name: '찬양'});
   fireEvent.drop(tile, {
     dataTransfer: {types: ['text/plain'], getData: () => 'clearAll'},
   });
@@ -351,9 +343,7 @@ it('ignores unknown external action drops', async () => {
 });
 
 async function selectCollection(name: string) {
-  fireEvent.click(
-    screen.getByRole('button', {name: '\ub9e4\ud06c\ub85c \ubaa8\uc74c'}),
-  );
+  fireEvent.click(screen.getByRole('button', {name: '매크로 모음'}));
   fireEvent.click(
     within(screen.getByRole('dialog', {name: '매크로 모음'})).getByRole(
       'option',
@@ -375,12 +365,10 @@ function collectionMenu(name: string) {
 it('renames and deletes the displayed collection while retaining macros', async () => {
   const f = fixture();
   const view = render(<MacroPanel />);
-  await screen.findByRole('option', {name: '\ucc2c\uc591'});
-  await selectCollection('\uc8fc\uc77c');
+  await screen.findByRole('option', {name: '찬양'});
+  await selectCollection('주일');
   collectionMenu('주일');
-  fireEvent.click(
-    screen.getByRole('menuitem', {name: '\uc774\ub984 \ubc14\uafb8\uae30'}),
-  );
+  fireEvent.click(screen.getByRole('menuitem', {name: '이름 바꾸기'}));
   const field = await screen.findByRole('textbox', {name: '모음 이름'});
   fireEvent.change(field, {
     target: {value: 'Team'},
@@ -393,10 +381,10 @@ it('renames and deletes the displayed collection while retaining macros', async 
   view.unmount();
   const next = fixture();
   render(<MacroPanel />);
-  await screen.findByRole('option', {name: '\ucc2c\uc591'});
-  await selectCollection('\uc8fc\uc77c');
+  await screen.findByRole('option', {name: '찬양'});
+  await selectCollection('주일');
   collectionMenu('주일');
-  fireEvent.click(screen.getByRole('menuitem', {name: '\uc0ad\uc81c'}));
+  fireEvent.click(screen.getByRole('menuitem', {name: '삭제'}));
   expect(screen.queryByRole('alertdialog')).toBeNull();
   await waitFor(() => expect(next.edit).toHaveBeenCalledOnce());
   const deletion = next.edit.mock.calls[0]?.[0];

@@ -107,7 +107,7 @@ export function RecentPassages({
       aria-label="최근 성경 구절"
     >
       {scope === 'dialog' ? (
-        <div className={styles.heading}>{'\uCD5C\uADFC'}</div>
+        <div className={styles.heading}>{'최근'}</div>
       ) : null}
       {Array.from(
         {length: scope === 'dialog' ? entries.length : 10},

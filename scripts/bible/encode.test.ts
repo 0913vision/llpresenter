@@ -17,7 +17,7 @@ describe('chunked Bible encoder', () => {
   it('uses UTF-8 byte offsets and preserves unknown metadata, Unicode and omitted slots', () => {
     const value = translationFile([57, 65]);
     const first = [
-      'Invented \uD55C\uAE00 sentence.',
+      'Invented 한글 sentence.',
       '',
       'Invented \u{1f680} sentence.',
     ];

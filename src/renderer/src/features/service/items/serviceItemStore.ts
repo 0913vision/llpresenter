@@ -143,9 +143,7 @@ export class ServiceItemStore {
       ? history.undo(id)
       : history.redo(id));
     if (!result.ok) {
-      this.problem(
-        '\uC804\uD658 \uBCC0\uACBD\uC744 \uB418\uB3CC\uB9AC\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4',
-      );
+      this.problem('전환 변경을 되돌리지 못했습니다');
     }
   }
   /** Submits a captured field request through the single item-write queue. */

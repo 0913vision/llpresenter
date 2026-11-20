@@ -17,7 +17,7 @@ export const ORDER_ELEMENTS = [
   {id: 'standby', label: '예배 준비', icon: iconByKind.slides},
   {id: 'creed', label: '사도신경', icon: iconByKind.slides},
   {id: 'prayer', label: '주기도문', icon: iconByKind.slides},
-  {id: 'sermon', label: '\uc124\uad50', icon: SERMON_ICON},
+  {id: 'sermon', label: '설교', icon: SERMON_ICON},
   {id: 'bible', label: '성경 구절', icon: iconByKind.bible},
   {id: 'ad', label: '광고', icon: iconByKind.slides},
   {id: 'blank', label: '빈 슬라이드', icon: iconByKind.slides},

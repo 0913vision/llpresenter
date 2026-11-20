@@ -161,12 +161,8 @@ describe('update presentation', () => {
     const view = setup(snapshot);
     const dialog = await screen.findByRole('alertdialog');
     expect(dialog.textContent).toContain('1.2.3');
-    expect(dialog.textContent).toContain(
-      '\uD654\uBA74\uC774 \uAEBC\uC9C0\uACE0',
-    );
-    fireEvent.click(
-      screen.getByRole('button', {name: '\uC5C5\uB370\uC774\uD2B8'}),
-    );
+    expect(dialog.textContent).toContain('화면이 꺼지고');
+    fireEvent.click(screen.getByRole('button', {name: '업데이트'}));
     expect(view.send).toHaveBeenCalledWith({revision: 1, action: 'download'});
   });
   it('shows a dismissible launch notice without an update action', async () => {
@@ -181,9 +177,7 @@ describe('update presentation', () => {
     const view = setup(snapshot);
     expect((await screen.findByRole('status')).textContent).toContain('1.2.3');
     expect(screen.queryByRole('alertdialog')).toBeNull();
-    expect(
-      screen.queryByRole('button', {name: '\uC5C5\uB370\uC774\uD2B8'}),
-    ).toBeNull();
+    expect(screen.queryByRole('button', {name: '업데이트'})).toBeNull();
     fireEvent.click(screen.getByRole('button', {name: '알림 닫기'}));
     expect(view.send).toHaveBeenCalledWith({revision: 1, action: 'dismiss'});
   });

@@ -326,9 +326,7 @@ export function useThemeElements(
     add,
     remove: (ids: readonly string[]) => {
       if (fittedBroadcast && ids.includes(BROADCAST_LOOK_SONG_TITLE_ID)) {
-        report(
-          '\uace1 \uc81c\ubaa9\uc740 \uc0ad\uc81c\ud560 \uc218 \uc5c6\uc2b5\ub2c8\ub2e4',
-        );
+        report('곡 제목은 삭제할 수 없습니다');
         return;
       }
       const unchanged = guardInteraction();

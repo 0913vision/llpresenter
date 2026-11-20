@@ -64,8 +64,7 @@ export function projectSlides(
           label ??
           (picture?.internal === true
             ? ''
-            : (picture?.file.split(/[\\/]/).at(-1) ??
-              '\ucc3e\uc744 \uc218 \uc5c6\ub294 \uadf8\ub9bc')),
+            : (picture?.file.split(/[\\/]/).at(-1) ?? '찾을 수 없는 그림')),
         labelColor,
         ...assigned,
         ...reference,

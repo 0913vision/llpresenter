@@ -176,7 +176,7 @@ it('duplicates next to its source in the list and its collections', async () => 
           {
             ...doc.value.macros[0],
             id: copyId,
-            name: 'Source \ubcf5\uc0ac\ubcf8',
+            name: 'Source 복사본',
           },
         ],
         collections: [{...group, macroIds: [item.id, copyId]}],
@@ -247,7 +247,7 @@ it('duplicates the latest source after a stale revision and treats a repeated ID
           {
             ...newer.value.macros[0],
             id: copyId,
-            name: 'Newer \ubcf5\uc0ac\ubcf8',
+            name: 'Newer 복사본',
           },
         ],
       },

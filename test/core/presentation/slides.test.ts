@@ -25,7 +25,7 @@ it('resolves verse slots without changing their source identities or storing tex
   });
   expect(tiles[4]).toMatchObject({
     sourceSlideId: VERSE_REPEAT,
-    label: '\uC6943:16',
+    label: '요3:16',
   });
   expect(tiles[1]?.lines.join('')).toBe(tiles[1]?.verse?.text);
   expect(projectSlides(item)[1]?.verse).not.toHaveProperty('text');

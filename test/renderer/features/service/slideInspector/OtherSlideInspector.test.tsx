@@ -356,9 +356,7 @@ it.each(['sermon', 'bible', 'bible-card', 'slide-card'] as const)(
 );
 it('saves opening and closing sermon title transitions independently', async () => {
   const {view, items, editor} = await setup('sermon');
-  await userEvent.click(
-    screen.getByRole('button', {name: '\ub514\uc878\ube0c'}),
-  );
+  await userEvent.click(screen.getByRole('button', {name: '디졸브'}));
   await waitFor(() =>
     expect(items.getSnapshot().item).toMatchObject({
       sermon: {openingTransition: {kind: 'dissolve'}},
@@ -368,9 +366,7 @@ it('saves opening and closing sermon title transitions independently', async () 
     items.setBibleSelection([2]);
     items.selectPosition(2);
   });
-  await userEvent.click(
-    screen.getByRole('button', {name: '\ubc00\uc5b4\ub0b4\uae30'}),
-  );
+  await userEvent.click(screen.getByRole('button', {name: '밀어내기'}));
   await waitFor(() =>
     expect(items.getSnapshot().item).toMatchObject({
       sermon: {
@@ -419,7 +415,7 @@ it('shows the selected Bible picture, label and transition picker', async () => 
   const {view, items, editor} = await setup('bible');
   expect(screen.getByTestId('bible-picture')).toBeTruthy();
   expect(screen.getAllByText('1:1')).toHaveLength(2);
-  expect(screen.getByLabelText('\uD6A8\uACFC')).toBeTruthy();
+  expect(screen.getByLabelText('효과')).toBeTruthy();
   act(() => items.show(null));
   expect(screen.queryByTestId('bible-picture')).toBeNull();
   expect(screen.queryByText('1:1')).toBeNull();
@@ -543,9 +539,7 @@ it('applies one transition to a Bible card and selected parts and undoes them to
     items.setBibleSelection([0, 1]);
     items.selectPosition(1);
   });
-  await userEvent.click(
-    screen.getByRole('button', {name: '\uB514\uC878\uBE0C'}),
-  );
+  await userEvent.click(screen.getByRole('button', {name: '디졸브'}));
   await waitFor(() => {
     expect(items.getSnapshot().item).toMatchObject({
       sectionCard: {transition: {kind: 'dissolve'}},
@@ -577,7 +571,7 @@ it.each(['bible', 'sermon', 'creed', 'prayer', 'bible-card'] as const)(
     try {
       const before = structuredClone(items.getSnapshot().item);
       const effect = await screen.findByRole('button', {
-        name: '\uBC00\uC5B4\uB0B4\uAE30',
+        name: '밀어내기',
       });
       await userEvent.click(effect);
       let changed: typeof before = null;
@@ -628,7 +622,7 @@ it('replays a song card transition through draft history from a focused inspecto
   try {
     view.rerender(<DraftInspector />);
     const effect = await screen.findByRole('button', {
-      name: '\uB514\uC878\uBE0C',
+      name: '디졸브',
     });
     await userEvent.click(effect);
     expect(session.slideModel.getSnapshot().context?.cardTransition?.kind).toBe(

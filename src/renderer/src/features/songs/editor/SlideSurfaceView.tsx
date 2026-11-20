@@ -80,10 +80,10 @@ export function SlideSurfaceView({
     <div role="toolbar" aria-label="슬라이드 보기" className={styles.toolbar}>
       <SegmentedControl
         kind="toggle"
-        label={'\uC2AC\uB77C\uC774\uB4DC \uBCF4\uAE30 \uBC29\uC2DD'}
+        label={'슬라이드 보기 방식'}
         options={[
-          {value: 'list', label: '\uBAA9\uB85D', icon: 'rows'},
-          {value: 'grid', label: '\uACA9\uC790', icon: 'grid'},
+          {value: 'list', label: '목록', icon: 'rows'},
+          {value: 'grid', label: '격자', icon: 'grid'},
         ]}
         value={current.mode}
         onChange={mode => saveMode(mode, ui)}

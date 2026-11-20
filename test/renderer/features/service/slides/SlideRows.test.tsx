@@ -125,7 +125,7 @@ describe('slide row editing surface', () => {
     expect(
       screen
         .getByRole('group', {
-          name: '\uC2AC\uB77C\uC774\uB4DC \uD3B8\uC9D1 \uBA85\uB839',
+          name: '슬라이드 편집 명령',
         })
         .hasAttribute('data-leading-active'),
     ).toBe(true);
@@ -133,7 +133,7 @@ describe('slide row editing surface', () => {
     expect(
       screen
         .getByRole('group', {
-          name: '\uC2AC\uB77C\uC774\uB4DC \uD3B8\uC9D1 \uBA85\uB839',
+          name: '슬라이드 편집 명령',
         })
         .hasAttribute('data-leading-active'),
     ).toBe(false);
@@ -143,7 +143,7 @@ describe('slide row editing surface', () => {
     expect(
       screen
         .getByRole('group', {
-          name: '\uC2AC\uB77C\uC774\uB4DC \uD3B8\uC9D1 \uBA85\uB839',
+          name: '슬라이드 편집 명령',
         })
         .hasAttribute('data-leading-active'),
     ).toBe(false);
@@ -159,13 +159,13 @@ describe('slide row editing surface', () => {
         <Harness
           draft={draft}
           leadingCard={{
-            label: '\uAD6C\uC5ED \uC774\uB984',
+            label: '구역 이름',
             render: () => <span>Card</span>,
             onDelete: vi.fn(),
           }}
         />,
       );
-      const card = screen.getByLabelText('\uAD6C\uC5ED \uC774\uB984');
+      const card = screen.getByLabelText('구역 이름');
       const dataTransfer = clipboard();
       fireEvent.dragStart(row(1), {dataTransfer});
       fireEvent.drop(card, {dataTransfer});
@@ -187,14 +187,14 @@ describe('slide row editing surface', () => {
         <Harness
           draft={draft}
           leadingCard={{
-            label: '\uAD6C\uC5ED \uC774\uB984',
+            label: '구역 이름',
             render: current => <span>{`Card ${current}`}</span>,
             onDelete,
             onSelectChange,
           }}
         />,
       );
-      const card = screen.getByLabelText('\uAD6C\uC5ED \uC774\uB984');
+      const card = screen.getByLabelText('구역 이름');
       expect(card.textContent).toBe(`Card ${mode}`);
       expect(card.getAttribute('draggable')).not.toBe('true');
       expect(draft.snapshot.item.slides.slides).toHaveLength(4);

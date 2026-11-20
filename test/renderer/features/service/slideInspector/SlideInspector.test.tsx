@@ -213,10 +213,10 @@ it('stores and displays transition seconds without floating-point noise', async 
   const panel = within(view.container);
   await user.click(
     panel.getByRole('button', {
-      name: '\ub2e6\uc544\ub0b4\uae30',
+      name: '닦아내기',
     }),
   );
-  const time = panel.getByLabelText('\uc804\ud658 \uc2dc\uac04');
+  const time = panel.getByLabelText('전환 시간');
   await user.clear(time);
   await user.type(time, '0.7{Enter}');
   expect(session.history.snapshot.song.slides[0]?.transition?.sec).toBe(0.7);
@@ -308,7 +308,7 @@ it('edits an item song card together with selected lyrics in one undo step', asy
   const inspector = render(<SlideInspector store={store} cardSelected />);
   await userEvent.click(
     within(inspector.container).getByRole('button', {
-      name: '\uB514\uC878\uBE0C',
+      name: '디졸브',
     }),
   );
   expect(

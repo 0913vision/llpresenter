@@ -166,7 +166,7 @@ export function SlidePanelFooter({
               disabled={live !== 'away'}
               onClick={() => liveReturn.go()}
             >
-              {'\ud604 \uc704\uce58\ub85c'}
+              {'현 위치로'}
             </Button>
           )}
           <SlideSizeControl sizeClass={sizeClass} />

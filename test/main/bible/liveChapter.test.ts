@@ -71,7 +71,7 @@ describe('live Bible chapters', () => {
     const fetch = vi.fn().mockResolvedValue({ok: true, text: async () => html});
     vi.stubGlobal('fetch', fetch);
     const library = new BibleLibrary(new BibleChapterLibrary([], () => {}));
-    const input = '\uC694\uD55C\uBCF5\uC74C 15:1';
+    const input = '요한복음 15:1';
     expect((await library.resolve(LIVE_BIBLE_ID, input, true)).ok).toBe(false);
     expect(fetch).not.toHaveBeenCalled();
     expect((await library.resolve(LIVE_BIBLE_ID, input)).ok).toBe(true);

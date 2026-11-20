@@ -32,7 +32,7 @@ function CollectionDialog({
       }}
     >
       <TextField
-        aria-label={'\uc774\ub984'}
+        aria-label={'이름'}
         autoFocus
         block
         maxLength={256}
@@ -65,16 +65,16 @@ function ActionDialog({
   if (!targets) {
     return (
       <Dialog
-        title={'\ub3d9\uc791 \uc124\uc815'}
+        title={'동작 설정'}
         size="s"
         onCancel={close}
         primary={{
-          label: '\uc644\ub8cc',
+          label: '완료',
           disabled: true,
           onSelect: () => undefined,
         }}
       >
-        <span>{'\ub300\uc0c1\uc744 \ubd88\ub7ec\uc624\ub294 \uc911'}</span>
+        <span>{'대상을 불러오는 중'}</span>
       </Dialog>
     );
   }

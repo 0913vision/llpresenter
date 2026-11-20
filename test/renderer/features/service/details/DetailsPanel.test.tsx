@@ -484,7 +484,7 @@ it('does not offer an item-level transition', async () => {
     await waitFor(() =>
       expect(items.getSnapshot().item?.id).toBe(fixtureItems.arranged),
     );
-    expect(screen.queryByRole('button', {name: '\uc804\ud658'})).toBeNull();
+    expect(screen.queryByRole('button', {name: '전환'})).toBeNull();
   } finally {
     view.unmount();
     items.dispose();

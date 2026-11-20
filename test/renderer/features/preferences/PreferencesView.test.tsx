@@ -704,8 +704,8 @@ describe('PreferencesView', () => {
 
   it('does not offer global slide transitions in output settings', async () => {
     await mount();
-    await openPage('\uCD9C\uB825');
-    expect(screen.queryByRole('group', {name: '\uC804\uD658'})).toBeNull();
+    await openPage('출력');
+    expect(screen.queryByRole('group', {name: '전환'})).toBeNull();
   });
 
   it('edits a new-slide default without writing the other kinds', async () => {
@@ -987,11 +987,9 @@ describe('PreferencesView', () => {
     it('keeps an open device menu stable while devices change', async () => {
       const discovery = connect(MIXER);
       await mount();
-      await openPage('\ubbf8\ub514\uc5b4');
+      await openPage('미디어');
       await waitFor(() => expect(discovery.enumerate).toHaveBeenCalled());
-      await userEvent.click(
-        screen.getByRole('button', {name: /\ucd9c\ub825 \uc7a5\uce58/}),
-      );
+      await userEvent.click(screen.getByRole('button', {name: /출력 장치/}));
       await screen.findByRole('menuitemradio', {name: 'Mixer (USB)'});
       discovery.enumerate.mockResolvedValue([
         {kind: 'audiooutput', deviceId: 'new', label: 'New device'},
@@ -1006,9 +1004,7 @@ describe('PreferencesView', () => {
         screen.queryByRole('menuitemradio', {name: 'New device'}),
       ).toBeNull();
       await userEvent.keyboard('{Escape}');
-      await userEvent.click(
-        screen.getByRole('button', {name: /\ucd9c\ub825 \uc7a5\uce58/}),
-      );
+      await userEvent.click(screen.getByRole('button', {name: /출력 장치/}));
       expect(
         await screen.findByRole('menuitemradio', {name: 'New device'}),
       ).toBeDefined();

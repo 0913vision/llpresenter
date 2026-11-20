@@ -59,7 +59,7 @@ export function ThemeProperties({
               <span className={styles.thumbnail}>
                 <ThemePicture
                   showPlaceholders
-                  referenceItemSample={'\uc694\ud55c\ubcf5\uc74c 3:16-18'}
+                  referenceItemSample={'요한복음 3:16-18'}
                   elements={
                     resolved === undefined
                       ? []

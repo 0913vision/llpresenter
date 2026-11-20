@@ -243,9 +243,7 @@ it('saves fitted broadcast title movement and edits to added text separately', a
       {id: STAGE, name: 'Stage', kind: 'stage', method: 'fullscreen'},
     ],
   });
-  fireEvent.click(
-    await screen.findByRole('button', {name: 'Broadcast \ud3b8\uc9d1'}),
-  );
+  fireEvent.click(await screen.findByRole('button', {name: 'Broadcast 편집'}));
   const title = document.querySelector(
     '[data-canvas-element="00000000-0000-4000-8000-000000000486"] > button',
   );
@@ -259,10 +257,10 @@ it('saves fitted broadcast title movement and edits to added text separately', a
     value().themes[0]?.screens[broadcast]?.broadcastEdits?.[titleId]?.frame?.x,
   ).toBe(112);
   const palette = screen.getByRole('region', {
-    name: '\uc694\uc18c \ucd94\uac00',
+    name: '요소 추가',
   });
-  fireEvent.click(within(palette).getByRole('button', {name: '\uae00\uc790'}));
-  const content = await screen.findByRole('textbox', {name: '\ub0b4\uc6a9'});
+  fireEvent.click(within(palette).getByRole('button', {name: '글자'}));
+  const content = await screen.findByRole('textbox', {name: '내용'});
   fireEvent.change(content, {target: {value: 'Custom text'}});
   fireEvent.blur(content);
   await saveEdits();
@@ -349,18 +347,18 @@ it.each([
   'enforces the user theme limit for new and duplicate controls at %i',
   async (count, full) => {
     setup({userThemes: count});
-    const list = await screen.findByRole('listbox', {name: '\ud14c\ub9c8'});
+    const list = await screen.findByRole('listbox', {name: '테마'});
     const song = await within(list).findByRole('option', {
-      name: '\ucc2c\uc591',
+      name: '찬양',
     });
-    const add = screen.getByRole('button', {name: '\uc0c8 \ud14c\ub9c8'});
+    const add = screen.getByRole('button', {name: '새 테마'});
     expect(add.getAttribute('aria-disabled') === 'true').toBe(full);
     fireEvent.contextMenu(song, {
       clientX: 10,
       clientY: 10,
     });
     const duplicate = await screen.findByRole('menuitem', {
-      name: '\ubcf5\uc81c',
+      name: '복제',
     });
     expect(duplicate.getAttribute('aria-disabled') === 'true').toBe(full);
   },

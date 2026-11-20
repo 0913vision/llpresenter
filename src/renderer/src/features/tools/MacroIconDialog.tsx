@@ -47,16 +47,12 @@ export function MacroIconDialog({
   };
   return (
     <Dialog
-      title={'\uc544\uc774\ucf58 \ubc14\uafb8\uae30'}
+      title={'아이콘 바꾸기'}
       size="s"
       onCancel={close}
-      primary={{label: '\ub2eb\uae30', onSelect: close}}
+      primary={{label: '닫기', onSelect: close}}
     >
-      <div
-        className={styles.grid}
-        role="group"
-        aria-label={'\uc544\uc774\ucf58'}
-      >
+      <div className={styles.grid} role="group" aria-label={'아이콘'}>
         {names.map((name, index) => (
           <IconButton
             key={name}
@@ -64,7 +60,7 @@ export function MacroIconDialog({
               buttons.current[index] = element;
             }}
             icon={name}
-            label={`\uc544\uc774\ucf58 ${name}`}
+            label={`아이콘 ${name}`}
             pressed={name === value}
             disabled={locked}
             tabIndex={index === focused ? 0 : -1}

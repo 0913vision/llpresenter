@@ -96,7 +96,7 @@ it('formats the kind line for every item kind and a library song', () => {
       item: {id: itemId, sermon: {title: 'Sermon', passage: bible.bible}},
       rawCount: 4,
       offset: 1,
-      expected: '\uc124\uad50, \uc2ac\ub77c\uc774\ub4dc 5\uac1c',
+      expected: '설교, 슬라이드 5개',
     },
     {item, rawCount: 1, offset: 0, expected: '미디어, 슬라이드 1개'},
   ];

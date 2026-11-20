@@ -21,7 +21,7 @@ export function BiblePassageDialog({
   readonly onChoose: (passage: BibleLookupPassage) => void;
   readonly onClose: () => void;
 }): JSX.Element {
-  const document = useSettingsDocument('bible', '\uC131\uACBD', undefined);
+  const document = useSettingsDocument('bible', '성경', undefined);
   const generation = useRef(0);
   useEffect(
     () => () => {
@@ -53,7 +53,7 @@ export function BiblePassageDialog({
       translation={translation}
       translations={withLiveBible(document?.value.translations ?? [])}
       recents={document?.value.recents ?? []}
-      action={'\uCD94\uAC00'}
+      action={'추가'}
       onClose={onClose}
       onSubmit={choose}
       onPick={pick}

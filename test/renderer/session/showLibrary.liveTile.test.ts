@@ -131,7 +131,7 @@ describe('liveTileIndex', () => {
       ...live,
       tiles: [
         {
-          label: '\uC694\uD55C\uBCF5\uC74C 3:16',
+          label: '요한복음 3:16',
           labelColor: 'none' as const,
           lines: [],
           sectionCard: {
@@ -141,13 +141,13 @@ describe('liveTileIndex', () => {
           },
         },
         {
-          label: '\uC6943:16 (1)',
+          label: '요3:16 (1)',
           labelColor: 'none' as const,
           lines: [],
           biblePart: 1,
         },
         {
-          label: '\uC6943:16 (2)',
+          label: '요3:16 (2)',
           labelColor: 'none' as const,
           lines: [],
           biblePart: 2,
@@ -158,7 +158,7 @@ describe('liveTileIndex', () => {
       liveTileIndex(view(projected, projected), {
         itemId: live.id,
         position: 1,
-        label: '\uC6943:16 (1)',
+        label: '요3:16 (1)',
         biblePart: 1,
         lines: [],
       }),
@@ -167,7 +167,7 @@ describe('liveTileIndex', () => {
       liveTileIndex(view(projected, projected), {
         itemId: live.id,
         position: 2,
-        label: '\uC6943:16 (2)',
+        label: '요3:16 (2)',
         biblePart: 2,
         lines: [],
       }),

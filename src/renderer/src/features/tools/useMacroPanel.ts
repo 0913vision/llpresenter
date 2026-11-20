@@ -173,7 +173,7 @@ export function useMacroPanel({
     onProblem,
     area: {
       key: 'macro-collections',
-      label: '\ubaa8\uc74c',
+      label: '모음',
       log: 'Could not edit macro collections',
       history: 'macros',
     },

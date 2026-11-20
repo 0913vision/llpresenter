@@ -302,15 +302,16 @@ describe('media properties panel', () => {
 it('explains theme fit precedence in a tooltip while keeping media fit editable', async () => {
   setup();
   const panel = await choose('Notice');
-  const group = within(panel).getByRole('radiogroup', {name: '\ub9de\ucda4'});
+  const group = within(panel).getByRole('radiogroup', {name: '맞춤'});
   const target = within(panel).getByTestId('media-fit-tooltip');
   fireEvent.pointerEnter(target);
   expect((await screen.findByRole('tooltip')).textContent).toContain(
-    '\ud14c\ub9c8\uc758 \ub9de\ucda4\uc774 \uc6b0\uc120\ud569\ub2c8\ub2e4',
+    '테마의 맞춤이 우선합니다',
   );
-  expect(
-    within(group).getByRole('radio', {name: '\ucc44\uc6b0\uae30'}),
-  ).toHaveProperty('disabled', false);
+  expect(within(group).getByRole('radio', {name: '채우기'})).toHaveProperty(
+    'disabled',
+    false,
+  );
 });
 
 it('shows the fit precedence tooltip on keyboard focus', async () => {
@@ -320,11 +321,11 @@ it('shows the fit precedence tooltip on keyboard focus', async () => {
   // NOTE(0913vision): jsdom cannot determine :focus-visible; this stands in for keyboard modality.
   const match = vi.spyOn(target, 'matches').mockReturnValue(true);
   const control = within(panel).getByRole('radio', {
-    name: '\ucc44\uc6b0\uae30',
+    name: '채우기',
   });
   fireEvent.focus(control);
   expect((await screen.findByRole('tooltip')).textContent).toContain(
-    '\ud14c\ub9c8\uc758 \ub9de\ucda4\uc774 \uc6b0\uc120\ud569\ub2c8\ub2e4',
+    '테마의 맞춤이 우선합니다',
   );
   match.mockRestore();
 });
@@ -332,9 +333,7 @@ it('shows the fit precedence tooltip on keyboard focus', async () => {
 it('hides video-only controls for audio and retains volume', async () => {
   setup();
   const panel = await choose('Hymn');
-  expect(
-    within(panel).queryByRole('radiogroup', {name: '\ub05d\ub098\uba74'}),
-  ).toBeNull();
+  expect(within(panel).queryByRole('radiogroup', {name: '끝나면'})).toBeNull();
   expect(within(panel).queryByRole('checkbox')).toBeNull();
   expect(within(panel).getByRole('slider')).toHaveProperty('disabled', false);
 });

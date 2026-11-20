@@ -33,9 +33,7 @@ export function sectionCardEntries(
       id: 'section-card',
       label: '타이틀 슬라이드 추가',
       disabled,
-      title: disabled
-        ? '\uc9c0\uae08\uc740 \ucd94\uac00\ud560 \uc218 \uc5c6\uc2b5\ub2c8\ub2e4'
-        : '',
+      title: disabled ? '지금은 추가할 수 없습니다' : '',
       submenu: SUNDAY_SECTIONS.map(section => ({
         kind: 'item' as const,
         id: `section:${section.name}`,

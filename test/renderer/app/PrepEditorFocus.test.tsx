@@ -633,7 +633,7 @@ it('keeps Ctrl N in the title and enters the first slide text with Enter', async
 it('keeps the song settings paired while the slides editor is still opening', async () => {
   const f = setup();
   await userEvent.dblClick(screen.getByRole('option', {name: /Service song/}));
-  await screen.findByRole('region', {name: '\uace1 \ud3b8\uc9d1'});
+  await screen.findByRole('region', {name: '곡 편집'});
   const session = f.session.editor?.getSnapshot().session;
   let finish: (() => void) | undefined;
   vi.mocked(f.api.slidesEditor.open).mockImplementation(
@@ -643,7 +643,7 @@ it('keeps the song settings paired while the slides editor is still opening', as
       }),
   );
   const settings = screen.getByRole('group', {
-    name: '\uc774\ubc88 \uc608\ubc30',
+    name: '이번 예배',
   });
   const before = settings.textContent;
   await userEvent.click(screen.getByRole('option', {name: /Sermon item/}));
@@ -651,12 +651,10 @@ it('keeps the song settings paired while the slides editor is still opening', as
     expect(f.session.items?.getSnapshot().item?.id).toBe(fixtureItems.lost),
   );
   expect(f.session.editor?.getSnapshot().session).toBe(session);
-  expect(
-    screen.getByRole('region', {name: '\uace1 \ud3b8\uc9d1'}),
-  ).toBeTruthy();
-  expect(
-    screen.getByRole('group', {name: '\uc774\ubc88 \uc608\ubc30'}).textContent,
-  ).toBe(before);
+  expect(screen.getByRole('region', {name: '곡 편집'})).toBeTruthy();
+  expect(screen.getByRole('group', {name: '이번 예배'}).textContent).toBe(
+    before,
+  );
   act(() => finish?.());
 });
 
@@ -673,12 +671,11 @@ it('focuses the new song title when Ctrl N replaces an existing song', async () 
   );
   await waitFor(() =>
     expect(document.activeElement).toBe(
-      screen.getByRole('textbox', {name: '\uace1 \uc81c\ubaa9'}),
+      screen.getByRole('textbox', {name: '곡 제목'}),
     ),
   );
   expect(
-    screen.getByRole<HTMLInputElement>('textbox', {name: '\uace1 \uc81c\ubaa9'})
-      .readOnly,
+    screen.getByRole<HTMLInputElement>('textbox', {name: '곡 제목'}).readOnly,
   ).toBe(false);
 });
 

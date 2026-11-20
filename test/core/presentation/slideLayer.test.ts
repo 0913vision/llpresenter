@@ -237,8 +237,8 @@ describe('slideLayerOf', () => {
       biblePart: 1,
       next: {continued: false, biblePart: 2},
       bibleItemSlides: [
-        {lines: ['\uac00\ub098 (\uacc4\uc18d)'], continued: true},
-        {lines: ['\ub2e4\ub77c'], continued: false},
+        {lines: ['가나 (계속)'], continued: true},
+        {lines: ['다라'], continued: false},
       ],
     });
     expect(
@@ -477,7 +477,7 @@ it.each([{name: 'Notice title'}, {name: ''}, {name: '   '}, {name: undefined}])(
   ({name}) => {
     const section = SUNDAY_SECTIONS.find(value => value.english === 'Notice');
     if (!section) throw Error('Missing notice section');
-    expect(section.name).toBe('\uad11\uace0');
+    expect(section.name).toBe('광고');
     const current = {
       label: null,
       labelColor: 'none' as const,

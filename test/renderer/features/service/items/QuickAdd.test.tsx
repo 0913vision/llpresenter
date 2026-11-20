@@ -269,23 +269,19 @@ describe('항목 추가', () => {
     mockBible(api);
     await openBibleForm(user);
     const book = screen.getByRole<HTMLInputElement>('combobox', {
-      name: '\uCC45',
+      name: '책',
     });
-    await user.type(book, '\uC694');
+    await user.type(book, '요');
     await waitFor(() =>
       expect(book.getAttribute('aria-expanded')).toBe('true'),
     );
     await user.keyboard('{Escape}');
     expect(
-      screen.getByRole<HTMLInputElement>('combobox', {name: '\uCC45'}).value,
+      screen.getByRole<HTMLInputElement>('combobox', {name: '책'}).value,
     ).toBe('');
-    expect(
-      screen.getByRole('dialog', {name: '\uC131\uACBD \uAD6C\uC808'}),
-    ).toBeTruthy();
+    expect(screen.getByRole('dialog', {name: '성경 구절'})).toBeTruthy();
     await user.keyboard('{Escape}');
-    expect(
-      screen.queryByRole('dialog', {name: '\uC131\uACBD \uAD6C\uC808'}),
-    ).toBeNull();
+    expect(screen.queryByRole('dialog', {name: '성경 구절'})).toBeNull();
   });
 
   it.each(['찬양', '합심기도', '묵상기도', '축도'])(
@@ -457,10 +453,9 @@ describe('항목 추가', () => {
       ).toBe(false),
     );
     fillBibleForm();
-    fireEvent.keyDown(
-      screen.getByRole('textbox', {name: '\uC2DC\uC791\uC808'}),
-      {key: 'Enter'},
-    );
+    fireEvent.keyDown(screen.getByRole('textbox', {name: '시작절'}), {
+      key: 'Enter',
+    });
     await waitFor(() => expect(service().service.order).toHaveLength(3));
     expect(quickAddBefore).toHaveBeenLastCalledWith(
       useShow.getState().rows,
@@ -502,7 +497,7 @@ describe('항목 추가', () => {
     const {krv, recents} = mockBible(api);
     await openBibleForm(user);
     fillBibleForm('99');
-    fireEvent.keyDown(screen.getByRole('textbox', {name: '\uB05D\uC808'}), {
+    fireEvent.keyDown(screen.getByRole('textbox', {name: '끝절'}), {
       key: 'Enter',
     });
     await waitFor(() => expect(service().service.order).toHaveLength(6));
@@ -536,10 +531,10 @@ describe('항목 추가', () => {
     await openBibleForm(user);
     fillBibleForm();
     await waitFor(() => expect(lookup).toHaveBeenCalled());
-    fireEvent.keyDown(screen.getByRole('combobox', {name: '\uCC45'}), {
+    fireEvent.keyDown(screen.getByRole('combobox', {name: '책'}), {
       key: 'Escape',
     });
-    fireEvent.keyDown(screen.getByRole('combobox', {name: '\uCC45'}), {
+    fireEvent.keyDown(screen.getByRole('combobox', {name: '책'}), {
       key: 'Escape',
     });
     await act(finish);
@@ -549,7 +544,7 @@ describe('항목 추가', () => {
       screen.getByRole<HTMLInputElement>('combobox', {name: '책'}).value,
     ).toBe('');
     fillBibleForm();
-    fireEvent.keyDown(screen.getByRole('textbox', {name: '\uB05D\uC808'}), {
+    fireEvent.keyDown(screen.getByRole('textbox', {name: '끝절'}), {
       key: 'Enter',
     });
     await waitFor(() => expect(service().service.order).toHaveLength(6));
@@ -567,7 +562,7 @@ describe('항목 추가', () => {
     });
     await openBibleForm(user);
     fillBibleForm();
-    fireEvent.keyDown(screen.getByRole('textbox', {name: '\uB05D\uC808'}), {
+    fireEvent.keyDown(screen.getByRole('textbox', {name: '끝절'}), {
       key: 'Enter',
     });
     await waitFor(() => expect(onProblem).toHaveBeenCalledOnce());
@@ -593,7 +588,7 @@ describe('항목 추가', () => {
     });
     await openBibleForm(user);
     fillBibleForm();
-    fireEvent.keyDown(screen.getByRole('textbox', {name: '\uB05D\uC808'}), {
+    fireEvent.keyDown(screen.getByRole('textbox', {name: '끝절'}), {
       key: 'Enter',
     });
     await waitFor(() => expect(onProblem).toHaveBeenCalledOnce());

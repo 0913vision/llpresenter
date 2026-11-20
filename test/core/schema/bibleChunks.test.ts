@@ -140,7 +140,7 @@ describe('chunked Bible header validation', () => {
 describe('Bible chapter block validation', () => {
   it('preserves Unicode and omitted verse slots without editing text', () => {
     const verses = [
-      'Invented \uAC00\uB098 sentence.',
+      'Invented 가나 sentence.',
       '',
       'Invented \u{1f680} sentence.',
     ];

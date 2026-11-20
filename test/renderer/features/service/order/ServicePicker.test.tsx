@@ -158,9 +158,7 @@ describe('service picker', () => {
     };
     useLive.setState({state: live});
     await openMenu(user);
-    await user.click(
-      screen.getByRole('menuitemradio', {name: /\uc800\ub141 \uc608\ubc30/}),
-    );
+    await user.click(screen.getByRole('menuitemradio', {name: /저녁 예배/}));
     const dialog = await screen.findByRole('alertdialog', {
       name: '‘저녁 예배’를 열까요?',
     });
@@ -168,16 +166,14 @@ describe('service picker', () => {
       within(dialog).getByText('모든 화면이 대기 화면으로 바뀝니다'),
     ).toBeTruthy();
     expect(document.activeElement).toBe(
-      within(dialog).getByRole('button', {name: '\ucde8\uc18c'}),
+      within(dialog).getByRole('button', {name: '취소'}),
     );
     await user.keyboard('{Enter}');
     expect(screen.queryByRole('alertdialog')).toBeNull();
     expect(api.service.open).not.toHaveBeenCalled();
     expect(useLive.getState().state).toBe(live);
     await openMenu(user);
-    await user.click(
-      screen.getByRole('menuitemradio', {name: /\uc800\ub141 \uc608\ubc30/}),
-    );
+    await user.click(screen.getByRole('menuitemradio', {name: /저녁 예배/}));
     await user.click(
       within(await screen.findByRole('alertdialog')).getByRole('button', {
         name: '열기',

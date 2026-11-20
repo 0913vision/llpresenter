@@ -55,10 +55,7 @@ async function observeNextOpen() {
 describe('positioned Bible file reads', () => {
   it('indexes only the prefix and header, then reads exactly the requested Unicode chapter', async () => {
     const value = translationFile([57, 65]);
-    value.books[1]?.chapters.splice(0, 1, [
-      'Invented \uD55C\uAE00 sentence.',
-      '',
-    ]);
+    value.books[1]?.chapters.splice(0, 1, ['Invented 한글 sentence.', '']);
     const fixture = chunkedTranslationFile(value);
     const file = await fixtureFile(fixture.bytes);
     const startup = await observeNextOpen();
@@ -71,7 +68,7 @@ describe('positioned Bible file reads', () => {
     expect(indexed.header).toEqual(fixture.header);
     const lookup = await observeNextOpen();
     expect(await readBibleChapter(indexed, 65, 1)).toEqual([
-      'Invented \uD55C\uAE00 sentence.',
+      'Invented 한글 sentence.',
       '',
     ]);
     expect(lookup.reads).toEqual([
@@ -84,7 +81,7 @@ describe('positioned Bible file reads', () => {
   });
 
   it('loops short reads at advancing buffer and file offsets', async () => {
-    const source = Buffer.from('Invented Unicode \uD55C\uAE00 bytes');
+    const source = Buffer.from('Invented Unicode 한글 bytes');
     const read = vi.fn<BiblePositionedReader['read']>(
       async ({buffer, offset, length, position}) => {
         const bytesRead = Math.min(3, length, source.length - position);

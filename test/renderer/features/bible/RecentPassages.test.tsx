@@ -35,9 +35,9 @@ it('labels recent passages from other translations and follows the selected tran
       onPick={onPick}
     />,
   );
-  const rows = within(
-    screen.getByLabelText('\uCD5C\uADFC \uC131\uACBD \uAD6C\uC808'),
-  ).getAllByRole('button');
+  const rows = within(screen.getByLabelText('최근 성경 구절')).getAllByRole(
+    'button',
+  );
   expect(rows[0]?.textContent).not.toContain('First');
   expect(rows[1]?.textContent).toContain('Second');
   const secondRow = rows[1];

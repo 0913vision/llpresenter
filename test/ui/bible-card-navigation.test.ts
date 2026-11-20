@@ -123,21 +123,21 @@ it(
     await page.keyboard.press('Shift+ArrowLeft');
     expect((await live()).label).toBe('Card');
     await page.keyboard.press('Shift+ArrowRight');
-    await waitLabel('\uC6943:16');
+    await waitLabel('요3:16');
     await waitGridLive('2');
     await page.keyboard.press('ArrowLeft');
     await waitLabel('Card');
     await waitGridLive('1');
     await page.keyboard.press('ArrowRight');
-    await waitLabel('\uC6943:16');
+    await waitLabel('요3:16');
     await waitGridLive('2');
     await page.keyboard.press('Shift+ArrowLeft');
-    await waitLabel('\uC6943:15');
+    await waitLabel('요3:15');
     await order.getByRole('option', {name: '요한복음 3:16~17'}).click();
     await grid.getByRole('option').last().click();
-    await waitLabel('\uC6943:17');
+    await waitLabel('요3:17');
     await page.keyboard.press('Shift+ArrowRight');
-    await waitLabel('\uC6943:18');
+    await waitLabel('요3:18');
     await order.getByRole('option', {name: '요한복음 3:16~17'}).click();
     await page.keyboard.press('Control+ArrowDown');
     await expect
@@ -190,10 +190,10 @@ it(
           ),
         {timeout: 30000},
       )
-      .toEqual(['Card', '\uC6943:16 (1)', '\uC6943:16 (2)', '\uC6943:17']);
+      .toEqual(['Card', '요3:16 (1)', '요3:16 (2)', '요3:17']);
     expect((await live()).label).toBe('Card');
     await grid.getByRole('option').nth(1).click();
-    await waitLabel('\uC6943:16 (1)');
+    await waitLabel('요3:16 (1)');
     await page.keyboard.press('Control+E');
     expect(await page.getByRole('dialog').count()).toBe(0);
     await updateCut([]);
@@ -208,8 +208,8 @@ it(
           ),
         {timeout: 30000},
       )
-      .toEqual(['Card', '\uC6943:16', '\uC6943:17']);
-    expect((await live()).label).toBe('\uC6943:16 (1)');
+      .toEqual(['Card', '요3:16', '요3:17']);
+    expect((await live()).label).toBe('요3:16 (1)');
     await grid.getByRole('option').first().click();
     await waitLabel('Card');
     await page.evaluate(

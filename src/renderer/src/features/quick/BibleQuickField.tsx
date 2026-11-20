@@ -343,7 +343,7 @@ export function BibleQuickField({
       translation={currentTranslation}
       translations={translations}
       recents={document?.value.recents ?? []}
-      action={'\uB760\uC6B0\uAE30'}
+      action={'띠우기'}
       onClose={closeFinder}
       onSubmit={passage => show(passage)}
       onPick={recent => {

@@ -22,8 +22,8 @@ function SermonTitleField({
   const [draft, setDraft] = useState(title);
   return (
     <TextArea
-      aria-label={'\uc81c\ubaa9'}
-      placeholder={'\uc81c\ubaa9'}
+      aria-label={'제목'}
+      placeholder={'제목'}
       className={styles.title}
       value={draft}
       rows={2}
@@ -68,7 +68,7 @@ export function SermonInlineEditor({
   }
   const serviceId = state.service.service.id;
   return (
-    <section aria-label={'\uc124\uad50 \ud3b8\uc9d1'} className={styles.editor}>
+    <section aria-label={'설교 편집'} className={styles.editor}>
       <SermonTitleField
         key={item.sermon.title}
         title={item.sermon.title}
@@ -77,7 +77,7 @@ export function SermonInlineEditor({
           editorTask(
             items.submitItemEdit({
               target: {serviceId, itemId: item.id},
-              failure: '\uc124\uad50 \uc800\uc7a5 \uc2e4\ud328',
+              failure: '설교 저장 실패',
               change: current =>
                 isItemOfKind(current, 'sermon')
                   ? {...current, sermon: {...current.sermon, title}}
@@ -93,7 +93,7 @@ export function SermonInlineEditor({
         disabled={state.busy || state.service.access === 'readOnly'}
         onClick={() => setEditing(true)}
       >
-        {'\ubcc0\uacbd'}
+        {'변경'}
       </Button>
       {editing ? (
         <SermonQuickAdd
@@ -104,7 +104,7 @@ export function SermonInlineEditor({
             editorTask(
               items.submitItemEdit({
                 target: {serviceId, itemId: item.id},
-                failure: '\uc124\uad50 \uc800\uc7a5 \uc2e4\ud328',
+                failure: '설교 저장 실패',
                 change: current =>
                   isItemOfKind(current, 'sermon')
                     ? {

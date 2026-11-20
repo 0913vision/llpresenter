@@ -165,7 +165,7 @@ it(
     await expectLive(CARD, 0);
     expect((await live()).card).toBe(true);
     await page
-      .getByRole('listbox', {name: '\uc608\ubc30 \uc21c\uc11c'})
+      .getByRole('listbox', {name: '예배 순서'})
       .getByRole('option', {name: 'Content'})
       .click();
   },

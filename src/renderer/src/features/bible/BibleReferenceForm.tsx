@@ -608,12 +608,12 @@ export function BibleReferenceForm(
           size={props.overlayLabels ? 'md' : 'sm'}
           block
           icon="book"
-          affix={props.overlayLabels ? '\ucc45' : undefined}
+          affix={props.overlayLabels ? '책' : undefined}
           clearable={!props.dialogMode}
           autoFocus={props.autoFocus}
           aria-label="책"
           data-reference-part="book"
-          placeholder={props.overlayLabels ? '' : '\ucc45'}
+          placeholder={props.overlayLabels ? '' : '책'}
           role="combobox"
           aria-autocomplete="list"
           aria-expanded={expanded}
@@ -665,7 +665,7 @@ export function BibleReferenceForm(
                   ? `1~${metadataBook.chapters}`
                   : part !== 'chapter' && chapterNumber > 0
                     ? lastVerse === undefined
-                      ? '\uBD88\uB7EC\uC624\uB294 \uC911...'
+                      ? '불러오는 중...'
                       : `${part === 'end' && fields.start ? fields.start : 1}~${lastVerse}`
                     : LABELS[part]
                 : part === 'end' && lastVerse !== undefined
@@ -699,9 +699,7 @@ export function BibleReferenceForm(
           className={styles.translation}
           role={liveTranslation ? 'status' : undefined}
         >
-          {liveTranslation
-            ? '\uac1c\uc5ed\uac1c\uc815 (\uc2e4\uc2dc\uac04)'
-            : null}
+          {liveTranslation ? '개역개정 (실시간)' : null}
         </span>
       ) : null}
       {expanded ? (

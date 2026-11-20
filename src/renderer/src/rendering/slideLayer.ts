@@ -25,7 +25,7 @@ const FALLBACK_FONTS = "'Pretendard Variable', sans-serif";
 
 /** Canonical family used for PowerPoint's Korean NanumSquare face names. */
 export function canonicalFontName(font: string): string {
-  return /^\ub098\ub214\uc2a4\ud018\uc5b4(?: (?:ExtraBold|Bold))?$/u.test(font)
+  return /^나눔스퀘어(?: (?:ExtraBold|Bold))?$/u.test(font)
     ? 'NanumSquare'
     : font;
 }
@@ -220,8 +220,8 @@ function writeLines(
     const run = continuationText(line, continued && index === lines.length - 1);
     const body = keepWords
       ? run.body
-          .replace(/(^|\s)([\uAC00-\uD7A3]) (?=\S)/gu, '$1$2\u00a0')
-          .replace(/(\S) ([\uAC00-\uD7A3])(?=\s|$)/gu, '$1\u00a0$2')
+          .replace(/(^|\s)([가-힣]) (?=\S)/gu, '$1$2\u00a0')
+          .replace(/(\S) ([가-힣])(?=\s|$)/gu, '$1\u00a0$2')
       : run.body;
     row.textContent =
       body.length > 0 ? body : run.marker === '' ? NO_BREAK_SPACE : '';
@@ -240,9 +240,9 @@ function writeLines(
           }
           if (run.font !== undefined) {
             span.style.fontFamily = fontFamilyFor(run.font);
-            if (run.font === '\ub098\ub214\uc2a4\ud018\uc5b4 ExtraBold') {
+            if (run.font === '나눔스퀘어 ExtraBold') {
               span.style.fontWeight = '800';
-            } else if (run.font === '\ub098\ub214\uc2a4\ud018\uc5b4 Bold') {
+            } else if (run.font === '나눔스퀘어 Bold') {
               span.style.fontWeight = '700';
             }
           }

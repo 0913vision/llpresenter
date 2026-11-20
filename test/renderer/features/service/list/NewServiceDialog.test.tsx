@@ -212,7 +212,7 @@ describe('NewServiceDialog', () => {
       within(guard).getByText('모든 화면이 대기 화면으로 바뀝니다'),
     ).toBeTruthy();
     expect(document.activeElement).toBe(
-      within(guard).getByRole('button', {name: '\ucde8\uc18c'}),
+      within(guard).getByRole('button', {name: '취소'}),
     );
     await userEvent.keyboard('{Escape}');
     expect(edits).toEqual([]);

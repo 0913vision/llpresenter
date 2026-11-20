@@ -341,7 +341,7 @@ describe('service panel editing', () => {
 
   it('does not offer the dragged item its own insertion gap', () => {
     const {api} = setup('prep');
-    const row = screen.getByRole('option', {name: '\uccab \uace1'});
+    const row = screen.getByRole('option', {name: '첫 곡'});
     vi.spyOn(row, 'getBoundingClientRect').mockReturnValue(
       new DOMRect(0, 100, 200, 40),
     );

@@ -1,5 +1,6 @@
 import type {ESLint} from 'eslint';
 import {allowedCommentsRule} from './comment-rule.mts';
+import {hangulEscapeRule} from './hangul-escape-rule.mts';
 import {layerImportsRule} from './layer-rule.mts';
 import {menuDisabledReasonRule} from './menu-disabled-rule.mts';
 import {LAYER_MAP, TEST_LAYER_MAP} from './layers.mts';
@@ -9,6 +10,7 @@ export const llpPlugin = {
   meta: {name: 'llp'},
   rules: {
     'allowed-comments': allowedCommentsRule,
+    'hangul-escape': hangulEscapeRule,
     'layer-imports': layerImportsRule(LAYER_MAP),
     'menu-disabled-reason': menuDisabledReasonRule,
     'test-layer-imports': layerImportsRule(TEST_LAYER_MAP),

@@ -93,11 +93,11 @@ describe('bibleVerseTiles reference', () => {
           ),
         );
         expect(tiles.map(tile => tile.label)).toEqual([
-          '\uC6943:34',
-          '\uC6943:35',
-          '\uC6943:36',
-          '\uC6944:1',
-          '\uC6944:2',
+          '요3:34',
+          '요3:35',
+          '요3:36',
+          '요4:1',
+          '요4:2',
         ]);
       }
     },
@@ -162,11 +162,11 @@ describe('bibleVerseTiles split', () => {
   it('makes a slide of each verse by default, as before', () => {
     const tiles = bibleVerseTiles(JOHN, {reference: 'every'});
     expect(tiles.map(tile => tile.label)).toEqual([
-      '\uC6943:34',
-      '\uC6943:35',
-      '\uC6943:36',
-      '\uC6944:1',
-      '\uC6944:2',
+      '요3:34',
+      '요3:35',
+      '요3:36',
+      '요4:1',
+      '요4:2',
     ]);
     expect(tiles[0]?.lines).toEqual(['34 a']);
   });
@@ -181,11 +181,7 @@ describe('bibleVerseTiles split', () => {
       ]),
       {verseNumbers: false, reference: 'every'},
     );
-    expect(tiles.map(tile => tile.label)).toEqual([
-      '\uC6941:1',
-      '\uC6941:2',
-      '\uC6941:4',
-    ]);
+    expect(tiles.map(tile => tile.label)).toEqual(['요1:1', '요1:2', '요1:4']);
     expect(tiles[1]?.lines.join('')).toBe(long);
   });
 });
@@ -245,9 +241,9 @@ describe('labelEdge', () => {
   });
 
   it('reads short book labels, split parts and ranges', () => {
-    expect(labelEdge('\uD5693:17 (2)', 'first')).toBe('3:17');
-    expect(labelEdge('\uD5693:17-18', 'last')).toBe('3:18');
-    expect(labelEdge('\uD5693:17-4:2', 'last')).toBe('4:2');
+    expect(labelEdge('합3:17 (2)', 'first')).toBe('3:17');
+    expect(labelEdge('합3:17-18', 'last')).toBe('3:18');
+    expect(labelEdge('합3:17-4:2', 'last')).toBe('4:2');
   });
 
   it('has no edge for no label', () => {

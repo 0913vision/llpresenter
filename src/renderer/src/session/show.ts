@@ -387,7 +387,7 @@ function stageStandbyNext(live: TileCursor, next: TileCursor | null): boolean {
   const view = useShow.getState();
   if (next !== null) {
     const row = view.rows.find(entry => entry.id === next.itemId);
-    return row?.kind === 'slides' && row.title === '\uB300\uAE30 \uD654\uBA74';
+    return row?.kind === 'slides' && row.title === '대기 화면';
   }
   const row = view.rows.find(entry => entry.id === live.itemId);
   if (row?.kind === 'bible') return false;

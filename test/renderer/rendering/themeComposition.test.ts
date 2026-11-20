@@ -915,7 +915,7 @@ describe('theme composition drawing', () => {
     const {root, view} = setup();
     const screenId = createScreenId(STARTER_SCREEN_IDS.stage);
     const theme = createDefaultThemes().themes.find(
-      entry => entry.name === '\uc124\uad50 \uc81c\ubaa9',
+      entry => entry.name === '설교 제목',
     );
     const layout = theme?.screens[screenId];
     const bibleLayout = currentBuiltInTheme('bible').screens[screenId];
@@ -2642,15 +2642,11 @@ it('reflows Bible parts independently on stage and broadcast, including the next
     {...themeElementBase(31), kind: 'nextText', lineLimit: 2},
   ];
   const current = [
-    '29 \ub098\ub294 \ub9c8\uc74c\uc774 \uc628\uc720\ud558\uace0 \uacb8\uc190\ud558\ub2c8',
-    '\ub098\uc758 \uba4d\uc5d0\ub97c \uba54\uace0 \ub0b4\uac8c \ubc30\uc6b0\ub77c \uadf8\ub9ac\ud558\uba74 \ub108\ud76c',
-    '\ub9c8\uc74c\uc774 \uc27c\uc744 \uc5bb\uc73c\ub9ac\ub2c8',
+    '29 나는 마음이 온유하고 겸손하니',
+    '나의 멍에를 메고 내게 배우라 그리하면 너희',
+    '마음이 쉼을 얻으리니',
   ];
-  const next = [
-    '30 \uc774\ub294 \ub0b4 \uba4d\uc5d0\ub294 \uc27d\uace0',
-    '\ub0b4 \uc9d0\uc740 \uac00\ubcbc\uc6c0\uc774\ub77c',
-    '\ud558\uc2dc\ub2c8\ub77c',
-  ];
+  const next = ['30 이는 내 멍에는 쉽고', '내 짐은 가벼움이라', '하시니라'];
   const layers: LiveLayers = {
     ...emptyLayers(),
     slide: {
@@ -2918,7 +2914,7 @@ it('fits the stage current text toward the audience rendered size', () => {
   view.dispose();
 });
 
-it.each([undefined, '\uC804\uC8FC', '\uAC04\uC8FC', '\uD6C4\uC8FC'])(
+it.each([undefined, '전주', '간주', '후주'])(
   'matches audience title and subtitle sizes on stage with label %s',
   label => {
     vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(1920);
@@ -3040,7 +3036,7 @@ it.each(['output', 'preview'] as const)(
         ?.textContent,
     ).toBe('(Chorus) Invented next');
     view.render({...empty, slide: {...empty.slide, label: null}}, stage);
-    expect(current()?.textContent).toBe('(\uc5c6\uc74c)');
+    expect(current()?.textContent).toBe('(없음)');
     view.render(
       {...empty, slide: {...empty.slide, label: null}},
       {
@@ -3051,7 +3047,7 @@ it.each(['output', 'preview'] as const)(
         },
       },
     );
-    expect(current()?.textContent).toBe('(\uc5c6\uc74c)');
+    expect(current()?.textContent).toBe('(없음)');
     view.render(song, stage);
     expect(current()?.textContent).toBe('Invented line');
     expect(current()?.style.color).not.toBe('rgb(180, 180, 180)');
@@ -3234,7 +3230,7 @@ it('shows an empty stage next slide cue and preserves labels and other screens',
     root.querySelector(`[data-kind="nextText"] .${classes.shown}`)
       ?.textContent ?? '';
   show('stage');
-  expect(text()).toBe('(\uc5c6\uc74c)');
+  expect(text()).toBe('(없음)');
   expect(
     root.querySelector<HTMLElement>(
       `[data-kind="nextText"] .${classes.shown} .${classes.block}`,
@@ -3286,18 +3282,13 @@ it('shows only the main title box in the stage next preview', () => {
     );
   };
   expect(
-    draw(
-      {label: '\uc804\uc8fc', titleSlide: true, lines: ['\ucc2c\uc591']},
-      'stage',
-    ),
-  ).toBe('\ucc2c\uc591 (\uc804\uc8fc)');
+    draw({label: '전주', titleSlide: true, lines: ['찬양']}, 'stage'),
+  ).toBe('찬양 (전주)');
   expect(draw({label: 'Verse', lines: ['Text']}, 'stage')).toBe('(Verse) Text');
-  expect(draw({label: '\uac04\uc8fc', lines: []}, 'stage')).toBe(
-    '(\uac04\uc8fc)',
-  );
+  expect(draw({label: '간주', lines: []}, 'stage')).toBe('(간주)');
   expect(
     draw(
-      {label: null, titleSlide: true, lines: ['\ucc2c\uc591', 'English title']},
+      {label: null, titleSlide: true, lines: ['찬양', 'English title']},
       'stage',
     ),
   ).not.toContain('English title');
@@ -3325,7 +3316,7 @@ it('shows only the main title box in the stage next preview', () => {
   ).not.toContain('English');
   expect(
     draw(
-      {label: null, titleSlide: true, lines: ['\ucc2c\uc591', 'English title']},
+      {label: null, titleSlide: true, lines: ['찬양', 'English title']},
       'audience',
     ),
   ).toContain('English title');
@@ -3479,7 +3470,7 @@ it('shows stage lyric labels on their own line only at their start', () => {
   view.dispose();
 });
 
-it.each(['\uc804\uc8fc', '\uac04\uc8fc', '\ud6c4\uc8fc'])(
+it.each(['전주', '간주', '후주'])(
   'shows the %s cue once on song titles for all label positions',
   label => {
     const {root, view} = setup();
@@ -3795,7 +3786,7 @@ it('omits a continuing next label on stage but shows a changed label', () => {
   view.dispose();
 });
 
-it.each(['\uc804\uc8fc', '\uac04\uc8fc', '\ud6c4\uc8fc'])(
+it.each(['전주', '간주', '후주'])(
   'puts %s after text for both title and lyric slides',
   label => {
     const {root, view} = setup();

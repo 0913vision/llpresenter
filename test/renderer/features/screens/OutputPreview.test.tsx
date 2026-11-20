@@ -92,7 +92,7 @@ describe('the output preview', () => {
   it('stops mirroring when the output is switched off', async () => {
     setup();
     await screen.findByRole('button', {
-      name: '\ud14c\uc2a4\ud2b8 \ud654\uba74',
+      name: '테스트 화면',
     });
     const state = emptyLiveState();
     act(() =>
