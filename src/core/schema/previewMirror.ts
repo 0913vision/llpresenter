@@ -20,12 +20,19 @@ const frameSchema = payloadObject({
   ),
 });
 
+const relaySchema = payloadObject({
+  screenId: v.pipe(v.string(), v.nonEmpty(), v.maxLength(100)),
+  enabled: v.boolean(),
+});
+
 export type PreviewControl = Readonly<v.InferOutput<typeof controlSchema>>;
 export type PreviewFrame = Readonly<v.InferOutput<typeof frameSchema>>;
+export type PreviewRelay = Readonly<v.InferOutput<typeof relaySchema>>;
 
 const sourceSchema = v.nullable(
   v.union([
     v.literal('alpha'),
+    v.literal('relay'),
     v.pipe(v.string(), v.maxLength(128), v.regex(/^[A-Za-z0-9+/]{22}==$/)),
   ]),
 );
@@ -44,4 +51,8 @@ export function parsePreviewControl(value: unknown) {
 
 export function parsePreviewFrame(value: unknown) {
   return parsePayload(frameSchema, value);
+}
+
+export function parsePreviewRelay(value: unknown) {
+  return parsePayload(relaySchema, value);
 }

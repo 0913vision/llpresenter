@@ -194,6 +194,8 @@ export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
       previewSource: () => Promise.resolve(null),
       previewControl: () => undefined,
       subscribePreviewFrame: () => () => undefined,
+      publishPreview: () => undefined,
+      subscribePreviewRelay: () => () => undefined,
       reportPlaybackProblems: () => undefined,
       getPlaybackProblems: () => Promise.resolve([]),
       subscribePlaybackProblems: () => () => undefined,

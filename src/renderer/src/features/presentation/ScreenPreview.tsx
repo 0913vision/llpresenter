@@ -8,7 +8,6 @@ import {pictures} from '@renderer/rendering/pictures/pictureService';
 import {pictureBounds} from '@renderer/rendering/pictures/drawPicture';
 import type {PictureSpec} from '@renderer/rendering/pictures/pictureService';
 import {useLive} from '@renderer/session/live';
-import {OutputMirror} from './OutputMirror';
 import styles from './ScreenPreview.module.css';
 
 const noLayers = emptyLayers();
@@ -23,17 +22,7 @@ export function cachedScreenPicture(
   if (
     screen === undefined ||
     theme === undefined ||
-    layers.slide === null ||
-    layers.prop !== null ||
-    layers.audio !== null ||
-    layers.message !== null ||
-    frame.blackScreen === true ||
-    frame.testPattern === true ||
-    frame.stageMessage != null ||
-    (state?.clearEffects?.length ?? 0) !== 0 ||
-    theme.layout.elements.some(
-      element => element.kind === 'clock' || element.kind === 'timer',
-    )
+    state === null
   ) {
     return undefined;
   }
@@ -63,7 +52,7 @@ function reportDrawingError(message: string, error: unknown): void {
   window.llp?.log.write({level: 'error', message, detail});
 }
 
-/** Shows a cached still when possible and the actual output for dynamic states. */
+/** Shows a cached still without waking an inactive output. */
 export function ScreenPreview({
   screenId,
   chroma,
@@ -130,9 +119,7 @@ export function ScreenPreview({
   const bounds = pictureBounds(size);
   return (
     <div className={classes.join(' ')}>
-      {picture === undefined ? (
-        <OutputMirror screenId={screenId} cropSize={size} />
-      ) : (
+      {picture === undefined ? null : (
         <div
           className={styles.picture}
           style={{

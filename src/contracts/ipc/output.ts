@@ -39,8 +39,10 @@ import {
   parsePreviewSource,
   parsePreviewControl,
   parsePreviewFrame,
+  parsePreviewRelay,
   type PreviewControl,
   type PreviewFrame,
+  type PreviewRelay,
 } from '@core/schema/previewMirror';
 
 /** The calls about output windows, monitors, fonts, and the log. */
@@ -50,6 +52,8 @@ export const outputEndpoints = {
     parsePreviewControl,
   ),
   previewFrame: push<PreviewFrame>('output:preview:frame', parsePreviewFrame),
+  previewPublish: message<PreviewFrame>('output:preview:publish', parsePreviewFrame),
+  previewRelay: push<PreviewRelay>('output:preview:relay', parsePreviewRelay),
   previewSource: request<OutputShowWindowRequest, string | null>(
     'output:preview:source',
     {
@@ -121,6 +125,8 @@ export function outputApi(port: IpcPort) {
   return {
     previewControl: port.message(outputEndpoints.previewControl),
     subscribePreviewFrame: port.subscribe(outputEndpoints.previewFrame),
+    publishPreview: port.message(outputEndpoints.previewPublish),
+    subscribePreviewRelay: port.subscribe(outputEndpoints.previewRelay),
     previewSource: (screenId: string) => previewSource({screenId}),
     reportPlaybackProblems: port.message(outputEndpoints.playbackReport),
     getPlaybackProblems: port.query(outputEndpoints.playbackProblems),

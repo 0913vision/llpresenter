@@ -226,7 +226,7 @@ describe('PreviewPanel swap', () => {
 });
 
 describe('PreviewPanel states', () => {
-  it('dims the name of a screen whose output is off and keeps drawing it', () => {
+  it('shows an off screen without starting a live mirror', () => {
     setLayers({slide}, {main: false, stage: true, broadcast: true});
     const {container} = render(<PreviewPanel />);
     const large = itemOf(container, MAIN_SCREEN);
@@ -234,7 +234,8 @@ describe('PreviewPanel states', () => {
     expect(
       container.querySelector('[data-preview-slot][aria-pressed="true"]'),
     ).toBeNull();
-    expect(large.querySelector('video')).not.toBeNull();
+    expect(large.querySelector('video')).toBeNull();
+    expect(container.querySelectorAll('video')).toHaveLength(2);
   });
 
   it('treats a screen the live state does not know as off', () => {

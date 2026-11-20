@@ -39,6 +39,10 @@ describe('GPU NDI utility', () => {
           return {applyDirty: vi.fn()};
         case 'node:buffer':
           return {Buffer};
+        case 'node:perf_hooks':
+          return {performance};
+        case 'node:timers':
+          return {setTimeout, clearTimeout};
         case 'node:process':
           return {env: {LLP_NDI_PROBE: '1'}, parentPort: port, exit: vi.fn()};
         case 'koffi':
@@ -63,6 +67,19 @@ describe('GPU NDI utility', () => {
     vi.advanceTimersByTime(1000);
     expect(
       postMessage.mock.calls.filter(([message]) => message.type === 'pixels'),
+    ).toHaveLength(1);
+    port.emit('message', {data: {type: 'mirror', enabled: true}});
+    expect(
+      postMessage.mock.calls.filter(
+        ([message]) => message.type === 'mirror-frame',
+      ),
+    ).toHaveLength(1);
+    port.emit('message', {data: {type: 'mirror-ack'}});
+    vi.advanceTimersByTime(1000);
+    expect(
+      postMessage.mock.calls.filter(
+        ([message]) => message.type === 'mirror-frame',
+      ),
     ).toHaveLength(1);
     port.emit('message', {data: {type: 'stop'}});
     vi.useRealTimers();
@@ -112,6 +129,10 @@ describe('GPU NDI utility', () => {
           return {applyDirty};
         case 'node:buffer':
           return {Buffer};
+        case 'node:perf_hooks':
+          return {performance};
+        case 'node:timers':
+          return {setTimeout, clearTimeout};
         case 'node:process':
           return {parentPort: port, exit: vi.fn()};
         case 'koffi':

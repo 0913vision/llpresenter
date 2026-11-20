@@ -1,11 +1,9 @@
 import {EventEmitter} from 'node:events';
-import {afterEach, describe, expect, it, vi} from 'vitest';
+import {describe, expect, it, vi} from 'vitest';
 import {createAlphaMirror, unpremultiplyBgra} from '@main/outputs/alphaMirror';
 
-afterEach(() => vi.useRealTimers());
-
-describe('transparent NDI preview', () => {
-  it('preserves transparency and converts premultiplied BGRA to canvas RGBA', () => {
+describe('transparent output preview', () => {
+  it('preserves transparency and converts premultiplied BGRA to RGBA', () => {
     const source = new Uint8Array([
       0, 0, 0, 0, 0, 0, 128, 128, 20, 40, 60, 255,
     ]);
@@ -14,161 +12,75 @@ describe('transparent NDI preview', () => {
     ]);
   });
 
-  it('keeps one frame in flight and stops sampling when hidden', async () => {
-    vi.useFakeTimers();
-    const image = {
-      isEmpty: () => false,
-      getSize: () => ({width: 1920, height: 1080}),
-      resize: () => ({toBitmap: () => new Uint8Array(640 * 360 * 4)}),
-    };
-    const source = {
-      isDestroyed: () => false,
-      capturePage: vi.fn().mockResolvedValue(image),
-    };
-    const send = vi.fn();
-    const mirror = createAlphaMirror({source: () => source, send});
-    await vi.advanceTimersByTimeAsync(0);
-    expect(source.capturePage).toHaveBeenCalledOnce();
-    expect(send).toHaveBeenCalledOnce();
-    await vi.advanceTimersByTimeAsync(200);
-    expect(source.capturePage).toHaveBeenCalledOnce();
-    mirror.ack();
-    await vi.advanceTimersByTimeAsync(50);
-    expect(source.capturePage).toHaveBeenCalledTimes(2);
-    mirror.stop();
-    mirror.ack();
-    await vi.advanceTimersByTimeAsync(200);
-    expect(source.capturePage).toHaveBeenCalledTimes(2);
-  });
-
-  it('paints only on changes while previewing an inactive output', async () => {
-    vi.useFakeTimers();
+  it('reuses paint frames, limits delivery and keeps only one frame in flight', async () => {
     const events = new EventEmitter();
-    let painting = false;
-    const image = {
-      isEmpty: () => false,
-      getSize: () => ({width: 640, height: 360}),
-      resize: () => ({toBitmap: () => new Uint8Array(640 * 360 * 4)}),
-    };
+    const capturePage = vi.fn();
+    const startPainting = vi.fn();
     const source = {
       isDestroyed: () => false,
-      isPainting: () => painting,
-      startPainting: vi.fn(() => {
-        painting = true;
-      }),
-      stopPainting: vi.fn(() => {
-        painting = false;
-      }),
-      capturePage: vi.fn().mockResolvedValue(image),
+      capturePage,
+      startPainting,
       on: events.on.bind(events),
       removeListener: events.removeListener.bind(events),
     };
-    let active = false;
-    const mirror = createAlphaMirror({
-      source: () => source,
-      send: vi.fn(),
-      outputActive: () => active,
-    });
-    await vi.advanceTimersByTimeAsync(0);
-    expect(source.startPainting).toHaveBeenCalledOnce();
-    expect(source.capturePage).toHaveBeenCalledOnce();
-    mirror.ack();
-    await vi.advanceTimersByTimeAsync(1000);
-    expect(source.capturePage).toHaveBeenCalledOnce();
-    events.emit('paint');
-    await vi.advanceTimersByTimeAsync(50);
-    expect(source.capturePage).toHaveBeenCalledTimes(2);
-    active = true;
-    mirror.stop();
-    expect(source.stopPainting).not.toHaveBeenCalled();
-    expect(events.listenerCount('paint')).toBe(0);
-
-    painting = false;
-    active = false;
-    const hidden = createAlphaMirror({
-      source: () => source,
-      send: vi.fn(),
-      outputActive: () => active,
-    });
-    await vi.advanceTimersByTimeAsync(0);
-    hidden.stop();
-    expect(source.stopPainting).toHaveBeenCalledOnce();
-    expect(events.listenerCount('paint')).toBe(0);
-  });
-
-  it('drops an old in-progress frame after replacing its output', async () => {
-    vi.useFakeTimers();
+    const pixels = new Uint8Array(640 * 360 * 4);
+    pixels.set([0, 0, 128, 128]);
     const image = {
       isEmpty: () => false,
       getSize: () => ({width: 640, height: 360}),
-      resize: () => ({toBitmap: () => new Uint8Array(640 * 360 * 4)}),
+      resize: () => ({toBitmap: () => pixels}),
     };
-    let finishOld: (value: typeof image) => void = () => undefined;
-    const pending = new Promise<typeof image>(resolve => {
-      finishOld = resolve;
+    const sentAt: number[] = [];
+    const send = vi.fn<(frame: Uint8Array) => void>(() => {
+      sentAt.push(performance.now());
     });
-    const oldEvents = new EventEmitter();
-    const newEvents = new EventEmitter();
-    const oldSource = {
-      isDestroyed: () => false,
-      capturePage: vi.fn(() => pending),
-      on: oldEvents.on.bind(oldEvents),
-      removeListener: oldEvents.removeListener.bind(oldEvents),
-    };
-    const newSource = {
-      isDestroyed: () => false,
-      capturePage: vi.fn().mockResolvedValue(image),
-      on: newEvents.on.bind(newEvents),
-      removeListener: newEvents.removeListener.bind(newEvents),
-    };
-    let current = oldSource;
-    const send = vi.fn();
-    const mirror = createAlphaMirror({source: () => current, send});
-    await vi.advanceTimersByTimeAsync(0);
-    current = newSource;
-    await vi.advanceTimersByTimeAsync(500);
-    expect(oldEvents.listenerCount('paint')).toBe(0);
-    finishOld(image);
-    await vi.advanceTimersByTimeAsync(0);
-    await vi.advanceTimersByTimeAsync(1);
-    expect(send).toHaveBeenCalledOnce();
-    expect(newSource.capturePage).toHaveBeenCalledOnce();
-    mirror.stop();
-    expect(newEvents.listenerCount('paint')).toBe(0);
-  });
-
-  it('contains a wide output inside the preview without stretching it', async () => {
-    vi.useFakeTimers();
-    const bitmap = new Uint8Array(640 * 320 * 4);
-    for (let i = 0; i < bitmap.length; i += 4) {
-      bitmap[i + 2] = 255;
-      bitmap[i + 3] = 255;
-    }
-    const resize = vi.fn().mockReturnValue({toBitmap: () => bitmap});
-    const image = {
-      isEmpty: () => false,
-      getSize: () => ({width: 2000, height: 1000}),
-      resize,
-    };
-    const send = vi.fn<(frame: Uint8Array) => void>();
     const mirror = createAlphaMirror({
-      source: () => ({
-        isDestroyed: () => false,
-        capturePage: async () => image,
-      }),
+      source: () => source,
+      outputActive: () => true,
       send,
     });
-    await vi.advanceTimersByTimeAsync(0);
-    expect(resize).toHaveBeenCalledWith({
-      width: 640,
-      height: 320,
-      quality: 'good',
+    try {
+      events.emit('paint', {}, {}, image);
+      await vi.waitFor(() => expect(send).toHaveBeenCalledOnce(), {timeout: 5000});
+      expect(send.mock.calls[0]?.[0].slice(0, 4)).toEqual(
+        new Uint8Array([255, 0, 0, 128]),
+      );
+      events.emit('paint', {}, {}, image);
+      events.emit('paint', {}, {}, image);
+      await new Promise(resolve => setTimeout(resolve, 150));
+      expect(send).toHaveBeenCalledOnce();
+      mirror.ack();
+      await vi.waitFor(() => expect(send).toHaveBeenCalledTimes(2), {timeout: 5000});
+      mirror.ack();
+      events.emit('paint', {}, {}, image);
+      await vi.waitFor(() => expect(send).toHaveBeenCalledTimes(3), {timeout: 5000});
+      expect((sentAt[2] ?? 0) - (sentAt[1] ?? 0)).toBeGreaterThanOrEqual(95);
+      expect(capturePage).not.toHaveBeenCalled();
+      expect(startPainting).not.toHaveBeenCalled();
+    } finally {
+      mirror.stop();
+    }
+    expect(events.listenerCount('paint')).toBe(0);
+  });
+
+  it('never subscribes to or wakes an inactive output', () => {
+    const events = new EventEmitter();
+    const startPainting = vi.fn();
+    const source = {
+      isDestroyed: () => false,
+      startPainting,
+      on: events.on.bind(events),
+      removeListener: events.removeListener.bind(events),
+    };
+    const send = vi.fn();
+    const mirror = createAlphaMirror({
+      source: () => source,
+      outputActive: () => false,
+      send,
     });
-    const frame = send.mock.calls[0]?.[0];
-    expect(frame?.slice(0, 4)).toEqual(new Uint8Array([0, 0, 0, 0]));
-    expect(frame?.slice(20 * 640 * 4, 20 * 640 * 4 + 4)).toEqual(
-      new Uint8Array([255, 0, 0, 255]),
-    );
+    expect(events.listenerCount('paint')).toBe(0);
+    expect(startPainting).not.toHaveBeenCalled();
+    expect(send).not.toHaveBeenCalled();
     mirror.stop();
   });
 });

@@ -43,3 +43,19 @@ it('waits for the old frame acknowledgement across source changes', () => {
   fanout.ack(1);
   expect(send.mock.calls.map(call => call[0])).toEqual([old, null, next]);
 });
+
+it('relays a captured frame without sending it back to its capture owner', () => {
+  const fanout = new PreviewFrameFanout();
+  const owner = vi.fn<(frame: Uint8Array | null) => void>();
+  const viewer = vi.fn<(frame: Uint8Array | null) => void>();
+  const frame = new Uint8Array([1]);
+  fanout.add(1, owner);
+  fanout.add(2, viewer);
+  fanout.publish(frame, 1);
+  fanout.ack(1);
+  expect(owner).not.toHaveBeenCalled();
+  expect(viewer).toHaveBeenCalledExactlyOnceWith(frame);
+  fanout.remove(1);
+  fanout.publish(null);
+  expect(viewer).toHaveBeenLastCalledWith(null);
+});

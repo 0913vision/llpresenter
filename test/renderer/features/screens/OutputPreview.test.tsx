@@ -89,7 +89,7 @@ describe('the output preview', () => {
     expect(patternCommands()).toHaveLength(1);
   });
 
-  it('mirrors an active output and preserves dynamic preview when switched off', async () => {
+  it('stops mirroring when the output is switched off', async () => {
     setup();
     await screen.findByRole('button', {
       name: '\ud14c\uc2a4\ud2b8 \ud654\uba74',
@@ -100,7 +100,7 @@ describe('the output preview', () => {
     );
     expect(screen.getByTestId('output-mirror').textContent).toBe(MAIN_ID);
     act(() => useLive.setState({state}));
-    expect(screen.getByTestId('output-mirror').textContent).toBe(MAIN_ID);
+    expect(screen.queryByTestId('output-mirror')).toBeNull();
   });
 
   it('fits the configured output aspect ratio in the available space', async () => {
@@ -147,6 +147,7 @@ describe('the output preview', () => {
       useLive.setState({
         state: {
           ...emptyLiveState(),
+          outputs: {[MAIN_ID]: true},
           themeOutput: resolveThemeOutput({
             file: null,
             screens: corrected.value.screens,

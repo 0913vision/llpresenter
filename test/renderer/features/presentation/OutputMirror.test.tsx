@@ -1,5 +1,5 @@
 import {act, cleanup, render, waitFor} from '@testing-library/react';
-import {afterEach, describe, expect, it, vi} from 'vitest';
+import {afterEach, describe, expect, it, onTestFinished, vi} from 'vitest';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {OutputMirror} from '@renderer/features/presentation/OutputMirror';
 import type {PreviewFrame} from '@core/schema/previewMirror';
@@ -23,6 +23,91 @@ afterEach(() => {
 });
 
 describe('output mirror', () => {
+  it('receives a relayed frame without opening a second capture', async () => {
+    const capture = vi.fn();
+    const listener: {current?: (frame: PreviewFrame) => void} = {};
+    const control = vi.fn();
+    Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
+      configurable: true,
+      value: () => ({putImageData: vi.fn()}),
+    });
+    vi.stubGlobal('ImageData', vi.fn());
+    vi.stubGlobal('navigator', {mediaDevices: {getUserMedia: capture}});
+    vi.stubGlobal('llp', mockLlpApi({output: {
+      previewSource: async () => 'relay',
+      previewControl: control,
+      subscribePreviewFrame: next => { listener.current = next; return () => undefined; },
+    }}));
+    const view = render(<OutputMirror screenId="one" />);
+    await waitFor(() => expect(listener.current).toBeDefined());
+    act(() => listener.current?.({screenId: 'one', frame: new Uint8Array(640 * 360 * 4)}));
+    expect(view.container.querySelector('canvas')?.hidden).toBe(false);
+    expect(capture).not.toHaveBeenCalled();
+    expect(control).toHaveBeenCalledWith({screenId: 'one', action: 'ack'});
+  });
+  it('relays frames from the existing stream when another window requests them', async () => {
+    const originalRequest = Object.getOwnPropertyDescriptor(
+      HTMLVideoElement.prototype,
+      'requestVideoFrameCallback',
+    );
+    const originalCancel = Object.getOwnPropertyDescriptor(
+      HTMLVideoElement.prototype,
+      'cancelVideoFrameCallback',
+    );
+    const callback: {current?: VideoFrameRequestCallback} = {};
+    Object.defineProperty(HTMLVideoElement.prototype, 'requestVideoFrameCallback', {
+      configurable: true,
+      value: (next: VideoFrameRequestCallback) => {
+        callback.current = next;
+        return 1;
+      },
+    });
+    Object.defineProperty(HTMLVideoElement.prototype, 'cancelVideoFrameCallback', {
+      configurable: true,
+      value: vi.fn(),
+    });
+    onTestFinished(() => {
+      if (originalRequest) Object.defineProperty(HTMLVideoElement.prototype, 'requestVideoFrameCallback', originalRequest);
+      else Reflect.deleteProperty(HTMLVideoElement.prototype, 'requestVideoFrameCallback');
+      if (originalCancel) Object.defineProperty(HTMLVideoElement.prototype, 'cancelVideoFrameCallback', originalCancel);
+      else Reflect.deleteProperty(HTMLVideoElement.prototype, 'cancelVideoFrameCallback');
+    });
+    vi.spyOn(HTMLVideoElement.prototype, 'videoWidth', 'get').mockReturnValue(640);
+    vi.spyOn(HTMLVideoElement.prototype, 'videoHeight', 'get').mockReturnValue(360);
+    Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
+      configurable: true,
+      value: () => ({
+        clearRect: vi.fn(),
+        drawImage: vi.fn(),
+        getImageData: () => ({data: new Uint8ClampedArray(640 * 360 * 4)}),
+      }),
+    });
+    const track = {stop: vi.fn(), onended: null};
+    const capture = vi.fn().mockResolvedValue({getTracks: () => [track], getVideoTracks: () => [track]});
+    vi.stubGlobal('navigator', {mediaDevices: {getUserMedia: capture}});
+    vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue(undefined);
+    const relay: {current?: (value: {screenId: string; enabled: boolean}) => void} = {};
+    const publish = vi.fn<(value: PreviewFrame) => void>();
+    vi.stubGlobal('llp', mockLlpApi({output: {
+      previewSource: async () => 'AAAAAAAAAAAAAAAAAAAAAA==',
+      subscribePreviewRelay: listener => { relay.current = listener; return () => undefined; },
+      publishPreview: publish,
+    }}));
+    render(<OutputMirror screenId="one" />);
+    await waitFor(() => expect(capture).toHaveBeenCalledOnce());
+    await waitFor(() => expect(document.querySelector('video')?.srcObject).toBeTruthy());
+    act(() => relay.current?.({screenId: 'one', enabled: true}));
+    expect(publish).toHaveBeenCalledOnce();
+    expect(callback.current).toBeDefined();
+    const draw = callback.current;
+    if (!draw) throw new Error('Missing video callback');
+    act(() => {
+      Reflect.apply(draw, undefined, [100, {}]);
+    });
+    expect(publish).toHaveBeenCalledOnce();
+    expect(publish.mock.calls[0]?.[0]).toMatchObject({screenId: 'one'});
+    expect(capture).toHaveBeenCalledOnce();
+  });
   it('crops the presenter frame to the actual output aspect ratio', () => {
     vi.stubGlobal('llp', mockLlpApi());
     const view = render(
@@ -69,6 +154,18 @@ describe('output mirror', () => {
     );
     const view = render(<OutputMirror screenId="one" />);
     await waitFor(() => expect(capture).toHaveBeenCalledTimes(1));
+    expect(capture).toHaveBeenCalledWith({
+      audio: false,
+      video: {
+        mandatory: {
+          chromeMediaSource: 'tab',
+          chromeMediaSourceId: 'AAAAAAAAAAAAAAAAAAAAAA==',
+          maxFrameRate: 10,
+          maxWidth: 640,
+          maxHeight: 360,
+        },
+      },
+    });
     expect(control).toHaveBeenCalledWith({screenId: 'one', action: 'start'});
     act(() =>
       listener.current?.({

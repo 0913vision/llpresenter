@@ -29,9 +29,64 @@ export function OutputMirror({
     let stream: MediaStream | null = null;
     let retry: ReturnType<typeof setTimeout> | undefined;
     let unsubscribe: (() => void) | undefined;
+    let unsubscribeRelay: (() => void) | undefined;
+    let relayEnabled = false;
+    let relayFrame: number | undefined;
+    let relayDue = 0;
+    let relayCanvas: HTMLCanvasElement | undefined;
     let nativeActive = false;
+    const stopRelay = (): void => {
+      if (relayFrame !== undefined) video.cancelVideoFrameCallback(relayFrame);
+      relayFrame = undefined;
+    };
+    const relay = (now: number): void => {
+      relayFrame = undefined;
+      if (
+        !relayEnabled ||
+        !stream ||
+        lifetime.stopped ||
+        isHiddenWorkspace(frame)
+      ) return;
+      if (now >= relayDue && video.videoWidth > 0 && video.videoHeight > 0) {
+        if (relayCanvas === undefined) {
+          relayCanvas = document.createElement('canvas');
+          relayCanvas.width = 640;
+          relayCanvas.height = 360;
+        }
+        const context = relayCanvas.getContext('2d');
+        if (context !== null) {
+          const scale = Math.min(
+            640 / video.videoWidth,
+            360 / video.videoHeight,
+          );
+          const width = video.videoWidth * scale;
+          const height = video.videoHeight * scale;
+          context.clearRect(0, 0, 640, 360);
+          context.drawImage(
+            video,
+            (640 - width) / 2,
+            (360 - height) / 2,
+            width,
+            height,
+          );
+          const image = context.getImageData(0, 0, 640, 360);
+          window.llp?.output.publishPreview({
+            screenId,
+            frame: new Uint8Array(image.data),
+          });
+          relayDue = now + 100;
+        }
+      }
+      relayFrame = video.requestVideoFrameCallback(relay);
+    };
+    const startRelay = (): void => {
+      if (relayEnabled && stream && relayFrame === undefined) {
+        relay(performance.now());
+      }
+    };
     const stop = (): void => {
       generation++;
+      stopRelay();
       if (retry !== undefined) clearTimeout(retry);
       retry = undefined;
       stream?.getTracks().forEach(track => {
@@ -46,7 +101,7 @@ export function OutputMirror({
       const own = ++generation;
       try {
         const source = await window.llp?.output.previewSource(screenId);
-        if (source === 'alpha') return;
+        if (source === 'alpha' || source === 'relay') return;
         if (source === null || source === undefined) {
           throw Error('Output unavailable');
         }
@@ -55,12 +110,16 @@ export function OutputMirror({
             chromeMediaSource: string;
             chromeMediaSourceId: string;
             maxFrameRate: number;
+            maxWidth: number;
+            maxHeight: number;
           };
         } = {
           mandatory: {
             chromeMediaSource: 'tab',
             chromeMediaSourceId: source,
-            maxFrameRate: 20,
+            maxFrameRate: 10,
+            maxWidth: 640,
+            maxHeight: 360,
           },
         };
         const next = await navigator.mediaDevices.getUserMedia({
@@ -80,6 +139,7 @@ export function OutputMirror({
           };
         });
         await video.play();
+        startRelay();
       } catch {
         if (own === generation && !isHiddenWorkspace(frame)) {
           stop();
@@ -92,6 +152,12 @@ export function OutputMirror({
     const startNative = (): void => {
       const output = window.llp?.output;
       if (output === undefined || unsubscribe !== undefined) return;
+      unsubscribeRelay = output.subscribePreviewRelay(value => {
+        if (value.screenId !== screenId) return;
+        relayEnabled = value.enabled;
+        if (relayEnabled) startRelay();
+        else stopRelay();
+      });
       unsubscribe = output.subscribePreviewFrame(
         ({screenId: id, frame: pixels}) => {
           if (id !== screenId) return;
@@ -131,6 +197,10 @@ export function OutputMirror({
     const stopNative = (): void => {
       unsubscribe?.();
       unsubscribe = undefined;
+      unsubscribeRelay?.();
+      unsubscribeRelay = undefined;
+      relayEnabled = false;
+      stopRelay();
       window.llp?.output.previewControl({screenId, action: 'stop'});
       nativeActive = false;
       canvas.hidden = true;

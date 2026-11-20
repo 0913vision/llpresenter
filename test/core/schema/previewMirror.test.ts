@@ -11,6 +11,7 @@ describe('preview source token', () => {
     expect(parsePreviewSource('z8VER1ATiWQgPdUIVkt9fg==').ok).toBe(true);
     expect(parsePreviewSource(null).ok).toBe(true);
     expect(parsePreviewSource('alpha').ok).toBe(true);
+    expect(parsePreviewSource('relay').ok).toBe(true);
     expect(parsePreviewSource('screen:0:0').ok).toBe(false);
     expect(parsePreviewSource('web-contents-media-stream://1:2/extra').ok).toBe(
       false,

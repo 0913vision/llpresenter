@@ -15,6 +15,7 @@ let timer = null;
 let mirrorEnabled = false;
 let mirrorInFlight = false;
 let mirrorDue = 0;
+let mirrorDirty = false;
 
 function post(message) {
   process.parentPort.postMessage(message);
@@ -55,9 +56,10 @@ function captureMirror() {
     const frame = presenter.takeMirror();
     if (frame !== null) {
       mirrorInFlight = true;
+      mirrorDue = performance.now() + 100;
       post({type: 'mirror-frame', frame});
-    } else if (performance.now() >= mirrorDue && presenter.requestMirror()) {
-      mirrorDue = performance.now() + 50;
+    } else if (mirrorDirty && performance.now() >= mirrorDue) {
+      if (presenter.requestMirror()) mirrorDirty = false;
     }
   } catch (error) {
     mirrorEnabled = false;
@@ -72,6 +74,7 @@ function tick() {
   try {
     const wasBusy = presenter.busy;
     presenter.frame();
+    if (wasBusy || presenter.busy) mirrorDirty = true;
     captureMirror();
     if (presenter.copied()) {
       post({type: 'copied'});
@@ -111,6 +114,7 @@ process.parentPort.on('message', event => {
         close();
         mirrorInFlight = false;
         mirrorDue = 0;
+        mirrorDirty = mirrorEnabled;
         onTop = message.topmost !== false;
         presenter = createPresenter({
           ...message.bounds,
@@ -126,12 +130,14 @@ process.parentPort.on('message', event => {
       case 'frame':
         if (presenter === null) break;
         presenter.submit(message.pid, message.handle);
+        mirrorDirty = true;
         break;
       case 'show':
         onTop = message.topmost !== false;
         wantShown = true;
         if (presenter?.visible) presenter.setOnTop(onTop);
         show();
+        mirrorDirty = true;
         break;
       case 'top':
         onTop = message.topmost !== false;
@@ -143,11 +149,13 @@ process.parentPort.on('message', event => {
         break;
       case 'transition':
         presenter?.transition(message);
+        mirrorDirty = true;
         break;
       case 'mirror':
         mirrorEnabled = message.enabled === true;
         mirrorInFlight = false;
         mirrorDue = 0;
+        mirrorDirty = mirrorEnabled;
         applyMirror();
         break;
       case 'mirror-ack':

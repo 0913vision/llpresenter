@@ -89,10 +89,12 @@ it('uses a cached picture for a static audience slide and follows changes', asyn
   expect(screen.getByTestId('cached-picture').textContent).toBe('Next frame');
 });
 
-it('uses the output mirror for stage and dynamic audience overlays', async () => {
+it('uses cached stills instead of waking inactive stage or audience outputs', async () => {
   const view = render(<ScreenPreview screenId={STAGE_SCREEN} chroma={false} />);
   await waitFor(() =>
-    expect(screen.getByTestId('mirror').textContent).toBe(STAGE_SCREEN),
+    expect(screen.getByTestId('cached-picture').textContent).toBe(
+      'Current frame',
+    ),
   );
   view.rerender(<ScreenPreview screenId={MAIN_SCREEN} chroma={false} />);
   await waitFor(() =>
@@ -101,7 +103,10 @@ it('uses the output mirror for stage and dynamic audience overlays', async () =>
   const state = useLive.getState().state;
   if (state === null) throw new Error('Missing state');
   act(() => useLive.setState({state: {...state, blackScreen: true}}));
-  expect(screen.getByTestId('mirror').textContent).toBe(MAIN_SCREEN);
+  expect(screen.queryByTestId('mirror')).toBeNull();
+  expect(screen.getByTestId('cached-picture').textContent).toBe(
+    'Current frame',
+  );
 });
 
 it('caches a static stage slide with its audience sizing context', () => {
@@ -147,5 +152,5 @@ it('caches a static stage slide with its audience sizing context', () => {
       },
       state,
     ),
-  ).toBeUndefined();
+  ).toBeDefined();
 });

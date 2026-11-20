@@ -1,6 +1,11 @@
-interface Pump {
+export interface Pump {
   enable(enabled: boolean): void;
   ack(): void;
+}
+
+/** Removes only the producer that owns this registration. */
+export function clearPresenterMirror(screenId: string, pump: Pump): void {
+  if (pumps.get(screenId) === pump) setPresenterMirror(screenId, null);
 }
 
 type Sink = (frame: Uint8Array | null) => void;
