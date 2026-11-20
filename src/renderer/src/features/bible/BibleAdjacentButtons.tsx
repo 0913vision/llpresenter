@@ -1,6 +1,10 @@
 import {useEffect, useRef, useState, type JSX} from 'react';
-import {useShow, selectTile} from '@renderer/session/show';
-import {sendLive, useLive} from '@renderer/session/live';
+import {
+  useShow,
+  selectTile,
+  publishBibleExtension,
+} from '@renderer/session/show';
+import {useLive} from '@renderer/session/live';
 import {
   bibleSourceFor,
   liveTileIndex,
@@ -89,13 +93,8 @@ export function BibleAdjacentButtons({
         liveTileIndex(initial, live) !== null;
       openBiblePassage(passage, options, {ready, waitForLive: updateLive});
       const view = useShow.getState();
-      if (updateLive) {
-        sendLive({
-          type: 'bible.passage.title.set',
-          itemId: live.itemId,
-          position: live.position,
-          title: passage.displayRef,
-        });
+      if (updateLive && view.bibleSource !== null) {
+        publishBibleExtension(live, view.bibleSource);
       }
       if (view.openItemId !== null) {
         selectTile(

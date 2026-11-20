@@ -101,6 +101,18 @@ function isStageEndingLabel(label: string): boolean {
   return ['\uc804\uc8fc', '\uac04\uc8fc', '\ud6c4\uc8fc'].includes(label);
 }
 
+function isFinalBibleSlide(
+  slide: LiveLayers['slide'],
+  itemKind: NonNullable<LiveLayers['slide']>['kind'],
+): boolean {
+  return (
+    (slide?.kind ?? itemKind) === 'bible' &&
+    slide?.sequenceLength !== undefined &&
+    slide.position >= slide.sequenceLength - 1 &&
+    !(slide.next?.bibleVerse !== undefined && slide.next.itemKind === undefined)
+  );
+}
+
 function stageLabeledText(
   text: string,
   label: string,
@@ -373,10 +385,7 @@ export class ThemeElementView {
           ? 'visible'
           : 'hidden';
     }
-    const finalBible =
-      (slide?.kind ?? item?.kind) === 'bible' &&
-      slide?.sequenceLength !== undefined &&
-      slide.position >= slide.sequenceLength - 1;
+    const finalBible = isFinalBibleSlide(slide, item?.kind);
     const currentEmpty =
       stage &&
       element.kind === 'currentText' &&
@@ -775,11 +784,10 @@ export class ThemeElementView {
     if (
       frame.screen?.kind === 'stage' &&
       (element.kind === 'nextText' || element.kind === 'nextLabel') &&
-      (slide?.kind ?? item?.kind) === 'bible' &&
-      slide?.sequenceLength !== undefined &&
-      slide.position >= slide.sequenceLength - 1 &&
+      isFinalBibleSlide(slide, item?.kind) &&
       (element.kind === 'nextLabel' ||
-        (slide.next?.sermonTitle !== true && slide.next?.itemKind !== 'bible'))
+        (slide?.next?.sermonTitle !== true &&
+          slide?.next?.itemKind !== 'bible'))
     ) {
       return null;
     }

@@ -6,6 +6,11 @@ import type {ItemId, ServiceRow, SlideTile} from '@core/presentation/model';
 export interface ShowView {
   readonly bibleSource: BibleSource | null;
   readonly liveBibleSource: BibleSource | null;
+  readonly liveBibleExtension?: {
+    readonly itemId: ItemId;
+    readonly position: number;
+    readonly source: BibleSource;
+  } | null;
   readonly requestedBibleSource: BibleSource | null;
   readonly librarySong: ShowLibrarySong | null;
   readonly revision: number | null;

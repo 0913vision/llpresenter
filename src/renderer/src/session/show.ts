@@ -4,6 +4,7 @@ import {QUICK_BIBLE_TRANSITION} from '@core/bible/quickTransition';
 import {retainedBibleSelection} from '@core/bible/selection';
 import {beginQuickPassage, finishQuickPassage} from './quickReturn';
 import {parseReference} from '@core/bible/reference';
+import type {BibleSource} from '@core/bible/source';
 import type {ShowRow} from '@core/schema/showService';
 import type {Preferences} from '@core/schema/preferences';
 import type {MediaChoice, NextSlide, SlideLayer} from '@core/live/state';
@@ -411,14 +412,13 @@ function stageStandbyNext(live: TileCursor, next: TileCursor | null): boolean {
 function stageNext(
   live: TileCursor | null,
   cursor: TileCursor | null,
-  liveItemId: string,
+  {liveItemId, view}: {readonly liveItemId: string; readonly view: ShowView},
 ): NextSlide | null {
-  const view = useShow.getState();
   const row =
     cursor === null
       ? undefined
       : view.rows.find(entry => entry.id === cursor.itemId);
-  const tiles = cursor === null ? [] : tilesOf(cursor.itemId);
+  const tiles = cursor === null ? [] : tilesForView(view, cursor.itemId);
   const tile = cursor === null ? undefined : tiles[cursor.index];
   const kind =
     row === undefined || row.kind === 'header' || cursor?.itemId === liveItemId
@@ -464,7 +464,7 @@ export function stageSlideOf(cursor: TileCursor): SlideLayer | null {
   );
   const slide = slideLayerOf(cursor, tilesOf);
   if (slide === null) return null;
-  const projected = stageNext(cursor, next, cursor.itemId);
+  const projected = stageNext(cursor, next, {liveItemId: cursor.itemId, view});
   const {next: _next, ...current} = slide;
   return projected === null ? current : {...current, next: projected};
 }
@@ -565,24 +565,69 @@ function nextKey(next: NextSlide | null | undefined): string {
       ]);
 }
 
+/** Tracks an expanded passage while its original slide is still live. */
+export function publishBibleExtension(
+  slide: SlideLayer,
+  source: BibleSource,
+): void {
+  useShow.setState({
+    liveBibleExtension: {
+      itemId: slide.itemId,
+      position: slide.position,
+      source,
+    },
+  });
+  refreshStageNext(source.passage.displayRef);
+}
+
 /** Keep stage preview in sync without re-outputting the live slide. */
-function refreshStageNext(): void {
+function refreshStageNext(title?: string): void {
   const slide = useLive.getState().state?.layers.slide;
   if (slide === null || slide === undefined) return;
   const view = useShow.getState();
-  const live = projectedLiveCursor(view, slide);
+  const extension = view.liveBibleExtension;
+  const extendedView =
+    extension?.itemId === slide.itemId && extension.position === slide.position
+      ? {
+          ...view,
+          bibleSource: extension.source,
+          openItemId: extension.source.id,
+        }
+      : view;
+  const extendedIndex =
+    extendedView === view ? null : liveTileIndex(extendedView, slide);
+  const live =
+    extendedIndex === null || extendedView.openItemId === null
+      ? projectedLiveCursor(view, slide)
+      : {itemId: extendedView.openItemId, index: extendedIndex};
   const anchor = resolveLiveAnchor(view, slide);
   if (live === null && anchor === null) return;
   const cursor =
     live === null
       ? (anchor?.next ?? null)
       : nextTileAtLast(
-          {tilesOf, live, openItemId: live.itemId},
+          {
+            tilesOf: id => tilesForView(extendedView, id),
+            live,
+            openItemId: live.itemId,
+          },
           view.rows,
           atLastSlide,
         );
-  const next = stageNext(live, cursor, slide.itemId);
+  const next = stageNext(live, cursor, {
+    liveItemId: live?.itemId ?? slide.itemId,
+    view: extendedView,
+  });
   const key = nextKey(next);
+  const titleCommand: SingleLiveCommand | undefined =
+    title === undefined
+      ? undefined
+      : {
+          type: 'bible.passage.title.set',
+          itemId: slide.itemId,
+          position: slide.position,
+          title,
+        };
   if (
     pendingStageNext !== undefined &&
     (pendingStageNext.api !== window.llp ||
@@ -595,6 +640,7 @@ function refreshStageNext(): void {
     pendingStageNext?.key === key ||
     (pendingStageNext === undefined && nextKey(slide.next) === key)
   ) {
+    if (titleCommand !== undefined) sendLive(titleCommand);
     return;
   }
   pendingStageNext = {
@@ -603,12 +649,17 @@ function refreshStageNext(): void {
     position: slide.position,
     key,
   };
-  sendLive({
+  const nextCommand: SingleLiveCommand = {
     type: 'stage.next.set',
     itemId: slide.itemId,
     position: slide.position,
     next,
-  });
+  };
+  sendLive(
+    titleCommand === undefined
+      ? nextCommand
+      : {type: 'live.batch', commands: [titleCommand, nextCommand]},
+  );
 }
 
 /**
@@ -849,6 +900,17 @@ export function startServiceSync(): () => void {
   const unsubscribeLive = useLive.subscribe((next, previous) => {
     const current = next.state?.layers.slide;
     const before = previous.state?.layers.slide;
+    const extension = useShow.getState().liveBibleExtension;
+    if (
+      extension != null &&
+      current != null &&
+      (current.itemId !== extension.itemId ||
+        current.position !== extension.position ||
+        (current.title !== before?.title &&
+          current.title !== extension.source.passage.displayRef))
+    ) {
+      useShow.setState({liveBibleExtension: null});
+    }
     if (
       pendingStageNext !== undefined &&
       current?.itemId === pendingStageNext.itemId &&

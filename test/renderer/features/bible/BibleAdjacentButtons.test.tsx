@@ -10,6 +10,7 @@ import type {JSX} from 'react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {BibleLookupReply} from '@core/schema/bibleLookup';
 import {emptyLiveState} from '@core/live/state';
+import {slideLayerOf} from '@core/presentation/slideLayer';
 import {
   openItem,
   outputTile,
@@ -66,6 +67,7 @@ beforeEach(() => {
   useShow.setState({
     bibleSource: null,
     liveBibleSource: null,
+    liveBibleExtension: null,
     requestedBibleSource: null,
     openItemId: null,
     selectedTile: 0,
@@ -79,6 +81,58 @@ afterEach(() => {
 });
 
 describe('adjacent Bible verses', () => {
+  it.each([
+    ['next', '요한복음 3:16', '요한복음 3:16~17'],
+    ['previous', '요한복음 3:16-17', '요한복음 3:15~17'],
+  ] as const)(
+    'updates the stage cue with the expanded title after adding %s',
+    async (direction, initialRef, title) => {
+      const fixture = await setup(initialRef);
+      const source = currentSource();
+      const first = slideLayerOf(
+        {itemId: source.id, index: 0},
+        () => source.tiles,
+      );
+      if (first === null) throw Error('Missing live slide');
+      const {next: _next, ...slide} = first;
+      const live = emptyLiveState();
+      useLive.setState({state: {...live, layers: {...live.layers, slide}}});
+      fireEvent.click(button(direction));
+      await waitFor(() => expect(fixture.send).toHaveBeenCalledOnce());
+      const command = fixture.send.mock.calls[0]?.[0];
+      expect(command?.type).toBe('live.batch');
+      if (command?.type !== 'live.batch') throw Error('Missing live batch');
+      expect(command.commands[0]).toEqual({
+        type: 'bible.passage.title.set',
+        itemId: slide.itemId,
+        position: 0,
+        title,
+      });
+      const cue = command.commands[1];
+      expect(cue).toMatchObject({
+        type: 'stage.next.set',
+        itemId: slide.itemId,
+        position: 0,
+      });
+      if (cue?.type !== 'stage.next.set' || cue.next === null) {
+        throw Error('Missing stage cue');
+      }
+      expect(cue.next.bibleVerse).toMatchObject({chapter: 3, verse: 17});
+      expect(cue.next.lines).toEqual([
+        '17 Invented book 43, chapter 3, verse 17',
+      ]);
+      expect(useLive.getState().state?.layers.slide).toBe(slide);
+      useLive.setState({
+        state: {
+          ...live,
+          layers: {...live.layers, slide: {...slide, title, next: cue.next}},
+        },
+      });
+      act(() => openItem('song-morning'));
+      expect(fixture.send).toHaveBeenCalledOnce();
+    },
+  );
+
   it.each([true, false])(
     'extends both ends while retaining numbering %s, the selected verse and live source',
     async verseNumbers => {
@@ -86,17 +140,17 @@ describe('adjacent Bible verses', () => {
       const original = useShow.getState().bibleSource;
       if (!original) throw Error('Missing Bible preview');
       const live = emptyLiveState();
+      const slide = slideLayerOf(
+        {itemId: original.id, index: 1},
+        () => original.tiles,
+      );
+      if (slide === null) throw Error('Missing live slide');
       useLive.setState({
         state: {
           ...live,
           layers: {
             ...live.layers,
-            slide: {
-              itemId: original.id,
-              position: 1,
-              label: '3:17',
-              lines: ['Invented live verse'],
-            },
+            slide,
           },
         },
       });

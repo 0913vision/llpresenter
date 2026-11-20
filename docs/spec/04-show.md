@@ -1124,12 +1124,14 @@ integration use this contract, with a distinct cancellable ID per lookup.
   [ProPresenter's adjacent-verse controls](https://support.renewedvision.com/hc/en-us/articles/360041347594-Using-Bibles-in-ProPresenter).
   The selected verse, live text, and verse-number option stay; when the live
   verse is in the quick passage, the item-wide reference on output changes to
-  the expanded range along with the preview. Extension does not edit the 예배
-  순서 or add recent history. When the live verse is in the extended preview,
-  its tile keeps the live ring and the next and previous keys go on from it. A
-  book boundary stops the extension. A failed or superseded lookup leaves the
-  preview unchanged. Enter from the unchanged 끝절 field outputs the expanded
-  preview; editing a field starts a new lookup from those fields.
+  the expanded range along with the preview. The yellow next line on 무대
+  follows the live verse in the expanded range in the same update. Extension
+  does not edit the 예배 순서 or add recent history. When the live verse is in
+  the extended preview, its tile keeps the live ring and the next and previous
+  keys go on from it. A book boundary stops the extension. A failed or
+  superseded lookup leaves the preview unchanged. Enter from the unchanged 끝절
+  field outputs the expanded preview; editing a field starts a new lookup from
+  those fields.
 - Shift+→ outputs the verse after the live one in the open passage; on the
   passage's last verse it first adds the next verse to the passage. Shift+← does
   the same toward the first verse (user decision, October 30). In the middle of

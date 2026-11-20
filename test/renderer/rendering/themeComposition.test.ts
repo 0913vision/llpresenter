@@ -3174,6 +3174,42 @@ it('hides the next item on stage only at the end of a Bible item', () => {
   view.dispose();
 });
 
+it('shows a stage cue for an added verse when the original live passage had one slide', () => {
+  const {root, view} = setup();
+  const slide = song.slide;
+  if (slide === null) throw Error('Missing slide');
+  view.render(
+    {
+      ...song,
+      slide: {
+        ...slide,
+        kind: 'bible',
+        position: 0,
+        sequenceLength: 1,
+        next: {
+          label: '요3:17',
+          lines: ['Added verse'],
+          bibleVerse: {
+            translation: panelPassage().translation,
+            book: 43,
+            chapter: 3,
+            verse: 17,
+          },
+        },
+      },
+    },
+    {
+      ...frame([{...themeElementBase(31), kind: 'nextText'}]),
+      screen: {id: THEME_MAIN, kind: 'stage'},
+      transitions: false,
+    },
+  );
+  expect(
+    root.querySelector(`[data-kind="nextText"] .${classes.shown}`)?.textContent,
+  ).toContain('Added verse');
+  view.dispose();
+});
+
 it('refits the current Bible item when output fonts finish loading', () => {
   const descriptor = Object.getOwnPropertyDescriptor(document, 'fonts');
   const fonts = new EventTarget();
