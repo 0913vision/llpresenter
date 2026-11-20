@@ -10,6 +10,7 @@ import type {RenderFrame, RenderLayerOptions} from './layer';
 import {ThemeElementView} from './themeElement';
 import {BackgroundLayerView} from './backgroundLayer';
 import {positionFollowingBoxes} from './themeFollow';
+import {positionSermonBroadcast} from './sermonBroadcastSpacing';
 import {ThemeGaps} from './themeGaps';
 import {setPlaybackProblem} from './playbackProblem';
 import {OUTPUT_TRANSITIONS} from './transitions';
@@ -71,6 +72,10 @@ export class ThemeCompositionView {
     }
     if (input === null || input.frame.screen?.kind !== 'broadcast') return;
     const slide = input.frame.slide ?? input.layers.slide;
+    if (slide?.sermonTitle === true) {
+      this.render(input.layers, input.frame);
+      return;
+    }
     if (
       slide?.bibleItemSlides === undefined ||
       (input.frame.theme?.item?.kind ?? slide.kind) !== 'bible'
@@ -718,6 +723,7 @@ export class ThemeCompositionView {
       }
     }
     positionFollowingBoxes(page.elements);
+    positionSermonBroadcast(page.elements, this.input?.frame);
     const sectionStage =
       content.frame.screen?.kind === 'stage' &&
       isSectionTheme(content.frame.theme?.themeId);

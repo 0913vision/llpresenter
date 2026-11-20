@@ -1085,6 +1085,10 @@ export class ThemeElementView {
     this.box.style.transform = `translateY(${y - gridY}px)`;
   }
 
+  setHeight(height: number): void {
+    this.box.style.height = `${height}px`;
+  }
+
   fittedTextSize(): number | undefined {
     return this.text?.fittedSize();
   }
