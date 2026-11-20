@@ -135,6 +135,27 @@ it('projects a title on a blank text slide for the next preview', () => {
   expect(projectSlides(titled)[0]?.name).toBe('Title');
 });
 
+it('marks only a trailing continuation on a referenced text slide', () => {
+  const item = slidesItem('blank');
+  const reference = '하박국 3:17~19';
+  const tiles = projectSlides({
+    ...item,
+    slides: {
+      ...item.slides,
+      slides: item.slides.slides.map(({id}, index) => {
+        if (index === 0) return {id, text: '말씀(계속) \n', reference};
+        if (index === 1) return {id, text: '(계속) 말씀', reference};
+        return {id, text: '공지 (계속)'};
+      }),
+    },
+  });
+  expect(tiles.map(({lines, continued}) => ({lines, continued}))).toEqual([
+    {lines: ['말씀(계속)'], continued: true},
+    {lines: ['(계속) 말씀'], continued: undefined},
+    {lines: ['공지 (계속)'], continued: undefined},
+  ]);
+});
+
 it.each(['blank', 'ad'] as const)(
   'projects assigned labels and colors on %s text and image slides',
   form => {

@@ -7,6 +7,7 @@ import type {ShowTile} from '../schema/showService';
 import type {BibleLookupPassage} from '../schema/bibleLookup';
 import {BIBLE_BOOKS} from '../bible/bibleBooks';
 import {bibleOutputLines} from '../bible/bibleTiles';
+import {continuationText} from '../bible/split/continuation';
 
 /** Projects both slide forms without putting thumbnail bands into live text. */
 export function projectSlides(
@@ -77,6 +78,10 @@ export function projectSlides(
       };
     }
     const text = slide.text;
+    const trimmed = text.trimEnd();
+    const continued =
+      reference.reference !== undefined &&
+      continuationText(trimmed, true).marker !== '';
     const name = typeof slide.name === 'string' ? slide.name : undefined;
     return {
       sourceSlideId: slide.id,
@@ -89,7 +94,8 @@ export function projectSlides(
       labelColor,
       ...assigned,
       ...reference,
-      lines: [text],
+      lines: [continued ? trimmed : text],
+      ...(continued ? {continued} : {}),
       kind: item.slides.form,
       ...(name === undefined ? {} : {name}),
     };
