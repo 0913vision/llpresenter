@@ -32,6 +32,8 @@ function mockRepository(
   return {
     isAncestor: () => true,
     messages: () => [message('feat(live): add undo')],
+    changedFiles: () => [],
+    unformatted: () => [],
     ...parts,
   };
 }
@@ -140,6 +142,18 @@ describe('runPrePush', () => {
     );
   });
 
+  it('stops a branch push with unformatted changed files, never a main push', () => {
+    const repo = mockRepository({
+      changedFiles: () => ['src/a.ts', 'src/b.ts'],
+      unformatted: files => files.filter(file => file.endsWith('b.ts')),
+    });
+    expect(runPrePush(repo, [BRANCH])).toBe(1);
+    expect(console.error).toHaveBeenCalledWith(
+      expect.stringContaining('npx prettier --write src/b.ts'),
+    );
+    expect(runPrePush(repo, [MAIN])).toBe(0);
+  });
+
   it('stops a main push that would drop commits on origin', () => {
     const repo = mockRepository({isAncestor: () => false});
     expect(runPrePush(repo, [MAIN])).toBe(1);
@@ -166,6 +180,8 @@ describe('runPrePush', () => {
     const repo: PushedRepository = {
       isAncestor: untouched,
       messages: untouched,
+      changedFiles: untouched,
+      unformatted: untouched,
     };
     const updates = [
       update('refs/tags/v0.3.0'),

@@ -1,6 +1,8 @@
-import {readFileSync} from 'node:fs';
+import {spawnSync} from 'node:child_process';
+import {existsSync, readFileSync} from 'node:fs';
+import {join} from 'node:path';
 import {pathToFileURL} from 'node:url';
-import {gitSucceeds} from '../git.mts';
+import {gitSucceeds, tryGit} from '../git.mts';
 import {readCommitMessages, type CommitMessage} from '../version/commits.mts';
 import {classifySubject} from '../version/subject.mts';
 
@@ -18,6 +20,10 @@ export interface PushedRepository {
   isAncestor(ancestor: string, commit: string): boolean;
   /** The messages of the commits `git log` lists for these revisions. */
   messages(revisions: readonly string[]): CommitMessage[];
+  /** Files the branch at `commit` changed since it left main, that still exist. */
+  changedFiles(commit: string): string[];
+  /** Which of these files Prettier would reformat. */
+  unformatted(files: readonly string[]): string[];
 }
 
 /** The repository in `cwd`, read with git. */
@@ -26,6 +32,27 @@ export function repositoryAt(cwd: string): PushedRepository {
     isAncestor: (ancestor, commit) =>
       gitSucceeds(cwd, ['merge-base', '--is-ancestor', ancestor, commit]),
     messages: revisions => readCommitMessages(cwd, revisions),
+    changedFiles: commit => {
+      const base = tryGit(cwd, ['merge-base', 'main', commit])?.trim();
+      if (!base) return [];
+      const names =
+        tryGit(cwd, ['diff', '--name-only', '--diff-filter=d', base, commit]) ??
+        '';
+      return names
+        .split(/\r?\n/)
+        .filter(name => name !== '' && existsSync(join(cwd, name)));
+    },
+    unformatted: files => {
+      if (files.length === 0) return [];
+      const prettier = join(cwd, 'node_modules/prettier/bin/prettier.cjs');
+      if (!existsSync(prettier)) return [];
+      const result = spawnSync(
+        process.execPath,
+        [prettier, '--list-different', '--ignore-unknown', ...files],
+        {cwd, encoding: 'utf8'},
+      );
+      return result.stdout.split(/\r?\n/).filter(name => name !== '');
+    },
   };
 }
 
@@ -74,6 +101,20 @@ function checkCommitMessages(
 }
 
 /**
+ * Checks that a branch's changed files are formatted, so a format-only
+ * failure stops here instead of costing a CI run.
+ */
+export function checkFormat(
+  repo: PushedRepository,
+  update: RefUpdate,
+): string | null {
+  const files = repo.unformatted(repo.changedFiles(update.localSha));
+  return files.length > 0
+    ? `format these files first: npx prettier --write ${files.join(' ')}`
+    : null;
+}
+
+/**
  * Checks a push to `main`: it only moves `main` forward, and every pushed
  * commit message follows the format. Verification already ran on the branch.
  *
@@ -106,7 +147,7 @@ export function runPrePush(
     const problem =
       update.remoteRef === MAIN_REF
         ? checkMainPush(repo, update)
-        : checkCommitMessages(repo, update);
+        : (checkCommitMessages(repo, update) ?? checkFormat(repo, update));
     if (problem !== null) {
       console.error(`pre-push: push stopped: ${problem}`);
       return FAILURE_EXIT_CODE;
@@ -114,7 +155,7 @@ export function runPrePush(
   }
   if (branches.length > 0) {
     console.log(
-      'pre-push: commit messages passed; verification runs on each branch in GitHub Actions',
+      'pre-push: commit messages and formatting passed; verification runs on each branch in GitHub Actions',
     );
   }
   return 0;
