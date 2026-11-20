@@ -667,12 +667,12 @@ describe('show state', () => {
     const passage = {
       kind: 'bible' as const,
       id: 'psalm-23',
-      title: '\uC2DC\uD3B8 23:1~3',
+      title: '시편 23:1~3',
     };
     const other = {
       kind: 'bible' as const,
       id: 'other',
-      title: '\uBBFC\uC218\uAE30 12:3',
+      title: '민수기 12:3',
     };
     const sermon = {
       kind: 'slides' as const,
@@ -689,9 +689,7 @@ describe('show state', () => {
     outputTile({itemId: 'psalm-23', index: 1});
     expect(slides().at(-1)?.slide.next?.stageReference).toBeUndefined();
     outputTile({itemId: 'psalm-23', index: 2});
-    expect(slides().at(-1)?.slide.next?.stageReference).toBe(
-      '\uBBFC\uC218\uAE30 12:3',
-    );
+    expect(slides().at(-1)?.slide.next?.stageReference).toBe('민수기 12:3');
     setLive('psalm-23', 2);
     sent.length = 0;
     applyService({
@@ -704,7 +702,7 @@ describe('show state', () => {
     });
     expect(sent.at(-1)).toMatchObject({
       type: 'stage.next.set',
-      next: {stageReference: '\uBBFC\uC218\uAE30 12:3'},
+      next: {stageReference: '민수기 12:3'},
     });
     useShow.setState({rows: [passage, sermon, other]});
     outputTile({itemId: 'sermon', index: 0});
@@ -725,22 +723,20 @@ describe('show state', () => {
     const title = {
       kind: 'slides' as const,
       id: 'song-river',
-      title: '\uB9C8\uD0DC\uBCF5\uC74C 11:29~30',
+      title: '마태복음 11:29~30',
       form: 'blank' as const,
       theme: SERMON_TITLE_THEME_ID,
     };
     const scripture = {
       kind: 'slides' as const,
       id: 'psalm-23',
-      title: '\uBBFC\uC218\uAE30 12:3',
+      title: '민수기 12:3',
       form: 'blank' as const,
     };
     useShow.setState({rows: [title, scripture]});
     setAtLastSlide('nextItem');
     outputTile({itemId: 'song-river', index: 2});
-    expect(slides().at(-1)?.slide.next?.stageReference).toBe(
-      '\uBBFC\uC218\uAE30 12:3',
-    );
+    expect(slides().at(-1)?.slide.next?.stageReference).toBe('민수기 12:3');
     outputTile({itemId: 'psalm-23', index: 0});
     expect(slides().at(-1)?.slide.next?.stageReference).toBeUndefined();
   });
@@ -939,7 +935,7 @@ describe('show state', () => {
         {
           kind: 'slides',
           id: 'waiting',
-          title: '\uB300\uAE30 \uD654\uBA74',
+          title: '대기 화면',
           form: 'blank',
         },
       ],
@@ -1365,12 +1361,12 @@ describe('Bible passages', () => {
     outputNext();
     expect(slides().at(-1)).toMatchObject({
       type: 'slide.show',
-      slide: {itemId: grown.id, position: 3, label: '\uC6943:18'},
+      slide: {itemId: grown.id, position: 3, label: '요3:18'},
     });
     outputPrevious();
     expect(slides().at(-1)).toMatchObject({
       type: 'slide.show',
-      slide: {itemId: grown.id, position: 1, label: '\uC6943:16'},
+      slide: {itemId: grown.id, position: 1, label: '요3:16'},
     });
   });
 

@@ -226,7 +226,7 @@ describe('automatic inline slides editor', () => {
     const f = setup('blank');
     const user = userEvent.setup();
     try {
-      await screen.findByRole('textbox', {name: '\uae00'});
+      await screen.findByRole('textbox', {name: '글'});
       const row =
         f.view.container.querySelector<HTMLElement>('[data-slide-id]');
       if (row === null) throw new Error('Missing row');
@@ -243,7 +243,7 @@ describe('automatic inline slides editor', () => {
       );
       await user.keyboard('{Control>}c{/Control}');
       const surface = screen.getByRole('group', {
-        name: '\uc2ac\ub77c\uc774\ub4dc \ud3b8\uc9d1 \uba85\ub839',
+        name: '슬라이드 편집 명령',
       });
       act(() => {
         fireEvent.keyDown(surface, {key: 'v', code: 'KeyV', ctrlKey: true});
@@ -267,23 +267,21 @@ describe('automatic inline slides editor', () => {
   it('applies a catalog label to selected text and image slides from the shared menu', async () => {
     const f = setup('blank', undefined, true);
     try {
-      await screen.findByRole('textbox', {name: '\uAE00'});
+      await screen.findByRole('textbox', {name: '글'});
       const rows = document.querySelectorAll<HTMLElement>('[data-slide-id]');
       if (!rows[0] || !rows[1]) throw Error('Missing slide rows');
       fireEvent.click(rows[0]);
       fireEvent.click(rows[1], {ctrlKey: true});
       fireEvent.contextMenu(rows[1]);
-      fireEvent.click(
-        await screen.findByRole('menuitem', {name: '\uC774\uB984\uD45C'}),
-      );
+      fireEvent.click(await screen.findByRole('menuitem', {name: '이름표'}));
       const choice = await screen.findByRole('menuitemradio', {
-        name: '1\uC808',
+        name: '1절',
       });
       fireEvent.click(choice);
       await waitFor(() =>
         expect(savedItem(f).slides.slides.map(slide => slide.label)).toEqual([
-          '1\uC808',
-          '1\uC808',
+          '1절',
+          '1절',
         ]),
       );
     } finally {
@@ -296,15 +294,13 @@ describe('automatic inline slides editor', () => {
     seedSlideSurfaceView({});
     const f = setup('blank');
     const toolbar = await screen.findByRole('toolbar', {
-      name: '\uC2AC\uB77C\uC774\uB4DC \uBCF4\uAE30',
+      name: '슬라이드 보기',
     });
     const footer = toolbar.closest('footer');
     expect(footer).not.toBeNull();
-    expect(footer?.textContent).toContain('2\uAC1C');
+    expect(footer?.textContent).toContain('2개');
     expect(within(toolbar).queryByRole('spinbutton')).toBeNull();
-    fireEvent.click(
-      within(toolbar).getByRole('button', {name: '\uACA9\uC790'}),
-    );
+    fireEvent.click(within(toolbar).getByRole('button', {name: '격자'}));
     expect(within(toolbar).getByRole('spinbutton')).toBeDefined();
     seedSlideSurfaceView({});
     f.view.unmount();
@@ -316,13 +312,13 @@ describe('automatic inline slides editor', () => {
     const f = setup('ad');
     try {
       await screen.findByRole('textbox', {
-        name: '\uC2AC\uB77C\uC774\uB4DC \uC774\uB984',
+        name: '슬라이드 이름',
       });
       const row = document.querySelector<HTMLElement>('[data-slide-index="0"]');
       if (row === null) throw new Error('Missing slide row');
       const picture = row.querySelector<HTMLElement>('[data-editor-thumbnail]');
       const strip = picture?.lastElementChild;
-      expect(strip?.textContent).toBe('1\uCCAB \uC18C\uC2DD');
+      expect(strip?.textContent).toBe('1첫 소식');
       expect(row.querySelector(':scope > span')?.textContent).toBe('');
       expect(row.querySelectorAll('[data-editor-thumbnail]')).toHaveLength(1);
     } finally {
@@ -337,7 +333,7 @@ describe('automatic inline slides editor', () => {
       seedSlideSurfaceView({layout: {normal: {editorSlideView: mode}}});
       const f = setup('blank');
       try {
-        await screen.findByRole('textbox', {name: '\uAE00'});
+        await screen.findByRole('textbox', {name: '글'});
         const firstRow = document.querySelector<HTMLElement>(
           '[data-slide-index="0"]',
         );
@@ -379,9 +375,7 @@ describe('automatic inline slides editor', () => {
       {id: createSlideId('00000000-0000-4000-8000-000000000006'), text: 'Last'},
     ]);
     try {
-      const first = (
-        await screen.findAllByRole('textbox', {name: '\uAE00'})
-      )[0];
+      const first = (await screen.findAllByRole('textbox', {name: '글'}))[0];
       if (first === undefined) throw new Error('Missing text slide');
       const firstRow = first.closest<HTMLElement>('[data-slide-index]');
       expect(firstRow).not.toBeNull();
@@ -412,20 +406,20 @@ describe('automatic inline slides editor', () => {
     try {
       const toolbar = within(
         await screen.findByRole('toolbar', {
-          name: '\uC2AC\uB77C\uC774\uB4DC \uBCF4\uAE30',
+          name: '슬라이드 보기',
         }),
       );
-      const text = await screen.findByRole('textbox', {name: '\uAE00'});
+      const text = await screen.findByRole('textbox', {name: '글'});
       fireEvent.change(text, {target: {value: 'List edit'}});
-      await user.click(toolbar.getByRole('button', {name: '\uACA9\uC790'}));
-      expect(screen.getByRole('textbox', {name: '\uAE00'})).toHaveProperty(
+      await user.click(toolbar.getByRole('button', {name: '격자'}));
+      expect(screen.getByRole('textbox', {name: '글'})).toHaveProperty(
         'value',
         'List edit',
       );
-      fireEvent.change(screen.getByRole('textbox', {name: '\uAE00'}), {
+      fireEvent.change(screen.getByRole('textbox', {name: '글'}), {
         target: {value: 'Grid edit'},
       });
-      await user.click(toolbar.getByRole('button', {name: '\uBAA9\uB85D'}));
+      await user.click(toolbar.getByRole('button', {name: '목록'}));
       await act(async () => {
         await pendingWritesOf(f.api).settleDrafts();
       });
@@ -440,11 +434,11 @@ describe('automatic inline slides editor', () => {
     const f = setup('blank');
     try {
       await screen.findByRole('toolbar', {
-        name: '\uC2AC\uB77C\uC774\uB4DC \uBCF4\uAE30',
+        name: '슬라이드 보기',
       });
       expect(
         screen.queryByRole('group', {
-          name: '\uC2AC\uB77C\uC774\uB4DC \uC804\uD658',
+          name: '슬라이드 전환',
         }),
       ).toBeNull();
     } finally {

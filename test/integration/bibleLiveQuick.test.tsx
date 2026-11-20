@@ -93,26 +93,26 @@ it.each([false, true])(
     try {
       render(<BibleQuickField api={fixture.api} />);
       const book = screen.getByRole<HTMLInputElement>('combobox', {
-        name: '\uCC45',
+        name: '책',
       });
       await waitFor(() => expect(book.disabled).toBe(false));
       for (const [name, chapter, start, end, ref] of [
-        ['\uD569', '3', '17', '19', '\uD558\uBC15\uAD6D 3:17-19'],
-        ['\uC694', '3', '16', '16', '\uC694\uD55C\uBCF5\uC74C 3:16'],
+        ['합', '3', '17', '19', '하박국 3:17-19'],
+        ['요', '3', '16', '16', '요한복음 3:16'],
       ]) {
         fireEvent.change(book, {target: {value: name}});
         expect(book.getAttribute('aria-invalid')).toBeNull();
         const chapterField = screen.getByRole<HTMLInputElement>('textbox', {
-          name: '\uC7A5',
+          name: '장',
         });
         fireEvent.change(chapterField, {target: {value: chapter}});
         const startField = screen.getByRole<HTMLInputElement>('textbox', {
-          name: '\uC2DC\uC791\uC808',
+          name: '시작절',
         });
         await waitFor(() => expect(startField.disabled).toBe(false));
         fireEvent.change(startField, {target: {value: start}});
         const endField = screen.getByRole<HTMLInputElement>('textbox', {
-          name: '\uB05D\uC808',
+          name: '끝절',
         });
         await waitFor(() => expect(endField.disabled).toBe(false));
         fireEvent.change(endField, {target: {value: end}});

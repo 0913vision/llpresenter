@@ -40,38 +40,9 @@ const tabNames = (): readonly string[] =>
 const stageReady = () => waitFor(() => expect(fixture.count()).toBe(2));
 
 it.each([
-  [
-    'normal',
-    [
-      '\uc624\ub514\uc624',
-      '\ubb34\ub300',
-      '\ud0c0\uc774\uba38',
-      '\uba54\uc2dc\uc9c0',
-    ],
-    ['그래픽', '\ub9e4\ud06c\ub85c'],
-  ],
-  [
-    'wide',
-    [
-      '\uc624\ub514\uc624',
-      '\ubb34\ub300',
-      '\ud0c0\uc774\uba38',
-      '\uba54\uc2dc\uc9c0',
-      '그래픽',
-      '\ub9e4\ud06c\ub85c',
-    ],
-    [],
-  ],
-  [
-    'narrow',
-    ['오디오', '무대'],
-    [
-      '\ud0c0\uc774\uba38',
-      '\uba54\uc2dc\uc9c0',
-      '그래픽',
-      '\ub9e4\ud06c\ub85c',
-    ],
-  ],
+  ['normal', ['오디오', '무대', '타이머', '메시지'], ['그래픽', '매크로']],
+  ['wide', ['오디오', '무대', '타이머', '메시지', '그래픽', '매크로'], []],
+  ['narrow', ['오디오', '무대'], ['타이머', '메시지', '그래픽', '매크로']],
 ] as const)(
   'keeps every tool accessible in a %s window',
   async (sizeClass, visible, overflow) => {
@@ -86,10 +57,8 @@ it.each([
       expect(screen.queryByRole('button', {name: '더 보기'})).toBeNull();
       return;
     }
-    await userEvent.click(
-      screen.getByRole('button', {name: '\ub354 \ubcf4\uae30'}),
-    );
-    const menu = screen.getByRole('menu', {name: '\ub354 \ubcf4\uae30'});
+    await userEvent.click(screen.getByRole('button', {name: '더 보기'}));
+    const menu = screen.getByRole('menu', {name: '더 보기'});
     expect(
       within(menu)
         .getAllByRole('menuitemradio')
@@ -100,9 +69,7 @@ it.each([
     ).toBeNull();
     for (const [index, name] of overflow.entries()) {
       if (index > 0) {
-        await userEvent.click(
-          screen.getByRole('button', {name: '\ub354 \ubcf4\uae30'}),
-        );
+        await userEvent.click(screen.getByRole('button', {name: '더 보기'}));
       }
       await userEvent.click(screen.getByRole('menuitemradio', {name}));
       expect(screen.getByRole('tabpanel', {name})).toBeDefined();
@@ -110,13 +77,9 @@ it.each([
         screen.getByRole('tab', {name}).getAttribute('aria-selected'),
       ).toBe('true');
     }
+    expect(screen.getByRole('tabpanel', {name: '매크로'})).toBeDefined();
     expect(
-      screen.getByRole('tabpanel', {name: '\ub9e4\ud06c\ub85c'}),
-    ).toBeDefined();
-    expect(
-      screen
-        .getByRole('button', {name: '\ub354 \ubcf4\uae30'})
-        .hasAttribute('data-active'),
+      screen.getByRole('button', {name: '더 보기'}).hasAttribute('data-active'),
     ).toBe(false);
   },
 );
@@ -124,34 +87,28 @@ it.each([
 it('opens macro controls and marks the latest live macro', async () => {
   render(<ShowToolsPanel sizeClass="normal" />);
   await stageReady();
-  await userEvent.click(
-    screen.getByRole('button', {name: '\ub354 \ubcf4\uae30'}),
-  );
-  await userEvent.click(
-    screen.getByRole('menuitemradio', {name: '\ub9e4\ud06c\ub85c'}),
-  );
+  await userEvent.click(screen.getByRole('button', {name: '더 보기'}));
+  await userEvent.click(screen.getByRole('menuitemradio', {name: '매크로'}));
   const tile = await screen.findByRole('option', {name: 'Test macro'});
   fixture.live({lastMacroId: '00000000-0000-4000-8000-000000000001'});
   await waitFor(() => expect(tile.getAttribute('data-state')).toBe('last-run'));
-  expect(
-    screen.getByRole('tabpanel', {name: '\ub9e4\ud06c\ub85c'}),
-  ).toBeDefined();
+  expect(screen.getByRole('tabpanel', {name: '매크로'})).toBeDefined();
 });
 
 it('switches compact tabs and overflow panels and releases subscriptions', async () => {
   widths.resize(180);
   const {unmount} = render(<ShowToolsPanel sizeClass="narrow" />);
   await stageReady();
-  screen.getByRole('tab', {name: '\ubb34\ub300'}).focus();
+  screen.getByRole('tab', {name: '무대'}).focus();
   await userEvent.keyboard('{ArrowRight}');
   await waitFor(() => expect(fixture.count()).toBe(0));
   expect(screen.getByRole('tabpanel', {name: '오디오'})).toBeDefined();
   for (const [name, count] of [
-    ['\ud0c0\uc774\uba38', 1],
-    ['\uba54\uc2dc\uc9c0', 2],
+    ['타이머', 1],
+    ['메시지', 2],
     ['그래픽', 2],
-    ['\ub9e4\ud06c\ub85c', 1],
-    ['\uc624\ub514\uc624', 0],
+    ['매크로', 1],
+    ['오디오', 0],
   ] as const) {
     const tab = screen.queryByRole('tab', {name});
     if (tab) await userEvent.click(tab);
@@ -170,12 +127,8 @@ it('keeps the chosen working panel through size changes and remounting', async (
   widths.resize(180);
   const {rerender, unmount} = render(<ShowToolsPanel sizeClass="narrow" />);
   await stageReady();
-  await userEvent.click(
-    screen.getByRole('button', {name: '\ub354 \ubcf4\uae30'}),
-  );
-  await userEvent.click(
-    screen.getByRole('menuitemradio', {name: '\uba54\uc2dc\uc9c0'}),
-  );
+  await userEvent.click(screen.getByRole('button', {name: '더 보기'}));
+  await userEvent.click(screen.getByRole('menuitemradio', {name: '메시지'}));
   await waitFor(() => expect(fixture.count()).toBe(2));
   rerender(<ShowToolsPanel sizeClass="normal" />);
   expect(

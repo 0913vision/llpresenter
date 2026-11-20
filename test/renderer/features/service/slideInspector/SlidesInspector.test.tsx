@@ -178,7 +178,7 @@ it('applies one transition to a selected section card and slide and undoes both'
   );
   await userEvent.click(
     within(view.container).getByRole('button', {
-      name: '\uB514\uC878\uBE0C',
+      name: '디졸브',
     }),
   );
   expect(draft.snapshot.item.sectionCard?.transition?.kind).toBe('dissolve');
@@ -208,7 +208,7 @@ it.each(['ad', 'standby'] as const)(
       <SlidesInspector api={mockLlpApi()} session={session} />,
     );
     const effect = within(view.container).getByRole('button', {
-      name: '\uB514\uC878\uBE0C',
+      name: '디졸브',
     });
     fireEvent.click(effect);
     expect(draft.snapshot.item.slides.slides[0]?.transition?.kind).toBe(

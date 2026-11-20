@@ -172,13 +172,9 @@ describe('all 66 book search keys', () => {
 
 describe('four-field book candidates', () => {
   it('matches short names with invisible input markers and Korean composition', () => {
-    expect(findBibleBooks('\u200b\ud569\ufeff').map(book => book.id)).toContain(
-      35,
-    );
-    expect(exactBibleBook('\u200b\ud569\ufeff')?.id).toBe(35);
-    expect(findBibleBooks('\u314e\u314f\u3142').map(book => book.id)).toContain(
-      35,
-    );
+    expect(findBibleBooks('\u200b합\ufeff').map(book => book.id)).toContain(35);
+    expect(exactBibleBook('\u200b합\ufeff')?.id).toBe(35);
+    expect(findBibleBooks('ㅎㅏㅂ').map(book => book.id)).toContain(35);
   });
   it('distinguishes the reported chd typo from Genesis keyboard input', () => {
     for (const input of ['chd', '총']) {

@@ -76,7 +76,7 @@ it('supports a clear action and audio stop without a target', () => {
       onSave={save}
     />,
   );
-  expect(screen.getByText('\ubaa8\ub450 \uc9c0\uc6b0\uae30')).toBeDefined();
+  expect(screen.getByText('모두 지우기')).toBeDefined();
   fireEvent.click(screen.getByRole('button', {name: '적용'}));
   expect(save).toHaveBeenCalledWith({kind: 'clearAll'});
   view.rerender(
@@ -246,11 +246,9 @@ it.each(['', '  \n\t '])(
         onSave={save}
       />,
     );
-    fireEvent.click(screen.getByRole('button', {name: '\ub300\uc0c1'}));
-    fireEvent.click(
-      screen.getByRole('menuitemradio', {name: '\ub300\uc0c1 \uac00'}),
-    );
-    const done = screen.getByRole('button', {name: '\uc801\uc6a9'});
+    fireEvent.click(screen.getByRole('button', {name: '대상'}));
+    fireEvent.click(screen.getByRole('menuitemradio', {name: '대상 가'}));
+    const done = screen.getByRole('button', {name: '적용'});
     expect(done.getAttribute('aria-disabled')).toBe('true');
     fireEvent.click(done);
     expect(save).not.toHaveBeenCalled();
@@ -270,7 +268,7 @@ it('preserves an existing clear transition when the dialog saves', () => {
       onSave={save}
     />,
   );
-  fireEvent.click(screen.getByRole('button', {name: '\uc801\uc6a9'}));
+  fireEvent.click(screen.getByRole('button', {name: '적용'}));
   expect(save).toHaveBeenCalledWith({
     kind: 'clearAll',
     transition: {fade: true, durationMs: 1200},

@@ -119,8 +119,8 @@ it('labels split verse parts and leaves an unsplit verse unnumbered', () => {
   const original = panelPassage();
   const passage = {
     ...original,
-    ref: '\uD558\uBC15\uAD6D 3:17-18',
-    displayRef: '\uD558\uBC15\uAD6D 3:17-18',
+    ref: '하박국 3:17-18',
+    displayRef: '하박국 3:17-18',
     verses: [
       {
         chapter: 3,
@@ -151,8 +151,8 @@ it('labels split verse parts and leaves an unsplit verse unnumbered', () => {
   expect(split.length).toBeGreaterThan(1);
   expect(
     projection.tiles.slice(0, split.length).map(tile => tile.label),
-  ).toEqual(split.map(part => `\uD5693:17 (${part.part})`));
-  expect(projection.tiles.at(-1)?.label).toBe('\uD5693:18');
+  ).toEqual(split.map(part => `합3:17 (${part.part})`));
+  expect(projection.tiles.at(-1)?.label).toBe('합3:18');
 });
 
 it('applies the quick default to every split part and preserves per-part overrides', () => {

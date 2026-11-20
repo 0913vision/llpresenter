@@ -99,9 +99,7 @@ describe('ServiceOrderList', () => {
     );
     try {
       render(<ServiceOrderList workspace="prep" />);
-      expect(
-        screen.getByText('\uc2ac\ub77c\uc774\ub4dc 5\uac1c'),
-      ).toBeDefined();
+      expect(screen.getByText('슬라이드 5개')).toBeDefined();
     } finally {
       setBibleTileResolver(null);
     }

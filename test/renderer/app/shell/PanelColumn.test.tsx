@@ -30,7 +30,7 @@ it('clamps a stored preview ratio on load and resets it with the outer divider',
   const {container} = render(
     <PanelColumn
       workspace="show"
-      titles={['\uBBF8\uB9AC\uBCF4\uAE30', '\uC9C4\uD589 \uB3C4\uAD6C']}
+      titles={['미리보기', '진행 도구']}
       partsOf={() => ({embedded: <Ratio />})}
       store={store}
       sizeClass="normal"
@@ -39,9 +39,7 @@ it('clamps a stored preview ratio on load and resets it with the outer divider',
     />,
   );
   expect(screen.getAllByTestId('ratio')[0]?.textContent).toBe('0.85');
-  const divider = container.querySelector(
-    '[data-row-gap="show.\uBBF8\uB9AC\uBCF4\uAE30"]',
-  );
+  const divider = container.querySelector('[data-row-gap="show.미리보기"]');
   if (divider === null) throw new Error('Missing preview divider');
   fireEvent.doubleClick(divider);
   expect(layout.reset).toHaveBeenCalledOnce();

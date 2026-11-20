@@ -338,15 +338,14 @@ async function chooseRange(
     fireEvent.change(field, {target: {value}});
   }
   await waitFor(() =>
-    expect(
-      within(dialog).getByText('\uCD94\uAC00').getAttribute('aria-disabled'),
-    ).toBe('false'),
+    expect(within(dialog).getByText('추가').getAttribute('aria-disabled')).toBe(
+      'false',
+    ),
   );
   beforeAdd();
-  fireEvent.keyDown(
-    within(dialog).getByRole('textbox', {name: '\uB05D\uC808'}),
-    {key: 'Enter'},
-  );
+  fireEvent.keyDown(within(dialog).getByRole('textbox', {name: '끝절'}), {
+    key: 'Enter',
+  });
   if (waitForCuts) {
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     return dialog;
@@ -388,7 +387,7 @@ it('inserts the range without review when automatic opening is off', async () =>
     }),
   );
   await act(async () =>
-    fireEvent.keyDown(screen.getByRole('textbox', {name: '\uB05D\uC808'}), {
+    fireEvent.keyDown(screen.getByRole('textbox', {name: '끝절'}), {
       key: 'Enter',
     }),
   );

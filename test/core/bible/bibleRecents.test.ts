@@ -85,11 +85,11 @@ describe('recent Bible passages', () => {
   it('deduplicates equivalent stored and looked-up references while keeping translations distinct', () => {
     const other = parsedTranslation({...parsedTranslation(), id: 'other'}).id;
     const old = {
-      ref: '\uD558\uBC15\uAD6D 3:17~19',
+      ref: '하박국 3:17~19',
       translation,
       custom: 'kept',
     };
-    const same = {ref: '\uD558\uBC15\uAD6D 3:17-19', translation};
+    const same = {ref: '하박국 3:17-19', translation};
     const differentTranslation = {...old, translation: other};
     expect(recentPassages([same, old, differentTranslation])).toEqual([
       same,

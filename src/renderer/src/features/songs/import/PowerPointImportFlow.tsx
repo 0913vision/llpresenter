@@ -388,7 +388,7 @@ function PowerPointPreparing({
         onDone();
       }}
       primary={{
-        label: '\uac00\uc838\uc624\uae30',
+        label: '가져오기',
         disabled: true,
         onSelect: () => undefined,
       }}
@@ -397,8 +397,8 @@ function PowerPointPreparing({
         value={progress.percent}
         label={
           progress.phase === 'export'
-            ? 'PowerPoint \uc7a5\uc2dd \ub0b4\ubcf4\ub0b4\uae30'
-            : 'PowerPoint \ubbf8\ub9ac\ubcf4\uae30 \uc900\ube44'
+            ? 'PowerPoint 장식 내보내기'
+            : 'PowerPoint 미리보기 준비'
         }
         valueText={`${progress.done} / ${progress.total}`}
       />

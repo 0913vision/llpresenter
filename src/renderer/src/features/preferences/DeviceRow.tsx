@@ -54,10 +54,9 @@ export function DeviceRow({
       ? [
           {
             value: '__loading__',
-            label: '\ubd88\ub7ec\uc624\ub294 \uc911...',
+            label: '불러오는 중...',
             disabled: true as const,
-            title:
-              '\uc7a5\uce58 \ubaa9\ub85d\uc744 \ubd88\ub7ec\uc624\ub294 \uc911',
+            title: '장치 목록을 불러오는 중',
           },
         ]
       : []),

@@ -57,13 +57,13 @@ it.each(['click', 'shortcut'] as const)(
     if (method === 'click') fireEvent.click(tenth);
     else {
       fireEvent.blur(window);
-      const field = screen.getByRole('combobox', {name: '\uCC45'});
+      const field = screen.getByRole('combobox', {name: '책'});
       field.focus();
       fireEvent.keyDown(field, {key: '0', code: 'Digit0', altKey: true});
     }
     await waitFor(() =>
       expect(fixture.lookup).toHaveBeenCalledWith({
-        input: '\uC694\uD55C\uBCF5\uC74C 3:10',
+        input: '요한복음 3:10',
         translation: lookupRequest().translation,
       }),
     );
@@ -75,7 +75,7 @@ it.each(['click', 'shortcut'] as const)(
   },
 );
 
-it.each(['\uC694\uD55C\uBCF5\uC74C 3', '\uC694\uD55C\uBCF5\uC74C 3:16-4:2'])(
+it.each(['요한복음 3', '요한복음 3:16-4:2'])(
   'looks up the complete stored recent reference %s in the add dialog',
   async ref => {
     const fixture = panelApi();
@@ -127,8 +127,8 @@ it('navigates recent passages and clears the preparation dialog with Escape', as
     value: {
       ...settings.value,
       recents: [
-        {translation, ref: '\uC694\uD55C\uBCF5\uC74C 3:16'},
-        {translation, ref: '\uC694\uD55C\uBCF5\uC74C 3:17'},
+        {translation, ref: '요한복음 3:16'},
+        {translation, ref: '요한복음 3:17'},
       ],
     },
   });
@@ -143,7 +143,7 @@ it('navigates recent passages and clears the preparation dialog with Escape', as
     />,
   );
   await screen.findByRole('button', {name: /3:17/});
-  const book = screen.getByRole<HTMLInputElement>('combobox', {name: '\uCC45'});
+  const book = screen.getByRole<HTMLInputElement>('combobox', {name: '책'});
   book.focus();
   fireEvent.keyDown(book, {key: 'ArrowDown'});
   fireEvent.keyDown(book, {key: 'ArrowDown'});
@@ -151,13 +151,13 @@ it('navigates recent passages and clears the preparation dialog with Escape', as
   expect(
     screen.getByRole('button', {name: /3:17/}).getAttribute('data-highlighted'),
   ).toBe('true');
-  fireEvent.change(book, {target: {value: '\u3145'}});
+  fireEvent.change(book, {target: {value: 'ㅅ'}});
   expect(
     screen.getByRole('button', {name: /3:17/}).getAttribute('data-highlighted'),
   ).toBe('false');
   fireEvent.keyDown(book, {key: 'Escape'});
   const clearedBook = screen.getByRole<HTMLInputElement>('combobox', {
-    name: '\uCC45',
+    name: '책',
   });
   expect(clearedBook.value).toBe('');
   expect(onClose).not.toHaveBeenCalled();
@@ -173,8 +173,8 @@ it('cancels a pending typed submission when a recent is picked', async () => {
   });
   const settings = fixture.document();
   const translation = lookupRequest().translation;
-  const typed = '\uC694\uD55C\uBCF5\uC74C 3:16';
-  const recent = '\uC694\uD55C\uBCF5\uC74C 3:17';
+  const typed = '요한복음 3:16';
+  const recent = '요한복음 3:17';
   fixture.push({
     ...settings,
     revision: 2,
@@ -198,13 +198,13 @@ it('cancels a pending typed submission when a recent is picked', async () => {
     />,
   );
   await screen.findByRole('button', {name: /3:17/});
-  const book = screen.getByRole<HTMLInputElement>('combobox', {name: '\uCC45'});
-  fireEvent.change(book, {target: {value: '\uC694\uD55C\uBCF5\uC74C'}});
-  fireEvent.change(screen.getByRole('textbox', {name: '\uC7A5'}), {
+  const book = screen.getByRole<HTMLInputElement>('combobox', {name: '책'});
+  fireEvent.change(book, {target: {value: '요한복음'}});
+  fireEvent.change(screen.getByRole('textbox', {name: '장'}), {
     target: {value: '3'},
   });
   const start = screen.getByRole<HTMLInputElement>('textbox', {
-    name: '\uC2DC\uC791\uC808',
+    name: '시작절',
   });
   await waitFor(() => expect(start.disabled).toBe(false));
   fireEvent.change(start, {target: {value: '16'}});
@@ -238,7 +238,7 @@ it('keeps focus in the dialog when pressing the scrim and footer', async () => {
     />,
   );
   const dialog = screen.getByRole('dialog');
-  const book = screen.getByRole<HTMLInputElement>('combobox', {name: '\uCC45'});
+  const book = screen.getByRole<HTMLInputElement>('combobox', {name: '책'});
   book.focus();
   const scrim = dialog.parentElement;
   if (!scrim) throw Error('Missing scrim');
@@ -266,7 +266,7 @@ it('scrolls the highlighted recent into view while the caret stays in the book',
       ...settings.value,
       recents: Array.from({length: 10}, (_, index) => ({
         translation,
-        ref: `\uC694\uD55C\uBCF5\uC74C 3:${index + 1}`,
+        ref: `요한복음 3:${index + 1}`,
       })),
     },
   });
@@ -285,7 +285,7 @@ it('scrolls the highlighted recent into view while the caret stays in the book',
     />,
   );
   await screen.findByRole('button', {name: /3:10/});
-  const book = screen.getByRole<HTMLInputElement>('combobox', {name: '\uCC45'});
+  const book = screen.getByRole<HTMLInputElement>('combobox', {name: '책'});
   book.focus();
   for (let index = 0; index < 10; index++) {
     fireEvent.keyDown(book, {key: 'ArrowDown'});
@@ -307,20 +307,20 @@ it('shows range placeholders and moves back from an empty argument', async () =>
       onClose={onClose}
     />,
   );
-  const book = screen.getByRole<HTMLInputElement>('combobox', {name: '\uCC45'});
-  fireEvent.change(book, {target: {value: '\uC694\uD55C\uBCF5\uC74C'}});
+  const book = screen.getByRole<HTMLInputElement>('combobox', {name: '책'});
+  fireEvent.change(book, {target: {value: '요한복음'}});
   const chapter = screen.getByRole<HTMLInputElement>('textbox', {
-    name: '\uC7A5',
+    name: '장',
   });
   await waitFor(() => expect(chapter.placeholder).toBe('1~21'));
   fireEvent.change(chapter, {target: {value: '3'}});
   const start = screen.getByRole<HTMLInputElement>('textbox', {
-    name: '\uC2DC\uC791\uC808',
+    name: '시작절',
   });
   await waitFor(() => expect(start.placeholder).toBe('1~36'));
   fireEvent.change(start, {target: {value: '16'}});
   const end = screen.getByRole<HTMLInputElement>('textbox', {
-    name: '\uB05D\uC808',
+    name: '끝절',
   });
   expect(end.placeholder).toBe('16~36');
   end.focus();
@@ -328,10 +328,10 @@ it('shows range placeholders and moves back from an empty argument', async () =>
   expect(document.activeElement).toBe(start);
   fireEvent.keyDown(start, {key: 'Escape'});
   expect(
-    screen.getByRole<HTMLInputElement>('combobox', {name: '\uCC45'}).value,
+    screen.getByRole<HTMLInputElement>('combobox', {name: '책'}).value,
   ).toBe('');
   expect(onClose).not.toHaveBeenCalled();
-  fireEvent.keyDown(screen.getByRole('combobox', {name: '\uCC45'}), {
+  fireEvent.keyDown(screen.getByRole('combobox', {name: '책'}), {
     key: 'Escape',
   });
   expect(onClose).toHaveBeenCalledOnce();

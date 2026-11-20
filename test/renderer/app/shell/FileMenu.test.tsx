@@ -147,7 +147,7 @@ describe('the 파일 menu', () => {
       name: '‘Evening sermon’을 열까요?',
     });
     expect(document.activeElement).toBe(
-      within(dialog).getByRole('button', {name: '\ucde8\uc18c'}),
+      within(dialog).getByRole('button', {name: '취소'}),
     );
     expect(open).not.toHaveBeenCalled();
     await userEvent.keyboard('{Escape}');

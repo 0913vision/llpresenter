@@ -19,8 +19,8 @@ describe('slide surface preferences', () => {
   it('shows icon buttons with accessible names and starts in list view', () => {
     seedSlideSurfaceView({});
     render(<SlideSurfaceView />);
-    const list = screen.getByRole('button', {name: '\uBAA9\uB85D'});
-    const grid = screen.getByRole('button', {name: '\uACA9\uC790'});
+    const list = screen.getByRole('button', {name: '목록'});
+    const grid = screen.getByRole('button', {name: '격자'});
     expect(list.textContent).toBe('');
     expect(grid.textContent).toBe('');
     expect(list.querySelector('[aria-hidden="true"]')).not.toBeNull();
@@ -32,16 +32,13 @@ describe('slide surface preferences', () => {
     expect(list.getAttribute('aria-pressed')).toBe('false');
   });
 
-  it.each(['\uBAA9\uB85D', '\uACA9\uC790'])(
-    'shows the %s icon tooltip',
-    async label => {
-      render(<SlideSurfaceView />);
-      const tooltip = await hoverForTooltip(
-        screen.getByRole('button', {name: label}),
-      );
-      expect(tooltip?.textContent).toBe(label);
-    },
-  );
+  it.each(['목록', '격자'])('shows the %s icon tooltip', async label => {
+    render(<SlideSurfaceView />);
+    const tooltip = await hoverForTooltip(
+      screen.getByRole('button', {name: label}),
+    );
+    expect(tooltip?.textContent).toBe(label);
+  });
 
   it('restores each window preference and saves a choice to ui state', () => {
     const setLayout = vi.fn();
@@ -59,24 +56,22 @@ describe('slide surface preferences', () => {
     seedSlideSurfaceView(saved);
     render(<SlideSurfaceView ui={api.ui} />);
     expect(
-      screen
-        .getByRole('button', {name: '\uACA9\uC790'})
-        .getAttribute('aria-pressed'),
+      screen.getByRole('button', {name: '격자'}).getAttribute('aria-pressed'),
     ).toBe('true');
-    fireEvent.click(screen.getByRole('button', {name: '\uBAA9\uB85D'}));
+    fireEvent.click(screen.getByRole('button', {name: '목록'}));
     expect(setLayout).toHaveBeenCalledWith({
       sizeClass: 'normal',
       editorSlideView: 'list',
     });
     act(() => seedSlideSurfaceView(saved, 'song'));
-    fireEvent.click(screen.getByRole('button', {name: '\uACA9\uC790'}));
+    fireEvent.click(screen.getByRole('button', {name: '격자'}));
     expect(setLayout).toHaveBeenLastCalledWith({
       sizeClass: 'normal',
       songEditorSlideView: 'grid',
     });
     expect(
       screen.getByRole('spinbutton', {
-        name: '\uC2AC\uB77C\uC774\uB4DC \uD06C\uAE30 \uBC31\uBD84\uC728',
+        name: '슬라이드 크기 백분율',
       }),
     ).toHaveProperty('value', '80%');
   });

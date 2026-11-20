@@ -30,13 +30,11 @@ it('shows a loading state and retries an unavailable saved passage on request', 
   };
   const view = render(<BibleLoadNotice row={row} />);
   expect(screen.getByRole('status').textContent).toContain(
-    '\ubcf8\ubb38\uc744 \ubc1b\ub294 \uc911\uc785\ub2c8\ub2e4',
+    '본문을 받는 중입니다',
   );
   expect(screen.queryByRole('button')).toBeNull();
   view.rerender(<BibleLoadNotice row={{...row, problem: 'missing-bible'}} />);
-  fireEvent.click(
-    screen.getByRole('button', {name: '\ub2e4\uc2dc \uc2dc\ub3c4'}),
-  );
+  fireEvent.click(screen.getByRole('button', {name: '다시 시도'}));
   await waitFor(() =>
     expect(lookup).toHaveBeenCalledWith({
       translation: request.translation,

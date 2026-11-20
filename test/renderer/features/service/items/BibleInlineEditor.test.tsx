@@ -90,20 +90,20 @@ it('shows an editable card and read-only Bible verses in both views', async () =
   };
   expect(within(cardRow()).getAllByText('1', {exact: true})).toHaveLength(1);
   const editorRegion = screen.getByRole('region', {
-    name: '\uC131\uACBD \uD3B8\uC9D1',
+    name: '성경 편집',
   });
   const toolbar = within(editorRegion).getByRole('toolbar', {
-    name: '\uC2AC\uB77C\uC774\uB4DC \uBCF4\uAE30',
+    name: '슬라이드 보기',
   });
   expect(
     within(editorRegion).getAllByRole('toolbar', {
-      name: '\uC2AC\uB77C\uC774\uB4DC \uBCF4\uAE30',
+      name: '슬라이드 보기',
     }),
   ).toHaveLength(1);
   expect(editorRegion.querySelectorAll('footer')).toHaveLength(1);
   const footer = toolbar.closest('footer');
   expect(footer).not.toBeNull();
-  expect(footer?.textContent).toContain('103\uAC1C');
+  expect(footer?.textContent).toContain('103개');
   expect(within(toolbar).queryByRole('spinbutton')).toBeNull();
   expect(screen.getByText('First verse')).toBeDefined();
   expect(screen.queryByText('Extra verse 99')).toBeNull();

@@ -167,7 +167,7 @@ describe('SlideThumbnail', () => {
     expect(option.getAttribute('data-color')).toBe('#8FBF7A');
     expect(option.textContent).toBe(`${lyrics}2프리코러스`);
     const band = option.querySelector<HTMLElement>('[style*="--label-fill"]');
-    expect(band?.textContent).toBe('2\uD504\uB9AC\uCF54\uB7EC\uC2A4');
+    expect(band?.textContent).toBe('2프리코러스');
     expect(band?.style.getPropertyValue('--label-fill')).toBe('#8FBF7A');
   });
 

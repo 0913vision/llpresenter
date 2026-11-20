@@ -311,7 +311,7 @@ export function OtherSlideInspector({
     editorTask(
       items.submitItemEdit({
         target: {serviceId: service.service.id, itemId: item.id},
-        failure: '\uc804\ud658 \uc800\uc7a5 \uc2e4\ud328',
+        failure: '전환 저장 실패',
         change: current => {
           let updated = current;
           if ((all || selectedCard !== undefined) && hasSectionCard(updated)) {

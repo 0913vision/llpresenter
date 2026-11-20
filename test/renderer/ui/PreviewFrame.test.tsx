@@ -120,13 +120,13 @@ describe('PreviewFrame', () => {
         renderScreen={() => null}
       />,
     );
-    expect(screen.getByText('\uC804\uD658 \uC911')).toBeTruthy();
+    expect(screen.getByText('전환 중')).toBeTruthy();
     expect(
       screen
-        .getByText('\uC804\uD658 \uC911')
+        .getByText('전환 중')
         .parentElement?.querySelector('[style*="scaleX(0.5)"]'),
     ).not.toBeNull();
-    expect(screen.getByText('\uBB34\uB300 \uD654\uBA74')).toBeTruthy();
+    expect(screen.getByText('무대 화면')).toBeTruthy();
   });
 
   it('does not switch previews on modified keyboard activation', () => {

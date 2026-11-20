@@ -79,7 +79,7 @@ import styles from './ServiceOrderList.module.css';
 
 const problemTips: Readonly<Record<RowProblem, string>> = {
   'missing-song': '곡 파일을 찾을 수 없습니다',
-  'loading-bible': '\ubcf8\ubb38\uc744 \ubc1b\ub294 \uc911\uc785\ub2c8\ub2e4',
+  'loading-bible': '본문을 받는 중입니다',
   'missing-bible':
     '성경 본문을 받지 못했습니다. 인터넷 연결을 확인해 주십시오.',
   'missing-background': '배경 파일을 찾을 수 없습니다',
@@ -864,7 +864,7 @@ export function ServiceOrderList({
             {
               kind: 'item' as const,
               id: 'bind-sermon',
-              label: '\uc124\uad50\ub85c \ubb36\uae30',
+              label: '설교로 묶기',
               onSelect: () => {
                 editorTask(
                   editing.save((edits, id) =>
@@ -881,7 +881,7 @@ export function ServiceOrderList({
             {
               kind: 'item' as const,
               id: 'unbind-sermon',
-              label: '\uc124\uad50 \ud480\uae30',
+              label: '설교 풀기',
               onSelect: () => {
                 editorTask(
                   editing.save((edits, id) =>

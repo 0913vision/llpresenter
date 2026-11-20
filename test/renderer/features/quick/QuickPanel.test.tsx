@@ -98,10 +98,8 @@ describe('quick panel integration', () => {
     expect(screen.getByRole('status').textContent).toBe(
       source.passage.displayRef,
     );
-    await screen.findByRole('button', {name: '\uc800\uc7a5\ub41c \uace1'});
-    expect(
-      screen.queryByRole('button', {name: '\uac80\uc740 \ud654\uba74'}),
-    ).toBeNull();
+    await screen.findByRole('button', {name: '저장된 곡'});
+    expect(screen.queryByRole('button', {name: '검은 화면'})).toBeNull();
     act(() => useLive.setState({state}));
     expect(screen.queryByText(source.passage.displayRef)).toBeNull();
   });
@@ -112,20 +110,18 @@ describe('quick panel integration', () => {
     const bible = document.value.items.find(item => item.kind === 'bible');
     if (!bible) throw new Error('Missing Bible item');
     const items = document.value.items.map(item =>
-      item.id === bible.id
-        ? {...item, name: '\uc694\ud55c\ubcf5\uc74c 3:16-18'}
-        : item,
+      item.id === bible.id ? {...item, name: '요한복음 3:16-18'} : item,
     );
     fixture.pushQuick({...document, value: {...document.value, items}});
     window.llp = fixture.api;
     render(<QuickPanel selectionVersion={0} onProblem={vi.fn()} />);
     expect(
       await screen.findByRole('button', {
-        name: '\uc694\ud55c\ubcf5\uc74c 3:16~18',
+        name: '요한복음 3:16~18',
       }),
     ).toBeTruthy();
     expect(items.find(item => item.id === bible.id)?.name).toBe(
-      '\uc694\ud55c\ubcf5\uc74c 3:16-18',
+      '요한복음 3:16-18',
     );
     expect(fixture.edit).not.toHaveBeenCalled();
     fixture.pushQuick({

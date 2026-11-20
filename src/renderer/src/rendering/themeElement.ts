@@ -98,7 +98,7 @@ function remainingText(seconds: number | undefined): string | undefined {
 }
 
 function isStageEndingLabel(label: string): boolean {
-  return ['\uc804\uc8fc', '\uac04\uc8fc', '\ud6c4\uc8fc'].includes(label);
+  return ['전주', '간주', '후주'].includes(label);
 }
 
 function stageLabeledText(
@@ -434,9 +434,9 @@ export class ThemeElementView {
       ? ''
       : currentEmpty
         ? ((currentLabel ? `(${currentLabel})` : undefined) ??
-          (element.fallbackText?.trim() ? undefined : '(\uc5c6\uc74c)'))
+          (element.fallbackText?.trim() ? undefined : '(없음)'))
         : nextEmpty
-          ? ((nextLabel ? `(${nextLabel})` : undefined) ?? '(\uc5c6\uc74c)')
+          ? ((nextLabel ? `(${nextLabel})` : undefined) ?? '(없음)')
           : undefined;
     this.text?.setMinimumSize(
       stage && element.kind === 'nextText'

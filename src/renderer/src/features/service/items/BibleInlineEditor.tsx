@@ -223,7 +223,7 @@ function BibleEditorContent({
               }
               onClick={onSplit}
             >
-              {'\uc808 \ub098\ub204\uae30'}
+              {'절 나누기'}
             </Button>
           )}
         </>

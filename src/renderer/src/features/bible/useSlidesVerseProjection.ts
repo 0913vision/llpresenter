@@ -42,7 +42,7 @@ export function useSlidesVerseProjection(
       active && item.slides.slides.some(slide => slide.label !== undefined)
         ? 'labels'
         : null,
-    title: '\uc774\ub984\ud45c',
+    title: '이름표',
   });
   const [measurement, setMeasurement] = useState(() => ({
     active,

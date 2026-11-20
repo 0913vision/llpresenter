@@ -65,7 +65,7 @@ it('numbers tiles across items and jumps to the same slide as a click', async ()
   key('Enter');
   expect(screen.queryByRole('status')).toBeNull();
   expect(document.activeElement).toBe(
-    screen.getByRole('listbox', {name: '\uc2ac\ub77c\uc774\ub4dc'}),
+    screen.getByRole('listbox', {name: '슬라이드'}),
   );
   expect(useShow.getState()).toMatchObject({
     openItemId: 'song-river',

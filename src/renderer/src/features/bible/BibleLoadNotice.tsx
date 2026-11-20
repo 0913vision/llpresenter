@@ -42,11 +42,11 @@ export function BibleLoadNotice({
     <div className={styles.notice} role="status">
       <span>
         {loading
-          ? '\ubcf8\ubb38\uc744 \ubc1b\ub294 \uc911\uc785\ub2c8\ub2e4'
-          : '\uc778\ud130\ub137 \uc5f0\uacb0\uc774 \uc5c6\uc5b4 \ubcf8\ubb38\uc744 \ubc1b\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4'}
+          ? '본문을 받는 중입니다'
+          : '인터넷 연결이 없어 본문을 받지 못했습니다'}
       </span>
       {!loading && row.kind === 'bible' && row.bible !== undefined ? (
-        <Button onClick={retry}>{'\ub2e4\uc2dc \uc2dc\ub3c4'}</Button>
+        <Button onClick={retry}>{'다시 시도'}</Button>
       ) : null}
     </div>
   );

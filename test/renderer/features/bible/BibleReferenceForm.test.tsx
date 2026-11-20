@@ -100,26 +100,25 @@ describe('shared Bible reference form', () => {
       />,
     );
     expect(
-      screen.getByRole<HTMLInputElement>('combobox', {name: '\ucc45'}).value,
-    ).toBe('\uc694\ud55c\ubcf5\uc74c');
+      screen.getByRole<HTMLInputElement>('combobox', {name: '책'}).value,
+    ).toBe('요한복음');
     expect(
-      screen.getByRole<HTMLInputElement>('textbox', {name: '\uc7a5'}).value,
+      screen.getByRole<HTMLInputElement>('textbox', {name: '장'}).value,
     ).toBe('3');
     expect(
       screen.getByRole<HTMLInputElement>('textbox', {
-        name: '\uc2dc\uc791\uc808',
+        name: '시작절',
       }).value,
     ).toBe('16');
     expect(
-      screen.getByRole<HTMLInputElement>('textbox', {name: '\ub05d\uc808'})
-        .value,
+      screen.getByRole<HTMLInputElement>('textbox', {name: '끝절'}).value,
     ).toBe('18');
   });
 
   it('shows the chapter last verse as the end placeholder without filling it', async () => {
     const view = setup();
-    expect(view.end.placeholder).toBe('\ub05d\uc808');
-    fireEvent.change(view.book, {target: {value: '\uc694'}});
+    expect(view.end.placeholder).toBe('끝절');
+    fireEvent.change(view.book, {target: {value: '요'}});
     fireEvent.change(view.chapter, {target: {value: '3'}});
     await waitFor(() => expect(view.end.placeholder).toBe('36'));
     expect(view.end.value).toBe('');
@@ -159,19 +158,17 @@ describe('shared Bible reference form', () => {
       const {bounds: _bounds, ...withoutBounds} = reply;
       return {...withoutBounds, effectiveTranslation: LIVE_BIBLE_ID};
     });
-    fireEvent.change(view.book, {target: {value: '\ud569'}});
+    fireEvent.change(view.book, {target: {value: '합'}});
     expect(view.book.getAttribute('aria-invalid')).toBeNull();
     fireEvent.change(view.chapter, {target: {value: '3'}});
     await waitFor(() => expect(view.start.disabled).toBe(false));
-    expect(screen.getByRole('status').textContent).toBe(
-      '\uac1c\uc5ed\uac1c\uc815 (\uc2e4\uc2dc\uac04)',
-    );
+    expect(screen.getByRole('status').textContent).toBe('개역개정 (실시간)');
   });
   it.each(['-', '~', '\uFF5E'])(
     'accepts a typed and pasted chapter and verse range with %s',
     async separator => {
       const view = setup();
-      fireEvent.change(view.book, {target: {value: '\uc694'}});
+      fireEvent.change(view.book, {target: {value: '요'}});
       await waitFor(() => expect(view.chapter.disabled).toBe(false));
       await view.user.click(view.chapter);
       await view.user.type(view.chapter, '3');
@@ -186,7 +183,7 @@ describe('shared Bible reference form', () => {
       ]);
       await waitFor(() =>
         expect(view.onPreview).toHaveBeenLastCalledWith(
-          expect.objectContaining({ref: '\uc694\ud55c\ubcf5\uc74c 3:16-18'}),
+          expect.objectContaining({ref: '요한복음 3:16-18'}),
         ),
       );
       await view.user.click(view.chapter);
@@ -376,9 +373,9 @@ describe('shared Bible reference form', () => {
   it('accepts an ambiguous book absent from the installed translation', async () => {
     const view = setup();
     view.lookup.mockImplementation(request => formLookupReply(request, [43]));
-    await view.user.type(view.book, '\ubca0');
+    await view.user.type(view.book, '베');
     await view.user.keyboard('{ArrowDown}{ArrowDown}{ArrowDown}{Tab}');
-    expect(view.book.value).toBe('\uc5d0\ubca0\uc18c\uc11c');
+    expect(view.book.value).toBe('에베소서');
     expect(document.activeElement).toBe(view.chapter);
     expect(view.book.getAttribute('aria-invalid')).toBeNull();
     expect(view.onSubmit).not.toHaveBeenCalled();
@@ -459,12 +456,12 @@ describe('shared Bible reference form', () => {
 
   it('accepts a canonical book absent from the installed translation', async () => {
     const view = setup();
-    fireEvent.change(view.book, {target: {value: '\uc2dc'}});
+    fireEvent.change(view.book, {target: {value: '시'}});
     expect(view.book.getAttribute('aria-invalid')).toBeNull();
     await view.user.click(view.book);
     await view.user.tab();
     expect(document.activeElement).toBe(view.chapter);
-    expect(view.book.value).toBe('\uc2dc\ud3b8');
+    expect(view.book.value).toBe('시편');
     expect(view.onSubmit).not.toHaveBeenCalled();
   });
 

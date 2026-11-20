@@ -302,7 +302,7 @@ describe('OpenServiceFeed', () => {
   it('accepts a measured single verse with an assigned label', async () => {
     const request = parseBibleLookupRequest({
       translation: 'sample',
-      input: '\uC694\uD55C\uBCF5\uC74C 3:16',
+      input: '요한복음 3:16',
     });
     if (!request.ok) throw Error('Invalid request');
     const lookup = vi
@@ -429,11 +429,7 @@ describe('OpenServiceFeed', () => {
       await feed.dispose();
       return labels;
     };
-    expect(await labelsOf()).toEqual([
-      '\uC6943:16',
-      '\uC6943:17',
-      '\uC6943:18',
-    ]);
+    expect(await labelsOf()).toEqual(['요3:16', '요3:17', '요3:18']);
   });
 
   it('discards a superseded saved-passage read and publishes only the latest service content', async () => {

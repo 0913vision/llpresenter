@@ -14,8 +14,8 @@ vi.mock('@renderer/features/screens/useOutputStatuses', () => ({
 }));
 vi.mock('@renderer/platform/ScreenSummaries', () => ({
   useScreenSummaries: () => [
-    {id: 'stage', statusLabel: '\uBB34\uB300 \uD654\uBA74'},
-    {id: 'stream', statusLabel: '\uBC29\uC1A1 \uC790\uB9C9'},
+    {id: 'stage', statusLabel: '무대 화면'},
+    {id: 'stream', statusLabel: '방송 자막'},
   ],
 }));
 afterEach(() => {
@@ -110,7 +110,7 @@ describe('StatusBar', () => {
     };
     const view = render(<StatusBar />);
     expect(screen.getByRole('status').textContent).toContain(
-      '\uBB34\uB300 \uD654\uBA74 \uCC3D\uC73C\uB85C \uD45C\uC2DC \uC911',
+      '무대 화면 창으로 표시 중',
     );
     expect(screen.getByRole('status').textContent).toContain(
       '방송 자막 프레임 낮음 (41fps)',
@@ -121,19 +121,17 @@ describe('StatusBar', () => {
   });
   it('shows standby while the recovery decision is pending', () => {
     const view = render(<StatusBar standby />);
-    expect(screen.getByRole('status').textContent).toBe('\uB300\uAE30');
+    expect(screen.getByRole('status').textContent).toBe('대기');
     view.rerender(<StatusBar standby={false} />);
     expect(screen.getByRole('status').textContent).toBe('');
   });
   it('shows saving and failure messages while those states last', () => {
     const view = render(<StatusBar saveState="saving" />);
     expect(screen.getByRole('status').textContent).toBe(
-      '\uC800\uC7A5\uC744 \uC2DC\uB3C4\uD558\uB294 \uC911...',
+      '저장을 시도하는 중...',
     );
     view.rerender(<StatusBar saveState="failed" />);
-    expect(screen.getByRole('status').textContent).toBe(
-      '\uC800\uC7A5\uD558\uC9C0 \uBABB\uD568',
-    );
+    expect(screen.getByRole('status').textContent).toBe('저장하지 못함');
     view.rerender(<StatusBar />);
     expect(screen.getByRole('status').textContent).toBe('');
   });

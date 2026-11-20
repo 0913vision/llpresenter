@@ -173,9 +173,7 @@ function Caption<Id extends string>({
   return (
     <div className={styles.caption}>
       <span className={styles.name}>
-        {screen.transitionProgress === undefined
-          ? screen.name
-          : '\uC804\uD658 \uC911'}
+        {screen.transitionProgress === undefined ? screen.name : '전환 중'}
       </span>
       {screen.transitionProgress === undefined ? null : (
         <span aria-hidden="true" className={styles.transitionTrack}>

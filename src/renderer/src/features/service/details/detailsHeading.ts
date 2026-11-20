@@ -80,7 +80,7 @@ export function detailsHeading({
   if (isItemOfKind(item, 'sermon')) {
     return {
       title: item.sermon.title,
-      kind: '\uc124\uad50',
+      kind: '설교',
       count: rawCount + offset,
     };
   }

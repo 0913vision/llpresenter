@@ -269,8 +269,8 @@ describe('SlideLayerView', () => {
       {
         ...VERSE,
         lines: [
-          '\uadf8\ub9ac\uc2a4\ub3c4 \uc548\uc5d0\uc11c \uc740\ud61c\uc758 \ud48d\uc131\ud558\uc2ec\uc744 \ub530\ub77c',
-          '\uadf8 \ubd84\uc758 \ud53c\ub85c \uc8c4\uc0ac\ud568 \uc5bb\uc2b5\ub2c8\ub2e4',
+          '그리스도 안에서 은혜의 풍성하심을 따라',
+          '그 분의 피로 죄사함 얻습니다',
         ],
       },
       false,
@@ -287,7 +287,7 @@ describe('SlideLayerView', () => {
       {
         ...VERSE,
         itemId: 'longer',
-        lines: ['\uadf8 \ubd84\uc758 \ud558\ub098 \ub098 \ub2e4\ub978 \ub9d0'],
+        lines: ['그 분의 하나 나 다른 말'],
       },
       false,
     );
@@ -297,24 +297,18 @@ describe('SlideLayerView', () => {
       overflowWrap: 'normal',
       textWrap: 'balance',
     });
-    expect(shown()?.textContent).toContain('\uadf8\u00a0\ubd84\uc758');
-    expect(shown()?.textContent).toContain('\ud558\ub098\u00a0\ub098');
+    expect(shown()?.textContent).toContain('그\u00a0분의');
+    expect(shown()?.textContent).toContain('하나\u00a0나');
     view.setLineMode('normal');
     view.setBalanceWrap(false);
     expect(shown()?.style.overflowWrap).toBe('');
-    expect(shown()?.textContent).toBe(
-      '\uadf8 \ubd84\uc758 \ud558\ub098 \ub098 \ub2e4\ub978 \ub9d0',
-    );
+    expect(shown()?.textContent).toBe('그 분의 하나 나 다른 말');
     view.dispose();
   });
 
   it('maps the imported Korean NanumSquare family to the installed family', () => {
-    expect(fontFamilyFor('\ub098\ub214\uc2a4\ud018\uc5b4 ExtraBold')).toContain(
-      '"NanumSquare"',
-    );
-    expect(fontFamilyFor('\ub098\ub214\uc2a4\ud018\uc5b4 Bold')).toContain(
-      '"NanumSquare"',
-    );
+    expect(fontFamilyFor('나눔스퀘어 ExtraBold')).toContain('"NanumSquare"');
+    expect(fontFamilyFor('나눔스퀘어 Bold')).toContain('"NanumSquare"');
   });
 
   it('renders imported run typography and drops it when the authored text changes', () => {

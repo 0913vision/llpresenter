@@ -162,7 +162,7 @@ export function PassageDialog({
         className={styles.dialog}
         role="dialog"
         aria-modal="true"
-        aria-label={'\uC131\uACBD \uAD6C\uC808'}
+        aria-label={'성경 구절'}
         onKeyDown={keys}
         onKeyDownCapture={capture}
         onCompositionStart={() => setHighlight(-1)}
@@ -213,14 +213,14 @@ export function PassageDialog({
         <footer className={styles.footer}>
           <span className={styles.title}>
             <Icon name="book" size={16} />
-            {'\uC131\uACBD \uAD6C\uC808'}
+            {'성경 구절'}
           </span>
           <span aria-disabled={ready === null}>
             {action}
             <KeyCombo keys={['Enter']} />
           </span>
           <span className={styles.next}>
-            {'\uB2E4\uC74C \uCE78'}
+            {'다음 칸'}
             <KeyCombo keys={['Tab']} />
           </span>
         </footer>

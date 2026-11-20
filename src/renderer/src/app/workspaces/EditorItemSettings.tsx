@@ -41,13 +41,13 @@ export function EditorItemSettings({
   };
   const reason =
     state.busy || editing.busy || service.access === 'readOnly'
-      ? '\uc800\uc7a5 \uc911'
+      ? '저장 중'
       : undefined;
   return (
     <Properties>
-      <PropertyGroup title={'\uc774\ubc88 \uc608\ubc30'}>
+      <PropertyGroup title={'이번 예배'}>
         {isItemOfKind(item, 'liturgy') ? (
-          <PropertyRow label={'\uc608\uc2dd\ubb38 \ubc84\uc804'}>
+          <PropertyRow label={'예식문 버전'}>
             {() => (
               <LiturgyVersion
                 items={items}

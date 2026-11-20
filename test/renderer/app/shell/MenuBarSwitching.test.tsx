@@ -112,7 +112,7 @@ it('returns slide keys after clicking from one live menu to another and pressing
         <div data-show-slide-grid>
           <div
             role="listbox"
-            aria-label={'\uc2ac\ub77c\uc774\ub4dc'}
+            aria-label={'슬라이드'}
             tabIndex={0}
             onKeyDown={onSlideKey}
           />
@@ -120,13 +120,11 @@ it('returns slide keys after clicking from one live menu to another and pressing
       </main>
     </>,
   );
-  const grid = screen.getByRole('listbox', {name: '\uc2ac\ub77c\uc774\ub4dc'});
+  const grid = screen.getByRole('listbox', {name: '슬라이드'});
   grid.focus();
-  await userEvent.click(screen.getByRole('menuitem', {name: '\uc9c4\ud589'}));
-  await userEvent.click(screen.getByRole('menuitem', {name: '\ubcf4\uae30'}));
-  expect(screen.getByRole('menu', {name: '\ubcf4\uae30'})).toBe(
-    document.activeElement,
-  );
+  await userEvent.click(screen.getByRole('menuitem', {name: '진행'}));
+  await userEvent.click(screen.getByRole('menuitem', {name: '보기'}));
+  expect(screen.getByRole('menu', {name: '보기'})).toBe(document.activeElement);
   await userEvent.keyboard('{Escape}');
   expect(screen.queryByRole('menu')).toBeNull();
   expect(document.activeElement).toBe(grid);

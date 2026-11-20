@@ -193,8 +193,8 @@ it('stores a chosen theme, follows its kind default again, and opens the theme w
 it('changes the section card with the selected item theme and undoes both together', async () => {
   const {user, stored, api} = await setup(undefined, 3, true);
   const original = newSectionCard();
-  await user.click(screen.getByRole('button', {name: '\ud14c\ub9c8'}));
-  await user.click(screen.getByRole('menuitemradio', {name: '\ud2b9\uc1a1'}));
+  await user.click(screen.getByRole('button', {name: '테마'}));
+  await user.click(screen.getByRole('menuitemradio', {name: '특송'}));
   await waitFor(() =>
     expect(stored()).toMatchObject({
       theme: SPECIAL,

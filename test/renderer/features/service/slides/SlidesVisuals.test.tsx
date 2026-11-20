@@ -95,5 +95,5 @@ it('labels missing slide media', () => {
       },
       [],
     ),
-  ).toBe('\ubbf8\ub514\uc5b4 \uc5c6\uc74c');
+  ).toBe('미디어 없음');
 });

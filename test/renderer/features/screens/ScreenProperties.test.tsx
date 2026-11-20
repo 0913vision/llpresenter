@@ -130,18 +130,14 @@ describe('the screen properties', () => {
   it('shows song caption controls only for broadcast and saves the selected look', async () => {
     const {savedScreens} = setup();
     await nameField();
-    expect(
-      screen.queryByRole('radiogroup', {name: '\ucc2c\uc591 \uc790\ub9c9'}),
-    ).toBeNull();
+    expect(screen.queryByRole('radiogroup', {name: '찬양 자막'})).toBeNull();
     act(() => useScreensSelection.getState().select(CAPTIONS_ID));
     const group = await screen.findByRole('radiogroup', {
-      name: '\ucc2c\uc591 \uc790\ub9c9',
+      name: '찬양 자막',
     });
-    const band = within(group).getByRole('radio', {name: '\ub760'});
+    const band = within(group).getByRole('radio', {name: '띠'});
     expect(band.getAttribute('aria-checked')).toBe('true');
-    await userEvent.click(
-      within(group).getByRole('radio', {name: '\uae00\uc528\ub9cc'}),
-    );
+    await userEvent.click(within(group).getByRole('radio', {name: '글씨만'}));
     await waitFor(() =>
       expect(
         savedScreens().find(item => item.id === CAPTIONS_ID)?.songCaption,
@@ -362,7 +358,7 @@ describe('the screen properties', () => {
           ?.hardwareAcceleration,
       ).toBe(false),
     );
-    const fps = screen.getByRole('button', {name: /\uD504\uB808\uC784 \uC218/});
+    const fps = screen.getByRole('button', {name: /프레임 수/});
     expect(fps.textContent).toContain('30');
     await user.click(fps);
     for (const value of ['29.97', '30', '59.94', '60']) {

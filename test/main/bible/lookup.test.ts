@@ -116,10 +116,7 @@ describe('Bible lookup session', () => {
     expect(answer.result.ok).toBe(false);
     expect(read).not.toHaveBeenCalled();
     expect((await session.lookup(request('베'))).bounds).toBeUndefined();
-    expect(
-      (await session.lookup(request('\ucd9c\uc560\uad7d\uae30'))).bounds
-        ?.bookId,
-    ).toBe(2);
+    expect((await session.lookup(request('출애굽기'))).bounds?.bookId).toBe(2);
   });
 
   it.each([

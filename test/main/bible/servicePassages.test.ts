@@ -83,7 +83,7 @@ describe('saved Bible passage resolution', () => {
   });
 
   it('uses cache-only lookup for live translations during service refresh', async () => {
-    const item = items('\uC694\uD55C\uBCF5\uC74C 3:16')[0];
+    const item = items('요한복음 3:16')[0];
     if (!item || !isItemOfKind(item, 'bible')) {
       throw Error('Missing Bible fixture');
     }
@@ -199,21 +199,9 @@ describe('saved Bible passage resolution', () => {
       });
       return result.tiles.get(row.id)?.map(tile => tile.label);
     };
-    expect(await built('verse')).toEqual([
-      '\uC6943:16',
-      '\uC6943:17',
-      '\uC6943:18',
-    ]);
-    expect(await built('two')).toEqual([
-      '\uC6943:16',
-      '\uC6943:17',
-      '\uC6943:18',
-    ]);
-    expect(await built('fit')).toEqual([
-      '\uC6943:16',
-      '\uC6943:17',
-      '\uC6943:18',
-    ]);
+    expect(await built('verse')).toEqual(['요3:16', '요3:17', '요3:18']);
+    expect(await built('two')).toEqual(['요3:16', '요3:17', '요3:18']);
+    expect(await built('fit')).toEqual(['요3:16', '요3:17', '요3:18']);
   });
   it('exposes normalized identity only for successfully resolved saved items', async () => {
     const bible = fixture();
@@ -241,11 +229,11 @@ describe('saved Bible passage resolution', () => {
     expect([...result.tiles.keys()]).toEqual(rows.map(row => row.id));
     expect(result.tiles.get(rows[0]?.id ?? '')).toMatchObject([
       {
-        label: '\uC6943:16',
+        label: '요3:16',
         lines: ['16 Invented book 43, chapter 3, verse 16'],
       },
-      {label: '\uC6943:17'},
-      {label: '\uC6943:18'},
+      {label: '요3:17'},
+      {label: '요3:18'},
     ]);
     expect(result.tiles.get(rows[1]?.id ?? '')?.[0]?.lines).toEqual([
       'Invented book 43, chapter 3, verse 16',

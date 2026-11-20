@@ -69,7 +69,7 @@ export function SlideInspectorView({
     adapter.undo(key === 'y' || event.shiftKey ? 'redo' : 'undo');
   };
   return (
-    <Panel label={'\uC2AC\uB77C\uC774\uB4DC \uC18D\uC131'}>
+    <Panel label={'슬라이드 속성'}>
       <PanelBody>
         {identity === undefined || adapter === undefined ? null : (
           <PrepInspectorContent
@@ -87,7 +87,7 @@ export function SlideInspectorView({
                   <Properties>
                     {label === undefined ? null : (
                       <PropertyGroup>
-                        <PropertyRow label={'\uC774\uB984\uD45C'}>
+                        <PropertyRow label={'이름표'}>
                           {({controlId}) => (
                             <Button
                               id={
@@ -101,10 +101,10 @@ export function SlideInspectorView({
                               onClick={event => setAnchor(event.currentTarget)}
                             >
                               {label.mixed
-                                ? '\uD63C\uD569'
+                                ? '혼합'
                                 : label.value === undefined ||
                                     label.value === ''
-                                  ? '\uC5C6\uC74C'
+                                  ? '없음'
                                   : label.value}
                             </Button>
                           )}

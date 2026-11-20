@@ -46,7 +46,7 @@ it.each(['creed', 'prayer'] as const)(
       await editor.dispose();
     });
     expect(
-      await screen.findAllByRole('textbox', {name: /\uc608\uc2dd\ubb38/}),
+      await screen.findAllByRole('textbox', {name: /예식문/}),
     ).not.toHaveLength(0);
     const user = userEvent.setup();
     await user.click(await screen.findByRole('button', {name: '예식문 버전'}));
@@ -122,7 +122,7 @@ it('opens with the title selected and includes it when extending selection', asy
     items.dispose();
     await editor.dispose();
   });
-  const card = await screen.findByRole('option', {name: '\uD0C0\uC774\uD2C0'});
+  const card = await screen.findByRole('option', {name: '타이틀'});
   const first = view.container.querySelector('[data-song-slide="0"]');
   const second = view.container.querySelector('[data-song-slide="1"]');
   if (first === null || second === null) throw Error('Missing liturgy slides');

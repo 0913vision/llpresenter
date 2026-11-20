@@ -94,16 +94,16 @@ it('keeps output in the default group and service insertion beside library comma
 it('lists the media tile rows and icons in ProPresenter order', () => {
   const entries = mediaTileMenuEntries(entry, actions());
   expect(rows(entries)).toEqual([
-    '\uc18d\uc131',
+    '속성',
     '|',
-    '\ub9de\ucda4',
-    '\ub05d\ub098\uba74',
+    '맞춤',
+    '끝나면',
     '|',
-    '\ubcf5\uc81c',
-    '\uc774\ub984 \ubc14\uafb8\uae30',
-    '\uc0ad\uc81c',
+    '복제',
+    '이름 바꾸기',
+    '삭제',
     '|',
-    '\ud0d0\uc0c9\uae30\uc5d0\uc11c \ubcf4\uae30',
+    '탐색기에서 보기',
   ]);
   expect(
     entries
@@ -137,13 +137,13 @@ it('lists the audio playlist item rows without icons', () => {
     actions({audioPlaylist: true, inPlaylist: true}),
   );
   expect(rows(entries)).toEqual([
-    '\ud0d0\uc0c9\uae30\uc5d0\uc11c \ubcf4\uae30',
+    '탐색기에서 보기',
     '|',
-    '\uc18d\uc131',
-    '\ubcf5\uc81c',
-    '\uc774\ub984 \ubc14\uafb8\uae30',
+    '속성',
+    '복제',
+    '이름 바꾸기',
     '|',
-    '\uc0ad\uc81c',
+    '삭제',
   ]);
   expect(
     entries.some(row => row.kind === 'item' && row.icon !== undefined),

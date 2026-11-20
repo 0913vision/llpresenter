@@ -181,8 +181,8 @@ describe('BibleQuickField', () => {
       value: {
         ...settings.value,
         recents: [
-          {translation, ref: '\uC694\uD55C\uBCF5\uC74C 3:16'},
-          {translation, ref: '\uC694\uD55C\uBCF5\uC74C 3:17'},
+          {translation, ref: '요한복음 3:16'},
+          {translation, ref: '요한복음 3:17'},
         ],
       },
     });
@@ -202,7 +202,7 @@ describe('BibleQuickField', () => {
     fireEvent.keyDown(field, {key: 'Enter'});
     await waitFor(() =>
       expect(fixture.lookup).toHaveBeenCalledWith({
-        input: '\uC694\uD55C\uBCF5\uC74C 3:17',
+        input: '요한복음 3:17',
         translation,
       }),
     );
@@ -224,9 +224,7 @@ describe('BibleQuickField', () => {
     });
     render(<BibleQuickField api={fixture.api} />);
     await book();
-    expect(
-      screen.queryByLabelText('\uCD5C\uADFC \uC131\uACBD \uAD6C\uC808'),
-    ).toBeNull();
+    expect(screen.queryByLabelText('최근 성경 구절')).toBeNull();
     fireEvent.keyDown(document.body, {key: '0', code: 'Digit0', altKey: true});
     expect(fixture.send).not.toHaveBeenCalled();
     fireEvent.keyDown(document.body, {key: 'b', code: 'KeyB', ctrlKey: true});
@@ -287,7 +285,7 @@ describe('BibleQuickField', () => {
   it('does not output a finder recent after Escape dismisses it', async () => {
     const fixture = panelApi();
     window.llp = fixture.api;
-    const ref = '\uC694\uD55C\uBCF5\uC74C 3:16-18';
+    const ref = '요한복음 3:16-18';
     const settings = fixture.document();
     fixture.push({
       ...settings,
@@ -441,7 +439,7 @@ describe('BibleQuickField', () => {
   it('does nothing when the preceding slide is missing or has been removed', async () => {
     const fixture = panelApi();
     window.llp = fixture.api;
-    const bible = await passage('\uc694\ud55c\ubcf5\uc74c 3:16-18');
+    const bible = await passage('요한복음 3:16-18');
     beginQuickPassage();
     openBiblePassage(bible);
     finishQuickPassage();
@@ -517,31 +515,27 @@ describe('BibleQuickField', () => {
           <SlideGrid columns={4} scalePercent={100} />
         </>,
       );
-      fireEvent.change(await book(), {target: {value: '\uc694'}});
-      fireEvent.change(screen.getByRole('textbox', {name: '\uc7a5'}), {
+      fireEvent.change(await book(), {target: {value: '요'}});
+      fireEvent.change(screen.getByRole('textbox', {name: '장'}), {
         target: {value: '3'},
       });
       const start = screen.getByRole<HTMLInputElement>('textbox', {
-        name: '\uc2dc\uc791\uc808',
+        name: '시작절',
       });
       fireEvent.change(start, {target: {value: '16'}});
       start.focus();
       if (method === 'enter') {
         fireEvent.keyDown(start, {key: 'Enter', code: 'Enter'});
       } else {
-        await waitFor(() =>
-          expect(currentRef()).toBe('\uc694\ud55c\ubcf5\uc74c 3:16'),
-        );
-        fireEvent.click(
-          await screen.findByRole('option', {name: /\uc6943:16/}),
-        );
+        await waitFor(() => expect(currentRef()).toBe('요한복음 3:16'));
+        fireEvent.click(await screen.findByRole('option', {name: /요3:16/}));
       }
       await waitFor(() =>
         expect(
           lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0]),
         ).toMatchObject({
           type: 'slide.show',
-          slide: {itemId: 'bible:sample:\uc694\ud55c\ubcf5\uc74c 3:16'},
+          slide: {itemId: 'bible:sample:요한복음 3:16'},
         }),
       );
       const shown = lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0]);
@@ -559,7 +553,7 @@ describe('BibleQuickField', () => {
       fireEvent.keyDown(start, {key: 'Escape', code: 'Escape'});
       expect(fixture.send.mock.calls).toHaveLength(beforeCount);
       const grid = screen.getByRole('listbox', {
-        name: '\uc2ac\ub77c\uc774\ub4dc',
+        name: '슬라이드',
       });
       grid.focus();
       fireEvent.keyDown(grid, {key: 'Escape', code: 'Escape'});
@@ -575,9 +569,9 @@ describe('BibleQuickField', () => {
 
   it.each(
     [
-      ['start', '16', '', '\uc694\ud55c\ubcf5\uc74c 3:16'],
-      ['start', '16', '18', '\uc694\ud55c\ubcf5\uc74c 3:16-18'],
-      ['chapter', '', '', '\uc694\ud55c\ubcf5\uc74c 3'],
+      ['start', '16', '', '요한복음 3:16'],
+      ['start', '16', '18', '요한복음 3:16-18'],
+      ['chapter', '', '', '요한복음 3'],
     ].map(([part, start, end, expected]) => ({part, start, end, expected})),
   )(
     'outputs directly from $part with the selected range',
@@ -590,15 +584,15 @@ describe('BibleQuickField', () => {
           <SlideGrid columns={4} scalePercent={100} />
         </>,
       );
-      fireEvent.change(await book(), {target: {value: '\uc694'}});
+      fireEvent.change(await book(), {target: {value: '요'}});
       const chapter = screen.getByRole<HTMLInputElement>('textbox', {
-        name: '\uc7a5',
+        name: '장',
       });
       const startField = screen.getByRole<HTMLInputElement>('textbox', {
-        name: '\uc2dc\uc791\uc808',
+        name: '시작절',
       });
       const endField = screen.getByRole<HTMLInputElement>('textbox', {
-        name: '\ub05d\uc808',
+        name: '끝절',
       });
       fireEvent.change(chapter, {target: {value: '3'}});
       if (start) fireEvent.change(startField, {target: {value: start}});
@@ -615,7 +609,7 @@ describe('BibleQuickField', () => {
         }),
       );
       expect(document.activeElement).toBe(
-        screen.getByRole('listbox', {name: '\uc2ac\ub77c\uc774\ub4dc'}),
+        screen.getByRole('listbox', {name: '슬라이드'}),
       );
     },
   );
@@ -631,26 +625,24 @@ describe('BibleQuickField', () => {
       </>,
     );
     const field = await book();
-    fireEvent.change(field, {target: {value: '\uc694'}});
+    fireEvent.change(field, {target: {value: '요'}});
     for (const [label, value] of [
-      ['\uc7a5', '3'],
-      ['\uc2dc\uc791\uc808', '16'],
-      ['\ub05d\uc808', '18'],
+      ['장', '3'],
+      ['시작절', '16'],
+      ['끝절', '18'],
     ] as const) {
       fireEvent.change(screen.getByRole('textbox', {name: label}), {
         target: {value},
       });
     }
-    await waitFor(() =>
-      expect(currentRef()).toBe('\uc694\ud55c\ubcf5\uc74c 3:16-18'),
-    );
+    await waitFor(() => expect(currentRef()).toBe('요한복음 3:16-18'));
     const end = screen.getByRole<HTMLInputElement>('textbox', {
-      name: '\ub05d\uc808',
+      name: '끝절',
     });
     end.focus();
     fireEvent.keyDown(end, {key: 'Enter', code: 'Enter'});
     const grid = screen.getByRole('listbox', {
-      name: '\uc2ac\ub77c\uc774\ub4dc',
+      name: '슬라이드',
     });
     expect(document.activeElement).toBe(grid);
     expect(end.value).toBe('18');

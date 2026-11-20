@@ -41,19 +41,17 @@ it.each([
     />,
   );
   expect(screen.getByTestId('preview').textContent).toBe(kind);
-  expect(
-    screen
-      .getByLabelText('\uC804\uD658 \uC2DC\uAC04')
-      .getAttribute('placeholder'),
-  ).toBe('\uD63C\uD569');
+  expect(screen.getByLabelText('전환 시간').getAttribute('placeholder')).toBe(
+    '혼합',
+  );
   expect(
     screen
       .getByRole<HTMLButtonElement>('button', {
-        name: '\uC804\uCCB4 \uC2AC\uB77C\uC774\uB4DC\uC5D0 \uC801\uC6A9',
+        name: '전체 슬라이드에 적용',
       })
       .getAttribute('aria-disabled'),
   ).toBe('true');
-  fireEvent.click(screen.getByRole('button', {name: '\uB514\uC878\uBE0C'}));
+  fireEvent.click(screen.getByRole('button', {name: '디졸브'}));
   expect(change).toHaveBeenCalledWith({kind: 'dissolve', sec: 1});
   view.rerender(
     <SlideInspectorView
@@ -76,7 +74,7 @@ it.each([
   );
   fireEvent.click(
     screen.getByRole('button', {
-      name: '\uC804\uCCB4 \uC2AC\uB77C\uC774\uB4DC\uC5D0 \uC801\uC6A9',
+      name: '전체 슬라이드에 적용',
     }),
   );
   expect(applyAll).toHaveBeenCalledOnce();
@@ -100,7 +98,7 @@ it('keeps media preview without offering an unsupported transition', () => {
     />,
   );
   expect(screen.getByTestId('media-preview')).toBeTruthy();
-  expect(screen.queryByRole('group', {name: '\uD6A8\uACFC'})).toBeNull();
+  expect(screen.queryByRole('group', {name: '효과'})).toBeNull();
   view.unmount();
 });
 

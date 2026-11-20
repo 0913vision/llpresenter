@@ -106,6 +106,9 @@ export const lintConfig = defineConfig(
       // NOTE(0913vision): CONTRIBUTING.md allows only TSDoc, NOTE, and TODO
       // comments.
       'llp/allowed-comments': 'error',
+      // NOTE(0913vision): Korean text is written as itself, never as a \u
+      // escape that hides it from review and search.
+      'llp/hangul-escape': 'error',
       // NOTE(0913vision): Source files use UTF-8 without a byte order mark.
       'unicode-bom': ['error', 'never'],
       // NOTE(0913vision): Loose equality coerces types and hides bugs. The

@@ -20,9 +20,9 @@ it('offers actual icon assets and moves focus without selecting on arrow keys', 
       save={save}
     />,
   );
-  const grid = screen.getByRole('group', {name: '\uc544\uc774\ucf58'});
+  const grid = screen.getByRole('group', {name: '아이콘'});
   const selected = within(grid).getByRole('button', {
-    name: '\uc544\uc774\ucf58 macro',
+    name: '아이콘 macro',
   });
   expect(selected.getAttribute('aria-pressed')).toBe('true');
   expect(selected.getAttribute('tabindex')).toBe('0');
@@ -48,8 +48,6 @@ it('does not select an icon while locked', () => {
       save={save}
     />,
   );
-  fireEvent.click(
-    screen.getByRole('button', {name: '\uc544\uc774\ucf58 macro'}),
-  );
+  fireEvent.click(screen.getByRole('button', {name: '아이콘 macro'}));
   expect(save).not.toHaveBeenCalled();
 });

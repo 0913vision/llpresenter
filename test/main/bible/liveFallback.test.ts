@@ -105,27 +105,16 @@ it.each([false, true])(
     vi.stubGlobal('fetch', fetch);
     const session = await setup(partial);
     try {
-      const metadata = await session.lookup(
-        request('\uD558\uBC15\uAD6D'),
-        false,
-        true,
-      );
+      const metadata = await session.lookup(request('하박국'), false, true);
       expect(metadata.bounds?.bookId).toBe(35);
       expect(fetch).not.toHaveBeenCalled();
-      const reply = await session.lookup(
-        request('\uD558\uBC15\uAD6D 3:1'),
-        false,
-        true,
-      );
+      const reply = await session.lookup(request('하박국 3:1'), false, true);
       expect(reply.result).toMatchObject({
         ok: true,
         value: {translation: LIVE_BIBLE_ID, verses: [{text: 'placeholder'}]},
       });
       expect(fetch).toHaveBeenCalledOnce();
-      const cached = await session.lookup(
-        request('\uD558\uBC15\uAD6D 3:1'),
-        true,
-      );
+      const cached = await session.lookup(request('하박국 3:1'), true);
       expect(cached.result).toMatchObject({
         ok: true,
         value: {translation: LIVE_BIBLE_ID},
@@ -141,10 +130,7 @@ it('preserves a saved partial translation where its book exists', async () => {
   vi.stubGlobal('fetch', fetch);
   const session = await setup(true);
   try {
-    const saved = await session.lookup(
-      request('\uC694\uD55C\uBCF5\uC74C 3:1'),
-      true,
-    );
+    const saved = await session.lookup(request('요한복음 3:1'), true);
     expect(saved.result).toMatchObject({
       ok: true,
       value: {translation: 'sample'},
@@ -162,11 +148,7 @@ it('uses live text for an operator lookup even when an incomplete default contai
   vi.stubGlobal('fetch', fetch);
   const session = await setup(true);
   try {
-    const reply = await session.lookup(
-      request('\uC694\uD55C\uBCF5\uC74C 3:1'),
-      false,
-      true,
-    );
+    const reply = await session.lookup(request('요한복음 3:1'), false, true);
     expect(reply.result).toMatchObject({
       ok: true,
       value: {translation: LIVE_BIBLE_ID},
@@ -182,11 +164,7 @@ it('keeps a complete configured default for operator lookups', async () => {
   vi.stubGlobal('fetch', fetch);
   const session = await setup(true, true);
   try {
-    const reply = await session.lookup(
-      request('\uC694\uD55C\uBCF5\uC74C 3:1'),
-      false,
-      true,
-    );
+    const reply = await session.lookup(request('요한복음 3:1'), false, true);
     expect(reply.result).toMatchObject({
       ok: true,
       value: {translation: 'sample'},
@@ -206,9 +184,9 @@ it('resolves the short Habakkuk reference on the live default', async () => {
   const session = await setup(false);
   try {
     expect(
-      (await session.lookup(request('\uD569'), false, true)).bounds?.bookId,
+      (await session.lookup(request('합'), false, true)).bounds?.bookId,
     ).toBe(35);
-    const result = await session.lookup(request('\uD569 3:17-19'), false, true);
+    const result = await session.lookup(request('합 3:17-19'), false, true);
     expect(result.result).toMatchObject({
       ok: true,
       value: {

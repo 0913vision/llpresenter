@@ -86,7 +86,7 @@ it('does not apply a macro color while disabled', () => {
   render(
     <MacroColorPicker label="Color" value="teal" disabled onChange={change} />,
   );
-  fireEvent.click(screen.getByRole('radio', {name: '\ucd08\ub85d'}));
+  fireEvent.click(screen.getByRole('radio', {name: '초록'}));
   expect(change).not.toHaveBeenCalled();
 });
 

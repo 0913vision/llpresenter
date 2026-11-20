@@ -34,12 +34,12 @@ function OverlayContents({
   return (
     <>
       <header className={styles.heading}>
-        <h2>{'\uC2AC\uB77C\uC774\uB4DC \uC774\uB3D9'}</h2>
+        <h2>{'슬라이드 이동'}</h2>
       </header>
       <div className={styles.content}>{children}</div>
       <footer className={styles.footer}>
         <span>
-          <kbd>Enter</kbd> {'\uC774\uB3D9'}
+          <kbd>Enter</kbd> {'이동'}
         </span>
       </footer>
     </>

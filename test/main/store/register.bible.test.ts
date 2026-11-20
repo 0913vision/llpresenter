@@ -75,9 +75,9 @@ describe('registerStore', () => {
       throw new Error('Missing projected service');
     }
     expect(shown.value.tiles[itemId(60)]).toMatchObject([
-      {label: '\uC6943:16', lines: ['Invented book 43, chapter 3, verse 16']},
-      {label: '\uC6943:17'},
-      {label: '\uC6943:18'},
+      {label: '요3:16', lines: ['Invented book 43, chapter 3, verse 16']},
+      {label: '요3:17'},
+      {label: '요3:18'},
     ]);
     expect(shown.value.rows).toEqual([
       {

@@ -109,9 +109,9 @@ describe('SongBlock', () => {
     const {container, onOpen} = renderBlock(1);
     const row = container.querySelector<HTMLElement>('[data-editor-block]');
     if (row === null) throw new Error('Missing row');
-    const strip = screen.getByRole('button', {name: '1\uC808 2'});
+    const strip = screen.getByRole('button', {name: '1절 2'});
     expect(strip.closest('[data-editor-thumbnail]')).not.toBeNull();
-    expect(row.textContent.match(/1\uC808/g)).toHaveLength(1);
+    expect(row.textContent.match(/1절/g)).toHaveLength(1);
     expect(row.textContent.match(/2/g)).toHaveLength(1);
     fireEvent.click(strip);
     expect(onOpen).toHaveBeenCalledWith(strip, 1);
@@ -227,12 +227,12 @@ describe('SongBlock', () => {
     'uses the same label and number in the strip name (grid: %s)',
     grid => {
       const {onOpen, container} = renderBlock(0, createSong(), {grid});
-      const band = screen.getByRole('button', {name: '1\uC808 1'});
+      const band = screen.getByRole('button', {name: '1절 1'});
       expect(
         container.querySelectorAll('[data-editor-thumbnail]'),
       ).toHaveLength(1);
-      expect(screen.queryByRole('button', {name: '1\uC808'})).toBeNull();
-      expect(container.textContent.match(/1\uC808/g)).toHaveLength(1);
+      expect(screen.queryByRole('button', {name: '1절'})).toBeNull();
+      expect(container.textContent.match(/1절/g)).toHaveLength(1);
       fireEvent.click(band);
       expect(onOpen).toHaveBeenCalledWith(band, 0);
     },

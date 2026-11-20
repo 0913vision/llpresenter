@@ -26,7 +26,7 @@ function useMacroMedia(
         key: 'macro:media',
         kind: 'warning',
         icon: 'warning',
-        title: '\ubbf8\ub514\uc5b4 \ubd88\ub7ec\uc624\uae30 \uc2e4\ud328',
+        title: '미디어 불러오기 실패',
         time: noticeTime(),
       });
     });
@@ -39,14 +39,10 @@ export function useMacroTargets(
 ): ReturnType<typeof buildMacroTargets> | null {
   const themes = useSettingsDocument('themes', '테마', onProblem);
   const props = useSettingsDocument('props', '그래픽', onProblem);
-  const messages = useSettingsDocument(
-    'messages',
-    '\uba54\uc2dc\uc9c0',
-    onProblem,
-  );
-  const timers = useSettingsDocument('timers', '\ud0c0\uc774\uba38', onProblem);
-  const macros = useSettingsDocument('macros', '\ub9e4\ud06c\ub85c', onProblem);
-  const screens = useSettingsDocument('screens', '\ud654\uba74', onProblem);
+  const messages = useSettingsDocument('messages', '메시지', onProblem);
+  const timers = useSettingsDocument('timers', '타이머', onProblem);
+  const macros = useSettingsDocument('macros', '매크로', onProblem);
+  const screens = useSettingsDocument('screens', '화면', onProblem);
   const media = useMacroMedia(onProblem);
   return useMemo(() => {
     if (

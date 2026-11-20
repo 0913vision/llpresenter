@@ -34,15 +34,13 @@ describe('song editor view', () => {
     seedSlideSurfaceView({});
     const {user} = await editorSetup();
     const toolbar = screen.getByRole('toolbar', {
-      name: '\uC2AC\uB77C\uC774\uB4DC \uBCF4\uAE30',
+      name: '슬라이드 보기',
     });
     const footer = toolbar.closest('footer');
     expect(footer).not.toBeNull();
-    expect(footer?.textContent).toContain('2\uAC1C');
+    expect(footer?.textContent).toContain('2개');
     expect(within(toolbar).queryByRole('spinbutton')).toBeNull();
-    await user.click(
-      within(toolbar).getByRole('button', {name: '\uACA9\uC790'}),
-    );
+    await user.click(within(toolbar).getByRole('button', {name: '격자'}));
     expect(within(toolbar).getByRole('spinbutton')).toBeDefined();
     seedSlideSurfaceView({});
   });
@@ -140,18 +138,18 @@ describe('song editor view', () => {
         <SongEditor
           store={store}
           leadingCard={{
-            label: '\uAD6C\uC5ED \uC774\uB984',
+            label: '구역 이름',
             render: current => <span>{`Card ${current}`}</span>,
             onDelete,
             onSelectChange,
           }}
         />,
       );
-      const card = screen.getByLabelText('\uAD6C\uC5ED \uC774\uB984');
+      const card = screen.getByLabelText('구역 이름');
       expect(card.textContent).toBe(`Card ${mode}`);
       expect(
         screen.getByRole('textbox', {
-          name: '\uC2AC\uB77C\uC774\uB4DC 2 \uAC00\uC0AC',
+          name: '슬라이드 2 가사',
         }),
       ).toBeDefined();
       await user.click(card);
@@ -213,7 +211,7 @@ describe('song editor view', () => {
     expect(
       session.slideModel.getSnapshot().selection.ids.has(firstSlide.id),
     ).toBe(true);
-    await user.click(screen.getByRole('button', {name: '\uACA9\uC790'}));
+    await user.click(screen.getByRole('button', {name: '격자'}));
     const card = screen.getByRole('textbox', {name: 'Section card'});
     expect(card.getAttribute('data-mode')).toBe('grid');
     fireEvent.change(card, {target: {value: 'Edited card'}});
@@ -223,23 +221,19 @@ describe('song editor view', () => {
         .querySelector('[data-editor-block="0"]')
         ?.getAttribute('data-grid'),
     ).toBe('true');
-    await user.click(screen.getByRole('button', {name: '\uBAA9\uB85D'}));
+    await user.click(screen.getByRole('button', {name: '목록'}));
   });
 
   it('edits slide text in both surface views', async () => {
     const {session, user} = await editorSetup();
     const toolbar = screen.getByRole('toolbar', {
-      name: '\uC2AC\uB77C\uC774\uB4DC \uBCF4\uAE30',
+      name: '슬라이드 보기',
     });
     fireEvent.change(lyrics(), {target: {value: 'List edit'}});
-    await user.click(
-      within(toolbar).getByRole('button', {name: '\uACA9\uC790'}),
-    );
+    await user.click(within(toolbar).getByRole('button', {name: '격자'}));
     expect(lyrics().value).toBe('List edit');
     fireEvent.change(lyrics(), {target: {value: 'Grid edit'}});
-    await user.click(
-      within(toolbar).getByRole('button', {name: '\uBAA9\uB85D'}),
-    );
+    await user.click(within(toolbar).getByRole('button', {name: '목록'}));
     expect(lyrics().value).toBe('Grid edit');
     expect(session.history.snapshot.song.slides[0]?.lines).toEqual([
       'Grid edit',
@@ -611,9 +605,9 @@ describe('song editor view', () => {
     const {session} = await editorSetup();
     cursor(lyrics(2), 2);
     fireEvent.keyDown(lyrics(2), {key: 'Enter', code: 'Enter', ctrlKey: true});
-    expect(
-      screen.getAllByRole('textbox', {name: /^\uC2AC\uB77C\uC774\uB4DC /}),
-    ).toHaveLength(3);
+    expect(screen.getAllByRole('textbox', {name: /^슬라이드 /})).toHaveLength(
+      3,
+    );
     expect(document.activeElement).toBe(lyrics(3));
     expect(lyrics(3).selectionStart).toBe(0);
     fireEvent.keyDown(lyrics(3), {
@@ -622,9 +616,9 @@ describe('song editor view', () => {
       ctrlKey: true,
       shiftKey: true,
     });
-    expect(
-      screen.getAllByRole('textbox', {name: /^\uC2AC\uB77C\uC774\uB4DC /}),
-    ).toHaveLength(4);
+    expect(screen.getAllByRole('textbox', {name: /^슬라이드 /})).toHaveLength(
+      4,
+    );
     expect(document.activeElement).toBe(lyrics(4));
     expect(lyrics(4).value).toBe('');
     await act(() => session.flush());
@@ -633,8 +627,8 @@ describe('song editor view', () => {
   it('splits at a line end without carrying the newline to either slide', async () => {
     await editorSetup();
     const input = lyrics(2);
-    const first = '\uccab\uc9f8 \uc904 \uac00\uc0ac';
-    const second = '\ub458\uc9f8 \uc904 \uac00\uc0ac';
+    const first = '첫째 줄 가사';
+    const second = '둘째 줄 가사';
     fireEvent.change(input, {target: {value: `${first}\n${second}`}});
     cursor(input, first.length);
     fireEvent.keyDown(input, {key: 'Enter', code: 'Enter', ctrlKey: true});
@@ -648,19 +642,19 @@ describe('song editor view', () => {
     const {user} = await editorSetup();
     cursor(lyrics(), lyrics().value.length);
     await user.keyboard('{Enter}');
-    expect(
-      screen.getAllByRole('textbox', {name: /^\uC2AC\uB77C\uC774\uB4DC /}),
-    ).toHaveLength(2);
+    expect(screen.getAllByRole('textbox', {name: /^슬라이드 /})).toHaveLength(
+      2,
+    );
     expect(lyrics().value.endsWith('\n')).toBe(true);
     fireEvent.keyDown(lyrics(), {key: 'Enter', code: 'Enter', ctrlKey: true});
-    expect(
-      screen.getAllByRole('textbox', {name: /^\uC2AC\uB77C\uC774\uB4DC /}),
-    ).toHaveLength(3);
+    expect(screen.getAllByRole('textbox', {name: /^슬라이드 /})).toHaveLength(
+      3,
+    );
     expect(document.activeElement).toBe(lyrics(2));
     await user.keyboard('{Backspace}');
-    expect(
-      screen.getAllByRole('textbox', {name: /^\uC2AC\uB77C\uC774\uB4DC /}),
-    ).toHaveLength(2);
+    expect(screen.getAllByRole('textbox', {name: /^슬라이드 /})).toHaveLength(
+      2,
+    );
     expect(document.activeElement).toBe(lyrics());
     expect(lyrics().selectionStart).toBe(lyrics().value.length);
   });

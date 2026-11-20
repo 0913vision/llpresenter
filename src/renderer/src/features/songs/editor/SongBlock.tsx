@@ -324,7 +324,7 @@ export const SongBlock = memo(
                   ref={labelButtonRef}
                   type="button"
                   className={styles.bandButton}
-                  aria-label={`${slide.label === undefined || slide.label === '' ? '\uC774\uB984\uD45C \uC5C6\uC74C' : slide.label} ${block + 1 + numberOffset}`}
+                  aria-label={`${slide.label === undefined || slide.label === '' ? '이름표 없음' : slide.label} ${block + 1 + numberOffset}`}
                   aria-expanded={expanded}
                   onClick={event => {
                     if (!locked) onOpen(event.currentTarget, block);

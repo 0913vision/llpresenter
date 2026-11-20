@@ -240,7 +240,7 @@ it('selects the second Bible verse at position two and shows slide number three 
   const second = within(grid).getAllByRole('option')[1];
   if (second === undefined) throw Error('missing verse');
   expect(second.textContent).toContain('3');
-  expect(screen.getByText('3\uac1c')).toBeDefined();
+  expect(screen.getByText('3개')).toBeDefined();
   await userEvent.click(second);
   expect(items.getSnapshot().position).toBe(2);
   fireEvent.contextMenu(second);

@@ -6,7 +6,7 @@ it('leaves transition controls to the inspector', async () => {
   await editorSetup();
   expect(
     screen.queryByRole('group', {
-      name: '\uC2AC\uB77C\uC774\uB4DC \uC804\uD658',
+      name: '슬라이드 전환',
     }),
   ).toBeNull();
 });

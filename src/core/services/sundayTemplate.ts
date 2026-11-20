@@ -47,9 +47,7 @@ export function newSundayCreed(
   id: ServiceItemId,
   translation: LiturgyTranslation = 'new',
 ): ServiceItem {
-  const section = SUNDAY_SECTIONS.find(
-    value => value.name === '\uc0ac\ub3c4\uc2e0\uacbd',
-  );
+  const section = SUNDAY_SECTIONS.find(value => value.name === '사도신경');
   if (section === undefined) throw Error('Missing creed section');
   return {
     ...newLiturgyItem(id, {kind: 'creed', translation}),

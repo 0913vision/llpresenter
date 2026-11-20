@@ -387,10 +387,10 @@ it('tracks the live index for Bible position after click and next output', () =>
   expectOutput(send.mock.calls.at(-1)?.[0], 1);
   publish(1);
   expect(useShow.getState().selectedTile).toBe(1);
-  fireEvent.keyDown(
-    screen.getByRole('listbox', {name: '\uc2ac\ub77c\uc774\ub4dc'}),
-    {key: 'ArrowDown', code: 'ArrowDown'},
-  );
+  fireEvent.keyDown(screen.getByRole('listbox', {name: '슬라이드'}), {
+    key: 'ArrowDown',
+    code: 'ArrowDown',
+  });
   expectOutput(send.mock.calls.at(-1)?.[0], 2);
   publish(2);
   expect(useShow.getState().selectedTile).toBe(2);
@@ -400,7 +400,7 @@ it('obeys slide boundaries and starts at the first slide on down when nothing is
   const send = vi.fn<(command: LiveCommand) => void>();
   window.llp = mockLlpApi({live: {send}});
   render(<SlideGrid columns={3} scalePercent={100} />);
-  const grid = screen.getByRole('listbox', {name: '\uc2ac\ub77c\uc774\ub4dc'});
+  const grid = screen.getByRole('listbox', {name: '슬라이드'});
   fireEvent.keyDown(grid, {key: 'ArrowUp', code: 'ArrowUp'});
   expect(send).not.toHaveBeenCalled();
   fireEvent.keyDown(grid, {key: 'ArrowDown', code: 'ArrowDown'});
@@ -435,7 +435,7 @@ it('obeys slide boundaries and starts at the first slide on down when nothing is
 
 it('shows grid focus only after Tab entry, not pointer followed by arrows', () => {
   render(<SlideGrid columns={4} scalePercent={100} />);
-  const grid = screen.getByRole('listbox', {name: '\uc2ac\ub77c\uc774\ub4dc'});
+  const grid = screen.getByRole('listbox', {name: '슬라이드'});
   const keeper = grid.closest('[data-show-slide-grid]');
   expect(keeper).not.toBeNull();
   fireEvent.pointerDown(slide(0));
