@@ -533,6 +533,26 @@ export class ThemeElementView {
     } else {
       const displayedText =
         cue ?? this.textContent(layers, frame, videoRemaining);
+      const inlineLabel =
+        stage && frame.stageLyricLabelPosition === 'inline' && cue === undefined
+          ? element.kind === 'currentText' &&
+            currentSong &&
+            !slide?.titleSlide &&
+            !slide?.labelContinued &&
+            slide?.label?.trim() &&
+            !isStageEndingLabel(slide.label.trim())
+            ? slide.label.trim()
+            : element.kind === 'nextText' &&
+                nextSong &&
+                !next?.titleSlide &&
+                !next?.labelContinued &&
+                next?.label?.trim() &&
+                !isStageEndingLabel(next.label.trim())
+              ? next.label.trim()
+              : undefined
+          : undefined;
+      if (inlineLabel !== undefined) this.box.style.overflow = 'visible';
+      this.text?.setStageInlineLabel(inlineLabel);
       this.showText(displayedText, frame, {
         cue: cue !== undefined,
         lyricFormat:
@@ -849,9 +869,7 @@ export class ThemeElementView {
           return text;
         }
         if (currentSong && !isStageEndingLabel(slide.label.trim())) {
-          return labelMode === 'inline' && !slide.labelContinued
-            ? stageLabeledText(text, slide.label.trim())
-            : text;
+          return text;
         }
         return stageLabeledText(text, slide.label.trim());
       }
@@ -866,6 +884,14 @@ export class ThemeElementView {
         ) &&
         slide?.next?.label?.trim()
       ) {
+        if (
+          nextSong &&
+          labelMode === 'inline' &&
+          !slide.next.titleSlide &&
+          !isStageEndingLabel(slide.next.label.trim())
+        ) {
+          return text;
+        }
         return stageLabeledText(
           text,
           slide.next.label.trim(),

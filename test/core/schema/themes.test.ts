@@ -45,6 +45,21 @@ const file = {
   defaults: {},
 };
 
+it('validates the optional stage lyric label placement', () => {
+  for (const stageLyricLabelPosition of ['line', 'inline']) {
+    expect(
+      v.safeParse(themeScreenLayoutSchema, {...layout, stageLyricLabelPosition})
+        .success,
+    ).toBe(true);
+  }
+  expect(
+    v.safeParse(themeScreenLayoutSchema, {
+      ...layout,
+      stageLyricLabelPosition: 'unknown',
+    }).success,
+  ).toBe(false);
+});
+
 it('preserves a removed theme transition in an old file', () => {
   const old = {
     ...file,

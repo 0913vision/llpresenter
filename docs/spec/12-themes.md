@@ -843,12 +843,15 @@ appended to the current text, the top label is hidden to avoid repeating it.
 
 The output preference `output.stageLyricLabelPosition` chooses `line` (the
 behavior above, the default), `inline` (the changed song label precedes the
-current lyric on the same line), or `off` (omit song labels from current and
-next text and their stage label elements). In `line` and `inline`, the top label
-remains. A label continuing from the preceding song slide is omitted from the
-lyric and next text. An empty song slide with labels off shows (없음). This
-preference does not change Bible or other item labels and updates live output
-and its previews when saved.
+first lyric row when it fits at the lyrics' fitted size; otherwise it appears
+above the lyrics without shrinking or rewrapping them), or `off` (omit song
+labels from current and next text and their stage label elements). In `line` and
+`inline`, the top label remains. A label continuing from the preceding song
+slide is omitted from the lyric and next text. An empty song slide with labels
+off shows (없음). This preference does not change Bible or other item labels and
+updates live output and its previews when saved. Each stage theme layout can
+also choose 위 or 앞, overriding that output preference for the layout; 출력
+설정 따름 uses the output preference.
 
 Stage title slides and section cards show only their Korean title, without the
 English subtitle. The creed and prayer theme uses 104 px left-aligned current

@@ -213,6 +213,7 @@ export const themeScreenLayoutSchema = jsonObject({
     ),
   ),
   stageBar: v.exactOptional(v.literal('message-row')),
+  stageLyricLabelPosition: v.exactOptional(v.picklist(['line', 'inline'])),
   songTitle: v.exactOptional(v.picklist(['sunday', 'sunday-light'])),
   mode: v.pipe(
     jsonObject({}),

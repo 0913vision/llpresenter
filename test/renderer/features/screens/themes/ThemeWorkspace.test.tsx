@@ -883,6 +883,23 @@ it('adds sampled stops, drags across neighbors in one undo step, and moves or de
   });
 });
 
+it('saves the song label placement in the stage layout', async () => {
+  const {value} = setup();
+  await screen.findByRole('button', {name: '무대 화면 편집'});
+  fireEvent.click(screen.getByRole('button', {name: '무대 화면 편집'}));
+  fireEvent.click(screen.getByRole('tab', {name: '화면'}));
+  fireEvent.click(screen.getByRole('radio', {name: '앞'}));
+  await saveEdits();
+  expect(value().themes[0]?.screens[STAGE]?.stageLyricLabelPosition).toBe(
+    'inline',
+  );
+  fireEvent.click(screen.getByRole('radio', {name: '위'}));
+  await saveEdits();
+  expect(value().themes[0]?.screens[STAGE]?.stageLyricLabelPosition).toBe(
+    'line',
+  );
+});
+
 it('renders the edited background through a screen link and restores retained elements after empty mode', async () => {
   const {value} = setup();
   await screen.findByLabelText('테마 캔버스');
