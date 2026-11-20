@@ -40,7 +40,7 @@ describe('workspace slide header connection', () => {
         sampleService.rows.find(row => row.id === 'song-morning')?.title ?? '',
       ).length,
     ).toBeGreaterThan(0);
-    expect(panel.getByText('4개')).toBeDefined();
+    expect(panel.queryByText('4개')).toBeNull();
     const base = emptyLiveState();
     act(() =>
       useLive.setState({
