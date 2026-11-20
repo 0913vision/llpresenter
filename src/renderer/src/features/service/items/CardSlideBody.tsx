@@ -2,6 +2,7 @@ import {useEffect, useRef, useState, type JSX, type KeyboardEvent} from 'react';
 import {SLIDES_LIMITS, type SectionCard} from '@core/schema/service';
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
+import {cardPictureLayer} from '@renderer/rendering/pictureSpec';
 import {SlideThumbnailBand} from '@renderer/ui/SlideThumbnail';
 import styles from './CardSlideBody.module.css';
 
@@ -64,13 +65,7 @@ export function CardSlideBody({
           {theme === undefined ? null : (
             <SlidePicture
               {...theme}
-              slide={{
-                itemId,
-                position: 0,
-                label: draft.name,
-                lines: [draft.english],
-                sectionCard: preview,
-              }}
+              slide={cardPictureLayer(itemId, preview)}
             />
           )}
           {onSelect === undefined ? null : (

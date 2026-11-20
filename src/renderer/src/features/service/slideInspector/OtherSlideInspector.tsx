@@ -24,6 +24,10 @@ import {useBibleTileProjection} from '@renderer/features/bible/useBibleProjectio
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
 import {sermonPreviewRow} from '@renderer/platform/sermonPreview';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
+import {
+  biblePictureInput,
+  cardPictureLayer,
+} from '@renderer/rendering/pictureSpec';
 import {SlideInspectorView} from './SlideInspectorView';
 import {PictureReadiness} from '@renderer/rendering/PictureReadiness';
 import type {MediaItem} from '@core/schema/mediaList';
@@ -582,13 +586,7 @@ export function OtherSlideInspector({
                 <div className={styles.canvas}>
                   <SlidePicture
                     {...cardTheme}
-                    slide={{
-                      itemId: item.id,
-                      position: 0,
-                      label: card.name,
-                      lines: [card.english],
-                      sectionCard: card,
-                    }}
+                    slide={cardPictureLayer(item.id, card)}
                   />
                 </div>
               </div>
@@ -625,14 +623,7 @@ export function OtherSlideInspector({
                   {tile.sermonTitle === true && sermonTheme !== undefined ? (
                     <SlidePicture {...sermonTheme} slide={layer} />
                   ) : (
-                    <SlidePicture
-                      themeId={appearance.theme.themeId}
-                      screen={appearance.screen}
-                      slide={layer}
-                      layout={appearance.theme.layout}
-                      emptyColor={appearance.theme.emptyColor}
-                      item={appearance.theme.item}
-                    />
+                    <SlidePicture {...biblePictureInput(layer, appearance)} />
                   )}
                 </div>
               </div>

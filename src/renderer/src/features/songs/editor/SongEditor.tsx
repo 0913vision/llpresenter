@@ -34,7 +34,7 @@ import {useSongBlockWindow} from './useSongBlockWindow';
 import {visibleGridInsertionPosition} from './gridInsertionPosition';
 import {SongSlideSurface} from './SongSlideSurface';
 import {useSongSlideAppearance} from './useSongSlideAppearance';
-import {outputSlideSpec} from '@renderer/rendering/OutputSlidePicture';
+import {pictureSpec, songPictureLayer} from '@renderer/rendering/pictureSpec';
 import {useShow} from '@renderer/session/show';
 import {useEditorFocus} from './useEditorFocus';
 import {SONG_LIMITS} from '@core/schema/song';
@@ -473,29 +473,15 @@ function SongBlocks({
               picture={
                 theme === undefined
                   ? undefined
-                  : outputSlideSpec({
-                      ...theme,
-                      songSource: {songId: song.id, slideId: slide.id},
-                      background: slide.picture ?? theme.background,
-                      slide: {
-                        itemId: song.id,
-                        position: block,
-                        lines: slide.lines,
-                        ...(slide.titleSlide === undefined
-                          ? {}
-                          : {titleSlide: slide.titleSlide}),
-                        ...(slide.titleLineCount === undefined
-                          ? {}
-                          : {titleLineCount: slide.titleLineCount}),
-                        ...(slide.titleLayout === undefined
-                          ? {}
-                          : {titleLayout: slide.titleLayout}),
-                        ...(slide.lyricFormat === undefined
-                          ? {}
-                          : {lyricFormat: slide.lyricFormat}),
-                        label: slide.label ?? null,
+                  : pictureSpec({
+                      kind: 'slide',
+                      input: {
+                        ...theme,
+                        songSource: {songId: song.id, slideId: slide.id},
+                        background: slide.picture ?? theme.background,
+                        slide: songPictureLayer(song.id, block, slide),
                       },
-                    })
+                    }).spec
               }
               locked={state.busy || session.readOnly}
               editable={!session.readOnly}

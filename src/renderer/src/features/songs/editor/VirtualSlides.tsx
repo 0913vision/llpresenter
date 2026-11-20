@@ -14,6 +14,7 @@ import {thumbnailWidth} from '@renderer/ui/thumbnailSize';
 import {isComposing} from '@renderer/ui/ime';
 import type {Song} from '@core/schema/song';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
+import {songPictureLayer} from '@renderer/rendering/pictureSpec';
 import {visibleGridInsertionPosition} from './gridInsertionPosition';
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
 import styles from './SongPanels.module.css';
@@ -394,24 +395,7 @@ export function VirtualSlides<T extends SlideListItem>({
                           ? {songId: song.id, slideId: source.id}
                           : undefined
                       }
-                      slide={{
-                        itemId: 'thumbnail',
-                        position: sourceIndex,
-                        label: slide.label ?? null,
-                        lines: slide.lines,
-                        ...(slide.titleSlide === undefined
-                          ? {}
-                          : {titleSlide: slide.titleSlide}),
-                        ...(slide.titleLineCount === undefined
-                          ? {}
-                          : {titleLineCount: slide.titleLineCount}),
-                        ...(slide.titleLayout === undefined
-                          ? {}
-                          : {titleLayout: slide.titleLayout}),
-                        ...(slide.lyricFormat === undefined
-                          ? {}
-                          : {lyricFormat: slide.lyricFormat}),
-                      }}
+                      slide={songPictureLayer('thumbnail', sourceIndex, slide)}
                     />
                   ))
                 }

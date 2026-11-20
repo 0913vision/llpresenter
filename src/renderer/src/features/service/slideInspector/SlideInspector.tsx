@@ -2,6 +2,7 @@ import {useSyncExternalStore, type JSX} from 'react';
 import type {SlideTransition} from '@core/schema/slideTransition';
 import {formatSlideHotKey} from '@renderer/ui/SlideThumbnail';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
+import {songPictureLayer} from '@renderer/rendering/pictureSpec';
 import {SlideInspectorView} from './SlideInspectorView';
 import {useSongSlideAppearance} from '@renderer/features/songs/editor/useSongSlideAppearance';
 import {inspectorTransition, useTransitionSelection} from './TransitionSection';
@@ -102,24 +103,11 @@ function InspectorContent({
                 {...appearance}
                 background={slide.picture ?? appearance.background}
                 songSource={{songId: snapshot.song.id, slideId: slide.id}}
-                slide={{
-                  itemId: snapshot.song.id,
-                  position: snapshot.selection.block,
-                  lines: slide.lines,
-                  label: slide.label ?? null,
-                  ...(slide.titleSlide === undefined
-                    ? {}
-                    : {titleSlide: slide.titleSlide}),
-                  ...(slide.titleLineCount === undefined
-                    ? {}
-                    : {titleLineCount: slide.titleLineCount}),
-                  ...(slide.titleLayout === undefined
-                    ? {}
-                    : {titleLayout: slide.titleLayout}),
-                  ...(slide.lyricFormat === undefined
-                    ? {}
-                    : {lyricFormat: slide.lyricFormat}),
-                }}
+                slide={songPictureLayer(
+                  snapshot.song.id,
+                  snapshot.selection.block,
+                  slide,
+                )}
               />
             )}
           </div>

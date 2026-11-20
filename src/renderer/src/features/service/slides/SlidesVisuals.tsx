@@ -4,16 +4,14 @@ import {useEffect, useMemo, useRef, useState, type JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {MediaItem} from '@core/schema/mediaList';
 import {BIBLE_BOOKS} from '@core/bible/bibleBooks';
-import {emptyLayers, type LiveLayers} from '@core/live/state';
 import {withPreferenceDefaults} from '@core/schema/preferences';
 import type {Slide, SlidesItem} from '@core/services/slidesEdits';
-import {slideLayerOf} from '@core/presentation/slideLayer';
-import {projectSlides} from '@core/presentation/slides';
-import {withSectionCard} from '@core/services/sectionCards';
 import type {BibleProjection} from '@renderer/features/bible/splitProjection';
 import {useSlidesVerseProjection} from '@renderer/features/bible/useSlidesVerseProjection';
 import {Button} from '@renderer/ui/Button';
 import {Picture} from '@renderer/rendering/pictures/Picture';
+import {pictureSpec} from '@renderer/rendering/pictureSpec';
+export {slideLayers} from '@renderer/rendering/pictureSpec';
 import {usePrepPictureSwitch} from '@renderer/rendering/PrepPictureSwitch';
 import {
   previewAppearance,
@@ -98,64 +96,6 @@ export function useSlidesAppearance(
   };
 }
 
-export function slideLayers(
-  item: SlidesItem,
-  index: number,
-  {
-    projection,
-    part = 0,
-  }: {
-    readonly projection?: BibleProjection | null | undefined;
-    readonly part?: number | undefined;
-  } = {},
-): LiveLayers {
-  if (projection != null) {
-    const id = item.slides.slides[index]?.id;
-    const indices = projection.tiles.flatMap((tile, at) =>
-      tile.sourceSlideId === id ? [at] : [],
-    );
-    const at = indices[Math.min(part, indices.length - 1)];
-    if (at === undefined) return emptyLayers();
-    const tile = projection.tiles[at];
-    const background = tile?.picture ?? item.background;
-    return {
-      ...emptyLayers(),
-      slide: slideLayerOf({itemId: item.id, index: at}, () => projection.tiles),
-      media:
-        background === undefined
-          ? null
-          : {
-              mediaId: background,
-              loop: tile?.picture === undefined,
-              startedAt: 0,
-              ...(tile?.picture === undefined
-                ? {}
-                : {itemId: item.id, slidePicture: true}),
-            },
-    };
-  }
-  const tiles = withSectionCard(item.sectionCard, projectSlides(item));
-  const position = index + (item.sectionCard === undefined ? 0 : 1);
-  const slide = slideLayerOf({itemId: item.id, index: position}, () => tiles);
-  if (slide === null) return emptyLayers();
-  const background = slide.picture ?? item.background;
-  return {
-    ...emptyLayers(),
-    slide,
-    media:
-      background === undefined
-        ? null
-        : {
-            mediaId: background,
-            loop: slide.picture === undefined,
-            startedAt: 0,
-            ...(slide.picture === undefined
-              ? {}
-              : {itemId: item.id, slidePicture: true}),
-          },
-  };
-}
-
 export function SlidesCanvas({
   item,
   index,
@@ -171,10 +111,19 @@ export function SlidesCanvas({
   readonly part?: number;
   readonly outputSlide?: import('@core/live/state').SlideLayer | null;
 }): JSX.Element {
-  const layers = useMemo(() => {
-    const result = slideLayers(item, index, {projection, part});
-    return outputSlide == null ? result : {...result, slide: outputSlide};
-  }, [item, index, projection, part, outputSlide]);
+  const spec = useMemo(
+    () =>
+      pictureSpec({
+        kind: 'slides',
+        item,
+        index,
+        projection,
+        part,
+        outputSlide,
+        appearance,
+      }).spec,
+    [item, index, projection, part, outputSlide, appearance],
+  );
   const host = useRef<HTMLDivElement>(null);
   const switching = usePrepPictureSwitch();
   const [visible, setVisible] = useState(
@@ -200,11 +149,7 @@ export function SlidesCanvas({
       data-preview-ready={visible ? undefined : 'deferred'}
     >
       {visible || switching === true ? (
-        <Picture
-          wait={switching === true}
-          layers={layers}
-          appearance={appearance}
-        />
+        <Picture wait={switching === true} {...spec} />
       ) : null}
     </div>
   );

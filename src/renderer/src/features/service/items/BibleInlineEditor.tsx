@@ -18,6 +18,7 @@ import {
   useSlideSurfaceView,
 } from '@renderer/features/songs/editor/SlideSurfaceView';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
+import {biblePictureInput} from '@renderer/rendering/pictureSpec';
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
 import {sermonPreviewRow} from '@renderer/platform/sermonPreview';
 import {LeadingSlideCardView} from '@renderer/features/songs/editor/LeadingSlideCardView';
@@ -381,13 +382,9 @@ function VersePicture({
   if (appearance === undefined || layer === null) return null;
   return (
     <SlidePicture
-      screen={appearance.screen}
-      themeId={appearance.theme.themeId}
-      background={appearance.background}
-      slide={layer}
-      layout={appearance.theme.layout}
-      emptyColor={appearance.theme.emptyColor}
-      item={appearance.theme.item}
+      {...biblePictureInput(layer, appearance, {
+        background: appearance.background,
+      })}
     />
   );
 }
