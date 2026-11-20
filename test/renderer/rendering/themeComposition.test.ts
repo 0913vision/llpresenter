@@ -3461,6 +3461,25 @@ it('uses the selected song label position without changing Bible labels', () => 
   view.dispose();
 });
 
+it('keeps current song rows unwrapped on stage when they fit above 48 pixels', () => {
+  const {root, view} = setup();
+  if (song.slide === null) throw Error('Missing slide');
+  view.render(
+    {...song, slide: {...song.slide, kind: 'song', lines: ['First', 'Second']}},
+    {
+      ...frame([{...themeElementBase(), kind: 'currentText'}]),
+      screen: {id: THEME_MAIN, kind: 'stage'},
+      transitions: false,
+    },
+  );
+  const block = root.querySelector<HTMLElement>(
+    `[data-kind="currentText"] .${classes.shown} .${classes.block}`,
+  );
+  expect(block?.style.whiteSpace).toBe('pre');
+  expect(block?.children).toHaveLength(2);
+  view.dispose();
+});
+
 it('hides an empty song label only on stage when labels are off', () => {
   const {root, view} = setup();
   if (!song.slide) throw Error('Missing slide');

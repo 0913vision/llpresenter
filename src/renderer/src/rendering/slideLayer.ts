@@ -18,7 +18,7 @@ const textFits = new WeakMap<Document, TextFitCache>();
 /** Initial slide transition duration. */
 export const SLIDE_DISSOLVE_MS = 200;
 
-const MIN_STAGE_LYRIC_SIZE = 72;
+const MIN_STAGE_LYRIC_SIZE = 48;
 export const STAGE_NEXT_MIN_SIZE = 48;
 
 const FALLBACK_FONTS = "'Pretendard Variable', sans-serif";
@@ -367,6 +367,7 @@ export class SlideLayerView {
   private ellipsis = false;
   private balanceWrap = false;
   private fixedLineSpacing = false;
+  private stageInlineLabel: string | undefined;
   private dissolveMs: number = SLIDE_DISSOLVE_MS;
   private effect: SlideTransition | undefined;
   private readonly animation = new SlideAnimation();
@@ -575,6 +576,13 @@ export class SlideLayerView {
     if (this.current !== null) this.fit(this.pages[this.front]);
   }
 
+  /** Fits lyrics first, then places an optional stage label without resizing them. */
+  setStageInlineLabel(label: string | undefined): void {
+    if (this.stageInlineLabel === label) return;
+    this.stageInlineLabel = label;
+    if (this.current !== null) this.fit(this.pages[this.front]);
+  }
+
   setFitLines(limit: number | undefined): void {
     this.fitLines = limit;
   }
@@ -613,6 +621,7 @@ export class SlideLayerView {
   private fit(page: Page): void {
     this.applyTracking(page);
     const {element, block} = page;
+    block.querySelector('[data-stage-inline-label]')?.remove();
     block.style.transform = '';
     block.style.maxHeight = '';
     block.style.overflow = '';
@@ -791,9 +800,37 @@ export class SlideLayerView {
         row.style.whiteSpace = this.ellipsis ? 'nowrap' : '';
       }
     }
+    this.placeStageInlineLabel(page);
     if (this.fitLines !== undefined) {
       block.style.maxHeight = `${(fixedSpacing ? size : Number.parseFloat(block.style.fontSize)) * this.style.lineHeight * this.fitLines}px`;
       block.style.overflow = 'hidden';
+    }
+  }
+
+  private placeStageInlineLabel(page: Page): void {
+    const label = this.stageInlineLabel;
+    const row = page.block.firstElementChild;
+    if (!label || !(row instanceof HTMLElement)) return;
+    const marker = document.createElement('span');
+    marker.dataset['stageInlineLabel'] = 'true';
+    marker.textContent = `(${label}) `;
+    const rowHeight = row.scrollHeight;
+    const lineHeight =
+      Number.parseFloat(page.block.style.fontSize) * this.style.lineHeight;
+    row.prepend(marker);
+    const overflows =
+      rowHeight > lineHeight + 1 ||
+      row.scrollWidth > page.element.clientWidth + 1 ||
+      row.scrollHeight > rowHeight + 1;
+    if (overflows) {
+      marker.remove();
+      marker.textContent = `(${label})`;
+      marker.style.position = 'absolute';
+      marker.style.left = '0';
+      marker.style.width = '100%';
+      marker.style.top = '-1.2em';
+      page.block.style.position = 'relative';
+      row.prepend(marker);
     }
   }
 }

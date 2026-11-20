@@ -780,18 +780,17 @@ slide width and use the source box's top plus its top inset when available.
 Imported title slides retain each title line's original position and formatting.
 Edited text without matching imported formatting uses the theme.
 
-On the stage, song source lines stay whole at the largest fitting size down to
-72 px at 1920 x 1080, two thirds of the church deck's 108 px lyric size; longer
-lines wrap at word boundaries at that minimum. Each wrapped source line is
-balanced independently on stage and when audience lyrics fall back to wrapping,
-without removing authored line breaks. Next text stays at least 48 px, two
-thirds of 72 px, matching the existing next-text size ratio. Bible parts on
-stage and broadcast join the audience rows with spaces and wrap within their own
-text frames; the stage next-verse preview does the same, left-aligned like the
-current verse. Song lines retain their author-entered breaks. Other prose
-continues to wrap. When continuous next-item navigation is enabled, the stage
-next preview follows the same next-item selection and skips the same rows as the
-next-slide command. A title counts as one of the two next-preview lines.
+On the stage, song rows match the audience rows at the largest size that fits
+the stage text frame. Only when a row cannot fit at 48 px at 1920 x 1080 may it
+wrap at word boundaries. Each wrapped source line is balanced independently on
+stage and when audience lyrics fall back to wrapping, without removing authored
+line breaks. Next text stays at least 48 px. Bible parts on stage and broadcast
+join the audience rows with spaces and wrap within their own text frames; the
+stage next-verse preview does the same, left-aligned like the current verse.
+Song lines retain their author-entered breaks. Other prose continues to wrap.
+When continuous next-item navigation is enabled, the stage next preview follows
+the same next-item selection and skips the same rows as the next-slide command.
+A title counts as one of the two next-preview lines.
 
 In the built-in stage layout, an empty song slide shows its label as a centered
 muted cue, or (없음) when the label is empty. Stage previews show the same cue;
@@ -844,12 +843,13 @@ appended to the current text, the top label is hidden to avoid repeating it.
 
 The output preference `output.stageLyricLabelPosition` chooses `line` (the
 behavior above, the default), `inline` (the changed song label precedes the
-current lyric on the same line), or `off` (omit song labels from current and
-next text and their stage label elements). In `line` and `inline`, the top label
-remains. A label continuing from the preceding song slide is omitted from the
-lyric and next text. An empty song slide with labels off shows (없음). This
-preference does not change Bible or other item labels and updates live output
-and its previews when saved.
+first lyric row when it fits at the lyrics' fitted size; otherwise it appears
+above the lyrics without shrinking or rewrapping them), or `off` (omit song
+labels from current and next text and their stage label elements). In `line` and
+`inline`, the top label remains. A label continuing from the preceding song
+slide is omitted from the lyric and next text. An empty song slide with labels
+off shows (없음). This preference does not change Bible or other item labels and
+updates live output and its previews when saved.
 
 Stage title slides and section cards show only their Korean title, without the
 English subtitle. The creed and prayer theme uses 104 px left-aligned current

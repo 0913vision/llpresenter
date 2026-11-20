@@ -163,6 +163,16 @@ describe('SlideLayerView', () => {
       expect(block?.style.whiteSpace).toBe('pre');
       expect(Number.parseFloat(block?.style.fontSize ?? '')).toBe(80);
       width.mockImplementation(function (this: HTMLElement) {
+        return (Number.parseFloat(this.style.fontSize) || 0) * (10 / 3);
+      });
+      view.show(
+        {...VERSE, itemId: 'two-lines', lines: ['A long line', 'another line']},
+        false,
+      );
+      expect(
+        shownPage()?.querySelector<HTMLElement>(`.${classes.block}`)?.style,
+      ).toMatchObject({fontSize: '60px', whiteSpace: 'pre', textWrap: ''});
+      width.mockImplementation(function (this: HTMLElement) {
         return (Number.parseFloat(this.style.fontSize) || 0) * 10;
       });
       view.show(
@@ -176,7 +186,7 @@ describe('SlideLayerView', () => {
       expect(
         shownPage()?.querySelector<HTMLElement>(`.${classes.block}`)?.style,
       ).toMatchObject({
-        fontSize: '72px',
+        fontSize: '48px',
         whiteSpace: '',
         textWrap: 'balance',
         wordBreak: 'keep-all',
@@ -202,6 +212,44 @@ describe('SlideLayerView', () => {
     } finally {
       height.mockRestore();
     }
+  });
+
+  it('places an inline stage label above when it would overflow without resizing lyrics', () => {
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(200);
+    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(500);
+    vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockReturnValue(80);
+    let combinedWidth = 180;
+    vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockImplementation(
+      function (this: HTMLElement) {
+        return this.querySelector('[data-stage-inline-label]')
+          ? combinedWidth
+          : 160;
+      },
+    );
+    const {view, shownPage} = setUp();
+    view.setLineMode('song');
+    view.show(VERSE, false);
+    const block = () =>
+      shownPage()?.querySelector<HTMLElement>(`.${classes.block}`);
+    const size = block()?.style.fontSize;
+    view.setStageInlineLabel('Verse');
+    let label = block()?.querySelector<HTMLElement>(
+      '[data-stage-inline-label]',
+    );
+    expect(label?.parentElement).toBe(block()?.firstElementChild);
+    expect(block()?.style.fontSize).toBe(size);
+    combinedWidth = 220;
+    view.setStageInlineLabel(undefined);
+    view.setStageInlineLabel('Verse');
+    label = block()?.querySelector<HTMLElement>('[data-stage-inline-label]');
+    expect(label?.parentElement).toBe(block()?.firstElementChild);
+    expect(label?.style.position).toBe('absolute');
+    expect(block()?.style.fontSize).toBe(size);
+    view.show({...VERSE, itemId: 'other', lines: ['Other', 'Words']}, false);
+    view.show({...VERSE, itemId: 'again', lines: ['First', 'Second']}, false);
+    expect(block()?.textContent).toContain('First');
+    expect(block()?.textContent).toContain('Second');
+    view.dispose();
   });
 
   it('fits the church lyric uniformly before allowing Korean word-boundary wrapping', () => {
