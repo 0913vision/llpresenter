@@ -25,13 +25,64 @@
   background: var(--bg-raised);
 }
 .ref {
-  flex: 1;
+  flex: none;
+  white-space: nowrap;
+}
+.translation {
+  flex: 0 1 auto;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: var(--text-2);
 }
-.translation,
 .keys {
+  flex: none;
+  margin-left: auto;
+  color: var(--text-2);
+}
+
+.dialog {
+  height: auto;
+  max-height: min(var(--size-passage-recent-max), 50vh);
+  padding: var(--space-8);
+}
+.dialog .heading {
+  padding: var(--space-8) var(--space-20);
+  color: var(--text-3);
+  font: 400 13px/1.2 var(--font-ui);
+}
+.dialog .recentSlot {
+  height: var(--size-dialog-header);
+}
+.dialog .recent {
+  border-radius: var(--radius-2xl);
+  padding: 0 var(--space-14);
+  font: 400 15px/1.2 var(--font-ui);
+}
+.dialog .recent[data-highlighted='true'] {
+  background: var(--bg-raised);
+}
+.dialog .recent > [aria-hidden='true'] {
+  color: var(--text-3);
+}
+.dialog .ref {
+  flex: none;
+}
+.dialog .translation {
+  color: var(--text-3);
+  font: 400 13px/1 var(--font-ui);
+}
+.dialog .keys {
+  margin-left: auto;
+}
+.dialog .keys kbd {
+  background: var(--bg-inset);
+  color: var(--text-3);
+  font: 400 12px/20px var(--font-ui);
+  min-width: 0;
+  padding: 0 var(--radius-sm);
+}
+.dialog .recent[data-highlighted='true'] .keys kbd {
   color: var(--text-2);
 }

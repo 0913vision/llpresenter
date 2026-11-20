@@ -79,3 +79,71 @@
   white-space: nowrap;
   text-overflow: ellipsis;
 }
+
+.dialogForm {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  min-height: var(--size-passage-header);
+  padding: 0 var(--size-passage-book-max) 0 var(--space-20);
+  border-bottom: 1px solid var(--line);
+}
+.dialogForm .book {
+  flex: none;
+  width: fit-content;
+}
+.dialogForm .book > span {
+  display: flex;
+  width: fit-content;
+  min-width: var(--size-passage-book-min);
+  background: transparent;
+  box-shadow: none !important;
+  outline: none !important;
+}
+.dialogForm .book input {
+  field-sizing: content;
+  width: auto;
+  min-width: var(--size-passage-query-min);
+  max-width: var(--size-passage-book-max);
+  font: 400 20px/1 var(--font-ui);
+}
+.dialogForm .book [aria-hidden='true'] {
+  width: var(--space-20) !important;
+  height: var(--space-20) !important;
+  color: var(--text-3);
+}
+.dialogForm .argument {
+  flex: none;
+  display: flex;
+  align-items: center;
+}
+.dialogForm .argument[data-part='start']::before {
+  content: ':';
+  color: var(--text-3);
+  margin-right: var(--space-6);
+}
+.dialogForm .argument[data-part='end']::before {
+  content: '~';
+  color: var(--text-3);
+  margin-right: var(--space-6);
+}
+.dialogForm .argument > span {
+  width: fit-content;
+  height: var(--size-passage-argument);
+  border: 0;
+  border-radius: var(--radius-2xl);
+  background: color-mix(in srgb, var(--text) 7%, transparent);
+  padding: 0 var(--space-12);
+}
+.dialogForm .argument > span:focus-within {
+  background: color-mix(in srgb, var(--text) 16%, transparent);
+  outline: 0;
+  box-shadow: none;
+}
+.dialogForm .argument input {
+  field-sizing: content;
+  min-width: 2ch;
+  max-width: 14ch;
+  width: auto;
+  font: 400 16px/1 var(--font-ui);
+}

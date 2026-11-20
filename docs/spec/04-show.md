@@ -924,11 +924,17 @@ name. Chapter and verse bounds always use the built-in GAE number table.
 - While a quick Bible passage is live, Escape outside text fields and open menus
   or dialogs returns to the slide that was live before it, if that item and
   slide still exist. The grid follows the restored slide.
-- 준비 항목 추가 성경 구절 opens a small 성경 구절 dialog with the same fields.
-  Enter from 끝절 inserts the current passage item using the opening's default
-  translation and verse-number preference. 추가 performs the same insertion; it
-  is disabled without a current valid lookup. 취소 forgets the opening and its
-  pending replies. No passage is output from this dialog.
+- Ctrl+B and preparation's passage add open the same 640 px passage dialog. The
+  book field is followed by chapter, start, and end argument pills, with the
+  available ranges shown as placeholders. The header identifies the effective
+  translation. Recent passages appear below with translation labels when
+  different from the current translation. Arrow keys highlight a recent while
+  focus remains in the book field; typing clears the highlight. Enter chooses
+  the highlighted recent, otherwise submits the typed reference. Alt+1 through
+  Alt+0 choose the corresponding recent immediately. Escape clears all typed
+  fields, then closes the empty dialog; Backspace in an empty argument returns
+  to the preceding field. Quick selection outputs immediately; preparation
+  continues to the passage-add flow.
 
 ### 절 나누기
 

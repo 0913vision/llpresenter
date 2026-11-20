@@ -264,21 +264,28 @@ describe('항목 추가', () => {
     expect(order[index + 2]?.id).toBe(fixtureItems.plain);
   });
 
-  it('closes Bible suggestions before closing the passage dialog on Escape', async () => {
+  it('clears Bible input before closing the passage dialog on Escape', async () => {
     const {api, user} = setup();
     mockBible(api);
     await openBibleForm(user);
-    const book = screen.getByRole<HTMLInputElement>('combobox', {name: '책'});
-    await user.type(book, '요');
+    const book = screen.getByRole<HTMLInputElement>('combobox', {
+      name: '\uCC45',
+    });
+    await user.type(book, '\uC694');
     await waitFor(() =>
       expect(book.getAttribute('aria-expanded')).toBe('true'),
     );
     await user.keyboard('{Escape}');
-    expect(book.getAttribute('aria-expanded')).toBe('false');
-    expect(book.value).toBe('요');
-    expect(screen.getByRole('dialog', {name: '성경 구절'})).toBeTruthy();
+    expect(
+      screen.getByRole<HTMLInputElement>('combobox', {name: '\uCC45'}).value,
+    ).toBe('');
+    expect(
+      screen.getByRole('dialog', {name: '\uC131\uACBD \uAD6C\uC808'}),
+    ).toBeTruthy();
     await user.keyboard('{Escape}');
-    expect(screen.queryByRole('dialog', {name: '성경 구절'})).toBeNull();
+    expect(
+      screen.queryByRole('dialog', {name: '\uC131\uACBD \uAD6C\uC808'}),
+    ).toBeNull();
   });
 
   it.each(['찬양', '합심기도', '묵상기도', '축도'])(
@@ -450,20 +457,10 @@ describe('항목 추가', () => {
       ).toBe(false),
     );
     fillBibleForm();
-    await waitFor(() =>
-      expect(
-        screen
-          .getByRole('button', {name: '추가'})
-          .getAttribute('aria-disabled'),
-      ).not.toBe('true'),
+    fireEvent.keyDown(
+      screen.getByRole('textbox', {name: '\uC2DC\uC791\uC808'}),
+      {key: 'Enter'},
     );
-    await user.click(screen.getByRole('textbox', {name: '시작절'}));
-    await user.keyboard('{Enter}');
-    expect(document.activeElement).toBe(
-      screen.getByRole('textbox', {name: '끝절'}),
-    );
-    expect(service().service.order).toHaveLength(2);
-    await user.keyboard('{Enter}');
     await waitFor(() => expect(service().service.order).toHaveLength(3));
     expect(quickAddBefore).toHaveBeenLastCalledWith(
       useShow.getState().rows,
@@ -500,40 +497,30 @@ describe('항목 추가', () => {
     });
   });
 
-  it.each(['Enter', 'button'] as const)(
-    'inserts a clamped passage using %s with the opening defaults',
-    async action => {
-      const {api, user, service} = setup();
-      const {krv, recents} = mockBible(api);
-      await openBibleForm(user);
-      fillBibleForm('99');
-      const add = screen.getByRole('button', {name: '추가'});
-      await waitFor(() =>
-        expect(add.getAttribute('aria-disabled')).not.toBe('true'),
-      );
-      if (action === 'Enter') {
-        await user.click(screen.getByRole('textbox', {name: '끝절'}));
-        await user.keyboard('{Enter}');
-      } else await user.click(add);
-      await waitFor(() => expect(service().service.order).toHaveLength(6));
-      expect(service().service.order.at(-1)).toMatchObject({
-        bible: {
-          translation: krv,
-          ref: '요한복음 3:16-36',
-          split: 'verse',
-          reference: 'every',
-          verseNumbers: true,
-          translationName: false,
-        },
-      });
-      expect(screen.queryByRole('dialog')).toBeNull();
-      await waitFor(() =>
-        expect(recents()).toEqual([
-          {translation: krv, ref: '요한복음 3:16-36'},
-        ]),
-      );
-    },
-  );
+  it('inserts a clamped passage with Enter and the opening defaults', async () => {
+    const {api, user, service} = setup();
+    const {krv, recents} = mockBible(api);
+    await openBibleForm(user);
+    fillBibleForm('99');
+    fireEvent.keyDown(screen.getByRole('textbox', {name: '\uB05D\uC808'}), {
+      key: 'Enter',
+    });
+    await waitFor(() => expect(service().service.order).toHaveLength(6));
+    expect(service().service.order.at(-1)).toMatchObject({
+      bible: {
+        translation: krv,
+        ref: '요한복음 3:16-36',
+        split: 'verse',
+        reference: 'every',
+        verseNumbers: true,
+        translationName: false,
+      },
+    });
+    expect(screen.queryByRole('dialog')).toBeNull();
+    await waitFor(() =>
+      expect(recents()).toEqual([{translation: krv, ref: '요한복음 3:16-36'}]),
+    );
+  });
 
   it('forgets a closed opening and reads fresh defaults when reopened', async () => {
     const {api, user, service} = setup();
@@ -549,7 +536,12 @@ describe('항목 추가', () => {
     await openBibleForm(user);
     fillBibleForm();
     await waitFor(() => expect(lookup).toHaveBeenCalled());
-    await user.click(screen.getByRole('button', {name: '취소'}));
+    fireEvent.keyDown(screen.getByRole('combobox', {name: '\uCC45'}), {
+      key: 'Escape',
+    });
+    fireEvent.keyDown(screen.getByRole('combobox', {name: '\uCC45'}), {
+      key: 'Escape',
+    });
     await act(finish);
     defaultTranslation.current = 'other';
     await openBibleForm(user);
@@ -557,14 +549,9 @@ describe('항목 추가', () => {
       screen.getByRole<HTMLInputElement>('combobox', {name: '책'}).value,
     ).toBe('');
     fillBibleForm();
-    await waitFor(() =>
-      expect(
-        screen
-          .getByRole('button', {name: '추가'})
-          .getAttribute('aria-disabled'),
-      ).not.toBe('true'),
-    );
-    await user.click(screen.getByRole('button', {name: '추가'}));
+    fireEvent.keyDown(screen.getByRole('textbox', {name: '\uB05D\uC808'}), {
+      key: 'Enter',
+    });
     await waitFor(() => expect(service().service.order).toHaveLength(6));
     expect(service().service.order.at(-1)).toMatchObject({
       bible: {translation: other},
@@ -580,14 +567,9 @@ describe('항목 추가', () => {
     });
     await openBibleForm(user);
     fillBibleForm();
-    await waitFor(() =>
-      expect(
-        screen
-          .getByRole('button', {name: '추가'})
-          .getAttribute('aria-disabled'),
-      ).not.toBe('true'),
-    );
-    await user.click(screen.getByRole('button', {name: '추가'}));
+    fireEvent.keyDown(screen.getByRole('textbox', {name: '\uB05D\uC808'}), {
+      key: 'Enter',
+    });
     await waitFor(() => expect(onProblem).toHaveBeenCalledOnce());
     expect(recents()).toEqual([]);
   });
@@ -611,11 +593,9 @@ describe('항목 추가', () => {
     });
     await openBibleForm(user);
     fillBibleForm();
-    const add = screen.getByRole('button', {name: '추가'});
-    await waitFor(() =>
-      expect(add.getAttribute('aria-disabled')).not.toBe('true'),
-    );
-    await user.click(add);
+    fireEvent.keyDown(screen.getByRole('textbox', {name: '\uB05D\uC808'}), {
+      key: 'Enter',
+    });
     await waitFor(() => expect(onProblem).toHaveBeenCalledOnce());
     expect(onProblem).toHaveBeenCalledWith(
       expect.objectContaining({title: '예배 저장 실패'}),
