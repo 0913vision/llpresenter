@@ -24,6 +24,9 @@ export function OutputMirror({
     const canvas = canvasRef.current;
     if (video === null || canvas === null) return undefined;
     const frame = workspaceFrame(video);
+    const cell = video.closest('[data-screen]');
+    const hidden = (): boolean =>
+      isHiddenWorkspace(frame) || cell?.getAttribute('aria-hidden') === 'true';
     let generation = 0;
     const lifetime = {stopped: false};
     let stream: MediaStream | null = null;
@@ -41,12 +44,7 @@ export function OutputMirror({
     };
     const relay = (now: number): void => {
       relayFrame = undefined;
-      if (
-        !relayEnabled ||
-        !stream ||
-        lifetime.stopped ||
-        isHiddenWorkspace(frame)
-      ) {
+      if (!relayEnabled || !stream || lifetime.stopped || hidden()) {
         return;
       }
       if (now >= relayDue && video.videoWidth > 0 && video.videoHeight > 0) {
@@ -99,7 +97,7 @@ export function OutputMirror({
       video.srcObject = null;
     };
     const start = async (): Promise<void> => {
-      if (lifetime.stopped || nativeActive || isHiddenWorkspace(frame)) return;
+      if (lifetime.stopped || nativeActive || hidden()) return;
       const own = ++generation;
       try {
         const source = await window.llp?.output.previewSource(screenId);
@@ -132,7 +130,7 @@ export function OutputMirror({
           audio: false,
           video: constraints,
         });
-        if (own !== generation || isHiddenWorkspace(frame)) {
+        if (own !== generation || hidden()) {
           next.getTracks().forEach(track => track.stop());
           return;
         }
@@ -147,7 +145,7 @@ export function OutputMirror({
         await video.play();
         startRelay();
       } catch {
-        if (own === generation && !isHiddenWorkspace(frame)) {
+        if (own === generation && !hidden()) {
           stop();
           retry = setTimeout(() => {
             start().catch(() => undefined);
@@ -175,7 +173,7 @@ export function OutputMirror({
             return;
           }
           try {
-            if (lifetime.stopped || isHiddenWorkspace(frame)) return;
+            if (lifetime.stopped || hidden()) return;
             const context = canvas.getContext('2d');
             if (context === null) return;
             const bytes =
@@ -215,7 +213,7 @@ export function OutputMirror({
     const observer = new MutationObserver(() => {
       stop();
       stopNative();
-      if (!isHiddenWorkspace(frame)) {
+      if (!hidden()) {
         startNative();
         start().catch(() => undefined);
       }
@@ -226,7 +224,13 @@ export function OutputMirror({
         attributeFilter: ['aria-hidden'],
       });
     }
-    if (!isHiddenWorkspace(frame)) {
+    if (cell !== null && cell !== frame) {
+      observer.observe(cell, {
+        attributes: true,
+        attributeFilter: ['aria-hidden'],
+      });
+    }
+    if (!hidden()) {
       startNative();
       start().catch(() => undefined);
     }

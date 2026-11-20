@@ -296,4 +296,44 @@ describe('output mirror', () => {
     expect(stop).toHaveBeenCalledTimes(2);
     frame.remove();
   });
+  it('does not capture a hidden screen tile and stops when it becomes hidden', async () => {
+    const stop = vi.fn();
+    const track = {stop, onended: null};
+    const capture = vi.fn().mockResolvedValue({
+      getTracks: () => [track],
+      getVideoTracks: () => [track],
+    });
+    const control = vi.fn();
+    vi.stubGlobal(
+      'llp',
+      mockLlpApi({
+        output: {
+          previewSource: async () => 'AAAAAAAAAAAAAAAAAAAAAA==',
+          previewControl: control,
+        },
+      }),
+    );
+    vi.stubGlobal('navigator', {mediaDevices: {getUserMedia: capture}});
+    vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue(undefined);
+    const frame = document.createElement('div');
+    frame.dataset['workspaceFrame'] = 'show';
+    const cell = document.createElement('div');
+    cell.dataset['screen'] = 'one';
+    cell.setAttribute('aria-hidden', 'true');
+    frame.append(cell);
+    document.body.append(frame);
+    const view = render(<OutputMirror screenId="one" />, {container: cell});
+    expect(capture).not.toHaveBeenCalled();
+    expect(control).not.toHaveBeenCalledWith({
+      screenId: 'one',
+      action: 'start',
+    });
+    cell.removeAttribute('aria-hidden');
+    await waitFor(() => expect(capture).toHaveBeenCalledTimes(1));
+    cell.setAttribute('aria-hidden', 'true');
+    await waitFor(() => expect(stop).toHaveBeenCalledTimes(1));
+    expect(control).toHaveBeenCalledWith({screenId: 'one', action: 'stop'});
+    view.unmount();
+    frame.remove();
+  });
 });
