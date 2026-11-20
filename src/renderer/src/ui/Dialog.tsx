@@ -277,6 +277,7 @@ export interface DialogBoxProps {
   readonly title: string;
   /** A count at the right end of the header, such as 항목 9개. */
   readonly meta?: string | undefined;
+  readonly headerEnd?: ReactNode | undefined;
   /** A select-all checkbox before the title. */
   readonly checkAll?:
     | {
@@ -291,6 +292,7 @@ export interface DialogBoxProps {
 export function DialogBox({
   title,
   meta,
+  headerEnd,
   checkAll,
   children,
 }: DialogBoxProps): JSX.Element {
@@ -309,6 +311,7 @@ export function DialogBox({
         {meta === undefined ? null : (
           <span className={styles.boxMeta}>{meta}</span>
         )}
+        {headerEnd}
       </div>
       <div className={styles.boxBody}>{children}</div>
     </section>

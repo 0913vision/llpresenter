@@ -10,22 +10,34 @@ export function powerPointPictureSpecs(
   slides: PowerPointSource['slides'],
   images: ReadonlyMap<string, string>,
   options: Omit<SlideInput, 'slide' | 'background'> & {
-    readonly selection?: {readonly start: number; readonly end: number};
+    readonly selection?: {
+      readonly start: number;
+      readonly end: number;
+      readonly indices?: readonly number[];
+    };
   },
 ): readonly PictureSpec[] {
   const {selection = {start: 0, end: slides.length - 1}, ...appearance} =
     options;
-  const selected = slides.slice(selection.start, selection.end + 1);
+  const indices =
+    selection.indices ??
+    slides.map((_, index) => index).slice(selection.start, selection.end + 1);
+  const selected = indices.flatMap(index => {
+    const slide = slides[index];
+    return slide === undefined ? [] : [slide];
+  });
+  const selectionIndex = new Map(
+    indices.map((index, position) => [index, position]),
+  );
   const selectedSlides = powerpointSlides(selected);
   const winner = powerpointBackgroundIndex(selected);
   const defaultKey =
     winner === undefined ? undefined : selected[winner]?.background;
   const defaultBackground = defaultKey ? images.get(defaultKey) : undefined;
   return powerpointSlides(slides).map((slide, index) => {
+    const position = selectionIndex.get(index);
     const selectedSlide =
-      index >= selection.start && index <= selection.end
-        ? (selectedSlides[index - selection.start] ?? slide)
-        : slide;
+      position === undefined ? slide : (selectedSlides[position] ?? slide);
     const backgroundKey = slides[index]?.background;
     const background =
       (backgroundKey ? images.get(backgroundKey) : undefined) ??

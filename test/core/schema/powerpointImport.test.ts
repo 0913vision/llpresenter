@@ -73,6 +73,22 @@ describe('PowerPoint import IPC', () => {
     expect(parsePowerPointImageExportProgress({done: 1, total: 2}).ok).toBe(
       true,
     );
+    expect(
+      parsePowerPointImageExportProgress({
+        done: 1,
+        total: 2,
+        index: 0,
+        path: 'temp/1.png',
+      }).ok,
+    ).toBe(true);
+    expect(
+      parsePowerPointImageExportProgress({
+        done: 1,
+        total: 2,
+        index: -1,
+        path: '',
+      }).ok,
+    ).toBe(false);
   });
   it('accepts a valid retained deck and selection', () => {
     expect(

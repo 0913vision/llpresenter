@@ -45,6 +45,18 @@ function position(name: string): ReadonlyArray<string | null> {
 }
 
 describe('SourceTree', () => {
+  it('selects all with Ctrl+A from a focused tree item', async () => {
+    render(<Tree initial={new Set()} />);
+    item(titles.first).focus();
+    await userEvent.keyboard('{Control>}a{/Control}');
+    expect(
+      screen
+        .getByRole('checkbox', {name: '예배 순서'})
+        .getAttribute('aria-checked'),
+    ).toBe('true');
+    expect(state(titles.first)).toBe('true');
+    expect(state(titles.second)).toBe('true');
+  });
   it('passes modified Enter from a tree item to window shortcuts', () => {
     render(<Tree />);
     const row = item('찬양');

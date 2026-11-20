@@ -5,6 +5,7 @@ import {
   type PowerPointPreviewProgress,
 } from '@renderer/features/songs/import/preparePowerPointImages';
 import {lendPreviewImage} from '@renderer/rendering/previewMedia';
+import type {PowerPointImageExportProgress} from '@core/schema/powerpointImport';
 
 vi.mock('@renderer/rendering/previewMedia', () => ({
   lendPreviewImage: vi.fn(),
@@ -18,6 +19,50 @@ vi.mock('@renderer/features/songs/import/composePowerPointBackground', () => ({
     bytes: new Uint8Array([1]),
   })),
 }));
+
+it('publishes a completed thumbnail before the batch export finishes', async () => {
+  const release = vi.fn();
+  vi.mocked(lendPreviewImage).mockReturnValue({id: 'preview', release});
+  let progress: (value: PowerPointImageExportProgress) => void = () => undefined;
+  let finish: (value: Array<{index: number; path: string}>) => void = () =>
+    undefined;
+  let shown: () => void = () => undefined;
+  const visible = new Promise<void>(resolve => {
+    shown = resolve;
+  });
+  const api = mockLlpApi({
+    powerpoint: {
+      subscribeImageProgress: listener => {
+        progress = listener;
+        return () => undefined;
+      },
+      decorationBatch: () =>
+        new Promise(resolve => {
+          finish = resolve;
+        }),
+      previewImage: async () => ({
+        mime: 'image/png',
+        bytes: new Uint8Array([1]),
+      }),
+      release: async () => true,
+    },
+  });
+  const work = preparePowerPointImages(
+    api,
+    [{number: 1, shapes: [], background: 'a'}],
+    {
+      active: () => true,
+      progress: () => undefined,
+      onImage: () => shown(),
+    },
+  );
+  progress({done: 1, total: 1, index: 0, path: 'first.png'});
+  await visible;
+  finish([{index: 0, path: 'first.png'}]);
+  const result = await work;
+  expect(result?.ids.get('a')).toBe('preview');
+  result?.release();
+});
 
 it('prepares distinct backgrounds once and reports every slide', async () => {
   const release = vi.fn();
@@ -37,13 +82,14 @@ it('prepares distinct backgrounds once and reports every slide', async () => {
     },
   });
   const progress = vi.fn();
+  const onImage = vi.fn();
   const result = await preparePowerPointImages(
     api,
     [
       {number: 1, shapes: [], background: 'same'},
       {number: 2, shapes: [], background: 'same'},
     ],
-    {active: () => true, progress},
+    {active: () => true, progress, onImage},
   );
   expect(decorationBatch).toHaveBeenCalledOnce();
   expect(releaseFile).toHaveBeenCalledOnce();
@@ -52,6 +98,7 @@ it('prepares distinct backgrounds once and reports every slide', async () => {
     [{done: 2, total: 2, phase: 'prepare', percent: 100}],
   ]);
   expect(result?.ids.get('same')).toBe('preview');
+  expect(onImage).toHaveBeenCalledExactlyOnceWith('same', 'preview');
   result?.release();
   expect(release).toHaveBeenCalledOnce();
 });

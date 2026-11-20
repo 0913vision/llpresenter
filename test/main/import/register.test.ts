@@ -474,6 +474,16 @@ describe('PowerPoint import', () => {
     }
     expect(parsed.value).toHaveLength(2);
     expect(send).toHaveBeenCalledTimes(2);
+    expect(send).toHaveBeenNthCalledWith(
+      1,
+      powerpointEndpoints.imageProgress.channel,
+      {done: 1, total: 2, index: 0, path: parsed.value[0]?.path},
+    );
+    expect(send).toHaveBeenNthCalledWith(
+      2,
+      powerpointEndpoints.imageProgress.channel,
+      {done: 2, total: 2, index: 1, path: parsed.value[1]?.path},
+    );
     for (const entry of parsed.value) {
       expect(
         await handler(powerpointEndpoints.release.channel)(

@@ -1,4 +1,4 @@
-import {use, useState, type JSX} from 'react';
+import {use, type JSX} from 'react';
 import {
   PrepItemNavigation,
   WorkspaceNavigation,
@@ -40,20 +40,16 @@ export function ImportItemsDialog({
       onClose();
     },
   });
-  const empty = state.missing
-    ? MISSING
-    : state.lists.ready && state.source === null
-      ? NO_SOURCES
-      : undefined;
+  const empty = !state.lists.ready
+    ? '목록을 읽는 중'
+    : state.source !== null && state.document === null && !state.missing
+      ? '항목을 읽는 중'
+      : state.missing
+        ? MISSING
+        : state.source === null
+          ? NO_SOURCES
+          : undefined;
   const actions = useSourceActions({onProblem});
-  // NOTE(0913vision): Open once the lists and the chosen source's items have
-  // answered, so the dialog never draws empty and then fills in.
-  const loaded =
-    state.lists.ready &&
-    (state.document !== null || state.missing || state.source === null);
-  const [opened, setOpened] = useState(false);
-  if (loaded && !opened) setOpened(true);
-  if (!loaded && !opened) return <></>;
   return (
     <>
       <Dialog

@@ -627,10 +627,20 @@ export function registerPowerPointImport(
         }
         const progress = Object.assign(
           (done: number, total: number) => {
+            const index = request.value.indices[done - 1];
+            const path = join(
+              workDirectory,
+              `llp-ppt-${String(done).padStart(4, '0')}.png`,
+            );
+            if (index === undefined || done < 1 || done > numbers.length)
+              {return;}
+            tempFiles.add(path);
             if (!event.sender.isDestroyed()) {
               event.sender.send(powerpointEndpoints.imageProgress.channel, {
                 done,
                 total,
+                index,
+                path,
               });
             }
           },
@@ -661,6 +671,9 @@ export function registerPowerPointImport(
           ),
         );
         const paths = candidates.filter((_, position) => exists[position]);
+        candidates.forEach((candidate, position) => {
+          if (!exists[position]) tempFiles.delete(candidate.path);
+        });
         await rm(copy, {force: true});
         for (const item of paths) tempFiles.add(item.path);
         if (paths.length > 0) {
@@ -676,6 +689,9 @@ export function registerPowerPointImport(
         return null;
       } finally {
         if (directory !== null) {
+          tempFiles.forEach(path => {
+            if (dirname(path) === directory) tempFiles.delete(path);
+          });
           await rm(directory, {recursive: true, force: true});
         }
         imagesBusy = false;

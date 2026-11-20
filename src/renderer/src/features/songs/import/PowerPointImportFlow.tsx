@@ -9,8 +9,9 @@ import {
 import {LIGHT_SONG_THEME_ID} from '@core/themes/lightSong';
 import {powerpointBackgroundIndex} from '@core/songs/powerpointBackgroundIndex';
 import {powerpointBackgroundName} from '@core/media/powerpointBackground';
-import {Dialog} from '@renderer/ui/Dialog';
+import {Dialog, DialogBox} from '@renderer/ui/Dialog';
 import {Checkbox, Progress, TextField} from '@renderer/ui';
+import {ThumbnailSizeControl} from '@renderer/ui/ThumbnailSizeControl';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import type {SongEditorStore} from '../editor/songEditorStore';
@@ -158,13 +159,13 @@ async function importBackgrounds(
   api: LlpApi,
   {
     range,
-    start,
+    indices,
     title,
     isActive,
     exporting,
   }: {
     readonly range: PowerPointSource['slides'];
-    readonly start: number;
+    readonly indices: readonly number[];
     readonly title: string;
     readonly isActive: () => boolean;
     readonly exporting: {current: boolean};
@@ -177,7 +178,7 @@ async function importBackgrounds(
   for (const [index, slide] of range.entries()) {
     if (slide.background === null || pictures.has(slide.background)) continue;
     let picture = await importSelectedBackground(api, {
-      index: start + index,
+      index: indices[index] ?? index,
       title,
       decoration: true,
       isActive,
@@ -185,7 +186,7 @@ async function importBackgrounds(
     });
     if (!isActive()) break;
     picture ??= await importSelectedBackground(api, {
-      index: start + index,
+      index: indices[index] ?? index,
       title,
       decoration: false,
       isActive,
@@ -295,6 +296,9 @@ function PowerPointPreparing({
 }): JSX.Element {
   const [prepared, setPrepared] =
     useState<Awaited<ReturnType<typeof preparePowerPointImages>>>(null);
+  const [previewImages, setPreviewImages] = useState<
+    ReadonlyMap<string, string>
+  >(() => new Map());
   const [progress, setProgress] = useState<PowerPointPreviewProgress>({
     done: 0,
     total: source.slides.length,
@@ -332,6 +336,11 @@ function PowerPointPreparing({
       preparing = true;
       void preparePowerPointImages(api, source.slides, {
         active: () => active && !cancelled.current,
+        onImage: (key, id) => {
+          if (active && !cancelled.current) {
+            setPreviewImages(current => new Map(current).set(key, id));
+          }
+        },
         progress: next => {
           if (active && !cancelled.current) setProgress(next);
         },
@@ -405,7 +414,6 @@ function PowerPointPreparing({
     </Dialog>
   );
   if (
-    prepared === null ||
     (themes === null && !themesFailed) ||
     (screens === null && !screensFailed)
   ) {
@@ -417,7 +425,9 @@ function PowerPointPreparing({
         api={api}
         store={store}
         source={source}
-        images={prepared.ids}
+        images={prepared?.ids ?? previewImages}
+        preparing={prepared === null}
+        progress={progress}
         pictures={pictures}
         onDone={onDone}
         onEdit={onEdit}
@@ -432,6 +442,8 @@ function PowerPointDialog({
   store,
   source,
   images,
+  preparing,
+  progress,
   pictures,
   onDone,
   onEdit,
@@ -441,13 +453,18 @@ function PowerPointDialog({
   readonly store: SongEditorStore;
   readonly source: PowerPointSource;
   readonly images: ReadonlyMap<string, string>;
+  readonly preparing: boolean;
+  readonly progress: PowerPointPreviewProgress;
   readonly pictures: PictureService;
   readonly onDone: () => void;
   readonly onEdit: () => void;
   readonly onProblem: (notice: Notice) => void;
 }): JSX.Element {
   const [anchor, setAnchor] = useState(0);
-  const [end, setEnd] = useState(source.slides.length - 1);
+  const [selected, setSelected] = useState<ReadonlySet<number>>(
+    () => new Set(source.slides.map((_, index) => index)),
+  );
+  const [scale, setScale] = useState(100);
   const [title, setTitle] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [lyrics, setLyrics] = useState(true);
@@ -468,11 +485,18 @@ function PowerPointDialog({
       }
     };
   }, [api]);
-  const start = Math.min(anchor, end);
-  const finish = Math.max(anchor, end);
+  const indices = useMemo(
+    () => [...selected].sort((a, b) => a - b),
+    [selected],
+  );
+  const start = indices[0] ?? 0;
+  const finish = indices.at(-1) ?? 0;
   const range = useMemo(
-    () => source.slides.slice(start, finish + 1),
-    [source, start, finish],
+    () =>
+      indices.flatMap(index =>
+        source.slides[index] ? [source.slides[index]] : [],
+      ),
+    [source, indices],
   );
   const slides = useMemo(() => powerpointSlides(range), [range]);
   const titleIndex = slides.findIndex(
@@ -504,8 +528,10 @@ function PowerPointDialog({
       : powerPointPictureSpecs(source.slides, background ? images : new Map(), {
           ...theme,
           mediaOnly: !lyrics,
-          selection: {start, end: finish},
+          selection: {start, end: finish, indices},
         });
+  const defaultBackground =
+    range[powerpointBackgroundIndex(range) ?? -1]?.background;
   const edit = (draft: TextImportDraft): void => {
     const previous = store.getSnapshot().session;
     store.openImported(draft);
@@ -526,7 +552,7 @@ function PowerPointDialog({
       if (background && winner !== undefined) {
         const decorated = await importBackgrounds(api, {
           range,
-          start,
+          indices,
           title: shownTitle,
           isActive: () => active.current,
           exporting,
@@ -591,6 +617,7 @@ function PowerPointDialog({
           label: lyrics ? '편집' : '가져오기',
           disabled:
             busy ||
+            preparing ||
             slides.length === 0 ||
             (!lyrics && powerpointBackgroundIndex(range) === undefined),
           onSelect: () => {
@@ -634,21 +661,75 @@ function PowerPointDialog({
               배경
             </label>
           </div>
-          <PowerPointPreviewGrid
-            slides={source.slides}
-            specs={specs}
-            service={pictures}
-            start={start}
-            end={finish}
-            onSelect={(index, shift) => {
-              if (shift) setEnd(index);
-              else {
-                setAnchor(index);
-                setEnd(index);
-              }
-              setTitle(null);
+          <DialogBox
+            title="슬라이드"
+            meta={
+              preparing
+                ? `${progress.done} / ${progress.total}`
+                : `${selected.size} / ${source.slides.length}`
+            }
+            checkAll={{
+              checked:
+                selected.size === 0
+                  ? false
+                  : selected.size === source.slides.length
+                    ? true
+                    : 'mixed',
+              onChange: checked =>
+                setSelected(
+                  new Set(
+                    checked ? source.slides.map((_, index) => index) : [],
+                  ),
+                ),
             }}
-          />
+            headerEnd={
+              <ThumbnailSizeControl value={scale} onChange={setScale} compact />
+            }
+          >
+            <PowerPointPreviewGrid
+              slides={source.slides}
+              specs={specs}
+              service={pictures}
+              start={start}
+              end={finish}
+              selected={selected}
+              scale={scale}
+              isReady={index => {
+                if (!background) return true;
+                const key =
+                  source.slides[index]?.background ?? defaultBackground;
+                return key === null || key === undefined || images.has(key);
+              }}
+              onSelectAll={() =>
+                setSelected(new Set(source.slides.map((_, index) => index)))
+              }
+              onToggle={index =>
+                setSelected(current => {
+                  const next = new Set(current);
+                  if (next.has(index)) next.delete(index);
+                  else next.add(index);
+                  return next;
+                })
+              }
+              onSelect={(index, shift) => {
+                setSelected(() => {
+                  const next = new Set<number>();
+                  if (shift) {
+                    for (
+                      let i = Math.min(anchor, index);
+                      i <= Math.max(anchor, index);
+                      i++
+                    ) {
+                      next.add(i);
+                    }
+                  } else next.add(index);
+                  return next;
+                });
+                if (!shift) setAnchor(index);
+                setTitle(null);
+              }}
+            />
+          </DialogBox>
         </div>
       </Dialog>
       {replacement && (

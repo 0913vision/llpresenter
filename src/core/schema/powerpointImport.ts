@@ -251,6 +251,8 @@ const matchResult = v.nullable(mediaIdSchema);
 const imageExportProgress = payloadObject({
   done: nonNegativeInteger,
   total: nonNegativeInteger,
+  index: v.optional(nonNegativeInteger),
+  path: v.optional(v.pipe(v.string(), v.minLength(1))),
 });
 const ownedImagesRequest = payloadObject({
   paths: v.pipe(v.array(v.string()), v.minLength(1), v.maxLength(200)),

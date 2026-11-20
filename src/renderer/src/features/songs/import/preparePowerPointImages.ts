@@ -22,6 +22,7 @@ export interface PowerPointPreviewProgress {
 interface PrepareOptions {
   readonly active: () => boolean;
   readonly progress: (progress: PowerPointPreviewProgress) => void;
+  readonly onImage?: ((key: string, id: string) => void) | undefined;
 }
 
 function releaseImages(lent: Map<string, LentImage>): void {
@@ -93,46 +94,84 @@ async function prepareBatch({
     position: number,
   ) => void;
 }): Promise<boolean> {
-  const unsubscribe = api.powerpoint.subscribeImageProgress(({done}) => {
-    const entry = batch[done - 1];
-    if (options.active() && entry !== undefined) {
-      report(0, 'export', done);
-    }
-  });
+  let queue = Promise.resolve();
+  let failure: Error | undefined;
+  const scheduled = new Set<number>();
+  const prepare = async (
+    entry: Entry,
+    path: string | undefined,
+    position: number,
+  ): Promise<void> => {
+    if (!options.active()) return;
+    const blob = await picture(api, entry, path);
+    if (!options.active()) return;
+    const thumbnail = await thumbnailPowerPointImage(blob);
+    if (!options.active()) return;
+    const hash = await crypto.subtle.digest(
+      'SHA-256',
+      await thumbnail.arrayBuffer(),
+    );
+    if (!options.active()) return;
+    const contentHash = Array.from(new Uint8Array(hash), value =>
+      value.toString(16).padStart(2, '0'),
+    ).join('');
+    const image = lendPreviewImage(thumbnail, contentHash);
+    if (image === null)
+      {throw new PowerPointPreviewLimitError(
+        'PowerPoint preview image limit reached',
+      );}
+    lent.set(entry.key, image);
+    options.onImage?.(entry.key, image.id);
+    report(0, 'prepare', position + 1);
+    await new Promise<void>(resolve => setTimeout(resolve, 0));
+  };
+  const enqueue = (
+    entry: Entry,
+    path: string | undefined,
+    position: number,
+  ): void => {
+    scheduled.add(entry.index);
+    queue = queue
+      .then(() =>
+        failure === undefined ? prepare(entry, path, position) : undefined,
+      )
+      .catch((error: unknown) => {
+        failure = error instanceof Error ? error : new Error(String(error));
+      });
+  };
+  const unsubscribe = api.powerpoint.subscribeImageProgress(
+    ({done, index, path}) => {
+      const entry = batch[done - 1];
+      if (options.active() && entry !== undefined) {
+        report(0, 'export', done);
+        if (
+          index === entry.index &&
+          path !== undefined &&
+          !scheduled.has(index)
+        )
+          {enqueue(entry, path, done - 1);}
+      }
+    },
+  );
   let paths: Awaited<ReturnType<typeof api.powerpoint.decorationBatch>>;
   try {
     paths = await api.powerpoint.decorationBatch({
       indices: batch.map(entry => entry.index),
     });
+  } catch (error) {
+    await queue;
+    throw error;
   } finally {
     unsubscribe();
   }
   try {
-    if (!options.active()) return false;
     const byIndex = new Map(paths?.map(item => [item.index, item.path]) ?? []);
     for (const [position, entry] of batch.entries()) {
-      if (!options.active()) return false;
-      const blob = await picture(api, entry, byIndex.get(entry.index));
-      if (!options.active()) return false;
-      const thumbnail = await thumbnailPowerPointImage(blob);
-      if (!options.active()) return false;
-      const hash = await crypto.subtle.digest(
-        'SHA-256',
-        await thumbnail.arrayBuffer(),
-      );
-      if (!options.active()) return false;
-      const contentHash = Array.from(new Uint8Array(hash), value =>
-        value.toString(16).padStart(2, '0'),
-      ).join('');
-      const image = lendPreviewImage(thumbnail, contentHash);
-      if (image === null) {
-        throw new PowerPointPreviewLimitError(
-          'PowerPoint preview image limit reached',
-        );
-      }
-      lent.set(entry.key, image);
-      report(0, 'prepare', position + 1);
+      if (!scheduled.has(entry.index))
+        {enqueue(entry, byIndex.get(entry.index), position);}
     }
+    await queue;
+    if (failure !== undefined) throw failure;
     return options.active();
   } finally {
     await releasePaths(api, paths?.map(item => item.path) ?? []);
@@ -153,12 +192,13 @@ export async function preparePowerPointImages(
   let complete = false;
   const ready = new Set<string>();
   let reported = -1;
+  let reportedPercent = 0;
   const countReady = (): number =>
     slides.filter(
       slide => slide.background === null || ready.has(slide.background),
     ).length;
   try {
-    for (let start = 0; start < entries.length; start += BATCH_SIZE) {
+    for (let start = 0; start < entries.length;) {
       if (!options.active()) return null;
       const batch = entries.slice(start, start + BATCH_SIZE);
       const report = (
@@ -175,17 +215,22 @@ export async function preparePowerPointImages(
         const count = countReady();
         if (phase === 'prepare' || count !== reported) {
           reported = count;
+          reportedPercent = Math.max(
+            reportedPercent,
+            (step / (entries.length * 2)) * 100,
+          );
           options.progress({
             done: count,
             total: slides.length,
             phase,
-            percent: (step / (entries.length * 2)) * 100,
+            percent: reportedPercent,
           });
         }
       };
       if (!(await prepareBatch({api, batch, lent, options, report}))) {
         return null;
       }
+      start += batch.length;
     }
     if (!options.active()) return null;
     options.progress({

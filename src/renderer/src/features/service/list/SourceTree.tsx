@@ -133,6 +133,17 @@ export function SourceTree({
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
+    if (
+      (event.ctrlKey || event.metaKey) &&
+      !event.altKey &&
+      !event.shiftKey &&
+      event.key.toLowerCase() === 'a'
+    ) {
+      event.preventDefault();
+      event.stopPropagation();
+      onChange(checkAll(rows, true));
+      return;
+    }
     if (hasModifier(event)) return;
     if (event.key === 'Enter') {
       event.stopPropagation();
