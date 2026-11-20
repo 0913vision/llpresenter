@@ -89,7 +89,7 @@ describe('the output preview', () => {
     expect(patternCommands()).toHaveLength(1);
   });
 
-  it('stops mirroring when the output is switched off', async () => {
+  it('does not mirror when the output is on or off', async () => {
     setup();
     await screen.findByRole('button', {
       name: '테스트 화면',
@@ -98,7 +98,7 @@ describe('the output preview', () => {
     act(() =>
       useLive.setState({state: {...state, outputs: {[MAIN_ID]: true}}}),
     );
-    expect(screen.getByTestId('output-mirror').textContent).toBe(MAIN_ID);
+    expect(screen.queryByTestId('output-mirror')).toBeNull();
     act(() => useLive.setState({state}));
     expect(screen.queryByTestId('output-mirror')).toBeNull();
   });
@@ -125,7 +125,7 @@ describe('the output preview', () => {
     expect(picture?.style.height).toBe('450px');
   });
 
-  it('shows the actual output mirror for a test pattern', async () => {
+  it('does not capture the output when a test pattern is enabled', async () => {
     const corrected = settingsDocument('screens', {
       screens: [
         {
@@ -160,7 +160,7 @@ describe('the output preview', () => {
     );
 
     await waitFor(() =>
-      expect(screen.getByTestId('output-mirror').textContent).toBe(MAIN_ID),
+      expect(screen.queryByTestId('output-mirror')).toBeNull(),
     );
   });
 

@@ -1,4 +1,4 @@
-import {cleanup, fireEvent, waitFor} from '@testing-library/react';
+import {cleanup, fireEvent} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {
   BROADCAST_SCREEN,
@@ -48,31 +48,32 @@ afterEach(() => {
 });
 
 describe('PreviewPanel mirror lifecycle', () => {
-  it('opens one stream per screen and keeps them when the main screen changes', async () => {
+  it('does not capture any running output, including after a screen swap', () => {
     const {container, unmount} = render(<PreviewPanel />);
-    await waitFor(() => expect(capture).toHaveBeenCalledTimes(3));
-    const mirrors = [...container.querySelectorAll('video')];
-    expect(mirrors).toHaveLength(3);
+    expect(source).not.toHaveBeenCalled();
+    expect(capture).not.toHaveBeenCalled();
+    expect(container.querySelectorAll('video')).toHaveLength(0);
     const tile = container.querySelector<HTMLButtonElement>(
       '[data-preview-slot]',
     );
     if (tile === null) throw Error('Missing preview tile');
     fireEvent.click(tile);
-    expect([...container.querySelectorAll('video')]).toEqual(mirrors);
-    expect(capture).toHaveBeenCalledTimes(3);
+    expect(source).not.toHaveBeenCalled();
+    expect(capture).not.toHaveBeenCalled();
     expect(stop).not.toHaveBeenCalled();
     unmount();
-    expect(stop).toHaveBeenCalledTimes(3);
+    expect(stop).not.toHaveBeenCalled();
   });
 
-  it('does not start a mirror for an inactive screen', async () => {
+  it('does not capture with an inactive screen either', () => {
     const state = useLive.getState().state;
     if (!state) throw new Error('Missing live state');
     useLive.setState({
       state: {...state, outputs: {...state.outputs, [BROADCAST_SCREEN]: false}},
     });
     const {container} = render(<PreviewPanel />);
-    await waitFor(() => expect(capture).toHaveBeenCalledTimes(2));
+    expect(source).not.toHaveBeenCalled();
+    expect(capture).not.toHaveBeenCalled();
     expect(
       container.querySelector(`[data-screen="${BROADCAST_SCREEN}"] video`),
     ).toBeNull();
