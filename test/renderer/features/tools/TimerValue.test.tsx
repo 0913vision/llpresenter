@@ -58,6 +58,39 @@ function fixture() {
 }
 
 describe('timer values and their shared clock', () => {
+  it('updates control clock and time-of-day countdown after a wall jump', async () => {
+    const wall = Date.UTC(2026, 0, 1, 10);
+    vi.setSystemTime(wall);
+    const f = fixture();
+    const clockTimer = {...f.timer, kind: 'clock' as const};
+    const target = {
+      ...f.timer,
+      kind: 'countdownTo' as const,
+      time: '10:30',
+    };
+    const running = {
+      state: 'running' as const,
+      since: performance.timeOrigin,
+      countedMs: 0,
+      day: wall,
+    };
+    render(
+      <>
+        <TimerValue api={f.api} timer={clockTimer} run={undefined} />
+        <TimerValue api={f.api} timer={target} run={running} />
+      </>,
+    );
+    await act(async () => undefined);
+    expect(screen.getByText('10:00:00')).toBeDefined();
+    expect(screen.getByText('30:00')).toBeDefined();
+    act(() => {
+      vi.setSystemTime(wall + 5 * 60_000);
+      vi.advanceTimersByTime(250);
+    });
+    expect(screen.getByText('10:05:00')).toBeDefined();
+    expect(screen.getByText('25:00')).toBeDefined();
+  });
+
   it('shows the configured value, keeps a minus after zero, and releases ticking on reset', async () => {
     const f = fixture();
     const view = render(
