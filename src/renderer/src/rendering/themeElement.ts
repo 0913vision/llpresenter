@@ -431,7 +431,7 @@ export class ThemeElementView {
     const standbyCue =
       stage && element.kind === 'nextText' && next?.stageStandby === true;
     const cue = standbyCue
-      ? '\uB300\uAE30 \uD654\uBA74'
+      ? ''
       : currentEmpty
         ? ((currentLabel ? `(${currentLabel})` : undefined) ??
           (element.fallbackText?.trim() ? undefined : '(\uc5c6\uc74c)'))
