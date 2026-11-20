@@ -116,9 +116,10 @@ function fitBand(
   const referenceElement = layout.elements.find(
     e => e.id === BROADCAST_REFERENCE_ID,
   );
+  const slideReference = slide?.kind === 'blank' || slide?.kind === 'ad';
   const reference =
-    bible && referenceElement
-      ? item?.title?.trim()
+    (bible || slideReference) && referenceElement
+      ? bible && item?.title?.trim()
         ? item.title
         : (themeElementText(referenceElement, content) ?? '')
       : '';
@@ -156,14 +157,18 @@ function fitBand(
                 geometry.bodyLineHeight,
             ),
           );
-  const hasHeader = bible;
+  const hasReference = reference.trim() !== '';
+  const hasHeader = bible || hasReference;
   const bandHeight =
     height +
     geometry.bodyPaddingTop +
     geometry.bodyPaddingBottom +
     (hasHeader ? geometry.headerHeight : 0);
   const top = geometry.panelBottom - bandHeight;
-  const visible = slide !== null && !item?.contentCleared && !!value.trim();
+  const visible =
+    slide !== null &&
+    !item?.contentCleared &&
+    (!!value.trim() || (slideReference && hasReference));
   const elements = layout.elements.map((e): ResolvedThemeElement => {
     if (e.id === BROADCAST_LOOK_BAND_ID && e.kind === 'box') {
       return {

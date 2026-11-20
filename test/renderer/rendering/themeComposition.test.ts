@@ -33,6 +33,10 @@ import type {RenderFrame, ThemeFrame} from '@renderer/rendering/layer';
 import {ThemeCompositionView} from '@renderer/rendering/themeComposition';
 import {classes} from '@renderer/rendering/classes';
 import {bibleVerseTiles} from '@core/bible/bibleTiles';
+import {projectSlides, slidesOutput} from '@core/presentation/slides';
+import {slideLayerOf} from '@core/presentation/slideLayer';
+import {parseLiveCommand} from '@core/schema/liveCommand';
+import {slidesItem} from '@fixtures/core/slides';
 import {panelPassage} from '@fixtures/contracts/ipc/bibleApi';
 import {ThemeElementView} from '@renderer/rendering/themeElement';
 import {followPlaybackProblems} from '@renderer/rendering/playbackProblem';
@@ -110,6 +114,61 @@ afterEach(() => {
 });
 
 describe('theme composition drawing', () => {
+  it('renders a saved blank slide reference on audience, stage and broadcast', () => {
+    const item = slidesItem('blank');
+    const first = item.slides.slides[0];
+    if (first === undefined || !('text' in first)) {
+      throw Error('Missing text slide');
+    }
+    const reference = '하박국 3:17~19';
+    const tiles = projectSlides({
+      ...item,
+      slides: {...item.slides, slides: [{...first, reference}]},
+    });
+    expect(tiles[0]?.reference).toBe(reference);
+    const slide = slideLayerOf({itemId: item.id, index: 0}, () => tiles);
+    if (slide === null) throw Error('Missing projected slide');
+    const parsed = parseLiveCommand(slidesOutput(slide, undefined));
+    if (!parsed.ok || parsed.value.type !== 'live.batch') {
+      throw Error('Invalid live slide');
+    }
+    const command = parsed.value.commands[0];
+    if (command?.type !== 'slide.show') throw Error('Missing slide command');
+    const theme = currentBuiltInTheme('bible');
+    const screens = [
+      {kind: 'audience', id: STARTER_SCREEN_IDS.main},
+      {kind: 'stage', id: STARTER_SCREEN_IDS.stage},
+      {kind: 'broadcast', id: STARTER_SCREEN_IDS.broadcast},
+    ] as const;
+    for (const {kind, id} of screens) {
+      const screenId = createScreenId(id);
+      const layout = theme.screens[screenId];
+      if (layout === undefined) throw Error('Missing Bible screen layout');
+      const {view, text, onError} = setup();
+      view.render(
+        {...emptyLayers(), slide: command.slide},
+        {
+          ...frame(layout.elements, {
+            themeId: theme.id,
+            sourceScreenId: screenId,
+            layout,
+            item: {
+              source: 'service',
+              kind: 'blank',
+              id: item.id,
+              title: item.slides.name,
+            },
+          }),
+          screen: {id: screenId, kind},
+          transitions: false,
+        },
+      );
+      expect(text('reference'), kind).toBe(reference);
+      expect(onError, kind).not.toHaveBeenCalled();
+      view.dispose();
+    }
+  });
+
   it('updates the live stage countdown from media progress without a stage background video', () => {
     const root = document.createElement('div');
     let remaining = 11;
