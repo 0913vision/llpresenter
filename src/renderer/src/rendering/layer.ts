@@ -39,6 +39,8 @@ export interface RenderScreen {
   readonly songCaption?: Required<Screen>['songCaption'];
   readonly method?: Screen['method'];
   readonly emptyColor?: string;
+  /** Configured output dimensions, when known. */
+  readonly pictureSize?: {readonly width: number; readonly height: number};
   /** Absent draws the picture over the whole screen. */
   readonly correction?: PictureCorrection;
 }
@@ -87,6 +89,7 @@ export interface RenderLayerOptions {
   readonly biblePreview?: {
     readonly elementId: string;
     readonly maxLines: number;
+    readonly hideGuide?: boolean;
   };
   readonly textStyle: TextStyle;
   /** The original library URL, also used for image elements in previews. */

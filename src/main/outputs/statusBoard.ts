@@ -9,6 +9,9 @@ import type {ScreenOutputState} from './manager';
 export interface StatusSources {
   readonly screenStates: () => ReadonlyMap<string, ScreenOutputState>;
   readonly frameRate: (screenId: string) => FrameRate | null;
+  readonly contentSize?: (
+    screenId: string,
+  ) => {readonly width: number; readonly height: number} | undefined;
 }
 
 export type StatusListener = (statuses: OutputStatuses) => void;
@@ -23,7 +26,9 @@ function sameStatus(a: OutputScreenStatus, b: OutputScreenStatus): boolean {
     a.ndiAccelerationReason === b.ndiAccelerationReason &&
     a.monitor === b.monitor &&
     a.controlConflict === b.controlConflict &&
-    a.monitorAvailable === b.monitorAvailable
+    a.monitorAvailable === b.monitorAvailable &&
+    a.contentSize?.width === b.contentSize?.width &&
+    a.contentSize?.height === b.contentSize?.height
   );
 }
 
@@ -75,12 +80,18 @@ export class OutputStatusBoard {
     ] of this.sources.screenStates()) {
       const rate =
         placement === 'off' ? null : this.sources.frameRate(screenId);
+      const measured = this.sources.contentSize?.(screenId);
+      const size =
+        measured !== undefined && measured.width > 0 && measured.height > 0
+          ? measured
+          : undefined;
       statuses[screenId] = {
         placement: placement === 'controlConflict' ? 'window' : placement,
         ...(placement === 'controlConflict' ? {controlConflict: true} : {}),
         renderer,
         fps: rate?.fps ?? null,
         fpsLow: rate?.status === 'low',
+        ...(size === undefined ? {} : {contentSize: size}),
         ...(placement === 'ndi' ? this.acceleration.get(screenId) : undefined),
         ...(monitor === undefined ? {} : {monitor}),
         ...(monitorAvailable === undefined ? {} : {monitorAvailable}),

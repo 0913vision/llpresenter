@@ -217,6 +217,7 @@ export class ThemeElementView {
       });
       const guide = document.createElement('div');
       guide.className = classes.bibleGuide;
+      if (options.biblePreview?.hideGuide === true) guide.hidden = true;
       textParent.append(guide);
     }
     parent.append(this.box);

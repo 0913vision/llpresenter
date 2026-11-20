@@ -1609,6 +1609,39 @@ describe('theme composition drawing', () => {
     view.dispose();
     expect(root.querySelector('[data-kind="currentText"]')).toBeNull();
   });
+  it('keeps split overflow marks when the cached image omits its separate guide', () => {
+    const root = document.createElement('div');
+    const element: ThemeElement = {
+      ...themeElementBase(),
+      kind: 'currentText',
+      text: {...themeElementBase().text, maxLines: 1},
+    };
+    const view = new ThemeCompositionView(root, {
+      textStyle: DEFAULT_TEXT_STYLE,
+      mediaUrl: id => id,
+      onError: vi.fn(),
+      biblePreview: {elementId: element.id, maxLines: 1, hideGuide: true},
+    });
+    view.render(
+      {
+        ...song,
+        slide: {
+          itemId: 'split',
+          position: 0,
+          label: null,
+          lines: ['One', 'Two'],
+        },
+      },
+      frame([element]),
+    );
+    expect(
+      root.querySelector<HTMLElement>(`.${classes.bibleGuide}`)?.hidden,
+    ).toBe(true);
+    expect(root.querySelector(`.${classes.bibleOverflow}`)?.textContent).toBe(
+      'Two',
+    );
+    view.dispose();
+  });
   it('draws the full Bible reference and translation on the screen reference element', () => {
     const {view, text} = setup();
     const elements: ThemeElement[] = [

@@ -15,6 +15,11 @@ import type {
   OutputWindowEvents,
   OutputWindowHandle,
 } from '../outputs/outputWindow';
+import {
+  clearPresenterMirror,
+  publishPresenterMirror,
+  setPresenterMirror,
+} from '../outputs/presenterMirror';
 import {blockNavigation, preloadPath, startLoading} from '../windows/page';
 import {
   TextureQueue,
@@ -143,6 +148,7 @@ export function createGpuOutput(
       isProbe = false;
       delegate = candidate;
       mode = 'gpu';
+      candidate.activateMirror();
       options.onAcceleration?.({ndiAcceleration: 'hardware'});
       clearTimers();
     };
@@ -195,6 +201,7 @@ export function createGpuOutput(
   };
   delegate = makeGpu(false);
   return {
+    previewContents: () => delegate.previewContents?.() ?? null,
     configure: next => {
       current = next;
       delegate.configure(next);
@@ -266,7 +273,7 @@ function gpuHandle(
     live: () => void;
     pixels?: ((data: Uint8Array, release: () => void) => void) | undefined;
   },
-): OutputWindowHandle {
+): OutputWindowHandle & {activateMirror(): void} {
   const win = new BrowserWindow({
     show: false,
     skipTaskbar: true,
@@ -300,6 +307,18 @@ function gpuHandle(
   void startLoading(win, page).catch((error: unknown) => fail(error));
   let current = initial;
   let child: UtilityProcess | null = null;
+  const postMirror = (message: object): void => {
+    try {
+      child?.postMessage(message);
+    } catch (error) {
+      log.warn('could not update NDI preview', error);
+    }
+  };
+  const mirrorPump = {
+    enable: (enabled: boolean): void => postMirror({type: 'mirror', enabled}),
+    ack: (): void => postMirror({type: 'mirror-ack'}),
+  };
+  const activateMirror = (): void => setPresenterMirror(current.id, mirrorPump);
   let ready = false;
   let seenTexture = false;
   let requireFullFrame = false;
@@ -310,6 +329,7 @@ function gpuHandle(
   let captureTimeout: ReturnType<typeof setTimeout> | null = null;
   let missingSince: number | null = null;
   const clear = (destroyWindow = false): void => {
+    clearPresenterMirror(current.id, mirrorPump);
     if (timeout !== null) clearTimeout(timeout);
     if (captureTimeout !== null) clearTimeout(captureTimeout);
     captureTimeout = null;
@@ -480,7 +500,12 @@ function gpuHandle(
     startWatchdog('GPU utility startup timeout');
     worker.on(
       'message',
-      (m: {type: string; message?: string; data?: Uint8Array}) => {
+      (m: {
+        type: string;
+        message?: string;
+        data?: Uint8Array;
+        frame?: Uint8Array;
+      }) => {
         if (child !== worker) return;
         if (m.type === 'native-loaded') log.info('NDI native module loaded');
         if (m.type === 'ready') {
@@ -489,7 +514,18 @@ function gpuHandle(
           timeout = null;
           restartCapture();
         }
-        if (m.type === 'live') live();
+        if (m.type === 'live') {
+          live();
+          if (!pixels) activateMirror();
+        }
+        if (m.type === 'mirror-frame') {
+          if (
+            m.frame instanceof Uint8Array &&
+            m.frame.length === 640 * 360 * 4
+          ) {
+            publishPresenterMirror(current.id, m.frame);
+          } else mirrorPump.ack();
+        }
         if (m.type === 'pixels' && pixels) {
           if (
             !(m.data instanceof Uint8Array) ||
@@ -523,6 +559,8 @@ function gpuHandle(
     });
   };
   return {
+    activateMirror,
+    previewContents: () => (win.isDestroyed() ? null : win.webContents),
     configure: next => {
       const changed =
         next.ndi?.sourceName !== current.ndi?.sourceName ||

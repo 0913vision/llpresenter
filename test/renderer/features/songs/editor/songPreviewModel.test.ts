@@ -190,6 +190,16 @@ describe('local song preview model', () => {
       screens: screens.value,
     });
     expect(stage.screen.kind).toBe('stage');
+    expect(stage.audience?.screen.id).toBe(main.screen.id);
+    expect(stage.audience?.theme.layout).toEqual(main.theme.layout);
+    expect(
+      previewAppearance({
+        role: 'stage',
+        themes: themes.value,
+        screens: screens.value,
+        stageLyricLabelPosition: 'off',
+      }).stageLyricLabelPosition,
+    ).toBe('off');
     expect(
       previewAppearance({
         role: 'broadcast',

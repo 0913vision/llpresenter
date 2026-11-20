@@ -4,6 +4,7 @@ import {
   utilityProcess,
   type OffscreenSharedTexture,
   type UtilityProcess,
+  type WebContents,
 } from 'electron';
 import {join} from 'node:path';
 import type {SlideTransition} from '@core/schema/slideTransition';
@@ -22,6 +23,7 @@ import {
   type PlaybackProblemBoard,
 } from './playbackProblems';
 import {OUTPUT_BACKGROUND} from './electronWindow';
+import {publishPresenterMirror, setPresenterMirror} from './presenterMirror';
 
 const PING_SCRIPT = '0';
 const DEFAULT_SIZE: Size = {width: 1920, height: 1080};
@@ -54,6 +56,7 @@ export interface PresentedWindowOptions {
 }
 
 interface PresenterPart {
+  previewContents(): WebContents | null;
   prepare(bounds: Rect): void;
   show(bounds: Rect, onTop: boolean): void;
   setOnTop(onTop: boolean): void;
@@ -124,6 +127,7 @@ export function createPresentedOutputWindow(
   const active = (): OutputWindowHandle | PresenterPart | null =>
     presenter ?? window;
   return {
+    previewContents: () => active()?.previewContents?.() ?? null,
     configure: next => {
       current = next;
       window?.configure(next);
@@ -263,6 +267,10 @@ function createPresenterPart(
       failWith(error);
     }
   };
+  const mirrorPump = {
+    enable: (enabled: boolean): void => post({type: 'mirror', enabled}),
+    ack: (): void => post({type: 'mirror-ack'}),
+  };
   // NOTE(0913vision): invalidate() can paint a bitmap without a texture in
   // shared texture mode; restarting the painting gives a full texture frame.
   const repaint = (): void => {
@@ -334,34 +342,55 @@ function createPresenterPart(
       () => failWith('presenter startup timeout'),
       UTILITY_TIMEOUT_MS,
     );
-    worker.on('message', (message: {type: string; message?: string}) => {
-      if (child !== worker) return;
-      if (message.type === 'ready') {
-        ready = true;
-        stopTimer();
-        const held = waiting;
-        waiting = null;
-        if (held !== null) send(held);
-        else repaint();
-        if (shown !== null) {
-          timer = setTimeout(
-            () => failWith('no shared texture paint'),
-            FIRST_TEXTURE_TIMEOUT_MS,
-          );
+    worker.on(
+      'message',
+      (message: {type: string; message?: string; frame?: unknown}) => {
+        if (child !== worker) return;
+        if (message.type === 'ready') {
+          ready = true;
+          stopTimer();
+          const held = waiting;
+          waiting = null;
+          if (held !== null) send(held);
+          else repaint();
+          if (shown !== null) {
+            timer = setTimeout(
+              () => failWith('no shared texture paint'),
+              FIRST_TEXTURE_TIMEOUT_MS,
+            );
+          }
         }
-      }
-      if (message.type === 'copied') copied();
-      if (message.type === 'shown') stopTimer();
-      if (message.type === 'transitioned') {
-        log.info('output presenter transition', {
-          screen: current.id,
-          ...message,
-        });
-      }
-      if (message.type === 'error') failWith(message.message);
-    });
+        if (message.type === 'copied') copied();
+        if (message.type === 'shown') {
+          stopTimer();
+          if (shown !== null) setPresenterMirror(current.id, mirrorPump);
+        }
+        if (message.type === 'mirror-frame') {
+          if (
+            message.frame instanceof Uint8Array &&
+            message.frame.length === 640 * 360 * 4
+          ) {
+            publishPresenterMirror(current.id, message.frame);
+          } else {
+            mirrorPump.ack();
+          }
+        }
+        if (message.type === 'mirror-error') {
+          log.warn('presenter preview unavailable', message.message);
+          setPresenterMirror(current.id, null);
+        }
+        if (message.type === 'transitioned') {
+          log.info('output presenter transition', {
+            screen: current.id,
+            ...message,
+          });
+        }
+        if (message.type === 'error') failWith(message.message);
+      },
+    );
     worker.on('exit', code => {
       if (child === worker) {
+        setPresenterMirror(current.id, null);
         child = null;
         failWith(`presenter exited ${code}`);
       }
@@ -392,6 +421,7 @@ function createPresenterPart(
   });
   void startLoading(win, page).catch((error: unknown) => failWith(error));
   return {
+    previewContents: () => (win.isDestroyed() ? null : win.webContents),
     prepare: bounds => open(bounds),
     show: (bounds, top) => {
       onTop = top;
@@ -411,6 +441,7 @@ function createPresenterPart(
     },
     hide: () => {
       shown = null;
+      setPresenterMirror(current.id, null);
       stopTimer();
       post({type: 'hide'});
     },
@@ -433,6 +464,7 @@ function createPresenterPart(
     destroy: () => {
       if (closed) return;
       closed = true;
+      setPresenterMirror(current.id, null);
       stopTimer();
       releaseProblems?.();
       outstanding?.release();

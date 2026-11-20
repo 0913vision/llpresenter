@@ -1,4 +1,5 @@
 import {createHash, randomUUID} from 'node:crypto';
+import {existsSync} from 'node:fs';
 import {
   mkdir,
   readFile,
@@ -14,10 +15,21 @@ import type {PictureRequest} from '@core/schema/picture';
 import {pictureKey} from '@core/output/pictureKey';
 import {PicturePainter} from './painter';
 
-const VERSION = 'picture-9';
+const VERSION = 'picture-10';
 const MEMORY_LIMIT = 64 * 1024 * 1024;
 const DISK_LIMIT = 500 * 1024 * 1024;
 const PRUNE_INTERVAL_MS = 60_000;
+const RESERVATION_MS = 5000;
+const RESERVATION_LIMIT = 32;
+
+interface Reservation {
+  readonly owner: number;
+  readonly request: PictureRequest;
+  readonly resolve: (image: Buffer) => void;
+  readonly reject: (error: Error) => void;
+  readonly timer: ReturnType<typeof setTimeout>;
+  waiting: boolean;
+}
 
 function keyOf(request: PictureRequest): string {
   return createHash('sha256')
@@ -41,16 +53,104 @@ export class PictureCache {
   private readonly painter = new PicturePainter();
   private readonly memory = new Map<string, Buffer>();
   private readonly pending = new Map<string, Promise<Buffer>>();
+  private readonly reservations = new Map<string, Reservation>();
   private readonly writes = new Set<Promise<void>>();
   private bytes = 0;
   private lastPrune = 0;
 
   constructor(private readonly folder: string) {}
 
+  /** Claims an uncached picture before the editor starts its immediate draw. */
+  reserve(request: PictureRequest, owner: number): boolean {
+    const key = keyOf(request);
+    if (
+      request.repaint === true ||
+      this.reservations.size >= RESERVATION_LIMIT ||
+      this.memory.has(key) ||
+      this.pending.has(key) ||
+      existsSync(this.fileOf(key, true)) ||
+      existsSync(this.fileOf(key, false))
+    ) {
+      return false;
+    }
+    let resolve!: (image: Buffer) => void;
+    let reject!: (error: Error) => void;
+    const pending = new Promise<Buffer>((accept, refuse) => {
+      resolve = accept;
+      reject = refuse;
+    });
+    this.pending.set(key, pending);
+    void pending.then(
+      () => {
+        if (this.pending.get(key) === pending) this.pending.delete(key);
+      },
+      () => {
+        if (this.pending.get(key) === pending) this.pending.delete(key);
+      },
+    );
+    const timer = setTimeout(
+      () => this.release(request, owner),
+      RESERVATION_MS,
+    );
+    this.reservations.set(key, {
+      owner,
+      request,
+      resolve,
+      reject,
+      timer,
+      waiting: false,
+    });
+    return true;
+  }
+
+  /** Falls back to the shared painter if a claimed editor draw cannot finish. */
+  release(request: PictureRequest, owner: number): void {
+    const key = keyOf(request);
+    const claim = this.reservations.get(key);
+    if (claim?.owner !== owner) return;
+    clearTimeout(claim.timer);
+    this.reservations.delete(key);
+    if (
+      claim.waiting &&
+      !request.spec.layers.media?.mediaId.startsWith('preview:')
+    ) {
+      void this.load(key, claim.request).then(claim.resolve, claim.reject);
+    } else {
+      this.pending.delete(key);
+      claim.reject(new Error('Picture reservation released'));
+    }
+  }
+
+  /** Reads only an existing picture; temporary import media cannot be drawn in main. */
+  async peek(request: PictureRequest): Promise<Buffer | null> {
+    const key = keyOf(request);
+    const pending = this.pending.get(key);
+    if (pending !== undefined) {
+      const claim = this.reservations.get(key);
+      if (claim !== undefined) claim.waiting = true;
+      return pending.catch(() => null);
+    }
+    const cached = this.memory.get(key);
+    if (cached !== undefined) return cached;
+    const transparent = request.spec.appearance.screen.method === 'ndi';
+    const image =
+      (await this.read(this.fileOf(key, transparent), transparent)) ??
+      (!transparent
+        ? await this.read(this.fileOf(key, true), true)
+        : undefined);
+    if (image === undefined) return null;
+    this.cacheInMemory(key, image);
+    return image;
+  }
+
   get(request: PictureRequest): Promise<Buffer> {
     const key = keyOf(request);
     const pending = this.pending.get(key);
-    if (pending !== undefined) return pending;
+    if (pending !== undefined) {
+      const claim = this.reservations.get(key);
+      if (claim !== undefined) claim.waiting = true;
+      return pending;
+    }
     const cached = request.repaint === true ? undefined : this.memory.get(key);
     if (cached !== undefined) {
       this.memory.delete(key);
@@ -67,8 +167,22 @@ export class PictureCache {
   }
 
   /** Accepts the editor's already encoded source into the shared cache. */
-  remember(request: PictureRequest, image: Buffer): void {
+  remember(request: PictureRequest, image: Buffer, owner?: number): void {
     const key = keyOf(request);
+    const claim = this.reservations.get(key);
+    if (claim !== undefined) {
+      if (claim.owner !== owner) return;
+      if (!encoded(image, true)) {
+        this.release(request, owner);
+        return;
+      }
+      clearTimeout(claim.timer);
+      this.reservations.delete(key);
+      this.cacheInMemory(key, image);
+      this.write(this.fileOf(key, true), image);
+      claim.resolve(image);
+      return;
+    }
     if (
       this.memory.has(key) ||
       this.pending.has(key) ||
@@ -82,6 +196,11 @@ export class PictureCache {
   }
 
   async dispose(): Promise<void> {
+    for (const claim of this.reservations.values()) {
+      clearTimeout(claim.timer);
+      claim.reject(new Error('Picture cache closed'));
+    }
+    this.reservations.clear();
     this.painter.dispose();
     await Promise.allSettled(this.pending.values());
     await Promise.allSettled(this.writes);

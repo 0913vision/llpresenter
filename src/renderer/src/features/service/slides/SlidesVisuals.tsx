@@ -5,6 +5,7 @@ import type {LlpApi} from '@contracts/ipc/api';
 import type {MediaItem} from '@core/schema/mediaList';
 import {BIBLE_BOOKS} from '@core/bible/bibleBooks';
 import {emptyLayers, type LiveLayers} from '@core/live/state';
+import {withPreferenceDefaults} from '@core/schema/preferences';
 import type {Slide, SlidesItem} from '@core/services/slidesEdits';
 import {slideLayerOf} from '@core/presentation/slideLayer';
 import {projectSlides} from '@core/presentation/slides';
@@ -58,6 +59,11 @@ export function useSlidesAppearance(
   const {role = 'audience', screenId} = options;
   const themes = useItemSettings(api.settings, 'themes');
   const screens = useItemSettings(api.settings, 'screens');
+  const preferences = useItemSettings(
+    api.settings,
+    'preferences',
+    role === 'stage',
+  );
   const themeFile =
     themes.document?.name === 'themes' ? themes.document.value : undefined;
   const screenFile =
@@ -69,6 +75,11 @@ export function useSlidesAppearance(
         screenId,
         themes: themeFile,
         screens: screenFile,
+        stageLyricLabelPosition:
+          preferences.document?.name === 'preferences'
+            ? withPreferenceDefaults(preferences.document.value).output
+                .stageLyricLabelPosition
+            : undefined,
         item: {
           ...item,
           kind: item.slides.form,
@@ -76,7 +87,7 @@ export function useSlidesAppearance(
           title: item.slides.name,
         },
       }),
-    [role, screenId, themeFile, screenFile, item],
+    [role, screenId, themeFile, screenFile, item, preferences.document],
   );
   return {
     appearance,

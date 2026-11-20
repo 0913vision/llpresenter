@@ -25,7 +25,7 @@ import {
   sectionBroadcastLayout,
 } from '@core/themes/sectionBroadcast';
 import * as ink from '@renderer/rendering/textInk';
-import {SlidePicture} from '@renderer/rendering/SlidePicture';
+import {SlidePicture} from '@fixtures/renderer/themeSlideFixture';
 import bulletStyles from '@renderer/rendering/bulletText.module.css';
 import {ThemeCompositionView} from '@renderer/rendering/themeComposition';
 import {bibleMeasure} from '@renderer/rendering/bibleMeasure';

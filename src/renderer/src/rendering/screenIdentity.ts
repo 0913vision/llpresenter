@@ -2,6 +2,7 @@ import type {LlpApi} from '@contracts/ipc/api';
 import type {Screen} from '@core/schema/screens';
 import type {PictureCorrection, RenderScreen} from './layer';
 import {emptyScreenColor} from '@core/screens/emptyColor';
+import {pictureSizeForScreen} from '@core/screens/pictureSize';
 import {followSettingsDocument} from './settingsFeed';
 
 function pictureCorrection(screen: Screen): PictureCorrection | undefined {
@@ -19,6 +20,7 @@ export function resolveRenderScreen(
   const screen = screens.find(candidate => candidate.id === id);
   if (screen === undefined) return undefined;
   const correction = pictureCorrection(screen);
+  const pictureSize = pictureSizeForScreen(screen);
   return {
     id: screen.id,
     name: screen.name,
@@ -31,6 +33,7 @@ export function resolveRenderScreen(
       ? {}
       : {songCaption: screen.songCaption}),
     emptyColor: emptyScreenColor(screen),
+    ...(pictureSize === undefined ? {} : {pictureSize}),
     ...(correction === undefined ? {} : {correction}),
   };
 }

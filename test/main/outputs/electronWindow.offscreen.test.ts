@@ -11,6 +11,22 @@ import {installMockClock} from '@fixtures/mockClock';
 import {BOUNDS_RECHECK_MS} from '@main/outputs/windowPlacement';
 
 describe('createElectronOutputWindow offscreen', () => {
+  it('enables bitmap paint frames only for an explicitly requested hidden test', () => {
+    vi.stubEnv('LLP_TEST_PREVIEW_BITMAP', '1');
+    try {
+      openOutput('offscreen');
+      expect(lastWindow().options).toMatchObject({
+        show: false,
+        webPreferences: {offscreen: true},
+      });
+      openOutput('normal');
+      expect(lastWindow().options).not.toHaveProperty(
+        'webPreferences.offscreen',
+      );
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
   it.each(['normal', 'offscreen'] as const)(
     'reports client size independently of outer bounds in %s mode',
     mode => {

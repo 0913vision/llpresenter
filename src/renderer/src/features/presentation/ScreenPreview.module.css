@@ -1,8 +1,19 @@
 .screen {
   position: absolute;
   inset: 0;
+  overflow: hidden;
 }
 
 .chroma > div {
   background: var(--chroma);
+}
+
+.picture {
+  position: absolute;
+}
+
+.screen .black {
+  position: absolute;
+  inset: 0;
+  background: var(--output-black);
 }

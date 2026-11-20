@@ -1,4 +1,5 @@
-import {Fragment, useRef} from 'react';
+import {Fragment, useRef, useState} from 'react';
+import {PreviewSizingContext} from '@renderer/ui/PreviewSizingContext';
 import type {PanelRowId} from '@core/schema/panelRows';
 import {ResizeGap} from '@renderer/ui/ResizeGap';
 import {useRowLayout} from '@renderer/ui/useRowLayout';
@@ -46,6 +47,14 @@ export function PanelColumn({
   readonly warningHeight: number;
 }) {
   const container = useRef<HTMLDivElement>(null);
+  const [savedRatio, setSavedRatio] = useState(() => ({
+    sizeClass,
+    value: (store.loadRows?.(sizeClass)?.['show.previewRatio'] ?? 667) / 1000,
+  }));
+  const ratio =
+    savedRatio.sizeClass === sizeClass
+      ? savedRatio.value
+      : (store.loadRows?.(sizeClass)?.['show.previewRatio'] ?? 667) / 1000;
   const drag = useRowLayout({
     container,
     store,
@@ -66,17 +75,36 @@ export function PanelColumn({
     >
       {titles.map((title, index) => (
         <Fragment key={title}>
-          <Panel
-            title={title}
-            parts={partsOf(title)}
-            rowId={rowId(workspace, title, draft)}
-            editorEscapeZone={workspace === 'prep' && draft}
-          />
+          <PreviewSizingContext.Provider
+            value={
+              workspace === 'show' && title === '미리보기'
+                ? {
+                    ratio,
+                    save: value => {
+                      setSavedRatio({sizeClass, value});
+                      store.saveRows?.(sizeClass, {
+                        'show.previewRatio': Math.round(value * 1000),
+                      });
+                    },
+                  }
+                : null
+            }
+          >
+            <Panel
+              title={title}
+              parts={partsOf(title)}
+              rowId={rowId(workspace, title, draft)}
+              editorEscapeZone={workspace === 'prep' && draft}
+            />
+          </PreviewSizingContext.Provider>
           {index < titles.length - 1 ? (
             <ResizeGap
               axis="row"
               name={`${workspace}.${title}`}
               begin={() => drag.begin(index)}
+              onReset={() => {
+                if (workspace === 'show' && title === '미리보기') drag.reset();
+              }}
               disabled={!drag.canResize(index)}
             />
           ) : null}

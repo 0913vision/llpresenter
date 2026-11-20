@@ -3,28 +3,20 @@ import {describe, expect, it, vi} from 'vitest';
 import {SplitSlidePicture} from '@renderer/features/bible/SplitSlidePicture';
 import {themeElementBase} from '@fixtures/core/themeOutput';
 import {previewAppearance} from '@renderer/features/songs/editor/songPreviewModel';
-import type {LiveLayers} from '@core/live/state';
-import type {RenderFrame} from '@renderer/rendering/layer';
+import type {PictureSpec} from '@renderer/rendering/pictures/pictureService';
 
 const drawing = vi.hoisted(() => ({
-  render: vi.fn<(layers: LiveLayers, frame: RenderFrame) => void>(),
-  dispose: vi.fn(),
-  options: vi.fn(),
+  picture: vi.fn<(props: PictureSpec) => void>(),
 }));
-vi.mock('@renderer/rendering/outputRenderer', () => ({
-  OutputRenderer: class {
-    ready = () => true;
-    revealIncomplete = () => undefined;
-    constructor(_parent: HTMLElement, options: unknown) {
-      drawing.options(options);
-    }
-    render = drawing.render;
-    dispose = drawing.dispose;
+vi.mock('@renderer/rendering/pictures/Picture', () => ({
+  Picture: (props: PictureSpec) => {
+    drawing.picture(props);
+    return <div data-testid="shared-picture" />;
   },
 }));
 
 describe('split slide picture', () => {
-  it('draws the audience composition and measured continuation through the shared renderer and disposes it', () => {
+  it('uses a cached picture and keeps the verse line guide separate', () => {
     const element = {...themeElementBase(), kind: 'currentText' as const};
     const appearance = {
       ...previewAppearance({
@@ -39,40 +31,38 @@ describe('split slide picture', () => {
       element,
       appearance,
       maxLines: 3,
-      lines: ['Body', ' (계속)'],
+      lines: ['Body', ' (continued)'],
       continued: true,
-      reference: '요한복음 3:16',
+      reference: 'John 3:16',
     };
     const view = render(<SplitSlidePicture {...props} />);
-    expect(drawing.render.mock.lastCall?.[0].media).toEqual({
+    const picture = drawing.picture.mock.lastCall?.[0];
+    if (picture === undefined) throw new Error('Missing cached picture');
+    expect(picture.layers.media).toEqual({
       mediaId: 'split-background',
       startedAt: 0,
       loop: true,
     });
-    expect(drawing.options).toHaveBeenCalledWith(
-      expect.objectContaining({
-        mode: 'preview',
-        biblePreview: {elementId: element.id, maxLines: 3},
-      }),
-    );
-    expect(drawing.render.mock.lastCall?.[0].slide).toMatchObject({
+    expect(picture.layers.slide).toMatchObject({
       lines: props.lines,
       continued: true,
       reference: props.reference,
     });
-    expect(drawing.render.mock.lastCall?.[1]).toEqual({
-      theme: appearance.theme,
-      screen: appearance.screen,
-      transitions: false,
+    expect(picture.appearance.biblePreview).toEqual({
+      elementId: element.id,
+      maxLines: 3,
     });
+    expect(picture.appearance.theme).toEqual(appearance.theme);
+    const guide = view.container.querySelector<HTMLElement>(
+      '[aria-hidden="true"] > div',
+    );
+    expect(guide?.style.width).toBe(`${(element.frame.w / 1920) * 100}%`);
     view.rerender(
       <SplitSlidePicture {...props} lines={['Final']} continued={false} />,
     );
-    expect(drawing.render.mock.lastCall?.[0].slide).toMatchObject({
+    expect(drawing.picture.mock.lastCall?.[0].layers.slide).toMatchObject({
       lines: ['Final'],
       continued: false,
     });
-    view.unmount();
-    expect(drawing.dispose).toHaveBeenCalledOnce();
   });
 });

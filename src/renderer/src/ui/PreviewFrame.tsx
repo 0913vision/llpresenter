@@ -1,4 +1,4 @@
-import type {JSX, ReactNode} from 'react';
+import type {CSSProperties, JSX, ReactNode} from 'react';
 import {classNames} from './classNames';
 import {Icon, type IconSize} from './Icon';
 import {titleTooltip, useTooltip} from './Tooltip';
@@ -54,6 +54,8 @@ export interface PreviewFrameProps<Id extends string> {
   readonly sizing?: 'fill' | 'content';
   /** Shows the row of small tiles. Without it, only the large picture shows. */
   readonly tiles?: boolean | undefined;
+  readonly split?:
+    {readonly ratio: number; readonly divider: ReactNode} | undefined;
   /** Drawn over the bottom edge of the large picture, such as a progress bar. */
   readonly overlay?: ReactNode;
   /** What the large caption shows instead of the name and the target. */
@@ -309,6 +311,7 @@ export function PreviewFrame<Id extends string>({
   compact = false,
   sizing = 'fill',
   tiles = true,
+  split,
   overlay,
   caption,
   onBigChange,
@@ -317,6 +320,16 @@ export function PreviewFrame<Id extends string>({
   const others = largeVisible
     ? screens.filter(screen => screen.id !== big)
     : screens;
+  const gridStyle: CSSProperties & {
+    '--preview-slots': number;
+    '--preview-ratio': number;
+  } = {
+    gridTemplateColumns: split
+      ? `repeat(${Math.max(1, others.length)}, minmax(0, var(--split-tile-width)))`
+      : `repeat(${Math.max(1, tiles ? others.length : 1)}, minmax(0, 1fr))`,
+    '--preview-slots': Math.max(1, others.length),
+    '--preview-ratio': split?.ratio ?? 0.667,
+  };
   return (
     <div
       className={classNames(
@@ -325,10 +338,10 @@ export function PreviewFrame<Id extends string>({
         sizing === 'content' && styles.content,
         !tiles && styles.single,
         !largeVisible && styles.withoutLarge,
+        split && styles.adjustable,
+        split?.ratio === 0.667 && styles.balanced,
       )}
-      style={{
-        gridTemplateColumns: `repeat(${Math.max(1, tiles ? others.length : 1)}, minmax(var(--size-preview-compact), 1fr))`,
-      }}
+      style={gridStyle}
     >
       {screens.map(screen => {
         const isBig = largeVisible && screen.id === big;
@@ -346,6 +359,9 @@ export function PreviewFrame<Id extends string>({
           />
         );
       })}
+      {split === undefined ? null : (
+        <div className={styles.divider}>{split.divider}</div>
+      )}
     </div>
   );
 }

@@ -3,7 +3,6 @@ import {expect, it, vi} from 'vitest';
 import {Suspense, useDeferredValue} from 'react';
 import {emptyLayers} from '@core/live/state';
 import {createScreenId, createThemeId} from '@core/schema/ids';
-import {OutputPreviewPicture} from '@renderer/rendering/OutputPreviewPicture';
 import {Picture} from '@renderer/rendering/pictures/Picture';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 
@@ -87,8 +86,8 @@ it('shares one decoded source between views and holds it until an edit is decode
   try {
     const views = (line: string) => (
       <>
-        <OutputPreviewPicture {...props(line)} />
-        <OutputPreviewPicture {...props(line)} />
+        <Picture {...props(line)} />
+        <Picture {...props(line)} />
       </>
     );
     const view = render(views('original'));

@@ -34,9 +34,37 @@ import {
   type PlaybackProblemKind,
   type PlaybackProblems,
 } from '@core/schema/playbackProblems';
+import {
+  parsePreviewRequest,
+  parsePreviewSource,
+  parsePreviewControl,
+  parsePreviewFrame,
+  parsePreviewRelay,
+  type PreviewControl,
+  type PreviewFrame,
+  type PreviewRelay,
+} from '@core/schema/previewMirror';
 
 /** The calls about output windows, monitors, fonts, and the log. */
 export const outputEndpoints = {
+  previewControl: message<PreviewControl>(
+    'output:preview:control',
+    parsePreviewControl,
+  ),
+  previewFrame: push<PreviewFrame>('output:preview:frame', parsePreviewFrame),
+  previewPublish: message<PreviewFrame>(
+    'output:preview:publish',
+    parsePreviewFrame,
+  ),
+  previewRelay: push<PreviewRelay>('output:preview:relay', parsePreviewRelay),
+  previewSource: request<OutputShowWindowRequest, string | null>(
+    'output:preview:source',
+    {
+      request: parsePreviewRequest,
+      reply: parsePreviewSource,
+      refuse: () => null,
+    },
+  ),
   playbackReport: message<readonly PlaybackProblemKind[]>(
     'output:playback:report',
     parsePlaybackProblemReport,
@@ -96,7 +124,13 @@ export const outputEndpoints = {
 export function outputApi(port: IpcPort) {
   const retry = port.message(outputEndpoints.retry);
   const showWindow = port.message(outputEndpoints.showWindow);
+  const previewSource = port.request(outputEndpoints.previewSource);
   return {
+    previewControl: port.message(outputEndpoints.previewControl),
+    subscribePreviewFrame: port.subscribe(outputEndpoints.previewFrame),
+    publishPreview: port.message(outputEndpoints.previewPublish),
+    subscribePreviewRelay: port.subscribe(outputEndpoints.previewRelay),
+    previewSource: (screenId: string) => previewSource({screenId}),
     reportPlaybackProblems: port.message(outputEndpoints.playbackReport),
     getPlaybackProblems: port.query(outputEndpoints.playbackProblems),
     subscribePlaybackProblems: port.subscribe(outputEndpoints.playbackChanged),

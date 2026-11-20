@@ -6,7 +6,7 @@ import {SlideLayerView} from '@renderer/rendering/slideLayer';
 import {ThemePicture} from '@renderer/rendering/ThemePicture';
 import {classes} from '@renderer/rendering/classes';
 import {bibleMeasure} from '@renderer/rendering/bibleMeasure';
-import {SlidePicture} from '@renderer/rendering/SlidePicture';
+import {SlidePicture} from '@fixtures/renderer/themeSlideFixture';
 import {CONT_MARKER} from '@core/bible/split/layout';
 
 afterEach(cleanup);

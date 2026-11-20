@@ -77,6 +77,9 @@ function createBrowserWindow(
       // Windows reports it as covered or in the background.
       backgroundThrottling: false,
       ...testPreferences,
+      ...(mode === 'offscreen' && process.env['LLP_TEST_PREVIEW_BITMAP'] === '1'
+        ? {offscreen: true}
+        : {}),
     },
   });
 }
@@ -94,15 +97,18 @@ function enterFullScreen(win: BrowserWindow, monitorBounds: Rect): void {
   win.setFullScreen(true);
 }
 
-function listen(win: BrowserWindow, events: OutputWindowEvents): void {
+function listen(win: BrowserWindow, events: OutputWindowEvents): () => void {
   win.on('close', event => {
     event.preventDefault();
     events.onCloseRequested();
   });
   win.on('page-title-updated', event => event.preventDefault());
+  const onResize = (): void => events.onSizeChanged?.();
+  win.on('resize', onResize);
   win.webContents.on('render-process-gone', (_event, {reason, exitCode}) =>
     events.onRendererGone({reason, exitCode}),
   );
+  return () => win.removeListener('resize', onResize);
 }
 
 type OutputPresentation = Pick<
@@ -320,7 +326,7 @@ export function createElectronOutputWindow(
         });
   win.removeMenu();
   blockNavigation(win);
-  listen(win, events);
+  const releaseSize = listen(win, events);
   loadPage(win, page, log);
   const releaseKeys = forwardOutputKeys(win.webContents, options.control, log);
   const {dispose: releasePresentation, ...presentation} = presentationFor(
@@ -329,12 +335,14 @@ export function createElectronOutputWindow(
   );
   const dispose = (): void => {
     releaseProblems?.();
+    releaseSize();
     releaseKeys();
     releasePresentation();
   };
   win.once('closed', dispose);
   return {
     ...presentation,
+    previewContents: () => (win.isDestroyed() ? null : win.webContents),
     showWindowed: (bounds, alwaysOnTop) => {
       presentation.showWindowed(bounds, alwaysOnTop);
       if (!windowLogged) {

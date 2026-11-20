@@ -46,6 +46,23 @@ describe('output screen identity', () => {
     expect(resolveRenderScreen(CAPTIONS, configured)?.songCaption).toBe('text');
     expect(resolveRenderScreen(MAIN, configured)?.songCaption).toBeUndefined();
   });
+  it('includes the configured capture size in the render identity', () => {
+    const {value} = screens();
+    const configured = value.screens.map(screen =>
+      screen.id === MAIN
+        ? {
+            ...screen,
+            method: 'capture' as const,
+            resolution: {width: 1280, height: 720},
+          }
+        : screen,
+    );
+    expect(resolveRenderScreen(MAIN, configured)?.pictureSize).toEqual({
+      width: 1280,
+      height: 720,
+    });
+  });
+
   it('carries the picture correction only when it changes the picture', () => {
     const {value} = screens();
     expect(

@@ -50,7 +50,6 @@ function cardPicture(context: PictureContext): JSX.Element | undefined {
   }
   return (
     <SlidePicture
-      output
       {...cardTheme}
       slide={
         stageSlideOf({itemId: item.id, index: 0}) ?? {
@@ -84,15 +83,16 @@ function biblePicture(
   );
   if (slide === null) return undefined;
   if (slide.sermonTitle === true && sermonTheme !== undefined) {
-    return <SlidePicture output {...sermonTheme} slide={slide} />;
+    return <SlidePicture {...sermonTheme} slide={slide} />;
   }
   const {theme, screen} = bibleAppearance ?? projection.appearance;
   return (
     <SlidePicture
-      output
       slide={slide}
       themeId={theme.themeId}
       screen={screen}
+      audience={bibleAppearance?.audience}
+      stageLyricLabelPosition={bibleAppearance?.stageLyricLabelPosition}
       layout={theme.layout}
       emptyColor={theme.emptyColor}
       item={theme.item}
@@ -116,7 +116,6 @@ function songPicture(
       : stageSlideOf({itemId: item.id, index});
   return (
     <SlidePicture
-      output
       {...theme}
       background={
         item.backgroundNone === true
@@ -153,7 +152,6 @@ function libraryPicture(
   }
   return (
     <SlidePicture
-      output
       {...theme}
       background={library.background?.mediaId}
       songSource={slide.sourceSlide}
@@ -185,7 +183,6 @@ function mediaPicture(
   if (slide === undefined) return undefined;
   return (
     <SlidePicture
-      output
       mediaOnly
       {...theme}
       background={item.media}
@@ -215,7 +212,6 @@ function fallbackBiblePicture(
   if (slide === undefined) return undefined;
   return (
     <SlidePicture
-      output
       {...theme}
       slide={{
         itemId: item.id,

@@ -49,7 +49,10 @@ export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
   return {
     picture: {
       paint: () => Promise.resolve(new Uint8Array()),
+      peek: () => Promise.resolve(null),
       remember: () => undefined,
+      release: () => undefined,
+      reserve: () => false,
       ...overrides.picture,
     },
     powerpoint: {
@@ -188,6 +191,11 @@ export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
       ...overrides.fonts,
     },
     output: {
+      previewSource: () => Promise.resolve(null),
+      previewControl: () => undefined,
+      subscribePreviewFrame: () => () => undefined,
+      publishPreview: () => undefined,
+      subscribePreviewRelay: () => () => undefined,
       reportPlaybackProblems: () => undefined,
       getPlaybackProblems: () => Promise.resolve([]),
       subscribePlaybackProblems: () => () => undefined,

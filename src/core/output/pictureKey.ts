@@ -28,6 +28,21 @@ export function pictureKey({layers, appearance}: PictureSpec): string {
     ? themeOverlay(item, layers, theme.sourceScreenId)
     : undefined;
   return JSON.stringify([
+    screen.id,
+    appearance.biblePreview,
+    appearance.audience === undefined
+      ? null
+      : pictureKey({
+          layers,
+          appearance: {
+            screen: appearance.audience.screen,
+            theme: appearance.audience.theme,
+            background: '',
+            checker: false,
+          },
+        }),
+    stage ? (appearance.stageLyricLabelPosition ?? 'line') : null,
+    screen.pictureSize,
     screen.kind,
     screen.method === 'ndi' || screen.method === 'capture'
       ? screen.method

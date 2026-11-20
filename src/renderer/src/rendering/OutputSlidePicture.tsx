@@ -11,7 +11,6 @@ import type {LiveThemeItem} from '@core/schema/liveTheme';
 import type {SongSlideSource} from '@core/schema/showService';
 import type {ThemeScreenLayout} from '@core/schema/themes';
 import {themeBackgroundColor} from './themeBackground';
-import {OutputPreviewPicture} from './OutputPreviewPicture';
 import {Picture} from './pictures/Picture';
 import type {PictureSpec} from './pictures/pictureService';
 import type {RenderScreen} from './layer';
@@ -28,6 +27,9 @@ export interface SlideInput {
   readonly themeId?: ThemeId | undefined;
   readonly screen?: RenderScreen | undefined;
   readonly sourceScreenId?: ScreenId | undefined;
+  readonly audience?: PictureSpec['appearance']['audience'] | undefined;
+  readonly stageLyricLabelPosition?:
+    PictureSpec['appearance']['stageLyricLabelPosition'] | undefined;
   readonly songSource?: SongSlideSource | undefined;
   readonly mediaOnly?: boolean | undefined;
 }
@@ -42,6 +44,8 @@ export function outputSlideSpec({
   themeId,
   screen = {id: screenId, kind: 'audience', method: 'fullscreen'},
   sourceScreenId = screen.id,
+  audience,
+  stageLyricLabelPosition,
   songSource,
   mediaOnly = false,
 }: SlideInput): PictureSpec {
@@ -65,6 +69,10 @@ export function outputSlideSpec({
     },
     appearance: {
       screen,
+      ...(audience === undefined ? {} : {audience}),
+      ...(stageLyricLabelPosition === undefined
+        ? {}
+        : {stageLyricLabelPosition}),
       theme: {
         themeId: themeId ?? defaultThemeId,
         revision: 0,
@@ -94,9 +102,5 @@ export function OutputSlidePicture({
   readonly editing?: boolean | undefined;
 }): JSX.Element {
   const spec = outputSlideSpec(input);
-  return drawn === undefined && !editing ? (
-    <OutputPreviewPicture {...spec} />
-  ) : (
-    <Picture wait={drawn === 'wait'} editing={editing} {...spec} />
-  );
+  return <Picture wait={drawn === 'wait'} editing={editing} {...spec} />;
 }

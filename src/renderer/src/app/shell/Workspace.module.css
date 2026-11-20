@@ -66,11 +66,8 @@
   );
   --item-preview-height: calc(
     var(--item-preview-height-bare) + var(--space-12) +
-      min(
-        (var(--preview-picture) - var(--space-8)) / 2,
-        var(--size-preview-small-max)
-      ) *
-      9 / 16 + var(--size-control-sm)
+      (var(--preview-picture) - var(--space-8)) / 2 * 9 / 16 +
+      var(--size-control-sm)
   );
   --preview-reserve: calc(
     var(--tools-min-height) + var(--size-clear-button) + 2 * var(--space-8) +
@@ -92,6 +89,10 @@
   display: flex;
   flex-direction: column;
   gap: 0;
+}
+
+[data-workspace-frame='show'] .columns {
+  --preview-picture: calc(var(--col-right) - 2 * var(--panel-inset));
 }
 
 .columns[data-size='narrow'] {

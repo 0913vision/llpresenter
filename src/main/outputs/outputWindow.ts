@@ -11,9 +11,12 @@ import {
   type RendererState,
 } from './rendererRecovery';
 import type {OutputScreen} from './screens';
+import type {WebContents} from 'electron';
 
 /** The Electron window of one output, reduced to what the output needs. */
 export interface OutputWindowHandle {
+  /** The page feeding this output, when it exists. */
+  previewContents?(): WebContents | null;
   configure(screen: OutputScreen): void;
   prepare(bounds: Rect, kind: ShownPlacement['kind']): void;
   /** Wakes the hidden compositor for a pending frame without showing the window. */
@@ -56,6 +59,7 @@ export interface OutputWindowEvents {
   readonly onRendererGone: (details: RendererGoneDetails) => void;
   /** The operator clicked the close button of a window-mode output. */
   readonly onCloseRequested: () => void;
+  readonly onSizeChanged?: () => void;
 }
 
 export type CreateOutputWindowHandle = (
@@ -72,6 +76,7 @@ export interface OutputWindowOptions {
   readonly liveVersion: () => number;
   /** Hears every change of the renderer state. */
   readonly onRendererState?: (state: RendererState) => void;
+  readonly onSizeChanged?: () => void;
 }
 
 /**
@@ -114,6 +119,10 @@ export class OutputWindow {
 
   get rendererState(): RendererState {
     return this.recovery.state;
+  }
+
+  previewContents(): WebContents | null {
+    return this.handle?.previewContents?.() ?? null;
   }
 
   /** Whether this window has accepted its first complete current frame. */
@@ -266,6 +275,7 @@ export class OutputWindow {
     this.place(this.ensureHandle(), placement);
     this.applied = placement;
     this.visible = true;
+    this.options.onSizeChanged?.();
     this.watchIfRunning();
   }
 
@@ -361,6 +371,7 @@ export class OutputWindow {
     if (!this.visible || this.handle === null) return;
     this.handle.hide();
     this.visible = false;
+    this.options.onSizeChanged?.();
     this.hangWatch.stop();
   }
 
@@ -378,6 +389,7 @@ export class OutputWindow {
         if (!this.disposed) this.recovery.crashed(details);
       },
       onCloseRequested: this.options.onCloseRequested,
+      onSizeChanged: () => this.options.onSizeChanged?.(),
     });
     this.handle = handle;
     return handle;

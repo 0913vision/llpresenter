@@ -238,7 +238,7 @@ function LiturgyContent({
                 <div className={styles.thumbnail}>
                   <div className={styles.canvas}>
                     {layer === null || theme === undefined ? null : (
-                      <SlidePicture output {...theme} slide={layer} />
+                      <SlidePicture {...theme} slide={layer} />
                     )}
                   </div>
                   <SlideThumbnailBand

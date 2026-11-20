@@ -1,6 +1,5 @@
 import {cleanup} from '@testing-library/react';
 import {afterEach} from 'vitest';
-import {releaseKeptDrawings} from '@renderer/rendering/keptDrawings';
 
 Object.defineProperty(globalThis, 'ResizeObserver', {
   configurable: true,
@@ -41,5 +40,4 @@ Object.defineProperty(globalThis, 'cancelIdleCallback', {
 // that left are freed with it.
 afterEach(() => {
   cleanup();
-  releaseKeptDrawings();
 });

@@ -116,7 +116,15 @@ async function prepareBatch({
       if (!options.active()) return false;
       const thumbnail = await thumbnailPowerPointImage(blob);
       if (!options.active()) return false;
-      const image = lendPreviewImage(thumbnail);
+      const hash = await crypto.subtle.digest(
+        'SHA-256',
+        await thumbnail.arrayBuffer(),
+      );
+      if (!options.active()) return false;
+      const contentHash = Array.from(new Uint8Array(hash), value =>
+        value.toString(16).padStart(2, '0'),
+      ).join('');
+      const image = lendPreviewImage(thumbnail, contentHash);
       if (image === null) {
         throw new PowerPointPreviewLimitError(
           'PowerPoint preview image limit reached',

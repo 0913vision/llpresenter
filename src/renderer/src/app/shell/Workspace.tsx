@@ -4,7 +4,6 @@ import {
   Fragment,
   Suspense,
   useCallback,
-  useEffect,
   useRef,
   useState,
   type JSX,
@@ -29,7 +28,6 @@ import type {Workspace as WorkspaceId} from './Toolbar';
 import {useColumnLayout} from './useColumnLayout';
 import type {SidebarCollapse} from './useSidebarCollapse';
 import {logPanelProblem, type WorkspacePanels} from './WorkspacePanel';
-import {releaseKeptDrawings} from '@renderer/rendering/keptDrawings';
 import {PanelColumn} from './PanelColumn';
 import {ResizeGap} from '@renderer/ui/ResizeGap';
 import {useRowLayout} from '@renderer/ui/useRowLayout';
@@ -114,9 +112,6 @@ export function Workspace({
   readonly themeLeave?: ThemeLeaveGuard | undefined;
 }): JSX.Element {
   const {gridRef, drag} = useColumnLayout(sizeClass, store);
-  // NOTE(0913vision): screen previews outlive their panels while another
-  // workspace shows, and go with the workspace frame itself.
-  useEffect(() => () => releaseKeptDrawings(), []);
   const screens = useScreensPanels({
     active: id === 'screens',
     onProblem,

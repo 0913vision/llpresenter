@@ -13,7 +13,104 @@
 }
 
 .content {
-  grid-template-rows: minmax(0, auto) auto;
+  grid-template-rows: auto auto;
+  width: min(
+    100cqw,
+    calc(
+      (
+          100cqh - var(--size-control-md) - var(--size-control-sm) -
+            var(--space-12)
+        ) *
+        16 / 9 * var(--preview-slots) / (var(--preview-slots) + 1) +
+        var(--space-8) * (var(--preview-slots) - 1) / (var(--preview-slots) + 1)
+    )
+  );
+  height: auto;
+  margin-inline: auto;
+}
+
+.content.single {
+  width: min(100cqw, calc((100cqh - var(--size-control-md)) * 16 / 9));
+}
+
+.content.withoutLarge {
+  width: min(
+    100cqw,
+    calc(
+      (100cqh - var(--size-control-sm)) * 16 / 9 * var(--preview-slots) +
+        var(--space-8) * (var(--preview-slots) - 1)
+    )
+  );
+}
+
+.adjustable {
+  --split-space: max(
+    0px,
+    100cqh - var(--size-control-md) - var(--size-control-sm) - var(--space-12)
+  );
+  --split-block-width: min(
+    100cqw,
+    var(--split-space) * var(--preview-ratio) * 16 / 9
+  );
+  --split-tile-width: min(
+    calc(var(--split-space) * (1 - var(--preview-ratio)) * 16 / 9),
+    calc(
+      (var(--split-block-width) - var(--space-8) * (var(--preview-slots) - 1)) /
+        var(--preview-slots)
+    )
+  );
+  width: var(--split-block-width);
+  height: 100%;
+  grid-template-rows:
+    minmax(
+      0,
+      calc(var(--split-space) * var(--preview-ratio) + var(--size-control-md))
+    )
+    var(--space-12)
+    minmax(
+      0,
+      calc(
+        var(--split-space) * (1 - var(--preview-ratio)) + var(--size-control-sm)
+      )
+    );
+  column-gap: var(--space-8);
+  row-gap: 0;
+  justify-content: space-between;
+}
+
+.adjustable .main {
+  width: 100%;
+  justify-self: center;
+  align-self: end;
+}
+
+.balanced {
+  --split-block-width: min(
+    100cqw,
+    var(--split-space) * var(--preview-ratio) * 16 / 9,
+    var(--split-space) * (1 - var(--preview-ratio)) * 16 / 9 *
+      var(--preview-slots) + var(--space-8) * (var(--preview-slots) - 1)
+  );
+}
+
+.adjustable .small,
+.adjustable .hit {
+  grid-row: 3;
+  align-self: start;
+}
+
+.adjustable .hit {
+  height: calc(var(--split-tile-width) * 9 / 16 + var(--size-control-sm));
+}
+
+.divider {
+  display: flex;
+  grid-area: 2 / 1 / 3 / -1;
+  align-items: center;
+}
+
+.divider > div {
+  width: 100%;
 }
 
 .main {
@@ -125,7 +222,6 @@
   grid-row: 2;
   flex-direction: column;
   width: 100%;
-  max-width: var(--size-preview-small-max);
   min-width: 0;
 }
 
@@ -146,7 +242,6 @@
   grid-row: 2;
   flex-direction: column;
   width: 100%;
-  max-width: var(--size-preview-small-max);
   min-width: 0;
   padding: 0;
   border: 0;

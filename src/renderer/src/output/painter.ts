@@ -5,11 +5,13 @@ import {parsePictureRequest} from '@core/schema/picture';
 import {fontsLoading, previewReady} from '../rendering/fontsLoading';
 import {OutputRenderer} from '../rendering/outputRenderer';
 import {openPreviewMedia} from '../rendering/previewMedia';
+import {drawPicture, layoutPicture} from '../rendering/pictures/drawPicture';
 
 /** Installs the drawing entry point in the isolated painter page. */
 export function startPainter(root: HTMLElement): void {
   const media = openPreviewMedia(window.llp);
   let previousTransparency: boolean | undefined;
+  let previousBiblePreview = '';
   let source: OutputRenderer | undefined;
   let drawFailure: Error | undefined;
   Reflect.set(window, 'drawPicture', async (value: unknown): Promise<void> => {
@@ -18,10 +20,18 @@ export function startPainter(root: HTMLElement): void {
     const {layers, appearance} = parsed.value.spec;
     const transparent = appearance.screen.method === 'ndi';
     drawFailure = undefined;
-    if (source === undefined || previousTransparency !== transparent) {
+    const biblePreviewKey = JSON.stringify(appearance.biblePreview ?? null);
+    if (
+      source === undefined ||
+      previousTransparency !== transparent ||
+      previousBiblePreview !== biblePreviewKey
+    ) {
       source?.dispose();
       source = new OutputRenderer(root, {
         transparent,
+        ...(appearance.biblePreview === undefined
+          ? {}
+          : {biblePreview: {...appearance.biblePreview, hideGuide: true}}),
         textStyle: DEFAULT_TEXT_STYLE,
         mediaUrl,
         previewMedia: media,
@@ -32,20 +42,13 @@ export function startPainter(root: HTMLElement): void {
         },
       });
       previousTransparency = transparent;
+      previousBiblePreview = biblePreviewKey;
       document.body.classList.toggle('ndi-transparent', transparent);
     }
     const renderer = source;
     try {
-      root.style.background = transparent
-        ? 'transparent'
-        : appearance.background;
-      renderer.render(layers, {
-        screen: appearance.screen,
-        theme: appearance.theme,
-        transitions: false,
-        standby: true,
-        ...(layers.slide === null ? {} : {slide: layers.slide}),
-      });
+      layoutPicture(root, appearance.screen.pictureSize);
+      drawPicture(renderer, root, {layers, appearance});
       await new Promise<void>((resolve, reject) => {
         let frame = 0;
         const timeout = setTimeout(() => {

@@ -7,29 +7,43 @@ import type {MediaProgress} from '@core/schema/mediaProgress';
 
 const PREVIEW_IMAGE_BYTES = 128 * 1024 * 1024;
 const PREVIEW_IMAGE_COUNT = 5000;
-const temporaryImages = new Map<string, {url: string; size: number}>();
+const temporaryImages = new Map<
+  string,
+  {url: string; size: number; users: number}
+>();
 let temporaryImageBytes = 0;
 
 /** Lends a bounded, temporary image to preview renderers until released. */
 export function lendPreviewImage(
   blob: Blob,
+  contentHash?: string,
 ): {readonly id: string; readonly release: () => void} | null {
+  const id = `preview:${contentHash ?? crypto.randomUUID()}`;
+  const existing = temporaryImages.get(id);
   if (
     blob.size === 0 ||
-    temporaryImages.size >= PREVIEW_IMAGE_COUNT ||
-    temporaryImageBytes + blob.size > PREVIEW_IMAGE_BYTES
+    (existing === undefined &&
+      (temporaryImages.size >= PREVIEW_IMAGE_COUNT ||
+        temporaryImageBytes + blob.size > PREVIEW_IMAGE_BYTES))
   ) {
     return null;
   }
-  const url = URL.createObjectURL(blob);
-  const id = `preview:${crypto.randomUUID()}`;
-  temporaryImages.set(id, {url, size: blob.size});
-  temporaryImageBytes += blob.size;
+  if (existing === undefined) {
+    const url = URL.createObjectURL(blob);
+    temporaryImages.set(id, {url, size: blob.size, users: 1});
+    temporaryImageBytes += blob.size;
+  } else {
+    existing.users++;
+  }
+  let released = false;
   return {
     id,
     release: () => {
+      if (released) return;
+      released = true;
       const image = temporaryImages.get(id);
       if (image === undefined) return;
+      if (--image.users > 0) return;
       temporaryImages.delete(id);
       temporaryImageBytes -= image.size;
       URL.revokeObjectURL(image.url);

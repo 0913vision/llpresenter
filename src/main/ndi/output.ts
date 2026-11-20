@@ -68,6 +68,7 @@ export function createNdiOutput(
   };
   let delegate = create();
   return {
+    previewContents: () => delegate.previewContents?.() ?? null,
     configure: next => {
       const changed =
         (current.ndi?.hardwareAcceleration ??
@@ -322,6 +323,7 @@ function createBitmapOutput(
     });
   };
   return {
+    previewContents: () => (win.isDestroyed() ? null : win.webContents),
     setGpuInput: enabled => {
       gpuInput = enabled;
       pending = null;

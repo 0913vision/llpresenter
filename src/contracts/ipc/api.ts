@@ -114,11 +114,12 @@ export function llpApi(
         readonly slidesEditor?: SlidesEditorApi;
         readonly bible?: BibleApi;
         readonly update?: UpdateApi;
+        readonly picture?: PictureApi;
       } = {},
 ): LlpApi {
   const custom = 'open' in bridges ? {slidesEditor: bridges} : bridges;
   return {
-    picture: pictureApi(port),
+    picture: custom.picture ?? pictureApi(port),
     update: custom.update ?? updateApi(port),
     bible: custom.bible ?? bibleApi(port),
     app: appApi(port),

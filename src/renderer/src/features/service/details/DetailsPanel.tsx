@@ -1,3 +1,4 @@
+import {withPreferenceDefaults} from '@core/schema/preferences';
 import {requestSongEditor} from '@renderer/features/songs/editor/songEditorRequests';
 import {
   useContext,
@@ -223,6 +224,11 @@ function DetailsPanelContent({
   const previewScreen = usePreviewScreen(screens);
   const targetScreen = previewScreen.target;
   const role = targetScreen?.kind ?? 'audience';
+  const previewPreferences = useItemSettings(
+    api.settings,
+    'preferences',
+    bible && role === 'stage',
+  );
   const screenId = targetScreen?.id;
   const aheadIdentity = `${detailsKey}:${screenId ?? ''}`;
   useEffect(() => {
@@ -281,6 +287,11 @@ function DetailsPanelContent({
       ? previewAppearance({
           role,
           screenId,
+          stageLyricLabelPosition:
+            previewPreferences.document?.name === 'preferences'
+              ? withPreferenceDefaults(previewPreferences.document.value).output
+                  .stageLyricLabelPosition
+              : undefined,
           themes:
             themeSettings.document?.name === 'themes'
               ? themeSettings.document.value

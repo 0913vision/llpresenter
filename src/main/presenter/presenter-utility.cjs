@@ -1,5 +1,6 @@
 const process = require('node:process');
 const {setImmediate, setTimeout} = require('node:timers');
+const {performance} = require('node:perf_hooks');
 const {createPresenter} = require('./d3dPresenter.cjs');
 
 // NOTE(0913vision): One output monitor per utility process. Present(1)
@@ -11,6 +12,11 @@ let presenter = null;
 let wantShown = false;
 let onTop = true;
 let timer = null;
+let mirrorEnabled = false;
+let mirrorInFlight = false;
+let mirrorDue = 0;
+let mirrorDirty = false;
+let mirrorPending = false;
 
 function post(message) {
   process.parentPort.postMessage(message);
@@ -26,12 +32,59 @@ function schedule() {
   timer = visible ? setImmediate(tick) : setTimeout(tick, IDLE_MS);
 }
 
+function applyMirror() {
+  if (presenter === null) return;
+  try {
+    if (mirrorEnabled) presenter.startMirror();
+    else presenter.stopMirror();
+  } catch (error) {
+    mirrorEnabled = false;
+    presenter.stopMirror();
+    post({type: 'mirror-error', message: String(error)});
+  }
+}
+
+function captureMirror() {
+  if (
+    !mirrorEnabled ||
+    presenter === null ||
+    !presenter.visible ||
+    mirrorInFlight
+  ) {
+    return;
+  }
+  try {
+    const frame = mirrorPending ? presenter.takeMirror() : null;
+    if (frame !== null) {
+      mirrorPending = false;
+      mirrorInFlight = true;
+      mirrorDue = performance.now() + 100;
+      post({type: 'mirror-frame', frame});
+    } else if (
+      !mirrorPending &&
+      mirrorDirty &&
+      performance.now() >= mirrorDue
+    ) {
+      if (presenter.requestMirror()) {
+        mirrorDirty = false;
+        mirrorPending = true;
+      }
+    }
+  } catch (error) {
+    mirrorEnabled = false;
+    presenter.stopMirror();
+    post({type: 'mirror-error', message: String(error)});
+  }
+}
+
 function tick() {
   timer = null;
   if (presenter === null) return;
   try {
     const wasBusy = presenter.busy;
     presenter.frame();
+    if (wasBusy || presenter.busy) mirrorDirty = true;
+    captureMirror();
     if (presenter.copied()) {
       post({type: 'copied'});
       show();
@@ -68,12 +121,17 @@ process.parentPort.on('message', event => {
     switch (message.type) {
       case 'open': {
         close();
+        mirrorInFlight = false;
+        mirrorPending = false;
+        mirrorDue = 0;
+        mirrorDirty = mirrorEnabled;
         onTop = message.topmost !== false;
         presenter = createPresenter({
           ...message.bounds,
           hz: message.hz,
           topmost: onTop,
         });
+        if (mirrorEnabled) applyMirror();
         wantShown = false;
         post({type: 'ready'});
         schedule();
@@ -82,12 +140,14 @@ process.parentPort.on('message', event => {
       case 'frame':
         if (presenter === null) break;
         presenter.submit(message.pid, message.handle);
+        mirrorDirty = true;
         break;
       case 'show':
         onTop = message.topmost !== false;
         wantShown = true;
         if (presenter?.visible) presenter.setOnTop(onTop);
         show();
+        mirrorDirty = true;
         break;
       case 'top':
         onTop = message.topmost !== false;
@@ -99,6 +159,18 @@ process.parentPort.on('message', event => {
         break;
       case 'transition':
         presenter?.transition(message);
+        mirrorDirty = true;
+        break;
+      case 'mirror':
+        mirrorEnabled = message.enabled === true;
+        mirrorInFlight = false;
+        mirrorPending = false;
+        mirrorDue = 0;
+        mirrorDirty = mirrorEnabled;
+        applyMirror();
+        break;
+      case 'mirror-ack':
+        mirrorInFlight = false;
         break;
       case 'stop':
         close();

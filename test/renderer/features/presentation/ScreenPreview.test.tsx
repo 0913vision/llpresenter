@@ -1,24 +1,32 @@
-import {MAIN_SCREEN} from '@fixtures/core/screenIds';
+import {MAIN_SCREEN, STAGE_SCREEN} from '@fixtures/core/screenIds';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {themeScreens} from '@fixtures/core/themeOutput';
 import {resolveThemeOutput} from '@core/themes/output';
-import {ScreenFrames} from '@renderer/rendering/screenFrames';
-import {OutputRenderer} from '@renderer/rendering/outputRenderer';
-import {act, cleanup, render, waitFor} from '@testing-library/react';
+import {act, cleanup, render, screen, waitFor} from '@testing-library/react';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import {useLive} from '@renderer/session/live';
-import {ScreenPreview} from '@renderer/features/presentation/ScreenPreview';
+import {
+  ScreenPreview,
+  cachedScreenPicture,
+} from '@renderer/features/presentation/ScreenPreview';
+import {previewAppearance} from '@renderer/features/songs/editor/songPreviewModel';
+import {parsePictureRequest} from '@core/schema/picture';
+import type {PictureSpec} from '@renderer/rendering/pictures/pictureService';
+
+vi.mock('@renderer/rendering/pictures/Picture', () => ({
+  Picture: ({layers}: PictureSpec) => (
+    <div data-testid="cached-picture">{layers.slide?.lines.join(' ')}</div>
+  ),
+}));
+vi.mock('@renderer/features/presentation/OutputMirror', () => ({
+  OutputMirror: ({screenId}: {screenId: string}) => (
+    <div data-testid="mirror">{screenId}</div>
+  ),
+}));
 
 beforeEach(() => {
-  vi.stubGlobal(
-    'ResizeObserver',
-    class {
-      observe() {}
-      disconnect() {}
-    },
-  );
   window.llp = mockLlpApi({
     settings: {
       get: async ({name}) =>
@@ -27,13 +35,10 @@ beforeEach(() => {
           : settingsDocument('timers', {timers: []}),
     },
   });
-  vi.spyOn(HTMLMediaElement.prototype, 'pause').mockReturnValue(undefined);
-  vi.spyOn(HTMLMediaElement.prototype, 'load').mockReturnValue(undefined);
-  const initial = emptyLiveState();
+  const state = emptyLiveState();
   useLive.setState({
     state: {
-      ...initial,
-      version: 1,
+      ...state,
       themeOutput: resolveThemeOutput({
         file: null,
         screens: themeScreens,
@@ -41,7 +46,7 @@ beforeEach(() => {
         revision: 1,
       }),
       layers: {
-        ...initial.layers,
+        ...state.layers,
         slide: {
           itemId: 'fixture',
           position: 0,
@@ -58,114 +63,97 @@ afterEach(() => {
   useLive.setState({state: null});
 });
 
-it('keeps the last good preview after a frame error and draws a later good snapshot', async () => {
-  const mockLog = vi.spyOn(
-    window.llp?.log ?? {write: () => undefined},
-    'write',
-  );
-  const view = render(<ScreenPreview screenId={MAIN_SCREEN} chroma={false} />);
+it('uses a cached picture for a static audience slide and follows changes', async () => {
+  render(<ScreenPreview screenId={MAIN_SCREEN} chroma={false} />);
   await waitFor(() =>
-    expect(view.container.textContent).toContain('Current frame'),
+    expect(screen.getByTestId('cached-picture').textContent).toBe(
+      'Current frame',
+    ),
   );
-  const previous = view.container.textContent;
   const state = useLive.getState().state;
-  if (state === null) throw new Error('Missing state');
-  vi.spyOn(ScreenFrames.prototype, 'frame').mockImplementationOnce(() => {
-    throw new Error('Invented frame failure');
-  });
-  act(() => useLive.setState({state: {...state, version: 2}}));
-  expect(view.container.textContent).toBe(previous);
-  expect(mockLog).toHaveBeenCalledWith(
-    expect.objectContaining({level: 'error'}),
-  );
+  if (state?.layers.slide == null) {
+    throw new Error('Missing state');
+  }
+  const slide = state.layers.slide;
   act(() =>
     useLive.setState({
       state: {
         ...state,
-        version: 3,
         layers: {
           ...state.layers,
-          slide: {
-            itemId: 'fixture',
-            position: 1,
-            label: null,
-            lines: ['Recovered preview'],
-          },
+          slide: {...slide, lines: ['Next frame']},
         },
       },
     }),
   );
-  expect(view.container.textContent).toContain('Recovered preview');
+  expect(screen.getByTestId('cached-picture').textContent).toBe('Next frame');
 });
 
-function shownHost(container: HTMLElement): HTMLElement | null {
-  const screen = container.firstElementChild;
-  const hosts = screen === null ? [] : [...screen.children];
-  return (
-    hosts.find(
-      (host): host is HTMLElement =>
-        host instanceof HTMLElement && host.style.visibility !== 'hidden',
-    ) ?? null
+it('uses cached stills instead of waking inactive stage or audience outputs', async () => {
+  const view = render(<ScreenPreview screenId={STAGE_SCREEN} chroma={false} />);
+  await waitFor(() =>
+    expect(screen.getByTestId('cached-picture').textContent).toBe(
+      'Current frame',
+    ),
   );
-}
+  view.rerender(<ScreenPreview screenId={MAIN_SCREEN} chroma={false} />);
+  await waitFor(() =>
+    expect(screen.getByTestId('cached-picture')).toBeTruthy(),
+  );
+  const state = useLive.getState().state;
+  if (state === null) throw new Error('Missing state');
+  act(() => useLive.setState({state: {...state, blackScreen: true}}));
+  expect(screen.queryByTestId('mirror')).toBeNull();
+  expect(screen.queryByTestId('cached-picture')).toBeNull();
+  expect(view.container.querySelector('[data-black-screen]')).not.toBeNull();
+  act(() => useLive.setState({state: {...state, blackScreen: false}}));
+  expect(screen.getByTestId('cached-picture').textContent).toBe(
+    'Current frame',
+  );
+});
 
-function queuedFrames(): () => void {
-  const queued: FrameRequestCallback[] = [];
-  vi.spyOn(window, 'requestAnimationFrame').mockImplementation(callback => {
-    queued.push(callback);
-    return queued.length;
+it('caches a static stage slide with its audience sizing context', () => {
+  const document = settingsDocument('screens', {screens: themeScreens});
+  if (document.name !== 'screens') throw new Error('Missing screens');
+  const appearance = previewAppearance({
+    role: 'stage',
+    themes: undefined,
+    screens: document.value,
   });
-  vi.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => undefined);
-  return () => {
-    for (const callback of queued.splice(0)) callback(performance.now());
+  const theme = {
+    ...appearance.theme,
+    layout: {
+      ...appearance.theme.layout,
+      elements: appearance.theme.layout.elements.filter(
+        element => element.kind !== 'clock' && element.kind !== 'timer',
+      ),
+    },
   };
-}
-
-it('keeps following the live state while no panel shows it and shows the current picture when it mounts again', async () => {
-  vi.spyOn(OutputRenderer.prototype, 'ready').mockReturnValue(true);
-  const flush = queuedFrames();
-  const first = render(<ScreenPreview screenId={MAIN_SCREEN} chroma={false} />);
-  await waitFor(() =>
-    expect(first.container.textContent).toContain('Current frame'),
-  );
-  act(flush);
-  first.unmount();
   const state = useLive.getState().state;
   if (state === null) throw new Error('Missing state');
-  act(() =>
-    useLive.setState({
-      state: {
-        ...state,
-        version: 2,
-        layers: {
-          ...state.layers,
-          slide: {
-            itemId: 'fixture',
-            position: 1,
-            label: null,
-            lines: ['Changed while away'],
-          },
-        },
+  const picture = cachedScreenPicture(
+    state.layers,
+    {
+      screen: appearance.screen,
+      theme,
+      audience: appearance.audience,
+      stageLyricLabelPosition: 'off',
+    },
+    state,
+  );
+  expect(picture?.appearance.audience?.screen.kind).toBe('audience');
+  expect(picture?.appearance.stageLyricLabelPosition).toBe('off');
+  expect(parsePictureRequest({spec: picture, inputs: ''}).ok).toBe(true);
+  expect(
+    cachedScreenPicture(
+      state.layers,
+      {
+        screen: appearance.screen,
+        theme,
+        audience: appearance.audience,
+        stageMessage: 'Cue',
       },
-    }),
-  );
-  act(flush);
-  const again = render(<ScreenPreview screenId={MAIN_SCREEN} chroma={false} />);
-  expect(shownHost(again.container)?.textContent).toContain(
-    'Changed while away',
-  );
-  expect(again.container.textContent).not.toContain('Current frame');
-});
-
-it('gives a second panel of the same screen its own drawing', async () => {
-  const first = render(<ScreenPreview screenId={MAIN_SCREEN} chroma={false} />);
-  const second = render(
-    <ScreenPreview screenId={MAIN_SCREEN} chroma={false} />,
-  );
-  await waitFor(() => {
-    expect(first.container.textContent).toContain('Current frame');
-    expect(second.container.textContent).toContain('Current frame');
-  });
-  second.unmount();
-  expect(first.container.textContent).toContain('Current frame');
+      state,
+    ),
+  ).toBeDefined();
 });

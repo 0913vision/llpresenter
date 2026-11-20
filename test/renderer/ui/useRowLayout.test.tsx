@@ -94,6 +94,20 @@ function setup(
 }
 
 describe('useRowLayout', () => {
+  it('restores and saves the default row heights on reset', () => {
+    const h = setup(true);
+    const drag = h.result.current.begin(0);
+    if (!drag) throw Error('Missing drag');
+    act(() => drag.move(30));
+    act(() => drag.end());
+    act(() => h.result.current.reset());
+    expect(h.store.saveRows).toHaveBeenLastCalledWith('normal', {
+      'show.preview': 250,
+      'show.tools': 300,
+    });
+    expect(h.heights()).toEqual([250, 58, 300]);
+    h.unmount();
+  });
   it('keeps a dragged preview height when opening the media bin', () => {
     const h = setup(true, false, {preserveCollapsed: true});
     const drag = h.result.current.begin(0);

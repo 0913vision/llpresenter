@@ -10,7 +10,6 @@ import {ScreenPreview} from '@renderer/features/presentation/ScreenPreview';
 import {ScreenSummariesContext} from '@renderer/platform/ScreenSummaries';
 import {summarizeScreens} from '@renderer/platform/screens';
 import {classes} from '@renderer/rendering/classes';
-import {releaseKeptDrawings} from '@renderer/rendering/keptDrawings';
 
 beforeEach(() => {
   useLive.setState({state: null});
@@ -60,7 +59,12 @@ function setup() {
     item: themeItem,
     revision: 1,
   });
-  const snapshot = () => ({...store.state, themeItem, themeOutput});
+  const snapshot = () => ({
+    ...store.state,
+    outputs: {[MAIN]: true, [STAGE]: true, [CAPTIONS]: true},
+    themeItem,
+    themeOutput,
+  });
   useLive.setState({state: snapshot()});
   const removals: Array<ReturnType<typeof vi.fn>> = [];
   const originalSubscribe = useLive.subscribe;
@@ -70,7 +74,11 @@ function setup() {
     return stop;
   });
   const stopSettings = vi.fn();
+  const previewSource = vi
+    .fn<(id: string) => Promise<null>>()
+    .mockResolvedValue(null);
   window.llp = mockLlpApi({
+    output: {previewSource},
     settings: {
       get: () => Promise.resolve(settings.reader.get('screens')),
       subscribe: () => stopSettings,
@@ -83,39 +91,28 @@ function setup() {
     snapshot,
     removals,
     stopSettings,
+    previewSource,
     screens: summarizeScreens(screens.value.screens),
   };
 }
 
-const SETTINGS_FEEDS_PER_PREVIEW = 4;
-
 describe('preview overlay wiring', () => {
-  it('passes the three preview identities and stage text, then releases every feed', async () => {
-    const {store, snapshot, removals, stopSettings, screens} = setup();
+  it('subscribes to the three output mirrors without drawing the overlays again', async () => {
+    const {store, snapshot, removals, stopSettings, screens, previewSource} =
+      setup();
     const view = render(
       <ScreenSummariesContext value={screens}>
         <PreviewPanel />
       </ScreenSummariesContext>,
     );
     await act(async () => {});
-    const messages = [
-      ...view.container.querySelectorAll(
-        `[data-layer="message"] .${classes.shown}`,
-      ),
-    ].map(element => element.textContent);
-    expect(messages).toEqual(
-      expect.arrayContaining(['Main message', 'Caption message']),
+    expect(previewSource.mock.calls.map(([id]) => id)).toEqual(
+      expect.arrayContaining([MAIN, STAGE, CAPTIONS]),
     );
-    expect(messages).toHaveLength(2);
+    expect(view.container.querySelectorAll('video')).toHaveLength(3);
     expect(
-      view.container.querySelectorAll(
-        '[data-stage-message-band]:not([hidden])',
-      ),
-    ).toHaveLength(1);
-    expect(
-      view.container.querySelector('[data-stage-message-band]:not([hidden])')
-        ?.textContent,
-    ).toBe('Stage cue');
+      view.container.querySelectorAll(`[data-layer="message"]`),
+    ).toHaveLength(0);
     store.dispatch({type: 'layer.clear', target: 'message'});
     act(() => {
       useLive.setState({state: snapshot()});
@@ -127,33 +124,23 @@ describe('preview overlay wiring', () => {
     ).toHaveLength(0);
     view.unmount();
     expect(stopSettings).not.toHaveBeenCalled();
-    releaseKeptDrawings();
-    expect(stopSettings).toHaveBeenCalledTimes(3 * SETTINGS_FEEDS_PER_PREVIEW);
     for (const remove of removals) expect(remove).toHaveBeenCalledTimes(1);
   });
 
-  it('keeps the prior identity drawing when it switches and frees both on release', async () => {
-    const {removals, stopSettings} = setup();
+  it('keeps inactive screen previews static and releases subscriptions on switching', async () => {
+    const {removals, stopSettings, previewSource} = setup();
     const view = render(<ScreenPreview screenId={MAIN} chroma={false} />);
     await act(async () => {});
-    expect(
-      view.container.querySelector(`[data-layer="message"] .${classes.shown}`)
-        ?.textContent,
-    ).toBe('Main message');
+    expect(view.container.querySelector('video')).toBeNull();
+    expect(previewSource).not.toHaveBeenCalled();
     view.rerender(<ScreenPreview screenId={STAGE} chroma={false} />);
     await act(async () => {});
-    expect(view.container.querySelectorAll(`.${classes.root}`)).toHaveLength(1);
+    expect(previewSource).not.toHaveBeenCalled();
     expect(
-      view.container.querySelector(`[data-layer="message"] .${classes.shown}`),
-    ).toBeNull();
-    expect(
-      view.container.querySelector('[data-stage-message-band]:not([hidden])')
-        ?.textContent,
-    ).toBe('Stage cue');
-    expect(stopSettings).not.toHaveBeenCalled();
+      view.container.querySelectorAll(`[data-layer="message"]`),
+    ).toHaveLength(0);
     view.unmount();
-    releaseKeptDrawings();
-    expect(stopSettings).toHaveBeenCalledTimes(2 * SETTINGS_FEEDS_PER_PREVIEW);
+    expect(stopSettings).toHaveBeenCalledTimes(8);
     for (const remove of removals) expect(remove).toHaveBeenCalledTimes(1);
   });
 });

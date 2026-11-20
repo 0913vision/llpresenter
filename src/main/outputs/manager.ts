@@ -123,6 +123,10 @@ export class OutputManager {
 
   constructor(private readonly options: OutputManagerOptions) {}
 
+  previewContents(screenId: string) {
+    return this.windows.get(screenId)?.previewContents() ?? null;
+  }
+
   start(): void {
     const {store, displays} = this.options;
     this.stops = [
@@ -611,6 +615,7 @@ export class OutputManager {
       log: this.options.log,
       liveVersion: () => this.options.store.state.version,
       onRendererState: () => this.options.onStatusChange?.(),
+      onSizeChanged: () => this.options.onStatusChange?.(),
     });
     this.windows.set(screen.id, output);
     this.targets.set(screen.id, target);

@@ -387,7 +387,6 @@ export function VirtualSlides<T extends SlideListItem>({
                   canvasFor?.(sourceIndex) ??
                   (theme === undefined ? undefined : (
                     <SlidePicture
-                      output
                       {...theme}
                       background={slide.picture ?? background}
                       songSource={

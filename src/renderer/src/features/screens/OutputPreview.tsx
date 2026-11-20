@@ -1,7 +1,9 @@
-import {useMemo, type JSX} from 'react';
+import {useMemo, useSyncExternalStore, type JSX} from 'react';
 import type {Screen} from '@core/schema/screens';
 import {showTestPattern} from './showTestPattern';
 import {ScreenPreview} from '@renderer/features/presentation/ScreenPreview';
+import {OutputMirror} from '@renderer/features/presentation/OutputMirror';
+import {useLive} from '@renderer/session/live';
 import {Button} from '@renderer/ui';
 import type {Notice} from '@renderer/ui/notices';
 import {
@@ -16,6 +18,8 @@ import styles from './OutputPreview.module.css';
 import {fitAspect} from '@core/canvas/fitAspect';
 import {useElementSize} from '@renderer/ui/useElementSize';
 import {REFERENCE_SCREEN} from '@core/themes/textStyle';
+import {pictureSizeForScreen} from '@core/screens/pictureSize';
+import {pictures} from '@renderer/rendering/pictures/pictureService';
 
 const LOAD_TITLE = '화면';
 const noScreens: readonly Screen[] = [];
@@ -30,10 +34,16 @@ function PreviewBody({
   readonly pictureEnabled: boolean;
 }): JSX.Element {
   const [watchPicture, available] = useElementSize();
+  const outputActive = useLive(view => view.state?.outputs[screen.id] === true);
+  const configuredSize = useMemo(() => pictureSizeForScreen(screen), [screen]);
+  const measuredSize = useSyncExternalStore(pictures.subscribeInputs, () =>
+    pictures.screenSize({id: screen.id, pictureSize: configuredSize}),
+  );
+  const outputSize = measuredSize ?? configuredSize ?? REFERENCE_SCREEN;
   const picture =
     available === undefined
       ? undefined
-      : fitAspect(available, REFERENCE_SCREEN.width / REFERENCE_SCREEN.height);
+      : fitAspect(available, outputSize.width / outputSize.height);
   const signal = signalText(caption);
   return (
     <section className={styles.preview} aria-label="출력 미리보기">
@@ -41,10 +51,14 @@ function PreviewBody({
       <div className={styles.picture} ref={watchPicture}>
         <div className={styles.frame} style={picture} data-preview-picture>
           {pictureEnabled ? (
-            <ScreenPreview
-              screenId={screen.id}
-              chroma={screen.method === 'capture'}
-            />
+            outputActive ? (
+              <OutputMirror screenId={screen.id} cropSize={outputSize} />
+            ) : (
+              <ScreenPreview
+                screenId={screen.id}
+                chroma={screen.method === 'capture'}
+              />
+            )
           ) : null}
         </div>
       </div>

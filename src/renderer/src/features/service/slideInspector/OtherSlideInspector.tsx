@@ -581,7 +581,6 @@ export function OtherSlideInspector({
               <div className={styles.picture} data-background-picture>
                 <div className={styles.canvas}>
                   <SlidePicture
-                    output
                     {...cardTheme}
                     slide={{
                       itemId: item.id,
@@ -606,7 +605,7 @@ export function OtherSlideInspector({
             <>
               <div className={styles.picture} data-background-picture>
                 <div className={styles.canvas}>
-                  <SlidePicture output {...liturgyTheme} slide={liturgyLayer} />
+                  <SlidePicture {...liturgyTheme} slide={liturgyLayer} />
                 </div>
               </div>
               <div className={styles.caption} style={labelInk('none')}>
@@ -624,10 +623,9 @@ export function OtherSlideInspector({
               <div className={styles.picture} data-background-picture>
                 <div className={styles.canvas}>
                   {tile.sermonTitle === true && sermonTheme !== undefined ? (
-                    <SlidePicture output {...sermonTheme} slide={layer} />
+                    <SlidePicture {...sermonTheme} slide={layer} />
                   ) : (
                     <SlidePicture
-                      output
                       themeId={appearance.theme.themeId}
                       screen={appearance.screen}
                       slide={layer}

@@ -2,7 +2,7 @@ import {NDI_DEFAULT_FPS} from '@core/schema/screens';
 import type {SettingsReader} from '@core/schema/settingsReader';
 import type {SettingsEdit} from '@core/schema/settingsDocuments';
 import type {EditResult} from '@core/schema/contentEdit';
-import type {BrowserWindow} from 'electron';
+import {BrowserWindow, ipcMain} from 'electron';
 import {outputEndpoints} from '@contracts/ipc/output';
 import {MONITOR_LIST_MAX} from '@core/schema/monitors';
 import {createElectronDisplaySource} from '../displays/electronSource';
@@ -12,6 +12,11 @@ import type {Rect} from '../displays/rect';
 import {answerWindows, listenToWindows, sendToWindows} from '../ipc';
 import type {LiveStore} from '../live/store';
 import {parseFrameReadyReport} from '@core/schema/ipcPayloads';
+import {
+  parsePreviewControl,
+  parsePreviewFrame,
+  parsePreviewRequest,
+} from '@core/schema/previewMirror';
 import type {Logger} from '../log';
 import type {WindowMode} from '../windows/testWindows';
 import {
@@ -43,6 +48,13 @@ import type {ProblemFeed} from '../problemFeed';
 import {createNdiOutput} from '../ndi/output';
 import type {OutputScreen} from './screens';
 import type {OutputWindowEvents} from './outputWindow';
+import {
+  ackPresenterMirror,
+  hasPresenterMirror,
+  subscribePresenterMirror,
+} from './presenterMirror';
+import {createAlphaMirror} from './alphaMirror';
+import {PreviewFrameFanout} from './previewFrameFanout';
 
 /** What the output windows hang on. */
 export interface OutputContext {
@@ -192,6 +204,9 @@ export function startOutputs({
   const board = new OutputStatusBoard({
     screenStates: () => outputs.screenStates(),
     frameRate: screenId => frameRates.current(screenId),
+    contentSize: screenId =>
+      outputs.shownOutputs().find(value => value.screen.id === screenId)
+        ?.contentSize,
   });
   const makeElectronWindow = (
     screen: OutputScreen,
@@ -271,7 +286,270 @@ export function startOutputs({
     if (screens.ready && screens.list().length === 0) onPrepared?.();
   });
   outputs.start();
+  const previewSubscriptions = new Map<string, () => void>();
+  const alphaMirrors = new Map<string, ReturnType<typeof createAlphaMirror>>();
+  const previewSinks = new Map<string, (frame: Uint8Array | null) => void>();
+  const fanouts = new Map<string, PreviewFrameFanout>();
+  const captureOwners = new Map<string, number>();
+  const relays = new Map<string, boolean>();
+  const relayDue = new Map<string, number>();
+  const waitingUpstream = new Set<string>();
+  const clientStops = new Map<string, Map<number, () => void>>();
+  const previewWindow = (id: number): BrowserWindow | undefined => {
+    const win = BrowserWindow.getAllWindows().find(
+      value => !value.isDestroyed() && value.webContents.id === id,
+    );
+    if (win === undefined || win.webContents.isDestroyed()) return undefined;
+    if (win === control) return win;
+    try {
+      const url = new URL(win.webContents.getURL());
+      return win.getParentWindow() === control &&
+        url.pathname.endsWith('/index.html') &&
+        url.searchParams.get('window') === 'settings'
+        ? win
+        : undefined;
+    } catch {
+      return undefined;
+    }
+  };
+  const sendRelay = (
+    owner: number,
+    screenId: string,
+    enabled: boolean,
+  ): void => {
+    const win = previewWindow(owner);
+    if (!win || win.webContents.isDestroyed()) return;
+    try {
+      win.webContents.send(outputEndpoints.previewRelay.channel, {
+        screenId,
+        enabled,
+      });
+    } catch (error) {
+      log.warn('could not update preview relay', error);
+    }
+  };
+  const updateRelay = (screenId: string): void => {
+    const owner = captureOwners.get(screenId);
+    if (owner === undefined) return;
+    const enabled = (fanouts.get(screenId)?.size ?? 0) > 1;
+    if (relays.get(screenId) === enabled) return;
+    relays.set(screenId, enabled);
+    sendRelay(owner, screenId, enabled);
+  };
+  const stopAlpha = (screenId: string): void => {
+    alphaMirrors.get(screenId)?.stop();
+    alphaMirrors.delete(screenId);
+  };
+  const ensureAlpha = (screenId: string): boolean => {
+    const screen = screens.list().find(item => item.id === screenId);
+    const contents = outputs.previewContents(screenId);
+    const needed = screen?.target === 'ndi' || contents?.isOffscreen() === true;
+    if (store.state.outputs[screenId] !== true) {
+      stopAlpha(screenId);
+      return needed;
+    }
+    const sink = previewSinks.get(screenId);
+    if (
+      needed &&
+      sink !== undefined &&
+      !hasPresenterMirror(screenId) &&
+      !alphaMirrors.has(screenId)
+    ) {
+      alphaMirrors.set(
+        screenId,
+        createAlphaMirror({
+          source: () => outputs.previewContents(screenId),
+          outputActive: () => store.state.outputs[screenId] === true,
+          send: sink,
+        }),
+      );
+    }
+    return needed;
+  };
+  const ackUpstream = (screenId: string): void => {
+    if (!waitingUpstream.delete(screenId)) return;
+    const alpha = alphaMirrors.get(screenId);
+    if (alpha !== undefined) alpha.ack();
+    else ackPresenterMirror(screenId);
+  };
+  const removeClient = (screenId: string, sender: number): void => {
+    const stops = clientStops.get(screenId);
+    stops?.get(sender)?.();
+    stops?.delete(sender);
+    const fanout = fanouts.get(screenId);
+    fanout?.remove(sender);
+    if (captureOwners.get(screenId) === sender) {
+      captureOwners.delete(screenId);
+      relays.delete(screenId);
+      relayDue.delete(screenId);
+      fanout?.publish(null);
+    } else updateRelay(screenId);
+    if (fanout !== undefined && !fanout.empty) {
+      if (fanout.hasCapacity) ackUpstream(screenId);
+      return;
+    }
+    waitingUpstream.delete(screenId);
+    previewSubscriptions.get(screenId)?.();
+    previewSubscriptions.delete(screenId);
+    stopAlpha(screenId);
+    previewSinks.delete(screenId);
+    fanouts.delete(screenId);
+    clientStops.delete(screenId);
+  };
+  ipcMain.handle(
+    outputEndpoints.previewSource.channel,
+    (event, value: unknown) => {
+      const request = parsePreviewRequest(value);
+      if (
+        !request.ok ||
+        previewWindow(event.sender.id) === undefined ||
+        control.isDestroyed()
+      ) {
+        return null;
+      }
+      const screen = screens
+        .list()
+        .find(item => item.id === request.value.screenId);
+      if (screen === undefined) return null;
+      if (store.state.outputs[screen.id] !== true) return null;
+      if (ensureAlpha(screen.id)) return 'alpha';
+      const owner = captureOwners.get(screen.id);
+      if (owner !== undefined && owner !== event.sender.id) {
+        updateRelay(screen.id);
+        return 'relay';
+      }
+      const output = BrowserWindow.getAllWindows().find(win => {
+        if (win.isDestroyed() || win.webContents.isDestroyed()) return false;
+        try {
+          const url = new URL(win.webContents.getURL());
+          return (
+            url.pathname.endsWith('/output.html') &&
+            url.searchParams.get('screen') === request.value.screenId
+          );
+        } catch {
+          return false;
+        }
+      });
+      const source = output?.webContents.getMediaSourceId(event.sender) ?? null;
+      if (source !== null) {
+        captureOwners.set(screen.id, event.sender.id);
+        updateRelay(screen.id);
+      }
+      return source;
+    },
+  );
   const stops = [
+    () => {
+      for (const clients of clientStops.values()) {
+        for (const stop of clients.values()) stop();
+      }
+      clientStops.clear();
+      for (const unsubscribe of previewSubscriptions.values()) unsubscribe();
+      previewSubscriptions.clear();
+      alphaMirrors.clear();
+      previewSinks.clear();
+      fanouts.clear();
+      waitingUpstream.clear();
+      captureOwners.clear();
+      relays.clear();
+      relayDue.clear();
+    },
+    listenToWindows(outputEndpoints.previewPublish.channel, (value, sender) => {
+      const frame = parsePreviewFrame(value);
+      if (!frame.ok || frame.value.frame === null) return;
+      const {screenId} = frame.value;
+      if (
+        previewWindow(sender) === undefined ||
+        captureOwners.get(screenId) !== sender ||
+        store.state.outputs[screenId] !== true ||
+        performance.now() < (relayDue.get(screenId) ?? 0)
+      ) {
+        return;
+      }
+      relayDue.set(screenId, performance.now() + 100);
+      fanouts.get(screenId)?.publish(frame.value.frame, sender);
+    }),
+    listenToWindows(outputEndpoints.previewControl.channel, (value, sender) => {
+      const parsed = parsePreviewControl(value);
+      const win = previewWindow(sender);
+      if (!parsed.ok || control.isDestroyed() || win === undefined) return;
+      const {screenId, action} = parsed.value;
+      if (action === 'ack') {
+        const fanout = fanouts.get(screenId);
+        fanout?.ack(sender);
+        if (fanout?.hasCapacity) ackUpstream(screenId);
+        return;
+      }
+      removeClient(screenId, sender);
+      if (
+        action !== 'start' ||
+        !screens.list().some(screen => screen.id === screenId)
+      ) {
+        return;
+      }
+      let fanout = fanouts.get(screenId);
+      if (fanout === undefined) {
+        fanout = new PreviewFrameFanout();
+        fanouts.set(screenId, fanout);
+      }
+      const destroyed = (): void => removeClient(screenId, sender);
+      win.webContents.once('destroyed', destroyed);
+      const clients =
+        clientStops.get(screenId) ?? new Map<number, () => void>();
+      clients.set(sender, () =>
+        win.webContents.removeListener('destroyed', destroyed),
+      );
+      clientStops.set(screenId, clients);
+      fanout.add(sender, frame => {
+        if (win.isDestroyed() || win.webContents.isDestroyed()) {
+          removeClient(screenId, sender);
+          return;
+        }
+        try {
+          win.webContents.send(outputEndpoints.previewFrame.channel, {
+            screenId,
+            frame,
+          });
+        } catch (error) {
+          log.warn('could not send presenter preview frame', error);
+          removeClient(screenId, sender);
+        }
+      });
+      updateRelay(screenId);
+      if (previewSubscriptions.has(screenId)) return;
+      const send = (frame: Uint8Array | null): void => {
+        if (frame === null) waitingUpstream.delete(screenId);
+        else waitingUpstream.add(screenId);
+        const fanout = fanouts.get(screenId);
+        fanout?.publish(frame);
+        if (frame !== null && (fanout === undefined || fanout.hasCapacity)) {
+          ackUpstream(screenId);
+        }
+      };
+      previewSinks.set(screenId, send);
+      const unsubscribe = subscribePresenterMirror(
+        screenId,
+        send,
+        available => {
+          if (available) {
+            const owner = captureOwners.get(screenId);
+            if (owner !== undefined) {
+              sendRelay(owner, screenId, false);
+              captureOwners.delete(screenId);
+              relays.delete(screenId);
+              relayDue.delete(screenId);
+            }
+            stopAlpha(screenId);
+          } else ensureAlpha(screenId);
+        },
+      );
+      previewSubscriptions.set(screenId, () => {
+        unsubscribe();
+        stopAlpha(screenId);
+        previewSinks.delete(screenId);
+      });
+    }),
+    () => ipcMain.removeHandler(outputEndpoints.previewSource.channel),
     stopInitialMonitors,
     releaseResync,
     releaseNumbers,

@@ -2,6 +2,8 @@ import type {PictureRequest} from '@core/schema/picture';
 import type {MediaDocument} from '@core/schema/mediaEdit';
 import type {FontCatalogSnapshot} from '@core/schema/fontCatalog';
 import type {SongSlideSource} from '@core/schema/showService';
+import type {LlpApi} from '@contracts/ipc/api';
+import type {OutputStatuses} from '@core/schema/outputStatus';
 import {pictureKey} from '@core/output/pictureKey';
 import {themeOverlay} from '@core/themes/content';
 import {OUTPUT_REVEAL_DEADLINE_MS} from '@core/output/revealDeadline';
@@ -11,6 +13,29 @@ import {LocalPicturePainter} from './localPicturePainter';
 export type PictureSpec = PictureRequest['spec'] & {
   readonly songSource?: SongSlideSource | undefined;
 };
+
+function collectThemeMedia(
+  theme: PictureSpec['appearance']['theme'],
+  spec: PictureSpec,
+  ids: Set<string>,
+): void {
+  for (const element of theme.layout.elements) {
+    if (element.kind === 'image') ids.add(element.mediaId);
+    if (element.kind !== 'overlay') continue;
+    const content = themeOverlay(
+      theme.item,
+      spec.layers,
+      theme.sourceScreenId,
+    )?.content;
+    if (
+      content !== undefined &&
+      'media' in content &&
+      typeof content.media === 'string'
+    ) {
+      ids.add(content.media);
+    }
+  }
+}
 
 type Listener = () => void;
 
@@ -48,6 +73,7 @@ class Entry {
   done = false;
   editing = false;
   editorDraw: Promise<HTMLCanvasElement> | undefined;
+  reserved = false;
   immediate = false;
   failures = 0;
   retryAt = 0;
@@ -132,10 +158,15 @@ export class PictureService {
   private readonly displays = new WeakMap<Entry, Map<string, DisplayTicket>>();
   private media: MediaDocument | undefined;
   private records = new Map<string, MediaDocument['value']['items'][number]>();
+  private readonly screenSizes = new Map<
+    string,
+    {readonly width: number; readonly height: number}
+  >();
   private fontStamp = '';
   private fontUpdate = 0;
   private initialized = false;
   private inputsReady = Promise.resolve();
+  private inputsResolved = false;
 
   private active = 0;
   private bytes = 0;
@@ -146,6 +177,47 @@ export class PictureService {
   private importScope = new AbortController();
 
   constructor(private readonly options: {waitForReady?: boolean} = {}) {}
+
+  /** Last measured output size, or the configured size while unavailable. */
+  screenSize(
+    screen:
+      | {
+          readonly id: string;
+          readonly pictureSize?:
+            {readonly width: number; readonly height: number} | undefined;
+        }
+      | undefined,
+  ): {readonly width: number; readonly height: number} | undefined {
+    if (this.options.waitForReady) return pictures.screenSize(screen);
+    this.initialize();
+    if (screen === undefined) return undefined;
+    return this.screenSizes.get(screen.id) ?? screen.pictureSize;
+  }
+
+  private withScreenSizes(spec: PictureSpec): PictureSpec {
+    const screen = spec.appearance.screen;
+    const size = this.screenSize(screen);
+    const audience = spec.appearance.audience;
+    const audienceSize = this.screenSize(audience?.screen);
+    return {
+      ...spec,
+      appearance: {
+        ...spec.appearance,
+        screen: size === undefined ? screen : {...screen, pictureSize: size},
+        ...(audience === undefined
+          ? {}
+          : {
+              audience: {
+                ...audience,
+                screen:
+                  audienceSize === undefined
+                    ? audience.screen
+                    : {...audience.screen, pictureSize: audienceSize},
+              },
+            }),
+      },
+    };
+  }
 
   /** Handoffs need a renderer that lays out and prepares pictures. */
   get drawInPlace(): boolean {
@@ -184,7 +256,7 @@ export class PictureService {
       .then(() => {
         if (this.paintingEditor) return;
         this.editorPainter ??= new LocalPicturePainter();
-        this.editorPainter.warm(spec);
+        this.editorPainter.warm(this.withScreenSizes(spec));
       })
       .catch((error: unknown) => console.error(error));
   }
@@ -198,8 +270,20 @@ export class PictureService {
       layers: {...picture.layers, slide: {...slide, lines}},
     };
     const entry = this.request(next, this.inputs(next), {editing: true});
-    if (this.foreground.has(entry) && !this.paintingEditor) {
-      entry.editorDraw ??= this.paintEditor(entry);
+    if (
+      this.inputsResolved &&
+      this.foreground.has(entry) &&
+      !this.paintingEditor &&
+      !entry.done &&
+      entry.editorDraw === undefined &&
+      window.llp?.picture.reserve({
+        spec: entry.spec,
+        inputs: entry.inputs,
+      }) === true
+    ) {
+      entry.reserved = true;
+      entry.editorDraw = this.paintEditor(entry);
+      void entry.editorDraw.catch(() => this.releaseReservation(entry));
     }
   }
 
@@ -212,6 +296,7 @@ export class PictureService {
           const bytes = canvas.width * canvas.height * 4;
           this.bytes += bytes;
           entry.complete({source: canvas, bytes});
+          if (entry.reserved) this.remember(canvas, entry);
         })
         .finally(() => {
           this.paintingEditor = false;
@@ -237,27 +322,14 @@ export class PictureService {
     const ids = new Set<string>();
     const mediaId = spec.layers.media?.mediaId;
     if (mediaId !== undefined) ids.add(mediaId);
-    const {theme} = spec.appearance;
-    for (const element of theme.layout.elements) {
-      if (element.kind === 'image') ids.add(element.mediaId);
-      if (element.kind === 'overlay') {
-        const overlay = themeOverlay(
-          theme.item,
-          spec.layers,
-          theme.sourceScreenId,
-        );
-        const content = overlay?.content;
-        if (
-          content !== undefined &&
-          'media' in content &&
-          typeof content.media === 'string'
-        ) {
-          ids.add(content.media);
-        }
-      }
+    collectThemeMedia(spec.appearance.theme, spec, ids);
+    if (spec.appearance.audience !== undefined) {
+      collectThemeMedia(spec.appearance.audience.theme, spec, ids);
     }
     return JSON.stringify([
       this.fontStamp,
+      this.screenSize(spec.appearance.screen),
+      this.screenSize(spec.appearance.audience?.screen),
       [...ids].sort().map(id => [id, this.records.get(id) ?? null]),
     ]);
   }
@@ -270,6 +342,7 @@ export class PictureService {
       editing = false,
     }: {immediate?: boolean; editing?: boolean} = {},
   ): Entry {
+    spec = this.withScreenSizes(spec);
     const key = JSON.stringify([pictureKey(spec), inputs]);
     let entry = this.entries.get(key);
     if (entry === undefined) {
@@ -414,17 +487,56 @@ export class PictureService {
         notify();
       }
     };
+    const acceptSizes = (statuses: OutputStatuses): void => {
+      let changed = false;
+      for (const [id, status] of Object.entries(statuses)) {
+        const size = status.contentSize;
+        const previous = this.screenSizes.get(id);
+        if (size === undefined) {
+          if (this.screenSizes.delete(id)) changed = true;
+        } else if (
+          previous?.width !== size.width ||
+          previous.height !== size.height
+        ) {
+          this.screenSizes.set(id, size);
+          changed = true;
+        }
+      }
+      for (const id of this.screenSizes.keys()) {
+        if (!(id in statuses)) {
+          this.screenSizes.delete(id);
+          changed = true;
+        }
+      }
+      if (changed) notify();
+    };
+    const maybeApi: Partial<LlpApi> = api;
+    const output = maybeApi.output;
+    let pushedSizes = false;
+    output?.subscribeStatus(statuses => {
+      pushedSizes = true;
+      acceptSizes(statuses);
+    });
+    const statusReady = output?.getStatus().then(
+      statuses => {
+        if (!pushedSizes) acceptSizes(statuses);
+      },
+      () => undefined,
+    );
     api.media.subscribe(acceptMedia);
     api.fonts.subscribe(catalog => {
       acceptFonts(catalog).catch((error: unknown) => console.error(error));
     });
     this.inputsReady = Promise.all([
+      statusReady,
       api.media.get().then(acceptMedia, () => undefined),
       api.fonts
         .snapshot()
         .then(acceptFonts)
         .catch(() => undefined),
-    ]).then(() => undefined);
+    ]).then(() => {
+      this.inputsResolved = true;
+    });
   }
 
   private schedule(): void {
@@ -484,44 +596,18 @@ export class PictureService {
         return;
       }
       if (this.options.waitForReady) {
-        // NOTE(0913vision): The import's temporary backgrounds belong to this
-        // renderer. They never go into the shared painter or its disk cache.
-        this.editorPainter ??= new LocalPicturePainter();
-        const canvas = await this.editorPainter.paint(entry.spec, signal);
-        signal.throwIfAborted();
-        const blob = await new Promise<Blob>((resolve, reject) => {
-          canvas.toBlob(
-            image => {
-              if (image === null) {
-                reject(new Error('Could not encode import picture'));
-              } else resolve(image);
-            },
-            'image/webp',
-            0.92,
-          );
-        });
-        signal.throwIfAborted();
-        const source = await this.decode(blob);
-        if (signal.aborted) {
-          URL.revokeObjectURL(source);
-          return;
-        }
-        this.bytes += blob.size;
-        entry.complete({source, bytes: blob.size});
-        this.prune();
+        await this.loadImport(entry, inputs, signal);
         return;
       }
-      if (entry.editing && LocalPicturePainter.available()) {
+      if (entry.reserved && LocalPicturePainter.available()) {
         const draw = entry.editorDraw ?? this.paintEditor(entry);
         const canvas = await draw.catch(() => undefined);
         entry.editorDraw = undefined;
         if (canvas !== undefined) {
-          requestIdleCallback(() => this.remember(canvas, entry), {
-            timeout: 1000,
-          });
           this.prune();
           return;
         }
+        this.releaseReservation(entry);
       }
       const bytes = await window.llp?.picture.paint({
         spec: entry.spec,
@@ -550,6 +636,69 @@ export class PictureService {
       this.retry(entry);
     }
     this.prune();
+  }
+
+  private async loadImport(
+    entry: Entry,
+    inputs: string,
+    signal: AbortSignal,
+  ): Promise<void> {
+    const api = window.llp?.picture;
+    const request = {spec: entry.spec, inputs};
+    let claimed = api?.reserve(request) ?? false;
+    try {
+      let bytes: Uint8Array | null = null;
+      if (api !== undefined && !claimed) {
+        const result = await this.findImportPicture(api, request, signal);
+        bytes = result.bytes;
+        claimed = result.claimed;
+      }
+      let blob: Blob;
+      if (bytes !== null) {
+        blob = new Blob([new Uint8Array(bytes)], {
+          type: bytes[0] === 0x89 ? 'image/png' : 'image/jpeg',
+        });
+      } else {
+        this.editorPainter ??= new LocalPicturePainter();
+        const canvas = await this.editorPainter.paint(entry.spec, signal);
+        signal.throwIfAborted();
+        blob = await new Promise<Blob>((resolve, reject) => {
+          canvas.toBlob(image => {
+            if (image === null) {
+              reject(new Error('Could not encode import picture'));
+            } else resolve(image);
+          }, 'image/png');
+        });
+        signal.throwIfAborted();
+        if (api !== undefined) {
+          await this.storeEncoded(entry, blob);
+          claimed = false;
+        }
+      }
+      signal.throwIfAborted();
+      const source = await this.decode(blob);
+      if (signal.aborted) {
+        URL.revokeObjectURL(source);
+        return;
+      }
+      this.bytes += blob.size;
+      entry.complete({source, bytes: blob.size});
+      this.prune();
+    } finally {
+      if (claimed) api?.release(request);
+    }
+  }
+
+  private async findImportPicture(
+    api: LlpApi['picture'],
+    request: PictureRequest,
+    signal: AbortSignal,
+  ): Promise<{bytes: Uint8Array | null; claimed: boolean}> {
+    const bytes = await api.peek(request);
+    signal.throwIfAborted();
+    if (bytes !== null) return {bytes, claimed: false};
+    const claimed = api.reserve(request);
+    return {bytes: claimed ? null : await api.peek(request), claimed};
   }
 
   private retry(entry: Entry): void {
@@ -593,14 +742,25 @@ export class PictureService {
   private remember(canvas: HTMLCanvasElement, entry: Entry): void {
     try {
       canvas.toBlob(blob => {
-        if (blob === null) return;
-        this.storeEncoded(entry, blob).catch((error: unknown) =>
-          console.error(error),
-        );
+        if (blob === null) {
+          this.releaseReservation(entry);
+          return;
+        }
+        this.storeEncoded(entry, blob).catch((error: unknown) => {
+          this.releaseReservation(entry);
+          console.error(error);
+        });
       }, 'image/png');
     } catch (error) {
+      this.releaseReservation(entry);
       console.error('Could not encode the edited picture', error);
     }
+  }
+
+  private releaseReservation(entry: Entry): void {
+    if (!entry.reserved) return;
+    entry.reserved = false;
+    window.llp?.picture.release({spec: entry.spec, inputs: entry.inputs});
   }
 
   private async storeEncoded(entry: Entry, blob: Blob): Promise<void> {
