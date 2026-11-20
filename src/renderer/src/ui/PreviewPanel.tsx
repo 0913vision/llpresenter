@@ -50,8 +50,8 @@ export function PreviewPanel<Id extends string>({
             <SegmentedControl
               label="미리보기 배치"
               options={[
-                {value: 'single', label: '기존'},
-                {value: 'main', label: '메인 1 + 2'},
+                {value: 'single', label: '한 화면'},
+                {value: 'main', label: '세 화면'},
               ]}
               value={visible ? 'main' : 'single'}
               onChange={value => {

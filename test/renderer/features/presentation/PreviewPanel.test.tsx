@@ -121,13 +121,13 @@ describe('PreviewPanel layout', () => {
     window.llp = mockLlpApi({ui: {setRememberedView: save}});
     seedPreview({previewBigVisible: false});
     const {container} = render(<PreviewPanel />);
-    const hidden = screen.getByRole('radio', {name: '메인 1 + 2'});
+    const hidden = screen.getByRole('radio', {name: '세 화면'});
     expect(container.querySelector('[data-role="large"]')).not.toBeNull();
     expect(container.querySelectorAll('[data-preview-slot]')).toHaveLength(0);
     fireEvent.click(hidden);
     expect(save).toHaveBeenCalledWith({previewBigVisible: true});
     expect(container.querySelector('[data-role="large"]')).not.toBeNull();
-    fireEvent.click(screen.getByRole('radio', {name: '기존'}));
+    fireEvent.click(screen.getByRole('radio', {name: '한 화면'}));
     expect(save).toHaveBeenLastCalledWith({previewBigVisible: false});
   });
 
@@ -355,7 +355,7 @@ describe('PreviewPanel screen list changes', () => {
     expect(view.container.querySelectorAll('[data-preview-slot]')).toHaveLength(
       0,
     );
-    expect(screen.getByRole('radio', {name: '메인 1 + 2'})).toBeDefined();
+    expect(screen.getByRole('radio', {name: '세 화면'})).toBeDefined();
     expect(view.container.querySelectorAll('[data-screen]')).toHaveLength(0);
   });
 });

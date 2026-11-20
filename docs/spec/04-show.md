@@ -473,8 +473,8 @@ each preview follows ProPresenter's rule: it shows what goes out.
 ### Layout and states
 
 - The layout selector sits at the right end of the preview header. It offers
-  exactly `기존` (one large picture with the screen picker below) and
-  `메인 1 + 2` (one large picture and the other two small). Choosing a
+  exactly `한 화면` (one large picture with the screen picker below) and
+  `세 화면` (one large picture and the other two small). Choosing a
   screen never changes the selected layout or sends an output command.
 
 - The panel shows one of the three screens large and the other two small. The

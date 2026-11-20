@@ -56,9 +56,9 @@ describe('shared preview panel', () => {
         renderScreen={() => null}
       />,
     );
-    fireEvent.click(screen.getByRole('radio', {name: '기존'}));
+    fireEvent.click(screen.getByRole('radio', {name: '한 화면'}));
     expect(change).toHaveBeenCalledWith(false);
-    expect(screen.getByRole('radio', {name: '메인 1 + 2'})).toBeDefined();
+    expect(screen.getByRole('radio', {name: '세 화면'})).toBeDefined();
   });
   it('keeps adjustable show tiles and resets the saved split on double click', () => {
     vi.mocked(usePreviewRoom).mockReturnValue(false);
@@ -140,11 +140,11 @@ describe('shared preview panel', () => {
       </PreviewSizingContext.Provider>
     );
     const view = render(panel(true));
-    fireEvent.click(screen.getByRole('radio', {name: '기존'}));
+    fireEvent.click(screen.getByRole('radio', {name: '한 화면'}));
     expect(save).toHaveBeenLastCalledWith(0.667);
     expect(change).toHaveBeenLastCalledWith(false);
     view.rerender(panel(false));
-    fireEvent.click(screen.getByRole('radio', {name: '메인 1 + 2'}));
+    fireEvent.click(screen.getByRole('radio', {name: '세 화면'}));
     expect(save).toHaveBeenCalledTimes(2);
     expect(save).toHaveBeenLastCalledWith(0.667);
     expect(change).toHaveBeenLastCalledWith(true);
