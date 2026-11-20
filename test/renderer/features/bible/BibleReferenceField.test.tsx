@@ -141,7 +141,7 @@ describe('Show Bible reference mount', () => {
       expect(screen.getByRole('option').getAttribute('aria-selected')).toBe(
         'false',
       );
-      await view.user.keyboard('{ArrowDown}{Enter}');
+      await view.user.click(screen.getByRole('option'));
       expect(view.onShow).not.toHaveBeenCalled();
       await waitFor(() =>
         expect(view.onPreview).toHaveBeenCalledWith(
