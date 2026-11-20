@@ -160,7 +160,7 @@ it('keeps the song settings paired while the slides editor is still opening', as
 });
 
 it('focuses the new song title when Ctrl N replaces an existing song', async () => {
-  const f = setup();
+  const f = setup(false, false, true);
   await userEvent.dblClick(screen.getByRole('option', {name: /Service song/}));
   await waitFor(() =>
     expect(f.session.editor?.getSnapshot().session?.itemSession).toBe(true),
