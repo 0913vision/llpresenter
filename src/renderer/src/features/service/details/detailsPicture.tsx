@@ -42,7 +42,10 @@ interface PictureContext {
   readonly theme: ReturnType<typeof useSlideTheme>;
   readonly cardTheme: ReturnType<typeof useSlideTheme>;
   readonly sermonTheme: ReturnType<typeof useSlideTheme>;
-  readonly projection: ReturnType<typeof useBibleTileProjection>;
+  readonly projection: Pick<
+    NonNullable<ReturnType<typeof useBibleTileProjection>>,
+    'tiles' | 'appearance'
+  > | null;
   readonly bibleTiles:
     NonNullable<ReturnType<typeof useBibleTileProjection>>['tiles'] | undefined;
   readonly editor: SongEditorStore;
@@ -88,6 +91,9 @@ function biblePicture(
   return (
     <SlidePicture
       {...biblePictureInput(slide, bibleAppearance ?? projection.appearance, {
+        background: projection.appearance.background,
+        sourceScreenId: (bibleAppearance ?? projection.appearance).theme
+          .sourceScreenId,
         audience: bibleAppearance?.audience,
         stageLyricLabelPosition: bibleAppearance?.stageLyricLabelPosition,
       })}
@@ -126,6 +132,12 @@ function songPicture(
           ...(slide.titleSlide === undefined
             ? {}
             : {titleSlide: slide.titleSlide}),
+          ...(slide.titleLineCount === undefined
+            ? {}
+            : {titleLineCount: slide.titleLineCount}),
+          ...(slide.lyricFormat === undefined
+            ? {}
+            : {lyricFormat: slide.lyricFormat}),
           ...(slide.titleLayout === undefined
             ? {}
             : {titleLayout: slide.titleLayout}),
@@ -140,25 +152,19 @@ function libraryPicture(
   index: number,
 ): JSX.Element | undefined {
   const {library, theme} = context;
-  const slide = library?.tiles[index];
-  if (library === null || slide === undefined || theme === undefined) {
-    return undefined;
-  }
+  if (library === null || theme === undefined) return undefined;
+  const tile = library.tiles[index];
+  const slide = slideLayerOf(
+    {itemId: library.songId, index},
+    () => library.tiles,
+  );
+  if (tile === undefined || slide === null) return undefined;
   return (
     <SlidePicture
       {...theme}
       background={library.background?.mediaId}
-      songSource={slide.sourceSlide}
-      slide={songPictureLayer(library.songId, index, {
-        lines: slide.lines,
-        ...(slide.label == null ? {} : {label: slide.label}),
-        ...(slide.titleSlide === undefined
-          ? {}
-          : {titleSlide: slide.titleSlide}),
-        ...(slide.titleLayout === undefined
-          ? {}
-          : {titleLayout: slide.titleLayout}),
-      })}
+      songSource={tile.sourceSlide}
+      slide={slide}
     />
   );
 }
