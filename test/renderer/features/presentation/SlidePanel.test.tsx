@@ -19,8 +19,8 @@ import {
   SlidePanelBody,
   SlidePanelMeta,
   SlidePanelFooter,
-  SlideSizeControl,
 } from '@renderer/features/presentation/SlidePanel';
+import {SlideSizeControl} from '@renderer/platform/SlideSizeControl';
 
 vi.mock(
   '@renderer/rendering/pictures/Picture',
@@ -140,7 +140,7 @@ describe('SlidePanelMeta', () => {
     expect(
       await screen.findByText('맑은 시냇물', {}, {timeout: 3000}),
     ).toBeTruthy();
-    expect(screen.getByText('3개')).toBeTruthy();
+    expect(screen.queryByText('3개')).toBeNull();
   });
 
   it('shows the live item and position while a different item is in the continuous view', () => {
@@ -247,7 +247,7 @@ describe('SlidePanel with a library source', () => {
     useShow.setState({librarySong: null});
   });
 
-  it('shows the source title, its 장 count, and its lyrics', () => {
+  it('shows the source title and lyrics without a footer count', () => {
     openLibrarySong(librarySong());
     render(
       <>
@@ -258,7 +258,7 @@ describe('SlidePanel with a library source', () => {
     );
 
     expect(screen.getByText('새벽의 빛')).toBeDefined();
-    expect(screen.getByText('2개')).toBeDefined();
+    expect(screen.queryByText('2개')).toBeNull();
     const first = screen.getByRole('option', {name: /창작한 첫 줄/u});
     expect(previewSpec(first)?.layers.slide?.lines).toEqual(['창작한 첫 줄']);
   });

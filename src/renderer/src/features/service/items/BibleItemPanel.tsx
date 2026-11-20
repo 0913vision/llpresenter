@@ -5,13 +5,9 @@ import type {ServiceItemOf} from '@core/schema/service';
 import {VirtualSlides} from '@renderer/features/songs/editor/VirtualSlides';
 import {defaultThumbnailColumns, type SizeClass} from '@renderer/ui/sizeClass';
 import {useShow} from '@renderer/session/show';
-import {
-  saveThumbnailScale,
-  showThumbnailScale,
-  useThumbnailScale,
-} from '@renderer/platform/thumbnailScale';
+import {useThumbnailScale} from '@renderer/platform/thumbnailScale';
+import {SlideSizeControl} from '@renderer/platform/SlideSizeControl';
 import {Panel, PanelBody, PanelHeader, PanelTitle} from '@renderer/ui/Panel';
-import {ThumbnailSizeControl} from '@renderer/ui/ThumbnailSizeControl';
 import {GridFooter} from '@renderer/ui/GridFooter';
 import {ITEM_PANEL_LABEL} from './OtherItemPanel';
 import {shownPosition} from '../../songs/editor/songItemModel';
@@ -92,14 +88,7 @@ export function BibleItemPanel({
       </PanelBody>
       <GridFooter
         count={tiles.length + cardOffset(item)}
-        zoom={
-          <ThumbnailSizeControl
-            compact
-            value={scale}
-            onChange={value => showThumbnailScale(sizeClass, value)}
-            onCommit={value => saveThumbnailScale(sizeClass, value)}
-          />
-        }
+        zoom={<SlideSizeControl sizeClass={sizeClass} workspace="prep" />}
       />
     </Panel>
   );

@@ -5,16 +5,12 @@ import {useShow} from '@renderer/session/show';
 import {
   isLibrarySource,
   projectedLiveCursor,
-  shownTilesFor,
   tilesForView,
   useLiveTileIndex,
 } from '@renderer/session/showLibrary';
-import {
-  saveThumbnailScale,
-  showThumbnailScale,
-  useThumbnailScale,
-} from '@renderer/platform/thumbnailScale';
-import {Button, Icon, ThumbnailSizeControl} from '@renderer/ui';
+import {useThumbnailScale} from '@renderer/platform/thumbnailScale';
+import {SlideSizeControl} from '@renderer/platform/SlideSizeControl';
+import {Button, Icon} from '@renderer/ui';
 import {missingBackgroundTip} from '@renderer/features/media/backgroundChoices';
 import {openSongEditorWindow} from '@renderer/features/songs/editor/openWindow';
 import {editorTask} from '@renderer/features/songs/editor/editorTask';
@@ -152,12 +148,9 @@ export function SlidePanelFooter({
 }: {
   readonly sizeClass: SizeClass;
 }): JSX.Element {
-  const shownItemId = useShownItemId();
-  const count = useShow(view => shownTilesFor(view, shownItemId)?.length ?? 0);
   const live = useSyncExternalStore(liveReturn.subscribe, liveReturn.get);
   return (
     <GridFooter
-      count={count}
       actions={
         live === 'none' ? null : (
           <Button
@@ -170,29 +163,6 @@ export function SlidePanelFooter({
         )
       }
       zoom={<SlideSizeControl sizeClass={sizeClass} />}
-    />
-  );
-}
-
-/**
- * The 슬라이드 size control in the footer of the 슬라이드 panel: the grid
- * follows a drag at once, and the finished size is saved for the size class.
- */
-export function SlideSizeControl({
-  sizeClass,
-}: {
-  readonly sizeClass: SizeClass;
-}): JSX.Element {
-  // NOTE(0913vision): The control is new for each size class, so a % draft
-  // typed in one size class is dropped, not saved to the next one.
-  return (
-    <ThumbnailSizeControl
-      key={sizeClass}
-      workspace="show"
-      compact
-      value={useThumbnailScale(sizeClass)}
-      onChange={percent => showThumbnailScale(sizeClass, percent)}
-      onCommit={percent => saveThumbnailScale(sizeClass, percent)}
     />
   );
 }

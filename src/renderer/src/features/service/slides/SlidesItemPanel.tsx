@@ -18,12 +18,8 @@ import {
   PanelTitle,
 } from '@renderer/ui';
 import {GridFooter} from '@renderer/ui/GridFooter';
-import {ThumbnailSizeControl} from '@renderer/ui/ThumbnailSizeControl';
-import {
-  useThumbnailScale,
-  showThumbnailScale,
-  saveThumbnailScale,
-} from '@renderer/platform/thumbnailScale';
+import {SlideSizeControl} from '@renderer/platform/SlideSizeControl';
+import {useThumbnailScale} from '@renderer/platform/thumbnailScale';
 import type {ServiceItemStore} from '../items/serviceItemStore';
 import {useItemMedia, useItemSettings} from '../items/useItemSources';
 import {SlidesCanvas, slideBand, useSlidesAppearance} from './SlidesVisuals';
@@ -179,14 +175,7 @@ function SlidesItemTiles({
       </PanelBody>
       <GridFooter
         count={view.slides.length + cardOffset(item)}
-        zoom={
-          <ThumbnailSizeControl
-            compact
-            value={scale}
-            onChange={value => showThumbnailScale('normal', value)}
-            onCommit={value => saveThumbnailScale('normal', value)}
-          />
-        }
+        zoom={<SlideSizeControl sizeClass="normal" workspace="prep" />}
       />
     </Panel>
   );
