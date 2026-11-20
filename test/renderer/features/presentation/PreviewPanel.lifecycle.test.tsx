@@ -15,15 +15,25 @@ import {useLive} from '@renderer/session/live';
 const stop = vi.fn();
 const capture = vi.fn();
 const source = vi.fn();
+const subscribe = vi.fn(() => () => undefined);
+const control = vi.fn();
 
 beforeEach(() => {
   stop.mockReset();
   source.mockReset().mockResolvedValue('AAAAAAAAAAAAAAAAAAAAAA==');
+  subscribe.mockClear();
+  control.mockClear();
   capture.mockReset().mockImplementation(async () => {
     const track = {stop, onended: null};
     return {getTracks: () => [track], getVideoTracks: () => [track]};
   });
-  window.llp = mockLlpApi({output: {previewSource: source}});
+  window.llp = mockLlpApi({
+    output: {
+      previewSource: source,
+      subscribePreviewFrame: subscribe,
+      previewControl: control,
+    },
+  });
   vi.stubGlobal('navigator', {mediaDevices: {getUserMedia: capture}});
   vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue(undefined);
   useLive.setState({
@@ -52,6 +62,8 @@ describe('PreviewPanel mirror lifecycle', () => {
     const {container, unmount} = render(<PreviewPanel />);
     expect(source).not.toHaveBeenCalled();
     expect(capture).not.toHaveBeenCalled();
+    expect(subscribe).not.toHaveBeenCalled();
+    expect(control).not.toHaveBeenCalled();
     expect(container.querySelectorAll('video')).toHaveLength(0);
     const tile = container.querySelector<HTMLButtonElement>(
       '[data-preview-slot]',
@@ -60,6 +72,8 @@ describe('PreviewPanel mirror lifecycle', () => {
     fireEvent.click(tile);
     expect(source).not.toHaveBeenCalled();
     expect(capture).not.toHaveBeenCalled();
+    expect(subscribe).not.toHaveBeenCalled();
+    expect(control).not.toHaveBeenCalled();
     expect(stop).not.toHaveBeenCalled();
     unmount();
     expect(stop).not.toHaveBeenCalled();
