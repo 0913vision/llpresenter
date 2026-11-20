@@ -23,13 +23,7 @@ const NO_STILL_SCREENS: ReadonlySet<string> = new Set();
 
 function renderScreen(screen: PreviewScreen<string>): JSX.Element {
   return screen.status.kind === 'on' ? (
-    <OutputMirror
-      screenId={screen.id}
-      targetKind={screen.target?.kind}
-      fallback={
-        <ScreenPreview screenId={screen.id} chroma={screen.chroma === true} />
-      }
-    />
+    <OutputMirror screenId={screen.id} targetKind={screen.target?.kind} />
   ) : (
     <ScreenPreview screenId={screen.id} chroma={screen.chroma === true} />
   );
