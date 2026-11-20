@@ -86,7 +86,9 @@ export function pictureKey({layers, appearance}: PictureSpec): string {
           stage || draws('nextText') || draws('nextLabel') ? slide.next : null,
           broadcast ? slide.bibleItemSlides : null,
           // NOTE(0913vision): Only referenced text slides need new pictures.
-          ...(isReferencedTextSlide(slide, item?.kind) ? ['scripture'] : []),
+          ...(isReferencedTextSlide(slide, item?.kind)
+            ? [stage ? 'scripture-stage' : 'scripture']
+            : []),
         ],
     media === null
       ? null

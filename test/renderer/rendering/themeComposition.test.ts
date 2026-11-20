@@ -124,14 +124,20 @@ describe('theme composition drawing', () => {
       }
       const reference = '하박국 3:17~19';
       const text = '17 비록 무화과나무가\n무성하지 못하며';
-      const longerText = '18 나는 여호와로 말미암아 즐거워하며';
+      const longerText =
+        '18 나는 여호와로 말미암아 즐거워하며\n나의 구원의 하나님으로 말미암아 기뻐하리로다';
       const tiles = projectSlides({
         ...item,
         slides: {
           ...item.slides,
           slides: [
             {id: first.id, text, reference},
-            {id: second.id, text: longerText, reference},
+            {
+              id: second.id,
+              text: longerText,
+              reference,
+              ...(form === 'ad' ? {name: '다음 장'} : {}),
+            },
           ],
         },
       });
@@ -146,7 +152,11 @@ describe('theme composition drawing', () => {
         {kind: 'stage', id: createScreenId(STARTER_SCREEN_IDS.stage)},
         {kind: 'broadcast', id: createScreenId(STARTER_SCREEN_IDS.broadcast)},
       ] as const;
-      function render(passage: boolean, screen: (typeof screens)[number]) {
+      function render(
+        passage: boolean,
+        screen: (typeof screens)[number],
+        stageTheme = theme,
+      ) {
         const source = passage ? bibleTiles : tiles;
         const slide = slideLayerOf({itemId: item.id, index: 0}, () => source);
         if (slide === null) throw Error('Missing live slide');
@@ -159,10 +169,11 @@ describe('theme composition drawing', () => {
           throw Error('Missing slide command');
         }
         const frameFor = (id: typeof screen.id) => {
-          const layout = theme.screens[id];
+          const selected = id === screens[1].id ? stageTheme : theme;
+          const layout = selected.screens[id];
           if (layout === undefined) throw Error('Missing Bible screen layout');
           return {
-            themeId: theme.id,
+            themeId: selected.id,
             revision: 1,
             missing: [],
             emptyColor: '#000000',
@@ -223,8 +234,25 @@ describe('theme composition drawing', () => {
             `[data-kind="reference"] .${classes.shown}`,
           )?.textContent,
         };
+        const next = page?.querySelector<HTMLElement>('[data-kind="nextText"]');
+        const nextShown = next?.querySelector<HTMLElement>(`.${classes.shown}`);
+        const nextText = nextShown?.querySelector<HTMLElement>(
+          `.${classes.block}`,
+        );
+        const following = {
+          frame: [
+            next?.style.left,
+            next?.style.top,
+            next?.style.width,
+            next?.style.height,
+          ],
+          wrap: next?.style.textWrap,
+          size: nextText?.style.fontSize,
+          alignment: nextShown?.style.textAlign,
+          lines: nextText?.textContent,
+        };
         view.dispose();
-        return result;
+        return {...result, following};
       }
       const fitted = vi
         .spyOn(ThemeElementView.prototype, 'fittedTextSize')
@@ -234,7 +262,7 @@ describe('theme composition drawing', () => {
         function (this: HTMLElement) {
           return this.closest('[data-slide-measure]') === null
             ? 0
-            : this.textContent === longerText
+            : this.textContent === longerText.replace('\n', ' ')
               ? 140
               : 80;
         },
@@ -247,7 +275,31 @@ describe('theme composition drawing', () => {
         if (screen.kind === 'audience') {
           expect(bible.alignment[1]).toBe('flex-start');
         }
-        if (screen.kind === 'stage') expect(target).toHaveBeenCalledWith(71);
+        if (screen.kind === 'stage') {
+          expect(target).toHaveBeenCalledWith(71);
+          expect(bible.following.wrap).toBe('balance');
+          expect(bible.following.lines).toBe(longerText.replace('\n', ' '));
+          const songTheme = currentBuiltInTheme('song');
+          const stage = songTheme.screens[screen.id];
+          if (!stage) throw Error('Missing stage layout');
+          const wider = {
+            ...songTheme,
+            screens: {
+              ...songTheme.screens,
+              [screen.id]: {
+                ...stage,
+                elements: stage.elements.map(element =>
+                  element.kind === 'currentText' || element.kind === 'nextText'
+                    ? {...element, frame: {...element.frame, w: 1800}}
+                    : element,
+                ),
+              },
+            },
+          };
+          const {reference: _ref, ...actual} = render(false, screen, wider);
+          const {reference: _bibleRef, ...expected} = bible;
+          expect(actual).toEqual(expected);
+        }
         if (screen.kind === 'broadcast') {
           expect(bible.frame[3]).toBe('140px');
         }

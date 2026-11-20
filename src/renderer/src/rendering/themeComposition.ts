@@ -1,6 +1,7 @@
 import {isSectionTheme} from '@core/themes/sundaySections';
 import {fitBroadcastLook, isBroadcastLook} from './broadcastLook';
 import {stageBarLayout} from './stageBar';
+import {stageScriptureLayout} from './stageScripture';
 import type {LiveLayers} from '@core/live/state';
 import type {SlideLayer} from '@core/live/state';
 import type {LiveThemeItem} from '@core/schema/liveTheme';
@@ -205,13 +206,19 @@ export class ThemeCompositionView {
           ...frame.theme,
           layout: songTitleLayout(
             stageBarLayout(
-              this.fitBand(frame.theme.layout, slide, {
-                item: frame.theme.item,
-                songCaption:
-                  frame.screen?.kind === 'broadcast'
-                    ? (frame.screen.songCaption ?? 'band')
-                    : 'band',
-              }),
+              this.fitBand(
+                frame.screen?.kind === 'stage'
+                  ? stageScriptureLayout(frame.theme, slide)
+                  : frame.theme.layout,
+                slide,
+                {
+                  item: frame.theme.item,
+                  songCaption:
+                    frame.screen?.kind === 'broadcast'
+                      ? (frame.screen.songCaption ?? 'band')
+                      : 'band',
+                },
+              ),
               {
                 stage: frame.screen?.kind === 'stage',
                 message: null,
