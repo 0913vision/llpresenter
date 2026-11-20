@@ -1,6 +1,5 @@
 import * as songEditorRequests from '@renderer/features/songs/editor/songEditorRequests';
-import {StrictMode, useContext, useLayoutEffect, useRef} from 'react';
-import {PictureReadiness} from '@renderer/rendering/PictureReadiness';
+import {StrictMode} from 'react';
 import {
   cleanup,
   fireEvent,
@@ -26,33 +25,7 @@ import {isItemOfKind} from '@core/schema/service';
 import {otherItems, templateOrder} from '@fixtures/core/serviceList';
 import {resetTooltips} from '@fixtures/renderer/ui/tooltipTesting';
 
-vi.mock('@renderer/rendering/outputRenderer', () => ({
-  OutputRenderer: class {
-    ready = () => true;
-    revealIncomplete = () => undefined;
-    render = vi.fn();
-    dispose = vi.fn();
-  },
-}));
-vi.mock(
-  '@renderer/rendering/pictures/Picture',
-  () => import('@fixtures/renderer/picture'),
-);
-vi.mock('@renderer/rendering/SlidePicture', () => ({
-  SlidePicture: () => {
-    const ready = useContext(PictureReadiness);
-    const source = useRef({});
-    useLayoutEffect(() => ready?.(source.current), [ready]);
-    return null;
-  },
-}));
-
 const sessions: ControlSession[] = [];
-
-// NOTE(0913vision): jsdom has no layout for the hidden preparation frame.
-vi.mock('@renderer/rendering/drawnPictures', () => ({
-  drawnPictures: () => 1,
-}));
 
 function setup(extraSlides = false, songCard = false, strict = false) {
   const f = itemFixture();

@@ -1,3 +1,5 @@
+import {useContext, useLayoutEffect, useRef} from 'react';
+import {PictureReadiness} from '@renderer/rendering/PictureReadiness';
 import * as songEditorRequests from '@renderer/features/songs/editor/songEditorRequests';
 import {MEDIA_DRAG_MIME} from '@renderer/features/media/mediaDrag';
 import {fixtureMedia} from '@fixtures/core/mediaList';
@@ -49,6 +51,32 @@ it.each(['double-click', 'Enter'] as const)(
     expect(document.activeElement).toBe(row);
   },
 );
+
+vi.mock('@renderer/rendering/outputRenderer', () => ({
+  OutputRenderer: class {
+    ready = () => true;
+    revealIncomplete = () => undefined;
+    render = vi.fn();
+    dispose = vi.fn();
+  },
+}));
+vi.mock(
+  '@renderer/rendering/pictures/Picture',
+  () => import('@fixtures/renderer/picture'),
+);
+vi.mock('@renderer/rendering/SlidePicture', () => ({
+  SlidePicture: () => {
+    const ready = useContext(PictureReadiness);
+    const source = useRef({});
+    useLayoutEffect(() => ready?.(source.current), [ready]);
+    return null;
+  },
+}));
+
+// NOTE(0913vision): jsdom has no layout for the hidden preparation frame.
+vi.mock('@renderer/rendering/drawnPictures', () => ({
+  drawnPictures: () => 1,
+}));
 
 it('selects the source slide and focuses commands after opening from the right grid', async () => {
   const f = setup();

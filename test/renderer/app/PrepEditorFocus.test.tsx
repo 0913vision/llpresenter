@@ -1,3 +1,5 @@
+import {useContext, useLayoutEffect, useRef} from 'react';
+import {PictureReadiness} from '@renderer/rendering/PictureReadiness';
 import {act, fireEvent, screen, waitFor, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {expect, it, vi} from 'vitest';
@@ -9,6 +11,32 @@ import {
   setup,
   commandList,
 } from '@fixtures/renderer/app/prepEditorFocusTesting';
+
+vi.mock('@renderer/rendering/outputRenderer', () => ({
+  OutputRenderer: class {
+    ready = () => true;
+    revealIncomplete = () => undefined;
+    render = vi.fn();
+    dispose = vi.fn();
+  },
+}));
+vi.mock(
+  '@renderer/rendering/pictures/Picture',
+  () => import('@fixtures/renderer/picture'),
+);
+vi.mock('@renderer/rendering/SlidePicture', () => ({
+  SlidePicture: () => {
+    const ready = useContext(PictureReadiness);
+    const source = useRef({});
+    useLayoutEffect(() => ready?.(source.current), [ready]);
+    return null;
+  },
+}));
+
+// NOTE(0913vision): jsdom has no layout for the hidden preparation frame.
+vi.mock('@renderer/rendering/drawnPictures', () => ({
+  drawnPictures: () => 1,
+}));
 
 it('keeps the editor while 진행 is shown without letting Escape close it', async () => {
   const f = setup(false, false, true);
