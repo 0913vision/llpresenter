@@ -44,6 +44,7 @@ export interface SplitAppearance {
 interface SplitOptions {
   readonly background?: string;
   readonly sermonTitle?: string;
+  readonly sermonReference?: string;
   readonly sermonOpeningLabel?: string;
   readonly sermonClosingLabel?: string;
   readonly labels?: readonly BiblePartLabel[];
@@ -158,6 +159,9 @@ export function splitSourceFor(
     ...(row.bible.sermonTitle === undefined
       ? {}
       : {sermonTitle: row.bible.sermonTitle}),
+    ...(row.bible.sermonReference === undefined
+      ? {}
+      : {sermonReference: row.bible.sermonReference}),
     ...(row.bible.sermonOpeningLabel === undefined
       ? {}
       : {sermonOpeningLabel: row.bible.sermonOpeningLabel}),
@@ -290,7 +294,7 @@ export function projectBible(
                 : {slideLabel: source.sermonOpeningLabel}),
               labelColor: NO_LABEL_COLOR,
               lines: [source.sermonTitle],
-              reference: source.passage.displayRef,
+              reference: source.sermonReference ?? source.passage.displayRef,
               sermonTitle: true,
               ...(source.sermonOpeningTransition === undefined
                 ? {}
@@ -304,7 +308,7 @@ export function projectBible(
                 : {slideLabel: source.sermonClosingLabel}),
               labelColor: NO_LABEL_COLOR,
               lines: [source.sermonTitle],
-              reference: source.passage.displayRef,
+              reference: source.sermonReference ?? source.passage.displayRef,
               sermonTitle: true,
               ...(source.sermonClosingTransition === undefined
                 ? {}
@@ -344,6 +348,7 @@ export class BibleProjections {
       cached !== undefined &&
       sourceContent(cached.source) === sourceContent(source) &&
       cached.source.sermonTitle === source.sermonTitle &&
+      cached.source.sermonReference === source.sermonReference &&
       cached.source.sermonOpeningLabel === source.sermonOpeningLabel &&
       cached.source.sermonClosingLabel === source.sermonClosingLabel &&
       cached.source.labels === source.labels &&

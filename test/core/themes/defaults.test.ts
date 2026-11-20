@@ -347,7 +347,11 @@ it('offers one sermon title theme with automatic bars', () => {
     {kind: 'image', mediaId: SUNDAY_PICTURE_IDS.scripture},
     {kind: 'box', follow: {side: 'above', gap: 98.55}},
     {kind: 'box', follow: {side: 'below', gap: 98.55}},
-    {kind: 'itemName', stack: {group: 'sermon-title', center: 540}},
+    {
+      kind: 'reference',
+      source: 'slide',
+      stack: {group: 'sermon-title', center: 540},
+    },
     {
       kind: 'currentText',
       stack: {group: 'sermon-title', center: 540},
@@ -358,7 +362,12 @@ it('offers one sermon title theme with automatic bars', () => {
     theme?.screens[createScreenId(STARTER_SCREEN_IDS.broadcast)];
   expect(broadcast?.elements).toMatchObject([
     {kind: 'box', frame: {y: 748, h: 242}, box: {fill: '#000000', opacity: 88}},
-    {kind: 'itemName', frame: {y: 781}, text: {size: 38, align: 'center'}},
+    {
+      kind: 'reference',
+      source: 'slide',
+      frame: {y: 781},
+      text: {size: 38, align: 'center'},
+    },
     {kind: 'currentText', text: {size: 64, align: 'center'}},
   ]);
   const stage = theme?.screens[createScreenId(STARTER_SCREEN_IDS.stage)];
@@ -366,7 +375,7 @@ it('offers one sermon title theme with automatic bars', () => {
     true,
   );
   expect(
-    stage?.elements.find(element => element.kind === 'itemName'),
+    stage?.elements.find(element => element.kind === 'reference'),
   ).toMatchObject({
     frame: {x: 154, y: 245, h: 90},
     text: {size: 52, align: 'left'},

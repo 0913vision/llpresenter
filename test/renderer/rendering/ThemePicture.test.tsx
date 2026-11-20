@@ -501,7 +501,7 @@ it('positions two-line sermon preview bars using the same followers as output', 
     <ThemePicture
       elements={layout.elements}
       background="#000000"
-      samples={{itemName: 'Reference', currentText: 'Two lines'}}
+      samples={{reference: 'Reference', currentText: 'Two lines'}}
     />,
   );
   const bars = layout.elements.filter(element => element.kind === 'box');
@@ -556,7 +556,7 @@ it('repositions a hidden preview when its canvas becomes visible', () => {
     <ThemePicture
       elements={layout.elements}
       background="#000000"
-      samples={{itemName: 'Reference', currentText: 'Two lines'}}
+      samples={{reference: 'Reference', currentText: 'Two lines'}}
       onResolvedFrames={frames}
     />,
   );
@@ -623,7 +623,7 @@ it('shows the same gradient and both sermon text fields in the broadcast preview
       elements={layout.elements}
       background="#000000"
       samples={{
-        itemName: '마태복음 11:29~30',
+        reference: '마태복음 11:29~30',
         currentText: '동행의 열매 : 온유',
       }}
     />,

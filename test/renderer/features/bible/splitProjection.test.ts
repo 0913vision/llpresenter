@@ -337,6 +337,7 @@ it('preserves the sermon title before all measured Bible parts', () => {
       translationName: false,
       reference: 'every',
       sermonTitle: 'Sermon',
+      sermonReference: 'Custom passage reference',
       sermonOpeningLabel: 'Opening',
       sermonClosingLabel: 'Closing',
       sermonOpeningTransition: {kind: 'wipe', dir: 'left', sec: 1},
@@ -350,6 +351,7 @@ it('preserves the sermon title before all measured Bible parts', () => {
   expect(projection?.tiles[0]).toMatchObject({
     sermonTitle: true,
     lines: ['Sermon'],
+    reference: 'Custom passage reference',
     slideLabel: 'Opening',
   });
   expect(projection?.tiles[0]?.transition).toMatchObject({
@@ -359,6 +361,7 @@ it('preserves the sermon title before all measured Bible parts', () => {
   expect(projection?.tiles.at(-1)).toMatchObject({
     sermonTitle: true,
     lines: ['Sermon'],
+    reference: 'Custom passage reference',
     slideLabel: 'Closing',
     transition: {kind: 'dissolve', sec: 2},
   });

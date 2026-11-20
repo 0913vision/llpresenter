@@ -327,6 +327,10 @@ function rowOf(item: ServiceItem, sources: RowSources): ShowRow {
               ...bible,
               ...(sermonTitle === undefined ? {} : {sermonTitle}),
               ...(isItemOfKind(item, 'sermon') &&
+              item.sermon.reference !== undefined
+                ? {sermonReference: item.sermon.reference}
+                : {}),
+              ...(isItemOfKind(item, 'sermon') &&
               item.sermon.openingLabel !== undefined
                 ? {sermonOpeningLabel: item.sermon.openingLabel}
                 : {}),

@@ -259,6 +259,7 @@ const itemSchemas = {
     sectionCard: v.exactOptional(sectionCardSchema),
     sermon: jsonObject({
       title: sermonTitleSchema,
+      reference: v.exactOptional(v.pipe(v.string(), v.maxLength(4000))),
       openingLabel: v.exactOptional(slideLabelSchema),
       closingLabel: v.exactOptional(slideLabelSchema),
       openingTransition: v.exactOptional(slideTransitionSchema),

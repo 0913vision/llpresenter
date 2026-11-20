@@ -101,15 +101,23 @@ describe('published theme compositions', () => {
     if (!current) throw Error('Missing sermon broadcast layout');
     const old = {
       ...current,
-      elements: current.elements.map(element => ({
-        ...element,
-        frame:
-          element.kind === 'box'
-            ? {x: 0, y: 790, w: 1920, h: 200}
-            : element.kind === 'itemName'
-              ? {x: 160, y: 823, w: 1600, h: 56}
+      elements: current.elements.map(element => {
+        if (element.kind === 'reference') {
+          const {source: _source, ...rest} = element;
+          return {
+            ...rest,
+            kind: 'itemName' as const,
+            frame: {x: 160, y: 823, w: 1600, h: 56},
+          };
+        }
+        return {
+          ...element,
+          frame:
+            element.kind === 'box'
+              ? {x: 0, y: 790, w: 1920, h: 200}
               : {x: 160, y: 865, w: 1600, h: 112},
-      })),
+        };
+      }),
     };
     const saved = {...theme, screens: {...theme.screens, [screen.id]: old}};
     expect(resolveThemeScreen(saved, screen.id, themeScreens).layout).toEqual(
@@ -173,11 +181,19 @@ describe('published theme compositions', () => {
     if (!layout) throw Error('Missing stage layout');
     const previous = {
       ...layout,
-      elements: layout.elements.map(element =>
-        element.kind === 'itemName' || element.kind === 'currentText'
+      elements: layout.elements.map(element => {
+        if (element.kind === 'reference') {
+          const {source: _source, ...rest} = element;
+          return {
+            ...rest,
+            kind: 'itemName' as const,
+            text: {...element.text, align: 'center' as const},
+          };
+        }
+        return element.kind === 'currentText'
           ? {...element, text: {...element.text, align: 'center' as const}}
-          : element,
-      ),
+          : element;
+      }),
     };
     const saved = {
       ...theme,
