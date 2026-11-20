@@ -13,10 +13,9 @@ import {
 import {join} from 'node:path';
 import type {PictureRequest} from '@core/schema/picture';
 import {pictureKey} from '@core/output/pictureKey';
-import {SERMON_TITLE_THEME_ID} from '@core/themes/sundayScripture';
 import {PicturePainter} from './painter';
 
-const VERSION = 'picture-10';
+const VERSION = 'picture-11';
 const MEMORY_LIMIT = 64 * 1024 * 1024;
 const DISK_LIMIT = 500 * 1024 * 1024;
 const PRUNE_INTERVAL_MS = 60_000;
@@ -35,12 +34,6 @@ interface Reservation {
 function keyOf(request: PictureRequest): string {
   return createHash('sha256')
     .update(VERSION)
-    .update(
-      request.spec.appearance.theme.themeId === SERMON_TITLE_THEME_ID &&
-        request.spec.appearance.screen.kind === 'broadcast'
-        ? ':sermon-ink-gap-1'
-        : '',
-    )
     .update(JSON.stringify([pictureKey(request.spec), request.inputs]))
     .digest('hex');
 }
