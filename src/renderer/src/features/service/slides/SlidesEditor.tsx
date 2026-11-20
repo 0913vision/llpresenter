@@ -271,6 +271,7 @@ function SlideFields({
       <label htmlFor={`reference-${slide.id}`}>본문 주소</label>
       <TextField
         id={`reference-${slide.id}`}
+        aria-label="본문 주소"
         value={typeof reference === 'string' ? reference : ''}
         maxLength={TEXT_LIMIT}
         onChange={value => {
@@ -624,7 +625,10 @@ function SlidesEditorBody({
                   projection={projection}
                   replace={button => showPicker(button, slide.id)}
                   change={(next, field) => changeSlide(index, next, field)}
-                  endTyping={() => draft.endTyping()}
+                  endTyping={() => {
+                    draft.endTyping();
+                    editorTask(model.flush());
+                  }}
                 />
               </>
             )}

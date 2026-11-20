@@ -611,6 +611,38 @@ function refreshStageNext(): void {
   });
 }
 
+/** Refreshes edited content in place while keeping the operator's live slide. */
+function refreshLiveSlideText(previous: ShowView): void {
+  const slide = useLive.getState().state?.layers.slide;
+  if (
+    !slide?.sourceSlideId ||
+    (slide.kind !== 'blank' && slide.kind !== 'ad')
+  ) {
+    return;
+  }
+  const view = useShow.getState();
+  const before = projectedLiveCursor(previous, slide);
+  const after = projectedLiveCursor(view, slide);
+  if (after === null || before?.index !== after.index) return;
+  const old = slideLayerOf(after, id => tilesForView(previous, id));
+  const updated = slideLayerOf(after, id => tilesForView(view, id));
+  if (old === null || updated?.sourceSlideId !== slide.sourceSlideId) {
+    return;
+  }
+  const text = (value: SlideLayer) => [
+    value.lines,
+    value.reference,
+    value.continued,
+    value.bibleItemSlides,
+  ];
+  if (JSON.stringify(text(old)) !== JSON.stringify(text(updated))) {
+    sendLive({
+      type: 'slide.text.set',
+      slide: {...updated, position: slide.position},
+    });
+  }
+}
+
 /**
  * Outputs the next 장. On the last 장 of an item it stops, or with 다음 항목
  * starts the next item on its first 장 and opens it in the 장 panel, the way
@@ -830,6 +862,7 @@ export function applyService(service: ShowService | null): void {
       }
       sendLive({type: 'themes.refresh'});
     }
+    refreshLiveSlideText(view);
     refreshStageNext();
   }
 }

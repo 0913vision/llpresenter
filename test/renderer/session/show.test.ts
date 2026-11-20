@@ -159,6 +159,63 @@ describe('show state', () => {
     expect(sent).toContainEqual({type: 'themes.refresh'});
     expect(slides()).toEqual([]);
   });
+
+  it.each(['blank', 'ad'] as const)(
+    'sends a live %s slide body and reference update through the same command',
+    form => {
+      const sourceSlideId = createSlideId(
+        '40000000-0000-4000-8000-000000000011',
+      );
+      const tile = {
+        kind: form,
+        label: null,
+        labelColor: 'none' as const,
+        sourceSlideId,
+        lines: ['기존 본문'],
+        reference: '하박국 3:17',
+      };
+      const service = {
+        ...sampleService,
+        rows: [{kind: 'slides' as const, id: 'deck', title: 'Deck', form}],
+        tiles: {deck: [tile]},
+      };
+      applyService({...service, revision: 2});
+      const slide = stageSlideOf({itemId: 'deck', index: 0});
+      if (slide === null) throw Error('Missing slide');
+      const state = emptyLiveState();
+      useLive.setState({state: {...state, layers: {...state.layers, slide}}});
+      sent.length = 0;
+
+      const updated = {...tile, reference: '하박국 3:17~19'};
+      applyService({...service, revision: 3, tiles: {deck: [updated]}});
+      expect(
+        sent.filter(command => command.type === 'slide.text.set'),
+      ).toMatchObject([
+        {
+          slide: {
+            itemId: 'deck',
+            sourceSlideId,
+            lines: tile.lines,
+            reference: updated.reference,
+          },
+        },
+      ]);
+      expect(slides()).toHaveLength(0);
+      sent.length = 0;
+
+      const {reference: _reference, ...plain} = updated;
+      applyService({
+        ...service,
+        revision: 4,
+        tiles: {deck: [{...plain, lines: ['수정한 본문']}]},
+      });
+      const [write] = sent.filter(command => command.type === 'slide.text.set');
+      expect(write?.slide).toMatchObject({lines: ['수정한 본문']});
+      expect(write?.slide).not.toHaveProperty('reference');
+      expect(slides()).toHaveLength(0);
+    },
+  );
+
   it.each(['song', 'slides', 'bible'] as const)(
     'keeps output, identity and next truthful when a live %s slide is edited, moved, deleted and restored',
     kind => {

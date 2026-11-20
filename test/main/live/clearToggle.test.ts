@@ -1,6 +1,7 @@
 import {expect, it} from 'vitest';
 import type {ClearTarget} from '@core/live/commands';
 import {emptyLiveState, layerKinds} from '@core/live/state';
+import {createSlideId} from '@core/schema/ids';
 import {LiveStore} from '@main/live/store';
 
 const slide = {itemId: 'fixture', position: 0, label: null, lines: ['Current']};
@@ -64,6 +65,39 @@ it('updates the live Bible passage title without changing the slide, black state
   expect(store.state.layers.media?.mediaId).toBe('background');
   expect(store.state.themeItem?.title).toBe('요한복음 3:16~17');
   expect(store.state.layers.slide?.title).toBe('요한복음 3:16~17');
+});
+
+it('updates a live text slide without clearing blackout, undo, or the slide transition', () => {
+  const state = emptyLiveState();
+  const current = {
+    ...slide,
+    kind: 'blank' as const,
+    sourceSlideId: createSlideId('40000000-0000-4000-8000-000000000011'),
+    reference: '하박국 3:17',
+    transitionStartedAt: 50,
+  };
+  const store = new LiveStore({
+    ...state,
+    layers: {
+      ...state.layers,
+      slide: current,
+      media: {mediaId: 'background', loop: true, startedAt: 0},
+    },
+  });
+  store.dispatch({type: 'layer.clear', target: 'media'});
+  store.dispatch({type: 'black.toggle'});
+  const {reference: _reference, ...plain} = current;
+  const edited = {...plain, lines: ['수정한 본문']};
+  expect(store.dispatch({type: 'slide.text.set', slide: edited})).toBe(true);
+  expect(store.state.layers.slide).toEqual(edited);
+  expect(store.state.blackScreen).toBe(true);
+  expect(store.dispatch({type: 'slide.text.set', slide: edited})).toBe(false);
+  expect(
+    store.dispatch({type: 'slide.text.set', slide: {...current, position: 1}}),
+  ).toBe(false);
+  store.dispatch({type: 'clear.undo'});
+  expect(store.state.layers.slide).toEqual(edited);
+  expect(store.state.layers.media?.mediaId).toBe('background');
 });
 
 it.each<ClearTarget>(['all', ...layerKinds])(

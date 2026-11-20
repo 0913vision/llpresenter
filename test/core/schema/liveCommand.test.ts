@@ -7,8 +7,32 @@ import {
 } from '@core/schema/liveCommand';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {MAIN_SCREEN} from '@fixtures/core/screenIds';
+import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
 
 describe('parseLiveCommand', () => {
+  it('validates live text edits through the bounded slide schema', () => {
+    const slide = {
+      itemId: 'item',
+      position: 0,
+      lines: ['본문'],
+      label: null,
+      kind: 'blank',
+      reference: '하박국 3:17~19',
+      sourceSlideId: '40000000-0000-4000-8000-000000000011',
+    };
+    const command = {type: 'slide.text.set', slide};
+    expect(parseLiveCommand(command)).toEqual({ok: true, value: command});
+    expect(
+      parseLiveCommand({
+        ...command,
+        slide: {
+          ...slide,
+          reference: 'x'.repeat(LIVE_STATE_LIMITS.textCharacters + 1),
+        },
+      }).ok,
+    ).toBe(false);
+  });
+
   it('accepts the black screen toggle command', () => {
     expect(parseLiveCommand({type: 'black.toggle'})).toEqual({
       ok: true,

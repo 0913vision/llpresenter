@@ -47,6 +47,14 @@ it('updates stage next metadata without restarting automatic advance', () => {
   expect(store.state.layers.slide).toMatchObject({
     next: {lines: ['Next item']},
   });
+  store.dispatch({
+    type: 'slide.text.set',
+    slide: {...before, reference: '하박국 3:17~19'},
+  });
+  expect(store.state.layers.slide).toMatchObject({
+    reference: '하박국 3:17~19',
+    next: {lines: ['Next item']},
+  });
   vi.advanceTimersByTime(2000);
   expect(store.state.layers.slide).toMatchObject({position: 1});
   stop();

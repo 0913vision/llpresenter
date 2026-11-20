@@ -716,15 +716,19 @@ describe('automatic inline slides editor', () => {
       const f = setup(form);
       const reference = '하박국 3:17~19';
       const field = await screen.findByRole('textbox', {name: '본문 주소'});
+      expect(field.getAttribute('aria-label')).toBe('본문 주소');
       await userEvent.click(field);
       fireEvent.change(field, {target: {value: reference}});
-      await waitFor(() =>
-        expect(savedItem(f).slides.slides[0]).toMatchObject({
-          text: '첫 내용',
-          reference,
-        }),
-      );
       await userEvent.tab();
+      expect(document.activeElement).not.toBe(field);
+      await waitFor(
+        () =>
+          expect(savedItem(f).slides.slides[0]).toMatchObject({
+            text: '첫 내용',
+            reference,
+          }),
+        {timeout: 1500},
+      );
       await userEvent.click(field);
       fireEvent.change(field, {target: {value: ''}});
       await waitFor(() =>

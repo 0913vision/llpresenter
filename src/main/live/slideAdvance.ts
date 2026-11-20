@@ -120,7 +120,11 @@ export function followSlideAdvance({
   const stop = store.subscribeCommands(commands => {
     if (
       commands.length > 0 &&
-      commands.every(command => command.type === 'stage.next.set')
+      commands.every(
+        command =>
+          command.type === 'stage.next.set' ||
+          command.type === 'slide.text.set',
+      )
     ) {
       if (scheduledSlide === observed) {
         scheduledSlide = store.state.layers.slide;
