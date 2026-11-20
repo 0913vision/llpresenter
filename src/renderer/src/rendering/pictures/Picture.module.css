@@ -11,6 +11,19 @@
   height: 100%;
 }
 
+.composed {
+  container-type: inline-size;
+}
+
+.composedViewport {
+  position: absolute;
+  width: 1920px;
+  height: 1080px;
+  transform: scale(calc(100cqw / 1920px));
+  transform-origin: left top;
+  background: var(--output-black);
+}
+
 .editorCanvas {
   position: absolute;
   inset: 0;

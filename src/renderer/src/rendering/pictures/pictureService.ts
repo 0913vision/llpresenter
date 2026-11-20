@@ -48,6 +48,7 @@ export interface PictureDisplay {
   readonly picture: PictureImage;
   readonly element: HTMLImageElement;
   readonly consume: () => void;
+  readonly park: () => void;
 }
 
 interface DisplayTicket {
@@ -395,7 +396,14 @@ export class PictureService {
             release,
           );
           if (element !== undefined) {
-            display = {picture, element, consume: () => displays.delete(slot)};
+            display = {
+              picture,
+              element,
+              consume: () => displays.delete(slot),
+              park: () => {
+                if (!displays.has(slot)) displays.set(slot, ticket);
+              },
+            };
           }
         }
         // NOTE(0913vision): React can read a decoded display on its first render.

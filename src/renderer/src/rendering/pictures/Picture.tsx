@@ -31,6 +31,8 @@ interface PictureProps extends PictureSpec {
   /** Keeps the previous view until the new picture finishes decoding. */
   readonly wait?: boolean;
   readonly switchSlot?: string | undefined;
+  /** Retains the detached decoded element for another visit to this slot. */
+  readonly keepDecoded?: boolean | undefined;
   readonly editing?: boolean;
   readonly resample?: boolean;
 }
@@ -123,6 +125,7 @@ export const Picture = memo(
     wait = false,
     service = pictures,
     switchSlot,
+    keepDecoded = false,
     editing = false,
     resample = false,
     layers,
@@ -172,8 +175,11 @@ export const Picture = memo(
       const {element} = display;
       host.current?.append(element);
       display.consume();
-      return () => element.remove();
-    }, [display]);
+      return () => {
+        element.remove();
+        if (keepDecoded) display.park();
+      };
+    }, [display, keepDecoded]);
     const onReady = useContext(PictureReadiness);
     const source = useRef({});
     const warmEditor = useEffectEvent(() => service.warmEditor(spec));
@@ -225,6 +231,7 @@ export const Picture = memo(
     previous.service === next.service &&
     previous.wait === next.wait &&
     previous.switchSlot === next.switchSlot &&
+    previous.keepDecoded === next.keepDecoded &&
     previous.editing === next.editing &&
     previous.resample === next.resample &&
     previous.songSource?.songId === next.songSource?.songId &&

@@ -921,8 +921,9 @@ name. Chapter and verse bounds always use the built-in GAE number table.
   stays in the field. A complete reference in 책 also submits after lookup. IME
   composition Enter cannot output. Stored references and recent passages retain
   the full grammar in 02.
-- Once a quick passage is resolved, it goes live while the slide grid prepares
-  its pictures independently.
+- Once a quick passage is resolved, it goes live and the slide grid switches to
+  that passage. The grid reuses its decoded pictures and composes any missing
+  tiles in place while their still pictures prepare independently.
 - While a quick Bible passage is live, Escape outside text fields and open menus
   or dialogs returns to the slide that was live before it, if that item and
   slide still exist. The grid follows the restored slide.

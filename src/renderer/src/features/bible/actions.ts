@@ -19,9 +19,11 @@ export function openBiblePassage(
   {
     ready = false,
     waitForLive = false,
+    drawInPlace = false,
   }: {
     readonly ready?: boolean;
     readonly waitForLive?: boolean;
+    readonly drawInPlace?: boolean;
   } = {},
 ): void {
   const source = bibleSource(passage, options);
@@ -52,7 +54,8 @@ export function openBiblePassage(
         ? null
         : view.requestedBibleSource,
     openItemId: source.id,
-    readyItemId: ready ? source.id : null,
+    readyItemId: ready || drawInPlace ? source.id : null,
+    immediateBibleItemId: drawInPlace ? source.id : null,
     readyPassage,
   };
   const nextTiles = tilesForView({...view, ...next}, source.id);
@@ -96,11 +99,15 @@ export function showBiblePassage(
           review: prepared.review,
         }
       : undefined);
-  openBiblePassage(passage, {
-    ...display,
-    verseNumbers: display?.verseNumbers ?? true,
-    review: display?.review ?? true,
-  });
+  openBiblePassage(
+    passage,
+    {
+      ...display,
+      verseNumbers: display?.verseNumbers ?? true,
+      review: display?.review ?? true,
+    },
+    {drawInPlace: true},
+  );
   const view = useShow.getState();
   if (view.openItemId !== null) {
     outputTile({itemId: view.openItemId, index: view.selectedTile});

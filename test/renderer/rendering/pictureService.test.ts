@@ -236,6 +236,38 @@ it('reports a display decode failure while keeping the cached source available',
   expect(decode).toHaveBeenCalledTimes(2);
 });
 
+it('reattaches a decoded tile only when its content returns to that slot', async () => {
+  const paint = vi.fn().mockResolvedValue(new Uint8Array([0xff]));
+  vi.stubGlobal('llp', {
+    picture: {paint},
+    media: {
+      get: vi.fn().mockResolvedValue({revision: 0, value: {items: []}}),
+      subscribe: vi.fn(),
+    },
+    fonts: {
+      snapshot: vi.fn().mockRejectedValue(new Error('No font catalog')),
+      subscribe: vi.fn(),
+    },
+  });
+  const service = new PictureService();
+  const slot = 'quick:0';
+  const entryA = service.request(spec, service.inputs(spec));
+  const a = await service.prepareDisplay(entryA, slot).ready;
+  if (a === undefined) throw Error('Expected a decoded tile');
+  a.consume();
+  a.park();
+  const next = {
+    ...spec,
+    appearance: {...spec.appearance, background: '#123456'},
+  };
+  const entryB = service.request(next, service.inputs(next));
+  const b = service.prepareDisplay(entryB, slot);
+  expect(b.display).toBeUndefined();
+  expect(await b.ready).not.toBe(a);
+  expect(service.prepareDisplay(entryA, slot).display).toBe(a);
+  expect(paint).toHaveBeenCalledTimes(2);
+});
+
 it('publishes the edited picture inside the source paint event', async () => {
   const paint = vi.fn();
   vi.stubGlobal('llp', {

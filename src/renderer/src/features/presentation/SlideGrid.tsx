@@ -59,6 +59,9 @@ export function SlideGrid({
 }: SlideGridProps): JSX.Element {
   const openItemId = useShownItemId();
   const bibleLookup = useShow(view => isBibleSource(view, openItemId));
+  const drawInPlace = useShow(
+    view => bibleLookup && view.immediateBibleItemId === openItemId,
+  );
   const offset = useShow(view =>
     openItemId === null ? null : serviceSlideOffset(view, openItemId),
   );
@@ -244,7 +247,11 @@ export function SlideGrid({
                   cardTheme,
                   sermonTheme,
                   bibleAppearance: bible?.appearance,
-                  switchSlot: switching ? `${openItemId}:${index}` : undefined,
+                  switchSlot:
+                    switching || drawInPlace
+                      ? `${openItemId}:${index}`
+                      : undefined,
+                  drawInPlace,
                 })}
                 label={
                   (tile.slideLabel ?? tile.label) === ''

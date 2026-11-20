@@ -1,4 +1,4 @@
-import type {ReactNode} from 'react';
+import {Suspense, type ReactNode} from 'react';
 import type {SlideLayer} from '@core/live/state';
 import {
   isItemRow,
@@ -10,6 +10,7 @@ import type {ThemesFile} from '@core/schema/themes';
 import {pictureSpec, type TileThemes} from '@renderer/rendering/pictureSpec';
 export type {TileThemes} from '@renderer/rendering/pictureSpec';
 import {Picture} from '@renderer/rendering/pictures/Picture';
+import {ComposedPicture} from '@renderer/rendering/pictures/ComposedPicture';
 import {
   pictures,
   type PictureSpec,
@@ -74,16 +75,23 @@ export function tilePictureSpec(
 export function tilePicture(
   tile: SlideTile,
   slide: SlideLayer | null,
-  themes: TileThemes,
+  themes: TileThemes & {readonly drawInPlace?: boolean},
 ): ReactNode {
   const spec = tilePictureSpec(tile, slide, themes);
   if (tile.media !== undefined && pictures.drawInPlace) return undefined;
-  return spec === undefined ? undefined : (
+  if (spec === undefined) return undefined;
+  const picture = (
     <Picture
       {...spec}
       resample={spec.appearance.screen.method !== 'ndi'}
       wait={themes.switchSlot !== undefined}
       switchSlot={themes.switchSlot}
+      keepDecoded={themes.drawInPlace}
     />
+  );
+  return themes.drawInPlace ? (
+    <Suspense fallback={<ComposedPicture spec={spec} />}>{picture}</Suspense>
+  ) : (
+    picture
   );
 }

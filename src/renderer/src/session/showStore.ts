@@ -18,6 +18,7 @@ export interface ShowView {
   readonly tiles: Readonly<Record<ItemId, readonly SlideTile[]>>;
   readonly openItemId: ItemId | null;
   readonly readyItemId?: ItemId | null;
+  readonly immediateBibleItemId?: ItemId | null;
   readonly readyPassage?: {
     readonly id: ItemId;
     readonly previous: ItemId | null;

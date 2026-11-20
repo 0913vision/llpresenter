@@ -10,6 +10,7 @@ import {
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {useShow, revealLiveItem, selectTile} from '@renderer/session/show';
 import {useLive} from '@renderer/session/live';
+import {ShownItemProvider} from '@renderer/session/shownItem';
 import {emptyLiveState} from '@core/live/state';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
 import {BiblePanel} from '@renderer/features/presentation/BiblePanel';
@@ -55,6 +56,43 @@ afterEach(() => {
 });
 
 describe('Bible panel integration', () => {
+  it('switches the grid A, B, A ahead of the deferred workspace frame', () => {
+    const fixture = panelApi();
+    window.llp = fixture.api;
+    const passageA = panelPassage();
+    const passageB = {
+      ...passageA,
+      ref: '요한복음 4:16-18',
+      displayRef: '요한복음 4:16-18',
+      verses: passageA.verses.map(verse => ({
+        ...verse,
+        chapter: 4,
+        text: `New passage ${verse.verse}`,
+      })),
+    };
+    showBiblePassage(passageA);
+    const first = useShow.getState().openItemId;
+    render(
+      <ShownItemProvider shownItem={first} trackLive>
+        <BiblePanel sizeClass="normal" />
+      </ShownItemProvider>,
+    );
+    const tiles = () =>
+      within(screen.getByRole('listbox', {name: '슬라이드'}))
+        .getAllByRole('option')
+        .map(tile => tile.getAttribute('aria-label'));
+    expect(tiles()[0]).toContain('Invented verse 16');
+    act(() => showBiblePassage(passageB));
+    expect(tiles()[0]).toContain('New passage 16');
+    expect(tiles().some(label => label?.includes('Invented verse'))).toBe(
+      false,
+    );
+    act(() => showBiblePassage(passageA));
+    expect(tiles()[0]).toContain('Invented verse 16');
+    expect(tiles().some(label => label?.includes('New passage'))).toBe(false);
+    expect(fixture.send).toHaveBeenCalledTimes(3);
+  });
+
   it('disables slide editing for a Bible preview without a prep handoff', async () => {
     const fixture = panelApi();
     window.llp = fixture.api;
