@@ -1,5 +1,6 @@
 import {mockBroadcastMeasure, mockBroadcastRect} from './broadcastMeasure';
 import {styleBroadcastGlass} from '@renderer/rendering/themeElement';
+import {broadcastBibleFlow} from '@renderer/rendering/broadcastBibleFlow';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {createScreenId} from '@core/schema/ids';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
@@ -54,6 +55,14 @@ beforeEach(() => {
 afterEach(() => vi.restoreAllMocks());
 
 describe('built-in broadcast look', () => {
+  it('joins automatic Bible rows without losing typed line breaks', () => {
+    expect(
+      broadcastBibleFlow(['첫 자동 줄', '다음 자동 줄\n직접 입력한 줄']),
+    ).toBe('첫 자동 줄 다음 자동 줄\n직접 입력한 줄');
+    expect(broadcastBibleFlow(['첫 줄\n\n마지막 줄'])).toBe(
+      '첫 줄\n\n마지막 줄',
+    );
+  });
   it('fits line boxes rather than glyph overflow for songs and Bible passages', () => {
     const rowCount = (el: HTMLElement): number => {
       const match = /verse([234])/u.exec(el.textContent);

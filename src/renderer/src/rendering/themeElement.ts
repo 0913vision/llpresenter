@@ -791,8 +791,8 @@ export class ThemeElementView {
     }
     const reflow =
       frame.screen?.kind === 'stage' || frame.screen?.kind === 'broadcast';
-    // NOTE(0913vision): A sermon title keeps the lines the user typed; only
-    // verses flow as one text on 무대 and 방송.
+    // NOTE(0913vision): Only projected Bible rows are joined; newlines inside
+    // their source text are authored and must remain intact.
     const currentBible =
       element.kind === 'currentText' &&
       slide?.sectionCard === undefined &&
@@ -820,13 +820,13 @@ export class ThemeElementView {
             slide: {
               ...slide,
               ...(currentBible
-                ? {lines: [broadcastBibleFlow(slide.lines.join('\n'))]}
+                ? {lines: [broadcastBibleFlow(slide.lines)]}
                 : {}),
               ...(nextBible
                 ? {
                     next: {
                       ...slide.next,
-                      lines: [broadcastBibleFlow(slide.next.lines.join('\n'))],
+                      lines: [broadcastBibleFlow(slide.next.lines)],
                     },
                   }
                 : {}),
@@ -917,9 +917,7 @@ export class ThemeElementView {
     if (element.broadcastSongTitle !== undefined) {
       return element.broadcastSongTitle;
     }
-    return text !== null && element.broadcastBibleFlow
-      ? broadcastBibleFlow(text)
-      : text;
+    return text;
   }
 
   private showMedia(

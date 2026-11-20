@@ -1,8 +1,7 @@
-/** Rejoins the source screen's Bible rows before broadcast wraps at its own width. */
-export function broadcastBibleFlow(text: string): string {
-  return text
-    .split('\n')
-    .map(line => line.trim())
+/** Joins measured rows while retaining authored newlines inside each row. */
+export function broadcastBibleFlow(lines: readonly string[]): string {
+  return lines
+    .map(line => line.replace(/^[^\S\r\n]+|[^\S\r\n]+$/gu, ''))
     .filter(Boolean)
     .join(' ');
 }

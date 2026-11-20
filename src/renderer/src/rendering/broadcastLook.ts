@@ -114,7 +114,10 @@ function fitBand(
   const slideReference = kind === 'blank' || kind === 'ad';
   const scripture = bible || isReferencedTextSlide(slide, item?.kind);
   const raw = themeElementText(body, content) ?? '';
-  const value = scripture ? broadcastBibleFlow(raw) : raw;
+  const value =
+    scripture && slide !== null && raw.trim()
+      ? broadcastBibleFlow(slide.lines)
+      : raw;
   const referenceElement = layout.elements.find(
     e => e.id === BROADCAST_REFERENCE_ID,
   );
@@ -140,7 +143,7 @@ function fitBand(
               maximum,
               fittedText({
                 element: body,
-                value: broadcastBibleFlow(part.lines.join('\n')),
+                value: broadcastBibleFlow(part.lines),
                 width: geometry.bodyWidth,
                 song: false,
                 continued: part.continued === true,

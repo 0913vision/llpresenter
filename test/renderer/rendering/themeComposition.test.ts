@@ -2713,6 +2713,55 @@ it('reflows Bible parts independently on stage and broadcast, including the next
   view.dispose();
 });
 
+it.each(['bible', 'blank', 'ad'] as const)(
+  'keeps typed scripture breaks for %s text on every screen',
+  kind => {
+    const {root, view} = setup();
+    const elements: ThemeElement[] = [
+      {...themeElementBase(), kind: 'currentText'},
+      {...themeElementBase(31), kind: 'nextText'},
+    ];
+    const base = frame(elements);
+    if (!base.theme?.item) throw Error('Missing item');
+    const layers: LiveLayers = {
+      ...emptyLayers(),
+      slide: {
+        itemId: 'invented',
+        position: 0,
+        kind,
+        reference: 'John 3:16',
+        label: null,
+        lines: ['첫 문장\n둘째 문장'],
+        next: {
+          label: null,
+          itemKind: 'bible',
+          lines: ['다음 첫줄\n다음 둘째줄'],
+        },
+      },
+    };
+    for (const screenKind of ['audience', 'stage', 'broadcast'] as const) {
+      view.render(layers, {
+        ...base,
+        screen: {id: THEME_MAIN, kind: screenKind},
+        theme: {...base.theme, item: {...base.theme.item, kind}},
+        transitions: false,
+      });
+      const rows = (element: string) =>
+        Array.from(
+          root.querySelectorAll(
+            `[data-kind="${element}"] .${classes.shown} .${classes.block} > div`,
+          ),
+          row => row.textContent,
+        );
+      expect(rows('currentText')).toEqual(['첫 문장', '둘째 문장']);
+      if (screenKind === 'stage') {
+        expect(rows('nextText')).toEqual(['다음 첫줄', '다음 둘째줄']);
+      }
+    }
+    view.dispose();
+  },
+);
+
 it('keeps sermon title lines on stage and broadcast, including stage next text', () => {
   const {root, view} = setup();
   const elements: ThemeElement[] = [
