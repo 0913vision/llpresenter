@@ -1,6 +1,7 @@
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {
   beginLayoutResize,
+  disposeLayoutResize,
   endLayoutResize,
   isLayoutResizeActive,
   onLayoutResizeEnd,
@@ -38,5 +39,18 @@ describe('layout resize', () => {
     unsubscribe();
     endLayoutResize();
     expect(refresh).not.toHaveBeenCalled();
+  });
+
+  it('releases pending resize work and its window listener', () => {
+    vi.useFakeTimers();
+    const refresh = vi.fn();
+    onLayoutResizeEnd(refresh);
+    window.dispatchEvent(new Event('resize'));
+    disposeLayoutResize();
+    vi.runAllTimers();
+    expect(isLayoutResizeActive()).toBe(false);
+    expect(refresh).not.toHaveBeenCalled();
+    window.dispatchEvent(new Event('resize'));
+    expect(isLayoutResizeActive()).toBe(false);
   });
 });

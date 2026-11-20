@@ -68,6 +68,7 @@ beforeEach(() => {
 describe('useProblemNotices', () => {
   it('shows the runtime warning with the capture-window fallback', async () => {
     const {target} = setup([{kind: 'ndi-runtime-missing'}]);
+    await act(async () => undefined);
     await waitFor(() => expect(target.report).toHaveBeenCalled());
     expect(target.report.mock.lastCall?.[0]).toMatchObject({
       title: 'NDI Runtime을 찾을 수 없습니다',
@@ -76,6 +77,7 @@ describe('useProblemNotices', () => {
   });
   it('shows the GPU fallback notice', async () => {
     const {target} = setup([{kind: 'ndi-gpu-fallback'}]);
+    await act(async () => undefined);
     await waitFor(() => expect(target.report).toHaveBeenCalledOnce());
     expect(target.report.mock.lastCall?.[0]).toMatchObject({
       title: '하드웨어 가속을 쓸 수 없어 일반 방식으로 보냅니다',
@@ -122,6 +124,7 @@ describe('useProblemNotices', () => {
       fileSkippedProblem(1, 'D:/data/settings/themes.json'),
       fileSkippedProblem(2, 'D:/data/Songs/a1.llsong'),
     ]);
+    await act(async () => undefined);
 
     await waitFor(() =>
       expect(skippedNames()).toEqual(['themes.json', 'a1.llsong']),
@@ -133,6 +136,7 @@ describe('useProblemNotices', () => {
     const {push} = setup([
       fileSkippedProblem(1, 'D:/data/settings/themes.json'),
     ]);
+    await act(async () => undefined);
     await waitFor(() => expect(skippedNames()).toEqual(['themes.json']));
 
     push(fileSkippedProblem(1, 'D:/data/settings/themes.json'));
@@ -200,12 +204,14 @@ describe('useProblemNotices', () => {
   it('shows files still waiting to be saved when the window loads', async () => {
     const {result} = setup([saveFailedProblem('주일 예배', 1)]);
 
+    await act(async () => undefined);
     await waitFor(() => expect(result.current).toBe(true));
     expect(waitingSavesCard).toHaveBeenCalledOnce();
   });
 
   it('shows the backup card for a standing problem and for a push, as one card', async () => {
     const {target, push} = setup([{kind: 'backup-failed', name: '백업'}]);
+    await act(async () => undefined);
     await waitFor(() =>
       expect(target.report).toHaveBeenCalledWith(
         expect.objectContaining({

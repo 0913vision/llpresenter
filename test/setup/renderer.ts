@@ -1,5 +1,6 @@
 import {cleanup} from '@testing-library/react';
-import {afterEach} from 'vitest';
+import {afterAll, afterEach} from 'vitest';
+import {disposeLayoutResize} from '@renderer/ui/layoutResize';
 
 Object.defineProperty(globalThis, 'ResizeObserver', {
   configurable: true,
@@ -40,4 +41,8 @@ Object.defineProperty(globalThis, 'cancelIdleCallback', {
 // that left are freed with it.
 afterEach(() => {
   cleanup();
+});
+
+afterAll(() => {
+  disposeLayoutResize();
 });

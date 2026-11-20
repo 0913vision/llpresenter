@@ -33,14 +33,29 @@ export function onLayoutResizeEnd(listener: () => void): () => void {
   };
 }
 
+function onWindowResize(): void {
+  windowResizing = true;
+  document.documentElement.dataset['layoutResizing'] = '';
+  clearTimeout(timer);
+  timer = setTimeout(() => {
+    windowResizing = false;
+    release();
+  }, 150);
+}
+
+/** Releases the window listener and any pending resize work. */
+export function disposeLayoutResize(): void {
+  window.removeEventListener('resize', onWindowResize);
+  window.removeEventListener('pagehide', disposeLayoutResize);
+  clearTimeout(timer);
+  timer = undefined;
+  panelResizing = false;
+  windowResizing = false;
+  listeners.clear();
+  delete document.documentElement.dataset['layoutResizing'];
+}
+
 if (typeof window !== 'undefined') {
-  window.addEventListener('resize', () => {
-    windowResizing = true;
-    document.documentElement.dataset['layoutResizing'] = '';
-    clearTimeout(timer);
-    timer = setTimeout(() => {
-      windowResizing = false;
-      release();
-    }, 150);
-  });
+  window.addEventListener('resize', onWindowResize);
+  window.addEventListener('pagehide', disposeLayoutResize, {once: true});
 }
