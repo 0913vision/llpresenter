@@ -1,5 +1,11 @@
 import {withLiveBible} from '@core/bible/liveTranslation';
-import {useEffect, useRef, type JSX} from 'react';
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  type JSX,
+  type ReactNode,
+} from 'react';
 import type {BibleLookupApi} from '@contracts/ipc/bible';
 import type {BibleLookupPassage} from '@core/schema/bibleLookup';
 import type {RecentPassage} from '@core/schema/bible';
@@ -14,15 +20,29 @@ export function BiblePassageDialog({
   limit,
   onChoose,
   onClose,
+  initialRef,
+  children,
+  disabled = false,
+  action = '\uCD94\uAC00',
+  onReferenceEdit,
 }: {
   readonly api: BibleLookupApi;
   readonly translation: TranslationId | undefined;
   readonly limit?: number | undefined;
   readonly onChoose: (passage: BibleLookupPassage) => void;
   readonly onClose: () => void;
+  readonly initialRef?: string | undefined;
+  readonly children?: ReactNode;
+  readonly disabled?: boolean;
+  readonly action?: string;
+  readonly onReferenceEdit?: (() => void) | undefined;
 }): JSX.Element {
   const document = useSettingsDocument('bible', '\uC131\uACBD', undefined);
   const generation = useRef(0);
+  const current = useRef({onChoose, disabled, limit});
+  useLayoutEffect(() => {
+    current.current = {onChoose, disabled, limit};
+  }, [onChoose, disabled, limit]);
   useEffect(
     () => () => {
       generation.current += 1;
@@ -30,9 +50,16 @@ export function BiblePassageDialog({
     [],
   );
   const choose = (value: BibleLookupPassage): void => {
-    if (limit === undefined || value.verses.length <= limit) onChoose(value);
+    if (
+      !current.current.disabled &&
+      (current.current.limit === undefined ||
+        value.verses.length <= current.current.limit)
+    ) {
+      current.current.onChoose(value);
+    }
   };
   const pick = (value: RecentPassage): void => {
+    onReferenceEdit?.();
     const request = ++generation.current;
     api
       .lookup({input: value.ref, translation: value.translation})
@@ -53,13 +80,18 @@ export function BiblePassageDialog({
       translation={translation}
       translations={withLiveBible(document?.value.translations ?? [])}
       recents={document?.value.recents ?? []}
-      action={'\uCD94\uAC00'}
+      action={action}
+      initialRef={initialRef}
+      disabled={disabled}
       onClose={onClose}
       onSubmit={choose}
       onPick={pick}
       onIntent={() => {
         generation.current += 1;
+        onReferenceEdit?.();
       }}
-    />
+    >
+      {children}
+    </PassageDialog>
   );
 }

@@ -1,8 +1,7 @@
 import {useRef, useState, type JSX} from 'react';
 import type {BibleLookupPassage} from '@core/schema/bibleLookup';
 import {SLIDES_LIMITS, type ServiceItemOf} from '@core/schema/service';
-import {BibleReferenceForm} from '@renderer/features/bible/BibleReferenceForm';
-import {Dialog} from '@renderer/ui/Dialog';
+import {BiblePassageDialog} from '@renderer/features/bible/BiblePassageDialog';
 import {TextArea} from '@renderer/ui/TextArea';
 import {useBibleDefaults} from './useBibleDefaults';
 import type {PassageDefaults} from './quickAddBible';
@@ -24,7 +23,6 @@ export function SermonQuickAdd({
   const defaults = useBibleDefaults();
   const [title, setTitle] = useState(initial?.sermon.title ?? '');
   const referenceEdited = useRef(false);
-  const [passage, setPassage] = useState<BibleLookupPassage | null>(null);
   const choose = (value: BibleLookupPassage | null): void => {
     if (value === null || defaults === null || title.trim() === '') return;
     const unchanged = initial !== undefined && !referenceEdited.current;
@@ -38,47 +36,32 @@ export function SermonQuickAdd({
   };
   if (window.llp === undefined) return null;
   return (
-    <Dialog
-      title={'\uc124\uad50'}
-      closeOnOutside={initial !== undefined}
-      size="s"
-      onCancel={onClose}
-      primary={{
-        label: initial === undefined ? '\ucd94\uac00' : '\ubcc0\uacbd',
-        disabled: title.trim() === '' || passage === null,
-        onSelect: () => choose(passage),
+    <BiblePassageDialog
+      api={window.llp.bible}
+      initialRef={initial?.sermon.passage.ref}
+      translation={initial?.sermon.passage.translation ?? defaults?.translation}
+      action={initial === undefined ? '\uCD94\uAC00' : '\uBCC0\uACBD'}
+      disabled={title.trim() === '' || defaults === null}
+      onReferenceEdit={() => {
+        referenceEdited.current = true;
       }}
+      onClose={onClose}
+      onChoose={choose}
     >
       <div className={styles.fields}>
         <TextArea
-          aria-label={'\uc81c\ubaa9'}
-          placeholder={'\uc81c\ubaa9'}
+          aria-label={'\uC81C\uBAA9'}
+          placeholder={'\uC81C\uBAA9'}
           value={title}
           rows={2}
           maxLength={SLIDES_LIMITS.name}
           autoFocus
           onChange={setTitle}
           onKeyDown={event => {
-            // NOTE(0913vision): Enter breaks the title where the user wants;
-            // the title slide shows the lines as typed.
             if (event.key === 'Enter') event.stopPropagation();
           }}
         />
-        <BibleReferenceForm
-          api={window.llp.bible}
-          initialRef={initial?.sermon.passage.ref}
-          translation={
-            initial?.sermon.passage.translation ?? defaults?.translation
-          }
-          onReady={setPassage}
-          onEdit={() => {
-            referenceEdited.current = true;
-          }}
-          onPreview={() => undefined}
-          onSubmit={choose}
-          onEscape={onClose}
-        />
       </div>
-    </Dialog>
+    </BiblePassageDialog>
   );
 }

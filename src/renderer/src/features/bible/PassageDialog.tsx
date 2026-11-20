@@ -1,4 +1,11 @@
-import {useEffect, useRef, useState, type JSX, type KeyboardEvent} from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type JSX,
+  type KeyboardEvent,
+  type ReactNode,
+} from 'react';
 import {createPortal} from 'react-dom';
 import type {BibleLookupApi} from '@contracts/ipc/bible';
 import type {RecentPassage, Translation} from '@core/schema/bible';
@@ -27,12 +34,18 @@ export function PassageDialog({
   onPick,
   onIntent,
   onKeyDownCapture,
+  initialRef,
+  children,
+  disabled = false,
 }: {
   readonly api: BibleLookupApi;
   readonly translation: TranslationId | undefined;
   readonly translations: readonly Translation[];
   readonly recents: readonly RecentPassage[];
   readonly action: string;
+  readonly initialRef?: string | undefined;
+  readonly children?: ReactNode;
+  readonly disabled?: boolean;
   readonly onClose: () => void;
   readonly onSubmit: (passage: BibleLookupPassage) => void;
   readonly onPick: (recent: RecentPassage) => void;
@@ -96,6 +109,7 @@ export function PassageDialog({
   const label =
     translations.find(item => item.id === effective)?.name ?? effective;
   const pickRecent = (recent: RecentPassage): void => {
+    if (disabled) return;
     submissionVersion.current += 1;
     intentVersion.current += 1;
     setHighlight(-1);
@@ -104,6 +118,7 @@ export function PassageDialog({
   };
   const capture = (event: KeyboardEvent<HTMLElement>): void => {
     onKeyDownCapture?.(event);
+    if (event.target instanceof HTMLTextAreaElement) return;
     if (
       event.defaultPrevented ||
       isComposingKey(event.nativeEvent) ||
@@ -167,13 +182,15 @@ export function PassageDialog({
         onKeyDownCapture={capture}
         onCompositionStart={() => setHighlight(-1)}
       >
+        {children}
         <div className={styles.header}>
           <BibleReferenceForm
             key={resetKey}
             dialogMode
             submitAnyField
-            autoFocus
+            autoFocus={children === undefined}
             api={api}
+            initialRef={resetKey === 0 ? initialRef : undefined}
             translation={translation}
             onEffectiveTranslation={value =>
               setResolved(previous =>
@@ -193,13 +210,16 @@ export function PassageDialog({
             onPreview={() => undefined}
             onReady={setReady}
             onSubmit={passage => {
-              if (submissionVersion.current === formVersion) onSubmit(passage);
+              if (!disabled && submissionVersion.current === formVersion) {
+                onSubmit(passage);
+              }
             }}
           />
           <span className={styles.accessory}>{label}</span>
         </div>
         <RecentPassages
           scope="dialog"
+          disabled={disabled}
           recents={recents}
           translations={translations}
           translation={effective}
@@ -215,7 +235,7 @@ export function PassageDialog({
             <Icon name="book" size={16} />
             {'\uC131\uACBD \uAD6C\uC808'}
           </span>
-          <span aria-disabled={ready === null}>
+          <span aria-disabled={disabled || ready === null}>
             {action}
             <KeyCombo keys={['Enter']} />
           </span>
