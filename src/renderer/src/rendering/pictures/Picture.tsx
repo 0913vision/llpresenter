@@ -31,6 +31,11 @@ interface PictureProps extends PictureSpec {
   /** Keeps the previous view until the new picture finishes decoding. */
   readonly wait?: boolean;
   readonly switchSlot?: string | undefined;
+  /**
+   * The slide this view stands for. When it changes, the earlier image is not
+   * kept on screen, so a tile never shows another slide's picture.
+   */
+  readonly owner?: string | undefined;
   readonly editing?: boolean;
   readonly resample?: boolean;
 }
@@ -123,6 +128,7 @@ export const Picture = memo(
     wait = false,
     service = pictures,
     switchSlot,
+    owner,
     editing = false,
     resample = false,
     layers,
@@ -149,14 +155,18 @@ export const Picture = memo(
     const inputs = useSyncExternalStore(service.subscribeInputs, () =>
       service.inputs(spec),
     );
-    const [previous, setPrevious] = useState<PictureImage>();
+    const [previous, setPrevious] = useState<{
+      readonly owner: string | undefined;
+      readonly image: PictureImage;
+    }>();
+    const kept = previous?.owner === owner ? previous?.image : undefined;
     const [displayed, setDisplayed] = useState<PictureDisplay>();
     const ticket = service.request(spec, inputs, {
-      editing: (editing || draft !== undefined) && previous !== undefined,
+      editing: (editing || draft !== undefined) && kept !== undefined,
     });
     useSyncExternalStore(ticket.subscribe, ticket.snapshot);
     const done = ticket.done;
-    const image = ticket.image ?? previous;
+    const image = ticket.image ?? kept;
     // NOTE(0913vision): Chromium can update pixels of a mounted canvas in
     // the current paint. Mounting a new canvas there would cost another frame.
     const canvasMode = editing || draft !== undefined;
@@ -191,7 +201,12 @@ export const Picture = memo(
     // Read the promise on the retry too, so React can finish the suspension.
     if (prepared !== undefined) use(prepared.ready);
     else if (wait && ticket.available) use(ticket.ready);
-    if (image !== previous) setPrevious(image);
+    if (
+      image !== undefined &&
+      (image !== previous?.image || owner !== previous.owner)
+    ) {
+      setPrevious({owner, image});
+    }
     if (display !== displayed) setDisplayed(display);
     return (
       <div
@@ -225,6 +240,7 @@ export const Picture = memo(
     previous.service === next.service &&
     previous.wait === next.wait &&
     previous.switchSlot === next.switchSlot &&
+    previous.owner === next.owner &&
     previous.editing === next.editing &&
     previous.resample === next.resample &&
     previous.songSource?.songId === next.songSource?.songId &&

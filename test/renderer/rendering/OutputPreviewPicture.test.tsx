@@ -209,3 +209,78 @@ it('commits a switch with the exact decoded element and its selection', async ()
   });
   expect(paint).toHaveBeenCalledTimes(2);
 });
+
+it('drops an image owned by another slide but keeps one for the same slide', async () => {
+  let finish = (): void => undefined;
+  const pending = new Promise<Uint8Array>(resolve => {
+    finish = () => resolve(new Uint8Array([0xff, 0xd8]));
+  });
+  const paint = vi
+    .fn()
+    .mockResolvedValueOnce(new Uint8Array([0xff, 0xd8]))
+    .mockReturnValueOnce(pending);
+  vi.stubGlobal(
+    'Image',
+    class {
+      src = '';
+      decode = vi.fn().mockResolvedValue(undefined);
+    },
+  );
+  const createUrl = vi
+    .fn()
+    .mockReturnValueOnce('blob:first-passage')
+    .mockReturnValueOnce('blob:second-passage');
+  const createObjectURL = Object.getOwnPropertyDescriptor(
+    URL,
+    'createObjectURL',
+  );
+  const revokeObjectURL = Object.getOwnPropertyDescriptor(
+    URL,
+    'revokeObjectURL',
+  );
+  Object.defineProperty(URL, 'createObjectURL', {
+    configurable: true,
+    value: createUrl,
+  });
+  Object.defineProperty(URL, 'revokeObjectURL', {
+    configurable: true,
+    value: vi.fn(),
+  });
+  vi.stubGlobal('llp', {
+    picture: {paint},
+    fonts: {
+      subscribe: vi.fn(),
+      snapshot: vi.fn().mockResolvedValue({verified: true, families: []}),
+    },
+    media: {
+      subscribe: vi.fn(),
+      get: vi.fn().mockResolvedValue({revision: 0, value: {items: []}}),
+    },
+  });
+  try {
+    const view = render(<Picture owner="first:0" {...props('First verse')} />);
+    const source = () =>
+      view.container.querySelector('img')?.getAttribute('src') ?? null;
+    await waitFor(() => expect(source()).toBe('blob:first-passage'));
+    view.rerender(<Picture owner="second:0" {...props('Second verse')} />);
+    await waitFor(() => expect(paint).toHaveBeenCalledTimes(2));
+    expect(source()).toBeNull();
+    await act(async () => {
+      finish();
+      await pending;
+    });
+    await waitFor(() => expect(source()).toBe('blob:second-passage'));
+  } finally {
+    vi.unstubAllGlobals();
+    if (createObjectURL === undefined) {
+      Reflect.deleteProperty(URL, 'createObjectURL');
+    } else {
+      Object.defineProperty(URL, 'createObjectURL', createObjectURL);
+    }
+    if (revokeObjectURL === undefined) {
+      Reflect.deleteProperty(URL, 'revokeObjectURL');
+    } else {
+      Object.defineProperty(URL, 'revokeObjectURL', revokeObjectURL);
+    }
+  }
+});

@@ -84,6 +84,11 @@ export function tilePicture(
       resample={spec.appearance.screen.method !== 'ndi'}
       wait={themes.switchSlot !== undefined}
       switchSlot={themes.switchSlot}
+      owner={
+        slide === null
+          ? undefined
+          : `${slide.itemId}:${slide.position}:${slide.sourceSlideId ?? ''}`
+      }
     />
   );
 }
