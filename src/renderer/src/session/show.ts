@@ -455,7 +455,7 @@ function stageNext(
 }
 
 /** Builds the same following item that the next-slide command will open. */
-export function stageSlideOf(cursor: TileCursor) {
+export function stageSlideOf(cursor: TileCursor): SlideLayer | null {
   const view = useShow.getState();
   const next = nextTileAtLast(
     {live: cursor, openItemId: cursor.itemId, tilesOf},
