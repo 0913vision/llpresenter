@@ -4,7 +4,12 @@ import {pictureKey} from '@core/output/pictureKey';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {OutputRenderer} from '../outputRenderer';
 import {openPreviewMedia} from '../previewMedia';
-import {drawPicture, layoutPicture} from './drawPicture';
+import {
+  drawPicture,
+  layoutPicture,
+  PICTURE_HEIGHT,
+  PICTURE_WIDTH,
+} from './drawPicture';
 import {pictures, type PictureSpec} from './pictureService';
 import styles from './Picture.module.css';
 
@@ -42,7 +47,14 @@ export const ComposedPicture = memo(
         aria-hidden="true"
         data-composed-picture=""
       >
-        <div className={styles.composedViewport}>
+        <div
+          className={styles.composedViewport}
+          style={{
+            width: PICTURE_WIDTH,
+            height: PICTURE_HEIGHT,
+            transform: `scale(calc(100cqw / ${PICTURE_WIDTH}px))`,
+          }}
+        >
           <div ref={host} />
         </div>
       </div>
