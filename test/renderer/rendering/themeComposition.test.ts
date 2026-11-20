@@ -139,7 +139,7 @@ describe('theme composition drawing', () => {
       const bibleTiles = tiles.map(
         ({kind: _kind, name: _name, ...tile}, index) => ({
           ...tile,
-          lines: tile.lines.flatMap(line => line.trimEnd().split('\n')),
+          lines: tile.lines.map(line => line.trimEnd()),
           biblePart: 1,
           continued: index === 0,
         }),
@@ -254,6 +254,10 @@ describe('theme composition drawing', () => {
         const bible = render(true, screen);
         target.mockClear();
         expect(render(false, screen), screen.kind).toEqual(bible);
+        expect(bible.lines).toEqual([
+          '17 비록 무화과나무가',
+          '무성하지 못하며 (계속)',
+        ]);
         expect(bible.reference).toBe(reference);
         expect(bible.marker?.text).toBe(' (계속)');
         expect(Number.parseFloat(bible.marker?.size ?? '')).toBeLessThan(
