@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
 import {expect, it, vi} from 'vitest';
 
-it('mirrors changed presenter frames at most ten times per second', () => {
+it('never reads back the presenter when a preview is requested', () => {
   const port = new EventEmitter();
   const postMessage = vi.fn<(value: {type: string}) => void>();
   Object.assign(port, {postMessage});
@@ -63,25 +63,25 @@ it('mirrors changed presenter frames at most ten times per second', () => {
   message({type: 'mirror', enabled: true});
   tick();
   tick();
-  expect(requestMirror).toHaveBeenCalledTimes(1);
+  expect(requestMirror).not.toHaveBeenCalled();
   expect(
     postMessage.mock.calls.filter(([value]) => value.type === 'mirror-frame'),
-  ).toHaveLength(1);
+  ).toHaveLength(0);
   message({type: 'mirror-ack'});
   now = 1000;
   tick();
-  expect(requestMirror).toHaveBeenCalledTimes(1);
-  expect(presenter.takeMirror).toHaveBeenCalledTimes(1);
+  expect(requestMirror).not.toHaveBeenCalled();
+  expect(presenter.takeMirror).not.toHaveBeenCalled();
   message({type: 'frame', pid: 1, handle: 'fixture'});
   tick();
   tick();
-  expect(requestMirror).toHaveBeenCalledTimes(2);
+  expect(requestMirror).not.toHaveBeenCalled();
   message({type: 'mirror-ack'});
   message({type: 'frame', pid: 1, handle: 'fixture'});
   now = 1050;
   tick();
-  expect(requestMirror).toHaveBeenCalledTimes(2);
+  expect(requestMirror).not.toHaveBeenCalled();
   now = 1100;
   tick();
-  expect(requestMirror).toHaveBeenCalledTimes(3);
+  expect(requestMirror).not.toHaveBeenCalled();
 });

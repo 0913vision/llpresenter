@@ -221,7 +221,7 @@ describe('PreviewPanel swap', () => {
     setLayers({slide}, allOn);
     const {container} = render(<PreviewPanel />);
     const mirrors = [...container.querySelectorAll('video')];
-    expect(mirrors).toHaveLength(0);
+    expect(mirrors).toHaveLength(3);
     fireEvent.click(screen.getByRole('button', {name: /무대 화면/}));
     fireEvent.click(screen.getByRole('button', {name: /방송 화면/}));
     expect([...container.querySelectorAll('video')]).toEqual(mirrors);
@@ -239,7 +239,7 @@ describe('PreviewPanel states', () => {
       container.querySelector('[data-preview-slot][aria-pressed="true"]'),
     ).toBeNull();
     expect(large.querySelector('video')).toBeNull();
-    expect(container.querySelectorAll('video')).toHaveLength(0);
+    expect(container.querySelectorAll('video')).toHaveLength(2);
   });
 
   it('treats a screen the live state does not know as off', () => {
@@ -252,12 +252,13 @@ describe('PreviewPanel states', () => {
 });
 
 describe('PreviewPanel pictures', () => {
-  it('uses cached pictures while the live content changes', () => {
+  it('keeps the mirror elements while the live content changes', () => {
     setLayers({slide}, allOn);
     const {container} = render(<PreviewPanel />);
-    expect(container.querySelectorAll('video')).toHaveLength(0);
+    const mirrors = [...container.querySelectorAll('video')];
+    expect(mirrors).toHaveLength(3);
     act(() => setLayers({}, allOn));
-    expect(container.querySelectorAll('video')).toHaveLength(0);
+    expect([...container.querySelectorAll('video')]).toEqual(mirrors);
     expect(created()).toHaveLength(0);
   });
 });

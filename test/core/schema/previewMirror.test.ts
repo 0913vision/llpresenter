@@ -12,6 +12,8 @@ describe('preview source token', () => {
     expect(parsePreviewSource(null).ok).toBe(true);
     expect(parsePreviewSource('alpha').ok).toBe(true);
     expect(parsePreviewSource('relay').ok).toBe(true);
+    expect(parsePreviewSource('desktop:window:123:0').ok).toBe(true);
+    expect(parsePreviewSource('desktop:screen:0:0').ok).toBe(false);
     expect(parsePreviewSource('screen:0:0').ok).toBe(false);
     expect(parsePreviewSource('web-contents-media-stream://1:2/extra').ok).toBe(
       false,

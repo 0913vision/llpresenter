@@ -896,6 +896,7 @@ function createPresenter({x, y, width, height, topmost}) {
 
   return {
     hwnd,
+    windowSource: `window:${k.address(hwnd)}:0`,
     startMirror,
     stopMirror,
     takeMirror,
@@ -994,38 +995,6 @@ function createPresenter({x, y, width, height, topmost}) {
         );
       }
       draw(backTarget[0], blend);
-      if (mirror !== null && mirror.requested) {
-        try {
-          frameCalls.targets(0, null, null);
-          frameCalls.copy(mirror.full.texture, backBuffer[0]);
-          const previousLive = live;
-          live = mirror.full;
-          try {
-            const scale = Math.min(640 / width, 360 / height);
-            const w = width * scale;
-            const h = height * scale;
-            frameCalls.clear(mirror.scaled.target, mirror.clear);
-            draw(
-              mirror.scaled.target,
-              {mode: MODES.cut, dir: 0, progress: 1},
-              w,
-              h,
-              (640 - w) / 2,
-              (360 - h) / 2,
-            );
-          } finally {
-            live = previousLive;
-          }
-          frameCalls.targets(0, null, null);
-          frameCalls.copy(mirror.staging, mirror.scaled.texture);
-          frameCalls.end(mirror.done);
-          mirror.requested = false;
-          mirror.pending = true;
-        } catch (error) {
-          stopMirror();
-          mirrorFailure = error;
-        }
-      }
       check(frameCalls.present(1, 0), 'Present');
       const now = performance.now();
       if (moving && lastPresent !== 0) intervals.push(now - lastPresent);

@@ -23,6 +23,34 @@ afterEach(() => {
 });
 
 describe('output mirror', () => {
+  it('captures a native presenter window at preview size', async () => {
+    const track = {stop: vi.fn(), onended: null};
+    const capture = vi.fn().mockResolvedValue({
+      getTracks: () => [track],
+      getVideoTracks: () => [track],
+    });
+    vi.stubGlobal('navigator', {mediaDevices: {getUserMedia: capture}});
+    vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue(undefined);
+    vi.stubGlobal(
+      'llp',
+      mockLlpApi({output: {previewSource: async () => 'desktop:window:123:0'}}),
+    );
+    render(<OutputMirror screenId="one" />);
+    await waitFor(() =>
+      expect(capture).toHaveBeenCalledWith({
+        audio: false,
+        video: {
+          mandatory: {
+            chromeMediaSource: 'desktop',
+            chromeMediaSourceId: 'window:123:0',
+            maxFrameRate: 10,
+            maxWidth: 640,
+            maxHeight: 360,
+          },
+        },
+      }),
+    );
+  });
   it('receives a relayed frame without opening a second capture', async () => {
     const capture = vi.fn();
     const listener: {current?: (frame: PreviewFrame) => void} = {};

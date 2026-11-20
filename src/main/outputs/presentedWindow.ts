@@ -23,7 +23,10 @@ import {
   type PlaybackProblemBoard,
 } from './playbackProblems';
 import {OUTPUT_BACKGROUND} from './electronWindow';
-import {publishPresenterMirror, setPresenterMirror} from './presenterMirror';
+import {
+  clearDesktopPreviewSource,
+  setDesktopPreviewSource,
+} from './desktopPreviewSources';
 
 const PING_SCRIPT = '0';
 const DEFAULT_SIZE: Size = {width: 1920, height: 1080};
@@ -267,9 +270,12 @@ function createPresenterPart(
       failWith(error);
     }
   };
-  const mirrorPump = {
-    enable: (enabled: boolean): void => post({type: 'mirror', enabled}),
-    ack: (): void => post({type: 'mirror-ack'}),
+  let desktopSource: string | undefined;
+  const clearPreviewSource = (): void => {
+    if (desktopSource !== undefined) {
+      clearDesktopPreviewSource(current.id, desktopSource);
+      desktopSource = undefined;
+    }
   };
   // NOTE(0913vision): invalidate() can paint a bitmap without a texture in
   // shared texture mode; restarting the painting gives a full texture frame.
@@ -344,7 +350,7 @@ function createPresenterPart(
     );
     worker.on(
       'message',
-      (message: {type: string; message?: string; frame?: unknown}) => {
+      (message: {type: string; message?: string; windowSource?: unknown}) => {
         if (child !== worker) return;
         if (message.type === 'ready') {
           ready = true;
@@ -363,21 +369,15 @@ function createPresenterPart(
         if (message.type === 'copied') copied();
         if (message.type === 'shown') {
           stopTimer();
-          if (shown !== null) setPresenterMirror(current.id, mirrorPump);
-        }
-        if (message.type === 'mirror-frame') {
           if (
-            message.frame instanceof Uint8Array &&
-            message.frame.length === 640 * 360 * 4
+            shown !== null &&
+            typeof message.windowSource === 'string' &&
+            /^window:\d+:0$/.test(message.windowSource)
           ) {
-            publishPresenterMirror(current.id, message.frame);
-          } else {
-            mirrorPump.ack();
+            clearPreviewSource();
+            desktopSource = message.windowSource;
+            setDesktopPreviewSource(current.id, desktopSource);
           }
-        }
-        if (message.type === 'mirror-error') {
-          log.warn('presenter preview unavailable', message.message);
-          setPresenterMirror(current.id, null);
         }
         if (message.type === 'transitioned') {
           log.info('output presenter transition', {
@@ -390,7 +390,7 @@ function createPresenterPart(
     );
     worker.on('exit', code => {
       if (child === worker) {
-        setPresenterMirror(current.id, null);
+        clearPreviewSource();
         child = null;
         failWith(`presenter exited ${code}`);
       }
@@ -402,6 +402,7 @@ function createPresenterPart(
     const hz = Math.round(display.displayFrequency) || 60;
     const key = `${JSON.stringify(pixels)}@${hz}`;
     if (key === openKey) return;
+    clearPreviewSource();
     openKey = key;
     win.setContentSize(bounds.width, bounds.height);
     win.webContents.setFrameRate(Math.min(240, Math.max(1, hz)));
@@ -441,7 +442,7 @@ function createPresenterPart(
     },
     hide: () => {
       shown = null;
-      setPresenterMirror(current.id, null);
+      clearPreviewSource();
       stopTimer();
       post({type: 'hide'});
     },
@@ -464,7 +465,7 @@ function createPresenterPart(
     destroy: () => {
       if (closed) return;
       closed = true;
-      setPresenterMirror(current.id, null);
+      clearPreviewSource();
       stopTimer();
       releaseProblems?.();
       outstanding?.release();

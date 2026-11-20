@@ -33,6 +33,7 @@ const sourceSchema = v.nullable(
   v.union([
     v.literal('alpha'),
     v.literal('relay'),
+    v.pipe(v.string(), v.maxLength(128), v.regex(/^desktop:window:\d+:0$/)),
     v.pipe(v.string(), v.maxLength(128), v.regex(/^[A-Za-z0-9+/]{22}==$/)),
   ]),
 );

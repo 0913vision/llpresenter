@@ -46,6 +46,8 @@ export default defineConfig({
             'ndi-library.cjs',
             'dirty.cjs',
             'gpu-utility.cjs',
+            'preview-receiver.cjs',
+            'previewPixels.cjs',
             'd3d.cjs',
           ]) {
             copyFileSync(resolve('src/main/ndi', file), resolve(target, file));

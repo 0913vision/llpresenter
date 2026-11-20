@@ -1,4 +1,4 @@
-import {NDI_DEFAULT_FPS} from '@core/schema/screens';
+import {NDI_DEFAULT_FPS, NDI_DEFAULT_SOURCE_NAME} from '@core/schema/screens';
 import type {SettingsReader} from '@core/schema/settingsReader';
 import type {SettingsEdit} from '@core/schema/settingsDocuments';
 import type {EditResult} from '@core/schema/contentEdit';
@@ -54,6 +54,8 @@ import {
   subscribePresenterMirror,
 } from './presenterMirror';
 import {createAlphaMirror} from './alphaMirror';
+import {desktopPreviewSource} from './desktopPreviewSources';
+import {createNdiPreview} from './ndiPreview';
 import {PreviewFrameFanout} from './previewFrameFanout';
 
 /** What the output windows hang on. */
@@ -288,6 +290,7 @@ export function startOutputs({
   outputs.start();
   const previewSubscriptions = new Map<string, () => void>();
   const alphaMirrors = new Map<string, ReturnType<typeof createAlphaMirror>>();
+  const ndiMirrors = new Map<string, ReturnType<typeof createNdiPreview>>();
   const previewSinks = new Map<string, (frame: Uint8Array | null) => void>();
   const fanouts = new Map<string, PreviewFrameFanout>();
   const captureOwners = new Map<string, number>();
@@ -343,7 +346,12 @@ export function startOutputs({
   const ensureAlpha = (screenId: string): boolean => {
     const screen = screens.list().find(item => item.id === screenId);
     const contents = outputs.previewContents(screenId);
-    const needed = screen?.target === 'ndi' || contents?.isOffscreen() === true;
+    if (screen?.target === 'ndi') return true;
+    if (contents?.isOffscreen() === true) {
+      stopAlpha(screenId);
+      return false;
+    }
+    const needed = contents?.isOffscreen() === true;
     if (store.state.outputs[screenId] !== true) {
       stopAlpha(screenId);
       return needed;
@@ -369,7 +377,9 @@ export function startOutputs({
   const ackUpstream = (screenId: string): void => {
     if (!waitingUpstream.delete(screenId)) return;
     const alpha = alphaMirrors.get(screenId);
-    if (alpha !== undefined) alpha.ack();
+    const ndi = ndiMirrors.get(screenId);
+    if (ndi !== undefined) ndi.ack();
+    else if (alpha !== undefined) alpha.ack();
     else ackPresenterMirror(screenId);
   };
   const removeClient = (screenId: string, sender: number): void => {
@@ -412,12 +422,24 @@ export function startOutputs({
         .find(item => item.id === request.value.screenId);
       if (screen === undefined) return null;
       if (store.state.outputs[screen.id] !== true) return null;
-      if (ensureAlpha(screen.id)) return 'alpha';
       const owner = captureOwners.get(screen.id);
       if (owner !== undefined && owner !== event.sender.id) {
         updateRelay(screen.id);
         return 'relay';
       }
+      const desktop = desktopPreviewSource(screen.id);
+      if (desktop !== undefined) {
+        captureOwners.set(screen.id, event.sender.id);
+        updateRelay(screen.id);
+        return `desktop:${desktop}`;
+      }
+      if (
+        screen.target !== 'ndi' &&
+        outputs.previewContents(screen.id)?.isOffscreen() === true
+      ) {
+        return null;
+      }
+      if (ensureAlpha(screen.id)) return 'alpha';
       const output = BrowserWindow.getAllWindows().find(win => {
         if (win.isDestroyed() || win.webContents.isDestroyed()) return false;
         try {
@@ -446,6 +468,8 @@ export function startOutputs({
       clientStops.clear();
       for (const unsubscribe of previewSubscriptions.values()) unsubscribe();
       previewSubscriptions.clear();
+      for (const mirror of ndiMirrors.values()) mirror.stop();
+      ndiMirrors.clear();
       alphaMirrors.clear();
       previewSinks.clear();
       fanouts.clear();
@@ -527,6 +551,31 @@ export function startOutputs({
         }
       };
       previewSinks.set(screenId, send);
+      const screen = screens.list().find(item => item.id === screenId);
+      if (screen?.target === 'ndi') {
+        let mirror: ReturnType<typeof createNdiPreview>;
+        const configuredName = screen.ndi?.sourceName?.trim();
+        try {
+          mirror = createNdiPreview(
+            configuredName === undefined || configuredName === ''
+              ? NDI_DEFAULT_SOURCE_NAME
+              : configuredName,
+            send,
+            log,
+          );
+        } catch (error) {
+          log.warn('NDI preview unavailable', error);
+          previewSinks.delete(screenId);
+          return;
+        }
+        ndiMirrors.set(screenId, mirror);
+        previewSubscriptions.set(screenId, () => {
+          mirror.stop();
+          ndiMirrors.delete(screenId);
+          previewSinks.delete(screenId);
+        });
+        return;
+      }
       const unsubscribe = subscribePresenterMirror(
         screenId,
         send,

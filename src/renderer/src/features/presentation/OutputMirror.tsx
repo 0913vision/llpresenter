@@ -117,8 +117,12 @@ export function OutputMirror({
           };
         } = {
           mandatory: {
-            chromeMediaSource: 'tab',
-            chromeMediaSourceId: source,
+            chromeMediaSource: source.startsWith('desktop:')
+              ? 'desktop'
+              : 'tab',
+            chromeMediaSourceId: source.startsWith('desktop:')
+              ? source.slice('desktop:'.length)
+              : source,
             maxFrameRate: 10,
             maxWidth: 640,
             maxHeight: 360,
