@@ -1,4 +1,5 @@
 import {isReferencedTextSlide, themeOverlay} from '../themes/content';
+import {stageScriptureNextLayout} from '../themes/stageScripture';
 import type {PictureRequest} from '../schema/picture';
 
 type PictureSpec = PictureRequest['spec'];
@@ -50,7 +51,7 @@ export function pictureKey({layers, appearance}: PictureSpec): string {
     broadcast ? (screen.songCaption ?? 'band') : null,
     screen.correction,
     item?.contentCleared ? screen.emptyColor : null,
-    layoutKey(layout),
+    layoutKey(stage ? stageScriptureNextLayout(theme, slide) : layout),
     emptyColor,
     appearance.background,
     item?.kind,

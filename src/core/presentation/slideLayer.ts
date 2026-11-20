@@ -33,7 +33,15 @@ export function nextSlideOf(
     readonly previous?: SlideTile | undefined;
   },
 ): NextSlide {
+  const scripture =
+    isReferencedTextSlide(tile, kind) ||
+    ((tile.kind === 'blank' || tile.kind === 'ad') &&
+      tile.picture === undefined &&
+      tile.sectionCard === undefined &&
+      isReferencedTextSlide(context?.previous ?? null));
+  const biblePart = tile.biblePart ?? (scripture ? 1 : undefined);
   const notice =
+    !scripture &&
     tile.sectionCard === undefined &&
     tile.kind === 'ad' &&
     tile.picture === undefined;
@@ -42,7 +50,7 @@ export function nextSlideOf(
       ? `${context.textSlideNumber}. ${tile.name ?? ''}`.trim()
       : undefined) ??
     tile.sectionCard?.name ??
-    tile.name ??
+    (scripture ? undefined : tile.name) ??
     (tile.media !== undefined ||
     (tile.picture !== undefined && tile.kind !== undefined)
       ? context?.title
@@ -62,7 +70,7 @@ export function nextSlideOf(
     ...(kind === undefined ? {} : {itemKind: kind}),
     ...(title === undefined || title.trim() === '' ? {} : {title}),
     ...(tile.continued === undefined ? {} : {continued: tile.continued}),
-    ...(tile.biblePart === undefined ? {} : {biblePart: tile.biblePart}),
+    ...(biblePart === undefined ? {} : {biblePart}),
     ...(tile.bibleVerse === undefined ? {} : {bibleVerse: tile.bibleVerse}),
     ...(tile.sermonTitle === undefined ? {} : {sermonTitle: tile.sermonTitle}),
     ...(tile.titleSlide === undefined ? {} : {titleSlide: tile.titleSlide}),

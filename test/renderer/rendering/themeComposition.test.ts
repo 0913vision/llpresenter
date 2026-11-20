@@ -2715,6 +2715,113 @@ it('reflows Bible parts independently on stage and broadcast, including the next
   view.dispose();
 });
 
+it.each(['blank', 'ad'] as const)(
+  'uses the Bible stage next box and line flow for a referenced %s slide',
+  form => {
+    const item = slidesItem(form);
+    const [first, second] = item.slides.slides;
+    if (!first || !second) throw Error('Missing slides');
+    const reference = '하박국 3:17~19';
+    const currentText = '비록 무화과나무가 무성하지 못하며';
+    const nextText = '밭에 먹을 것이 없으며 우리에\n양이 없으며';
+    const tiles = projectSlides({
+      ...item,
+      slides: {
+        ...item.slides,
+        slides: [
+          {id: first.id, text: currentText, reference},
+          {
+            id: second.id,
+            text: nextText,
+            ...(form === 'ad' ? {name: '다음 장'} : {}),
+          },
+        ],
+      },
+    });
+    const bibleTiles = [
+      {
+        label: null,
+        labelColor: 'none' as const,
+        lines: [currentText],
+        reference,
+        biblePart: 1,
+      },
+      {
+        label: null,
+        labelColor: 'none' as const,
+        lines: ['밭에 먹을 것이 없으며', '우리에 양이 없으며'],
+        biblePart: 1,
+      },
+    ];
+    const screen = {
+      id: createScreenId(STARTER_SCREEN_IDS.stage),
+      kind: 'stage' as const,
+    };
+    const theme = currentBuiltInTheme('bible');
+    const layout = theme.screens[screen.id];
+    if (!layout) throw Error('Missing stage layout');
+    const wider = {
+      ...layout,
+      elements: layout.elements.map(element =>
+        element.kind === 'nextText'
+          ? {...element, frame: {...element.frame, w: 1800}, lineLimit: 1}
+          : element,
+      ),
+    };
+    const {root, view, onError} = setup();
+    function render(passage: boolean, useWiderLayout = false) {
+      const cursor = {itemId: item.id, index: 0};
+      const slide = slideLayerOf(cursor, () => (passage ? bibleTiles : tiles));
+      if (!slide) throw Error('Missing slide');
+      const command = parseLiveCommand({type: 'slide.show', slide});
+      if (!command.ok || command.value.type !== 'slide.show') {
+        throw Error('Invalid slide');
+      }
+      const themeFrame = frame(layout.elements, {
+        themeId: useWiderLayout ? themeId : theme.id,
+        layout: useWiderLayout ? wider : layout,
+        item: {
+          id: item.id,
+          kind: passage ? 'bible' : form,
+          source: 'service',
+          title: reference,
+        },
+      });
+      view.render(
+        {...emptyLayers(), slide: command.value.slide},
+        {...themeFrame, screen, transitions: false},
+      );
+      const next = root.querySelector<HTMLElement>('[data-kind="nextText"]');
+      const shown = next?.querySelector<HTMLElement>(`.${classes.shown}`);
+      const text = shown?.querySelector<HTMLElement>(`.${classes.block}`);
+      if (!next || !shown || !text) throw Error('Missing next text');
+      expect(onError).not.toHaveBeenCalled();
+      return {
+        frame: [
+          next.style.left,
+          next.style.top,
+          next.style.width,
+          next.style.height,
+        ],
+        wrap: next.style.textWrap,
+        rows: Array.from(text.children, line => line.textContent),
+        font: [
+          text.style.fontFamily,
+          text.style.fontSize,
+          text.style.letterSpacing,
+        ],
+        alignment: shown.style.textAlign,
+      };
+    }
+    const bible = render(true);
+    expect(bible.rows).toEqual(['밭에 먹을 것이 없으며 우리에 양이 없으며']);
+    expect(bible.wrap).toBe('balance');
+    expect(render(false)).toEqual(bible);
+    expect(render(false, true)).toEqual(bible);
+    view.dispose();
+  },
+);
+
 it('keeps sermon title lines on stage and broadcast, including stage next text', () => {
   const {root, view} = setup();
   const elements: ThemeElement[] = [
