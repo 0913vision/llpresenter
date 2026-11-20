@@ -1,4 +1,11 @@
-import {act, render, screen, waitFor, within} from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {expect, it, onTestFinished, vi} from 'vitest';
 import {createServiceItemId, createSlideId} from '@core/schema/ids';
@@ -11,6 +18,7 @@ import {useContext, useLayoutEffect, useRef} from 'react';
 import {PictureReadiness} from '@renderer/rendering/PictureReadiness';
 import {SongEditorStore} from '@renderer/features/songs/editor/songEditorStore';
 import {editorFixture} from '@fixtures/renderer/features/songs/editor/editorFixture';
+import {themeFile} from '@fixtures/core/themeOutput';
 vi.mock('@renderer/features/service/items/useItemSources', () => ({
   useItemMedia: () => ({document: null}),
 }));
@@ -181,3 +189,33 @@ it('applies one transition to a selected section card and slide and undoes both'
   expect(draft.snapshot.item.sectionCard?.transition).toBeUndefined();
   expect(draft.snapshot.item.slides.slides[0]?.transition).toBeUndefined();
 });
+
+it.each(['ad', 'standby'] as const)(
+  'uses the shared transition and undo contract for %s',
+  kind => {
+    const item = newSlidesItem(
+      kind === 'ad' ? 'ad' : 'blank',
+      createServiceItemId('00000000-0000-4000-8000-000000000141'),
+    );
+    const draft = new SlidesDraft(
+      kind === 'standby' ? {...item, theme: themeFile().standby.id} : item,
+    );
+    const session = new SlidesListSession(draft, {
+      locked: () => false,
+      problem: vi.fn(),
+    });
+    const view = render(
+      <SlidesInspector api={mockLlpApi()} session={session} />,
+    );
+    const effect = within(view.container).getByRole('button', {
+      name: '\uB514\uC878\uBE0C',
+    });
+    fireEvent.click(effect);
+    expect(draft.snapshot.item.slides.slides[0]?.transition?.kind).toBe(
+      'dissolve',
+    );
+    fireEvent.keyDown(effect, {key: 'z', ctrlKey: true});
+    expect(draft.snapshot.item.slides.slides[0]?.transition).toBeUndefined();
+    view.unmount();
+  },
+);

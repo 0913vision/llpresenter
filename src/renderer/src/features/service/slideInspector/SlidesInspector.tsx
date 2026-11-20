@@ -1,4 +1,4 @@
-import {useState, useSyncExternalStore, type JSX} from 'react';
+import {useSyncExternalStore, type JSX} from 'react';
 import type {SlideTransition} from '@core/schema/slideTransition';
 import type {LlpApi} from '@contracts/ipc/api';
 import {useItemMedia} from '../items/useItemSources';
@@ -10,20 +10,12 @@ import {
   useSlidesItemWithBackground,
 } from '../slides/SlidesVisuals';
 import type {SlidesListSession} from '../slides/slidesListSession';
-import {Panel, PanelBody} from '@renderer/ui/Panel';
-import {Properties, PropertyGroup, PropertyRow} from '@renderer/ui/PropertyRow';
-import {PrepInspectorContent} from './PrepInspectorContent';
-import {TransitionSection, useTransitionSelection} from './TransitionSection';
-import {
-  sameSlideTransition,
-  slideTransitionUndo,
-} from '@renderer/features/songs/editor/slideTransitionSelection';
-import {LabelMenu} from '@renderer/features/songs/editor/LabelMenu';
+import {SlideInspectorView} from './SlideInspectorView';
+import {inspectorTransition, useTransitionSelection} from './TransitionSection';
 import type {SongEditorStore} from '@renderer/features/songs/editor/songEditorStore';
-import {Button} from '@renderer/ui/Button';
 import styles from './SlideInspector.module.css';
 
-/** Inspect a local slide item through its existing draft and selection. */
+/** Adapts a local slide draft and selection to the shared inspector. */
 export function SlidesInspector({
   api,
   session,
@@ -37,7 +29,6 @@ export function SlidesInspector({
   readonly session: SlidesListSession;
   readonly store?: SongEditorStore | undefined;
 }): JSX.Element {
-  const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const view = useSyncExternalStore(
     session.slideModel.subscribe,
     session.slideModel.getSnapshot,
@@ -66,8 +57,7 @@ export function SlidesInspector({
       entry => entry.transition ?? {kind: 'none' as const, sec: 0.5},
     ),
   ];
-  const value = effects[0] ?? {kind: 'none' as const, sec: 0.5};
-  const mixed = effects.some(effect => !sameSlideTransition(effect, value));
+  const {value, mixed} = inspectorTransition(effects);
   const transition = useTransitionSelection({
     session,
     disabled: false,
@@ -135,88 +125,63 @@ export function SlidesInspector({
     session.draft.endTyping();
   };
 
+  if (view.selection.ids.size === 0 || slide === undefined) {
+    return <SlideInspectorView />;
+  }
   return (
-    <Panel label="슬라이드 속성">
-      <PanelBody>
-        {view.selection.ids.size === 0 || slide === undefined ? null : (
-          <PrepInspectorContent
-            identity={`${item.id}:${selected}:${selectedSlides.map(entry => entry.id).join(',')}:${cardSelected}`}
-            pending={!ready}
-            waitForPicture
-            content={
-              <div
-                onKeyDown={event =>
-                  slideTransitionUndo(event, session, session.readOnly)
-                }
-              >
-                <div className={styles.picture} data-background-picture>
-                  <SlidesCanvas
-                    item={item}
-                    index={selected}
-                    appearance={appearance}
-                    projection={projection}
-                  />
-                </div>
-                <div className={styles.caption}>
-                  {slideBand(slide, media)}
-                  <span>
-                    {selected + 1} / {view.slides.length}
-                  </span>
-                </div>
-                <Properties>
-                  {store === undefined ? null : (
-                    <PropertyGroup>
-                      <PropertyRow label="이름표">
-                        {({controlId}) => (
-                          <Button
-                            id={controlId}
-                            size="md"
-                            className={styles.full}
-                            disabled={
-                              session.readOnly || selectedSlides.length === 0
-                            }
-                            onClick={event => setAnchor(event.currentTarget)}
-                          >
-                            {mixedLabel ? '혼합' : (label ?? '없음')}
-                          </Button>
-                        )}
-                      </PropertyRow>
-                    </PropertyGroup>
-                  )}
-                  <TransitionSection
-                    {...(card === undefined
-                      ? transition
-                      : {
-                          value,
-                          mixed,
-                          disabled: session.readOnly,
-                          selectionKey: selectedSlides
-                            .map(entry => entry.id)
-                            .join(','),
-                          onChange: applySelected,
-                          onSeconds: applySelected,
-                          onApplyAll: () => onApplyAll?.(value),
-                          allowAll: onApplyAll !== undefined,
-                        })}
-                  />
-                </Properties>
-                {store === undefined || anchor === null ? null : (
-                  <LabelMenu
-                    store={store}
-                    anchor={anchor}
-                    selected={mixedLabel ? undefined : label}
-                    onChoose={applyLabel}
-                    onClose={restore => {
-                      setAnchor(null);
-                      if (restore) anchor.focus();
-                    }}
-                  />
-                )}
-              </div>
-            }
-          />
-        )}
-      </PanelBody>
-    </Panel>
+    <SlideInspectorView
+      identity={`${item.id}:${selected}:${selectedSlides.map(entry => entry.id).join(',')}:${cardSelected}`}
+      pending={!ready}
+      waitForPicture
+      preview={
+        <>
+          <div className={styles.picture} data-background-picture>
+            <SlidesCanvas
+              item={item}
+              index={selected}
+              appearance={appearance}
+              projection={projection}
+            />
+          </div>
+          <div className={styles.caption}>
+            {slideBand(slide, media)}
+            <span>
+              {selected + 1} / {view.slides.length}
+            </span>
+          </div>
+        </>
+      }
+      adapter={{
+        selectedIds: [
+          ...(card === undefined ? [] : ['card']),
+          ...selectedSlides.map(entry => entry.id),
+        ],
+        label:
+          store === undefined
+            ? undefined
+            : {
+                store,
+                value: label,
+                mixed: mixedLabel,
+                disabled: session.readOnly || selectedSlides.length === 0,
+                change: applyLabel,
+              },
+        transition:
+          card === undefined
+            ? transition
+            : {
+                value,
+                mixed,
+                disabled: session.readOnly,
+                selectionKey: selectedSlides.map(entry => entry.id).join(','),
+                onChange: applySelected,
+                onSeconds: applySelected,
+                onApplyAll: () => onApplyAll?.(value),
+                allowAll: onApplyAll !== undefined,
+              },
+        undo: action => session.edit(action),
+        undoDisabled: session.readOnly,
+      }}
+    />
   );
 }

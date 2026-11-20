@@ -1,24 +1,18 @@
-import {useState, useSyncExternalStore, type JSX} from 'react';
+import {useSyncExternalStore, type JSX} from 'react';
 import type {SlideTransition} from '@core/schema/slideTransition';
 import {formatSlideHotKey} from '@renderer/ui/SlideThumbnail';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
-import {PrepInspectorContent} from './PrepInspectorContent';
+import {SlideInspectorView} from './SlideInspectorView';
 import {useSongSlideAppearance} from '@renderer/features/songs/editor/useSongSlideAppearance';
-import {LabelMenu} from '@renderer/features/songs/editor/LabelMenu';
-import {TransitionSection, useTransitionSelection} from './TransitionSection';
-import {
-  sameSlideTransition,
-  slideTransitionUndo,
-} from '@renderer/features/songs/editor/slideTransitionSelection';
+import {inspectorTransition, useTransitionSelection} from './TransitionSection';
 import type {SongEditorStore} from '@renderer/features/songs/editor/songEditorStore';
 import {Button} from '@renderer/ui/Button';
 import {labelInk} from '@renderer/ui/labelInk';
-import {Panel, PanelBody} from '@renderer/ui/Panel';
-import {Properties, PropertyGroup, PropertyRow} from '@renderer/ui/PropertyRow';
+import {PropertyGroup, PropertyRow} from '@renderer/ui/PropertyRow';
 import styles from './SlideInspector.module.css';
 import {SongTitleLayoutControl} from '@renderer/features/songs/editor/SongTitleLayoutControl';
 
-/** Local inspection of the current song slide and its shared selection. */
+/** Adapts the current song session to the shared inspector. */
 export function SlideInspector({
   store,
   shownSession,
@@ -31,20 +25,16 @@ export function SlideInspector({
 }): JSX.Element {
   const state = useSyncExternalStore(store.subscribe, store.getSnapshot);
   const session = shownSession === undefined ? state.session : shownSession;
-  return (
-    <Panel label="슬라이드 속성">
-      <PanelBody>
-        {session === null ? null : (
-          <InspectorContent
-            key={session.slideDocumentId}
-            store={store}
-            session={session}
-            busy={state.busy}
-            cardSelected={cardSelected}
-          />
-        )}
-      </PanelBody>
-    </Panel>
+  return session === null ? (
+    <SlideInspectorView />
+  ) : (
+    <InspectorContent
+      key={session.slideDocumentId}
+      store={store}
+      session={session}
+      busy={state.busy}
+      cardSelected={cardSelected}
+    />
   );
 }
 
@@ -66,7 +56,6 @@ function InspectorContent({
     session.slideModel.getSnapshot,
   );
   const appearance = useSongSlideAppearance(session);
-  const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const snapshot = session.history.snapshot;
   const selected = view.slides.filter(slide =>
     view.selection.ids.has(slide.id),
@@ -90,10 +79,7 @@ function InspectorContent({
       item => item.transition ?? {kind: 'none' as const, sec: 0.5},
     ),
   ];
-  const effect = effects[0] ?? {kind: 'none' as const, sec: 0.5};
-  const mixedEffect = effects.some(
-    value => !sameSlideTransition(value, effect),
-  );
+  const {value: effect, mixed: mixedEffect} = inspectorTransition(effects);
   const transition = useTransitionSelection({
     session,
     disabled: busy,
@@ -102,18 +88,14 @@ function InspectorContent({
       : undefined,
   });
 
-  if (selected.length === 0) return null;
+  if (selected.length === 0) return <SlideInspectorView />;
   return (
-    <PrepInspectorContent
+    <SlideInspectorView
       identity={`${session.slideDocumentId}:${snapshot.selection.block}:${selected.map(item => item.id).join(',')}:${cardSelected}`}
       pending={appearance === undefined || slide === undefined}
       waitForPicture
-      content={
-        <div
-          onKeyDown={event =>
-            slideTransitionUndo(event, session, busy || session.readOnly)
-          }
-        >
+      preview={
+        <>
           <div className={styles.picture} data-background-picture>
             {appearance === undefined || slide === undefined ? null : (
               <SlidePicture
@@ -156,79 +138,65 @@ function InspectorContent({
               {snapshot.selection.block + 1} / {view.slides.length}
             </span>
           </div>
-          <SongTitleLayoutControl session={session} disabled={busy} />
-          <Properties>
-            <PropertyGroup>
-              <PropertyRow label="이름표">
-                {() => (
-                  <Button
-                    size="md"
-                    className={styles.full}
-                    disabled={busy || session.readOnly || selected.length === 0}
-                    onClick={event => setAnchor(event.currentTarget)}
-                  >
-                    {mixedLabel
-                      ? '혼합'
-                      : label === undefined || label === ''
-                        ? '없음'
-                        : label}
-                  </Button>
-                )}
-              </PropertyRow>
-            </PropertyGroup>
-            <TransitionSection
-              {...(card === undefined
-                ? transition
-                : {
-                    value: effect,
-                    mixed: mixedEffect,
-                    disabled: busy || session.readOnly,
-                    selectionKey: selected.map(item => item.id).join(','),
-                    onChange: (value: SlideTransition) =>
-                      session.changeItemTransitions(value, true),
-                    onSeconds: (seconds: number) =>
-                      session.changeItemTransitions(seconds, true),
-                    onApplyAll: () =>
-                      session.changeItemTransitions(effect, true, true),
-                  })}
-            />
-            <PropertyGroup>
-              <PropertyRow label="단축키">
-                {() => (
-                  <Button
-                    size="md"
-                    className={styles.full}
-                    disabled={busy || session.readOnly || selected.length !== 1}
-                    onClick={() => store.requestAction('hot-key')}
-                  >
-                    {selected.length > 1
-                      ? '여러 슬라이드'
-                      : slide?.hotKey === undefined
-                        ? '설정…'
-                        : formatSlideHotKey(slide.hotKey)}
-                  </Button>
-                )}
-              </PropertyRow>
-            </PropertyGroup>
-          </Properties>
-          {anchor === null ? null : (
-            <LabelMenu
-              store={store}
-              anchor={anchor}
-              selected={mixedLabel ? undefined : label}
-              onChoose={name =>
-                session.itemSession && cardSelected
-                  ? session.changeItemLabels(name, true)
-                  : session.commandSlides({type: 'label', label: name})
-              }
-              onClose={restore => {
-                setAnchor(null);
-                if (restore) anchor.focus();
-              }}
-            />
-          )}
-        </div>
+        </>
       }
+      beforeProperties={
+        <SongTitleLayoutControl session={session} disabled={busy} />
+      }
+      afterProperties={
+        <PropertyGroup>
+          <PropertyRow label="단축키">
+            {() => (
+              <Button
+                size="md"
+                className={styles.full}
+                disabled={busy || session.readOnly || selected.length !== 1}
+                onClick={() => store.requestAction('hot-key')}
+              >
+                {selected.length > 1
+                  ? '여러 슬라이드'
+                  : slide?.hotKey === undefined
+                    ? '설정…'
+                    : formatSlideHotKey(slide.hotKey)}
+              </Button>
+            )}
+          </PropertyRow>
+        </PropertyGroup>
+      }
+      adapter={{
+        selectedIds: [
+          ...(card === undefined ? [] : ['card']),
+          ...selected.map(item => item.id),
+        ],
+        label: {
+          store,
+          associateControl: false,
+          value: label,
+          mixed: mixedLabel,
+          disabled: busy || session.readOnly || selected.length === 0,
+          change: name =>
+            session.itemSession && cardSelected
+              ? session.changeItemLabels(name, true)
+              : session.commandSlides({type: 'label', label: name}),
+        },
+        transition:
+          card === undefined
+            ? transition
+            : {
+                value: effect,
+                mixed: mixedEffect,
+                disabled: busy || session.readOnly,
+                selectionKey: selected.map(item => item.id).join(','),
+                onChange: (value: SlideTransition) =>
+                  session.changeItemTransitions(value, true),
+                onSeconds: (seconds: number) =>
+                  session.changeItemTransitions(seconds, true),
+                onApplyAll: () =>
+                  session.changeItemTransitions(effect, true, true),
+              },
+        undo: action => session.edit(action),
+        undoDisabled: busy || session.readOnly,
+      }}
     />
   );
 }
