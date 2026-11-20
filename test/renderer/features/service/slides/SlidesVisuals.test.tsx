@@ -5,10 +5,8 @@ import {
   createSlideId,
 } from '@core/schema/ids';
 import {newSlidesItem} from '@core/services/slidesEdits';
-import {
-  slideBand,
-  slideLayers,
-} from '@renderer/features/service/slides/SlidesVisuals';
+import {slideBand} from '@renderer/features/service/slides/SlidesVisuals';
+import {slideLayers} from '@renderer/rendering/pictureSpec';
 import {projectSlides} from '@core/presentation/slides';
 import {slideLayerOf} from '@core/presentation/slideLayer';
 import {withSectionCard} from '@core/services/sectionCards';

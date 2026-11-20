@@ -77,14 +77,11 @@ export function biblePictureInput(
   };
 }
 
-/** A resolved slide or a draft whose live layers are already projected. */
-export type PreparedPicture =
-  | {readonly kind: 'slide'; readonly input: SlideInput}
-  | {
-      readonly kind: 'layers';
-      readonly layers: LiveLayers;
-      readonly appearance: PictureSpec['appearance'];
-    };
+/** A slide with its screen and theme already resolved. */
+export interface PreparedPicture {
+  readonly kind: 'slide';
+  readonly input: SlideInput;
+}
 
 export function slideLayers(
   item: SlidesItem,
@@ -233,12 +230,6 @@ export function pictureSpec(
           : {...layers, slide: picture.outputSlide},
       appearance: picture.appearance,
     });
-  }
-  if (picture.kind === 'layers') {
-    return result(
-      {layers: picture.layers, appearance: picture.appearance},
-      picture.layers.slide === null && picture.layers.media !== null,
-    );
   }
   const {
     tile,

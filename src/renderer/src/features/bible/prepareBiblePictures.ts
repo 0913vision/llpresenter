@@ -2,7 +2,7 @@ import {bibleSource, type BiblePreviewOptions} from '@core/bible/source';
 import type {BibleLookupPassage} from '@core/schema/bibleLookup';
 import {slideLayerOf} from '@core/presentation/slideLayer';
 import {useShow} from '@renderer/session/showStore';
-import {outputSlideSpec} from '@renderer/rendering/OutputSlidePicture';
+import {biblePictureInput, pictureSpec} from '@renderer/rendering/pictureSpec';
 import {pictures} from '@renderer/rendering/pictures/pictureService';
 import {splitSourceFor, type BibleProjections} from './splitProjection';
 
@@ -32,7 +32,7 @@ export async function prepareBiblePictures(
   const appearance = projected?.appearance;
   if (projected == null || appearance === undefined) return false;
   const {tiles} = projected;
-  const {screen, theme, background} = appearance;
+  const {theme, background} = appearance;
   const grid = document.querySelector<HTMLElement>(
     '[data-workspace-frame="show"]:not([inert]) [data-slide-window-size]',
   );
@@ -43,16 +43,13 @@ export async function prepareBiblePictures(
       ? []
       : [
           pictures.whenDrawn(
-            outputSlideSpec({
-              slide,
-              screen,
-              themeId: theme.themeId,
-              sourceScreenId: theme.sourceScreenId,
-              layout: theme.layout,
-              item: theme.item,
-              emptyColor: theme.emptyColor,
-              background,
-            }),
+            pictureSpec({
+              kind: 'slide',
+              input: biblePictureInput(slide, appearance, {
+                background,
+                sourceScreenId: theme.sourceScreenId,
+              }),
+            }).spec,
             `${id}:${index}`,
           ),
         ];

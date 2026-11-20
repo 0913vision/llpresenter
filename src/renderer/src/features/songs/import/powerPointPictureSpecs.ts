@@ -1,10 +1,8 @@
 import type {PowerPointSource} from '@core/schema/powerpointImport';
 import {powerpointSlides} from '@core/songs/powerpointSlides';
 import {powerpointBackgroundIndex} from '@core/songs/powerpointBackgroundIndex';
-import {
-  outputSlideSpec,
-  type SlideInput,
-} from '@renderer/rendering/OutputSlidePicture';
+import {pictureSpec} from '@renderer/rendering/pictureSpec';
+import type {SlideInput} from '@renderer/rendering/outputSlideSpec';
 import type {PictureSpec} from '@renderer/rendering/pictures/pictureService';
 
 /** Projects an import into the same picture specifications as output previews. */
@@ -32,15 +30,18 @@ export function powerPointPictureSpecs(
     const background =
       (backgroundKey ? images.get(backgroundKey) : undefined) ??
       defaultBackground;
-    return outputSlideSpec({
-      ...appearance,
-      slide: {
-        itemId: 'powerpoint-import',
-        position: index,
-        label: null,
-        ...selectedSlide,
+    return pictureSpec({
+      kind: 'slide',
+      input: {
+        ...appearance,
+        slide: {
+          itemId: 'powerpoint-import',
+          position: index,
+          label: null,
+          ...selectedSlide,
+        },
+        background,
       },
-      background,
-    });
+    }).spec;
   });
 }
