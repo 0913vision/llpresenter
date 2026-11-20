@@ -49,6 +49,31 @@ import {
 const MISSING_SONG_ID = '0f0f0f0f-0f0f-4f0f-8f0f-0f0f0f0f0f0f';
 const MEDIA_ID = '3b9d0c52-7e1f-4a2b-8c3d-4e5f60718293';
 
+it('uses an inherited song background for every slide and restores pictures when cleared', () => {
+  const background = createMediaId(MEDIA_ID);
+  const picture = createMediaId('00000000-0000-4000-8000-000000000123');
+  const source = loadedSong(hymnOne()).data;
+  const first = source.slides[0];
+  if (first === undefined) throw new Error('Missing source slide');
+  const item = {
+    id: createServiceItemId(itemId(1)),
+    song: HYMN_ONE_ID,
+    slides: [{...first, picture}],
+  };
+  const project = (song: Song) =>
+    buildShowService({
+      service: loadedService([item]),
+      songs: new Map([[HYMN_ONE_ID, loadedSong(song)]]),
+      labels: [],
+      revision: 1,
+      backgrounds: new Map([[background, {mediaId: background, loop: true}]]),
+    });
+  const inherited = project({...source, background});
+  expect(inherited.rows[0]).toMatchObject({background: {mediaId: background}});
+  expect(inherited.tiles[item.id]?.[0]?.picture).toBeUndefined();
+  expect(project(source).tiles[item.id]?.[0]?.picture).toBe(picture);
+});
+
 it('projects a liturgy background and a song explicit-empty choice', () => {
   const id = createMediaId(MEDIA_ID);
   const background = {mediaId: id, loop: true};

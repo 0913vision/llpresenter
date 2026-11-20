@@ -25,6 +25,7 @@ import type {ServicePassages} from '../bible/servicePassages';
 import {LITURGY, liturgySlideTextKey} from '@core/services/liturgy';
 import {LITURGY_SLIDES} from '@core/services/liturgySlides';
 import {CREED_PRAYER_THEME_ID} from '@core/themes/creedPrayer';
+import {songSlidePicture} from '@core/songs/songBackground';
 
 export {SHOW_SERVICE_LIMITS} from '@core/schema/showService';
 
@@ -77,20 +78,21 @@ export function buildShowService({
   for (const item of order) {
     if (!isItemOfKind(item, 'song')) continue;
     const projected = projectSongTiles(
-      {id: item.song, slides: item.slides},
+      {
+        id: item.song,
+        slides: item.slides,
+        background:
+          item.backgroundNone === true
+            ? undefined
+            : (item.background ?? songs.get(item.song)?.data.background),
+      },
       colors,
     );
     if (projected.capped) {
       cappedItems.add(item.id);
       itemTiles[item.id] = [];
     } else {
-      itemTiles[item.id] =
-        item.background === undefined
-          ? projected.tiles
-          : projected.tiles.map(tile => {
-              const {picture: _picture, ...rest} = tile;
-              return rest;
-            });
+      itemTiles[item.id] = projected.tiles;
     }
   }
 
@@ -458,7 +460,10 @@ function songRow(
 
 /** Projects the supplied deck directly, including service-local edits. */
 export function projectSongTiles(
-  song: Pick<Song, 'id'> & {readonly slides: readonly SongSlide[]},
+  song: Pick<Song, 'id'> & {
+    readonly slides: readonly SongSlide[];
+    readonly background?: string | undefined;
+  },
   colors: ReadonlyMap<string, LabelColor>,
 ): ProjectedSongTiles {
   if (song.slides.length > SHOW_SERVICE_LIMITS.tiles) {
@@ -473,7 +478,9 @@ export function projectSongTiles(
           ? NO_LABEL_COLOR
           : (colors.get(slide.label) ?? NO_LABEL_COLOR),
       lines: slide.lines,
-      ...(slide.picture === undefined ? {} : {picture: slide.picture}),
+      ...(songSlidePicture(slide.picture, song.background) === undefined
+        ? {}
+        : {picture: slide.picture}),
       ...(slide.lyricFormat === undefined
         ? {}
         : {lyricFormat: slide.lyricFormat}),

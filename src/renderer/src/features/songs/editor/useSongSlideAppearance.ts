@@ -30,6 +30,12 @@ export function useSongSlideAppearance(session: SongSession) {
     ? undefined
     : {
         ...theme,
+        songBackground:
+          itemRow?.backgroundNone === true
+            ? undefined
+            : session.itemSession
+              ? (itemRow?.background?.mediaId ?? session.background)
+              : session.background,
         background:
           itemRow?.backgroundNone === true
             ? undefined

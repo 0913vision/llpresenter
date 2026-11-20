@@ -11,6 +11,7 @@ import {themeBackgroundColor} from '@renderer/rendering/themeBackground';
 import {resolveThemeOutput} from '@core/themes/output';
 import type {Song} from '@core/schema/song';
 import {linearSlidesOf} from '@core/songs/blockEdits';
+import {songSlideBackground} from '@core/songs/songBackground';
 import type {StageLyricLabelPosition} from '@core/schema/preferences';
 
 const ROLE_LABELS = {
@@ -187,7 +188,10 @@ export function selectedPreview(
   }
   const next = project(nextBlock);
   const transition = slides[block]?.transition;
-  const slideBackground = slides[block]?.picture ?? background;
+  const slideBackground = songSlideBackground(
+    slides[block]?.picture,
+    background,
+  );
   return {
     ...emptyLayers(),
     slide: {
