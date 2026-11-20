@@ -44,7 +44,7 @@ import {BibleSlideSession} from './BibleSlideSession';
 import {itemEditorAdapter} from '@renderer/platform/itemEditorAdapter';
 import {MeasuredRow} from '../slides/SlideRows';
 import type {ServiceItemStore} from './serviceItemStore';
-import type {RenderSlideTextFields} from './SlideTextFields';
+import type {RenderSlideTextFields} from '@renderer/features/songs/editor/SlideCardRenderer';
 import styles from './BibleInlineEditor.module.css';
 
 export function BibleInlineEditor({

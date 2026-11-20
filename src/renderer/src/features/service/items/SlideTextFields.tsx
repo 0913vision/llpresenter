@@ -34,6 +34,7 @@ import {TYPING_PAUSE_MS} from '@core/songs/songHistory';
 import {timerText} from '@core/timers/timerClock';
 import {useBibleTileProjection} from '@renderer/features/bible/useBibleProjections';
 import {editorTask} from '@renderer/features/songs/editor/editorTask';
+import type {RenderSlideTextFields} from '@renderer/features/songs/editor/SlideCardRenderer';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {themeElementNames} from '@renderer/rendering/themeNames';
 import {STAGE_TICK_MS, stageClockText} from '@renderer/rendering/stageClock';
@@ -94,20 +95,18 @@ function TextSlot({
   );
 }
 
-export type RenderSlideTextFields = (position?: number) => ReactNode;
-
 export function SlideTextFields({
   items,
   state,
-  position,
+  slide,
 }: {
   readonly items: ServiceItemStore;
   readonly state: ServiceItemState;
-  readonly position?: number;
+  readonly slide?: number | string | undefined;
 }): JSX.Element {
   return (
     <SlideTextEditor items={items} state={state}>
-      {renderFields => renderFields(position)}
+      {renderFields => renderFields(slide)}
     </SlideTextEditor>
   );
 }
@@ -119,10 +118,11 @@ export function SlideTextEditor({
   children,
 }: {
   readonly items: ServiceItemStore;
-  readonly state: ServiceItemState;
+  readonly state: ServiceItemState | null;
   readonly children: (renderFields: RenderSlideTextFields) => ReactNode;
 }): JSX.Element {
-  const {item, service} = state;
+  const item = state?.item;
+  const service = state?.service;
   const id = item?.id ?? null;
   const serviceId = service?.service.id;
   const row = useShow(view =>
@@ -163,6 +163,7 @@ export function SlideTextEditor({
     return () => clearInterval(timer);
   }, [id]);
   if (
+    !state ||
     !item ||
     !serviceId ||
     !row ||
@@ -179,8 +180,16 @@ export function SlideTextEditor({
           'sectionCard' in item ? item.sectionCard : undefined,
           projection.tiles,
         );
-  const renderFields: RenderSlideTextFields = position => {
-    const selected = position ?? Math.min(state.position, tiles.length - 1);
+  const sourcePositions = new Map<string, number[]>();
+  tiles.forEach((tile, index) => {
+    const sourceId = tile.sourceSlide?.slideId ?? tile.sourceSlideId;
+    if (sourceId === undefined) return;
+    const positions = sourcePositions.get(sourceId);
+    if (positions === undefined) sourcePositions.set(sourceId, [index]);
+    else positions.push(index);
+  });
+  const defaultKind = row.kind === 'slides' ? row.form : row.kind;
+  const renderAt = (selected: number, legend?: string): ReactNode => {
     const tile = tiles[selected];
     if (!tile) return null;
     if (
@@ -193,11 +202,7 @@ export function SlideTextEditor({
     const key = textSlideKey(tile);
     const slide = slideLayerOf({itemId: item.id, index: selected}, () => tiles);
     if (key === undefined || slide === null) return null;
-    const kind = tile.sectionCard
-      ? 'blank'
-      : row.kind === 'slides'
-        ? row.form
-        : row.kind;
+    const kind = tile.sectionCard ? 'blank' : defaultKind;
     const themeId =
       tile.sectionCard?.theme ??
       (tile.sermonTitle ? SERMON_TITLE_THEME_ID : undefined) ??
@@ -347,6 +352,7 @@ export function SlideTextEditor({
         disabled={service.access === 'readOnly'}
         aria-label="슬라이드 글"
       >
+        {legend === undefined ? null : <legend>{legend}</legend>}
         {[...slots].map(([slot, {name, text}]) => (
           <TextSlot
             key={JSON.stringify([item.id, key, slot])}
@@ -357,6 +363,20 @@ export function SlideTextEditor({
         ))}
       </fieldset>
     );
+  };
+  const renderFields: RenderSlideTextFields = target => {
+    if (typeof target !== 'string') {
+      return renderAt(target ?? Math.min(state.position, tiles.length - 1));
+    }
+    const positions = sourcePositions.get(target) ?? [];
+    if (positions.length === 1 && positions[0] !== undefined) {
+      return renderAt(positions[0]);
+    }
+    return positions.map((position, index) => (
+      <div key={index}>
+        {renderAt(position, `${index + 1} / ${positions.length}`)}
+      </div>
+    ));
   };
   return <>{children(renderFields)}</>;
 }

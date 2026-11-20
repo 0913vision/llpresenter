@@ -49,6 +49,7 @@ import {
 } from './SlidesVisuals';
 import type {SlidesEditorModel} from './useSlidesEditor';
 import {SlideRows, type SlideCardRenderer} from './SlideRows';
+import type {RenderSlideTextFields} from '@renderer/features/songs/editor/SlideCardRenderer';
 import type {LeadingSlideCard} from '../../songs/editor/SlideCardRenderer';
 import {SlideSurfaceView} from '../../songs/editor/SlideSurfaceView';
 import styles from './SlidesEditor.module.css';
@@ -301,7 +302,7 @@ export function SlidesEditor({
   readonly renderCard?: SlideCardRenderer | undefined;
   readonly leadingCard?: LeadingSlideCard | undefined;
   readonly addCard?: ReactNode;
-  readonly renderTextFields?: ((index: number) => ReactNode) | undefined;
+  readonly renderTextFields?: RenderSlideTextFields | undefined;
 }): JSX.Element | null {
   const {draft} = model;
   if (draft === null) return null;
@@ -340,7 +341,7 @@ function SlidesEditorBody({
   readonly renderCard?: SlideCardRenderer | undefined;
   readonly leadingCard?: LeadingSlideCard | undefined;
   readonly addCard?: ReactNode;
-  readonly renderTextFields?: ((index: number) => ReactNode) | undefined;
+  readonly renderTextFields?: RenderSlideTextFields | undefined;
 }): JSX.Element {
   const {item: draftItem, selected} = draft.snapshot;
   const slideDefaults = useSlideDefaults();
@@ -567,7 +568,6 @@ function SlidesEditorBody({
           </>
         }
       >
-        {renderTextFields?.(selected + Number(leadingCard !== undefined))}
         <fieldset
           className={styles.editable}
           disabled={model.stopped || model.session?.readOnly === true}
@@ -603,7 +603,7 @@ function SlidesEditorBody({
                 update();
               }
             }}
-            renderRow={(slide, index) => (
+            renderRow={(slide, index, mode) => (
               <>
                 <div className={styles.thumbnail} data-editor-thumbnail>
                   <div className={styles.thumbnailCanvas}>
@@ -623,9 +623,8 @@ function SlidesEditorBody({
                     }
                   />
                 </div>
-                {renderTextFields !== undefined && 'text' in slide ? (
-                  <p>{slide.text}</p>
-                ) : (
+                {renderTextFields === undefined ||
+                (mode === 'list' && 'media' in slide) ? (
                   <SlideFields
                     slide={slide}
                     form={item.slides.form}
@@ -635,7 +634,10 @@ function SlidesEditorBody({
                     change={(next, field) => changeSlide(index, next, field)}
                     endTyping={() => draft.endTyping()}
                   />
-                )}
+                ) : null}
+                {mode === 'list' && renderTextFields !== undefined ? (
+                  <div>{renderTextFields(slide.id)}</div>
+                ) : null}
               </>
             )}
           />

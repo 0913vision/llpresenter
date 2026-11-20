@@ -4,7 +4,7 @@ import type {LeadingSlideCard} from '@renderer/features/songs/editor';
 import {CardSlideBody} from './CardSlideBody';
 import {saveCard, saveField} from './sectionCardActions';
 import type {ServiceItemStore} from './serviceItemStore';
-import type {RenderSlideTextFields} from './SlideTextFields';
+import type {RenderSlideTextFields} from '@renderer/features/songs/editor/SlideCardRenderer';
 
 /** Bind an item-owned card to the shared slide surface without changing content slides. */
 export function useLeadingItemCard(
@@ -12,12 +12,10 @@ export function useLeadingItemCard(
   itemId: string | undefined,
   {
     shownItem,
-    themeTextEditing = false,
     renderTextFields,
   }: {
     readonly shownItem?:
       ReturnType<ServiceItemStore['getSnapshot']> | undefined;
-    readonly themeTextEditing?: boolean;
     readonly renderTextFields?: RenderSlideTextFields | undefined;
   } = {},
 ): LeadingSlideCard | undefined {
@@ -42,7 +40,7 @@ export function useLeadingItemCard(
           itemId={item.id}
           card={card}
           mode={mode}
-          hideSourceFields={themeTextEditing || renderTextFields !== undefined}
+          hideSourceFields={renderTextFields !== undefined}
           textOverrides={item.textOverrides?.['section']}
           disabled={disabled}
           onChange={(field, value) => {

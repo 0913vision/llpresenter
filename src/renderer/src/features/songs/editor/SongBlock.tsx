@@ -29,9 +29,13 @@ import {EditorSlideNumber} from './EditorSlideNumber';
 import plate from './EditorSlidePlate.module.css';
 import field from '@renderer/ui/TextField.module.css';
 import {SONG_LIMITS} from '@core/schema/song';
-import type {SlideCardRenderer} from './SlideCardRenderer';
+import type {
+  RenderSlideTextFields,
+  SlideCardRenderer,
+} from './SlideCardRenderer';
 import {Picture} from '@renderer/rendering/pictures/Picture';
 import {usePrepPictureSwitch} from '@renderer/rendering/PrepPictureSwitch';
+import {isInTextEntry} from '@renderer/ui/textEntry';
 import {
   pictures,
   type PictureSpec,
@@ -69,7 +73,7 @@ interface BlockProps {
   readonly caret?: boolean;
   readonly picture?: PictureSpec | undefined;
   readonly renderCard?: SlideCardRenderer<EditorSlideItem> | undefined;
-  readonly hideSourceText?: boolean | undefined;
+  readonly renderTextFields?: RenderSlideTextFields | undefined;
 }
 
 /** Keeps untouched blocks out of the typing render path. */
@@ -98,7 +102,7 @@ export const SongBlock = memo(
     caret,
     picture,
     renderCard,
-    hideSourceText,
+    renderTextFields,
   }: BlockProps): JSX.Element => {
     const labelButtonRef = useRef<HTMLButtonElement | null>(null);
     const blockRef = useRef<HTMLDivElement>(null);
@@ -291,6 +295,11 @@ export const SongBlock = memo(
               }
             : {top}
         }
+        onFocusCapture={event => {
+          if (renderTextFields !== undefined && isInTextEntry(event.target)) {
+            session.selectSlides({type: 'click', id: slide.id});
+          }
+        }}
         onClick={event => {
           if (
             event.target instanceof Element &&
@@ -353,7 +362,7 @@ export const SongBlock = memo(
                 )}
                 <SlideTransitionMark transition={slide.transition} />
               </div>
-              {editable ? (
+              {editable && (!grid || renderTextFields === undefined) ? (
                 <button
                   ref={labelButtonRef}
                   type="button"
@@ -379,8 +388,10 @@ export const SongBlock = memo(
               )}
             </div>
             <div className={styles.text} data-grid-text>
-              {hideSourceText ? (
-                <p>{text}</p>
+              {renderTextFields !== undefined ? (
+                grid ? null : (
+                  renderTextFields(slide.id)
+                )
               ) : (
                 <textarea
                   ref={input => {

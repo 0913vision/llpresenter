@@ -63,6 +63,7 @@ import {
   SlideTextEditor,
   SlideTextFields,
 } from '@renderer/features/service/items/SlideTextFields';
+import type {RenderSlideTextFields} from '@renderer/features/songs/editor/SlideCardRenderer';
 import {itemEditorAdapter} from '@renderer/platform/itemEditorAdapter';
 import type {LeadingSlideCard} from '@renderer/features/songs/editor';
 import type {ReactNode} from 'react';
@@ -197,19 +198,42 @@ function SongCardInspector({
   );
 }
 
-function ItemCardBinding({
-  items,
-  itemId,
-  shownItem,
-  children,
-}: {
+interface ItemCardBindingProps {
   readonly items: ServiceItemStore;
   readonly itemId: string | undefined;
   readonly shownItem: ServiceItemState | null;
   readonly children: (
     card: LeadingSlideCard | undefined,
     addCard: ReactNode,
+    renderTextFields?: RenderSlideTextFields,
   ) => ReactNode;
+}
+
+function ItemCardBinding(props: ItemCardBindingProps): ReactNode {
+  const {items, shownItem, itemId} = props;
+  return (
+    <SlideTextEditor
+      items={items}
+      state={itemId === shownItem?.item?.id ? shownItem : null}
+    >
+      {renderFields => (
+        <ItemCardContent
+          {...props}
+          renderTextFields={itemId === undefined ? undefined : renderFields}
+        />
+      )}
+    </SlideTextEditor>
+  );
+}
+
+function ItemCardContent({
+  items,
+  itemId,
+  shownItem,
+  children,
+  renderTextFields,
+}: ItemCardBindingProps & {
+  readonly renderTextFields?: RenderSlideTextFields | undefined;
 }): ReactNode {
   const serviceId = useShow(view => view.serviceId);
   useEffect(() => {
@@ -219,7 +243,7 @@ function ItemCardBinding({
   }, [items, itemId, serviceId]);
   const card = useLeadingItemCard(items, itemId, {
     shownItem: shownItem ?? undefined,
-    themeTextEditing: shownItem !== null,
+    renderTextFields,
   });
   return (
     <div className={itemCardStyles.root}>
@@ -232,8 +256,31 @@ function ItemCardBinding({
             shownItem={shownItem ?? undefined}
           />
         ),
+        renderTextFields,
       )}
     </div>
+  );
+}
+
+function SelectedSlideTextFields({
+  items,
+  state,
+  session,
+}: {
+  readonly items: ServiceItemStore;
+  readonly state: ServiceItemState;
+  readonly session: SongSession | SlidesListSession | null;
+}) {
+  const selectedId = useSyncExternalStore(
+    session?.slideModel.subscribe ?? noSubscribe,
+    () =>
+      session?.slideModel.getSnapshot().slides[session.selectedOccurrence]?.id,
+  );
+  if (session === null) return <SlideTextFields items={items} state={state} />;
+  if (session.slideDocumentId !== state.item?.id) return null;
+  const slide = state.cardSelected ? 0 : selectedId;
+  return slide === undefined ? null : (
+    <SlideTextFields items={items} state={state} slide={slide} />
   );
 }
 
@@ -387,7 +434,7 @@ function prepPanelParts({
               itemId={slidesSession.draft.snapshot.item.id}
               shownItem={itemState}
             >
-              {(card, addCard) => (
+              {(card, addCard, renderFields) => (
                 <SlidesEditor
                   api={prep.api}
                   store={prep.editor}
@@ -395,17 +442,7 @@ function prepPanelParts({
                   onBack={back}
                   leadingCard={card}
                   addCard={addCard}
-                  renderTextFields={
-                    itemState === null
-                      ? undefined
-                      : index => (
-                          <SlideTextFields
-                            items={prep.items}
-                            state={itemState}
-                            position={itemState.cardSelected ? 0 : index}
-                          />
-                        )
-                  }
+                  renderTextFields={renderFields}
                 />
               )}
             </ItemCardBinding>
@@ -431,24 +468,14 @@ function prepPanelParts({
                 : undefined
             }
           >
-            {(card, addCard) => (
+            {(card, addCard, renderFields) => (
               <SongEditor
                 store={prep.editor}
                 shownSession={songSession}
                 leadingCard={card}
                 addCard={addCard}
                 textOverrides={itemState?.item?.textOverrides}
-                renderTextFields={
-                  itemState === null || songSession?.itemSession !== true
-                    ? undefined
-                    : index => (
-                        <SlideTextFields
-                          items={prep.items}
-                          state={itemState}
-                          position={itemState.cardSelected ? 0 : index}
-                        />
-                      )
-                }
+                renderTextFields={renderFields}
                 ui={prep.api.ui}
                 renderDesign={songItemDesign(prep.api, prep.items)}
                 onImportedSave={prep.onImportedSave}
@@ -488,10 +515,18 @@ function prepPanelParts({
               shownSession={songSession}
               flushSlides={() => prep.slides?.flush() ?? Promise.resolve(true)}
             />
-            {itemState?.item &&
-            (isItemOfKind(itemState.item, 'bible') ||
-              isItemOfKind(itemState.item, 'sermon')) ? (
-              <SlideTextFields items={prep.items} state={itemState} />
+            {itemState &&
+            (otherEditor ||
+              slidesSession !== null ||
+              songSession?.itemSession) ? (
+              <SelectedSlideTextFields
+                items={prep.items}
+                state={itemState}
+                session={
+                  slidesSession ??
+                  (songSession?.itemSession ? songSession : null)
+                }
+              />
             ) : null}
             {otherEditor ? (
               <OtherSlideInspector
@@ -573,9 +608,6 @@ function OtherPrepEditor({
           <strong>{displayReference(item.sermon.passage.ref)}</strong>
         ) : null}
       </header>
-      {item !== null && isItemOfKind(item, 'liturgy') ? (
-        <SlideTextFields items={prep.items} state={itemState} />
-      ) : null}
       {item !== null && isItemOfKind(item, 'sermon') ? (
         <SermonInlineEditor
           items={prep.items}
@@ -593,12 +625,16 @@ function OtherPrepEditor({
         />
       ) : null}
       {item !== null && isItemOfKind(item, 'liturgy') ? (
-        <LiturgyEditor
-          items={prep.items}
-          shownItem={itemState}
-          ui={prep.api.ui}
-          themeTextEditing
-        />
+        <SlideTextEditor items={prep.items} state={itemState}>
+          {renderFields => (
+            <LiturgyEditor
+              items={prep.items}
+              shownItem={itemState}
+              ui={prep.api.ui}
+              renderTextFields={renderFields}
+            />
+          )}
+        </SlideTextEditor>
       ) : item !== null &&
         (isItemOfKind(item, 'bible') || isItemOfKind(item, 'sermon')) ? (
         <SlideTextEditor items={prep.items} state={itemState}>

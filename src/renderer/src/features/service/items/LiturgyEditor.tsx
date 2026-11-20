@@ -34,6 +34,7 @@ import {
 } from '@renderer/features/songs/editor/SlideSurfaceView';
 import liturgyStyles from './LiturgyEditor.module.css';
 import {useLeadingItemCard} from './useLeadingItemCard';
+import type {RenderSlideTextFields} from '@renderer/features/songs/editor/SlideCardRenderer';
 import {LeadingSlideCardView} from '@renderer/features/songs/editor/LeadingSlideCardView';
 import styles from './BibleInlineEditor.module.css';
 import {cardOffset} from '@core/services/sectionCards';
@@ -82,12 +83,12 @@ export function LiturgyEditor({
   items,
   shownItem,
   ui,
-  themeTextEditing = false,
+  renderTextFields,
 }: {
   readonly items: ServiceItemStore;
   readonly shownItem?: ReturnType<ServiceItemStore['getSnapshot']> | undefined;
   readonly ui?: Pick<UiApi, 'setLayout'> | undefined;
-  readonly themeTextEditing?: boolean;
+  readonly renderTextFields?: RenderSlideTextFields | undefined;
 }): JSX.Element | null {
   const current = useSyncExternalStore(items.subscribe, items.getSnapshot);
   const state =
@@ -112,7 +113,7 @@ export function LiturgyEditor({
       position={state.position}
       shownItem={state}
       ui={ui}
-      themeTextEditing={themeTextEditing}
+      renderTextFields={renderTextFields}
     />
   );
 }
@@ -123,13 +124,13 @@ function LiturgyContent({
   position,
   shownItem,
   ui,
-  themeTextEditing,
+  renderTextFields,
 }: {
   readonly ui?: Pick<UiApi, 'setLayout'> | undefined;
   readonly items: ServiceItemStore;
   readonly item: ServiceItemOf<'liturgy'>;
   readonly position: number;
-  readonly themeTextEditing: boolean;
+  readonly renderTextFields: RenderSlideTextFields | undefined;
   readonly shownItem: ReturnType<ServiceItemStore['getSnapshot']>;
 }): JSX.Element {
   const {mode, scale} = useSlideSurfaceView();
@@ -138,7 +139,7 @@ function LiturgyContent({
   };
   const card = useLeadingItemCard(items, item.id, {
     shownItem,
-    themeTextEditing,
+    renderTextFields,
   });
   const tiles = useShow(view => view.tiles[item.id]);
   const theme = useSlideTheme({
@@ -221,6 +222,8 @@ function LiturgyContent({
             />
           )}
           {texts.map((text, index) => {
+            const editableRow =
+              renderTextFields !== undefined && mode === 'list';
             const layer =
               tiles === undefined
                 ? null
@@ -235,8 +238,15 @@ function LiturgyContent({
                 data-selected={selection.selection.ids.has(String(index))}
                 data-song-slide={String(index)}
                 data-fixed-slide
-                role="option"
-                aria-selected={selection.selection.ids.has(String(index))}
+                role={editableRow ? 'group' : 'option'}
+                aria-label={
+                  editableRow ? `${index + 1 + offset}번 슬라이드` : undefined
+                }
+                aria-selected={
+                  editableRow
+                    ? undefined
+                    : selection.selection.ids.has(String(index))
+                }
                 data-slide-index={index}
                 tabIndex={0}
                 onClick={event =>
@@ -263,7 +273,9 @@ function LiturgyContent({
                     labelColor={tiles?.[index + offset]?.labelColor}
                   />
                 </div>
-                {themeTextEditing ? (
+                {editableRow ? (
+                  renderTextFields(index + offset)
+                ) : renderTextFields ? (
                   <p className={styles.verse}>{text}</p>
                 ) : (
                   <TextArea

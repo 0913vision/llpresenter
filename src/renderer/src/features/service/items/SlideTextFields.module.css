@@ -8,3 +8,12 @@
   margin: 0;
   flex-shrink: 0;
 }
+
+.fields > label {
+  display: grid;
+  align-content: start;
+  gap: var(--space-4);
+  min-inline-size: 0;
+  font: var(--type-caption);
+  color: var(--text-3);
+}

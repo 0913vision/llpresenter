@@ -46,6 +46,7 @@ import {
   LEADING_CARD_WINDOW_ITEM,
   type LeadingSlideCard,
   type SlideCardRenderer,
+  type RenderSlideTextFields,
 } from './SlideCardRenderer';
 import {LeadingSlideCardView} from './LeadingSlideCardView';
 import {useRevealInsertedSlide} from './useRevealInsertedSlide';
@@ -73,7 +74,7 @@ export function SongEditor({
   readonly renderCard?: SlideCardRenderer<EditorSlideItem> | undefined;
   readonly leadingCard?: LeadingSlideCard | undefined;
   readonly addCard?: ReactNode;
-  readonly renderTextFields?: ((index: number) => ReactNode) | undefined;
+  readonly renderTextFields?: RenderSlideTextFields | undefined;
   readonly textOverrides?: ItemTextOverrides | undefined;
   readonly onImportedSave?: ((id: SongId) => void) | undefined;
   /** Shows the dot before the title while edits wait for 저장. */
@@ -153,10 +154,6 @@ export function SongEditor({
             </>
           }
         >
-          {renderTextFields?.(
-            state.session.selectedOccurrence +
-              Number(leadingCard !== undefined),
-          )}
           <SongSlideSurface
             itemKind={'song'}
             session={state.session}
@@ -201,7 +198,7 @@ export function SongEditor({
               session={state.session}
               renderCard={renderCard}
               leadingCard={leadingCard}
-              hideSourceText={renderTextFields !== undefined}
+              renderTextFields={renderTextFields}
               textOverrides={textOverrides}
             />
           </SongSlideSurface>
@@ -216,14 +213,14 @@ function SongBlocks({
   session,
   renderCard,
   leadingCard,
-  hideSourceText,
+  renderTextFields,
   textOverrides,
 }: {
   readonly store: SongEditorStore;
   readonly session: SongSession;
   readonly renderCard?: SlideCardRenderer<EditorSlideItem> | undefined;
   readonly leadingCard?: LeadingSlideCard | undefined;
-  readonly hideSourceText: boolean;
+  readonly renderTextFields: RenderSlideTextFields | undefined;
   readonly textOverrides?: ItemTextOverrides | undefined;
 }): JSX.Element {
   const state = useSyncExternalStore(store.subscribe, store.getSnapshot);
@@ -481,7 +478,7 @@ function SongBlocks({
               block={block}
               session={session}
               renderCard={renderCard}
-              hideSourceText={hideSourceText}
+              renderTextFields={renderTextFields}
               focus={focus}
               active={list.selection.ids.has(slide.id)}
               focused={selection.block === block}

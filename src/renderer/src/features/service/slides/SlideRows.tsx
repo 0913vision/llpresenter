@@ -27,6 +27,7 @@ import {
   LEADING_CARD_WINDOW_ITEM,
   type LeadingSlideCard,
   type SlideCardRenderer,
+  type SlideSurfaceMode,
 } from '../../songs/editor/SlideCardRenderer';
 import {LeadingSlideCardView} from '../../songs/editor/LeadingSlideCardView';
 export type {SlideCardRenderer} from '../../songs/editor/SlideCardRenderer';
@@ -85,7 +86,11 @@ export function SlideRows({
   readonly update: () => void;
   readonly report: (message: string) => void;
   readonly list: RefObject<HTMLDivElement | null>;
-  readonly renderRow: (slide: Slide, index: number) => ReactNode;
+  readonly renderRow: (
+    slide: Slide,
+    index: number,
+    mode: SlideSurfaceMode,
+  ) => ReactNode;
   /** Return a card body to replace the normal row or cell contents. */
   readonly renderCard?: SlideCardRenderer | undefined;
   readonly leadingCard?: LeadingSlideCard | undefined;
@@ -299,7 +304,7 @@ export function SlideRows({
                     />
                   )}
                   {renderCard?.(slide, index, view.mode) ??
-                    renderRow(slide, index)}
+                    renderRow(slide, index, view.mode)}
                 </div>
               </MeasuredRow>
             );

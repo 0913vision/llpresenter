@@ -2,6 +2,9 @@ import type {ReactNode} from 'react';
 import type {Slide} from '@core/services/slidesEdits';
 export type SlideSurfaceMode = 'list' | 'grid';
 
+/** A projected position or a stable source ID, which can represent several verse parts. */
+export type RenderSlideTextFields = (slide?: number | string) => ReactNode;
+
 /** Return custom card contents for a slide, or undefined for the standard row or cell. */
 export type SlideCardRenderer<T = Slide> = (
   slide: T,

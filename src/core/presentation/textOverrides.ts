@@ -14,7 +14,7 @@ export function textSlideKey(tile: ShowTile): string | undefined {
   const id = tile.sourceSlide?.slideId ?? tile.sourceSlideId;
   const part = tile.biblePart ?? 1;
   if (id !== undefined) {
-    return `slide:${id}${tile.bibleVerse === undefined ? '' : `:${part}`}`;
+    return `slide:${id}${part === 1 ? '' : `:${part}`}`;
   }
   const verse = tile.bibleVerse;
   return verse === undefined
