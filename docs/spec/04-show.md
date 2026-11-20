@@ -821,13 +821,10 @@ product log (빠른 실행 shortcuts: no default keys).
   it opens the bin. Its position stays anchored at the bottom. 보기 > 미디어
   (Ctrl Shift V) toggles this same state. These controls follow the October 31
   B19 placement decision and use design-system tokens.
-- A saved open or closed `mediaStrip` choice applies in both workspaces and wins
-  over size defaults, including a saved open choice in a narrow window. With no
-  saved choice, the bin starts open in regular and wide windows at least 900 DIP
-  high, and closed otherwise.
-  - Measure height in DIP by multiplying the CSS viewport height by the current
-    UI zoom factor: 750 CSS px at 120% zoom is 900 DIP. Toggling saves the
-    choice; resizing or changing UI zoom does not overwrite it.
+- A saved open or closed `mediaStrip` choice applies in both workspaces. With
+  no saved choice, including on first launch and in a new layout, the bin starts
+  closed at every window size. Toggling saves the choice; resizing or changing UI
+  zoom does not overwrite it.
 - Switching between 진행 and 준비 keeps the bin's visibility, chosen playlist
   and selected media. Hiding and reopening it in the same window retains the
   chosen playlist and selection. Its player pauses and releases media while
