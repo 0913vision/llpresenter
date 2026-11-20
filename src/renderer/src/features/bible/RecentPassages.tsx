@@ -45,6 +45,15 @@ export function RecentPassages({
     commandBindingStore.get,
   );
   const entries = recentPassages(recents).slice(0, 10);
+  useLayoutEffect(() => {
+    if (scope === 'dialog' && highlight >= 0) {
+      const row = root.current?.querySelector<HTMLElement>(
+        '[data-highlighted="true"]',
+      );
+      if (row && typeof row.scrollIntoView === 'function')
+        row.scrollIntoView({block: 'nearest'});
+    }
+  }, [scope, highlight]);
   useWindowShortcuts(
     scope === 'show'
       ? Array.from({length: 10}, (_, index) => ({

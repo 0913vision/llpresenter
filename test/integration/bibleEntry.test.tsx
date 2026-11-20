@@ -6,6 +6,7 @@ import {expect, it, onTestFinished, vi} from 'vitest';
 import type {
   BibleLookupPassage,
   BibleLookupRequest,
+  BibleLookupReply,
 } from '@core/schema/bibleLookup';
 import {defaultPreferences} from '@core/schema/preferences';
 import {BIBLE_BOOKS} from '@core/bible/bibleBooks';
@@ -162,6 +163,138 @@ it('navigates recent passages and clears the preparation dialog with Escape', as
   expect(onClose).not.toHaveBeenCalled();
   fireEvent.keyDown(clearedBook, {key: 'Escape'});
   expect(onClose).toHaveBeenCalledOnce();
+});
+
+it('cancels a pending typed submission when a recent is picked', async () => {
+  const fixture = panelApi();
+  window.llp = fixture.api;
+  onTestFinished(() => {
+    delete window.llp;
+  });
+  const settings = fixture.document();
+  const translation = lookupRequest().translation;
+  const typed = '\uC694\uD55C\uBCF5\uC74C 3:16';
+  const recent = '\uC694\uD55C\uBCF5\uC74C 3:17';
+  fixture.push({
+    ...settings,
+    revision: 2,
+    value: {...settings.value, recents: [{translation, ref: recent}]},
+  });
+  let finish: (value: BibleLookupReply) => void = () => undefined;
+  fixture.lookup.mockImplementation(request =>
+    request.input === typed
+      ? new Promise(resolve => {
+          finish = resolve;
+        })
+      : formLookupReply(request),
+  );
+  const onChoose = vi.fn<(passage: BibleLookupPassage) => void>();
+  render(
+    <BiblePassageDialog
+      api={fixture.api.bible}
+      translation={translation}
+      onChoose={onChoose}
+      onClose={vi.fn()}
+    />,
+  );
+  await screen.findByRole('button', {name: /3:17/});
+  const book = screen.getByRole<HTMLInputElement>('combobox', {name: '\uCC45'});
+  fireEvent.change(book, {target: {value: '\uC694\uD55C\uBCF5\uC74C'}});
+  fireEvent.change(screen.getByRole('textbox', {name: '\uC7A5'}), {
+    target: {value: '3'},
+  });
+  const start = screen.getByRole<HTMLInputElement>('textbox', {
+    name: '\uC2DC\uC791\uC808',
+  });
+  await waitFor(() => expect(start.disabled).toBe(false));
+  fireEvent.change(start, {target: {value: '16'}});
+  await waitFor(() =>
+    expect(fixture.lookup).toHaveBeenCalledWith({input: typed, translation}),
+  );
+  fireEvent.keyDown(start, {key: 'Enter'});
+  fireEvent.keyDown(start, {key: '1', code: 'Digit1', altKey: true});
+  await waitFor(() =>
+    expect(onChoose).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({ref: recent}),
+    ),
+  );
+  await act(async () => finish(await formLookupReply(lookupRequest(typed))));
+  expect(onChoose).toHaveBeenCalledOnce();
+});
+
+it('keeps focus in the dialog when pressing the scrim and footer', async () => {
+  const fixture = panelApi();
+  window.llp = fixture.api;
+  onTestFinished(() => {
+    delete window.llp;
+  });
+  const close = vi.fn();
+  render(
+    <BiblePassageDialog
+      api={fixture.api.bible}
+      translation={lookupRequest().translation}
+      onChoose={vi.fn()}
+      onClose={close}
+    />,
+  );
+  const dialog = screen.getByRole('dialog');
+  const book = screen.getByRole<HTMLInputElement>('combobox', {name: '\uCC45'});
+  book.focus();
+  const scrim = dialog.parentElement;
+  if (!scrim) throw Error('Missing scrim');
+  expect(fireEvent.mouseDown(scrim, {cancelable: true})).toBe(false);
+  const footer = dialog.querySelector('footer');
+  if (!footer) throw Error('Missing footer');
+  expect(fireEvent.mouseDown(footer, {cancelable: true})).toBe(false);
+  expect(document.activeElement).toBe(book);
+  fireEvent.keyDown(book, {key: 'Escape'});
+  expect(close).toHaveBeenCalledOnce();
+});
+
+it('scrolls the highlighted recent into view while the caret stays in the book', async () => {
+  const fixture = panelApi();
+  window.llp = fixture.api;
+  onTestFinished(() => {
+    delete window.llp;
+  });
+  const settings = fixture.document();
+  const translation = lookupRequest().translation;
+  fixture.push({
+    ...settings,
+    revision: 2,
+    value: {
+      ...settings.value,
+      recents: Array.from({length: 10}, (_, index) => ({
+        translation,
+        ref: `\uC694\uD55C\uBCF5\uC74C 3:${index + 1}`,
+      })),
+    },
+  });
+  const scroll = vi.fn();
+  const original = HTMLElement.prototype.scrollIntoView;
+  HTMLElement.prototype.scrollIntoView = scroll;
+  onTestFinished(() => {
+    HTMLElement.prototype.scrollIntoView = original;
+  });
+  render(
+    <BiblePassageDialog
+      api={fixture.api.bible}
+      translation={translation}
+      onChoose={vi.fn()}
+      onClose={vi.fn()}
+    />,
+  );
+  await screen.findByRole('button', {name: /3:10/});
+  const book = screen.getByRole<HTMLInputElement>('combobox', {name: '\uCC45'});
+  book.focus();
+  for (let index = 0; index < 10; index++) {
+    fireEvent.keyDown(book, {key: 'ArrowDown'});
+  }
+  const tenth = screen.getByRole('button', {name: /3:10/});
+  expect(tenth.getAttribute('data-highlighted')).toBe('true');
+  expect(scroll).toHaveBeenLastCalledWith({block: 'nearest'});
+  expect(scroll.mock.instances.at(-1)).toBe(tenth);
+  expect(document.activeElement).toBe(book);
 });
 
 it('shows range placeholders and moves back from an empty argument', async () => {

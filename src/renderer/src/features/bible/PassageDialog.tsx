@@ -7,6 +7,7 @@ import type {TranslationId} from '@core/schema/ids';
 import {recentPassages} from '@core/bible/bibleRecents';
 import {isComposingKey} from '@renderer/ui/ime';
 import {Icon} from '@renderer/ui/Icon';
+import {keepFocusInModal} from '@renderer/ui/Dialog';
 import {KeyCombo} from '@renderer/ui/KeyCap';
 import {layerContainer} from '@renderer/ui/layers';
 import {useModal} from '@renderer/ui/useModal';
@@ -41,6 +42,8 @@ export function PassageDialog({
 }): JSX.Element {
   const surface = useRef<HTMLElement>(null);
   const intentVersion = useRef(0);
+  const submissionVersion = useRef(0);
+  const formVersion = submissionVersion.current;
   const [highlight, setHighlight] = useState(-1);
   const [resetKey, setResetKey] = useState(0);
   const [resolved, setResolved] = useState<{
@@ -91,6 +94,13 @@ export function PassageDialog({
   }, [api, translation, firstRef]);
   const label =
     translations.find(item => item.id === effective)?.name ?? effective;
+  const pickRecent = (recent: RecentPassage): void => {
+    submissionVersion.current += 1;
+    intentVersion.current += 1;
+    setHighlight(-1);
+    setResetKey(value => value + 1);
+    onPick(recent);
+  };
   const capture = (event: KeyboardEvent<HTMLElement>): void => {
     onKeyDownCapture?.(event);
     if (
@@ -112,6 +122,7 @@ export function PassageDialog({
       ).some(field => field.value !== '');
       if (hasText) {
         intentVersion.current += 1;
+        submissionVersion.current += 1;
         setHighlight(-1);
         onIntent?.();
         setResetKey(value => value + 1);
@@ -139,13 +150,12 @@ export function PassageDialog({
       if (recent) {
         event.preventDefault();
         event.stopPropagation();
-        setHighlight(-1);
-        onPick(recent);
+        pickRecent(recent);
       }
     } else if (highlight >= 0 && event.key.length === 1) setHighlight(-1);
   };
   return createPortal(
-    <div className={styles.scrim}>
+    <div className={styles.scrim} onMouseDown={keepFocusInModal}>
       <section
         ref={surface}
         className={styles.dialog}
@@ -180,7 +190,9 @@ export function PassageDialog({
             }}
             onEscape={onClose}
             onPreview={() => undefined}
-            onSubmit={onSubmit}
+            onSubmit={passage => {
+              if (submissionVersion.current === formVersion) onSubmit(passage);
+            }}
           />
           <span className={styles.accessory}>{label}</span>
         </div>
@@ -193,7 +205,7 @@ export function PassageDialog({
             (resolved !== null && resolved.provided === translation) ||
             firstRef === undefined
           }
-          onPick={onPick}
+          onPick={pickRecent}
           highlight={highlight}
         />
         <footer className={styles.footer}>
