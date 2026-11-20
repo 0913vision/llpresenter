@@ -59,7 +59,10 @@ import {isLibrarySource, openLibrarySong} from '@renderer/session/showLibrary';
 import {useLeadingItemCard} from '@renderer/features/service/items/useLeadingItemCard';
 import {PrepBibleSplitTools} from './PrepBibleSplitTools';
 import {BibleInlineEditor} from '@renderer/features/service/items/BibleInlineEditor';
-import {SlideTextFields} from '@renderer/features/service/items/SlideTextFields';
+import {
+  SlideTextEditor,
+  SlideTextFields,
+} from '@renderer/features/service/items/SlideTextFields';
 import {itemEditorAdapter} from '@renderer/platform/itemEditorAdapter';
 import type {LeadingSlideCard} from '@renderer/features/songs/editor';
 import type {ReactNode} from 'react';
@@ -485,6 +488,11 @@ function prepPanelParts({
               shownSession={songSession}
               flushSlides={() => prep.slides?.flush() ?? Promise.resolve(true)}
             />
+            {itemState?.item &&
+            (isItemOfKind(itemState.item, 'bible') ||
+              isItemOfKind(itemState.item, 'sermon')) ? (
+              <SlideTextFields items={prep.items} state={itemState} />
+            ) : null}
             {otherEditor ? (
               <OtherSlideInspector
                 items={prep.items}
@@ -565,7 +573,9 @@ function OtherPrepEditor({
           <strong>{displayReference(item.sermon.passage.ref)}</strong>
         ) : null}
       </header>
-      <SlideTextFields items={prep.items} state={itemState} />
+      {item !== null && isItemOfKind(item, 'liturgy') ? (
+        <SlideTextFields items={prep.items} state={itemState} />
+      ) : null}
       {item !== null && isItemOfKind(item, 'sermon') ? (
         <SermonInlineEditor
           items={prep.items}
@@ -591,19 +601,23 @@ function OtherPrepEditor({
         />
       ) : item !== null &&
         (isItemOfKind(item, 'bible') || isItemOfKind(item, 'sermon')) ? (
-        <BibleInlineEditor
-          items={prep.items}
-          shownItem={itemState}
-          ui={prep.api.ui}
-          onBack={onBack}
-          hideHeader
-          themeTextEditing
-          onSplit={
-            splitVerses
-              ? () => setManualSplitRequest(value => value + 1)
-              : undefined
-          }
-        />
+        <SlideTextEditor items={prep.items} state={itemState}>
+          {renderFields => (
+            <BibleInlineEditor
+              items={prep.items}
+              shownItem={itemState}
+              ui={prep.api.ui}
+              onBack={onBack}
+              hideHeader
+              renderTextFields={renderFields}
+              onSplit={
+                splitVerses
+                  ? () => setManualSplitRequest(value => value + 1)
+                  : undefined
+              }
+            />
+          )}
+        </SlideTextEditor>
       ) : item !== null &&
         (isItemOfKind(item, 'song') || isItemOfKind(item, 'slides')) ? null : (
         <ServiceItemPanel

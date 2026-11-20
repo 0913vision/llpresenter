@@ -1,30 +1,53 @@
 import {useSyncExternalStore} from 'react';
-import {fireEvent, render, screen, waitFor} from '@testing-library/react';
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {expect, it, onTestFinished, vi} from 'vitest';
 import {projectSlides} from '@core/presentation/slides';
 import {slidesItem} from '@fixtures/core/slides';
-import {themeFile, themeScreens} from '@fixtures/core/themeOutput';
+import {
+  themeElementBase,
+  themeFile,
+  themeScreens,
+} from '@fixtures/core/themeOutput';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {
   fixtureServiceId,
+  fixtureItems,
   itemFixture,
 } from '@fixtures/renderer/features/service/items/itemFixture';
-import {SlideTextFields} from '@renderer/features/service/items/SlideTextFields';
+import {
+  SlideTextEditor,
+  SlideTextFields,
+} from '@renderer/features/service/items/SlideTextFields';
 import {ServiceItemStore} from '@renderer/features/service/items/serviceItemStore';
 import {SongEditorStore} from '@renderer/features/songs/editor';
 import {useShow} from '@renderer/session/show';
+import {BibleInlineEditor} from '@renderer/features/service/items/BibleInlineEditor';
+import {seedSlideSurfaceView} from '@renderer/features/songs/editor/SlideSurfaceView';
+import {panelPassage} from '@fixtures/contracts/ipc/bibleApi';
+import {mockSplitLayout} from '@fixtures/core/bibleSplit';
+import {
+  projectBible,
+  type BibleProjection,
+} from '@renderer/features/bible/splitProjection';
+import {parseServiceDocument} from '@core/schema/contentDocuments';
 
-it('prefills a theme field, saves its per-slide text, and restores it on clear', async () => {
-  const fixture = itemFixture();
-  const item = slidesItem('ad');
-  const first = item.slides.slides[0];
-  if (!first) throw Error('Missing slide');
-  const before = fixture.service();
-  fixture.pushService({...before, service: {...before.service, order: [item]}});
-  const previous = useShow.getState();
-  const oldApi = window.llp;
+const bible = vi.hoisted((): {projection: BibleProjection | null} => ({
+  projection: null,
+}));
+vi.mock('@renderer/features/bible/useBibleProjections', () => ({
+  useBibleTileProjection: () => bible.projection,
+}));
+
+function installSettings() {
+  const original = window.llp;
   window.llp = mockLlpApi({
     settings: {
       get: async request => {
@@ -50,6 +73,21 @@ it('prefills a theme field, saves its per-slide text, and restores it on clear',
       },
     },
   });
+  onTestFinished(() => {
+    if (original === undefined) delete window.llp;
+    else window.llp = original;
+  });
+}
+
+it('prefills a theme field, saves its per-slide text, and restores it on clear', async () => {
+  installSettings();
+  const fixture = itemFixture();
+  const item = slidesItem('ad');
+  const first = item.slides.slides[0];
+  if (!first) throw Error('Missing slide');
+  const before = fixture.service();
+  fixture.pushService({...before, service: {...before.service, order: [item]}});
+  const previous = useShow.getState();
   useShow.setState({
     serviceId: fixtureServiceId,
     openItemId: item.id,
@@ -69,8 +107,6 @@ it('prefills a theme field, saves its per-slide text, and restores it on clear',
     items.dispose();
     await editor.dispose();
     useShow.setState(previous);
-    if (oldApi === undefined) delete window.llp;
-    else window.llp = oldApi;
   });
   const field = await screen.findByRole<HTMLTextAreaElement>('textbox', {
     name: '슬라이드 이름',
@@ -90,3 +126,130 @@ it('prefills a theme field, saves its per-slide text, and restores it on clear',
   await waitFor(() => expect(field.value).toBe('Meeting'));
   expect(fixture.service().service.order[0]?.textOverrides).toEqual({});
 });
+
+it.each(['bible', 'sermon'] as const)(
+  '%s rows and the selected-slide panel share each slide edit across both views',
+  async kind => {
+    installSettings();
+    seedSlideSurfaceView({});
+    const fixture = itemFixture();
+    const before = fixture.service();
+    const lookup = panelPassage();
+    const passage = {
+      translation: lookup.translation,
+      ref: lookup.ref,
+      split: 'verse',
+      reference: 'every',
+      verseNumbers: false,
+      translationName: false,
+    } as const;
+    const id = fixtureItems.arranged;
+    const result = parseServiceDocument({
+      ...before,
+      service: {
+        ...before.service,
+        order: [
+          kind === 'bible'
+            ? {id, bible: passage}
+            : {id, sermon: {title: 'Sermon title', passage}},
+        ],
+      },
+    });
+    if (!result.ok || !result.value) throw Error('Missing test service');
+    fixture.pushService(result.value);
+    const projection = projectBible(
+      {
+        id,
+        kind: 'bible',
+        source: 'service',
+        passage: lookup,
+        verseNumbers: false,
+        translationName: false,
+        reference: 'every',
+        ...(kind === 'sermon' ? {sermonTitle: 'Sermon title'} : {}),
+      },
+      {
+        element: {...themeElementBase(), kind: 'currentText'},
+        layout: mockSplitLayout(),
+      },
+    );
+    if (!projection) throw Error('Missing fixture projection');
+    bible.projection = projection;
+    const previous = useShow.getState();
+    useShow.setState({
+      serviceId: fixtureServiceId,
+      openItemId: id,
+      rows: [{id, kind: 'bible', title: lookup.ref}],
+      tiles: {[id]: projection.tiles},
+    });
+    const editor = new SongEditorStore(fixture.api, vi.fn());
+    const items = new ServiceItemStore(fixture.api, editor, vi.fn());
+    function Harness() {
+      const state = useSyncExternalStore(items.subscribe, items.getSnapshot);
+      return (
+        <>
+          <SlideTextEditor items={items} state={state}>
+            {renderTextFields => (
+              <BibleInlineEditor
+                items={items}
+                ui={fixture.api.ui}
+                onBack={vi.fn()}
+                renderTextFields={renderTextFields}
+              />
+            )}
+          </SlideTextEditor>
+          <aside aria-label="슬라이드 속성">
+            <SlideTextFields items={items} state={state} />
+          </aside>
+        </>
+      );
+    }
+    items.show({serviceId: fixtureServiceId, itemId: id});
+    const view = render(<Harness />);
+    onTestFinished(async () => {
+      view.unmount();
+      items.dispose();
+      await editor.dispose();
+      seedSlideSurfaceView({});
+      useShow.setState(previous);
+      bible.projection = null;
+    });
+    const zone = within(await screen.findByRole('region', {name: '성경 편집'}));
+    const panel = within(
+      screen.getByRole('complementary', {name: '슬라이드 속성'}),
+    );
+    const body = {name: '현재 슬라이드 글'};
+    const rows = await zone.findAllByRole<HTMLTextAreaElement>('textbox', body);
+    expect(rows.map(row => row.value)).toContain('Invented verse 17');
+    const verse = rows.find(row => row.value === 'Invented verse 17');
+    if (!verse) throw Error('Missing verse field');
+    const user = userEvent.setup();
+    await user.click(verse);
+    fireEvent.change(verse, {target: {value: 'Row edit'}});
+    await user.tab();
+    await waitFor(() =>
+      expect(panel.getByRole<HTMLTextAreaElement>('textbox', body).value).toBe(
+        'Row edit',
+      ),
+    );
+    await user.click(zone.getByRole('button', {name: '격자'}));
+    expect(zone.queryAllByRole('textbox')).toHaveLength(0);
+    const sideField = panel.getByRole<HTMLTextAreaElement>('textbox', body);
+    await user.click(sideField);
+    fireEvent.change(sideField, {target: {value: 'Side edit'}});
+    await user.tab();
+    await user.click(zone.getByRole('button', {name: '목록'}));
+    await waitFor(() =>
+      expect(
+        zone
+          .getAllByRole<HTMLTextAreaElement>('textbox', body)
+          .map(row => row.value),
+      ).toContain('Side edit'),
+    );
+    expect(
+      zone
+        .getAllByRole<HTMLTextAreaElement>('textbox', body)
+        .map(row => row.value),
+    ).toContain('Invented verse 16');
+  },
+);

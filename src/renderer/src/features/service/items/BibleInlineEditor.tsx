@@ -44,6 +44,7 @@ import {BibleSlideSession} from './BibleSlideSession';
 import {itemEditorAdapter} from '@renderer/platform/itemEditorAdapter';
 import {MeasuredRow} from '../slides/SlideRows';
 import type {ServiceItemStore} from './serviceItemStore';
+import type {RenderSlideTextFields} from './SlideTextFields';
 import styles from './BibleInlineEditor.module.css';
 
 export function BibleInlineEditor({
@@ -53,7 +54,7 @@ export function BibleInlineEditor({
   onBack,
   hideHeader = false,
   onSplit,
-  themeTextEditing = false,
+  renderTextFields,
 }: {
   readonly onSplit?: (() => void) | undefined;
   readonly items: ServiceItemStore;
@@ -61,7 +62,7 @@ export function BibleInlineEditor({
   readonly ui: Pick<UiApi, 'setLayout'>;
   readonly onBack: () => void;
   readonly hideHeader?: boolean;
-  readonly themeTextEditing?: boolean;
+  readonly renderTextFields?: RenderSlideTextFields | undefined;
 }): JSX.Element | null {
   const current = useSyncExternalStore(items.subscribe, items.getSnapshot);
   const state = shownItem ?? current;
@@ -85,7 +86,7 @@ export function BibleInlineEditor({
       onBack={onBack}
       hideHeader={hideHeader}
       onSplit={onSplit}
-      themeTextEditing={themeTextEditing}
+      renderTextFields={renderTextFields}
     />
   );
 }
@@ -101,7 +102,7 @@ function BibleEditorContent({
   hideHeader,
   onSplit,
   locked,
-  themeTextEditing,
+  renderTextFields,
 }: {
   readonly onSplit?: (() => void) | undefined;
   readonly items: ServiceItemStore;
@@ -113,7 +114,7 @@ function BibleEditorContent({
   readonly onBack: () => void;
   readonly hideHeader: boolean;
   readonly locked: boolean;
-  readonly themeTextEditing: boolean;
+  readonly renderTextFields: RenderSlideTextFields | undefined;
 }): JSX.Element {
   const saved = useShow(view =>
     shownItem === undefined
@@ -131,7 +132,7 @@ function BibleEditorContent({
   );
   const card = useLeadingItemCard(items, item.id, {
     shownItem,
-    themeTextEditing,
+    renderTextFields,
   });
   const sermonTheme = useSlideTheme(
     isItemOfKind(item, 'sermon')
@@ -303,14 +304,27 @@ function BibleEditorContent({
                 >
                   <div
                     className={styles.row}
-                    role="option"
-                    aria-selected={session.slideModel
-                      .getSnapshot()
-                      .selection.ids.has(String(index - offset))}
+                    role={
+                      mode === 'list' && renderTextFields ? 'group' : 'option'
+                    }
+                    aria-selected={
+                      mode === 'list' && renderTextFields
+                        ? undefined
+                        : session.slideModel
+                            .getSnapshot()
+                            .selection.ids.has(String(index - offset))
+                    }
                     data-selected={session.slideModel
                       .getSnapshot()
                       .selection.ids.has(String(index - offset))}
-                    aria-readonly={slide.readOnly}
+                    aria-readonly={
+                      renderTextFields ? undefined : slide.readOnly
+                    }
+                    aria-label={
+                      mode === 'list' && renderTextFields
+                        ? `${index + 1}번 슬라이드`
+                        : undefined
+                    }
                     data-song-slide={String(index - offset)}
                     data-slide-index={index - offset}
                     tabIndex={0}
@@ -340,10 +354,14 @@ function BibleEditorContent({
                         }
                       />
                     </div>
-                    <div className={styles.verse}>
-                      <strong>{slide.tile.label}</strong>
-                      <span>{slide.tile.lines.join('\n')}</span>
-                    </div>
+                    {renderTextFields && mode === 'list' ? (
+                      renderTextFields(index)
+                    ) : (
+                      <div className={styles.verse}>
+                        <strong>{slide.tile.label}</strong>
+                        <span>{slide.tile.lines.join('\n')}</span>
+                      </div>
+                    )}
                   </div>
                 </MeasuredRow>
               );
