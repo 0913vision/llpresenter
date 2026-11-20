@@ -540,7 +540,7 @@ describe('PowerPoint import dialog', () => {
     },
   );
 
-  it('disables background for non-widescreen decks', async () => {
+  it('disables background when the deck has no background', async () => {
     const fixture = editorFixture();
     const store = new SongEditorStore(fixture.api, vi.fn());
     onTestFinished(() => store.dispose());
@@ -569,6 +569,37 @@ describe('PowerPoint import dialog', () => {
     const background = await screen.findByRole('checkbox', {name: '배경'});
     expect(background.getAttribute('aria-disabled')).toBe('true');
     expect(background.getAttribute('aria-checked')).toBe('false');
+  });
+
+  it('allows a background from a non-4:3, non-16:9 deck', async () => {
+    const fixture = editorFixture();
+    const store = new SongEditorStore(fixture.api, vi.fn());
+    onTestFinished(() => store.dispose());
+    const api = mockLlpApi({
+      ...fixture.api,
+      powerpoint: {
+        read: async () => ({
+          ok: true,
+          value: {
+            fileName: 'deck.pptx',
+            widescreen: false,
+            slides: [{number: 1, background: 'background', shapes: []}],
+          },
+        }),
+      },
+    });
+    render(
+      <PowerPointImportFlow
+        api={api}
+        store={store}
+        onDone={vi.fn()}
+        onEdit={vi.fn()}
+        onProblem={vi.fn()}
+      />,
+    );
+    const background = await screen.findByRole('checkbox', {name: '배경'});
+    expect(background.getAttribute('aria-disabled')).not.toBe('true');
+    expect(background.getAttribute('aria-checked')).toBe('true');
   });
 
   it('releases the temporary image when media import immediately fails', async () => {

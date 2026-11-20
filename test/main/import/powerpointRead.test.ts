@@ -3,7 +3,10 @@ import {
   isPowerPointWidescreen,
   readPowerPoint,
 } from '@main/import/powerpointRead';
+import {PowerPointLayerReader} from '@main/import/powerpointLayers';
+import {PowerPointZip} from '@main/import/powerpointZip';
 import {powerpointSlides} from '@core/songs/powerpointSlides';
+import {isPowerPointFourThree} from '@main/import/powerpointSize';
 
 function crc(bytes: Buffer): number {
   let value = 0xffffffff;
@@ -100,6 +103,20 @@ describe('PowerPoint XML reader', () => {
       {lines: []},
       {titleSlide: true, lines: ['Title', 'Subtitle']},
     ]);
+    const ten = archive({
+      ...parts,
+      'ppt/presentation.xml':
+        parts['ppt/presentation.xml']?.replace('cy="900"', 'cy="1000"') ?? '',
+    });
+    const nonStandard = readPowerPoint(ten);
+    expect(nonStandard.widescreen).toBe(false);
+    expect(nonStandard.slides[0]?.background).toMatch(/^[a-f0-9]{64}$/);
+    const background = new PowerPointLayerReader(new PowerPointZip(ten)).read(
+      'ppt/slides/slide1.xml',
+      {width: 1600, height: 1000},
+    ).layers[0];
+    expect(background?.matrix.e).toBeCloseTo(96);
+    expect(background?.matrix.a).toBeCloseTo(1728);
   });
 });
 
@@ -115,3 +132,16 @@ it.each([
 ])('checks slide ratio %i by %i', (width, height, expected) => {
   expect(isPowerPointWidescreen(width, height)).toBe(expected);
 });
+
+it.each([
+  [4, 3, true],
+  [9144000, 6858000, true],
+  [16, 9, false],
+  [16, 10, false],
+  [1, 1, false],
+])(
+  'identifies 4:3 independently of size %i by %i',
+  (width, height, expected) => {
+    expect(isPowerPointFourThree(width, height)).toBe(expected);
+  },
+);

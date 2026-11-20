@@ -28,6 +28,7 @@ import {
 } from './powerpointImages';
 
 import {pickerFolder, rememberPickerFile} from './pickerFolder';
+import {isPowerPointFourThree} from './powerpointSize';
 
 const MAX_TEMP_FILES = 2;
 
@@ -79,8 +80,9 @@ function unsupportedSlideSize(value: unknown): string | null {
   ) {
     throw new Error('Invalid PowerPoint slide size');
   }
+  if (!isPowerPointFourThree(value.width, value.height)) return null;
   const cm = (size: number): string => (size / 360000).toFixed(2);
-  return `16:9만 가능 (${cm(value.width)}×${cm(value.height)}cm)`;
+  return `4:3 슬라이드는 가져올 수 없습니다 (${cm(value.width)}×${cm(value.height)}cm)`;
 }
 
 export function registerPowerPointImport(

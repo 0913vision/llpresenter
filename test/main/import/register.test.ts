@@ -145,7 +145,7 @@ describe('PowerPoint import', () => {
     expect(jobs.cancel).toHaveBeenCalledWith('read');
   });
 
-  it('refuses a non-16:9 deck before either import starts', async () => {
+  it('refuses a 4:3 deck before either import starts', async () => {
     const {control, log} = setup();
     electron.tempDir = await makeTempDir();
     const source = join(electron.tempDir, 'four-three.pptx');
@@ -170,7 +170,10 @@ describe('PowerPoint import', () => {
       canceled: false,
       filePaths: [source],
     });
-    const expected = {ok: false, message: '16:9만 가능 (25.40×19.05cm)'};
+    const expected = {
+      ok: false,
+      message: '4:3 슬라이드는 가져올 수 없습니다 (25.40×19.05cm)',
+    };
     expect(
       await handler(powerpointEndpoints.read.channel)({}, undefined),
     ).toEqual(expected);
@@ -178,6 +181,60 @@ describe('PowerPoint import', () => {
       await handler(powerpointEndpoints.images.channel)({}, undefined),
     ).toEqual(expected);
     expect(images.run).not.toHaveBeenCalled();
+  });
+
+  it('accepts a 16:10 deck for both slide and image import', async () => {
+    const {control, log} = setup();
+    electron.tempDir = await makeTempDir();
+    const source = join(electron.tempDir, 'sixteen-ten.pptx');
+    await writeFile(source, 'deck');
+    const jobs = {
+      run: vi.fn(async (job: PowerPointJob): Promise<unknown> => ({
+        widescreen: false,
+        width: 12192000,
+        height: 7620000,
+        ...(job.kind === 'read'
+          ? {
+              digest: 'a'.repeat(64),
+              slides: [{number: 1, shapes: [], background: null}],
+            }
+          : {}),
+      })),
+      dispose: vi.fn(),
+    };
+    const images = {
+      run: vi.fn(
+        async (
+          _path: string,
+          directory: string,
+          progress: (done: number, total: number, number: number) => void,
+        ) => {
+          await writeFile(join(directory, 'llp-ppt-0001.png'), 'slide');
+          progress(1, 1, 1);
+          return 'ok' as const;
+        },
+      ),
+      cancel: vi.fn(),
+    };
+    onTestFinished(
+      registerPowerPointImport(
+        {control, windowMode: 'normal', log},
+        jobs,
+        images,
+      ),
+    );
+    electron.chooseFile.mockResolvedValue({
+      canceled: false,
+      filePaths: [source],
+    });
+    expect(
+      await handler(powerpointEndpoints.read.channel)({}, undefined),
+    ).toMatchObject({ok: true, value: {widescreen: false}});
+    const result = await handler(powerpointEndpoints.images.channel)(
+      {sender: {isDestroyed: () => false, send: vi.fn()}},
+      undefined,
+    );
+    expect(result).toMatchObject({ok: true, value: {slides: [{number: 1}]}});
   });
 
   it('exports an ASCII-named copy and removes it while retaining the original and exported slides', async () => {

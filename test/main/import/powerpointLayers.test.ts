@@ -241,8 +241,8 @@ describe('PowerPoint background layers', () => {
     });
     expect(layer?.matrix.a).toBeCloseTo(0);
     expect(layer?.matrix.b).toBeCloseTo(-324);
-    expect(layer?.matrix.c).toBeCloseTo(768);
-    expect(layer?.matrix.e).toBeCloseTo(96);
+    expect(layer?.matrix.c).toBeCloseTo(432);
+    expect(layer?.matrix.e).toBeCloseTo(474);
   });
 
   it('keeps picture fills and never substitutes a style for an explicit fill', () => {
@@ -317,11 +317,11 @@ describe('PowerPoint background layers', () => {
     );
     expect(result.layers).toHaveLength(1);
     expect(result.layers[0]?.matrix).toEqual({
-      a: 768,
+      a: 432,
       b: 0,
       c: 0,
       d: 648,
-      e: 192,
+      e: 528,
       f: 216,
     });
     expect(result.skipped).toBe(1);

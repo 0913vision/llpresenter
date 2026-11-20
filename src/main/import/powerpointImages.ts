@@ -52,6 +52,14 @@ try {
   $readOnly = if ($decorations) { 0 } else { -1 }
   $presentation = $powerpoint.Presentations.Open($env:LLP_PPT_SOURCE, $readOnly, 0, 0)
   if (Test-Path (Join-Path $env:LLP_PPT_DIRECTORY 'cancel')) { throw 'Cancelled' }
+  $slideWidth = [double]$presentation.PageSetup.SlideWidth
+  $slideHeight = [double]$presentation.PageSetup.SlideHeight
+  if ($slideWidth -le 0 -or $slideHeight -le 0) { throw 'Invalid slide size' }
+  $scale = [Math]::Min(1920.0 / $slideWidth, 1080.0 / $slideHeight)
+  $exportWidth = [Math]::Max(1, [Math]::Min(1920, [int][Math]::Round($slideWidth * $scale)))
+  $exportHeight = [Math]::Max(1, [Math]::Min(1080, [int][Math]::Round($slideHeight * $scale)))
+  $padded = $exportWidth -ne 1920 -or $exportHeight -ne 1080
+  if ($padded) { Add-Type -AssemblyName System.Drawing }
   if ($decorations) {
     $visible = @($decorations.Split(',') | ForEach-Object { $presentation.Slides.Item([int]$_) })
   } else {
@@ -65,7 +73,26 @@ try {
     $path = Join-Path $env:LLP_PPT_DIRECTORY (('llp-ppt-{0:D4}.png' -f $index))
     try {
       if ($decorations) { Remove-SlideText $slide.Shapes }
-      $slide.Export($path, 'PNG', 1920, 1080)
+      $slide.Export($path, 'PNG', $exportWidth, $exportHeight)
+      if ($padded) {
+        $image = $null
+        $surface = $null
+        $graphics = $null
+        try {
+          $image = [System.Drawing.Image]::FromFile($path)
+          $surface = New-Object System.Drawing.Bitmap(1920, 1080)
+          $graphics = [System.Drawing.Graphics]::FromImage($surface)
+          $graphics.Clear([System.Drawing.Color]::Black)
+          $graphics.DrawImageUnscaled($image, [int]((1920 - $exportWidth) / 2), [int]((1080 - $exportHeight) / 2))
+          $surface.Save(($path + '.padded'), [System.Drawing.Imaging.ImageFormat]::Png)
+        } finally {
+          if ($null -ne $graphics) { $graphics.Dispose() }
+          if ($null -ne $surface) { $surface.Dispose() }
+          if ($null -ne $image) { $image.Dispose() }
+        }
+        [IO.File]::Delete($path)
+        [IO.File]::Move(($path + '.padded'), $path)
+      }
     } catch {
       if (-not $decorations) { throw }
       Remove-Item -LiteralPath $path -Force -ErrorAction SilentlyContinue
