@@ -122,11 +122,12 @@ describe('PreviewPanel layout', () => {
     seedPreview({previewBigVisible: false});
     const {container} = render(<PreviewPanel />);
     const hidden = screen.getByRole('radio', {name: '메인 1 + 2'});
-    expect(container.querySelector('[data-role="large"]')).toBeNull();
+    expect(container.querySelector('[data-role="large"]')).not.toBeNull();
+    expect(container.querySelectorAll('[data-preview-slot]')).toHaveLength(0);
     fireEvent.click(hidden);
     expect(save).toHaveBeenCalledWith({previewBigVisible: true});
     expect(container.querySelector('[data-role="large"]')).not.toBeNull();
-    fireEvent.click(screen.getByRole('radio', {name: '3개 작게'}));
+    fireEvent.click(screen.getByRole('radio', {name: '기존'}));
     expect(save).toHaveBeenLastCalledWith({previewBigVisible: false});
   });
 

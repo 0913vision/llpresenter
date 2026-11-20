@@ -15,3 +15,8 @@
   min-height: 0;
   container-type: size;
 }
+
+.picker {
+  display: flex;
+  justify-content: center;
+}

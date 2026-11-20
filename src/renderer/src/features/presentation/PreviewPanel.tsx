@@ -86,7 +86,6 @@ function PreviewPanelFrame({
       id: `preview.focus.${screen.id}`,
       run: () => {
         showLarge(screen.id);
-        if (!visible) setPreviewVisible(true);
       },
     })),
   );
@@ -121,7 +120,6 @@ function PreviewPanelFrame({
       overlay={<LiveMediaProgress />}
       onBigChange={id => {
         showLarge(id);
-        if (!visible) setPreviewVisible(true);
       }}
       renderScreen={renderScreen}
     />

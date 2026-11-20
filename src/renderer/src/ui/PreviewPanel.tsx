@@ -1,6 +1,6 @@
 import {useContext, useRef, useState, type JSX, type ReactNode} from 'react';
 import {SegmentedControl} from './SegmentedControl';
-import {Panel, PanelHeader, PanelTitle} from './Panel';
+import {Panel, PanelActions, PanelHeader, PanelTitle} from './Panel';
 import {PreviewFrame, type PreviewFrameProps} from './PreviewFrame';
 import {PreviewScreenPicker} from './PreviewScreenPicker';
 import {usePreviewRoom} from './usePreviewRoom';
@@ -46,23 +46,29 @@ export function PreviewPanel<Id extends string>({
       <PanelHeader>
         <PanelTitle title="미리보기" />
         {onVisibleChange === undefined ? null : (
-          <SegmentedControl
-            label="미리보기 배치"
-            options={[
-              {value: 'main', label: '메인 1 + 2'},
-              {value: 'small', label: '3개 작게'},
-            ]}
-            value={visible ? 'main' : 'small'}
-            onChange={value => {
-              const nextVisible = value === 'main';
-              if (nextVisible === visible) return;
-              setDragRatio(null);
-              sizing?.save(DEFAULT_PREVIEW_RATIO);
-              onVisibleChange(nextVisible);
-            }}
-          />
+          <PanelActions>
+            <SegmentedControl
+              label="미리보기 배치"
+              options={[
+                {value: 'single', label: '기존'},
+                {value: 'main', label: '메인 1 + 2'},
+              ]}
+              value={visible ? 'main' : 'single'}
+              onChange={value => {
+                const nextVisible = value === 'main';
+                if (nextVisible === visible) return;
+                setDragRatio(null);
+                sizing?.save(DEFAULT_PREVIEW_RATIO);
+                onVisibleChange(nextVisible);
+              }}
+            />
+          </PanelActions>
         )}
-        {room || sizing !== null || blank || frame.screens.length < 2 ? null : (
+        {!visible ||
+        room ||
+        sizing !== null ||
+        blank ||
+        frame.screens.length < 2 ? null : (
           <PreviewScreenPicker
             screens={frame.screens}
             big={frame.big}
@@ -74,15 +80,15 @@ export function PreviewPanel<Id extends string>({
         ref={root}
         className={styles.body}
         data-preview-tiles={
-          (room || sizing !== null || !visible) && !blank ? 'on' : 'off'
+          visible && (room || sizing !== null) && !blank ? 'on' : 'off'
         }
       >
         <div className={styles.frame} ref={frameRef}>
           <PreviewFrame
             {...frame}
             sizing="content"
-            largeVisible={visible}
-            tiles={(room || sizing !== null || !visible) && !blank}
+            largeVisible
+            tiles={visible && (room || sizing !== null) && !blank}
             split={
               sizing !== null && visible && !blank && frame.screens.length > 1
                 ? {
@@ -120,6 +126,15 @@ export function PreviewPanel<Id extends string>({
             }
           />
         </div>
+        {!visible && !blank && frame.screens.length > 1 ? (
+          <div className={styles.picker} data-preview-extra>
+            <PreviewScreenPicker
+              screens={frame.screens}
+              big={frame.big}
+              onChange={frame.onBigChange}
+            />
+          </div>
+        ) : null}
         {children}
       </div>
     </Panel>
