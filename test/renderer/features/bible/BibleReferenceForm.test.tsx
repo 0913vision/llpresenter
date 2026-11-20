@@ -201,7 +201,7 @@ describe('shared Bible reference form', () => {
     },
   );
 
-  it.each(['Tab', 'Enter'])(
+  it.each(['Tab'])(
     'completes Korean, English, jamo and IME-off names with %s without marking matches red',
     async key => {
       const view = setup();
@@ -249,7 +249,7 @@ describe('shared Bible reference form', () => {
         ?.textContent,
     ).toBe('입력한 이름과 일치하는 성경 책이 없습니다');
     fireEvent.change(view.book, {target: {value: 'ckd'}});
-    await view.user.keyboard('{Enter}');
+    await view.user.tab();
     expect(view.book.value).toBe('창세기');
     expect(view.book.getAttribute('aria-invalid')).toBeNull();
     expect(document.activeElement).toBe(view.chapter);
@@ -263,7 +263,7 @@ describe('shared Bible reference form', () => {
     expect(document.activeElement).toBe(view.chapter);
   });
 
-  it.each(['Tab', 'Enter'])(
+  it.each(['Tab'])(
     'advances through the four fields with %s and submits only at the end',
     async key => {
       const view = setup();
@@ -636,9 +636,6 @@ describe('shared Bible reference form', () => {
     fireEvent.keyDown(view.start, {key: 'Enter', isComposing: true});
     expect(view.onSubmit).not.toHaveBeenCalled();
     await view.user.keyboard('{Enter}');
-    expect(document.activeElement).toBe(view.end);
-    expect(view.onSubmit).not.toHaveBeenCalled();
-    await view.user.keyboard('{Enter}');
     expect(view.onSubmit).toHaveBeenCalledExactlyOnceWith(
       expect.objectContaining({ref: '요한복음 3:16'}),
     );
@@ -956,3 +953,19 @@ describe('Bible reference suggestions in a dialog', () => {
     expect(screen.queryByRole('listbox')).toBeNull();
   });
 });
+
+it.each(['book', 'chapter', 'start', 'end'] as const)(
+  'submits the typed passage from %s without advancing focus',
+  async part => {
+    const view = setup();
+    await enterPassage(view, '18');
+    await waitFor(() => expect(view.onPreview).toHaveBeenCalled());
+    view[part].focus();
+    fireEvent.keyDown(view[part], {key: 'Enter', code: 'Enter'});
+    await waitFor(() => expect(view.onSubmit).toHaveBeenCalledOnce());
+    expect(view.onSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({ref: '\uC694\uD55C\uBCF5\uC74C 3:16-18'}),
+    );
+    expect(document.activeElement).toBe(view[part]);
+  },
+);

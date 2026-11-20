@@ -442,3 +442,42 @@ it('adds a passage using Tab and Enter with a converted 66-book placeholder tran
   expect(chosen?.verses).toHaveLength(1);
   expect(chosen?.verses[0]?.text).toContain('Invented book 1');
 });
+
+it.each(['book', 'chapter', 'start', 'end'] as const)(
+  'adds the typed passage from the %s field',
+  async part => {
+    const fixture = panelApi();
+    window.llp = fixture.api;
+    onTestFinished(() => {
+      delete window.llp;
+    });
+    const onChoose = vi.fn();
+    render(
+      <BiblePassageDialog
+        api={fixture.api.bible}
+        translation={lookupRequest().translation}
+        onChoose={onChoose}
+        onClose={vi.fn()}
+      />,
+    );
+    const book = screen.getByRole('combobox', {name: '\uCC45'});
+    const chapter = screen.getByRole('textbox', {name: '\uC7A5'});
+    const start = screen.getByRole<HTMLInputElement>('textbox', {
+      name: '\uC2DC\uC791\uC808',
+    });
+    const end = screen.getByRole('textbox', {name: '\uB05D\uC808'});
+    fireEvent.change(book, {target: {value: '\uC694'}});
+    fireEvent.change(chapter, {target: {value: '3'}});
+    await waitFor(() => expect(start.disabled).toBe(false));
+    fireEvent.change(start, {target: {value: '16'}});
+    fireEvent.change(end, {target: {value: '18'}});
+    const field = {book, chapter, start, end}[part];
+    field.focus();
+    fireEvent.keyDown(field, {key: 'Enter', code: 'Enter'});
+    await waitFor(() =>
+      expect(onChoose).toHaveBeenCalledWith(
+        expect.objectContaining({ref: '\uC694\uD55C\uBCF5\uC74C 3:16-18'}),
+      ),
+    );
+  },
+);
