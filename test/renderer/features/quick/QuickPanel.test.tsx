@@ -165,11 +165,13 @@ describe('quick panel integration', () => {
       const song = deferred<typeof fixture.song | null>();
       const passage = deferred<BibleLookupReply>();
       fixture.showSong.mockReturnValueOnce(song.promise);
-      fixture.lookup.mockReturnValueOnce(passage.promise);
       render(<QuickPanel selectionVersion={0} onProblem={vi.fn()} />);
       fireEvent.click(await screen.findByRole('button', {name: '저장된 곡'}));
       const field = screen.getByRole<HTMLInputElement>('combobox');
       await waitFor(() => expect(field.disabled).toBe(false));
+      await waitFor(() => expect(fixture.lookup).toHaveBeenCalledWith(recent));
+      fixture.lookup.mockClear();
+      fixture.lookup.mockReturnValueOnce(passage.promise);
       if (method === 'mouse') {
         fireEvent.click(
           await screen.findByRole('button', {name: /창세기 1:1/}),
