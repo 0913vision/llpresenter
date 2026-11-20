@@ -55,6 +55,23 @@ afterEach(() => {
 });
 
 describe('Bible panel integration', () => {
+  it('places the slide zoom after the quick-passage actions in the shared footer', () => {
+    const fixture = panelApi();
+    window.llp = fixture.api;
+    openBiblePassage(panelPassage());
+    render(<BiblePanel sizeClass="normal" />);
+    const zoom = screen.getByRole('slider', {name: '슬라이드 크기'});
+    const footer = zoom.closest('footer');
+    if (!footer) throw new Error('Missing grid footer');
+    const next = within(footer).getByRole('button', {name: '뒤 절 추가'});
+    expect(
+      next.compareDocumentPosition(zoom) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      zoom.closest('[class*="footerEnd"]')?.lastElementChild?.contains(zoom),
+    ).toBe(true);
+  });
+
   it('disables slide editing for a Bible preview without a prep handoff', async () => {
     const fixture = panelApi();
     window.llp = fixture.api;

@@ -13,10 +13,16 @@ import {
   Panel,
   PanelActions,
   PanelBody,
-  PanelFooter,
   PanelHeader,
   PanelTitle,
 } from '@renderer/ui/Panel';
+import {GridFooter} from '@renderer/ui/GridFooter';
+import {ThumbnailSizeControl} from '@renderer/ui/ThumbnailSizeControl';
+import {
+  useThumbnailScale,
+  showThumbnailScale,
+  saveThumbnailScale,
+} from '@renderer/platform/thumbnailScale';
 import {ItemSlideGrid} from './ItemSlideGrid';
 import {openItemSong} from './openItemSong';
 import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
@@ -121,6 +127,7 @@ function SongItemView({
   onBack,
 }: SongItemViewProps): JSX.Element {
   const {service} = useSyncExternalStore(items.subscribe, items.getSnapshot);
+  const scale = useThumbnailScale('normal');
   const editReason =
     service?.access === 'readOnly' ? NEWER_FILE_REASON : undefined;
   return (
@@ -168,7 +175,17 @@ function SongItemView({
             />
           )}
         </PanelBody>
-        <PanelFooter count={item.slides.length + cardOffset(item)} />
+        <GridFooter
+          count={item.slides.length + cardOffset(item)}
+          zoom={
+            <ThumbnailSizeControl
+              compact
+              value={scale}
+              onChange={value => showThumbnailScale('normal', value)}
+              onCommit={value => saveThumbnailScale('normal', value)}
+            />
+          }
+        />
       </Panel>
     </div>
   );

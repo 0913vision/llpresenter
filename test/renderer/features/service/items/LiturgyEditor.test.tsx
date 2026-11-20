@@ -1,4 +1,4 @@
-import {act, render, screen, waitFor} from '@testing-library/react';
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {expect, it, onTestFinished, vi} from 'vitest';
 import {createThemeId} from '@core/schema/ids';
@@ -48,6 +48,15 @@ it.each(['creed', 'prayer'] as const)(
     expect(
       await screen.findAllByRole('textbox', {name: /예식문/}),
     ).not.toHaveLength(0);
+    fireEvent.click(screen.getByRole('button', {name: '격자'}));
+    fireEvent.change(screen.getByRole('slider', {name: '슬라이드 크기'}), {
+      target: {value: '150'},
+    });
+    expect(
+      screen
+        .getByLabelText('슬라이드 편집 목록')
+        .style.getPropertyValue('--liturgy-tile-width'),
+    ).toBe('270px');
     const user = userEvent.setup();
     await user.click(await screen.findByRole('button', {name: '예식문 버전'}));
     await user.click(screen.getByRole('menuitemradio', {name: '옛 번역'}));

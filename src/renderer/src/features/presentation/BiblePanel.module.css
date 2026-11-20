@@ -14,6 +14,11 @@
   padding-block: var(--space-4);
 }
 
+.footer > footer > div:last-child {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .options {
   display: flex;
   align-items: center;

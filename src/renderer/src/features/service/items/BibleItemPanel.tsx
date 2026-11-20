@@ -10,14 +10,9 @@ import {
   showThumbnailScale,
   useThumbnailScale,
 } from '@renderer/platform/thumbnailScale';
-import {
-  Panel,
-  PanelBody,
-  PanelFooter,
-  PanelHeader,
-  PanelTitle,
-} from '@renderer/ui/Panel';
+import {Panel, PanelBody, PanelHeader, PanelTitle} from '@renderer/ui/Panel';
 import {ThumbnailSizeControl} from '@renderer/ui/ThumbnailSizeControl';
+import {GridFooter} from '@renderer/ui/GridFooter';
 import {ITEM_PANEL_LABEL} from './OtherItemPanel';
 import {shownPosition} from '../../songs/editor/songItemModel';
 import {bibleEditorData, savedPassageTiles} from './bibleItemModel';
@@ -95,10 +90,11 @@ export function BibleItemPanel({
           />
         )}
       </PanelBody>
-      <PanelFooter
+      <GridFooter
         count={tiles.length + cardOffset(item)}
-        end={
+        zoom={
           <ThumbnailSizeControl
+            compact
             value={scale}
             onChange={value => showThumbnailScale(sizeClass, value)}
             onCommit={value => saveThumbnailScale(sizeClass, value)}

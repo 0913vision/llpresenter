@@ -240,13 +240,14 @@ Source: `ServiceSwitch`, `Main` decision "예배 순서 바꾸기", `Panel` READ
   its center is outside the 30%–55% middle band. Wheel or scrollbar dragging
   pauses following until 1.5 seconds after the last manual interaction, then
   follows the latest live tile. This also applies in single-column layouts.
-- The footer has a continuous size slider and a synchronized % field (M2 check 1
-  row 9). The proposed range is 50% to 200%, step 1 percentage point for typing
-  and keyboard adjustment, default 100%. Pointer dragging changes the size
-  smoothly without snapping to a column count. At 100%, the baseline fits narrow
-  3, regular 4, or wide 6 columns; thumbnails retain their scaled width when the
-  number of columns changes. Save the percentage per size class, not a column
-  count. 10 defines the mapping, storage, and reasons.
+- The grid footer places its continuous size slider and synchronized % field at
+  the right edge, including for quick Bible passages (M2 check 1 row 9). The
+  proposed range is 50% to 200%, step 1 percentage point for typing and keyboard
+  adjustment, default 100%. Pointer dragging changes the size smoothly without
+  snapping to a column count. At 100%, the baseline fits narrow 3, regular 4, or
+  wide 6 columns; thumbnails retain their scaled width when the number of
+  columns changes. Save the percentage per size class, not a column count. 10
+  defines the mapping, storage, and reasons.
 
 Slide thumbnails draw the audience composition at a reduced scale, using the
 same theme, layout, wrapping, and content as live output. The grid virtualizes

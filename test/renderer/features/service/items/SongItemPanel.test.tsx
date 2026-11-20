@@ -102,6 +102,9 @@ describe('service song item panel', () => {
 
   it('shows the item slides and selects them without editing the library', async () => {
     const {panel, user, items, edits, first} = await setup();
+    expect(
+      within(panel).getByRole('slider', {name: '슬라이드 크기'}),
+    ).toBeDefined();
     const tiles = thumbnails(panel);
     expect(tiles).toHaveLength(first.song.slides.length);
     await user.click(secondThumbnail(panel));

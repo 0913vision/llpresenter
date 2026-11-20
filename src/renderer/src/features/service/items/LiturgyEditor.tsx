@@ -3,6 +3,7 @@ import {
   useMemo,
   useState,
   useSyncExternalStore,
+  type CSSProperties,
   type JSX,
 } from 'react';
 import {isItemOfKind, type ServiceItemOf} from '@core/schema/service';
@@ -126,7 +127,10 @@ function LiturgyContent({
   readonly position: number;
   readonly shownItem: ReturnType<ServiceItemStore['getSnapshot']>;
 }): JSX.Element {
-  const {mode} = useSlideSurfaceView();
+  const {mode, scale} = useSlideSurfaceView();
+  const gridStyle: CSSProperties & {'--liturgy-tile-width': string} = {
+    '--liturgy-tile-width': `${(180 * scale) / 100}px`,
+  };
   const card = useLeadingItemCard(items, item.id, shownItem);
   const tiles = useShow(view => view.tiles[item.id]);
   const theme = useSlideTheme({
@@ -194,6 +198,7 @@ function LiturgyContent({
         <div
           className={`${styles.rows} ${liturgyStyles.rows}`}
           data-view={mode}
+          style={gridStyle}
           aria-label="슬라이드 편집 목록"
         >
           {card === undefined ? null : (

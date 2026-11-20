@@ -19,7 +19,7 @@ import {missingBackgroundTip} from '@renderer/features/media/backgroundChoices';
 import {openSongEditorWindow} from '@renderer/features/songs/editor/openWindow';
 import {editorTask} from '@renderer/features/songs/editor/editorTask';
 import type {Notice} from '@renderer/ui/notices';
-import {PanelFooter} from '@renderer/ui/Panel';
+import {GridFooter} from '@renderer/ui/GridFooter';
 import {useTooltip} from '@renderer/ui/Tooltip';
 import {SlideGrid} from './SlideGrid';
 import {ContinuousSlideGrid} from './ContinuousSlideGrid';
@@ -156,22 +156,20 @@ export function SlidePanelFooter({
   const count = useShow(view => shownTilesFor(view, shownItemId)?.length ?? 0);
   const live = useSyncExternalStore(liveReturn.subscribe, liveReturn.get);
   return (
-    <PanelFooter
+    <GridFooter
       count={count}
-      end={
-        <>
-          {live === 'none' ? null : (
-            <Button
-              size="sm"
-              disabled={live !== 'away'}
-              onClick={() => liveReturn.go()}
-            >
-              {'현 위치로'}
-            </Button>
-          )}
-          <SlideSizeControl sizeClass={sizeClass} />
-        </>
+      actions={
+        live === 'none' ? null : (
+          <Button
+            size="sm"
+            disabled={live !== 'away'}
+            onClick={() => liveReturn.go()}
+          >
+            현 위치로
+          </Button>
+        )
       }
+      zoom={<SlideSizeControl sizeClass={sizeClass} />}
     />
   );
 }
@@ -191,7 +189,7 @@ export function SlideSizeControl({
     <ThumbnailSizeControl
       key={sizeClass}
       workspace="show"
-      compact={sizeClass === 'narrow'}
+      compact
       value={useThumbnailScale(sizeClass)}
       onChange={percent => showThumbnailScale(sizeClass, percent)}
       onCommit={percent => saveThumbnailScale(sizeClass, percent)}

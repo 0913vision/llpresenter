@@ -7,11 +7,11 @@ import {shownTilesFor} from '@renderer/session/showLibrary';
 import {
   Panel,
   PanelBody,
-  PanelFooter,
   PanelHeader,
   PanelTitle,
   PanelTools,
 } from '@renderer/ui/Panel';
+import {GridFooter} from '@renderer/ui/GridFooter';
 import {SlidePanelBody, SlideSizeControl} from './SlidePanel';
 import {BibleAdjacentButtons} from '../bible/BibleAdjacentButtons';
 import {BibleDisplayControls} from './BibleDisplayControls';
@@ -42,13 +42,13 @@ export function BiblePanel({
         <SlidePanelBody sizeClass={sizeClass} />
       </PanelBody>
       <div className={styles.footer}>
-        <PanelFooter
+        <GridFooter
           count={count}
-          end={<BibleAdjacentButtons key={source.id} source={source} />}
+          actions={<BibleAdjacentButtons key={source.id} source={source} />}
+          zoom={<SlideSizeControl sizeClass={sizeClass} />}
         >
-          <SlideSizeControl sizeClass={sizeClass} />
           <BibleInsertButton source={source} onProblem={onProblem} />
-        </PanelFooter>
+        </GridFooter>
       </div>
     </Panel>
   );
