@@ -84,6 +84,27 @@ describe('transformed modules', () => {
   });
 });
 
+describe('shared renderer environment', () => {
+  it('resets modules before installing renderer fixtures in each file', () => {
+    const project = config.test?.projects?.find(
+      value =>
+        typeof value === 'object' &&
+        'test' in value &&
+        value.test.name === 'renderer',
+    );
+    if (typeof project !== 'object' || !('test' in project)) {
+      throw new Error('Renderer project is missing');
+    }
+    expect(project.test.isolate).toBe(false);
+    expect(project.test.sequence?.setupFiles).toBe('list');
+    expect(project.test.setupFiles).toEqual([
+      'test/setup/compileCache.ts',
+      'test/setup/resetRendererModules.ts',
+      'test/setup/renderer.ts',
+    ]);
+  });
+});
+
 describe('CI test workers', () => {
   it('uses all workers only with the explicit CI shard setting', () => {
     expect(testWorkerLimit({})).toBe('50%');

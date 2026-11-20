@@ -106,7 +106,12 @@ export default defineConfig({
           exclude: [...configDefaults.exclude, RENDERER_NODE_TESTS],
           environment: 'jsdom',
           isolate: false,
-          setupFiles: ['test/setup/compileCache.ts', 'test/setup/renderer.ts'],
+          sequence: {setupFiles: 'list'},
+          setupFiles: [
+            'test/setup/compileCache.ts',
+            'test/setup/resetRendererModules.ts',
+            'test/setup/renderer.ts',
+          ],
         },
       },
     ],
