@@ -133,6 +133,27 @@ it('deduplicates simultaneous windows and reuses a disk picture after restart', 
     expect(await disk.peek(edited)).toEqual(png);
     expect(await disk.peek({...edited, inputs: 'not-on-disk'})).toBeNull();
     expect(painter.paint).toHaveBeenCalledTimes(5);
+    const otherScreen: PictureRequest = {
+      ...request,
+      spec: {
+        ...request.spec,
+        appearance: {
+          ...request.spec.appearance,
+          screen: {
+            ...request.spec.appearance.screen,
+            id: createScreenId('00000000-0000-4000-8000-000000000003'),
+          },
+        },
+      },
+    };
+    expect(await disk.get(otherScreen)).toEqual(image);
+    expect(painter.paint).toHaveBeenCalledTimes(6);
+    const failed = {...request, inputs: 'failed-draw'};
+    painter.paint.mockRejectedValueOnce(new Error('draw failed'));
+    await expect(disk.get(failed)).rejects.toThrow('draw failed');
+    expect(await disk.peek(failed)).toBeNull();
+    expect(await disk.get(failed)).toEqual(image);
+    expect(painter.paint).toHaveBeenCalledTimes(8);
     await disk.dispose();
   } finally {
     await rm(folder, {recursive: true, force: true});
