@@ -160,9 +160,15 @@ describe('ClearRow', () => {
     expect(undo.getAttribute('data-state')).toBe('off');
     const dividers = group.querySelectorAll(':scope > [aria-hidden="true"]');
     expect(dividers).toHaveLength(2);
-    expect(dividers[0]?.previousElementSibling?.getAttribute('aria-label')).toBe('대기 화면으로');
-    expect(dividers[0]?.nextElementSibling?.getAttribute('aria-label')).toBe('모두 지우기');
-    expect(dividers[1]?.nextElementSibling?.getAttribute('aria-label')).toBe('되돌리기');
+    expect(
+      dividers[0]?.previousElementSibling?.getAttribute('aria-label'),
+    ).toBe('대기 화면으로');
+    expect(dividers[0]?.nextElementSibling?.getAttribute('aria-label')).toBe(
+      '모두 지우기',
+    );
+    expect(dividers[1]?.nextElementSibling?.getAttribute('aria-label')).toBe(
+      '되돌리기',
+    );
     expect(dividers[0]?.className).toBe(dividers[1]?.className);
     fireEvent.click(undo);
     expect(useLive.getState().state).toBe(state);

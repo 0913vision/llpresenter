@@ -61,7 +61,9 @@ describe('useShowPanels', () => {
     useShow.setState({rows: [row]});
     revealSlideItem(row.id);
     const parts = panels().current.partsOf('슬라이드');
-    const view = render(<Panel title="슬라이드" parts={{header: parts.header}} />);
+    const view = render(
+      <Panel title="슬라이드" parts={{header: parts.header}} />,
+    );
     expect(view.container.querySelector('section > div')?.textContent).toBe(
       'Example',
     );
