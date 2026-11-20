@@ -4,7 +4,6 @@ import {useShallow} from 'zustand/react/shallow';
 import {interruptsSongOutput, type LiveCommand} from '@core/live/commands';
 import type {LiveState} from '@core/live/state';
 import {useShow} from './showStore';
-import {getCommittedShownItem} from './shownItem';
 
 interface LiveView {
   /** Null until the first state arrives, and always outside Electron. */
@@ -39,10 +38,10 @@ function accept(next: LiveState): void {
         view.lastStartedItemId,
     }));
   const prepared = passage != null && passage.title === next.themeItem?.title;
-  if (prepared || next.waitingForControl === true) {
+  if (prepared) {
     flushSync(() => {
       apply();
-      if (prepared) useShow.setState({readyPassage: null});
+      useShow.setState({readyPassage: null});
     });
   } else {
     apply();
@@ -57,39 +56,17 @@ function accept(next: LiveState): void {
 export function startLiveSync(): () => void {
   const api = window.llp;
   if (api === undefined) return () => undefined;
-  let presentation = 0;
   let lastVersion = -1;
   let stopped = false;
   const receive = (next: LiveState): void => {
-    if (stopped || next.version < lastVersion) return;
-    if (next.waitingForControl !== true) cancelAnimationFrame(presentation);
-    if (next.version === lastVersion) return;
+    if (stopped || next.version <= lastVersion) return;
     lastVersion = next.version;
-    const passage = useShow.getState().readyPassage;
-    const expected =
-      passage?.title === next.themeItem?.title ? passage?.id : undefined;
     accept(next);
-    if (next.waitingForControl === true) {
-      cancelAnimationFrame(presentation);
-      const acknowledge = (): void => {
-        if (
-          expected !== undefined &&
-          useShow.getState().openItemId === expected &&
-          getCommittedShownItem() !== expected
-        ) {
-          presentation = requestAnimationFrame(acknowledge);
-        } else {
-          api.live.controlFrameReady(next.version);
-        }
-      };
-      presentation = requestAnimationFrame(acknowledge);
-    }
   };
   const unsubscribe = api.live.subscribe(receive);
   api.live.get().then(receive, () => undefined);
   return () => {
     stopped = true;
-    cancelAnimationFrame(presentation);
     unsubscribe();
   };
 }

@@ -213,15 +213,30 @@ export function BibleQuickField({
       review: false,
       transition: QUICK_BIBLE_TRANSITION,
     };
-    withPictures(target, options, ready => {
-      beginQuickPassage();
-      showBiblePassage(target, options, ready);
-      setOverlayOpen(false);
-      finishQuickPassage();
-      const id = useShow.getState().openItemId;
-      if (ready && id !== committed) focusItem.current = id;
-      else focusSlideGrid();
-    });
+    beginQuickPassage();
+    showBiblePassage(target, options);
+    setOverlayOpen(false);
+    finishQuickPassage();
+    const id = useShow.getState().openItemId;
+    if (id === committed) {
+      focusSlideGrid();
+      return;
+    }
+    focusItem.current = id;
+    if (!pictures.drawInPlace) {
+      // NOTE(0913vision): Give the incoming grid priority in the picture queue
+      // after the live command has been sent.
+      setTimeout(() => {
+        if (useShow.getState().openItemId === id) {
+          prepareBiblePictures(target, options).catch((error: unknown) => {
+            console.error(
+              'Could not prepare the Bible passage pictures',
+              error,
+            );
+          });
+        }
+      }, 0);
+    }
   };
   const pick = async (recent: RecentPassage): Promise<void> => {
     if (display === null) return;

@@ -80,7 +80,6 @@ export function openBiblePassage(
 export function showBiblePassage(
   passage: BibleLookupPassage,
   options?: BiblePreviewOptions,
-  ready = false,
 ): void {
   const current = useShow.getState();
   const prepared = bibleSourceFor(current, current.openItemId);
@@ -97,15 +96,11 @@ export function showBiblePassage(
           review: prepared.review,
         }
       : undefined);
-  openBiblePassage(
-    passage,
-    {
-      ...display,
-      verseNumbers: display?.verseNumbers ?? true,
-      review: display?.review ?? true,
-    },
-    {ready, waitForLive: ready},
-  );
+  openBiblePassage(passage, {
+    ...display,
+    verseNumbers: display?.verseNumbers ?? true,
+    review: display?.review ?? true,
+  });
   const view = useShow.getState();
   if (view.openItemId !== null) {
     outputTile({itemId: view.openItemId, index: view.selectedTile});
