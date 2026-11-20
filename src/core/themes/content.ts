@@ -1,5 +1,5 @@
 import {cardOffset} from '../services/sectionCards';
-import type {LiveLayers} from '../live/state';
+import type {LiveLayers, SlideLayer} from '../live/state';
 import type {LiveThemeItem} from '../schema/liveTheme';
 import type {ScreenId} from '../schema/ids';
 import type {ThemeElement} from '../schema/themes';
@@ -14,6 +14,23 @@ export function isThemeTextElement(
     element.kind !== 'overlay' &&
     element.kind !== 'image' &&
     element.kind !== 'box'
+  );
+}
+
+/** A blank or ad text slide can use Scripture body layout. */
+export function isReferencedTextSlide(
+  slide: Pick<
+    SlideLayer,
+    'kind' | 'reference' | 'picture' | 'sectionCard'
+  > | null,
+  itemKind?: LiveThemeItem['kind'],
+): boolean {
+  const kind = slide?.kind ?? itemKind;
+  return (
+    (kind === 'blank' || kind === 'ad') &&
+    !!slide?.reference?.trim() &&
+    slide.picture === undefined &&
+    slide.sectionCard === undefined
   );
 }
 

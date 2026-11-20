@@ -19,7 +19,11 @@ import {themeBackgroundStyle} from './themeBackground';
 import {songTitleLayout} from '@core/themes/songTitle';
 import {songTitleLines} from '@core/presentation/songTitleLines';
 import {STAGE_LYRIC_LABEL_ID, stageLyricLabelLayout} from './stageLyricLabel';
-import {isThemeTextElement, themeElementMedia} from '@core/themes/content';
+import {
+  isReferencedTextSlide,
+  isThemeTextElement,
+  themeElementMedia,
+} from '@core/themes/content';
 
 interface ThemePage {
   layers: LiveLayers;
@@ -71,9 +75,11 @@ export class ThemeCompositionView {
     }
     if (input === null || input.frame.screen?.kind !== 'broadcast') return;
     const slide = input.frame.slide ?? input.layers.slide;
+    const itemKind = input.frame.theme?.item?.kind;
     if (
       slide?.bibleItemSlides === undefined ||
-      (input.frame.theme?.item?.kind ?? slide.kind) !== 'bible'
+      ((itemKind ?? slide.kind) !== 'bible' &&
+        !isReferencedTextSlide(slide, itemKind))
     ) {
       return;
     }
@@ -112,15 +118,15 @@ export class ThemeCompositionView {
     this.input = {layers, frame};
     if (frame.theme !== undefined) this.root.hidden = false;
     const original = frame.slide ?? layers.slide;
+    const itemKind = frame.theme?.item?.kind;
     const measureAudience =
       frame.screen?.kind === 'stage' &&
       frame.audience &&
       original &&
       !original.sermonTitle &&
       !original.sectionCard &&
-      ['song', 'bible'].includes(
-        original.kind ?? frame.theme?.item?.kind ?? '',
-      );
+      (['song', 'bible'].includes(original.kind ?? itemKind ?? '') ||
+        isReferencedTextSlide(original, itemKind));
     this.audienceSize = undefined;
     this.audienceTitleSizes = undefined;
     if (measureAudience && frame.audience) {

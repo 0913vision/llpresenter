@@ -4,7 +4,7 @@ import {emptyLayers} from '@core/live/state';
 import type {LiveThemeItem} from '@core/schema/liveTheme';
 import type {ThemeElement, ThemeScreenLayout} from '@core/schema/themes';
 import type {ResolvedThemeElement} from '@core/themes/songTitle';
-import {themeElementText} from '@core/themes/content';
+import {isReferencedTextSlide, themeElementText} from '@core/themes/content';
 import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {
   BROADCAST_TEXT_ID,
@@ -111,12 +111,14 @@ function fitBand(
   if (body?.kind !== 'currentText') return layout;
   const bible =
     (item?.kind ?? slide?.kind) === 'bible' && slide?.sermonTitle !== true;
+  const kind = slide?.kind ?? item?.kind;
+  const slideReference = kind === 'blank' || kind === 'ad';
+  const scripture = bible || isReferencedTextSlide(slide, item?.kind);
   const raw = themeElementText(body, content) ?? '';
-  const value = bible ? broadcastBibleFlow(raw) : raw;
+  const value = scripture ? broadcastBibleFlow(raw) : raw;
   const referenceElement = layout.elements.find(
     e => e.id === BROADCAST_REFERENCE_ID,
   );
-  const slideReference = slide?.kind === 'blank' || slide?.kind === 'ad';
   const reference =
     (bible || slideReference) && referenceElement
       ? bible && item?.title?.trim()
@@ -128,11 +130,11 @@ function fitBand(
     value,
     width: geometry.bodyWidth,
     song: false,
-    continued: bible && slide?.continued === true,
+    continued: scripture && slide?.continued === true,
   });
   const size = fitted.size;
   const height =
-    bible && slide?.bibleItemSlides !== undefined
+    scripture && slide?.bibleItemSlides !== undefined
       ? slide.bibleItemSlides.reduce(
           (maximum, part) =>
             Math.max(
@@ -147,7 +149,7 @@ function fitBand(
             ),
           fitted.height,
         )
-      : bible
+      : scripture
         ? fitted.height
         : Math.max(
             fitted.height,
@@ -210,9 +212,9 @@ function fitBand(
           w: geometry.bodyWidth,
           h: height,
         },
-        text: {...e.text, size, ...(bible ? {vAlign: 'top' as const} : {})},
+        text: {...e.text, size, ...(scripture ? {vAlign: 'top' as const} : {})},
         minimumTextSize: size,
-        broadcastBibleFlow: bible,
+        broadcastBibleFlow: scripture,
       };
     }
     if (e.id === BROADCAST_REFERENCE_ID && e.kind === 'reference') {

@@ -2,6 +2,7 @@ import type {NextSlide, SlideLayer} from '../live/state';
 import type {SlideTile, TileCursor} from './model';
 import type {TilesOf} from './navigation';
 import {LIVE_STATE_LIMITS} from '../schema/liveLimits';
+import {isReferencedTextSlide} from '../themes/content';
 
 function repeatedLabel(
   tile: SlideTile,
@@ -99,7 +100,9 @@ const bibleGroups = new WeakMap<readonly SlideTile[], BibleItemSlides | null>();
 
 function bibleGroup(tiles: readonly SlideTile[]): BibleItemSlides | undefined {
   if (bibleGroups.has(tiles)) return bibleGroups.get(tiles) ?? undefined;
-  const parts = tiles.filter(part => part.biblePart !== undefined);
+  const parts = tiles.filter(
+    part => part.biblePart !== undefined || isReferencedTextSlide(part),
+  );
   const lines = parts.reduce((sum, part) => sum + part.lines.length, 0);
   const characters = parts.reduce(
     (sum, part) =>
@@ -147,7 +150,9 @@ export function slideLayerOf(
   if (!tile) return null;
   const next = tiles[cursor.index + 1] ?? following?.tile;
   const bibleItemSlides =
-    tile.biblePart === undefined ? undefined : bibleGroup(tiles);
+    tile.biblePart !== undefined || isReferencedTextSlide(tile)
+      ? bibleGroup(tiles)
+      : undefined;
   return {
     itemId: cursor.itemId,
     position: cursor.index,

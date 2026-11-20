@@ -114,6 +114,148 @@ afterEach(() => {
 });
 
 describe('theme composition drawing', () => {
+  it.each(['blank', 'ad'] as const)(
+    'draws referenced %s text like the same Bible passage on all three screens',
+    form => {
+      const item = slidesItem(form);
+      const [first, second] = item.slides.slides;
+      if (first === undefined || second === undefined) {
+        throw Error('Missing source slides');
+      }
+      const reference = '하박국 3:17~19';
+      const text = '17 비록 무화과나무가\n무성하지 못하며';
+      const longerText = '18 나는 여호와로 말미암아 즐거워하며';
+      const tiles = projectSlides({
+        ...item,
+        slides: {
+          ...item.slides,
+          slides: [
+            {id: first.id, text, reference},
+            {id: second.id, text: longerText, reference},
+          ],
+        },
+      });
+      const bibleTiles = tiles.map(({kind: _kind, name: _name, ...tile}) => ({
+        ...tile,
+        lines: tile.lines.flatMap(line => line.split('\n')),
+        biblePart: 1,
+      }));
+      const theme = currentBuiltInTheme('bible');
+      const screens = [
+        {kind: 'audience', id: createScreenId(STARTER_SCREEN_IDS.main)},
+        {kind: 'stage', id: createScreenId(STARTER_SCREEN_IDS.stage)},
+        {kind: 'broadcast', id: createScreenId(STARTER_SCREEN_IDS.broadcast)},
+      ] as const;
+      function render(passage: boolean, screen: (typeof screens)[number]) {
+        const source = passage ? bibleTiles : tiles;
+        const slide = slideLayerOf({itemId: item.id, index: 0}, () => source);
+        if (slide === null) throw Error('Missing live slide');
+        const parsed = parseLiveCommand(slidesOutput(slide, undefined));
+        if (!parsed.ok || parsed.value.type !== 'live.batch') {
+          throw Error('Invalid live slide');
+        }
+        const command = parsed.value.commands[0];
+        if (command?.type !== 'slide.show') {
+          throw Error('Missing slide command');
+        }
+        const frameFor = (id: typeof screen.id) => {
+          const layout = theme.screens[id];
+          if (layout === undefined) throw Error('Missing Bible screen layout');
+          return {
+            themeId: theme.id,
+            revision: 1,
+            missing: [],
+            emptyColor: '#000000',
+            sourceScreenId: id,
+            layout,
+            item: {
+              source: 'service',
+              kind: passage ? 'bible' : form,
+              id: item.id,
+              title: passage ? reference : item.slides.name,
+            },
+          } satisfies ThemeFrame;
+        };
+        const {root, view, onError} = setup();
+        view.render(
+          {...emptyLayers(), slide: command.slide},
+          {
+            screen,
+            theme: frameFor(screen.id),
+            ...(screen.kind !== 'stage'
+              ? {}
+              : {
+                  audience: {
+                    screen: screens[0],
+                    theme: frameFor(screens[0].id),
+                  },
+                }),
+            transitions: false,
+          },
+        );
+        expect(onError).not.toHaveBeenCalled();
+        const page = root.querySelector(
+          ':scope > [data-layer="theme"] > [data-theme-page]',
+        );
+        const body = page?.querySelector<HTMLElement>(
+          '[data-kind="currentText"]',
+        );
+        const shown = body?.querySelector<HTMLElement>(`.${classes.shown}`);
+        const block = shown?.querySelector<HTMLElement>(`.${classes.block}`);
+        if (!body || !shown || !block) throw Error('Missing rendered body');
+        const result = {
+          element: body.dataset['themeElement'],
+          frame: [
+            body.style.left,
+            body.style.top,
+            body.style.width,
+            body.style.height,
+          ],
+          alignment: [shown.style.textAlign, shown.style.justifyContent],
+          wrap: body.style.textWrap,
+          font: [
+            block.style.fontFamily,
+            block.style.fontSize,
+            block.style.lineHeight,
+          ],
+          lines: Array.from(block.children, row => row.textContent),
+          reference: page?.querySelector(
+            `[data-kind="reference"] .${classes.shown}`,
+          )?.textContent,
+        };
+        view.dispose();
+        return result;
+      }
+      const fitted = vi
+        .spyOn(ThemeElementView.prototype, 'fittedTextSize')
+        .mockReturnValue(71);
+      const target = vi.spyOn(ThemeElementView.prototype, 'targetTextSize');
+      vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockImplementation(
+        function (this: HTMLElement) {
+          return this.closest('[data-slide-measure]') === null
+            ? 0
+            : this.textContent === longerText
+              ? 140
+              : 80;
+        },
+      );
+      for (const screen of screens) {
+        const bible = render(true, screen);
+        target.mockClear();
+        expect(render(false, screen), screen.kind).toEqual(bible);
+        expect(bible.reference).toBe(reference);
+        if (screen.kind === 'audience') {
+          expect(bible.alignment[1]).toBe('flex-start');
+        }
+        if (screen.kind === 'stage') expect(target).toHaveBeenCalledWith(71);
+        if (screen.kind === 'broadcast') {
+          expect(bible.frame[3]).toBe('140px');
+        }
+      }
+      fitted.mockRestore();
+    },
+  );
+
   it('renders a saved blank slide reference on audience, stage and broadcast', () => {
     const item = slidesItem('blank');
     const first = item.slides.slides[0];

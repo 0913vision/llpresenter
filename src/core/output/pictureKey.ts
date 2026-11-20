@@ -1,4 +1,4 @@
-import {themeOverlay} from '../themes/content';
+import {isReferencedTextSlide, themeOverlay} from '../themes/content';
 import type {PictureRequest} from '../schema/picture';
 
 type PictureSpec = PictureRequest['spec'];
@@ -85,6 +85,8 @@ export function pictureKey({layers, appearance}: PictureSpec): string {
             slide.position >= slide.sequenceLength - 1,
           stage || draws('nextText') || draws('nextLabel') ? slide.next : null,
           broadcast ? slide.bibleItemSlides : null,
+          // NOTE(0913vision): Only referenced text slides need new pictures.
+          ...(isReferencedTextSlide(slide, item?.kind) ? ['scripture'] : []),
         ],
     media === null
       ? null

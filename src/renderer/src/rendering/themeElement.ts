@@ -12,6 +12,7 @@ import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {themeTextVAlign} from '@core/themes/textAlignment';
 import {STAGE_COLORS} from '@core/themes/stageColors';
 import {
+  isReferencedTextSlide,
   isThemeTextElement,
   themeElementText,
   themeElementMedia,
@@ -600,7 +601,10 @@ export class ThemeElementView {
         biblePart:
           element.kind === 'currentText'
             ? (layers.slide?.biblePart ??
-              (this.previewMaxLines === undefined ? undefined : 1))
+              (this.previewMaxLines !== undefined ||
+              isReferencedTextSlide(slide, item?.kind)
+                ? 1
+                : undefined))
             : element.kind === 'nextText'
               ? layers.slide?.next?.biblePart
               : undefined,
@@ -788,7 +792,8 @@ export class ThemeElementView {
       slide?.sectionCard === undefined &&
       slide?.sermonTitle !== true &&
       (slide?.biblePart !== undefined ||
-        (slide?.kind ?? item?.kind) === 'bible');
+        (slide?.kind ?? item?.kind) === 'bible' ||
+        isReferencedTextSlide(slide, item?.kind));
     const nextBible =
       element.kind === 'nextText' &&
       slide?.next !== undefined &&
