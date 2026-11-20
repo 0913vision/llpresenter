@@ -176,6 +176,11 @@ grows:
 - One rule lives in one place. A rule that needs no I/O goes in `src/core/` with
   its tests, and every caller uses it. The previews and the output draw with the
   same rules; never write a second copy for one view.
+- Keep user-visible decisions in pure core functions with fast unit tests,
+  including stage rows and captions, transition timing, picture keys, reference
+  parsing, and label placement. Components connect state and I/O to those
+  functions. Keep UI tests focused on wiring, with a few per screen and browser
+  or Electron checks where real layout, timing, or IPC matters.
 - A feature owns its code in its folder. 진행, 준비, and 화면 설정 compose
   features in `app/`; they don't own them.
 - An IPC call is declared once, in its area's file in `src/contracts/ipc/`, and
