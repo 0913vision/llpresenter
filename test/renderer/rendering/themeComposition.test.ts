@@ -2808,10 +2808,11 @@ it.each(['output', 'preview'] as const)(
         layout: {...base.theme.layout, stageBar: 'message-row' as const},
       },
     };
-    if (song.slide === null) throw Error('Missing slide');
+    const slide = song.slide;
+    if (slide === null) throw Error('Missing slide');
     const empty = {
       ...song,
-      slide: {...song.slide, lines: ['  '], label: 'Interlude'},
+      slide: {...slide, lines: ['  '], label: 'Interlude'},
     };
     const current = () =>
       root.querySelector<HTMLElement>(
@@ -2825,7 +2826,7 @@ it.each(['output', 'preview'] as const)(
         ?.textContent,
     ).toBe('(Chorus) Invented next');
     view.render({...empty, slide: {...empty.slide, label: null}}, stage);
-    expect(current()?.textContent).toBe('(\uc5c6\uc74c)');
+    expect(current()?.textContent.trim() ?? '').toBe('');
     view.render(
       {...empty, slide: {...empty.slide, label: null}},
       {
@@ -2836,7 +2837,7 @@ it.each(['output', 'preview'] as const)(
         },
       },
     );
-    expect(current()?.textContent).toBe('(\uc5c6\uc74c)');
+    expect(current()?.textContent.trim() ?? '').toBe('');
     view.render(song, stage);
     expect(current()?.textContent).toBe('Invented line');
     expect(current()?.style.color).not.toBe('rgb(180, 180, 180)');
@@ -2998,7 +2999,7 @@ it('refits the current Bible item when output fonts finish loading', () => {
   }
 });
 
-it('shows an empty stage next slide cue and preserves labels and other screens', () => {
+it('leaves an unlabeled empty stage next slide blank and preserves labeled cues', () => {
   const {root, view} = setup();
   const elements: ThemeElement[] = [
     {...themeElementBase(31), kind: 'nextText'},
@@ -3019,12 +3020,7 @@ it('shows an empty stage next slide cue and preserves labels and other screens',
     root.querySelector(`[data-kind="nextText"] .${classes.shown}`)
       ?.textContent ?? '';
   show('stage');
-  expect(text()).toBe('(\uc5c6\uc74c)');
-  expect(
-    root.querySelector<HTMLElement>(
-      `[data-kind="nextText"] .${classes.shown} .${classes.block}`,
-    )?.style.color,
-  ).toBe('rgb(255, 214, 107)');
+  expect(text().trim()).toBe('');
   layers = {
     ...layers,
     slide: {...slide, next: {label: null, lines: [], stageStandby: true}},
@@ -3045,6 +3041,56 @@ it('shows an empty stage next slide cue and preserves labels and other screens',
   expect(text().trim()).toBe('');
   view.dispose();
 });
+
+it.each(['output', 'preview'] as const)(
+  'keeps unlabeled empty slides out of stage lyrics in %s',
+  mode => {
+    const root = document.createElement('div');
+    const view = new ThemeCompositionView(root, {
+      textStyle: DEFAULT_TEXT_STYLE,
+      mediaUrl: id => id,
+      onError: vi.fn(),
+      mode,
+    });
+    const slide = song.slide;
+    if (slide === null) throw Error('Missing slide');
+    const elements: ThemeElement[] = [
+      {...themeElementBase(), kind: 'currentText'},
+      {...themeElementBase(31), kind: 'nextText'},
+    ];
+    const draw = (lines: string[], next: string[]) =>
+      view.render(
+        {
+          ...song,
+          slide: {
+            ...slide,
+            label: null,
+            lines,
+            next: {label: null, lines: next},
+          },
+        },
+        {
+          ...frame(elements),
+          screen: {id: THEME_MAIN, kind: 'stage'},
+          transitions: false,
+        },
+      );
+    const text = (kind: string) =>
+      root
+        .querySelector(`[data-kind="${kind}"] .${classes.shown}`)
+        ?.textContent.trim() ?? '';
+    draw(['Current lyrics'], []);
+    expect(text('currentText')).toBe('Current lyrics');
+    expect(text('nextText')).toBe('');
+    draw([], ['Following lyrics']);
+    expect(text('currentText')).toBe('');
+    expect(text('nextText')).toBe('Following lyrics');
+    draw(['Following lyrics'], ['Next lyrics']);
+    expect(text('currentText')).toBe('Following lyrics');
+    expect(text('nextText')).toBe('Next lyrics');
+    view.dispose();
+  },
+);
 
 it('shows only the main title box in the stage next preview', () => {
   const {root, view} = setup();
@@ -3492,8 +3538,8 @@ it('hides an empty song label only on stage when labels are off', () => {
   expect(text('currentText')).toBe('(Verse)');
   expect(text('nextText')).toBe('(Chorus)');
   draw('off');
-  expect(text('currentText')).toBe('(없음)');
-  expect(text('nextText')).toBe('(없음)');
+  expect(text('currentText').trim()).toBe('');
+  expect(text('nextText').trim()).toBe('');
   view.dispose();
 });
 

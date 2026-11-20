@@ -432,10 +432,13 @@ export class ThemeElementView {
     const cue = standbyCue
       ? '\uB300\uAE30 \uD654\uBA74'
       : currentEmpty
-        ? ((currentLabel ? `(${currentLabel})` : undefined) ??
-          (element.fallbackText?.trim() ? undefined : '(\uc5c6\uc74c)'))
+        ? currentLabel
+          ? `(${currentLabel})`
+          : undefined
         : nextEmpty
-          ? ((nextLabel ? `(${nextLabel})` : undefined) ?? '(\uc5c6\uc74c)')
+          ? nextLabel
+            ? `(${nextLabel})`
+            : undefined
           : undefined;
     this.text?.setMinimumSize(
       stage && element.kind === 'nextText'

@@ -1239,7 +1239,7 @@ When a slide comes live, it uses its own transition; an absent transition cuts.
 Slide transitions apply only to audience screens. Stage and broadcast slide
 changes cut immediately.
 
-On stage, an empty current or next slide without a label shows (없음); a labeled
+On stage, an empty current or next slide without a label shows no cue; a labeled
 empty slide shows its label.
 
 With continuous item navigation enabled, previous on the first slide goes live

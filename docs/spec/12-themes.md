@@ -794,7 +794,7 @@ next preview follows the same next-item selection and skips the same rows as the
 next-slide command. A title counts as one of the two next-preview lines.
 
 In the built-in stage layout, an empty song slide shows its label as a centered
-muted cue, or (없음) when the label is empty. Stage previews show the same cue;
+muted cue, or no cue when the label is empty. Stage previews show the same cue;
 audience output remains background only. On the built-in broadcast layout, an
 empty song slide shows only the song title; it shows nothing if the title is
 absent, and never falls back to the label.
@@ -827,7 +827,7 @@ The overrides are limited to the screen element limit plus one generated title.
 
 Transitions belong to individual slides, not themes.
 
-On stage, an empty current or next slide without a label shows (없음); a labeled
+On stage, an empty current or next slide without a label shows no cue; a labeled
 empty slide shows its label.
 
 On stage, a next title slide omits its English subtitle.
@@ -847,7 +847,7 @@ behavior above, the default), `inline` (the changed song label precedes the
 current lyric on the same line), or `off` (omit song labels from current and
 next text and their stage label elements). In `line` and `inline`, the top label
 remains. A label continuing from the preceding song slide is omitted from the
-lyric and next text. An empty song slide with labels off shows (없음). This
+lyric and next text. An empty song slide with labels off shows no cue. This
 preference does not change Bible or other item labels and updates live output
 and its previews when saved.
 
