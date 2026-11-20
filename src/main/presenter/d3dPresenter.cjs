@@ -142,9 +142,8 @@ const D3DCompile = compiler.func('D3DCompile', 'int32', [
 
 const IDC_ARROW = 32512;
 const WS_POPUP = 0x80000000;
+const WS_DISABLED = 0x08000000;
 const WS_EX_TOPMOST = 0x8;
-const WS_EX_TOOLWINDOW = 0x80;
-const WS_EX_NOACTIVATE = 0x08000000;
 const SW_HIDE = 0;
 const SW_SHOWNOACTIVATE = 4;
 const HWND_TOP = 0;
@@ -312,11 +311,13 @@ function createPresenter({x, y, width, height, topmost}) {
     });
     classRegistered = true;
   }
+  // NOTE(0913vision): Chromium cannot capture TOOLWINDOW or NOACTIVATE
+  // windows. A disabled popup avoids focus while allowing a mirror.
   const hwnd = CreateWindowExW(
-    WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE | (topmost ? WS_EX_TOPMOST : 0),
+    topmost ? WS_EX_TOPMOST : 0,
     'LoveLightOutput',
     'LoveLight output',
-    WS_POPUP,
+    WS_POPUP + WS_DISABLED,
     x,
     y,
     width,
