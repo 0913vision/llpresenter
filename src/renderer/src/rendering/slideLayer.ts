@@ -18,7 +18,7 @@ const textFits = new WeakMap<Document, TextFitCache>();
 /** Initial slide transition duration. */
 export const SLIDE_DISSOLVE_MS = 200;
 
-const MIN_STAGE_LYRIC_SIZE = 72;
+const MIN_STAGE_LYRIC_SIZE = 48;
 export const STAGE_NEXT_MIN_SIZE = 48;
 
 const FALLBACK_FONTS = "'Pretendard Variable', sans-serif";

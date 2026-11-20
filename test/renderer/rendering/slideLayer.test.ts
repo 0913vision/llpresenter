@@ -163,6 +163,16 @@ describe('SlideLayerView', () => {
       expect(block?.style.whiteSpace).toBe('pre');
       expect(Number.parseFloat(block?.style.fontSize ?? '')).toBe(80);
       width.mockImplementation(function (this: HTMLElement) {
+        return (Number.parseFloat(this.style.fontSize) || 0) * (10 / 3);
+      });
+      view.show(
+        {...VERSE, itemId: 'two-lines', lines: ['A long line', 'another line']},
+        false,
+      );
+      expect(
+        shownPage()?.querySelector<HTMLElement>(`.${classes.block}`)?.style,
+      ).toMatchObject({fontSize: '60px', whiteSpace: 'pre', textWrap: ''});
+      width.mockImplementation(function (this: HTMLElement) {
         return (Number.parseFloat(this.style.fontSize) || 0) * 10;
       });
       view.show(
@@ -176,7 +186,7 @@ describe('SlideLayerView', () => {
       expect(
         shownPage()?.querySelector<HTMLElement>(`.${classes.block}`)?.style,
       ).toMatchObject({
-        fontSize: '72px',
+        fontSize: '48px',
         whiteSpace: '',
         textWrap: 'balance',
         wordBreak: 'keep-all',
