@@ -46,7 +46,7 @@ describe('PowerPoint image export', () => {
       'SlideShowTransition.Hidden -ne -1',
     );
     expect(POWERPOINT_IMAGE_SCRIPT).toContain(
-      "$slide.Export($path, 'PNG', 1920, 1080)",
+      "$slide.Export($path, 'PNG', $exportWidth, $exportHeight)",
     );
     expect(POWERPOINT_IMAGE_SCRIPT).toContain(
       'if ($created) { $powerpoint.Quit() }',
@@ -80,7 +80,7 @@ describe('PowerPoint image export', () => {
     expect(mocks.spawn).toHaveBeenCalledOnce();
     expect(POWERPOINT_IMAGE_SCRIPT).toContain('$env:LLP_PPT_DECORATION_SLIDE');
     expect(POWERPOINT_IMAGE_SCRIPT).toContain('Remove-SlideText $slide.Shapes');
-    expect(POWERPOINT_IMAGE_SCRIPT).not.toContain('.Save(');
+    expect(POWERPOINT_IMAGE_SCRIPT).not.toContain('$presentation.Save(');
     const child = mocks.children[0];
     if (!child) throw new Error('Missing child');
     child.emit('close', 0);
