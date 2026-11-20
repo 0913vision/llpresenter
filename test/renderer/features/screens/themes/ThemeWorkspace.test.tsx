@@ -11,11 +11,7 @@ import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import type {LlpApi} from '@contracts/ipc/api';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {emptyLiveState} from '@core/live/state';
-import {
-  createScreenId,
-  createThemeId,
-  createThemeElementId,
-} from '@core/schema/ids';
+import {createScreenId, createThemeId} from '@core/schema/ids';
 import {createDefaultThemes} from '@core/themes/defaults';
 import {
   parseServiceDocument,
@@ -233,9 +229,8 @@ it.each(['청중 화면 편집', '무대 화면 편집', '방송 화면 편집']
   },
 );
 
-it('saves fitted broadcast title movement and edits to added text separately', async () => {
+it('omits the fitted broadcast title and saves added text', async () => {
   const broadcast = createScreenId('00000000-0000-4000-8000-000000000002');
-  const titleId = createThemeElementId('00000000-0000-4000-8000-000000000486');
   const {value} = setup({
     screenOrder: [
       {id: MAIN, name: 'Audience', kind: 'audience', method: 'fullscreen'},
@@ -244,18 +239,11 @@ it('saves fitted broadcast title movement and edits to added text separately', a
     ],
   });
   fireEvent.click(await screen.findByRole('button', {name: 'Broadcast 편집'}));
-  const title = document.querySelector(
-    '[data-canvas-element="00000000-0000-4000-8000-000000000486"] > button',
-  );
-  if (!title) throw Error('Missing fitted title');
-  fireEvent.click(title);
-  const x = screen.getByRole('spinbutton', {name: 'X'});
-  fireEvent.change(x, {target: {value: '112'}});
-  fireEvent.keyDown(x, {key: 'Enter'});
-  await saveEdits();
   expect(
-    value().themes[0]?.screens[broadcast]?.broadcastEdits?.[titleId]?.frame?.x,
-  ).toBe(112);
+    document.querySelector(
+      '[data-canvas-element="00000000-0000-4000-8000-000000000486"]',
+    ),
+  ).toBeNull();
   const palette = screen.getByRole('region', {
     name: '요소 추가',
   });
