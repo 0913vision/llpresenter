@@ -165,6 +165,7 @@ it('focuses the new song title when Ctrl N replaces an existing song', async () 
   await waitFor(() =>
     expect(f.session.editor?.getSnapshot().session?.itemSession).toBe(true),
   );
+  await waitFor(() => expect(document.activeElement).toBe(commandList()));
   const previous = f.session.editor?.getSnapshot().session;
   await userEvent.keyboard('{Control>}n{/Control}');
   await waitFor(() =>
