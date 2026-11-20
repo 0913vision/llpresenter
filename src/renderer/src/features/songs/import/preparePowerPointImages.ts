@@ -116,10 +116,11 @@ async function prepareBatch({
       value.toString(16).padStart(2, '0'),
     ).join('');
     const image = lendPreviewImage(thumbnail, contentHash);
-    if (image === null)
-      {throw new PowerPointPreviewLimitError(
+    if (image === null) {
+      throw new PowerPointPreviewLimitError(
         'PowerPoint preview image limit reached',
-      );}
+      );
+    }
     lent.set(entry.key, image);
     options.onImage?.(entry.key, image.id);
     report(0, 'prepare', position + 1);
@@ -148,8 +149,9 @@ async function prepareBatch({
           index === entry.index &&
           path !== undefined &&
           !scheduled.has(index)
-        )
-          {enqueue(entry, path, done - 1);}
+        ) {
+          enqueue(entry, path, done - 1);
+        }
       }
     },
   );
@@ -167,8 +169,9 @@ async function prepareBatch({
   try {
     const byIndex = new Map(paths?.map(item => [item.index, item.path]) ?? []);
     for (const [position, entry] of batch.entries()) {
-      if (!scheduled.has(entry.index))
-        {enqueue(entry, byIndex.get(entry.index), position);}
+      if (!scheduled.has(entry.index)) {
+        enqueue(entry, byIndex.get(entry.index), position);
+      }
     }
     await queue;
     if (failure !== undefined) throw failure;

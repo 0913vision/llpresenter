@@ -632,8 +632,9 @@ export function registerPowerPointImport(
               workDirectory,
               `llp-ppt-${String(done).padStart(4, '0')}.png`,
             );
-            if (index === undefined || done < 1 || done > numbers.length)
-              {return;}
+            if (index === undefined || done < 1 || done > numbers.length) {
+              return;
+            }
             tempFiles.add(path);
             if (!event.sender.isDestroyed()) {
               event.sender.send(powerpointEndpoints.imageProgress.channel, {

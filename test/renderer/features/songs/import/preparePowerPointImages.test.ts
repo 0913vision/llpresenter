@@ -23,7 +23,8 @@ vi.mock('@renderer/features/songs/import/composePowerPointBackground', () => ({
 it('publishes a completed thumbnail before the batch export finishes', async () => {
   const release = vi.fn();
   vi.mocked(lendPreviewImage).mockReturnValue({id: 'preview', release});
-  let progress: (value: PowerPointImageExportProgress) => void = () => undefined;
+  let progress: (value: PowerPointImageExportProgress) => void = () =>
+    undefined;
   let finish: (value: Array<{index: number; path: string}>) => void = () =>
     undefined;
   let shown: () => void = () => undefined;

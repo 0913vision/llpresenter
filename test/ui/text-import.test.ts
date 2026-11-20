@@ -33,7 +33,7 @@ ${LINE}`,
     await page.getByRole('menuitem', {name: '텍스트 파일'}).click();
 
     const dialog = page.getByRole('dialog', {name: '텍스트 가져오기'});
-    await dialog.getByRole('button', {name: '편집'}).click();
+    await dialog.getByRole('button', {name: '가져오기'}).click();
     const title = page.getByRole('textbox', {name: '곡 제목'});
     await title.fill(TITLE);
     await title.press('Enter');

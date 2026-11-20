@@ -71,7 +71,7 @@ it('imports invented text, edits it, and saves a real song document without open
   );
   fireEvent.click(within(mapping).getByRole('button', {name: '적용'}));
   expect(backend.store.songList()).toHaveLength(0);
-  fireEvent.click(screen.getByRole('button', {name: '편집'}));
+  fireEvent.click(screen.getByRole('button', {name: '가져오기'}));
   const title = await screen.findByRole('textbox', {name: '곡 제목'});
   fireEvent.change(title, {target: {value: 'An invented title'}});
   await waitFor(() =>
