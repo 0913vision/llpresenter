@@ -62,6 +62,7 @@ function SermonReferenceField({
     <label className={styles.reference}>
       본문 주소
       <TextField
+        aria-label="본문 주소"
         value={draft}
         maxLength={4000}
         disabled={disabled}
