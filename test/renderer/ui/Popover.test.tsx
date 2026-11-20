@@ -1,4 +1,4 @@
-import {fireEvent, render, screen} from '@testing-library/react';
+import {act, fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState} from 'react';
 import {expect, it, vi} from 'vitest';
@@ -59,4 +59,27 @@ it('returns to the focused keyboard target, even when the visual anchor differs'
     'ArrowDown',
     'z',
   ]);
+});
+
+it('preserves focus deliberately moved to another field while closing', () => {
+  function Host() {
+    const [open, setOpen] = useState(false);
+    return (
+      <>
+        <input aria-label="first" onFocus={() => setOpen(true)} />
+        <input aria-label="second" onFocus={() => setOpen(false)} />
+        {open ? (
+          <Popover>
+            <span>Suggestions</span>
+          </Popover>
+        ) : null}
+      </>
+    );
+  }
+  render(<Host />);
+  act(() => screen.getByRole('textbox', {name: 'first'}).focus());
+  act(() => screen.getByRole('textbox', {name: 'second'}).focus());
+  expect(document.activeElement).toBe(
+    screen.getByRole('textbox', {name: 'second'}),
+  );
 });

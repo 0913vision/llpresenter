@@ -19,7 +19,13 @@ export function Popover({
   );
   useEffect(
     () => () => {
-      if (opener?.isConnected) opener.focus({preventScroll: true});
+      const active = document.activeElement;
+      if (
+        opener?.isConnected &&
+        (active === document.body || active?.isConnected !== true)
+      ) {
+        opener.focus({preventScroll: true});
+      }
     },
     [opener],
   );
