@@ -6,8 +6,7 @@ import {
   type JSX,
   type ReactNode,
 } from 'react';
-import {createPortal} from 'react-dom';
-import {layerContainer} from './layers';
+import {Popover} from './Popover';
 import type {MenuCloseReason} from './menuKeys';
 import {modalStack} from './modalStack';
 import {markMenuTarget} from './contextMenu';
@@ -17,7 +16,6 @@ import {MenuSurface, type MenuSurfaceProps} from './MenuSurface';
 import {placeAtPoint, placeBelow, viewportSize, type Point} from './placement';
 import styles from './Menu.module.css';
 import {contextMenuEntries} from './contextMenuEntries';
-import {returnFocus} from './returnFocus';
 
 export type {MenuCloseReason} from './menuKeys';
 export type {MenuSearch} from './MenuParts';
@@ -125,67 +123,64 @@ export function Menu({
   const [place] = useState(() => anchorPlace(anchor));
   const [overModal] = useState(() => modalStack.isOpen);
 
-  useEffect(
-    () => () => {
-      returnFocus(opener);
-    },
-    [opener],
-  );
-
-  return createPortal(
-    <div className={styles.layer} data-over-modal={overModal ? '' : undefined}>
+  return (
+    <Popover returnTo={opener}>
       <div
-        ref={catcher}
-        className={styles.catcher}
-        onPointerDown={event => {
-          event.preventDefault();
-          if (renaming) {
-            const field =
-              event.currentTarget.parentElement?.querySelector<HTMLElement>(
-                '[data-renaming] input',
-              );
-            field?.blur();
-            field?.focus();
-            outsideRename.current = true;
-            return;
-          }
-          if (menubar === null && anchor.kind === 'element') {
-            const bounds = anchor.element.getBoundingClientRect();
-            if (
-              bounds.width > 0 &&
-              bounds.height > 0 &&
-              event.clientX >= bounds.left &&
-              event.clientX <= bounds.right &&
-              event.clientY >= bounds.top &&
-              event.clientY <= bounds.bottom
-            ) {
-              closingFromAnchor.current = true;
+        className={styles.layer}
+        data-over-modal={overModal ? '' : undefined}
+      >
+        <div
+          ref={catcher}
+          className={styles.catcher}
+          onPointerDown={event => {
+            event.preventDefault();
+            if (renaming) {
+              const field =
+                event.currentTarget.parentElement?.querySelector<HTMLElement>(
+                  '[data-renaming] input',
+                );
+              field?.blur();
+              field?.focus();
+              outsideRename.current = true;
               return;
             }
-          }
-          onClose('outside');
-        }}
-        onClick={event => {
-          if (!closingFromAnchor.current) return;
-          event.preventDefault();
-          event.stopPropagation();
-          closingFromAnchor.current = false;
-          onClose('outside');
-        }}
-        onContextMenu={event => event.preventDefault()}
-      />
-      <MenuSurface
-        label={label}
-        entries={entries}
-        place={place}
-        onClose={onClose}
-        search={search}
-        width={width}
-        minWidth={minWidth}
-        footer={footer}
-        autoFocus={autoFocus}
-      />
-    </div>,
-    layerContainer('popover'),
+            if (menubar === null && anchor.kind === 'element') {
+              const bounds = anchor.element.getBoundingClientRect();
+              if (
+                bounds.width > 0 &&
+                bounds.height > 0 &&
+                event.clientX >= bounds.left &&
+                event.clientX <= bounds.right &&
+                event.clientY >= bounds.top &&
+                event.clientY <= bounds.bottom
+              ) {
+                closingFromAnchor.current = true;
+                return;
+              }
+            }
+            onClose('outside');
+          }}
+          onClick={event => {
+            if (!closingFromAnchor.current) return;
+            event.preventDefault();
+            event.stopPropagation();
+            closingFromAnchor.current = false;
+            onClose('outside');
+          }}
+          onContextMenu={event => event.preventDefault()}
+        />
+        <MenuSurface
+          label={label}
+          entries={entries}
+          place={place}
+          onClose={onClose}
+          search={search}
+          width={width}
+          minWidth={minWidth}
+          footer={footer}
+          autoFocus={autoFocus}
+        />
+      </div>
+    </Popover>
   );
 }

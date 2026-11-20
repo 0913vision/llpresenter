@@ -5,9 +5,8 @@ import {
   useSyncExternalStore,
   type JSX,
 } from 'react';
-import {createPortal} from 'react-dom';
 import {classNames} from '@renderer/ui/classNames';
-import {layerContainer} from '@renderer/ui/layers';
+import {Popover} from '@renderer/ui/Popover';
 import menuStyles from '@renderer/ui/Menu.module.css';
 import {LabelChoices} from './LabelChoices';
 import {LabelManagerDialog} from './LabelManagerDialog';
@@ -61,69 +60,70 @@ export function LabelMenu({
     onChoose(value);
     onClose(true);
   };
-  return createPortal(
-    <>
-      <div className={menuStyles.layer}>
-        <div
-          ref={surface}
-          hidden={managing}
-          role="menu"
-          aria-label="이름표"
-          data-check-column="true"
-          className={classNames(menuStyles.menu, styles.popup)}
-          onKeyDown={onKeyDown}
-          onBlur={event => {
-            const target = event.relatedTarget;
-            if (
-              !managing &&
-              target instanceof Element &&
-              !event.currentTarget.contains(target) &&
-              target.closest('[data-llp-layer="dialog"]') === null
-            ) {
-              onClose(false);
-            }
-          }}
-        >
-          <LabelChoices
-            entries={labelMenuEntries({
-              labels,
-              selected,
-              choose,
-              manage: () => setManaging(true),
-              freeName: () => setNaming(true),
-            })}
-          />
-          {naming ? (
-            <input
-              aria-label="이름 적기"
-              autoFocus
-              maxLength={64}
-              value={name}
-              onChange={event => setName(event.currentTarget.value)}
-              onKeyDown={event => {
-                event.stopPropagation();
-                if (
-                  event.key === 'Enter' &&
-                  !event.nativeEvent.isComposing &&
-                  name.trim() !== ''
-                ) {
-                  event.preventDefault();
-                  choose(name.trim());
-                } else if (event.key === 'Escape') setNaming(false);
-              }}
+  return (
+    <Popover>
+      <>
+        <div className={menuStyles.layer}>
+          <div
+            ref={surface}
+            hidden={managing}
+            role="menu"
+            aria-label="이름표"
+            data-check-column="true"
+            className={classNames(menuStyles.menu, styles.popup)}
+            onKeyDown={onKeyDown}
+            onBlur={event => {
+              const target = event.relatedTarget;
+              if (
+                !managing &&
+                target instanceof Element &&
+                !event.currentTarget.contains(target) &&
+                target.closest('[data-llp-layer="dialog"]') === null
+              ) {
+                onClose(false);
+              }
+            }}
+          >
+            <LabelChoices
+              entries={labelMenuEntries({
+                labels,
+                selected,
+                choose,
+                manage: () => setManaging(true),
+                freeName: () => setNaming(true),
+              })}
             />
-          ) : null}
+            {naming ? (
+              <input
+                aria-label="이름 적기"
+                autoFocus
+                maxLength={64}
+                value={name}
+                onChange={event => setName(event.currentTarget.value)}
+                onKeyDown={event => {
+                  event.stopPropagation();
+                  if (
+                    event.key === 'Enter' &&
+                    !event.nativeEvent.isComposing &&
+                    name.trim() !== ''
+                  ) {
+                    event.preventDefault();
+                    choose(name.trim());
+                  } else if (event.key === 'Escape') setNaming(false);
+                }}
+              />
+            ) : null}
+          </div>
         </div>
-      </div>
-      {managing ? (
-        <LabelManagerDialog
-          store={store}
-          onClose={() => {
-            setManaging(false);
-          }}
-        />
-      ) : null}
-    </>,
-    layerContainer('popover'),
+        {managing ? (
+          <LabelManagerDialog
+            store={store}
+            onClose={() => {
+              setManaging(false);
+            }}
+          />
+        ) : null}
+      </>
+    </Popover>
   );
 }

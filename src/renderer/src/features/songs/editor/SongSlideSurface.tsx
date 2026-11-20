@@ -1032,7 +1032,6 @@ export function SongSlideSurface<T extends SlideListItem>({
           onChoose={label => adapter.command({type: 'label', label})}
           onClose={() => {
             setLabelAnchor(null);
-            labelAnchor.focus({preventScroll: true});
           }}
         />
       )}

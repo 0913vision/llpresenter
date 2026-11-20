@@ -1,9 +1,8 @@
 import {useMemo, useRef, useState, type JSX} from 'react';
-import {createPortal} from 'react-dom';
 import {FONT_CATALOG_LIMITS} from '@core/schema/fontCatalog';
 import {Icon} from '@renderer/ui/Icon';
 import {classNames} from '@renderer/ui/classNames';
-import {layerContainer} from '@renderer/ui/layers';
+import {Popover} from '@renderer/ui/Popover';
 import {MenuSearchField} from '@renderer/ui/MenuParts';
 import {Select} from '@renderer/ui/Select';
 import menu from '@renderer/ui/Menu.module.css';
@@ -45,81 +44,82 @@ function FontPopup({
     choose,
     setTop,
   } = useFontPickerNavigation({anchor, selected, options, onSelect, onClose});
-  return createPortal(
-    <div className={menu.layer}>
-      <div
-        ref={surface}
-        className={classNames(menu.menu, styles.picker)}
-        style={{
-          minWidth: anchor.getBoundingClientRect().width,
-          maxWidth: 'calc(100vw - var(--space-16))',
-        }}
-        onKeyDown={keyDown}
-        onBlur={event => {
-          if (
-            !(event.relatedTarget instanceof Node) ||
-            !event.currentTarget.contains(event.relatedTarget)
-          ) {
-            onClose(false);
-          }
-        }}
-      >
-        <MenuSearchField
-          search={{
-            value: query,
-            onChange: filter,
-            placeholder: '글꼴 검색',
-            maxLength: FONT_CATALOG_LIMITS.name,
-          }}
-          menuId={id}
-          activeId={activeId}
-        />
+  return (
+    <Popover>
+      <div className={menu.layer}>
         <div
-          ref={viewport}
-          id={id}
-          role="listbox"
-          aria-label="글꼴"
-          className={styles.viewport}
+          ref={surface}
+          className={classNames(menu.menu, styles.picker)}
           style={{
-            maxHeight: `calc(var(--size-row-menu) * ${FONT_PICKER_VISIBLE_ROWS})`,
+            minWidth: anchor.getBoundingClientRect().width,
+            maxWidth: 'calc(100vw - var(--space-16))',
           }}
-          onScroll={event => setTop(event.currentTarget.scrollTop)}
+          onKeyDown={keyDown}
+          onBlur={event => {
+            if (
+              !(event.relatedTarget instanceof Node) ||
+              !event.currentTarget.contains(event.relatedTarget)
+            ) {
+              onClose(false);
+            }
+          }}
         >
-          {choices.length === 0 ? (
-            <div className={styles.empty}>검색 결과 없음</div>
-          ) : null}
-          <div style={{height: choices.length * row, position: 'relative'}}>
-            {visible.map((choice, offset) => {
-              const index = start + offset;
-              return (
-                <button
-                  key={choice.value}
-                  type="button"
-                  role="option"
-                  id={`${id}-${index}`}
-                  tabIndex={-1}
-                  aria-selected={choice.value === selected}
-                  aria-posinset={index + 1}
-                  aria-setsize={choices.length}
-                  className={classNames(menu.item, styles.option)}
-                  style={{top: index * row}}
-                  onMouseDown={event => event.preventDefault()}
-                  onClick={() => choose(index)}
-                >
-                  <span className={menu.lead}>
-                    {choice.value === selected ? (
-                      <Icon name="check" size={14} />
-                    ) : null}
-                  </span>
-                  <span className={menu.label}>{choice.label}</span>
-                </button>
-              );
-            })}
+          <MenuSearchField
+            search={{
+              value: query,
+              onChange: filter,
+              placeholder: '글꼴 검색',
+              maxLength: FONT_CATALOG_LIMITS.name,
+            }}
+            menuId={id}
+            activeId={activeId}
+          />
+          <div
+            ref={viewport}
+            id={id}
+            role="listbox"
+            aria-label="글꼴"
+            className={styles.viewport}
+            style={{
+              maxHeight: `calc(var(--size-row-menu) * ${FONT_PICKER_VISIBLE_ROWS})`,
+            }}
+            onScroll={event => setTop(event.currentTarget.scrollTop)}
+          >
+            {choices.length === 0 ? (
+              <div className={styles.empty}>검색 결과 없음</div>
+            ) : null}
+            <div style={{height: choices.length * row, position: 'relative'}}>
+              {visible.map((choice, offset) => {
+                const index = start + offset;
+                return (
+                  <button
+                    key={choice.value}
+                    type="button"
+                    role="option"
+                    id={`${id}-${index}`}
+                    tabIndex={-1}
+                    aria-selected={choice.value === selected}
+                    aria-posinset={index + 1}
+                    aria-setsize={choices.length}
+                    className={classNames(menu.item, styles.option)}
+                    style={{top: index * row}}
+                    onMouseDown={event => event.preventDefault()}
+                    onClick={() => choose(index)}
+                  >
+                    <span className={menu.lead}>
+                      {choice.value === selected ? (
+                        <Icon name="check" size={14} />
+                      ) : null}
+                    </span>
+                    <span className={menu.label}>{choice.label}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>
-    </div>,
-    layerContainer('popover'),
+    </Popover>
   );
 }
 

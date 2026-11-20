@@ -6,10 +6,9 @@ import {
   type JSX,
   type KeyboardEvent,
 } from 'react';
-import {createPortal} from 'react-dom';
 import {Button} from './Button';
 import {IconButton} from './IconButton';
-import {layerContainer} from './layers';
+import {Popover} from './Popover';
 import {modalStack} from './modalStack';
 import {useCalendarSurface} from './useCalendarSurface';
 import {tabbableElements} from './useModal';
@@ -156,87 +155,92 @@ export function Calendar({
     },
   });
 
-  return createPortal(
-    <div
-      id={id}
-      role="dialog"
-      aria-label="날짜 선택"
-      data-over-modal={modalStack.isOpen || undefined}
-      className={styles.calendar}
-      onKeyDown={keyDown}
-      ref={ref}
-    >
-      <div className={styles.head}>
-        <IconButton
-          icon="right"
-          label="이전 달"
-          className={styles.previous}
-          disabled={view.date.year === 0 && view.date.month === 1}
-          onClick={() =>
-            setView({date: shiftCalendarMonths(view.date, -1), focus: false})
-          }
-        />
-        <span
-          id={monthId}
-          role="heading"
-          aria-level={2}
-          aria-live="polite"
-          className={styles.month}
-        >
-          {calendarMonthLabel(view.date)}
-        </span>
-        <IconButton
-          icon="right"
-          label="다음 달"
-          disabled={view.date.year === 9999 && view.date.month === 12}
-          onClick={() =>
-            setView({date: shiftCalendarMonths(view.date, 1), focus: false})
-          }
-        />
-      </div>
-      <div role="grid" aria-labelledby={monthId} className={styles.grid}>
-        <div role="row" className={styles.week}>
-          {WEEKDAYS.map(day => (
-            <span role="columnheader" key={day} className={styles.weekday}>
-              {day}
-            </span>
+  return (
+    <Popover>
+      <div
+        id={id}
+        role="dialog"
+        aria-label="날짜 선택"
+        data-over-modal={modalStack.isOpen || undefined}
+        className={styles.calendar}
+        onKeyDown={keyDown}
+        ref={ref}
+      >
+        <div className={styles.head}>
+          <IconButton
+            icon="right"
+            label="이전 달"
+            className={styles.previous}
+            disabled={view.date.year === 0 && view.date.month === 1}
+            onClick={() =>
+              setView({date: shiftCalendarMonths(view.date, -1), focus: false})
+            }
+          />
+          <span
+            id={monthId}
+            role="heading"
+            aria-level={2}
+            aria-live="polite"
+            className={styles.month}
+          >
+            {calendarMonthLabel(view.date)}
+          </span>
+          <IconButton
+            icon="right"
+            label="다음 달"
+            disabled={view.date.year === 9999 && view.date.month === 12}
+            onClick={() =>
+              setView({date: shiftCalendarMonths(view.date, 1), focus: false})
+            }
+          />
+        </div>
+        <div role="grid" aria-labelledby={monthId} className={styles.grid}>
+          <div role="row" className={styles.week}>
+            {WEEKDAYS.map(day => (
+              <span role="columnheader" key={day} className={styles.weekday}>
+                {day}
+              </span>
+            ))}
+          </div>
+          {Array.from({length: WEEKS}, (_, week) => (
+            <div role="row" className={styles.week} key={week}>
+              {days
+                .slice(week * WEEK_LENGTH, (week + 1) * WEEK_LENGTH)
+                .map(day => (
+                  <div
+                    role="gridcell"
+                    aria-selected={day.value === value}
+                    key={calendarDateValue(day.date)}
+                  >
+                    <button
+                      {...dayPress}
+                      type="button"
+                      className={styles.day}
+                      aria-label={calendarDateLabel(day.date)}
+                      aria-current={
+                        day.value === todayValue ? 'date' : undefined
+                      }
+                      data-outside={!day.currentMonth || undefined}
+                      data-date={day.value ?? undefined}
+                      disabled={day.value === null}
+                      tabIndex={day.value === activeValue ? 0 : -1}
+                      ref={day.value === activeValue ? focusedDay : undefined}
+                    >
+                      {day.date.day}
+                    </button>
+                  </div>
+                ))}
+            </div>
           ))}
         </div>
-        {Array.from({length: WEEKS}, (_, week) => (
-          <div role="row" className={styles.week} key={week}>
-            {days
-              .slice(week * WEEK_LENGTH, (week + 1) * WEEK_LENGTH)
-              .map(day => (
-                <div
-                  role="gridcell"
-                  aria-selected={day.value === value}
-                  key={calendarDateValue(day.date)}
-                >
-                  <button
-                    {...dayPress}
-                    type="button"
-                    className={styles.day}
-                    aria-label={calendarDateLabel(day.date)}
-                    aria-current={day.value === todayValue ? 'date' : undefined}
-                    data-outside={!day.currentMonth || undefined}
-                    data-date={day.value ?? undefined}
-                    disabled={day.value === null}
-                    tabIndex={day.value === activeValue ? 0 : -1}
-                    ref={day.value === activeValue ? focusedDay : undefined}
-                  >
-                    {day.date.day}
-                  </button>
-                </div>
-              ))}
-          </div>
-        ))}
+        <div className={styles.foot}>
+          <Button
+            onClick={() => choose(calendarDateValue(currentToday(today)))}
+          >
+            오늘
+          </Button>
+        </div>
       </div>
-      <div className={styles.foot}>
-        <Button onClick={() => choose(calendarDateValue(currentToday(today)))}>
-          오늘
-        </Button>
-      </div>
-    </div>,
-    layerContainer('popover'),
+    </Popover>
   );
 }
