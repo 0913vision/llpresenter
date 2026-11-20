@@ -95,13 +95,14 @@ it('pastes unique kinds in place and repeatable kinds with fresh identities and 
     frame: {x: 100, y: 100, w: 600, h: 100},
   };
   const box = element('box', 3);
+  if (existing.kind !== 'currentText') throw Error('Missing destination slot');
   const pasted = pasteThemeElements(
     [existing, box],
     [source, box],
     [elementId(8), elementId(9)],
   );
   expect(pasted).toEqual([
-    {...source, id: existing.id},
+    {...source, id: existing.id, textSlot: existing.textSlot},
     box,
     {...box, id: elementId(9)},
   ]);

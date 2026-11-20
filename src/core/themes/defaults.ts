@@ -6,7 +6,6 @@ import {
   createThemeElementId,
 } from '../schema/ids';
 import type {Screen} from '../schema/screens';
-import {THEMES_SCHEMA_VERSION} from '../schema/themes';
 import type {
   Theme,
   ThemeElement,
@@ -39,7 +38,6 @@ import {SONG_THEME_ID} from './songTitle';
 import {lightSongTheme} from './lightSong';
 import {broadcastLookLayout} from './broadcastLook';
 import {sectionBroadcastLayout} from './sectionBroadcast';
-import {withDefaultTextSlots} from './textBindings';
 
 export type ThemeScreen = Pick<Screen, 'id' | 'kind' | 'method'>;
 
@@ -470,9 +468,9 @@ export function builtInTheme(
 export function createDefaultThemes(
   screens: readonly ThemeScreen[] = starterScreens,
 ): ThemesFile {
-  const file: ThemesFile = {
+  return {
     format: 'llsettings.themes',
-    schemaVersion: THEMES_SCHEMA_VERSION,
+    schemaVersion: 1,
     standby: {
       id: createThemeId(uuid(100)),
       name: '대기 화면',
@@ -538,10 +536,5 @@ export function createDefaultThemes(
       },
     ],
     defaults: {...themeIds},
-  };
-  return {
-    ...file,
-    standby: withDefaultTextSlots(file.standby),
-    themes: file.themes.map(withDefaultTextSlots),
   };
 }

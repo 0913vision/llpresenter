@@ -1,5 +1,4 @@
 import {userThemeCount} from '../themes/builtInIds';
-import {withDefaultTextSlots} from '../themes/textBindings';
 import * as v from 'valibot';
 import {
   THEME_LIMITS,
@@ -8,7 +7,6 @@ import {
 } from '../themes/elementRules';
 import {
   parseFile,
-  checkPart,
   serializeFile,
   type ReadonlyKnown,
   type FileFormat,
@@ -356,35 +354,11 @@ export type ThemeText = ReadonlyKnown<v.InferOutput<typeof themeTextSchema>>;
 const format: FileFormat<typeof themesSchema> = {
   format: 'llsettings.themes',
   schema: themesSchema,
-  migrations: [
-    file => {
-      const withSlots = (value: unknown): unknown => {
-        const theme = checkPart(themeSchema, value);
-        return theme.ok ? withDefaultTextSlots(theme.value) : value;
-      };
-      return {
-        ...file,
-        standby: withSlots(file['standby']),
-        themes: Array.isArray(file['themes'])
-          ? file['themes'].map(withSlots)
-          : file['themes'],
-        ...(Array.isArray(file['deletedThemes'])
-          ? {deletedThemes: file['deletedThemes'].map(withSlots)}
-          : {}),
-      };
-    },
-  ],
+  migrations: [],
 };
-export const THEMES_SCHEMA_VERSION = 2;
 export function parseThemes(text: string, file: string) {
   return parseFile(format, text, file);
 }
 export function serializeThemes(value: ThemesFile, file: string) {
-  return serializeFile(
-    format,
-    value.schemaVersion === 1
-      ? {...value, schemaVersion: THEMES_SCHEMA_VERSION}
-      : value,
-    file,
-  );
+  return serializeFile(format, value, file);
 }

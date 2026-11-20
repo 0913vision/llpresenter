@@ -15,7 +15,6 @@ import {
   themeScreenLayoutSchema,
   themeTextSchema,
   themesSchema,
-  THEMES_SCHEMA_VERSION,
 } from '@core/schema/themes';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 
@@ -40,32 +39,35 @@ const layout = {mode: {kind: 'own'}, elements: [element]};
 const theme = {id: uuid(4), name: 'Example', screens: {[uuid(5)]: layout}};
 const file = {
   format: 'llsettings.themes',
-  schemaVersion: THEMES_SCHEMA_VERSION,
+  schemaVersion: 1,
   standby: {...theme, id: uuid(6), screens: {}},
   themes: [theme],
   defaults: {},
 };
 
-it('migrates each legacy text element to a stable named slot and keeps extensions', () => {
-  const legacy = {...file, schemaVersion: 1, churchExtension: 'saved'};
-  const migrated = expectSuccess(
-    parseThemes(JSON.stringify(legacy), 'themes.json'),
+it('round-trips optional named text slots in schema version 1', () => {
+  const textSlot = {
+    slotId: element.id,
+    role: 'text',
+    name: '글자',
+    scope: 'screen',
+  };
+  const optional = {
+    ...file,
+    themes: [
+      {
+        ...theme,
+        screens: {[uuid(5)]: {...layout, elements: [{...element, textSlot}]}},
+      },
+    ],
+  };
+  const parsed = expectSuccess(
+    parseThemes(JSON.stringify(optional), 'themes.json'),
   );
-  expect(migrated).toMatchObject({
-    sourceVersion: 1,
-    access: 'editable',
-    data: {schemaVersion: THEMES_SCHEMA_VERSION, churchExtension: 'saved'},
-  });
+  expect(parsed.data).toEqual(optional);
   expect(
-    Object.values(migrated.data.themes[0]?.screens ?? {})[0]?.elements[0],
-  ).toMatchObject({
-    ...element,
-    textSlot: {slotId: element.id, role: 'text', name: '글자', scope: 'screen'},
-  });
-  const newer = {...legacy, schemaVersion: THEMES_SCHEMA_VERSION + 1};
-  expect(
-    expectSuccess(parseThemes(JSON.stringify(newer), 'themes.json')).access,
-  ).toBe('readOnly');
+    JSON.parse(expectSuccess(serializeThemes(parsed.data, 'themes.json'))),
+  ).toEqual(optional);
 });
 
 it('preserves a removed theme transition in an old file', () => {

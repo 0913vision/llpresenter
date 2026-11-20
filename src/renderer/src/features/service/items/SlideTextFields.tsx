@@ -25,6 +25,7 @@ import {
   itemTextOverridesSchema,
   type ManualSlideText,
 } from '@core/schema/slideTextOverrides';
+import type {ThemeTextRole} from '@core/schema/themeTextSlot';
 import {withSectionCard} from '@core/services/sectionCards';
 import {CREED_PRAYER_THEME_ID} from '@core/themes/creedPrayer';
 import {isThemeTextElement, themeElementText} from '@core/themes/content';
@@ -67,11 +68,13 @@ interface EditorSlot {
 
 function TextSlot({
   name,
+  role,
   value,
   manual,
   save,
 }: {
   readonly name: string;
+  readonly role: ThemeTextRole;
   readonly value: string;
   readonly manual: boolean;
   readonly save: (text: string | null) => Promise<boolean>;
@@ -102,6 +105,7 @@ function TextSlot({
         {name}
         <TextArea
           aria-label={name}
+          data-slide-text-role={role}
           maxLength={4000}
           value={draft ?? value}
           onChange={text => {
@@ -459,6 +463,7 @@ export function SlideTextEditor({
         <TextSlot
           key={JSON.stringify([item.id, key, slot])}
           name={label}
+          role={descriptor.binding.role}
           value={slideTextValue(match?.value) ?? descriptor.text}
           manual={match !== undefined}
           save={text => save(slot, descriptor, text)}

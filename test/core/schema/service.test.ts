@@ -7,7 +7,6 @@ import {
   serviceItemKind,
   isItemOfKind,
   SERVICE_LIMITS,
-  SERVICE_SCHEMA_VERSION,
 } from '@core/schema/service';
 import {
   expectFailure,
@@ -37,7 +36,7 @@ function itemId(number: number): string {
 function sundayService() {
   return {
     format: 'llservice',
-    schemaVersion: SERVICE_SCHEMA_VERSION,
+    schemaVersion: 1,
     id: SERVICE_ID,
     name: '주일 예배',
     date: '2026-11-01T11:00',
@@ -72,21 +71,6 @@ function withItem(item: object) {
 }
 
 describe('parseService', () => {
-  it('migrates the service header and preserves legacy content and future read-only access', () => {
-    const legacy = {
-      ...sundayService(),
-      schemaVersion: 1,
-      churchExtension: {visible: true},
-    };
-    const upgraded = expectSuccess(parse(legacy));
-    expect(upgraded).toMatchObject({
-      sourceVersion: 1,
-      access: 'editable',
-      data: {...legacy, schemaVersion: SERVICE_SCHEMA_VERSION},
-    });
-    const newer = {...legacy, schemaVersion: SERVICE_SCHEMA_VERSION + 1};
-    expect(expectSuccess(parse(newer)).access).toBe('readOnly');
-  });
   it('round-trips manual empty text and its source, and rejects malformed bindings', () => {
     const referenceSlot = `${itemId(7)}/shared/reference`;
     const reference = {
@@ -540,7 +524,7 @@ function randomService(random: TestRandom) {
   );
   return {
     format: 'llservice',
-    schemaVersion: SERVICE_SCHEMA_VERSION,
+    schemaVersion: 1,
     id: random.uuid(),
     name: random.pick(['주일 예배', '수요 예배', '']),
     date: `2026-${random.pick(['01', '06', '12'])}-1${random.integer(0, 9)}T0${random.integer(0, 9)}:30`,

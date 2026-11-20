@@ -1,6 +1,6 @@
 import type {ScreenId, ThemeId} from '../schema/ids';
 import type {Theme, ThemeElement, ThemeScreenLayout} from '../schema/themes';
-import {themeTextRoleNames, type ThemeTextRole} from '../schema/themeTextSlot';
+import type {ThemeTextRole} from '../schema/themeTextSlot';
 import {manualSlideTextKey} from '../schema/slideTextOverrides';
 import {isBuiltInThemeId} from './builtInIds';
 import {isThemeTextElement} from './content';
@@ -67,63 +67,6 @@ function bindingIdentity(theme: TextSlotLayout, element: TextElement) {
     screenId,
     role: element.textSlot?.role ?? element.kind,
     key: manualSlideTextKey({sourceThemeId: theme.themeId, screenId, slotId}),
-  };
-}
-
-/** Migrates legacy elements without changing their default fills or appearance. */
-export function withDefaultTextSlots(theme: Theme): Theme {
-  return {
-    ...theme,
-    screens: Object.fromEntries(
-      Object.entries(theme.screens).map(([screenId, layout]) => {
-        const ids = new Set(
-          layout.elements.flatMap(element =>
-            isThemeTextElement(element) && element.textSlot !== undefined
-              ? [element.textSlot.slotId]
-              : [],
-          ),
-        );
-        return [
-          screenId,
-          {
-            ...layout,
-            elements: layout.elements.map(element => {
-              if (
-                !isThemeTextElement(element) ||
-                element.textSlot !== undefined
-              ) {
-                return element;
-              }
-              const shared =
-                isBuiltInThemeId(theme.id) &&
-                element.kind !== 'text' &&
-                !ids.has(element.kind) &&
-                layout.elements.filter(
-                  candidate => candidate.kind === element.kind,
-                ).length === 1;
-              let slotId: string = shared ? element.kind : element.id;
-              while (ids.has(slotId)) slotId += '-';
-              ids.add(slotId);
-              const name =
-                'name' in element &&
-                typeof element.name === 'string' &&
-                element.name.trim()
-                  ? element.name.slice(0, 160)
-                  : themeTextRoleNames[element.kind];
-              return {
-                ...element,
-                textSlot: {
-                  slotId,
-                  role: element.kind,
-                  name,
-                  scope: shared ? 'shared' : 'screen',
-                },
-              };
-            }),
-          },
-        ];
-      }),
-    ),
   };
 }
 

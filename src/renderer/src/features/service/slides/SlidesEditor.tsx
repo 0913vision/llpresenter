@@ -352,11 +352,15 @@ function SlidesEditorBody({
   useEditorFocus(root, model.session, {onBack});
   useLayoutEffect(() => {
     if (!focusText) return;
-    root.current
-      ?.querySelector<HTMLTextAreaElement>('[data-slide-index="0"] textarea')
-      ?.focus({preventScroll: true});
+    const row = root.current?.querySelector('[data-slide-index="0"]');
+    const field =
+      row?.querySelector<HTMLTextAreaElement>(
+        '[data-slide-text-role="currentText"]',
+      ) ?? row?.querySelector<HTMLTextAreaElement>('textarea');
+    if (field === null || field === undefined) return;
+    field.focus({preventScroll: true});
     consumeTextFocus();
-  }, [draft, focusText, consumeTextFocus]);
+  }, [draft, focusText, consumeTextFocus, renderTextFields]);
   useWindowShortcuts([
     {
       id: 'songWindow.save',

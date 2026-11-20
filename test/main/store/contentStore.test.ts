@@ -263,7 +263,7 @@ describe('ContentStore.openService', () => {
   it('switches away from a read-only service without writing it', async () => {
     const readOnly = stored(
       parseService,
-      {...service(SUNDAY_ID, '2026-11-01T11:00', []), schemaVersion: 3},
+      {...service(SUNDAY_ID, '2026-11-01T11:00', []), schemaVersion: 2},
       sundayFile,
     );
     const {store, files} = setUp([readOnly, serviceFile(EVENING_ID, [])], {
