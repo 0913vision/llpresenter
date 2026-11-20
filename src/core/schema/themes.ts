@@ -1,4 +1,5 @@
 import {userThemeCount} from '../themes/builtInIds';
+import {withDefaultTextSlots} from '../themes/textBindings';
 import * as v from 'valibot';
 import {
   THEME_LIMITS,
@@ -7,6 +8,7 @@ import {
 } from '../themes/elementRules';
 import {
   parseFile,
+  checkPart,
   serializeFile,
   type ReadonlyKnown,
   type FileFormat,
@@ -31,6 +33,7 @@ import {
 } from './primitives';
 import {textStyleEntries} from './textStyle';
 import {themeBackgroundSchema} from './themeBackground';
+import {themeTextRoleSchema, themeTextSlotSchema} from './themeTextSlot';
 
 const range = (min: number, max: number) =>
   v.pipe(v.number(), v.finite(), v.minValue(min), v.maxValue(max));
@@ -123,6 +126,7 @@ function textElement<TKind extends string, TEntries extends v.ObjectEntries>(
     ...base,
     kind: v.literal(kind),
     text: themeTextSchema,
+    textSlot: v.exactOptional(themeTextSlotSchema),
     fitLines: v.exactOptional(maxLines),
     stack: v.exactOptional(
       jsonObject({
@@ -213,6 +217,9 @@ export const themeScreenLayoutSchema = jsonObject({
     ),
   ),
   stageBar: v.exactOptional(v.literal('message-row')),
+  ambiguousTextRoles: v.exactOptional(
+    v.pipe(v.array(themeTextRoleSchema), v.maxLength(14)),
+  ),
   songTitle: v.exactOptional(v.picklist(['sunday', 'sunday-light'])),
   mode: v.pipe(
     jsonObject({}),
@@ -228,6 +235,14 @@ export const themeScreenLayoutSchema = jsonObject({
       elements => themeElementProblem(elements) === undefined,
       'Invalid theme element limits',
     ),
+    v.check(elements => {
+      const ids = elements.flatMap(element =>
+        v.is(themeTextSlotSchema, element.textSlot)
+          ? [element.textSlot.slotId]
+          : [],
+      );
+      return new Set(ids).size === ids.length;
+    }, 'Text placements on one screen need distinct slot identities'),
   ),
   // NOTE(0913vision): Absence inherits the screen's configured empty color.
   background: v.exactOptional(themeBackgroundSchema),
@@ -341,11 +356,35 @@ export type ThemeText = ReadonlyKnown<v.InferOutput<typeof themeTextSchema>>;
 const format: FileFormat<typeof themesSchema> = {
   format: 'llsettings.themes',
   schema: themesSchema,
-  migrations: [],
+  migrations: [
+    file => {
+      const withSlots = (value: unknown): unknown => {
+        const theme = checkPart(themeSchema, value);
+        return theme.ok ? withDefaultTextSlots(theme.value) : value;
+      };
+      return {
+        ...file,
+        standby: withSlots(file['standby']),
+        themes: Array.isArray(file['themes'])
+          ? file['themes'].map(withSlots)
+          : file['themes'],
+        ...(Array.isArray(file['deletedThemes'])
+          ? {deletedThemes: file['deletedThemes'].map(withSlots)}
+          : {}),
+      };
+    },
+  ],
 };
+export const THEMES_SCHEMA_VERSION = 2;
 export function parseThemes(text: string, file: string) {
   return parseFile(format, text, file);
 }
 export function serializeThemes(value: ThemesFile, file: string) {
-  return serializeFile(format, value, file);
+  return serializeFile(
+    format,
+    value.schemaVersion === 1
+      ? {...value, schemaVersion: THEMES_SCHEMA_VERSION}
+      : value,
+    file,
+  );
 }

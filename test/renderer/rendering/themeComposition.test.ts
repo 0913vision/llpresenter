@@ -176,11 +176,32 @@ describe('theme composition drawing', () => {
       expect(draw(textOverridesForTiles(tiles, overrides))).not.toBe(automatic);
       expect(text('currentText')).toContain('Edited body');
       expect(text('reference')).toBe('Edited reference');
-      const restored = editedSlideText(overrides, {
+      const referenceKey = `${theme.id}/shared/reference`;
+      const manualBlank = editedSlideText(overrides, {
         slide: key,
-        slot: 'reference',
-        text: '',
+        slot: referenceKey,
+        value: {
+          mode: 'manual',
+          slotId: 'reference',
+          role: 'reference',
+          sourceThemeId: theme.id,
+          text: '',
+        },
       });
+      draw(textOverridesForTiles(tiles, manualBlank));
+      expect(text('reference')?.trim() ?? '').toBe('');
+      const restored = editedSlideText(
+        editedSlideText(manualBlank, {
+          slide: key,
+          slot: referenceKey,
+          value: null,
+        }),
+        {
+          slide: key,
+          slot: 'reference',
+          value: null,
+        },
+      );
       draw(textOverridesForTiles(tiles, restored));
       expect(text('reference')).toBe(passage.displayRef);
       expect(text('currentText')).toContain('Edited body');
@@ -991,7 +1012,7 @@ describe('theme composition drawing', () => {
     expect(text('reference') ?? '').toBe('');
     view.dispose();
   });
-  it('shows a sermon element title with one stage reference aligned to the Bible text', () => {
+  it('shows independent stage passage and item name boxes beside the sermon title', () => {
     const {root, view} = setup();
     const screenId = createScreenId(STARTER_SCREEN_IDS.stage);
     const theme = createDefaultThemes().themes.find(
@@ -1042,11 +1063,35 @@ describe('theme composition drawing', () => {
     expect(
       root.querySelector(`[data-kind="reference"] .${classes.shown}`)
         ?.textContent ?? '',
-    ).toBe('');
+    ).toBe('Matthew 11:29');
     expect(
       root.querySelector(`[data-kind="currentText"] .${classes.shown}`)
         ?.textContent,
     ).toBe('Sermon');
+    view.render(
+      {
+        ...song,
+        slide: {
+          ...song.slide,
+          sermonTitle: true,
+          reference: 'Matthew 11:29',
+          lines: ['Sermon'],
+          textOverrides: {
+            reference: 'Edited passage',
+            itemName: 'Edited stage name',
+          },
+        },
+      },
+      {...active, screen: {id: screenId, kind: 'stage'}, transitions: false},
+    );
+    expect(
+      root.querySelector(`[data-kind="itemName"] .${classes.shown}`)
+        ?.textContent,
+    ).toBe('Edited stage name');
+    expect(
+      root.querySelector(`[data-kind="reference"] .${classes.shown}`)
+        ?.textContent,
+    ).toBe('Edited passage');
     view.dispose();
   });
   it.each(['stage', 'broadcast'] as const)(

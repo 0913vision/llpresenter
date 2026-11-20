@@ -393,7 +393,8 @@ export const templateSchema = jsonObject({
   order: orderSchema,
 });
 
-const serviceMigrations: readonly MigrationStep[] = [];
+export const SERVICE_SCHEMA_VERSION = 2;
+const serviceMigrations: readonly MigrationStep[] = [file => file];
 
 const serviceFormat: FileFormat<typeof serviceSchema> = {
   format: SERVICE_FORMAT,
@@ -434,7 +435,13 @@ export function serializeService(
   service: Service,
   file: string,
 ): Result<string, FileError> {
-  return serializeFile(serviceFormat, service, file);
+  return serializeFile(
+    serviceFormat,
+    service.schemaVersion === 1
+      ? {...service, schemaVersion: SERVICE_SCHEMA_VERSION}
+      : service,
+    file,
+  );
 }
 
 export function parseTemplate(
@@ -448,7 +455,13 @@ export function serializeTemplate(
   template: Template,
   file: string,
 ): Result<string, FileError> {
-  return serializeFile(templateFormat, template, file);
+  return serializeFile(
+    templateFormat,
+    template.schemaVersion === 1
+      ? {...template, schemaVersion: SERVICE_SCHEMA_VERSION}
+      : template,
+    file,
+  );
 }
 
 /**

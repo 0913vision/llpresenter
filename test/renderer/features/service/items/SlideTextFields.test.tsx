@@ -79,7 +79,7 @@ function installSettings() {
   });
 }
 
-it('prefills a theme field, saves its per-slide text, and restores it on clear', async () => {
+it('keeps a manual blank and explicitly restores the automatic text', async () => {
   installSettings();
   const fixture = itemFixture();
   const item = slidesItem('ad');
@@ -112,17 +112,32 @@ it('prefills a theme field, saves its per-slide text, and restores it on clear',
     name: '슬라이드 이름',
   });
   expect(field.value).toBe('Meeting');
+  const override = () =>
+    Object.values(
+      fixture.service().service.order[0]?.textOverrides?.[
+        `slide:${first.id}`
+      ] ?? {},
+    )[0];
   await userEvent.click(field);
   fireEvent.change(field, {target: {value: 'Changed'}});
   await userEvent.tab();
   await waitFor(() =>
-    expect(fixture.service().service.order[0]?.textOverrides).toEqual({
-      [`slide:${first.id}`]: {slideName: 'Changed'},
+    expect(override()).toMatchObject({
+      mode: 'manual',
+      role: 'slideName',
+      text: 'Changed',
     }),
   );
   await userEvent.click(field);
   fireEvent.change(field, {target: {value: ''}});
   await userEvent.tab();
+  await waitFor(() =>
+    expect(override()).toMatchObject({mode: 'manual', text: ''}),
+  );
+  expect(field.value).toBe('');
+  await userEvent.click(
+    screen.getByRole('button', {name: '슬라이드 이름 자동 값으로 복원'}),
+  );
   await waitFor(() => expect(field.value).toBe('Meeting'));
   expect(fixture.service().service.order[0]?.textOverrides).toEqual({});
 });
@@ -179,7 +194,13 @@ it.each(['bible', 'sermon'] as const)(
     useShow.setState({
       serviceId: fixtureServiceId,
       openItemId: id,
-      rows: [{id, kind: 'bible', title: lookup.ref}],
+      rows: [
+        {
+          id,
+          kind: 'bible',
+          title: kind === 'sermon' ? 'Sermon title' : lookup.ref,
+        },
+      ],
       tiles: {[id]: projection.tiles},
     });
     const editor = new SongEditorStore(fixture.api, vi.fn());
@@ -220,6 +241,19 @@ it.each(['bible', 'sermon'] as const)(
     );
     const body = {name: '현재 슬라이드 글'};
     const rows = await zone.findAllByRole<HTMLTextAreaElement>('textbox', body);
+    if (kind === 'sermon') {
+      const opening = within(zone.getByRole('group', {name: '1번 슬라이드'}));
+      expect(
+        opening.getByRole<HTMLTextAreaElement>('textbox', {name: '성경 출처'})
+          .value,
+      ).toBe(lookup.displayRef);
+      expect(
+        opening.getByRole<HTMLTextAreaElement>('textbox', {name: '항목 이름'})
+          .value,
+      ).toBe(lookup.displayRef);
+      expect(projection.tiles[0]?.textSlideKey).toBe('sermon:opening');
+      expect(projection.tiles.at(-1)?.textSlideKey).toBe('sermon:closing');
+    }
     expect(rows.map(row => row.value)).toContain('Invented verse 17');
     const verse = rows.find(row => row.value === 'Invented verse 17');
     if (!verse) throw Error('Missing verse field');

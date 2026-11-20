@@ -8,6 +8,7 @@ import {
 } from '@core/schema/ids';
 import {
   SERVICE_LIMITS,
+  SERVICE_SCHEMA_VERSION,
   type Service,
   type Template,
 } from '@core/schema/service';
@@ -16,7 +17,6 @@ import {copiedItems, pickedItems} from './contentEdits';
 import {transferSongItem} from './songItemCommands';
 import type {ContentCommandContext, ContentHandlers} from './contentCommands';
 
-const SCHEMA_VERSION = 1;
 const SERVICE_EXTENSION = '.llservice';
 
 type ServiceContentCommandsHandlers = Pick<
@@ -59,7 +59,7 @@ class ServiceContentCommands {
     const id = createServiceId(this.context.newId());
     const service: Service = {
       format: 'llservice',
-      schemaVersion: SCHEMA_VERSION,
+      schemaVersion: SERVICE_SCHEMA_VERSION,
       id,
       name,
       date,
@@ -196,7 +196,7 @@ class ServiceContentCommands {
     const id = createTemplateId(this.context.newId());
     const template: Template = {
       format: 'llservice',
-      schemaVersion: SCHEMA_VERSION,
+      schemaVersion: SERVICE_SCHEMA_VERSION,
       id,
       name,
       order: copiedItems(service.data.order),

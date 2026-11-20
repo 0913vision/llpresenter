@@ -11,6 +11,7 @@ import {
 } from './defaults';
 import {themeElementProblem, type ThemeItemKind} from './elementRules';
 import {SONG_THEME_ID} from './songTitle';
+import {withTextRoleResolution} from './textBindings';
 
 interface ItemThemeRequest {
   readonly file: ThemesFile | null | undefined;
@@ -127,7 +128,10 @@ export function resolveThemeScreen(
       }
       return themeElementProblem(resolved.elements, destination.kind) ===
         undefined
-        ? {sourceScreenId: current, layout: resolved}
+        ? {
+            sourceScreenId: current,
+            layout: withTextRoleResolution(theme, resolved),
+          }
         : empty;
     }
     current = layout.mode.screen;

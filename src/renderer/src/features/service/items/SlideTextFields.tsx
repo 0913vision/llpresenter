@@ -9,27 +9,34 @@ import {
 import {cacheKey} from '@core/bible/split/splitCache';
 import {pinVerseParts} from '@core/bible/split/splitVerses';
 import {sameBibleVerse} from '@core/bible/selection';
+import {displayReference} from '@core/bible/displayReference';
 import {emptyLayers} from '@core/live/state';
 import {slideLayerOf} from '@core/presentation/slideLayer';
 import {
   editedSlideText,
+  slideTextValue,
   textSlideKey,
   textVerseKey,
 } from '@core/presentation/textOverrides';
 import {pinnedBibleVersesSchema} from '@core/schema/biblePassage';
 import {parsePayload} from '@core/schema/payload';
 import {isItemOfKind} from '@core/schema/service';
-import {itemTextOverridesSchema} from '@core/schema/slideTextOverrides';
+import {
+  itemTextOverridesSchema,
+  type ManualSlideText,
+} from '@core/schema/slideTextOverrides';
 import {withSectionCard} from '@core/services/sectionCards';
 import {CREED_PRAYER_THEME_ID} from '@core/themes/creedPrayer';
 import {isThemeTextElement, themeElementText} from '@core/themes/content';
 import {resolveThemeOutput} from '@core/themes/output';
 import {SERMON_TITLE_THEME_ID} from '@core/themes/sundayScripture';
 import {
+  matchSlideText,
   manualThemeText,
-  themeTextSlot,
   withSlideTextOverrides,
 } from '@core/themes/textSlots';
+import {themeTextBinding, type TextSlotLayout} from '@core/themes/textBindings';
+import type {ThemeElement} from '@core/schema/themes';
 import {TYPING_PAUSE_MS} from '@core/songs/songHistory';
 import {timerText} from '@core/timers/timerClock';
 import {useBibleTileProjection} from '@renderer/features/bible/useBibleProjections';
@@ -41,6 +48,7 @@ import {STAGE_TICK_MS, stageClockText} from '@renderer/rendering/stageClock';
 import {useLive} from '@renderer/session/live';
 import {useShow} from '@renderer/session/show';
 import {TextArea} from '@renderer/ui/TextArea';
+import {Button} from '@renderer/ui/Button';
 import type {ServiceItemState, ServiceItemStore} from './serviceItemStore';
 import styles from './SlideTextFields.module.css';
 
@@ -49,14 +57,24 @@ const readTime = () => ({
   timer: performance.timeOrigin + performance.now(),
 });
 
+interface EditorSlot {
+  readonly binding: Omit<ManualSlideText, 'text'>;
+  readonly layout: TextSlotLayout;
+  readonly element: Extract<ThemeElement, {readonly text: unknown}>;
+  readonly name: string;
+  readonly text: string;
+}
+
 function TextSlot({
   name,
   value,
+  manual,
   save,
 }: {
   readonly name: string;
   readonly value: string;
-  readonly save: (text: string) => Promise<boolean>;
+  readonly manual: boolean;
+  readonly save: (text: string | null) => Promise<boolean>;
 }): JSX.Element {
   const [draft, setDraft] = useState<string | null>(null);
   const pending = useRef<string | null>(null);
@@ -79,19 +97,44 @@ function TextSlot({
   }, [draft]);
   useEffect(() => () => flushIdle(), []);
   return (
-    <label>
-      {name}
-      <TextArea
-        aria-label={name}
-        maxLength={4000}
-        value={draft ?? value}
-        onChange={text => {
-          pending.current = text;
-          setDraft(text);
-        }}
-        onBlur={flush}
-      />
-    </label>
+    <div className={styles.field}>
+      <label>
+        {name}
+        <TextArea
+          aria-label={name}
+          maxLength={4000}
+          value={draft ?? value}
+          onChange={text => {
+            pending.current = text;
+            setDraft(text);
+          }}
+          onBlur={flush}
+        />
+      </label>
+      {manual || draft !== null ? (
+        <Button
+          variant="ghost"
+          size="sm"
+          aria-label={`${name} 자동 값으로 복원`}
+          onClick={() => {
+            pending.current = null;
+            setDraft(null);
+            editorTask(save(null));
+          }}
+        >
+          자동 값으로 복원
+        </Button>
+      ) : value === '' ? (
+        <Button
+          variant="ghost"
+          size="sm"
+          aria-label={`${name} 빈 값 유지`}
+          onClick={() => editorTask(save(''))}
+        >
+          빈 값 유지
+        </Button>
+      ) : null}
+    </div>
   );
 }
 
@@ -211,7 +254,12 @@ export function SlideTextEditor({
     const themeItem = {
       id: item.id,
       kind,
-      title: tile.sectionCard === undefined ? row.title : tile.sectionCard.name,
+      title:
+        tile.sectionCard?.name ??
+        (isItemOfKind(item, 'sermon')
+          ? ((tile.sermonTitle ? tile.reference : undefined) ??
+            displayReference(item.sermon.passage.ref))
+          : row.title),
       source: 'service' as const,
       ...(themeId === undefined ? {} : {theme: themeId}),
       ...('memo' in item ? {memo: item.memo} : {}),
@@ -222,15 +270,15 @@ export function SlideTextEditor({
       item: themeItem,
       revision: 0,
     });
-    const slots = new Map<string, {name: string; text: string}>();
+    const slots = new Map<string, EditorSlot>();
     const layers = {...emptyLayers(), slide};
     for (const layout of Object.values(output.screens)) {
       const binding = {...layout, themeId: output.themeId};
       for (const element of withSlideTextOverrides(binding, slide).elements) {
         if (!isThemeTextElement(element)) continue;
-        const slot = themeTextSlot(binding, element);
+        const slot = themeTextBinding(binding, element);
         const timerId =
-          element.kind === 'timer'
+          slot.role === 'timer' && element.kind === 'timer'
             ? (element.timerId ?? stageTimerId)
             : undefined;
         const timer = timers?.value.timers.find(timer => timer.id === timerId);
@@ -249,30 +297,69 @@ export function SlideTextEditor({
                 ? undefined
                 : timerText(timer, timerRuns?.[timer.id], now),
           });
-        if (!slots.has(slot) || (slots.get(slot)?.text === '' && text)) {
-          slots.set(slot, {
-            name:
-              'name' in element &&
-              typeof element.name === 'string' &&
-              element.name.trim()
-                ? element.name
-                : themeElementNames[element.kind],
+        if (
+          !slots.has(slot.key) ||
+          (slots.get(slot.key)?.text === '' && text)
+        ) {
+          const name =
+            slot.name ??
+            ('name' in element &&
+            typeof element.name === 'string' &&
+            element.name.trim()
+              ? element.name.slice(0, 160)
+              : themeElementNames[slot.role]);
+          slots.set(slot.key, {
+            binding: {
+              mode: 'manual',
+              slotId: slot.slotId,
+              role: slot.role,
+              name,
+              sourceThemeId: output.themeId,
+              ...(slot.screenId === undefined ? {} : {screenId: slot.screenId}),
+              ...(slot.uniqueRole ? {uniqueRole: true} : {}),
+            },
+            layout: binding,
+            element,
+            name,
             text: text ?? '',
           });
         }
       }
     }
-    const save = (slot: string, value: string) =>
+    const save = (slot: string, descriptor: EditorSlot, text: string | null) =>
       items.submitItemEdit({
         target: {serviceId, itemId: item.id},
         failure: '슬라이드 글 저장 실패',
         change: fresh => {
           if (service.access === 'readOnly') return null;
-          const textOverrides = editedSlideText(fresh.textOverrides, {
-            slide: key,
-            slot,
-            text: value,
-          });
+          let textOverrides = fresh.textOverrides ?? {};
+          let saved = matchSlideText(
+            textOverrides[key],
+            descriptor.layout,
+            descriptor.element,
+          );
+          while (
+            saved !== undefined &&
+            (text === null || typeof saved.value === 'string')
+          ) {
+            textOverrides = editedSlideText(textOverrides, {
+              slide: key,
+              slot: saved.key,
+              value: null,
+            });
+            saved = matchSlideText(
+              textOverrides[key],
+              descriptor.layout,
+              descriptor.element,
+            );
+          }
+          if (text !== null) {
+            textOverrides = editedSlideText(textOverrides, {
+              slide: key,
+              slot,
+              value: {...descriptor.binding, text},
+            });
+          }
           if (!parsePayload(itemTextOverridesSchema, textOverrides).ok) {
             return null;
           }
@@ -346,6 +433,40 @@ export function SlideTextEditor({
             : {...updated, sermon: {...updated.sermon, passage: next}};
         },
       });
+    const saved = item.textOverrides?.[key];
+    const matchedKeys = new Set<string>();
+    const fields = [...slots].map(([slot, descriptor]) => {
+      const match = matchSlideText(
+        saved,
+        descriptor.layout,
+        descriptor.element,
+      );
+      if (match !== undefined) matchedKeys.add(match.key);
+      const screen = screens.value.screens.find(
+        screen => screen.id === descriptor.binding.screenId,
+      );
+      const peers = [...slots.values()].filter(
+        peer => peer.name === descriptor.name,
+      );
+      const repeat = peers.filter(
+        peer => peer.binding.screenId === descriptor.binding.screenId,
+      );
+      const showScreen =
+        descriptor.binding.screenId !== undefined && screen !== undefined;
+      const label = `${descriptor.name}${showScreen ? ` (${screen.name})` : ''}${repeat.length > 1 ? ` ${repeat.indexOf(descriptor) + 1}` : ''}`;
+      return (
+        <TextSlot
+          key={JSON.stringify([item.id, key, slot])}
+          name={label}
+          value={slideTextValue(match?.value) ?? descriptor.text}
+          manual={match !== undefined}
+          save={text => save(slot, descriptor, text)}
+        />
+      );
+    });
+    const retained = Object.entries(saved ?? {}).filter(
+      ([slot]) => !matchedKeys.has(slot),
+    );
     return (
       <fieldset
         className={styles.fields}
@@ -353,14 +474,28 @@ export function SlideTextEditor({
         aria-label="슬라이드 글"
       >
         {legend === undefined ? null : <legend>{legend}</legend>}
-        {[...slots].map(([slot, {name, text}]) => (
-          <TextSlot
-            key={JSON.stringify([item.id, key, slot])}
-            name={name}
-            value={item.textOverrides?.[key]?.[slot] ?? text}
-            save={text => save(slot, text)}
-          />
-        ))}
+        {fields}
+        {retained.length === 0 ? null : (
+          <details className={styles.retained}>
+            <summary>현재 테마에 연결되지 않은 글</summary>
+            <ul>
+              {retained.map(([id, value]) => (
+                <li key={id}>
+                  <strong>
+                    {typeof value === 'string'
+                      ? id
+                      : (value.name ?? value.slotId)}
+                  </strong>
+                  <p>
+                    {slideTextValue(value) === ''
+                      ? '빈 값'
+                      : slideTextValue(value)}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </details>
+        )}
       </fieldset>
     );
   };

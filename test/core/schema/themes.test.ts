@@ -15,6 +15,7 @@ import {
   themeScreenLayoutSchema,
   themeTextSchema,
   themesSchema,
+  THEMES_SCHEMA_VERSION,
 } from '@core/schema/themes';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 
@@ -39,11 +40,33 @@ const layout = {mode: {kind: 'own'}, elements: [element]};
 const theme = {id: uuid(4), name: 'Example', screens: {[uuid(5)]: layout}};
 const file = {
   format: 'llsettings.themes',
-  schemaVersion: 1,
+  schemaVersion: THEMES_SCHEMA_VERSION,
   standby: {...theme, id: uuid(6), screens: {}},
   themes: [theme],
   defaults: {},
 };
+
+it('migrates each legacy text element to a stable named slot and keeps extensions', () => {
+  const legacy = {...file, schemaVersion: 1, churchExtension: 'saved'};
+  const migrated = expectSuccess(
+    parseThemes(JSON.stringify(legacy), 'themes.json'),
+  );
+  expect(migrated).toMatchObject({
+    sourceVersion: 1,
+    access: 'editable',
+    data: {schemaVersion: THEMES_SCHEMA_VERSION, churchExtension: 'saved'},
+  });
+  expect(
+    Object.values(migrated.data.themes[0]?.screens ?? {})[0]?.elements[0],
+  ).toMatchObject({
+    ...element,
+    textSlot: {slotId: element.id, role: 'text', name: '글자', scope: 'screen'},
+  });
+  const newer = {...legacy, schemaVersion: THEMES_SCHEMA_VERSION + 1};
+  expect(
+    expectSuccess(parseThemes(JSON.stringify(newer), 'themes.json')).access,
+  ).toBe('readOnly');
+});
 
 it('preserves a removed theme transition in an old file', () => {
   const old = {

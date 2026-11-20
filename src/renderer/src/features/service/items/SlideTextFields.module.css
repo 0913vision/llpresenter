@@ -9,11 +9,24 @@
   flex-shrink: 0;
 }
 
-.fields > label {
+.field,
+.field > label {
   display: grid;
   align-content: start;
   gap: var(--space-4);
   min-inline-size: 0;
   font: var(--type-caption);
   color: var(--text-3);
+}
+
+.field > button {
+  justify-self: start;
+}
+
+.retained {
+  grid-column: 1 / -1;
+}
+
+.retained p {
+  white-space: pre-wrap;
 }

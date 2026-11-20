@@ -3,7 +3,11 @@ import {
   createTemplateId,
   type ServiceItemId,
 } from '../schema/ids';
-import type {ServiceItem, Template} from '../schema/service';
+import {
+  SERVICE_SCHEMA_VERSION,
+  type ServiceItem,
+  type Template,
+} from '../schema/service';
 import {SUNDAY_SECTIONS} from '../themes/sundaySections';
 import {PREPARATION_THEME_ID} from '../themes/sundayStandby';
 import {newLiturgyItem, type LiturgyTranslation} from './liturgy';
@@ -87,7 +91,7 @@ export function sundayTemplate(): Template {
   }
   return {
     format: 'llservice',
-    schemaVersion: 1,
+    schemaVersion: SERVICE_SCHEMA_VERSION,
     id: createTemplateId(crypto.randomUUID()),
     name: '주일 2부 예배',
     order,

@@ -1,5 +1,9 @@
 import type {ShowTile} from '../schema/showService';
-import type {ItemTextOverrides} from '../schema/slideTextOverrides';
+import type {
+  ItemTextOverrides,
+  ManualSlideText,
+  SlideTextValue,
+} from '../schema/slideTextOverrides';
 import {cacheKey} from '../bible/split/splitCache';
 import type {VerseSlide} from '../schema/service';
 
@@ -39,13 +43,24 @@ export function editedSlideText(
   {
     slide,
     slot,
-    text,
-  }: {readonly slide: string; readonly slot: string; readonly text: string},
+    value,
+  }: {
+    readonly slide: string;
+    readonly slot: string;
+    readonly value: ManualSlideText | null;
+  },
 ): ItemTextOverrides {
   const {[slide]: previous, ...otherSlides} = {...overrides};
   const {[slot]: _priorText, ...values} = {...previous};
-  if (text.trim() !== '') values[slot] = text;
+  if (value !== null) values[slot] = value;
   return Object.keys(values).length === 0
     ? otherSlides
     : {...otherSlides, [slide]: values};
+}
+
+/** Legacy values have no provenance. A present empty value is still manual. */
+export function slideTextValue(
+  value: SlideTextValue | undefined,
+): string | undefined {
+  return typeof value === 'string' ? value : value?.text;
 }

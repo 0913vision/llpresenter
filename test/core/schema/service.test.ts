@@ -7,6 +7,7 @@ import {
   serviceItemKind,
   isItemOfKind,
   SERVICE_LIMITS,
+  SERVICE_SCHEMA_VERSION,
 } from '@core/schema/service';
 import {
   expectFailure,
@@ -36,7 +37,7 @@ function itemId(number: number): string {
 function sundayService() {
   return {
     format: 'llservice',
-    schemaVersion: 1,
+    schemaVersion: SERVICE_SCHEMA_VERSION,
     id: SERVICE_ID,
     name: '주일 예배',
     date: '2026-11-01T11:00',
@@ -71,10 +72,33 @@ function withItem(item: object) {
 }
 
 describe('parseService', () => {
-  it('round-trips named slide text overrides and rejects blank manual values', () => {
+  it('migrates the service header and preserves legacy content and future read-only access', () => {
+    const legacy = {
+      ...sundayService(),
+      schemaVersion: 1,
+      churchExtension: {visible: true},
+    };
+    const upgraded = expectSuccess(parse(legacy));
+    expect(upgraded).toMatchObject({
+      sourceVersion: 1,
+      access: 'editable',
+      data: {...legacy, schemaVersion: SERVICE_SCHEMA_VERSION},
+    });
+    const newer = {...legacy, schemaVersion: SERVICE_SCHEMA_VERSION + 1};
+    expect(expectSuccess(parse(newer)).access).toBe('readOnly');
+  });
+  it('round-trips manual empty text and its source, and rejects malformed bindings', () => {
+    const referenceSlot = `${itemId(7)}/shared/reference`;
+    const reference = {
+      slotId: 'reference',
+      role: 'reference',
+      mode: 'manual',
+      sourceThemeId: itemId(7),
+      text: '',
+    };
     const textOverrides = {
       'verse:sample:43:3:16:1': {
-        reference: 'Revised',
+        [referenceSlot]: reference,
         currentText: 'Two\nlines',
       },
     };
@@ -88,7 +112,11 @@ describe('parseService', () => {
       parse(
         withItem({
           ...item,
-          textOverrides: {'verse:sample:43:3:16:1': {reference: ' '}},
+          textOverrides: {
+            'verse:sample:43:3:16:1': {
+              [referenceSlot]: {...reference, slotId: ''},
+            },
+          },
         }),
       ).ok,
     ).toBe(false);
@@ -487,7 +515,7 @@ function randomService(random: TestRandom) {
   );
   return {
     format: 'llservice',
-    schemaVersion: 1,
+    schemaVersion: SERVICE_SCHEMA_VERSION,
     id: random.uuid(),
     name: random.pick(['주일 예배', '수요 예배', '']),
     date: `2026-${random.pick(['01', '06', '12'])}-1${random.integer(0, 9)}T0${random.integer(0, 9)}:30`,
