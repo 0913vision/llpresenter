@@ -85,6 +85,20 @@ beforeEach(() => {
 });
 
 describe('text import dialog', () => {
+  it('keeps one request while the editor is busy and opens when it unlocks', async () => {
+    const f = fixture();
+    const view = render(<TextImportDialog {...f.props} editorBusy />);
+    await screen.findByText(/슬라이드 2/);
+    const button = screen.getByRole('button', {name: '가져오기'});
+    fireEvent.click(button);
+    fireEvent.click(button);
+    expect(
+      screen.getByRole('progressbar', {name: '가져오는 중'}),
+    ).toBeDefined();
+    expect(f.onEdit).not.toHaveBeenCalled();
+    view.rerender(<TextImportDialog {...f.props} editorBusy={false} />);
+    await waitFor(() => expect(f.onEdit).toHaveBeenCalledOnce());
+  });
   it('hands each changed choice on, and offers the encoding only for a file', async () => {
     const f = fixture();
     const onRemember = vi.fn();
@@ -159,7 +173,7 @@ describe('text import dialog', () => {
     fireEvent.change(field, {target: {value: 'Short'}});
     expect(apply.getAttribute('aria-disabled')).not.toBe('true');
     fireEvent.click(apply);
-    fireEvent.click(screen.getByRole('button', {name: '편집'}));
+    fireEvent.click(screen.getByRole('button', {name: '가져오기'}));
     expect(f.onEdit.mock.calls[0]?.[0].slides).toHaveLength(3000);
     expect(
       f.onEdit.mock.calls[0]?.[0].slides.every(
@@ -217,7 +231,7 @@ describe('text import dialog', () => {
     ).toBe('Last choice');
     expect(within(dialog).getAllByRole('textbox').length).toBeLessThan(20);
     fireEvent.click(within(dialog).getByRole('button', {name: '적용'}));
-    fireEvent.click(screen.getByRole('button', {name: '편집'}));
+    fireEvent.click(screen.getByRole('button', {name: '가져오기'}));
     expect(f.onEdit.mock.calls[0]?.[0].slides[0]?.label).toBe('Last choice');
   });
 
@@ -278,7 +292,7 @@ describe('text import dialog', () => {
     );
     await screen.findByText('슬라이드 1');
     expect(screen.queryByRole('dialog', {name: '이름표 맞추기'})).toBeNull();
-    fireEvent.click(screen.getByRole('button', {name: '편집'}));
+    fireEvent.click(screen.getByRole('button', {name: '가져오기'}));
     expect(f.onEdit.mock.calls[0]?.[0].slides[0]?.label).toBe('Chorus');
   });
 
@@ -289,7 +303,7 @@ describe('text import dialog', () => {
     );
     await screen.findByText('슬라이드 2');
     expect(screen.queryByRole('dialog', {name: '이름표 맞추기'})).toBeNull();
-    fireEvent.click(screen.getByRole('button', {name: '편집'}));
+    fireEvent.click(screen.getByRole('button', {name: '가져오기'}));
     expect(f.onEdit.mock.calls[0]?.[0].slides[0]?.lines).toContain('[New]');
   });
 
@@ -385,7 +399,7 @@ describe('text import dialog', () => {
         .getAttribute('value'),
     ).toBe('직접 입력');
     await userEvent.click(within(reopened).getByRole('button', {name: '적용'}));
-    fireEvent.click(screen.getByRole('button', {name: '편집'}));
+    fireEvent.click(screen.getByRole('button', {name: '가져오기'}));
     expect(
       f.onEdit.mock.calls[0]?.[0].slides.map(slide => slide.label),
     ).toEqual(['후렴', '직접 입력', '후렴']);
@@ -412,7 +426,7 @@ describe('text import dialog', () => {
       }
       expect(screen.queryByRole('dialog', {name: '이름표 맞추기'})).toBeNull();
       expect(f.onDiscard).not.toHaveBeenCalled();
-      fireEvent.click(screen.getByRole('button', {name: '편집'}));
+      fireEvent.click(screen.getByRole('button', {name: '가져오기'}));
       expect(f.onEdit.mock.calls[0]?.[0].slides[0]?.label).toBe('Chrous');
     },
   );
@@ -454,7 +468,7 @@ describe('text import dialog', () => {
     ).toBe('');
     expect(within(dialog).queryByText('새 이름표')).toBeNull();
     await userEvent.click(within(dialog).getByRole('button', {name: '적용'}));
-    fireEvent.click(screen.getByRole('button', {name: '편집'}));
+    fireEvent.click(screen.getByRole('button', {name: '가져오기'}));
     expect(
       f.onEdit.mock.calls[0]?.[0].slides.map(slide => slide.label),
     ).toEqual(['1절', '']);
@@ -472,7 +486,7 @@ describe('text import dialog', () => {
       },
     });
     render(<TextImportDialog {...f.props} />);
-    const edit = await screen.findByRole('button', {name: '편집'});
+    const edit = await screen.findByRole('button', {name: '가져오기'});
     await waitFor(() =>
       expect(edit.getAttribute('aria-disabled')).toBe('true'),
     );
@@ -532,7 +546,7 @@ describe('text import dialog', () => {
     await waitFor(() =>
       expect(
         screen
-          .getByRole('button', {name: '편집'})
+          .getByRole('button', {name: '가져오기'})
           .getAttribute('aria-disabled'),
       ).not.toBe('true'),
     );
@@ -551,11 +565,11 @@ describe('text import dialog', () => {
     await waitFor(() =>
       expect(
         screen
-          .getByRole('button', {name: '편집'})
+          .getByRole('button', {name: '가져오기'})
           .getAttribute('aria-disabled'),
       ).not.toBe('true'),
     );
-    fireEvent.click(screen.getByRole('button', {name: '편집'}));
+    fireEvent.click(screen.getByRole('button', {name: '가져오기'}));
     expect(f.onEdit).toHaveBeenCalledExactlyOnceWith(
       expect.objectContaining({title: 'Edited title'}),
     );
@@ -582,7 +596,7 @@ describe('text import dialog', () => {
       screen.getByRole('textbox', {name: '제목'}).getAttribute('aria-invalid'),
     ).toBe('true');
     expect(screen.getByText(DUPLICATE_TITLE_REASON)).toBeDefined();
-    fireEvent.click(screen.getByRole('button', {name: '편집'}));
+    fireEvent.click(screen.getByRole('button', {name: '가져오기'}));
     expect(f.onEdit).toHaveBeenCalledOnce();
   });
   it('requires a nonblank symbol, recomputes after correction, and discards on Escape', async () => {
@@ -598,7 +612,9 @@ describe('text import dialog', () => {
       target: {value: ''},
     });
     expect(
-      screen.getByRole('button', {name: '편집'}).getAttribute('aria-disabled'),
+      screen
+        .getByRole('button', {name: '가져오기'})
+        .getAttribute('aria-disabled'),
     ).toBe('true');
     expect(
       screen.getByRole('textbox', {name: '기호'}).getAttribute('aria-invalid'),
@@ -609,7 +625,7 @@ describe('text import dialog', () => {
     await waitFor(() =>
       expect(
         screen
-          .getByRole('button', {name: '편집'})
+          .getByRole('button', {name: '가져오기'})
           .getAttribute('aria-disabled'),
       ).not.toBe('true'),
     );
@@ -636,7 +652,7 @@ describe('text import dialog', () => {
       });
       expect(
         screen
-          .getByRole('button', {name: '편집'})
+          .getByRole('button', {name: '가져오기'})
           .getAttribute('aria-disabled'),
       ).toBe('true');
       await userEvent.click(
@@ -650,12 +666,12 @@ describe('text import dialog', () => {
       await waitFor(() =>
         expect(
           screen
-            .getByRole('button', {name: '편집'})
+            .getByRole('button', {name: '가져오기'})
             .getAttribute('aria-disabled'),
         ).not.toBe('true'),
       );
       expect(f.onProblem).not.toHaveBeenCalled();
-      fireEvent.click(screen.getByRole('button', {name: '편집'}));
+      fireEvent.click(screen.getByRole('button', {name: '가져오기'}));
       expect(f.onEdit).toHaveBeenCalledOnce();
     },
   );
@@ -676,7 +692,7 @@ describe('text import dialog', () => {
       await waitFor(() => expect(f.onProblem).toHaveBeenCalledOnce());
       expect(
         screen
-          .getByRole('button', {name: '편집'})
+          .getByRole('button', {name: '가져오기'})
           .getAttribute('aria-disabled'),
       ).toBe('true');
     },
@@ -706,7 +722,7 @@ describe('text import dialog', () => {
     expect(within(secondOption).getByText('1절')).toBeTruthy();
     expect(within(thirdOption).getByText('후렴')).toBeTruthy();
     expect(within(fourthOption).getByText('후렴')).toBeTruthy();
-    fireEvent.click(screen.getByRole('button', {name: '편집'}));
+    fireEvent.click(screen.getByRole('button', {name: '가져오기'}));
     expect(f.onEdit).toHaveBeenCalledExactlyOnceWith(
       expect.objectContaining({
         title: 'Grouped',
@@ -760,7 +776,7 @@ describe('text import dialog', () => {
     }
     expect(within(firstOption).getByText('후렴')).toBeTruthy();
     expect(within(secondOption).getByText('후렴')).toBeTruthy();
-    fireEvent.click(screen.getByRole('button', {name: '편집'}));
+    fireEvent.click(screen.getByRole('button', {name: '가져오기'}));
     expect(f.onEdit).toHaveBeenCalledExactlyOnceWith(
       expect.objectContaining({
         title: 'Adjacent',

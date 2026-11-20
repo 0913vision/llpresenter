@@ -11,6 +11,7 @@ import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {editorFixture} from '@fixtures/renderer/features/songs/editor/editorFixture';
 import {SongEditorStore} from '@renderer/features/songs/editor/songEditorStore';
 import {PowerPointImportFlow} from '@renderer/features/songs/import/PowerPointImportFlow';
+import {preparePowerPointImages} from '@renderer/features/songs/import/preparePowerPointImages';
 
 vi.mock('@renderer/features/songs/import/preparePowerPointImages', () => ({
   PowerPointPreviewLimitError: class extends Error {},
@@ -64,7 +65,7 @@ vi.mock('@renderer/features/songs/import/composePowerPointBackground', () => ({
 }));
 
 async function clickEdit(): Promise<void> {
-  const button = screen.getByRole('button', {name: '??'});
+  const button = screen.getByRole('button', {name: '가져오기'});
   await waitFor(() =>
     expect(button.getAttribute('aria-disabled')).not.toBe('true'),
   );
@@ -74,6 +75,80 @@ async function clickEdit(): Promise<void> {
 const mockScene = {key: 'a'.repeat(64), layers: [], pictures: [], skipped: 0};
 
 describe('PowerPoint import dialog', () => {
+  it('accepts one import during slow preview and opens only once after background export', async () => {
+    const fixture = editorFixture();
+    const store = new SongEditorStore(fixture.api, vi.fn());
+    onTestFinished(() => store.dispose());
+    let finishPreview: (value: {
+      ids: ReadonlyMap<string, string>;
+      release: () => void;
+    }) => void = () => undefined;
+    const pendingPreview = new Promise<{
+      ids: ReadonlyMap<string, string>;
+      release: () => void;
+    }>(resolve => {
+      finishPreview = resolve;
+    });
+    vi.mocked(preparePowerPointImages).mockReturnValueOnce(pendingPreview);
+    let finishBackground: (value: string | null) => void = () => undefined;
+    const pendingBackground = new Promise<string | null>(resolve => {
+      finishBackground = resolve;
+    });
+    const background = vi.fn(() => pendingBackground);
+    const mediaId = createMediaId('00000000-0000-4000-8000-000000000123');
+    const api = mockLlpApi({
+      ...fixture.api,
+      powerpoint: {
+        read: async () => ({
+          ok: true,
+          value: {
+            fileName: 'deck.pptx',
+            widescreen: true,
+            slides: [
+              {
+                number: 1,
+                background: 'one',
+                shapes: [{body: true, lines: ['First']}],
+              },
+            ],
+          },
+        }),
+        background,
+        match: async () => mediaId,
+        release: async () => true,
+      },
+    });
+    const onEdit = vi.fn();
+    const onDone = vi.fn();
+    render(
+      <PowerPointImportFlow
+        api={api}
+        store={store}
+        onDone={onDone}
+        onEdit={onEdit}
+        onProblem={vi.fn()}
+      />,
+    );
+    await screen.findByRole('option', {name: /First/});
+    const button = screen.getByRole('button', {name: '가져오기'});
+    fireEvent.click(button);
+    fireEvent.click(button);
+    expect(
+      screen.getByRole('progressbar', {name: '가져오는 중'}),
+    ).toBeDefined();
+    expect(background).not.toHaveBeenCalled();
+    await act(async () =>
+      finishPreview({ids: new Map(), release: () => undefined}),
+    );
+    await waitFor(() => expect(background).toHaveBeenCalledOnce());
+    expect(
+      screen.getByRole('progressbar', {name: '가져오는 중'}),
+    ).toBeDefined();
+    await act(async () => finishBackground('C:/temp/ppt.png'));
+    await waitFor(() => expect(onEdit).toHaveBeenCalledOnce());
+    expect(onDone).toHaveBeenCalledOnce();
+    expect(background).toHaveBeenCalledOnce();
+  });
   it('imports only the checked, non-adjacent slides in source order', async () => {
     const fixture = editorFixture();
     const store = new SongEditorStore(fixture.api, vi.fn());
@@ -110,7 +185,7 @@ describe('PowerPoint import dialog', () => {
     await waitFor(() =>
       expect(
         screen
-          .getByRole('button', {name: '편집'})
+          .getByRole('button', {name: '가져오기'})
           .getAttribute('aria-disabled'),
       ).not.toBe('true'),
     );
@@ -589,7 +664,7 @@ describe('PowerPoint import dialog', () => {
       expect(remaining.getAttribute('aria-checked')).toBe('true');
       fireEvent.click(
         screen.getByRole('button', {
-          name: choice === 'lyrics' ? '편집' : '가져오기',
+          name: '가져오기',
         }),
       );
       await waitFor(() => expect(onDone).toHaveBeenCalledOnce());

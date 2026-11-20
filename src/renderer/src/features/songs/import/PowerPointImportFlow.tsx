@@ -1,4 +1,13 @@
-import {Suspense, useEffect, useMemo, useRef, useState, type JSX} from 'react';
+import {
+  Suspense,
+  useEffect,
+  useEffectEvent,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type JSX,
+} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {PowerPointSource} from '@core/schema/powerpointImport';
 import type {TextImportDraft} from '@core/schema/textImport';
@@ -467,6 +476,12 @@ function PowerPointDialog({
   const [scale, setScale] = useState(100);
   const [title, setTitle] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const busyRef = useRef(false);
+  const [requested, setRequested] = useState(false);
+  const [waitingDraft, setWaitingDraft] = useState<TextImportDraft | null>(
+    null,
+  );
+  const editorState = useSyncExternalStore(store.subscribe, store.getSnapshot);
   const [lyrics, setLyrics] = useState(true);
   const backgroundAvailable =
     source.widescreen && source.slides.some(slide => slide.background !== null);
@@ -541,7 +556,7 @@ function PowerPointDialog({
     }
   };
   const create = async (): Promise<void> => {
-    setBusy(true);
+    let waitingForEditor = false;
     try {
       const winner = powerpointBackgroundIndex(range);
       let importedBackground: TextImportDraft['background'];
@@ -582,7 +597,10 @@ function PowerPointDialog({
           ? {}
           : {background: importedBackground}),
       };
-      if (store.getSnapshot().imported) setReplacement(draft);
+      if (store.getSnapshot().busy) {
+        waitingForEditor = true;
+        setWaitingDraft(draft);
+      } else if (store.getSnapshot().imported) setReplacement(draft);
       else edit(draft);
     } catch {
       if (active.current) {
@@ -595,7 +613,55 @@ function PowerPointDialog({
         });
       }
     } finally {
-      if (active.current) setBusy(false);
+      if (active.current && !waitingForEditor) {
+        busyRef.current = false;
+        setBusy(false);
+      }
+    }
+  };
+  const finishWaitingDraft = useEffectEvent(() => {
+    if (waitingDraft === null) return;
+    setWaitingDraft(null);
+    if (store.getSnapshot().imported) setReplacement(waitingDraft);
+    else edit(waitingDraft);
+    busyRef.current = false;
+    setBusy(false);
+  });
+  useEffect(() => {
+    if (waitingDraft === null || editorState.busy) return undefined;
+    let current = true;
+    queueMicrotask(() => {
+      if (current) finishWaitingDraft();
+    });
+    return () => {
+      current = false;
+    };
+  }, [waitingDraft, editorState.busy]);
+  const startRequested = useEffectEvent(() => {
+    setRequested(false);
+    create().catch((error: unknown) =>
+      console.error('PowerPoint import failed', error),
+    );
+  });
+  useEffect(() => {
+    if (!requested || preparing) return undefined;
+    let current = true;
+    queueMicrotask(() => {
+      if (current) startRequested();
+    });
+    return () => {
+      current = false;
+    };
+  }, [requested, preparing]);
+  const requestImport = (): void => {
+    if (busyRef.current) return;
+    busyRef.current = true;
+    setBusy(true);
+    if (preparing) setRequested(true);
+    else {
+      create().catch((error: unknown) =>
+        console.error('PowerPoint import failed', error),
+      );
     }
   };
   return (
@@ -613,19 +679,23 @@ function PowerPointDialog({
           onDone();
         }}
         cancelLabel="저장 안 함"
+        footerStart={
+          busy ? (
+            <span className={styles.importProgress}>
+              가져오는 중 <Progress value={null} label="가져오는 중" />
+            </span>
+          ) : undefined
+        }
         primary={{
-          label: lyrics ? '편집' : '가져오기',
+          label: '가져오기',
           disabled:
             busy ||
-            preparing ||
             slides.length === 0 ||
             (!lyrics && powerpointBackgroundIndex(range) === undefined),
-          onSelect: () => {
-            create().catch(() => undefined);
-          },
+          onSelect: requestImport,
         }}
       >
-        <div className={styles.content}>
+        <div className={styles.content} inert={busy}>
           <div className={styles.title}>
             <TextField
               aria-label="제목"

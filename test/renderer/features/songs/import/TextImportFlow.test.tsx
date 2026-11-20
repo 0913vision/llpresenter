@@ -116,7 +116,7 @@ describe('text import flow', () => {
       );
       await screen.findByText('슬라이드 1');
       expect(f.store.getSnapshot().session).toBe(previous);
-      fireEvent.click(screen.getByRole('button', {name: '편집'}));
+      fireEvent.click(screen.getByRole('button', {name: '가져오기'}));
       const question = screen.getByRole('alertdialog');
       expect(onEdit).not.toHaveBeenCalled();
       if (choice === 'cancel') {
@@ -167,7 +167,7 @@ describe('text import flow', () => {
       />,
     );
     await screen.findByText('슬라이드 1');
-    fireEvent.click(screen.getByRole('button', {name: '편집'}));
+    fireEvent.click(screen.getByRole('button', {name: '가져오기'}));
     expect(onDone).not.toHaveBeenCalled();
     expect(onEdit).not.toHaveBeenCalled();
     expect(screen.getByRole('dialog', {name: '텍스트 가져오기'})).toBeTruthy();
@@ -203,7 +203,7 @@ describe('text import flow', () => {
       source: 'file',
       encoding: 'auto',
     });
-    fireEvent.click(screen.getByRole('button', {name: '편집'}));
+    fireEvent.click(screen.getByRole('button', {name: '가져오기'}));
     expect(f.store.getSnapshot().imported).toBe(true);
     expect(f.store.getSnapshot().session?.title.value).toBe('Invented');
     expect(
@@ -248,7 +248,7 @@ describe('text import flow', () => {
         />,
       );
       await screen.findByText('슬라이드 1');
-      fireEvent.click(screen.getByRole('button', {name: '편집'}));
+      fireEvent.click(screen.getByRole('button', {name: '가져오기'}));
       const song = f.store.getSnapshot().session?.history.snapshot.song;
       if (song === undefined) throw new Error('Missing imported song');
       expect(song.slides[0]).toMatchObject({
@@ -404,30 +404,29 @@ describe('text import flow', () => {
     await waitFor(() => expect(onDone).toHaveBeenCalledOnce());
   });
 
-  it('never applies an old reading: 편집 waits for the read and the latest read wins', async () => {
+  it('opens once after a pending read and preview finish when import is clicked once', async () => {
     const pending = deferred<TextImportReadResult>();
     const read = vi.fn(async (request: {encoding: string; again?: boolean}) =>
       request.again === true ? pending.promise : fileResult('Initial reading'),
     );
     const view = mountFile(read);
-    const initial = await expectPreview(view.paint, 'Initial reading');
+    await expectPreview(view.paint, 'Initial reading');
     fireEvent.click(screen.getByRole('button', {name: '글자 인코딩'}));
     fireEvent.click(await screen.findByRole('menuitemradio', {name: 'CP949'}));
 
-    const edit = screen.getByRole('button', {name: '편집'});
-    await waitFor(() =>
-      expect(edit.getAttribute('aria-disabled')).toBe('true'),
-    );
+    const edit = screen.getByRole('button', {name: '가져오기'});
     fireEvent.click(edit);
+    fireEvent.click(edit);
+    expect(
+      screen.getByRole('progressbar', {name: '가져오는 중'}),
+    ).toBeDefined();
     expect(view.onEdit).not.toHaveBeenCalled();
     expect(view.onDone).not.toHaveBeenCalled();
 
     await act(async () => pending.resolve(fileResult('Latest reading')));
-    await expectPreview(view.paint, 'Latest reading', initial);
-    expect(screen.queryByRole('option', {name: /Initial reading/u})).toBeNull();
-    fireEvent.click(screen.getByRole('button', {name: '편집'}));
+    await waitFor(() => expect(view.onEdit).toHaveBeenCalledOnce());
     expect(view.store.getSnapshot().imported).toBe(true);
-    expect(view.onEdit).toHaveBeenCalledOnce();
+    expect(view.onDone).toHaveBeenCalledOnce();
   });
 
   it.each(['cancel', 'failure'] as const)(

@@ -1,4 +1,12 @@
-import {useCallback, useMemo, useState, type JSX} from 'react';
+import {
+  useCallback,
+  useEffect,
+  useEffectEvent,
+  useMemo,
+  useRef,
+  useState,
+  type JSX,
+} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {LibrarySong} from '@core/schema/contentDocuments';
 import {createSongId, createSongSlideId} from '@core/schema/ids';
@@ -11,7 +19,7 @@ import type {
   TextImportOptions,
   TextImportSource,
 } from '@core/schema/textImport';
-import {Checkbox, NumberField, TextField} from '@renderer/ui';
+import {Checkbox, NumberField, Progress, TextField} from '@renderer/ui';
 import {Dialog, DialogField} from '@renderer/ui/Dialog';
 import {SelectMenu} from '@renderer/ui/SelectMenu';
 import type {Notice} from '@renderer/ui/notices';
@@ -91,6 +99,7 @@ export function TextImportDialog({
   onRemember,
   onEncoding,
   reading = false,
+  editorBusy = false,
 }: {
   readonly api: LlpApi['textImport'];
   readonly source: TextImportSource;
@@ -104,6 +113,7 @@ export function TextImportDialog({
   readonly onRemember?: ((choice: TextImportChoice) => void) | undefined;
   /** True while the file is read again; 편집 waits for it. */
   readonly reading?: boolean | undefined;
+  readonly editorBusy?: boolean | undefined;
   /** Reads the same file again with this encoding. */
   readonly onEncoding?:
     ((encoding: Preferences['import']['txt']['encoding']) => void) | undefined;
@@ -116,6 +126,8 @@ export function TextImportDialog({
     unitsPerSlide: defaults.split === 'lineBreak' ? 2 : 1,
   }));
   const [title, setTitle] = useState<string | null>(null);
+  const [requested, setRequested] = useState(false);
+  const requestedRef = useRef(false);
   const [selected, setSelected] = useState<number | undefined>(undefined);
   const headers = useMemo(() => textImportHeaders(source.text), [source.text]);
   const exactMapping = useMemo(
@@ -206,6 +218,25 @@ export function TextImportDialog({
           ),
     [mappingOpen, preview.draft, selectedMapping, shownTitle],
   );
+  const finishImport = useEffectEvent(() => {
+    if (draft !== null && draftReason === undefined) {
+      onEdit({...draft, title: shownTitle});
+    }
+    requestedRef.current = false;
+    setRequested(false);
+  });
+  useEffect(() => {
+    if (!requested || reading || preview.pending || mappingOpen || editorBusy) {
+      return undefined;
+    }
+    let current = true;
+    queueMicrotask(() => {
+      if (current) finishImport();
+    });
+    return () => {
+      current = false;
+    };
+  }, [requested, reading, preview.pending, mappingOpen, editorBusy]);
   return (
     <>
       <Dialog
@@ -217,10 +248,21 @@ export function TextImportDialog({
         }}
         onCancel={onDiscard}
         cancelLabel="저장 안 함"
+        footerStart={
+          requested ? (
+            <span className={styles.importProgress}>
+              가져오는 중 <Progress value={null} label="가져오는 중" />
+            </span>
+          ) : undefined
+        }
         primary={{
-          label: '편집',
+          label: '가져오기',
           disabled:
-            reading || preview.draft === null || draftReason !== undefined,
+            requested ||
+            preview.invalidSymbol ||
+            (!reading &&
+              !preview.pending &&
+              (draft === null || draftReason !== undefined)),
           title:
             draftReason ??
             (reading ? '파일을 다시 읽는 중' : undefined) ??
@@ -232,9 +274,20 @@ export function TextImportDialog({
                   ? '가져올 슬라이드가 없습니다'
                   : undefined),
           onSelect: () => {
-            if (!reading && draft && draftReason === undefined) {
+            if (requestedRef.current) return;
+            requestedRef.current = true;
+            if (
+              !reading &&
+              !preview.pending &&
+              !mappingOpen &&
+              !editorBusy &&
+              draft !== null &&
+              draftReason === undefined
+            ) {
               onEdit({...draft, title: shownTitle});
+              return;
             }
+            setRequested(true);
           },
         }}
         topBar={

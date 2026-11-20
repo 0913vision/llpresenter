@@ -163,6 +163,7 @@ export function TextImportFlow({
     <>
       <TextImportDialog
         api={api.textImport}
+        editorBusy={state.busy}
         source={input.source}
         defaults={input.defaults}
         labels={state.labels?.value.labels ?? []}

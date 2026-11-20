@@ -5,6 +5,13 @@
   height: 65vh;
   min-height: 0;
 }
+.importProgress {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  color: var(--text-2);
+  font: var(--type-label);
+}
 .title {
   display: flex;
   align-items: center;
