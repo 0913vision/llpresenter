@@ -1,0 +1,12 @@
+.fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  gap: var(--space-8);
+  max-block-size: min(30vh, 16rem);
+  overflow: auto;
+  min-inline-size: 0;
+  padding: var(--space-8);
+  border: 0;
+  margin: 0;
+  flex-shrink: 0;
+}

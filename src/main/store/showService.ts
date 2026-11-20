@@ -20,6 +20,7 @@ import {
   type ShowTile,
 } from '@core/schema/showService';
 import {colorSlideLabels, projectSlides} from '@core/presentation/slides';
+import {textOverridesForTiles} from '@core/presentation/textOverrides';
 import type {ServicePassages} from '../bible/servicePassages';
 import {LITURGY} from '@core/services/liturgy';
 import {LITURGY_SLIDES} from '@core/services/liturgySlides';
@@ -122,6 +123,12 @@ export function buildShowService({
       colors,
     );
   }
+  for (const item of order) {
+    const tiles = itemTiles[item.id];
+    if (tiles !== undefined) {
+      itemTiles[item.id] = textOverridesForTiles(tiles, item.textOverrides);
+    }
+  }
   const rowSources: RowSources = {
     songs,
     backgrounds,
@@ -172,6 +179,7 @@ function otherTiles(
   if (isItemOfKind(item, 'liturgy')) {
     return LITURGY_SLIDES[item.liturgy.kind][item.liturgy.translation].map(
       (text, index) => ({
+        textSlideKey: `liturgy:${item.liturgy.kind}:${item.liturgy.translation}:${index}`,
         label:
           item.liturgy.labels?.find(entry => entry.index === index)?.label ??
           text.split('\n')[0] ??
@@ -346,6 +354,12 @@ function rowOf(item: ServiceItem, sources: RowSources): ShowRow {
               translationName: settings.translationName,
               reference: settings.reference,
               ...(settings.cuts === undefined ? {} : {cuts: settings.cuts}),
+              ...(settings.pinnedVerses === undefined
+                ? {}
+                : {pinnedVerses: settings.pinnedVerses}),
+              ...(item.textOverrides === undefined
+                ? {}
+                : {textOverrides: item.textOverrides}),
               ...(settings.transition === undefined
                 ? {}
                 : {transition: settings.transition}),

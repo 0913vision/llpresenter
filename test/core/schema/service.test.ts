@@ -71,6 +71,29 @@ function withItem(item: object) {
 }
 
 describe('parseService', () => {
+  it('round-trips named slide text overrides and rejects blank manual values', () => {
+    const textOverrides = {
+      'verse:sample:43:3:16:1': {
+        reference: 'Revised',
+        currentText: 'Two\nlines',
+      },
+    };
+    const item = {id: itemId(4), bible: PASSAGE, textOverrides};
+    const saved = expectSuccess(parse(withItem(item))).data;
+    const written = expectSuccess(serializeService(saved, FILE));
+    expect(expectSuccess(parseService(written, FILE)).data.order[0]).toEqual(
+      item,
+    );
+    expect(
+      parse(
+        withItem({
+          ...item,
+          textOverrides: {'verse:sample:43:3:16:1': {reference: ' '}},
+        }),
+      ).ok,
+    ).toBe(false);
+  });
+
   it('round-trips confirmed cuts owned by one Bible passage and rejects invalid entries', () => {
     const entry = {
       hash: '1234abcd',

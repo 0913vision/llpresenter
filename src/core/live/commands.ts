@@ -10,6 +10,7 @@ import type {ScreenCommand} from '../schema/screenCommands';
 import type {MessageExpiry} from '../schema/overlayState';
 import type {OverlayClear} from '../schema/overlayClear';
 import type {ClearFade} from '../schema/clearFade';
+import type {SlideTextOverrides} from '../schema/slideTextOverrides';
 
 export type ClearTarget = LayerKind | 'all';
 
@@ -23,6 +24,12 @@ export type SingleLiveCommand =
   | MessageExpiry
   | OverlayClear
   | {readonly type: 'slide.show'; readonly slide: SlideLayer}
+  | {
+      readonly type: 'slide.text.override';
+      readonly itemId: string;
+      readonly position: number;
+      readonly textOverrides: SlideTextOverrides | null;
+    }
   | {
       readonly type: 'bible.passage.title.set';
       readonly itemId: string;
@@ -84,6 +91,7 @@ export function interruptsSongOutput(command: LiveCommand): boolean {
     case 'output.set':
     case 'black.toggle':
     case 'stage.next.set':
+    case 'slide.text.override':
     case 'bible.passage.title.set':
     case 'stage.timer.set':
     case 'stage.message.set':

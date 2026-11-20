@@ -1,8 +1,13 @@
 import type {BibleDisplayOptions} from '@core/bible/source';
 import type {BibleSource} from '@core/bible/source';
+import {
+  textOverridesForTiles,
+  textVerseKey,
+} from '@core/presentation/textOverrides';
 import {bibleOutputLines} from '@core/bible/bibleTiles';
 import {passageBook} from '@core/bible/adjacentVerses';
 import {
+  projectPinnedVerse,
   splitVerseParts,
   type VerseInput,
   type VersePart,
@@ -52,6 +57,8 @@ interface SplitOptions {
   readonly transitions?: readonly BiblePartTransition[];
   readonly transition?: SlideTransition;
   readonly cuts?: BiblePassage['cuts'];
+  readonly pinnedVerses?: BiblePassage['pinnedVerses'];
+  readonly textOverrides?: import('@core/schema/slideTextOverrides').ItemTextOverrides;
   readonly id: string;
   readonly verseNumbers: boolean;
   readonly reference: BiblePassage['reference'];
@@ -181,6 +188,12 @@ export function splitSourceFor(
       ? {}
       : {transitions: row.bible.transitions}),
     ...(row.bible.cuts === undefined ? {} : {cuts: row.bible.cuts}),
+    ...(row.bible.pinnedVerses === undefined
+      ? {}
+      : {pinnedVerses: row.bible.pinnedVerses}),
+    ...(row.bible.textOverrides === undefined
+      ? {}
+      : {textOverrides: row.bible.textOverrides}),
     source: 'service',
     review: false,
     ...(row.bible.theme === undefined ? {} : {theme: row.bible.theme}),
@@ -223,11 +236,15 @@ export function projectBible(
       source.verseNumbers && verses.length > 1
         ? `${verse.reference.verse} `
         : '';
-    const next = splitVerseParts(verse, layout, {
-      saved: source.source === 'external' ? saved : undefined,
-      confirmed: source.cuts?.[cacheKey(verse.reference)],
-      prefix,
-    });
+    const pinned = source.pinnedVerses?.[textVerseKey(verse.reference)];
+    const next =
+      pinned !== undefined
+        ? projectPinnedVerse(verse, pinned, {layout, prefix})
+        : splitVerseParts(verse, layout, {
+            saved: source.source === 'external' ? saved : undefined,
+            confirmed: source.cuts?.[cacheKey(verse.reference)],
+            prefix,
+          });
     if (
       parts.length + next.length + (source.sermonTitle === undefined ? 0 : 2) >
       SHOW_SERVICE_LIMITS.tiles
@@ -279,7 +296,7 @@ export function projectBible(
     parts,
     partsByTile:
       source.sermonTitle === undefined ? parts : [null, ...parts, null],
-    tiles:
+    tiles: textOverridesForTiles(
       source.sermonTitle === undefined
         ? tiles
         : [
@@ -292,6 +309,7 @@ export function projectBible(
               lines: [source.sermonTitle],
               reference: source.passage.displayRef,
               sermonTitle: true,
+              textSlideKey: 'sermon:opening',
               ...(source.sermonOpeningTransition === undefined
                 ? {}
                 : {transition: source.sermonOpeningTransition}),
@@ -306,11 +324,14 @@ export function projectBible(
               lines: [source.sermonTitle],
               reference: source.passage.displayRef,
               sermonTitle: true,
+              textSlideKey: 'sermon:closing',
               ...(source.sermonClosingTransition === undefined
                 ? {}
                 : {transition: source.sermonClosingTransition}),
             },
           ],
+      source.textOverrides,
+    ),
     numbered: source.verseNumbers && verses.length > 1,
   };
 }
@@ -358,6 +379,8 @@ export class BibleProjections {
       cached.source.translationName === source.translationName &&
       cached.source.transitions === source.transitions &&
       cached.source.cuts === source.cuts &&
+      cached.source.pinnedVerses === source.pinnedVerses &&
+      cached.source.textOverrides === source.textOverrides &&
       cached.source.transition === source.transition &&
       cached.source.review === source.review
     ) {

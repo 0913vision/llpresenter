@@ -35,6 +35,13 @@ import {classes} from '@renderer/rendering/classes';
 import {bibleVerseTiles} from '@core/bible/bibleTiles';
 import {projectSlides, slidesOutput} from '@core/presentation/slides';
 import {slideLayerOf} from '@core/presentation/slideLayer';
+import {
+  editedSlideText,
+  textOverridesForTiles,
+  textSlideKey,
+} from '@core/presentation/textOverrides';
+import {pictureKey} from '@core/output/pictureKey';
+import {outputSlideSpec} from '@renderer/rendering/outputSlideSpec';
 import {parseLiveCommand} from '@core/schema/liveCommand';
 import {slidesItem} from '@fixtures/core/slides';
 import {panelPassage} from '@fixtures/contracts/ipc/bibleApi';
@@ -114,6 +121,73 @@ afterEach(() => {
 });
 
 describe('theme composition drawing', () => {
+  it.each(['audience', 'stage', 'broadcast'] as const)(
+    'applies a saved per-box Bible text override on %s and restores the automatic text',
+    kind => {
+      const passage = panelPassage();
+      const tiles = bibleVerseTiles(passage, {reference: 'every'});
+      const first = tiles[0];
+      if (!first) throw Error('Missing verse');
+      const key = textSlideKey(first);
+      if (!key) throw Error('Missing verse identity');
+      const cursor = {itemId: 'bible-test', index: 0};
+      const theme = currentBuiltInTheme('bible');
+      const id = createScreenId(
+        kind === 'audience'
+          ? STARTER_SCREEN_IDS.main
+          : STARTER_SCREEN_IDS[kind],
+      );
+      const layout = theme.screens[id];
+      if (!layout) throw Error('Missing layout');
+      const item = {
+        id: cursor.itemId,
+        source: 'service' as const,
+        kind: 'bible' as const,
+        title: passage.displayRef,
+      };
+      const appearance = {
+        themeId: theme.id,
+        layout,
+        item,
+        emptyColor: '#000000',
+        screen: {id, kind, method: 'fullscreen' as const},
+      };
+      const {view, text} = setup();
+      function draw(source: typeof tiles) {
+        const slide = slideLayerOf(cursor, () => source);
+        if (!slide) throw Error('Missing slide');
+        const picture = outputSlideSpec({...appearance, slide});
+        view.render(picture.layers, {
+          ...frame(layout.elements, {
+            layout,
+            item,
+            themeId: theme.id,
+            sourceScreenId: id,
+          }),
+          screen: appearance.screen,
+          transitions: false,
+        });
+        return pictureKey(picture);
+      }
+      const automatic = draw(tiles);
+      const overrides = {
+        [key]: {reference: 'Edited reference', currentText: 'Edited body'},
+      };
+      expect(draw(textOverridesForTiles(tiles, overrides))).not.toBe(automatic);
+      expect(text('currentText')).toContain('Edited body');
+      expect(text('reference')).toBe('Edited reference');
+      const restored = editedSlideText(overrides, {
+        slide: key,
+        slot: 'reference',
+        text: '',
+      });
+      draw(textOverridesForTiles(tiles, restored));
+      expect(text('reference')).toBe(passage.displayRef);
+      expect(text('currentText')).toContain('Edited body');
+      view.dispose();
+    },
+  );
+
   it.each(['blank', 'ad'] as const)(
     'draws referenced %s text like the same Bible passage on all three screens',
     form => {

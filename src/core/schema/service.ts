@@ -1,5 +1,6 @@
 import {slideTransitionSchema} from './slideTransition';
 import * as v from 'valibot';
+import {itemTextOverridesSchema} from './slideTextOverrides';
 import type {Result} from '../common/result';
 import {isRecord} from '../common/guards';
 import {biblePassageSchema} from './biblePassage';
@@ -221,6 +222,7 @@ const itemFields = {
   id: serviceItemIdSchema,
   theme: v.exactOptional(themeIdSchema),
   overlays: v.exactOptional(itemOverlaysSchema),
+  textOverrides: v.exactOptional(itemTextOverridesSchema),
 };
 
 const startFields = {

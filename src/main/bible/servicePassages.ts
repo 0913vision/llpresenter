@@ -1,6 +1,5 @@
 import {bibleVerseTiles} from '@core/bible/bibleTiles';
 import {BIBLE_BOOKS} from '@core/bible/bibleBooks';
-import {passageBook} from '@core/bible/adjacentVerses';
 import {biblePartEffect, biblePartLabel} from '@core/bible/partTransitions';
 import type {RecentPassage} from '@core/schema/bible';
 import {
@@ -120,6 +119,7 @@ export async function resolveServicePassages(
       ...(isItemOfKind(item, 'sermon')
         ? [
             {
+              textSlideKey: 'sermon:opening',
               label: item.sermon.openingLabel ?? null,
               ...(item.sermon.openingLabel === undefined
                 ? {}
@@ -139,18 +139,17 @@ export async function resolveServicePassages(
         reference: settings.reference,
         translationName: settings.translationName,
         transition: settings.transition,
-      }).map((tile, index) => {
-        const verse = passage.verses[index];
-        const book = passageBook(passage);
-        if (verse === undefined || book === undefined) return tile;
-        const reference = {
-          translation: passage.translation,
-          book: book.id,
-          chapter: verse.chapter,
-          verse: verse.verse,
-        };
-        const transition = biblePartEffect(item.bibleTransitions, reference, 1);
-        const label = biblePartLabel(item.bibleLabels, reference, 1);
+        pinnedVerses: settings.pinnedVerses,
+      }).map(tile => {
+        const reference = tile.bibleVerse;
+        if (reference === undefined) return tile;
+        const part = tile.biblePart ?? 1;
+        const transition = biblePartEffect(
+          item.bibleTransitions,
+          reference,
+          part,
+        );
+        const label = biblePartLabel(item.bibleLabels, reference, part);
         return {
           ...tile,
           ...(transition === undefined ? {} : {transition}),
@@ -160,6 +159,7 @@ export async function resolveServicePassages(
       ...(isItemOfKind(item, 'sermon')
         ? [
             {
+              textSlideKey: 'sermon:closing',
               label: item.sermon.closingLabel ?? null,
               ...(item.sermon.closingLabel === undefined
                 ? {}

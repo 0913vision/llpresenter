@@ -9,6 +9,7 @@ import type {Preferences} from '@core/schema/preferences';
 import type {MediaChoice, NextSlide, SlideLayer} from '@core/live/state';
 import type {SingleLiveCommand} from '@core/live/commands';
 import {findSlideHotKey} from '@core/services/slideHotKeys';
+import {textSlideKey} from '@core/presentation/textOverrides';
 import {parseServiceItemId} from '@core/schema/ids';
 import type {ShowService} from '@core/schema/showService';
 import {SERMON_TITLE_THEME_ID} from '@core/themes/sundayScripture';
@@ -555,6 +556,7 @@ function nextKey(next: NextSlide | null | undefined): string {
         next.title ?? null,
         next.itemKind ?? null,
         next.lines,
+        next.textOverrides ?? null,
         next.continued ?? null,
         next.biblePart ?? null,
         next.bibleVerse ?? null,
@@ -563,6 +565,32 @@ function nextKey(next: NextSlide | null | undefined): string {
         next.stageReference ?? null,
         next.stageStandby ?? null,
       ]);
+}
+
+function refreshLiveTextOverrides(previous: ShowView): void {
+  const slide = useLive.getState().state?.layers.slide;
+  if (!slide) return;
+  const current = useShow.getState();
+  const before = projectedLiveCursor(previous, slide);
+  const after = projectedLiveCursor(current, slide);
+  if (!before || !after) return;
+  const oldTile = tilesForView(previous, slide.itemId)[before.index];
+  const tile = tilesForView(current, slide.itemId)[after.index];
+  if (!oldTile || !tile) return;
+  const key = textSlideKey(tile);
+  if (
+    key === undefined ||
+    textSlideKey(oldTile) !== key ||
+    JSON.stringify(oldTile.textOverrides) === JSON.stringify(tile.textOverrides)
+  ) {
+    return;
+  }
+  sendLive({
+    type: 'slide.text.override',
+    itemId: slide.itemId,
+    position: slide.position,
+    textOverrides: tile.textOverrides ?? null,
+  });
 }
 
 /** Keep stage preview in sync without re-outputting the live slide. */
@@ -830,6 +858,7 @@ export function applyService(service: ShowService | null): void {
       }
       sendLive({type: 'themes.refresh'});
     }
+    refreshLiveTextOverrides(view);
     refreshStageNext();
   }
 }

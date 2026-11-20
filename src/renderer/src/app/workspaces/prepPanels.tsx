@@ -59,6 +59,7 @@ import {isLibrarySource, openLibrarySong} from '@renderer/session/showLibrary';
 import {useLeadingItemCard} from '@renderer/features/service/items/useLeadingItemCard';
 import {PrepBibleSplitTools} from './PrepBibleSplitTools';
 import {BibleInlineEditor} from '@renderer/features/service/items/BibleInlineEditor';
+import {SlideTextFields} from '@renderer/features/service/items/SlideTextFields';
 import {itemEditorAdapter} from '@renderer/platform/itemEditorAdapter';
 import type {LeadingSlideCard} from '@renderer/features/songs/editor';
 import type {ReactNode} from 'react';
@@ -538,6 +539,9 @@ function OtherPrepEditor({
           <strong>{displayReference(item.sermon.passage.ref)}</strong>
         ) : null}
       </header>
+      {splitVerses ? (
+        <SlideTextFields items={prep.items} state={itemState} />
+      ) : null}
       {item !== null && isItemOfKind(item, 'sermon') ? (
         <SermonInlineEditor items={prep.items} shownItem={itemState} />
       ) : null}

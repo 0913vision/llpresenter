@@ -36,6 +36,7 @@ export type ResolvedThemeElement = ThemeElement & {
   readonly broadcastSong?: 'band' | 'bandText' | 'text';
   readonly broadcastBibleFlow?: boolean;
   readonly broadcastText?: string;
+  readonly manualText?: string;
   readonly broadcastSongTitle?: string;
   readonly broadcastSongTitleWrap?: boolean;
   readonly broadcastSingleLine?: boolean;

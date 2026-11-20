@@ -66,6 +66,7 @@ export function pictureKey({layers, appearance}: PictureSpec): string {
       : [
           kind,
           slide.lines,
+          ...(slide.textOverrides === undefined ? [] : [slide.textOverrides]),
           stage || broadcast || draws('label') ? slide.label : null,
           slide.continued === true,
           slide.biblePart,

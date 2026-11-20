@@ -10,6 +10,7 @@ import {songTitleLines} from '@core/presentation/songTitleLines';
 import type {TextStyle} from '@core/themes/textStyle';
 import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {themeTextVAlign} from '@core/themes/textAlignment';
+import {manualThemeText} from '@core/themes/textSlots';
 import {STAGE_COLORS} from '@core/themes/stageColors';
 import {
   isReferencedTextSlide,
@@ -534,7 +535,14 @@ export class ThemeElementView {
         );
       }
     } else {
+      const resolved =
+        slide?.textOverrides !== undefined ||
+        slide?.next?.textOverrides !== undefined
+          ? frame.theme?.layout.elements.find(value => value.id === element.id)
+          : undefined;
+      const manualText = manualThemeText(resolved);
       const displayedText =
+        manualText ??
         cue ??
         (stage && isSong && element.kind === 'currentText' && !slide?.titleSlide
           ? frame.stageSongLines?.join('\n')
@@ -561,7 +569,7 @@ export class ThemeElementView {
       if (inlineLabel !== undefined) this.box.style.overflow = 'visible';
       this.text?.setStageInlineLabel(inlineLabel);
       this.showText(displayedText, frame, {
-        cue: cue !== undefined,
+        cue: cue !== undefined && manualText === undefined,
         lyricFormat:
           stage &&
           isSong &&

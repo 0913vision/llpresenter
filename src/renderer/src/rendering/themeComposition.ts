@@ -1,6 +1,7 @@
 import {isSectionTheme} from '@core/themes/sundaySections';
 import {fitBroadcastLook, isBroadcastLook} from './broadcastLook';
 import {stageBarLayout} from './stageBar';
+import {withSlideTextOverrides} from '@core/themes/textSlots';
 import type {LiveLayers} from '@core/live/state';
 import type {SlideLayer} from '@core/live/state';
 import type {LiveThemeItem} from '@core/schema/liveTheme';
@@ -207,13 +208,14 @@ export class ThemeCompositionView {
     }
     if (frame.theme !== undefined) {
       const slide = frame.slide ?? layers.slide;
+      const layout = withSlideTextOverrides(frame.theme, slide);
       frame = {
         ...frame,
         theme: {
           ...frame.theme,
           layout: songTitleLayout(
             stageBarLayout(
-              this.fitBand(frame.theme.layout, slide, {
+              this.fitBand(layout, slide, {
                 item: frame.theme.item,
                 songCaption:
                   frame.screen?.kind === 'broadcast'
@@ -306,11 +308,14 @@ export class ThemeCompositionView {
       this.clear();
       return;
     }
-    const signature = JSON.stringify([
-      theme.themeId,
-      theme.layout,
-      itemBackgroundOverride(frame, this.options.transparent === true),
-    ]);
+    const signature = JSON.stringify(
+      [
+        theme.themeId,
+        theme.layout,
+        itemBackgroundOverride(frame, this.options.transparent === true),
+      ],
+      (key, value: unknown) => (key === 'manualText' ? undefined : value),
+    );
     const previous = this.page?.frame.slide ?? this.page?.layers.slide;
     const incoming = frame.slide ?? layers.slide;
     const slideChanged =

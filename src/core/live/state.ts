@@ -1,4 +1,5 @@
 import type {SectionCard} from '../schema/service';
+import type {SlideTextOverrides} from '../schema/slideTextOverrides';
 import type {ActiveMessage, ActiveProp} from '../schema/overlayState';
 import type {MacroId, MediaId, ScreenId, SlideId, TimerId} from '../schema/ids';
 import type {TimerRuns} from '../schema/timerState';
@@ -48,6 +49,7 @@ export interface MediaLayer extends MediaChoice {
 
 /** The 장 after the live one in the item's sequence, for the 무대 화면. */
 export interface NextSlide {
+  readonly textOverrides?: SlideTextOverrides;
   readonly itemKind?: LiveThemeItem['kind'];
   /** Optional title displayed before the next slide body. */
   readonly title?: string;
@@ -67,6 +69,7 @@ export interface NextSlide {
 
 /** The slide on output: a service item, its position in the slide sequence, and what to draw. */
 export interface SlideLayer {
+  readonly textOverrides?: SlideTextOverrides;
   /** The Bible item's complete projected parts, for item-wide broadcast fitting. */
   readonly bibleItemSlides?: ReadonlyArray<{
     readonly lines: readonly string[];

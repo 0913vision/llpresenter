@@ -1,5 +1,5 @@
 import type {MediaChoice, SlideLayer} from '@core/live/state';
-import {setLayer, updateLayer, type LiveHistory} from '../history';
+import {setLayer, updateLayer, withLayers, type LiveHistory} from '../history';
 import {defineSlice} from '../slice';
 
 function clearPreviousPicture(
@@ -44,6 +44,7 @@ function showMedia(
 export const contentSlice = defineSlice({
   commands: [
     'slide.show',
+    'slide.text.override',
     'bible.passage.title.set',
     'stage.next.set',
     'media.show',
@@ -53,6 +54,34 @@ export const contentSlice = defineSlice({
   initial: {layers: {slide: null, media: null, message: null}},
   reduce: (history, command, context) => {
     switch (command.type) {
+      case 'slide.text.override': {
+        const {layers} = history.state;
+        const slide = layers.slide;
+        if (
+          slide?.itemId !== command.itemId ||
+          slide.position !== command.position ||
+          JSON.stringify(slide.textOverrides ?? null) ===
+            JSON.stringify(command.textOverrides)
+        ) {
+          return history;
+        }
+        const {textOverrides: _previous, ...base} = slide;
+        const updated =
+          command.textOverrides === null
+            ? base
+            : {...base, textOverrides: command.textOverrides};
+        const {undo} = history;
+        const saved = undo?.layers.slide;
+        return withLayers(
+          history,
+          {...layers, slide: updated},
+          undo !== null &&
+            saved?.itemId === slide.itemId &&
+            saved.position === slide.position
+            ? {...undo, layers: {...undo.layers, slide: updated}}
+            : undo,
+        );
+      }
       case 'bible.passage.title.set': {
         const slide = history.state.layers.slide;
         const item = history.state.themeItem;

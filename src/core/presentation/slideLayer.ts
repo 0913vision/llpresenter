@@ -59,6 +59,9 @@ export function nextSlideOf(
       ? {labelContinued: true as const}
       : {}),
     lines: tile.sectionCard === undefined && !notice ? tile.lines : [],
+    ...(tile.textOverrides === undefined
+      ? {}
+      : {textOverrides: tile.textOverrides}),
     ...(kind === undefined ? {} : {itemKind: kind}),
     ...(title === undefined || title.trim() === '' ? {} : {title}),
     ...(tile.continued === undefined ? {} : {continued: tile.continued}),
@@ -180,6 +183,9 @@ export function slideLayerOf(
       ? {labelContinued: true as const}
       : {}),
     lines: tile.lines,
+    ...(tile.textOverrides === undefined
+      ? {}
+      : {textOverrides: tile.textOverrides}),
     ...(tile.sectionCard === undefined ? {} : {sectionCard: tile.sectionCard}),
     ...(tile.sermonTitle === undefined ? {} : {sermonTitle: tile.sermonTitle}),
     ...(tile.titleSlide === undefined ? {} : {titleSlide: tile.titleSlide}),
