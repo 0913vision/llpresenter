@@ -1,4 +1,3 @@
-import {LIVE_BIBLE_ID} from '@core/bible/liveTranslation';
 import {
   beginQuickPassage,
   finishQuickPassage,
@@ -81,33 +80,6 @@ afterEach(() => {
 });
 
 describe('BibleQuickField', () => {
-  it('labels only recent rows that differ from the effective panel translation', async () => {
-    const fixture = panelApi();
-    window.llp = fixture.api;
-    const settings = fixture.document();
-    const translation = lookupRequest().translation;
-    const ref = '\uC694\uD55C\uBCF5\uC74C 3:16-18';
-    fixture.push({
-      ...settings,
-      revision: 2,
-      value: {
-        ...settings.value,
-        recents: [
-          {ref, translation: LIVE_BIBLE_ID},
-          {ref, translation},
-        ],
-      },
-    });
-    fixture.lookup.mockImplementation(async request => ({
-      ...(await formLookupReply(request)),
-      effectiveTranslation: LIVE_BIBLE_ID,
-    }));
-    render(<BibleQuickField api={fixture.api} />);
-    const rows = await screen.findAllByRole('button', {name: /3:16~18/});
-    await waitFor(() => expect(rows[1]?.textContent).toContain('Invented'));
-    expect(rows[0]?.textContent).not.toContain('Invented');
-    expect(rows[0]?.textContent).not.toContain('\uC2E4\uC2DC\uAC04');
-  });
   it.each([true, false])(
     'outputs Enter after picture preparation returns %s',
     async ready => {
@@ -304,9 +276,16 @@ describe('BibleQuickField', () => {
       },
     });
     render(<BibleQuickField api={fixture.api} />);
-    const tenth = await screen.findByRole('button', {name: /요한복음 3:10/});
-    expect(tenth.textContent).toContain('Alt+0');
+    await book();
+    expect(
+      screen.queryByLabelText('\uCD5C\uADFC \uC131\uACBD \uAD6C\uC808'),
+    ).toBeNull();
     fireEvent.keyDown(document.body, {key: '0', code: 'Digit0', altKey: true});
+    expect(fixture.send).not.toHaveBeenCalled();
+    fireEvent.keyDown(document.body, {key: 'b', code: 'KeyB', ctrlKey: true});
+    const tenth = await screen.findByRole('button', {name: /요한복음 3:10/});
+    expect(tenth.textContent).toContain('Alt0');
+    fireEvent.keyDown(await book(), {key: '0', code: 'Digit0', altKey: true});
     await waitFor(() =>
       expect(
         lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0]),
@@ -330,14 +309,16 @@ describe('BibleQuickField', () => {
         ],
       },
     });
+    render(<BibleQuickField api={fixture.api} />);
+    await book();
+    fireEvent.keyDown(document.body, {key: 'b', code: 'KeyB', ctrlKey: true});
+    await screen.findByRole('button', {name: /3:16~18/});
     let finish: (value: BibleLookupReply) => void = () => undefined;
     fixture.lookup.mockReturnValueOnce(
       new Promise(resolve => {
         finish = resolve;
       }),
     );
-    render(<BibleQuickField api={fixture.api} />);
-    await book();
     fireEvent.click(
       await screen.findByRole('button', {name: /요한복음 3:16~18/}),
     );
@@ -386,7 +367,7 @@ describe('BibleQuickField', () => {
     await act(async () => finish(await formLookupReply(lookupRequest(ref))));
     expect(fixture.send.mock.calls).toHaveLength(count);
   });
-  it('shows ten fixed recent slots and runs the configured shortcut from a text field', async () => {
+  it('runs the configured recent shortcut only in the finder', async () => {
     const fixture = panelApi();
     window.llp = fixture.api;
     fixture.push({
@@ -402,14 +383,14 @@ describe('BibleQuickField', () => {
     commandBindingStore.set({'bible.recent1': [{code: 'F8', mods: ['alt']}]});
     render(<BibleQuickField api={fixture.api} />);
     const field = await book();
+    fireEvent.keyDown(field, {code: 'F8', key: 'F8', altKey: true});
+    expect(fixture.send).not.toHaveBeenCalled();
+    fireEvent.keyDown(document.body, {key: 'b', code: 'KeyB', ctrlKey: true});
     const recent = await screen.findByRole('button', {
       name: /요한복음 3:16~18/,
     });
-    expect(recent.textContent).toContain('Alt+F8');
-    expect(screen.getByLabelText('최근 성경 구절').children).toHaveLength(10);
-    fireEvent.focus(field);
-    expect(screen.queryByRole('option', {name: /요한복음 3:16~18/})).toBeNull();
-    fireEvent.keyDown(field, {code: 'F8', key: 'F8', altKey: true});
+    expect(recent.textContent).toContain('AltF8');
+    fireEvent.keyDown(await book(), {code: 'F8', key: 'F8', altKey: true});
     await waitFor(() =>
       expect(
         lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0]),
@@ -869,6 +850,8 @@ describe('BibleQuickField', () => {
       }),
     );
 
+    fireEvent.keyDown(document.body, {key: 'b', code: 'KeyB', ctrlKey: true});
+    await screen.findByRole('dialog');
     fireEvent.click(screen.getByRole('button', {name: /요한복음 3:16~18/}));
     await waitFor(() =>
       expect(

@@ -728,10 +728,9 @@ Source: `Overlays` (tool controls), `Problems` (still background), `Macros`,
 - Header: "빠른 실행" and 빠른 실행 추가 (add, plus icon).
 - Tool row: the four Bible reference fields 책, 장, 시작절, 끝절, with a book
   icon on 책. See "Bible passages".
-- Below the fields, ten fixed rows show up to ten recent passages, newest first.
-  Empty rows remain blank. Clicking a row or pressing its configurable Alt+1
-  through Alt+9 or Alt+0 shortcut in 진행 immediately shows that passage; recent
-  passages do not appear in the 책 suggestions.
+- Recent passages and their Alt+1 through Alt+0 shortcuts are available in the
+  Ctrl+B passage dialog, not in the quick panel.
+
 - List: one row per item, with a kind icon and a name. Rows show no shortcuts.
 - While a quick Bible passage is live, its reference appears above the saved
   quick items. Preview alone does not show it; the black screen remains its own
@@ -910,9 +909,9 @@ name. Chapter and verse bounds always use the built-in GAE number table.
   displayed end. A reversed end blocks lookup. Shift Tab keeps backward
   navigation and IME composition keeps its keys.
 - Suggestions open below 책 and list matching books without the former
-  eight-book cap. Recent passages appear in the separate ten-row list below the
-  quick fields. Selecting one outputs its original stored range, including whole
-  chapters and cross-chapter ranges.
+  eight-book cap. Recent passages appear in the passage dialog. Selecting one
+  outputs its original stored range, including whole chapters and cross-chapter
+  ranges.
 - As soon as the fields form a valid reference, the Bible panel opens in place
   of the 슬라이드 panel in the center column.
 - In quick run, Enter in 장, 시작절 or 끝절 outputs a valid passage and focuses

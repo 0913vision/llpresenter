@@ -16,7 +16,6 @@ import {editsText, matchesBinding} from '@core/shortcuts/matching';
 import {shortcutNames} from '@core/shortcuts/keys';
 import {commandBindingStore} from '@renderer/ui/commandBindings';
 import {isInputMethodKey} from '@renderer/ui/commandDispatcher';
-import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import styles from './RecentPassages.module.css';
 
 /** Shared recent-passage list. The caller owns lookup and the next step. */
@@ -25,7 +24,7 @@ export function RecentPassages({
   translations,
   translation,
   onPick,
-  scope = 'show',
+  scope = 'dialog',
   disabled = false,
   highlight = -1,
   showTranslation = true,
@@ -34,7 +33,7 @@ export function RecentPassages({
   readonly translations: readonly Translation[];
   readonly translation: TranslationId | undefined;
   readonly onPick: (passage: RecentPassage) => void;
-  readonly scope?: 'show' | 'dialog';
+  readonly scope?: 'dialog';
   readonly disabled?: boolean;
   readonly highlight?: number;
   readonly showTranslation?: boolean;
@@ -55,18 +54,6 @@ export function RecentPassages({
       }
     }
   }, [scope, highlight]);
-  useWindowShortcuts(
-    scope === 'show'
-      ? Array.from({length: 10}, (_, index) => ({
-          id: `bible.recent${index + 1}`,
-          when: () => !disabled && entries[index] !== undefined,
-          run: () => {
-            const recent = entries[index];
-            if (recent) onPick(recent);
-          },
-        }))
-      : [],
-  );
   const pickInDialog = useEffectEvent((event: KeyboardEvent): void => {
     const dialog = root.current?.closest('[role="dialog"]');
     if (
