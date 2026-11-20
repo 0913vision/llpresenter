@@ -87,6 +87,8 @@ jobs:
         run: npm run typecheck
       - if: needs.changes.outputs.code == 'true'
         run: npm run lint -- --concurrency auto
+      - name: Show preview formatting difference
+        run: npx prettier src/main/outputs/alphaMirror.ts | diff -u src/main/outputs/alphaMirror.ts - || true
       - run: npm run format:check
       - if: needs.changes.outputs.code == 'true'
         run: npm run build
