@@ -18,6 +18,7 @@ let mirrorInFlight = false;
 let mirrorDirty = false;
 let mirrorDue = 0;
 let mirrorTimer = null;
+let lastMirror = null;
 
 function mirrorFrame() {
   if (!mirrorEnabled || !mirrorDirty || mirrorInFlight || !hasFrame) return;
@@ -46,8 +47,11 @@ function mirrorFrame() {
     }
   }
   mirrorDirty = false;
-  mirrorInFlight = true;
   mirrorDue = performance.now() + 100;
+  const next = Buffer.from(pixels.buffer);
+  if (lastMirror !== null && lastMirror.equals(next)) return;
+  lastMirror = next;
+  mirrorInFlight = true;
   process.parentPort.postMessage({type: 'mirror-frame', frame: pixels});
 }
 
@@ -58,6 +62,7 @@ function mirror() {
     mirrorEnabled = false;
     mirrorInFlight = false;
     mirrorDirty = false;
+    lastMirror = null;
     if (mirrorTimer !== null) clearTimeout(mirrorTimer);
     mirrorTimer = null;
   }
@@ -100,6 +105,7 @@ process.parentPort.on('message', event => {
     mirrorEnabled = msg.enabled === true;
     mirrorInFlight = false;
     mirrorDirty = mirrorEnabled;
+    lastMirror = null;
     if (!mirrorEnabled && mirrorTimer !== null) {
       clearTimeout(mirrorTimer);
       mirrorTimer = null;

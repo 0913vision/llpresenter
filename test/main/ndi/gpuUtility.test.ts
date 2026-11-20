@@ -47,7 +47,11 @@ describe('GPU NDI utility', () => {
             case './pacer.cjs':
               return {createPacer};
             case './dirty.cjs':
-              return {applyDirty: vi.fn()};
+              return {
+                applyDirty: (pixels: Buffer) => {
+                  pixels[2] = (pixels[2] ?? 0) + 1;
+                },
+              };
             case 'node:buffer':
               return {Buffer};
             case 'node:perf_hooks':
@@ -91,6 +95,7 @@ describe('GPU NDI utility', () => {
   );
   it('probes shared textures without opening a second NDI sender or repeating frames', () => {
     vi.useFakeTimers();
+    let sample = 0;
     const port = new EventEmitter();
     const postMessage = vi.fn<(message: {type: string}) => void>();
     Object.assign(port, {postMessage});
@@ -120,7 +125,11 @@ describe('GPU NDI utility', () => {
         case './pacer.cjs':
           return {createPacer};
         case './dirty.cjs':
-          return {applyDirty: vi.fn()};
+          return {
+            applyDirty: (pixels: Buffer) => {
+              pixels[2] = sample;
+            },
+          };
         case 'node:buffer':
           return {Buffer};
         case 'node:perf_hooks':
@@ -159,12 +168,43 @@ describe('GPU NDI utility', () => {
       ),
     ).toHaveLength(1);
     port.emit('message', {data: {type: 'mirror-ack'}});
+    port.emit('message', {
+      data: {
+        type: 'frame',
+        pid: 1,
+        handle: '01',
+        dirty: {x: 0, y: 0, width: 1, height: 1},
+      },
+    });
     vi.advanceTimersByTime(1000);
     expect(
       postMessage.mock.calls.filter(
         ([message]) => message.type === 'mirror-frame',
       ),
     ).toHaveLength(1);
+    sample = 1;
+    port.emit('message', {
+      data: {
+        type: 'frame',
+        pid: 1,
+        handle: '01',
+        dirty: {x: 0, y: 0, width: 1, height: 1},
+      },
+    });
+    vi.advanceTimersByTime(100);
+    expect(
+      postMessage.mock.calls.filter(
+        ([message]) => message.type === 'mirror-frame',
+      ),
+    ).toHaveLength(2);
+    port.emit('message', {data: {type: 'mirror', enabled: false}});
+    port.emit('message', {data: {type: 'mirror', enabled: true}});
+    vi.advanceTimersByTime(100);
+    expect(
+      postMessage.mock.calls.filter(
+        ([message]) => message.type === 'mirror-frame',
+      ),
+    ).toHaveLength(3);
     port.emit('message', {data: {type: 'stop'}});
     vi.useRealTimers();
   });

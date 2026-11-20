@@ -77,6 +77,9 @@ function createBrowserWindow(
       // Windows reports it as covered or in the background.
       backgroundThrottling: false,
       ...testPreferences,
+      ...(mode === 'offscreen' && process.env['LLP_TEST_PREVIEW_BITMAP'] === '1'
+        ? {offscreen: true}
+        : {}),
     },
   });
 }
