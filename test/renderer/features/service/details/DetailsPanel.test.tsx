@@ -90,6 +90,7 @@ it('keeps the previous picture and properties until the next picture is ready', 
   const view = render(panel(fixtureItems.arranged));
   try {
     const picture = (await screen.findAllByTestId('picture'))[0];
+    if (picture === undefined) throw new Error('Missing preview picture');
     readiness.hold = true;
     view.rerender(panel(fixtureItems.plain));
     await waitFor(() => expect(readiness.release).toBeDefined());
@@ -138,7 +139,7 @@ it('keeps the previous details in place while the next item loads', async () => 
       />,
     );
     expect(
-      screen.getAllByTestId('picture')[0].closest('[inert]'),
+      screen.getAllByTestId('picture')[0]?.closest('[inert]'),
     ).not.toBeNull();
   } finally {
     view.unmount();
@@ -225,7 +226,7 @@ it('preserves a song title slide in the prepared picture', async () => {
   try {
     await waitFor(() =>
       expect(
-        screen.getAllByTestId('picture')[0].getAttribute('data-title-slide'),
+        screen.getAllByTestId('picture')[0]?.getAttribute('data-title-slide'),
       ).toBe('true'),
     );
   } finally {
@@ -259,7 +260,7 @@ it('updates the first picture when a section is chosen', async () => {
     await userEvent.click(screen.getByRole('menuitemradio', {name: '찬양'}));
     await waitFor(() =>
       expect(
-        screen.getAllByTestId('picture')[0].getAttribute('data-card'),
+        screen.getAllByTestId('picture')[0]?.getAttribute('data-card'),
       ).toBe('찬양'),
     );
     expect(field.textContent).toContain('찬양');
@@ -458,7 +459,7 @@ it.each(['bible', 'ad', 'media', 'card'] as const)(
         expect(
           within(panel())
             .getAllByTestId('picture')[0]
-            .getAttribute('data-card'),
+            ?.getAttribute('data-card'),
         ).toBe('찬양');
       }
       await userEvent.click(

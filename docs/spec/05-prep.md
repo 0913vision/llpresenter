@@ -221,10 +221,9 @@ not dim when focus leaves. 진행 retains its existing thumbnail style.
   undo and redo local item edits and row commands in one shared, 100-step
   history, restoring row selection and the caret. Removing rows focuses the list
   command surface, including an empty list, so keyboard undo remains available.
-  The preview shows the selected slide on all configured screens together,
-  with a position caption. Automatic saves keep typing focus and text selection.
-  Acknowledging a
-  write does not break the current typing undo group.
+  The preview shows the selected slide on all configured screens together, with
+  a position caption. Automatic saves keep typing focus and text selection.
+  Acknowledging a write does not break the current typing undo group.
 - Service item edits save automatically through the service edit path, the same
   as song items. There is no 저장 button or save/discard question on leaving;
   only a library song retains explicit 저장. Both local item history and the
@@ -523,8 +522,8 @@ name.
 
 - Show the selected slide on all configured screens at once, using the same
   preview layout as 진행. Draw each picture with that screen's item theme;
-  preparing a slide never mirrors or changes live output. A small picture can
-  be chosen as the large picture.
+  preparing a slide never mirrors or changes live output. A small picture can be
+  chosen as the large picture.
 - Caption: the 이름표 color swatch and name, and the position ("3 / 4").
 
 ### 슬라이드 list

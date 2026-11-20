@@ -89,7 +89,7 @@ it('updates the Bible picture while selecting slides locally and switching items
     );
     await screen.findByRole('tab', {name: '슬라이드'});
     const panel = screen.getByRole('region', {name: '세부정보'});
-    expect(within(panel).getByTestId('picture').textContent).toContain(
+    expect(within(panel).getAllByTestId('picture')[0]?.textContent).toContain(
       '16 Invented verse 16',
     );
     await userEvent.click(within(panel).getByRole('tab', {name: '슬라이드'}));
