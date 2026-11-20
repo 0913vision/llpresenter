@@ -169,6 +169,8 @@ describe('quick panel integration', () => {
       fireEvent.click(await screen.findByRole('button', {name: '저장된 곡'}));
       const field = screen.getByRole<HTMLInputElement>('combobox');
       await waitFor(() => expect(field.disabled).toBe(false));
+      fireEvent.keyDown(field, {key: 'b', code: 'KeyB', ctrlKey: true});
+      await screen.findByRole('dialog');
       await waitFor(() => expect(fixture.lookup).toHaveBeenCalledWith(recent));
       fixture.lookup.mockClear();
       fixture.lookup.mockReturnValueOnce(passage.promise);
@@ -178,7 +180,11 @@ describe('quick panel integration', () => {
         );
       } else {
         await screen.findByRole('button', {name: /창세기 1:1/});
-        fireEvent.keyDown(field, {key: '1', code: 'Digit1', altKey: true});
+        fireEvent.keyDown(screen.getByRole('combobox'), {
+          key: '1',
+          code: 'Digit1',
+          altKey: true,
+        });
       }
       await waitFor(() => expect(fixture.lookup).toHaveBeenCalledWith(recent));
       await act(async () => song.resolve(fixture.song));
