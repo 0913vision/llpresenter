@@ -157,15 +157,13 @@ it('clears and disables the duration for no effect and restores it for an effect
   const view = render(
     <TransitionSection {...props} value={{kind: 'none', sec: 2}} />,
   );
-  let field = screen.getByLabelText<HTMLInputElement>(
-    '\uC804\uD658 \uC2DC\uAC04',
-  );
+  let field = screen.getByLabelText<HTMLInputElement>('전환 시간');
   expect(field.disabled).toBe(true);
   expect(field.value).toBe('');
   view.rerender(
     <TransitionSection {...props} value={{kind: 'dissolve', sec: 2}} />,
   );
-  field = screen.getByLabelText<HTMLInputElement>('\uC804\uD658 \uC2DC\uAC04');
+  field = screen.getByLabelText<HTMLInputElement>('전환 시간');
   expect(field.disabled).toBe(false);
   expect(field.value).toBe('2');
 });
