@@ -14,7 +14,8 @@ import {
 import {useShow} from '@renderer/session/show';
 import {useLive} from '@renderer/session/live';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
-import {BiblePanel} from '@renderer/features/presentation/BiblePanel';
+import {BibleInsertButton} from '@renderer/features/service/items/BibleInsertButton';
+import {bibleSourceFor} from '@renderer/session/showLibrary';
 import {openBiblePassage} from '@renderer/features/bible/actions';
 import {panelApi, panelPassage} from '@fixtures/contracts/ipc/bibleApi';
 import {QUICK_BIBLE_TRANSITION} from '@core/bible/quickTransition';
@@ -115,7 +116,13 @@ function setup(
   });
   useLive.setState({state: emptyLiveState()});
   openBiblePassage(panelPassage());
-  const mounted = render(<BiblePanel sizeClass="normal" onProblem={problem} />);
+  function InsertAction() {
+    const source = useShow(view => bibleSourceFor(view, view.openItemId));
+    return source === null ? null : (
+      <BibleInsertButton source={source} onProblem={problem} />
+    );
+  }
+  const mounted = render(<InsertAction />);
   return {
     ...fixture,
     api,
