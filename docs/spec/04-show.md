@@ -929,7 +929,8 @@ name. Chapter and verse bounds always use the built-in GAE number table.
   lookup. IME composition Enter cannot output. Stored references and recent
   passages retain the full grammar in 02. When book suggestions are open, arrows
   move the highlight, Enter or Tab accepts the highlighted book and focuses
-  chapter, and Escape closes the suggestions before any dialog action.
+  chapter. Escape closes suggestions; in the passage dialog it also clears the
+  fields, and a second Escape closes the empty dialog.
 - Once a quick passage is resolved, it goes live while the slide grid prepares
   its pictures independently.
 - While a quick Bible passage is live, Escape outside text fields and open menus

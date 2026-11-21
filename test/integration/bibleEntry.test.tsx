@@ -156,9 +156,6 @@ it('navigates recent passages and clears the preparation dialog with Escape', as
     screen.getByRole('button', {name: /3:17/}).getAttribute('data-highlighted'),
   ).toBe('false');
   fireEvent.keyDown(book, {key: 'Escape'});
-  expect(book.value).toBe('ㅅ');
-  expect(book.getAttribute('aria-expanded')).toBe('false');
-  fireEvent.keyDown(book, {key: 'Escape'});
   const clearedBook = screen.getByRole<HTMLInputElement>('combobox', {
     name: '책',
   });

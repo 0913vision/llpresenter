@@ -255,6 +255,15 @@ describe('shared Bible reference form', () => {
     expect(document.activeElement).toBe(view.chapter);
   });
 
+  it('closes quick-field suggestions on Escape without clearing the book', async () => {
+    const view = setup();
+    await view.user.type(view.book, '베');
+    expect(view.book.getAttribute('aria-expanded')).toBe('true');
+    await view.user.keyboard('{Escape}');
+    expect(view.book.getAttribute('aria-expanded')).toBe('false');
+    expect(view.book.value).toBe('베');
+  });
+
   it.each(['Enter', 'Tab'])(
     'accepts the highlighted book with %s',
     async key => {

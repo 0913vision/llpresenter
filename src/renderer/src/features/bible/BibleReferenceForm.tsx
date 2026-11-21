@@ -402,13 +402,6 @@ export function BibleReferenceForm(
       return;
     }
     if (event.altKey || event.ctrlKey || event.metaKey) return;
-    if (event.key === 'Escape' && expanded) {
-      pendingSubmit.current = null;
-      event.preventDefault();
-      event.stopPropagation();
-      setOpen(false);
-      return;
-    }
     if (props.dialogMode && event.key === 'Escape') {
       event.preventDefault();
       event.stopPropagation();
@@ -439,6 +432,13 @@ export function BibleReferenceForm(
         root.current,
         index <= 0 ? 'book' : (NUMBER_PARTS[index - 1] ?? 'book'),
       );
+      return;
+    }
+    if (event.key === 'Escape' && expanded) {
+      pendingSubmit.current = null;
+      event.preventDefault();
+      event.stopPropagation();
+      setOpen(false);
       return;
     }
     if (event.key === 'Escape' && props.onEscape !== undefined) {

@@ -132,7 +132,7 @@ export function PassageDialog({
       event.target instanceof HTMLInputElement &&
       event.target.dataset.referencePart === 'book' &&
       event.target.getAttribute('aria-expanded') === 'true' &&
-      ['Escape', 'ArrowDown', 'ArrowUp', 'Enter', 'Tab'].includes(event.key)
+      ['ArrowDown', 'ArrowUp', 'Enter', 'Tab'].includes(event.key)
     ) {
       return;
     }
