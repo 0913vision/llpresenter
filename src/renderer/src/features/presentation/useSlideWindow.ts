@@ -15,6 +15,13 @@ import {flushSync} from 'react-dom';
 const OVERSCAN_ROWS = 1;
 const INITIAL_ROWS = 2;
 
+export function gridViewport(keeper: HTMLElement | null): HTMLElement | null {
+  const parent = keeper?.parentElement ?? null;
+  return parent?.hasAttribute('data-slide-grid-cache')
+    ? parent.parentElement
+    : parent;
+}
+
 export function firstSlideWindowSize(
   tracks: number,
   height: number,
@@ -129,10 +136,11 @@ export function useSlideWindow(
     count: number;
   }>({itemId, count});
   useLayoutEffect(() => {
-    const viewport = keeper.current?.parentElement;
+    const viewport = gridViewport(keeper.current);
     if (!viewport) return;
-    const frame = workspaceFrame(viewport);
+    const frame = workspaceFrame(keeper.current ?? viewport);
     const scroll = (): void => {
+      if (isHiddenWorkspace(frame)) return;
       const last = geometry.current;
       if (
         last?.anchor &&
@@ -143,6 +151,7 @@ export function useSlideWindow(
       setScrollTop(viewport.scrollTop);
     };
     const defer = (): void => {
+      if (isHiddenWorkspace(frame)) return;
       if (geometry.current) {
         geometry.current = {...geometry.current, anchor: undefined};
       }
@@ -238,7 +247,7 @@ export function useSlideWindow(
   useLayoutEffect(() => {
     const last = read.current;
     read.current = {itemId, count};
-    const viewport = keeper.current?.parentElement;
+    const viewport = gridViewport(keeper.current);
     if (
       startAtTop &&
       last.itemId !== itemId &&
@@ -275,9 +284,14 @@ export function useSlideWindow(
   const windowSize = firstSlideWindowSize(tracks, measure.height, stride);
   const end = Math.min(count, start + windowSize);
   useLayoutEffect(() => {
-    const viewport = keeper.current?.parentElement;
+    const viewport = gridViewport(keeper.current);
     const old = geometry.current;
-    if (!viewport || isHiddenWorkspace(workspaceFrame(viewport))) return;
+    if (
+      !viewport ||
+      isHiddenWorkspace(workspaceFrame(keeper.current ?? viewport))
+    ) {
+      return;
+    }
     const next: NonNullable<typeof old> = {
       itemId,
       tracks,
@@ -344,7 +358,7 @@ export function useSlideWindow(
         !dragging.current &&
         Date.now() >= pausedUntil.current
       ) {
-        follow(keeper.current?.parentElement, live, {
+        follow(gridViewport(keeper.current), live, {
           tracks,
           stride,
           ...measure,

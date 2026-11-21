@@ -43,6 +43,7 @@ import {useReflow} from '@renderer/ui/useReflow';
 const GRID_SELECTOR = '[role="listbox"]';
 
 export interface SlideGridProps {
+  readonly active?: boolean;
   /** The columns of the size class at 100%: 3, 4, or 6. */
   readonly columns: number;
   /** The 슬라이드 size in percent, 50 to 200. */
@@ -53,6 +54,7 @@ export interface SlideGridProps {
 
 /** The 슬라이드 grid of the open item. A click outputs a tile. */
 export function SlideGrid({
+  active = true,
   columns,
   scalePercent,
   onOpenPrep,
@@ -107,14 +109,17 @@ export function SlideGrid({
   // NOTE(0913vision): Tiles of an item the grid switches to wait for their
   // pictures, holding the grid as it was; tiles a scroll or resize brings in
   // draw where they show.
-  const switching = useCommittedShownItem() !== openItemId;
+  const committedItem = useCommittedShownItem();
+  const switching = active && committedItem !== openItemId;
   useLayoutEffect(() => {
-    commitShownItem(openItemId);
-  }, [openItemId]);
+    if (active) commitShownItem(openItemId);
+  }, [active, openItemId]);
   const transitionProgress = useSlideTransitionProgress();
   useEffect(() => {
-    if (liveIndex !== null) useShow.setState({selectedTile: liveIndex});
-  }, [liveIndex, openItemId]);
+    if (active && liveIndex !== null) {
+      useShow.setState({selectedTile: liveIndex});
+    }
+  }, [active, liveIndex, openItemId]);
   const [menu, setMenu] = useState<{
     itemId: string;
     index: number;
@@ -131,6 +136,7 @@ export function SlideGrid({
   const tabEntry = useRef(false);
   const [showFocus, setShowFocus] = useState(false);
   useEffect(() => {
+    if (!active) return undefined;
     const keyDown = (event: globalThis.KeyboardEvent): void => {
       tabEntry.current = event.key === 'Tab';
     };
@@ -144,7 +150,7 @@ export function SlideGrid({
       document.removeEventListener('keydown', keyDown, true);
       document.removeEventListener('pointerdown', pointerDown, true);
     };
-  }, []);
+  }, [active]);
   const {width, gap} = useGridMeasure(keeperRef, GRID_SELECTOR);
   const tileWidth = thumbnailWidth({
     gridWidth: width,
@@ -170,12 +176,12 @@ export function SlideGrid({
       ?.focus({preventScroll: true});
   });
   useEffect(() => {
-    if (!entryRef) return;
+    if (!entryRef || !active) return;
     entryRef.current = enter;
     return () => {
       entryRef.current = null;
     };
-  }, [entryRef]);
+  }, [active, entryRef]);
 
   const onOutput = useCallback(
     (index: number): void => {

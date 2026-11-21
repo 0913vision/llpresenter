@@ -22,9 +22,11 @@ import type {Notice} from '@renderer/ui/notices';
 export function BiblePanel({
   sizeClass,
   onProblem,
+  active = true,
 }: {
   readonly sizeClass: SizeClass;
   readonly onProblem?: ((notice: Notice) => void) | undefined;
+  readonly active?: boolean;
 }): JSX.Element | null {
   const shownItemId = useShownItemId();
   const source = useShow(view => bibleSourceFor(view, shownItemId));
@@ -38,7 +40,7 @@ export function BiblePanel({
         <BibleDisplayControls key={source.id} source={source} />
       </PanelTools>
       <PanelBody variant="flush" className={styles.body}>
-        <SlidePanelBody sizeClass={sizeClass} />
+        <SlidePanelBody sizeClass={sizeClass} active={active} />
       </PanelBody>
       <div className={styles.footer}>
         <GridFooter
