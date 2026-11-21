@@ -156,11 +156,11 @@ it('tracks slide item selection and applies mixed transition edits', async () =>
   const view = render(<SlidesInspector api={mockLlpApi()} session={session} />);
   const panel = within(view.container);
   const user = userEvent.setup();
-  expect(panel.getAllByTestId('picture')[0].textContent).toBe('첫 장');
+  expect(panel.getAllByTestId('picture')[0]?.textContent).toBe('첫 장');
   const second = slides[1];
   if (second === undefined) throw new Error('Missing second slide');
   act(() => session.selectSlides({type: 'click', id: second.id, ctrl: true}));
-  expect(panel.getAllByTestId('picture')[0].textContent).toBe('둘째 장');
+  expect(panel.getAllByTestId('picture')[0]?.textContent).toBe('둘째 장');
   expect(panel.getByLabelText('전환 시간')).toHaveProperty(
     'placeholder',
     '혼합',
@@ -200,7 +200,7 @@ it('shows the picture and transition control for a card-only slide item', async 
   });
   const view = render(<SlidesInspector api={mockLlpApi()} session={session} />);
   const panel = within(view.container);
-  expect(panel.getAllByTestId('picture')[0].textContent).toBe('WELCOME');
+  expect(panel.getAllByTestId('picture')[0]?.textContent).toBe('WELCOME');
   await userEvent.click(panel.getByRole('button', {name: '밀어내기'}));
   expect(draft.snapshot.item.slides.slides[0]?.transition?.kind).toBe('push');
 });
