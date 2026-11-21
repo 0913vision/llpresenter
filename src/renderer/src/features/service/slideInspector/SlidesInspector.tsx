@@ -36,7 +36,10 @@ export function SlidesInspector({
   const {item: draftItem, selected} = session.draft.snapshot;
   const item = useSlidesItemWithBackground(draftItem);
   const media = useItemMedia(api.media).document?.value.items ?? [];
-  const {appearance, ready} = useSlidesAppearance(api, item);
+  const {appearance, ready, adTitle, adTitleSettings} = useSlidesAppearance(
+    api,
+    item,
+  );
   const {projection} = useSlidesVerseProjection(api, item);
   const slide = view.slides[selected];
   const card = cardSelected ? draftItem.sectionCard : undefined;
@@ -145,10 +148,11 @@ export function SlidesInspector({
               index={selected}
               appearance={appearance}
               projection={projection}
+              adTitleSettings={adTitleSettings}
             />
           </div>
           <div className={styles.caption}>
-            {slideBand(item, slide, media)}
+            {slideBand(slide, media, adTitle)}
             <span>
               {selected + 1} / {view.slides.length}
             </span>

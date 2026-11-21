@@ -4,7 +4,11 @@ import {useEffect, useMemo, useRef, useState, type JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {MediaItem} from '@core/schema/mediaList';
 import {BIBLE_BOOKS} from '@core/bible/bibleBooks';
-import {adSlideTitle} from '@core/presentation/slides';
+import {
+  adSlideTitles,
+  adTitleSettingsFrom,
+  type AdSlideTitle,
+} from '@core/presentation/slides';
 import {withPreferenceDefaults} from '@core/schema/preferences';
 import type {Slide, SlidesItem} from '@core/services/slidesEdits';
 import type {BibleProjection} from '@renderer/features/bible/splitProjection';
@@ -22,11 +26,11 @@ import {useItemSettings} from '../items/useItemSources';
 import styles from './SlidesEditor.module.css';
 
 export function slideBand(
-  item: SlidesItem,
   slide: Slide,
   media: readonly MediaItem[],
+  adTitle?: AdSlideTitle,
 ): string {
-  if (item.slides.form === 'ad') return adSlideTitle(item, slide);
+  if (adTitle !== undefined) return adTitle(slide);
   if (slide.label !== undefined) return slide.label;
   if ('verse' in slide) {
     const book = BIBLE_BOOKS.find(book => book.id === slide.verse.book);
@@ -81,6 +85,14 @@ export function useSlidesAppearance(
     themes.document?.name === 'themes' ? themes.document.value : undefined;
   const screenFile =
     screens.document?.name === 'screens' ? screens.document.value : undefined;
+  const adTitleSettings = useMemo(
+    () => adTitleSettingsFrom(themes.document, screens.document),
+    [themes.document, screens.document],
+  );
+  const adTitle = useMemo(
+    () => adSlideTitles(item, adTitleSettings),
+    [item, adTitleSettings],
+  );
   const appearance = useMemo(
     () =>
       previewAppearance({
@@ -104,6 +116,8 @@ export function useSlidesAppearance(
   );
   return {
     appearance,
+    adTitle,
+    adTitleSettings,
     themes: themeFile,
     ready:
       (themes.document !== null || themes.failed) &&
@@ -118,6 +132,7 @@ export function SlidesCanvas({
   projection,
   part,
   outputSlide,
+  adTitleSettings,
 }: {
   readonly item: SlidesItem;
   readonly index: number;
@@ -125,6 +140,7 @@ export function SlidesCanvas({
   readonly projection?: BibleProjection | null;
   readonly part?: number;
   readonly outputSlide?: import('@core/live/state').SlideLayer | null;
+  readonly adTitleSettings?: ReturnType<typeof adTitleSettingsFrom>;
 }): JSX.Element {
   const spec = useMemo(
     () =>
@@ -135,9 +151,10 @@ export function SlidesCanvas({
         projection,
         part,
         outputSlide,
+        adTitleSettings,
         appearance,
       }).spec,
-    [item, index, projection, part, outputSlide, appearance],
+    [item, index, projection, part, outputSlide, appearance, adTitleSettings],
   );
   const host = useRef<HTMLDivElement>(null);
   const switching = usePrepPictureSwitch();
@@ -186,8 +203,9 @@ export function SlidesPreview({
   readonly projection?: BibleProjection | null;
 }): JSX.Element {
   const [role, setRole] = useState<PreviewRole>('audience');
+  const audience = useSlidesAppearance(api, item, {role: 'audience'});
   const appearances = {
-    audience: useSlidesAppearance(api, item, {role: 'audience'}).appearance,
+    audience: audience.appearance,
     stage: useSlidesAppearance(api, item, {role: 'stage'}).appearance,
     broadcast: useSlidesAppearance(api, item, {role: 'broadcast'}).appearance,
   };
@@ -218,6 +236,7 @@ export function SlidesPreview({
           appearance={appearances[forRole]}
           projection={shownProjection}
           part={part}
+          adTitleSettings={audience.adTitleSettings}
         />
       )}
       caption={() =>
@@ -228,7 +247,7 @@ export function SlidesPreview({
             <span>
               {item.slides.form !== 'ad' && 'text' in slide
                 ? slide.name
-                : slideBand(item, slide, media)}
+                : slideBand(slide, media, audience.adTitle)}
             </span>
             <span>
               {selected + 1 + offset} / {item.slides.slides.length + offset}

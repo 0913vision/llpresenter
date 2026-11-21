@@ -377,7 +377,10 @@ function SlidesEditorBody({
   const labels = labelsDoc?.name === 'labels' ? labelsDoc.value.labels : [];
   const mediaSource = useItemMedia(api.media);
   const media = mediaSource.document?.value.items ?? [];
-  const {appearance, themes} = useSlidesAppearance(api, item);
+  const {appearance, themes, adTitle, adTitleSettings} = useSlidesAppearance(
+    api,
+    item,
+  );
   const {projection} = useSlidesVerseProjection(api, item);
   const [bibleDialog, setBibleDialog] = useState<{
     slideId?: VerseSlide['id'];
@@ -620,12 +623,13 @@ function SlidesEditorBody({
                       index={index}
                       appearance={appearance}
                       projection={projection}
+                      adTitleSettings={adTitleSettings}
                     />
                     <SlideTransitionMark transition={slide.transition} />
                   </div>
                   <SlideThumbnailBand
                     number={index + 1 + (leadingCard === undefined ? 0 : 1)}
-                    label={slideBand(item, slide, media)}
+                    label={slideBand(slide, media, adTitle)}
                     labelColor={
                       item.slides.form === 'ad'
                         ? undefined
@@ -639,7 +643,7 @@ function SlidesEditorBody({
                   <SlideFields
                     slide={slide}
                     form={item.slides.form}
-                    name={slideBand(item, slide, media)}
+                    name={slideBand(slide, media, adTitle)}
                     projection={projection}
                     replace={button => showPicker(button, slide.id)}
                     change={(next, field) => changeSlide(index, next, field)}

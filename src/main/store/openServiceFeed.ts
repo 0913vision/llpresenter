@@ -13,6 +13,7 @@ import type {BibleProjectionPayload} from '@core/schema/bibleProjection';
 import type {SettingsReader} from '@core/schema/settingsReader';
 import type {ShowTile} from '@core/schema/showService';
 import {sameBibleVerse} from '@core/bible/selection';
+import {adTitleSettingsFrom} from '@core/presentation/slides';
 
 const FIRST_REVISION = 1;
 
@@ -323,6 +324,10 @@ export class OpenServiceFeed {
       labels,
       revision: FIRST_REVISION,
       backgrounds,
+      adTitleSettings: adTitleSettingsFrom(
+        this.sources.settings?.get('themes'),
+        this.sources.settings?.get('screens'),
+      ),
       ...(mediaById === undefined ? {} : {media: mediaById}),
       ...(passages === undefined ? {} : {passages}),
     });

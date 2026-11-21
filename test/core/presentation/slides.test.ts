@@ -8,6 +8,13 @@ import {nextSlideOf, slideLayerOf} from '@core/presentation/slideLayer';
 import {parseLiveCommand} from '@core/schema/liveCommand';
 import {manualSlideTextKey} from '@core/schema/slideTextOverrides';
 import {AD_THEME_ID} from '@core/themes/defaults';
+import {createThemeId} from '@core/schema/ids';
+import {
+  themeElementBase,
+  themeFile,
+  themeScreens,
+  THEME_MAIN,
+} from '@fixtures/core/themeOutput';
 import {slidesItem, SLIDE_PICTURE, SLIDES_ITEM} from '@fixtures/core/slides';
 import {MOCK_LONG_VERSE} from '@fixtures/core/bibleSplit';
 import {
@@ -19,7 +26,9 @@ import {
 
 it('resolves verse slots without changing their source identities or storing text in the service item', () => {
   const item = slidesBibleItem();
-  const tiles = projectSlides(item, undefined, slidesBiblePassages(item));
+  const tiles = projectSlides(item, undefined, {
+    passages: slidesBiblePassages(item),
+  });
   expect(tiles[1]).toMatchObject({
     sourceSlideId: VERSE_SLIDE,
     reference: '요한복음 3:16',
@@ -245,4 +254,60 @@ it('uses saved ad titles for each slide band and the current and next stage labe
     itemKind: 'ad',
     label: title.text,
   });
+});
+
+it('uses a custom default ad theme and its screen-scoped title bindings', () => {
+  const item = slidesItem('ad');
+  const first = item.slides.slides[0];
+  const second = item.slides.slides[2];
+  if (!first || !second) throw Error('Missing ad slides');
+  const theme = createThemeId('00000000-0000-4000-8000-000000005400');
+  const title = {
+    ...themeElementBase(),
+    kind: 'slideName',
+    textSlot: {slotId: 'ad-title', role: 'slideName', scope: 'screen'},
+  } as const;
+  const legacy = [theme, THEME_MAIN, title.id].join('/');
+  const exact = {
+    mode: 'manual',
+    role: 'slideName',
+    sourceThemeId: theme,
+    screenId: THEME_MAIN,
+    slotId: title.textSlot.slotId,
+    text: 'Exact title',
+  } as const;
+  const defaults = themeFile();
+  const adTitleSettings = {
+    screens: themeScreens,
+    file: {
+      ...defaults,
+      defaults: {...defaults.defaults, ad: theme},
+      themes: [
+        ...defaults.themes,
+        {
+          id: theme,
+          name: 'Custom ad',
+          screens: {
+            [THEME_MAIN]: {mode: {kind: 'own' as const}, elements: [title]},
+          },
+        },
+      ],
+    },
+  };
+  const saved = {
+    ...item,
+    textOverrides: {
+      [`slide:${first.id}`]: {[legacy]: 'Screen-scoped legacy title'},
+      [`slide:${second.id}`]: {
+        [legacy]: 'Old title',
+        [manualSlideTextKey(exact)]: exact,
+      },
+    },
+  };
+  const tiles = projectSlides(saved, undefined, {adTitleSettings});
+  expect(tiles.map(tile => tile.label)).toEqual([
+    'Screen-scoped legacy title',
+    item.slides.name,
+    'Exact title',
+  ]);
 });

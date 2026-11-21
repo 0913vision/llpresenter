@@ -600,11 +600,9 @@ it('presents mixed verse slots as parts and keeps repeated verses distinct in li
       },
     ],
     tiles: {
-      [f.item.id]: projectSlides(
-        f.item,
-        undefined,
-        slidesBiblePassages(f.item),
-      ),
+      [f.item.id]: projectSlides(f.item, undefined, {
+        passages: slidesBiblePassages(f.item),
+      }),
     },
   });
   useShow.setState({openItemId: f.item.id});

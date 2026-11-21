@@ -101,7 +101,7 @@ function SlidesItemTiles({
   const {item, selected} = session.draft.snapshot;
   const scale = useThumbnailScale('normal');
   const offset = cardOffset(item);
-  const {appearance} = useSlidesAppearance(api, item);
+  const {appearance, adTitle, adTitleSettings} = useSlidesAppearance(api, item);
   const {projection} = useSlidesVerseProjection(api, item);
   const media = useItemMedia(api.media).document?.value.items ?? [];
   useEffect(
@@ -151,7 +151,7 @@ function SlidesItemTiles({
             session={session}
             song={{
               slides: view.slides.map(slide => ({
-                label: slideBand(item, slide, media),
+                label: slideBand(slide, media, adTitle),
                 lines: [],
               })),
             }}
@@ -168,6 +168,7 @@ function SlidesItemTiles({
                 index={index}
                 appearance={appearance}
                 projection={projection}
+                adTitleSettings={adTitleSettings}
               />
             )}
           />

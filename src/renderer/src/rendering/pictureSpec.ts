@@ -3,7 +3,7 @@ import type {SlidesItem} from '@core/services/slidesEdits';
 import type {SongSlide} from '@core/schema/song';
 import type {SectionCard} from '@core/schema/service';
 import {mediaTextSlide, slideLayerOf} from '@core/presentation/slideLayer';
-import {projectSlides} from '@core/presentation/slides';
+import {projectSlides, type AdTitleSettings} from '@core/presentation/slides';
 import {textOverridesForTiles} from '@core/presentation/textOverrides';
 import type {SlideTextOverrides} from '@core/schema/slideTextOverrides';
 import {withSectionCard} from '@core/services/sectionCards';
@@ -96,10 +96,12 @@ export function slideLayers(
   {
     projection,
     part = 0,
+    adTitleSettings,
   }: {
     readonly projection?:
       {readonly tiles: readonly SlideTile[]} | null | undefined;
     readonly part?: number | undefined;
+    readonly adTitleSettings?: AdTitleSettings | undefined;
   } = {},
 ): LiveLayers {
   if (projection != null) {
@@ -129,7 +131,10 @@ export function slideLayers(
             },
     };
   }
-  const tiles = withSectionCard(item.sectionCard, projectSlides(item));
+  const tiles = withSectionCard(
+    item.sectionCard,
+    projectSlides(item, undefined, {adTitleSettings}),
+  );
   const position = index + (item.sectionCard === undefined ? 0 : 1);
   const slide = slideLayerOf({itemId: item.id, index: position}, () => tiles);
   if (slide === null) return emptyLayers();
@@ -171,6 +176,7 @@ interface SlidesPicture {
   readonly projection?:
     {readonly tiles: readonly SlideTile[]} | null | undefined;
   readonly part?: number | undefined;
+  readonly adTitleSettings?: AdTitleSettings | undefined;
   readonly outputSlide?: SlideLayer | null | undefined;
   readonly appearance: PictureSpec['appearance'];
 }
@@ -231,6 +237,7 @@ export function pictureSpec(
     const layers = slideLayers(picture.item, picture.index, {
       projection: picture.projection,
       part: picture.part,
+      adTitleSettings: picture.adTitleSettings,
     });
     return result({
       layers:
