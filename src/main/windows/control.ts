@@ -1,3 +1,4 @@
+import {watchWindowMinimized} from './windowMinimized';
 import {app, BrowserWindow, ipcMain, screen, type IpcMainEvent} from 'electron';
 import {windowEndpoints} from '@contracts/ipc/window';
 import {serviceEndpoints} from '@contracts/ipc/service';
@@ -63,6 +64,7 @@ export function createControlWindow(
   win.webContents.setAudioMuted(
     mode === 'offscreen' || audioMutedByDefault(process.env, app.isPackaged),
   );
+  watchWindowMinimized(win);
   win.removeMenu();
   logWindowResponsiveness(win, 'control', log);
   const sendFullScreen = (on: boolean): void => {

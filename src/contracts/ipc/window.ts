@@ -212,6 +212,8 @@ export const windowEndpoints = {
   control: message<WindowAction>('window:control', parseWindowAction),
   fullScreen: query<boolean>('window:full-screen', parseOnOff),
   fullScreenChanged: push<boolean>('window:full-screen:changed', parseOnOff),
+  minimized: query<boolean>('window:minimized', parseOnOff),
+  minimizedChanged: push<boolean>('window:minimized:changed', parseOnOff),
   editText: message<TextEditAction>('window:edit-text', parseTextEditAction),
 };
 
@@ -258,6 +260,9 @@ export function windowApi(port: IpcPort) {
      * @returns A function that removes the listener. Always call it.
      */
     onFullScreen: port.subscribe(windowEndpoints.fullScreenChanged),
+    /** Reads and follows the calling window?s native minimized state. */
+    minimized: port.query(windowEndpoints.minimized),
+    onMinimized: port.subscribe(windowEndpoints.minimizedChanged),
     /** Runs a text editing action on the focused field of the calling window. */
     editText: port.message(windowEndpoints.editText),
     /** Opens or retargets the 곡 편집 window on a song. */
