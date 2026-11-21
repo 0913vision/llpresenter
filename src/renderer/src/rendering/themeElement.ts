@@ -31,7 +31,7 @@ import {fillTimerTokens} from './timerTokens';
 import type {RenderFrame, RenderLayerOptions} from './layer';
 import type {ThemeGaps} from './themeGaps';
 import {setPlaybackProblem} from './playbackProblem';
-import {broadcastBibleFlow} from './broadcastBibleFlow';
+import {scriptureText} from '@core/themes/scriptureText';
 import {
   SECTION_BAND_ID,
   SECTION_NAME_ID,
@@ -829,14 +829,12 @@ export class ThemeElementView {
             ...layers,
             slide: {
               ...slide,
-              ...(currentBible
-                ? {lines: [broadcastBibleFlow(slide.lines)]}
-                : {}),
+              ...(currentBible ? {lines: [scriptureText(slide.lines)]} : {}),
               ...(nextBible
                 ? {
                     next: {
                       ...slide.next,
-                      lines: [broadcastBibleFlow(slide.next.lines)],
+                      lines: [scriptureText(slide.next.lines)],
                     },
                   }
                 : {}),

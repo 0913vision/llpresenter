@@ -20,7 +20,7 @@ import {
 import {measureSlideText} from './slideLayer';
 import {fitFontSize} from './fitText';
 import {broadcastIntent} from './broadcastBand';
-import {broadcastBibleFlow} from './broadcastBibleFlow';
+import {scriptureText} from '@core/themes/scriptureText';
 
 type TextElement = Extract<ThemeElement, {kind: 'currentText'}>;
 
@@ -117,10 +117,8 @@ function fitBand(
   const manual = manualThemeText(body);
   const raw = manual ?? themeElementText(body, content) ?? '';
   const value =
-    scripture && slide !== null && raw.trim()
-      ? broadcastBibleFlow(
-          manual === undefined ? slide.lines : manual.split('\n'),
-        )
+    scripture && manual === undefined && slide !== null && raw.trim()
+      ? scriptureText(slide.lines)
       : raw;
   const referenceElement = layout.elements.find(
     e => e.id === BROADCAST_REFERENCE_ID,
@@ -148,7 +146,7 @@ function fitBand(
               maximum,
               fittedText({
                 element: body,
-                value: broadcastBibleFlow(part.lines),
+                value: scriptureText(part.lines),
                 width: geometry.bodyWidth,
                 song: false,
                 continued: part.continued === true,
@@ -260,11 +258,8 @@ function fitSong(
     intent.songTitle ??
     themeElementText(body, {layers: {...emptyLayers(), slide}, item}) ??
     '';
-  let value =
+  const value =
     slide?.titleSlide === true ? (raw.split('\n')[0]?.trim() ?? '') : raw;
-  if (value.split('\n').length > geometry.songLines) {
-    value = value.replace(/\s*\n\s*/gu, ' ');
-  }
   const lyricX = geometry.songX;
   const lyricWidth = geometry.songWidth;
   const fitted = fittedText({

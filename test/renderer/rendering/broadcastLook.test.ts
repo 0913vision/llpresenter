@@ -1,6 +1,5 @@
 import {mockBroadcastMeasure, mockBroadcastRect} from './broadcastMeasure';
 import {styleBroadcastGlass} from '@renderer/rendering/themeElement';
-import {broadcastBibleFlow} from '@renderer/rendering/broadcastBibleFlow';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {createScreenId} from '@core/schema/ids';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
@@ -55,13 +54,28 @@ beforeEach(() => {
 afterEach(() => vi.restoreAllMocks());
 
 describe('built-in broadcast look', () => {
-  it('joins automatic Bible rows without losing typed line breaks', () => {
-    expect(
-      broadcastBibleFlow(['첫 자동 줄', '다음 자동 줄\n직접 입력한 줄']),
-    ).toBe('첫 자동 줄 다음 자동 줄\n직접 입력한 줄');
-    expect(broadcastBibleFlow(['첫 줄\n\n마지막 줄'])).toBe(
-      '첫 줄\n\n마지막 줄',
+  it('preserves manual scripture and song line breaks in broadcast text', () => {
+    const bibleLayout = plain();
+    const manualLayout = {
+      ...bibleLayout,
+      elements: bibleLayout.elements.map(e =>
+        e.id === BROADCAST_TEXT_ID ? {...e, manualText: 'First\nSecond'} : e,
+      ),
+    };
+    const bible = fitBroadcastLook(manualLayout, slide, item);
+    expect(element(bible, BROADCAST_TEXT_ID)).toMatchObject({
+      frame: {h: 154},
+    });
+    const songLayout = builtInTheme('song').screens[screen];
+    if (!songLayout) throw Error('missing song');
+    const song = fitBroadcastLook(
+      songLayout,
+      {...slide, lines: ['First', 'Second', 'Third']},
+      {...item, kind: 'song'},
     );
+    expect(element(song, BROADCAST_LOOK_SONG_ID)).toMatchObject({
+      broadcastText: 'First\nSecond\nThird',
+    });
   });
   it('fits line boxes rather than glyph overflow for songs and Bible passages', () => {
     const rowCount = (el: HTMLElement): number => {
