@@ -55,6 +55,8 @@ export interface NextSlide {
   readonly title?: string;
   /** Raw next-ad title for the stage cue, without the generated slide number. */
   readonly adTitle?: string;
+  /** Title of an ordinary order card, for the stage cue. */
+  readonly orderTitle?: string;
   readonly label: string | null;
   /** The next slide's label repeats the previous slide in the same item. */
   readonly labelContinued?: true;

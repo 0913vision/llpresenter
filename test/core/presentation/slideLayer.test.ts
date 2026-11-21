@@ -86,6 +86,12 @@ it('carries the unnumbered projected ad title for same-item and following-item c
   expect(nextSlideOf(card, 'blank', {after: nextAd})).not.toHaveProperty(
     'adTitle',
   );
+  expect(
+    nextSlideOf(
+      {...card, sectionCard: {...card.sectionCard, english: ''}},
+      'blank',
+    ),
+  ).not.toHaveProperty('orderTitle');
   const imageAd: SlideTile = {
     label: 'Actual image title',
     labelColor: 'none',
@@ -576,6 +582,7 @@ it('previews only the opening card name while retaining the card subtitle on out
   );
   expect(slide?.next).toMatchObject({
     title: section.name,
+    orderTitle: section.name,
     lines: [],
   });
   const stage = createScreenId(STARTER_SCREEN_IDS.stage);
@@ -620,6 +627,7 @@ it.each([{name: 'Notice title'}, {name: ''}, {name: '   '}, {name: undefined}])(
       kind: 'ad',
       after: content,
     });
+    expect(slide?.next).not.toHaveProperty('orderTitle');
     const stage = createScreenId(STARTER_SCREEN_IDS.stage);
     const element = builtInTheme('song').screens[stage]?.elements.find(
       value => value.kind === 'nextText',

@@ -60,10 +60,19 @@ export function nextSlideOf(
       : undefined);
   const nextNotice =
     tile.kind === 'ad' && tile.sectionCard === undefined ? tile : undefined;
+  const card = tile.sectionCard;
+  const orderTitle =
+    card !== undefined &&
+    card.name.trim() !== '광고' &&
+    card.name.trim().toLowerCase() !== 'notice' &&
+    card.english.trim().toLowerCase() !== 'notice'
+      ? card.name
+      : undefined;
   return {
     ...(nextNotice === undefined
       ? {}
       : {adTitle: nextNotice.label ?? nextNotice.name ?? context?.title ?? ''}),
+    ...(orderTitle === undefined ? {} : {orderTitle}),
     label: tile.sectionCard === undefined ? outputLabel(tile) : null,
     ...(repeatedLabel(tile, context?.previous)
       ? {labelContinued: true as const}

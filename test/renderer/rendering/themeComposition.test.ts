@@ -4432,6 +4432,36 @@ it('shows the next ad title only as a stage cue, even when its body has a manual
     },
   };
   expect(render('stage', card)).toBe('광고');
+  const orderCard: LiveLayers = {
+    ...layers,
+    slide: {
+      ...adSlide,
+      next: {
+        label: null,
+        itemKind: 'blank',
+        title: '봉헌',
+        orderTitle: '봉헌',
+        lines: [],
+      },
+    },
+  };
+  expect(render('stage', orderCard)).toBe('다음순서: 봉헌');
+  expect(render('audience', orderCard)).toBe('봉헌');
+  expect(render('broadcast', orderCard)).toBe('봉헌');
+  const sermonTitle: LiveLayers = {
+    ...layers,
+    slide: {
+      ...adSlide,
+      next: {
+        label: null,
+        itemKind: 'blank',
+        title: 'Sermon title',
+        sermonTitle: true,
+        lines: [],
+      },
+    },
+  };
+  expect(render('stage', sermonTitle)).toBe('Sermon title');
   const blank: LiveLayers = {
     ...layers,
     slide: {

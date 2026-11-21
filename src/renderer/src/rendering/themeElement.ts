@@ -403,6 +403,8 @@ export class ThemeElementView {
     const next = slide?.next;
     const nextAdTitle =
       stage && element.kind === 'nextText' ? next?.adTitle : undefined;
+    const nextOrderTitle =
+      stage && element.kind === 'nextText' ? next?.orderTitle : undefined;
     this.stageReference.textContent =
       stage && element.kind === 'nextText' ? (next?.stageReference ?? '') : '';
     const nextEmpty =
@@ -548,19 +550,23 @@ export class ThemeElementView {
       }
     } else {
       const displayedText =
-        nextAdTitle !== undefined
-          ? nextAdTitle.trim() === ''
+        nextOrderTitle !== undefined
+          ? nextOrderTitle.trim() === ''
             ? null
-            : `다음광고: ${nextAdTitle.trim()}`
-          : (manualText ??
-            cue ??
-            (stage &&
-            isSong &&
-            element.kind === 'currentText' &&
-            !slide?.titleSlide
-              ? frame.stageSongLines?.join('\n')
-              : undefined) ??
-            this.textContent(layers, frame, videoRemaining));
+            : `다음순서: ${nextOrderTitle.trim()}`
+          : nextAdTitle !== undefined
+            ? nextAdTitle.trim() === ''
+              ? null
+              : `다음광고: ${nextAdTitle.trim()}`
+            : (manualText ??
+              cue ??
+              (stage &&
+              isSong &&
+              element.kind === 'currentText' &&
+              !slide?.titleSlide
+                ? frame.stageSongLines?.join('\n')
+                : undefined) ??
+              this.textContent(layers, frame, videoRemaining));
       const inlineLabel =
         stage && frame.stageLyricLabelPosition === 'inline' && cue === undefined
           ? element.kind === 'currentText' &&
