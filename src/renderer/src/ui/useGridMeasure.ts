@@ -43,7 +43,13 @@ export function useGridMeasure(
     let pending: ResizeObserverEntry | undefined;
     const frame = workspaceFrame(root);
     const update = (entry: ResizeObserverEntry): void => {
-      if (entry.target !== grid || !grid.isConnected) return;
+      if (
+        entry.target !== grid ||
+        !grid.isConnected ||
+        entry.contentRect.width <= 0
+      ) {
+        return;
+      }
       const next = {
         width: entry.contentRect.width,
         gap: pixelsOf(getComputedStyle(grid).columnGap),

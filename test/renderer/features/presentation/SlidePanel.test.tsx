@@ -1,5 +1,12 @@
 import * as songEditorRequests from '@renderer/features/songs/editor/songEditorRequests';
-import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import {SUNDAY_NOTICE_PICTURE_ID} from '@core/themes/sundayNotice';
@@ -168,6 +175,25 @@ describe('SlidePanelMeta', () => {
 });
 
 describe('SlidePanelBody', () => {
+  it('keeps each visited item grid mounted while switching items', async () => {
+    openItem('song-morning');
+    const {container} = renderPanel('normal');
+    const first = await screen.findByRole('listbox', {name: '슬라이드'});
+    act(() => openItem('song-river'));
+    await waitFor(() =>
+      expect(screen.getByRole('listbox', {name: '슬라이드'})).not.toBe(first),
+    );
+    expect(first.isConnected).toBe(true);
+    expect(
+      first.closest('[data-slide-grid-cache]')?.getAttribute('aria-hidden'),
+    ).toBe('true');
+    act(() => openItem('song-morning'));
+    expect(await screen.findByRole('listbox', {name: '슬라이드'})).toBe(first);
+    expect(
+      container.querySelectorAll('[data-slide-grid-cache]').length,
+    ).toBeGreaterThanOrEqual(2);
+  });
+
   it('fills the columns of its size class until the grid is measured', () => {
     vi.stubGlobal('ResizeObserver', undefined);
     openItem('song-morning');

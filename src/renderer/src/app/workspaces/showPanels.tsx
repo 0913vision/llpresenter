@@ -1,5 +1,5 @@
 import {useState, type ReactNode} from 'react';
-import {useShownItemId} from '@renderer/session/shownItem';
+import {ShownItemProvider, useShownItemId} from '@renderer/session/shownItem';
 import type {SongId} from '@core/schema/ids';
 import {BiblePanel} from '@renderer/features/presentation/BiblePanel';
 import {ClearRow} from '@renderer/features/presentation/ClearRow';
@@ -28,12 +28,77 @@ import {
   type WorkspacePanels,
 } from '../shell/WorkspacePanel';
 import {SERVICE_ORDER, serviceOrderParts} from './serviceOrderPanel';
+import panelStyles from '../shell/Workspace.module.css';
 
 const SHOW_COLUMNS = [
   [SERVICE_ORDER, '빠른 실행'],
   ['슬라이드'],
   ['미리보기', '지우기', '진행 도구'],
 ] as const;
+
+/** Keep the ordinary and quick Bible panels alive while switching between them. */
+function ShowSlidesPanel({
+  sizeClass,
+  onProblem,
+  onOpenPrep,
+  bibleOpen,
+}: {
+  readonly sizeClass: SizeClass;
+  readonly onProblem: ((notice: Notice) => void) | undefined;
+  readonly onOpenPrep:
+    ((itemId: string, position?: number) => void) | undefined;
+  readonly bibleOpen: boolean;
+}) {
+  const item = useShownItemId();
+  const [normal, setNormal] = useState<string | null>(bibleOpen ? null : item);
+  const [bible, setBible] = useState<string | null>(bibleOpen ? item : null);
+  if (bibleOpen && item !== bible) setBible(item);
+  if (!bibleOpen && item !== normal) setNormal(item);
+  return (
+    <>
+      <div
+        data-slide-grid-cache
+        aria-hidden={bibleOpen}
+        inert={bibleOpen}
+        style={{display: bibleOpen ? 'none' : 'flex', flex: 1, minHeight: 0}}
+      >
+        <ShownItemProvider shownItem={normal} trackLive={false}>
+          <section className={panelStyles.panel} aria-label="슬라이드">
+            <div className={panelStyles.header}>
+              <SlidePanelMeta onProblem={onProblem} />
+            </div>
+            <div
+              className={`${panelStyles.body} ${panelStyles.stableScrollbar}`}
+            >
+              <SlidePanelBody
+                sizeClass={sizeClass}
+                onOpenPrep={onOpenPrep}
+                active={!bibleOpen}
+              />
+            </div>
+            <SlidePanelFooter sizeClass={sizeClass} />
+          </section>
+        </ShownItemProvider>
+      </div>
+      {bible === null ? null : (
+        <div
+          data-slide-grid-cache
+          aria-hidden={!bibleOpen}
+          inert={!bibleOpen}
+          style={{display: bibleOpen ? 'flex' : 'none', flex: 1, minHeight: 0}}
+        >
+          <ShownItemProvider shownItem={bible} trackLive={false}>
+            <BiblePanel
+              sizeClass={sizeClass}
+              onProblem={onProblem}
+              active={bibleOpen}
+            />
+          </ShownItemProvider>
+        </div>
+      )}
+    </>
+  );
+}
 
 /** The 진행 keys and the 라이브러리 song sync, while 진행 is open. */
 export function ShowShortcuts({
@@ -94,16 +159,15 @@ function showPanelParts({
     case '지우기':
       return {bare: <ClearRow compact={sizeClass === 'narrow'} />};
     case '슬라이드':
-      if (bibleOpen) {
-        return {
-          embedded: <BiblePanel sizeClass={sizeClass} onProblem={onProblem} />,
-        };
-      }
       return {
-        body: <SlidePanelBody sizeClass={sizeClass} onOpenPrep={onOpenPrep} />,
-        header: <SlidePanelMeta onProblem={onProblem} />,
-        footer: <SlidePanelFooter sizeClass={sizeClass} />,
-        stableScrollbar: true,
+        embedded: (
+          <ShowSlidesPanel
+            sizeClass={sizeClass}
+            onProblem={onProblem}
+            onOpenPrep={onOpenPrep}
+            bibleOpen={bibleOpen}
+          />
+        ),
       };
     default:
       return {};
