@@ -275,7 +275,7 @@ it.each(['bible', 'sermon'] as const)(
       throw Error('Missing Bible or sermon item');
     };
     const original = savedItem();
-    const verseRow = verse.closest('[data-slide-index]');
+    const verseRow = verse.closest<HTMLElement>('[data-slide-index]');
     if (verseRow === null) throw Error('Missing verse row');
     const reference = within(verseRow).getByRole<HTMLTextAreaElement>(
       'textbox',
