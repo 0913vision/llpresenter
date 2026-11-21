@@ -8,6 +8,7 @@ import {
   isThemeTextElement,
 } from './content';
 import {themeTextRoles} from '../schema/themeTextSlot';
+import type {ThemeItemKind} from './elementRules';
 import {CONT_MARKER} from '../bible/split/layout';
 import {slideTextValue} from '../presentation/textOverrides';
 import type {
@@ -30,17 +31,16 @@ export function manualThemeText(
     : undefined;
 }
 
-const liveTextRoles: ReadonlySet<string> = new Set(
-  themeTextRoles.filter(role => !isSlideEditableTextRole(role)),
-);
+const knownTextRoles: ReadonlySet<string> = new Set(themeTextRoles);
 
 export function isSlideEditableTextValue(
   key: string,
   value: SlideTextValue,
+  itemKind?: ThemeItemKind,
 ): boolean {
   return typeof value === 'string'
-    ? !liveTextRoles.has(key)
-    : isSlideEditableTextRole(value.role);
+    ? !knownTextRoles.has(key) || isSlideEditableTextRole(key, itemKind)
+    : isSlideEditableTextRole(value.role, itemKind);
 }
 
 /** Resolves exact bindings before portable, unambiguous roles. */
@@ -49,20 +49,29 @@ export function matchSlideText(
   theme: TextSlotLayout,
   element: Extract<ThemeElement, {readonly text: unknown}>,
 ): {readonly key: string; readonly value: SlideTextValue} | undefined {
-  if (values === undefined || !isSlideEditableElement(element)) {
+  const {itemKind} = theme;
+  if (values === undefined || !isSlideEditableElement(element, itemKind)) {
     return undefined;
   }
   const binding = themeTextBinding(theme, element);
   const exact = values[binding.key];
-  if (exact !== undefined && isSlideEditableTextValue(binding.key, exact)) {
+  if (
+    exact !== undefined &&
+    isSlideEditableTextValue(binding.key, exact, itemKind)
+  ) {
     return {key: binding.key, value: exact};
   }
   const oldKey = legacyTextBinding(theme, element);
   const old = values[oldKey];
-  if (typeof old === 'string') return {key: oldKey, value: old};
+  if (
+    typeof old === 'string' &&
+    isSlideEditableTextValue(oldKey, old, itemKind)
+  ) {
+    return {key: oldKey, value: old};
+  }
   const candidates = Object.entries(values).flatMap(([key, value]) =>
     typeof value !== 'string' &&
-    isSlideEditableTextValue(key, value) &&
+    isSlideEditableTextValue(key, value, itemKind) &&
     value.sourceThemeId !== theme.themeId &&
     value.screenId === binding.screenId
       ? [{key, value}]

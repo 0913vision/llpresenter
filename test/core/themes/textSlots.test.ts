@@ -1,14 +1,20 @@
 import {expect, it} from 'vitest';
 import {createThemeId, createThemeElementId} from '@core/schema/ids';
 import type {ThemeElement, ThemeScreenLayout} from '@core/schema/themes';
-import {emptyLayers} from '@core/live/state';
+import {emptyLayers, type SlideLayer} from '@core/live/state';
 import {isSlideEditableElement, themeElementText} from '@core/themes/content';
 import {resolveThemeScreen} from '@core/themes/resolve';
 import {themeTextBinding} from '@core/themes/textBindings';
-import {isSlideEditableTextValue, matchSlideText} from '@core/themes/textSlots';
+import {
+  isSlideEditableTextValue,
+  manualThemeText,
+  matchSlideText,
+  withSlideTextOverrides,
+} from '@core/themes/textSlots';
 import {
   liveThemeTextElements,
   themeElementBase,
+  themeFile,
   themeScreens,
   THEME_MAIN,
   THEME_STAGE,
@@ -214,3 +220,65 @@ it.each(liveThemeTextElements())(
     expect(matchSlideText({[key]: saved}, target, editable)).toBeUndefined();
   },
 );
+
+it('excludes ad labels from fields while retaining their stage output', () => {
+  const label = {
+    ...themeElementBase(),
+    kind: 'label',
+    hideWhenItemTitle: true,
+  } as const;
+  const alias = textBox('cue');
+  const labelAlias = {
+    ...alias,
+    textSlot: {...alias.textSlot, role: 'label' as const},
+  };
+  const theme = {
+    themeId: a,
+    sourceScreenId: THEME_STAGE,
+    layout: own([label, labelAlias]),
+  };
+  const {key, slotId} = themeTextBinding(theme, label);
+  const saved = {
+    mode: 'manual' as const,
+    slotId,
+    role: 'label' as const,
+    sourceThemeId: a,
+    screenId: THEME_STAGE,
+    text: 'Previously saved stage cue',
+  };
+  const slide: SlideLayer = {
+    itemId: 'ad',
+    kind: 'ad',
+    position: 0,
+    label: 'Stage cue',
+    lines: ['Ad text'],
+    textOverrides: {[key]: saved},
+  };
+  expect(isSlideEditableElement(label, 'ad')).toBe(false);
+  expect(isSlideEditableElement(labelAlias, 'ad')).toBe(false);
+  expect(isSlideEditableElement(label, 'song')).toBe(true);
+  expect(isSlideEditableElement(alias, 'ad')).toBe(true);
+  expect(isSlideEditableTextValue('label', 'Old cue', 'ad')).toBe(false);
+  expect(isSlideEditableTextValue(key, saved, 'ad')).toBe(false);
+  expect(
+    matchSlideText(slide.textOverrides, {...theme, itemKind: 'ad'}, label),
+  ).toBeUndefined();
+  expect(
+    themeElementText(label, {layers: {...emptyLayers(), slide}, item: null}),
+  ).toBe('Stage cue');
+  expect(
+    manualThemeText(withSlideTextOverrides(theme, slide).elements[0]),
+  ).toBe(saved.text);
+});
+
+it('excludes live and non-text elements from ad fields', () => {
+  const media = themeFile()
+    .themes.flatMap(theme =>
+      Object.values(theme.screens).flatMap(layout => layout.elements),
+    )
+    .find(element => element.kind === 'media');
+  if (media === undefined) throw Error('Missing media theme element');
+  for (const element of [media, ...liveThemeTextElements()]) {
+    expect(isSlideEditableElement(element, 'ad')).toBe(false);
+  }
+});
