@@ -6,6 +6,9 @@
     2 * var(--size-control-sm) + var(--space-6) + 2 * var(--space-8)
   );
 }
+.passageAction {
+  padding: 0 var(--panel-inset) var(--space-8);
+}
 .list {
   position: relative;
 }

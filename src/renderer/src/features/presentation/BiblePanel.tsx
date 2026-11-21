@@ -16,13 +16,11 @@ import {SlideSizeControl} from '@renderer/platform/SlideSizeControl';
 import {BibleAdjacentButtons} from '../bible/BibleAdjacentButtons';
 import {BibleDisplayControls} from './BibleDisplayControls';
 import styles from './BiblePanel.module.css';
-import {BibleInsertButton} from '../service/items/BibleInsertButton';
 import type {Notice} from '@renderer/ui/notices';
 import type {BibleSource} from '@core/bible/source';
 
 export function BiblePanel({
   sizeClass,
-  onProblem,
   active = true,
   retainedSource,
 }: {
@@ -50,9 +48,7 @@ export function BiblePanel({
         <GridFooter
           actions={<BibleAdjacentButtons key={source.id} source={source} />}
           zoom={<SlideSizeControl sizeClass={sizeClass} />}
-        >
-          <BibleInsertButton source={source} onProblem={onProblem} />
-        </GridFooter>
+        />
       </div>
     </Panel>
   );

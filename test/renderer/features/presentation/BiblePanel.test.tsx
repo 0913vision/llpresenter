@@ -64,6 +64,9 @@ describe('Bible panel integration', () => {
     const footer = zoom.closest('footer');
     if (!footer) throw new Error('Missing grid footer');
     expect(within(footer).queryByText(/^\d+개$/u)).toBeNull();
+    expect(
+      within(footer).queryByRole('button', {name: '예배 순서에 넣기'}),
+    ).toBeNull();
     const next = within(footer).getByRole('button', {name: '뒤 절 추가'});
     expect(
       next.compareDocumentPosition(zoom) & Node.DOCUMENT_POSITION_FOLLOWING,

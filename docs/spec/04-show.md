@@ -1125,8 +1125,9 @@ integration use this contract, with a distinct cancellable ID per lookup.
 - 화면별 보기 (per-screen view, "1 / 3"): shows how the selected 슬라이드 looks
   on the 청중 화면 and the 방송 화면, with the screen name, target, and style
   name.
-- Buttons: 앞 절 추가 (add the previous verse), 뒤 절 추가 (add the next verse),
-  and 예배 순서에 넣기 (add to the 예배 순서).
+- The grid footer has 앞 절 추가 (add the previous verse) and 뒤 절 추가 (add
+  the next verse). The 예배 순서에 넣기 action sits with the passage fields in
+  빠른 실행.
 - Bible passages opened or shown from 빠른 실행 use a 0.7-second wipe to the
   left on every part, including the first slide and split verses. Inserting the
   passage into the service retains that default; existing service items are not

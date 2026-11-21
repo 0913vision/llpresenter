@@ -31,6 +31,7 @@ import {
 } from '@renderer/ui/Panel';
 import type {Notice} from '@renderer/ui/notices';
 import {BibleQuickField} from './BibleQuickField';
+import {BibleInsertButton} from '../service/items/BibleInsertButton';
 import {quickItemOn, quickItemUnavailable, quickRunner} from './quickActions';
 import styles from './QuickPanel.module.css';
 import {
@@ -226,6 +227,7 @@ export function QuickPanel({
     enabled: !locked,
     onMove: moveItem,
   });
+  const passage = useShow(view => bibleSourceFor(view, view.openItemId));
   const live = useLive(view => view.state);
   const livePassage = useShow(view => {
     const source = bibleSourceFor(view, live?.layers.slide?.itemId ?? null);
@@ -287,6 +289,11 @@ export function QuickPanel({
             selectionVersion={selectionVersion + activationVersion}
             onIntent={() => runner?.cancel()}
           />
+          {passage === null ? null : (
+            <div className={styles.passageAction}>
+              <BibleInsertButton source={passage} onProblem={onProblem} />
+            </div>
+          )}
         </div>
       </PanelTools>
       <PanelBody variant="flush">

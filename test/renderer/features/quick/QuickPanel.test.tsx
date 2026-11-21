@@ -66,6 +66,27 @@ describe('quick panel integration', () => {
     expect(screen.getByRole('button', {name: '저장된 곡'})).toBeTruthy();
   });
 
+  it('places the add-to-service action in quick run for the open passage', () => {
+    const fixture = quickFixture();
+    window.llp = fixture.api;
+    const reply = lookupReply(lookupRequest('John 3:16'));
+    if (!reply.result.ok) throw new Error('Missing passage');
+    const source = bibleSource(reply.result.value, {
+      verseNumbers: true,
+      review: false,
+    });
+    useShow.setState({bibleSource: source, openItemId: source.id});
+    render(<QuickPanel selectionVersion={0} onProblem={vi.fn()} />);
+    const panel = screen.getByRole('region', {name: '빠른 실행'});
+    expect(
+      within(panel).getByRole('button', {name: '예배 순서에 넣기'}),
+    ).toBeTruthy();
+    act(() => useShow.setState({openItemId: null}));
+    expect(
+      within(panel).queryByRole('button', {name: '예배 순서에 넣기'}),
+    ).toBeNull();
+  });
+
   it('shows only a live quick passage and hides the black screen action', async () => {
     const fixture = quickFixture();
     window.llp = fixture.api;
