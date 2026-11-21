@@ -296,6 +296,8 @@ const PREP_DRAFT_COLUMNS = [
 export interface PrepBinding {
   readonly controls?: RefObject<SongEditorWindowModel | null>;
   readonly slides?: SlidesEditorModel;
+  readonly itemEditorRequest?:
+    {readonly serviceId: string; readonly itemId: string} | undefined;
   readonly onNewSong?: (() => void) | undefined;
   readonly onImportedSave?: ((id: SongId) => void) | undefined;
   readonly api: LlpApi;
@@ -654,6 +656,18 @@ function OtherPrepEditor({
             />
           )}
         </SlideTextEditor>
+      ) : item !== null && isItemOfKind(item, 'media') ? (
+        <SlideTextEditor items={prep.items} state={itemState}>
+          {renderFields => (
+            <ServiceItemPanel
+              items={prep.items}
+              editor={prep.editor}
+              sizeClass={sizeClass}
+              ui={prep.api.ui}
+              renderTextFields={renderFields}
+            />
+          )}
+        </SlideTextEditor>
       ) : item !== null &&
         (isItemOfKind(item, 'song') || isItemOfKind(item, 'slides')) ? null : (
         <ServiceItemPanel
@@ -690,7 +704,10 @@ export function usePrepPanels({
   readonly onOpenPrep: ((itemId: string) => void) | undefined;
   readonly onShowInLibrary: ((songId: SongId) => void) | undefined;
 }): WorkspacePanels {
-  const [otherId, setOtherId] = useState<string | null>(null);
+  const [other, setOther] = useState<PrepBinding['itemEditorRequest']>();
+  const itemEditor = prep?.itemEditorRequest;
+  const [handledItemEditor, setHandledItemEditor] =
+    useState<PrepBinding['itemEditorRequest']>();
   const [switching, setSwitching] = useState<{
     readonly editor: SongSession | null;
     readonly slides: SlidesListSession | null;
@@ -698,23 +715,26 @@ export function usePrepPanels({
     readonly itemId: string;
   } | null>(null);
   const leaveTurn = useRef(0);
-  const otherService = useRef<string | null>(null);
   const serviceId = useShow(view => view.serviceId);
   const otherExists = useShow(
-    view => otherId !== null && view.rows.some(row => row.id === otherId),
+    view =>
+      other !== undefined && view.rows.some(row => row.id === other.itemId),
   );
-  useEffect(() => {
-    if (
-      otherId !== null &&
-      (serviceId !== otherService.current || !otherExists)
-    ) {
-      leaveTurn.current++;
-      setOtherId(null);
-    }
-  }, [otherId, serviceId, otherExists]);
+  const otherId =
+    other?.serviceId === serviceId && otherExists ? other.itemId : null;
+  if (other !== undefined && otherId === null) setOther(undefined);
   const requestedItem = useShow(view => view.openItemId);
   const selectedItem =
     retainedItem === undefined ? requestedItem : retainedItem;
+  if (handledItemEditor !== itemEditor) {
+    setHandledItemEditor(itemEditor);
+    if (
+      itemEditor?.serviceId === serviceId &&
+      itemEditor.itemId === requestedItem
+    ) {
+      setOther(itemEditor);
+    }
+  }
   const selectionRequest = useRef(0);
   const onSelectSong = (songId: SongId): void => {
     if (prep === undefined) return;
@@ -855,7 +875,7 @@ export function usePrepPanels({
         switching.closed))
   ) {
     setSwitching(null);
-    setOtherId(null);
+    setOther(undefined);
   } else if (
     switching !== null &&
     !switching.closed &&
@@ -931,14 +951,13 @@ export function usePrepPanels({
   const back = (): void =>
     leave(() => {
       setSwitching(null);
-      setOtherId(null);
+      setOther(undefined);
       prep?.editor.open(null);
     });
   const openOther = (id: string): void =>
     leave(() => {
       onOpenPrep?.(id);
-      otherService.current = serviceId;
-      setOtherId(id);
+      if (serviceId !== null) setOther({serviceId, itemId: id});
     });
   const shownItem =
     shown.otherId ??

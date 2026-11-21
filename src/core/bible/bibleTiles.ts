@@ -6,6 +6,7 @@ import {LIVE_STATE_LIMITS} from '../schema/liveLimits';
 import type {ShowTile} from '../schema/showService';
 import {textSlideKey, textVerseKey} from '../presentation/textOverrides';
 import {CONT_MARKER} from './split/layout';
+import {validatedPinnedVerse} from './split/splitVerses';
 
 export function bibleOutputLines(text: string): readonly string[] {
   const lines: string[] = [];
@@ -80,7 +81,10 @@ export function bibleVerseTiles(
     const pinned =
       bibleVerse === undefined
         ? undefined
-        : options.pinnedVerses?.[textVerseKey(bibleVerse)];
+        : validatedPinnedVerse(
+            verse.text,
+            options.pinnedVerses?.[textVerseKey(bibleVerse)],
+          );
     const parts = pinned ?? [verse.text];
     return parts.map((part, index) => {
       const continued = index < parts.length - 1;
@@ -131,4 +135,29 @@ export function withoutDeletedBibleSlides(
     const key = textSlideKey(tile);
     return key === undefined || !deleted.has(key);
   });
+}
+
+export function sermonTitleTile({
+  side,
+  title,
+  reference,
+  label,
+  transition,
+}: {
+  readonly side: 'opening' | 'closing';
+  readonly title: string;
+  readonly reference: string;
+  readonly label: string | undefined;
+  readonly transition: BiblePassage['transition'];
+}): ShowTile {
+  return {
+    textSlideKey: `sermon:${side}`,
+    label: label ?? null,
+    ...(label === undefined ? {} : {slideLabel: label}),
+    labelColor: NO_LABEL_COLOR,
+    lines: title.split(/\r?\n/),
+    reference,
+    sermonTitle: true,
+    ...(transition === undefined ? {} : {transition}),
+  };
 }

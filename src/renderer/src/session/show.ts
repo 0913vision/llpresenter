@@ -28,6 +28,7 @@ import {
 import {
   nextSlideOf,
   noticeNumber,
+  mediaTextSlide,
   slideLayerOf,
 } from '@core/presentation/slideLayer';
 import {rememberBiblePassage} from '@renderer/session/recentWriter';
@@ -172,7 +173,13 @@ function outputOtherTile(cursor: TileCursor): boolean {
   const tile = tilesOf(cursor.itemId)[cursor.index];
   if (tile?.media === undefined) return false;
   beginOutputRequest();
-  sendMediaOutput(tile.media, startServiceItem(cursor.itemId));
+  const slide =
+    tile.textOverrides === undefined ? null : slideLayerOf(cursor, tilesOf);
+  sendMediaOutput(
+    tile.media,
+    startServiceItem(cursor.itemId),
+    slide === null ? undefined : mediaTextSlide(slide),
+  );
   useShow.setState({openItemId: cursor.itemId, selectedTile: cursor.index});
   return true;
 }
@@ -568,9 +575,35 @@ function nextKey(next: NextSlide | null | undefined): string {
 }
 
 function refreshLiveTextOverrides(previous: ShowView): void {
-  const slide = useLive.getState().state?.layers.slide;
-  if (!slide) return;
+  const live = useLive.getState().state;
+  const slide = live?.layers.slide;
   const current = useShow.getState();
+  if (!slide) {
+    const item = live?.themeItem;
+    const media = live?.layers.media;
+    if (
+      item?.kind !== 'media' ||
+      item.contentCleared ||
+      media?.itemId !== item.id
+    ) {
+      return;
+    }
+    const oldTile = tilesForView(previous, item.id)[0];
+    const tile = tilesForView(current, item.id)[0];
+    if (
+      oldTile === undefined ||
+      oldTile.textOverrides !== undefined ||
+      tile?.media?.mediaId !== media.mediaId ||
+      tile.textOverrides === undefined
+    ) {
+      return;
+    }
+    const projected = slideLayerOf({itemId: item.id, index: 0}, () => [tile]);
+    if (projected !== null) {
+      sendLive({type: 'slide.show', slide: mediaTextSlide(projected)});
+    }
+    return;
+  }
   const before = projectedLiveCursor(previous, slide);
   const after = projectedLiveCursor(current, slide);
   if (!before || !after) return;

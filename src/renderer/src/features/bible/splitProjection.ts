@@ -7,11 +7,13 @@ import {
 } from '@core/presentation/textOverrides';
 import {
   bibleOutputLines,
+  sermonTitleTile,
   withoutDeletedBibleSlides,
 } from '@core/bible/bibleTiles';
 import {passageBook} from '@core/bible/adjacentVerses';
 import {
   projectPinnedVerse,
+  validatedPinnedVerse,
   splitVerseParts,
   type VerseInput,
   type VersePart,
@@ -263,7 +265,10 @@ export function projectBible(
       source.verseNumbers && verses.length > 1
         ? `${verse.reference.verse} `
         : '';
-    const pinned = source.pinnedVerses?.[textVerseKey(verse.reference)];
+    const pinned = validatedPinnedVerse(
+      verse.text,
+      source.pinnedVerses?.[textVerseKey(verse.reference)],
+    );
     const next =
       pinned !== undefined
         ? projectPinnedVerse(verse, pinned, {layout, prefix})
@@ -338,35 +343,21 @@ export function projectBible(
         ? tiles
         : withoutDeletedBibleSlides(
             [
-              {
-                label: source.sermonOpeningLabel ?? null,
-                ...(source.sermonOpeningLabel === undefined
-                  ? {}
-                  : {slideLabel: source.sermonOpeningLabel}),
-                labelColor: NO_LABEL_COLOR,
-                lines: [source.sermonTitle],
+              sermonTitleTile({
+                side: 'opening',
+                title: source.sermonTitle,
                 reference: source.passage.displayRef,
-                sermonTitle: true,
-                textSlideKey: 'sermon:opening',
-                ...(source.sermonOpeningTransition === undefined
-                  ? {}
-                  : {transition: source.sermonOpeningTransition}),
-              },
+                label: source.sermonOpeningLabel,
+                transition: source.sermonOpeningTransition,
+              }),
               ...tiles,
-              {
-                label: source.sermonClosingLabel ?? null,
-                ...(source.sermonClosingLabel === undefined
-                  ? {}
-                  : {slideLabel: source.sermonClosingLabel}),
-                labelColor: NO_LABEL_COLOR,
-                lines: [source.sermonTitle],
+              sermonTitleTile({
+                side: 'closing',
+                title: source.sermonTitle,
                 reference: source.passage.displayRef,
-                sermonTitle: true,
-                textSlideKey: 'sermon:closing',
-                ...(source.sermonClosingTransition === undefined
-                  ? {}
-                  : {transition: source.sermonClosingTransition}),
-              },
+                label: source.sermonClosingLabel,
+                transition: source.sermonClosingTransition,
+              }),
             ],
             source.deletedSlides,
           ),

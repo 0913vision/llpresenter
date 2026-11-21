@@ -157,6 +157,7 @@ const showRowSchema = v.pipe(
     v.object({
       kind: v.picklist(['media', 'unknown']),
       id,
+      theme: v.exactOptional(themeIdSchema),
       background: v.exactOptional(mediaChoiceSchema),
       backgroundNone: v.exactOptional(v.literal(true)),
       title: v.string(),

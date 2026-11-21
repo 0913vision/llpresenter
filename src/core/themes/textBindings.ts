@@ -81,6 +81,10 @@ export function themeTextBinding(theme: TextSlotLayout, element: TextElement) {
   return {
     ...identity,
     name: element.textSlot?.name,
+    explicitSlot:
+      element.textSlot !== undefined &&
+      (element.textSlot.scope === 'shared' ||
+        element.textSlot.slotId !== element.id),
     uniqueRole:
       localRoles.length === 1 &&
       !theme.layout.ambiguousTextRoles?.includes(identity.role),

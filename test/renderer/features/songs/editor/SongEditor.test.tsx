@@ -60,6 +60,40 @@ describe('song editor view', () => {
     seedSlideSurfaceView({});
   });
 
+  it('places the next song row after the measured height of all theme fields', async () => {
+    seedSlideSurfaceView({});
+    const {store, view} = await editorSetup();
+    const height = 280;
+    const original = HTMLElement.prototype.getBoundingClientRect;
+    const bounds = vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockImplementation(function (this: HTMLElement) {
+        return this.hasAttribute('data-editor-block') &&
+          this.querySelector('fieldset') !== null
+          ? new DOMRect(0, 0, 700, height)
+          : original.call(this);
+      });
+    try {
+      view.rerender(
+        <SongEditor
+          store={store}
+          renderTextFields={() => (
+            <fieldset aria-label="Theme text">
+              <textarea aria-label="Body" />
+              <textarea aria-label="Clock" />
+            </fieldset>
+          )}
+        />,
+      );
+      const second = view.container.querySelector<HTMLElement>(
+        '[data-editor-block="1"]',
+      );
+      expect(second?.style.top).toBe(`${height}px`);
+    } finally {
+      bounds.mockRestore();
+    }
+  });
+
   it('places the view switch and grid size control in the slide footer', async () => {
     seedSlideSurfaceView({});
     const {user} = await editorSetup();

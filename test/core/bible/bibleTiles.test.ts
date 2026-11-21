@@ -4,6 +4,7 @@ import {bibleVerseTiles, labelEdge} from '@core/bible/bibleTiles';
 import {passageBook} from '@core/bible/adjacentVerses';
 import {bibleSource} from '@core/bible/source';
 import {translationIdSchema} from '@core/schema/ids';
+import {textVerseKey} from '@core/presentation/textOverrides';
 import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
 
 function passage(verses: ReadonlyArray<readonly [number, number, string]>) {
@@ -250,4 +251,19 @@ describe('labelEdge', () => {
     expect(labelEdge(undefined, 'first')).toBeUndefined();
     expect(labelEdge(null, 'last')).toBeUndefined();
   });
+});
+
+it('uses a pin only while its text matches the installed verse', () => {
+  const original = passage([[3, 34, 'First   second']]);
+  const reference = bibleVerseTiles(original)[0]?.bibleVerse;
+  if (reference === undefined) throw Error('Missing verse reference');
+  const options = {
+    pinnedVerses: {[textVerseKey(reference)]: ['First ', 'second']},
+    verseNumbers: false,
+  };
+  expect(bibleVerseTiles(original, options)).toHaveLength(2);
+  const corrected = passage([[3, 34, 'Updated verse']]);
+  expect(bibleVerseTiles(corrected, options).map(tile => tile.lines)).toEqual([
+    ['Updated verse'],
+  ]);
 });

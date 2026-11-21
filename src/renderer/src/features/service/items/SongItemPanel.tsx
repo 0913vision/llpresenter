@@ -1,3 +1,9 @@
+import {
+  SlideSurfaceView,
+  useSlideSurfaceView,
+} from '@renderer/features/songs/editor/SlideSurfaceView';
+import type {RenderSlideTextFields} from '@renderer/features/songs/editor/SlideCardRenderer';
+import type {UiApi} from '@contracts/ipc/ui';
 import {requestSongEditor} from '@renderer/features/songs/editor/songEditorRequests';
 import {cardOffset} from '@core/services/sectionCards';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
@@ -39,15 +45,20 @@ export function ServiceItemPanel({
   sizeClass,
   onBack,
   slides,
+  ui,
+  renderTextFields,
 }: {
   readonly items: ServiceItemStore;
   readonly editor: SongEditorStore;
   readonly sizeClass: SizeClass;
   readonly onBack?: (() => void) | undefined;
   readonly slides?: SlidesEditorModel | undefined;
+  readonly ui?: Pick<UiApi, 'setLayout'> | undefined;
+  readonly renderTextFields?: RenderSlideTextFields | undefined;
 }): JSX.Element {
   const serviceId = useShow(view => view.serviceId);
   const itemId = useShow(view => view.openItemId);
+  const {mode} = useSlideSurfaceView();
   useEffect(() => {
     items.show(
       serviceId === null || itemId === null ? null : {serviceId, itemId},
@@ -89,7 +100,16 @@ export function ServiceItemPanel({
     (song === null && songStatus !== 'missing')
   ) {
     return (
-      <OtherItemPanel item={item} sizeClass={sizeClass}>
+      <OtherItemPanel
+        item={item}
+        sizeClass={sizeClass}
+        textFields={mode === 'list' ? renderTextFields?.(0) : undefined}
+        view={
+          renderTextFields === undefined ? undefined : (
+            <SlideSurfaceView ui={ui} />
+          )
+        }
+      >
         <ItemSlideGrid items={items} editor={editor} />
       </OtherItemPanel>
     );

@@ -30,6 +30,7 @@ import {SongSlideSurface} from '@renderer/features/songs/editor/SongSlideSurface
 import {visibleGridInsertionPosition} from '@renderer/features/songs/editor/gridInsertionPosition';
 import {useShow} from '@renderer/session/show';
 import {Button} from '@renderer/ui/Button';
+import {isInTextEntry} from '@renderer/ui/textEntry';
 import {ItemEditorShell} from '@renderer/platform/ItemEditorShell';
 import {ItemEditorAddBar} from '@renderer/platform/ItemEditorAddBar';
 import {SlideThumbnailBand} from '@renderer/ui/SlideThumbnail';
@@ -366,14 +367,28 @@ function BibleEditorContent({
                     data-song-slide={String(index - offset)}
                     data-slide-index={index - offset}
                     tabIndex={0}
-                    onClick={event =>
+                    onFocusCapture={event => {
+                      if (isInTextEntry(event.target)) {
+                        session.selectSlides({
+                          type: 'click',
+                          id: String(index - offset),
+                        });
+                      }
+                    }}
+                    onClick={event => {
+                      if (
+                        event.target instanceof Element &&
+                        event.target.closest('button, textarea, input, summary')
+                      ) {
+                        return;
+                      }
                       session.selectSlides({
                         type: 'click',
                         id: String(index - offset),
                         ctrl: event.ctrlKey || event.metaKey,
                         shift: event.shiftKey,
-                      })
-                    }
+                      });
+                    }}
                   >
                     <div className={styles.thumbnail}>
                       <div className={styles.canvas}>

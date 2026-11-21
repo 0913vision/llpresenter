@@ -471,3 +471,38 @@ it('applies Bible display preferences to verse slides', () => {
     translationName: true,
   });
 });
+
+it('projects corrected verse text and keeps both multiline sermon title slides', () => {
+  const passage = panelPassage();
+  const options = {
+    element: {...themeElementBase(), kind: 'currentText' as const},
+    layout: mockSplitLayout(),
+  };
+  const source = {
+    id: 'corrected-passage',
+    kind: 'bible',
+    source: 'service',
+    passage: {
+      ...passage,
+      verses: [{chapter: 3, verse: 16, text: 'Updated text'}],
+    },
+    sermonTitle: 'Title\r\nSubtitle',
+    verseNumbers: false,
+    translationName: false,
+    reference: 'every',
+  } as const;
+  const verse = projectBible(source, options)?.verses[0];
+  if (verse === undefined) throw Error('Missing verse');
+  const result = projectBible(
+    {
+      ...source,
+      pinnedVerses: {[textVerseKey(verse.reference)]: ['Original ', 'verse']},
+    },
+    options,
+  );
+  expect(result?.tiles.map(tile => [textSlideKey(tile), tile.lines])).toEqual([
+    ['sermon:opening', ['Title', 'Subtitle']],
+    [bibleTextSlideKey(verse.reference, 1), ['Updated text']],
+    ['sermon:closing', ['Title', 'Subtitle']],
+  ]);
+});

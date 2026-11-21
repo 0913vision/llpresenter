@@ -223,3 +223,8 @@ export function slideLayerOf(
         }),
   };
 }
+
+/** A standalone media tile supplies metadata and overrides to the text layer. */
+export function mediaTextSlide(slide: SlideLayer): SlideLayer {
+  return {...slide, kind: 'media', lines: []};
+}

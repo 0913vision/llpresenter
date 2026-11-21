@@ -135,3 +135,38 @@ it('fills a named box from its declared role independently of its format', () =>
     }),
   ).toBe('John 3:16');
 });
+
+it('keeps a reused layout element ID local when no portable role identifies it', () => {
+  const {textSlot: _slot, ...implicit} = textBox('local');
+  const duplicate = {...implicit, id: textBox('other', 2).id};
+  const origin = {
+    themeId: a,
+    sourceScreenId: THEME_MAIN,
+    layout: own([implicit]),
+  };
+  const target = {
+    themeId: b,
+    sourceScreenId: THEME_MAIN,
+    layout: own([implicit, duplicate]),
+  };
+  const binding = themeTextBinding(origin, implicit);
+  const values = {
+    [binding.key]: {
+      mode: 'manual' as const,
+      slotId: binding.slotId,
+      role: binding.role,
+      sourceThemeId: a,
+      screenId: THEME_MAIN,
+      uniqueRole: true as const,
+      text: 'Only this theme',
+    },
+  };
+  expect(matchSlideText(values, origin, implicit)?.value).toMatchObject({
+    text: 'Only this theme',
+  });
+  expect(matchSlideText(values, target, implicit)).toBeUndefined();
+  expect(
+    matchSlideText(values, {...target, layout: own([implicit])}, implicit)
+      ?.value,
+  ).toMatchObject({text: 'Only this theme'});
+});

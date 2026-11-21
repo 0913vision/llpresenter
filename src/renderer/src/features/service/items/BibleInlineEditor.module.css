@@ -57,6 +57,7 @@
   background: var(--selection);
 }
 .thumbnail {
+  align-self: start;
   min-width: 0;
   overflow: hidden;
   border-radius: var(--radius-sm);

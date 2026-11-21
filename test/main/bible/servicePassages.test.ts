@@ -108,7 +108,7 @@ describe('saved Bible passage resolution', () => {
     const sermon: ServiceItem = {
       id: original.id,
       sermon: {
-        title: 'Sermon',
+        title: 'Sermon\nSubtitle',
         passage: original.bible,
         openingTransition: {kind: 'wipe', dir: 'left', sec: 1},
         closingTransition: {kind: 'dissolve', sec: 2},
@@ -121,12 +121,12 @@ describe('saved Bible passage resolution', () => {
     const tiles = result.tiles.get(sermon.id);
     expect(tiles?.[0]).toMatchObject({
       sermonTitle: true,
-      lines: ['Sermon'],
+      lines: ['Sermon', 'Subtitle'],
       transition: {kind: 'wipe', sec: 1},
     });
     expect(tiles?.at(-1)).toMatchObject({
       sermonTitle: true,
-      lines: ['Sermon'],
+      lines: ['Sermon', 'Subtitle'],
       transition: {kind: 'dissolve', sec: 2},
     });
     expect(tiles).toHaveLength(5);

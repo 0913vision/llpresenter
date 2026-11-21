@@ -11,6 +11,7 @@ import {expect, it, onTestFinished, vi} from 'vitest';
 import {projectSlides} from '@core/presentation/slides';
 import {slidesItem} from '@fixtures/core/slides';
 import {
+  THEME_MAIN,
   themeElementBase,
   themeFile,
   themeScreens,
@@ -37,6 +38,7 @@ import {
   projectBible,
   type BibleProjection,
 } from '@renderer/features/bible/splitProjection';
+import {createMediaId, createThemeId} from '@core/schema/ids';
 import {parseServiceDocument} from '@core/schema/contentDocuments';
 
 const bible = vi.hoisted((): {projection: BibleProjection | null} => ({
@@ -46,13 +48,13 @@ vi.mock('@renderer/features/bible/useBibleProjections', () => ({
   useBibleTileProjection: () => bible.projection,
 }));
 
-function installSettings() {
+function installSettings(file = themeFile()) {
   const original = window.llp;
   window.llp = mockLlpApi({
     settings: {
       get: async request => {
         if (request.name === 'themes') {
-          return settingsDocument('themes', themeFile(), 1);
+          return settingsDocument('themes', file, 1);
         }
         if (request.name === 'screens') {
           return settingsDocument(
@@ -285,5 +287,120 @@ it.each(['bible', 'sermon'] as const)(
         .getAllByRole<HTMLTextAreaElement>('textbox', body)
         .map(row => row.value),
     ).toContain('Invented verse 16');
+  },
+);
+
+it.each(['song', 'media'] as const)(
+  'edits a %s tile using the theme selected by its Show row or item',
+  async kind => {
+    const theme = createThemeId('00000000-0000-4000-8000-000000005102');
+    const file = themeFile();
+    installSettings({
+      ...file,
+      themes: [
+        ...file.themes,
+        {
+          id: theme,
+          name: 'Fixture theme',
+          screens: {
+            [THEME_MAIN]: {
+              mode: {kind: 'own'},
+              elements: [
+                {
+                  ...themeElementBase(),
+                  kind: 'text',
+                  content: 'Automatic fixture caption',
+                  textSlot: {
+                    slotId: 'caption',
+                    name: 'Fixture caption',
+                    role: 'text',
+                    scope: 'screen',
+                  },
+                },
+              ],
+            },
+          },
+        },
+      ],
+    });
+    const fixture = itemFixture();
+    const before = fixture.service();
+    const id = fixtureItems.arranged;
+    const media = createMediaId('00000000-0000-4000-8000-000000005103');
+    const first = fixture.first.song.slides[0];
+    if (first === undefined) throw Error('Missing fixture slide');
+    const result = parseServiceDocument({
+      ...before,
+      service: {
+        ...before.service,
+        order: [
+          kind === 'song'
+            ? {id, song: fixture.first.song.id, slides: [first]}
+            : {id, media, theme},
+        ],
+      },
+    });
+    if (!result.ok || result.value === null) {
+      throw Error('Missing fixture service');
+    }
+    fixture.pushService(result.value);
+    const previous = useShow.getState();
+    useShow.setState({
+      serviceId: fixtureServiceId,
+      openItemId: id,
+      rows: [{id, kind, title: 'Fixture item', theme}],
+      tiles: {
+        [id]: [
+          {
+            label: null,
+            labelColor: 'none',
+            lines: ['Fixture item'],
+            ...(kind === 'song'
+              ? {
+                  sourceSlide: {
+                    songId: fixture.first.song.id,
+                    slideId: first.id,
+                  },
+                }
+              : {media: {mediaId: media, loop: false, itemId: id}}),
+          },
+        ],
+      },
+    });
+    const editor = new SongEditorStore(fixture.api, vi.fn());
+    const items = new ServiceItemStore(fixture.api, editor, vi.fn());
+    function Harness() {
+      return (
+        <SlideTextFields
+          items={items}
+          state={useSyncExternalStore(items.subscribe, items.getSnapshot)}
+        />
+      );
+    }
+    items.show({serviceId: fixtureServiceId, itemId: id});
+    const view = render(<Harness />);
+    onTestFinished(async () => {
+      view.unmount();
+      items.dispose();
+      await editor.dispose();
+      useShow.setState(previous);
+    });
+    const field = await screen.findByRole<HTMLTextAreaElement>('textbox', {
+      name: /Fixture caption/,
+    });
+    expect(field.value).toBe('Automatic fixture caption');
+    fireEvent.change(field, {target: {value: 'Edited fixture caption'}});
+    fireEvent.blur(field);
+    const slideKey = kind === 'song' ? `slide:${first.id}` : 'media:standalone';
+    await waitFor(() =>
+      expect(
+        fixture.service().service.order[0]?.textOverrides?.[slideKey],
+      ).toMatchObject({
+        [`${theme}/${THEME_MAIN}/caption`]: {
+          sourceThemeId: theme,
+          text: 'Edited fixture caption',
+        },
+      }),
+    );
   },
 );

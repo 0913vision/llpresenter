@@ -865,7 +865,14 @@ describe('buildShowService media items', () => {
   });
 
   it('gives a media item one tile that outputs the media', () => {
-    const show = buildOthers([{id: itemId(1), media: IMAGE_ID}]);
+    const textOverrides = {clock: 'Manual clock'};
+    const show = buildOthers([
+      {
+        id: itemId(1),
+        media: IMAGE_ID,
+        textOverrides: {'media:standalone': textOverrides},
+      },
+    ]);
     expect(show.rows).toEqual([
       {kind: 'media', id: itemId(1), title: '광고 배경'},
     ]);
@@ -875,6 +882,7 @@ describe('buildShowService media items', () => {
         labelColor: 'none',
         lines: ['광고 배경'],
         media: {...choice, itemId: itemId(1)},
+        textOverrides,
       },
     ]);
   });

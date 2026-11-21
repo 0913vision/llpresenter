@@ -50,6 +50,8 @@ export function pictureKey({layers, appearance}: PictureSpec): string {
     broadcast ? (screen.songCaption ?? 'band') : null,
     screen.correction,
     item?.contentCleared ? screen.emptyColor : null,
+    theme.themeId,
+    theme.sourceScreenId,
     layoutKey(layout),
     emptyColor,
     appearance.background,

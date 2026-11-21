@@ -1,5 +1,6 @@
 import {
   bibleVerseTiles,
+  sermonTitleTile,
   withoutDeletedBibleSlides,
 } from '@core/bible/bibleTiles';
 import {BIBLE_BOOKS} from '@core/bible/bibleBooks';
@@ -124,20 +125,13 @@ export async function resolveServicePassages(
         [
           ...(isItemOfKind(item, 'sermon')
             ? [
-                {
-                  textSlideKey: 'sermon:opening',
-                  label: item.sermon.openingLabel ?? null,
-                  ...(item.sermon.openingLabel === undefined
-                    ? {}
-                    : {slideLabel: item.sermon.openingLabel}),
-                  labelColor: 'none' as const,
-                  lines: item.sermon.title.split(/\r?\n/),
+                sermonTitleTile({
+                  side: 'opening',
+                  title: item.sermon.title,
                   reference: passage.displayRef,
-                  sermonTitle: true as const,
-                  ...(item.sermon.openingTransition === undefined
-                    ? {}
-                    : {transition: item.sermon.openingTransition}),
-                },
+                  label: item.sermon.openingLabel,
+                  transition: item.sermon.openingTransition,
+                }),
               ]
             : []),
           ...bibleVerseTiles(passage, {
@@ -165,20 +159,13 @@ export async function resolveServicePassages(
           }),
           ...(isItemOfKind(item, 'sermon')
             ? [
-                {
-                  textSlideKey: 'sermon:closing',
-                  label: item.sermon.closingLabel ?? null,
-                  ...(item.sermon.closingLabel === undefined
-                    ? {}
-                    : {slideLabel: item.sermon.closingLabel}),
-                  labelColor: 'none' as const,
-                  lines: item.sermon.title.split(/\r?\n/),
+                sermonTitleTile({
+                  side: 'closing',
+                  title: item.sermon.title,
                   reference: passage.displayRef,
-                  sermonTitle: true as const,
-                  ...(item.sermon.closingTransition === undefined
-                    ? {}
-                    : {transition: item.sermon.closingTransition}),
-                },
+                  label: item.sermon.closingLabel,
+                  transition: item.sermon.closingTransition,
+                }),
               ]
             : []),
         ],

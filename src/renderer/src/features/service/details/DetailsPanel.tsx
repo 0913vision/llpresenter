@@ -21,6 +21,7 @@ import {useBibleTileProjection} from '@renderer/features/bible/useBibleProjectio
 import {BibleLoadNotice} from '@renderer/features/bible/BibleLoadNotice';
 import {Panel, PanelBody, PanelTabs} from '@renderer/ui/Panel';
 import {GridFooter} from '@renderer/ui/GridFooter';
+import {Button} from '@renderer/ui/Button';
 import {Spinner} from '@renderer/ui/Spinner';
 import {ThumbnailSizeControl} from '@renderer/ui/ThumbnailSizeControl';
 import type {SizeClass} from '@renderer/ui/sizeClass';
@@ -429,6 +430,7 @@ function DetailsPanelContent({
     } else if (
       item !== null &&
       (isItemOfKind(item, 'bible') ||
+        isItemOfKind(item, 'sermon') ||
         isItemOfKind(item, 'media') ||
         isItemOfKind(item, 'liturgy'))
     ) {
@@ -599,6 +601,15 @@ function DetailsPanelContent({
               ? ''
               : detailsKindLine(item, kind, count)}
           </div>
+          {onOpenPrep !== undefined &&
+          item !== null &&
+          (isItemOfKind(item, 'bible') ||
+            isItemOfKind(item, 'sermon') ||
+            isItemOfKind(item, 'media')) ? (
+            <Button icon="edit" onClick={() => edit(selectedIndex)}>
+              편집
+            </Button>
+          ) : null}
           <PanelTabs
             tabs={tabs}
             value={tab}

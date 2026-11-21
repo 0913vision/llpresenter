@@ -255,15 +255,17 @@ function SongBlocks({
   const ids: string[] = slides.map(slide => slide.id);
   const viewportRef = useRef<HTMLDivElement>(null);
   const {current, saveHeight} = useMeasuredRows(scope, ids, viewportRef);
+  const measureRows = view.mode === 'grid' || renderTextFields !== undefined;
   const heights = useMemo(() => {
-    const values =
-      view.mode === 'grid' ? slides.map(slide => current.values[slide.id]) : [];
+    const values = measureRows
+      ? slides.map(slide => current.values[slide.id])
+      : [];
     return leadingCard === undefined
-      ? view.mode === 'grid'
+      ? measureRows
         ? values
         : undefined
       : [leadingHeight, ...values];
-  }, [view.mode, slides, current, leadingCard, leadingHeight]);
+  }, [measureRows, slides, current, leadingCard, leadingHeight]);
   const windowSlides = useMemo(
     () =>
       leadingCard === undefined

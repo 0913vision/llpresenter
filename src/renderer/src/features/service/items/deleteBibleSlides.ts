@@ -1,6 +1,10 @@
 import {normalizeVerse} from '@core/bible/split/manualSplit';
 import {cacheKey} from '@core/bible/split/splitCache';
-import {pinVerseParts, type VersePart} from '@core/bible/split/splitVerses';
+import {
+  pinVerseParts,
+  validatedPinnedVerse,
+  type VersePart,
+} from '@core/bible/split/splitVerses';
 import {textSlideKey, textVerseKey} from '@core/presentation/textOverrides';
 import {
   deletedBibleSlidesSchema,
@@ -76,8 +80,10 @@ export async function deleteBibleSlides({
       tile.biblePart === undefined
         ? rawVerses.get(`${reference.chapter}:${reference.verse}`)
         : undefined;
+    const canonical = verse ?? raw;
+    if (canonical === undefined) return false;
     const parts =
-      passage.pinnedVerses?.[pinKey] ??
+      validatedPinnedVerse(canonical, passage.pinnedVerses?.[pinKey]) ??
       (verse !== undefined
         ? pinVerseParts(verse, measuredParts.get(pinKey) ?? [])
         : raw === undefined
@@ -108,8 +114,8 @@ export async function deleteBibleSlides({
         if (
           JSON.stringify(current.cuts?.[cuts]) !==
             JSON.stringify(passage.cuts?.[cuts]) ||
-          (pinnedVerses[key] !== undefined &&
-            JSON.stringify(pinnedVerses[key]) !== JSON.stringify(parts))
+          JSON.stringify(pinnedVerses[key]) !==
+            JSON.stringify(passage.pinnedVerses?.[key])
         ) {
           return null;
         }

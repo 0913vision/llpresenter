@@ -10,7 +10,6 @@ import {songTitleLines} from '@core/presentation/songTitleLines';
 import type {TextStyle} from '@core/themes/textStyle';
 import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {themeTextVAlign} from '@core/themes/textAlignment';
-import {manualThemeText} from '@core/themes/textSlots';
 import {STAGE_COLORS} from '@core/themes/stageColors';
 import {
   isReferencedTextSlide,
@@ -134,6 +133,7 @@ export class ThemeElementView {
   private imageGeneration = 0;
   private readonly options: RenderLayerOptions;
   private readonly gaps: ThemeGaps;
+  private manualText: string | undefined;
   private shownText: string | null = null;
   private shownSlideKey: string | null = null;
   private shownContinued = false;
@@ -342,8 +342,16 @@ export class ThemeElementView {
   render(
     layers: LiveLayers,
     frame: RenderFrame,
-    videoRemaining?: number,
+    {
+      videoRemaining,
+      manual,
+    }: {
+      readonly videoRemaining?: number | undefined;
+      readonly manual?: ReadonlyMap<string, string> | undefined;
+    } = {},
   ): void {
+    const manualText = manual?.get(this.element.id);
+    this.manualText = manualText;
     if (this.previewMaxLines !== undefined) {
       this.box.dataset['overflow'] = String(
         (layers.slide?.lines.length ?? 0) > this.previewMaxLines,
@@ -382,6 +390,7 @@ export class ThemeElementView {
       stage &&
       element.kind === 'currentText' &&
       slide !== null &&
+      slide.kind !== 'media' &&
       (slide.picture === undefined ||
         ((slide.kind ?? item?.kind) === 'song' && !!slide.label?.trim())) &&
       slide.sectionCard === undefined &&
@@ -535,12 +544,6 @@ export class ThemeElementView {
         );
       }
     } else {
-      const resolved =
-        slide?.textOverrides !== undefined ||
-        slide?.next?.textOverrides !== undefined
-          ? frame.theme?.layout.elements.find(value => value.id === element.id)
-          : undefined;
-      const manualText = manualThemeText(resolved);
       const displayedText =
         manualText ??
         cue ??
@@ -594,7 +597,9 @@ export class ThemeElementView {
               }
             : frame.screen?.kind === 'audience'
               ? (element.lyricFormat ??
-                (isSong && element.kind === 'currentText'
+                (manualText === undefined &&
+                isSong &&
+                element.kind === 'currentText'
                   ? layers.slide?.lyricFormat
                   : undefined))
               : undefined,
@@ -643,6 +648,7 @@ export class ThemeElementView {
   ): void {
     const {element} = this;
     const target =
+      this.manualText !== undefined ||
       element.clearTarget === 'slide' ||
       isSectionBandGradient(element.id) ||
       element.id === SECTION_NAME_ID ||
@@ -652,7 +658,9 @@ export class ThemeElementView {
           ? 'media'
           : undefined;
     const stageUtility =
-      stage && ['clock', 'timer', 'stageMessage'].includes(element.kind);
+      stage &&
+      this.manualText === undefined &&
+      ['clock', 'timer', 'stageMessage'].includes(element.kind);
     const opacity = String(
       stageUtility
         ? 1
@@ -666,6 +674,7 @@ export class ThemeElementView {
 
   /** Timed elements leave the DOM untouched until their displayed value changes. */
   tick(layers: LiveLayers, frame: RenderFrame, videoRemaining?: number): void {
+    if (this.manualText !== undefined) return;
     const text = this.textContent(layers, frame, videoRemaining);
     if (text !== this.shownText) this.showText(text, frame);
   }
@@ -855,7 +864,7 @@ export class ThemeElementView {
     const text = themeElementText(element, {
       layers: displayLayers,
       item,
-      stageMessage: frame.stageMessage,
+      stageMessage: element.kind === 'stageMessage' ? null : frame.stageMessage,
       clock:
         element.kind === 'clock'
           ? stageClockText(

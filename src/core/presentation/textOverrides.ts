@@ -22,6 +22,7 @@ export function bibleTextSlideKey(
 export function textSlideKey(tile: ShowTile): string | undefined {
   if (tile.textSlideKey !== undefined) return tile.textSlideKey;
   if (tile.sectionCard !== undefined) return 'section';
+  if (tile.media !== undefined) return 'media:standalone';
   const id = tile.sourceSlide?.slideId ?? tile.sourceSlideId;
   const part = tile.biblePart ?? 1;
   if (id !== undefined) {

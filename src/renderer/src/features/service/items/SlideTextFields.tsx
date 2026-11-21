@@ -6,12 +6,16 @@ import {
   type JSX,
   type ReactNode,
 } from 'react';
+import {normalizeVerse} from '@core/bible/split/manualSplit';
 import {cacheKey} from '@core/bible/split/splitCache';
-import {pinVerseParts} from '@core/bible/split/splitVerses';
+import {
+  pinVerseParts,
+  validatedPinnedVerse,
+} from '@core/bible/split/splitVerses';
 import {sameBibleVerse} from '@core/bible/selection';
 import {displayReference} from '@core/bible/displayReference';
 import {emptyLayers} from '@core/live/state';
-import {slideLayerOf} from '@core/presentation/slideLayer';
+import {mediaTextSlide, slideLayerOf} from '@core/presentation/slideLayer';
 import {
   editedSlideText,
   slideTextValue,
@@ -239,21 +243,22 @@ export function SlideTextEditor({
   const renderAt = (selected: number, legend?: string): ReactNode => {
     const tile = tiles[selected];
     if (!tile) return null;
-    if (
-      tile.bibleVerse !== undefined &&
-      projection === null &&
-      (isItemOfKind(item, 'bible') || isItemOfKind(item, 'sermon'))
-    ) {
-      return null;
-    }
     const key = textSlideKey(tile);
-    const slide = slideLayerOf({itemId: item.id, index: selected}, () => tiles);
+    const projectedSlide = slideLayerOf(
+      {itemId: item.id, index: selected},
+      () => tiles,
+    );
+    const slide =
+      projectedSlide === null || row.kind !== 'media'
+        ? projectedSlide
+        : mediaTextSlide(projectedSlide);
     if (key === undefined || slide === null) return null;
     const kind = tile.sectionCard ? 'blank' : defaultKind;
     const themeId =
       tile.sectionCard?.theme ??
       (tile.sermonTitle ? SERMON_TITLE_THEME_ID : undefined) ??
       item.theme ??
+      (row.kind === 'song' ? row.theme : undefined) ??
       (isItemOfKind(item, 'liturgy') ? CREED_PRAYER_THEME_ID : undefined);
     const themeItem = {
       id: item.id,
@@ -321,6 +326,7 @@ export function SlideTextEditor({
               sourceThemeId: output.themeId,
               ...(slot.screenId === undefined ? {} : {screenId: slot.screenId}),
               ...(slot.uniqueRole ? {uniqueRole: true} : {}),
+              ...(slot.explicitSlot ? {explicitSlot: true} : {}),
             },
             layout: binding,
             element,
@@ -376,7 +382,6 @@ export function SlideTextEditor({
           const updated = {...fresh, textOverrides};
           if (
             !tile.bibleVerse ||
-            !projection ||
             (!isItemOfKind(updated, 'bible') &&
               !isItemOfKind(updated, 'sermon'))
           ) {
@@ -401,20 +406,34 @@ export function SlideTextEditor({
           ) {
             return null;
           }
-          const verse = projection.verses.find(verse =>
+          const verse = projection?.verses.find(verse =>
             sameBibleVerse(reference, verse.reference),
           );
+          const source = row.kind === 'bible' ? row.bible?.passage : undefined;
+          const raw =
+            verse?.text ??
+            (source?.translation === reference.translation
+              ? source.verses.find(
+                  candidate =>
+                    candidate.chapter === reference.chapter &&
+                    candidate.verse === reference.verse,
+                )?.text
+              : undefined);
+          if (raw === undefined) return null;
+          const alreadyPinned = validatedPinnedVerse(
+            raw,
+            passage.pinnedVerses?.[pinKey],
+          );
           const parts =
-            verse === undefined
-              ? undefined
+            projection === null
+              ? (alreadyPinned ?? [normalizeVerse(raw)])
               : pinVerseParts(
-                  verse.text,
+                  raw,
                   projection.parts.filter(part =>
                     sameBibleVerse(reference, part.reference),
                   ),
                 );
           if (parts === undefined) return null;
-          const alreadyPinned = passage.pinnedVerses?.[pinKey];
           if (
             alreadyPinned !== undefined &&
             JSON.stringify(alreadyPinned) !== JSON.stringify(parts)

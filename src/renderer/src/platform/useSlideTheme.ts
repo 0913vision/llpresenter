@@ -100,9 +100,7 @@ export function slideTheme(
   }
   const kind =
     row.kind === 'slides' ? row.form : row.kind === 'song' ? 'song' : 'media';
-  const ownTheme =
-    options.theme ??
-    (row.kind === 'song' || row.kind === 'slides' ? row.theme : undefined);
+  const ownTheme = options.theme ?? row.theme;
   const targets: readonly Screen[] = screens ?? [
     {
       id: createScreenId(STARTER_SCREEN_IDS.main),

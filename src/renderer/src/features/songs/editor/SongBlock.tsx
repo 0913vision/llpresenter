@@ -109,9 +109,28 @@ export const SongBlock = memo(
     const chrome = useRef<{node: HTMLElement; height: number} | null>(null);
     const text = slide.lines.join('\n');
     const switching = usePrepPictureSwitch();
+    const measureFields = renderTextFields !== undefined;
     useLayoutEffect(() => {
       const node = blockRef.current;
-      if (!grid || node === null || onMeasure === undefined) return;
+      if (node === null || onMeasure === undefined) return;
+      if (!grid) {
+        if (!measureFields) return;
+        const measure = (): void => {
+          const height = Math.ceil(node.getBoundingClientRect().height);
+          if (height > 0) onMeasure(slide.id, height);
+        };
+        measure();
+        if (typeof ResizeObserver === 'undefined') return;
+        const observer = new ResizeObserver(() => {
+          if (!isLayoutResizeActive()) flushSync(measure);
+        });
+        const unlisten = onLayoutResizeEnd(measure);
+        observer.observe(node, {box: 'border-box'});
+        return () => {
+          unlisten();
+          observer.disconnect();
+        };
+      }
       const thumbnail = node.querySelector<HTMLElement>(
         '[data-editor-thumbnail]',
       );
@@ -154,7 +173,7 @@ export const SongBlock = memo(
         unlisten();
         observer.disconnect();
       };
-    }, [grid, onMeasure, renderCard, slide.id]);
+    }, [grid, measureFields, onMeasure, renderCard, slide.id]);
 
     const select = (input: HTMLTextAreaElement): void => {
       if (focus.current.restoring || focus.current.requested) return;

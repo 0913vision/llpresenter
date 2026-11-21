@@ -2,7 +2,7 @@ import {emptyLayers, type LiveLayers, type SlideLayer} from '@core/live/state';
 import type {SlidesItem} from '@core/services/slidesEdits';
 import type {SongSlide} from '@core/schema/song';
 import type {SectionCard} from '@core/schema/service';
-import {slideLayerOf} from '@core/presentation/slideLayer';
+import {mediaTextSlide, slideLayerOf} from '@core/presentation/slideLayer';
 import {projectSlides} from '@core/presentation/slides';
 import {textOverridesForTiles} from '@core/presentation/textOverrides';
 import type {SlideTextOverrides} from '@core/schema/slideTextOverrides';
@@ -252,11 +252,11 @@ export function pictureSpec(
       : result(
           outputSlideSpec({
             ...theme,
-            slide,
+            slide: mediaTextSlide(slide),
             background: tile.media.mediaId,
-            mediaOnly: true,
+            mediaOnly: tile.textOverrides === undefined,
           }),
-          true,
+          tile.textOverrides === undefined,
         );
   }
   const content = {slide, songSource: tile.sourceSlide};

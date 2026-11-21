@@ -396,6 +396,7 @@ function rowOf(item: ServiceItem, sources: RowSources): ShowRow {
     return {
       kind: 'media',
       id,
+      ...(item.theme === undefined ? {} : {theme: item.theme}),
       ...itemBackground(item, sources),
       title: found === undefined ? '' : mediaTitle(found),
       ...problem,

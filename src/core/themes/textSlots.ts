@@ -1,3 +1,5 @@
+import {parsePayload} from '../schema/payload';
+import {themeElementIdSchema} from '../schema/ids';
 import type {ThemeElement, ThemeScreenLayout} from '../schema/themes';
 import type {SlideLayer} from '../live/state';
 import {isThemeTextElement} from './content';
@@ -43,9 +45,15 @@ export function matchSlideText(
       ? [{key, value}]
       : [],
   );
-  const explicit = candidates.filter(
-    ({value}) => value.slotId === binding.slotId,
-  );
+  const explicit = binding.explicitSlot
+    ? candidates.filter(
+        ({value}) =>
+          value.slotId === binding.slotId &&
+          (value.explicitSlot === true ||
+            value.screenId === undefined ||
+            !parsePayload(themeElementIdSchema, value.slotId).ok),
+      )
+    : [];
   if (explicit.length > 0) {
     return explicit.length === 1 ? explicit[0] : undefined;
   }

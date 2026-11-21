@@ -1,7 +1,13 @@
 import type {JSX, ReactNode} from 'react';
 import {isItemOfKind, type ServiceItem} from '@core/schema/service';
 import {mediaName} from '@renderer/features/media/backgroundChoices';
-import {Panel, PanelBody, PanelHeader, PanelTitle} from '@renderer/ui/Panel';
+import {
+  Panel,
+  PanelBody,
+  PanelFooter,
+  PanelHeader,
+  PanelTitle,
+} from '@renderer/ui/Panel';
 import type {SizeClass} from '@renderer/ui/sizeClass';
 import styles from './OtherItemPanel.module.css';
 import {useOtherSources} from './useOtherSources';
@@ -22,13 +28,21 @@ function Empty(): JSX.Element {
 export function OtherItemPanel({
   item,
   children,
+  textFields,
+  view,
 }: {
   readonly item: ServiceItem | null;
   readonly sizeClass: SizeClass;
   readonly children?: ReactNode;
+  readonly textFields?: ReactNode;
+  readonly view?: ReactNode;
 }): JSX.Element {
   if (item !== null && isItemOfKind(item, 'media')) {
-    return <MediaItemPanel mediaId={item.media}>{children}</MediaItemPanel>;
+    return (
+      <MediaItemPanel mediaId={item.media} textFields={textFields} view={view}>
+        {children}
+      </MediaItemPanel>
+    );
   }
   return <Empty />;
 }
@@ -36,9 +50,13 @@ export function OtherItemPanel({
 function MediaItemPanel({
   mediaId,
   children,
+  textFields,
+  view,
 }: {
   readonly mediaId: string;
   readonly children?: ReactNode;
+  readonly textFields?: ReactNode;
+  readonly view?: ReactNode;
 }): JSX.Element {
   const {media} = useOtherSources(true);
   const found = media.find(candidate => candidate.id === mediaId);
@@ -50,8 +68,16 @@ function MediaItemPanel({
         <PanelTitle title={found === undefined ? '' : mediaName(found)} />
       </PanelHeader>
       <PanelBody variant="flush" className={styles.body}>
-        {children}
+        {textFields == null ? (
+          children
+        ) : (
+          <div className={styles.mediaRow}>
+            {children}
+            {textFields}
+          </div>
+        )}
       </PanelBody>
+      {view == null ? null : <PanelFooter end={view} />}
     </Panel>
   );
 }

@@ -40,6 +40,7 @@ import {
   textOverridesForTiles,
   textSlideKey,
 } from '@core/presentation/textOverrides';
+import * as textSlots from '@core/themes/textSlots';
 import {pictureKey} from '@core/output/pictureKey';
 import {outputSlideSpec} from '@renderer/rendering/outputSlideSpec';
 import {parseLiveCommand} from '@core/schema/liveCommand';
@@ -121,6 +122,80 @@ afterEach(() => {
 });
 
 describe('theme composition drawing', () => {
+  it('keeps manual stage utilities through redraws and ticks until the next slide', () => {
+    const {view, text, root} = setup();
+    const match = vi.spyOn(textSlots, 'withSlideTextOverrides');
+    const elements: ThemeElement[] = [
+      {
+        ...themeElementBase(30),
+        kind: 'clock',
+        clockFormat: '24h',
+        seconds: true,
+      },
+      {...themeElementBase(31), kind: 'timer'},
+      {...themeElementBase(32), kind: 'stageMessage'},
+      {...themeElementBase(33), kind: 'videoTimeLeft'},
+    ];
+    const stage = {
+      ...frame(elements),
+      screen: {id: THEME_MAIN, kind: 'stage' as const},
+      stageMessage: 'Stage cue',
+      transitions: false,
+    };
+    if (song.slide === null) throw Error('Missing slide');
+    const overrides = Object.fromEntries(
+      elements.map(element => [
+        [themeId, THEME_MAIN, element.id].join('/'),
+        element.kind,
+      ]),
+    );
+    const slide = {...song.slide, textOverrides: overrides};
+    const layers = {...song, slide};
+    view.render(layers, stage);
+    const page = root.querySelector('[data-theme-page]');
+    for (const opacity of [0.9, 0.7, 0.5]) {
+      view.render(layers, {...stage, clearOpacity: {slide: opacity}});
+      vi.advanceTimersByTime(1000);
+      for (const element of elements) {
+        expect(text(element.kind)).toBe(element.kind);
+      }
+    }
+    expect(match).toHaveBeenCalledTimes(1);
+    expect(root.querySelector('[data-theme-page]')).toBe(page);
+    view.render(song, stage);
+    vi.advanceTimersByTime(1000);
+    expect(text('clock')).toMatch(/\d{2}:\d{2}:\d{2}/u);
+    expect(text('timer')).toBeUndefined();
+    expect(text('stageMessage')).toBeUndefined();
+    expect(text('videoTimeLeft')).toBeUndefined();
+    view.dispose();
+  });
+
+  it('keys identical still layouts by the theme and the source screen', () => {
+    const element: ThemeElement = {...themeElementBase(), kind: 'currentText'};
+    const composition = frame([element]).theme;
+    if (composition === undefined || song.slide === null) {
+      throw Error('Missing picture input');
+    }
+    const input = {
+      ...composition,
+      slide: song.slide,
+      screen: {id: THEME_MAIN, kind: 'audience' as const},
+    };
+    const first = pictureKey(outputSlideSpec(input));
+    expect(
+      pictureKey(outputSlideSpec({...input, themeId: LIGHT_SONG_THEME_ID})),
+    ).not.toBe(first);
+    expect(
+      pictureKey(
+        outputSlideSpec({
+          ...input,
+          sourceScreenId: createScreenId(STARTER_SCREEN_IDS.stage),
+        }),
+      ),
+    ).not.toBe(first);
+  });
+
   it.each(['audience', 'stage', 'broadcast'] as const)(
     'applies a saved per-box Bible text override on %s and restores the automatic text',
     kind => {
@@ -900,7 +975,9 @@ describe('theme composition drawing', () => {
     view.render(song, stage);
     const clock = root.querySelector<HTMLElement>('[data-kind="clock"]');
     const timer = root.querySelector<HTMLElement>('[data-kind="timer"]');
-    expect(root.querySelector('[data-kind="stageMessage"]')).toBeNull();
+    expect(
+      root.querySelector<HTMLElement>('[data-kind="stageMessage"]')?.hidden,
+    ).toBe(true);
     const fixed = root.querySelector<HTMLElement>('[data-kind="text"]');
     expect(text('clock')).toBeTruthy();
     view.render({...song, slide: null}, stage);

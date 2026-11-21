@@ -104,6 +104,8 @@ export function usePrepActions({
   const [importSource, setImportSource] = useState<
     'file' | 'clipboard' | 'powerpoint' | 'powerpoint-images' | null
   >(null);
+  const [itemEditorRequest, setItemEditorRequest] =
+    useState<PrepBinding['itemEditorRequest']>();
   const closeImport = useCallback(() => setImportSource(null), []);
   const prepSelection = usePrepSelection();
   const editorControls = useRef<SongEditorWindowModel | null>(null);
@@ -290,19 +292,24 @@ export function usePrepActions({
         return;
       }
       const row = view.rows.find(row => row.id === itemId);
-      if (view.serviceId !== null && row?.kind === 'bible') {
+      if (
+        view.serviceId !== null &&
+        (row?.kind === 'bible' ||
+          row?.kind === 'media' ||
+          (row?.kind === 'slides' && row.liturgy !== undefined))
+      ) {
         session.editor?.open(null);
         slides.close();
         session.items?.show({serviceId: view.serviceId, itemId});
-        session.items?.selectPosition(position ?? 0);
+        if (position !== undefined) session.items?.selectPosition(position);
+        if (workspace === 'show') {
+          setItemEditorRequest({serviceId: view.serviceId, itemId});
+        }
         return;
       }
       if (view.serviceId !== null && row?.kind === 'slides') {
         session.items?.show({serviceId: view.serviceId, itemId});
         session.items?.selectPosition(position ?? 0);
-        if (row.liturgy !== undefined) {
-          return;
-        }
         session.api?.slidesEditor
           .open({
             serviceId: createServiceId(view.serviceId),
@@ -333,6 +340,7 @@ export function usePrepActions({
             items: session.items,
             controls: editorControls,
             slides,
+            itemEditorRequest,
             onNewSong: newSong,
             selectionRequest: prepSelection.request,
             onSelectionHandled: prepSelection.handled,

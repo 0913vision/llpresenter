@@ -26,6 +26,7 @@ export const manualSlideTextSchema = jsonObject({
   screenId: v.exactOptional(screenIdSchema),
   name: v.exactOptional(themeTextSlotNameSchema),
   uniqueRole: v.exactOptional(v.literal(true)),
+  explicitSlot: v.exactOptional(v.literal(true)),
   text,
 });
 

@@ -40,6 +40,13 @@ export function pinVerseParts(
     .map((offset, index) => text.slice(offset, boundaries[index + 1]));
 }
 
+export function validatedPinnedVerse(
+  raw: string,
+  parts: readonly string[] | undefined,
+): readonly string[] | undefined {
+  return parts?.join('') === normalizeVerse(raw) ? parts : undefined;
+}
+
 export function projectPinnedVerse(
   verse: VerseInput,
   parts: readonly string[],
