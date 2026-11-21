@@ -73,7 +73,9 @@ The table and inline song editor share the service selection.
   editable text boxes in that slide's theme. Clocks, timers, video countdowns,
   stage messages, and the next slide's body and label follow their live sources.
   A manual value, including a manual blank, belongs to one slide. Restoring the
-  automatic value uses the original content. The slide grid shows previews.
+  automatic value uses the original content. A saved text edit and any verse
+  boundaries it pins share one undo step. Editing a Bible reference leaves the
+  verse boundaries alone. The slide grid shows previews.
 - Song item menus offer 라이브러리에 저장… and 라이브러리에서 다시 불러오기.
   Both ask before replacing slides; saving to the library includes its usage
   line. Nothing synchronizes automatically. 구성 controls, their changed dot,

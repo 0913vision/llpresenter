@@ -460,6 +460,10 @@ function SlidesEditorBody({
       event.ctrlKey &&
       !event.altKey &&
       isInTextEntry(event.target) &&
+      !(
+        event.target instanceof Element &&
+        event.target.matches('[data-slide-text-role]')
+      ) &&
       ['z', 'y'].includes(event.key.toLowerCase())
     ) {
       event.preventDefault();

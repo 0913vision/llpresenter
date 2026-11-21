@@ -1,6 +1,7 @@
 import {
   useEffect,
   useEffectEvent,
+  useId,
   useRef,
   useState,
   type JSX,
@@ -50,6 +51,12 @@ import {TYPING_PAUSE_MS} from '@core/songs/songHistory';
 import {useBibleTileProjection} from '@renderer/features/bible/useBibleProjections';
 import {editorTask} from '@renderer/features/songs/editor/editorTask';
 import type {RenderSlideTextFields} from '@renderer/features/songs/editor/SlideCardRenderer';
+import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
+import {
+  NEWER_FILE_REASON,
+  NOTHING_TO_REDO,
+  NOTHING_TO_UNDO,
+} from '@renderer/platform/problemReasons';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {themeElementNames} from '@renderer/rendering/themeNames';
 import {useShow} from '@renderer/session/show';
@@ -71,36 +78,97 @@ function TextSlot({
   role,
   value,
   manual,
+  items,
+  readOnly,
   save,
 }: {
   readonly name: string;
   readonly role: ThemeTextRole;
   readonly value: string;
   readonly manual: boolean;
+  readonly items: ServiceItemStore;
+  readonly readOnly: boolean;
   readonly save: (text: string | null) => Promise<boolean>;
 }): JSX.Element {
   const [draft, setDraft] = useState<string | null>(null);
+  const fieldId = useId();
   const pending = useRef<string | null>(null);
-  const flush = (): void => {
+  const saving = useRef<Promise<boolean> | null>(null);
+  const replaying = useRef(false);
+  const flush = (): Promise<boolean> | null => {
     const text = pending.current;
-    if (text === null) return;
+    if (text === null) return saving.current;
     pending.current = null;
-    editorTask(
-      save(text).then(ok => {
-        if (ok) setDraft(current => (current === text ? null : current));
-        else pending.current ??= text;
-      }),
-    );
+    const request = save(text).then(ok => {
+      if (saving.current === request) saving.current = null;
+      if (ok) setDraft(current => (current === text ? null : current));
+      else pending.current ??= text;
+      return ok;
+    });
+    saving.current = request;
+    return request;
   };
-  const flushIdle = useEffectEvent(flush);
+  const saveDraft = (): void => {
+    const request = flush();
+    if (request !== null) editorTask(request);
+  };
+  const flushIdle = useEffectEvent(saveDraft);
   useEffect(() => {
     if (draft === null) return;
     const timer = setTimeout(() => flushIdle(), TYPING_PAUSE_MS);
     return () => clearTimeout(timer);
   }, [draft]);
   useEffect(() => () => flushIdle(), []);
+
+  const ownsHistory = (event: KeyboardEvent): boolean =>
+    event.target instanceof Element &&
+    event.target
+      .closest('[data-slide-text-history]')
+      ?.getAttribute('data-slide-text-history') === fieldId;
+  const unavailable = (action: 'undo' | 'redo'): string | undefined => {
+    if (readOnly) return NEWER_FILE_REASON;
+    if (draft !== null) {
+      return action === 'undo' ? undefined : NOTHING_TO_REDO;
+    }
+    if (items.canUndoItemEdit(action)) return undefined;
+    return action === 'undo' ? NOTHING_TO_UNDO : NOTHING_TO_REDO;
+  };
+  const replay = async (action: 'undo' | 'redo'): Promise<void> => {
+    if (
+      readOnly ||
+      replaying.current ||
+      (action === 'redo' && draft !== null)
+    ) {
+      return;
+    }
+    replaying.current = true;
+    try {
+      const request = flush();
+      if (request === null || (await request)) {
+        await items.replayItemEdit(action);
+      }
+    } finally {
+      replaying.current = false;
+    }
+  };
+  useWindowShortcuts([
+    {
+      id: 'edit.undo',
+      context: 'song',
+      when: ownsHistory,
+      unavailable: () => unavailable('undo'),
+      run: () => replay('undo'),
+    },
+    {
+      id: 'edit.redo',
+      context: 'song',
+      when: ownsHistory,
+      unavailable: () => unavailable('redo'),
+      run: () => replay('redo'),
+    },
+  ]);
   return (
-    <div className={styles.field}>
+    <div data-slide-text-history={fieldId} className={styles.field}>
       <label>
         {name}
         <TextArea
@@ -112,7 +180,7 @@ function TextSlot({
             pending.current = text;
             setDraft(text);
           }}
-          onBlur={flush}
+          onBlur={saveDraft}
         />
       </label>
       {manual || draft !== null ? (
@@ -375,6 +443,7 @@ export function SlideTextEditor({
           ) {
             return null;
           }
+          if (descriptor.binding.role === 'reference') return updated;
           const verse = projection?.verses.find(verse =>
             sameBibleVerse(reference, verse.reference),
           );
@@ -410,10 +479,21 @@ export function SlideTextEditor({
             return null;
           }
           const {[pinKey]: _prior, ...otherPins} = {...passage.pinnedVerses};
-          const pinsVerse = [
-            ...Object.keys(textOverrides),
-            ...(passage.deletedSlides ?? []),
-          ].some(key => key.startsWith(`verse:${pinKey}:`));
+          const belongsToVerse = (slideKey: string): boolean =>
+            slideKey.startsWith(`verse:${pinKey}:`);
+          const pinsVerse =
+            (passage.deletedSlides ?? []).some(belongsToVerse) ||
+            Object.entries(textOverrides).some(
+              ([slideKey, slots]) =>
+                belongsToVerse(slideKey) &&
+                Object.entries(slots).some(
+                  ([slotKey, value]) =>
+                    isSlideEditableTextValue(slotKey, value) &&
+                    (typeof value === 'string'
+                      ? slotKey !== 'reference'
+                      : value.role !== 'reference'),
+                ),
+            );
           const pinnedVerses = pinsVerse
             ? {...otherPins, [pinKey]: parts}
             : otherPins;
@@ -454,6 +534,8 @@ export function SlideTextEditor({
           role={descriptor.binding.role}
           value={slideTextValue(match?.value) ?? descriptor.text}
           manual={match !== undefined}
+          items={items}
+          readOnly={service.access === 'readOnly'}
           save={text => save(slot, descriptor, text)}
         />
       );
