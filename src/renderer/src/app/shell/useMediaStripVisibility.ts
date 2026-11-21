@@ -8,7 +8,7 @@ export function useMediaStripVisibility(
   initial: boolean | undefined,
   api: Pick<LlpApi, 'ui' | 'log'> | undefined,
 ) {
-  const [choice, setChoice] = useState(initial);
+  const [choice, setChoice] = useState(initial ?? false);
   const setVisible = useCallback(
     (visible: boolean): void => {
       setChoice(visible);
@@ -25,7 +25,7 @@ export function useMediaStripVisibility(
     [api],
   );
   return {
-    visible: choice ?? false,
+    visible: choice,
     setVisible,
   };
 }

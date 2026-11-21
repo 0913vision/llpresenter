@@ -94,3 +94,20 @@ it('keeps the local choice and logs a save that fails', () => {
     detail: 'Invented visibility send failure',
   });
 });
+
+it('starts a fresh layout closed while restoring an explicitly saved open choice', () => {
+  const {api, save} = setup(1080);
+  const first = renderHook(() =>
+    useMediaStripVisibility('wide', undefined, api),
+  );
+  expect(first.result.current.visible).toBe(false);
+  first.unmount();
+  const restored = renderHook(() => useMediaStripVisibility('wide', true, api));
+  expect(restored.result.current.visible).toBe(true);
+  restored.unmount();
+  const fresh = renderHook(() =>
+    useMediaStripVisibility('narrow', undefined, api),
+  );
+  expect(fresh.result.current.visible).toBe(false);
+  expect(save).not.toHaveBeenCalled();
+});
