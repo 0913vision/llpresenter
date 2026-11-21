@@ -1,4 +1,11 @@
-import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {expect, it, onTestFinished, vi} from 'vitest';
 import {createThemeId} from '@core/schema/ids';
