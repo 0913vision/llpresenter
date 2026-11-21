@@ -11,6 +11,7 @@ import {useLive} from '@renderer/session/live';
 import {useShow} from '@renderer/session/show';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {
+  canReviewBiblePart,
   splitSourceFor,
   sourceContent,
   type BibleProjection,
@@ -21,6 +22,7 @@ import {updateServiceItem} from '@renderer/session/serviceItemUpdate';
 import {isItemOfKind} from '@core/schema/service';
 import {biblePartEffect, setBiblePartEffect} from '@core/bible/partTransitions';
 import {cacheKey} from '@core/bible/split/splitCache';
+import {textVerseKey} from '@core/presentation/textOverrides';
 import {useBibleProjections} from './useBibleProjections';
 import {installBiblePictureProjection} from './prepareBiblePictures';
 
@@ -126,11 +128,14 @@ export function BibleSplitTools({
     });
   }, [projection, onProblem]);
   const lastManualRequest = useRef(manualRequest);
+  const canReview = canReviewBiblePart(projection, selected);
   useEffect(() => {
     if (lastManualRequest.current === manualRequest) return;
     lastManualRequest.current = manualRequest;
     const part = projection?.partsByTile[selected];
-    if (!enableManual || projection === null || part == null) return;
+    if (!enableManual || !canReview || projection === null || part == null) {
+      return;
+    }
     queueMicrotask(() => {
       if (active.current) {
         setSession({
@@ -139,12 +144,13 @@ export function BibleSplitTools({
         });
       }
     });
-  }, [manualRequest, enableManual, projection, selected]);
+  }, [manualRequest, enableManual, canReview, projection, selected]);
   useWindowShortcuts([
     {
       id: 'bible.splitEdit',
       when: () =>
         enableManual &&
+        canReview &&
         projection?.partsByTile[selected] != null &&
         session === null,
       run: () => {
@@ -205,7 +211,11 @@ export function BibleSplitTools({
             const passage = isItemOfKind(item, 'bible')
               ? item.bible
               : item.sermon.passage;
-            if (passage.translation !== verse.reference.translation) {
+            if (
+              passage.translation !== verse.reference.translation ||
+              passage.pinnedVerses?.[textVerseKey(verse.reference)] !==
+                undefined
+            ) {
               return null;
             }
             const updated = {

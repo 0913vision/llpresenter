@@ -10,6 +10,7 @@ import {messageExpirySchema} from './overlayState';
 import {overlayClearSchema} from './overlayClear';
 import {clearFadeSchema} from './clearFade';
 import {liveTextSchema} from './liveLimits';
+import {slideTextOverridesSchema} from './slideTextOverrides';
 import {checkPart} from './fileFormat';
 import {
   parsePayload,
@@ -26,6 +27,12 @@ const singleCommandOptions = [
   messageExpirySchema,
   overlayClearSchema,
   v.object({type: v.literal('slide.show'), slide: layerSchemas.slide}),
+  v.object({
+    type: v.literal('slide.text.override'),
+    itemId: v.pipe(v.string(), v.nonEmpty()),
+    position: v.pipe(v.number(), v.integer(), v.minValue(0)),
+    textOverrides: v.nullable(slideTextOverridesSchema),
+  }),
   v.object({
     type: v.literal('bible.passage.title.set'),
     itemId: v.pipe(v.string(), v.nonEmpty()),

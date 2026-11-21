@@ -126,16 +126,16 @@ it('draws a sermon title tile with the sermon title theme and passage', async ()
   });
   openItem('sermon');
   render(<SlideGrid columns={4} scalePercent={100} />);
-  await waitFor(() =>
+  await waitFor(() => {
     expect(previewSpec(slide(0))?.appearance.theme.item?.title).toContain(
       passage.ref.replace('-', '~'),
-    ),
-  );
+    );
+    expect(previewSpec(slide(0))?.appearance.theme.layout.elements).toEqual(
+      expect.arrayContaining([expect.objectContaining({kind: 'itemName'})]),
+    );
+  });
   const spec = previewSpec(slide(0));
   expect(spec?.layers.slide?.lines).toEqual(['Sermon']);
-  expect(spec?.appearance.theme.layout.elements).toEqual(
-    expect.arrayContaining([expect.objectContaining({kind: 'itemName'})]),
-  );
 });
 
 it('shows a Bible verse label in the attached strip', () => {

@@ -9,6 +9,7 @@ import type {Preferences} from '@core/schema/preferences';
 import type {MediaChoice, NextSlide, SlideLayer} from '@core/live/state';
 import type {SingleLiveCommand} from '@core/live/commands';
 import {findSlideHotKey} from '@core/services/slideHotKeys';
+import {textSlideKey} from '@core/presentation/textOverrides';
 import {parseServiceItemId} from '@core/schema/ids';
 import type {ShowService} from '@core/schema/showService';
 import {SERMON_TITLE_THEME_ID} from '@core/themes/sundayScripture';
@@ -27,6 +28,7 @@ import {
 import {
   nextSlideOf,
   noticeNumber,
+  mediaTextSlide,
   slideLayerOf,
 } from '@core/presentation/slideLayer';
 import {rememberBiblePassage} from '@renderer/session/recentWriter';
@@ -171,7 +173,13 @@ function outputOtherTile(cursor: TileCursor): boolean {
   const tile = tilesOf(cursor.itemId)[cursor.index];
   if (tile?.media === undefined) return false;
   beginOutputRequest();
-  sendMediaOutput(tile.media, startServiceItem(cursor.itemId));
+  const slide =
+    tile.textOverrides === undefined ? null : slideLayerOf(cursor, tilesOf);
+  sendMediaOutput(
+    tile.media,
+    startServiceItem(cursor.itemId),
+    slide === null ? undefined : mediaTextSlide(slide),
+  );
   useShow.setState({openItemId: cursor.itemId, selectedTile: cursor.index});
   return true;
 }
@@ -555,6 +563,7 @@ function nextKey(next: NextSlide | null | undefined): string {
         next.title ?? null,
         next.itemKind ?? null,
         next.lines,
+        next.textOverrides ?? null,
         next.continued ?? null,
         next.biblePart ?? null,
         next.bibleVerse ?? null,
@@ -563,6 +572,58 @@ function nextKey(next: NextSlide | null | undefined): string {
         next.stageReference ?? null,
         next.stageStandby ?? null,
       ]);
+}
+
+function refreshLiveTextOverrides(previous: ShowView): void {
+  const live = useLive.getState().state;
+  const slide = live?.layers.slide;
+  const current = useShow.getState();
+  if (!slide) {
+    const item = live?.themeItem;
+    const media = live?.layers.media;
+    if (
+      item?.kind !== 'media' ||
+      item.contentCleared ||
+      media?.itemId !== item.id
+    ) {
+      return;
+    }
+    const oldTile = tilesForView(previous, item.id)[0];
+    const tile = tilesForView(current, item.id)[0];
+    if (
+      oldTile === undefined ||
+      oldTile.textOverrides !== undefined ||
+      tile?.media?.mediaId !== media.mediaId ||
+      tile.textOverrides === undefined
+    ) {
+      return;
+    }
+    const projected = slideLayerOf({itemId: item.id, index: 0}, () => [tile]);
+    if (projected !== null) {
+      sendLive({type: 'slide.show', slide: mediaTextSlide(projected)});
+    }
+    return;
+  }
+  const before = projectedLiveCursor(previous, slide);
+  const after = projectedLiveCursor(current, slide);
+  if (!before || !after) return;
+  const oldTile = tilesForView(previous, slide.itemId)[before.index];
+  const tile = tilesForView(current, slide.itemId)[after.index];
+  if (!oldTile || !tile) return;
+  const key = textSlideKey(tile);
+  if (
+    key === undefined ||
+    textSlideKey(oldTile) !== key ||
+    JSON.stringify(oldTile.textOverrides) === JSON.stringify(tile.textOverrides)
+  ) {
+    return;
+  }
+  sendLive({
+    type: 'slide.text.override',
+    itemId: slide.itemId,
+    position: slide.position,
+    textOverrides: tile.textOverrides ?? null,
+  });
 }
 
 /** Keep stage preview in sync without re-outputting the live slide. */
@@ -830,6 +891,7 @@ export function applyService(service: ShowService | null): void {
       }
       sendLive({type: 'themes.refresh'});
     }
+    refreshLiveTextOverrides(view);
     refreshStageNext();
   }
 }

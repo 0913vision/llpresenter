@@ -111,8 +111,18 @@ export function pasteThemeElements(
       ? -1
       : next.findIndex(element => element.kind === source.kind);
     const existing = next[index];
-    if (existing === undefined) next.push({...source, id});
-    else next[index] = {...existing, ...source, id: existing.id};
+    if (existing === undefined) {
+      if (hasThemeText(source) && source.textSlot !== undefined) {
+        next.push({
+          ...source,
+          id,
+          textSlot: {...source.textSlot, slotId: id, scope: 'screen'},
+        });
+      } else next.push({...source, id});
+    } else if (hasThemeText(source) && hasThemeText(existing)) {
+      const {textSlot: _sourceBinding, ...appearance} = source;
+      next[index] = {...existing, ...appearance, id: existing.id};
+    } else next[index] = {...existing, ...source, id: existing.id};
   }
   return next;
 }

@@ -8,6 +8,7 @@ import type {BibleLookupPassage} from '../schema/bibleLookup';
 import {BIBLE_BOOKS} from '../bible/bibleBooks';
 import {bibleOutputLines} from '../bible/bibleTiles';
 import {continuationText} from '../bible/split/continuation';
+import {textOverridesForTiles} from './textOverrides';
 
 /** Projects both slide forms without putting thumbnail bands into live text. */
 export function projectSlides(
@@ -15,7 +16,7 @@ export function projectSlides(
   media: ReadonlyMap<string, MediaItem> = new Map(),
   passages: ReadonlyMap<string, BibleLookupPassage> = new Map(),
 ): readonly ShowTile[] {
-  return item.slides.slides.map(slide => {
+  const tiles = item.slides.slides.map((slide): ShowTile => {
     const label = slide.label;
     const labelColor = NO_LABEL_COLOR;
     const assigned = label === undefined ? {} : {slideLabel: label};
@@ -96,6 +97,7 @@ export function projectSlides(
       ...(name === undefined ? {} : {name}),
     };
   });
+  return textOverridesForTiles(tiles, item.textOverrides);
 }
 
 /** Resolves catalog colors without changing the source slide labels. */

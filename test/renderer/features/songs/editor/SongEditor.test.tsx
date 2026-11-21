@@ -31,6 +31,69 @@ function cursor(input: HTMLTextAreaElement, start: number, end = start): void {
 }
 
 describe('song editor view', () => {
+  it('shows theme fields by source slide in rows and leaves grid tiles selectable', async () => {
+    seedSlideSurfaceView({});
+    const {store, session, view, user} = await editorSetup();
+    const ids = session.history.snapshot.song.slides.map(slide => slide.id);
+    view.rerender(
+      <SongEditor
+        store={store}
+        renderTextFields={slide => (
+          <textarea aria-label="테마 요소" defaultValue={String(slide)} />
+        )}
+      />,
+    );
+    const surface = within(
+      screen.getByRole('group', {name: '슬라이드 편집 명령'}),
+    );
+    expect(
+      surface
+        .getAllByRole<HTMLTextAreaElement>('textbox')
+        .map(field => field.value),
+    ).toEqual(ids);
+    await user.click(screen.getByRole('button', {name: '격자'}));
+    expect(surface.queryByRole('textbox')).toBeNull();
+    const second = view.container.querySelector('[data-editor-block="1"]');
+    if (!second) throw Error('Missing second slide');
+    await user.click(second);
+    expect(session.selectedOccurrence).toBe(1);
+    seedSlideSurfaceView({});
+  });
+
+  it('places the next song row after the measured height of all theme fields', async () => {
+    seedSlideSurfaceView({});
+    const {store, view} = await editorSetup();
+    const height = 280;
+    const original = HTMLElement.prototype.getBoundingClientRect;
+    const bounds = vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockImplementation(function (this: HTMLElement) {
+        return this.hasAttribute('data-editor-block') &&
+          this.querySelector('fieldset') !== null
+          ? new DOMRect(0, 0, 700, height)
+          : original.call(this);
+      });
+    try {
+      view.rerender(
+        <SongEditor
+          store={store}
+          renderTextFields={() => (
+            <fieldset aria-label="Theme text">
+              <textarea aria-label="Body" />
+              <textarea aria-label="Clock" />
+            </fieldset>
+          )}
+        />,
+      );
+      const second = view.container.querySelector<HTMLElement>(
+        '[data-editor-block="1"]',
+      );
+      expect(second?.style.top).toBe(`${height}px`);
+    } finally {
+      bounds.mockRestore();
+    }
+  });
+
   it('places the view switch and grid size control in the slide footer', async () => {
     seedSlideSurfaceView({});
     const {user} = await editorSetup();

@@ -31,7 +31,13 @@ import {
   createThemeId,
   translationIdSchema,
 } from '@core/schema/ids';
-import {liturgyAsSlides, newLiturgyItem} from '@core/services/liturgy';
+import {
+  liturgyAsSlides,
+  liturgySlideTextKey,
+  newLiturgyItem,
+} from '@core/services/liturgy';
+import {slideLayerOf} from '@core/presentation/slideLayer';
+import {projectSlides} from '@core/presentation/slides';
 import {slidesItem, SLIDES_ITEM} from '@fixtures/core/slides';
 import {MOCK_LONG_VERSE} from '@fixtures/core/bibleSplit';
 import {
@@ -126,7 +132,9 @@ it.each(['creed', 'prayer'] as const)(
         liturgy: {kind, translation},
         theme: item.theme,
       });
-      expect(actual.tiles[item.id]).toEqual(
+      expect(
+        actual.tiles[item.id]?.map(({textSlideKey: _key, ...tile}) => tile),
+      ).toEqual(
         legacy.tiles[item.id]?.map(({sourceSlideId: _source, ...tile}) => tile),
       );
     }
@@ -221,6 +229,84 @@ it('projects a song title marker without inventing a transition', () => {
     lines: ['Title', 'Subtitle'],
   });
   expect(tiles[0]?.transition).toBeUndefined();
+});
+
+it('keeps independent overrides for song, blank, ad, title and creed slides', () => {
+  const newId = (index: number) => createServiceItemId(itemId(index));
+  const song = loadedSong(hymnOne());
+  const firstSong = song.data.slides[0];
+  const blank = slidesItem('blank');
+  const ad = {...slidesItem('ad'), id: newId(99)};
+  const firstBlank = blank.slides.slides[0];
+  const firstAd = ad.slides.slides[0];
+  if (!firstSong || !firstBlank || !firstAd) throw Error('Missing test slides');
+  const creed = newLiturgyItem(newId(98), {kind: 'creed', translation: 'new'});
+  const order = [
+    {
+      id: newId(96),
+      song: HYMN_ONE_ID,
+      slides: song.data.slides,
+      textOverrides: {
+        [`slide:${firstSong.id}`]: {currentText: 'Edited lyrics'},
+      },
+    },
+    {
+      ...blank,
+      sectionCard: {
+        name: 'Title',
+        english: 'English',
+        theme: createThemeId('00000000-0000-4000-8000-000000000111'),
+      },
+      textOverrides: {
+        section: {itemName: 'Edited title', currentText: 'Edited subtitle'},
+        [`slide:${firstBlank.id}`]: {currentText: 'Edited blank'},
+      },
+    },
+    {
+      ...ad,
+      textOverrides: {
+        [`slide:${firstAd.id}`]: {slideName: 'Edited announcement'},
+      },
+    },
+    {
+      ...creed,
+      textOverrides: {
+        [liturgySlideTextKey(creed.liturgy, 0)]: {currentText: 'Edited creed'},
+      },
+    },
+  ];
+  const projected = buildShowService({
+    service: loadedService(order),
+    songs: new Map([[HYMN_ONE_ID, song]]),
+    labels: [],
+    revision: 1,
+  });
+  expect(projected.tiles[newId(96)]?.[0]?.textOverrides).toEqual({
+    currentText: 'Edited lyrics',
+  });
+  expect(
+    projected.tiles[blank.id]?.map(tile => tile.textOverrides).slice(0, 2),
+  ).toEqual([
+    {itemName: 'Edited title', currentText: 'Edited subtitle'},
+    {currentText: 'Edited blank'},
+  ]);
+  expect(projected.tiles[ad.id]?.[0]?.textOverrides).toEqual({
+    slideName: 'Edited announcement',
+  });
+  expect(projected.tiles[creed.id]?.[0]?.textOverrides).toEqual({
+    currentText: 'Edited creed',
+  });
+  expect(projected.tiles[creed.id]?.[1]?.textOverrides).toBeUndefined();
+  const editedCreed = {
+    ...creed,
+    textOverrides: {
+      [liturgySlideTextKey(creed.liturgy, 0)]: {currentText: 'Edited creed'},
+    },
+  };
+  const preview = slideLayerOf({itemId: creed.id, index: 0}, () =>
+    projectSlides(liturgyAsSlides(editedCreed)),
+  );
+  expect(preview?.textOverrides).toEqual({currentText: 'Edited creed'});
 });
 
 function loaded<T>(parsed: Result<LoadedFile<T>, FileError>): LoadedFile<T> {
@@ -779,7 +865,14 @@ describe('buildShowService media items', () => {
   });
 
   it('gives a media item one tile that outputs the media', () => {
-    const show = buildOthers([{id: itemId(1), media: IMAGE_ID}]);
+    const textOverrides = {clock: 'Manual clock'};
+    const show = buildOthers([
+      {
+        id: itemId(1),
+        media: IMAGE_ID,
+        textOverrides: {'media:standalone': textOverrides},
+      },
+    ]);
     expect(show.rows).toEqual([
       {kind: 'media', id: itemId(1), title: '광고 배경'},
     ]);
@@ -789,6 +882,7 @@ describe('buildShowService media items', () => {
         labelColor: 'none',
         lines: ['광고 배경'],
         media: {...choice, itemId: itemId(1)},
+        textOverrides,
       },
     ]);
   });

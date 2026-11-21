@@ -1,4 +1,11 @@
-import {act, fireEvent, render, screen, waitFor} from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {expect, it, onTestFinished, vi} from 'vitest';
 import {createThemeId} from '@core/schema/ids';
@@ -14,6 +21,50 @@ import {
 } from '@renderer/features/service/items/LiturgyEditor';
 import {ServiceItemStore} from '@renderer/features/service/items/serviceItemStore';
 import {SongEditorStore} from '@renderer/features/songs/editor';
+import {seedSlideSurfaceView} from '@renderer/features/songs/editor/SlideSurfaceView';
+
+it('shows the shared fields on title and creed rows, and hides them in the grid', async () => {
+  seedSlideSurfaceView({});
+  const fixture = itemFixture();
+  const item = {
+    ...newLiturgyItem(fixtureItems.plain, {kind: 'creed', translation: 'new'}),
+    sectionCard: {
+      name: '예배 시작',
+      english: 'Welcome',
+      theme: createThemeId('00000000-0000-4000-8000-000000000111'),
+    },
+  };
+  const before = fixture.service();
+  fixture.pushService({...before, service: {...before.service, order: [item]}});
+  const editor = new SongEditorStore(fixture.api, vi.fn());
+  const items = new ServiceItemStore(fixture.api, editor, vi.fn());
+  items.show({serviceId: fixtureServiceId, itemId: item.id});
+  const view = render(
+    <LiturgyEditor
+      items={items}
+      renderTextFields={slide => (
+        <textarea aria-label="테마 요소" defaultValue={String(slide)} />
+      )}
+    />,
+  );
+  onTestFinished(async () => {
+    view.unmount();
+    items.dispose();
+    await editor.dispose();
+    seedSlideSurfaceView({});
+  });
+  const surface = within(
+    await screen.findByRole('group', {name: '슬라이드 편집 명령'}),
+  );
+  expect(
+    surface
+      .getAllByRole<HTMLTextAreaElement>('textbox')
+      .slice(0, 2)
+      .map(field => field.value),
+  ).toEqual(['0', '1']);
+  await userEvent.click(screen.getByRole('button', {name: '격자'}));
+  expect(surface.queryByRole('textbox')).toBeNull();
+});
 
 it.each(['creed', 'prayer'] as const)(
   'edits the %s version without creating generic slides or changing output',

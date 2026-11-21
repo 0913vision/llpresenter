@@ -17,7 +17,7 @@ import {
   within,
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import {afterEach, beforeEach, expect, it, vi} from 'vitest';
+import {afterEach, beforeEach, expect, it, onTestFinished, vi} from 'vitest';
 import {
   createServiceId,
   createServiceItemId,
@@ -25,6 +25,9 @@ import {
 } from '@core/schema/ids';
 import type {SlidesEditorTarget} from '@contracts/ipc/slidesEditor';
 import {newSlidesItem} from '@core/services/slidesEdits';
+import {projectSlides} from '@core/presentation/slides';
+import {withSectionCard} from '@core/services/sectionCards';
+import {slideTextValue} from '@core/presentation/textOverrides';
 import {
   fixtureItems,
   fixtureServiceId,
@@ -170,22 +173,30 @@ function setup(extraSlides = false, songCard = false) {
         : []),
     ],
     tiles: {
-      [fixtureItems.arranged]: f.first.song.slides.map(slide => ({
-        labelColor: 'none' as const,
-        lines: slide.lines,
-        label: slide.label ?? null,
-        sourceSlide: {songId: f.first.song.id, slideId: slide.id},
-      })),
-      [slides.id]: [{lines: [], label: null, labelColor: 'none'}],
+      [fixtureItems.arranged]: withSectionCard(
+        songCard
+          ? {
+              name: 'Song section',
+              english: 'Section',
+              theme: createThemeId('00000000-0000-4000-8000-000000000111'),
+            }
+          : undefined,
+        f.first.song.slides.map(slide => ({
+          labelColor: 'none' as const,
+          lines: slide.lines,
+          label: slide.label ?? null,
+          sourceSlide: {songId: f.first.song.id, slideId: slide.id},
+        })),
+      ),
+      [slides.id]: projectSlides(slides),
       [bible.id]: [{lines: [], label: null, labelColor: 'none'}],
       ...(extraSlides
         ? {
-            [announcement.id]: [
-              {lines: [], label: null, labelColor: 'none' as const},
-            ],
-            [section.id]: [
-              {lines: [], label: null, labelColor: 'none' as const},
-            ],
+            [announcement.id]: projectSlides(announcement),
+            [section.id]: withSectionCard(
+              section.sectionCard,
+              projectSlides(section),
+            ),
           }
         : {}),
     },
@@ -412,7 +423,8 @@ it('retains the section card when the details panel unmounts for the editor', as
   const row = screen.getByRole('option', {name: 'Section item'});
   await userEvent.click(row);
   await userEvent.dblClick(row);
-  const card = await screen.findByRole('textbox', {name: '타이틀'});
+  const editor = within(commandList());
+  const card = await editor.findByRole('textbox', {name: '항목 이름'});
   expect(card).toHaveProperty('value', 'Section');
   await waitFor(() =>
     expect(document.querySelector('[data-leading-card]')).not.toBeNull(),
@@ -422,7 +434,8 @@ it('retains the section card when the details panel unmounts for the editor', as
 it('binds a service song card while switching from details to the editor', async () => {
   setup(false, true);
   await userEvent.dblClick(screen.getByRole('option', {name: /Service song/}));
-  const field = await screen.findByRole('textbox', {name: '타이틀'});
+  const editor = within(commandList());
+  const field = await editor.findByRole('textbox', {name: '항목 이름'});
   expect(field).toHaveProperty('value', 'Song section');
   expect(document.querySelector('[data-leading-card]')).not.toBeNull();
 });
@@ -454,20 +467,36 @@ it('tabs from the numbered navigator through the editor before the right panel',
   expect(
     within(navigator).getByRole('option', {name: 'Bible item'}).textContent,
   ).not.toContain('슬라이드');
+  const editor = commandList().closest('[data-panel="편집"]');
+  if (editor === null) throw Error('Missing editor panel');
   row.focus();
-  let sawEditor = false;
-  let sawRight = false;
-  for (let i = 0; i < 60 && !sawRight; i++) {
+  for (let i = 0; i < 20 && !editor.contains(document.activeElement); i++) {
     await userEvent.tab();
-    const active = document.activeElement;
-    if (!(active instanceof Element)) continue;
-    if (active.closest('[data-panel="편집"]')) sawEditor = true;
-    if (active.closest('[data-panel="슬라이드 속성"]')) {
-      expect(sawEditor).toBe(true);
-      sawRight = true;
-    }
   }
-  expect(sawRight).toBe(true);
+  expect(editor.contains(document.activeElement)).toBe(true);
+  const finalControl = [
+    ...editor.querySelectorAll<HTMLElement>(
+      'button, input, textarea, select, [tabindex]',
+    ),
+  ]
+    .filter(
+      control =>
+        control.tabIndex >= 0 &&
+        !control.matches(':disabled') &&
+        control.closest('[hidden], [inert]') === null &&
+        getComputedStyle(control).visibility !== 'hidden',
+    )
+    .at(-1);
+  if (finalControl === undefined) throw Error('Missing editor controls');
+  finalControl.focus();
+  const right = screen
+    .getByRole('region', {name: '슬라이드 속성'})
+    .closest('[data-panel="슬라이드 속성"]');
+  if (right === null) throw Error('Missing right panel');
+  for (let i = 0; i < 8 && !right.contains(document.activeElement); i++) {
+    await userEvent.tab();
+  }
+  expect(right.contains(document.activeElement)).toBe(true);
   await userEvent.keyboard('{Escape}');
   await waitFor(() =>
     expect(document.activeElement).toBe(
@@ -682,11 +711,42 @@ it('focuses the new song title when Ctrl N replaces an existing song', async () 
 it('starts a new blank item in slide 1 text, then reopens it on list commands', async () => {
   mockMenuRowHeight();
   const f = setup();
+  const stop = f.api.services.subscribe(({document}) => {
+    if (document === null) return;
+    const item = document.service.order.at(-1);
+    if (!item || !isItemOfKind(item, 'slides')) return;
+    const view = useShow.getState();
+    applyService({
+      id: document.service.id,
+      name: document.service.name,
+      readOnly: false,
+      revision: document.revision,
+      rows: view.rows.some(row => row.id === item.id)
+        ? view.rows
+        : [
+            ...view.rows,
+            {
+              id: item.id,
+              kind: 'slides',
+              form: item.slides.form,
+              title: item.slides.name,
+            },
+          ],
+      tiles: {...view.tiles, [item.id]: projectSlides(item)},
+    });
+  });
+  onTestFinished(stop);
   await userEvent.click(screen.getByRole('button', {name: '항목 추가'}));
   await userEvent.click(screen.getByRole('menuitem', {name: '빈 슬라이드'}));
-  const text = await screen.findByRole<HTMLTextAreaElement>('textbox', {
-    name: '글',
-  });
+  await waitFor(() =>
+    expect(document.activeElement).toBeInstanceOf(HTMLTextAreaElement),
+  );
+  const text = await within(commandList()).findByRole<HTMLTextAreaElement>(
+    'textbox',
+    {
+      name: '현재 슬라이드 글',
+    },
+  );
   expect(document.activeElement).toBe(text);
   expect(text.selectionStart).toBe(0);
   await userEvent.keyboard('New slide text');
@@ -697,8 +757,10 @@ it('starts a new blank item in slide 1 text, then reopens it on list commands', 
         .service.order.some(
           item =>
             isItemOfKind(item, 'slides') &&
-            item.slides.slides.some(
-              slide => 'text' in slide && slide.text === 'New slide text',
+            Object.values(item.textOverrides ?? {}).some(boxes =>
+              Object.values(boxes).some(
+                box => slideTextValue(box) === 'New slide text',
+              ),
             ),
         ),
     ).toBe(true),
@@ -717,7 +779,9 @@ it('starts a new blank item in slide 1 text, then reopens it on list commands', 
   });
   await waitFor(() => expect(document.activeElement).toBe(commandList()));
   expect(
-    screen.getByRole<HTMLTextAreaElement>('textbox', {name: '글'}).value,
+    within(commandList()).getByRole<HTMLTextAreaElement>('textbox', {
+      name: '현재 슬라이드 글',
+    }).value,
   ).toBe('New slide text');
 });
 

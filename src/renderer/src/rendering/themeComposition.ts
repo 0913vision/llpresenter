@@ -1,12 +1,13 @@
 import {isSectionTheme} from '@core/themes/sundaySections';
 import {fitBroadcastLook, isBroadcastLook} from './broadcastLook';
 import {stageBarLayout} from './stageBar';
+import {manualThemeText, withSlideTextOverrides} from '@core/themes/textSlots';
 import type {LiveLayers} from '@core/live/state';
 import type {SlideLayer} from '@core/live/state';
 import type {LiveThemeItem} from '@core/schema/liveTheme';
 import type {ThemeScreenLayout} from '@core/schema/themes';
 import {classes} from './classes';
-import type {RenderFrame, RenderLayerOptions} from './layer';
+import type {RenderFrame, RenderLayerOptions, ThemeFrame} from './layer';
 import {ThemeElementView} from './themeElement';
 import {BackgroundLayerView} from './backgroundLayer';
 import {positionFollowingBoxes} from './themeFollow';
@@ -16,7 +17,10 @@ import {OUTPUT_TRANSITIONS} from './transitions';
 import {SlideAnimation} from './slideAnimation';
 import {THEME_LIMITS} from '@core/themes/elementRules';
 import {themeBackgroundStyle} from './themeBackground';
-import {songTitleLayout} from '@core/themes/songTitle';
+import {
+  songTitleLayout,
+  type ResolvedThemeElement,
+} from '@core/themes/songTitle';
 import {songTitleLines} from '@core/presentation/songTitleLines';
 import {STAGE_LYRIC_LABEL_ID, stageLyricLabelLayout} from './stageLyricLabel';
 import {
@@ -24,6 +28,12 @@ import {
   isThemeTextElement,
   themeElementMedia,
 } from '@core/themes/content';
+
+interface PreparedLayout {
+  readonly layout: ThemeScreenLayout;
+  readonly manual: ReadonlyMap<string, string>;
+  readonly signature: string;
+}
 
 interface ThemePage {
   layers: LiveLayers;
@@ -49,6 +59,65 @@ function itemBackgroundOverride(frame: RenderFrame, transparent: boolean) {
     : undefined;
 }
 
+const layoutSignatures = new WeakMap<ThemeScreenLayout, string>();
+
+function layoutSignature(
+  layout: ThemeScreenLayout,
+  manual: ReadonlyMap<string, string>,
+): string {
+  const cached = layoutSignatures.get(layout);
+  if (cached !== undefined) return cached;
+  const structure =
+    manual.size === 0
+      ? layout
+      : {
+          ...layout,
+          elements: layout.elements.map((element: ResolvedThemeElement) => {
+            if (!manual.has(element.id)) return element;
+            const {manualText: _manual, ...style} = element;
+            return style;
+          }),
+        };
+  const signature = JSON.stringify(structure);
+  layoutSignatures.set(layout, signature);
+  return signature;
+}
+
+function importedLyricsLayout(
+  layout: ThemeScreenLayout,
+  slide: SlideLayer | null,
+): ThemeScreenLayout {
+  const lines = slide?.lyricFormat?.lines;
+  if (
+    slide === null ||
+    lines === undefined ||
+    slide.titleSlide === true ||
+    lines.length !== slide.lines.length ||
+    !lines.some(
+      (line, index) =>
+        line.runs.map(run => run.text).join('') === slide.lines[index],
+    )
+  ) {
+    return layout;
+  }
+  const first = lines[0];
+  const top =
+    first?.runs.map(run => run.text).join('') === slide.lines[0]
+      ? first?.top
+      : undefined;
+  return {
+    ...layout,
+    elements: layout.elements.map(element =>
+      element.kind === 'currentText'
+        ? {
+            ...element,
+            frame: {...element.frame, x: 0, w: 1920, y: top ?? element.frame.y},
+          }
+        : element,
+    ),
+  };
+}
+
 /** Keeps at most two compositions during a whole-screen theme dissolve. */
 export class ThemeCompositionView {
   private readonly root = document.createElement('div');
@@ -61,7 +130,11 @@ export class ThemeCompositionView {
   private animation: number | null = null;
   private preparing = false;
   private readonly slideAnimation: SlideAnimation;
-  private content: {layers: LiveLayers; frame: RenderFrame} | null = null;
+  private content: {
+    layers: LiveLayers;
+    frame: RenderFrame;
+    manual: ReadonlyMap<string, string> | undefined;
+  } | null = null;
   private input: {layers: LiveLayers; frame: RenderFrame} | null = null;
   private audienceMeasure: ThemeCompositionView | null = null;
   private audienceMeasureHost: HTMLElement | null = null;
@@ -86,6 +159,21 @@ export class ThemeCompositionView {
     this.bandFit = null;
     this.render(input.layers, input.frame);
   };
+  private broadcastTitle: {source: SlideLayer; slide: SlideLayer} | null = null;
+  private prepared: {
+    readonly theme: ThemeFrame;
+    readonly slide: SlideLayer | null;
+    readonly screen: RenderFrame['screen'];
+    readonly labels: RenderFrame['stageLyricLabelPosition'];
+    readonly band: ThemeScreenLayout;
+    readonly result: PreparedLayout;
+  } | null = null;
+  private slotLayout: {
+    readonly theme: ThemeFrame;
+    readonly slide: SlideLayer | null;
+    readonly layout: ThemeScreenLayout;
+    readonly broadcast: boolean;
+  } | null = null;
   private bandFit: {
     key: string;
     layout: ThemeScreenLayout;
@@ -101,6 +189,7 @@ export class ThemeCompositionView {
   constructor(
     parent: HTMLElement,
     private readonly options: RenderLayerOptions,
+    private readonly measureAudienceText = false,
   ) {
     this.slideAnimation = new SlideAnimation(!options.transparent);
     this.root.className = classes.layer;
@@ -143,22 +232,18 @@ export class ThemeCompositionView {
         });
         this.root.append(host);
         this.audienceMeasureHost = host;
-        this.audienceMeasure = new ThemeCompositionView(host, this.options);
+        this.audienceMeasure = new ThemeCompositionView(
+          host,
+          this.options,
+          true,
+        );
       }
       const theme = frame.audience.theme;
       this.audienceMeasure.render(layers, {
         ...frame,
         audience: undefined,
         screen: frame.audience.screen,
-        theme: {
-          ...theme,
-          layout: {
-            ...theme.layout,
-            elements: theme.layout.elements.filter(
-              element => element.kind === 'currentText',
-            ),
-          },
-        },
+        theme,
         transitions: false,
         standby: true,
       });
@@ -198,100 +283,28 @@ export class ThemeCompositionView {
       original?.titleSlide === true &&
       (frame.theme?.item?.kind ?? original.kind) === 'song'
     ) {
-      const slide = {
-        ...original,
-        lines: songTitleLines(original.lines, original.titleLineCount),
-      };
-      layers = {...layers, slide};
-      if (frame.slide !== undefined) frame = {...frame, slide};
-    }
-    if (frame.theme !== undefined) {
-      const slide = frame.slide ?? layers.slide;
-      frame = {
-        ...frame,
-        theme: {
-          ...frame.theme,
-          layout: songTitleLayout(
-            stageBarLayout(
-              this.fitBand(frame.theme.layout, slide, {
-                item: frame.theme.item,
-                songCaption:
-                  frame.screen?.kind === 'broadcast'
-                    ? (frame.screen.songCaption ?? 'band')
-                    : 'band',
-              }),
-              {
-                stage: frame.screen?.kind === 'stage',
-                message: null,
-                item: frame.theme.item,
-              },
-            ),
-            frame.screen?.kind === 'stage' ? null : slide,
-          ),
-        },
-      };
-    }
-    if (
-      frame.theme !== undefined &&
-      frame.screen?.kind === 'audience' &&
-      frame.theme.item?.kind === 'song'
-    ) {
-      const slide = frame.slide ?? layers.slide;
-      if (
-        slide?.lyricFormat !== undefined &&
-        slide.titleSlide !== true &&
-        slide.lyricFormat.lines.length === slide.lines.length &&
-        slide.lyricFormat.lines.some(
-          (line, index) =>
-            line.runs.map(run => run.text).join('') === slide.lines[index],
-        )
-      ) {
-        const firstLine = slide.lyricFormat.lines[0];
-        const importedTop =
-          firstLine?.runs.map(run => run.text).join('') === slide.lines[0]
-            ? firstLine?.top
-            : undefined;
-        frame = {
-          ...frame,
-          theme: {
-            ...frame.theme,
-            layout: {
-              ...frame.theme.layout,
-              elements: frame.theme.layout.elements.map(element =>
-                element.kind === 'currentText'
-                  ? {
-                      ...element,
-                      frame: {
-                        ...element.frame,
-                        x: 0,
-                        w: 1920,
-                        y: importedTop ?? element.frame.y,
-                      },
-                    }
-                  : element,
-              ),
-            },
+      if (this.broadcastTitle?.source !== original) {
+        this.broadcastTitle = {
+          source: original,
+          slide: {
+            ...original,
+            lines: songTitleLines(original.lines, original.titleLineCount),
           },
         };
       }
+      const {slide} = this.broadcastTitle;
+      layers = {...layers, slide};
+      if (frame.slide !== undefined) frame = {...frame, slide};
     }
-    if (frame.theme !== undefined && frame.screen?.kind === 'stage') {
-      const slide = frame.slide ?? layers.slide;
-      frame = {
-        ...frame,
-        theme: {
-          ...frame.theme,
-          layout: stageLyricLabelLayout(
-            frame.theme.layout,
-            slide,
-            (slide?.kind ?? frame.theme.item?.kind) === 'song' &&
-              (frame.stageLyricLabelPosition ?? 'line') === 'line',
-          ),
-        },
-      };
+    const prepared =
+      frame.theme === undefined
+        ? null
+        : this.prepareLayout(frame.theme, frame.slide ?? layers.slide, frame);
+    if (prepared !== null && frame.theme !== undefined) {
+      frame = {...frame, theme: {...frame.theme, layout: prepared.layout}};
     }
     this.gaps.follow(frame);
-    this.content = {layers, frame};
+    this.content = {layers, frame, manual: prepared?.manual};
     const theme = frame.theme;
     setPlaybackProblem(
       this.root,
@@ -301,16 +314,14 @@ export class ThemeCompositionView {
     if (this.root.hidden !== (theme === undefined)) {
       this.root.hidden = theme === undefined;
     }
-    if (theme === undefined) {
+    if (theme === undefined || prepared === null) {
       this.bandFit = null;
+      this.prepared = null;
+      this.slotLayout = null;
       this.clear();
       return;
     }
-    const signature = JSON.stringify([
-      theme.themeId,
-      theme.layout,
-      itemBackgroundOverride(frame, this.options.transparent === true),
-    ]);
+    const {signature} = prepared;
     const previous = this.page?.frame.slide ?? this.page?.layers.slide;
     const incoming = frame.slide ?? layers.slide;
     const slideChanged =
@@ -392,6 +403,100 @@ export class ThemeCompositionView {
     }
   }
 
+  private prepareLayout(
+    theme: ThemeFrame,
+    slide: SlideLayer | null,
+    frame: RenderFrame,
+  ): PreparedLayout {
+    const slots = this.slotLayout;
+    if (
+      slots?.theme.layout !== theme.layout ||
+      slots.theme.themeId !== theme.themeId ||
+      slots.theme.sourceScreenId !== theme.sourceScreenId ||
+      slots.slide?.textOverrides !== slide?.textOverrides ||
+      slots.slide?.next?.textOverrides !== slide?.next?.textOverrides ||
+      slots.slide?.continued !== slide?.continued ||
+      slots.slide?.next?.continued !== slide?.next?.continued
+    ) {
+      this.slotLayout = {
+        theme,
+        slide,
+        layout: withSlideTextOverrides(theme, slide),
+        broadcast:
+          slots?.theme.layout === theme.layout
+            ? slots.broadcast
+            : isBroadcastLook(theme.layout),
+      };
+    }
+    const resolved = this.slotLayout?.layout ?? theme.layout;
+    const band = this.slotLayout?.broadcast
+      ? this.fitBand(resolved, slide, {
+          item: theme.item,
+          songCaption:
+            frame.screen?.kind === 'broadcast'
+              ? (frame.screen.songCaption ?? 'band')
+              : 'band',
+        })
+      : resolved;
+    const previous = this.prepared;
+    if (
+      previous?.theme.themeId === theme.themeId &&
+      previous.theme.item === theme.item &&
+      previous.slide === slide &&
+      previous.screen?.kind === frame.screen?.kind &&
+      previous.labels === frame.stageLyricLabelPosition &&
+      previous.band === band
+    ) {
+      return previous.result;
+    }
+    const stage = frame.screen?.kind === 'stage';
+    const source = this.measureAudienceText
+      ? {
+          ...band,
+          elements: band.elements.filter(
+            element => element.kind === 'currentText',
+          ),
+        }
+      : band;
+    let layout = songTitleLayout(
+      stageBarLayout(source, {stage, message: null, item: theme.item}),
+      stage ? null : slide,
+    );
+    if (stage) {
+      layout = stageLyricLabelLayout(
+        layout,
+        slide,
+        (slide?.kind ?? theme.item?.kind) === 'song' &&
+          (frame.stageLyricLabelPosition ?? 'line') === 'line',
+      );
+    } else if (
+      frame.screen?.kind === 'audience' &&
+      theme.item?.kind === 'song'
+    ) {
+      layout = importedLyricsLayout(layout, slide);
+    }
+    const manual = new Map<string, string>();
+    for (const element of layout.elements) {
+      const text = manualThemeText(element);
+      if (text !== undefined) manual.set(element.id, text);
+    }
+    const signature = JSON.stringify([
+      theme.themeId,
+      layoutSignature(layout, manual),
+      itemBackgroundOverride(frame, this.options.transparent === true),
+    ]);
+    const result = {layout, signature, manual};
+    this.prepared = {
+      theme,
+      slide,
+      screen: frame.screen,
+      labels: frame.stageLyricLabelPosition,
+      band,
+      result,
+    };
+    return result;
+  }
+
   private fitBand(
     layout: ThemeScreenLayout,
     slide: SlideLayer | null,
@@ -400,11 +505,6 @@ export class ThemeCompositionView {
       songCaption,
     }: {item: LiveThemeItem | null; songCaption: 'band' | 'text'},
   ): ThemeScreenLayout {
-    const look = isBroadcastLook(layout);
-    if (!look) {
-      this.bandFit = null;
-      return layout;
-    }
     const width = this.root.clientWidth;
     const height = this.root.clientHeight;
     const fonts =
@@ -521,7 +621,6 @@ export class ThemeCompositionView {
     const elements: ThemeElementView[] = [];
     if (theme.layout.mode.kind === 'own') {
       for (const element of theme.layout.elements) {
-        if (element.kind === 'stageMessage') continue;
         if (
           override !== undefined &&
           (element.kind === 'background' ||
@@ -701,6 +800,8 @@ export class ThemeCompositionView {
       (content.layers.media === null
         ? undefined
         : this.options.previewMedia?.remaining(content.layers.media));
+    const frame = {...content.frame, transitions: false};
+    const values = {videoRemaining: video, manual: content.manual};
     for (const view of page.elements) {
       if (
         content.frame.screen?.kind === 'stage' &&
@@ -719,8 +820,8 @@ export class ThemeCompositionView {
         view.render(
           content.layers,
           // NOTE(0913vision): Page transitions own the mask, so children cut.
-          {...content.frame, transitions: false},
-          video,
+          frame,
+          values,
         );
         view.setClearOpacity(
           content.frame.clearOpacity,
@@ -958,6 +1059,9 @@ export class ThemeCompositionView {
     this.input = null;
     this.content = null;
     this.bandFit = null;
+    this.prepared = null;
+    this.slotLayout = null;
+    this.broadcastTitle = null;
     this.root.remove();
   }
 }

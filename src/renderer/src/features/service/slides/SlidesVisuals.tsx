@@ -41,8 +41,18 @@ export function useSlidesItemWithBackground(draftItem: SlidesItem): SlidesItem {
   );
   if (row?.kind !== 'slides') return draftItem;
   const parsed = parseMediaId(row.background?.mediaId);
-  const {background: _background, ...item} = draftItem;
-  return parsed.ok ? {...item, background: parsed.value} : item;
+  const {
+    background: _background,
+    textOverrides: _overrides,
+    ...item
+  } = draftItem;
+  return {
+    ...item,
+    ...(row.textOverrides === undefined
+      ? {}
+      : {textOverrides: row.textOverrides}),
+    ...(parsed.ok ? {background: parsed.value} : {}),
+  };
 }
 
 export function useSlidesAppearance(

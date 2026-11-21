@@ -113,6 +113,25 @@ describe('usePrepPanels', () => {
     },
   );
 
+  it('opens the Bible slide editor for a passage requested from Show', () => {
+    const {fixture, editor, items} = setup();
+    const serviceId = fixture.service().service.id;
+    const itemId = 'bible-item';
+    act(() => useShow.setState({openItemId: itemId}));
+    const itemEditorRequest = {serviceId, itemId};
+    const {result} = renderHook(() =>
+      usePrepPanels({
+        prep: {api: fixture.api, editor, items, itemEditorRequest},
+        sizeClass: 'normal',
+        onProblem: undefined,
+        onOpenPrep: undefined,
+        onShowInLibrary: undefined,
+      }),
+    );
+    expect(result.current.pictureIdentity).toBe('edit:table:bible-item');
+    expect(result.current.partsOf('편집').embedded).toBeDefined();
+  });
+
   it('opens a service item, even the one already open, by leaving the editor first', () => {
     const {editor, onServiceItemOpen, result} = setup();
     const requestLeave = vi

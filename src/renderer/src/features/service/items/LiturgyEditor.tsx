@@ -20,13 +20,13 @@ import {CREED_PRAYER_THEME_ID} from '@core/themes/creedPrayer';
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
 import {SlideThumbnailBand} from '@renderer/ui/SlideThumbnail';
+import {TextArea} from '@renderer/ui/TextArea';
 import {ItemEditorShell} from '@renderer/platform/ItemEditorShell';
 import {SongSlideSurface} from '@renderer/features/songs/editor/SongSlideSurface';
 import {BibleSlideSession} from './BibleSlideSession';
 import type {ShowTile} from '@core/schema/showService';
 import {ItemEditorAddBar} from '@renderer/platform/ItemEditorAddBar';
 import {itemEditorAdapter} from '@renderer/platform/itemEditorAdapter';
-import {TextArea} from '@renderer/ui/TextArea';
 import type {UiApi} from '@contracts/ipc/ui';
 import {
   SlideSurfaceView,
@@ -34,6 +34,7 @@ import {
 } from '@renderer/features/songs/editor/SlideSurfaceView';
 import liturgyStyles from './LiturgyEditor.module.css';
 import {useLeadingItemCard} from './useLeadingItemCard';
+import type {RenderSlideTextFields} from '@renderer/features/songs/editor/SlideCardRenderer';
 import {LeadingSlideCardView} from '@renderer/features/songs/editor/LeadingSlideCardView';
 import styles from './BibleInlineEditor.module.css';
 import {cardOffset} from '@core/services/sectionCards';
@@ -82,10 +83,12 @@ export function LiturgyEditor({
   items,
   shownItem,
   ui,
+  renderTextFields,
 }: {
   readonly items: ServiceItemStore;
   readonly shownItem?: ReturnType<ServiceItemStore['getSnapshot']> | undefined;
   readonly ui?: Pick<UiApi, 'setLayout'> | undefined;
+  readonly renderTextFields?: RenderSlideTextFields | undefined;
 }): JSX.Element | null {
   const current = useSyncExternalStore(items.subscribe, items.getSnapshot);
   const state =
@@ -110,6 +113,7 @@ export function LiturgyEditor({
       position={state.position}
       shownItem={state}
       ui={ui}
+      renderTextFields={renderTextFields}
     />
   );
 }
@@ -120,18 +124,23 @@ function LiturgyContent({
   position,
   shownItem,
   ui,
+  renderTextFields,
 }: {
   readonly ui?: Pick<UiApi, 'setLayout'> | undefined;
   readonly items: ServiceItemStore;
   readonly item: ServiceItemOf<'liturgy'>;
   readonly position: number;
+  readonly renderTextFields: RenderSlideTextFields | undefined;
   readonly shownItem: ReturnType<ServiceItemStore['getSnapshot']>;
 }): JSX.Element {
   const {mode, scale} = useSlideSurfaceView();
   const gridStyle: CSSProperties & {'--liturgy-tile-width': string} = {
     '--liturgy-tile-width': `${(180 * scale) / 100}px`,
   };
-  const card = useLeadingItemCard(items, item.id, shownItem);
+  const card = useLeadingItemCard(items, item.id, {
+    shownItem,
+    renderTextFields,
+  });
   const tiles = useShow(view => view.tiles[item.id]);
   const theme = useSlideTheme({
     kind: 'slides',
@@ -213,6 +222,8 @@ function LiturgyContent({
             />
           )}
           {texts.map((text, index) => {
+            const editableRow =
+              renderTextFields !== undefined && mode === 'list';
             const layer =
               tiles === undefined
                 ? null
@@ -227,8 +238,15 @@ function LiturgyContent({
                 data-selected={selection.selection.ids.has(String(index))}
                 data-song-slide={String(index)}
                 data-fixed-slide
-                role="option"
-                aria-selected={selection.selection.ids.has(String(index))}
+                role={editableRow ? 'group' : 'option'}
+                aria-label={
+                  editableRow ? `${index + 1 + offset}번 슬라이드` : undefined
+                }
+                aria-selected={
+                  editableRow
+                    ? undefined
+                    : selection.selection.ids.has(String(index))
+                }
                 data-slide-index={index}
                 tabIndex={0}
                 onClick={event =>
@@ -255,14 +273,20 @@ function LiturgyContent({
                     labelColor={tiles?.[index + offset]?.labelColor}
                   />
                 </div>
-                <TextArea
-                  className={styles.verse}
-                  value={text}
-                  onChange={() => undefined}
-                  rows={4}
-                  readOnly
-                  aria-label={`${index + 1}번 예식문`}
-                />
+                {editableRow ? (
+                  renderTextFields(index + offset)
+                ) : renderTextFields ? (
+                  <p className={styles.verse}>{text}</p>
+                ) : (
+                  <TextArea
+                    className={styles.verse}
+                    value={text}
+                    onChange={() => undefined}
+                    rows={4}
+                    readOnly
+                    aria-label={`${index + 1}번 예식문`}
+                  />
+                )}
               </div>
             );
           })}

@@ -68,12 +68,15 @@ export function correctSlideOutput(
 export function sendMediaOutput(
   media: MediaChoice,
   start?: SingleLiveCommand,
+  textSlide?: SlideLayer,
 ): void {
   sendLive({
     type: 'live.batch',
     commands: [
       ...(start === undefined ? [] : [start]),
-      {type: 'layer.clear', target: 'slide'},
+      textSlide === undefined
+        ? {type: 'layer.clear', target: 'slide'}
+        : {type: 'slide.show', slide: textSlide},
       {type: 'media.show', media},
     ],
   });

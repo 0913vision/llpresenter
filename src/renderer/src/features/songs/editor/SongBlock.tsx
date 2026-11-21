@@ -29,9 +29,13 @@ import {EditorSlideNumber} from './EditorSlideNumber';
 import plate from './EditorSlidePlate.module.css';
 import field from '@renderer/ui/TextField.module.css';
 import {SONG_LIMITS} from '@core/schema/song';
-import type {SlideCardRenderer} from './SlideCardRenderer';
+import type {
+  RenderSlideTextFields,
+  SlideCardRenderer,
+} from './SlideCardRenderer';
 import {Picture} from '@renderer/rendering/pictures/Picture';
 import {usePrepPictureSwitch} from '@renderer/rendering/PrepPictureSwitch';
+import {isInTextEntry} from '@renderer/ui/textEntry';
 import {
   pictures,
   type PictureSpec,
@@ -69,6 +73,7 @@ interface BlockProps {
   readonly caret?: boolean;
   readonly picture?: PictureSpec | undefined;
   readonly renderCard?: SlideCardRenderer<EditorSlideItem> | undefined;
+  readonly renderTextFields?: RenderSlideTextFields | undefined;
 }
 
 /** Keeps untouched blocks out of the typing render path. */
@@ -97,15 +102,35 @@ export const SongBlock = memo(
     caret,
     picture,
     renderCard,
+    renderTextFields,
   }: BlockProps): JSX.Element => {
     const labelButtonRef = useRef<HTMLButtonElement | null>(null);
     const blockRef = useRef<HTMLDivElement>(null);
     const chrome = useRef<{node: HTMLElement; height: number} | null>(null);
     const text = slide.lines.join('\n');
     const switching = usePrepPictureSwitch();
+    const measureFields = renderTextFields !== undefined;
     useLayoutEffect(() => {
       const node = blockRef.current;
-      if (!grid || node === null || onMeasure === undefined) return;
+      if (node === null || onMeasure === undefined) return;
+      if (!grid) {
+        if (!measureFields) return;
+        const measure = (): void => {
+          const height = Math.ceil(node.getBoundingClientRect().height);
+          if (height > 0) onMeasure(slide.id, height);
+        };
+        measure();
+        if (typeof ResizeObserver === 'undefined') return;
+        const observer = new ResizeObserver(() => {
+          if (!isLayoutResizeActive()) flushSync(measure);
+        });
+        const unlisten = onLayoutResizeEnd(measure);
+        observer.observe(node, {box: 'border-box'});
+        return () => {
+          unlisten();
+          observer.disconnect();
+        };
+      }
       const thumbnail = node.querySelector<HTMLElement>(
         '[data-editor-thumbnail]',
       );
@@ -148,7 +173,7 @@ export const SongBlock = memo(
         unlisten();
         observer.disconnect();
       };
-    }, [grid, onMeasure, renderCard, slide.id]);
+    }, [grid, measureFields, onMeasure, renderCard, slide.id]);
 
     const select = (input: HTMLTextAreaElement): void => {
       if (focus.current.restoring || focus.current.requested) return;
@@ -289,6 +314,11 @@ export const SongBlock = memo(
               }
             : {top}
         }
+        onFocusCapture={event => {
+          if (renderTextFields !== undefined && isInTextEntry(event.target)) {
+            session.selectSlides({type: 'click', id: slide.id});
+          }
+        }}
         onClick={event => {
           if (
             event.target instanceof Element &&
@@ -351,7 +381,7 @@ export const SongBlock = memo(
                 )}
                 <SlideTransitionMark transition={slide.transition} />
               </div>
-              {editable ? (
+              {editable && (!grid || renderTextFields === undefined) ? (
                 <button
                   ref={labelButtonRef}
                   type="button"
@@ -377,64 +407,70 @@ export const SongBlock = memo(
               )}
             </div>
             <div className={styles.text} data-grid-text>
-              <textarea
-                ref={input => {
-                  focus.current.inputs[block] = input;
-                }}
-                aria-label={`슬라이드 ${block + 1 + numberOffset} ${slide.titleSlide ? '제목 및 부제' : '가사'}`}
-                title={
-                  slide.titleSlide
-                    ? `제목 및 부제: 두 줄, 각 ${SONG_LIMITS.titleLine}자`
-                    : undefined
-                }
-                className={`${field.textarea} ${styles.lyrics}`}
-                value={text}
-                data-empty={text === '' || undefined}
-                rows={Math.max(1, slide.lines.length)}
-                readOnly={locked}
-                wrap="off"
-                spellCheck={false}
-                onFocus={event => {
-                  select(event.currentTarget);
-                }}
-                onBlur={() => {
-                  focus.current.composing = false;
-                  session.endTyping();
-                }}
-                onSelect={event => {
-                  if (event.currentTarget === document.activeElement) {
-                    select(event.currentTarget);
+              {renderTextFields !== undefined ? (
+                grid ? null : (
+                  renderTextFields(slide.id)
+                )
+              ) : (
+                <textarea
+                  ref={input => {
+                    focus.current.inputs[block] = input;
+                  }}
+                  aria-label={`슬라이드 ${block + 1 + numberOffset} ${slide.titleSlide ? '제목 및 부제' : '가사'}`}
+                  title={
+                    slide.titleSlide
+                      ? `제목 및 부제: 두 줄, 각 ${SONG_LIMITS.titleLine}자`
+                      : undefined
                   }
-                }}
-                onCompositionStart={() => {
-                  focus.current.composing = true;
-                }}
-                onCompositionEnd={() => {
-                  focus.current.composing = false;
-                }}
-                onKeyDown={keyDown}
-                onChange={event => {
-                  if (locked) return;
-                  const input = event.currentTarget;
-                  const {value, selectionStart, selectionEnd} = input;
-                  applyTextInput(input, {
-                    type: 'text',
-                    text: value,
-                    start: selectionStart,
-                    end: selectionEnd,
-                  });
-                }}
-                onPaste={event => {
-                  if (locked || focus.current.composing) return;
-                  const text = event.clipboardData.getData('text/plain');
-                  event.preventDefault();
-                  if (text === '') return;
-                  applyTextInput(event.currentTarget, {
-                    type: 'paste',
-                    text,
-                  });
-                }}
-              />
+                  className={`${field.textarea} ${styles.lyrics}`}
+                  value={text}
+                  data-empty={text === '' || undefined}
+                  rows={Math.max(1, slide.lines.length)}
+                  readOnly={locked}
+                  wrap="off"
+                  spellCheck={false}
+                  onFocus={event => {
+                    select(event.currentTarget);
+                  }}
+                  onBlur={() => {
+                    focus.current.composing = false;
+                    session.endTyping();
+                  }}
+                  onSelect={event => {
+                    if (event.currentTarget === document.activeElement) {
+                      select(event.currentTarget);
+                    }
+                  }}
+                  onCompositionStart={() => {
+                    focus.current.composing = true;
+                  }}
+                  onCompositionEnd={() => {
+                    focus.current.composing = false;
+                  }}
+                  onKeyDown={keyDown}
+                  onChange={event => {
+                    if (locked) return;
+                    const input = event.currentTarget;
+                    const {value, selectionStart, selectionEnd} = input;
+                    applyTextInput(input, {
+                      type: 'text',
+                      text: value,
+                      start: selectionStart,
+                      end: selectionEnd,
+                    });
+                  }}
+                  onPaste={event => {
+                    if (locked || focus.current.composing) return;
+                    const text = event.clipboardData.getData('text/plain');
+                    event.preventDefault();
+                    if (text === '') return;
+                    applyTextInput(event.currentTarget, {
+                      type: 'paste',
+                      text,
+                    });
+                  }}
+                />
+              )}
             </div>
           </>
         )}

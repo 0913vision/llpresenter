@@ -71,6 +71,41 @@ function withItem(item: object) {
 }
 
 describe('parseService', () => {
+  it('round-trips manual empty text and its source, and rejects malformed bindings', () => {
+    const referenceSlot = `${itemId(7)}/shared/reference`;
+    const reference = {
+      slotId: 'reference',
+      role: 'reference',
+      mode: 'manual',
+      sourceThemeId: itemId(7),
+      text: '',
+    };
+    const textOverrides = {
+      'verse:sample:43:3:16:1': {
+        [referenceSlot]: reference,
+        currentText: 'Two\nlines',
+      },
+    };
+    const item = {id: itemId(4), bible: PASSAGE, textOverrides};
+    const saved = expectSuccess(parse(withItem(item))).data;
+    const written = expectSuccess(serializeService(saved, FILE));
+    expect(expectSuccess(parseService(written, FILE)).data.order[0]).toEqual(
+      item,
+    );
+    expect(
+      parse(
+        withItem({
+          ...item,
+          textOverrides: {
+            'verse:sample:43:3:16:1': {
+              [referenceSlot]: {...reference, slotId: ''},
+            },
+          },
+        }),
+      ).ok,
+    ).toBe(false);
+  });
+
   it('round-trips confirmed cuts owned by one Bible passage and rejects invalid entries', () => {
     const entry = {
       hash: '1234abcd',
@@ -92,6 +127,31 @@ describe('parseService', () => {
         }),
       ).ok,
     ).toBe(false);
+  });
+
+  it('round-trips removed verse and sermon card identities without modifying the reference', () => {
+    const versePart = 'verse:krv:43:3:16:2';
+    const passage = {...PASSAGE, deletedSlides: ['sermon:opening', versePart]};
+    const item = {id: itemId(4), sermon: {title: 'Sermon', passage}};
+    const service = expectSuccess(parse(withItem(item))).data;
+    const written = expectSuccess(serializeService(service, FILE));
+    expect(expectSuccess(parseService(written, FILE)).data.order[0]).toEqual(
+      item,
+    );
+    for (const deletedSlides of [
+      [versePart, versePart],
+      ['sermon:title'],
+      [2],
+    ]) {
+      expect(
+        parse(
+          withItem({
+            ...item,
+            sermon: {...item.sermon, passage: {...passage, deletedSlides}},
+          }),
+        ).ok,
+      ).toBe(false);
+    }
   });
 
   it('accepts per-item background overrides and rejects malformed choices', () => {

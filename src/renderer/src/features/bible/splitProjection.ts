@@ -1,8 +1,19 @@
 import type {BibleDisplayOptions} from '@core/bible/source';
 import type {BibleSource} from '@core/bible/source';
-import {bibleOutputLines} from '@core/bible/bibleTiles';
+import {
+  textOverridesForTiles,
+  textVerseKey,
+  bibleTextSlideKey,
+} from '@core/presentation/textOverrides';
+import {
+  bibleOutputLines,
+  sermonTitleTile,
+  withoutDeletedBibleSlides,
+} from '@core/bible/bibleTiles';
 import {passageBook} from '@core/bible/adjacentVerses';
 import {
+  projectPinnedVerse,
+  validatedPinnedVerse,
   splitVerseParts,
   type VerseInput,
   type VersePart,
@@ -52,6 +63,9 @@ interface SplitOptions {
   readonly transitions?: readonly BiblePartTransition[];
   readonly transition?: SlideTransition;
   readonly cuts?: BiblePassage['cuts'];
+  readonly pinnedVerses?: BiblePassage['pinnedVerses'];
+  readonly deletedSlides?: BiblePassage['deletedSlides'];
+  readonly textOverrides?: import('@core/schema/slideTextOverrides').ItemTextOverrides;
   readonly id: string;
   readonly verseNumbers: boolean;
   readonly reference: BiblePassage['reference'];
@@ -88,6 +102,18 @@ export interface BibleProjection {
   readonly numbered: boolean;
   readonly tiles: readonly SlideTile[];
   readonly problem?: 'tile-limit';
+}
+
+export function canReviewBiblePart(
+  projection: BibleProjection | null,
+  index: number,
+): boolean {
+  const part = projection?.partsByTile[index];
+  return (
+    part != null &&
+    projection?.source.pinnedVerses?.[textVerseKey(part.reference)] ===
+      undefined
+  );
 }
 
 const defaultScreens: readonly ThemeScreen[] = [
@@ -145,6 +171,9 @@ export function splitSourceFor(
       reference: 'every',
       translationName: false,
       ...(row.theme === undefined ? {} : {theme: row.theme}),
+      ...(row.textOverrides === undefined
+        ? {}
+        : {textOverrides: row.textOverrides}),
       ...(row.background === undefined
         ? {}
         : {background: row.background.mediaId}),
@@ -181,6 +210,15 @@ export function splitSourceFor(
       ? {}
       : {transitions: row.bible.transitions}),
     ...(row.bible.cuts === undefined ? {} : {cuts: row.bible.cuts}),
+    ...(row.bible.pinnedVerses === undefined
+      ? {}
+      : {pinnedVerses: row.bible.pinnedVerses}),
+    ...(row.bible.deletedSlides === undefined
+      ? {}
+      : {deletedSlides: row.bible.deletedSlides}),
+    ...(row.bible.textOverrides === undefined
+      ? {}
+      : {textOverrides: row.bible.textOverrides}),
     source: 'service',
     review: false,
     ...(row.bible.theme === undefined ? {} : {theme: row.bible.theme}),
@@ -192,7 +230,11 @@ export function projectBible(
   {element, layout, saved}: ProjectionLayout,
 ): BibleProjection | null {
   if (source.kind === 'slides') {
-    return projectSlidesBible(source, {element, layout, saved});
+    const projected = projectSlidesBible(source, {element, layout, saved});
+    return {
+      ...projected,
+      tiles: textOverridesForTiles(projected.tiles, source.textOverrides),
+    };
   }
   const book = passageBook(source.passage);
   if (book === undefined) return null;
@@ -223,11 +265,18 @@ export function projectBible(
       source.verseNumbers && verses.length > 1
         ? `${verse.reference.verse} `
         : '';
-    const next = splitVerseParts(verse, layout, {
-      saved: source.source === 'external' ? saved : undefined,
-      confirmed: source.cuts?.[cacheKey(verse.reference)],
-      prefix,
-    });
+    const pinned = validatedPinnedVerse(
+      verse.text,
+      source.pinnedVerses?.[textVerseKey(verse.reference)],
+    );
+    const next =
+      pinned !== undefined
+        ? projectPinnedVerse(verse, pinned, {layout, prefix})
+        : splitVerseParts(verse, layout, {
+            saved: source.source === 'external' ? saved : undefined,
+            confirmed: source.cuts?.[cacheKey(verse.reference)],
+            prefix,
+          });
     if (
       parts.length + next.length + (source.sermonTitle === undefined ? 0 : 2) >
       SHOW_SERVICE_LIMITS.tiles
@@ -241,7 +290,11 @@ export function projectBible(
     source.translationName && source.passage.translationLabel
       ? ` (${source.passage.translationLabel})`
       : '';
-  const tiles = parts.map((part, index): SlideTile => {
+  const deleted = new Set(source.deletedSlides);
+  const visible = parts.filter(
+    part => !deleted.has(bibleTextSlideKey(part.reference, part.part)),
+  );
+  const tiles = visible.map((part, index): SlideTile => {
     const prefix =
       source.verseNumbers && verses.length > 1 && part.part === 1
         ? `${part.reference.verse} `
@@ -266,7 +319,7 @@ export function projectBible(
       })(),
       ...(source.reference === 'every' ||
       (source.reference === 'first' && index === 0) ||
-      (source.reference === 'last' && index === parts.length - 1)
+      (source.reference === 'last' && index === visible.length - 1)
         ? {reference}
         : {}),
     };
@@ -278,39 +331,38 @@ export function projectBible(
     verses,
     parts,
     partsByTile:
-      source.sermonTitle === undefined ? parts : [null, ...parts, null],
-    tiles:
+      source.sermonTitle === undefined
+        ? visible
+        : [
+            ...(deleted.has('sermon:opening') ? [] : [null]),
+            ...visible,
+            ...(deleted.has('sermon:closing') ? [] : [null]),
+          ],
+    tiles: textOverridesForTiles(
       source.sermonTitle === undefined
         ? tiles
-        : [
-            {
-              label: source.sermonOpeningLabel ?? null,
-              ...(source.sermonOpeningLabel === undefined
-                ? {}
-                : {slideLabel: source.sermonOpeningLabel}),
-              labelColor: NO_LABEL_COLOR,
-              lines: [source.sermonTitle],
-              reference: source.passage.displayRef,
-              sermonTitle: true,
-              ...(source.sermonOpeningTransition === undefined
-                ? {}
-                : {transition: source.sermonOpeningTransition}),
-            },
-            ...tiles,
-            {
-              label: source.sermonClosingLabel ?? null,
-              ...(source.sermonClosingLabel === undefined
-                ? {}
-                : {slideLabel: source.sermonClosingLabel}),
-              labelColor: NO_LABEL_COLOR,
-              lines: [source.sermonTitle],
-              reference: source.passage.displayRef,
-              sermonTitle: true,
-              ...(source.sermonClosingTransition === undefined
-                ? {}
-                : {transition: source.sermonClosingTransition}),
-            },
-          ],
+        : withoutDeletedBibleSlides(
+            [
+              sermonTitleTile({
+                side: 'opening',
+                title: source.sermonTitle,
+                reference: source.passage.displayRef,
+                label: source.sermonOpeningLabel,
+                transition: source.sermonOpeningTransition,
+              }),
+              ...tiles,
+              sermonTitleTile({
+                side: 'closing',
+                title: source.sermonTitle,
+                reference: source.passage.displayRef,
+                label: source.sermonClosingLabel,
+                transition: source.sermonClosingTransition,
+              }),
+            ],
+            source.deletedSlides,
+          ),
+      source.textOverrides,
+    ),
     numbered: source.verseNumbers && verses.length > 1,
   };
 }
@@ -358,6 +410,9 @@ export class BibleProjections {
       cached.source.translationName === source.translationName &&
       cached.source.transitions === source.transitions &&
       cached.source.cuts === source.cuts &&
+      cached.source.pinnedVerses === source.pinnedVerses &&
+      cached.source.deletedSlides === source.deletedSlides &&
+      cached.source.textOverrides === source.textOverrides &&
       cached.source.transition === source.transition &&
       cached.source.review === source.review
     ) {

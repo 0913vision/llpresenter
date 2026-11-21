@@ -1,6 +1,9 @@
-import {bibleVerseTiles} from '@core/bible/bibleTiles';
+import {
+  bibleVerseTiles,
+  sermonTitleTile,
+  withoutDeletedBibleSlides,
+} from '@core/bible/bibleTiles';
 import {BIBLE_BOOKS} from '@core/bible/bibleBooks';
-import {passageBook} from '@core/bible/adjacentVerses';
 import {biblePartEffect, biblePartLabel} from '@core/bible/partTransitions';
 import type {RecentPassage} from '@core/schema/bible';
 import {
@@ -116,65 +119,59 @@ export async function resolveServicePassages(
       unavailable.add(item.id);
       continue;
     }
-    tiles.set(item.id, [
-      ...(isItemOfKind(item, 'sermon')
-        ? [
-            {
-              label: item.sermon.openingLabel ?? null,
-              ...(item.sermon.openingLabel === undefined
-                ? {}
-                : {slideLabel: item.sermon.openingLabel}),
-              labelColor: 'none' as const,
-              lines: item.sermon.title.split(/\r?\n/),
-              reference: passage.displayRef,
-              sermonTitle: true as const,
-              ...(item.sermon.openingTransition === undefined
-                ? {}
-                : {transition: item.sermon.openingTransition}),
-            },
-          ]
-        : []),
-      ...bibleVerseTiles(passage, {
-        verseNumbers: settings.verseNumbers,
-        reference: settings.reference,
-        translationName: settings.translationName,
-        transition: settings.transition,
-      }).map((tile, index) => {
-        const verse = passage.verses[index];
-        const book = passageBook(passage);
-        if (verse === undefined || book === undefined) return tile;
-        const reference = {
-          translation: passage.translation,
-          book: book.id,
-          chapter: verse.chapter,
-          verse: verse.verse,
-        };
-        const transition = biblePartEffect(item.bibleTransitions, reference, 1);
-        const label = biblePartLabel(item.bibleLabels, reference, 1);
-        return {
-          ...tile,
-          ...(transition === undefined ? {} : {transition}),
-          ...(label === undefined ? {} : {slideLabel: label}),
-        };
-      }),
-      ...(isItemOfKind(item, 'sermon')
-        ? [
-            {
-              label: item.sermon.closingLabel ?? null,
-              ...(item.sermon.closingLabel === undefined
-                ? {}
-                : {slideLabel: item.sermon.closingLabel}),
-              labelColor: 'none' as const,
-              lines: item.sermon.title.split(/\r?\n/),
-              reference: passage.displayRef,
-              sermonTitle: true as const,
-              ...(item.sermon.closingTransition === undefined
-                ? {}
-                : {transition: item.sermon.closingTransition}),
-            },
-          ]
-        : []),
-    ]);
+    tiles.set(
+      item.id,
+      withoutDeletedBibleSlides(
+        [
+          ...(isItemOfKind(item, 'sermon')
+            ? [
+                sermonTitleTile({
+                  side: 'opening',
+                  title: item.sermon.title,
+                  reference: passage.displayRef,
+                  label: item.sermon.openingLabel,
+                  transition: item.sermon.openingTransition,
+                }),
+              ]
+            : []),
+          ...bibleVerseTiles(passage, {
+            verseNumbers: settings.verseNumbers,
+            reference: settings.reference,
+            translationName: settings.translationName,
+            transition: settings.transition,
+            pinnedVerses: settings.pinnedVerses,
+            deletedSlides: settings.deletedSlides,
+          }).map(tile => {
+            const reference = tile.bibleVerse;
+            if (reference === undefined) return tile;
+            const part = tile.biblePart ?? 1;
+            const transition = biblePartEffect(
+              item.bibleTransitions,
+              reference,
+              part,
+            );
+            const label = biblePartLabel(item.bibleLabels, reference, part);
+            return {
+              ...tile,
+              ...(transition === undefined ? {} : {transition}),
+              ...(label === undefined ? {} : {slideLabel: label}),
+            };
+          }),
+          ...(isItemOfKind(item, 'sermon')
+            ? [
+                sermonTitleTile({
+                  side: 'closing',
+                  title: item.sermon.title,
+                  reference: passage.displayRef,
+                  label: item.sermon.closingLabel,
+                  transition: item.sermon.closingTransition,
+                }),
+              ]
+            : []),
+        ],
+        settings.deletedSlides,
+      ),
+    );
     const {ref, translation} = passage;
     references.set(item.id, {ref, translation, passage});
   }

@@ -133,6 +133,7 @@ export class ThemeElementView {
   private imageGeneration = 0;
   private readonly options: RenderLayerOptions;
   private readonly gaps: ThemeGaps;
+  private manualText: string | undefined;
   private shownText: string | null = null;
   private shownSlideKey: string | null = null;
   private shownContinued = false;
@@ -341,8 +342,16 @@ export class ThemeElementView {
   render(
     layers: LiveLayers,
     frame: RenderFrame,
-    videoRemaining?: number,
+    {
+      videoRemaining,
+      manual,
+    }: {
+      readonly videoRemaining?: number | undefined;
+      readonly manual?: ReadonlyMap<string, string> | undefined;
+    } = {},
   ): void {
+    const manualText = manual?.get(this.element.id);
+    this.manualText = manualText;
     if (this.previewMaxLines !== undefined) {
       this.box.dataset['overflow'] = String(
         (layers.slide?.lines.length ?? 0) > this.previewMaxLines,
@@ -381,6 +390,7 @@ export class ThemeElementView {
       stage &&
       element.kind === 'currentText' &&
       slide !== null &&
+      slide.kind !== 'media' &&
       (slide.picture === undefined ||
         ((slide.kind ?? item?.kind) === 'song' && !!slide.label?.trim())) &&
       slide.sectionCard === undefined &&
@@ -535,6 +545,7 @@ export class ThemeElementView {
       }
     } else {
       const displayedText =
+        manualText ??
         cue ??
         (stage && isSong && element.kind === 'currentText' && !slide?.titleSlide
           ? frame.stageSongLines?.join('\n')
@@ -561,7 +572,7 @@ export class ThemeElementView {
       if (inlineLabel !== undefined) this.box.style.overflow = 'visible';
       this.text?.setStageInlineLabel(inlineLabel);
       this.showText(displayedText, frame, {
-        cue: cue !== undefined,
+        cue: cue !== undefined && manualText === undefined,
         lyricFormat:
           stage &&
           isSong &&
@@ -586,14 +597,16 @@ export class ThemeElementView {
               }
             : frame.screen?.kind === 'audience'
               ? (element.lyricFormat ??
-                (isSong && element.kind === 'currentText'
+                (manualText === undefined &&
+                isSong &&
+                element.kind === 'currentText'
                   ? layers.slide?.lyricFormat
                   : undefined))
               : undefined,
         vAlign:
           stage && element.kind === 'nextText'
             ? 'top'
-            : cue !== undefined
+            : cue !== undefined && manualText === undefined
               ? 'middle'
               : isThemeTextElement(element)
                 ? themeTextVAlign(element, layers.slide?.lines.join('\n') ?? '')
@@ -635,6 +648,7 @@ export class ThemeElementView {
   ): void {
     const {element} = this;
     const target =
+      this.manualText !== undefined ||
       element.clearTarget === 'slide' ||
       isSectionBandGradient(element.id) ||
       element.id === SECTION_NAME_ID ||
@@ -644,7 +658,9 @@ export class ThemeElementView {
           ? 'media'
           : undefined;
     const stageUtility =
-      stage && ['clock', 'timer', 'stageMessage'].includes(element.kind);
+      stage &&
+      this.manualText === undefined &&
+      ['clock', 'timer', 'stageMessage'].includes(element.kind);
     const opacity = String(
       stageUtility
         ? 1
@@ -658,6 +674,7 @@ export class ThemeElementView {
 
   /** Timed elements leave the DOM untouched until their displayed value changes. */
   tick(layers: LiveLayers, frame: RenderFrame, videoRemaining?: number): void {
+    if (this.manualText !== undefined) return;
     const text = this.textContent(layers, frame, videoRemaining);
     if (text !== this.shownText) this.showText(text, frame);
   }
@@ -716,13 +733,6 @@ export class ThemeElementView {
         id => id === frame.theme?.themeId,
       ) &&
       (slide?.kind ?? item?.kind) !== 'bible'
-    ) {
-      return null;
-    }
-    if (
-      frame.screen?.kind === 'stage' &&
-      slide?.sermonTitle === true &&
-      element.kind === 'reference'
     ) {
       return null;
     }
@@ -854,7 +864,7 @@ export class ThemeElementView {
     const text = themeElementText(element, {
       layers: displayLayers,
       item,
-      stageMessage: frame.stageMessage,
+      stageMessage: element.kind === 'stageMessage' ? null : frame.stageMessage,
       clock:
         element.kind === 'clock'
           ? stageClockText(

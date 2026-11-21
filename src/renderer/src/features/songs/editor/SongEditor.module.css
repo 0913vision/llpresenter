@@ -76,6 +76,10 @@
   min-width: 0;
 }
 
+.text > fieldset {
+  align-self: stretch;
+}
+
 .gap,
 .endGap {
   display: block;

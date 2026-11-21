@@ -1,9 +1,50 @@
 import * as v from 'valibot';
 import type {ReadonlyKnown} from './fileFormat';
 import {translationIdSchema} from './ids';
-import {jsonObject, nonBlankText} from './primitives';
+import {jsonObject, jsonRecord, nonBlankText} from './primitives';
 import {slideTransitionSchema} from './slideTransition';
 import {bibleVerseCutsSchema} from './bibleCuts';
+import {BIBLE_LOOKUP_LIMITS} from './bibleLookup';
+import {LIVE_STATE_LIMITS} from './liveLimits';
+
+export const deletedBibleSlidesSchema = v.pipe(
+  v.array(
+    v.pipe(
+      nonBlankText,
+      v.maxLength(320),
+      v.regex(/^(?:sermon:(?:opening|closing)|verse:.+:\d+:\d+:\d+:\d+)$/u),
+    ),
+  ),
+  v.maxLength(LIVE_STATE_LIMITS.bibleItemSlides),
+  v.check(
+    keys => new Set(keys).size === keys.length,
+    'Expected distinct deleted Bible slides',
+  ),
+);
+
+export const pinnedBibleVersesSchema = v.pipe(
+  jsonRecord(
+    v.pipe(nonBlankText, v.maxLength(256)),
+    v.pipe(
+      v.array(v.pipe(nonBlankText, v.maxLength(BIBLE_LOOKUP_LIMITS.verseText))),
+      v.minLength(1),
+      v.maxLength(LIVE_STATE_LIMITS.bibleItemSlides),
+      v.check(
+        parts => parts.join('').length <= BIBLE_LOOKUP_LIMITS.verseText,
+        'Bible verse is too long',
+      ),
+    ),
+  ),
+  v.maxEntries(LIVE_STATE_LIMITS.bibleItemSlides),
+  v.check(
+    verses =>
+      Object.values(verses).reduce(
+        (sum, parts) => sum + parts.join('').length,
+        0,
+      ) <= LIVE_STATE_LIMITS.bibleItemCharacters,
+    'Too much pinned Bible text',
+  ),
+);
 
 /** Which slides of a passage show its reference. */
 export const bibleReferenceSchema = v.picklist([
@@ -22,6 +63,8 @@ export const biblePassageSchema = jsonObject({
   translationName: v.boolean(),
   transition: v.exactOptional(slideTransitionSchema),
   cuts: v.exactOptional(bibleVerseCutsSchema),
+  pinnedVerses: v.exactOptional(pinnedBibleVersesSchema),
+  deletedSlides: v.exactOptional(deletedBibleSlidesSchema),
 });
 
 /**

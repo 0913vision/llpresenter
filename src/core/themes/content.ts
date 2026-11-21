@@ -79,6 +79,22 @@ export function themeElementText(
   element: ThemeElement,
   content: ThemeContent,
 ): string | null {
+  const slot = isThemeTextElement(element) ? element.textSlot : undefined;
+  const text = automaticElementText(
+    element,
+    slot?.role ?? element.kind,
+    content,
+  );
+  return (
+    text ?? (content.layers.slide === null ? null : (slot?.fallback ?? null))
+  );
+}
+
+function automaticElementText(
+  element: ThemeElement,
+  role: ThemeElement['kind'],
+  content: ThemeContent,
+): string | null {
   const {layers, item} = content;
   const slide = layers.slide;
   const bibleReference =
@@ -87,16 +103,26 @@ export function themeElementText(
       : item?.kind === 'bible'
         ? (item.title ?? slide.reference)
         : slide.reference;
-  switch (element.kind) {
+  switch (role) {
     case 'currentText': {
       if (slide === null) return null;
       const text = slide.lines.join('\n');
-      return text.trim() === '' ? (element.fallbackText ?? text) : text;
+      return text.trim() === ''
+        ? ((isThemeTextElement(element)
+            ? element.textSlot?.fallback
+            : undefined) ??
+            (element.kind === 'currentText'
+              ? element.fallbackText
+              : undefined) ??
+            text)
+        : text;
     }
     case 'reference':
       return slide === null
         ? null
-        : element.source === 'item' && item?.kind === 'bible'
+        : element.kind === 'reference' &&
+            element.source === 'item' &&
+            item?.kind === 'bible'
           ? bibleReference
           : (slide.reference ?? null);
     case 'nextText': {
@@ -104,24 +130,24 @@ export function themeElementText(
       const lines = slide.next.title?.trim()
         ? [slide.next.title, ...slide.next.lines]
         : slide.next.lines;
-      return element.lineLimit === undefined
+      return element.kind !== 'nextText' || element.lineLimit === undefined
         ? lines.join('\n')
         : lines
             .flatMap(line => line.split('\n'))
             .slice(0, element.lineLimit)
             .join('\n');
     }
-    case 'label':
-      if (element.hideWhenItemTitle && item?.kind === 'bible') {
+    case 'label': {
+      const hideWhenItemTitle =
+        element.kind === 'label' && element.hideWhenItemTitle;
+      if (hideWhenItemTitle && item?.kind === 'bible') {
         return bibleReference;
       }
-      if (
-        element.hideWhenItemTitle &&
-        slide?.label === (item?.title ?? slide?.title)
-      ) {
+      if (hideWhenItemTitle && slide?.label === (item?.title ?? slide?.title)) {
         return null;
       }
       return slide?.label ?? null;
+    }
     case 'nextLabel':
       return slide?.next?.label ?? null;
     case 'itemName':
@@ -137,7 +163,7 @@ export function themeElementText(
     case 'memo':
       return item?.contentCleared ? null : (item?.memo ?? null);
     case 'text':
-      return element.content;
+      return element.kind === 'text' ? element.content : null;
     case 'clock':
       return content.clock ?? null;
     case 'timer':
@@ -153,7 +179,7 @@ export function themeElementText(
     case 'box':
       return null;
     default: {
-      const unhandled: never = element;
+      const unhandled: never = role;
       return unhandled;
     }
   }

@@ -4,6 +4,9 @@ import type {BibleLookupPassage} from '../schema/bibleLookup';
 import type {BiblePassage} from '../schema/biblePassage';
 import {LIVE_STATE_LIMITS} from '../schema/liveLimits';
 import type {ShowTile} from '../schema/showService';
+import {textSlideKey, textVerseKey} from '../presentation/textOverrides';
+import {CONT_MARKER} from './split/layout';
+import {validatedPinnedVerse} from './split/splitVerses';
 
 export function bibleOutputLines(text: string): readonly string[] {
   const lines: string[] = [];
@@ -41,6 +44,8 @@ export interface TileOptions {
   /** Which slides show the reference; none when absent. */
   readonly reference?: BiblePassage['reference'];
   readonly transition?: BiblePassage['transition'] | undefined;
+  readonly pinnedVerses?: BiblePassage['pinnedVerses'];
+  readonly deletedSlides?: BiblePassage['deletedSlides'];
 }
 
 /**
@@ -63,29 +68,96 @@ export function bibleVerseTiles(
     translationName && passage.translationLabel
       ? ` (${passage.translationLabel})`
       : '';
-  return passage.verses.map((verse, index) => ({
-    label: `${shortBook}${verse.chapter}:${verse.verse}`,
-    ...(bookInfo === undefined
-      ? {}
-      : {
-          bibleVerse: {
+  const tiles = passage.verses.flatMap((verse): ShowTile[] => {
+    const bibleVerse =
+      bookInfo === undefined
+        ? undefined
+        : {
             translation: passage.translation,
             book: bookInfo.id,
             chapter: verse.chapter,
             verse: verse.verse,
-          },
-        }),
+          };
+    const pinned =
+      bibleVerse === undefined
+        ? undefined
+        : validatedPinnedVerse(
+            verse.text,
+            options.pinnedVerses?.[textVerseKey(bibleVerse)],
+          );
+    const parts = pinned ?? [verse.text];
+    return parts.map((part, index) => {
+      const continued = index < parts.length - 1;
+      const prefix =
+        index === 0 &&
+        verseNumbers &&
+        (pinned === undefined || passage.verses.length > 1)
+          ? `${verse.verse} `
+          : '';
+      return {
+        ...(pinned === undefined ? {} : {biblePart: index + 1, continued}),
+        label: `${shortBook}${verse.chapter}:${verse.verse}${parts.length > 1 ? ` (${index + 1})` : ''}`,
+        ...(bibleVerse === undefined ? {} : {bibleVerse}),
+        labelColor: NO_LABEL_COLOR,
+        ...(options.transition === undefined
+          ? {}
+          : {transition: options.transition}),
+        reference: `${book} ${verse.chapter}:${verse.verse}${translation}`,
+        lines: bibleOutputLines(
+          prefix +
+            (pinned === undefined ? part : part.trimEnd()) +
+            (continued ? CONT_MARKER : ''),
+        ),
+      };
+    });
+  });
+  const visible = withoutDeletedBibleSlides(tiles, options.deletedSlides);
+  return visible.map((tile, index) => {
+    if (
+      reference === 'every' ||
+      (reference === 'first' && index === 0) ||
+      (reference === 'last' && index === visible.length - 1)
+    ) {
+      return tile;
+    }
+    const {reference: _reference, ...other} = tile;
+    return other;
+  });
+}
+
+export function withoutDeletedBibleSlides(
+  tiles: readonly ShowTile[],
+  hidden: BiblePassage['deletedSlides'],
+): readonly ShowTile[] {
+  if (!hidden?.length) return tiles;
+  const deleted = new Set(hidden);
+  return tiles.filter(tile => {
+    const key = textSlideKey(tile);
+    return key === undefined || !deleted.has(key);
+  });
+}
+
+export function sermonTitleTile({
+  side,
+  title,
+  reference,
+  label,
+  transition,
+}: {
+  readonly side: 'opening' | 'closing';
+  readonly title: string;
+  readonly reference: string;
+  readonly label: string | undefined;
+  readonly transition: BiblePassage['transition'];
+}): ShowTile {
+  return {
+    textSlideKey: `sermon:${side}`,
+    label: label ?? null,
+    ...(label === undefined ? {} : {slideLabel: label}),
     labelColor: NO_LABEL_COLOR,
-    ...(options.transition === undefined
-      ? {}
-      : {transition: options.transition}),
-    ...(reference === 'every' ||
-    (reference === 'first' && index === 0) ||
-    (reference === 'last' && index === passage.verses.length - 1)
-      ? {reference: `${book} ${verse.chapter}:${verse.verse}${translation}`}
-      : {}),
-    lines: bibleOutputLines(
-      verseNumbers ? `${verse.verse} ${verse.text}` : verse.text,
-    ),
-  }));
+    lines: title.split(/\r?\n/),
+    reference,
+    sermonTitle: true,
+    ...(transition === undefined ? {} : {transition}),
+  };
 }

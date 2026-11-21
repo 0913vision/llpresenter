@@ -14,7 +14,8 @@ import {useGridMeasure} from '@renderer/ui/useGridMeasure';
 import {useBibleTileProjection} from '@renderer/features/bible/useBibleProjections';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
-import {slideLayerOf} from '@core/presentation/slideLayer';
+import {useShow} from '@renderer/session/show';
+import {mediaTextSlide, slideLayerOf} from '@core/presentation/slideLayer';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {OverlayWarning} from '../details/ItemThemeRow';
 import {OverlayClips} from './OverlayClip';
@@ -42,6 +43,15 @@ export function ItemSlideGrid({
 }): JSX.Element {
   const state = useSyncExternalStore(items.subscribe, items.getSnapshot);
   const rawSlides = useItemSlides(items, editor);
+  const mediaId =
+    state.item && isItemOfKind(state.item, 'media') ? state.item.id : undefined;
+  const mediaRow = useShow(view => view.rows.find(row => row.id === mediaId));
+  const mediaTiles = useShow(view =>
+    mediaId === undefined ? undefined : view.tiles[mediaId],
+  );
+  const mediaTheme = useSlideTheme(
+    mediaRow?.kind === 'media' ? mediaRow : undefined,
+  );
   const songTheme = useSlideTheme(
     state.item !== null && isItemOfKind(state.item, 'song')
       ? {
@@ -121,6 +131,27 @@ export function ItemSlideGrid({
     if (song) openItemSong({items, editor, position: index});
   };
   const canvasFor = (index: number): JSX.Element | undefined => {
+    const mediaTile = mediaTiles?.[index];
+    if (
+      mediaId !== undefined &&
+      mediaTile?.media !== undefined &&
+      mediaTile.textOverrides !== undefined &&
+      mediaTheme !== undefined
+    ) {
+      const slide = slideLayerOf(
+        {itemId: mediaId, index},
+        () => mediaTiles ?? [],
+      );
+      if (slide !== null) {
+        return (
+          <SlidePicture
+            {...mediaTheme}
+            slide={mediaTextSlide(slide)}
+            background={mediaTile.media.mediaId}
+          />
+        );
+      }
+    }
     const songSlide = slides[index];
     if (songTheme !== undefined && songSlide !== undefined) {
       return (

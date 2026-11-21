@@ -1,5 +1,6 @@
 import {useEffect, useRef, useState, type JSX, type KeyboardEvent} from 'react';
 import {SLIDES_LIMITS, type SectionCard} from '@core/schema/service';
+import type {SlideTextOverrides} from '@core/schema/slideTextOverrides';
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
 import {cardPictureLayer} from '@renderer/rendering/pictureSpec';
@@ -14,6 +15,8 @@ export function CardSlideBody({
   onChange,
   onSelect,
   mode = 'list',
+  hideSourceFields = false,
+  textOverrides,
 }: {
   readonly itemId: string;
   readonly card: SectionCard;
@@ -21,6 +24,8 @@ export function CardSlideBody({
   readonly onChange: (field: 'name' | 'english', value: string) => void;
   readonly onSelect?: (() => void) | undefined;
   readonly mode?: 'list' | 'grid' | undefined;
+  readonly hideSourceFields?: boolean;
+  readonly textOverrides?: SlideTextOverrides | undefined;
 }): JSX.Element {
   const [draft, setDraft] = useState({name: card.name, english: card.english});
   const editing = useRef<'name' | 'english' | null>(null);
@@ -65,7 +70,7 @@ export function CardSlideBody({
           {theme === undefined ? null : (
             <SlidePicture
               {...theme}
-              slide={cardPictureLayer(itemId, preview)}
+              slide={cardPictureLayer(itemId, preview, textOverrides)}
             />
           )}
           {onSelect === undefined ? null : (
@@ -79,42 +84,44 @@ export function CardSlideBody({
         </div>
         <SlideThumbnailBand number={1} label={card.label ?? '타이틀'} />
       </div>
-      <div className={styles.fields} data-view={mode}>
-        <label>
-          타이틀
-          <input
-            value={draft.name}
-            maxLength={SLIDES_LIMITS.name}
-            disabled={disabled}
-            onFocus={() => {
-              editing.current = 'name';
-            }}
-            onChange={event => {
-              const value = event.currentTarget.value;
-              setDraft(current => ({...current, name: value}));
-            }}
-            onKeyDown={keyDown}
-            onBlur={event => commit('name', event.currentTarget.value)}
-          />
-        </label>
-        <label>
-          영문 이름
-          <input
-            value={draft.english}
-            maxLength={SLIDES_LIMITS.text}
-            disabled={disabled}
-            onFocus={() => {
-              editing.current = 'english';
-            }}
-            onChange={event => {
-              const value = event.currentTarget.value;
-              setDraft(current => ({...current, english: value}));
-            }}
-            onKeyDown={keyDown}
-            onBlur={event => commit('english', event.currentTarget.value)}
-          />
-        </label>
-      </div>
+      {hideSourceFields ? null : (
+        <div className={styles.fields} data-view={mode}>
+          <label>
+            타이틀
+            <input
+              value={draft.name}
+              maxLength={SLIDES_LIMITS.name}
+              disabled={disabled}
+              onFocus={() => {
+                editing.current = 'name';
+              }}
+              onChange={event => {
+                const value = event.currentTarget.value;
+                setDraft(current => ({...current, name: value}));
+              }}
+              onKeyDown={keyDown}
+              onBlur={event => commit('name', event.currentTarget.value)}
+            />
+          </label>
+          <label>
+            영문 이름
+            <input
+              value={draft.english}
+              maxLength={SLIDES_LIMITS.text}
+              disabled={disabled}
+              onFocus={() => {
+                editing.current = 'english';
+              }}
+              onChange={event => {
+                const value = event.currentTarget.value;
+                setDraft(current => ({...current, english: value}));
+              }}
+              onKeyDown={keyDown}
+              onBlur={event => commit('english', event.currentTarget.value)}
+            />
+          </label>
+        </div>
+      )}
     </>
   );
 }

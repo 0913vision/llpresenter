@@ -59,6 +59,11 @@ import {isLibrarySource, openLibrarySong} from '@renderer/session/showLibrary';
 import {useLeadingItemCard} from '@renderer/features/service/items/useLeadingItemCard';
 import {PrepBibleSplitTools} from './PrepBibleSplitTools';
 import {BibleInlineEditor} from '@renderer/features/service/items/BibleInlineEditor';
+import {
+  SlideTextEditor,
+  SlideTextFields,
+} from '@renderer/features/service/items/SlideTextFields';
+import type {RenderSlideTextFields} from '@renderer/features/songs/editor/SlideCardRenderer';
 import {itemEditorAdapter} from '@renderer/platform/itemEditorAdapter';
 import type {LeadingSlideCard} from '@renderer/features/songs/editor';
 import type {ReactNode} from 'react';
@@ -193,19 +198,42 @@ function SongCardInspector({
   );
 }
 
-function ItemCardBinding({
-  items,
-  itemId,
-  shownItem,
-  children,
-}: {
+interface ItemCardBindingProps {
   readonly items: ServiceItemStore;
   readonly itemId: string | undefined;
   readonly shownItem: ServiceItemState | null;
   readonly children: (
     card: LeadingSlideCard | undefined,
     addCard: ReactNode,
+    renderTextFields?: RenderSlideTextFields,
   ) => ReactNode;
+}
+
+function ItemCardBinding(props: ItemCardBindingProps): ReactNode {
+  const {items, shownItem, itemId} = props;
+  return (
+    <SlideTextEditor
+      items={items}
+      state={itemId === shownItem?.item?.id ? shownItem : null}
+    >
+      {renderFields => (
+        <ItemCardContent
+          {...props}
+          renderTextFields={itemId === undefined ? undefined : renderFields}
+        />
+      )}
+    </SlideTextEditor>
+  );
+}
+
+function ItemCardContent({
+  items,
+  itemId,
+  shownItem,
+  children,
+  renderTextFields,
+}: ItemCardBindingProps & {
+  readonly renderTextFields?: RenderSlideTextFields | undefined;
 }): ReactNode {
   const serviceId = useShow(view => view.serviceId);
   useEffect(() => {
@@ -213,7 +241,10 @@ function ItemCardBinding({
       items.show({serviceId, itemId});
     }
   }, [items, itemId, serviceId]);
-  const card = useLeadingItemCard(items, itemId, shownItem ?? undefined);
+  const card = useLeadingItemCard(items, itemId, {
+    shownItem: shownItem ?? undefined,
+    renderTextFields,
+  });
   return (
     <div className={itemCardStyles.root}>
       {children(
@@ -225,8 +256,31 @@ function ItemCardBinding({
             shownItem={shownItem ?? undefined}
           />
         ),
+        renderTextFields,
       )}
     </div>
+  );
+}
+
+function SelectedSlideTextFields({
+  items,
+  state,
+  session,
+}: {
+  readonly items: ServiceItemStore;
+  readonly state: ServiceItemState;
+  readonly session: SongSession | SlidesListSession | null;
+}) {
+  const selectedId = useSyncExternalStore(
+    session?.slideModel.subscribe ?? noSubscribe,
+    () =>
+      session?.slideModel.getSnapshot().slides[session.selectedOccurrence]?.id,
+  );
+  if (session === null) return <SlideTextFields items={items} state={state} />;
+  if (session.slideDocumentId !== state.item?.id) return null;
+  const slide = state.cardSelected ? 0 : selectedId;
+  return slide === undefined ? null : (
+    <SlideTextFields items={items} state={state} slide={slide} />
   );
 }
 
@@ -242,6 +296,8 @@ const PREP_DRAFT_COLUMNS = [
 export interface PrepBinding {
   readonly controls?: RefObject<SongEditorWindowModel | null>;
   readonly slides?: SlidesEditorModel;
+  readonly itemEditorRequest?:
+    {readonly serviceId: string; readonly itemId: string} | undefined;
   readonly onNewSong?: (() => void) | undefined;
   readonly onImportedSave?: ((id: SongId) => void) | undefined;
   readonly api: LlpApi;
@@ -380,7 +436,7 @@ function prepPanelParts({
               itemId={slidesSession.draft.snapshot.item.id}
               shownItem={itemState}
             >
-              {(card, addCard) => (
+              {(card, addCard, renderFields) => (
                 <SlidesEditor
                   api={prep.api}
                   store={prep.editor}
@@ -388,6 +444,7 @@ function prepPanelParts({
                   onBack={back}
                   leadingCard={card}
                   addCard={addCard}
+                  renderTextFields={renderFields}
                 />
               )}
             </ItemCardBinding>
@@ -413,12 +470,14 @@ function prepPanelParts({
                 : undefined
             }
           >
-            {(card, addCard) => (
+            {(card, addCard, renderFields) => (
               <SongEditor
                 store={prep.editor}
                 shownSession={songSession}
                 leadingCard={card}
                 addCard={addCard}
+                textOverrides={itemState?.item?.textOverrides}
+                renderTextFields={renderFields}
                 ui={prep.api.ui}
                 renderDesign={songItemDesign(prep.api, prep.items)}
                 onImportedSave={prep.onImportedSave}
@@ -458,6 +517,19 @@ function prepPanelParts({
               shownSession={songSession}
               flushSlides={() => prep.slides?.flush() ?? Promise.resolve(true)}
             />
+            {itemState &&
+            (otherEditor ||
+              slidesSession !== null ||
+              songSession?.itemSession) ? (
+              <SelectedSlideTextFields
+                items={prep.items}
+                state={itemState}
+                session={
+                  slidesSession ??
+                  (songSession?.itemSession ? songSession : null)
+                }
+              />
+            ) : null}
             {otherEditor ? (
               <OtherSlideInspector
                 items={prep.items}
@@ -539,7 +611,11 @@ function OtherPrepEditor({
         ) : null}
       </header>
       {item !== null && isItemOfKind(item, 'sermon') ? (
-        <SermonInlineEditor items={prep.items} shownItem={itemState} />
+        <SermonInlineEditor
+          items={prep.items}
+          shownItem={itemState}
+          showSourceTitle={false}
+        />
       ) : null}
       {item !== null &&
       (isItemOfKind(item, 'bible') || isItemOfKind(item, 'sermon')) ? (
@@ -551,25 +627,47 @@ function OtherPrepEditor({
         />
       ) : null}
       {item !== null && isItemOfKind(item, 'liturgy') ? (
-        <LiturgyEditor
-          items={prep.items}
-          shownItem={itemState}
-          ui={prep.api.ui}
-        />
+        <SlideTextEditor items={prep.items} state={itemState}>
+          {renderFields => (
+            <LiturgyEditor
+              items={prep.items}
+              shownItem={itemState}
+              ui={prep.api.ui}
+              renderTextFields={renderFields}
+            />
+          )}
+        </SlideTextEditor>
       ) : item !== null &&
         (isItemOfKind(item, 'bible') || isItemOfKind(item, 'sermon')) ? (
-        <BibleInlineEditor
-          items={prep.items}
-          shownItem={itemState}
-          ui={prep.api.ui}
-          onBack={onBack}
-          hideHeader
-          onSplit={
-            splitVerses
-              ? () => setManualSplitRequest(value => value + 1)
-              : undefined
-          }
-        />
+        <SlideTextEditor items={prep.items} state={itemState}>
+          {renderFields => (
+            <BibleInlineEditor
+              items={prep.items}
+              shownItem={itemState}
+              ui={prep.api.ui}
+              onBack={onBack}
+              hideHeader
+              renderTextFields={renderFields}
+              onSplit={
+                splitVerses
+                  ? () => setManualSplitRequest(value => value + 1)
+                  : undefined
+              }
+            />
+          )}
+        </SlideTextEditor>
+      ) : item !== null && isItemOfKind(item, 'media') ? (
+        <SlideTextEditor items={prep.items} state={itemState}>
+          {renderFields => (
+            <ServiceItemPanel
+              items={prep.items}
+              editor={prep.editor}
+              sizeClass={sizeClass}
+              ui={prep.api.ui}
+              renderTextFields={renderFields}
+            />
+          )}
+        </SlideTextEditor>
       ) : item !== null &&
         (isItemOfKind(item, 'song') || isItemOfKind(item, 'slides')) ? null : (
         <ServiceItemPanel
@@ -606,7 +704,10 @@ export function usePrepPanels({
   readonly onOpenPrep: ((itemId: string) => void) | undefined;
   readonly onShowInLibrary: ((songId: SongId) => void) | undefined;
 }): WorkspacePanels {
-  const [otherId, setOtherId] = useState<string | null>(null);
+  const [other, setOther] = useState<PrepBinding['itemEditorRequest']>();
+  const itemEditor = prep?.itemEditorRequest;
+  const [handledItemEditor, setHandledItemEditor] =
+    useState<PrepBinding['itemEditorRequest']>();
   const [switching, setSwitching] = useState<{
     readonly editor: SongSession | null;
     readonly slides: SlidesListSession | null;
@@ -614,23 +715,26 @@ export function usePrepPanels({
     readonly itemId: string;
   } | null>(null);
   const leaveTurn = useRef(0);
-  const otherService = useRef<string | null>(null);
   const serviceId = useShow(view => view.serviceId);
   const otherExists = useShow(
-    view => otherId !== null && view.rows.some(row => row.id === otherId),
+    view =>
+      other !== undefined && view.rows.some(row => row.id === other.itemId),
   );
-  useEffect(() => {
-    if (
-      otherId !== null &&
-      (serviceId !== otherService.current || !otherExists)
-    ) {
-      leaveTurn.current++;
-      setOtherId(null);
-    }
-  }, [otherId, serviceId, otherExists]);
+  const otherId =
+    other?.serviceId === serviceId && otherExists ? other.itemId : null;
+  if (other !== undefined && otherId === null) setOther(undefined);
   const requestedItem = useShow(view => view.openItemId);
   const selectedItem =
     retainedItem === undefined ? requestedItem : retainedItem;
+  if (handledItemEditor !== itemEditor) {
+    setHandledItemEditor(itemEditor);
+    if (
+      itemEditor?.serviceId === serviceId &&
+      itemEditor.itemId === requestedItem
+    ) {
+      setOther(itemEditor);
+    }
+  }
   const selectionRequest = useRef(0);
   const onSelectSong = (songId: SongId): void => {
     if (prep === undefined) return;
@@ -771,7 +875,7 @@ export function usePrepPanels({
         switching.closed))
   ) {
     setSwitching(null);
-    setOtherId(null);
+    setOther(undefined);
   } else if (
     switching !== null &&
     !switching.closed &&
@@ -847,14 +951,13 @@ export function usePrepPanels({
   const back = (): void =>
     leave(() => {
       setSwitching(null);
-      setOtherId(null);
+      setOther(undefined);
       prep?.editor.open(null);
     });
   const openOther = (id: string): void =>
     leave(() => {
       onOpenPrep?.(id);
-      otherService.current = serviceId;
-      setOtherId(id);
+      if (serviceId !== null) setOther({serviceId, itemId: id});
     });
   const shownItem =
     shown.otherId ??

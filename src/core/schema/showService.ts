@@ -3,6 +3,10 @@ import {songTitleLayoutSchema} from './songTitleLayout';
 import {MEDIA_LIMITS} from './mediaList';
 import {slideTransitionSchema} from './slideTransition';
 import * as v from 'valibot';
+import {
+  itemTextOverridesSchema,
+  slideTextOverridesSchema,
+} from './slideTextOverrides';
 import {labelColorSchema} from './labelColor';
 import type {Result} from '../common/result';
 import type {ReadonlyKnown} from './fileFormat';
@@ -16,7 +20,11 @@ import {
   sectionCardSchema,
   SLIDES_LIMITS,
 } from './service';
-import {bibleReferenceSchema as bibleReferenceFrequencySchema} from './biblePassage';
+import {
+  bibleReferenceSchema as bibleReferenceFrequencySchema,
+  pinnedBibleVersesSchema,
+  deletedBibleSlidesSchema,
+} from './biblePassage';
 import {
   mediaIdSchema,
   slideIdSchema,
@@ -74,6 +82,9 @@ const bibleReferenceSchema = v.pipe(
     theme: v.exactOptional(themeIdSchema),
     transitions: v.exactOptional(biblePartTransitionsSchema),
     cuts: v.exactOptional(bibleVerseCutsSchema),
+    pinnedVerses: v.exactOptional(pinnedBibleVersesSchema),
+    deletedSlides: v.exactOptional(deletedBibleSlidesSchema),
+    textOverrides: v.exactOptional(itemTextOverridesSchema),
     labels: v.exactOptional(biblePartLabelsSchema),
     passage: v.exactOptional(
       v.pipe(
@@ -116,6 +127,7 @@ const showRowSchema = v.pipe(
       id,
       title: v.string(),
       form: v.picklist(['blank', 'ad']),
+      textOverrides: v.exactOptional(itemTextOverridesSchema),
       liturgy: v.exactOptional(
         payloadObject({
           kind: v.picklist(['creed', 'prayer']),
@@ -145,6 +157,7 @@ const showRowSchema = v.pipe(
     v.object({
       kind: v.picklist(['media', 'unknown']),
       id,
+      theme: v.exactOptional(themeIdSchema),
       background: v.exactOptional(mediaChoiceSchema),
       backgroundNone: v.exactOptional(v.literal(true)),
       title: v.string(),
@@ -183,6 +196,8 @@ export const showTileSchema = v.pipe(
     biblePart: v.exactOptional(biblePartSchema),
     bibleVerse: v.exactOptional(bibleVerseReferenceSchema),
     sourceSlideId: v.exactOptional(slideIdSchema),
+    textOverrides: v.exactOptional(slideTextOverridesSchema),
+    textSlideKey: v.exactOptional(v.pipe(v.string(), v.maxLength(320))),
     transition: v.exactOptional(slideTransitionSchema),
     verse: v.exactOptional(
       payloadObject({

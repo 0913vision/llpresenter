@@ -21,6 +21,9 @@ function signature(slide: SlideLayer): string {
 }
 
 function identity(tile: SlideTile): string | null {
+  if (tile.sermonTitle && tile.textSlideKey !== undefined) {
+    return tile.textSlideKey;
+  }
   if (tile.sectionCard !== undefined) {
     return `section:${tile.sectionCard.name}:${tile.sectionCard.theme}`;
   }

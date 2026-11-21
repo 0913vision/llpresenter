@@ -50,6 +50,8 @@ export function pictureKey({layers, appearance}: PictureSpec): string {
     broadcast ? (screen.songCaption ?? 'band') : null,
     screen.correction,
     item?.contentCleared ? screen.emptyColor : null,
+    theme.themeId,
+    theme.sourceScreenId,
     layoutKey(layout),
     emptyColor,
     appearance.background,
@@ -66,6 +68,7 @@ export function pictureKey({layers, appearance}: PictureSpec): string {
       : [
           kind,
           slide.lines,
+          ...(slide.textOverrides === undefined ? [] : [slide.textOverrides]),
           stage || broadcast || draws('label') ? slide.label : null,
           slide.continued === true,
           slide.biblePart,

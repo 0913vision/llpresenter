@@ -35,6 +35,14 @@ import {classes} from '@renderer/rendering/classes';
 import {bibleVerseTiles} from '@core/bible/bibleTiles';
 import {projectSlides, slidesOutput} from '@core/presentation/slides';
 import {slideLayerOf} from '@core/presentation/slideLayer';
+import {
+  editedSlideText,
+  textOverridesForTiles,
+  textSlideKey,
+} from '@core/presentation/textOverrides';
+import * as textSlots from '@core/themes/textSlots';
+import {pictureKey} from '@core/output/pictureKey';
+import {outputSlideSpec} from '@renderer/rendering/outputSlideSpec';
 import {parseLiveCommand} from '@core/schema/liveCommand';
 import {slidesItem} from '@fixtures/core/slides';
 import {panelPassage} from '@fixtures/contracts/ipc/bibleApi';
@@ -114,6 +122,168 @@ afterEach(() => {
 });
 
 describe('theme composition drawing', () => {
+  it('keeps manual stage utilities through redraws and ticks until the next slide', () => {
+    const {view, text, root} = setup();
+    const match = vi.spyOn(textSlots, 'withSlideTextOverrides');
+    const elements: ThemeElement[] = [
+      {
+        ...themeElementBase(30),
+        kind: 'clock',
+        clockFormat: '24h',
+        seconds: true,
+      },
+      {...themeElementBase(31), kind: 'timer'},
+      {...themeElementBase(32), kind: 'stageMessage'},
+      {...themeElementBase(33), kind: 'videoTimeLeft'},
+    ];
+    const stage = {
+      ...frame(elements),
+      screen: {id: THEME_MAIN, kind: 'stage' as const},
+      stageMessage: 'Stage cue',
+      transitions: false,
+    };
+    if (song.slide === null) throw Error('Missing slide');
+    const overrides = Object.fromEntries(
+      elements.map(element => [
+        [themeId, THEME_MAIN, element.id].join('/'),
+        element.kind,
+      ]),
+    );
+    const slide = {...song.slide, textOverrides: overrides};
+    const layers = {...song, slide};
+    view.render(layers, stage);
+    const page = root.querySelector('[data-theme-page]');
+    for (const opacity of [0.9, 0.7, 0.5]) {
+      view.render(layers, {...stage, clearOpacity: {slide: opacity}});
+      vi.advanceTimersByTime(1000);
+      for (const element of elements) {
+        expect(text(element.kind)).toBe(element.kind);
+      }
+    }
+    expect(match).toHaveBeenCalledTimes(1);
+    expect(root.querySelector('[data-theme-page]')).toBe(page);
+    view.render(song, stage);
+    vi.advanceTimersByTime(1000);
+    expect(text('clock')).toMatch(/\d{2}:\d{2}:\d{2}/u);
+    expect(text('timer')).toBeUndefined();
+    expect(text('stageMessage')).toBeUndefined();
+    expect(text('videoTimeLeft')).toBeUndefined();
+    view.dispose();
+  });
+
+  it('keys identical still layouts by the theme and the source screen', () => {
+    const element: ThemeElement = {...themeElementBase(), kind: 'currentText'};
+    const composition = frame([element]).theme;
+    if (composition === undefined || song.slide === null) {
+      throw Error('Missing picture input');
+    }
+    const input = {
+      ...composition,
+      slide: song.slide,
+      screen: {id: THEME_MAIN, kind: 'audience' as const},
+    };
+    const first = pictureKey(outputSlideSpec(input));
+    expect(
+      pictureKey(outputSlideSpec({...input, themeId: LIGHT_SONG_THEME_ID})),
+    ).not.toBe(first);
+    expect(
+      pictureKey(
+        outputSlideSpec({
+          ...input,
+          sourceScreenId: createScreenId(STARTER_SCREEN_IDS.stage),
+        }),
+      ),
+    ).not.toBe(first);
+  });
+
+  it.each(['audience', 'stage', 'broadcast'] as const)(
+    'applies a saved per-box Bible text override on %s and restores the automatic text',
+    kind => {
+      const passage = panelPassage();
+      const tiles = bibleVerseTiles(passage, {reference: 'every'});
+      const first = tiles[0];
+      if (!first) throw Error('Missing verse');
+      const key = textSlideKey(first);
+      if (!key) throw Error('Missing verse identity');
+      const cursor = {itemId: 'bible-test', index: 0};
+      const theme = currentBuiltInTheme('bible');
+      const id = createScreenId(
+        kind === 'audience'
+          ? STARTER_SCREEN_IDS.main
+          : STARTER_SCREEN_IDS[kind],
+      );
+      const layout = theme.screens[id];
+      if (!layout) throw Error('Missing layout');
+      const item = {
+        id: cursor.itemId,
+        source: 'service' as const,
+        kind: 'bible' as const,
+        title: passage.displayRef,
+      };
+      const appearance = {
+        themeId: theme.id,
+        layout,
+        item,
+        emptyColor: '#000000',
+        screen: {id, kind, method: 'fullscreen' as const},
+      };
+      const {view, text} = setup();
+      function draw(source: typeof tiles) {
+        const slide = slideLayerOf(cursor, () => source);
+        if (!slide) throw Error('Missing slide');
+        const picture = outputSlideSpec({...appearance, slide});
+        view.render(picture.layers, {
+          ...frame(appearance.layout.elements, {
+            layout: appearance.layout,
+            item,
+            themeId: theme.id,
+            sourceScreenId: id,
+          }),
+          screen: appearance.screen,
+          transitions: false,
+        });
+        return pictureKey(picture);
+      }
+      const automatic = draw(tiles);
+      const overrides = {
+        [key]: {reference: 'Edited reference', currentText: 'Edited body'},
+      };
+      expect(draw(textOverridesForTiles(tiles, overrides))).not.toBe(automatic);
+      expect(text('currentText')).toContain('Edited body');
+      expect(text('reference')).toBe('Edited reference');
+      const referenceKey = `${theme.id}/shared/reference`;
+      const manualBlank = editedSlideText(overrides, {
+        slide: key,
+        slot: referenceKey,
+        value: {
+          mode: 'manual',
+          slotId: 'reference',
+          role: 'reference',
+          sourceThemeId: theme.id,
+          text: '',
+        },
+      });
+      draw(textOverridesForTiles(tiles, manualBlank));
+      expect(text('reference')?.trim() ?? '').toBe('');
+      const restored = editedSlideText(
+        editedSlideText(manualBlank, {
+          slide: key,
+          slot: referenceKey,
+          value: null,
+        }),
+        {
+          slide: key,
+          slot: 'reference',
+          value: null,
+        },
+      );
+      draw(textOverridesForTiles(tiles, restored));
+      expect(text('reference')).toBe(passage.displayRef);
+      expect(text('currentText')).toContain('Edited body');
+      view.dispose();
+    },
+  );
+
   it.each(['blank', 'ad'] as const)(
     'draws referenced %s text like the same Bible passage on all three screens',
     form => {
@@ -805,7 +975,9 @@ describe('theme composition drawing', () => {
     view.render(song, stage);
     const clock = root.querySelector<HTMLElement>('[data-kind="clock"]');
     const timer = root.querySelector<HTMLElement>('[data-kind="timer"]');
-    expect(root.querySelector('[data-kind="stageMessage"]')).toBeNull();
+    expect(
+      root.querySelector<HTMLElement>('[data-kind="stageMessage"]')?.hidden,
+    ).toBe(true);
     const fixed = root.querySelector<HTMLElement>('[data-kind="text"]');
     expect(text('clock')).toBeTruthy();
     view.render({...song, slide: null}, stage);
@@ -917,7 +1089,7 @@ describe('theme composition drawing', () => {
     expect(text('reference') ?? '').toBe('');
     view.dispose();
   });
-  it('shows a sermon element title with one stage reference aligned to the Bible text', () => {
+  it('shows independent stage passage and item name boxes beside the sermon title', () => {
     const {root, view} = setup();
     const screenId = createScreenId(STARTER_SCREEN_IDS.stage);
     const theme = createDefaultThemes().themes.find(
@@ -968,11 +1140,35 @@ describe('theme composition drawing', () => {
     expect(
       root.querySelector(`[data-kind="reference"] .${classes.shown}`)
         ?.textContent ?? '',
-    ).toBe('');
+    ).toBe('Matthew 11:29');
     expect(
       root.querySelector(`[data-kind="currentText"] .${classes.shown}`)
         ?.textContent,
     ).toBe('Sermon');
+    view.render(
+      {
+        ...song,
+        slide: {
+          ...song.slide,
+          sermonTitle: true,
+          reference: 'Matthew 11:29',
+          lines: ['Sermon'],
+          textOverrides: {
+            reference: 'Edited passage',
+            itemName: 'Edited stage name',
+          },
+        },
+      },
+      {...active, screen: {id: screenId, kind: 'stage'}, transitions: false},
+    );
+    expect(
+      root.querySelector(`[data-kind="itemName"] .${classes.shown}`)
+        ?.textContent,
+    ).toBe('Edited stage name');
+    expect(
+      root.querySelector(`[data-kind="reference"] .${classes.shown}`)
+        ?.textContent,
+    ).toBe('Edited passage');
     view.dispose();
   });
   it.each(['stage', 'broadcast'] as const)(

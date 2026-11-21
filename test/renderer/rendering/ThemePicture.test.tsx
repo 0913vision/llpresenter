@@ -189,7 +189,12 @@ it.each(['currentText', 'nextText'] as const)(
     });
     expect(result.lines).toEqual(['Alpha beta', 'gamma delta']);
     expect(measured.spec.maxLines).toBe(3);
-    const layout = {mode: {kind: 'own' as const}, elements: [{...value, kind}]};
+    const pictureElement = element(kind, 1);
+    if (pictureElement.kind !== kind) throw Error('Missing picture element');
+    const layout = {
+      mode: {kind: 'own' as const},
+      elements: [{...pictureElement, frame: value.frame, text: value.text}],
+    };
     const item = {
       id: 'verse',
       kind: 'bible' as const,

@@ -54,6 +54,38 @@ const itemId = createServiceItemId('00000000-0000-4000-8000-000000000002');
 const mediaId = createMediaId('00000000-0000-4000-8000-000000000003');
 const slideId = createSlideId('00000000-0000-4000-8000-000000000004');
 
+it.each(['blank', 'ad'] as const)(
+  'puts theme text fields inside each %s row only',
+  async form => {
+    seedSlideSurfaceView({});
+    const f = setup(form);
+    try {
+      f.view.rerender(
+        <SlidesEditorHarness
+          session={f.session}
+          renderTextFields={slide => (
+            <textarea aria-label="테마 요소" defaultValue={String(slide)} />
+          )}
+        />,
+      );
+      const surface = within(
+        await screen.findByRole('group', {name: '슬라이드 편집 명령'}),
+      );
+      expect(
+        surface
+          .getAllByRole<HTMLTextAreaElement>('textbox')
+          .map(field => field.value),
+      ).toEqual(f.item.slides.slides.map(slide => slide.id));
+      await userEvent.click(screen.getByRole('button', {name: '격자'}));
+      expect(surface.queryByRole('textbox')).toBeNull();
+    } finally {
+      f.view.unmount();
+      await f.session.dispose();
+      seedSlideSurfaceView({});
+    }
+  },
+);
+
 beforeEach(() => {
   mockVerseProjection.mockReturnValue(null);
   HTMLElement.prototype.scrollIntoView = vi.fn();

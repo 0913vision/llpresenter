@@ -20,6 +20,7 @@ import type {SongSession} from './songSession';
 import styles from './SongEditor.module.css';
 import type {SongId} from '@core/schema/ids';
 import type {UiApi} from '@contracts/ipc/ui';
+import type {ItemTextOverrides} from '@core/schema/slideTextOverrides';
 import {isComposing} from '@renderer/ui/ime';
 import {
   linearSlidesOf,
@@ -45,6 +46,7 @@ import {
   LEADING_CARD_WINDOW_ITEM,
   type LeadingSlideCard,
   type SlideCardRenderer,
+  type RenderSlideTextFields,
 } from './SlideCardRenderer';
 import {LeadingSlideCardView} from './LeadingSlideCardView';
 import {useRevealInsertedSlide} from './useRevealInsertedSlide';
@@ -62,6 +64,8 @@ export function SongEditor({
   leadingCard,
   addCard,
   ui,
+  renderTextFields,
+  textOverrides,
 }: {
   readonly store: SongEditorStore;
   readonly shownSession?: SongSession | null | undefined;
@@ -70,6 +74,8 @@ export function SongEditor({
   readonly renderCard?: SlideCardRenderer<EditorSlideItem> | undefined;
   readonly leadingCard?: LeadingSlideCard | undefined;
   readonly addCard?: ReactNode;
+  readonly renderTextFields?: RenderSlideTextFields | undefined;
+  readonly textOverrides?: ItemTextOverrides | undefined;
   readonly onImportedSave?: ((id: SongId) => void) | undefined;
   /** Shows the dot before the title while edits wait for 저장. */
   readonly unsaved?: boolean;
@@ -192,6 +198,8 @@ export function SongEditor({
               session={state.session}
               renderCard={renderCard}
               leadingCard={leadingCard}
+              renderTextFields={renderTextFields}
+              textOverrides={textOverrides}
             />
           </SongSlideSurface>
         </ItemEditorShell>
@@ -205,11 +213,15 @@ function SongBlocks({
   session,
   renderCard,
   leadingCard,
+  renderTextFields,
+  textOverrides,
 }: {
   readonly store: SongEditorStore;
   readonly session: SongSession;
   readonly renderCard?: SlideCardRenderer<EditorSlideItem> | undefined;
   readonly leadingCard?: LeadingSlideCard | undefined;
+  readonly renderTextFields: RenderSlideTextFields | undefined;
+  readonly textOverrides?: ItemTextOverrides | undefined;
 }): JSX.Element {
   const state = useSyncExternalStore(store.subscribe, store.getSnapshot);
   const {song, selection} = session.history.snapshot;
@@ -243,15 +255,17 @@ function SongBlocks({
   const ids: string[] = slides.map(slide => slide.id);
   const viewportRef = useRef<HTMLDivElement>(null);
   const {current, saveHeight} = useMeasuredRows(scope, ids, viewportRef);
+  const measureRows = view.mode === 'grid' || renderTextFields !== undefined;
   const heights = useMemo(() => {
-    const values =
-      view.mode === 'grid' ? slides.map(slide => current.values[slide.id]) : [];
+    const values = measureRows
+      ? slides.map(slide => current.values[slide.id])
+      : [];
     return leadingCard === undefined
-      ? view.mode === 'grid'
+      ? measureRows
         ? values
         : undefined
       : [leadingHeight, ...values];
-  }, [view.mode, slides, current, leadingCard, leadingHeight]);
+  }, [measureRows, slides, current, leadingCard, leadingHeight]);
   const windowSlides = useMemo(
     () =>
       leadingCard === undefined
@@ -466,6 +480,7 @@ function SongBlocks({
               block={block}
               session={session}
               renderCard={renderCard}
+              renderTextFields={renderTextFields}
               focus={focus}
               active={list.selection.ids.has(slide.id)}
               focused={selection.block === block}
@@ -479,7 +494,10 @@ function SongBlocks({
                         ...theme,
                         songSource: {songId: song.id, slideId: slide.id},
                         background: slide.picture ?? theme.background,
-                        slide: songPictureLayer(song.id, block, slide),
+                        slide: songPictureLayer(song.id, block, {
+                          ...slide,
+                          textOverrides: textOverrides?.[`slide:${slide.id}`],
+                        }),
                       },
                     }).spec
               }

@@ -586,7 +586,11 @@ export function OtherSlideInspector({
                 <div className={styles.canvas}>
                   <SlidePicture
                     {...cardTheme}
-                    slide={cardPictureLayer(item.id, card)}
+                    slide={cardPictureLayer(
+                      item.id,
+                      card,
+                      item.textOverrides?.['section'],
+                    )}
                   />
                 </div>
               </div>

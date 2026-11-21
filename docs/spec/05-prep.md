@@ -67,8 +67,12 @@ The table and inline song editor share the service selection.
   16:9 picture for every item kind. Its label strip matches the slide grid.
   Selecting a grid picture does not change the first picture or output.
 - Double-click or Enter opens the editor for any service item. Song and slide
-  items use their existing editors; Bible and other items use their existing
-  item panels in the center. A library row opens its library song.
+  items use their existing editors. Bible, sermon, and media items also open
+  their slide editors in the center. A library row opens its library song.
+- The slide list and the selected slide's properties show editable fields for
+  the text boxes in that slide's theme. A manual value belongs to that slide,
+  including a manual blank. Restoring the automatic value uses the original
+  content. The slide grid shows previews.
 - Song item menus offer 라이브러리에 저장… and 라이브러리에서 다시 불러오기.
   Both ask before replacing slides; saving to the library includes its usage
   line. Nothing synchronizes automatically. 구성 controls, their changed dot,

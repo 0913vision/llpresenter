@@ -49,6 +49,7 @@ import {
 } from './SlidesVisuals';
 import type {SlidesEditorModel} from './useSlidesEditor';
 import {SlideRows, type SlideCardRenderer} from './SlideRows';
+import type {RenderSlideTextFields} from '@renderer/features/songs/editor/SlideCardRenderer';
 import type {LeadingSlideCard} from '../../songs/editor/SlideCardRenderer';
 import {SlideSurfaceView} from '../../songs/editor/SlideSurfaceView';
 import styles from './SlidesEditor.module.css';
@@ -292,6 +293,7 @@ export function SlidesEditor({
   renderCard,
   leadingCard,
   addCard,
+  renderTextFields,
 }: {
   readonly api: LlpApi;
   readonly model: SlidesEditorModel;
@@ -300,6 +302,7 @@ export function SlidesEditor({
   readonly renderCard?: SlideCardRenderer | undefined;
   readonly leadingCard?: LeadingSlideCard | undefined;
   readonly addCard?: ReactNode;
+  readonly renderTextFields?: RenderSlideTextFields | undefined;
 }): JSX.Element | null {
   const {draft} = model;
   if (draft === null) return null;
@@ -314,6 +317,7 @@ export function SlidesEditor({
       renderCard={renderCard}
       leadingCard={leadingCard}
       addCard={addCard}
+      renderTextFields={renderTextFields}
     />
   );
 }
@@ -327,6 +331,7 @@ function SlidesEditorBody({
   renderCard,
   leadingCard,
   addCard,
+  renderTextFields,
 }: {
   readonly api: LlpApi;
   readonly model: SlidesEditorModel;
@@ -336,6 +341,7 @@ function SlidesEditorBody({
   readonly renderCard?: SlideCardRenderer | undefined;
   readonly leadingCard?: LeadingSlideCard | undefined;
   readonly addCard?: ReactNode;
+  readonly renderTextFields?: RenderSlideTextFields | undefined;
 }): JSX.Element {
   const {item: draftItem, selected} = draft.snapshot;
   const slideDefaults = useSlideDefaults();
@@ -346,11 +352,15 @@ function SlidesEditorBody({
   useEditorFocus(root, model.session, {onBack});
   useLayoutEffect(() => {
     if (!focusText) return;
-    root.current
-      ?.querySelector<HTMLTextAreaElement>('[data-slide-index="0"] textarea')
-      ?.focus({preventScroll: true});
+    const row = root.current?.querySelector('[data-slide-index="0"]');
+    const field =
+      row?.querySelector<HTMLTextAreaElement>(
+        '[data-slide-text-role="currentText"]',
+      ) ?? row?.querySelector<HTMLTextAreaElement>('textarea');
+    if (field === null || field === undefined) return;
+    field.focus({preventScroll: true});
     consumeTextFocus();
-  }, [draft, focusText, consumeTextFocus]);
+  }, [draft, focusText, consumeTextFocus, renderTextFields]);
   useWindowShortcuts([
     {
       id: 'songWindow.save',
@@ -597,7 +607,7 @@ function SlidesEditorBody({
                 update();
               }
             }}
-            renderRow={(slide, index) => (
+            renderRow={(slide, index, mode) => (
               <>
                 <div className={styles.thumbnail} data-editor-thumbnail>
                   <div className={styles.thumbnailCanvas}>
@@ -617,15 +627,21 @@ function SlidesEditorBody({
                     }
                   />
                 </div>
-                <SlideFields
-                  slide={slide}
-                  form={item.slides.form}
-                  name={slideBand(slide, media)}
-                  projection={projection}
-                  replace={button => showPicker(button, slide.id)}
-                  change={(next, field) => changeSlide(index, next, field)}
-                  endTyping={() => draft.endTyping()}
-                />
+                {renderTextFields === undefined ||
+                (mode === 'list' && 'media' in slide) ? (
+                  <SlideFields
+                    slide={slide}
+                    form={item.slides.form}
+                    name={slideBand(slide, media)}
+                    projection={projection}
+                    replace={button => showPicker(button, slide.id)}
+                    change={(next, field) => changeSlide(index, next, field)}
+                    endTyping={() => draft.endTyping()}
+                  />
+                ) : null}
+                {mode === 'list' && renderTextFields !== undefined ? (
+                  <div>{renderTextFields(slide.id)}</div>
+                ) : null}
               </>
             )}
           />

@@ -45,6 +45,31 @@ const file = {
   defaults: {},
 };
 
+it('round-trips optional named text slots in schema version 1', () => {
+  const textSlot = {
+    slotId: element.id,
+    role: 'text',
+    name: '글자',
+    scope: 'screen',
+  };
+  const optional = {
+    ...file,
+    themes: [
+      {
+        ...theme,
+        screens: {[uuid(5)]: {...layout, elements: [{...element, textSlot}]}},
+      },
+    ],
+  };
+  const parsed = expectSuccess(
+    parseThemes(JSON.stringify(optional), 'themes.json'),
+  );
+  expect(parsed.data).toEqual(optional);
+  expect(
+    JSON.parse(expectSuccess(serializeThemes(parsed.data, 'themes.json'))),
+  ).toEqual(optional);
+});
+
 it('preserves a removed theme transition in an old file', () => {
   const old = {
     ...file,

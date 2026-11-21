@@ -123,6 +123,9 @@ export function useSlidesVerseProjection(
       translationName: false,
       source: 'service',
       review: false,
+      ...(item.textOverrides === undefined
+        ? {}
+        : {textOverrides: item.textOverrides}),
       ...(item.background === undefined ? {} : {background: item.background}),
       ...(item.theme === undefined ? {} : {theme: item.theme}),
     });

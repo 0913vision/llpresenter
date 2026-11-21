@@ -1,8 +1,19 @@
-import {render, screen, waitFor, within} from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {expect, it, onTestFinished, vi} from 'vitest';
+import {bibleVerseTiles} from '@core/bible/bibleTiles';
+import {textSlideKey} from '@core/presentation/textOverrides';
 import {parseServiceDocument} from '@core/schema/contentDocuments';
 import {createThemeId} from '@core/schema/ids';
+import {isItemOfKind} from '@core/schema/service';
+import {panelPassage} from '@fixtures/contracts/ipc/bibleApi';
 import {
   fixtureItems,
   fixtureServiceId,
@@ -20,6 +31,125 @@ vi.mock('@renderer/features/bible/useBibleProjections', () => ({
 vi.mock('@renderer/platform/useSlideTheme', () => ({
   useSlideTheme: () => undefined,
 }));
+
+it.each(['bible', 'sermon'] as const)(
+  'deletes several %s slides through the shortcut and menu with shared undo',
+  async kind => {
+    seedSlideSurfaceView({});
+    const fixture = itemFixture();
+    const original = fixture.service();
+    const lookup = panelPassage();
+    const passage = {
+      translation: lookup.translation,
+      ref: lookup.ref,
+      split: 'verse',
+      reference: 'every',
+      verseNumbers: false,
+      translationName: false,
+    } as const;
+    const id = fixtureItems.arranged;
+    const target = {serviceId: fixtureServiceId, itemId: id};
+    const parsed = parseServiceDocument({
+      ...original,
+      service: {
+        ...original.service,
+        order: [
+          kind === 'bible'
+            ? {id, bible: passage}
+            : {id, sermon: {title: 'Sermon', passage}},
+        ],
+      },
+    });
+    if (!parsed.ok || !parsed.value) throw Error('Missing service');
+    fixture.pushService(parsed.value);
+    const passageFromFile = () => {
+      const item = fixture.service().service.order[0];
+      if (!item) throw Error('Missing item');
+      if (isItemOfKind(item, 'sermon')) return item.sermon.passage;
+      if (isItemOfKind(item, 'bible')) return item.bible;
+      throw Error('Missing passage');
+    };
+    const previous = useShow.getState();
+    const tiles = bibleVerseTiles(lookup, passage);
+    const deleted = [tiles[0], tiles[2]].map(tile => {
+      if (!tile) throw Error('Missing tile');
+      return textSlideKey(tile);
+    });
+    const publish = () => {
+      const stored = passageFromFile();
+      useShow.setState({
+        serviceId: fixtureServiceId,
+        openItemId: id,
+        rows: [
+          {
+            id,
+            kind: 'bible',
+            title: lookup.ref,
+            bible: {...stored, passage: lookup},
+          },
+        ],
+        tiles: {[id]: bibleVerseTiles(lookup, stored)},
+      });
+    };
+    publish();
+    const editor = new SongEditorStore(fixture.api, vi.fn());
+    const items = new ServiceItemStore(fixture.api, editor, vi.fn());
+    items.show(target);
+    const view = render(
+      <BibleInlineEditor items={items} ui={fixture.api.ui} onBack={vi.fn()} />,
+    );
+    onTestFinished(async () => {
+      view.unmount();
+      items.dispose();
+      await editor.dispose();
+      useShow.setState(previous);
+    });
+    const user = userEvent.setup();
+    const select = async () => {
+      await user.click(await screen.findByText('Invented verse 16'));
+      await user.keyboard('[ControlLeft>]');
+      await user.click(screen.getByText('Invented verse 18'));
+      await user.keyboard('[/ControlLeft]');
+      expect(items.getSnapshot().bibleSelection).toEqual([0, 2]);
+    };
+    await select();
+    await user.keyboard('{Delete}');
+    await waitFor(() =>
+      expect(passageFromFile().deletedSlides).toEqual(deleted),
+    );
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(passageFromFile().ref).toBe(lookup.ref);
+    act(publish);
+    expect(screen.queryByText('Invented verse 16')).toBeNull();
+    expect(screen.getByText('Invented verse 17')).toBeDefined();
+    await act(() => items.replayItemEdit('undo'));
+    act(publish);
+    expect(passageFromFile().deletedSlides).toBeUndefined();
+    expect(screen.getByText('Invented verse 16')).toBeDefined();
+    await act(() => items.replayItemEdit('redo'));
+    expect(passageFromFile().deletedSlides).toEqual(deleted);
+    await act(() => items.replayItemEdit('undo'));
+    act(publish);
+    await select();
+    fireEvent.contextMenu(screen.getByText('Invented verse 18'));
+    await user.click(await screen.findByRole('menuitem', {name: /^2개 삭제/u}));
+    await waitFor(() =>
+      expect(passageFromFile().deletedSlides).toEqual(deleted),
+    );
+    expect(screen.queryByRole('dialog')).toBeNull();
+    act(() => {
+      items.show(null);
+    });
+    act(publish);
+    act(() => {
+      items.show(target);
+    });
+    await screen.findByText('Invented verse 17');
+    expect(screen.queryByText('Invented verse 16')).toBeNull();
+    expect(screen.queryByText('Invented verse 18')).toBeNull();
+    expect(passageFromFile().ref).toBe(passage.ref);
+  },
+);
 
 it('shows an editable card and read-only Bible verses in both views', async () => {
   seedSlideSurfaceView({});

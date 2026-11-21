@@ -13,7 +13,7 @@ import type {SongEditorStore} from '@renderer/features/songs/editor';
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
 import {resolveSongSlideBackground} from '@renderer/features/songs/editor/useSongSlideAppearance';
 import {useBibleTileProjection} from '@renderer/features/bible/useBibleProjections';
-import {slideLayerOf} from '@core/presentation/slideLayer';
+import {mediaTextSlide, slideLayerOf} from '@core/presentation/slideLayer';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
 import {
   biblePictureInput,
@@ -61,7 +61,7 @@ function cardPicture(context: PictureContext): JSX.Element | undefined {
       {...cardTheme}
       slide={
         stageSlideOf({itemId: item.id, index: 0}) ??
-        cardPictureLayer(item.id, card)
+        cardPictureLayer(item.id, card, item.textOverrides?.['section'])
       }
     />
   );
@@ -173,23 +173,24 @@ function mediaPicture(
   context: PictureContext,
   index: number,
 ): JSX.Element | undefined {
-  const {item, raw, theme} = context;
+  const {item, raw, theme, projectedTiles} = context;
   if (item === null || !isItemOfKind(item, 'media') || theme === undefined) {
     return undefined;
   }
-  const slide = raw[index];
-  if (slide === undefined) return undefined;
+  const projected = slideLayerOf(
+    {itemId: item.id, index},
+    () => projectedTiles ?? [],
+  );
+  if (projected === null && raw[index] === undefined) return undefined;
+  const slide = mediaTextSlide(
+    projected ?? {itemId: item.id, position: index, label: null, lines: []},
+  );
   return (
     <SlidePicture
-      mediaOnly
       {...theme}
+      mediaOnly={slide.textOverrides === undefined}
       background={item.media}
-      slide={{
-        itemId: item.id,
-        position: index,
-        label: slide.label ?? null,
-        lines: slide.text.split('\n'),
-      }}
+      slide={slide}
     />
   );
 }

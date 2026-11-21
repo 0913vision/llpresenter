@@ -10,7 +10,10 @@ import type {UiApi} from '@contracts/ipc/ui';
 import {isItemOfKind, type ServiceItemOf} from '@core/schema/service';
 import {slideLayerOf} from '@core/presentation/slideLayer';
 import {useBibleTileProjection} from '@renderer/features/bible/useBibleProjections';
-import type {BibleProjection} from '@renderer/features/bible/splitProjection';
+import {
+  canReviewBiblePart,
+  type BibleProjection,
+} from '@renderer/features/bible/splitProjection';
 import type {ShowTile} from '@core/schema/showService';
 import {useMeasuredRows} from '@renderer/ui/useMeasuredRows';
 import {
@@ -27,6 +30,7 @@ import {SongSlideSurface} from '@renderer/features/songs/editor/SongSlideSurface
 import {visibleGridInsertionPosition} from '@renderer/features/songs/editor/gridInsertionPosition';
 import {useShow} from '@renderer/session/show';
 import {Button} from '@renderer/ui/Button';
+import {isInTextEntry} from '@renderer/ui/textEntry';
 import {ItemEditorShell} from '@renderer/platform/ItemEditorShell';
 import {ItemEditorAddBar} from '@renderer/platform/ItemEditorAddBar';
 import {SlideThumbnailBand} from '@renderer/ui/SlideThumbnail';
@@ -38,9 +42,12 @@ import {
 import {useLeadingItemCard} from './useLeadingItemCard';
 import {AddSectionCard} from './AddSectionCard';
 import {BibleSlideSession} from './BibleSlideSession';
+import {deleteBibleSlides} from './deleteBibleSlides';
+import {editorTask} from '@renderer/features/songs/editor/editorTask';
 import {itemEditorAdapter} from '@renderer/platform/itemEditorAdapter';
 import {MeasuredRow} from '../slides/SlideRows';
 import type {ServiceItemStore} from './serviceItemStore';
+import type {RenderSlideTextFields} from '@renderer/features/songs/editor/SlideCardRenderer';
 import styles from './BibleInlineEditor.module.css';
 
 export function BibleInlineEditor({
@@ -50,6 +57,7 @@ export function BibleInlineEditor({
   onBack,
   hideHeader = false,
   onSplit,
+  renderTextFields,
 }: {
   readonly onSplit?: (() => void) | undefined;
   readonly items: ServiceItemStore;
@@ -57,6 +65,7 @@ export function BibleInlineEditor({
   readonly ui: Pick<UiApi, 'setLayout'>;
   readonly onBack: () => void;
   readonly hideHeader?: boolean;
+  readonly renderTextFields?: RenderSlideTextFields | undefined;
 }): JSX.Element | null {
   const current = useSyncExternalStore(items.subscribe, items.getSnapshot);
   const state = shownItem ?? current;
@@ -80,6 +89,7 @@ export function BibleInlineEditor({
       onBack={onBack}
       hideHeader={hideHeader}
       onSplit={onSplit}
+      renderTextFields={renderTextFields}
     />
   );
 }
@@ -95,6 +105,7 @@ function BibleEditorContent({
   hideHeader,
   onSplit,
   locked,
+  renderTextFields,
 }: {
   readonly onSplit?: (() => void) | undefined;
   readonly items: ServiceItemStore;
@@ -106,6 +117,7 @@ function BibleEditorContent({
   readonly onBack: () => void;
   readonly hideHeader: boolean;
   readonly locked: boolean;
+  readonly renderTextFields: RenderSlideTextFields | undefined;
 }): JSX.Element {
   const saved = useShow(view =>
     shownItem === undefined
@@ -121,7 +133,10 @@ function BibleEditorContent({
     () => bibleEditorData(item, saved, projection?.tiles),
     [item, saved, projection?.tiles],
   );
-  const card = useLeadingItemCard(items, item.id, shownItem);
+  const card = useLeadingItemCard(items, item.id, {
+    shownItem,
+    renderTextFields,
+  });
   const sermonTheme = useSlideTheme(
     isItemOfKind(item, 'sermon')
       ? sermonPreviewRow(item.id, item.sermon.passage.ref)
@@ -149,6 +164,41 @@ function BibleEditorContent({
     session.slideModel.subscribe,
     session.slideModel.getSnapshot,
   );
+  const deleteSelection = (removeCard: boolean): void => {
+    const selected = [...session.slideModel.getSnapshot().selection.ids]
+      .map(Number)
+      .sort((left, right) => left - right);
+    const tiles = selected.flatMap(index => {
+      const tile = verses[index];
+      return tile === undefined ? [] : [tile];
+    });
+    const first = selected[0] ?? 0;
+    editorTask(
+      deleteBibleSlides({
+        items,
+        serviceId,
+        item,
+        tiles,
+        projection,
+        removeCard,
+      }).then(saved => {
+        const current = items.getSnapshot();
+        if (
+          !saved ||
+          current.item?.id !== item.id ||
+          current.service?.service.id !== serviceId
+        ) {
+          return;
+        }
+        const nextOffset = removeCard ? 0 : offset;
+        const remaining = verses.length - tiles.length;
+        items.setBibleSelection([]);
+        items.selectPosition(
+          Math.max(0, Math.min(first, remaining - 1) + nextOffset),
+        );
+      }),
+    );
+  };
   const viewportRef = useRef<HTMLDivElement>(null);
   const scope = `${item.id}:${mode}:${scale}`;
   const ids = useMemo(
@@ -219,7 +269,7 @@ function BibleEditorContent({
             <Button
               className={styles.split}
               disabled={
-                locked || projection?.partsByTile[position - offset] == null
+                locked || !canReviewBiblePart(projection, position - offset)
               }
               onClick={onSplit}
             >
@@ -235,6 +285,7 @@ function BibleEditorContent({
         leadingCard={card}
         mixedLeadingSelection
         contentReadOnly
+        deleteSelection={deleteSelection}
         onBack={onBack}
         className={styles.surface}
       >
@@ -292,25 +343,52 @@ function BibleEditorContent({
                 >
                   <div
                     className={styles.row}
-                    role="option"
-                    aria-selected={session.slideModel
-                      .getSnapshot()
-                      .selection.ids.has(String(index - offset))}
+                    role={
+                      mode === 'list' && renderTextFields ? 'group' : 'option'
+                    }
+                    aria-selected={
+                      mode === 'list' && renderTextFields
+                        ? undefined
+                        : session.slideModel
+                            .getSnapshot()
+                            .selection.ids.has(String(index - offset))
+                    }
                     data-selected={session.slideModel
                       .getSnapshot()
                       .selection.ids.has(String(index - offset))}
-                    aria-readonly={slide.readOnly}
+                    aria-readonly={
+                      renderTextFields ? undefined : slide.readOnly
+                    }
+                    aria-label={
+                      mode === 'list' && renderTextFields
+                        ? `${index + 1}번 슬라이드`
+                        : undefined
+                    }
                     data-song-slide={String(index - offset)}
                     data-slide-index={index - offset}
                     tabIndex={0}
-                    onClick={event =>
+                    onFocusCapture={event => {
+                      if (isInTextEntry(event.target)) {
+                        session.selectSlides({
+                          type: 'click',
+                          id: String(index - offset),
+                        });
+                      }
+                    }}
+                    onClick={event => {
+                      if (
+                        event.target instanceof Element &&
+                        event.target.closest('button, textarea, input, summary')
+                      ) {
+                        return;
+                      }
                       session.selectSlides({
                         type: 'click',
                         id: String(index - offset),
                         ctrl: event.ctrlKey || event.metaKey,
                         shift: event.shiftKey,
-                      })
-                    }
+                      });
+                    }}
                   >
                     <div className={styles.thumbnail}>
                       <div className={styles.canvas}>
@@ -329,10 +407,14 @@ function BibleEditorContent({
                         }
                       />
                     </div>
-                    <div className={styles.verse}>
-                      <strong>{slide.tile.label}</strong>
-                      <span>{slide.tile.lines.join('\n')}</span>
-                    </div>
+                    {renderTextFields && mode === 'list' ? (
+                      renderTextFields(index)
+                    ) : (
+                      <div className={styles.verse}>
+                        <strong>{slide.tile.label}</strong>
+                        <span>{slide.tile.lines.join('\n')}</span>
+                      </div>
+                    )}
                   </div>
                 </MeasuredRow>
               );
