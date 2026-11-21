@@ -754,6 +754,15 @@ export class ThemeElementView {
     ) {
       return null;
     }
+    if (
+      frame.screen?.kind === 'stage' &&
+      element.kind === 'label' &&
+      (slide?.kind ?? item?.kind) === 'ad' &&
+      slide?.name?.trim() &&
+      frame.theme?.layout.elements.some(value => value.kind === 'slideName')
+    ) {
+      return null;
+    }
     if (element.id === STAGE_LYRIC_LABEL_ID) {
       return slide?.label ? `(${slide.label.trim()})` : null;
     }
@@ -892,6 +901,7 @@ export class ThemeElementView {
     if (frame.screen?.kind === 'stage' && text?.trim()) {
       if (
         element.kind === 'currentText' &&
+        (slide?.kind ?? item?.kind) !== 'ad' &&
         !currentBible &&
         slide?.sermonTitle !== true &&
         slide?.label?.trim()

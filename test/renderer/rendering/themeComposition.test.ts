@@ -4228,6 +4228,8 @@ it('shows the next ad title only as a stage cue, even when its body has a manual
   const elements: ThemeElement[] = [
     {...themeElementBase(), kind: 'currentText'},
     {...themeElementBase(31), kind: 'nextText'},
+    {...themeElementBase(32), kind: 'label'},
+    {...themeElementBase(33), kind: 'slideName'},
   ];
   const base = frame(elements);
   const theme = base.theme;
@@ -4242,7 +4244,8 @@ it('shows the next ad title only as a stage cue, even when its body has a manual
       itemId: 'ad',
       position: 0,
       kind: 'ad',
-      label: null,
+      label: 'Current title',
+      name: 'Current title',
       lines: ['Current'],
       next: {
         label: null,
@@ -4268,6 +4271,9 @@ it('shows the next ad title only as a stage cue, even when its body has a manual
     return text('nextText');
   };
   expect(render('stage')).toBe('다음광고: 3. Anniversary');
+  expect(text('currentText')).toBe('Current');
+  expect(text('label') ?? '').toBe('');
+  expect(text('slideName')).toBe('Current title');
   expect(render('audience')).toBe('Edited body');
   expect(render('broadcast')).toBe('Edited body');
   const cross: LiveLayers = {

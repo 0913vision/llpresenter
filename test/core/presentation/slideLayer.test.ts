@@ -41,7 +41,7 @@ it('does not treat a song background as a picture-only next slide', () => {
 
 it('carries the unnumbered projected ad title for same-item and following-item cues', () => {
   const nextAd: SlideTile = {
-    label: 'ignored label',
+    label: '3. Anniversary',
     labelColor: 'none',
     kind: 'ad',
     name: '3. Anniversary',
@@ -84,6 +84,24 @@ it('carries the unnumbered projected ad title for same-item and following-item c
     title: 'Notice',
     adTitle: '3. Anniversary',
   });
+  const imageAd: SlideTile = {
+    label: 'Actual image title',
+    labelColor: 'none',
+    kind: 'ad',
+    lines: [],
+    picture: createMediaId('00000000-0000-4000-8000-000000000001'),
+  };
+  expect(nextSlideOf(imageAd, 'ad', {title: 'Item name'})).toMatchObject({
+    adTitle: 'Actual image title',
+  });
+  expect(nextSlideOf(card, 'blank', {after: imageAd})).toMatchObject({
+    adTitle: 'Actual image title',
+  });
+  expect(
+    nextSlideOf({...nextAd, label: 'Edited title', name: 'Old title'}, 'ad', {
+      textSlideNumber: 2,
+    }),
+  ).toMatchObject({adTitle: 'Edited title'});
   expect(
     nextSlideOf({...current, name: ''}, 'ad', {textSlideNumber: 1}).adTitle,
   ).toBe('');
