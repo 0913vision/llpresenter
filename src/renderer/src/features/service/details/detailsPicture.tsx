@@ -237,10 +237,14 @@ function SlidesPicture({
   readonly screenId: string | undefined;
   readonly outputSlide: ReturnType<typeof stageSlideOf>;
 }): JSX.Element {
-  const {appearance, ready} = useSlidesAppearance(editor.api, item, {
-    role,
-    screenId,
-  });
+  const {appearance, ready, adTitleSettings} = useSlidesAppearance(
+    editor.api,
+    item,
+    {
+      role,
+      screenId,
+    },
+  );
   if (!ready) return <></>;
   return (
     <SlidesCanvas
@@ -248,6 +252,7 @@ function SlidesPicture({
       index={index}
       appearance={appearance}
       outputSlide={outputSlide}
+      adTitleSettings={adTitleSettings}
     />
   );
 }

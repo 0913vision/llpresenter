@@ -53,6 +53,8 @@ export interface NextSlide {
   readonly itemKind?: LiveThemeItem['kind'];
   /** Optional title displayed before the next slide body. */
   readonly title?: string;
+  /** Raw next-ad title for the stage cue, without the generated slide number. */
+  readonly adTitle?: string;
   readonly label: string | null;
   /** The next slide's label repeats the previous slide in the same item. */
   readonly labelContinued?: true;

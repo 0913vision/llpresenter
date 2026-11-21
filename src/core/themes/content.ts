@@ -21,7 +21,6 @@ export function isThemeTextElement(
 const slideEditableRoles: ReadonlySet<string> = new Set<ThemeTextRole>([
   'currentText',
   'reference',
-  'label',
   'itemName',
   'slideName',
   'slideNumber',

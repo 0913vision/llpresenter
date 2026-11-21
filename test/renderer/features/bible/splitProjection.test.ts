@@ -326,7 +326,9 @@ it('keeps an assigned label while numbering the parts of an inserted verse', () 
       ),
     },
   };
-  const input = projectSlides(labeled, undefined, slidesBiblePassages(item));
+  const input = projectSlides(labeled, undefined, {
+    passages: slidesBiblePassages(item),
+  });
   const first = input.find(tile => tile.verse !== undefined);
   expect(first?.label).toBe('Chorus');
   const projection = projectBible(
@@ -460,7 +462,9 @@ it('applies Bible display preferences to verse slides', () => {
     id: item.id,
     kind: 'slides',
     source: 'service',
-    input: projectSlides(item, undefined, slidesBiblePassages(item)),
+    input: projectSlides(item, undefined, {
+      passages: slidesBiblePassages(item),
+    }),
     verseNumbers: true,
     reference: 'every',
     translationName: false,

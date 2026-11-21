@@ -401,6 +401,8 @@ export class ThemeElementView {
           : slide.lines
       ).some(line => line.trim() !== '');
     const next = slide?.next;
+    const nextAdTitle =
+      stage && element.kind === 'nextText' ? next?.adTitle : undefined;
     this.stageReference.textContent =
       stage && element.kind === 'nextText' ? (next?.stageReference ?? '') : '';
     const nextEmpty =
@@ -408,6 +410,7 @@ export class ThemeElementView {
       element.kind === 'nextText' &&
       !finalBible &&
       next !== undefined &&
+      nextAdTitle === undefined &&
       !next.title?.trim() &&
       !(
         next.titleSlide
@@ -545,12 +548,19 @@ export class ThemeElementView {
       }
     } else {
       const displayedText =
-        manualText ??
-        cue ??
-        (stage && isSong && element.kind === 'currentText' && !slide?.titleSlide
-          ? frame.stageSongLines?.join('\n')
-          : undefined) ??
-        this.textContent(layers, frame, videoRemaining);
+        nextAdTitle !== undefined
+          ? nextAdTitle.trim() === ''
+            ? null
+            : `다음광고: ${nextAdTitle.trim()}`
+          : (manualText ??
+            cue ??
+            (stage &&
+            isSong &&
+            element.kind === 'currentText' &&
+            !slide?.titleSlide
+              ? frame.stageSongLines?.join('\n')
+              : undefined) ??
+            this.textContent(layers, frame, videoRemaining));
       const inlineLabel =
         stage && frame.stageLyricLabelPosition === 'inline' && cue === undefined
           ? element.kind === 'currentText' &&
@@ -744,6 +754,16 @@ export class ThemeElementView {
     ) {
       return null;
     }
+    if (
+      frame.screen?.kind === 'stage' &&
+      element.kind === 'label' &&
+      (slide?.kind ?? item?.kind) === 'ad' &&
+      slide?.picture === undefined &&
+      slide?.sectionCard === undefined &&
+      frame.theme?.layout.elements.some(value => value.kind === 'slideName')
+    ) {
+      return null;
+    }
     if (element.id === STAGE_LYRIC_LABEL_ID) {
       return slide?.label ? `(${slide.label.trim()})` : null;
     }
@@ -883,6 +903,7 @@ export class ThemeElementView {
       if (
         element.kind === 'currentText' &&
         !currentBible &&
+        (slide?.kind ?? item?.kind) !== 'ad' &&
         slide?.sermonTitle !== true &&
         slide?.label?.trim()
       ) {

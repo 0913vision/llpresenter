@@ -110,7 +110,13 @@ export function useSlidesVerseProjection(
       kind: 'slides',
       id: item.id,
       input: colorSlideLabels(
-        projectSlides(item, undefined, loaded.passages),
+        projectSlides(item, undefined, {
+          passages: loaded.passages,
+          adTitleSettings: {
+            file: themeFile.value,
+            screens: screenFile.value.screens,
+          },
+        }),
         new Map(
           (labels?.name === 'labels' ? labels.value.labels : []).map(label => [
             label.name,

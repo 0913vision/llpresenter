@@ -905,6 +905,48 @@ describe('show state', () => {
     });
   });
 
+  it('refreshes the next ad cue when only the title behind a section card changes', () => {
+    const section = SUNDAY_SECTIONS[1];
+    if (!section) throw Error('Missing section');
+    const card = {
+      label: section.name,
+      labelColor: 'none' as const,
+      lines: [section.english],
+      sectionCard: sectionCardOf(section),
+    };
+    const body = {
+      label: null,
+      labelColor: 'none' as const,
+      kind: 'ad' as const,
+      name: 'First title',
+      lines: ['Body'],
+    };
+    setLive('song-morning', 3);
+    setAtLastSlide('nextItem');
+    applyService({
+      ...sampleService,
+      revision: 2,
+      tiles: {...sampleService.tiles, 'song-river': [card, body]},
+    });
+    expect(sent.at(-1)).toMatchObject({
+      type: 'stage.next.set',
+      next: {title: section.name, adTitle: 'First title'},
+    });
+    sent.length = 0;
+    applyService({
+      ...sampleService,
+      revision: 3,
+      tiles: {
+        ...sampleService.tiles,
+        'song-river': [card, {...body, name: 'Renamed title'}],
+      },
+    });
+    expect(sent.at(-1)).toMatchObject({
+      type: 'stage.next.set',
+      next: {title: section.name, adTitle: 'Renamed title'},
+    });
+  });
+
   it('refreshes the next notice with its number and title only', () => {
     const common = {
       kind: 'ad' as const,

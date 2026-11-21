@@ -19,7 +19,11 @@ import {
   type ShowService,
   type ShowTile,
 } from '@core/schema/showService';
-import {colorSlideLabels, projectSlides} from '@core/presentation/slides';
+import {
+  colorSlideLabels,
+  projectSlides,
+  type AdTitleSettings,
+} from '@core/presentation/slides';
 import {textOverridesForTiles} from '@core/presentation/textOverrides';
 import type {ServicePassages} from '../bible/servicePassages';
 import {LITURGY, liturgySlideTextKey} from '@core/services/liturgy';
@@ -43,6 +47,7 @@ export interface ShowServiceSources {
   readonly serviceRevision?: number;
   readonly backgrounds?: ReadonlyMap<string, MediaChoice>;
   readonly passages?: ServicePassages;
+  readonly adTitleSettings?: AdTitleSettings | undefined;
   /** The media list by id, for the names and kinds of media items. */
   readonly media?: ReadonlyMap<string, MediaItem>;
 }
@@ -66,6 +71,7 @@ export function buildShowService({
   serviceRevision,
   backgrounds = new Map(),
   passages,
+  adTitleSettings,
   media,
 }: ShowServiceSources): ShowService {
   const {id, name, order} = service.data;
@@ -101,7 +107,13 @@ export function buildShowService({
     itemTiles[itemId] = colorSlideLabels(tiles, colors);
   }
   for (const item of order) {
-    const tiles = otherTiles(item, {backgrounds, media, passages, colors});
+    const tiles = otherTiles(item, {
+      backgrounds,
+      media,
+      passages,
+      colors,
+      adTitleSettings,
+    });
     if (tiles !== undefined) itemTiles[item.id] = tiles;
   }
   for (const item of order) {
@@ -170,6 +182,7 @@ interface OtherSources {
   readonly backgrounds: ReadonlyMap<string, MediaChoice>;
   readonly media: ReadonlyMap<string, MediaItem> | undefined;
   readonly passages: ServicePassages | undefined;
+  readonly adTitleSettings: AdTitleSettings | undefined;
 }
 
 /**
@@ -177,7 +190,7 @@ interface OtherSources {
  */
 function otherTiles(
   item: ServiceItem,
-  {backgrounds, media, passages, colors}: OtherSources,
+  {backgrounds, media, passages, colors, adTitleSettings}: OtherSources,
 ): readonly ShowTile[] | undefined {
   if (isItemOfKind(item, 'liturgy')) {
     return LITURGY_SLIDES[item.liturgy.kind][item.liturgy.translation].map(
@@ -211,7 +224,10 @@ function otherTiles(
   }
   if (isItemOfKind(item, 'slides')) {
     return colorSlideLabels(
-      projectSlides(item, media, passages?.slides?.get(item.id)),
+      projectSlides(item, media, {
+        passages: passages?.slides?.get(item.id),
+        adTitleSettings,
+      }),
       colors,
     );
   }

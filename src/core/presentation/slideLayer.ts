@@ -22,6 +22,17 @@ function repeatedLabel(
   return !!label?.trim() && label.trim() === prior?.trim();
 }
 
+function outputLabel(tile: SlideTile): string | null {
+  return (
+    tile.slideLabel ??
+    (tile.kind === undefined ||
+    tile.kind === 'ad' ||
+    tile.biblePart !== undefined
+      ? tile.label
+      : null)
+  );
+}
+
 /** Projects a tile into the live stage preview payload. */
 export function nextSlideOf(
   tile: SlideTile,
@@ -47,14 +58,21 @@ export function nextSlideOf(
     (tile.picture !== undefined && tile.kind !== undefined)
       ? context?.title
       : undefined);
+  // NOTE(0913vision): A following ad item can start with its section card.
+  // The stage needs the first actual ad title while navigation retains the card.
+  const nextNotice =
+    tile.kind === 'ad' && tile.sectionCard === undefined
+      ? tile
+      : tile.sectionCard !== undefined &&
+          context?.after?.kind === 'ad' &&
+          context.after.sectionCard === undefined
+        ? context.after
+        : undefined;
   return {
-    label:
-      tile.sectionCard !== undefined
-        ? null
-        : (tile.slideLabel ??
-          (tile.kind === undefined || tile.biblePart !== undefined
-            ? tile.label
-            : null)),
+    ...(nextNotice === undefined
+      ? {}
+      : {adTitle: nextNotice.label ?? nextNotice.name ?? context?.title ?? ''}),
+    label: tile.sectionCard === undefined ? outputLabel(tile) : null,
     ...(repeatedLabel(tile, context?.previous)
       ? {labelContinued: true as const}
       : {}),
@@ -174,11 +192,7 @@ export function slideLayerOf(
       ? {}
       : {sourceSlideId: tile.sourceSlideId}),
     ...(tile.bibleVerse === undefined ? {} : {bibleVerse: tile.bibleVerse}),
-    label:
-      tile.slideLabel ??
-      (tile.kind === undefined || tile.biblePart !== undefined
-        ? tile.label
-        : null),
+    label: outputLabel(tile),
     ...(repeatedLabel(tile, tiles[cursor.index - 1])
       ? {labelContinued: true as const}
       : {}),

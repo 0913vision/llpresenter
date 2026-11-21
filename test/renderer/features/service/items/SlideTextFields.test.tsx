@@ -421,12 +421,17 @@ it.each(['bible', 'sermon'] as const)(
   },
 );
 
-it.each(['song', 'media'] as const)(
+it.each(['song', 'media', 'ad'] as const)(
   'edits a %s tile using the theme selected by its Show row or item',
   async kind => {
     const theme = createThemeId('00000000-0000-4000-8000-000000005102');
     const file = themeFile();
     const liveElements = liveThemeTextElements();
+    const stageLabel = {
+      ...themeElementBase(141),
+      kind: 'label',
+      hideWhenItemTitle: true,
+    } as const;
     installSettings({
       ...file,
       themes: [
@@ -437,7 +442,7 @@ it.each(['song', 'media'] as const)(
           screens: {
             [THEME_STAGE]: {
               mode: {kind: 'own'},
-              elements: liveElements,
+              elements: [stageLabel, ...liveElements],
             },
             [THEME_MAIN]: {
               mode: {kind: 'own'},
@@ -463,15 +468,25 @@ it.each(['song', 'media'] as const)(
     const before = fixture.service();
     const id = fixtureItems.arranged;
     const media = createMediaId('00000000-0000-4000-8000-000000005103');
+    const ad = slidesItem('ad');
     const first = fixture.first.song.slides[0];
     if (first === undefined) throw Error('Missing fixture slide');
-    const slideKey = kind === 'song' ? `slide:${first.id}` : 'media:standalone';
-    const oldValues = Object.fromEntries(
-      liveElements.map(element => [
-        [theme, THEME_STAGE, element.id].join('/'),
-        'Old live text',
-      ]),
-    );
+    const adSlide = ad.slides.slides[0];
+    if (adSlide === undefined) throw Error('Missing fixture ad slide');
+    const slideKey =
+      kind === 'media'
+        ? 'media:standalone'
+        : `slide:${kind === 'ad' ? adSlide.id : first.id}`;
+    const oldValues = {
+      ...Object.fromEntries(
+        liveElements.map(element => [
+          [theme, THEME_STAGE, element.id].join('/'),
+          'Old live text',
+        ]),
+      ),
+      label: 'Old role cue',
+      [[theme, THEME_STAGE, stageLabel.id].join('/')]: 'Old stage cue',
+    };
     const textOverrides = {[slideKey]: oldValues};
     const result = parseServiceDocument({
       ...before,
@@ -480,7 +495,9 @@ it.each(['song', 'media'] as const)(
         order: [
           kind === 'song'
             ? {id, song: fixture.first.song.id, slides: [first], textOverrides}
-            : {id, media, theme, textOverrides},
+            : kind === 'media'
+              ? {id, media, theme, textOverrides}
+              : {...ad, id, theme, textOverrides},
         ],
       },
     });
@@ -492,24 +509,31 @@ it.each(['song', 'media'] as const)(
     useShow.setState({
       serviceId: fixtureServiceId,
       openItemId: id,
-      rows: [{id, kind, title: 'Fixture item', theme}],
+      rows: [
+        kind === 'ad'
+          ? {id, kind: 'slides', form: 'ad', title: 'Fixture item'}
+          : {id, kind, title: 'Fixture item', theme},
+      ],
       tiles: {
-        [id]: [
-          {
-            label: null,
-            labelColor: 'none',
-            lines: ['Fixture item'],
-            textOverrides: oldValues,
-            ...(kind === 'song'
-              ? {
-                  sourceSlide: {
-                    songId: fixture.first.song.id,
-                    slideId: first.id,
-                  },
-                }
-              : {media: {mediaId: media, loop: false, itemId: id}}),
-          },
-        ],
+        [id]:
+          kind === 'ad'
+            ? projectSlides({...ad, id, textOverrides})
+            : [
+                {
+                  label: null,
+                  labelColor: 'none',
+                  lines: ['Fixture item'],
+                  textOverrides: oldValues,
+                  ...(kind === 'song'
+                    ? {
+                        sourceSlide: {
+                          songId: fixture.first.song.id,
+                          slideId: first.id,
+                        },
+                      }
+                    : {media: {mediaId: media, loop: false, itemId: id}}),
+                },
+              ],
       },
     });
     const editor = new SongEditorStore(fixture.api, vi.fn());
@@ -546,7 +570,7 @@ it.each(['song', 'media'] as const)(
       },
     );
     await within(row).findByRole('textbox', {name: /Fixture caption/});
-    for (const element of liveElements) {
+    for (const element of [stageLabel, ...liveElements]) {
       expect(
         row.querySelector(`[data-slide-text-role="${element.kind}"]`),
       ).toBeNull();
@@ -555,6 +579,8 @@ it.each(['song', 'media'] as const)(
       ).toBeNull();
     }
     expect(screen.queryByText('Old live text')).toBeNull();
+    expect(screen.queryByText('Old role cue')).toBeNull();
+    expect(screen.queryByText('Old stage cue')).toBeNull();
     expect(field.value).toBe('Automatic fixture caption');
     fireEvent.change(field, {target: {value: 'Edited fixture caption'}});
     fireEvent.blur(field);
@@ -562,6 +588,7 @@ it.each(['song', 'media'] as const)(
       expect(
         fixture.service().service.order[0]?.textOverrides?.[slideKey],
       ).toMatchObject({
+        ...oldValues,
         [`${theme}/${THEME_MAIN}/caption`]: {
           sourceThemeId: theme,
           text: 'Edited fixture caption',

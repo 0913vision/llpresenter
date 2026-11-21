@@ -70,7 +70,9 @@ it.each(['blank', 'ad'] as const)(
       const firstTile = await within(grid).findByRole('option', {
         name: form === 'ad' ? '1 소식 이름' : '1 첫 줄',
       });
-      await within(grid).findByRole('option', {name: '2 a.png'});
+      await within(grid).findByRole('option', {
+        name: form === 'ad' ? '2 이번 순서' : '2 a.png',
+      });
       await userEvent.dblClick(firstTile);
       await waitFor(() =>
         expect(open).toHaveBeenCalledWith({

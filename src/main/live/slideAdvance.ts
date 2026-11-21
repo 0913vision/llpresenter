@@ -2,7 +2,11 @@ import {withSectionCard} from '@core/services/sectionCards';
 import type {LiveCommand} from '@core/live/commands';
 import type {MediaChoice, SlideLayer} from '@core/live/state';
 import {isItemOfKind, type ServiceItemOf} from '@core/schema/service';
-import {projectSlides, slidesOutput} from '@core/presentation/slides';
+import {
+  adTitleSettingsFrom,
+  projectSlides,
+  slidesOutput,
+} from '@core/presentation/slides';
 import {slideLayerOf} from '@core/presentation/slideLayer';
 import type {ShowTile} from '@core/schema/showService';
 import {mediaLoops} from '@core/media/mediaEndRule';
@@ -174,14 +178,14 @@ export function registerSlideAdvance({
   projection,
 }: {
   readonly store: LiveStore;
-  readonly data: Pick<DataStore, 'content' | 'media'>;
+  readonly data: Pick<DataStore, 'content' | 'media' | 'settings'>;
   readonly log: Logger;
   readonly projection?: SlidesProjectionReader;
 }): () => void {
   let disposed = false;
   let release: (() => void) | undefined;
-  Promise.all([data.content, data.media])
-    .then(([content, media]) => {
+  Promise.all([data.content, data.media, data.settings])
+    .then(([content, media, settings]) => {
       if (disposed || content === null) return;
       release = followSlideAdvance({
         store,
@@ -224,7 +228,13 @@ export function registerSlideAdvance({
             item,
             tiles: withSectionCard(
               item.sectionCard,
-              projected ?? projectSlides(item, library),
+              projected ??
+                projectSlides(item, library, {
+                  adTitleSettings: adTitleSettingsFrom(
+                    settings?.get('themes'),
+                    settings?.get('screens'),
+                  ),
+                }),
             ),
             ...(background === undefined
               ? {}

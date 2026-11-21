@@ -33,6 +33,7 @@ import {useItemMedia} from '../items/useItemSources';
 import {useItemSettings} from '../items/useItemSources';
 import {previewAppearance} from '@renderer/features/songs/editor/songPreviewModel';
 import {slideBand} from '../slides/SlidesVisuals';
+import {adSlideTitles} from '@core/presentation/slides';
 import {
   detailsHeading,
   detailsKindLine,
@@ -200,6 +201,15 @@ function DetailsPanelContent({
       ? state.item
       : null;
   const themeData = useItemTheme(api.settings, item);
+  const adTitle =
+    item !== null && isItemOfKind(item, 'slides')
+      ? adSlideTitles(
+          item,
+          themeData.targets.length === 0
+            ? undefined
+            : {file: themeData.file, screens: themeData.targets},
+        )
+      : undefined;
   const showRow = useShow(view =>
     item === null ? undefined : view.rows.find(row => row.id === item.id),
   );
@@ -374,7 +384,7 @@ function DetailsPanelContent({
       const slide = item.slides.slides[index - offset];
       return slide === undefined
         ? undefined
-        : slideBand(slide, media.document?.value.items ?? []);
+        : slideBand(slide, media.document?.value.items ?? [], adTitle);
     }
     return (
       library?.tiles[index]?.label ??

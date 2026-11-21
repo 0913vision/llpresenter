@@ -89,7 +89,10 @@ export async function loadSlidesProjection(
     kind: 'slides',
     id: item.id,
     input: colorSlideLabels(
-      projectSlides(item, undefined, passages),
+      projectSlides(item, undefined, {
+        passages,
+        adTitleSettings: {file: themes.value, screens: screens.value.screens},
+      }),
       new Map(
         (labels?.name === 'labels' ? labels.value.labels : []).map(label => [
           label.name,

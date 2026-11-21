@@ -14,7 +14,7 @@ import {createServiceItemId} from '@core/schema/ids';
 import {describe, expect, it} from 'vitest';
 import type {SlideTile} from '@core/presentation/model';
 import {nextSlideOf, slideLayerOf} from '@core/presentation/slideLayer';
-import {createMediaId} from '@core/schema/ids';
+import {createMediaId, createThemeId} from '@core/schema/ids';
 
 const tiles: Readonly<Record<string, readonly SlideTile[]>> = {
   song: [
@@ -36,6 +36,77 @@ it('does not treat a song background as a picture-only next slide', () => {
   });
   expect(nextSlideOf(tile, 'song', {title: 'Song'})).not.toHaveProperty(
     'title',
+  );
+});
+
+it('carries the unnumbered projected ad title for same-item and following-item cues', () => {
+  const nextAd: SlideTile = {
+    label: '3. Anniversary',
+    labelColor: 'none',
+    kind: 'ad',
+    name: '3. Anniversary',
+    lines: ['Ad body'],
+  };
+  const current: SlideTile = {
+    label: null,
+    labelColor: 'none',
+    kind: 'ad',
+    name: 'Current',
+    lines: ['Current body'],
+  };
+  const same = slideLayerOf({itemId: 'ad', index: 0}, () => [current, nextAd]);
+  expect(same?.next).toMatchObject({
+    title: '2. 3. Anniversary',
+    adTitle: '3. Anniversary',
+    lines: [],
+  });
+  const cross = slideLayerOf({itemId: 'ad', index: 0}, () => [current], {
+    tile: nextAd,
+    kind: 'ad',
+    textSlideNumber: 1,
+  });
+  expect(cross?.next).toMatchObject({
+    itemKind: 'ad',
+    title: '1. 3. Anniversary',
+    adTitle: '3. Anniversary',
+  });
+  const card = {
+    label: null,
+    labelColor: 'none' as const,
+    lines: [],
+    sectionCard: {
+      name: 'Notice',
+      english: 'Notice',
+      theme: createThemeId('00000000-0000-4000-8000-000000000124'),
+    },
+  };
+  expect(nextSlideOf(card, 'blank', {after: nextAd})).toMatchObject({
+    title: 'Notice',
+    adTitle: '3. Anniversary',
+  });
+  const imageAd: SlideTile = {
+    label: 'Actual image title',
+    labelColor: 'none',
+    kind: 'ad',
+    lines: [],
+    picture: createMediaId('00000000-0000-4000-8000-000000000001'),
+  };
+  expect(nextSlideOf(imageAd, 'ad', {title: 'Item name'})).toMatchObject({
+    adTitle: 'Actual image title',
+  });
+  expect(nextSlideOf(card, 'blank', {after: imageAd})).toMatchObject({
+    adTitle: 'Actual image title',
+  });
+  expect(
+    nextSlideOf({...nextAd, label: 'Edited title', name: 'Old title'}, 'ad', {
+      textSlideNumber: 2,
+    }),
+  ).toMatchObject({adTitle: 'Edited title'});
+  expect(
+    nextSlideOf({...current, name: ''}, 'ad', {textSlideNumber: 1}).adTitle,
+  ).toBe('');
+  expect(nextSlideOf({...current, kind: 'blank'}, 'blank')).not.toHaveProperty(
+    'adTitle',
   );
 });
 

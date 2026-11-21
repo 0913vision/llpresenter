@@ -561,6 +561,7 @@ function nextKey(next: NextSlide | null | undefined): string {
         next.label,
         next.labelContinued ?? null,
         next.title ?? null,
+        next.adTitle ?? null,
         next.itemKind ?? null,
         next.lines,
         next.textOverrides ?? null,
