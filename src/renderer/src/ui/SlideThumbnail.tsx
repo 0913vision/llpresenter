@@ -1,3 +1,5 @@
+import type {TransitionProgress} from './transitionProgress';
+import {TransitionProgressFill} from './TransitionProgressFill';
 import {memo, type CSSProperties, type JSX, type ReactNode} from 'react';
 import {NO_LABEL_COLOR, type LabelColor} from '@core/labels/colors';
 import {classNames} from './classNames';
@@ -148,7 +150,7 @@ export interface SlideThumbnailProps {
   readonly missingFile?: string | undefined;
   readonly selected?: boolean | undefined;
   readonly live?: boolean | undefined;
-  readonly transitionProgress?: number | undefined;
+  readonly transitionProgress?: TransitionProgress | undefined;
   /** Physical hot key code assigned to this slide, e.g. KeyA or Digit1. */
   readonly hotKey?: string | undefined;
 }
@@ -307,9 +309,15 @@ export const SlideThumbnail = memo(
         />
         {live && transitionProgress !== undefined ? (
           <span aria-hidden="true" className={styles.transitionTrack}>
-            <span
+            <TransitionProgressFill
+              key={
+                typeof transitionProgress === 'number'
+                  ? 'fixed'
+                  : `${transitionProgress.startedAt}:${transitionProgress.duration}`
+              }
+              progress={transitionProgress}
               className={styles.transitionFill}
-              style={{transform: `scaleX(${transitionProgress})`}}
+              animatedClassName={styles.animatedTransition}
             />
           </span>
         ) : null}

@@ -1,3 +1,4 @@
+import type {TransitionProgress} from '@renderer/ui/transitionProgress';
 import {
   useContext,
   useEffect,
@@ -116,7 +117,7 @@ function SectionGrid({
   columns: number;
   tileWidth: number;
   live: number | null;
-  progress: number | undefined;
+  progress: TransitionProgress | undefined;
   onMenu: (index: number, anchor: MenuAnchor) => void;
   themes: TileThemes;
 }): JSX.Element {

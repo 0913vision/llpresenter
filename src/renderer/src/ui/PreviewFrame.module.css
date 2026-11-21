@@ -339,3 +339,18 @@
 .withoutLarge .hit {
   grid-row: 1;
 }
+
+@keyframes transitionProgressFill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.animatedTransition {
+  animation-name: transitionProgressFill;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+}
