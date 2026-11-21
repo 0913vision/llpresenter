@@ -141,12 +141,14 @@ describe('ShortcutsPage', () => {
   it('filters by the search text and by the 바꾼 것 and 겹침 counts', async () => {
     await mount({'clear.slide': [{code: 'F1', mods: []}]});
 
-    expect(screen.getByRole('radio', {name: /바꿈/}).textContent).toContain(
-      '1',
-    );
-    expect(screen.getByRole('radio', {name: /겹침/}).textContent).toContain(
-      '2',
-    );
+    await waitFor(() => {
+      expect(screen.getByRole('radio', {name: /바꿈/}).textContent).toContain(
+        '1',
+      );
+      expect(screen.getByRole('radio', {name: /겹침/}).textContent).toContain(
+        '2',
+      );
+    });
     await userEvent.click(screen.getByRole('radio', {name: /겹침/}));
     expect(screen.getAllByRole('option')).toHaveLength(2);
 
