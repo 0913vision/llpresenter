@@ -10,6 +10,42 @@ import {useShow} from './showStore';
 import {useLive} from './live';
 
 const ShownItem = createContext<string | null | undefined>(undefined);
+const keptGrids = new Map<string, number>();
+const keptListeners = new Set<() => void>();
+
+function gridKey(serviceId: string, itemId: string): string {
+  return JSON.stringify([serviceId, itemId]);
+}
+
+/** Records a grid that has committed and remains mounted while hidden. */
+export function retainShownGrid(serviceId: string, itemId: string): () => void {
+  const key = gridKey(serviceId, itemId);
+  keptGrids.set(key, (keptGrids.get(key) ?? 0) + 1);
+  for (const listener of keptListeners) listener();
+  return () => {
+    const count = (keptGrids.get(key) ?? 1) - 1;
+    if (count > 0) keptGrids.set(key, count);
+    else keptGrids.delete(key);
+    for (const listener of keptListeners) listener();
+  };
+}
+
+/** Whether this service item already has a committed, mounted show grid. */
+export function useRetainedShownGrid(
+  serviceId: string | null,
+  itemId: string | null,
+): boolean {
+  return useSyncExternalStore(
+    listener => {
+      keptListeners.add(listener);
+      return () => keptListeners.delete(listener);
+    },
+    () =>
+      serviceId !== null &&
+      itemId !== null &&
+      keptGrids.has(gridKey(serviceId, itemId)),
+  );
+}
 
 /**
  * Gives a workspace the open item as its screen shows it. A newly opened item

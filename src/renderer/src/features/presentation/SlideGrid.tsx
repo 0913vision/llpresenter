@@ -17,6 +17,7 @@ import {
 import {useLive} from '@renderer/session/live';
 import {
   commitShownItem,
+  retainShownGrid,
   useCommittedShownItem,
   useShownItemId,
 } from '@renderer/session/shownItem';
@@ -76,6 +77,8 @@ export function SlideGrid({
   }
   const tiles = active ? currentTiles : lastTiles;
   const row = useShow(view => view.rows.find(value => value.id === openItemId));
+  const serviceId = useShow(view => view.serviceId);
+  const serviceItem = row !== undefined && isItemRow(row);
   const librarySong = useShow(view => view.librarySong);
   const theme = useSlideTheme(
     row !== undefined && isItemRow(row)
@@ -129,6 +132,7 @@ export function SlideGrid({
   // draw where they show.
   const committedItem = useCommittedShownItem();
   const [localItem, setLocalItem] = useState<string | null | undefined>();
+  const keeperRef = useRef<HTMLDivElement>(null);
   if (active && committedItem === openItemId && localItem !== openItemId) {
     setLocalItem(openItemId);
   }
@@ -138,6 +142,54 @@ export function SlideGrid({
     if (!active) return;
     commitShownItem(openItemId);
   }, [active, openItemId]);
+  useEffect(() => {
+    if (
+      serviceId === null ||
+      openItemId === null ||
+      !serviceItem ||
+      localItem !== openItemId
+    ) {
+      return;
+    }
+    const root = keeperRef.current;
+    if (root === null) return;
+    let release: (() => void) | undefined;
+    const update = (): void => {
+      const pending = root.querySelector('[data-preview-ready="false"]');
+      const images = [...root.querySelectorAll('img')];
+      const tiles = [...root.querySelectorAll('[role="option"]')];
+      const ready =
+        tiles.length > 0 &&
+        pending === null &&
+        tiles.every(
+          tile =>
+            tile.querySelector('[data-preview-ready="true"], img') !== null,
+        ) &&
+        images.every(image => image.complete && image.naturalWidth > 0);
+      if (ready && release === undefined) {
+        release = retainShownGrid(serviceId, openItemId);
+      } else if (!ready && release !== undefined) {
+        release();
+        release = undefined;
+      }
+    };
+    const observer = new MutationObserver(update);
+    observer.observe(root, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      attributeFilter: ['data-preview-ready', 'src'],
+    });
+    root.addEventListener('load', update, true);
+    root.addEventListener('error', update, true);
+    update();
+    return () => {
+      observer.disconnect();
+      root.removeEventListener('load', update, true);
+      root.removeEventListener('error', update, true);
+      release?.();
+    };
+  }, [serviceId, openItemId, serviceItem, localItem]);
   const transitionProgress = useSlideTransitionProgress();
   useEffect(() => {
     if (active && liveIndex !== null) {
@@ -149,7 +201,6 @@ export function SlideGrid({
     index: number;
     anchor: MenuAnchor;
   } | null>(null);
-  const keeperRef = useRef<HTMLDivElement>(null);
   const reflowIds = tileReflowIds(tiles ?? [], openItemId ?? '');
   useReflow(keeperRef, {
     ids: reflowIds,
