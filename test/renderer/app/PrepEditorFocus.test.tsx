@@ -529,14 +529,22 @@ it.each(['double-click', 'Enter'] as const)(
     if (path === 'double-click') await userEvent.dblClick(row);
     else await userEvent.keyboard('{Enter}');
     await waitFor(() => expect(document.activeElement).toBe(commandList()));
+    const editor = screen
+      .getAllByLabelText('슬라이드 편집', {selector: 'div'})
+      .find(element => element.closest('[inert]') === null);
+    expect(editor).toBeDefined();
     fireEvent.keyDown(document.body, {key: 'Escape', code: 'Escape'});
     await waitFor(() =>
       expect(
         screen
           .queryAllByLabelText('슬라이드 편집', {selector: 'div'})
-          .filter(editor => editor.closest('[data-held-copy]') === null),
+          .filter(
+            editor => editor.closest('[data-held-copy], [inert]') === null,
+          ),
       ).toHaveLength(0),
     );
+    expect(editor?.isConnected).toBe(true);
+    expect(editor?.closest('[inert]')).not.toBeNull();
     const table = await screen.findByRole('listbox', {name: '예배 순서'});
     expect(document.activeElement).toBe(
       within(table).getByRole('option', {name: /Sermon item/}),

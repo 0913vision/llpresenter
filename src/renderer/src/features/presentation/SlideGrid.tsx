@@ -60,11 +60,21 @@ export function SlideGrid({
   onOpenPrep,
 }: SlideGridProps): JSX.Element {
   const openItemId = useShownItemId();
-  const bibleLookup = useShow(view => isBibleSource(view, openItemId));
+  const currentBibleLookup = useShow(view => isBibleSource(view, openItemId));
+  const [lastBibleLookup, setLastBibleLookup] = useState(currentBibleLookup);
+  if (active && lastBibleLookup !== currentBibleLookup) {
+    setLastBibleLookup(currentBibleLookup);
+  }
+  const bibleLookup = active ? currentBibleLookup : lastBibleLookup;
   const offset = useShow(view =>
     openItemId === null ? null : serviceSlideOffset(view, openItemId),
   );
-  const tiles = useShow(view => shownTilesFor(view, openItemId));
+  const currentTiles = useShow(view => shownTilesFor(view, openItemId));
+  const [lastTiles, setLastTiles] = useState(currentTiles);
+  if (active && currentTiles !== undefined && lastTiles !== currentTiles) {
+    setLastTiles(currentTiles);
+  }
+  const tiles = active ? currentTiles : lastTiles;
   const row = useShow(view => view.rows.find(value => value.id === openItemId));
   const librarySong = useShow(view => view.librarySong);
   const theme = useSlideTheme(
@@ -101,7 +111,15 @@ export function SlideGrid({
       ? sermonPreviewRow(row.id, row.bible.ref)
       : undefined,
   );
-  const bible = useBibleTileProjection({itemId: openItemId, anyItem: true});
+  const currentBible = useBibleTileProjection({
+    itemId: openItemId,
+    anyItem: true,
+  });
+  const [lastBible, setLastBible] = useState(currentBible);
+  if (active && currentBible !== null && lastBible !== currentBible) {
+    setLastBible(currentBible);
+  }
+  const bible = active ? currentBible : lastBible;
   const liveSlide = useLive(view => view.state?.layers.slide ?? null);
   const liveIndex = useShow(view =>
     liveTileIndex({...view, openItemId}, liveSlide),
@@ -110,9 +128,15 @@ export function SlideGrid({
   // pictures, holding the grid as it was; tiles a scroll or resize brings in
   // draw where they show.
   const committedItem = useCommittedShownItem();
-  const switching = active && committedItem !== openItemId;
+  const [localItem, setLocalItem] = useState<string | null | undefined>();
+  if (active && committedItem === openItemId && localItem !== openItemId) {
+    setLocalItem(openItemId);
+  }
+  const switching =
+    active && localItem !== openItemId && committedItem !== openItemId;
   useLayoutEffect(() => {
-    if (active) commitShownItem(openItemId);
+    if (!active) return;
+    commitShownItem(openItemId);
   }, [active, openItemId]);
   const transitionProgress = useSlideTransitionProgress();
   useEffect(() => {

@@ -109,6 +109,34 @@ describe('useShowPanels', () => {
     );
   });
 
+  it('keeps a quick passage panel mounted while another passage is shown', () => {
+    const first = bibleSource(panelPassage());
+    const second = {...first, id: `${first.id}:other`};
+    useShow.setState({bibleSource: first, openItemId: first.id});
+    function Surface() {
+      const result = useShowPanels({
+        active: true,
+        sizeClass: 'normal',
+        onProblem: undefined,
+        onOpenPrep: undefined,
+        onShowInLibrary: undefined,
+        sidebarAction: null,
+      });
+      return <Panel title="슬라이드" parts={result.partsOf('슬라이드')} />;
+    }
+    const view = render(<Surface />);
+    const saved = screen.getByTestId('bible-panel');
+    act(() => useShow.setState({bibleSource: second, openItemId: second.id}));
+    expect(saved.isConnected).toBe(true);
+    expect(saved.closest('[aria-hidden="true"]')).not.toBeNull();
+    act(() => useShow.setState({bibleSource: first, openItemId: first.id}));
+    expect(
+      view.container.querySelector(
+        '[aria-hidden="false"] [data-testid="bible-panel"]',
+      ),
+    ).toBe(saved);
+  });
+
   it('gives the quick panel a new selection version each time a service row opens', () => {
     const result = panels();
     const version = () =>

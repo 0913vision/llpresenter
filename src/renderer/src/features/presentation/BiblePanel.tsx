@@ -18,19 +18,23 @@ import {BibleDisplayControls} from './BibleDisplayControls';
 import styles from './BiblePanel.module.css';
 import {BibleInsertButton} from '../service/items/BibleInsertButton';
 import type {Notice} from '@renderer/ui/notices';
+import type {BibleSource} from '@core/bible/source';
 
 export function BiblePanel({
   sizeClass,
   onProblem,
   active = true,
+  retainedSource,
 }: {
   readonly sizeClass: SizeClass;
   readonly onProblem?: ((notice: Notice) => void) | undefined;
   readonly active?: boolean;
+  readonly retainedSource?: BibleSource;
 }): JSX.Element | null {
   const shownItemId = useShownItemId();
-  const source = useShow(view => bibleSourceFor(view, shownItemId));
-  if (source === null) return null;
+  const current = useShow(view => bibleSourceFor(view, shownItemId));
+  const source = current ?? retainedSource;
+  if (source === undefined) return null;
   return (
     <Panel label="성경" className={styles.panel}>
       <PanelHeader>

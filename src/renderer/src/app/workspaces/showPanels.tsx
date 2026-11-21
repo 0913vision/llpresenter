@@ -19,7 +19,7 @@ import {
   useSettingsDocument,
   type NamedDocument,
 } from '@renderer/platform/useSettingsDocument';
-import {isBibleSource} from '@renderer/session/showLibrary';
+import {bibleSourceFor, isBibleSource} from '@renderer/session/showLibrary';
 import type {Notice} from '@renderer/ui/notices';
 import type {SizeClass} from '@renderer/ui/sizeClass';
 import {
@@ -51,8 +51,15 @@ function ShowSlidesPanel({
 }) {
   const item = useShownItemId();
   const [normal, setNormal] = useState<string | null>(bibleOpen ? null : item);
-  const [bible, setBible] = useState<string | null>(bibleOpen ? item : null);
-  if (bibleOpen && item !== bible) setBible(item);
+  const source = useShow(view => bibleSourceFor(view, item));
+  const [bibles, setBibles] = useState<Array<NonNullable<typeof source>>>([]);
+  if (
+    bibleOpen &&
+    source !== null &&
+    !bibles.some(bible => bible.id === source.id)
+  ) {
+    setBibles([...bibles, source]);
+  }
   if (!bibleOpen && item !== normal) setNormal(item);
   return (
     <>
@@ -80,22 +87,28 @@ function ShowSlidesPanel({
           </section>
         </ShownItemProvider>
       </div>
-      {bible === null ? null : (
+      {bibles.map(bible => (
         <div
+          key={bible.id}
           data-slide-grid-cache
-          aria-hidden={!bibleOpen}
-          inert={!bibleOpen}
-          style={{display: bibleOpen ? 'flex' : 'none', flex: 1, minHeight: 0}}
+          aria-hidden={!bibleOpen || item !== bible.id}
+          inert={!bibleOpen || item !== bible.id}
+          style={{
+            display: bibleOpen && item === bible.id ? 'flex' : 'none',
+            flex: 1,
+            minHeight: 0,
+          }}
         >
-          <ShownItemProvider shownItem={bible} trackLive={false}>
+          <ShownItemProvider shownItem={bible.id} trackLive={false}>
             <BiblePanel
               sizeClass={sizeClass}
               onProblem={onProblem}
-              active={bibleOpen}
+              active={bibleOpen && item === bible.id}
+              retainedSource={bible}
             />
           </ShownItemProvider>
         </div>
-      )}
+      ))}
     </>
   );
 }
