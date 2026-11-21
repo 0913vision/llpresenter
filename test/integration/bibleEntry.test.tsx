@@ -165,6 +165,45 @@ it('navigates recent passages and clears the preparation dialog with Escape', as
   expect(onClose).toHaveBeenCalledOnce();
 });
 
+it.each(['Enter', 'Tab'])(
+  'selects a highlighted book with %s in the passage dialog',
+  async key => {
+    const originalScroll = HTMLElement.prototype.scrollIntoView;
+    HTMLElement.prototype.scrollIntoView = vi.fn();
+    onTestFinished(() => {
+      HTMLElement.prototype.scrollIntoView = originalScroll;
+    });
+    const fixture = panelApi();
+    window.llp = fixture.api;
+    onTestFinished(() => {
+      delete window.llp;
+    });
+    const onChoose = vi.fn();
+    render(
+      <BiblePassageDialog
+        api={fixture.api.bible}
+        translation={lookupRequest().translation}
+        onChoose={onChoose}
+        onClose={vi.fn()}
+      />,
+    );
+    const book = await screen.findByRole<HTMLInputElement>('combobox', {
+      name: '책',
+    });
+    book.focus();
+    fireEvent.change(book, {target: {value: '베'}});
+    fireEvent.keyDown(book, {key: 'ArrowDown'});
+    fireEvent.keyDown(book, {key: 'ArrowDown'});
+    expect(book.getAttribute('aria-activedescendant')).toBeTruthy();
+    fireEvent.keyDown(book, {key});
+    expect(book.value).toBe('베드로후서');
+    expect(document.activeElement).toBe(
+      screen.getByRole('textbox', {name: '장'}),
+    );
+    expect(onChoose).not.toHaveBeenCalled();
+  },
+);
+
 it('cancels a pending typed submission when a recent is picked', async () => {
   const fixture = panelApi();
   window.llp = fixture.api;

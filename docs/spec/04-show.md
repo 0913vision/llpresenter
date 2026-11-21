@@ -927,7 +927,10 @@ name. Chapter and verse bounds always use the built-in GAE number table.
   starting verse, and a chapter with no verse selects the whole chapter. Invalid
   input stays in the field. A complete reference in 책 also submits after
   lookup. IME composition Enter cannot output. Stored references and recent
-  passages retain the full grammar in 02.
+  passages retain the full grammar in 02. When book suggestions are open, arrows
+  move the highlight, Enter or Tab accepts the highlighted book and focuses
+  chapter. Escape closes suggestions; in the passage dialog it also clears the
+  fields, and a second Escape closes the empty dialog.
 - Once a quick passage is resolved, it goes live while the slide grid prepares
   its pictures independently.
 - While a quick Bible passage is live, Escape outside text fields and open menus
@@ -937,13 +940,13 @@ name. Chapter and verse bounds always use the built-in GAE number table.
   book field is followed by chapter, start, and end argument pills, with the
   available ranges shown as placeholders. The header identifies the effective
   translation. Recent passages appear below with translation labels when
-  different from the current translation. Arrow keys highlight a recent while
-  focus remains in the book field; typing clears the highlight. Enter chooses
-  the highlighted recent, otherwise submits the typed reference. Alt+1 through
-  Alt+0 choose the corresponding recent immediately. Escape clears all typed
-  fields, then closes the empty dialog; Backspace in an empty argument returns
-  to the preceding field. Quick selection outputs immediately; preparation
-  continues to the passage-add flow.
+  different from the current translation. With book suggestions closed, arrow
+  keys highlight a recent while focus remains in the book field; typing clears
+  the highlight. Enter chooses the highlighted recent, otherwise submits the
+  typed reference. Alt+1 through Alt+0 choose the corresponding recent
+  immediately. Escape clears all typed fields, then closes the empty dialog;
+  Backspace in an empty argument returns to the preceding field. Quick selection
+  outputs immediately; preparation continues to the passage-add flow.
 
 ### 절 나누기
 

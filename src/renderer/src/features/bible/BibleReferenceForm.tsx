@@ -449,6 +449,18 @@ export function BibleReferenceForm(
       return;
     }
     if (part === 'book') {
+      const highlighted = suggestions[keyboardPointed ?? -1];
+      if (
+        expanded &&
+        !event.repeat &&
+        (event.key === 'Enter' || (event.key === 'Tab' && !event.shiftKey)) &&
+        highlighted?.bookId !== undefined
+      ) {
+        event.preventDefault();
+        event.stopPropagation();
+        chooseSuggestion(highlighted);
+        return;
+      }
       if (
         (event.key === 'Enter' || (event.key === 'Tab' && !event.shiftKey)) &&
         !event.repeat &&

@@ -255,6 +255,27 @@ describe('shared Bible reference form', () => {
     expect(document.activeElement).toBe(view.chapter);
   });
 
+  it('closes quick-field suggestions on Escape without clearing the book', async () => {
+    const view = setup();
+    await view.user.type(view.book, '베');
+    expect(view.book.getAttribute('aria-expanded')).toBe('true');
+    await view.user.keyboard('{Escape}');
+    expect(view.book.getAttribute('aria-expanded')).toBe('false');
+    expect(view.book.value).toBe('베');
+  });
+
+  it.each(['Enter', 'Tab'])(
+    'accepts the highlighted book with %s',
+    async key => {
+      const view = setup();
+      await view.user.type(view.book, '베');
+      await view.user.keyboard(`{ArrowDown}{ArrowDown}{${key}}`);
+      expect(view.book.value).toBe('베드로후서');
+      expect(document.activeElement).toBe(view.chapter);
+      expect(view.onSubmit).not.toHaveBeenCalled();
+    },
+  );
+
   it('gives an exact name priority over an arrow selection on Tab as copible does', async () => {
     const view = setup();
     await view.user.type(view.book, '요');

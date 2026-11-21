@@ -128,6 +128,14 @@ export function PassageDialog({
     ) {
       return;
     }
+    if (
+      event.target instanceof HTMLInputElement &&
+      event.target.dataset.referencePart === 'book' &&
+      event.target.getAttribute('aria-expanded') === 'true' &&
+      ['ArrowDown', 'ArrowUp', 'Enter', 'Tab'].includes(event.key)
+    ) {
+      return;
+    }
     if (event.key === 'Escape') {
       event.preventDefault();
       event.stopPropagation();
