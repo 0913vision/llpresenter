@@ -21,6 +21,7 @@ import {
   type EditHistory,
 } from '@core/bible/split/cutState';
 import {Dialog} from '@renderer/ui/Dialog';
+import {Spinner} from '@renderer/ui/Spinner';
 import type {BibleTextElement} from '@renderer/rendering/bibleMeasure';
 import type {SplitAppearance} from './splitProjection';
 import {SplitSlidePicture} from './SplitSlidePicture';
@@ -88,7 +89,7 @@ export function SplitEditor(props: SplitEditorProps): JSX.Element {
           primary={{label: '확정', disabled: true, onSelect: () => undefined}}
         >
           <div className={styles.pending} role="status" aria-label="AI 준비 중">
-            <span className={styles.spinner} />
+            <Spinner />
           </div>
         </Dialog>
       </div>

@@ -118,20 +118,6 @@
   min-height: 0;
   place-items: center;
 }
-.spinner {
-  --spinner-size: 32px;
-  width: var(--spinner-size);
-  height: var(--spinner-size);
-  border: 3px solid var(--bg-control);
-  border-top-color: var(--accent);
-  border-radius: var(--radius-full);
-  animation: spin 800ms linear infinite;
-}
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
 .previews[data-centered='true'] {
   justify-content: center;
 }

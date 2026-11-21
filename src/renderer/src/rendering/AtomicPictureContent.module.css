@@ -25,3 +25,13 @@
   opacity: 0;
   pointer-events: none;
 }
+
+.loading {
+  position: absolute;
+  top: var(--space-12);
+  right: var(--space-12);
+  display: grid;
+  place-items: center;
+  z-index: 1;
+  pointer-events: none;
+}
