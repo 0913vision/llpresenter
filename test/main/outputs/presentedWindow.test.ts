@@ -103,6 +103,8 @@ vi.mock('@main/outputs/electronWindow', () => ({
 
 const {createPresentedOutputWindow, presentTransition} =
   await import('@main/outputs/presentedWindow');
+const {outputTransitionActive} =
+  await import('@main/outputs/transitionActivity');
 
 const screen: OutputScreen = {
   id: 'main',
@@ -237,7 +239,28 @@ describe('a full screen output drawn by a presenter', () => {
     presentTransition('other', {kind: 'wipe', sec: 2});
     expect(
       child.posted.filter(message => message['type'] === 'transition'),
-    ).toEqual([{type: 'transition', kind: 'wipe', dir: 'right', sec: 2}]);
+    ).toEqual([
+      {type: 'transition', kind: 'wipe', dir: 'right', sec: 2, sequence: 1},
+    ]);
+    handle.destroy();
+  });
+
+  it('keeps picture pacing active until the current transition ends or hides', () => {
+    const {handle} = setup();
+    handle.showFullScreen(monitor, true);
+    const child = spawned();
+    expect(outputTransitionActive()).toBe(false);
+    presentTransition('main', {kind: 'wipe', sec: 4});
+    expect(outputTransitionActive()).toBe(true);
+    presentTransition('main', {kind: 'wipe', sec: 4});
+    child.emitter.emit('message', {type: 'transitioned', sequence: 1});
+    expect(outputTransitionActive()).toBe(true);
+    child.emitter.emit('message', {type: 'transitioned', sequence: 2});
+    expect(outputTransitionActive()).toBe(false);
+    presentTransition('main', {kind: 'wipe', sec: 4});
+    expect(outputTransitionActive()).toBe(true);
+    handle.hide();
+    expect(outputTransitionActive()).toBe(false);
     handle.destroy();
   });
 

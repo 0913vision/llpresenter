@@ -17,6 +17,7 @@ let mirrorInFlight = false;
 let mirrorDue = 0;
 let mirrorDirty = false;
 let mirrorPending = false;
+let transitionSequence = 0;
 
 function post(message) {
   process.parentPort.postMessage(message);
@@ -95,7 +96,13 @@ function tick() {
       const mean =
         intervals.reduce((sum, value) => sum + value, 0) /
         Math.max(1, intervals.length);
-      post({type: 'transitioned', frames: intervals.length, late, mean});
+      post({
+        type: 'transitioned',
+        sequence: transitionSequence,
+        frames: intervals.length,
+        late,
+        mean,
+      });
     }
   } catch (error) {
     fail(error);
@@ -158,6 +165,7 @@ process.parentPort.on('message', event => {
         presenter?.hide();
         break;
       case 'transition':
+        transitionSequence = message.sequence;
         presenter?.transition(message);
         mirrorDirty = true;
         break;

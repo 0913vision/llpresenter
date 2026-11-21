@@ -1,9 +1,11 @@
 import {BrowserWindow} from 'electron';
 import type {PictureRequest} from '@core/schema/picture';
 import {blockNavigation, preloadPath, startLoading} from './page';
+import {outputTransitionActive} from '../outputs/transitionActivity';
 
 const WIDTH = 1920;
 const HEIGHT = 1080;
+const TRANSITION_PAINT_PAUSE_MS = 80;
 
 /** A single offscreen compositor, serialized so captures cannot overlap. */
 export class PicturePainter {
@@ -14,6 +16,11 @@ export class PicturePainter {
 
   paint(request: PictureRequest): Promise<Buffer> {
     const result = this.queue.then(async () => {
+      if (outputTransitionActive()) {
+        await new Promise<void>(resolve => {
+          setTimeout(resolve, TRANSITION_PAINT_PAUSE_MS);
+        });
+      }
       const win = await this.ready();
       const data = JSON.stringify(JSON.stringify(request));
       const contents = win.webContents;

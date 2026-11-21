@@ -24,6 +24,7 @@ import {
 } from './playbackProblems';
 import {OUTPUT_BACKGROUND} from './electronWindow';
 import {publishPresenterMirror, setPresenterMirror} from './presenterMirror';
+import {setTransitionActivity} from './transitionActivity';
 
 const PING_SCRIPT = '0';
 const DEFAULT_SIZE: Size = {width: 1920, height: 1080};
@@ -202,6 +203,8 @@ function createPresenterPart(
   },
 ): PresenterPart {
   let current = screen;
+  const transitionActivity = Symbol();
+  let transitionSequence = 0;
   const win = new BrowserWindow({
     show: false,
     skipTaskbar: true,
@@ -344,7 +347,12 @@ function createPresenterPart(
     );
     worker.on(
       'message',
-      (message: {type: string; message?: string; frame?: unknown}) => {
+      (message: {
+        type: string;
+        message?: string;
+        frame?: unknown;
+        sequence?: number;
+      }) => {
         if (child !== worker) return;
         if (message.type === 'ready') {
           ready = true;
@@ -380,6 +388,9 @@ function createPresenterPart(
           setPresenterMirror(current.id, null);
         }
         if (message.type === 'transitioned') {
+          if (message.sequence === transitionSequence) {
+            setTransitionActivity(transitionActivity, false);
+          }
           log.info('output presenter transition', {
             screen: current.id,
             ...message,
@@ -412,11 +423,15 @@ function createPresenterPart(
   };
   transitionTargets.set(screen.id, effect => {
     if (effect.kind === 'none') return;
+    if (shown !== null && child !== null) {
+      setTransitionActivity(transitionActivity, true);
+    }
     post({
       type: 'transition',
       kind: effect.kind,
       dir: effect.dir ?? 'left',
       sec: effect.sec,
+      sequence: ++transitionSequence,
     });
   });
   void startLoading(win, page).catch((error: unknown) => failWith(error));
@@ -441,6 +456,7 @@ function createPresenterPart(
     },
     hide: () => {
       shown = null;
+      setTransitionActivity(transitionActivity, false);
       setPresenterMirror(current.id, null);
       stopTimer();
       post({type: 'hide'});
@@ -464,6 +480,7 @@ function createPresenterPart(
     destroy: () => {
       if (closed) return;
       closed = true;
+      setTransitionActivity(transitionActivity, false);
       setPresenterMirror(current.id, null);
       stopTimer();
       releaseProblems?.();
