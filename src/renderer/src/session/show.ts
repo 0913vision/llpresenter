@@ -396,6 +396,7 @@ function suppressStageNext(live: TileCursor, next: TileCursor | null): boolean {
     nextRow?.kind === 'bible' || passageKey(nextRow) !== undefined;
   if (
     current?.sermonTitle === true &&
+    next?.itemId === live.itemId &&
     following?.sermonTitle !== true &&
     nextIsPassage
   ) {

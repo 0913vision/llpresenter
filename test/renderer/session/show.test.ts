@@ -637,8 +637,14 @@ describe('show state', () => {
       lines: ['Verse'],
     };
     useShow.setState({
-      rows: [{kind: 'bible', id, title: 'Sermon', sermonTitle: 'Sermon'}],
-      tiles: {[id]: [title, verse, {...verse, lines: ['Second verse']}, title]},
+      rows: [
+        {kind: 'bible', id, title: 'Sermon', sermonTitle: 'Sermon'},
+        {kind: 'bible', id: 'next-passage', title: 'John 3:17'},
+      ],
+      tiles: {
+        [id]: [title, verse, {...verse, lines: ['Second verse']}, title],
+        'next-passage': [{...verse, lines: ['Next passage']}],
+      },
     });
     setAtLastSlide('nextItem');
     outputTile({itemId: id, index: 0});
@@ -650,6 +656,8 @@ describe('show state', () => {
     setLive(id, 2);
     outputNext();
     expect(slides().at(-1)?.slide.position).toBe(3);
+    outputTile({itemId: id, index: 3});
+    expect(slides().at(-1)?.slide.next?.lines).toEqual(['Next passage']);
   });
 
   it.each(['bible', 'slides'] as const)(
