@@ -313,6 +313,20 @@ it('keeps pictures from distinct output screens in separate cache entries', () =
   expect(pictureKey({...spec})).toBe(pictureKey(spec));
 });
 
+it('invalidates a screen picture when its theme layout changes', () => {
+  const changed = {
+    ...spec,
+    appearance: {
+      ...spec.appearance,
+      theme: {
+        ...spec.appearance.theme,
+        layout: {...spec.appearance.theme.layout, background: '#123456'},
+      },
+    },
+  };
+  expect(pictureKey(changed)).not.toBe(pictureKey(spec));
+});
+
 it('invalidates a screen picture when its configured size changes', () => {
   const sized = {
     ...spec,
