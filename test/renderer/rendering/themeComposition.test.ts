@@ -1,6 +1,5 @@
 import {CREED_PRAYER_THEME_ID} from '@core/themes/creedPrayer';
 import {PREPARATION_THEME_ID} from '@core/themes/sundayStandby';
-import {SERMON_TITLE_THEME_ID} from '@core/themes/sundayScripture';
 import {LIGHT_SONG_THEME_ID} from '@core/themes/lightSong';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLayers, type LiveLayers} from '@core/live/state';
@@ -989,11 +988,15 @@ describe('theme composition drawing', () => {
     expect(fixed?.style.opacity).toBe('1');
     view.dispose();
   });
-  it.each(['stage', 'broadcast'] as const)(
-    'draws a centered sermon passage above its title on %s',
-    kind => {
+  it.each([
+    ['audience', 'main'],
+    ['stage', 'stage'],
+    ['broadcast', 'broadcast'],
+  ] as const)(
+    'draws the slide reference above its sermon title on %s',
+    (kind, id) => {
       const {root, view} = setup();
-      const screenId = createScreenId(STARTER_SCREEN_IDS[kind]);
+      const screenId = createScreenId(STARTER_SCREEN_IDS[id]);
       const theme = createDefaultThemes().themes.find(
         entry => entry.name === '설교 제목',
       );
@@ -1006,20 +1009,27 @@ describe('theme composition drawing', () => {
         layout,
         item: {
           id: 'invented',
-          kind: 'blank',
+          kind: 'bible',
           source: 'service',
-          title: '마태복음 11:29~30',
+          title: 'A different item name',
         },
       });
       view.render(
         {
           ...song,
-          slide: {...song.slide, label: null, lines: ['동행의 열매 : 온유']},
+          slide: {
+            ...song.slide,
+            label: null,
+            kind: 'bible',
+            sermonTitle: true,
+            reference: '마태복음 11:29~30',
+            lines: ['동행의 열매 : 온유'],
+          },
         },
         {...active, screen: {id: screenId, kind}, transitions: false},
       );
       expect(
-        root.querySelector(`[data-kind="itemName"] .${classes.shown}`)
+        root.querySelector(`[data-kind="reference"] .${classes.shown}`)
           ?.textContent,
       ).toBe('마태복음 11:29~30');
       expect(
@@ -1039,7 +1049,6 @@ describe('theme composition drawing', () => {
     [CREED_PRAYER_THEME_ID, 'stage'],
     [CREED_PRAYER_THEME_ID, 'broadcast'],
     [PREPARATION_THEME_ID, 'broadcast'],
-    [SERMON_TITLE_THEME_ID, 'stage'],
   ] as const)('shows Bible references in theme %s on %s', (id, kind) => {
     const {view, text} = setup();
     const screenId = createScreenId(STARTER_SCREEN_IDS[kind]);
@@ -1099,9 +1108,16 @@ describe('theme composition drawing', () => {
     }
     expect(title.text.align).toBe('left');
     expect(title.frame.x).toBe(bible.frame.x);
-    const active = frame(layout.elements, {
+    const customLayout = {
+      ...layout,
+      elements: [
+        ...layout.elements,
+        {...themeElementBase(987), kind: 'itemName' as const},
+      ],
+    };
+    const active = frame(customLayout.elements, {
       themeId: theme.id,
-      layout,
+      layout: customLayout,
       item: {
         id: 'invented',
         kind: 'bible',
@@ -1122,12 +1138,8 @@ describe('theme composition drawing', () => {
       {...active, screen: {id: screenId, kind: 'stage'}, transitions: false},
     );
     expect(
-      root.querySelector(`[data-kind="itemName"] .${classes.shown}`)
-        ?.textContent,
-    ).toBe('Matthew 11:29');
-    expect(
       root.querySelector(`[data-kind="reference"] .${classes.shown}`)
-        ?.textContent ?? '',
+        ?.textContent,
     ).toBe('Matthew 11:29');
     expect(
       root.querySelector(`[data-kind="currentText"] .${classes.shown}`)

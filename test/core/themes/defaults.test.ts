@@ -347,7 +347,11 @@ it('offers one sermon title theme with automatic bars', () => {
     {kind: 'image', mediaId: SUNDAY_PICTURE_IDS.scripture},
     {kind: 'box', follow: {side: 'above', gap: 98.55}},
     {kind: 'box', follow: {side: 'below', gap: 98.55}},
-    {kind: 'itemName', stack: {group: 'sermon-title', center: 540}},
+    {
+      kind: 'reference',
+      source: 'slide',
+      stack: {group: 'sermon-title', center: 540},
+    },
     {
       kind: 'currentText',
       stack: {group: 'sermon-title', center: 540},
@@ -358,7 +362,12 @@ it('offers one sermon title theme with automatic bars', () => {
     theme?.screens[createScreenId(STARTER_SCREEN_IDS.broadcast)];
   expect(broadcast?.elements).toMatchObject([
     {kind: 'box', frame: {y: 748, h: 242}, box: {fill: '#000000', opacity: 88}},
-    {kind: 'itemName', frame: {y: 781}, text: {size: 38, align: 'center'}},
+    {
+      kind: 'reference',
+      source: 'slide',
+      frame: {y: 781},
+      text: {size: 38, align: 'center'},
+    },
     {kind: 'currentText', text: {size: 64, align: 'center'}},
   ]);
   const stage = theme?.screens[createScreenId(STARTER_SCREEN_IDS.stage)];
@@ -366,7 +375,7 @@ it('offers one sermon title theme with automatic bars', () => {
     true,
   );
   expect(
-    stage?.elements.find(element => element.kind === 'itemName'),
+    stage?.elements.find(element => element.kind === 'reference'),
   ).toMatchObject({
     frame: {x: 154, y: 245, h: 90},
     text: {size: 52, align: 'left'},
@@ -374,8 +383,8 @@ it('offers one sermon title theme with automatic bars', () => {
   expect(
     stage?.elements.find(element => element.kind === 'currentText'),
   ).toMatchObject({
-    frame: {x: 154, y: 345},
-    text: {size: 83, align: 'left', maxLines: 4},
+    frame: {x: 154, y: 345, h: 340},
+    text: {size: 140, align: 'left', maxLines: 2},
   });
   expect(stage?.elements.filter(element => element.kind === 'clock')).toEqual(
     builtInTheme('bible').screens[
@@ -680,12 +689,12 @@ it('uses the stage clock and next preview geometry across built-in themes', () =
   }
 });
 
-it('limits current text to 120 px in every built-in stage layout', () => {
+it('limits current text to 140 px in every built-in stage layout', () => {
   const stage = createScreenId(STARTER_SCREEN_IDS.stage);
   for (const theme of createDefaultThemes().themes) {
     for (const element of theme.screens[stage]?.elements ?? []) {
       if (element.kind === 'currentText') {
-        expect(element.text.size).toBeLessThanOrEqual(120);
+        expect(element.text.size).toBeLessThanOrEqual(140);
       }
     }
   }

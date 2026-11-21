@@ -586,16 +586,17 @@ as every settings file does (02).
   retain the 말씀 layouts. Adding a prayer installs this theme if an older
   catalog lacks it, without replacing saved themes. Its background ID always
   resolves to the bundled 말씀 asset.
-- The sermon title theme is an additional theme, not a kind default. Set the
-  blank slide item name to the passage range and the slide text to the title.
-  Audience bars follow the visible letter ink with equal gaps above and below;
-  titles wrap automatically to at most two lines, retaining 162 px between the
-  reference and title first-line centers. The reference uses KoPubWorldDotum
-  Medium 86 px and the title Bold 140 px. 방송 uses the section-card black
-  gradient band, expanded upward for two centered lines: the smaller passage
-  above the larger sermon title. 무대 left-aligns the smaller passage above the
-  title at the Bible text edge, with sizes 52 px and 83 px, and retains its
-  clock and next-slide areas. Saved sermon screens are used as stored.
+- The sermon title theme is an additional theme, not a kind default. The
+  reference box shows the slide passage range and the slide text shows the
+  title. Audience bars follow the visible letter ink with equal gaps above and
+  below; titles wrap automatically to at most two lines, retaining 162 px
+  between the reference and title first-line centers. The reference uses
+  KoPubWorldDotum Medium 86 px and the title Bold 140 px. 방송 uses the
+  section-card black gradient band, expanded upward for two centered lines: the
+  smaller passage above the larger sermon title. 무대 left-aligns the smaller
+  passage above the title at the Bible text edge, with sizes 52 px and 140 px,
+  and retains its clock and next-slide areas. Saved sermon screens are used as
+  stored.
 - `defaults.blank` selects 말씀 and `defaults.ad` selects 광고 in a new
   `themes.json`. Both can be changed like the other kind defaults.
 - On 청중 화면 the 광고 theme uses a shipped 1920 x 1080 blue-purple picture and
@@ -876,9 +877,9 @@ The deleted choice is disabled; selecting another theme replaces the reference.
 At the limit, deletion is refused rather than losing a saved appearance. The
 default sermon title stage, creed and prayer stage and broadcast, and
 preparation broadcast layouts retain reference elements for Bible items. The
-sermon title stage hides the reference on title slides, and these layouts hide
-it for non-Bible content. The theme editor previews dynamic elements with
-representative content; the reference source preview distinguishes the current
-verse from the item range. Empty media and overlay slots show separate
-editor-only placeholders. Reference source remains editable on section themes,
-which can also be applied to Bible items.
+sermon title layouts show the slide passage reference on title slides; these
+layouts hide references for non-Bible content. The theme editor previews dynamic
+elements with representative content; the reference source preview distinguishes
+the current verse from the item range. Empty media and overlay slots show
+separate editor-only placeholders. Reference source remains editable on section
+themes, which can also be applied to Bible items.

@@ -110,7 +110,8 @@ export function sermonTitleLayout(): ThemeScreenLayout {
       })),
       {
         id: id(8),
-        kind: 'itemName',
+        kind: 'reference',
+        source: 'slide',
         stack,
         frame: {x: 260, y: 356, w: 1400, h: 150},
         text: {
@@ -158,7 +159,8 @@ export function sermonTitleBroadcastLayout(): ThemeScreenLayout {
       },
       {
         id: id(13),
-        kind: 'itemName',
+        kind: 'reference',
+        source: 'slide',
         frame: {x: 160, y: 781, w: 1600, h: 42},
         text: {
           ...text,
@@ -194,24 +196,13 @@ export function sermonTitleStageLayout(
   return {
     ...base,
     elements: base.elements.flatMap((element): ThemeElement[] => {
-      if (element.kind === 'reference') {
-        return [
-          {
-            ...element,
-            text: {
-              ...element.text,
-              font: text.font,
-              weight: text.weight,
-              size: 51,
-            },
-          },
-        ];
-      }
+      if (element.kind === 'reference') return [];
       if (element.kind !== 'currentText') return [element];
       return [
         {
           id: id(13),
-          kind: 'itemName' as const,
+          kind: 'reference' as const,
+          source: 'slide' as const,
           frame: {x: 154, y: 245, w: 1612, h: 90},
           text: {
             ...text,
@@ -224,10 +215,11 @@ export function sermonTitleStageLayout(
         },
         {
           ...element,
-          frame: {...element.frame, y: 345, h: 330},
+          frame: {...element.frame, y: 345, h: 340},
           text: {
             ...element.text,
-            size: 83,
+            size: 140,
+            maxLines: 2,
             align: 'left' as const,
             vAlign: 'top' as const,
           },
