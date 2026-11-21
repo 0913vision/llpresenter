@@ -112,6 +112,7 @@ export function SlidesCanvas({
   projection,
   part,
   outputSlide,
+  eager = false,
 }: {
   readonly item: SlidesItem;
   readonly index: number;
@@ -119,6 +120,7 @@ export function SlidesCanvas({
   readonly projection?: BibleProjection | null;
   readonly part?: number;
   readonly outputSlide?: import('@core/live/state').SlideLayer | null;
+  readonly eager?: boolean;
 }): JSX.Element {
   const spec = useMemo(
     () =>
@@ -157,7 +159,7 @@ export function SlidesCanvas({
       className={styles.canvas}
       data-preview-ready={visible ? undefined : 'deferred'}
     >
-      {visible || switching === true ? (
+      {eager || visible || switching === true ? (
         <Picture wait={switching === true} {...spec} />
       ) : null}
     </div>

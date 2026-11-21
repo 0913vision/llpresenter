@@ -143,6 +143,103 @@ export function previewAppearance({
   };
 }
 
+/** Resolve the complete configured screen set once for local pictures. */
+export function previewAppearances({
+  themes,
+  screens,
+  item,
+  stageLyricLabelPosition,
+}: {
+  readonly themes: ThemesFile | undefined;
+  readonly screens: ScreensFile | undefined;
+  readonly item: LiveThemeItem;
+  readonly stageLyricLabelPosition?: StageLyricLabelPosition | undefined;
+}) {
+  const targets = screens?.screens ?? [];
+  const output = resolveThemeOutput({
+    file: themes ?? null,
+    screens: targets,
+    item,
+    revision: 0,
+  });
+  const audienceTarget = targets.find(screen => screen.kind === 'audience');
+  const audienceComposition =
+    audienceTarget === undefined
+      ? undefined
+      : output.screens[audienceTarget.id];
+  const audienceScreen =
+    audienceTarget === undefined
+      ? undefined
+      : resolveRenderScreen(audienceTarget.id, targets);
+  const audience =
+    audienceComposition === undefined || audienceScreen === undefined
+      ? undefined
+      : {
+          screen: audienceScreen,
+          theme: {
+            ...audienceComposition,
+            themeId: output.themeId,
+            revision: output.revision,
+            missing: output.missing,
+            item,
+          },
+        };
+  const deleted = themes?.deletedThemes?.find(
+    entry => entry.id === output.themeId,
+  );
+  const themeName =
+    themes?.standby.id === output.themeId
+      ? themes.standby.name
+      : themes?.themes.find(entry => entry.id === output.themeId)?.name;
+  const label =
+    deleted !== undefined
+      ? `(${deleted.name})`
+      : themeName === undefined
+        ? item.kind === 'bible' || item.kind === 'blank'
+          ? '말씀'
+          : item.kind === 'ad'
+            ? '광고'
+            : item.kind === 'media'
+              ? '영상'
+              : '찬양'
+        : themeName || '이름 없는 테마';
+  return new Map(
+    targets.flatMap(target => {
+      const composition = output.screens[target.id];
+      const screen = resolveRenderScreen(target.id, targets);
+      if (composition === undefined || screen === undefined) return [];
+      const theme = {
+        ...composition,
+        themeId: output.themeId,
+        revision: output.revision,
+        missing: output.missing,
+        item,
+      };
+      return [
+        [
+          target.id,
+          {
+            screen,
+            theme,
+            ...(target.kind === 'stage' && audience !== undefined
+              ? {audience}
+              : {}),
+            ...(target.kind === 'stage' && stageLyricLabelPosition !== undefined
+              ? {stageLyricLabelPosition}
+              : {}),
+            themeName: label,
+            background: themeBackgroundColor(
+              composition.layout.background,
+              composition.emptyColor,
+            ),
+            checker: false,
+          },
+        ] as const,
+      ];
+    }),
+  );
+}
+
 /** A local selected song picture; no service selection or output command. */
 export function selectedPreview(
   song: Song,

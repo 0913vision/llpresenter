@@ -24,7 +24,12 @@ import {newLiturgyItem} from '@core/services/liturgy';
 import {isItemOfKind} from '@core/schema/service';
 
 const showTiles = vi.hoisted(() => {
-  const value: Array<{label: null; labelColor: string; lines: string[]}> = [];
+  const value: Array<{
+    label: null;
+    labelColor: string;
+    lines: string[];
+    textOverrides?: {itemName: string};
+  }> = [];
   return {value};
 });
 vi.mock('@renderer/session/show', () => ({useShow: () => showTiles.value}));
@@ -92,7 +97,11 @@ vi.mock('@renderer/rendering/SlidePicture', () => ({
     mediaOnly,
     background,
   }: {
-    slide: {label: string; sectionCard?: unknown};
+    slide: {
+      label: string;
+      sectionCard?: unknown;
+      textOverrides?: {itemName?: string};
+    };
     mediaOnly?: boolean;
     background?: string;
   }) => {
@@ -109,6 +118,8 @@ vi.mock('@renderer/rendering/SlidePicture', () => ({
         data-testid={
           slide.sectionCard === undefined ? 'bible-picture' : 'card-picture'
         }
+        data-caption={slide.textOverrides?.itemName}
+        data-media-only={String(mediaOnly ?? false)}
       >
         {slide.label}
       </div>
@@ -635,6 +646,31 @@ it('replays a song card transition through draft history from a focused inspecto
       'dissolve',
     );
   } finally {
+    view.unmount();
+    items.dispose();
+    await editor.dispose();
+  }
+});
+
+it('keeps saved caption overrides on media previews', async () => {
+  showTiles.value = [
+    {
+      label: null,
+      labelColor: 'none',
+      lines: [],
+      textOverrides: {itemName: 'Saved caption'},
+    },
+  ];
+  const {view, items, editor} = await setup('image');
+  try {
+    const pictures = await screen.findAllByTestId('bible-picture');
+    expect(pictures).toHaveLength(3);
+    for (const picture of pictures) {
+      expect(picture.getAttribute('data-caption')).toBe('Saved caption');
+      expect(picture.getAttribute('data-media-only')).toBe('false');
+    }
+  } finally {
+    showTiles.value = [];
     view.unmount();
     items.dispose();
     await editor.dispose();

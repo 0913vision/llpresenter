@@ -75,6 +75,10 @@ export function useItemTheme(
         });
   return {
     file,
+    screensFile:
+      screens.document?.name === 'screens' ? screens.document.value : undefined,
+    screensLoaded: screens.document !== null,
+    screensFailed: screens.failed,
     kind,
     theme,
     defaultTheme,

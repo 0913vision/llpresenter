@@ -10,7 +10,7 @@ import type {SlideTransition} from '@core/schema/slideTransition';
 import {editorTask} from '@renderer/features/songs/editor/editorTask';
 import {inspectorTransition} from './TransitionSection';
 import {cardOffset, hasSectionCard} from '@core/services/sectionCards';
-import {slideLayerOf} from '@core/presentation/slideLayer';
+import {mediaTextSlideOf, slideLayerOf} from '@core/presentation/slideLayer';
 import {useShow} from '@renderer/session/show';
 import {useBibleTileProjection} from '@renderer/features/bible/useBibleProjections';
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
@@ -33,16 +33,14 @@ import {savedItemTiles, savedPassageTiles} from '../items/bibleItemModel';
 import type {ServiceItemStore} from '../items/serviceItemStore';
 import styles from './SlideInspector.module.css';
 import {RolePreview} from '@renderer/features/songs/editor/RolePreview';
-import {
-  PREVIEW_ROLES,
-  previewAppearance,
-  type PreviewRole,
-} from '@renderer/features/songs/editor/songPreviewModel';
+import {usePreviewTargets} from './usePreviewTargets';
+import type {Screen} from '@core/schema/screens';
+import {previewAppearance} from '@renderer/features/songs/editor/songPreviewModel';
 import {withPreferenceDefaults} from '@core/schema/preferences';
 
 function OtherRolePicture({
   mode,
-  role,
+  screen,
   item,
   card,
   liturgy,
@@ -50,11 +48,13 @@ function OtherRolePicture({
   layer,
   tile,
   file,
+  mediaSlide,
   editor,
   baseAppearance,
 }: {
   readonly mode: 'file' | 'card' | 'liturgy' | 'bible';
-  readonly role: PreviewRole;
+  readonly screen: Screen;
+  readonly mediaSlide: ReturnType<typeof mediaTextSlideOf>;
   readonly item: NonNullable<
     ReturnType<ServiceItemStore['getSnapshot']>['item']
   >;
@@ -70,6 +70,8 @@ function OtherRolePicture({
     ReturnType<typeof useBibleTileProjection>
   >['appearance'];
 }): JSX.Element {
+  const role = screen.kind;
+  const screenId = screen.id;
   const themes = useItemSettings(editor.api.settings, 'themes');
   const screens = useItemSettings(editor.api.settings, 'screens');
   const preferences = useItemSettings(
@@ -88,7 +90,7 @@ function OtherRolePicture({
           theme: card.theme,
         },
     'service',
-    {role},
+    {role, screenId},
   );
   const liturgyTheme = useSlideTheme(
     liturgy === null
@@ -101,14 +103,14 @@ function OtherRolePicture({
           theme: liturgy.theme ?? CREED_PRAYER_THEME_ID,
         },
     'service',
-    {role},
+    {role, screenId},
   );
   const sermonTheme = useSlideTheme(
     isItemOfKind(item, 'sermon')
       ? sermonPreviewRow(item.id, item.sermon.passage.ref)
       : undefined,
     'service',
-    {role},
+    {role, screenId},
   );
   const mediaTheme = useSlideTheme(
     isItemOfKind(item, 'media')
@@ -120,7 +122,7 @@ function OtherRolePicture({
         }
       : undefined,
     'service',
-    {role},
+    {role, screenId},
   );
   const baseItem = baseAppearance?.theme.item;
   const appearance =
@@ -128,6 +130,7 @@ function OtherRolePicture({
       ? undefined
       : previewAppearance({
           role,
+          screenId,
           themes:
             themes.document?.name === 'themes'
               ? themes.document.value
@@ -156,9 +159,9 @@ function OtherRolePicture({
     picture = (
       <SlidePicture
         {...mediaTheme}
-        mediaOnly
+        mediaOnly={mediaSlide.textOverrides === undefined}
         background={file.id}
-        slide={{itemId: item.id, position: 0, label: null, lines: []}}
+        slide={mediaSlide}
       />
     );
   } else if (mode === 'card' && card !== undefined && cardTheme !== undefined) {
@@ -218,7 +221,8 @@ export function OtherSlideInspector({
   readonly editor: SongEditorStore;
   readonly shownItem?: ReturnType<ServiceItemStore['getSnapshot']> | undefined;
 }): JSX.Element {
-  const [big, setBig] = useState<PreviewRole>('audience');
+  const [big, setBig] = useState<string | null>(null);
+  const targets = usePreviewTargets(editor.api);
   const current = useSyncExternalStore(items.subscribe, items.getSnapshot);
   const editorState = useSyncExternalStore(
     editor.subscribe,
@@ -257,6 +261,13 @@ export function OtherSlideInspector({
       index <
         LITURGY_SLIDES[liturgy.liturgy.kind][liturgy.liturgy.translation]
           .length,
+  );
+  const mediaTiles = useShow(view =>
+    item === null ? undefined : view.tiles[item.id],
+  );
+  const mediaSlide = mediaTextSlideOf(
+    {itemId: item?.id ?? 'preview', index: position},
+    () => mediaTiles ?? [],
   );
   const liturgyTiles = useShow(view =>
     liturgy === null ? undefined : view.tiles[liturgy.id],
@@ -642,13 +653,14 @@ export function OtherSlideInspector({
   ): JSX.Element | null =>
     item === null ? null : (
       <RolePreview
+        screens={targets.screens}
         big={big}
         onBigChange={setBig}
         naturalHeight
-        renderRole={role => (
+        renderScreen={screen => (
           <OtherRolePicture
             mode={mode}
-            role={role}
+            screen={screen}
             item={item}
             card={card}
             liturgy={liturgy}
@@ -656,19 +668,18 @@ export function OtherSlideInspector({
             layer={layer}
             tile={tile}
             file={file}
+            mediaSlide={mediaSlide}
             editor={editor}
             baseAppearance={appearance}
           />
         )}
-        caption={role =>
-          PREVIEW_ROLES.find(entry => entry.value === role)?.label
-        }
       />
     );
   return (
     <SlideInspectorView
       identity={`${item?.id ?? 'none'}:${position}:${bibleSelection.join(',')}:${cardSelected}`}
       pending={
+        targets.loading ||
         (item !== null &&
           isItemOfKind(item, 'media') &&
           media.document === null &&
@@ -679,8 +690,8 @@ export function OtherSlideInspector({
           (liturgyLayer === null || liturgyTheme === undefined)) ||
         (tile !== undefined && (layer === null || appearance === undefined))
       }
-      waitForPicture={pictureCount > 0}
-      pictureCount={pictureCount * 3}
+      waitForPicture={pictureCount > 0 && targets.screens.length > 0}
+      pictureCount={pictureCount * targets.screens.length}
       preview={
         <>
           {file === undefined || file.kind === 'audio' ? null : (

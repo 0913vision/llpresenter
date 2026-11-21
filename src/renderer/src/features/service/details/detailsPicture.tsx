@@ -4,7 +4,6 @@ import {
   isItemOfKind,
   type SectionCard,
   type ServiceItem,
-  type ServiceItemOf,
 } from '@core/schema/service';
 import type {ShowLibrarySong} from '@core/schema/showLibrarySong';
 import type {ShowTile} from '@core/schema/showService';
@@ -13,7 +12,7 @@ import type {SongEditorStore} from '@renderer/features/songs/editor';
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
 import {songItemBackground} from '@core/songs/songBackground';
 import {useBibleTileProjection} from '@renderer/features/bible/useBibleProjections';
-import {mediaTextSlide, slideLayerOf} from '@core/presentation/slideLayer';
+import {mediaTextSlideOf, slideLayerOf} from '@core/presentation/slideLayer';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
 import {
   biblePictureInput,
@@ -21,7 +20,7 @@ import {
   songPictureLayer,
 } from '@renderer/rendering/pictureSpec';
 import {stageSlideOf} from '@renderer/session/show';
-import {SlidesCanvas, useSlidesAppearance} from '../slides/SlidesVisuals';
+import {SlidesCanvas} from '../slides/SlidesVisuals';
 import type {useItemSlides} from '../items/useItemSlides';
 import type {
   PreviewRole,
@@ -29,6 +28,7 @@ import type {
 } from '@renderer/features/songs/editor/songPreviewModel';
 
 interface PictureContext {
+  readonly eager?: boolean;
   readonly item: ServiceItem | null;
   readonly library: ShowLibrarySong | null;
   readonly song: SongSession | null;
@@ -37,6 +37,7 @@ interface PictureContext {
   readonly role: PreviewRole;
   readonly screenId: string | undefined;
   readonly bibleAppearance: ReturnType<typeof previewAppearance> | undefined;
+  readonly slidesAppearance: ReturnType<typeof previewAppearance> | undefined;
   readonly card: SectionCard | undefined;
   readonly offset: number;
   readonly theme: ReturnType<typeof useSlideTheme>;
@@ -182,8 +183,9 @@ function mediaPicture(
     () => projectedTiles ?? [],
   );
   if (projected === null && raw[index] === undefined) return undefined;
-  const slide = mediaTextSlide(
-    projected ?? {itemId: item.id, position: index, label: null, lines: []},
+  const slide = mediaTextSlideOf(
+    {itemId: item.id, index},
+    () => projectedTiles ?? [],
   );
   return (
     <SlidePicture
@@ -222,63 +224,31 @@ function fallbackBiblePicture(
   );
 }
 
-function SlidesPicture({
-  item,
-  editor,
-  index,
-  role,
-  screenId,
-  outputSlide,
-}: {
-  readonly item: ServiceItemOf<'slides'>;
-  readonly editor: SongEditorStore;
-  readonly index: number;
-  readonly role: PreviewRole;
-  readonly screenId: string | undefined;
-  readonly outputSlide: ReturnType<typeof stageSlideOf>;
-}): JSX.Element {
-  const {appearance, ready} = useSlidesAppearance(editor.api, item, {
-    role,
-    screenId,
-  });
-  if (!ready) return <></>;
-  return (
-    <SlidesCanvas
-      item={item}
-      index={index}
-      appearance={appearance}
-      outputSlide={outputSlide}
-    />
-  );
-}
-
 /** Draw only this picture, with the selected source's own slide data. */
 export function detailsPicture(
   context: PictureContext,
   index: number,
 ): JSX.Element | undefined {
-  const {item, card, offset, editor, role, screenId} = context;
+  const {item, card, offset, slidesAppearance, eager} = context;
   if (card !== undefined && index === 0) return cardPicture(context);
   if (item !== null && isItemOfKind(item, 'liturgy')) {
-    return (
-      <SlidesPicture
+    return slidesAppearance === undefined ? undefined : (
+      <SlidesCanvas
+        eager={eager === true}
         item={liturgyAsSlides(item)}
-        editor={editor}
         index={index - offset}
-        role={role}
-        screenId={screenId}
+        appearance={slidesAppearance}
         outputSlide={stageSlideOf({itemId: item.id, index})}
       />
     );
   }
   if (item !== null && isItemOfKind(item, 'slides')) {
-    return (
-      <SlidesPicture
+    return slidesAppearance === undefined ? undefined : (
+      <SlidesCanvas
+        eager={eager === true}
         item={item}
-        editor={editor}
         index={index - offset}
-        role={role}
-        screenId={screenId}
+        appearance={slidesAppearance}
         outputSlide={stageSlideOf({itemId: item.id, index})}
       />
     );

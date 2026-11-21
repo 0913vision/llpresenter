@@ -7,6 +7,7 @@ import {songItemBackground} from '@core/songs/songBackground';
 export function useSongSlideAppearance(
   session: SongSession,
   role?: 'audience' | 'stage' | 'broadcast',
+  screenId?: string,
 ) {
   const song = session.history.snapshot.song;
   const row = useShow(view => view.rows.find(entry => entry.id === song.id));
@@ -21,7 +22,10 @@ export function useSongSlideAppearance(
           ...(song.theme === undefined ? {} : {theme: song.theme}),
         },
     session.itemSession || song.theme !== undefined ? 'service' : 'external',
-    role === undefined ? {} : {role},
+    {
+      ...(role === undefined ? {} : {role}),
+      ...(screenId === undefined ? {} : {screenId}),
+    },
   );
   return theme === undefined
     ? undefined

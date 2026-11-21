@@ -15,17 +15,15 @@ import {inspectorTransition, useTransitionSelection} from './TransitionSection';
 import type {SongEditorStore} from '@renderer/features/songs/editor/songEditorStore';
 import styles from './SlideInspector.module.css';
 import {RolePreview} from '@renderer/features/songs/editor/RolePreview';
-import {
-  PREVIEW_ROLES,
-  type PreviewRole,
-} from '@renderer/features/songs/editor/songPreviewModel';
+import {usePreviewTargets} from './usePreviewTargets';
+import type {Screen} from '@core/schema/screens';
 
 function SlidesRolePicture({
   api,
   item,
   index,
   projection,
-  role,
+  screen,
 }: {
   readonly api: LlpApi;
   readonly item: Parameters<typeof useSlidesAppearance>[1];
@@ -33,13 +31,17 @@ function SlidesRolePicture({
   readonly projection: ReturnType<
     typeof useSlidesVerseProjection
   >['projection'];
-  readonly role: PreviewRole;
+  readonly screen: Screen;
 }): JSX.Element {
-  const {appearance} = useSlidesAppearance(api, item, {role});
+  const {appearance} = useSlidesAppearance(api, item, {
+    role: screen.kind,
+    screenId: screen.id,
+  });
   return (
     <div className={styles.picture} data-background-picture>
       <SlidesCanvas
-        key={`${item.id}:${index}:${role}`}
+        eager
+        key={`${item.id}:${index}:${screen.id}`}
         item={item}
         index={index}
         appearance={appearance}
@@ -71,7 +73,8 @@ export function SlidesInspector({
   const item = useSlidesItemWithBackground(draftItem);
   const media = useItemMedia(api.media).document?.value.items ?? [];
   const {ready} = useSlidesAppearance(api, item);
-  const [big, setBig] = useState<PreviewRole>('audience');
+  const [big, setBig] = useState<string | null>(null);
+  const targets = usePreviewTargets(api);
   const {projection} = useSlidesVerseProjection(api, item);
   const slide = view.slides[selected];
   const card = cardSelected ? draftItem.sectionCard : undefined;
@@ -166,27 +169,25 @@ export function SlidesInspector({
   return (
     <SlideInspectorView
       identity={`${item.id}:${selected}:${selectedSlides.map(entry => entry.id).join(',')}:${cardSelected}`}
-      pending={!ready}
-      waitForPicture
-      pictureCount={3}
+      pending={!ready || targets.loading}
+      waitForPicture={targets.screens.length > 0}
+      pictureCount={targets.screens.length}
       preview={
         <>
           <RolePreview
+            screens={targets.screens}
             big={big}
             onBigChange={setBig}
             naturalHeight
-            renderRole={role => (
+            renderScreen={screen => (
               <SlidesRolePicture
                 api={api}
                 item={item}
                 index={selected}
                 projection={projection}
-                role={role}
+                screen={screen}
               />
             )}
-            caption={role =>
-              PREVIEW_ROLES.find(entry => entry.value === role)?.label
-            }
           />
           <div className={styles.caption}>
             {slideBand(slide, media)}

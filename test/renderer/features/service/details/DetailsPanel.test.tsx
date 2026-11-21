@@ -29,9 +29,11 @@ vi.mock(
 const readiness = vi.hoisted<{
   hold: boolean;
   release: (() => void) | undefined;
+  releases: Array<() => void>;
 }>(() => ({
   hold: false,
   release: undefined,
+  releases: [],
 }));
 
 vi.mock('@renderer/rendering/SlidePicture', () => ({
@@ -46,7 +48,11 @@ vi.mock('@renderer/rendering/SlidePicture', () => ({
     const source = useRef({});
     useLayoutEffect(() => {
       if (readiness.hold && ready !== null) {
-        readiness.release = () => ready(source.current);
+        const release = () => ready(source.current);
+        readiness.releases.push(release);
+        readiness.release = () => {
+          for (const each of readiness.releases.splice(0)) each();
+        };
       } else ready?.(source.current);
     }, [ready]);
     return (
@@ -70,6 +76,7 @@ vi.mock('@renderer/rendering/outputRenderer', () => ({
 afterEach(() => {
   readiness.hold = false;
   readiness.release = undefined;
+  readiness.releases = [];
   useShow.setState({serviceId: null, openItemId: null, tiles: {}});
 });
 
@@ -97,6 +104,10 @@ it('keeps the previous picture and properties until the next picture is ready', 
     const visible = screen.getByRole('region', {name: '세부정보'});
     expect(within(visible).getAllByTestId('picture')[0]).toBe(picture);
     expect(picture.closest('[inert]')).not.toBeNull();
+    const pending = [...readiness.releases];
+    expect(pending.length).toBeGreaterThan(1);
+    act(() => pending[0]?.());
+    expect(within(visible).getAllByTestId('picture')[0]).toBe(picture);
     act(() => readiness.release?.());
     expect(
       within(screen.getByRole('region', {name: '세부정보'})).getAllByTestId(
@@ -174,14 +185,25 @@ it('switches the prepared picture to the chosen output screen', async () => {
         .map(picture => picture.getAttribute('data-screen'))
         .sort(),
     ).toEqual(['audience', 'broadcast', 'stage']);
+    const before = [...document.querySelectorAll('[data-screen]')];
     await userEvent.click(
       await screen.findByRole('button', {name: /broadcast/}),
     );
+    expect([...document.querySelectorAll('[data-screen]')]).toEqual(before);
     expect(
       document
         .querySelector('[data-role="large"] [data-testid="picture"]')
         ?.getAttribute('data-screen'),
     ).toBe('broadcast');
+    await userEvent.click(screen.getByRole('radio', {name: '한 화면'}));
+    act(() => items.selectPosition(1));
+    await waitFor(() =>
+      expect(
+        screen
+          .getByRole('radio', {name: '한 화면'})
+          .getAttribute('aria-checked'),
+      ).toBe('true'),
+    );
   } finally {
     view.unmount();
     items.dispose();
@@ -879,5 +901,41 @@ it('does not report a failed library request after the target changes', async ()
     view.unmount();
     items.dispose();
     await editor.dispose();
+  }
+});
+
+it('shows a fallback picture when screen settings cannot be loaded', async () => {
+  const f = itemFixture();
+  const get = f.api.settings.get.bind(f.api.settings);
+  vi.spyOn(f.api.settings, 'get').mockImplementation(request =>
+    request.name === 'screens'
+      ? Promise.reject(new Error('screens unavailable'))
+      : get(request),
+  );
+  useShow.setState({
+    serviceId: fixtureServiceId,
+    openItemId: fixtureItems.arranged,
+  });
+  const editor = new SongEditorStore(f.api, vi.fn());
+  const items = new ServiceItemStore(f.api, editor, vi.fn());
+  const view = render(
+    <DetailsPanel
+      sizeClass="normal"
+      target={{kind: 'item', itemId: fixtureItems.arranged}}
+      api={f.api}
+      editor={editor}
+      items={items}
+    />,
+  );
+  try {
+    expect(await screen.findByTestId('picture')).toBeTruthy();
+    await waitFor(() =>
+      expect(screen.getByRole('tab', {name: '정보'})).toBeTruthy(),
+    );
+  } finally {
+    view.unmount();
+    items.dispose();
+    await editor.dispose();
+    vi.restoreAllMocks();
   }
 });

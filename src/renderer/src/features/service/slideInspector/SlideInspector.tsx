@@ -2,7 +2,7 @@ import {useState, useSyncExternalStore, type JSX} from 'react';
 import type {SlideTransition} from '@core/schema/slideTransition';
 import {formatSlideHotKey} from '@renderer/ui/SlideThumbnail';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
-import {songPictureLayer} from '@renderer/rendering/pictureSpec';
+import {selectedPreview} from '@renderer/features/songs/editor/songPreviewModel';
 import {SlideInspectorView} from './SlideInspectorView';
 import {useSongSlideAppearance} from '@renderer/features/songs/editor/useSongSlideAppearance';
 import {inspectorTransition, useTransitionSelection} from './TransitionSection';
@@ -13,21 +13,19 @@ import {PropertyGroup, PropertyRow} from '@renderer/ui/PropertyRow';
 import styles from './SlideInspector.module.css';
 import {SongTitleLayoutControl} from '@renderer/features/songs/editor/SongTitleLayoutControl';
 import {RolePreview} from '@renderer/features/songs/editor/RolePreview';
-import {
-  PREVIEW_ROLES,
-  type PreviewRole,
-} from '@renderer/features/songs/editor/songPreviewModel';
+import {usePreviewTargets} from './usePreviewTargets';
+import type {Screen} from '@core/schema/screens';
 
 function SongRolePicture({
   session,
-  role,
+  screen,
 }: {
   readonly session: NonNullable<
     ReturnType<SongEditorStore['getSnapshot']>['session']
   >;
-  readonly role: PreviewRole;
+  readonly screen: Screen;
 }): JSX.Element {
-  const appearance = useSongSlideAppearance(session, role);
+  const appearance = useSongSlideAppearance(session, screen.kind, screen.id);
   const snapshot = session.history.snapshot;
   const slide = snapshot.song.slides[snapshot.selection.block];
   return (
@@ -37,11 +35,21 @@ function SongRolePicture({
           {...appearance}
           background={slide.picture ?? appearance.background}
           songSource={{songId: snapshot.song.id, slideId: slide.id}}
-          slide={songPictureLayer(
-            snapshot.song.id,
-            snapshot.selection.block,
-            slide,
-          )}
+          slide={
+            selectedPreview(snapshot.song, {
+              block: snapshot.selection.block,
+              background: appearance.background,
+              nextBlock:
+                session.selectedOccurrence < 0
+                  ? undefined
+                  : session.selectedOccurrence + 1,
+            }).slide ?? {
+              itemId: snapshot.song.id,
+              position: snapshot.selection.block,
+              label: null,
+              lines: [],
+            }
+          }
         />
       )}
     </div>
@@ -92,7 +100,8 @@ function InspectorContent({
     session.slideModel.getSnapshot,
   );
   const appearance = useSongSlideAppearance(session);
-  const [big, setBig] = useState<PreviewRole>('audience');
+  const [big, setBig] = useState<string | null>(null);
+  const targets = usePreviewTargets(store.api);
   const snapshot = session.history.snapshot;
   const selected = view.slides.filter(slide =>
     view.selection.ids.has(slide.id),
@@ -129,21 +138,21 @@ function InspectorContent({
   return (
     <SlideInspectorView
       identity={`${session.slideDocumentId}:${snapshot.selection.block}:${selected.map(item => item.id).join(',')}:${cardSelected}`}
-      pending={appearance === undefined || slide === undefined}
-      waitForPicture
-      pictureCount={3}
+      pending={
+        targets.loading || appearance === undefined || slide === undefined
+      }
+      waitForPicture={targets.screens.length > 0}
+      pictureCount={targets.screens.length}
       preview={
         <>
           <RolePreview
+            screens={targets.screens}
             big={big}
             onBigChange={setBig}
             naturalHeight
-            renderRole={role => (
-              <SongRolePicture session={session} role={role} />
+            renderScreen={screen => (
+              <SongRolePicture session={session} screen={screen} />
             )}
-            caption={role =>
-              PREVIEW_ROLES.find(entry => entry.value === role)?.label
-            }
           />
           <div
             className={styles.caption}

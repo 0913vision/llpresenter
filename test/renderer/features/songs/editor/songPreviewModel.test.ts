@@ -9,6 +9,7 @@ import {
 import {editorPreviewFixture} from '@fixtures/renderer/features/songs/editor/editorPreviewFixture';
 import {
   previewAppearance,
+  previewAppearances,
   selectedPreview,
 } from '@renderer/features/songs/editor/songPreviewModel';
 
@@ -277,4 +278,37 @@ describe('local song preview model', () => {
       lines: ['빛을 따라가요'],
     });
   });
+});
+
+it('resolves each configured screen once without conflating duplicate roles', () => {
+  const {themes, screens} = editorPreviewFixture();
+  const original = screens.value.screens[0];
+  if (original === undefined) throw new Error('Missing screen');
+  const second = {
+    ...original,
+    id: createScreenId('00000000-0000-4000-8000-000000000077'),
+    name: 'Second',
+  };
+  const configured = {
+    ...screens.value,
+    screens: [...screens.value.screens, second],
+  };
+  const item = {id: 'example', kind: 'bible', source: 'service'} as const;
+  const results = previewAppearances({
+    themes: themes.value,
+    screens: configured,
+    item,
+  });
+  expect(results.size).toBe(configured.screens.length);
+  for (const target of configured.screens) {
+    expect(results.get(target.id)).toEqual(
+      previewAppearance({
+        role: target.kind,
+        screenId: target.id,
+        themes: themes.value,
+        screens: configured,
+        item,
+      }),
+    );
+  }
 });

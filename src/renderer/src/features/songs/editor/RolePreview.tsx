@@ -1,46 +1,82 @@
 import {useState, type JSX, type ReactNode} from 'react';
-import type {PreviewScreen} from '@renderer/ui/PreviewFrame';
+import type {Screen} from '@core/schema/screens';
 import {PreviewPanel} from '@renderer/ui/PreviewPanel';
 import {PREVIEW_ROLES, type PreviewRole} from './songPreviewModel';
 
-const SCREENS: ReadonlyArray<PreviewScreen<PreviewRole>> = PREVIEW_ROLES.map(
-  role => ({id: role.value, name: role.label, status: {kind: 'on'}}),
-);
-
-/** Local item pictures use the same panel as live monitoring. */
-export function RolePreview({
-  big,
-  onBigChange,
-  renderRole,
-  caption,
-  blank = false,
-  naturalHeight = false,
-  children,
-}: {
+interface Shared {
+  readonly blank?: boolean;
+  readonly naturalHeight?: boolean;
+  readonly children?: ReactNode;
+}
+type Configured = Shared & {
+  readonly screens: readonly Screen[];
+  readonly big: string | null;
+  readonly onBigChange: (id: string) => void;
+  readonly renderScreen: (screen: Screen) => ReactNode;
+};
+type Legacy = Shared & {
+  readonly screens?: never;
   readonly big: PreviewRole;
   readonly onBigChange: (role: PreviewRole) => void;
   readonly renderRole: (role: PreviewRole) => ReactNode;
   readonly caption: (role: PreviewRole) => ReactNode;
-  readonly blank?: boolean;
-  readonly naturalHeight?: boolean;
-  /** Rows under the picture area; mark each with `data-preview-extra`. */
-  readonly children?: ReactNode;
-}): JSX.Element {
+};
+
+/** Local item pictures use the same panel as live monitoring. */
+export function RolePreview(props: Configured | Legacy): JSX.Element | null {
   const [visible, setVisible] = useState(true);
+  if (props.screens === undefined) {
+    const screens = PREVIEW_ROLES.map(role => ({
+      id: role.value,
+      name: role.label,
+      status: {kind: 'on' as const},
+    }));
+    return (
+      <PreviewPanel
+        screens={screens}
+        big={props.big}
+        onBigChange={props.onBigChange}
+        blank={props.blank ?? false}
+        naturalHeight={props.naturalHeight ?? false}
+        alwaysShowTiles
+        visible={visible}
+        onVisibleChange={setVisible}
+        renderScreen={screen => props.renderRole(screen.id)}
+        caption={screen => props.caption(screen.id)}
+      >
+        {props.children}
+      </PreviewPanel>
+    );
+  }
+  const {screens, big, onBigChange, renderScreen} = props;
+  const target =
+    screens.find(screen => screen.id === big) ??
+    screens.find(screen => screen.kind === 'audience') ??
+    screens[0];
+  if (target === undefined) return null;
   return (
     <PreviewPanel
-      screens={SCREENS}
-      big={big}
-      blank={blank}
+      screens={screens.map(screen => ({
+        id: screen.id,
+        name: screen.name,
+        status: {kind: 'on' as const},
+      }))}
+      big={target.id}
+      blank={props.blank ?? false}
       alwaysShowTiles
-      naturalHeight={naturalHeight}
+      naturalHeight={props.naturalHeight ?? false}
       visible={visible}
       onVisibleChange={setVisible}
       onBigChange={onBigChange}
-      renderScreen={screen => renderRole(screen.id)}
-      caption={screen => caption(screen.id)}
+      renderScreen={screen => {
+        const targetScreen = screens.find(
+          candidate => candidate.id === screen.id,
+        );
+        return targetScreen === undefined ? null : renderScreen(targetScreen);
+      }}
+      caption={screen => screen.name}
     >
-      {children}
+      {props.children}
     </PreviewPanel>
   );
 }

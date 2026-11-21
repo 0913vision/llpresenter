@@ -19,6 +19,27 @@ import {PictureReadiness} from '@renderer/rendering/PictureReadiness';
 import {SongEditorStore} from '@renderer/features/songs/editor/songEditorStore';
 import {editorFixture} from '@fixtures/renderer/features/songs/editor/editorFixture';
 import {themeFile} from '@fixtures/core/themeOutput';
+vi.mock('@renderer/features/service/slideInspector/usePreviewTargets', () => ({
+  usePreviewTargets: () => ({
+    loading: false,
+    screens: [
+      {
+        id: 'audience',
+        name: 'Audience',
+        kind: 'audience',
+        method: 'fullscreen',
+      },
+      {id: 'stage', name: 'Stage', kind: 'stage', method: 'fullscreen'},
+      {
+        id: 'broadcast',
+        name: 'Broadcast',
+        kind: 'broadcast',
+        method: 'capture',
+      },
+    ],
+  }),
+}));
+
 vi.mock('@renderer/features/service/items/useItemSources', () => ({
   useItemMedia: () => ({document: null}),
 }));

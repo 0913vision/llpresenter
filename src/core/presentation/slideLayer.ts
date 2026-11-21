@@ -228,3 +228,18 @@ export function slideLayerOf(
 export function mediaTextSlide(slide: SlideLayer): SlideLayer {
   return {...slide, kind: 'media', lines: []};
 }
+
+/** Local media pictures share the projected tile, including its saved text overrides. */
+export function mediaTextSlideOf(
+  cursor: TileCursor,
+  tilesOf: TilesOf,
+): SlideLayer {
+  return mediaTextSlide(
+    slideLayerOf(cursor, tilesOf) ?? {
+      itemId: cursor.itemId,
+      position: cursor.index,
+      label: null,
+      lines: [],
+    },
+  );
+}

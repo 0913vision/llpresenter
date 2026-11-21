@@ -23,6 +23,9 @@ export function SlidePreview({
   number,
   label,
   color,
+  visible,
+  onVisibleChange,
+  fallback,
 }: {
   readonly screens: readonly Screen[];
   readonly renderScreen: (screen: Screen) => ReactNode;
@@ -30,8 +33,10 @@ export function SlidePreview({
   readonly number?: number | undefined;
   readonly label?: string | undefined;
   readonly color?: LabelColor | undefined;
+  readonly visible: boolean;
+  readonly onVisibleChange: (visible: boolean) => void;
+  readonly fallback?: ReactNode;
 }): JSX.Element {
-  const [visible, setVisible] = useState(true);
   const previewScreens = screens.map(value => ({
     id: value.id,
     name: value.name,
@@ -39,7 +44,9 @@ export function SlidePreview({
   }));
   return (
     <>
-      {screen.target === undefined ? null : (
+      {screen.target === undefined ? (
+        fallback
+      ) : (
         <PreviewPanel
           screens={previewScreens}
           big={screen.target.id}
@@ -47,7 +54,7 @@ export function SlidePreview({
           alwaysShowTiles
           naturalHeight
           visible={visible}
-          onVisibleChange={setVisible}
+          onVisibleChange={onVisibleChange}
           renderScreen={value => {
             const target = screens.find(candidate => candidate.id === value.id);
             return target === undefined ? null : (

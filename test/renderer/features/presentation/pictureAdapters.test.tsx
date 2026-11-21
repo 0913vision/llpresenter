@@ -33,6 +33,7 @@ function context(overrides: Partial<Context>): Context {
     role: 'audience',
     screenId: undefined,
     bibleAppearance: undefined,
+    slidesAppearance: undefined,
     card: undefined,
     offset: 0,
     theme: undefined,

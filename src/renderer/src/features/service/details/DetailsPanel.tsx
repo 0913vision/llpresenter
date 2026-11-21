@@ -3,21 +3,22 @@ import {requestSongEditor} from '@renderer/features/songs/editor/songEditorReque
 import {
   useContext,
   useEffect,
+  useMemo,
   useState,
   useSyncExternalStore,
   type JSX,
   type ReactNode,
 } from 'react';
 import {isItemOfKind} from '@core/schema/service';
+import {liturgyAsSlides} from '@core/services/liturgy';
 import {hasSectionCard} from '@core/services/sectionCards';
 import type {ServiceItemId, SongId} from '@core/schema/ids';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {Screen} from '@core/schema/screens';
-import type {ThemeId} from '@core/schema/ids';
 import {noticeTime} from '@renderer/ui/notices';
 import type {ShowLibrarySong} from '@core/schema/showLibrarySong';
 import {useShow} from '@renderer/session/show';
-import {useSlideTheme} from '@renderer/platform/useSlideTheme';
+import {slideTheme} from '@renderer/platform/useSlideTheme';
 import {sermonPreviewRow} from '@renderer/platform/sermonPreview';
 import {useBibleTileProjection} from '@renderer/features/bible/useBibleProjections';
 import {BibleLoadNotice} from '@renderer/features/bible/BibleLoadNotice';
@@ -33,7 +34,10 @@ import type {ServiceItemStore} from '../items/serviceItemStore';
 import {useItemSlides} from '../items/useItemSlides';
 import {useItemMedia} from '../items/useItemSources';
 import {useItemSettings} from '../items/useItemSources';
-import {previewAppearance} from '@renderer/features/songs/editor/songPreviewModel';
+import {
+  previewAppearances,
+  previewAppearance,
+} from '@renderer/features/songs/editor/songPreviewModel';
 import {slideBand} from '../slides/SlidesVisuals';
 import {
   detailsHeading,
@@ -83,11 +87,13 @@ function SelectedPreview({
   identity,
   pending,
   waitForPicture,
+  pictureCount,
   content,
 }: {
   readonly identity: string;
   readonly pending: boolean;
   readonly waitForPicture: boolean;
+  readonly pictureCount: number;
   readonly content: JSX.Element;
 }): JSX.Element {
   const parent = useContext(PictureReadiness);
@@ -97,93 +103,11 @@ function SelectedPreview({
       identity={identity}
       pending={pending}
       waitForPicture={waitForPicture}
+      pictureCount={pictureCount}
       initial={content}
       initialReady
       content={content}
     />
-  );
-}
-
-/** Resolve each preview from its own screen, without opening an output mirror. */
-function DetailsScreenPicture({
-  screen,
-  context,
-  index,
-  api,
-  title,
-  itemTheme,
-  appearance,
-}: {
-  readonly screen: Screen;
-  readonly context: Parameters<typeof detailsPicture>[0];
-  readonly index: number;
-  readonly api: LlpApi;
-  readonly title: string;
-  readonly itemTheme: ThemeId | undefined;
-  readonly appearance: Pick<
-    Parameters<typeof previewAppearance>[0],
-    'themes' | 'screens' | 'stageLyricLabelPosition'
-  >;
-}): JSX.Element | null {
-  const {item, library, card, projection} = context;
-  const options = {api, role: screen.kind, screenId: screen.id};
-  const theme = useSlideTheme(
-    item === null && library === null
-      ? undefined
-      : {
-          id: item?.id ?? library?.songId ?? '',
-          kind: item !== null && isItemOfKind(item, 'media') ? 'media' : 'song',
-          title,
-          ...(itemTheme === undefined ? {} : {theme: itemTheme}),
-        },
-    library === null ? 'service' : 'external',
-    options,
-  );
-  const sermonTheme = useSlideTheme(
-    item !== null && isItemOfKind(item, 'sermon')
-      ? sermonPreviewRow(item.id, item.sermon.passage.ref)
-      : undefined,
-    'service',
-    options,
-  );
-  const cardTheme = useSlideTheme(
-    card === undefined || item === null
-      ? undefined
-      : {
-          id: item.id,
-          kind: 'slides',
-          form: 'blank',
-          title: card.name,
-          theme: card.theme,
-        },
-    'service',
-    options,
-  );
-  const bibleAppearance =
-    item !== null && projection?.appearance?.theme.item
-      ? previewAppearance({
-          ...appearance,
-          role: screen.kind,
-          screenId: screen.id,
-          item: {
-            ...projection.appearance.theme.item,
-            ...(item.theme === undefined ? {} : {theme: item.theme}),
-          },
-        })
-      : undefined;
-  return (
-    detailsPicture(
-      {
-        ...context,
-        role: screen.kind,
-        screenId: screen.id,
-        bibleAppearance,
-        theme,
-        cardTheme,
-        sermonTheme,
-      },
-      index,
-    ) ?? null
   );
 }
 
@@ -303,20 +227,12 @@ function DetailsPanelContent({
   const bible =
     item !== null &&
     (isItemOfKind(item, 'bible') || isItemOfKind(item, 'sermon'));
-  const themeSettings = useItemSettings(api.settings, 'themes', bible);
-  const screenSettings = useItemSettings(api.settings, 'screens');
-  const screens =
-    screenSettings.document?.name === 'screens'
-      ? screenSettings.document.value.screens
-      : [];
+  const screens = themeData.screensFile?.screens ?? [];
   const previewScreen = usePreviewScreen(screens);
+  const [previewTilesVisible, setPreviewTilesVisible] = useState(true);
   const targetScreen = previewScreen.target;
   const role = targetScreen?.kind ?? 'audience';
-  const previewPreferences = useItemSettings(
-    api.settings,
-    'preferences',
-    bible,
-  );
+  const previewPreferences = useItemSettings(api.settings, 'preferences');
   const screenId = targetScreen?.id;
   const aheadIdentity = `${detailsKey}:${screenId ?? ''}`;
   useEffect(() => {
@@ -370,67 +286,125 @@ function DetailsPanelContent({
     (item !== null && isItemOfKind(item, 'song')
       ? state.song?.history.snapshot.song.theme
       : undefined);
-  const bibleAppearance =
-    bible && projection?.appearance?.theme.item
-      ? previewAppearance({
-          role,
-          screenId,
-          stageLyricLabelPosition:
-            previewPreferences.document?.name === 'preferences'
-              ? withPreferenceDefaults(previewPreferences.document.value).output
-                  .stageLyricLabelPosition
-              : undefined,
-          themes:
-            themeSettings.document?.name === 'themes'
-              ? themeSettings.document.value
-              : undefined,
-          screens:
-            screenSettings.document?.name === 'screens'
-              ? screenSettings.document.value
-              : undefined,
-          item: {
-            ...projection.appearance.theme.item,
-            ...(item.theme === undefined ? {} : {theme: item.theme}),
-          },
-        })
+  const themesFile = themeData.file ?? undefined;
+  const screensFile = themeData.screensFile;
+  const stageLyricLabelPosition =
+    previewPreferences.document?.name === 'preferences'
+      ? withPreferenceDefaults(previewPreferences.document.value).output
+          .stageLyricLabelPosition
       : undefined;
-  const theme = useSlideTheme(
-    item === null && library === null
+  const bibleItem = bible ? projection?.appearance?.theme.item : undefined;
+  const bibleAppearances = useMemo(
+    () =>
+      bibleItem == null
+        ? new Map<Screen['id'], ReturnType<typeof previewAppearance>>()
+        : previewAppearances({
+            themes: themesFile,
+            screens: screensFile,
+            stageLyricLabelPosition,
+            item: {
+              ...bibleItem,
+              ...(item?.theme === undefined ? {} : {theme: item.theme}),
+            },
+          }),
+    [bibleItem, item, screensFile, stageLyricLabelPosition, themesFile],
+  );
+  const slidesItem =
+    item !== null && isItemOfKind(item, 'slides')
+      ? item
+      : item !== null && isItemOfKind(item, 'liturgy')
+        ? liturgyAsSlides(item)
+        : undefined;
+  const slidesThemeItem =
+    slidesItem === undefined
       ? undefined
       : {
-          id: item?.id ?? library?.songId ?? '',
-          kind: item !== null && isItemOfKind(item, 'media') ? 'media' : 'song',
-          title,
-          ...(itemTheme === undefined ? {} : {theme: itemTheme}),
-        },
-    library === null ? 'service' : 'external',
-    {
-      api,
-      role,
-      ...(screenId === undefined ? {} : {screenId}),
-      ...(itemTheme === undefined ? {} : {theme: itemTheme}),
-    },
-  );
-  const sermonTheme = useSlideTheme(
-    item !== null && isItemOfKind(item, 'sermon')
-      ? sermonPreviewRow(item.id, item.sermon.passage.ref)
-      : undefined,
-    'service',
-    {api, role, ...(screenId === undefined ? {} : {screenId})},
-  );
-  const cardTheme = useSlideTheme(
-    card === undefined || item === null
+          ...slidesItem,
+          kind: slidesItem.slides.form,
+          source: 'service' as const,
+          title: slidesItem.slides.name,
+        };
+  const slidesAppearances =
+    slidesThemeItem === undefined
       ? undefined
-      : {
-          id: item.id,
-          kind: 'slides',
-          form: 'blank',
-          title: card.name,
-          theme: card.theme,
-        },
-    'service',
-    {api, role, ...(screenId === undefined ? {} : {screenId})},
-  );
+      : previewAppearances({
+          themes: themesFile,
+          screens: screensFile,
+          item: slidesThemeItem,
+          stageLyricLabelPosition,
+        });
+  const slidesFallback =
+    slidesThemeItem === undefined || screens.length > 0
+      ? undefined
+      : previewAppearance({
+          role: 'audience',
+          themes: themesFile,
+          screens: screensFile,
+          item: slidesThemeItem,
+          stageLyricLabelPosition,
+        });
+  const appearances = (() => {
+    const resolve = (target: Screen | undefined) => {
+      const options = {
+        role: target?.kind ?? ('audience' as const),
+        ...(target === undefined ? {} : {screenId: target.id}),
+        stageLyricLabelPosition,
+        file: themesFile,
+        screens: screensFile?.screens,
+      };
+      const theme = slideTheme(
+        item === null && library === null
+          ? undefined
+          : {
+              id: item?.id ?? library?.songId ?? '',
+              kind:
+                item !== null && isItemOfKind(item, 'media') ? 'media' : 'song',
+              title,
+              ...(itemTheme === undefined ? {} : {theme: itemTheme}),
+            },
+        {...options, source: library === null ? 'service' : 'external'},
+      );
+      const sermonTheme = slideTheme(
+        item !== null && isItemOfKind(item, 'sermon')
+          ? sermonPreviewRow(item.id, item.sermon.passage.ref)
+          : undefined,
+        {...options, source: 'service'},
+      );
+      const cardTheme = slideTheme(
+        card === undefined || item === null
+          ? undefined
+          : {
+              id: item.id,
+              kind: 'slides',
+              form: 'blank',
+              title: card.name,
+              theme: card.theme,
+            },
+        {...options, source: 'service'},
+      );
+      return {
+        theme,
+        sermonTheme,
+        cardTheme,
+        bibleAppearance:
+          target === undefined ? undefined : bibleAppearances.get(target.id),
+        slidesAppearance:
+          target === undefined
+            ? slidesFallback
+            : slidesAppearances?.get(target.id),
+      };
+    };
+    return {
+      byScreen: new Map(screens.map(screen => [screen.id, resolve(screen)])),
+      fallback: resolve(undefined),
+    };
+  })();
+  const themeFor = (target: Screen | undefined) =>
+    target === undefined
+      ? appearances.fallback
+      : (appearances.byScreen.get(target.id) ?? appearances.fallback);
+  const {theme, sermonTheme, cardTheme, bibleAppearance, slidesAppearance} =
+    themeFor(targetScreen);
   const pictureContext = {
     item,
     library,
@@ -440,6 +414,7 @@ function DetailsPanelContent({
     role,
     screenId,
     bibleAppearance,
+    slidesAppearance,
     card,
     offset,
     theme,
@@ -591,11 +566,13 @@ function DetailsPanelContent({
     item === null ? selected : state.position,
   );
   const firstPicture =
-    passageProblem === undefined ? picture(selectedIndex) : undefined;
+    passageProblem === undefined
+      ? detailsPicture({...pictureContext, eager: true}, selectedIndex)
+      : undefined;
   const waitForPicture = passageProblem === undefined && count > 0;
   const pending =
-    (screenSettings.document === null && !screenSettings.failed) ||
-    (waitForPicture && firstPicture === undefined) ||
+    (!themeData.screensLoaded && !themeData.screensFailed) ||
+    (waitForPicture && screens.length > 0 && firstPicture === undefined) ||
     (item !== null && !themeData.ready) ||
     (item !== null &&
       isItemOfKind(item, 'song') &&
@@ -604,7 +581,9 @@ function DetailsPanelContent({
       (isItemOfKind(item, 'song') || isItemOfKind(item, 'slides')) &&
       media.document === null &&
       !media.failed);
-  const identity = `${detailsKey}:${screenId ?? ''}`;
+  const identity = detailsKey;
+  const previewPictureCount =
+    screens.length || (firstPicture === undefined ? 0 : 1);
   // NOTE(0913vision): While 정보 shows, the 슬라이드 tab's first tiles draw out
   // of sight, so switching tabs shows every tile drawn, the first one too,
   // whose picture the large preview above is using.
@@ -634,7 +613,8 @@ function DetailsPanelContent({
           </AheadBox>
         )
       }
-      waitForPicture={waitForPicture}
+      waitForPicture={waitForPicture && previewPictureCount > 0}
+      pictureCount={previewPictureCount}
       pending={pending}
       content={
         <DetailsShell
@@ -659,41 +639,30 @@ function DetailsPanelContent({
           <SelectedPreview
             identity={`${identity}:${selectedIndex}`}
             pending={pending}
-            waitForPicture={waitForPicture}
+            waitForPicture={waitForPicture && previewPictureCount > 0}
+            pictureCount={previewPictureCount}
             content={
               <SlidePreview
                 screens={screens}
                 renderScreen={screen =>
                   passageProblem === undefined ? (
-                    <DetailsScreenPicture
-                      screen={screen}
-                      context={pictureContext}
-                      index={selectedIndex}
-                      api={api}
-                      title={title}
-                      itemTheme={itemTheme}
-                      appearance={{
-                        themes:
-                          themeSettings.document?.name === 'themes'
-                            ? themeSettings.document.value
-                            : undefined,
-                        screens:
-                          screenSettings.document?.name === 'screens'
-                            ? screenSettings.document.value
-                            : undefined,
-                        stageLyricLabelPosition:
-                          previewPreferences.document?.name === 'preferences'
-                            ? withPreferenceDefaults(
-                                previewPreferences.document.value,
-                              ).output.stageLyricLabelPosition
-                            : undefined,
-                      }}
-                    />
+                    (detailsPicture(
+                      {
+                        ...pictureContext,
+                        ...themeFor(screen),
+                        role: screen.kind,
+                        screenId: screen.id,
+                      },
+                      selectedIndex,
+                    ) ?? null)
                   ) : (
                     <BibleLoadNotice row={passageProblem} />
                   )
                 }
                 screen={previewScreen}
+                visible={previewTilesVisible}
+                onVisibleChange={setPreviewTilesVisible}
+                fallback={firstPicture}
                 number={count === 0 ? undefined : selectedIndex + 1}
                 label={labelAt(selectedIndex)}
                 color={labelColorAt(selectedIndex)}

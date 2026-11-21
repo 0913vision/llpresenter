@@ -16,6 +16,27 @@ import {PictureReadiness} from '@renderer/rendering/PictureReadiness';
 import {previewSpec} from '@fixtures/renderer/picture';
 import {sameSlideTransition} from '@renderer/features/songs/editor/slideTransitionSelection';
 
+vi.mock('@renderer/features/service/slideInspector/usePreviewTargets', () => ({
+  usePreviewTargets: () => ({
+    loading: false,
+    screens: [
+      {
+        id: 'audience',
+        name: 'Audience',
+        kind: 'audience',
+        method: 'fullscreen',
+      },
+      {id: 'stage', name: 'Stage', kind: 'stage', method: 'fullscreen'},
+      {
+        id: 'broadcast',
+        name: 'Broadcast',
+        kind: 'broadcast',
+        method: 'capture',
+      },
+    ],
+  }),
+}));
+
 vi.mock(
   '@renderer/rendering/pictures/Picture',
   () => import('@fixtures/renderer/picture'),
@@ -46,7 +67,10 @@ vi.mock('@renderer/rendering/SlidePicture', () => ({
     slide,
     background,
   }: {
-    slide: {lines: readonly string[]};
+    slide: {
+      lines: readonly string[];
+      next?: {lines: readonly string[]; label: string | null};
+    };
     background?: string;
   }) => {
     const ready = useContext(PictureReadiness);
@@ -55,7 +79,11 @@ vi.mock('@renderer/rendering/SlidePicture', () => ({
       ready?.(source.current);
     }, [ready]);
     return (
-      <div data-testid="picture" data-background={background}>
+      <div
+        data-testid="picture"
+        data-background={background}
+        data-next={JSON.stringify(slide.next ?? null)}
+      >
         {slide.lines.join(' ')}
       </div>
     );
@@ -333,4 +361,20 @@ it('edits an item song card together with selected lyrics in one undo step', asy
     session.slideModel.getSnapshot().slides[0]?.transition,
   ).toBeUndefined();
   inspector.unmount();
+});
+
+it('projects the following lyric and label into every screen picture', async () => {
+  const {store, session} = await editorSetup();
+  const view = render(<SlideInspector store={store} />);
+  const next = session.history.snapshot.song.slides[1];
+  if (next === undefined) throw new Error('Missing next slide');
+  for (const picture of within(view.container).getAllByTestId('picture')) {
+    const value: unknown = JSON.parse(
+      picture.getAttribute('data-next') ?? 'null',
+    );
+    expect(value).toMatchObject({
+      lines: next.lines,
+      label: next.label === '' ? null : (next.label ?? null),
+    });
+  }
 });
