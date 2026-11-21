@@ -1152,7 +1152,8 @@ preferred), `docs/HANDOFF.md` (개역한글 and KJV).
   screen-specific slots. An absent value uses the theme's automatic fill. A
   stored empty string keeps that box empty. A verse part uses its canonical
   translation, verse, and part. A sermon has separate opening and closing slide
-  identities. A standalone media item has one slide identity.
+  identities. A standalone media item has one slide identity. Saved values for
+  live text roles are ignored, including when switching themes.
 - Theme text elements can specify a named slot, a default-fill role, and a
   shared or screen-specific binding. Elements without a slot use their existing
   identity and automatic source. A theme switch looks for matching explicit

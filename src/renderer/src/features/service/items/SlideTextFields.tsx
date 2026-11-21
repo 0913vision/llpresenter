@@ -32,35 +32,31 @@ import {
 import type {ThemeTextRole} from '@core/schema/themeTextSlot';
 import {withSectionCard} from '@core/services/sectionCards';
 import {CREED_PRAYER_THEME_ID} from '@core/themes/creedPrayer';
-import {isThemeTextElement, themeElementText} from '@core/themes/content';
+import {
+  isSlideEditableElement,
+  isThemeTextElement,
+  themeElementText,
+} from '@core/themes/content';
 import {resolveThemeOutput} from '@core/themes/output';
 import {SERMON_TITLE_THEME_ID} from '@core/themes/sundayScripture';
+import {isSlideEditableTextValue, matchSlideText} from '@core/themes/textSlots';
 import {
-  matchSlideText,
-  manualThemeText,
-  withSlideTextOverrides,
-} from '@core/themes/textSlots';
-import {themeTextBinding, type TextSlotLayout} from '@core/themes/textBindings';
+  legacyTextBinding,
+  themeTextBinding,
+  type TextSlotLayout,
+} from '@core/themes/textBindings';
 import type {ThemeElement} from '@core/schema/themes';
 import {TYPING_PAUSE_MS} from '@core/songs/songHistory';
-import {timerText} from '@core/timers/timerClock';
 import {useBibleTileProjection} from '@renderer/features/bible/useBibleProjections';
 import {editorTask} from '@renderer/features/songs/editor/editorTask';
 import type {RenderSlideTextFields} from '@renderer/features/songs/editor/SlideCardRenderer';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {themeElementNames} from '@renderer/rendering/themeNames';
-import {STAGE_TICK_MS, stageClockText} from '@renderer/rendering/stageClock';
-import {useLive} from '@renderer/session/live';
 import {useShow} from '@renderer/session/show';
 import {TextArea} from '@renderer/ui/TextArea';
 import {Button} from '@renderer/ui/Button';
 import type {ServiceItemState, ServiceItemStore} from './serviceItemStore';
 import styles from './SlideTextFields.module.css';
-
-const readTime = () => ({
-  wall: Date.now(),
-  timer: performance.timeOrigin + performance.now(),
-});
 
 interface EditorSlot {
   readonly binding: Omit<ManualSlideText, 'text'>;
@@ -199,20 +195,6 @@ export function SlideTextEditor({
     '화면',
     items.reportNotice,
   );
-  const timers = useSettingsDocument(
-    id === null ? null : 'timers',
-    '타이머',
-    items.reportNotice,
-  );
-  const stageMessage = useLive(view => view.state?.stageMessage);
-  const timerRuns = useLive(view => view.state?.timers);
-  const stageTimerId = useLive(view => view.state?.stageTimerId);
-  const [now, setNow] = useState(readTime);
-  useEffect(() => {
-    if (id === null) return;
-    const timer = setInterval(() => setNow(readTime()), STAGE_TICK_MS);
-    return () => clearInterval(timer);
-  }, [id]);
   if (
     !state ||
     !item ||
@@ -280,32 +262,19 @@ export function SlideTextEditor({
       revision: 0,
     });
     const slots = new Map<string, EditorSlot>();
+    const liveKeys = new Set<string>();
     const layers = {...emptyLayers(), slide};
     for (const layout of Object.values(output.screens)) {
       const binding = {...layout, themeId: output.themeId};
-      for (const element of withSlideTextOverrides(binding, slide).elements) {
+      for (const element of layout.layout.elements) {
         if (!isThemeTextElement(element)) continue;
         const slot = themeTextBinding(binding, element);
-        const timerId =
-          slot.role === 'timer' && element.kind === 'timer'
-            ? (element.timerId ?? stageTimerId)
-            : undefined;
-        const timer = timers?.value.timers.find(timer => timer.id === timerId);
-        const text =
-          manualThemeText(element) ??
-          themeElementText(element, {
-            layers,
-            item: themeItem,
-            stageMessage,
-            clock:
-              element.kind === 'clock'
-                ? stageClockText(now.wall, element.clockFormat, element.seconds)
-                : undefined,
-            timer:
-              timer === undefined
-                ? undefined
-                : timerText(timer, timerRuns?.[timer.id], now),
-          });
+        if (!isSlideEditableElement(element)) {
+          liveKeys.add(slot.key);
+          liveKeys.add(legacyTextBinding(binding, element));
+          continue;
+        }
+        const text = themeElementText(element, {layers, item: themeItem});
         if (
           !slots.has(slot.key) ||
           (slots.get(slot.key)?.text === '' && text)
@@ -490,7 +459,10 @@ export function SlideTextEditor({
       );
     });
     const retained = Object.entries(saved ?? {}).filter(
-      ([slot]) => !matchedKeys.has(slot),
+      ([slot, value]) =>
+        !matchedKeys.has(slot) &&
+        !liveKeys.has(slot) &&
+        isSlideEditableTextValue(slot, value),
     );
     return (
       <fieldset

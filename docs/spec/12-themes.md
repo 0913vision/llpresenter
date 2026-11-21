@@ -866,10 +866,9 @@ grouping the sermon passage with the sermon title item.
 
 Stage messages are drawn on every stage screen as a full-width, high-contrast
 band at the bottom, above the theme composition. The band shows up to three
-lines and truncates longer text with an ellipsis. A manual per-slide value for a
-saved `stageMessage` text box draws inside the theme. Its automatic value uses
-the full-width band. The theme designer omits these legacy boxes and removes
-them when that layout is edited.
+lines and truncates longer text with an ellipsis. A saved `stageMessage` box
+uses this band for its live value. The theme designer omits these legacy boxes
+and removes them when that layout is edited.
 
 Deleted themes retain a frozen copy in `deletedThemes` (at most 1000). Items
 that already reference one keep its layouts and show its name in parentheses.

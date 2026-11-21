@@ -48,3 +48,19 @@ export function themeElementBase(index = 30) {
     text: {...STARTER_TEXT_STYLE, maxLines: 12},
   };
 }
+
+export function liveThemeTextElements() {
+  return [
+    {
+      ...themeElementBase(130),
+      kind: 'clock',
+      clockFormat: '24h',
+      seconds: true,
+    },
+    {...themeElementBase(131), kind: 'timer'},
+    {...themeElementBase(132), kind: 'stageMessage'},
+    {...themeElementBase(133), kind: 'videoTimeLeft'},
+    {...themeElementBase(134), kind: 'nextText'},
+    {...themeElementBase(135), kind: 'nextLabel'},
+  ] as const satisfies readonly ThemeElement[];
+}

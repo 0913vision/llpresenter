@@ -12,6 +12,7 @@ import {projectSlides} from '@core/presentation/slides';
 import {slidesItem} from '@fixtures/core/slides';
 import {
   THEME_MAIN,
+  liveThemeTextElements,
   themeElementBase,
   themeFile,
   themeScreens,
@@ -295,6 +296,7 @@ it.each(['song', 'media'] as const)(
   async kind => {
     const theme = createThemeId('00000000-0000-4000-8000-000000005102');
     const file = themeFile();
+    const liveElements = liveThemeTextElements();
     installSettings({
       ...file,
       themes: [
@@ -306,6 +308,7 @@ it.each(['song', 'media'] as const)(
             [THEME_MAIN]: {
               mode: {kind: 'own'},
               elements: [
+                ...liveElements,
                 {
                   ...themeElementBase(),
                   kind: 'text',
@@ -329,14 +332,22 @@ it.each(['song', 'media'] as const)(
     const media = createMediaId('00000000-0000-4000-8000-000000005103');
     const first = fixture.first.song.slides[0];
     if (first === undefined) throw Error('Missing fixture slide');
+    const slideKey = kind === 'song' ? `slide:${first.id}` : 'media:standalone';
+    const oldValues = Object.fromEntries(
+      liveElements.map(element => [
+        [theme, THEME_MAIN, element.id].join('/'),
+        'Old live text',
+      ]),
+    );
+    const textOverrides = {[slideKey]: oldValues};
     const result = parseServiceDocument({
       ...before,
       service: {
         ...before.service,
         order: [
           kind === 'song'
-            ? {id, song: fixture.first.song.id, slides: [first]}
-            : {id, media, theme},
+            ? {id, song: fixture.first.song.id, slides: [first], textOverrides}
+            : {id, media, theme, textOverrides},
         ],
       },
     });
@@ -355,6 +366,7 @@ it.each(['song', 'media'] as const)(
             label: null,
             labelColor: 'none',
             lines: ['Fixture item'],
+            textOverrides: oldValues,
             ...(kind === 'song'
               ? {
                   sourceSlide: {
@@ -370,11 +382,18 @@ it.each(['song', 'media'] as const)(
     const editor = new SongEditorStore(fixture.api, vi.fn());
     const items = new ServiceItemStore(fixture.api, editor, vi.fn());
     function Harness() {
+      const state = useSyncExternalStore(items.subscribe, items.getSnapshot);
       return (
-        <SlideTextFields
-          items={items}
-          state={useSyncExternalStore(items.subscribe, items.getSnapshot)}
-        />
+        <>
+          <section aria-label="Slide row">
+            <SlideTextEditor items={items} state={state}>
+              {renderTextFields => renderTextFields(0)}
+            </SlideTextEditor>
+          </section>
+          <section aria-label="Side panel">
+            <SlideTextFields items={items} state={state} />
+          </section>
+        </>
       );
     }
     items.show({serviceId: fixtureServiceId, itemId: id});
@@ -385,13 +404,27 @@ it.each(['song', 'media'] as const)(
       await editor.dispose();
       useShow.setState(previous);
     });
-    const field = await screen.findByRole<HTMLTextAreaElement>('textbox', {
-      name: /Fixture caption/,
-    });
+    const row = screen.getByRole('region', {name: 'Slide row'});
+    const side = screen.getByRole('region', {name: 'Side panel'});
+    const field = await within(side).findByRole<HTMLTextAreaElement>(
+      'textbox',
+      {
+        name: /Fixture caption/,
+      },
+    );
+    await within(row).findByRole('textbox', {name: /Fixture caption/});
+    for (const element of liveElements) {
+      expect(
+        row.querySelector(`[data-slide-text-role="${element.kind}"]`),
+      ).toBeNull();
+      expect(
+        side.querySelector(`[data-slide-text-role="${element.kind}"]`),
+      ).toBeNull();
+    }
+    expect(screen.queryByText('Old live text')).toBeNull();
     expect(field.value).toBe('Automatic fixture caption');
     fireEvent.change(field, {target: {value: 'Edited fixture caption'}});
     fireEvent.blur(field);
-    const slideKey = kind === 'song' ? `slide:${first.id}` : 'media:standalone';
     await waitFor(() =>
       expect(
         fixture.service().service.order[0]?.textOverrides?.[slideKey],
