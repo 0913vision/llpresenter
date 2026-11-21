@@ -7,6 +7,7 @@ import {setPlaybackProblem} from './playbackProblem';
 import {OUTPUT_TRANSITIONS} from './transitions';
 import {backgroundElapsedSeconds} from '@core/media/backgroundPosition';
 import {mediaObjectFit} from '@core/media/objectFit';
+import {applyBackgroundFrame} from './backgroundFrame';
 import {StillBackgroundLayerView} from './stillBackgroundLayer';
 import type {PreviewMediaSource} from './previewMedia';
 
@@ -226,6 +227,8 @@ class PlaybackBackgroundLayerView {
     const restarted = media?.startedAt !== this.current?.startedAt;
     this.current = media;
     for (const index of VIDEO_INDEXES) {
+      applyBackgroundFrame(this.videos[index], media?.backgroundFrame);
+      applyBackgroundFrame(this.images[index], media?.backgroundFrame);
       if (this.holdsCurrent(index)) {
         this.applyProperties(index, media?.properties);
       }

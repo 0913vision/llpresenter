@@ -3,6 +3,7 @@ import {bibleVerseReferenceSchema, sectionCardSchema} from './service';
 import {songTitleLayoutSchema} from './songTitleLayout';
 import {slideTransitionSchema} from './slideTransition';
 import * as v from 'valibot';
+import {themeFrameSchema} from './themes';
 import {slideTextOverridesSchema} from './slideTextOverrides';
 import {layerKinds, type LayerKind, type LiveState} from '../live/state';
 import type {Result} from '../common/result';
@@ -51,6 +52,7 @@ const mediaChoiceEntries = {
   itemId: v.exactOptional(liveNonBlankTextSchema),
   title: v.exactOptional(liveTextSchema),
   slidePicture: v.exactOptional(v.literal(true)),
+  backgroundFrame: v.exactOptional(themeFrameSchema),
 };
 
 const slideLinesSchema = v.pipe(

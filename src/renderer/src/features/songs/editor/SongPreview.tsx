@@ -15,7 +15,10 @@ import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import type {LiveThemeItem} from '@core/schema/liveTheme';
 import {withPreferenceDefaults} from '@core/schema/preferences';
 import {slideCountOf} from '@core/songs/blockEdits';
-import {songItemBackground} from '@core/songs/songBackground';
+import {
+  songBackgroundFrame,
+  songItemBackground,
+} from '@core/songs/songBackground';
 import {useShow} from '@renderer/session/show';
 import {RolePreview} from './RolePreview';
 import {Picture} from '@renderer/rendering/pictures/Picture';
@@ -78,6 +81,7 @@ export interface SongPicture {
   /** The next source block in the selected order; absent after its last place. */
   readonly nextBlock?: number | undefined;
   readonly background: string | undefined;
+  readonly backgroundFrame?: Song['backgroundFrame'];
   /** The 1-based place in the shown order. */
   readonly position: number;
   readonly total: number;
@@ -184,6 +188,7 @@ export function ContentPreviewFrame({
   const song = songPicture?.song;
   const block = songPicture?.block ?? 0;
   const background = songPicture?.background;
+  const backgroundFrame = songPicture?.backgroundFrame;
   const nextBlock = songPicture?.nextBlock;
   const layers = useMemo<LiveLayers>(
     () =>
@@ -267,8 +272,21 @@ export function ContentPreviewFrame({
             }
           : song === undefined
             ? emptyLayers()
-            : selectedPreview(song, {block, background, nextBlock}),
-    [song, block, background, nextBlock, tilePicture, mediaPicture],
+            : selectedPreview(song, {
+                block,
+                background,
+                backgroundFrame,
+                nextBlock,
+              }),
+    [
+      song,
+      block,
+      background,
+      backgroundFrame,
+      nextBlock,
+      tilePicture,
+      mediaPicture,
+    ],
   );
   // NOTE(0913vision): With nothing to show (no item, or a 구역 selected) the
   // panel keeps its full-width stage and the height of its caption, blank (no
@@ -380,6 +398,22 @@ export function SongPreviewPanel({
                     ? itemRow.background?.mediaId
                     : undefined,
                 song: session.background,
+              }),
+              backgroundFrame: songBackgroundFrame({
+                song: {
+                  background: session.background,
+                  backgroundFrame: session.backgroundFrame,
+                },
+                item:
+                  target !== undefined &&
+                  itemRow?.kind === 'song' &&
+                  itemRow.backgroundExplicit
+                    ? itemRow.background?.mediaId
+                    : undefined,
+                backgroundNone:
+                  target !== undefined &&
+                  itemRow?.kind === 'song' &&
+                  itemRow.backgroundNone,
               }),
               position: snapshot.selection.block + 1,
               total: slideCountOf(snapshot.song),

@@ -2,6 +2,7 @@ import {describe, expect, it, vi} from 'vitest';
 import {installMockClock} from '@fixtures/mockClock';
 import {
   BACKGROUND_RELEASE_DELAY_MS,
+  BackgroundLayerView,
   VIDEO_FRAME_DEADLINE_MS,
 } from '@renderer/rendering/backgroundLayer';
 import {classes} from '@renderer/rendering/classes';
@@ -21,6 +22,34 @@ import {
 } from '@fixtures/renderer/rendering/backgroundLayerFixtures';
 
 describe('BackgroundLayerView', () => {
+  it('places the same song background in preview and output, and resets for other media', () => {
+    const frame = {x: 192, y: 108, w: 960, h: 540};
+    const output = setUp();
+    const parent = document.createElement('div');
+    const preview = new BackgroundLayerView(parent, {
+      mediaUrl: urlOf,
+      onError: vi.fn(),
+      mode: 'preview',
+    });
+    output.view.show({...WARM_LIGHT, backgroundFrame: frame}, false);
+    preview.show({...WARM_LIGHT, backgroundFrame: frame}, false);
+    const previewImage = parent.querySelector('img');
+    if (previewImage === null) throw new Error('Preview image missing');
+    for (const element of [output.videos[0], output.videos[1], previewImage]) {
+      expect([
+        element.style.left,
+        element.style.top,
+        element.style.width,
+        element.style.height,
+      ]).toEqual(['10%', '10%', '50%', '50%']);
+    }
+    output.view.show(STILL_WATER, false);
+    preview.show(STILL_WATER, false);
+    expect(output.videos[0].style.width).toBe('');
+    expect(previewImage.style.width).toBe('');
+    output.view.dispose();
+    preview.dispose();
+  });
   it('reports active video decode failure and clears the problem when the media is cleared', () => {
     const {view, videos} = setUp();
     view.show(WARM_LIGHT, false);

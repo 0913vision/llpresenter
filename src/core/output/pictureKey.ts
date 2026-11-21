@@ -96,6 +96,7 @@ export function pictureKey({layers, appearance}: PictureSpec): string {
       : [
           media.mediaId,
           media.slidePicture === true,
+          media.backgroundFrame,
           media.positionSeconds,
           media.startedAt === 0,
         ],

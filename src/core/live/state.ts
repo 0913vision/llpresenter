@@ -7,6 +7,7 @@ import type {AudioPlayback} from '../schema/audioState';
 import type {ClearTarget} from './commands';
 import type {ClearEffect} from '../schema/clearFade';
 import type {OutputMediaProperties} from '../schema/outputMedia';
+import type {Song} from '../schema/song';
 import type {
   LiveThemeItem,
   LiveThemeMode,
@@ -33,6 +34,7 @@ export interface MediaChoice {
   readonly title?: string;
   /** Identifies a slide picture independently of cleared lyrics. */
   readonly slidePicture?: true;
+  readonly backgroundFrame?: NonNullable<Song['backgroundFrame']>;
 }
 
 /** The background media on output. */

@@ -146,6 +146,10 @@ function DetailsPanelContent({
     return () => items.show(null);
   }, [items, serviceId, itemId]);
   const state = useSyncExternalStore(items.subscribe, items.getSnapshot);
+  const editorState = useSyncExternalStore(
+    editor.subscribe,
+    editor.getSnapshot,
+  );
   const service = state.service;
   const media = useItemMedia(editor.api.media);
   const raw = useItemSlides(items, editor, media);
@@ -351,7 +355,12 @@ function DetailsPanelContent({
       {
         item,
         library,
-        song: state.song,
+        song:
+          library === null
+            ? state.song
+            : editorState.session?.document.song.id === library.songId
+              ? editorState.session
+              : null,
         raw,
         projectedTiles,
         role,

@@ -10,6 +10,7 @@ import {
   type ShowLibrarySong,
 } from '@core/schema/showLibrarySong';
 import type {Song} from '@core/schema/song';
+import {songBackgroundFrame} from '@core/songs/songBackground';
 import type {Logger} from '../log';
 import {projectSongTiles} from './showService';
 
@@ -44,6 +45,7 @@ export async function showLibrarySong(
       ? sources.backgroundName?.(song.background)
       : undefined;
   const projected = projectSongTiles(song, colors);
+  const frame = songBackgroundFrame({song});
   const problem = projected.capped
     ? 'tile-limit'
     : song.background !== undefined && background === null
@@ -57,7 +59,14 @@ export async function showLibrarySong(
     title: song.title,
     readOnly: access === 'readOnly' || projected.capped,
     tiles: projected.tiles,
-    ...(background === null ? {} : {background}),
+    ...(background === null
+      ? {}
+      : {
+          background: {
+            ...background,
+            ...(frame === undefined ? {} : {backgroundFrame: frame}),
+          },
+        }),
     ...(missingBackgroundName === undefined ? {} : {missingBackgroundName}),
     ...(problem === undefined ? {} : {problem}),
   };

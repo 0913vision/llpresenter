@@ -25,6 +25,7 @@ import {
   timestamp,
 } from './primitives';
 import {slideHotKeySchema} from './slideHotKey';
+import {themeFrameSchema} from './themes';
 
 export const SONG_NAME_MAX_LENGTH = 512;
 
@@ -86,6 +87,7 @@ export const songSchema = jsonObject({
   id: songIdSchema,
   title: nonBlankText,
   background: v.exactOptional(mediaIdSchema),
+  backgroundFrame: v.exactOptional(themeFrameSchema),
   theme: v.exactOptional(themeIdSchema),
   slides: v.pipe(songSlidesSchema, v.minLength(1)),
   updatedAt: v.exactOptional(timestamp),

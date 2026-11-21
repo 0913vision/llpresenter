@@ -9,6 +9,21 @@
 .control > button {
   max-width: var(--size-field-key);
 }
+.geometry {
+  position: fixed;
+  z-index: 1;
+  width: var(--size-menu-min);
+  padding: var(--space-8);
+  background: var(--bg-dialog);
+  border: 1px solid var(--line);
+}
+.geometry label {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  align-items: center;
+  gap: var(--space-8);
+  margin-bottom: var(--space-4);
+}
 .picker {
   width: var(--size-menu-max);
 }

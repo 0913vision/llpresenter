@@ -417,7 +417,11 @@ Library changes wait for 저장; item changes save only to that item.
   (proposal).
 - 기본 배경 (default background): a select with a small image and the media
   name. It opens the shared searchable media list: 없음 (none), then image and
-  video media. Choosing a media saves it as the song's `background`.
+  video media. Choosing a media saves it as the song's `background`. 위치와 크기
+  edits that song's background frame in the same 1920 × 1080 coordinates used by
+  theme elements. The song keeps the frame without changing or copying the media
+  file; an item-specific background uses its own placement. Songs without a
+  saved frame retain their existing full-size appearance.
 - The title is a title field (proposal; the board shows it as text, and the
   imported song editor shows the same field).
   - An empty title can't be saved. The field shows the error ring with the

@@ -27,7 +27,9 @@ function showMedia(
     current.loop === choice.loop &&
     current.itemId === choice.itemId &&
     current.title === choice.title &&
-    current.slidePicture === choice.slidePicture
+    current.slidePicture === choice.slidePicture &&
+    JSON.stringify(current.backgroundFrame) ===
+      JSON.stringify(choice.backgroundFrame)
   ) {
     return history;
   }
@@ -35,6 +37,7 @@ function showMedia(
     itemId: _itemId,
     title: _title,
     slidePicture: _slidePicture,
+    backgroundFrame: _backgroundFrame,
     ...playback
   } = current;
   return setLayer(history, 'media', {...playback, ...choice});

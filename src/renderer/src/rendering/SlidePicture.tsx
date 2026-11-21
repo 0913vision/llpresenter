@@ -2,6 +2,7 @@ import type {JSX} from 'react';
 import type {SlideLayer} from '@core/live/state';
 import type {LiveThemeItem} from '@core/schema/liveTheme';
 import type {SongSlideSource} from '@core/schema/showService';
+import type {Song} from '@core/schema/song';
 import type {ThemeScreenLayout} from '@core/schema/themes';
 import {OutputSlidePicture} from './OutputSlidePicture';
 import type {ScreenId, ThemeId} from '@core/schema/ids';
@@ -16,6 +17,7 @@ export function SlidePicture({
   emptyColor = '#000000',
   item = null,
   background,
+  backgroundFrame,
   themeId,
   screen,
   sourceScreenId,
@@ -31,6 +33,7 @@ export function SlidePicture({
   readonly emptyColor?: string;
   readonly item?: LiveThemeItem | null;
   readonly background?: string | undefined;
+  readonly backgroundFrame?: Song['backgroundFrame'];
   readonly themeId?: ThemeId | undefined;
   readonly screen?: RenderScreen | undefined;
   readonly sourceScreenId?: ScreenId | undefined;
@@ -51,6 +54,7 @@ export function SlidePicture({
       emptyColor={emptyColor}
       item={item}
       background={background}
+      backgroundFrame={backgroundFrame}
       themeId={themeId}
       screen={screen}
       sourceScreenId={sourceScreenId}

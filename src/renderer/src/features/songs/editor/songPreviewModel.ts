@@ -149,10 +149,12 @@ export function selectedPreview(
   {
     block,
     background,
+    backgroundFrame,
     nextBlock,
   }: {
     readonly block: number;
     readonly background: string | undefined;
+    readonly backgroundFrame?: Song['backgroundFrame'];
     readonly nextBlock?: number | undefined;
   },
 ): LiveLayers {
@@ -183,7 +185,12 @@ export function selectedPreview(
       media:
         background === undefined
           ? null
-          : {mediaId: background, loop: true, startedAt: 0},
+          : {
+              mediaId: background,
+              loop: true,
+              startedAt: 0,
+              ...(backgroundFrame === undefined ? {} : {backgroundFrame}),
+            },
     };
   }
   const next = project(nextBlock);
@@ -215,6 +222,13 @@ export function selectedPreview(
     media:
       slideBackground === undefined
         ? null
-        : {mediaId: slideBackground, loop: true, startedAt: 0},
+        : {
+            mediaId: slideBackground,
+            loop: true,
+            startedAt: 0,
+            ...(background !== undefined && backgroundFrame !== undefined
+              ? {backgroundFrame}
+              : {}),
+          },
   };
 }

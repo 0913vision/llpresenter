@@ -186,5 +186,6 @@ export function slideTheme(
     ),
     item,
     background: background?.mediaId,
+    backgroundFrame: background?.backgroundFrame,
   };
 }

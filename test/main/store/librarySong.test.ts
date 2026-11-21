@@ -65,6 +65,31 @@ function registered(ready: Promise<LibrarySongSources | null>) {
 }
 
 describe('library song projection', () => {
+  it('carries a saved song background frame to the live media choice', async () => {
+    const source = sources();
+    const document = source.song();
+    if (document === null) throw Error('Missing fixture');
+    const backgroundFrame = {x: 200, y: 100, w: 1200, h: 700};
+    const shown = await showLibrarySong(
+      {
+        ...source,
+        song: () => ({
+          ...document,
+          song: {
+            ...document.song,
+            background: SUNDAY_NOTICE_PICTURE_ID,
+            backgroundFrame,
+          },
+        }),
+        backgroundOf: async () => ({
+          mediaId: SUNDAY_NOTICE_PICTURE_ID,
+          loop: false,
+        }),
+      },
+      songId,
+    );
+    expect(shown?.background).toMatchObject({backgroundFrame});
+  });
   it.each(['none', 'builtin', 'missing'] as const)(
     'reports the missing name only for a real reference: %s',
     async state => {

@@ -8,6 +8,7 @@ import {
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
 import type {LiveThemeItem} from '@core/schema/liveTheme';
 import type {SongSlideSource} from '@core/schema/showService';
+import type {Song} from '@core/schema/song';
 import type {ThemeScreenLayout} from '@core/schema/themes';
 import {themeBackgroundColor} from './themeBackground';
 import type {PictureSpec} from './pictures/pictureService';
@@ -22,6 +23,7 @@ export interface SlideInput {
   readonly emptyColor: string;
   readonly item: LiveThemeItem | null;
   readonly background?: string | undefined;
+  readonly backgroundFrame?: Song['backgroundFrame'];
   readonly themeId?: ThemeId | undefined;
   readonly screen?: RenderScreen | undefined;
   readonly sourceScreenId?: ScreenId | undefined;
@@ -39,6 +41,7 @@ export function outputSlideSpec({
   emptyColor,
   item,
   background,
+  backgroundFrame,
   themeId,
   screen = {id: screenId, kind: 'audience', method: 'fullscreen'},
   sourceScreenId = screen.id,
@@ -60,6 +63,9 @@ export function outputSlideSpec({
               mediaId,
               loop: slide.picture === undefined || slide.kind === undefined,
               startedAt: 0,
+              ...(slide.picture === undefined && backgroundFrame !== undefined
+                ? {backgroundFrame}
+                : {}),
               ...(slide.picture === undefined || slide.kind === undefined
                 ? {}
                 : {itemId: slide.itemId, slidePicture: true}),

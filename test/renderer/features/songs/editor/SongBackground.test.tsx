@@ -79,6 +79,27 @@ async function openPicker(): Promise<HTMLElement> {
 }
 
 describe('song header background connection', () => {
+  it('saves song background position and size independently of the media', async () => {
+    const fixture = backgroundFixture();
+    const {session, documents, first} = await editorSetup(fixture);
+    act(() => session.setBackground(fixture.document.value.items[0]?.id));
+    await act(() => session.flush());
+    fireEvent.click(screen.getByRole('button', {name: '위치와 크기'}));
+    const width = screen.getByRole('spinbutton', {name: '배경 W'});
+    fireEvent.change(width, {target: {value: '1200'}});
+    fireEvent.blur(width);
+    const x = screen.getByRole('spinbutton', {name: '배경 X'});
+    fireEvent.change(x, {target: {value: '200'}});
+    fireEvent.blur(x);
+    await act(() => session.flush());
+    expect(documents.get(first.song.id)?.song.backgroundFrame).toEqual({
+      x: 200,
+      y: 0,
+      w: 1200,
+      h: 1080,
+    });
+    expect(fixture.document.value.items[0]?.props?.fit).toBeUndefined();
+  });
   it('recognizes a bundled picture outside the user catalog and clears it to none', async () => {
     const fixture = backgroundFixture();
     const {session} = await editorSetup(fixture);

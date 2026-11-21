@@ -5,6 +5,7 @@ import type {BackgroundLayerOptions} from './backgroundLayer';
 import type {PreviewMediaSource} from './previewMedia';
 import {classes} from './classes';
 import {OUTPUT_TRANSITIONS} from './transitions';
+import {applyBackgroundFrame} from './backgroundFrame';
 
 /** A control preview owns only cached pictures, never a media element. */
 export class StillBackgroundLayerView {
@@ -54,6 +55,7 @@ export class StillBackgroundLayerView {
     this.media = media;
     for (const image of this.images) {
       image.style.objectFit = mediaObjectFit(media?.properties?.fit ?? 'fill');
+      applyBackgroundFrame(image, media?.backgroundFrame);
     }
     if ((media?.mediaId ?? null) === this.current) return;
     this.current = media?.mediaId ?? null;

@@ -25,7 +25,11 @@ import type {ServicePassages} from '../bible/servicePassages';
 import {LITURGY, liturgySlideTextKey} from '@core/services/liturgy';
 import {LITURGY_SLIDES} from '@core/services/liturgySlides';
 import {CREED_PRAYER_THEME_ID} from '@core/themes/creedPrayer';
-import {songItemBackground, songSlidePicture} from '@core/songs/songBackground';
+import {
+  songBackgroundFrame,
+  songItemBackground,
+  songSlidePicture,
+} from '@core/songs/songBackground';
 
 export {SHOW_SERVICE_LIMITS} from '@core/schema/showService';
 
@@ -434,6 +438,11 @@ function songRow(
   const mediaId = songBackgroundId(item, song.data);
   const background =
     mediaId === undefined ? undefined : sources.backgrounds.get(mediaId);
+  const frame = songBackgroundFrame({
+    song: song.data,
+    item: item.background,
+    backgroundNone: item.backgroundNone,
+  });
   const missingBackgroundName =
     background === undefined && mediaId !== undefined
       ? sources.media?.get(mediaId)?.name
@@ -452,7 +461,14 @@ function songRow(
     title,
     ...(theme === undefined ? {} : {theme}),
     ...(problem === undefined ? {} : {problem}),
-    ...(background === undefined ? {} : {background}),
+    ...(background === undefined
+      ? {}
+      : {
+          background: {
+            ...background,
+            ...(frame === undefined ? {} : {backgroundFrame: frame}),
+          },
+        }),
     ...(item.background === undefined
       ? {}
       : {backgroundExplicit: true as const}),

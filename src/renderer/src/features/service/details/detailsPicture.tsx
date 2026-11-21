@@ -11,7 +11,10 @@ import type {ShowTile} from '@core/schema/showService';
 import type {SongSession} from '@renderer/features/songs/editor/songSession';
 import type {SongEditorStore} from '@renderer/features/songs/editor';
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
-import {songItemBackground} from '@core/songs/songBackground';
+import {
+  songBackgroundFrame,
+  songItemBackground,
+} from '@core/songs/songBackground';
 import {useBibleTileProjection} from '@renderer/features/bible/useBibleProjections';
 import {mediaTextSlide, slideLayerOf} from '@core/presentation/slideLayer';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
@@ -123,6 +126,18 @@ function songPicture(
         item: item.background,
         song: song?.background,
       })}
+      backgroundFrame={
+        song === null
+          ? theme.backgroundFrame
+          : songBackgroundFrame({
+              song: {
+                background: song.background,
+                backgroundFrame: song.backgroundFrame,
+              },
+              item: item.background,
+              backgroundNone: item.backgroundNone,
+            })
+      }
       songSource={projectedTiles?.[index]?.sourceSlide}
       slide={
         projected ??
@@ -151,7 +166,7 @@ function libraryPicture(
   context: PictureContext,
   index: number,
 ): JSX.Element | undefined {
-  const {library, theme} = context;
+  const {library, theme, song} = context;
   if (library === null || theme === undefined) return undefined;
   const tile = library.tiles[index];
   const slide = slideLayerOf(
@@ -162,7 +177,17 @@ function libraryPicture(
   return (
     <SlidePicture
       {...theme}
-      background={library.background?.mediaId}
+      background={song === null ? library.background?.mediaId : song.background}
+      backgroundFrame={
+        song === null
+          ? library.background?.backgroundFrame
+          : songBackgroundFrame({
+              song: {
+                background: song.background,
+                backgroundFrame: song.backgroundFrame,
+              },
+            })
+      }
       songSource={tile.sourceSlide}
       slide={slide}
     />

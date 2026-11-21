@@ -49,6 +49,8 @@ export class SongSession {
   history: SongSlideHistory;
   title: SongTitleDraft;
   background: MediaId | undefined;
+  backgroundFrame: Song['backgroundFrame'];
+  private backgroundFrameEdited = false;
   private dirty = false;
   private intent = 0;
   revealIntent = 0;
@@ -120,11 +122,15 @@ export class SongSession {
       options.isDuplicateTitle,
     );
     this.background = options.document.song.background;
+    this.backgroundFrame = options.document.song.backgroundFrame;
     this.persistence = new SongSessionPersistence(options, {
       hasChanges: () => this.hasChanges,
       hasTitleDraft: () => this.title.hasDraft,
       hasDraft: () =>
-        this.dirty || this.title.hasDraft || this.backgroundEdited,
+        this.dirty ||
+        this.title.hasDraft ||
+        this.backgroundEdited ||
+        this.backgroundFrameEdited,
       nextTitle: () => this.title.nextValue,
       endTyping: () => this.history.endTyping(),
       capture: document => this.captureDraft(document),
@@ -143,6 +149,8 @@ export class SongSession {
         this.title = new SongTitleDraft(document.song.title);
         this.background = document.song.background;
         this.backgroundEdited = false;
+        this.backgroundFrame = document.song.backgroundFrame;
+        this.backgroundFrameEdited = false;
       },
     });
   }
@@ -196,8 +204,19 @@ export class SongSession {
     return (
       this.dirty ||
       this.title.changed ||
-      this.background !== this.document.song.background
+      this.background !== this.document.song.background ||
+      JSON.stringify(this.backgroundFrame) !==
+        JSON.stringify(this.document.song.backgroundFrame)
     );
+  }
+
+  setBackgroundFrame(frame: Song['backgroundFrame']): void {
+    if (!this.acceptsEdits || this.itemSession) return;
+    if (JSON.stringify(this.backgroundFrame) === JSON.stringify(frame)) return;
+    this.backgroundFrame = frame;
+    this.backgroundFrameEdited = true;
+    this.endTyping();
+    this.options.changed();
   }
 
   setBackground(id: MediaId | undefined): void {
@@ -499,6 +518,8 @@ export class SongSession {
       this.title.accept(document.song.title);
       this.background = document.song.background;
       this.backgroundEdited = false;
+      this.backgroundFrame = document.song.backgroundFrame;
+      this.backgroundFrameEdited = false;
       this.options.changed();
       return;
     }
@@ -538,6 +559,9 @@ export class SongSession {
       this.persistence.acceptBaseline(document);
       this.title.accept(document.song.title);
       if (!this.backgroundEdited) this.background = document.song.background;
+      if (!this.backgroundFrameEdited) {
+        this.backgroundFrame = document.song.backgroundFrame;
+      }
     }
   }
 
@@ -577,8 +601,16 @@ export class SongSession {
     title: string = this.title.nextValue,
     base: Song = this.document.song,
   ): Song {
-    const {background: _draftBackground, ...draft} = this.history.snapshot.song;
-    const {background: _oldBackground, ...baseSong} = base;
+    const {
+      background: _draftBackground,
+      backgroundFrame: _draftFrame,
+      ...draft
+    } = this.history.snapshot.song;
+    const {
+      background: _oldBackground,
+      backgroundFrame: _oldFrame,
+      ...baseSong
+    } = base;
     return {
       ...baseSong,
       ...draft,
@@ -599,6 +631,9 @@ export class SongSession {
       title,
       slides: followTitle(draft.slides, this.title.nextValue, title),
       ...(this.background === undefined ? {} : {background: this.background}),
+      ...(this.backgroundFrame === undefined
+        ? {}
+        : {backgroundFrame: this.backgroundFrame}),
     };
   }
 
@@ -643,6 +678,14 @@ export class SongSession {
       this.background = document.song.background;
       this.backgroundEdited = false;
     }
+    if (
+      !this.backgroundFrameEdited ||
+      JSON.stringify(this.backgroundFrame) ===
+        JSON.stringify(capture.song.backgroundFrame)
+    ) {
+      this.backgroundFrame = document.song.backgroundFrame;
+      this.backgroundFrameEdited = false;
+    }
   }
 
   private installDraft(document: EditorSongDocument): void {
@@ -654,6 +697,8 @@ export class SongSession {
     );
     this.background = document.song.background;
     this.backgroundEdited = false;
+    this.backgroundFrame = document.song.backgroundFrame;
+    this.backgroundFrameEdited = false;
     this.dirty = false;
   }
 

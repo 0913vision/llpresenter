@@ -1,3 +1,5 @@
+import type {Song} from '../schema/song';
+
 /** A chosen song background covers every slide; pictures remain when it is cleared. */
 export function songSlideBackground(
   picture: string | undefined,
@@ -24,4 +26,23 @@ export function songItemBackground({
   readonly song?: string | undefined;
 }): string | undefined {
   return backgroundNone === true ? undefined : (item ?? song);
+}
+/** Placement belongs to the song's choice, not an item's independent override. */
+export function songBackgroundFrame({
+  song,
+  item,
+  backgroundNone,
+}: {
+  readonly song: {
+    readonly background?: string | undefined;
+    readonly backgroundFrame?: Song['backgroundFrame'];
+  };
+  readonly item?: string | undefined;
+  readonly backgroundNone?: boolean | undefined;
+}): Song['backgroundFrame'] {
+  return backgroundNone === true ||
+    item !== undefined ||
+    song.background === undefined
+    ? undefined
+    : song.backgroundFrame;
 }

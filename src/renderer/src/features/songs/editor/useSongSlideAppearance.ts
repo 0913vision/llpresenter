@@ -1,7 +1,10 @@
 import type {SongSession} from './songSession';
 import {useShow} from '@renderer/session/show';
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
-import {songItemBackground} from '@core/songs/songBackground';
+import {
+  songBackgroundFrame,
+  songItemBackground,
+} from '@core/songs/songBackground';
 
 /** The same local theme and effective background for every editor picture. */
 export function useSongSlideAppearance(session: SongSession) {
@@ -23,6 +26,17 @@ export function useSongSlideAppearance(session: SongSession) {
     ? undefined
     : {
         ...theme,
+        backgroundFrame: songBackgroundFrame({
+          song: {
+            background: session.background,
+            backgroundFrame: session.backgroundFrame,
+          },
+          item:
+            session.itemSession && itemRow?.backgroundExplicit
+              ? itemRow.background?.mediaId
+              : undefined,
+          backgroundNone: session.itemSession && itemRow?.backgroundNone,
+        }),
         songBackground: songItemBackground({
           backgroundNone: itemRow?.backgroundNone,
           item: session.itemSession ? itemRow?.background?.mediaId : undefined,

@@ -232,6 +232,7 @@ export class SongSessionPersistence {
                 song: {
                   ...this.document.song,
                   ...draft,
+                  ...song,
                   title: this.draft.nextTitle(),
                   ...(background === undefined ? {} : {background}),
                 },

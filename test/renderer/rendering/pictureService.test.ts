@@ -60,6 +60,19 @@ const spec: PictureSpec = {
     checker: false,
   },
 };
+
+it('invalidates a prepared picture when the song background moves or resizes', () => {
+  const media = {mediaId: 'background', loop: false, startedAt: 0};
+  const original = {...spec, layers: {...spec.layers, media}};
+  const moved = {
+    ...spec,
+    layers: {
+      ...spec.layers,
+      media: {...media, backgroundFrame: {x: 200, y: 0, w: 1200, h: 1080}},
+    },
+  };
+  expect(pictureKey(moved)).not.toBe(pictureKey(original));
+});
 const canvasContext = Object.getOwnPropertyDescriptor(
   HTMLCanvasElement.prototype,
   'getContext',
