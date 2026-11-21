@@ -348,7 +348,9 @@ describe('registered overlay layers', () => {
     expect(parent.querySelector('[data-stage-message-band]')?.textContent).toBe(
       'Stage cue',
     );
-    expect(parent.querySelector('[data-kind="stageMessage"]')).toBeNull();
+    expect(
+      parent.querySelector<HTMLElement>('[data-kind="stageMessage"]')?.hidden,
+    ).toBe(true);
     const savedLayout = {
       ...layout,
       elements: layout.elements.filter(

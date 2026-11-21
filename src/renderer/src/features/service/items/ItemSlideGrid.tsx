@@ -49,7 +49,9 @@ export function ItemSlideGrid({
   const mediaTiles = useShow(view =>
     mediaId === undefined ? undefined : view.tiles[mediaId],
   );
-  const mediaTheme = useSlideTheme(mediaRow);
+  const mediaTheme = useSlideTheme(
+    mediaRow?.kind === 'media' ? mediaRow : undefined,
+  );
   const songTheme = useSlideTheme(
     state.item !== null && isItemOfKind(state.item, 'song')
       ? {
