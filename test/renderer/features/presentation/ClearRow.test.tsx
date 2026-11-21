@@ -315,6 +315,23 @@ describe('ClearRow', () => {
     expect(screen.getByRole('button', {name: '가사 지우기'})).toBeTruthy();
   });
 
+  it('uses one narrow-width label rule for every button including all', () => {
+    render(<ClearRow compact={false} />);
+    const group = screen.getByRole('group', {name: '지우기'});
+    const buttons = [...group.querySelectorAll('button')];
+    expect(buttons.length).toBeGreaterThan(1);
+    for (const button of buttons) {
+      expect(button.classList.contains(styles.button)).toBe(true);
+      expect(button.querySelector(`.${styles.label}`)).not.toBeNull();
+    }
+    const all = screen.getByRole('button', {name: '모두 지우기'});
+    expect(all.querySelector(`.${styles.label}`)?.textContent).toBe('모두');
+    const rules = cssRules(
+      'src/renderer/src/features/presentation/ClearRow.module.css',
+    );
+    expect(rules('.button .label')).toContain('display: none');
+  });
+
   it.each([false, true])(
     'keeps standby apart from the six clears, including without labels (compact: %s)',
     compact => {
