@@ -965,17 +965,9 @@ and 59.
 
 ## PowerPoint picture import
 
-파일 > 가져오기 > PowerPoint를 이미지로 opens a `.ppt`, `.pptx`, or `.pptm` file
-in PowerPoint with macros disabled. Hidden slides are skipped; each visible
-slide is exported from a temporary copy of the chosen file as a 1920 × 1080 PNG
-and placed in one 빈 슬라이드 item after the selected service row (or at the
-end). Its pictures are private to the item and its copies and never appear in
-media lists. Private pictures are retained after deletion so undo and clipboard
-copies remain usable. Slide labels are empty. The item uses 이미지 슬라이드. The
-operator sees export progress and may cancel. If PowerPoint is not installed,
-does not respond, or cannot read the file, the app reports the cause without
-adding an item. The temporary copy is removed after the export finishes, fails,
-or is cancelled. 4:3 files are refused before export, with their dimensions.
+Both PowerPoint import menu commands use the song import below. After the file
+picker, they open the song editor with all slides, lyrics and backgrounds; no
+PowerPoint import dialog is shown.
 
 ## PowerPoint import
 
@@ -993,28 +985,23 @@ slide order, including groups; tables, charts, notes and comments are ignored.
 Line breaks and XML entities are decoded, trailing whitespace is removed, and
 empty lines are dropped.
 
-The preview starts with all slides selected. Click a slide and Shift-click
-another to select an inclusive range. The default name joins the first title
-shape's lines with spaces, excluding any second shape used as a subtitle; if
-there is no title, it uses the file name without extension. Body placeholders
-supply lyrics and take precedence over decorative text. A slide with other text
-is a title when it is the first slide with text in the range, or repeats that
-title's first line; other such slides are lyrics. Empty slides remain blank. A
-title uses at most two shapes, retaining each shape's paragraphs as separate
-lines with their positions and formatting. 편집 opens the unsaved song editor;
-저장 there adds the song to the library.
-
-가사 and 배경 are selected by default. At least one remains selected. 가사 alone
-opens a song without importing media; 배경 alone imports the selected range's
-backgrounds into media with 가져오기 and opens no editor.
+The default name joins the first title shape's lines with spaces, excluding any
+second shape used as a subtitle; if there is no title, it uses the file name
+without extension. Body placeholders supply lyrics and take precedence over
+decorative text. A slide with other text is a title when it is the first slide
+with text in the deck, or repeats that title's first line; other such slides are
+lyrics. Empty slides remain blank. A title uses at most two shapes, retaining
+each shape's paragraphs as separate lines with their positions and formatting.
+Import opens the unsaved song editor; 저장 there adds the song to the library.
+An existing unsaved song is guarded before the file picker opens.
 
 The imported song uses the built-in light-background song theme when the most
-common resolved body lyric color in the selected range has relative luminance
-below 0.5. Otherwise it uses the normal song theme. Slide, layout and master
-text styles and theme color mappings supply the color. Body lyric typography
-resolves size, tracking, line spacing and font from runs, paragraphs, layout and
-master; box widths, title positions and point values are converted to 1920-wide
-canvas units. Unformatted or subsequently edited lines use the selected theme. A
+common resolved body lyric color in the deck has relative luminance below 0.5.
+Otherwise it uses the normal song theme. Slide, layout and master text styles
+and theme color mappings supply the color. Body lyric typography resolves size,
+tracking, line spacing and font from runs, paragraphs, layout and master; box
+widths, title positions and point values are converted to 1920-wide canvas
+units. Unformatted or subsequently edited lines use the selected theme. A
 service item added from the song keeps its selected theme.
 
 ### Background
@@ -1057,15 +1044,15 @@ the master's mapping after any layout override.
 Each slide has a background key covering its layout and the slide content left
 after text and placeholders are removed. PowerPoint renders each distinct look;
 when that export fails, the layer renderer provides a fallback for that look.
-The most common key in the selected range supplies the song background; each
-slide also retains its own picture. Fallback backgrounds contain at most 64
-layers; additional layers and pictures exceeding image bounds are omitted. Each
-encoded picture is limited to 32 MiB, 16384 pixels per side and 64 megapixels,
-with 128 MiB of encoded pictures per background.
+The most common key in the deck supplies the song background; each slide also
+retains its own picture. Fallback backgrounds contain at most 64 layers;
+additional layers and pictures exceeding image bounds are omitted. Each encoded
+picture is limited to 32 MiB, 16384 pixels per side and 64 megapixels, with 128
+MiB of encoded pictures per background.
 
 For fallback rendering, Chromium's OffscreenCanvas draws the layer list and
 encodes JPEG at quality 0.92, or PNG when the composed picture has transparency
-at an edge. The composed image enters the media library when 편집 is pressed and
+at an edge. The composed image enters the media library during import and
 remains there even if the song is discarded. Text styling, transitions and
 animations are not imported. Other size limits are in the data specification.
 
