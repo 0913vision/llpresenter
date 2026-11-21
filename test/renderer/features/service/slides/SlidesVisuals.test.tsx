@@ -87,8 +87,13 @@ it('previews text-only notice numbers without numbering pictures or blank slides
 });
 
 it('labels missing slide media', () => {
+  const item = newSlidesItem(
+    'blank',
+    createServiceItemId('00000000-0000-4000-8000-000000000001'),
+  );
   expect(
     slideBand(
+      item,
       {
         id: createSlideId('00000000-0000-4000-8000-000000000011'),
         media: createMediaId('00000000-0000-4000-8000-000000000021'),

@@ -883,6 +883,7 @@ export class ThemeElementView {
       if (
         element.kind === 'currentText' &&
         !currentBible &&
+        (slide?.kind ?? item?.kind) !== 'ad' &&
         slide?.sermonTitle !== true &&
         slide?.label?.trim()
       ) {
