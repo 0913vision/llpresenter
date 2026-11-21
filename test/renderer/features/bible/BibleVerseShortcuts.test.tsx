@@ -511,6 +511,44 @@ describe('Bible verse shortcuts', () => {
     expect(fixture.send).toHaveBeenCalled();
   });
 
+  it('keeps an adjacent lookup across an unchanged service refresh', async () => {
+    const fixture = await savedWithCard(1);
+    let resume: ((reply: BibleLookupReply) => void) | undefined;
+    fixture.lookup.mockImplementationOnce(
+      () =>
+        new Promise<BibleLookupReply>(resolve => {
+          resume = resolve;
+        }),
+    );
+    const output = outputAdjacentBibleVerse('previous');
+    await vi.waitFor(() => expect(fixture.lookup).toHaveBeenCalledTimes(1));
+    useShow.setState(view => ({rows: structuredClone(view.rows)}));
+    resume?.(await formLookupReply(lookupRequest('요한복음')));
+    await output;
+    expect(fixture.send).toHaveBeenCalled();
+  });
+
+  it('discards an adjacent lookup when the saved item changes', async () => {
+    const fixture = await savedWithCard(1);
+    let resume: ((reply: BibleLookupReply) => void) | undefined;
+    fixture.lookup.mockImplementationOnce(
+      () =>
+        new Promise<BibleLookupReply>(resolve => {
+          resume = resolve;
+        }),
+    );
+    const output = outputAdjacentBibleVerse('previous');
+    await vi.waitFor(() => expect(fixture.lookup).toHaveBeenCalledTimes(1));
+    useShow.setState(view => ({
+      rows: view.rows.map(row =>
+        row.id === 'saved-bible' ? {...row, title: 'Changed'} : row,
+      ),
+    }));
+    resume?.(await formLookupReply(lookupRequest('요한복음')));
+    await output;
+    expect(fixture.send).not.toHaveBeenCalled();
+  });
+
   it('bounds a failed lookup and retains the last good output', async () => {
     const fixture = await setup();
     const log = vi.spyOn(fixture.api.log, 'write');
