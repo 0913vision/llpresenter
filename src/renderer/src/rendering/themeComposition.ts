@@ -165,6 +165,14 @@ export class ThemeCompositionView {
       this.audienceSize = this.audienceMeasure.page?.elements
         .find(view => view.element.kind === 'currentText')
         ?.fittedTextSize();
+      if (!original.titleSlide && (original.kind ?? itemKind) === 'song') {
+        const lines = this.audienceMeasure.page?.elements
+          .find(view => view.element.kind === 'currentText')
+          ?.renderedTextLines();
+        if (lines !== undefined && lines.length > 0) {
+          frame = {...frame, stageSongLines: lines};
+        }
+      }
       if (
         original.titleSlide &&
         (original.kind ?? theme.item?.kind) === 'song'

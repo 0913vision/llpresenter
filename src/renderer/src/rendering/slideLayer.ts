@@ -18,7 +18,6 @@ const textFits = new WeakMap<Document, TextFitCache>();
 /** Initial slide transition duration. */
 export const SLIDE_DISSOLVE_MS = 200;
 
-const MIN_STAGE_LYRIC_SIZE = 48;
 export const STAGE_NEXT_MIN_SIZE = 48;
 
 const FALLBACK_FONTS = "'Pretendard Variable', sans-serif";
@@ -40,6 +39,49 @@ export function fontFamilyFor(font: string): string {
 }
 
 const NO_BREAK_SPACE = ' ';
+
+function renderedRowLines(row: Element): string[] {
+  const walker = row.ownerDocument.createTreeWalker(row, NodeFilter.SHOW_TEXT);
+  const result: string[] = [];
+  let node: Node | null;
+  let top: number | undefined;
+  let bottom: number | undefined;
+  let line = '';
+  while ((node = walker.nextNode()) !== null) {
+    const value = node.textContent ?? '';
+    for (let index = 0; index < value.length;) {
+      const character = String.fromCodePoint(value.codePointAt(index) ?? 0);
+      const range = row.ownerDocument.createRange();
+      range.setStart(node, index);
+      range.setEnd(node, index + character.length);
+      const rect =
+        typeof range.getClientRects === 'function'
+          ? range.getClientRects()[0]
+          : undefined;
+      if (
+        rect &&
+        rect.width > 0 &&
+        rect.height > 0 &&
+        top !== undefined &&
+        bottom !== undefined &&
+        (rect.top >= bottom - 2 || rect.bottom <= top + 2)
+      ) {
+        result.push(line.trimEnd());
+        line = '';
+        top = undefined;
+        bottom = undefined;
+      }
+      if (rect && rect.width > 0 && rect.height > 0) {
+        top = Math.min(top ?? rect.top, rect.top);
+        bottom = Math.max(bottom ?? rect.bottom, rect.bottom);
+      }
+      line += character;
+      index += character.length;
+    }
+  }
+  result.push(line.trimEnd());
+  return result;
+}
 
 function alignFixedPitch(
   block: HTMLElement,
@@ -509,6 +551,13 @@ export class SlideLayerView {
     return Number.parseFloat(this.pages[this.front].block.style.fontSize);
   }
 
+  /** The actual line boxes produced by the audience's text layout. */
+  renderedLines(): readonly string[] | undefined {
+    if (this.current === null) return undefined;
+    const page = this.pages[this.front];
+    return Array.from(page.block.children).flatMap(renderedRowLines);
+  }
+
   lineBoxBounds(): {top: number; bottom: number} | undefined {
     if (this.current === null) return undefined;
     const rect = this.pages[this.front].block.getBoundingClientRect();
@@ -732,7 +781,11 @@ export class SlideLayerView {
           if (row instanceof HTMLElement) {
             row.style.overflow = '';
             row.style.textOverflow = '';
-            row.style.whiteSpace = this.ellipsis ? 'nowrap' : '';
+            row.style.whiteSpace = this.ellipsis
+              ? 'nowrap'
+              : this.lineMode === 'song'
+                ? 'pre'
+                : '';
           }
         }
         block.style.whiteSpace = this.lineMode === 'normal' ? '' : 'pre';
@@ -753,17 +806,8 @@ export class SlideLayerView {
       },
       document.fonts,
     );
-    const songMinimum =
-      Math.min(
-        MIN_STAGE_LYRIC_SIZE,
-        this.maximumSize ?? Infinity,
-        this.targetSize ?? Infinity,
-      ) * this.scale;
-    const minimum =
-      this.lineMode === 'lyrics' ? Math.ceil(size * 0.7) : songMinimum;
-    const wraps =
-      (this.lineMode === 'song' || this.lineMode === 'lyrics') &&
-      fontSize < minimum;
+    const minimum = Math.ceil(size * 0.7);
+    const wraps = this.lineMode === 'lyrics' && fontSize < minimum;
     const keepWords =
       (this.lineMode === 'lyrics' ||
         (this.balanceWrap && this.lineMode === 'song')) &&
@@ -778,9 +822,11 @@ export class SlideLayerView {
       });
       block.dataset['keepWords'] = String(keepWords);
     }
-    block.style.whiteSpace = this.lineMode === 'normal' || wraps ? '' : 'pre';
     const balance = this.balanceWrap && (wraps || this.lineMode === 'normal');
+    block.style.whiteSpace = '';
     block.style.textWrap = balance ? 'balance' : '';
+    // NOTE(0913vision): text-wrap resets part of white-space, so set pre last.
+    if (this.lineMode !== 'normal' && !wraps) block.style.whiteSpace = 'pre';
     block.style.wordBreak = keepWords || balance ? 'keep-all' : '';
     block.style.overflowWrap = keepWords || balance ? 'normal' : '';
     setSize(
@@ -797,7 +843,11 @@ export class SlideLayerView {
       if (row instanceof HTMLElement) {
         row.style.overflow = this.ellipsis ? 'hidden' : '';
         row.style.textOverflow = this.ellipsis ? 'ellipsis' : '';
-        row.style.whiteSpace = this.ellipsis ? 'nowrap' : '';
+        row.style.whiteSpace = this.ellipsis
+          ? 'nowrap'
+          : this.lineMode === 'song'
+            ? 'pre'
+            : '';
       }
     }
     this.placeStageInlineLabel(page);

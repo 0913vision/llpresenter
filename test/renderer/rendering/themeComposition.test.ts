@@ -139,7 +139,7 @@ describe('theme composition drawing', () => {
       const bibleTiles = tiles.map(
         ({kind: _kind, name: _name, ...tile}, index) => ({
           ...tile,
-          lines: tile.lines.flatMap(line => line.trimEnd().split('\n')),
+          lines: tile.lines.map(line => line.trimEnd()),
           biblePart: 1,
           continued: index === 0,
         }),
@@ -254,6 +254,10 @@ describe('theme composition drawing', () => {
         const bible = render(true, screen);
         target.mockClear();
         expect(render(false, screen), screen.kind).toEqual(bible);
+        expect(bible.lines).toEqual([
+          '17 비록 무화과나무가',
+          '무성하지 못하며 (계속)',
+        ]);
         expect(bible.reference).toBe(reference);
         expect(bible.marker?.text).toBe(' (계속)');
         expect(Number.parseFloat(bible.marker?.size ?? '')).toBeLessThan(
@@ -2713,6 +2717,55 @@ it('reflows Bible parts independently on stage and broadcast, including the next
   view.dispose();
 });
 
+it.each(['bible', 'blank', 'ad'] as const)(
+  'keeps typed scripture breaks for %s text on every screen',
+  kind => {
+    const {root, view} = setup();
+    const elements: ThemeElement[] = [
+      {...themeElementBase(), kind: 'currentText'},
+      {...themeElementBase(31), kind: 'nextText'},
+    ];
+    const base = frame(elements);
+    if (!base.theme?.item) throw Error('Missing item');
+    const layers: LiveLayers = {
+      ...emptyLayers(),
+      slide: {
+        itemId: 'invented',
+        position: 0,
+        kind,
+        reference: 'John 3:16',
+        label: null,
+        lines: ['첫 문장\n둘째 문장'],
+        next: {
+          label: null,
+          itemKind: 'bible',
+          lines: ['다음 첫줄\n다음 둘째줄'],
+        },
+      },
+    };
+    for (const screenKind of ['audience', 'stage', 'broadcast'] as const) {
+      view.render(layers, {
+        ...base,
+        screen: {id: THEME_MAIN, kind: screenKind},
+        theme: {...base.theme, item: {...base.theme.item, kind}},
+        transitions: false,
+      });
+      const rows = (element: string) =>
+        Array.from(
+          root.querySelectorAll(
+            `[data-kind="${element}"] .${classes.shown} .${classes.block} > div`,
+          ),
+          row => row.textContent,
+        );
+      expect(rows('currentText')).toEqual(['첫 문장', '둘째 문장']);
+      if (screenKind === 'stage') {
+        expect(rows('nextText')).toEqual(['다음 첫줄', '다음 둘째줄']);
+      }
+    }
+    view.dispose();
+  },
+);
+
 it('keeps sermon title lines on stage and broadcast, including stage next text', () => {
   const {root, view} = setup();
   const elements: ThemeElement[] = [
@@ -2916,6 +2969,54 @@ it('fits the stage current text toward the audience rendered size', () => {
   view.dispose();
 });
 
+it('draws the audience layout lines on stage, including audience wrapping', () => {
+  const {root, view} = setup();
+  if (!song.slide) throw Error('Missing slide');
+  const audienceElement: ThemeElement = {
+    ...themeElementBase(32),
+    kind: 'currentText',
+  };
+  const stageFrame = frame([{...themeElementBase(31), kind: 'currentText'}]);
+  const audienceFrame = frame([audienceElement]);
+  if (!audienceFrame.theme) throw Error('Missing audience theme');
+  vi.spyOn(ThemeElementView.prototype, 'renderedTextLines').mockReturnValue([
+    '우리로 여호와의 심으신',
+    '의의 나무 되어',
+    '주께 영광 돌리라',
+  ]);
+  view.render(
+    {
+      ...song,
+      slide: {
+        ...song.slide,
+        kind: 'song',
+        lines: ['우리로 여호와의 심으신 의의 나무 되어', '주께 영광 돌리라'],
+      },
+    },
+    {
+      ...stageFrame,
+      screen: {id: THEME_MAIN, kind: 'stage'},
+      audience: {
+        screen: {id: THEME_MAIN, kind: 'audience'},
+        theme: audienceFrame.theme,
+      },
+      transitions: false,
+    },
+  );
+  const block = Array.from(
+    root.querySelectorAll<HTMLElement>(
+      `[data-kind="currentText"] .${classes.shown} .${classes.block}`,
+    ),
+  ).at(-1);
+  expect(Array.from(block?.children ?? [], row => row.textContent)).toEqual([
+    '우리로 여호와의 심으신',
+    '의의 나무 되어',
+    '주께 영광 돌리라',
+  ]);
+  expect(block?.style.whiteSpace).toBe('pre');
+  view.dispose();
+});
+
 it.each([undefined, '전주', '간주', '후주'])(
   'matches audience title and subtitle sizes on stage with label %s',
   label => {
@@ -2975,7 +3076,7 @@ it.each([undefined, '전주', '간주', '후주'])(
   },
 );
 
-it('keeps stage next text at least 48px even when the current text is smaller', () => {
+it('lets a stage song next line shrink below 48px without wrapping', () => {
   vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(200);
   vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(100);
   vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(1000);
@@ -2992,7 +3093,8 @@ it('keeps stage next text at least 48px even when the current text is smaller', 
   const block = root.querySelector<HTMLElement>(
     `[data-kind="nextText"] .${classes.shown} .${classes.block}`,
   );
-  expect(block?.style.fontSize).toBe('48px');
+  expect(block?.style.fontSize).toBe('1px');
+  expect(block?.style.whiteSpace).toBe('pre');
   view.dispose();
 });
 
@@ -3673,7 +3775,14 @@ it('keeps current song rows unwrapped on stage when they fit above 48 pixels', (
   const {root, view} = setup();
   if (song.slide === null) throw Error('Missing slide');
   view.render(
-    {...song, slide: {...song.slide, kind: 'song', lines: ['First', 'Second']}},
+    {
+      ...song,
+      slide: {
+        ...song.slide,
+        kind: 'song',
+        lines: ['우리로 여호와의 심으신 의의 나무 되어', '주께 영광 돌리라'],
+      },
+    },
     {
       ...frame([{...themeElementBase(), kind: 'currentText'}]),
       screen: {id: THEME_MAIN, kind: 'stage'},
@@ -3685,6 +3794,10 @@ it('keeps current song rows unwrapped on stage when they fit above 48 pixels', (
   );
   expect(block?.style.whiteSpace).toBe('pre');
   expect(block?.children).toHaveLength(2);
+  expect(Array.from(block?.children ?? [], row => row.textContent)).toEqual([
+    '우리로 여호와의 심으신 의의 나무 되어',
+    '주께 영광 돌리라',
+  ]);
   view.dispose();
 });
 

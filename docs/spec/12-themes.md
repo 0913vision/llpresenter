@@ -778,17 +778,16 @@ slide width and use the source box's top plus its top inset when available.
 Imported title slides retain each title line's original position and formatting.
 Edited text without matching imported formatting uses the theme.
 
-On the stage, song rows match the audience rows at the largest size that fits
-the stage text frame. Only when a row cannot fit at 48 px at 1920 x 1080 may it
-wrap at word boundaries. Each wrapped source line is balanced independently on
-stage and when audience lyrics fall back to wrapping, without removing authored
-line breaks. Next text stays at least 48 px. Bible parts on stage and broadcast
-join the audience rows with spaces and wrap within their own text frames; the
-stage next-verse preview does the same, left-aligned like the current verse.
-Song lines retain their author-entered breaks. Other prose continues to wrap.
-When continuous next-item navigation is enabled, the stage next preview follows
-the same next-item selection and skips the same rows as the next-slide command.
-A title counts as one of the two next-preview lines.
+On the stage, song lyrics use the final rendered audience lines at the largest
+size that fits the stage text frame. The stage never wraps those lines again,
+even when the size must fall below 48 px. Every screen preserves line breaks
+entered by the user for every kind of text. Where the user has not entered a
+break, each screen wraps text automatically to its own size; Bible and sermon
+text on stage and broadcast wraps within each screen's own frame. Songs follow
+the rule above: stage uses the audience's final rendered lines. When continuous
+next-item navigation is enabled, the stage next preview follows the same
+next-item selection and skips the same rows as the next-slide command. A title
+counts as one of the two next-preview lines.
 
 In the built-in stage layout, an empty song slide shows its label as a centered
 muted cue, or (없음) when the label is empty. Stage previews show the same cue;

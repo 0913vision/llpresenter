@@ -46,6 +46,8 @@ export interface RenderScreen {
 }
 
 export interface RenderFrame {
+  /** Final line boxes from the audience layout for the current song slide. */
+  readonly stageSongLines?: readonly string[] | undefined;
   /** Per-line audience sizes for a stage song title slide. */
   readonly stageTitleSizes?: readonly number[] | undefined;
   /** The audience composition used to fit the same slide on stage. */

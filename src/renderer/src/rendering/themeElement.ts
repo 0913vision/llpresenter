@@ -438,11 +438,6 @@ export class ThemeElementView {
         : nextEmpty
           ? ((nextLabel ? `(${nextLabel})` : undefined) ?? '(없음)')
           : undefined;
-    this.text?.setMinimumSize(
-      stage && element.kind === 'nextText'
-        ? Math.max(STAGE_NEXT_MIN_SIZE, element.minimumTextSize ?? 0)
-        : element.minimumTextSize,
-    );
     const kind =
       element.kind === 'nextText'
         ? (layers.slide?.next?.itemKind ?? item?.kind)
@@ -455,6 +450,13 @@ export class ThemeElementView {
       (element.kind === 'nextText' ||
         (element.kind === 'currentText' &&
           layers.slide?.sectionCard === undefined));
+    this.text?.setMinimumSize(
+      stage && isSong
+        ? undefined
+        : stage && element.kind === 'nextText'
+          ? Math.max(STAGE_NEXT_MIN_SIZE, element.minimumTextSize ?? 0)
+          : element.minimumTextSize,
+    );
     const importedSlide = layers.slide;
     this.text?.setFixedLineSpacing(
       isSong &&
@@ -533,7 +535,11 @@ export class ThemeElementView {
       }
     } else {
       const displayedText =
-        cue ?? this.textContent(layers, frame, videoRemaining);
+        cue ??
+        (stage && isSong && element.kind === 'currentText' && !slide?.titleSlide
+          ? frame.stageSongLines?.join('\n')
+          : undefined) ??
+        this.textContent(layers, frame, videoRemaining);
       const inlineLabel =
         stage && frame.stageLyricLabelPosition === 'inline' && cue === undefined
           ? element.kind === 'currentText' &&
@@ -785,8 +791,8 @@ export class ThemeElementView {
     }
     const reflow =
       frame.screen?.kind === 'stage' || frame.screen?.kind === 'broadcast';
-    // NOTE(0913vision): A sermon title keeps the lines the user typed; only
-    // verses flow as one text on 무대 and 방송.
+    // NOTE(0913vision): Only projected Bible rows are joined; newlines inside
+    // their source text are authored and must remain intact.
     const currentBible =
       element.kind === 'currentText' &&
       slide?.sectionCard === undefined &&
@@ -814,13 +820,13 @@ export class ThemeElementView {
             slide: {
               ...slide,
               ...(currentBible
-                ? {lines: [broadcastBibleFlow(slide.lines.join('\n'))]}
+                ? {lines: [broadcastBibleFlow(slide.lines)]}
                 : {}),
               ...(nextBible
                 ? {
                     next: {
                       ...slide.next,
-                      lines: [broadcastBibleFlow(slide.next.lines.join('\n'))],
+                      lines: [broadcastBibleFlow(slide.next.lines)],
                     },
                   }
                 : {}),
@@ -911,9 +917,7 @@ export class ThemeElementView {
     if (element.broadcastSongTitle !== undefined) {
       return element.broadcastSongTitle;
     }
-    return text !== null && element.broadcastBibleFlow
-      ? broadcastBibleFlow(text)
-      : text;
+    return text;
   }
 
   private showMedia(
@@ -1116,6 +1120,10 @@ export class ThemeElementView {
 
   fittedTextSize(): number | undefined {
     return this.text?.fittedSize();
+  }
+
+  renderedTextLines(): readonly string[] | undefined {
+    return this.text?.renderedLines();
   }
 
   targetTextSize(target: number | undefined): void {
