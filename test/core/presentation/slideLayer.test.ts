@@ -113,7 +113,12 @@ it('carries the unnumbered projected ad title for same-item and following-item c
     'adTitle',
   );
   for (const previousKind of ['song', 'blank'] as const) {
-    const previous = {...current, kind: previousKind};
+    const previous: SlideTile = {
+      label: null,
+      labelColor: 'none',
+      lines: ['Previous'],
+      ...(previousKind === 'blank' ? {kind: 'blank' as const} : {}),
+    };
     for (const firstAd of [nextAd, imageAd, videoAd]) {
       const beforeCard = slideLayerOf(
         {itemId: 'before', index: 0},

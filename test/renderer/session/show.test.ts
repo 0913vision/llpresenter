@@ -921,12 +921,22 @@ describe('show state', () => {
       name: 'First title',
       lines: ['Body'],
     };
+    const rows = [
+      ...sampleService.rows,
+      {
+        kind: 'slides' as const,
+        id: 'ad-card',
+        title: 'Ad',
+        form: 'ad' as const,
+      },
+    ];
     applyService({
       ...sampleService,
       revision: 2,
-      tiles: {...sampleService.tiles, 'song-river': [card, body]},
+      rows,
+      tiles: {...sampleService.tiles, 'ad-card': [card, body]},
     });
-    setLive('song-river', 0);
+    setLive('ad-card', 0);
     sent.length = 0;
     setAtLastSlide('nextItem');
     expect(sent.at(-1)).toMatchObject({
@@ -937,9 +947,10 @@ describe('show state', () => {
     applyService({
       ...sampleService,
       revision: 3,
+      rows,
       tiles: {
         ...sampleService.tiles,
-        'song-river': [card, {...body, name: 'Renamed title'}],
+        'ad-card': [card, {...body, name: 'Renamed title'}],
       },
     });
     expect(sent.at(-1)).toMatchObject({
