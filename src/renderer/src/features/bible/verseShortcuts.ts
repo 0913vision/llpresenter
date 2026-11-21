@@ -62,7 +62,9 @@ export async function outputAdjacentBibleVerse(
         (initial.selectedTile !== liveIndex &&
           view.selectedTile === liveIndex)) &&
       bibleSourceFor(view, itemId) === source &&
-      (source !== null || view.rows === initial.rows) &&
+      (source !== null ||
+        JSON.stringify(view.rows.find(candidate => candidate.id === itemId)) ===
+          JSON.stringify(row)) &&
       live?.itemId === slide?.itemId &&
       live?.position === slide?.position
     );
