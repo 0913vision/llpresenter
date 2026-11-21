@@ -195,9 +195,8 @@ Source: `ServiceSwitch`, `Main` decision "예배 순서 바꾸기", `Panel` READ
 
 ### Header
 
-- The header shows the open item name and, when live, the current position /
-  total. This applies to every item kind. Do not prepend the generic panel name
-  `슬라이드`. If no item is open, leave the header empty.
+- The header is named `내용` and also shows the open item name and, when live,
+  the current position / total. This applies to every item kind.
 
 - The header has no background select: 진행 only outputs, and a song item's
   background is changed in 준비.

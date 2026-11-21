@@ -58,13 +58,13 @@ describe('useShowPanels', () => {
     {kind: 'bible', id: 'example', title: 'Example'},
     {kind: 'media', id: 'example', title: 'Example'},
     {kind: 'unknown', id: 'example', title: 'Example'},
-  ])('shows only the item name in the slide header for $kind', row => {
+  ])('shows the content heading and item name for $kind', row => {
     useShow.setState({rows: [row]});
     revealSlideItem(row.id);
     const parts = panels().current.partsOf('슬라이드');
     const view = render(<Panel title="슬라이드" parts={parts} />);
     expect(view.container.querySelector('section > div')?.textContent).toBe(
-      'Example',
+      '내용Example',
     );
     revealSlideItem(null);
   });

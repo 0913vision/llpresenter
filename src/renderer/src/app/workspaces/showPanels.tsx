@@ -1,5 +1,6 @@
 import {useState, type ReactNode} from 'react';
 import {ShownItemProvider, useShownItemId} from '@renderer/session/shownItem';
+import {PanelTitle} from '@renderer/ui/Panel';
 import type {SongId} from '@core/schema/ids';
 import {BiblePanel} from '@renderer/features/presentation/BiblePanel';
 import {ClearRow} from '@renderer/features/presentation/ClearRow';
@@ -72,6 +73,7 @@ function ShowSlidesPanel({
         <ShownItemProvider shownItem={normal} trackLive={false}>
           <section className={panelStyles.panel} aria-label="슬라이드">
             <div className={panelStyles.header}>
+              <PanelTitle title="내용" />
               <SlidePanelMeta onProblem={onProblem} />
             </div>
             <div
