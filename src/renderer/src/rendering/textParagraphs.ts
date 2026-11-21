@@ -13,7 +13,7 @@ export function bulletTextStyle(text: BulletText) {
     '--bullet-indent': `${bulletIndent(text)}em`,
     '--bullet-gap': `${disc ? 0 : 23 / 86}em`,
     '--bullet-offset': `${disc ? 0 : -7 / 86}em`,
-    '--bullet-visibility': disc ? 'hidden' : 'visible',
+    '--bullet-visibility': disc ? 'hidden' : 'inherit',
     '--bullet-disc-content': disc ? '""' : 'none',
     '--bullet-disc-left': `${19 / 86}em`,
     '--bullet-disc-top': `${56 / 86}em`,

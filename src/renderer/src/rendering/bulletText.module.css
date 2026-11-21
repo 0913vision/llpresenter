@@ -18,6 +18,9 @@
   font-family: Arial, sans-serif;
   font-weight: 400;
   letter-spacing: normal;
+}
+
+.glyph {
   visibility: var(--bullet-visibility);
 }
 
@@ -30,5 +33,4 @@
   height: var(--bullet-disc-size);
   border-radius: 50%;
   background: currentColor;
-  visibility: visible;
 }
