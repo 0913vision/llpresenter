@@ -55,7 +55,7 @@ it('keeps the existing passage when only the sermon title changes', async () => 
   );
 });
 
-it('clears the existing reference on Escape and closes on the next Escape', () => {
+it('closes the sermon dialog from the populated reference on Escape', () => {
   const fixture = panelApi();
   window.llp = fixture.api;
   onTestFinished(() => {
@@ -84,14 +84,66 @@ it('clears the existing reference on Escape and closes on the next Escape', () =
   );
   const book = screen.getByRole<HTMLInputElement>('combobox', {name: '책'});
   fireEvent.keyDown(book, {key: 'Escape'});
-  expect(
-    screen.getByRole<HTMLInputElement>('combobox', {name: '책'}).value,
-  ).toBe('');
-  expect(onClose).not.toHaveBeenCalled();
-  fireEvent.keyDown(screen.getByRole('combobox', {name: '책'}), {
-    key: 'Escape',
-  });
   expect(onClose).toHaveBeenCalledOnce();
+});
+
+it('closes from the populated title with Escape and preserves IME composition', () => {
+  const fixture = panelApi();
+  window.llp = fixture.api;
+  onTestFinished(() => {
+    delete window.llp;
+  });
+  const close = vi.fn();
+  render(<SermonQuickAdd onClose={close} onInsert={vi.fn()} />);
+  const title = screen.getByRole('textbox', {name: '제목'});
+  fireEvent.change(title, {target: {value: 'Title'}});
+  fireEvent.keyDown(title, {key: 'Escape', isComposing: true, keyCode: 229});
+  expect(close).not.toHaveBeenCalled();
+  fireEvent.keyDown(title, {key: 'Escape'});
+  expect(close).toHaveBeenCalledOnce();
+});
+
+it('uses the mouse change action for a valid existing sermon and requires a title', async () => {
+  const fixture = panelApi();
+  window.llp = fixture.api;
+  onTestFinished(() => {
+    delete window.llp;
+  });
+  const insert = vi.fn();
+  render(
+    <SermonQuickAdd
+      onClose={vi.fn()}
+      onInsert={insert}
+      initial={{
+        id: createServiceItemId('00000000-0000-4000-8000-000000000123'),
+        sermon: {
+          title: 'Title',
+          passage: {
+            translation: lookupRequest().translation,
+            ref: '요한복음 3:16-18',
+            split: '',
+            reference: 'every',
+            verseNumbers: true,
+            translationName: false,
+          },
+        },
+      }}
+    />,
+  );
+  const change = screen.getByRole('button', {name: '변경'});
+  const title = screen.getByRole('textbox', {name: '제목'});
+  fireEvent.change(title, {target: {value: ''}});
+  fireEvent.click(change);
+  expect(insert).not.toHaveBeenCalled();
+  fireEvent.change(title, {target: {value: 'New title'}});
+  await waitFor(() => expect(change.getAttribute('aria-disabled')).toBeNull());
+  fireEvent.click(change);
+  await waitFor(() => expect(insert).toHaveBeenCalledOnce());
+  expect(insert).toHaveBeenCalledWith(
+    'New title',
+    '요한복음 3:16-18',
+    expect.anything(),
+  );
 });
 
 it('does not insert a pending recent after the title is cleared', async () => {

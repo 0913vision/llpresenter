@@ -113,7 +113,7 @@ it.each(['요한복음 3', '요한복음 3:16-4:2'])(
   },
 );
 
-it('navigates recent passages and clears the preparation dialog with Escape', async () => {
+it('navigates recent passages and closes the preparation dialog with Escape', async () => {
   const fixture = panelApi();
   window.llp = fixture.api;
   onTestFinished(() => {
@@ -156,12 +156,6 @@ it('navigates recent passages and clears the preparation dialog with Escape', as
     screen.getByRole('button', {name: /3:17/}).getAttribute('data-highlighted'),
   ).toBe('false');
   fireEvent.keyDown(book, {key: 'Escape'});
-  const clearedBook = screen.getByRole<HTMLInputElement>('combobox', {
-    name: '책',
-  });
-  expect(clearedBook.value).toBe('');
-  expect(onClose).not.toHaveBeenCalled();
-  fireEvent.keyDown(clearedBook, {key: 'Escape'});
   expect(onClose).toHaveBeenCalledOnce();
 });
 
@@ -203,6 +197,104 @@ it.each(['Enter', 'Tab'])(
     expect(onChoose).not.toHaveBeenCalled();
   },
 );
+
+it('submits a valid passage by mouse and blocks an invalid passage', async () => {
+  const onChoose = vi.fn();
+  render(
+    <BiblePassageDialog
+      api={{lookup: formLookupReply}}
+      translation={lookupRequest().translation}
+      onChoose={onChoose}
+      onClose={vi.fn()}
+    />,
+  );
+  const book = screen.getByRole('combobox', {name: '책'});
+  fireEvent.change(book, {target: {value: '요한복음'}});
+  const chapter = screen.getByRole('textbox', {name: '장'});
+  fireEvent.change(chapter, {target: {value: '3'}});
+  const start = screen.getByRole('textbox', {name: '시작절'});
+  fireEvent.change(start, {target: {value: '16'}});
+  const add = screen.getByRole('button', {name: '추가'});
+  await waitFor(() => expect(add.getAttribute('aria-disabled')).toBeNull());
+  fireEvent.click(add);
+  await waitFor(() => expect(onChoose).toHaveBeenCalledOnce());
+  fireEvent.change(chapter, {target: {value: '99'}});
+  fireEvent.click(add);
+  expect(onChoose).toHaveBeenCalledOnce();
+});
+
+it('submits a full typed reference from the book field by mouse', async () => {
+  const choose = vi.fn();
+  render(
+    <BiblePassageDialog
+      api={{lookup: formLookupReply}}
+      translation={lookupRequest().translation}
+      onChoose={choose}
+      onClose={vi.fn()}
+    />,
+  );
+  fireEvent.change(screen.getByRole('combobox', {name: '책'}), {
+    target: {value: '요한복음 3:16'},
+  });
+  const add = screen.getByRole('button', {name: '추가'});
+  await waitFor(() => expect(add.getAttribute('aria-disabled')).toBeNull());
+  fireEvent.click(add);
+  await waitFor(() => expect(choose).toHaveBeenCalledOnce());
+});
+
+it('closes the preparation dialog through its cancel button', () => {
+  const close = vi.fn();
+  render(
+    <BiblePassageDialog
+      api={{lookup: formLookupReply}}
+      translation={lookupRequest().translation}
+      onChoose={vi.fn()}
+      onClose={close}
+    />,
+  );
+  fireEvent.click(screen.getByRole('button', {name: '취소'}));
+  expect(close).toHaveBeenCalledOnce();
+});
+
+it('ignores a recent lookup that resolves after clicking cancel', async () => {
+  const fixture = panelApi();
+  window.llp = fixture.api;
+  onTestFinished(() => {
+    delete window.llp;
+  });
+  const translation = lookupRequest().translation;
+  const ref = '요한복음 3:17';
+  const settings = fixture.document();
+  fixture.push({
+    ...settings,
+    revision: 2,
+    value: {...settings.value, recents: [{translation, ref}]},
+  });
+  const choose = vi.fn();
+  const close = vi.fn();
+  render(
+    <BiblePassageDialog
+      api={fixture.api.bible}
+      translation={translation}
+      onChoose={choose}
+      onClose={close}
+    />,
+  );
+  const recent = await screen.findByRole('button', {name: /3:17/});
+  await waitFor(() => expect(fixture.lookup).toHaveBeenCalled());
+  let finish: (reply: BibleLookupReply) => void = () => undefined;
+  fixture.lookup.mockImplementationOnce(
+    () =>
+      new Promise(resolve => {
+        finish = resolve;
+      }),
+  );
+  fireEvent.click(recent);
+  fireEvent.click(screen.getByRole('button', {name: '취소'}));
+  expect(close).toHaveBeenCalledOnce();
+  await act(async () => finish(await formLookupReply(lookupRequest(ref))));
+  expect(choose).not.toHaveBeenCalled();
+});
 
 it('cancels a pending typed submission when a recent is picked', async () => {
   const fixture = panelApi();
@@ -366,13 +458,6 @@ it('shows range placeholders and moves back from an empty argument', async () =>
   fireEvent.keyDown(end, {key: 'Backspace'});
   expect(document.activeElement).toBe(start);
   fireEvent.keyDown(start, {key: 'Escape'});
-  expect(
-    screen.getByRole<HTMLInputElement>('combobox', {name: '책'}).value,
-  ).toBe('');
-  expect(onClose).not.toHaveBeenCalled();
-  fireEvent.keyDown(screen.getByRole('combobox', {name: '책'}), {
-    key: 'Escape',
-  });
   expect(onClose).toHaveBeenCalledOnce();
 });
 

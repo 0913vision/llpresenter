@@ -6,10 +6,12 @@ import {
   useEffectEvent,
   useId,
   useLayoutEffect,
+  useImperativeHandle,
   useRef,
   useState,
   type JSX,
   type KeyboardEvent,
+  type Ref,
 } from 'react';
 import type {BibleLookupApi} from '@contracts/ipc/bible';
 import {exactBibleBook, findBibleBooks} from '@core/bible/bibleMatching';
@@ -37,6 +39,7 @@ import {
 import styles from './BibleReferenceField.module.css';
 
 export interface BibleReferenceFormProps {
+  readonly submitRef?: Ref<{submit: () => void}> | undefined;
   readonly initialRef?: string | undefined;
   readonly dialogMode?: boolean;
   readonly onEffectiveTranslation?: ((id: TranslationId) => void) | undefined;
@@ -52,6 +55,7 @@ export interface BibleReferenceFormProps {
   /** Submit from any field in quick run instead of advancing on Enter. */
   readonly recents?: readonly RecentPassage[];
   readonly onReady?: (passage: BibleLookupPassage | null) => void;
+  readonly onFullReference?: ((valid: boolean) => void) | undefined;
   /** In a dialog, Esc dismisses the form after closing book suggestions. */
   readonly onEscape?: (() => void) | undefined;
 }
@@ -183,6 +187,15 @@ export function BibleReferenceForm(
   const reconciled = reconcileReferenceFields(fields, metadataBounds);
   if (reconciled !== fields) setFields(reconciled);
   const state = referenceFieldsState(reconciled, metadataBounds);
+  const fullReference = parseReference(reconciled.book);
+  const hasFullReference =
+    fullReference.ok &&
+    fullReference.value.chapter === fullReference.value.endChapter;
+  const onFullReference = props.onFullReference;
+  useEffect(
+    () => onFullReference?.(hasFullReference),
+    [onFullReference, hasFullReference],
+  );
   const chapterNumber = /^\d+$/u.test(reconciled.chapter)
     ? Number(reconciled.chapter)
     : 0;
@@ -333,10 +346,8 @@ export function BibleReferenceForm(
     choose(candidate.korean);
     setChapterFocus({bookId: candidate.id, translation});
   };
-  const acceptFullReference = (
-    event: KeyboardEvent<HTMLInputElement>,
-  ): boolean => {
-    const parsed = parseReference(event.currentTarget.value);
+  const acceptFullReference = (value: string, submit: boolean): boolean => {
+    const parsed = parseReference(value);
     if (!parsed.ok || parsed.value.chapter !== parsed.value.endChapter) {
       return false;
     }
@@ -359,8 +370,6 @@ export function BibleReferenceForm(
       : parsedState.errors.start
         ? 'start'
         : 'end';
-    event.preventDefault();
-    event.stopPropagation();
     props.onIntent?.();
     props.onEdit?.(null);
     setRecent(
@@ -371,7 +380,7 @@ export function BibleReferenceForm(
     setFields(next);
     setOpen(false);
     setBlocked(input ? null : invalidPart);
-    if (event.key === 'Enter' && input && translation !== undefined) {
+    if (submit && input && translation !== undefined) {
       pendingSubmit.current = {
         input,
         translation,
@@ -464,8 +473,10 @@ export function BibleReferenceForm(
       if (
         (event.key === 'Enter' || (event.key === 'Tab' && !event.shiftKey)) &&
         !event.repeat &&
-        acceptFullReference(event)
+        acceptFullReference(event.currentTarget.value, event.key === 'Enter')
       ) {
+        event.preventDefault();
+        event.stopPropagation();
         return;
       }
       if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
@@ -529,7 +540,11 @@ export function BibleReferenceForm(
     if (event.key !== 'Enter') return;
     event.preventDefault();
     event.stopPropagation();
-    if (event.repeat || props.translation === undefined) return;
+    if (event.repeat) return;
+    submit(part);
+  };
+  const submit = (part: ReferencePart): void => {
+    if (props.translation === undefined) return;
     if (
       fields.start === '' &&
       state.errors.chapter === undefined &&
@@ -575,6 +590,13 @@ export function BibleReferenceForm(
       setBlocked(part);
     }
   };
+  useImperativeHandle(props.submitRef, () => ({
+    submit: () => {
+      const bookValue = readReferenceFields(root.current, fields).book;
+      if (!acceptFullReference(bookValue, true)) submit('book');
+    },
+  }));
+
   return (
     <div
       ref={root}

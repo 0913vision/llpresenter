@@ -929,8 +929,8 @@ name. Chapter and verse bounds always use the built-in GAE number table.
   lookup. IME composition Enter cannot output. Stored references and recent
   passages retain the full grammar in 02. When book suggestions are open, arrows
   move the highlight, Enter or Tab accepts the highlighted book and focuses
-  chapter. Escape closes suggestions; in the passage dialog it also clears the
-  fields, and a second Escape closes the empty dialog.
+  chapter. In the Ctrl+B dialog Escape clears the fields, and a second Escape
+  closes the empty dialog; preparation Escape closes the dialog immediately.
 - Once a quick passage is resolved, it goes live while the slide grid prepares
   its pictures independently.
 - While a quick Bible passage is live, Escape outside text fields and open menus
@@ -944,9 +944,11 @@ name. Chapter and verse bounds always use the built-in GAE number table.
   keys highlight a recent while focus remains in the book field; typing clears
   the highlight. Enter chooses the highlighted recent, otherwise submits the
   typed reference. Alt+1 through Alt+0 choose the corresponding recent
-  immediately. Escape clears all typed fields, then closes the empty dialog;
-  Backspace in an empty argument returns to the preceding field. Quick selection
-  outputs immediately; preparation continues to the passage-add flow.
+  immediately. Ctrl+B Escape clears the fields, then closes the empty dialog. In
+  preparation, Escape closes the dialog and the footer provides cancel and
+  validated add or change buttons. Backspace in an empty argument returns to the
+  preceding field. Quick selection outputs immediately; preparation continues to
+  the passage-add flow.
 
 ### 절 나누기
 

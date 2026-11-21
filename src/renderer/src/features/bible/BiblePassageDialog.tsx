@@ -77,13 +77,20 @@ export function BiblePassageDialog({
   return (
     <PassageDialog
       api={api}
+      preparation
+      onSubmitIntent={() => {
+        generation.current += 1;
+      }}
       translation={translation}
       translations={withLiveBible(document?.value.translations ?? [])}
       recents={document?.value.recents ?? []}
       action={action}
       initialRef={initialRef}
       disabled={disabled}
-      onClose={onClose}
+      onClose={() => {
+        generation.current += 1;
+        onClose();
+      }}
       onSubmit={choose}
       onPick={pick}
       onIntent={() => {

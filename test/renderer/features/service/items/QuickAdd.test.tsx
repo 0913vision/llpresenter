@@ -264,7 +264,7 @@ describe('항목 추가', () => {
     expect(order[index + 2]?.id).toBe(fixtureItems.plain);
   });
 
-  it('clears Bible input before closing the passage dialog on Escape', async () => {
+  it('closes the populated Bible passage dialog on Escape', async () => {
     const {api, user} = setup();
     mockBible(api);
     await openBibleForm(user);
@@ -275,11 +275,6 @@ describe('항목 추가', () => {
     await waitFor(() =>
       expect(book.getAttribute('aria-expanded')).toBe('true'),
     );
-    await user.keyboard('{Escape}');
-    expect(
-      screen.getByRole<HTMLInputElement>('combobox', {name: '책'}).value,
-    ).toBe('');
-    expect(screen.getByRole('dialog', {name: '성경 구절'})).toBeTruthy();
     await user.keyboard('{Escape}');
     expect(screen.queryByRole('dialog', {name: '성경 구절'})).toBeNull();
   });
@@ -531,9 +526,6 @@ describe('항목 추가', () => {
     await openBibleForm(user);
     fillBibleForm();
     await waitFor(() => expect(lookup).toHaveBeenCalled());
-    fireEvent.keyDown(screen.getByRole('combobox', {name: '책'}), {
-      key: 'Escape',
-    });
     fireEvent.keyDown(screen.getByRole('combobox', {name: '책'}), {
       key: 'Escape',
     });
