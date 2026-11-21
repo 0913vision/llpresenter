@@ -132,7 +132,8 @@ function focusedControlOwnsKey(event: KeyboardEvent): boolean {
   );
 }
 
-function isTextField(event: KeyboardEvent): boolean {
+/** Whether this event belongs to a text-editing control. */
+export function isTextField(event: KeyboardEvent): boolean {
   if (!isInTextEntry(event.target)) return false;
   if (
     event.target instanceof HTMLInputElement &&

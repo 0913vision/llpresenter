@@ -10,7 +10,7 @@ import {serviceOrderEditsFor} from '@renderer/session/serviceOrderEdits';
 import {useShow} from '@renderer/session/showStore';
 import {useServiceOrderEditing} from '@renderer/session/useServiceOrderEditing';
 import type {Notice} from '@renderer/ui/notices';
-import {isInTextEntry} from '@renderer/ui/textEntry';
+import {isTextField} from '@renderer/ui/commandDispatcher';
 
 /** Keeps service edits reachable when focus moves from an editor to a slide. */
 export function useWorkspaceServiceHistory(
@@ -40,7 +40,7 @@ export function useWorkspaceServiceHistory(
     () => id !== null && edits?.canRedo(id) === true,
   );
   const ownsHistory = (event: KeyboardEvent): boolean =>
-    id !== null && !isInTextEntry(event.target);
+    id !== null && !isTextField(event);
   useWindowShortcuts([
     {
       id: 'edit.undo',

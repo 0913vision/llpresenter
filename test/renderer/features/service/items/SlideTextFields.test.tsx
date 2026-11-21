@@ -9,6 +9,8 @@ import {
 import userEvent from '@testing-library/user-event';
 import {expect, it, onTestFinished, vi} from 'vitest';
 import {HistoryButtons} from '@renderer/app/shell/HistoryButtons';
+import {editMenuEntries} from '@renderer/app/shell/editMenuEntries';
+import {menuItems} from '@renderer/ui/menuModel';
 import {useWorkspaceServiceHistory} from '@renderer/app/shell/useWorkspaceServiceHistory';
 import type {LlpApi} from '@contracts/ipc/api';
 import {isItemOfKind} from '@core/schema/service';
@@ -233,6 +235,8 @@ it.each(['bible', 'sermon'] as const)(
           <button onClick={() => setWorkspace('show')}>Switch to Show</button>
           <button onClick={() => setWorkspace('prep')}>Switch to Prep</button>
           <div inert={workspace !== 'show'}>
+            <input type="range" aria-label="Thumbnail zoom" />
+            <input aria-label="Independent text" />
             <button
               onClick={() => outputTile({itemId: id, index: outputIndex})}
             >
@@ -329,10 +333,47 @@ it.each(['bible', 'sermon'] as const)(
       command.commands.find(child => child.type === 'slide.show'),
     ).toMatchObject({slide: {itemId: id, position: outputIndex}});
     expect(savedItem()).toEqual(withReference);
-    await user.click(undo);
+    const zoom = screen.getByRole('slider', {name: 'Thumbnail zoom'});
+    zoom.focus();
+    await user.keyboard('{Control>}z{/Control}');
     await waitFor(() => expect(savedItem()).toEqual(original));
     await user.keyboard('{Control>}y{/Control}');
     await waitFor(() => expect(savedItem()).toEqual(withReference));
+    await user.click(undo);
+    await waitFor(() => expect(savedItem()).toEqual(original));
+    zoom.focus();
+    const redoRow = menuItems(editMenuEntries(zoom)).find(
+      row => row.id === 'redo',
+    );
+    expect(redoRow?.disabled).not.toBe(true);
+    redoRow?.onSelect?.();
+    await waitFor(() => expect(savedItem()).toEqual(withReference));
+    const text = screen.getByRole('textbox', {name: 'Independent text'});
+    text.focus();
+    await user.keyboard('{Control>}z{/Control}');
+    expect(savedItem()).toEqual(withReference);
+    expect(undo.getAttribute('aria-disabled')).toBe('true');
+    const nativeHistory = vi.spyOn(api.window, 'editText');
+    Object.defineProperty(document, 'queryCommandEnabled', {
+      configurable: true,
+      value: () => true,
+    });
+    onTestFinished(() => {
+      Reflect.deleteProperty(document, 'queryCommandEnabled');
+    });
+    fireEvent.input(text);
+    await user.click(undo);
+    expect(nativeHistory).toHaveBeenCalledWith('undo');
+    const textUndo = menuItems(editMenuEntries(text)).find(
+      row => row.id === 'undo',
+    );
+    expect(textUndo?.disabled).not.toBe(true);
+    textUndo?.onSelect?.();
+    await waitFor(() => expect(nativeHistory).toHaveBeenCalledTimes(2));
+    expect(savedItem()).toEqual(withReference);
+    expect(
+      send.mock.calls.filter(([value]) => value.type === 'live.batch'),
+    ).toHaveLength(1);
     fireEvent.click(screen.getByRole('button', {name: 'Switch to Prep'}));
     await user.click(undo);
     await waitFor(() => expect(savedItem()).toEqual(original));
