@@ -19,7 +19,8 @@ import {useSlideTheme} from '@renderer/platform/useSlideTheme';
 import {sermonPreviewRow} from '@renderer/platform/sermonPreview';
 import {useBibleTileProjection} from '@renderer/features/bible/useBibleProjections';
 import {BibleLoadNotice} from '@renderer/features/bible/BibleLoadNotice';
-import {Panel, PanelBody, PanelFooter, PanelTabs} from '@renderer/ui/Panel';
+import {Panel, PanelBody, PanelTabs} from '@renderer/ui/Panel';
+import {GridFooter} from '@renderer/ui/GridFooter';
 import {Spinner} from '@renderer/ui/Spinner';
 import {ThumbnailSizeControl} from '@renderer/ui/ThumbnailSizeControl';
 import type {SizeClass} from '@renderer/ui/sizeClass';
@@ -554,9 +555,9 @@ function DetailsPanelContent({
         <DetailsShell
           footer={
             tab === 'slides' ? (
-              <PanelFooter
+              <GridFooter
                 count={count}
-                end={
+                zoom={
                   <ThumbnailSizeControl
                     compact
                     value={scale}

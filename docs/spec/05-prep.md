@@ -549,7 +549,8 @@ name.
   in the editor, including when focus has fallen to the body. Leaving a dirty
   library song still asks 저장, 저장 안 함, or 취소. IME composition keeps its
   own Escape behavior.
-- A thumbnail size slider sits in the footer.
+- Slide grids share a footer with the same compact thumbnail size slider and
+  percentage field at the right edge.
 
 Source: `Reflow`, `ImportEdit`, `LabelChip` README, `LabelColorPicker` README,
 `Menu` README, `TextField` README, `SlideThumbnail` README, product log (version

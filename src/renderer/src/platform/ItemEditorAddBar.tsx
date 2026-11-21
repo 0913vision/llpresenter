@@ -1,5 +1,5 @@
 import type {JSX, ReactNode} from 'react';
-import {PanelFooter} from '@renderer/ui/Panel';
+import {GridFooter} from '@renderer/ui/GridFooter';
 import type {ItemEditorCapabilities} from './itemEditorAdapter';
 
 /** One command order and one footer for every item editor. */
@@ -21,11 +21,11 @@ export function ItemEditorAddBar({
   readonly title?: ReactNode;
 }): JSX.Element {
   return (
-    <PanelFooter count={count} end={end}>
+    <GridFooter count={count} zoom={end}>
       {adapter.addSlide ? slide : null}
       {adapter.addPicture ? picture : null}
       {adapter.addVerse ? verse : null}
       {adapter.addTitle ? title : null}
-    </PanelFooter>
+    </GridFooter>
   );
 }

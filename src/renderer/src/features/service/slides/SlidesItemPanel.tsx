@@ -14,10 +14,12 @@ import {
   Panel,
   PanelActions,
   PanelBody,
-  PanelFooter,
   PanelHeader,
   PanelTitle,
 } from '@renderer/ui';
+import {GridFooter} from '@renderer/ui/GridFooter';
+import {SlideSizeControl} from '@renderer/platform/SlideSizeControl';
+import {useThumbnailScale} from '@renderer/platform/thumbnailScale';
 import type {ServiceItemStore} from '../items/serviceItemStore';
 import {useItemMedia, useItemSettings} from '../items/useItemSources';
 import {SlidesCanvas, slideBand, useSlidesAppearance} from './SlidesVisuals';
@@ -97,6 +99,7 @@ function SlidesItemTiles({
     session.slideModel.getSnapshot,
   );
   const {item, selected} = session.draft.snapshot;
+  const scale = useThumbnailScale('normal');
   const offset = cardOffset(item);
   const {appearance} = useSlidesAppearance(api, item);
   const {projection} = useSlidesVerseProjection(api, item);
@@ -156,7 +159,7 @@ function SlidesItemTiles({
             labels={labels}
             selected={selected}
             baseline={2}
-            scale={100}
+            scale={scale}
             onSelect={index => session.draft.select(index)}
             onEdit={edit}
             canvasFor={index => (
@@ -170,7 +173,10 @@ function SlidesItemTiles({
           />
         </SongSlideSurface>
       </PanelBody>
-      <PanelFooter count={view.slides.length + cardOffset(item)} />
+      <GridFooter
+        count={view.slides.length + cardOffset(item)}
+        zoom={<SlideSizeControl sizeClass="normal" workspace="prep" />}
+      />
     </Panel>
   );
 }

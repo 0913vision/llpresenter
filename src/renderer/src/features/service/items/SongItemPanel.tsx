@@ -13,10 +13,11 @@ import {
   Panel,
   PanelActions,
   PanelBody,
-  PanelFooter,
   PanelHeader,
   PanelTitle,
 } from '@renderer/ui/Panel';
+import {GridFooter} from '@renderer/ui/GridFooter';
+import {SlideSizeControl} from '@renderer/platform/SlideSizeControl';
 import {ItemSlideGrid} from './ItemSlideGrid';
 import {openItemSong} from './openItemSong';
 import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
@@ -168,7 +169,10 @@ function SongItemView({
             />
           )}
         </PanelBody>
-        <PanelFooter count={item.slides.length + cardOffset(item)} />
+        <GridFooter
+          count={item.slides.length + cardOffset(item)}
+          zoom={<SlideSizeControl sizeClass="normal" workspace="prep" />}
+        />
       </Panel>
     </div>
   );

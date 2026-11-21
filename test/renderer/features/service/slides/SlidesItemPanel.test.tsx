@@ -62,6 +62,7 @@ it.each(['blank', 'ad'] as const)(
       />,
     );
     expect(await screen.findByText('이번 순서')).toBeTruthy();
+    expect(screen.getByRole('slider', {name: '슬라이드 크기'})).toBeDefined();
     expect(
       screen.getByRole('option', {
         name: form === 'ad' ? '1 소식 이름' : '1 첫 줄',
