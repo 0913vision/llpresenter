@@ -321,7 +321,7 @@ describe('ClearRow', () => {
     const buttons = [...group.querySelectorAll('button')];
     expect(buttons.length).toBeGreaterThan(1);
     for (const button of buttons) {
-      expect(button.classList.contains(styles.button)).toBe(true);
+      expect(button.matches(`.${styles.button}`)).toBe(true);
       expect(button.querySelector(`.${styles.label}`)).not.toBeNull();
     }
     const all = screen.getByRole('button', {name: '모두 지우기'});
