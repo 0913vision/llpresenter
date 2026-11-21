@@ -242,12 +242,13 @@ describe('output mirror', () => {
     view.unmount();
     expect(control).toHaveBeenCalledWith({screenId: 'one', action: 'stop'});
   });
-  it('keeps the last native frame when hiding and reopening the workspace', async () => {
+  it('keeps receiving native frames while the workspace is hidden', async () => {
     const listener: {current?: (frame: PreviewFrame) => void} = {};
     const control = vi.fn();
+    const draw = vi.fn();
     Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
       configurable: true,
-      value: () => ({putImageData: vi.fn()}),
+      value: () => ({putImageData: draw}),
     });
     vi.stubGlobal('ImageData', vi.fn());
     vi.stubGlobal(
@@ -278,18 +279,24 @@ describe('output mirror', () => {
       }),
     );
     frame.setAttribute('aria-hidden', 'true');
-    await waitFor(() =>
-      expect(control).toHaveBeenCalledWith({screenId: 'one', action: 'stop'}),
+    act(() =>
+      listener.current?.({
+        screenId: 'one',
+        frame: new Uint8Array(640 * 360 * 4),
+      }),
     );
+    expect(draw).toHaveBeenCalledTimes(2);
+    expect(control).not.toHaveBeenCalledWith({screenId: 'one', action: 'stop'});
     expect(view.container.querySelector('canvas')?.hidden).toBe(false);
     frame.setAttribute('aria-hidden', 'false');
-    await waitFor(() => expect(listener.current).toBeDefined());
+    expect(listener.current).toBeDefined();
     expect(view.container.querySelector('canvas')?.hidden).toBe(false);
     expect(view.container.querySelector('video')?.hidden).toBe(true);
     view.unmount();
     frame.remove();
   });
-  it('stops capture while the workspace is hidden and reconnects when shown', async () => {
+  it('keeps the same capture through workspace switches and stops on minimize', async () => {
+    const minimized: {current?: (value: boolean) => void} = {};
     const stop = vi.fn();
     const track = {stop, onended: null};
     const stream = {getTracks: () => [track], getVideoTracks: () => [track]};
@@ -297,26 +304,108 @@ describe('output mirror', () => {
     vi.stubGlobal(
       'llp',
       mockLlpApi({
+        window: {
+          onMinimized: callback => {
+            minimized.current = callback;
+            return () => undefined;
+          },
+        },
         output: {previewSource: async () => 'AAAAAAAAAAAAAAAAAAAAAA=='},
       }),
     );
     vi.stubGlobal('navigator', {mediaDevices: {getUserMedia: capture}});
     vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue(undefined);
+
     const frame = document.createElement('div');
     frame.dataset['workspaceFrame'] = 'show';
     frame.setAttribute('aria-hidden', 'false');
     document.body.append(frame);
     const view = render(<OutputMirror screenId="one" />, {container: frame});
     await waitFor(() => expect(capture).toHaveBeenCalledTimes(1));
+    await waitFor(() =>
+      expect(view.container.querySelector('video')?.srcObject).toBe(stream),
+    );
     frame.setAttribute('aria-hidden', 'true');
-    await waitFor(() => expect(stop).toHaveBeenCalledTimes(1));
     frame.setAttribute('aria-hidden', 'false');
+    expect(stop).not.toHaveBeenCalled();
+    expect(capture).toHaveBeenCalledTimes(1);
+    expect(view.container.querySelector('video')?.srcObject).toBe(stream);
+    act(() => minimized.current?.(true));
+    expect(stop).toHaveBeenCalledTimes(1);
+    act(() => minimized.current?.(false));
     await waitFor(() => expect(capture).toHaveBeenCalledTimes(2));
     view.unmount();
     expect(stop).toHaveBeenCalledTimes(2);
     frame.remove();
   });
-  it('holds a captured video frame until the restarted stream paints', async () => {
+  it('honors minimize events that arrive before the initial state query', async () => {
+    const minimized: {current?: (value: boolean) => void} = {};
+    let finish: ((value: boolean) => void) | undefined;
+    const capture = vi
+      .fn()
+      .mockResolvedValue({getTracks: () => [], getVideoTracks: () => []});
+    vi.stubGlobal('navigator', {mediaDevices: {getUserMedia: capture}});
+    vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue(undefined);
+    vi.stubGlobal(
+      'llp',
+      mockLlpApi({
+        window: {
+          minimized: () =>
+            new Promise<boolean>(resolve => {
+              finish = resolve;
+            }),
+          onMinimized: callback => {
+            minimized.current = callback;
+            return () => undefined;
+          },
+        },
+        output: {previewSource: async () => 'AAAAAAAAAAAAAAAAAAAAAA=='},
+      }),
+    );
+    const view = render(<OutputMirror screenId="one" />);
+    act(() => minimized.current?.(true));
+    await act(async () => finish?.(false));
+    expect(capture).not.toHaveBeenCalled();
+    act(() => minimized.current?.(false));
+    await waitFor(() => expect(capture).toHaveBeenCalledOnce());
+    view.unmount();
+  });
+  it('keeps a capture that finishes while the workspace is hidden', async () => {
+    const track = {stop: vi.fn(), onended: null};
+    const stream = {getTracks: () => [track], getVideoTracks: () => [track]};
+    let finish: ((value: typeof stream) => void) | undefined;
+    const capture = vi.fn(
+      () =>
+        new Promise<typeof stream>(resolve => {
+          finish = resolve;
+        }),
+    );
+    vi.stubGlobal('navigator', {mediaDevices: {getUserMedia: capture}});
+    vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue(undefined);
+    vi.stubGlobal(
+      'llp',
+      mockLlpApi({
+        output: {previewSource: async () => 'AAAAAAAAAAAAAAAAAAAAAA=='},
+      }),
+    );
+    const frame = document.createElement('div');
+    frame.dataset['workspaceFrame'] = 'show';
+    frame.setAttribute('aria-hidden', 'false');
+    document.body.append(frame);
+    const view = render(<OutputMirror screenId="one" />, {container: frame});
+    await waitFor(() => expect(capture).toHaveBeenCalledOnce());
+    frame.setAttribute('aria-hidden', 'true');
+    await act(async () => finish?.(stream));
+    expect(view.container.querySelector('video')?.srcObject).toBe(stream);
+    expect(track.stop).not.toHaveBeenCalled();
+    frame.setAttribute('aria-hidden', 'false');
+    expect(capture).toHaveBeenCalledOnce();
+    view.unmount();
+    expect(track.stop).toHaveBeenCalledOnce();
+    frame.remove();
+  });
+  it('holds a captured video frame until the stream paints after restore', async () => {
+    const minimized: {current?: (value: boolean) => void} = {};
     const callbacks: VideoFrameRequestCallback[] = [];
     const originalRequest = Object.getOwnPropertyDescriptor(
       HTMLVideoElement.prototype,
@@ -375,9 +464,16 @@ describe('output mirror', () => {
     });
     vi.stubGlobal('navigator', {mediaDevices: {getUserMedia: capture}});
     vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue(undefined);
+
     vi.stubGlobal(
       'llp',
       mockLlpApi({
+        window: {
+          onMinimized: callback => {
+            minimized.current = callback;
+            return () => undefined;
+          },
+        },
         output: {previewSource: async () => 'AAAAAAAAAAAAAAAAAAAAAA=='},
       }),
     );
@@ -390,10 +486,10 @@ describe('output mirror', () => {
     await waitFor(() =>
       expect(view.container.querySelector('video')?.srcObject).toBeTruthy(),
     );
-    frame.setAttribute('aria-hidden', 'true');
+    act(() => minimized.current?.(true));
     await waitFor(() => expect(draw).toHaveBeenCalledOnce());
     expect(view.container.querySelector('canvas')?.hidden).toBe(false);
-    frame.setAttribute('aria-hidden', 'false');
+    act(() => minimized.current?.(false));
     await waitFor(() => expect(callbacks).toHaveLength(1));
     expect(view.container.querySelector('canvas')?.hidden).toBe(false);
     act(() => {

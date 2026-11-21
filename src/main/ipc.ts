@@ -191,6 +191,11 @@ export function registerIpc(
     (event: IpcMainInvokeEvent) =>
       BrowserWindow.fromWebContents(event.sender)?.isFullScreen() ?? false,
   );
+  ipcMain.handle(
+    windowEndpoints.minimized.channel,
+    (event: IpcMainInvokeEvent) =>
+      BrowserWindow.fromWebContents(event.sender)?.isMinimized() ?? false,
+  );
   ipcMain.handle(windowEndpoints.appInfo.channel, () => ({
     name: app.name,
     version: app.version,
@@ -266,6 +271,7 @@ export function registerIpc(
     ipcMain.removeAllListeners(windowEndpoints.verboseLogging.channel);
     ipcMain.removeHandler(windowEndpoints.verboseLoggingState.channel);
     ipcMain.removeHandler(windowEndpoints.fullScreen.channel);
+    ipcMain.removeHandler(windowEndpoints.minimized.channel);
     ipcMain.removeAllListeners(windowEndpoints.openLogFolder.channel);
     ipcMain.removeAllListeners(windowEndpoints.control.channel);
     ipcMain.removeAllListeners(windowEndpoints.editText.channel);

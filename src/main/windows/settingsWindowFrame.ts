@@ -1,3 +1,4 @@
+import {watchWindowMinimized} from './windowMinimized';
 import {BrowserWindow, screen} from 'electron';
 import type {UiZoomRegistration} from '../store/uiZoom';
 import type {Logger} from '../log';
@@ -84,6 +85,7 @@ export function createPreferencesWindow({
       ...webPreferences,
     },
   });
+  watchWindowMinimized(created);
   created.removeMenu();
   created.contentView.setVisible(false);
   // NOTE(0913vision): Offscreen rendering has its own frame pump, independent

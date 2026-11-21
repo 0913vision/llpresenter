@@ -1,8 +1,4 @@
 import {useEffect, useRef, type JSX} from 'react';
-import {
-  isHiddenWorkspace,
-  workspaceFrame,
-} from '@renderer/ui/workspaceVisibility';
 import styles from './OutputMirror.module.css';
 import {pictureBounds} from '@renderer/rendering/pictures/drawPicture';
 
@@ -23,8 +19,9 @@ export function OutputMirror({
     const video = ref.current;
     const canvas = canvasRef.current;
     if (video === null || canvas === null) return undefined;
-    const frame = workspaceFrame(video);
     let generation = 0;
+    let minimized = true;
+    const isMinimized = (): boolean => minimized;
     const lifetime = {stopped: false};
     let stream: MediaStream | null = null;
     let retry: ReturnType<typeof setTimeout> | undefined;
@@ -39,7 +36,7 @@ export function OutputMirror({
     let videoFrame: number | undefined;
     const showVideo = (): void => {
       videoFrame = undefined;
-      if (lifetime.stopped || nativeActive || isHiddenWorkspace(frame)) return;
+      if (lifetime.stopped || nativeActive || minimized) return;
       canvas.hidden = true;
       video.hidden = false;
     };
@@ -64,12 +61,7 @@ export function OutputMirror({
     };
     const relay = (now: number): void => {
       relayFrame = undefined;
-      if (
-        !relayEnabled ||
-        !stream ||
-        lifetime.stopped ||
-        isHiddenWorkspace(frame)
-      ) {
+      if (!relayEnabled || !stream || lifetime.stopped || minimized) {
         return;
       }
       if (now >= relayDue && video.videoWidth > 0 && video.videoHeight > 0) {
@@ -126,7 +118,7 @@ export function OutputMirror({
       video.srcObject = null;
     };
     const start = async (): Promise<void> => {
-      if (lifetime.stopped || nativeActive || isHiddenWorkspace(frame)) return;
+      if (lifetime.stopped || nativeActive || minimized) return;
       const own = ++generation;
       try {
         const source = await window.llp?.output.previewSource(screenId);
@@ -155,7 +147,7 @@ export function OutputMirror({
           audio: false,
           video: constraints,
         });
-        if (own !== generation || isHiddenWorkspace(frame)) {
+        if (own !== generation || isMinimized()) {
           next.getTracks().forEach(track => track.stop());
           return;
         }
@@ -178,7 +170,7 @@ export function OutputMirror({
         }
         startRelay();
       } catch {
-        if (own === generation && !isHiddenWorkspace(frame)) {
+        if (own === generation && !isMinimized()) {
           stop();
           retry = setTimeout(() => {
             start().catch(() => undefined);
@@ -208,7 +200,7 @@ export function OutputMirror({
             return;
           }
           try {
-            if (lifetime.stopped || isHiddenWorkspace(frame)) return;
+            if (lifetime.stopped || minimized) return;
             const context = canvas.getContext('2d');
             if (context === null) return;
             const bytes =
@@ -248,28 +240,38 @@ export function OutputMirror({
         video.hidden = false;
       }
     };
-    const observer = new MutationObserver(() => {
-      if (isHiddenWorkspace(frame)) retainVideo();
-      stop();
-      stopNative();
-      if (!isHiddenWorkspace(frame)) {
+    const minimizedChanged = (value: boolean): void => {
+      if (lifetime.stopped || minimized === value) return;
+      minimized = value;
+      if (value) {
+        retainVideo();
+        stop();
+        stopNative();
+      } else {
         startNative();
         start().catch(() => undefined);
       }
+    };
+    const windowApi = window.llp?.window;
+    let receivedEvent = false;
+    const unsubscribeMinimized = windowApi?.onMinimized(value => {
+      receivedEvent = true;
+      minimizedChanged(value);
     });
-    if (frame !== null) {
-      observer.observe(frame, {
-        attributes: true,
-        attributeFilter: ['aria-hidden'],
-      });
-    }
-    if (!isHiddenWorkspace(frame)) {
-      startNative();
-      start().catch(() => undefined);
+    if (windowApi === undefined) minimizedChanged(false);
+    else {
+      windowApi.minimized().then(
+        value => {
+          if (!receivedEvent) minimizedChanged(value);
+        },
+        () => {
+          if (!receivedEvent) minimizedChanged(false);
+        },
+      );
     }
     return () => {
       lifetime.stopped = true;
-      observer.disconnect();
+      unsubscribeMinimized?.();
       stopNative();
       stop();
     };

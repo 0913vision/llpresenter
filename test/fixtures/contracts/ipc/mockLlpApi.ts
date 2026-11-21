@@ -146,6 +146,8 @@ export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
       control: () => undefined,
       fullScreen: () => Promise.resolve(false),
       onFullScreen: () => () => undefined,
+      minimized: () => Promise.resolve(false),
+      onMinimized: () => () => undefined,
       editText: () => undefined,
       openScreens: () => undefined,
       openPreferences: () => undefined,
