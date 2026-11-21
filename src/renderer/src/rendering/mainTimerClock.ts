@@ -7,10 +7,11 @@ import type {WallClockSample} from '@core/schema/wallClock';
  * (its midpoint). Until the answer arrives, both processes' time origins
  * stand in, which agree unless the computer's clock was corrected between
  * their starts.
+ * Wall time is read from the system on each tick; main's wall notifications
+ * supply the timezone and prompt a redraw after a correction.
  */
 export class MainTimerClock {
   private offset = performance.timeOrigin;
-  private wallOffset: number | undefined;
   private timeZone: string | undefined;
   private stopWall: (() => void) | undefined;
   private generation = 0;
@@ -39,10 +40,7 @@ export class MainTimerClock {
 
   readonly now = (): TimerNow => ({
     timer: performance.now() + this.offset,
-    wall:
-      this.wallOffset === undefined
-        ? Date.now()
-        : performance.now() + this.offset + this.wallOffset,
+    wall: Date.now(),
     ...(this.timeZone === undefined ? {} : {timeZone: this.timeZone}),
   });
   resume(): void {
@@ -54,7 +52,6 @@ export class MainTimerClock {
     let pushed = false;
     const accept = (value: WallClockSample): void => {
       if (this.disposed || generation !== this.generation) return;
-      this.wallOffset = value.wall - value.monotonic;
       this.timeZone = value.timeZone;
       wall.onChange();
     };

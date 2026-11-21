@@ -139,9 +139,10 @@ screen's output on and off. There is no confirmation.
 - Once a frame is ready at its current size, stop per-frame readiness checks.
   Static lyrics do not update DOM or styles. Clock and timer ticks update only
   elements whose displayed value changed, without rewriting identical
-  attributes. Wall clocks and time-of-day timers use the main process clock and
-  timezone; a system-clock or timezone correction triggers an immediate redraw.
-  Elapsed and countdown durations continue to use the monotonic timer clock.
+  attributes. Wall clocks and time-of-day timers read the current system wall
+  clock on each tick and use main's timezone; a system-clock or timezone
+  correction triggers a redraw. Elapsed and countdown durations continue to use
+  the monotonic timer clock.
 - Off means the output window is hidden (proposal: ProPresenter turns audience
   and stage screens off from the Preview window, S4 p. 24, and doesn't say what
   an off screen shows). The capture window is hidden too.

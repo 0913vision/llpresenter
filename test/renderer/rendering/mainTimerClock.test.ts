@@ -2,14 +2,55 @@ import {afterEach, describe, expect, it, vi} from 'vitest';
 import type {WallClockSample} from '@core/schema/wallClock';
 import {stageClockText} from '@renderer/rendering/stageClock';
 import {MainTimerClock} from '@renderer/rendering/mainTimerClock';
+import {timerText} from '@core/timers/timerClock';
+import {createTimerId} from '@core/schema/ids';
 
 afterEach(() => {
   vi.restoreAllMocks();
 });
 
 describe('MainTimerClock', () => {
+  it('reads wall-clock jumps immediately without moving elapsed timers', async () => {
+    let wall = Date.UTC(2026, 0, 1, 10);
+    vi.spyOn(Date, 'now').mockImplementation(() => wall);
+    const monotonic = vi.spyOn(performance, 'now').mockReturnValue(100);
+    const clock = new MainTimerClock(() => Promise.resolve(1000), vi.fn(), {
+      read: async () => ({wall, monotonic: 1000, timeZone: 'UTC'}),
+      subscribe: () => () => undefined,
+      onChange: vi.fn(),
+    });
+    await Promise.resolve();
+    const id = createTimerId('00000000-0000-4000-8000-000000000090');
+    const target = {
+      id,
+      name: 'Target',
+      kind: 'countdownTo' as const,
+      time: '10:30',
+    };
+    const elapsed = {id, name: 'Elapsed', kind: 'elapsed' as const, start: 0};
+    const run = {
+      state: 'running' as const,
+      since: 1000,
+      countedMs: 0,
+      day: wall,
+    };
+    expect(timerText(target, run, clock.now())).toBe('30:00');
+    wall += 5 * 60_000;
+    monotonic.mockReturnValue(1100);
+    expect(
+      stageClockText(clock.now().wall, '24h', {seconds: true, timeZone: 'UTC'}),
+    ).toBe('10:05:00');
+    expect(timerText(target, run, clock.now())).toBe('25:00');
+    expect(timerText(elapsed, run, clock.now())).toBe('0:01');
+    wall -= 5 * 60_000;
+    expect(timerText(target, run, clock.now())).toBe('30:00');
+    expect(timerText(elapsed, run, clock.now())).toBe('0:01');
+    clock.dispose();
+  });
   it('redraws using main wall time and timezone after a clock jump', async () => {
     vi.spyOn(performance, 'now').mockReturnValue(100);
+    let wall = Date.UTC(2026, 0, 1, 0);
+    vi.spyOn(Date, 'now').mockImplementation(() => wall);
     let push: (value: WallClockSample) => void = () => {};
     const changed = vi.fn();
     const stop = vi.fn();
@@ -34,6 +75,7 @@ describe('MainTimerClock', () => {
       }),
     ).toBe('00:00:00');
     changed.mockClear();
+    wall = Date.UTC(2026, 0, 1, 2);
     push({
       wall: Date.UTC(2026, 0, 1, 2),
       monotonic: 1000,
@@ -50,6 +92,7 @@ describe('MainTimerClock', () => {
     expect(stop).toHaveBeenCalledOnce();
     clock.resume();
     changed.mockClear();
+    wall = Date.UTC(2026, 0, 1, 3);
     push({wall: Date.UTC(2026, 0, 1, 3), monotonic: 1000, timeZone: 'UTC'});
     expect(changed).toHaveBeenCalledOnce();
     expect(
