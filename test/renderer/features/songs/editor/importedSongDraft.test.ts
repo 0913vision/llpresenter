@@ -47,6 +47,59 @@ function fixture() {
 }
 
 describe('imported song editor sessions', () => {
+  it('keeps editing available while a save waits for imported backgrounds', async () => {
+    const f = fixture();
+    let finish: (ready: boolean) => void = () => undefined;
+    f.session.setImportPreparation(
+      new Promise(resolve => {
+        finish = resolve;
+      }),
+    );
+    const pending = f.store.saveImported({kind: 'new'});
+    expect(f.imports).toHaveLength(0);
+    f.session.editTitle('Edited while preparing');
+    const first = f.session.history.snapshot.song.slides[0];
+    if (!first) throw new Error('Missing slide');
+    const media = createMediaId('00000000-0000-4000-8000-000000000123');
+    f.session.applyImportedPictures(new Map([[first.id, media]]), media);
+    finish(true);
+    expect(await pending).toBe(true);
+    expect(f.imports[0]).toMatchObject({
+      type: 'song.import',
+      draft: {
+        title: 'Edited while preparing',
+        background: media,
+      },
+    });
+    const saved = f.imports[0];
+    if (saved?.type !== 'song.import') throw new Error('Missing saved song');
+    expect(saved.draft.slides[0]?.picture).toBe(media);
+  });
+
+  it('does not replace a background the operator chooses during import', () => {
+    const f = fixture();
+    const first = f.session.history.snapshot.song.slides[0];
+    if (!first) throw new Error('Missing slide');
+    const chosen = createMediaId('00000000-0000-4000-8000-000000000123');
+    const imported = createMediaId('00000000-0000-4000-8000-000000000124');
+    f.session.setBackground(chosen);
+    f.session.applyImportedPictures(new Map([[first.id, imported]]), imported);
+    expect(f.session.background).toBe(chosen);
+    expect(f.session.history.snapshot.song.slides[0]?.picture).toBeUndefined();
+  });
+
+  it('respects an explicit choice of no background while import is pending', () => {
+    const f = fixture();
+    f.session.setImportPreparation(new Promise(() => undefined));
+    const first = f.session.history.snapshot.song.slides[0];
+    if (!first) throw new Error('Missing slide');
+    const imported = createMediaId('00000000-0000-4000-8000-000000000124');
+    f.session.setBackground(undefined);
+    f.session.applyImportedPictures(new Map([[first.id, imported]]), imported);
+    expect(f.session.background).toBeUndefined();
+    expect(f.session.history.snapshot.song.slides[0]?.picture).toBeUndefined();
+    expect(f.session.waitForImportPreparation()).toBeUndefined();
+  });
   it('starts imported and new drafts with a title slide and follows an unedited title', () => {
     const f = fixture();
     f.store.discardImported();
