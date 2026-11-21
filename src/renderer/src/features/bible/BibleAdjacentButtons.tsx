@@ -7,6 +7,7 @@ import {
   tilesForView,
 } from '@renderer/session/showLibrary';
 import {retainedBibleSelection} from '@core/bible/selection';
+import {nextSlideOf} from '@core/presentation/slideLayer';
 import {
   beginOutputRequest,
   isOutputRequestCurrent,
@@ -96,6 +97,20 @@ export function BibleAdjacentButtons({
           position: live.position,
           title: passage.displayRef,
         });
+        const index = liveTileIndex(view, live);
+        const tiles = tilesForView(view, view.openItemId ?? source.id);
+        const next = index === null ? undefined : tiles[index + 1];
+        if (next !== undefined && index !== null) {
+          sendLive({
+            type: 'stage.next.set',
+            itemId: live.itemId,
+            position: live.position,
+            next: nextSlideOf(next, 'bible', {
+              previous: tiles[index],
+              after: tiles[index + 2],
+            }),
+          });
+        }
       }
       if (view.openItemId !== null) {
         selectTile(

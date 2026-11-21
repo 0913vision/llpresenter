@@ -121,7 +121,11 @@ describe('adjacent Bible verses', () => {
         `${verseNumbers ? '17 ' : ''}Invented book 43, chapter 3, verse 17`,
       );
       expect(bibleSourceFor(view, original.id)).toBe(original);
-      expect(fixture.send.mock.calls.map(([command]) => command)).toEqual([
+      expect(
+        fixture.send.mock.calls
+          .map(([command]) => command)
+          .filter(command => command.type === 'bible.passage.title.set'),
+      ).toEqual([
         {
           type: 'bible.passage.title.set',
           itemId: original.id,
@@ -146,6 +150,53 @@ describe('adjacent Bible verses', () => {
       ]);
     },
   );
+
+  it('updates the live stage next verse after extending a one-verse passage', async () => {
+    const fixture = await setup('요한복음 3:16');
+    const original = currentSource();
+    const first = original.tiles[0];
+    if (!first) throw Error('Missing first verse');
+    const state = emptyLiveState();
+    useLive.setState({
+      state: {
+        ...state,
+        layers: {
+          ...state.layers,
+          slide: {
+            itemId: original.id,
+            position: 0,
+            label: first.label,
+            lines: first.lines,
+            ...(first.biblePart === undefined
+              ? {}
+              : {biblePart: first.biblePart}),
+            ...(first.bibleVerse === undefined
+              ? {}
+              : {bibleVerse: first.bibleVerse}),
+          },
+        },
+      },
+    });
+    selectTile(0);
+    fireEvent.click(button('next'));
+    await waitFor(() => {
+      const command = fixture.send.mock.calls
+        .map(([sent]) => sent)
+        .find(sent => sent.type === 'stage.next.set');
+      expect(command?.type).toBe('stage.next.set');
+      if (command?.type !== 'stage.next.set') return;
+      expect(command.itemId).toBe(original.id);
+      expect(command.position).toBe(0);
+      expect(command.next?.itemKind).toBe('bible');
+      expect(command.next?.label).toBe('요3:17');
+      expect(command.next?.lines.join(' ')).toContain('verse 17');
+    });
+    expect(
+      fixture.send.mock.calls.some(
+        ([command]) => command.type === 'slide.show',
+      ),
+    ).toBe(false);
+  });
 
   it('keeps book boundaries closed without wrapping or output', async () => {
     const fixture = await setup('요한복음 1:1');
