@@ -46,10 +46,10 @@ it('keeps undo and redo in the menu bar through every workspace', () => {
   const bar = document.querySelector<HTMLElement>('[data-window-menu-bar]');
   if (!bar) throw Error('Missing menu bar');
   const undo = within(bar).getByRole('button', {
-    name: '\uC2E4\uD589 \uCDE8\uC18C',
+    name: '실행 취소',
   });
   const redo = within(bar).getByRole('button', {
-    name: '\uB2E4\uC2DC \uC2E4\uD589',
+    name: '다시 실행',
   });
   const tabs = document.querySelector('[data-workspace-toolbar]');
   expect(undo.getAttribute('aria-disabled')).toBe('true');
@@ -58,12 +58,12 @@ it('keeps undo and redo in the menu bar through every workspace', () => {
     view.rerender(content(workspace));
     expect(
       within(bar).getByRole('button', {
-        name: '\uC2E4\uD589 \uCDE8\uC18C',
+        name: '실행 취소',
       }),
     ).toBe(undo);
     expect(
       within(bar).getByRole('button', {
-        name: '\uB2E4\uC2DC \uC2E4\uD589',
+        name: '다시 실행',
       }),
     ).toBe(redo);
     expect(document.querySelector('[data-workspace-toolbar]')).toBe(tabs);
