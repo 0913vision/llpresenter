@@ -276,6 +276,9 @@ describe('항목 추가', () => {
       expect(book.getAttribute('aria-expanded')).toBe('true'),
     );
     await user.keyboard('{Escape}');
+    expect(book.getAttribute('aria-expanded')).toBe('false');
+    expect(book.value).not.toBe('');
+    await user.keyboard('{Escape}');
     expect(
       screen.getByRole<HTMLInputElement>('combobox', {name: '책'}).value,
     ).toBe('');
