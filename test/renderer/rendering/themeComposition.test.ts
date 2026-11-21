@@ -3142,7 +3142,7 @@ it('sizes an ad cue against the fitted current ad title, falling back to its bod
   expect(target).toHaveBeenLastCalledWith(72);
   titleSize = undefined;
   view.render(layers, {...stageFrame, screen: {id: THEME_MAIN, kind: 'stage'}});
-  expect(target).toHaveBeenLastCalledWith((86 * 2) / 3);
+  expect(target).toHaveBeenLastCalledWith(86 * (2 / 3));
   target.mockRestore();
   size.mockRestore();
   view.dispose();
