@@ -11,7 +11,7 @@ import type {ShowTile} from '@core/schema/showService';
 import type {SongSession} from '@renderer/features/songs/editor/songSession';
 import type {SongEditorStore} from '@renderer/features/songs/editor';
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
-import {resolveSongSlideBackground} from '@renderer/features/songs/editor/useSongSlideAppearance';
+import {songItemBackground} from '@core/songs/songBackground';
 import {useBibleTileProjection} from '@renderer/features/bible/useBibleProjections';
 import {mediaTextSlide, slideLayerOf} from '@core/presentation/slideLayer';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
@@ -118,11 +118,11 @@ function songPicture(
   return (
     <SlidePicture
       {...theme}
-      background={
-        item.backgroundNone === true
-          ? undefined
-          : resolveSongSlideBackground(item.background, song?.background)
-      }
+      background={songItemBackground({
+        backgroundNone: item.backgroundNone,
+        item: item.background,
+        song: song?.background,
+      })}
       songSource={projectedTiles?.[index]?.sourceSlide}
       slide={
         projected ??
