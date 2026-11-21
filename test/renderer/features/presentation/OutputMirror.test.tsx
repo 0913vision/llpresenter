@@ -259,7 +259,7 @@ describe('output mirror', () => {
           subscribePreviewFrame: next => {
             listener.current = next;
             return () => {
-              listener.current = undefined;
+              delete listener.current;
             };
           },
         },
