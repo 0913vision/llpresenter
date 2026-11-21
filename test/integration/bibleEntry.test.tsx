@@ -460,13 +460,13 @@ it.each(['book', 'chapter', 'start', 'end'] as const)(
         onClose={vi.fn()}
       />,
     );
-    const book = screen.getByRole('combobox', {name: '\uCC45'});
-    const chapter = screen.getByRole('textbox', {name: '\uC7A5'});
+    const book = screen.getByRole('combobox', {name: '책'});
+    const chapter = screen.getByRole('textbox', {name: '장'});
     const start = screen.getByRole<HTMLInputElement>('textbox', {
-      name: '\uC2DC\uC791\uC808',
+      name: '시작절',
     });
-    const end = screen.getByRole('textbox', {name: '\uB05D\uC808'});
-    fireEvent.change(book, {target: {value: '\uC694'}});
+    const end = screen.getByRole('textbox', {name: '끝절'});
+    fireEvent.change(book, {target: {value: '요'}});
     fireEvent.change(chapter, {target: {value: '3'}});
     await waitFor(() => expect(start.disabled).toBe(false));
     fireEvent.change(start, {target: {value: '16'}});
@@ -476,7 +476,7 @@ it.each(['book', 'chapter', 'start', 'end'] as const)(
     fireEvent.keyDown(field, {key: 'Enter', code: 'Enter'});
     await waitFor(() =>
       expect(onChoose).toHaveBeenCalledWith(
-        expect.objectContaining({ref: '\uC694\uD55C\uBCF5\uC74C 3:16-18'}),
+        expect.objectContaining({ref: '요한복음 3:16-18'}),
       ),
     );
   },

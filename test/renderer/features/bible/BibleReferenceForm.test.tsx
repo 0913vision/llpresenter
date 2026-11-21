@@ -964,7 +964,7 @@ it.each(['book', 'chapter', 'start', 'end'] as const)(
     fireEvent.keyDown(view[part], {key: 'Enter', code: 'Enter'});
     await waitFor(() => expect(view.onSubmit).toHaveBeenCalledOnce());
     expect(view.onSubmit).toHaveBeenCalledWith(
-      expect.objectContaining({ref: '\uC694\uD55C\uBCF5\uC74C 3:16-18'}),
+      expect.objectContaining({ref: '요한복음 3:16-18'}),
     );
     expect(document.activeElement).toBe(view[part]);
   },

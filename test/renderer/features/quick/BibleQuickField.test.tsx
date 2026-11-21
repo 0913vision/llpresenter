@@ -574,7 +574,6 @@ describe('BibleQuickField', () => {
       ['start', '16', '', '요한복음 3:16'],
       ['start', '16', '18', '요한복음 3:16-18'],
       ['chapter', '', '', '요한복음 3'],
-
     ].map(([part, start, end, expected]) => ({part, start, end, expected})),
   )(
     'outputs directly from $part with the selected range',
