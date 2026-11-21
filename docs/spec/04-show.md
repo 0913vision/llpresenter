@@ -884,17 +884,17 @@ name. Chapter and verse bounds always use the built-in GAE number table.
   wins over an incidental IME-off containment match: `mrk` completes to
   마가복음. Nothing is highlighted initially. With 책 empty and no suggestion
   pointed, forward Tab moves on like in any field, because there is nothing to
-  complete (lead decision, November 2). With text in 책, forward Tab or Enter
-  completes an exact match or a sole candidate to the full name and moves to 장.
-  Tab pressed while Korean input is still composing (합) does the same once the
-  IME commits the syllable, so 합 then Tab gives 하박국 and moves to 장. With
+  complete (lead decision, November 2). With text in 책, forward Tab completes
+  an exact match or a sole candidate to the full name and moves to 장. Tab
+  pressed while Korean input is still composing (합) does the same once the IME
+  commits the syllable, so 합 then Tab gives 하박국 and moves to 장. With
   several candidates and no exact match, completion stays until an arrow-key
   selection is made. As in copible, Tab gives the exact name priority over a
-  highlighted partial match; a click or Enter selects a highlighted suggestion.
-  Matching partial names are not errors. Only an unmatched name has a red ring
-  with a plain Korean tooltip reason. `ckd` and `ckdtprl` complete to 창세기;
-  `chd` means 총 and has no match, as in copible. A valid full name in an
-  installed translation is never marked red.
+  highlighted partial match; a click selects a highlighted suggestion. Matching
+  partial names are not errors. Only an unmatched name has a red ring with a
+  plain Korean tooltip reason. `ckd` and `ckdtprl` complete to 창세기; `chd`
+  means 총 and has no match, as in copible. A valid full name in an installed
+  translation is never marked red.
 - Up from no highlight leaves it unselected; Up from the first row clears the
   highlight. Down from no highlight selects the first row. An ambiguous book
   still blocks Tab after Up clears its selection.
@@ -907,27 +907,27 @@ name. Chapter and verse bounds always use the built-in GAE number table.
   normal behavior.
 - With all four reference fields empty, Tab leaves 책 and skips the disabled
   numeric fields, so the rest of 진행 stays reachable without entering a
-  passage; Shift Tab returns to 책. Once input begins, forward Tab and Enter
-  move through valid 장, 시작절, and 끝절. 장 ranges from 1 to the book's
-  chapter count, 시작절 from 1 to the chapter's last verse, and 끝절 from 시작절
-  to the last verse. An empty 끝절 means one verse. Changing 시작절 clears 끝절.
-  Invalid values block Tab and mark the affected fields with the error ring and
-  a short Korean tooltip reason, with no adjacent sentence. Lookup clamps an
-  oversized 끝절 to the chapter's last verse; Enter also normalizes the
-  displayed end. A reversed end blocks lookup. Shift Tab keeps backward
-  navigation and IME composition keeps its keys.
+  passage; Shift Tab returns to 책. Once input begins, forward Tab moves through
+  valid 장, 시작절, and 끝절. 장 ranges from 1 to the book's chapter count,
+  시작절 from 1 to the chapter's last verse, and 끝절 from 시작절 to the last
+  verse. An empty 끝절 means one verse. Changing 시작절 clears 끝절. Invalid
+  values block Tab and mark the affected fields with the error ring and a short
+  Korean tooltip reason, with no adjacent sentence. Lookup clamps an oversized
+  끝절 to the chapter's last verse; Enter also normalizes the displayed end. A
+  reversed end blocks lookup. Shift Tab keeps backward navigation and IME
+  composition keeps its keys.
 - Suggestions open below 책 and list matching books without the former
   eight-book cap. Recent passages appear in the passage dialog. Selecting one
   outputs its original stored range, including whole chapters and cross-chapter
   ranges.
 - As soon as the fields form a valid reference, the Bible panel opens in place
   of the 슬라이드 panel in the center column.
-- In quick run, Enter in 장, 시작절 or 끝절 outputs a valid passage and focuses
-  the slide grid; Tab advances fields. An empty 끝절 selects the single starting
-  verse, and a chapter with no verse selects the whole chapter. Invalid input
-  stays in the field. A complete reference in 책 also submits after lookup. IME
-  composition Enter cannot output. Stored references and recent passages retain
-  the full grammar in 02.
+- In quick run, Enter in 책, 장, 시작절 or 끝절 outputs a valid passage and
+  focuses the slide grid; Tab advances fields. An empty 끝절 selects the single
+  starting verse, and a chapter with no verse selects the whole chapter. Invalid
+  input stays in the field. A complete reference in 책 also submits after
+  lookup. IME composition Enter cannot output. Stored references and recent
+  passages retain the full grammar in 02.
 - Once a quick passage is resolved, it goes live while the slide grid prepares
   its pictures independently.
 - While a quick Bible passage is live, Escape outside text fields and open menus
@@ -1156,9 +1156,8 @@ integration use this contract, with a distinct cancellable ID per lookup.
 - 예배 순서에 넣기 inserts a Bible passage item into the selected section or the
   section containing the selected 예배 순서 item, following 항목 추가's
   insertion rule (05). An empty section stays as the passage's section row.
-- Enter in 끝절 outputs the selected slide of the passage. In the preceding
-  fields it completes the field and advances focus. Choosing a recent passage
-  keeps its existing Enter-to-output behavior after preview.
+- Enter in any reference field outputs the selected passage. Tab moves between
+  fields; selecting a recent passage preserves its stored reference.
 - If the reference isn't valid, the field shows an error ring with the reason in
   a tooltip, for example "구절을 찾을 수 없습니다" (passage not recognized)
   (proposal).
