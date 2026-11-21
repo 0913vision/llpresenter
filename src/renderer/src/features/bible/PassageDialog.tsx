@@ -65,7 +65,7 @@ export function PassageDialog({
   const formVersion = submissionVersion.current;
   const [highlight, setHighlight] = useState(-1);
   const [ready, setReady] = useState<BibleLookupPassage | null>(null);
-  const [fullReference, setFullReference] = useState(false);
+  const [submitCandidate, setSubmitCandidate] = useState(false);
   const [resetKey, setResetKey] = useState(0);
   const [resolved, setResolved] = useState<{
     provided: TranslationId | undefined;
@@ -243,7 +243,7 @@ export function PassageDialog({
             onEscape={close}
             onPreview={() => undefined}
             onReady={setReady}
-            onFullReference={setFullReference}
+            onSubmitCandidate={setSubmitCandidate}
             onSubmit={passage => {
               if (!disabled && submissionVersion.current === formVersion) {
                 onSubmit(passage);
@@ -275,7 +275,7 @@ export function PassageDialog({
               <Button onClick={close}>{'취소'}</Button>
               <Button
                 variant="primary"
-                disabled={disabled || (ready === null && !fullReference)}
+                disabled={disabled || (ready === null && !submitCandidate)}
                 onClick={() => {
                   onSubmitIntent?.();
                   form.current?.submit();

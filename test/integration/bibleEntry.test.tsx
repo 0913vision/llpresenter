@@ -223,6 +223,35 @@ it('submits a valid passage by mouse and blocks an invalid passage', async () =>
   expect(onChoose).toHaveBeenCalledOnce();
 });
 
+it('submits a chapter without filling verse fields by mouse', async () => {
+  const choose = vi.fn();
+  render(
+    <BiblePassageDialog
+      api={{lookup: formLookupReply}}
+      translation={lookupRequest().translation}
+      onChoose={choose}
+      onClose={vi.fn()}
+    />,
+  );
+  fireEvent.change(screen.getByRole('combobox', {name: '책'}), {
+    target: {value: '요한복음'},
+  });
+  fireEvent.change(screen.getByRole('textbox', {name: '장'}), {
+    target: {value: '3'},
+  });
+  const start = screen.getByRole<HTMLInputElement>('textbox', {name: '시작절'});
+  const end = screen.getByRole<HTMLInputElement>('textbox', {name: '끝절'});
+  const add = screen.getByRole('button', {name: '추가'});
+  await waitFor(() => expect(add.getAttribute('aria-disabled')).toBeNull());
+  fireEvent.click(add);
+  await waitFor(() => expect(choose).toHaveBeenCalledOnce());
+  expect(choose).toHaveBeenCalledWith(
+    expect.objectContaining({ref: '요한복음 3'}),
+  );
+  expect(start.value).toBe('');
+  expect(end.value).toBe('');
+});
+
 it('submits a full typed reference from the book field by mouse', async () => {
   const choose = vi.fn();
   render(

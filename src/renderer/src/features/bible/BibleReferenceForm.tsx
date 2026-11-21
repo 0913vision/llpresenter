@@ -55,7 +55,7 @@ export interface BibleReferenceFormProps {
   /** Submit from any field in quick run instead of advancing on Enter. */
   readonly recents?: readonly RecentPassage[];
   readonly onReady?: (passage: BibleLookupPassage | null) => void;
-  readonly onFullReference?: ((valid: boolean) => void) | undefined;
+  readonly onSubmitCandidate?: ((valid: boolean) => void) | undefined;
   /** In a dialog, Esc dismisses the form after closing book suggestions. */
   readonly onEscape?: (() => void) | undefined;
 }
@@ -188,13 +188,19 @@ export function BibleReferenceForm(
   if (reconciled !== fields) setFields(reconciled);
   const state = referenceFieldsState(reconciled, metadataBounds);
   const fullReference = parseReference(reconciled.book);
-  const hasFullReference =
-    fullReference.ok &&
-    fullReference.value.chapter === fullReference.value.endChapter;
-  const onFullReference = props.onFullReference;
+  const chapterOnly =
+    fields.start === '' &&
+    state.errors.chapter === undefined &&
+    book !== undefined &&
+    translation !== undefined;
+  const hasSubmitCandidate =
+    chapterOnly ||
+    (fullReference.ok &&
+      fullReference.value.chapter === fullReference.value.endChapter);
+  const onSubmitCandidate = props.onSubmitCandidate;
   useEffect(
-    () => onFullReference?.(hasFullReference),
-    [onFullReference, hasFullReference],
+    () => onSubmitCandidate?.(hasSubmitCandidate),
+    [onSubmitCandidate, hasSubmitCandidate],
   );
   const chapterNumber = /^\d+$/u.test(reconciled.chapter)
     ? Number(reconciled.chapter)
@@ -545,12 +551,7 @@ export function BibleReferenceForm(
   };
   const submit = (part: ReferencePart): void => {
     if (props.translation === undefined) return;
-    if (
-      fields.start === '' &&
-      state.errors.chapter === undefined &&
-      book !== undefined &&
-      translation !== undefined
-    ) {
+    if (chapterOnly) {
       const input = `${book.korean} ${fields.chapter}`;
       setRecent({
         provided: props.translation,
