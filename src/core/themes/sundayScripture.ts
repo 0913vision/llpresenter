@@ -227,7 +227,8 @@ export function sermonTitleStageLayout(
           frame: {...element.frame, y: 345, h: 330},
           text: {
             ...element.text,
-            size: 83,
+            size: 140,
+            maxLines: 2,
             align: 'left' as const,
             vAlign: 'top' as const,
           },

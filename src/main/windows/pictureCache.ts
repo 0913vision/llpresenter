@@ -15,7 +15,7 @@ import type {PictureRequest} from '@core/schema/picture';
 import {pictureKey} from '@core/output/pictureKey';
 import {PicturePainter} from './painter';
 
-const VERSION = 'picture-10';
+const VERSION = 'picture-11';
 const MEMORY_LIMIT = 64 * 1024 * 1024;
 const DISK_LIMIT = 500 * 1024 * 1024;
 const PRUNE_INTERVAL_MS = 60_000;
