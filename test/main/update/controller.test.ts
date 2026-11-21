@@ -53,6 +53,10 @@ describe('UpdateController', () => {
     await controller.check();
     act('download');
     await vi.waitFor(() =>
+      expect(controller.get().status.kind).toBe('downloaded'),
+    );
+    act('install');
+    await vi.waitFor(() =>
       expect(controller.get().status).toMatchObject({
         kind: 'error',
         stage: 'install',
@@ -75,28 +79,30 @@ describe('UpdateController', () => {
       }),
     );
     act('retry');
+    await vi.waitFor(() =>
+      expect(controller.get().status.kind).toBe('downloaded'),
+    );
+    expect(updater.install).not.toHaveBeenCalled();
+    act('install');
     await vi.waitFor(() => expect(updater.install).toHaveBeenCalledOnce());
     expect(updater.check).toHaveBeenCalledOnce();
     expect(updater.download).toHaveBeenCalledTimes(2);
   });
-  it('checks once at launch and only offers a notice', async () => {
+  it('allows the launch offer to start a download and waits for restart confirmation', async () => {
     const {controller, updater, act} = setup();
     controller.launch();
     controller.launch();
     await vi.waitFor(() =>
       expect(controller.get().status.kind).toBe('available'),
     );
-    expect(controller.get()).toMatchObject({
-      visible: true,
-      notice: true,
-      status: {version: '0.60.0'},
-    });
     expect(updater.check).toHaveBeenCalledOnce();
     act('download');
-    expect(updater.download).not.toHaveBeenCalled();
-    act('dismiss');
-    expect(controller.get().visible).toBe(false);
+    await vi.waitFor(() =>
+      expect(controller.get().status.kind).toBe('downloaded'),
+    );
     expect(updater.install).not.toHaveBeenCalled();
+    act('install');
+    await vi.waitFor(() => expect(updater.install).toHaveBeenCalledOnce());
   });
 
   it.each(['latest', 'offline'] as const)(
@@ -125,6 +131,11 @@ describe('UpdateController', () => {
     });
     expect(updater.download).not.toHaveBeenCalled();
     act('download');
+    await vi.waitFor(() =>
+      expect(controller.get().status.kind).toBe('downloaded'),
+    );
+    expect(updater.install).not.toHaveBeenCalled();
+    act('install');
     await vi.waitFor(() => expect(updater.install).toHaveBeenCalledOnce());
     expect(
       options.changed.mock.calls.some(
@@ -219,6 +230,13 @@ describe('UpdateController', () => {
         visible: true,
         status: {kind: 'downloaded'},
       }),
+    );
+    act('install');
+    await vi.waitFor(() =>
+      expect(options.installAfterShutdown).toHaveBeenCalledOnce(),
+    );
+    await vi.waitFor(() =>
+      expect(controller.get().status.kind).toBe('downloaded'),
     );
     expect(updater.install).not.toHaveBeenCalled();
   });

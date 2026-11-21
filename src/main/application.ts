@@ -143,6 +143,18 @@ export function start(
       });
       const ui = registerUiState(appConfig, log);
       const zoom = registerUiZoom(appConfig, log);
+      const reportedSplashSteps = new Set<string>();
+      const reportSplashStep = (
+        step: Parameters<typeof completeSplashStep>[1],
+      ): void => {
+        if (reportedSplashSteps.has(step)) return;
+        reportedSplashSteps.add(step);
+        log.info('launch stage complete', {
+          step,
+          uptimeMs: Math.round(process.uptime() * 1000),
+        });
+        completeSplashStep(splash, step);
+      };
       const store = new LiveStore();
       const launchIdle = new LaunchIdle();
       if (app.isPackaged && windowMode === 'offscreen') {
@@ -168,10 +180,10 @@ export function start(
         problems: problems.feed,
       });
       dataStore.settings
-        .then(() => completeSplashStep(splash, 'settings'))
+        .then(() => reportSplashStep('settings'))
         .catch((error: unknown) => log.error('settings startup failed', error));
       dataStore.content
-        .then(() => completeSplashStep(splash, 'content'))
+        .then(() => reportSplashStep('content'))
         .catch((error: unknown) => log.error('content startup failed', error));
       const stopLaunchAtLogin = registerLaunchAtLogin({
         settings: dataStore.settings,
@@ -274,7 +286,7 @@ export function start(
           (await dataStore.settings)?.preferences().general.startMaximized ??
           true,
       });
-      completeSplashStep(splash, 'window');
+      reportSplashStep('window');
       const closeSplash = (): void => {
         if (!splash.isDestroyed()) splash.close();
       };
@@ -287,10 +299,10 @@ export function start(
       };
       const watchControl = (watched: BrowserWindow): void => {
         watched.webContents.once('did-finish-load', () => {
-          if (watched === activeControl) completeSplashStep(splash, 'renderer');
+          if (watched === activeControl) reportSplashStep('renderer');
         });
         watched.once('ready-to-show', () => {
-          if (watched === activeControl) completeSplashStep(splash, 'paint');
+          if (watched === activeControl) reportSplashStep('paint');
         });
         const handoff = (): void => {
           if (watched === activeControl) closeSplash();

@@ -136,10 +136,10 @@ export class UpdateController {
       }
     } else if (
       request.action === 'download' &&
-      this.manual &&
       this.visible &&
       this.status.kind === 'available'
     ) {
+      this.manual = true;
       this.download(this.status.version).catch((error: unknown) =>
         this.failed(error),
       );
@@ -186,7 +186,6 @@ export class UpdateController {
       });
       if (!this.disposed) {
         this.set({kind: 'downloaded', version}, true);
-        await this.install(version);
       }
     } catch (error) {
       this.failed(error);

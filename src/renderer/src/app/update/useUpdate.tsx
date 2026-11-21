@@ -5,7 +5,7 @@ import type {
   UpdateSnapshot,
   UpdateStatus,
 } from '@core/schema/update';
-import {AlertDialog} from '@renderer/ui/AlertDialog';
+import {Dialog} from '@renderer/ui/Dialog';
 import {Progress} from '@renderer/ui/StatusMarks';
 import styles from './UpdateProgress.module.css';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
@@ -104,52 +104,47 @@ export function useUpdate(
       notice: null,
       dismiss,
       dialog: (
-        <AlertDialog
-          icon="info"
+        <Dialog
+          size="s"
           title="업데이트 중"
-          meta={[`버전 ${status.version}`, titleOf(status)]}
-          list={{
-            label: '업데이트 진행',
-            children: (
-              <div className={styles.progress}>
-                <ol className={styles.steps}>
-                  {['내려받는 중', '설치 준비', '다시 시작'].map(
-                    (label, index) => (
-                      <li
-                        key={label}
-                        aria-current={index === step ? 'step' : undefined}
-                      >
-                        <span>{label}</span>
-                        <span>
-                          {index < step
-                            ? '완료'
-                            : index === step
-                              ? '진행 중'
-                              : '대기'}
-                        </span>
-                      </li>
-                    ),
-                  )}
-                </ol>
-                <Progress
-                  label="업데이트 내려받기"
-                  value={status.kind === 'downloading' ? status.percent : 100}
-                />
-                <p className={styles.percent}>
-                  {status.kind === 'downloading' ? status.percent : 100}%
-                </p>
-              </div>
-            ),
+          subtitle={{text: `버전 ${status.version}`}}
+          initialFocus="surface"
+          hideClose
+          onCancel={() => undefined}
+          cancelLabel={null}
+          primary={{
+            label: '업데이트 중',
+            disabled: true,
+            onSelect: () => undefined,
           }}
-          actions={[
-            {
-              label: '업데이트 중',
-              primary: true,
-              disabled: true,
-              onSelect: () => undefined,
-            },
-          ]}
-        />
+        >
+          <div className={styles.progress}>
+            <ol className={styles.steps} aria-label="업데이트 진행">
+              {['내려받는 중', '설치 준비', '다시 시작'].map((label, index) => (
+                <li
+                  key={label}
+                  aria-current={index === step ? 'step' : undefined}
+                >
+                  <span>{label}</span>
+                  <span>
+                    {index < step
+                      ? '완료'
+                      : index === step
+                        ? '진행 중'
+                        : '대기'}
+                  </span>
+                </li>
+              ))}
+            </ol>
+            <Progress
+              label="업데이트 내려받기"
+              value={status.kind === 'downloading' ? status.percent : 100}
+            />
+            <p className={styles.percent}>
+              {status.kind === 'downloading' ? status.percent : 100}%
+            </p>
+          </div>
+        </Dialog>
       ),
     };
   }
@@ -170,7 +165,10 @@ export function useUpdate(
   if ((download || install) && outputsOn && !snapshot.notice) {
     meta.push('업데이트 중 화면이 꺼지고 다시 시작하면 복원됩니다');
   }
-  if ((snapshot.notice === true && download) || status.kind === 'checking') {
+  if (
+    (snapshot.notice === true && download && outputsOn) ||
+    status.kind === 'checking'
+  ) {
     const notice: Notice = {
       key: UPDATE_NOTICE_KEY,
       kind: 'info',
@@ -188,40 +186,37 @@ export function useUpdate(
     notice: null,
     dismiss,
     dialog: (
-      <AlertDialog
+      <Dialog
         key={status.kind}
-        icon="info"
+        size="s"
         title={title}
-        meta={meta}
-        {...(download || install || status.kind === 'error'
-          ? {
-              onCancel: () => act(download || install ? 'later' : 'dismiss'),
-              cancelLabel: download || install ? '나중에' : '닫기',
-            }
-          : {})}
-        actions={[
-          {
-            label:
-              download || install
-                ? '업데이트'
-                : status.kind === 'error'
-                  ? '다시 시도'
-                  : '확인',
-            primary: true,
-            escape: !download && !install,
-            onSelect: () =>
-              act(
-                download
-                  ? 'download'
-                  : install
-                    ? 'install'
-                    : status.kind === 'error'
-                      ? 'retry'
-                      : 'dismiss',
-              ),
-          },
-        ]}
-      />
+        initialFocus="primary"
+        onCancel={() => act(download || install ? 'later' : 'dismiss')}
+        cancelLabel={download || install ? '나중에' : null}
+        primary={{
+          label: download
+            ? '업데이트'
+            : install
+              ? '다시 시작'
+              : status.kind === 'error'
+                ? '다시 시도'
+                : '확인',
+          onSelect: () =>
+            act(
+              download
+                ? 'download'
+                : install
+                  ? 'install'
+                  : status.kind === 'error'
+                    ? 'retry'
+                    : 'dismiss',
+            ),
+        }}
+      >
+        {meta.map(fact => (
+          <p key={fact}>{fact}</p>
+        ))}
+      </Dialog>
     ),
   };
 }

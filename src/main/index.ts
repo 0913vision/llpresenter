@@ -38,7 +38,7 @@ if (problem !== null) {
 } else {
   app
     .whenReady()
-    .then(async () => {
+    .then(() => {
       const readyUptimeMs = Math.round(process.uptime() * 1000);
       const mode = windowModeFrom(process.env, app.isPackaged);
       const splash = createSplash(mode);
@@ -49,15 +49,15 @@ if (problem !== null) {
           paintUptimeMs,
           afterReadyMs: paintUptimeMs - readyUptimeMs,
         });
+        if (splash.isDestroyed()) return;
+        void import('./application')
+          .then(application => application.start(splash, mode, log))
+          .catch((error: unknown) => {
+            log.error('failed to load application', error);
+            if (!splash.isDestroyed()) splash.close();
+            app.quit();
+          });
       });
-      try {
-        const application = await import('./application');
-        application.start(splash, mode, log);
-      } catch (error: unknown) {
-        log.error('failed to load application', error);
-        if (!splash.isDestroyed()) splash.close();
-        app.quit();
-      }
     })
     .catch((error: unknown) => {
       log.error('failed to create launch window', error);

@@ -33,6 +33,8 @@ export interface DialogProps {
   /** What [취소], the close button, and Esc do. */
   readonly onCancel: () => void;
   readonly closeOnOutside?: boolean | undefined;
+  /** Hide the close control while a non-cancellable operation is running. */
+  readonly hideClose?: boolean | undefined;
   readonly cancelLabel?: string | null | undefined;
   /** An auxiliary action at the left of the footer. */
   readonly footerStart?: ReactNode;
@@ -168,6 +170,7 @@ export function Dialog({
   height,
   onCancel,
   closeOnOutside = false,
+  hideClose = false,
   cancelLabel = CANCEL_LABEL,
   footerStart,
   headerEnd,
@@ -216,14 +219,16 @@ export function Dialog({
           {headerEnd === undefined ? null : (
             <div className={styles.headerEnd}>{headerEnd}</div>
           )}
-          <IconButton
-            icon="x"
-            label={CLOSE_LABEL}
-            shortcut={CLOSE_SHORTCUT}
-            size="md"
-            className={styles.close}
-            onClick={onCancel}
-          />
+          {hideClose ? null : (
+            <IconButton
+              icon="x"
+              label={CLOSE_LABEL}
+              shortcut={CLOSE_SHORTCUT}
+              size="md"
+              className={styles.close}
+              onClick={onCancel}
+            />
+          )}
         </div>
         {topBar === undefined ? null : (
           <div className={classNames(styles.bar, styles.barTop)}>{topBar}</div>

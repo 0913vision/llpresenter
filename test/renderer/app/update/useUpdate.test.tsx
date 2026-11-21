@@ -85,7 +85,7 @@ describe('update presentation', () => {
       name: '업데이트 내려받기',
     });
     expect(progress.getAttribute('aria-valuenow')).toBe('42');
-    expect(screen.getByRole('alertdialog').textContent).toContain('1.2.3');
+    expect(screen.getByRole('dialog').textContent).toContain('1.2.3');
     expect(
       screen
         .getByText('내려받는 중')
@@ -123,7 +123,7 @@ describe('update presentation', () => {
       busy: false,
     };
     const view = setup(snapshot);
-    expect((await screen.findByRole('alertdialog')).textContent).toContain(
+    expect((await screen.findByRole('dialog')).textContent).toContain(
       '내려받기 실패',
     );
     fireEvent.click(screen.getByRole('button', {name: '다시 시도'}));
@@ -159,11 +159,36 @@ describe('update presentation', () => {
       notice: false,
     };
     const view = setup(snapshot);
-    const dialog = await screen.findByRole('alertdialog');
+    const dialog = await screen.findByRole('dialog');
     expect(dialog.textContent).toContain('1.2.3');
     expect(dialog.textContent).toContain('화면이 꺼지고');
     fireEvent.click(screen.getByRole('button', {name: '업데이트'}));
     expect(view.send).toHaveBeenCalledWith({revision: 1, action: 'download'});
+  });
+  it('shows the automatic offer as a dialog once outputs are off', async () => {
+    const snapshot: UpdateSnapshot = {
+      revision: 1,
+      status: {kind: 'available', version: '1.2.3'},
+      visible: true,
+      outputsOn: true,
+      busy: false,
+      notice: true,
+    };
+    const view = setup(snapshot);
+    await screen.findByRole('status');
+    view.push({...snapshot, revision: 2, outputsOn: false});
+    expect(screen.getByRole('dialog').textContent).toContain('1.2.3');
+    fireEvent.click(screen.getByRole('button', {name: '업데이트'}));
+    expect(view.send).toHaveBeenCalledWith({revision: 2, action: 'download'});
+    view.push({
+      ...snapshot,
+      revision: 3,
+      notice: false,
+      outputsOn: false,
+      status: {kind: 'downloaded', version: '1.2.3'},
+    });
+    fireEvent.click(screen.getByRole('button', {name: '다시 시작'}));
+    expect(view.send).toHaveBeenCalledWith({revision: 3, action: 'install'});
   });
   it('shows a dismissible launch notice without an update action', async () => {
     const snapshot: UpdateSnapshot = {
@@ -176,8 +201,8 @@ describe('update presentation', () => {
     };
     const view = setup(snapshot);
     expect((await screen.findByRole('status')).textContent).toContain('1.2.3');
-    expect(screen.queryByRole('alertdialog')).toBeNull();
-    expect(screen.queryByRole('button', {name: '업데이트'})).toBeNull();
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(screen.queryByRole('button', {name: '????'})).toBeNull();
     fireEvent.click(screen.getByRole('button', {name: '알림 닫기'}));
     expect(view.send).toHaveBeenCalledWith({revision: 1, action: 'dismiss'});
   });

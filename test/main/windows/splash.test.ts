@@ -1,5 +1,5 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import {createSplash} from '@main/windows/splash';
+import {completeSplashStep, createSplash} from '@main/windows/splash';
 
 const electron = await vi.hoisted(async () => {
   const {EventEmitter} = await import('node:events');
@@ -27,6 +27,22 @@ beforeEach(() => {
 });
 
 describe('launch window', () => {
+  it('counts completed milestones once, including work finished before the splash loads', () => {
+    const splash = createSplash('offscreen');
+    const window = electron.created[0];
+    if (window === undefined) throw new Error('Missing splash');
+    completeSplashStep(splash, 'window');
+    completeSplashStep(splash, 'window');
+    expect(window.webContents.executeJavaScript).not.toHaveBeenCalled();
+    window.webContents.emit('did-finish-load');
+    expect(window.webContents.executeJavaScript).toHaveBeenLastCalledWith(
+      expect.stringContaining("width='20%'"),
+    );
+    completeSplashStep(splash, 'content');
+    expect(window.webContents.executeJavaScript).toHaveBeenLastCalledWith(
+      expect.stringContaining("width='40%'"),
+    );
+  });
   it('uses a blue background and shows the inline design only after the first paint', () => {
     createSplash('normal');
     const window = electron.created[0];

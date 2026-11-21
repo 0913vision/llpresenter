@@ -223,23 +223,27 @@ Source: product log (offline Bible data preferred), `docs/TECH.md` principle 5.
   without a token. Development runs and tests never check. Draft releases are
   invisible to installed apps.
 - After control service and output preparation finish, one quiet launch check
-  runs off the launch path. A newer release shows a dismissible nonmodal notice
-  with its version. Latest-version results and launch errors go only to the log.
-  A launch check never downloads or installs an update.
+  runs off the launch path. A newer release opens an update dialog with its
+  version when outputs are off. While outputs are on, it shows a dismissible
+  notice instead; the dialog can appear once outputs are off. Latest-version
+  results and launch errors go only to the log. A launch check never downloads
+  or installs an update.
 - **도움말 > 업데이트 확인** checks on request. A newer version offers
   **업데이트** or **나중에** in the app's dialog. When outputs are on, the same
   dialog says they turn off during the update and return after restart. Nothing
   downloads or changes outputs before the operator confirms. A manual failure
   gives a short reason; technical details remain in the local log.
 - After confirmation, a dialog shows the version, download percentage, and the
-  download, installation preparation, and restart steps. Failures identify the
-  failed step and offer retry. The app saves pending edits and records the
-  active outputs before starting the installer. After the installer handoff, the
-  app finishes shutdown and restarts. The same service reopens and precisely
-  those outputs turn on, independently of the ordinary launch-output preference.
-  Failed or incomplete pending saves prevent installer handoff; failure of later
-  shutdown or recovery cleanup is logged. A completed update restart has no
-  crash recovery prompt. A cancelled update never installs on quit.
+  download, installation preparation, and restart steps. Once downloaded, the
+  dialog asks the operator to confirm restart before installation begins.
+  Failures identify the failed step and offer retry. The app saves pending edits
+  and records the active outputs before starting the installer. After the
+  installer handoff, the app finishes shutdown and restarts. The same service
+  reopens and precisely those outputs turn on, independently of the ordinary
+  launch-output preference. Failed or incomplete pending saves prevent installer
+  handoff; failure of later shutdown or recovery cleanup is logged. A completed
+  update restart has no crash recovery prompt. A cancelled update never installs
+  on quit.
 - The installer keeps the existing app-data and library roots. Uninstalling
   removes installed program files and shortcuts, never app data or backups.
 
