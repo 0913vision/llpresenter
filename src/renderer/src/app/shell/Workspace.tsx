@@ -41,6 +41,7 @@ import {TableDataKeeper} from '@renderer/features/service/table/useServiceTableD
 import {PrepPictureSwitch} from '@renderer/rendering/PrepPictureSwitch';
 import {ShownItemProvider} from '@renderer/session/shownItem';
 import {returnFocus} from '@renderer/ui/returnFocus';
+import {useWorkspaceServiceHistory} from './useWorkspaceServiceHistory';
 
 const ignoreProblem = (): void => undefined;
 
@@ -121,6 +122,10 @@ export function Workspace({
   const visibleId = id === 'screens' && !screens.ready ? lastVisible : id;
   if (visibleId !== lastVisible) setLastVisible(visibleId);
   const showVisible = visibleId === 'show';
+  useWorkspaceServiceHistory(
+    visibleId !== 'screens',
+    onProblem ?? logPanelProblem,
+  );
   // NOTE(0913vision): 진행 stays built, hidden, while another workspace
   // shows, so going back to 진행 shows its panels in the next frame instead of
   // building them again.
