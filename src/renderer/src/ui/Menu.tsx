@@ -122,6 +122,12 @@ export function Menu({
   });
   const [place] = useState(() => anchorPlace(anchor));
   const [overModal] = useState(() => modalStack.isOpen);
+  const close = (reason: MenuCloseReason): void => {
+    if (reason === 'escape' && menubar !== null && anchor.kind === 'element') {
+      anchor.element.focus({preventScroll: true});
+    }
+    onClose(reason);
+  };
 
   return (
     <Popover returnTo={opener}>
@@ -173,7 +179,7 @@ export function Menu({
           label={label}
           entries={entries}
           place={place}
-          onClose={onClose}
+          onClose={close}
           search={search}
           width={width}
           minWidth={minWidth}
