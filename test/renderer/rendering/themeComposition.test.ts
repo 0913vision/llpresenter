@@ -1005,7 +1005,7 @@ describe('theme composition drawing', () => {
         layout,
         item: {
           id: 'invented',
-          kind: 'blank',
+          kind: 'bible',
           source: 'service',
           title: '마태복음 11:29~30',
         },
@@ -1013,13 +1013,21 @@ describe('theme composition drawing', () => {
       view.render(
         {
           ...song,
-          slide: {...song.slide, label: null, lines: ['동행의 열매 : 온유']},
+          slide: {
+            ...song.slide,
+            kind: 'bible',
+            sermonTitle: true,
+            reference: '마태복음 11:29~30',
+            label: null,
+            lines: ['동행의 열매 : 온유'],
+          },
         },
         {...active, screen: {id: screenId, kind}, transitions: false},
       );
       expect(
-        root.querySelector(`[data-kind="itemName"] .${classes.shown}`)
-          ?.textContent,
+        root.querySelector(
+          `[data-kind="${kind === 'stage' ? 'reference' : 'itemName'}"] .${classes.shown}`,
+        )?.textContent,
       ).toBe('마태복음 11:29~30');
       expect(
         root.querySelector(`[data-kind="currentText"] .${classes.shown}`)
@@ -1120,21 +1128,20 @@ describe('theme composition drawing', () => {
       {...active, screen: {id: screenId, kind: 'stage'}, transitions: false},
     );
     expect(
-      root.querySelector(`[data-kind="itemName"] .${classes.shown}`)
+      root.querySelector(`[data-kind="reference"] .${classes.shown}`)
         ?.textContent,
     ).toBe('Matthew 11:29');
-    expect(root.querySelector('[data-kind="reference"]')).toBeNull();
+    expect(root.querySelector('[data-kind="itemName"]')).toBeNull();
     expect(
       root.querySelector(`[data-kind="currentText"] .${classes.shown}`)
         ?.textContent,
     ).toBe('Sermon');
-    const savedReference = bibleLayout.elements.find(
-      element => element.kind === 'reference',
-    );
-    if (savedReference === undefined) throw Error('Missing saved reference');
     const savedLayout = {
       ...layout,
-      elements: [...layout.elements, savedReference],
+      elements: [
+        ...layout.elements,
+        {...themeElementBase(987), kind: 'itemName' as const},
+      ],
     };
     const savedActive = frame(savedLayout.elements, {
       themeId: theme.id,

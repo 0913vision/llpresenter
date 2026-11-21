@@ -363,10 +363,10 @@ it('offers one sermon title theme with automatic bars', () => {
   ]);
   const stage = theme?.screens[createScreenId(STARTER_SCREEN_IDS.stage)];
   expect(stage?.elements.some(element => element.kind === 'reference')).toBe(
-    false,
+    true,
   );
   expect(
-    stage?.elements.find(element => element.kind === 'itemName'),
+    stage?.elements.find(element => element.kind === 'reference'),
   ).toMatchObject({
     frame: {x: 154, y: 245, h: 90},
     text: {size: 52, align: 'left'},

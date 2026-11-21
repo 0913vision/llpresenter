@@ -876,7 +876,7 @@ The deleted choice is disabled; selecting another theme replaces the reference.
 At the limit, deletion is refused rather than losing a saved appearance. The
 default creed and prayer stage and broadcast, and preparation broadcast layouts
 retain reference elements for Bible items. The sermon title stage uses one
-item-name box for the passage. These layouts hide references for non-Bible
+reference box for the passage. These layouts hide references for non-Bible
 content. The theme editor previews dynamic elements with representative content;
 the reference source preview distinguishes the current verse from the item
 range. Empty media and overlay slots show separate editor-only placeholders.
