@@ -64,6 +64,7 @@ export const nextSlideSchema = payloadObject({
   label: v.nullable(liveTextSchema),
   labelContinued: v.exactOptional(v.literal(true)),
   title: v.exactOptional(liveTextSchema),
+  adTitle: v.exactOptional(liveTextSchema),
   itemKind: v.exactOptional(v.picklist(themeItemKinds)),
   lines: slideLinesSchema,
   continued: v.exactOptional(v.boolean()),

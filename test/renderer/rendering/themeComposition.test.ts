@@ -4222,3 +4222,89 @@ it('numbers current advertisement titles only on stage', () => {
   }
   view.dispose();
 });
+
+it('shows the next ad title only as a stage cue, even when its body has a manual override', () => {
+  const {view, text} = setup();
+  const elements: ThemeElement[] = [
+    {...themeElementBase(), kind: 'currentText'},
+    {...themeElementBase(31), kind: 'nextText'},
+  ];
+  const base = frame(elements);
+  const theme = base.theme;
+  const item = theme?.item;
+  if (theme === undefined || item == null) throw Error('Missing item');
+  const body = elements[0];
+  if (body === undefined) throw Error('Missing body');
+  const bodyKey = `${themeId}/${THEME_MAIN}/${body.id}`;
+  const layers: LiveLayers = {
+    ...emptyLayers(),
+    slide: {
+      itemId: 'ad',
+      position: 0,
+      kind: 'ad',
+      label: null,
+      lines: ['Current'],
+      next: {
+        label: null,
+        title: '2. 3. Anniversary',
+        adTitle: '3. Anniversary',
+        lines: [],
+        textOverrides: {[bodyKey]: 'Edited body'},
+      },
+    },
+  };
+  const adSlide = layers.slide;
+  if (adSlide === null) throw Error('Missing slide');
+  const render = (
+    kind: 'stage' | 'audience' | 'broadcast',
+    value: LiveLayers = layers,
+  ) => {
+    view.render(value, {
+      ...base,
+      screen: {id: THEME_MAIN, kind},
+      theme: {...theme, item: {...item, kind: 'ad'}},
+      transitions: false,
+    });
+    return text('nextText');
+  };
+  expect(render('stage')).toBe('다음광고: 3. Anniversary');
+  expect(render('audience')).toBe('Edited body');
+  expect(render('broadcast')).toBe('Edited body');
+  const cross: LiveLayers = {
+    ...layers,
+    slide: {
+      ...adSlide,
+      next: {
+        label: null,
+        itemKind: 'ad',
+        title: '1. Cross item',
+        adTitle: 'Cross item',
+        lines: [],
+      },
+    },
+  };
+  expect(render('stage', cross)).toBe('다음광고: Cross item');
+  const blank: LiveLayers = {
+    ...layers,
+    slide: {
+      ...adSlide,
+      next: {
+        label: null,
+        adTitle: '',
+        lines: [],
+        textOverrides: {[bodyKey]: 'Wrong body'},
+      },
+    },
+  };
+  expect(render('stage', blank) ?? '').toBe('');
+  const song: LiveLayers = {
+    ...layers,
+    slide: {
+      ...adSlide,
+      kind: 'song',
+      next: {label: null, itemKind: 'song', lines: ['Next lyric']},
+    },
+  };
+  expect(render('stage', song)).toBe('Next lyric');
+  view.dispose();
+});

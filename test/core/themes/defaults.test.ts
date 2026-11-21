@@ -414,7 +414,7 @@ it('uses the standard stage layout and leaves broadcast ads empty', () => {
       font: 'KoPubWorldDotum',
       weight: 700,
       size: 108,
-      color: STAGE_COLORS.next,
+      color: '#FFFFFF',
       align: 'left',
     },
   });

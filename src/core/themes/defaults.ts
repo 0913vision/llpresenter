@@ -261,7 +261,7 @@ function stageElements(kind: ThemeItemKind = 'song'): ThemeElement[] {
         ...text,
         font: 'KoPubWorldDotum',
         weight: 700,
-        color: STAGE_COLORS.next,
+        color: '#FFFFFF',
         size: 108,
         align: 'left',
         vAlign: 'middle',
