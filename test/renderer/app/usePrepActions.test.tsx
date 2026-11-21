@@ -10,7 +10,6 @@ import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {createSongId} from '@core/schema/ids';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {TextImportFlow} from '@renderer/features/songs/import/TextImportFlow';
-import {PowerPointImportFlow} from '@renderer/features/songs/import/PowerPointImportFlow';
 import type {ServiceRow, SlideTile} from '@core/presentation/model';
 import {
   fixtureItems,
@@ -90,9 +89,6 @@ vi.mock('@renderer/session/showLibrary', () => ({
 }));
 vi.mock('@renderer/features/songs/import/TextImportFlow', () => ({
   TextImportFlow: vi.fn(() => null),
-}));
-vi.mock('@renderer/features/songs/import/PowerPointImportFlow', () => ({
-  PowerPointImportFlow: vi.fn(() => null),
 }));
 vi.mock('@renderer/features/songs/editor/InlineSongController', () => ({
   InlineSongController: vi.fn(() => null),
@@ -407,26 +403,6 @@ it.each(['file', 'clipboard'] as const)(
     act(() => props.onDone());
     expect(result.current.canImport).toBe(true);
     expect(vi.mocked(TextImportFlow).mock.calls).toHaveLength(1);
-  },
-);
-
-it.each(['powerpoint', 'powerpoint-images'] as const)(
-  'routes %s to the same song import after the leave guard',
-  source => {
-    const {result, session, onWorkspace} = setup();
-    act(() => result.current.importText(source));
-    expect(mock.editor.requestLeave).toHaveBeenCalledOnce();
-    expect(result.current.canImport).toBe(true);
-    act(() => mock.editor.requestLeave.mock.calls[0]?.[0]());
-    render(result.current.importSurface);
-    const props = vi.mocked(PowerPointImportFlow).mock.calls[0]?.[0];
-    if (!props) throw new Error('Missing PowerPoint flow');
-    expect(props.api).toBe(session.api);
-    expect(props.store).toBe(session.editor);
-    act(() => props.onEdit());
-    expect(onWorkspace).toHaveBeenCalledWith('prep');
-    act(() => props.onDone());
-    expect(result.current.canImport).toBe(true);
   },
 );
 

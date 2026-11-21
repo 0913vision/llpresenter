@@ -1,8 +1,5 @@
 import {useAudioOutputs} from '@renderer/features/preferences/useAudioOutputs';
-import {
-  ShownItemProvider,
-  useRetainedShownGrid,
-} from '@renderer/session/shownItem';
+import {ShownItemProvider} from '@renderer/session/shownItem';
 import {NumberJumpOverlay} from '@renderer/features/presentation/DraftOverlay';
 import {ThemeLeaveGuard} from '@renderer/features/screens/themes/themeLeaveGuard';
 import {useMonitors} from '@renderer/features/screens/useMonitors';
@@ -118,17 +115,11 @@ function ControlApp({
   useAudioOutputs();
   const [workspace, setWorkspace] = useState<WorkspaceId>('show');
   const requestedItem = useShow(view => view.openItemId);
-  const serviceId = useShow(view => view.serviceId);
-  const retainedGrid = useRetainedShownGrid(serviceId, requestedItem);
   const requestedFrame = useMemo(
     () => ({workspace, item: requestedItem}),
     [workspace, requestedItem],
   );
-  const deferredFrame = useDeferredValue(requestedFrame);
-  const shownFrame =
-    workspace === 'show' && deferredFrame.workspace === 'show' && retainedGrid
-      ? requestedFrame
-      : deferredFrame;
+  const shownFrame = useDeferredValue(requestedFrame);
   const shownWorkspace = shownFrame.workspace;
   const [savedPrepItem, setSavedPrepItem] = useState<string | null>(null);
   const [workspaceSelections] = useState(() => new WorkspaceSelections());

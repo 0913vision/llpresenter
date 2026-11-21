@@ -1,4 +1,5 @@
 import {requestSongEditor} from '@renderer/features/songs/editor/songEditorRequests';
+import {PowerPointImagesFlow} from './PowerPointImagesFlow';
 import {PowerPointImportFlow} from '@renderer/features/songs/import/PowerPointImportFlow';
 import {
   useCallback,
@@ -181,14 +182,8 @@ export function usePrepActions({
     source: 'file' | 'clipboard' | 'powerpoint' | 'powerpoint-images',
   ): void => {
     if (session.api === undefined || importSource !== null) return;
-    const start = (): void => {
-      session.startEditor();
-      setImportSource(source);
-    };
-    if (source === 'powerpoint' || source === 'powerpoint-images') {
-      if (session.editor) session.editor.requestLeave(start);
-      else start();
-    } else start();
+    session.startEditor();
+    setImportSource(source);
   };
   const newSong = (): void => {
     if (session.api === undefined) return;
@@ -433,10 +428,13 @@ export function usePrepActions({
             }}
           />
         ) : null}
-        {session.api &&
-        session.editor &&
-        (importSource === 'powerpoint' ||
-          importSource === 'powerpoint-images') ? (
+        {session.api && importSource === 'powerpoint-images' ? (
+          <PowerPointImagesFlow
+            api={session.api}
+            onDone={closeImport}
+            onProblem={session.report}
+          />
+        ) : session.api && session.editor && importSource === 'powerpoint' ? (
           <PowerPointImportFlow
             api={session.api}
             store={session.editor}

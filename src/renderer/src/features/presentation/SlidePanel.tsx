@@ -1,4 +1,4 @@
-import {useState, useSyncExternalStore, type JSX} from 'react';
+import {useSyncExternalStore, type JSX} from 'react';
 import {useShallow} from 'zustand/react/shallow';
 import {defaultThumbnailColumns, type SizeClass} from '@renderer/ui/sizeClass';
 import {useShow} from '@renderer/session/show';
@@ -24,7 +24,7 @@ import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {READ_ONLY_TIP} from '../../platform/problemReasons';
 import styles from './SlidePanel.module.css';
 import {useVisibleSlideItem} from '@renderer/session/visibleSlideItem';
-import {ShownItemProvider, useShownItemId} from '@renderer/session/shownItem';
+import {useShownItemId} from '@renderer/session/shownItem';
 import {useLive} from '@renderer/session/live';
 
 const PROBLEM_ICON_SIZE = 14;
@@ -33,10 +33,8 @@ const PROBLEM_ICON_SIZE = 14;
 export function SlidePanelBody({
   sizeClass,
   onOpenPrep,
-  active = true,
 }: {
   readonly sizeClass: SizeClass;
-  readonly active?: boolean;
   readonly onOpenPrep?:
     ((itemId: string, position?: number) => void) | undefined;
 }): JSX.Element {
@@ -47,53 +45,16 @@ export function SlidePanelBody({
     view =>
       shownItemId === null || view.rows.some(row => row.id === shownItemId),
   );
-  const continuous =
-    settings?.value.show?.continuousGrid === true && isServiceItem;
-  const [visitedContinuous, setVisitedContinuous] = useState(false);
-  if (continuous && !visitedContinuous) setVisitedContinuous(true);
-  const [visited, setVisited] = useState<ReadonlyArray<string | null>>([]);
-  if (!continuous && !visited.includes(shownItemId)) {
-    setVisited([...visited, shownItemId]);
-  }
+  const Grid =
+    settings?.value.show?.continuousGrid && isServiceItem
+      ? ContinuousSlideGrid
+      : SlideGrid;
   return (
-    <>
-      {visitedContinuous ? (
-        <div
-          data-slide-grid-cache
-          aria-hidden={!active || !continuous}
-          inert={!active || !continuous}
-          style={{display: active && continuous ? 'contents' : 'none'}}
-        >
-          <ContinuousSlideGrid
-            active={active && continuous}
-            columns={defaultThumbnailColumns[sizeClass]}
-            scalePercent={scalePercent}
-            onOpenPrep={onOpenPrep}
-          />
-        </div>
-      ) : null}
-      {visited.map(itemId => {
-        const gridActive = active && !continuous && itemId === shownItemId;
-        return (
-          <div
-            key={itemId ?? ''}
-            data-slide-grid-cache
-            aria-hidden={!gridActive}
-            inert={!gridActive}
-            style={{display: gridActive ? 'contents' : 'none'}}
-          >
-            <ShownItemProvider shownItem={itemId} trackLive={false}>
-              <SlideGrid
-                active={gridActive}
-                columns={defaultThumbnailColumns[sizeClass]}
-                scalePercent={scalePercent}
-                onOpenPrep={onOpenPrep}
-              />
-            </ShownItemProvider>
-          </div>
-        );
-      })}
-    </>
+    <Grid
+      columns={defaultThumbnailColumns[sizeClass]}
+      scalePercent={scalePercent}
+      onOpenPrep={onOpenPrep}
+    />
   );
 }
 

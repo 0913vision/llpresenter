@@ -27,7 +27,6 @@ export interface PowerPointPreviewProgress {
 interface PrepareOptions {
   readonly active: () => boolean;
   readonly progress: (progress: PowerPointPreviewProgress) => void;
-  readonly previews?: boolean;
 }
 
 function releaseImages(lent: Map<string, LentImage>): void {
@@ -121,29 +120,6 @@ async function releasePaths(
   }
 }
 
-async function previewImage(
-  blob: Blob,
-  active: () => boolean,
-): Promise<LentImage | null> {
-  const thumbnail = await thumbnailPowerPointImage(blob);
-  if (!active()) return null;
-  const hash = await crypto.subtle.digest(
-    'SHA-256',
-    await thumbnail.arrayBuffer(),
-  );
-  if (!active()) return null;
-  const contentHash = Array.from(new Uint8Array(hash), value =>
-    value.toString(16).padStart(2, '0'),
-  ).join('');
-  const image = lendPreviewImage(thumbnail, contentHash);
-  if (image === null) {
-    throw new PowerPointPreviewLimitError(
-      'PowerPoint preview image limit reached',
-    );
-  }
-  return image;
-}
-
 async function prepareBatch({
   api,
   batch,
@@ -228,12 +204,22 @@ async function prepareBatch({
       ) {
         full.set(entry.key, blob);
       }
-      if (options.previews === false) {
-        report(0, 'prepare', position + 1);
-        continue;
+      const thumbnail = await thumbnailPowerPointImage(blob);
+      if (!options.active()) return false;
+      const hash = await crypto.subtle.digest(
+        'SHA-256',
+        await thumbnail.arrayBuffer(),
+      );
+      if (!options.active()) return false;
+      const contentHash = Array.from(new Uint8Array(hash), value =>
+        value.toString(16).padStart(2, '0'),
+      ).join('');
+      const image = lendPreviewImage(thumbnail, contentHash);
+      if (image === null) {
+        throw new PowerPointPreviewLimitError(
+          'PowerPoint preview image limit reached',
+        );
       }
-      const image = await previewImage(blob, options.active);
-      if (image === null) return false;
       lent.set(entry.key, image);
       report(0, 'prepare', position + 1);
     }

@@ -371,9 +371,9 @@ export const SongBlock = memo(
                   <Picture
                     {...picture}
                     editing={focused}
-                    wait={switching === true && !session.importPreparing}
+                    wait={switching === true}
                     switchSlot={
-                      switching === true && !session.importPreparing
+                      switching === true
                         ? `prep:${session.slideDocumentId}:${slide.id}`
                         : undefined
                     }
