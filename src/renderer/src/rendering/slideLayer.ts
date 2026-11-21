@@ -296,7 +296,10 @@ function writeLines(
       const marker = document.createElement('span');
       marker.className = bulletStyles.marker ?? '';
       marker.setAttribute('aria-hidden', 'true');
-      marker.textContent = '•';
+      const glyph = document.createElement('span');
+      glyph.className = bulletStyles.glyph ?? '';
+      glyph.textContent = '•';
+      marker.append(glyph);
       row.prepend(marker);
     }
     if (run.marker !== '') {

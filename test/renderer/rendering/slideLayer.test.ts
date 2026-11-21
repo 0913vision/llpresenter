@@ -451,12 +451,20 @@ describe('SlideLayerView', () => {
     view.show(VERSE, false);
     const page = shownPage();
     const block = page?.querySelector<HTMLElement>(`.${classes.block}`);
+    const marker = block?.querySelector<HTMLElement>(`.${bulletStyles.marker}`);
+    expect(marker).toBeTruthy();
+    expect(
+      marker?.firstElementChild?.classList.contains(bulletStyles.glyph ?? ''),
+    ).toBe(true);
+    expect(marker?.textContent).toBeTruthy();
+    expect(marker?.style.visibility).toBe('');
     view.setStyle({...style, bulletStyle: 'disc'});
     expect(shownPage()).toBe(page);
     expect(block?.style.getPropertyValue('--bullet-indent')).toBe(
       `${107 / 86}em`,
     );
     expect(block?.style.getPropertyValue('--bullet-gap')).toBe('0em');
+    expect(block?.style.getPropertyValue('--bullet-visibility')).toBe('hidden');
     expect(block?.style.getPropertyValue('--bullet-disc-content')).toBe('""');
     expect(block?.style.getPropertyValue('--bullet-wrap')).toBe('normal');
     view.setStyle(style);
@@ -465,7 +473,7 @@ describe('SlideLayerView', () => {
     );
     expect(block?.style.getPropertyValue('--bullet-disc-content')).toBe('none');
     expect(block?.style.getPropertyValue('--bullet-visibility')).toBe(
-      'visible',
+      'inherit',
     );
     view.dispose();
   });
