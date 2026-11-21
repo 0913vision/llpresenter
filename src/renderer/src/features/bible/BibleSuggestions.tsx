@@ -7,10 +7,9 @@ import {
   type JSX,
   type RefObject,
 } from 'react';
-import {createPortal} from 'react-dom';
 import type {TranslationId} from '@core/schema/ids';
 import {placeFloating} from '@renderer/ui/floating';
-import {layerContainer} from '@renderer/ui/layers';
+import {Popover} from '@renderer/ui/Popover';
 import {modalStack} from '@renderer/ui/modalStack';
 import {placeBelow, viewportSize} from '@renderer/ui/placement';
 import {TruncatedText} from '@renderer/ui/TruncatedText';
@@ -72,58 +71,59 @@ export function BibleSuggestions({
       ?.querySelector('[aria-selected="true"]')
       ?.scrollIntoView({block: 'nearest'});
   }, [pointed]);
-  return createPortal(
-    <div
-      id={id}
-      role="listbox"
-      aria-label="성경 구절 추천"
-      className={styles.popup}
-      data-over-modal={overModal ? '' : undefined}
-      ref={element => {
-        popup.current = element;
-        if (element && anchor.current) {
-          placeFloating(element, size =>
-            placeBelow(
-              anchor.current?.firstElementChild?.getBoundingClientRect() ?? {
-                left: 0,
-                top: 0,
-                width: 0,
-                height: 0,
-              },
-              size,
-              viewportSize(),
-            ),
-          );
-        }
-      }}
-    >
-      {items.map((item, index) => (
-        <div key={item.key}>
-          {items[index - 1]?.group !== item.group ? (
-            <div className={styles.group}>{item.group}</div>
-          ) : null}
-          <button
-            id={`${id}-${index}`}
-            role="option"
-            type="button"
-            tabIndex={-1}
-            aria-selected={pointed === index}
-            className={styles.option}
-            onMouseDown={event => event.preventDefault()}
-            onMouseMove={() => onPoint(index)}
-            onClick={() => onChoose(item)}
-          >
-            <TruncatedText
-              className={styles.reference}
-              text={displayReference(item.input)}
-            />
-            {item.count === undefined ? null : (
-              <span className={styles.count}>{item.count}절</span>
-            )}
-          </button>
-        </div>
-      ))}
-    </div>,
-    layerContainer('popover'),
+  return (
+    <Popover>
+      <div
+        id={id}
+        role="listbox"
+        aria-label="성경 구절 추천"
+        className={styles.popup}
+        data-over-modal={overModal ? '' : undefined}
+        ref={element => {
+          popup.current = element;
+          if (element && anchor.current) {
+            placeFloating(element, size =>
+              placeBelow(
+                anchor.current?.firstElementChild?.getBoundingClientRect() ?? {
+                  left: 0,
+                  top: 0,
+                  width: 0,
+                  height: 0,
+                },
+                size,
+                viewportSize(),
+              ),
+            );
+          }
+        }}
+      >
+        {items.map((item, index) => (
+          <div key={item.key}>
+            {items[index - 1]?.group !== item.group ? (
+              <div className={styles.group}>{item.group}</div>
+            ) : null}
+            <button
+              id={`${id}-${index}`}
+              role="option"
+              type="button"
+              tabIndex={-1}
+              aria-selected={pointed === index}
+              className={styles.option}
+              onMouseDown={event => event.preventDefault()}
+              onMouseMove={() => onPoint(index)}
+              onClick={() => onChoose(item)}
+            >
+              <TruncatedText
+                className={styles.reference}
+                text={displayReference(item.input)}
+              />
+              {item.count === undefined ? null : (
+                <span className={styles.count}>{item.count}절</span>
+              )}
+            </button>
+          </div>
+        ))}
+      </div>
+    </Popover>
   );
 }

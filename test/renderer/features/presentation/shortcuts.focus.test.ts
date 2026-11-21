@@ -304,7 +304,7 @@ it('returns to the grid when a toolbar button is clicked from a field', async ()
   expect(document.activeElement).toBe(grid);
 });
 
-it('returns to the grid when a custom popover restores its button', async () => {
+it('keeps focus on the element restored by a popover', async () => {
   renderHook(() => useShowKeys());
   const show = appendTo('main', {'data-workspace-layout': 'show'});
   const keeper = show.appendChild(document.createElement('div'));
@@ -321,7 +321,7 @@ it('returns to the grid when a custom popover restores its button', async () => 
   button.focus();
   popover.remove();
   await Promise.resolve();
-  expect(document.activeElement).toBe(grid);
+  expect(document.activeElement).toBe(button);
 });
 
 describe('state that an event may never complete', () => {

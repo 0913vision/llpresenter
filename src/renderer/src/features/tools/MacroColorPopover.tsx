@@ -1,9 +1,8 @@
 import {useEffect, useRef, type JSX} from 'react';
-import {createPortal} from 'react-dom';
 import type {PaletteColor} from '@core/labels/colors';
 import {MacroColorPicker} from '@renderer/ui/LabelColorPicker';
 import {useChoicePopup} from '@renderer/ui/useChoicePopup';
-import {layerContainer} from '@renderer/ui/layers';
+import {Popover} from '@renderer/ui/Popover';
 import menuStyles from '@renderer/ui/Menu.module.css';
 import styles from './MacroPanel.module.css';
 import {returnFocus} from '@renderer/ui/returnFocus';
@@ -42,34 +41,35 @@ export function MacroColorPopover({
       if (restoreFocus.current && anchor.isConnected) returnFocus(anchor);
     };
   }, [surface, anchor]);
-  return createPortal(
-    <div className={menuStyles.layer}>
-      <div
-        ref={surface}
-        role="dialog"
-        aria-label="매크로 색"
-        className={`${menuStyles.menu} ${styles.colors}`}
-        onKeyDown={onKeyDown}
-        onBlur={event => {
-          if (
-            ready.current &&
-            !(
-              event.relatedTarget instanceof Node &&
-              event.currentTarget.contains(event.relatedTarget)
-            )
-          ) {
-            close(false);
-          }
-        }}
-      >
-        <MacroColorPicker
-          label="매크로 색"
-          value={value}
-          disabled={locked}
-          onChange={onChange}
-        />
+  return (
+    <Popover>
+      <div className={menuStyles.layer}>
+        <div
+          ref={surface}
+          role="dialog"
+          aria-label="매크로 색"
+          className={`${menuStyles.menu} ${styles.colors}`}
+          onKeyDown={onKeyDown}
+          onBlur={event => {
+            if (
+              ready.current &&
+              !(
+                event.relatedTarget instanceof Node &&
+                event.currentTarget.contains(event.relatedTarget)
+              )
+            ) {
+              close(false);
+            }
+          }}
+        >
+          <MacroColorPicker
+            label="매크로 색"
+            value={value}
+            disabled={locked}
+            onChange={onChange}
+          />
+        </div>
       </div>
-    </div>,
-    layerContainer('popover'),
+    </Popover>
   );
 }

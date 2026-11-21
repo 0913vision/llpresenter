@@ -146,30 +146,7 @@ export function handleShowMouseDown(event: MouseEvent): void {
 /** Puts the focus back when a mouse down made a plain button take it. */
 export function handleShowFocusIn(event: FocusEvent): void {
   const click = pendingClick;
-  if (!click) {
-    const from = event.relatedTarget;
-    const target = event.target;
-    if (
-      from instanceof Element &&
-      from.closest('[role="menu"], [role="dialog"], [role="alertdialog"]') !==
-        null &&
-      target instanceof HTMLElement &&
-      target.closest('[role="menu"], [role="dialog"], [role="alertdialog"]') ===
-        null
-    ) {
-      queueMicrotask(() => {
-        if (
-          document.activeElement === target &&
-          document.querySelector(
-            '[role="menu"], [role="dialog"], [role="alertdialog"]',
-          ) === null
-        ) {
-          returnFocus(target);
-        }
-      });
-    }
-    return;
-  }
+  if (!click) return;
   if (event.target !== click.control) return;
   pendingClick = null;
   const {previousFocus} = click;

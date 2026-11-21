@@ -36,6 +36,35 @@ function stops(): string[] {
 }
 
 describe('the menu bar keyboard', () => {
+  it.each(
+    NAMES.flatMap(name => [
+      {name, method: 'keyboard' as const},
+      {name, method: 'pointer' as const},
+    ]),
+  )(
+    'returns to $name after Escape when opened by $method',
+    async ({name, method}) => {
+      const user = userEvent.setup();
+      render(
+        <>
+          <input aria-label="field" />
+          <MenuBar title="" />
+        </>,
+      );
+      screen.getByRole('textbox', {name: 'field'}).focus();
+      const button = trigger(name);
+      if (method === 'keyboard') {
+        button.focus();
+        await user.keyboard('{Enter}');
+      } else await user.click(button);
+      expect(screen.getByRole('menu', {name})).toBeDefined();
+      await user.keyboard('{Escape}');
+      expect(document.activeElement).toBe(button);
+      await user.keyboard('{Enter}');
+      expect(screen.getByRole('menu', {name})).toBeDefined();
+    },
+  );
+
   it('is one Tab stop and leaves with Tab', async () => {
     const user = userEvent.setup();
     render(

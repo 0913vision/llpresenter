@@ -32,7 +32,6 @@ import {workspaceMenu, showMenu, type ContinuousRow} from './workspaceCommands';
 import {usePreferenceEdits} from '@renderer/features/preferences/usePreferenceEdits';
 import {fullScreenRow, useFullScreen} from './viewToggles';
 import type {Workspace} from './Toolbar';
-import {isInTextEntry} from '@renderer/ui/textEntry';
 import {focusMenu} from '@renderer/ui/useMenuNavigation';
 
 const EDIT_MENU = '편집';
@@ -442,12 +441,7 @@ export function MenuBar({
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [openName, bar, checkClipboard]);
   const outside = outsideFocus();
-  const returnTo =
-    document.querySelector('[data-workspace-layout="show"]') !== null &&
-    outside instanceof HTMLElement &&
-    isInTextEntry(outside)
-      ? outside
-      : undefined;
+  const returnTo = outside instanceof HTMLElement ? outside : undefined;
   const controlFor = (name: MenuName): MenuControl => ({
     keys,
     returnTo,

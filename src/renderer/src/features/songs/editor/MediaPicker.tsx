@@ -7,7 +7,6 @@ import {
   type JSX,
   type KeyboardEvent,
 } from 'react';
-import {createPortal} from 'react-dom';
 import type {MediaItem} from '@core/schema/mediaList';
 import type {MediaId} from '@core/schema/ids';
 import {mediaName} from '@renderer/features/media/backgroundChoices';
@@ -16,7 +15,7 @@ import {classNames} from '@renderer/ui/classNames';
 import {isComposing} from '@renderer/ui/ime';
 import {hasModifier} from '@renderer/ui/modifierKeys';
 import {useButtonPress} from '@renderer/ui/press';
-import {layerContainer} from '@renderer/ui/layers';
+import {Popover} from '@renderer/ui/Popover';
 import {modalStack} from '@renderer/ui/modalStack';
 import {MenuSearchField} from '@renderer/ui/MenuParts';
 import menu from '@renderer/ui/Menu.module.css';
@@ -316,68 +315,69 @@ export function MediaPicker({
       </button>
     );
   };
-  return createPortal(
-    <div className={menu.layer} data-over-modal={overModal ? '' : undefined}>
-      <div
-        ref={surface}
-        className={classNames(menu.menu, styles.picker)}
-        onKeyDown={keyDown}
-        onBlur={event => {
-          if (
-            event.relatedTarget instanceof Node &&
-            !event.currentTarget.contains(event.relatedTarget)
-          ) {
-            onClose(false);
-          }
-        }}
-      >
-        <MenuSearchField
-          search={{value: query, onChange: filter}}
-          menuId={id}
-          activeId={activeId}
-        />
+  return (
+    <Popover>
+      <div className={menu.layer} data-over-modal={overModal ? '' : undefined}>
         <div
-          ref={viewport}
-          id={id}
-          role="listbox"
-          aria-label={label}
-          className={styles.viewport}
-          style={{maxHeight: `calc(var(--size-row-menu) * ${VISIBLE_ROWS})`}}
-          onScroll={event => setTop(event.currentTarget.scrollTop)}
+          ref={surface}
+          className={classNames(menu.menu, styles.picker)}
+          onKeyDown={keyDown}
+          onBlur={event => {
+            if (
+              event.relatedTarget instanceof Node &&
+              !event.currentTarget.contains(event.relatedTarget)
+            ) {
+              onClose(false);
+            }
+          }}
         >
+          <MenuSearchField
+            search={{value: query, onChange: filter}}
+            menuId={id}
+            activeId={activeId}
+          />
           <div
-            style={{
-              height: (choices.length + groups.length) * row + gap,
-              position: 'relative',
-            }}
+            ref={viewport}
+            id={id}
+            role="listbox"
+            aria-label={label}
+            className={styles.viewport}
+            style={{maxHeight: `calc(var(--size-row-menu) * ${VISIBLE_ROWS})`}}
+            onScroll={event => setTop(event.currentTarget.scrollTop)}
           >
-            {groups.map((group, index) => (
-              <div
-                key={group.label}
-                className={classNames(menu.group, styles.group)}
-                style={{
-                  top:
-                    (group.index + index) * row + (group.index > 0 ? gap : 0),
-                  height: row,
-                }}
-              >
-                {group.label}
-              </div>
-            ))}
-            {Array.from({length: specialCount}, (_, index) => option(index))}
-            {separated ? (
-              <div
-                ref={separator}
-                role="separator"
-                className={classNames(menu.separator, styles.separator)}
-                style={{top: specialCount * row}}
-              />
-            ) : null}
-            {visible.map((_item, offset) => option(start + offset))}
+            <div
+              style={{
+                height: (choices.length + groups.length) * row + gap,
+                position: 'relative',
+              }}
+            >
+              {groups.map((group, index) => (
+                <div
+                  key={group.label}
+                  className={classNames(menu.group, styles.group)}
+                  style={{
+                    top:
+                      (group.index + index) * row + (group.index > 0 ? gap : 0),
+                    height: row,
+                  }}
+                >
+                  {group.label}
+                </div>
+              ))}
+              {Array.from({length: specialCount}, (_, index) => option(index))}
+              {separated ? (
+                <div
+                  ref={separator}
+                  role="separator"
+                  className={classNames(menu.separator, styles.separator)}
+                  style={{top: specialCount * row}}
+                />
+              ) : null}
+              {visible.map((_item, offset) => option(start + offset))}
+            </div>
           </div>
         </div>
       </div>
-    </div>,
-    layerContainer('popover'),
+    </Popover>
   );
 }

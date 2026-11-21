@@ -73,6 +73,7 @@ async function openPicker(): Promise<HTMLElement> {
   await waitFor(() =>
     expect(trigger().getAttribute('aria-disabled')).toBeNull(),
   );
+  trigger().focus();
   fireEvent.click(trigger());
   return screen.findByRole('combobox', {name: '검색'});
 }

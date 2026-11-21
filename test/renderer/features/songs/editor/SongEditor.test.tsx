@@ -94,6 +94,35 @@ describe('song editor view', () => {
     }
   });
 
+  it.each(['Escape', 'choose'] as const)(
+    'returns slide shortcuts after the label picker closes with %s',
+    async close => {
+      const {session, user} = await editorSetup();
+      const row = document.querySelector<HTMLElement>('[data-editor-block]');
+      if (row === null) throw new Error('Missing slide');
+      await user.click(row);
+      const surface = screen.getByRole('group', {name: '슬라이드 편집 명령'});
+      const count = session.history.snapshot.song.slides.length;
+      const selectedIds = [...session.slideModel.getSnapshot().selection.ids];
+      expect(selectedIds).toHaveLength(1);
+      await user.keyboard('{Control>}g{/Control}');
+      expect(screen.getByRole('menu', {name: '이름표'})).toBeDefined();
+      if (close === 'Escape') await user.keyboard('{Escape}');
+      else await user.click(screen.getByRole('menuitemradio', {name: '후렴'}));
+      expect(document.activeElement).toBe(surface);
+      expect([...session.slideModel.getSnapshot().selection.ids]).toEqual(
+        selectedIds,
+      );
+      await user.keyboard('{Control>}g{/Control}');
+      expect(screen.getByRole('menu', {name: '이름표'})).toBeDefined();
+      await user.keyboard('{Escape}');
+      expect(document.activeElement).toBe(surface);
+      await user.keyboard('{ArrowDown}{Delete}');
+      expect(session.history.snapshot.song.slides).toHaveLength(count - 1);
+      await user.keyboard('{Control>}z{/Control}');
+      expect(session.history.snapshot.song.slides).toHaveLength(count);
+    },
+  );
   it('places the view switch and grid size control in the slide footer', async () => {
     seedSlideSurfaceView({});
     const {user} = await editorSetup();

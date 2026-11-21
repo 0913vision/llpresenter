@@ -9,13 +9,12 @@ import {
   type DragEvent,
   type JSX,
 } from 'react';
-import {createPortal} from 'react-dom';
 import {limitReason} from '@core/common/limitReason';
 import {parseMacroCollectionId} from '@core/schema/ids';
 import {MACRO_FILE_LIMITS, type MacroCollection} from '@core/schema/macros';
 import {Button, Icon, IconButton} from '@renderer/ui';
 import {classNames} from '@renderer/ui/classNames';
-import {layerContainer} from '@renderer/ui/layers';
+import {Popover} from '@renderer/ui/Popover';
 import {openOnArrowDown} from '@renderer/ui/menuButton';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
@@ -162,7 +161,7 @@ function CollectionPopover({
   const rows = [{id: ALL, name: '모든 매크로'}, ...collections];
   return (
     <>
-      {createPortal(
+      <Popover>
         <div className={menuStyles.layer}>
           <div
             ref={surface}
@@ -351,9 +350,8 @@ function CollectionPopover({
               {insertBefore === null ? <ListInsertLine /> : null}
             </div>
           </div>
-        </div>,
-        layerContainer('popover'),
-      )}
+        </div>
+      </Popover>
       {context === null ? null : (
         <MacroCollectionMenu
           label="매크로 모음 메뉴"

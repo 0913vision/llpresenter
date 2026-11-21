@@ -1,5 +1,4 @@
 import {useCallback, useEffect, useRef, useState, type JSX} from 'react';
-import {createPortal} from 'react-dom';
 import {isLabelColor, type LabelColor} from '@core/labels/colors';
 import {colorToHsv, hsvToColor, type HsvColor} from '@core/labels/colorSpace';
 import {Button} from './Button';
@@ -9,7 +8,7 @@ import {LabelColorPicker} from './LabelColorPicker';
 import {LabelColorArea} from './LabelColorArea';
 import {isComposing} from './ime';
 import {useChoicePopup} from './useChoicePopup';
-import {layerContainer} from './layers';
+import {Popover} from './Popover';
 import {labelInk} from './labelInk';
 import menuStyles from './Menu.module.css';
 import styles from './LabelColorPopover.module.css';
@@ -111,71 +110,74 @@ function ColorPopover({
     dirty.current = true;
     commit();
   };
-  return createPortal(
-    <div
-      className={menuStyles.layer}
-      data-over-modal={anchor.closest('[role="dialog"]') !== null || undefined}
-    >
+  return (
+    <Popover>
       <div
-        ref={surface}
-        role="dialog"
-        aria-label={label}
-        className={`${menuStyles.menu} ${styles.popover}`}
-        onKeyDown={onKeyDown}
-        onBlur={event => {
-          if (
-            event.relatedTarget instanceof Node &&
-            !event.currentTarget.contains(event.relatedTarget) &&
-            !anchor.contains(event.relatedTarget)
-          ) {
-            close(false);
-          }
-        }}
+        className={menuStyles.layer}
+        data-over-modal={
+          anchor.closest('[role="dialog"]') !== null || undefined
+        }
       >
-        <LabelColorPicker
-          label={label}
-          value={value}
-          disabled={disabled}
-          onChange={color => {
-            dirty.current = false;
-            persist(color);
-            close(true);
+        <div
+          ref={surface}
+          role="dialog"
+          aria-label={label}
+          className={`${menuStyles.menu} ${styles.popover}`}
+          onKeyDown={onKeyDown}
+          onBlur={event => {
+            if (
+              event.relatedTarget instanceof Node &&
+              !event.currentTarget.contains(event.relatedTarget) &&
+              !anchor.contains(event.relatedTarget)
+            ) {
+              close(false);
+            }
           }}
-          onSelectCurrent={() => close(true)}
-        />
-        <div role="separator" className={styles.separator} />
-        <LabelColorArea
-          value={hsv}
-          disabled={disabled}
-          onChange={preview}
-          onCommit={commit}
-        />
-        <div className={styles.hex}>
-          <TextField
-            size="sm"
-            aria-label="색 코드"
-            placeholder="#RRGGBB"
-            value={hex}
-            readOnly={disabled}
-            onChange={setHex}
-            invalid={hex !== '' && (!isLabelColor(hex) || hex === 'none')}
-            invalidReason="#RRGGBB 형식으로 입력"
-            onBlur={applyHex}
-            onKeyDown={event => {
-              if (event.key === 'Enter' && !isComposing(event)) {
-                event.preventDefault();
-                event.stopPropagation();
-                applyHex();
-              }
+        >
+          <LabelColorPicker
+            label={label}
+            value={value}
+            disabled={disabled}
+            onChange={color => {
+              dirty.current = false;
+              persist(color);
+              close(true);
             }}
+            onSelectCurrent={() => close(true)}
           />
-          <span className={styles.sample} style={labelInk(value)}>
-            {value === 'none' ? <Icon name="x" size={12} /> : null}
-          </span>
+          <div role="separator" className={styles.separator} />
+          <LabelColorArea
+            value={hsv}
+            disabled={disabled}
+            onChange={preview}
+            onCommit={commit}
+          />
+          <div className={styles.hex}>
+            <TextField
+              size="sm"
+              aria-label="색 코드"
+              placeholder="#RRGGBB"
+              value={hex}
+              readOnly={disabled}
+              onChange={setHex}
+              invalid={hex !== '' && (!isLabelColor(hex) || hex === 'none')}
+              invalidReason="#RRGGBB 형식으로 입력"
+              onBlur={applyHex}
+              onKeyDown={event => {
+                if (event.key === 'Enter' && !isComposing(event)) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  applyHex();
+                }
+              }}
+            />
+            <span className={styles.sample} style={labelInk(value)}>
+              {value === 'none' ? <Icon name="x" size={12} /> : null}
+            </span>
+          </div>
         </div>
       </div>
-    </div>,
-    layerContainer('popover'),
+    </Popover>
   );
 }
 
