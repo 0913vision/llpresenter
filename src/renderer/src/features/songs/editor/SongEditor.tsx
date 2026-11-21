@@ -39,6 +39,7 @@ import {pictureSpec, songPictureLayer} from '@renderer/rendering/pictureSpec';
 import {useShow} from '@renderer/session/show';
 import {useEditorFocus} from './useEditorFocus';
 import {SONG_LIMITS} from '@core/schema/song';
+import {songSlideBackground} from '@core/songs/songBackground';
 import {SlideSurfaceView, useSlideSurfaceView} from './SlideSurfaceView';
 import {menuAvailability} from '@renderer/ui/menuModel';
 import {useMeasuredRows} from '@renderer/ui/useMeasuredRows';
@@ -493,7 +494,11 @@ function SongBlocks({
                       input: {
                         ...theme,
                         songSource: {songId: song.id, slideId: slide.id},
-                        background: slide.picture ?? theme.background,
+                        background:
+                          songSlideBackground(
+                            slide.picture,
+                            theme.songBackground,
+                          ) ?? theme.background,
                         slide: songPictureLayer(song.id, block, {
                           ...slide,
                           textOverrides: textOverrides?.[`slide:${slide.id}`],
