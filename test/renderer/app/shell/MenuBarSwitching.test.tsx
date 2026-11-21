@@ -103,7 +103,7 @@ describe('switching menu bar menus', () => {
   });
 });
 
-it('returns slide keys after clicking from one live menu to another and pressing Escape', async () => {
+it('returns slide keys after closing the menu and leaving the menu bar', async () => {
   const onSlideKey = vi.fn();
   render(
     <>
@@ -127,6 +127,10 @@ it('returns slide keys after clicking from one live menu to another and pressing
   expect(screen.getByRole('menu', {name: '보기'})).toBe(document.activeElement);
   await userEvent.keyboard('{Escape}');
   expect(screen.queryByRole('menu')).toBeNull();
+  expect(document.activeElement).toBe(
+    screen.getByRole('menuitem', {name: '보기'}),
+  );
+  await userEvent.keyboard('{Escape}');
   expect(document.activeElement).toBe(grid);
   await userEvent.keyboard('{ArrowRight}');
   expect(onSlideKey).toHaveBeenCalled();
