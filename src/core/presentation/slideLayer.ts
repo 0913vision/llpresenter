@@ -58,16 +58,8 @@ export function nextSlideOf(
     (tile.picture !== undefined && tile.kind !== undefined)
       ? context?.title
       : undefined);
-  // NOTE(0913vision): A following ad item can start with its section card.
-  // The stage needs the first actual ad title while navigation retains the card.
   const nextNotice =
-    tile.kind === 'ad' && tile.sectionCard === undefined
-      ? tile
-      : tile.sectionCard !== undefined &&
-          context?.after?.kind === 'ad' &&
-          context.after.sectionCard === undefined
-        ? context.after
-        : undefined;
+    tile.kind === 'ad' && tile.sectionCard === undefined ? tile : undefined;
   return {
     ...(nextNotice === undefined
       ? {}

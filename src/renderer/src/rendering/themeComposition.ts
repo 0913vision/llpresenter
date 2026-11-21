@@ -859,9 +859,21 @@ export class ThemeCompositionView {
         lyricLabel.setY(Math.max(0, bounds.top - lyricLabel.element.frame.h));
       }
     }
+    const adTitleSize =
+      content.frame.screen?.kind === 'stage' &&
+      content.layers.slide?.kind === 'ad' &&
+      content.layers.slide.next?.adTitle !== undefined
+        ? page.elements
+            .find(view => view.element.kind === 'slideName')
+            ?.fittedTextSize()
+        : undefined;
+    const nextAnchor =
+      adTitleSize !== undefined && Number.isFinite(adTitleSize)
+        ? adTitleSize
+        : currentSize;
     const maximum =
-      currentSize !== undefined && Number.isFinite(currentSize)
-        ? currentSize * STAGE_NEXT_RATIO
+      nextAnchor !== undefined && Number.isFinite(nextAnchor)
+        ? nextAnchor * STAGE_NEXT_RATIO
         : undefined;
     for (const view of page.elements) {
       if (view.element.kind !== 'nextText') continue;

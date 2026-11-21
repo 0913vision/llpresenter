@@ -905,7 +905,7 @@ describe('show state', () => {
     });
   });
 
-  it('refreshes the next ad cue when only the title behind a section card changes', () => {
+  it('refreshes the next ad cue when its title changes while the card is live', () => {
     const section = SUNDAY_SECTIONS[1];
     if (!section) throw Error('Missing section');
     const card = {
@@ -921,16 +921,17 @@ describe('show state', () => {
       name: 'First title',
       lines: ['Body'],
     };
-    setLive('song-morning', 3);
-    setAtLastSlide('nextItem');
     applyService({
       ...sampleService,
       revision: 2,
       tiles: {...sampleService.tiles, 'song-river': [card, body]},
     });
+    setLive('song-river', 0);
+    sent.length = 0;
+    setAtLastSlide('nextItem');
     expect(sent.at(-1)).toMatchObject({
       type: 'stage.next.set',
-      next: {title: section.name, adTitle: 'First title'},
+      next: {adTitle: 'First title'},
     });
     sent.length = 0;
     applyService({
@@ -943,7 +944,7 @@ describe('show state', () => {
     });
     expect(sent.at(-1)).toMatchObject({
       type: 'stage.next.set',
-      next: {title: section.name, adTitle: 'Renamed title'},
+      next: {adTitle: 'Renamed title'},
     });
   });
 

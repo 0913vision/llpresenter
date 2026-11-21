@@ -82,8 +82,10 @@ it('carries the unnumbered projected ad title for same-item and following-item c
   };
   expect(nextSlideOf(card, 'blank', {after: nextAd})).toMatchObject({
     title: 'Notice',
-    adTitle: '3. Anniversary',
   });
+  expect(nextSlideOf(card, 'blank', {after: nextAd})).not.toHaveProperty(
+    'adTitle',
+  );
   const imageAd: SlideTile = {
     label: 'Actual image title',
     labelColor: 'none',
@@ -94,9 +96,52 @@ it('carries the unnumbered projected ad title for same-item and following-item c
   expect(nextSlideOf(imageAd, 'ad', {title: 'Item name'})).toMatchObject({
     adTitle: 'Actual image title',
   });
-  expect(nextSlideOf(card, 'blank', {after: imageAd})).toMatchObject({
-    adTitle: 'Actual image title',
+  const videoAd: SlideTile = {
+    kind: 'ad',
+    labelColor: 'none',
+    lines: [],
+    media: {
+      mediaId: createMediaId('00000000-0000-4000-8000-000000000002'),
+      loop: false,
+    },
+    label: 'Actual video title',
+  };
+  expect(nextSlideOf(videoAd, 'ad', {title: 'Item name'})).toMatchObject({
+    adTitle: 'Actual video title',
   });
+  expect(nextSlideOf(card, 'blank', {after: imageAd})).not.toHaveProperty(
+    'adTitle',
+  );
+  for (const previousKind of ['song', 'blank'] as const) {
+    const previous = {...current, kind: previousKind};
+    for (const firstAd of [nextAd, imageAd, videoAd]) {
+      const beforeCard = slideLayerOf(
+        {itemId: 'before', index: 0},
+        () => [previous],
+        {
+          tile: card,
+          kind: 'ad',
+          after: firstAd,
+        },
+      );
+      expect(beforeCard?.next).toMatchObject({title: 'Notice', lines: []});
+      expect(beforeCard?.next).not.toHaveProperty('adTitle');
+      const cardLive = slideLayerOf({itemId: 'card', index: 0}, () => [
+        card,
+        firstAd,
+      ]);
+      expect(cardLive?.next?.adTitle).toBe(firstAd.label);
+      const cardAsSeparateItem = slideLayerOf(
+        {itemId: 'card', index: 0},
+        () => [card],
+        {
+          tile: firstAd,
+          kind: 'ad',
+        },
+      );
+      expect(cardAsSeparateItem?.next?.adTitle).toBe(firstAd.label);
+    }
+  }
   expect(
     nextSlideOf({...nextAd, label: 'Edited title', name: 'Old title'}, 'ad', {
       textSlideNumber: 2,

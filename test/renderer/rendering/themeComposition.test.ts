@@ -3112,6 +3112,42 @@ it('sizes section stage next text against the Korean item name, not its English 
   view.dispose();
 });
 
+it('sizes an ad cue against the fitted current ad title, falling back to its body', () => {
+  const {view} = setup();
+  let titleSize: number | undefined = 108;
+  const size = vi
+    .spyOn(ThemeElementView.prototype, 'fittedTextSize')
+    .mockImplementation(function (this: ThemeElementView) {
+      return this.element.kind === 'slideName' ? titleSize : 86;
+    });
+  const target = vi.spyOn(ThemeElementView.prototype, 'targetTextSize');
+  const elements: ThemeElement[] = [
+    {...themeElementBase(), kind: 'slideName'},
+    {...themeElementBase(31), kind: 'currentText'},
+    {...themeElementBase(32), kind: 'nextText'},
+  ];
+  const stageFrame = frame(elements);
+  const layers: LiveLayers = {
+    ...emptyLayers(),
+    slide: {
+      itemId: 'ad',
+      position: 0,
+      kind: 'ad',
+      label: 'Title',
+      lines: ['Body'],
+      next: {label: 'Next', adTitle: 'Next', lines: []},
+    },
+  };
+  view.render(layers, {...stageFrame, screen: {id: THEME_MAIN, kind: 'stage'}});
+  expect(target).toHaveBeenLastCalledWith(72);
+  titleSize = undefined;
+  view.render(layers, {...stageFrame, screen: {id: THEME_MAIN, kind: 'stage'}});
+  expect(target).toHaveBeenLastCalledWith((86 * 2) / 3);
+  target.mockRestore();
+  size.mockRestore();
+  view.dispose();
+});
+
 it.each(['missing', 'hidden', 'invalid'] as const)(
   'falls back to current text when the stage section title is %s',
   state => {
@@ -4388,6 +4424,14 @@ it('shows the next ad title only as a stage cue, even when its body has a manual
     },
   };
   expect(render('stage', cross)).toBe('다음광고: Cross item');
+  const card: LiveLayers = {
+    ...layers,
+    slide: {
+      ...adSlide,
+      next: {label: null, itemKind: 'ad', title: '광고', lines: []},
+    },
+  };
+  expect(render('stage', card)).toBe('광고');
   const blank: LiveLayers = {
     ...layers,
     slide: {
