@@ -157,9 +157,14 @@ export function SlideGrid({
     const update = (): void => {
       const pending = root.querySelector('[data-preview-ready="false"]');
       const images = [...root.querySelectorAll('img')];
+      const tiles = [...root.querySelectorAll('[role="option"]')];
       const ready =
-        root.querySelector('[role="option"]') !== null &&
+        tiles.length > 0 &&
         pending === null &&
+        tiles.every(
+          tile =>
+            tile.querySelector('[data-preview-ready="true"], img') !== null,
+        ) &&
         images.every(image => image.complete && image.naturalWidth > 0);
       if (ready && release === undefined) {
         release = retainShownGrid(serviceId, openItemId);

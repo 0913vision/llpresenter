@@ -191,16 +191,34 @@ describe('SlidePanelBody', () => {
         <Probe />
       </>,
     );
+    const grid = await screen.findByRole('listbox', {name: '슬라이드'});
+    const tiles = [...grid.querySelectorAll('[role="option"]')];
+    expect(tiles.length).toBeGreaterThan(0);
+    expect(screen.getByTestId('retained').textContent).toBe('false');
+    const pictures = tiles.map(tile => {
+      const picture = document.createElement('div');
+      picture.setAttribute('data-preview-ready', 'true');
+      tile.append(picture);
+      return picture;
+    });
+    const picture = pictures[0];
+    if (picture === undefined) throw new Error('Missing slide picture');
     await waitFor(() =>
       expect(screen.getByTestId('retained').textContent).toBe('true'),
     );
-    const picture = view.container.querySelector('[data-preview-ready="true"]');
-    expect(picture).not.toBeNull();
-    act(() => picture?.setAttribute('data-preview-ready', 'false'));
+    act(() => picture.setAttribute('data-preview-ready', 'false'));
     await waitFor(() =>
       expect(screen.getByTestId('retained').textContent).toBe('false'),
     );
-    act(() => picture?.setAttribute('data-preview-ready', 'true'));
+    act(() => picture.setAttribute('data-preview-ready', 'true'));
+    await waitFor(() =>
+      expect(screen.getByTestId('retained').textContent).toBe('true'),
+    );
+    act(() => picture.removeAttribute('data-preview-ready'));
+    await waitFor(() =>
+      expect(screen.getByTestId('retained').textContent).toBe('false'),
+    );
+    act(() => picture.setAttribute('data-preview-ready', 'true'));
     await waitFor(() =>
       expect(screen.getByTestId('retained').textContent).toBe('true'),
     );
