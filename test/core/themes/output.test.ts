@@ -173,11 +173,22 @@ describe('published theme compositions', () => {
     if (!layout) throw Error('Missing stage layout');
     const previous = {
       ...layout,
-      elements: layout.elements.map(element =>
-        element.kind === 'itemName' || element.kind === 'currentText'
-          ? {...element, text: {...element.text, align: 'center' as const}}
-          : element,
-      ),
+      elements: layout.elements.map(element => {
+        if (element.kind === 'reference') {
+          const {source: _source, ...rest} = element;
+          return {
+            ...rest,
+            kind: 'itemName' as const,
+            text: {...element.text, align: 'center' as const},
+          };
+        }
+        return element.kind === 'currentText'
+          ? {
+              ...element,
+              text: {...element.text, size: 83, align: 'center' as const},
+            }
+          : element;
+      }),
     };
     const saved = {
       ...theme,
