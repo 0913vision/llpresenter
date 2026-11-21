@@ -31,6 +31,20 @@ function cursor(input: HTMLTextAreaElement, start: number, end = start): void {
 }
 
 describe('song editor view', () => {
+  it('keeps the song clean when choosing its current label', async () => {
+    const {session, user} = await editorSetup();
+    const row = document.querySelector<HTMLElement>('[data-editor-block]');
+    if (row === null) throw new Error('Missing slide');
+    await user.click(row);
+    const before = session.slideModel.getContent();
+    expect(session.unsaved).toBe(false);
+    await user.keyboard('{Control>}g{/Control}');
+    await user.click(screen.getByRole('menuitemradio', {name: '1절'}));
+    expect(session.slideModel.getContent()).toBe(before);
+    expect(session.unsaved).toBe(false);
+    expect(session.canUndo).toBe(false);
+  });
+
   it('shows theme fields by source slide in rows and leaves grid tiles selectable', async () => {
     seedSlideSurfaceView({});
     const {store, session, view, user} = await editorSetup();

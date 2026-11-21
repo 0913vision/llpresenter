@@ -281,6 +281,18 @@ export class SongSession {
   }
 
   commandSlides(command: SlideListCommand<SongSlide>): void {
+    if (command.type === 'label') {
+      const {slides, selection} = this.history.model.getSnapshot();
+      const trimmed = command.label?.trim();
+      const label = trimmed === '' ? undefined : trimmed;
+      if (
+        slides.every(
+          slide => !selection.ids.has(slide.id) || slide.label === label,
+        )
+      ) {
+        return;
+      }
+    }
     if (command.type === 'duplicate' || command.type === 'move') {
       this.revealIntent++;
     }
