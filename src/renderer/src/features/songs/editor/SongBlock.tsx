@@ -16,7 +16,7 @@ import type {LabelColor} from '@core/labels/colors';
 import {SlideThumbnailBand} from '@renderer/ui/SlideThumbnail';
 import {isComposing} from '@renderer/ui/ime';
 import {linearSlidesOf, type EditorSlideItem} from '@core/songs/blockEdits';
-import {linesOf} from '@core/songs/blockModel';
+import {linesOf, type BlockCommand} from '@core/songs/blockModel';
 import {adjacentBlock, editorCommand} from './editorKeys';
 import type {SongSession} from './songSession';
 import {
@@ -156,6 +156,38 @@ export const SongBlock = memo(
         block,
         start: input.selectionStart,
         end: input.selectionEnd,
+      });
+    };
+
+    const applyTextInput = (
+      input: HTMLTextAreaElement,
+      command: Extract<BlockCommand, {type: 'text' | 'paste'}>,
+    ): void => {
+      if (
+        picture !== undefined &&
+        !slide.titleSlide &&
+        command.type === 'text'
+      ) {
+        pictures.prepareEditedLyrics(picture, linesOf(command.text));
+      }
+      flushSync(() => {
+        select(input);
+        if (command.type === 'paste') {
+          focus.current.requested = true;
+          focus.current.target = 'lyrics';
+        }
+        session.edit(command);
+        if (
+          picture !== undefined &&
+          (slide.titleSlide || command.type === 'paste')
+        ) {
+          const edited = session.history.model
+            .getContent()
+            .slides.find(candidate => candidate.id === slide.id);
+          if (edited !== undefined) {
+            pictures.prepareEditedLyrics(picture, edited.lines);
+          }
+        }
       });
     };
 
@@ -385,24 +417,11 @@ export const SongBlock = memo(
                   if (locked) return;
                   const input = event.currentTarget;
                   const {value, selectionStart, selectionEnd} = input;
-                  if (picture !== undefined && !slide.titleSlide) {
-                    pictures.prepareEditedLyrics(picture, linesOf(value));
-                  }
-                  flushSync(() => {
-                    select(input);
-                    session.edit({
-                      type: 'text',
-                      text: value,
-                      start: selectionStart,
-                      end: selectionEnd,
-                    });
-                    if (picture !== undefined && slide.titleSlide) {
-                      const edited =
-                        session.history.model.getContent().slides[block];
-                      if (edited !== undefined) {
-                        pictures.prepareEditedLyrics(picture, edited.lines);
-                      }
-                    }
+                  applyTextInput(input, {
+                    type: 'text',
+                    text: value,
+                    start: selectionStart,
+                    end: selectionEnd,
                   });
                 }}
                 onPaste={event => {
@@ -410,10 +429,7 @@ export const SongBlock = memo(
                   const text = event.clipboardData.getData('text/plain');
                   event.preventDefault();
                   if (text === '') return;
-                  select(event.currentTarget);
-                  focus.current.requested = true;
-                  focus.current.target = 'lyrics';
-                  session.edit({
+                  applyTextInput(event.currentTarget, {
                     type: 'paste',
                     text,
                   });

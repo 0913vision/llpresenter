@@ -257,6 +257,26 @@ it('omits the fitted broadcast title and saves added text', async () => {
   );
 });
 
+it('updates theme text when the operator pastes into the element', async () => {
+  const {value} = setup();
+  const user = userEvent.setup();
+  const palette = await screen.findByRole('region', {name: '요소 추가'});
+  fireEvent.click(within(palette).getByRole('button', {name: '글자'}));
+  const content = await screen.findByRole('textbox', {name: '내용'});
+  await user.click(content);
+  await user.clear(content);
+  await user.paste('Pasted theme text');
+  expect(content).toHaveProperty('value', 'Pasted theme text');
+  expect(screen.getByLabelText('테마 캔버스').textContent).toContain(
+    'Pasted theme text',
+  );
+  fireEvent.blur(content);
+  await saveEdits();
+  expect(value().themes[0]?.screens[MAIN]?.elements).toContainEqual(
+    expect.objectContaining({kind: 'text', content: 'Pasted theme text'}),
+  );
+});
+
 it('keeps standby first and LIVE before kind tags, and saves theme duplication and inline rename', async () => {
   const {value, listeners} = setup();
   const themes = await screen.findByRole('listbox', {name: '테마'});

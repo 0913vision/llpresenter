@@ -17,6 +17,14 @@ function title(): HTMLInputElement {
 }
 
 describe('song editor header', () => {
+  it('updates the song title when text is pasted', async () => {
+    const {user, session} = await editorSetup();
+    await user.click(title());
+    await user.clear(title());
+    await user.paste('Pasted song title');
+    expect(title().value).toBe('Pasted song title');
+    expect(session.title.value).toBe('Pasted song title');
+  });
   it.each(['Enter', 'Tab'])(
     'commits the title and moves %s into the first slide text',
     async key => {

@@ -1,4 +1,4 @@
-import {useState, type JSX} from 'react';
+import {useEffect, useRef, useState, type JSX} from 'react';
 import {Checkbox} from '@renderer/ui/Checkbox';
 import {NumberField} from '@renderer/ui/NumberField';
 import {PropertyRow} from '@renderer/ui/PropertyRow';
@@ -9,12 +9,22 @@ export function ThemeContent({
   value,
   reason,
   change,
+  begin,
 }: {
   readonly value: string;
   readonly reason: string | undefined;
   readonly change: (value: string) => void;
+  readonly begin: () => () => void;
 }): JSX.Element {
   const [draft, setDraft] = useState<string | null>(null);
+  const original = useRef<string | null>(null);
+  const endGroup = useRef<(() => void) | null>(null);
+  const finish = (): void => {
+    endGroup.current?.();
+    endGroup.current = null;
+    original.current = null;
+  };
+  useEffect(() => () => endGroup.current?.(), []);
   return (
     <PropertyRow label="내용" alignTop>
       {({controlId}) => (
@@ -23,17 +33,27 @@ export function ThemeContent({
           value={draft ?? value}
           readOnly={reason !== undefined}
           title={reason}
-          onChange={setDraft}
-          onBlur={() => {
-            if (draft !== null && draft !== value && reason === undefined) {
-              change(draft);
+          onChange={next => {
+            if (reason !== undefined) return;
+            if (original.current === null) {
+              original.current = value;
+              endGroup.current = begin();
             }
+            setDraft(next);
+            change(next);
+          }}
+          onBlur={() => {
+            finish();
             setDraft(null);
           }}
           onKeyDown={event => {
             if (isComposing(event)) return;
             if (event.key === 'Escape') {
               event.preventDefault();
+              if (original.current !== null && reason === undefined) {
+                change(original.current);
+              }
+              finish();
               setDraft(null);
             }
             if (event.key === 'Enter' && event.ctrlKey) {

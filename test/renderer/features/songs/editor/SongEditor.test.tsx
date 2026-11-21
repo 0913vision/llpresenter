@@ -10,6 +10,7 @@ import {SlideInspector} from '@renderer/features/service/slideInspector/SlideIns
 import {describe, expect, it, vi} from 'vitest';
 import {editorSong} from '@fixtures/renderer/features/songs/editor/editorFixture';
 import {SongEditor} from '@renderer/features/songs/editor/SongEditor';
+import {pictures} from '@renderer/rendering/pictures/pictureService';
 import {seedSlideSurfaceView} from '@renderer/features/songs/editor/SlideSurfaceView';
 import {
   editorSetup,
@@ -676,6 +677,20 @@ describe('song editor view', () => {
     expect(lyrics(2).selectionStart).toBe(3);
     fireEvent.keyDown(lyrics(2), {key: 'ArrowUp', shiftKey: true});
     expect(document.activeElement).toBe(lyrics(2));
+  });
+
+  it('prepares the edited slide picture during text paste', async () => {
+    const {session} = await editorSetup();
+    const prepare = vi.spyOn(pictures, 'prepareEditedLyrics');
+    const input = lyrics();
+    cursor(input, 0, input.value.length);
+    fireEvent.paste(input, {clipboardData: {getData: () => 'Pasted lyric'}});
+    expect(input.value).toBe('Pasted lyric');
+    expect(session.history.snapshot.song.slides[0]?.lines).toEqual([
+      'Pasted lyric',
+    ]);
+    expect(prepare).toHaveBeenCalledWith(expect.anything(), ['Pasted lyric']);
+    prepare.mockRestore();
   });
 
   it.each([{types: ['image/png']}, {types: ['text/plain']}])(

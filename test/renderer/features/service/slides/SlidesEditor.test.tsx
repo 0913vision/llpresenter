@@ -185,6 +185,55 @@ function savedItem(f: ReturnType<typeof setup>): SlidesItem {
 }
 
 describe('automatic inline slides editor', () => {
+  it.each(['blank', 'ad'] as const)(
+    'updates the %s item title when pasted',
+    async form => {
+      const f = setup(form);
+      const user = userEvent.setup();
+      try {
+        const field = await screen.findByRole('textbox', {name: '이름'});
+        await user.click(field);
+        await user.clear(field);
+        await user.paste('Pasted title');
+        expect(field).toHaveProperty('value', 'Pasted title');
+        await waitFor(() =>
+          expect(savedItem(f).slides.name).toBe('Pasted title'),
+        );
+      } finally {
+        f.view.unmount();
+        await f.session.dispose();
+      }
+    },
+  );
+  it.each([
+    ['blank', '글', 'text'],
+    ['ad', '내용', 'text'],
+    ['blank', '본문 주소', 'reference'],
+    ['ad', '본문 주소', 'reference'],
+    ['ad', '슬라이드 이름', 'name'],
+  ] as const)(
+    'updates a %s slide when pasting into %s',
+    async (form, label, key) => {
+      const f = setup(form);
+      const user = userEvent.setup();
+      try {
+        const field = await screen.findByRole('textbox', {name: label});
+        await user.click(field);
+        await user.clear(field);
+        await user.paste('Pasted value');
+        expect(field).toHaveProperty('value', 'Pasted value');
+        await waitFor(() =>
+          expect(savedItem(f).slides.slides[0]).toMatchObject({
+            [key]: 'Pasted value',
+          }),
+        );
+      } finally {
+        f.view.unmount();
+        await f.session.dispose();
+      }
+    },
+  );
+
   it('keeps add in the footer and inserts after a row or at the end', async () => {
     const f = setup('blank');
     try {

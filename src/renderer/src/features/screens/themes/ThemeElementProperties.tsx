@@ -128,6 +128,7 @@ export function ThemeElementProperties({
           <ThemeContent
             value={element.content}
             reason={reason}
+            begin={model.beginEditGroup}
             change={content => change(value => ({...value, content}))}
           />
         ) : null}
