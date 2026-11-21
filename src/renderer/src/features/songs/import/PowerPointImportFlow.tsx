@@ -221,6 +221,7 @@ export function PowerPointImportFlow({
     const isActive = (): boolean => active;
     let preparing = false;
     let prepared: Awaited<ReturnType<typeof preparePowerPointImages>> = null;
+    let settlePreparation: ((ready: boolean) => void) | undefined;
     const exporting = {current: false};
     const originalSession = store.getSnapshot().session;
     const finish = (): void => {
@@ -261,51 +262,12 @@ export function PowerPointImportFlow({
           shapeTitle === undefined || shapeTitle === ''
             ? source.fileName.replace(/\.[^.]+$/, '')
             : shapeTitle;
-        let pictures = new Map<
-          string,
-          NonNullable<TextImportDraft['background']>
-        >();
         const winner = powerpointBackgroundIndex(range);
-        if (winner !== undefined) {
-          preparing = true;
-          const result = await preparePowerPointImages(api, range, {
-            active: isActive,
-            progress: () => undefined,
-            previews: false,
-          });
-          preparing = false;
-          if (!isActive()) {
-            result?.release();
-            return;
-          }
-          if (result === null) {
-            finish();
-            return;
-          }
-          prepared = result;
-          pictures = await importBackgrounds(api, {
-            range,
-            start: 0,
-            title,
-            isActive,
-            exporting,
-            full: result.full,
-          });
-        }
-        if (!isActive()) return;
-        const key =
-          winner === undefined ? undefined : range[winner]?.background;
-        const background = key == null ? undefined : pictures.get(key);
         const draft: TextImportDraft = {
           title,
-          slides: slides.map((slide, index) => {
-            const key = range[index]?.background;
-            const picture = key == null ? undefined : pictures.get(key);
-            return picture === undefined ? slide : {...slide, picture};
-          }),
+          slides,
           preserveSlides: true,
           ...(powerpointDarkLyrics(range) ? {theme: LIGHT_SONG_THEME_ID} : {}),
-          ...(background === undefined ? {} : {background}),
         };
         if (
           store.getSnapshot().session !== originalSession ||
@@ -322,12 +284,78 @@ export function PowerPointImportFlow({
           return;
         }
         store.openImported(draft);
-        if (store.getSnapshot().session === originalSession) {
+        const session = store.getSnapshot().session;
+        if (session === null || session === originalSession) {
           throw new Error('PowerPoint song could not open');
         }
+        const importedSlides = session.history.snapshot.song.slides;
+        if (winner !== undefined) {
+          session.setImportPreparation(
+            new Promise(resolve => {
+              settlePreparation = resolve;
+            }),
+          );
+        }
         edit();
+        if (winner !== undefined) {
+          preparing = true;
+          const result = await preparePowerPointImages(api, range, {
+            active: () => isActive() && store.getSnapshot().session === session,
+            progress: () => undefined,
+            previews: false,
+          });
+          preparing = false;
+          if (!isActive()) {
+            result?.release();
+            return;
+          }
+          if (result === null) {
+            settlePreparation?.(false);
+            finish();
+            return;
+          }
+          prepared = result;
+          const pictures = await importBackgrounds(api, {
+            range,
+            start: 0,
+            title,
+            isActive: () =>
+              isActive() && store.getSnapshot().session === session,
+            exporting,
+            full: result.full,
+          });
+          if (!isActive() || store.getSnapshot().session !== session) {
+            settlePreparation?.(false);
+            finish();
+            return;
+          }
+          const key = range[winner]?.background;
+          const background = key == null ? undefined : pictures.get(key);
+          if (
+            range.some(
+              slide =>
+                slide.background !== null && !pictures.has(slide.background),
+            )
+          ) {
+            throw new Error('PowerPoint background could not be imported');
+          }
+          const bySlide = new Map(
+            importedSlides.flatMap((slide, index) => {
+              const key = range[index]?.background;
+              const picture = key == null ? undefined : pictures.get(key);
+              return picture === undefined
+                ? []
+                : [[slide.id, picture] as const];
+            }),
+          );
+          if (!session.applyImportedPictures(bySlide, background)) {
+            throw new Error('PowerPoint background could not be applied');
+          }
+          settlePreparation?.(true);
+        }
         finish();
       } catch (error) {
+        settlePreparation?.(false);
         if (!isActive()) return;
         console.error('PowerPoint import failed:', error);
         problem({
@@ -347,6 +375,7 @@ export function PowerPointImportFlow({
     }, 0);
     return () => {
       active = false;
+      settlePreparation?.(false);
       clearTimeout(timer);
       prepared?.release();
       if (preparing || exporting.current) {

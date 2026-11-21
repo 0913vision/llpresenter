@@ -966,8 +966,12 @@ and 59.
 ## PowerPoint picture import
 
 Both PowerPoint import menu commands use the song import below. After the file
-picker, they open the song editor with all slides, lyrics and backgrounds; no
-PowerPoint import dialog is shown.
+is read, they open the song editor with all slides and lyrics; no PowerPoint
+import dialog is shown. Background preparation and media registration continue
+while the editor is usable. Prepared images are reused for registration, and
+backgrounds appear when registration completes. Saving waits for the import
+without blocking editing. A background chosen in the editor takes precedence
+over a background that finishes importing later.
 
 ## PowerPoint import
 

@@ -21,6 +21,71 @@ vi.mock('@renderer/features/songs/import/composePowerPointBackground', () => ({
   })),
 }));
 
+it('opens editable lyrics before background preparation and applies media afterward', async () => {
+  const fixture = editorFixture();
+  const store = new SongEditorStore(fixture.api, vi.fn());
+  onTestFinished(() => store.dispose());
+  let finish: (
+    value: Awaited<ReturnType<typeof preparePowerPointImages>>,
+  ) => void = () => undefined;
+  vi.mocked(preparePowerPointImages).mockImplementationOnce(
+    () =>
+      new Promise(resolve => {
+        finish = resolve;
+      }),
+  );
+  const media = createMediaId('00000000-0000-4000-8000-000000000123');
+  const api = mockLlpApi({
+    ...fixture.api,
+    powerpoint: {
+      read: async () => ({
+        ok: true,
+        value: {
+          fileName: 'deck.pptx',
+          widescreen: true,
+          slides: [
+            {
+              number: 1,
+              background: 'a',
+              shapes: [{body: true, lines: ['Verse']}],
+            },
+          ],
+        },
+      }),
+      background: async () => 'C:/temp/ppt.png',
+      match: async () => media,
+      release: async () => true,
+    },
+  });
+  const onEdit = vi.fn();
+  const onDone = vi.fn();
+  render(
+    <PowerPointImportFlow
+      api={api}
+      store={store}
+      onDone={onDone}
+      onEdit={onEdit}
+      onProblem={vi.fn()}
+    />,
+  );
+  await waitFor(() => expect(onEdit).toHaveBeenCalledOnce());
+  expect(onDone).not.toHaveBeenCalled();
+  const session = store.getSnapshot().session;
+  if (!session) throw new Error('Missing session');
+  act(() =>
+    session.edit({type: 'text', text: 'Edited verse', start: 12, end: 12}),
+  );
+  await act(async () =>
+    finish({ids: new Map(), full: new Map(), release: () => undefined}),
+  );
+  await waitFor(() => expect(onDone).toHaveBeenCalledOnce());
+  expect(session.history.snapshot.song.slides[0]?.lines).toEqual([
+    'Edited verse',
+  ]);
+  expect(session.background).toBe(media);
+  expect(session.history.snapshot.song.slides[0]?.picture).toBe(media);
+});
+
 it('opens all slides with lyrics and their backgrounds without showing an import dialog', async () => {
   const fixture = editorFixture();
   const store = new SongEditorStore(fixture.api, vi.fn());
@@ -80,7 +145,7 @@ it('opens all slides with lyrics and their backgrounds without showing an import
   expect(onProblem).not.toHaveBeenCalled();
   const song = store.getSnapshot().session?.history.snapshot.song;
   expect(song?.title).toBe('Song title');
-  expect(song?.background).toBe(first);
+  expect(store.getSnapshot().session?.background).toBe(first);
   expect(song?.slides.map(slide => slide.picture)).toEqual([
     first,
     second,
@@ -194,9 +259,7 @@ it('falls back to the layer renderer when a decoration cannot be exported', asyn
     index: 0,
     image: {mime: 'image/png', bytes: new Uint8Array([1])},
   });
-  expect(store.getSnapshot().session?.history.snapshot.song.background).toBe(
-    media,
-  );
+  expect(store.getSnapshot().session?.background).toBe(media);
 });
 
 it('closes without opening a song when the picker is cancelled', async () => {

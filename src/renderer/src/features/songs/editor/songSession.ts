@@ -66,6 +66,52 @@ export class SongSession {
   }
   private readonly persistence: SongSessionPersistence;
   private backgroundEdited = false;
+  private importPreparation: Promise<boolean> | undefined;
+  importPreparing = false;
+
+  /** Saving an imported song waits for its background media, without blocking editing. */
+  setImportPreparation(preparation: Promise<boolean>): void {
+    this.importPreparation = preparation;
+    this.importPreparing = true;
+    preparation.then(
+      () => {
+        if (this.importPreparation !== preparation) return;
+        this.importPreparing = false;
+        this.options.changed();
+      },
+      () => {
+        if (this.importPreparation !== preparation) return;
+        this.importPreparing = false;
+        this.options.changed();
+      },
+    );
+  }
+
+  waitForImportPreparation(): Promise<boolean> | undefined {
+    return this.importPreparation;
+  }
+
+  /** Installs late import pictures without replacing intervening lyric edits. */
+  applyImportedPictures(
+    pictures: ReadonlyMap<SongSlide['id'], MediaId>,
+    background: MediaId | undefined,
+  ): boolean {
+    if (this.backgroundEdited) return true;
+    if (!this.acceptsEdits) return false;
+    this.history.model.mapSlides(slides =>
+      slides.map(slide => {
+        const picture = pictures.get(slide.id);
+        return picture === undefined || slide.picture !== undefined
+          ? slide
+          : {...slide, picture};
+      }),
+    );
+    this.background = background;
+    this.backgroundEdited = background !== undefined;
+    this.dirty = true;
+    this.options.changed();
+    return true;
+  }
 
   constructor(private readonly options: SessionOptions) {
     this.history = this.makeHistory(options.document.song, options.document);
@@ -155,7 +201,18 @@ export class SongSession {
   }
 
   setBackground(id: MediaId | undefined): void {
-    if (!this.acceptsEdits || this.background === id) return;
+    if (!this.acceptsEdits) return;
+    if (this.background === id) {
+      if (this.importPreparation !== undefined) {
+        this.importPreparation = undefined;
+        this.importPreparing = false;
+        this.backgroundEdited = true;
+        this.options.changed();
+      }
+      return;
+    }
+    this.importPreparation = undefined;
+    this.importPreparing = false;
     if (
       this.history.snapshot.song.slides.some(
         slide => slide.picture !== undefined,
