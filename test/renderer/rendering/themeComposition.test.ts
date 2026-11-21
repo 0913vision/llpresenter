@@ -26,6 +26,7 @@ import {
 import type {ThemeElement} from '@core/schema/themes';
 import {
   fixedThemeText,
+  liveThemeTextElements,
   themeElementBase,
   THEME_MAIN,
 } from '@fixtures/core/themeOutput';
@@ -122,20 +123,10 @@ afterEach(() => {
 });
 
 describe('theme composition drawing', () => {
-  it('keeps manual stage utilities through redraws and ticks until the next slide', () => {
+  it('keeps the live stage values through redraws and ignores old slide overrides', () => {
     const {view, text, root} = setup();
     const match = vi.spyOn(textSlots, 'withSlideTextOverrides');
-    const elements: ThemeElement[] = [
-      {
-        ...themeElementBase(30),
-        kind: 'clock',
-        clockFormat: '24h',
-        seconds: true,
-      },
-      {...themeElementBase(31), kind: 'timer'},
-      {...themeElementBase(32), kind: 'stageMessage'},
-      {...themeElementBase(33), kind: 'videoTimeLeft'},
-    ];
+    const elements = liveThemeTextElements();
     const stage = {
       ...frame(elements),
       screen: {id: THEME_MAIN, kind: 'stage' as const},
@@ -146,7 +137,7 @@ describe('theme composition drawing', () => {
     const overrides = Object.fromEntries(
       elements.map(element => [
         [themeId, THEME_MAIN, element.id].join('/'),
-        element.kind,
+        'Old slide value',
       ]),
     );
     const slide = {...song.slide, textOverrides: overrides};
@@ -156,18 +147,15 @@ describe('theme composition drawing', () => {
     for (const opacity of [0.9, 0.7, 0.5]) {
       view.render(layers, {...stage, clearOpacity: {slide: opacity}});
       vi.advanceTimersByTime(1000);
-      for (const element of elements) {
-        expect(text(element.kind)).toBe(element.kind);
-      }
+      expect(text('clock')).toMatch(/\d{2}:\d{2}:\d{2}/u);
+      expect(text('timer')).toBeUndefined();
+      expect(text('stageMessage')).toBeUndefined();
+      expect(text('videoTimeLeft')).toBeUndefined();
+      expect(text('nextText')).toContain('Invented next');
+      expect(text('nextLabel')).toBe('Chorus');
     }
     expect(match).toHaveBeenCalledTimes(1);
     expect(root.querySelector('[data-theme-page]')).toBe(page);
-    view.render(song, stage);
-    vi.advanceTimersByTime(1000);
-    expect(text('clock')).toMatch(/\d{2}:\d{2}:\d{2}/u);
-    expect(text('timer')).toBeUndefined();
-    expect(text('stageMessage')).toBeUndefined();
-    expect(text('videoTimeLeft')).toBeUndefined();
     view.dispose();
   });
 

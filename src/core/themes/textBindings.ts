@@ -3,7 +3,7 @@ import type {Theme, ThemeElement, ThemeScreenLayout} from '../schema/themes';
 import type {ThemeTextRole} from '../schema/themeTextSlot';
 import {manualSlideTextKey} from '../schema/slideTextOverrides';
 import {isBuiltInThemeId} from './builtInIds';
-import {isThemeTextElement} from './content';
+import {isSlideEditableElement, isThemeTextElement} from './content';
 
 type TextElement = Extract<ThemeElement, {readonly text: unknown}>;
 
@@ -35,6 +35,7 @@ function sharedRoleConflicts(theme: Theme): readonly ThemeTextRole[] {
   for (const layout of Object.values(theme.screens)) {
     if (layout.mode.kind !== 'own') continue;
     for (const element of layout.elements.filter(isThemeTextElement)) {
+      if (!isSlideEditableElement(element)) continue;
       if (!identifiesSharedSlot({themeId: theme.id, layout}, element)) continue;
       const role = element.textSlot?.role ?? element.kind;
       const ids = slots.get(role) ?? new Set<string>();
@@ -76,6 +77,7 @@ export function themeTextBinding(theme: TextSlotLayout, element: TextElement) {
   const localRoles = theme.layout.elements.filter(
     candidate =>
       isThemeTextElement(candidate) &&
+      isSlideEditableElement(candidate) &&
       (candidate.textSlot?.role ?? candidate.kind) === identity.role,
   );
   return {
@@ -103,7 +105,9 @@ export function withTextRoleResolution(
   }
   const local = new Map<ThemeTextRole, number>();
   for (const element of layout.elements) {
-    if (!isThemeTextElement(element)) continue;
+    if (!isThemeTextElement(element) || !isSlideEditableElement(element)) {
+      continue;
+    }
     const role = element.textSlot?.role ?? element.kind;
     local.set(role, (local.get(role) ?? 0) + 1);
   }

@@ -2,6 +2,7 @@ import {cardOffset} from '../services/sectionCards';
 import type {LiveLayers, SlideLayer} from '../live/state';
 import type {LiveThemeItem} from '../schema/liveTheme';
 import type {ScreenId} from '../schema/ids';
+import type {ThemeTextRole} from '../schema/themeTextSlot';
 import type {ThemeElement} from '../schema/themes';
 import type {ItemOverlay} from '../schema/itemOverlays';
 
@@ -14,6 +15,29 @@ export function isThemeTextElement(
     element.kind !== 'overlay' &&
     element.kind !== 'image' &&
     element.kind !== 'box'
+  );
+}
+
+const slideEditableRoles: ReadonlySet<string> = new Set<ThemeTextRole>([
+  'currentText',
+  'reference',
+  'label',
+  'itemName',
+  'slideName',
+  'slideNumber',
+  'text',
+  'memo',
+]);
+
+export function isSlideEditableTextRole(role: string): boolean {
+  return slideEditableRoles.has(role);
+}
+
+export function isSlideEditableElement(element: ThemeElement): boolean {
+  return (
+    isThemeTextElement(element) &&
+    isSlideEditableTextRole(element.kind) &&
+    isSlideEditableTextRole(element.textSlot?.role ?? element.kind)
   );
 }
 

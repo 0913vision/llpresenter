@@ -2,11 +2,12 @@ import {expect, it} from 'vitest';
 import {createThemeId, createThemeElementId} from '@core/schema/ids';
 import type {ThemeElement, ThemeScreenLayout} from '@core/schema/themes';
 import {emptyLayers} from '@core/live/state';
-import {themeElementText} from '@core/themes/content';
+import {isSlideEditableElement, themeElementText} from '@core/themes/content';
 import {resolveThemeScreen} from '@core/themes/resolve';
 import {themeTextBinding} from '@core/themes/textBindings';
-import {matchSlideText} from '@core/themes/textSlots';
+import {isSlideEditableTextValue, matchSlideText} from '@core/themes/textSlots';
 import {
+  liveThemeTextElements,
   themeElementBase,
   themeScreens,
   THEME_MAIN,
@@ -170,3 +171,46 @@ it('keeps a reused layout element ID local when no portable role identifies it',
       ?.value,
   ).toMatchObject({text: 'Only this theme'});
 });
+
+it.each(liveThemeTextElements())(
+  'excludes $kind, its named aliases and its saved values',
+  element => {
+    const box = {
+      ...textBox(element.kind),
+      textSlot: {...textBox(element.kind).textSlot, role: element.kind},
+    };
+    const source = {
+      themeId: a,
+      sourceScreenId: THEME_MAIN,
+      layout: own([element, box]),
+    };
+    const {key, slotId} = themeTextBinding(source, box);
+    const saved = {
+      mode: 'manual' as const,
+      slotId,
+      role: element.kind,
+      sourceThemeId: a,
+      text: 'Old value',
+    };
+    expect(isSlideEditableElement(element)).toBe(false);
+    expect(isSlideEditableElement(box)).toBe(false);
+    expect(isSlideEditableTextValue(element.kind, 'Old legacy value')).toBe(
+      false,
+    );
+    expect(isSlideEditableTextValue(key, saved)).toBe(false);
+    const legacyKey = [a, THEME_MAIN, element.id].join('/');
+    expect(
+      matchSlideText({[legacyKey]: 'Old legacy value'}, source, element),
+    ).toBeUndefined();
+    expect(matchSlideText({[key]: saved}, source, box)).toBeUndefined();
+
+    const editable = textBox(slotId);
+    const target = {
+      themeId: b,
+      sourceScreenId: THEME_MAIN,
+      layout: own([editable]),
+    };
+    expect(isSlideEditableElement(editable)).toBe(true);
+    expect(matchSlideText({[key]: saved}, target, editable)).toBeUndefined();
+  },
+);

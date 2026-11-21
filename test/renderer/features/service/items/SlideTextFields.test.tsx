@@ -8,10 +8,14 @@ import {
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {expect, it, onTestFinished, vi} from 'vitest';
+import {HistoryButtons} from '@renderer/app/shell/HistoryButtons';
+import {isItemOfKind} from '@core/schema/service';
 import {projectSlides} from '@core/presentation/slides';
 import {slidesItem} from '@fixtures/core/slides';
 import {
   THEME_MAIN,
+  THEME_STAGE,
+  liveThemeTextElements,
   themeElementBase,
   themeFile,
   themeScreens,
@@ -211,6 +215,7 @@ it.each(['bible', 'sermon'] as const)(
       const state = useSyncExternalStore(items.subscribe, items.getSnapshot);
       return (
         <>
+          <HistoryButtons />
           <SlideTextEditor items={items} state={state}>
             {renderTextFields => (
               <BibleInlineEditor
@@ -260,6 +265,36 @@ it.each(['bible', 'sermon'] as const)(
     const verse = rows.find(row => row.value === 'Invented verse 17');
     if (!verse) throw Error('Missing verse field');
     const user = userEvent.setup();
+    const savedItem = () => fixture.service().service.order[0];
+    const pins = () => {
+      const item = savedItem();
+      if (item && isItemOfKind(item, 'bible')) return item.bible.pinnedVerses;
+      if (item && isItemOfKind(item, 'sermon')) {
+        return item.sermon.passage.pinnedVerses;
+      }
+      throw Error('Missing Bible or sermon item');
+    };
+    const original = savedItem();
+    const verseRow = verse.closest<HTMLElement>('[data-slide-index]');
+    if (verseRow === null) throw Error('Missing verse row');
+    const reference = within(verseRow).getByRole<HTMLTextAreaElement>(
+      'textbox',
+      {name: '성경 출처'},
+    );
+    const autoReference = reference.value;
+    const undo = screen.getByRole('button', {name: '실행 취소'});
+    const redo = screen.getByRole('button', {name: '다시 실행'});
+    await user.click(reference);
+    fireEvent.change(reference, {target: {value: 'Edited reference'}});
+    await user.keyboard('{Control>}z{/Control}');
+    await waitFor(() => expect(redo.getAttribute('aria-disabled')).toBeNull());
+    expect(savedItem()).toEqual(original);
+    expect(reference.value).toBe(autoReference);
+    await user.click(redo);
+    await waitFor(() => expect(reference.value).toBe('Edited reference'));
+    expect(pins()).toBeUndefined();
+    const withReference = savedItem();
+
     await user.click(verse);
     fireEvent.change(verse, {target: {value: 'Row edit'}});
     await user.tab();
@@ -268,6 +303,16 @@ it.each(['bible', 'sermon'] as const)(
         'Row edit',
       ),
     );
+    const withPinnedBody = savedItem();
+    expect(pins()).toBeDefined();
+    await user.click(verse);
+    await user.click(undo);
+    await waitFor(() => expect(savedItem()).toEqual(withReference));
+    expect(pins()).toBeUndefined();
+    expect(reference.value).toBe('Edited reference');
+    await user.keyboard('{Control>}y{/Control}');
+    await waitFor(() => expect(savedItem()).toEqual(withPinnedBody));
+    expect(pins()).toBeDefined();
     await user.click(zone.getByRole('button', {name: '격자'}));
     expect(zone.queryAllByRole('textbox')).toHaveLength(0);
     const sideField = panel.getByRole<HTMLTextAreaElement>('textbox', body);
@@ -295,6 +340,7 @@ it.each(['song', 'media'] as const)(
   async kind => {
     const theme = createThemeId('00000000-0000-4000-8000-000000005102');
     const file = themeFile();
+    const liveElements = liveThemeTextElements();
     installSettings({
       ...file,
       themes: [
@@ -303,6 +349,10 @@ it.each(['song', 'media'] as const)(
           id: theme,
           name: 'Fixture theme',
           screens: {
+            [THEME_STAGE]: {
+              mode: {kind: 'own'},
+              elements: liveElements,
+            },
             [THEME_MAIN]: {
               mode: {kind: 'own'},
               elements: [
@@ -329,14 +379,22 @@ it.each(['song', 'media'] as const)(
     const media = createMediaId('00000000-0000-4000-8000-000000005103');
     const first = fixture.first.song.slides[0];
     if (first === undefined) throw Error('Missing fixture slide');
+    const slideKey = kind === 'song' ? `slide:${first.id}` : 'media:standalone';
+    const oldValues = Object.fromEntries(
+      liveElements.map(element => [
+        [theme, THEME_STAGE, element.id].join('/'),
+        'Old live text',
+      ]),
+    );
+    const textOverrides = {[slideKey]: oldValues};
     const result = parseServiceDocument({
       ...before,
       service: {
         ...before.service,
         order: [
           kind === 'song'
-            ? {id, song: fixture.first.song.id, slides: [first]}
-            : {id, media, theme},
+            ? {id, song: fixture.first.song.id, slides: [first], textOverrides}
+            : {id, media, theme, textOverrides},
         ],
       },
     });
@@ -355,6 +413,7 @@ it.each(['song', 'media'] as const)(
             label: null,
             labelColor: 'none',
             lines: ['Fixture item'],
+            textOverrides: oldValues,
             ...(kind === 'song'
               ? {
                   sourceSlide: {
@@ -370,11 +429,18 @@ it.each(['song', 'media'] as const)(
     const editor = new SongEditorStore(fixture.api, vi.fn());
     const items = new ServiceItemStore(fixture.api, editor, vi.fn());
     function Harness() {
+      const state = useSyncExternalStore(items.subscribe, items.getSnapshot);
       return (
-        <SlideTextFields
-          items={items}
-          state={useSyncExternalStore(items.subscribe, items.getSnapshot)}
-        />
+        <>
+          <section aria-label="Slide row">
+            <SlideTextEditor items={items} state={state}>
+              {renderTextFields => renderTextFields(0)}
+            </SlideTextEditor>
+          </section>
+          <section aria-label="Side panel">
+            <SlideTextFields items={items} state={state} />
+          </section>
+        </>
       );
     }
     items.show({serviceId: fixtureServiceId, itemId: id});
@@ -385,13 +451,27 @@ it.each(['song', 'media'] as const)(
       await editor.dispose();
       useShow.setState(previous);
     });
-    const field = await screen.findByRole<HTMLTextAreaElement>('textbox', {
-      name: /Fixture caption/,
-    });
+    const row = screen.getByRole('region', {name: 'Slide row'});
+    const side = screen.getByRole('region', {name: 'Side panel'});
+    const field = await within(side).findByRole<HTMLTextAreaElement>(
+      'textbox',
+      {
+        name: /Fixture caption/,
+      },
+    );
+    await within(row).findByRole('textbox', {name: /Fixture caption/});
+    for (const element of liveElements) {
+      expect(
+        row.querySelector(`[data-slide-text-role="${element.kind}"]`),
+      ).toBeNull();
+      expect(
+        side.querySelector(`[data-slide-text-role="${element.kind}"]`),
+      ).toBeNull();
+    }
+    expect(screen.queryByText('Old live text')).toBeNull();
     expect(field.value).toBe('Automatic fixture caption');
     fireEvent.change(field, {target: {value: 'Edited fixture caption'}});
     fireEvent.blur(field);
-    const slideKey = kind === 'song' ? `slide:${first.id}` : 'media:standalone';
     await waitFor(() =>
       expect(
         fixture.service().service.order[0]?.textOverrides?.[slideKey],
