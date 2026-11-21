@@ -265,7 +265,12 @@ it('uses a custom default ad theme and its screen-scoped title bindings', () => 
   const title = {
     ...themeElementBase(),
     kind: 'slideName',
-    textSlot: {slotId: 'ad-title', role: 'slideName', scope: 'screen'},
+    textSlot: {
+      slotId: 'ad-title',
+      name: 'Ad title',
+      role: 'slideName',
+      scope: 'screen',
+    },
   } as const;
   const legacy = [theme, THEME_MAIN, title.id].join('/');
   const exact = {
