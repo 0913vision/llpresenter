@@ -19,7 +19,6 @@ import {
 } from '@core/themes/broadcastLook';
 import {measureSlideText} from './slideLayer';
 import {fitFontSize} from './fitText';
-import {broadcastIntent} from './broadcastBand';
 import {broadcastBibleFlow} from './broadcastBibleFlow';
 
 type TextElement = Extract<ThemeElement, {kind: 'currentText'}>;
@@ -252,12 +251,9 @@ function fitSong(
     e => e.id === BROADCAST_LOOK_SONG_ID && e.kind === 'currentText',
   );
   if (body?.kind !== 'currentText') return layout;
-  const intent = broadcastIntent(slide, item);
-  // NOTE(0913vision): an empty song slide shows the song title (the user's rule)
-  // and a title slide only its first line; decorative subtitles stay off.
+  // NOTE(0913vision): A title slide shows its first line without decorative subtitles.
   const raw =
     manualThemeText(body) ??
-    intent.songTitle ??
     themeElementText(body, {layers: {...emptyLayers(), slide}, item}) ??
     '';
   let value =

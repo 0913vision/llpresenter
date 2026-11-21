@@ -495,12 +495,11 @@ describe('built-in broadcast look', () => {
       expect(lyric.y + lyric.h).toBeLessThanOrEqual(frame.y + frame.h);
     }
   });
-  it('keeps empty and title slides while omitting a separate lyric title', () => {
+  it('keeps title slides while omitting a separate lyric title', () => {
     const layout = builtInTheme('song').screens[screen];
     if (!layout) throw Error('missing song');
     const song = {...item, kind: 'song' as const, title: '임재'};
     for (const current of [
-      {...slide, lines: []},
       {
         ...slide,
         titleSlide: true as const,
@@ -589,22 +588,22 @@ describe('built-in broadcast look', () => {
       ).toHaveLength(0);
     }
   });
-  it('shows the song title, never the empty slide label, and remains empty without a title', () => {
+  it('keeps an empty song slide empty even when the song has a title', () => {
     const layout = builtInTheme('song').screens[screen];
     if (!layout) throw Error('missing song');
-    const empty = {...slide, kind: 'song' as const, label: '간주', lines: []};
-    const titled = fitBroadcastLook(layout, empty, {
-      ...item,
-      kind: 'song',
-      title: '주 사랑',
-    });
-    expect(element(titled, BROADCAST_LOOK_SONG_ID)).toMatchObject({
-      broadcastText: '주 사랑',
-    });
-    const untitled = fitBroadcastLook(layout, empty, {...item, kind: 'song'});
-    expect(element(untitled, BROADCAST_LOOK_SONG_ID)).toMatchObject({
-      broadcastText: '',
-    });
+    for (const songCaption of ['band', 'text'] as const) {
+      const result = fitLook(
+        layout,
+        {...slide, kind: 'song', label: 'Interlude', lines: []},
+        {item: {...item, kind: 'song', title: 'Song title'}, songCaption},
+      );
+      expect(element(result, BROADCAST_LOOK_SONG_ID)).toMatchObject({
+        broadcastText: '',
+      });
+      expect(element(result, BROADCAST_LOOK_BAND_ID)).toMatchObject({
+        runtimeHidden: true,
+      });
+    }
   });
   it('leaves unrelated layouts untouched and keeps advertisements empty', () => {
     const layout = builtInTheme('ad').screens[screen];
