@@ -103,11 +103,16 @@ describe('song editor view', () => {
       await user.click(row);
       const surface = screen.getByRole('group', {name: '슬라이드 편집 명령'});
       const count = session.history.snapshot.song.slides.length;
+      const selectedIds = [...session.slideModel.getSnapshot().selection.ids];
+      expect(selectedIds).toHaveLength(1);
       await user.keyboard('{Control>}g{/Control}');
       expect(screen.getByRole('menu', {name: '이름표'})).toBeDefined();
       if (close === 'Escape') await user.keyboard('{Escape}');
       else await user.click(screen.getByRole('menuitemradio', {name: '후렴'}));
       expect(document.activeElement).toBe(surface);
+      expect([...session.slideModel.getSnapshot().selection.ids]).toEqual(
+        selectedIds,
+      );
       await user.keyboard('{Control>}g{/Control}');
       expect(screen.getByRole('menu', {name: '이름표'})).toBeDefined();
       await user.keyboard('{Escape}');
