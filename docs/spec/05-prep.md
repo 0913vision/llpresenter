@@ -965,30 +965,33 @@ and 59.
 
 ## PowerPoint picture import
 
-파일 > 가져오기 > PowerPoint를 이미지로 opens a `.pptx` or `.pptm` file in
-PowerPoint with macros disabled. Hidden slides are skipped; each visible slide
-is exported from a temporary copy of the chosen file as a 1920 × 1080 PNG and
-placed in one 빈 슬라이드 item after the selected service row (or at the end).
-Its pictures are private to the item and its copies and never appear in media
-lists. Private pictures are retained after deletion so undo and clipboard copies
-remain usable. Slide labels are empty. The item uses 이미지 슬라이드. The
+파일 > 가져오기 > PowerPoint를 이미지로 opens a `.ppt`, `.pptx`, or `.pptm` file
+in PowerPoint with macros disabled. Hidden slides are skipped; each visible
+slide is exported from a temporary copy of the chosen file as a 1920 × 1080 PNG
+and placed in one 빈 슬라이드 item after the selected service row (or at the
+end). Its pictures are private to the item and its copies and never appear in
+media lists. Private pictures are retained after deletion so undo and clipboard
+copies remain usable. Slide labels are empty. The item uses 이미지 슬라이드. The
 operator sees export progress and may cancel. If PowerPoint is not installed,
 does not respond, or cannot read the file, the app reports the cause without
 adding an item. The temporary copy is removed after the export finishes, fails,
-or is cancelled. Files whose slide ratio differs from 16:9 by more than 1% are
-refused before export, with their dimensions and the supported ratio.
+or is cancelled. 4:3 files are refused before export, with their dimensions.
 
 ## PowerPoint import
 
-The 슬라이드로 picker accepts `.pptx` and `.pptm`; old `.ppt` files are refused
-with a message. Files whose slide ratio differs from 16:9 by more than 1% are
-refused before import, with their dimensions and the supported ratio. Files are
-first read as ZIP and XML data without running macros. Importing layout pictures
-may start PowerPoint invisibly to render the decorations. Hidden slides are
-skipped, and the remaining slides retain their original slide numbers. Shapes
-are read in slide order, including groups; tables, charts, notes and comments
-are ignored. Line breaks and XML entities are decoded, trailing whitespace is
-removed, and empty lines are dropped.
+Both PowerPoint pickers accept `.ppt`, `.pptx`, and `.pptm`. For `.ppt`, the app
+copies the original to a private work directory, opens that copy read-only in
+PowerPoint with macros disabled, and saves a temporary `.pptx` for the normal
+import. PowerPoint must be installed to convert `.ppt`; the operator sees an
+error if it is unavailable. The original stays unchanged, and temporary copies
+are cleaned up when no longer needed. 4:3 files are refused before import, with
+their dimensions, including after conversion. Other files are first read as ZIP
+and XML data without running macros. Importing layout pictures may start
+PowerPoint invisibly to render the decorations. Hidden slides are skipped, and
+the remaining slides retain their original slide numbers. Shapes are read in
+slide order, including groups; tables, charts, notes and comments are ignored.
+Line breaks and XML entities are decoded, trailing whitespace is removed, and
+empty lines are dropped.
 
 The preview starts with all slides selected. Click a slide and Shift-click
 another to select an inclusive range. The default name joins the first title

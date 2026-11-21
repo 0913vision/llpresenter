@@ -52,6 +52,9 @@ try {
   $readOnly = if ($decorations) { 0 } else { -1 }
   $presentation = $powerpoint.Presentations.Open($env:LLP_PPT_SOURCE, $readOnly, 0, 0)
   if (Test-Path (Join-Path $env:LLP_PPT_DIRECTORY 'cancel')) { throw 'Cancelled' }
+  if ($env:LLP_PPT_CONVERT -eq '1') {
+    $presentation.SaveAs((Join-Path $env:LLP_PPT_DIRECTORY 'presentation.pptx'), 24)
+  } else {
   $slideWidth = [double]$presentation.PageSetup.SlideWidth
   $slideHeight = [double]$presentation.PageSetup.SlideHeight
   if ($slideWidth -le 0 -or $slideHeight -le 0) { throw 'Invalid slide size' }
@@ -99,6 +102,7 @@ try {
     }
     if (Test-Path (Join-Path $env:LLP_PPT_DIRECTORY 'cancel')) { throw 'Cancelled' }
     [Console]::Out.WriteLine(('PROGRESS {0} {1} {2}' -f $index, $visible.Count, $slide.SlideIndex))
+  }
   }
 } finally {
   try {
@@ -178,9 +182,16 @@ export class PowerPointImagesJob {
     progress: ((done: number, total: number, number: number) => void) & {
       readonly decorationSlide?: number;
       readonly decorationSlides?: readonly number[];
+      readonly convert?: true;
     },
   ): Promise<PowerPointImagesResult> {
-    const {decorationSlide, decorationSlides} = progress;
+    const {decorationSlide, decorationSlides, convert} = progress;
+    if (
+      convert &&
+      (decorationSlide !== undefined || decorationSlides !== undefined)
+    ) {
+      return Promise.resolve('file');
+    }
     if (decorationSlide !== undefined && decorationSlides !== undefined) {
       return Promise.resolve('file');
     }
@@ -224,6 +235,7 @@ export class PowerPointImagesJob {
             LLP_PPT_SOURCE: path,
             LLP_PPT_DIRECTORY: directory,
             LLP_PPT_DECORATION_SLIDE: numbers.join(','),
+            LLP_PPT_CONVERT: convert ? '1' : '',
           },
           stdio: ['ignore', 'pipe', 'ignore'],
         },

@@ -32,6 +32,48 @@ import {isPowerPointFourThree} from './powerpointSize';
 
 const MAX_TEMP_FILES = 2;
 
+class PowerPointConversionError extends Error {
+  constructor(readonly reason: PowerPointImagesResult) {
+    super('PowerPoint conversion failed');
+  }
+}
+
+/** Convert a private copy, so PowerPoint never opens or locks the original. */
+async function convertLegacyPowerPoint(
+  original: string,
+  {
+    directory,
+    converter,
+    stopped,
+  }: {
+    readonly directory: string;
+    readonly converter: Pick<PowerPointImagesJob, 'run'>;
+    readonly stopped: () => boolean;
+  },
+): Promise<string> {
+  const copy = join(directory, 'original.ppt');
+  await copyFile(original, copy, fsConstants.COPYFILE_EXCL);
+  if (stopped()) throw new PowerPointConversionError('cancelled');
+  const result = await converter.run(
+    copy,
+    directory,
+    Object.assign(() => undefined, {convert: true as const}),
+  );
+  if (result !== 'ok') throw new PowerPointConversionError(result);
+  const converted = join(directory, 'presentation.pptx');
+  await stat(converted);
+  await rm(copy, {force: true});
+  return converted;
+}
+
+function conversionMessage(reason: PowerPointImagesResult): string {
+  return reason === 'unavailable'
+    ? '이 파일을 가져오려면 PowerPoint가 설치되어 있어야 합니다.'
+    : reason === 'unresponsive'
+      ? 'PowerPoint가 응답하지 않습니다.'
+      : 'PowerPoint 파일을 변환할 수 없습니다.';
+}
+
 async function exportDecorations(
   jobs: Pick<PowerPointImagesJob, 'run'>,
   {
@@ -95,11 +137,11 @@ export function registerPowerPointImport(
   },
   jobs: Pick<PowerPointJobs, 'run' | 'dispose'> &
     Partial<Pick<PowerPointJobs, 'cancel'>> = new PowerPointJobs(),
-  imageJobs: Pick<
-    PowerPointImagesJob,
-    'run' | 'cancel'
-  > = new PowerPointImagesJob(),
+  imageJobs: Pick<PowerPointImagesJob, 'run' | 'cancel'> & {
+    readonly converter?: Pick<PowerPointImagesJob, 'run' | 'cancel'>;
+  } = new PowerPointImagesJob(),
 ): () => void {
+  const converter = imageJobs.converter ?? new PowerPointImagesJob();
   let retained: {
     path: string;
     digest: string;
@@ -111,6 +153,7 @@ export function registerPowerPointImport(
   let drawingBusy = false;
   let drawingFinished: Promise<void> = Promise.resolve();
   let disposed = false;
+  let retainedDirectory: string | null = null;
   const isDisposed = (): boolean => disposed;
   const tempFiles = new Set<string>();
   const extracting = new Set<string>();
@@ -118,6 +161,25 @@ export function registerPowerPointImport(
   let imagesCancelled = false;
   const isImagesCancelled = (): boolean => imagesCancelled;
   const imageDirectories = new Set<string>();
+  const retiredDirectories = new Set<string>();
+  const cleanRetired = (): void => {
+    if (drawingBusy || imagesBusy || extracting.size > 0) return;
+    for (const directory of retiredDirectories) {
+      retiredDirectories.delete(directory);
+      void rm(directory, {recursive: true, force: true}).catch(
+        (error: unknown) =>
+          context.log.warn('could not remove PowerPoint copy', error),
+      );
+    }
+  };
+  const retireRetained = (): boolean => {
+    retained = null;
+    if (retainedDirectory === null) return false;
+    retiredDirectories.add(retainedDirectory);
+    retainedDirectory = null;
+    cleanRetired();
+    return true;
+  };
   const release = async (path: string): Promise<boolean> => {
     if (!tempFiles.has(path)) return false;
     try {
@@ -222,10 +284,11 @@ export function registerPowerPointImport(
     if (!imagesBusy) return false;
     imagesCancelled = true;
     imageJobs.cancel();
+    converter.cancel();
     return true;
   });
   ipcMain.handle(powerpointEndpoints.images.channel, async event => {
-    if (imagesBusy || disposed) {
+    if (imagesBusy || busy || disposed) {
       return {ok: false, message: 'PowerPoint 파일을 읽는 중입니다.'};
     }
     imagesBusy = true;
@@ -239,31 +302,30 @@ export function registerPowerPointImport(
       } else {
         const chosen = await dialog.showOpenDialog(context.control, {
           properties: ['openFile'],
-          filters: [{name: 'PowerPoint', extensions: ['pptx', 'pptm']}],
+          filters: [{name: 'PowerPoint', extensions: ['pptx', 'pptm', 'ppt']}],
         });
         if (chosen.canceled) return {ok: true, value: null};
         path = chosen.filePaths[0];
       }
       if (!path) throw new Error('Missing PowerPoint file');
-      if (extname(path).toLowerCase() === '.ppt') {
-        return {
-          ok: false,
-          message:
-            'PowerPoint 97-2003 파일은 가져올 수 없습니다. PowerPoint에서 .pptx로 저장한 뒤 가져오십시오.',
-        };
-      }
-      if (!['.pptx', '.pptm'].includes(extname(path).toLowerCase())) {
+      if (!['.pptx', '.pptm', '.ppt'].includes(extname(path).toLowerCase())) {
         throw new Error('Unsupported PowerPoint file');
       }
       const workDirectory = await mkdtemp(
         join(app.getPath('temp'), 'llp-ppt-'),
       );
       directory = workDirectory;
-      const copy = join(
-        workDirectory,
-        `presentation${extname(path).toLowerCase()}`,
-      );
-      await copyFile(path, copy, fsConstants.COPYFILE_EXCL);
+      const copy =
+        extname(path).toLowerCase() === '.ppt'
+          ? await convertLegacyPowerPoint(path, {
+              directory: workDirectory,
+              converter,
+              stopped: () => isImagesCancelled() || isDisposed(),
+            })
+          : join(workDirectory, `presentation${extname(path).toLowerCase()}`);
+      if (extname(path).toLowerCase() !== '.ppt') {
+        await copyFile(path, copy, fsConstants.COPYFILE_EXCL);
+      }
       if (isImagesCancelled() || isDisposed()) return {ok: true, value: null};
       const deck = await jobs.run({kind: 'size', path: copy});
       if (isImagesCancelled() || isDisposed()) return {ok: true, value: null};
@@ -319,21 +381,25 @@ export function registerPowerPointImport(
       directory = null;
       return {ok: true, value: {fileName: basename(path), slides}};
     } catch (error) {
+      if (isImagesCancelled() || isDisposed()) return {ok: true, value: null};
       context.log.warn('could not export PowerPoint images', error);
       return {
         ok: false,
         message:
-          failure === 'unavailable'
-            ? 'PowerPoint가 설치되어 있지 않습니다.'
-            : failure === 'unresponsive'
-              ? 'PowerPoint가 응답하지 않습니다.'
-              : 'PowerPoint 파일을 읽을 수 없습니다.',
+          error instanceof PowerPointConversionError
+            ? conversionMessage(error.reason)
+            : failure === 'unavailable'
+              ? 'PowerPoint가 설치되어 있지 않습니다.'
+              : failure === 'unresponsive'
+                ? 'PowerPoint가 응답하지 않습니다.'
+                : 'PowerPoint 파일을 읽을 수 없습니다.',
       };
     } finally {
       if (directory !== null) {
         await rm(directory, {recursive: true, force: true});
       }
       imagesBusy = false;
+      cleanRetired();
     }
   });
   ipcMain.handle(
@@ -366,23 +432,28 @@ export function registerPowerPointImport(
       } finally {
         drawingBusy = false;
         finishDrawing();
+        cleanRetired();
       }
     },
   );
   ipcMain.handle(powerpointEndpoints.cancelRead.channel, () => {
-    if (!busy) return false;
+    if (!busy) return retireRetained();
     readCancelled = true;
-    retained = null;
+    retireRetained();
     jobs.cancel?.('read');
+    converter.cancel();
     return true;
   });
   ipcMain.handle(
     powerpointEndpoints.read.channel,
     async (): Promise<PowerPointReadResult> => {
-      if (busy) return {ok: false, message: 'PowerPoint 파일을 읽는 중입니다.'};
+      if (busy || imagesBusy) {
+        return {ok: false, message: 'PowerPoint 파일을 읽는 중입니다.'};
+      }
       busy = true;
       readCancelled = false;
-      retained = null;
+      retireRetained();
+      let directory: string | null = null;
       try {
         let path: string | undefined;
         if (context.windowMode === 'offscreen') {
@@ -394,7 +465,9 @@ export function registerPowerPointImport(
               'powerpointImportFolder',
             ),
             properties: ['openFile'],
-            filters: [{name: 'PowerPoint', extensions: ['pptx', 'pptm']}],
+            filters: [
+              {name: 'PowerPoint', extensions: ['pptx', 'pptm', 'ppt']},
+            ],
           });
           if (chosen.canceled || isReadCancelled()) {
             return {ok: true, value: null};
@@ -403,15 +476,17 @@ export function registerPowerPointImport(
           rememberPickerFile(context.uiState, 'powerpointImportFolder', path);
         }
         if (!path) throw new Error('파일을 열 수 없습니다.');
+        let importPath = path;
         if (extname(path).toLowerCase() === '.ppt') {
-          return {
-            ok: false,
-            message:
-              'PowerPoint 97-2003 파일은 가져올 수 없습니다. PowerPoint에서 .pptx로 저장한 뒤 가져오십시오.',
-          };
+          directory = await mkdtemp(join(app.getPath('temp'), 'llp-ppt-'));
+          importPath = await convertLegacyPowerPoint(path, {
+            directory,
+            converter,
+            stopped: () => isReadCancelled() || isDisposed(),
+          });
         }
         if (isReadCancelled()) return {ok: true, value: null};
-        const result = await jobs.run({kind: 'read', path});
+        const result = await jobs.run({kind: 'read', path: importPath});
         if (isReadCancelled()) return {ok: true, value: null};
         const sizeError = unsupportedSlideSize(result);
         if (sizeError !== null) {
@@ -440,18 +515,29 @@ export function registerPowerPointImport(
         if (!parsed.ok || !parsed.value.ok || parsed.value.value === null) {
           throw new Error('Invalid PowerPoint worker result');
         }
-        retained = {path, digest: result.digest, source: parsed.value.value};
+        retained = {
+          path: importPath,
+          digest: result.digest,
+          source: parsed.value.value,
+        };
+        retainedDirectory = directory;
+        directory = null;
         return parsed.value;
       } catch (error) {
-        if (isReadCancelled()) return {ok: true, value: null};
+        if (isReadCancelled() || isDisposed()) return {ok: true, value: null};
         context.log.warn('could not read PowerPoint', error);
         retained = null;
         return {
           ok: false,
           message:
-            'PowerPoint 파일이 손상되었거나 암호화되었거나 크기 제한을 넘었습니다.',
+            error instanceof PowerPointConversionError
+              ? conversionMessage(error.reason)
+              : 'PowerPoint 파일이 손상되었거나 암호화되었거나 크기 제한을 넘었습니다.',
         };
       } finally {
+        if (directory !== null) {
+          await rm(directory, {recursive: true, force: true});
+        }
         busy = false;
       }
     },
@@ -461,7 +547,8 @@ export function registerPowerPointImport(
     async (_event, value: unknown) => {
       const request = parsePowerPointBackgroundRequest(value);
       if (!request.ok || retained === null) return null;
-      const part = retained.source.slides[request.value.index]?.background;
+      const current = retained;
+      const part = current.source.slides[request.value.index]?.background;
       if (!part) return null;
       if (tempFiles.size >= MAX_TEMP_FILES || disposed) return null;
       if (request.value.decoration === true) {
@@ -470,7 +557,6 @@ export function registerPowerPointImport(
         imagesCancelled = false;
         let directory: string | null = null;
         try {
-          const current = retained;
           const slide = current.source.slides[request.value.index];
           if (slide === undefined) return null;
           directory = await mkdtemp(join(app.getPath('temp'), 'llp-ppt-'));
@@ -515,6 +601,7 @@ export function registerPowerPointImport(
             await rm(directory, {recursive: true, force: true});
           }
           imagesBusy = false;
+          cleanRetired();
         }
       }
       const image = request.value.image;
@@ -544,13 +631,15 @@ export function registerPowerPointImport(
         } finally {
           await file.close();
         }
-        if (isDisposed()) throw new Error('PowerPoint import closed');
+        if (isDisposed() || retained !== current) {
+          throw new Error('PowerPoint import closed');
+        }
         const result = image
           ? true
           : await jobs.run({
               kind: 'background',
-              path: retained.path,
-              digest: retained.digest,
+              path: current.path,
+              digest: current.digest,
               index: request.value.index,
               target: temp,
             });
@@ -565,6 +654,7 @@ export function registerPowerPointImport(
         return null;
       } finally {
         extracting.delete(temp);
+        cleanRetired();
       }
     },
   );
@@ -681,6 +771,7 @@ export function registerPowerPointImport(
           await rm(directory, {recursive: true, force: true});
         }
         imagesBusy = false;
+        cleanRetired();
       }
     },
   );
@@ -768,6 +859,7 @@ export function registerPowerPointImport(
     if (disposed) return;
     disposed = true;
     imageJobs.cancel();
+    converter.cancel();
     jobs.dispose();
     ipcMain.removeHandler(powerpointEndpoints.read.channel);
     ipcMain.removeHandler(powerpointEndpoints.cancelRead.channel);
@@ -786,5 +878,6 @@ export function registerPowerPointImport(
     for (const directory of imageDirectories) {
       rm(directory, {recursive: true, force: true}).catch(() => undefined);
     }
+    retireRetained();
   };
 }
