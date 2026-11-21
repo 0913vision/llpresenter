@@ -24,7 +24,6 @@ import {useSlideTransitionProgress} from './useSlideTransitionProgress';
 import {revealSlideItem} from '@renderer/session/visibleSlideItem';
 import {liveReturn} from './liveReturn';
 import type {SlideGridProps} from './SlideGrid';
-import {gridViewport} from './useSlideWindow';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import {slideMenuEntries} from '@renderer/features/songs/editor/slideMenuEntries';
 import {ShowSlideEntry} from './showPanelNavigation';
@@ -173,7 +172,6 @@ function SectionGrid({
 
 /** A service-wide, row-windowed slide surface. */
 export function ContinuousSlideGrid({
-  active = true,
   columns,
   scalePercent,
   onOpenPrep,
@@ -235,8 +233,7 @@ export function ContinuousSlideGrid({
     [],
   );
   useLayoutEffect(() => {
-    if (!active) return;
-    const viewport = gridViewport(keeper.current);
+    const viewport = keeper.current?.parentElement;
     const grid = keeper.current?.querySelector<HTMLElement>(
       '[data-continuous-measure]',
     );
@@ -331,7 +328,7 @@ export function ContinuousSlideGrid({
       window.removeEventListener('pointerup', up);
       window.removeEventListener('pointercancel', up);
     };
-  }, [active]);
+  }, []);
   const stride =
     tileWidth > 0 ? (tileWidth * 9) / 16 + metrics.band + metrics.rowGap : 1;
   const sections = useMemo(
@@ -348,20 +345,18 @@ export function ContinuousSlideGrid({
     scope: 'continuous-service',
   });
   useLayoutEffect(() => {
-    if (!active) return;
     windowKeyRef.current = (top, height) =>
       windowKey(sections, {top, height, stride, tracks});
-  }, [active, sections, stride, tracks]);
+  }, [sections, stride, tracks]);
   const last = sections.at(-1);
   const total =
     (last?.top ?? INSET) + Math.max(last?.height ?? 0, metrics.height) + INSET;
   useLayoutEffect(() => {
-    if (!active) return;
     // NOTE(0913vision): The grid moves only when the live slide leaves the
     // view, or when a key moves it further down past the reading line; a
     // click or a scroll leaves the grid where the user put it.
     followRef.current = (behavior = 'smooth', keyed) => {
-      const viewport = gridViewport(keeper.current);
+      const viewport = keeper.current?.parentElement;
       const section = sections.find(value => value.row.id === cursorItem);
       if (
         !viewport ||
@@ -409,35 +404,19 @@ export function ContinuousSlideGrid({
       moved ? 'smooth' : 'instant',
       byKey ? (down ? 'down' : 'other') : undefined,
     );
-  }, [
-    active,
-    cursorItem,
-    cursorIndex,
-    sections,
-    stride,
-    tracks,
-    metrics.rowGap,
-  ]);
+  }, [cursorItem, cursorIndex, sections, stride, tracks, metrics.rowGap]);
   useLayoutEffect(() => {
-    if (
-      !active ||
-      initialized.current ||
-      tileWidth <= 0 ||
-      sections.length === 0
-    ) {
-      return;
-    }
+    if (initialized.current || tileWidth <= 0 || sections.length === 0) return;
     initialized.current = true;
     const section = sections.find(
       value => value.row.id === useShow.getState().openItemId,
     );
-    const viewport = gridViewport(keeper.current);
-    if (section && viewport) {
-      viewport.scrollTop = section.top;
+    if (section && keeper.current?.parentElement) {
+      keeper.current.parentElement.scrollTop = section.top;
     }
-  }, [active, sections, tileWidth]);
+  }, [sections, tileWidth]);
   useEffect(() => {
-    if (!entryRef || !active) return;
+    if (!entryRef) return;
     entryRef.current = () => {
       followRef.current();
       keeper.current
@@ -447,25 +426,23 @@ export function ContinuousSlideGrid({
     return () => {
       entryRef.current = null;
     };
-  }, [active, entryRef]);
+  }, [entryRef]);
   useEffect(() => {
-    if (!active) return;
     const select = (event: Event): void => {
       const section = sections.find(
         value => event instanceof CustomEvent && value.row.id === event.detail,
       );
       if (!section) return;
       pause.current = Date.now() + 1500;
-      gridViewport(keeper.current)?.scrollTo({
+      keeper.current?.parentElement?.scrollTo({
         top: section.top,
         behavior: 'smooth',
       });
     };
     window.addEventListener('show-grid-item', select);
     return () => window.removeEventListener('show-grid-item', select);
-  }, [active, sections]);
+  }, [sections]);
   useEffect(() => {
-    if (!active) return;
     const index = Math.max(
       0,
       sections.findLastIndex(value => value.top <= metrics.top + 2),
@@ -478,7 +455,7 @@ export function ContinuousSlideGrid({
     if (section && initialized.current) {
       revealSlideItem(section.row.id);
     }
-  }, [active, sections, metrics.top]);
+  }, [sections, metrics.top]);
   useEffect(() => () => revealSlideItem(null), []);
   // NOTE(0913vision): The view stays where the user scrolled; 현 위치로 in the
   // footer brings the live slide back to the reading line.
@@ -489,9 +466,8 @@ export function ContinuousSlideGrid({
     return {top, bottom: top + stride - metrics.rowGap};
   }, [sections, cursorItem, cursorIndex, stride, tracks, metrics.rowGap]);
   useEffect(() => {
-    if (!active) return;
     liveReturn.offer(() => {
-      const viewport = gridViewport(keeper.current);
+      const viewport = keeper.current?.parentElement;
       if (!viewport || liveTile === null) return;
       pause.current = 0;
       viewport.scrollTo({
@@ -502,17 +478,15 @@ export function ContinuousSlideGrid({
         behavior: 'smooth',
       });
     });
-    return () => liveReturn.offer(null);
-  }, [active, liveTile]);
+  }, [liveTile]);
   useEffect(() => () => liveReturn.offer(null), []);
   useEffect(() => {
-    if (!active) return;
     liveReturn.report(
       liveTile !== null &&
         (liveTile.top < metrics.top ||
           liveTile.bottom > metrics.top + metrics.height),
     );
-  }, [active, liveTile, metrics.top, metrics.height]);
+  }, [liveTile, metrics.top, metrics.height]);
   return (
     <div
       ref={keeper}

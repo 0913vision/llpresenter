@@ -1,4 +1,4 @@
-import {act, render, renderHook, screen} from '@testing-library/react';
+import {act, render, renderHook} from '@testing-library/react';
 import {isValidElement, type ReactNode} from 'react';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {bibleSource} from '@core/bible/source';
@@ -9,15 +9,14 @@ import {
 } from '@renderer/app/workspaces/serviceOrderPanel';
 import {useShowPanels} from '@renderer/app/workspaces/showPanels';
 import {Panel} from '@renderer/app/shell/WorkspacePanel';
+import {BiblePanel} from '@renderer/features/presentation/BiblePanel';
 import {useShow} from '@renderer/session/show';
 import {revealSlideItem} from '@renderer/session/visibleSlideItem';
 import type {ServiceRow} from '@core/presentation/model';
 import type {SizeClass} from '@renderer/ui/sizeClass';
 
 vi.mock('@renderer/features/presentation/BiblePanel', () => ({
-  BiblePanel: ({sizeClass}: {sizeClass: string}) => (
-    <div data-testid="bible-panel">{sizeClass}</div>
-  ),
+  BiblePanel: () => null,
 }));
 vi.mock('@renderer/features/quick/QuickPanel', () => ({
   QuickPanel: () => null,
@@ -62,7 +61,9 @@ describe('useShowPanels', () => {
     useShow.setState({rows: [row]});
     revealSlideItem(row.id);
     const parts = panels().current.partsOf('슬라이드');
-    const view = render(<Panel title="슬라이드" parts={parts} />);
+    const view = render(
+      <Panel title="슬라이드" parts={{header: parts.header}} />,
+    );
     expect(view.container.querySelector('section > div')?.textContent).toBe(
       'Example',
     );
@@ -76,66 +77,10 @@ describe('useShowPanels', () => {
 
       const slides = panels(sizeClass).current.partsOf('슬라이드').embedded;
 
-      render(<>{slides}</>);
-      expect(screen.getByTestId('bible-panel').textContent).toBe(sizeClass);
+      expect(isValidElement(slides) && slides.type).toBe(BiblePanel);
+      expect(propsOf(slides)?.['sizeClass']).toBe(sizeClass);
     },
   );
-
-  it('keeps the ordinary slide panel mounted across a quick Bible passage', () => {
-    const source = bibleSource(panelPassage());
-    function Surface() {
-      const result = useShowPanels({
-        active: true,
-        sizeClass: 'normal',
-        onProblem: undefined,
-        onOpenPrep: undefined,
-        onShowInLibrary: undefined,
-        sidebarAction: null,
-      });
-      return <Panel title="슬라이드" parts={result.partsOf('슬라이드')} />;
-    }
-    const view = render(<Surface />);
-    const normal = view.container.querySelector(
-      'section[aria-label="슬라이드"]',
-    );
-    expect(normal).not.toBeNull();
-    act(() => useShow.setState({bibleSource: source, openItemId: source.id}));
-    expect(screen.getByTestId('bible-panel')).toBeTruthy();
-    expect(normal?.isConnected).toBe(true);
-    expect(normal?.closest('[aria-hidden="true"]')).not.toBeNull();
-    act(() => useShow.setState({openItemId: null}));
-    expect(view.container.querySelector('section[aria-label="슬라이드"]')).toBe(
-      normal,
-    );
-  });
-
-  it('keeps a quick passage panel mounted while another passage is shown', () => {
-    const first = bibleSource(panelPassage());
-    const second = {...first, id: `${first.id}:other`};
-    useShow.setState({bibleSource: first, openItemId: first.id});
-    function Surface() {
-      const result = useShowPanels({
-        active: true,
-        sizeClass: 'normal',
-        onProblem: undefined,
-        onOpenPrep: undefined,
-        onShowInLibrary: undefined,
-        sidebarAction: null,
-      });
-      return <Panel title="슬라이드" parts={result.partsOf('슬라이드')} />;
-    }
-    const view = render(<Surface />);
-    const saved = screen.getByTestId('bible-panel');
-    act(() => useShow.setState({bibleSource: second, openItemId: second.id}));
-    expect(saved.isConnected).toBe(true);
-    expect(saved.closest('[aria-hidden="true"]')).not.toBeNull();
-    act(() => useShow.setState({bibleSource: first, openItemId: first.id}));
-    expect(
-      view.container.querySelector(
-        '[aria-hidden="false"] [data-testid="bible-panel"]',
-      ),
-    ).toBe(saved);
-  });
 
   it('gives the quick panel a new selection version each time a service row opens', () => {
     const result = panels();

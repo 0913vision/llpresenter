@@ -17,7 +17,6 @@ import {
 import {useLive} from '@renderer/session/live';
 import {
   commitShownItem,
-  retainShownGrid,
   useCommittedShownItem,
   useShownItemId,
 } from '@renderer/session/shownItem';
@@ -44,7 +43,6 @@ import {useReflow} from '@renderer/ui/useReflow';
 const GRID_SELECTOR = '[role="listbox"]';
 
 export interface SlideGridProps {
-  readonly active?: boolean;
   /** The columns of the size class at 100%: 3, 4, or 6. */
   readonly columns: number;
   /** The 슬라이드 size in percent, 50 to 200. */
@@ -55,30 +53,17 @@ export interface SlideGridProps {
 
 /** The 슬라이드 grid of the open item. A click outputs a tile. */
 export function SlideGrid({
-  active = true,
   columns,
   scalePercent,
   onOpenPrep,
 }: SlideGridProps): JSX.Element {
   const openItemId = useShownItemId();
-  const currentBibleLookup = useShow(view => isBibleSource(view, openItemId));
-  const [lastBibleLookup, setLastBibleLookup] = useState(currentBibleLookup);
-  if (active && lastBibleLookup !== currentBibleLookup) {
-    setLastBibleLookup(currentBibleLookup);
-  }
-  const bibleLookup = active ? currentBibleLookup : lastBibleLookup;
+  const bibleLookup = useShow(view => isBibleSource(view, openItemId));
   const offset = useShow(view =>
     openItemId === null ? null : serviceSlideOffset(view, openItemId),
   );
-  const currentTiles = useShow(view => shownTilesFor(view, openItemId));
-  const [lastTiles, setLastTiles] = useState(currentTiles);
-  if (active && currentTiles !== undefined && lastTiles !== currentTiles) {
-    setLastTiles(currentTiles);
-  }
-  const tiles = active ? currentTiles : lastTiles;
+  const tiles = useShow(view => shownTilesFor(view, openItemId));
   const row = useShow(view => view.rows.find(value => value.id === openItemId));
-  const serviceId = useShow(view => view.serviceId);
-  const serviceItem = row !== undefined && isItemRow(row);
   const librarySong = useShow(view => view.librarySong);
   const theme = useSlideTheme(
     row !== undefined && isItemRow(row)
@@ -114,15 +99,7 @@ export function SlideGrid({
       ? sermonPreviewRow(row.id, row.bible.ref)
       : undefined,
   );
-  const currentBible = useBibleTileProjection({
-    itemId: openItemId,
-    anyItem: true,
-  });
-  const [lastBible, setLastBible] = useState(currentBible);
-  if (active && currentBible !== null && lastBible !== currentBible) {
-    setLastBible(currentBible);
-  }
-  const bible = active ? currentBible : lastBible;
+  const bible = useBibleTileProjection({itemId: openItemId, anyItem: true});
   const liveSlide = useLive(view => view.state?.layers.slide ?? null);
   const liveIndex = useShow(view =>
     liveTileIndex({...view, openItemId}, liveSlide),
@@ -130,77 +107,20 @@ export function SlideGrid({
   // NOTE(0913vision): Tiles of an item the grid switches to wait for their
   // pictures, holding the grid as it was; tiles a scroll or resize brings in
   // draw where they show.
-  const committedItem = useCommittedShownItem();
-  const [localItem, setLocalItem] = useState<string | null | undefined>();
-  const keeperRef = useRef<HTMLDivElement>(null);
-  if (active && committedItem === openItemId && localItem !== openItemId) {
-    setLocalItem(openItemId);
-  }
-  const switching =
-    active && localItem !== openItemId && committedItem !== openItemId;
+  const switching = useCommittedShownItem() !== openItemId;
   useLayoutEffect(() => {
-    if (!active) return;
     commitShownItem(openItemId);
-  }, [active, openItemId]);
-  useEffect(() => {
-    if (
-      serviceId === null ||
-      openItemId === null ||
-      !serviceItem ||
-      localItem !== openItemId
-    ) {
-      return;
-    }
-    const root = keeperRef.current;
-    if (root === null) return;
-    let release: (() => void) | undefined;
-    const update = (): void => {
-      const pending = root.querySelector('[data-preview-ready="false"]');
-      const images = [...root.querySelectorAll('img')];
-      const tiles = [...root.querySelectorAll('[role="option"]')];
-      const ready =
-        tiles.length > 0 &&
-        pending === null &&
-        tiles.every(
-          tile =>
-            tile.querySelector('[data-preview-ready="true"], img') !== null,
-        ) &&
-        images.every(image => image.complete && image.naturalWidth > 0);
-      if (ready && release === undefined) {
-        release = retainShownGrid(serviceId, openItemId);
-      } else if (!ready && release !== undefined) {
-        release();
-        release = undefined;
-      }
-    };
-    const observer = new MutationObserver(update);
-    observer.observe(root, {
-      subtree: true,
-      childList: true,
-      attributes: true,
-      attributeFilter: ['data-preview-ready', 'src'],
-    });
-    root.addEventListener('load', update, true);
-    root.addEventListener('error', update, true);
-    update();
-    return () => {
-      observer.disconnect();
-      root.removeEventListener('load', update, true);
-      root.removeEventListener('error', update, true);
-      release?.();
-    };
-  }, [serviceId, openItemId, serviceItem, localItem]);
+  }, [openItemId]);
   const transitionProgress = useSlideTransitionProgress();
   useEffect(() => {
-    if (active && liveIndex !== null) {
-      useShow.setState({selectedTile: liveIndex});
-    }
-  }, [active, liveIndex, openItemId]);
+    if (liveIndex !== null) useShow.setState({selectedTile: liveIndex});
+  }, [liveIndex, openItemId]);
   const [menu, setMenu] = useState<{
     itemId: string;
     index: number;
     anchor: MenuAnchor;
   } | null>(null);
+  const keeperRef = useRef<HTMLDivElement>(null);
   const reflowIds = tileReflowIds(tiles ?? [], openItemId ?? '');
   useReflow(keeperRef, {
     ids: reflowIds,
@@ -211,7 +131,6 @@ export function SlideGrid({
   const tabEntry = useRef(false);
   const [showFocus, setShowFocus] = useState(false);
   useEffect(() => {
-    if (!active) return undefined;
     const keyDown = (event: globalThis.KeyboardEvent): void => {
       tabEntry.current = event.key === 'Tab';
     };
@@ -225,7 +144,7 @@ export function SlideGrid({
       document.removeEventListener('keydown', keyDown, true);
       document.removeEventListener('pointerdown', pointerDown, true);
     };
-  }, [active]);
+  }, []);
   const {width, gap} = useGridMeasure(keeperRef, GRID_SELECTOR);
   const tileWidth = thumbnailWidth({
     gridWidth: width,
@@ -251,12 +170,12 @@ export function SlideGrid({
       ?.focus({preventScroll: true});
   });
   useEffect(() => {
-    if (!entryRef || !active) return;
+    if (!entryRef) return;
     entryRef.current = enter;
     return () => {
       entryRef.current = null;
     };
-  }, [active, entryRef]);
+  }, [entryRef]);
 
   const onOutput = useCallback(
     (index: number): void => {

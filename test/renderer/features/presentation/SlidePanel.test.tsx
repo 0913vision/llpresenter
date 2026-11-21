@@ -1,12 +1,5 @@
 import * as songEditorRequests from '@renderer/features/songs/editor/songEditorRequests';
-import {
-  act,
-  cleanup,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from '@testing-library/react';
+import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import {SUNDAY_NOTICE_PICTURE_ID} from '@core/themes/sundayNotice';
@@ -28,7 +21,6 @@ import {
   SlidePanelFooter,
 } from '@renderer/features/presentation/SlidePanel';
 import {SlideSizeControl} from '@renderer/platform/SlideSizeControl';
-import {useRetainedShownGrid} from '@renderer/session/shownItem';
 
 vi.mock(
   '@renderer/rendering/pictures/Picture',
@@ -176,78 +168,6 @@ describe('SlidePanelMeta', () => {
 });
 
 describe('SlidePanelBody', () => {
-  it('reports a previously shown grid as retained until it unmounts', async () => {
-    function Probe() {
-      const retained = useRetainedShownGrid(
-        useShow.getState().serviceId,
-        'song-morning',
-      );
-      return <output data-testid="retained">{String(retained)}</output>;
-    }
-    openItem('song-morning');
-    const view = render(
-      <>
-        <SlidePanelBody sizeClass="normal" />
-        <Probe />
-      </>,
-    );
-    const grid = await screen.findByRole('listbox', {name: '슬라이드'});
-    const tiles = [...grid.querySelectorAll('[role="option"]')];
-    expect(tiles.length).toBeGreaterThan(0);
-    expect(screen.getByTestId('retained').textContent).toBe('false');
-    const pictures = tiles.map(tile => {
-      const picture = document.createElement('div');
-      picture.setAttribute('data-preview-ready', 'true');
-      tile.append(picture);
-      return picture;
-    });
-    const picture = pictures[0];
-    if (picture === undefined) throw new Error('Missing slide picture');
-    await waitFor(() =>
-      expect(screen.getByTestId('retained').textContent).toBe('true'),
-    );
-    act(() => picture.setAttribute('data-preview-ready', 'false'));
-    await waitFor(() =>
-      expect(screen.getByTestId('retained').textContent).toBe('false'),
-    );
-    act(() => picture.setAttribute('data-preview-ready', 'true'));
-    await waitFor(() =>
-      expect(screen.getByTestId('retained').textContent).toBe('true'),
-    );
-    act(() => picture.removeAttribute('data-preview-ready'));
-    await waitFor(() =>
-      expect(screen.getByTestId('retained').textContent).toBe('false'),
-    );
-    act(() => picture.setAttribute('data-preview-ready', 'true'));
-    await waitFor(() =>
-      expect(screen.getByTestId('retained').textContent).toBe('true'),
-    );
-    act(() => openItem('song-river'));
-    expect(screen.getByTestId('retained').textContent).toBe('true');
-    view.unmount();
-    render(<Probe />);
-    expect(screen.getByTestId('retained').textContent).toBe('false');
-  });
-
-  it('keeps each visited item grid mounted while switching items', async () => {
-    openItem('song-morning');
-    const {container} = renderPanel('normal');
-    const first = await screen.findByRole('listbox', {name: '슬라이드'});
-    act(() => openItem('song-river'));
-    await waitFor(() =>
-      expect(screen.getByRole('listbox', {name: '슬라이드'})).not.toBe(first),
-    );
-    expect(first.isConnected).toBe(true);
-    expect(
-      first.closest('[data-slide-grid-cache]')?.getAttribute('aria-hidden'),
-    ).toBe('true');
-    act(() => openItem('song-morning'));
-    expect(await screen.findByRole('listbox', {name: '슬라이드'})).toBe(first);
-    expect(
-      container.querySelectorAll('[data-slide-grid-cache]').length,
-    ).toBeGreaterThanOrEqual(2);
-  });
-
   it('fills the columns of its size class until the grid is measured', () => {
     vi.stubGlobal('ResizeObserver', undefined);
     openItem('song-morning');

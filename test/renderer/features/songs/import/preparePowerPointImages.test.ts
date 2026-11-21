@@ -5,7 +5,6 @@ import {
   type PowerPointPreviewProgress,
 } from '@renderer/features/songs/import/preparePowerPointImages';
 import {lendPreviewImage} from '@renderer/rendering/previewMedia';
-import {thumbnailPowerPointImage} from '@renderer/features/songs/import/thumbnailPowerPointImage';
 
 vi.mock('@renderer/rendering/previewMedia', () => ({
   lendPreviewImage: vi.fn(),
@@ -19,35 +18,6 @@ vi.mock('@renderer/features/songs/import/composePowerPointBackground', () => ({
     bytes: new Uint8Array([1]),
   })),
 }));
-
-it('keeps full backgrounds without preparing preview thumbnails for direct import', async () => {
-  vi.mocked(lendPreviewImage).mockClear();
-  vi.mocked(thumbnailPowerPointImage).mockClear();
-  const api = mockLlpApi({
-    powerpoint: {
-      decorationBatch: async () => [{index: 0, path: 'temporary.png'}],
-      previewImage: async () => ({
-        mime: 'image/png',
-        bytes: new Uint8Array([1]),
-      }),
-      release: async () => true,
-    },
-  });
-  const result = await preparePowerPointImages(
-    api,
-    [{number: 1, shapes: [], background: 'one'}],
-    {
-      active: () => true,
-      progress: () => undefined,
-      previews: false,
-    },
-  );
-  expect(result?.full.get('one')?.type).toBe('image/png');
-  expect(result?.ids.size).toBe(0);
-  expect(thumbnailPowerPointImage).not.toHaveBeenCalled();
-  expect(lendPreviewImage).not.toHaveBeenCalled();
-  result?.release();
-});
 
 it('reuses one composed ZIP picture for repeated full-slide backgrounds', async () => {
   vi.mocked(lendPreviewImage).mockReturnValue({

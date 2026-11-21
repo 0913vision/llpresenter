@@ -41,7 +41,6 @@ import {TableDataKeeper} from '@renderer/features/service/table/useServiceTableD
 import {PrepPictureSwitch} from '@renderer/rendering/PrepPictureSwitch';
 import {ShownItemProvider} from '@renderer/session/shownItem';
 import {returnFocus} from '@renderer/ui/returnFocus';
-import {KeptPrepFrames} from './KeptPrepFrames';
 
 const ignoreProblem = (): void => undefined;
 
@@ -267,24 +266,20 @@ export function Workspace({
           inert={visibleId !== 'prep'}
           aria-hidden={visibleId !== 'prep'}
         >
-          <KeptPrepFrames identity={prepPanels.pictureIdentity ?? 'table'}>
-            <ShownItemProvider
-              shownItem={
-                prepPanels.shownItem === undefined
-                  ? prepItemId
-                  : prepPanels.shownItem
-              }
-            >
-              <PrepPictureSwitch
-                identity={prepPanels.pictureIdentity ?? 'table'}
-              >
-                {columnFrame('prep', prepPanels, {
-                  collapsed: false,
-                  visible: visibleId === 'prep',
-                })}
-              </PrepPictureSwitch>
-            </ShownItemProvider>
-          </KeptPrepFrames>
+          <ShownItemProvider
+            shownItem={
+              prepPanels.shownItem === undefined
+                ? prepItemId
+                : prepPanels.shownItem
+            }
+          >
+            <PrepPictureSwitch identity={prepPanels.pictureIdentity ?? 'table'}>
+              {columnFrame('prep', prepPanels, {
+                collapsed: false,
+                visible: visibleId === 'prep',
+              })}
+            </PrepPictureSwitch>
+          </ShownItemProvider>
         </div>
         {visibleId === 'screens' ? (
           <div className={styles.frameSlot}>
