@@ -158,7 +158,18 @@ describe('ClearRow', () => {
     const undo = screen.getByRole('button', {name: '되돌리기'});
     expect(undo.getAttribute('aria-disabled')).toBe('true');
     expect(undo.getAttribute('data-state')).toBe('off');
-    expect(group.querySelector('[aria-hidden="true"]')).not.toBeNull();
+    const dividers = group.querySelectorAll(':scope > [aria-hidden="true"]');
+    expect(dividers).toHaveLength(2);
+    expect(
+      dividers[0]?.previousElementSibling?.getAttribute('aria-label'),
+    ).toBe('대기 화면으로');
+    expect(dividers[0]?.nextElementSibling?.getAttribute('aria-label')).toBe(
+      '모두 지우기',
+    );
+    expect(dividers[1]?.nextElementSibling?.getAttribute('aria-label')).toBe(
+      '되돌리기',
+    );
+    expect(dividers[0]?.className).toBe(dividers[1]?.className);
     fireEvent.click(undo);
     expect(useLive.getState().state).toBe(state);
     expect(sent).toEqual([]);
@@ -195,7 +206,7 @@ describe('ClearRow', () => {
     expect(
       [...group.querySelectorAll('button')].at(-1)?.getAttribute('aria-label'),
     ).toBe('되돌리기');
-    expect(group.querySelectorAll('[aria-hidden="true"]')).toHaveLength(1);
+    expect(group.querySelectorAll('[aria-hidden="true"]')).toHaveLength(2);
     expect(useLive.getState().state).toBe(state);
     expect(sent).toEqual([]);
   });
@@ -311,12 +322,14 @@ describe('ClearRow', () => {
       const standby = screen.getByRole('button', {name: '대기 화면으로'});
       const all = screen.getByRole('button', {name: '모두 지우기'});
       expect([...standby.classList]).toContain(styles.standby);
-      expect(standby.nextElementSibling).toBe(all);
+      const divider = standby.nextElementSibling;
+      expect(divider?.className).toBe(styles.divider);
+      expect(divider?.nextElementSibling).toBe(all);
       const rules = cssRules(
         'src/renderer/src/features/presentation/ClearRow.module.css',
       );
       expect(rules('.row')).toContain('gap: var(--space-4)');
-      expect(rules('.standby')).toContain('margin-inline-end: var(--space-8)');
+      expect(rules('.divider')).toContain('background: var(--line)');
       expect(rules('.compact .standby')).not.toContain('margin');
     },
   );

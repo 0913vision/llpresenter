@@ -7,6 +7,7 @@ import type {SettingsEdit} from '@core/schema/settingsDocuments';
 import {shortcutCommands} from '@core/shortcuts/registry';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {MenuBar} from '@renderer/app/shell/MenuBar';
+import {Toolbar} from '@renderer/app/shell/Toolbar';
 import {renderWithScreenSummaries as render} from '@fixtures/renderer/platform/screenSummaries';
 import {
   NOTHING_TO_REDO,
@@ -32,6 +33,41 @@ afterEach(() => {
   editText.mockReset();
   cleanup();
   delete window.llp;
+});
+
+it('keeps undo and redo in the menu bar through every workspace', () => {
+  const content = (workspace: 'show' | 'prep' | 'screens') => (
+    <>
+      <MenuBar title="" />
+      <Toolbar sizeClass="wide" workspace={workspace} onWorkspace={vi.fn()} />
+    </>
+  );
+  const view = render(content('show'));
+  const bar = document.querySelector<HTMLElement>('[data-window-menu-bar]');
+  if (!bar) throw Error('Missing menu bar');
+  const undo = within(bar).getByRole('button', {
+    name: '실행 취소',
+  });
+  const redo = within(bar).getByRole('button', {
+    name: '다시 실행',
+  });
+  const tabs = document.querySelector('[data-workspace-toolbar]');
+  expect(undo.getAttribute('aria-disabled')).toBe('true');
+  expect(redo.getAttribute('aria-disabled')).toBe('true');
+  for (const workspace of ['prep', 'screens', 'show'] as const) {
+    view.rerender(content(workspace));
+    expect(
+      within(bar).getByRole('button', {
+        name: '실행 취소',
+      }),
+    ).toBe(undo);
+    expect(
+      within(bar).getByRole('button', {
+        name: '다시 실행',
+      }),
+    ).toBe(redo);
+    expect(document.querySelector('[data-workspace-toolbar]')).toBe(tabs);
+  }
 });
 
 function History({

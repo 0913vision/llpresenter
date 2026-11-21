@@ -1,8 +1,5 @@
 .group {
   display: flex;
-  gap: var(--space-1);
-}
-.redo svg,
-.redo [aria-hidden='true'] {
-  transform: scaleX(-1);
+  gap: var(--space-2);
+  -webkit-app-region: no-drag;
 }

@@ -52,7 +52,6 @@
 .standby {
   flex: 1.4;
   min-width: max-content;
-  margin-inline-end: var(--space-8);
 }
 
 .all {
@@ -118,14 +117,13 @@
     height: var(--size-clear-button-compact);
   }
 
-  .button:not(.all) .label {
+  .button .label {
     display: none;
   }
 
   .standby {
     flex: 1;
     min-width: 0;
-    margin-inline-end: 0;
   }
 
   .divider {

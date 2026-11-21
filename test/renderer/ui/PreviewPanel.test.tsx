@@ -20,6 +20,30 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe('shared preview panel', () => {
+  it('shows one picture with its screen picker below in the original layout', () => {
+    const select = vi.fn();
+    const {container} = render(
+      <PreviewPanel
+        screens={screens}
+        big="audience"
+        visible={false}
+        onVisibleChange={vi.fn()}
+        onBigChange={select}
+        renderScreen={entry => <span>{entry.id}</span>}
+      />,
+    );
+    expect(
+      container.querySelector('[data-role="large"]')?.textContent,
+    ).toContain('audience');
+    expect(container.querySelectorAll('[data-preview-slot]')).toHaveLength(0);
+    const picker = screen.getByRole('radiogroup', {name: '미리보기 화면'});
+    expect(
+      container.querySelector('[data-preview-extra]')?.contains(picker),
+    ).toBe(true);
+    fireEvent.click(screen.getByRole('radio', {name: '무대 화면'}));
+    expect(select).toHaveBeenCalledWith('stage');
+    expect(screen.queryByRole('radio', {name: '3개 작게'})).toBeNull();
+  });
   it('offers two named layout modes for live previews', () => {
     const change = vi.fn();
     render(
@@ -32,9 +56,9 @@ describe('shared preview panel', () => {
         renderScreen={() => null}
       />,
     );
-    fireEvent.click(screen.getByRole('radio', {name: '3개 작게'}));
+    fireEvent.click(screen.getByRole('radio', {name: '한 화면'}));
     expect(change).toHaveBeenCalledWith(false);
-    expect(screen.getByRole('radio', {name: '메인 1 + 2'})).toBeDefined();
+    expect(screen.getByRole('radio', {name: '세 화면'})).toBeDefined();
   });
   it('keeps adjustable show tiles and resets the saved split on double click', () => {
     vi.mocked(usePreviewRoom).mockReturnValue(false);
@@ -116,11 +140,11 @@ describe('shared preview panel', () => {
       </PreviewSizingContext.Provider>
     );
     const view = render(panel(true));
-    fireEvent.click(screen.getByRole('radio', {name: '3개 작게'}));
+    fireEvent.click(screen.getByRole('radio', {name: '한 화면'}));
     expect(save).toHaveBeenLastCalledWith(0.667);
     expect(change).toHaveBeenLastCalledWith(false);
     view.rerender(panel(false));
-    fireEvent.click(screen.getByRole('radio', {name: '메인 1 + 2'}));
+    fireEvent.click(screen.getByRole('radio', {name: '세 화면'}));
     expect(save).toHaveBeenCalledTimes(2);
     expect(save).toHaveBeenLastCalledWith(0.667);
     expect(change).toHaveBeenLastCalledWith(true);

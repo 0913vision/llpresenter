@@ -140,6 +140,7 @@ export function ClearRow({compact}: {readonly compact: boolean}): JSX.Element {
       className={compact ? `${styles.row} ${styles.compact}` : styles.row}
     >
       <ItemOffButton compact={compact} />
+      <span className={styles.divider} aria-hidden="true" />
       {clearButtons.map(spec => (
         <ClearButton key={spec.target} spec={spec} compact={compact} />
       ))}

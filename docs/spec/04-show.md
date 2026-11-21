@@ -195,10 +195,10 @@ Source: `ServiceSwitch`, `Main` decision "예배 순서 바꾸기", `Panel` READ
 
 ### Header
 
-- Left: the item name (song title) and a position. If the item in the 슬라이드
-  panel is the current item, show "live 슬라이드 position / total", for example
-  "2 / 9". Otherwise, show the 슬라이드 count, for example "슬라이드 9개"
-  (proposal).
+- The header shows the open item name and, when live, the current position /
+  total. This applies to every item kind. Do not prepend the generic panel name
+  `슬라이드`. If no item is open, leave the header empty.
+
 - The header has no background select: 진행 only outputs, and a song item's
   background is changed in 준비.
 - Only an actual missing background reference produces the amber warning. No
@@ -471,6 +471,11 @@ each preview follows ProPresenter's rule: it shows what goes out.
   (design system README).
 
 ### Layout and states
+
+- The layout selector sits at the right end of the preview header. It offers
+  exactly `한 화면` (one large picture with the screen picker below) and
+  `세 화면` (one large picture and the other two small). Choosing a screen never
+  changes the selected layout or sends an output command.
 
 - The panel shows one of the three screens large and the other two small. The
   small ones are always in the order 청중 화면, 무대 화면, 방송 화면, without
@@ -1052,8 +1057,8 @@ integration use this contract, with a distinct cancellable ID per lookup.
 
 ### Bible panel
 
-- Header: the passage ("요한복음 3:16-18") and the 슬라이드 count ("슬라이드
-  3개").
+- Header: the passage reference, without a generic panel name or slide count.
+
 - Settings row: the installed translation select (개역한글) and AI status as one
   group, followed by 절 번호 (verse numbers) and 역본 이름 (translation name).
   - Beside the translation, a 6px dot and AI 켜짐, AI 켜는 중, or AI 꺼짐 show

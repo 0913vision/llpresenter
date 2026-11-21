@@ -67,23 +67,21 @@ export function HistoryButtons(): JSX.Element {
   return (
     <div className={styles.group} data-history-buttons>
       <IconButton
-        icon="undo"
+        icon="arrow-u-up-left"
         label="실행 취소"
         shortcut="Ctrl Z"
         disabled={!canRun('edit.undo')}
         onMouseDown={event => event.preventDefault()}
         onClick={() => run('undo')}
       />
-      <span className={styles.redo}>
-        <IconButton
-          icon="undo"
-          label="다시 실행"
-          shortcut="Ctrl Y"
-          disabled={!canRun('edit.redo')}
-          onMouseDown={event => event.preventDefault()}
-          onClick={() => run('redo')}
-        />
-      </span>
+      <IconButton
+        icon="arrow-u-up-right"
+        label="다시 실행"
+        shortcut="Ctrl Y"
+        disabled={!canRun('edit.redo')}
+        onMouseDown={event => event.preventDefault()}
+        onClick={() => run('redo')}
+      />
     </div>
   );
 }

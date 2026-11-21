@@ -73,7 +73,7 @@ afterEach(async () => {
 });
 
 it('lets the focus fall to the body after a click, so Space is the next slide', async () => {
-  applyService(sampleService);
+  applyService({...sampleService, id: '00000000-0000-4000-8000-000000000001'});
   const {send} = setup(NARROW.width, NARROW.height);
   await userEvent.click(screen.getByRole('option', {name: /아침이 밝아 오네/}));
   await userEvent.click(screen.getByRole('button', {name: COLLAPSE}));

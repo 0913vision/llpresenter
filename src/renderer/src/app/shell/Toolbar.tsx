@@ -6,7 +6,6 @@ import {useScreenSummaries} from '../../platform/ScreenSummaries';
 import {OutputOverflow} from './OutputOverflow';
 import {ThemeMenu} from './ThemeMenu';
 import {ToolbarSearch} from './ToolbarSearch';
-import {HistoryButtons} from './HistoryButtons';
 import type {Notice} from '@renderer/ui/notices';
 import type {SizeClass} from '../../ui/sizeClass';
 import styles from './Toolbar.module.css';
@@ -87,7 +86,6 @@ export function Toolbar({
 
   return (
     <header className={barClass} data-workspace-toolbar>
-      {workspace === 'show' ? null : <HistoryButtons />}
       <ToolbarTabs
         tabs={workspaceTabs}
         value={workspace}
