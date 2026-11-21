@@ -357,9 +357,9 @@ it('offers one sermon title theme with automatic bars', () => {
   const broadcast =
     theme?.screens[createScreenId(STARTER_SCREEN_IDS.broadcast)];
   expect(broadcast?.elements).toMatchObject([
-    {kind: 'box', frame: {y: 748, h: 242}, box: {fill: '#000000', opacity: 88}},
-    {kind: 'itemName', frame: {y: 781}, text: {size: 38, align: 'center'}},
-    {kind: 'currentText', text: {size: 64, align: 'center'}},
+    {kind: 'box', frame: {y: 797, h: 193}, box: {fill: '#000000', opacity: 88}},
+    {kind: 'itemName', frame: {y: 834}, text: {size: 38, align: 'center'}},
+    {kind: 'currentText', frame: {y: 844}, text: {size: 64, align: 'center'}},
   ]);
   const stage = theme?.screens[createScreenId(STARTER_SCREEN_IDS.stage)];
   expect(stage?.elements.some(element => element.kind === 'reference')).toBe(
