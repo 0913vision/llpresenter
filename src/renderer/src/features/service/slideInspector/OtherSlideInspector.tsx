@@ -163,7 +163,10 @@ function OtherRolePicture({
     );
   } else if (mode === 'card' && card !== undefined && cardTheme !== undefined) {
     picture = (
-      <SlidePicture {...cardTheme} slide={cardPictureLayer(item.id, card, item.textOverrides?.['section'])} />
+      <SlidePicture
+        {...cardTheme}
+        slide={cardPictureLayer(item.id, card, item.textOverrides?.['section'])}
+      />
     );
   } else if (
     mode === 'liturgy' &&
