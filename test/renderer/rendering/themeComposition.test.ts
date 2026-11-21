@@ -215,7 +215,7 @@ describe('theme composition drawing', () => {
         emptyColor: '#000000',
         screen: {id, kind, method: 'fullscreen' as const},
       };
-      const {view, text} = setup();
+      const {root, view, text} = setup();
       function draw(source: typeof tiles) {
         const slide = slideLayerOf(cursor, () => source);
         if (!slide) throw Error('Missing slide');
@@ -234,10 +234,19 @@ describe('theme composition drawing', () => {
       }
       const automatic = draw(tiles);
       const overrides = {
-        [key]: {reference: 'Edited reference', currentText: 'Edited body'},
+        [key]: {
+          reference: 'Edited reference',
+          currentText: 'First line\nSecond line',
+        },
       };
       expect(draw(textOverridesForTiles(tiles, overrides))).not.toBe(automatic);
-      expect(text('currentText')).toContain('Edited body');
+      const rows = root.querySelectorAll(
+        `[data-kind="currentText"] .${classes.shown} .${classes.block} > div`,
+      );
+      expect(Array.from(rows, row => row.textContent)).toEqual([
+        'First line',
+        'Second line',
+      ]);
       expect(text('reference')).toBe('Edited reference');
       const referenceKey = `${theme.id}/shared/reference`;
       const manualBlank = editedSlideText(overrides, {
@@ -267,7 +276,13 @@ describe('theme composition drawing', () => {
       );
       draw(textOverridesForTiles(tiles, restored));
       expect(text('reference')).toBe(passage.displayRef);
-      expect(text('currentText')).toContain('Edited body');
+      const restoredRows = root.querySelectorAll(
+        `[data-kind="currentText"] .${classes.shown} .${classes.block} > div`,
+      );
+      expect(Array.from(restoredRows, row => row.textContent)).toEqual([
+        'First line',
+        'Second line',
+      ]);
       view.dispose();
     },
   );

@@ -54,7 +54,7 @@ beforeEach(() => {
 afterEach(() => vi.restoreAllMocks());
 
 describe('built-in broadcast look', () => {
-  it('preserves manual scripture and song line breaks in broadcast text', () => {
+  it('fits manual scripture with authored line breaks', () => {
     const bibleLayout = plain();
     const manualLayout = {
       ...bibleLayout,
@@ -66,15 +66,18 @@ describe('built-in broadcast look', () => {
     expect(element(bible, BROADCAST_TEXT_ID)).toMatchObject({
       frame: {h: 154},
     });
-    const songLayout = builtInTheme('song').screens[screen];
-    if (!songLayout) throw Error('missing song');
-    const song = fitBroadcastLook(
-      songLayout,
+  });
+  it('folds three song lines into the existing two-line broadcast layout', () => {
+    const layout = builtInTheme('song').screens[screen];
+    if (!layout) throw Error('missing song');
+    const result = fitBroadcastLook(
+      layout,
       {...slide, lines: ['First', 'Second', 'Third']},
       {...item, kind: 'song'},
     );
-    expect(element(song, BROADCAST_LOOK_SONG_ID)).toMatchObject({
-      broadcastText: 'First\nSecond\nThird',
+    expect(element(result, BROADCAST_LOOK_SONG_ID)).toMatchObject({
+      broadcastText: 'First Second Third',
+      text: {maxLines: 2},
     });
   });
   it('fits line boxes rather than glyph overflow for songs and Bible passages', () => {

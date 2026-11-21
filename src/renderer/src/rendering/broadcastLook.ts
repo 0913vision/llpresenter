@@ -258,8 +258,11 @@ function fitSong(
     intent.songTitle ??
     themeElementText(body, {layers: {...emptyLayers(), slide}, item}) ??
     '';
-  const value =
+  let value =
     slide?.titleSlide === true ? (raw.split('\n')[0]?.trim() ?? '') : raw;
+  if (value.split('\n').length > geometry.songLines) {
+    value = value.replace(/\s*\n\s*/gu, ' ');
+  }
   const lyricX = geometry.songX;
   const lyricWidth = geometry.songWidth;
   const fitted = fittedText({
