@@ -127,6 +127,7 @@ const showRowSchema = v.pipe(
       id,
       title: v.string(),
       form: v.picklist(['blank', 'ad']),
+      standby: v.exactOptional(v.literal(true)),
       textOverrides: v.exactOptional(itemTextOverridesSchema),
       liturgy: v.exactOptional(
         payloadObject({

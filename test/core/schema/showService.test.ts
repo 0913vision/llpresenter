@@ -41,6 +41,14 @@ it('accepts an optional song theme and rejects malformed theme identities', () =
 });
 
 describe('parseShowService', () => {
+  it('accepts only the standby marker on a slides row', () => {
+    const row = {kind: 'slides', id: 'item', title: 'Item', form: 'blank'};
+    const parse = (standby: unknown) =>
+      parseShowService({...showService(), rows: [{...row, standby}]});
+    expect(parse(true).ok).toBe(true);
+    expect(parse(false).ok).toBe(false);
+    expect(parse('true').ok).toBe(false);
+  });
   it('validates the bounded liturgy identity on projected rows', () => {
     const row = {
       kind: 'slides',

@@ -49,6 +49,30 @@ import {
 const MISSING_SONG_ID = '0f0f0f0f-0f0f-4f0f-8f0f-0f0f0f0f0f0f';
 const MEDIA_ID = '3b9d0c52-7e1f-4a2b-8c3d-4e5f60718293';
 
+it('projects standby identity from its designated theme independently of names', () => {
+  const standbyThemeId = createThemeId('00000000-0000-4000-8000-000000000100');
+  const blank = slidesItem('blank');
+  const renamed = {
+    ...blank,
+    theme: standbyThemeId,
+    slides: {...blank.slides, name: '변경한 이름'},
+  };
+  const ordinary = {
+    ...blank,
+    id: createServiceItemId(itemId(2)),
+    slides: {...blank.slides, name: '대기 화면'},
+  };
+  const result = buildShowService({
+    service: loadedService([renamed, ordinary]),
+    songs: new Map(),
+    labels: [],
+    revision: 1,
+    standbyThemeId,
+  });
+  expect(result.rows[0]).toMatchObject({standby: true});
+  expect(result.rows[1]).not.toHaveProperty('standby');
+});
+
 it('uses an inherited song background for every slide and restores pictures when cleared', () => {
   const background = createMediaId(MEDIA_ID);
   const picture = createMediaId('00000000-0000-4000-8000-000000000123');

@@ -316,12 +316,16 @@ export class OpenServiceFeed {
       passages === undefined
         ? new Set<string>()
         : this.scheduleLive(service.data.order, passages.unavailable);
+    const themes = this.sources.settings?.get('themes');
     const built = buildShowService({
       service,
       serviceRevision: service.revision,
       songs,
       labels,
       revision: FIRST_REVISION,
+      ...(themes?.name === 'themes'
+        ? {standbyThemeId: themes.value.standby.id}
+        : {}),
       backgrounds,
       ...(mediaById === undefined ? {} : {media: mediaById}),
       ...(passages === undefined ? {} : {passages}),

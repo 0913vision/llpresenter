@@ -935,8 +935,9 @@ describe('show state', () => {
         {
           kind: 'slides',
           id: 'waiting',
-          title: '대기 화면',
+          title: '변경한 이름',
           form: 'blank',
+          standby: true,
         },
       ],
       tiles: {

@@ -45,6 +45,7 @@ export interface ShowServiceSources {
   readonly passages?: ServicePassages;
   /** The media list by id, for the names and kinds of media items. */
   readonly media?: ReadonlyMap<string, MediaItem>;
+  readonly standbyThemeId?: string | undefined;
 }
 
 export interface ProjectedSongTiles {
@@ -67,6 +68,7 @@ export function buildShowService({
   backgrounds = new Map(),
   passages,
   media,
+  standbyThemeId,
 }: ShowServiceSources): ShowService {
   const {id, name, order} = service.data;
   const colors = new Map(
@@ -139,6 +141,7 @@ export function buildShowService({
     passages,
     media,
     serviceRevision,
+    standbyThemeId,
   };
   return {
     revision,
@@ -151,6 +154,7 @@ export function buildShowService({
 }
 
 interface RowSources {
+  readonly standbyThemeId: string | undefined;
   readonly serviceRevision: number | undefined;
   readonly songs: SongLibrary;
   readonly backgrounds: ReadonlyMap<string, MediaChoice>;
@@ -286,6 +290,9 @@ function rowOf(item: ServiceItem, sources: RowSources): ShowRow {
       id,
       title: item.slides.name,
       form: item.slides.form,
+      ...(item.theme !== undefined && item.theme === sources.standbyThemeId
+        ? {standby: true as const}
+        : {}),
       ...(item.textOverrides === undefined
         ? {}
         : {textOverrides: item.textOverrides}),
