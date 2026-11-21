@@ -118,7 +118,9 @@ function fitBand(
   const raw = manual ?? themeElementText(body, content) ?? '';
   const value =
     scripture && slide !== null && raw.trim()
-      ? broadcastBibleFlow(manual === undefined ? slide.lines : manual.split('\n'))
+      ? broadcastBibleFlow(
+          manual === undefined ? slide.lines : manual.split('\n'),
+        )
       : raw;
   const referenceElement = layout.elements.find(
     e => e.id === BROADCAST_REFERENCE_ID,
