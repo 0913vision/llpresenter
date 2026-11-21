@@ -210,20 +210,23 @@ function stageElements(kind: ThemeItemKind = 'song'): ThemeElement[] {
               ? {align: 'left' as const, vAlign: 'top' as const}
               : {}),
           },
-          ...(kind === 'bible' || kind === 'ad'
-            ? {
-                frame: {
-                  ...base.frame,
-                  y: kind === 'ad' ? 240 : 230,
-                  h: kind === 'ad' ? 458 : 468,
-                },
-              }
-            : {}),
+          ...(kind === 'song'
+            ? {frame: {x: 96, y: 130, w: 1728, h: 562}}
+            : kind === 'bible' || kind === 'ad'
+              ? {
+                  frame: {
+                    ...base.frame,
+                    y: kind === 'ad' ? 240 : 230,
+                    h: kind === 'ad' ? 458 : 468,
+                  },
+                }
+              : {}),
         };
       case 'nextSlide':
         return {
           ...base,
           kind: 'nextText',
+          ...(kind === 'song' ? {frame: {x: 96, y: 748, w: 1728, h: 272}} : {}),
           lineLimit: 2,
           text: {
             ...text,
@@ -451,12 +454,14 @@ export function builtInTheme(
               element.kind === 'currentText'
                 ? {
                     ...element,
-                    frame: {...element.frame, w: 1660, h: 500},
+                    frame: {...element.frame, x: 96, w: 1728, h: 552},
                     text: {...element.text, tracking: -3},
                   }
                 : element.kind === 'nextText'
-                  ? {...element, frame: {...element.frame, y: 786, h: 192}}
-                  : element,
+                  ? {...element, frame: {x: 96, y: 844, w: 1728, h: 176}}
+                  : element.kind === 'reference'
+                    ? {...element, frame: {...element.frame, x: 96, w: 1728}}
+                    : element,
             ),
           },
         ];

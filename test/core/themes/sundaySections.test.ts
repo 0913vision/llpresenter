@@ -145,9 +145,10 @@ it('adds an editable section theme without changing the kind defaults or other s
   for (const kind of ['nextText'] as const) {
     expect(
       stageLayout?.elements.find(element => element.kind === kind),
-    ).toMatchObject(
-      ordinaryStage?.elements.find(element => element.kind === kind) ?? {},
-    );
+    ).toMatchObject({
+      ...ordinaryStage?.elements.find(element => element.kind === kind),
+      frame: {x: 154, y: 706, w: 1612, h: 272},
+    });
   }
   expect(
     stageLayout?.elements.filter(
