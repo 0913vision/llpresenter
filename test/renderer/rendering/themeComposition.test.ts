@@ -3499,47 +3499,6 @@ it('renders only the section name in the fading NDI band', () => {
   view.dispose();
 });
 
-it('hides the next item on stage only at the end of a Bible item', () => {
-  const {root, view} = setup();
-  const slide = song.slide;
-  if (slide === null) throw Error('Missing slide');
-  const elements: ThemeElement[] = [
-    {...themeElementBase(31), kind: 'nextText'},
-    {...themeElementBase(32), kind: 'nextLabel'},
-  ];
-  const render = (
-    kind: 'bible' | 'song',
-    position: number,
-    screen: 'stage' | 'audience',
-  ) => {
-    view.render(
-      {...song, slide: {...slide, kind, position, sequenceLength: 2}},
-      {
-        ...frame(elements, {item: {id: 'invented', kind, source: 'service'}}),
-        screen: {id: THEME_MAIN, kind: screen},
-        transitions: false,
-      },
-    );
-  };
-  const nextText = () =>
-    root.querySelector(`[data-kind="nextText"] .${classes.shown}`)
-      ?.textContent ?? '';
-  const nextLabel = () =>
-    root.querySelector(`[data-kind="nextLabel"] .${classes.shown}`)
-      ?.textContent ?? '';
-  render('bible', 0, 'stage');
-  expect(nextText()).toContain('Invented next');
-  expect(nextLabel()).toContain('Chorus');
-  render('bible', 1, 'stage');
-  expect(nextText()).not.toContain('Invented next');
-  expect(nextLabel()).not.toContain('Chorus');
-  render('song', 1, 'stage');
-  expect(nextText()).toContain('Invented next');
-  render('bible', 1, 'audience');
-  expect(nextText()).toContain('Invented next');
-  view.dispose();
-});
-
 it('refits the current Bible item when output fonts finish loading', () => {
   const descriptor = Object.getOwnPropertyDescriptor(document, 'fonts');
   const fonts = new EventTarget();
@@ -4238,6 +4197,53 @@ it('shows only an adjacent sermon title on stage after the last Bible slide', ()
   expect(
     root.querySelector<HTMLElement>('[data-kind="nextText"]')?.hidden,
   ).toBe(true);
+  view.dispose();
+});
+
+it('reserves the larger next reference only when it is present', () => {
+  const {root, view} = setup();
+  const layout =
+    currentBuiltInTheme('song').screens[
+      createScreenId(STARTER_SCREEN_IDS.stage)
+    ];
+  const slide = song.slide;
+  if (!layout || slide === null) throw Error('Missing stage layout');
+  const active = {
+    ...frame(layout.elements, {
+      layout,
+      item: {id: 'invented', kind: 'song', source: 'service'},
+    }),
+    screen: {id: THEME_MAIN, kind: 'stage' as const},
+    transitions: false,
+  };
+  const draw = (reference?: string) =>
+    view.render(
+      {
+        ...song,
+        slide: {
+          ...slide,
+          next: {
+            label: null,
+            lines: ['Next'],
+            ...(reference === undefined ? {} : {stageReference: reference}),
+          },
+        },
+      },
+      active,
+    );
+  const current = () =>
+    root.querySelector<HTMLElement>('[data-kind="currentText"]');
+  draw();
+  expect(current()?.style.height).toBe('610px');
+  draw('John 3:17');
+  expect(Number.parseFloat(current()?.style.height ?? '')).toBeCloseTo(547.6);
+  const address = root.querySelector<HTMLElement>(
+    '[data-stage-next-reference]',
+  );
+  expect(address?.style.fontSize).toBe('52px');
+  expect(address?.textContent).toBe('John 3:17');
+  draw();
+  expect(current()?.style.height).toBe('610px');
   view.dispose();
 });
 

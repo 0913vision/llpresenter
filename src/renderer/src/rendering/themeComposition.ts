@@ -8,7 +8,11 @@ import type {LiveThemeItem} from '@core/schema/liveTheme';
 import type {ThemeScreenLayout} from '@core/schema/themes';
 import {classes} from './classes';
 import type {RenderFrame, RenderLayerOptions, ThemeFrame} from './layer';
-import {ThemeElementView} from './themeElement';
+import {
+  STAGE_NEXT_REFERENCE_LINE_HEIGHT,
+  STAGE_NEXT_REFERENCE_SIZE,
+  ThemeElementView,
+} from './themeElement';
 import {BackgroundLayerView} from './backgroundLayer';
 import {positionFollowingBoxes} from './themeFollow';
 import {ThemeGaps} from './themeGaps';
@@ -462,6 +466,39 @@ export class ThemeCompositionView {
       stageBarLayout(source, {stage, message: null, item: theme.item}),
       stage ? null : slide,
     );
+    // NOTE(0913vision): Reserve the next passage address only when present.
+    if (stage && slide?.next?.stageReference) {
+      const next = layout.elements.find(element => element.kind === 'nextText');
+      if (
+        next?.frame.x === 96 &&
+        next.frame.w === 1728 &&
+        (next.frame.y === 748 || next.frame.y === 828)
+      ) {
+        const limit =
+          next.frame.y -
+          STAGE_NEXT_REFERENCE_SIZE * STAGE_NEXT_REFERENCE_LINE_HEIGHT -
+          8;
+        layout = {
+          ...layout,
+          elements: layout.elements.map(element =>
+            element.kind === 'currentText' &&
+            element.frame.x === 96 &&
+            element.frame.w === 1728
+              ? {
+                  ...element,
+                  frame: {
+                    ...element.frame,
+                    h: Math.min(
+                      element.frame.h,
+                      Math.max(0, limit - element.frame.y),
+                    ),
+                  },
+                }
+              : element,
+          ),
+        };
+      }
+    }
     if (stage) {
       layout = stageLyricLabelLayout(
         layout,

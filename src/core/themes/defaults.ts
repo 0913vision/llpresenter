@@ -211,7 +211,7 @@ function stageElements(kind: ThemeItemKind = 'song'): ThemeElement[] {
               : {}),
           },
           ...(kind === 'song'
-            ? {frame: {x: 96, y: 130, w: 1728, h: 562}}
+            ? {frame: {x: 96, y: 130, w: 1728, h: 610}}
             : kind === 'bible' || kind === 'ad'
               ? {
                   frame: {
@@ -458,7 +458,7 @@ export function builtInTheme(
                     text: {...element.text, tracking: -3},
                   }
                 : element.kind === 'nextText'
-                  ? {...element, frame: {x: 96, y: 844, w: 1728, h: 176}}
+                  ? {...element, frame: {x: 96, y: 828, w: 1728, h: 192}}
                   : element.kind === 'reference'
                     ? {...element, frame: {...element.frame, x: 96, w: 1728}}
                     : element,

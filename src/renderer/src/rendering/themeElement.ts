@@ -122,6 +122,9 @@ const SLIDE_ELEMENT_KINDS: readonly string[] = [
 ];
 
 /** One persistent element with owned text pages, images, and video decoders. */
+export const STAGE_NEXT_REFERENCE_SIZE = 52;
+export const STAGE_NEXT_REFERENCE_LINE_HEIGHT = 1.2;
+
 export class ThemeElementView {
   private readonly box = document.createElement('div');
   private readonly stageReference = document.createElement('div');
@@ -185,8 +188,11 @@ export class ThemeElementView {
         width: '100%',
         color: STAGE_COLORS.next,
         fontFamily: 'NanumSquare, sans-serif',
-        fontSize: '40px',
-        lineHeight: '1.2',
+        fontSize: `${STAGE_NEXT_REFERENCE_SIZE}px`,
+        lineHeight: String(STAGE_NEXT_REFERENCE_LINE_HEIGHT),
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
         textAlign: element.text.align,
         pointerEvents: 'none',
       });
@@ -382,10 +388,6 @@ export class ThemeElementView {
           ? 'visible'
           : 'hidden';
     }
-    const finalBible =
-      (slide?.kind ?? item?.kind) === 'bible' &&
-      slide?.sequenceLength !== undefined &&
-      slide.position >= slide.sequenceLength - 1;
     const currentEmpty =
       stage &&
       element.kind === 'currentText' &&
@@ -408,7 +410,6 @@ export class ThemeElementView {
     const nextEmpty =
       stage &&
       element.kind === 'nextText' &&
-      !finalBible &&
       next !== undefined &&
       nextAdTitle === undefined &&
       !next.title?.trim() &&
@@ -805,17 +806,6 @@ export class ThemeElementView {
       frame.screen?.kind !== 'stage' &&
       slide?.next?.sermonTitle &&
       (element.kind === 'nextText' || element.kind === 'nextLabel')
-    ) {
-      return null;
-    }
-    if (
-      frame.screen?.kind === 'stage' &&
-      (element.kind === 'nextText' || element.kind === 'nextLabel') &&
-      (slide?.kind ?? item?.kind) === 'bible' &&
-      slide?.sequenceLength !== undefined &&
-      slide.position >= slide.sequenceLength - 1 &&
-      (element.kind === 'nextLabel' ||
-        (slide.next?.sermonTitle !== true && slide.next?.itemKind !== 'bible'))
     ) {
       return null;
     }

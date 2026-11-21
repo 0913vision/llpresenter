@@ -179,12 +179,14 @@ describe('published theme compositions', () => {
           return {
             ...rest,
             kind: 'itemName' as const,
-            text: {...element.text, align: 'center' as const},
+            frame: {...element.frame, x: 154},
+            text: {...element.text, size: 52, align: 'center' as const},
           };
         }
         return element.kind === 'currentText'
           ? {
               ...element,
+              frame: {...element.frame, x: 154},
               text: {...element.text, size: 83, align: 'center' as const},
             }
           : element;
