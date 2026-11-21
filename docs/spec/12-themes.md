@@ -798,6 +798,9 @@ absent, and never falls back to the label.
 Built-in stage current text uses the matching audience size: 108 px for songs,
 104 px for Bible and 86 px for ad bodies. Longer text shrinks to fit; Bible text
 is left-aligned beneath a smaller reference. Saved user edits remain unchanged.
+For Bible passages and referenced sermon body text, the stage targets the
+actually fitted audience size and shrinks only when its own frame requires it.
+The next text targets two thirds of the fitted stage size, with a 48 px floor.
 
 On the last slide of a Bible item, stage next-slide elements show nothing for
 the next item.

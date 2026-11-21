@@ -3177,6 +3177,64 @@ it('fits the stage current text toward the audience rendered size', () => {
   view.dispose();
 });
 
+it.each(['bible', 'blank'] as const)(
+  'targets the fitted audience size and the final stage next size for %s scripture',
+  kind => {
+    const {view} = setup();
+    const stageCurrent: ThemeElement = {
+      ...themeElementBase(701),
+      kind: 'currentText',
+    };
+    const stageNext: ThemeElement = {
+      ...themeElementBase(702),
+      kind: 'nextText',
+    };
+    const audienceCurrent: ThemeElement = {
+      ...themeElementBase(703),
+      kind: 'currentText',
+    };
+    const stageFrame = frame([stageCurrent, stageNext]);
+    const audienceFrame = frame([audienceCurrent]);
+    if (!stageFrame.theme?.item || !audienceFrame.theme) {
+      throw Error('Missing theme');
+    }
+    const sizes = vi
+      .spyOn(ThemeElementView.prototype, 'fittedTextSize')
+      .mockImplementation(function (this: ThemeElementView) {
+        return this.element.id === audienceCurrent.id ? 57 : 52;
+      });
+    const target = vi.spyOn(ThemeElementView.prototype, 'targetTextSize');
+    view.render(
+      {
+        ...song,
+        slide: {
+          itemId: 'invented',
+          position: 0,
+          label: null,
+          kind,
+          reference: 'John 3:16',
+          lines: ['First authored line\nSecond authored line'],
+          next: {label: null, itemKind: kind, lines: ['Following verse']},
+        },
+      },
+      {
+        ...stageFrame,
+        screen: {id: THEME_MAIN, kind: 'stage'},
+        theme: {...stageFrame.theme, item: {...stageFrame.theme.item, kind}},
+        audience: {
+          screen: {id: THEME_MAIN, kind: 'audience'},
+          theme: audienceFrame.theme,
+        },
+      },
+    );
+    expect(target).toHaveBeenCalledWith(57);
+    expect(target).toHaveBeenLastCalledWith((52 * 2) / 3);
+    target.mockRestore();
+    sizes.mockRestore();
+    view.dispose();
+  },
+);
+
 it('draws the audience layout lines on stage, including audience wrapping', () => {
   const {root, view} = setup();
   if (!song.slide) throw Error('Missing slide');
