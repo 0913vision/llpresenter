@@ -1,4 +1,4 @@
-import {useSyncExternalStore} from 'react';
+import {useState, useSyncExternalStore} from 'react';
 import {
   fireEvent,
   render,
@@ -9,6 +9,10 @@ import {
 import userEvent from '@testing-library/user-event';
 import {expect, it, onTestFinished, vi} from 'vitest';
 import {HistoryButtons} from '@renderer/app/shell/HistoryButtons';
+import {editMenuEntries} from '@renderer/app/shell/editMenuEntries';
+import {menuItems} from '@renderer/ui/menuModel';
+import {useWorkspaceServiceHistory} from '@renderer/app/shell/useWorkspaceServiceHistory';
+import type {LlpApi} from '@contracts/ipc/api';
 import {isItemOfKind} from '@core/schema/service';
 import {projectSlides} from '@core/presentation/slides';
 import {slidesItem} from '@fixtures/core/slides';
@@ -33,7 +37,8 @@ import {
 } from '@renderer/features/service/items/SlideTextFields';
 import {ServiceItemStore} from '@renderer/features/service/items/serviceItemStore';
 import {SongEditorStore} from '@renderer/features/songs/editor';
-import {useShow} from '@renderer/session/show';
+import {outputTile, useShow} from '@renderer/session/show';
+import {useLive} from '@renderer/session/live';
 import {BibleInlineEditor} from '@renderer/features/service/items/BibleInlineEditor';
 import {seedSlideSurfaceView} from '@renderer/features/songs/editor/SlideSurfaceView';
 import {panelPassage} from '@fixtures/contracts/ipc/bibleApi';
@@ -52,9 +57,9 @@ vi.mock('@renderer/features/bible/useBibleProjections', () => ({
   useBibleTileProjection: () => bible.projection,
 }));
 
-function installSettings(file = themeFile()) {
+function installSettings(file = themeFile(), api?: LlpApi) {
   const original = window.llp;
-  window.llp = mockLlpApi({
+  const settings = mockLlpApi({
     settings: {
       get: async request => {
         if (request.name === 'themes') {
@@ -78,11 +83,13 @@ function installSettings(file = themeFile()) {
         );
       },
     },
-  });
+  }).settings;
+  window.llp = api === undefined ? mockLlpApi({settings}) : {...api, settings};
   onTestFinished(() => {
     if (original === undefined) delete window.llp;
     else window.llp = original;
   });
+  return window.llp;
 }
 
 it('keeps a manual blank and explicitly restores the automatic text', async () => {
@@ -151,9 +158,11 @@ it('keeps a manual blank and explicitly restores the automatic text', async () =
 it.each(['bible', 'sermon'] as const)(
   '%s rows and the selected-slide panel share each slide edit across both views',
   async kind => {
-    installSettings();
     seedSlideSurfaceView({});
     const fixture = itemFixture();
+    const api = installSettings(themeFile(), fixture.api);
+    const report = vi.fn();
+    const send = vi.spyOn(api.live, 'send');
     const before = fixture.service();
     const lookup = panelPassage();
     const passage = {
@@ -197,6 +206,7 @@ it.each(['bible', 'sermon'] as const)(
     if (!projection) throw Error('Missing fixture projection');
     bible.projection = projection;
     const previous = useShow.getState();
+    const previousLive = useLive.getState();
     useShow.setState({
       serviceId: fixtureServiceId,
       openItemId: id,
@@ -209,27 +219,46 @@ it.each(['bible', 'sermon'] as const)(
       ],
       tiles: {[id]: projection.tiles},
     });
-    const editor = new SongEditorStore(fixture.api, vi.fn());
-    const items = new ServiceItemStore(fixture.api, editor, vi.fn());
+    const editor = new SongEditorStore(api, report);
+    const items = new ServiceItemStore(api, editor, report);
+    const outputIndex = projection.tiles.findIndex(
+      tile => tile.bibleVerse?.verse === 17,
+    );
+    expect(outputIndex).toBeGreaterThanOrEqual(0);
     function Harness() {
       const state = useSyncExternalStore(items.subscribe, items.getSnapshot);
+      const [workspace, setWorkspace] = useState<'show' | 'prep'>('prep');
+      useWorkspaceServiceHistory(true, report);
       return (
-        <>
+        <div data-workspace-layout={workspace}>
           <HistoryButtons />
-          <SlideTextEditor items={items} state={state}>
-            {renderTextFields => (
-              <BibleInlineEditor
-                items={items}
-                ui={fixture.api.ui}
-                onBack={vi.fn()}
-                renderTextFields={renderTextFields}
-              />
-            )}
-          </SlideTextEditor>
-          <aside aria-label="슬라이드 속성">
-            <SlideTextFields items={items} state={state} />
-          </aside>
-        </>
+          <button onClick={() => setWorkspace('show')}>Switch to Show</button>
+          <button onClick={() => setWorkspace('prep')}>Switch to Prep</button>
+          <div inert={workspace !== 'show'}>
+            <input type="range" aria-label="Thumbnail zoom" />
+            <input aria-label="Independent text" />
+            <button
+              onClick={() => outputTile({itemId: id, index: outputIndex})}
+            >
+              Show verse
+            </button>
+          </div>
+          <div inert={workspace !== 'prep'}>
+            <SlideTextEditor items={items} state={state}>
+              {renderTextFields => (
+                <BibleInlineEditor
+                  items={items}
+                  ui={fixture.api.ui}
+                  onBack={vi.fn()}
+                  renderTextFields={renderTextFields}
+                />
+              )}
+            </SlideTextEditor>
+            <aside aria-label="슬라이드 속성">
+              <SlideTextFields items={items} state={state} />
+            </aside>
+          </div>
+        </div>
       );
     }
     items.show({serviceId: fixtureServiceId, itemId: id});
@@ -240,6 +269,7 @@ it.each(['bible', 'sermon'] as const)(
       await editor.dispose();
       seedSlideSurfaceView({});
       useShow.setState(previous);
+      useLive.setState(previousLive);
       bible.projection = null;
     });
     const zone = within(await screen.findByRole('region', {name: '성경 편집'}));
@@ -294,6 +324,62 @@ it.each(['bible', 'sermon'] as const)(
     await waitFor(() => expect(reference.value).toBe('Edited reference'));
     expect(pins()).toBeUndefined();
     const withReference = savedItem();
+
+    await user.click(screen.getByRole('button', {name: 'Switch to Show'}));
+    await user.click(screen.getByRole('button', {name: 'Show verse'}));
+    const command = send.mock.lastCall?.[0];
+    if (command?.type !== 'live.batch') throw Error('Missing slide output');
+    expect(
+      command.commands.find(child => child.type === 'slide.show'),
+    ).toMatchObject({slide: {itemId: id, position: outputIndex}});
+    expect(savedItem()).toEqual(withReference);
+    const zoom = screen.getByRole('slider', {name: 'Thumbnail zoom'});
+    zoom.focus();
+    await user.keyboard('{Control>}z{/Control}');
+    await waitFor(() => expect(savedItem()).toEqual(original));
+    await user.keyboard('{Control>}y{/Control}');
+    await waitFor(() => expect(savedItem()).toEqual(withReference));
+    await user.click(undo);
+    await waitFor(() => expect(savedItem()).toEqual(original));
+    zoom.focus();
+    const redoRow = menuItems(editMenuEntries(zoom)).find(
+      row => row.id === 'redo',
+    );
+    expect(redoRow?.disabled).not.toBe(true);
+    redoRow?.onSelect?.();
+    await waitFor(() => expect(savedItem()).toEqual(withReference));
+    const text = screen.getByRole('textbox', {name: 'Independent text'});
+    text.focus();
+    await user.keyboard('{Control>}z{/Control}');
+    expect(savedItem()).toEqual(withReference);
+    expect(undo.getAttribute('aria-disabled')).toBe('true');
+    const nativeHistory = vi.spyOn(api.window, 'editText');
+    Object.defineProperty(document, 'queryCommandEnabled', {
+      configurable: true,
+      value: () => true,
+    });
+    onTestFinished(() => {
+      Reflect.deleteProperty(document, 'queryCommandEnabled');
+    });
+    fireEvent.input(text);
+    await user.click(undo);
+    expect(nativeHistory).toHaveBeenCalledWith('undo');
+    const textUndo = menuItems(editMenuEntries(text)).find(
+      row => row.id === 'undo',
+    );
+    expect(textUndo?.disabled).not.toBe(true);
+    textUndo?.onSelect?.();
+    await waitFor(() => expect(nativeHistory).toHaveBeenCalledTimes(2));
+    expect(savedItem()).toEqual(withReference);
+    expect(
+      send.mock.calls.filter(([value]) => value.type === 'live.batch'),
+    ).toHaveLength(1);
+    fireEvent.click(screen.getByRole('button', {name: 'Switch to Prep'}));
+    await user.click(undo);
+    await waitFor(() => expect(savedItem()).toEqual(original));
+    expect(reference.value).toBe(autoReference);
+    await user.click(redo);
+    await waitFor(() => expect(savedItem()).toEqual(withReference));
 
     await user.click(verse);
     fireEvent.change(verse, {target: {value: 'Row edit'}});

@@ -162,26 +162,32 @@ function insertionIndex(order: Order, beforeId: ServiceItemId | null): number {
 class OrderHistory {
   readonly past: HistoryEntry[] = [];
   readonly future: HistoryEntry[] = [];
+  private readonly listeners = new Set<() => void>();
+
+  readonly subscribe = (listener: () => void): (() => void) => {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  };
 
   record(entry: HistoryEntry, action: HistoryAction): void {
     if (action === 'undo') {
       const previous = this.past.pop();
       if (previous !== undefined) this.future.push(previous);
-      return;
-    }
-    if (action === 'redo') {
+    } else if (action === 'redo') {
       const next = this.future.pop();
       if (next !== undefined) this.past.push(next);
-      return;
+    } else {
+      this.future.length = 0;
+      this.past.push(entry);
+      if (this.past.length > HISTORY_LIMIT) this.past.shift();
     }
-    this.future.length = 0;
-    this.past.push(entry);
-    if (this.past.length > HISTORY_LIMIT) this.past.shift();
+    for (const listener of this.listeners) listener();
   }
 
   clear(): void {
     this.past.length = 0;
     this.future.length = 0;
+    for (const listener of this.listeners) listener();
   }
 }
 
@@ -196,6 +202,10 @@ export class ServiceOrderEdits {
 
   constructor(private readonly api: EditApi) {
     this.history = historyFor(api);
+  }
+
+  subscribe(listener: () => void): () => void {
+    return this.history.subscribe(listener);
   }
 
   private get past(): HistoryEntry[] {

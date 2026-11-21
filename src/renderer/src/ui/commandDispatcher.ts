@@ -23,6 +23,8 @@ export interface WindowShortcut {
   /** Native editing keys owned by a control, outside the configurable key map. */
   readonly fixedBindings?: readonly KeyBinding[];
   readonly context?: CommandContext;
+  /** Takes the command only when no focused control owns it. */
+  readonly fallback?: true;
   readonly when?: (event: KeyboardEvent) => boolean;
   /**
    * Why the command cannot do anything right now (nothing to undo), shown as
@@ -50,6 +52,15 @@ export function subscribeHistoryCommands(listener: () => void): () => void {
 
 function historyChanged(): void {
   for (const listener of historyListeners) listener();
+}
+
+function* inFocusOrder(handlers: readonly WindowShortcut[]) {
+  for (const handler of handlers) {
+    if (!handler.fallback) yield handler;
+  }
+  for (const handler of handlers) {
+    if (handler.fallback) yield handler;
+  }
 }
 const modifiers = new PhysicalModifiers();
 let composing = false;
@@ -121,7 +132,8 @@ function focusedControlOwnsKey(event: KeyboardEvent): boolean {
   );
 }
 
-function isTextField(event: KeyboardEvent): boolean {
+/** Whether this event belongs to a text-editing control. */
+export function isTextField(event: KeyboardEvent): boolean {
   if (!isInTextEntry(event.target)) return false;
   if (
     event.target instanceof HTMLInputElement &&
@@ -193,7 +205,7 @@ export function dispatchShortcut(
   const priorities: readonly CommandPriority[] =
     priority === 'capture' ? ['clear', 'zoom'] : ['normal'];
   for (const tier of priorities) {
-    for (const handler of handlers) {
+    for (const handler of inFocusOrder(handlers)) {
       const spec = shortcutCommand(handler.id);
       if (
         workspace !== undefined &&
@@ -467,6 +479,17 @@ function placeEvent(place: Element | null): KeyboardEvent {
   return event;
 }
 
+function commandPlace(id: string, place: Element | null): Element | null {
+  if (
+    (id === 'edit.undo' || id === 'edit.redo') &&
+    place !== null &&
+    (!place.isConnected || place.closest('[inert]') !== null)
+  ) {
+    return null;
+  }
+  return place;
+}
+
 function handlerAt(
   id: string,
   place: Element | null,
@@ -479,26 +502,30 @@ function handlerAt(
   // NOTE(0913vision): The menu ignores `owner.blocked()`: it is an effect
   // event, which React forbids calling while a menu renders, and a drag that
   // blocks keys has ended before a menu row can be opened.
-  return [...owners]
-    .flatMap(owner => owner.all())
-    .find(
-      handler =>
-        handler.id === id &&
-        place !== null &&
-        (!((id === 'edit.undo' || id === 'edit.redo') && isTextField(event)) ||
-          handler.context === 'song' ||
-          handler.context === 'screens') &&
-        (workspace === undefined ||
-          workspace === null ||
-          spec === undefined ||
-          spec.contexts.some(
-            context =>
-              context === 'control' ||
-              context === workspace ||
-              context === handler.context,
-          )) &&
-        handler.when?.(event) !== false,
-    );
+  for (const handler of inFocusOrder(
+    [...owners].flatMap(owner => owner.all()),
+  )) {
+    if (
+      handler.id === id &&
+      (place !== null || handler.fallback === true) &&
+      (!((id === 'edit.undo' || id === 'edit.redo') && isTextField(event)) ||
+        handler.context === 'song' ||
+        handler.context === 'screens') &&
+      (workspace === undefined ||
+        workspace === null ||
+        spec === undefined ||
+        spec.contexts.some(
+          context =>
+            context === 'control' ||
+            context === workspace ||
+            context === handler.context,
+        )) &&
+      handler.when?.(event) !== false
+    ) {
+      return handler;
+    }
+  }
+  return undefined;
 }
 
 /**
@@ -507,8 +534,9 @@ function handlerAt(
  * calls it for the element that had focus before the menu opened.
  */
 export function probeCommand(id: string, place: Element | null): CommandProbe {
-  const event = placeEvent(place);
-  const handler = handlerAt(id, place, event);
+  const active = commandPlace(id, place);
+  const event = placeEvent(active);
+  const handler = handlerAt(id, active, event);
   return handler === undefined
     ? {found: false}
     : {found: true, reason: handler.unavailable?.(event)};
@@ -521,8 +549,9 @@ export function probeCommand(id: string, place: Element | null): CommandProbe {
  * @returns Whether a handler took it.
  */
 export function runCommandAt(id: string, place: Element | null): boolean {
-  const event = placeEvent(place);
-  const handler = handlerAt(id, place, event);
+  const active = commandPlace(id, place);
+  const event = placeEvent(active);
+  const handler = handlerAt(id, active, event);
   if (handler === undefined) return false;
   Promise.resolve(handler.run(event)).catch((error: unknown) => {
     console.error('Menu command failed:', id, error);
