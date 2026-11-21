@@ -224,7 +224,7 @@ export function sermonTitleStageLayout(
         },
         {
           ...element,
-          frame: {...element.frame, y: 345, h: 330},
+          frame: {...element.frame, y: 345, h: 340},
           text: {
             ...element.text,
             size: 140,

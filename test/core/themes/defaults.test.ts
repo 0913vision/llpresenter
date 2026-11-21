@@ -374,7 +374,7 @@ it('offers one sermon title theme with automatic bars', () => {
   expect(
     stage?.elements.find(element => element.kind === 'currentText'),
   ).toMatchObject({
-    frame: {x: 154, y: 345},
+    frame: {x: 154, y: 345, h: 340},
     text: {size: 140, align: 'left', maxLines: 2},
   });
   expect(stage?.elements.filter(element => element.kind === 'clock')).toEqual(

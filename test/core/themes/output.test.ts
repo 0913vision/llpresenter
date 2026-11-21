@@ -175,7 +175,14 @@ describe('published theme compositions', () => {
       ...layout,
       elements: layout.elements.map(element =>
         element.kind === 'itemName' || element.kind === 'currentText'
-          ? {...element, text: {...element.text, align: 'center' as const}}
+          ? {
+              ...element,
+              text: {
+                ...element.text,
+                align: 'center' as const,
+                ...(element.kind === 'currentText' ? {size: 83} : {}),
+              },
+            }
           : element,
       ),
     };
