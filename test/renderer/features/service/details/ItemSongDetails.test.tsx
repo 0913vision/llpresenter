@@ -25,8 +25,8 @@ import {PictureReadiness} from '@renderer/rendering/PictureReadiness';
 
 const previewReadiness = vi.hoisted<{
   hold: boolean;
-  release: (() => void) | undefined;
-}>(() => ({hold: false, release: undefined}));
+  release: Array<() => void>;
+}>(() => ({hold: false, release: []}));
 vi.mock('@renderer/rendering/SlidePicture', () => ({
   SlidePicture: ({
     slide,
@@ -39,7 +39,7 @@ vi.mock('@renderer/rendering/SlidePicture', () => ({
     const source = useRef({});
     useLayoutEffect(() => {
       if (previewReadiness.hold && ready !== null) {
-        previewReadiness.release = () => ready(source.current);
+        previewReadiness.release.push(() => ready(source.current));
       } else ready?.(source.current);
     }, [ready]);
     return (
@@ -79,14 +79,14 @@ it('changes the large picture and its band together after the selected picture i
     ).getAllByRole('option')[1];
     if (!second) throw Error('Missing second slide');
     fireEvent.click(second);
-    await waitFor(() => expect(previewReadiness.release).toBeDefined());
+    await waitFor(() => expect(previewReadiness.release).toHaveLength(3));
     expect(
       view.container.querySelector('[data-background-picture]')?.textContent,
     ).toBe(firstPicture);
     expect(
       view.container.querySelector('[data-preview-band]')?.textContent,
     ).toContain('1');
-    act(() => previewReadiness.release?.());
+    act(() => previewReadiness.release.forEach(release => release()));
     expect(
       view.container.querySelector('[data-preview-band]')?.textContent,
     ).toContain('2');
@@ -99,7 +99,7 @@ it('changes the large picture and its band together after the selected picture i
     );
   } finally {
     previewReadiness.hold = false;
-    previewReadiness.release = undefined;
+    previewReadiness.release = [];
     view.unmount();
     items.dispose();
     await editor.dispose();

@@ -106,11 +106,12 @@ it('keeps distinct configured screens of the same kind mounted when promoted', (
     id: createScreenId('00000000-0000-4000-8000-000000000004'),
     name: 'Second audience',
   };
+  const configured = [first, second];
   function DuplicateScreens(): JSX.Element {
     const [big, setBig] = useState<string | null>(null);
     return (
       <RolePreview
-        screens={[first, second]}
+        screens={configured}
         big={big}
         onBigChange={setBig}
         renderScreen={target => <span>{target.id}</span>}

@@ -131,16 +131,19 @@ describe('editor background drops', () => {
   });
 });
 
-it('drops on the real slide inspector picture for a library song', () => {
+it('drops on the real slide inspector picture for a library song', async () => {
   const {session, setBackground, transfer, view} = setup('song', {
     library: true,
     inspector: true,
   });
   if (session === null) throw new Error('Missing song session');
-  const picture = view.container.querySelectorAll(
-    '[data-background-picture]',
-  )[1];
-  if (picture === undefined) throw new Error('Missing inspector picture');
+  const picture = await waitFor(() => {
+    const element = view.container.querySelectorAll(
+      '[data-background-picture]',
+    )[1];
+    if (element === undefined) throw new Error('Missing inspector picture');
+    return element;
+  });
   fireEvent.drop(picture, {dataTransfer: transfer});
   expect(session.background).toBe(id);
   expect(setBackground).not.toHaveBeenCalled();

@@ -2,7 +2,7 @@ import type {LlpApi} from '@contracts/ipc/api';
 import {useItemSettings} from '../items/useItemSources';
 
 /** Follow configured screen identities; a failure produces no phantom targets. */
-export function usePreviewTargets(api: LlpApi) {
+export function usePreviewTargets(api: Pick<LlpApi, 'settings'>) {
   const settings = useItemSettings(api.settings, 'screens');
   return {
     screens:
