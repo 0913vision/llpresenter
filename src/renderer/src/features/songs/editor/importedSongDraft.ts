@@ -189,58 +189,70 @@ export class ImportedSongDraft {
     ) {
       return Promise.resolve(false);
     }
-    return this.context.host.runOperation(async () => {
-      try {
-        const song = session.history.snapshot.song;
-        if (this.importedSaved === null) {
-          if (target.kind === 'overwrite') {
-            await this.context.pool.get(target.songId)?.flush();
+    const save = (ready: boolean): Promise<boolean> => {
+      if (
+        !ready ||
+        !this.context.host.alive() ||
+        this.context.host.locked() ||
+        this.imported !== session
+      ) {
+        return Promise.resolve(false);
+      }
+      return this.context.host.runOperation(async () => {
+        try {
+          const song = session.history.snapshot.song;
+          if (this.importedSaved === null) {
+            if (target.kind === 'overwrite') {
+              await this.context.pool.get(target.songId)?.flush();
+            }
+            const result = await this.context.api.content.edit({
+              type: 'song.import',
+              target,
+              draft: {
+                title: normalizeSongTitle(session.title.value),
+                slides: song.slides,
+                ...(song.theme === undefined ? {} : {theme: song.theme}),
+                ...(session.background === undefined
+                  ? {}
+                  : {background: session.background}),
+              },
+            });
+            const applied = result.ok
+              ? result.value
+              : result.error.reason === 'write-failed'
+                ? result.error.applied
+                : undefined;
+            if (applied === undefined) {
+              this.context.host.problem('가져온 곡 저장 실패');
+              return false;
+            }
+            this.importedSaved = createSongId(applied.id);
+            session.blocked = true;
+            if (!result.ok) this.context.host.problem('곡 파일 저장 실패');
           }
-          const result = await this.context.api.content.edit({
-            type: 'song.import',
-            target,
-            draft: {
-              title: normalizeSongTitle(session.title.value),
-              slides: song.slides,
-              ...(song.theme === undefined ? {} : {theme: song.theme}),
-              ...(session.background === undefined
-                ? {}
-                : {background: session.background}),
-            },
-          });
-          const applied = result.ok
-            ? result.value
-            : result.error.reason === 'write-failed'
-              ? result.error.applied
-              : undefined;
-          if (applied === undefined) {
-            this.context.host.problem('가져온 곡 저장 실패');
+          const document = await this.context.api.songs.get(this.importedSaved);
+          if (document === null) {
+            this.context.host.problem('저장한 곡 불러오기 실패');
             return false;
           }
-          this.importedSaved = createSongId(applied.id);
-          session.blocked = true;
-          if (!result.ok) this.context.host.problem('곡 파일 저장 실패');
-        }
-        const document = await this.context.api.songs.get(this.importedSaved);
-        if (document === null) {
-          this.context.host.problem('저장한 곡 불러오기 실패');
+          if (!this.context.host.alive()) return false;
+          this.context.pool.get(document.song.id)?.install(document);
+          session.discard();
+          this.imported = null;
+          this.importedSaved = null;
+          const continuation = this.pendingLeave;
+          this.pendingLeave = null;
+          this.context.open(document);
+          continuation?.();
+          return true;
+        } catch (error) {
+          console.error('Imported song save failed', error);
+          this.context.host.problem('가져온 곡 저장 실패');
           return false;
         }
-        if (!this.context.host.alive()) return false;
-        this.context.pool.get(document.song.id)?.install(document);
-        session.discard();
-        this.imported = null;
-        this.importedSaved = null;
-        const continuation = this.pendingLeave;
-        this.pendingLeave = null;
-        this.context.open(document);
-        continuation?.();
-        return true;
-      } catch (error) {
-        console.error('Imported song save failed', error);
-        this.context.host.problem('가져온 곡 저장 실패');
-        return false;
-      }
-    });
+      });
+    };
+    const preparation = session.waitForImportPreparation();
+    return preparation === undefined ? save(true) : preparation.then(save);
   }
 }
