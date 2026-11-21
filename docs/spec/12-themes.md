@@ -594,7 +594,7 @@ as every settings file does (02).
   Medium 86 px and the title Bold 140 px. 방송 uses the section-card black
   gradient band, expanded upward for two centered lines: the smaller passage
   above the larger sermon title. 무대 left-aligns the smaller passage above the
-  title at the Bible text edge, with sizes 52 px and 83 px, and retains its
+  title at the Bible text edge, with sizes 52 px and 140 px, and retains its
   clock and next-slide areas. Saved sermon screens are used as stored.
 - `defaults.blank` selects 말씀 and `defaults.ad` selects 광고 in a new
   `themes.json`. Both can be changed like the other kind defaults.
@@ -874,11 +874,11 @@ Deleted themes retain a frozen copy in `deletedThemes` (at most 1000). Items
 that already reference one keep its layouts and show its name in parentheses.
 The deleted choice is disabled; selecting another theme replaces the reference.
 At the limit, deletion is refused rather than losing a saved appearance. The
-default sermon title stage, creed and prayer stage and broadcast, and
-preparation broadcast layouts retain reference elements for Bible items. The
-sermon title stage hides the reference on title slides, and these layouts hide
-it for non-Bible content. The theme editor previews dynamic elements with
-representative content; the reference source preview distinguishes the current
-verse from the item range. Empty media and overlay slots show separate
-editor-only placeholders. Reference source remains editable on section themes,
-which can also be applied to Bible items.
+default creed and prayer stage and broadcast, and preparation broadcast layouts
+retain reference elements for Bible items. The sermon title stage uses one
+item-name box for the passage. These layouts hide references for non-Bible
+content. The theme editor previews dynamic elements with representative content;
+the reference source preview distinguishes the current verse from the item
+range. Empty media and overlay slots show separate editor-only placeholders.
+Reference source remains editable on section themes, which can also be applied
+to Bible items.

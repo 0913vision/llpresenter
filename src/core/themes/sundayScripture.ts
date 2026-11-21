@@ -194,19 +194,7 @@ export function sermonTitleStageLayout(
   return {
     ...base,
     elements: base.elements.flatMap((element): ThemeElement[] => {
-      if (element.kind === 'reference') {
-        return [
-          {
-            ...element,
-            text: {
-              ...element.text,
-              font: text.font,
-              weight: text.weight,
-              size: 51,
-            },
-          },
-        ];
-      }
+      if (element.kind === 'reference') return [];
       if (element.kind !== 'currentText') return [element];
       return [
         {
@@ -224,10 +212,11 @@ export function sermonTitleStageLayout(
         },
         {
           ...element,
-          frame: {...element.frame, y: 345, h: 330},
+          frame: {...element.frame, y: 345, h: 340},
           text: {
             ...element.text,
-            size: 83,
+            size: 140,
+            maxLines: 2,
             align: 'left' as const,
             vAlign: 'top' as const,
           },

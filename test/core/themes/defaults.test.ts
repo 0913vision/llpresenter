@@ -363,7 +363,7 @@ it('offers one sermon title theme with automatic bars', () => {
   ]);
   const stage = theme?.screens[createScreenId(STARTER_SCREEN_IDS.stage)];
   expect(stage?.elements.some(element => element.kind === 'reference')).toBe(
-    true,
+    false,
   );
   expect(
     stage?.elements.find(element => element.kind === 'itemName'),
@@ -374,8 +374,8 @@ it('offers one sermon title theme with automatic bars', () => {
   expect(
     stage?.elements.find(element => element.kind === 'currentText'),
   ).toMatchObject({
-    frame: {x: 154, y: 345},
-    text: {size: 83, align: 'left', maxLines: 4},
+    frame: {x: 154, y: 345, h: 340},
+    text: {size: 140, align: 'left', maxLines: 2},
   });
   expect(stage?.elements.filter(element => element.kind === 'clock')).toEqual(
     builtInTheme('bible').screens[
@@ -680,12 +680,12 @@ it('uses the stage clock and next preview geometry across built-in themes', () =
   }
 });
 
-it('limits current text to 120 px in every built-in stage layout', () => {
+it('limits current text to 140 px in every built-in stage layout', () => {
   const stage = createScreenId(STARTER_SCREEN_IDS.stage);
   for (const theme of createDefaultThemes().themes) {
     for (const element of theme.screens[stage]?.elements ?? []) {
       if (element.kind === 'currentText') {
-        expect(element.text.size).toBeLessThanOrEqual(120);
+        expect(element.text.size).toBeLessThanOrEqual(140);
       }
     }
   }

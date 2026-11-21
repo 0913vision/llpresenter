@@ -1,6 +1,5 @@
 import {CREED_PRAYER_THEME_ID} from '@core/themes/creedPrayer';
 import {PREPARATION_THEME_ID} from '@core/themes/sundayStandby';
-import {SERMON_TITLE_THEME_ID} from '@core/themes/sundayScripture';
 import {LIGHT_SONG_THEME_ID} from '@core/themes/lightSong';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLayers, type LiveLayers} from '@core/live/state';
@@ -1039,7 +1038,6 @@ describe('theme composition drawing', () => {
     [CREED_PRAYER_THEME_ID, 'stage'],
     [CREED_PRAYER_THEME_ID, 'broadcast'],
     [PREPARATION_THEME_ID, 'broadcast'],
-    [SERMON_TITLE_THEME_ID, 'stage'],
   ] as const)('shows Bible references in theme %s on %s', (id, kind) => {
     const {view, text} = setup();
     const screenId = createScreenId(STARTER_SCREEN_IDS[kind]);
@@ -1125,14 +1123,29 @@ describe('theme composition drawing', () => {
       root.querySelector(`[data-kind="itemName"] .${classes.shown}`)
         ?.textContent,
     ).toBe('Matthew 11:29');
-    expect(
-      root.querySelector(`[data-kind="reference"] .${classes.shown}`)
-        ?.textContent ?? '',
-    ).toBe('Matthew 11:29');
+    expect(root.querySelector('[data-kind="reference"]')).toBeNull();
     expect(
       root.querySelector(`[data-kind="currentText"] .${classes.shown}`)
         ?.textContent,
     ).toBe('Sermon');
+    const savedReference = bibleLayout.elements.find(
+      element => element.kind === 'reference',
+    );
+    if (savedReference === undefined) throw Error('Missing saved reference');
+    const savedLayout = {
+      ...layout,
+      elements: [...layout.elements, savedReference],
+    };
+    const savedActive = frame(savedLayout.elements, {
+      themeId: theme.id,
+      layout: savedLayout,
+      item: {
+        id: 'invented',
+        kind: 'bible',
+        source: 'service',
+        title: 'Matthew 11:29',
+      },
+    });
     view.render(
       {
         ...song,
@@ -1147,7 +1160,11 @@ describe('theme composition drawing', () => {
           },
         },
       },
-      {...active, screen: {id: screenId, kind: 'stage'}, transitions: false},
+      {
+        ...savedActive,
+        screen: {id: screenId, kind: 'stage'},
+        transitions: false,
+      },
     );
     expect(
       root.querySelector(`[data-kind="itemName"] .${classes.shown}`)
