@@ -107,33 +107,18 @@ it(
     const question = editor.getByRole('alertdialog');
     await question.getByRole('button', {name: '덮어쓰기'}).click();
     try {
-      // NOTE(0913vision): The operator sees the question close when the save
-      // is accepted; the file follows within the store's write delay. A
-      // question that stays open means the save was refused.
       await question.waitFor({state: 'detached', timeout: WAIT});
-      await expect
-        .poll(
-          async () => {
-            const value: unknown = JSON.parse(await readFile(file, 'utf8'));
-            return value;
-          },
-          {timeout: WAIT},
-        )
-        .toMatchObject({title: '점검 알파 수정', schemaVersion: 1});
-      await expect
-        .poll(
-          async () =>
-            (await readFile(file, 'utf8')).includes('새로 만든 점검 문장'),
-          {timeout: WAIT},
-        )
-        .toBe(true);
+      expect(await app.stop()).toBe(false);
+      const contents = await readFile(file, 'utf8');
+      const value: unknown = JSON.parse(contents);
+      expect(value).toMatchObject({title: '점검 알파 수정', schemaVersion: 1});
+      expect(contents).toContain('새로 만든 점검 문장');
     } catch (error) {
       throw new Error(await saveEvidence(editor, app.data, file), {
         cause: error,
       });
     }
 
-    await app.stop();
     page = await app.start();
     await page.getByRole('tab', {name: '준비'}).click();
     await page.getByRole('tab', {name: '곡', exact: true}).click();
