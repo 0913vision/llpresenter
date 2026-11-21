@@ -151,7 +151,7 @@ function SlidesItemTiles({
             session={session}
             song={{
               slides: view.slides.map(slide => ({
-                label: slideBand(slide, media),
+                label: slideBand(item, slide, media),
                 lines: [],
               })),
             }}

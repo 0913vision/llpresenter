@@ -305,7 +305,7 @@ export function SongSlideSurface<T extends SlideListItem>({
     {
       id: 'editor.labelMenu',
       context: 'song',
-      when: owns,
+      when: event => itemKind !== 'ad' && owns(event),
       unavailable: () =>
         store === undefined
           ? '여기서는 쓸 수 없습니다'
@@ -420,7 +420,7 @@ export function SongSlideSurface<T extends SlideListItem>({
             onSelect: () => onEdit(menuIndex),
           },
         ]),
-    ...(store === undefined
+    ...(store === undefined || itemKind === 'ad'
       ? []
       : [
           {

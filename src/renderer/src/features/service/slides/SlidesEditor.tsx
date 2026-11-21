@@ -625,9 +625,12 @@ function SlidesEditorBody({
                   </div>
                   <SlideThumbnailBand
                     number={index + 1 + (leadingCard === undefined ? 0 : 1)}
-                    label={slideBand(slide, media)}
+                    label={slideBand(item, slide, media)}
                     labelColor={
-                      labels.find(label => label.name === slide.label)?.color
+                      item.slides.form === 'ad'
+                        ? undefined
+                        : labels.find(label => label.name === slide.label)
+                            ?.color
                     }
                   />
                 </div>
@@ -636,7 +639,7 @@ function SlidesEditorBody({
                   <SlideFields
                     slide={slide}
                     form={item.slides.form}
-                    name={slideBand(slide, media)}
+                    name={slideBand(item, slide, media)}
                     projection={projection}
                     replace={button => showPicker(button, slide.id)}
                     change={(next, field) => changeSlide(index, next, field)}

@@ -3,23 +3,55 @@ import type {MediaChoice, SlideLayer} from '../live/state';
 import {NO_LABEL_COLOR, type LabelColor} from '../labels/colors';
 import type {MediaItem} from '../schema/mediaList';
 import type {ServiceItemOf} from '../schema/service';
+import {manualSlideTextKey} from '../schema/slideTextOverrides';
 import type {ShowTile} from '../schema/showService';
+import {AD_THEME_ID} from '../themes/defaults';
 import type {BibleLookupPassage} from '../schema/bibleLookup';
 import {BIBLE_BOOKS} from '../bible/bibleBooks';
 import {bibleOutputLines} from '../bible/bibleTiles';
 import {continuationText} from '../bible/split/continuation';
 import {textOverridesForTiles} from './textOverrides';
 
+type SlidesItem = ServiceItemOf<'slides'>;
+type Slide = SlidesItem['slides']['slides'][number];
+
+/** The title shown on an ad's slide band and sent as its stage label. */
+export function adSlideTitle(item: SlidesItem, slide: Slide): string {
+  if (!('text' in slide)) return item.slides.name;
+  const fallback = slide.name?.trim() ? slide.name : item.slides.name;
+  const values = item.textOverrides?.[`slide:${slide.id}`];
+  if (values === undefined) return fallback;
+  const themeId = item.theme ?? AD_THEME_ID;
+  const bound =
+    values[manualSlideTextKey({sourceThemeId: themeId, slotId: 'slideName'})];
+  if (typeof bound === 'string') return bound;
+  if (bound?.role === 'slideName') return bound.text;
+  if (typeof values.slideName === 'string') return values.slideName;
+  const titles = new Set(
+    Object.values(values).flatMap(value =>
+      typeof value !== 'string' &&
+      value.role === 'slideName' &&
+      value.sourceThemeId === themeId
+        ? [value.text]
+        : [],
+    ),
+  );
+  return (
+    (titles.size === 1 ? titles.values().next().value : undefined) ?? fallback
+  );
+}
+
 /** Projects both slide forms without putting thumbnail bands into live text. */
 export function projectSlides(
-  item: ServiceItemOf<'slides'>,
+  item: SlidesItem,
   media: ReadonlyMap<string, MediaItem> = new Map(),
   passages: ReadonlyMap<string, BibleLookupPassage> = new Map(),
 ): readonly ShowTile[] {
   const tiles = item.slides.slides.map((slide): ShowTile => {
-    const label = slide.label;
+    const ad = item.slides.form === 'ad';
+    const label = ad ? adSlideTitle(item, slide) : slide.label;
     const labelColor = NO_LABEL_COLOR;
-    const assigned = label === undefined ? {} : {slideLabel: label};
+    const assigned = ad || label === undefined ? {} : {slideLabel: label};
     if ('verse' in slide) {
       const reference = slide.verse;
       const verse = passages
@@ -83,11 +115,7 @@ export function projectSlides(
     return {
       sourceSlideId: slide.id,
       ...(slide.transition === undefined ? {} : {transition: slide.transition}),
-      label:
-        label ??
-        (item.slides.form === 'ad'
-          ? (name ?? '')
-          : (text.split('\n')[0] ?? '')),
+      label: label ?? text.split('\n')[0] ?? '',
       labelColor,
       ...assigned,
       ...reference,

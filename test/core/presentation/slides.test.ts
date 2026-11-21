@@ -4,8 +4,10 @@ import {
   projectSlides,
   slidesOutput,
 } from '@core/presentation/slides';
-import {slideLayerOf} from '@core/presentation/slideLayer';
+import {nextSlideOf, slideLayerOf} from '@core/presentation/slideLayer';
 import {parseLiveCommand} from '@core/schema/liveCommand';
+import {manualSlideTextKey} from '@core/schema/slideTextOverrides';
+import {AD_THEME_ID} from '@core/themes/defaults';
 import {slidesItem, SLIDE_PICTURE, SLIDES_ITEM} from '@fixtures/core/slides';
 import {MOCK_LONG_VERSE} from '@fixtures/core/bibleSplit';
 import {
@@ -53,14 +55,14 @@ it.each(['blank', 'ad'] as const)(
     );
     expect(tiles.map(tile => tile.label)).toEqual([
       form === 'ad' ? 'Meeting' : 'First line',
-      'poster.png',
-      form === 'ad' ? '' : 'Last line',
+      form === 'ad' ? item.slides.name : 'poster.png',
+      form === 'ad' ? item.slides.name : 'Last line',
     ]);
     const first = slideLayerOf({itemId: item.id, index: 0}, () => tiles);
     expect(first).toMatchObject({
       lines: ['First line\nSecond line'],
-      label: null,
-      next: {lines: [], label: null},
+      label: form === 'ad' ? 'Meeting' : null,
+      next: {lines: [], label: form === 'ad' ? item.slides.name : null},
     });
     expect(first?.name).toBe(form === 'ad' ? 'Meeting' : undefined);
     expect(
@@ -156,43 +158,91 @@ it('marks only a trailing continuation on a referenced text slide', () => {
   ]);
 });
 
-it.each(['blank', 'ad'] as const)(
-  'projects assigned labels and colors on %s text and image slides',
-  form => {
-    const item = slidesItem(form);
-    const labeled = {
-      ...item,
-      slides: {
-        ...item.slides,
-        slides: item.slides.slides.map((slide, index) => ({
-          ...slide,
-          label: index === 0 ? 'Verse' : 'Chorus',
-        })),
+it('projects assigned labels and colors on blank text and image slides', () => {
+  const item = slidesItem('blank');
+  const labeled = {
+    ...item,
+    slides: {
+      ...item.slides,
+      slides: item.slides.slides.map((slide, index) => ({
+        ...slide,
+        label: index === 0 ? 'Verse' : 'Chorus',
+      })),
+    },
+  };
+  const tiles = colorSlideLabels(
+    projectSlides(labeled),
+    new Map([
+      ['Verse', '#FF0000'],
+      ['Chorus', '#0000FF'],
+    ]),
+  );
+  expect(tiles[0]).toMatchObject({
+    label: 'Verse',
+    slideLabel: 'Verse',
+    labelColor: '#FF0000',
+  });
+  expect(tiles[1]).toMatchObject({
+    label: 'Chorus',
+    slideLabel: 'Chorus',
+    labelColor: '#0000FF',
+    picture: SLIDE_PICTURE,
+  });
+  expect(slideLayerOf({itemId: item.id, index: 0}, () => tiles)).toMatchObject({
+    label: 'Verse',
+    next: {label: 'Chorus'},
+  });
+  expect(slideLayerOf({itemId: item.id, index: 1}, () => tiles)).toMatchObject({
+    label: 'Chorus',
+  });
+});
+
+it('uses saved ad titles for each slide band and the current and next stage labels', () => {
+  const item = slidesItem('ad');
+  const first = item.slides.slides[0];
+  const second = item.slides.slides[2];
+  if (!first || !('text' in first) || !second || !('text' in second)) {
+    throw Error('Missing ad text slides');
+  }
+  const title = {
+    mode: 'manual',
+    role: 'slideName',
+    sourceThemeId: AD_THEME_ID,
+    slotId: 'slideName',
+    text: 'A renamed ad title that is longer than the 64-character explicit slide label limit',
+  } as const;
+  const saved = {
+    ...item,
+    slides: {
+      ...item.slides,
+      slides: [
+        {...first, label: 'Obsolete explicit label'},
+        {...second, name: 'Second saved name', label: 'Another old label'},
+      ],
+    },
+    textOverrides: {
+      [`slide:${first.id}`]: {
+        [manualSlideTextKey(title)]: title,
+        label: 'Obsolete theme label',
       },
-    };
-    const tiles = colorSlideLabels(
-      projectSlides(labeled),
-      new Map([
-        ['Verse', '#FF0000'],
-        ['Chorus', '#0000FF'],
-      ]),
-    );
-    expect(tiles[0]).toMatchObject({
-      label: 'Verse',
-      slideLabel: 'Verse',
-      labelColor: '#FF0000',
-    });
-    expect(tiles[1]).toMatchObject({
-      label: 'Chorus',
-      slideLabel: 'Chorus',
-      labelColor: '#0000FF',
-      picture: SLIDE_PICTURE,
-    });
-    expect(
-      slideLayerOf({itemId: item.id, index: 0}, () => tiles),
-    ).toMatchObject({label: 'Verse', next: {label: 'Chorus'}});
-    expect(
-      slideLayerOf({itemId: item.id, index: 1}, () => tiles),
-    ).toMatchObject({label: 'Chorus'});
-  },
-);
+      [`slide:${second.id}`]: {slideName: 'Older saved ad title'},
+    },
+  };
+  const tiles = projectSlides(saved);
+  expect(tiles.map(tile => tile.label)).toEqual([
+    title.text,
+    'Older saved ad title',
+  ]);
+  expect(tiles.every(tile => tile.slideLabel === undefined)).toBe(true);
+  expect(slideLayerOf({itemId: item.id, index: 0}, () => tiles)).toMatchObject({
+    label: title.text,
+    lines: [first.text],
+    next: {label: 'Older saved ad title'},
+  });
+  const firstTile = tiles[0];
+  if (firstTile === undefined) throw Error('Missing projected ad');
+  expect(nextSlideOf(firstTile, 'ad')).toMatchObject({
+    itemKind: 'ad',
+    label: title.text,
+  });
+});

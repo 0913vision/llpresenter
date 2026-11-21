@@ -374,7 +374,7 @@ function DetailsPanelContent({
       const slide = item.slides.slides[index - offset];
       return slide === undefined
         ? undefined
-        : slideBand(slide, media.document?.value.items ?? []);
+        : slideBand(item, slide, media.document?.value.items ?? []);
     }
     return (
       library?.tiles[index]?.label ??

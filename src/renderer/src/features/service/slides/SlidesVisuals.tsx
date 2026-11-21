@@ -4,6 +4,7 @@ import {useEffect, useMemo, useRef, useState, type JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {MediaItem} from '@core/schema/mediaList';
 import {BIBLE_BOOKS} from '@core/bible/bibleBooks';
+import {adSlideTitle} from '@core/presentation/slides';
 import {withPreferenceDefaults} from '@core/schema/preferences';
 import type {Slide, SlidesItem} from '@core/services/slidesEdits';
 import type {BibleProjection} from '@renderer/features/bible/splitProjection';
@@ -20,7 +21,12 @@ import {RolePreview} from '@renderer/features/songs/editor/RolePreview';
 import {useItemSettings} from '../items/useItemSources';
 import styles from './SlidesEditor.module.css';
 
-export function slideBand(slide: Slide, media: readonly MediaItem[]): string {
+export function slideBand(
+  item: SlidesItem,
+  slide: Slide,
+  media: readonly MediaItem[],
+): string {
+  if (item.slides.form === 'ad') return adSlideTitle(item, slide);
   if (slide.label !== undefined) return slide.label;
   if ('verse' in slide) {
     const book = BIBLE_BOOKS.find(book => book.id === slide.verse.book);
@@ -220,7 +226,9 @@ export function SlidesPreview({
         ) : (
           <>
             <span>
-              {'text' in slide ? slide.name : slideBand(slide, media)}
+              {item.slides.form !== 'ad' && 'text' in slide
+                ? slide.name
+                : slideBand(item, slide, media)}
             </span>
             <span>
               {selected + 1 + offset} / {item.slides.slides.length + offset}
