@@ -12,6 +12,7 @@ import {projectSlides} from '@core/presentation/slides';
 import {slidesItem} from '@fixtures/core/slides';
 import {
   THEME_MAIN,
+  THEME_STAGE,
   liveThemeTextElements,
   themeElementBase,
   themeFile,
@@ -305,10 +306,13 @@ it.each(['song', 'media'] as const)(
           id: theme,
           name: 'Fixture theme',
           screens: {
+            [THEME_STAGE]: {
+              mode: {kind: 'own'},
+              elements: liveElements,
+            },
             [THEME_MAIN]: {
               mode: {kind: 'own'},
               elements: [
-                ...liveElements,
                 {
                   ...themeElementBase(),
                   kind: 'text',
@@ -335,7 +339,7 @@ it.each(['song', 'media'] as const)(
     const slideKey = kind === 'song' ? `slide:${first.id}` : 'media:standalone';
     const oldValues = Object.fromEntries(
       liveElements.map(element => [
-        [theme, THEME_MAIN, element.id].join('/'),
+        [theme, THEME_STAGE, element.id].join('/'),
         'Old live text',
       ]),
     );
