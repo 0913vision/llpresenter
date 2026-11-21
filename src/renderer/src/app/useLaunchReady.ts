@@ -1,6 +1,12 @@
 import {useEffect} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {LoadReadiness} from '@renderer/ui/loadReadiness';
+import {isItemRow} from '@core/presentation/model';
+import {useShow} from '@renderer/session/show';
+import {
+  hasRetainedGrid,
+  subscribeRetainedGrids,
+} from '@renderer/session/shownItem';
 
 function fontsReady(): Promise<unknown> {
   try {
@@ -23,8 +29,15 @@ export function useLaunchReady(
     let preparing = false;
     let frame: number | undefined;
     let idle: number | undefined;
+    let expectedService: string | null = null;
     const isReady = (): boolean =>
-      readiness?.getSnapshot() === 0 || readiness === undefined;
+      (readiness?.getSnapshot() === 0 || readiness === undefined) &&
+      useShow.getState().serviceId === expectedService &&
+      (expectedService === null ||
+        useShow
+          .getState()
+          .rows.filter(isItemRow)
+          .every(row => hasRetainedGrid(expectedService ?? '', row.id)));
     const attempt = (): void => {
       if (stopped || sent || !loaded || !isReady() || preparing) return;
       preparing = true;
@@ -80,12 +93,16 @@ export function useLaunchReady(
       });
     };
     const stopReadiness = readiness?.subscribe(attempt);
+    const stopGrids = subscribeRetainedGrids(attempt);
+    const stopShow = useShow.subscribe(attempt);
     api.service.get().then(
-      () => {
+      service => {
+        expectedService = service?.id ?? null;
         loaded = true;
         attempt();
       },
       (error: unknown) => {
+        expectedService = useShow.getState().serviceId;
         api.log.write({
           level: 'warn',
           message: 'Could not confirm launch service readiness',
@@ -98,6 +115,8 @@ export function useLaunchReady(
     return () => {
       stopped = true;
       stopReadiness?.();
+      stopGrids();
+      stopShow();
       if (frame !== undefined) cancelAnimationFrame(frame);
       if (idle !== undefined) cancelIdleCallback(idle);
     };

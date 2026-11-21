@@ -141,12 +141,17 @@ describe('createControlWindow', () => {
     expect(win.maximize).not.toHaveBeenCalled();
   });
 
-  it('eventually shows a painted window if startup readiness does not arrive', () => {
+  it('does not bypass grid readiness when output preparation times out', () => {
     vi.useFakeTimers();
     createControlWindow(recordingLogger(), 'normal', {attachControl: vi.fn()});
     const win = lastWindow();
     win.emit('ready-to-show');
     vi.advanceTimersByTime(15000);
+    expect(win.show).not.toHaveBeenCalled();
+    electron.ipcMain.emit(serviceEndpoints.ready.channel, {
+      sender: win.webContents,
+      senderFrame: win.webContents.mainFrame,
+    });
     expect(win.show).toHaveBeenCalledOnce();
     vi.useRealTimers();
   });

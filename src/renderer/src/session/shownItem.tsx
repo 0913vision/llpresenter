@@ -12,6 +12,25 @@ import {useLive} from './live';
 const ShownItem = createContext<string | null | undefined>(undefined);
 const keptGrids = new Map<string, number>();
 const keptListeners = new Set<() => void>();
+let keptVersion = 0;
+
+export function subscribeRetainedGrids(listener: () => void): () => void {
+  keptListeners.add(listener);
+  return () => keptListeners.delete(listener);
+}
+
+export function retainedGridsVersion(): number {
+  return keptVersion;
+}
+
+export function hasRetainedGrid(serviceId: string, itemId: string): boolean {
+  return keptGrids.has(gridKey(serviceId, itemId));
+}
+
+function publishKeptGrids(): void {
+  keptVersion++;
+  for (const listener of keptListeners) listener();
+}
 
 function gridKey(serviceId: string, itemId: string): string {
   return JSON.stringify([serviceId, itemId]);
@@ -21,12 +40,12 @@ function gridKey(serviceId: string, itemId: string): string {
 export function retainShownGrid(serviceId: string, itemId: string): () => void {
   const key = gridKey(serviceId, itemId);
   keptGrids.set(key, (keptGrids.get(key) ?? 0) + 1);
-  for (const listener of keptListeners) listener();
+  publishKeptGrids();
   return () => {
     const count = (keptGrids.get(key) ?? 1) - 1;
     if (count > 0) keptGrids.set(key, count);
     else keptGrids.delete(key);
-    for (const listener of keptListeners) listener();
+    publishKeptGrids();
   };
 }
 
@@ -61,10 +80,14 @@ export function ShownItemProvider({
   readonly shownItem?: string | null | undefined;
   readonly trackLive?: boolean;
 }): JSX.Element {
-  const requested = useShow(view => view.openItemId);
-  const ready = useShow(view => view.readyItemId);
-  const passage = useShow(view => view.readyPassage);
-  const liveTitle = useLive(view => view.state?.themeItem?.title);
+  const requested = useShow(view =>
+    shownItem === undefined || trackLive ? view.openItemId : null,
+  );
+  const ready = useShow(view => (trackLive ? view.readyItemId : null));
+  const passage = useShow(view => (trackLive ? view.readyPassage : null));
+  const liveTitle = useLive(view =>
+    trackLive ? view.state?.themeItem?.title : null,
+  );
   const shown = useDeferredValue(shownItem === undefined ? requested : null);
   const fallback = shownItem === undefined ? shown : shownItem;
   if (!trackLive) {
@@ -83,7 +106,9 @@ export function ShownItemProvider({
 /** The open item as the screen shows it, or as opened outside a provider. */
 export function useShownItemId(): string | null {
   const shown = use(ShownItem);
-  const requested = useShow(view => view.openItemId);
+  const requested = useShow(view =>
+    shown === undefined ? view.openItemId : null,
+  );
   return shown === undefined ? requested : shown;
 }
 

@@ -4,6 +4,7 @@ import {
   useEffect,
   useEffectEvent,
   useLayoutEffect,
+  memo,
   useRef,
   useState,
   type JSX,
@@ -31,6 +32,7 @@ import {slideLayerOf} from '@core/presentation/slideLayer';
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
 import {sermonPreviewRow} from '@renderer/platform/sermonPreview';
 import {useBibleTileProjection} from '../bible/useBibleProjections';
+import {splitSourceFor} from '../bible/splitProjection';
 import {BibleLoadNotice} from '../bible/BibleLoadNotice';
 import styles from './SlideGrid.module.css';
 import {useSlideWindow} from './useSlideWindow';
@@ -45,6 +47,7 @@ const GRID_SELECTOR = '[role="listbox"]';
 
 export interface SlideGridProps {
   readonly active?: boolean;
+  readonly prebuild?: boolean;
   /** The columns of the size class at 100%: 3, 4, or 6. */
   readonly columns: number;
   /** The 슬라이드 size in percent, 50 to 200. */
@@ -53,9 +56,9 @@ export interface SlideGridProps {
     ((itemId: string, position?: number) => void) | undefined;
 }
 
-/** The 슬라이드 grid of the open item. A click outputs a tile. */
-export function SlideGrid({
+function SlideGridContent({
   active = true,
+  prebuild = false,
   columns,
   scalePercent,
   onOpenPrep,
@@ -63,22 +66,29 @@ export function SlideGrid({
   const openItemId = useShownItemId();
   const currentBibleLookup = useShow(view => isBibleSource(view, openItemId));
   const [lastBibleLookup, setLastBibleLookup] = useState(currentBibleLookup);
-  if (active && lastBibleLookup !== currentBibleLookup) {
+  if ((active || prebuild) && lastBibleLookup !== currentBibleLookup) {
     setLastBibleLookup(currentBibleLookup);
   }
-  const bibleLookup = active ? currentBibleLookup : lastBibleLookup;
+  const bibleLookup = active || prebuild ? currentBibleLookup : lastBibleLookup;
   const offset = useShow(view =>
     openItemId === null ? null : serviceSlideOffset(view, openItemId),
   );
   const currentTiles = useShow(view => shownTilesFor(view, openItemId));
   const [lastTiles, setLastTiles] = useState(currentTiles);
-  if (active && currentTiles !== undefined && lastTiles !== currentTiles) {
+  if (
+    (active || prebuild) &&
+    currentTiles !== undefined &&
+    lastTiles !== currentTiles
+  ) {
     setLastTiles(currentTiles);
   }
-  const tiles = active ? currentTiles : lastTiles;
+  const tiles = active || prebuild ? currentTiles : lastTiles;
   const row = useShow(view => view.rows.find(value => value.id === openItemId));
   const serviceId = useShow(view => view.serviceId);
   const serviceItem = row !== undefined && isItemRow(row);
+  const needsBibleProjection = useShow(
+    view => openItemId !== null && splitSourceFor(view, openItemId) !== null,
+  );
   const librarySong = useShow(view => view.librarySong);
   const theme = useSlideTheme(
     row !== undefined && isItemRow(row)
@@ -119,10 +129,14 @@ export function SlideGrid({
     anyItem: true,
   });
   const [lastBible, setLastBible] = useState(currentBible);
-  if (active && currentBible !== null && lastBible !== currentBible) {
+  if (
+    (active || prebuild) &&
+    currentBible !== null &&
+    lastBible !== currentBible
+  ) {
     setLastBible(currentBible);
   }
-  const bible = active ? currentBible : lastBible;
+  const bible = active || prebuild ? currentBible : lastBible;
   const liveSlide = useLive(view => view.state?.layers.slide ?? null);
   const liveIndex = useShow(view =>
     liveTileIndex({...view, openItemId}, liveSlide),
@@ -133,11 +147,19 @@ export function SlideGrid({
   const committedItem = useCommittedShownItem();
   const [localItem, setLocalItem] = useState<string | null | undefined>();
   const keeperRef = useRef<HTMLDivElement>(null);
-  if (active && committedItem === openItemId && localItem !== openItemId) {
+  if (
+    !prebuild &&
+    active &&
+    committedItem === openItemId &&
+    localItem !== openItemId
+  ) {
     setLocalItem(openItemId);
   }
   const switching =
-    active && localItem !== openItemId && committedItem !== openItemId;
+    !prebuild &&
+    active &&
+    localItem !== openItemId &&
+    committedItem !== openItemId;
   useLayoutEffect(() => {
     if (!active) return;
     commitShownItem(openItemId);
@@ -147,19 +169,26 @@ export function SlideGrid({
       serviceId === null ||
       openItemId === null ||
       !serviceItem ||
-      localItem !== openItemId
+      (!prebuild && localItem !== openItemId) ||
+      (prebuild &&
+        (row.problem === 'loading-bible' ||
+          (needsBibleProjection && currentBible === null)))
     ) {
       return;
     }
     const root = keeperRef.current;
     if (root === null) return;
     let release: (() => void) | undefined;
+    let generation = 0;
     const update = (): void => {
+      const revision = ++generation;
       const pending = root.querySelector('[data-preview-ready="false"]');
       const images = [...root.querySelectorAll('img')];
       const tiles = [...root.querySelectorAll('[role="option"]')];
       const ready =
-        tiles.length > 0 &&
+        (prebuild
+          ? tiles.length === (currentTiles?.length ?? 0)
+          : tiles.length > 0) &&
         pending === null &&
         tiles.every(
           tile =>
@@ -167,7 +196,26 @@ export function SlideGrid({
         ) &&
         images.every(image => image.complete && image.naturalWidth > 0);
       if (ready && release === undefined) {
-        release = retainShownGrid(serviceId, openItemId);
+        Promise.all(
+          images.map(image =>
+            typeof image.decode === 'function'
+              ? image.decode()
+              : Promise.resolve(),
+          ),
+        ).then(
+          () => {
+            if (revision === generation && release === undefined) {
+              release = retainShownGrid(serviceId, openItemId);
+            }
+          },
+          (error: unknown) => {
+            globalThis.window.llp?.log.write({
+              level: 'warn',
+              message: 'Could not decode a service grid picture',
+              detail: String(error),
+            });
+          },
+        );
       } else if (!ready && release !== undefined) {
         release();
         release = undefined;
@@ -184,12 +232,24 @@ export function SlideGrid({
     root.addEventListener('error', update, true);
     update();
     return () => {
+      generation++;
       observer.disconnect();
       root.removeEventListener('load', update, true);
       root.removeEventListener('error', update, true);
       release?.();
     };
-  }, [serviceId, openItemId, serviceItem, localItem]);
+  }, [
+    serviceId,
+    openItemId,
+    serviceItem,
+    localItem,
+    prebuild,
+    tiles,
+    currentTiles,
+    needsBibleProjection,
+    currentBible,
+    row,
+  ]);
   const transitionProgress = useSlideTransitionProgress();
   useEffect(() => {
     if (active && liveIndex !== null) {
@@ -207,6 +267,7 @@ export function SlideGrid({
     selector: '[data-reflow-id]',
     attribute: 'data-reflow-id',
     scope: openItemId,
+    enabled: active,
   });
   const tabEntry = useRef(false);
   const [showFocus, setShowFocus] = useState(false);
@@ -226,7 +287,7 @@ export function SlideGrid({
       document.removeEventListener('pointerdown', pointerDown, true);
     };
   }, [active]);
-  const {width, gap} = useGridMeasure(keeperRef, GRID_SELECTOR);
+  const {width, gap} = useGridMeasure(keeperRef, GRID_SELECTOR, active);
   const tileWidth = thumbnailWidth({
     gridWidth: width,
     columns,
@@ -242,7 +303,10 @@ export function SlideGrid({
     live: liveIndex,
     itemId: openItemId,
     startAtTop: bibleLookup,
+    enabled: active,
   });
+  const start = prebuild ? 0 : window.start;
+  const end = prebuild ? (tiles?.length ?? 0) : window.end;
   const entryRef = useContext(ShowSlideEntry);
   const enter = useEffectEvent(() => {
     if (liveIndex !== null) window.reveal();
@@ -284,31 +348,34 @@ export function SlideGrid({
         <BibleLoadNotice row={row} />
       ) : null}
 
-      <div className={styles.window} style={{top: window.offset}}>
+      <div
+        className={styles.window}
+        style={{top: prebuild ? 0 : window.offset}}
+      >
         <ThumbnailGrid
           workspace="show"
           gridFocus
           label="슬라이드"
           columns={columns}
           tileWidth={tileWidth}
-          positionOffset={window.start}
+          positionOffset={start}
           setSize={tiles?.length ?? 0}
           selected={undefined}
           onSelect={() => undefined}
-          onOutput={index => onOutput(window.start + index)}
+          onOutput={index => onOutput(start + index)}
           onMenu={(index, anchor) => {
             if (openItemId !== null) {
               setMenu({
                 itemId: openItemId,
-                index: window.start + index,
+                index: start + index,
                 anchor,
               });
             }
           }}
           className={styles.grid}
         >
-          {tiles?.slice(window.start, window.end).map((tile, local) => {
-            const index = window.start + local;
+          {tiles?.slice(start, end).map((tile, local) => {
+            const index = start + local;
             const picture = tile.media?.mediaId;
             const slide =
               openItemId === null
@@ -377,3 +444,6 @@ export function SlideGrid({
     </div>
   );
 }
+
+/** The 슬라이드 grid of the open item. A click outputs a tile. */
+export const SlideGrid = memo(SlideGridContent);

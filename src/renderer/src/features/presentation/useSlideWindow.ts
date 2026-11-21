@@ -79,6 +79,7 @@ export function useSlideWindow(
     live,
     itemId,
     startAtTop = false,
+    enabled = true,
   }: {
     readonly count: number;
     readonly columns: number;
@@ -88,6 +89,7 @@ export function useSlideWindow(
     readonly live: number | null;
     readonly itemId: string | null;
     readonly startAtTop?: boolean;
+    readonly enabled?: boolean;
   },
 ) {
   const [measure, setMeasure] = useState({
@@ -136,6 +138,7 @@ export function useSlideWindow(
     count: number;
   }>({itemId, count});
   useLayoutEffect(() => {
+    if (!enabled) return;
     const viewport = gridViewport(keeper.current);
     if (!viewport) return;
     const frame = workspaceFrame(keeper.current ?? viewport);
@@ -242,9 +245,10 @@ export function useSlideWindow(
       if (timer.current !== undefined) clearTimeout(timer.current);
       remeasure.current = () => undefined;
     };
-  }, [keeper]);
+  }, [keeper, enabled]);
   // NOTE(0913vision): a grid that mounts after the panel (or per item) is read once it is there.
   useLayoutEffect(() => {
+    if (!enabled) return;
     const last = read.current;
     read.current = {itemId, count};
     const viewport = gridViewport(keeper.current);
@@ -260,7 +264,7 @@ export function useSlideWindow(
       return;
     }
     remeasure.current();
-  }, [keeper, itemId, count, startAtTop]);
+  }, [keeper, itemId, count, startAtTop, enabled]);
   const tracks =
     tileWidth > 0
       ? Math.max(1, Math.floor((width + gap) / (tileWidth + gap)))
@@ -284,6 +288,7 @@ export function useSlideWindow(
   const windowSize = firstSlideWindowSize(tracks, measure.height, stride);
   const end = Math.min(count, start + windowSize);
   useLayoutEffect(() => {
+    if (!enabled) return;
     const viewport = gridViewport(keeper.current);
     const old = geometry.current;
     if (
@@ -347,8 +352,9 @@ export function useSlideWindow(
       ...next,
       ...(old?.itemId === itemId && old.anchor ? {anchor: old.anchor} : {}),
     };
-  }, [keeper, itemId, tracks, stride, measure, count, live, rows]);
+  }, [keeper, itemId, tracks, stride, measure, count, live, rows, enabled]);
   useLayoutEffect(() => {
+    if (!enabled) return;
     current.current = (behavior = 'smooth') => {
       if (
         live !== null &&
@@ -379,7 +385,7 @@ export function useSlideWindow(
     if (last === null || moved || last.height !== measure.height) {
       current.current(moved ? 'smooth' : 'instant');
     }
-  }, [keeper, live, itemId, tracks, stride, measure]);
+  }, [keeper, live, itemId, tracks, stride, measure, enabled]);
   return {
     reveal: (): void => current.current(),
     start,

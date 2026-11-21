@@ -1,4 +1,5 @@
 import {SERMON_TITLE_THEME_ID} from '@core/themes/sundayScripture';
+import {flushSync} from 'react-dom';
 import {useShownItemId} from '@renderer/session/shownItem';
 import {tilesForView} from '@renderer/session/showLibrary';
 import {useBibleProjections} from '@renderer/features/bible/useBibleProjections';
@@ -417,8 +418,10 @@ export function ServiceOrderList({
           onNavigateEditor?.(itemId, kind);
         }
       } else {
-        onOpenItem?.();
-        openItem(itemId);
+        flushSync(() => {
+          onOpenItem?.();
+          openItem(itemId);
+        });
         window.dispatchEvent(
           new CustomEvent('show-grid-item', {detail: itemId}),
         );

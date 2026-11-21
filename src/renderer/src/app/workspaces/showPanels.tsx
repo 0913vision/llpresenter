@@ -81,6 +81,7 @@ function ShowSlidesPanel({
                 sizeClass={sizeClass}
                 onOpenPrep={onOpenPrep}
                 active={!bibleOpen}
+                prebuildService
               />
             </div>
             <SlidePanelFooter sizeClass={sizeClass} />

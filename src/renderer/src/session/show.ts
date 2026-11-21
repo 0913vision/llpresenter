@@ -822,6 +822,31 @@ function keptSelection(
   return {openItemId, selectedTile: Math.min(selectedTile, last)};
 }
 
+function reuseUnchangedItems(
+  service: ShowService,
+  previous: ShowView,
+): Pick<ShowView, 'rows' | 'tiles'> {
+  const rowsById = new Map(previous.rows.map(row => [row.id, row]));
+  const rows = service.rows.map(row => {
+    const old = rowsById.get(row.id);
+    return old !== undefined && JSON.stringify(old) === JSON.stringify(row)
+      ? old
+      : row;
+  });
+  const tiles = Object.fromEntries(
+    Object.entries(service.tiles).map(([id, next]) => {
+      const old = previous.tiles[id];
+      return [
+        id,
+        old !== undefined && JSON.stringify(old) === JSON.stringify(next)
+          ? old
+          : next,
+      ];
+    }),
+  );
+  return {rows, tiles};
+}
+
 /**
  * Shows the open 예배 순서 the main process sent, or none when it is null. A
  * revision older than the one shown is dropped. The open item and the selected
@@ -845,6 +870,7 @@ export function applyService(service: ShowService | null): void {
   if (isStale(service)) return;
   const view = useShow.getState();
   const changed = view.serviceId !== service.id;
+  const content = changed ? service : reuseUnchangedItems(service, view);
   if (!changed) {
     rememberLiveAnchor(view, useLive.getState().state?.layers.slide ?? null);
   }
@@ -854,8 +880,8 @@ export function applyService(service: ShowService | null): void {
     serviceEpoch: view.serviceEpoch + (changed ? 1 : 0),
     serviceName: service.name,
     readOnly: service.readOnly,
-    rows: service.rows,
-    tiles: service.tiles,
+    rows: content.rows,
+    tiles: content.tiles,
     ...(changed ? {openItemId: null, selectedTile: 0} : keptSelection(service)),
   });
   if (!changed) {

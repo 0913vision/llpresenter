@@ -387,6 +387,7 @@ export function start(
         ) {
           return;
         }
+        reportSplashStep('pregrid');
         void dataStore.content.then(
           () => launchIdle.serviceReady(),
           (error: unknown) =>

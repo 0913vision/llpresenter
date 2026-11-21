@@ -3,7 +3,7 @@ import icon from '../../../build/icon-small.svg?raw';
 import type {WindowMode} from './testWindows';
 
 export type StartupStep =
-  'settings' | 'content' | 'window' | 'renderer' | 'paint';
+  'settings' | 'content' | 'window' | 'renderer' | 'paint' | 'pregrid';
 
 const steps: readonly StartupStep[] = [
   'settings',
@@ -11,6 +11,7 @@ const steps: readonly StartupStep[] = [
   'window',
   'renderer',
   'paint',
+  'pregrid',
 ];
 const states = new WeakMap<
   BrowserWindow,
@@ -71,7 +72,9 @@ function renderProgress(window: BrowserWindow, done: Set<StartupStep>): void {
     ? '설정 불러오는 중'
     : !done.has('content')
       ? '예배 불러오는 중'
-      : '화면 준비 중';
+      : !done.has('pregrid')
+        ? '슬라이드 준비 중'
+        : '화면 준비 중';
   const code = `document.getElementById('status').textContent=${JSON.stringify(status)};document.querySelector('.bar').style.width='${percent}%';document.querySelector('.track').setAttribute('aria-valuenow','${percent}')`;
   window.webContents.executeJavaScript(code).catch(() => undefined);
 }

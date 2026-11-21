@@ -31,12 +31,14 @@ function sameMeasure(a: GridMeasure, b: GridMeasure): boolean {
 export function useGridMeasure(
   container: RefObject<HTMLElement | null>,
   selector: string,
+  enabled = true,
 ): GridMeasure {
   const [measure, setMeasure] = useState(UNMEASURED);
   // NOTE(0913vision): Only the observer sets the measure, so it keeps the
   // latest one here too.
   const latest = useRef(UNMEASURED);
   useLayoutEffect(() => {
+    if (!enabled) return;
     const root = container.current;
     if (!root || typeof ResizeObserver === 'undefined') return;
     let grid: HTMLElement | null = null;
@@ -94,6 +96,6 @@ export function useGridMeasure(
       swaps?.disconnect();
       observer.disconnect();
     };
-  }, [container, selector]);
+  }, [container, selector, enabled]);
   return measure;
 }

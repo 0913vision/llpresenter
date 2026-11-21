@@ -39,6 +39,29 @@ afterEach(() => {
 });
 
 describe('applyService', () => {
+  it('retains unchanged items when another item is edited', () => {
+    const original = serviceOf({
+      tiles: {
+        a: [{label: null, labelColor: 'none', lines: ['A']}],
+        b: [{label: null, labelColor: 'none', lines: ['B']}],
+      },
+    });
+    applyService(original);
+    const before = useShow.getState();
+    const next = structuredClone(original);
+    applyService({
+      ...next,
+      revision: 2,
+      tiles: {
+        ...next.tiles,
+        b: [{label: null, labelColor: 'none', lines: ['changed']}],
+      },
+    });
+    const after = useShow.getState();
+    expect(after.rows[1]).toBe(before.rows[1]);
+    expect(after.tiles['a']).toBe(before.tiles['a']);
+    expect(after.tiles['b']).not.toBe(before.tiles['b']);
+  });
   it('shows the rows, tiles, name, and read-only flag', () => {
     applyService(serviceOf({readOnly: true}));
     expect(useShow.getState()).toMatchObject({

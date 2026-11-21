@@ -176,6 +176,57 @@ describe('SlidePanelMeta', () => {
 });
 
 describe('SlidePanelBody', () => {
+  it('builds and retains an unvisited service grid before it is selected', async () => {
+    openItem('song-morning');
+    useShow.setState({
+      rows: useShow
+        .getState()
+        .rows.filter(
+          row => row.id === 'song-morning' || row.id === 'song-river',
+        ),
+    });
+    const serviceId = useShow.getState().serviceId;
+    function Probe() {
+      const retained = useRetainedShownGrid(serviceId, 'song-river');
+      return <output data-testid="prebuilt">{String(retained)}</output>;
+    }
+    const {container} = render(
+      <>
+        <SlidePanelBody sizeClass="normal" prebuildService />
+        <Probe />
+      </>,
+    );
+    for (const tile of container.querySelectorAll('[role="option"]')) {
+      const picture = document.createElement('div');
+      picture.setAttribute('data-preview-ready', 'true');
+      tile.append(picture);
+    }
+    await waitFor(() =>
+      expect(
+        container.querySelector('[data-grid-item="song-river"]'),
+      ).not.toBeNull(),
+    );
+    const hidden = container.querySelector(
+      '[data-grid-item="song-river"] [data-show-slide-grid]',
+    );
+    for (const tile of hidden?.querySelectorAll('[role="option"]') ?? []) {
+      const picture = document.createElement('div');
+      picture.setAttribute('data-preview-ready', 'true');
+      tile.append(picture);
+    }
+    await waitFor(() =>
+      expect(screen.getByTestId('prebuilt').textContent).toBe('true'),
+    );
+    const previous = screen.getByRole('listbox', {name: '슬라이드'});
+    act(() => openItem('song-river'));
+    await waitFor(() =>
+      expect(screen.getByRole('listbox', {name: '슬라이드'})).not.toBe(
+        previous,
+      ),
+    );
+    expect(hidden?.isConnected).toBe(true);
+  });
+
   it('reports a previously shown grid as retained until it unmounts', async () => {
     function Probe() {
       const retained = useRetainedShownGrid(

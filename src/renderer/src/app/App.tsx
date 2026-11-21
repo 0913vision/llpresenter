@@ -66,6 +66,7 @@ import {addNotice} from '@renderer/ui/notices';
 import {BibleServiceProjection} from '@renderer/features/bible/BibleServiceProjection';
 import {BibleInsertionReview} from '@renderer/features/bible/BibleInsertionReview';
 import {LoadReadiness, LoadReadinessContext} from '@renderer/ui/loadReadiness';
+import {ServiceGridLoading} from './ServiceGridLoading';
 
 const noEditorSubscription = (): (() => void) => () => undefined;
 
@@ -266,6 +267,7 @@ function ControlApp({
         />
       </ShownItemProvider>
       <StatusBar standby={recovery.offer !== null} saveState={saveState} />
+      <ServiceGridLoading />
       {prepActions.importSurface}
       <RecoveryPrompt recovery={recovery} />
       <NotificationStack

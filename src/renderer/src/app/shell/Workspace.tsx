@@ -36,7 +36,6 @@ import {
   ShowSlideEntry,
   useShowPanelNavigation,
 } from '@renderer/features/presentation/showPanelNavigation';
-import {OpenItemPrefetch} from '@renderer/features/presentation/SlidePicturePrefetch';
 import {TableDataKeeper} from '@renderer/features/service/table/useServiceTableData';
 import {PrepPictureSwitch} from '@renderer/rendering/PrepPictureSwitch';
 import {ShownItemProvider} from '@renderer/session/shownItem';
@@ -234,7 +233,6 @@ export function Workspace({
       {visibleId === 'show' ? (
         <ShowShortcuts onProblem={onProblem ?? logPanelProblem} />
       ) : null}
-      <OpenItemPrefetch />
       {prep === undefined ? null : <TableDataKeeper api={prep.api} />}
       <div data-resize-panel="media.upper" className={styles.frames}>
         <div

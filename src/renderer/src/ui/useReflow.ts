@@ -9,6 +9,7 @@ interface Options {
   readonly selector: string;
   readonly attribute: string;
   readonly scope: string | null;
+  readonly enabled?: boolean;
 }
 
 function position(element: HTMLElement): Point {
@@ -39,6 +40,7 @@ export function useReflow(
   const animations = useRef(new WeakMap<HTMLElement, Animation>());
   const key = JSON.stringify(options.ids);
   useLayoutEffect(() => {
+    if (options.enabled === false) return;
     const node = root.current;
     if (!node) return;
     const before = previous.current;

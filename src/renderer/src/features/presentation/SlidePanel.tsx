@@ -1,4 +1,4 @@
-import {useState, useSyncExternalStore, type JSX} from 'react';
+import {useEffect, useState, useSyncExternalStore, type JSX} from 'react';
 import {useShallow} from 'zustand/react/shallow';
 import {defaultThumbnailColumns, type SizeClass} from '@renderer/ui/sizeClass';
 import {useShow} from '@renderer/session/show';
@@ -24,25 +24,61 @@ import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {READ_ONLY_TIP} from '../../platform/problemReasons';
 import styles from './SlidePanel.module.css';
 import {useVisibleSlideItem} from '@renderer/session/visibleSlideItem';
-import {ShownItemProvider, useShownItemId} from '@renderer/session/shownItem';
+import {
+  hasRetainedGrid,
+  retainedGridsVersion,
+  ShownItemProvider,
+  subscribeRetainedGrids,
+  useShownItemId,
+} from '@renderer/session/shownItem';
 import {useLive} from '@renderer/session/live';
+import {isItemRow} from '@core/presentation/model';
 
 const PROBLEM_ICON_SIZE = 14;
+const NO_PREBUILT: readonly string[] = [];
 
 /** The 슬라이드 grid at the size chosen for the current size class. */
 export function SlidePanelBody({
   sizeClass,
   onOpenPrep,
   active = true,
+  prebuildService = false,
 }: {
   readonly sizeClass: SizeClass;
   readonly active?: boolean;
+  readonly prebuildService?: boolean;
   readonly onOpenPrep?:
     ((itemId: string, position?: number) => void) | undefined;
 }): JSX.Element {
   const settings = useSettingsDocument('preferences', '환경설정', undefined);
   const scalePercent = useThumbnailScale(sizeClass);
   const shownItemId = useShownItemId();
+  const serviceRows = useShow(
+    useShallow(view => view.rows.filter(isItemRow).map(row => row.id)),
+  );
+  const serviceId = useShow(view => view.serviceId);
+  const keptVersion = useSyncExternalStore(
+    subscribeRetainedGrids,
+    retainedGridsVersion,
+  );
+  const [preparing, setPreparing] = useState<{
+    serviceId: string | null;
+    items: readonly string[];
+  }>({serviceId: null, items: []});
+  const prebuilt =
+    preparing.serviceId === serviceId ? preparing.items : NO_PREBUILT;
+  useEffect(() => {
+    if (!prebuildService || serviceId === null) return;
+    const present = prebuilt.filter(id => serviceRows.includes(id));
+    const pending = present.some(id => !hasRetainedGrid(serviceId, id));
+    const next = serviceRows.find(id => !present.includes(id));
+    if (pending || next === undefined) return;
+    const timer = setTimeout(
+      () => setPreparing({serviceId, items: [...present, next]}),
+      0,
+    );
+    return () => clearTimeout(timer);
+  }, [prebuildService, prebuilt, serviceId, serviceRows, keptVersion]);
   const isServiceItem = useShow(
     view =>
       shownItemId === null || view.rows.some(row => row.id === shownItemId),
@@ -72,27 +108,35 @@ export function SlidePanelBody({
           />
         </div>
       ) : null}
-      {visited.map(itemId => {
-        const gridActive = active && !continuous && itemId === shownItemId;
-        return (
-          <div
-            key={itemId ?? ''}
-            data-slide-grid-cache
-            aria-hidden={!gridActive}
-            inert={!gridActive}
-            style={{display: gridActive ? 'contents' : 'none'}}
-          >
-            <ShownItemProvider shownItem={itemId} trackLive={false}>
-              <SlideGrid
-                active={gridActive}
-                columns={defaultThumbnailColumns[sizeClass]}
-                scalePercent={scalePercent}
-                onOpenPrep={onOpenPrep}
-              />
-            </ShownItemProvider>
-          </div>
-        );
-      })}
+      {[...new Set([...visited, ...(prebuildService ? prebuilt : [])])].map(
+        itemId => {
+          const gridActive = active && !continuous && itemId === shownItemId;
+          return (
+            <div
+              key={itemId ?? ''}
+              data-slide-grid-cache
+              data-grid-item={itemId ?? undefined}
+              aria-hidden={!gridActive}
+              inert={!gridActive}
+              style={{display: gridActive ? 'contents' : 'none'}}
+            >
+              <ShownItemProvider shownItem={itemId} trackLive={false}>
+                <SlideGrid
+                  active={gridActive}
+                  prebuild={
+                    prebuildService &&
+                    itemId !== null &&
+                    serviceRows.includes(itemId)
+                  }
+                  columns={defaultThumbnailColumns[sizeClass]}
+                  scalePercent={scalePercent}
+                  onOpenPrep={onOpenPrep}
+                />
+              </ShownItemProvider>
+            </div>
+          );
+        },
+      )}
     </>
   );
 }

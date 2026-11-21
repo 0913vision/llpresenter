@@ -36,11 +36,21 @@ describe('launch window', () => {
     expect(window.webContents.executeJavaScript).not.toHaveBeenCalled();
     window.webContents.emit('did-finish-load');
     expect(window.webContents.executeJavaScript).toHaveBeenLastCalledWith(
-      expect.stringContaining("width='20%'"),
+      expect.stringContaining("width='17%'"),
     );
     completeSplashStep(splash, 'content');
     expect(window.webContents.executeJavaScript).toHaveBeenLastCalledWith(
-      expect.stringContaining("width='40%'"),
+      expect.stringContaining("width='33%'"),
+    );
+    completeSplashStep(splash, 'settings');
+    completeSplashStep(splash, 'renderer');
+    completeSplashStep(splash, 'paint');
+    expect(window.webContents.executeJavaScript).toHaveBeenLastCalledWith(
+      expect.stringContaining("width='83%'"),
+    );
+    completeSplashStep(splash, 'pregrid');
+    expect(window.webContents.executeJavaScript).toHaveBeenLastCalledWith(
+      expect.stringContaining("width='100%'"),
     );
   });
   it('uses a blue background and shows the inline design only after the first paint', () => {

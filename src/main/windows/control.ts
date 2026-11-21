@@ -112,7 +112,6 @@ export function createControlWindow(
       show();
     };
     const timeout = setTimeout(() => {
-      dataReady = true;
       outputsPrepared = true;
       show();
     }, STARTUP_TIMEOUT_MS);
