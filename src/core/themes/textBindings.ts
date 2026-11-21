@@ -4,7 +4,6 @@ import type {ThemeTextRole} from '../schema/themeTextSlot';
 import {manualSlideTextKey} from '../schema/slideTextOverrides';
 import {isBuiltInThemeId} from './builtInIds';
 import {isSlideEditableElement, isThemeTextElement} from './content';
-import type {ThemeItemKind} from './elementRules';
 
 type TextElement = Extract<ThemeElement, {readonly text: unknown}>;
 
@@ -12,8 +11,6 @@ export interface TextSlotLayout {
   readonly themeId: ThemeId;
   readonly sourceScreenId: ScreenId;
   readonly layout: ThemeScreenLayout;
-  /** Item kind when resolving fields in a slide editor. */
-  readonly itemKind?: ThemeItemKind;
 }
 
 const ambiguousShared = new WeakMap<Theme, readonly ThemeTextRole[]>();

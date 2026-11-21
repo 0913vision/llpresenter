@@ -8,7 +8,6 @@ import {
   isThemeTextElement,
 } from './content';
 import {themeTextRoles} from '../schema/themeTextSlot';
-import type {ThemeItemKind} from './elementRules';
 import {CONT_MARKER} from '../bible/split/layout';
 import {slideTextValue} from '../presentation/textOverrides';
 import type {
@@ -36,11 +35,10 @@ const knownTextRoles: ReadonlySet<string> = new Set(themeTextRoles);
 export function isSlideEditableTextValue(
   key: string,
   value: SlideTextValue,
-  itemKind?: ThemeItemKind,
 ): boolean {
   return typeof value === 'string'
-    ? !knownTextRoles.has(key) || isSlideEditableTextRole(key, itemKind)
-    : isSlideEditableTextRole(value.role, itemKind);
+    ? !knownTextRoles.has(key) || isSlideEditableTextRole(key)
+    : isSlideEditableTextRole(value.role);
 }
 
 /** Resolves exact bindings before portable, unambiguous roles. */
@@ -49,29 +47,20 @@ export function matchSlideText(
   theme: TextSlotLayout,
   element: Extract<ThemeElement, {readonly text: unknown}>,
 ): {readonly key: string; readonly value: SlideTextValue} | undefined {
-  const {itemKind} = theme;
-  if (values === undefined || !isSlideEditableElement(element, itemKind)) {
+  if (values === undefined || !isSlideEditableElement(element)) {
     return undefined;
   }
   const binding = themeTextBinding(theme, element);
   const exact = values[binding.key];
-  if (
-    exact !== undefined &&
-    isSlideEditableTextValue(binding.key, exact, itemKind)
-  ) {
+  if (exact !== undefined && isSlideEditableTextValue(binding.key, exact)) {
     return {key: binding.key, value: exact};
   }
   const oldKey = legacyTextBinding(theme, element);
   const old = values[oldKey];
-  if (
-    typeof old === 'string' &&
-    isSlideEditableTextValue(oldKey, old, itemKind)
-  ) {
-    return {key: oldKey, value: old};
-  }
+  if (typeof old === 'string') return {key: oldKey, value: old};
   const candidates = Object.entries(values).flatMap(([key, value]) =>
     typeof value !== 'string' &&
-    isSlideEditableTextValue(key, value, itemKind) &&
+    isSlideEditableTextValue(key, value) &&
     value.sourceThemeId !== theme.themeId &&
     value.screenId === binding.screenId
       ? [{key, value}]
@@ -96,12 +85,26 @@ export function matchSlideText(
   return role.length === 1 ? role[0] : undefined;
 }
 
-function legacyNextText(
-  values: SlideTextOverrides | undefined,
-  role: 'currentText' | 'label',
+function nextBodyText(
+  theme: TextSlotLayout,
+  values: SlideTextOverrides,
 ): string | undefined {
-  const value = values?.[role];
-  return typeof value === 'string' ? value : undefined;
+  const candidates = theme.layout.elements
+    .filter(isThemeTextElement)
+    .filter(
+      element =>
+        isSlideEditableElement(element) &&
+        (element.textSlot?.role ?? element.kind) === 'currentText',
+    );
+  const [element] = candidates;
+  if (element === undefined) {
+    return typeof values.currentText === 'string'
+      ? values.currentText
+      : undefined;
+  }
+  return candidates.length === 1
+    ? slideTextValue(matchSlideText(values, theme, element)?.value)
+    : undefined;
 }
 
 export function withSlideTextOverrides(
@@ -112,25 +115,7 @@ export function withSlideTextOverrides(
   const current = slide?.textOverrides;
   const next = slide?.next?.textOverrides;
   if (current === undefined && next === undefined) return layout;
-  const nextText = (role: 'currentText' | 'label'): string | undefined => {
-    const candidates = layout.elements
-      .filter(isThemeTextElement)
-      .filter(
-        element =>
-          isSlideEditableElement(element) &&
-          (element.textSlot?.role ?? element.kind) === role,
-      );
-    const [element] = candidates;
-    return slideTextValue(
-      candidates.length === 0
-        ? legacyNextText(next, role)
-        : element && candidates.length === 1
-          ? matchSlideText(next, theme, element)?.value
-          : undefined,
-    );
-  };
-  const nextBody = nextText('currentText');
-  const nextLabel = nextText('label');
+  const nextBody = next === undefined ? undefined : nextBodyText(theme, next);
   return {
     ...layout,
     elements: layout.elements.map(element => {
@@ -140,9 +125,7 @@ export function withSlideTextOverrides(
         ? slideTextValue(matchSlideText(current, theme, element)?.value)
         : element.kind === 'nextText' && role === 'nextText'
           ? nextBody
-          : element.kind === 'nextLabel' && role === 'nextLabel'
-            ? nextLabel
-            : undefined;
+          : undefined;
       if (text === undefined) return element;
       const continued =
         (element.kind === 'currentText' && slide?.continued === true) ||

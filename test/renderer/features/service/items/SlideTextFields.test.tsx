@@ -398,9 +398,8 @@ it.each(['song', 'media', 'ad'] as const)(
           'Old live text',
         ]),
       ),
-      ...(kind === 'ad'
-        ? {[[theme, THEME_STAGE, stageLabel.id].join('/')]: 'Old stage cue'}
-        : {}),
+      label: 'Old role cue',
+      [[theme, THEME_STAGE, stageLabel.id].join('/')]: 'Old stage cue',
     };
     const textOverrides = {[slideKey]: oldValues};
     const result = parseServiceDocument({
@@ -485,9 +484,7 @@ it.each(['song', 'media', 'ad'] as const)(
       },
     );
     await within(row).findByRole('textbox', {name: /Fixture caption/});
-    const excluded =
-      kind === 'ad' ? [stageLabel, ...liveElements] : liveElements;
-    for (const element of excluded) {
+    for (const element of [stageLabel, ...liveElements]) {
       expect(
         row.querySelector(`[data-slide-text-role="${element.kind}"]`),
       ).toBeNull();
@@ -496,6 +493,7 @@ it.each(['song', 'media', 'ad'] as const)(
       ).toBeNull();
     }
     expect(screen.queryByText('Old live text')).toBeNull();
+    expect(screen.queryByText('Old role cue')).toBeNull();
     expect(screen.queryByText('Old stage cue')).toBeNull();
     expect(field.value).toBe('Automatic fixture caption');
     fireEvent.change(field, {target: {value: 'Edited fixture caption'}});
@@ -504,6 +502,7 @@ it.each(['song', 'media', 'ad'] as const)(
       expect(
         fixture.service().service.order[0]?.textOverrides?.[slideKey],
       ).toMatchObject({
+        ...oldValues,
         [`${theme}/${THEME_MAIN}/caption`]: {
           sourceThemeId: theme,
           text: 'Edited fixture caption',

@@ -5,7 +5,6 @@ import type {ScreenId} from '../schema/ids';
 import type {ThemeTextRole} from '../schema/themeTextSlot';
 import type {ThemeElement} from '../schema/themes';
 import type {ItemOverlay} from '../schema/itemOverlays';
-import type {ThemeItemKind} from './elementRules';
 
 export function isThemeTextElement(
   element: ThemeElement,
@@ -22,7 +21,6 @@ export function isThemeTextElement(
 const slideEditableRoles: ReadonlySet<string> = new Set<ThemeTextRole>([
   'currentText',
   'reference',
-  'label',
   'itemName',
   'slideName',
   'slideNumber',
@@ -30,23 +28,15 @@ const slideEditableRoles: ReadonlySet<string> = new Set<ThemeTextRole>([
   'memo',
 ]);
 
-export function isSlideEditableTextRole(
-  role: string,
-  itemKind?: ThemeItemKind,
-): boolean {
-  return (
-    slideEditableRoles.has(role) && !(itemKind === 'ad' && role === 'label')
-  );
+export function isSlideEditableTextRole(role: string): boolean {
+  return slideEditableRoles.has(role);
 }
 
-export function isSlideEditableElement(
-  element: ThemeElement,
-  itemKind?: ThemeItemKind,
-): boolean {
+export function isSlideEditableElement(element: ThemeElement): boolean {
   return (
     isThemeTextElement(element) &&
-    isSlideEditableTextRole(element.kind, itemKind) &&
-    isSlideEditableTextRole(element.textSlot?.role ?? element.kind, itemKind)
+    isSlideEditableTextRole(element.kind) &&
+    isSlideEditableTextRole(element.textSlot?.role ?? element.kind)
   );
 }
 

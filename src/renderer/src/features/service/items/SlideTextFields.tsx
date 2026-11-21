@@ -333,11 +333,11 @@ export function SlideTextEditor({
     const ineligibleKeys = new Set<string>();
     const layers = {...emptyLayers(), slide};
     for (const layout of Object.values(output.screens)) {
-      const binding = {...layout, themeId: output.themeId, itemKind: kind};
+      const binding = {...layout, themeId: output.themeId};
       for (const element of layout.layout.elements) {
         if (!isThemeTextElement(element)) continue;
         const slot = themeTextBinding(binding, element);
-        if (!isSlideEditableElement(element, kind)) {
+        if (!isSlideEditableElement(element)) {
           ineligibleKeys.add(slot.key);
           ineligibleKeys.add(legacyTextBinding(binding, element));
           continue;
@@ -544,7 +544,7 @@ export function SlideTextEditor({
       ([slot, value]) =>
         !matchedKeys.has(slot) &&
         !ineligibleKeys.has(slot) &&
-        isSlideEditableTextValue(slot, value, kind),
+        isSlideEditableTextValue(slot, value),
     );
     return (
       <fieldset
