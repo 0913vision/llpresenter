@@ -317,6 +317,15 @@ export class OpenServiceFeed {
       passages === undefined
         ? new Set<string>()
         : this.scheduleLive(service.data.order, passages.unavailable);
+    const hasAds = service.data.order.some(
+      item => isItemOfKind(item, 'slides') && item.slides.form === 'ad',
+    );
+    const adTitleSettings = hasAds
+      ? adTitleSettingsFrom(
+          this.sources.settings?.get('themes'),
+          this.sources.settings?.get('screens'),
+        )
+      : undefined;
     const built = buildShowService({
       service,
       serviceRevision: service.revision,
@@ -324,10 +333,7 @@ export class OpenServiceFeed {
       labels,
       revision: FIRST_REVISION,
       backgrounds,
-      adTitleSettings: adTitleSettingsFrom(
-        this.sources.settings?.get('themes'),
-        this.sources.settings?.get('screens'),
-      ),
+      adTitleSettings,
       ...(mediaById === undefined ? {} : {media: mediaById}),
       ...(passages === undefined ? {} : {passages}),
     });

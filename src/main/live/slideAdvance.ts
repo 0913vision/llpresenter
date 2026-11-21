@@ -230,10 +230,13 @@ export function registerSlideAdvance({
               item.sectionCard,
               projected ??
                 projectSlides(item, library, {
-                  adTitleSettings: adTitleSettingsFrom(
-                    settings?.get('themes'),
-                    settings?.get('screens'),
-                  ),
+                  adTitleSettings:
+                    item.slides.form === 'ad'
+                      ? adTitleSettingsFrom(
+                          settings?.get('themes'),
+                          settings?.get('screens'),
+                        )
+                      : undefined,
                 }),
             ),
             ...(background === undefined
