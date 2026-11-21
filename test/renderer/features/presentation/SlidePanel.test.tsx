@@ -28,6 +28,7 @@ import {
   SlidePanelFooter,
 } from '@renderer/features/presentation/SlidePanel';
 import {SlideSizeControl} from '@renderer/platform/SlideSizeControl';
+import {useRetainedShownGrid} from '@renderer/session/shownItem';
 
 vi.mock(
   '@renderer/rendering/pictures/Picture',
@@ -175,6 +176,41 @@ describe('SlidePanelMeta', () => {
 });
 
 describe('SlidePanelBody', () => {
+  it('reports a previously shown grid as retained until it unmounts', async () => {
+    function Probe() {
+      const retained = useRetainedShownGrid(
+        useShow.getState().serviceId,
+        'song-morning',
+      );
+      return <output data-testid="retained">{String(retained)}</output>;
+    }
+    openItem('song-morning');
+    const view = render(
+      <>
+        <SlidePanelBody sizeClass="normal" />
+        <Probe />
+      </>,
+    );
+    await waitFor(() =>
+      expect(screen.getByTestId('retained').textContent).toBe('true'),
+    );
+    const picture = view.container.querySelector('[data-preview-ready="true"]');
+    expect(picture).not.toBeNull();
+    act(() => picture?.setAttribute('data-preview-ready', 'false'));
+    await waitFor(() =>
+      expect(screen.getByTestId('retained').textContent).toBe('false'),
+    );
+    act(() => picture?.setAttribute('data-preview-ready', 'true'));
+    await waitFor(() =>
+      expect(screen.getByTestId('retained').textContent).toBe('true'),
+    );
+    act(() => openItem('song-river'));
+    expect(screen.getByTestId('retained').textContent).toBe('true');
+    view.unmount();
+    render(<Probe />);
+    expect(screen.getByTestId('retained').textContent).toBe('false');
+  });
+
   it('keeps each visited item grid mounted while switching items', async () => {
     openItem('song-morning');
     const {container} = renderPanel('normal');
