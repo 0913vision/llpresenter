@@ -22,6 +22,17 @@ function repeatedLabel(
   return !!label?.trim() && label.trim() === prior?.trim();
 }
 
+function outputLabel(tile: SlideTile): string | null {
+  return (
+    tile.slideLabel ??
+    (tile.kind === undefined ||
+    tile.kind === 'ad' ||
+    tile.biblePart !== undefined
+      ? tile.label
+      : null)
+  );
+}
+
 /** Projects a tile into the live stage preview payload. */
 export function nextSlideOf(
   tile: SlideTile,
@@ -61,13 +72,7 @@ export function nextSlideOf(
     ...(nextNotice === undefined
       ? {}
       : {adTitle: nextNotice.label ?? nextNotice.name ?? context?.title ?? ''}),
-    label:
-      tile.sectionCard !== undefined
-        ? null
-        : (tile.slideLabel ??
-          (tile.kind === undefined || tile.biblePart !== undefined
-            ? tile.label
-            : null)),
+    label: tile.sectionCard === undefined ? outputLabel(tile) : null,
     ...(repeatedLabel(tile, context?.previous)
       ? {labelContinued: true as const}
       : {}),
@@ -187,11 +192,7 @@ export function slideLayerOf(
       ? {}
       : {sourceSlideId: tile.sourceSlideId}),
     ...(tile.bibleVerse === undefined ? {} : {bibleVerse: tile.bibleVerse}),
-    label:
-      tile.slideLabel ??
-      (tile.kind === undefined || tile.biblePart !== undefined
-        ? tile.label
-        : null),
+    label: outputLabel(tile),
     ...(repeatedLabel(tile, tiles[cursor.index - 1])
       ? {labelContinued: true as const}
       : {}),

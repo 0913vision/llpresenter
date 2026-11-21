@@ -330,7 +330,7 @@ export function SlideTextEditor({
       revision: 0,
     });
     const slots = new Map<string, EditorSlot>();
-    const liveKeys = new Set<string>();
+    const ineligibleKeys = new Set<string>();
     const layers = {...emptyLayers(), slide};
     for (const layout of Object.values(output.screens)) {
       const binding = {...layout, themeId: output.themeId};
@@ -338,8 +338,8 @@ export function SlideTextEditor({
         if (!isThemeTextElement(element)) continue;
         const slot = themeTextBinding(binding, element);
         if (!isSlideEditableElement(element)) {
-          liveKeys.add(slot.key);
-          liveKeys.add(legacyTextBinding(binding, element));
+          ineligibleKeys.add(slot.key);
+          ineligibleKeys.add(legacyTextBinding(binding, element));
           continue;
         }
         const text = themeElementText(element, {layers, item: themeItem});
@@ -543,7 +543,7 @@ export function SlideTextEditor({
     const retained = Object.entries(saved ?? {}).filter(
       ([slot, value]) =>
         !matchedKeys.has(slot) &&
-        !liveKeys.has(slot) &&
+        !ineligibleKeys.has(slot) &&
         isSlideEditableTextValue(slot, value),
     );
     return (

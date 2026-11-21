@@ -4274,6 +4274,22 @@ it('shows the next ad title only as a stage cue, even when its body has a manual
   expect(text('currentText')).toBe('Current');
   expect(text('label') ?? '').toBe('');
   expect(text('slideName')).toBe('Current title');
+  const titleElement = elements[3];
+  if (titleElement === undefined) throw Error('Missing title');
+  const titleKey = `${themeId}/${THEME_MAIN}/${titleElement.id}`;
+  const savedOnly: LiveLayers = {
+    ...layers,
+    slide: {
+      ...adSlide,
+      name: '',
+      label: 'Saved edited title',
+      textOverrides: {[titleKey]: 'Saved edited title'},
+    },
+  };
+  expect(render('stage', savedOnly)).toBe('다음광고: 3. Anniversary');
+  expect(text('label') ?? '').toBe('');
+  expect(text('slideName')).toBe('Saved edited title');
+  expect(text('currentText')).toBe('Current');
   expect(render('audience')).toBe('Edited body');
   expect(render('broadcast')).toBe('Edited body');
   const cross: LiveLayers = {

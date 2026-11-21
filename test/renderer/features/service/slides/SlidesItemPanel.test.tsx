@@ -61,14 +61,17 @@ it.each(['blank', 'ad'] as const)(
         openEditor={fixture.api.slidesEditor.open}
       />,
     );
-    expect(await screen.findByText('이번 순서')).toBeTruthy();
-    expect(screen.getByRole('slider', {name: '슬라이드 크기'})).toBeDefined();
     expect(
-      screen.getByRole('option', {
+      await screen.findByRole('option', {
         name: form === 'ad' ? '1 소식 이름' : '1 첫 줄',
       }),
     ).toBeTruthy();
-    expect(await screen.findByRole('option', {name: '2 a.png'})).toBeTruthy();
+    expect(screen.getByRole('slider', {name: '슬라이드 크기'})).toBeDefined();
+    expect(
+      await screen.findByRole('option', {
+        name: form === 'ad' ? '2 이번 순서' : '2 a.png',
+      }),
+    ).toBeTruthy();
     expect(
       screen
         .getAllByRole('option')[0]
@@ -78,7 +81,7 @@ it.each(['blank', 'ad'] as const)(
       screen
         .getAllByRole('option')[1]
         ?.querySelector(':scope > [class*="_band_"]')?.textContent,
-    ).toContain('a.png');
+    ).toContain(form === 'ad' ? '이번 순서' : 'a.png');
     expect(screen.queryByRole('button', {name: '순서 편집…'})).toBeNull();
     await userEvent.click(screen.getByRole('button', {name: '슬라이드 편집…'}));
     expect(open).toHaveBeenCalledWith({

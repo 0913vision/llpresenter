@@ -36,7 +36,10 @@ export function SlidesInspector({
   const {item: draftItem, selected} = session.draft.snapshot;
   const item = useSlidesItemWithBackground(draftItem);
   const media = useItemMedia(api.media).document?.value.items ?? [];
-  const {appearance, ready} = useSlidesAppearance(api, item);
+  const {appearance, ready, adTitle, adTitleSettings} = useSlidesAppearance(
+    api,
+    item,
+  );
   const {projection} = useSlidesVerseProjection(api, item);
   const slide = view.slides[selected];
   const card = cardSelected ? draftItem.sectionCard : undefined;
@@ -45,7 +48,9 @@ export function SlidesInspector({
   );
   const labels = [
     ...(card === undefined ? [] : [card.label]),
-    ...selectedSlides.map(entry => entry.label),
+    ...(item.slides.form === 'ad'
+      ? []
+      : selectedSlides.map(entry => entry.label)),
   ];
   const label = labels[0];
   const mixedLabel = labels.some(entry => entry !== label);
@@ -106,7 +111,9 @@ export function SlidesInspector({
     if (card === undefined) return;
     const {label: _cardLabel, ...cardWithoutLabel} = card;
     const slides = current.slides.slides.map(entry => {
-      if (!view.selection.ids.has(entry.id)) return entry;
+      if (item.slides.form === 'ad' || !view.selection.ids.has(entry.id)) {
+        return entry;
+      }
       const {label: _label, ...rest} = entry;
       return {...rest, ...(name === undefined ? {} : {label: name})};
     });
@@ -141,10 +148,11 @@ export function SlidesInspector({
               index={selected}
               appearance={appearance}
               projection={projection}
+              adTitleSettings={adTitleSettings}
             />
           </div>
           <div className={styles.caption}>
-            {slideBand(slide, media)}
+            {slideBand(slide, media, adTitle)}
             <span>
               {selected + 1} / {view.slides.length}
             </span>
@@ -157,7 +165,8 @@ export function SlidesInspector({
           ...selectedSlides.map(entry => entry.id),
         ],
         label:
-          store === undefined
+          store === undefined ||
+          (item.slides.form === 'ad' && card === undefined)
             ? undefined
             : {
                 store,
