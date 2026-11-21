@@ -1,5 +1,6 @@
 import {useCallback, useSyncExternalStore} from 'react';
-import {createServiceId} from '@core/schema/ids';
+import {serviceIdSchema} from '@core/schema/ids';
+import {parsePayload} from '@core/schema/payload';
 import {
   NOTHING_TO_REDO,
   NOTHING_TO_UNDO,
@@ -20,10 +21,11 @@ export function useWorkspaceServiceHistory(
   const readOnly = useShow(view => view.readOnly);
   const api = window.llp;
   const edits = api === undefined ? undefined : serviceOrderEditsFor(api);
-  const id =
-    active && !readOnly && serviceId !== null
-      ? createServiceId(serviceId)
+  const parsed =
+    active && !readOnly && edits !== undefined && serviceId !== null
+      ? parsePayload(serviceIdSchema, serviceId)
       : null;
+  const id = parsed?.ok === true ? parsed.value : null;
   const editing = useServiceOrderEditing(id, onProblem);
   const subscribe = useCallback(
     (listener: () => void) => edits?.subscribe(listener) ?? (() => undefined),
@@ -38,7 +40,7 @@ export function useWorkspaceServiceHistory(
     () => id !== null && edits?.canRedo(id) === true,
   );
   const ownsHistory = (event: KeyboardEvent): boolean =>
-    id !== null && edits !== undefined && !isInTextEntry(event.target);
+    id !== null && !isInTextEntry(event.target);
   useWindowShortcuts([
     {
       id: 'edit.undo',
