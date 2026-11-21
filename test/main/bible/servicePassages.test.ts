@@ -374,3 +374,35 @@ describe('saved Bible passage resolution', () => {
     expect(bible.lookup).toHaveBeenCalledOnce();
   });
 });
+
+it('does not apply a stale verse deletion again when assembling a sermon', async () => {
+  const original = items('John 3:16-18')[0];
+  if (!original || !isItemOfKind(original, 'bible')) {
+    throw Error('Missing Bible item');
+  }
+  const bible = fixture();
+  const resolved = await resolveServicePassages([original], bible, {
+    reportError: bible.report,
+  });
+  const canonical = resolved.tiles.get(original.id)?.[0];
+  const verse = canonical?.bibleVerse;
+  if (verse === undefined) throw Error('Missing verse');
+  const sermon: ServiceItem = {
+    id: original.id,
+    sermon: {
+      title: 'Sermon',
+      passage: {
+        ...original.bible,
+        pinnedVerses: {[textVerseKey(verse)]: ['Outdated verse']},
+        deletedSlides: ['sermon:opening', bibleTextSlideKey(verse, 1)],
+      },
+    },
+  };
+  const refreshed = await resolveServicePassages([sermon], bible, {
+    reportError: bible.report,
+  });
+  const tiles = refreshed.tiles.get(sermon.id);
+  expect(tiles?.[0]).toEqual(canonical);
+  expect(tiles?.map(textSlideKey)).not.toContain('sermon:opening');
+  expect(tiles?.at(-1)?.textSlideKey).toBe('sermon:closing');
+});

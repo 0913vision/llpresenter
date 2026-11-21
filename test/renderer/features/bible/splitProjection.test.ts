@@ -493,16 +493,23 @@ it('projects corrected verse text and keeps both multiline sermon title slides',
   } as const;
   const verse = projectBible(source, options)?.verses[0];
   if (verse === undefined) throw Error('Missing verse');
+  const stalePart = bibleTextSlideKey(verse.reference, 1);
   const result = projectBible(
     {
       ...source,
       pinnedVerses: {[textVerseKey(verse.reference)]: ['Original ', 'verse']},
+      deletedSlides: [stalePart, 'sermon:opening'],
+      textOverrides: {
+        [stalePart]: {currentText: 'Stale caption'},
+        'sermon:closing': {itemName: 'Closing'},
+      },
     },
     options,
   );
   expect(result?.tiles.map(tile => [textSlideKey(tile), tile.lines])).toEqual([
-    ['sermon:opening', ['Title', 'Subtitle']],
-    [bibleTextSlideKey(verse.reference, 1), ['Updated text']],
+    [stalePart, ['Updated text']],
     ['sermon:closing', ['Title', 'Subtitle']],
   ]);
+  expect(result?.tiles[0]?.textOverrides).toBeUndefined();
+  expect(result?.tiles.at(-1)?.textOverrides).toEqual({itemName: 'Closing'});
 });

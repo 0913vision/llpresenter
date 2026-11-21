@@ -1,3 +1,8 @@
+import {
+  canonicalBibleVerseTexts,
+  withoutStaleVerseDeletions,
+  withoutStaleVerseText,
+} from '@core/bible/pinnedVerseEdits';
 import {normalizeVerse} from '@core/bible/split/manualSplit';
 import {cacheKey} from '@core/bible/split/splitCache';
 import {
@@ -41,18 +46,9 @@ export async function deleteBibleSlides({
     view.serviceId === serviceId
       ? view.rows.find(row => row.id === item.id)
       : undefined;
-  const lookup = row?.kind === 'bible' ? row.bible?.passage : undefined;
-  const rawVerses = new Map(
-    lookup?.verses.map(verse => [
-      `${verse.chapter}:${verse.verse}`,
-      verse.text,
-    ]),
-  );
-  const measuredVerses = new Map(
-    projection?.verses.map(verse => [
-      textVerseKey(verse.reference),
-      verse.text,
-    ]),
+  const texts = canonicalBibleVerseTexts(
+    row?.kind === 'bible' ? row.bible?.passage : undefined,
+    projection?.verses,
   );
   const measuredParts = new Map<string, VersePart[]>();
   for (const part of projection?.parts ?? []) {
@@ -62,6 +58,7 @@ export async function deleteBibleSlides({
     else existing.push(part);
   }
   const removed = new Set<string>();
+  const stale = new Set<string>();
   const pins = new Map<
     string,
     {readonly cuts: string; readonly parts: readonly string[]}
@@ -74,21 +71,19 @@ export async function deleteBibleSlides({
     if (reference === undefined) continue;
     const pinKey = textVerseKey(reference);
     if (pins.has(pinKey)) continue;
-    const verse = measuredVerses.get(pinKey);
-    const raw =
-      lookup?.translation === reference.translation &&
-      tile.biblePart === undefined
-        ? rawVerses.get(`${reference.chapter}:${reference.verse}`)
-        : undefined;
-    const canonical = verse ?? raw;
+    const canonical = texts.get(pinKey);
     if (canonical === undefined) return false;
+    const previousPin = passage.pinnedVerses?.[pinKey];
+    const validPin = validatedPinnedVerse(canonical, previousPin);
+    if (previousPin !== undefined && validPin === undefined) stale.add(pinKey);
+    const measured = measuredParts.get(pinKey);
     const parts =
-      validatedPinnedVerse(canonical, passage.pinnedVerses?.[pinKey]) ??
-      (verse !== undefined
-        ? pinVerseParts(verse, measuredParts.get(pinKey) ?? [])
-        : raw === undefined
-          ? undefined
-          : [normalizeVerse(raw)]);
+      validPin ??
+      (measured !== undefined
+        ? pinVerseParts(canonical, measured)
+        : tile.biblePart === undefined
+          ? [normalizeVerse(canonical)]
+          : undefined);
     if (parts === undefined) return false;
     pins.set(pinKey, {cuts: cacheKey(reference), parts});
   }
@@ -121,8 +116,12 @@ export async function deleteBibleSlides({
         }
         pinnedVerses[key] = parts;
       }
+      const keptDeletions = withoutStaleVerseDeletions(
+        current.deletedSlides,
+        stale,
+      );
       const deletedSlides = [
-        ...new Set([...(current.deletedSlides ?? []), ...removed]),
+        ...new Set([...(keptDeletions ?? []), ...removed]),
       ];
       if (
         !parsePayload(deletedBibleSlidesSchema, deletedSlides).ok ||
@@ -135,11 +134,14 @@ export async function deleteBibleSlides({
         ...(pins.size === 0 ? {} : {pinnedVerses}),
         ...(removed.size === 0 ? {} : {deletedSlides}),
       };
+      const textOverrides = withoutStaleVerseText(fresh.textOverrides, stale);
       const updated = isItemOfKind(fresh, 'bible')
         ? {...fresh, bible: next}
         : {...fresh, sermon: {...fresh.sermon, passage: next}};
-      if (!removeCard) return updated;
-      const {sectionCard: _card, ...rest} = updated;
+      const edited =
+        textOverrides === undefined ? updated : {...updated, textOverrides};
+      if (!removeCard) return edited;
+      const {sectionCard: _card, ...rest} = edited;
       return rest;
     },
   });

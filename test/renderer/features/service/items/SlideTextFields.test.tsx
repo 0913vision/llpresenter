@@ -10,6 +10,11 @@ import userEvent from '@testing-library/user-event';
 import {expect, it, onTestFinished, vi} from 'vitest';
 import {HistoryButtons} from '@renderer/app/shell/HistoryButtons';
 import {isItemOfKind} from '@core/schema/service';
+import {bibleVerseTiles} from '@core/bible/bibleTiles';
+import {
+  bibleTextSlideKey,
+  textVerseKey,
+} from '@core/presentation/textOverrides';
 import {projectSlides} from '@core/presentation/slides';
 import {slidesItem} from '@fixtures/core/slides';
 import {
@@ -148,15 +153,32 @@ it('keeps a manual blank and explicitly restores the automatic text', async () =
   expect(fixture.service().service.order[0]?.textOverrides).toEqual({});
 });
 
-it.each(['bible', 'sermon'] as const)(
-  '%s rows and the selected-slide panel share each slide edit across both views',
-  async kind => {
+it.each([
+  {kind: 'bible', stalePin: false},
+  {kind: 'sermon', stalePin: false},
+  {kind: 'sermon', stalePin: true},
+] as const)(
+  '$kind rows and the selected-slide panel share each slide edit across both views (stale pin: $stalePin)',
+  async ({kind, stalePin}) => {
     installSettings();
     seedSlideSurfaceView({});
     const fixture = itemFixture();
     const before = fixture.service();
     const lookup = panelPassage();
+    const verseReference = bibleVerseTiles(lookup)[1]?.bibleVerse;
+    if (verseReference === undefined) throw Error('Missing verse');
+    const oldPart = bibleTextSlideKey(verseReference, 1);
+    const textOverrides = stalePin
+      ? {[oldPart]: {reference: 'Obsolete reference'}}
+      : {};
+    const stale = stalePin
+      ? {
+          pinnedVerses: {[textVerseKey(verseReference)]: ['Obsolete body']},
+          deletedSlides: [oldPart],
+        }
+      : {};
     const passage = {
+      ...stale,
       translation: lookup.translation,
       ref: lookup.ref,
       split: 'verse',
@@ -172,7 +194,7 @@ it.each(['bible', 'sermon'] as const)(
         order: [
           kind === 'bible'
             ? {id, bible: passage}
-            : {id, sermon: {title: 'Sermon title', passage}},
+            : {id, sermon: {title: 'Sermon title', passage}, textOverrides},
         ],
       },
     });
@@ -184,6 +206,8 @@ it.each(['bible', 'sermon'] as const)(
         kind: 'bible',
         source: 'service',
         passage: lookup,
+        ...stale,
+        textOverrides,
         verseNumbers: false,
         translationName: false,
         reference: 'every',
@@ -282,6 +306,7 @@ it.each(['bible', 'sermon'] as const)(
       {name: '성경 출처'},
     );
     const autoReference = reference.value;
+    expect(autoReference).not.toBe('Obsolete reference');
     const undo = screen.getByRole('button', {name: '실행 취소'});
     const redo = screen.getByRole('button', {name: '다시 실행'});
     await user.click(reference);
@@ -294,6 +319,15 @@ it.each(['bible', 'sermon'] as const)(
     await waitFor(() => expect(reference.value).toBe('Edited reference'));
     expect(pins()).toBeUndefined();
     const withReference = savedItem();
+    if (stalePin) {
+      if (
+        withReference === undefined ||
+        !isItemOfKind(withReference, 'sermon')
+      ) {
+        throw Error('Missing sermon');
+      }
+      expect(withReference.sermon.passage.deletedSlides).toEqual([]);
+    }
 
     await user.click(verse);
     fireEvent.change(verse, {target: {value: 'Row edit'}});

@@ -169,7 +169,7 @@ export async function resolveServicePassages(
               ]
             : []),
         ],
-        settings.deletedSlides,
+        settings.deletedSlides?.filter(key => key.startsWith('sermon:')),
       ),
     );
     const {ref, translation} = passage;

@@ -6,6 +6,10 @@ import {LIVE_STATE_LIMITS} from '../schema/liveLimits';
 import type {ShowTile} from '../schema/showService';
 import {textSlideKey, textVerseKey} from '../presentation/textOverrides';
 import {CONT_MARKER} from './split/layout';
+import {
+  stalePinnedVerseKeys,
+  withoutStaleVerseDeletions,
+} from './pinnedVerseEdits';
 import {validatedPinnedVerse} from './split/splitVerses';
 
 export function bibleOutputLines(text: string): readonly string[] {
@@ -111,7 +115,13 @@ export function bibleVerseTiles(
       };
     });
   });
-  const visible = withoutDeletedBibleSlides(tiles, options.deletedSlides);
+  const visible = withoutDeletedBibleSlides(
+    tiles,
+    withoutStaleVerseDeletions(
+      options.deletedSlides,
+      stalePinnedVerseKeys(passage, options.pinnedVerses),
+    ),
+  );
   return visible.map((tile, index) => {
     if (
       reference === 'every' ||

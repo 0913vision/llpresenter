@@ -10,6 +10,11 @@ import {
   sermonTitleTile,
   withoutDeletedBibleSlides,
 } from '@core/bible/bibleTiles';
+import {
+  stalePinnedVerseKeys,
+  withoutStaleVerseDeletions,
+  withoutStaleVerseText,
+} from '@core/bible/pinnedVerseEdits';
 import {passageBook} from '@core/bible/adjacentVerses';
 import {
   projectPinnedVerse,
@@ -290,7 +295,12 @@ export function projectBible(
     source.translationName && source.passage.translationLabel
       ? ` (${source.passage.translationLabel})`
       : '';
-  const deleted = new Set(source.deletedSlides);
+  const stale = stalePinnedVerseKeys(source.passage, source.pinnedVerses);
+  const effectiveDeletions = withoutStaleVerseDeletions(
+    source.deletedSlides,
+    stale,
+  );
+  const deleted = new Set(effectiveDeletions);
   const visible = parts.filter(
     part => !deleted.has(bibleTextSlideKey(part.reference, part.part)),
   );
@@ -359,9 +369,9 @@ export function projectBible(
                 transition: source.sermonClosingTransition,
               }),
             ],
-            source.deletedSlides,
+            effectiveDeletions?.filter(key => key.startsWith('sermon:')),
           ),
-      source.textOverrides,
+      withoutStaleVerseText(source.textOverrides, stale),
     ),
     numbered: source.verseNumbers && verses.length > 1,
   };

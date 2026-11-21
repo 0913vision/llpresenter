@@ -9,9 +9,14 @@ import {slideLayerOf} from '@core/presentation/slideLayer';
 import {detailsPicture} from '@renderer/features/service/details/detailsPicture';
 import {prefetchPictureSpecs} from '@renderer/features/presentation/SlidePicturePrefetch';
 import {
+  tilePicture,
   tilePictureSpec,
   serviceTileThemes,
 } from '@renderer/features/presentation/tilePicture';
+import {
+  pictures,
+  type PictureSpec,
+} from '@renderer/rendering/pictures/pictureService';
 import {pictureSpec} from '@renderer/rendering/pictureSpec';
 import type {SlideInput} from '@renderer/rendering/outputSlideSpec';
 import {previewAppearance} from '@renderer/features/songs/editor/songPreviewModel';
@@ -202,4 +207,45 @@ it('preserves formatted song data in the item fallback while projection is loadi
     titleLineCount: 1,
     lyricFormat: format,
   });
+});
+
+it('draws edited media captions in place and keeps the raw thumbnail for plain media', () => {
+  const drawInPlace = vi
+    .spyOn(pictures, 'drawInPlace', 'get')
+    .mockReturnValue(true);
+  onTestFinished(() => drawInPlace.mockRestore());
+  const mediaId = createMediaId('00000000-0000-4000-8000-000000000109');
+  const row = {id: 'media-item', kind: 'media' as const, title: 'Clip'};
+  const tile: SlideTile = {
+    label: null,
+    labelColor: 'none',
+    lines: ['Clip'],
+    media: {mediaId, loop: false},
+  };
+  const themes = serviceTileThemes(row, [tile], {
+    themes: themeFile(),
+    screens: themeScreens,
+    bibleAppearance: undefined,
+  });
+  const cursor = {itemId: row.id, index: 0};
+  expect(
+    tilePicture(
+      tile,
+      slideLayerOf(cursor, () => [tile]),
+      themes,
+    ),
+  ).toBeUndefined();
+
+  const textOverrides = {itemName: 'Edited caption'};
+  const captioned = {...tile, textOverrides};
+  const picture = tilePicture(
+    captioned,
+    slideLayerOf(cursor, () => [captioned]),
+    themes,
+  );
+  if (!isValidElement<PictureSpec>(picture)) {
+    throw Error('Missing captioned picture');
+  }
+  expect(picture.props.layers.slide?.textOverrides).toEqual(textOverrides);
+  expect(picture.props.layers.media?.mediaId).toBe(mediaId);
 });

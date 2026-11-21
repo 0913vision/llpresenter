@@ -61,14 +61,17 @@ export function serviceTileThemes(
 export function tilePictureSpec(
   tile: SlideTile,
   slide: SlideLayer | null,
-  {theme, cardTheme, sermonTheme, bibleAppearance}: TileThemes,
+  themes: TileThemes,
 ): PictureSpec | undefined {
-  return pictureSpec({
-    kind: 'tile',
-    slide,
-    tile,
-    themes: {theme, cardTheme, sermonTheme, bibleAppearance},
-  })?.spec;
+  return tilePictureResult(tile, slide, themes)?.spec;
+}
+
+function tilePictureResult(
+  tile: SlideTile,
+  slide: SlideLayer | null,
+  themes: TileThemes,
+) {
+  return pictureSpec({kind: 'tile', slide, tile, themes});
 }
 
 export function tilePicture(
@@ -76,9 +79,15 @@ export function tilePicture(
   slide: SlideLayer | null,
   themes: TileThemes,
 ): ReactNode {
-  const spec = tilePictureSpec(tile, slide, themes);
-  if (tile.media !== undefined && pictures.drawInPlace) return undefined;
-  return spec === undefined ? undefined : (
+  const picture = tilePictureResult(tile, slide, themes);
+  if (
+    picture === undefined ||
+    (picture.kind === 'media' && pictures.drawInPlace)
+  ) {
+    return undefined;
+  }
+  const {spec} = picture;
+  return (
     <Picture
       {...spec}
       resample={spec.appearance.screen.method !== 'ndi'}

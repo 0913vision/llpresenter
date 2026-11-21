@@ -4,7 +4,10 @@ import {bibleVerseTiles, labelEdge} from '@core/bible/bibleTiles';
 import {passageBook} from '@core/bible/adjacentVerses';
 import {bibleSource} from '@core/bible/source';
 import {translationIdSchema} from '@core/schema/ids';
-import {textVerseKey} from '@core/presentation/textOverrides';
+import {
+  bibleTextSlideKey,
+  textVerseKey,
+} from '@core/presentation/textOverrides';
 import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
 
 function passage(verses: ReadonlyArray<readonly [number, number, string]>) {
@@ -262,8 +265,12 @@ it('uses a pin only while its text matches the installed verse', () => {
     verseNumbers: false,
   };
   expect(bibleVerseTiles(original, options)).toHaveLength(2);
+  const hidden = {...options, deletedSlides: [bibleTextSlideKey(reference, 1)]};
+  expect(bibleVerseTiles(original, hidden).map(tile => tile.lines)).toEqual([
+    ['second'],
+  ]);
   const corrected = passage([[3, 34, 'Updated verse']]);
-  expect(bibleVerseTiles(corrected, options).map(tile => tile.lines)).toEqual([
+  expect(bibleVerseTiles(corrected, hidden).map(tile => tile.lines)).toEqual([
     ['Updated verse'],
   ]);
 });

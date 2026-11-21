@@ -9,7 +9,7 @@ import {
 import userEvent from '@testing-library/user-event';
 import {expect, it, onTestFinished, vi} from 'vitest';
 import {bibleVerseTiles} from '@core/bible/bibleTiles';
-import {textSlideKey} from '@core/presentation/textOverrides';
+import {textSlideKey, textVerseKey} from '@core/presentation/textOverrides';
 import {parseServiceDocument} from '@core/schema/contentDocuments';
 import {createThemeId} from '@core/schema/ids';
 import {isItemOfKind} from '@core/schema/service';
@@ -19,6 +19,7 @@ import {
   fixtureServiceId,
   itemFixture,
 } from '@fixtures/renderer/features/service/items/itemFixture';
+import {deleteBibleSlides} from '@renderer/features/service/items/deleteBibleSlides';
 import {BibleInlineEditor} from '@renderer/features/service/items/BibleInlineEditor';
 import {ServiceItemStore} from '@renderer/features/service/items/serviceItemStore';
 import {SongEditorStore} from '@renderer/features/songs/editor';
@@ -372,3 +373,77 @@ it.each(['list', 'grid'] as const)(
     }
   },
 );
+
+it('deletes a pinned fallback part using the installed verse before measurement', async () => {
+  const lookup = panelPassage();
+  const verse = bibleVerseTiles(lookup)[0]?.bibleVerse;
+  if (verse === undefined) throw Error('Missing verse');
+  const pinnedVerses = {[textVerseKey(verse)]: ['Invented ', 'verse 16']};
+  const fixture = itemFixture();
+  const original = fixture.service();
+  const id = fixtureItems.arranged;
+  const parsed = parseServiceDocument({
+    ...original,
+    service: {
+      ...original.service,
+      order: [
+        {
+          id,
+          bible: {
+            translation: lookup.translation,
+            ref: lookup.ref,
+            split: 'verse',
+            reference: 'every',
+            verseNumbers: false,
+            translationName: false,
+            pinnedVerses,
+          },
+        },
+      ],
+    },
+  });
+  const item = parsed.ok ? parsed.value?.service.order[0] : undefined;
+  if (
+    !parsed.ok ||
+    parsed.value === null ||
+    item === undefined ||
+    !isItemOfKind(item, 'bible')
+  ) {
+    throw Error('Missing Bible item');
+  }
+  fixture.pushService(parsed.value);
+  const tile = bibleVerseTiles(lookup, item.bible)[1];
+  if (tile?.biblePart !== 2) throw Error('Missing fallback part');
+  const previous = useShow.getState();
+  useShow.setState({
+    serviceId: fixtureServiceId,
+    rows: [
+      {
+        id,
+        kind: 'bible',
+        title: lookup.ref,
+        bible: {...item.bible, passage: lookup},
+      },
+    ],
+  });
+  const editor = new SongEditorStore(fixture.api, vi.fn());
+  const items = new ServiceItemStore(fixture.api, editor, vi.fn());
+  onTestFinished(async () => {
+    items.dispose();
+    await editor.dispose();
+    useShow.setState(previous);
+  });
+  items.show({serviceId: fixtureServiceId, itemId: id});
+  const deleted = await deleteBibleSlides({
+    items,
+    serviceId: fixtureServiceId,
+    item,
+    tiles: [tile],
+    projection: null,
+    removeCard: false,
+  });
+  expect(deleted).toBe(true);
+  expect(fixture.service().service.order[0]).toMatchObject({
+    bible: {pinnedVerses, deletedSlides: [textSlideKey(tile)]},
+  });
+});

@@ -24,6 +24,9 @@ import {
 } from '@fixtures/main/store/testFiles';
 
 import {parseSong, type Song} from '@core/schema/song';
+import {panelPassage} from '@fixtures/contracts/ipc/bibleApi';
+import {bibleVerseTiles} from '@core/bible/bibleTiles';
+import {textSlideKey, textVerseKey} from '@core/presentation/textOverrides';
 import type {ServicePassages} from '@main/bible/servicePassages';
 import {
   createServiceItemId,
@@ -1149,4 +1152,58 @@ it('reports the Bible tile limit when its opening card would exceed it', () => {
   });
   expect(unavailable.rows[0]).toMatchObject({problem: 'tile-limit'});
   expect(show.tiles[item.id]).toEqual([]);
+});
+
+it('keeps sermon captions but detaches verse captions from a stale pin', () => {
+  const lookup = panelPassage();
+  const [verse] = bibleVerseTiles(lookup, {reference: 'every'});
+  if (verse?.bibleVerse === undefined) throw Error('Missing verse');
+  const verseKey = textSlideKey(verse);
+  if (verseKey === undefined) throw Error('Missing verse key');
+  const id = itemId(1);
+  const item = {
+    id,
+    sermon: {
+      title: 'Sermon',
+      passage: {
+        translation: lookup.translation,
+        ref: lookup.ref,
+        split: 'verse',
+        reference: 'every',
+        verseNumbers: true,
+        translationName: false,
+        pinnedVerses: {[textVerseKey(verse.bibleVerse)]: ['Outdated verse']},
+      },
+    },
+    textOverrides: {
+      [verseKey]: {currentText: 'Stale caption'},
+      'sermon:closing': {itemName: 'Closing caption'},
+    },
+  };
+  const closing = {
+    textSlideKey: 'sermon:closing',
+    label: null,
+    labelColor: 'none',
+    lines: ['Sermon'],
+  } as const;
+  const show = buildShowService({
+    service: loadedService([item]),
+    songs: new Map(),
+    labels: [],
+    revision: 1,
+    passages: {
+      tiles: new Map([[id, [verse, closing]]]),
+      references: new Map([
+        [
+          id,
+          {ref: lookup.ref, translation: lookup.translation, passage: lookup},
+        ],
+      ]),
+      unavailable: new Set(),
+    },
+  });
+  expect(show.tiles[id]?.[0]?.textOverrides).toBeUndefined();
+  expect(show.tiles[id]?.[1]?.textOverrides).toEqual({
+    itemName: 'Closing caption',
+  });
 });

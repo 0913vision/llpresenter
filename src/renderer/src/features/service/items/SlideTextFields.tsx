@@ -2,11 +2,17 @@ import {
   useEffect,
   useEffectEvent,
   useId,
+  useMemo,
   useRef,
   useState,
   type JSX,
   type ReactNode,
 } from 'react';
+import {
+  canonicalBibleVerseTexts,
+  withoutStaleVerseDeletions,
+  withoutStaleVerseText,
+} from '@core/bible/pinnedVerseEdits';
 import {normalizeVerse} from '@core/bible/split/manualSplit';
 import {cacheKey} from '@core/bible/split/splitCache';
 import {
@@ -253,6 +259,12 @@ export function SlideTextEditor({
     ...(serviceId === undefined ? {} : {serviceId}),
     anyItem: true,
   });
+  const lookup = row?.kind === 'bible' ? row.bible?.passage : undefined;
+  const measured = projection?.verses;
+  const verseTexts = useMemo(
+    () => canonicalBibleVerseTexts(lookup, measured),
+    [lookup, measured],
+  );
   const themes = useSettingsDocument(
     id === null ? null : 'themes',
     '테마',
@@ -289,6 +301,11 @@ export function SlideTextEditor({
     if (positions === undefined) sourcePositions.set(sourceId, [index]);
     else positions.push(index);
   });
+  const originalPassage = isItemOfKind(item, 'bible')
+    ? item.bible
+    : isItemOfKind(item, 'sermon')
+      ? item.sermon.passage
+      : undefined;
   const defaultKind = row.kind === 'slides' ? row.form : row.kind;
   const renderAt = (selected: number, legend?: string): ReactNode => {
     const tile = tiles[selected];
@@ -373,13 +390,30 @@ export function SlideTextEditor({
         }
       }
     }
+    const reference = tile.bibleVerse;
+    const pinKey =
+      reference === undefined ? undefined : textVerseKey(reference);
+    const raw = pinKey === undefined ? undefined : verseTexts.get(pinKey);
+    const previousPin =
+      pinKey === undefined
+        ? undefined
+        : originalPassage?.pinnedVerses?.[pinKey];
+    const stale = new Set(
+      pinKey !== undefined &&
+        raw !== undefined &&
+        previousPin !== undefined &&
+        validatedPinnedVerse(raw, previousPin) === undefined
+        ? [pinKey]
+        : [],
+    );
     const save = (slot: string, descriptor: EditorSlot, text: string | null) =>
       items.submitItemEdit({
         target: {serviceId, itemId: item.id},
         failure: '슬라이드 글 저장 실패',
         change: fresh => {
           if (service.access === 'readOnly') return null;
-          let textOverrides = fresh.textOverrides ?? {};
+          let textOverrides =
+            withoutStaleVerseText(fresh.textOverrides, stale) ?? {};
           let saved = matchSlideText(
             textOverrides[key],
             descriptor.layout,
@@ -418,45 +452,47 @@ export function SlideTextEditor({
           }
           const updated = {...fresh, textOverrides};
           if (
-            !tile.bibleVerse ||
+            reference === undefined ||
+            pinKey === undefined ||
             (!isItemOfKind(updated, 'bible') &&
               !isItemOfKind(updated, 'sermon'))
           ) {
             return updated;
           }
-          const reference = tile.bibleVerse;
           const passage = isItemOfKind(updated, 'bible')
             ? updated.bible
             : updated.sermon.passage;
-          const original = isItemOfKind(item, 'bible')
-            ? item.bible
-            : isItemOfKind(item, 'sermon')
-              ? item.sermon.passage
-              : undefined;
           const verseKey = cacheKey(reference);
-          const pinKey = textVerseKey(reference);
           if (
             passage.translation !== reference.translation ||
-            passage.ref !== original?.ref ||
+            passage.ref !== originalPassage?.ref ||
             JSON.stringify(passage.cuts?.[verseKey]) !==
-              JSON.stringify(original.cuts?.[verseKey])
+              JSON.stringify(originalPassage.cuts?.[verseKey]) ||
+            (stale.size > 0 &&
+              JSON.stringify(passage.pinnedVerses?.[pinKey]) !==
+                JSON.stringify(previousPin))
           ) {
             return null;
           }
-          if (descriptor.binding.role === 'reference') return updated;
-          const verse = projection?.verses.find(verse =>
-            sameBibleVerse(reference, verse.reference),
+          const deletedSlides = withoutStaleVerseDeletions(
+            passage.deletedSlides,
+            stale,
           );
-          const source = row.kind === 'bible' ? row.bible?.passage : undefined;
-          const raw =
-            verse?.text ??
-            (source?.translation === reference.translation
-              ? source.verses.find(
-                  candidate =>
-                    candidate.chapter === reference.chapter &&
-                    candidate.verse === reference.verse,
-                )?.text
-              : undefined);
+          const {[pinKey]: _prior, ...otherPins} = {...passage.pinnedVerses};
+          if (descriptor.binding.role === 'reference') {
+            if (stale.size === 0) return updated;
+            const {pinnedVerses: _old, ...remaining} = passage;
+            const next = {
+              ...remaining,
+              ...(Object.keys(otherPins).length === 0
+                ? {}
+                : {pinnedVerses: otherPins}),
+              ...(deletedSlides === undefined ? {} : {deletedSlides}),
+            };
+            return isItemOfKind(updated, 'bible')
+              ? {...updated, bible: next}
+              : {...updated, sermon: {...updated.sermon, passage: next}};
+          }
           if (raw === undefined) return null;
           const alreadyPinned = validatedPinnedVerse(
             raw,
@@ -478,11 +514,10 @@ export function SlideTextEditor({
           ) {
             return null;
           }
-          const {[pinKey]: _prior, ...otherPins} = {...passage.pinnedVerses};
           const belongsToVerse = (slideKey: string): boolean =>
             slideKey.startsWith(`verse:${pinKey}:`);
           const pinsVerse =
-            (passage.deletedSlides ?? []).some(belongsToVerse) ||
+            (deletedSlides ?? []).some(belongsToVerse) ||
             Object.entries(textOverrides).some(
               ([slideKey, slots]) =>
                 belongsToVerse(slideKey) &&
@@ -500,13 +535,17 @@ export function SlideTextEditor({
           if (!parsePayload(pinnedBibleVersesSchema, pinnedVerses).ok) {
             return null;
           }
-          const next = {...passage, pinnedVerses};
+          const next = {
+            ...passage,
+            pinnedVerses,
+            ...(deletedSlides === undefined ? {} : {deletedSlides}),
+          };
           return isItemOfKind(updated, 'bible')
             ? {...updated, bible: next}
             : {...updated, sermon: {...updated.sermon, passage: next}};
         },
       });
-    const saved = item.textOverrides?.[key];
+    const saved = stale.size === 0 ? item.textOverrides?.[key] : undefined;
     const matchedKeys = new Set<string>();
     const fields = [...slots].map(([slot, descriptor]) => {
       const match = matchSlideText(

@@ -20,6 +20,10 @@ import {
   type ShowTile,
 } from '@core/schema/showService';
 import {colorSlideLabels, projectSlides} from '@core/presentation/slides';
+import {
+  stalePinnedVerseKeys,
+  withoutStaleVerseText,
+} from '@core/bible/pinnedVerseEdits';
 import {textOverridesForTiles} from '@core/presentation/textOverrides';
 import type {ServicePassages} from '../bible/servicePassages';
 import {LITURGY, liturgySlideTextKey} from '@core/services/liturgy';
@@ -128,9 +132,20 @@ export function buildShowService({
   }
   for (const item of order) {
     const tiles = itemTiles[item.id];
-    if (tiles !== undefined) {
-      itemTiles[item.id] = textOverridesForTiles(tiles, item.textOverrides);
-    }
+    if (tiles === undefined || item.textOverrides === undefined) continue;
+    const pins = isItemOfKind(item, 'bible')
+      ? item.bible.pinnedVerses
+      : isItemOfKind(item, 'sermon')
+        ? item.sermon.passage.pinnedVerses
+        : undefined;
+    const stale = stalePinnedVerseKeys(
+      passages?.references.get(item.id)?.passage,
+      pins,
+    );
+    itemTiles[item.id] = textOverridesForTiles(
+      tiles,
+      withoutStaleVerseText(item.textOverrides, stale),
+    );
   }
   const rowSources: RowSources = {
     songs,
