@@ -87,6 +87,60 @@ function setup(windowMode: 'normal' | 'offscreen' = 'normal') {
 const readRequest = {source: 'file', encoding: 'auto'};
 
 describe('PowerPoint import', () => {
+  it('keeps a retired converted deck until its background read finishes', async () => {
+    const {control, log} = setup();
+    electron.tempDir = await makeTempDir();
+    const source = join(electron.tempDir, 'old.ppt');
+    await writeFile(source, 'original');
+    const converter = {
+      run: vi.fn(async (_path: string, directory: string) => {
+        await writeFile(join(directory, 'presentation.pptx'), 'converted');
+        return 'ok' as const;
+      }),
+      cancel: vi.fn(),
+    };
+    let finish: (value: unknown) => void = () => undefined;
+    const jobs = {
+      run: vi.fn((job: PowerPointJob): Promise<unknown> =>
+        job.kind === 'read'
+          ? Promise.resolve({
+              digest: 'a'.repeat(64),
+              widescreen: true,
+              slides: [{number: 1, shapes: [], background: 'a'.repeat(64)}],
+            })
+          : new Promise(resolve => {
+              finish = resolve;
+            }),
+      ),
+      dispose: vi.fn(),
+    };
+    const images = {run: vi.fn(async () => 'ok' as const), cancel: vi.fn()};
+    onTestFinished(
+      registerPowerPointImport({control, windowMode: 'normal', log}, jobs, {
+        ...images,
+        converter,
+      }),
+    );
+    electron.chooseFile.mockResolvedValue({
+      canceled: false,
+      filePaths: [source],
+    });
+    await handler(powerpointEndpoints.read.channel)({}, undefined);
+    const path = jobs.run.mock.calls[0]?.[0].path;
+    if (!path) throw new Error('Missing converted deck');
+    const pending = handler(powerpointEndpoints.layers.channel)({}, {index: 0});
+    await vi.waitFor(() => expect(jobs.run).toHaveBeenCalledTimes(2));
+    expect(
+      await handler(powerpointEndpoints.cancelRead.channel)({}, undefined),
+    ).toBe(true);
+    expect(await readFile(path, 'utf8')).toBe('converted');
+    finish(null);
+    await pending;
+    await vi.waitFor(async () =>
+      expect(await readdir(electron.tempDir)).toEqual(['old.ppt']),
+    );
+  });
+
   it('cancels a read while the file picker is open', async () => {
     const {control, log} = setup();
     let choose: (selection: Selection) => void = () => undefined;
@@ -441,23 +495,220 @@ describe('PowerPoint import', () => {
     );
     expect(await readdir(electron.tempDir)).toEqual([]);
   });
-  it('refuses the old PowerPoint format before reading it', async () => {
-    const {control, log} = setup();
-    onTestFinished(
-      registerPowerPointImport({control, windowMode: 'normal', log}),
-    );
-    electron.chooseFile.mockResolvedValueOnce({
-      canceled: false,
-      filePaths: ['old.ppt'],
-    });
-    expect(
-      await handler(powerpointEndpoints.read.channel)({}, undefined),
-    ).toEqual({
-      ok: false,
-      message:
-        'PowerPoint 97-2003 파일은 가져올 수 없습니다. PowerPoint에서 .pptx로 저장한 뒤 가져오십시오.',
-    });
-  });
+  it.each(['read', 'images'] as const)(
+    'cancels an in-flight .ppt conversion and removes its copies for %s',
+    async kind => {
+      const {control, log} = setup();
+      electron.tempDir = await makeTempDir();
+      const source = join(electron.tempDir, 'old.ppt');
+      await writeFile(source, 'original');
+      let finish: (result: 'cancelled') => void = () => undefined;
+      const converter = {
+        run: vi.fn(
+          () =>
+            new Promise<'cancelled'>(resolve => {
+              finish = resolve;
+            }),
+        ),
+        cancel: vi.fn(() => finish('cancelled')),
+      };
+      const jobs = {run: vi.fn(async () => null), dispose: vi.fn()};
+      const images = {run: vi.fn(async () => 'ok' as const), cancel: vi.fn()};
+      onTestFinished(
+        registerPowerPointImport({control, windowMode: 'normal', log}, jobs, {
+          ...images,
+          converter,
+        }),
+      );
+      electron.chooseFile.mockResolvedValue({
+        canceled: false,
+        filePaths: [source],
+      });
+      const pending = handler(powerpointEndpoints[kind].channel)({}, undefined);
+      await vi.waitFor(() => expect(converter.run).toHaveBeenCalledOnce());
+      const cancel = kind === 'read' ? 'cancelRead' : 'cancelImages';
+      expect(
+        await handler(powerpointEndpoints[cancel].channel)({}, undefined),
+      ).toBe(true);
+      expect(await pending).toEqual({ok: true, value: null});
+      expect(jobs.run).not.toHaveBeenCalled();
+      expect(await readdir(electron.tempDir)).toEqual(['old.ppt']);
+    },
+  );
+
+  it.each(['read', 'images'] as const)(
+    'converts a private .ppt copy for %s',
+    async kind => {
+      const {control, log} = setup();
+      electron.tempDir = await makeTempDir();
+      const source = join(electron.tempDir, 'old.PPT');
+      await writeFile(source, 'original');
+      const converter = {
+        run: vi.fn(
+          async (
+            path: string,
+            directory: string,
+            progress: {convert?: true},
+          ) => {
+            expect(path).not.toBe(source);
+            expect(await readFile(path, 'utf8')).toBe('original');
+            expect(progress.convert).toBe(true);
+            await writeFile(join(directory, 'presentation.pptx'), 'converted');
+            return 'ok' as const;
+          },
+        ),
+        cancel: vi.fn(),
+      };
+      const jobs = {
+        run: vi.fn(async (job: PowerPointJob) => {
+          expect(await readFile(job.path, 'utf8')).toBe('converted');
+          return job.kind === 'read'
+            ? {
+                digest: 'a'.repeat(64),
+                widescreen: true,
+                slides: [{number: 1, shapes: [], background: null}],
+              }
+            : {widescreen: true};
+        }),
+        dispose: vi.fn(),
+      };
+      const images = {
+        run: vi.fn(
+          async (
+            _path: string,
+            directory: string,
+            progress: (done: number, total: number, number: number) => void,
+          ) => {
+            await writeFile(join(directory, 'llp-ppt-0001.png'), 'slide');
+            progress(1, 1, 1);
+            return 'ok' as const;
+          },
+        ),
+        cancel: vi.fn(),
+      };
+      const stop = registerPowerPointImport(
+        {control, windowMode: 'normal', log},
+        jobs,
+        {...images, converter},
+      );
+      onTestFinished(stop);
+      electron.chooseFile.mockResolvedValue({
+        canceled: false,
+        filePaths: [source],
+      });
+      const event = {sender: {isDestroyed: () => false, send: vi.fn()}};
+      const result = await handler(powerpointEndpoints[kind].channel)(
+        event,
+        undefined,
+      );
+      expect(result).toMatchObject({ok: true, value: {fileName: 'old.PPT'}});
+      const pickerArgs: readonly unknown[] | undefined =
+        electron.chooseFile.mock.calls[0];
+      expect(pickerArgs?.[1]).toMatchObject({
+        filters: [{extensions: ['pptx', 'pptm', 'ppt']}],
+      });
+      expect(await readFile(source, 'utf8')).toBe('original');
+      if (kind === 'images') {
+        const path = images.run.mock.calls[0]?.[0];
+        if (!path) throw new Error('Missing exported path');
+        expect(
+          await handler(powerpointEndpoints.release.channel)(
+            {},
+            {path: join(dirname(path), 'llp-ppt-0001.png')},
+          ),
+        ).toBe(true);
+        expect(await readdir(electron.tempDir)).toEqual(['old.PPT']);
+      } else {
+        const path = jobs.run.mock.calls[0]?.[0].path;
+        if (!path) throw new Error('Missing converted path');
+        expect(await readFile(path, 'utf8')).toBe('converted');
+        expect(
+          await handler(powerpointEndpoints.cancelRead.channel)({}, undefined),
+        ).toBe(true);
+        await vi.waitFor(async () =>
+          expect(await readdir(electron.tempDir)).toEqual(['old.PPT']),
+        );
+      }
+    },
+  );
+
+  it.each(['read', 'images'] as const)(
+    'rejects 4:3 after .ppt conversion for %s',
+    async kind => {
+      const {control, log} = setup();
+      electron.tempDir = await makeTempDir();
+      const source = join(electron.tempDir, 'old.ppt');
+      await writeFile(source, 'original');
+      const converter = {
+        run: vi.fn(async (_path: string, directory: string) => {
+          await writeFile(join(directory, 'presentation.pptx'), 'converted');
+          return 'ok' as const;
+        }),
+        cancel: vi.fn(),
+      };
+      const jobs = {
+        run: vi.fn(async () => ({
+          widescreen: false,
+          width: 9144000,
+          height: 6858000,
+        })),
+        dispose: vi.fn(),
+      };
+      const images = {run: vi.fn(async () => 'ok' as const), cancel: vi.fn()};
+      onTestFinished(
+        registerPowerPointImport({control, windowMode: 'normal', log}, jobs, {
+          ...images,
+          converter,
+        }),
+      );
+      electron.chooseFile.mockResolvedValue({
+        canceled: false,
+        filePaths: [source],
+      });
+      expect(
+        await handler(powerpointEndpoints[kind].channel)({}, undefined),
+      ).toEqual({
+        ok: false,
+        message: '4:3 슬라이드는 가져올 수 없습니다 (25.40×19.05cm)',
+      });
+      expect(images.run).not.toHaveBeenCalled();
+      expect(await readdir(electron.tempDir)).toEqual(['old.ppt']);
+    },
+  );
+
+  it.each(['read', 'images'] as const)(
+    'reports missing PowerPoint while converting .ppt for %s',
+    async kind => {
+      const {control, log} = setup();
+      electron.tempDir = await makeTempDir();
+      const source = join(electron.tempDir, 'old.ppt');
+      await writeFile(source, 'original');
+      const converter = {
+        run: vi.fn(async () => 'unavailable' as const),
+        cancel: vi.fn(),
+      };
+      const jobs = {run: vi.fn(async () => null), dispose: vi.fn()};
+      const images = {run: vi.fn(async () => 'ok' as const), cancel: vi.fn()};
+      onTestFinished(
+        registerPowerPointImport({control, windowMode: 'normal', log}, jobs, {
+          ...images,
+          converter,
+        }),
+      );
+      electron.chooseFile.mockResolvedValue({
+        canceled: false,
+        filePaths: [source],
+      });
+      expect(
+        await handler(powerpointEndpoints[kind].channel)({}, undefined),
+      ).toEqual({
+        ok: false,
+        message: '이 파일을 가져오려면 PowerPoint가 설치되어 있어야 합니다.',
+      });
+      expect(jobs.run).not.toHaveBeenCalled();
+      expect(await readdir(electron.tempDir)).toEqual(['old.ppt']);
+    },
+  );
 
   it('exports and releases a batch of PowerPoint decorations', async () => {
     const {control, log} = setup();

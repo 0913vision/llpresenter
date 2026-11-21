@@ -1,4 +1,12 @@
-import {Suspense, useEffect, useMemo, useRef, useState, type JSX} from 'react';
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type JSX,
+} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {PowerPointSource} from '@core/schema/powerpointImport';
 import type {TextImportDraft} from '@core/schema/textImport';
@@ -226,6 +234,14 @@ export function PowerPointImportFlow({
   readonly onProblem: (notice: Notice) => void;
 }): JSX.Element | null {
   const [source, setSource] = useState<PowerPointSource | null>(null);
+  const finish = useCallback(() => {
+    api.powerpoint
+      .cancelRead()
+      .catch((error: unknown) =>
+        console.error('PowerPoint source release failed:', error),
+      );
+    onDone();
+  }, [api, onDone]);
   const pending = useRef<ReturnType<typeof api.powerpoint.read> | null>(null);
   const cancelled = useRef(false);
   useEffect(() => {
@@ -287,7 +303,7 @@ export function PowerPointImportFlow({
       api={api}
       store={store}
       source={source}
-      onDone={onDone}
+      onDone={finish}
       onEdit={onEdit}
       onProblem={onProblem}
     />

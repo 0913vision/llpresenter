@@ -31,6 +31,32 @@ afterEach(() => {
 });
 
 describe('PowerPoint image export', () => {
+  it('opens a copied legacy presentation read-only and saves Open XML in the work directory', async () => {
+    const job = new PowerPointImagesJob();
+    const result = job.run(
+      'temp/original.ppt',
+      'temp',
+      Object.assign(vi.fn(), {convert: true as const}),
+    );
+    const call: readonly unknown[] | undefined = mocks.spawn.mock.calls[0];
+    expect(call?.[2]).toMatchObject({
+      env: {
+        LLP_PPT_SOURCE: 'temp/original.ppt',
+        LLP_PPT_CONVERT: '1',
+        LLP_PPT_DIRECTORY: 'temp',
+      },
+    });
+    expect(POWERPOINT_IMAGE_SCRIPT).toContain(
+      "$presentation.SaveAs((Join-Path $env:LLP_PPT_DIRECTORY 'presentation.pptx'), 24)",
+    );
+    expect(POWERPOINT_IMAGE_SCRIPT).toContain(
+      '$readOnly = if ($decorations) { 0 } else { -1 }',
+    );
+    const child = mocks.children[0];
+    if (!child) throw new Error('Missing child');
+    child.emit('close', 0);
+    expect(await result).toBe('ok');
+  });
   it('uses the existing instance safely and exports only visible slides', () => {
     expect(POWERPOINT_IMAGE_SCRIPT).toContain(
       "GetActiveObject('PowerPoint.Application')",
