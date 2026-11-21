@@ -20,7 +20,7 @@ it('keeps the same gaps and center as the title wraps', () => {
         },
         textBounds(ink = false) {
           const measuredY = round ? Math.round(y * 64) / 64 : y;
-          if (element.kind === 'itemName') {
+          if (element.kind === 'reference') {
             return {
               top: measuredY + 23.390625 + (ink ? 8 : 0),
               bottom: measuredY + 126.578125,
@@ -47,14 +47,14 @@ it('keeps the same gaps and center as the title wraps', () => {
       v => v.element.kind === 'box' && v.element.follow?.side === 'below',
     );
     const reference = views
-      .find(v => v.element.kind === 'itemName')
+      .find(v => v.element.kind === 'reference')
       ?.textBounds(true);
     const title = views
       .find(v => v.element.kind === 'currentText')
       ?.textBounds(true);
     if (!top || !bottom || !reference || !title) throw Error('Missing views');
     const referenceLine = views
-      .find(v => v.element.kind === 'itemName')
+      .find(v => v.element.kind === 'reference')
       ?.textBounds();
     const titleLine = views
       .find(v => v.element.kind === 'currentText')

@@ -254,10 +254,6 @@ it.each(['bible', 'sermon'] as const)(
         opening.getByRole<HTMLTextAreaElement>('textbox', {name: '성경 출처'})
           .value,
       ).toBe(lookup.displayRef);
-      expect(
-        opening.getByRole<HTMLTextAreaElement>('textbox', {name: '항목 이름'})
-          .value,
-      ).toBe(lookup.displayRef);
       expect(projection.tiles[0]?.textSlideKey).toBe('sermon:opening');
       expect(projection.tiles.at(-1)?.textSlideKey).toBe('sermon:closing');
     }

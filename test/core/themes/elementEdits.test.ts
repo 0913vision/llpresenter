@@ -180,7 +180,7 @@ it('remaps follower targets when pasting a sermon layout, including replaced uni
     copied.map((_, i) => elementId(100 + i)),
   );
   if (!pasted) throw Error('Missing pasted elements');
-  const reference = pasted.find(e => e.kind === 'itemName');
+  const reference = pasted.find(e => e.kind === 'reference');
   const title = pasted.find(e => e.kind === 'currentText');
   const bars = pasted.filter(e => e.kind === 'box');
   expect(title?.id).toBe(existing.id);

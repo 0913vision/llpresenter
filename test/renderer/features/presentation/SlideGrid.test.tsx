@@ -131,7 +131,9 @@ it('draws a sermon title tile with the sermon title theme and passage', async ()
       passage.ref.replace('-', '~'),
     );
     expect(previewSpec(slide(0))?.appearance.theme.layout.elements).toEqual(
-      expect.arrayContaining([expect.objectContaining({kind: 'itemName'})]),
+      expect.arrayContaining([
+        expect.objectContaining({kind: 'reference', source: 'slide'}),
+      ]),
     );
   });
   const spec = previewSpec(slide(0));
