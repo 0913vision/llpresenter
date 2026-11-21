@@ -42,7 +42,7 @@ describe('song editor view', () => {
     await user.click(screen.getByRole('menuitemradio', {name: '1절'}));
     expect(session.slideModel.getContent()).toBe(before);
     expect(session.unsaved).toBe(false);
-    expect(session.canUndo).toBe(false);
+    expect(session.history.canUndo).toBe(false);
   });
 
   it('shows theme fields by source slide in rows and leaves grid tiles selectable', async () => {
