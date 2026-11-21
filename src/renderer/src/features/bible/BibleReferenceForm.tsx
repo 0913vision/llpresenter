@@ -402,6 +402,13 @@ export function BibleReferenceForm(
       return;
     }
     if (event.altKey || event.ctrlKey || event.metaKey) return;
+    if (event.key === 'Escape' && expanded) {
+      pendingSubmit.current = null;
+      event.preventDefault();
+      event.stopPropagation();
+      setOpen(false);
+      return;
+    }
     if (props.dialogMode && event.key === 'Escape') {
       event.preventDefault();
       event.stopPropagation();
@@ -434,13 +441,6 @@ export function BibleReferenceForm(
       );
       return;
     }
-    if (event.key === 'Escape' && expanded) {
-      pendingSubmit.current = null;
-      event.preventDefault();
-      event.stopPropagation();
-      setOpen(false);
-      return;
-    }
     if (event.key === 'Escape' && props.onEscape !== undefined) {
       pendingSubmit.current = null;
       event.preventDefault();
@@ -449,6 +449,18 @@ export function BibleReferenceForm(
       return;
     }
     if (part === 'book') {
+      const highlighted = suggestions[keyboardPointed ?? -1];
+      if (
+        expanded &&
+        !event.repeat &&
+        (event.key === 'Enter' || (event.key === 'Tab' && !event.shiftKey)) &&
+        highlighted?.bookId !== undefined
+      ) {
+        event.preventDefault();
+        event.stopPropagation();
+        chooseSuggestion(highlighted);
+        return;
+      }
       if (
         (event.key === 'Enter' || (event.key === 'Tab' && !event.shiftKey)) &&
         !event.repeat &&
