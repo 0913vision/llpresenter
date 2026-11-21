@@ -124,7 +124,7 @@ function OtherRolePicture({
   );
   const baseItem = baseAppearance?.theme.item;
   const appearance =
-    baseItem === undefined
+    baseAppearance === undefined
       ? undefined
       : previewAppearance({
           role,
@@ -142,7 +142,7 @@ function OtherRolePicture({
                   .stageLyricLabelPosition
               : undefined,
           item: {
-            ...baseItem,
+            ...(baseItem ?? {id: item.id, kind: 'bible', source: 'service'}),
             ...(item.theme === undefined ? {} : {theme: item.theme}),
           },
         });

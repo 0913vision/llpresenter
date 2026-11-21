@@ -120,6 +120,9 @@ it.each([
         'picture',
       )[0];
       if (gridPicture === undefined) throw new Error('Missing grid picture');
+      if (inspectorPicture === undefined) {
+        throw new Error('Missing inspector picture');
+      }
       expect(gridPicture.layers.media?.mediaId).toBe(expected);
       expect(inspectorPicture.getAttribute('data-background')).toBe(
         expected ?? null,
@@ -146,7 +149,7 @@ it.each(['list', 'grid'] as const)(
       const expected = session.history.snapshot.song.slides[1];
       if (expected === undefined) throw new Error('Missing slide data');
       expect(
-        within(inspector.container).getAllByTestId('picture')[0].textContent,
+        within(inspector.container).getAllByTestId('picture')[0]?.textContent,
       ).toBe(expected.lines.join(' '));
     } finally {
       inspector.unmount();
