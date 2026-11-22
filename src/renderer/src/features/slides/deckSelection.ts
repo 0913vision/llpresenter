@@ -145,3 +145,10 @@ export function focusedSlide(
       : undefined;
   return own ?? selectedSlides(deck, selection)[0];
 }
+
+/** Puts the focus on the slides of the editor, from a field beside them. */
+export function focusSlides(): void {
+  [...document.querySelectorAll<HTMLElement>('[data-slide-surface]')]
+    .find(surface => surface.closest('[inert]') === null)
+    ?.focus({preventScroll: true});
+}

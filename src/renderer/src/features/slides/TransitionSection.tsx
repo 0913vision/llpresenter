@@ -8,6 +8,7 @@ import {TextField} from '@renderer/ui/TextField';
 import {EffectPicture} from '@renderer/ui/SlideTransitionControl';
 import transitionStyles from '@renderer/ui/SlideTransitionControl.module.css';
 import {PropertyGroup, PropertyRow} from '@renderer/ui/PropertyRow';
+import {focusSlides} from './deckSelection';
 import styles from './SlideInspector.module.css';
 import {
   SLIDE_EFFECTS,
@@ -74,9 +75,7 @@ function TimeField({
           if (event.key === 'Enter' && !event.nativeEvent.isComposing) {
             event.preventDefault();
             event.currentTarget.blur();
-            document
-              .querySelector<HTMLElement>('[data-slide-surface]')
-              ?.focus();
+            focusSlides();
           } else if (event.key === 'Escape') {
             event.preventDefault();
             event.stopPropagation();

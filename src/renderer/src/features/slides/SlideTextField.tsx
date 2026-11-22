@@ -23,7 +23,12 @@ import {classNames} from '@renderer/ui/classNames';
 import {isComposing} from '@renderer/ui/ime';
 import {hasModifier} from '@renderer/ui/modifierKeys';
 import field from '@renderer/ui/TextField.module.css';
-import {clearTextFocus, focusText, useTextFocus} from './deckSelection';
+import {
+  clearTextFocus,
+  focusSlides,
+  focusText,
+  useTextFocus,
+} from './deckSelection';
 import type {SlideDeck} from './slideDeck';
 import {NEXT_BOX} from './slideColumns';
 import styles from './SlideTextField.module.css';
@@ -128,9 +133,13 @@ export function SlideTextField({
     );
   const keyDown = (event: KeyboardEvent<HTMLTextAreaElement>): void => {
     if (isComposing(event) || hasModifier(event)) return;
-    if (event.key === 'Enter' && !many) {
+    if (
+      (event.key === 'Enter' && !many) ||
+      (event.key === 'Escape' && !inList)
+    ) {
       event.preventDefault();
-      event.currentTarget.blur();
+      event.stopPropagation();
+      focusSlides();
       return;
     }
     if (!flows) return;

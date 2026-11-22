@@ -1,4 +1,4 @@
-import {useState, type JSX, type ReactNode} from 'react';
+import {useRef, useState, type JSX, type ReactNode} from 'react';
 import type {UiApi} from '@contracts/ipc/ui';
 import type {ShowTile} from '@core/schema/showService';
 import type {Slide} from '@core/schema/slide';
@@ -13,6 +13,7 @@ import {SlideHotKeyDialog} from './SlideHotKeyDialog';
 import {SlideRows} from './SlideRows';
 import {SlideSurface} from './SlideSurface';
 import {SlideSurfaceView, useSlideSurfaceView} from './SlideSurfaceView';
+import {useEditorBack} from './useEditorBack';
 import styles from './SlideEditor.module.css';
 
 /** The one editor of slides, for an item of the service and for a song. */
@@ -37,12 +38,14 @@ export function SlideEditor({
   readonly onBack: () => void;
   readonly ui?: Pick<UiApi, 'setLayout'> | undefined;
 }): JSX.Element {
+  const root = useRef<HTMLElement>(null);
+  useEditorBack(root, onBack);
   const view = useSlideSurfaceView();
   const [keyed, setKeyed] = useState<Slide | null>(null);
   const reason = addReason(deck);
   const keyedIndex = deck.slides.findIndex(slide => slide.id === keyed?.id);
   return (
-    <section aria-label="편집" className={styles.editor}>
+    <section ref={root} aria-label="편집" className={styles.editor}>
       <div className={styles.content}>
         {header}
         <SlideSurface
