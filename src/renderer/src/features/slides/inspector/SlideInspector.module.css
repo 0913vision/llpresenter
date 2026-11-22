@@ -34,11 +34,6 @@
   border-bottom: 1px solid var(--line);
 }
 
-.applyToAll {
-  width: 100%;
-  margin-top: var(--space-8);
-}
-
 .withAction {
   display: flex;
   gap: var(--space-8);

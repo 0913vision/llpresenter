@@ -96,33 +96,37 @@ export function TransitionTab({deck, chosen}: ChosenSlides): JSX.Element {
   return (
     <PropertyGroup>
       <div className={styles.transitionRows}>
-        <div
-          className={transitionStyles.gallery}
-          role="group"
-          aria-label="효과"
-        >
-          {SLIDE_EFFECTS.map(([kind, label]) => (
-            <button
-              key={kind}
-              type="button"
-              className={transitionStyles.tile}
-              disabled={locked}
-              aria-pressed={!mixed && value.kind === kind}
-              onClick={() => {
-                set({
-                  kind,
-                  sec: value.sec,
-                  ...(kind === 'push' || kind === 'wipe'
-                    ? {dir: value.dir ?? 'left'}
-                    : {}),
-                });
-              }}
+        <PropertyRow label="효과">
+          {() => (
+            <div
+              className={transitionStyles.gallery}
+              role="group"
+              aria-label="효과"
             >
-              <EffectPicture kind={kind} />
-              <span>{label}</span>
-            </button>
-          ))}
-        </div>
+              {SLIDE_EFFECTS.map(([kind, label]) => (
+                <button
+                  key={kind}
+                  type="button"
+                  className={transitionStyles.tile}
+                  disabled={locked}
+                  aria-pressed={!mixed && value.kind === kind}
+                  onClick={() => {
+                    set({
+                      kind,
+                      sec: value.sec,
+                      ...(kind === 'push' || kind === 'wipe'
+                        ? {dir: value.dir ?? 'left'}
+                        : {}),
+                    });
+                  }}
+                >
+                  <EffectPicture kind={kind} />
+                  <span>{label}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </PropertyRow>
         <PropertyRow label="방향">
           {() => (
             <div

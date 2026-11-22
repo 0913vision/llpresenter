@@ -2,10 +2,10 @@ import type {JSX} from 'react';
 import type {Slide} from '@core/schema/slide';
 import {withBackground, withTransition} from '@core/slides/edits';
 import {Button} from '@renderer/ui/Button';
+import {Properties, PropertyRow} from '@renderer/ui/PropertyRow';
 import type {ChosenSlides} from './changeSelected';
 import type {InspectorTab} from './inspectorTab';
 import {chosenBackground} from './LookTab';
-import styles from './SlideInspector.module.css';
 import {chosenTransition} from './TransitionTab';
 
 /** What a tab gives to every slide, or null when there is no one value. */
@@ -30,15 +30,23 @@ export function ApplyToAll({
   if (tab === 'texts') return null;
   const change = changeOf(tab, chosen);
   return (
-    <Button
-      className={styles.applyToAll}
-      size="md"
-      disabled={deck.readOnly || change === null || deck.slides.length < 2}
-      onClick={() => {
-        if (change !== null) deck.edit(slides => slides.map(change));
-      }}
-    >
-      {tab === 'look' ? '배경을 전체 슬라이드에 적용' : '전체 슬라이드에 적용'}
-    </Button>
+    <Properties>
+      <PropertyRow label="">
+        {() => (
+          <Button
+            disabled={
+              deck.readOnly || change === null || deck.slides.length < 2
+            }
+            onClick={() => {
+              if (change !== null) deck.edit(slides => slides.map(change));
+            }}
+          >
+            {tab === 'look'
+              ? '배경을 전체 슬라이드에 적용'
+              : '전체 슬라이드에 적용'}
+          </Button>
+        )}
+      </PropertyRow>
+    </Properties>
   );
 }
