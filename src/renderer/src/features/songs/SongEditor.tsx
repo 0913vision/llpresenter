@@ -93,9 +93,7 @@ function SongHeader({
   const usage = songUsage(library, libraryStatus, draft.song.id);
   return (
     <header className={styles.header}>
-      <Button onClick={onBack}>
-        ‹ 라이브러리
-      </Button>
+      <Button onClick={onBack}>‹ 라이브러리</Button>
       {unsaved ? (
         <Tooltip text="저장하지 않은 변경">
           <span
