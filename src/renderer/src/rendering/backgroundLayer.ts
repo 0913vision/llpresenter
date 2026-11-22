@@ -1,4 +1,4 @@
-import type {MediaLayer} from '@core/live/state';
+import type {MediaLayer} from '@core/schema/live';
 import type {OutputMediaProperties} from '@core/schema/outputMedia';
 import {loadBackgroundImage} from './backgroundImage';
 import {classes} from './classes';

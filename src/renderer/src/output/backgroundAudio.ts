@@ -1,5 +1,5 @@
 import type {LlpApi} from '@contracts/ipc/api';
-import type {LiveState, MediaLayer} from '@core/live/state';
+import type {LiveState, MediaLayer} from '@core/schema/live';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {BackgroundLayerView} from '../rendering/backgroundLayer';
 import {fadeAudio} from '../rendering/audioFade';

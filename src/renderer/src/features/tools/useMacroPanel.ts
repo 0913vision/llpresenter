@@ -11,8 +11,10 @@ import {
   type MacroCollection,
   type KnownMacroAction,
 } from '@core/schema/macros';
-import type {MacroActionDraft} from '@core/macros/macroActionDraft';
-import {prepareMacroAction} from '@core/macros/macroActionDraft';
+import {
+  type MacroActionDraft,
+  prepareMacroAction,
+} from '@core/macros/macroActionDraft';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {sendLive} from '@renderer/session/live';
 import {WorkspaceNavigation} from '@renderer/platform/WorkspaceNavigation';

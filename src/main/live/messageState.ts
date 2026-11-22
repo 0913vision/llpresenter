@@ -1,4 +1,4 @@
-import type {ActiveMessage, MessageLayer} from '@core/live/state';
+import type {ActiveMessage, MessageLayer} from '@core/schema/live';
 
 export function messageLayer(
   items: readonly ActiveMessage[],

@@ -1,6 +1,6 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import type {LiveCommand} from '@core/live/commands';
-import {emptyLiveState, type LiveState} from '@core/live/state';
+import type {LiveCommand} from '@core/schema/liveCommand';
+import {emptyLiveState, type LiveState} from '@core/schema/live';
 import {parseLiveState} from '@core/schema/liveState';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';

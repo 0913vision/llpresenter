@@ -1,6 +1,6 @@
 import {dirname, isAbsolute, resolve} from 'node:path';
 import {stat} from 'node:fs/promises';
-import type {MediaChoice} from '@core/live/state';
+import type {MediaChoice} from '@core/schema/live';
 import {mediaLoops} from '@core/media/mediaEndRule';
 import type {Result} from '@core/common/result';
 import type {FileError} from '@core/schema/fileFormat';

@@ -1,4 +1,4 @@
-import type {SlideLayer} from '@core/live/state';
+import type {SlideLayer} from '@core/schema/live';
 import {BUILT_IN_THEME_IDS} from '@core/theme/builtIn/ids';
 import {slideId} from './slides';
 

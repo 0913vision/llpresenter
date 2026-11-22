@@ -1,5 +1,5 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {emptyLiveState, type LiveState} from '@core/live/state';
+import {emptyLiveState, type LiveState} from '@core/schema/live';
 import {MAX_OVERLAY_TIMER_MS} from '@core/overlays/timing';
 import {parseLiveState} from '@core/schema/liveState';
 import type {MessageExpiry} from '@core/schema/overlayState';

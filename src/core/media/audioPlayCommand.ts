@@ -1,4 +1,4 @@
-import type {AudioLayer} from '../live/state';
+import type {AudioLayer} from '../schema/live';
 import type {AudioPlaylist} from '../schema/mediaList';
 
 /** Resolves the same pause, resume, or playlist start for buttons and bindings. */

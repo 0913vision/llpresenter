@@ -21,6 +21,8 @@ import {
   mediaFixture,
   mediaId,
   mediaItem,
+  playlistId,
+  audioPlaylistId,
 } from '@fixtures/renderer/features/media/mediaTesting';
 import {
   DEFAULT_MEDIA_COLUMNS,
@@ -39,10 +41,6 @@ import {
   fixtureItems,
   fixtureServiceId,
 } from '@fixtures/renderer/features/service/items/itemFixture';
-import {
-  playlistId,
-  audioPlaylistId,
-} from '@fixtures/renderer/features/media/mediaTesting';
 import {
   INITIAL_ROWS,
   OVERSCAN_ROWS,

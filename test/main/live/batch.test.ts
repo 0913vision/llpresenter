@@ -1,7 +1,10 @@
 import {shownText} from '@fixtures/core/liveSlide';
 import {describe, expect, it, vi} from 'vitest';
-import type {LiveBatch, LiveCommand} from '@core/live/commands';
-import {parseLiveCommand} from '@core/schema/liveCommand';
+import {
+  type LiveBatch,
+  type LiveCommand,
+  parseLiveCommand,
+} from '@core/schema/liveCommand';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {dispatchLogged, LiveStore} from '@main/live/store';
 import {defineSlice} from '@main/live/slice';

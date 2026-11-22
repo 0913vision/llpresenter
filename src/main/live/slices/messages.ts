@@ -1,4 +1,4 @@
-import type {ActiveMessage, MessageLayer} from '@core/live/state';
+import type {ActiveMessage, MessageLayer} from '@core/schema/live';
 import {parseActiveMessages} from '@core/schema/overlayState';
 import type {ScreenId} from '@core/schema/ids';
 import {MissingLiveTargetError} from '../commandErrors';

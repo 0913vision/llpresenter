@@ -1,5 +1,5 @@
 import {afterEach, expect, it, vi} from 'vitest';
-import {emptyLiveState, type LiveState} from '@core/live/state';
+import {emptyLiveState, type LiveState} from '@core/schema/live';
 import {createMessageId, createMediaId} from '@core/schema/ids';
 import {parseLiveCommand} from '@core/schema/liveCommand';
 import {parseLiveState} from '@core/schema/liveState';

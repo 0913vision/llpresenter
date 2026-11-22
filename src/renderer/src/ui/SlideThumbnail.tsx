@@ -12,10 +12,10 @@ import {
   type TileMoves,
   type TileSpaceKey,
   type TileListPosition,
+  type TileListBaseProps,
 } from './TileList';
 import {titleTooltip, useTooltip} from './Tooltip';
 import type {Workspace} from './workspace';
-import type {TileListBaseProps} from './TileList';
 import styles from './SlideThumbnail.module.css';
 import {SlideTransitionMark} from './SlideTransitionMark';
 

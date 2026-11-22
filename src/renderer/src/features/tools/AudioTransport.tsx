@@ -2,7 +2,7 @@ import {audioPlayCommand} from '@core/media/audioPlayCommand';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import type {JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
-import type {AudioLayer} from '@core/live/state';
+import type {AudioLayer} from '@core/schema/live';
 import type {AudioPlaylist, MediaItem} from '@core/schema/mediaList';
 import {audioPositionSeconds} from '@core/schema/audioState';
 import {Button, Slider, TruncatedText} from '@renderer/ui';

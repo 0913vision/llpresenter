@@ -1,7 +1,7 @@
 import {createPropId} from '@core/schema/ids';
 import {describe, expect, it, vi} from 'vitest';
-import type {SingleLiveCommand} from '@core/live/commands';
-import {emptyLiveState} from '@core/live/state';
+import type {SingleLiveCommand} from '@core/schema/liveCommand';
+import {emptyLiveState} from '@core/schema/live';
 import type {SettingsReader} from '@core/schema/settingsReader';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {overlaySettings} from '@fixtures/core/overlays';

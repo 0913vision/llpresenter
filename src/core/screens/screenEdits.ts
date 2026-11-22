@@ -1,6 +1,5 @@
 import {KIND_NAMES} from './screens';
-import {NDI_DEFAULT_SOURCE_NAME} from '../schema/screens';
-import type {Screen} from '../schema/screens';
+import {NDI_DEFAULT_SOURCE_NAME, type Screen} from '../schema/screens';
 
 /** The most the 가장자리 여백 may be, in percent (spec 10, "Screens"). */
 export const EDGE_MARGIN_MAX = 20;

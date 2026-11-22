@@ -1,5 +1,7 @@
-import {NOT_IN_THIS_WINDOW} from '@renderer/platform/problemReasons';
-import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
+import {
+  NOT_IN_THIS_WINDOW,
+  NEWER_FILE_REASON,
+} from '@renderer/platform/problemReasons';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {useState} from 'react';
 import {deleteSelection} from '@renderer/ui/useSelectionDelete';

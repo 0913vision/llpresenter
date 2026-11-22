@@ -1,7 +1,7 @@
 import {shownText} from '@fixtures/core/liveSlide';
 import {describe, expect, it} from 'vitest';
-import type {LiveCommand} from '@core/live/commands';
-import {emptyLiveState, layerKinds, type SlideLayer} from '@core/live/state';
+import type {LiveCommand} from '@core/schema/liveCommand';
+import {emptyLiveState, layerKinds, type SlideLayer} from '@core/schema/live';
 import {
   applyCommand as applyAt,
   initialHistory,

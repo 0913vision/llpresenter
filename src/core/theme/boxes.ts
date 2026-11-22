@@ -8,7 +8,7 @@ import {
   type ThemeScreen,
 } from '../schema/theme';
 import {BUILT_IN_THEME_IDS} from './builtIn/ids';
-import {AUTO_TOKENS} from './content';
+import {AUTO_TOKENS} from '../schema/slideContent';
 import {removeElements} from './elements';
 import {templateTokens} from './template';
 import {builtInTheme} from './themes';

@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {emptyLiveState, layerKinds} from '@core/live/state';
+import {emptyLiveState, layerKinds} from '@core/schema/live';
 import {parseLiveState} from '@core/schema/liveState';
 import {parseLiveCommand} from '@core/schema/liveCommand';
 import {

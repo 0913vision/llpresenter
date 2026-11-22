@@ -1,6 +1,6 @@
 import {expect, it} from 'vitest';
 import * as v from 'valibot';
-import {emptyLiveState} from '@core/live/state';
+import {emptyLiveState} from '@core/schema/live';
 import {clearFadeSchema, CLEAR_FADE_LIMIT_MS} from '@core/schema/clearFade';
 import {parseLiveCommand} from '@core/schema/liveCommand';
 import {parseLiveState} from '@core/schema/liveState';

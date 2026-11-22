@@ -3,10 +3,7 @@ import {checkPart} from './fileFormat';
 import {payloadObject, plainObject} from './payload';
 import {nonNegativeInteger} from './primitives';
 import {mediaIdSchema} from './ids';
-import {
-  POWERPOINT_IMPORT_LIMITS,
-  TEXT_IMPORT_LIMITS,
-} from '../songs/textImportLimits';
+import {POWERPOINT_IMPORT_LIMITS, TEXT_IMPORT_LIMITS} from './textImportLimits';
 
 /** Limits of one picture of a slide. */
 export const POWERPOINT_PICTURE_LIMITS = {

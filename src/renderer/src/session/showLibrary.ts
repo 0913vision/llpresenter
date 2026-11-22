@@ -1,5 +1,5 @@
 import {sameVerse} from '@core/slides/edits';
-import type {SlideLayer} from '@core/live/state';
+import type {SlideLayer} from '@core/schema/live';
 import type {ShowLibrarySong} from '@core/schema/showLibrarySong';
 import type {ItemId, SlideTile, TileCursor} from '@core/presentation/model';
 import type {BibleSource} from './bibleSource';

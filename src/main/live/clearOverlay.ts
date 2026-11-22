@@ -1,4 +1,4 @@
-import type {MessageLayer, PropLayer} from '@core/live/state';
+import type {MessageLayer, PropLayer} from '@core/schema/live';
 import type {OverlayClear} from '@core/schema/overlayClear';
 import {withLayers, type LiveHistory} from './history';
 import {messageLayer} from './messageState';

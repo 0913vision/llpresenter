@@ -1,5 +1,5 @@
-import type {SingleLiveCommand} from '@core/live/commands';
-import type {SlideLayer} from '@core/live/state';
+import type {SingleLiveCommand} from '@core/schema/liveCommand';
+import type {SlideLayer} from '@core/schema/live';
 import {QUICK_BIBLE_TRANSITION} from '@core/bible/quickTransition';
 import {
   type ItemId,

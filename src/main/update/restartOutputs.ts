@@ -1,7 +1,7 @@
 import {readFile, rm, stat} from 'node:fs/promises';
 import {join} from 'node:path';
 import {parseUpdateRestart} from '@core/schema/update';
-import type {LiveState} from '@core/live/state';
+import type {LiveState} from '@core/schema/live';
 import type {SettingsReader} from '@core/schema/settingsReader';
 import {dispatchBatched} from '../live/store';
 import type {Logger} from '../log';

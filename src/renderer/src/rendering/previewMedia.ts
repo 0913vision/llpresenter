@@ -1,6 +1,6 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import {mediaUrl, thumbnailUrl} from '@contracts/ipc/mediaUrls';
-import type {MediaLayer} from '@core/live/state';
+import type {MediaLayer} from '@core/schema/live';
 import {createMediaId, type MediaId} from '@core/schema/ids';
 import {APP_PICTURE_IDS} from '@core/theme/pictures';
 import type {MediaDocument} from '@core/schema/mediaEdit';

@@ -12,7 +12,7 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {applyService, useShow} from '@renderer/session/show';
 import {useLive} from '@renderer/session/live';
-import {emptyLiveState} from '@core/live/state';
+import {emptyLiveState} from '@core/schema/live';
 import {createServiceId} from '@core/schema/ids';
 import {
   ids,

@@ -1,6 +1,6 @@
 import {vi} from 'vitest';
 import type {LlpApi} from '@contracts/ipc/api';
-import type {LiveCommand} from '@core/live/commands';
+import type {LiveCommand} from '@core/schema/liveCommand';
 import {
   parseSettingsDocument,
   type SettingsDocument,

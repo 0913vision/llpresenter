@@ -7,8 +7,10 @@ import {
   type JSX,
   type Ref,
 } from 'react';
-import {PreferencesView} from '@renderer/features/preferences/PreferencesView';
-import type {PreferencesViewHandle} from '@renderer/features/preferences/PreferencesView';
+import {
+  PreferencesView,
+  type PreferencesViewHandle,
+} from '@renderer/features/preferences/PreferencesView';
 import type {PreferencePageId} from '@core/schema/preferencePages';
 import {useShortcutSettings} from '@renderer/platform/useShortcutSettings';
 import type {PreferencesRequest} from '@contracts/ipc/window';

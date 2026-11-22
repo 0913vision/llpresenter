@@ -1,4 +1,4 @@
-import type {MediaLayer} from '../live/state';
+import type {MediaLayer} from '../schema/live';
 import type {MediaItem} from '../schema/mediaList';
 import type {MediaProgress} from '../schema/mediaProgress';
 

@@ -1,8 +1,7 @@
 import {describe, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@core/live/state';
+import {emptyLiveState} from '@core/schema/live';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {createAppFlushRequestId} from '@core/schema/ids';
-import {createServiceId} from '@core/schema/ids';
+import {createAppFlushRequestId, createServiceId} from '@core/schema/ids';
 import {parseSettingsDocument} from '@core/schema/settingsDocuments';
 import {MAIN_SCREEN} from '@fixtures/core/screenIds';
 

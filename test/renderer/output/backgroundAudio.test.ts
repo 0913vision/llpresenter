@@ -1,6 +1,6 @@
 import {BUILT_IN_THEME_IDS} from '@core/theme/builtIn/ids';
 import {beforeEach, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@core/live/state';
+import {emptyLiveState} from '@core/schema/live';
 import {parseLiveState} from '@core/schema/liveState';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {MAIN_ID} from '@fixtures/core/screenDocuments';

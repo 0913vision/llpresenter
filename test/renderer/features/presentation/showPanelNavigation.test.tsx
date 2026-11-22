@@ -16,7 +16,7 @@ import {
   tilesOf,
 } from '@renderer/session/show';
 import {useLive} from '@renderer/session/live';
-import {emptyLiveState} from '@core/live/state';
+import {emptyLiveState} from '@core/schema/live';
 import {commandBindingStore} from '@renderer/ui/commandBindings';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 

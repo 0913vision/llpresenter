@@ -1,5 +1,5 @@
 import {useLayoutEffect, useState, type JSX} from 'react';
-import {emptyLayers, type LiveLayers} from '@core/live/state';
+import {emptyLayers, type LiveLayers} from '@core/schema/live';
 import {ScreenFrames} from '@renderer/rendering/screenFrames';
 import type {SlideDrawing} from '@renderer/pictures/slideDrawing';
 import {SlidePicture} from '@renderer/pictures/SlidePicture';

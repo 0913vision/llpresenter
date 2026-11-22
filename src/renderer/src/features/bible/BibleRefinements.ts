@@ -1,7 +1,6 @@
 import type {BibleAiState} from '@core/schema/bibleAi';
 import type {LlpApi} from '@contracts/ipc/api';
-import type {VerseInput} from '@core/bible/split/splitVerses';
-import {versesToReview} from '@core/bible/split/splitVerses';
+import {type VerseInput, versesToReview} from '@core/bible/split/splitVerses';
 import {
   normalizeVerse,
   cutsFromChunks,

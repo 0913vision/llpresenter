@@ -1,7 +1,7 @@
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useShortcutText} from '@renderer/ui/commandBindings';
-import {ariaShortcut} from '@renderer/ui/Tooltip';
+import {ariaShortcut, useTooltip} from '@renderer/ui/Tooltip';
 import {
   useEffect,
   useEffectEvent,
@@ -28,7 +28,6 @@ import {
   insertLibrarySong,
   rowAfterSelected,
 } from '@renderer/session/insertNewItem';
-import {useTooltip} from '@renderer/ui/Tooltip';
 
 const SONG_ICON_SIZE = 16;
 const NO_RESULT = -1;

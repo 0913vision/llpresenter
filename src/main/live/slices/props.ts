@@ -1,5 +1,5 @@
 import {parseActiveProps} from '@core/schema/overlayState';
-import type {ActiveProp} from '@core/live/state';
+import type {ActiveProp} from '@core/schema/live';
 import {MissingLiveTargetError} from '../commandErrors';
 import {setLayer, updateLayer} from '../history';
 import {propLayer} from '../propState';

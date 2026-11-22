@@ -1,9 +1,12 @@
-import {menuAvailability} from '@renderer/ui/menuModel';
+import {
+  menuAvailability,
+  type MenuEntry,
+  type MenuItem,
+} from '@renderer/ui/menuModel';
 import type {JSX} from 'react';
 import type {MonitorInfo, MonitorList} from '@core/schema/monitors';
 import type {Screen} from '@core/schema/screens';
 import {Menu, type MenuProps} from '@renderer/ui/Menu';
-import type {MenuEntry, MenuItem} from '@renderer/ui/menuModel';
 import type {NewScreen} from './addScreen';
 import {monitorPixelSize, sizeText} from './displaySizes';
 import {displayLayout} from './layoutBoxes';

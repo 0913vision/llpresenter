@@ -1,5 +1,5 @@
 import {expect, it} from 'vitest';
-import {emptyLayers, type LiveLayers} from '@core/live/state';
+import {emptyLayers, type LiveLayers} from '@core/schema/live';
 import type {ClearEffect} from '@core/schema/clearFade';
 import {createMediaId, createPropId, type PropId} from '@core/schema/ids';
 import {ClearFades} from '@renderer/rendering/clearFades';

@@ -5,14 +5,14 @@ import {act, cleanup, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import * as v from 'valibot';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import type {LiveCommand} from '@core/live/commands';
+import type {LiveCommand} from '@core/schema/liveCommand';
 import type {MonitorList} from '@core/schema/monitors';
 import {screenIdSchema} from '@core/schema/ids';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {OutputPreview} from '@renderer/features/screens/OutputPreview';
 import {useScreensSelection} from '@renderer/features/screens/selection';
 import {useLive} from '@renderer/session/live';
-import {emptyLiveState} from '@core/live/state';
+import {emptyLiveState} from '@core/schema/live';
 import {MAIN_ID, screensDocument} from '@fixtures/core/screenDocuments';
 
 vi.mock('@renderer/features/presentation/OutputMirror', () => ({

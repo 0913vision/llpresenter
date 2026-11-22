@@ -3,7 +3,7 @@ import type {SettingsReader} from '@core/schema/settingsReader';
 import {readFile, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';
-import {emptyLiveState, type LiveState} from '@core/live/state';
+import {emptyLiveState, type LiveState} from '@core/schema/live';
 import {createMediaId, createMessageId, type ServiceId} from '@core/schema/ids';
 import {RECOVERY_RECORD_LIMITS} from '@core/schema/recoveryRecord';
 import {makeTempDir} from '@fixtures/tempDir';

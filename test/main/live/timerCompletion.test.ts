@@ -1,6 +1,6 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import type {SingleLiveCommand} from '@core/live/commands';
-import {emptyLiveState, type LiveState} from '@core/live/state';
+import type {SingleLiveCommand} from '@core/schema/liveCommand';
+import {emptyLiveState, type LiveState} from '@core/schema/live';
 import {createTimerId} from '@core/schema/ids';
 import {parseLiveState} from '@core/schema/liveState';
 import type {SettingsReader} from '@core/schema/settingsReader';

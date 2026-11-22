@@ -1,8 +1,4 @@
-/** A size in pixels. */
-export interface PixelSize {
-  readonly width: number;
-  readonly height: number;
-}
+import type {PixelSize} from '../common/pixelSize';
 
 /** A part of a picture, in its pixels. */
 export interface Crop extends PixelSize {

@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import {paletteColors} from '../labels/colors';
 import {isRecord} from '../common/guards';
-import {layerKinds} from '../live/state';
+import {layerKinds} from './live';
 import type {Result} from '../common/result';
 import {
   checkPart,

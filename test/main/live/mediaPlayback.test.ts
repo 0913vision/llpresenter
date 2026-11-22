@@ -1,5 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
-import {emptyLiveState, type LiveState} from '@core/live/state';
+import {emptyLiveState, type LiveState} from '@core/schema/live';
 import {parseMediaDocument} from '@core/schema/mediaEdit';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {connectMediaPlayback} from '@main/live/mediaPlayback';

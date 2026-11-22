@@ -1,6 +1,6 @@
 import {expect, it, vi} from 'vitest';
-import type {LiveCommand} from '@core/live/commands';
-import {emptyLayers, emptyLiveState, type LiveLayers} from '@core/live/state';
+import type {LiveCommand} from '@core/schema/liveCommand';
+import {emptyLayers, emptyLiveState, type LiveLayers} from '@core/schema/live';
 import {liveOverlay} from '@core/live/overlays';
 import {
   createItemOverlayId,

@@ -6,12 +6,9 @@ import type {
   ThemeNextElement,
   ThemeTextElement,
 } from '@core/schema/theme';
-import type {MediaLayer} from '@core/live/state';
-import {
-  AUTO_TOKENS,
-  contentValues,
-  type SlideContent,
-} from '@core/theme/content';
+import type {MediaLayer} from '@core/schema/live';
+import {contentValues} from '@core/theme/content';
+import {AUTO_TOKENS, type SlideContent} from '@core/schema/slideContent';
 import {fillTemplates, templateTokens} from '@core/theme/template';
 import type {RowsText} from './textRows';
 

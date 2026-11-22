@@ -2,7 +2,7 @@ import {writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';
 import {createScreenId} from '@core/schema/ids';
-import {emptyLiveState} from '@core/live/state';
+import {emptyLiveState} from '@core/schema/live';
 import type {SettingsReader} from '@core/schema/settingsReader';
 import {defaultPreferences} from '@core/schema/preferences';
 import {makeTempDir} from '@fixtures/tempDir';

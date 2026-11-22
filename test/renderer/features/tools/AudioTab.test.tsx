@@ -10,7 +10,7 @@ import {
 import userEvent from '@testing-library/user-event';
 import {afterEach, expect, it, vi} from 'vitest';
 import {useAudioSelection} from '@renderer/features/tools/state/audioSelection';
-import {emptyLiveState} from '@core/live/state';
+import {emptyLiveState} from '@core/schema/live';
 import {parseMediaDocument, type MediaDocument} from '@core/schema/mediaEdit';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {useLive} from '@renderer/session/live';

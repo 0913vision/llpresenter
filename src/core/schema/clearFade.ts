@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import {layerKinds} from '../live/state';
+import {layerKinds} from './live';
 import {MAX_ACTIVE_PROPS} from './overlayState';
 import {propIdSchema} from './ids';
 import {plainObject, payloadObject} from './payload';

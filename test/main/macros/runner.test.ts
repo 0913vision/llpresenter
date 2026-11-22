@@ -1,5 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@core/live/state';
+import {emptyLiveState} from '@core/schema/live';
 import {createServiceItemId, parseMacroId} from '@core/schema/ids';
 import type {ServiceItem} from '@core/schema/service';
 import {MissingLiveTargetError} from '@main/live/commandErrors';

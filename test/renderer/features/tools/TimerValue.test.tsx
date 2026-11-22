@@ -1,7 +1,7 @@
 import {act, cleanup, render, screen} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {emptyLiveState} from '@core/live/state';
+import {emptyLiveState} from '@core/schema/live';
 import {parseLiveState} from '@core/schema/liveState';
 import {parseSettingsDocument} from '@core/schema/settingsDocuments';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';

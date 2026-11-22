@@ -1,10 +1,10 @@
 import {shownText} from '@fixtures/core/liveSlide';
 import {describe, expect, it} from 'vitest';
+import {interruptsSongOutput} from '@core/live/interruptsSongOutput';
 import {
-  interruptsSongOutput,
   type SingleLiveCommand,
-} from '@core/live/commands';
-import {parseLiveCommand} from '@core/schema/liveCommand';
+  parseLiveCommand,
+} from '@core/schema/liveCommand';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {MAIN_SCREEN} from '@fixtures/core/screenIds';
 

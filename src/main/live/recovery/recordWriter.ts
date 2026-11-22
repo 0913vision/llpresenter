@@ -1,4 +1,4 @@
-import type {LiveState} from '@core/live/state';
+import type {LiveState} from '@core/schema/live';
 import type {Result} from '@core/common/result';
 import type {ServiceId} from '@core/schema/ids';
 import {serializeRecoveryRecord} from '@core/schema/recoveryRecord';

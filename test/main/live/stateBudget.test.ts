@@ -1,6 +1,6 @@
 import {Buffer} from 'node:buffer';
 import {describe, expect, it} from 'vitest';
-import {emptyLiveState} from '@core/live/state';
+import {emptyLiveState} from '@core/schema/live';
 import {LIVE_STATE_BYTE_BUDGET} from '@core/schema/liveLimits';
 import {serializeRecoveryRecord} from '@core/schema/recoveryRecord';
 import {createTimerId, type TimerId} from '@core/schema/ids';

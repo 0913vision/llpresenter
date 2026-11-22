@@ -1,4 +1,8 @@
-import {createServiceItemId, type ServiceItemId} from '@core/schema/ids';
+import {
+  createServiceItemId,
+  type ServiceItemId,
+  type SongId,
+} from '@core/schema/ids';
 import {hasSlides, type ServiceItem} from '@core/schema/service';
 import {quickAddBefore} from '@core/services/quickAddPosition';
 import {useHeaderRename} from './headerRename';
@@ -7,7 +11,6 @@ import {openInPrep} from './prepTarget';
 import {rememberBiblePassage} from './recentWriter';
 import {runEdit, type Report} from './serviceEdit';
 import {useShow} from './showStore';
-import type {SongId} from '@core/schema/ids';
 
 /** The row a new item goes in front of: after the selected one. */
 export function rowAfterSelected(): ServiceItemId | null {

@@ -2,7 +2,7 @@ import {commandBindings} from '@core/shortcuts/bindings';
 import {shortcutNames} from '@core/shortcuts/keys';
 import {useShortcutText} from './commandBindings';
 import {createContext, useContext, type JSX, type ReactNode} from 'react';
-import type {ClearTarget} from '@core/live/commands';
+import type {ClearTarget} from '@core/schema/live';
 import {classNames} from './classNames';
 import {Icon, type IconSize} from './Icon';
 import {useButtonPress} from './press';

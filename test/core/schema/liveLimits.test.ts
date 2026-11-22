@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {emptyLiveState} from '@core/live/state';
+import {emptyLiveState} from '@core/schema/live';
 import {parseLiveCommand} from '@core/schema/liveCommand';
 import {parseLiveState} from '@core/schema/liveState';
 import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';

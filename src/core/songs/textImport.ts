@@ -5,7 +5,7 @@ import type {
   TextImportPreviewResult,
 } from '../schema/textImport';
 import {fileStem} from '../common/fileName';
-import {TEXT_IMPORT_LIMITS} from './textImportLimits';
+import {TEXT_IMPORT_LIMITS} from '../schema/textImportLimits';
 import {importHeaderKey} from './importLabelMapping';
 
 type DraftSlide = TextImportDraft['slides'][number];

@@ -1,6 +1,5 @@
-import {describe, expect, it} from 'vitest';
-import {emptyLiveState} from '@core/live/state';
-import {vi} from 'vitest';
+import {describe, expect, it, vi} from 'vitest';
+import {emptyLiveState} from '@core/schema/live';
 import {macroActionKinds} from '@core/schema/macros';
 import {parseLiveState} from '@core/schema/liveState';
 import {compileMacro, MACRO_EXECUTION_LIMITS} from '@main/macros/compiler';

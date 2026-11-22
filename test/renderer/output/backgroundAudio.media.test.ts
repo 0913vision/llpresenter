@@ -1,9 +1,12 @@
 import {themeOutput} from '@fixtures/core/themeOutput';
-import {emptyLiveState} from '@core/live/state';
+import {
+  emptyLiveState,
+  type MediaLayer,
+  type LiveState,
+} from '@core/schema/live';
 import {beforeEach, expect, it, vi} from 'vitest';
 import type {MediaDocument} from '@core/schema/mediaEdit';
 import {createMediaId} from '@core/schema/ids';
-import {type MediaLayer, type LiveState} from '@core/live/state';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {BackgroundAudio} from '@renderer/output/backgroundAudio';
 import {BackgroundLayerView} from '@renderer/rendering/backgroundLayer';

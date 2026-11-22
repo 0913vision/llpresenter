@@ -7,7 +7,7 @@ import type {
   TextImportReadResult,
 } from '@core/schema/textImport';
 import {decodeTextImport} from './decode';
-import {TEXT_IMPORT_LIMITS} from '@core/songs/textImportLimits';
+import {TEXT_IMPORT_LIMITS} from '@core/schema/textImportLimits';
 
 const READ_CHUNK_BYTES = 64 * 1024;
 

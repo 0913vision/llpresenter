@@ -1,5 +1,4 @@
-import type {PhysicalKeyPress} from './matching';
-import {editsText} from './matching';
+import {type PhysicalKeyPress, editsText} from './matching';
 import type {CommandPriority} from './registry';
 
 export type ShortcutFocus =

@@ -1,13 +1,12 @@
 import type {SettingsReader} from '@core/schema/settingsReader';
-import type {SingleLiveCommand} from '@core/live/commands';
-import type {ActiveMessage, LiveState} from '@core/live/state';
-import type {ScreenId} from '@core/schema/ids';
+import type {SingleLiveCommand} from '@core/schema/liveCommand';
+import type {ActiveMessage, LiveState} from '@core/schema/live';
+import type {ScreenId, ServiceId} from '@core/schema/ids';
 import type {RecoverySummary} from '@core/schema/recovery';
 import type {RecoveryRecord} from '@core/schema/recoveryRecord';
 import type {Screen} from '@core/schema/screens';
 import {hasSlides, type Service, type ServiceItem} from '@core/schema/service';
 import {itemTitle} from '@core/slides/tiles';
-import type {ServiceId} from '@core/schema/ids';
 import {savedScreens, switchableScreens} from '../../outputs/savedScreens';
 
 const MILLISECONDS_PER_SECOND = 1000;

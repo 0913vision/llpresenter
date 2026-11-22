@@ -1,4 +1,4 @@
-import type {PixelSize} from '@core/media/coverCrop';
+import type {PixelSize} from '@core/common/pixelSize';
 import {MEDIA_LIMITS} from '@core/schema/mediaList';
 import {
   THUMBNAIL_DATA_URL_PREFIX,

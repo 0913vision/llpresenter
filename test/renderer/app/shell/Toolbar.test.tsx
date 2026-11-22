@@ -1,8 +1,8 @@
 import {act, cleanup, screen, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import type {LiveCommand} from '@core/live/commands';
-import {emptyLiveState} from '@core/live/state';
+import type {LiveCommand} from '@core/schema/liveCommand';
+import {emptyLiveState} from '@core/schema/live';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {useLive} from '@renderer/session/live';
 import {

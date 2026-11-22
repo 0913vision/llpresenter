@@ -1,5 +1,5 @@
 import {afterEach, beforeEach, expect, it} from 'vitest';
-import {emptyLiveState} from '@core/live/state';
+import {emptyLiveState} from '@core/schema/live';
 import {QUICK_BIBLE_TRANSITION} from '@core/bible/quickTransition';
 import {
   openBiblePassage,

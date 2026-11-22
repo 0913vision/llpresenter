@@ -1,6 +1,6 @@
 import type {SettingsReader} from '@core/schema/settingsReader';
-import type {LiveCommand} from '@core/live/commands';
-import type {LiveState} from '@core/live/state';
+import type {LiveCommand} from '@core/schema/liveCommand';
+import type {LiveState} from '@core/schema/live';
 import type {
   LiveItem,
   LiveThemeMode,

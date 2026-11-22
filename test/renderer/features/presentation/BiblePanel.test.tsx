@@ -2,7 +2,7 @@ import {cleanup, render, screen, within} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {useShow} from '@renderer/session/show';
 import {useLive} from '@renderer/session/live';
-import {emptyLiveState} from '@core/live/state';
+import {emptyLiveState} from '@core/schema/live';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
 import {BiblePanel} from '@renderer/features/presentation/BiblePanel';
 import {panelApi, panelPassage} from '@fixtures/contracts/ipc/bibleApi';

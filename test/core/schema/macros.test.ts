@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {layerKinds} from '@core/live/state';
+import {layerKinds} from '@core/schema/live';
 import {
   isKnownMacroAction,
   macroActionKinds,

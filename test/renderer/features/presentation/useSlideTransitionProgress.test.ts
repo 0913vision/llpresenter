@@ -1,7 +1,7 @@
 import {shownText} from '@fixtures/core/liveSlide';
 import {act, renderHook} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@core/live/state';
+import {emptyLiveState} from '@core/schema/live';
 import {useLive} from '@renderer/session/live';
 import {useSlideTransitionProgress} from '@renderer/features/presentation/useSlideTransitionProgress';
 import {progressStyle} from '@renderer/ui/transitionProgress';

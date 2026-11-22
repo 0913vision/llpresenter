@@ -1,5 +1,5 @@
 import {shownText} from '@fixtures/core/liveSlide';
-import {emptyLiveState, type LiveState} from '../../src/core/live/state';
+import {emptyLiveState, type LiveState} from '@core/schema/live';
 import {parseLiveState} from '../../src/core/schema/liveState';
 import {
   BROADCAST_SCREEN,

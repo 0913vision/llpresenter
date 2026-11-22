@@ -1,12 +1,12 @@
-import type {
-  OwnThemeScreen,
-  SlideBackground,
-  ThemeFill,
-  ThemeFrame,
-  ThemeShape,
+import {
+  type OwnThemeScreen,
+  type SlideBackground,
+  type ThemeFill,
+  type ThemeFrame,
+  type ThemeShape,
+  THEME_CANVAS,
 } from '@core/schema/theme';
-import {THEME_CANVAS} from '@core/schema/theme';
-import type {MediaLayer} from '@core/live/state';
+import type {MediaLayer} from '@core/schema/live';
 import type {ShapePlacement, ThemePlacement} from '@core/theme/layout';
 import {templateTokens} from '@core/theme/template';
 import {mediaObjectFit} from '@core/media/objectFit';

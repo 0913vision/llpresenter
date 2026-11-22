@@ -1,5 +1,5 @@
 import {expect, it} from 'vitest';
-import {emptyLiveState} from '@core/live/state';
+import {emptyLiveState} from '@core/schema/live';
 import {parseMacroId} from '@core/schema/ids';
 import {initialHistory} from '@main/live/history';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';

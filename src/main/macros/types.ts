@@ -1,5 +1,5 @@
-import type {SingleLiveCommand} from '@core/live/commands';
-import type {LiveState, ActiveProp} from '@core/live/state';
+import type {SingleLiveCommand} from '@core/schema/liveCommand';
+import type {LiveState, ActiveProp} from '@core/schema/live';
 import type {Macro, KnownMacroAction} from '@core/schema/macros';
 import type {MacroId} from '@core/schema/ids';
 import type {MacroCatalog} from './catalog';

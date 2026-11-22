@@ -1,5 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@core/live/state';
+import {emptyLiveState} from '@core/schema/live';
 import {createScreenId} from '@core/schema/ids';
 import type {SettingsReader} from '@core/schema/settingsReader';
 import {RECOVERY_RECORD_LIMITS} from '@core/schema/recoveryRecord';

@@ -1,4 +1,4 @@
-import {cutBy} from '@core/bible/split/splitPassage';
+import {cutBy} from '@core/slides/splitPassage';
 import {versesToReview} from '@core/bible/split/splitVerses';
 import type {BiblePassage} from '@core/schema/biblePassage';
 import type {BibleLookupPassage} from '@core/schema/bibleLookup';

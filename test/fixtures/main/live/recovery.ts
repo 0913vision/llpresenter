@@ -1,6 +1,6 @@
 import {isRecord} from '@core/common/guards';
 import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
-import {emptyLiveState} from '@core/live/state';
+import {emptyLiveState} from '@core/schema/live';
 import {createServiceId, createServiceItemId} from '@core/schema/ids';
 import {
   parseRecoveryRecord,

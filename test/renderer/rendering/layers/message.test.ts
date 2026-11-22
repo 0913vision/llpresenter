@@ -1,6 +1,6 @@
 import {expect, it, vi} from 'vitest';
 import {type TextStyle} from '@core/overlays/textStyle';
-import {emptyLayers, type LiveLayers} from '@core/live/state';
+import {emptyLayers, type LiveLayers} from '@core/schema/live';
 import {DEFAULT_MESSAGE_STYLE} from '@core/schema/messages';
 import {MESSAGE_BAND} from '@core/screens/messageStyle';
 import {classes} from '@renderer/rendering/classes';

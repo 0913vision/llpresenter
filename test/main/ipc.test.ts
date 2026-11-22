@@ -3,7 +3,7 @@ import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {liveEndpoints} from '@contracts/ipc/live';
 import {windowEndpoints} from '@contracts/ipc/window';
 import {registerIpc} from '@main/ipc';
-import {emptyLiveState, type LiveState} from '@core/live/state';
+import {emptyLiveState, type LiveState} from '@core/schema/live';
 import type {LiveStore} from '@main/live/store';
 import type {Logger} from '@main/log';
 import {MAIN_SCREEN, STAGE_SCREEN} from '@fixtures/core/screenIds';

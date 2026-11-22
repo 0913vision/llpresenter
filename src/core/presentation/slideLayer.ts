@@ -1,7 +1,8 @@
-import type {SlideLayer, SlidePeer} from '../live/state';
+import type {SlideLayer, SlidePeer} from '../schema/live';
 import {LIVE_STATE_LIMITS} from '../schema/liveLimits';
 import type {ThemeFile} from '../schema/theme';
-import {nextTextOf, type SlideContent} from '../theme/content';
+import {nextTextOf} from '../theme/content';
+import type {SlideContent} from '../schema/slideContent';
 import type {SlideTile, TileCursor} from './model';
 import type {TilesOf} from './navigation';
 

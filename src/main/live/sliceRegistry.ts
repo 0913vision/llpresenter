@@ -1,9 +1,11 @@
-import type {LiveCommand} from '@core/live/commands';
-import {emptyLiveState, type LiveState} from '@core/live/state';
+import {
+  type LiveCommand,
+  MAX_LIVE_BATCH_COMMANDS,
+} from '@core/schema/liveCommand';
+import {emptyLiveState, type LiveState} from '@core/schema/live';
 import type {LiveHistory} from './history';
 import type {PayloadError} from '@core/schema/payload';
 import {parseLiveState} from '@core/schema/liveState';
-import {MAX_LIVE_BATCH_COMMANDS} from '@core/schema/liveCommand';
 import {fitsLiveStateByteBudget} from './stateBudget';
 import {MissingLiveTargetError} from './commandErrors';
 import {

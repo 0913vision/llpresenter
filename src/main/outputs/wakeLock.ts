@@ -1,4 +1,4 @@
-import type {LiveState} from '@core/live/state';
+import type {LiveState} from '@core/schema/live';
 import type {LiveStore} from '../live/store';
 import type {Logger} from '../log';
 

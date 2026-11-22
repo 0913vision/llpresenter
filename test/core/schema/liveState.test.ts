@@ -1,6 +1,6 @@
 import {shownText} from '@fixtures/core/liveSlide';
 import {describe, expect, it} from 'vitest';
-import {emptyLiveState, type LiveState} from '@core/live/state';
+import {emptyLiveState, type LiveState} from '@core/schema/live';
 import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
 import {parseLiveState} from '@core/schema/liveState';
 import {MAIN_SCREEN, STAGE_SCREEN} from '@fixtures/core/screenIds';

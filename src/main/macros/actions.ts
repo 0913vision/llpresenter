@@ -1,4 +1,4 @@
-import type {SingleLiveCommand} from '@core/live/commands';
+import type {SingleLiveCommand} from '@core/schema/liveCommand';
 import {mediaLoops} from '@core/media/mediaEndRule';
 import {MissingLiveTargetError} from '../live/commandErrors';
 import {defineMacroAction, MacroActionRegistry} from './actionRegistry';

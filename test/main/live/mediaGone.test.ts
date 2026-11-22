@@ -1,6 +1,6 @@
 import {shownText} from '@fixtures/core/liveSlide';
 import {describe, expect, it} from 'vitest';
-import type {} from '@core/live/state';
+import type {} from '@core/schema/live';
 import {LiveStore} from '@main/live/store';
 import type {MediaList} from '@core/schema/mediaList';
 import {IMAGES, IMAGE_PROP, overlaySettings} from '@fixtures/core/overlays';

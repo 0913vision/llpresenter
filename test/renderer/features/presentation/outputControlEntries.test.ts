@@ -1,5 +1,5 @@
 import {afterEach, expect, it} from 'vitest';
-import {emptyLiveState} from '@core/live/state';
+import {emptyLiveState} from '@core/schema/live';
 import {useLive} from '@renderer/session/live';
 import {outputMenuFixture as fixture} from '@fixtures/renderer/platform/outputMenu';
 import {MAIN_ID, CAPTIONS_ID, STAGE_ID} from '@fixtures/core/screenDocuments';

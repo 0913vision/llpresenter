@@ -1,5 +1,5 @@
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import type {MediaLayer} from '@core/live/state';
+import type {MediaLayer} from '@core/schema/live';
 import {installMockClock} from '@fixtures/mockClock';
 import {
   BACKGROUND_RELEASE_DELAY_MS,

@@ -1,6 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {BUILT_IN_THEMES} from '@core/theme/builtIn';
-import {nextTextOf, type SlideContent} from '@core/theme/content';
+import {nextTextOf} from '@core/theme/content';
+import type {SlideContent} from '@core/schema/slideContent';
 
 function next(
   name: string,

@@ -1,4 +1,4 @@
-import type {LayerKind, LiveLayers} from '@core/live/state';
+import type {LayerKind, LiveLayers} from '@core/schema/live';
 import type {ClearEffect} from '@core/schema/clearFade';
 import type {RenderMode} from './backgroundLayer';
 import type {TextStyle} from '@core/overlays/textStyle';

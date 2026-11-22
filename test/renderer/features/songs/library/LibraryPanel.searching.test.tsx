@@ -1,7 +1,9 @@
 import {act, fireEvent, screen, waitFor} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
-import type {LibrarySearchResult} from '@core/schema/librarySearch';
-import {LIBRARY_SEARCH_LIMITS} from '@core/schema/librarySearch';
+import {
+  type LibrarySearchResult,
+  LIBRARY_SEARCH_LIMITS,
+} from '@core/schema/librarySearch';
 import {
   fixtureSong,
   libraryFixture,

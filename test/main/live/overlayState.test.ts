@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {LiveStore} from '@main/live/store';
-import {emptyLiveState} from '@core/live/state';
+import {emptyLiveState} from '@core/schema/live';
 import {parseLiveState} from '@core/schema/liveState';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 

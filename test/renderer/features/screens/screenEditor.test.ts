@@ -8,8 +8,8 @@ import {
   CAPTIONS_ID,
   MAIN_ID,
   screensDocument,
+  STAGE_ID,
 } from '@fixtures/core/screenDocuments';
-import {STAGE_ID} from '@fixtures/core/screenDocuments';
 import {projector} from '@fixtures/renderer/features/screens/monitors';
 import {parseScreenId} from '@core/schema/ids';
 

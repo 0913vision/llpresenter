@@ -2,7 +2,7 @@ import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type {JSX} from 'react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import type {ClearTarget} from '@core/live/commands';
+import type {ClearTarget} from '@core/schema/live';
 import {ClearButton, ClearRow, clearLabel} from '@renderer/ui/ClearButton';
 import {
   hoverForTooltip,

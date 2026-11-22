@@ -2,8 +2,10 @@ import type {LlpApi} from '@contracts/ipc/api';
 import type {Label} from '@core/schema/labels';
 import type {LabelColor} from '@core/labels/colors';
 import type {LabelColorPreview} from '@core/schema/labelColorPreview';
-import type {SettingsDocument} from '@core/schema/settingsDocuments';
-import type {SettingsEdit} from '@core/schema/settingsDocuments';
+import type {
+  SettingsDocument,
+  SettingsEdit,
+} from '@core/schema/settingsDocuments';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 

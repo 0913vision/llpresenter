@@ -1,5 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@core/live/state';
+import {emptyLiveState} from '@core/schema/live';
 import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
 import {parseMacroId} from '@core/schema/ids';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';

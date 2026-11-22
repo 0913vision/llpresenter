@@ -4,7 +4,7 @@ import {
   isCutOfVerse,
   slidesOfVerse,
   splitPassage,
-} from '@core/bible/split/splitPassage';
+} from '@core/slides/splitPassage';
 import {passageSlides, versesOfPassage} from '@core/slides/passageSlides';
 import {mockSplitLayout} from '@fixtures/core/bibleSplit';
 import {genesisPassage} from '@fixtures/core/passage';

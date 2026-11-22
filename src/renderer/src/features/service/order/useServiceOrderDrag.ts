@@ -1,13 +1,12 @@
 import {ELEMENT_DRAG_MIME, isPaletteKey} from '../items/newItems';
 import {hasMediaDrag, readMediaDrag} from '@renderer/features/media/mediaDrag';
-import type {MediaId} from '@core/schema/ids';
+import type {MediaId, SongId} from '@core/schema/ids';
 import {
   isUnchangedSelectionMove,
   orderedSelection,
 } from '@core/common/selectionOrder';
 import {selectionDragImage} from '@renderer/ui/selectionDrag';
 import {useEffect, useRef, useState, type DragEvent} from 'react';
-import type {SongId} from '@core/schema/ids';
 import {readSongDragData, SONG_DRAG_MIME} from '@core/schema/songDrag';
 import type {ServiceRow} from '@core/presentation/model';
 import {quickAddBefore} from '@core/services/quickAddPosition';

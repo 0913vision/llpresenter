@@ -8,7 +8,7 @@ import {
 } from '@core/schema/settingsDocuments';
 import {parseShowLibrarySong} from '@core/schema/showLibrarySong';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {emptyLiveState} from '@core/live/state';
+import {emptyLiveState} from '@core/schema/live';
 import {parseLiveState} from '@core/schema/liveState';
 import {panelApi} from '@fixtures/contracts/ipc/bibleApi';
 

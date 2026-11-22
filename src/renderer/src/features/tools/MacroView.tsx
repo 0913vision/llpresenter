@@ -1,9 +1,12 @@
 import {useLayoutEffect, useRef, type DragEvent, type JSX} from 'react';
 import {useReflow} from '@renderer/ui/useReflow';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
-import type {MacroActionKind} from '@core/schema/macros';
+import type {
+  MacroActionKind,
+  Macro,
+  MacroCollection,
+} from '@core/schema/macros';
 import {MACRO_ACTION_MIME, readMacroActionDrag} from './macroPaletteCatalog';
-import type {Macro, MacroCollection} from '@core/schema/macros';
 import {Button, MacroGrid, MacroList, MacroRow, MacroTile} from '@renderer/ui';
 import type {Notice} from '@renderer/ui/notices';
 import {MacroCollectionPicker} from './MacroCollectionPicker';

@@ -1,5 +1,5 @@
 import {describe, expect, expectTypeOf, it} from 'vitest';
-import {interruptsSongOutput} from '@core/live/commands';
+import {interruptsSongOutput} from '@core/live/interruptsSongOutput';
 import type {ScreenId} from '@core/schema/ids';
 import {
   parseLiveCommand,

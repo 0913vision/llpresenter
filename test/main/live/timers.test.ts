@@ -2,8 +2,10 @@ import {shownText} from '@fixtures/core/liveSlide';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {describe, expect, it, vi} from 'vitest';
 import {createTimerId} from '@core/schema/ids';
-import type {SingleLiveCommand} from '@core/live/commands';
-import {parseLiveCommand} from '@core/schema/liveCommand';
+import {
+  type SingleLiveCommand,
+  parseLiveCommand,
+} from '@core/schema/liveCommand';
 import {MAX_LIVE_TIMERS} from '@core/schema/timerState';
 import {localDay, timerText} from '@core/timers/timerClock';
 import {recordingLogger} from '@fixtures/main/displays/testing';

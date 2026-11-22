@@ -1,10 +1,10 @@
-import {emptyLiveState} from '@core/live/state';
+import {emptyLiveState} from '@core/schema/live';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {act, cleanup, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {themes as sampleThemes} from '@fixtures/core/themeOutput';
-import type {LiveCommand} from '@core/live/commands';
+import type {LiveCommand} from '@core/schema/liveCommand';
 import type {MonitorList} from '@core/schema/monitors';
 import type {OutputStatuses} from '@core/schema/outputStatus';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';

@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {emptyLiveState} from '@core/live/state';
+import {emptyLiveState} from '@core/schema/live';
 import {serviceChangeNeedsConfirmation} from '@renderer/features/service/useServiceSwitchGuard';
 
 describe('service change live guard', () => {

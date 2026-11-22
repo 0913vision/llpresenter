@@ -2,7 +2,7 @@ import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {themesDocument} from '@fixtures/core/themeOutput';
 import {vi} from 'vitest';
 import type {LlpApi} from '@contracts/ipc/api';
-import {emptyLiveState} from '@core/live/state';
+import {emptyLiveState} from '@core/schema/live';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import {parseLiveState} from '@core/schema/liveState';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';

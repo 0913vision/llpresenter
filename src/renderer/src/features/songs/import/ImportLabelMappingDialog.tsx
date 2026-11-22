@@ -1,6 +1,6 @@
 import {memo, useRef, useState, type JSX} from 'react';
 import type {Label} from '@core/schema/labels';
-import {TEXT_IMPORT_LIMITS} from '@core/songs/textImportLimits';
+import {TEXT_IMPORT_LIMITS} from '@core/schema/textImportLimits';
 import type {ImportHeader} from '@core/songs/textImport';
 import {
   importHeaderKey,

@@ -3,8 +3,8 @@ import {
   type LayerKind,
   type LiveLayers,
   type LiveState,
-} from '@core/live/state';
-import type {ClearTarget} from '@core/live/commands';
+  type ClearTarget,
+} from '@core/schema/live';
 import type {MessageId} from '@core/schema/ids';
 import {retainClearEffects} from './clearEffects';
 import type {LiveItem, LiveThemeMode} from '@core/schema/liveTheme';

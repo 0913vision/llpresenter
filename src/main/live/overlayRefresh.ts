@@ -1,5 +1,5 @@
-import type {SingleLiveCommand} from '@core/live/commands';
-import type {LiveState} from '@core/live/state';
+import type {SingleLiveCommand} from '@core/schema/liveCommand';
+import type {LiveState} from '@core/schema/live';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import {createTimerId} from '@core/schema/ids';
 

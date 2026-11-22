@@ -14,7 +14,7 @@ import {
 } from '@core/schema/settingsDocuments';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {emptyLiveState} from '@core/live/state';
+import {emptyLiveState} from '@core/schema/live';
 import {useLive} from '@renderer/session/live';
 import type {Notice} from '@renderer/ui/notices';
 import {QuickPanel} from '@renderer/features/quick/QuickPanel';

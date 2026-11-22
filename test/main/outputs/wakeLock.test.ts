@@ -1,6 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
 import {recordingLogger} from '@fixtures/main/displays/testing';
-import {emptyLiveState, type LiveState} from '@core/live/state';
+import {emptyLiveState, type LiveState} from '@core/schema/live';
 import type {LiveStore} from '@main/live/store';
 import {
   WakeKeeper,

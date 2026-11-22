@@ -1,5 +1,5 @@
 import type {LlpApi} from '@contracts/ipc/api';
-import type {LiveState} from '@core/live/state';
+import type {LiveState} from '@core/schema/live';
 import {QUICK_BIBLE_TRANSITION} from '@core/bible/quickTransition';
 import {
   isKnownQuickItem,

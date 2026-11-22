@@ -14,7 +14,7 @@ import {SlideGrid} from '@renderer/features/presentation/SlideGrid';
 import {NumberJumpOverlay} from '@renderer/features/presentation/DraftOverlay';
 import {useNumberJumpKeys} from '@renderer/features/presentation/numberJump';
 import {useSlideHotKeys} from '@renderer/features/presentation/useSlideHotKeys';
-import type {LiveCommand} from '@core/live/commands';
+import type {LiveCommand} from '@core/schema/liveCommand';
 import {
   serviceSlideAt,
   serviceSlideOffset,

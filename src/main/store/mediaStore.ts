@@ -1,5 +1,5 @@
 import type {BundledPicture} from './bundledPicture';
-import type {MediaChoice} from '@core/live/state';
+import type {MediaChoice} from '@core/schema/live';
 import type {EditRefusalReason} from '@core/schema/contentEdit';
 import type {FileError} from '@core/schema/fileFormat';
 import {

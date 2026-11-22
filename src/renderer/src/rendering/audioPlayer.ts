@@ -1,4 +1,4 @@
-import type {AudioLayer, LiveState} from '@core/live/state';
+import type {AudioLayer, LiveState} from '@core/schema/live';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {audioPositionSeconds} from '@core/schema/audioState';
 import {fadeAudio} from './audioFade';

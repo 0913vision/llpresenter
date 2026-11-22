@@ -1,4 +1,4 @@
-import {NOT_YET} from '@renderer/ui/menuRows';
+import {NOT_YET, laterRow, menuSeparator} from '@renderer/ui/menuRows';
 import {shortcutText} from '@renderer/ui/commandBindings';
 import type {TextImportReadRequest} from '@core/schema/textImport';
 import type {ServiceActionEntries} from '@renderer/features/service/list/useServiceActions';
@@ -7,7 +7,6 @@ import {
   type MenuEntry,
   type MenuItem,
 } from '@renderer/ui/menuModel';
-import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
 
 type ImportText = (
   source: TextImportReadRequest['source'] | 'powerpoint' | 'powerpoint-images',

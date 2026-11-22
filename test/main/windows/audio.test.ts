@@ -1,4 +1,4 @@
-import {emptyLiveState} from '@core/live/state';
+import {emptyLiveState} from '@core/schema/live';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {parseMediaDocument} from '@core/schema/mediaEdit';
 import {recordingLogger} from '@fixtures/main/displays/testing';

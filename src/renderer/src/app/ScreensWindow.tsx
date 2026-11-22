@@ -15,14 +15,13 @@ import {SavingDialog} from './SavingDialog';
 import {useClearKeys} from '@renderer/features/presentation/clearKeys';
 import {useLiveStateShortcuts} from '@renderer/features/tools/useLiveStateShortcuts';
 import {useUiZoomKeys} from './shell/uiZoomKeys';
-import {useInitialListFocus} from './useWindowKeyboard';
+import {useInitialListFocus, useCloseKeys} from './useWindowKeyboard';
 import {useShortcutSettings} from '@renderer/platform/useShortcutSettings';
 import {
   LoadReadiness,
   LoadReadinessContext,
   usePaintedReadiness,
 } from '@renderer/ui/loadReadiness';
-import {useCloseKeys} from './useWindowKeyboard';
 
 interface ScreensWindowProps {
   readonly onProblem?: ((notice: Notice) => void) | undefined;

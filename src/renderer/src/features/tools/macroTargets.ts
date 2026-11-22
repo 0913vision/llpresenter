@@ -1,4 +1,4 @@
-import type {ClearTarget} from '@core/live/commands';
+import type {ClearTarget} from '@core/schema/live';
 import {messageBlankNames} from '@core/overlays/messageText';
 import type {MacroActionKind} from '@core/schema/macros';
 import {clearName} from '@renderer/ui/ClearButton';

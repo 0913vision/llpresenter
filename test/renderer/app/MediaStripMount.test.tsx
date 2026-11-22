@@ -9,7 +9,7 @@ import {
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@core/live/state';
+import {emptyLiveState} from '@core/schema/live';
 import type {UiState} from '@core/schema/uiState';
 import type {MediaImportProgress} from '@core/schema/mediaEdit';
 import {createMediaId} from '@core/schema/ids';

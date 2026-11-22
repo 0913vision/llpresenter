@@ -9,8 +9,13 @@ import type {
 import type {Preferences} from '@core/schema/preferences';
 import type {Logger} from '../log';
 import {backupGate, Backups, lastBackupTime, type BackupGate} from './backup';
-import {isInside, resolveLocations, type DataLocations} from './locations';
-import type {LocationContext, LocationFields} from './locations';
+import {
+  isInside,
+  resolveLocations,
+  type DataLocations,
+  type LocationContext,
+  type LocationFields,
+} from './locations';
 
 const WRITE_TEST_PREFIX = '.llp-write-test-';
 

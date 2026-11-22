@@ -1,8 +1,7 @@
 import {useCallback, useEffect, useLayoutEffect, useRef} from 'react';
 import type {EditResult} from '@core/schema/contentEdit';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
-import type {Notice} from '@renderer/ui/notices';
-import {noticeTime} from '@renderer/ui/notices';
+import {type Notice, noticeTime} from '@renderer/ui/notices';
 
 /** A settings document as a window follows it. */
 export interface WritableDocument<TValue> {

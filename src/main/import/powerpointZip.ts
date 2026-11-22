@@ -1,5 +1,5 @@
 import {inflateRawSync} from 'node:zlib';
-import {POWERPOINT_IMPORT_LIMITS as LIMITS} from '@core/songs/textImportLimits';
+import {POWERPOINT_IMPORT_LIMITS as LIMITS} from '@core/schema/textImportLimits';
 
 interface Entry {
   readonly flags: number;

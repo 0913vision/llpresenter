@@ -1,4 +1,4 @@
-import type {ClearTarget} from '@core/live/commands';
+import type {ClearTarget} from '@core/schema/live';
 import {hasSomethingToClear} from '@core/live/clear';
 import {sendLive, useLive} from './live';
 

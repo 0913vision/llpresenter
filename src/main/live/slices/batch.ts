@@ -1,5 +1,5 @@
 import type {UndoEntry} from '../history';
-import type {SingleLiveCommand} from '@core/live/commands';
+import type {SingleLiveCommand} from '@core/schema/liveCommand';
 import {defineSlice} from '../slice';
 
 function groupedUndo(

@@ -1,21 +1,20 @@
-import type {SlideTexts, VerseReference} from '../schema/slide';
-import type {SlideBackground} from '../schema/theme';
-import type {SlideTransition} from '../schema/slideTransition';
-import type {AutoValues, SlideContent} from '../theme/content';
-import type {ActiveMessage, ActiveProp} from '../schema/overlayState';
-import type {MacroId, ScreenId, SlideId, ThemeId, TimerId} from '../schema/ids';
-import type {TimerRuns} from '../schema/timerState';
-import type {AudioPlayback} from '../schema/audioState';
-import type {ClearTarget} from './commands';
-import type {ClearEffect} from '../schema/clearFade';
-import type {OutputMediaProperties} from '../schema/outputMedia';
+import type {SlideTexts, VerseReference} from './slide';
+import type {SlideBackground} from './theme';
+import type {SlideTransition} from './slideTransition';
+import type {AutoValues, SlideContent} from './slideContent';
+import type {ActiveMessage, ActiveProp} from './overlayState';
+import type {MacroId, ScreenId, SlideId, ThemeId, TimerId} from './ids';
+import type {TimerRuns} from './timerState';
+import type {AudioPlayback} from './audioState';
+import type {ClearEffect} from './clearFade';
+import type {OutputMediaProperties} from './outputMedia';
 import type {
   LiveItem,
   LiveItemKind,
   LiveThemeMode,
   LiveThemeOutput,
-} from '../schema/liveTheme';
-export type {ActiveMessage, ActiveProp} from '../schema/overlayState';
+} from './liveTheme';
+export type {ActiveMessage, ActiveProp} from './overlayState';
 
 /** Layer kinds from bottom to top. */
 export const layerKinds = [
@@ -27,6 +26,8 @@ export const layerKinds = [
 ] as const;
 
 export type LayerKind = (typeof layerKinds)[number];
+
+export type ClearTarget = LayerKind | 'all';
 
 /** A background media choice. It refers to the media library by id only. */
 export interface MediaChoice {

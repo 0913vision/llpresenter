@@ -1,6 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
-import {emptyLayers, type SlideLayer} from '@core/live/state';
-import {createMediaId} from '@core/schema/ids';
+import {emptyLayers, type SlideLayer} from '@core/schema/live';
+import {createMediaId, type ThemeId} from '@core/schema/ids';
 import type {OwnThemeScreen} from '@core/schema/theme';
 import {BUILT_IN_THEME_IDS} from '@core/theme/builtIn/ids';
 import {liveDrawing, themeOn} from '@renderer/rendering/theme/drawing';
@@ -17,7 +17,6 @@ import {
   THEME_MAIN,
   THEME_STAGE,
 } from '@fixtures/core/themeOutput';
-import type {ThemeId} from '@core/schema/ids';
 
 const PICTURE = createMediaId('00000000-0000-4000-8000-000000000601');
 

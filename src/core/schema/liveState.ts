@@ -1,8 +1,8 @@
 import * as v from 'valibot';
 import {slideTransitionSchema} from './slideTransition';
-import {layerKinds, type LayerKind, type LiveState} from '../live/state';
+import {layerKinds, type LayerKind, type LiveState} from './live';
 import type {Result} from '../common/result';
-import {AUTO_TOKENS} from '../theme/content';
+import {AUTO_TOKENS} from './slideContent';
 import {parsePayload, payloadObject, type PayloadError} from './payload';
 import {
   macroIdSchema,

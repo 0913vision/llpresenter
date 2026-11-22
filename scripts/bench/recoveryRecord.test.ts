@@ -2,7 +2,7 @@ import {writeFileSync} from 'node:fs';
 import {cpus} from 'node:os';
 import {performance} from 'node:perf_hooks';
 import {describe, expect, it} from 'vitest';
-import type {LiveState} from '../../src/core/live/state';
+import type {LiveState} from '@core/schema/live';
 import {
   parseRecoveryRecord,
   serializeRecoveryRecord,

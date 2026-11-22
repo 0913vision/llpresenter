@@ -1,5 +1,5 @@
-import type {SingleLiveCommand} from '@core/live/commands';
-import type {MediaChoice, SlideLayer} from '@core/live/state';
+import type {SingleLiveCommand} from '@core/schema/liveCommand';
+import type {MediaChoice, SlideLayer} from '@core/schema/live';
 import {sendLive} from './live';
 
 /** Puts a slide on output, with the start of its item. */

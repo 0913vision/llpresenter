@@ -10,9 +10,8 @@ import {
   type ReactNode,
 } from 'react';
 import type {Choice} from './choices';
-import {ListBox, ListRow} from '@renderer/ui/ListRow';
+import {ListBox, ListRow, type GroupRename} from '@renderer/ui/ListRow';
 import type {MenuAnchor} from '@renderer/ui/Menu';
-import type {GroupRename} from '@renderer/ui/ListRow';
 import styles from './ChoiceRows.module.css';
 
 const INITIAL_ROWS = 12;

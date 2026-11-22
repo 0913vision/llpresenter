@@ -9,7 +9,7 @@ import {
   it,
   vi,
 } from 'vitest';
-import type {LiveCommand} from '@core/live/commands';
+import type {LiveCommand} from '@core/schema/liveCommand';
 import type {TemplateDocument} from '@core/schema/contentDocuments';
 import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
 import type {ServiceOpenRequest} from '@core/schema/serviceOpen';
@@ -17,7 +17,7 @@ import type {ShowService} from '@core/schema/showService';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {applyService, useShow} from '@renderer/session/show';
 import {useLive} from '@renderer/session/live';
-import {emptyLiveState} from '@core/live/state';
+import {emptyLiveState} from '@core/schema/live';
 import {sampleService} from '@fixtures/renderer/session/sampleService';
 import {
   hoverForTooltip,

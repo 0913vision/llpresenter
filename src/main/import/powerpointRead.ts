@@ -1,7 +1,7 @@
 import {
   POWERPOINT_IMPORT_LIMITS,
   TEXT_IMPORT_LIMITS,
-} from '@core/songs/textImportLimits';
+} from '@core/schema/textImportLimits';
 import {PowerPointZip} from './powerpointZip';
 import {
   children,

@@ -10,7 +10,7 @@ import {
   registerTextImport,
   TEST_IMPORT_FILE_VARIABLE,
 } from '@main/import/register';
-import {TEXT_IMPORT_LIMITS} from '@core/songs/textImportLimits';
+import {TEXT_IMPORT_LIMITS} from '@core/schema/textImportLimits';
 import {convertTextImport} from '@core/songs/textImport';
 import {readTextImport} from '@main/import/read';
 

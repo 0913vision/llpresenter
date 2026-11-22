@@ -1,14 +1,19 @@
 import * as v from 'valibot';
-import type {LiveCommand} from '../live/commands';
-import {layerKinds} from '../live/state';
+import {
+  layerKinds,
+  type ClearTarget,
+  type MediaChoice,
+  type MessageLayer,
+  type SlideLayer,
+} from './live';
 import type {Result} from '../common/result';
 import {screenIdSchema} from './ids';
 import {layerSchemas, mediaChoiceSchema} from './liveState';
-import {liveActionOptions} from './liveActions';
-import {screenCommandOptions} from './screenCommands';
-import {messageExpirySchema} from './overlayState';
-import {overlayClearSchema} from './overlayClear';
-import {clearFadeSchema} from './clearFade';
+import {liveActionOptions, type LiveAction} from './liveActions';
+import {screenCommandOptions, type ScreenCommand} from './screenCommands';
+import {messageExpirySchema, type MessageExpiry} from './overlayState';
+import {overlayClearSchema, type OverlayClear} from './overlayClear';
+import {clearFadeSchema, type ClearFade} from './clearFade';
 import {checkPart} from './fileFormat';
 import {
   parsePayload,
@@ -16,6 +21,46 @@ import {
   plainObject,
   type PayloadError,
 } from './payload';
+
+/**
+ * A request to change the live state. Windows never change the state
+ * directly; they send commands, and the main process applies them in order.
+ */
+export type SingleLiveCommand =
+  | LiveAction
+  | ScreenCommand
+  | MessageExpiry
+  | OverlayClear
+  | {readonly type: 'slide.show'; readonly slide: SlideLayer}
+  /** The live slide was edited; what it shows changes, its output does not. */
+  | {readonly type: 'slide.update'; readonly slide: SlideLayer}
+  | {readonly type: 'media.show'; readonly media: MediaChoice}
+  | {readonly type: 'media.properties.refresh'}
+  | {readonly type: 'message.show'; readonly message: MessageLayer}
+  | {
+      readonly type: 'layer.clear';
+      readonly target: ClearTarget;
+      readonly transition?: ClearFade;
+    }
+  | {readonly type: 'layer.clear.toggle'; readonly target: ClearTarget}
+  | {readonly type: 'clear.undo'}
+  | {readonly type: 'item.restore'}
+  | {readonly type: 'black.toggle'}
+  | {
+      readonly type: 'output.set';
+      readonly screenId: string;
+      readonly on: boolean;
+    };
+
+/** A bounded, flat transaction. Nested batches are not supported. */
+export interface LiveBatch {
+  readonly type: 'live.batch';
+  readonly commands: readonly SingleLiveCommand[];
+}
+
+export type LiveCommand = SingleLiveCommand | LiveBatch;
+
+export type LiveCommandType = LiveCommand['type'];
 
 export const MAX_LIVE_BATCH_COMMANDS = 256;
 

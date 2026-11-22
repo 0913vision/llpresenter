@@ -1,4 +1,4 @@
-import type {MediaChoice, SlideLayer} from '@core/live/state';
+import type {MediaChoice, SlideLayer} from '@core/schema/live';
 import {mediaLoops} from '@core/media/mediaEndRule';
 import type {ThemeId} from '@core/schema/ids';
 import type {SlideBackground} from '@core/schema/theme';

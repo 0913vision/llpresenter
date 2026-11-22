@@ -9,7 +9,7 @@ import {
 import type {JSX} from 'react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {BibleLookupReply} from '@core/schema/bibleLookup';
-import {emptyLiveState} from '@core/live/state';
+import {emptyLiveState} from '@core/schema/live';
 import {
   openItem,
   outputTile,

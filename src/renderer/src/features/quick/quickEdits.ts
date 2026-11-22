@@ -1,15 +1,16 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import {duplicateAfter} from '@core/common/duplicateAfter';
 import {createQuickItemId, type TimerId} from '@core/schema/ids';
-import type {
-  KnownQuickItem,
-  QuickItem,
-  QuickItemKind,
+import {
+  type KnownQuickItem,
+  type QuickItem,
+  type QuickItemKind,
+  isKnownQuickItem,
+  MAX_QUICK_ITEMS,
 } from '@core/schema/quick';
 import {withinLookupTimeout} from '@renderer/session/showOutput';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import type {EditResult} from '@core/schema/contentEdit';
-import {isKnownQuickItem, MAX_QUICK_ITEMS} from '@core/schema/quick';
 import {
   TIMER_NAME_LIMIT,
   type QuickTimerEdit,

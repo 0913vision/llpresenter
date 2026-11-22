@@ -1,5 +1,5 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {emptyLayers} from '@core/live/state';
+import {emptyLayers} from '@core/schema/live';
 import {MAIN} from '@fixtures/core/overlays';
 import {OutputRenderer} from '@renderer/rendering/outputRenderer';
 import {

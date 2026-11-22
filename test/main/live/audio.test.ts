@@ -1,7 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
-import type {LiveCommand} from '@core/live/commands';
+import {type LiveCommand, parseLiveCommand} from '@core/schema/liveCommand';
 import {audioPositionSeconds} from '@core/schema/audioState';
-import {parseLiveCommand} from '@core/schema/liveCommand';
 import {parseMediaList} from '@core/schema/mediaList';
 import {parseLiveState} from '@core/schema/liveState';
 import {recordingLogger} from '@fixtures/main/displays/testing';

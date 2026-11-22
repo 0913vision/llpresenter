@@ -9,7 +9,7 @@ import {
 } from './update/restartOutputs';
 import {recoveryMarkerRemoved} from './update/recovery';
 import {join} from 'node:path';
-import {isAnyOutputOn} from '@core/live/state';
+import {isAnyOutputOn} from '@core/schema/live';
 import {registerBible} from './bible/register';
 import {registerBibleAi} from './bible/registerAi';
 import {registerFonts} from './fonts/register';

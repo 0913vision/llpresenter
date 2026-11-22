@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {emptyLiveState} from '@core/live/state';
+import {emptyLiveState} from '@core/schema/live';
 import {createTimerId} from '@core/schema/ids';
 import {parseLiveState} from '@core/schema/liveState';
 import {settingsDocument} from '@fixtures/core/settingsDocument';

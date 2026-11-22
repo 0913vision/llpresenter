@@ -1,7 +1,10 @@
 import {createScreenId} from '@core/schema/ids';
 import type {Screen} from '@core/schema/screens';
-import type {OwnThemeScreen, ThemeFile} from '@core/schema/theme';
-import {THEME_CANVAS} from '@core/schema/theme';
+import {
+  type OwnThemeScreen,
+  type ThemeFile,
+  THEME_CANVAS,
+} from '@core/schema/theme';
 import {nextPhraseOf} from '@core/theme/content';
 import {sampleContent} from '@core/theme/samples';
 import {

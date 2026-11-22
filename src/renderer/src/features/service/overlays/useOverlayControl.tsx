@@ -1,6 +1,9 @@
 import {useState, type JSX} from 'react';
-import {createItemOverlayId, type ItemOverlayId} from '@core/schema/ids';
-import type {MediaId} from '@core/schema/ids';
+import {
+  createItemOverlayId,
+  type ItemOverlayId,
+  type MediaId,
+} from '@core/schema/ids';
 import {
   ITEM_OVERLAY_LIMITS,
   type PlacedOverlay,

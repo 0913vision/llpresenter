@@ -9,7 +9,7 @@ import {
   it,
   vi,
 } from 'vitest';
-import type {LiveCommand} from '@core/live/commands';
+import type {LiveCommand} from '@core/schema/liveCommand';
 import type {
   ServiceEntry,
   TemplateDocument,

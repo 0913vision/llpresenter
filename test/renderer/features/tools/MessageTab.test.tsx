@@ -1,5 +1,5 @@
 import {settingsDocument} from '@fixtures/core/settingsDocument';
-import {emptyLayers} from '@core/live/state';
+import {emptyLayers} from '@core/schema/live';
 import {installMockClock} from '@fixtures/mockClock';
 import {
   act,

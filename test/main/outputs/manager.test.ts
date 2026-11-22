@@ -1,6 +1,6 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import type {LiveCommand} from '@core/live/commands';
-import {emptyLiveState, type LiveState} from '@core/live/state';
+import type {LiveCommand} from '@core/schema/liveCommand';
+import {emptyLiveState, type LiveState} from '@core/schema/live';
 import {
   monitorById,
   monitorsOf,

@@ -15,7 +15,7 @@ import {
   removeBox,
   themeValues,
 } from '@core/theme/boxes';
-import {AUTO_TOKENS} from '@core/theme/content';
+import {AUTO_TOKENS} from '@core/schema/slideContent';
 import {builtInTheme} from '@core/theme/themes';
 import {Button} from '@renderer/ui/Button';
 import {IconButton} from '@renderer/ui/IconButton';

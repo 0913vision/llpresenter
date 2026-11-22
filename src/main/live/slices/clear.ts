@@ -1,5 +1,5 @@
-import type {ClearTarget} from '@core/live/commands';
 import {
+  type ClearTarget,
   emptyLayers,
   hasAnyLayer,
   type LayerKind,
@@ -7,7 +7,7 @@ import {
   type MediaLayer,
   type MessageLayer,
   type AudioLayer,
-} from '@core/live/state';
+} from '@core/schema/live';
 import {audioPositionSeconds} from '@core/schema/audioState';
 import type {MessageId} from '@core/schema/ids';
 import {clearOverlay} from '../clearOverlay';

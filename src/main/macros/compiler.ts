@@ -1,5 +1,5 @@
-import type {SingleLiveCommand} from '@core/live/commands';
 import {
+  type SingleLiveCommand,
   MAX_LIVE_BATCH_COMMANDS,
   parseLiveCommand,
 } from '@core/schema/liveCommand';

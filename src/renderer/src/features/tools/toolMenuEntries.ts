@@ -1,5 +1,8 @@
-import {menuAvailability} from '@renderer/ui/menuModel';
-import type {MenuEntry, MenuItem} from '@renderer/ui/menuModel';
+import {
+  menuAvailability,
+  type MenuEntry,
+  type MenuItem,
+} from '@renderer/ui/menuModel';
 import {
   laterClipboardRows,
   laterRow,

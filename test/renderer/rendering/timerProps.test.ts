@@ -1,5 +1,5 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {emptyLiveState, type LiveLayers} from '@core/live/state';
+import {emptyLiveState, type LiveLayers} from '@core/schema/live';
 import {parseLiveState} from '@core/schema/liveState';
 import {parseTimers, type Timer} from '@core/schema/timers';
 import type {TimerRuns} from '@core/schema/timerState';

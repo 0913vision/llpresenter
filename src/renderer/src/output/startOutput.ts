@@ -8,7 +8,7 @@ import {sameJson} from '@core/common/sameJson';
 import {OUTPUT_REVEAL_DEADLINE_MS} from '@core/output/revealDeadline';
 import {slideTransitionFor} from '@core/output/transitions';
 import type {SlideTransition} from '@core/schema/slideTransition';
-import type {LiveState} from '@core/live/state';
+import type {LiveState} from '@core/schema/live';
 import {ScreenFrames} from '../rendering/screenFrames';
 import {startFrameRateMeter, type FrameRateMeter} from './frameRateMeter';
 import {followLiveState} from './liveFeed';

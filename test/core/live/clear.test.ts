@@ -1,7 +1,7 @@
 import {shownText} from '@fixtures/core/liveSlide';
 import {describe, expect, it} from 'vitest';
 import {hasSomethingToClear} from '@core/live/clear';
-import {emptyLayers} from '@core/live/state';
+import {emptyLayers} from '@core/schema/live';
 
 const slide = {itemId: 'song', position: 0, ...shownText(['가사'])};
 

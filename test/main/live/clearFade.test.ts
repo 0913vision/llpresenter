@@ -1,7 +1,7 @@
 import {shownText} from '@fixtures/core/liveSlide';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {expect, it, vi} from 'vitest';
-import {emptyLiveState, layerKinds} from '@core/live/state';
+import {emptyLiveState, layerKinds} from '@core/schema/live';
 import {defaultPreferences} from '@core/schema/preferences';
 import {LiveStore} from '@main/live/store';
 import {

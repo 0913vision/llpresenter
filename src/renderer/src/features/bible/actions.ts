@@ -1,6 +1,6 @@
 import type {BibleLookupPassage} from '@core/schema/bibleLookup';
 import type {Slide} from '@core/schema/slide';
-import {cutBy} from '@core/bible/split/splitPassage';
+import {cutBy} from '@core/slides/splitPassage';
 import {passageSlides} from '@core/slides/passageSlides';
 import {slideMaking} from '@renderer/platform/themes';
 import {

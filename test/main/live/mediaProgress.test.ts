@@ -3,7 +3,7 @@ import {
   emptyLiveState,
   type LiveState,
   type MediaLayer,
-} from '@core/live/state';
+} from '@core/schema/live';
 import type {MediaProgress} from '@core/schema/mediaProgress';
 import {installMockClock} from '@fixtures/mockClock';
 import {startMediaProgress} from '@main/live/mediaProgress';

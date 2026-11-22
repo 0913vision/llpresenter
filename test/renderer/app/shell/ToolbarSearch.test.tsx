@@ -18,7 +18,7 @@ import {
   vi,
   onTestFinished,
 } from 'vitest';
-import {emptyLiveState} from '@core/live/state';
+import {emptyLiveState} from '@core/schema/live';
 import {createSongId} from '@core/schema/ids';
 import type {
   LibrarySearchMatch,

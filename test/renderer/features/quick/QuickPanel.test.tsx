@@ -13,7 +13,7 @@ import {
 } from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {BibleLookupReply} from '@core/schema/bibleLookup';
-import {emptyLiveState} from '@core/live/state';
+import {emptyLiveState} from '@core/schema/live';
 import {useLive} from '@renderer/session/live';
 import {openItem, useShow} from '@renderer/session/show';
 import {bibleSourceFor} from '@renderer/session/showLibrary';

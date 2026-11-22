@@ -2,7 +2,7 @@ import {shownText} from '@fixtures/core/liveSlide';
 import {readFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {emptyLiveState, type LiveState} from '@core/live/state';
+import {emptyLiveState, type LiveState} from '@core/schema/live';
 import type {Result} from '@core/common/result';
 import {createServiceId, type ServiceId} from '@core/schema/ids';
 import {parseLiveState} from '@core/schema/liveState';

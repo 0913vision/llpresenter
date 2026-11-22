@@ -17,11 +17,10 @@ import {
 import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import {mediaLoops} from '@core/media/mediaEndRule';
 import {type MediaId} from '@core/schema/ids';
-import type {MediaItem} from '@core/schema/mediaList';
+import {type MediaItem, MEDIA_LIMITS} from '@core/schema/mediaList';
 import {RenameDialog} from '@renderer/ui/RenameDialog';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {focusHistorySurface} from '@renderer/ui/focusHistorySurface';
-import {MEDIA_LIMITS} from '@core/schema/mediaList';
 import {useLive} from '@renderer/session/live';
 import {sendMediaOutput} from '@renderer/session/itemOutput';
 import {useShow} from '@renderer/session/showStore';

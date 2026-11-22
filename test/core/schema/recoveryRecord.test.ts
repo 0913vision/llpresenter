@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {emptyLiveState} from '@core/live/state';
+import {emptyLiveState} from '@core/schema/live';
 import {createServiceId} from '@core/schema/ids';
 import {
   MAX_ACTIVE_MESSAGES,

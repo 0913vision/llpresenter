@@ -1,6 +1,6 @@
 import type {DocumentApi, LlpApi} from '@contracts/ipc/api';
 import type {EditResult} from '@core/schema/contentEdit';
-import {emptyLiveState} from '@core/live/state';
+import {emptyLiveState} from '@core/schema/live';
 import {UI_ZOOM, UI_ZOOM_FACTOR} from '@core/schema/uiZoom';
 import {defaultPreferences} from '@core/schema/preferences';
 import type {MediaDocument} from '@core/schema/mediaEdit';

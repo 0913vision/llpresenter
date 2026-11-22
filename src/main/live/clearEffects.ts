@@ -1,4 +1,4 @@
-import {layerKinds, type LiveState} from '@core/live/state';
+import {layerKinds, type LiveState} from '@core/schema/live';
 import {
   MAX_CLEAR_EFFECTS,
   type ClearEffect,

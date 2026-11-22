@@ -1,14 +1,14 @@
-import type {BibleCutsFile} from '../../schema/bibleCuts';
-import type {BibleLookupPassage} from '../../schema/bibleLookup';
-import type {Slide, VerseReference} from '../../schema/slide';
+import type {BibleCutsFile} from '../schema/bibleCuts';
+import type {BibleLookupPassage} from '../schema/bibleLookup';
+import type {Slide, VerseReference} from '../schema/slide';
+import {versesOfPassage, verseKey, type CutVerse} from './passageSlides';
+import {CONT_MARKER, type SplitLayout} from '../bible/split/layout';
+import {normalizeVerse} from '../bible/split/manualSplit';
 import {
-  versesOfPassage,
-  verseKey,
-  type CutVerse,
-} from '../../slides/passageSlides';
-import {CONT_MARKER, type SplitLayout} from './layout';
-import {normalizeVerse} from './manualSplit';
-import {splitVerseParts, type VerseInput, type VersePart} from './splitVerses';
+  splitVerseParts,
+  type VerseInput,
+  type VersePart,
+} from '../bible/split/splitVerses';
 
 /** A passage cut into parts that fit the text box of its theme. */
 export interface PassageSplit {

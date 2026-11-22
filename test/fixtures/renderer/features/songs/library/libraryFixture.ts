@@ -1,10 +1,10 @@
 import {lyricsSlide} from '@fixtures/core/slides';
-import type {
-  LibrarySong,
-  SongChange,
-  SongDocument,
+import {
+  type LibrarySong,
+  type SongChange,
+  type SongDocument,
+  parseSongDocument,
 } from '@core/schema/contentDocuments';
-import {parseSongDocument} from '@core/schema/contentDocuments';
 import {createServiceId, createSongId} from '@core/schema/ids';
 import {LIBRARY_SEARCH_LIMITS} from '@core/schema/librarySearch';
 import type {EditResult} from '@core/schema/contentEdit';

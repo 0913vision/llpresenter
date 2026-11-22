@@ -4,7 +4,7 @@ import type {
   TextImportPreviewRequest,
 } from '@core/schema/textImport';
 import {convertTextImport, textImportHeaders} from '@core/songs/textImport';
-import {TEXT_IMPORT_LIMITS} from '@core/songs/textImportLimits';
+import {TEXT_IMPORT_LIMITS} from '@core/schema/textImportLimits';
 
 const defaults: TextImportOptions = {
   split: 'lineBreak',

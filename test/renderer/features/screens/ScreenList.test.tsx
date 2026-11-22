@@ -10,7 +10,7 @@ import {
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@core/live/state';
+import {emptyLiveState} from '@core/schema/live';
 import type {MonitorList} from '@core/schema/monitors';
 import {wideMonitorArrangement} from '@fixtures/renderer/features/screens/monitorArrangement';
 import type {

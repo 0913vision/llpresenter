@@ -1,11 +1,10 @@
 import {useLayoutEffect, useRef} from 'react';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import type {NamedDocument} from '../../platform/useSettingsDocument';
-import {ScreenEditor} from './screenEditor';
+import {ScreenEditor, type EditProblemReporter} from './screenEditor';
 import type {ScreenChange} from '@core/screens/screenEdits';
 import type {MonitorInfo, MonitorList} from '@core/schema/monitors';
 import type {LlpApi} from '@contracts/ipc/api';
-import type {EditProblemReporter} from './screenEditor';
 import type {NewScreen} from './addScreen';
 
 const SAVE_FAILED_TITLE = '화면 설정 저장 실패';

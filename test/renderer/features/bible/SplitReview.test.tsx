@@ -1,7 +1,7 @@
 import {fireEvent, render, screen, waitFor} from '@testing-library/react';
 import {expect, it, vi} from 'vitest';
 import type {BibleCutSelection} from '@core/schema/bibleCuts';
-import {splitPassage} from '@core/bible/split/splitPassage';
+import {splitPassage} from '@core/slides/splitPassage';
 import {entryFor} from '@core/bible/split/splitCache';
 import {BUILT_IN_THEME_IDS} from '@core/theme/builtIn/ids';
 import {splitVerseParts, type VerseInput} from '@core/bible/split/splitVerses';

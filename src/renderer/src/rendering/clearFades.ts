@@ -1,4 +1,4 @@
-import {layerKinds, type LayerKind, type LiveLayers} from '@core/live/state';
+import {layerKinds, type LayerKind, type LiveLayers} from '@core/schema/live';
 import type {ClearEffect} from '@core/schema/clearFade';
 import {MAX_ACTIVE_PROPS} from '@core/schema/overlayState';
 

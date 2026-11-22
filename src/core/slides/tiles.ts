@@ -5,7 +5,7 @@ import type {ShowTile} from '../schema/showService';
 import {hasSlides, type ServiceItem, type SlidesItem} from '../schema/service';
 import type {Slide} from '../schema/slide';
 import type {Song} from '../schema/song';
-import {AUTO_TOKENS, type AutoValues} from '../theme/content';
+import {AUTO_TOKENS, type AutoValues} from '../schema/slideContent';
 import {verseKey} from './passageSlides';
 
 /** What an item says about its slides beside the slides themselves. */

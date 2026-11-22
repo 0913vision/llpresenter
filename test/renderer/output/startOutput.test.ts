@@ -1,6 +1,6 @@
 import {beforeEach, describe, expect, it, onTestFinished, vi} from 'vitest';
 import type {LlpApi} from '@contracts/ipc/api';
-import {emptyLiveState, type LiveState} from '@core/live/state';
+import {emptyLiveState, type LiveState} from '@core/schema/live';
 import type {
   FrameRateReport,
   FrameReadyReport,

@@ -1,7 +1,9 @@
-import type {LiveCommand} from '@core/live/commands';
+import {
+  type LiveCommand,
+  parseLiveCommandRequest,
+} from '@core/schema/liveCommand';
 import type {Result} from '@core/common/result';
-import {parseLiveCommandRequest} from '@core/schema/liveCommand';
-import type {LiveState} from '@core/live/state';
+import type {LiveState} from '@core/schema/live';
 import {parseLiveState, parseLiveVersion} from '@core/schema/liveState';
 import type {PayloadError} from '@core/schema/payload';
 import {parseTimerClockReading} from '@core/schema/timerState';

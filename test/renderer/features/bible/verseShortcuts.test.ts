@@ -1,6 +1,6 @@
 import {act} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it} from 'vitest';
-import {emptyLiveState} from '@core/live/state';
+import {emptyLiveState} from '@core/schema/live';
 import type {BibleLookupReply} from '@core/schema/bibleLookup';
 import {openBiblePassage} from '@renderer/features/bible/actions';
 import {outputAdjacentBibleVerse} from '@renderer/features/bible/verseShortcuts';

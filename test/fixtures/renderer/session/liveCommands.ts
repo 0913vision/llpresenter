@@ -1,4 +1,4 @@
-import type {LiveCommand, SingleLiveCommand} from '@core/live/commands';
+import type {LiveCommand, SingleLiveCommand} from '@core/schema/liveCommand';
 
 export function liveCommands(
   command: LiveCommand,

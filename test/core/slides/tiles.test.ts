@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {isHymnNumber, hymnTitle, slideTiles} from '@core/slides/tiles';
-import {AUTO_TOKENS} from '@core/theme/content';
+import {AUTO_TOKENS} from '@core/schema/slideContent';
 import {lyricsSlide, slideOf, verseOf} from '@fixtures/core/slides';
 
 describe('slideTiles', () => {

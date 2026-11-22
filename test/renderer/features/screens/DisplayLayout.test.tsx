@@ -9,7 +9,7 @@ import {
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import type {LiveCommand} from '@core/live/commands';
+import type {LiveCommand} from '@core/schema/liveCommand';
 import type {MonitorList} from '@core/schema/monitors';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';

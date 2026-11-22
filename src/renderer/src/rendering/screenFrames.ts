@@ -1,5 +1,5 @@
 import type {LlpApi} from '@contracts/ipc/api';
-import type {LiveState} from '@core/live/state';
+import type {LiveState} from '@core/schema/live';
 import type {MessageStyle} from '@core/schema/messages';
 import {
   defaultPreferences,

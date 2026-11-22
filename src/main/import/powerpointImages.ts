@@ -1,7 +1,7 @@
 import {spawn, type ChildProcess} from 'node:child_process';
 import {writeFileSync} from 'node:fs';
 import {join} from 'node:path';
-import {POWERPOINT_IMPORT_LIMITS} from '@core/songs/textImportLimits';
+import {POWERPOINT_IMPORT_LIMITS} from '@core/schema/textImportLimits';
 
 /** Kept as a literal so paths are passed in the environment, never interpolated. */
 export const POWERPOINT_IMAGE_SCRIPT = String.raw`

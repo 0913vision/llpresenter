@@ -5,7 +5,7 @@ import type {ServiceEntry} from '@core/schema/contentDocuments';
 import {createServiceId} from '@core/schema/ids';
 import type {ShowService} from '@core/schema/showService';
 import type {ServiceOpenRequest} from '@core/schema/serviceOpen';
-import {emptyLiveState} from '@core/live/state';
+import {emptyLiveState} from '@core/schema/live';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {applyService, useShow} from '@renderer/session/show';
 import {useLive} from '@renderer/session/live';

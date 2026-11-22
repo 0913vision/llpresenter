@@ -3,8 +3,8 @@ import type {
   LiveCommand,
   LiveCommandType,
   SingleLiveCommand,
-} from '@core/live/commands';
-import type {LiveLayers, LiveState} from '@core/live/state';
+} from '@core/schema/liveCommand';
+import type {LiveLayers, LiveState} from '@core/schema/live';
 import type {LiveHistory} from './history';
 import type {MacroId, MessageId, ScreenId} from '@core/schema/ids';
 import type {SlideBackground} from '@core/schema/theme';

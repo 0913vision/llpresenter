@@ -12,10 +12,12 @@ import {
 } from '@renderer/features/songs/songDraft';
 import {startMediaSync} from '@renderer/platform/media';
 import {startThemesSync} from '@renderer/platform/themes';
-import {seedThumbnailScale} from '@renderer/platform/thumbnailScale';
+import {
+  seedThumbnailScale,
+  detailsScale,
+} from '@renderer/platform/thumbnailScale';
 import {seedPreview} from '@renderer/session/preview';
 import {seedShowToolTab} from '@renderer/features/tools/state/showToolTab';
-import {detailsScale} from '@renderer/platform/thumbnailScale';
 import {
   createColumnWidthStore,
   loadUiState,
