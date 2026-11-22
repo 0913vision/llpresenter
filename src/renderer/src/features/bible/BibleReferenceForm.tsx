@@ -6,10 +6,12 @@ import {
   useEffectEvent,
   useId,
   useLayoutEffect,
+  useImperativeHandle,
   useRef,
   useState,
   type JSX,
   type KeyboardEvent,
+  type Ref,
 } from 'react';
 import type {BibleLookupApi} from '@contracts/ipc/bible';
 import {exactBibleBook, findBibleBooks} from '@core/bible/bibleMatching';
@@ -37,6 +39,8 @@ import {
 import styles from './BibleReferenceField.module.css';
 
 export interface BibleReferenceFormProps {
+  readonly submitRef?: Ref<{submit: () => void}> | undefined;
+  readonly submissionDisabled?: boolean | undefined;
   readonly initialRef?: string | undefined;
   readonly dialogMode?: boolean;
   readonly onEffectiveTranslation?: ((id: TranslationId) => void) | undefined;
@@ -52,6 +56,7 @@ export interface BibleReferenceFormProps {
   /** Submit from any field in quick run instead of advancing on Enter. */
   readonly recents?: readonly RecentPassage[];
   readonly onReady?: (passage: BibleLookupPassage | null) => void;
+  readonly onSubmitCandidate?: ((valid: boolean) => void) | undefined;
   /** In a dialog, Esc dismisses the form after closing book suggestions. */
   readonly onEscape?: (() => void) | undefined;
 }
@@ -70,6 +75,34 @@ const LIVE_BOUNDS = new Map(
     {bookId: book.id, chapterVerses: BIBLE_VERSE_COUNTS[book.id - 1] ?? []},
   ]),
 );
+
+/** Resolve a complete reference using the same bounds as submission. */
+function fullReferenceCandidate(value: string) {
+  const parsed = parseReference(value);
+  if (!parsed.ok || parsed.value.chapter !== parsed.value.endChapter) {
+    return null;
+  }
+  const reference = parsed.value;
+  const bounds = LIVE_BOUNDS.get(reference.book.id);
+  const last = bounds?.chapterVerses[reference.chapter - 1];
+  const next: ReferenceFields = {
+    book: reference.book.korean,
+    chapter: String(reference.chapter),
+    start: String(reference.verse ?? 1),
+    end: String(reference.endVerse ?? last ?? 1),
+  };
+  const parsedState = referenceFieldsState(next, bounds);
+  const input =
+    reference.verse === null && parsedState.input
+      ? `${reference.book.korean} ${reference.chapter}`
+      : parsedState.input;
+  const invalidPart: ReferencePart = parsedState.errors.chapter
+    ? 'chapter'
+    : parsedState.errors.start
+      ? 'start'
+      : 'end';
+  return {reference, next, parsedState, input, invalidPart};
+}
 
 function focusPart(root: HTMLElement | null, part: ReferencePart): void {
   const field = root?.querySelector<HTMLInputElement>(
@@ -183,6 +216,19 @@ export function BibleReferenceForm(
   const reconciled = reconcileReferenceFields(fields, metadataBounds);
   if (reconciled !== fields) setFields(reconciled);
   const state = referenceFieldsState(reconciled, metadataBounds);
+  const fullReference = fullReferenceCandidate(reconciled.book);
+  const chapterOnly =
+    fields.start === '' &&
+    state.errors.chapter === undefined &&
+    book !== undefined &&
+    translation !== undefined;
+  const hasSubmitCandidate =
+    chapterOnly || (fullReference !== null && fullReference.input !== '');
+  const onSubmitCandidate = props.onSubmitCandidate;
+  useEffect(
+    () => onSubmitCandidate?.(hasSubmitCandidate),
+    [onSubmitCandidate, hasSubmitCandidate],
+  );
   const chapterNumber = /^\d+$/u.test(reconciled.chapter)
     ? Number(reconciled.chapter)
     : 0;
@@ -333,34 +379,10 @@ export function BibleReferenceForm(
     choose(candidate.korean);
     setChapterFocus({bookId: candidate.id, translation});
   };
-  const acceptFullReference = (
-    event: KeyboardEvent<HTMLInputElement>,
-  ): boolean => {
-    const parsed = parseReference(event.currentTarget.value);
-    if (!parsed.ok || parsed.value.chapter !== parsed.value.endChapter) {
-      return false;
-    }
-    const reference = parsed.value;
-    const bounds = LIVE_BOUNDS.get(reference.book.id);
-    const last = bounds?.chapterVerses[reference.chapter - 1];
-    const next: ReferenceFields = {
-      book: reference.book.korean,
-      chapter: String(reference.chapter),
-      start: String(reference.verse ?? 1),
-      end: String(reference.endVerse ?? last ?? 1),
-    };
-    const parsedState = referenceFieldsState(next, bounds);
-    const input =
-      reference.verse === null && parsedState.input
-        ? `${reference.book.korean} ${reference.chapter}`
-        : parsedState.input;
-    const invalidPart: ReferencePart = parsedState.errors.chapter
-      ? 'chapter'
-      : parsedState.errors.start
-        ? 'start'
-        : 'end';
-    event.preventDefault();
-    event.stopPropagation();
+  const acceptFullReference = (value: string, submit: boolean): boolean => {
+    const candidate = fullReferenceCandidate(value);
+    if (candidate === null) return false;
+    const {reference, next, parsedState, input, invalidPart} = candidate;
     props.onIntent?.();
     props.onEdit?.(null);
     setRecent(
@@ -371,7 +393,7 @@ export function BibleReferenceForm(
     setFields(next);
     setOpen(false);
     setBlocked(input ? null : invalidPart);
-    if (event.key === 'Enter' && input && translation !== undefined) {
+    if (submit && input && translation !== undefined) {
       pendingSubmit.current = {
         input,
         translation,
@@ -461,11 +483,18 @@ export function BibleReferenceForm(
         chooseSuggestion(highlighted);
         return;
       }
+      if (event.key === 'Enter' && props.submissionDisabled) {
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
       if (
         (event.key === 'Enter' || (event.key === 'Tab' && !event.shiftKey)) &&
         !event.repeat &&
-        acceptFullReference(event)
+        acceptFullReference(event.currentTarget.value, event.key === 'Enter')
       ) {
+        event.preventDefault();
+        event.stopPropagation();
         return;
       }
       if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
@@ -529,13 +558,12 @@ export function BibleReferenceForm(
     if (event.key !== 'Enter') return;
     event.preventDefault();
     event.stopPropagation();
-    if (event.repeat || props.translation === undefined) return;
-    if (
-      fields.start === '' &&
-      state.errors.chapter === undefined &&
-      book !== undefined &&
-      translation !== undefined
-    ) {
+    if (event.repeat) return;
+    submit(part);
+  };
+  const submit = (part: ReferencePart): void => {
+    if (props.translation === undefined || props.submissionDisabled) return;
+    if (chapterOnly) {
       const input = `${book.korean} ${fields.chapter}`;
       setRecent({
         provided: props.translation,
@@ -575,6 +603,14 @@ export function BibleReferenceForm(
       setBlocked(part);
     }
   };
+  useImperativeHandle(props.submitRef, () => ({
+    submit: () => {
+      if (props.submissionDisabled) return;
+      const bookValue = readReferenceFields(root.current, fields).book;
+      if (!acceptFullReference(bookValue, true)) submit('book');
+    },
+  }));
+
   return (
     <div
       ref={root}

@@ -338,9 +338,11 @@ async function chooseRange(
     fireEvent.change(field, {target: {value}});
   }
   await waitFor(() =>
-    expect(within(dialog).getByText('추가').getAttribute('aria-disabled')).toBe(
-      'false',
-    ),
+    expect(
+      within(dialog)
+        .getByRole('button', {name: '추가'})
+        .getAttribute('aria-disabled'),
+    ).not.toBe('true'),
   );
   beforeAdd();
   fireEvent.keyDown(within(dialog).getByRole('textbox', {name: '끝절'}), {

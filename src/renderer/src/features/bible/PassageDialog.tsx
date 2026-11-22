@@ -14,6 +14,7 @@ import type {TranslationId} from '@core/schema/ids';
 import {recentPassages} from '@core/bible/bibleRecents';
 import {isComposingKey} from '@renderer/ui/ime';
 import {Icon} from '@renderer/ui/Icon';
+import {Button} from '@renderer/ui/Button';
 import {keepFocusInModal} from '@renderer/ui/Dialog';
 import {KeyCombo} from '@renderer/ui/KeyCap';
 import {layerContainer} from '@renderer/ui/layers';
@@ -37,6 +38,8 @@ export function PassageDialog({
   initialRef,
   children,
   disabled = false,
+  preparation = false,
+  onSubmitIntent,
 }: {
   readonly api: BibleLookupApi;
   readonly translation: TranslationId | undefined;
@@ -46,6 +49,8 @@ export function PassageDialog({
   readonly initialRef?: string | undefined;
   readonly children?: ReactNode;
   readonly disabled?: boolean;
+  readonly preparation?: boolean;
+  readonly onSubmitIntent?: (() => void) | undefined;
   readonly onClose: () => void;
   readonly onSubmit: (passage: BibleLookupPassage) => void;
   readonly onPick: (recent: RecentPassage) => void;
@@ -54,11 +59,13 @@ export function PassageDialog({
     ((event: KeyboardEvent<HTMLElement>) => void) | undefined;
 }): JSX.Element {
   const surface = useRef<HTMLElement>(null);
+  const form = useRef<{submit: () => void}>(null);
   const intentVersion = useRef(0);
   const submissionVersion = useRef(0);
   const formVersion = submissionVersion.current;
   const [highlight, setHighlight] = useState(-1);
   const [ready, setReady] = useState<BibleLookupPassage | null>(null);
+  const [submitCandidate, setSubmitCandidate] = useState(false);
   const [resetKey, setResetKey] = useState(0);
   const [resolved, setResolved] = useState<{
     provided: TranslationId | undefined;
@@ -68,9 +75,14 @@ export function PassageDialog({
     resolved !== null && resolved.provided === translation
       ? resolved.value
       : translation;
+  const close = (): void => {
+    intentVersion.current += 1;
+    submissionVersion.current += 1;
+    onClose();
+  };
   const keys = useModal({
     surface,
-    onEscape: onClose,
+    onEscape: close,
     onEnter: undefined,
     initialFocus: 'text-field',
   });
@@ -118,7 +130,6 @@ export function PassageDialog({
   };
   const capture = (event: KeyboardEvent<HTMLElement>): void => {
     onKeyDownCapture?.(event);
-    if (event.target instanceof HTMLTextAreaElement) return;
     if (
       event.defaultPrevented ||
       isComposingKey(event.nativeEvent) ||
@@ -128,6 +139,13 @@ export function PassageDialog({
     ) {
       return;
     }
+    if (preparation && event.key === 'Escape') {
+      event.preventDefault();
+      event.stopPropagation();
+      close();
+      return;
+    }
+    if (event.target instanceof HTMLTextAreaElement) return;
     if (
       event.target instanceof HTMLInputElement &&
       event.target.dataset.referencePart === 'book' &&
@@ -201,6 +219,8 @@ export function PassageDialog({
         {children}
         <div className={styles.header}>
           <BibleReferenceForm
+            submitRef={form}
+            submissionDisabled={preparation && disabled}
             key={resetKey}
             dialogMode
             autoFocus={children === undefined}
@@ -221,9 +241,10 @@ export function PassageDialog({
               intentVersion.current += 1;
               onIntent?.();
             }}
-            onEscape={onClose}
+            onEscape={close}
             onPreview={() => undefined}
             onReady={setReady}
+            onSubmitCandidate={setSubmitCandidate}
             onSubmit={passage => {
               if (!disabled && submissionVersion.current === formVersion) {
                 onSubmit(passage);
@@ -250,14 +271,32 @@ export function PassageDialog({
             <Icon name="book" size={16} />
             {'성경 구절'}
           </span>
-          <span aria-disabled={disabled || ready === null}>
-            {action}
-            <KeyCombo keys={['Enter']} />
-          </span>
-          <span className={styles.next}>
-            {'다음 칸'}
-            <KeyCombo keys={['Tab']} />
-          </span>
+          {preparation ? (
+            <>
+              <Button onClick={close}>{'취소'}</Button>
+              <Button
+                variant="primary"
+                disabled={disabled || (ready === null && !submitCandidate)}
+                onClick={() => {
+                  onSubmitIntent?.();
+                  form.current?.submit();
+                }}
+              >
+                {action}
+              </Button>
+            </>
+          ) : (
+            <>
+              <span aria-disabled={disabled || ready === null}>
+                {action}
+                <KeyCombo keys={['Enter']} />
+              </span>
+              <span className={styles.next}>
+                {'다음 칸'}
+                <KeyCombo keys={['Tab']} />
+              </span>
+            </>
+          )}
         </footer>
       </section>
     </div>,
