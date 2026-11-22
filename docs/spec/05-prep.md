@@ -104,15 +104,16 @@ the compact 예배 순서, or the library; its right column shows the selected
   슬라이드.
 - **The right column** has the header of the 미리보기 panel of 진행: the name,
   and at its right end 청중, 무대 and 방송, which choose the screen of the
-  picture. Below are the texts of the boxes, then 테마, 배경 and 이름표, and
-  전환; 전체 적용 gives the background or the transition to every 슬라이드. A
+  picture. Below are, in this order, the texts of the boxes, 테마 and 이름표,
+  배경, and 전환. 전체 슬라이드에 적용 is the last row of 배경 and of 전환, as
+  in Google Slides and PowerPoint, and gives that section to every 슬라이드. A
   setting changes every selected 슬라이드; differing values are shown as mixed.
-- **기본값** is folded at the end of the column and holds what fills itself and
-  is seldom changed: boxes with a default such as 주소, 다음 글, and the place
-  of a background picture (맞춤, size, place). Each is locked and shows its
-  default until 편집 is pressed; the text then starts from the default. Pressing
-  it again locks it and puts the default back. A dot marks the group while a
-  value in it is not the default. The list view locks its columns the same way.
+- **What fills itself** and is seldom changed is folded: 자동으로 들어가는 글
+  below the texts (boxes with a default such as 주소, and 다음 글), and 위치 in
+  배경 (맞춤, size, and place of a picture). Each is locked and shows its
+  default until 편집 is pressed; a text then starts from the default. Pressing
+  it again locks it and puts the default back. A dot marks a fold while a value
+  in it is not the default. The list view locks its columns the same way.
 - 다음 글 is what the 슬라이드 before shows on 무대.
 - 슬라이드 추가 makes one in the 테마 that follows the one before it, with the
   same background. 타이틀 adds a title of the list.

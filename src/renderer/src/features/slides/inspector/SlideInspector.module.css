@@ -42,11 +42,13 @@
   min-width: 0;
 }
 
-.placeHead {
+.filled {
+  display: grid;
+  gap: var(--space-8);
+}
+
+.applyToAll {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: var(--property-row-height);
-  color: var(--text-2);
-  font: var(--type-label);
+  justify-content: flex-end;
+  padding-top: var(--space-8);
 }

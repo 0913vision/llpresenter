@@ -61,15 +61,12 @@ export function PropertyColumns({
 export function PropertyGroup({
   title,
   icon,
-  action,
   children,
 }: {
   /** One or two words, such as 이번 예배 or 안정성; none for a page's lead rows. */
   readonly title?: string | undefined;
   /** A 12px icon before the title, such as `note` for 메모. */
   readonly icon?: string | undefined;
-  /** An sm button at the right end of the title row. */
-  readonly action?: ReactNode;
   readonly children: ReactNode;
 }): JSX.Element {
   const titleId = useId();
@@ -85,9 +82,6 @@ export function PropertyGroup({
             <Icon name={icon} size={GROUP_ICON_SIZE} />
           )}
           {title}
-          {action === undefined ? null : (
-            <span className={styles.action}>{action}</span>
-          )}
         </p>
       )}
       {children}

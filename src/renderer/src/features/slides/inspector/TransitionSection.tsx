@@ -4,7 +4,6 @@ import {
   type SlideTransition,
 } from '@core/schema/slideTransition';
 import {withTransition} from '@core/slides/edits';
-import {Button} from '@renderer/ui/Button';
 import {TextField} from '@renderer/ui/TextField';
 import {EffectPicture} from '@renderer/ui/SlideTransitionControl';
 import transitionStyles from '@renderer/ui/SlideTransitionControl.module.css';
@@ -16,6 +15,7 @@ import {
   SLIDE_EFFECTS,
 } from '@renderer/ui/slideTransitionChoices';
 import {focusSlides} from '../deckSelection';
+import {ApplyToAll} from './ApplyToAll';
 import {changeSelected, type ChosenSlides} from './changeSelected';
 import styles from './SlideInspector.module.css';
 
@@ -88,7 +88,7 @@ function TimeField({
 }
 
 /** The transition the selected slides come in with. */
-export function TransitionRows({deck, chosen}: ChosenSlides): JSX.Element {
+export function TransitionSection({deck, chosen}: ChosenSlides): JSX.Element {
   const {value, mixed} = commonTransition(
     chosen.map(slide => slide.transition),
   );
@@ -96,22 +96,7 @@ export function TransitionRows({deck, chosen}: ChosenSlides): JSX.Element {
   const set = (transition: SlideTransition): void =>
     changeSelected(deck, slide => withTransition(slide, transition));
   return (
-    <PropertyGroup
-      title="전환"
-      action={
-        <Button
-          title="전체 슬라이드에 적용"
-          disabled={locked || mixed || deck.slides.length < 2}
-          onClick={() =>
-            deck.edit(slides =>
-              slides.map(slide => withTransition(slide, value)),
-            )
-          }
-        >
-          전체 적용
-        </Button>
-      }
-    >
+    <PropertyGroup title="전환">
       <div className={styles.transitionRows}>
         <PropertyRow label="효과">
           {() => (
@@ -194,6 +179,11 @@ export function TransitionRows({deck, chosen}: ChosenSlides): JSX.Element {
             />
           )}
         </PropertyRow>
+        <ApplyToAll
+          deck={deck}
+          mixed={mixed}
+          change={slide => withTransition(slide, value)}
+        />
       </div>
     </PropertyGroup>
   );

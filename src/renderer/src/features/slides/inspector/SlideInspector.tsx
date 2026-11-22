@@ -11,12 +11,12 @@ import {SlidePreview, usePreviewScreen} from '../SlidePreview';
 import {SlideSidePanel} from '../SlideSidePanel';
 import type {SlideDeck} from '../slideDeck';
 import {SlideTextField} from '../SlideTextField';
-import {BackgroundRow} from './BackgroundRow';
-import {DefaultsGroup} from './DefaultsGroup';
+import {BackgroundSection} from './BackgroundSection';
+import {FilledTexts} from './FilledTexts';
 import {LabelRow} from './LabelRow';
 import styles from './SlideInspector.module.css';
 import {ThemeRow} from './ThemeRow';
-import {TransitionRows} from './TransitionRows';
+import {TransitionSection} from './TransitionSection';
 
 /** Undoes and redoes from the fields, as everywhere in the editor. */
 function replayFromFields(deck: SlideDeck, event: KeyboardEvent): void {
@@ -87,21 +87,16 @@ export function SlideInspector({
                       box={box}
                     />
                   ))}
+                <FilledTexts deck={deck} tile={only} theme={theme} />
               </div>
             )}
             <Properties>
               <PropertyGroup>
                 <ThemeRow deck={deck} chosen={chosen} />
-                <BackgroundRow deck={deck} chosen={chosen} />
                 <LabelRow deck={deck} chosen={chosen} />
               </PropertyGroup>
-              <TransitionRows deck={deck} chosen={chosen} />
-              <DefaultsGroup
-                deck={deck}
-                chosen={chosen}
-                tile={only}
-                theme={theme}
-              />
+              <BackgroundSection deck={deck} chosen={chosen} />
+              <TransitionSection deck={deck} chosen={chosen} />
             </Properties>
           </Fragment>
         )}

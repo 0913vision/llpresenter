@@ -268,7 +268,8 @@ it('switches the columns of a theme on and off', async () => {
 });
 
 describe('what fills itself', () => {
-  const defaults = () => inspector().queryByRole('button', {name: /^기본값/u});
+  const defaults = () =>
+    inspector().queryByRole('button', {name: /^자동으로 들어가는 글/u});
   const open = async () => {
     const group = defaults();
     if (group?.getAttribute('aria-expanded') === 'false') {
@@ -354,7 +355,9 @@ it('gives every slide the transition of the selected one', async () => {
   );
   const {current} = renderEditor(slides);
   await userEvent.click(row(1));
-  const [, apply] = inspector().getAllByRole('button', {name: '전체 적용'});
+  const [, apply] = inspector().getAllByRole('button', {
+    name: '전체 슬라이드에 적용',
+  });
   if (apply === undefined) throw new Error('Missing button');
   await userEvent.click(apply);
   expect(current.slides.map(slide => slide.transition)).toEqual(
@@ -441,12 +444,8 @@ describe('the background of a slide', () => {
         background: {kind: 'media' as const, media: warm},
       })),
     );
-    const group = inspector().getByRole('button', {name: '기본값'});
-    if (group.getAttribute('aria-expanded') === 'false') {
-      await userEvent.click(group);
-    }
-    expect(inspector().queryByRole('button', {name: '맞춤'})).toBeNull();
-    const place = within(inspector().getByRole('group', {name: '배경 위치'}));
+    expect(inspector().queryByRole('spinbutton', {name: '크기'})).toBeNull();
+    const place = within(inspector().getByRole('group', {name: '위치'}));
     await userEvent.click(place.getByRole('button', {name: '편집'}));
     const size = place.getByRole('spinbutton', {name: '크기'});
     await userEvent.clear(size);
@@ -458,7 +457,6 @@ describe('the background of a slide', () => {
     });
     await userEvent.click(place.getByRole('button', {name: '기본값으로'}));
     expect(current.slides[0]?.background).toEqual({kind: 'media', media: warm});
-    expect(inspector().queryByRole('button', {name: '맞춤'})).toBeNull();
   });
 
   it('is given to every slide', async () => {
@@ -469,7 +467,9 @@ describe('the background of a slide', () => {
           : slide,
       ),
     );
-    const [apply] = inspector().getAllByRole('button', {name: '전체 적용'});
+    const [apply] = inspector().getAllByRole('button', {
+      name: '전체 슬라이드에 적용',
+    });
     if (apply === undefined) throw new Error('Missing button');
     await userEvent.click(apply);
     expect(
