@@ -26,7 +26,7 @@ export const purposeNames: Readonly<Record<SlidePurpose, string>> = {
 
 const kindNames: Readonly<Record<ThemeElementKind, string>> = {
   text: '글',
-  next: '다음 글',
+  next: '미리 보여줄 내용',
   picture: '이미지',
   background: '배경',
   shape: '사각형',
@@ -35,7 +35,7 @@ const kindNames: Readonly<Record<ThemeElementKind, string>> = {
 export const addableNames: Readonly<Record<AddableKind, string>> = {
   box: '글 상자',
   text: '글',
-  next: '다음 글',
+  next: '미리 보여줄 내용',
   picture: '이미지',
   shape: '사각형',
   background: '배경',

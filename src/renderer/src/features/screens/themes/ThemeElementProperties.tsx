@@ -369,7 +369,7 @@ function GroupProperties({
     model.elements(screen => changeSplit(screen, element.id, update));
   };
   return (
-    <PropertyGroup title="다음 글과 나누기">
+    <PropertyGroup title="미리 보여줄 내용">
       <ThemeNumber
         label="위 끝"
         value={split.top}
@@ -385,7 +385,7 @@ function GroupProperties({
         change={bottom => change({bottom})}
       />
       <ThemeNumber
-        label="다음 글 위치"
+        label="시작 위치"
         value={split.at}
         max={height}
         reason={reason}

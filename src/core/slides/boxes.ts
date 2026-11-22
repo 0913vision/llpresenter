@@ -6,7 +6,7 @@ import {contentValues, nextPhraseOf} from '../theme/content';
 import {withNext, withText} from './edits';
 
 /** The box of the text that the slide before shows, after those of a theme. */
-export const NEXT_BOX = '다음 글';
+export const NEXT_BOX = '미리 보여줄 내용';
 
 /** Every box a slide of a theme has, in their order. */
 export function boxesOf(theme: ThemeFile): readonly string[] {

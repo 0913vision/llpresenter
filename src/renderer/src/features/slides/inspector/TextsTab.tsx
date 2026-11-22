@@ -2,29 +2,11 @@ import type {JSX} from 'react';
 import type {ShowTile} from '@core/schema/showService';
 import type {ThemeFile} from '@core/schema/theme';
 import {boxesOf, fillsItself} from '@core/slides/boxes';
-import {PropertyGroup, PropertyRow} from '@renderer/ui/PropertyRow';
-import {OwnTextButton} from '../OwnTextButton';
-import {SlideTextArea, type SlideBox} from '../SlideTextArea';
+import {PropertyGroup} from '@renderer/ui/PropertyRow';
 import {SlideTextField} from '../SlideTextField';
-import {useOwnText} from '../useOwnText';
 import type {ChosenSlides} from './changeSelected';
 import {LabelRow} from './LabelRow';
 import styles from './SlideInspector.module.css';
-
-/** A text that fills itself, locked until it is opened for editing. */
-function FilledTextRow(place: SlideBox): JSX.Element {
-  const own = useOwnText(place);
-  return (
-    <PropertyRow label={place.box} alignTop>
-      {({controlId}) => (
-        <span className={styles.withAction}>
-          <SlideTextArea {...place} id={controlId} locked={!own.on} />
-          <OwnTextButton own={own} />
-        </span>
-      )}
-    </PropertyRow>
-  );
-}
 
 /** The texts of the slide: its own ones, its label, and what fills itself. */
 export function TextsTab({
@@ -59,10 +41,12 @@ export function TextsTab({
         <LabelRow deck={deck} chosen={chosen} />
       </PropertyGroup>
       {place === null || filled.length === 0 ? null : (
-        <PropertyGroup title="자동 글">
-          {filled.map(box => (
-            <FilledTextRow key={box} {...place} box={box} />
-          ))}
+        <PropertyGroup title="부가 정보">
+          <div className={styles.texts}>
+            {filled.map(box => (
+              <SlideTextField key={box} {...place} box={box} />
+            ))}
+          </div>
         </PropertyGroup>
       )}
     </>

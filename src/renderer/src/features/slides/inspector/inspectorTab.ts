@@ -1,8 +1,8 @@
 import {create} from 'zustand';
 
 export const INSPECTOR_TABS = [
-  {value: 'texts', label: '글'},
-  {value: 'look', label: '모양'},
+  {value: 'texts', label: '내용'},
+  {value: 'look', label: '디자인'},
   {value: 'transition', label: '전환'},
 ] as const;
 

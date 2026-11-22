@@ -68,13 +68,13 @@ The user's needs (October 30 and November 22):
 
 ## Elements
 
-| Element | What it shows                                                                                                  | Per screen |
-| ------- | -------------------------------------------------------------------------------------------------------------- | ---------- |
-| 글      | A text made of named boxes, values, and fixed words. The first of its templates that has all its values shows. | Several    |
-| 다음 글 | What the next 슬라이드 lets this one show                                                                      | One        |
-| 이미지  | A fixed picture: a user image or one of the app's                                                              | Several    |
-| 사각형  | A rectangle with a fill, a border, a radius, and a shadow                                                      | Several    |
-| 배경    | The background of the 슬라이드, or of the 테마                                                                 | One        |
+| Element          | What it shows                                                                                                  | Per screen |
+| ---------------- | -------------------------------------------------------------------------------------------------------------- | ---------- |
+| 글               | A text made of named boxes, values, and fixed words. The first of its templates that has all its values shows. | Several    |
+| 미리 보여줄 내용 | What the next 슬라이드 lets this one show                                                                      | One        |
+| 이미지           | A fixed picture: a user image or one of the app's                                                              | Several    |
+| 사각형           | A rectangle with a fill, a border, a radius, and a shadow                                                      | Several    |
+| 배경             | The background of the 슬라이드, or of the 테마                                                                 | One        |
 
 - A template names boxes and values in braces: `{제목}`, `{본문}`. A part in
   square brackets is left out when a value in it is missing:
@@ -91,8 +91,9 @@ The user's needs (October 30 and November 22):
   the item that has the same 테마.
 - **Stacks.** Texts of a stack stand one under another around a place, so a
   title without a subtitle stays centered.
-- **Splits.** A split puts 다음 글 under the 슬라이드's own text. Each takes the
-  room the other does not need, and neither is ever drawn over the other.
+- **Splits.** A split puts 미리 보여줄 내용 under the 슬라이드's own text. Each
+  takes the room the other does not need, and neither is ever drawn over the
+  other.
 - A 사각형 can reach around texts, or stand a distance above or below them.
 - 메시지 and 그래픽 are not elements. They draw above the 테마 on the screens
   they were sent to, in the order 그래픽, 메시지.

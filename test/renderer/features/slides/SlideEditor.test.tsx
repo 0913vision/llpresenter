@@ -258,34 +258,40 @@ it('changes nothing in a file of a newer version', async () => {
 
 it('switches the columns of a theme on and off', async () => {
   renderEditor(song());
-  expect(within(row(1)).queryByRole('textbox', {name: '다음 글'})).toBeNull();
+  expect(
+    within(row(1)).queryByRole('textbox', {name: '미리 보여줄 내용'}),
+  ).toBeNull();
   await userEvent.click(screen.getByRole('button', {name: '열'}));
-  const boxes = screen.getAllByRole('menuitemcheckbox', {name: '다음 글'});
+  const boxes = screen.getAllByRole('menuitemcheckbox', {
+    name: '미리 보여줄 내용',
+  });
   const lyrics = boxes.at(-1);
   if (lyrics === undefined) throw new Error('Missing column');
   await userEvent.click(lyrics);
-  expect(field(1, '다음 글').placeholder).toBe(
+  expect(field(1, '미리 보여줄 내용').placeholder).toBe(
     '새 아침을 노래해요\n함께 걸어요',
   );
   await userEvent.click(lyrics);
-  expect(within(row(1)).queryByRole('textbox', {name: '다음 글'})).toBeNull();
+  expect(
+    within(row(1)).queryByRole('textbox', {name: '미리 보여줄 내용'}),
+  ).toBeNull();
 });
 
 describe('what fills itself', () => {
   const next = () => {
-    const found = inspector().getByRole('textbox', {name: '다음 글'});
+    const found = inspector().getByRole('textbox', {name: '미리 보여줄 내용'});
     if (!(found instanceof HTMLTextAreaElement)) throw new Error('No field');
     return found;
   };
   const edit = () =>
-    within(inspector().getByRole('group', {name: '자동 글'})).getByRole(
+    within(inspector().getByRole('group', {name: '부가 정보'})).getByRole(
       'button',
     );
 
   it('is locked until it is opened for editing', async () => {
     const {current} = renderEditor(song());
     await userEvent.click(row(2));
-    await openTab('글');
+    await openTab('내용');
     expect(next().placeholder).toBe('빛을 따라가요');
     expect(next().readOnly).toBe(true);
     await userEvent.type(next(), '후렴으로');
@@ -295,7 +301,7 @@ describe('what fills itself', () => {
   it('starts from its default, and goes back to it when it is locked', async () => {
     const {current} = renderEditor(song());
     await userEvent.click(row(2));
-    await openTab('글');
+    await openTab('내용');
     expect(edit().getAttribute('aria-label')).toBe('편집');
     await userEvent.click(edit());
     expect(next().value).toBe('빛을 따라가요');
@@ -310,7 +316,7 @@ describe('what fills itself', () => {
   it('stays open for editing while its text is emptied', async () => {
     const {current} = renderEditor(song());
     await userEvent.click(row(2));
-    await openTab('글');
+    await openTab('내용');
     await userEvent.click(edit());
     await userEvent.clear(next());
     expect(current.slides[2]?.next).toBeUndefined();
@@ -323,9 +329,11 @@ describe('what fills itself', () => {
   it('is only shown for one slide', async () => {
     renderEditor(song());
     await userEvent.click(row(1));
-    await openTab('글');
+    await openTab('내용');
     fireEvent.click(row(2), {shiftKey: true});
-    expect(inspector().queryByRole('textbox', {name: '다음 글'})).toBeNull();
+    expect(
+      inspector().queryByRole('textbox', {name: '미리 보여줄 내용'}),
+    ).toBeNull();
     expect(inspector().getByRole('button', {name: '이름표'})).toBeTruthy();
   });
 });
@@ -336,7 +344,7 @@ it('sets the theme of every selected slide', async () => {
   await userEvent.keyboard('{Shift>}');
   fireEvent.click(row(2), {shiftKey: true});
   await userEvent.keyboard('{/Shift}');
-  await openTab('모양');
+  await openTab('디자인');
   await userEvent.click(inspector().getByRole('button', {name: '테마'}));
   await userEvent.click(
     screen.getByRole('menuitemradio', {name: '찬양 가사 (밝은 배경)'}),
@@ -366,7 +374,7 @@ it('gives every slide the transition of the selected one', async () => {
 
 it('moves from a field beside the slides to them with Esc', async () => {
   renderEditor(song());
-  await openTab('글');
+  await openTab('내용');
   await userEvent.click(inspector().getByRole('textbox', {name: '제목'}));
   await userEvent.keyboard('{Escape}');
   expect(document.activeElement).toBe(surface());
@@ -424,7 +432,7 @@ describe('the background of a slide', () => {
 
   it('is chosen at the right, and taken away again', async () => {
     const {current} = renderEditor(song());
-    await openTab('모양');
+    await openTab('디자인');
     const choose = async (name: string) => {
       await userEvent.click(inspector().getByRole('button', {name: '배경'}));
       fireEvent.change(screen.getByRole('combobox'), {target: {value: name}});
@@ -445,7 +453,7 @@ describe('the background of a slide', () => {
         background: {kind: 'media' as const, media: warm},
       })),
     );
-    await openTab('모양');
+    await openTab('디자인');
     const place = within(inspector().getByRole('group', {name: /^배경 위치/u}));
     const size = place.getByRole('spinbutton', {name: '크기'});
     expect(size.hasAttribute('readonly')).toBe(true);
@@ -469,7 +477,7 @@ describe('the background of a slide', () => {
           : slide,
       ),
     );
-    await openTab('모양');
+    await openTab('디자인');
     await userEvent.click(
       inspector().getByRole('button', {name: '배경을 전체 슬라이드에 적용'}),
     );
