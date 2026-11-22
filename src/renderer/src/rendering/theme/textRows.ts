@@ -15,6 +15,14 @@ export interface RowsText {
   readonly prefix?: string | undefined;
 }
 
+/** The church's bullet, in shares of the size of its text. */
+const BULLET: Readonly<Record<string, string>> = {
+  '--bullet-indent': `${107 / 86}em`,
+  '--bullet-top': `${56 / 86}em`,
+  '--bullet-left': `${19 / 86}em`,
+  '--bullet-size': `${20 / 86}em`,
+};
+
 const NO_BREAK_SPACE = ' ';
 
 /** The tracking of a text, which a theme may set apart for short ones. */
@@ -55,6 +63,10 @@ export function writeRows(block: HTMLElement, rows: RowsText): void {
         : '',
   });
   block.dataset['wrap'] = rows.wrap;
+  for (const [name, value] of Object.entries(BULLET)) {
+    if (style.bullets === true) block.style.setProperty(name, value);
+    else block.style.removeProperty(name);
+  }
   const paragraphs = text.split(/\r?\n/u);
   block.replaceChildren(
     ...paragraphs.map((paragraph, index) => {

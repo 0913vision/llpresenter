@@ -40,6 +40,7 @@ import {
   selectionOf,
   useDeckSelection,
 } from './deckSelection';
+import {BackgroundPlace} from './BackgroundPlace';
 import {SlideBackgroundControl} from './SlideBackgroundControl';
 import type {SlideDeck} from './slideDeck';
 import {NEXT_BOX} from './slideColumns';
@@ -186,6 +187,13 @@ function BackgroundRow({
           />
         )}
       </PropertyRow>
+      {!mixed && value?.kind === 'media' ? (
+        <BackgroundPlace
+          value={value}
+          disabled={deck.readOnly}
+          onChange={set}
+        />
+      ) : null}
       <PropertyRow label="">
         {() => (
           <Button

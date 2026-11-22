@@ -62,6 +62,7 @@ export class ThemeView {
   private readonly canvas = document.createElement('div');
   private readonly backgroundBox = document.createElement('div');
   private readonly paint = document.createElement('div');
+  private readonly mediaBox = document.createElement('div');
   private readonly nodes = new Map<string, HTMLElement>();
   private readonly images = new Set<HTMLImageElement>();
   private media: BackgroundLayerView | null = null;
@@ -77,9 +78,13 @@ export class ThemeView {
     this.root.dataset['themeView'] = '';
     this.backdrop.className = styles.layer ?? '';
     this.canvas.className = styles.canvas ?? '';
+    this.canvas.style.width = `${THEME_CANVAS.width}px`;
+    this.canvas.style.height = `${THEME_CANVAS.height}px`;
     this.backgroundBox.className = styles.element ?? '';
     this.paint.className = styles.layer ?? '';
-    this.backgroundBox.append(this.paint);
+    this.mediaBox.className = styles.layer ?? '';
+    this.backgroundBox.classList.add(styles.background ?? '');
+    this.backgroundBox.append(this.paint, this.mediaBox);
     this.canvas.append(this.backgroundBox);
     this.root.append(this.backdrop, this.canvas);
     parent.append(this.root);
@@ -189,7 +194,7 @@ export class ThemeView {
     Object.assign(this.paint.style, backgroundPaint(background));
     const media = shownMedia(background, drawing.media);
     if (media !== null && this.media === null) {
-      this.media = new BackgroundLayerView(this.backgroundBox, {
+      this.media = new BackgroundLayerView(this.mediaBox, {
         mediaUrl: this.options.mediaUrl,
         previewMedia: this.options.previewMedia,
         onError: this.options.onError,
@@ -199,8 +204,9 @@ export class ThemeView {
     }
     const own =
       background.kind === 'media' && background.media === media?.mediaId
-        ? background.fit
+        ? background
         : undefined;
+    this.mediaBox.style.transform = placeOf(own?.area);
     this.media?.show(
       media === null
         ? null
@@ -208,7 +214,7 @@ export class ThemeView {
             ...media,
             properties: {
               ...(media.properties ?? {speed: 1, volume: 100, audio: false}),
-              fit: own ?? (media.chosen ? 'fill' : element.fit),
+              fit: own?.fit ?? (media.chosen ? 'fill' : element.fit),
             },
           },
       standby,
@@ -248,6 +254,15 @@ export class ThemeView {
       node.style.opacity = follows && slide !== 1 ? String(slide) : '';
     }
   }
+}
+
+type Picture = Extract<SlideBackground, {readonly kind: 'media'}>;
+
+/** Moves and scales a background picture from the whole of its box. */
+function placeOf(area: Picture['area']): string {
+  return area === undefined
+    ? ''
+    : `translate(${area.x * 100}%, ${area.y * 100}%) scale(${area.scale})`;
 }
 
 function frameAt(node: HTMLElement, frame: ThemeFrame): void {

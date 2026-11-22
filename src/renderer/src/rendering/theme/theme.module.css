@@ -17,16 +17,16 @@
    middle of the first row, and rows that hang under its text. */
 .bullet {
   position: relative;
-  padding-left: calc(107em / 86);
+  padding-left: var(--bullet-indent);
 }
 
 .bullet::before {
   content: '';
   position: absolute;
-  top: calc(56em / 86);
-  left: calc(19em / 86);
-  width: calc(20em / 86);
-  height: calc(20em / 86);
+  top: var(--bullet-top);
+  left: var(--bullet-left);
+  width: var(--bullet-size);
+  height: var(--bullet-size);
   border-radius: 50%;
   background: currentColor;
 }
@@ -40,8 +40,6 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 1920px;
-  height: 1080px;
   transform-origin: center;
 }
 
@@ -50,6 +48,10 @@
 .element {
   position: absolute;
   isolation: isolate;
+}
+
+.background {
+  overflow: hidden;
 }
 
 .picture {
