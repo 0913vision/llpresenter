@@ -18,6 +18,10 @@ export function keepThumbnails(sources: Iterable<string>): void {
     }
     const image = new Image();
     image.decoding = 'async';
+    // NOTE(0913vision): A picture that isn't there yet is tried again later.
+    image.addEventListener('error', () => {
+      if (kept.get(source) === image) kept.delete(source);
+    });
     image.src = source;
     kept.set(source, image);
     if (kept.size > LIMIT) {
