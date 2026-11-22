@@ -831,7 +831,7 @@ export function ServiceOrderList({
       }}
       onContextMenu={event => {
         const id = serviceOrderRowId(event.target);
-        if (id === null) return;
+        if (id === null || workspace === 'show') return;
         event.preventDefault();
         if (!selection.selected.has(id)) selection.replace([id], id);
         setMenu({
@@ -872,7 +872,7 @@ export function ServiceOrderList({
         if (event.key === 'Enter' && !hasModifier(event)) {
           openOrderEditor(serviceOrderRowId(event.target));
         }
-        if (isContextMenuKey(event)) {
+        if (isContextMenuKey(event) && workspace === 'prep') {
           const id = serviceOrderRowId(event.target);
           if (id === null) return;
           event.preventDefault();

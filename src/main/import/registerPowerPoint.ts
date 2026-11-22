@@ -89,8 +89,7 @@ function unsupportedSlideSize(value: unknown): string | null {
     throw new Error('Invalid PowerPoint slide size');
   }
   if (!isPowerPointFourThree(value.width, value.height)) return null;
-  const cm = (size: number): string => (size / 360000).toFixed(2);
-  return `4:3 슬라이드는 가져올 수 없습니다 (${cm(value.width)}×${cm(value.height)}cm)`;
+  return '4:3 파일은 가져올 수 없습니다. PowerPoint에서 16:9로 바꿔 주세요';
 }
 
 interface Retained {

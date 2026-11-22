@@ -111,6 +111,8 @@ export interface VirtualMediaGridProps {
   readonly arrowsMove?: 'selection' | 'focus';
   readonly onSelect: (index: number) => void;
   readonly onActivate: (index: number) => void;
+  /** A click with Shift or Ctrl, which selects and does nothing else. */
+  readonly onPick?: ((index: number, range: boolean) => void) | undefined;
   readonly onOutput: (index: number) => void;
   readonly onMenu: (index: number, anchor: MenuAnchor) => void;
   /** The tile at an index of the whole list. */
@@ -135,6 +137,7 @@ export function VirtualMediaGrid({
   arrowsMove = 'selection',
   onSelect,
   onActivate,
+  onPick,
   onOutput,
   onMenu,
   tile,
@@ -248,6 +251,18 @@ export function VirtualMediaGrid({
       className={styles.viewport}
       onScroll={event => setScrollTop(event.currentTarget.scrollTop)}
       onKeyDownCapture={navigate}
+      onClickCapture={event => {
+        if (onPick === undefined || !(event.target instanceof Element)) return;
+        if (!event.shiftKey && !event.ctrlKey && !event.metaKey) return;
+        const option = event.target.closest<HTMLElement>(OPTION);
+        const at = [
+          ...event.currentTarget.querySelectorAll<HTMLElement>(OPTION),
+        ].findIndex(node => node === option);
+        if (at < 0) return;
+        event.preventDefault();
+        event.stopPropagation();
+        onPick(start + at, event.shiftKey);
+      }}
       onDragOver={onDragOver}
       onDrop={onDrop}
     >

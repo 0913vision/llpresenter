@@ -33,6 +33,7 @@ import {
   undoMediaDeletion,
   type MediaDeletion,
 } from './mediaDeletionHistory';
+import {isInside} from './locations';
 import {buildMediaLibrary, type MediaLibrary} from './mediaLibrary';
 import {SettingsPersistence} from './settingsPersistence';
 
@@ -44,6 +45,8 @@ export interface MediaStoreOptions {
   readonly log: Logger;
   readonly delayMs?: number;
   readonly pictures?: readonly BundledPicture[] | undefined;
+  /** Throws a file away that deleted media had. */
+  readonly discard?: ((file: string) => Promise<void>) | undefined;
 }
 
 export type MediaListener = (document: MediaDocument) => void;
@@ -64,6 +67,8 @@ export class MediaStore implements MediaLibrary {
   private closing: Promise<void> | null = null;
   private readonly deleteUndo: MediaDeletion[] = [];
   private deleteRedo: MediaDeletion[] = [];
+  /** Where the files of media are that were deleted in this session. */
+  private readonly deletedFiles = new Map<string, string>();
 
   constructor(private readonly options: MediaStoreOptions) {
     this.document = options.document;
@@ -156,7 +161,16 @@ export class MediaStore implements MediaLibrary {
       const revision = this.document.revision;
       const deleting =
         edit.type === 'media.delete' || edit.type === 'media.playlist.delete';
+      const file =
+        edit.type === 'media.delete' ? this.fileOf(edit.mediaId) : null;
       const result = this.commit(change.value, deleting);
+      if (
+        edit.type === 'media.delete' &&
+        file !== null &&
+        this.document.revision !== revision
+      ) {
+        this.deletedFiles.set(edit.mediaId, file);
+      }
       if (deleting && this.document.revision !== revision) {
         const step = captureMediaDeletion(before, edit);
         if (step) this.deleteUndo.push(step);
@@ -305,7 +319,9 @@ export class MediaStore implements MediaLibrary {
 
   dispose(): Promise<void> {
     this.listeners.clear();
-    this.closing ??= this.flush().finally(() => this.saves.dispose());
+    this.closing ??= this.flush()
+      .then(() => this.discardDeleted())
+      .finally(() => this.saves.dispose());
     return this.closing;
   }
 
@@ -341,6 +357,24 @@ export class MediaStore implements MediaLibrary {
           'invalid',
           error instanceof Error ? error.message : String(error),
         ),
+      );
+    }
+  }
+
+  /**
+   * Throws away the files of media deleted in this session, once nothing can
+   * bring them back. Files outside the media folder are the operator's own.
+   */
+  private async discardDeleted(): Promise<void> {
+    const {discard, mediaFolder, log} = this.options;
+    if (discard === undefined) return;
+    const used = new Set(
+      this.document.value.items.map(item => this.fileOf(item.id)),
+    );
+    for (const file of new Set(this.deletedFiles.values())) {
+      if (used.has(file) || !isInside(file, mediaFolder)) continue;
+      await discard(file).catch((error: unknown) =>
+        log.warn('could not throw away a deleted media file', error),
       );
     }
   }

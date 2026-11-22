@@ -2,7 +2,13 @@ import {useRef, useState, useSyncExternalStore} from 'react';
 import {useShow} from '@renderer/session/show';
 import {Menu} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
-import type {MenuEntry} from '@renderer/ui/menuModel';
+import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
+import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
+import {RenameDialog} from '@renderer/features/service/list/RenameDialog';
+import {
+  renameService,
+  warningNotice,
+} from '@renderer/features/service/list/serviceEdits';
 import {useServiceActions} from '@renderer/features/service/list/useServiceActions';
 import {useServicePicker} from './useServicePicker';
 import {useServiceRowMenu} from './useServiceRowMenu';
@@ -31,6 +37,9 @@ export function useServicePickerMenu(onProblem: (notice: Notice) => void) {
   const actions = useServiceActions({onProblem, onOpen: picker.close});
   const rows = useServiceRowMenu(onProblem, picker.close, picker.select);
   const currentId = useShow(view => view.serviceId);
+  const api = window.llp;
+  const [renaming, setRenaming] = useState(false);
+  const current = picker.entries.find(entry => entry.id === currentId);
   const openAt = (element: HTMLElement): void => {
     anchorRef.current = element;
     setAnchor(element);
@@ -72,12 +81,41 @@ export function useServicePickerMenu(onProblem: (notice: Notice) => void) {
               ? []
               : [{kind: 'separator', id: 'service-actions'} as const]),
             {...actions.entries.newService, label: '새 예배…', icon: undefined},
+            {
+              kind: 'item',
+              id: 'rename-open',
+              label: '이름 바꾸기…',
+              ...menuAvailability(
+                current === undefined
+                  ? '열린 예배 없음'
+                  : current.access === 'editable'
+                    ? undefined
+                    : NEWER_FILE_REASON,
+              ),
+              onSelect: () => {
+                picker.close();
+                setRenaming(true);
+              },
+            },
           ]}
         />
       ) : null}
       {picker.guardDialog}
       {actions.dialogs}
       {rows.overlays}
+      {renaming && current !== undefined && api !== undefined ? (
+        <RenameDialog
+          name={current.name}
+          busy={false}
+          onCancel={() => setRenaming(false)}
+          onRename={async name => {
+            const done = await renameService(api, current.id, name);
+            if (done) setRenaming(false);
+            else onProblem(warningNotice('service:rename', '이름 바꾸기 실패'));
+            return done;
+          }}
+        />
+      ) : null}
     </>
   );
   return {open: picker.open, busy: picker.busy, openAt, toggleAt, overlays};

@@ -20,7 +20,7 @@ import {Panel, PanelBody, PanelTabs} from '@renderer/ui/Panel';
 import type {SizeClass} from '@renderer/ui/sizeClass';
 import {Spinner} from '@renderer/ui/Spinner';
 import {ThumbnailSizeControl} from '@renderer/ui/ThumbnailSizeControl';
-import {detailsHeading, sectionItemCount} from './detailsHeading';
+import {sectionItemCount} from './sectionItemCount';
 import {DetailsInfo} from './DetailsInfo';
 import {DetailsSlides} from './DetailsSlides';
 import {SlidePreview, usePreviewScreen} from './SlidePreview';
@@ -176,7 +176,6 @@ export function DetailsPanel({
     if (slidesItem !== undefined) onOpenItem(slidesItem.id, index);
     else if (library !== null) onOpenSong(library.songId, index);
   };
-  const {title, line} = detailsHeading(slidesItem, library, count);
   const tile = tiles[selected];
   return (
     <DetailsShell
@@ -203,10 +202,6 @@ export function DetailsPanel({
         label={tile?.caption ?? undefined}
         color={tile?.labelColor ?? 'none'}
       />
-      <div className={styles.title} title={title}>
-        {title}
-      </div>
-      <div className={styles.meta}>{line}</div>
       <Button icon="edit" onClick={() => edit(selected)}>
         편집
       </Button>

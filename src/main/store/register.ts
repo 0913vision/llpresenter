@@ -5,7 +5,7 @@ import {backupFailedProblem, type AppProblem} from '@core/schema/appProblem';
 import type {EditResult} from '@core/schema/contentEdit';
 import type {SettingsEdit} from '@core/schema/settingsDocuments';
 import type {SettingsReader} from '@core/schema/settingsReader';
-import {app, ipcMain} from 'electron';
+import {app, ipcMain, shell} from 'electron';
 import {join} from 'node:path';
 import {BibleLookupSession} from '../bible/lookup';
 import type {Logger} from '../log';
@@ -120,6 +120,7 @@ export function registerStore({
       const readySettings = await settings;
       const opened = await openMediaStore(store, {
         pictures: SUNDAY_PICTURES,
+        discard: file => shell.trashItem(file),
         settings: readySettings,
         log,
         failures: saveFailures,

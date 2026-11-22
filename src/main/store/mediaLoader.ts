@@ -29,6 +29,8 @@ import type {SaveFailureSink} from './saveFailures';
 export interface MediaStoreContext {
   readonly settings: SettingsReader | null;
   readonly pictures?: readonly BundledPicture[] | undefined;
+  /** Throws a file away that deleted media had. */
+  readonly discard?: ((file: string) => Promise<void>) | undefined;
   readonly log: Logger;
   /** Hears the files that couldn't be written, for 저장할 수 없음. */
   readonly failures?: SaveFailureSink | undefined;
@@ -37,7 +39,7 @@ export interface MediaStoreContext {
 /** Loads the media list independently and creates only a missing file. */
 export async function openMediaStore(
   store: LoadedStore,
-  {settings, log, failures, pictures}: MediaStoreContext,
+  {settings, log, failures, pictures, discard}: MediaStoreContext,
 ): Promise<{
   readonly store: MediaStore;
   readonly problems: readonly SettingsProblem[];
@@ -60,6 +62,7 @@ export async function openMediaStore(
     pictures,
     file: location.file,
     mediaFolder: store.locations.media,
+    discard,
     files: documentFiles({saver, copies, log, failures}),
     log,
   });

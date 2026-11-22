@@ -195,12 +195,16 @@ export function MediaView({
   const menuTarget = useRef<HTMLElement | undefined>(undefined);
   const [renaming, setRenaming] = useState<MediaItem | null>(null);
   const renameAfterMenu = useMenuHandoff(menu !== null, setRenaming);
+  const [picked, setPicked] = useState<ReadonlySet<string>>(new Set());
   const deleteItem = (
     item: MediaItem,
     target: HTMLElement | undefined,
   ): void => {
+    const deleted = picked.has(item.id)
+      ? (view.document?.value.items ?? []).filter(({id}) => picked.has(id))
+      : [item];
     deleteSelection(
-      1,
+      deleted.length,
       () =>
         view.document?.access === 'editable' &&
         view.document.value.items.some(value => value.id === item.id),
@@ -209,11 +213,14 @@ export function MediaView({
           target?.closest<HTMLElement>('section[aria-label="미디어 보기"]') ??
             null,
         );
-        library
-          .deleteMedia(item.id, item.name || UNNAMED_MEDIA)
-          .catch((cause: unknown) =>
-            console.error('Deleting media failed:', cause),
-          );
+        setPicked(new Set());
+        for (const {id, name} of deleted) {
+          library
+            .deleteMedia(id, name || UNNAMED_MEDIA)
+            .catch((cause: unknown) =>
+              console.error('Deleting media failed:', cause),
+            );
+        }
       },
     );
   };
@@ -236,6 +243,30 @@ export function MediaView({
   const index = entries.findIndex(({id}) => id === selected);
   const missing = (entry: MediaEntry): boolean =>
     entry.kind === 'media' && view.missing.has(entry.item.id);
+  const select = (id: string | null): void => {
+    setPicked(new Set());
+    setSelected(id);
+  };
+  const pick = (at: number, range: boolean): void => {
+    const entry = entries[at];
+    if (entry === undefined) return;
+    if (range) {
+      const from = index < 0 ? at : index;
+      const ids = entries
+        .slice(Math.min(from, at), Math.max(from, at) + 1)
+        .map(({id}) => id);
+      setPicked(new Set(ids));
+      if (index < 0) setSelected(entry.id);
+      return;
+    }
+    const base = new Set(
+      picked.size === 0 && selected !== null ? [selected] : picked,
+    );
+    if (base.has(entry.id)) base.delete(entry.id);
+    else base.add(entry.id);
+    setPicked(base);
+    setSelected(entry.id);
+  };
 
   const relink = (mediaId: MediaId, name: string): void => {
     library.relink(mediaId, name).catch((cause: unknown) => {
@@ -247,7 +278,7 @@ export function MediaView({
     if (entry === undefined || entry.kind === 'copy') return;
     if (missing(entry)) relink(entry.item.id, nameOf(entry));
     else if (workspace === 'show') output(at);
-    else setSelected(entry.id);
+    else select(entry.id);
   };
   const output = (at: number): void => {
     const entry = entries[at];
@@ -494,13 +525,16 @@ export function MediaView({
             view={display}
             fitHeight={display === 'grid' && columns === undefined}
             selected={index < 0 ? undefined : index}
-            onSelect={at => setSelected(entries[at]?.id ?? null)}
+            onSelect={at => select(entries[at]?.id ?? null)}
+            onPick={pick}
             onActivate={activate}
             onOutput={workspace === 'show' ? () => undefined : output}
             onMenu={(at, anchor) => {
               menuTarget.current = anchor.target;
               const entry = entries[at];
-              if (entry !== undefined) setSelected(entry.id);
+              if (entry !== undefined && !picked.has(entry.id)) {
+                select(entry.id);
+              }
               const choices =
                 entry === undefined
                   ? []
@@ -516,7 +550,11 @@ export function MediaView({
                   display={display}
                   missing={missing(entry)}
                   live={liveId === entry.id}
-                  selected={selected === entry.id}
+                  selected={
+                    picked.size === 0
+                      ? selected === entry.id
+                      : picked.has(entry.id)
+                  }
                 />
               );
             }}

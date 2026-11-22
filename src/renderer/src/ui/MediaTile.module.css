@@ -109,6 +109,16 @@
   box-shadow: var(--ring-live);
 }
 
+/* NOTE(0913vision): The mark of an open menu is where the one of a selected
+   tile is, so it never jumps from the picture to the whole tile. */
+.grid .tile[data-menu-target] {
+  outline: none !important;
+}
+
+.tile[data-menu-target] .frame {
+  outline: var(--outline-menu-target);
+}
+
 .tile[aria-selected='true'] .name,
 .tile[data-state~='live'] .name {
   color: var(--text);

@@ -167,6 +167,7 @@ export function useServicePicker(onProblem: (notice: Notice) => void) {
     ready,
     query,
     setQuery,
+    entries,
     visible,
     busy,
     toggle,
