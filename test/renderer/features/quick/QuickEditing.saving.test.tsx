@@ -186,9 +186,9 @@ describe('quick editing', () => {
       if (!stored || !isKnownQuickItem(stored) || stored.kind !== 'bible') {
         throw new Error('Missing saved Bible item');
       }
-      act(() =>
-        openBiblePassage(panelPassage(), {verseNumbers: !verseNumbers}),
-      );
+      act(() => {
+        openBiblePassage(panelPassage(), {verseNumbers: !verseNumbers});
+      });
       await act(async () => {
         await quickRunner(fixture.api, fixture.problem).run(stored);
       });
