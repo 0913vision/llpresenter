@@ -41,28 +41,23 @@ export function importedSongTitle(slide: ImportedSlide): string {
   return `${hymnLabel(hymn)} ${name || hymnTitle(hymn)}`;
 }
 
-function titleSlide(
-  making: SlideMaking,
+/** The texts of a title slide, and the theme for them. */
+export function titleContent(
   source: ImportedSlide,
-  common: Partial<Slide>,
-): Slide {
+): Pick<Slide, 'texts' | 'theme' | 'hymn'> {
   const {hymn, title, subtitle} = titleOf(source);
-  const light = source.light === true;
+  const themes =
+    source.light === true ? SONG_THEME_IDS.light : SONG_THEME_IDS.dark;
   if (hymn === null) {
-    return makeSlide(making, 'songTitle', {
-      ...common,
-      texts: textOf({제목: title, 부제: subtitle}),
-      ...(light ? {theme: SONG_THEME_IDS.light.title} : {}),
-    });
+    return {theme: themes.title, texts: textOf({제목: title, 부제: subtitle})};
   }
   // NOTE(0913vision): The theme writes the hymn and its title in the hymnal, so
   // only a title with other words is a text of the slide.
-  return makeSlide(making, 'songTitle', {
-    ...common,
+  return {
+    theme: themes.hymnTitle,
     hymn,
     texts: textOf({제목: isTitleOf(hymn, title) ? '' : title}),
-    theme: (light ? SONG_THEME_IDS.light : SONG_THEME_IDS.dark).hymnTitle,
-  });
+  };
 }
 
 /** The slides of a song that was imported, its title slide first. */
@@ -79,7 +74,15 @@ export function songSlides(
       ...background,
       ...(label === undefined || label === '' ? {} : {label}),
     };
-    if (source.titleSlide === true) return titleSlide(making, source, common);
+    if (source.titleSlide === true) {
+      const {theme, ...content} = titleContent(source);
+      return makeSlide(making, 'songTitle', {
+        ...common,
+        ...content,
+        // NOTE(0913vision): An ordinary title has the theme the operator uses.
+        ...(theme === SONG_THEME_IDS.dark.title ? {} : {theme}),
+      });
+    }
     return makeSlide(making, 'lyrics', {
       ...common,
       texts: textOf({가사: source.lines.join('\n')}),
