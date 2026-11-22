@@ -4200,6 +4200,51 @@ it('shows only an adjacent sermon title on stage after the last Bible slide', ()
   view.dispose();
 });
 
+it('hides saved next cue fallbacks on stage when there is no next slide', () => {
+  const {root, view} = setup();
+  if (song.slide === null) throw Error('Missing slide');
+  const elements: ThemeElement[] = [
+    {
+      ...themeElementBase(31),
+      kind: 'nextText',
+      textSlot: {
+        slotId: 'next',
+        name: 'Next',
+        role: 'nextText',
+        scope: 'screen',
+        fallback: 'Saved next',
+      },
+    },
+    {
+      ...themeElementBase(32),
+      kind: 'nextLabel',
+      textSlot: {
+        slotId: 'label',
+        name: 'Label',
+        role: 'nextLabel',
+        scope: 'screen',
+        fallback: 'Saved label',
+      },
+    },
+  ];
+  const {next: _next, ...withoutNext} = song.slide;
+  const draw = (slide: typeof song.slide) =>
+    view.render(
+      {...song, slide},
+      {
+        ...frame(elements),
+        screen: {id: THEME_MAIN, kind: 'stage'},
+        transitions: false,
+      },
+    );
+  draw(withoutNext);
+  expect(root.textContent).not.toContain('Saved next');
+  expect(root.textContent).not.toContain('Saved label');
+  draw({...withoutNext, next: {label: 'Verse', lines: ['Real next']}});
+  expect(root.textContent).toContain('Real next');
+  view.dispose();
+});
+
 it('reserves the larger next reference only when it is present', () => {
   const {root, view} = setup();
   const layout =

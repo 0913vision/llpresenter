@@ -1,3 +1,4 @@
+import {stagePassageBoundary} from '@core/presentation/stagePassageBoundary';
 import type {JSX} from 'react';
 import {liturgyAsSlides} from '@core/services/liturgy';
 import {
@@ -80,11 +81,17 @@ function biblePicture(
   ) {
     return undefined;
   }
-  const slide = slideLayerOf(
-    {itemId: item.id, index: index - offset},
-    () => bibleTiles ?? projection.tiles,
+  const tiles = bibleTiles ?? projection.tiles;
+  const position = index - offset;
+  const projected = slideLayerOf(
+    {itemId: item.id, index: position},
+    () => tiles,
   );
-  if (slide === null) return undefined;
+  if (projected === null) return undefined;
+  const {next: _next, ...withoutNext} = projected;
+  const slide = stagePassageBoundary({tiles, index: position, passage: true})
+    ? withoutNext
+    : projected;
   if (slide.sermonTitle === true && sermonTheme !== undefined) {
     return <SlidePicture {...sermonTheme} slide={slide} />;
   }

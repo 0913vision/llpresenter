@@ -1,3 +1,4 @@
+import {stagePassageBoundary} from '@core/presentation/stagePassageBoundary';
 import {rememberLiveAnchor, resolveLiveAnchor} from './liveAnchor';
 import {acceptSongPictureDrafts} from '@core/presentation/songPictureDrafts';
 import {QUICK_BIBLE_TRANSITION} from '@core/bible/quickTransition';
@@ -387,37 +388,19 @@ function suppressStageNext(live: TileCursor, next: TileCursor | null): boolean {
   const rows = useShow.getState().rows;
   const row = rows.find(entry => entry.id === live.itemId);
   const tiles = tilesOf(live.itemId);
-  const current = tiles[live.index];
-  const following =
-    next === null ? undefined : tilesOf(next.itemId)[next.index];
   const nextRow =
     next === null ? undefined : rows.find(entry => entry.id === next.itemId);
   const nextIsPassage =
     nextRow?.kind === 'bible' || passageKey(nextRow) !== undefined;
-  if (
-    current?.sermonTitle === true &&
-    next?.itemId === live.itemId &&
-    following?.sermonTitle !== true &&
-    nextIsPassage
-  ) {
-    return true;
-  }
-  if (
-    (row?.kind === 'song' || row?.kind === 'slides') &&
-    row.theme === SERMON_TITLE_THEME_ID &&
-    live.index === tiles.length - 1 &&
-    nextIsPassage
-  ) {
-    return true;
-  }
-  const isPassage = row?.kind === 'bible' || passageKey(row) !== undefined;
-  return (
-    isPassage &&
-    current?.sermonTitle !== true &&
-    current?.sectionCard === undefined &&
-    (live.index === tiles.length - 1 ||
-      tiles[live.index + 1]?.sermonTitle === true)
-  );
+  return stagePassageBoundary({
+    tiles,
+    index: live.index,
+    passage: row?.kind === 'bible' || passageKey(row) !== undefined,
+    legacyTitleBeforePassage:
+      (row?.kind === 'song' || row?.kind === 'slides') &&
+      row.theme === SERMON_TITLE_THEME_ID &&
+      nextIsPassage,
+  });
 }
 
 function stageNext(

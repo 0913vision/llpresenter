@@ -548,8 +548,17 @@ export class ThemeElementView {
         );
       }
     } else {
-      const displayedText =
-        nextAdTitle !== undefined
+      const role = isThemeTextElement(element)
+        ? (element.textSlot?.role ?? element.kind)
+        : element.kind;
+      const missingStageCue =
+        stage &&
+        slide !== null &&
+        slide.next === undefined &&
+        (role === 'nextText' || role === 'nextLabel');
+      const displayedText = missingStageCue
+        ? null
+        : nextAdTitle !== undefined
           ? nextAdTitle.trim() === ''
             ? null
             : `다음광고: ${nextAdTitle.trim()}`
