@@ -102,13 +102,18 @@ the compact 예배 순서, or the library; its right column shows the selected
   parts of one verse join in one row. Pasted text starts a 슬라이드 at each
   blank row. Leaving the last row or the first with an arrow goes on in the next
   슬라이드.
-- **The right column** shows the 슬라이드 on the screen chosen above it, the
-  texts of all its boxes and 다음 글, then 테마, 배경 (with its 맞춤, size, and
-  place for a picture), 전체 슬라이드에 적용, 이름표, and 전환. A setting
-  changes every selected 슬라이드; differing values are shown as mixed.
-- 다음 글 is what the 슬라이드 before shows on 무대. Its field shows the phrase
-  of the 테마 until the operator types a text of its own; clearing it brings the
-  phrase back.
+- **The right column** has the header of the 미리보기 panel of 진행: the name,
+  and at its right end 청중, 무대 and 방송, which choose the screen of the
+  picture. Below are the texts of the boxes, then 테마, 배경 and 이름표, and
+  전환; 전체 적용 gives the background or the transition to every 슬라이드. A
+  setting changes every selected 슬라이드; differing values are shown as mixed.
+- **기본값** is folded at the end of the column and holds what fills itself and
+  is seldom changed: boxes with a default such as 주소, 다음 글, and the place
+  of a background picture (맞춤, size, place). Each is locked and shows its
+  default until 편집 is pressed; the text then starts from the default. Pressing
+  it again locks it and puts the default back. A dot marks the group while a
+  value in it is not the default. The list view locks its columns the same way.
+- 다음 글 is what the 슬라이드 before shows on 무대.
 - 슬라이드 추가 makes one in the 테마 that follows the one before it, with the
   same background. 타이틀 adds a title of the list.
 - A media tile dropped on a 슬라이드, or on the picture at the right, becomes
@@ -351,11 +356,11 @@ name.
 
 ## 예배 순서 item settings
 
-The right column of the table shows the selected item: one 슬라이드 on the
-screen chosen above it, 편집, and the 정보 and 슬라이드 tabs. 정보 has 시작할 때
-and 메모 under 이번 예배, and what the item was made from under 원본. 슬라이드
-shows the pictures of the item in a grid with a remembered size; a double click
-opens the editor at that 슬라이드.
+The right column of the table shows the selected item: one 슬라이드 under the
+same header, then the 정보 and 슬라이드 tabs with 편집 at the right end of their
+row. 정보 has 시작할 때 and 메모 under 이번 예배, and what the item was made
+from under 원본. 슬라이드 shows the pictures of the item in a grid with a
+remembered size; a double click opens the editor at that 슬라이드.
 
 ### What belongs to the service and what belongs to the song
 

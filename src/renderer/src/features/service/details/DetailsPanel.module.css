@@ -1,7 +1,3 @@
-.panel {
-  flex: 1 1 0;
-}
-
 .title {
   margin-top: var(--space-10);
   overflow: hidden;
@@ -15,13 +11,10 @@
   font: var(--type-caption);
 }
 
-.head {
-  display: grid;
-  justify-items: start;
+.tabs {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: var(--space-8);
-  padding-bottom: var(--space-8);
-}
-
-.head > :first-child {
-  width: 100%;
+  min-height: var(--size-panel-header);
 }

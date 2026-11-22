@@ -5,7 +5,6 @@ import type {ShowTile} from '@core/schema/showService';
 import {KIND_NAMES, SCREEN_KIND_ORDER} from '@core/screens/screens';
 import {themeOfTile, useThemes} from '@renderer/platform/themes';
 import {TilePicture} from '@renderer/pictures/TilePicture';
-import {SegmentedControl} from '@renderer/ui/SegmentedControl';
 import {SlideThumbnailBand} from '@renderer/ui/SlideThumbnail';
 import styles from './SlidePreview.module.css';
 
@@ -48,35 +47,24 @@ export function SlidePreview({
 }): JSX.Element {
   const tile = tiles[index];
   return (
-    <div className={styles.preview}>
-      {screen.id === undefined ? null : (
-        <SegmentedControl
-          kind="toggle"
-          label="화면"
-          options={screen.choices}
-          value={screen.id}
-          onChange={screen.select}
-        />
-      )}
-      <div className={styles.slide}>
-        <div className={styles.picture} data-background-picture>
-          {tile === undefined ? null : (
-            <PreviewPicture
-              tiles={tiles}
-              index={index}
-              screen={screen}
-              nextAtEnd={nextAtEnd}
-            />
-          )}
-        </div>
+    <div className={styles.slide}>
+      <div className={styles.picture} data-background-picture>
         {tile === undefined ? null : (
-          <SlideThumbnailBand
-            number={index + 1}
-            label={tile.caption ?? undefined}
-            labelColor={tile.labelColor}
+          <PreviewPicture
+            tiles={tiles}
+            index={index}
+            screen={screen}
+            nextAtEnd={nextAtEnd}
           />
         )}
       </div>
+      {tile === undefined ? null : (
+        <SlideThumbnailBand
+          number={index + 1}
+          label={tile.caption ?? undefined}
+          labelColor={tile.labelColor}
+        />
+      )}
     </div>
   );
 }

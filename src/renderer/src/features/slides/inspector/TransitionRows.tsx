@@ -3,31 +3,30 @@ import {
   SLIDE_TRANSITION_LIMITS,
   type SlideTransition,
 } from '@core/schema/slideTransition';
+import {withTransition} from '@core/slides/edits';
 import {Button} from '@renderer/ui/Button';
 import {TextField} from '@renderer/ui/TextField';
 import {EffectPicture} from '@renderer/ui/SlideTransitionControl';
 import transitionStyles from '@renderer/ui/SlideTransitionControl.module.css';
 import {PropertyGroup, PropertyRow} from '@renderer/ui/PropertyRow';
-import {focusSlides} from './deckSelection';
-import styles from './SlideInspector.module.css';
-import {
-  SLIDE_EFFECTS,
-  SLIDE_DIRECTIONS,
-} from '@renderer/ui/slideTransitionChoices';
 import {
   INITIAL_SLIDE_EFFECT,
   sameSlideTransition,
+  SLIDE_DIRECTIONS,
+  SLIDE_EFFECTS,
 } from '@renderer/ui/slideTransitionChoices';
+import {focusSlides} from '../deckSelection';
+import {changeSelected, type ChosenSlides} from './changeSelected';
+import styles from './SlideInspector.module.css';
 
-/** Summarizes selected effects consistently for every item adapter. */
-export function inspectorTransition(
-  values: ReadonlyArray<SlideTransition | undefined>,
-): {readonly value: SlideTransition; readonly mixed: boolean} {
+/** The transition of several slides, or the one to start from. */
+function commonTransition(values: ReadonlyArray<SlideTransition | undefined>): {
+  readonly value: SlideTransition;
+  readonly mixed: boolean;
+} {
   const value = values[0] ?? INITIAL_SLIDE_EFFECT;
-  return {
-    value,
-    mixed: values.some(effect => !sameSlideTransition(effect, value)),
-  };
+  const mixed = values.some(effect => !sameSlideTransition(effect, value));
+  return {value: mixed ? INITIAL_SLIDE_EFFECT : value, mixed};
 }
 
 function TimeField({
@@ -88,32 +87,31 @@ function TimeField({
   );
 }
 
-export interface TransitionSectionProps {
-  readonly allowAll?: boolean | undefined;
-  readonly value: SlideTransition;
-  readonly mixed: boolean;
-  readonly disabled: boolean;
-  readonly selectionKey: string;
-  readonly onChange: (transition: SlideTransition) => void;
-  readonly onSeconds: (seconds: number) => void;
-  readonly onApplyAll: () => void;
-}
-
-/** The same effect, direction, duration and apply-all rows for every item. */
-export function TransitionSection({
-  value,
-  mixed,
-  disabled,
-  selectionKey,
-  onChange,
-  onSeconds,
-  onApplyAll,
-  allowAll = true,
-}: TransitionSectionProps): JSX.Element {
-  const locked = disabled;
-  const set = onChange;
+/** The transition the selected slides come in with. */
+export function TransitionRows({deck, chosen}: ChosenSlides): JSX.Element {
+  const {value, mixed} = commonTransition(
+    chosen.map(slide => slide.transition),
+  );
+  const locked = deck.readOnly;
+  const set = (transition: SlideTransition): void =>
+    changeSelected(deck, slide => withTransition(slide, transition));
   return (
-    <PropertyGroup title="전환">
+    <PropertyGroup
+      title="전환"
+      action={
+        <Button
+          title="전체 슬라이드에 적용"
+          disabled={locked || mixed || deck.slides.length < 2}
+          onClick={() =>
+            deck.edit(slides =>
+              slides.map(slide => withTransition(slide, value)),
+            )
+          }
+        >
+          전체 적용
+        </Button>
+      }
+    >
       <div className={styles.transitionRows}>
         <PropertyRow label="효과">
           {() => (
@@ -180,26 +178,20 @@ export function TransitionSection({
         <PropertyRow label="시간">
           {({controlId}) => (
             <TimeField
-              key={`${selectionKey}:${value.kind}`}
+              key={`${chosen.map(slide => slide.id).join(',')}:${value.kind}`}
               id={controlId}
               value={value.sec}
               mixed={mixed}
               disabled={locked || (!mixed && value.kind === 'none')}
               empty={!mixed && value.kind === 'none'}
-              onCommit={onSeconds}
+              onCommit={sec =>
+                changeSelected(deck, slide =>
+                  slide.transition === undefined
+                    ? slide
+                    : withTransition(slide, {...slide.transition, sec}),
+                )
+              }
             />
-          )}
-        </PropertyRow>
-        <PropertyRow label="">
-          {() => (
-            <Button
-              className={styles.full}
-              size="md"
-              disabled={locked || mixed || !allowAll}
-              onClick={onApplyAll}
-            >
-              전체 슬라이드에 적용
-            </Button>
           )}
         </PropertyRow>
       </div>

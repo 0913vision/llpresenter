@@ -9,7 +9,6 @@ import {watchInputModality} from '@renderer/ui/inputModality';
 import {NotificationStack} from '@renderer/ui/Notification';
 import {addNotice, removeNotice, type Notice} from '@renderer/ui/notices';
 import {Panel} from './shell/WorkspacePanel';
-import panelStyles from './shell/Workspace.module.css';
 import styles from './ScreensWindow.module.css';
 import type {CloseFlush} from './closeFlush';
 import {SavingDialog} from './SavingDialog';
@@ -87,11 +86,7 @@ function ScreensContent({
             />
           </div>
         </header>
-        <main
-          ref={body}
-          className={`${styles.columns} ${panelStyles.screenSettings}`}
-          aria-label="화면 설정"
-        >
+        <main ref={body} className={styles.columns} aria-label="화면 설정">
           <div className={styles.column}>
             <Panel
               title="화면"

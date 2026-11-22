@@ -208,11 +208,7 @@ export function Workspace({
     <div
       data-size={sizeClass}
       inert={!visible}
-      className={classNames(
-        styles.columns,
-        collapsed && styles.leftCollapsed,
-        workspace === 'screens' && styles.screenSettings,
-      )}
+      className={classNames(styles.columns, collapsed && styles.leftCollapsed)}
     >
       {panelColumns(workspace, panels, collapsed)}
     </div>

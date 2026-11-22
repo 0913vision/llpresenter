@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useState, type JSX, type ReactNode} from 'react';
+import {useEffect, useMemo, useState, type JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {ServiceItemId, SongId} from '@core/schema/ids';
 import {hasSlides, isItemOfKind} from '@core/schema/service';
@@ -13,7 +13,7 @@ import {outputSlideOf} from '@renderer/session/show';
 import {Button} from '@renderer/ui/Button';
 import {GridFooter} from '@renderer/ui/GridFooter';
 import {noticeTime} from '@renderer/ui/notices';
-import {Panel, PanelBody, PanelTabs} from '@renderer/ui/Panel';
+import {PanelTabs} from '@renderer/ui/Panel';
 import type {SizeClass} from '@renderer/ui/sizeClass';
 import {Spinner} from '@renderer/ui/Spinner';
 import {ThumbnailSizeControl} from '@renderer/ui/ThumbnailSizeControl';
@@ -25,31 +25,18 @@ import {
   SlidePreview,
   usePreviewScreen,
 } from '../../slides/SlidePreview';
+import {SlideSidePanel} from '../../slides/SlideSidePanel';
 import styles from './DetailsPanel.module.css';
 
 export type DetailsTarget =
   | {readonly kind: 'item'; readonly itemId: ServiceItemId}
   | {readonly kind: 'song'; readonly songId: SongId};
 
+const LABEL = '세부정보';
 const tabs = [
   {value: 'info', label: '정보'},
   {value: 'slides', label: '슬라이드'},
 ] as const;
-
-function DetailsShell({
-  children,
-  footer,
-}: {
-  readonly children?: ReactNode;
-  readonly footer?: ReactNode;
-}): JSX.Element {
-  return (
-    <Panel label="세부정보" className={styles.panel}>
-      <PanelBody>{children}</PanelBody>
-      {footer}
-    </Panel>
-  );
-}
 
 /** The song of the library that is selected. */
 function useLibrarySong(
@@ -130,21 +117,21 @@ export function DetailsPanel({
   );
   if (item !== undefined && isItemOfKind(item, 'header')) {
     return (
-      <DetailsShell>
+      <SlideSidePanel label={LABEL}>
         <div className={styles.title} title={item.name}>
           {item.name}
         </div>
         <div className={styles.meta}>
           구역, 항목 {sectionItemCount(order ?? [], item.id)}개
         </div>
-      </DetailsShell>
+      </SlideSidePanel>
     );
   }
   if (slidesItem === undefined && library === null) {
     return (
-      <DetailsShell>
+      <SlideSidePanel label={LABEL}>
         {songId !== null ? <Spinner size="sm" /> : null}
-      </DetailsShell>
+      </SlideSidePanel>
     );
   }
   const count = tiles.length;
@@ -163,7 +150,9 @@ export function DetailsPanel({
     else if (library !== null) onOpenSong(library.songId, index);
   };
   return (
-    <DetailsShell
+    <SlideSidePanel
+      label={LABEL}
+      screen={screen}
       footer={
         tab === 'slides' ? (
           <GridFooter
@@ -180,17 +169,17 @@ export function DetailsPanel({
         ) : null
       }
     >
-      <div className={styles.head}>
-        <SlidePreview {...preview} index={selected} />
+      <SlidePreview {...preview} index={selected} />
+      <div className={styles.tabs}>
+        <PanelTabs
+          tabs={tabs}
+          value={tab}
+          onChange={value => setTab({key, value})}
+        />
         <Button icon="edit" onClick={() => edit(selected)}>
           편집
         </Button>
       </div>
-      <PanelTabs
-        tabs={tabs}
-        value={tab}
-        onChange={value => setTab({key, value})}
-      />
       {tab === 'info' ? (
         <DetailsInfo
           item={slidesItem}
@@ -214,6 +203,6 @@ export function DetailsPanel({
           picture={index => <PreviewPicture {...preview} index={index} />}
         />
       )}
-    </DetailsShell>
+    </SlideSidePanel>
   );
 }

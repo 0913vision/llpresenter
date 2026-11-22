@@ -34,7 +34,7 @@ import type {SlideDeck} from './slideDeck';
 import {shownColumns, useSlideColumns} from './slideColumns';
 import {SlideRow} from './SlideRow';
 import {useSlideSurfaceView} from './SlideSurfaceView';
-import {splitAtCaret} from './SlideTextField';
+import {splitAtCaret} from './deckTexts';
 import {useRevealInsertedSlide} from './useRevealInsertedSlide';
 import {GRID_GAP, useSlideRowWindow} from './useSlideRowWindow';
 import styles from './SlideEditor.module.css';

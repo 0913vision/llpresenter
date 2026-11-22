@@ -8,6 +8,13 @@
   color: var(--text-3);
 }
 
+.name {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: var(--size-control-sm);
+}
+
 .input {
   box-sizing: border-box;
   width: 100%;

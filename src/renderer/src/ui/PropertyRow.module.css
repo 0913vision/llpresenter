@@ -52,6 +52,32 @@
   font: var(--type-caption-strong);
 }
 
+.fold {
+  width: 100%;
+  min-height: var(--size-control-sm);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  text-align: start;
+}
+
+.fold:hover {
+  color: var(--text);
+}
+
+.fold:focus-visible {
+  outline: none;
+  box-shadow: var(--ring-focus);
+}
+
+.mark {
+  width: var(--space-6);
+  height: var(--space-6);
+  border-radius: var(--radius-full);
+  background: var(--accent);
+}
+
 .row {
   display: flex;
   align-items: center;

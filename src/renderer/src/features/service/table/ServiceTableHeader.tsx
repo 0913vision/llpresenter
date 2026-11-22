@@ -4,7 +4,7 @@ import styles from './ServiceTable.module.css';
 
 const COLUMNS = [
   ['슬라이드', styles.slides],
-  ['시작할 때', styles.start],
+  ['시작할 때', undefined],
   ['메모', styles.memo],
 ] as const;
 

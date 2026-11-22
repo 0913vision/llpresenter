@@ -4,7 +4,7 @@ import type {Slide} from '@core/schema/slide';
 import type {SlideSource} from '@core/slides/tiles';
 import {BackgroundDrop} from '@renderer/features/slides/BackgroundDrop';
 import {SlideEditor} from '@renderer/features/slides/SlideEditor';
-import {SlideInspector} from '@renderer/features/slides/SlideInspector';
+import {SlideInspector} from '@renderer/features/slides/inspector/SlideInspector';
 import {
   useDeckTiles,
   type SlideDeck,

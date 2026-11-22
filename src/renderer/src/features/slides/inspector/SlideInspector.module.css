@@ -30,14 +30,23 @@
   min-width: 0;
 }
 
-.themeRow {
+.withAction {
   display: flex;
   gap: var(--space-8);
   width: 100%;
   min-width: 0;
 }
 
-.themeRow > :first-child {
+.withAction > :first-child {
   flex: 1 1 0;
   min-width: 0;
+}
+
+.placeHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: var(--property-row-height);
+  color: var(--text-2);
+  font: var(--type-label);
 }

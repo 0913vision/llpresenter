@@ -1,9 +1,3 @@
-.preview {
-  display: grid;
-  justify-items: start;
-  gap: var(--space-8);
-}
-
 .slide {
   width: 100%;
 }

@@ -267,15 +267,67 @@ it('switches the columns of a theme on and off', async () => {
   expect(within(row(1)).queryByRole('textbox', {name: '다음 글'})).toBeNull();
 });
 
-it('keeps a next text of its own until it is cleared', async () => {
-  const {current} = renderEditor(song());
-  await userEvent.click(row(2));
-  const next = inspector().getByRole('textbox', {name: '다음 글'});
-  expect(next.getAttribute('placeholder')).toBe('빛을 따라가요');
-  await userEvent.type(next, '후렴으로');
-  expect(current.slides[2]?.next).toBe('후렴으로');
-  await userEvent.clear(next);
-  expect(current.slides[2]?.next).toBeUndefined();
+describe('what fills itself', () => {
+  const defaults = () => inspector().queryByRole('button', {name: /^기본값/u});
+  const open = async () => {
+    const group = defaults();
+    if (group?.getAttribute('aria-expanded') === 'false') {
+      await userEvent.click(group);
+    }
+  };
+  const next = () => {
+    const found = inspector().getByRole('textbox', {name: '다음 글'});
+    if (!(found instanceof HTMLTextAreaElement)) throw new Error('No field');
+    return found;
+  };
+
+  it('is folded away and locked until it is opened', async () => {
+    const {current} = renderEditor(song());
+    await userEvent.click(row(2));
+    expect(inspector().queryByRole('textbox', {name: '다음 글'})).toBeNull();
+    await open();
+    expect(next().placeholder).toBe('빛을 따라가요');
+    expect(next().readOnly).toBe(true);
+    await userEvent.type(next(), '후렴으로');
+    expect(current.slides[2]?.next).toBeUndefined();
+  });
+
+  it('starts from its default, and goes back to it when it is locked', async () => {
+    const {current} = renderEditor(song());
+    await userEvent.click(row(2));
+    await open();
+    await userEvent.click(inspector().getByRole('button', {name: '편집'}));
+    expect(next().value).toBe('빛을 따라가요');
+    await userEvent.type(next(), ' 다시');
+    expect(current.slides[2]?.next).toBe('빛을 따라가요 다시');
+    expect(inspector().getByRole('img', {name: '바꾼 값 있음'})).toBeTruthy();
+    await userEvent.click(
+      inspector().getByRole('button', {name: '기본값으로'}),
+    );
+    expect(current.slides[2]?.next).toBeUndefined();
+    expect(next().readOnly).toBe(true);
+  });
+
+  it('stays open for editing while its text is emptied', async () => {
+    const {current} = renderEditor(song());
+    await userEvent.click(row(2));
+    await open();
+    await userEvent.click(inspector().getByRole('button', {name: '편집'}));
+    await userEvent.clear(next());
+    expect(current.slides[2]?.next).toBeUndefined();
+    await userEvent.type(next(), '후렴으로');
+    expect(current.slides[2]?.next).toBe('후렴으로');
+    fireEvent.click(row(1));
+    expect(next().readOnly).toBe(true);
+  });
+
+  it('is only shown for one slide', async () => {
+    renderEditor(song());
+    await userEvent.click(row(1));
+    await open();
+    fireEvent.click(row(2), {shiftKey: true});
+    expect(defaults()).toBeNull();
+  });
 });
 
 it('sets the theme of every selected slide', async () => {
@@ -302,9 +354,7 @@ it('gives every slide the transition of the selected one', async () => {
   );
   const {current} = renderEditor(slides);
   await userEvent.click(row(1));
-  const [, apply] = inspector().getAllByRole('button', {
-    name: '전체 슬라이드에 적용',
-  });
+  const [, apply] = inspector().getAllByRole('button', {name: '전체 적용'});
   if (apply === undefined) throw new Error('Missing button');
   await userEvent.click(apply);
   expect(current.slides.map(slide => slide.transition)).toEqual(
@@ -378,11 +428,37 @@ describe('the background of a slide', () => {
     };
     await choose('따뜻한 빛');
     expect(current.slides[0]?.background).toEqual({kind: 'media', media: warm});
-    expect(inspector().getByRole('button', {name: '맞춤'})).toBeTruthy();
     await choose('없음');
     expect(current.slides[0]?.background).toEqual({kind: 'none'});
     await choose('테마 배경');
     expect(current.slides[0]?.background).toBeUndefined();
+  });
+
+  it('is placed only after its place is opened, and put back by locking it', async () => {
+    const {current} = renderEditor(
+      song().map(slide => ({
+        ...slide,
+        background: {kind: 'media' as const, media: warm},
+      })),
+    );
+    const group = inspector().getByRole('button', {name: '기본값'});
+    if (group.getAttribute('aria-expanded') === 'false') {
+      await userEvent.click(group);
+    }
+    expect(inspector().queryByRole('button', {name: '맞춤'})).toBeNull();
+    const place = within(inspector().getByRole('group', {name: '배경 위치'}));
+    await userEvent.click(place.getByRole('button', {name: '편집'}));
+    const size = place.getByRole('spinbutton', {name: '크기'});
+    await userEvent.clear(size);
+    await userEvent.type(size, '150{Enter}');
+    expect(current.slides[0]?.background).toEqual({
+      kind: 'media',
+      media: warm,
+      area: {x: 0, y: 0, scale: 1.5},
+    });
+    await userEvent.click(place.getByRole('button', {name: '기본값으로'}));
+    expect(current.slides[0]?.background).toEqual({kind: 'media', media: warm});
+    expect(inspector().queryByRole('button', {name: '맞춤'})).toBeNull();
   });
 
   it('is given to every slide', async () => {
@@ -393,9 +469,7 @@ describe('the background of a slide', () => {
           : slide,
       ),
     );
-    const [apply] = inspector().getAllByRole('button', {
-      name: '전체 슬라이드에 적용',
-    });
+    const [apply] = inspector().getAllByRole('button', {name: '전체 적용'});
     if (apply === undefined) throw new Error('Missing button');
     await userEvent.click(apply);
     expect(

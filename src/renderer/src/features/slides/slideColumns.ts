@@ -2,9 +2,7 @@ import {create} from 'zustand';
 import type {SlideColumns} from '@core/schema/slideColumns';
 import type {ThemeFile} from '@core/schema/theme';
 import type {UiState} from '@core/schema/uiState';
-
-/** The column of the text that the slide before shows. */
-export const NEXT_BOX = '다음 글';
+import {boxesOf, NEXT_BOX} from '@core/slides/boxes';
 
 const useColumns = create<{readonly columns: SlideColumns}>(() => ({
   columns: {},
@@ -21,17 +19,12 @@ function firstState(theme: ThemeFile, box: string): boolean {
     : (theme.boxes.find(entry => entry.name === box)?.column ?? false);
 }
 
-/** Every column a theme has, in their order. */
-export function columnsOf(theme: ThemeFile): readonly string[] {
-  return [...theme.boxes.map(box => box.name), NEXT_BOX];
-}
-
 /** The columns the list of slides shows for slides with a theme. */
 export function shownColumns(
   theme: ThemeFile,
   columns: SlideColumns,
 ): readonly string[] {
-  return columnsOf(theme).filter(
+  return boxesOf(theme).filter(
     box => columns[theme.id]?.[box] ?? firstState(theme, box),
   );
 }

@@ -71,7 +71,7 @@ export function ServiceTableCells({
       </span>
       {own === undefined ? (
         <>
-          <span className={classNames(styles.cell, styles.start)} />
+          <span className={styles.cell} />
           <span className={classNames(styles.cell, styles.memo)} />
         </>
       ) : (
@@ -80,7 +80,6 @@ export function ServiceTableCells({
             label={`시작할 때, ${rowLabel}`}
             text={macro?.name ?? (own.macro === undefined ? '' : MISSING_MACRO)}
             dim={macro === undefined}
-            width={styles.start}
             reason={reason}
             entries={macroEntries({
               current: macro,

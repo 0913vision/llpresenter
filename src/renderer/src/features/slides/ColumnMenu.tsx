@@ -1,17 +1,13 @@
 import {useState, type JSX} from 'react';
 import type {ShowTile} from '@core/schema/showService';
+import {boxesOf} from '@core/slides/boxes';
 import {themeOf} from '@core/theme/themes';
 import {useThemes} from '@renderer/platform/themes';
 import {Button} from '@renderer/ui/Button';
 import {Menu} from '@renderer/ui/Menu';
 import {menuButtonProps} from '@renderer/ui/menuButton';
 import type {MenuEntry} from '@renderer/ui/menuModel';
-import {
-  columnsOf,
-  shownColumns,
-  toggleColumn,
-  useSlideColumns,
-} from './slideColumns';
+import {shownColumns, toggleColumn, useSlideColumns} from './slideColumns';
 
 /** Chooses which texts of the slides have a column in the list. */
 export function ColumnMenu({
@@ -30,7 +26,7 @@ export function ColumnMenu({
     const shown = new Set(shownColumns(theme, columns));
     return [
       {kind: 'group', id: theme.id, label: theme.name},
-      ...columnsOf(theme).map((box): MenuEntry => ({
+      ...boxesOf(theme).map((box): MenuEntry => ({
         kind: 'item',
         id: `${theme.id}:${box}`,
         label: box,

@@ -23,7 +23,7 @@ import {BackgroundDrop} from '../slides/BackgroundDrop';
 import {addReason, addSlides} from '../slides/deckCommands';
 import {SlideEditor} from '../slides/SlideEditor';
 import styles from '../slides/SlideEditorHeader.module.css';
-import {SlideInspector} from '../slides/SlideInspector';
+import {SlideInspector} from '../slides/inspector/SlideInspector';
 import {useDeckTiles, type SlideDeck} from '../slides/slideDeck';
 import {songUsage} from './library/songUsage';
 import {
@@ -93,7 +93,7 @@ function SongHeader({
   const usage = songUsage(library, libraryStatus, draft.song.id);
   return (
     <header className={styles.header}>
-      <Button className={styles.back} onClick={onBack}>
+      <Button onClick={onBack}>
         ‹ 라이브러리
       </Button>
       {unsaved ? (

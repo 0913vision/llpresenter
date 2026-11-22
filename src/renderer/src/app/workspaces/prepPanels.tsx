@@ -34,7 +34,6 @@ import {
   type WorkspacePanels,
 } from '../shell/WorkspacePanel';
 import {SERVICE_ORDER, serviceOrderParts} from './serviceOrderPanel';
-import styles from '../shell/Workspace.module.css';
 
 const COLUMNS = [['라이브러리'], [SERVICE_ORDER], ['세부정보']] as const;
 const ITEM_COLUMNS = [[SERVICE_ORDER], ['편집'], ['슬라이드 속성']] as const;
@@ -224,9 +223,7 @@ export function usePrepPanels({
       case '편집':
         return {embedded: editor?.editor};
       case '슬라이드 속성':
-        return {
-          embedded: <div className={styles.inspector}>{editor?.inspector}</div>,
-        };
+        return {embedded: editor?.inspector};
       case '세부정보':
         return {
           embedded: (

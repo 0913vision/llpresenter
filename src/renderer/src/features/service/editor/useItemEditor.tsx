@@ -5,7 +5,7 @@ import {useLabelColors} from '@renderer/features/labels/labels';
 import {BackgroundDrop} from '@renderer/features/slides/BackgroundDrop';
 import {SlideEditor} from '@renderer/features/slides/SlideEditor';
 import styles from '@renderer/features/slides/SlideEditorHeader.module.css';
-import {SlideInspector} from '@renderer/features/slides/SlideInspector';
+import {SlideInspector} from '@renderer/features/slides/inspector/SlideInspector';
 import {
   useDeckTiles,
   useItemDeck,
@@ -45,9 +45,7 @@ function ItemHeader({
   const {item} = deck;
   return (
     <header className={styles.header}>
-      <Button className={styles.back} onClick={onBack}>
-        ‹ {serviceName || '예배 순서'}
-      </Button>
+      <Button onClick={onBack}>‹ {serviceName || '예배 순서'}</Button>
       <div className={styles.title}>
         <RenameText
           key={deck.id}

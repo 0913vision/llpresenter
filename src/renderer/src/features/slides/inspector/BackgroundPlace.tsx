@@ -13,6 +13,16 @@ const FITS = [
   {value: 'stretch', label: '늘리기'},
 ] as const;
 
+/** Whether a picture is anywhere else than where every picture is at first. */
+export function isPlaced({fit, area}: Picture): boolean {
+  return area !== undefined || (fit !== undefined && fit !== 'fill');
+}
+
+export function unplaced(picture: Picture): Picture {
+  const {fit: _fit, area: _area, ...kept} = picture;
+  return kept;
+}
+
 const WHOLE: Area = {x: 0, y: 0, scale: 1};
 const PERCENT = 100;
 const SCALE = {min: 10, max: 400};
