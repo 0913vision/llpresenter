@@ -196,10 +196,6 @@ The live 테마 lays out every screen (12). A screen draws, from the bottom up:
   black (`output-black`) by default, and chroma key green for the 방송 화면
   capture window (12, "Empty screens").
 - Audio is a layer without a picture. It exists only as a unit for clearing.
-- Only while no 테마 composition exists (before `themes.json` is read), the
-  output draws the legacy layers: background media, lyrics in the 기본 text
-  style, and the stage message. Once a 테마 composition exists, the legacy
-  content layers draw nothing.
 
 Source: `Outputs`, `ClearButton` README, design system README (output
 colors), 12.
@@ -512,15 +508,15 @@ Source: `Overlays`, `ShowH` (target screens in the showing list), product log
 - The app doesn't broadcast. It makes only the 방송 화면 screen. OBS takes it
   and lays it over the camera picture.
 - The default themes draw their built-in broadcast look over the screen's
-  background, including the glass box, song caption and section card (12).
+  background, including the glass box and the song caption (12).
 - On transparent NDI output, a theme or media dissolve fades the outgoing page
   out as the incoming page fades in, over the same duration and linear curve.
   Opaque outputs retain the outgoing page behind the incoming page until the
   dissolve ends; cuts, pushes, and wipes retain their existing behavior.
 - NDI omits the screen background and the legacy media-kind caption band; the
-  built-in broadcast look retains its box, song caption and card. OBS needs a
-  compatible version, DistroAV, and the NDI Runtime. Network controls and the
-  display layout receiver count remain later work (09).
+  built-in broadcast look retains its box and caption. OBS needs a compatible
+  version, DistroAV, and the NDI Runtime. Network controls and the display
+  layout receiver count remain later work (09).
 - NDI hardware acceleration is optional and on by default. The offscreen GPU
   capture stays stopped until the sender utility is ready, then starts with a
   full capture frame; a fresh frame request restarts capture. Shared-texture
@@ -541,14 +537,10 @@ the window as fallback), `Main` decision "방송 화면은 NDI로", `Screens`,
 
 ## 무대 화면
 
-The live 테마 lays out the 무대 화면 like the other screens (12). The clock,
-timer, and memo elements appear where the theme places them. Memo is offered
-only on the stage screen. Over a picture slide or picture item, the stage clock
-and visible timer have an opaque black backing fitted to their text, with a
-small margin; the picture remains full size. Text and lyric slides keep their
-existing appearance. A stage message appears above the theme in a full-width
-bottom band, including on the standby screen. It shows up to three lines and
-truncates longer text with an ellipsis.
+The 테마 of the live 슬라이드 lays out the 무대 화면 like the other screens
+(12). The clock and the chosen timer are at the top left on black, so they stay
+readable over a picture. The stage message is one row on a red band along the
+bottom, above everything; a message longer than the band flows to the left.
 
 A song slide labelled 전주 shows the (전주) cue on stage whether it contains
 lyrics, a title, or no extracted text, including a picture-backed slide.
@@ -556,8 +548,7 @@ lyrics, a title, or no extracted text, including a picture-backed slide.
 - The control window sends the next 슬라이드 with the live one, from the
   sequence it already walks, and main checks it like the rest of the command
   (lead decision, October 26). If the item deck changes while a 슬라이드 is
-  live, the 다음 슬라이드 글 and 다음 이름표 elements update with the next
-  슬라이드 sent.
+  live, its next text follows at once.
 
 Source: `Overlays` 무대 tab, 12.
 

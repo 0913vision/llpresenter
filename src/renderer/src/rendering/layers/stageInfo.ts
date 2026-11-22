@@ -18,6 +18,9 @@ function corner(): HTMLElement {
     lineHeight: '1.2',
     whiteSpace: 'pre',
     transformOrigin: 'top left',
+    // NOTE(0913vision): A picture behind them must not make them unreadable.
+    padding: '0 12px',
+    background: '#000000',
   });
   return box;
 }
@@ -50,14 +53,14 @@ export const stageInfoLayer: LayerDefinition = {
           timeZone: now?.timeZone,
         }),
       );
-      write(
-        timer,
+      const left =
         frame.stageTimerId === undefined ||
-          frame.timers === undefined ||
-          now === undefined
+        frame.timers === undefined ||
+        now === undefined
           ? ''
-          : fillTimerTokens(`{timer:${frame.stageTimerId}}`, frame.timers, now),
-      );
+          : fillTimerTokens(`{timer:${frame.stageTimerId}}`, frame.timers, now);
+      write(timer, left);
+      timer.hidden = left === '';
     };
     const follow = (): void => {
       const ticks = screen !== undefined && frame?.standby !== true;
@@ -75,8 +78,8 @@ export const stageInfoLayer: LayerDefinition = {
         follow();
       },
       rescale: scale => {
-        clock.style.transform = `translate(${40 * scale}px, ${24 * scale}px) scale(${scale})`;
-        timer.style.transform = `translate(${40 * scale}px, ${100 * scale}px) scale(${scale})`;
+        clock.style.transform = `translate(${28 * scale}px, ${24 * scale}px) scale(${scale})`;
+        timer.style.transform = `translate(${28 * scale}px, ${100 * scale}px) scale(${scale})`;
       },
       dispose: () => {
         if (ticker !== null) clearInterval(ticker);

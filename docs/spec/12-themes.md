@@ -1,31 +1,20 @@
-# 테마, 오버레이, and per-item screens
+# 테마 and 오버레이
 
-Status: M4. The concept was agreed with the user on October 30, and the open
-points on October 31 (the approval page, accepted as proposed).
-
-This file is the single source for what a screen shows. 메시지 styles and 그래픽
+Status: rewritten on November 22 and 23 with the user's model. This file is the
+single source for what a 슬라이드 shows on a screen. 메시지 styles and 그래픽
 keep their own files and behavior.
 
 ## Why
 
-The user's needs (October 30):
+The user's needs (October 30 and November 22):
 
-1. Each 예배 순서 item can lay out its screens differently.
-2. Some items show completely different things on each screen.
-3. Some items leave a screen unused.
-4. Each item places elements freely on each screen.
-5. The freedom is limited, like a very simple Photoshop.
-
-Showing or hiding layers, with one 배경 layer for every screen, cannot give
-"video A on the 청중 화면, video B on the 무대 화면, lyrics on the 방송 화면".
-ProPresenter's Looks turn layers on and off per screen (S4 pp. 37 to 38), so
-they have the same limit. A 테마 sets the elements of each screen itself.
+1. Every 슬라이드 can lay out the screens differently, and some show completely
+   different things on each screen.
+2. A theme is the whole frame, as a slide master is in PowerPoint. The 슬라이드
+   only fills it, whatever kind of item it belongs to.
+3. The operator edits a theme freely and sees every value of it in one place.
 
 ## The model
-
-This section is the rule. Where a later section still describes a 테마 of an
-item, an element that takes its content from a kind, or a clock, timer, or stage
-message inside a 테마, this section replaces it.
 
 - **A 슬라이드 has a 테마.** An item has no 테마 and no background. One item can
   hold 슬라이드 of different 테마: a 설교 has 설교 제목, 말씀 본문, and 설교
@@ -62,219 +51,101 @@ message inside a 테마, this section replaces it.
 
 ## Concepts
 
-- A 테마 (theme) is a saved preset that sets all three screens at once: 청중
-  화면, 무대 화면, and 방송 화면.
-- Each screen of a 테마 has one mode:
-  - 직접 배치 (own layout): the screen has its own canvas of elements.
-  - `<screen>`과 동일 (same as another screen): a live link. The screen always
-    shows exactly what the named screen shows, including later edits. It is not
-    a copy.
-  - 비움 (empty): nothing from the item. The screen shows its empty color (see
-    "Empty screens").
-- A screen with no layout in a 테마, such as one added in 화면 설정 after the
-  테마 was made, takes the mode `<first screen of its kind>`과 동일 in every
-  테마, so it shows what its group shows the moment it is added. The first
-  screen of a kind with no layout is 비움. Picking a mode and then the earlier
-  one back leaves the 테마 without edits. If the first screen of a kind is
-  deleted or moved, the screens that follow it by default follow the new first
-  screen.
-- Ctrl Z and Ctrl Y (실행 취소, 다시 실행) in the 테마 workspace step through
-  the unsaved edits of the working copy, mode changes included, back to the last
-  save.
+- A 테마 sets all three screens at once: 청중 화면, 무대 화면, and 방송 화면.
+  Each screen of it has one mode: 직접 배치 (its own elements), `<화면>과 동일`
+  (a live link to another screen of the 테마), or 비움 (nothing; the screen
+  shows its 빈 화면 색). Screens of one kind show the same layout; a screen that
+  must differ has its own in `others`.
+- A 테마 has a purpose (쓰임): 찬양 제목, 찬양 가사, 설교 제목, 말씀 본문, 광고,
+  타이틀, 사도신경과 주기도문, 예배 준비, 대기 화면, 빈 슬라이드, 이미지, 영상.
+  A 슬라이드 offers the 테마 of its purpose. The operator picks which 테마 a new
+  슬라이드 of a purpose gets.
 - A canvas is 1920 x 1080 reference pixels. Every size and position is in
-  reference pixels and scales to the screen's real resolution.
+  reference pixels and scales to the screen.
 - The editor fits that canvas to a measurement area independent of its
-  scrollbars. Selecting an element, dragging, typing or editing a property keeps
-  the canvas size and position unchanged. Selection handles fit inside the
-  reserved canvas margin; only explicit zoom or workspace resizing changes the
-  fit.
-- An element is one of a fixed set of kinds (see "Elements"). There are no
-  free-form objects.
-- Every 예배 순서 item uses one 테마: the one it names, or else the default 테마
-  of its kind (곡, 성경, 미디어).
-- The 대기 화면 (standby screen) is a special 테마 that shows when nothing is
-  live. See "항목 끄기 and the 대기 화면".
-- An 오버레이 (overlay) is content that stays on screen across a range of
-  슬라이드 in one item. See "오버레이".
+  scrollbars. Selecting an element, dragging, typing, or editing a property
+  keeps the canvas size and position.
 
 ## Elements
 
-| Element          | Content comes from                                                                                 | Screens        | Per screen |
-| ---------------- | -------------------------------------------------------------------------------------------------- | -------------- | ---------- |
-| 현재 슬라이드 글 | The live 슬라이드's text: lyrics or a Bible verse                                                  | All            | One        |
-| 성경 출처        | The live Bible 슬라이드's reference, or its item's whole passage range                             | All            | One        |
-| 다음 슬라이드 글 | The next 슬라이드's text                                                                           | All            | One        |
-| 이름표           | The live 슬라이드's 이름표                                                                         | All            | One        |
-| 다음 이름표      | The next 슬라이드's 이름표                                                                         | All            | One        |
-| 미디어           | The live 슬라이드 when it is a photo or a video                                                    | All            | One        |
-| 배경             | The item's background (the 곡 배경 today)                                                          | All            | One        |
-| 오버레이         | The item's 오버레이 for the live 슬라이드                                                          | All            | One        |
-| 항목 이름        | The live item's name                                                                               | All            | One        |
-| 슬라이드 이름    | The live 슬라이드's name (`slideName`), an 광고 text slide's name; empty otherwise                 | All            | One        |
-| 슬라이드 번호    | The live 광고 text slide's position among text slides, 1-based; empty for pictures and other kinds | All            | One        |
-| 글               | Fixed text written in the 테마                                                                     | All            | Several    |
-| 이미지           | A fixed user image or bundled theme picture                                                        | All            | Several    |
-| 사각형           | A filled box                                                                                       | All            | Several    |
-| 시계             | The current time                                                                                   | All            | One        |
-| 타이머           | A 타이머 picked in the element                                                                     | All            | Several    |
-| 영상 남은 시간   | Time left of the video playing on the media layer                                                  | All            | One        |
-| 메모             | The live 슬라이드's memo                                                                           | 무대 화면 only | One        |
+| Element | What it shows                                                                                                  | Per screen |
+| ------- | -------------------------------------------------------------------------------------------------------------- | ---------- |
+| 글      | A text made of named boxes, values, and fixed words. The first of its templates that has all its values shows. | Several    |
+| 다음 글 | What the next 슬라이드 lets this one show                                                                      | One        |
+| 그림    | A fixed picture: a user image or one of the app's                                                              | Several    |
+| 도형    | A rectangle with a fill, a border, a radius, and a shadow                                                      | Several    |
+| 배경    | The background of the 슬라이드, or of the 테마                                                                 | One        |
 
-- Memo is available only on the stage screen, and a paste onto another screen is
-  refused. Stage messages appear separately in a bottom band above the
-  composition and are not theme elements.
-- A Bible verse is a 슬라이드, so 현재 슬라이드 글 shows it. Only 성경 출처 is
-  extra.
-- 메시지 and 그래픽 are not elements. Each keeps its own appearance and the
-  screens it is sent to, and they always draw on top of the 테마 in the order
-  그래픽, 메시지. A 테마 can't hide them.
-- A 메시지 sent to several screens draws in each screen's 메시지 style, chosen
-  over ProPresenter's style per 메시지 (user decision, October 28). Each screen
-  picks its style in its 메시지 스타일 row in the 화면 설정 window, not in the
-  테마, so a 메시지 keeps its look when the item and its 테마 change (06; user
-  decision, November 2).
-- When an item's content has no element to show it, for example a 곡 item whose
-  테마 has no 현재 슬라이드 글 on the 청중 화면, the item's settings show a
-  warning mark with the reason in its tooltip and a 테마 편집 button.
-
-### Element properties
-
-Geometry fields in the 테마 editor display the nearest 0.1 reference-canvas
-pixel, omitting trailing zeroes. Ties round toward positive infinity. Typing
-retains the entered precision within the allowed range; display rounding does
-not change the saved number. Dragging and resizing save the rounded geometry
-shown on the canvas and in the fields. Arrow keys retain their existing
-one-pixel increment (ten with Shift).
-
-| Property            | Applies to                                  | Range                                                                                    |
-| ------------------- | ------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| X, Y, W, H          | All                                         | Shown to 0.1 px; inside the canvas; W and H at least 8                                   |
-| 글꼴, 굵기          | Text elements                               | An installed family; 100 to 900                                                          |
-| 크기                | Text elements                               | 12 to 400                                                                                |
-| 색                  | Text elements, 사각형                       | `#RRGGBB`                                                                                |
-| 줄 간격             | Text elements                               | 0.8 to 3.0                                                                               |
-| 자간                | Text elements                               | -20 to 200 reference px; default 0                                                       |
-| 짧은 글 자간        | Text elements                               | Off by default; 최대 글자 수 1 to 10, alternate 자간 -20 to 200 px                       |
-| 글머리 기호         | Text elements                               | Checkbox, off by default; one hanging bullet per nonempty paragraph                      |
-| 출처 표시           | 성경 출처                                   | 지금 나오는 절 (default), 본문 전체                                                      |
-| 가사 없을 때 가운데 | 항목 이름                                   | Checkbox, off by default; use the frame's vertical center when 현재 슬라이드 글 is empty |
-| 가로 정렬           | Text elements                               | 왼쪽, 가운데, 오른쪽                                                                     |
-| 세로 위치           | Text elements                               | 위, 가운데, 아래                                                                         |
-| 성경 분할 줄 수     | Bible split-source text, in 화면 > 성경     | 1 to 12; Bible split budget at the configured size (04)                                  |
-| 외곽선, 그림자      | Text elements                               | On or off                                                                                |
-| 채우기, 불투명도    | 사각형, and the box behind any text element | `#RRGGBB`; 0 to 100                                                                      |
-| 모서리              | 사각형, 이미지, 미디어, 배경                | 0 to 200                                                                                 |
-| 맞춤                | 이미지, 미디어, 배경, 오버레이              | 맞추기, 채우기, 늘리기 (the media properties' 맞춤)                                      |
-
-Text elements are 현재 슬라이드 글, 성경 출처, 다음 슬라이드 글, 이름표, 다음
-이름표, 항목 이름, 슬라이드 이름, 글, 시계, 타이머, 영상 남은 시간, and 메모.
-`slideName` has only the common text element properties.
-
-슬라이드 번호 counts the item's text slides in saved order, excluding picture
-slides. Reordering, inserting or deleting slides updates that number in output
-and previews, including automatic advance. It is empty when no slide is live, on
-picture slides, and on other item kinds. Its common text properties remain
-editable; it is not available in the 대기 화면.
-
-With 글머리 기호 enabled, operators type plain text. Each explicit line starts a
-paragraph with an Arial bullet; automatic wrapping stays under the paragraph
-text. Empty lines remain blank. Hanging indent is 90/86 em and the paragraph gap
-is 23/86 em, scaling with the font size. 줄 간격 sets spacing within a wrapped
-paragraph. At 86 px these styles have a 90 px indent and a 23 px paragraph gap;
-with 104.5 px line spacing their paragraph pitch is about 128 px. The optional
-`disc` bullet style uses a round marker instead: at 86 px, its diameter is 20
-px, its top-left is (19, 56) relative to the paragraph, and the hanging indent
-is 107 px. It has no extra paragraph gap and wraps only at spaces; 줄 간격
-determines the pitch of both wrapped and explicit lines. Marker geometry scales
-with the font size. Without this style, existing Arial bullets remain unchanged.
-Both output and thumbnails use this layout; the stored text is unchanged.
-
-Measured Bible wrap rows retain the verse's paragraph instead of starting a new
-bullet or paragraph gap on every row. A later part of the same verse keeps the
-hanging indent without repeating the bullet. Output, next-text elements, split
-previews and thumbnails use the measured part identity for this rule.
-
-성경 출처 with 본문 전체 shows the Bible item's whole passage on every slide,
-including split continuations. Without an item range it falls back to the
-slide's reference. Clearing the slide clears this element. 지금 나오는 절 keeps
-the slide's reference and its passage visibility setting.
-
-All text keeps its theme size while wrapped lines fit the full element frame;
-only actual overflow shrinks it (03). The stored `maxLines` property is the
-Bible split budget, exposed as 성경 분할 줄 수 under 화면 > 성경 for every
-theme's first audience screen in saved screen order (or its first saved screen
-if there is no audience screen). The editor's display sorting does not change
-this choice. Follow screen links to the source screen to edit its first
-current-text element's budget. Other screens and the text element properties do
-not expose it. This editing path also covers nondefault themes assigned to Bible
-items or blank items containing verses, without changing any default assignment.
-Stored line budgets are retained when a theme's default assignment changes. It
-does not shrink lyrics, including current/next text on stage and broadcast
-layouts. The legacy `nextText.maxLines` field remains readable for compatibility
-but has no editor control and does not constrain text fitting.
-
-On and off properties (외곽선, 그림자, 채우기) are checkboxes, not switches
-(user, October 31).
-
-영상 남은 시간 follows ProPresenter's Video Countdown; ProPresenter has no
-native next-item name, only through Planning Center (S4 pp. 41 to 42), so there
-is no 다음 항목 이름 element.
+- A template names boxes and values in braces: `{제목}`, `{본문}`. A part in
+  square brackets is left out when a value in it is missing:
+  `{제목}[ ({이름표})]`. The values the app fills in are 번호, 항목 이름, 구절,
+  곡 제목, 찬송가 제목, 이름표, and 새 이름표 (only where the label changes).
+- A 글 can have other templates and a color for when none of the first has its
+  values, such as the (없음) of an empty 슬라이드 on 무대.
+- A 글 can take the size, or the size and the rows, that 청중 gives the same
+  content. The sung lyrics on 무대 do, so they break where the congregation's
+  do.
+- **Fit.** A text is drawn at its size, or at the first of its listed sizes that
+  fits, and shrinks to its smallest size. It can keep its typed rows while it
+  shrinks, take at most some rows, and be sized together with every 슬라이드 of
+  the item that has the same 테마.
+- **Stacks.** Texts of a stack stand one under another around a place, so a
+  title without a subtitle stays centered.
+- **Splits.** A split puts 다음 글 under the 슬라이드's own text. Each takes the
+  room the other does not need, and neither is ever drawn over the other.
+- A 도형 can reach around texts, or stand a distance above or below them.
+- 메시지 and 그래픽 are not elements. They draw above the 테마 on the screens
+  they were sent to, in the order 그래픽, 메시지.
 
 ### Limits
 
-- At most 10 elements per screen. The 요소 header shows the count and the limit,
-  for example "4 / 10".
-- No rotation, effects beyond outline and shadow, masks, or blend modes.
-- Snap to the grid and to other elements' edges and centers.
+- At most 12 boxes in a 테마, 40 elements on a screen, 6 templates of 4,000
+  characters in a text, 4 stacks, 4 splits, and 6 stops in a gradient.
+- No rotation, masks, or blend modes.
 
 ## Which 테마 applies
 
-- When a 예배 순서 item's first 슬라이드 goes out, its 테마 applies to every
-  screen, in the same batch as the item start (03, "When the operator clicks a
-  슬라이드"). The start 매크로 runs before it, as today.
-- A 슬라이드 output from outside the 예배 순서 (빠른 실행, the Bible panel, the
-  toolbar search) counts as a new item: it uses the default 테마 of its kind and
-  ends a 테마 picked by hand.
-- The 테마 stays until another item starts or the operator changes it by hand.
-
-### 테마 바꾸기
-
-- The toolbar button shows only the live 테마's name under its icon, with 테마
-  바꾸기 in its tooltip and accessible name. Its menu lists the 테마 as radio
-  rows, a separator, and 테마 편집, which opens the 테마 workspace. The 출력
-  menu rows follow it.
-- The 매크로 action 테마 바꾸기 has a 테마 as its target (07).
-- A 테마 picked by hand or by a 매크로 holds until the next item starts; then
-  the new item's 테마 applies.
-- Edits to the live 테마 reach the output when the editor saves them ("The 테마
-  editor").
-
-Switching the 테마 with the item is our design. In ProPresenter a Look stays
-until the operator or an action changes it (S4 pp. 37 to 38).
+- A 슬라이드 is drawn with the 테마 it names.
+- When that 테마 is gone, the first built-in 테마 that has a box for each text
+  of the 슬라이드 draws it; a 슬라이드 without texts is drawn as a 빈 슬라이드.
+- **테마 바꾸기.** The toolbar button shows the live 테마's name under its icon.
+  Its menu lists the 테마 of the live purpose as radio rows, a separator, and
+  테마 편집. A 테마 picked there or by a 매크로 (07) draws the 슬라이드 of the
+  live item until another item starts.
+- Edits to the live 테마 reach the output when the editor saves them.
 
 ## Drawing a screen
 
-1. Resolve the screen's mode in the live 테마. `<screen>과 동일` draws the named
-   screen's composition; the editor never lets two screens point at each other.
-2. In 직접 배치, draw the elements from the bottom of the element list to the
-   top. The top of the list is in front.
-3. Draw 그래픽 and 메시지 above them, each only on the screens it was sent to.
-4. A cleared layer draws nothing in the elements that show it: 지우기 가사
-   empties 현재 슬라이드 글, 다음 슬라이드 글, 이름표, and 성경 출처; 지우기
-   미디어 empties 미디어 and 배경; 지우기 모두 empties every element that shows
-   live content. Fixed elements (글, 이미지, 사각형, 시계) stay, so a cleared
-   청중 화면 can still show the church logo.
+1. Resolve the mode of the screen in the 테마.
+2. In 직접 배치, draw the elements from the bottom of the list to the top.
+3. Draw the 오버레이, 그래픽, and 메시지 above them.
+4. On 무대, draw the clock and the timer, and the stage message in front of
+   everything.
+
+지우기 가사 empties every text of the 슬라이드, 지우기 미디어 its background,
+and 지우기 모두 both. Fixed words, pictures, and shapes of the 테마 stay.
+
+A thumbnail and a preview are the 슬라이드 drawn by the same code as the output.
+
+### Stage
+
+- The clock is at the top left, in hours, minutes, and seconds. The timer chosen
+  in the 무대 panel is under it.
+- The stage message is one row on a red band along the bottom. A message longer
+  than the band flows to the left and comes in again. A line break becomes a
+  space.
+- `output.stageLyricLabelPosition` chooses where a label shows: `line` (the
+  default, on a row of its own above the lyrics), `inline` (in front of the
+  first row when it fits there), or `off`.
 
 ### Empty screens
 
-- Each screen has one 빈 화면 색 (empty color), set in the 화면 설정 window:
-  black by default, and `chroma` green on the 방송 화면 when its method is the
-  capture window, as today.
-- A screen in 비움, or a screen with nothing live and no 대기 화면 element,
-  shows its 빈 화면 색.
-- A 테마 screen in 직접 배치 has one 배경: 화면 기본 (the screen's 빈 화면 색),
-  단색, or 그라데이션. It sits behind all elements. Linked screens use the
-  source screen's background; 비움 uses the screen's 빈 화면 색.
+- Each screen has one 빈 화면 색, set in the 화면 설정 window: black by default,
+  and `chroma` green on 방송 화면 when its method is the capture window.
+- A screen in 비움, or a screen with nothing live, shows its 빈 화면 색.
+- The background of a 슬라이드 or a 테마 is 없음, 단색, 그라데이션, or a media
+  file. A picture or video can be fitted (채우기, 맞추기, 늘리기) and has a size
+  from 10 to 400 percent and a place from -100 to 100 percent of the screen.
 - A gradient is linear, with a clockwise angle from 0 to 359 degrees: 0 runs
   left to right, 90 top to bottom, and 135 top-right to bottom-left. It uses the
   screen rectangle's projected gradient line, including its aspect ratio.
@@ -336,122 +207,59 @@ not preset names or indices, so the rename does not change existing themes.
 
 ### Transitions
 
-- 환경설정 > 준비 supplies the transition for newly created preparation slides.
-  The transition belongs to the slide, not its theme; see 10 for the per-kind
-  defaults and direction controls.
-- A slide uses its own transition; a slide without one cuts immediately (03,
-  "Transitions"). Lyric elements move across the same screen distance and share
-  the same wipe edge, including layouts with separate text boxes.
-- A 테마 change between items applies the incoming slide effect to the whole
-  screen after its content is ready; there is no separate setting. The same
-  timing covers a changed item or song background within one theme. Media items
-  that are their own cues retain the media transition (03).
-- Theme editing previews redraw immediately without any transition. This also
-  applies to 준비, song and slide editing previews; only live output and its
-  진행 preview animate.
+- A 슬라이드 has its own transition; one without cuts. 환경설정 > 준비 sets the
+  transition of a new 슬라이드 per purpose (10).
+- A transition is of two whole pictures: the screen as it is and the screen as
+  it will be. The next picture is drawn out of sight and shown when it is ready.
+- Leaving a 슬라이드 ends a transition that still runs: the one it was going to
+  shows whole, and the next transition starts from it. Showing the same 슬라이드
+  again ends its transition too.
+- Previews in 준비, the song editor, and the 테마 workspace change without one.
 
-### When a 테마 can't be used
+### What is missing
 
-A gap never blanks a screen:
-
-- If the item's theme no longer exists, the screen uses the item's kind's
-  default theme.
-- If that is gone too, or `themes.json` can't be read or hasn't been read yet,
-  the screen uses the built-in 테마 of the kind: 현재 슬라이드 글 full screen in
-  the 기본 text style over 배경, and 성경 출처 for Bible items.
-- A missing font draws in Pretendard; a missing image or media file draws
-  nothing in its element and reports the problem once (08).
-- The main process logs each missing 테마 ID once per session. Each output
-  window logs missing fonts and media once per screen and ID, for a bounded
-  number of gaps, and logs them again after `themes.json` changes.
+- A missing font draws in Pretendard. A missing picture draws nothing in its
+  element and is reported once (08).
+- Built-in 테마 are part of the app, so a broken or missing file never blanks a
+  screen.
 
 ## The 테마 editor
 
-The 테마 workspace edits 테마 (draft E, version 28, accepted October 30). It is
-today's 화면 설정 workspace, renamed. Screens and monitors (the screen list, the
-display layout, the output preview, the test pattern, and the screen properties,
-now with 빈 화면 색) move to the 화면 설정 window, opened by 출력 › 화면 설정…,
-as ProPresenter keeps them in its Configure Screens window (S4 p. 32).
-
-- **Left column:** the 테마 list, with the 대기 화면 at the top. Below it, 요소:
-  the elements used on the current screen, top first (top is in front); drag a
-  row to reorder; a hovered row shows a trash button. Below that, 요소 추가: the
-  kinds not used yet on this screen, as tiles with kind icons in two columns.
-- **Center:** the canvas of the current screen, header `<테마> / <screen>`. A
-  bottom bar holds 격자에 맞추기 and 비율 고정 on the left, and zoom out, the
-  zoom percentage, zoom in, and 화면에 맞춤 on the right.
-- **Right column:** the three screens small on top (a click switches the
-  canvas), then panel-header tabs 요소 | 화면. 요소 shows the selected element's
-  properties. 화면 shows the mode, the 배경, and the size. Selecting an element
-  opens 요소; clicking empty canvas opens 화면.
-
-Editing:
-
-- Add an element by dragging a 요소 추가 tile into the 요소 list (at that place
-  in the order, centered on the canvas) or onto the canvas (at that spot). Enter
-  on a focused tile adds it at the center.
-- Delete with the row's trash button, Delete, or right-click 삭제. The element
-  goes back to 요소 추가.
-- Right-click an element: 맨 앞으로 가져오기, 앞으로 가져오기, 뒤로 보내기, 맨
-  뒤로 보내기, then 복사, 붙여넣기, 삭제.
-- Ctrl C and Ctrl V copy elements, with position and style, between screens and
-  테마. Ctrl A selects every element of the screen. Pasting a one-per-screen
-  kind the screen already has replaces its position and style.
-
-Saving (user decision, November 1):
-
-- Edits change a working copy of the open 테마 (canvas, element and screen
-  properties, element order) and nothing else, so a stray drag never changes the
-  items that share the 테마. The 테마 list row shows a small dot after the name
-  while its working copy has unsaved edits.
-- **Saving.** 저장 (Ctrl S), top right of the canvas, asks "<이름> 테마를
-  덮어쓸까요?" with 취소 and 덮어쓰기. Under the question it counts the 예배
-  순서 항목 that use the 테마 directly or as their kind's default ("쓰는 곳:
-  예배 순서 항목 4곳"), and shows nothing at 0. 덮어쓰기 writes the 테마. 저장
-  is disabled while there are no edits; its tooltip says so. 다른 이름으로 저장…
-  (Ctrl Shift S) sits beside it: it asks for a name in the shared rename dialog,
-  prefilled `<이름> 복사본` (`복사본 2`, 3, … when taken), and makes a new 테마
-  from the working copy while the original keeps its saved state. 새 테마로 저장
-  does not exist.
-- **Leaving.** Choosing another 테마 row, another workspace, or closing the
-  window or quitting while the working copy has edits asks 저장, 저장 안 함, or
-  취소. 취소 keeps the window open on the 테마. The 저장 중 dialog of the close
-  flush shows only after the answer.
-- The output of the live 테마 changes only after 덮어쓰기. Other 테마 list
-  changes (새 테마, 복제, 이름 바꾸기, 삭제, 기본으로 지정) write at once, as
-  other settings do (06).
-
-The 테마 list row's right-click (list-row rules, 11): 기본으로 지정 › (곡, 성경,
-미디어, with a check on the kinds that use it) | 복제, 이름 바꾸기 | 삭제. The
-row shows the kinds that use it as small tags. The live 테마's row shows LIVE to
-the left of those tags (user, October 31), because saving it changes the output
-at once. 복제 makes `<name> 복사본` (`복사본 2`, 3, … when taken). 삭제 asks
-first when a kind or an item uses the theme. Existing items retain the deleted
-theme and render its frozen layouts; the picker shows its name in parentheses. A
-kind default moves to an available theme. The standby row has no default
-assignment. Built-in themes, including the standby screen, cannot be deleted;
-the delete action remains visible with the reason in its tooltip. Drag a theme
-row to reorder it with a drop line; the saved order is shared by theme pickers.
-F2 starts inline rename, Enter saves it and Esc cancels; Delete requests
-deletion of the selected theme.
+- **Left column:** the 테마 list, and below it 요소, the elements of the current
+  screen, front first. Drag a row to reorder it. `+` adds an element.
+- **Center:** the canvas of the current screen. Drag to move, drag a handle to
+  size. Dragging one text of a stack or a split moves the stack or that part of
+  the split. A bar holds 격자에 맞추기, 비율 고정, and the zoom.
+- **Right column:** the three screens small on top, then the properties of what
+  is selected: an element, or the 테마 itself (쓰임, 다음 테마, the boxes, 다음
+  글, 배경) and the current screen (mode, 바탕).
+- Named boxes are made, renamed, ordered, and removed there. A new name is put
+  into every template that shows the box. The names of the boxes the app fills
+  can't change, because code puts texts into them by name.
+- Ctrl C and Ctrl V copy elements between screens and 테마. Ctrl Z and Ctrl Y
+  step through the unsaved edits.
+- **Saving.** Edits change a working copy. 저장 (Ctrl S) asks before it
+  overwrites the 테마 and says how many 예배 순서 항목 use it; 다른 이름으로
+  저장… (Ctrl Shift S) makes a new one. Leaving with unsaved edits asks 저장,
+  저장 안 함, or 취소.
+- **The list.** 새 테마 asks for the purpose and copies the 테마 new 슬라이드 of
+  that purpose get. 복제, 이름 바꾸기, 기본으로 지정, and dragging write at
+  once. A 테마 of the app can't be deleted; after a change it offers 처음으로
+  되돌리기.
 
 ## 오버레이
 
-- An item may have several 오버레이. Each has content (a video, an image, or
-  text), a range (슬라이드 n부터 m까지), the screens it shows on, and for a
-  video 반복 or 정지 and 소리.
-- Ranges never overlap: at most one 오버레이 per 슬라이드.
-- Where it shows on a screen is the 테마's 오버레이 element. No default 테마 has
-  one, so most items never use 오버레이. Whoever needs one makes a 테마 for the
-  item (복제, then add the element).
-- Edit it on the 슬라이드, in 순서 편집 and in 준비's 슬라이드 list (05,
-  "오버레이 on 슬라이드").
-- When an item has an 오버레이 but its 테마 has no 오버레이 element on a screen
-  the 오버레이 targets, the 슬라이드 list in 준비 shows a warning mark above the
-  thumbnails with the reason in its tooltip and 테마 편집.
-- Example (user, October 30): a 특송 item with an MR video on the 무대 화면
-  only, across every lyric 슬라이드, while the 청중 화면 and the 방송 화면 show
-  the lyrics as usual.
+- An item can have several 오버레이. Each has content (a video, an image, or
+  text), a range (from one 슬라이드 to another), the screens it shows on, and
+  for a video 반복 or 정지 and 소리.
+- A range is stored with the ids of its two 슬라이드, so it moves with them.
+  Ranges never overlap.
+- It draws over the whole screen, above the 테마 and under 그래픽.
+- 오버레이 추가… is in the menu of a 슬라이드 in 준비. The grid of the editor
+  shows each 오버레이 as a bar under its 슬라이드; drag an end to change the
+  range.
+- Example (user, October 30): a 특송 item with an MR video on 무대 화면 only,
+  across every lyric 슬라이드.
 
 ## 항목 끄기 and the 대기 화면
 
@@ -469,256 +277,40 @@ deletion of the selected theme.
   오버레이, resuming captured playback positions. It does not change the current
   그래픽, 메시지, or audio, including their clocks. Its one capture is temporary
   and new output content invalidates it, as for the other clear keys.
-- With nothing live, every screen shows the 대기 화면 테마: initially the
-  church's service times on the 청중 화면, the clock and timer on the 무대 화면,
-  and nothing on the 방송 화면. The same screens show at launch when outputs
-  turn on and nothing is live.
-- The 대기 화면 is edited in the same editor and can't be deleted. Elements that
-  show live content (현재 슬라이드 글, 미디어, 오버레이, and the like) aren't
-  offered on it.
+- With nothing live, every screen shows its 빈 화면 색. The 청중 화면 keeps the
+  background of the 대기 화면 테마 behind it, so a service can start from it.
+  The same shows at launch when outputs turn on and nothing is live.
 
 ## Data
 
+### `Settings\themes\<id>.lltheme`
+
+One 테마. The app's own 테마 have a file only after the operator changes them.
+
+| Field           | Type                                             | Meaning                                                             |
+| --------------- | ------------------------------------------------ | ------------------------------------------------------------------- |
+| `format`        | `"lltheme"`                                      | File type.                                                          |
+| `schemaVersion` | Integer                                          | 1.                                                                  |
+| `id`, `name`    | UUID, string up to 80 characters                 | Identity and name.                                                  |
+| `purpose`       | One of the purposes                              | What 슬라이드 can have it.                                          |
+| `boxes[]`       | `{name, default?, column, rows}`                 | Named boxes. `rows` is `one` or `many`; `column` shows it in 준비.  |
+| `next`          | `{content, atStart?, column}`                    | What the 슬라이드 before shows; `atStart` for the first of an item. |
+| `hideNextAtEnd` | Boolean, optional                                | The last 슬라이드 of an item shows no next text.                    |
+| `then`          | 테마 ID, optional                                | The 테마 of a 슬라이드 added after one with this 테마.              |
+| `background`    | Background                                       | Shown unless the 슬라이드 has its own.                              |
+| `screens`       | `audience`, `broadcast`, `stage`: screen layouts | `own` with elements, stacks, and splits; `same`; or `empty`.        |
+| `others`        | Screen ID to layout, optional                    | Screens that differ from the others of their kind.                  |
+
 ### `Settings\themes.json`
 
-Built-in themes and the standby layout come from the running version. The file
-contains user themes and only built-in themes explicitly saved after editing,
-marked `edited: true`. Saved built-in entries and a saved `standby` are read as
-stored. An unedited `standby` is omitted from storage. Theme IDs and defaults
-remain stable, so existing item references continue to resolve. Up to 200 user
-themes may coexist with the built-in themes. `themeOrder` optionally stores the
-ordered theme IDs independently of built-in theme contents; newly introduced
-themes absent from that list are appended.
+| Field      | Type                                    | Meaning                                                |
+| ---------- | --------------------------------------- | ------------------------------------------------------ |
+| `order`    | Array of 테마 IDs                       | The order of the list.                                 |
+| `defaults` | Object: purpose to 테마 ID              | The 테마 of a new 슬라이드; the app's own when absent. |
+| `titles`   | `{id, name, english, background?}`, 200 | The 타이틀 the operator keeps in 예배 요소.            |
 
-| Field      | Type                                                   | Meaning                                                                    |
-| ---------- | ------------------------------------------------------ | -------------------------------------------------------------------------- |
-| `standby`  | Optional Theme                                         | The 대기 화면.                                                             |
-| `themes[]` | Array of Theme, at most 200 user themes plus built-ins | The 테마 list.                                                             |
-| `defaults` | Object: kind to theme ID                               | Optional default 테마 IDs for `song`, `bible`, `blank`, `ad`, and `media`. |
-
-Theme:
-
-| Field        | Type                               | Meaning                                                                                                                 |
-| ------------ | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `id`, `name` | String                             | ID and name, at most 80 characters.                                                                                     |
-| `screens`    | Object: screen ID to Screen layout | One entry per screen; a missing entry is `<first screen of its kind>`과 동일, or 비움 for the first screen of its kind. |
-
-Screen layout:
-
-| Field      | Type                                                                               | Meaning                                |
-| ---------- | ---------------------------------------------------------------------------------- | -------------------------------------- |
-| `mode`     | `{ "kind": "own" }` \| `{ "kind": "same", "screen": ID }` \| `{ "kind": "empty" }` | 직접 배치, `<screen>`과 동일, or 비움. |
-| `elements` | Array of Element, at most 10, bottom first                                         | Used only in `own`.                    |
-
-`background` is optional. Its absence means 화면 기본. A `#RRGGBB` string is the
-legacy 단색 representation and remains valid. A gradient uses this shape:
-
-```json
-{
-  "kind": "linear",
-  "angle": 135,
-  "mixing": "oklch",
-  "stops": [
-    {"color": "#000000", "position": 0},
-    {"color": "#FFFFFF", "position": 100}
-  ]
-}
-```
-
-`angle` is an integer from 0 to 359. `mixing` is fixed to `oklch`. There must be
-2 to 4 stops with finite positions from 0 to 100 in nondecreasing order; every
-color is a six-digit hex string. Unknown gradient and stop fields round-trip
-like other settings extensions. Existing files need no migration; the layout
-field is validated in both settings and live output payloads.
-
-Element: `id`, `kind` (`currentText`, `reference`, `nextText`, `label`, `media`,
-`background`, `overlay`, `itemName`, `slideName`, `slideNumber`, `text`,
-`image`, `box`, `clock`, `timer`, `stageMessage`, `memo`, `nextLabel`,
-`videoTimeLeft`), `frame` `{ x, y, w, h }`, and the properties of its kind from
-"Element properties" (`text` fields as the text style of 02, `box` with fill,
-opacity, and radius, `fit`, and per kind `content` for 글, `mediaId` for 이미지,
-`timerId` for 타이머, `clockFormat` and optional boolean `seconds` for 시계
-(absent means false), optional `source: "slide" | "item"` for 성경 출처,
-optional `text.tracking` in reference pixels, default 0, optional
-`text.bullets`, a Boolean defaulting to false, and optional
-`text.bulletStyle: "disc"` for the round hanging markers). Keep unknown fields,
-as every settings file does (02).
-
-### Item fields (`.llservice`)
-
-| Field        | Type                        | Meaning                                                                                                                                                          |
-| ------------ | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `theme`      | String (theme ID), optional | The item's 테마. Absent: the kind's default.                                                                                                                     |
-| `overlays[]` | Array, at most 50, optional | `id`, `name`, `from`, `to` (슬라이드 positions, 1-based), `screens[]`, `content` (`{ "media": ID, "loop": Boolean, "sound": Boolean }` or `{ "text": String }`). |
-
-### Defaults
-
-- New libraries include seven 타이틀 color themes for a blank 슬라이드 item.
-  항목 이름 supplies the Korean name without inserted spaces; its one slide text
-  supplies the English name, which may be empty. On 청중 화면 both use white
-  KoPubWorldDotum without shadow or outline: Bold 152 px at y=412, tracking 52
-  px, and Light 56 px at y=613, tracking 34 px. The Korean frame is 240 px high
-  and enables 가사 없을 때 가운데: with an empty English line, its ink starts
-  near y=460 between the rules; otherwise it starts near y=415. Korean names of
-  up to two characters use 152 px tracking. The centered short-text option
-  compensates for the change in CSS trailing spacing so the visual center stays
-  fixed. Counts use Unicode code points excluding whitespace and generated
-  continuation markers, so wrapping does not change the decision. Literal marker
-  text still counts. Empty text keeps ordinary tracking. Measurement, output and
-  thumbnails use the same rule, including edits and scaling. The two gray rules
-  are an ordinary transparent picture, at x=700, y=305/759, 520 x 5 px, #737D87.
-- The section theme's short-text option includes per-name tracking overrides:
-  회개와간구의기도 uses 40 px and 봉헌 uses 52 px, both without short-text
-  center compensation. All section names retain 152 px type. 찬양, 광고 and 축도
-  retain 152 px tracking; the other names use 52 px. These defaults apply to new
-  themes; saved themes are not overwritten. Output, measurement and thumbnails
-  share the overrides, including renaming and scaling.
-- Changing a service item's theme also updates its section card theme in the
-  same undo step, including when the item returns to its kind default.
-- Each section card selects its color's 타이틀 theme, with no item background
-  media. Its audience layout uses the matching `GRADIENT_PRESETS` gradient
-  directly, including OKLCH mixing and dither. The seven generated section PNGs
-  are not shipped. The core section list contains, in order: 묵상기도, 사도신경,
-  회개와간구의기도, 찬양, 합심기도, 봉헌, 봉헌기도, 성찬식, 축복기도, 세례식,
-  간구기도, 광고, 축도. Their colors are 청록, 청록, 적갈, 초록, 적갈, 자주,
-  자주, 청록초록, 남보라, 청록초록, 적갈, 남보라, 올리브. English is empty for
-  묵상기도; the others use Apostle's Creed, Repentance Prayer, Praise, Corporate
-  Prayer, Offering, Offering Prayer, Holy Communion, Blessing, Baptism,
-  Supplication Prayer, Notice, Benediction. These themes are not kind defaults;
-  Stage shows only the Korean name as current text. Saved section layouts are
-  used as stored. The stage choice follows the November 11 user decision.
-- In new libraries, 찬양 on 청중 화면 uses white NanumSquare ExtraBold
-  (weight 800) at 108 px, centered horizontally and top aligned, with -3 px
-  tracking, 137 px line spacing, and no shadow or outline. Its text frame is
-  (14, 141, 1892, 411), the full PowerPoint lyric box minus its insets, leaving
-  room for three lines at the same size and pitch; the first line's ink starts
-  near y=157. Missing fonts fall back to Pretendard. The theme inherits 화면
-  기본; each song keeps its own background picture through the normal background
-  and media elements. The broadcast screen uses the new lower third, the stage
-  uses the new-library stage layout below, and saved themes are not migrated.
-- New libraries also include 찬양 (밝은 배경) in the same theme list. Its
-  audience lyrics use black (#000000) in the wider frame (36, 141, 1848, 411),
-  with the same typography as 찬양. Its title and optional subtitle are also
-  black. The white 찬양 frame stays (14, 141, 1892, 411). It keeps the song's
-  normal picture over a white (#FFFFFF) background and the existing broadcast
-  and stage layouts. Operators pick this variant explicitly; the song default
-  and saved catalogs are unchanged.
-- The app includes three bundled 1920 x 1080 background pictures for 말씀 and
-  the two sermon title layouts. Their backgrounds use the 청록 preset above,
-  rendered with the output's OKLCH mixing and dither; the two title pictures
-  retain their original rule pixels and positions. Existing catalogs and saved
-  themes are kept as they are.
-- 말씀 on 청중 화면 uses its full-screen teal picture, white NanumSquare Bold
-  text without outline or shadow: an item-range 성경 출처 at 72 px, and 현재
-  가사 at 104 px, left/top aligned, with -3 px tracking and 150 px line spacing.
-  The text frame starts at (130.6, 248), is 1660 x 750, and has a four-line
-  Bible split budget. Missing fonts fall back to Pretendard. The broadcast
-  screen uses the lower third and the stage uses the new-library stage layout
-  below. The normal 배경 and 미디어 elements above the shipped picture retain
-  item background overrides and blank picture slides, since blank items also use
-  this theme by default.
-- 사도신경, 주기도문 is an additional built-in theme. Its 청중 화면 shares the
-  말씀 background asset without a title or scripture reference. Both 사도신경
-  and 주기도문 omit their names. 현재 슬라이드 글 uses NanumSquare Bold 104 px,
-  -3 px tracking, 137 px line spacing, left/top alignment, and at most four
-  lines in the verse box at x 129, y 95, width 1676 px. 방송 화면 and 무대 화면
-  retain the 말씀 layouts. Adding a prayer installs this theme if an older
-  catalog lacks it, without replacing saved themes. Its background ID always
-  resolves to the bundled 말씀 asset.
-- The sermon title theme is an additional theme, not a kind default. Set the
-  blank slide item name to the passage range and the slide text to the title.
-  Audience bars follow the visible letter ink with equal gaps above and below;
-  titles wrap automatically to at most two lines, retaining 162 px between the
-  reference and title first-line centers. The reference uses KoPubWorldDotum
-  Medium 86 px and the title Bold 140 px. 방송 uses the section-card black
-  gradient band, expanded upward for two centered lines: the smaller passage
-  above the larger sermon title. 무대 left-aligns the smaller passage above the
-  title at the Bible text edge, with sizes 52 px and 140 px, and retains its
-  clock and next-slide areas. Saved sermon screens are used as stored.
-- `defaults.blank` selects 말씀 and `defaults.ad` selects 광고 in a new
-  `themes.json`. Both can be changed like the other kind defaults.
-- On 청중 화면 the 광고 theme uses a shipped 1920 x 1080 blue-purple picture and
-  a separate transparent slash picture, both app assets. The background uses the
-  남보라 preset above with the output's OKLCH mixing and dither; the slash group
-  includes an opaque triangle filled from the background picture at the same
-  coordinates. Above the background are 배경 for an item override, 슬라이드
-  번호, the slash picture, 슬라이드 이름, 현재 슬라이드 글, and full-screen
-  미디어 with 채우기 so picture slides cover the whole frame. All text is white
-  KoPubWorldDotum without shadow or outline. The number is Bold 160 px with -6
-  px tracking; the title is Bold 108 px with -3 px tracking; the body is Medium
-  86 px with -3 px tracking and disc 글머리 기호 enabled. Its frame is (129,
-  287, 1676, 776), with the right edge at 1805 and room for six 128 px lines.
-  The text starts 107 px inside the frame; continuation lines hang under the
-  text. The number frame is (97, 21, 113, 208); the title frame is (240, 107,
-  1540, 145). Both move up with the slash group by 65 px from the original
-  notice draft. The slash is white at 26% opacity, 2 px wide, and extends 18%
-  farther around (198, 200) along the line through (117, 280) and (278, 119),
-  then moves up 65 px with its background-filled cutting triangle. Both pictures
-  belong to the app, outside the user media catalog. The slash group sits above
-  the number and below the title, cutting the number along the line so none
-  shows beyond it.
-- The built-in broadcast look uses Pretendard Variable and a rounded glass box
-  with a 6 px #E8E8E8 frame at 45%, #FEFDF9 panel at 90%, and 16 px black shadow
-  at 35%. Bible and plain text use a box from x=58 to 1862, bottom at y=1026,
-  growing upward. Dark #1F1F1F bold 57 px text starts at x=90 with 1.35 line
-  height; after three lines it shrinks to 48 px and the box grows to show text,
-  shrinking further if necessary to stay within the 900 px body height. Bible
-  source breaks are rejoined and wrapped to the full text width without
-  balancing. A Bible item's box uses the tallest measured slide for every part
-  of the item, with text top-aligned and the box anchored at the same bottom
-  edge. Bible alone has a 48 px brown-to-transparent header strip with white
-  bold 30 px reference; plain text has no strip. Empty text has no box.
-- Each broadcast screen chooses its song caption. The default band is flat black
-  at 70% opacity across the full 1920 px width; its bottom is y=1040 and it has
-  40 px vertical padding, giving a 260 px band for the two-line lyric box.
-  Text-only has no band and its last line ends at y=1004. Both use centered
-  white bold 72 px text, 1.25 line height and at most two lines, shrinking to
-  fit. The band text has a 0 2px 6px black shadow at 80%; text-only uses a 4 px
-  shadow at 80% and 2 px offset plus a 24 px glow at 55%. All song lines use the
-  same style. An empty song slide uses its title, not its label. Lyric slides of
-  songs and hymns have no separate title; the title slide keeps the name. The
-  capture fallback uses an unblurred hard shadow.
-- Broadcast section cards use a 234 px horizontal black fade from y=756 to
-  y=990: transparent at the edges and 88% black from 18% to 82% of the width.
-  The Korean item name alone is centered in white Pretendard Variable bold 88 px
-  with a 0 2px 6px black 80% shadow, in the frame (160, 818, 1600, 110). NDI
-  remains transparent outside the fade. Section cards never show an English line
-  on broadcast.
-- The built-in advertisement theme has an empty broadcast layout; NDI sends a
-  transparent frame. Untouched saved built-in audience links resolve empty,
-  while explicitly edited themes retain their layouts. On broadcast, Bible
-  reference headers show the item's complete passage range instead of the
-  current verse.
-- The 광고 stage layout shows a left-aligned title above its body. The default
-  advertisement item advances manually with looping off (05).
-- Item settings warn when a screen's resolved theme lacks 현재 슬라이드 글 for
-  text, 슬라이드 이름 for an 광고 name, or 미디어 for a picture. Linked screens
-  use the source screen's elements when checking.
-- The other built-in defaults are 찬양 for 곡, 말씀 for 성경, and 영상 for
-  미디어.
-- A new library's 대기 화면 shows the church's service times on 청중 화면. Its
-  bundled 1920 x 1080 picture defaults to 예배 안내 배경 (밝게), matching the
-  PowerPoint export (angle 135, 36% #7A9F5A, 67% #30A26A). 예배 안내 배경
-  (어둡게) keeps the existing picture and ID (0% #567A40, 100% #1F7D4E). Both
-  remain pictures containing only the gradient, title rule and verse box
-  outline; no text is baked into either picture. Five editable 글 elements
-  contain LOVELIGHT, the seven days, times, service names, and Ephesians
-  3:20-21. Days are one right-aligned Noto Sans CJK KR Thin list; times are one
-  Regular list; service names are one KoPubWorldDotum Medium list. Each list has
-  seven lines at 52 px with 72.3 px line spacing. The title uses Noto Sans CJK
-  KR Black 80 px with 12 px tracking; the verse uses KoPubWorldDotum Medium 36
-  px. All text is white without shadow or outline. 무대 화면 keeps its clock and
-  timer, and 방송 화면 stays empty.
-- A 빈 슬라이드 item may reference the current 대기 화면 theme directly; live
-  output and previews resolve its current per-screen layouts, including edits
-  and the 무대 fallback, without copying them into the item.
-- 예배 준비 is an additional normal theme for a 빈 슬라이드 item with one empty
-  slide, not a kind default or the 대기 화면. Its audience picture has the
-  bracket frame over a teal gradient (angle 135, 0% #002E38, 100% #00768C). Two
-  editable 글 elements say "잠시후에 예배가 시작됩니다" and "지금은 기도로
-  예배를 준비하는 시간입니다", centered in white KoPubWorldDotum Bold at 120 px
-  and 74 px, without shadow or outline. Other screens use their normal
-  blank-item layouts. Both pictures are bundled theme assets.
+At most 200 테마 of the operator. The exact values of the app's 테마 are in
+`src/core/theme/builtIn/*.json`.
 
 ### Bundled pictures
 
@@ -738,189 +330,7 @@ existing elements still show the correct picture name.
 
 ## Where the rest of the spec uses 테마
 
-- 03: the layers of an output and the stacking order follow "Drawing a screen".
-- 02: `themes.json` holds the 테마. `messageStyles` live in `messages.json` with
-  the 메시지.
-- 06 and the 화면 설정 workspace: the workspace is 테마 and holds the 테마
-  editor. Screens and monitors are in the 화면 설정 window.
-- 07: the 매크로 action 테마 바꾸기 ("테마 바꾸기" above).
-- 11: the toolbar 테마 button and the 출력 menu's 테마 바꾸기 row; 출력 › 화면
-  설정… opens the 화면 설정 window; the 지우기 row has 대기 화면.
-- 04: the 진행 지우기 row starts with 대기 화면 (the 항목 끄기 command).
-
-### Song title layout
-
-New 찬양 audience layouts carry optional `songTitle: "sunday"`. For a song title
-slide, the shared output and thumbnail composition replaces 현재 슬라이드 글
-with the editable title and subtitle lines over the same song background. Both
-lines inherit the replaced 현재 슬라이드 글 element's text color. The title uses
-NanumSquare ExtraBold at 120 px, centered without shadow or outline, in frame
-(339, 181, 1242, 160). The optional subtitle uses NanumSquare Regular at 64 px
-with default 24 px tracking in frame (252, 345, 1416, 90). Lyric slides and the
-other screen roles retain their normal layouts. The built-in 찬양 also resolves
-this title variant in saved catalogs without rewriting their lyric layouts.
-Other layouts without the selector retain ordinary text rendering. The 밝은 배경
-variant uses `songTitle: "sunday-light"` for the same title and subtitle
-composition, with black text inherited from its lyrics, including when copied or
-saved. A title slide's `titleLayout` overrides title and subtitle tracking
-(defaults 0 and 24 px) independently. The opening title may use 12/12 px while
-another song retains 0/24 px; repeated titles use the same composition at every
-position.
-
-The optional titleTop and subtitleTop in `titleLayout` set each line's frame y
-coordinate explicitly. For example, the opening subtitle uses 338 px and the
-closing song title uses 158 px; unconfigured titles retain 181/345 px.
-
-An opening section card uses its own section theme and Korean name while the
-remaining slides retain the item theme.
-
-If a section card theme is missing, output reports the missing theme and uses
-the blank-item default theme, as for any missing item theme.
-
-New-library stage layouts omit the item name, position and dark top band. The
-slide label stays centered and is omitted when it repeats the item name, even
-though the item name is not shown. Bible slides instead show the same full
-passage reference and reference display setting as the audience, left-aligned in
-a 1612 px frame at 72 px white, on one line and shrunk to fit above the verse. A
-stage message overlays a bottom band without moving the label; the timer sits to
-the left of the clock. A 60 px #E6E6E6 clock showing hours, minutes, and seconds
-sits at the top right in frame (1460, 20, 400, 80), clear of the next preview in
-frame (154, 706, 1612, 272). Current and next lyrics have approximately eight
-percent side margins and 1.2 line height. White centered current text occupies
-the large area above a bottom-aligned yellow centered next preview. A
-section-card next preview shows only its Korean name; its English subtitle
-appears on the audience and broadcast card itself. An advertisement next slide
-shows only its text-slide number and title; other titled next slides show their
-title and body; an untitled slide shows its body alone. The next preview shows
-at most two source lines and targets two thirds of the fitted current size, with
-enough height for two lines at that size. Section cards center their Korean name
-above the same next preview without the English subtitle. The stage notice body
-uses the same disc bullets and hanging indent as the audience notice, with one
-bullet per nonempty body line; its title remains separate. These defaults apply
-to new libraries; existing layouts are unchanged. Built-in audience background
-and media elements start at 채우기 (cover); their editable theme-element 맞춤
-wins over the media property's 맞춤 when rendered through that element. The
-media properties panel explains this precedence in a tooltip. Existing libraries
-are unchanged.
-
-The section gradient layout retains 늘리기 for its background element.
-
-Bible item cards use their section theme; the passage slides retain their Bible
-theme and their overlay ranges follow their content positions.
-
-On a stage section card the next text follows the fitted Korean item name, not
-its subtitle.
-
-On audience output, imported PowerPoint lyric runs use their source font, size,
-tracking and paragraph spacing; imported lyrics fit across the full 1920 px
-slide width and use the source box's top plus its top inset when available.
-Imported title slides retain each title line's original position and formatting.
-Edited text without matching imported formatting uses the theme.
-
-On the stage, song lyrics use the final rendered audience lines at the largest
-size that fits the stage text frame. The stage never wraps those lines again,
-even when the size must fall below 48 px. Every screen preserves line breaks
-entered by the user for every kind of text. Where the user has not entered a
-break, each screen wraps text automatically to its own size; Bible and sermon
-text on stage and broadcast wraps within each screen's own frame. Songs follow
-the rule above: stage uses the audience's final rendered lines. When continuous
-next-item navigation is enabled, the stage next preview follows the same
-next-item selection and skips the same rows as the next-slide command. A title
-counts as one of the two next-preview lines.
-
-In the built-in stage layout, an empty song slide shows its label as a centered
-muted cue, or (없음) when the label is empty. Stage previews show the same cue;
-audience output remains background only. On the built-in broadcast layout, an
-empty song slide shows only the song title; it shows nothing if the title is
-absent, and never falls back to the label.
-
-Built-in stage current text uses the matching audience size: 108 px for songs,
-104 px for Bible and 86 px for ad bodies. Longer text shrinks to fit; Bible text
-is left-aligned beneath a smaller reference. Saved user edits remain unchanged.
-For Bible passages and referenced sermon body text, the stage targets the
-actually fitted audience size and shrinks only when its own frame requires it.
-The next text targets two thirds of the fitted stage size, with a 48 px floor.
-
-On the last slide of a Bible item, stage next-slide elements show nothing for
-the next item.
-
-### 이미지 슬라이드
-
-The built-in 이미지 슬라이드 theme displays a slide picture fitted within a
-black canvas on 청중 and 무대 screens; the stage also shows its clock. 방송
-screens are transparent and have no elements. PowerPoint picture imports use
-this theme with their privately owned slide pictures. The image theme uses
-ID 108. The built-in sermon title theme uses ID 106.
-
-The theme editor displays the fitted built-in broadcast band and text using a
-representative slide. Position, size and text-style edits for fitted elements
-are stored as optional per-element `broadcastEdits` in that theme's broadcast
-layout. Missing edits retain the computed defaults. Broadcast output uses the
-same fitting and overrides. The song band retains a fixed height across slides,
-its lyrics stay in the band, and the lyrics remain centered in the band. An
-edited Bible reference remains within its tab and the body fits below the tab.
-Existing title overrides are retained but do not create a title on lyric slides.
-
-Transitions belong to individual slides, not themes.
-
-On stage, an empty current or next slide without a label shows (없음); a labeled
-empty slide shows its label.
-
-On stage, a next title slide omits its English subtitle.
-
-On stage, the labels 전주, 간주 and 후주 follow the text in parentheses. Other
-song labels appear in parentheses on their own line above the current lyrics, in
-the same color and fitted size, only when the label differs from the previous
-slide in that item. The top label also remains visible at the start, enlarged to
-64 px bold in an 80 px frame, including on continuation slides. Other labels
-precede the text. The yellow next text shows a label only when it differs from
-the preceding slide in that item. Empty slides show only the label. Bible verse
-labels are omitted. When a song's prelude, interlude or outro cue is already
-appended to the current text, the top label is hidden to avoid repeating it.
-
-The output preference `output.stageLyricLabelPosition` chooses `line` (the
-behavior above, the default), `inline` (the changed song label precedes the
-first lyric row when it fits at the lyrics' fitted size; otherwise it appears
-above the lyrics without shrinking or rewrapping them), or `off` (omit song
-labels from current and next text and their stage label elements). In `line` and
-`inline`, the top label remains. A label continuing from the preceding song
-slide is omitted from the lyric and next text. An empty song slide with labels
-off shows (없음). This preference does not change Bible or other item labels and
-updates live output and its previews when saved.
-
-Stage title slides and section cards show only their Korean title, without the
-English subtitle. The creed and prayer theme uses 104 px left-aligned current
-text with the next line and clock clear.
-
-Stage current and next text use the matching audience theme font family; current
-text also uses its audience weight.
-
-On stage title slides, only the prelude, interlude and outro labels are shown
-after the title; other labels are omitted. The stage advertisement title is bold
-yellow at the audience title size, with its white left-aligned body below at the
-audience body size. The stage clock is at the top right in all built-in stage
-layouts.
-
-TEMPORARY for the 2026-11-15 service: on the last slide of a service Bible item
-directly following a sermon-title theme item, the stage next line shows the
-sermon title; other Bible items retain the empty next line. Replace this rule by
-grouping the sermon passage with the sermon title item.
-
-Stage messages are drawn on every stage screen as a full-width, high-contrast
-band at the bottom, above the theme composition. The band shows up to three
-lines and truncates longer text with an ellipsis. A saved `stageMessage` box
-uses this band for its live value. The theme designer omits these legacy boxes
-and removes them when that layout is edited.
-
-Deleted themes retain a frozen copy in `deletedThemes` (at most 1000). Items
-that already reference one keep its layouts and show its name in parentheses.
-The deleted choice is disabled; selecting another theme replaces the reference.
-At the limit, deletion is refused rather than losing a saved appearance. The
-default creed and prayer stage and broadcast, and preparation broadcast layouts
-retain reference elements for Bible items. The sermon title stage uses one
-reference box for the passage. These layouts hide references for non-Bible
-content. The theme editor previews dynamic elements with representative content;
-the reference source preview distinguishes the current verse from the item
-range. Empty media and overlay slots show separate editor-only placeholders.
-Reference source remains editable on section themes, which can also be applied
-to Bible items.
+- 02: the 슬라이드 of songs and services.
+- 05: the editor of an item.
+- 07: the 매크로 action 테마 바꾸기.
+- 11: the toolbar 테마 button and the 출력 menu.

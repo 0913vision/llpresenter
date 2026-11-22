@@ -75,8 +75,7 @@ focus, or output.
 | Media          | Video icon, media name, for example 예배 전 카운트다운                                           | Selects the row and opens one media tile in the 슬라이드 panel.                           |
 
 An item with one or more slides, all pictures, uses the image icon in the order
-list and item picker. Empty, text, and mixed decks keep the slides icon; an
-opening section card does not change the content classification.
+list and item picker. Empty, text, and mixed decks keep the slides icon.
 
 - Clicking a row only selects it. The operator outputs by clicking a 슬라이드 in
   the 슬라이드 panel.
@@ -1236,14 +1235,6 @@ keys are changed are in 10, "Shortcut system".
 | Slide hot key (a bare letter or digit)           | Its particular source slide in the open song, first projected occurrence | Follows ProPresenter per-slide assignment (S4 p. 58); S26 user decision; no default keys |
 | A key set for a 테마, 그래픽, 매크로, or 타이머  | That object's command                                                    | No default keys; follows ProPresenter's Key Mappings for 그래픽 and 매크로 (S2, S3)      |
 
-A song, Bible, or slides item with a section card shows it as the first slide;
-next, previous, and resumed playback include it in the item sequence.
-
-Bible split selection and verse shortcuts count source verses independently of
-the opening card. Item navigation and restoration include the card.
-
-When an opening Bible card is live, the previous-verse key does nothing.
-
 In the 준비 palette, Ctrl Z from the 곡 tab undoes the latest 예배 순서 edit.
 
 Stage and broadcast next-slide elements follow the live slide and its item, not
@@ -1274,38 +1265,8 @@ labels precede it. When a prelude, interlude or outro cue is appended to song
 text, it is not repeated in the top label. Empty slides show only the label.
 Bible verse labels are omitted.
 
-Stage title slides and section cards show only their Korean title, without the
-English subtitle. The creed and prayer theme uses 104 px left-aligned current
-text with the next line and clock clear. ????? ?? ?? ???? ???????? ??? ?? ?????
-????. ??? ??? ??? ? ???? ???? ??? ?????
+### Sermon
 
-The built-in GAE translation fetches only requested chapters live from the
-Korean Bible Society. Requested chapters are cached in memory and on disk,
-validated when read, and are never downloaded in bulk. Missing service chapters
-load in the background; failure is shown with retry. Installed `.llbible`
-translations continue to work. text with the next line and clock clear.
-
-Stage current and next text use the matching audience theme font family; current
-text also uses its audience weight.
-
-On stage title slides, only the prelude, interlude and outro labels are shown
-after the title; other labels are omitted.
-
-TEMPORARY for the 2026-11-15 service: on the last slide of a service Bible item
-directly following a sermon-title theme item, the stage next line shows the
-sermon title; other Bible items retain the empty next line. Replace this rule by
-grouping the sermon passage with the sermon title item.
-
-### Sermon element
-
-In preparation, a sermon adds a title and main Bible passage in the shared
-passage dialog. A directly adjacent sermon-title item and Bible passage can be
-bound as one sermon, and the resulting item can be split again; both operations
-are undoable. An existing section card on the Bible item remains the first slide
-of the sermon and returns to the Bible item when split. The sermon title follows
-the card and uses the sermon-title theme and passage reference; Bible passage
-slides follow with their existing display settings, followed by the same sermon
-title again. The stage previews that closing title after the last verse. Both
-title slides have separately editable transitions. Sermon title thumbnails and
-previews resolve the sermon-title theme for the selected screen. The service
-list counts both title slides and measured passage parts.
+A sermon adds its title and main passage in one dialog. It is one item: a 설교
+제목 슬라이드, the 슬라이드 of the passage, and the same title again. The last
+슬라이드 of it, and of a 성경 구절, shows no next text on 무대.

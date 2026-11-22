@@ -57,25 +57,17 @@ The table and inline song editor share the service selection.
 
 ### 준비
 
-- The center table shows 이름, 슬라이드, 테마, 배경, 시작할 때, and 메모. Counts
-  and thumbnails use the selected item's own slides. The library stays on the
-  left; 세부정보 stays on the right.
+- The center table shows 이름, 슬라이드, 시작할 때, and 메모. Counts and
+  thumbnails use the item's own slides. The library stays on the left; 세부정보
+  stays on the right.
 - Column headings stay pinned while table rows scroll. This applies to every
   table, including shortcut settings and import label mapping. Scrolling a row
   into view leaves it below the headings.
 - The first slide, including a section-name card when present, is a full-width
   16:9 picture for every item kind. Its label strip matches the slide grid.
   Selecting a grid picture does not change the first picture or output.
-- Double-click or Enter opens the editor for any service item. Song and slide
-  items use their existing editors. Bible, sermon, and media items also open
-  their slide editors in the center. A library row opens its library song.
-- The slide list and the selected slide's properties show fields for the
-  editable text boxes in that slide's theme. Clocks, timers, video countdowns,
-  stage messages, and the next slide's body and label follow their live sources.
-  A manual value, including a manual blank, belongs to one slide. Restoring the
-  automatic value uses the original content. A saved text edit and any verse
-  boundaries it pins share one undo step. Editing a Bible reference leaves the
-  verse boundaries alone. The slide grid shows previews.
+- Double-click or Enter opens the editor of any item, or of a library song ("The
+  editor of an item").
 - Song item menus offer 라이브러리에 저장… and 라이브러리에서 다시 불러오기.
   Both ask before replacing slides; saving to the library includes its usage
   line. Nothing synchronizes automatically. 구성 controls, their changed dot,
@@ -87,205 +79,67 @@ The table and inline song editor share the service selection.
   Enter, double-click, or 추가. The search field keeps focus as ↑ and ↓ move the
   highlight; with no result, 추가 is disabled with a reason. Cell edits target
   the row containing the cell, including when its background file is missing.
-- Editable background cells with no background show 없음 and open the same
-  picker on the first click. The picker shows image and video type icons. Cells
-  without a start macro or memo stay empty while retaining their menu or field
-  on click and a frame on hover. Item rows are 44px and section rows 32px;
+- Cells without a start macro or memo stay empty while retaining their menu or
+  field on click and a frame on hover. Item rows are 44px and section rows 32px;
   section names have a thin line above except the first.
 - The table shares 진행's item selection and clipboard (04, "Editing the 예배
   순서 in 진행"): Shift selects a range, Ctrl toggles rows, and Ctrl C/V, 편집
   and the row menu copy/paste complete items within or across services. Pasting
   is one undo step and never changes output or the source item.
 
-### Slides items and 슬라이드 편집
+## The editor of an item
 
-Song and slides item editors mark selection with a `selection` plate around the
-thumbnail and number band, with 6px padding and 9px outer radius. Hover uses
-`bg-raised`; keyboard focus keeps its own outline and live slides have no red
-ring. The list puts the normal Checkbox before the number, visible on selection,
-hover or keyboard focus with its space reserved. Checkbox click or Space on a
-focused slide toggles that slide without Ctrl; plain click selects only it, and
-Shift and Ctrl keep their range and toggle behavior. Text fields retain normal
-Space entry. The grid has no Checkbox, including hover and focus. Selection does
-not dim when focus leaves. 진행 retains its existing thumbnail style.
+One editor opens every item, of any kind, and a library song. Its left column is
+the compact 예배 순서, or the library; its right column shows the selected
+슬라이드.
 
-- 항목 추가 offers 타이틀 with the ordered section names from the shared Sunday
-  section list (12), without inserted spaces. Choosing a name inserts an
-  editable 빈 슬라이드 after the selection, or appends without a selection,
-  selects it and opens 슬라이드 편집. The item uses its Korean name, the 타이틀
-  theme, the section's ordinary background picture, one text slide with the
-  English name (empty for 묵상기도), and manual advance. Item name, slide text
-  and background remain editable through the normal controls. A missing theme
-  definition is added for the configured screens; an existing theme is
-  preserved. Preparation also copies absent section backgrounds and the rules
-  picture into an existing media catalog. Existing media IDs and operator
-  replacements are preserved, and existing disk files are never overwritten. If
-  preparation fails, no section item is inserted.
-- 항목 추가 also offers 사도신경 and 주기도문 submenus, each with 새 번역
-  (Protestant 2004) and 옛 번역. All four insert after the selected row, or
-  append without a selection, using a dedicated liturgy item with a fixed kind
-  and version, the 사도신경, 주기도문 theme, and manual advance. Its editor
-  selects the version and previews the fixed paragraphs. Bundled slides contain
-  one paragraph each, wrapping at spaces like 말씀 at 104 px; premeasured
-  sentence boundaries (or comma splits for sentences over four lines) are fixed
-  for each version, with 아멘. attached to the final sentence and no runtime
-  slide splitting.
+- **목록** has a row for each 슬라이드 with its picture and a column for each
+  named box of its 테마. The 열 menu switches the columns, 다음 글 included, on
+  and off; the choice is kept for each 테마. **격자** shows the pictures alone
+  and edits nothing.
+- **Typing.** Enter adds a row. Ctrl Enter cuts the 슬라이드 at the caret.
+  Backspace at the beginning joins it to the one before when both have one 테마;
+  parts of one verse join in one row. Pasted text starts a 슬라이드 at each
+  blank row. Leaving the last row or the first with an arrow goes on in the next
+  슬라이드.
+- **The right column** shows the 슬라이드 on the screen chosen above it, the
+  texts of all its boxes and 다음 글, then 테마, 배경 (with its 맞춤, size, and
+  place for a picture), 전체 슬라이드에 적용, 이름표, and 전환. A setting
+  changes every selected 슬라이드; differing values are shown as mixed.
+- 다음 글 is what the 슬라이드 before shows on 무대. Its field shows the phrase
+  of the 테마 until the operator types a text of its own; clearing it brings the
+  phrase back.
+- 슬라이드 추가 makes one in the 테마 that follows the one before it, with the
+  same background. 타이틀 adds a title of the list.
+- A media tile dropped on a 슬라이드, or on the picture at the right, becomes
+  its background; on a selected one it becomes the background of the whole
+  selection. Audio and missing files are refused with a reason.
+- The menu of a 슬라이드 has 슬라이드 추가, 오버레이 추가…, 단축키…, 이름표, and
+  the edit commands. See "오버레이" in 12, "이름표 menu", and "Slide hot keys".
+- Every change is saved to the item at once. Ctrl Z and Ctrl Y step through the
+  changes of the service. A live 슬라이드 follows its changes on the outputs
+  without a transition.
+- **성경 구절 and 설교** also have 절 나누기, which cuts a verse as the app
+  would and lets the operator move the cuts, and 본문 변경…. A verse whose text
+  was changed by hand can't be cut by the app: "직접 고친 절은 여기서 나눌 수
+  없습니다". Verses that stay keep their 슬라이드 and settings.
+- **사도신경 and 주기도문** have 새 번역 and 옛 번역, which put the text of that
+  version in and keep an opening 타이틀.
+- **곡** has 라이브러리에 저장… and 라이브러리에서 다시 불러오기. Both ask
+  first.
 
-  사도신경 and 주기도문 are special liturgical items with their own dedicated
-  theme. Preserve their special behavior rather than treating them as generic
-  text items.
+### Selection
 
-- 항목 추가 offers 빈 슬라이드 and 광고 before 미디어. Each inserts after the
-  selected row, selects the item, and opens 슬라이드 편집. Without a selection
-  it appends. 빈 슬라이드 starts with one empty text slide and manual advance.
-  Its editor puts the caret in slide 1's text field, ready to type. 광고 starts
-  with one empty named text slide, manual advance, and 반복 off. Its default
-  audience theme has the blue-purple notice picture with a fixed slash, an
-  automatic text-slide number, the slide name, and a bulleted body (12).
-  Operators enter plain body lines; the theme adds hanging bullets. Picture
-  slides cover the frame and do not consume a notice number.
-- Both forms use the slides icon, except picture-only decks use the image icon.
-  The table shows the editable item name, slide count, item theme or form
-  default, background, start macro, and memo. The right column shows the
-  preview, item name, 슬라이드 편집… and themed thumbnails. Item properties stay
-  in table cells. It has no 순서 편집… action. Their attached thumbnail strips
-  show the number and the assigned 이름표, if any.
-- Double-click or Enter on a blank, ad, or sermon slides item opens its editor
-  in 준비's center. Existing 슬라이드 편집 requests use the same editor, with no
-  separate window. The back button shows the service name. Esc in a slide text
-  field leaves text editing; Esc outside a text field returns to the list. The
-  슬라이드 속성 shows the selected draft's picture and transition settings.
-- Opening an item or library song by double-click, Enter, or its edit action
-  focuses the editor's list command surface with the first slide or the source
-  slide selected. Editing keys work without another click. A new song opened by
-  Ctrl N keeps focus in its title. Returning from the editor focuses the
-  originating service or library row.
-- Song title fields keep a 160px minimum and a 280px maximum (`size-field-key`
-  and `size-field-title`). Secondary header controls wrap when necessary,
-  instead of squeezing the title; ultrawide headers keep the same maximum.
-- The header edits 이름, 테마, 넘기기 (손으로 or every 3, 5, 8, 10, 15, 20, or
-  30 seconds), and 반복. Its first row uses the song editor's height, padding,
-  and alignment: back, name field, then actions. Theme, advance, and loop sit
-  together on the second row. Each row has a thumbnail in the item's theme. Ad
-  text rows have 이름 and 내용; blank text rows have 글. A picture row has its
-  filename and 바꾸기…. 글 추가 adds a text row; 그림 추가 and 바꾸기 choose
-  pictures from the media list. A structured verse slide shows its read-only
-  Bible reference and stays intact when other item fields are saved.
-- Rows use the song editor's 14px padding, 18px number column, and 16px gaps:
-  number, a fixed 112px 16:9 thumbnail, then top-aligned body content. There is
-  no kind column. Ad field labels stay on one line. Text uses a two-line
-  TextArea that grows with its content; picture filename and 바꾸기… share one
-  line. Verse rows show the full reference (`요한복음 3:34`) in strong body
-  text, then at most two lines of read-only verse text with an ellipsis. A split
-  verse shows the thumbnail's first piece and its part (`1/2`). Add actions
-  start at the content column; the slide count stays in the footer.
-- In a blank item, 성경 구절 추가 opens the shared passage dialog. It inserts
-  one reference-only row per verse after the selected row. The entire range is
-  one local undo step, and a range exceeding the remaining 200-row capacity is
-  refused before insertion. Ad items do not offer this action.
-- The shared passage dialog shows the same recent references and keyboard
-  controls as Ctrl+B in Show. Enter chooses the highlighted recent or submits
-  the typed reference, and Alt+1 through Alt+0 choose a recent directly. Escape
-  clears typed fields first and closes an empty dialog. A selected passage
-  continues through the normal passage-add flow.
-- With 환경설정 › 성경 › 절 나누기 창 저절로 열기 enabled (the default), adding
-  a passage from the palette, the order, the Bible preview, or a blank item
-  opens 절 나누기 before creating the item or inserting the verse rows. The
-  review opens when the first unconfirmed verse that needs more than one slide
-  is ready. Later suggestions arrive in the same window. The rule-based split
-  supplies a suggestion when AI is unavailable and can be confirmed when a long
-  word has to span slides. Each confirmation saves that verse immediately. Esc
-  cancels the insertion and keeps prior confirmations for future additions. With
-  the preference disabled, insert with the saved or rule-based cuts. Bible and
-  sermon items and individual verse rows retain their own confirmed cuts. Ctrl E
-  opens 절 나누기 for the selected verse row and saves the edited cuts to that
-  row.
-- 퀵 실행 (Ctrl+B) uses saved confirmed cuts or the rule-based splitter and
-  makes no AI request. Suggestions belong to the active 절 나누기 review and
-  only confirmed cuts are saved.
-- Verse thumbnails and previews resolve the installed translation and use the
-  same measured parts as 진행. The preview offers previous and next parts of the
-  selected verse; editing a reference never creates copied verse text in the
-  service file. Missing source text or a failed measurement refuses the
-  insertion with a reason, retaining the draft.
-- Click a row to select it, Shift to extend a range, or Ctrl to toggle one. Ctrl
-  A selects all and Esc clears. Clicking a gap clears selection and sets a 2px
-  insertion caret; arrows move it and Shift arrows extend selection. Ctrl C/X/V
-  copy, cut, and paste; Ctrl D duplicates after the selection. Paste inserts at
-  the caret or after the last selected row. Copies get new IDs and retain
-  picture IDs, ad names, and verse references. Structured rows paste between
-  items of the same form; outside plain text (including copied song lines) makes
-  text rows split at blank lines.
-- In list mode the caret and drop marker are horizontal between rows. In grid
-  mode they are vertical and span the tile height, before the target tile or
-  after the last tile, including at the beginning of a new row. The same rule
-  applies to song and slide-item editors.
-- Drag moves the whole selection in document order with a count badge. Delete
-  outside a text field immediately removes the selection as one undo step,
-  without a confirmation or notice. The row and gap context menus expose
-  clipboard, duplicate, delete, undo, and redo commands with shortcuts. Text
-  fields keep native text selection and clipboard behavior. Ctrl Z and Ctrl Y
-  undo and redo local item edits and row commands in one shared, 100-step
-  history, restoring row selection and the caret. Removing rows focuses the list
-  command surface, including an empty list, so keyboard undo remains available.
-  The preview has 청중 화면, 무대 화면, and 방송 화면 tabs and a position
-  caption. Automatic saves keep typing focus and text selection. Acknowledging a
-  write does not break the current typing undo group.
-- Service item edits save automatically through the service edit path, the same
-  as song items. There is no 저장 button or save/discard question on leaving;
-  only a library song retains explicit 저장. Both local item history and the
-  service's history cover saved changes. Leaving the editor keeps queued writes
-  and the item's undo history alive. Edits made during a write follow it in
-  order, including edits to another item of the same service.
-- Automatic writes merge edited fields into the fresh item, preserving
-  concurrent changes to other fields. Conflicting changes to the same field
-  refuse the write and keep the edits for 다시 시도. The shared retry action
-  retries every item whose automatic save failed. Application close flushes
-  pending writes and refuses to close when they fail, without a draft question.
-- Rows and both right-column grids share the song editor's selection, caret,
-  clipboard, drag, and undo implementation. Table-grid edits save through the
-  same item writer; opening and returning from the editor retains its history.
-- Enter or forward Tab in a song title or slides item name commits the name and
-  puts the caret in the first slide's text field. Song lyric fields have a
-  visible fill, border and focus ring and grow with their contents. Clicking the
-  surrounding row selects slides, including Ctrl and Shift selection; clicks
-  inside the field edit text. Empty fields have no instructional text.
-
-### 오버레이 on 슬라이드
-
-The bar and menus work in the selected item's slide list. Song-item ranges store
-endpoint slide IDs (02), so moves keep the endpoints attached.
-
-- Add: drag media from the 라이브러리 미디어 list or the 미디어 bin onto a
-  슬라이드, or choose 오버레이 추가… on the 슬라이드's right-click. The range
-  runs from that 슬라이드 to the song's end, or to the 슬라이드 before the next
-  오버레이.
-- A 슬라이드 has at most one 오버레이 (12). Dropping media on a 슬라이드 that
-  has one replaces its media.
-- A bar under the 슬라이드 shows each range. It is drawn per row, with › where
-  it runs on to the next row and a handle at each real end. Dragging an end
-  changes the range.
-- Clicking a bar opens its settings, with the labels and controls of the
-  existing 오버레이 settings: 바꾸기…, 슬라이드 (부터, 까지), 화면 (a checkbox
-  per screen), 끝나면 (반복, 정지), 소리 (the label with a lone checkbox), and
-  오버레이 삭제.
-- Remove: 오버레이 삭제 in those settings or on the 슬라이드's right-click,
-  beside 오버레이 바꾸기…; or choose a bar and press Delete.
-
-### 곡 편집
-
-- 곡 편집 replaces 준비's center table with an inline editor. Its back button
-  names the service for an item, or 라이브러리 for a library song. Returning
-  keeps the service item selected. No 곡 편집 window opens.
-- An item edits its independent slide deck and saves through its service's
-  revision check. Its title is read-only; 라이브러리에 저장… asks before
-  explicitly copying its saved slides to the source song, including usage.
-- A library song has 저장 and 다른 이름으로 저장…. Its changes stay local until
-  저장, with the overwrite question. Leaving a dirty song asks 저장, 저장 안 함,
-  취소. Cancel retains the draft and previous selection.
-- 슬라이드 속성 shows the selected slide's picture and settings. There is no
-  항목 설정 panel. Theme, background, start macro and memo stay in table cells;
-  메모… in the row menu also works when the memo column is hidden.
+- Rows and pictures share click, Shift range, Ctrl toggle, Shift arrows, Ctrl A,
+  and Esc. A clicked gap clears the selection and shows an insertion caret;
+  arrows move it. With no selection or caret, paste appends.
+- Ctrl C, X, and V copy, cut, and paste whole 슬라이드. Copies get new IDs and
+  no hot key. Plain text from outside splits at blank rows.
+- Ctrl D duplicates after the selection; Delete removes the whole selection as
+  one step. Dragging moves it together. A library song keeps at least one
+  슬라이드; an item may be empty.
+- Esc in a text field leaves it and selects its 슬라이드. The next Esc clears
+  the selection; with none, Esc returns to the table or the library.
 
 ## 예배 순서 panel in 준비
 
@@ -315,19 +169,16 @@ Source: `Reflow`, `PrepService`, `AddSongs`, `ListRow` README.
 
 - In the list view, the left panel starts with 예배 요소 and 곡 tabs. 곡 keeps
   the library; the foldable media bin remains available in the list and editor.
-- 순서 offers 예배 준비, 사도신경, 주기도문, 성경 구절, 광고, 빈 슬라이드, 구역,
-  and 대기 화면. 대기 화면 adds a 빈 슬라이드 item with one empty slide
-  referencing the current 대기 화면 theme. Its new slide starts with a 1-second
-  left wipe; existing slides retain their saved transitions. Creeds and prayers
-  use the new translation by default; their context menu also offers the old
-  translation. 사도신경 and 광고 include their section card.
-- 타이틀 offers the remaining Sunday section cards as wrapping chips. Double
+- 순서 offers 예배 준비, 사도신경, 주기도문, 설교, 성경 구절, 광고, 빈 슬라이드,
+  구역, and 대기 화면. Creeds and prayers use the new translation by default;
+  their context menu also offers the old one. 사도신경 and 광고 start with their
+  타이틀.
+- 타이틀 offers the titles of a service and the operator's own as chips. Double
   click or Enter inserts an element after the current item or at the end of the
   selected section; dragging inserts at the order drop line. 성경 구절 opens the
   passage dialog.
-- A media tile dropped at an order row edge inserts a media item; dropped in the
-  middle half of a compatible row it becomes the item's background. Missing
-  files and unsupported backgrounds are refused with a reason.
+- A media tile dropped on the table inserts a media item at the drop line.
+  Missing files are refused with a reason.
 
 ## 라이브러리
 
@@ -405,47 +256,20 @@ initially shows the church's service times when no item is live (12).
 
 ## Song editor
 
-The inline editor uses the same slide selection, clipboard and undo model as the
-right-column grid. A library song and every service item own independent decks.
-Library changes wait for 저장; item changes save only to that item.
+A library song opens in the same editor ("The editor of an item"). What differs:
 
 ### Header
 
-- The title and the 슬라이드 count ("슬라이드 4개"), a 라이브러리 tag (folder
-  icon), and "예배 2곳" (used in 2 services, link icon). The second tag counts
-  the 예배 순서 files that point to the song. Its tooltip lists their names
-  (proposal).
-- 기본 배경 (default background): a select with a small image and the media
-  name. It opens the shared searchable media list: 없음 (none), then image and
-  video media. Choosing a media saves it as the song's `background`.
-- The title is a title field (proposal; the board shows it as text, and the
-  imported song editor shows the same field).
-  - An empty title can't be saved. The field shows the error ring with the
-    tooltip "곡 제목을 적어야 저장할 수 있습니다" (enter a song title to save).
-  - A title that another song has can't be saved. The field shows the error ring
-    with the tooltip "라이브러리에 같은 제목의 곡이 있습니다" (a song with the
-    same title is in the 라이브러리).
-  - An invalid title isn't saved. Manual drafts retain it with the field's
-    reason so the operator can correct it.
-
-### Slide rows
-
-- Each row has an 18px number column, a 112px themed thumbnail, lyrics and an
-  이름표 chip, with 14px padding and 16px gaps. Each row is one slide, including
-  adjacent slides with the same name. Unnamed chips show 이름표; free names use
-  neutral colors. There are no group boundaries or shared chorus occurrences.
-- Enter adds a line. Ctrl Enter splits at the cursor with a fresh slide ID.
-  Backspace at the beginning merges into the preceding slide even when names
-  differ. Pasting text with blank lines creates separate slides. Ctrl Shift N
-  adds a blank slide; an empty item has 슬라이드 추가.
-- Ctrl Z and Ctrl Y undo and redo up to 100 steps. Typing groups until the
-  cursor leaves the row or one second passes. Split, merge, and label edits each
-  form a step.
-
-Every service slide, including text, picture, imported picture, advertisement,
-and verse slides, may carry an optional label. The same catalog menu applies to
-a single selected slide or all selected slides. The tile band shows the name and
-its catalog color; stage output carries it as the slide label.
+- The title field, 저장 (Ctrl S), 다른 이름으로 저장… for a saved song, and how
+  many services use the song. A dot marks unsaved changes.
+- An empty title, or one another song has, can't be saved; the field shows the
+  reason.
+- Changes wait for 저장, which asks before it overwrites the song. Leaving with
+  unsaved changes asks 저장, 저장 안 함, or 취소. An imported song is unsaved
+  until 저장 adds it to the library.
+- A new song begins with a 찬양 제목 슬라이드 and one of 찬양 가사. Renaming the
+  song renames the title on the 슬라이드 that shows it. The menu of a 슬라이드
+  has 제목 슬라이드 추가.
 
 ### 이름표 menu
 
@@ -525,68 +349,18 @@ name.
   separate from typing, without moving the lyric cursor. In 진행 the key goes to
   that exact slide, independently of 이름표 (04).
 
-### Preview
-
-- A segmented control switches between 청중 화면, 무대, and 방송 화면. The
-  preview shows the selected 슬라이드 drawn with the 테마 of the item for that
-  screen.
-- Caption: the 이름표 color swatch and name, and the position ("3 / 4").
-
-### 슬라이드 list
-
-- Header: "슬라이드" and the count. Thumbnails of the 슬라이드 in deck order.
-- Rows and thumbnails share click, Shift range, Ctrl toggle, Shift arrows, Ctrl
-  A, and Esc selection. A clicked gap clears selection and shows a 2px insertion
-  caret; arrows move it. With no selection or caret, paste appends.
-- Ctrl C/X/V and their menu rows copy, cut and paste full slides with labels.
-  Copies receive fresh IDs and no conflicting slide keys. Plain text from
-  outside splits at blank lines. Repeated fast paste waits for copy and stays
-  one undo step per paste; moving focus or selection cancels a delayed paste.
-- Ctrl D duplicates after the selection; Delete immediately removes the whole
-  selection as one undo step. Selected right-click targets preserve the set;
-  unselected targets first become the only selection. Menus hide commands that
-  apply to only one member and count set-wide commands. Drag moves it together.
-  These operations use the same 100-step history as typing, labels, split and
-  merge. A library retains at least one slide; an item may be empty. Read-only
-  decks allow selection and copy.
-- The preview follows selection without output. Esc in a slide's lyrics, 글,
-  이름, or 내용 field leaves text editing and selects that row, focusing the
-  list command surface without changing its text. The next Esc clears selection
-  or the insertion caret; with neither, Esc returns to the table from anywhere
-  in the editor, including when focus has fallen to the body. Leaving a dirty
-  library song still asks 저장, 저장 안 함, or 취소. IME composition keeps its
-  own Escape behavior.
-- Slide grids share a footer with the same compact thumbnail size slider and
-  percentage field at the right edge.
-
-Source: `Reflow`, `ImportEdit`, `LabelChip` README, `LabelColorPicker` README,
-`Menu` README, `TextField` README, `SlideThumbnail` README, product log (version
-61 구성 presets, user-managed 이름표 colors; October 27 S26 user decision).
-
 ## 예배 순서 item settings
 
-The right column shows 세부정보 for the selected item: its selected slide
-picture, title and kind with slide count, followed by 정보 and 슬라이드 tabs.
-정보 groups the applicable settings under 이번 예배 and source details under
-원본, with left-aligned values in a common property grid. The 타이틀 select
-adds, changes, or removes the opening card of a song, Bible, or slides item. For
-a standalone card it changes the section; the row is deleted to remove the card.
-슬라이드 shows the item's pictures in a grid with a remembered, independently
-adjustable thumbnail size; widening the panel adds columns without enlarging
-tiles. Selection is local, changes the large picture and its numbered 이름표
-band together, and a double click opens the editor at that slide. The item keeps
-its own slide count, theme and slides even when its library source changes. The
-picture and both tabs share one scroll. The screen selector chooses any
-configured output screen for the picture and slide tiles, using the same theme,
-content, screen correction and NDI transparency as its output. The first
-audience screen is selected initially.
+The right column of the table shows the selected item: one 슬라이드 on the
+screen chosen above it, 편집, and the 정보 and 슬라이드 tabs. 정보 has 시작할 때
+and 메모 under 이번 예배, and what the item was made from under 원본. 슬라이드
+shows the pictures of the item in a grid with a remembered size; a double click
+opens the editor at that 슬라이드.
 
 ### What belongs to the service and what belongs to the song
 
-An item owns its slides, labels, keys, overlays, background override, theme,
-start macro and memo. The library song owns its title, default background and
-separate slide deck. Explicit save/reload actions copy slides between them;
-changes never propagate to other items.
+An item owns its 슬라이드, overlays, start macro, and memo. The library song
+owns its title and its own 슬라이드. Explicit save and reload copy between them.
 
 ## Adding items to the 예배 순서
 
@@ -971,116 +745,31 @@ Source: `ImportMenu`, `ImportText`, `ImportEdit`, `ImportSave`, `Prefs`
 (가져오기), `AlertDialog` README, `TextField` README, product log versions 57
 and 59.
 
-## PowerPoint picture import
+## PowerPoint
 
-파일 > 가져오기 > PowerPoint를 이미지로 opens a `.ppt`, `.pptx`, or `.pptm` file
-in PowerPoint with macros disabled. Hidden slides are skipped; each visible
-slide is exported from a temporary copy of the chosen file as a 1920 × 1080 PNG
-and placed in one 빈 슬라이드 item after the selected service row (or at the
-end). Its pictures are private to the item and its copies and never appear in
-media lists. Private pictures are retained after deletion so undo and clipboard
-copies remain usable. Slide labels are empty. The item uses 이미지 슬라이드. The
-operator sees export progress and may cancel. If PowerPoint is not installed,
-does not respond, or cannot read the file, the app reports the cause without
-adding an item. The temporary copy is removed after the export finishes, fails,
-or is cancelled. 4:3 files are refused before export, with their dimensions.
+파일 > 가져오기 has PowerPoint에서 곡 가져오기… and PowerPoint를 이미지로
+가져오기…, also while an item is open. Both take `.ppt`, `.pptx`, and `.pptm`. A
+`.ppt` is converted from a private copy by PowerPoint with macros disabled.
+Hidden slides are skipped. A 4:3 file is refused: "4:3 파일은 가져올 수
+없습니다. PowerPoint에서 16:9로 바꿔 주세요".
 
-## PowerPoint import
+### 곡 가져오기
 
-Both PowerPoint pickers accept `.ppt`, `.pptx`, and `.pptm`. For `.ppt`, the app
-copies the original to a private work directory, opens that copy read-only in
-PowerPoint with macros disabled, and saves a temporary `.pptx` for the normal
-import. PowerPoint must be installed to convert `.ppt`; the operator sees an
-error if it is unavailable. The original stays unchanged, and temporary copies
-are cleaned up when no longer needed. 4:3 files are refused before import, with
-their dimensions, including after conversion. Other files are first read as ZIP
-and XML data without running macros. Importing layout pictures may start
-PowerPoint invisibly to render the decorations. Hidden slides are skipped, and
-the remaining slides retain their original slide numbers. Shapes are read in
-slide order, including groups; tables, charts, notes and comments are ignored.
-Line breaks and XML entities are decoded, trailing whitespace is removed, and
-empty lines are dropped.
+The texts show at once, and the whole background of each slide, as PowerPoint
+draws it without the text, comes in as it is exported. Slides that look the same
+share one picture. The dialog shows every slide in the song 테마; click and
+Shift-click choose a range. Which slides are titles is in 02, "PowerPoint". 편집
+opens the unsaved song in the song editor. A picture that is already in the
+media library is used again; others are named after the song.
 
-The preview starts with all slides selected. Click a slide and Shift-click
-another to select an inclusive range. The default name joins the first title
-shape's lines with spaces, excluding any second shape used as a subtitle; if
-there is no title, it uses the file name without extension. Body placeholders
-supply lyrics and take precedence over decorative text. A slide with other text
-is a title when it is the first slide with text in the range, or repeats that
-title's first line; other such slides are lyrics. Empty slides remain blank. A
-title uses at most two shapes, retaining each shape's paragraphs as separate
-lines with their positions and formatting. 편집 opens the unsaved song editor;
-저장 there adds the song to the library.
+If PowerPoint is missing or can't export a slide, its background stays empty and
+the dialog says so. Closing the dialog stops the export.
 
-가사 and 배경 are selected by default. At least one remains selected. 가사 alone
-opens a song without importing media; 배경 alone imports the selected range's
-backgrounds into media with 가져오기 and opens no editor.
+### 이미지로 가져오기
 
-The imported song uses the built-in light-background song theme when the most
-common resolved body lyric color in the selected range has relative luminance
-below 0.5. Otherwise it uses the normal song theme. Slide, layout and master
-text styles and theme color mappings supply the color. Body lyric typography
-resolves size, tracking, line spacing and font from runs, paragraphs, layout and
-master; box widths, title positions and point values are converted to 1920-wide
-canvas units. Unformatted or subsequently edited lines use the selected theme. A
-service item added from the song keeps its selected theme.
-
-### Background
-
-When PowerPoint is available, each distinct slide look is exported as a 1920 ×
-1080 picture from a temporary copy, with the slide's own text and placeholders
-removed so its master, layout and non-text decorations are retained. Slides
-sharing a look reuse the picture. The slide text remains editable. If PowerPoint
-cannot export it, the following layer import supplies the background instead.
-
-The layer import draws non-text content. The slide's own background takes
-precedence over the layout background, then the master background. Solid,
-gradient, picture fills and theme background references are resolved before
-drawing. Master shapes follow unless the slide or layout sets `showMasterSp` to
-false, then layout shapes, then slide shapes, preserving each shape tree's order
-and group transforms. Placeholders and shapes containing text are skipped.
-
-JPEG and PNG pictures retain their position, size, rotation, flips, source crop
-(including negative crop extensions), stretch fill rectangle, opacity,
-brightness, contrast and grayscale. Filled rectangles, rounded rectangles and
-ellipses retain solid or gradient fills and visible outlines. Linear gradients
-retain their angle, scaling and stop positions; path gradients are drawn as
-radial gradients. Theme scheme colors use the master's color mapping and any
-layout or slide override. Alpha, luminance, shade and tint transforms apply to
-fills and gradient stops. Other shape geometries are skipped and counted.
-
-Picture fills on rectangles, rounded rectangles and ellipses are clipped to
-their shape. Picture fills and slide backgrounds can stretch or tile the image,
-with tile scaling, alignment, offset and alternating flips. Unsupported explicit
-shape fills are skipped and counted instead of using a theme fill.
-
-Picture cropping uses the decoded bitmap's pixels before shape transforms; a
-horizontal flip mirrors the already cropped picture, so a left source crop
-removes the visual right side. Pictures use high quality downsampling, with no
-filter for unchanged luminance. Positive brightness moves colors toward white;
-negative brightness moves them toward black. Unscaled gradient angles are
-preserved in physical shape coordinates. An explicit `masterClrMapping` restores
-the master's mapping after any layout override.
-
-Each slide has a background key covering its layout and the slide content left
-after text and placeholders are removed. PowerPoint renders each distinct look;
-when that export fails, the layer renderer provides a fallback for that look.
-The most common key in the selected range supplies the song background; each
-slide also retains its own picture. Fallback backgrounds contain at most 64
-layers; additional layers and pictures exceeding image bounds are omitted. Each
-encoded picture is limited to 32 MiB, 16384 pixels per side and 64 megapixels,
-with 128 MiB of encoded pictures per background.
-
-For fallback rendering, Chromium's OffscreenCanvas draws the layer list and
-encodes JPEG at quality 0.92, or PNG when the composed picture has transparency
-at an edge. The composed image enters the media library when 편집 is pressed and
-remains there even if the song is discarded. Text styling, transitions and
-animations are not imported. Other size limits are in the data specification.
-
-When a picture with identical bytes is already in the media library, the song
-reuses it. Otherwise the new media item is named from the song name followed by
-` 배경`; a duplicate name receives ` 2`, ` 3`, and so on. Its stored file name
-remains ASCII.
+Each visible slide is exported as a 1920 × 1080 picture into one 빈 슬라이드
+item after the selected row. The pictures belong to the item and its copies and
+never appear in media lists. A notice shows the progress with 취소.
 
 ## Shared bottom 미디어 bin
 
@@ -1179,73 +868,6 @@ README, `StatusMarks` README (progress bar), `Slider` README, `docs/TECH.md`
 media. Existing media features move into the bin; the layout move does not
 expand the feature-freeze scope.
 
-### Slide transition metadata
-
-The service item information panel shows theme and background. The center editor
-contains only the slide list, with no edit or design tabs. Title-slide spacing
-and position controls appear in the right slide-properties panel when selected.
-테마 offers 기본 and the stored themes; 배경 offers 곡 기본값 and image/video
-media. Media dropped on an editor slide in list or grid view, or on the slide
-properties picture, sets the item background. For a service song item, its
-override takes precedence over the library default; in the library song editor,
-the current library draft takes precedence. The target is highlighted while
-dragging. Missing media and audio are refused with a reason. Dropping on an
-overlay clip continues to create or replace the overlay. Changes apply to the
-captured service item, never the library song or another service's deck. Pending
-lyric edits finish before appearance writes. A saved background change updates
-the editor's baseline without replacing lyric undo history or slide selection
-when the slide deck is unchanged. The separate editor window's preview uses the
-captured service item's theme and follows its changes, including a return to
-기본. Read-only, blocked and saving states prevent changes. Changing item
-settings preserves slide selection and history. The library song editor retains
-its default background header control.
-
-The grouping follows PowerPoint's Design tab (Themes followed by Format
-Background) and Google Slides' separate Theme and Background commands. Their
-themes coordinate presentation appearance; their background commands change
-slide fills. This app keeps its existing item-level scope and media choices.
-Sources:
-[PowerPoint themes](https://support.microsoft.com/en-us/powerpoint/training/add-color-and-design-to-your-slides-with-themes),
-[PowerPoint backgrounds](https://powerpoint.cloud.microsoft/create/en/slide-backgrounds/),
-and
-[Google Slides theme and background](https://support.google.com/docs/answer/1705254?hl=en-GB).
-
-Song and shared item editors preserve each slide's optional transition during
-ordinary text, label, order, save, and clipboard edits (02).
-
-- The selected slides' transition settings are in the right inspector. Effect,
-  direction and duration change the selected slides together; applying to all
-  slides is a single undo step. None selects a cut, and thumbnails mark explicit
-  effects. Mixed selections show their differing values, and read-only or
-  blocked sessions cannot edit them.
-- Songs, blank and advertisement slides, Bible, sermon titles, liturgy, section
-  titles and waiting screens use the same effect, direction, time and 전체
-  슬라이드에 적용 rows. Creed and prayer editors support Ctrl toggles and Shift
-  ranges, including their opening card, for transition edits to multiple slides.
-- The local preview redraws immediately without animation when typing, selecting
-  slides, editing a theme or changing effects. Effect settings remain editable
-  metadata; they play only on output and its live preview in 진행 (03).
-
-### Song title slides
-
-New songs begin with a title slide containing the song title and no subtitle.
-Renaming the song updates that line while it still matches the previous title;
-an edited line is preserved. The slide can be deleted and is not recreated. A
-duplicate or saved copy gets a title slide if absent, and its matching title
-line follows the copy name while a customized line is preserved.
-
-The song editor slide menu offers 제목 슬라이드 추가. It inserts the current
-song title at the insertion caret, after the targeted slide, or at the start
-when nothing is selected. Titles may repeat anywhere, including the last slide.
-The existing text field edits the title on its first line and an optional
-subtitle on its second line, each at most 512 characters. A single selected
-title exposes 제목 자간 and 부제 자간 in px, saved per slide. Defaults are 0 and
-24; each accepts -20 to 200. Ordinary move, duplicate, copy, paste, delete and
-undo apply, retaining text and spacing. Splitting a title or merging across
-either side of a title is refused. Title slides use the same 슬라이드 전환
-control to choose a slow transition when desired. Library and service-local
-decks preserve every title.
-
 ### Theme element selection commands
 
 The element list supports Ctrl toggles, Shift ranges and Ctrl A. Right-click on
@@ -1256,81 +878,6 @@ the group at the canvas boundary without changing gaps. Both drag surfaces show
 the count. Delete from a key or menu immediately removes the selected elements
 without a confirmation or notice. Each deletion records one undo step.
 
-Song, Bible, and slides items can add an opening section card from the slide
-menu. Its Korean and English text can be edited and the card removed
-independently. The standalone 타이틀 item remains available.
-
-Adding or removing an opening card leaves overlay ranges attached to their
-content slides; the card itself does not display those overlays.
-
-Slide thumbnails in item lists and song and Bible editors use the audience
-output compositor at thumbnail scale, preserving its layout and line breaks.
-
-Slide thumbnail captions in grids and editor rows are attached strips showing
-number and label name on the label color, or only the number on a neutral fill
-when unlabeled. Preparation slide thumbnails and editor rows do not show a live
-ring; the service order row keeps its LIVE badge. Grid selection plates have an
-accent ring for clear distinction.
-
-The song editor's 슬라이드 속성 shows the selected slide as a local 16:9 picture
-with its label, followed by 이름표, 전환 and 단축키 settings. The picture
-follows text edits immediately and does not send to output. Label and transition
-edits apply to the selected slides; differing values are shown as mixed.
-
-The slide-item editor uses the same local picture, 이름표 menu, and transition
-rows, backed by its draft selection. The shared catalog offers the same choices
-as for song slides; assigning or clearing a name edits the selected slides as
-one undo step. Slide items do not have slide hotkeys.
-
-For a mixed transition selection, changing the duration updates each explicit
-transition without replacing its effect or direction; slides without a saved
-transition remain unchanged. The 슬라이드 속성 panel supports undo and redo for
-its edits.
-
-슬라이드 속성 is blank when the song or slide-item selection is empty. For a
-media item it shows the image or video thumbnail and the existing media property
-rows. For a Bible item it shows the selected local verse picture and label, with
-the same transition rows and selection behavior.
-
-### Slide surface views
-
-The song, slides, and Bible editors offer 목록 and 격자 views of the same slide
-order.
-
-The slide area footer shows the slide count on the left and the icon view switch
-on the right, with 목록 and 격자 accessible names and tooltips. Grid view also
-shows the size control there. In list view each row has one numbered picture
-strip; the song strip opens its label menu.
-
-An opening 타이틀 card is the first row or cell, and its Korean and English
-names are editable. The card cannot be moved, and content slides cannot be moved
-ahead of it. Delete removes the selected card. A standalone 타이틀 item opens
-with that card as its only slide. Bible verse text remains read-only. Each text
-slide has an editable field and an immediately updated picture in both views.
-The view and grid size belong to the window. Grid size can be adjusted with the
-slide size control. Selection stays local to the editor; click selects a slide,
-Ctrl-click toggles it, and Shift-click extends a range. Drag or Alt+Up/Down
-reorders slides. Existing insertion, deletion, clipboard, and text editing
-commands apply in both views. In grid view, text fields grow to show all wrapped
-lines without an inner scrollbar. Cells in the same grid row have the height of
-the tallest cell; typing retains the caret and surface scroll position.
-
-????? ?? ?? ???? ???????? ??? ?? ????? ????. ??? ??? ??? ? ???? ???? ??? ?????
-
-The built-in GAE translation fetches only requested chapters live from the
-Korean Bible Society. Requested chapters are cached in memory and on disk,
-validated when read, and are never downloaded in bulk. Missing service chapters
-load in the background; failure is shown with retry. Installed `.llbible`
-translations continue to work.
-
 Each open-file picker remembers the folder of its last selected file across
 restarts. When that folder is unavailable or unset, the picker opens Documents;
 canceling leaves its remembered folder unchanged.
-
-An item background override covers its theme background on audience screens
-while preserving slide content. Stage and broadcast screens never show an item
-or song background, even when their layout has a background element. 없음
-removes the background, and the default choice returns to the theme or song
-background. Full-screen image elements used as theme artwork count as
-background; other image elements remain. A media item retains its own media
-independently of its background.

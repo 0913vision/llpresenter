@@ -138,14 +138,14 @@ breaks one is not merged.
 | ------------------------------- | -------------------------------------- | --------------------------------- | ---------------- |
 | The form of a 테마              | `core/schema/theme.ts`                 |                                   |                  |
 | The 테마 that come with the app | `core/theme/builtIn/*.json`            | The app                           | A change of code |
-| The operator's 테마             | `main/store/themes.ts`                 | `Settings	hemes\<id>.lltheme`      | 테마             |
+| The operator's 테마             | `main/store/themeFiles.ts`             | `Settings\themes\<id>.lltheme`    | 테마             |
 | Values and phrases              | `core/theme/template.ts`, `content.ts` |                                   |                  |
 | Sizes and places                | `core/theme/layout.ts`                 |                                   |                  |
 | Drawing                         | `rendering/theme/`                     |                                   |                  |
 | The form of a 슬라이드          | `core/schema/slide.ts`                 |                                   |                  |
 | The 슬라이드 of an item         | `core/schema/service.ts`               | `.llservice`, the item's `slides` | 준비             |
 | The 슬라이드 of a song          | `core/schema/song.ts`                  | `.llsong`, `slides`               | 준비             |
-| Making 슬라이드                 | `core/slides/make/`                    |                                   | Insert, import   |
+| Making 슬라이드                 | `core/slides/make.ts`                  |                                   | Insert, import   |
 | What each screen shows now      | `core/live/`                           | `live.json`                       | 진행             |
 | Clock, timers, stage message    | `rendering/layers/`                    | `screens.json`                    | 화면 설정        |
 

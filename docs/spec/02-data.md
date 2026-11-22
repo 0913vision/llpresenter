@@ -64,11 +64,31 @@ Documents\LoveLight\                 data folder (default)
 Source: `Prefs` (저장 > 폴더: 곡, 미디어; 저장 > 백업: 백업 폴더), `Main` notes
 on song and service files. The folder names and the rest are proposals.
 
-## Song file (`.llsong`)
+## 슬라이드
 
-A song is an ordered deck of independent slides. Repeating a chorus means
-copying its slides with new identities; edits to one copy do not affect another.
-The file shape is replaced without migration; `schemaVersion` remains 1.
+Everything that has 슬라이드 holds the same form of them: a song, and every item
+of a service except a 구역. It names the 테마 that draws it and holds the text
+of that 테마's boxes (12). How they look is in the 테마 alone.
+
+| Field        | Type                                            | Meaning                                                                              |
+| ------------ | ----------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `id`         | UUID v4 (`SlideId`)                             | Unique within its list; kept through moves and edits.                                |
+| `theme`      | 테마 ID                                         | The 테마 that draws it.                                                              |
+| `texts`      | Object: box name to text, at most 4,000 each    | Its texts. A box without one shows the default of the box.                           |
+| `next`       | String, optional                                | What the 슬라이드 before shows as its next text; the phrase of the 테마 when absent. |
+| `label`      | Trimmed string, 1 to 64, optional               | 이름표.                                                                              |
+| `background` | Background (12), optional                       | Its own background; the background of the 테마 when absent.                          |
+| `transition` | `{kind, dir?, sec}`, optional                   | Its transition; none cuts.                                                           |
+| `hotKey`     | `KeyA`–`KeyZ` or `Digit0`–`Digit9`, optional    | Unique within its list.                                                              |
+| `verse`      | `{translation, book, chapter, verse}`, optional | The verse its text was taken from.                                                   |
+| `continued`  | `true`, optional                                | The text goes on on the next 슬라이드.                                               |
+
+A list holds at most 10,000. A copy gets new IDs and no hot key; a split keeps
+the first half as it was. Unknown fields survive at every level. Catalog names
+of 이름표 take the color from `labels.json`, and renaming one rewrites every
+song, service, and template.
+
+## Song file (`.llsong`)
 
 ```json
 {
@@ -79,7 +99,8 @@ The file shape is replaced without migration; `schemaVersion` remains 1.
   "slides": [
     {
       "id": "00000000-0000-4000-8000-000000000001",
-      "lines": ["Invented lyric"],
+      "theme": "00000000-0000-4000-8000-000000000101",
+      "texts": {"가사": "Invented lyric"},
       "label": "후렴",
       "hotKey": "KeyC"
     }
@@ -87,48 +108,37 @@ The file shape is replaced without migration; `schemaVersion` remains 1.
 }
 ```
 
-| Field                     | Type                                     | Meaning                                                                             |
-| ------------------------- | ---------------------------------------- | ----------------------------------------------------------------------------------- |
-| `format`, `schemaVersion` | `"llsong"`, positive integer             | Version 1; newer known files stay read-only.                                        |
-| `id`                      | UUID v4                                  | Library song identity.                                                              |
-| `title`                   | Nonblank string                          | Song title.                                                                         |
-| `slides`                  | Array, 1–10,000                          | Slides in playback order.                                                           |
-| `slides[].id`             | UUID v4 (`SongSlideId`)                  | Unique within this deck; stable through moves and lyric edits.                      |
-| `slides[].lines`          | String array                             | Exact lines; an empty array is a blank slide.                                       |
-| `slides[].label`          | Optional trimmed string, 1–64 characters | A catalog name or free name; absence means no 이름표.                               |
-| `slides[].hotKey`         | Optional physical key code               | `KeyA`–`KeyZ` or `Digit0`–`Digit9`, unique within the deck.                         |
-| `background`              | Optional media UUID                      | Default background; absent means no background media when the item has no override. |
-| `updatedAt`               | Optional timestamp                       | Last update.                                                                        |
+| Field                     | Type                         | Meaning                                      |
+| ------------------------- | ---------------------------- | -------------------------------------------- |
+| `format`, `schemaVersion` | `"llsong"`, positive integer | Version 1; newer known files stay read-only. |
+| `id`                      | UUID v4                      | Library song identity.                       |
+| `title`                   | Nonblank string              | Song title.                                  |
+| `slides`                  | 1 to 10,000 슬라이드         | In playback order.                           |
+| `updatedAt`               | Optional timestamp           | Last update.                                 |
 
-There are no groups or 구성. Preserve safe unknown fields on songs and slides.
-Catalog names take the color from `labels.json`; free names draw neutral, and
-unlabeled slides have no name. Catalog rename rewrites matching names in library
-songs, service song items, and templates. Catalog deletion leaves slide names.
+A song has no background, 테마, or groups of its own. An import caps a draft at
+5,000 슬라이드 and 1,500,000 serialized characters.
 
-Output identifies a song slide by `sourceSlide: {songId, slideId}`. Service
-output resolves that identity within the selected item's deck. A copied slide
-gets a new ID. Duplicate/paste clears keys that conflict in the destination;
-split keeps the original key on the first half, and merge keeps the preceding
-slide's identity and key. Reject oversized or duplicate-identity decks whole.
-Text import additionally caps a draft at 5,000 slides, 20,000 lines and
-1,500,000 serialized characters; imported names remain free names unless already
-cataloged.
+### PowerPoint
 
-PowerPoint import caps the source at 512 MiB, 10,000 ZIP entries, 16 MiB per
-inflated XML part, 1 GiB total inflated data, and 5,000 slides. The text import
-text limits also apply. The reader rejects encrypted, damaged, or oversized
-files and does not execute macros. Imported lyric slides may carry optional
-`lyricFormat.lines`, each with its source box width, paragraph spacing and
-ordered text runs containing optional font, weight, size and tracking in
-1920-wide canvas units. Lines may retain their original left and top positions
-for title slides. A slide is limited to 1,000 formatted lines, 256 runs per
-line, 5,000 runs and 200,000 run characters in total. The format travels with
-song slides, show tiles and live output; changed text uses the theme instead.
+There are two imports: 곡 가져오기 and 이미지로 가져오기.
+
+- The reader caps the source at 512 MiB, 10,000 ZIP entries, 16 MiB per inflated
+  XML part, 1 GiB of inflated data, and 5,000 slides. It refuses encrypted,
+  damaged, oversized, and 4:3 files, and never runs macros.
+- 곡 가져오기 takes the texts and the whole background of each slide as one
+  picture. Sizes and places of the file are never taken over.
+- The first slide with text on a new background that at least three slides in a
+  row have is the title of a song. A short slide with a title of its own, or
+  that shows a title again, is a title too. The largest row of a title is its
+  name; the others become the subtitle. Every other text is lyrics.
+- PowerPoint exports the backgrounds. They show as they come in, each kind once.
+- A deck whose texts are mostly dark gets the 테마 for a bright background.
+- 이미지로 가져오기 makes one 빈 슬라이드 item with a picture for each slide.
 
 ## Service file (`.llservice`)
 
-Each 예배 순서 is one file. It holds only items. It doesn't hold screens, 테마,
-매크로, or other settings.
+Each 예배 순서 is one file. It holds only items.
 
 ```json
 {
@@ -138,139 +148,75 @@ Each 예배 순서 is one file. It holds only items. It doesn't hold screens, �
   "name": "주일 예배",
   "date": "2026-11-01T11:00",
   "order": [
-    {"id": "...", "header": "찬양"},
+    {"id": "...", "kind": "header", "name": "찬양"},
     {
       "id": "...",
+      "kind": "song",
+      "name": "Invented song",
       "song": "6f1c2a9e-...",
-      "slides": [{"id": "00000000-0000-4000-8000-000000000001", "lines": []}],
-      "background": "3b9d0c52-...",
-      "macro": "찬양",
+      "slides": [],
       "memo": ""
-    },
-    {"id": "...", "header": "헌금"}
+    }
   ]
 }
 ```
 
-| Field           | Type                      | Required       | Meaning                                                                    |
-| --------------- | ------------------------- | -------------- | -------------------------------------------------------------------------- |
-| `format`        | `"llservice"`             | Yes            | File type.                                                                 |
-| `schemaVersion` | Integer                   | Yes            | 1 in version 1.                                                            |
-| `id`            | String (UUID)             | Yes (proposal) | Service ID. "Open the last service" and the recovery record use it.        |
-| `name`          | String                    | Yes            | Service name.                                                              |
-| `date`          | String `YYYY-MM-DDTHH:mm` | Yes            | Service date and time.                                                     |
-| `order`         | Array                     | Yes            | The items, in the order they show. At most 1,000 (`SERVICE_LIMITS.items`). |
+| Field           | Type                      | Required | Meaning                                                             |
+| --------------- | ------------------------- | -------- | ------------------------------------------------------------------- |
+| `format`        | `"llservice"`             | Yes      | File type.                                                          |
+| `schemaVersion` | Integer                   | Yes      | 1 in version 1.                                                     |
+| `id`            | UUID                      | Yes      | Service ID. "Open the last service" and the recovery record use it. |
+| `name`          | String                    | Yes      | Service name.                                                       |
+| `date`          | String `YYYY-MM-DDTHH:mm` | Yes      | Service date and time.                                              |
+| `order`         | Array, at most 1,000      | Yes      | The items, in the order they show.                                  |
 
 ### Items
 
-A 예배 순서 holds at most 1,000 items (`SERVICE_LIMITS.items`). A long service
-is about 60 items, so the limit leaves room for a very long one and still bounds
-a file and the whole-list replies. The schema and main both refuse a list past
-it. An add, a 복제, a 구역 copy, and an import past it are refused with "예배
-순서 항목은 1000개까지 추가할 수 있습니다"; the add controls and 복제 are
-disabled with that reason when the list is full. A 템플릿 has the same limit. No
-files exist before the first release, so this limit and the media name limit
-need no migration.
+A 예배 순서 holds at most 1,000 items (`SERVICE_LIMITS.items`); a 템플릿 has the
+same limit. An add, a 복제, a 구역 copy, and an import past it are refused with
+"예배 순서 항목은 1000개까지 추가할 수 있습니다".
 
-Each item has exactly one of the kind keys below. Every item has an `id`
-(proposal). When you copy items from another service or from a 템플릿, give them
-new item IDs (proposal).
+Every item has `id`, `kind`, and `name`. Every kind but 구역 also has `slides`
+and may have `overlays` (12), `macro`, and `memo`.
 
-| Kind               | Kind key                     | Other fields                            | Source                                                                   |
-| ------------------ | ---------------------------- | --------------------------------------- | ------------------------------------------------------------------------ |
-| Section (구역)     | `header`: name               | None                                    | User decision, October 26 check; `ShowH` (예배 전, 찬양, 말씀, 마무리)   |
-| Song               | `song`: song ID              | `slides`, `background`, `macro`, `memo` | `Main` sample, `PrepService`                                             |
-| Bible passage      | `bible`: object (see below)  | `macro`, `memo` (proposal)              | `AddSongsQuick`, `ShowH`, `Bible`. The format is a proposal.             |
-| 빈 슬라이드 / 광고 | `slides`: object (see below) | `background`, `macro`, `memo`           | User decision, November 5.                                               |
-| Media              | `media`: media ID            | `macro`, `memo` (proposal)              | `AddSongsQuick`, `ShowH` (예배 전 카운트다운). The format is a proposal. |
+| `kind`    | Item                                      | Its own fields                                                |
+| --------- | ----------------------------------------- | ------------------------------------------------------------- |
+| `header`  | 구역                                      | None                                                          |
+| `song`    | 곡                                        | `song`: the song of the library it came from                  |
+| `bible`   | 성경 구절                                 | `passage`                                                     |
+| `sermon`  | 설교                                      | `passage`                                                     |
+| `liturgy` | 사도신경, 주기도문                        | `liturgy`: `creed` or `prayer`; `translation`: `new` or `old` |
+| `notice`  | 광고                                      | None                                                          |
+| `blank`   | 빈 슬라이드, 타이틀, 예배 준비, 대기 화면 | None                                                          |
+| `media`   | 영상, 사진                                | `media`: the media file                                       |
 
-Keep an item with an unknown kind key unchanged. Show it as a row with a warning
-icon, and don't let the operator output it (proposal).
+A kind only decides how 슬라이드 are made and which tools the editor offers
+(05). An item of a kind this version doesn't know is kept unchanged, shown with
+a warning icon, and can't be output. Editing a library song never changes an
+item: 라이브러리에 저장… and 라이브러리에서 다시 불러오기 copy between them and
+ask first.
 
-### Song item fields
+### Passages
 
-| Field                         | Type                       | Required | Meaning                                                                                 |
-| ----------------------------- | -------------------------- | -------- | --------------------------------------------------------------------------------------- |
-| `song`                        | Song UUID                  | Yes      | The library source remembered for explicit transfers.                                   |
-| `slides`                      | Song-slide array, 0–10,000 | Yes      | Independent item deck, copied when added; IDs and hot keys are unique within this item. |
-| `background`, `macro`, `memo` | Existing item field types  | No       | Item settings.                                                                          |
+`passage` says which verses the 슬라이드 were made from, and how the next ones
+are made.
 
-The `song` key distinguishes this kind from a slides item, whose `slides` value
-is an object. `arrangement` and `customOrder` are removed. Editing or importing
-a library song never rewrites item decks. 라이브러리에 저장… copies the item's
-slides into the source song; 라이브러리에서 다시 불러오기 replaces only this
-item's deck. Both ask first and check captured song and service revisions. An
-empty item cannot replace a library song, which requires one slide.
+| Field             | Type                 | Meaning                                               |
+| ----------------- | -------------------- | ----------------------------------------------------- |
+| `translation`     | Translation ID       | Translation.                                          |
+| `ref`             | String               | Normalized reference, for example "요한복음 3:16-18". |
+| `verseNumbers`    | Boolean              | 절 번호. One verse alone has none.                    |
+| `translationName` | Boolean              | Keeps the address with the name of the translation.   |
+| `transition`      | Transition, optional | The transition of new 슬라이드.                       |
 
-Song-item overlays store `from` and `to` as item slide UUIDs. Output resolves
-their current positions, inclusively, in either order. A missing endpoint leaves
-that stored range inactive. Other item kinds retain numeric ranges.
-
-### Slides item fields
-
-빈 슬라이드 and 광고 share the `slides` kind key. The value is an object:
-
-| Field     | Type                           | Required | Meaning                                             |
-| --------- | ------------------------------ | -------- | --------------------------------------------------- |
-| `form`    | `"blank"` \| `"ad"`            | Yes      | 빈 슬라이드 or 광고.                                |
-| `name`    | String, at most 512 characters | Yes      | The item's name, using the song title cap.          |
-| `slides`  | Array, at most 200             | Yes      | Slides in playback order; an empty list is allowed. |
-| `advance` | Positive finite seconds        | No       | Automatic advance interval. Absent: manual.         |
-| `loop`    | Boolean                        | No       | Repeat after the last slide. Absent: off.           |
-
-Each slide is `{id, text, name?, label?}`, `{id, media, label?}`, or
-`{id, verse, label?}`, never mixed. The optional `label` is the same trimmed,
-nonblank name of at most 64 characters used by songs; it is distinct from the
-advertisement slide name. `id` is a lowercase UUID v4, unique within this item,
-with the separate `SlideId` type. Text is a string of at most 4,000 characters,
-following the live song text cap. An optional slide `name` is at most 512
-characters, following the song title cap, and is allowed only for `ad` text
-slides. Even an empty name is invalid on a `blank` slide. `media` is a media ID,
-never a file path. Empty text and names are allowed. Unknown fields survive at
-every level.
-
-Only `blank` items may hold a verse slide. Its `verse` is
-`{translation, book, chapter, verse}`: an installed translation ID (at most 256
-characters), a book number from 1 to 66, a chapter from 1 to 150, and a verse
-from 1 to 40,000, using the Bible lookup caps. It stores neither the verse text
-nor rendered parts. A verse slide cannot have `text`, `name`, `media`, or
-`continued`. Its optional `cut` uses the confirmed Bible cut format below. Its
-parts use the installed text, the current theme measurement, and its own cut.
-Without a usable cut, it uses the rule-based splitter.
-
-The open-service feed may carry temporary resolved verse text with each source
-slide ID and the service revision. These values are not written to the service
-file. A renderer-produced sequence sent back to main contains only output-ready
-parts, source slide IDs and part numbers, with at most 10,000 tiles. It is bound
-to that service, item and revision; main checks source order, part continuity,
-slide kind and picture IDs before retaining one sequence for timed advance.
-Individual lines obey live text limits. The total text budget is 200 source
-verses of at most 20,000 characters plus 256 characters per projected tile for
-markers and references. The sequence carries the positive revisions of themes,
-screens and Bible cuts used for measurement. Main rejects stale input revisions
-and invalidates its retained sequence whenever any of those settings changes,
-independently of the service revision or the renderer's workspace.
-
-At item level, `theme`, `overlays`, `background`, `macro`, and `memo` are
-optional, as on song items. `background` is a media ID. The live slide carries
-an optional `name` for the theme's `slideName` element, separately from the item
-title, label, and Bible reference.
-
-### Bible passage object (proposal)
-
-| Field             | Type                                           | Meaning                                                                                                                                |
-| ----------------- | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `translation`     | String (translation ID)                        | Translation.                                                                                                                           |
-| `ref`             | String                                         | Normalized reference, for example "요한복음 3:16-18".                                                                                  |
-| `split`           | `"verse"`                                      | Legacy packing field. Old values remain readable and preserved, but every verse starts a new slide (04). New passages store `"verse"`. |
-| `reference`       | `"every"` \| `"first"` \| `"last"` \| `"none"` | Where the reference shows: every 슬라이드, first 슬라이드 only, last 슬라이드 only, or nowhere.                                        |
-| `verseNumbers`    | Boolean                                        | 절 번호 (verse numbers).                                                                                                               |
-| `translationName` | Boolean                                        | 역본 이름 (translation name).                                                                                                          |
+The text of a verse is in its 슬라이드. It is cut where the operator cuts it, or
+where the app cuts it the first time; a verse whose text was changed by hand is
+not cut again and is not numbered again. The last 슬라이드 of a verse ends it;
+every other one has `continued`.
 
 ### Sections
 
-- The user-facing row is a 구역 (section). Its stored kind key remains `header`,
-  with the section's name as the value.
+- The user-facing row is a 구역 (section), kind `header`, with its name.
 - A section groups the following items until the next section. It may have no
   items. Keep empty sections, including consecutive sections and a final empty
   section, when reading, editing, copying, and saving a service or template.
@@ -299,19 +245,10 @@ Source: `Main` service notes (same file format), `NewService`, and the user's
 decision from the m3-check3 check, October 26 (empty sections replace slot
 items).
 
-New data folders include **주일 2부 예배**. Its sections remain grouping rows.
-The 사도신경 and 광고 items carry an optional opening `sectionCard` with bounded
-`name`, `english`, and `theme` fields; their content and item theme remain
-independent. Other named sections retain standalone cards, and 말씀 remains
-empty. Existing data folders are unchanged. Song, Bible, slides, and liturgy
-items may carry the same optional card without migration. The card name must not
-be blank; unknown fields are preserved as for other data objects.
-
-사도신경 and 주기도문 use the dedicated `liturgy` item kind, with bounded `kind`
-(`creed` or `prayer`) and `translation` (`new` or `old`) choices. Their text and
-slide boundaries come from the corresponding fixed version rather than editable
-generic slides. The item retains its dedicated theme and optional section card;
-there is no legacy conversion for unreleased data.
+New data folders include **주일 2부 예배**. Its sections remain grouping rows. A
+타이틀 is the first 슬라이드 of 사도신경 and 광고, and an item of its own
+elsewhere; 말씀 remains empty. 사도신경 and 주기도문 start with the text of the
+chosen version, which the operator can change.
 
 ## App-wide settings
 
@@ -382,60 +319,10 @@ unassigned (proposal).
 Don't save whether a screen output is on. At launch, the 환경설정 option 켤 때
 화면 출력 (output on launch) decides. See 03.
 
-### 테마 (`themes.json`)
+### 테마 (`themes.json` and `themes\*.lltheme`)
 
-Built-in themes and the standby layout come from the running version. The file
-contains user themes and only built-in themes explicitly saved after editing,
-marked `edited: true`. Saved built-in entries and a saved `standby` are read as
-stored. An unedited `standby` is omitted from storage. Theme IDs and defaults
-remain stable, so existing item references continue to resolve. Up to 200 user
-themes may coexist with the built-in themes.
-
-The 테마 lay out all three screens for every 예배 순서 item. Behavior is in 12.
-
-| Field      | Type                                                   | Meaning                                                                    |
-| ---------- | ------------------------------------------------------ | -------------------------------------------------------------------------- |
-| `standby`  | Optional Theme                                         | The 대기 화면. It allows only fixed elements.                              |
-| `themes[]` | Array of Theme, at most 200 user themes plus built-ins | The 테마 list. No ID equals the `standby` ID.                              |
-| `defaults` | Object: kind to theme ID                               | Optional default 테마 IDs for `song`, `bible`, `blank`, `ad`, and `media`. |
-
-Theme:
-
-| Field        | Type                               | Meaning                                                           |
-| ------------ | ---------------------------------- | ----------------------------------------------------------------- |
-| `id`, `name` | String                             | ID and name. The name is not blank and has at most 80 characters. |
-| `screens`    | Object: screen ID to Screen layout | At most 200 entries; a missing entry is 비움.                     |
-
-Screen layout:
-
-| Field        | Type                                                                               | Meaning                                                               |
-| ------------ | ---------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| `mode`       | `{ "kind": "own" }` \| `{ "kind": "same", "screen": ID }` \| `{ "kind": "empty" }` | 직접 배치, `<screen>`과 동일, or 비움.                                |
-| `elements`   | Array of Element, at most 10, bottom first                                         | Used only in `own`.                                                   |
-| `background` | `#RRGGBB`, optional                                                                | The empty color. Absent inherits the screen's configured empty color. |
-
-The element fields, the kinds, and their limits are in 12. A missing file is
-created with the defaults in 12, "Defaults". Theme text may store optional
-`tracking` (-20 to 200 reference pixels), `shortTracking` (optional
-`{maxCharacters, tracking}` with an integer count 1 to 10 and the same spacing
-bounds), and `bullets` (Boolean, off when omitted). `shortTracking` is off when
-absent and selects the alternate spacing for nonempty text of at most that many
-Unicode code points, ignoring all whitespace and a generated continuation
-marker. Wrapping therefore keeps the same spacing decision; literal marker text
-still counts when it is not marked as a continuation. `slideNumber` is a text
-element with the common properties and the one-per-screen limit described in 12.
-
-`shortTracking.overrides` optionally stores up to 16 `{text, tracking}` entries.
-Each text is unique, nonempty, without whitespace, and at most 80 UTF-16 code
-units; tracking has the same -20 to 200 bounds. An exact match after the same
-whitespace and generated-marker removal takes precedence over the character
-count. It uses ordinary tracking without short-text center compensation. No
-match preserves the existing count rule; omitting the list preserves old themes.
-
-An `itemName` element may store `centerWhenTextEmpty` (Boolean, off when
-omitted). When enabled, whitespace-only or absent current slide text centers the
-item name vertically in its frame; otherwise its configured alignment applies.
-Saved themes without this option keep their alignment.
+Each 테마 is a file of its own; `themes.json` holds their order, the 테마 of new
+슬라이드, and the operator's 타이틀. See 12, "Data".
 
 ### 매크로 (`macros.json`)
 
@@ -1311,42 +1198,8 @@ Source: `Main` service notes ("출력 상태는 파일에 넣지 않습니다"),
 decision "복구는 출력 상태만", `Recovery` (three restore rows), product log
 versions 61 and 62.
 
-Song slides may carry `titleSlide: true` at any position, including repeated
-opening and closing titles. Unformatted title slides contain at most two
-`lines`; imported formatted title slides contain at most 1,000. Each line
-contains at most 512 characters without embedded newlines. Existing slides need
-no migration. The marker is retained in service decks, show tiles, and the live
-slide payload.
-
-Optional
-`titleLayout: {titleTracking, subtitleTracking, titleTop?, subtitleTop?}` stores
-per-slide tracking in 1920 px canvas units. Tracking values are finite numbers
-from -20 to 200. Optional vertical positions are finite canvas y coordinates:
-titleTop from 0 to 920 (default 181), subtitleTop from 0 to 990 (default 345).
-Absence uses 0 px for the title and 24 px for the subtitle. It travels with the
-title marker through service decks, clipboard copies, show tiles, and live
-payloads; ordinary lyric slides ignore it.
-
-전환 효과는 각 슬라이드에 저장한다. 전환이 없는 슬라이드는 즉시 표시한다.
-
 The built-in GAE translation fetches only requested chapters live from the
 Korean Bible Society. Requested chapters are cached in memory and on disk,
 validated when read, and are never downloaded in bulk. Missing service chapters
 load in the background; failure is shown with retry. Installed `.llbible`
 translations continue to work.
-
-### Sermon item
-
-A service may contain an additive `sermon` item with a non-empty, bounded
-`title` and one `passage` using the Bible passage object above. It has no
-subtitle. Optional original title data preserves an existing title item when the
-operator binds it to a passage, so splitting can restore that item. Other Bible
-display settings and transitions stay with the passage. Optional opening and
-closing title transitions are stored separately. The same title appears before
-and after the passage. An optional section card is retained on the sermon item
-and returned to the Bible item when split. Existing service items remain valid.
-
-Service items that support appearance can carry an optional `background` media
-ID. `backgroundNone: true` explicitly removes the background; absence of both
-fields follows the song or theme default. A background edit writes at most one
-of those fields and leaves existing files without either field unchanged.
