@@ -1,18 +1,28 @@
-import {SERMON_TITLE_THEME_ID} from '@core/themes/sundayScripture';
-import {cardOffset} from '@core/services/sectionCards';
 import type {SettingsReader} from '@core/schema/settingsReader';
 import type {LiveCommand} from '@core/live/commands';
-import type {LiveThemeItem, LiveThemeMode} from '@core/schema/liveTheme';
+import type {LiveState} from '@core/live/state';
+import type {
+  LiveItem,
+  LiveThemeMode,
+  LiveThemeOutput,
+} from '@core/schema/liveTheme';
 import type {Screen} from '@core/schema/screens';
-import type {SectionCard} from '@core/schema/service';
-import type {ThemesFile} from '@core/schema/themes';
-import {resolveThemeOutput} from '@core/themes/output';
+import type {SlideBackground} from '@core/schema/theme';
+import type {Themes} from '@core/schema/themes';
+import {emptyScreenColor} from '@core/screens/emptyColor';
+import {
+  themeFor,
+  themeOf,
+  themeOfSlide,
+  type ThemedSlide,
+} from '@core/theme/themes';
 import {resetClearToggles, type LiveHistory, type UndoEntry} from './history';
 import type {ThemeReduction} from './slice';
 
 const THEME_COMMANDS = [
   'item.start',
   'slide.show',
+  'slide.update',
   'media.show',
   'theme.set',
   'themes.refresh',
@@ -31,63 +41,43 @@ function affectsTheme(command: LiveCommand): command is ThemeCommand {
 }
 
 /**
- * The item as it is saved now, so edits made while it is live (its 오버레이,
- * 메모, 테마) reach the next slide, with the times it gathered on output. A new
- * slide also ends a clear.
+ * The item as it is saved now, so edits made while it is live (its 오버레이 and
+ * 메모) reach the next slide, with the times it gathered on output. A new slide
+ * also ends a clear.
  */
-function withPlayback(
-  saved: LiveThemeItem,
-  live: LiveThemeItem,
-  now: number,
-): LiveThemeItem {
-  const {
-    contentCleared: _cleared,
-    backgroundStartedAt: _backgroundStartedAt,
-    ...item
-  } = saved;
+function withPlayback(saved: LiveItem, live: LiveItem): LiveItem {
+  const {contentCleared: _cleared, ...item} = saved;
   const {startedAt, overlayStartedAt, slidePosition} = live;
-  const backgroundStartedAt =
-    saved.backgroundOverride?.kind !== 'media'
-      ? undefined
-      : JSON.stringify(saved.backgroundOverride) ===
-          JSON.stringify(live.backgroundOverride)
-        ? (live.backgroundStartedAt ?? now)
-        : now;
   return {
     ...item,
     ...(startedAt === undefined ? {} : {startedAt}),
-    ...(backgroundStartedAt === undefined ? {} : {backgroundStartedAt}),
     ...(overlayStartedAt === undefined ? {} : {overlayStartedAt}),
     ...(slidePosition === undefined ? {} : {slidePosition}),
   };
 }
 
-function sectionCardItem(
-  item: LiveThemeItem,
-  card: SectionCard,
-): LiveThemeItem {
-  const {
-    backgroundOverride: _background,
-    backgroundStartedAt: _started,
-    ...rest
-  } = item;
-  return {...rest, kind: 'blank', title: card.name, theme: card.theme};
+function overlayOn(item: LiveItem | null | undefined) {
+  const position = item?.slidePosition;
+  if (item == null || position === undefined || item.contentCleared) return;
+  return item.overlays?.find(
+    overlay => overlay.from <= position + 1 && overlay.to >= position + 1,
+  );
 }
 
 interface ThemeRuntimeOptions {
   readonly settings: Pick<SettingsReader, 'get'>;
-  readonly item: (id: string) => LiveThemeItem | undefined;
+  readonly item: (id: string) => LiveItem | undefined;
   readonly onError: (error: unknown) => void;
   readonly onMissingTheme?: (id: string) => void;
 }
 
-/** Resolves theme state inside the same admission boundary as the content command. */
+/** Keeps the live item and its theme in step with what is on output. */
 export class ThemeRuntime {
-  private file: ThemesFile | null = null;
+  private themes: Themes | null = null;
   private screens: readonly Screen[] = [];
   private revision = 0;
   private key: string | null = null;
-  private output: ReturnType<typeof resolveThemeOutput> | undefined;
+  private output: LiveThemeOutput | undefined;
   private readonly reportedMissingThemes = new Set<string>();
 
   constructor(private readonly options: ThemeRuntimeOptions) {
@@ -98,7 +88,7 @@ export class ThemeRuntime {
     try {
       const themes = this.options.settings.get('themes');
       if (themes.name === 'themes') {
-        this.file = themes.value;
+        this.themes = themes.value;
         this.revision = themes.revision;
       }
     } catch (error) {
@@ -113,97 +103,66 @@ export class ThemeRuntime {
     this.key = null;
   }
 
+  /** What the theme of a slide puts behind it. */
+  background(slide: ThemedSlide): SlideBackground {
+    return themeOfSlide(this.themes, slide).background;
+  }
+
   reduce({before, after, command, context}: ThemeReduction): LiveHistory {
     if (!affectsTheme(command)) return after;
-    let item = after.state.themeItem ?? null;
+    let item = after.state.item ?? null;
     let mode = after.state.themeMode;
     switch (command.type) {
       case 'item.start':
         after = resetClearToggles(after);
         item = this.options.item(command.itemId) ?? item;
-        if (item !== null) {
-          item = {
-            ...item,
-            startedAt: context.now,
-            ...(item.backgroundOverride?.kind === 'media'
-              ? {backgroundStartedAt: context.now}
-              : {}),
-          };
-        }
+        if (item !== null) item = {...item, startedAt: context.now};
         mode = undefined;
         break;
-      case 'slide.show':
-        if (item?.id !== command.slide.itemId || item.source === 'external') {
-          item = this.options.item(command.slide.itemId) ?? {
-            id: command.slide.itemId,
-            kind:
-              command.slide.kind ??
-              (command.slide.reference === undefined ? 'song' : 'bible'),
+      case 'slide.show': {
+        const {slide} = command;
+        if (item?.id !== slide.itemId || item.source === 'external') {
+          item = this.options.item(slide.itemId) ?? {
+            id: slide.itemId,
+            kind: slide.kind ?? 'blank',
             source: 'external',
-            ...((command.slide.title ?? command.slide.reference) === undefined
-              ? {}
-              : {title: command.slide.title ?? command.slide.reference}),
-            ...(command.slide.memo === undefined
-              ? {}
-              : {memo: command.slide.memo}),
+            ...(slide.title === undefined ? {} : {title: slide.title}),
           };
           mode = undefined;
         } else {
-          item = withPlayback(
-            this.options.item(item.id) ?? item,
-            item,
-            context.now,
-          );
+          item = withPlayback(this.options.item(item.id) ?? item, item);
         }
-        {
-          if (command.slide.sermonTitle === true) {
-            item = {...item, theme: SERMON_TITLE_THEME_ID};
-          }
-          if (command.slide.sectionCard !== undefined) {
-            item = sectionCardItem(item, command.slide.sectionCard);
-          }
-          const offset = cardOffset(item);
-          const position = command.slide.position + 1 - offset;
-          const active = item.overlays?.find(
-            overlay =>
-              position > 0 &&
-              overlay.from <= position &&
-              overlay.to >= position,
-          );
-          const previousPosition = before.state.themeItem?.contentCleared
-            ? undefined
-            : (before.state.themeItem?.slidePosition ??
-              before.state.layers.slide?.position);
-          const previous =
-            previousPosition === undefined
-              ? undefined
-              : item.overlays?.find(
-                  overlay =>
-                    previousPosition + 1 > offset &&
-                    overlay.from <= previousPosition + 1 - offset &&
-                    overlay.to >= previousPosition + 1 - offset,
-                );
-          if (item.startedAt === undefined) {
-            item = {...item, startedAt: context.now};
-          }
-          item = {...item, slidePosition: command.slide.position};
-          if (
-            active !== undefined &&
-            (active.id !== previous?.id ||
-              before.state.themeItem?.id !== item.id)
-          ) {
-            item = {...item, overlayStartedAt: context.now};
-          }
+        item = {
+          ...item,
+          startedAt: item.startedAt ?? context.now,
+          slidePosition: slide.position,
+        };
+        const previous = before.state.item;
+        const active = overlayOn(item);
+        if (
+          active !== undefined &&
+          (previous?.id !== item.id || overlayOn(previous)?.id !== active.id)
+        ) {
+          item = {...item, overlayStartedAt: context.now};
         }
         break;
+      }
+      case 'slide.update': {
+        const {slide} = command;
+        if (item?.id !== slide.itemId) break;
+        item = {
+          ...item,
+          slidePosition: slide.position,
+          ...(item.source === 'service' || slide.title === undefined
+            ? {}
+            : {title: slide.title}),
+        };
+        break;
+      }
       case 'media.show':
-        if (
-          item === null ||
-          (command.media.itemId !== undefined &&
-            command.media.itemId !== item.id)
-        ) {
+        if (after.state.layers.slide === null) {
           item = {
-            id: command.media.itemId ?? command.media.mediaId,
+            id: command.media.mediaId,
             kind: 'media',
             source: 'external',
             startedAt: context.now,
@@ -212,7 +171,9 @@ export class ThemeRuntime {
               : {title: command.media.title}),
           };
           mode = undefined;
-        } else if (item.contentCleared) item = {...item, contentCleared: false};
+        } else if (item?.contentCleared) {
+          item = {...item, contentCleared: false};
+        }
         break;
       case 'theme.set':
         mode = {kind: 'manual', id: command.themeId};
@@ -221,55 +182,28 @@ export class ThemeRuntime {
         this.refresh();
         if (item !== null) {
           const cleared = item.contentCleared;
-          item = withPlayback(
-            this.options.item(item.id) ?? item,
-            item,
-            context.now,
-          );
-          const slide = after.state.layers.slide;
-          if (slide?.itemId === item.id && slide.sermonTitle === true) {
-            item = {...item, theme: SERMON_TITLE_THEME_ID};
-          }
-          if (slide?.itemId === item.id && slide.sectionCard !== undefined) {
-            item = sectionCardItem(item, slide.sectionCard);
-          }
+          item = withPlayback(this.options.item(item.id) ?? item, item);
           if (cleared) item = {...item, contentCleared: true};
         }
         break;
       case 'layer.clear':
       case 'layer.clear.toggle':
-        if (
-          command.type === 'layer.clear.toggle' &&
-          command.target === 'media' &&
-          before.state.layers.media === null &&
-          after.state.layers.media !== null &&
-          before.clearSnapshots?.media !== undefined
-        ) {
-          item = this.resumedBackground(
-            item,
-            context.now - before.clearSnapshots.media.clearedAt,
-          );
-        }
         if (command.target === 'all' && item !== null) {
           const restored =
             command.type === 'layer.clear.toggle'
               ? before.clearSnapshots?.all
               : undefined;
-          if (restored?.themeItem != null && item.contentCleared) {
-            item = this.resumedItem(
-              restored.themeItem,
-              context.now - restored.clearedAt,
-            );
+          if (restored?.item != null && item.contentCleared) {
+            item = resumed(restored.item, context.now - restored.clearedAt);
             mode = restored.themeMode;
             break;
           }
-          if (restored !== undefined) break;
-          if (item.contentCleared) break;
+          if (restored !== undefined || item.contentCleared) break;
           const undo = {
             ...(after === before || after.undo === null
               ? {layers: before.state.layers, clearedAt: context.now}
               : after.undo),
-            themeItem: item,
+            item,
             ...(mode === undefined ? {} : {themeMode: mode}),
           };
           after = {
@@ -280,40 +214,22 @@ export class ThemeRuntime {
           if (command.type === 'layer.clear.toggle') {
             after = {
               ...after,
-              clearSnapshots: {
-                ...after.clearSnapshots,
-                all: undo,
-              },
+              clearSnapshots: {...after.clearSnapshots, all: undo},
             };
           }
           item = {...item, contentCleared: true};
         }
         break;
       case 'clear.undo':
-        if (before.undo?.themeItem !== undefined) {
-          item = this.resumedItem(
-            before.undo.themeItem,
-            context.now - before.undo.clearedAt,
-          );
+        if (before.undo?.item !== undefined) {
+          item = resumed(before.undo.item, context.now - before.undo.clearedAt);
           mode = before.undo.themeMode;
-        } else if (
-          before.undo !== null &&
-          before.state.layers.media === null &&
-          after.state.layers.media !== null
-        ) {
-          item = this.resumedBackground(
-            item,
-            context.now - before.undo.clearedAt,
-          );
         }
         break;
       case 'item.restore': {
         const saved = before.stoppedItem;
         if (saved == null || after === before) return after;
-        item = this.resumedItem(
-          saved.themeItem ?? null,
-          context.now - saved.clearedAt,
-        );
+        item = resumed(saved.item ?? null, context.now - saved.clearedAt);
         mode = saved.themeMode;
         break;
       }
@@ -322,7 +238,7 @@ export class ThemeRuntime {
         const undo: UndoEntry = {
           layers: after.state.layers,
           clearedAt: context.now,
-          themeItem: item,
+          item,
           itemOnly: true,
           ...(mode === undefined ? {} : {themeMode: mode}),
         };
@@ -347,77 +263,110 @@ export class ThemeRuntime {
     return this.publish(after, item, mode);
   }
 
-  private resumedBackground(
-    item: LiveThemeItem | null,
-    elapsed: number,
-  ): LiveThemeItem | null {
-    return item?.backgroundStartedAt === undefined
-      ? item
-      : {
-          ...item,
-          backgroundStartedAt: item.backgroundStartedAt + Math.max(0, elapsed),
-        };
-  }
-
-  private resumedItem(
-    item: LiveThemeItem | null,
-    elapsed: number,
-  ): LiveThemeItem | null {
-    const resumed = this.resumedBackground(item, elapsed);
-    return resumed?.overlayStartedAt === undefined
-      ? resumed
-      : {
-          ...resumed,
-          overlayStartedAt: resumed.overlayStartedAt + Math.max(0, elapsed),
-        };
+  /** The theme of the live slide, or 대기 화면 when nothing is on. */
+  private resolve(
+    {layers}: LiveState,
+    item: LiveItem | null,
+    mode: LiveThemeMode | undefined,
+  ): LiveThemeOutput {
+    const wanted = mode?.id ?? layers.slide?.theme;
+    const own = wanted === undefined ? undefined : themeOf(this.themes, wanted);
+    const theme =
+      own ??
+      (wanted === undefined
+        ? themeFor(this.themes, isOwnMedia(layers, item) ? 'media' : 'standby')
+        : themeOfSlide(this.themes, {
+            theme: wanted,
+            texts: layers.slide?.texts ?? {},
+          }));
+    return {
+      theme,
+      background: layers.slide?.background ?? theme.background,
+      revision: this.revision,
+      missing: wanted !== undefined && own === undefined ? [wanted] : [],
+      emptyColors: Object.fromEntries(
+        this.screens.map(screen => [screen.id, emptyScreenColor(screen)]),
+      ),
+    };
   }
 
   private publish(
     history: LiveHistory,
-    item: LiveThemeItem | null,
+    item: LiveItem | null,
     mode: LiveThemeMode | undefined,
   ): LiveHistory {
+    const {state} = history;
+    const cleared =
+      item?.contentCleared === true || state.layers.slide === null;
+    const {slide} = state.layers;
     const key = JSON.stringify([
-      item?.kind,
-      item?.source,
-      item?.theme,
-      item?.backgroundOverride,
+      slide?.theme,
+      slide?.background,
+      item === null,
+      isOwnMedia(state.layers, item),
       mode,
     ]);
-    if (this.key !== key) {
-      this.output = resolveThemeOutput({
-        file: this.file,
-        screens: this.screens,
-        item,
-        mode,
-        revision: this.revision,
-      });
+    // NOTE(0913vision): A clear keeps the theme it cleared, so what is left of
+    // the slide stays where it is.
+    if (
+      this.output === undefined ||
+      this.key === null ||
+      (this.key !== key &&
+        !(
+          cleared &&
+          item !== null &&
+          mode === undefined &&
+          !isOwnMedia(state.layers, item)
+        ))
+    ) {
+      this.output = this.resolve(state, item, mode);
+      this.key = key;
       for (const id of this.output.missing) {
-        if (id.startsWith('default:') || this.reportedMissingThemes.has(id)) {
-          continue;
-        }
+        if (this.reportedMissingThemes.has(id)) continue;
         this.reportedMissingThemes.add(id);
         this.options.onMissingTheme?.(id);
       }
-      this.key = key;
     }
     if (
-      history.state.themeItem === item &&
-      history.state.themeMode === mode &&
-      history.state.themeOutput === this.output
+      state.item === item &&
+      state.themeMode === mode &&
+      state.themeOutput === this.output
     ) {
       return history;
     }
-    const {themeMode: _mode, themeOutput: _output, ...state} = history.state;
+    const {themeMode: _mode, themeOutput: _output, ...rest} = state;
     return {
       ...history,
       state: {
-        ...state,
-        themeItem: item,
+        ...rest,
+        item,
         ...(mode === undefined ? {} : {themeMode: mode}),
-        ...(this.output === undefined ? {} : {themeOutput: this.output}),
+        themeOutput: this.output,
         version: state.version + 1,
       },
     };
   }
+}
+
+/** Whether media the operator chose is on output by itself. */
+function isOwnMedia(
+  {slide, media}: LiveState['layers'],
+  item: LiveItem | null,
+): boolean {
+  return (
+    slide === null &&
+    item?.kind === 'media' &&
+    item.source === 'external' &&
+    media?.mediaId === item.id
+  );
+}
+
+/** The item with the time it was cleared for taken out of its overlay's. */
+function resumed(item: LiveItem | null, elapsed: number): LiveItem | null {
+  return item?.overlayStartedAt === undefined
+    ? item
+    : {
+        ...item,
+        overlayStartedAt: item.overlayStartedAt + Math.max(0, elapsed),
+      };
 }

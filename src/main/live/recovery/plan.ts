@@ -1,25 +1,16 @@
-import {displayReference} from '@core/bible/displayReference';
-import {cardOffset} from '@core/services/sectionCards';
 import type {SettingsReader} from '@core/schema/settingsReader';
-import type {LabelColor} from '@core/labels/colors';
 import type {SingleLiveCommand} from '@core/live/commands';
 import type {ActiveMessage, LiveState} from '@core/live/state';
 import type {ScreenId} from '@core/schema/ids';
 import type {RecoverySummary} from '@core/schema/recovery';
 import type {RecoveryRecord} from '@core/schema/recoveryRecord';
 import type {Screen} from '@core/schema/screens';
-import {
-  isItemOfKind,
-  type Service,
-  type ServiceItem,
-} from '@core/schema/service';
+import {hasSlides, type Service, type ServiceItem} from '@core/schema/service';
+import {itemTitle} from '@core/slides/tiles';
 import type {ServiceId} from '@core/schema/ids';
-import type {Song} from '@core/schema/song';
-import {songTiles} from '../../store/showService';
 import {savedScreens, switchableScreens} from '../../outputs/savedScreens';
 
 const MILLISECONDS_PER_SECOND = 1000;
-const NO_LABEL_COLORS: ReadonlyMap<string, LabelColor> = new Map();
 
 export type RecoveryRow = NonNullable<RecoverySummary>['rows'][number];
 
@@ -33,7 +24,6 @@ export interface RecoveryStep {
 export interface RecoveryContent {
   serviceList(): ReadonlyArray<{readonly id: string}>;
   service(id: string): {readonly service: Pick<Service, 'id' | 'order'>} | null;
-  song(id: string): {readonly song: Song} | null;
 }
 
 /** The current settings and content that a recorded state is checked against. */
@@ -115,45 +105,10 @@ function slideStep(
   const source = sourceItem(content, recordedServiceId, slide.itemId);
   if (source === null) return null;
   const {serviceId, item} = source;
-  if (
-    slide.sectionCard !== undefined &&
-    (slide.position !== 0 ||
-      (!isItemOfKind(item, 'song') &&
-        !isItemOfKind(item, 'slides') &&
-        !isItemOfKind(item, 'bible')) ||
-      item.sectionCard === undefined)
-  ) {
-    return null;
-  }
-  let title: string;
-  let slideCount: number;
-  if (isItemOfKind(item, 'song')) {
-    const song = content.song(item.song)?.song;
-    if (song === undefined) return null;
-    title = song.title;
-    slideCount =
-      songTiles({...song, slides: item.slides}, NO_LABEL_COLORS).length +
-      cardOffset(item);
-  } else if (
-    (isItemOfKind(item, 'slides') || isItemOfKind(item, 'bible')) &&
-    item.sectionCard !== undefined &&
-    slide.sectionCard !== undefined &&
-    slide.position === 0
-  ) {
-    title = isItemOfKind(item, 'slides')
-      ? item.slides.name
-      : displayReference(item.bible.ref);
-    // NOTE(0913vision): The captured Bible count is only a dialog summary, not a source for output.
-    slideCount = isItemOfKind(item, 'slides')
-      ? item.slides.slides.length + 1
-      : (slide.sequenceLength ?? 1);
-  } else {
-    return null;
-  }
-  if (slide.position >= slideCount) return null;
+  if (!hasSlides(item) || slide.position >= item.slides.length) return null;
   const media = state.layers.media;
   const commands: SingleLiveCommand[] = [{type: 'slide.show', slide}];
-  if (media !== null) {
+  if (media?.chosen === true) {
     commands.push({
       type: 'media.show',
       media: {mediaId: media.mediaId, loop: media.loop},
@@ -165,9 +120,9 @@ function slideStep(
       slide: {
         serviceId,
         itemId: item.id,
-        title,
+        title: itemTitle(item),
         position: slide.position,
-        slideCount,
+        slideCount: item.slides.length,
       },
     },
     commands,

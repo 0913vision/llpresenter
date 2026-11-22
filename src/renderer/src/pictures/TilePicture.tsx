@@ -1,19 +1,30 @@
-import type {JSX} from 'react';
-import type {SlideLayer} from '@core/live/state';
-import type {SlideTile} from '@core/presentation/model';
-import {tileInput, type ItemThemes} from './itemThemes';
+import {type JSX} from 'react';
+import type {ShowTile} from '@core/schema/showService';
+import {useThemes} from '@renderer/platform/themes';
+import {tileDrawing, type TileDrawingOptions} from './slideDrawing';
 import {SlidePicture} from './SlidePicture';
 
-/** A slide of an item, drawn in the theme that slide has. */
+/** A slide of a list, drawn in the theme that slide has. */
 export function TilePicture({
   tile,
-  slide,
-  themes,
-}: {
-  readonly tile: SlideTile;
-  readonly slide: SlideLayer | null;
-  readonly themes: ItemThemes;
-}): JSX.Element | null {
-  const input = tileInput(tile, slide, themes);
-  return input === undefined ? null : <SlidePicture {...input} />;
+  ...options
+}: TileDrawingOptions & {readonly tile: ShowTile}): JSX.Element {
+  const themes = useThemes(view => view.themes);
+  const screens = useThemes(view => view.screens);
+  const labels = useThemes(view => view.labels);
+  return (
+    <SlidePicture {...tileDrawing(tile, {themes, screens, labels}, options)} />
+  );
+}
+
+/** What a thumbnail says beside the picture of its slide. */
+export function tileProps(tile: ShowTile) {
+  const text = Object.values(tile.slide.texts).join('\n');
+  return {
+    label: tile.caption ?? undefined,
+    labelColor: tile.labelColor,
+    accessibleLabel: tile.caption === null ? text : undefined,
+    text,
+    hotKey: tile.slide.hotKey,
+  };
 }

@@ -7,7 +7,7 @@ import {bibleSourceFor, isLibrarySource} from './showLibrary';
 interface ReturnPoint {
   readonly cursor: TileCursor;
   readonly serviceId: string | null;
-  readonly sourceSlideId: string | undefined;
+  readonly slideId: string | undefined;
 }
 let previous: ReturnPoint | null = null;
 let quickId: string | null = null;
@@ -36,7 +36,7 @@ export function beginQuickPassage(): void {
       : {
           cursor,
           serviceId: view.serviceId,
-          sourceSlideId: tilesOf(cursor.itemId)[cursor.index]?.sourceSlideId,
+          slideId: tilesOf(cursor.itemId)[cursor.index]?.slide.id,
         };
   quickId = null;
 }
@@ -48,7 +48,7 @@ export function finishQuickPassage(): void {
 function returnCursor(): TileCursor | null {
   if (!quickIsLive() || previous === null) return null;
   const view = useShow.getState();
-  const {cursor, serviceId, sourceSlideId} = previous;
+  const {cursor, serviceId, slideId} = previous;
   const exists =
     view.rows.some(row => row.kind !== 'header' && row.id === cursor.itemId) ||
     isLibrarySource(view, cursor.itemId) ||
@@ -61,9 +61,9 @@ function returnCursor(): TileCursor | null {
   }
   const tiles = tilesOf(cursor.itemId);
   const index =
-    sourceSlideId === undefined
+    slideId === undefined
       ? cursor.index
-      : tiles.findIndex(tile => tile.sourceSlideId === sourceSlideId);
+      : tiles.findIndex(tile => tile.slide.id === slideId);
   return index >= 0 && index < tiles.length
     ? {itemId: cursor.itemId, index}
     : null;

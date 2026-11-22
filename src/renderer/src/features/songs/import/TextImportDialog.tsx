@@ -1,7 +1,7 @@
 import {useCallback, useMemo, useState, type JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {LibrarySong} from '@core/schema/contentDocuments';
-import {createSongId, createSongSlideId} from '@core/schema/ids';
+import {createSongId} from '@core/schema/ids';
 import {SONG_SCHEMA_VERSION, type Song} from '@core/schema/song';
 import type {Label} from '@core/schema/labels';
 import type {Preferences} from '@core/schema/preferences';
@@ -15,12 +15,15 @@ import {Checkbox, NumberField, TextField} from '@renderer/ui';
 import {Dialog, DialogField} from '@renderer/ui/Dialog';
 import {SelectMenu} from '@renderer/ui/SelectMenu';
 import type {Notice} from '@renderer/ui/notices';
-import {VirtualSlides} from '../editor/VirtualSlides';
+import {useLabelColors} from '@renderer/features/labels/labels';
+import {slideMaking, useThemes} from '@renderer/platform/themes';
+import {newSongSlides, songSlides} from '@core/slides/songSlides';
+import {songTiles} from '@core/slides/tiles';
+import {SlidePreviewGrid} from './SlidePreviewGrid';
 import {
   DUPLICATE_TITLE_REASON,
   normalizeSongTitle,
 } from '@core/songs/songTitle';
-import {importSlides} from '@core/songs/importSlides';
 import {importLimitReason} from '@core/songs/importLimits';
 import {textImportHeaders} from '@core/songs/textImport';
 import {
@@ -34,8 +37,6 @@ import {ImportLabelMappingDialog} from './ImportLabelMappingDialog';
 import {useImportPreview} from './useImportPreview';
 import styles from './TextImportDialog.module.css';
 
-const PREVIEW_COLUMNS = 3;
-const PREVIEW_SCALE = 100;
 const MAX_UNITS = 1000;
 const MAX_SYMBOL = 32;
 const SPLITS = [
@@ -51,32 +52,19 @@ const FIRST_LINES = [
 /** The choices of the dialog that the next import starts from. */
 export type TextImportChoice = Partial<Preferences['import']['txt']>;
 
-function previewSong(draft: TextImportDraft, title: string): Song {
-  let count = 0;
-  const candidateId = (): string =>
-    `00000000-0000-4000-8000-${String(++count).padStart(12, '0')}`;
+/** The song a draft becomes, with the title slide the editor adds. */
+function songOf(draft: TextImportDraft, title: string): Song {
+  const making = slideMaking();
   return {
     format: 'llsong',
     schemaVersion: SONG_SCHEMA_VERSION,
     id: createSongId('00000000-0000-4000-8000-000000000000'),
     title,
-    slides: importSlides(draft.slides, candidateId),
-  };
-}
-
-/** The eventual editor draft adds a title slide; include it in limit checks. */
-function draftLimitReason(song: Song): string | undefined {
-  return importLimitReason({
-    ...song,
     slides: [
-      {
-        id: createSongSlideId('00000000-0000-4000-8000-000000000000'),
-        titleSlide: true,
-        lines: [song.title],
-      },
-      ...song.slides,
+      ...newSongSlides(making, title).slice(0, 1),
+      ...songSlides(making, draft),
     ],
-  });
+  };
 }
 
 export function TextImportDialog({
@@ -115,6 +103,8 @@ export function TextImportDialog({
     symbol: '/',
     unitsPerSlide: defaults.split === 'lineBreak' ? 2 : 1,
   }));
+  const themes = useThemes(view => view.themes);
+  const colors = useLabelColors();
   const [title, setTitle] = useState<string | null>(null);
   const [selected, setSelected] = useState<number | undefined>(undefined);
   const headers = useMemo(() => textImportHeaders(source.text), [source.text]);
@@ -181,25 +171,25 @@ export function TextImportDialog({
   )
     ? DUPLICATE_TITLE_REASON
     : undefined;
-  const numbers = useMemo(
-    () => draft?.slides.map((_, index) => index + 1) ?? [],
-    [draft],
-  );
-  const candidateSong = useMemo<Song | null>(() => {
-    if (draft === null) return null;
-    return previewSong(draft, shownTitle);
-  }, [draft, shownTitle]);
-  const draftReason = useMemo(
+  const song = useMemo(
     () =>
-      candidateSong === null ? undefined : draftLimitReason(candidateSong),
-    [candidateSong],
+      draft === null || themes === null ? null : songOf(draft, shownTitle),
+    [draft, shownTitle, themes],
+  );
+  const tiles = useMemo(
+    () => (song === null ? [] : songTiles(song, colors)),
+    [song, colors],
+  );
+  const draftReason = useMemo(
+    () => (song === null ? undefined : importLimitReason(song)),
+    [song],
   );
   const mappingReason = useMemo(
     () =>
       !mappingOpen || preview.draft === null
         ? undefined
-        : draftLimitReason(
-            previewSong(
+        : importLimitReason(
+            songOf(
               applyImportLabelMapping(preview.draft, selectedMapping),
               shownTitle,
             ),
@@ -336,24 +326,15 @@ export function TextImportDialog({
               invalid={reason !== undefined}
               invalidReason={reason}
             />
-            <span className={styles.count}>슬라이드 {numbers.length}</span>
+            <span className={styles.count}>슬라이드 {tiles.length}</span>
           </div>
           <div className={styles.preview}>
-            {candidateSong === null ? null : (
-              <VirtualSlides
-                song={candidateSong}
-                numbers={numbers}
-                labels={labels}
-                selected={
-                  selected !== undefined && selected < numbers.length
-                    ? selected
-                    : undefined
-                }
-                onSelect={setSelected}
-                baseline={PREVIEW_COLUMNS}
-                scale={PREVIEW_SCALE}
-              />
-            )}
+            <SlidePreviewGrid
+              tiles={tiles}
+              numberOf={index => index + 1}
+              isSelected={index => index === selected}
+              onSelect={setSelected}
+            />
           </div>
         </div>
       </Dialog>

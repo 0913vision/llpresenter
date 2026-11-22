@@ -9,7 +9,7 @@ import {
   type TemplateEntry,
 } from '@core/schema/contentDocuments';
 import {isItemOfKind, type Service, type Template} from '@core/schema/service';
-import {sourceSlideCount, type Song} from '@core/schema/song';
+import type {Song} from '@core/schema/song';
 import type {StoredDocument} from './documents';
 
 const TITLES = new Intl.Collator('ko', {numeric: true});
@@ -26,7 +26,7 @@ export function librarySongs(
     .map(({data, access}) => ({
       id: data.id,
       title: data.title,
-      slideCount: sourceSlideCount(data),
+      slideCount: data.slides.length,
       access,
       usedBy: services
         .filter(service => usesSong(service.data, data.id))

@@ -1,14 +1,13 @@
 import {limitReason} from '@core/common/limitReason';
 import {useEffect, useRef, type DragEvent, type JSX} from 'react';
+import {THEME_FILE_LIMITS} from '@core/schema/theme';
 import {
-  THEME_LIMITS,
-  availableThemeElementKinds,
-  themeElementKinds,
-} from '@core/themes/elementRules';
-import {
-  isUnchangedSelectionMove,
-  moveSelection,
-} from '@core/common/selectionOrder';
+  addableKinds,
+  canAddElement,
+  moveElements,
+  type AddableKind,
+} from '@core/theme/elements';
+import {isUnchangedSelectionMove} from '@core/common/selectionOrder';
 import {selectionDragImage} from '@renderer/ui/selectionDrag';
 import {Button} from '@renderer/ui/Button';
 import {IconButton} from '@renderer/ui/IconButton';
@@ -23,26 +22,24 @@ import {
 import {contextMenuAnchor, isContextMenuKey} from '@renderer/ui/contextMenu';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import type {ThemeModel} from './useThemeEditor';
-import {themeElementNames} from './themeNames';
+import {addableNames, elementName} from './themeNames';
 import styles from './Themes.module.css';
 import {useReflow} from '@renderer/ui/useReflow';
 
+const ALREADY_THERE = '이 화면에 이미 있습니다';
 export const THEME_TILE_DRAG = 'application/x-llp-theme-kind';
 export const THEME_ELEMENT_DRAG = 'application/x-llp-theme-element';
 export function droppedThemeKind(event: DragEvent) {
   const value = event.dataTransfer.getData(THEME_TILE_DRAG);
-  return themeElementKinds.find(kind => kind === value);
+  return addableKinds.find(kind => kind === value);
 }
-const icons: Partial<Record<(typeof themeElementKinds)[number], string>> = {
-  media: 'film',
-  background: 'image',
-  overlay: 'layers',
-  image: 'image',
-  box: 'frame',
-  clock: 'clock',
-  timer: 'timer',
-  stageMessage: 'msg',
-  memo: 'filetext',
+const icons: Readonly<Record<AddableKind, string>> = {
+  box: 'textaa',
+  text: 'text',
+  next: 'next',
+  picture: 'image',
+  shape: 'frame',
+  background: 'film',
 };
 
 export function ThemeElements({
@@ -54,7 +51,8 @@ export function ThemeElements({
   readonly onMenu: (id: string | null, anchor: MenuAnchor) => void;
   readonly editorEvents: import('./useThemeClipboard').ThemeEditorEvents;
 }): JSX.Element {
-  const elements = model.visibleElements;
+  const {layout} = model;
+  const elements = layout?.elements ?? [];
   const dragged = useRef<readonly string[]>([]);
   const release = useRef<(() => void) | undefined>(undefined);
   useEffect(
@@ -92,16 +90,11 @@ export function ThemeElements({
         index,
       )
     ) {
-      model.elements(values => moveSelection(values, ids, index));
+      model.elements(screen => moveElements(screen, ids, index));
     }
     release.current?.();
     dragged.current = [];
   };
-  const allowed = availableThemeElementKinds(
-    elements,
-    model.screen?.kind ?? 'audience',
-    model.theme?.id === model.file?.standby.id,
-  );
   return (
     <>
       <Panel label="요소" className={styles.elementList}>
@@ -209,13 +202,13 @@ export function ThemeElements({
                 <ListRow
                   value={element.id}
                   selected={model.selectedIds.includes(element.id)}
-                  title={themeElementNames[element.kind]}
+                  title={elementName(element)}
                   icon="grip"
                   end={
                     <span className={styles.trash}>
                       <IconButton
                         icon="trash"
-                        label={`${themeElementNames[element.kind]} 삭제`}
+                        label={`${elementName(element)} 삭제`}
                         disabled={model.elementReason !== undefined}
                         title={model.elementReason}
                         onClick={() => model.remove([element.id])}
@@ -235,17 +228,19 @@ export function ThemeElements({
         </PanelHeader>
         <PanelBody>
           <div className={styles.tiles}>
-            {allowed.map(kind => {
+            {addableKinds.map(kind => {
               const reason =
                 model.elementReason ??
-                (elements.length >= THEME_LIMITS.elements
-                  ? limitReason('요소', THEME_LIMITS.elements)
-                  : undefined);
+                (layout === null || canAddElement(layout, kind)
+                  ? undefined
+                  : elements.length >= THEME_FILE_LIMITS.elements
+                    ? limitReason('요소', THEME_FILE_LIMITS.elements)
+                    : ALREADY_THERE);
               return (
                 <Button
                   key={kind}
                   className={styles.tile}
-                  icon={icons[kind] ?? 'text'}
+                  icon={icons[kind]}
                   disabled={reason !== undefined}
                   title={reason}
                   draggable={reason === undefined}
@@ -255,7 +250,7 @@ export function ThemeElements({
                   }}
                   onClick={() => model.requestAdd(kind)}
                 >
-                  {themeElementNames[kind]}
+                  {addableNames[kind]}
                 </Button>
               );
             })}

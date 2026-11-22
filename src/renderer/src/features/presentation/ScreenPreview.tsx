@@ -1,9 +1,9 @@
 import {useLayoutEffect, useState, type JSX} from 'react';
-import {emptyLayers} from '@core/live/state';
+import {emptyLayers, type LiveLayers} from '@core/live/state';
 import {ScreenFrames} from '@renderer/rendering/screenFrames';
-import {Still} from '@renderer/pictures/SlidePicture';
-import type {StillPicture} from '@renderer/rendering/slideStill';
-import {themeBackgroundColor} from '@renderer/rendering/themeBackground';
+import type {SlideDrawing} from '@renderer/pictures/slideDrawing';
+import {SlidePicture} from '@renderer/pictures/SlidePicture';
+import {liveDrawing} from '@renderer/rendering/theme/drawing';
 import {useLive} from '@renderer/session/live';
 import {classNames} from '@renderer/ui/classNames';
 import styles from './ScreenPreview.module.css';
@@ -18,35 +18,26 @@ function reportDrawingError(message: string, error: unknown): void {
 interface Snapshot {
   readonly screenId: string;
   readonly black: boolean;
-  readonly picture: StillPicture | undefined;
+  readonly picture: SlideDrawing | undefined;
 }
 
 function snapshotOf(
   screenId: string,
   frame: ReturnType<ScreenFrames['frame']>,
-  layers: StillPicture['layers'],
+  layers: LiveLayers,
 ): Snapshot {
-  const {screen, theme} = frame ?? {};
   return {
     screenId,
     black: frame?.blackScreen === true,
     picture:
-      screen === undefined || theme === undefined
+      frame?.screen === undefined
         ? undefined
         : {
-            layers,
-            appearance: {
-              screen,
-              theme,
-              audience: frame?.audience,
-              ...(frame?.stageLyricLabelPosition === undefined
-                ? {}
-                : {stageLyricLabelPosition: frame.stageLyricLabelPosition}),
-              background: themeBackgroundColor(
-                theme.layout.background,
-                theme.emptyColor,
-              ),
-            },
+            screen: frame.screen,
+            drawing:
+              frame.item?.contentCleared === true
+                ? null
+                : liveDrawing(layers, frame, false),
           },
   };
 }
@@ -103,7 +94,7 @@ export function ScreenPreview({
       {shown?.black === true ? (
         <div className={styles.black} data-black-screen />
       ) : shown?.picture === undefined ? null : (
-        <Still {...shown.picture} />
+        <SlidePicture {...shown.picture} />
       )}
     </div>
   );

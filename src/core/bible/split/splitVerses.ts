@@ -1,13 +1,12 @@
 import type {BibleCutEntry, BibleCutsFile} from '../../schema/bibleCuts';
-import type {BibleSlides} from '../../schema/biblePassage';
-import type {VerseSlide} from '../../schema/service';
+import type {VerseReference} from '../../schema/slide';
 import {CONT_MARKER, type SplitLayout} from './layout';
 import {cutsFromChunks, planSlides, planSlidesAtOffsets} from './manualSplit';
-import {cacheKey, knownCutEntryFor, textHash} from './splitCache';
+import {knownCutEntryFor, textHash} from './splitCache';
 import {splitVerse} from './splitter';
 
 export interface VerseInput {
-  readonly reference: VerseSlide['verse'];
+  readonly reference: VerseReference;
   readonly text: string;
 }
 
@@ -19,13 +18,6 @@ export interface VersePart extends VerseInput {
   readonly partCount: number;
   readonly manual: boolean;
   readonly problem?: 'measurement';
-}
-
-export function firstSlidePrefix(
-  verse: VerseInput,
-  {singleVerse}: {readonly singleVerse: boolean},
-): string {
-  return singleVerse ? '' : `${verse.reference.verse} `;
 }
 
 function partsOfPlan(
@@ -43,37 +35,6 @@ function partsOfPlan(
     partCount: plan.slideCount,
     manual,
   }));
-}
-
-/** The parts of a verse as its kept slides show them. */
-export function keptVerseParts(
-  verse: VerseInput,
-  slides: BibleSlides | undefined,
-): readonly VersePart[] | undefined {
-  const kept = slides?.[cacheKey(verse.reference)];
-  return kept?.map((slide, index) => ({
-    reference: verse.reference,
-    text: slide.text,
-    display: slide.text + (index < kept.length - 1 ? CONT_MARKER : ''),
-    continued: index < kept.length - 1,
-    part: index + 1,
-    partCount: kept.length,
-    manual: true,
-  }));
-}
-
-/** Saved cuts are remeasured and ignored on overflow, while the saved file stays intact. */
-export function splitVersesForSlides(
-  verses: readonly VerseInput[],
-  layout: SplitLayout,
-  saved?: BibleCutsFile,
-): readonly VersePart[] {
-  return verses.flatMap(verse =>
-    splitVerseParts(verse, layout, {
-      saved,
-      prefix: firstSlidePrefix(verse, {singleVerse: verses.length === 1}),
-    }),
-  );
 }
 
 export function splitVerseParts(
@@ -153,17 +114,14 @@ export function splitVerseParts(
 
 export function cutsOfVerse(
   parts: readonly VersePart[],
-  reference: VerseSlide['verse'],
+  reference: VerseReference,
 ): readonly number[] {
   return cutsFromChunks(
     parts.filter(part => sameVerse(part.reference, reference)),
   );
 }
 
-function sameVerse(
-  left: VerseSlide['verse'],
-  right: VerseSlide['verse'],
-): boolean {
+function sameVerse(left: VerseReference, right: VerseReference): boolean {
   return (
     left.translation === right.translation &&
     left.book === right.book &&
@@ -174,8 +132,8 @@ function sameVerse(
 
 export function versesToReview(
   parts: readonly VersePart[],
-): ReadonlyArray<VerseSlide['verse']> {
-  const found: Array<VerseSlide['verse']> = [];
+): readonly VerseReference[] {
+  const found: VerseReference[] = [];
   for (const part of parts) {
     if (
       part.partCount > 1 &&

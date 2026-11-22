@@ -103,8 +103,7 @@ export function BibleQuickField({
     const stopSelection = useShow.subscribe((next, previous) => {
       const cancelledPreview =
         next.openItemId === null &&
-        next.bibleSource === null &&
-        previous.bibleSource?.id === previous.openItemId;
+        isBibleSource(previous, previous.openItemId);
       if (
         !cancelledPreview &&
         next.openItemId !== previous.openItemId &&
@@ -214,13 +213,11 @@ export function BibleQuickField({
         }}
         onEdit={equivalent => {
           const view = useShow.getState();
-          const source = view.bibleSource;
-          if (
-            source?.id === view.openItemId &&
-            source.enteredRef !== undefined
-          ) {
+          const source = bibleSourceFor(view, view.openItemId);
+          if (source?.enteredRef !== undefined) {
             if (
-              equivalent?.ref === source.enteredRef &&
+              equivalent !== null &&
+              equivalent.ref === source.enteredRef &&
               (source.enteredTranslation ?? source.passage.translation) ===
                 equivalent.translation &&
               display !== null
@@ -232,7 +229,9 @@ export function BibleQuickField({
               });
             } else {
               useShow.setState({
-                bibleSource: {...source, enteredRef: undefined},
+                bibleSources: view.bibleSources.map(entry =>
+                  entry === source ? {...source, enteredRef: undefined} : entry,
+                ),
               });
             }
           }

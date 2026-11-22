@@ -11,7 +11,8 @@ import {
 } from '@renderer/features/presentation/SlidePanel';
 import {useShowKeys} from '@renderer/features/presentation/shortcuts';
 import {useLibrarySongSync} from '@renderer/features/presentation/useLibrarySongSync';
-import {BibleSplitTools} from '@renderer/features/bible/BibleSplitTools';
+import {useVerseSplit} from '@renderer/features/bible/useVerseSplit';
+import {useItemDeck} from '@renderer/features/slides/slideDeck';
 import {QuickPanel} from '@renderer/features/quick/QuickPanel';
 import {ShowToolsPanel} from '@renderer/features/tools/ShowToolsPanel';
 import {useShow} from '@renderer/session/show';
@@ -44,10 +45,14 @@ export function ShowShortcuts({
   useShowKeys();
   useLibrarySongSync(onProblem);
   const itemId = useShownItemId();
-  const tile = useShow(view =>
-    itemId === null ? undefined : tilesForView(view, itemId)[view.selectedTile],
+  const slideId = useShow(view =>
+    itemId === null
+      ? undefined
+      : tilesForView(view, itemId)[view.selectedTile]?.slide.id,
   );
-  return <BibleSplitTools itemId={itemId} tile={tile} onProblem={onProblem} />;
+  const deck = useItemDeck(itemId, onProblem);
+  const split = useVerseSplit(deck, onProblem, slideId);
+  return split.dialog;
 }
 
 function showPanelParts({
@@ -105,7 +110,7 @@ function showPanelParts({
       }
       return {
         body: <SlidePanelBody sizeClass={sizeClass} onOpenPrep={onOpenPrep} />,
-        header: <SlidePanelMeta onProblem={onProblem} />,
+        header: <SlidePanelMeta />,
         footer: <SlidePanelFooter sizeClass={sizeClass} />,
         stableScrollbar: true,
       };

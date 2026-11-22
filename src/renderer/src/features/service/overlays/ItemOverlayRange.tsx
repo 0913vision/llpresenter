@@ -1,0 +1,96 @@
+import {useState, type JSX} from 'react';
+import type {PlacedOverlay} from '@core/schema/itemOverlays';
+import {overlayRangesOverlap} from '@core/overlays/ranges';
+import {editorTask} from '@renderer/platform/editorTask';
+import {NumberField} from '@renderer/ui/NumberField';
+import {PropertyRow} from '@renderer/ui/PropertyRow';
+import type {OverlayEditing} from './overlayEditing';
+import styles from './ItemOverlays.module.css';
+export function ItemOverlayRange({
+  overlay,
+  rows,
+  change,
+  count,
+  reason,
+}: {
+  readonly overlay: PlacedOverlay;
+  readonly rows: readonly PlacedOverlay[];
+  readonly change: OverlayEditing['change'];
+  readonly count: number;
+  readonly reason: string | undefined;
+}): JSX.Element {
+  const [rangeReason, setRangeReason] = useState<string>();
+  const [rangeDraft, setRangeDraft] = useState<{
+    readonly from: number;
+    readonly to: number;
+  } | null>(null);
+  const range = (patch: {
+    readonly from?: number;
+    readonly to?: number;
+  }): void => {
+    const next = {...overlay, ...rangeDraft, ...patch};
+    setRangeDraft({from: next.from, to: next.to});
+    const failure =
+      next.from > next.to
+        ? '끝은 시작보다 앞일 수 없습니다'
+        : overlayRangesOverlap(
+              rows.map(row => (row.id === overlay.id ? next : row)),
+            )
+          ? '다른 오버레이와 겹칩니다'
+          : undefined;
+    setRangeReason(failure);
+    if (failure === undefined) {
+      editorTask(
+        change(current =>
+          current.map(row =>
+            row.id === overlay.id
+              ? {...row, from: next.from, to: next.to}
+              : row,
+          ),
+        ).then(saved => {
+          if (saved) {
+            setRangeDraft(current =>
+              current?.from === next.from && current.to === next.to
+                ? null
+                : current,
+            );
+          }
+        }),
+      );
+    }
+  };
+  return (
+    <PropertyRow label="슬라이드">
+      {() => (
+        <div className={`${styles.controls} ${styles.range}`}>
+          <NumberField
+            aria-label="시작 슬라이드"
+            value={rangeDraft?.from ?? overlay.from}
+            min={1}
+            max={Math.max(1, count)}
+            updateOn="commit"
+            readOnly={reason !== undefined}
+            invalid={rangeReason !== undefined}
+            invalidReason={rangeReason}
+            title={reason}
+            onChange={from => range({from})}
+          />
+          <span>부터</span>
+          <NumberField
+            aria-label="끝 슬라이드"
+            value={rangeDraft?.to ?? overlay.to}
+            min={1}
+            max={Math.max(1, count)}
+            updateOn="commit"
+            readOnly={reason !== undefined}
+            invalid={rangeReason !== undefined}
+            invalidReason={rangeReason}
+            title={reason}
+            onChange={to => range({to})}
+          />
+          <span>까지</span>
+        </div>
+      )}
+    </PropertyRow>
+  );
+}

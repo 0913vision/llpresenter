@@ -1,7 +1,6 @@
 import {createScreenId} from '@core/schema/ids';
 import {showTestPattern} from '@renderer/features/screens/showTestPattern';
-import type {ThemeId} from '@core/schema/ids';
-import type {ThemesFile} from '@core/schema/themes';
+import type {ThemeFile} from '@core/schema/theme';
 import {screenOutputSections} from '@renderer/features/screens/outputMenuEntries';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {menuSeparator} from '@renderer/ui/menuRows';
@@ -13,10 +12,9 @@ import type {WarningScreen} from './MenuBar';
 interface OutputMenuInput {
   readonly screens: readonly ScreenSummary[];
   readonly outputs: Readonly<Record<string, boolean>>;
-  readonly themes: ThemesFile | null;
-  readonly themeId: ThemeId | undefined;
+  readonly themes: readonly ThemeFile[];
+  readonly theme: ThemeFile | undefined;
   readonly hasItem: boolean;
-  readonly sectionCard?: boolean | undefined;
   readonly warnings: readonly WarningScreen[];
   readonly onShowWarning: (id: string) => void;
   readonly onWorkspace: ((workspace: Workspace) => void) | undefined;

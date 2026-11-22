@@ -96,7 +96,7 @@ export function fileMenuEntries(input: FileMenuInput): readonly MenuEntry[] {
         {
           kind: 'item',
           id: 'powerpoint-slides',
-          label: 'PowerPoint를 슬라이드로…',
+          label: 'PowerPoint에서 곡 가져오기…',
           command: 'import.pptx',
           meta: shortcutText('import.pptx'),
           ...menuAvailability(
@@ -107,13 +107,12 @@ export function fileMenuEntries(input: FileMenuInput): readonly MenuEntry[] {
         {
           kind: 'item',
           id: 'powerpoint-images',
-          label: 'PowerPoint를 이미지로…',
+          label: 'PowerPoint를 이미지로 가져오기…',
           ...menuAvailability(
             input.onImportText === undefined ? NOT_YET : undefined,
           ),
           onSelect: () => input.onImportText?.('powerpoint-images'),
         },
-        laterRow('powerpoint-objects', 'PowerPoint를 개체와 글자로…'),
       ],
     },
     menuSeparator('export'),

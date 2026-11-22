@@ -1,19 +1,11 @@
 import type {LlpApi} from '@contracts/ipc/api';
-import {SongEditorStore} from '@renderer/features/songs/editor';
-import {ServiceItemStore} from '@renderer/features/service/items/serviceItemStore';
+import {LabelCatalog} from '@renderer/features/labels/labelCatalog';
 import {
   pendingWritesOf,
   type DraftOutcome,
 } from '@renderer/platform/pendingWrites';
 import {addNotice, removeNotice, type Notice} from '@renderer/ui/notices';
 import {CloseFlush} from './closeFlush';
-
-declare global {
-  interface Window {
-    __llpSongEditorStore?: SongEditorStore;
-    __llpServiceItemStore?: ServiceItemStore;
-  }
-}
 
 // NOTE(0913vision): Commit-mode fields save on blur, so a close blurs the
 // focused field before it asks about drafts or stops the write gate.
@@ -22,19 +14,18 @@ function commitFocusedField(): void {
   if (focused instanceof HTMLElement) focused.blur();
 }
 
-/** Window-owned editor sessions and their shared notification destination. */
+/** What a window owns for as long as it is open: its notices and its labels. */
 export class ControlSession {
-  private editorStore: SongEditorStore | undefined;
-  private itemStore: ServiceItemStore | undefined;
   private notices: readonly Notice[] = [];
   private readonly listeners = new Set<() => void>();
-  private closing: Promise<void> | undefined;
-  private editorBlocked = false;
+  private closing = false;
   private generation = 0;
   /** Answers main's flush before closing and holds the 저장 중 dialog. */
   readonly closeFlush: CloseFlush | undefined;
+  readonly labels: LabelCatalog | undefined;
 
   constructor(readonly api: LlpApi | undefined) {
+    this.labels = api && new LabelCatalog(api, this.report);
     this.closeFlush =
       api &&
       new CloseFlush({
@@ -42,36 +33,6 @@ export class ControlSession {
         flush: () => this.flushBeforeClose(),
         decide: () => this.settleDrafts(api),
       });
-  }
-
-  get editor(): SongEditorStore | undefined {
-    return this.editorStore;
-  }
-
-  get items(): ServiceItemStore | undefined {
-    return this.itemStore;
-  }
-
-  /** Start from a workspace event, outside React render and its StrictMode probe. */
-  startEditor(persistence?: 'automatic' | 'manual'): void {
-    if (this.api && !this.editorStore && !this.closing && !this.editorBlocked) {
-      this.editorStore = new SongEditorStore(
-        this.api,
-        this.report,
-        persistence,
-      );
-      this.itemStore = new ServiceItemStore(
-        this.api,
-        this.editorStore,
-        this.report,
-      );
-      if (typeof window !== 'undefined' && import.meta.env.DEV) {
-        // NOTE(0913vision): Expose stores on window in DEV mode for automated
-        // offscreen CDP verification tests.
-        window.__llpSongEditorStore = this.editorStore;
-        window.__llpServiceItemStore = this.itemStore;
-      }
-    }
   }
 
   readonly getNotices = (): readonly Notice[] => this.notices;
@@ -102,28 +63,19 @@ export class ControlSession {
 
   /** Restarts editing when a retained settings window opens after a close. */
   resume(): void {
-    if (this.closing !== undefined) return;
+    if (this.closing) return;
     this.generation++;
-    this.editorBlocked = false;
     if (this.api !== undefined) pendingWritesOf(this.api).resume();
-    this.editorStore?.resume();
     this.closeFlush?.resume();
   }
 
-  /** Release resources after unmount, including the close flush answer. */
-  dispose(): Promise<void> {
-    if (typeof window !== 'undefined' && import.meta.env.DEV) {
-      delete window.__llpSongEditorStore;
-      delete window.__llpServiceItemStore;
-    }
+  /** Releases what the window held, including the close flush answer. */
+  dispose(): void {
     this.closeFlush?.dispose();
-    this.closing ??= Promise.resolve().then(() => {
-      this.itemStore?.dispose();
-      return this.editorStore?.dispose();
-    });
+    this.closing = true;
+    this.labels?.dispose();
     this.notices = [];
     this.listeners.clear();
-    return this.closing;
   }
 
   private settleDrafts(api: LlpApi): Promise<DraftOutcome> | undefined {
@@ -132,37 +84,20 @@ export class ControlSession {
     return writes.hasDrafts ? writes.settleDrafts() : undefined;
   }
 
-  // NOTE(0913vision): Unsent work lives in the editor's sessions and
-  // operations, in the window's pending writes (item, 예배 순서, and
-  // background edits), and in memo drafts that a refused save left waiting.
-  // The close goes on only after main writes all accepted edits to disk.
+  // NOTE(0913vision): The close goes on only after every edit of this window
+  // reached the main process and main wrote it to disk.
   private async flushBeforeClose(): Promise<boolean> {
     const generation = this.generation;
     commitFocusedField();
-    this.editorBlocked = true;
     const writes =
       this.api === undefined ? undefined : pendingWritesOf(this.api);
     let flushed = false;
     try {
-      const [sent, editorFlushed, draftsSaved] = await Promise.all([
-        writes?.flush() ?? Promise.resolve(true),
-        this.editorStore?.flush() ?? Promise.resolve(true),
-        this.itemStore?.flushDrafts() ?? Promise.resolve(true),
-      ]);
-      flushed =
-        sent &&
-        editorFlushed &&
-        draftsSaved &&
-        (await this.api?.app.savePending()) === true;
+      const sent = (await writes?.flush()) ?? true;
+      flushed = sent && (await this.api?.app.savePending()) === true;
       return flushed;
     } finally {
-      if (generation === this.generation) {
-        this.editorBlocked = flushed;
-        if (!flushed) {
-          writes?.resume();
-          this.editorStore?.resume();
-        }
-      }
+      if (generation === this.generation && !flushed) writes?.resume();
     }
   }
 

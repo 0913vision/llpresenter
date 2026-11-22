@@ -1,8 +1,14 @@
 import type {JSX} from 'react';
-import {THEME_LIMITS} from '@core/themes/elementRules';
-import {hasThemeText, type TextThemeElement} from '@core/themes/elementEdits';
-import {TEXT_EFFECT_LIMITS} from '@core/schema/textEffects';
-import type {ThemeText} from '@core/schema/themes';
+import {
+  TEXT_EFFECT_LIMITS,
+  type TextOutline,
+  type TextShadow,
+} from '@core/schema/textEffects';
+import {
+  THEME_FILE_LIMITS,
+  type ThemeGroupedText,
+  type ThemeTextStyle,
+} from '@core/schema/theme';
 import {PropertyGroup, PropertyRow} from '@renderer/ui/PropertyRow';
 import {SegmentedControl} from '@renderer/ui/SegmentedControl';
 import {SelectMenu} from '@renderer/ui/SelectMenu';
@@ -10,29 +16,63 @@ import {FontPicker} from '../fonts/FontPicker';
 import {missingFontReason, weightChoices} from '../fonts/fontAvailability';
 import {useFontCatalog} from '../fonts/useFontCatalog';
 import {ColorProperty} from '../ColorProperty';
-import {ThemeCheck, ThemeNumber} from './ThemePropertyFields';
-import type {ThemeModel} from './useThemeEditor';
+import {StringProperty} from '../StringProperty';
+import {
+  ThemeCheck,
+  ThemeNumber,
+  ThemeOptionalNumber,
+} from './ThemePropertyFields';
+import {themeCanvasBounds, type ThemeModel} from './useThemeEditor';
+
+const NO_OUTLINE: TextOutline = {on: false, width: 2, color: '#000000'};
+const NO_SHADOW: TextShadow = {
+  on: false,
+  blur: 8,
+  distance: 4,
+  angle: 45,
+  opacity: 60,
+  color: '#000000',
+};
+
+type Fit = NonNullable<ThemeGroupedText['fit']>;
+
+function changeText(
+  model: ThemeModel,
+  id: string,
+  change: (element: ThemeGroupedText) => ThemeGroupedText,
+): void {
+  model.property(id, element =>
+    element.kind === 'text' || element.kind === 'next'
+      ? change(element)
+      : element,
+  );
+}
 
 export function ThemeTextProperties({
   model,
   element,
 }: {
   readonly model: ThemeModel;
-  readonly element: TextThemeElement;
+  readonly element: ThemeGroupedText;
 }): JSX.Element {
   const fonts = useFontCatalog();
   const reason = model.elementReason;
-  const change = (transform: (text: ThemeText) => unknown): void =>
-    model.property(element.id, current =>
-      hasThemeText(current)
-        ? {...current, text: transform(current.text)}
-        : current,
-    );
-  const text = element.text;
+  const change = (update: (style: ThemeTextStyle) => ThemeTextStyle): void =>
+    changeText(model, element.id, current => ({
+      ...current,
+      style: update(current.style),
+    }));
+  const text = element.style;
+  const outline = text.outline ?? NO_OUTLINE;
+  const shadow = text.shadow ?? NO_SHADOW;
+  const changeOutline = (update: Partial<TextOutline>): void =>
+    change(style => ({...style, outline: {...outline, ...update}}));
+  const changeShadow = (update: Partial<TextShadow>): void =>
+    change(style => ({...style, shadow: {...shadow, ...update}}));
   const weights = weightChoices(text.font, text.weight, fonts).filter(
     option =>
-      Number(option.value) >= THEME_LIMITS.weight.min &&
-      Number(option.value) <= THEME_LIMITS.weight.max,
+      Number(option.value) >= THEME_FILE_LIMITS.weight.min &&
+      Number(option.value) <= THEME_FILE_LIMITS.weight.max,
   );
   return (
     <>
@@ -67,8 +107,8 @@ export function ThemeTextProperties({
         <ThemeNumber
           label="크기"
           value={text.size}
-          min={THEME_LIMITS.fontSize.min}
-          max={THEME_LIMITS.fontSize.max}
+          min={THEME_FILE_LIMITS.fontSize.min}
+          max={THEME_FILE_LIMITS.fontSize.max}
           reason={reason}
           change={size => change(value => ({...value, size}))}
         />
@@ -81,76 +121,62 @@ export function ThemeTextProperties({
         <ThemeNumber
           label="줄 간격"
           value={text.lineHeight}
-          min={THEME_LIMITS.lineHeight.min}
-          max={THEME_LIMITS.lineHeight.max}
+          min={THEME_FILE_LIMITS.lineHeight.min}
+          max={THEME_FILE_LIMITS.lineHeight.max}
           step={0.05}
           reason={reason}
           change={lineHeight => change(value => ({...value, lineHeight}))}
         />
         <ThemeNumber
           label="자간"
-          value={text.tracking ?? 0}
-          min={THEME_LIMITS.tracking.min}
-          max={THEME_LIMITS.tracking.max}
+          value={text.tracking}
+          min={THEME_FILE_LIMITS.tracking.min}
+          max={THEME_FILE_LIMITS.tracking.max}
           step={0.1}
           reason={reason}
           change={tracking => change(value => ({...value, tracking}))}
         />
         <ThemeCheck
           label="짧은 글 자간"
-          checked={text.shortTracking !== undefined}
+          checked={text.short !== undefined}
           reason={reason}
           change={on =>
-            change(value => {
-              if (on) {
-                return {
-                  ...value,
-                  shortTracking: {
-                    maxCharacters: 2,
-                    tracking: value.tracking ?? 0,
-                  },
-                };
-              }
-              const next = {...value};
-              delete next.shortTracking;
-              return next;
+            change(style => {
+              const {short: _short, ...rest} = style;
+              return on
+                ? {...rest, short: {letters: 2, tracking: style.tracking}}
+                : rest;
             })
           }
         />
-        {text.shortTracking === undefined ? null : (
+        {text.short === undefined ? null : (
           <>
             <ThemeNumber
               label="최대 글자 수"
-              value={text.shortTracking.maxCharacters}
+              value={text.short.letters}
               min={1}
-              max={THEME_LIMITS.shortTextCharacters}
+              max={THEME_FILE_LIMITS.rows}
               reason={reason}
-              change={maxCharacters =>
-                change(value => ({
-                  ...value,
-                  shortTracking: {
-                    ...value.shortTracking,
-                    tracking: value.shortTracking?.tracking ?? 0,
-                    maxCharacters,
-                  },
-                }))
+              change={letters =>
+                change(style =>
+                  style.short === undefined
+                    ? style
+                    : {...style, short: {...style.short, letters}},
+                )
               }
             />
             <ThemeNumber
               label="짧은 글 자간 값"
-              value={text.shortTracking.tracking}
-              min={THEME_LIMITS.tracking.min}
-              max={THEME_LIMITS.tracking.max}
+              value={text.short.tracking}
+              min={THEME_FILE_LIMITS.tracking.min}
+              max={THEME_FILE_LIMITS.tracking.max}
               reason={reason}
               change={tracking =>
-                change(value => ({
-                  ...value,
-                  shortTracking: {
-                    ...value.shortTracking,
-                    maxCharacters: value.shortTracking?.maxCharacters ?? 2,
-                    tracking,
-                  },
-                }))
+                change(style =>
+                  style.short === undefined
+                    ? style
+                    : {...style, short: {...style.short, tracking}},
+                )
               }
             />
           </>
@@ -201,49 +227,35 @@ export function ThemeTextProperties({
       <PropertyGroup title="효과">
         <ThemeCheck
           label="외곽선"
-          checked={text.outline.on}
+          checked={outline.on}
           reason={reason}
-          change={on =>
-            change(value => ({...value, outline: {...value.outline, on}}))
-          }
+          change={on => changeOutline({on})}
         />
-        {text.outline.on ? (
+        {outline.on ? (
           <>
             <ThemeNumber
               label="두께"
-              value={text.outline.width}
+              value={outline.width}
               min={TEXT_EFFECT_LIMITS.outlineWidth.min}
               max={TEXT_EFFECT_LIMITS.outlineWidth.max}
               reason={reason}
-              change={width =>
-                change(value => ({
-                  ...value,
-                  outline: {...value.outline, width},
-                }))
-              }
+              change={width => changeOutline({width})}
             />
             <ColorProperty
               label="외곽선 색"
-              value={text.outline.color}
+              value={outline.color}
               reason={reason}
-              commit={color =>
-                change(value => ({
-                  ...value,
-                  outline: {...value.outline, color},
-                }))
-              }
+              commit={color => changeOutline({color})}
             />
           </>
         ) : null}
         <ThemeCheck
           label="그림자"
-          checked={text.shadow.on}
+          checked={shadow.on}
           reason={reason}
-          change={on =>
-            change(value => ({...value, shadow: {...value.shadow, on}}))
-          }
+          change={on => changeShadow({on})}
         />
-        {text.shadow.on ? (
+        {shadow.on ? (
           <>
             {(
               [
@@ -268,28 +280,131 @@ export function ThemeTextProperties({
               <ThemeNumber
                 key={key}
                 label={label}
-                value={text.shadow[key]}
+                value={shadow[key]}
                 max={max}
                 reason={reason}
-                change={number =>
-                  change(value => ({
-                    ...value,
-                    shadow: {...value.shadow, [key]: number},
-                  }))
-                }
+                change={number => changeShadow({[key]: number})}
               />
             ))}
             <ColorProperty
               label="그림자 색"
-              value={text.shadow.color}
+              value={shadow.color}
               reason={reason}
-              commit={color =>
-                change(value => ({...value, shadow: {...value.shadow, color}}))
-              }
+              commit={color => changeShadow({color})}
             />
           </>
         ) : null}
       </PropertyGroup>
     </>
+  );
+}
+
+function sizesOf(text: string): number[] | undefined {
+  const sizes = text
+    .split(',')
+    .map(part => Number(part.trim()))
+    .filter(size => size > 0);
+  return sizes.length === 0 ? undefined : sizes;
+}
+
+/** How a text gets smaller, and how its rows are kept, when it is long. */
+export function ThemeFitProperties({
+  model,
+  element,
+}: {
+  readonly model: ThemeModel;
+  readonly element: ThemeGroupedText;
+}): JSX.Element {
+  const reason = model.elementReason;
+  const fit = element.fit ?? {};
+  const change = (update: Partial<Record<keyof Fit, unknown>>): void =>
+    changeText(model, element.id, current => {
+      const {fit: before, ...rest} = current;
+      const next = Object.fromEntries(
+        Object.entries({...before, ...update}).filter(
+          ([, value]) => value !== undefined && value !== false,
+        ),
+      );
+      return Object.keys(next).length === 0 ? rest : {...rest, fit: next};
+    });
+  return (
+    <PropertyGroup title="긴 글">
+      <StringProperty
+        label="크기 단계"
+        value={fit.sizes?.join(', ') ?? ''}
+        reason={reason}
+        placeholder="없음"
+        commit={text => change({sizes: sizesOf(text)})}
+      />
+      <ThemeOptionalNumber
+        label="최소 크기"
+        value={fit.min}
+        first={Math.round(element.style.size / 2)}
+        min={THEME_FILE_LIMITS.fontSize.min}
+        max={THEME_FILE_LIMITS.fontSize.max}
+        reason={reason}
+        change={min => change({min})}
+      />
+      <ThemeOptionalNumber
+        label="최대 줄 수"
+        value={fit.rows}
+        first={2}
+        min={1}
+        max={THEME_FILE_LIMITS.rows}
+        reason={reason}
+        change={rows => change({rows})}
+      />
+      <ThemeCheck
+        label="적은 줄 유지"
+        checked={fit.keepRows ?? false}
+        reason={reason}
+        change={keepRows => change({keepRows})}
+      />
+      <ThemeCheck
+        label="항목 안에서 같게"
+        checked={fit.together ?? false}
+        reason={reason}
+        change={together => change({together})}
+      />
+      <ThemeCheck
+        label="줄 고르게"
+        checked={element.wrap === 'balance'}
+        reason={reason}
+        change={on =>
+          changeText(model, element.id, current => {
+            const {wrap: _wrap, ...rest} = current;
+            return on ? {...rest, wrap: 'balance'} : rest;
+          })
+        }
+      />
+      <ThemeOptionalNumber
+        label="높이 고정"
+        value={element.height}
+        first={element.frame.h}
+        min={1}
+        max={themeCanvasBounds.height}
+        reason={reason}
+        change={height =>
+          changeText(model, element.id, current => {
+            const {height: _height, ...rest} = current;
+            return height === undefined ? rest : {...rest, height};
+          })
+        }
+      />
+      <ThemeOptionalNumber
+        label="최소 줄 수"
+        value={element.rows}
+        first={1}
+        min={1}
+        max={THEME_FILE_LIMITS.rows}
+        reason={reason}
+        change={rows =>
+          changeText(model, element.id, current => {
+            const {rows: _rows, ...rest} = current;
+            return rows === undefined ? rest : {...rest, rows};
+          })
+        }
+      />
+    </PropertyGroup>
   );
 }

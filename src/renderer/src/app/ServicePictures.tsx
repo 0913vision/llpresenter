@@ -1,48 +1,38 @@
 import {useEffect} from 'react';
-import type {ThemesFile} from '@core/schema/themes';
-import type {ShowTile} from '@core/schema/showService';
-import type {ServiceRow} from '@core/presentation/model';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
+import type {ShowTile} from '@core/schema/showService';
+import type {Themes} from '@core/schema/themes';
 import {previewMediaOf} from '@renderer/rendering/previewMedia';
-import {useApiSettingsDocument} from '@renderer/platform/useSettingsDocument';
+import {useThemes} from '@renderer/platform/themes';
 import {useShow} from '@renderer/session/show';
 import {keepThumbnails} from '@renderer/ui/keptThumbnails';
 
-/** Every picture file the themes place as an image element. */
-function themeImages(file: ThemesFile): readonly string[] {
-  const found = new Set<string>();
-  const walk = (value: unknown): void => {
-    if (Array.isArray(value)) {
-      for (const each of value) walk(each);
-      return;
-    }
-    if (typeof value !== 'object' || value === null) return;
-    const kind: unknown = Reflect.get(value, 'kind');
-    const mediaId: unknown = Reflect.get(value, 'mediaId');
-    if (kind === 'image' && typeof mediaId === 'string') {
-      found.add(mediaUrl(mediaId));
-    }
-    for (const each of Object.values(value)) walk(each);
-  };
-  walk(file);
-  return [...found];
+/** Every picture the themes place by themselves. */
+function themePictures({themes}: Themes): readonly string[] {
+  return [
+    ...new Set(
+      themes.flatMap(theme =>
+        Object.values(theme.screens).flatMap(screen =>
+          screen.mode === 'own'
+            ? screen.elements.flatMap(element =>
+                element.kind === 'picture' ? [mediaUrl(element.media)] : [],
+              )
+            : [],
+        ),
+      ),
+    ),
+  ];
 }
 
 function serviceMedia(
-  rows: readonly ServiceRow[],
   tiles: Readonly<Record<string, readonly ShowTile[]>>,
 ): readonly string[] {
-  const ids = new Set<string>();
-  for (const row of rows) {
-    if ('background' in row && row.background !== undefined) {
-      ids.add(row.background.mediaId);
-    }
-    for (const tile of tiles[row.id] ?? []) {
-      if (tile.media !== undefined) ids.add(tile.media.mediaId);
-      if (tile.picture !== undefined) ids.add(tile.picture);
-    }
-  }
-  return [...ids];
+  const ids = Object.values(tiles).flatMap(list =>
+    list.flatMap(({slide}) =>
+      slide.background?.kind === 'media' ? [slide.background.media] : [],
+    ),
+  );
+  return [...new Set(ids)];
 }
 
 /**
@@ -50,25 +40,19 @@ function serviceMedia(
  * drawn with its picture in its first frame wherever it shows.
  */
 export function ServicePictures(): null {
-  const rows = useShow(view => view.rows);
   const tiles = useShow(view => view.tiles);
-  const themes = useApiSettingsDocument({
-    api: window.llp,
-    name: 'themes',
-    title: '테마',
-  });
-  const file = themes?.value;
+  const themes = useThemes(view => view.themes);
   useEffect(() => {
-    if (file !== undefined) keepThumbnails(themeImages(file));
-  }, [file]);
+    if (themes !== null) keepThumbnails(themePictures(themes));
+  }, [themes]);
   useEffect(() => {
     const media = previewMediaOf(window.llp);
-    for (const id of serviceMedia(rows, tiles)) {
+    for (const id of serviceMedia(tiles)) {
       media?.url(id).then(
         url => keepThumbnails([url]),
         () => undefined,
       );
     }
-  }, [rows, tiles]);
+  }, [tiles]);
   return null;
 }

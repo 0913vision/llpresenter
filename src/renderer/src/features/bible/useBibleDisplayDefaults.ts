@@ -1,6 +1,6 @@
 import {useEffect, useState} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
-import type {BibleDisplayOptions} from '@core/bible/source';
+import type {BibleDisplay} from '@renderer/session/bibleSource';
 import type {Preferences} from '@core/schema/preferences';
 
 /**
@@ -9,10 +9,10 @@ import type {Preferences} from '@core/schema/preferences';
  */
 export function useBibleDisplayDefaults(
   api: LlpApi['preferences'] | undefined,
-): BibleDisplayOptions | null {
+): BibleDisplay | null {
   const [value, setValue] = useState<{
     readonly owner: LlpApi['preferences'];
-    readonly display: BibleDisplayOptions;
+    readonly display: BibleDisplay;
   } | null>(null);
   useEffect(() => {
     if (api === undefined) return undefined;
@@ -20,15 +20,13 @@ export function useBibleDisplayDefaults(
     let pushed = false;
     const receive = (preferences: Preferences): void => {
       if (!active) return;
-      const {verseNumbers, reference, translationName} =
-        preferences.bible.defaults;
+      const {verseNumbers, translationName} = preferences.bible.defaults;
       setValue(previous =>
         previous?.owner === api &&
         previous.display.verseNumbers === verseNumbers &&
-        previous.display.reference === reference &&
         previous.display.translationName === translationName
           ? previous
-          : {owner: api, display: {verseNumbers, reference, translationName}},
+          : {owner: api, display: {verseNumbers, translationName}},
       );
     };
     const stop = api.subscribe(preferences => {

@@ -1,60 +1,28 @@
-import {cardOffset} from '@core/services/sectionCards';
-import {LITURGY_SLIDES} from '@core/services/liturgySlides';
 import type {JSX} from 'react';
 import type {ItemRow} from '@core/presentation/model';
-import type {SongId} from '@core/schema/ids';
-import type {MediaItem} from '@core/schema/mediaList';
-import type {ServiceItem} from '@core/schema/service';
-import {isItemOfKind} from '@core/schema/service';
-import {isStartItem} from '@core/services/itemFieldChanges';
-import type {ThemesFile} from '@core/schema/themes';
-import {editorTask} from '@renderer/features/songs/editor/editorTask';
+import {hasSlides, type ServiceItem} from '@core/schema/service';
+import {withMemo, withStartMacro} from '@core/services/itemFields';
+import {runEdit, type Report} from '@renderer/session/serviceEdit';
+import {editItem} from '@renderer/session/openService';
 import {classNames} from '@renderer/ui/classNames';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
-import {
-  backgroundRequest,
-  memoRequest,
-  startMacroRequest,
-} from '../items/itemPlaybackCommands';
-import {resolveMacro} from '../details/ItemSettingsRows';
-import type {ServiceItemStore} from '../items/serviceItemStore';
-import {ThemeCell} from './ThemeCell';
-import {BackgroundCell} from './BackgroundCell';
+import {resolveMacro, type Macro} from '../details/ItemSettingsRows';
 import {CellMenu} from './CellMenu';
 import {MemoCell} from './MemoCell';
-import type {SongFacts} from './useServiceTableData';
 import styles from './ServiceTable.module.css';
 
 const NONE = '없음';
 const MISSING_MACRO = '매크로 없음';
 const NO_MACRO_ID = 'none';
 
-type Macro = ReturnType<typeof resolveMacro>;
-
-/** What the cells of one item row read and write. */
-export interface ServiceTableCellsProps {
-  readonly row: ItemRow;
-  readonly rowLabel?: string;
-  readonly item: ServiceItem | undefined;
-  /** The 슬라이드 count of the item; media has none, its length shows on its tile. */
-  readonly detail: string | undefined;
-  readonly themes: ThemesFile | null;
-  readonly macros: ReadonlyArray<NonNullable<Macro>>;
-  readonly media: readonly MediaItem[];
-  readonly songs: ReadonlyMap<SongId, SongFacts>;
-  readonly items: Pick<ServiceItemStore, 'submitItemEdit'>;
-  readonly serviceId: string | null;
-  readonly readOnly: boolean;
-}
-
 function macroEntries({
   current,
   macros,
   choose,
 }: {
-  readonly current: Macro;
-  readonly macros: ServiceTableCellsProps['macros'];
+  readonly current: Macro | undefined;
+  readonly macros: readonly Macro[];
   readonly choose: (macroId: string | undefined) => void;
 }): readonly MenuEntry[] {
   return [
@@ -77,102 +45,66 @@ function macroEntries({
   ];
 }
 
-/** The 구성, 슬라이드, 테마, 배경, 시작할 때, and 메모 cells of an item row. */
+/** The 슬라이드, 시작할 때, and 메모 cells of an item row. */
 export function ServiceTableCells({
   row,
   rowLabel = row.title,
   item,
-  detail,
-  themes,
   macros,
-  media,
-  songs,
-  items,
-  serviceId,
   readOnly,
-}: ServiceTableCellsProps): JSX.Element {
-  const target = serviceId === null ? null : {serviceId, itemId: row.id};
-  const song = item !== undefined && 'song' in item ? item : undefined;
-  const macro =
-    item !== undefined && isStartItem(item)
-      ? resolveMacro(macros, item.macro)
-      : undefined;
+  report,
+}: {
+  readonly row: ItemRow;
+  readonly rowLabel?: string;
+  readonly item: ServiceItem | undefined;
+  readonly macros: readonly Macro[];
+  readonly readOnly: boolean;
+  readonly report: Report;
+}): JSX.Element {
+  const own = item !== undefined && hasSlides(item) ? item : undefined;
   const reason = readOnly ? NEWER_FILE_REASON : undefined;
+  const macro = resolveMacro(macros, own?.macro);
   return (
     <span className={styles.grid}>
       <span className={classNames(styles.cell, styles.slides)}>
-        {item !== undefined && isItemOfKind(item, 'slides')
-          ? item.slides.slides.length + cardOffset(item)
-          : item !== undefined && isItemOfKind(item, 'liturgy')
-            ? LITURGY_SLIDES[item.liturgy.kind][item.liturgy.translation]
-                .length + cardOffset(item)
-            : row.kind === 'media'
-              ? ''
-              : song?.sectionCard !== undefined
-                ? song.slides.length + 1
-                : (detail ?? '')}
+        {own === undefined || own.kind === 'media' ? '' : own.slides.length}
       </span>
-      {item === undefined ? (
-        <span className={classNames(styles.cell, styles.theme)} />
+      {own === undefined ? (
+        <>
+          <span className={classNames(styles.cell, styles.start)} />
+          <span className={classNames(styles.cell, styles.memo)} />
+        </>
       ) : (
-        <ThemeCell
-          item={item}
-          themes={themes}
-          target={target}
-          items={items}
-          label={`테마, ${rowLabel}`}
-          reason={reason}
-        />
-      )}
-      <BackgroundCell
-        row={row}
-        rowLabel={rowLabel}
-        item={item}
-        media={media}
-        songBackground={
-          song === undefined ? undefined : songs.get(song.song)?.background
-        }
-        reason={reason}
-        choose={
-          item === undefined || !isStartItem(item)
-            ? undefined
-            : (
-                mediaId: import('@renderer/session/serviceBackground').ItemBackgroundChoice,
-              ) =>
-                editorTask(
-                  items.submitItemEdit(backgroundRequest(target, mediaId)),
-                )
-        }
-      />
-      {item === undefined || !isStartItem(item) ? (
-        <span className={classNames(styles.cell, styles.start)} />
-      ) : (
-        <CellMenu
-          label={`시작할 때, ${rowLabel}`}
-          text={macro?.name ?? (item.macro === undefined ? '' : MISSING_MACRO)}
-          dim={macro === undefined}
-          width={styles.start}
-          reason={reason}
-          entries={macroEntries({
-            current: macro,
-            macros,
-            choose: macroId =>
-              editorTask(
-                items.submitItemEdit(startMacroRequest(target, macroId)),
-              ),
-          })}
-        />
-      )}
-      {item === undefined || !isStartItem(item) ? (
-        <span className={classNames(styles.cell, styles.memo)} />
-      ) : (
-        <MemoCell
-          key={`${serviceId}:${item.id}`}
-          label={`메모, ${rowLabel}`}
-          memo={item.memo ?? ''}
-          reason={reason}
-          save={memo => items.submitItemEdit(memoRequest(target, memo))}
-        />
+        <>
+          <CellMenu
+            label={`시작할 때, ${rowLabel}`}
+            text={macro?.name ?? (own.macro === undefined ? '' : MISSING_MACRO)}
+            dim={macro === undefined}
+            width={styles.start}
+            reason={reason}
+            entries={macroEntries({
+              current: macro,
+              macros,
+              choose: id =>
+                runEdit(
+                  editItem(own.id, entry => withStartMacro(entry, id)),
+                  report,
+                ),
+            })}
+          />
+          <MemoCell
+            key={own.id}
+            label={`메모, ${rowLabel}`}
+            memo={own.memo ?? ''}
+            reason={reason}
+            save={async memo => {
+              const result = await editItem(own.id, entry =>
+                withMemo(entry, memo),
+              );
+              return result.ok || result.error.reason === 'write-failed';
+            }}
+          />
+        </>
       )}
     </span>
   );

@@ -4,9 +4,12 @@ import {SERVICE_LIMITS} from '@core/schema/service';
 import {useShow} from '@renderer/session/show';
 import {revealAddedItem} from '@renderer/session/selectAddedItem';
 import {serviceItemClipboardFor} from '@renderer/session/serviceItemClipboard';
-import {ORDER_FULL_REASON} from '@renderer/session/serviceOrderEdits';
+import {
+  insertItems,
+  ORDER_FULL_REASON,
+} from '@renderer/session/serviceOrderEdits';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
-import type {useServiceOrderEditing} from './useServiceOrderEditing';
+import type {useServiceOrderEditing} from '@renderer/session/useServiceOrderEditing';
 
 const EMPTY_CLIPBOARD = '복사한 예배 순서 항목이 없습니다';
 const NO_ITEMS = '선택한 항목이 없습니다';
@@ -111,9 +114,8 @@ export function useServiceItemClipboard({
     if (current.serviceId !== serviceId || current.readOnly) return;
     const items = clipboard.createItems();
     if (items.length === 0) return;
-    const saved = await editing.save((edits, id) =>
-      edits.insertItems(
-        id,
+    const saved = await editing.save(() =>
+      insertItems(
         items,
         afterId === null ? null : createServiceItemId(afterId),
       ),

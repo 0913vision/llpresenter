@@ -1,4 +1,6 @@
 import type {LiveCommand} from '@core/live/commands';
+import {createSlideId} from '@core/schema/ids';
+import {BUILT_IN_THEME_IDS} from '@core/theme/builtIn/ids';
 import type {SlideLayer} from '@core/live/state';
 import {
   audioPlaylistIdSchema,
@@ -37,14 +39,19 @@ export interface SoakScenario {
  */
 export function scenarioSlide(position: number): SlideLayer {
   const number = position + 1;
+  const label = SLIDE_LABELS[position % SLIDE_LABELS.length];
   return {
     itemId: SCENARIO_ITEM_ID,
+    slideId: createSlideId(
+      `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`,
+    ),
     position,
-    label: SLIDE_LABELS[position % SLIDE_LABELS.length] ?? null,
-    lines: [
-      `시험 장 ${number}의 첫째 줄입니다`,
-      `반복되는 배경 위에 둘째 줄이 놓입니다`,
-    ],
+    theme: BUILT_IN_THEME_IDS.lyrics,
+    texts: {
+      가사: `시험 장 ${number}의 첫째 줄입니다\n반복되는 배경 위에 둘째 줄이 놓입니다`,
+    },
+    auto: label == null ? {} : {이름표: label, '새 이름표': label},
+    next: null,
   };
 }
 

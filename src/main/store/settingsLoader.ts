@@ -11,6 +11,7 @@ import {settingsCodecs, type SettingsValue} from './settingsCodecs';
 import {settingsDefaults} from './settingsDefaults';
 import {readSettingsFile, settingsLocation} from './settingsFile';
 import {DEFAULT_VERSE_LABEL} from './defaults';
+import {arrangeThemes, parseThemeList, readThemes} from './themeFiles';
 
 export interface SettingsProblem {
   readonly file: string;
@@ -65,15 +66,47 @@ function addDefaultVerseLabel(document: SettingsDocument): SettingsDocument {
   };
 }
 
+/** The themes: their list, and a file for each one the operator made. */
+async function loadThemes(
+  locations: DataLocations,
+): Promise<LoadedSettingsArea> {
+  const location = settingsLocation(locations, 'themes');
+  const list = await readSettingsFile(location, parseThemeList);
+  const own = await readThemes(locations.settings);
+  const [error] = [...list.problems, ...own.problems];
+  const fallback = defaultDocument('themes');
+  const document: SettingsDocument = {
+    name: 'themes',
+    revision: fallback.revision,
+    access: list.problems.some(problem => problem.kind === 'newer')
+      ? 'readOnly'
+      : 'editable',
+    value: {
+      format: 'llsettings.themes',
+      schemaVersion: list.data?.schemaVersion ?? 1,
+      defaults: list.data?.defaults ?? {},
+      titles: list.data?.titles ?? [],
+      themes: arrangeThemes(own.themes, list.data?.order ?? []),
+    },
+  };
+  return {
+    document,
+    problem: error === undefined ? null : {file: basename(error.file), error},
+  };
+}
+
+interface LoadedSettingsArea {
+  readonly document: SettingsDocument | null;
+  readonly problem: SettingsProblem | null;
+}
+
 /** Loads one area, preserving a failed file while its defaults keep the other areas usable. */
 export async function loadSettingsArea(
   name: SettingsName,
   locations: DataLocations,
   saver: Pick<Saver, 'save'>,
-): Promise<{
-  readonly document: SettingsDocument | null;
-  readonly problem: SettingsProblem | null;
-}> {
+): Promise<LoadedSettingsArea> {
+  if (name === 'themes') return loadThemes(locations);
   const location = settingsLocation(locations, name);
   const codec = settingsCodecs[name];
   let fallback: SettingsDocument | null = null;
@@ -114,11 +147,7 @@ export async function loadSettingsArea(
     }
     const updated = addDefaultVerseLabel(parsed.value);
     fallback = updated;
-    if (
-      loaded === null ||
-      updated !== parsed.value ||
-      (name === 'themes' && access === 'editable')
-    ) {
+    if (loaded === null || updated !== parsed.value) {
       const text = codec.serialize(updated.value, location.file);
       if (!text.ok) {
         return {

@@ -1,8 +1,0 @@
-.rows[data-view='grid'] {
-  display: grid;
-  grid-template-columns: repeat(
-    auto-fill,
-    min(100%, var(--liturgy-tile-width))
-  );
-  align-content: start;
-}

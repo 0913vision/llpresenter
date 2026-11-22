@@ -5,12 +5,6 @@ export type PowerPointJob =
   | {readonly kind: 'read'; readonly path: string}
   | {readonly kind: 'size'; readonly path: string}
   | {
-      readonly kind: 'layers';
-      readonly path: string;
-      readonly digest: string;
-      readonly number: number;
-    }
-  | {
       readonly kind: 'match';
       readonly path: string;
       readonly candidates: ReadonlyArray<{
@@ -19,11 +13,13 @@ export type PowerPointJob =
       }>;
     }
   | {
-      readonly kind: 'background';
+      readonly kind: 'pictures';
       readonly path: string;
       readonly digest: string;
-      readonly index: number;
-      readonly target: string;
+      readonly pictures: ReadonlyArray<{
+        readonly part: string;
+        readonly target: string;
+      }>;
     };
 
 /** Runs each bounded archive operation away from the main event loop. */

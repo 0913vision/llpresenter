@@ -1,13 +1,13 @@
-import {displayReference} from '@core/bible/displayReference';
-import {LITURGY} from '@core/services/liturgy';
 import type {CheckState} from '@renderer/ui/Checkbox';
 import type {ServiceItemId} from '@core/schema/ids';
-import {SERMON_ICON, slidesItemIcon} from '../order/serviceItemIcons';
+import {iconByKind} from '../order/serviceItemIcons';
 import {
+  hasSlides,
   isItemOfKind,
-  serviceItemKind,
   type ServiceItem,
+  type SlidesItem,
 } from '@core/schema/service';
+import {itemTitle} from '@core/slides/tiles';
 
 /** One row of the 예배 순서 tree in the service dialogs. */
 export interface TreeRow {
@@ -23,51 +23,29 @@ export interface TreeRow {
 /** The checked rows by id: items, and headers with no items under them. */
 export type TreeSelection = ReadonlySet<ServiceItemId>;
 
-const MISSING_SONG = '곡을 찾을 수 없습니다';
-const kindLabels = {
+const UNNAMED: Readonly<Record<SlidesItem['kind'], string>> = {
+  song: '곡',
+  bible: '성경 구절',
+  sermon: '설교',
+  liturgy: '예식문',
+  notice: '광고',
+  blank: '빈 슬라이드',
   media: '미디어',
-  unknown: '알 수 없는 항목',
-} as const;
-// NOTE(0913vision): The same icons as the 예배 순서 list (show/ServiceOrderList).
-const icons = {
-  song: 'song',
-  bible: 'book',
-  media: 'film',
-  unknown: 'filex',
-} as const;
+};
 
 function rowOf(
   item: ServiceItem,
   songTitles: ReadonlyMap<string, string>,
 ): Pick<TreeRow, 'label' | 'icon'> {
-  if (isItemOfKind(item, 'header')) return {label: item.header};
-  if (isItemOfKind(item, 'song')) {
-    return {
-      label: songTitles.get(item.song) ?? MISSING_SONG,
-      icon: icons.song,
-    };
+  if (isItemOfKind(item, 'header')) return {label: item.name};
+  if (!hasSlides(item)) {
+    return {label: '알 수 없는 항목', icon: iconByKind.unknown};
   }
-  if (isItemOfKind(item, 'bible')) {
-    return {label: displayReference(item.bible.ref), icon: icons.bible};
-  }
-  if (isItemOfKind(item, 'sermon')) {
-    return {label: item.sermon.title, icon: SERMON_ICON};
-  }
-  if (isItemOfKind(item, 'liturgy')) {
-    return {label: LITURGY[item.liturgy.kind].name, icon: 'monitor'};
-  }
-  if (isItemOfKind(item, 'slides')) {
-    return {
-      label:
-        item.slides.name ||
-        (item.slides.form === 'ad' ? '광고' : '빈 슬라이드'),
-      icon: slidesItemIcon(item),
-    };
-  }
-  const kind = serviceItemKind(item);
-  return kind === 'media'
-    ? {label: kindLabels[kind], icon: icons[kind]}
-    : {label: kindLabels.unknown, icon: icons.unknown};
+  const label =
+    item.kind === 'song'
+      ? (songTitles.get(item.song) ?? item.name)
+      : itemTitle(item);
+  return {label: label || UNNAMED[item.kind], icon: iconByKind[item.kind]};
 }
 
 /** The rows of a 예배 순서 or 템플릿, each item under the header before it. */

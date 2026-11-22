@@ -1,6 +1,5 @@
 import {useState, type JSX} from 'react';
 import type {MediaId} from '@core/schema/ids';
-import {THEME_BACKGROUNDS} from '@core/themes/pictures';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {ThemeImageChoice} from './ThemeImageChoice';
 import {Dialog} from '@renderer/ui/Dialog';
@@ -13,9 +12,6 @@ export function ThemeImageDialog({
   readonly model: ThemeModel;
 }): JSX.Element {
   const [selected, setSelected] = useState<MediaId>();
-  const image = [...THEME_BACKGROUNDS, ...model.images].find(
-    value => value.id === selected,
-  );
   return (
     <Dialog
       title="이미지 선택"
@@ -23,24 +19,19 @@ export function ThemeImageDialog({
       onCancel={model.cancelImage}
       primary={{
         label: '추가',
-        disabled: image === undefined,
+        disabled: selected === undefined,
         onSelect: () => {
-          if (image !== undefined) model.confirmImage(image.id);
+          if (selected !== undefined) model.confirmImage(selected);
         },
       }}
     >
       <ThemeImageChoice
-        images={model.images}
         selected={selected}
         reason={model.elementReason}
         change={setSelected}
       />
-      {image === undefined ? null : (
-        <img
-          className={styles.imageChoice}
-          src={mediaUrl(image.id)}
-          alt={image.name}
-        />
+      {selected === undefined ? null : (
+        <img className={styles.imageChoice} src={mediaUrl(selected)} alt="" />
       )}
     </Dialog>
   );

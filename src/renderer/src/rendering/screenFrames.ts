@@ -12,7 +12,6 @@ import type {FontCatalog, FontCatalogSnapshot} from '@core/schema/fontCatalog';
 import type {RenderFrame, RenderScreen} from './layer';
 import {MainTimerClock} from './mainTimerClock';
 import {resolveRenderScreen} from './screenIdentity';
-import type {Screen} from '@core/schema/screens';
 import {followSettingsDocument} from './settingsFeed';
 
 interface ScreenFramesOptions {
@@ -33,7 +32,6 @@ export class ScreenFrames {
   private fonts: FontCatalog | undefined;
   private disposed = false;
   private screen: RenderScreen | undefined;
-  private screens: readonly Screen[] = [];
   private timers: readonly Timer[] = [];
   private messageStyles: readonly MessageStyle[] | undefined;
   private preferences = defaultPreferences;
@@ -84,7 +82,6 @@ export class ScreenFrames {
         select: document =>
           document.name === 'screens' ? document.value.screens : undefined,
         receive: screens => {
-          this.screens = screens;
           this.screen = resolveRenderScreen(screenId, screens);
           options.onChange();
         },
@@ -140,64 +137,23 @@ export class ScreenFrames {
   frame(state: LiveState | null): RenderFrame | undefined {
     const {screen} = this;
     if (screen === undefined) return undefined;
-    const slide = state?.layers.slide ?? null;
-    const output = state?.themeOutput;
-    const composition = output?.screens[screen.id];
-    if (output === undefined || composition === undefined) return undefined;
-    const theme = {
-      ...composition,
-      themeId: output.themeId,
-      revision: output.revision,
-      missing: output.missing,
-      item: state?.themeItem ?? null,
-    };
-    const audienceScreen =
-      screen.kind === 'stage'
-        ? this.screens.find(value => value.kind === 'audience')
-        : undefined;
-    const audienceComposition =
-      audienceScreen === undefined
-        ? undefined
-        : output.screens[audienceScreen.id];
-    const audienceIdentity =
-      audienceScreen === undefined
-        ? undefined
-        : resolveRenderScreen(audienceScreen.id, this.screens);
+    const theme = state?.themeOutput;
+    if (theme === undefined) return undefined;
     const messageStyle = resolveMessageStyle(
       this.messageStyles,
       screen.messageStyleId,
     );
     const band = messageBandFor(
       messageStyle,
-      !this.transparent &&
-        isKeyBackground(
-          typeof composition.layout.background === 'object'
-            ? undefined
-            : (composition.layout.background ?? composition.emptyColor),
-          screen,
-        ),
+      !this.transparent && isKeyBackground(screen.emptyColor, screen),
     );
     return {
       stageLyricLabelPosition: this.preferences.output.stageLyricLabelPosition,
       theme,
-      ...(audienceComposition && audienceIdentity
-        ? {
-            audience: {
-              screen: audienceIdentity,
-              theme: {
-                ...audienceComposition,
-                themeId: output.themeId,
-                revision: output.revision,
-                missing: output.missing,
-                item: state?.themeItem ?? null,
-              },
-            },
-          }
-        : {}),
+      item: state?.item ?? null,
       ...(state?.blackScreen === true && screen.kind !== 'stage'
         ? {blackScreen: true}
         : {}),
-      ...(slide === null ? {} : {slide}),
       ...(this.fonts === undefined ? {} : {fonts: this.fonts}),
       ...(state?.stageTimerId === undefined
         ? {}

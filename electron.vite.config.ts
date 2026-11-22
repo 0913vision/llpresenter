@@ -74,7 +74,26 @@ export default defineConfig({
     resolve: {
       alias: {...shared, '@renderer': resolve('src/renderer/src')},
     },
-    plugins: [react()],
+    plugins: [
+      react(),
+      {
+        // NOTE(0913vision): A page that loads another page's entry runs that
+        // page too: an output window would show the control window.
+        name: 'separate-pages',
+        generateBundle(_options, bundle) {
+          for (const chunk of Object.values(bundle)) {
+            if (chunk.type !== 'chunk' || !chunk.isEntry) continue;
+            const other = chunk.imports.find(file => {
+              const imported = bundle[file];
+              return imported?.type === 'chunk' && imported.isEntry;
+            });
+            if (other !== undefined) {
+              this.error(`${chunk.fileName} loads the page entry ${other}`);
+            }
+          }
+        },
+      },
+    ],
     server: {port: devPort, strictPort: true},
     build: {
       rolldownOptions: {

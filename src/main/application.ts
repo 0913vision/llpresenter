@@ -58,8 +58,6 @@ import {ControlHeartbeat} from './windows/controlHeartbeat';
 import {GraphicsRecovery} from './windows/graphicsRecovery';
 import {announceReloadAfterCrash} from './windows/reloadNotice';
 import {registerSettingsWindow} from './windows/settingsWindow';
-import {registerSlidesEditorWindow} from './windows/slidesEditor';
-import {isItemOfKind} from '@core/schema/service';
 import {registerAudioOutput} from './windows/audio';
 import {registerPlaybackProblems} from './outputs/playbackProblems';
 import {registerControlClose} from './windows/controlClose';
@@ -397,38 +395,11 @@ export function start(
         log,
         screens: {config: appConfig},
       });
-      const editorWindowContext = {
-        get control() {
-          return activeControl;
-        },
-        config: appConfig,
-        zoom,
-        mode: windowMode,
-        log,
-      };
-      const slidesEditorWindow = registerSlidesEditorWindow({
-        ...editorWindowContext,
-        get control() {
-          return activeControl;
-        },
-        hasItem: async target => {
-          const document = (await dataStore.content)?.service(target.serviceId);
-          const item = document?.service.order.find(
-            row => row.id === target.itemId,
-          );
-          return (
-            document?.access !== 'readOnly' &&
-            item !== undefined &&
-            isItemOfKind(item, 'slides')
-          );
-        },
-      });
       const stopFonts = registerFonts(controlRef, log, launchIdle.ready);
       let closing = registerControlClose({control: win, log});
       shutdown.confirmWith(
         async requireSaved =>
           (await settingsWindow.close(requireSaved)) &&
-          (await slidesEditorWindow.close()) &&
           (await closing.confirmClose(requireSaved)),
       );
       const stopUpdates = registerUpdates({
@@ -683,10 +654,6 @@ export function start(
       shutdown.add({
         name: 'stop the location channels',
         run: stopLocations,
-      });
-      shutdown.add({
-        name: 'stop the slides editor window',
-        run: slidesEditorWindow.dispose,
       });
       shutdown.add({name: 'stop Bible lookup', run: stopBible});
       shutdown.add({name: 'stop font enumeration', run: stopFonts});

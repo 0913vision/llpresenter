@@ -2,7 +2,7 @@ import {defaultPreferences} from '@core/schema/preferences';
 import type {Screen} from '@core/schema/screens';
 import type {SettingsName} from '@core/schema/settingsDocuments';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
-import {createDefaultThemes} from '@core/themes/defaults';
+import {DEFAULT_THEMES} from './themeFiles';
 import {DEFAULT_LABELS} from './defaults';
 
 const {main: MAIN, broadcast: CAPTIONS, stage: STAGE} = STARTER_SCREEN_IDS;
@@ -22,7 +22,7 @@ const screen = (
 });
 /** Spec 02 starter files share IDs for their screen, style and layout references. */
 export const settingsDefaults: Readonly<Record<SettingsName, object>> = {
-  themes: createDefaultThemes(),
+  themes: DEFAULT_THEMES,
   screens: {
     screens: [
       screen(MAIN, '청중 화면', {kind: 'audience', method: 'fullscreen'}),

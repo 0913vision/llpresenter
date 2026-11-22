@@ -2,19 +2,27 @@ import {useEffect, useRef, useState, type JSX} from 'react';
 import {Checkbox} from '@renderer/ui/Checkbox';
 import {NumberField} from '@renderer/ui/NumberField';
 import {PropertyRow} from '@renderer/ui/PropertyRow';
+import {SelectMenu} from '@renderer/ui/SelectMenu';
 import {TextArea} from '@renderer/ui/TextArea';
 import {isComposing} from '@renderer/ui/ime';
 
-export function ThemeContent({
+/** A text that changes the picture while it is typed, as one undo step. */
+export function ThemeTextArea({
+  id,
+  label,
   value,
   reason,
   change,
   begin,
+  area,
 }: {
+  readonly id?: string | undefined;
+  readonly label: string;
   readonly value: string;
   readonly reason: string | undefined;
   readonly change: (value: string) => void;
   readonly begin: () => () => void;
+  readonly area?: ((element: HTMLTextAreaElement | null) => void) | undefined;
 }): JSX.Element {
   const [draft, setDraft] = useState<string | null>(null);
   const original = useRef<string | null>(null);
@@ -26,47 +34,62 @@ export function ThemeContent({
   };
   useEffect(() => () => endGroup.current?.(), []);
   return (
-    <PropertyRow label="내용" alignTop>
-      {({controlId}) => (
-        <TextArea
-          id={controlId}
-          value={draft ?? value}
-          readOnly={reason !== undefined}
-          title={reason}
-          onChange={next => {
-            if (reason !== undefined) return;
-            if (original.current === null) {
-              original.current = value;
-              endGroup.current = begin();
-            }
-            setDraft(next);
-            change(next);
-          }}
-          onBlur={() => {
-            finish();
-            setDraft(null);
-          }}
-          onKeyDown={event => {
-            if (isComposing(event)) return;
-            if (event.key === 'Escape') {
-              event.preventDefault();
-              if (original.current !== null && reason === undefined) {
-                change(original.current);
-              }
-              finish();
-              setDraft(null);
-            }
-            if (event.key === 'Enter' && event.ctrlKey) {
-              event.preventDefault();
-              event.stopPropagation();
-              event.currentTarget.blur();
-            }
-          }}
-        />
-      )}
-    </PropertyRow>
+    <TextArea
+      id={id}
+      ref={area}
+      aria-label={label}
+      value={draft ?? value}
+      readOnly={reason !== undefined}
+      title={reason}
+      onChange={next => {
+        if (reason !== undefined) return;
+        if (original.current === null) {
+          original.current = value;
+          endGroup.current = begin();
+        }
+        setDraft(next);
+        change(next);
+      }}
+      onBlur={() => {
+        finish();
+        setDraft(null);
+      }}
+      onKeyDown={event => {
+        if (isComposing(event)) return;
+        if (event.key === 'Escape') {
+          event.preventDefault();
+          if (original.current !== null && reason === undefined) {
+            change(original.current);
+          }
+          finish();
+          setDraft(null);
+        }
+        if (event.key === 'Enter' && event.ctrlKey) {
+          event.preventDefault();
+          event.stopPropagation();
+          event.currentTarget.blur();
+        }
+      }}
+    />
   );
 }
+
+const UNITS: Readonly<Record<string, string>> = {
+  크기: 'px',
+  '최소 크기': 'px',
+  자간: 'px',
+  '짧은 글 자간 값': 'px',
+  두께: 'px',
+  흐림: 'px',
+  거리: 'px',
+  모서리: 'px',
+  간격: 'px',
+  '위 여백': 'px',
+  '아래 여백': 'px',
+  각도: '도',
+  불투명도: '%',
+  '줄 간격': '배',
+};
 
 export function ThemeNumber({
   label,
@@ -85,18 +108,6 @@ export function ThemeNumber({
   readonly reason: string | undefined;
   readonly change: (value: number) => void;
 }): JSX.Element {
-  const units: Readonly<Record<string, string>> = {
-    크기: 'px',
-    자간: 'px',
-    '짧은 글 자간 값': 'px',
-    두께: 'px',
-    흐림: 'px',
-    거리: 'px',
-    모서리: 'px',
-    각도: '도',
-    불투명도: '%',
-    '줄 간격': '배',
-  };
   return (
     <PropertyRow label={label}>
       {({controlId}) => (
@@ -106,7 +117,7 @@ export function ThemeNumber({
           min={min}
           max={max}
           step={step}
-          unit={units[label]}
+          unit={UNITS[label]}
           {...(label === '줄 간격'
             ? {
                 formatValue: (number: number) =>
@@ -142,6 +153,91 @@ export function ThemeCheck({
           checked={checked}
           disabled={reason !== undefined}
           title={reason}
+          onChange={change}
+        />
+      )}
+    </PropertyRow>
+  );
+}
+
+/** A number that can be left out; the check gives it a first value. */
+export function ThemeOptionalNumber({
+  label,
+  value,
+  first,
+  min = 0,
+  max,
+  step = 1,
+  reason,
+  change,
+}: {
+  readonly label: string;
+  readonly value: number | undefined;
+  readonly first: number;
+  readonly min?: number;
+  readonly max: number;
+  readonly step?: number;
+  readonly reason: string | undefined;
+  readonly change: (value: number | undefined) => void;
+}): JSX.Element {
+  return (
+    <PropertyRow label={label}>
+      {({controlId}) => (
+        <>
+          <Checkbox
+            id={controlId}
+            aria-label={label}
+            checked={value !== undefined}
+            disabled={reason !== undefined}
+            title={reason}
+            onChange={on => change(on ? first : undefined)}
+          />
+          {value === undefined ? null : (
+            <NumberField
+              aria-label={label}
+              value={value}
+              min={min}
+              max={max}
+              step={step}
+              unit={UNITS[label]}
+              updateOn="commit"
+              readOnly={reason !== undefined}
+              title={reason}
+              onChange={change}
+            />
+          )}
+        </>
+      )}
+    </PropertyRow>
+  );
+}
+
+const FITS = [
+  {value: 'fit', label: '맞추기'},
+  {value: 'fill', label: '채우기'},
+  {value: 'stretch', label: '늘리기'},
+] as const;
+
+/** How a picture takes its frame. */
+export function ThemeFitRow({
+  value,
+  reason,
+  change,
+}: {
+  readonly value: (typeof FITS)[number]['value'];
+  readonly reason: string | undefined;
+  readonly change: (value: (typeof FITS)[number]['value']) => void;
+}): JSX.Element {
+  return (
+    <PropertyRow label="맞춤">
+      {({controlId}) => (
+        <SelectMenu
+          id={controlId}
+          block
+          value={value}
+          disabled={reason !== undefined}
+          title={reason}
+          options={FITS}
           onChange={change}
         />
       )}

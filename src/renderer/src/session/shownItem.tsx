@@ -7,38 +7,24 @@ import {
   type ReactNode,
 } from 'react';
 import {useShow} from './showStore';
-import {useLive} from './live';
 
 const ShownItem = createContext<string | null | undefined>(undefined);
 
 /**
- * Gives a workspace the open item as its screen shows it. A newly opened item
- * shows once everything it shows is ready; until then the workspace keeps
- * showing the previous item, its list selection included, unchanged.
+ * Gives a workspace the open item as its screen shows it: its list, its slides
+ * and its panels change to another item in one commit.
  */
 export function ShownItemProvider({
   children,
   shownItem,
-  trackLive = shownItem === undefined,
 }: {
   readonly children: ReactNode;
   readonly shownItem?: string | null | undefined;
-  readonly trackLive?: boolean;
 }): JSX.Element {
   const requested = useShow(view => view.openItemId);
-  const ready = useShow(view => view.readyItemId);
-  const passage = useShow(view => view.readyPassage);
-  const liveTitle = useLive(view => view.state?.themeItem?.title);
   const shown = useDeferredValue(shownItem === undefined ? requested : null);
-  const fallback = shownItem === undefined ? shown : shownItem;
-  if (!trackLive) {
-    return <ShownItem value={fallback}>{children}</ShownItem>;
-  }
-  if (passage?.id === requested && passage.title !== liveTitle) {
-    return <ShownItem value={passage.previous}>{children}</ShownItem>;
-  }
   return (
-    <ShownItem value={ready === requested ? requested : fallback}>
+    <ShownItem value={shownItem === undefined ? shown : shownItem}>
       {children}
     </ShownItem>
   );

@@ -101,8 +101,7 @@ export function SplitReview({
       prefix={entry.prefix}
       label={`${BIBLE_BOOKS.find(book => book.id === reference.book)?.korean ?? '성경'} ${reference.chapter}:${reference.verse}`}
       layout={projection.layout}
-      element={projection.element}
-      appearance={projection.appearance}
+      theme={projection.theme}
       pending={pending.has(entry.key)}
       preparedPlan={entry.prepared?.plan}
       ruleBased={entry.prepared?.offsets !== undefined}

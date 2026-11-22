@@ -1,25 +1,15 @@
 import type {LayerKind, LiveLayers} from '@core/live/state';
 import type {ClearEffect} from '@core/schema/clearFade';
 import type {RenderMode} from './backgroundLayer';
-import type {TextStyle} from '@core/themes/textStyle';
+import type {TextStyle} from '@core/overlays/textStyle';
 import type {RenderTimers} from './timerTokens';
 import type {ScreenId, TimerId} from '@core/schema/ids';
 import type {Screen} from '@core/schema/screens';
-import type {
-  LiveThemeItem,
-  LiveThemeOutput,
-  ThemeComposition,
-} from '@core/schema/liveTheme';
+import type {LiveItem, LiveThemeOutput} from '@core/schema/liveTheme';
 import type {FontCatalog} from '@core/schema/fontCatalog';
 import type {MessageBand} from '@core/screens/messageStyle';
 import type {PreviewMediaSource} from './previewMedia';
-
-export interface ThemeFrame extends ThemeComposition {
-  readonly themeId: LiveThemeOutput['themeId'];
-  readonly revision: number;
-  readonly missing: readonly string[];
-  readonly item: LiveThemeItem | null;
-}
+import type {LabelPlace} from './theme/themeView';
 
 /** 가장자리 여백 and 위치 미세 조정 of a screen (docs/spec/03-output.md). */
 export interface PictureCorrection {
@@ -35,7 +25,6 @@ export interface RenderScreen {
   readonly name?: string;
   readonly kind: Screen['kind'];
   readonly messageStyleId?: string;
-  readonly songCaption?: Required<Screen>['songCaption'];
   readonly method?: Screen['method'];
   readonly emptyColor?: string;
   /** Configured output dimensions, when known. */
@@ -45,21 +34,10 @@ export interface RenderScreen {
 }
 
 export interface RenderFrame {
-  /** Final line boxes from the audience layout for the current song slide. */
-  readonly stageSongLines?: readonly string[] | undefined;
-  /** Per-line audience sizes for a stage song title slide. */
-  readonly stageTitleSizes?: readonly number[] | undefined;
-  /** The audience composition used to fit the same slide on stage. */
-  readonly audience?:
-    | {
-        readonly screen: RenderScreen;
-        readonly theme: ThemeFrame;
-      }
-    | undefined;
-  readonly stageLyricLabelPosition?: import('@core/schema/preferences').StageLyricLabelPosition;
-  readonly slide?: import('@core/live/state').SlideLayer;
+  readonly stageLyricLabelPosition?: LabelPlace;
   readonly stageTimerId?: TimerId;
-  readonly theme?: ThemeFrame;
+  readonly theme?: LiveThemeOutput;
+  readonly item?: LiveItem | null;
   readonly fonts?: FontCatalog;
   readonly clearEffects?: readonly ClearEffect[];
   readonly clearOpacity?: Readonly<Partial<Record<LayerKind, number>>>;
@@ -67,8 +45,6 @@ export interface RenderFrame {
   readonly transitions?: boolean;
   /** Prepares a paused frame without audio, animation or clock updates. */
   readonly standby?: boolean;
-  /** Draws once, for a thumbnail: no clocks or timers run. */
-  readonly still?: boolean;
   readonly screen?: RenderScreen;
   /** How this screen draws a 메시지; absent draws the 기본 style. */
   readonly messageStyle?: TextStyle;
@@ -83,14 +59,8 @@ export interface RenderFrame {
 }
 
 export interface RenderLayerOptions {
-  /** Draw the foreground without the screen's background, for an NDI spike. */
+  /** Draw the foreground without the screen's background, for NDI. */
   readonly transparent?: boolean;
-  /** Shows fixed-size verse text and its line budget in the split preview. */
-  readonly biblePreview?: {
-    readonly elementId: string;
-    readonly maxLines: number;
-  };
-  readonly textStyle: TextStyle;
   /** The original library URL, also used for image elements in previews. */
   readonly mediaUrl: (mediaId: string) => string;
   readonly previewMedia?: PreviewMediaSource | undefined;
@@ -101,8 +71,6 @@ export interface RenderLayerOptions {
   /** A preview draws still pictures without video elements; `output` when absent. */
   readonly mode?: RenderMode;
   readonly muted?: boolean;
-  /** Scales with the `--picture-scale` of the box around it. */
-  readonly cssScale?: boolean;
 }
 
 /** One persistent layer instance, owned and released by its output renderer. */
@@ -115,27 +83,10 @@ export interface RenderLayer {
 
 export interface LayerDefinition {
   readonly kind: string;
-  /** Back to front, matching the stacking order in the output specification. */
-  readonly order: number;
   /** The live layer whose clear fade dims this layer; absent never dims it. */
   readonly fades?: LayerKind;
   readonly create: (
     parent: HTMLElement,
     options: RenderLayerOptions,
   ) => RenderLayer;
-}
-
-const LAYER = Symbol('render layer');
-
-export interface RegisteredLayer extends LayerDefinition {
-  readonly [LAYER]: true;
-}
-
-/** Declares a layer exported by a module in `render/layers/`. */
-export function defineLayer(definition: LayerDefinition): RegisteredLayer {
-  return {...definition, [LAYER]: true};
-}
-
-export function isRenderLayer(value: unknown): value is RegisteredLayer {
-  return typeof value === 'object' && value !== null && LAYER in value;
 }

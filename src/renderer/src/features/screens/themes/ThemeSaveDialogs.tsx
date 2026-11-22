@@ -1,6 +1,6 @@
 import type {JSX} from 'react';
-import {THEME_LIMITS} from '@core/themes/elementRules';
-import {copyThemeName} from '@core/themes/themeEdits';
+import {THEME_FILE_LIMITS} from '@core/schema/theme';
+import {copiedThemeName} from '@core/theme/list';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
 import {
   USAGE_LOADING,
@@ -24,21 +24,17 @@ export function ThemeSaveDialogs({
 }: {
   readonly model: ThemeModel;
 }): JSX.Element | null {
-  const {dialog, theme, file, saving} = model;
-  const usage = useThemeUsage(
-    theme?.id,
-    file?.defaults,
-    dialog?.kind === 'overwrite',
-  );
-  if (dialog === null || theme === undefined || file === null) return null;
+  const {dialog, theme, list, saving} = model;
+  const usage = useThemeUsage(theme?.id, dialog?.kind === 'overwrite');
+  if (dialog === null || theme === undefined || list === null) return null;
   if (dialog.kind === 'saveAs') {
-    const taken = new Set([file.standby, ...file.themes].map(one => one.name));
+    const taken = new Set(list.themes.map(entry => entry.name));
     return (
       <RenameDialog
         title="다른 이름으로 저장"
         label="테마 이름"
-        name={copyThemeName(theme.name, file)}
-        maxLength={THEME_LIMITS.name}
+        name={copiedThemeName(list, theme.name)}
+        maxLength={THEME_FILE_LIMITS.name}
         rename={{
           commitsUnchanged: true,
           validate: name => (taken.has(name) ? themeProblems.taken : undefined),

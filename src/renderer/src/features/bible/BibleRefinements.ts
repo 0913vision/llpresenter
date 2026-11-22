@@ -8,7 +8,7 @@ import {
   planSlides,
 } from '@core/bible/split/manualSplit';
 import {splitVerseWithChooser} from '@core/bible/split/splitter';
-import type {BibleTextElement} from '@renderer/rendering/bibleMeasure';
+import type {SplitLayout} from '@core/bible/split/layout';
 import type {BibleSplit} from './passageSplitter';
 
 export const verseKey = (reference: VerseInput['reference']): string =>
@@ -19,34 +19,25 @@ const CACHE_LIMIT = 256;
 /** Bounded, unsaved suggestions from Bible refinement runs. */
 export class BibleRefinements {
   private readonly cuts = new Map<string, readonly number[]>();
-  private key(
-    verse: VerseInput,
-    element: BibleTextElement,
-    prefix: string,
-  ): string {
-    return JSON.stringify([
-      normalizeVerse(verse.text),
-      element.text,
-      element.frame,
-      prefix,
-    ]);
+  private key(verse: VerseInput, layout: SplitLayout, prefix: string): string {
+    return JSON.stringify([normalizeVerse(verse.text), layout.spec, prefix]);
   }
   get(
     verse: VerseInput,
-    element: BibleTextElement,
+    layout: SplitLayout,
     prefix: string,
   ): readonly number[] | undefined {
-    return this.cuts.get(this.key(verse, element, prefix));
+    return this.cuts.get(this.key(verse, layout, prefix));
   }
   clear(): void {
     this.cuts.clear();
   }
   put(
     verse: VerseInput,
-    element: BibleTextElement,
+    layout: SplitLayout,
     {prefix, cuts}: {readonly prefix: string; readonly cuts: readonly number[]},
   ): void {
-    const key = this.key(verse, element, prefix);
+    const key = this.key(verse, layout, prefix);
     if (!this.cuts.has(key) && this.cuts.size >= CACHE_LIMIT) {
       const oldest = this.cuts.keys().next().value;
       if (oldest !== undefined) this.cuts.delete(oldest);
@@ -85,10 +76,10 @@ export class BibleRefinementRun {
     verse: VerseInput,
     prefix: string,
   ): readonly number[] | undefined => {
-    const element = this.projection?.element;
-    return element === undefined
+    const layout = this.projection?.layout;
+    return layout === undefined
       ? undefined
-      : this.cache.get(verse, element, prefix);
+      : this.cache.get(verse, layout, prefix);
   };
 
   private publish(pending: ReadonlySet<string>, initialized = true): void {
@@ -132,8 +123,7 @@ export class BibleRefinementRun {
     const verses = projection.verses.filter(
       verse =>
         requested.has(verseKey(verse.reference)) &&
-        this.cache.get(verse, projection.element, prefixOf(verse)) ===
-          undefined,
+        this.cache.get(verse, projection.layout, prefixOf(verse)) === undefined,
     );
     if (verses.length === 0) {
       this.publish(new Set());
@@ -158,7 +148,7 @@ export class BibleRefinementRun {
     for (const verse of verses) {
       if (!current()) return;
       if (
-        this.cache.get(verse, projection.element, prefixOf(verse)) !== undefined
+        this.cache.get(verse, projection.layout, prefixOf(verse)) !== undefined
       ) {
         pending.delete(verseKey(verse.reference));
         this.publish(new Set(pending));
@@ -187,7 +177,7 @@ export class BibleRefinementRun {
         if (!current()) return;
         const cuts = cutsFromChunks(result.chunks);
         if (planSlides(verse.text, cuts, {...projection.layout, prefix}).ok) {
-          this.cache.put(verse, projection.element, {prefix, cuts});
+          this.cache.put(verse, projection.layout, {prefix, cuts});
         }
       } catch (error) {
         if (!current()) return;

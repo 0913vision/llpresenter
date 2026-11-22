@@ -24,7 +24,7 @@ describe('what the slide before shows', () => {
 
   it('shows the lyrics with their label inside a song', () => {
     expect(
-      next('찬양 가사', {texts: {가사: '맑은 아침'}, auto: {이름표: '1절'}}),
+      next('찬양 가사', {texts: {가사: '맑은 아침'}, auto: {이름표: '1절', '새 이름표': '1절'}}),
     ).toBe('(1절) 맑은 아침');
     expect(next('찬양 가사', {auto: {이름표: '간주'}})).toBe('(간주)');
     expect(next('찬양 가사', {})).toBe('(없음)');

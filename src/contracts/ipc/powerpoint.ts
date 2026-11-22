@@ -1,24 +1,17 @@
 import {query, request, push, type IpcPort} from './endpoint';
 import {
-  parsePowerPointDecorationBatchRequest,
-  parsePowerPointDecorationBatchResult,
-  type PowerPointDecorationBatchRequest,
-  type PowerPointDecorationBatchResult,
+  parsePowerPointBackgroundsRequest,
+  parsePowerPointBackgroundsResult,
+  type PowerPointBackgroundsRequest,
+  type PowerPointBackgroundsResult,
   parsePowerPointReadResult,
   parsePowerPointPreviewImage,
   type PowerPointPreviewImage,
-  parsePowerPointBackgroundRequest,
-  parsePowerPointBackgroundResult,
   parsePowerPointReleaseRequest,
   parsePowerPointReleaseResult,
   parsePowerPointMatchResult,
   type PowerPointReadResult,
-  type PowerPointBackgroundRequest,
   type PowerPointReleaseRequest,
-  parsePowerPointLayersRequest,
-  parsePowerPointLayersResult,
-  type PowerPointLayersRequest,
-  type PowerPointSceneResult,
   parsePowerPointImageExportResult,
   parsePowerPointImageExportProgress,
   type PowerPointImageExportResult,
@@ -49,10 +42,6 @@ export const powerpointEndpoints = {
     'import:powerpoint:images:progress',
     parsePowerPointImageExportProgress,
   ),
-  layers: request<PowerPointLayersRequest, PowerPointSceneResult>(
-    'import:powerpoint:layers',
-    {request: parsePowerPointLayersRequest, reply: parsePowerPointLayersResult},
-  ),
   cancelRead: query<boolean>(
     'import:powerpoint:read:cancel',
     parsePowerPointReleaseResult,
@@ -61,19 +50,12 @@ export const powerpointEndpoints = {
     'import:powerpoint:read',
     parsePowerPointReadResult,
   ),
-  background: request<PowerPointBackgroundRequest, string | null>(
-    'import:powerpoint:background',
-    {
-      request: parsePowerPointBackgroundRequest,
-      reply: parsePowerPointBackgroundResult,
-    },
-  ),
-  decorationBatch: request<
-    PowerPointDecorationBatchRequest,
-    PowerPointDecorationBatchResult
-  >('import:powerpoint:decoration-batch', {
-    request: parsePowerPointDecorationBatchRequest,
-    reply: parsePowerPointDecorationBatchResult,
+  backgrounds: request<
+    PowerPointBackgroundsRequest,
+    PowerPointBackgroundsResult
+  >('import:powerpoint:backgrounds', {
+    request: parsePowerPointBackgroundsRequest,
+    reply: parsePowerPointBackgroundsResult,
   }),
   previewImage: request<PowerPointReleaseRequest, PowerPointPreviewImage>(
     'import:powerpoint:preview-image',
@@ -100,11 +82,10 @@ export function powerpointApi(port: IpcPort) {
     images: port.query(powerpointEndpoints.images),
     cancelImages: port.query(powerpointEndpoints.cancelImages),
     subscribeImageProgress: port.subscribe(powerpointEndpoints.imageProgress),
-    layers: port.request(powerpointEndpoints.layers),
     read: port.query(powerpointEndpoints.read),
     cancelRead: port.query(powerpointEndpoints.cancelRead),
-    background: port.request(powerpointEndpoints.background),
-    decorationBatch: port.request(powerpointEndpoints.decorationBatch),
+    /** What is behind the texts of slides, as one picture file each. */
+    backgrounds: port.request(powerpointEndpoints.backgrounds),
     previewImage: port.request(powerpointEndpoints.previewImage),
     release: port.request(powerpointEndpoints.release),
     match: port.request(powerpointEndpoints.match),

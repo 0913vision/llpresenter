@@ -1,9 +1,7 @@
 import type {Result} from '@core/common/result';
-import type {FileError} from '@core/schema/fileFormat';
 import * as bible from '@core/schema/bible';
 import * as bibleCuts from '@core/schema/bibleCuts';
 import * as labels from '@core/schema/labels';
-import * as themes from '@core/schema/themes';
 import * as macros from '@core/schema/macros';
 import * as messages from '@core/schema/messages';
 import * as preferences from '@core/schema/preferences';
@@ -17,70 +15,27 @@ import type {
   SettingsName,
 } from '@core/schema/settingsDocuments';
 import type {ParseFile} from './readFiles';
-import {createDefaultThemes} from '@core/themes/defaults';
-import {isRecord} from '@core/common/guards';
-import {isBuiltInThemeId} from '@core/themes/builtInIds';
-const builtIns = createDefaultThemes();
-const isBuiltIn = (id: unknown) =>
-  typeof id === 'string' && isBuiltInThemeId(id);
+import {
+  parseFile,
+  type FileError,
+  type FileFormat,
+  type LoadedFile,
+} from '@core/schema/fileFormat';
+import {themesSchema, type Themes} from '@core/schema/themes';
 
-function parseStoredThemes(text: string, file: string) {
-  let raw: unknown;
-  try {
-    raw = JSON.parse(text.replace(/^\uFEFF/, ''));
-  } catch {
-    return themes.parseThemes(text, file);
-  }
-  if (!isRecord(raw) || !Array.isArray(raw.themes)) {
-    return themes.parseThemes(text, file);
-  }
-  const standby = raw.standby === undefined ? builtIns.standby : raw.standby;
-  const validated = themes.parseThemes(JSON.stringify({...raw, standby}), file);
-  if (!validated.ok) return validated;
-  const saved: readonly unknown[] = raw.themes;
-  const overrides = new Map(
-    saved.filter(isRecord).map(theme => [theme.id, theme]),
-  );
-  const merged = [
-    ...builtIns.themes.map(theme => overrides.get(theme.id) ?? theme),
-    ...saved.filter(
-      theme =>
-        !isRecord(theme) ||
-        !builtIns.themes.some(entry => entry.id === theme.id),
-    ),
-  ];
-  const order: readonly unknown[] = Array.isArray(raw.themeOrder)
-    ? raw.themeOrder
-    : [];
-  const positions = new Map(order.map((id, index) => [id, index]));
-  merged.sort((a, b) => {
-    const left = isRecord(a) ? positions.get(a.id) : undefined;
-    const right = isRecord(b) ? positions.get(b.id) : undefined;
-    return (left ?? order.length) - (right ?? order.length);
-  });
-  return themes.parseThemes(
-    JSON.stringify({
-      ...raw,
-      standby,
-      themes: merged,
-      ...(Array.isArray(raw.themeOrder) ? {themeOrder: order} : {}),
-    }),
-    file,
-  );
-}
+const themesFormat: FileFormat<typeof themesSchema> = {
+  format: 'llsettings.themes',
+  schema: themesSchema,
+  migrations: [],
+};
 
-function serializeStoredThemes(value: themes.ThemesFile, file: string) {
-  const serialized = themes.serializeThemes(value, file);
-  if (!serialized.ok) return serialized;
-  const {standby, ...rest} = value;
-  const data = {
-    ...rest,
-    ...(standby.edited === true ? {standby} : {}),
-    themes: value.themes.filter(
-      theme => !isBuiltIn(theme.id) || theme.edited === true,
-    ),
-  };
-  return {ok: true, value: `${JSON.stringify(data, null, 2)}\n`} as const;
+// NOTE(0913vision): The themes are kept in a file each, so this codec only
+// checks them as one value; `themeFiles.ts` reads and writes the files.
+function parseThemes(
+  text: string,
+  file: string,
+): Result<LoadedFile<Themes>, FileError> {
+  return parseFile(themesFormat, text, file);
 }
 
 export type SettingsValue = SettingsDocument['value'];
@@ -106,7 +61,10 @@ export const settingsCodecs = {
     screens.parseScreens,
     screens.serializeScreens,
   ),
-  themes: codec('llsettings.themes', parseStoredThemes, serializeStoredThemes),
+  themes: codec('llsettings.themes', parseThemes, value => ({
+    ok: true,
+    value: JSON.stringify(value),
+  })),
   macros: codec(
     'llsettings.macros',
     macros.parseMacros,

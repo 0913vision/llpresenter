@@ -4,8 +4,7 @@ import type {TranslationId} from '@core/schema/ids';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {selectTile, useShow} from '@renderer/session/show';
 import {useLive} from '@renderer/session/live';
-import {bibleSourceFor, tilesForView} from '@renderer/session/showLibrary';
-import {labelEdge} from '@core/bible/bibleTiles';
+import {bibleSourceFor} from '@renderer/session/showLibrary';
 import {
   beginOutputRequest,
   isOutputRequestCurrent,
@@ -14,10 +13,28 @@ import {
 import {CheckRow} from '@renderer/ui/Checkbox';
 import {SelectMenu} from '@renderer/ui/SelectMenu';
 import {openBiblePassage} from '../bible/actions';
-import type {BibleSource} from '@core/bible/source';
+import type {BibleDisplay, BibleSource} from '@renderer/session/bibleSource';
 import styles from './BiblePanel.module.css';
 
-/** Changes this preview's supported display options without changing defaults. */
+function displayOf({
+  verseNumbers,
+  translationName,
+  transition,
+  review,
+  enteredRef,
+  enteredTranslation,
+}: BibleSource): BibleDisplay {
+  return {
+    verseNumbers,
+    translationName,
+    transition,
+    review,
+    enteredRef,
+    enteredTranslation,
+  };
+}
+
+/** Changes how the passage that is open shows, without changing defaults. */
 export function BibleDisplayControls({
   source,
 }: {
@@ -69,44 +86,21 @@ export function BibleDisplayControls({
       if (!current()) return;
       if (!reply.result.ok) throw Error(reply.result.error.message);
       const passage = reply.result.value;
-      const selectedLabel = labelEdge(
-        tilesForView(initial, source.id)[initial.selectedTile]?.label,
-        'first',
-      );
-      const selected = source.passage.verses.find(
-        verse => `${verse.chapter}:${verse.verse}` === selectedLabel,
-      );
-      const next =
-        selected === undefined
-          ? 0
-          : passage.verses.findIndex(
-              verse =>
-                verse.chapter > selected.chapter ||
-                (verse.chapter === selected.chapter &&
-                  verse.verse >= selected.verse),
-            );
-      openBiblePassage(passage, {
-        verseNumbers: source.verseNumbers,
-        reference: source.reference,
-        translationName: source.translationName,
-        transition: source.transition,
-        review: source.review,
+      const selected =
+        source.tiles[initial.selectedTile]?.slide.verse ?? undefined;
+      const opened = openBiblePassage(passage, {
+        ...displayOf(source),
         enteredRef: source.enteredRef ?? source.passage.ref,
         enteredTranslation:
           source.enteredTranslation ?? source.passage.translation,
       });
-      const view = useShow.getState();
-      const target =
-        passage.verses[next < 0 ? passage.verses.length - 1 : next];
-      const index =
-        view.openItemId === null
-          ? 0
-          : tilesForView(view, view.openItemId).findIndex(
-              tile =>
-                labelEdge(tile.label, 'first') ===
-                `${target?.chapter}:${target?.verse}`,
-            );
-      selectTile(Math.max(0, index));
+      const same = opened.tiles.findIndex(
+        ({slide}) =>
+          slide.verse !== undefined &&
+          slide.verse.chapter === selected?.chapter &&
+          slide.verse.verse >= selected.verse,
+      );
+      selectTile(Math.max(0, same));
     } catch (cause) {
       if (current()) {
         api.log.write({
@@ -167,13 +161,8 @@ export function BibleDisplayControls({
         disabled={!api || busy}
         onChange={verseNumbers => {
           openBiblePassage(source.passage, {
+            ...displayOf(source),
             verseNumbers,
-            reference: source.reference,
-            translationName: source.translationName,
-            transition: source.transition,
-            review: source.review,
-            enteredRef: source.enteredRef,
-            enteredTranslation: source.enteredTranslation,
           });
         }}
       />
@@ -182,7 +171,10 @@ export function BibleDisplayControls({
         checked={source.translationName ?? false}
         disabled={!api || busy}
         onChange={translationName => {
-          openBiblePassage(source.passage, {...source, translationName});
+          openBiblePassage(source.passage, {
+            ...displayOf(source),
+            translationName,
+          });
         }}
       />
     </div>

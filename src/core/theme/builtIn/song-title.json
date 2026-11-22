@@ -160,28 +160,6 @@
           "same": "size"
         },
         {
-          "id": "00000000-0000-4000-9000-000000000002",
-          "kind": "text",
-          "frame": {
-            "x": 154,
-            "y": 330,
-            "w": 1612,
-            "h": 120
-          },
-          "content": ["{부제}"],
-          "style": {
-            "font": "NanumSquare",
-            "weight": 800,
-            "size": 64,
-            "color": "#FFFFFF",
-            "lineHeight": 1.2,
-            "tracking": 0,
-            "align": "center",
-            "vAlign": "middle"
-          },
-          "same": "size"
-        },
-        {
           "id": "00000000-0000-4000-9000-000000000090",
           "kind": "next",
           "frame": {
@@ -193,7 +171,7 @@
           "style": {
             "font": "NanumSquare",
             "weight": 700,
-            "size": 80,
+            "size": 72,
             "color": "#FFD66B",
             "lineHeight": 1.2,
             "tracking": 0,
@@ -203,18 +181,13 @@
           "fit": {
             "min": 48
           },
-          "wrap": "balance",
-          "ratio": 0.6667,
-          "of": "00000000-0000-4000-9000-000000000001"
+          "wrap": "balance"
         }
       ],
       "backdrop": "#000000",
       "splits": [
         {
-          "upper": [
-            "00000000-0000-4000-9000-000000000001",
-            "00000000-0000-4000-9000-000000000002"
-          ],
+          "upper": ["00000000-0000-4000-9000-000000000001"],
           "lower": "00000000-0000-4000-9000-000000000090",
           "top": 130,
           "bottom": 1064,

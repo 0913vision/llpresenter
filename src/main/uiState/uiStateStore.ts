@@ -34,6 +34,7 @@ export class UiStateStore {
       macroView,
       macroCollection,
       showToolTab,
+      slideColumns,
     } = this.options.fields.read();
     return {
       ...(layout === undefined ? {} : {layout}),
@@ -44,6 +45,7 @@ export class UiStateStore {
       ...(macroView === undefined ? {} : {macroView}),
       ...(macroCollection === undefined ? {} : {macroCollection}),
       ...(showToolTab === undefined ? {} : {showToolTab}),
+      ...(slideColumns === undefined ? {} : {slideColumns}),
     };
   }
 

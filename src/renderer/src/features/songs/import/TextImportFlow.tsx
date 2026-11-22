@@ -1,16 +1,11 @@
-import {
-  useEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-  type JSX,
-} from 'react';
+import {useEffect, useRef, useState, type JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {TextImportDraft, TextImportSource} from '@core/schema/textImport';
 import {defaultPreferences, type Preferences} from '@core/schema/preferences';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
-import {AlertDialog} from '@renderer/ui/AlertDialog';
-import type {SongEditorStore} from '../editor/songEditorStore';
+import {useLabels} from '@renderer/features/labels/labels';
+import {openInPrep} from '@renderer/session/prepTarget';
+import {openImportedSong, requestLeaveSong, useSongDraft} from '../songDraft';
 import {usePreferenceEdits} from '../../preferences/usePreferenceEdits';
 import {TextImportDialog, type TextImportChoice} from './TextImportDialog';
 import {TextImportEncodingDialog} from './TextImportEncodingDialog';
@@ -33,17 +28,13 @@ async function read(api: LlpApi, source: 'file' | 'clipboard') {
 /** Coordinates reading, options preview dialog, and imported draft handoff. */
 export function TextImportFlow({
   api,
-  store,
   source,
   onDone,
-  onEdit,
   onProblem,
 }: {
   readonly api: LlpApi;
-  readonly store: SongEditorStore;
   readonly source: 'file' | 'clipboard';
   readonly onDone: () => void;
-  readonly onEdit: () => void;
   readonly onProblem: (notice: Notice) => void;
 }): JSX.Element | null {
   const pending = useRef<ReturnType<typeof read> | null>(null);
@@ -51,15 +42,14 @@ export function TextImportFlow({
     source: TextImportSource;
     defaults: Preferences['import']['txt'];
   } | null>(null);
-  const state = useSyncExternalStore(store.subscribe, store.getSnapshot);
-  const [replacement, setReplacement] = useState<TextImportDraft | null>(null);
-  const edit = (draft: TextImportDraft): void => {
-    const previous = store.getSnapshot().session;
-    store.openImported(draft);
-    if (store.getSnapshot().session === previous) return;
-    onEdit();
-    onDone();
-  };
+  const labels = useLabels();
+  const library = useSongDraft(view => view.library);
+  const edit = (draft: TextImportDraft): void =>
+    requestLeaveSong(() => {
+      openImportedSong(draft);
+      openInPrep({kind: 'song'});
+      onDone();
+    });
   const preferences = usePreferenceEdits(onProblem);
   const remember = (choice: TextImportChoice): void =>
     preferences.change(stored => ({
@@ -160,43 +150,20 @@ export function TextImportFlow({
     );
   }
   return (
-    <>
-      <TextImportDialog
-        api={api.textImport}
-        source={input.source}
-        defaults={input.defaults}
-        labels={state.labels?.value.labels ?? []}
-        library={state.library}
-        onProblem={onProblem}
-        onRemember={remember}
-        onEncoding={encode}
-        reading={reading}
-        onDiscard={onDone}
-        onEdit={draft => {
-          if (latestRead.current >= 0 && reading) return;
-          if (store.getSnapshot().imported) setReplacement(draft);
-          else edit(draft);
-        }}
-      />
-      {replacement === null ? null : (
-        <AlertDialog
-          icon="song"
-          title="가져온 곡을 저장하지 않았습니다. 버릴까요?"
-          onCancel={() => setReplacement(null)}
-          actions={[
-            {
-              label: '저장 안 함',
-              primary: true,
-              onSelect: () => {
-                if (store.getSnapshot().busy) return;
-                store.discardImported();
-                edit(replacement);
-                setReplacement(null);
-              },
-            },
-          ]}
-        />
-      )}
-    </>
+    <TextImportDialog
+      api={api.textImport}
+      source={input.source}
+      defaults={input.defaults}
+      labels={labels}
+      library={library}
+      onProblem={onProblem}
+      onRemember={remember}
+      onEncoding={encode}
+      reading={reading}
+      onDiscard={onDone}
+      onEdit={draft => {
+        if (latestRead.current < 0 || !reading) edit(draft);
+      }}
+    />
   );
 }

@@ -5,10 +5,8 @@ import {nonBlankText} from './primitives';
 export const LIVE_STATE_LIMITS = {
   bytes: 4 * 1024 * 1024,
   textCharacters: 4000,
-  slideLines: 1000,
-  bibleItemSlides: 10_000,
-  bibleItemLines: 20_000,
-  bibleItemCharacters: 200_000,
+  /** Slides whose texts are sized together with the live one. */
+  slidePeers: 400,
   outputs: 200,
 } as const;
 

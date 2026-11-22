@@ -1,14 +1,17 @@
-import type {SectionCard} from '../schema/service';
-import type {SlideTexts} from '../schema/slideTexts';
+import type {SlideTexts, VerseReference} from '../schema/slide';
+import type {SlideBackground} from '../schema/theme';
+import type {SlideTransition} from '../schema/slideTransition';
+import type {AutoValues, SlideContent} from '../theme/content';
 import type {ActiveMessage, ActiveProp} from '../schema/overlayState';
-import type {MacroId, MediaId, ScreenId, SlideId, TimerId} from '../schema/ids';
+import type {MacroId, ScreenId, SlideId, ThemeId, TimerId} from '../schema/ids';
 import type {TimerRuns} from '../schema/timerState';
 import type {AudioPlayback} from '../schema/audioState';
 import type {ClearTarget} from './commands';
 import type {ClearEffect} from '../schema/clearFade';
 import type {OutputMediaProperties} from '../schema/outputMedia';
 import type {
-  LiveThemeItem,
+  LiveItem,
+  LiveItemKind,
   LiveThemeMode,
   LiveThemeOutput,
 } from '../schema/liveTheme';
@@ -31,8 +34,8 @@ export interface MediaChoice {
   readonly loop: boolean;
   readonly itemId?: string;
   readonly title?: string;
-  /** Identifies a slide picture independently of cleared lyrics. */
-  readonly slidePicture?: true;
+  /** The operator put it on output, apart from any slide. */
+  readonly chosen?: true;
 }
 
 /** The background media on output. */
@@ -47,73 +50,34 @@ export interface MediaLayer extends MediaChoice {
   readonly startedAt: number;
 }
 
-/** The 장 after the live one in the item's sequence, for the 무대 화면. */
-export interface NextSlide {
-  readonly itemKind?: LiveThemeItem['kind'];
-  /** Optional title displayed before the next slide body. */
-  readonly title?: string;
-  /** Raw next-ad title for the stage cue, without the generated slide number. */
-  readonly adTitle?: string;
-  readonly label: string | null;
-  /** The next slide's label repeats the previous slide in the same item. */
-  readonly labelContinued?: true;
-  readonly lines: readonly string[];
-  readonly continued?: boolean;
-  readonly biblePart?: number;
-  readonly bibleVerse?: import('../schema/service').VerseSlide['verse'];
-  readonly titleSlide?: true;
-  readonly titleLineCount?: number;
-  readonly sermonTitle?: true;
-  readonly stageReference?: string;
-  readonly stageStandby?: true;
-}
+/** The texts of the other slides that share the size of this one. */
+export type SlidePeer = Pick<SlideContent, 'texts' | 'auto' | 'continued'>;
 
-/** The slide on output: a service item, its position in the slide sequence, and what to draw. */
+/** The slide on output: what it shows, and where it is in its item. */
 export interface SlideLayer {
-  /** What the theme's own text boxes show on this slide, by box name. */
-  readonly texts?: SlideTexts;
-  /** The Bible item's complete projected parts, for item-wide broadcast fitting. */
-  readonly bibleItemSlides?: ReadonlyArray<{
-    readonly lines: readonly string[];
-    readonly continued?: boolean;
-  }>;
-  readonly sectionCard?: SectionCard;
+  readonly itemId: string;
+  readonly slideId: SlideId;
+  readonly position: number;
   readonly sequenceLength?: number;
-  readonly sermonTitle?: true;
-  readonly titleSlide?: true;
-  readonly titleLineCount?: number;
-  readonly titleLayout?: import('../schema/songTitleLayout').SongTitleLayout;
-  readonly lyricFormat?: import('../schema/songLyricFormat').SongLyricFormat;
-  readonly transition?: import('../schema/slideTransition').SlideTransition;
+  /** What the item is, for an item outside the open 예배 순서. */
+  readonly kind?: LiveItemKind;
+  readonly title?: string;
+  readonly theme: ThemeId;
+  readonly texts: SlideTexts;
+  readonly auto: AutoValues;
+  readonly continued?: true;
+  /** The slide's own background; the theme's when absent. */
+  readonly background?: SlideBackground;
+  /** What the slide after this one lets it show; null for nothing. */
+  readonly next: string | null;
+  /** The slides of the item whose texts are sized together with this one. */
+  readonly peers?: readonly SlidePeer[];
+  readonly verse?: VerseReference;
+  readonly transition?: SlideTransition;
   /** Wall-clock start of the currently running audience slide transition. */
   readonly transitionStartedAt?: number;
   /** Effect of the slide being left by an explicit previous command. */
-  readonly reverseTransition?:
-    import('../schema/slideTransition').SlideTransition | null;
-  readonly picture?: MediaId;
-  readonly itemId: string;
-  readonly position: number;
-  /** One-based position among an ad item's text slides; pictures are excluded. */
-  readonly textSlideNumber?: number;
-  /** One-based part within a Bible verse, independent of position. */
-  readonly biblePart?: number;
-  readonly bibleVerse?: import('../schema/service').VerseSlide['verse'];
-  readonly sourceSlideId?: SlideId;
-  readonly label: string | null;
-  /** The current label repeats the preceding slide's label within this item. */
-  readonly labelContinued?: true;
-  readonly lines: readonly string[];
-  readonly continued?: boolean;
-  /** A Bible reference, separate from the operator's slide label. */
-  readonly reference?: string;
-  /** The reference was typed on this slide. */
-  readonly ownReference?: true;
-  readonly name?: string;
-  readonly kind?: LiveThemeItem['kind'];
-  readonly title?: string;
-  readonly memo?: string;
-  /** The next 장 when the sender knows one; absent after the item's last. */
-  readonly next?: NextSlide;
+  readonly reverseTransition?: SlideTransition | null;
 }
 
 export interface PropLayer {
@@ -143,7 +107,7 @@ export interface LiveLayers {
 
 /** The live output state. The main process owns it; windows receive copies. */
 export interface LiveState {
-  readonly themeItem?: LiveThemeItem | null;
+  readonly item?: LiveItem | null;
   /** Whether the item button can restore its session-only stopped item. */
   readonly canRestoreItem?: boolean;
   readonly themeMode?: LiveThemeMode;

@@ -24,8 +24,10 @@ import styles from './ToolbarSearch.module.css';
 import {useShow} from '@renderer/session/show';
 import {useOrderFull} from '@renderer/session/orderFull';
 import {ORDER_FULL_REASON} from '@renderer/session/serviceOrderEdits';
-import {useServiceOrderEditing} from '@renderer/features/service/order/useServiceOrderEditing';
-import {insertSelectedSong} from '@renderer/session/insertSelectedSong';
+import {
+  insertLibrarySong,
+  rowAfterSelected,
+} from '@renderer/session/insertNewItem';
 import {useTooltip} from '@renderer/ui/Tooltip';
 
 const SONG_ICON_SIZE = 16;
@@ -144,7 +146,6 @@ export function ToolbarSearch({
   const search = useToolbarSearch(enabled, onProblem, onOpenPrepSong);
   const serviceId = useShow(view => view.serviceId);
   const readOnly = useShow(view => view.readOnly);
-  const editing = useServiceOrderEditing(serviceId, onProblem);
   const full = useOrderFull();
   const addReason =
     serviceId === null
@@ -153,9 +154,7 @@ export function ToolbarSearch({
         ? NEWER_FILE_REASON
         : full
           ? ORDER_FULL_REASON
-          : editing.busy
-            ? '예배 바꾸는 중'
-            : undefined;
+          : undefined;
   const addTooltip = useTooltip(addReason ? {text: addReason} : undefined);
   const root = useRef<HTMLDivElement>(null);
   const listId = useId();
@@ -201,9 +200,7 @@ export function ToolbarSearch({
         root.current?.contains(event.target) === true,
       run: () => {
         if (!selected || addReason !== undefined) return;
-        editing.run((edits, id) =>
-          insertSelectedSong(edits, id, selected.songId),
-        );
+        insertLibrarySong(selected.songId, rowAfterSelected(), onProblem);
         setOpen(false);
       },
     },

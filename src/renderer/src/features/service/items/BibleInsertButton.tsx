@@ -1,19 +1,18 @@
-import type {JSX} from 'react';
-import {passageItemWithParts} from '@renderer/features/service/items/quickAddBible';
+import {useState, type JSX} from 'react';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
+import type {BibleSource} from '@renderer/session/bibleSource';
+import {insertItemInSection} from '@renderer/session/serviceOrderEdits';
 import {useShow} from '@renderer/session/show';
 import {Button} from '@renderer/ui/Button';
-import type {Notice} from '@renderer/ui/notices';
-import {useServiceOrderEditing} from '../order/useServiceOrderEditing';
+import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {rememberBiblePassage} from '../../../session/recentWriter';
-import type {BibleSource} from '@core/bible/source';
-import {useBibleDefaults} from './useBibleDefaults';
+import {newBibleItem} from './passageItems';
 
 function logProblem(notice: Notice): void {
   console.error('Could not insert the Bible passage', notice.key);
 }
 
-/** Adds the previewed passage using the section selected before Bible entry. */
+/** Adds the passage that is open to the section selected before it opened. */
 export function BibleInsertButton({
   source,
   onProblem = logProblem,
@@ -23,58 +22,56 @@ export function BibleInsertButton({
 }): JSX.Element {
   const serviceId = useShow(view => view.serviceId);
   const readOnly = useShow(view => view.readOnly);
-  const editing = useServiceOrderEditing(serviceId, onProblem);
-  const defaults = useBibleDefaults();
-  const api = window.llp;
+  const [busy, setBusy] = useState(false);
   const reason =
     serviceId === null
       ? '열린 예배 없음'
       : readOnly
         ? NEWER_FILE_REASON
-        : api === undefined
-          ? '항목 추가 불가'
-          : undefined;
-  const insert = (): void => {
-    if (api === undefined || reason !== undefined) return;
+        : undefined;
+  const insert = async (): Promise<void> => {
     const view = useShow.getState();
     const selected = view.rows.some(row => row.id === view.openItemId)
       ? view.openItemId
       : source.insertion?.serviceId === serviceId
         ? source.insertion.itemId
         : null;
-    editing.run(async (edits, id) => {
-      // NOTE(0913vision): The preview picks the numbering and the reference.
-      const prepared = await passageItemWithParts(
-        source.passage.ref,
-        {
-          ...defaults,
-          translation: source.passage.translation,
-          verseNumbers: source.verseNumbers,
-          reference: source.reference,
-          transition: source.transition ?? defaults?.transition,
-          passage: source.passage,
-        },
-        {api, serviceId: id},
-      );
-      if (!prepared.ok) return prepared;
-      const item = prepared.value;
-      if (item === null) return {ok: true, value: false};
-      const result = await edits.insertItemInSection(id, selected, {
-        selectAdded: false,
-        prepare: () => Promise.resolve(item),
-      });
-      if (result.ok ? result.value : result.error.reason === 'write-failed') {
-        rememberBiblePassage(source.passage);
-      }
-      return result;
+    const item = await newBibleItem(source.passage, {
+      verseNumbers: source.verseNumbers,
+      translationName: source.translationName ?? false,
     });
+    if (item === null || useShow.getState().serviceId !== serviceId) return;
+    const result = await insertItemInSection(item, selected, {
+      select: false,
+    });
+    if (result.ok || result.error.reason === 'write-failed') {
+      rememberBiblePassage(source.passage);
+      return;
+    }
+    throw new Error(result.error.message);
+  };
+  const press = (): void => {
+    if (reason !== undefined || busy) return;
+    setBusy(true);
+    insert()
+      .catch((error: unknown) => {
+        console.error('Could not add the passage', error);
+        onProblem({
+          key: 'bible:insert',
+          kind: 'warning',
+          icon: 'warning',
+          title: '예배 변경 실패',
+          time: noticeTime(),
+        });
+      })
+      .finally(() => setBusy(false));
   };
   return (
     <Button
       icon="listplus"
-      disabled={reason !== undefined || editing.busy}
-      title={reason ?? (editing.busy ? '추가 중' : undefined)}
-      onClick={insert}
+      disabled={reason !== undefined || busy}
+      title={reason ?? (busy ? '추가 중' : undefined)}
+      onClick={press}
     >
       예배 순서에 넣기
     </Button>

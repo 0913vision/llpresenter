@@ -2,8 +2,6 @@ import type {VerseInput} from '@core/bible/split/splitVerses';
 import type {BibleSplit} from './passageSplitter';
 
 export interface BibleInsertionRequest {
-  readonly serviceId: string;
-  readonly serviceEpoch: number;
   readonly projection: BibleSplit;
   readonly references: ReadonlyArray<VerseInput['reference']>;
 }
@@ -24,7 +22,7 @@ export function installBibleInsertionReview(handler: Review): () => void {
   };
 }
 
-/** An insertion has no service row until its review completes. */
+/** A passage has no slides until its review is done. */
 export function reviewBibleInsertion(
   request: BibleInsertionRequest,
 ): ReturnType<Review> {

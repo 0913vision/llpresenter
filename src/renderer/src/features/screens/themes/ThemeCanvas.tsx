@@ -1,24 +1,18 @@
 import {useSelectionDelete} from '@renderer/ui/useSelectionDelete';
 import {selectionLabel} from '@renderer/ui/selectionDrag';
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-  type JSX,
-} from 'react';
+import {useEffect, useLayoutEffect, useRef, useState, type JSX} from 'react';
 import type {ElementFrame} from '@core/canvas/frameEdit';
-import {emptyScreenColor} from '@core/screens/emptyColor';
-import {resolveThemeScreen} from '@core/themes/resolve';
-import {reorderThemeSelection} from '@core/themes/elementEdits';
+import {restackElements, type StackingStep} from '@core/theme/elements';
+import {drawnFrame} from '@core/theme/frames';
+import {SlidePicture} from '@renderer/pictures/SlidePicture';
 import {CanvasEditor} from '@renderer/ui/CanvasEditor';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
-import {contextMenuAnchor, isContextMenuKey} from '@renderer/ui/contextMenu';
-import {ThemePicture} from '@renderer/rendering/ThemePicture';
-import {SECTION_BAND_ID} from '@core/themes/sectionBroadcast';
-import {isSectionTheme} from '@core/themes/sundaySections';
+import {
+  contextMenuAnchor,
+  isContextMenuKey,
+  type ContextMenuEvent,
+} from '@renderer/ui/contextMenu';
 import {
   ThemeElements,
   droppedThemeKind,
@@ -28,10 +22,10 @@ import {ThemeList} from './ThemeList';
 import {ThemeImageDialog} from './ThemeImageDialog';
 import {ThemeSaveBar} from './ThemeSaveBar';
 import {ThemeSaveDialogs} from './ThemeSaveDialogs';
-import {themeElementNames} from './themeNames';
-import {themeSamplesFor} from './themeSamples';
-import {useThemeClipboard} from './useThemeClipboard';
+import {elementName} from './themeNames';
+import {useThemeClipboard, type ThemeEditorEvents} from './useThemeClipboard';
 import {themeCanvasBounds, type ThemeModel} from './useThemeEditor';
+import {framesMoved} from './useThemeElements';
 import styles from './Themes.module.css';
 
 export function useThemeSurfaces(
@@ -49,13 +43,11 @@ export function useThemeSurfaces(
   });
   const requestDelete = (ids: readonly string[]): void => {
     if (model.elementReason !== undefined) return;
-    const file = model.file;
-    const target = model.target;
+    const {target} = model;
     deletion.ask(
       ids.length,
       () =>
-        current.current.file === file &&
-        current.current.target?.theme === target?.theme &&
+        current.current.target?.theme.id === target?.theme.id &&
         current.current.target?.screen.id === target?.screen.id &&
         current.current.elementReason === undefined,
       () => model.remove(ids),
@@ -89,10 +81,8 @@ export function useThemeSurfaces(
     });
   };
   const ids = new Set(model.selectedIds);
-  const reorder = (
-    direction: 'front' | 'forward' | 'backward' | 'back',
-  ): void => {
-    model.elements(values => reorderThemeSelection(values, ids, direction));
+  const reorder = (step: StackingStep): void => {
+    model.elements(screen => restackElements(screen, ids, step));
   };
   const entries: readonly MenuEntry[] = [
     ...(
@@ -190,40 +180,10 @@ function ThemeCanvas({
   onMenu,
 }: {
   readonly model: ThemeModel;
-  readonly editorEvents: import('./useThemeClipboard').ThemeEditorEvents;
+  readonly editorEvents: ThemeEditorEvents;
   readonly onMenu: (id: string | null, anchor: MenuAnchor) => void;
 }): JSX.Element | null {
   const host = useRef<HTMLDivElement>(null);
-  const context = `${model.theme?.id}:${model.screen?.id}`;
-  const [measuredFrames, setMeasuredFrames] = useState<{
-    context: string;
-    frames: Readonly<Record<string, ElementFrame>>;
-  } | null>(null);
-  const receiveFrames = useCallback(
-    (frames: Readonly<Record<string, ElementFrame>>) => {
-      setMeasuredFrames(previous => {
-        const keys = Object.keys(frames);
-        if (
-          previous?.context === context &&
-          keys.length === Object.keys(previous.frames).length &&
-          keys.every(id => {
-            const before = previous.frames[id];
-            const after = frames[id];
-            return (
-              before?.x === after?.x &&
-              before?.y === after?.y &&
-              before?.w === after?.w &&
-              before?.h === after?.h
-            );
-          })
-        ) {
-          return previous;
-        }
-        return {context, frames};
-      });
-    },
-    [context],
-  );
   useEffect(() => {
     const request = model.focusRequest;
     if (request === null) return;
@@ -235,27 +195,27 @@ function ThemeCanvas({
       ?.querySelector<HTMLElement>(selector)
       ?.focus({preventScroll: true});
   }, [model.focusRequest]);
-  if (model.theme === undefined || model.screen === undefined) return null;
-  const sectionTheme = isSectionTheme(model.theme.id);
-  const resolved = resolveThemeScreen(
-    model.theme,
-    model.screen.id,
-    model.screens,
+  const {theme, screen, layout, drawing, placement} = model;
+  if (theme === undefined || screen === undefined || drawing === null) {
+    return null;
+  }
+  const elements =
+    layout === null
+      ? []
+      : layout.elements.map(element => ({
+          id: element.id,
+          name: elementName(element),
+          frame: drawnFrame(layout, element, placement),
+        }));
+  const follows = new Set<string>(
+    (layout?.elements ?? []).flatMap(element =>
+      element.kind === 'shape' &&
+      (element.around !== undefined || element.beside !== undefined)
+        ? [element.id]
+        : [],
+    ),
   );
-  const source =
-    model.screens.find(screen => screen.id === resolved.sourceScreenId) ??
-    model.screen;
-  const background =
-    resolved.layout.mode.kind === 'own'
-      ? (resolved.layout.background ?? emptyScreenColor(source))
-      : emptyScreenColor(source);
-  const elements = model.visibleElements.map(element => ({
-    ...element,
-    name: themeElementNames[element.kind],
-  }));
-  const openContext = (
-    event: import('@renderer/ui/contextMenu').ContextMenuEvent,
-  ): void => {
+  const openContext = (event: ContextMenuEvent): void => {
     event.preventDefault();
     const id =
       event.target instanceof Element
@@ -308,20 +268,14 @@ function ThemeCanvas({
     >
       <ThemeSaveBar model={model} />
       <CanvasEditor
-        key={`${model.theme.id}:${model.screen.id}`}
+        key={`${theme.id}:${screen.id}`}
         value={{...themeCanvasBounds, contained: true, elements}}
         hitPriority={Object.fromEntries(
-          elements.flatMap(element =>
-            element.kind === 'box' && element.follow !== undefined
-              ? [[element.id, 1]]
-              : [],
-          ),
+          elements.map((element, index) => [
+            element.id,
+            follows.has(element.id) ? 0 : index + 1,
+          ]),
         )}
-        resolvedFrames={
-          measuredFrames?.context === context
-            ? measuredFrames.frames
-            : undefined
-        }
         label="테마"
         selected={
           model.selectedIds.length === 1 ? (model.selectedIds[0] ?? null) : null
@@ -335,22 +289,31 @@ function ThemeCanvas({
         snapGrid={model.snapGrid}
         setSnapGrid={model.setSnapGrid}
         getElementLabel={element => element.name}
-        renderContent={values => (
-          <ThemePicture
-            showPlaceholders
-            referenceItemSample={'요한복음 3:16-18'}
-            elements={values}
-            background={background}
-            samples={themeSamplesFor(
-              model.theme?.id,
-              values.some(element => element.id === SECTION_BAND_ID),
-            )}
-            timers={model.renderTimers}
-            fitItemNameFrame={sectionTheme}
-            fitTextFrames
-            onResolvedFrames={receiveFrames}
-          />
-        )}
+        renderContent={values => {
+          const moved =
+            layout === null
+              ? undefined
+              : framesMoved(
+                  layout,
+                  values.filter((value, index) => {
+                    const before = elements[index]?.frame;
+                    return (
+                      before === undefined || !sameFrame(value.frame, before)
+                    );
+                  }),
+                  placement,
+                );
+          return (
+            <SlidePicture
+              {...drawing}
+              drawing={
+                drawing.drawing === null || moved === undefined
+                  ? drawing.drawing
+                  : {...drawing.drawing, screen: moved}
+              }
+            />
+          );
+        }}
         actions={{
           frames: model.frames,
           frame: model.frame,
@@ -361,4 +324,8 @@ function ThemeCanvas({
       />
     </div>
   );
+}
+
+function sameFrame(a: ElementFrame, b: ElementFrame): boolean {
+  return a.x === b.x && a.y === b.y && a.w === b.w && a.h === b.h;
 }

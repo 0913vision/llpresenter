@@ -1,11 +1,6 @@
-import {slideTransitionSchema} from './slideTransition';
 import * as v from 'valibot';
-import {itemTextsSchema} from './slideTexts';
 import type {Result} from '../common/result';
-import {isRecord} from '../common/guards';
 import {biblePassageSchema} from './biblePassage';
-import {bibleCutEntrySchema} from './bibleCuts';
-import {BIBLE_LOOKUP_LIMITS} from './bibleLookup';
 import {
   parseFile,
   serializeFile,
@@ -18,268 +13,84 @@ import {
   mediaIdSchema,
   serviceIdSchema,
   serviceItemIdSchema,
-  slideIdSchema,
   songIdSchema,
   templateIdSchema,
-  themeIdSchema,
-  translationIdSchema,
 } from './ids';
-import {itemOverlaysSchema, songItemOverlaysSchema} from './itemOverlays';
-import {LIVE_STATE_LIMITS} from './liveLimits';
-import {SONG_NAME_MAX_LENGTH, songSlidesSchema} from './song';
-import {slideLabelSchema} from './slideLabel';
+import {itemOverlaysSchema} from './itemOverlays';
+import {isKnownKind, kindsWithUnknown} from './kinds';
 import type {MigrationStep} from './migration';
 import {
   jsonObject,
   listWithUniqueIds,
   localDateTime,
   positiveInteger,
-  nonNegativeInteger,
   timeOfDay,
 } from './primitives';
+import {slidesSchema} from './slide';
 
 const SERVICE_FORMAT = 'llservice';
 
-/** Accepted kind keys of a 예배 순서 item. */
+/** Accepted kinds of a 예배 순서 item. */
 export const serviceItemKinds = [
   'header',
   'song',
   'bible',
   'sermon',
   'liturgy',
-  'slides',
+  'notice',
+  'blank',
   'media',
 ] as const;
 
 export type ServiceItemKind = (typeof serviceItemKinds)[number];
 
-export const SLIDES_LIMITS = {
-  slides: 200,
-  text: LIVE_STATE_LIMITS.textCharacters,
-  name: SONG_NAME_MAX_LENGTH,
-  reference: SONG_NAME_MAX_LENGTH,
-} as const;
+const itemFields = {id: serviceItemIdSchema, name: v.string()};
 
-const slideNameSchema = v.pipe(v.string(), v.maxLength(SLIDES_LIMITS.name));
-/** A typed passage reference shown in the theme's reference box. */
-const slideReferenceSchema = v.pipe(
-  v.string(),
-  v.maxLength(SLIDES_LIMITS.reference),
-);
-const slideTextSchema = v.pipe(v.string(), v.maxLength(SLIDES_LIMITS.text));
-
-export const bibleVerseReferenceSchema = jsonObject({
-  translation: v.pipe(
-    translationIdSchema,
-    v.maxLength(BIBLE_LOOKUP_LIMITS.translationId),
-  ),
-  book: v.pipe(positiveInteger, v.maxValue(BIBLE_LOOKUP_LIMITS.books)),
-  chapter: v.pipe(positiveInteger, v.maxValue(BIBLE_LOOKUP_LIMITS.chapters)),
-  verse: v.pipe(positiveInteger, v.maxValue(BIBLE_LOOKUP_LIMITS.verses)),
-});
-
-export const verseSlideSchema = jsonObject({
-  id: slideIdSchema,
-  verse: bibleVerseReferenceSchema,
-  cut: v.exactOptional(bibleCutEntrySchema),
-  label: v.exactOptional(slideLabelSchema),
-  transition: v.exactOptional(slideTransitionSchema),
-});
-
-export type VerseSlide = ReadonlyKnown<v.InferOutput<typeof verseSlideSchema>>;
-
-export const slideSchema = v.pipe(
-  v.lazy(input =>
-    isRecord(input) && Object.hasOwn(input, 'verse')
-      ? verseSlideSchema
-      : v.union([
-          jsonObject({
-            id: slideIdSchema,
-            text: slideTextSchema,
-            label: v.exactOptional(slideLabelSchema),
-            transition: v.exactOptional(slideTransitionSchema),
-            name: v.exactOptional(slideNameSchema),
-            reference: v.exactOptional(slideReferenceSchema),
-          }),
-          jsonObject({
-            id: slideIdSchema,
-            media: mediaIdSchema,
-            label: v.exactOptional(slideLabelSchema),
-            transition: v.exactOptional(slideTransitionSchema),
-          }),
-        ]),
-  ),
-  v.check(
-    slide =>
-      Object.hasOwn(slide, 'verse')
-        ? !['media', 'name', 'text', 'continued'].some(key =>
-            Object.hasOwn(slide, key),
-          )
-        : !Object.hasOwn(slide, 'media') ||
-          (!Object.hasOwn(slide, 'text') && !Object.hasOwn(slide, 'name')),
-    'A slide contains text, media, or a verse without mixed fields',
-  ),
-);
-
-export const slidesSchema = v.pipe(
-  jsonObject({
-    form: v.picklist(['blank', 'ad']),
-    name: slideNameSchema,
-    slides: v.pipe(
-      listWithUniqueIds(slideSchema),
-      v.maxLength(SLIDES_LIMITS.slides),
-    ),
-  }),
-  v.check(
-    item =>
-      item.form !== 'blank' ||
-      item.slides.every(slide => !Object.hasOwn(slide, 'name')),
-    'Blank slides do not have names',
-  ),
-  v.check(
-    item =>
-      item.form === 'blank' ||
-      item.slides.every(slide => !Object.hasOwn(slide, 'verse')),
-    'Only blank items can contain verse slides',
-  ),
-);
-
-export type Slide = ReadonlyKnown<v.InferOutput<typeof slideSchema>>;
-
-export const sectionCardSchema = jsonObject({
-  name: v.pipe(
-    slideNameSchema,
-    v.check(name => name.trim().length > 0, 'Expected a non-empty card name'),
-  ),
-  english: slideTextSchema,
-  label: v.exactOptional(slideLabelSchema),
-  theme: themeIdSchema,
-  transition: v.exactOptional(slideTransitionSchema),
-});
-
-export type SectionCard = ReadonlyKnown<
-  v.InferOutput<typeof sectionCardSchema>
->;
-
-const itemFields = {
-  id: serviceItemIdSchema,
-  theme: v.exactOptional(themeIdSchema),
+const slidesFields = {
+  ...itemFields,
+  slides: slidesSchema,
   overlays: v.exactOptional(itemOverlaysSchema),
-  texts: v.exactOptional(itemTextsSchema),
-};
-
-const startFields = {
-  background: v.exactOptional(mediaIdSchema),
-  backgroundNone: v.exactOptional(v.boolean()),
   macro: v.exactOptional(v.string()),
   memo: v.exactOptional(v.string()),
 };
 
-const songItemSchema = jsonObject({
-  ...itemFields,
-  overlays: v.exactOptional(songItemOverlaysSchema),
-  sectionCard: v.exactOptional(sectionCardSchema),
-  song: songIdSchema,
-  slides: songSlidesSchema,
-  ...startFields,
-});
-const slidesItemSchema = jsonObject({
-  ...itemFields,
-  sectionCard: v.exactOptional(sectionCardSchema),
-  slides: slidesSchema,
-  ...startFields,
-});
-const sermonTitleSchema = v.pipe(
-  v.string(),
-  v.trim(),
-  v.minLength(1),
-  v.maxLength(SLIDES_LIMITS.name),
-);
 const itemSchemas = {
-  header: jsonObject({...itemFields, header: v.string()}),
-  song: songItemSchema,
+  header: jsonObject({...itemFields, kind: v.literal('header')}),
+  song: jsonObject({
+    ...slidesFields,
+    kind: v.literal('song'),
+    song: songIdSchema,
+  }),
   bible: jsonObject({
-    ...itemFields,
-    sectionCard: v.exactOptional(sectionCardSchema),
-    bible: biblePassageSchema,
-    ...startFields,
+    ...slidesFields,
+    kind: v.literal('bible'),
+    passage: biblePassageSchema,
   }),
   sermon: jsonObject({
-    ...itemFields,
-    sectionCard: v.exactOptional(sectionCardSchema),
-    sermon: jsonObject({
-      title: sermonTitleSchema,
-      openingLabel: v.exactOptional(slideLabelSchema),
-      closingLabel: v.exactOptional(slideLabelSchema),
-      openingTransition: v.exactOptional(slideTransitionSchema),
-      closingTransition: v.exactOptional(slideTransitionSchema),
-      openingHidden: v.exactOptional(v.boolean()),
-      closingHidden: v.exactOptional(v.boolean()),
-      passage: biblePassageSchema,
-      originalTitle: v.exactOptional(
-        v.union([songItemSchema, slidesItemSchema]),
-      ),
-      originalTitleText: v.exactOptional(sermonTitleSchema),
-    }),
-    ...startFields,
+    ...slidesFields,
+    kind: v.literal('sermon'),
+    passage: biblePassageSchema,
   }),
   liturgy: jsonObject({
-    ...itemFields,
-    sectionCard: v.exactOptional(sectionCardSchema),
-    liturgy: jsonObject({
-      kind: v.picklist(['creed', 'prayer']),
-      translation: v.picklist(['new', 'old']),
-      labels: v.exactOptional(
-        v.pipe(
-          v.array(
-            jsonObject({
-              index: v.pipe(nonNegativeInteger, v.maxValue(199)),
-              label: slideLabelSchema,
-            }),
-          ),
-          v.maxLength(200),
-          v.check(
-            entries =>
-              new Set(entries.map(entry => entry.index)).size ===
-              entries.length,
-            'Duplicate liturgy slide label',
-          ),
-        ),
-      ),
-      transitions: v.exactOptional(
-        v.pipe(
-          v.array(
-            jsonObject({
-              index: v.pipe(nonNegativeInteger, v.maxValue(199)),
-              transition: slideTransitionSchema,
-            }),
-          ),
-          v.maxLength(200),
-          v.check(
-            entries =>
-              new Set(entries.map(entry => entry.index)).size ===
-              entries.length,
-            'Duplicate liturgy slide transition',
-          ),
-        ),
-      ),
-    }),
-    ...startFields,
+    ...slidesFields,
+    kind: v.literal('liturgy'),
+    liturgy: v.picklist(['creed', 'prayer']),
+    translation: v.picklist(['new', 'old']),
   }),
-  slides: slidesItemSchema,
+  notice: jsonObject({...slidesFields, kind: v.literal('notice')}),
+  blank: jsonObject({...slidesFields, kind: v.literal('blank')}),
   media: jsonObject({
-    ...itemFields,
+    ...slidesFields,
+    kind: v.literal('media'),
     media: mediaIdSchema,
-    slideLabel: v.exactOptional(slideLabelSchema),
-    ...startFields,
   }),
 };
 
-const unknownItemSchema = jsonObject(itemFields);
-
-const mixedItemSchema = v.never('An item has more than one kind key');
-
-const serviceItemSchema = v.lazy(itemSchemaFor);
+const serviceItemSchema = kindsWithUnknown(
+  serviceItemKinds,
+  itemSchemas,
+  itemFields,
+);
 
 /** Bounds for one 예배 순서 or 템플릿. */
 export const SERVICE_LIMITS = {
@@ -290,25 +101,6 @@ export const SERVICE_LIMITS = {
 const orderSchema = v.pipe(
   listWithUniqueIds(serviceItemSchema),
   v.maxLength(SERVICE_LIMITS.items),
-  v.check(
-    items =>
-      items.every(
-        item =>
-          !(
-            ('song' in item ||
-              'slides' in item ||
-              'bible' in item ||
-              'sermon' in item ||
-              'liturgy' in item ||
-              'media' in item) &&
-            'backgroundNone' in item &&
-            item.backgroundNone === true &&
-            'background' in item &&
-            item.background !== undefined
-          ),
-      ),
-    'A background cannot be both selected and absent',
-  ),
 );
 
 /**
@@ -358,9 +150,8 @@ export type Service = ReadonlyKnown<v.InferOutput<typeof serviceSchema>>;
 export type Template = ReadonlyKnown<v.InferOutput<typeof templateSchema>>;
 
 /**
- * One row of a 예배 순서. An item whose kind key this version doesn't know is
- * kept with only its `id` typed. Use {@link serviceItemKind} to tell kinds
- * apart.
+ * One row of a 예배 순서. An item of a kind this version doesn't know is kept
+ * with only its shared fields typed; {@link isItemOfKind} tells kinds apart.
  */
 export type ServiceItem = Service['order'][number];
 
@@ -392,58 +183,35 @@ export function serializeTemplate(
   return serializeFile(templateFormat, template, file);
 }
 
-/**
- * The items of a kind, such as `ServiceItemOf<'song'>`, or of any kind in a
- * union, such as `ServiceItemOf<'song' | 'header'>`.
- */
-export type ServiceItemOf<TKind extends ServiceItemKind> =
-  TKind extends ServiceItemKind
-    ? TKind extends 'slides'
-      ? Exclude<
-          Extract<ServiceItem, Readonly<Record<TKind, unknown>>>,
-          Readonly<Record<'song', unknown>>
-        >
-      : Extract<ServiceItem, Readonly<Record<TKind, unknown>>>
-    : never;
+type KnownItem = ReadonlyKnown<
+  v.InferOutput<(typeof itemSchemas)[ServiceItemKind]>
+>;
+
+/** The items of a kind, such as `ServiceItemOf<'song'>`, or of several. */
+export type ServiceItemOf<TKind extends ServiceItemKind> = Extract<
+  KnownItem,
+  {readonly kind: TKind}
+>;
+
+/** An item with slides. */
+export type SlidesItem = Exclude<KnownItem, {readonly kind: 'header'}>;
 
 /** Whether an item is of a kind, so its fields can be read with their types. */
 export function isItemOfKind<TKind extends ServiceItemKind>(
   item: ServiceItem,
   kind: TKind,
 ): item is ServiceItemOf<TKind> {
-  return serviceItemKind(item) === kind;
+  return item.kind === kind;
+}
+
+/** Whether an item has slides. */
+export function hasSlides(item: ServiceItem): item is SlidesItem {
+  return item.kind !== 'header' && isKnownKind(serviceItemKinds, item.kind);
 }
 
 /** The kind of an item, or `unknown` for a kind this version doesn't know. */
 export function serviceItemKind(
   item: ServiceItem,
 ): ServiceItemKind | 'unknown' {
-  return kindKeysOf(item)[0] ?? 'unknown';
-}
-
-// NOTE(0913vision): The declared return type keeps TypeScript from folding the
-// item schemas into the unknown item schema, which has fewer fields, when it
-// infers the type from the return statements.
-function itemSchemaFor(
-  input: unknown,
-):
-  | (typeof itemSchemas)[ServiceItemKind]
-  | typeof unknownItemSchema
-  | typeof mixedItemSchema {
-  const [kind, ...others] = kindKeysOf(input);
-  if (others.length > 0) {
-    return mixedItemSchema;
-  }
-  return kind === undefined ? unknownItemSchema : itemSchemas[kind];
-}
-
-function kindKeysOf(input: unknown): readonly ServiceItemKind[] {
-  if (!isRecord(input)) {
-    return [];
-  }
-  return serviceItemKinds.filter(
-    kind =>
-      Object.hasOwn(input, kind) &&
-      !(kind === 'slides' && Object.hasOwn(input, 'song')),
-  );
+  return serviceItemKinds.find(kind => kind === item.kind) ?? 'unknown';
 }

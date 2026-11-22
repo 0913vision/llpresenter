@@ -1,12 +1,14 @@
 import {useEffect, useLayoutEffect, useRef, type JSX} from 'react';
-import type {ThemeGradient} from '@core/schema/themeBackground';
-import {moveGradientStop} from '@core/themes/gradientEdits';
-import {themeBackgroundStyle} from '@renderer/rendering/themeBackground';
+import {THEME_FILE_LIMITS} from '@core/schema/theme';
+import {limitReason} from '@core/common/limitReason';
+import {moveGradientStop} from '@core/theme/gradientEdits';
+import type {GradientBackground} from '@core/theme/gradientPresets';
+import {backgroundPaint} from '@renderer/rendering/themeBackground';
 import styles from './ThemeGradient.module.css';
 
 interface StopDrag {
   readonly pointer: number;
-  readonly gradient: ThemeGradient;
+  readonly gradient: GradientBackground;
   readonly index: number;
   readonly offset: number;
   readonly left: number;
@@ -24,11 +26,11 @@ export function GradientStopBar({
   remove,
   begin,
 }: {
-  readonly gradient: ThemeGradient;
+  readonly gradient: GradientBackground;
   readonly selected: number;
   readonly reason: string | undefined;
   readonly select: (index: number) => void;
-  readonly change: (gradient: ThemeGradient) => void;
+  readonly change: (gradient: GradientBackground) => void;
   readonly add: (position: number) => number | undefined;
   readonly remove: () => void;
   readonly begin: () => () => void;
@@ -52,7 +54,11 @@ export function GradientStopBar({
     }
   };
   useEffect(() => () => drag.current?.finish(), []);
-  const move = (base: ThemeGradient, index: number, position: number): void => {
+  const move = (
+    base: GradientBackground,
+    index: number,
+    position: number,
+  ): void => {
     const next = moveGradientStop(base, index, position);
     select(next.index);
     focus.current = next.index;
@@ -89,11 +95,11 @@ export function GradientStopBar({
     >
       <div
         className={styles.track}
-        style={themeBackgroundStyle({...gradient, angle: 0})}
+        style={backgroundPaint({...gradient, angle: 0})}
         title={
           reason ??
-          (gradient.stops.length >= 4
-            ? '색은 4개까지 추가할 수 있습니다'
+          (gradient.stops.length >= THEME_FILE_LIMITS.gradientStops
+            ? limitReason('색', THEME_FILE_LIMITS.gradientStops)
             : undefined)
         }
         onClick={event => {

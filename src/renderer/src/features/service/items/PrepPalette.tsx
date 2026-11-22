@@ -1,5 +1,5 @@
-import {usePaletteEditing} from './PaletteEditing';
 import {useState, type ReactNode} from 'react';
+import type {Report} from '@renderer/session/serviceEdit';
 import {Panel, PanelHeader, PanelTabs, PanelBody} from '@renderer/ui/Panel';
 import {Icon} from '@renderer/ui/Icon';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
@@ -8,10 +8,11 @@ import {
   ELEMENT_DRAG_MIME,
   PREP_PALETTE_LABEL,
   ORDER_ELEMENTS,
-  PALETTE_SECTIONS,
-} from './paletteItems';
+  PALETTE_TITLES,
+  titleKey,
+} from './newItems';
 import {usePaletteInsert} from './usePaletteInsert';
-import {CustomSections} from './CustomSections';
+import {OwnTitles} from './OwnTitles';
 import styles from './PrepPalette.module.css';
 
 export function PrepPalette({
@@ -19,7 +20,9 @@ export function PrepPalette({
   tab,
   onTabChange,
   navigating = false,
+  report,
 }: {
+  readonly report: Report;
   readonly library: ReactNode;
   readonly tab: 'elements' | 'songs';
   readonly onTabChange: (tab: 'elements' | 'songs') => void;
@@ -28,8 +31,7 @@ export function PrepPalette({
   const [menu, setMenu] = useState<{id: string; anchor: MenuAnchor} | null>(
     null,
   );
-  const editing = usePaletteEditing();
-  const palette = usePaletteInsert(editing);
+  const palette = usePaletteInsert(report);
   const button = (id: string, label: string, icon?: string) => (
     <button
       type="button"
@@ -89,13 +91,8 @@ export function PrepPalette({
           {ORDER_ELEMENTS.map(item => button(item.id, item.label, item.icon))}
           <div className={styles.group}>타이틀</div>
           <div className={styles.chips}>
-            {PALETTE_SECTIONS.map(section =>
-              button(`card:${section.name}`, section.name),
-            )}
-            <CustomSections
-              disabled={palette.disabled}
-              insert={palette.insert}
-            />
+            {PALETTE_TITLES.map(({name}) => button(titleKey(name), name))}
+            <OwnTitles disabled={palette.disabled} insert={palette.insert} />
           </div>
         </PanelBody>
       ) : null}

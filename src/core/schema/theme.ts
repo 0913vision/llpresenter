@@ -225,11 +225,6 @@ export const themeElementSchema = v.pipe(
     }),
     v.looseObject({
       ...elementBase,
-      kind: v.literal('overlay'),
-      fit: v.picklist(['fit', 'fill', 'stretch']),
-    }),
-    v.looseObject({
-      ...elementBase,
       kind: v.literal('shape'),
       fill: fillSchema,
       /** The fill where the screen can not show transparent color. */
@@ -256,6 +251,15 @@ export const themeElementSchema = v.pipe(
     }),
   ]),
 );
+
+/** Elements on their way from one screen to another. */
+export const themeClipboardSchema = jsonObject({
+  format: v.literal('llp.theme-elements'),
+  elements: v.pipe(
+    v.array(themeElementSchema),
+    v.maxLength(THEME_FILE_LIMITS.elements),
+  ),
+});
 
 /** Texts placed one under another instead of at their own place. */
 const stackSchema = jsonObject({
@@ -385,10 +389,14 @@ export type ThemeScreen = ReadonlyKnown<
 export type OwnThemeScreen = Extract<ThemeScreen, {readonly mode: 'own'}>;
 export type ThemeFile = ReadonlyKnown<v.InferOutput<typeof themeFileSchema>>;
 export type ThemeBox = ThemeFile['boxes'][number];
+export type ThemeElementKind = ThemeElement['kind'];
 export type ThemeTextElement = Extract<ThemeElement, {readonly kind: 'text'}>;
 export type ThemeNextElement = Extract<ThemeElement, {readonly kind: 'next'}>;
 export type ThemeShape = Extract<ThemeElement, {readonly kind: 'shape'}>;
 export type ThemeFill = ThemeShape['fill'];
+export type ThemeGroupedText = ThemeTextElement | ThemeNextElement;
+export type ThemeStack = NonNullable<OwnThemeScreen['stacks']>[number];
+export type ThemeSplit = NonNullable<OwnThemeScreen['splits']>[number];
 export type ThemeTextStyle = ThemeTextElement['style'];
 export type ThemeFrame = ThemeElement['frame'];
 export type SlideBackground = ReadonlyKnown<

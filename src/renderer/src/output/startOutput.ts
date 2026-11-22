@@ -1,10 +1,10 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {RENDERER_LOG_LIMITS} from '@core/schema/ipcPayloads';
-import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {OutputRenderer} from '../rendering/outputRenderer';
-import {ServiceMediaPreloader} from './serviceMediaPreloader';
-import {SlideSwitch} from './slideSwitch';
+import {MediaPreloader} from './mediaPreloader';
+import {CUT, SlideSwitch} from './slideSwitch';
+import {sameJson} from '@core/common/sameJson';
 import {OUTPUT_REVEAL_DEADLINE_MS} from '@core/output/revealDeadline';
 import {slideTransitionFor} from '@core/output/transitions';
 import type {SlideTransition} from '@core/schema/slideTransition';
@@ -53,7 +53,7 @@ function drawnContent(state: LiveState): string {
     state.timers,
     state.testPatterns,
     state.stageTimerId,
-    state.themeItem,
+    state.item,
     state.themeOutput,
   ]);
 }
@@ -111,7 +111,6 @@ export function startOutput({
     create: () =>
       new OutputRenderer(root, {
         transparent: ndi,
-        textStyle: DEFAULT_TEXT_STYLE,
         mediaUrl,
         previewMedia: previewMediaOf(api),
         onError: report,
@@ -127,11 +126,10 @@ export function startOutput({
           fontsReady,
         }),
       });
-      incoming.revealIncomplete();
     },
     onError: report,
   });
-  let preloader: ServiceMediaPreloader | null = null;
+  let preloader: MediaPreloader | null = null;
   let hasFrame = false;
   let latest: LiveState | null = null;
   let stopped = false;
@@ -162,7 +160,7 @@ export function startOutput({
       const frame = frames.frame(latest);
       if (frame === undefined) return;
       if (frame.screen?.kind === 'audience') {
-        preloader ??= new ServiceMediaPreloader(api);
+        preloader ??= new MediaPreloader(api);
       } else if (frame.screen !== undefined && preloader !== null) {
         preloader.dispose();
         preloader = null;
@@ -322,7 +320,7 @@ export function startOutput({
       const shown = latest?.layers.slide ?? null;
       const slide = state.layers.slide;
       const moved =
-        shown?.itemId !== slide?.itemId || shown?.position !== slide?.position;
+        shown?.itemId !== slide?.itemId || shown?.slideId !== slide?.slideId;
       const covered =
         latest?.blackScreen !== true && state.blackScreen === true;
       const uncovered =
@@ -331,22 +329,35 @@ export function startOutput({
         preloader?.request({itemId: slide.itemId, index: slide.position});
       }
       const effect = slideTransitionFor(slide);
+      const on = state.outputs[screenId] === true && enabled();
       const animates =
         frames.screenKind() === 'audience' &&
-        state.outputs[screenId] === true &&
-        enabled() &&
-        !revealPending &&
-        slide !== null &&
         effect.kind !== 'none' &&
-        (moved ||
-          (uncovered &&
-            slide.transitionStartedAt !== shown?.transitionStartedAt));
-      if (animates) {
-        slides.change(effect, {draw: () => applyState(state), complete});
+        slide?.transitionStartedAt !== undefined &&
+        (moved || uncovered);
+      // NOTE(0913vision): A cut to another background also waits out of sight,
+      // so the texts and what is behind them change in one frame.
+      const cuts =
+        moved &&
+        !sameJson(
+          latest?.themeOutput?.background,
+          state.themeOutput?.background,
+        );
+      if (on && !revealPending && slide !== null && (animates || cuts)) {
+        slides.change(animates ? effect : CUT, {
+          draw: () => applyState(state),
+          complete,
+        });
         return;
       }
       const turnedOff = enabled() && state.outputs[screenId] !== true;
-      if (moved || covered || uncovered || turnedOff) slides.end();
+      // NOTE(0913vision): The slide that is coming in, shown again, has lost
+      // its transition: it is shown whole at once.
+      const again =
+        !moved &&
+        shown?.transitionStartedAt !== undefined &&
+        slide?.transitionStartedAt === undefined;
+      if (moved || covered || uncovered || turnedOff || again) slides.end();
       applyState(state);
     },
     report,

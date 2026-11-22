@@ -180,24 +180,15 @@ export class PowerPointImagesJob {
     path: string,
     directory: string,
     progress: ((done: number, total: number, number: number) => void) & {
-      readonly decorationSlide?: number;
       readonly decorationSlides?: readonly number[];
       readonly convert?: true;
     },
   ): Promise<PowerPointImagesResult> {
-    const {decorationSlide, decorationSlides, convert} = progress;
-    if (
-      convert &&
-      (decorationSlide !== undefined || decorationSlides !== undefined)
-    ) {
+    const {decorationSlides, convert} = progress;
+    if (convert && decorationSlides !== undefined) {
       return Promise.resolve('file');
     }
-    if (decorationSlide !== undefined && decorationSlides !== undefined) {
-      return Promise.resolve('file');
-    }
-    const numbers =
-      decorationSlides ??
-      (decorationSlide === undefined ? [] : [decorationSlide]);
+    const numbers = decorationSlides ?? [];
     if (
       (decorationSlides !== undefined && numbers.length === 0) ||
       numbers.length > MAX_DECORATION_BATCH ||

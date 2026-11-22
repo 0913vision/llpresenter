@@ -1,101 +1,91 @@
-import type {SongLyricFormat} from '../schema/songLyricFormat';
+import type {ImportSlide} from '../schema/textImport';
 
 export interface PowerPointShape {
-  readonly body: boolean;
+  readonly role: 'title' | 'body' | 'free';
   readonly lines: readonly string[];
-  readonly lyricFormat?: SongLyricFormat;
 }
+
 export interface PowerPointSlide {
   readonly number: number;
   readonly shapes: readonly PowerPointShape[];
-  readonly background: string | null;
-  readonly fallbackBackground?: string | null;
-  readonly lyricColor?: number | null;
+  /** Names what is behind the texts; the same for the same picture. */
+  readonly background: string;
+  /** The color of the text, as RGB. */
+  readonly textColor: number | null;
 }
 
-/** Converts a selected contiguous range into song slides. */
-export function powerpointSlides(slides: readonly PowerPointSlide[]) {
-  let firstText = false;
-  let firstTitle: string | undefined;
-  return slides.map(slide => {
-    const body = slide.shapes
-      .filter(shape => shape.body)
-      .flatMap(shape => shape.lines);
-    const all = slide.shapes.flatMap(shape => shape.lines);
-    if (all.length === 0) return {lines: []};
-    const first = !firstText;
-    firstText = true;
-    if (body.length > 0) {
-      const selected = slide.shapes.filter(shape => shape.body);
-      const formats = selected.flatMap(shape => shape.lyricFormat?.lines ?? []);
-      return {
-        lines: body,
-        ...(formats.length === body.length
-          ? {lyricFormat: {lines: formats}}
-          : {}),
-      };
+/** A title says no more than this; a longer text is lyrics. */
+const TITLE_ROWS = 4;
+
+function rowsOf(shapes: readonly PowerPointShape[]): readonly string[] {
+  return shapes.flatMap(shape => shape.lines);
+}
+
+/** The song title a slide shows, or null when it shows lyrics. */
+function titleOf(
+  shapes: readonly PowerPointShape[],
+  {first, known}: {readonly first: boolean; readonly known: string | undefined},
+): ImportSlide | null {
+  if (shapes.some(shape => shape.role === 'body')) return null;
+  const rows = rowsOf(shapes);
+  if (rows.length === 0 || rows.length > TITLE_ROWS) return null;
+  const named = shapes.find(shape => shape.role === 'title');
+  if (!first && named === undefined && rows[0] !== known) return null;
+  const main = named ?? shapes[0];
+  const others = shapes.filter(shape => shape !== main);
+  const titleLineCount = main?.lines.length ?? 0;
+  return {
+    titleSlide: true,
+    lines: [...(main?.lines ?? []), ...rowsOf(others)],
+    ...(titleLineCount > 1 ? {titleLineCount} : {}),
+  };
+}
+
+/**
+ * The slides of a presentation as the slides of a song. A short slide without
+ * a body is a song title when it comes first, has a title of its own, or shows
+ * the title that came first; every other text is lyrics.
+ */
+export function powerpointSlides(
+  slides: readonly PowerPointSlide[],
+): readonly ImportSlide[] {
+  let known: string | undefined;
+  let first = true;
+  return slides.map(({shapes}) => {
+    const rows = rowsOf(shapes);
+    if (rows.length === 0) return {lines: []};
+    const title = titleOf(shapes, {first, known});
+    first = false;
+    if (title !== null) {
+      known ??= title.lines[0];
+      return title;
     }
-    if (first || (firstTitle !== undefined && all[0] === firstTitle)) {
-      const selected = slide.shapes.slice(0, 2);
-      const title = selected.flatMap(shape => shape.lines);
-      const titleLineCount = selected[0]?.lines.length ?? 0;
-      const formats = selected.flatMap(shape => shape.lyricFormat?.lines ?? []);
-      if (first) firstTitle = all[0];
-      return {
-        titleSlide: true as const,
-        lines: title,
-        ...(titleLineCount > 1 ? {titleLineCount} : {}),
-        ...(formats.length === title.length &&
-        formats.every(
-          (line, i) => line.runs.map(run => run.text).join('') === title[i],
-        )
-          ? {lyricFormat: {lines: formats}}
-          : {}),
-      };
-    }
-    const formats = slide.shapes.flatMap(
-      shape => shape.lyricFormat?.lines ?? [],
-    );
-    return {
-      lines: all,
-      ...(formats.length === all.length ? {lyricFormat: {lines: formats}} : {}),
-    };
+    const body = shapes.filter(shape => shape.role === 'body');
+    return {lines: [...(body.length === 0 ? rows : rowsOf(body))]};
   });
 }
 
-/** Chooses the most common resolved lyric color in the selected range. */
-export function powerpointDarkLyrics(
-  slides: readonly PowerPointSlide[],
-): boolean {
-  const votes = new Map<number, number>();
-  for (const slide of slides) {
-    if (!slide.shapes.some(shape => shape.body && shape.lines.length > 0)) {
-      continue;
-    }
-    const value = slide.lyricColor;
-    if (value === null || value === undefined) continue;
-    votes.set(value, (votes.get(value) ?? 0) + 1);
-  }
-  let winner: number | undefined;
-  let count = 0;
-  for (const [value, votesForColor] of votes) {
-    if (votesForColor > count) {
-      winner = value;
-      count = votesForColor;
-    }
-  }
-  if (winner === undefined) {
-    return false;
-  }
+function luminance(color: number): number {
   const linear = (value: number): number => {
     const channel = value / 255;
     return channel <= 0.04045
       ? channel / 12.92
       : ((channel + 0.055) / 1.055) ** 2.4;
   };
-  const luminance =
-    0.2126 * linear((winner >> 16) & 255) +
-    0.7152 * linear((winner >> 8) & 255) +
-    0.0722 * linear(winner & 255);
-  return luminance < 0.5;
+  return (
+    0.2126 * linear((color >> 16) & 255) +
+    0.7152 * linear((color >> 8) & 255) +
+    0.0722 * linear(color & 255)
+  );
+}
+
+/** Whether most of the slides write in a dark color, on a bright background. */
+export function powerpointDarkLyrics(
+  slides: readonly PowerPointSlide[],
+): boolean {
+  const colors = slides.flatMap(({shapes, textColor}) =>
+    textColor === null || shapes.length === 0 ? [] : [textColor],
+  );
+  const dark = colors.filter(color => luminance(color) < 0.5).length;
+  return dark * 2 > colors.length;
 }

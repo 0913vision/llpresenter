@@ -1,49 +1,51 @@
-import {LIVE_BIBLE_ID} from '@core/bible/liveTranslation';
 import {useEffect, useState} from 'react';
+import {LIVE_BIBLE_ID} from '@core/bible/liveTranslation';
+import type {TranslationId} from '@core/schema/ids';
 import type {Preferences} from '@core/schema/preferences';
-import type {PassageDefaults} from './quickAddBible';
+import type {PassageDefaults} from './passageItems';
 
-export function useBibleDefaults(): PassageDefaults | null {
-  const [defaults, setDefaults] = useState<PassageDefaults | null>(null);
+export interface BibleDefaults extends PassageDefaults {
+  readonly translation: TranslationId;
+}
+
+/** The translation and the settings a new passage starts with. */
+export function useBibleDefaults(): BibleDefaults | null {
+  const [defaults, setDefaults] = useState<BibleDefaults | null>(null);
   useEffect(() => {
     const api = window.llp;
     if (api === undefined) return undefined;
     let current = true;
-    let translation: PassageDefaults['translation'] | undefined;
+    let translation: TranslationId | undefined;
     let preferences: Preferences | undefined;
     const publish = (): void => {
       if (!current || translation === undefined || preferences === undefined) {
         return;
       }
-      setDefaults({
-        translation,
-        ...preferences.bible.defaults,
-        transition: preferences.show.slideDefaults.bible,
-        sermonTitleTransition: preferences.show.slideDefaults.sermonTitle,
-      });
+      const {verseNumbers, translationName} = preferences.bible.defaults;
+      setDefaults({translation, verseNumbers, translationName});
     };
-    const removePreferences = api.preferences.subscribe(value => {
+    const stop = api.preferences.subscribe(value => {
       preferences = value;
       publish();
     });
-    const readFailed = (error: unknown): void =>
-      console.error('Quick add Bible read failed', error);
+    const failed = (error: unknown): void =>
+      console.error('Could not read the Bible defaults', error);
     api.settings.get({name: 'bible'}).then(bible => {
-      if (!current || bible.name !== 'bible') return;
+      if (bible.name !== 'bible') return;
       translation =
         (
           bible.value.translations.find(item => item.default) ??
           bible.value.translations[0]
         )?.id ?? LIVE_BIBLE_ID;
       publish();
-    }, readFailed);
+    }, failed);
     api.preferences.get().then(value => {
       preferences ??= value;
       publish();
-    }, readFailed);
+    }, failed);
     return () => {
       current = false;
-      removePreferences();
+      stop();
     };
   }, []);
   return defaults;

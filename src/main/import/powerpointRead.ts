@@ -10,16 +10,22 @@ import {
   xml,
   relationships,
 } from './powerpointXml';
-import {PowerPointLayerReader} from './powerpointLayers';
-import type {PowerPointScene} from '@core/songs/powerpointLayers';
-import {isPowerPointFourThree} from './powerpointSize';
+import {backgroundKey, plainPicture} from './powerpointBackground';
+import {PowerPointParts} from './powerpointParts';
+import {textColorOf} from './powerpointTextColor';
 
 import type {
   PowerPointSlide,
   PowerPointShape,
 } from '@core/songs/powerpointSlides';
+
+/** A slide, with the picture in the file that all of its background is. */
+export interface PowerPointDeckSlide extends PowerPointSlide {
+  readonly picture?: string;
+}
+
 export interface PowerPointDeck {
-  readonly slides: readonly PowerPointSlide[];
+  readonly slides: readonly PowerPointDeckSlide[];
   readonly widescreen: boolean;
   readonly width: number;
   readonly height: number;
@@ -48,29 +54,23 @@ function lines(shape: Element): string[] {
   }
   return result;
 }
-function shapes(
-  tree: Element,
-  format: (shape: Element) => PowerPointShape['lyricFormat'],
-): PowerPointShape[] {
+function roleOf(shape: Element): PowerPointShape['role'] {
+  const ph = descendants(shape, 'ph')[0];
+  const type = ph?.getAttribute('type') ?? '';
+  if (ph === undefined) return 'free';
+  if (type === 'title' || type === 'ctrTitle') return 'title';
+  return ['', 'body', 'obj'].includes(type) ? 'body' : 'free';
+}
+
+function shapes(tree: Element): PowerPointShape[] {
   return children(tree).flatMap(shape => {
-    if (shape.localName === 'grpSp') return shapes(shape, format);
+    if (shape.localName === 'grpSp') return shapes(shape);
     if (shape.localName !== 'sp') return [];
     const text = lines(shape);
-    if (text.length === 0) return [];
-    const ph = descendants(shape, 'ph')[0];
-    const type = ph?.getAttribute('type') ?? '';
-    const lyricFormat = format(shape);
-    return [
-      {
-        ...(lyricFormat === undefined ? {} : {lyricFormat}),
-        body:
-          ph !== undefined &&
-          (type === '' || type === 'body' || type === 'obj'),
-        lines: text,
-      },
-    ];
+    return text.length === 0 ? [] : [{role: roleOf(shape), lines: text}];
   });
 }
+
 export function isPowerPointWidescreen(width: number, height: number): boolean {
   return Math.abs(width * 9 - height * 16) * 100 <= height * 16;
 }
@@ -107,17 +107,15 @@ export function readPowerPoint(bytes: Buffer): PowerPointDeck {
   }
   let characters = 0;
   let lineCount = 0;
-  const slides: PowerPointSlide[] = [];
-  const layers = new PowerPointLayerReader(zip);
+  const slides: PowerPointDeckSlide[] = [];
+  const parts = new PowerPointParts(zip);
   for (const [index, id] of ids.entries()) {
     const slidePath = rels.get(id.getAttribute('r:id') ?? '')?.target;
     if (!slidePath) throw new Error('Missing PowerPoint slide');
     const slide = xml(zip, slidePath);
     if (slide.documentElement.getAttribute('show') === '0') continue;
     const tree = descendants(slide, 'spTree')[0];
-    const slideShapes = tree
-      ? shapes(tree, shape => layers.lyricFormat(slidePath, shape, width))
-      : [];
+    const slideShapes = tree ? shapes(tree) : [];
     for (const shape of slideShapes) {
       for (const line of shape.lines) {
         characters += line.length;
@@ -130,38 +128,15 @@ export function readPowerPoint(bytes: Buffer): PowerPointDeck {
     ) {
       throw new Error('PowerPoint text exceeds its limit');
     }
-    const drawing = isPowerPointFourThree(width, height)
-      ? null
-      : layers.read(slidePath, {width, height});
+    const own = parts.slide(slidePath);
+    const picture = plainPicture(own, {width, height});
     slides.push({
       number: index + 1,
-      lyricColor: layers.lyricColor(slidePath),
+      textColor: textColorOf(own),
       shapes: slideShapes,
-      background: drawing?.key ?? null,
-      fallbackBackground:
-        drawing && drawing.layers.length > 0 ? drawing.key : null,
+      background: backgroundKey(own),
+      ...(picture === undefined ? {} : {picture}),
     });
   }
   return {slides, widescreen, width, height};
-}
-
-/** Reads a selected original slide number into an on-demand canvas scene. */
-export function readPowerPointScene(
-  bytes: Buffer,
-  number: number,
-): PowerPointScene {
-  const zip = new PowerPointZip(bytes);
-  const part = 'ppt/presentation.xml';
-  const presentation = xml(zip, part);
-  const size = descendants(presentation, 'sldSz')[0];
-  const width = Number(size?.getAttribute('cx'));
-  const height = Number(size?.getAttribute('cy'));
-  if (!(width > 0 && height > 0)) {
-    throw new Error('Invalid PowerPoint slide size');
-  }
-  const id = descendants(presentation, 'sldId')[number - 1];
-  const path =
-    id && relationships(zip, part).get(id.getAttribute('r:id') ?? '')?.target;
-  if (!path) throw new Error('PowerPoint slide is unavailable');
-  return new PowerPointLayerReader(zip).scene(path, {width, height});
 }

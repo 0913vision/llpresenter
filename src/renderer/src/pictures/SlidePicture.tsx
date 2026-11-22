@@ -5,22 +5,17 @@ import {
   type CSSProperties,
   type JSX,
 } from 'react';
-import {THEME_LIMITS} from '@core/themes/elementRules';
-import {useScreenSize} from './screenSizes';
+import {sameJson} from '@core/common/sameJson';
+import {THEME_CANVAS} from '@core/schema/theme';
+import {backgroundColorOf} from '@renderer/rendering/themeBackground';
+import {SlideStill} from '@renderer/rendering/slideStill';
+import type {ThemeDrawing} from '@renderer/rendering/theme/themeView';
 import {classNames} from '@renderer/ui/classNames';
-import {
-  slideStillSpec,
-  type SlideInput,
-} from '@renderer/rendering/slideStillSpec';
-import {
-  SlideStill,
-  type StillOptions,
-  type StillPicture,
-} from '@renderer/rendering/slideStill';
+import type {SlideDrawing} from './slideDrawing';
+import {useScreenSize} from './screenSizes';
 import styles from './SlidePicture.module.css';
 
-interface StillProps extends StillPicture {
-  readonly options?: StillOptions | undefined;
+interface SlidePictureProps extends SlideDrawing {
   readonly className?: string | undefined;
 }
 
@@ -29,52 +24,49 @@ interface FrameStyle extends CSSProperties {
   readonly '--picture-height': number;
 }
 
-function stillKey({layers, appearance, options}: StillProps): string {
-  const {theme, audience, ...screen} = appearance;
-  return JSON.stringify([
-    layers,
-    screen,
-    options,
-    {...theme, layout: null},
-    audience === undefined
-      ? null
-      : {...audience, theme: {...audience.theme, layout: null}},
-  ]);
+function sameDrawing(a: ThemeDrawing | null, b: ThemeDrawing | null): boolean {
+  if (a === b) return true;
+  if (a === null || b === null) return false;
+  const {theme, screen, audience, ...rest} = a;
+  const {theme: _theme, screen: _screen, audience: _audience, ...other} = b;
+  return (
+    theme === b.theme &&
+    screen === b.screen &&
+    audience === b.audience &&
+    sameJson(rest, other)
+  );
 }
 
 /**
  * A slide exactly as its screen shows it, drawn in place: thumbnails, previews
- * and editors all use it, and it never shows another slide's picture.
+ * and editors all use it, and nothing in it is drawn any other way.
  */
-export const Still = memo(
-  ({layers, appearance, options, className}: StillProps): JSX.Element => {
+export const SlidePicture = memo(
+  ({drawing, screen, className}: SlidePictureProps): JSX.Element => {
     const host = useRef<HTMLDivElement>(null);
     const still = useRef<SlideStill | null>(null);
-    const elementId = options?.biblePreview?.elementId;
-    const maxLines = options?.biblePreview?.maxLines;
     useLayoutEffect(() => {
       if (host.current === null) return;
-      const drawing = new SlideStill(
-        host.current,
-        elementId === undefined || maxLines === undefined
-          ? {}
-          : {biblePreview: {elementId, maxLines}},
-      );
-      still.current = drawing;
+      const picture = new SlideStill(host.current);
+      still.current = picture;
       return () => {
         still.current = null;
-        drawing.dispose();
+        picture.dispose();
       };
-    }, [elementId, maxLines]);
+    }, []);
     useLayoutEffect(() => {
-      still.current?.draw({layers, appearance});
+      still.current?.draw(drawing);
     });
-    const {screen, background} = appearance;
-    const size = useScreenSize(screen.id, screen.pictureSize) ?? THEME_LIMITS;
+    const size = useScreenSize(screen.id, screen.pictureSize) ?? THEME_CANVAS;
     const style: FrameStyle = {
       '--picture-width': size.width,
       '--picture-height': size.height,
-      background: screen.method === 'ndi' ? 'transparent' : background,
+      background:
+        screen.method === 'ndi'
+          ? 'transparent'
+          : (drawing?.screen.backdrop ??
+            backgroundColorOf(drawing?.background) ??
+            screen.emptyColor),
     };
     return (
       <div className={classNames(styles.screen, className)} aria-hidden="true">
@@ -83,14 +75,7 @@ export const Still = memo(
     );
   },
   (previous, next) =>
-    previous.appearance.theme.layout === next.appearance.theme.layout &&
-    previous.appearance.audience?.theme.layout ===
-      next.appearance.audience?.theme.layout &&
     previous.className === next.className &&
-    stillKey(previous) === stillKey(next),
+    sameJson(previous.screen, next.screen) &&
+    sameDrawing(previous.drawing, next.drawing),
 );
-
-/** A slide whose screen and theme are resolved. */
-export function SlidePicture(input: SlideInput): JSX.Element {
-  return <Still {...slideStillSpec(input)} />;
-}

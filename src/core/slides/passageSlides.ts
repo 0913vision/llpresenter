@@ -1,0 +1,126 @@
+import {passageBook} from '../bible/adjacentVerses';
+import type {BibleLookupPassage} from '../schema/bibleLookup';
+import type {BiblePassage} from '../schema/biblePassage';
+import type {Slide, VerseReference} from '../schema/slide';
+import {copySlide, makeSlide, transitionFor, type SlideMaking} from './make';
+
+/** The verses of a looked-up passage, each with its full reference. */
+export function versesOfPassage(
+  passage: BibleLookupPassage,
+): ReadonlyArray<{readonly reference: VerseReference; readonly text: string}> {
+  const book = passageBook(passage);
+  return book === undefined
+    ? []
+    : passage.verses.map(({chapter, verse, text}) => ({
+        reference: {
+          translation: passage.translation,
+          book: book.id,
+          chapter,
+          verse,
+        },
+        text,
+      }));
+}
+
+/** Names a verse apart from its translation. */
+export function verseKey({
+  book,
+  chapter,
+  verse,
+}: Pick<VerseReference, 'book' | 'chapter' | 'verse'>): string {
+  return `${book}:${chapter}:${verse}`;
+}
+
+/** Cuts the text of a verse into the texts of its slides. */
+export type CutVerse = (
+  text: string,
+  verse: VerseReference,
+) => readonly string[];
+
+/** The address a slide of a passage shows when it isn't the item's. */
+export function passageAddress(passage: BibleLookupPassage): string {
+  return passage.translationLabel === undefined
+    ? passage.displayRef
+    : `${passage.displayRef} (${passage.translationLabel})`;
+}
+
+/**
+ * The slides of a passage: every verse on as many as its text needs. A verse
+ * that keeps its slides from before keeps their settings too.
+ */
+export function passageSlides(
+  making: SlideMaking,
+  {
+    passage,
+    settings,
+    cut,
+    before = [],
+    address,
+  }: {
+    readonly passage: BibleLookupPassage;
+    readonly settings: Pick<BiblePassage, 'verseNumbers' | 'translationName'>;
+    readonly cut: CutVerse;
+    readonly before?: readonly Slide[];
+    /** The address kept on every slide; the item's own when absent. */
+    readonly address?: string | undefined;
+  },
+): readonly Slide[] {
+  const numbered = settings.verseNumbers && passage.verses.length > 1;
+  const shown =
+    address ??
+    (settings.translationName && passage.translationLabel !== undefined
+      ? passageAddress(passage)
+      : undefined);
+  return versesOfPassage(passage).flatMap(({reference, text}) => {
+    const key = verseKey(reference);
+    const kept = before.filter(
+      slide =>
+        slide.verse?.translation === reference.translation &&
+        verseKey(slide.verse) === key,
+    );
+    if (kept.length > 0) return kept;
+    return verseSlides(making, {
+      reference,
+      texts: cut(text.trim(), reference).map((part, index) =>
+        index === 0 && numbered ? `${reference.verse} ${part}` : part,
+      ),
+      address: shown,
+    });
+  });
+}
+
+/** The slides of one verse, cut into these texts. */
+export function verseSlides(
+  making: SlideMaking,
+  {
+    reference,
+    texts,
+    address,
+    before = [],
+  }: {
+    readonly reference: VerseReference;
+    readonly texts: readonly string[];
+    readonly address?: string | undefined;
+    readonly before?: readonly Slide[];
+  },
+): readonly Slide[] {
+  return texts.map((text, index) => {
+    const last = before.at(-1);
+    const {continued: _continued, ...earlier} =
+      before[index] ??
+      (last === undefined
+        ? makeSlide(making, 'scripture', {
+            texts: address === undefined ? {} : {주소: address},
+            verse: reference,
+          })
+        : {
+            ...copySlide(last),
+            transition: transitionFor(making, 'scripture'),
+          });
+    return {
+      ...earlier,
+      texts: {...earlier.texts, 본문: text},
+      ...(index < texts.length - 1 ? {continued: true as const} : {}),
+    };
+  });
+}

@@ -5,10 +5,10 @@ import type {MessagesFile} from '@core/schema/messages';
 import type {PropsFile} from '@core/schema/props';
 import type {ScreensFile} from '@core/schema/screens';
 import type {TimersFile} from '@core/schema/timers';
-import type {ThemesFile} from '@core/schema/themes';
+import type {Themes} from '@core/schema/themes';
 
 export interface MacroCatalog {
-  readonly themes: ThemesFile;
+  readonly themes: Themes;
   readonly macros: MacrosFile;
   readonly media: MediaList;
   readonly messages: MessagesFile;

@@ -70,71 +70,70 @@ function songEditRows({
 
 function openRows(input: ServiceOrderMenuInput): readonly MenuEntry[] {
   const {row, openInPrep} = input;
-  switch (row.kind) {
-    case 'header':
-      return [];
-    case 'song':
-      return [
-        {
-          kind: 'item',
-          id: 'save-to-library',
-          contextGroup: 'library',
-          label: '라이브러리에 저장…',
-          ...menuAvailability(
-            input.song?.reason ??
-              (input.song?.locked ? '예배 순서 편집 불가' : undefined),
-          ),
-          onSelect: input.song?.save,
-        },
-        {
-          kind: 'item',
-          id: 'reload-from-library',
-          contextGroup: 'library',
-          label: '라이브러리에서 다시 불러오기',
-          ...menuAvailability(
-            input.song?.reason ??
-              (input.song?.locked ? '예배 순서 편집 불가' : undefined),
-          ),
-          onSelect: input.song?.reload,
-        },
-        ...songEditRows(input),
-        ...(openInPrep === undefined
-          ? []
-          : [
-              menuSeparator('edit-separator'),
-              {
-                kind: 'item',
-                id: 'prep',
-                contextGroup: 'default',
-                label: windowCommandLabels.editSong,
-                onSelect: openInPrep,
-              } as const,
-            ]),
-      ];
-    case 'bible':
-    case 'slides':
-    case 'media':
-    case 'unknown':
-      return openInPrep === undefined
+  if (row.kind === 'header') return [];
+  if (row.kind === 'song') {
+    return [
+      {
+        kind: 'item',
+        id: 'save-to-library',
+        contextGroup: 'library',
+        label: '라이브러리에 저장…',
+        ...menuAvailability(
+          input.song?.reason ??
+            (input.song?.locked ? '예배 순서 편집 불가' : undefined),
+        ),
+        onSelect: input.song?.save,
+      },
+      {
+        kind: 'item',
+        id: 'reload-from-library',
+        contextGroup: 'library',
+        label: '라이브러리에서 다시 불러오기',
+        ...menuAvailability(
+          input.song?.reason ??
+            (input.song?.locked ? '예배 순서 편집 불가' : undefined),
+        ),
+        onSelect: input.song?.reload,
+      },
+      ...songEditRows(input),
+      ...(openInPrep === undefined
         ? []
         : [
+            menuSeparator('edit-separator'),
             {
               kind: 'item',
               id: 'prep',
               contextGroup: 'default',
-              label: '준비에서 열기',
+              label: windowCommandLabels.editSong,
               onSelect: openInPrep,
-            },
-          ];
+            } as const,
+          ]),
+    ];
   }
+  return openInPrep === undefined
+    ? []
+    : [
+        {
+          kind: 'item',
+          id: 'prep',
+          contextGroup: 'default',
+          label: '준비에서 열기',
+          onSelect: openInPrep,
+        },
+      ];
 }
 
+/** What has a name of its own, instead of the one of its song or passage. */
+const NAMED_KINDS: ReadonlySet<string> = new Set([
+  'header',
+  'notice',
+  'blank',
+  'media',
+]);
+
 function renameRow(input: ServiceOrderMenuInput): readonly MenuItem[] {
-  if (input.row.kind === 'slides' && input.row.liturgy !== undefined) return [];
-  switch (input.row.kind) {
-    case 'header':
-    case 'slides':
-      return [
+  return NAMED_KINDS.has(input.row.kind)
+    ? [
         {
           kind: 'item',
           id: 'rename',
@@ -144,14 +143,8 @@ function renameRow(input: ServiceOrderMenuInput): readonly MenuItem[] {
           ),
           onSelect: input.rename,
         },
-      ];
-    case 'song':
-      return [];
-    case 'bible':
-    case 'media':
-    case 'unknown':
-      return [laterRow('rename', '이름 바꾸기')];
-  }
+      ]
+    : [];
 }
 
 function exportRows(input: ServiceOrderMenuInput): readonly MenuEntry[] {

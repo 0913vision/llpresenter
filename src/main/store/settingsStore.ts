@@ -28,13 +28,14 @@ import type {DocumentFiles, PersistedFile} from './contentPersistence';
 import type {WriteResult} from './fileWriter';
 import {documentFiles} from './documentFiles';
 import type {LoadedStore} from './fileStore';
-import {RecoveryCopies} from './recoveryCopies';
+import {RecoveryCopies, type RecoveryTarget} from './recoveryCopies';
 import type {SaveFailureSink} from './saveFailures';
 import {Saver, type SaveRequest} from './saver';
 import {settingsCodecs} from './settingsCodecs';
 import {settingsFileName} from './settingsFile';
 import {loadSettingsArea, type SettingsProblem} from './settingsLoader';
 import {SettingsPersistence} from './settingsPersistence';
+import {themeWrites} from './themeFiles';
 import {prepareQuickTimerEdit} from './quickTimerEdits';
 import {prepareTimerDeletion} from './timerDeletions';
 import {prepareTimerRename} from './timerRenames';
@@ -420,7 +421,22 @@ export class SettingsStore implements SettingsReader {
             shortcuts,
           ];
     const requests: SaveRequest[] = [];
+    const removals: RecoveryTarget[] = [];
     for (const document of changes) {
+      const current = this.documents.get(document.name);
+      if (document.name === 'themes' && current?.name === 'themes') {
+        const writes = themeWrites(
+          current.value,
+          document.value,
+          saving.folder,
+        );
+        if (!writes.ok) {
+          return Promise.resolve(refuse('invalid', writes.error.message));
+        }
+        requests.push(...writes.value.saves);
+        removals.push(...writes.value.removals);
+        continue;
+      }
       const file = join(saving.folder, settingsFileName(document.name));
       const text = settingsCodecs[document.name].serialize(
         document.value,
@@ -457,6 +473,7 @@ export class SettingsStore implements SettingsReader {
     const written = requests.map(request =>
       saves.save(request, immediateLabelSave && request.target.id === 'labels'),
     );
+    for (const target of removals) written.push(saves.remove(target));
     for (const document of changes) this.announce(document);
     if (documents.length === 0 && completion === 'saved') {
       return saves.retryPending().then(results =>

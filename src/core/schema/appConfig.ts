@@ -14,6 +14,7 @@ import {UI_ZOOM, uiZoomPercentSchema} from './uiZoom';
 import {mediaBrowserSchema} from './mediaBrowser';
 import {panelRowsSchema} from './panelRows';
 import {PREFERENCE_PAGE_IDS} from './preferencePages';
+import {slideColumnsSchema} from './slideColumns';
 import {
   jsonObject,
   nonNegativeNumber,
@@ -30,8 +31,6 @@ const columnLayoutSchema = jsonObject({
   detailsSlideScalePercent: v.exactOptional(positiveInteger),
   editorSlideView: v.exactOptional(v.picklist(['list', 'grid'])),
   editorSlideScalePercent: v.exactOptional(positiveInteger),
-  songEditorSlideView: v.exactOptional(v.picklist(['list', 'grid'])),
-  songEditorSlideScalePercent: v.exactOptional(positiveInteger),
 });
 
 const sizeClassLayout = v.exactOptional(columnLayoutSchema);
@@ -88,6 +87,7 @@ const appConfigSchema = jsonObject({
   showToolTab: v.exactOptional(
     v.picklist(['audio', 'stage', 'timer', 'message', 'prop', 'macro']),
   ),
+  slideColumns: v.exactOptional(slideColumnsSchema),
   mediaStrip: v.exactOptional(v.boolean()),
   mediaBrowser: v.exactOptional(mediaBrowserSchema),
   mediaImportFolder: v.exactOptional(v.string()),

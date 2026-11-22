@@ -1,35 +1,12 @@
-import {songLyricFormatSchema} from './songLyricFormat';
-import {songTitleLayoutSchema} from './songTitleLayout';
-import {MEDIA_LIMITS} from './mediaList';
-import {slideTransitionSchema} from './slideTransition';
 import * as v from 'valibot';
-import {slideTextsSchema} from './slideTexts';
 import {labelColorSchema} from './labelColor';
 import type {Result} from '../common/result';
 import type {ReadonlyKnown} from './fileFormat';
-import {biblePartSchema, mediaChoiceSchema} from './liveState';
-import {BIBLE_LOOKUP_LIMITS, bibleLookupPassageSchema} from './bibleLookup';
-import {bibleCutEntrySchema} from './bibleCuts';
-import {
-  bibleVerseReferenceSchema,
-  sectionCardSchema,
-  SLIDES_LIMITS,
-} from './service';
-import {
-  bibleReferenceSchema as bibleReferenceFrequencySchema,
-  bibleSlidesSchema,
-} from './biblePassage';
-import {
-  mediaIdSchema,
-  slideIdSchema,
-  songIdSchema,
-  songSlideIdSchema,
-  translationIdSchema,
-  themeIdSchema,
-} from './ids';
-import {nonBlankText, positiveInteger} from './primitives';
-import {slideHotKeySchema} from './slideHotKey';
-import {liveTextSchema} from './liveLimits';
+import {biblePassageSchema} from './biblePassage';
+import {songIdSchema} from './ids';
+import {autoValuesSchema} from './liveState';
+import {liveItemKinds} from './liveTheme';
+import {SLIDE_LIMITS, slideSchema} from './slide';
 import {
   parsePayload,
   payloadObject,
@@ -43,171 +20,35 @@ import {
  */
 export const showRowProblems = [
   'missing-song',
-  'missing-bible',
-  'loading-bible',
-  'missing-background',
   'missing-media',
   'unknown-kind',
   'newer-version',
-  'tile-limit',
 ] as const;
 
-export const SHOW_SERVICE_LIMITS = {
-  tiles: 10_000,
-} as const;
-
 const id = v.pipe(v.string(), v.nonEmpty());
-const bibleReferenceSchema = v.pipe(
-  payloadObject({
-    translation: v.pipe(
-      translationIdSchema,
-      v.maxLength(BIBLE_LOOKUP_LIMITS.translationId),
-    ),
-    ref: v.pipe(nonBlankText, v.maxLength(BIBLE_LOOKUP_LIMITS.input)),
-    sermonTitle: v.exactOptional(v.pipe(nonBlankText, v.maxLength(1000))),
-    verseNumbers: v.exactOptional(v.boolean()),
-    translationName: v.exactOptional(v.boolean()),
-    reference: v.exactOptional(bibleReferenceFrequencySchema),
-    transition: v.exactOptional(slideTransitionSchema),
-    theme: v.exactOptional(themeIdSchema),
-    slides: v.exactOptional(bibleSlidesSchema),
-    passage: v.exactOptional(
-      v.pipe(
-        bibleLookupPassageSchema,
-        v.check(
-          passage => passage.verses.length <= SHOW_SERVICE_LIMITS.tiles,
-          'Too many source Bible verses',
-        ),
-      ),
-    ),
-  }),
-  v.check(
-    bible =>
-      bible.passage === undefined ||
-      (bible.passage.translation === bible.translation &&
-        bible.passage.ref === bible.ref),
-    'Bible source must match its reference',
-  ),
-);
 
 const showRowSchema = v.pipe(
   plainObject,
   v.variant('kind', [
     v.object({kind: v.literal('header'), id, title: v.string()}),
     v.object({
-      kind: v.literal('song'),
+      kind: v.picklist([...liveItemKinds, 'unknown']),
       id,
       title: v.string(),
-      theme: v.exactOptional(themeIdSchema),
       problem: v.exactOptional(v.picklist(showRowProblems)),
-      background: v.exactOptional(mediaChoiceSchema),
-      backgroundExplicit: v.exactOptional(v.literal(true)),
-      backgroundNone: v.exactOptional(v.literal(true)),
-      missingBackgroundName: v.exactOptional(
-        v.pipe(v.string(), v.maxLength(MEDIA_LIMITS.name)),
-      ),
-    }),
-    v.object({
-      kind: v.literal('slides'),
-      id,
-      title: v.string(),
-      form: v.picklist(['blank', 'ad']),
-      liturgy: v.exactOptional(
-        payloadObject({
-          kind: v.picklist(['creed', 'prayer']),
-          translation: v.picklist(['new', 'old']),
-        }),
-      ),
-      sourceRevision: v.exactOptional(positiveInteger),
-      theme: v.exactOptional(themeIdSchema),
-      background: v.exactOptional(mediaChoiceSchema),
-      backgroundNone: v.exactOptional(v.literal(true)),
-      missingBackgroundName: v.exactOptional(
-        v.pipe(v.string(), v.maxLength(MEDIA_LIMITS.name)),
-      ),
-      problem: v.exactOptional(v.picklist(showRowProblems)),
-    }),
-    v.object({
-      kind: v.literal('bible'),
-      id,
-      background: v.exactOptional(mediaChoiceSchema),
-      backgroundNone: v.exactOptional(v.literal(true)),
-      title: v.string(),
-      sermonTitle: v.exactOptional(v.pipe(nonBlankText, v.maxLength(1000))),
-      sourceRevision: v.exactOptional(positiveInteger),
-      problem: v.exactOptional(v.picklist(showRowProblems)),
-      bible: v.exactOptional(bibleReferenceSchema),
-    }),
-    v.object({
-      kind: v.picklist(['media', 'unknown']),
-      id,
-      theme: v.exactOptional(themeIdSchema),
-      background: v.exactOptional(mediaChoiceSchema),
-      backgroundNone: v.exactOptional(v.literal(true)),
-      title: v.string(),
-      problem: v.exactOptional(v.picklist(showRowProblems)),
+      song: v.exactOptional(songIdSchema),
+      passage: v.exactOptional(biblePassageSchema),
     }),
   ]),
 );
 
-/** Stable identity in the library song or the service item's own deck. */
-export const songSlideSourceSchema = payloadObject({
-  songId: songIdSchema,
-  slideId: songSlideIdSchema,
+export const showTileSchema = payloadObject({
+  slide: slideSchema,
+  auto: autoValuesSchema,
+  /** What the tile is called under its picture. */
+  caption: v.nullable(v.string()),
+  labelColor: labelColorSchema,
 });
-
-export type SongSlideSource = ReadonlyKnown<
-  v.InferOutput<typeof songSlideSourceSchema>
->;
-
-export const showTileSchema = v.pipe(
-  payloadObject({
-    sectionCard: v.exactOptional(sectionCardSchema),
-    label: v.nullable(v.string()),
-    slideLabel: v.exactOptional(v.pipe(v.string(), v.maxLength(64))),
-    labelColor: labelColorSchema,
-    lines: v.array(v.string()),
-    sermonTitle: v.exactOptional(v.literal(true)),
-    titleSlide: v.exactOptional(v.literal(true)),
-    titleLineCount: v.exactOptional(v.pipe(positiveInteger, v.maxValue(1000))),
-    titleLayout: v.exactOptional(songTitleLayoutSchema),
-    lyricFormat: v.exactOptional(songLyricFormatSchema),
-    reference: v.exactOptional(liveTextSchema),
-    /** The reference was typed on this slide. */
-    ownReference: v.exactOptional(v.literal(true)),
-    name: v.exactOptional(liveTextSchema),
-    picture: v.exactOptional(mediaIdSchema),
-    kind: v.exactOptional(v.picklist(['blank', 'ad'])),
-    continued: v.exactOptional(v.boolean()),
-    biblePart: v.exactOptional(biblePartSchema),
-    bibleVerse: v.exactOptional(bibleVerseReferenceSchema),
-    sourceSlideId: v.exactOptional(slideIdSchema),
-    /** Names this slide in its item, for what is kept beside the slide. */
-    key: v.exactOptional(v.pipe(v.string(), v.maxLength(320))),
-    /** What the theme's own text boxes show on this slide, by box name. */
-    texts: v.exactOptional(slideTextsSchema),
-    transition: v.exactOptional(slideTransitionSchema),
-    verse: v.exactOptional(
-      payloadObject({
-        reference: bibleVerseReferenceSchema,
-        cut: v.exactOptional(bibleCutEntrySchema),
-        text: v.exactOptional(
-          v.pipe(v.string(), v.maxLength(BIBLE_LOOKUP_LIMITS.verseText)),
-        ),
-      }),
-    ),
-    hotKey: v.exactOptional(slideHotKeySchema),
-    sourceSlide: v.exactOptional(songSlideSourceSchema),
-    media: v.exactOptional(mediaChoiceSchema),
-  }),
-  v.forward(
-    v.check(
-      tile => tile.hotKey === undefined || tile.sourceSlide !== undefined,
-      'An assigned hot key needs its source slide',
-    ),
-    ['sourceSlide'],
-  ),
-);
 
 const showServiceSchema = payloadObject({
   revision: v.pipe(v.number(), v.integer(), v.minValue(0)),
@@ -219,26 +60,15 @@ const showServiceSchema = payloadObject({
     plainObject,
     v.record(
       v.string(),
-      v.pipe(
-        v.array(showTileSchema),
-        v.maxLength(SHOW_SERVICE_LIMITS.tiles),
-        v.check(
-          tiles =>
-            tiles.filter(tile => tile.verse !== undefined).length <=
-            SLIDES_LIMITS.slides,
-          'Too many source verse slides',
-        ),
-      ),
+      v.pipe(v.array(showTileSchema), v.maxLength(SLIDE_LIMITS.slides)),
     ),
   ),
 });
 
 /**
- * The open 예배 순서 as 진행 shows it. The main process resolves every item,
- * so the renderer never reads song files. `revision` grows on every change,
- * and a window drops one older than what it has. `readOnly`: the 예배 순서
- * file comes from a newer app version, so it can't be edited, and 진행 shows
- * a warning.
+ * The open 예배 순서 as 진행 shows it. `revision` grows on every change, and a
+ * window drops one older than what it has. `readOnly`: the 예배 순서 file comes
+ * from a newer app version, so it can't be edited, and 진행 shows a warning.
  */
 export type ShowService = ReadonlyKnown<
   v.InferOutput<typeof showServiceSchema>
@@ -247,16 +77,10 @@ export type ShowService = ReadonlyKnown<
 /**
  * One row, with the service item's id. Rows of a kind this version doesn't
  * know show a warning and can't be output.
- * Song rows may carry their resolved, available background as a media choice.
- * Bible rows may carry their successfully resolved normalized reference.
  */
 export type ShowRow = ShowService['rows'][number];
 
-/**
- * One tile of a song item, in the order of the item's 구성. A 장 that repeats
- * has a tile for each time, and a tile's position is its index in the list.
- * A tile of a media item carries the media to output.
- */
+/** One slide of an item, with what is worked out for it. */
 export type ShowTile = ShowService['tiles'][string][number];
 
 /** Checks a `service:get` reply or a `service:changed` push. Never throws. */

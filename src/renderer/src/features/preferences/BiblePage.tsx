@@ -8,7 +8,7 @@ import {PropertyGroup} from '@renderer/ui/PropertyRow';
 import type {BibleEdits} from './useBibleEdits';
 import type {PreferenceEdits} from './usePreferenceEdits';
 import type {PreferencesFile} from '@core/schema/preferences';
-import {CheckboxRow, SelectRow} from './PreferenceRows';
+import {CheckboxRow} from './PreferenceRows';
 import styles from './BiblePage.module.css';
 
 const ALREADY_DEFAULT = '이미 기본 역본입니다';
@@ -64,13 +64,6 @@ function TranslationRow({
   );
 }
 
-const REFERENCE_OPTIONS = [
-  {value: 'every', label: '슬라이드마다'},
-  {value: 'first', label: '첫 슬라이드만'},
-  {value: 'last', label: '마지막 슬라이드만'},
-  {value: 'none', label: '없음'},
-] as const;
-
 /** 성경: the installed translations, and the defaults of a new passage. */
 export function BiblePage({
   edits,
@@ -117,14 +110,6 @@ export function BiblePage({
                 bible: {...stored.bible, splitEditorAutoOpen},
               }))
             }
-          />
-          <SelectRow
-            label="구절 표시"
-            disabled={lockedReason !== undefined}
-            title={lockedReason}
-            options={REFERENCE_OPTIONS}
-            value={preferences.bible.defaults.reference}
-            onChange={reference => changeDefaults({reference})}
           />
           <CheckboxRow
             label="절 번호"

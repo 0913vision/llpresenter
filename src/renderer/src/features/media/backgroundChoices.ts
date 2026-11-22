@@ -1,6 +1,6 @@
 import type {MediaId} from '@core/schema/ids';
 import type {MediaItem} from '@core/schema/mediaList';
-import {THEME_BACKGROUNDS, THEME_DECORATIONS} from '@core/themes/pictures';
+import {THEME_BACKGROUNDS, THEME_DECORATIONS} from '@core/theme/pictures';
 
 export const SONG_DEFAULT_LABEL = '곡 기본값';
 export const MISSING_BACKGROUND_NAME = '이름을 알 수 없는 배경';

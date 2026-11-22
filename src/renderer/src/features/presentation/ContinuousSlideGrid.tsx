@@ -10,8 +10,6 @@ import {
 } from 'react';
 import {type ServiceRow, type SlideTile} from '@core/presentation/model';
 import {flushSync} from 'react-dom';
-import {slideLayerOf} from '@core/presentation/slideLayer';
-import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import {useLive} from '@renderer/session/live';
 import {outputTile, useShow} from '@renderer/session/show';
 import {projectedLiveCursor, tilesForView} from '@renderer/session/showLibrary';
@@ -24,14 +22,9 @@ import {revealSlideItem} from '@renderer/session/visibleSlideItem';
 import {liveReturn} from './liveReturn';
 import type {SlideGridProps} from './SlideGrid';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
-import {slideMenuEntries} from '@renderer/features/songs/editor/slideMenuEntries';
+import {slideMenuEntries} from './slideMenuEntries';
 import {ShowSlideEntry} from './showPanelNavigation';
-import {
-  itemThemes,
-  useThemeSettings,
-  type ItemThemes,
-} from '@renderer/pictures/itemThemes';
-import {TilePicture} from '@renderer/pictures/TilePicture';
+import {TilePicture, tileProps} from '@renderer/pictures/TilePicture';
 import styles from './SlideGrid.module.css';
 import {tileReflowIds} from './tileReflowIds';
 import {useReflow} from '@renderer/ui/useReflow';
@@ -111,7 +104,6 @@ function SectionGrid({
   live,
   progress,
   onMenu,
-  themes,
 }: {
   section: Section;
   start: number;
@@ -121,7 +113,6 @@ function SectionGrid({
   live: number | null;
   progress: TransitionProgress | undefined;
   onMenu: (index: number, anchor: MenuAnchor) => void;
-  themes: ItemThemes;
 }): JSX.Element {
   const {row, tiles} = section;
   const ids = tileReflowIds(tiles, row.id);
@@ -142,31 +133,16 @@ function SectionGrid({
     >
       {tiles.slice(start, end).map((tile, local) => {
         const index = start + local;
-        const picture = tile.media?.mediaId;
-        const slide = slideLayerOf({itemId: row.id, index}, () => tiles);
         return (
           <SlideThumbnail
             key={ids[index] ?? `${row.id}:${index}`}
             reflowId={ids[index]}
             selectionStyle="plate"
             number={section.number + index + 1}
-            canvas={<TilePicture tile={tile} slide={slide} themes={themes} />}
-            label={
-              (tile.slideLabel ?? tile.label) === ''
-                ? undefined
-                : (tile.slideLabel ?? tile.label ?? undefined)
-            }
-            labelColor={tile.labelColor}
-            accessibleLabel={
-              picture === undefined || tile.slideLabel || tile.label
-                ? undefined
-                : tile.lines.join(' ')
-            }
-            text={picture === undefined ? tile.lines.join('\n') : undefined}
-            media={picture === undefined ? undefined : thumbnailSrc(picture)}
+            canvas={<TilePicture tile={tile} />}
             live={index === live}
             transitionProgress={index === live ? progress : undefined}
-            hotKey={tile.hotKey}
+            {...tileProps(tile)}
           />
         );
       })}
@@ -190,7 +166,6 @@ export function ContinuousSlideGrid({
   const initialized = useRef(false);
   const slide = useLive(view => view.state?.layers.slide ?? null);
   const view = useShow();
-  const settings = useThemeSettings();
   const projected = projectedLiveCursor(view, slide);
   const cursorItem = projected?.itemId;
   const cursorIndex = projected?.index;
@@ -574,7 +549,6 @@ export function ContinuousSlideGrid({
                         : null
                     }
                     progress={progress}
-                    themes={itemThemes(section.row, section.tiles, settings)}
                     onMenu={(index, anchor) =>
                       setMenu({itemId: section.row.id, index, anchor})
                     }

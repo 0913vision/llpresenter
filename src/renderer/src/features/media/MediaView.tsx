@@ -16,7 +16,7 @@ import {
 } from 'react';
 import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import {mediaLoops} from '@core/media/mediaEndRule';
-import {createServiceItemId, type MediaId} from '@core/schema/ids';
+import {type MediaId} from '@core/schema/ids';
 import type {MediaItem} from '@core/schema/mediaList';
 import {RenameDialog} from '@renderer/ui/RenameDialog';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
@@ -27,9 +27,6 @@ import {sendMediaOutput} from '@renderer/session/itemOutput';
 import {useShow} from '@renderer/session/showStore';
 import {useOrderFull} from '@renderer/session/orderFull';
 import {ORDER_FULL_REASON} from '@renderer/session/serviceOrderEdits';
-import {quickAddBefore} from '@core/services/quickAddPosition';
-import {useServiceOrderEditing} from '@renderer/session/useServiceOrderEditing';
-import {newMediaItem} from '@core/services/quickAddMedia';
 import {
   Button,
   MediaTile,
@@ -57,6 +54,9 @@ import {useMediaImportCompletion, useMediaView} from './MediaViewProvider';
 import {VirtualMediaGrid} from './VirtualMediaGrid';
 import {writeMediaDrag} from './mediaDrag';
 import {useMediaImportAction} from './useMediaImportAction';
+import {mediaItem} from '@renderer/platform/media';
+import {insertNewItem, rowAfterSelected} from '@renderer/session/insertNewItem';
+import {newMediaItem} from './newMediaItem';
 import styles from './MediaView.module.css';
 import {mediaTileMenuEntries, type MediaTileActions} from './mediaMenuEntries';
 
@@ -151,7 +151,6 @@ export function MediaView({
   const serviceId = useShow(state => state.serviceId);
   const serviceReadOnly = useShow(state => state.readOnly);
   const orderFull = useOrderFull();
-  const orderEditing = useServiceOrderEditing(serviceId, onProblem);
   const addReason =
     serviceId === null
       ? '열린 예배 없음'
@@ -159,9 +158,7 @@ export function MediaView({
         ? NEWER_FILE_REASON
         : orderFull
           ? ORDER_FULL_REASON
-          : orderEditing.busy
-            ? '예배 순서에 추가하는 중'
-            : undefined;
+          : undefined;
   const imported = useMediaImportCompletion();
   const [columns, setColumns] = useState<number>();
   const [display, setDisplay] = useState<'grid' | 'list'>('grid');
@@ -304,15 +301,11 @@ export function MediaView({
       ) {
         return;
       }
-      const {rows, openItemId} = useShow.getState();
-      const before = quickAddBefore(rows, openItemId);
-      orderEditing.run((edits, id) =>
-        edits.insertItem(
-          id,
-          newMediaItem(mediaId),
-          before === null ? null : createServiceItemId(before),
-        ),
-      );
+      const media = mediaItem(mediaId);
+      if (media === undefined) return;
+      insertNewItem(newMediaItem(media), rowAfterSelected(), {
+        report: onProblem,
+      });
     },
     properties: setSelected,
     cancel: mediaId => {

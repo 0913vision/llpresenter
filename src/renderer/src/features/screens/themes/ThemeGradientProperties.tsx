@@ -1,16 +1,17 @@
 import {useState, type JSX} from 'react';
-import {
-  THEME_BACKGROUND_LIMITS,
-  type ThemeGradient,
-} from '@core/schema/themeBackground';
+import {THEME_FILE_LIMITS} from '@core/schema/theme';
 import {
   addGradientStop,
   moveGradientStop,
   removeGradientStop,
-} from '@core/themes/gradientEdits';
-import {GRADIENT_PRESETS, isGradientPreset} from '@core/themes/gradientPresets';
-import {themeBackgroundStyle} from '@renderer/rendering/themeBackground';
-import {sampleThemeGradient} from '@renderer/rendering/sampleThemeGradient';
+} from '@core/theme/gradientEdits';
+import {
+  GRADIENT_PRESETS,
+  isGradientPreset,
+  type GradientBackground,
+} from '@core/theme/gradientPresets';
+import {backgroundPaint} from '@renderer/rendering/themeBackground';
+import {sampleGradient} from '@renderer/rendering/sampleGradient';
 import {IconButton, NumberField, PropertyRow} from '@renderer/ui';
 import {ColorProperty} from '../ColorProperty';
 import {ThemeNumber} from './ThemePropertyFields';
@@ -18,19 +19,22 @@ import {GradientStopBar} from './GradientStopBar';
 import type {ThemeModel} from './useThemeEditor';
 import styles from './ThemeGradient.module.css';
 
+const MAX_ANGLE = 359;
+
+/** Chooses a preset of a gradient, or its angle and colors. */
 export function ThemeGradientProperties({
   gradient,
   model,
   change,
 }: {
-  readonly gradient: ThemeGradient;
+  readonly gradient: GradientBackground;
   readonly model: ThemeModel;
-  readonly change: (gradient: ThemeGradient) => void;
+  readonly change: (gradient: GradientBackground) => void;
 }): JSX.Element {
   const [selection, select] = useState(0);
   const selected = Math.min(selection, gradient.stops.length - 1);
   const stop = gradient.stops[selected];
-  const reason = model.elementReason;
+  const {reason} = model;
   const remove = (): void => {
     if (reason !== undefined) return;
     const next = removeGradientStop(gradient, selected);
@@ -69,7 +73,7 @@ export function ThemeGradientProperties({
               >
                 <span
                   className={styles.picture}
-                  style={themeBackgroundStyle(preset.gradient)}
+                  style={backgroundPaint(preset.gradient)}
                 />
                 <span>{preset.name}</span>
               </button>
@@ -80,7 +84,7 @@ export function ThemeGradientProperties({
       <ThemeNumber
         label="각도"
         value={gradient.angle}
-        max={THEME_BACKGROUND_LIMITS.angle}
+        max={MAX_ANGLE}
         reason={reason}
         change={angle => change({...gradient, angle})}
       />
@@ -96,12 +100,12 @@ export function ThemeGradientProperties({
             begin={model.beginEditGroup}
             add={position => {
               if (
-                gradient.stops.length >= THEME_BACKGROUND_LIMITS.stops ||
+                gradient.stops.length >= THEME_FILE_LIMITS.gradientStops ||
                 reason !== undefined
               ) {
                 return;
               }
-              const color = sampleThemeGradient(gradient, position);
+              const color = sampleGradient(gradient, position);
               if (color === null) {
                 model.reportError(
                   new Error('Could not sample a gradient color'),

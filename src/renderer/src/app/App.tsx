@@ -7,12 +7,16 @@ import {AudioShortcuts} from '@renderer/features/tools/AudioShortcuts';
 import {MediaViewProvider} from '@renderer/features/media/MediaViewProvider';
 import {ToolObjectShortcuts} from '@renderer/features/tools/ToolObjectShortcuts';
 import {QuickObjectShortcuts} from '@renderer/features/quick/QuickObjectShortcuts';
+import {Labels} from '@renderer/features/labels/labels';
+import {requestLeaveSong} from '@renderer/features/songs/songDraft';
+import {closePrepEditor, usePrepTarget} from '@renderer/session/prepTarget';
 import {usePrepActions} from './usePrepActions';
 import {
   useCallback,
   useDeferredValue,
   useEffect,
   useMemo,
+  useRef,
   useState,
   useSyncExternalStore,
   type JSX,
@@ -65,7 +69,7 @@ import {ServicePictures} from './ServicePictures';
 import {BibleInsertionReview} from '@renderer/features/bible/BibleInsertionReview';
 import {LoadReadiness, LoadReadinessContext} from '@renderer/ui/loadReadiness';
 
-const noEditorSubscription = (): (() => void) => () => undefined;
+const noSubscription = (): (() => void) => () => undefined;
 
 interface AppProps {
   readonly columnWidthStore: ColumnWidthStore;
@@ -116,9 +120,10 @@ function ControlApp({
   useAudioOutputs();
   const [workspace, setWorkspace] = useState<WorkspaceId>('show');
   const requestedItem = useShow(view => view.openItemId);
+  const prepTarget = usePrepTarget(view => view.target);
   const requestedFrame = useMemo(
-    () => ({workspace, item: requestedItem}),
-    [workspace, requestedItem],
+    () => ({workspace, item: requestedItem, prep: prepTarget}),
+    [workspace, requestedItem, prepTarget],
   );
   const shownFrame = useDeferredValue(requestedFrame);
   const shownWorkspace = shownFrame.workspace;
@@ -133,7 +138,6 @@ function ControlApp({
   const [themeLeave] = useState(() => new ThemeLeaveGuard());
   const onWorkspace = (next: WorkspaceId): void => {
     const go = (): void => {
-      if (next === 'prep') session.startEditor();
       if (shownWorkspace === 'prep' && next !== 'prep') {
         setSavedPrepItem(shownFrame.item);
       }
@@ -143,9 +147,12 @@ function ControlApp({
     if (
       workspace === 'prep' &&
       next !== 'prep' &&
-      (session.editor?.getSnapshot().session || prepActions.prep?.slides?.draft)
+      prepTarget?.kind === 'song'
     ) {
-      session.editor?.requestLeave(go);
+      requestLeaveSong(() => {
+        closePrepEditor();
+        go();
+      });
     } else if (workspace === 'screens' && next !== 'screens') {
       themeLeave.leave(go);
     } else go();
@@ -155,11 +162,13 @@ function ControlApp({
     mediaStrip.setVisible(workspace === 'screens' || !mediaStrip.visible);
   };
   const textImport = session.api?.textImport;
-  const prepActions = usePrepActions({
-    session,
-    workspace: shownWorkspace,
-    onWorkspace,
-    onPrepareItem: setSavedPrepItem,
+  const prepActions = usePrepActions(session);
+  const prepRequest = usePrepTarget(view => view.request);
+  const answered = useRef(prepRequest);
+  useEffect(() => {
+    if (answered.current === prepRequest) return;
+    answered.current = prepRequest;
+    if (workspace !== 'prep') onWorkspace('prep');
   });
   useShortcutSettings(session.api);
   useWindowShortcuts([
@@ -179,7 +188,7 @@ function ControlApp({
     {
       id: 'import.textFile',
       when: () => prepActions.canImport,
-      run: () => prepActions.importText('file'),
+      run: () => prepActions.importSong('file'),
     },
   ]);
   useClearKeys();
@@ -191,7 +200,7 @@ function ControlApp({
   useLaunchReady(session.api, readiness);
   const saveFailed = useProblemNotices(session.api, session);
   const closeView = useSyncExternalStore(
-    session.closeFlush?.subscribe ?? noEditorSubscription,
+    session.closeFlush?.subscribe ?? noSubscription,
     session.closeFlush?.getSnapshot ?? (() => 'hidden' as const),
   );
   const saveState =
@@ -217,7 +226,7 @@ function ControlApp({
           textImport && (() => textImport.clipboardAvailable())
         }
         onImportText={
-          prepActions.canImport ? prepActions.importText : undefined
+          prepActions.canImport ? prepActions.importSong : undefined
         }
         onNewSong={session.api === undefined ? undefined : prepActions.newSong}
         title={serviceName}
@@ -238,7 +247,7 @@ function ControlApp({
         onProblem={session.report}
         onOpenPrepSong={prepActions.openSong}
       />
-      <ShownItemProvider shownItem={shownFrame.item} trackLive>
+      <ShownItemProvider shownItem={shownFrame.item}>
         <Workspace
           id={shownWorkspace}
           prepItemId={
@@ -246,9 +255,10 @@ function ControlApp({
           }
           sizeClass={sizeClass}
           store={columnWidthStore}
-          onShowInLibrary={prepActions.onShowInLibrary}
+          onShowInLibrary={prepActions.openSong}
           onProblem={session.report}
           prep={prepActions.prep}
+          prepTarget={shownFrame.prep}
           onOpenPrep={prepActions.onOpenPrep}
           warningHeight={warningHeight}
           mediaVisible={mediaStrip.visible}
@@ -259,7 +269,7 @@ function ControlApp({
         />
       </ShownItemProvider>
       <StatusBar standby={recovery.offer !== null} saveState={saveState} />
-      {prepActions.importSurface}
+      {prepActions.surface}
       <RecoveryPrompt recovery={recovery} />
       <NotificationStack
         notices={
@@ -277,20 +287,22 @@ function ControlApp({
     </div>
   );
   return (
-    <WorkspaceNavigation value={onWorkspace}>
-      <PrepItemNavigation value={prepActions.onOpenPrep}>
-        {session.api === undefined ? (
-          content
-        ) : (
-          <MediaViewProvider
-            api={session.api}
-            active={shownWorkspace !== 'screens'}
-            onProblem={session.report}
-          >
-            {content}
-          </MediaViewProvider>
-        )}
-      </PrepItemNavigation>
-    </WorkspaceNavigation>
+    <Labels value={session.labels ?? null}>
+      <WorkspaceNavigation value={onWorkspace}>
+        <PrepItemNavigation value={prepActions.onOpenPrep}>
+          {session.api === undefined ? (
+            content
+          ) : (
+            <MediaViewProvider
+              api={session.api}
+              active={shownWorkspace !== 'screens'}
+              onProblem={session.report}
+            >
+              {content}
+            </MediaViewProvider>
+          )}
+        </PrepItemNavigation>
+      </WorkspaceNavigation>
+    </Labels>
   );
 }

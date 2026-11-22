@@ -241,7 +241,7 @@ export const clearSlice = defineSlice({
               type: 'media.properties.refresh',
             });
       case 'item.restore': {
-        if (history.stoppedItem == null || history.state.themeItem != null) {
+        if (history.stoppedItem == null || history.state.item != null) {
           return history;
         }
         const restored = undoClear(

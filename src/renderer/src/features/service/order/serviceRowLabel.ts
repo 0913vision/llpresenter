@@ -4,10 +4,10 @@ import type {ItemRow} from '@core/presentation/model';
 export function serviceRowLabel(row: ItemRow, position: number): string {
   if (row.title.trim() !== '') return row.title;
   const kind =
-    row.kind === 'slides'
-      ? row.form === 'ad'
-        ? '광고'
-        : '빈 슬라이드'
-      : '항목';
+    row.kind === 'notice'
+      ? '광고'
+      : row.kind === 'blank'
+        ? '빈 슬라이드'
+        : '항목';
   return `${kind} ${position}`;
 }

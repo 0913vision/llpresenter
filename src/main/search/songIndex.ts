@@ -62,7 +62,11 @@ export class SongSearchIndex {
       songId: song.id,
       title: searchable(song.title),
       slideCount: slides.length,
-      lines: slides.flatMap(slide => slide.lines.map(searchable)),
+      lines: slides.flatMap(slide =>
+        Object.values(slide.texts).flatMap(text =>
+          text.split('\n').map(searchable),
+        ),
+      ),
     };
     this.songs.set(song.id, entry);
     this.ordered.splice(this.insertionPoint(entry), 0, entry);

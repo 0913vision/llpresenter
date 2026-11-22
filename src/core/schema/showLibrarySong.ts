@@ -1,41 +1,19 @@
 import * as v from 'valibot';
-import {MEDIA_LIMITS} from './mediaList';
 import {revisionSchema} from './contentDocuments';
 import type {ReadonlyKnown} from './fileFormat';
 import {songIdSchema, type SongId} from './ids';
-import {mediaChoiceSchema} from './liveState';
 import {parsePayload, payloadObject} from './payload';
 import {showTileSchema} from './showService';
-
-export const SHOW_LIBRARY_SONG_LIMITS = {
-  tiles: 10_000,
-  linesPerTile: 1000,
-} as const;
+import {SLIDE_LIMITS} from './slide';
 
 const requestSchema = payloadObject({songId: songIdSchema});
-const tileSchema = v.pipe(
-  showTileSchema,
-  v.check(
-    tile => tile.lines.length <= SHOW_LIBRARY_SONG_LIMITS.linesPerTile,
-    'A tile has too many lines',
-  ),
-);
 const songSchema = payloadObject({
   songId: songIdSchema,
   songRevision: revisionSchema,
   title: v.string(),
   readOnly: v.boolean(),
-  tiles: v.pipe(
-    v.array(tileSchema),
-    v.maxLength(SHOW_LIBRARY_SONG_LIMITS.tiles),
-  ),
-  background: v.exactOptional(mediaChoiceSchema),
-  missingBackgroundName: v.exactOptional(
-    v.pipe(v.string(), v.maxLength(MEDIA_LIMITS.name)),
-  ),
-  problem: v.exactOptional(
-    v.picklist(['missing-background', 'newer-version', 'tile-limit']),
-  ),
+  tiles: v.pipe(v.array(showTileSchema), v.maxLength(SLIDE_LIMITS.slides)),
+  problem: v.exactOptional(v.literal('newer-version')),
 });
 
 export type ShowLibrarySongRequest = Readonly<

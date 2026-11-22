@@ -1,11 +1,11 @@
-import type {ComponentPropsWithoutRef, JSX} from 'react';
+import type {ComponentPropsWithRef, JSX} from 'react';
 import {classNames} from './classNames';
 import {useFieldReason} from './fieldFrame';
 import {titleTooltip, useTooltip, withTooltipProps} from './Tooltip';
 import styles from './TextField.module.css';
 
 export interface TextAreaProps extends Omit<
-  ComponentPropsWithoutRef<'textarea'>,
+  ComponentPropsWithRef<'textarea'>,
   'value' | 'onChange' | 'title'
 > {
   readonly value: string;

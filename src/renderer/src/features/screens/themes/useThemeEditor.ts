@@ -1,38 +1,35 @@
-import {useEffect, useLayoutEffect, useRef, useState} from 'react';
+import {useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {ScreenId, ThemeId} from '@core/schema/ids';
-import type {ThemeScreenLayout} from '@core/schema/themes';
-import {
-  editThemeLayout,
-  findTheme,
-  themeLayout,
-  type ThemeTarget,
-} from '@core/themes/themeEdits';
-import {withStageStandby} from '@core/themes/output';
-import {resolveThemeScreen} from '@core/themes/resolve';
-import {BIBLE_THEME_ID} from '@core/themes/defaults';
-import {BROADCAST_LOOK_SONG_ID} from '@core/themes/broadcastLook';
-import {
-  fitBroadcastLook,
-  isBroadcastLook,
-} from '@renderer/rendering/broadcastLook';
+import type {ThemeFile, ThemeScreen} from '@core/schema/theme';
+import {ownScreenOf, withScreen} from '@core/theme/screens';
+import {themeScreenOf} from '@core/theme/themes';
 import {
   pendingWritesOf,
   type DraftOutcome,
 } from '@renderer/platform/pendingWrites';
-import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
-import type {Notice} from '@renderer/ui/notices';
-import {useThemeResources} from './useThemeResources';
-import {useThemeWrites} from './useThemeWrites';
-import {useThemeSelection} from './useThemeSelection';
 import {
   NOTHING_TO_REDO,
   NOTHING_TO_UNDO,
 } from '@renderer/platform/problemReasons';
-import {useThemeElements} from './useThemeElements';
-import {useThemeSaveFlow} from './useThemeSaveFlow';
+import {useThemes} from '@renderer/platform/themes';
+import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
+import {
+  takeThemeRequest,
+  useThemeRequest,
+} from '@renderer/session/themeRequests';
+import type {Notice} from '@renderer/ui/notices';
+import {sampleDrawing} from './themeDrawing';
 import type {ThemeLeaveGuard} from './themeLeaveGuard';
+import {useThemeElements} from './useThemeElements';
+import {useThemePlacement} from './useThemePlacement';
+import {useThemeResources} from './useThemeResources';
+import {useThemeSaveFlow} from './useThemeSaveFlow';
+import {useThemeSelection} from './useThemeSelection';
+import {useThemeWrites} from './useThemeWrites';
+
 export {themeCanvasBounds, type ThemeAddPlacement} from './useThemeElements';
-/** One workspace session owns selection and all three panels' queued theme changes. */
+
+/** One session of the theme editor, shared by its three panels. */
 export function useThemeEditor(
   active: boolean,
   onProblem: ((notice: Notice) => void) | undefined,
@@ -40,68 +37,44 @@ export function useThemeEditor(
 ) {
   const resources = useThemeResources(active, onProblem);
   const writes = useThemeWrites(resources.document, onProblem);
-  const {file, reason, edit} = writes;
+  const {list, reason, edit} = writes;
   const {screens} = resources;
-
+  const labels = useThemes(view => view.labels);
   const [themeId, setThemeId] = useState<ThemeId | null>(null);
-
   const [screenId, setScreenId] = useState<ScreenId | null>(null);
 
-  const chosen =
-    file === null
-      ? undefined
-      : ((themeId === null ? undefined : findTheme(file, themeId)) ??
-        file.themes[0] ??
-        file.standby);
-  // NOTE(0913vision): The 대기 화면 of an older file may have no 무대 화면
-  // layout; the editor shows the built-in one that output draws.
   const theme =
-    file !== null && chosen?.id === file.standby.id
-      ? withStageStandby(chosen, screens)
-      : chosen;
-
-  const screen = screens.find(value => value.id === screenId) ?? screens[0];
-
-  const target: ThemeTarget | undefined =
-    theme === undefined || screen === undefined
+    list?.themes.find(entry => entry.id === themeId) ?? list?.themes[0];
+  const screen = screens.find(entry => entry.id === screenId) ?? screens[0];
+  const target = useMemo(
+    () =>
+      theme === undefined || screen === undefined
+        ? undefined
+        : {theme, screen, screens},
+    [theme, screen, screens],
+  );
+  const own =
+    target === undefined
       ? undefined
-      : {theme: theme.id, screen, screens};
-
+      : ownScreenOf(target.theme, target.screen, target.screens);
   const layout =
-    target === undefined || file === null
-      ? undefined
-      : themeLayout(file, target);
-
-  const resolvedLayout =
-    theme === undefined || screen === undefined
-      ? undefined
-      : resolveThemeScreen(theme, screen.id, screens).layout;
-  const fittedBroadcast =
-    screen?.kind === 'broadcast' &&
-    resolvedLayout !== undefined &&
-    isBroadcastLook(resolvedLayout);
-  const visibleElements =
-    resolvedLayout === undefined
-      ? []
-      : fittedBroadcast
-        ? sampleBroadcastLayout(resolvedLayout, theme?.id).elements
-        : resolvedLayout.elements.filter(
-            element => element.kind !== 'stageMessage',
-          );
-
+    target === undefined ? null : themeScreenOf(target.theme, target.screen);
+  const drawing = useMemo(
+    () =>
+      target === undefined
+        ? null
+        : sampleDrawing(target.theme, target.screen, {screens, labels}),
+    [target, screens, labels],
+  );
+  const placement = useThemePlacement(drawing?.drawing ?? null);
   const scope =
-    theme === undefined || screen === undefined
-      ? ''
-      : `${theme.id}:${screen.id}`;
-
+    target === undefined ? '' : `${target.theme.id}:${target.screen.id}`;
   const elementReason =
     reason ??
-    (layout?.mode.kind !== 'own'
-      ? '직접 배치에서만 바꿀 수 있습니다'
-      : undefined);
-  const selection = useThemeSelection(scope, visibleElements);
+    (own?.mode !== 'own' ? '직접 배치에서만 바꿀 수 있습니다' : undefined);
+  const selection = useThemeSelection(scope, layout?.elements ?? []);
   const actions = useThemeElements(
-    {target, elementReason, fittedBroadcast, visibleElements},
+    {target, layout, placement, elementReason},
     writes,
     selection,
   );
@@ -162,16 +135,33 @@ export function useThemeEditor(
     setThemeId(id);
     select(null);
   };
+  const chooseTheme = (id: ThemeId): void => {
+    if (writes.dirtyThemeId === null || writes.dirtyThemeId === id) choose(id);
+    else flow.askLeave(() => choose(id));
+  };
+  const requested = useThemeRequest(view => view.theme);
+  const answer = useRef(chooseTheme);
+  useLayoutEffect(() => {
+    answer.current = chooseTheme;
+  });
+  useEffect(() => {
+    if (!active || list === null || requested === null) return;
+    const id = takeThemeRequest();
+    if (id !== null) answer.current(id);
+  }, [active, list, requested]);
   return {
     ...resources,
     ...writes,
     ...selection,
     ...actions,
+    labels,
     theme,
     screen,
     target,
+    own,
     layout,
-    visibleElements,
+    drawing,
+    placement,
     elementReason,
     dialog: flow.dialog,
     saving: flow.saving,
@@ -182,54 +172,21 @@ export function useThemeEditor(
     saveAndLeave: flow.saveAndLeave,
     discardAndLeave: flow.discardAndLeave,
     chooseSaved: choose,
-    chooseTheme: (id: ThemeId) => {
-      if (writes.dirtyThemeId === null || writes.dirtyThemeId === id) {
-        choose(id);
-      } else flow.askLeave(() => choose(id));
-    },
+    chooseTheme,
     chooseScreen: (id: ScreenId) => {
       setScreenId(id);
       select(null);
     },
-    layoutChange: (transform: Parameters<typeof editThemeLayout>[2]) => {
-      if (target !== undefined) {
-        edit(target.theme, value => editThemeLayout(value, target, transform));
-      }
+    /** Changes the theme itself: its boxes, background and next text. */
+    themeChange: (change: (theme: ThemeFile) => ThemeFile | undefined) =>
+      theme === undefined ? false : edit(theme.id, change),
+    /** Changes what the theme says for the open screen. */
+    screenChange: (next: ThemeScreen) => {
+      if (target === undefined) return;
+      edit(target.theme.id, current =>
+        withScreen(current, target.screen, {layout: next, screens}),
+      );
     },
   };
-}
-
-/** Fit the same representative slide for both canvas and screen preview. */
-export function sampleBroadcastLayout(
-  layout: ThemeScreenLayout,
-  themeId: ThemeId | undefined,
-): ThemeScreenLayout {
-  const song = layout.elements.some(
-    element => element.id === BROADCAST_LOOK_SONG_ID,
-  );
-  const bible = themeId === BIBLE_THEME_ID;
-  const kind = song
-    ? ('song' as const)
-    : bible
-      ? ('bible' as const)
-      : ('blank' as const);
-  return fitBroadcastLook(
-    layout,
-    {
-      itemId: 'sample',
-      position: 0,
-      label: null,
-      kind,
-      lines: ['함께 노래합니다', '오늘도 빛을 비춥니다'],
-    },
-    {
-      item: {
-        id: 'sample',
-        kind,
-        source: 'service',
-        title: song ? '새찬송가 91장 슬픈 마음 있는 사람' : '요한복음 1:1',
-      },
-    },
-  );
 }
 export type ThemeModel = ReturnType<typeof useThemeEditor>;

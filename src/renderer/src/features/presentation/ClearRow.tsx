@@ -17,8 +17,7 @@ import styles from './ClearRow.module.css';
 function ItemOffButton({compact}: {readonly compact: boolean}): JSX.Element {
   const hasItem = useLive(
     view =>
-      view.state?.themeItem != null ||
-      (view.state?.testPatterns?.length ?? 0) > 0,
+      view.state?.item != null || (view.state?.testPatterns?.length ?? 0) > 0,
   );
   const restores = useLive(
     view =>

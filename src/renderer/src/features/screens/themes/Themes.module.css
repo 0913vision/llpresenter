@@ -131,6 +131,31 @@
   flex: 1;
   min-height: 0;
 }
+.templates {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-8);
+  min-width: 0;
+}
+.template {
+  display: flex;
+  align-self: stretch;
+  gap: var(--space-4);
+}
+.template > :first-child {
+  flex: 1;
+  min-width: 0;
+}
+.templateTools {
+  display: flex;
+  flex-direction: column;
+}
+.boxTools {
+  display: flex;
+  gap: var(--space-4);
+}
 .mode {
   display: flex;
   flex-direction: column;

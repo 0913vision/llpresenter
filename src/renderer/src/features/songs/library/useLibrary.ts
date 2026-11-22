@@ -1,4 +1,4 @@
-import {titleSlidesForCopy} from '@core/songs/newSongTitle';
+import {withSongTitle} from '@core/slides/songSlides';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {LibrarySong, SongDocument} from '@core/schema/contentDocuments';
@@ -298,22 +298,12 @@ export function useLibrary(
         source.song.title,
         rows.current.map(song => song.title),
       );
-      const slides = titleSlidesForCopy(source.song, title, () =>
-        crypto.randomUUID(),
-      );
-      const transition = (await window.llp?.preferences.get())?.show
-        .slideDefaults.songTitle;
       const result = await api.content.edit({
         type: 'song.saveAs',
         song: {
           ...source.song,
           title,
-          slides:
-            source.song.slides[0]?.titleSlide || transition === undefined
-              ? slides
-              : slides.map((slide, index) =>
-                  index === 0 ? {...slide, transition} : slide,
-                ),
+          slides: withSongTitle(source.song.slides, source.song.title, title),
         },
       });
       const copyId = appliedId(result);

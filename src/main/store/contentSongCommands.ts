@@ -2,15 +2,11 @@ import {join} from 'node:path';
 import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
 import {checkPart} from '@core/schema/fileFormat';
 import {preserveUnknownFields} from '@core/schema/preserveUnknown';
-import {createSongSlideId, createSongId, type SongId} from '@core/schema/ids';
-import {
-  songSchema,
-  SONG_SCHEMA_VERSION,
-  sourceSlideCount,
-  type Song,
-} from '@core/schema/song';
+import {createSongId, type SongId} from '@core/schema/ids';
+import {songSchema, SONG_SCHEMA_VERSION, type Song} from '@core/schema/song';
 import {freeTitle, normalizeSongTitle} from './contentEdits';
 import {defaultSlideTransitions} from '@core/schema/preferences';
+import {newSongSlides} from '@core/slides/songSlides';
 import type {ContentCommandContext, ContentHandlers} from './contentCommands';
 
 const NEW_SONG_TITLE = '새 곡';
@@ -64,10 +60,6 @@ class SongContentCommands {
         id,
         title,
         slides: draft.slides,
-        ...(draft.theme === undefined ? {} : {theme: draft.theme}),
-        ...(draft.background === undefined
-          ? {}
-          : {background: draft.background}),
         updatedAt: this.context.now(),
       }),
     );
@@ -95,27 +87,21 @@ class SongContentCommands {
       this.context.songs.all().map(({data}) => normalizeSongTitle(data.title)),
     );
     const title = freeTitle(NEW_SONG_TITLE, titles);
-    const defaults =
-      this.context.settings?.preferences().show.slideDefaults ??
-      defaultSlideTransitions;
+    const themes = this.context.settings?.get('themes');
     const song: Song = {
       format: 'llsong',
       schemaVersion: SONG_SCHEMA_VERSION,
       id,
       title,
-      slides: [
+      slides: newSongSlides(
         {
-          id: createSongSlideId(this.context.newId()),
-          titleSlide: true,
-          lines: [title],
-          transition: defaults.songTitle,
+          themes: themes?.name === 'themes' ? themes.value : null,
+          transitions:
+            this.context.settings?.preferences().show.slideDefaults ??
+            defaultSlideTransitions,
         },
-        {
-          id: createSongSlideId(this.context.newId()),
-          lines: [],
-          transition: defaults.song,
-        },
-      ],
+        title,
+      ),
     };
     const file = join(this.context.locations.songs, `${id}${SONG_EXTENSION}`);
     const full = this.context.savesFull([file]);
@@ -185,11 +171,7 @@ class SongContentCommands {
     }
     const full = this.context.savesFull([checked.value.file]);
     if (full !== null) return full;
-    const {
-      background: _background,
-      updatedAt: _updatedAt,
-      ...kept
-    } = checked.value.data;
+    const {updatedAt: _updatedAt, ...kept} = checked.value.data;
     const stored = this.context.songs.replace(checked.value, {
       ...kept,
       ...song,
@@ -206,7 +188,7 @@ class SongContentCommands {
     });
     if (
       checked.value.data.title !== title ||
-      sourceSlideCount(checked.value.data) !== sourceSlideCount(song)
+      checked.value.data.slides.length !== song.slides.length
     ) {
       this.context.announceList(
         'songs',

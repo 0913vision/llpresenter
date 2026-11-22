@@ -1,90 +1,59 @@
 import type {BibleLookupPassage} from '@core/schema/bibleLookup';
-import type {BibleSlides} from '@core/schema/biblePassage';
 import type {BibleCutsFile} from '@core/schema/bibleCuts';
 import type {ThemeId} from '@core/schema/ids';
-import type {Screen} from '@core/schema/screens';
-import type {ThemesFile} from '@core/schema/themes';
+import type {Slide} from '@core/schema/slide';
+import type {ThemeFile} from '@core/schema/theme';
+import type {Themes} from '@core/schema/themes';
 import {splitPassage, type PassageSplit} from '@core/bible/split/splitPassage';
-import {slideTheme} from '@renderer/platform/useSlideTheme';
+import {themeFor, themeOf} from '@core/theme/themes';
 import {
-  bibleMeasure,
-  type BibleFontMeasure,
-  type BibleTextElement,
-} from '@renderer/rendering/bibleMeasure';
+  elementOfBox,
+  splitLayoutOf,
+  type FontMeasure,
+} from '@renderer/rendering/theme/splitMeasure';
 
-export type BibleAppearance = NonNullable<ReturnType<typeof slideTheme>>;
-
-/** A passage cut for the text box of its theme on the audience screen. */
+/** A passage cut for the text box of its theme on 청중. */
 export interface BibleSplit extends PassageSplit {
-  readonly element: BibleTextElement;
-  readonly appearance: BibleAppearance;
+  readonly theme: ThemeFile;
 }
 
 export interface SplitRequest {
   readonly verseNumbers: boolean;
-  readonly slides?: BibleSlides | undefined;
+  /** Slides that some of the verses have already. */
+  readonly slides?: readonly Slide[] | undefined;
+  /** The theme of the slides, when it isn't the one for new ones. */
   readonly theme?: ThemeId | undefined;
-  readonly source?: 'service' | 'external';
-  /** Whether a verse that was cut by hand before is cut the same way again. */
-  readonly remember?: boolean;
 }
 
-/** Cuts passages with the themes, screens and fonts of one moment. */
+/** Cuts passages with the themes and fonts of one moment. */
 export class PassageSplitter {
   constructor(
     private readonly context: {
-      readonly themes: ThemesFile;
-      readonly screens: readonly Screen[];
+      readonly themes: Themes;
       readonly saved: BibleCutsFile | undefined;
-      readonly canvas: BibleFontMeasure;
+      readonly canvas: FontMeasure;
     },
   ) {}
 
   split(
     passage: BibleLookupPassage,
-    {
-      verseNumbers,
-      slides,
-      theme,
-      source = 'service',
-      remember = true,
-    }: SplitRequest,
+    {verseNumbers, slides, theme: own}: SplitRequest,
   ): BibleSplit | null {
-    const appearance = slideTheme(
-      {
-        kind: 'bible',
-        id: 'passage',
-        title: passage.displayRef,
-        ...(theme === undefined
-          ? {}
-          : {
-              bible: {
-                translation: passage.translation,
-                ref: passage.ref,
-                theme,
-              },
-            }),
-      },
-      {
-        source,
-        file: this.context.themes,
-        screens: this.context.screens,
-      },
-    );
-    const element = appearance?.layout.elements.find(
-      (candidate): candidate is BibleTextElement =>
-        candidate.kind === 'currentText',
-    );
-    if (appearance === undefined || element === undefined) return null;
+    const {themes, saved, canvas} = this.context;
+    const theme =
+      (own === undefined ? undefined : themeOf(themes, own)) ??
+      themeFor(themes, 'scripture');
+    const element = elementOfBox(theme, '본문');
+    if (element === undefined) return null;
     const split = splitPassage(passage, {
-      layout: bibleMeasure(element, this.context.canvas),
-      saved: remember ? this.context.saved : undefined,
-      slides,
+      layout: splitLayoutOf(element, canvas),
+      saved,
+      ...(slides === undefined ? {} : {slides}),
       verseNumbers,
     });
     return split.parts.some(part => part.problem !== undefined)
       ? null
-      : {...split, element, appearance};
+      : {...split, theme};
   }
 }
 

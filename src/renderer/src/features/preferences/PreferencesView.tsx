@@ -32,9 +32,9 @@ import {useBibleEdits} from './useBibleEdits';
 import {usePreferenceEdits} from './usePreferenceEdits';
 import {useAudioOutputs} from './useAudioOutputs';
 import styles from './PreferencesView.module.css';
-import {LabelsPage} from './LabelsPage';
-import type {SongEditorStore} from '../songs/editor/songEditorStore';
-import type {LabelManagerHandle} from '../songs/editor/LabelManager';
+import {LabelsPage} from '../labels/LabelsPage';
+import type {LabelCatalog} from '../labels/labelCatalog';
+import type {LabelManagerHandle} from '../labels/LabelManager';
 
 const NAV_LABEL = '환경설정 항목';
 const noSubscribe = () => () => undefined;
@@ -49,7 +49,7 @@ function preferencesFontsReady(): Promise<unknown> {
 interface PreferencesViewProps {
   readonly onProblem: (notice: Notice) => void;
   readonly onDismiss?: ((key: string) => void) | undefined;
-  readonly labelStore?: SongEditorStore | undefined;
+  readonly labelStore?: LabelCatalog | undefined;
   readonly onReady?: ((request: PreferencesRequest) => void) | undefined;
   readonly request?: PreferencesRequest | undefined;
   readonly onPageSelect?: ((page: PreferencePageId) => void) | undefined;
@@ -94,7 +94,7 @@ function PreferencesContent({
     labelStore?.subscribe ?? noSubscribe,
     () =>
       labelStore?.getSnapshot().labels !== null ||
-      labelStore.getSnapshot().labelsStatus === 'failed',
+      labelStore.getSnapshot().status === 'failed',
   );
   const [localRequest, setRequest] = useState<PreferencesRequest | null>(null);
   const request = controlledRequest ?? localRequest;

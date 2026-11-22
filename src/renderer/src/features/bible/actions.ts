@@ -1,11 +1,16 @@
 import type {BibleLookupPassage} from '@core/schema/bibleLookup';
+import {cutBy} from '@core/bible/split/splitPassage';
+import {passageSlides} from '@core/slides/passageSlides';
+import {slideMaking} from '@renderer/platform/themes';
+import {
+  bibleSource,
+  type BibleDisplay,
+  type BibleSource,
+} from '@renderer/session/bibleSource';
+import {useLive} from '@renderer/session/live';
 import {outputTile, useShow} from '@renderer/session/show';
 import {beginOutputRequest} from '@renderer/session/showOutput';
-import {useLive} from '@renderer/session/live';
-import {bibleSourceFor, tilesForView} from '@renderer/session/showLibrary';
-import {bibleSource, type BiblePreviewOptions} from '@core/bible/source';
-import {retainedBibleSelection} from '@core/bible/selection';
-import {slidesOfParts} from '@core/bible/split/splitPassage';
+import {bibleSourceFor, withBibleSource} from '@renderer/session/showLibrary';
 import {passageSplitter} from './passageSplitter';
 
 function samePassage(
@@ -15,110 +20,103 @@ function samePassage(
   return first.ref === second.ref && first.translation === second.translation;
 }
 
+/** Whether a passage shows verses of another one the same way. */
+function goesOnFrom(
+  opened: BibleSource | null,
+  passage: BibleLookupPassage,
+  display: BibleDisplay,
+): opened is BibleSource {
+  return (
+    opened !== null &&
+    opened.passage.translation === passage.translation &&
+    opened.verseNumbers === display.verseNumbers &&
+    (opened.translationName ?? false) === (display.translationName ?? false) &&
+    opened.passage.verses.some(verse =>
+      passage.verses.some(
+        other => other.chapter === verse.chapter && other.verse === verse.verse,
+      ),
+    )
+  );
+}
+
+/** Makes the slides of a passage, with the ones its verses had already. */
+function sourceOf(
+  passage: BibleLookupPassage,
+  display: BibleDisplay,
+  opened: BibleSource | null,
+): BibleSource {
+  const kept = goesOnFrom(opened, passage, display) ? opened : null;
+  const {verseNumbers, translationName = false, transition} = display;
+  const before = kept?.slides ?? [];
+  const split = passageSplitter()?.split(passage, {
+    verseNumbers,
+    slides: before,
+  });
+  const slides = passageSlides(slideMaking(), {
+    passage,
+    settings: {verseNumbers, translationName},
+    cut: split == null ? text => [text] : cutBy(split),
+    before,
+  }).map(slide =>
+    transition === undefined || before.includes(slide)
+      ? slide
+      : {...slide, transition},
+  );
+  return bibleSource(kept?.id ?? `bible:${crypto.randomUUID()}`, passage, {
+    ...display,
+    slides,
+  });
+}
+
 /** Opens a passage, cut to fit the 말씀 theme, without sending it out. */
 export function openBiblePassage(
   passage: BibleLookupPassage,
-  options: BiblePreviewOptions = {verseNumbers: true},
-  {waitForLive = false}: {readonly waitForLive?: boolean} = {},
-): void {
+  display: BibleDisplay = {verseNumbers: true},
+  before?: BibleSource,
+): BibleSource {
   const view = useShow.getState();
-  const opened = bibleSourceFor(view, view.openItemId);
-  // NOTE(0913vision): A longer passage keeps the slides of the verses it had.
-  const slides =
-    opened?.passage.translation === passage.translation
-      ? opened.slides
-      : undefined;
-  const split = passageSplitter()?.split(passage, {
-    verseNumbers: options.verseNumbers,
-    slides,
-    source: 'external',
-  });
-  const source = bibleSource(passage, {
-    ...options,
-    slides:
-      split == null
-        ? undefined
-        : slidesOfParts(split.parts, {
-            slides,
-            transition: options.transition,
-          }),
-  });
-  const live = useLive.getState();
-  const liveItemId = live.state?.layers.slide?.itemId ?? null;
-  const liveBibleSource = bibleSourceFor(view, liveItemId);
-  const previous = bibleSourceFor(view, view.openItemId);
+  const opened = before ?? bibleSourceFor(view, view.openItemId);
+  const source = sourceOf(passage, display, opened);
   const insertion =
-    previous?.insertion?.serviceId === view.serviceId
-      ? previous.insertion
+    opened?.insertion?.serviceId === view.serviceId
+      ? opened.insertion
       : {serviceId: view.serviceId, itemId: view.openItemId};
+  const selected = opened?.tiles[view.selectedTile]?.slide.id;
   beginOutputRequest();
-  const readyPassage = waitForLive
-    ? {
-        id: source.id,
-        previous: view.openItemId,
-        previousSource: previous,
-        title: passage.displayRef,
-      }
-    : null;
-  const next = {
-    bibleSource: {...source, insertion},
-    liveBibleSource,
-    requestedBibleSource:
-      view.requestedBibleSource?.id === liveItemId
-        ? null
-        : view.requestedBibleSource,
-    openItemId: source.id,
-    readyItemId: source.id,
-    readyPassage,
-  };
-  const nextTiles = tilesForView({...view, ...next}, source.id);
   useShow.setState({
-    ...next,
-    selectedTile:
-      previous !== null && samePassage(previous.passage, passage)
-        ? retainedBibleSelection(
-            tilesForView(view, previous.id),
-            view.selectedTile,
-            nextTiles,
-          )
-        : 0,
+    bibleSources: withBibleSource(
+      view,
+      {...source, insertion},
+      useLive.getState().state?.layers.slide?.itemId ?? null,
+    ),
+    openItemId: source.id,
+    selectedTile: Math.max(
+      0,
+      source.tiles.findIndex(tile => tile.slide.id === selected),
+    ),
   });
-  if (readyPassage !== null) {
-    setTimeout(() => {
-      if (useShow.getState().readyPassage === readyPassage) {
-        useShow.setState({readyPassage: null});
-      }
-    }, 1000);
-  }
+  return source;
 }
 
-/** Outputs the selected Bible tile through the standard slide command path. */
+/** Outputs the selected slide of a passage like any other slide. */
 export function showBiblePassage(
   passage: BibleLookupPassage,
-  options?: BiblePreviewOptions,
+  display?: BibleDisplay,
 ): void {
-  const current = useShow.getState();
-  const prepared = bibleSourceFor(current, current.openItemId);
-  const display =
-    options ??
-    (prepared !== null && samePassage(prepared.passage, passage)
-      ? {
-          verseNumbers: prepared.verseNumbers,
-          reference: prepared.reference,
-          translationName: prepared.translationName,
-          transition: prepared.transition,
-          enteredRef: prepared.enteredRef,
-          enteredTranslation: prepared.enteredTranslation,
-          review: prepared.review,
-        }
-      : undefined);
-  openBiblePassage(passage, {
-    ...display,
-    verseNumbers: display?.verseNumbers ?? true,
-    review: display?.review ?? true,
-  });
   const view = useShow.getState();
-  if (view.openItemId !== null) {
-    outputTile({itemId: view.openItemId, index: view.selectedTile});
-  }
+  const prepared = bibleSourceFor(view, view.openItemId);
+  const own =
+    display ??
+    (prepared !== null && samePassage(prepared.passage, passage)
+      ? prepared
+      : undefined);
+  const source =
+    prepared !== null && own === prepared
+      ? prepared
+      : openBiblePassage(passage, {
+          ...own,
+          verseNumbers: own?.verseNumbers ?? true,
+          review: own?.review ?? true,
+        });
+  outputTile({itemId: source.id, index: useShow.getState().selectedTile});
 }

@@ -1,14 +1,12 @@
-import {useSyncExternalStore} from 'react';
-import {commandBindingStore} from '@renderer/ui/commandBindings';
 import {parseScreenId} from '@core/schema/ids';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useMenuShortcuts} from '@renderer/ui/useMenuShortcuts';
 import {sendThemeChange} from '@renderer/features/screens/themeActions';
+import {themesLike} from '@renderer/features/screens/themeMenuEntries';
 import {sendLive} from '@renderer/session/live';
 import type {JSX} from 'react';
-import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
+import {useThemes} from '@renderer/platform/themes';
 import {useLive, useOutputs} from '@renderer/session/live';
-import {isSectionTheme} from '@core/themes/sundaySections';
 import {Menu} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
 import {useScreenSummaries} from '../../platform/ScreenSummaries';
@@ -35,38 +33,19 @@ export function OutputMenuList({
 }): JSX.Element | null {
   const screens = useScreenSummaries();
   const outputs = useOutputs();
-  const bindings = useSyncExternalStore(
-    commandBindingStore.subscribe,
-    commandBindingStore.get,
-  );
-  const needed =
-    anchor !== null ||
-    Object.keys(bindings).some(
-      id =>
-        /^(output.|theme.|workspace.themes$)/.test(id) &&
-        (bindings[id]?.length ?? 0) > 0,
-    );
-  const themes = useSettingsDocument(
-    needed ? 'themes' : null,
-    '테마',
-    onProblem,
-  );
-  const themeId = useLive(view => view.state?.themeOutput?.themeId);
+  const themes = useThemes(view => view.themes);
+  const live = useLive(view => view.state?.themeOutput?.theme);
   const hasItem = useLive(
     view =>
-      view.state?.themeItem != null ||
-      (view.state?.testPatterns?.length ?? 0) > 0,
+      view.state?.item != null || (view.state?.testPatterns?.length ?? 0) > 0,
   );
-  const sectionCard = useLive(
-    view => view.state?.layers.slide?.sectionCard !== undefined,
-  );
+  const offered = themesLike(themes, live);
   const entries = outputMenuEntries({
     screens,
     outputs,
-    themes: themes?.value ?? null,
-    themeId,
+    themes: offered,
+    theme: live,
     hasItem,
-    sectionCard,
     warnings,
     onShowWarning,
     onWorkspace,
@@ -79,12 +58,10 @@ export function OutputMenuList({
       when: () => onWorkspace !== undefined,
       run: () => onWorkspace?.('screens'),
     },
-    ...(themes?.value.themes ?? [])
-      .filter(theme => sectionCard || !isSectionTheme(theme.id))
-      .map(theme => ({
-        id: `theme.${theme.id}`,
-        run: () => sendThemeChange(theme.id, onProblem),
-      })),
+    ...offered.map(theme => ({
+      id: `theme.${theme.id}`,
+      run: () => sendThemeChange(theme.id, onProblem),
+    })),
     ...screens.map(screen => ({
       id: `output.screen.${screen.id}`,
       run: () => {

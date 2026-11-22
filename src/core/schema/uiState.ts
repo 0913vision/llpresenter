@@ -5,6 +5,7 @@ import {mediaBrowserSchema} from './mediaBrowser';
 import {screenIdSchema, macroCollectionIdSchema} from './ids';
 import {panelRowsChangeSchema} from './panelRows';
 import {parsePayload, payloadObject, type PayloadError} from './payload';
+import {slideColumnsSchema} from './slideColumns';
 
 /**
  * The ranges of the design system `Layout`: the left and right column widths
@@ -38,8 +39,6 @@ const layoutChangeSchema = v.pipe(
     detailsSlideScalePercent: integerIn(COLUMN_LIMITS.thumbnailScalePercent),
     editorSlideView: v.exactOptional(v.picklist(['list', 'grid'])),
     editorSlideScalePercent: integerIn(COLUMN_LIMITS.thumbnailScalePercent),
-    songEditorSlideView: v.exactOptional(v.picklist(['list', 'grid'])),
-    songEditorSlideScalePercent: integerIn(COLUMN_LIMITS.thumbnailScalePercent),
   }),
   v.check(
     ({left, right}) => (left === undefined) === (right === undefined),
@@ -62,6 +61,7 @@ const uiStateSchema = payloadObject({
   showToolTab: v.exactOptional(
     v.picklist(['audio', 'stage', 'timer', 'message', 'prop', 'macro']),
   ),
+  slideColumns: v.exactOptional(slideColumnsSchema),
 });
 
 const rememberedViewChangeSchema = v.pipe(
@@ -73,6 +73,7 @@ const rememberedViewChangeSchema = v.pipe(
     showToolTab: v.exactOptional(
       v.picklist(['audio', 'stage', 'timer', 'message', 'prop', 'macro']),
     ),
+    slideColumns: v.exactOptional(slideColumnsSchema),
   }),
   v.check(
     value => Object.keys(value).length > 0,
@@ -102,6 +103,7 @@ export type UiState = Pick<
   | 'macroView'
   | 'macroCollection'
   | 'showToolTab'
+  | 'slideColumns'
 >;
 
 /** One boolean choice; no collection or unconstrained numeric payload. */

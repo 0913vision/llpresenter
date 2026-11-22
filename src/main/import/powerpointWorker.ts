@@ -2,11 +2,7 @@ import {createHash} from 'node:crypto';
 import {open, writeFile} from 'node:fs/promises';
 import {parentPort, workerData} from 'node:worker_threads';
 import {POWERPOINT_IMPORT_LIMITS} from '@core/songs/textImportLimits';
-import {
-  readPowerPoint,
-  readPowerPointScene,
-  readPowerPointSize,
-} from './powerpointRead';
+import {readPowerPoint, readPowerPointSize} from './powerpointRead';
 import {PowerPointZip} from './powerpointZip';
 import type {PowerPointJob} from './powerpointJob';
 import {sameImage} from './matchImage';
@@ -23,23 +19,6 @@ function parseJob(value: unknown): PowerPointJob {
   }
   if (value.kind === 'read') return {kind: 'read', path: value.path};
   if (value.kind === 'size') return {kind: 'size', path: value.path};
-  if (
-    value.kind === 'layers' &&
-    'digest' in value &&
-    typeof value.digest === 'string' &&
-    'number' in value &&
-    typeof value.number === 'number' &&
-    Number.isSafeInteger(value.number) &&
-    value.number > 0 &&
-    value.number <= POWERPOINT_IMPORT_LIMITS.slides
-  ) {
-    return {
-      kind: 'layers',
-      path: value.path,
-      digest: value.digest,
-      number: value.number,
-    };
-  }
   if (
     value.kind === 'match' &&
     'candidates' in value &&
@@ -63,22 +42,31 @@ function parseJob(value: unknown): PowerPointJob {
     return {kind: 'match', path: value.path, candidates: valid};
   }
   if (
-    value.kind === 'background' &&
+    value.kind === 'pictures' &&
     'digest' in value &&
     typeof value.digest === 'string' &&
-    'index' in value &&
-    typeof value.index === 'number' &&
-    Number.isSafeInteger(value.index) &&
-    value.index >= 0 &&
-    'target' in value &&
-    typeof value.target === 'string'
+    'pictures' in value &&
+    Array.isArray(value.pictures)
   ) {
+    const listed: readonly unknown[] = value.pictures;
+    const pictures = listed.map(item => {
+      if (
+        typeof item !== 'object' ||
+        item === null ||
+        !('part' in item) ||
+        typeof item.part !== 'string' ||
+        !('target' in item) ||
+        typeof item.target !== 'string'
+      ) {
+        throw new Error('Invalid PowerPoint picture');
+      }
+      return {part: item.part, target: item.target};
+    });
     return {
-      kind: 'background',
+      kind: 'pictures',
       path: value.path,
       digest: value.digest,
-      index: value.index,
-      target: value.target,
+      pictures,
     };
   }
   throw new Error('Invalid PowerPoint worker request');
@@ -134,32 +122,24 @@ async function run(): Promise<void> {
   if (job.kind !== 'read' && digest !== job.digest) {
     throw new Error('PowerPoint file changed after preview');
   }
-  if (job.kind === 'layers') {
-    parentPort?.postMessage(readPowerPointScene(bytes, job.number));
+  if (job.kind === 'pictures') {
+    const zip = new PowerPointZip(bytes);
+    for (const {part, target} of job.pictures) {
+      const image = zip.read(part);
+      if (!image) throw new Error('PowerPoint picture is unavailable');
+      await writeFile(target, image, {flag: 'wx'});
+    }
+    parentPort?.postMessage(true);
     return;
   }
   const deck = readPowerPoint(bytes);
-  if (job.kind === 'read') {
-    parentPort?.postMessage({
-      digest,
-      slides: deck.slides,
-      widescreen: deck.widescreen,
-      width: deck.width,
-      height: deck.height,
-    });
-    return;
-  }
-  const slide = deck.slides[job.index];
-  const part =
-    slide &&
-    readPowerPointScene(bytes, slide.number).layers.find(
-      layer => layer.kind === 'picture',
-    )?.part;
-  if (!part) throw new Error('PowerPoint background is unavailable');
-  const image = new PowerPointZip(bytes).read(part);
-  if (!image) throw new Error('PowerPoint background is unavailable');
-  await writeFile(job.target, image);
-  parentPort?.postMessage(true);
+  parentPort?.postMessage({
+    digest,
+    slides: deck.slides,
+    widescreen: deck.widescreen,
+    width: deck.width,
+    height: deck.height,
+  });
 }
 
 run().catch((error: unknown) => {

@@ -1,25 +1,19 @@
+import type {LlpApi} from '@contracts/ipc/api';
 import {quickAddBefore} from '@core/services/quickAddPosition';
-import {
-  createServiceItemId,
-  type ServiceId,
-  type SongId,
-} from '@core/schema/ids';
+import {createServiceItemId, type SongId} from '@core/schema/ids';
+import type {OpenServiceResult} from './openService';
+import {insertSong} from './serviceOrderEdits';
 import {useShow} from './showStore';
-import type {
-  ServiceOrderEdits,
-  ServiceOrderEditResult,
-} from './serviceOrderEdits';
 
 /** Inserts a library song at the current order selection. */
 export function insertSelectedSong(
-  edits: ServiceOrderEdits,
-  serviceId: ServiceId,
+  api: Pick<LlpApi, 'songs'>,
   songId: SongId,
-): Promise<ServiceOrderEditResult> {
+): Promise<OpenServiceResult> {
   const {rows, openItemId} = useShow.getState();
   const before = quickAddBefore(rows, openItemId);
-  return edits.insertSong(
-    serviceId,
+  return insertSong(
+    api,
     songId,
     before === null ? null : createServiceItemId(before),
   );

@@ -1,9 +1,24 @@
-import {displayReference} from '@core/bible/displayReference';
-import {isItemOfKind, type ServiceItem} from '@core/schema/service';
-import type {ShowLibrarySong} from '@core/schema/showLibrarySong';
-import type {SongSession} from '@renderer/features/songs/editor/songSession';
+import {
+  hasSlides,
+  isItemOfKind,
+  type ServiceItem,
+  type SlidesItem,
+} from '@core/schema/service';
 import type {ServiceItemId} from '@core/schema/ids';
-import {LITURGY} from '@core/services/liturgy';
+import type {ShowLibrarySong} from '@core/schema/showLibrarySong';
+import {itemTitle} from '@core/slides/tiles';
+import {themeOfSlide} from '@core/theme/themes';
+import {useThemes} from '@renderer/platform/themes';
+
+const KINDS: Readonly<Record<SlidesItem['kind'], string>> = {
+  song: '곡',
+  bible: '성경',
+  sermon: '설교',
+  liturgy: '예식문',
+  notice: '광고',
+  blank: '슬라이드',
+  media: '미디어',
+};
 
 /** Counts items following a section header up to the next header. */
 export function sectionItemCount(
@@ -21,73 +36,34 @@ export function sectionItemCount(
   return count;
 }
 
-/** The compact kind and slide-count line below a details title. */
-export function detailsKindLine(
-  item: ServiceItem | null,
-  kind: string,
-  count: number,
-): string {
-  if (item !== null && isItemOfKind(item, 'slides')) {
-    if (item.sectionCard !== undefined && item.slides.slides.length === 0) {
-      return '타이틀';
-    }
-    if (item.slides.form === 'blank') return `슬라이드 ${count}개`;
-  }
-  return `${kind}, 슬라이드 ${count}개`;
+/** Whether an item is a title alone. */
+function isTitle(item: SlidesItem): boolean {
+  const {themes} = useThemes.getState();
+  const [only, more] = item.slides;
+  return (
+    only !== undefined &&
+    more === undefined &&
+    themeOfSlide(themes, only).purpose === 'title'
+  );
 }
 
-/** Heading of the selected source, independent of the rendered controls. */
-export function detailsHeading({
-  item,
-  song,
-  library,
-  count,
-  mediaTitle,
-}: {
-  readonly item: Exclude<ServiceItem, {readonly header: string}> | null;
-  readonly song: SongSession | null;
-  readonly library: ShowLibrarySong | null;
-  readonly count: number;
-  readonly mediaTitle: string | undefined;
-}): {title: string; kind: string; count: number} {
+/** The name of the selected source, and what it is. */
+export function detailsHeading(
+  item: ServiceItem | undefined,
+  library: ShowLibrarySong | null,
+  count: number,
+): {readonly title: string; readonly line: string} {
   if (library !== null) {
-    return {title: library.title, kind: '곡', count};
+    return {title: library.title, line: `곡, 슬라이드 ${count}개`};
   }
-  if (item === null) return {title: '', kind: '', count: 0};
-  if (isItemOfKind(item, 'liturgy')) {
-    return {
-      title: LITURGY[item.liturgy.kind].name,
-      kind: '예식문',
-      count,
-    };
-  }
-  if (isItemOfKind(item, 'song')) {
-    return {
-      title: song?.document.song.title ?? '없는 곡',
-      kind: '곡',
-      count,
-    };
-  }
-  if (isItemOfKind(item, 'slides')) {
-    return {
-      title: item.slides.name,
-      kind: item.slides.form === 'ad' ? '광고' : '슬라이드',
-      count,
-    };
-  }
-  if (isItemOfKind(item, 'sermon')) {
-    return {
-      title: item.sermon.title,
-      kind: '설교',
-      count,
-    };
-  }
-  if (isItemOfKind(item, 'bible')) {
-    return {
-      title: displayReference(item.bible.ref),
-      kind: '성경',
-      count,
-    };
-  }
-  return {title: mediaTitle ?? '미디어 없음', kind: '미디어', count};
+  if (item === undefined || !hasSlides(item)) return {title: '', line: ''};
+  const title = itemTitle(item);
+  if (isTitle(item)) return {title, line: '타이틀'};
+  return {
+    title,
+    line:
+      item.kind === 'blank'
+        ? `슬라이드 ${count}개`
+        : `${KINDS[item.kind]}, 슬라이드 ${count}개`,
+  };
 }

@@ -1,17 +1,16 @@
 import {app, dialog, ipcMain} from 'electron';
-import {open, unlink, mkdtemp, rm, stat, copyFile} from 'node:fs/promises';
+import {copyFile, mkdtemp, readFile, rm, stat, unlink} from 'node:fs/promises';
 import {constants as fsConstants} from 'node:fs';
 import {basename, dirname, extname, join} from 'node:path';
 import {randomUUID} from 'node:crypto';
 import {powerpointEndpoints} from '@contracts/ipc/powerpoint';
 import {
-  parsePowerPointDecorationBatchRequest,
-  parsePowerPointBackgroundRequest,
-  parsePowerPointReleaseRequest,
-  parsePowerPointReadResult,
-  parsePowerPointLayersRequest,
-  parsePowerPointScene,
+  parsePowerPointBackgroundsRequest,
   parsePowerPointOwnedImagesRequest,
+  parsePowerPointReadResult,
+  parsePowerPointReleaseRequest,
+  POWERPOINT_PICTURE_LIMITS,
+  type PowerPointBackgroundsResult,
   type PowerPointReadResult,
   type PowerPointSource,
 } from '@core/schema/powerpointImport';
@@ -21,7 +20,6 @@ import {PowerPointJobs} from './powerpointJob';
 import type {MediaStore} from '../store/mediaStore';
 import {createMediaId} from '@core/schema/ids';
 import {boundedPowerPointImage} from './powerpointImage';
-import {POWERPOINT_BACKGROUND_LIMITS} from '@core/songs/powerpointLayers';
 import {
   PowerPointImagesJob,
   type PowerPointImagesResult,
@@ -29,8 +27,6 @@ import {
 
 import {pickerFolder, rememberPickerFile} from './pickerFolder';
 import {isPowerPointFourThree} from './powerpointSize';
-
-const MAX_TEMP_FILES = 2;
 
 class PowerPointConversionError extends Error {
   constructor(readonly reason: PowerPointImagesResult) {
@@ -74,36 +70,6 @@ function conversionMessage(reason: PowerPointImagesResult): string {
       : 'PowerPoint 파일을 변환할 수 없습니다.';
 }
 
-async function exportDecorations(
-  jobs: Pick<PowerPointImagesJob, 'run'>,
-  {
-    path,
-    directory,
-    number,
-    stopped,
-  }: {
-    readonly path: string;
-    readonly directory: string;
-    readonly number: number;
-    readonly stopped: () => boolean;
-  },
-): Promise<PowerPointImagesResult> {
-  let result: PowerPointImagesResult = 'file';
-  for (let attempt = 0; attempt < 3; attempt++) {
-    if (stopped()) return 'cancelled';
-    result = await jobs.run(
-      path,
-      directory,
-      Object.assign(() => undefined, {decorationSlide: number}),
-    );
-    if (result === 'ok' || result === 'unavailable' || result === 'cancelled') {
-      return result;
-    }
-    if (attempt < 2) await new Promise(resolve => setTimeout(resolve, 1000));
-  }
-  return result;
-}
-
 function unsupportedSlideSize(value: unknown): string | null {
   if (typeof value !== 'object' || value === null || !('widescreen' in value)) {
     throw new Error('Invalid PowerPoint worker result');
@@ -127,6 +93,46 @@ function unsupportedSlideSize(value: unknown): string | null {
   return `4:3 슬라이드는 가져올 수 없습니다 (${cm(value.width)}×${cm(value.height)}cm)`;
 }
 
+interface Retained {
+  readonly path: string;
+  readonly digest: string;
+  readonly source: PowerPointSource;
+  /** The picture in the file that all of a slide's background is. */
+  readonly pictures: ReadonlyArray<string | undefined>;
+}
+
+/** The bytes of a picture, unless it is too large to be decoded. */
+async function readBoundedPicture(path: string): Promise<Buffer | null> {
+  try {
+    const info = await stat(path);
+    if (info.size <= 0 || info.size > POWERPOINT_PICTURE_LIMITS.bytes) {
+      return null;
+    }
+    const bytes = await readFile(path);
+    return boundedPowerPointImage(bytes) ? bytes : null;
+  } catch {
+    return null;
+  }
+}
+
+function picturesOf(slides: unknown): ReadonlyArray<string | undefined> {
+  return (Array.isArray(slides) ? slides : []).map((slide: unknown) =>
+    typeof slide === 'object' &&
+    slide !== null &&
+    'picture' in slide &&
+    typeof slide.picture === 'string'
+      ? slide.picture
+      : undefined,
+  );
+}
+
+function isFile(path: string): Promise<boolean> {
+  return stat(path).then(
+    () => true,
+    () => false,
+  );
+}
+
 export function registerPowerPointImport(
   context: TextImportRegistration & {
     readonly media?: Promise<Pick<MediaStore, 'get' | 'fileOf'> | null>;
@@ -142,28 +148,21 @@ export function registerPowerPointImport(
   } = new PowerPointImagesJob(),
 ): () => void {
   const converter = imageJobs.converter ?? new PowerPointImagesJob();
-  let retained: {
-    path: string;
-    digest: string;
-    source: PowerPointSource;
-  } | null = null;
+  let retained: Retained | null = null;
   let busy = false;
   let readCancelled = false;
   const isReadCancelled = (): boolean => readCancelled;
-  let drawingBusy = false;
-  let drawingFinished: Promise<void> = Promise.resolve();
   let disposed = false;
   let retainedDirectory: string | null = null;
   const isDisposed = (): boolean => disposed;
   const tempFiles = new Set<string>();
-  const extracting = new Set<string>();
   let imagesBusy = false;
   let imagesCancelled = false;
   const isImagesCancelled = (): boolean => imagesCancelled;
   const imageDirectories = new Set<string>();
   const retiredDirectories = new Set<string>();
   const cleanRetired = (): void => {
-    if (drawingBusy || imagesBusy || extracting.size > 0) return;
+    if (imagesBusy) return;
     for (const directory of retiredDirectories) {
       retiredDirectories.delete(directory);
       void rm(directory, {recursive: true, force: true}).catch(
@@ -402,40 +401,6 @@ export function registerPowerPointImport(
       cleanRetired();
     }
   });
-  ipcMain.handle(
-    powerpointEndpoints.layers.channel,
-    async (_event, value: unknown) => {
-      const request = parsePowerPointLayersRequest(value);
-      if (!request.ok || !retained || disposed || drawingBusy) return null;
-      const current = retained;
-      const slide = current.source.slides[request.value.index];
-      if (!slide?.background) return null;
-      drawingBusy = true;
-      let finishDrawing: () => void = () => undefined;
-      drawingFinished = new Promise<void>(resolve => {
-        finishDrawing = resolve;
-      });
-      try {
-        const result = await jobs.run({
-          kind: 'layers',
-          path: current.path,
-          digest: current.digest,
-          number: slide.number,
-        });
-        const parsed = parsePowerPointScene(result);
-        return parsed.ok && !isDisposed() && retained === current
-          ? parsed.value
-          : null;
-      } catch (error) {
-        context.log.warn('could not read PowerPoint background layers', error);
-        return null;
-      } finally {
-        drawingBusy = false;
-        finishDrawing();
-        cleanRetired();
-      }
-    },
-  );
   ipcMain.handle(powerpointEndpoints.cancelRead.channel, () => {
     if (!busy) return retireRetained();
     readCancelled = true;
@@ -519,6 +484,7 @@ export function registerPowerPointImport(
           path: importPath,
           digest: result.digest,
           source: parsed.value.value,
+          pictures: picturesOf(result.slides),
         };
         retainedDirectory = directory;
         directory = null;
@@ -542,229 +508,130 @@ export function registerPowerPointImport(
       }
     },
   );
-  ipcMain.handle(
-    powerpointEndpoints.background.channel,
-    async (_event, value: unknown) => {
-      const request = parsePowerPointBackgroundRequest(value);
-      if (!request.ok || retained === null) return null;
-      const current = retained;
-      const part = current.source.slides[request.value.index]?.background;
-      if (!part) return null;
-      if (tempFiles.size >= MAX_TEMP_FILES || disposed) return null;
-      if (request.value.decoration === true) {
-        if (imagesBusy || drawingBusy) return null;
-        imagesBusy = true;
-        imagesCancelled = false;
-        let directory: string | null = null;
-        try {
-          const slide = current.source.slides[request.value.index];
-          if (slide === undefined) return null;
-          directory = await mkdtemp(join(app.getPath('temp'), 'llp-ppt-'));
-          const copy = join(directory, `presentation${extname(current.path)}`);
-          await copyFile(current.path, copy, fsConstants.COPYFILE_EXCL);
-          await jobs.run({
-            kind: 'layers',
-            path: copy,
-            digest: current.digest,
-            number: slide.number,
-          });
-          if (isDisposed() || isImagesCancelled() || retained !== current) {
-            return null;
-          }
-          const result = await exportDecorations(imageJobs, {
-            path: copy,
-            directory,
-            number: slide.number,
-            stopped: () => isDisposed() || isImagesCancelled(),
-          });
-          if (
-            result !== 'ok' ||
-            isDisposed() ||
-            isImagesCancelled() ||
-            retained !== current
-          ) {
-            context.log.warn(`PowerPoint decoration export: ${result}`);
-            return null;
-          }
-          const path = join(directory, 'llp-ppt-0001.png');
-          await stat(path);
-          await rm(copy, {force: true});
-          tempFiles.add(path);
-          imageDirectories.add(directory);
-          directory = null;
-          return path;
-        } catch (error) {
-          context.log.warn('could not export PowerPoint decorations', error);
-          return null;
-        } finally {
-          if (directory !== null) {
-            await rm(directory, {recursive: true, force: true});
-          }
-          imagesBusy = false;
-          cleanRetired();
-        }
-      }
-      const image = request.value.image;
-      if (image && !boundedPowerPointImage(Buffer.from(image.bytes))) {
-        return null;
-      }
-      const extension = image
-        ? image.mime === 'image/png'
-          ? '.png'
-          : '.jpg'
-        : extname(part).toLowerCase() || '.png';
-      const temp = join(
-        app.getPath('temp'),
-        `llp-ppt-${randomUUID()}${extension}`,
+  /** Writes the pictures in the file that all of a background is. */
+  const writePictures = async (
+    current: Retained,
+    directory: string,
+    wanted: readonly number[],
+  ): Promise<ReadonlyMap<number, string>> => {
+    const found = wanted.flatMap(index => {
+      const part = current.pictures[index];
+      return part === undefined ? [] : [{index, part}];
+    });
+    const files = new Map<number, string>();
+    const pictures = found.map(({index, part}) => {
+      const target = join(
+        directory,
+        `llp-ppt-picture-${index}${extname(part).toLowerCase() || '.png'}`,
       );
-      tempFiles.add(temp);
-      extracting.add(temp);
-      let created = false;
-      try {
-        const file = await open(temp, 'wx');
-        created = true;
-        try {
-          if (image) {
-            await file.writeFile(image.bytes);
-            await file.sync();
-          }
-        } finally {
-          await file.close();
-        }
-        if (isDisposed() || retained !== current) {
-          throw new Error('PowerPoint import closed');
-        }
-        const result = image
-          ? true
-          : await jobs.run({
-              kind: 'background',
-              path: current.path,
-              digest: current.digest,
-              index: request.value.index,
-              target: temp,
-            });
-        if (result !== true || isDisposed()) {
-          throw new Error('PowerPoint extraction failed');
-        }
-        return temp;
-      } catch (error) {
-        if (created) await release(temp);
-        else tempFiles.delete(temp);
-        context.log.warn('could not extract PowerPoint background', error);
-        return null;
-      } finally {
-        extracting.delete(temp);
-        cleanRetired();
-      }
-    },
-  );
-  ipcMain.handle(
-    powerpointEndpoints.decorationBatch.channel,
-    async (event, value: unknown) => {
-      const request = parsePowerPointDecorationBatchRequest(value);
-      if (drawingBusy) await drawingFinished;
-      const current = retained;
-      if (
-        !request.ok ||
-        current === null ||
-        disposed ||
-        imagesBusy ||
-        drawingBusy ||
-        tempFiles.size > 0
-      ) {
-        return null;
-      }
-      const numbers = request.value.indices.flatMap(index => {
-        const slide = current.source.slides[index];
-        return slide === undefined || slide.background === null
-          ? []
-          : [slide.number];
+      files.set(index, target);
+      return {part, target};
+    });
+    if (pictures.length === 0) return files;
+    try {
+      await jobs.run({
+        kind: 'pictures',
+        path: current.path,
+        digest: current.digest,
+        pictures,
       });
-      if (
-        numbers.length !== request.value.indices.length ||
-        new Set(numbers).size !== numbers.length
-      ) {
+    } catch (error) {
+      context.log.warn('could not read PowerPoint pictures', error);
+      return new Map();
+    }
+    for (const [index, path] of files) {
+      const fits = await readBoundedPicture(path);
+      if (fits === null) files.delete(index);
+    }
+    return files;
+  };
+  /** Has PowerPoint draw the slides without their texts, one picture each. */
+  const exportPictures = async (
+    current: Retained,
+    directory: string,
+    {
+      indices,
+      progress,
+    }: {
+      readonly indices: readonly number[];
+      readonly progress: (done: number) => void;
+    },
+  ): Promise<ReadonlyMap<number, string>> => {
+    const files = new Map<number, string>();
+    if (indices.length === 0) return files;
+    const copy = join(directory, `presentation${extname(current.path)}`);
+    await copyFile(current.path, copy, fsConstants.COPYFILE_EXCL);
+    const result = await imageJobs.run(
+      copy,
+      directory,
+      Object.assign(progress, {
+        decorationSlides: indices.map(
+          index => current.source.slides[index]?.number ?? 0,
+        ),
+      }),
+    );
+    await rm(copy, {force: true});
+    if (result !== 'ok') {
+      context.log.warn(`PowerPoint background export: ${result}`);
+    }
+    for (const [position, index] of indices.entries()) {
+      const path = join(
+        directory,
+        `llp-ppt-${String(position + 1).padStart(4, '0')}.png`,
+      );
+      if (await isFile(path)) files.set(index, path);
+    }
+    return files;
+  };
+  ipcMain.handle(
+    powerpointEndpoints.backgrounds.channel,
+    async (event, value: unknown): Promise<PowerPointBackgroundsResult> => {
+      const request = parsePowerPointBackgroundsRequest(value);
+      const current = retained;
+      if (!request.ok || current === null || disposed || imagesBusy) {
+        return null;
+      }
+      const {indices} = request.value;
+      if (indices.some(index => current.source.slides[index] === undefined)) {
         return null;
       }
       imagesBusy = true;
       imagesCancelled = false;
       let directory: string | null = null;
+      const stopped = (): boolean =>
+        isImagesCancelled() || isDisposed() || retained !== current;
       try {
         const workDirectory = await mkdtemp(
           join(app.getPath('temp'), 'llp-ppt-'),
         );
         directory = workDirectory;
-        const copy = join(
-          workDirectory,
-          `presentation${extname(current.path)}`,
+        const files = new Map(
+          await writePictures(current, workDirectory, indices),
         );
-        await copyFile(current.path, copy, fsConstants.COPYFILE_EXCL);
-        const first = numbers[0];
-        if (
-          first === undefined ||
-          isImagesCancelled() ||
-          isDisposed() ||
-          retained !== current
-        ) {
-          return null;
-        }
-        await jobs.run({
-          kind: 'layers',
-          path: copy,
-          digest: current.digest,
-          number: first,
+        if (stopped()) return null;
+        const send = (done: number): void => {
+          if (event.sender.isDestroyed()) return;
+          event.sender.send(powerpointEndpoints.imageProgress.channel, {
+            done,
+            total: indices.length,
+          });
+        };
+        const ready = files.size;
+        send(ready);
+        const others = indices.filter(index => !files.has(index));
+        const exported = await exportPictures(current, workDirectory, {
+          indices: others,
+          progress: done => send(ready + done),
         });
-        if (isImagesCancelled() || isDisposed() || retained !== current) {
-          return null;
-        }
-        const progress = Object.assign(
-          (done: number, total: number) => {
-            if (!event.sender.isDestroyed()) {
-              event.sender.send(powerpointEndpoints.imageProgress.channel, {
-                done,
-                total,
-              });
-            }
-          },
-          {decorationSlides: numbers},
-        );
-        const result = await imageJobs.run(copy, workDirectory, progress);
-        if (
-          result !== 'ok' ||
-          isImagesCancelled() ||
-          isDisposed() ||
-          retained !== current
-        ) {
-          return null;
-        }
-        const candidates = request.value.indices.map((index, position) => ({
-          index,
-          path: join(
-            workDirectory,
-            `llp-ppt-${String(position + 1).padStart(4, '0')}.png`,
-          ),
-        }));
-        const exists = await Promise.all(
-          candidates.map(item =>
-            stat(item.path).then(
-              () => true,
-              () => false,
-            ),
-          ),
-        );
-        const paths = candidates.filter((_, position) => exists[position]);
-        await rm(copy, {force: true});
-        for (const item of paths) tempFiles.add(item.path);
-        if (paths.length > 0) {
-          imageDirectories.add(workDirectory);
-          directory = null;
-        }
-        return paths.length > 0 ? paths : null;
+        if (stopped()) return null;
+        for (const [index, path] of exported) files.set(index, path);
+        if (files.size === 0) return null;
+        for (const path of files.values()) tempFiles.add(path);
+        imageDirectories.add(workDirectory);
+        directory = null;
+        return [...files].map(([index, path]) => ({index, path}));
       } catch (error) {
-        context.log.warn(
-          'could not export PowerPoint preview decorations',
-          error,
-        );
+        context.log.warn('could not export PowerPoint backgrounds', error);
         return null;
       } finally {
         if (directory !== null) {
@@ -782,37 +649,12 @@ export function registerPowerPointImport(
       if (!request.ok || disposed || !tempFiles.has(request.value.path)) {
         return null;
       }
-      try {
-        const file = await open(request.value.path, 'r');
-        try {
-          const info = await file.stat();
-          if (
-            info.size <= 0 ||
-            info.size > POWERPOINT_BACKGROUND_LIMITS.imageBytes
-          ) {
-            return null;
-          }
-          const buffer = Buffer.alloc(info.size + 1);
-          const {bytesRead} = await file.read(buffer, 0, buffer.length, 0);
-          if (bytesRead !== info.size) {
-            return null;
-          }
-          const bytes = buffer.subarray(0, bytesRead);
-          if (
-            !tempFiles.has(request.value.path) ||
-            isDisposed() ||
-            !boundedPowerPointImage(bytes)
-          ) {
-            return null;
-          }
-          return {mime: bytes[0] === 137 ? 'image/png' : 'image/jpeg', bytes};
-        } finally {
-          await file.close();
-        }
-      } catch (error) {
-        context.log.warn('could not read PowerPoint preview image', error);
-        return null;
-      }
+      const bytes = await readBoundedPicture(request.value.path);
+      return bytes === null ||
+        !tempFiles.has(request.value.path) ||
+        isDisposed()
+        ? null
+        : {mime: bytes[0] === 137 ? 'image/png' : 'image/jpeg', bytes};
     },
   );
   ipcMain.handle(
@@ -863,17 +705,15 @@ export function registerPowerPointImport(
     jobs.dispose();
     ipcMain.removeHandler(powerpointEndpoints.read.channel);
     ipcMain.removeHandler(powerpointEndpoints.cancelRead.channel);
-    ipcMain.removeHandler(powerpointEndpoints.layers.channel);
-    ipcMain.removeHandler(powerpointEndpoints.background.channel);
+    ipcMain.removeHandler(powerpointEndpoints.backgrounds.channel);
     ipcMain.removeHandler(powerpointEndpoints.release.channel);
     ipcMain.removeHandler(powerpointEndpoints.previewImage.channel);
-    ipcMain.removeHandler(powerpointEndpoints.decorationBatch.channel);
     ipcMain.removeHandler(powerpointEndpoints.match.channel);
     ipcMain.removeHandler(powerpointEndpoints.images.channel);
     ipcMain.removeHandler(powerpointEndpoints.cancelImages.channel);
     ipcMain.removeHandler(powerpointEndpoints.storeImages.channel);
     for (const path of tempFiles) {
-      if (!extracting.has(path)) release(path).catch(() => undefined);
+      release(path).catch(() => undefined);
     }
     for (const directory of imageDirectories) {
       rm(directory, {recursive: true, force: true}).catch(() => undefined);

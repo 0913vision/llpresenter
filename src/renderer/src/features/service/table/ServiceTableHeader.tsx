@@ -4,8 +4,6 @@ import styles from './ServiceTable.module.css';
 
 const COLUMNS = [
   ['슬라이드', styles.slides],
-  ['테마', styles.theme],
-  ['배경', styles.background],
   ['시작할 때', styles.start],
   ['메모', styles.memo],
 ] as const;

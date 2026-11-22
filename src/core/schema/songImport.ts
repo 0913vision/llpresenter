@@ -1,9 +1,10 @@
 import * as v from 'valibot';
 import {revisionSchema} from './contentDocuments';
-import {mediaIdSchema, themeIdSchema, songIdSchema} from './ids';
+import {songIdSchema} from './ids';
 import {payloadObject, plainObject} from './payload';
 import {nonBlankText} from './primitives';
-import {SONG_NAME_MAX_LENGTH, songSlidesSchema} from './song';
+import {slidesSchema} from './slide';
+import {SONG_NAME_MAX_LENGTH} from './song';
 
 export const SONG_IMPORT_LIMITS = {
   slides: 5000,
@@ -17,18 +18,13 @@ export const songImportDraftSchema = v.pipe(
   payloadObject({
     title: v.pipe(nonBlankText, v.maxLength(SONG_IMPORT_LIMITS.name)),
     slides: v.pipe(
-      songSlidesSchema,
+      slidesSchema,
       v.minLength(1),
       v.maxLength(SONG_IMPORT_LIMITS.slides),
     ),
-    background: v.exactOptional(mediaIdSchema),
-    theme: v.exactOptional(themeIdSchema),
   }),
   v.check(
-    draft =>
-      draft.slides.reduce((total, slide) => total + slide.lines.length, 0) <=
-        SONG_IMPORT_LIMITS.lines &&
-      JSON.stringify(draft).length <= SONG_IMPORT_LIMITS.characters,
+    draft => JSON.stringify(draft).length <= SONG_IMPORT_LIMITS.characters,
     'The imported song exceeds its size limits',
   ),
 );

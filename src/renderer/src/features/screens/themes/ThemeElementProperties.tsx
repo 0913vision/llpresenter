@@ -1,12 +1,11 @@
 import type {JSX} from 'react';
-import type {ThemeElement} from '@core/schema/themes';
-import {BROADCAST_LOOK_SONG_TITLE_ID} from '@core/themes/broadcastLook';
 import {
-  BROADCAST_REFERENCE_ID,
-  BROADCAST_TEXT_ID,
-} from '@core/themes/broadcastBand';
-import {THEME_LIMITS} from '@core/themes/elementRules';
-import {hasThemeText} from '@core/themes/elementEdits';
+  THEME_FILE_LIMITS,
+  type ThemeElement,
+  type ThemeGroupedText,
+} from '@core/schema/theme';
+import {themeValues} from '@core/theme/boxes';
+import {changeSplit, changeStack, splitOf, stackOf} from '@core/theme/frames';
 import {GeometryField} from '@renderer/ui/GeometryField';
 import {
   Properties,
@@ -17,11 +16,22 @@ import {
 import {SegmentedControl} from '@renderer/ui/SegmentedControl';
 import {SelectMenu} from '@renderer/ui/SelectMenu';
 import {ColorProperty} from '../ColorProperty';
-import {ThemeTextProperties} from './ThemeTextProperties';
 import {ThemeImageChoice} from './ThemeImageChoice';
-import {ThemeNumber, ThemeCheck, ThemeContent} from './ThemePropertyFields';
-import {themeElementNames} from './themeNames';
-import type {ThemeModel} from './useThemeEditor';
+import {
+  ThemeCheck,
+  ThemeFitRow,
+  ThemeNumber,
+  ThemeOptionalNumber,
+} from './ThemePropertyFields';
+import {ThemeShapeProperties} from './ThemeShapeProperties';
+import {ThemeTemplates} from './ThemeTemplates';
+import {ThemeFitProperties, ThemeTextProperties} from './ThemeTextProperties';
+import {elementName} from './themeNames';
+import {themeCanvasBounds, type ThemeModel} from './useThemeEditor';
+
+const FRAME_FIELDS = ['x', 'y', 'w', 'h'] as const;
+const FREE = '';
+const FIRST_RATIO = 0.65;
 
 export function ThemeElementProperties({
   model,
@@ -31,50 +41,28 @@ export function ThemeElementProperties({
   readonly element: ThemeElement;
 }): JSX.Element {
   const reason = model.elementReason;
-  const change = (transform: (value: ThemeElement) => unknown): void =>
-    model.property(element.id, transform);
-  const box =
-    element.kind === 'box' || hasThemeText(element) ? element.box : undefined;
-  const boxChange = (patch: object): void =>
-    change(value =>
-      value.kind === 'box' || hasThemeText(value)
-        ? {
-            ...value,
-            box: {
-              on: true,
-              fill: '#000000',
-              opacity: 100,
-              radius: 0,
-              ...value.box,
-              ...patch,
-            },
-          }
-        : value,
-    );
+  const frame = model.frameOf(element.id) ?? element.frame;
+  const {width, height, minimumSize} = themeCanvasBounds;
   return (
     <Properties key={element.id}>
-      <PropertyGroup title={themeElementNames[element.kind]}>
+      <PropertyGroup title={elementName(element)}>
         <PropertyColumns responsive>
-          {(['x', 'y', 'w', 'h'] as const).map(field => (
+          {FRAME_FIELDS.map(field => (
             <PropertyRow key={field} label={field.toUpperCase()}>
               {({controlId}) => (
                 <GeometryField
                   id={controlId}
                   unit="px"
-                  value={element.frame[field]}
-                  min={
-                    field === 'x' || field === 'y'
-                      ? 0
-                      : THEME_LIMITS.minimumExtent
-                  }
+                  value={frame[field]}
+                  min={field === 'x' || field === 'y' ? 0 : minimumSize}
                   max={
                     field === 'x'
-                      ? THEME_LIMITS.width - element.frame.w
+                      ? width - frame.w
                       : field === 'y'
-                        ? THEME_LIMITS.height - element.frame.h
+                        ? height - frame.h
                         : field === 'w'
-                          ? THEME_LIMITS.width - element.frame.x
-                          : THEME_LIMITS.height - element.frame.y
+                          ? width - frame.x
+                          : height - frame.y
                   }
                   readOnly={reason !== undefined}
                   title={reason}
@@ -87,195 +75,338 @@ export function ThemeElementProperties({
             </PropertyRow>
           ))}
         </PropertyColumns>
-        {element.kind === 'itemName' &&
-        !(model.fittedBroadcast && element.id === BROADCAST_TEXT_ID) ? (
-          <ThemeCheck
-            label="가사 없을 때 가운데"
-            checked={element.centerWhenTextEmpty ?? false}
+        {element.kind === 'picture' ? (
+          <PropertyRow label="이미지">
+            {({controlId}) => (
+              <ThemeImageChoice
+                id={controlId}
+                selected={element.media}
+                reason={reason}
+                change={media =>
+                  model.property(element.id, value =>
+                    value.kind === 'picture' ? {...value, media} : value,
+                  )
+                }
+              />
+            )}
+          </PropertyRow>
+        ) : null}
+        {element.kind === 'picture' || element.kind === 'background' ? (
+          <ThemeFitRow
+            value={element.fit}
             reason={reason}
-            change={centerWhenTextEmpty =>
-              change(value =>
-                value.kind === 'itemName'
-                  ? {...value, centerWhenTextEmpty}
+            change={fit =>
+              model.property(element.id, value =>
+                value.kind === 'picture' || value.kind === 'background'
+                  ? {...value, fit}
                   : value,
               )
             }
           />
         ) : null}
-        {element.kind === 'reference' &&
-        !(model.fittedBroadcast && element.id === BROADCAST_REFERENCE_ID) ? (
-          <PropertyRow label="출처 표시">
-            {({controlId}) => (
-              <SelectMenu
-                id={controlId}
-                block
-                value={element.source ?? 'slide'}
-                options={[
-                  {value: 'slide', label: '지금 나오는 절'},
-                  {value: 'item', label: '본문 전체'},
-                ]}
-                disabled={reason !== undefined}
-                title={reason}
-                onChange={source => change(value => ({...value, source}))}
-              />
-            )}
-          </PropertyRow>
-        ) : null}
-        {element.kind === 'text' &&
-        !(
-          model.fittedBroadcast && element.id === BROADCAST_LOOK_SONG_TITLE_ID
-        ) ? (
-          <ThemeContent
-            value={element.content}
-            reason={reason}
-            begin={model.beginEditGroup}
-            change={content => change(value => ({...value, content}))}
-          />
-        ) : null}
-        {element.kind === 'clock' ? (
-          <PropertyRow label="시계 형식">
-            {({controlId, labelId}) => (
-              <SegmentedControl
-                id={controlId}
-                labelledBy={labelId}
-                value={element.clockFormat}
-                disabled={reason !== undefined}
-                title={reason}
-                options={[
-                  {value: '24h', label: '24시간'},
-                  {value: '12h', label: '12시간'},
-                ]}
-                onChange={clockFormat =>
-                  change(value => ({...value, clockFormat}))
-                }
-              />
-            )}
-          </PropertyRow>
-        ) : null}
-        {element.kind === 'clock' ? (
-          <ThemeCheck
-            label="초"
-            checked={element.seconds ?? false}
-            reason={reason}
-            change={seconds =>
-              change(value =>
-                value.kind === 'clock' ? {...value, seconds} : value,
-              )
-            }
-          />
-        ) : null}
-        {element.kind === 'timer' ? (
-          <PropertyRow label="타이머">
-            {({controlId}) => (
-              <SelectMenu
-                id={controlId}
-                value={element.timerId ?? ''}
-                disabled={reason !== undefined}
-                title={reason}
-                options={[
-                  {value: '', label: '없음'},
-                  ...model.timers.map(timer => ({
-                    value: timer.id,
-                    label: timer.name,
-                  })),
-                ]}
-                onChange={id =>
-                  change(value => {
-                    if (value.kind !== 'timer') return value;
-                    const {timerId, ...rest} = value;
-                    const timer = model.timers.find(timer => timer.id === id);
-                    return timer === undefined
-                      ? rest
-                      : {...rest, timerId: timer.id};
-                  })
-                }
-              />
-            )}
-          </PropertyRow>
-        ) : null}
-        {element.kind === 'image' ? (
-          <PropertyRow label="이미지">
-            {({controlId}) => (
-              <ThemeImageChoice
-                id={controlId}
-                images={model.images}
-                selected={element.mediaId}
-                reason={reason}
-                change={mediaId => change(value => ({...value, mediaId}))}
-              />
-            )}
-          </PropertyRow>
-        ) : null}
-        {element.kind === 'image' ||
-        element.kind === 'media' ||
-        element.kind === 'background' ||
-        element.kind === 'overlay' ? (
-          <PropertyRow label="맞춤">
-            {({controlId}) => (
-              <SelectMenu
-                id={controlId}
-                value={element.fit}
-                disabled={reason !== undefined}
-                title={reason}
-                options={[
-                  {value: 'fit', label: '맞추기'},
-                  {value: 'fill', label: '채우기'},
-                  {value: 'stretch', label: '늘리기'},
-                ]}
-                onChange={fit => change(value => ({...value, fit}))}
-              />
-            )}
-          </PropertyRow>
-        ) : null}
-        {element.kind === 'image' ||
-        element.kind === 'media' ||
-        element.kind === 'background' ? (
-          <ThemeNumber
-            label="모서리"
-            value={element.radius}
-            max={THEME_LIMITS.radius}
-            reason={reason}
-            change={radius => change(value => ({...value, radius}))}
-          />
+        {element.kind === 'next' ? (
+          <NextProperties model={model} element={element} />
         ) : null}
       </PropertyGroup>
-      {hasThemeText(element) ? (
-        <ThemeTextProperties model={model} element={element} />
+      {element.kind === 'text' ? (
+        <ContentProperties model={model} element={element} />
       ) : null}
-      {element.kind === 'box' || hasThemeText(element) ? (
-        <PropertyGroup title="배경">
-          <ThemeCheck
-            label="채우기"
-            checked={box?.on ?? false}
-            reason={reason}
-            change={on => boxChange({on})}
-          />
-          {box?.on ? (
-            <>
-              <ColorProperty
-                label="색"
-                value={box.fill}
-                reason={reason}
-                commit={fill => boxChange({fill})}
-              />
-              <ThemeNumber
-                label="불투명도"
-                value={box.opacity}
-                max={100}
-                reason={reason}
-                change={opacity => boxChange({opacity})}
-              />
-              <ThemeNumber
-                label="모서리"
-                value={box.radius ?? 0}
-                max={THEME_LIMITS.radius}
-                reason={reason}
-                change={radius => boxChange({radius})}
-              />
-            </>
-          ) : null}
-        </PropertyGroup>
+      {element.kind === 'text' || element.kind === 'next' ? (
+        <>
+          <ThemeTextProperties model={model} element={element} />
+          <ThemeFitProperties model={model} element={element} />
+          <GroupProperties model={model} element={element} />
+        </>
+      ) : null}
+      {element.kind === 'shape' ? (
+        <ThemeShapeProperties model={model} shape={element} />
       ) : null}
     </Properties>
+  );
+}
+
+type TextElement = Extract<ThemeElement, {readonly kind: 'text'}>;
+type NextElement = Extract<ThemeElement, {readonly kind: 'next'}>;
+
+function ContentProperties({
+  model,
+  element,
+}: {
+  readonly model: ThemeModel;
+  readonly element: TextElement;
+}): JSX.Element | null {
+  const {theme, screen, elementReason: reason} = model;
+  if (theme === undefined) return null;
+  const change = (update: (text: TextElement) => TextElement): void => {
+    model.property(element.id, value =>
+      value.kind === 'text' ? update(value) : value,
+    );
+  };
+  const {empty} = element;
+  return (
+    <PropertyGroup title="내용">
+      <ThemeTemplates
+        model={model}
+        label="문구"
+        templates={element.content}
+        values={themeValues(theme)}
+        reason={reason}
+        change={content => change(text => ({...text, content}))}
+      />
+      <ThemeCheck
+        label="없을 때 대신"
+        checked={empty !== undefined}
+        reason={reason}
+        change={on =>
+          change(text => {
+            const {empty: _empty, ...rest} = text;
+            return on
+              ? {...rest, empty: {content: [], color: text.style.color}}
+              : rest;
+          })
+        }
+      />
+      {empty === undefined ? null : (
+        <>
+          <ThemeTemplates
+            model={model}
+            label="대신할 문구"
+            templates={empty.content}
+            values={themeValues(theme)}
+            reason={reason}
+            change={content =>
+              change(text => ({...text, empty: {...empty, content}}))
+            }
+          />
+          <ColorProperty
+            label="대신할 글자색"
+            value={empty.color}
+            reason={reason}
+            commit={color =>
+              change(text => ({...text, empty: {...empty, color}}))
+            }
+          />
+        </>
+      )}
+      <ThemeCheck
+        label="이름표 함께"
+        checked={element.label ?? false}
+        reason={reason}
+        change={on =>
+          change(text => {
+            const {label: _label, ...rest} = text;
+            return on ? {...rest, label: true} : rest;
+          })
+        }
+      />
+      <ThemeOptionalNumber
+        label="한 줄로 잇기"
+        value={element.joinRows}
+        first={1}
+        min={1}
+        max={THEME_FILE_LIMITS.rows}
+        reason={reason}
+        change={joinRows =>
+          change(text => {
+            const {joinRows: _joinRows, ...rest} = text;
+            return joinRows === undefined ? rest : {...rest, joinRows};
+          })
+        }
+      />
+      {screen === undefined || screen.kind === 'audience' ? null : (
+        <PropertyRow label="청중과 같게">
+          {({controlId}) => (
+            <SelectMenu<'none' | 'size' | 'rows'>
+              id={controlId}
+              block
+              value={element.same ?? 'none'}
+              disabled={reason !== undefined}
+              title={reason}
+              options={[
+                {value: 'none', label: '없음'},
+                {value: 'size', label: '크기'},
+                {value: 'rows', label: '크기와 줄'},
+              ]}
+              onChange={same =>
+                change(text => {
+                  const {same: _same, ...rest} = text;
+                  return same === 'none' ? rest : {...rest, same};
+                })
+              }
+            />
+          )}
+        </PropertyRow>
+      )}
+    </PropertyGroup>
+  );
+}
+
+function NextProperties({
+  model,
+  element,
+}: {
+  readonly model: ThemeModel;
+  readonly element: NextElement;
+}): JSX.Element {
+  const reason = model.elementReason;
+  const texts = (model.layout?.elements ?? []).filter(
+    entry => entry.kind === 'text',
+  );
+  const change = (update: (next: NextElement) => NextElement): void => {
+    model.property(element.id, value =>
+      value.kind === 'next' ? update(value) : value,
+    );
+  };
+  return (
+    <>
+      <PropertyRow label="크기 기준">
+        {({controlId}) => (
+          <SelectMenu<string>
+            id={controlId}
+            block
+            value={element.of ?? FREE}
+            disabled={reason !== undefined}
+            title={reason}
+            options={[
+              {value: FREE, label: '없음'},
+              ...texts.map(entry => ({
+                value: entry.id,
+                label: elementName(entry),
+              })),
+            ]}
+            onChange={id =>
+              change(next => {
+                const {of: _of, ratio, ...rest} = next;
+                const text = texts.find(entry => entry.id === id);
+                return text === undefined
+                  ? rest
+                  : {...rest, of: text.id, ratio: ratio ?? FIRST_RATIO};
+              })
+            }
+          />
+        )}
+      </PropertyRow>
+      {element.of === undefined ? null : (
+        <ThemeNumber
+          label="비율"
+          value={element.ratio ?? FIRST_RATIO}
+          min={0.1}
+          max={1}
+          step={0.01}
+          reason={reason}
+          change={ratio => change(next => ({...next, ratio}))}
+        />
+      )}
+    </>
+  );
+}
+
+const ANCHORS = [
+  {value: 'top', label: '위'},
+  {value: 'center', label: '가운데'},
+  {value: 'bottom', label: '아래'},
+] as const;
+
+/** How a text stands with the other texts of its stack or split. */
+function GroupProperties({
+  model,
+  element,
+}: {
+  readonly model: ThemeModel;
+  readonly element: ThemeGroupedText;
+}): JSX.Element | null {
+  const {layout, elementReason: reason} = model;
+  if (layout === null) return null;
+  const stack = stackOf(layout, element.id);
+  const split = splitOf(layout, element.id);
+  const {height} = themeCanvasBounds;
+  if (stack !== undefined) {
+    const change = (update: Partial<typeof stack>): void => {
+      model.elements(screen => changeStack(screen, element.id, update));
+    };
+    return (
+      <PropertyGroup title="위아래로 쌓기">
+        <PropertyRow label="기준">
+          {({controlId, labelId}) => (
+            <SegmentedControl
+              id={controlId}
+              labelledBy={labelId}
+              fill
+              value={stack.anchor}
+              disabled={reason !== undefined}
+              title={reason}
+              options={ANCHORS}
+              onChange={anchor => change({anchor})}
+            />
+          )}
+        </PropertyRow>
+        <ThemeNumber
+          label="기준 위치"
+          value={stack.at}
+          max={height}
+          reason={reason}
+          change={at => change({at})}
+        />
+        <ThemeNumber
+          label="간격"
+          value={stack.gap}
+          min={-height}
+          max={height}
+          reason={reason}
+          change={gap => change({gap})}
+        />
+        <ThemeCheck
+          label="글자 높이로"
+          checked={stack.ink ?? false}
+          reason={reason}
+          change={ink => change({ink})}
+        />
+      </PropertyGroup>
+    );
+  }
+  if (split === undefined) return null;
+  const change = (update: Partial<typeof split>): void => {
+    model.elements(screen => changeSplit(screen, element.id, update));
+  };
+  return (
+    <PropertyGroup title="다음 글과 나누기">
+      <ThemeNumber
+        label="위 끝"
+        value={split.top}
+        max={height}
+        reason={reason}
+        change={top => change({top})}
+      />
+      <ThemeNumber
+        label="아래 끝"
+        value={split.bottom}
+        max={height}
+        reason={reason}
+        change={bottom => change({bottom})}
+      />
+      <ThemeNumber
+        label="다음 글 위치"
+        value={split.at}
+        max={height}
+        reason={reason}
+        change={at => change({at})}
+      />
+      <ThemeNumber
+        label="간격"
+        value={split.gap}
+        max={height}
+        reason={reason}
+        change={gap => change({gap})}
+      />
+      {split.upper.length < 2 ? null : (
+        <ThemeNumber
+          label="위 글 간격"
+          value={split.upperGap ?? 0}
+          max={height}
+          reason={reason}
+          change={upperGap => change({upperGap})}
+        />
+      )}
+    </PropertyGroup>
   );
 }

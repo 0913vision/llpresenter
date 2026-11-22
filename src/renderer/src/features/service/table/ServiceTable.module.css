@@ -1,6 +1,6 @@
 .table {
   /* NOTE(0913vision): The name and the cells share one row. At the regular
-     width the five cells keep their size-table-* widths and 메모 the rest of
+     width the three cells keep their size-table-* widths and 메모 the rest of
      its own; a narrower table shrinks the cells together and truncates; below
      --table-memo-hides, where the name would get less than 160px, 메모 hides
      (it stays in 항목 설정); a wider table gives the extra space to the name
@@ -13,8 +13,7 @@
       var(--space-10)
   );
   --table-fixed-width: calc(
-    var(--size-table-slides) + var(--size-table-theme) +
-      var(--size-table-background) + var(--size-table-start)
+    var(--size-table-slides) + var(--size-table-start)
   );
   --table-cells-width: calc(var(--table-fixed-width) + var(--size-table-memo));
 
@@ -79,8 +78,6 @@
   flex: 1 1 0;
   grid-template-columns:
     minmax(0, var(--size-table-slides))
-    minmax(0, var(--size-table-theme))
-    minmax(0, var(--size-table-background))
     minmax(0, var(--size-table-start))
     minmax(0, 1fr);
   align-items: center;
@@ -159,11 +156,6 @@ button.cell:not([aria-disabled='true']):hover {
   font-variant-numeric: tabular-nums;
 }
 
-.background {
-  display: flex;
-  align-items: center;
-  gap: var(--space-6);
-}
 
 .truncate {
   min-width: 0;
@@ -189,13 +181,6 @@ button.cell:not([aria-disabled='true']):hover {
   font: var(--type-body);
 }
 
-.thumb {
-  flex: none;
-  width: var(--size-table-thumb);
-  height: var(--size-table-thumb);
-  border-radius: var(--radius-sm);
-  object-fit: cover;
-}
 
 .footer {
   display: flex;
@@ -203,7 +188,7 @@ button.cell:not([aria-disabled='true']):hover {
   padding: var(--space-8) var(--panel-inset);
 }
 
-/* NOTE(0913vision): The width where the name keeps its 160px with all six columns: the panel
+/* NOTE(0913vision): The width where the name keeps its 160px with every column: the panel
    inset, the number and the icon, the name, one gap, and the cells. */
 @container (max-width: 1010px) {
   .memo {

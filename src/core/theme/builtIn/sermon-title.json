@@ -301,7 +301,7 @@
           "style": {
             "font": "NanumSquare",
             "weight": 700,
-            "size": 80,
+            "size": 72,
             "color": "#FFD66B",
             "lineHeight": 1.2,
             "tracking": 0,
@@ -311,9 +311,7 @@
           "fit": {
             "min": 48
           },
-          "wrap": "balance",
-          "ratio": 0.6667,
-          "of": "00000000-0000-4000-9000-000000000002"
+          "wrap": "balance"
         }
       ],
       "backdrop": "#000000",

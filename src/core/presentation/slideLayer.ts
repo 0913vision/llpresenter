@@ -1,242 +1,104 @@
-import type {NextSlide, SlideLayer} from '../live/state';
+import type {SlideLayer, SlidePeer} from '../live/state';
+import {LIVE_STATE_LIMITS} from '../schema/liveLimits';
+import type {ThemeFile} from '../schema/theme';
+import {nextTextOf, type SlideContent} from '../theme/content';
 import type {SlideTile, TileCursor} from './model';
 import type {TilesOf} from './navigation';
-import {LIVE_STATE_LIMITS} from '../schema/liveLimits';
-import {isReferencedTextSlide} from '../themes/content';
 
-function repeatedLabel(
-  tile: SlideTile,
-  previous: SlideTile | undefined,
-): boolean {
-  const label =
-    tile.slideLabel ?? (tile.kind === undefined ? tile.label : null);
-  const prior =
-    previous?.slideLabel ??
-    (previous?.kind === undefined ? previous?.label : null);
-  if (
-    (tile.titleSlide || previous?.titleSlide) &&
-    !['전주', '간주', '후주'].includes(label?.trim() ?? '')
-  ) {
-    return false;
-  }
-  return !!label?.trim() && label.trim() === prior?.trim();
-}
+/** The theme a slide is drawn with. */
+export type ThemeLookup = (tile: SlideTile) => ThemeFile;
 
-function outputLabel(tile: SlideTile): string | null {
-  return (
-    tile.slideLabel ??
-    (tile.kind === undefined ||
-    tile.kind === 'ad' ||
-    tile.biblePart !== undefined
-      ? tile.label
-      : null)
-  );
-}
-
-/** Projects a tile into the live stage preview payload. */
-export function nextSlideOf(
-  tile: SlideTile,
-  kind?: NextSlide['itemKind'],
-  context?: {
-    readonly title?: string | undefined;
-    readonly after?: SlideTile | undefined;
-    readonly textSlideNumber?: number | undefined;
-    readonly previous?: SlideTile | undefined;
-  },
-): NextSlide {
-  const notice =
-    tile.sectionCard === undefined &&
-    tile.kind === 'ad' &&
-    tile.picture === undefined;
-  const title =
-    (notice && context?.textSlideNumber !== undefined
-      ? `${context.textSlideNumber}. ${tile.name ?? ''}`.trim()
-      : undefined) ??
-    tile.sectionCard?.name ??
-    tile.name ??
-    (tile.media !== undefined ||
-    (tile.picture !== undefined && tile.kind !== undefined)
-      ? context?.title
-      : undefined);
-  // NOTE(0913vision): A following ad item can start with its section card.
-  // The stage needs the first actual ad title while navigation retains the card.
-  const nextNotice =
-    tile.kind === 'ad' && tile.sectionCard === undefined
-      ? tile
-      : tile.sectionCard !== undefined &&
-          context?.after?.kind === 'ad' &&
-          context.after.sectionCard === undefined
-        ? context.after
-        : undefined;
+/** The texts of a tile, as its theme draws them. */
+export function tileContent({slide, auto}: SlideTile): SlideContent {
   return {
-    ...(nextNotice === undefined
-      ? {}
-      : {adTitle: nextNotice.label ?? nextNotice.name ?? context?.title ?? ''}),
-    label: tile.sectionCard === undefined ? outputLabel(tile) : null,
-    ...(repeatedLabel(tile, context?.previous)
-      ? {labelContinued: true as const}
-      : {}),
-    lines: tile.sectionCard === undefined && !notice ? tile.lines : [],
-    ...(kind === undefined ? {} : {itemKind: kind}),
-    ...(title === undefined || title.trim() === '' ? {} : {title}),
-    ...(tile.continued === undefined ? {} : {continued: tile.continued}),
-    ...(tile.biblePart === undefined ? {} : {biblePart: tile.biblePart}),
-    ...(tile.bibleVerse === undefined ? {} : {bibleVerse: tile.bibleVerse}),
-    ...(tile.sermonTitle === undefined ? {} : {sermonTitle: tile.sermonTitle}),
-    ...(tile.titleSlide === undefined ? {} : {titleSlide: tile.titleSlide}),
-    ...(tile.titleLineCount === undefined
-      ? {}
-      : {titleLineCount: tile.titleLineCount}),
+    texts: slide.texts,
+    auto,
+    ...(slide.next === undefined ? {} : {next: slide.next}),
+    ...(slide.continued === undefined ? {} : {continued: true}),
   };
 }
 
-/** Counts text notices without counting pictures or section cards. */
-export function noticeNumber(
-  tiles: readonly SlideTile[],
-  index: number,
-): number | undefined {
-  const tile = tiles[index];
-  if (
-    tile?.kind !== 'ad' ||
-    tile.picture !== undefined ||
-    tile.sectionCard !== undefined
-  ) {
-    return undefined;
-  }
-  return tiles
-    .slice(0, index + 1)
-    .filter(
-      value =>
-        value.kind === 'ad' &&
-        value.picture === undefined &&
-        value.sectionCard === undefined,
-    ).length;
+/** What a tile lets the slide before it show as its next text. */
+export function nextTextOfTile(
+  tile: SlideTile,
+  theme: ThemeLookup,
+  first: boolean,
+): string | null {
+  return nextTextOf(theme(tile), tileContent(tile), first);
 }
 
-type BibleItemSlides = NonNullable<SlideLayer['bibleItemSlides']>;
-const bibleGroups = new WeakMap<readonly SlideTile[], BibleItemSlides | null>();
+/** Whether a theme sizes a text together with the other slides of the item. */
+export function sharesSizes(theme: ThemeFile): boolean {
+  return Object.values(theme.screens).some(
+    screen =>
+      screen.mode === 'own' &&
+      screen.elements.some(
+        element => element.kind === 'text' && element.fit?.together === true,
+      ),
+  );
+}
 
-function bibleGroup(tiles: readonly SlideTile[]): BibleItemSlides | undefined {
-  if (bibleGroups.has(tiles)) return bibleGroups.get(tiles) ?? undefined;
-  const parts = tiles.filter(
-    part => part.biblePart !== undefined || isReferencedTextSlide(part),
-  );
-  const lines = parts.reduce((sum, part) => sum + part.lines.length, 0);
-  const characters = parts.reduce(
-    (sum, part) =>
-      sum + part.lines.reduce((total, line) => total + line.length, 0),
-    0,
-  );
-  const group =
-    parts.length > 0 &&
-    parts.length <= LIVE_STATE_LIMITS.bibleItemSlides &&
-    lines <= LIVE_STATE_LIMITS.bibleItemLines &&
-    characters <= LIVE_STATE_LIMITS.bibleItemCharacters &&
-    parts.every(
-      part =>
-        part.lines.length <= LIVE_STATE_LIMITS.slideLines &&
-        part.lines.every(
-          line => line.length <= LIVE_STATE_LIMITS.textCharacters,
-        ),
-    )
-      ? parts.map(part => ({
-          lines: part.lines,
-          ...(part.continued === undefined ? {} : {continued: part.continued}),
-        }))
-      : undefined;
-  bibleGroups.set(tiles, group ?? null);
-  return group;
+/** The slides of an item that have a theme in common, for sizes they share. */
+export function peersOf(
+  tiles: readonly SlideTile[],
+  theme: ThemeFile,
+): readonly SlidePeer[] | undefined {
+  if (!sharesSizes(theme)) return undefined;
+  return tiles
+    .filter(tile => tile.slide.theme === theme.id)
+    .slice(0, LIVE_STATE_LIMITS.slidePeers)
+    .map(({slide, auto}) => ({
+      texts: slide.texts,
+      auto,
+      ...(slide.continued === undefined ? {} : {continued: true}),
+    }));
 }
 
 /**
- * The 장 layer that outputting a tile sends, or null when the tile is missing.
- * It carries the item's next tile for the 무대 화면, and none after the last.
+ * The slide that outputting a tile sends, or null when the tile is missing.
+ * `following` is the tile that the next-slide key goes to after it.
  */
 export function slideLayerOf(
   cursor: TileCursor,
   tilesOf: TilesOf,
-  following?: {
-    readonly tile: SlideTile;
-    readonly kind: 'song' | 'bible' | 'blank' | 'ad' | 'media';
-    readonly title?: string;
-    readonly after?: SlideTile;
-    readonly textSlideNumber?: number | undefined;
+  {
+    theme,
+    following,
+  }: {
+    readonly theme: ThemeLookup;
+    readonly following: TileCursor | null;
   },
 ): SlideLayer | null {
   const tiles = tilesOf(cursor.itemId);
   const tile = tiles[cursor.index];
-  if (!tile) return null;
-  const next = tiles[cursor.index + 1] ?? following?.tile;
-  const bibleItemSlides =
-    tile.biblePart !== undefined || isReferencedTextSlide(tile)
-      ? bibleGroup(tiles)
-      : undefined;
+  if (tile === undefined) return null;
+  const {slide, auto} = tile;
+  const own = theme(tile);
+  const peers = peersOf(tiles, own);
+  const after =
+    following === null ? undefined : tilesOf(following.itemId)[following.index];
+  const atEnd = cursor.index === tiles.length - 1;
+  const next =
+    after === undefined || (atEnd && own.hideNextAtEnd === true)
+      ? null
+      : nextTextOfTile(
+          after,
+          theme,
+          following?.itemId !== cursor.itemId || following.index === 0,
+        );
   return {
     itemId: cursor.itemId,
+    slideId: slide.id,
     position: cursor.index,
     sequenceLength: tiles.length,
-    ...(bibleItemSlides === undefined ? {} : {bibleItemSlides}),
-    ...(tile.kind === 'ad' && tile.picture === undefined
-      ? {
-          textSlideNumber: tiles
-            .slice(0, cursor.index + 1)
-            .filter(tile => tile.kind === 'ad' && tile.picture === undefined)
-            .length,
-        }
-      : {}),
-    ...(tile.biblePart === undefined ? {} : {biblePart: tile.biblePart}),
-    ...(tile.sourceSlideId === undefined
-      ? {}
-      : {sourceSlideId: tile.sourceSlideId}),
-    ...(tile.bibleVerse === undefined ? {} : {bibleVerse: tile.bibleVerse}),
-    label: outputLabel(tile),
-    ...(repeatedLabel(tile, tiles[cursor.index - 1])
-      ? {labelContinued: true as const}
-      : {}),
-    lines: tile.lines,
-    ...(tile.texts === undefined ? {} : {texts: tile.texts}),
-    ...(tile.sectionCard === undefined ? {} : {sectionCard: tile.sectionCard}),
-    ...(tile.sermonTitle === undefined ? {} : {sermonTitle: tile.sermonTitle}),
-    ...(tile.titleSlide === undefined ? {} : {titleSlide: tile.titleSlide}),
-    ...(tile.titleLineCount === undefined
-      ? {}
-      : {titleLineCount: tile.titleLineCount}),
-    ...(tile.lyricFormat === undefined ? {} : {lyricFormat: tile.lyricFormat}),
-    ...(tile.titleLayout === undefined ? {} : {titleLayout: tile.titleLayout}),
-    ...(tile.transition === undefined ? {} : {transition: tile.transition}),
-    ...(tile.name === undefined ? {} : {name: tile.name}),
-    ...(tile.picture === undefined ? {} : {picture: tile.picture}),
-    ...(tile.kind === undefined ? {} : {kind: tile.kind}),
-    ...(tile.continued === undefined ? {} : {continued: tile.continued}),
-    ...(tile.reference === undefined ? {} : {reference: tile.reference}),
-    ...(tile.ownReference === undefined
-      ? {}
-      : {ownReference: tile.ownReference}),
-    ...(next === undefined
-      ? {}
-      : {
-          next: nextSlideOf(
-            next,
-            tiles[cursor.index + 1] === undefined ? following?.kind : undefined,
-            {
-              title: following?.title,
-              previous:
-                tiles[cursor.index + 1] === undefined ? undefined : tile,
-              textSlideNumber:
-                tiles[cursor.index + 1] === undefined
-                  ? following?.textSlideNumber
-                  : noticeNumber(tiles, cursor.index + 1),
-              after:
-                tiles[cursor.index + 1] === undefined
-                  ? following?.after
-                  : tiles[cursor.index + 2],
-            },
-          ),
-        }),
+    theme: slide.theme,
+    texts: slide.texts,
+    auto,
+    next,
+    ...(slide.continued === undefined ? {} : {continued: true}),
+    ...(slide.background === undefined ? {} : {background: slide.background}),
+    ...(slide.verse === undefined ? {} : {verse: slide.verse}),
+    ...(slide.transition === undefined ? {} : {transition: slide.transition}),
+    ...(peers === undefined ? {} : {peers}),
   };
-}
-
-/** A standalone media tile supplies metadata and overrides to the text layer. */
-export function mediaTextSlide(slide: SlideLayer): SlideLayer {
-  return {...slide, kind: 'media', lines: []};
 }

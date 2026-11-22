@@ -9,230 +9,285 @@ import {
 import type {LlpApi} from '@contracts/ipc/api';
 import type {PowerPointSource} from '@core/schema/powerpointImport';
 import type {TextImportDraft} from '@core/schema/textImport';
+import type {MediaId} from '@core/schema/ids';
 import {
   powerpointDarkLyrics,
   powerpointSlides,
 } from '@core/songs/powerpointSlides';
-import {LIGHT_SONG_THEME_ID} from '@core/themes/lightSong';
-import {powerpointBackgroundIndex} from '@core/songs/powerpointBackgroundIndex';
-import {powerpointBackgroundName} from '@core/media/powerpointBackground';
-import {Dialog} from '@renderer/ui/Dialog';
+import {songSlides} from '@core/slides/songSlides';
+import {songTiles} from '@core/slides/tiles';
+import {slideMaking, useThemes} from '@renderer/platform/themes';
+import {openInPrep} from '@renderer/session/prepTarget';
 import {Checkbox, Progress, TextField} from '@renderer/ui';
-import {AlertDialog} from '@renderer/ui/AlertDialog';
+import {Dialog} from '@renderer/ui/Dialog';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
-import type {SongEditorStore} from '../editor/songEditorStore';
-import styles from './PowerPointImport.module.css';
-import {composePowerPointBackground} from './composePowerPointBackground';
+import {openImportedSong, requestLeaveSong} from '../songDraft';
 import {
-  preparePowerPointImages,
-  PowerPointPreviewLimitError,
-  type PowerPointPreviewProgress,
-} from './preparePowerPointImages';
-import {powerPointPictures} from './powerPointPictures';
-import {useSlideTheme} from '@renderer/platform/useSlideTheme';
-import {useApiSettingsDocument} from '@renderer/platform/useSettingsDocument';
-import {PowerPointPreviewGrid} from './PowerPointPreviewGrid';
+  exportPowerPointBackgrounds,
+  importPowerPointBackgrounds,
+  type PowerPointBackgrounds,
+} from './powerPointBackgrounds';
+import {SlidePreviewGrid} from './SlidePreviewGrid';
+import styles from './PowerPointImport.module.css';
 
-async function importBackground(
-  api: LlpApi,
-  path: string,
+const TITLE = 'PowerPoint에서 곡 가져오기';
+
+/** The song a range of slides becomes, with the pictures it is drawn on. */
+function draftOf(
+  range: PowerPointSource['slides'],
   title: string,
-): Promise<NonNullable<TextImportDraft['background']>> {
-  const events = new Map<string, string>();
-  let notify: (() => void) | undefined;
-  const unsubscribe = api.media.subscribeImports(event => {
-    events.set(event.mediaId, event.phase);
-    notify?.();
-  });
-  try {
-    const result = await api.media.import({
-      source: {kind: 'files', paths: [path]},
-      playlist: null,
-    });
-    if (!result.ok || !result.value[0]) {
-      throw new Error('Background import failed');
-    }
-    const job = result.value[0];
-    if (job.phase === 'failed' || job.phase === 'cancelled') {
-      throw new Error('Background import failed');
-    }
-    const id = job.mediaId;
-    if (job.phase !== 'complete') {
-      await new Promise<void>((resolve, reject) => {
-        const check = (): void => {
-          const phase = events.get(id);
-          if (phase === 'complete') resolve();
-          else if (phase === 'failed' || phase === 'cancelled') {
-            reject(new Error('Background import failed'));
-          }
-        };
-        notify = check;
-        check();
-      });
-    }
-    for (let attempt = 0; attempt < 3; attempt++) {
-      const document = await api.media.get();
-      if (!document.value.items.some(item => item.id === id)) {
-        throw new Error('Imported background is unavailable');
-      }
-      const name = powerpointBackgroundName(
-        title,
-        document.value.items
-          .filter(item => item.id !== id)
-          .map(item => item.name),
-      );
-      const renamed = await api.media.edit({
-        type: 'media.properties.update',
-        mediaId: id,
-        changes: {name},
-        baseRevision: document.revision,
-      });
-      if (renamed.ok || renamed.error.reason === 'write-failed') return id;
-      if (renamed.error.reason !== 'stale') {
-        throw new Error('Background rename failed');
-      }
-    }
-    throw new Error('Background rename failed');
-  } finally {
-    unsubscribe();
-  }
+  media: ReadonlyMap<string, MediaId>,
+): TextImportDraft {
+  return {
+    title,
+    preserveSlides: true,
+    light: powerpointDarkLyrics(range),
+    slides: powerpointSlides(range).map((slide, index) => {
+      const key = range[index]?.background;
+      const picture = key === undefined ? undefined : media.get(key);
+      return {
+        ...slide,
+        lines: [...slide.lines],
+        ...(picture === undefined ? {} : {picture}),
+      };
+    }),
+  };
 }
 
-let backgroundQueue: Promise<void> = Promise.resolve();
+/** The title the slides show, or the name of the file. */
+function titleOf(range: PowerPointSource['slides'], fileName: string): string {
+  const slide = powerpointSlides(range).find(entry => entry.titleSlide);
+  const shown = slide?.lines
+    .slice(0, slide.titleLineCount ?? 1)
+    .map(row => row.trim())
+    .filter(row => row !== '')
+    .join(' ');
+  return shown === undefined || shown === ''
+    ? fileName.replace(/\.[^.]+$/u, '')
+    : shown;
+}
 
-async function importSelectedBackground(
-  api: LlpApi,
-  {
-    index,
-    title,
-    decoration,
-    isActive,
-    exporting,
-    prepared,
-  }: {
-    readonly index: number;
-    readonly title: string;
-    readonly decoration: boolean;
-    readonly isActive: () => boolean;
-    readonly exporting: {current: boolean};
-    readonly prepared?: Blob | undefined;
-  },
-): Promise<TextImportDraft['background']> {
-  const previous = backgroundQueue;
-  let unlock: () => void = () => undefined;
-  backgroundQueue = new Promise<void>(resolve => {
-    unlock = resolve;
+interface Exported {
+  readonly backgrounds: PowerPointBackgrounds | null;
+  readonly done: number;
+  readonly total: number;
+}
+
+/** What is behind the slides, exported while the dialog is open. */
+function useBackgrounds(api: LlpApi, source: PowerPointSource): Exported {
+  const [state, setState] = useState<Exported>({
+    backgrounds: null,
+    done: 0,
+    total: 0,
   });
-  try {
-    await previous;
-    if (!isActive()) return undefined;
-    let path: string | null = null;
-    if (
-      prepared &&
-      (prepared.type === 'image/png' || prepared.type === 'image/jpeg')
-    ) {
-      path = await api.powerpoint.background({
-        index,
-        image: {
-          mime: prepared.type,
-          bytes: new Uint8Array(await prepared.arrayBuffer()),
+  useEffect(() => {
+    let active = true;
+    let release: (() => void) | undefined;
+    // NOTE(0913vision): The timer drops the first of the two mounts that
+    // React makes in development, which would export everything twice.
+    const timer = setTimeout(() => {
+      exportPowerPointBackgrounds(api, source.slides, {
+        active: () => active,
+        progress: (done, total) => {
+          if (active) setState(before => ({...before, done, total}));
         },
-      });
-    } else if (decoration) {
-      exporting.current = true;
-      try {
-        path = await api.powerpoint.background({index, decoration: true});
-      } finally {
-        exporting.current = false;
-      }
-    }
-    if (!isActive()) {
-      if (path !== null) await api.powerpoint.release({path});
-      return undefined;
-    }
-    if (path === null && decoration) return undefined;
-    if (path === null) {
-      const scene = await api.powerpoint.layers({index});
-      if (!isActive()) return undefined;
-      if (!scene) throw new Error('Background layers unavailable');
-      const image = await composePowerPointBackground(scene);
-      if (!isActive()) return undefined;
-      path = await api.powerpoint.background({index, image});
-    }
-    if (!path) throw new Error('Background unavailable');
-    try {
-      if (!isActive()) return undefined;
-      const existing = await api.powerpoint.match({path});
-      if (!isActive()) return undefined;
-      return existing ?? (await importBackground(api, path, title));
-    } finally {
-      await api.powerpoint.release({path});
-    }
-  } finally {
-    unlock();
-  }
+      }).then(
+        backgrounds => {
+          if (!active) {
+            backgrounds.release();
+            return;
+          }
+          release = backgrounds.release;
+          setState(before => ({...before, backgrounds}));
+        },
+        (error: unknown) => {
+          console.error('Could not export the PowerPoint backgrounds', error);
+          if (!active) return;
+          setState(before => ({
+            ...before,
+            backgrounds: {found: new Map(), release: () => undefined},
+          }));
+        },
+      );
+    }, 0);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+      release?.();
+      api.powerpoint.cancelImages().catch(() => undefined);
+    };
+  }, [api, source]);
+  return state;
 }
 
-async function importBackgrounds(
-  api: LlpApi,
-  {
-    range,
-    start,
-    title,
-    isActive,
-    exporting,
-    full,
-  }: {
-    readonly range: PowerPointSource['slides'];
-    readonly start: number;
-    readonly title: string;
-    readonly isActive: () => boolean;
-    readonly exporting: {current: boolean};
-    readonly full: ReadonlyMap<string, Blob>;
-  },
-): Promise<Map<string, NonNullable<TextImportDraft['background']>>> {
-  const pictures = new Map<
-    string,
-    NonNullable<TextImportDraft['background']>
-  >();
-  for (const [index, slide] of range.entries()) {
-    if (slide.background === null || pictures.has(slide.background)) continue;
-    let picture = await importSelectedBackground(api, {
-      index: start + index,
-      title,
-      decoration: true,
-      isActive,
-      exporting,
-      prepared: full.get(slide.background),
-    });
-    if (!isActive()) break;
-    picture ??= await importSelectedBackground(api, {
-      index: start + index,
-      title,
-      decoration: false,
-      isActive,
-      exporting,
-    });
-    if (picture !== undefined) pictures.set(slide.background, picture);
-  }
-  return pictures;
-}
-
-export function PowerPointImportFlow({
+function PowerPointDialog({
   api,
-  store,
+  source,
   onDone,
-  onEdit,
   onProblem,
 }: {
   readonly api: LlpApi;
-  readonly store: SongEditorStore;
+  readonly source: PowerPointSource;
   readonly onDone: () => void;
-  readonly onEdit: () => void;
   readonly onProblem: (notice: Notice) => void;
-}): JSX.Element | null {
+}): JSX.Element {
+  const themes = useThemes(view => view.themes);
+  const exported = useBackgrounds(api, source);
+  const [anchor, setAnchor] = useState(0);
+  const [end, setEnd] = useState(source.slides.length - 1);
+  const [typed, setTyped] = useState<string | null>(null);
+  const [background, setBackground] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const active = useRef(true);
+  useEffect(() => {
+    active.current = true;
+    return () => {
+      active.current = false;
+    };
+  }, []);
+  const start = Math.min(anchor, end);
+  const finish = Math.max(anchor, end);
+  const range = useMemo(
+    () => source.slides.slice(start, finish + 1),
+    [source, start, finish],
+  );
+  const title = typed ?? titleOf(range, source.fileName);
+  const found = exported.backgrounds?.found;
+  const previews = useMemo(
+    () =>
+      new Map(
+        [...(background ? (found ?? []) : [])].map(
+          ([key, {preview}]) => [key, preview] as const,
+        ),
+      ),
+    [found, background],
+  );
+  const tiles = useMemo(
+    () =>
+      songTiles({
+        title,
+        // NOTE(0913vision): The themes are the ones the slides are made with.
+        slides:
+          themes === null
+            ? []
+            : songSlides(
+                slideMaking(),
+                draftOf(source.slides, title, previews),
+              ),
+      }),
+    [themes, source, title, previews],
+  );
+  const waiting = background && exported.backgrounds === null;
+  const create = async (): Promise<void> => {
+    setBusy(true);
+    try {
+      const media = background
+        ? await importPowerPointBackgrounds(
+            api,
+            new Set(range.map(slide => slide.background)),
+            {found: found ?? new Map(), title},
+          )
+        : new Map<string, MediaId>();
+      if (!active.current) return;
+      const draft = draftOf(range, title, media);
+      requestLeaveSong(() => {
+        openImportedSong(draft);
+        openInPrep({kind: 'song'});
+        onDone();
+      });
+    } catch (error) {
+      console.error('Could not import the PowerPoint song', error);
+      if (!active.current) return;
+      onProblem({
+        key: 'powerpoint:edit',
+        kind: 'warning',
+        icon: 'warning',
+        title: 'PowerPoint 가져오기 실패',
+        time: noticeTime(),
+      });
+    } finally {
+      if (active.current) setBusy(false);
+    }
+  };
+  return (
+    <Dialog
+      title={TITLE}
+      size="xl"
+      subtitle={{icon: 'filetext', text: source.fileName}}
+      onCancel={onDone}
+      cancelLabel="저장 안 함"
+      primary={{
+        label: '편집',
+        disabled: busy || waiting || title.trim() === '',
+        title: waiting ? '배경을 가져오는 중입니다' : undefined,
+        onSelect: () => {
+          create().catch((error: unknown) =>
+            console.error('Could not make the song', error),
+          );
+        },
+      }}
+      footerStart={
+        waiting ? (
+          <Progress
+            value={
+              exported.total === 0
+                ? null
+                : (exported.done / exported.total) * 100
+            }
+            label="배경 가져오는 중"
+            valueText={`${exported.done} / ${exported.total}`}
+          />
+        ) : undefined
+      }
+    >
+      <div className={styles.content}>
+        <div className={styles.title}>
+          <TextField
+            aria-label="제목"
+            block
+            value={title}
+            onChange={setTyped}
+          />
+          <span>슬라이드 {range.length}</span>
+          <label className={styles.option}>
+            <Checkbox
+              aria-label="배경"
+              checked={background}
+              onChange={setBackground}
+            />
+            배경
+          </label>
+        </div>
+        <SlidePreviewGrid
+          tiles={tiles}
+          numberOf={index => source.slides[index]?.number ?? index + 1}
+          isSelected={index => index >= start && index <= finish}
+          onSelect={(index, shift) => {
+            if (!shift) setAnchor(index);
+            setEnd(index);
+            setTyped(null);
+          }}
+        />
+      </div>
+    </Dialog>
+  );
+}
+
+/** Reads a presentation and makes a song of some of its slides. */
+export function PowerPointImportFlow({
+  api,
+  onDone,
+  onProblem,
+}: {
+  readonly api: LlpApi;
+  readonly onDone: () => void;
+  readonly onProblem: (notice: Notice) => void;
+}): JSX.Element {
   const [source, setSource] = useState<PowerPointSource | null>(null);
+  const pending = useRef<ReturnType<typeof api.powerpoint.read> | null>(null);
+  const cancelled = useRef(false);
   const finish = useCallback(() => {
+    cancelled.current = true;
     api.powerpoint
       .cancelRead()
       .catch((error: unknown) =>
@@ -240,462 +295,49 @@ export function PowerPointImportFlow({
       );
     onDone();
   }, [api, onDone]);
-  const pending = useRef<ReturnType<typeof api.powerpoint.read> | null>(null);
-  const cancelled = useRef(false);
   useEffect(() => {
     let active = true;
-    pending.current ??= api.powerpoint.read();
-    pending.current
-      .then(result => {
-        if (!active || cancelled.current) return;
-        if (!result.ok) {
-          onProblem({
-            key: 'powerpoint:read',
-            kind: 'warning',
-            icon: 'warning',
-            title: result.message,
-            time: noticeTime(),
-          });
-          onDone();
-        } else if (result.value === null) onDone();
-        else setSource(result.value);
-      })
-      .catch(() => {
-        if (active && !cancelled.current) {
-          onProblem({
-            key: 'powerpoint:read',
-            kind: 'warning',
-            icon: 'warning',
-            title: 'PowerPoint 가져오기 실패',
-            time: noticeTime(),
-          });
-          onDone();
-        }
+    const failed = (title: string): void => {
+      onProblem({
+        key: 'powerpoint:read',
+        kind: 'warning',
+        icon: 'warning',
+        title,
+        time: noticeTime(),
       });
+      onDone();
+    };
+    pending.current ??= api.powerpoint.read();
+    pending.current.then(
+      result => {
+        if (!active || cancelled.current) return;
+        if (!result.ok) failed(result.message);
+        else if (result.value === null) onDone();
+        else setSource(result.value);
+      },
+      () => {
+        if (active && !cancelled.current) failed('PowerPoint 가져오기 실패');
+      },
+    );
     return () => {
       active = false;
     };
   }, [api, onDone, onProblem]);
-  if (!source) {
-    return (
-      <Dialog
-        title="PowerPoint 가져오기"
-        size="s"
-        onCancel={() => {
-          cancelled.current = true;
-          api.powerpoint
-            .cancelRead()
-            .catch((error: unknown) =>
-              console.error('PowerPoint read cancellation failed:', error),
-            );
-          onDone();
-        }}
-        primary={{label: '가져오기', disabled: true, onSelect: () => undefined}}
-      >
-        <Progress value={null} label="PowerPoint 읽는 중" />
-      </Dialog>
-    );
-  }
-  return (
-    <PowerPointPreparing
-      api={api}
-      store={store}
-      source={source}
-      onDone={finish}
-      onEdit={onEdit}
-      onProblem={onProblem}
-    />
-  );
-}
-
-function PowerPointPreparing({
-  api,
-  store,
-  source,
-  onDone,
-  onEdit,
-  onProblem,
-}: {
-  readonly api: LlpApi;
-  readonly store: SongEditorStore;
-  readonly source: PowerPointSource;
-  readonly onDone: () => void;
-  readonly onEdit: () => void;
-  readonly onProblem: (notice: Notice) => void;
-}): JSX.Element {
-  const [prepared, setPrepared] =
-    useState<Awaited<ReturnType<typeof preparePowerPointImages>>>(null);
-  const [progress, setProgress] = useState<PowerPointPreviewProgress>({
-    done: 0,
-    total: source.slides.length,
-    phase: 'export',
-    percent: 0,
-  });
-  const cancelled = useRef(false);
-  const [themesFailed, setThemesFailed] = useState(false);
-  const [screensFailed, setScreensFailed] = useState(false);
-  const themes = useApiSettingsDocument({
-    api,
-    name: 'themes',
-    title: '테마',
-    onProblem: notice => {
-      setThemesFailed(true);
-      onProblem(notice);
-    },
-  });
-  const screens = useApiSettingsDocument({
-    api,
-    name: 'screens',
-    title: '화면',
-    onProblem: notice => {
-      setScreensFailed(true);
-      onProblem(notice);
-    },
-  });
-  useEffect(() => {
-    let active = true;
-    let release: (() => void) | undefined;
-    let preparing = false;
-    const timer = setTimeout(() => {
-      preparing = true;
-      void preparePowerPointImages(api, source.slides, {
-        active: () => active && !cancelled.current,
-        progress: next => {
-          if (active && !cancelled.current) setProgress(next);
-        },
-      })
-        .then(result => {
-          preparing = false;
-          if (!active || cancelled.current) {
-            result?.release();
-            return;
-          }
-          if (result === null) {
-            onDone();
-            return;
-          }
-          release = result.release;
-          setPrepared(result);
-        })
-        .catch((error: unknown) => {
-          preparing = false;
-          if (!active || cancelled.current) return;
-          console.error('PowerPoint preview preparation failed:', error);
-          onProblem({
-            key: 'powerpoint:preview',
-            kind: 'warning',
-            icon: 'warning',
-            title:
-              error instanceof PowerPointPreviewLimitError
-                ? 'PowerPoint 미리보기 용량 초과'
-                : 'PowerPoint 미리보기 실패',
-            time: noticeTime(),
-          });
-          onDone();
-        });
-    }, 0);
-    return () => {
-      active = false;
-      clearTimeout(timer);
-      if (preparing) {
-        api.powerpoint
-          .cancelImages()
-          .catch((error: unknown) =>
-            console.error('PowerPoint preview cancellation failed:', error),
-          );
-      }
-      release?.();
-    };
-  }, [api, source, onDone, onProblem]);
-  const loading = (
+  return source === null ? (
     <Dialog
-      title="PowerPoint 가져오기"
+      title={TITLE}
       size="s"
-      onCancel={() => {
-        cancelled.current = true;
-        onDone();
-      }}
-      primary={{
-        label: '가져오기',
-        disabled: true,
-        onSelect: () => undefined,
-      }}
+      onCancel={finish}
+      primary={{label: '가져오기', disabled: true, onSelect: () => undefined}}
     >
-      <Progress
-        value={progress.percent}
-        label={
-          progress.phase === 'export'
-            ? 'PowerPoint 장식 내보내기'
-            : 'PowerPoint 미리보기 준비'
-        }
-        valueText={`${progress.done} / ${progress.total}`}
-      />
+      <Progress value={null} label="PowerPoint 읽는 중" />
     </Dialog>
-  );
-  if (
-    prepared === null ||
-    (themes === null && !themesFailed) ||
-    (screens === null && !screensFailed)
-  ) {
-    return loading;
-  }
-  return (
+  ) : (
     <PowerPointDialog
       api={api}
-      store={store}
       source={source}
-      images={prepared.ids}
-      full={prepared.full}
-      onDone={onDone}
-      onEdit={onEdit}
+      onDone={finish}
       onProblem={onProblem}
     />
-  );
-}
-
-function PowerPointDialog({
-  api,
-  store,
-  source,
-  images,
-  full,
-  onDone,
-  onEdit,
-  onProblem,
-}: {
-  readonly api: LlpApi;
-  readonly store: SongEditorStore;
-  readonly source: PowerPointSource;
-  readonly images: ReadonlyMap<string, string>;
-  readonly full: ReadonlyMap<string, Blob>;
-  readonly onDone: () => void;
-  readonly onEdit: () => void;
-  readonly onProblem: (notice: Notice) => void;
-}): JSX.Element {
-  const [anchor, setAnchor] = useState(0);
-  const [end, setEnd] = useState(source.slides.length - 1);
-  const [title, setTitle] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [lyrics, setLyrics] = useState(true);
-  const backgroundAvailable = source.slides.some(
-    slide => slide.background !== null,
-  );
-  const [background, setBackground] = useState(backgroundAvailable);
-  const [replacement, setReplacement] = useState<TextImportDraft | null>(null);
-  const active = useRef(true);
-  const exporting = useRef(false);
-  useEffect(() => {
-    const currentExport = exporting;
-    active.current = true;
-    return () => {
-      active.current = false;
-      if (currentExport.current) {
-        currentExport.current = false;
-        api.powerpoint.cancelImages().catch(() => undefined);
-      }
-    };
-  }, [api]);
-  const start = Math.min(anchor, end);
-  const finish = Math.max(anchor, end);
-  const range = useMemo(
-    () => source.slides.slice(start, finish + 1),
-    [source, start, finish],
-  );
-  const slides = useMemo(() => powerpointSlides(range), [range]);
-  const titleIndex = slides.findIndex(
-    slide => 'titleSlide' in slide && slide.titleSlide,
-  );
-  const titleLines = range[titleIndex]?.shapes[0]?.lines;
-  const shapeTitle = titleLines
-    ?.map(line => line.trim())
-    .filter(Boolean)
-    .join(' ');
-  let defaultTitle = source.fileName.replace(/\.[^.]+$/, '');
-  if (shapeTitle !== undefined && shapeTitle.length > 0) {
-    defaultTitle = shapeTitle;
-  }
-  const shownTitle = title ?? defaultTitle;
-  const theme = useSlideTheme(
-    {
-      id: 'powerpoint-import',
-      kind: 'song',
-      title: shownTitle,
-      ...(powerpointDarkLyrics(range) ? {theme: LIGHT_SONG_THEME_ID} : {}),
-    },
-    'service',
-    {api},
-  );
-  const previews =
-    theme === undefined
-      ? []
-      : powerPointPictures(source.slides, background ? images : new Map(), {
-          ...theme,
-          mediaOnly: !lyrics,
-          selection: {start, end: finish},
-        });
-  const edit = (draft: TextImportDraft): void => {
-    const previous = store.getSnapshot().session;
-    store.openImported(draft);
-    if (store.getSnapshot().session !== previous) {
-      onEdit();
-      onDone();
-    }
-  };
-  const create = async (): Promise<void> => {
-    setBusy(true);
-    try {
-      const winner = powerpointBackgroundIndex(range);
-      let importedBackground: TextImportDraft['background'];
-      let pictures = new Map<
-        string,
-        NonNullable<TextImportDraft['background']>
-      >();
-      if (background && winner !== undefined) {
-        const decorated = await importBackgrounds(api, {
-          range,
-          start,
-          title: shownTitle,
-          isActive: () => active.current,
-          exporting,
-          full,
-        });
-        if (!active.current) return;
-        pictures = decorated;
-        const key = range[winner]?.background;
-        importedBackground =
-          key === null || key === undefined ? undefined : pictures.get(key);
-      }
-      if (!active.current) return;
-      if (!lyrics) {
-        onDone();
-        return;
-      }
-      const draft: TextImportDraft = {
-        title: shownTitle,
-        slides: slides.map((slide, index) => {
-          const key = range[index]?.background;
-          const picture =
-            key === null || key === undefined ? undefined : pictures.get(key);
-          return picture === undefined ? slide : {...slide, picture};
-        }),
-        preserveSlides: true,
-        ...(powerpointDarkLyrics(range) ? {theme: LIGHT_SONG_THEME_ID} : {}),
-        ...(importedBackground === undefined
-          ? {}
-          : {background: importedBackground}),
-      };
-      if (store.getSnapshot().imported) setReplacement(draft);
-      else edit(draft);
-    } catch {
-      if (active.current) {
-        onProblem({
-          key: 'powerpoint:edit',
-          kind: 'warning',
-          icon: 'warning',
-          title: 'PowerPoint 가져오기 실패',
-          time: noticeTime(),
-        });
-      }
-    } finally {
-      if (active.current) setBusy(false);
-    }
-  };
-  return (
-    <>
-      <Dialog
-        title="PowerPoint 가져오기"
-        size="xl"
-        subtitle={{icon: 'filetext', text: source.fileName}}
-        onCancel={() => {
-          active.current = false;
-          if (exporting.current) {
-            exporting.current = false;
-            api.powerpoint.cancelImages().catch(() => undefined);
-          }
-          onDone();
-        }}
-        cancelLabel="저장 안 함"
-        primary={{
-          label: lyrics ? '편집' : '가져오기',
-          disabled:
-            busy ||
-            slides.length === 0 ||
-            (!lyrics && powerpointBackgroundIndex(range) === undefined),
-          onSelect: () => {
-            create().catch(() => undefined);
-          },
-        }}
-      >
-        <div className={styles.content}>
-          <div className={styles.title}>
-            <TextField
-              aria-label="제목"
-              block
-              value={shownTitle}
-              onChange={setTitle}
-            />
-            <span>슬라이드 {slides.length}</span>
-            <label className={styles.option}>
-              <Checkbox
-                aria-label="가사"
-                checked={lyrics}
-                onChange={value => {
-                  if (value || background) setLyrics(value);
-                }}
-              />
-              가사
-            </label>
-            <label className={styles.option}>
-              <Checkbox
-                aria-label="배경"
-                checked={background}
-                disabled={!backgroundAvailable}
-                title={
-                  backgroundAvailable
-                    ? '선택한 슬라이드에서 가장 많이 사용된 배경'
-                    : '가져올 배경이 없습니다'
-                }
-                onChange={value => {
-                  if (value || lyrics) setBackground(value);
-                }}
-              />
-              배경
-            </label>
-          </div>
-          <PowerPointPreviewGrid
-            slides={source.slides}
-            pictures={previews}
-            start={start}
-            end={finish}
-            onSelect={(index, shift) => {
-              if (shift) setEnd(index);
-              else {
-                setAnchor(index);
-                setEnd(index);
-              }
-              setTitle(null);
-            }}
-          />
-        </div>
-      </Dialog>
-      {replacement && (
-        <AlertDialog
-          icon="song"
-          title="가져온 곡을 저장하지 않았습니다. 버릴까요?"
-          onCancel={() => setReplacement(null)}
-          actions={[
-            {
-              label: '저장 안 함',
-              primary: true,
-              onSelect: () => {
-                store.discardImported();
-                edit(replacement);
-                setReplacement(null);
-              },
-            },
-          ]}
-        />
-      )}
-    </>
   );
 }

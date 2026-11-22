@@ -1,10 +1,9 @@
-import type {ComponentProps, ReactNode} from 'react';
+import type {ReactNode} from 'react';
 import type {SongId} from '@core/schema/ids';
 import {ReadOnlyMark} from '@renderer/features/presentation/ReadOnlyMark';
 import {ServiceQuickAdd} from '@renderer/features/service/items/QuickAdd';
 import {ServiceOrderHeader} from '@renderer/features/service/order/ServiceOrderHeader';
 import {ServiceTableList} from '@renderer/features/service/table/ServiceTableList';
-import type {ServiceItemStore} from '@renderer/features/service/items/serviceItemStore';
 import type {LlpApi} from '@contracts/ipc/api';
 import {ServiceOrderList} from '@renderer/features/service/order/ServiceOrderList';
 import type {Notice} from '@renderer/ui/notices';
@@ -17,8 +16,7 @@ export const SERVICE_ORDER = '예배 순서';
 export function serviceOrderParts({
   workspace,
   navigator = false,
-  onOpenOther,
-  onNavigateEditor,
+  onNavigate,
   onProblem,
   onOpenPrep,
   onShowInLibrary,
@@ -28,18 +26,14 @@ export function serviceOrderParts({
 }: {
   readonly workspace: 'show' | 'prep';
   readonly navigator?: boolean | undefined;
-  readonly onOpenOther?: ((id: string) => void) | undefined;
-  readonly onNavigateEditor?: ComponentProps<
-    typeof ServiceOrderList
-  >['onNavigateEditor'];
+  readonly onNavigate?: ((id: string) => void) | undefined;
   readonly onProblem: ((notice: Notice) => void) | undefined;
   readonly onOpenPrep: ((itemId: string) => void) | undefined;
   readonly onShowInLibrary: ((songId: SongId) => void) | undefined;
   readonly onOpenItem: () => void;
   readonly actions: ReactNode;
   /** With it, the list is the 예배 순서 table of 준비. */
-  readonly table?:
-    {readonly api: LlpApi; readonly items: ServiceItemStore} | undefined;
+  readonly table?: {readonly api: LlpApi} | undefined;
 }): PanelParts {
   return {
     header: <ServiceOrderHeader onProblem={onProblem} />,
@@ -48,8 +42,7 @@ export function serviceOrderParts({
         <ServiceOrderList
           workspace={workspace}
           navigator={navigator}
-          onOpenOther={onOpenOther}
-          onNavigateEditor={onNavigateEditor}
+          onNavigate={onNavigate}
           onProblem={onProblem}
           onOpenPrep={onOpenPrep}
           onShowInLibrary={onShowInLibrary}
@@ -57,10 +50,8 @@ export function serviceOrderParts({
         />
       ) : (
         <ServiceTableList
-          onOpenOther={onOpenOther}
-          onNavigateEditor={onNavigateEditor}
+          onNavigate={onNavigate}
           api={table.api}
-          items={table.items}
           onProblem={onProblem}
           onOpenPrep={onOpenPrep}
           onShowInLibrary={onShowInLibrary}

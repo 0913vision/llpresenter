@@ -1,21 +1,20 @@
 import {useEffect, useLayoutEffect, useRef, useState} from 'react';
-import type {ThemesFile} from '@core/schema/themes';
-import type {ThemeEditResult} from '@core/themes/themeEdits';
+import type {Themes} from '@core/schema/themes';
+import type {ThemeListResult} from '@core/theme/list';
 import type {NamedDocument} from '@renderer/platform/useSettingsDocument';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
-import {ThemeEditor} from './themeEditor';
-import {THEME_READ_ONLY, themeProblems} from './themeNames';
+import {THEME_READ_ONLY} from './themeNames';
+import {ThemesEditor} from './themesEditor';
 import {useThemeDraft} from './useThemeDraft';
+
+/** The saved themes, the draft of one of them, and the writes of both. */
 export function useThemeWrites(
   document: NamedDocument<'themes'> | null,
   onProblem: ((notice: Notice) => void) | undefined,
 ) {
-  const [saved, setFile] = useState<ThemesFile | null>(null);
-
+  const [saved, setSaved] = useState<Themes | null>(null);
   const reportRef = useRef(onProblem);
-
   const mounted = useRef(true);
-
   const api = window.llp;
 
   const report = (title: string): void =>
@@ -36,14 +35,13 @@ export function useThemeWrites(
     report('테마 변경 실패');
   };
 
-  const editor = useRef<ThemeEditor | null>(null);
-
+  const editor = useRef<ThemesEditor | null>(null);
   useLayoutEffect(() => {
     if (api === undefined) return undefined;
-    const current = new ThemeEditor(
+    const current = new ThemesEditor(
       api,
       value => {
-        if (mounted.current) setFile(value);
+        if (mounted.current) setSaved(value);
       },
       title =>
         reportRef.current?.({
@@ -59,15 +57,12 @@ export function useThemeWrites(
       editor.current = null;
     };
   }, [api]);
-
   useLayoutEffect(() => {
     reportRef.current = onProblem;
   });
-
   useLayoutEffect(() => {
     editor.current?.adopt(document);
   }, [api, document]);
-
   useEffect(() => {
     mounted.current = true;
     return () => {
@@ -77,8 +72,8 @@ export function useThemeWrites(
 
   const reason = document?.access !== 'editable' ? THEME_READ_ONLY : undefined;
 
-  const rawChange = async (
-    transform: (value: ThemesFile) => ThemeEditResult,
+  const write = async (
+    transform: (list: Themes) => ThemeListResult,
     completion: 'applied' | 'saved' = 'applied',
   ) => {
     if (reason !== undefined || editor.current === null) {
@@ -87,49 +82,29 @@ export function useThemeWrites(
     return editor.current.change(transform, completion);
   };
 
-  const drafts = useThemeDraft({saved, reason, change: rawChange, report});
+  const draft = useThemeDraft({saved, reason, write, report});
+
+  /** Changes the list itself at once, as a step of the same history. */
   const change = async (
-    transform: (value: ThemesFile) => ThemeEditResult,
+    transform: (list: Themes) => ThemeListResult,
     completion: 'applied' | 'saved' = 'applied',
   ) => {
-    let before: ThemesFile | undefined;
-    let after: ThemesFile | undefined;
-    const result = await rawChange(file => {
-      const transformed = transform(file);
-      if (transformed.ok) {
-        before = file;
-        after = transformed.value;
+    let before: Themes | undefined;
+    let after: Themes | undefined;
+    const result = await write(list => {
+      const changed = transform(list);
+      if (changed.ok) {
+        before = list;
+        after = changed.value;
       }
-      return transformed;
+      return changed;
     }, completion);
     if (mounted.current && result.ok && result.value && before && after) {
-      drafts.recordSaved(before, after);
+      draft.recordSaved(before, after);
     }
     return result;
   };
-  const apply = (
-    transform: (value: ThemesFile) => ThemeEditResult,
-    completed?: (saved: boolean) => void,
-  ): void => {
-    change(transform)
-      .then(result => {
-        if (!mounted.current) return;
-        if (!result.ok) report(themeProblems[result.error]);
-        completed?.(result.ok && result.value);
-      })
-      .catch((error: unknown) => {
-        reportError(error);
-        completed?.(false);
-      });
-  };
-  return {
-    ...drafts,
-    saved,
-    reason,
-    change,
-    apply,
-    report,
-    reportError,
-  };
+
+  return {...draft, saved, reason, change, report, reportError};
 }
 export type ThemeWrites = ReturnType<typeof useThemeWrites>;

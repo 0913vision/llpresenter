@@ -135,7 +135,6 @@ export function registerStore({
   const bibleCache = new BibleChapterCache();
   let bible: BibleLookupSession | undefined;
   let bibleClosed = false;
-  let backgroundBible: BibleLookupSession | undefined;
   const openBible = (): BibleLookupSession =>
     (bible ??= new BibleLookupSession({
       folder: join(app.getPath('userData'), 'bible'),
@@ -149,26 +148,10 @@ export function registerStore({
         ? Promise.reject(new Error('Bible lookup is unavailable'))
         : openBible().lookup(request, cacheOnly, operatorLookup),
   };
-  const backgroundBibleReader: Pick<BibleLookupSession, 'lookup'> = {
-    lookup: (request, cacheOnly, operatorLookup) => {
-      if (bibleClosed) {
-        return Promise.reject(new Error('Bible lookup is unavailable'));
-      }
-      backgroundBible ??= new BibleLookupSession({
-        folder: join(app.getPath('userData'), 'bible'),
-        cache: bibleCache,
-        settings,
-        log,
-      });
-      return backgroundBible.lookup(request, cacheOnly, operatorLookup);
-    },
-  };
   const opened = openContent(loading, log, {
     settings,
     media,
     failures: saveFailures,
-    bible: bibleReader,
-    backgroundBible: backgroundBibleReader,
   });
   const settingsChannels = registerSettingsChannels(
     settings,
@@ -305,10 +288,9 @@ export function registerStore({
       await upkeep;
       const ready = await opened;
       ready?.removeSettings();
-      await ready?.feed.dispose();
+      ready?.feed.dispose();
       bibleClosed = true;
       bible?.dispose();
-      backgroundBible?.dispose();
       try {
         await ready?.content.flush();
       } finally {

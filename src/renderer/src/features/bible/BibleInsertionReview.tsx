@@ -1,6 +1,5 @@
 import {useLayoutEffect, useRef, useState, type JSX} from 'react';
-import {verseKey} from '@core/bible/bibleTiles';
-import {useShow} from '@renderer/session/show';
+import {verseKey} from '@core/slides/passageSlides';
 import {BibleAddSplitReview} from './BibleAddSplitReview';
 import {
   installBibleInsertionReview,
@@ -12,29 +11,18 @@ interface Insertion extends BibleInsertionRequest {
   readonly complete: (verses: ReviewedVerses | null) => void;
 }
 
-/** Hosts passage review across the service table, palette, and preview. */
+/** Looks over the long verses of a passage wherever it is being put in. */
 export function BibleInsertionReview(): JSX.Element | null {
-  const serviceId = useShow(view => view.serviceId);
-  const serviceEpoch = useShow(view => view.serviceEpoch);
   const api = window.llp;
   const [insertion, setInsertion] = useState<Insertion | null>(null);
   const pending = useRef<Insertion | null>(null);
   const reviewed = useRef<Record<string, readonly string[]>>({});
   useLayoutEffect(() => {
-    if (api === undefined || serviceId === null) return;
     const uninstall = installBibleInsertionReview(request => {
-      const view = useShow.getState();
-      if (
-        pending.current !== null ||
-        request.serviceId !== serviceId ||
-        request.serviceEpoch !== serviceEpoch ||
-        view.serviceId !== serviceId ||
-        view.serviceEpoch !== serviceEpoch
-      ) {
-        return Promise.resolve(null);
-      }
+      if (pending.current !== null) return Promise.resolve(null);
       return new Promise(resolve => {
         const next: Insertion = {...request, complete: resolve};
+        reviewed.current = {};
         pending.current = next;
         setInsertion(next);
       });
@@ -43,24 +31,14 @@ export function BibleInsertionReview(): JSX.Element | null {
       uninstall();
       pending.current?.complete(null);
       pending.current = null;
-      reviewed.current = {};
     };
-  }, [api, serviceId, serviceEpoch]);
-  if (
-    api === undefined ||
-    insertion?.serviceEpoch !== serviceEpoch ||
-    insertion.serviceId !== serviceId
-  ) {
-    return null;
-  }
+  }, []);
+  if (api === undefined || insertion === null) return null;
   const finish = (confirmed: boolean): void => {
-    const current = pending.current;
-    if (current !== insertion) return;
+    if (pending.current !== insertion) return;
     pending.current = null;
     setInsertion(null);
-    const verses = reviewed.current;
-    reviewed.current = {};
-    current.complete(confirmed ? verses : null);
+    insertion.complete(confirmed ? reviewed.current : null);
   };
   return (
     <BibleAddSplitReview

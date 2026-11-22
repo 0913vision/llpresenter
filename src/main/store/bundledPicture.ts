@@ -1,4 +1,4 @@
-import type {ThemePicture} from '@core/themes/pictures';
+import type {ThemePicture} from '@core/theme/pictures';
 
 /** A named app picture with its packaged file location. */
 export interface BundledPicture extends ThemePicture {

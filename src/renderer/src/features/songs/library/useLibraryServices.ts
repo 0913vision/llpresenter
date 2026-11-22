@@ -1,13 +1,12 @@
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useEffect, useRef, useState} from 'react';
-import {createServiceId, type SongId} from '@core/schema/ids';
+import type {SongId} from '@core/schema/ids';
 import {insertSelectedSong} from '@renderer/session/insertSelectedSong';
 import {useShow} from '@renderer/session/show';
 import {useOrderFull} from '@renderer/session/orderFull';
 import {
   ORDER_FULL_REASON,
   orderFailureTitle,
-  serviceOrderEditsFor,
 } from '@renderer/session/serviceOrderEdits';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import type {LibraryApi} from './useLibrary';
@@ -39,11 +38,7 @@ export function useLibraryServices(
     pending.current = true;
     setBusy(true);
     try {
-      const result = await insertSelectedSong(
-        serviceOrderEditsFor(api),
-        createServiceId(current.serviceId),
-        song,
-      );
+      const result = await insertSelectedSong(api, song);
       if (!result.ok) {
         onProblem({
           key: 'library:append',

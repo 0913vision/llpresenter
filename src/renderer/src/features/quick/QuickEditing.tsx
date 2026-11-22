@@ -45,10 +45,8 @@ async function currentChoice(api: LlpApi): Promise<QuickChoice | null> {
       ref: {
         translation: bible.passage.translation,
         ref: bible.passage.ref,
-        split: 'verse',
-        reference: 'none',
         verseNumbers: bible.verseNumbers,
-        translationName: false,
+        translationName: bible.translationName ?? false,
       },
     };
   }
@@ -67,8 +65,8 @@ async function currentChoice(api: LlpApi): Promise<QuickChoice | null> {
   if (isItemOfKind(item, 'bible')) {
     return {
       kind: 'bible',
-      name: displayReference(item.bible.ref),
-      ref: item.bible,
+      name: displayReference(item.passage.ref),
+      ref: item.passage,
     };
   }
   if (isItemOfKind(item, 'song')) {

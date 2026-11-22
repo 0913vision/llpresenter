@@ -1,7 +1,5 @@
-import type {
-  ThemeBackground,
-  ThemeGradient,
-} from '@core/schema/themeBackground';
+import type {SlideBackground} from '@core/schema/theme';
+import type {GradientBackground} from '@core/theme/gradientPresets';
 
 const NOISE_SIZE = 64;
 const NEUTRAL_CHANNEL_SPREAD = 2;
@@ -30,7 +28,7 @@ function gradientColor(color: string): string {
 
 /** Samples the same shorter-hue interpolation as the output, including hard edges. */
 export function themeGradientColorAt(
-  gradient: ThemeGradient,
+  gradient: GradientBackground,
   position: number,
 ): string {
   let left = gradient.stops[0];
@@ -47,25 +45,22 @@ export function themeGradientColorAt(
   return left.color;
 }
 
-/** The opaque base under a gradient; a gradient is never a uniform chroma key. */
-export function themeBackgroundColor(
-  background: ThemeBackground | undefined,
-  inherited: string,
-): string {
-  return typeof background === 'string'
-    ? background
-    : (background?.stops[0]?.color ?? inherited);
+/** The opaque base under a background; a picture has none. */
+export function backgroundColorOf(
+  background: SlideBackground | undefined,
+): string | undefined {
+  if (background?.kind === 'color') return background.color;
+  return background?.kind === 'gradient'
+    ? background.stops[0]?.color
+    : undefined;
 }
 
-/** Shared by live output and SVG previews, with the PowerPoint clockwise angle. */
-export function themeBackgroundStyle(
-  background: ThemeBackground | undefined,
-  inherited = '#000000',
-) {
-  const color = themeBackgroundColor(background, inherited);
-  if (background === undefined || typeof background === 'string') {
+/** How a color or gradient is painted, with the PowerPoint clockwise angle. */
+export function backgroundPaint(background: SlideBackground | undefined) {
+  const color = backgroundColorOf(background);
+  if (background?.kind !== 'gradient') {
     return {
-      backgroundColor: color,
+      backgroundColor: color ?? 'transparent',
       backgroundImage: 'none',
       backgroundSize: 'auto',
       backgroundRepeat: 'no-repeat',
@@ -75,7 +70,7 @@ export function themeBackgroundStyle(
     .map(stop => `${gradientColor(stop.color)} ${stop.position}%`)
     .join(', ');
   return {
-    backgroundColor: color,
+    backgroundColor: color ?? 'transparent',
     backgroundImage: `${NOISE}, linear-gradient(${(background.angle + 90) % 360}deg in oklch shorter hue, ${stops})`,
     backgroundSize: `${NOISE_SIZE}px ${NOISE_SIZE}px, 100% 100%`,
     backgroundRepeat: 'repeat, no-repeat',

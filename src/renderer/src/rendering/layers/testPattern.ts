@@ -1,9 +1,8 @@
-import {defineLayer} from '../layer';
+import type {LayerDefinition} from '../layer';
 import {TestPatternView} from '../testPattern';
 
-export const testPatternLayer = defineLayer({
+export const testPatternLayer: LayerDefinition = {
   kind: 'test-pattern',
-  order: 7,
   create: (parent, {mode}) => {
     const view = new TestPatternView(parent, mode);
     return {
@@ -13,4 +12,4 @@ export const testPatternLayer = defineLayer({
       dispose: () => view.dispose(),
     };
   },
-});
+};

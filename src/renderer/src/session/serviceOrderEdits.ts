@@ -1,111 +1,32 @@
-import {SERMON_TITLE_THEME_ID} from '@core/themes/sundayScripture';
-import {newSlidesItem} from '@core/services/slidesEdits';
-import {orderedSelection, moveSelection} from '@core/common/selectionOrder';
 import type {LlpApi} from '@contracts/ipc/api';
 import {copyName} from '@core/common/copyName';
-import {isRecord} from '@core/common/guards';
 import {limitReason} from '@core/common/limitReason';
 import type {Result} from '@core/common/result';
-import type {EditFailure} from '@core/schema/contentEdit';
+import {moveSelection, orderedSelection} from '@core/common/selectionOrder';
 import {
   createServiceItemId,
-  type ServiceId,
   type ServiceItemId,
   type SongId,
 } from '@core/schema/ids';
 import {
-  isItemOfKind,
   SERVICE_LIMITS,
   type Service,
   type ServiceItem,
 } from '@core/schema/service';
-import {sectionBoundaryIndex} from '@core/services/serviceSections';
 import {sectionInsertIndex} from '@core/services/quickAddPosition';
-import {pendingWritesOf} from '../platform/pendingWrites';
-import {useShow} from './showStore';
+import {sectionBoundaryIndex} from '@core/services/serviceSections';
+import {songItem} from '@core/slides/items';
+import {
+  editOpenService,
+  type EditOptions,
+  type OpenServiceResult,
+  type OrderChange,
+} from './openService';
 import {selectAddedItem} from './selectAddedItem';
+import {useShow} from './showStore';
 
-const HISTORY_LIMIT = 100;
 type Order = Service['order'];
-type EditApi = Pick<LlpApi, 'services' | 'songs' | 'content'>;
-const editors = new WeakMap<EditApi, ServiceOrderEdits>();
-const histories = new WeakMap<object, OrderHistory>();
-
-// NOTE(0913vision): The history belongs to the API object itself, so every
-// caller must pass the window's own `window.llp`, never a copy of it.
-function historyFor(api: object): OrderHistory {
-  let history = histories.get(api);
-  if (history === undefined) {
-    history = new OrderHistory();
-    histories.set(api, history);
-  }
-  return history;
-}
-
-/**
- * Records a saved edit of one item's own fields (메모, 테마, 구성, 배경, 시작할
- * 때, 오버레이) as one step of the 예배 순서 history, whichever path saved it.
- */
-export function recordItemEdit(
-  api: object,
-  entry: {
-    readonly serviceId: ServiceId;
-    readonly before: Order;
-    readonly after: Order;
-  },
-): void {
-  historyFor(api).record(entry, 'record');
-}
-
-/** Shares the service list's undo history with every service order entry point. */
-export function serviceOrderEditsFor(api: EditApi): ServiceOrderEdits {
-  let editor = editors.get(api);
-  if (editor === undefined) {
-    editor = new ServiceOrderEdits(api);
-    editors.set(api, editor);
-  }
-  return editor;
-}
-interface LocalFailure {
-  /** `full` is a refused growth past the item limit; its message is the limit's sentence. */
-  readonly reason: 'busy' | 'request-failed' | 'full';
-  readonly message: string;
-}
-export type ServiceOrderEditResult = Result<
-  boolean,
-  EditFailure | LocalFailure
->;
-type OrderChange = (
-  service: Service,
-) => Result<Order, EditFailure> | Promise<Result<Order, EditFailure>>;
-type HistoryAction = 'record' | 'undo' | 'redo';
-interface SendOptions {
-  readonly action: HistoryAction;
-  readonly selectAdded: boolean;
-  readonly cursor: string | null | undefined;
-}
-interface HistoryEntry {
-  readonly serviceId: ServiceId;
-  readonly before: Order;
-  readonly after: Order;
-}
-
-function selectAddedFromOrder(
-  serviceId: ServiceId,
-  entry: Pick<HistoryEntry, 'before' | 'after'>,
-  options: SendOptions,
-): void {
-  if (
-    options.action !== 'record' ||
-    !options.selectAdded ||
-    options.cursor === undefined
-  ) {
-    return;
-  }
-  const oldIds = new Set(entry.before.map(item => item.id));
-  const added = entry.after.filter(item => !oldIds.has(item.id)).at(-1);
-  if (added !== undefined) selectAddedItem(serviceId, added.id, options.cursor);
-}
+export type ServiceOrderEditResult = OpenServiceResult;
 
 /** What a refused add says when the 예배 순서 has reached its item limit. */
 export const ORDER_FULL_REASON = limitReason(
@@ -124,32 +45,15 @@ export function orderFailureTitle(
   return error.reason === 'full' ? error.message : fallback;
 }
 
-function refuse(
-  reason: 'invalid' | 'not-found' | 'read-only' | 'stale',
-  message: string,
-) {
-  return {ok: false, error: {reason, message}} as const;
-}
+const isHeader = (item: ServiceItem): boolean => item.kind === 'header';
 
-function sameOrder(left: unknown, right: unknown): boolean {
-  if (left === right) return true;
-  if (Array.isArray(left) && Array.isArray(right)) {
-    const rightValues: readonly unknown[] = right;
-    return (
-      left.length === right.length &&
-      left.every((value: unknown, index) =>
-        sameOrder(value, rightValues[index]),
-      )
-    );
-  }
-  if (!isRecord(left) || !isRecord(right)) return false;
-  const keys = Object.keys(left);
-  return (
-    keys.length === Object.keys(right).length &&
-    keys.every(
-      key => Object.hasOwn(right, key) && sameOrder(left[key], right[key]),
-    )
-  );
+const newItemId = (): ServiceItemId => createServiceItemId(crypto.randomUUID());
+
+function refuse(
+  reason: 'invalid' | 'not-found',
+  message: string,
+): Result<never, {readonly reason: typeof reason; readonly message: string}> {
+  return {ok: false, error: {reason, message}};
 }
 
 function insertionIndex(order: Order, beforeId: ServiceItemId | null): number {
@@ -158,562 +62,229 @@ function insertionIndex(order: Order, beforeId: ServiceItemId | null): number {
     : order.findIndex(item => item.id === beforeId);
 }
 
-/** The undo and redo steps of the 예배 순서, at most HISTORY_LIMIT deep. */
-class OrderHistory {
-  readonly past: HistoryEntry[] = [];
-  readonly future: HistoryEntry[] = [];
-  private readonly listeners = new Set<() => void>();
-
-  readonly subscribe = (listener: () => void): (() => void) => {
-    this.listeners.add(listener);
-    return () => this.listeners.delete(listener);
-  };
-
-  record(entry: HistoryEntry, action: HistoryAction): void {
-    if (action === 'undo') {
-      const previous = this.past.pop();
-      if (previous !== undefined) this.future.push(previous);
-    } else if (action === 'redo') {
-      const next = this.future.pop();
-      if (next !== undefined) this.past.push(next);
-    } else {
-      this.future.length = 0;
-      this.past.push(entry);
-      if (this.past.length > HISTORY_LIMIT) this.past.shift();
-    }
-    for (const listener of this.listeners) listener();
-  }
-
-  clear(): void {
-    this.past.length = 0;
-    this.future.length = 0;
-    for (const listener of this.listeners) listener();
-  }
+function hasAll(order: Order, ids: readonly ServiceItemId[]): boolean {
+  return ids.every(id => order.some(item => item.id === id));
 }
 
-/**
- * Edits main-owned service orders without access to output commands.
- * An edit of an item's own fields is recorded here too (`recordItemEdit`); a
- * change nobody recorded makes undo or redo refuse as stale.
- */
-export class ServiceOrderEdits {
-  private readonly history: OrderHistory;
-  private busy = false;
+/** Refuses a change that would pass the item limit. */
+function within(change: OrderChange): OrderChange {
+  return service => {
+    const result = change(service);
+    return result.ok &&
+      result.value.length > service.order.length &&
+      result.value.length > SERVICE_LIMITS.items
+      ? {ok: false, error: {reason: 'full', message: ORDER_FULL_REASON}}
+      : result;
+  };
+}
 
-  constructor(private readonly api: EditApi) {
-    this.history = historyFor(api);
+/** Changes the order and selects the item that was added to it. */
+async function add(
+  change: OrderChange,
+  added: () => string | undefined,
+): Promise<OpenServiceResult> {
+  const {serviceId, openItemId} = useShow.getState();
+  const result = await editOpenService(within(change));
+  const id = added();
+  if (result.ok && result.value && serviceId !== null && id !== undefined) {
+    selectAddedItem(serviceId, id, openItemId);
   }
+  return result;
+}
 
-  subscribe(listener: () => void): () => void {
-    return this.history.subscribe(listener);
-  }
+function edit(
+  change: OrderChange,
+  options?: EditOptions,
+): Promise<OpenServiceResult> {
+  return editOpenService(within(change), options);
+}
 
-  private get past(): HistoryEntry[] {
-    return this.history.past;
-  }
+export function removeItems(
+  itemIds: readonly ServiceItemId[],
+): Promise<OpenServiceResult> {
+  return edit(({order}) => {
+    if (!hasAll(order, itemIds)) {
+      return refuse('not-found', 'An item no longer exists');
+    }
+    const ids = new Set(itemIds);
+    return {ok: true, value: order.filter(item => !ids.has(item.id))};
+  });
+}
 
-  private get future(): HistoryEntry[] {
-    return this.history.future;
-  }
-
-  canUndo(serviceId: ServiceId): boolean {
-    return this.past.at(-1)?.serviceId === serviceId;
-  }
-
-  canRedo(serviceId: ServiceId): boolean {
-    return this.future.at(-1)?.serviceId === serviceId;
-  }
-
-  remove(serviceId: ServiceId, itemId: ServiceItemId) {
-    return this.removeMany(serviceId, [itemId]);
-  }
-
-  removeMany(serviceId: ServiceId, itemIds: readonly ServiceItemId[]) {
-    return this.update(serviceId, service => {
-      if (itemIds.some(id => !service.order.some(item => item.id === id))) {
-        return refuse('not-found', 'An item no longer exists');
-      }
-      const ids = new Set(itemIds);
-      return {ok: true, value: service.order.filter(item => !ids.has(item.id))};
-    });
-  }
-
-  move(
-    serviceId: ServiceId,
-    itemId: ServiceItemId,
-    beforeId: ServiceItemId | null,
-  ) {
-    return this.moveMany(serviceId, [itemId], beforeId);
-  }
-
-  moveMany(
-    serviceId: ServiceId,
-    itemIds: readonly ServiceItemId[],
-    beforeId: ServiceItemId | null,
-  ) {
-    return this.update(serviceId, service => {
-      if (itemIds.some(id => !service.order.some(item => item.id === id))) {
-        return refuse('not-found', 'An item no longer exists');
-      }
-      const moving = orderedSelection(service.order, new Set(itemIds), row =>
-        isItemOfKind(row, 'header'),
-      );
-      const ids = new Set(moving.map(row => row.id));
-      if (beforeId !== null && ids.has(beforeId)) {
-        return {ok: true, value: service.order};
-      }
-      const requested = insertionIndex(service.order, beforeId);
-      if (requested < 0) return refuse('not-found', 'The drop target is gone');
-      const index = moving.some(row => isItemOfKind(row, 'header'))
-        ? sectionBoundaryIndex(service.order, requested, row =>
-            isItemOfKind(row, 'header'),
-          )
-        : requested;
-      return {ok: true, value: moveSelection(service.order, ids, index)};
-    });
-  }
-
-  /** Moves selected item rows one position, retaining one history entry. */
-  moveStep(
-    serviceId: ServiceId,
-    itemIds: readonly ServiceItemId[],
-    direction: 'up' | 'down',
-  ) {
-    return this.update(serviceId, service => {
-      const selected = new Set(itemIds);
-      if (
-        itemIds.some(
-          id =>
-            !service.order.some(
-              item => item.id === id && !isItemOfKind(item, 'header'),
-            ),
-        )
-      ) {
-        return refuse('not-found', 'An item no longer exists');
-      }
-      const order = [...service.order];
-      const indices =
-        direction === 'up'
-          ? Array.from({length: Math.max(0, order.length - 1)}, (_, i) => i + 1)
-          : Array.from(
-              {length: Math.max(0, order.length - 1)},
-              (_, i) => order.length - 2 - i,
-            );
-      for (const index of indices) {
-        const other = index + (direction === 'up' ? -1 : 1);
-        const item = order[index];
-        const neighbor = order[other];
-        if (
-          item !== undefined &&
-          neighbor !== undefined &&
-          selected.has(item.id) &&
-          !selected.has(neighbor.id)
-        ) {
-          order[index] = neighbor;
-          order[other] = item;
-        }
-      }
+export function moveItems(
+  itemIds: readonly ServiceItemId[],
+  beforeId: ServiceItemId | null,
+): Promise<OpenServiceResult> {
+  return edit(({order}) => {
+    if (!hasAll(order, itemIds)) {
+      return refuse('not-found', 'An item no longer exists');
+    }
+    const moving = orderedSelection(order, new Set(itemIds), isHeader);
+    const ids = new Set(moving.map(row => row.id));
+    if (beforeId !== null && ids.has(beforeId)) {
       return {ok: true, value: order};
-    });
-  }
+    }
+    const requested = insertionIndex(order, beforeId);
+    if (requested < 0) return refuse('not-found', 'The drop target is gone');
+    const index = moving.some(isHeader)
+      ? sectionBoundaryIndex(order, requested, isHeader)
+      : requested;
+    return {ok: true, value: moveSelection(order, ids, index)};
+  });
+}
 
-  insertSong(
-    serviceId: ServiceId,
-    songId: SongId,
-    beforeId: ServiceItemId | null,
-  ) {
-    return this.update(
-      serviceId,
-      async service => {
-        const index = insertionIndex(service.order, beforeId);
-        if (index < 0) return refuse('not-found', 'The drop target is gone');
-        const song = await this.api.songs.get(songId);
-        if (song?.song.id !== songId) {
-          return refuse('not-found', 'The song no longer exists');
-        }
-        const order = [...service.order];
-        order.splice(index, 0, {
-          id: createServiceItemId(crypto.randomUUID()),
-          song: songId,
-          slides: structuredClone(song.song.slides),
-          ...(song.song.theme === undefined ? {} : {theme: song.song.theme}),
-          ...(song.song.background === undefined
-            ? {}
-            : {background: song.song.background}),
-        });
-        return {ok: true, value: order};
-      },
-      {selectAdded: true},
-    );
-  }
-
-  /** Copies selected rows and complete sections once, in document order. */
-  duplicate(
-    serviceId: ServiceId,
-    itemId: ServiceItemId,
-    copyId: ServiceItemId,
-  ) {
-    return this.duplicateMany(serviceId, new Map([[itemId, copyId]]));
-  }
-
-  duplicateMany(
-    serviceId: ServiceId,
-    copyIds: ReadonlyMap<ServiceItemId, ServiceItemId>,
-  ) {
-    return this.update(serviceId, service => {
+/** Moves selected item rows one position, as one step. */
+export function moveItemsStep(
+  itemIds: readonly ServiceItemId[],
+  direction: 'up' | 'down',
+): Promise<OpenServiceResult> {
+  return edit(service => {
+    const selected = new Set(itemIds);
+    if (
+      itemIds.some(
+        id => !service.order.some(item => item.id === id && !isHeader(item)),
+      )
+    ) {
+      return refuse('not-found', 'An item no longer exists');
+    }
+    const order = [...service.order];
+    const length = Math.max(0, order.length - 1);
+    const indices =
+      direction === 'up'
+        ? Array.from({length}, (_, i) => i + 1)
+        : Array.from({length}, (_, i) => order.length - 2 - i);
+    for (const index of indices) {
+      const other = index + (direction === 'up' ? -1 : 1);
+      const item = order[index];
+      const neighbor = order[other];
       if (
-        [...copyIds.keys()].some(
-          id => !service.order.some(item => item.id === id),
-        )
+        item !== undefined &&
+        neighbor !== undefined &&
+        selected.has(item.id) &&
+        !selected.has(neighbor.id)
       ) {
-        return refuse('not-found', 'An item no longer exists');
+        order[index] = neighbor;
+        order[other] = item;
       }
-      const selected = orderedSelection(
-        service.order,
-        new Set(copyIds.keys()),
-        row => isItemOfKind(row, 'header'),
-      );
-      const last = selected.at(-1);
-      if (last === undefined) return {ok: true, value: service.order};
-      const end = service.order.findIndex(row => row.id === last.id) + 1;
-      const headers = service.order.flatMap(row =>
-        isItemOfKind(row, 'header') ? [row.header] : [],
-      );
-      const copies = selected.map(row => {
-        const id =
-          copyIds.get(row.id) ?? createServiceItemId(crypto.randomUUID());
-        if (!isItemOfKind(row, 'header')) return {...row, id};
-        const header = copyName(row.header, headers);
-        headers.push(header);
-        return {...row, id, header};
-      });
+    }
+    return {ok: true, value: order};
+  });
+}
+
+/** Copies selected rows and complete sections once, in document order. */
+export function duplicateItems(
+  copyIds: ReadonlyMap<ServiceItemId, ServiceItemId>,
+): Promise<OpenServiceResult> {
+  return edit(({order}) => {
+    if (!hasAll(order, [...copyIds.keys()])) {
+      return refuse('not-found', 'An item no longer exists');
+    }
+    const selected = orderedSelection(order, new Set(copyIds.keys()), isHeader);
+    const last = selected.at(-1);
+    if (last === undefined) return {ok: true, value: order};
+    const end = order.findIndex(row => row.id === last.id) + 1;
+    const headers = order.flatMap(row => (isHeader(row) ? [row.name] : []));
+    const copies = selected.map(row => {
+      const id = copyIds.get(row.id) ?? newItemId();
+      if (!isHeader(row)) return {...row, id};
+      const name = copyName(row.name, headers);
+      headers.push(name);
+      return {...row, id, name};
+    });
+    return {
+      ok: true,
+      value: [...order.slice(0, end), ...copies, ...order.slice(end)],
+    };
+  });
+}
+
+/** Renames a header or an item; a blank name keeps the old one. */
+export function renameItem(
+  itemId: ServiceItemId,
+  name: string,
+): Promise<OpenServiceResult> {
+  return edit(({order}) => {
+    const item = order.find(row => row.id === itemId);
+    if (item === undefined) {
+      return refuse('not-found', 'The item no longer exists');
+    }
+    const next = name.trim();
+    return {
+      ok: true,
+      value:
+        next === '' || next === item.name
+          ? order
+          : order.map(row => (row.id === itemId ? {...item, name: next} : row)),
+    };
+  });
+}
+
+/** Inserts a new item before another, or at the end. */
+export function insertItem(
+  item: ServiceItem,
+  beforeId: ServiceItemId | null,
+): Promise<OpenServiceResult> {
+  return add(
+    ({order}) => {
+      const index = insertionIndex(order, beforeId);
+      if (index < 0) return refuse('not-found', 'The drop target is gone');
       return {
         ok: true,
-        value: [
-          ...service.order.slice(0, end),
-          ...copies,
-          ...service.order.slice(end),
-        ],
+        value: [...order.slice(0, index), item, ...order.slice(index)],
       };
-    });
-  }
-
-  /** Renames a header; a blank name keeps the old one. */
-  renameHeader(serviceId: ServiceId, itemId: ServiceItemId, name: string) {
-    return this.update(serviceId, service => {
-      const item = service.order.find(row => row.id === itemId);
-      if (item === undefined || !isItemOfKind(item, 'header')) {
-        return refuse('not-found', 'The header no longer exists');
-      }
-      const header = name.trim();
-      if (header === '' || header === item.header) {
-        return {ok: true, value: service.order};
-      }
-      return {
-        ok: true,
-        value: service.order.map(row =>
-          row.id === itemId ? {...item, header} : row,
-        ),
-      };
-    });
-  }
-
-  /** Converts adjacent title and Bible items in a single undoable edit. */
-  bindSermon(serviceId: ServiceId, titleId: ServiceItemId, title: string) {
-    return this.update(serviceId, service => {
-      const index = service.order.findIndex(item => item.id === titleId);
-      const source = service.order[index];
-      const bible = service.order[index + 1];
-      const name = title.trim();
-      if (
-        source === undefined ||
-        (!isItemOfKind(source, 'slides') && !isItemOfKind(source, 'song')) ||
-        source.theme !== SERMON_TITLE_THEME_ID ||
-        bible === undefined ||
-        !isItemOfKind(bible, 'bible') ||
-        name === ''
-      ) {
-        return refuse(
-          'invalid',
-          'The adjacent sermon title and passage are unavailable',
-        );
-      }
-      const {bible: passage, ...kept} = bible;
-      const titleTransition = isItemOfKind(source, 'slides')
-        ? source.slides.slides[0]?.transition
-        : source.slides[0]?.transition;
-      const sermon = {
-        ...kept,
-        sermon: {
-          title: name,
-          ...(titleTransition === undefined
-            ? {}
-            : {
-                openingTransition: titleTransition,
-                closingTransition: titleTransition,
-              }),
-          passage,
-          originalTitle: source,
-          originalTitleText: name,
-        },
-      };
-      return {
-        ok: true,
-        value: [
-          ...service.order.slice(0, index),
-          sermon,
-          ...service.order.slice(index + 2),
-        ],
-      };
-    });
-  }
-
-  /** Restores the saved title and passage as one undoable edit. */
-  unbindSermon(serviceId: ServiceId, itemId: ServiceItemId) {
-    return this.update(serviceId, service => {
-      const index = service.order.findIndex(item => item.id === itemId);
-      const item = service.order[index];
-      if (item === undefined || !isItemOfKind(item, 'sermon')) {
-        return refuse('not-found', 'The sermon is unavailable');
-      }
-      if (service.order.length >= SERVICE_LIMITS.items) {
-        return refuse('invalid', 'The service is full');
-      }
-      const {sermon, ...kept} = item;
-      const origin = sermon.originalTitle;
-      const originalId = origin?.id;
-      const titleId =
-        originalId !== undefined &&
-        !service.order.some(row => row.id === originalId)
-          ? originalId
-          : createServiceItemId(crypto.randomUUID());
-      const fresh = newSlidesItem('blank', titleId);
-      const title =
-        origin !== undefined && sermon.title === sermon.originalTitleText
-          ? {...origin, id: titleId}
-          : {
-              ...fresh,
-              theme: SERMON_TITLE_THEME_ID,
-              slides: {
-                ...fresh.slides,
-                name: sermon.passage.ref,
-                slides: fresh.slides.slides.map(slide => ({
-                  ...slide,
-                  text: sermon.title,
-                  ...(sermon.openingTransition === undefined
-                    ? {}
-                    : {transition: sermon.openingTransition}),
-                })),
-              },
-            };
-      return {
-        ok: true,
-        value: [
-          ...service.order.slice(0, index),
-          title,
-          {...kept, bible: sermon.passage},
-          ...service.order.slice(index + 1),
-        ],
-      };
-    });
-  }
-
-  /** Inserts a new item that doesn't read other files, such as a header. */
-  insertItem(
-    serviceId: ServiceId,
-    item: ServiceItem,
-    beforeId: ServiceItemId | null,
-  ) {
-    return this.update(
-      serviceId,
-      service => {
-        const index = insertionIndex(service.order, beforeId);
-        if (index < 0) return refuse('not-found', 'The drop target is gone');
-        const order = [...service.order];
-        order.splice(index, 0, item);
-        return {ok: true, value: order};
-      },
-      {selectAdded: true},
-    );
-  }
-
-  /** Inserts the whole copied selection after a row, as one undo step. */
-  insertItems(
-    serviceId: ServiceId,
-    items: readonly ServiceItem[],
-    afterId: ServiceItemId | null,
-  ) {
-    return this.update(
-      serviceId,
-      service => {
-        const selected =
-          afterId === null
-            ? service.order.length - 1
-            : service.order.findIndex(item => item.id === afterId);
-        if (afterId !== null && selected < 0) {
-          return refuse('not-found', 'The paste target is gone');
-        }
-        return {
-          ok: true,
-          value: [
-            ...service.order.slice(0, selected + 1),
-            ...items,
-            ...service.order.slice(selected + 1),
-          ],
-        };
-      },
-      {selectAdded: false},
-    );
-  }
-
-  /** Prepares an item under the close gate and inserts it in the current section. */
-  insertItemInSection(
-    serviceId: ServiceId,
-    selectedId: string | null,
-    {
-      prepare,
-      selectAdded = true,
-    }: {
-      readonly prepare: () => Promise<ServiceItem>;
-      readonly selectAdded?: boolean;
     },
-  ) {
-    let item: ServiceItem | undefined;
-    return this.update(
-      serviceId,
-      service => {
-        if (!item) return refuse('invalid', 'The item is unavailable');
-        const next = sectionInsertIndex(service.order, selectedId, row =>
-          isItemOfKind(row, 'header'),
-        );
-        const order = [...service.order];
-        order.splice(next, 0, item);
-        return {ok: true, value: order};
-      },
-      {
-        selectAdded,
-        beforeRead: async () => {
-          item = await prepare();
-        },
-      },
-    );
-  }
+    () => item.id,
+  );
+}
 
-  undo(serviceId: ServiceId): Promise<ServiceOrderEditResult> {
-    return this.replay(serviceId, 'undo');
-  }
+/** Inserts a library song, with slides of its own. */
+export async function insertSong(
+  api: Pick<LlpApi, 'songs'>,
+  songId: SongId,
+  beforeId: ServiceItemId | null,
+): Promise<OpenServiceResult> {
+  const song = await api.songs.get(songId);
+  return song?.song.id === songId
+    ? insertItem(songItem(song.song), beforeId)
+    : refuse('not-found', 'The song no longer exists');
+}
 
-  redo(serviceId: ServiceId): Promise<ServiceOrderEditResult> {
-    return this.replay(serviceId, 'redo');
-  }
-
-  clear(): void {
-    this.history.clear();
-  }
-
-  private replay(serviceId: ServiceId, action: 'undo' | 'redo') {
-    const entry = (action === 'undo' ? this.past : this.future).at(-1);
-    if (entry?.serviceId !== serviceId) {
-      return Promise.resolve<ServiceOrderEditResult>({ok: true, value: false});
+/** Inserts the whole copied selection after a row, as one step. */
+export function insertItems(
+  items: readonly ServiceItem[],
+  afterId: ServiceItemId | null,
+): Promise<OpenServiceResult> {
+  return edit(({order}) => {
+    const selected =
+      afterId === null
+        ? order.length - 1
+        : order.findIndex(item => item.id === afterId);
+    if (afterId !== null && selected < 0) {
+      return refuse('not-found', 'The paste target is gone');
     }
-    return this.update(
-      serviceId,
-      service => {
-        const expected = action === 'undo' ? entry.after : entry.before;
-        if (!sameOrder(service.order, expected)) {
-          return refuse('stale', 'The service order changed after this edit');
-        }
-        return {
-          ok: true,
-          value: action === 'undo' ? entry.before : entry.after,
-        };
-      },
-      {action},
-    );
-  }
+    return {
+      ok: true,
+      value: [
+        ...order.slice(0, selected + 1),
+        ...items,
+        ...order.slice(selected + 1),
+      ],
+    };
+  });
+}
 
-  // NOTE(0913vision): The window's pending writes let the close flush wait
-  // for an edit between its read and its write, and refuse new ones.
-  private update(
-    serviceId: ServiceId,
-    change: OrderChange,
-    options: {
-      action?: HistoryAction;
-      beforeRead?: () => Promise<void>;
-      selectAdded?: boolean;
-    } = {},
-  ): Promise<ServiceOrderEditResult> {
-    const {action = 'record', beforeRead, selectAdded = false} = options;
-    const view = useShow.getState();
-    const cursor = view.serviceId === serviceId ? view.openItemId : undefined;
-    const sendOptions = {action, selectAdded, cursor};
-    return pendingWritesOf(this.api).run({
-      write:
-        beforeRead === undefined
-          ? () => this.send(serviceId, change, sendOptions)
-          : async () => {
-              await beforeRead();
-              return this.send(serviceId, change, sendOptions);
-            },
-      refused: {
-        ok: false,
-        error: {reason: 'busy', message: 'Edits stopped for closing'},
-      },
-      sent: result => result.ok || result.error.reason === 'write-failed',
-    });
-  }
-
-  private async send(
-    serviceId: ServiceId,
-    change: OrderChange,
-    options: SendOptions,
-  ): Promise<ServiceOrderEditResult> {
-    if (this.busy) {
-      return {
-        ok: false,
-        error: {reason: 'busy', message: 'An edit is pending'},
-      };
-    }
-    this.busy = true;
-    try {
-      const document = await this.api.services.get(serviceId);
-      if (document?.service.id !== serviceId) {
-        return refuse('not-found', 'The service no longer exists');
-      }
-      if (document.access === 'readOnly') {
-        return refuse('read-only', 'The service is read-only');
-      }
-      const result = await change(document.service);
-      if (!result.ok) return result;
-      const before = document.service.order;
-      const after = result.value;
-      if (sameOrder(before, after)) return {ok: true, value: false};
-      if (after.length > before.length && after.length > SERVICE_LIMITS.items) {
-        return {
-          ok: false,
-          error: {reason: 'full', message: ORDER_FULL_REASON},
-        };
-      }
-      const saved = await this.api.content.edit({
-        type: 'service.update',
-        service: {...document.service, order: after},
-        baseRevision: document.revision,
-      });
-      if (saved.ok || saved.error.reason === 'write-failed') {
-        this.history.record({serviceId, before, after}, options.action);
-        selectAddedFromOrder(serviceId, {before, after}, options);
-      }
-      return saved.ok ? {ok: true, value: true} : saved;
-    } catch (cause) {
-      return {
-        ok: false,
-        error: {
-          reason: 'request-failed',
-          message: cause instanceof Error ? cause.message : String(cause),
-        },
-      };
-    } finally {
-      this.busy = false;
-    }
-  }
+/** Inserts an item at the end of the section that holds the selected row. */
+export function insertItemInSection(
+  item: ServiceItem,
+  selectedId: string | null,
+  {select = true}: {readonly select?: boolean} = {},
+): Promise<OpenServiceResult> {
+  const change: OrderChange = ({order}) => {
+    const index = sectionInsertIndex(order, selectedId, isHeader);
+    return {
+      ok: true,
+      value: [...order.slice(0, index), item, ...order.slice(index)],
+    };
+  };
+  return select ? add(change, () => item.id) : edit(change);
 }

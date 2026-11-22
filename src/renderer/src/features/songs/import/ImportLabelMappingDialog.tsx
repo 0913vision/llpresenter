@@ -12,7 +12,7 @@ import {LabelSwatch} from '@renderer/ui/LabelChip';
 import {Menu} from '@renderer/ui/Menu';
 import {isComposing} from '@renderer/ui/ime';
 import {hasModifier} from '@renderer/ui/modifierKeys';
-import {labelMenuEntries} from '../editor/labelMenuEntries';
+import {labelMenuEntries} from '@renderer/features/labels/labelMenuEntries';
 import {useImportLabelWindow} from './useImportLabelWindow';
 import styles from './ImportLabelMappingDialog.module.css';
 

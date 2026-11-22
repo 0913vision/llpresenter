@@ -1,4 +1,6 @@
 import type {JSX} from 'react';
+import {parseScreenId} from '@core/schema/ids';
+import {themeScreenOf} from '@core/theme/themes';
 import {useLive, useOutputs} from '@renderer/session/live';
 import {
   useHasMediaView,
@@ -35,23 +37,18 @@ function MediaPreviewPanel(): JSX.Element {
   const testPatterns = useLive(state => state.state?.testPatterns);
   const summaries = useScreenSummaries();
   const output = useLive(state => state.state?.themeOutput);
-  const itemKind = useLive(state => state.state?.themeItem?.kind);
   const media = view.document?.value.items.find(item => item.id === mediaId);
   const missingStill = media?.kind === 'video' && view.missing.has(media.id);
   const stillScreens = new Set<string>();
-  if (missingStill) {
-    const kind = itemKind === 'media' ? 'media' : 'background';
-    const compositions = Object.entries(output?.screens ?? {}).map(
-      ([id, composition]) => ({id, composition}),
-    );
+  if (missingStill && output !== undefined) {
     for (const summary of summaries) {
-      const match = compositions.find(screen => screen.id === summary.id);
-      if (match === undefined || testPatterns?.some(id => id === match.id)) {
-        continue;
-      }
-      if (
-        match.composition.layout.elements.some(element => element.kind === kind)
-      ) {
+      const id = parseScreenId(summary.id);
+      if (!id.ok || testPatterns?.includes(id.value) === true) continue;
+      const screen = themeScreenOf(output.theme, {
+        id: id.value,
+        kind: summary.kind ?? 'audience',
+      });
+      if (screen?.elements.some(element => element.kind === 'background')) {
         stillScreens.add(summary.id);
       }
     }

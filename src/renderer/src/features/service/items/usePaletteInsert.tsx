@@ -1,134 +1,93 @@
-import {isItemOfKind} from '@core/schema/service';
-import {useState} from 'react';
-import {createServiceItemId} from '@core/schema/ids';
-import {quickAddBefore} from '@core/services/quickAddPosition';
-import {useShow} from '@renderer/session/show';
-import {useHeaderRename} from '@renderer/session/headerRename';
+import {useState, type JSX} from 'react';
+import type {LiturgyTranslation} from '@core/slides/items';
+import {createServiceItemId, type ServiceItemId} from '@core/schema/ids';
+import type {ServiceItem} from '@core/schema/service';
+import type {Report} from '@renderer/session/serviceEdit';
 import {useOrderFull} from '@renderer/session/orderFull';
-import type {PaletteEditing} from './PaletteEditing';
-import {SermonQuickAdd} from './SermonQuickAdd';
+import {useShow} from '@renderer/session/show';
+import {noticeTime} from '@renderer/ui/notices';
 import {BibleQuickAdd} from './BibleQuickAdd';
-import {passageItemWithParts, type PassageDefaults} from './quickAddBible';
-import {createPaletteItem, isPaletteKey} from './paletteItems';
-import {rememberBiblePassage} from '@renderer/session/recentWriter';
+import {insertNewItem, rowAfterSelected} from '@renderer/session/insertNewItem';
+import {newPaletteItem} from './newItems';
+import {newBibleItem, newSermonItem} from './passageItems';
+import {SermonQuickAdd} from './SermonQuickAdd';
 
-export function usePaletteInsert(editing: PaletteEditing | null) {
+interface Asking {
+  readonly kind: 'bible' | 'sermon';
+  readonly before: ServiceItemId | null;
+  readonly serviceId: string;
+}
+
+/** Puts what the palette offers in the 예배 순서, asking for a passage first. */
+export function usePaletteInsert(report: Report): {
+  readonly insert: (
+    key: string,
+    before?: string | null,
+    translation?: LiturgyTranslation,
+  ) => void;
+  readonly disabled: boolean;
+  readonly dialog: JSX.Element | null;
+} {
   const serviceId = useShow(view => view.serviceId);
   const readOnly = useShow(view => view.readOnly);
   const full = useOrderFull();
-  const [bible, setBible] = useState<{
-    before: string | null;
-    serviceId: string;
-    kind: 'bible' | 'sermon';
-  } | null>(null);
-  const disabled = serviceId === null || readOnly || full || editing === null;
+  const [asking, setAsking] = useState<Asking | null>(null);
+  const disabled = serviceId === null || readOnly || full;
   const insert = (
     key: string,
     before?: string | null,
-    translation: 'new' | 'old' = 'new',
+    translation?: LiturgyTranslation,
   ): void => {
-    if (
-      serviceId === null ||
-      readOnly ||
-      full ||
-      editing === null ||
-      !isPaletteKey(key)
-    ) {
-      return;
-    }
-    const snapshot = useShow.getState();
+    if (serviceId === null || disabled) return;
     const target =
       before === undefined
-        ? quickAddBefore(snapshot.rows, snapshot.openItemId)
-        : before;
+        ? rowAfterSelected()
+        : before === null
+          ? null
+          : createServiceItemId(before);
     if (key === 'bible' || key === 'sermon') {
-      setBible({before: target, serviceId, kind: key});
+      setAsking({kind: key, before: target, serviceId});
       return;
     }
-    editing.enqueueEdit(async (edits, id) => {
-      const item = await createPaletteItem(key, translation);
-      if (item === null) throw new Error('Unknown palette item');
-      if ('header' in item) useHeaderRename.getState().request(item.id);
-      return edits.insertItem(
-        id,
-        item,
-        target === null ? null : createServiceItemId(target),
-      );
-    });
+    const item = newPaletteItem(key, translation);
+    if (item !== null) insertNewItem(item, target, {report});
   };
+  const add = (made: Promise<ServiceItem | null>): void => {
+    const before = asking?.before ?? null;
+    setAsking(null);
+    made.then(
+      item => {
+        if (item !== null && useShow.getState().serviceId === serviceId) {
+          insertNewItem(item, before, {report});
+        }
+      },
+      (error: unknown) => {
+        console.error('Could not make a passage item', error);
+        report({
+          key: 'service-order:passage',
+          kind: 'warning',
+          icon: 'warning',
+          title: '성경 구절 추가 실패',
+          time: noticeTime(),
+        });
+      },
+    );
+  };
+  const close = (): void => setAsking(null);
   const dialog =
-    bible?.serviceId === serviceId && !readOnly && editing !== null ? (
-      bible.kind === 'sermon' ? (
-        <SermonQuickAdd
-          onClose={() => setBible(null)}
-          onInsert={(title, ref, defaults) => {
-            const api = window.llp;
-            if (api === undefined) return;
-            const target = bible.before;
-            setBible(null);
-            editing.enqueueEdit(async (edits, id) => {
-              const prepared = await passageItemWithParts(ref, defaults, {
-                api,
-                serviceId: id,
-                sermonTitle: title,
-              });
-              if (!prepared.ok) return prepared;
-              const passage = prepared.value;
-              if (passage === null) return {ok: true, value: false};
-              const item = {
-                id: passage.id,
-                sermon: {
-                  title,
-                  passage: passage.bible,
-                  ...(defaults.sermonTitleTransition === undefined
-                    ? {}
-                    : {
-                        openingTransition: defaults.sermonTitleTransition,
-                        closingTransition: defaults.sermonTitleTransition,
-                      }),
-                },
-              };
-              const result = await edits.insertItem(
-                id,
-                item,
-                target === null ? null : createServiceItemId(target),
-              );
-              if (result.ok && result.value) {
-                rememberBiblePassage(passage.bible);
-              }
-              return result;
-            });
-          }}
-        />
-      ) : (
-        <BibleQuickAdd
-          onClose={() => setBible(null)}
-          onInsert={(ref: string, defaults: PassageDefaults) => {
-            const api = window.llp;
-            if (api === undefined) return;
-            const target = bible.before;
-            setBible(null);
-            editing.enqueueEdit(async (edits, id) => {
-              const prepared = await passageItemWithParts(ref, defaults, {
-                api,
-                serviceId: id,
-              });
-              if (!prepared.ok) return prepared;
-              const item = prepared.value;
-              if (item === null) return {ok: true, value: false};
-              const result = await edits.insertItem(
-                id,
-                item,
-                target === null ? null : createServiceItemId(target),
-              );
-              if (result.ok && result.value && isItemOfKind(item, 'bible')) {
-                rememberBiblePassage(item.bible);
-              }
-              return result;
-            });
-          }}
-        />
-      )
-    ) : null;
+    asking?.serviceId !== serviceId || readOnly ? null : asking.kind ===
+      'sermon' ? (
+      <SermonQuickAdd
+        onClose={close}
+        onInsert={(title, passage, defaults) =>
+          add(newSermonItem(title, passage, defaults))
+        }
+      />
+    ) : (
+      <BibleQuickAdd
+        onClose={close}
+        onInsert={(passage, defaults) => add(newBibleItem(passage, defaults))}
+      />
+    );
   return {insert, disabled, dialog};
 }

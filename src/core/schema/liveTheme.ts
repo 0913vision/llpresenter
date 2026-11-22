@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import {mediaIdSchema, screenIdSchema, themeIdSchema} from './ids';
+import {themeIdSchema} from './ids';
 import {
   liveNonBlankTextSchema,
   liveTextSchema,
@@ -7,34 +7,34 @@ import {
 } from './liveLimits';
 import {payloadObject} from './payload';
 import {hexColor, nonNegativeInteger} from './primitives';
-import {itemOverlaysSchema} from './itemOverlays';
-import {outputMediaPropertiesSchema} from './outputMedia';
-import {themeScreenLayoutSchema} from './themes';
-import {themeItemKinds} from '../themes/elementRules';
+import {ITEM_OVERLAY_LIMITS, placedOverlaySchema} from './itemOverlays';
+import {slideBackgroundSchema, themeFileSchema} from './theme';
 import type {ReadonlyKnown} from './fileFormat';
 
-export const liveThemeItemSchema = payloadObject({
+export const liveItemKinds = [
+  'song',
+  'bible',
+  'sermon',
+  'liturgy',
+  'notice',
+  'blank',
+  'media',
+] as const;
+export type LiveItemKind = (typeof liveItemKinds)[number];
+
+/** The item on output, as it is saved now, with the times it gathered. */
+export const liveItemSchema = payloadObject({
   id: liveNonBlankTextSchema,
-  kind: v.picklist(themeItemKinds),
+  kind: v.picklist(liveItemKinds),
   source: v.picklist(['service', 'external']),
-  theme: v.exactOptional(themeIdSchema),
-  backgroundOverride: v.exactOptional(
-    v.variant('kind', [
-      v.object({kind: v.literal('none')}),
-      v.object({
-        kind: v.literal('media'),
-        mediaId: mediaIdSchema,
-        loop: v.boolean(),
-        properties: v.exactOptional(outputMediaPropertiesSchema),
-      }),
-    ]),
-  ),
-  backgroundStartedAt: v.exactOptional(v.pipe(v.number(), v.finite())),
   title: v.exactOptional(liveTextSchema),
-  broadcastSongTitle: v.exactOptional(liveTextSchema),
   memo: v.exactOptional(liveTextSchema),
-  overlays: v.exactOptional(itemOverlaysSchema),
-  cardOffset: v.exactOptional(v.literal(1)),
+  overlays: v.exactOptional(
+    v.pipe(
+      v.array(placedOverlaySchema),
+      v.maxLength(ITEM_OVERLAY_LIMITS.overlays),
+    ),
+  ),
   slidePosition: v.exactOptional(nonNegativeInteger),
   contentCleared: v.exactOptional(v.boolean()),
   startedAt: v.exactOptional(v.pipe(v.number(), v.finite())),
@@ -46,30 +46,22 @@ export const liveThemeModeSchema = v.object({
   id: themeIdSchema,
 });
 
-export const themeCompositionSchema = payloadObject({
-  sourceScreenId: screenIdSchema,
-  layout: themeScreenLayoutSchema,
-  emptyColor: hexColor,
-});
-
+/** The theme on output, and the color of each screen that shows nothing. */
 export const liveThemeOutputSchema = payloadObject({
-  themeId: themeIdSchema,
+  theme: themeFileSchema,
+  /** What is behind the slide, also after its texts are cleared. */
+  background: slideBackgroundSchema,
   revision: nonNegativeInteger,
   missing: v.pipe(v.array(liveNonBlankTextSchema), v.maxLength(2)),
-  screens: v.pipe(
-    v.record(screenIdSchema, themeCompositionSchema),
+  emptyColors: v.pipe(
+    v.record(v.string(), hexColor),
     v.maxEntries(LIVE_STATE_LIMITS.outputs),
   ),
 });
 
-export type LiveThemeItem = ReadonlyKnown<
-  v.InferOutput<typeof liveThemeItemSchema>
->;
+export type LiveItem = ReadonlyKnown<v.InferOutput<typeof liveItemSchema>>;
 export type LiveThemeMode = ReadonlyKnown<
   v.InferOutput<typeof liveThemeModeSchema>
->;
-export type ThemeComposition = ReadonlyKnown<
-  v.InferOutput<typeof themeCompositionSchema>
 >;
 export type LiveThemeOutput = ReadonlyKnown<
   v.InferOutput<typeof liveThemeOutputSchema>

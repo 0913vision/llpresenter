@@ -1,39 +1,33 @@
 import {useEffect, useMemo, useState} from 'react';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
-import {createBibleMeasureContext} from '@renderer/rendering/bibleMeasure';
+import {useThemes} from '@renderer/platform/themes';
+import {createFontMeasure} from '@renderer/rendering/theme/splitMeasure';
 import type {Notice} from '@renderer/ui/notices';
 import {PassageSplitter} from './passageSplitter';
 
-/** A splitter that follows the themes, screens, fonts and remembered cuts. */
+/** A splitter that follows the themes, fonts and remembered cuts. */
 export function usePassageSplitter(
   onProblem?: (notice: Notice) => void,
 ): PassageSplitter | null {
-  const themes = useSettingsDocument('themes', '테마', onProblem);
-  const screens = useSettingsDocument('screens', '화면', onProblem);
+  const themes = useThemes(view => view.themes);
   const saved = useSettingsDocument('bibleCuts', '절 나누기', onProblem);
   const [measurement, setMeasurement] = useState(() => ({
-    canvas: createBibleMeasureContext(),
+    canvas: createFontMeasure(),
   }));
   useEffect(() => {
-    const fonts = document.fonts;
-    if (typeof fonts === 'undefined') return;
     const update = (): void => setMeasurement(value => ({...value}));
-    fonts.addEventListener('loadingdone', update);
-    return () => fonts.removeEventListener('loadingdone', update);
+    document.fonts.addEventListener('loadingdone', update);
+    return () => document.fonts.removeEventListener('loadingdone', update);
   }, []);
   return useMemo(
     () =>
-      measurement.canvas === null ||
-      themes === null ||
-      screens === null ||
-      saved === null
+      measurement.canvas === null || themes === null || saved === null
         ? null
         : new PassageSplitter({
-            themes: themes.value,
-            screens: screens.value.screens,
+            themes,
             saved: saved.value,
             canvas: measurement.canvas,
           }),
-    [measurement, themes, screens, saved],
+    [measurement, themes, saved],
   );
 }

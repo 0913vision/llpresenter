@@ -10,22 +10,17 @@ import {
 } from 'react';
 import {outputTile, useShow} from '@renderer/session/show';
 import {
-  bibleSourceFor,
   isBibleSource,
   liveTileIndex,
   shownTilesFor,
 } from '@renderer/session/showLibrary';
 import {useLive} from '@renderer/session/live';
 import {commitShownItem, useShownItemId} from '@renderer/session/shownItem';
-import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import {SlideThumbnail, ThumbnailGrid, thumbnailWidth} from '@renderer/ui';
 import {useGridMeasure} from '@renderer/ui/useGridMeasure';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
-import {slideMenuEntries} from '@renderer/features/songs/editor/slideMenuEntries';
-import {slideLayerOf} from '@core/presentation/slideLayer';
-import {itemThemes, useThemeSettings} from '@renderer/pictures/itemThemes';
-import {TilePicture} from '@renderer/pictures/TilePicture';
-import {BibleLoadNotice} from '../bible/BibleLoadNotice';
+import {slideMenuEntries} from './slideMenuEntries';
+import {TilePicture, tileProps} from '@renderer/pictures/TilePicture';
 import styles from './SlideGrid.module.css';
 import {useSlideWindow} from './useSlideWindow';
 import {ShowSlideEntry} from './showPanelNavigation';
@@ -57,33 +52,6 @@ export function SlideGrid({
     openItemId === null ? null : serviceSlideOffset(view, openItemId),
   );
   const tiles = useShow(view => shownTilesFor(view, openItemId));
-  const row = useShow(view => view.rows.find(value => value.id === openItemId));
-  const librarySong = useShow(view => view.librarySong);
-  const bibleSource = useShow(view => bibleSourceFor(view, openItemId));
-  const settings = useThemeSettings({
-    source: row === undefined ? 'external' : 'service',
-  });
-  const themes = itemThemes(
-    row ??
-      (librarySong !== null && bibleSource === null
-        ? {
-            id: `library:${librarySong.songId}`,
-            kind: 'song',
-            title: librarySong.title,
-            ...(librarySong.background === undefined
-              ? {}
-              : {background: librarySong.background}),
-          }
-        : bibleSource === null
-          ? undefined
-          : {
-              id: bibleSource.id,
-              kind: 'bible',
-              title: bibleSource.passage.displayRef,
-            }),
-    tiles ?? [],
-    settings,
-  );
   const liveSlide = useLive(view => view.state?.layers.slide ?? null);
   const liveIndex = useShow(view =>
     liveTileIndex({...view, openItemId}, liveSlide),
@@ -179,10 +147,6 @@ export function SlideGrid({
       data-slide-window-size={window.windowSize}
       style={{height: window.height}}
     >
-      {row !== undefined && row.kind !== 'header' ? (
-        <BibleLoadNotice row={row} />
-      ) : null}
-
       <div className={styles.window} style={{top: window.offset}}>
         <ThumbnailGrid
           workspace="show"
@@ -208,40 +172,18 @@ export function SlideGrid({
         >
           {tiles?.slice(window.start, window.end).map((tile, local) => {
             const index = window.start + local;
-            const picture = tile.media?.mediaId;
-            const slide =
-              openItemId === null
-                ? null
-                : slideLayerOf({itemId: openItemId, index}, () => tiles);
             return (
               <SlideThumbnail
                 key={reflowIds[index] ?? `${openItemId}:${index}`}
                 reflowId={reflowIds[index]}
                 selectionStyle="plate"
                 number={(offset ?? 0) + index + 1}
-                canvas={
-                  <TilePicture tile={tile} slide={slide} themes={themes} />
-                }
-                label={
-                  (tile.slideLabel ?? tile.label) === ''
-                    ? undefined
-                    : (tile.slideLabel ?? tile.label ?? undefined)
-                }
-                labelColor={tile.labelColor}
-                accessibleLabel={
-                  picture === undefined || tile.slideLabel || tile.label
-                    ? undefined
-                    : tile.lines.join(' ')
-                }
-                text={picture === undefined ? tile.lines.join('\n') : undefined}
-                media={
-                  picture === undefined ? undefined : thumbnailSrc(picture)
-                }
+                canvas={<TilePicture tile={tile} />}
                 live={index === liveIndex}
                 transitionProgress={
                   index === liveIndex ? transitionProgress : undefined
                 }
-                hotKey={tile.hotKey}
+                {...tileProps(tile)}
               />
             );
           })}

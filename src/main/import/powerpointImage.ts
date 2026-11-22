@@ -1,17 +1,17 @@
-import {POWERPOINT_BACKGROUND_LIMITS as LIMITS} from '@core/songs/powerpointLayers';
+import {POWERPOINT_PICTURE_LIMITS as LIMITS} from '@core/schema/powerpointImport';
 
 function allowed(width: number, height: number): boolean {
   return (
     width > 0 &&
     height > 0 &&
-    width <= LIMITS.imageSide &&
-    height <= LIMITS.imageSide &&
-    width * height <= LIMITS.imagePixels
+    width <= LIMITS.side &&
+    height <= LIMITS.side &&
+    width * height <= LIMITS.pixels
   );
 }
 /** Checks encoded image dimensions before Chromium allocates a bitmap. */
 export function boundedPowerPointImage(bytes: Buffer): boolean {
-  if (bytes.length > LIMITS.imageBytes) return false;
+  if (bytes.length > LIMITS.bytes) return false;
   if (
     bytes.length >= 24 &&
     bytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]))

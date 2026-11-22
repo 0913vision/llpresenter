@@ -1,9 +1,9 @@
 import {MAX_ACTIVE_PROPS} from '@core/schema/overlayState';
 import {classes} from '../classes';
-import {defineLayer} from '../layer';
+import type {LayerDefinition} from '../layer';
 import {OverlayImageView} from '../overlayImage';
 import type {TimerNow} from '@core/timers/timerClock';
-import type {TextStyle} from '@core/themes/textStyle';
+import type {TextStyle} from '@core/overlays/textStyle';
 import {OverlayTextView} from '../overlayText';
 import {
   fillTimerTokens,
@@ -32,9 +32,8 @@ interface PropView {
   ticking: boolean;
 }
 
-export const propsLayer = defineLayer({
+export const propsLayer: LayerDefinition = {
   kind: 'prop',
-  order: 2,
   fades: 'prop',
   create: (parent, options) => {
     const pool: PropView[] = [];
@@ -163,4 +162,4 @@ export const propsLayer = defineLayer({
       },
     };
   },
-});
+};

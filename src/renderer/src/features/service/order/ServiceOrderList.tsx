@@ -1,23 +1,29 @@
-import {SERMON_TITLE_THEME_ID} from '@core/themes/sundayScripture';
 import {useShownItemId} from '@renderer/session/shownItem';
 import {serviceRowIcon} from './serviceItemIcons';
-import {useMediaOrderDrop} from './useMediaOrderDrop';
-import {usePaletteEditing} from '../items/PaletteEditing';
+import {dropMediaInOrder} from './dropMediaInOrder';
+import {insertLibrarySong} from '@renderer/session/insertNewItem';
 import {usePaletteInsert} from '../items/usePaletteInsert';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {useSelectionDelete} from '@renderer/ui/useSelectionDelete';
 import {useReflow} from '@renderer/ui/useReflow';
 import {selectionLabel} from '@renderer/ui/selectionDrag';
 import {orderedSelection} from '@core/common/selectionOrder';
-import {createServiceId} from '@core/schema/ids';
-import {isItemOfKind, SLIDES_LIMITS} from '@core/schema/service';
-import {pendingWritesOf} from '@renderer/platform/pendingWrites';
-import {updateServiceItem} from '@renderer/session/serviceItemUpdate';
+import {SONG_NAME_MAX_LENGTH} from '@core/schema/song';
 import {useOrderFull} from '@renderer/session/orderFull';
 import {
+  duplicateItems as duplicateOrderItems,
+  moveItems as moveOrderItems,
+  moveItemsStep,
   ORDER_FULL_REASON,
-  serviceOrderEditsFor,
+  removeItems,
+  renameItem as renameOrderItem,
 } from '@renderer/session/serviceOrderEdits';
+import {
+  redoService,
+  undoService,
+  useOpenService,
+} from '@renderer/session/openService';
+import {openInPrep} from '@renderer/session/prepTarget';
 import {
   NEWER_FILE_REASON,
   NOTHING_TO_REDO,
@@ -35,7 +41,7 @@ import {
 } from '@renderer/ui/contextMenu';
 import {useEffect, useMemo, useRef, useState, type JSX} from 'react';
 import {createServiceItemId, type SongId} from '@core/schema/ids';
-import {editorTask} from '@renderer/features/songs/editor/editorTask';
+import {editorTask} from '@renderer/platform/editorTask';
 import {hasModifier} from '@renderer/ui/modifierKeys';
 import {useMovedRowFocus} from './useMovedRowFocus';
 import {useOrderEditFocus} from './useOrderEditFocus';
@@ -44,25 +50,16 @@ import {useOrderFollow} from './useOrderFollow';
 import {usePrepOrderPosition} from './usePrepOrderPosition';
 import {serviceRowLabel} from './serviceRowLabel';
 import {isInTextEntry} from '@renderer/ui/textEntry';
-import {openSongEditorWindow} from '@renderer/features/songs/editor/openWindow';
 import {clickFocusProps} from '@renderer/ui/clickFocus';
 import {useHeaderRename} from '@renderer/session/headerRename';
 import {openItem, useShow} from '@renderer/session/show';
 import {useVisibleSlideItem} from '@renderer/session/visibleSlideItem';
 import {useLive} from '@renderer/session/live';
-import {
-  Button,
-  ListBox,
-  ListGroup,
-  ListInsertLine,
-  ListRow,
-  Menu,
-} from '@renderer/ui';
-import {missingBackgroundTip} from '@renderer/features/media/backgroundChoices';
+import {ListBox, ListGroup, ListInsertLine, ListRow, Menu} from '@renderer/ui';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
 import type {Workspace} from '@renderer/ui/workspace';
-import {useServiceOrderEditing} from './useServiceOrderEditing';
+import {useServiceOrderEditing} from '@renderer/session/useServiceOrderEditing';
 import {useServiceItemSelection} from './useServiceItemSelection';
 import {useServiceItemClipboard} from './useServiceItemClipboard';
 import {serviceOrderMenuEntries} from './serviceOrderMenu';
@@ -76,14 +73,9 @@ import styles from './ServiceOrderList.module.css';
 
 const problemTips: Readonly<Record<RowProblem, string>> = {
   'missing-song': '곡 파일을 찾을 수 없습니다',
-  'loading-bible': '본문을 받는 중입니다',
-  'missing-bible':
-    '성경 본문을 받지 못했습니다. 인터넷 연결을 확인해 주십시오.',
-  'missing-background': '배경 파일을 찾을 수 없습니다',
   'missing-media': '미디어 파일을 찾을 수 없습니다',
   'unknown-kind': '아직 없는 기능',
   'newer-version': NEWER_FILE_REASON,
-  'tile-limit': '슬라이드가 너무 많음',
 };
 
 interface RowGroup {
@@ -152,8 +144,13 @@ function useLiveItemId(): string | null {
   );
   if (slideItem !== null) return slideItem;
   if (mediaItemId !== null) return mediaItemId;
-  if (row?.kind === 'media' && tile?.media?.mediaId === mediaId) {
-    return mediaId === undefined ? null : row.id;
+  const background = tile?.slide.background;
+  if (
+    row?.kind === 'media' &&
+    background?.kind === 'media' &&
+    background.media === mediaId
+  ) {
+    return row.id;
   }
   return null;
 }
@@ -164,7 +161,6 @@ function ItemRows({
   done,
   editable,
   insertBefore,
-  backgroundTarget,
   workspace,
   durations,
   table,
@@ -172,10 +168,8 @@ function ItemRows({
   renaming,
   rename,
   selected,
-  openBackground,
   navigator,
 }: {
-  readonly openBackground: (id: string) => void;
   readonly navigator: boolean;
   readonly items: readonly ServiceRow[];
   readonly selected: ReadonlySet<string>;
@@ -183,7 +177,6 @@ function ItemRows({
   readonly done: ReadonlySet<string>;
   readonly editable: boolean;
   readonly insertBefore: string | null | undefined;
-  readonly backgroundTarget: string | null;
   readonly workspace: Workspace;
   readonly durations: Readonly<Record<string, string>>;
   readonly table: ServiceTableParts | undefined;
@@ -203,7 +196,6 @@ function ItemRows({
           <div
             key={row.id}
             data-order-id={row.id}
-            data-media-drop={backgroundTarget === row.id ? '' : undefined}
             draggable={editable && workspace === 'prep'}
           >
             {insertBefore === row.id ? <ListInsertLine /> : null}
@@ -229,38 +221,16 @@ function ItemRows({
               meta={
                 workspace !== 'prep' || table !== undefined || navigator
                   ? undefined
-                  : ['song', 'bible'].includes(row.kind)
-                    ? `슬라이드 ${countOf(row)}개`
-                    : durations[row.id]
+                  : row.kind === 'media'
+                    ? durations[row.id]
+                    : `슬라이드 ${countOf(row)}개`
               }
               cells={table?.cellsOf(
                 row,
-                ['song', 'bible'].includes(row.kind)
-                  ? String(countOf(row))
-                  : durations[row.id],
                 serviceRowLabel(row, numbers.get(row.id) ?? 1),
               )}
               warning={
-                row.problem === 'missing-background'
-                  ? missingBackgroundTip(
-                      row.kind === 'song' || row.kind === 'slides'
-                        ? row.missingBackgroundName
-                        : undefined,
-                    )
-                  : row.problem === undefined
-                    ? undefined
-                    : problemTips[row.problem]
-              }
-              end={
-                row.problem === 'missing-background' ? (
-                  <Button
-                    size="sm"
-                    disabled={!editable}
-                    onClick={() => openBackground(row.id)}
-                  >
-                    배경 바꾸기
-                  </Button>
-                ) : undefined
+                row.problem === undefined ? undefined : problemTips[row.problem]
               }
             />
           </div>
@@ -268,6 +238,11 @@ function ItemRows({
       )}
     </>
   );
+}
+
+/** Whether a row has a name of its own that the operator gives it. */
+function isNamed(row: ServiceRow): boolean {
+  return row.kind === 'notice' || row.kind === 'blank' || row.kind === 'media';
 }
 
 const closeNothing = (): void => undefined;
@@ -280,8 +255,7 @@ function logProblem(notice: Notice): void {
 export function ServiceOrderList({
   workspace = 'show',
   navigator = false,
-  onOpenOther,
-  onNavigateEditor,
+  onNavigate,
   onProblem = logProblem,
   onOpenPrep,
   onOpenItem,
@@ -290,23 +264,16 @@ export function ServiceOrderList({
 }: {
   readonly workspace?: Workspace | undefined;
   readonly navigator?: boolean | undefined;
-  readonly onOpenOther?: ((id: string) => void) | undefined;
-  readonly onNavigateEditor?:
-    ((id: string, kind: ServiceRow['kind']) => void) | undefined;
+  /** Opens another item in the editor that this list is beside. */
+  readonly onNavigate?: ((id: string) => void) | undefined;
   readonly table?: ServiceTableParts | undefined;
   readonly onProblem?: ((notice: Notice) => void) | undefined;
   readonly onOpenPrep?:
-    | ((itemId: string, position?: number, target?: 'settings') => void)
-    | undefined;
+    ((itemId: string, position?: number) => void) | undefined;
   readonly onOpenItem?: (() => void) | undefined;
   readonly onShowInLibrary?: ((songId: SongId) => void) | undefined;
 }): JSX.Element {
   const rows = useShow(view => view.rows);
-  const openBackground = (id: string): void => {
-    openItem(id);
-    if (workspace === 'show') onOpenPrep?.(id, undefined, 'settings');
-    onOpenItem?.();
-  };
   const numbers = useMemo(
     () =>
       new Map(
@@ -337,7 +304,9 @@ export function ServiceOrderList({
   // because opening the new service replaces the empty state before the
   // dialog has reported a failed copy.
   const serviceActions = useServiceActions({onProblem, onOpen: closeNothing});
-  const editing = useServiceOrderEditing(serviceId, onProblem);
+  const editing = useServiceOrderEditing(onProblem);
+  const canUndo = useOpenService(view => view.past.length > 0);
+  const canRedo = useOpenService(view => view.future.length > 0);
   const durations = useMediaDurations(
     serviceId,
     workspace === 'prep' && rows.some(row => row.kind === 'media'),
@@ -396,9 +365,7 @@ export function ServiceOrderList({
     onSelect: itemId => {
       if (navigator) {
         const kind = rows.find(row => row.id === itemId)?.kind;
-        if (kind !== undefined && kind !== 'header') {
-          onNavigateEditor?.(itemId, kind);
-        }
+        if (kind !== undefined && kind !== 'header') onNavigate?.(itemId);
       } else {
         onOpenItem?.();
         openItem(itemId);
@@ -408,47 +375,34 @@ export function ServiceOrderList({
       }
     },
   });
-  const paletteEditing = usePaletteEditing();
-  const palette = usePaletteInsert(paletteEditing);
-  const runEdit =
-    table !== undefined && paletteEditing !== null
-      ? paletteEditing.enqueueEdit
-      : editing.run;
-  const mediaDrop = useMediaOrderDrop({
-    serviceId,
-    runEdit,
-    setBackground: table?.setBackground,
-    onProblem,
-  });
-  const {insertBefore, backgroundTarget, dragProps} = useServiceOrderDrag({
+  const palette = usePaletteInsert(onProblem);
+  const {insertBefore, dragProps} = useServiceOrderDrag({
     enabled: editable,
     allowReorder: workspace === 'prep',
     rows,
     selected: selection.selected,
     select: id => selection.replace([id], id),
-    onMove: (ids, before) => {
-      runEdit((edits, id) =>
-        edits.moveMany(
-          id,
+    onMove: (ids, before) =>
+      editing.run(() =>
+        moveOrderItems(
           ids.map(createServiceItemId),
           before === null ? null : createServiceItemId(before),
         ),
-      );
-    },
+      ),
     onElement:
       table === undefined || navigator
         ? undefined
         : (key, before) => palette.insert(key, before),
-    onMedia: table === undefined || navigator ? undefined : mediaDrop,
-    onCopy: (songId, before) => {
-      runEdit((edits, id) =>
-        edits.insertSong(
-          id,
-          songId,
-          before === null ? null : createServiceItemId(before),
-        ),
-      );
-    },
+    onMedia:
+      table === undefined || navigator
+        ? undefined
+        : (media, before) => dropMediaInOrder(media, before, onProblem),
+    onCopy: (songId, before) =>
+      insertLibrarySong(
+        songId,
+        before === null ? null : createServiceItemId(before),
+        onProblem,
+      ),
   });
   const clipboard = useServiceItemClipboard({
     serviceId,
@@ -486,10 +440,7 @@ export function ServiceOrderList({
       target.serviceId === serviceId &&
       editable &&
       rows.some(
-        row =>
-          row.id === target.id &&
-          (row.kind === 'header' ||
-            (row.kind === 'slides' && row.liturgy === undefined)),
+        row => row.id === target.id && (row.kind === 'header' || isNamed(row)),
       )
     ) {
       setRenaming(target.id);
@@ -519,40 +470,20 @@ export function ServiceOrderList({
     event.target.closest('[data-panel="prep-palette"]') !== null;
   const renameItem = (
     row: ServiceRow,
-  ): import('@renderer/ui/ListRow').GroupRename | undefined => {
-    const api = window.llp;
-    if (
-      row.kind !== 'slides' ||
-      row.liturgy !== undefined ||
-      api === undefined
-    ) {
-      return undefined;
-    }
-    return {
-      validate: value =>
-        value.trim().length > SLIDES_LIMITS.name
-          ? '이름이 너무 깁니다'
-          : undefined,
-      onCommit: name =>
-        pendingWritesOf(api).run({
-          write: async () => {
-            if (serviceId === null || name.trim() === '') return false;
-            const result = await updateServiceItem(api, {
-              serviceId,
-              itemId: row.id,
-              change: item =>
-                isItemOfKind(item, 'slides')
-                  ? {...item, slides: {...item.slides, name: name.trim()}}
-                  : null,
-            });
-            return result.ok;
-          },
-          refused: false,
-          sent: result => result,
-        }),
-      onClose: stopRenaming,
-    };
-  };
+  ): import('@renderer/ui/ListRow').GroupRename | undefined =>
+    isNamed(row)
+      ? {
+          validate: value =>
+            value.trim().length > SONG_NAME_MAX_LENGTH
+              ? '이름이 너무 깁니다'
+              : undefined,
+          onCommit: name =>
+            editing.save(() =>
+              renameOrderItem(createServiceItemId(row.id), name),
+            ),
+          onClose: stopRenaming,
+        }
+      : undefined;
   const movedFocus = useMovedRowFocus(listRef, rows, serviceId);
   const moveItems = (
     ids: readonly string[],
@@ -564,9 +495,7 @@ export function ServiceOrderList({
     if (!canMoveItems(rows, movable, direction)) return;
     const disarm = movedFocus.arm(focusId);
     editing
-      .save((edits, id) =>
-        edits.moveStep(id, movable.map(createServiceItemId), direction),
-      )
+      .save(() => moveItemsStep(movable.map(createServiceItemId), direction))
       .then(
         saved => {
           if (!saved) disarm();
@@ -587,9 +516,9 @@ export function ServiceOrderList({
         ? id => selection.replace([id], id)
         : undefined,
     );
-    editing.run(async (edits, service) => {
+    editing.run(async () => {
       try {
-        const result = await operation(edits, service);
+        const result = await operation();
         if (
           result.ok ? !result.value : result.error.reason !== 'write-failed'
         ) {
@@ -621,11 +550,7 @@ export function ServiceOrderList({
         useShow.getState().rows === snapshot.rows &&
         !useShow.getState().readOnly,
       () =>
-        runFocusedEdit(
-          (edits, service) =>
-            edits.removeMany(service, ids.map(createServiceItemId)),
-          ids,
-        ),
+        runFocusedEdit(() => removeItems(ids.map(createServiceItemId)), ids),
     );
   };
   const deleteFromKey = (): void => askDelete(targets());
@@ -641,7 +566,7 @@ export function ServiceOrderList({
     );
     const copyIds = [...copies.values()];
     editing
-      .save((edits, service) => edits.duplicateMany(service, copies))
+      .save(() => duplicateOrderItems(copies))
       .then(saved => {
         const last = copyIds.at(-1);
         if (saved && last !== undefined) selection.replace(copyIds, last);
@@ -651,14 +576,10 @@ export function ServiceOrderList({
       );
   };
   const historyReason = (kind: 'undo' | 'redo'): string | undefined => {
-    const api = window.llp;
-    if (!editable || api === undefined || serviceId === null) {
-      return kind === 'undo' ? NOTHING_TO_UNDO : NOTHING_TO_REDO;
+    if (kind === 'undo') {
+      return editable && canUndo ? undefined : NOTHING_TO_UNDO;
     }
-    const edits = serviceOrderEditsFor(api);
-    const id = createServiceId(serviceId);
-    if (kind === 'undo') return edits.canUndo(id) ? undefined : NOTHING_TO_UNDO;
-    return edits.canRedo(id) ? undefined : NOTHING_TO_REDO;
+    return editable && canRedo ? undefined : NOTHING_TO_REDO;
   };
   const moveFromKey = (
     event: KeyboardEvent,
@@ -706,12 +627,8 @@ export function ServiceOrderList({
       context: 'service',
       when: event => ownsCommand(event) || ownsPaletteHistory(event),
       unavailable: () => historyReason('undo'),
-      run: event => {
-        if (editable) {
-          if (ownsPaletteHistory(event) && paletteEditing) {
-            paletteEditing.enqueueEdit((edits, service) => edits.undo(service));
-          } else runFocusedEdit((edits, service) => edits.undo(service));
-        }
+      run: () => {
+        if (editable) runFocusedEdit(() => undoService());
       },
     },
     {
@@ -719,12 +636,8 @@ export function ServiceOrderList({
       context: 'service',
       when: event => ownsCommand(event) || ownsPaletteHistory(event),
       unavailable: () => historyReason('redo'),
-      run: event => {
-        if (editable) {
-          if (ownsPaletteHistory(event) && paletteEditing) {
-            paletteEditing.enqueueEdit((edits, service) => edits.redo(service));
-          } else runFocusedEdit((edits, service) => edits.redo(service));
-        }
+      run: () => {
+        if (editable) runFocusedEdit(() => redoService());
       },
     },
     {
@@ -760,51 +673,13 @@ export function ServiceOrderList({
     },
   ]);
 
-  const openSongEditor = (songId: SongId, itemId: string): void => {
-    const api = window.llp;
-    if (api !== undefined && serviceId !== null) {
-      editorTask(
-        openSongEditorWindow(
-          {
-            songId,
-            from: {
-              serviceId: createServiceId(serviceId),
-              itemId: createServiceItemId(itemId),
-            },
-          },
-          onProblem,
-        ),
-      );
-    }
-  };
   const openOrderEditor = (id: string | null): boolean => {
     if (workspace !== 'prep' || id === null || serviceId === null) return false;
-    const row = rows.find(row => row.id === id);
-    const kind = row?.kind;
-    if (kind === undefined || kind === 'header') return false;
-    if (
-      (row?.kind === 'slides' && row.liturgy !== undefined) ||
-      (kind !== 'song' && kind !== 'slides')
-    ) {
-      onOpenOther?.(id);
-      return true;
+    const kind = rows.find(row => row.id === id)?.kind;
+    if (kind === undefined || kind === 'header' || kind === 'unknown') {
+      return false;
     }
-    const api = window.llp;
-    if (api !== undefined) {
-      editorTask(
-        api.services.get(serviceId).then(async document => {
-          const item = document?.service.order.find(row => row.id === id);
-          if (item !== undefined && isItemOfKind(item, 'song')) {
-            openSongEditor(item.song, id);
-          } else if (item !== undefined && isItemOfKind(item, 'slides')) {
-            await api.slidesEditor.open({
-              serviceId: createServiceId(serviceId),
-              itemId: item.id,
-            });
-          }
-        }),
-      );
-    }
+    openInPrep({kind: 'item', itemId: id});
     return true;
   };
 
@@ -815,81 +690,17 @@ export function ServiceOrderList({
     if (row === undefined) return [];
     const ids = targets(target.id);
     const count = ids.length;
-    const index = rows.findIndex(value => value.id === target.id);
-    const next = rows[index + 1];
-    const title = useShow
-      .getState()
-      .tiles[target.id]?.find(
-        tile =>
-          tile.sectionCard === undefined &&
-          tile.lines.some(line => line.trim() !== ''),
-      )
-      ?.lines.join('\n')
-      .split('\n')
-      .find(line => line.trim() !== '')
-      ?.trim();
-    const bind =
-      workspace === 'prep' &&
-      editable &&
-      (row.kind === 'slides' || row.kind === 'song') &&
-      row.theme === SERMON_TITLE_THEME_ID &&
-      next?.kind === 'bible' &&
-      next.sermonTitle === undefined &&
-      title !== undefined;
-    const unbind =
-      workspace === 'prep' &&
-      editable &&
-      row.kind === 'bible' &&
-      row.sermonTitle !== undefined;
     const entries: readonly MenuEntry[] = [
-      ...(bind
-        ? [
-            {
-              kind: 'item' as const,
-              id: 'bind-sermon',
-              label: '설교로 묶기',
-              onSelect: () => {
-                editorTask(
-                  editing.save((edits, id) =>
-                    edits.bindSermon(id, createServiceItemId(target.id), title),
-                  ),
-                );
-                setMenu(null);
-              },
-            },
-          ]
-        : []),
-      ...(unbind
-        ? [
-            {
-              kind: 'item' as const,
-              id: 'unbind-sermon',
-              label: '설교 풀기',
-              onSelect: () => {
-                editorTask(
-                  editing.save((edits, id) =>
-                    edits.unbindSermon(id, createServiceItemId(target.id)),
-                  ),
-                );
-                setMenu(null);
-              },
-            },
-          ]
-        : []),
       ...serviceOrderMenuEntries({
         row,
         editable,
         editSong:
           workspace === 'prep'
             ? {
-                editSong: songMenu.songId
-                  ? () => {
-                      if (songMenu.songId) {
-                        openSongEditor(songMenu.songId, target.id);
-                      }
-                      setMenu(null);
-                    }
-                  : undefined,
+                editSong: () => {
+                  openOrderEditor(target.id);
+                  setMenu(null);
+                },
               }
             : undefined,
         song: {
@@ -1113,7 +924,6 @@ export function ServiceOrderList({
               done={done}
               editable={editable}
               insertBefore={insertBefore}
-              backgroundTarget={backgroundTarget}
               workspace={workspace}
               durations={durations}
               table={table}
@@ -1121,7 +931,6 @@ export function ServiceOrderList({
               navigator={navigator}
               renaming={renaming}
               rename={renameItem}
-              openBackground={openBackground}
             />
           ) : (
             <div
@@ -1155,9 +964,8 @@ export function ServiceOrderList({
                   renaming === group.id
                     ? {
                         onCommit: name =>
-                          editing.save((edits, id) =>
-                            edits.renameHeader(
-                              id,
+                          editing.save(() =>
+                            renameOrderItem(
                               createServiceItemId(group.id),
                               name,
                             ),
@@ -1174,7 +982,6 @@ export function ServiceOrderList({
                   done={done}
                   editable={editable}
                   insertBefore={insertBefore}
-                  backgroundTarget={backgroundTarget}
                   workspace={workspace}
                   durations={durations}
                   table={table}
@@ -1182,7 +989,6 @@ export function ServiceOrderList({
                   navigator={navigator}
                   renaming={renaming}
                   rename={renameItem}
-                  openBackground={openBackground}
                 />
               </ListGroup>
             </div>

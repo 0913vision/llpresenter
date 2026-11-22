@@ -1,3 +1,6 @@
+import type {VerseDirection} from '@core/bible/adjacentVerses';
+import type {BiblePassage} from '@core/schema/biblePassage';
+import type {BibleLookupPassage} from '@core/schema/bibleLookup';
 import {useLive} from '@renderer/session/live';
 import {outputTile, useShow} from '@renderer/session/show';
 import {
@@ -5,14 +8,59 @@ import {
   liveTileIndex,
   tilesForView,
 } from '@renderer/session/showLibrary';
+import type {ShowView} from '@renderer/session/showStore';
+import {
+  bibleSource,
+  type BibleDisplay,
+  type BibleSource,
+} from '@renderer/session/bibleSource';
 import {
   beginOutputRequest,
   isOutputRequestCurrent,
 } from '@renderer/session/showOutput';
 import {openBiblePassage} from './actions';
-import type {VerseDirection} from '@core/bible/adjacentVerses';
-import {labelEdge} from '@core/bible/bibleTiles';
 import {lookupAdjacentPassage} from './lookupAdjacentPassage';
+import {passageText} from './passageText';
+
+/** The passage an item shows, as if it had been opened by itself. */
+async function openedPassage(
+  view: ShowView,
+  itemId: string,
+): Promise<BibleSource | null> {
+  const source = bibleSourceFor(view, itemId);
+  if (source !== null) return source;
+  const row = view.rows.find(entry => entry.id === itemId);
+  const passage: BiblePassage | undefined =
+    row !== undefined && 'passage' in row ? row.passage : undefined;
+  if (passage === undefined) return null;
+  const text = await passageText(passage);
+  if (text === null) return null;
+  return bibleSource(`bible:${crypto.randomUUID()}`, text, {
+    verseNumbers: passage.verseNumbers,
+    translationName: passage.translationName,
+    transition: passage.transition,
+    enteredRef: passage.ref,
+    enteredTranslation: passage.translation,
+    slides: tilesForView(view, itemId).flatMap(tile =>
+      tile.slide.verse === undefined ? [] : [tile.slide],
+    ),
+  });
+}
+
+/** The slide that shows the verse a passage grew by, on its own side. */
+function edgeIndex(
+  source: BibleSource,
+  passage: BibleLookupPassage,
+  direction: VerseDirection,
+): number {
+  const edge = passage.verses.at(direction === 'previous' ? 0 : -1);
+  return source.tiles.findIndex(
+    ({slide}) =>
+      slide.verse !== undefined &&
+      slide.verse.chapter === edge?.chapter &&
+      slide.verse.verse === edge.verse,
+  );
+}
 
 /**
  * Outputs the verse beside the live one in the open passage. On the passage's
@@ -28,26 +76,16 @@ export async function outputAdjacentBibleVerse(
   const itemId = initial.openItemId;
   const liveIndex = liveTileIndex(initial, slide);
   if (!api || itemId === null || liveIndex === null) return;
-  const currentTiles = tilesForView(initial, itemId);
-  if (
-    direction === 'previous' &&
-    currentTiles[liveIndex]?.sectionCard !== undefined
-  ) {
+  const tiles = tilesForView(initial, itemId);
+  const beside = direction === 'previous' ? liveIndex - 1 : liveIndex + 1;
+  if (tiles[liveIndex]?.slide.verse === undefined) {
+    if (tiles[beside] !== undefined) outputTile({itemId, index: beside});
     return;
   }
-  const count = currentTiles.length;
-  const beside = direction === 'previous' ? liveIndex - 1 : liveIndex + 1;
-  const cardBoundary =
-    direction === 'previous' && currentTiles[beside]?.sectionCard !== undefined;
-  if (beside >= 0 && beside < count && !cardBoundary) {
+  if (tiles[beside]?.slide.verse !== undefined) {
     outputTile({itemId, index: beside});
     return;
   }
-  const source = bibleSourceFor(initial, itemId);
-  const row = initial.rows.find(candidate => candidate.id === itemId);
-  const passage =
-    source?.passage ?? (row?.kind === 'bible' ? row.bible : undefined);
-  if (!passage) return;
   const request = beginOutputRequest();
   const commandVersion = useLive.getState().commandVersion;
   const current = (): boolean => {
@@ -57,69 +95,34 @@ export async function outputAdjacentBibleVerse(
       isOutputRequestCurrent(request, commandVersion) &&
       view.serviceId === initial.serviceId &&
       view.openItemId === itemId &&
-      (view.selectedTile === initial.selectedTile ||
-        (initial.selectedTile !== liveIndex &&
-          view.selectedTile === liveIndex)) &&
-      bibleSourceFor(view, itemId) === source &&
-      (source !== null ||
-        JSON.stringify(view.rows.find(candidate => candidate.id === itemId)) ===
-          JSON.stringify(row)) &&
       live?.itemId === slide?.itemId &&
-      live?.position === slide?.position
+      live?.slideId === slide?.slideId
     );
   };
   try {
+    const source = await openedPassage(initial, itemId);
+    if (source === null || !current()) return;
     const expanded = await lookupAdjacentPassage({
-      passage,
+      passage: source.passage,
       direction,
       lookup: request => api.bible.lookup(request),
       current,
     });
     if (!current() || expanded === null) return;
-    const options = {
+    const display: BibleDisplay = {
+      verseNumbers: source.verseNumbers,
+      translationName: source.translationName,
+      transition: source.transition,
       review: false,
-      verseNumbers:
-        source?.verseNumbers ??
-        (row?.kind === 'bible' ? row.bible?.verseNumbers : undefined) ??
-        true,
-      reference: source?.reference,
-      translationName:
-        source?.translationName ??
-        (row?.kind === 'bible' ? row.bible?.translationName : undefined),
-      transition:
-        source?.transition ??
-        (row?.kind === 'bible' ? row.bible?.transition : undefined),
-      enteredRef: source?.enteredRef ?? passage.ref,
-      enteredTranslation: source?.enteredTranslation ?? passage.translation,
+      enteredRef: source.enteredRef ?? source.passage.ref,
+      enteredTranslation:
+        source.enteredTranslation ?? source.passage.translation,
     };
-    const tiles = tilesForView(initial, itemId).filter(
-      tile => tile.sectionCard === undefined,
-    );
-    const edge = expanded.verses.at(direction === 'previous' ? 0 : -1);
-    if (
-      edge === undefined ||
-      `${edge.chapter}:${edge.verse}` ===
-        labelEdge(
-          tiles.at(direction === 'previous' ? 0 : -1)?.label,
-          direction === 'previous' ? 'first' : 'last',
-        )
-    ) {
-      openBiblePassage(expanded, options);
-      return;
-    }
-    openBiblePassage(expanded, options, {waitForLive: true});
-    const id = useShow.getState().openItemId;
-    if (id !== null) {
-      const nextTiles = tilesForView(useShow.getState(), id);
-      const firstPart = nextTiles.findIndex(
-        tile =>
-          labelEdge(tile.label, 'first') === `${edge.chapter}:${edge.verse}`,
-      );
-      outputTile({
-        itemId: id,
-        index: firstPart < 0 ? 0 : firstPart,
-      });
-    }
+    const opened = openBiblePassage(expanded, display, source);
+    outputTile({
+      itemId: opened.id,
+      index: Math.max(0, edgeIndex(opened, expanded, direction)),
+    });
   } catch (cause) {
     if (current()) {
       api.log.write({

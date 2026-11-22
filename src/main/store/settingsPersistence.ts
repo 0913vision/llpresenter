@@ -6,6 +6,7 @@ import {
   type PersistedFile,
 } from './contentPersistence';
 import type {WriteResult} from './fileWriter';
+import type {RecoveryTarget} from './recoveryCopies';
 import type {SaveRequest} from './saver';
 
 interface PendingWrite {
@@ -53,6 +54,19 @@ export class SettingsPersistence {
       this.autosave.schedule(file, () => this.writePending(file));
     }
     return latest.done;
+  }
+
+  /** Deletes a file, and drops a write to it that still waits. */
+  remove(target: RecoveryTarget): Promise<WriteResult> {
+    const waiting = this.pending.get(target.file);
+    this.pending.delete(target.file);
+    const removed = this.persistence.remove(target);
+    return waiting === undefined
+      ? removed
+      : removed.then(result => {
+          waiting.finish(result);
+          return result;
+        });
   }
 
   async flush(): Promise<void> {

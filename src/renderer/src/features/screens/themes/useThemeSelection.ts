@@ -1,5 +1,7 @@
 import {useEffect, useLayoutEffect, useRef, useState} from 'react';
-import type {ThemeElement} from '@core/schema/themes';
+import type {ThemeElement} from '@core/schema/theme';
+
+export type ThemeTab = 'element' | 'screen' | 'theme';
 export function useThemeSelection(
   scope: string,
   visibleElements: readonly ThemeElement[],
@@ -9,7 +11,7 @@ export function useThemeSelection(
     ids: readonly string[];
   }>({scope: '', ids: []});
 
-  const [tab, setTab] = useState<'element' | 'screen'>('screen');
+  const [tab, setTab] = useState<ThemeTab>('theme');
 
   const [keepRatio, setKeepRatio] = useState(false);
 
@@ -62,7 +64,7 @@ export function useThemeSelection(
     setFocusRequest(null);
     selectionEpoch.current++;
     setSelected({scope, ids});
-    setTab(ids.length === 0 ? 'screen' : 'element');
+    setTab(ids.length === 0 ? 'theme' : 'element');
   };
 
   const select = (id: string | null): void =>

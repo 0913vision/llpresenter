@@ -12,7 +12,7 @@ import {
 } from '@renderer/session/quickReturn';
 import {sendLive, useLive} from '@renderer/session/live';
 import {sendSlideOutput} from '@renderer/session/itemOutput';
-import {selectTile, useShow} from '@renderer/session/show';
+import {outputSlideOf, selectTile, useShow} from '@renderer/session/show';
 import {openLibrarySong} from '@renderer/session/showLibrary';
 import {
   beginOutputRequest,
@@ -20,17 +20,10 @@ import {
   withinLookupTimeout,
 } from '@renderer/session/showOutput';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
-import {slideLayerOf} from '@core/presentation/slideLayer';
 import {openBiblePassage, showBiblePassage} from '../bible/actions';
 
 export function quickItemUnavailable(item: QuickItem): string | undefined {
   if (!isKnownQuickItem(item)) return '아직 없는 기능';
-  if (
-    item.kind === 'bible' &&
-    (item.ref.reference !== 'none' || item.ref.translationName)
-  ) {
-    return '이 구절은 쓸 수 없습니다';
-  }
   return undefined;
 }
 
@@ -91,8 +84,8 @@ export function quickRunner(api: LlpApi, onProblem: (notice: Notice) => void) {
           openLibrarySong(song);
           const itemId = useShow.getState().openItemId;
           if (itemId === null) return;
-          const slide = slideLayerOf({itemId, index: 0}, () => song.tiles);
-          if (slide) sendSlideOutput(slide, song.background);
+          const slide = outputSlideOf({itemId, index: 0});
+          if (slide) sendSlideOutput(slide);
           return;
         }
         case 'bible': {
@@ -106,6 +99,7 @@ export function quickRunner(api: LlpApi, onProblem: (notice: Notice) => void) {
           if (!reply.result.ok) throw new Error(reply.result.error.message);
           const display = {
             verseNumbers: item.ref.verseNumbers,
+            translationName: item.ref.translationName,
             review: false,
             transition: QUICK_BIBLE_TRANSITION,
           };

@@ -1,14 +1,15 @@
-import type {
-  PowerPointColor,
-  PowerPointFill,
-} from '@core/songs/powerpointLayers';
-import {POWERPOINT_BACKGROUND_LIMITS as LIMITS} from '@core/songs/powerpointLayers';
 import {children, descendants, named, numberAttribute} from './powerpointXml';
+
+export interface PowerPointColor {
+  readonly r: number;
+  readonly g: number;
+  readonly b: number;
+  readonly alpha: number;
+}
 
 export interface PowerPointPalette {
   readonly colors: ReadonlyMap<string, Element>;
   readonly mapping: ReadonlyMap<string, string>;
-  readonly placeholder?: PowerPointColor;
 }
 const BLACK: PowerPointColor = {r: 0, g: 0, b: 0, alpha: 1};
 const PRESET: Readonly<Record<string, string>> = {
@@ -113,7 +114,6 @@ function baseColor(
       return {r: channel('r'), g: channel('g'), b: channel('b'), alpha: 1};
     }
     case 'schemeClr': {
-      if (value === 'phClr') return palette.placeholder ?? BLACK;
       const name = palette.mapping.get(value) ?? value;
       const target = palette.colors.get(name);
       return target && depth < 8
@@ -131,47 +131,41 @@ export function resolveColor(
 ): PowerPointColor {
   return children(node).reduce(transform, baseColor(node, palette, depth));
 }
-export function fillColor(
-  node: Element,
-  palette: PowerPointPalette,
-): PowerPointColor {
-  const color = children(node).find(child => child.localName.endsWith('Clr'));
-  return color ? resolveColor(color, palette) : BLACK;
-}
-export function insets(node: Element | undefined) {
-  return {
-    left: numberAttribute(node, 'l') / 100000,
-    top: numberAttribute(node, 't') / 100000,
-    right: numberAttribute(node, 'r') / 100000,
-    bottom: numberAttribute(node, 'b') / 100000,
-  };
-}
-export function readFill(
-  node: Element,
-  palette: PowerPointPalette,
-): PowerPointFill | null {
-  const solid =
-    node.localName === 'solidFill' ? node : named(node, 'solidFill')[0];
-  if (solid) return {kind: 'solid', color: fillColor(solid, palette)};
-  const gradient =
-    node.localName === 'gradFill' ? node : named(node, 'gradFill')[0];
-  if (!gradient) return null;
-  const linear = named(gradient, 'lin')[0];
-  const path = named(gradient, 'path')[0];
-  const stops = descendants(gradient, 'gs')
-    .slice(0, LIMITS.stops)
-    .map(stop => ({
-      position: clamp(numberAttribute(stop, 'pos') / 100000),
-      color: fillColor(stop, palette),
-    }))
-    .sort((a, b) => a.position - b.position);
-  if (stops.length === 0) return null;
-  return {
-    kind: 'gradient',
-    angle: numberAttribute(linear, 'ang') / 60000,
-    scaled: linear?.getAttribute('scaled') !== '0',
-    radial: path !== undefined,
-    focus: insets(path ? named(path, 'fillToRect')[0] : undefined),
-    stops,
-  };
+
+const DEFAULT_MAPPING = new Map([
+  ['bg1', 'lt1'],
+  ['tx1', 'dk1'],
+  ['bg2', 'lt2'],
+  ['tx2', 'dk2'],
+]);
+
+/** The theme colors of a slide, through what its layout and master map. */
+export function paletteOf(
+  parts: readonly Element[],
+  theme: Element | undefined,
+): PowerPointPalette {
+  const colors = new Map<string, Element>();
+  const scheme = theme && descendants(theme, 'clrScheme')[0];
+  for (const entry of scheme ? children(scheme) : []) {
+    const color = children(entry)[0];
+    if (color) colors.set(entry.localName, color);
+  }
+  let mapping = new Map(DEFAULT_MAPPING);
+  let masterMapping = new Map(mapping);
+  for (const part of parts) {
+    const override = named(part, 'clrMapOvr')[0];
+    if (override && named(override, 'masterClrMapping').length > 0) {
+      mapping = new Map(masterMapping);
+      continue;
+    }
+    const map =
+      (override && named(override, 'overrideClrMapping')[0]) ??
+      named(part, 'clrMap')[0];
+    if (!map) continue;
+    for (const attr of Array.from(map.attributes)) {
+      mapping.set(attr.name, attr.value);
+    }
+    if (part.localName === 'sldMaster') masterMapping = new Map(mapping);
+  }
+  return {colors, mapping};
 }

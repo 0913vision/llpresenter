@@ -3,7 +3,7 @@ import type {LiveState, MediaLayer} from '@core/live/state';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {BackgroundLayerView} from '../rendering/backgroundLayer';
 import {fadeAudio} from '../rendering/audioFade';
-import {themeMediaAudible, themeOverlayAudio} from '@core/themes/audio';
+import {backgroundAudible, overlayAudio} from '@core/live/overlays';
 import type {MediaDocument} from '@core/schema/mediaEdit';
 
 /** Plays media-item and overlay sound once, independently of screen windows. */
@@ -113,7 +113,7 @@ export class BackgroundAudio {
     if (this.disposed || this.state === null || !this.mediaReady) return;
     try {
       const state = this.state;
-      const overlay = this.sound(themeOverlayAudio(state));
+      const overlay = this.sound(overlayAudio(state));
       if (overlay !== null) this.overlay ??= this.createOverlay();
       if (
         overlay !== null &&
@@ -124,7 +124,7 @@ export class BackgroundAudio {
       }
       this.overlayStartedAt = overlay?.startedAt ?? null;
       this.overlay?.show(overlay);
-      const audible = themeMediaAudible(state);
+      const audible = backgroundAudible(state);
       const media = state.layers.media;
       if (!audible) {
         this.stopFade();

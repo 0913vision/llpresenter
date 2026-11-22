@@ -1,49 +1,42 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import {mediaUrl, thumbnailUrl} from '@contracts/ipc/mediaUrls';
 import type {MediaLayer} from '@core/live/state';
+import {createMediaId, type MediaId} from '@core/schema/ids';
+import {APP_PICTURE_IDS} from '@core/theme/pictures';
 import type {MediaDocument} from '@core/schema/mediaEdit';
 import type {MediaItem} from '@core/schema/mediaList';
 import type {MediaProgress} from '@core/schema/mediaProgress';
 
+const APP_PICTURES: ReadonlySet<string> = new Set(
+  Object.values(APP_PICTURE_IDS),
+);
 const PREVIEW_IMAGE_BYTES = 128 * 1024 * 1024;
 const PREVIEW_IMAGE_COUNT = 5000;
 const temporaryImages = new Map<
   string,
-  {url: string; size: number; users: number}
+  {readonly url: string; readonly size: number}
 >();
 let temporaryImageBytes = 0;
 
 /** Lends a bounded, temporary image to preview renderers until released. */
 export function lendPreviewImage(
   blob: Blob,
-  contentHash?: string,
-): {readonly id: string; readonly release: () => void} | null {
-  const id = `preview:${contentHash ?? crypto.randomUUID()}`;
-  const existing = temporaryImages.get(id);
+): {readonly id: MediaId; readonly release: () => void} | null {
   if (
     blob.size === 0 ||
-    (existing === undefined &&
-      (temporaryImages.size >= PREVIEW_IMAGE_COUNT ||
-        temporaryImageBytes + blob.size > PREVIEW_IMAGE_BYTES))
+    temporaryImages.size >= PREVIEW_IMAGE_COUNT ||
+    temporaryImageBytes + blob.size > PREVIEW_IMAGE_BYTES
   ) {
     return null;
   }
-  if (existing === undefined) {
-    const url = URL.createObjectURL(blob);
-    temporaryImages.set(id, {url, size: blob.size, users: 1});
-    temporaryImageBytes += blob.size;
-  } else {
-    existing.users++;
-  }
-  let released = false;
+  const id = createMediaId(crypto.randomUUID());
+  temporaryImages.set(id, {url: URL.createObjectURL(blob), size: blob.size});
+  temporaryImageBytes += blob.size;
   return {
     id,
     release: () => {
-      if (released) return;
-      released = true;
       const image = temporaryImages.get(id);
       if (image === undefined) return;
-      if (--image.users > 0) return;
       temporaryImages.delete(id);
       temporaryImageBytes -= image.size;
       URL.revokeObjectURL(image.url);
@@ -97,6 +90,7 @@ class PreviewMediaLibrary implements PreviewMediaSource {
   peek(mediaId: string): string | undefined {
     const temporary = temporaryImages.get(mediaId);
     if (temporary !== undefined) return temporary.url;
+    if (APP_PICTURES.has(mediaId)) return mediaUrl(mediaId);
     const item = this.items.get(mediaId);
     if (item === undefined || item.kind === 'audio') return undefined;
     return item.kind === 'video' ? thumbnailUrl(mediaId) : mediaUrl(mediaId);

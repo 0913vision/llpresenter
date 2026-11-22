@@ -1,17 +1,17 @@
 import type {LayerKind, LiveLayers} from '@core/live/state';
-import {ThemeCompositionView} from './themeComposition';
-import {themeBackgroundColor} from './themeBackground';
+import {liveDrawing} from './theme/drawing';
+import {ThemeView} from './theme/themeView';
 import {classes} from './classes';
 import {ClearFades} from './clearFades';
 import type {
-  RegisteredLayer,
+  LayerDefinition,
   RenderLayer,
   RenderLayerOptions,
   RenderFrame,
   RenderScreen,
 } from './layer';
 import {renderLayers} from './layers';
-import {scaleFor} from '@core/themes/textStyle';
+import {scaleFor} from '@core/overlays/textStyle';
 import {PICTURE_TRANSFORM, pictureTransform} from './pictureCorrection';
 
 const CHROMA_BACKGROUND = 'var(--chroma)';
@@ -25,22 +25,26 @@ interface ActiveLayer {
   readonly fades: LayerKind | undefined;
 }
 
+/** The slide is under every layer. */
+const THEME_ORDER = 1;
+
 function createLayerBox(
   root: HTMLElement,
-  layer: RegisteredLayer,
+  layer: LayerDefinition,
+  order: number,
 ): HTMLElement {
   // NOTE(0913vision): Each layer box has its own stacking context, so a video's
   // z-index cannot rise above a higher layer.
   const box = document.createElement('div');
   box.className = classes.layer;
-  box.style.zIndex = String(layer.order);
+  box.style.zIndex = String(order);
   box.dataset['layer'] = layer.kind;
   root.append(box);
   return box;
 }
 
 /**
- * Draws registered layers back to front, keeping a failed layer isolated. The
+ * Draws the slide and the layers over it, back to front, keeping a failed layer isolated. The
  * screen's picture correction moves and scales every layer, while the empty
  * area keeps the screen's empty color.
  */
@@ -48,7 +52,8 @@ export class OutputRenderer {
   private readonly root = document.createElement('div');
   private readonly blackScreen = document.createElement('div');
   private readonly layers: readonly ActiveLayer[];
-  private theme: ThemeCompositionView | null = null;
+  private readonly themeBox: HTMLElement;
+  private readonly theme: ThemeView;
   private readonly resizeObserver: ResizeObserver | null;
   private disposed = false;
   private background: string | null = null;
@@ -58,6 +63,7 @@ export class OutputRenderer {
   private testPattern = false;
   private initialLayers: LiveLayers | null = null;
   private readonly clearFades = new ClearFades();
+  private readonly onFonts = (): void => this.theme.refit();
   private fadeFrame: number | null = null;
   private latest: {layers: LiveLayers; frame: RenderFrame} | null = null;
 
@@ -67,7 +73,24 @@ export class OutputRenderer {
   ) {
     this.root.className = classes.root;
     if (options.transparent) this.setBackground('transparent');
-    this.layers = renderLayers.flatMap(layer => this.createLayer(layer));
+    this.themeBox = document.createElement('div');
+    this.themeBox.className = classes.layer;
+    this.themeBox.dataset['layer'] = 'theme';
+    this.themeBox.style.zIndex = String(THEME_ORDER);
+    this.root.append(this.themeBox);
+    this.theme = new ThemeView(this.themeBox, {
+      mediaUrl: options.mediaUrl,
+      previewMedia: options.previewMedia,
+      onError: options.onError,
+      ...(options.mode === undefined ? {} : {mode: options.mode}),
+      ...(options.transparent === undefined
+        ? {}
+        : {transparent: options.transparent}),
+    });
+    document.fonts.addEventListener('loadingdone', this.onFonts);
+    this.layers = renderLayers.flatMap((layer, index) =>
+      this.createLayer(layer, THEME_ORDER + 1 + index),
+    );
     Object.assign(this.blackScreen.style, {
       position: 'absolute',
       inset: '0',
@@ -125,26 +148,32 @@ export class OutputRenderer {
     this.testPattern = frame.testPattern === true;
     this.blackScreen.hidden = frame.blackScreen !== true;
     this.root.classList.toggle(classes.instant, frame.transitions === false);
+    const emptyColor =
+      frame.screen?.emptyColor ??
+      (frame.screen?.method === 'capture' ? CHROMA_BACKGROUND : null);
     this.setBackground(
-      this.options.transparent
-        ? 'transparent'
-        : frame.theme?.item?.contentCleared
-          ? (frame.screen?.emptyColor ?? '#000000')
-          : ((frame.theme === undefined
-              ? undefined
-              : themeBackgroundColor(
-                  frame.theme.layout.background,
-                  frame.theme.emptyColor,
-                )) ??
-            frame.screen?.emptyColor ??
-            (frame.screen?.method === 'capture' ? CHROMA_BACKGROUND : null)),
+      this.options.transparent === true ? 'transparent' : emptyColor,
     );
     this.setScreen(frame.screen);
     this.attempt('theme', 'draw', () => {
-      if (frame.theme !== undefined) {
-        this.theme ??= new ThemeCompositionView(this.root, this.options);
-      }
-      this.theme?.render(fading.layers, frame);
+      const cleared =
+        frame.item?.contentCleared === true &&
+        fading.layers.slide === null &&
+        fading.layers.media === null;
+      this.theme.setOpacity({
+        slide: fading.opacity.slide ?? 1,
+        media: fading.opacity.media ?? 1,
+      });
+      if (fading.opacity.media !== undefined) this.theme.hold();
+      this.theme.draw(
+        cleared
+          ? null
+          : liveDrawing(
+              fading.layers,
+              frame,
+              this.options.transparent === true,
+            ),
+      );
     });
     for (const layer of this.layers) {
       const opacity =
@@ -174,7 +203,8 @@ export class OutputRenderer {
     if (this.fadeFrame !== null) cancelAnimationFrame(this.fadeFrame);
     this.fadeFrame = null;
     this.clearFades.dispose();
-    this.attempt('theme', 'dispose', () => this.theme?.dispose());
+    document.fonts.removeEventListener('loadingdone', this.onFonts);
+    this.attempt('theme', 'dispose', () => this.theme.dispose());
     this.latest = null;
     for (const {kind, view} of this.layers) {
       this.attempt(kind, 'dispose', () => view.dispose());
@@ -186,7 +216,7 @@ export class OutputRenderer {
     return (
       !this.disposed &&
       (this.testPattern ||
-        ((this.theme?.ready() ?? true) &&
+        (this.theme.ready() &&
           this.layers.every(({view}) => view.ready?.() ?? true)))
     );
   }
@@ -195,15 +225,11 @@ export class OutputRenderer {
   unreadyElements(): ReadonlyArray<{kind: string; id: string | null}> {
     if (this.disposed || this.testPattern) return [];
     return [
-      ...(this.theme?.unreadyElements() ?? []),
+      ...(this.theme.ready() ? [] : [{kind: 'theme', id: null}]),
       ...this.layers.flatMap(({kind, view}) =>
         view.ready?.() === false ? [{kind, id: null}] : [],
       ),
     ];
-  }
-
-  revealIncomplete(): void {
-    this.theme?.revealIncomplete();
   }
 
   /** The single full-screen surface used for picture transitions. */
@@ -215,7 +241,7 @@ export class OutputRenderer {
   freeze(): void {
     if (this.fadeFrame !== null) cancelAnimationFrame(this.fadeFrame);
     this.fadeFrame = null;
-    this.theme?.freeze();
+    this.theme.hold();
     const animations =
       typeof this.root.getAnimations === 'function'
         ? this.root.getAnimations({subtree: true})
@@ -271,8 +297,8 @@ export class OutputRenderer {
     } else this.root.style.setProperty(PICTURE_TRANSFORM, transform);
   }
 
-  private createLayer(layer: RegisteredLayer): ActiveLayer[] {
-    const box = createLayerBox(this.root, layer);
+  private createLayer(layer: LayerDefinition, order: number): ActiveLayer[] {
+    const box = createLayerBox(this.root, layer, order);
     try {
       return [
         {
@@ -311,7 +337,7 @@ export class OutputRenderer {
   ): void {
     if (clientWidth === 0 || clientHeight === 0) return;
     const scale = scaleFor(clientWidth, clientHeight);
-    this.theme?.rescale(clientWidth, clientHeight);
+    this.theme.rescale(clientWidth, clientHeight);
     this.scale = scale;
     for (const {kind, view} of this.layers) {
       this.attempt(kind, 'draw', () => view.rescale?.(scale));

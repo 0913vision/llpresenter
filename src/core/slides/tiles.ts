@@ -1,0 +1,148 @@
+import {BIBLE_BOOKS} from '../bible/bibleBooks';
+import {displayReference} from '../bible/displayReference';
+import {NO_LABEL_COLOR, type LabelColor} from '../labels/colors';
+import type {ShowTile} from '../schema/showService';
+import {hasSlides, type ServiceItem, type SlidesItem} from '../schema/service';
+import type {Slide} from '../schema/slide';
+import type {Song} from '../schema/song';
+import {AUTO_TOKENS, type AutoValues} from '../theme/content';
+import {verseKey} from './passageSlides';
+
+/** What an item says about its slides beside the slides themselves. */
+export interface SlideSource {
+  readonly kind: SlidesItem['kind'];
+  readonly title: string;
+  /** The address of the passage the item is made of. */
+  readonly passage?: string | undefined;
+}
+
+const HYMN_NUMBER = /^새찬송가\s*(\d+)\s*장(?:\s|$)/u;
+
+/** The song's name after its hymn number, from its name or its title slide. */
+export function hymnTitle(name: string, slides: readonly Slide[]): string {
+  const title = name.split(/\r?\n/u)[0]?.trim() ?? '';
+  if (HYMN_NUMBER.test(title)) return title;
+  const own = /^(\d+)\s*장(?:\s|$)/u.exec(title)?.[1];
+  if (own !== undefined) {
+    const rest = title.replace(/^\d+\s*장\s*/u, '');
+    return `새찬송가 ${own}장${rest ? ` ${rest}` : ''}`;
+  }
+  const number = Object.values(slides[0]?.texts ?? {})
+    .flatMap(text => text.split('\n'))
+    .map(row => HYMN_NUMBER.exec(row.trim())?.[1])
+    .find(Boolean);
+  return number === undefined ? title : `새찬송가 ${number}장 ${title}`;
+}
+
+/** The values a theme can use on each slide of a list. */
+export function autoValues(
+  slides: readonly Slide[],
+  source: SlideSource,
+): readonly AutoValues[] {
+  const counts = new Map<string, number>();
+  const hymn =
+    source.kind === 'song' ? hymnTitle(source.title, slides) : undefined;
+  return slides.map((slide, index) => {
+    const number = (counts.get(slide.theme) ?? 0) + 1;
+    counts.set(slide.theme, number);
+    const {label} = slide;
+    const repeated = label !== undefined && slides[index - 1]?.label === label;
+    return {
+      [AUTO_TOKENS.number]: String(number),
+      [AUTO_TOKENS.item]: source.title,
+      ...(label === undefined ? {} : {[AUTO_TOKENS.label]: label}),
+      ...(label === undefined || repeated
+        ? {}
+        : {[AUTO_TOKENS.newLabel]: label}),
+      ...(source.passage === undefined
+        ? {}
+        : {[AUTO_TOKENS.passage]: source.passage}),
+      ...(source.kind === 'song' ? {[AUTO_TOKENS.song]: source.title} : {}),
+      ...(hymn === undefined ? {} : {[AUTO_TOKENS.hymn]: hymn}),
+    };
+  });
+}
+
+/** What a tile is called under its picture. */
+function captions(
+  slides: readonly Slide[],
+  kind: SlidesItem['kind'],
+): ReadonlyArray<string | null> {
+  const parts = new Map<string, number>();
+  for (const {verse} of slides) {
+    if (verse === undefined) continue;
+    const key = verseKey(verse);
+    parts.set(key, (parts.get(key) ?? 0) + 1);
+  }
+  const seen = new Map<string, number>();
+  return slides.map(slide => {
+    const {verse, label} = slide;
+    if (verse !== undefined) {
+      const key = verseKey(verse);
+      const part = (seen.get(key) ?? 0) + 1;
+      seen.set(key, part);
+      if (label === undefined) {
+        const book = BIBLE_BOOKS.find(entry => entry.id === verse.book);
+        const name = `${book?.koreanShort ?? ''}${verse.chapter}:${verse.verse}`;
+        return (parts.get(key) ?? 0) > 1 ? `${name} (${part})` : name;
+      }
+    }
+    if (label !== undefined) return label;
+    if (kind === 'song') return null;
+    const text = Object.values(slide.texts).find(value => value.trim() !== '');
+    return text?.trim().split('\n')[0] ?? null;
+  });
+}
+
+/** The slides of a list as tiles, with everything that is worked out for them. */
+export function slideTiles(
+  slides: readonly Slide[],
+  source: SlideSource,
+  colors: ReadonlyMap<string, LabelColor> = new Map(),
+): readonly ShowTile[] {
+  const autos = autoValues(slides, source);
+  const names = captions(slides, source.kind);
+  return slides.map((slide, index) => ({
+    slide,
+    auto: autos[index] ?? {},
+    caption: names[index] ?? null,
+    labelColor:
+      slide.label === undefined
+        ? NO_LABEL_COLOR
+        : (colors.get(slide.label) ?? NO_LABEL_COLOR),
+  }));
+}
+
+/** What an item is called: its own name, or what its slides are. */
+export function itemTitle(item: ServiceItem): string {
+  if (!hasSlides(item)) return item.name;
+  if (item.kind === 'bible') return displayReference(item.passage.ref);
+  if (item.kind !== 'sermon') return item.name;
+  const title = item.slides.find(
+    slide => (slide.texts['제목'] ?? '').trim() !== '',
+  )?.texts['제목'];
+  return title?.trim().split('\n')[0] ?? item.name;
+}
+
+/** What an item says about its slides. */
+export function slideSourceOf(item: SlidesItem): SlideSource {
+  return {
+    kind: item.kind,
+    title: itemTitle(item),
+    ...('passage' in item ? {passage: displayReference(item.passage.ref)} : {}),
+  };
+}
+
+export function itemTiles(
+  item: SlidesItem,
+  colors?: ReadonlyMap<string, LabelColor>,
+): readonly ShowTile[] {
+  return slideTiles(item.slides, slideSourceOf(item), colors);
+}
+
+export function songTiles(
+  song: Pick<Song, 'title' | 'slides'>,
+  colors?: ReadonlyMap<string, LabelColor>,
+): readonly ShowTile[] {
+  return slideTiles(song.slides, {kind: 'song', title: song.title}, colors);
+}

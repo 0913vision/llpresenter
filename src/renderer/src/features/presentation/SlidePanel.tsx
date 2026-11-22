@@ -11,10 +11,6 @@ import {
 import {useThumbnailScale} from '@renderer/platform/thumbnailScale';
 import {SlideSizeControl} from '@renderer/platform/SlideSizeControl';
 import {Button, Icon} from '@renderer/ui';
-import {missingBackgroundTip} from '@renderer/features/media/backgroundChoices';
-import {openSongEditorWindow} from '@renderer/features/songs/editor/openWindow';
-import {editorTask} from '@renderer/features/songs/editor/editorTask';
-import type {Notice} from '@renderer/ui/notices';
 import {GridFooter} from '@renderer/ui/GridFooter';
 import {useTooltip} from '@renderer/ui/Tooltip';
 import {SlideGrid} from './SlideGrid';
@@ -61,11 +57,7 @@ export function SlidePanelBody({
 /**
  * The item name and, for the live item, its current slide position.
  */
-export function SlidePanelMeta({
-  onProblem = console.error,
-}: {
-  readonly onProblem?: ((notice: Notice) => void) | undefined;
-}): JSX.Element | null {
+export function SlidePanelMeta(): JSX.Element | null {
   const visibleItemId = useVisibleSlideItem();
   const continuous = useSyncExternalStore(liveReturn.subscribe, liveReturn.get);
   const slide = useLive(view => view.state?.layers.slide ?? null);
@@ -82,12 +74,7 @@ export function SlidePanelMeta({
   const source = useShow(view =>
     isLibrarySource(view, openItemId) ? view.librarySong : null,
   );
-  const reason =
-    source?.problem === 'missing-background'
-      ? missingBackgroundTip(source.missingBackgroundName)
-      : source?.readOnly
-        ? READ_ONLY_TIP
-        : undefined;
+  const reason = source?.readOnly ? READ_ONLY_TIP : undefined;
   const {targetProps, tooltip} = useTooltip(
     reason ? {text: reason} : undefined,
   );
@@ -119,21 +106,6 @@ export function SlidePanelMeta({
             <Icon name="warning" size={PROBLEM_ICON_SIZE} />
           </span>
           {tooltip}
-          {source?.problem === 'missing-background' ? (
-            <Button
-              size="sm"
-              disabled={source.readOnly || window.llp === undefined}
-              onClick={() => {
-                const api = window.llp;
-                if (api === undefined) return;
-                editorTask(
-                  openSongEditorWindow({songId: source.songId}, onProblem),
-                );
-              }}
-            >
-              배경 바꾸기
-            </Button>
-          ) : null}
         </>
       ) : null}
       {position === undefined ? null : (

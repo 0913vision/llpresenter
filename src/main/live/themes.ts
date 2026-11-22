@@ -1,20 +1,16 @@
-import {displayReference} from '@core/bible/displayReference';
-import {cardOffset} from '@core/services/sectionCards';
-import {projectedItemOverlays} from '@core/services/songItemOverlays';
-import {isItemOfKind} from '@core/schema/service';
-import type {LiveThemeItem} from '@core/schema/liveTheme';
+import {placedOverlays} from '@core/live/overlays';
+import type {LiveItem} from '@core/schema/liveTheme';
 import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
+import {hasSlides} from '@core/schema/service';
 import {songIdSchema} from '@core/schema/ids';
 import {parsePayload} from '@core/schema/payload';
-import {itemThemeKind} from '@core/themes/itemKind';
-import {isStartItem} from '@core/services/itemFieldChanges';
+import {itemTitle} from '@core/slides/tiles';
 import type {DataStore} from '../store/register';
 import type {Logger} from '../log';
 import {ThemeRuntime} from './themeRuntime';
-import {mediaLoops} from '@core/media/mediaEndRule';
-import {outputMediaProperties} from '@core/schema/outputMedia';
-import {broadcastSongTitle} from '@core/songs/broadcastSongTitle';
 import {dispatchLogged, type LiveStore} from './store';
+
+const LIBRARY_ITEM = 'library:';
 
 /** Connects current service items and theme settings, releasing both on shutdown. */
 export function registerThemeOutput({
@@ -33,13 +29,15 @@ export function registerThemeOutput({
   Promise.all([data.content, data.settings, data.media])
     .then(([content, settings, media]) => {
       if (stopped || settings === null || content === null) return;
+      const short = (text: string): string =>
+        text.slice(0, LIVE_STATE_LIMITS.textCharacters);
       const runtime = new ThemeRuntime({
         settings,
-        item: id => {
-          if (id.startsWith('library:')) {
+        item: (id): LiveItem | undefined => {
+          if (id.startsWith(LIBRARY_ITEM)) {
             const songId = parsePayload(
               songIdSchema,
-              id.slice('library:'.length),
+              id.slice(LIBRARY_ITEM.length),
             );
             const song = songId.ok
               ? content.song(songId.value)?.song
@@ -50,95 +48,27 @@ export function registerThemeOutput({
                   id,
                   kind: 'song',
                   source: 'external',
-                  title: song.title.slice(0, LIVE_STATE_LIMITS.textCharacters),
-                  ...(broadcastSongTitle(song) === song.title
-                    ? {}
-                    : {
-                        broadcastSongTitle: broadcastSongTitle(song).slice(
-                          0,
-                          LIVE_STATE_LIMITS.textCharacters,
-                        ),
-                      }),
+                  title: short(song.title),
                 };
           }
           const serviceId = content.openServiceId;
-          const entry =
+          const item =
             serviceId === null
               ? undefined
               : content
                   .service(serviceId)
-                  ?.service.order.find(item => item.id === id);
-          if (entry === undefined) return undefined;
-          const kind = itemThemeKind(entry);
-          if (kind === undefined) return undefined;
-          const song = isItemOfKind(entry, 'song')
-            ? content.song(entry.song)?.song
-            : undefined;
-          const theme = entry.theme ?? song?.theme;
-          const title = isItemOfKind(entry, 'slides')
-            ? entry.slides.name
-            : isItemOfKind(entry, 'song')
-              ? content.song(entry.song)?.song.title
-              : isItemOfKind(entry, 'media')
-                ? media?.get().value.items.find(item => item.id === entry.media)
-                    ?.name
-                : isItemOfKind(entry, 'bible')
-                  ? displayReference(entry.bible.ref)
-                  : isItemOfKind(entry, 'sermon')
-                    ? displayReference(entry.sermon.passage.ref)
-                    : undefined;
-          const backgroundId = isStartItem(entry)
-            ? entry.background
-            : undefined;
-          const background =
-            backgroundId === undefined
-              ? undefined
-              : media?.get().value.items.find(item => item.id === backgroundId);
-          const backgroundOverride =
-            isStartItem(entry) && entry.backgroundNone
-              ? {kind: 'none' as const}
-              : backgroundId === undefined
-                ? undefined
-                : {
-                    kind: 'media' as const,
-                    mediaId: backgroundId,
-                    loop:
-                      background === undefined ? false : mediaLoops(background),
-                    ...(background === undefined
-                      ? {}
-                      : {properties: outputMediaProperties(background)}),
-                  };
+                  ?.service.order.find(entry => entry.id === id);
+          if (item === undefined || !hasSlides(item)) return undefined;
           return {
             id,
-            kind,
-            ...(backgroundOverride === undefined ? {} : {backgroundOverride}),
+            kind: item.kind,
             source: 'service',
-            ...((isItemOfKind(entry, 'song') ||
-              isItemOfKind(entry, 'slides') ||
-              isItemOfKind(entry, 'bible') ||
-              isItemOfKind(entry, 'sermon')) &&
-            cardOffset(entry)
-              ? {cardOffset: 1 as const}
-              : {}),
-            ...(theme === undefined ? {} : {theme}),
-            ...(title === undefined
+            title: short(itemTitle(item)),
+            ...(item.memo === undefined ? {} : {memo: short(item.memo)}),
+            ...(item.overlays === undefined
               ? {}
-              : {title: title.slice(0, LIVE_STATE_LIMITS.textCharacters)}),
-            ...(song === undefined || broadcastSongTitle(song) === song.title
-              ? {}
-              : {
-                  broadcastSongTitle: broadcastSongTitle(song).slice(
-                    0,
-                    LIVE_STATE_LIMITS.textCharacters,
-                  ),
-                }),
-            ...('memo' in entry && typeof entry.memo === 'string'
-              ? {memo: entry.memo.slice(0, LIVE_STATE_LIMITS.textCharacters)}
-              : {}),
-            ...(entry.overlays === undefined
-              ? {}
-              : {overlays: projectedItemOverlays(entry)}),
-          } satisfies LiveThemeItem;
+              : {overlays: placedOverlays(item.overlays, item.slides)}),
+          };
         },
         onError: error =>
           log.warn('could not read theme output settings', error),

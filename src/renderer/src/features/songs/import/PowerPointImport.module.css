@@ -15,31 +15,6 @@
   color: var(--text-3);
   font: var(--type-label);
 }
-.gridViewport {
-  flex: 1;
-  min-height: 0;
-  overflow: auto;
-}
-.gridSpacer {
-  position: relative;
-}
-.grid {
-  position: absolute;
-  left: 0;
-  right: 0;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  align-content: start;
-  gap: var(--space-16);
-}
-.tile {
-  border: 0;
-  background: none;
-  padding: 0;
-  cursor: pointer;
-  text-align: left;
-}
-
 .title > :first-child {
   flex: 1;
   min-width: 0;

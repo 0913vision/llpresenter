@@ -1,27 +1,61 @@
+import type {AddableKind} from '@core/theme/elements';
+import type {ThemeListProblem} from '@core/theme/list';
+import {templateTokens} from '@core/theme/template';
+import type {
+  SlidePurpose,
+  ThemeElement,
+  ThemeElementKind,
+} from '@core/schema/theme';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
-import type {ThemeItemKind} from '@core/themes/elementRules';
-import type {ThemeEditProblem} from '@core/themes/themeEdits';
 
-export {themeElementNames} from '@renderer/rendering/themeNames';
-export const themeKindNames: Readonly<Record<ThemeItemKind, string>> = {
-  song: '곡',
-  bible: '성경',
+/** What the slides a theme is for are called. */
+export const purposeNames: Readonly<Record<SlidePurpose, string>> = {
+  songTitle: '찬양 제목',
+  lyrics: '찬양 가사',
+  sermonTitle: '설교 제목',
+  scripture: '말씀 본문',
+  notice: '광고',
+  title: '타이틀',
+  creed: '사도신경, 주기도문',
+  preparation: '예배 준비',
+  standby: '대기 화면',
   blank: '빈 슬라이드',
-  ad: '광고',
-  media: '미디어',
+  picture: '그림',
+  media: '영상',
 };
-export const themeProblems: Readonly<Record<ThemeEditProblem, string>> = {
-  missing: '테마나 화면을 찾을 수 없습니다',
-  name: '이름이 너무 깁니다',
+
+const kindNames: Readonly<Record<ThemeElementKind, string>> = {
+  text: '글',
+  next: '다음 글',
+  picture: '이미지',
+  background: '배경',
+  shape: '사각형',
+};
+
+export const addableNames: Readonly<Record<AddableKind, string>> = {
+  box: '글 상자',
+  text: '글',
+  next: '다음 글',
+  picture: '이미지',
+  shape: '사각형',
+  background: '배경',
+};
+
+/** What an element is called: the values a text shows, or its own words. */
+export function elementName(element: ThemeElement): string {
+  if (element.kind !== 'text') return kindNames[element.kind];
+  const tokens = [...templateTokens(element.content.slice(0, 1))];
+  if (tokens.length > 0) return tokens.join(', ');
+  const words = element.content[0]?.split('\n')[0]?.trim() ?? '';
+  return words === '' ? kindNames.text : words;
+}
+
+export const themeProblems: Readonly<Record<ThemeListProblem, string>> = {
+  missing: '테마를 찾을 수 없습니다',
+  name: '이름을 확인해 주세요',
   taken: '같은 이름의 테마가 있음',
-  full: '테마나 화면은 더 만들 수 없습니다',
-  'deleted-full': '삭제된 테마가 한도에 도달하여 삭제할 수 없습니다',
-  'duplicate-id': '테마 추가 실패',
-  standby: '대기 화면에서는 쓸 수 없습니다',
-  'built-in': '기본 테마는 삭제할 수 없습니다',
-  'confirmation-required': '테마 삭제 확인 필요',
-  elements: '이 화면에는 추가할 수 없는 요소입니다',
-  link: '연결할 수 없는 화면입니다',
-  invalid: '변경할 수 없는 값',
+  full: '테마는 더 만들 수 없습니다',
+  own: '기본 테마는 삭제할 수 없습니다',
 };
+export const INVALID_CHANGE = '변경할 수 없는 값';
 export const THEME_READ_ONLY = NEWER_FILE_REASON;

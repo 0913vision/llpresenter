@@ -22,8 +22,7 @@ import {
 } from '@core/bible/split/cutState';
 import {Dialog} from '@renderer/ui/Dialog';
 import {Spinner} from '@renderer/ui/Spinner';
-import type {BibleTextElement} from '@renderer/rendering/bibleMeasure';
-import type {BibleAppearance} from './passageSplitter';
+import type {ThemeFile} from '@core/schema/theme';
 import {SplitSlidePicture} from './SplitSlidePicture';
 import styles from './SplitEditor.module.css';
 
@@ -35,8 +34,7 @@ export interface SplitEditorProps {
   readonly label: string;
   readonly cuts: readonly number[];
   readonly layout: SplitLayout;
-  readonly element: BibleTextElement;
-  readonly appearance?: BibleAppearance | undefined;
+  readonly theme: ThemeFile;
   readonly prefix: string;
   readonly position: number;
   readonly total: number;
@@ -371,13 +369,12 @@ function VerseSplitEditor(
                 className={styles.slide}
               >
                 <SplitSlidePicture
-                  lines={slide.lines}
-                  part={slide.index + 1}
+                  text={
+                    slide.index === 0 ? props.prefix + slide.text : slide.text
+                  }
                   continued={!slide.isLast}
                   reference={props.label}
-                  element={props.element}
-                  maxLines={slide.maxLines}
-                  appearance={props.appearance}
+                  theme={props.theme}
                 />
               </div>
             </figure>

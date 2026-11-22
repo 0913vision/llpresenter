@@ -1,4 +1,5 @@
-import {isItemOfKind, type ServiceItem} from '@core/schema/service';
+import {hasSlides, type ServiceItem} from '@core/schema/service';
+import {SLIDE_LIMITS, type Slide} from '@core/schema/slide';
 import type {EditResult} from '@core/schema/contentEdit';
 import {
   parseSettingsEdit,
@@ -6,13 +7,6 @@ import {
 } from '@core/schema/settingsDocuments';
 import type {SettingsStore} from './settingsStore';
 import type {ContentCommandContext} from './contentCommands';
-import {SONG_LIMITS} from '@core/schema/song';
-import {hasSectionCard} from '@core/services/sectionCards';
-import {
-  isPassageItem,
-  passageOf,
-  withPassage,
-} from '@core/services/passageEdits';
 
 /**
  * Prepares the existing label/reference rewrite and returns its pending save
@@ -25,7 +19,7 @@ export async function prepareLabelRename(
   edit: LabelRename,
 ): Promise<EditResult | {readonly saved: Promise<EditResult>}> {
   const name = edit.to.trim();
-  if (name.length === 0 || name.length > SONG_LIMITS.label) {
+  if (name.length === 0 || name.length > SLIDE_LIMITS.label) {
     return context.refuse(
       'invalid',
       'The slide label must contain 1 to 64 characters',
@@ -59,21 +53,7 @@ export async function prepareLabelRename(
     .filter(song => song.data.slides.some(slide => slide.label === edit.from))
     .sort((a, b) => a.data.id.localeCompare(b.data.id));
   const usesLabel = (item: ServiceItem): boolean =>
-    (isItemOfKind(item, 'song') &&
-      item.slides.some(slide => slide.label === edit.from)) ||
-    (isItemOfKind(item, 'slides') &&
-      item.slides.slides.some(slide => slide.label === edit.from)) ||
-    (isItemOfKind(item, 'liturgy') &&
-      (item.liturgy.labels ?? []).some(entry => entry.label === edit.from)) ||
-    (hasSectionCard(item) && item.sectionCard.label === edit.from) ||
-    (isPassageItem(item) &&
-      Object.values(passageOf(item).slides ?? {}).some(verse =>
-        verse.some(slide => slide.label === edit.from),
-      )) ||
-    (isItemOfKind(item, 'sermon') &&
-      (item.sermon.openingLabel === edit.from ||
-        item.sermon.closingLabel === edit.from)) ||
-    (isItemOfKind(item, 'media') && item.slideLabel === edit.from);
+    hasSlides(item) && item.slides.some(slide => slide.label === edit.from);
   const services = context.services
     .all()
     .filter(document => document.data.order.some(usesLabel));
@@ -109,81 +89,16 @@ export async function prepareLabelRename(
   const savedLabels = settings.apply(update.value);
   const next = settings.get('labels');
   if (next.revision === current.revision) return savedLabels;
+  const renamed = (slide: Slide): Slide =>
+    slide.label === edit.from ? {...slide, label: name} : slide;
   const changed = affected.map(song =>
     context.songs.replace(song, {
       ...song.data,
-      slides: song.data.slides.map(slide =>
-        slide.label === edit.from ? {...slide, label: name} : slide,
-      ),
+      slides: song.data.slides.map(renamed),
     }),
   );
-  const renameItem = (original: ServiceItem): ServiceItem => {
-    const item =
-      hasSectionCard(original) && original.sectionCard.label === edit.from
-        ? {...original, sectionCard: {...original.sectionCard, label: name}}
-        : original;
-    if (isItemOfKind(item, 'media') && item.slideLabel === edit.from) {
-      return {...item, slideLabel: name};
-    }
-    if (isPassageItem(item)) {
-      const passage = passageOf(item);
-      const renamed =
-        passage.slides === undefined
-          ? item
-          : withPassage(item, {
-              ...passage,
-              slides: Object.fromEntries(
-                Object.entries(passage.slides).map(([key, verse]) => [
-                  key,
-                  verse.map(slide =>
-                    slide.label === edit.from ? {...slide, label: name} : slide,
-                  ),
-                ]),
-              ),
-            });
-      if (!isItemOfKind(renamed, 'sermon')) return renamed;
-      return {
-        ...renamed,
-        sermon: {
-          ...renamed.sermon,
-          ...(renamed.sermon.openingLabel === edit.from
-            ? {openingLabel: name}
-            : {}),
-          ...(renamed.sermon.closingLabel === edit.from
-            ? {closingLabel: name}
-            : {}),
-        },
-      };
-    }
-    return isItemOfKind(item, 'song')
-      ? {
-          ...item,
-          slides: item.slides.map(slide =>
-            slide.label === edit.from ? {...slide, label: name} : slide,
-          ),
-        }
-      : isItemOfKind(item, 'slides')
-        ? {
-            ...item,
-            slides: {
-              ...item.slides,
-              slides: item.slides.slides.map(slide =>
-                slide.label === edit.from ? {...slide, label: name} : slide,
-              ),
-            },
-          }
-        : isItemOfKind(item, 'liturgy') && item.liturgy.labels !== undefined
-          ? {
-              ...item,
-              liturgy: {
-                ...item.liturgy,
-                labels: item.liturgy.labels.map(entry =>
-                  entry.label === edit.from ? {...entry, label: name} : entry,
-                ),
-              },
-            }
-          : item;
-  };
+  const renameItem = (item: ServiceItem): ServiceItem =>
+    hasSlides(item) ? {...item, slides: item.slides.map(renamed)} : item;
   const changedServices = services.map(document =>
     context.services.replace(document, {
       ...document.data,

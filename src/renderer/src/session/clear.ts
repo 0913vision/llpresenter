@@ -5,7 +5,7 @@ import {sendLive, useLive} from './live';
 /** Stops the live item while leaving independent overlays and audio running. */
 export function stopItem(): void {
   const state = useLive.getState().state;
-  if (state?.themeItem || state?.testPatterns?.length) {
+  if (state?.item || state?.testPatterns?.length) {
     sendLive({type: 'item.stop'});
   }
 }
@@ -15,7 +15,7 @@ export function toggleItem(): void {
   const state = useLive.getState().state;
   if (state?.testPatterns?.length) {
     stopItem();
-  } else if (state?.canRestoreItem && state.themeItem == null) {
+  } else if (state?.canRestoreItem && state.item == null) {
     sendLive({type: 'item.restore'});
   } else stopItem();
 }

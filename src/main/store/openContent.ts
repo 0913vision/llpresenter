@@ -1,7 +1,6 @@
 import {DEFAULT_LABELS} from './defaults';
 import {defaultPreferences} from '@core/schema/preferences';
 import {serviceEndpoints} from '@contracts/ipc/service';
-import type {BibleLookupSession} from '../bible/lookup';
 import type {Logger} from '../log';
 import {buildSongSearchIndex, type SongSearchIndex} from '../search/songIndex';
 import {broadcast, broadcastEvents} from './contentChannels';
@@ -40,8 +39,6 @@ export async function openContent(
     readonly settings: Promise<SettingsStore | null>;
     readonly media: Promise<MediaStore | null>;
     readonly failures: SaveFailureSink;
-    readonly bible: Pick<BibleLookupSession, 'lookup'>;
-    readonly backgroundBible?: Pick<BibleLookupSession, 'lookup'> | undefined;
   },
 ): Promise<OpenedContent | null> {
   const store = await loading;
@@ -53,8 +50,6 @@ export async function openContent(
       settings: await readers.settings,
       media: await readers.media,
       failures: readers.failures,
-      bible: readers.bible,
-      backgroundBible: readers.backgroundBible,
     });
   } catch (error: unknown) {
     log.error('could not open the songs and 예배 순서', error);
@@ -69,14 +64,10 @@ async function createContent(
     settings,
     media,
     failures,
-    bible,
-    backgroundBible,
   }: {
     readonly settings: SettingsStore | null;
     readonly media: MediaStore | null;
     readonly failures: SaveFailureSink;
-    readonly bible: Pick<BibleLookupSession, 'lookup'>;
-    readonly backgroundBible?: Pick<BibleLookupSession, 'lookup'> | undefined;
   },
 ): Promise<OpenedContent> {
   const search = await buildSongSearchIndex(
@@ -95,11 +86,7 @@ async function createContent(
   });
   let feed: OpenServiceFeed | null = null;
   const events = broadcastEvents(log, () => {
-    feed
-      ?.refresh()
-      .catch((error: unknown) =>
-        log.error('could not refresh the open service', error),
-      );
+    feed?.refresh();
   });
   const content = new ContentStore({
     settings,
@@ -126,9 +113,6 @@ async function createContent(
         ? document.value.labels
         : DEFAULT_LABELS;
     },
-    backgroundOf: id => media?.backgroundOf(id) ?? store.media.backgroundOf(id),
-    backgroundName: id =>
-      media?.get().value.items.find(item => item.id === id)?.name,
   };
   feed = new OpenServiceFeed(
     {
@@ -139,39 +123,23 @@ async function createContent(
         return library.labels;
       },
       content,
-      backgroundOf: library.backgroundOf,
-      bible,
-      backgroundBible,
-      mediaItems: () => media?.get().value.items ?? [],
+      hasMedia: id => (media?.fileOf(id) ?? store.media.fileOf(id)) !== null,
     },
     service => broadcast(serviceEndpoints.changed.channel, service, log),
     error => log.error('could not refresh the open 예배 순서', error),
   );
   const removeSettingsListener =
     settings?.subscribe(document => {
-      if (['labels', 'bible', 'themes', 'screens'].includes(document.name)) {
-        feed
-          .refresh()
-          .catch((error: unknown) =>
-            log.error(
-              'could not refresh item sources in the open service',
-              error,
-            ),
-          );
-      }
+      if (document.name === 'labels') feed.refresh();
     }) ?? (() => undefined);
   const removeMedia =
     media?.subscribe(() => {
-      feed
-        .refresh()
-        .catch((error: unknown) =>
-          log.error('could not refresh media in the open service', error),
-        );
+      feed.refresh();
     }) ?? (() => undefined);
   const removeSettings = () => {
     removeSettingsListener();
     removeMedia();
   };
-  await feed.refresh();
+  feed.refresh();
   return {content, feed, search, removeSettings, library};
 }

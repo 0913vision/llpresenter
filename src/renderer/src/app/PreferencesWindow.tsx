@@ -88,7 +88,7 @@ export function PreferencesWindow({
         <PreferencesView
           onProblem={report}
           onDismiss={dismiss}
-          labelStore={session?.editor}
+          labelStore={session?.labels}
           onReady={onReady ?? ready}
           request={request}
           onPageSelect={onPageSelect}

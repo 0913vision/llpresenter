@@ -1,0 +1,41 @@
+.picker {
+  width: var(--size-menu-max);
+}
+.viewport {
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+.option {
+  position: absolute;
+  box-sizing: border-box;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+}
+.separator {
+  position: absolute;
+  left: 0;
+  right: 0;
+}
+.detail {
+  max-width: 50%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.group {
+  position: absolute;
+  box-sizing: border-box;
+  left: 0;
+  right: 0;
+}
+
+.paint {
+  flex: none;
+  width: var(--space-24);
+  height: var(--space-14);
+  border-radius: var(--radius-xs);
+}

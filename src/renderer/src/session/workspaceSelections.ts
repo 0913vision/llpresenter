@@ -8,7 +8,7 @@ type Selection = Pick<
   | 'openItemId'
   | 'selectedTile'
   | 'librarySong'
-  | 'bibleSource'
+  | 'bibleSources'
 >;
 
 /** Keeps each workspace's selection while the shared view represents the visible one. */
@@ -25,15 +25,15 @@ export class WorkspaceSelections {
       openItemId: view.openItemId,
       selectedTile: view.selectedTile,
       librarySong: view.librarySong,
-      bibleSource: view.bibleSource,
+      bibleSources: view.bibleSources,
     };
     this.active = next;
     const saved = this.saved[next];
     const id = saved?.openItemId ?? null;
     const library = saved?.librarySong;
-    const bible = saved?.bibleSource;
+    const bible = saved?.bibleSources.find(source => source.id === id);
     const isLibrary = library != null && id === librarySourceId(library.songId);
-    const isBible = id !== null && id === bible?.id;
+    const isBible = bible !== undefined;
     const exists =
       saved?.serviceId === view.serviceId &&
       saved.serviceEpoch === view.serviceEpoch &&
@@ -52,7 +52,9 @@ export class WorkspaceSelections {
         : {}),
       ...(exists && isBible
         ? {
-            bibleSource: view.bibleSource?.id === id ? view.bibleSource : bible,
+            bibleSources: view.bibleSources.some(source => source.id === id)
+              ? view.bibleSources
+              : [bible, ...view.bibleSources],
           }
         : {}),
     });

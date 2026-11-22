@@ -1,4 +1,3 @@
-import {PaletteEditingProvider} from '@renderer/features/service/items/PaletteEditing';
 import {CommandScope} from '@renderer/ui/commandDispatcher';
 import type {SongId} from '@core/schema/ids';
 import {
@@ -37,7 +36,7 @@ import {
   ShowSlideEntry,
   useShowPanelNavigation,
 } from '@renderer/features/presentation/showPanelNavigation';
-import {TableDataKeeper} from '@renderer/features/service/table/useServiceTableData';
+import type {PrepTarget} from '@renderer/session/prepTarget';
 import {ShownItemProvider} from '@renderer/session/shownItem';
 import {returnFocus} from '@renderer/ui/returnFocus';
 import {useWorkspaceServiceHistory} from './useWorkspaceServiceHistory';
@@ -88,6 +87,7 @@ export function Workspace({
   onOpenPrep,
   onShowInLibrary,
   prep,
+  prepTarget = null,
   warningHeight = 0,
   mediaVisible = true,
   onMediaOpenChange,
@@ -104,6 +104,7 @@ export function Workspace({
     ((itemId: string, position?: number) => void) | undefined;
   readonly onShowInLibrary?: ((songId: SongId) => void) | undefined;
   readonly prep?: PrepBinding | undefined;
+  readonly prepTarget?: PrepTarget | null | undefined;
   readonly warningHeight?: number;
   readonly mediaVisible?: boolean | undefined;
   readonly onMediaOpenChange?: ((open: boolean) => void) | undefined;
@@ -145,6 +146,7 @@ export function Workspace({
   });
   const prepPanels = usePrepPanels({
     prep,
+    target: prepTarget,
     selectedItem: prepItemId,
     sizeClass,
     onProblem,
@@ -212,13 +214,7 @@ export function Workspace({
         workspace === 'screens' && styles.screenSettings,
       )}
     >
-      {workspace === 'prep' ? (
-        <PaletteEditingProvider onProblem={onProblem ?? ignoreProblem}>
-          {panelColumns(workspace, panels, collapsed)}
-        </PaletteEditingProvider>
-      ) : (
-        panelColumns(workspace, panels, collapsed)
-      )}
+      {panelColumns(workspace, panels, collapsed)}
     </div>
   );
   // TODO(0913vision): Let the shrink rule ignore the hidden left width while
@@ -237,7 +233,6 @@ export function Workspace({
       {visibleId === 'show' ? (
         <ShowShortcuts onProblem={onProblem ?? logPanelProblem} />
       ) : null}
-      {prep === undefined ? null : <TableDataKeeper api={prep.api} />}
       <div data-resize-panel="media.upper" className={styles.frames}>
         <div
           className={classNames(

@@ -81,6 +81,12 @@ export class PendingWrites {
     return outcome;
   }
 
+  /** Waits for the running writes; whether each reached the main process. */
+  async settle(): Promise<boolean> {
+    const outcomes = await Promise.all(this.running);
+    return outcomes.every(Boolean);
+  }
+
   /**
    * Close preflight: stops new writes and answers, once the running ones have
    * ended, whether each reached the main process.

@@ -47,9 +47,7 @@ export class SlideAnimation {
     };
     switch (effect.kind) {
       case 'dissolve':
-        this.animations = [
-          next.animate([{opacity: 0}, {opacity: 1}], timing),
-        ];
+        this.animations = [next.animate([{opacity: 0}, {opacity: 1}], timing)];
         return;
       case 'push': {
         const [from, to] = TRAVEL[direction];

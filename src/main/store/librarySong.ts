@@ -1,6 +1,5 @@
 import {ipcMain} from 'electron';
 import {libraryEndpoints} from '@contracts/ipc/library';
-import type {MediaChoice} from '@core/live/state';
 import type {FileAccess} from '@core/schema/fileFormat';
 import type {SongId} from '@core/schema/ids';
 import type {Label} from '@core/schema/labels';
@@ -10,8 +9,8 @@ import {
   type ShowLibrarySong,
 } from '@core/schema/showLibrarySong';
 import type {Song} from '@core/schema/song';
+import {songTiles} from '@core/slides/tiles';
 import type {Logger} from '../log';
-import {projectSongTiles} from './showService';
 
 export interface LibrarySongDocument {
   readonly song: Song;
@@ -22,44 +21,23 @@ export interface LibrarySongDocument {
 export interface LibrarySongSources {
   readonly song: (id: SongId) => LibrarySongDocument | null;
   readonly labels: readonly Label[];
-  readonly backgroundOf: (id: string) => Promise<MediaChoice | null>;
-  readonly backgroundName?: (id: string) => string | undefined;
 }
 
-export async function showLibrarySong(
-  sources: LibrarySongSources,
+export function showLibrarySong(
+  {song: songOf, labels}: LibrarySongSources,
   songId: SongId,
-): Promise<ShowLibrarySong | null> {
-  const document = sources.song(songId);
+): ShowLibrarySong | null {
+  const document = songOf(songId);
   if (document === null) return null;
   const {song, revision, access} = document;
-  const labels = sources.labels;
-  const background =
-    song.background === undefined
-      ? null
-      : await sources.backgroundOf(song.background);
   const colors = new Map(labels.map(({name, color}) => [name, color]));
-  const missingBackgroundName =
-    background === null && song.background !== undefined
-      ? sources.backgroundName?.(song.background)
-      : undefined;
-  const projected = projectSongTiles(song, colors);
-  const problem = projected.capped
-    ? 'tile-limit'
-    : song.background !== undefined && background === null
-      ? 'missing-background'
-      : access === 'readOnly'
-        ? 'newer-version'
-        : undefined;
   const projection: ShowLibrarySong = {
     songId: song.id,
     songRevision: revision,
     title: song.title,
-    readOnly: access === 'readOnly' || projected.capped,
-    tiles: projected.tiles,
-    ...(background === null ? {} : {background}),
-    ...(missingBackgroundName === undefined ? {} : {missingBackgroundName}),
-    ...(problem === undefined ? {} : {problem}),
+    readOnly: access === 'readOnly',
+    tiles: songTiles(song, colors),
+    ...(access === 'readOnly' ? {problem: 'newer-version' as const} : {}),
   };
   const checked = parseShowLibrarySongReply(songId, projection);
   if (!checked.ok) {
@@ -89,8 +67,7 @@ export function registerLibrarySong(
         if (sources === null) {
           throw new Error('The song library is unavailable');
         }
-        const shown = await showLibrarySong(sources, request.value.songId);
-        return isDisposed() ? null : shown;
+        return showLibrarySong(sources, request.value.songId);
       } catch (error: unknown) {
         log.error('could not show a library song', error);
         throw new Error('Could not show a library song', {cause: error});

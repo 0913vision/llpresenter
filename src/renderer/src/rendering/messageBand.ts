@@ -1,6 +1,6 @@
 import type {MessageBand} from '@core/screens/messageStyle';
 import {classes} from './classes';
-import {fontFamilyFor} from './slideLayer';
+import {fontFamilyFor} from './fontFamily';
 
 /**
  * The built-in 기본 메시지 style: a full-width band at the top edge with the

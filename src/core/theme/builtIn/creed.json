@@ -156,7 +156,7 @@
             "lineHeight": 1.2,
             "tracking": -3,
             "align": "left",
-            "vAlign": "top"
+            "vAlign": "middle"
           },
           "same": "size",
           "wrap": "balance"

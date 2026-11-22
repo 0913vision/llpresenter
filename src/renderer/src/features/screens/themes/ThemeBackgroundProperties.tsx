@@ -1,82 +1,110 @@
 import type {JSX} from 'react';
-import {type ThemeBackground} from '@core/schema/themeBackground';
-import {createThemeGradient} from '@core/themes/gradientEdits';
-import {GRADIENT_PRESETS} from '@core/themes/gradientPresets';
-import {emptyScreenColor} from '@core/screens/emptyColor';
-import {PropertyRow, SegmentedControl} from '@renderer/ui';
+import type {SlideBackground} from '@core/schema/theme';
+import {createGradient} from '@core/theme/gradientEdits';
+import {GRADIENT_PRESETS} from '@core/theme/gradientPresets';
+import {APP_PICTURE_IDS} from '@core/theme/pictures';
+import {PropertyRow, SelectMenu} from '@renderer/ui';
 import {ColorProperty} from '../ColorProperty';
 import {ThemeGradientProperties} from './ThemeGradientProperties';
+import {ThemeFitRow} from './ThemePropertyFields';
+import {ThemeImageChoice} from './ThemeImageChoice';
 import type {ThemeModel} from './useThemeEditor';
 
-const BACKGROUNDS = [
-  {value: 'inherit', label: '화면 기본'},
-  {value: 'solid', label: '단색'},
-  {value: 'linear', label: '그라데이션'},
+const KINDS = [
+  {value: 'none', label: '없음'},
+  {value: 'color', label: '단색'},
+  {value: 'gradient', label: '그라데이션'},
+  {value: 'media', label: '이미지'},
 ] as const;
 
+const FIRST_COLOR = '#000000';
+
+function startOf(
+  kind: SlideBackground['kind'],
+  before: SlideBackground,
+): SlideBackground {
+  const color =
+    before.kind === 'color'
+      ? before.color
+      : before.kind === 'gradient'
+        ? (before.stops[0]?.color ?? FIRST_COLOR)
+        : FIRST_COLOR;
+  switch (kind) {
+    case 'none':
+      return {kind};
+    case 'color':
+      return {kind, color};
+    case 'gradient':
+      return GRADIENT_PRESETS[0]?.gradient ?? createGradient(color);
+    case 'media':
+      return {kind, media: APP_PICTURE_IDS.scripture, fit: 'stretch'};
+  }
+}
+
+/** What a theme shows behind its texts, unless a slide has its own. */
 export function ThemeBackgroundProperties({
   model,
+  background,
 }: {
   readonly model: ThemeModel;
-}): JSX.Element | null {
-  const {layout, screen, elementReason: reason} = model;
-  if (layout === undefined || screen === undefined) return null;
-  const background = layout.background;
-  const selected =
-    background === undefined
-      ? 'inherit'
-      : typeof background === 'string'
-        ? 'solid'
-        : 'linear';
-  const inherited = emptyScreenColor(screen);
-  const commit = (value: ThemeBackground | undefined): void =>
-    model.layoutChange(current => {
-      const {background: previous, ...rest} = current;
-      return value === undefined ? rest : {...current, background: value};
-    });
+  readonly background: SlideBackground;
+}): JSX.Element {
+  const {reason} = model;
+  const commit = (value: SlideBackground): void => {
+    model.themeChange(theme => ({...theme, background: value}));
+  };
   return (
     <>
       <PropertyRow label="배경">
-        {({controlId, labelId}) => (
-          <SegmentedControl
+        {({controlId}) => (
+          <SelectMenu
             id={controlId}
-            labelledBy={labelId}
-            options={BACKGROUNDS}
-            value={selected}
+            block
+            options={KINDS}
+            value={background.kind}
             disabled={reason !== undefined}
             title={reason}
             onChange={kind => {
-              if (kind === selected) return;
-              commit(
-                kind === 'inherit'
-                  ? undefined
-                  : kind === 'solid'
-                    ? typeof background === 'string'
-                      ? background
-                      : (background?.stops[0]?.color ?? inherited)
-                    : (GRADIENT_PRESETS[0]?.gradient ??
-                      createThemeGradient(inherited)),
-              );
+              if (kind !== background.kind) commit(startOf(kind, background));
             }}
           />
         )}
       </PropertyRow>
-      {typeof background === 'string' ? (
+      {background.kind === 'color' ? (
         <ColorProperty
           label="색"
-          value={background}
+          value={background.color}
           reason={reason}
-          commit={commit}
+          commit={color => commit({...background, color})}
         />
       ) : null}
-      {background === undefined || typeof background === 'string' ? null : (
+      {background.kind === 'gradient' ? (
         <ThemeGradientProperties
-          key={`${model.theme?.id}:${screen.id}`}
+          key={model.theme?.id}
           model={model}
           gradient={background}
           change={commit}
         />
-      )}
+      ) : null}
+      {background.kind === 'media' ? (
+        <>
+          <PropertyRow label="이미지">
+            {({controlId}) => (
+              <ThemeImageChoice
+                id={controlId}
+                selected={background.media}
+                reason={reason}
+                change={media => commit({...background, media})}
+              />
+            )}
+          </PropertyRow>
+          <ThemeFitRow
+            value={background.fit ?? 'fill'}
+            reason={reason}
+            change={fit => commit({...background, fit})}
+          />
+        </>
+      ) : null}
     </>
   );
 }

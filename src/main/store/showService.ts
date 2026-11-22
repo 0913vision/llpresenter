@@ -1,485 +1,75 @@
-import {LIVE_BIBLE_ID} from '@core/bible/liveTranslation';
-import {displayReference} from '@core/bible/displayReference';
-import {withSectionCard} from '@core/services/sectionCards';
-import {NO_LABEL_COLOR, type LabelColor} from '@core/labels/colors';
-import type {MediaChoice} from '@core/live/state';
+import type {LabelColor} from '@core/labels/colors';
 import type {LoadedFile} from '@core/schema/fileFormat';
-import type {Song, SongSlide} from '@core/schema/song';
 import type {Label} from '@core/schema/labels';
-import type {MediaItem} from '@core/schema/mediaList';
-import {
-  isItemOfKind,
-  type Service,
-  type ServiceItem,
-  type ServiceItemOf,
-} from '@core/schema/service';
-import {
-  SHOW_SERVICE_LIMITS,
-  type ShowRow,
-  type ShowService,
-  type ShowTile,
-} from '@core/schema/showService';
-import {colorSlideLabels, projectSlides} from '@core/presentation/slides';
-import {withSlideTexts} from '@core/presentation/slideTexts';
-import {isPassageItem, passageOf} from '@core/services/passageEdits';
-import type {ServicePassages} from '../bible/servicePassages';
-import {LITURGY, liturgySlideTextKey} from '@core/services/liturgy';
-import {LITURGY_SLIDES} from '@core/services/liturgySlides';
-import {CREED_PRAYER_THEME_ID} from '@core/themes/creedPrayer';
-import {songItemBackground, songSlidePicture} from '@core/songs/songBackground';
-
-export {SHOW_SERVICE_LIMITS} from '@core/schema/showService';
+import {hasSlides, type Service, type ServiceItem} from '@core/schema/service';
+import type {ShowRow, ShowService, ShowTile} from '@core/schema/showService';
+import type {Song} from '@core/schema/song';
+import {itemTiles, itemTitle} from '@core/slides/tiles';
 
 /** A document's content and whether a newer app version wrote it. */
 type Shown<T> = Pick<LoadedFile<T>, 'data' | 'access'>;
 
-type SongLibrary = ReadonlyMap<string, Shown<Song>>;
-
 export interface ShowServiceSources {
   readonly service: Shown<Service>;
   /** The song library, by song id. */
-  readonly songs: SongLibrary;
+  readonly songs: ReadonlyMap<string, Shown<Song>>;
   readonly labels: readonly Label[];
   readonly revision: number;
-  readonly serviceRevision?: number;
-  readonly backgrounds?: ReadonlyMap<string, MediaChoice>;
-  readonly passages?: ServicePassages;
-  /** The media list by id, for the names and kinds of media items. */
-  readonly media?: ReadonlyMap<string, MediaItem>;
-}
-
-export interface ProjectedSongTiles {
-  readonly tiles: readonly ShowTile[];
-  readonly capped: boolean;
+  /** Whether a media item is in the list or comes with the app. */
+  readonly hasMedia: (id: string) => boolean;
 }
 
 /**
- * Turns the open 예배 순서 into what 진행 shows: a row per item, the tiles of
- * each song item in order. Row ids are the
- * item ids, so the live state keeps pointing at the same item after a change.
- * A file from a newer app version shows as read-only.
+ * Turns the open 예배 순서 into what 진행 shows: a row per item and the tiles
+ * of its slides. Row ids are the item ids, so the live state keeps pointing at
+ * the same item after a change. A file from a newer app version is read-only.
  */
-export function buildShowService({
-  service,
-  songs,
-  labels,
-  revision,
-  serviceRevision,
-  backgrounds = new Map(),
-  passages,
-  media,
-}: ShowServiceSources): ShowService {
+export function buildShowService(sources: ShowServiceSources): ShowService {
+  const {service, labels, revision} = sources;
   const {id, name, order} = service.data;
-  const colors = new Map(
-    labels.map(({name: labelName, color}) => [labelName, color]),
+  const colors: ReadonlyMap<string, LabelColor> = new Map(
+    labels.map(label => [label.name, label.color]),
   );
-  const itemTiles: Record<string, readonly ShowTile[]> = {};
-  const cappedItems = new Set<string>();
-
+  const tiles: Record<string, readonly ShowTile[]> = {};
   for (const item of order) {
-    if (!isItemOfKind(item, 'song')) continue;
-    const projected = projectSongTiles(
-      {
-        id: item.song,
-        slides: item.slides,
-        background: songItemBackground({
-          backgroundNone: item.backgroundNone,
-          item: item.background,
-          song: songs.get(item.song)?.data.background,
-        }),
-      },
-      colors,
-    );
-    if (projected.capped) {
-      cappedItems.add(item.id);
-      itemTiles[item.id] = [];
-    } else {
-      itemTiles[item.id] = projected.tiles;
-    }
+    if (hasSlides(item)) tiles[item.id] = itemTiles(item, colors);
   }
-
-  for (const [itemId, tiles] of passages?.tiles ?? []) {
-    itemTiles[itemId] = colorSlideLabels(tiles, colors);
-  }
-  for (const item of order) {
-    const tiles = otherTiles(item, {
-      backgrounds,
-      media,
-      passages,
-      colors,
-    });
-    if (tiles !== undefined) itemTiles[item.id] = tiles;
-  }
-  for (const item of order) {
-    if (
-      (!isItemOfKind(item, 'song') &&
-        !isItemOfKind(item, 'slides') &&
-        !isItemOfKind(item, 'bible') &&
-        !isItemOfKind(item, 'sermon') &&
-        !isItemOfKind(item, 'liturgy')) ||
-      item.sectionCard === undefined
-    ) {
-      continue;
-    }
-    const tiles = itemTiles[item.id] ?? [];
-    if (tiles.length >= SHOW_SERVICE_LIMITS.tiles) {
-      cappedItems.add(item.id);
-      itemTiles[item.id] = [];
-      continue;
-    }
-    itemTiles[item.id] = colorSlideLabels(
-      withSectionCard(item.sectionCard, tiles),
-      colors,
-    );
-  }
-  for (const item of order) {
-    const tiles = itemTiles[item.id];
-    if (tiles !== undefined) {
-      itemTiles[item.id] = withSlideTexts(tiles, item.texts);
-    }
-  }
-  const rowSources: RowSources = {
-    songs,
-    backgrounds,
-    cappedItems,
-    passages,
-    media,
-    serviceRevision,
-  };
   return {
     revision,
     id,
     name,
     readOnly: service.access === 'readOnly',
-    rows: order.map(item => rowOf(item, rowSources)),
-    tiles: itemTiles,
+    rows: order.map(item => rowOf(item, sources)),
+    tiles,
   };
 }
 
-interface RowSources {
-  readonly serviceRevision: number | undefined;
-  readonly songs: SongLibrary;
-  readonly backgrounds: ReadonlyMap<string, MediaChoice>;
-  readonly cappedItems: ReadonlySet<string>;
-  readonly passages: ServicePassages | undefined;
-  readonly media: ReadonlyMap<string, MediaItem> | undefined;
-}
-
-const UNNAMED_MEDIA = '이름 없는 미디어';
-
-function mediaTitle(media: MediaItem): string {
-  return media.name === '' ? UNNAMED_MEDIA : media.name;
-}
-
-interface OtherSources {
-  readonly colors: ReadonlyMap<string, LabelColor>;
-  readonly backgrounds: ReadonlyMap<string, MediaChoice>;
-  readonly media: ReadonlyMap<string, MediaItem> | undefined;
-  readonly passages: ServicePassages | undefined;
-}
-
-/**
- * The single tile of a media item. Audio and missing media have no tile.
- */
-function otherTiles(
-  item: ServiceItem,
-  {backgrounds, media, passages, colors}: OtherSources,
-): readonly ShowTile[] | undefined {
-  if (isItemOfKind(item, 'liturgy')) {
-    return LITURGY_SLIDES[item.liturgy.kind][item.liturgy.translation].map(
-      (text, index) => ({
-        key: liturgySlideTextKey(item.liturgy, index),
-        label:
-          item.liturgy.labels?.find(entry => entry.index === index)?.label ??
-          text.split('\n')[0] ??
-          '',
-        ...(() => {
-          const label = item.liturgy.labels?.find(
-            entry => entry.index === index,
-          )?.label;
-          return label === undefined ? {} : {slideLabel: label};
-        })(),
-        labelColor:
-          colors.get(
-            item.liturgy.labels?.find(entry => entry.index === index)?.label ??
-              '',
-          ) ?? NO_LABEL_COLOR,
-        lines: [text],
-        kind: 'blank' as const,
-        ...(() => {
-          const transition = item.liturgy.transitions?.find(
-            entry => entry.index === index,
-          )?.transition;
-          return transition === undefined ? {} : {transition};
-        })(),
-      }),
-    );
-  }
-  if (isItemOfKind(item, 'slides')) {
-    return colorSlideLabels(
-      projectSlides(item, media, {
-        passages: passages?.slides?.get(item.id),
-      }),
-      colors,
-    );
-  }
-  if (isItemOfKind(item, 'media')) {
-    if (media === undefined) return undefined;
-    const choice = backgrounds.get(item.media);
-    const found = media.get(item.media);
-    if (choice === undefined || found === undefined) return [];
-    return [
-      {
-        key: 'media',
-        label: item.slideLabel ?? null,
-        ...(item.slideLabel === undefined ? {} : {slideLabel: item.slideLabel}),
-        labelColor:
-          item.slideLabel === undefined
-            ? NO_LABEL_COLOR
-            : (colors.get(item.slideLabel) ?? NO_LABEL_COLOR),
-        lines: [mediaTitle(found)],
-        media: {...choice, itemId: item.id},
-      },
-    ];
-  }
-  return undefined;
-}
-
-function itemBackground(
-  item: ServiceItem,
-  sources: RowSources,
-): {background?: MediaChoice; backgroundNone?: true} {
-  if ('backgroundNone' in item && item.backgroundNone) {
-    return {backgroundNone: true};
-  }
-  const background =
-    'background' in item && typeof item.background === 'string'
-      ? sources.backgrounds.get(item.background)
-      : undefined;
-  return background === undefined ? {} : {background};
-}
-
-function rowOf(item: ServiceItem, sources: RowSources): ShowRow {
+function rowOf(item: ServiceItem, sources: ShowServiceSources): ShowRow {
   const {id} = item;
-  if (isItemOfKind(item, 'header')) {
-    return {kind: 'header', id, title: item.header};
+  const title = itemTitle(item);
+  if (item.kind === 'header') return {kind: 'header', id, title};
+  if (!hasSlides(item)) {
+    return {kind: 'unknown', id, title, problem: 'unknown-kind'};
   }
-  if (isItemOfKind(item, 'song')) {
-    return songRow(item, sources.songs.get(item.song), sources);
-  }
-  if (isItemOfKind(item, 'liturgy')) {
-    return {
-      kind: 'slides',
-      id,
-      title: LITURGY[item.liturgy.kind].name,
-      form: 'blank',
-      liturgy: item.liturgy,
-      ...itemBackground(item, sources),
-      theme: item.theme ?? CREED_PRAYER_THEME_ID,
-      ...(sources.serviceRevision === undefined
-        ? {}
-        : {sourceRevision: sources.serviceRevision}),
-    };
-  }
-  if (isItemOfKind(item, 'slides')) {
-    const background =
-      item.background === undefined
-        ? undefined
-        : sources.backgrounds.get(item.background);
-    const missingBackgroundName =
-      item.background === undefined
-        ? undefined
-        : sources.media?.get(item.background)?.name;
-    return {
-      kind: 'slides',
-      id,
-      title: item.slides.name,
-      form: item.slides.form,
-      ...(sources.serviceRevision === undefined
-        ? {}
-        : {sourceRevision: sources.serviceRevision}),
-      ...(item.theme === undefined ? {} : {theme: item.theme}),
-      ...itemBackground(item, sources),
-      ...(item.background !== undefined && background === undefined
-        ? {
-            problem: 'missing-background' as const,
-            ...(missingBackgroundName === undefined
-              ? {}
-              : {missingBackgroundName}),
-          }
-        : item.slides.slides.some(
-              slide =>
-                'media' in slide &&
-                sources.media?.get(slide.media)?.kind !== 'image',
-            )
-          ? {problem: 'missing-media' as const}
-          : sources.passages?.unavailable.has(id)
-            ? {problem: 'missing-bible' as const}
-            : {}),
-    };
-  }
-  if (isPassageItem(item)) {
-    const settings = passageOf(item);
-    const sermonTitle = isItemOfKind(item, 'sermon')
-      ? item.sermon.title
-      : undefined;
-    const bible =
-      sources.passages?.references.get(id) ??
-      (sources.passages?.unavailable.has(id) &&
-      settings.translation === LIVE_BIBLE_ID
-        ? {translation: settings.translation, ref: settings.ref}
-        : undefined);
-    return {
-      kind: 'bible',
-      id,
-      ...itemBackground(item, sources),
-      ...(sources.serviceRevision === undefined
-        ? {}
-        : {sourceRevision: sources.serviceRevision}),
-      title: sermonTitle ?? displayReference(settings.ref),
-      ...(sermonTitle === undefined ? {} : {sermonTitle}),
-      ...(bible === undefined
-        ? {}
-        : {
-            bible: {
-              ...bible,
-              ...(sermonTitle === undefined ? {} : {sermonTitle}),
-              verseNumbers: settings.verseNumbers,
-              translationName: settings.translationName,
-              reference: settings.reference,
-              ...(settings.slides === undefined
-                ? {}
-                : {slides: settings.slides}),
-              ...(settings.transition === undefined
-                ? {}
-                : {transition: settings.transition}),
-              ...(item.theme === undefined ? {} : {theme: item.theme}),
-            },
-          }),
-      ...(sources.cappedItems.has(id)
-        ? {problem: 'tile-limit' as const}
-        : sources.passages?.unavailable.has(id)
-          ? {problem: 'missing-bible' as const}
-          : {}),
-    };
-  }
-  if (isItemOfKind(item, 'media')) {
-    const found = sources.media?.get(item.media);
-    const problem =
-      sources.media === undefined ||
-      found?.kind === 'audio' ||
-      sources.backgrounds.has(item.media)
-        ? {}
-        : {problem: 'missing-media' as const};
-    return {
-      kind: 'media',
-      id,
-      ...(item.theme === undefined ? {} : {theme: item.theme}),
-      ...itemBackground(item, sources),
-      title: found === undefined ? '' : mediaTitle(found),
-      ...problem,
-    };
-  }
-  return {kind: 'unknown', id, title: '', problem: 'unknown-kind'};
-}
-
-/** The item's override takes precedence even when its media cannot be found. */
-export function songBackgroundId(
-  item: ServiceItemOf<'song'>,
-  song: Song,
-): string | undefined {
-  return songItemBackground({
-    backgroundNone: item.backgroundNone,
-    item: item.background,
-    song: song.background,
-  });
-}
-
-function songRow(
-  item: ServiceItemOf<'song'>,
-  song: Shown<Song> | undefined,
-  sources: RowSources,
-): ShowRow {
-  const {id} = item;
-  if (song === undefined) {
-    return {kind: 'song', id, title: '', problem: 'missing-song'};
-  }
-  const {title} = song.data;
-  const theme = item.theme ?? song.data.theme;
-  const mediaId = songBackgroundId(item, song.data);
-  const background =
-    mediaId === undefined ? undefined : sources.backgrounds.get(mediaId);
-  const missingBackgroundName =
-    background === undefined && mediaId !== undefined
-      ? sources.media?.get(mediaId)?.name
-      : undefined;
-  const capped = sources.cappedItems.has(item.id);
-  const problem = capped
-    ? 'tile-limit'
-    : mediaId !== undefined && background === undefined
-      ? 'missing-background'
-      : song.access === 'readOnly'
+  const song = item.kind === 'song' ? sources.songs.get(item.song) : undefined;
+  const missing = item.slides.some(
+    ({background}) =>
+      background?.kind === 'media' && !sources.hasMedia(background.media),
+  );
+  const problem =
+    item.kind === 'song' && song === undefined
+      ? 'missing-song'
+      : song?.access === 'readOnly'
         ? 'newer-version'
-        : undefined;
+        : missing
+          ? 'missing-media'
+          : undefined;
   return {
-    kind: 'song',
+    kind: item.kind,
     id,
     title,
-    ...(theme === undefined ? {} : {theme}),
     ...(problem === undefined ? {} : {problem}),
-    ...(background === undefined ? {} : {background}),
-    ...(item.background === undefined
-      ? {}
-      : {backgroundExplicit: true as const}),
-    ...(item.backgroundNone === true ? {backgroundNone: true as const} : {}),
-    ...(missingBackgroundName === undefined ? {} : {missingBackgroundName}),
+    ...(item.kind === 'song' ? {song: item.song} : {}),
+    ...('passage' in item ? {passage: item.passage} : {}),
   };
-}
-
-/** Projects the supplied deck directly, including service-local edits. */
-export function projectSongTiles(
-  song: Pick<Song, 'id'> & {
-    readonly slides: readonly SongSlide[];
-    readonly background?: string | undefined;
-  },
-  colors: ReadonlyMap<string, LabelColor>,
-): ProjectedSongTiles {
-  if (song.slides.length > SHOW_SERVICE_LIMITS.tiles) {
-    return {tiles: [], capped: true};
-  }
-  return {
-    capped: false,
-    tiles: song.slides.map(slide => ({
-      key: slide.id,
-      label: slide.label ?? null,
-      labelColor:
-        slide.label === undefined
-          ? NO_LABEL_COLOR
-          : (colors.get(slide.label) ?? NO_LABEL_COLOR),
-      lines: slide.lines,
-      ...(songSlidePicture(slide.picture, song.background) === undefined
-        ? {}
-        : {picture: slide.picture}),
-      ...(slide.lyricFormat === undefined
-        ? {}
-        : {lyricFormat: slide.lyricFormat}),
-      ...(slide.titleSlide === undefined ? {} : {titleSlide: slide.titleSlide}),
-      ...(slide.titleLineCount === undefined
-        ? {}
-        : {titleLineCount: slide.titleLineCount}),
-      ...(slide.titleLayout === undefined
-        ? {}
-        : {titleLayout: slide.titleLayout}),
-      sourceSlide: {songId: song.id, slideId: slide.id},
-      ...(slide.transition === undefined ? {} : {transition: slide.transition}),
-      ...(slide.hotKey === undefined ? {} : {hotKey: slide.hotKey}),
-    })),
-  };
-}
-
-export function songTiles(
-  song: Song,
-  colors: ReadonlyMap<string, LabelColor>,
-): ShowTile[] {
-  return [...projectSongTiles(song, colors).tiles];
 }

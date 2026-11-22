@@ -39,7 +39,6 @@ import {
 } from './settings';
 import {uiApi, type UiApi} from './ui';
 import {windowApi, type WindowApi} from './window';
-import {slidesEditorApi, type SlidesEditorApi} from './slidesEditor';
 import type {
   LibrarySong,
   ServiceChange,
@@ -99,22 +98,17 @@ export interface LlpApi {
   readonly powerpoint: PowerPointApi;
   readonly recovery: RecoveryApi;
   readonly locations: LocationsApi;
-  readonly slidesEditor: SlidesEditorApi;
 }
 
 /** Builds `window.llp` on the preload script's port. */
 export function llpApi(
   port: IpcPort,
   platform: WindowPlatform,
-  bridges:
-    | SlidesEditorApi
-    | {
-        readonly slidesEditor?: SlidesEditorApi;
-        readonly bible?: BibleApi;
-        readonly update?: UpdateApi;
-      } = {},
+  custom: {
+    readonly bible?: BibleApi;
+    readonly update?: UpdateApi;
+  } = {},
 ): LlpApi {
-  const custom = 'open' in bridges ? {slidesEditor: bridges} : bridges;
   return {
     update: custom.update ?? updateApi(port),
     bible: custom.bible ?? bibleApi(port),
@@ -140,6 +134,5 @@ export function llpApi(
     powerpoint: powerpointApi(port),
     recovery: recoveryApi(port),
     locations: locationsApi(port),
-    slidesEditor: custom.slidesEditor ?? slidesEditorApi(port),
   };
 }

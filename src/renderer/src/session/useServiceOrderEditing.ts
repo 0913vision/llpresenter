@@ -1,23 +1,12 @@
 import {useEffect, useRef, useState} from 'react';
-import {createServiceId, type ServiceId} from '@core/schema/ids';
-import {
-  orderFailureTitle,
-  serviceOrderEditsFor,
-  type ServiceOrderEdits,
-  type ServiceOrderEditResult,
-} from '@renderer/session/serviceOrderEdits';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
+import type {OpenServiceResult} from './openService';
+import {orderFailureTitle} from './serviceOrderEdits';
 
-type Operation = (
-  edits: ServiceOrderEdits,
-  serviceId: ServiceId,
-) => Promise<ServiceOrderEditResult>;
+type Operation = () => Promise<OpenServiceResult>;
 
-/** Keeps edit history across workspace switches, without retaining old APIs. */
-export function useServiceOrderEditing(
-  serviceId: string | null,
-  onProblem: (notice: Notice) => void,
-) {
+/** Runs one edit of the 예배 순서 at a time and reports why one was refused. */
+export function useServiceOrderEditing(onProblem: (notice: Notice) => void) {
   const [busy, setBusy] = useState(false);
   const pending = useRef(false);
   const alive = useRef(false);
@@ -32,14 +21,11 @@ export function useServiceOrderEditing(
     completion: 'applied' | 'saved' = 'applied',
   ): Promise<boolean> => {
     const api = window.llp;
-    if (pending.current || api === undefined || serviceId === null) {
-      return false;
-    }
+    if (pending.current || api === undefined) return false;
     pending.current = true;
     setBusy(true);
     try {
-      const editor = serviceOrderEditsFor(api);
-      let result = await operation(editor, createServiceId(serviceId));
+      let result = await operation();
       if (result.ok && !result.value && completion === 'saved') {
         const persisted = await api.content.edit({type: 'saves.retry'});
         result = persisted.ok ? {ok: true, value: true} : persisted;
@@ -76,14 +62,13 @@ export function useServiceOrderEditing(
       if (alive.current) setBusy(false);
     }
   };
-  const run = (operation: Operation): void => {
-    execute(operation).catch((error: unknown) => {
-      console.error('Failed to report a service order edit:', error);
-    });
-  };
   return {
     busy,
-    run,
+    run: (operation: Operation): void => {
+      execute(operation).catch((error: unknown) =>
+        console.error('Could not change the service', error),
+      );
+    },
     apply: (operation: Operation) => execute(operation),
     save: (operation: Operation) => execute(operation, 'saved'),
   };

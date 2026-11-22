@@ -1,12 +1,34 @@
 import {useEffect} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
-import {powerpointImageItem} from '@core/services/powerpointImages';
+import {createServiceItemId, type MediaId} from '@core/schema/ids';
+import type {ServiceItem} from '@core/schema/service';
+import {blankItem, pictureSlide} from '@core/slides/items';
+import {slideMaking} from '@renderer/platform/themes';
+import type {OpenServiceResult} from '@renderer/session/openService';
+import {insertItems} from '@renderer/session/serviceOrderEdits';
 import {useShow} from '@renderer/session/show';
-import {
-  asServiceId,
-  editApplied,
-} from '@renderer/features/service/list/serviceEdits';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
+
+/** One item with a slide for each picture. */
+function imagesItem(fileName: string, media: readonly MediaId[]): ServiceItem {
+  const making = slideMaking();
+  return {
+    ...blankItem(making),
+    name: fileName.replace(/\.[^.]+$/u, ''),
+    slides: media.map(id => pictureSlide(making, id)),
+  };
+}
+
+function insertAfter(
+  item: ServiceItem,
+  selected: string | null,
+): Promise<OpenServiceResult> {
+  const row = useShow.getState().rows.find(entry => entry.id === selected);
+  return insertItems(
+    [item],
+    row === undefined ? null : createServiceItemId(row.id),
+  );
+}
 
 /** Imports a complete deck before modifying the service. */
 export function PowerPointImagesFlow({
@@ -22,7 +44,7 @@ export function PowerPointImagesFlow({
     let dispose = (): void => undefined;
     const timer = setTimeout(() => {
       const view = useShow.getState();
-      const serviceId = asServiceId(view.serviceId);
+      const {serviceId} = view;
       const selected = view.openItemId;
       const state = {cancelled: false, userCancelled: false};
       const stopped = (): boolean => state.cancelled || state.userCancelled;
@@ -90,37 +112,15 @@ export function PowerPointImagesFlow({
           if (!stored.ok) throw new Error(stored.message);
           const media = stored.value;
           if (stopped()) return;
-          for (let attempt = 0; attempt < 3; attempt++) {
-            if (stopped()) return;
-            const document = await api.services.get(serviceId);
-            if (stopped()) return;
-            if (!document || useShow.getState().serviceId !== serviceId) {
-              throw new Error('Service changed');
-            }
-            const item = powerpointImageItem(fileName, media);
-            const index = document.service.order.findIndex(
-              entry => entry.id === selected,
-            );
-            const order = [...document.service.order];
-            order.splice(index < 0 ? order.length : index + 1, 0, item);
-            if (stopped()) return;
-            const saved = await api.content.edit({
-              type: 'service.update',
-              service: {...document.service, order},
-              baseRevision: document.revision,
-            });
-            if (editApplied(saved)) {
-              notify(
-                `PowerPoint 이미지 ${media.length}개를 가져왔습니다`,
-                'info',
-              );
-              return;
-            }
-            if (saved.ok || saved.error.reason !== 'stale') {
-              throw new Error('Service update failed');
-            }
+          if (useShow.getState().serviceId !== serviceId) {
+            throw new Error('Service changed');
           }
-          throw new Error('Service changed');
+          const item = imagesItem(fileName, media);
+          const saved = await insertAfter(item, selected);
+          if (!saved.ok && saved.error.reason !== 'write-failed') {
+            throw new Error(saved.error.message);
+          }
+          notify(`PowerPoint 이미지 ${media.length}개를 가져왔습니다`, 'info');
         } finally {
           await Promise.all(
             slides.map(slide => api.powerpoint.release({path: slide.path})),

@@ -11,7 +11,7 @@ export function serviceChangeNeedsConfirmation(
     state !== null &&
     isAnyOutputOn(state) &&
     (hasAnyLayer(state.layers) ||
-      state.themeItem != null ||
+      state.item != null ||
       state.blackScreen === true ||
       (state.testPatterns?.length ?? 0) > 0 ||
       (state.stageMessage?.trim().length ?? 0) > 0)

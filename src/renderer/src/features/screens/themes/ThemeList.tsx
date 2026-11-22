@@ -1,22 +1,31 @@
-import {limitReason} from '@core/common/limitReason';
 import {useEffect, useRef, useState, type JSX} from 'react';
+import {limitReason} from '@core/common/limitReason';
 import {createThemeId, type ThemeId} from '@core/schema/ids';
-import type {Theme} from '@core/schema/themes';
-import {THEME_LIMITS, themeItemKinds} from '@core/themes/elementRules';
-import {isBuiltInThemeId, userThemeCount} from '@core/themes/builtInIds';
-import {isSectionTheme} from '@core/themes/sundaySections';
-import {editThemeList, type ThemeListEdit} from '@core/themes/themeEdits';
-import {deleteSelection} from '@renderer/ui/useSelectionDelete';
+import {slidePurposes, type ThemeFile} from '@core/schema/theme';
+import {THEMES_LIMITS} from '@core/schema/themes';
+import {
+  copiedThemeName,
+  editThemeList,
+  newTheme,
+  ownThemeCount,
+  type ThemeListEdit,
+} from '@core/theme/list';
+import {builtInTheme, isEditedTheme, themeFor} from '@core/theme/themes';
+import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {IconButton} from '@renderer/ui/IconButton';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
-import {Panel, PanelHeader, PanelTitle, PanelActions} from '@renderer/ui/Panel';
-import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
+import {Panel, PanelActions, PanelHeader, PanelTitle} from '@renderer/ui/Panel';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
+import {deleteSelection} from '@renderer/ui/useSelectionDelete';
 import {ChoiceRows} from '../ChoiceRows';
-import {themeKindNames, themeProblems} from './themeNames';
+import {purposeNames, themeProblems} from './themeNames';
 import type {ThemeModel} from './useThemeEditor';
 import styles from './Themes.module.css';
+
+function newId(): ThemeId {
+  return createThemeId(crypto.randomUUID());
+}
 
 export function ThemeList({
   model,
@@ -25,9 +34,12 @@ export function ThemeList({
   readonly model: ThemeModel;
   readonly liveId: string | undefined;
 }): JSX.Element {
-  const [menu, setMenu] = useState<{theme: Theme; anchor: MenuAnchor} | null>(
-    null,
-  );
+  const {list, reason} = model;
+  const [menu, setMenu] = useState<{
+    readonly theme: ThemeFile;
+    readonly anchor: MenuAnchor;
+  } | null>(null);
+  const [adding, setAdding] = useState<HTMLElement | null>(null);
   const [renaming, setRenaming] = useState<string | null>(null);
   const alive = useRef(true);
   const focusCreated = useRef<ThemeId | null>(null);
@@ -48,14 +60,14 @@ export function ThemeList({
       alive.current = false;
     };
   }, []);
-  const renameAfterMenu = useMenuHandoff<Theme>(menu !== null, theme => {
+  const renameAfterMenu = useMenuHandoff<ThemeFile>(menu !== null, theme => {
     model.chooseTheme(theme.id);
     setRenaming(theme.id);
   });
   const execute = async (edit: ThemeListEdit): Promise<boolean> => {
     const unchanged = model.guardInteraction();
     const result = await model.change(
-      file => editThemeList(file, edit, new Set()),
+      value => editThemeList(value, edit),
       edit.kind === 'rename' ? 'saved' : 'applied',
     );
     if (!alive.current) return false;
@@ -63,41 +75,42 @@ export function ThemeList({
       model.report(themeProblems[result.error]);
       return false;
     }
-    if (
-      result.value &&
-      unchanged() &&
-      (edit.kind === 'add' || edit.kind === 'duplicate')
-    ) {
-      model.chooseTheme(edit.id);
-      focusCreated.current = edit.id;
+    if (result.value && edit.kind === 'add' && unchanged()) {
+      model.chooseTheme(edit.theme.id);
+      focusCreated.current = edit.theme.id;
     }
     return result.value;
   };
   const run = (edit: ThemeListEdit): void => {
     execute(edit).catch(model.reportError);
   };
-  const requestDelete = (theme: Theme): void => {
+  const requestDelete = (theme: ThemeFile): void => {
     deleteSelection(
       1,
-      () =>
-        model.reason === undefined &&
-        model.file !== null &&
-        theme.id !== model.file.standby.id &&
-        !isBuiltInThemeId(theme.id),
-      () => run({kind: 'delete', id: theme.id, confirmed: true}),
+      () => model.reason === undefined && builtInTheme(theme.id) === undefined,
+      () => {
+        if (model.dirtyThemeId === theme.id) model.discard();
+        run({kind: 'delete', id: theme.id});
+      },
     );
   };
-  const deleteAfterMenu = useMenuHandoff<Theme>(menu !== null, requestDelete);
-  const full = userThemeCount(model.file?.themes ?? []) >= THEME_LIMITS.themes;
-  const duplicateReason =
-    model.reason ??
-    (full ? limitReason('테마', THEME_LIMITS.themes) : undefined);
-  const duplicateSelected = (): void => {
-    if (model.theme === undefined) return;
+  const deleteAfterMenu = useMenuHandoff<ThemeFile>(
+    menu !== null,
+    requestDelete,
+  );
+  const full = list !== null && ownThemeCount(list) >= THEMES_LIMITS.themes;
+  const addReason =
+    reason ?? (full ? limitReason('테마', THEMES_LIMITS.themes) : undefined);
+  const duplicate = (theme: ThemeFile): void => {
+    if (list === null) return;
     run({
-      kind: 'duplicate',
-      source: model.theme.id,
-      id: createThemeId(crypto.randomUUID()),
+      kind: 'add',
+      theme: {
+        ...theme,
+        id: newId(),
+        name: copiedThemeName(list, theme.name),
+      },
+      after: theme.id,
     });
   };
   useWindowShortcuts([
@@ -107,56 +120,39 @@ export function ThemeList({
         event.target instanceof Element &&
         event.target.closest('[role="listbox"][aria-label="테마"]') !== null &&
         model.theme !== undefined,
-      unavailable: () => duplicateReason,
+      unavailable: () => addReason,
       run: () => {
-        if (duplicateReason === undefined) duplicateSelected();
+        if (addReason === undefined && model.theme !== undefined) {
+          duplicate(model.theme);
+        }
       },
     },
   ]);
   const target = menu?.theme;
-  const regular = target !== undefined && target.id !== model.file?.standby.id;
-  const available = menuAvailability(model.reason);
+  const available = menuAvailability(reason);
+  const isDefault = (theme: ThemeFile): boolean =>
+    list !== null && themeFor(list, theme.purpose).id === theme.id;
   const entries: readonly MenuEntry[] =
     target === undefined
       ? []
       : [
-          ...(regular && !isSectionTheme(target.id)
-            ? ([
-                {
-                  kind: 'item',
-                  id: 'default',
-                  label: '기본으로 지정',
-                  ...available,
-                  submenu: themeItemKinds.map(
-                    itemKind =>
-                      ({
-                        kind: 'item',
-                        id: itemKind,
-                        label: themeKindNames[itemKind],
-                        check: 'checkbox',
-                        keepsOpen: true,
-                        checked: model.file?.defaults[itemKind] === target.id,
-                        ...available,
-                        onSelect: () =>
-                          run({kind: 'default', id: target.id, itemKind}),
-                      }) as const,
-                  ),
-                },
-                {kind: 'separator', id: 'default-separator'},
-              ] as const)
-            : []),
+          {
+            kind: 'item',
+            id: 'default',
+            label: '기본으로 지정',
+            check: 'checkbox',
+            checked: isDefault(target),
+            ...available,
+            onSelect: () => run({kind: 'default', id: target.id}),
+          },
+          {kind: 'separator', id: 'default-separator'},
           {
             kind: 'item',
             id: 'duplicate',
             contextGroup: 'clipboard',
             label: '복제',
-            ...menuAvailability(duplicateReason),
-            onSelect: () =>
-              run({
-                kind: 'duplicate',
-                source: target.id,
-                id: createThemeId(crypto.randomUUID()),
-              }),
+            ...menuAvailability(addReason),
+            onSelect: () => duplicate(target),
           },
           {
             kind: 'item',
@@ -165,6 +161,20 @@ export function ThemeList({
             ...available,
             onSelect: () => renameAfterMenu(target),
           },
+          ...(isEditedTheme(target)
+            ? ([
+                {
+                  kind: 'item',
+                  id: 'restore',
+                  label: '처음으로 되돌리기',
+                  ...available,
+                  onSelect: () => {
+                    if (model.dirtyThemeId === target.id) model.discard();
+                    run({kind: 'restore', id: target.id});
+                  },
+                },
+              ] as const)
+            : []),
           {kind: 'separator', id: 'delete-separator'},
           {
             kind: 'item',
@@ -172,10 +182,10 @@ export function ThemeList({
             contextGroup: 'delete',
             label: '삭제',
             ...menuAvailability(
-              model.reason ??
-                (!regular || isBuiltInThemeId(target.id)
-                  ? themeProblems['built-in']
-                  : undefined),
+              reason ??
+                (builtInTheme(target.id) === undefined
+                  ? undefined
+                  : themeProblems.own),
             ),
             onSelect: () => {
               deleteAfterMenu(target);
@@ -183,8 +193,7 @@ export function ThemeList({
             },
           },
         ];
-  const choices =
-    model.file === null ? [] : [model.file.standby, ...model.file.themes];
+  const choices = list?.themes ?? [];
   return (
     <>
       <Panel label="테마 목록" className={styles.themeList}>
@@ -194,15 +203,9 @@ export function ThemeList({
             <IconButton
               icon="plus"
               label="새 테마"
-              disabled={model.reason !== undefined || full}
-              title={model.reason}
-              onClick={() =>
-                run({
-                  kind: 'add',
-                  id: createThemeId(crypto.randomUUID()),
-                  screens: model.screens,
-                })
-              }
+              disabled={addReason !== undefined}
+              title={addReason}
+              onClick={event => setAdding(event.currentTarget)}
             />
           </PanelActions>
         </PanelHeader>
@@ -218,21 +221,16 @@ export function ThemeList({
             const theme = choices.find(value => value.id === id);
             if (theme !== undefined) model.chooseTheme(theme.id);
           }}
-          canMove={theme =>
-            model.reason === undefined && theme.id !== model.file?.standby.id
-          }
+          canMove={() => reason === undefined}
           onMove={(id, before) => {
             const source = choices.find(theme => theme.id === id);
-            const target =
-              before === null
-                ? null
-                : choices.find(theme => theme.id === before);
-            if (source && target !== undefined) {
-              run({kind: 'move', id: source.id, before: target?.id ?? null});
+            const next = choices.find(theme => theme.id === before);
+            if (source !== undefined) {
+              run({kind: 'move', id: source.id, before: next?.id ?? null});
             }
           }}
           onRename={theme => {
-            if (model.reason === undefined) setRenaming(theme.id);
+            if (reason === undefined) setRenaming(theme.id);
           }}
           onDelete={requestDelete}
           onMenu={(theme, anchor) => {
@@ -259,13 +257,13 @@ export function ThemeList({
           }
           rowEnd={theme => (
             <span className={styles.tags}>
-              {themeItemKinds
-                .filter(kind => model.file?.defaults[kind] === theme.id)
-                .map(kind => (
-                  <span key={kind} className={styles.tag}>
-                    {themeKindNames[kind]}
-                  </span>
-                ))}
+              {isDefault(theme) ? (
+                <span className={styles.tag}>기본</span>
+              ) : theme.name === purposeNames[theme.purpose] ? null : (
+                <span className={styles.tag}>
+                  {purposeNames[theme.purpose]}
+                </span>
+              )}
             </span>
           )}
         />
@@ -277,6 +275,24 @@ export function ThemeList({
           anchor={menu.anchor}
           entries={entries}
           onClose={() => setMenu(null)}
+        />
+      )}
+      {adding === null || list === null ? null : (
+        <Menu
+          label="새 테마"
+          anchor={{kind: 'element', element: adding}}
+          entries={slidePurposes.map(purpose => ({
+            kind: 'item',
+            id: purpose,
+            label: purposeNames[purpose],
+            onSelect: () =>
+              run({
+                kind: 'add',
+                theme: newTheme(list, purpose, newId()),
+                after: themeFor(list, purpose).id,
+              }),
+          }))}
+          onClose={() => setAdding(null)}
         />
       )}
     </>

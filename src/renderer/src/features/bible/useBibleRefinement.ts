@@ -14,12 +14,7 @@ export function useBibleRefinement(
     readonly references?: ReadonlyArray<VerseInput['reference']> | undefined;
   } = {},
 ) {
-  const key = JSON.stringify([
-    split.verses,
-    split.element,
-    split.layout.spec,
-    split.numbered,
-  ]);
+  const key = JSON.stringify([split.verses, split.layout.spec, split.numbered]);
   const [request, setRequest] = useState({key, split});
   if (request.key !== key) setRequest({key, split});
   const run = useMemo(

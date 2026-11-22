@@ -2,11 +2,15 @@ import {useRef, useState, type JSX} from 'react';
 import {Menu, ToolbarButton} from '@renderer/ui';
 import {openOnArrowDown} from '@renderer/ui/menuButton';
 import type {Notice} from '@renderer/ui/notices';
-import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
+import {useThemes} from '@renderer/platform/themes';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useLive} from '@renderer/session/live';
 import {sendThemeChange} from '@renderer/features/screens/themeActions';
-import {liveThemeName, themeMenuEntries} from './themeMenuEntries';
+import {
+  liveThemeName,
+  themeMenuEntries,
+  themesLike,
+} from '@renderer/features/screens/themeMenuEntries';
 import styles from './Toolbar.module.css';
 
 function logProblem(notice: Notice): void {
@@ -25,13 +29,9 @@ export function ThemeMenu({
 }): JSX.Element {
   const button = useRef<HTMLButtonElement>(null);
   const [anchor, setAnchor] = useState<HTMLButtonElement | null>(null);
-  const document = useSettingsDocument('themes', '테마', onProblem);
-  const currentId = useLive(view => view.state?.themeOutput?.themeId);
-  const sectionCard = useLive(
-    view => view.state?.layers.slide?.sectionCard !== undefined,
-  );
-  const file = document?.value;
-  const name = liveThemeName(file, currentId);
+  const themes = useThemes(view => view.themes);
+  const current = useLive(view => view.state?.themeOutput?.theme);
+  const name = liveThemeName(current);
   const open = anchor !== null;
   const disabled = window.llp === undefined;
   const openMenu = (): void => {
@@ -51,7 +51,7 @@ export function ThemeMenu({
         menu
         expanded={open}
         disabled={disabled}
-        aria-busy={file === undefined}
+        aria-busy={themes === null}
         onClick={event => setAnchor(open ? null : event.currentTarget)}
         onKeyDown={event =>
           openOnArrowDown(event, {
@@ -68,10 +68,8 @@ export function ThemeMenu({
           anchor={{kind: 'element', element: anchor}}
           onClose={() => setAnchor(null)}
           entries={themeMenuEntries({
-            themes: file?.themes ?? [],
-            deletedThemes: file?.deletedThemes ?? [],
-            sectionCard,
-            current: currentId,
+            themes: themesLike(themes, current),
+            current: current?.id,
             choose: themeId => sendThemeChange(themeId, onProblem),
             edit: onEdit,
           })}

@@ -4,9 +4,13 @@ import {fillTemplates} from './template';
 /** The values a theme can use beside the texts of its own boxes. */
 export const AUTO_TOKENS = {
   label: '이름표',
+  /** The label, unless the slide before in the item has the same one. */
+  newLabel: '새 이름표',
   number: '번호',
   passage: '구절',
   song: '곡 제목',
+  /** The song's name after its hymn number, when it has one. */
+  hymn: '찬송 제목',
   item: '항목 이름',
 } as const;
 
@@ -35,7 +39,7 @@ export function contentValues(
     const box = theme.boxes.find(entry => entry.name === token);
     if (box === undefined) return auto[token];
     const own = content.texts[token];
-    if (own !== undefined && own.trim() !== '') return own;
+    if (own !== undefined && own !== '') return own;
     return box.default === undefined
       ? undefined
       : (fillTemplates([box.default], name => auto[name]) ?? undefined);

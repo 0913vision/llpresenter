@@ -1,19 +1,20 @@
 import {useMemo, useState, type ComponentProps, type JSX} from 'react';
-import {isStartItem} from '@core/services/itemFieldChanges';
-import {backgroundRequest, memoRequest} from '../items/itemPlaybackCommands';
-import {ItemMemoDialog} from './ItemMemoDialog';
+import type {LlpApi} from '@contracts/ipc/api';
+import {hasSlides, type ServiceItem} from '@core/schema/service';
+import {withMemo} from '@core/services/itemFields';
 import {menuAvailability} from '@renderer/ui/menuModel';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
+import {editItem, useOpenService} from '@renderer/session/openService';
 import {useShow} from '@renderer/session/show';
 import type {Notice} from '@renderer/ui/notices';
-import type {ServiceItemStore} from '../items/serviceItemStore';
+import {useMacros} from '../details/ItemSettingsRows';
 import {ServiceOrderList} from '../order/ServiceOrderList';
 import type {ServiceTableParts} from '../order/serviceTableParts';
 import {handleCellKey} from './cellKeys';
+import {ItemMemoDialog} from './ItemMemoDialog';
 import {ServiceTableCells} from './ServiceTableCells';
 import {ServiceTableFooter} from './ServiceTableFooter';
 import {ServiceTableHeader} from './ServiceTableHeader';
-import {useServiceTableData, type TableApi} from './useServiceTableData';
 import styles from './ServiceTable.module.css';
 
 const noProblem = (): void => undefined;
@@ -21,31 +22,28 @@ const noProblem = (): void => undefined;
 /** The 예배 순서 of 준비 as a table: one row per item, edited in place. */
 export function ServiceTableList({
   api,
-  items,
   ...list
 }: Omit<ComponentProps<typeof ServiceOrderList>, 'table' | 'workspace'> & {
-  readonly api: TableApi;
-  readonly items: Pick<ServiceItemStore, 'submitItemEdit'>;
+  readonly api: Pick<LlpApi, 'settings'>;
 }): JSX.Element {
   const serviceId = useShow(view => view.serviceId);
-  const readOnly = useShow(view => view.readOnly);
-  const data = useServiceTableData(api, serviceId);
+  const order = useOpenService(view => view.service?.order);
+  const readOnly = useOpenService(view => view.readOnly);
+  const macros = useMacros(api.settings).document?.value.macros;
   const [memo, setMemo] = useState<{
-    serviceId: string;
-    itemId: string;
-    title: string;
-    value: string;
+    readonly itemId: string;
+    readonly title: string;
+    readonly value: string;
   } | null>(null);
   const onProblem: (notice: Notice) => void = list.onProblem ?? noProblem;
-  const table = useMemo<ServiceTableParts>(
-    () => ({
-      setBackground: (serviceId, itemId, mediaId) =>
-        items.submitItemEdit(backgroundRequest({serviceId, itemId}, mediaId)),
+  const table = useMemo<ServiceTableParts>(() => {
+    const items = new Map<string, ServiceItem>(
+      (order ?? []).map(item => [item.id, item]),
+    );
+    return {
       menuFor: row => {
-        const item = data.items.get(row.id);
-        if (item === undefined || !isStartItem(item) || serviceId === null) {
-          return [];
-        }
+        const item = items.get(row.id);
+        if (item === undefined || !hasSlides(item)) return [];
         return [
           {
             kind: 'item',
@@ -55,7 +53,6 @@ export function ServiceTableList({
             ...menuAvailability(readOnly ? NEWER_FILE_REASON : undefined),
             onSelect: () =>
               setMemo({
-                serviceId,
                 itemId: item.id,
                 title: row.title,
                 value: item.memo ?? '',
@@ -66,28 +63,22 @@ export function ServiceTableList({
       header: <ServiceTableHeader />,
       rowClass: styles.row,
       sectionClass: styles.section,
-      cellsOf: (row, detail, rowLabel) => (
+      cellsOf: (row, rowLabel) => (
         <ServiceTableCells
           row={row}
           rowLabel={rowLabel}
-          item={data.items.get(row.id)}
-          detail={detail}
-          themes={data.themeFile}
-          macros={data.macroList}
-          media={data.media}
-          songs={data.songs}
-          items={items}
-          serviceId={serviceId}
+          item={items.get(row.id)}
+          macros={macros ?? []}
           readOnly={readOnly}
+          report={onProblem}
         />
       ),
       footer:
         serviceId === null ? null : (
           <ServiceTableFooter onProblem={onProblem} />
         ),
-    }),
-    [data, items, serviceId, readOnly, onProblem],
-  );
+    };
+  }, [order, macros, serviceId, readOnly, onProblem]);
   return (
     <div className={styles.table} onKeyDownCapture={handleCellKey}>
       <ServiceOrderList {...list} workspace="prep" table={table} />
@@ -95,14 +86,12 @@ export function ServiceTableList({
         <ItemMemoDialog
           memo={memo.value}
           title={memo.title}
-          save={value =>
-            items.submitItemEdit(
-              memoRequest(
-                {serviceId: memo.serviceId, itemId: memo.itemId},
-                value,
-              ),
-            )
-          }
+          save={async value => {
+            const result = await editItem(memo.itemId, item =>
+              withMemo(item, value),
+            );
+            return result.ok || result.error.reason === 'write-failed';
+          }}
           onClose={() => setMemo(null)}
         />
       )}

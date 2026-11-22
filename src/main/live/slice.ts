@@ -7,6 +7,8 @@ import type {
 import type {LiveLayers, LiveState} from '@core/live/state';
 import type {LiveHistory} from './history';
 import type {MacroId, MessageId, ScreenId} from '@core/schema/ids';
+import type {SlideBackground} from '@core/schema/theme';
+import type {ThemedSlide} from '@core/theme/themes';
 import type {PayloadError} from '@core/schema/payload';
 import type {MediaList} from '@core/schema/mediaList';
 
@@ -55,6 +57,8 @@ export interface SliceInputs {
   readonly onCommand?: (command: SingleLiveCommand) => void;
   readonly themes?: {
     reduce(request: ThemeReduction): LiveHistory;
+    /** What the theme of a slide puts behind it. */
+    background(slide: ThemedSlide): SlideBackground;
   };
   readonly audioMedia?: () => MediaList;
   readonly now: number;

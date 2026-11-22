@@ -1,77 +1,57 @@
-import {rememberLiveAnchor, resolveLiveAnchor} from './liveAnchor';
-import type {MediaChoice, SlideLayer} from '@core/live/state';
-import type {RecentPassage} from '@core/schema/bible';
+import {sameVerse} from '@core/slides/edits';
+import type {SlideLayer} from '@core/live/state';
 import type {ShowLibrarySong} from '@core/schema/showLibrarySong';
-import {passageBook} from '@core/bible/adjacentVerses';
-import {biblePartIndex} from '@core/bible/selection';
-import type {BibleSource} from '@core/bible/source';
 import type {ItemId, SlideTile, TileCursor} from '@core/presentation/model';
+import type {BibleSource} from './bibleSource';
 import {useLive} from './live';
-import {correctSlideOutput} from './itemOutput';
-import {
-  beginOutputRequest,
-  isOutputRequestCurrent,
-  withinLookupTimeout,
-} from './showOutput';
+import {beginOutputRequest} from './showOutput';
 import {useShow, type ShowView} from './showStore';
 
 const noTiles: readonly SlideTile[] = [];
-/** Resolves a live Bible part against today's projection without changing output. */
-export function projectedLiveCursor(
+/** The open passage, the live one, and the one before them. */
+const MAX_BIBLE_SOURCES = 3;
+
+export function bibleSourceFor(
   view: ShowView,
-  slide: SlideLayer | null,
-): TileCursor | null {
-  if (slide === null) return null;
-  const anchored = resolveLiveAnchor(view, slide);
-  if (anchored !== null) return anchored.live;
-  const index =
-    slide.biblePart === undefined &&
-    slide.sourceSlideId === undefined &&
-    slide.bibleVerse === undefined
-      ? slide.position
-      : biblePartIndex(tilesForView(view, slide.itemId), {
-          label: slide.label,
-          part: slide.biblePart ?? 1,
-          sourceSlideId: slide.sourceSlideId,
-          bibleVerse: slide.bibleVerse,
-        });
-  return index === null ? null : {itemId: slide.itemId, index};
+  itemId: ItemId | null,
+): BibleSource | null {
+  return view.bibleSources.find(source => source.id === itemId) ?? null;
 }
 
 export function isBibleSource(view: ShowView, itemId: ItemId | null): boolean {
   return bibleSourceFor(view, itemId) !== null;
 }
 
-export function bibleSourceFor(
+/** The passages with this one opened last; the live one is never dropped. */
+export function withBibleSource(
   view: ShowView,
-  itemId: ItemId | null,
-): ShowView['bibleSource'] {
-  if (view.bibleSource?.id === itemId) return view.bibleSource;
-  if (view.liveBibleSource?.id === itemId) return view.liveBibleSource;
-  const held = view.readyPassage?.previousSource;
-  if (held?.id === itemId) return held;
-  return view.requestedBibleSource?.id === itemId
-    ? view.requestedBibleSource
-    : null;
+  source: BibleSource,
+  liveItemId: ItemId | null,
+): readonly BibleSource[] {
+  const others = view.bibleSources.filter(entry => entry.id !== source.id);
+  const live = others.find(entry => entry.id === liveItemId);
+  const kept = others.filter(entry => entry !== live);
+  return [source, ...(live === undefined ? [] : [live]), ...kept].slice(
+    0,
+    MAX_BIBLE_SOURCES,
+  );
 }
 
-function showsSameVerses(
-  first: BibleSource,
-  second: {readonly passage: RecentPassage; readonly verseNumbers: boolean},
-): boolean {
-  const book = passageBook(first.passage);
-  return (
-    book !== undefined &&
-    book.id === passageBook(second.passage)?.id &&
-    first.passage.translation === second.passage.translation &&
-    first.verseNumbers === second.verseNumbers
+/** The tile of the live slide, by the slide itself. */
+export function projectedLiveCursor(
+  view: ShowView,
+  slide: SlideLayer | null,
+): TileCursor | null {
+  if (slide === null) return null;
+  const index = tilesForView(view, slide.itemId).findIndex(
+    tile => tile.slide.id === slide.slideId,
   );
+  return index < 0 ? null : {itemId: slide.itemId, index};
 }
 
 /**
  * The open tile that shows the live slide: the live tile of the open item, or
- * the same verse of an open Bible passage drawn like the live one, such as a
- * live passage with 뒤 절 추가.
+ * the same verse of an open passage.
  */
 export function liveTileIndex(
   view: ShowView,
@@ -82,42 +62,15 @@ export function liveTileIndex(
     return projectedLiveCursor(view, slide)?.index ?? null;
   }
   const open = bibleSourceFor(view, view.openItemId);
-  const live = bibleSourceFor(view, slide.itemId);
-  const row = view.rows.find(candidate => candidate.id === slide.itemId);
-  const saved = row?.kind === 'bible' ? row.bible : undefined;
-  const passage = live?.passage ?? saved;
-  const verseNumbers = live?.verseNumbers ?? saved?.verseNumbers ?? true;
-  const cursor = projectedLiveCursor(view, slide);
-  const tile =
-    cursor === null
-      ? undefined
-      : tilesForView(view, slide.itemId)[cursor.index];
-  if (
-    !open ||
-    !passage ||
-    !tile ||
-    !showsSameVerses(open, {passage, verseNumbers})
-  ) {
-    return null;
-  }
-  const tiles = tilesForView(view, open.id);
-  if (slide.biblePart !== undefined || slide.bibleVerse !== undefined) {
-    return biblePartIndex(tiles, {
-      label: slide.label,
-      part: slide.biblePart ?? 1,
-      bibleVerse: slide.bibleVerse,
-    });
-  }
-  const matching = tiles.findIndex(
-    candidate =>
-      candidate.label === tile.label &&
-      candidate.lines.join('\n') === tile.lines.join('\n'),
+  if (open === null || slide.verse === undefined) return null;
+  const {verse} = slide;
+  const texts = JSON.stringify(slide.texts);
+  const same = open.tiles.flatMap((tile, index) =>
+    tile.slide.verse !== undefined && sameVerse(tile.slide.verse, verse)
+      ? [{index, exact: JSON.stringify(tile.slide.texts) === texts}]
+      : [],
   );
-  const index =
-    matching >= 0
-      ? matching
-      : tiles.findIndex(candidate => candidate.label === tile.label);
-  return index === -1 ? null : index;
+  return (same.find(entry => entry.exact) ?? same[0])?.index ?? null;
 }
 
 /** Follows {@link liveTileIndex} for the open item. */
@@ -148,9 +101,7 @@ export function tilesForView(
 ): readonly SlideTile[] {
   return isLibrarySource(view, itemId)
     ? view.librarySong.tiles
-    : isBibleSource(view, itemId)
-      ? (bibleSourceFor(view, itemId)?.tiles ?? noTiles)
-      : (view.tiles[itemId] ?? noTiles);
+    : (bibleSourceFor(view, itemId)?.tiles ?? view.tiles[itemId] ?? noTiles);
 }
 
 /** Selects a source's tiles without copying either projection. */
@@ -191,7 +142,6 @@ export function refreshLibrarySong(
   ) {
     return;
   }
-  rememberLiveAnchor(current, useLive.getState().state?.layers.slide ?? null);
   const selected = isLibrarySource(current, current.openItemId);
   useShow.setState({
     librarySong: song,
@@ -204,69 +154,4 @@ export function refreshLibrarySong(
         }
       : {}),
   });
-}
-
-/** A failed refresh outputs the cached tile and its own cached background. */
-export async function outputLibraryTile(
-  cursor: TileCursor,
-  request: number,
-  options: {
-    readonly commandVersion: number;
-    readonly reverseTransition?: SlideLayer['reverseTransition'];
-    readonly initialSlide: SlideLayer;
-    readonly initialBackground: MediaChoice | undefined;
-    readonly resolveSlide: () => SlideLayer | null;
-  },
-): Promise<void> {
-  const {
-    commandVersion,
-    reverseTransition,
-    initialSlide,
-    initialBackground,
-    resolveSlide,
-  } = options;
-  const initial = useShow.getState();
-  const api = window.llp;
-  if (!api || !isLibrarySource(initial, cursor.itemId)) return;
-  const songId = initial.librarySong.songId;
-  let song: ShowLibrarySong | null | undefined;
-  try {
-    song = await withinLookupTimeout(() => api.library.showSong({songId}));
-  } catch (cause) {
-    api.log.write({
-      level: 'warn',
-      message:
-        'Could not refresh the library song background; using its cached choice',
-      detail: cause instanceof Error ? cause.message : String(cause),
-    });
-  }
-  const current = useShow.getState();
-  if (
-    !isOutputRequestCurrent(request, commandVersion) ||
-    !isLibrarySource(current, cursor.itemId)
-  ) {
-    return;
-  }
-  if (song !== undefined) refreshLibrarySong(songId, song);
-  if (song === null) return;
-  const latest = useShow.getState();
-  if (
-    !isOutputRequestCurrent(request, commandVersion) ||
-    !isLibrarySource(latest, cursor.itemId)
-  ) {
-    return;
-  }
-  const slide = resolveSlide();
-  if (!slide) return;
-  const nextSlide =
-    reverseTransition === undefined ? slide : {...slide, reverseTransition};
-  const background = latest.librarySong.background;
-  const backgroundChanged =
-    JSON.stringify(background) !== JSON.stringify(initialBackground);
-  if (
-    backgroundChanged ||
-    JSON.stringify(nextSlide) !== JSON.stringify(initialSlide)
-  ) {
-    correctSlideOutput(nextSlide, {background, backgroundChanged});
-  }
 }

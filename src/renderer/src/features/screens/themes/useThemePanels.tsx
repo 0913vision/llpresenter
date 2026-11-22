@@ -1,9 +1,9 @@
 import {useLive} from '@renderer/session/live';
 import type {Notice} from '@renderer/ui/notices';
-import {useThemeEditor} from './useThemeEditor';
 import {useThemeSurfaces} from './ThemeCanvas';
-import {ThemeProperties} from './ThemeProperties';
 import type {ThemeLeaveGuard} from './themeLeaveGuard';
+import {ThemeProperties} from './ThemeProperties';
+import {useThemeEditor} from './useThemeEditor';
 
 export function useThemePanels(
   active: boolean,
@@ -11,17 +11,12 @@ export function useThemePanels(
   leaveGuard?: ThemeLeaveGuard,
 ) {
   const model = useThemeEditor(active, onProblem, leaveGuard);
-  const live = useLive(view => view.state);
-  const liveId =
-    live?.themeOutput?.themeId ??
-    (live !== null && live.layers.slide === null && live.layers.media === null
-      ? model.file?.standby.id
-      : undefined);
+  const liveId = useLive(view => view.state?.themeOutput?.theme.id);
   const surfaces = useThemeSurfaces(model, liveId);
   return {
     ...surfaces,
     ready:
-      ((model.document !== null && model.file !== null) ||
+      ((model.document !== null && model.list !== null) ||
         model.themesFailed ||
         window.llp === undefined) &&
       model.screensReady,

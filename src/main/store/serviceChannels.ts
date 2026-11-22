@@ -37,7 +37,7 @@ export function registerServiceChannels(
   ipcMain.handle(serviceEndpoints.get.channel, async () => {
     const opened = await ready;
     if (disposed || opened === null) return null;
-    await opened.feed.refresh();
+    opened.feed.refresh();
     return opened.feed.current();
   });
   ipcMain.handle(
@@ -60,7 +60,10 @@ export function registerServiceChannels(
           const previousId = opened.feed.current()?.id;
           const changed = await opened.content.openService(
             request.value.serviceId,
-            () => opened.feed.refresh(),
+            () => {
+              opened.feed.refresh();
+              return Promise.resolve();
+            },
           );
           if (!changed.ok) {
             log.warn('could not open a service', changed.error);
@@ -73,7 +76,7 @@ export function registerServiceChannels(
           } catch (error: unknown) {
             log.error('could not remember the open service', error);
           }
-          await opened.feed.refresh();
+          opened.feed.refresh();
           return opened.feed.current();
         })
         .catch((error: unknown) => {

@@ -1,17 +1,14 @@
-import {songLyricFormatSchema} from './songLyricFormat';
-import {bibleVerseReferenceSchema, sectionCardSchema} from './service';
-import {songTitleLayoutSchema} from './songTitleLayout';
-import {slideTransitionSchema} from './slideTransition';
 import * as v from 'valibot';
-import {slideTextsSchema} from './slideTexts';
+import {slideTransitionSchema} from './slideTransition';
 import {layerKinds, type LayerKind, type LiveState} from '../live/state';
 import type {Result} from '../common/result';
+import {AUTO_TOKENS} from '../theme/content';
 import {parsePayload, payloadObject, type PayloadError} from './payload';
 import {
   macroIdSchema,
-  mediaIdSchema,
   screenIdSchema,
   slideIdSchema,
+  themeIdSchema,
   timerIdSchema,
 } from './ids';
 import {
@@ -27,12 +24,17 @@ import {percent, seconds} from './primitives';
 import {clearEffectsSchema} from './clearFade';
 import {outputMediaPropertiesSchema} from './outputMedia';
 import {
-  liveThemeItemSchema,
+  liveItemKinds,
+  liveItemSchema,
   liveThemeModeSchema,
   liveThemeOutputSchema,
 } from './liveTheme';
-import {themeItemKinds} from '../themes/elementRules';
-import {SLIDES_LIMITS} from './service';
+import {
+  bibleVerseReferenceSchema,
+  SLIDE_LIMITS,
+  slideTextsSchema,
+} from './slide';
+import {slideBackgroundSchema} from './theme';
 
 const id = v.pipe(v.string(), v.nonEmpty());
 const count = v.pipe(v.number(), v.integer(), v.minValue(0));
@@ -43,39 +45,25 @@ export function parseLiveVersion(value: unknown) {
   return parsePayload(liveVersion, value);
 }
 
-export const biblePartSchema = v.pipe(count, v.minValue(1), v.maxValue(10_000));
-
 const mediaChoiceEntries = {
   mediaId: id,
   loop: v.boolean(),
   itemId: v.exactOptional(liveNonBlankTextSchema),
   title: v.exactOptional(liveTextSchema),
-  slidePicture: v.exactOptional(v.literal(true)),
+  chosen: v.exactOptional(v.literal(true)),
 };
 
-const slideLinesSchema = v.pipe(
-  v.array(liveTextSchema),
-  v.maxLength(LIVE_STATE_LIMITS.slideLines),
+export const autoValuesSchema = payloadObject(
+  v.entriesFromList(
+    Object.values(AUTO_TOKENS),
+    v.exactOptional(liveTextSchema),
+  ),
 );
 
-/** The next slide text and optional item kind, carried without changing live output. */
-export const nextSlideSchema = payloadObject({
-  label: v.nullable(liveTextSchema),
-  labelContinued: v.exactOptional(v.literal(true)),
-  title: v.exactOptional(liveTextSchema),
-  adTitle: v.exactOptional(liveTextSchema),
-  itemKind: v.exactOptional(v.picklist(themeItemKinds)),
-  lines: slideLinesSchema,
+const slidePeerSchema = payloadObject({
+  texts: slideTextsSchema,
+  auto: autoValuesSchema,
   continued: v.exactOptional(v.boolean()),
-  biblePart: v.exactOptional(biblePartSchema),
-  bibleVerse: v.exactOptional(bibleVerseReferenceSchema),
-  titleSlide: v.exactOptional(v.literal(true)),
-  titleLineCount: v.exactOptional(
-    v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(1000)),
-  ),
-  sermonTitle: v.exactOptional(v.literal(true)),
-  stageReference: v.exactOptional(liveTextSchema),
-  stageStandby: v.exactOptional(v.literal(true)),
 });
 
 /** A background media choice, as `media.show` carries it. */
@@ -90,74 +78,35 @@ export const layerSchemas = {
     properties: v.exactOptional(outputMediaPropertiesSchema),
   }),
   slide: payloadObject({
-    texts: v.exactOptional(slideTextsSchema),
-    picture: v.exactOptional(mediaIdSchema),
     itemId: id,
+    slideId: slideIdSchema,
     position: count,
-    textSlideNumber: v.exactOptional(
+    sequenceLength: v.exactOptional(
       v.pipe(
         v.number(),
         v.integer(),
         v.minValue(1),
-        v.maxValue(SLIDES_LIMITS.slides),
+        v.maxValue(SLIDE_LIMITS.slides),
       ),
     ),
-    biblePart: v.exactOptional(biblePartSchema),
-    bibleVerse: v.exactOptional(bibleVerseReferenceSchema),
-    sourceSlideId: v.exactOptional(slideIdSchema),
+    kind: v.exactOptional(v.picklist(liveItemKinds)),
+    title: v.exactOptional(liveTextSchema),
+    theme: themeIdSchema,
+    texts: slideTextsSchema,
+    auto: autoValuesSchema,
+    continued: v.exactOptional(v.literal(true)),
+    background: v.exactOptional(slideBackgroundSchema),
+    next: v.nullable(liveTextSchema),
+    peers: v.exactOptional(
+      v.pipe(
+        v.array(slidePeerSchema),
+        v.maxLength(LIVE_STATE_LIMITS.slidePeers),
+      ),
+    ),
+    verse: v.exactOptional(bibleVerseReferenceSchema),
     transition: v.exactOptional(slideTransitionSchema),
     transitionStartedAt: v.exactOptional(v.pipe(v.number(), v.finite())),
     reverseTransition: v.exactOptional(v.nullable(slideTransitionSchema)),
-    label: v.nullable(liveTextSchema),
-    labelContinued: v.exactOptional(v.literal(true)),
-    lines: slideLinesSchema,
-    sectionCard: v.exactOptional(sectionCardSchema),
-    bibleItemSlides: v.exactOptional(
-      v.pipe(
-        v.array(
-          payloadObject({
-            lines: slideLinesSchema,
-            continued: v.exactOptional(v.boolean()),
-          }),
-        ),
-        v.minLength(1),
-        v.maxLength(LIVE_STATE_LIMITS.bibleItemSlides),
-        v.check(
-          slides =>
-            slides.reduce((sum, slide) => sum + slide.lines.length, 0) <=
-            LIVE_STATE_LIMITS.bibleItemLines,
-          'Too many Bible item lines',
-        ),
-        v.check(
-          slides =>
-            slides.reduce(
-              (sum, slide) =>
-                sum +
-                slide.lines.reduce((total, line) => total + line.length, 0),
-              0,
-            ) <= LIVE_STATE_LIMITS.bibleItemCharacters,
-          'Bible item text exceeds the live-state budget',
-        ),
-      ),
-    ),
-    sequenceLength: v.exactOptional(
-      v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(10_000)),
-    ),
-    sermonTitle: v.exactOptional(v.literal(true)),
-    titleSlide: v.exactOptional(v.literal(true)),
-    titleLineCount: v.exactOptional(
-      v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(1000)),
-    ),
-    titleLayout: v.exactOptional(songTitleLayoutSchema),
-    lyricFormat: v.exactOptional(songLyricFormatSchema),
-    continued: v.exactOptional(v.boolean()),
-    reference: v.exactOptional(liveTextSchema),
-    ownReference: v.exactOptional(v.literal(true)),
-    name: v.exactOptional(liveTextSchema),
-    kind: v.exactOptional(v.picklist(themeItemKinds)),
-    title: v.exactOptional(liveTextSchema),
-    memo: v.exactOptional(liveTextSchema),
-    next: v.exactOptional(nextSlideSchema),
   }),
   prop: payloadObject({propId: id, items: v.exactOptional(activePropsSchema)}),
   audio: payloadObject({
@@ -174,7 +123,7 @@ export const layerSchemas = {
 
 export const liveStateSchema = payloadObject({
   waitingForControl: v.exactOptional(v.literal(true)),
-  themeItem: v.exactOptional(v.nullable(liveThemeItemSchema)),
+  item: v.exactOptional(v.nullable(liveItemSchema)),
   themeMode: v.exactOptional(liveThemeModeSchema),
   themeOutput: v.exactOptional(liveThemeOutputSchema),
   lastMacroId: v.exactOptional(macroIdSchema),

@@ -17,7 +17,7 @@ import {useSettingsDocument} from '../../platform/useSettingsDocument';
 import styles from './OutputPreview.module.css';
 import {fitAspect} from '@core/canvas/fitAspect';
 import {useElementSize} from '@renderer/ui/useElementSize';
-import {REFERENCE_SCREEN} from '@core/themes/textStyle';
+import {THEME_CANVAS} from '@core/schema/theme';
 import {pictureSizeForScreen} from '@core/screens/pictureSize';
 import {useScreenSize} from '@renderer/pictures/screenSizes';
 
@@ -36,8 +36,7 @@ function PreviewBody({
   const [watchPicture, available] = useElementSize();
   const outputActive = useLive(view => view.state?.outputs[screen.id] === true);
   const configuredSize = useMemo(() => pictureSizeForScreen(screen), [screen]);
-  const outputSize =
-    useScreenSize(screen.id, configuredSize) ?? REFERENCE_SCREEN;
+  const outputSize = useScreenSize(screen.id, configuredSize) ?? THEME_CANVAS;
   const picture =
     available === undefined
       ? undefined

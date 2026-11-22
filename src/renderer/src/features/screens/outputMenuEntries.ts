@@ -1,8 +1,7 @@
 import {NOT_IN_THIS_WINDOW} from '@renderer/platform/problemReasons';
 import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
 import {shortcutText} from '@renderer/ui/commandBindings';
-import type {ThemeId} from '@core/schema/ids';
-import type {ThemesFile} from '@core/schema/themes';
+import type {ThemeFile} from '@core/schema/theme';
 import {
   outputGroup,
   itemStopEntry,
@@ -18,10 +17,10 @@ import {liveThemeName, themeMenuEntries} from './themeMenuEntries';
 export interface ScreenOutputInput {
   readonly screens: readonly ScreenSummary[];
   readonly outputs: Readonly<Record<string, boolean>>;
-  readonly themes: ThemesFile | null;
-  readonly themeId: ThemeId | undefined;
+  /** The themes a slide like the live one can be drawn with. */
+  readonly themes: readonly ThemeFile[];
+  readonly theme: ThemeFile | undefined;
   readonly hasItem: boolean;
-  readonly sectionCard?: boolean | undefined;
   readonly onEditScreens: (() => void) | undefined;
   readonly onProblem: (notice: Notice) => void;
 }
@@ -55,13 +54,11 @@ export function screenOutputSections(
       {
         kind: 'item',
         id: 'theme',
-        label: `테마: ${liveThemeName(input.themes, input.themeId)}`,
+        label: `테마: ${liveThemeName(input.theme)}`,
         loadSubmenu: () =>
           themeMenuEntries({
-            themes: input.themes?.themes ?? [],
-            deletedThemes: input.themes?.deletedThemes ?? [],
-            sectionCard: input.sectionCard,
-            current: input.themeId,
+            themes: input.themes,
+            current: input.theme?.id,
             choose: themeId => sendThemeChange(themeId, input.onProblem),
             edit: onEditScreens,
           }),

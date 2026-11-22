@@ -2,8 +2,16 @@ import '@renderer/styles/base.css';
 import {StrictMode, type ComponentType} from 'react';
 import {createRoot, type Root} from 'react-dom/client';
 import {startLiveSync} from '@renderer/session/live';
+import {startOpenServiceSync} from '@renderer/session/openService';
 import {startServiceSync} from '@renderer/session/show';
-import {seedSlideSurfaceView} from '@renderer/features/songs/editor/SlideSurfaceView';
+import {seedSlideColumns} from '@renderer/features/slides/slideColumns';
+import {seedSlideSurfaceView} from '@renderer/features/slides/SlideSurfaceView';
+import {
+  renameDraftLabel,
+  startSongDraftSync,
+} from '@renderer/features/songs/songDraft';
+import {startMediaSync} from '@renderer/platform/media';
+import {startThemesSync} from '@renderer/platform/themes';
 import {seedThumbnailScale} from '@renderer/platform/thumbnailScale';
 import {seedPreview} from '@renderer/session/preview';
 import {seedShowToolTab} from '@renderer/features/tools/state/showToolTab';
@@ -24,15 +32,12 @@ interface WindowPageProps {
 
 interface WindowPage {
   readonly title: string;
-  /** Starts what the page needs from the session before it renders. */
-  readonly prepare?: (session: ControlSession) => void;
   readonly load: () => Promise<ComponentType<WindowPageProps>>;
 }
 
 const WINDOW_PAGES: Readonly<Record<string, WindowPage>> = {
   settings: {
     title: '환경설정',
-    prepare: session => session.startEditor(),
     load: async () => (await import('./SettingsWindow')).SettingsWindow,
   },
 };
@@ -50,7 +55,6 @@ async function startWindowPage(
   stopLive: () => void,
 ): Promise<void> {
   const pageSession = new ControlSession(window.llp);
-  page.prepare?.(pageSession);
   document.title = page.title;
   const pageRoot = createRoot(container);
   const lifecycle = {stopped: false};
@@ -60,7 +64,7 @@ async function startWindowPage(
       lifecycle.stopped = true;
       pageRoot.unmount();
       stopLive();
-      pageSession.dispose().catch((error: unknown) => console.error(error));
+      pageSession.dispose();
     },
     {once: true},
   );
@@ -75,14 +79,22 @@ async function startWindowPage(
 
 async function start(container: HTMLElement): Promise<void> {
   const stopLive = startLiveSync();
+  const stopThemes = startThemesSync(window.llp);
+  const stopMedia = startMediaSync(window.llp);
   const page = windowPageOf(window.location.search);
   if (page !== undefined) {
-    await startWindowPage(container, page, stopLive);
+    await startWindowPage(container, page, () => {
+      stopLive();
+      stopThemes();
+      stopMedia();
+    });
     return;
   }
   const stopService = startServiceSync();
+  const stopOpenService = startOpenServiceSync();
   const session = new ControlSession(window.llp);
-  session.startEditor('manual');
+  const stopSong = startSongDraftSync(window.llp, session.report);
+  const stopLabels = session.labels?.onRenamed(renameDraftLabel);
   const lifecycle: {stopped: boolean; root?: Root} = {stopped: false};
   window.addEventListener(
     'pagehide',
@@ -90,8 +102,13 @@ async function start(container: HTMLElement): Promise<void> {
       lifecycle.stopped = true;
       lifecycle.root?.unmount();
       stopLive();
+      stopThemes();
+      stopMedia();
       stopService();
-      session.dispose().catch((error: unknown) => console.error(error));
+      stopOpenService();
+      stopSong();
+      stopLabels?.();
+      session.dispose();
     },
     {once: true},
   );
@@ -102,6 +119,7 @@ async function start(container: HTMLElement): Promise<void> {
   seedShowToolTab(uiState);
   detailsScale.seed(uiState);
   seedSlideSurfaceView(uiState);
+  seedSlideColumns(uiState);
   const columnWidthStore = createColumnWidthStore(window.llp, uiState);
   lifecycle.root = createRoot(container);
   lifecycle.root.render(

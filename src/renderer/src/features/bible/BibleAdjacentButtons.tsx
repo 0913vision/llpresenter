@@ -1,12 +1,7 @@
 import {useEffect, useRef, useState, type JSX} from 'react';
-import {useShow, selectTile} from '@renderer/session/show';
-import {sendLive, useLive} from '@renderer/session/live';
-import {
-  bibleSourceFor,
-  liveTileIndex,
-  tilesForView,
-} from '@renderer/session/showLibrary';
-import {retainedBibleSelection} from '@core/bible/selection';
+import {useShow} from '@renderer/session/show';
+import {useLive} from '@renderer/session/live';
+import {bibleSourceFor} from '@renderer/session/showLibrary';
 import {
   beginOutputRequest,
   isOutputRequestCurrent,
@@ -15,7 +10,7 @@ import {Button} from '@renderer/ui/Button';
 import {openBiblePassage} from './actions';
 import {passageBook, type VerseDirection} from '@core/bible/adjacentVerses';
 import {lookupAdjacentPassage} from './lookupAdjacentPassage';
-import type {BibleSource} from '@core/bible/source';
+import type {BibleSource} from '@renderer/session/bibleSource';
 
 /** Extends the preview without changing the selected verse or live output. */
 export function BibleAdjacentButtons({
@@ -68,41 +63,15 @@ export function BibleAdjacentButtons({
         setEdge(direction);
         return;
       }
-      const previousTiles = tilesForView(initial, source.id);
-      const options = {
+      openBiblePassage(passage, {
         verseNumbers: source.verseNumbers,
-        reference: source.reference,
         translationName: source.translationName,
         transition: source.transition,
         review: source.review,
         enteredRef: source.enteredRef ?? source.passage.ref,
         enteredTranslation:
           source.enteredTranslation ?? source.passage.translation,
-      };
-      const live = useLive.getState().state?.layers.slide ?? null;
-      const updateLive =
-        live !== null &&
-        bibleSourceFor(initial, live.itemId) !== null &&
-        liveTileIndex(initial, live) !== null;
-      openBiblePassage(passage, options, {waitForLive: updateLive});
-      const view = useShow.getState();
-      if (updateLive) {
-        sendLive({
-          type: 'bible.passage.title.set',
-          itemId: live.itemId,
-          position: live.position,
-          title: passage.displayRef,
-        });
-      }
-      if (view.openItemId !== null) {
-        selectTile(
-          retainedBibleSelection(
-            previousTiles,
-            initial.selectedTile,
-            tilesForView(view, view.openItemId),
-          ),
-        );
-      }
+      });
     } catch (cause) {
       if (current()) {
         api.log.write({

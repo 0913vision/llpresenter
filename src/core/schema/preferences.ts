@@ -16,7 +16,6 @@ import type {MigrationStep} from './migration';
 import {jsonObject, positiveInteger} from './primitives';
 import type {PayloadError} from './payload';
 import {clearFadeSchema} from './clearFade';
-import {bibleReferenceSchema} from './biblePassage';
 import {slideTransitionSchema, type SlideTransition} from './slideTransition';
 
 const PREFERENCES_FORMAT = 'llsettings.preferences';
@@ -195,7 +194,6 @@ export const preferencesSchema = jsonObject({
     jsonObject({
       defaults: v.exactOptional(
         jsonObject({
-          reference: v.exactOptional(bibleReferenceSchema),
           verseNumbers: optionalBoolean,
           translationName: optionalBoolean,
         }),
@@ -290,7 +288,6 @@ export const defaultPreferences: Preferences = {
   },
   bible: {
     defaults: {
-      reference: 'every',
       verseNumbers: true,
       translationName: false,
     },

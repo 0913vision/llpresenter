@@ -4,10 +4,10 @@ import {
   type BibleCutSelection,
   type BibleCutsFile,
 } from '../../schema/bibleCuts';
-import type {VerseSlide} from '../../schema/service';
+import type {VerseReference} from '../../schema/slide';
 import {normalizeVerse} from './manualSplit';
 
-export function cacheKey(reference: VerseSlide['verse']): string {
+export function cacheKey(reference: VerseReference): string {
   return `${reference.book}:${reference.chapter}:${reference.verse}`;
 }
 
@@ -33,7 +33,7 @@ export function entryFor(
 
 export function knownCutsFor(
   file: BibleCutsFile,
-  reference: VerseSlide['verse'],
+  reference: VerseReference,
   text: string,
 ): readonly number[] | undefined {
   return knownCutEntryFor(file, reference, text)?.cuts;
@@ -41,7 +41,7 @@ export function knownCutsFor(
 
 export function knownCutEntryFor(
   file: BibleCutsFile,
-  reference: VerseSlide['verse'],
+  reference: VerseReference,
   text: string,
 ): BibleCutEntry | undefined {
   const entry = file.entries[reference.translation]?.[cacheKey(reference)];
@@ -51,7 +51,7 @@ export function knownCutEntryFor(
 /** Refuses a full cache without discarding existing confirmations. */
 export function saveCuts(
   file: BibleCutsFile,
-  reference: VerseSlide['verse'],
+  reference: VerseReference,
   entry: BibleCutEntry,
 ): BibleCutsFile | null {
   const translation = file.entries[reference.translation] ?? {};

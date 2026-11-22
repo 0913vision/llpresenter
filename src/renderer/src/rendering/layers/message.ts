@@ -1,12 +1,11 @@
 import {MAX_ACTIVE_MESSAGES} from '@core/schema/overlayState';
 import {MESSAGE_BAND} from '@core/screens/messageStyle';
-import {defineLayer} from '../layer';
+import type {LayerDefinition} from '../layer';
 import {MessageBandView} from '../messageBand';
 import {OverlayTextView} from '../overlayText';
 
-export const messageLayer = defineLayer({
+export const messageLayer: LayerDefinition = {
   kind: 'message',
-  order: 4,
   fades: 'message',
   create: parent => {
     const text = new OverlayTextView(parent);
@@ -49,4 +48,4 @@ export const messageLayer = defineLayer({
       },
     };
   },
-});
+};

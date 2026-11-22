@@ -1,7 +1,6 @@
-import {songLyricFormatSchema} from './songLyricFormat';
 import * as v from 'valibot';
 import type {Result} from '../common/result';
-import {mediaIdSchema, themeIdSchema} from './ids';
+import {mediaIdSchema} from './ids';
 import {checkPart, type ReadonlyKnown} from './fileFormat';
 import {payloadObject, plainObject} from './payload';
 import {
@@ -18,15 +17,19 @@ import {
 } from './primitives';
 
 /** A section index belongs to an import draft; a saved song has groups instead. */
-export const importSlideSchema = jsonObject({
+const importSlideSchema = jsonObject({
   label: v.exactOptional(v.string()),
   lines: v.array(v.string()),
   titleSlide: v.exactOptional(v.literal(true)),
   titleLineCount: v.exactOptional(v.pipe(positiveInteger, v.maxValue(1000))),
-  lyricFormat: v.exactOptional(songLyricFormatSchema),
   picture: v.exactOptional(mediaIdSchema),
   section: v.exactOptional(nonNegativeInteger),
 });
+
+/** One slide of an import, with its texts in rows. */
+export type ImportSlide = ReadonlyKnown<
+  v.InferOutput<typeof importSlideSchema>
+>;
 
 const readRequestSchema = payloadObject({
   source: v.picklist(['file', 'clipboard']),
@@ -77,7 +80,8 @@ const draftSchema = payloadObject({
   title: v.string(),
   preserveSlides: v.exactOptional(v.boolean()),
   background: v.exactOptional(mediaIdSchema),
-  theme: v.exactOptional(themeIdSchema),
+  /** The background is bright, so the texts on it are black. */
+  light: v.exactOptional(v.boolean()),
   slides: v.pipe(v.array(importSlideSchema), v.minLength(1)),
 });
 
