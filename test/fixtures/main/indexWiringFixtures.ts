@@ -414,7 +414,6 @@ vi.mock('@main/outputs/playbackProblems', () => ({
   }),
 }));
 vi.mock('@main/windows/mediaProtocol', () => ({
-  registerMediaScheme: () => undefined,
   serveMedia: (options: MediaHandlerOptions) => {
     mocks.mediaOptions.push(options);
     return () => undefined;

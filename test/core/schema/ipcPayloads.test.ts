@@ -7,8 +7,6 @@ import {
   parseRendererLogEntry,
   parseFrameReadyReport,
   parseFrameReadyReply,
-  parseOpenWindowResult,
-  refuseOpenWindow,
 } from '@core/schema/ipcPayloads';
 import {MAIN_SCREEN} from '@fixtures/core/screenIds';
 
@@ -134,27 +132,5 @@ describe('parseFrameRateReport', () => {
   it('rejects values that are not objects', () => {
     expect(isFrameRateReport(null)).toBe(false);
     expect(isFrameRateReport([60])).toBe(false);
-  });
-});
-
-describe('editor window targets', () => {
-  it('reads a window answer and refuses an unknown reason', () => {
-    expect(parseOpenWindowResult({ok: true})).toEqual({
-      ok: true,
-      value: {ok: true, value: undefined},
-    });
-    expect(
-      parseOpenWindowResult({ok: false, error: {reason: 'no-such-target'}}),
-    ).toEqual({
-      ok: true,
-      value: {ok: false, error: {reason: 'no-such-target'}},
-    });
-    expect(
-      parseOpenWindowResult({ok: false, error: {reason: 'other'}}).ok,
-    ).toBe(false);
-    expect(refuseOpenWindow()).toEqual({
-      ok: false,
-      error: {reason: 'failed'},
-    });
   });
 });

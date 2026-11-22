@@ -50,9 +50,6 @@ export function parseMediaCheckRequest(value: unknown) {
   return parsePayload(mediaCheckSchema, value);
 }
 
-/** A window's request to show one media file in Explorer (파일 위치 열기). */
-export type MediaRevealRequest = MediaCheckRequest;
-
 /** Checks a `media:reveal` request. Unknown fields are dropped. Never throws. */
 export function parseMediaRevealRequest(value: unknown) {
   return parsePayload(mediaCheckSchema, value);

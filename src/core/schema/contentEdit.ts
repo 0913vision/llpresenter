@@ -151,8 +151,6 @@ export type ContentEdit = ReadonlyKnown<
   v.InferOutput<typeof contentEditSchema>
 >;
 
-export type ContentEditType = ContentEdit['type'];
-
 /**
  * The answer to an edit. `id` names the document it created or changed, and
  * `revision` is that document's new revision, or `null` when it was deleted.

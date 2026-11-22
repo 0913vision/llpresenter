@@ -11,8 +11,6 @@ export const RENDERER_LOG_LIMITS = {message: 500, detail: 4000} as const;
 
 export const logLevels = ['info', 'warn', 'error'] as const;
 
-export type LogLevel = (typeof logLevels)[number];
-
 const rendererLogEntrySchema = payloadObject({
   level: v.picklist(logLevels),
   message: v.pipe(
@@ -126,44 +124,4 @@ export function parseFrameRateReport(
 
 export function isFrameRateReport(value: unknown): value is FrameRateReport {
   return parseFrameRateReport(value).ok;
-}
-
-export const openWindowFailures = [
-  'not-implemented',
-  'no-such-target',
-  'failed',
-] as const;
-
-export type OpenWindowFailure = (typeof openWindowFailures)[number];
-
-/** Whether main opened the window, or why it didn't. */
-export type OpenWindowResult = Result<
-  void,
-  {readonly reason: OpenWindowFailure}
->;
-
-const openWindowResultSchema = v.variant('ok', [
-  v.object({ok: v.literal(true), value: v.optional(v.undefined())}),
-  v.object({
-    ok: v.literal(false),
-    error: v.object({reason: v.picklist(openWindowFailures)}),
-  }),
-]);
-
-export function parseOpenWindowResult(
-  value: unknown,
-): Result<OpenWindowResult, PayloadError> {
-  const checked = parsePayload(openWindowResultSchema, value);
-  if (!checked.ok) return checked;
-  return {
-    ok: true,
-    value: checked.value.ok
-      ? {ok: true, value: undefined}
-      : {ok: false, error: {reason: checked.value.error.reason}},
-  };
-}
-
-/** The answer of a window request that fails its check. */
-export function refuseOpenWindow(): OpenWindowResult {
-  return {ok: false, error: {reason: 'failed'}};
 }

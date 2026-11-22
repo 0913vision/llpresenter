@@ -5,9 +5,6 @@ import {epochMillisecondsSchema} from './overlayState';
 import {payloadObject} from './payload';
 import {nonNegativeInteger, seconds} from './primitives';
 
-/** The manual audio fade duration from spec 04. */
-export const AUDIO_MANUAL_FADE_MS = 3000;
-
 export const audioPlaybackSchema = payloadObject({
   source: audioSourceSchema,
   trackVersion: v.pipe(nonNegativeInteger, v.maxValue(Number.MAX_SAFE_INTEGER)),

@@ -28,8 +28,6 @@ export type Placement =
 /** A placement that shows a window. `off` turns the output off instead. */
 export type ShownPlacement = Exclude<Placement, {kind: 'off'}>;
 
-export type FullScreenPlacement = Extract<Placement, {kind: 'fullscreen'}>;
-
 /**
  * The size of a window-method or fallback window on the control monitor, a
  * 16:9 quarter of a 1920 x 1080 monitor (proposal).

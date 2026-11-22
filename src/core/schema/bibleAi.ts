@@ -47,7 +47,6 @@ const stateSchema = v.pipe(
 );
 
 export type BibleAiRequest = ReadonlyKnown<v.InferOutput<typeof requestSchema>>;
-export type BibleAiCancel = Readonly<v.InferOutput<typeof cancelSchema>>;
 export type BibleAiState = Readonly<v.InferOutput<typeof stateSchema>>;
 
 export function parseBibleAiRequest(value: unknown) {

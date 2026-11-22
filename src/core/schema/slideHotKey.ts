@@ -8,5 +8,3 @@ export const slideHotKeySchema = v.pipe(
     'Expected KeyA to KeyZ or Digit0 to Digit9',
   ),
 );
-
-export type SlideHotKey = v.InferOutput<typeof slideHotKeySchema>;
