@@ -19,9 +19,9 @@ beforeEach(() => {
   useScreensSelection.setState({selection: {id: MAIN_ID}});
 });
 
-afterEach(async () => {
+afterEach(() => {
   cleanup();
-  await session?.dispose();
+  session?.dispose();
   session = undefined;
   delete window.llp;
 });

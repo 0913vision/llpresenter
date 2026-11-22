@@ -1,3 +1,4 @@
+import {KIND_NAMES} from './screens';
 import {NDI_DEFAULT_SOURCE_NAME} from '../schema/screens';
 import type {Screen} from '../schema/screens';
 
@@ -33,12 +34,6 @@ function withMessageStyle(
   const {messageStyleId: _replaced, ...others} = screen;
   return messageStyleId === null ? others : {...others, messageStyleId};
 }
-
-export const KIND_NAMES = {
-  audience: '청중',
-  broadcast: '방송',
-  stage: '무대',
-} as const;
 
 /** The name a new screen of this kind gets, with a number when it is taken. */
 export function defaultScreenName(

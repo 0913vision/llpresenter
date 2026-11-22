@@ -3,6 +3,8 @@ import type {
   ThemeElement,
   ThemeNextElement,
   ThemeShape,
+  ThemeSplit,
+  ThemeStack,
   ThemeTextElement,
 } from '../schema/theme';
 
@@ -185,16 +187,138 @@ function followRatio(sized: Sized, all: ReadonlyMap<string, Sized>): void {
   sized.size = Math.max(element.fit?.min ?? MIN_SIZE, Math.round(size));
 }
 
-/**
- * Where everything on a screen goes. A text at its own place is aligned in its
- * frame; texts of a stack stand one under another; a split puts the next text
- * under the slide's own and gives each the room the other does not need.
- */
-export function layoutTheme(
+type Texts = Map<string, TextPlacement>;
+
+/** The texts of a split: the slide's own, and the next text under them. */
+class SplitLayout {
+  private readonly upper: readonly Sized[];
+  private readonly lower: Sized | undefined;
+  private readonly start: readonly number[];
+  private readonly gap: number;
+  private readonly between: number;
+
+  constructor(
+    private readonly split: ThemeSplit,
+    private readonly all: ReadonlyMap<string, Sized>,
+  ) {
+    this.upper = split.upper.flatMap(id => all.get(id) ?? []);
+    this.lower = all.get(split.lower);
+    this.start = this.upper.map(({size}) => size);
+    this.gap =
+      this.lower === undefined || this.upper.length === 0 ? 0 : split.gap;
+    this.between = split.upperGap ?? 0;
+  }
+
+  place(texts: Texts): void {
+    this.size();
+    const {split, upper, lower, gap, between} = this;
+    const lowerHeight = lower === undefined ? 0 : heightOf(lower);
+    const lowerTop = Math.max(
+      split.top + this.upperHeight() + gap,
+      Math.min(split.at, split.bottom - lowerHeight),
+    );
+    const zone = (lower === undefined ? split.at : lowerTop) - gap - split.top;
+    const spare = Math.max(0, zone - this.upperHeight());
+    const align = upper[0]?.element.style.vAlign;
+    let y =
+      split.top +
+      (align === 'middle' ? spare / 2 : align === 'bottom' ? spare : 0);
+    for (const sized of upper) {
+      texts.set(sized.element.id, placed(sized, y));
+      y += heightOf(sized) + between;
+    }
+    if (lower !== undefined) {
+      texts.set(lower.element.id, placed(lower, lowerTop));
+    }
+  }
+
+  private upperHeight(): number {
+    return (
+      this.upper.reduce((sum, sized) => sum + heightOf(sized), 0) +
+      Math.max(0, this.upper.length - 1) * this.between
+    );
+  }
+
+  private fits(): boolean {
+    const {split, upper, lower, gap} = this;
+    return (
+      upper.every(
+        sized =>
+          metricsOf(sized, sized.size).width <=
+          sized.element.frame.w + TOLERANCE,
+      ) &&
+      this.upperHeight() + (lower === undefined ? 0 : heightOf(lower)) <=
+        split.bottom - split.top - gap + TOLERANCE
+    );
+  }
+
+  private resize(share: number): void {
+    this.upper.forEach((sized, index) => {
+      sized.size = Math.max(
+        sized.element.fit?.min ?? MIN_SIZE,
+        Math.floor((this.start[index] ?? sized.size) * share),
+      );
+    });
+    if (this.lower !== undefined) followRatio(this.lower, this.all);
+  }
+
+  private shrinkTogether(): void {
+    const largest = Math.max(1, ...this.start);
+    const size = shrink(largest, MIN_SIZE, candidate => {
+      this.resize(candidate / largest);
+      return this.fits();
+    });
+    this.resize(size / largest);
+  }
+
+  /** The largest sizes that leave each of them its room. */
+  private size(): void {
+    this.resize(1);
+    if (this.fits()) return;
+    this.shrinkTogether();
+    if (this.fits()) return;
+    for (const sized of this.upper) sized.keepRows = false;
+    this.shrinkTogether();
+  }
+}
+
+/** Puts the texts of a stack one under another. */
+function placeStack(
+  stack: ThemeStack,
+  members: readonly Sized[],
+  texts: Texts,
+) {
+  for (const sized of members) fitSize(sized, sized.element.frame.h);
+  const heights = members.map(heightOf);
+  const total =
+    heights.reduce((sum, height) => sum + height, 0) +
+    Math.max(0, members.length - 1) * stack.gap;
+  const first = members[0];
+  const last = members.at(-1);
+  let before = 0;
+  let after = 0;
+  if (stack.ink === true && first !== undefined && last !== undefined) {
+    before = first.text.ink?.(first.size).top ?? 0;
+    const ink = last.text.ink?.(last.size);
+    after = ink === undefined ? 0 : heightOf(last) - ink.bottom;
+  }
+  let y =
+    stack.anchor === 'top'
+      ? stack.at - before
+      : stack.anchor === 'bottom'
+        ? stack.at - total + after
+        : stack.at - (total - before - after) / 2 - before;
+  members.forEach((sized, index) => {
+    texts.set(sized.element.id, placed(sized, y));
+    y += (heights[index] ?? 0) + stack.gap;
+  });
+}
+
+function sizedTexts(
   screen: OwnThemeScreen,
   measured: ReadonlyMap<string, MeasuredText>,
-  same: ReadonlyMap<string, SameText> = new Map(),
-): ThemePlacement {
+  same: ReadonlyMap<string, SameText>,
+): ReadonlyMap<string, Sized> {
   const all = new Map<string, Sized>();
   for (const element of screen.elements) {
     const text = isText(element) ? measured.get(element.id) : undefined;
@@ -210,109 +334,31 @@ export function layoutTheme(
         element.same === 'rows',
     });
   }
-  const texts = new Map<string, TextPlacement>();
+  return all;
+}
+
+/**
+ * Where everything on a screen goes. A text at its own place is aligned in its
+ * frame; texts of a stack stand one under another; a split puts the next text
+ * under the slide's own and gives each the room the other does not need.
+ */
+export function layoutTheme(
+  screen: OwnThemeScreen,
+  measured: ReadonlyMap<string, MeasuredText>,
+  same: ReadonlyMap<string, SameText> = new Map(),
+): ThemePlacement {
+  const all = sizedTexts(screen, measured, same);
+  const texts: Texts = new Map();
   const grouped = new Set<string>();
-
   for (const split of screen.splits ?? []) {
-    const upper = split.upper.flatMap(id => all.get(id) ?? []);
-    const lower = all.get(split.lower);
     for (const id of [...split.upper, split.lower]) grouped.add(id);
-    const gap = lower === undefined || upper.length === 0 ? 0 : split.gap;
-    const room = split.bottom - split.top - gap;
-    const between = split.upperGap ?? 0;
-    const upperHeight = (): number =>
-      upper.reduce((sum, sized) => sum + heightOf(sized), 0) +
-      Math.max(0, upper.length - 1) * between;
-    const start = upper.map(({size}) => size);
-    const resize = (share: number): void => {
-      upper.forEach((sized, index) => {
-        sized.size = Math.max(
-          sized.element.fit?.min ?? MIN_SIZE,
-          Math.floor((start[index] ?? sized.size) * share),
-        );
-      });
-      if (lower !== undefined) followRatio(lower, all);
-    };
-    const fits = (): boolean =>
-      upper.every(
-        sized =>
-          metricsOf(sized, sized.size).width <=
-          sized.element.frame.w + TOLERANCE,
-      ) &&
-      upperHeight() + (lower === undefined ? 0 : heightOf(lower)) <=
-        room + TOLERANCE;
-    resize(1);
-    if (!fits()) {
-      const largest = Math.max(1, ...start);
-      const size = shrink(largest, MIN_SIZE, candidate => {
-        resize(candidate / largest);
-        return fits();
-      });
-      resize(size / largest);
-      if (!fits()) {
-        for (const sized of upper) {
-          if (sized.keepRows) sized.keepRows = false;
-        }
-        const wrapped = shrink(largest, MIN_SIZE, candidate => {
-          resize(candidate / largest);
-          return fits();
-        });
-        resize(wrapped / largest);
-      }
-    }
-    const lowerHeight = lower === undefined ? 0 : heightOf(lower);
-    const lowerTop = Math.max(
-      split.top + upperHeight() + gap,
-      Math.min(split.at, split.bottom - lowerHeight),
-    );
-    const zone = (lower === undefined ? split.at : lowerTop) - gap - split.top;
-    const first = upper[0];
-    const spare = Math.max(0, zone - upperHeight());
-    let y =
-      split.top +
-      (first?.element.style.vAlign === 'middle'
-        ? spare / 2
-        : first?.element.style.vAlign === 'bottom'
-          ? spare
-          : 0);
-    for (const sized of upper) {
-      texts.set(sized.element.id, placed(sized, y));
-      y += heightOf(sized) + between;
-    }
-    if (lower !== undefined) {
-      texts.set(lower.element.id, placed(lower, lowerTop));
-    }
+    new SplitLayout(split, all).place(texts);
   }
-
   for (const stack of screen.stacks ?? []) {
-    const members = stack.texts.flatMap(id => all.get(id) ?? []);
     for (const id of stack.texts) grouped.add(id);
-    for (const sized of members) fitSize(sized, sized.element.frame.h);
-    const heights = members.map(heightOf);
-    const total =
-      heights.reduce((sum, height) => sum + height, 0) +
-      Math.max(0, members.length - 1) * stack.gap;
-    const first = members[0];
-    const last = members.at(-1);
-    let before = 0;
-    let after = 0;
-    if (stack.ink === true && first !== undefined && last !== undefined) {
-      before = first.text.ink?.(first.size).top ?? 0;
-      const ink = last.text.ink?.(last.size);
-      after = ink === undefined ? 0 : heightOf(last) - ink.bottom;
-    }
-    let y =
-      stack.anchor === 'top'
-        ? stack.at - before
-        : stack.anchor === 'bottom'
-          ? stack.at - total + after
-          : stack.at - (total - before - after) / 2 - before;
-    members.forEach((sized, index) => {
-      texts.set(sized.element.id, placed(sized, y));
-      y += (heights[index] ?? 0) + stack.gap;
-    });
+    const members = stack.texts.flatMap(id => all.get(id) ?? []);
+    placeStack(stack, members, texts);
   }
-
   for (const sized of all.values()) {
     const {element} = sized;
     if (grouped.has(element.id)) continue;
@@ -325,7 +371,6 @@ export function layoutTheme(
       placed(sized, alignedTop(sized, element.frame.y, element.frame.h)),
     );
   }
-
   const shapes = new Map<string, ShapePlacement>();
   for (const element of screen.elements) {
     if (element.kind !== 'shape') continue;

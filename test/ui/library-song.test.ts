@@ -68,6 +68,8 @@ async function seedSong(
   );
 }
 
+const LYRICS = '[data-slide-deck] textarea[data-slide-box="가사"]';
+
 it(
   'preserves an edited library song after restart',
   {timeout: 240_000},
@@ -90,12 +92,12 @@ it(
     const editor = page;
     const title = editor.getByRole('textbox', {name: '곡 제목'});
     await title.waitFor({timeout: WAIT});
-    const lyrics = editor.getByRole('textbox', {name: '슬라이드 1 가사'});
+    const lyrics = editor.locator(LYRICS).first();
     await lyrics.waitFor({timeout: WAIT});
     await title.fill('점검 알파 수정');
     await title.press('Enter');
     await page.waitForFunction(
-      `document.activeElement?.getAttribute('aria-label') === '슬라이드 1 가사'`,
+      `document.activeElement?.dataset.slideBox === '가사'`,
       {timeout: WAIT},
     );
     await expect.poll(() => lyrics.inputValue()).toBe('첫 번째 창작 문장');
@@ -134,10 +136,8 @@ it(
     expect(
       await reopenedEditor.getByRole('textbox', {name: '곡 제목'}).inputValue(),
     ).toBe('점검 알파 수정');
-    expect(
-      await reopenedEditor
-        .getByRole('textbox', {name: '슬라이드 1 가사'})
-        .inputValue(),
-    ).toBe('새로 만든 점검 문장');
+    expect(await reopenedEditor.locator(LYRICS).first().inputValue()).toBe(
+      '새로 만든 점검 문장',
+    );
   },
 );

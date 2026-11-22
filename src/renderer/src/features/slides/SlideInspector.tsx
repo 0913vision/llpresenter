@@ -8,10 +8,9 @@ import {
 import type {ThemeId} from '@core/schema/ids';
 import type {ShowTile} from '@core/schema/showService';
 import type {Slide} from '@core/schema/slide';
-import type {ScreenKind, SlideBackground} from '@core/schema/theme';
+import type {SlideBackground} from '@core/schema/theme';
 import type {SlideTransition} from '@core/schema/slideTransition';
 import {sameJson} from '@core/common/sameJson';
-import {nextTextOfTile} from '@core/presentation/slideLayer';
 import {
   changeSlides,
   withBackground,
@@ -22,16 +21,13 @@ import {
 import {themeOfSlide} from '@core/theme/themes';
 import {LabelMenu} from '@renderer/features/labels/LabelMenu';
 import {useLabelCatalog} from '@renderer/features/labels/labels';
-import {themeOfTile, useThemes} from '@renderer/platform/themes';
+import {useThemes} from '@renderer/platform/themes';
 import {WorkspaceNavigation} from '@renderer/platform/WorkspaceNavigation';
-import {TilePicture} from '@renderer/pictures/TilePicture';
 import {outputSlideOf} from '@renderer/session/show';
 import {Button} from '@renderer/ui/Button';
 import {isComposing} from '@renderer/ui/ime';
-import {labelInk} from '@renderer/ui/labelInk';
 import {Panel, PanelBody} from '@renderer/ui/Panel';
 import {Properties, PropertyGroup, PropertyRow} from '@renderer/ui/PropertyRow';
-import {SegmentedControl} from '@renderer/ui/SegmentedControl';
 import {SelectMenu} from '@renderer/ui/SelectMenu';
 import {INITIAL_SLIDE_EFFECT} from '@renderer/ui/slideTransitionChoices';
 import {
@@ -42,21 +38,13 @@ import {
 } from './deckSelection';
 import {BackgroundPlace} from './BackgroundPlace';
 import {SlideBackgroundControl} from './SlideBackgroundControl';
+import {SlidePreview, usePreviewScreen} from './SlidePreview';
 import type {SlideDeck} from './slideDeck';
 import {NEXT_BOX} from './slideColumns';
 import {SlideTextField} from './SlideTextField';
 import {inspectorTransition, TransitionSection} from './TransitionSection';
 import {openTheme} from '@renderer/session/themeRequests';
 import styles from './SlideInspector.module.css';
-
-const SCREENS: ReadonlyArray<{
-  readonly value: ScreenKind;
-  readonly label: string;
-}> = [
-  {value: 'audience', label: '청중'},
-  {value: 'stage', label: '무대'},
-  {value: 'broadcast', label: '방송'},
-];
 
 function changeSelected(
   deck: SlideDeck,
@@ -65,51 +53,6 @@ function changeSelected(
 ): void {
   const {ids} = selectionOf(deck);
   deck.edit(slides => changeSlides(slides, ids, change), key);
-}
-
-function Picture({
-  deck,
-  tile,
-  tiles,
-  index,
-}: {
-  readonly deck: SlideDeck;
-  readonly tile: ShowTile;
-  readonly tiles: readonly ShowTile[];
-  readonly index: number;
-}): JSX.Element {
-  const [role, setRole] = useState<ScreenKind>('audience');
-  const after = tiles[index + 1];
-  const live =
-    deck.item === undefined
-      ? null
-      : outputSlideOf({itemId: deck.id, index})?.next;
-  const next =
-    after === undefined
-      ? (live ?? null)
-      : nextTextOfTile(after, themeOfTile, false);
-  return (
-    <>
-      <SegmentedControl
-        kind="toggle"
-        label="화면"
-        options={SCREENS}
-        value={role}
-        onChange={setRole}
-      />
-      <div className={styles.picture} data-background-picture>
-        <div className={styles.canvas}>
-          <TilePicture tile={tile} tiles={tiles} role={role} next={next} />
-        </div>
-      </div>
-      <div className={styles.caption} style={labelInk(tile.labelColor)}>
-        {tile.slide.label ?? ''}
-        <span>
-          {index + 1} / {tiles.length}
-        </span>
-      </div>
-    </>
-  );
 }
 
 function ThemeRow({
@@ -302,6 +245,7 @@ export function SlideInspector({
   /** Rows of the item itself, above the ones of its slides. */
   readonly children?: ReactNode;
 }): JSX.Element {
+  const screen = usePreviewScreen();
   const selection = useDeckSelection(deck);
   const chosen = selectedSlides(deck, selection);
   const slide = focusedSlide(deck, selection);
@@ -332,7 +276,16 @@ export function SlideInspector({
           {children}
           {tile === undefined || chosen.length === 0 ? null : (
             <>
-              <Picture deck={deck} tile={tile} tiles={tiles} index={index} />
+              <SlidePreview
+                tiles={tiles}
+                index={index}
+                screen={screen}
+                nextAtEnd={
+                  deck.item === undefined
+                    ? null
+                    : (outputSlideOf({itemId: deck.id, index})?.next ?? null)
+                }
+              />
               {one && theme !== undefined ? (
                 <div className={styles.text} key={tile.slide.id}>
                   {theme.boxes.map(box => (

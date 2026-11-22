@@ -1,5 +1,4 @@
-import * as v from 'valibot';
-import {themeFileSchema, type ThemeFile} from '../../schema/theme';
+import {themeOfFile, type ThemeFile} from '../../schema/theme';
 import blank from './blank.json';
 import creed from './creed.json';
 import lyrics from './lyrics.json';
@@ -31,4 +30,4 @@ export const BUILT_IN_THEMES: readonly ThemeFile[] = [
   blank,
   picture,
   media,
-].map(theme => v.parse(themeFileSchema, theme));
+].map(themeOfFile);

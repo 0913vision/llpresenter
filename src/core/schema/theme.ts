@@ -409,6 +409,11 @@ const format: FileFormat<typeof themeFileSchema> = {
   migrations: [],
 };
 
+/** A theme that comes with the app; it throws when the file is wrong. */
+export function themeOfFile(value: unknown): ThemeFile {
+  return v.parse(themeFileSchema, value);
+}
+
 export function parseTheme(
   text: string,
   file: string,

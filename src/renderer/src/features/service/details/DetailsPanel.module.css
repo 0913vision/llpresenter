@@ -14,3 +14,14 @@
   color: var(--text-2);
   font: var(--type-caption);
 }
+
+.head {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-8);
+  padding-bottom: var(--space-8);
+}
+
+.head > :first-child {
+  width: 100%;
+}

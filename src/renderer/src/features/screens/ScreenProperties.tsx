@@ -10,7 +10,7 @@ import {
   type Screen,
 } from '@core/schema/screens';
 import {emptyScreenColor} from '@core/screens/emptyColor';
-import {SCREEN_KIND_ORDER} from '@core/screens/screens';
+import {KIND_NAMES, SCREEN_KIND_ORDER} from '@core/screens/screens';
 import {ColorProperty} from './ColorProperty';
 import {
   Checkbox,
@@ -56,10 +56,9 @@ const NAME_PROBLEMS = {
   taken: '같은 이름의 화면이 있습니다',
 } as const;
 
-const KIND_LABELS = {audience: '청중', stage: '무대', broadcast: '방송'};
 const KIND_OPTIONS = SCREEN_KIND_ORDER.map(value => ({
   value,
-  label: KIND_LABELS[value],
+  label: KIND_NAMES[value],
 }));
 const METHOD_OPTIONS = [
   {value: 'fullscreen', label: '전체 화면'},

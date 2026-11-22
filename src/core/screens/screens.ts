@@ -7,3 +7,9 @@ export const STARTER_SCREEN_IDS = {
 
 /** The presentation order shared by screen selectors and screen settings. */
 export const SCREEN_KIND_ORDER = ['audience', 'stage', 'broadcast'] as const;
+
+export const KIND_NAMES = {
+  audience: '청중',
+  stage: '무대',
+  broadcast: '방송',
+} as const;

@@ -48,9 +48,11 @@ it(
         date: '2026-01-01T10:00',
         order: [
           {
-            slides: [lyricsSlide(1, ['새로 만든 점검 문장'], {label: '1절'})],
             id: ITEM,
+            kind: 'song',
+            name: '창작 복구 곡',
             song: SONG,
+            slides: [lyricsSlide(1, ['새로 만든 점검 문장'], {label: '1절'})],
           },
         ],
       }),

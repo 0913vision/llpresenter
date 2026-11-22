@@ -3,14 +3,11 @@ import type {LlpApi} from '@contracts/ipc/api';
 import type {ServiceItemId, SongId} from '@core/schema/ids';
 import {hasSlides, isItemOfKind} from '@core/schema/service';
 import type {ShowLibrarySong} from '@core/schema/showLibrarySong';
-import {nextTextOfTile} from '@core/presentation/slideLayer';
 import {itemTiles} from '@core/slides/tiles';
 import {useLabelColors} from '@renderer/features/labels/labels';
 import type {Report} from '@renderer/session/serviceEdit';
 import {detailsScale} from '@renderer/platform/thumbnailScale';
-import {themeOfTile, useThemes} from '@renderer/platform/themes';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
-import {TilePicture} from '@renderer/pictures/TilePicture';
 import {useOpenService, useServiceItem} from '@renderer/session/openService';
 import {outputSlideOf} from '@renderer/session/show';
 import {Button} from '@renderer/ui/Button';
@@ -23,7 +20,11 @@ import {ThumbnailSizeControl} from '@renderer/ui/ThumbnailSizeControl';
 import {sectionItemCount} from './sectionItemCount';
 import {DetailsInfo} from './DetailsInfo';
 import {DetailsSlides} from './DetailsSlides';
-import {SlidePreview, usePreviewScreen} from './SlidePreview';
+import {
+  PreviewPicture,
+  SlidePreview,
+  usePreviewScreen,
+} from '../../slides/SlidePreview';
 import styles from './DetailsPanel.module.css';
 
 export type DetailsTarget =
@@ -101,8 +102,7 @@ export function DetailsPanel({
 }): JSX.Element {
   const scale = detailsScale.use(sizeClass);
   const colors = useLabelColors();
-  const screens = useThemes(view => view.screens);
-  const previewScreen = usePreviewScreen(screens);
+  const screen = usePreviewScreen();
   const order = useOpenService(view => view.service?.order);
   const readOnly = useOpenService(view => view.readOnly);
   const item = useServiceItem(target?.kind === 'item' ? target.itemId : null);
@@ -152,31 +152,16 @@ export function DetailsPanel({
     Math.max(0, count - 1),
     selection.key === key ? selection.index : 0,
   );
-  const role = previewScreen.target?.kind ?? 'audience';
-  const nextOf = (index: number): string | null => {
-    const after = tiles[index + 1];
-    if (after !== undefined) return nextTextOfTile(after, themeOfTile, false);
-    return slidesItem === undefined
+  const nextAtEnd =
+    slidesItem === undefined
       ? null
-      : (outputSlideOf({itemId: slidesItem.id, index})?.next ?? null);
-  };
-  const picture = (index: number): JSX.Element | undefined => {
-    const tile = tiles[index];
-    return tile === undefined ? undefined : (
-      <TilePicture
-        tile={tile}
-        tiles={tiles}
-        role={role}
-        screenId={previewScreen.target?.id}
-        next={role === 'audience' ? null : nextOf(index)}
-      />
-    );
-  };
+      : (outputSlideOf({itemId: slidesItem.id, index: count - 1})?.next ??
+        null);
+  const preview = {tiles, screen, nextAtEnd};
   const edit = (index: number): void => {
     if (slidesItem !== undefined) onOpenItem(slidesItem.id, index);
     else if (library !== null) onOpenSong(library.songId, index);
   };
-  const tile = tiles[selected];
   return (
     <DetailsShell
       footer={
@@ -195,16 +180,12 @@ export function DetailsPanel({
         ) : null
       }
     >
-      <SlidePreview
-        picture={picture(selected)}
-        screen={previewScreen}
-        number={count === 0 ? undefined : selected + 1}
-        label={tile?.caption ?? undefined}
-        color={tile?.labelColor ?? 'none'}
-      />
-      <Button icon="edit" onClick={() => edit(selected)}>
-        편집
-      </Button>
+      <div className={styles.head}>
+        <SlidePreview {...preview} index={selected} />
+        <Button icon="edit" onClick={() => edit(selected)}>
+          편집
+        </Button>
+      </div>
       <PanelTabs
         tabs={tabs}
         value={tab}
@@ -230,7 +211,7 @@ export function DetailsPanel({
           onEdit={edit}
           labelAt={index => tiles[index]?.caption ?? undefined}
           colorAt={index => tiles[index]?.labelColor ?? 'none'}
-          picture={picture}
+          picture={index => <PreviewPicture {...preview} index={index} />}
         />
       )}
     </DetailsShell>

@@ -18,7 +18,7 @@ import {
   StatusDot,
 } from '@renderer/ui';
 import type {Screen} from '@core/schema/screens';
-import {SCREEN_KIND_ORDER} from '@core/screens/screens';
+import {KIND_NAMES, SCREEN_KIND_ORDER} from '@core/screens/screens';
 import {sendLive, useOutputs} from '@renderer/session/live';
 import type {Notice} from '@renderer/ui/notices';
 import {MAX_TARGET_SCREENS} from '@core/schema/overlayState';
@@ -41,7 +41,6 @@ import {useToolDeleteShortcuts} from '@renderer/platform/useToolDeleteShortcuts'
 import {useReflow} from '@renderer/ui/useReflow';
 
 const LIST_LABEL = '화면';
-const GROUP_LABELS = {audience: '청중', stage: '무대', broadcast: '방송'};
 const LOAD_TITLE = '화면';
 const noScreens: readonly Screen[] = [];
 const noHistory = {undo: 0, redo: 0, busy: false};
@@ -168,7 +167,7 @@ export function ScreenList({
     () =>
       SCREEN_KIND_ORDER.map(kind => ({
         kind,
-        label: GROUP_LABELS[kind],
+        label: KIND_NAMES[kind],
         rows: groups[kind],
       })),
     [groups],

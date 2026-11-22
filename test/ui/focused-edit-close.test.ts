@@ -72,12 +72,8 @@ it(
     ).toBe('12');
 
     await page.getByRole('tab', {name: '테마'}).click();
-    await page
-      .getByRole('region', {name: '요소 추가'})
-      .getByRole('button', {name: '글자', exact: true})
-      .click();
-    const content = page.getByRole('textbox', {name: '내용', exact: true});
-    await content.fill('종료 저장 문장');
+    const phrase = page.getByRole('textbox', {name: '문구 1', exact: true});
+    await phrase.fill('종료 저장 문장');
     const name = quittingSettings.getByRole('textbox', {name: '이름'});
     await name.fill('종료 저장 화면');
     expect(
@@ -106,8 +102,7 @@ it(
       .poll(
         () =>
           reopened.evaluate<boolean>(`window.llp.settings.get({name:'themes'}).then(document =>
-      document.value.themes.some(theme => Object.values(theme.screens).some(layout =>
-        layout.elements.some(element => element.kind === 'text' && element.content === '종료 저장 문장'))))`),
+      JSON.stringify(document.value.themes).includes('종료 저장 문장'))`),
         {timeout: WAIT},
       )
       .toBe(true);

@@ -187,7 +187,7 @@ export function usePrepPanels({
     onBack: back,
     ui,
   });
-  const song = useSongEditor({onBack: back, ui});
+  const song = useSongEditor({report, onBack: back, ui});
   const editor = target === null ? null : target.kind === 'item' ? item : song;
   useReturnFocus(editor === null ? null : target);
   const selectedSong = useShow(view =>

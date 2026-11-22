@@ -1,3 +1,5 @@
+/* NOTE(0913vision): The marks of selected slides are drawn outside them. */
 .grid[role='listbox'] {
+  margin-top: var(--space-8);
   grid-template-columns: repeat(auto-fill, var(--thumb-width));
 }

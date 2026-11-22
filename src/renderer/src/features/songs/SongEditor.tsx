@@ -11,12 +11,14 @@ import {useLabelColors} from '@renderer/features/labels/labels';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {slideMaking} from '@renderer/platform/themes';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
+import type {Report} from '@renderer/session/serviceEdit';
 import {Button} from '@renderer/ui/Button';
 import {Icon} from '@renderer/ui/Icon';
 import {isComposing} from '@renderer/ui/ime';
 import {menuAvailability} from '@renderer/ui/menuModel';
 import {TextField} from '@renderer/ui/TextField';
 import {Tooltip} from '@renderer/ui/Tooltip';
+import {BackgroundDrop} from '../slides/BackgroundDrop';
 import {addReason, addSlides} from '../slides/deckCommands';
 import {SlideEditor} from '../slides/SlideEditor';
 import styles from '../slides/SlideEditorHeader.module.css';
@@ -154,9 +156,11 @@ function SongHeader({
 
 /** The editor of the library song that is open, and the panel beside it. */
 export function useSongEditor({
+  report,
   onBack,
   ui,
 }: {
+  readonly report: Report;
   readonly onBack: () => void;
   readonly ui?: Pick<UiApi, 'setLayout'> | undefined;
 }): {readonly editor: ReactNode; readonly inspector: ReactNode} | null {
@@ -199,23 +203,29 @@ export function useSongEditor({
     ]);
   return {
     editor: (
-      <SlideEditor
-        deck={deck}
-        tiles={tiles}
-        header={<SongHeader onBack={onBack} />}
-        extraMenu={() => [
-          {
-            kind: 'item',
-            id: 'song-title',
-            label: '제목 슬라이드 추가',
-            ...menuAvailability(addReason(deck)),
-            onSelect: addTitle,
-          },
-        ]}
-        onBack={onBack}
-        ui={ui}
-      />
+      <BackgroundDrop deck={deck} report={report}>
+        <SlideEditor
+          deck={deck}
+          tiles={tiles}
+          header={<SongHeader onBack={onBack} />}
+          extraMenu={() => [
+            {
+              kind: 'item',
+              id: 'song-title',
+              label: '제목 슬라이드 추가',
+              ...menuAvailability(addReason(deck)),
+              onSelect: addTitle,
+            },
+          ]}
+          onBack={onBack}
+          ui={ui}
+        />
+      </BackgroundDrop>
     ),
-    inspector: <SlideInspector deck={deck} tiles={tiles} />,
+    inspector: (
+      <BackgroundDrop deck={deck} report={report}>
+        <SlideInspector deck={deck} tiles={tiles} />
+      </BackgroundDrop>
+    ),
   };
 }
