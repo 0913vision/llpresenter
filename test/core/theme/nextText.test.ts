@@ -15,7 +15,11 @@ function next(
 describe('what the slide before shows', () => {
   it('names the song of a title slide, with its label when it has one', () => {
     expect(
-      next('찬양 제목', {texts: {제목: '빛의 길'}, auto: {이름표: '전주'}}, true),
+      next(
+        '찬양 제목',
+        {texts: {제목: '빛의 길'}, auto: {이름표: '전주'}},
+        true,
+      ),
     ).toBe('다음 곡: 빛의 길 (전주)');
     expect(next('찬양 제목', {texts: {제목: '빛의 길'}}, true)).toBe(
       '다음 곡: 빛의 길',

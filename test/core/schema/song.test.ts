@@ -22,7 +22,10 @@ describe('a song file', () => {
   it('keeps its slides and the fields it does not know', () => {
     const input = {
       ...song([
-        {...slideOf(1, 'songTitle', {texts: {제목: '빛의 길', 부제: ''}}), future: 1},
+        {
+          ...slideOf(1, 'songTitle', {texts: {제목: '빛의 길', 부제: ''}}),
+          future: 1,
+        },
         lyricsSlide(2, '', {
           label: '오늘',
           hotKey: 'KeyA',

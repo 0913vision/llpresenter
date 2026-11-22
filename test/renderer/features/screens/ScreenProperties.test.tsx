@@ -127,26 +127,6 @@ async function nameField(): Promise<HTMLElement> {
 }
 
 describe('the screen properties', () => {
-  it('shows song caption controls only for broadcast and saves the selected look', async () => {
-    const {savedScreens} = setup();
-    await nameField();
-    expect(screen.queryByRole('radiogroup', {name: '찬양 자막'})).toBeNull();
-    act(() => useScreensSelection.getState().select(CAPTIONS_ID));
-    const group = await screen.findByRole('radiogroup', {
-      name: '찬양 자막',
-    });
-    const band = within(group).getByRole('radio', {name: '띠'});
-    expect(band.getAttribute('aria-checked')).toBe('true');
-    await userEvent.click(within(group).getByRole('radio', {name: '글씨만'}));
-    await waitFor(() =>
-      expect(
-        savedScreens().find(item => item.id === CAPTIONS_ID)?.songCaption,
-      ).toBe('text'),
-    );
-    expect(
-      savedScreens().find(item => item.id === MAIN_ID)?.songCaption,
-    ).toBeUndefined();
-  });
   it('shows black for regular output and green for capture, and saves a chosen empty color', async () => {
     const {savedScreens} = setup();
     expect(

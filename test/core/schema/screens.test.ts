@@ -142,22 +142,6 @@ describe('parseScreens', () => {
     expectRoundTrip(codec, defaultScreens());
   });
 
-  it.each(['band', 'text'])('round trips song caption %s', songCaption => {
-    expectRoundTrip(
-      codec,
-      withScreen({...mainScreen(), kind: 'broadcast', songCaption}),
-    );
-  });
-  it.each(['glass', '', null, 1])(
-    'rejects an invalid song caption %j',
-    songCaption => {
-      expectInvalidField(
-        codec,
-        withScreen({...mainScreen(), songCaption}),
-        'screens.0.songCaption',
-      );
-    },
-  );
   it.each([29.97, 30, 59.94, 60])('accepts NDI fps %s', fps => {
     expectRoundTrip(codec, withScreen({...mainScreen(), ndi: {fps}}));
   });

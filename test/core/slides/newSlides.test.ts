@@ -18,7 +18,10 @@ describe('slideAfter', () => {
 
   it('follows a song title with lyrics on the same background', () => {
     const background = {kind: 'color', color: '#112233'} as const;
-    const title = slideOf(1, 'songTitle', {texts: {제목: '빛의 길'}, background});
+    const title = slideOf(1, 'songTitle', {
+      texts: {제목: '빛의 길'},
+      background,
+    });
     expect(slideAfter(making, title, 'song')).toMatchObject({
       theme: BUILT_IN_THEME_IDS.lyrics,
       background,
