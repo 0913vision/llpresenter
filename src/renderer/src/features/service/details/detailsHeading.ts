@@ -41,55 +41,53 @@ export function detailsHeading({
   item,
   song,
   library,
-  rawCount,
-  offset,
+  count,
   mediaTitle,
 }: {
   readonly item: Exclude<ServiceItem, {readonly header: string}> | null;
   readonly song: SongSession | null;
   readonly library: ShowLibrarySong | null;
-  readonly rawCount: number;
-  readonly offset: number;
+  readonly count: number;
   readonly mediaTitle: string | undefined;
 }): {title: string; kind: string; count: number} {
   if (library !== null) {
-    return {title: library.title, kind: '곡', count: library.tiles.length};
+    return {title: library.title, kind: '곡', count};
   }
   if (item === null) return {title: '', kind: '', count: 0};
   if (isItemOfKind(item, 'liturgy')) {
     return {
       title: LITURGY[item.liturgy.kind].name,
       kind: '예식문',
-      count: rawCount + offset,
+      count,
     };
   }
   if (isItemOfKind(item, 'song')) {
     return {
       title: song?.document.song.title ?? '없는 곡',
       kind: '곡',
-      count: rawCount + offset,
+      count,
     };
   }
   if (isItemOfKind(item, 'slides')) {
     return {
       title: item.slides.name,
       kind: item.slides.form === 'ad' ? '광고' : '슬라이드',
-      count: item.slides.slides.length + offset,
+      count,
     };
   }
   if (isItemOfKind(item, 'sermon')) {
     return {
       title: item.sermon.title,
       kind: '설교',
-      count: rawCount + offset,
+      count,
     };
   }
   if (isItemOfKind(item, 'bible')) {
     return {
       title: displayReference(item.bible.ref),
       kind: '성경',
-      count: rawCount + offset,
+      count,
     };
   }
-  return {title: mediaTitle ?? '미디어 없음', kind: '미디어', count: rawCount};
+  return {title: mediaTitle ?? '미디어 없음', kind: '미디어', count};
 }

@@ -33,7 +33,7 @@ export const bibleCutEntrySchema = jsonObject({
   confirmedAt: timestamp,
 });
 
-const verseKeySchema = v.pipe(
+export const verseKeySchema = v.pipe(
   v.string(),
   v.check(key => {
     if (!/^[1-9]\d*:[1-9]\d*:[1-9]\d*$/.test(key)) return false;
@@ -44,12 +44,6 @@ const verseKeySchema = v.pipe(
       verse <= BIBLE_LOOKUP_LIMITS.verses
     );
   }, 'Expected a book:chapter:verse key'),
-);
-
-/** Confirmed cuts owned by a single passage. */
-export const bibleVerseCutsSchema = v.pipe(
-  jsonRecord(verseKeySchema, bibleCutEntrySchema),
-  v.maxEntries(10_000),
 );
 
 export const bibleCutsSchema = jsonObject({

@@ -5,8 +5,6 @@ import type {Notice} from '@renderer/ui/notices';
 import {useServiceSongMenu} from '@renderer/features/service/order/useServiceSongMenu';
 import type {SongEditorStore} from '@renderer/features/songs/editor/songEditorStore';
 import type {SongEditorWindowModel} from '@renderer/features/songs/editor/useSongEditorWindow';
-import {usePrepPictureSwitch} from '@renderer/rendering/PrepPictureSwitch';
-import {pictures} from '@renderer/rendering/pictures/pictureService';
 
 export function InlineSongActions({
   store,
@@ -27,7 +25,6 @@ export function InlineSongActions({
   } = useSyncExternalStore(store.subscribe, store.getSnapshot);
   const session = shownSession === undefined ? currentSession : shownSession;
   const serviceId = useShow(view => view.serviceId);
-  const switching = usePrepPictureSwitch();
   const itemId = session?.itemSession ? session.document.song.id : null;
   const target = useMemo(
     () =>
@@ -39,7 +36,6 @@ export function InlineSongActions({
       if (session === null || !(await session.flush())) return null;
       return session.document.revision;
     },
-    wait: switching === true && !pictures.drawInPlace,
   });
   if (session === null || imported) return null;
   if (session.itemSession) {

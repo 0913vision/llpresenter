@@ -57,12 +57,9 @@ import styles from './OtherPrepEditor.module.css';
 import {DetailsPanel} from '@renderer/features/service/details/DetailsPanel';
 import {isLibrarySource, openLibrarySong} from '@renderer/session/showLibrary';
 import {useLeadingItemCard} from '@renderer/features/service/items/useLeadingItemCard';
-import {PrepBibleSplitTools} from './PrepBibleSplitTools';
+import {BibleSplitTools} from '@renderer/features/bible/BibleSplitTools';
 import {BibleInlineEditor} from '@renderer/features/service/items/BibleInlineEditor';
-import {
-  SlideTextEditor,
-  SlideTextFields,
-} from '@renderer/features/service/items/SlideTextFields';
+import {SlideBoxes} from '@renderer/features/service/items/SlideBoxFields';
 import type {RenderSlideTextFields} from '@renderer/features/songs/editor/SlideCardRenderer';
 import {itemEditorAdapter} from '@renderer/platform/itemEditorAdapter';
 import type {LeadingSlideCard} from '@renderer/features/songs/editor';
@@ -74,13 +71,14 @@ import {hasSectionCard} from '@core/services/sectionCards';
 import type {SlideTransition} from '@core/schema/slideTransition';
 import {LITURGY} from '@core/services/liturgy';
 import {displayReference} from '@core/bible/displayReference';
-import {pictures} from '@renderer/rendering/pictures/pictureService';
 
 function SlidesCardInspector({
   prep,
   session,
   state,
+  renderTextFields,
 }: {
+  readonly renderTextFields: RenderSlideTextFields;
   readonly prep: PrepBinding;
   readonly session: SlidesListSession;
   readonly state: ServiceItemState;
@@ -118,6 +116,7 @@ function SlidesCardInspector({
         items={prep.items}
         editor={prep.editor}
         shownItem={state}
+        renderTextFields={renderTextFields}
         applyAll={applyAll}
         replayDraft={action => session.edit(action)}
         cardLabel={session.draft.snapshot.item.sectionCard?.label ?? null}
@@ -148,6 +147,7 @@ function SlidesCardInspector({
       store={prep.editor}
       onApplyAll={applyAll}
       cardSelected={state.cardSelected}
+      renderTextFields={renderTextFields}
     />
   );
 }
@@ -156,7 +156,9 @@ function SongCardInspector({
   prep,
   session,
   itemState,
+  renderTextFields,
 }: {
+  readonly renderTextFields: RenderSlideTextFields;
   readonly prep: PrepBinding;
   readonly session: SongSession;
   readonly itemState: ServiceItemState;
@@ -176,6 +178,7 @@ function SongCardInspector({
         items={prep.items}
         editor={prep.editor}
         shownItem={itemState}
+        renderTextFields={renderTextFields}
         replayDraft={action => session.edit(action)}
         cardLabel={session.slideModel.getSnapshot().context?.cardLabel ?? null}
         changeLabel={name => session.changeItemLabels(name, true)}
@@ -194,6 +197,7 @@ function SongCardInspector({
       store={prep.editor}
       shownSession={session}
       cardSelected={itemState.cardSelected}
+      renderTextFields={renderTextFields}
     />
   );
 }
@@ -212,7 +216,7 @@ interface ItemCardBindingProps {
 function ItemCardBinding(props: ItemCardBindingProps): ReactNode {
   const {items, shownItem, itemId} = props;
   return (
-    <SlideTextEditor
+    <SlideBoxes
       items={items}
       state={itemId === shownItem?.item?.id ? shownItem : null}
     >
@@ -222,7 +226,7 @@ function ItemCardBinding(props: ItemCardBindingProps): ReactNode {
           renderTextFields={itemId === undefined ? undefined : renderFields}
         />
       )}
-    </SlideTextEditor>
+    </SlideBoxes>
   );
 }
 
@@ -259,28 +263,6 @@ function ItemCardContent({
         renderTextFields,
       )}
     </div>
-  );
-}
-
-function SelectedSlideTextFields({
-  items,
-  state,
-  session,
-}: {
-  readonly items: ServiceItemStore;
-  readonly state: ServiceItemState;
-  readonly session: SongSession | SlidesListSession | null;
-}) {
-  const selectedId = useSyncExternalStore(
-    session?.slideModel.subscribe ?? noSubscribe,
-    () =>
-      session?.slideModel.getSnapshot().slides[session.selectedOccurrence]?.id,
-  );
-  if (session === null) return <SlideTextFields items={items} state={state} />;
-  if (session.slideDocumentId !== state.item?.id) return null;
-  const slide = state.cardSelected ? 0 : selectedId;
-  return slide === undefined ? null : (
-    <SlideTextFields items={items} state={state} slide={slide} />
   );
 }
 
@@ -476,7 +458,7 @@ function prepPanelParts({
                 shownSession={songSession}
                 leadingCard={card}
                 addCard={addCard}
-                textOverrides={itemState?.item?.textOverrides}
+                texts={itemState?.item?.texts}
                 renderTextFields={renderFields}
                 ui={prep.api.ui}
                 renderDesign={songItemDesign(prep.api, prep.items)}
@@ -517,40 +499,46 @@ function prepPanelParts({
               shownSession={songSession}
               flushSlides={() => prep.slides?.flush() ?? Promise.resolve(true)}
             />
-            {itemState &&
-            (otherEditor ||
-              slidesSession !== null ||
-              songSession?.itemSession) ? (
-              <SelectedSlideTextFields
-                items={prep.items}
-                state={itemState}
-                session={
-                  slidesSession ??
-                  (songSession?.itemSession ? songSession : null)
-                }
-              />
-            ) : null}
-            {otherEditor ? (
-              <OtherSlideInspector
-                items={prep.items}
-                editor={prep.editor}
-                shownItem={itemState ?? undefined}
-              />
-            ) : slidesSession && itemState ? (
-              <SlidesCardInspector
-                prep={prep}
-                session={slidesSession}
-                state={itemState}
-              />
-            ) : songSession?.itemSession && itemState ? (
-              <SongCardInspector
-                prep={prep}
-                session={songSession}
-                itemState={itemState}
-              />
-            ) : (
-              <SlideInspector store={prep.editor} shownSession={songSession} />
-            )}
+            <SlideBoxes
+              items={prep.items}
+              state={
+                otherEditor ||
+                slidesSession !== null ||
+                songSession?.itemSession
+                  ? itemState
+                  : null
+              }
+            >
+              {renderFields =>
+                otherEditor ? (
+                  <OtherSlideInspector
+                    items={prep.items}
+                    editor={prep.editor}
+                    shownItem={itemState ?? undefined}
+                    renderTextFields={renderFields}
+                  />
+                ) : slidesSession && itemState ? (
+                  <SlidesCardInspector
+                    prep={prep}
+                    session={slidesSession}
+                    state={itemState}
+                    renderTextFields={renderFields}
+                  />
+                ) : songSession?.itemSession && itemState ? (
+                  <SongCardInspector
+                    prep={prep}
+                    session={songSession}
+                    itemState={itemState}
+                    renderTextFields={renderFields}
+                  />
+                ) : (
+                  <SlideInspector
+                    store={prep.editor}
+                    shownSession={songSession}
+                  />
+                )
+              }
+            </SlideBoxes>
           </div>
         </EditorBackgroundDrop>
       ),
@@ -587,6 +575,9 @@ function OtherPrepEditor({
   const item = itemState.item;
   const [manualSplitRequest, setManualSplitRequest] = useState(0);
   const splitVerses = item !== null && itemEditorAdapter(item).splitVerses;
+  const selectedTile = useShow(view =>
+    item === null ? undefined : view.tiles[item.id]?.[itemState.position],
+  );
   const root = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const escape = (event: KeyboardEvent): void => {
@@ -619,15 +610,15 @@ function OtherPrepEditor({
       ) : null}
       {item !== null &&
       (isItemOfKind(item, 'bible') || isItemOfKind(item, 'sermon')) ? (
-        <PrepBibleSplitTools
-          item={item}
-          selectedIndex={itemState.position}
-          manualRequest={manualSplitRequest}
+        <BibleSplitTools
+          itemId={item.id}
+          tile={selectedTile}
+          request={manualSplitRequest}
           onProblem={prep.items.reportNotice}
         />
       ) : null}
       {item !== null && isItemOfKind(item, 'liturgy') ? (
-        <SlideTextEditor items={prep.items} state={itemState}>
+        <SlideBoxes items={prep.items} state={itemState}>
           {renderFields => (
             <LiturgyEditor
               items={prep.items}
@@ -636,10 +627,10 @@ function OtherPrepEditor({
               renderTextFields={renderFields}
             />
           )}
-        </SlideTextEditor>
+        </SlideBoxes>
       ) : item !== null &&
         (isItemOfKind(item, 'bible') || isItemOfKind(item, 'sermon')) ? (
-        <SlideTextEditor items={prep.items} state={itemState}>
+        <SlideBoxes items={prep.items} state={itemState}>
           {renderFields => (
             <BibleInlineEditor
               items={prep.items}
@@ -655,9 +646,9 @@ function OtherPrepEditor({
               }
             />
           )}
-        </SlideTextEditor>
+        </SlideBoxes>
       ) : item !== null && isItemOfKind(item, 'media') ? (
-        <SlideTextEditor items={prep.items} state={itemState}>
+        <SlideBoxes items={prep.items} state={itemState}>
           {renderFields => (
             <ServiceItemPanel
               items={prep.items}
@@ -667,7 +658,7 @@ function OtherPrepEditor({
               renderTextFields={renderFields}
             />
           )}
-        </SlideTextEditor>
+        </SlideBoxes>
       ) : item !== null &&
         (isItemOfKind(item, 'song') || isItemOfKind(item, 'slides')) ? null : (
         <ServiceItemPanel
@@ -825,10 +816,7 @@ export function usePrepPanels({
     }),
     [requestedEditor, requestedSlides, otherId, frameItem],
   );
-  const deferred = useDeferredValue(requestedFrame);
-  // NOTE(0913vision): With no drawing room, pictures draw in place and no
-  // background preparation can delay the frame.
-  const shown = pictures.drawInPlace ? requestedFrame : deferred;
+  const shown = useDeferredValue(requestedFrame);
   const editorKind =
     shown.editorSession === null
       ? 'table'
@@ -967,9 +955,7 @@ export function usePrepPanels({
       : null);
   return {
     shownItem: hasDraft && editorKind !== 'library' ? shownItem : selectedItem,
-    pictureIdentity: hasDraft
-      ? `edit:${editorKind}:${shownItem ?? shown.editorSession?.document.song.id ?? ''}`
-      : 'table',
+    editing: hasDraft,
     columns: hasDraft
       ? editorKind === 'library'
         ? [PREP_COLUMNS[0], PREP_DRAFT_COLUMNS[1], PREP_DRAFT_COLUMNS[2]]

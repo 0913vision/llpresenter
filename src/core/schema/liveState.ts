@@ -3,7 +3,7 @@ import {bibleVerseReferenceSchema, sectionCardSchema} from './service';
 import {songTitleLayoutSchema} from './songTitleLayout';
 import {slideTransitionSchema} from './slideTransition';
 import * as v from 'valibot';
-import {slideTextOverridesSchema} from './slideTextOverrides';
+import {slideTextsSchema} from './slideTexts';
 import {layerKinds, type LayerKind, type LiveState} from '../live/state';
 import type {Result} from '../common/result';
 import {parsePayload, payloadObject, type PayloadError} from './payload';
@@ -60,7 +60,6 @@ const slideLinesSchema = v.pipe(
 
 /** The next slide text and optional item kind, carried without changing live output. */
 export const nextSlideSchema = payloadObject({
-  textOverrides: v.exactOptional(slideTextOverridesSchema),
   label: v.nullable(liveTextSchema),
   labelContinued: v.exactOptional(v.literal(true)),
   title: v.exactOptional(liveTextSchema),
@@ -91,7 +90,7 @@ export const layerSchemas = {
     properties: v.exactOptional(outputMediaPropertiesSchema),
   }),
   slide: payloadObject({
-    textOverrides: v.exactOptional(slideTextOverridesSchema),
+    texts: v.exactOptional(slideTextsSchema),
     picture: v.exactOptional(mediaIdSchema),
     itemId: id,
     position: count,
@@ -153,6 +152,7 @@ export const layerSchemas = {
     lyricFormat: v.exactOptional(songLyricFormatSchema),
     continued: v.exactOptional(v.boolean()),
     reference: v.exactOptional(liveTextSchema),
+    ownReference: v.exactOptional(v.literal(true)),
     name: v.exactOptional(liveTextSchema),
     kind: v.exactOptional(v.picklist(themeItemKinds)),
     title: v.exactOptional(liveTextSchema),

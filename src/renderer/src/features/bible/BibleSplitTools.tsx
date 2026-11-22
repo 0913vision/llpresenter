@@ -1,257 +1,125 @@
-import {withSectionCard} from '@core/services/sectionCards';
-import {useShownItemId} from '@renderer/session/shownItem';
-import {useEffect, useLayoutEffect, useRef, useState, type JSX} from 'react';
-import type {VerseSlide} from '@core/schema/service';
-import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
+import {useEffect, useRef, useState, type JSX} from 'react';
+import type {SlideTile} from '@core/presentation/model';
 import {
-  publishSlidesProjection,
-  setBibleTileResolver,
-} from '@renderer/session/showLibrary';
-import {useLive} from '@renderer/session/live';
+  cutVerse,
+  isPassageItem,
+  keptSlides,
+  passageOf,
+  withPassage,
+} from '@core/services/passageEdits';
+import type {VerseReference} from '@core/bible/bibleTiles';
+import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useShow} from '@renderer/session/show';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
-import {
-  canReviewBiblePart,
-  splitSourceFor,
-  sourceContent,
-  type BibleProjection,
-} from './splitProjection';
-import {SplitReview} from './SplitReview';
-import {confirmBibleCuts} from './saveBibleCuts';
 import {updateServiceItem} from '@renderer/session/serviceItemUpdate';
-import {isItemOfKind} from '@core/schema/service';
-import {biblePartEffect, setBiblePartEffect} from '@core/bible/partTransitions';
-import {cacheKey} from '@core/bible/split/splitCache';
-import {textVerseKey} from '@core/presentation/textOverrides';
-import {useBibleProjections} from './useBibleProjections';
-import {installBiblePictureProjection} from './prepareBiblePictures';
+import {confirmBibleCuts} from './saveBibleCuts';
+import {passageSplitter, type BibleSplit} from './passageSplitter';
+import {SplitReview} from './SplitReview';
 
-interface EditorSession {
-  readonly source: BibleProjection;
-  readonly references: ReadonlyArray<VerseSlide['verse']>;
+interface Cut {
+  readonly itemId: string;
+  readonly split: BibleSplit;
+  readonly reference: VerseReference;
 }
 
-/** Installs one shared projection for saved Bible items, the panel, and live navigation. */
+/** Cuts the verse of the selected slide by hand, whatever it shows now. */
 export function BibleSplitTools({
+  itemId,
+  tile,
+  request = 0,
   onProblem,
-  enableManual = false,
-  selectedIndex,
-  manualRequest = 0,
 }: {
-  readonly selectedIndex?: number | undefined;
-  readonly manualRequest?: number | undefined;
-  readonly enableManual?: boolean;
+  readonly itemId: string | null;
+  readonly tile: SlideTile | undefined;
+  /** Opens the editor each time it changes. */
+  readonly request?: number;
   readonly onProblem: (notice: Notice) => void;
 }): JSX.Element | null {
-  const {projections, themes, screens, saved} = useBibleProjections({
-    onProblem,
-  });
-  const [session, setSession] = useState<EditorSession | null>(null);
-  const active = useRef(true);
-  useEffect(() => {
-    active.current = true;
-    return () => {
-      active.current = false;
-    };
-  }, []);
-  useLayoutEffect(
-    () => installBiblePictureProjection(projections),
-    [projections],
-  );
-  useLayoutEffect(() => () => setBibleTileResolver(null), []);
-  useLayoutEffect(() => {
-    setBibleTileResolver(
-      projections === null
-        ? null
-        : (view, id) => {
-            const source = splitSourceFor(view, id);
-            if (source === null) return null;
-            const tiles = projections.get(source)?.tiles;
-            if (tiles === undefined) return null;
-            return withSectionCard(view.tiles[id]?.[0]?.sectionCard, tiles);
-          },
-      themes === null || screens === null || saved === null
-        ? null
-        : {
-            themes: themes.revision,
-            screens: screens.revision,
-            bibleCuts: saved.revision,
-          },
-    );
-  }, [projections, themes, screens, saved]);
-  const shownItemId = useShownItemId();
-  const projection = useShow(view => {
-    if (shownItemId === null || projections === null) return null;
-    const source = splitSourceFor(view, shownItemId);
-    return source === null ? null : projections.get(source);
-  });
-  const selected = useShow(
-    view =>
-      (selectedIndex ?? view.selectedTile) -
-      (shownItemId !== null &&
-      view.rows.find(row => row.id === shownItemId)?.kind === 'bible' &&
-      view.tiles[shownItemId]?.[0]?.sectionCard !== undefined
-        ? 1
-        : 0),
-  );
-  const liveId = useLive(view => view.state?.layers.slide?.itemId ?? null);
-  const liveProjection = useShow(view => {
-    if (liveId === null || projections === null) return null;
-    const source = splitSourceFor(view, liveId);
-    return source === null ? null : projections.get(source);
-  });
-  useLayoutEffect(() => {
-    if (liveId !== null && liveProjection !== null) {
-      publishSlidesProjection(useShow.getState(), liveId, liveProjection.tiles);
-    }
-  }, [liveId, liveProjection]);
-  const reported = useRef<object | null>(null);
-  useEffect(() => {
-    const failedMeasure =
-      projection?.parts.some(part => part.problem !== undefined) === true;
+  const [cut, setCut] = useState<Cut | null>(null);
+  const open = (): void => {
+    const view = useShow.getState();
+    const row = view.rows.find(entry => entry.id === itemId);
+    const reference = tile?.bibleVerse;
     if (
-      projection === null ||
-      (projection.problem !== 'tile-limit' && !failedMeasure) ||
-      reported.current === sourceContent(projection.source)
+      itemId === null ||
+      reference === undefined ||
+      row?.kind !== 'bible' ||
+      row.bible?.passage === undefined
     ) {
       return;
     }
-    reported.current = sourceContent(projection.source);
-    onProblem({
-      key: 'bible-split:limit',
-      kind: 'warning',
-      icon: 'warning',
-      title: failedMeasure
-        ? '성경 구절 나누기 실패'
-        : '슬라이드는 10000개까지 만들 수 있습니다',
-      time: noticeTime(),
+    const split = passageSplitter()?.split(row.bible.passage, {
+      verseNumbers: row.bible.verseNumbers ?? true,
+      slides: row.bible.slides,
+      theme: row.bible.theme,
     });
-  }, [projection, onProblem]);
-  const lastManualRequest = useRef(manualRequest);
-  const canReview = canReviewBiblePart(projection, selected);
-  useEffect(() => {
-    if (lastManualRequest.current === manualRequest) return;
-    lastManualRequest.current = manualRequest;
-    const part = projection?.partsByTile[selected];
-    if (!enableManual || !canReview || projection === null || part == null) {
+    if (split == null) {
+      onProblem({
+        key: 'bible-split',
+        kind: 'warning',
+        icon: 'warning',
+        title: '성경 구절 나누기 실패',
+        time: noticeTime(),
+      });
       return;
     }
-    queueMicrotask(() => {
-      if (active.current) {
-        setSession({
-          source: projection,
-          references: [part.reference],
-        });
-      }
-    });
-  }, [manualRequest, enableManual, canReview, projection, selected]);
+    setCut({itemId, split, reference});
+  };
+  const seen = useRef(request);
+  useEffect(() => {
+    if (seen.current === request) return;
+    seen.current = request;
+    queueMicrotask(open);
+  });
   useWindowShortcuts([
     {
       id: 'bible.splitEdit',
-      when: () =>
-        enableManual &&
-        canReview &&
-        projection?.partsByTile[selected] != null &&
-        session === null,
-      run: () => {
-        const part = projection?.partsByTile[selected];
-        if (projection !== null && part != null) {
-          setSession({
-            source: projection,
-            references: [part.reference],
-          });
-        }
-      },
+      when: () => cut === null && tile?.bibleVerse !== undefined,
+      run: open,
     },
   ]);
-  const current =
-    session !== null && projection?.source.id === session.source.source.id
-      ? projection
-      : session?.source;
-  if (session === null || current === undefined) {
-    return null;
-  }
+  if (cut === null) return null;
   return (
     <SplitReview
-      key={current.source.id}
-      projection={current}
-      references={session.references}
+      projection={cut.split}
+      references={[cut.reference]}
       pending={new Set()}
-      onCancel={() => setSession(null)}
-      onConfirm={async (verse, cuts) => {
+      onCancel={() => setCut(null)}
+      onConfirm={async (verse, {selection, texts}) => {
         const api = window.llp;
-        if (api === undefined) throw new Error('절 나누기 저장 실패');
-        const entry = await confirmBibleCuts(api.settings, verse, cuts);
-        const serviceId = useShow.getState().serviceId;
+        const {serviceId, rows} = useShow.getState();
+        const row = rows.find(entry => entry.id === cut.itemId);
         if (
-          current.source.source !== 'service' ||
-          current.source.kind !== 'bible' ||
-          serviceId === null
+          api === undefined ||
+          serviceId === null ||
+          row?.kind !== 'bible' ||
+          row.bible?.passage === undefined
         ) {
-          return;
+          throw new Error('절 나누기 저장 실패');
         }
-        const oldParts = current.parts.filter(
-          part =>
-            part.reference.translation === verse.reference.translation &&
-            part.reference.book === verse.reference.book &&
-            part.reference.chapter === verse.reference.chapter &&
-            part.reference.verse === verse.reference.verse,
-        ).length;
-        const transition =
-          entry.cuts.length + 1 > oldParts
-            ? (await api.preferences.get()).show.slideDefaults.bible
-            : undefined;
+        const lookup = row.bible.passage;
+        await confirmBibleCuts(api.settings, verse, selection).catch(
+          (error: unknown) =>
+            console.error('Could not remember the cut of a verse', error),
+        );
         const result = await updateServiceItem(api, {
           serviceId,
-          itemId: current.source.id,
+          itemId: cut.itemId,
           change: item => {
-            if (!isItemOfKind(item, 'bible') && !isItemOfKind(item, 'sermon')) {
-              return null;
-            }
-            const passage = isItemOfKind(item, 'bible')
-              ? item.bible
-              : item.sermon.passage;
-            if (
-              passage.translation !== verse.reference.translation ||
-              passage.pinnedVerses?.[textVerseKey(verse.reference)] !==
-                undefined
-            ) {
-              return null;
-            }
-            const updated = {
+            if (!isPassageItem(item)) return null;
+            const passage = passageOf(item);
+            return withPassage(item, {
               ...passage,
-              cuts: {...passage.cuts, [cacheKey(verse.reference)]: entry},
-            };
-            let transitions = item.bibleTransitions ?? [];
-            for (
-              let part = oldParts + 1;
-              part <= entry.cuts.length + 1;
-              part++
-            ) {
-              if (
-                transition !== undefined &&
-                biblePartEffect(transitions, verse.reference, part) ===
-                  undefined
-              ) {
-                transitions = setBiblePartEffect(
-                  transitions,
-                  {verse: verse.reference, part},
-                  transition,
-                );
-              }
-            }
-            return isItemOfKind(item, 'bible')
-              ? {...item, bible: updated, bibleTransitions: transitions}
-              : {
-                  ...item,
-                  sermon: {...item.sermon, passage: updated},
-                  bibleTransitions: transitions,
-                };
+              slides: cutVerse(keptSlides(passage, lookup), verse.reference, {
+                texts,
+                transition: passage.transition,
+              }),
+            });
           },
         });
         if (!result.ok) throw Error('절 나누기 저장 실패');
       }}
-      onComplete={() => setSession(null)}
+      onComplete={() => setCut(null)}
     />
   );
 }

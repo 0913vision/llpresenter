@@ -1,93 +1,33 @@
 import {displayReference} from '@core/bible/displayReference';
-import {cardOffset} from '@core/services/sectionCards';
-import {useMemo, type JSX, type ReactNode} from 'react';
+import type {JSX, ReactNode} from 'react';
 import type {ServiceItemOf} from '@core/schema/service';
-import {VirtualSlides} from '@renderer/features/songs/editor/VirtualSlides';
-import {defaultThumbnailColumns, type SizeClass} from '@renderer/ui/sizeClass';
+import type {SizeClass} from '@renderer/ui/sizeClass';
 import {useShow} from '@renderer/session/show';
-import {useThumbnailScale} from '@renderer/platform/thumbnailScale';
 import {SlideSizeControl} from '@renderer/platform/SlideSizeControl';
 import {Panel, PanelBody, PanelHeader, PanelTitle} from '@renderer/ui/Panel';
 import {GridFooter} from '@renderer/ui/GridFooter';
 import {ITEM_PANEL_LABEL} from './OtherItemPanel';
-import {shownPosition} from '../../songs/editor/songItemModel';
-import {bibleEditorData, savedPassageTiles} from './bibleItemModel';
-import {useBibleTileProjection} from '@renderer/features/bible/useBibleProjections';
-import {SlidePicture} from '@renderer/rendering/SlidePicture';
-import {slideLayerOf} from '@core/presentation/slideLayer';
 import styles from './OtherItemPanel.module.css';
 
-/** Local selection over main's saved passage projection; no output handlers. */
+/** The slides of a saved passage, beside the service order. */
 export function BibleItemPanel({
   item,
-  serviceId,
-  position,
-  onSelect,
   sizeClass,
   children,
 }: {
   readonly item: ServiceItemOf<'bible'>;
-  readonly serviceId: string;
-  readonly position: number;
-  readonly onSelect: (index: number) => void;
   readonly sizeClass: SizeClass;
-  readonly children?: ReactNode;
+  readonly children: ReactNode;
 }): JSX.Element {
-  const rawTiles = useShow(view => savedPassageTiles(view, serviceId, item.id));
-  const projection = useBibleTileProjection({itemId: item.id, serviceId});
-  const tiles = bibleEditorData(item, rawTiles, projection?.tiles)
-    .slides.filter(slide => slide.kind === 'verse')
-    .map(slide => slide.tile);
-  const scale = useThumbnailScale(sizeClass);
-  const projected = useMemo(
-    () => ({
-      slides: tiles.map(tile => {
-        const label = tile.slideLabel ?? tile.label;
-        return label === null
-          ? {lines: tile.lines}
-          : {label, lines: tile.lines};
-      }),
-    }),
-    [tiles],
-  );
-  const numbers = useMemo(() => tiles.map((_, index) => index + 1), [tiles]);
+  const count = useShow(view => view.tiles[item.id]?.length ?? 0);
   return (
     <Panel label={ITEM_PANEL_LABEL} className={styles.panel}>
       <PanelHeader>
         <PanelTitle title={displayReference(item.bible.ref)} />
       </PanelHeader>
-      <PanelBody variant="flush">
-        {children ?? (
-          <VirtualSlides
-            itemKey={item.id}
-            contentReady={projection !== null}
-            song={projected}
-            numbers={numbers}
-            labels={[]}
-            selected={shownPosition(position, tiles.length)}
-            onSelect={onSelect}
-            baseline={defaultThumbnailColumns[sizeClass]}
-            scale={scale}
-            canvasFor={index => {
-              const appearance = projection?.appearance;
-              const slide = slideLayerOf({itemId: item.id, index}, () => tiles);
-              return appearance === undefined || slide === null ? undefined : (
-                <SlidePicture
-                  screen={appearance.screen}
-                  themeId={appearance.theme.themeId}
-                  background={appearance.background}
-                  slide={slide}
-                  layout={appearance.theme.layout}
-                  emptyColor={appearance.theme.emptyColor}
-                  item={appearance.theme.item}
-                />
-              );
-            }}
-          />
-        )}
-      </PanelBody>
+      <PanelBody variant="flush">{children}</PanelBody>
       <GridFooter
-        count={tiles.length + cardOffset(item)}
+        count={count}
         zoom={<SlideSizeControl sizeClass={sizeClass} workspace="prep" />}
       />
     </Panel>

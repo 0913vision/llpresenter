@@ -16,7 +16,6 @@ import {openBiblePassage} from './actions';
 import {passageBook, type VerseDirection} from '@core/bible/adjacentVerses';
 import {lookupAdjacentPassage} from './lookupAdjacentPassage';
 import type {BibleSource} from '@core/bible/source';
-import {prepareBiblePictures} from './prepareBiblePictures';
 
 /** Extends the preview without changing the selected verse or live output. */
 export function BibleAdjacentButtons({
@@ -80,14 +79,12 @@ export function BibleAdjacentButtons({
         enteredTranslation:
           source.enteredTranslation ?? source.passage.translation,
       };
-      const ready = await prepareBiblePictures(passage, options);
-      if (!current()) return;
       const live = useLive.getState().state?.layers.slide ?? null;
       const updateLive =
         live !== null &&
         bibleSourceFor(initial, live.itemId) !== null &&
         liveTileIndex(initial, live) !== null;
-      openBiblePassage(passage, options, {ready, waitForLive: updateLive});
+      openBiblePassage(passage, options, {waitForLive: updateLive});
       const view = useShow.getState();
       if (updateLive) {
         sendLive({

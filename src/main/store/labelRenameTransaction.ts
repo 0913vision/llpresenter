@@ -8,6 +8,11 @@ import type {SettingsStore} from './settingsStore';
 import type {ContentCommandContext} from './contentCommands';
 import {SONG_LIMITS} from '@core/schema/song';
 import {hasSectionCard} from '@core/services/sectionCards';
+import {
+  isPassageItem,
+  passageOf,
+  withPassage,
+} from '@core/services/passageEdits';
 
 /**
  * Prepares the existing label/reference rewrite and returns its pending save
@@ -61,8 +66,10 @@ export async function prepareLabelRename(
     (isItemOfKind(item, 'liturgy') &&
       (item.liturgy.labels ?? []).some(entry => entry.label === edit.from)) ||
     (hasSectionCard(item) && item.sectionCard.label === edit.from) ||
-    ((isItemOfKind(item, 'bible') || isItemOfKind(item, 'sermon')) &&
-      (item.bibleLabels ?? []).some(entry => entry.label === edit.from)) ||
+    (isPassageItem(item) &&
+      Object.values(passageOf(item).slides ?? {}).some(verse =>
+        verse.some(slide => slide.label === edit.from),
+      )) ||
     (isItemOfKind(item, 'sermon') &&
       (item.sermon.openingLabel === edit.from ||
         item.sermon.closingLabel === edit.from)) ||
@@ -118,26 +125,35 @@ export async function prepareLabelRename(
     if (isItemOfKind(item, 'media') && item.slideLabel === edit.from) {
       return {...item, slideLabel: name};
     }
-    if (isItemOfKind(item, 'bible') || isItemOfKind(item, 'sermon')) {
-      const bibleLabels = item.bibleLabels?.map(entry =>
-        entry.label === edit.from ? {...entry, label: name} : entry,
-      );
-      if (isItemOfKind(item, 'sermon')) {
-        return {
-          ...item,
-          ...(bibleLabels === undefined ? {} : {bibleLabels}),
-          sermon: {
-            ...item.sermon,
-            ...(item.sermon.openingLabel === edit.from
-              ? {openingLabel: name}
-              : {}),
-            ...(item.sermon.closingLabel === edit.from
-              ? {closingLabel: name}
-              : {}),
-          },
-        };
-      }
-      return {...item, ...(bibleLabels === undefined ? {} : {bibleLabels})};
+    if (isPassageItem(item)) {
+      const passage = passageOf(item);
+      const renamed =
+        passage.slides === undefined
+          ? item
+          : withPassage(item, {
+              ...passage,
+              slides: Object.fromEntries(
+                Object.entries(passage.slides).map(([key, verse]) => [
+                  key,
+                  verse.map(slide =>
+                    slide.label === edit.from ? {...slide, label: name} : slide,
+                  ),
+                ]),
+              ),
+            });
+      if (!isItemOfKind(renamed, 'sermon')) return renamed;
+      return {
+        ...renamed,
+        sermon: {
+          ...renamed.sermon,
+          ...(renamed.sermon.openingLabel === edit.from
+            ? {openingLabel: name}
+            : {}),
+          ...(renamed.sermon.closingLabel === edit.from
+            ? {closingLabel: name}
+            : {}),
+        },
+      };
     }
     return isItemOfKind(item, 'song')
       ? {

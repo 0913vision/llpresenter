@@ -3,27 +3,21 @@ import {songTitleLayoutSchema} from './songTitleLayout';
 import {MEDIA_LIMITS} from './mediaList';
 import {slideTransitionSchema} from './slideTransition';
 import * as v from 'valibot';
-import {
-  itemTextOverridesSchema,
-  slideTextOverridesSchema,
-} from './slideTextOverrides';
+import {slideTextsSchema} from './slideTexts';
 import {labelColorSchema} from './labelColor';
 import type {Result} from '../common/result';
 import type {ReadonlyKnown} from './fileFormat';
 import {biblePartSchema, mediaChoiceSchema} from './liveState';
 import {BIBLE_LOOKUP_LIMITS, bibleLookupPassageSchema} from './bibleLookup';
-import {bibleCutEntrySchema, bibleVerseCutsSchema} from './bibleCuts';
+import {bibleCutEntrySchema} from './bibleCuts';
 import {
   bibleVerseReferenceSchema,
-  biblePartTransitionsSchema,
-  biblePartLabelsSchema,
   sectionCardSchema,
   SLIDES_LIMITS,
 } from './service';
 import {
   bibleReferenceSchema as bibleReferenceFrequencySchema,
-  pinnedBibleVersesSchema,
-  deletedBibleSlidesSchema,
+  bibleSlidesSchema,
 } from './biblePassage';
 import {
   mediaIdSchema,
@@ -71,21 +65,12 @@ const bibleReferenceSchema = v.pipe(
     ),
     ref: v.pipe(nonBlankText, v.maxLength(BIBLE_LOOKUP_LIMITS.input)),
     sermonTitle: v.exactOptional(v.pipe(nonBlankText, v.maxLength(1000))),
-    sermonOpeningLabel: v.exactOptional(v.pipe(nonBlankText, v.maxLength(64))),
-    sermonClosingLabel: v.exactOptional(v.pipe(nonBlankText, v.maxLength(64))),
-    sermonOpeningTransition: v.exactOptional(slideTransitionSchema),
-    sermonClosingTransition: v.exactOptional(slideTransitionSchema),
     verseNumbers: v.exactOptional(v.boolean()),
     translationName: v.exactOptional(v.boolean()),
     reference: v.exactOptional(bibleReferenceFrequencySchema),
     transition: v.exactOptional(slideTransitionSchema),
     theme: v.exactOptional(themeIdSchema),
-    transitions: v.exactOptional(biblePartTransitionsSchema),
-    cuts: v.exactOptional(bibleVerseCutsSchema),
-    pinnedVerses: v.exactOptional(pinnedBibleVersesSchema),
-    deletedSlides: v.exactOptional(deletedBibleSlidesSchema),
-    textOverrides: v.exactOptional(itemTextOverridesSchema),
-    labels: v.exactOptional(biblePartLabelsSchema),
+    slides: v.exactOptional(bibleSlidesSchema),
     passage: v.exactOptional(
       v.pipe(
         bibleLookupPassageSchema,
@@ -127,7 +112,6 @@ const showRowSchema = v.pipe(
       id,
       title: v.string(),
       form: v.picklist(['blank', 'ad']),
-      textOverrides: v.exactOptional(itemTextOverridesSchema),
       liturgy: v.exactOptional(
         payloadObject({
           kind: v.picklist(['creed', 'prayer']),
@@ -189,6 +173,8 @@ export const showTileSchema = v.pipe(
     titleLayout: v.exactOptional(songTitleLayoutSchema),
     lyricFormat: v.exactOptional(songLyricFormatSchema),
     reference: v.exactOptional(liveTextSchema),
+    /** The reference was typed on this slide. */
+    ownReference: v.exactOptional(v.literal(true)),
     name: v.exactOptional(liveTextSchema),
     picture: v.exactOptional(mediaIdSchema),
     kind: v.exactOptional(v.picklist(['blank', 'ad'])),
@@ -196,8 +182,10 @@ export const showTileSchema = v.pipe(
     biblePart: v.exactOptional(biblePartSchema),
     bibleVerse: v.exactOptional(bibleVerseReferenceSchema),
     sourceSlideId: v.exactOptional(slideIdSchema),
-    textOverrides: v.exactOptional(slideTextOverridesSchema),
-    textSlideKey: v.exactOptional(v.pipe(v.string(), v.maxLength(320))),
+    /** Names this slide in its item, for what is kept beside the slide. */
+    key: v.exactOptional(v.pipe(v.string(), v.maxLength(320))),
+    /** What the theme's own text boxes show on this slide, by box name. */
+    texts: v.exactOptional(slideTextsSchema),
     transition: v.exactOptional(slideTransitionSchema),
     verse: v.exactOptional(
       payloadObject({

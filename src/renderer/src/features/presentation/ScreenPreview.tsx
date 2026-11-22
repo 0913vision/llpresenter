@@ -1,54 +1,57 @@
-import {useLayoutEffect, useState, useSyncExternalStore, type JSX} from 'react';
-import {emptyLayers, type LiveLayers, type LiveState} from '@core/live/state';
+import {useLayoutEffect, useState, type JSX} from 'react';
+import {emptyLayers} from '@core/live/state';
 import {ScreenFrames} from '@renderer/rendering/screenFrames';
-import type {RenderFrame} from '@renderer/rendering/layer';
+import {Still} from '@renderer/pictures/SlidePicture';
+import type {StillPicture} from '@renderer/rendering/slideStill';
 import {themeBackgroundColor} from '@renderer/rendering/themeBackground';
-import {Picture} from '@renderer/rendering/pictures/Picture';
-import {pictures} from '@renderer/rendering/pictures/pictureService';
-import {pictureBounds} from '@renderer/rendering/pictures/drawPicture';
-import type {PictureSpec} from '@renderer/rendering/pictures/pictureService';
 import {useLive} from '@renderer/session/live';
+import {classNames} from '@renderer/ui/classNames';
 import styles from './ScreenPreview.module.css';
 
 const noLayers = emptyLayers();
-
-/** A static slide can share the cached output picture. */
-export function cachedScreenPicture(
-  layers: LiveLayers,
-  frame: RenderFrame,
-  state: LiveState | null,
-): PictureSpec | undefined {
-  const {screen, theme} = frame;
-  if (screen === undefined || theme === undefined || state === null) {
-    return undefined;
-  }
-  return {
-    layers: {
-      ...layers,
-      media: layers.media === null ? null : {...layers.media, startedAt: 0},
-    },
-    appearance: {
-      screen,
-      theme,
-      ...(frame.audience === undefined ? {} : {audience: frame.audience}),
-      ...(frame.stageLyricLabelPosition === undefined
-        ? {}
-        : {stageLyricLabelPosition: frame.stageLyricLabelPosition}),
-      background: themeBackgroundColor(
-        theme.layout.background,
-        theme.emptyColor,
-      ),
-      checker: false,
-    },
-  };
-}
 
 function reportDrawingError(message: string, error: unknown): void {
   const detail = error instanceof Error ? (error.stack ?? error.message) : '';
   window.llp?.log.write({level: 'error', message, detail});
 }
 
-/** Shows a cached still without waking an inactive output. */
+interface Snapshot {
+  readonly screenId: string;
+  readonly black: boolean;
+  readonly picture: StillPicture | undefined;
+}
+
+function snapshotOf(
+  screenId: string,
+  frame: ReturnType<ScreenFrames['frame']>,
+  layers: StillPicture['layers'],
+): Snapshot {
+  const {screen, theme} = frame ?? {};
+  return {
+    screenId,
+    black: frame?.blackScreen === true,
+    picture:
+      screen === undefined || theme === undefined
+        ? undefined
+        : {
+            layers,
+            appearance: {
+              screen,
+              theme,
+              audience: frame?.audience,
+              ...(frame?.stageLyricLabelPosition === undefined
+                ? {}
+                : {stageLyricLabelPosition: frame.stageLyricLabelPosition}),
+              background: themeBackgroundColor(
+                theme.layout.background,
+                theme.emptyColor,
+              ),
+            },
+          },
+  };
+}
+
+/** What a screen that is off would show now. */
 export function ScreenPreview({
   screenId,
   chroma,
@@ -56,34 +59,20 @@ export function ScreenPreview({
   readonly screenId: string;
   readonly chroma: boolean;
 }): JSX.Element {
-  const [snapshot, setSnapshot] = useState<{
-    screenId: string;
-    picture: PictureSpec | undefined;
-    screen: RenderFrame['screen'];
-    blackScreen: boolean;
-  }>();
-  const picture =
-    snapshot?.screenId === screenId ? snapshot.picture : undefined;
+  const [state, setState] = useState<Snapshot>();
   useLayoutEffect(() => {
     const api = window.llp;
     if (api === undefined) return undefined;
     let stopped = false;
     const holder: {frames?: ScreenFrames} = {};
     const update = (): void => {
-      const frames = holder.frames;
+      const {frames} = holder;
       if (stopped || frames === undefined) return;
-      const state = useLive.getState().state;
+      const live = useLive.getState().state;
       try {
-        const frame = frames.frame(state);
-        setSnapshot({
-          screenId,
-          screen: frame?.screen,
-          blackScreen: frame?.blackScreen === true,
-          picture:
-            frame === undefined
-              ? undefined
-              : cachedScreenPicture(state?.layers ?? noLayers, frame, state),
-        });
+        setState(
+          snapshotOf(screenId, frames.frame(live), live?.layers ?? noLayers),
+        );
       } catch (error) {
         reportDrawingError('could not update the screen preview', error);
       }
@@ -108,29 +97,13 @@ export function ScreenPreview({
       frames.dispose();
     };
   }, [screenId]);
-  const classes = [styles.screen];
-  if (chroma) classes.push(styles.chroma);
-  const screen = snapshot?.screenId === screenId ? snapshot.screen : undefined;
-  const size = useSyncExternalStore(pictures.subscribeInputs, () =>
-    pictures.screenSize(screen ?? {id: screenId}),
-  );
-  const bounds = pictureBounds(size);
+  const shown = state?.screenId === screenId ? state : undefined;
   return (
-    <div className={classes.join(' ')}>
-      {snapshot?.screenId === screenId && snapshot.blackScreen ? (
+    <div className={classNames(styles.screen, chroma && styles.chroma)}>
+      {shown?.black === true ? (
         <div className={styles.black} data-black-screen />
-      ) : picture === undefined ? null : (
-        <div
-          className={styles.picture}
-          style={{
-            width: `${(1920 / bounds.width) * 100}%`,
-            height: `${(1080 / bounds.height) * 100}%`,
-            left: `${(-bounds.x / bounds.width) * 100}%`,
-            top: `${(-bounds.y / bounds.height) * 100}%`,
-          }}
-        >
-          <Picture {...picture} />
-        </div>
+      ) : shown?.picture === undefined ? null : (
+        <Still {...shown.picture} />
       )}
     </div>
   );

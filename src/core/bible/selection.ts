@@ -34,16 +34,19 @@ export function biblePartIndex(
   tiles: readonly SlideTile[],
   {label, part, sourceSlideId, bibleVerse}: BiblePartIdentity,
 ): number | null {
+  const own =
+    sourceSlideId === undefined
+      ? -1
+      : tiles.findIndex(tile => tile.sourceSlideId === sourceSlideId);
+  if (own >= 0) return own;
   const indices: number[] = [];
   tiles.forEach((tile, index) => {
     if (tile.sectionCard !== undefined) return;
     if (
-      sourceSlideId !== undefined
-        ? tile.sourceSlideId === sourceSlideId
-        : bibleVerse !== undefined
-          ? tile.bibleVerse !== undefined &&
-            sameBibleVerse(tile.bibleVerse, bibleVerse)
-          : sameVerseLabel(tile.label, label)
+      bibleVerse !== undefined
+        ? tile.bibleVerse !== undefined &&
+          sameBibleVerse(tile.bibleVerse, bibleVerse)
+        : sourceSlideId === undefined && sameVerseLabel(tile.label, label)
     ) {
       indices.push(index);
     }
@@ -66,10 +69,8 @@ export function retainedBibleSelection(
     const card = next.findIndex(tile => tile.sectionCard !== undefined);
     return card < 0 ? Math.max(0, Math.min(selected, next.length - 1)) : card;
   }
-  if (current?.sermonTitle && current.textSlideKey !== undefined) {
-    const title = next.findIndex(
-      tile => tile.textSlideKey === current.textSlideKey,
-    );
+  if (current?.sermonTitle && current.key !== undefined) {
+    const title = next.findIndex(tile => tile.key === current.key);
     return title < 0 ? Math.max(0, Math.min(selected, next.length - 1)) : title;
   }
   const first = previous.findIndex(

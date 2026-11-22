@@ -4,108 +4,40 @@ import {NO_LABEL_COLOR, type LabelColor} from '../labels/colors';
 import type {MediaItem} from '../schema/mediaList';
 import type {ServiceItemOf} from '../schema/service';
 import type {ShowTile} from '../schema/showService';
-import type {ThemesFile} from '../schema/themes';
-import {createScreenId} from '../schema/ids';
-import type {SettingsDocument} from '../schema/settingsDocuments';
-import type {ThemeScreen} from '../themes/defaults';
-import {isThemeTextElement} from '../themes/content';
-import {resolveItemTheme, resolveThemeScreen} from '../themes/resolve';
-import {matchSlideText} from '../themes/textSlots';
-import type {TextSlotLayout} from '../themes/textBindings';
 import type {BibleLookupPassage} from '../schema/bibleLookup';
 import {BIBLE_BOOKS} from '../bible/bibleBooks';
 import {bibleOutputLines} from '../bible/bibleTiles';
 import {continuationText} from '../bible/split/continuation';
-import {slideTextValue, textOverridesForTiles} from './textOverrides';
+import {withSlideTexts} from './slideTexts';
 
 type SlidesItem = ServiceItemOf<'slides'>;
 type Slide = SlidesItem['slides']['slides'][number];
-export type AdSlideTitle = (slide: Slide) => string;
 
-export interface AdTitleSettings {
-  readonly file: ThemesFile | null;
-  readonly screens: readonly ThemeScreen[];
-}
-
-export function adTitleSettingsFrom(
-  themes: SettingsDocument | null | undefined,
-  screens: SettingsDocument | null | undefined,
-): AdTitleSettings | undefined {
-  return screens?.name === 'screens'
-    ? {
-        file: themes?.name === 'themes' ? themes.value : null,
-        screens: screens.value.screens,
-      }
-    : undefined;
-}
-
-/** Uses the effective theme and the same bindings as the per-slide title field. */
-export function adSlideTitles(
-  item: SlidesItem,
-  settings?: AdTitleSettings,
-): AdSlideTitle | undefined {
-  if (item.slides.form !== 'ad') return undefined;
-  const automatic = (slide: Slide): string =>
-    'text' in slide && slide.name?.trim() ? slide.name : item.slides.name;
-  if (item.textOverrides === undefined) return automatic;
-  const screens = settings?.screens;
-  const theme = resolveItemTheme({
-    file: settings?.file,
-    kind: 'ad',
-    source: 'service',
-    ...(item.theme === undefined ? {} : {theme: item.theme}),
-    ...(screens === undefined ? {} : {screens}),
-  });
-  const layouts: TextSlotLayout[] =
-    screens === undefined
-      ? Object.entries(theme.screens).map(([id, layout]) => ({
-          themeId: theme.id,
-          sourceScreenId: createScreenId(id),
-          layout,
-        }))
-      : screens.map(screen => ({
-          themeId: theme.id,
-          ...resolveThemeScreen(theme, screen.id, screens),
-        }));
-  const fields = layouts.flatMap(layout =>
-    layout.layout.elements
-      .filter(isThemeTextElement)
-      .filter(
-        element => (element.textSlot?.role ?? element.kind) === 'slideName',
-      )
-      .map(element => ({layout, element})),
-  );
-  return slide => {
-    if (!('text' in slide)) return automatic(slide);
-    const values = item.textOverrides?.[`slide:${slide.id}`];
-    for (const {layout, element} of fields) {
-      const title = slideTextValue(
-        matchSlideText(values, layout, element)?.value,
-      );
-      if (title !== undefined) return title;
-    }
-    return automatic(slide);
-  };
+/** The title of an ad slide: its own name, or the item's for a picture. */
+export function adSlideTitle(item: SlidesItem, slide: Slide): string {
+  return 'text' in slide && slide.name?.trim() ? slide.name : item.slides.name;
 }
 
 /** Projects both slide forms without putting thumbnail bands into live text. */
+function shownName(reference: string | undefined, text: string): string {
+  const own = reference?.trim() ?? '';
+  return own === '' ? (text.split('\n')[0]?.trim() ?? '') : own;
+}
+
 export function projectSlides(
   item: SlidesItem,
   media: ReadonlyMap<string, MediaItem> = new Map(),
   {
     passages = new Map(),
-    adTitleSettings,
   }: {
     readonly passages?: ReadonlyMap<string, BibleLookupPassage> | undefined;
-    readonly adTitleSettings?: AdTitleSettings | undefined;
   } = {},
 ): readonly ShowTile[] {
-  const adTitle = adSlideTitles(item, adTitleSettings);
+  const ad = item.slides.form === 'ad';
   const tiles = item.slides.slides.map((slide): ShowTile => {
-    const label = adTitle === undefined ? slide.label : adTitle(slide);
+    const label = ad ? adSlideTitle(item, slide) : slide.label;
     const labelColor = NO_LABEL_COLOR;
-    const assigned =
-      adTitle !== undefined || label === undefined ? {} : {slideLabel: label};
+    const assigned = ad || label === undefined ? {} : {slideLabel: label};
     if ('verse' in slide) {
       const reference = slide.verse;
       const verse = passages
@@ -117,6 +49,7 @@ export function projectSlides(
         );
       const book = BIBLE_BOOKS.find(book => book.id === reference.book);
       return {
+        key: slide.id,
         sourceSlideId: slide.id,
         ...(slide.transition === undefined
           ? {}
@@ -143,6 +76,7 @@ export function projectSlides(
     if ('media' in slide) {
       const picture = media.get(slide.media);
       return {
+        key: slide.id,
         sourceSlideId: slide.id,
         ...(slide.transition === undefined
           ? {}
@@ -167,9 +101,10 @@ export function projectSlides(
       continuationText(trimmed, true).marker !== '';
     const name = typeof slide.name === 'string' ? slide.name : undefined;
     return {
+      key: slide.id,
       sourceSlideId: slide.id,
       ...(slide.transition === undefined ? {} : {transition: slide.transition}),
-      label: label ?? text.split('\n')[0] ?? '',
+      label: label ?? shownName(storedReference, text),
       labelColor,
       ...assigned,
       ...reference,
@@ -179,7 +114,7 @@ export function projectSlides(
       ...(name === undefined ? {} : {name}),
     };
   });
-  return textOverridesForTiles(tiles, item.textOverrides);
+  return withSlideTexts(tiles, item.texts);
 }
 
 /** Resolves catalog colors without changing the source slide labels. */

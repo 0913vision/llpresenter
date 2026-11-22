@@ -1,0 +1,38 @@
+/* NOTE(0913vision): Its own layer, so text has no colored edges and drawing a
+   tile never redraws its neighbours. */
+.screen {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--output-black);
+  contain: strict;
+  pointer-events: none;
+  container-type: size;
+  will-change: transform;
+}
+
+/* NOTE(0913vision): The screen's own shape, as large as it fits. The extra pixels
+   cover the edges of a tile of broken pixels. */
+.frame {
+  --picture-shape: calc(var(--picture-width) / var(--picture-height));
+  --frame-width: min(100cqw + 2px, (100cqh + 2px) * var(--picture-shape));
+  --frame-height: min(100cqh + 2px, (100cqw + 2px) / var(--picture-shape));
+
+  position: absolute;
+  top: calc((100cqh - var(--frame-height)) / 2);
+  left: calc((100cqw - var(--frame-width)) / 2);
+  width: var(--frame-width);
+  height: var(--frame-height);
+  overflow: hidden;
+  container-type: size;
+}
+
+/* NOTE(0913vision): Its contents are laid out at 1920 x 1080 and scaled by
+   length over length, which gives a plain number; no script has to measure the
+   tile. */
+.frame > * {
+  --picture-scale: min(
+    tan(atan2(100cqw, 1920px)),
+    tan(atan2(100cqh, 1080px))
+  );
+}

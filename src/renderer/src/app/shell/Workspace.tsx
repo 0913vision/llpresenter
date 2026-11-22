@@ -1,4 +1,5 @@
 import {PaletteEditingProvider} from '@renderer/features/service/items/PaletteEditing';
+import {CommandScope} from '@renderer/ui/commandDispatcher';
 import type {SongId} from '@core/schema/ids';
 import {
   Fragment,
@@ -36,9 +37,7 @@ import {
   ShowSlideEntry,
   useShowPanelNavigation,
 } from '@renderer/features/presentation/showPanelNavigation';
-import {OpenItemPrefetch} from '@renderer/features/presentation/SlidePicturePrefetch';
 import {TableDataKeeper} from '@renderer/features/service/table/useServiceTableData';
-import {PrepPictureSwitch} from '@renderer/rendering/PrepPictureSwitch';
 import {ShownItemProvider} from '@renderer/session/shownItem';
 import {returnFocus} from '@renderer/ui/returnFocus';
 import {useWorkspaceServiceHistory} from './useWorkspaceServiceHistory';
@@ -238,7 +237,6 @@ export function Workspace({
       {visibleId === 'show' ? (
         <ShowShortcuts onProblem={onProblem ?? logPanelProblem} />
       ) : null}
-      <OpenItemPrefetch />
       {prep === undefined ? null : <TableDataKeeper api={prep.api} />}
       <div data-resize-panel="media.upper" className={styles.frames}>
         <div
@@ -250,12 +248,14 @@ export function Workspace({
           inert={!showVisible}
           aria-hidden={!showVisible}
         >
-          <Suspense fallback={null}>
-            {columnFrame('show', show, {
-              collapsed: toggle.collapsed,
-              visible: showVisible,
-            })}
-          </Suspense>
+          <CommandScope value={showVisible ? 'visible' : 'hidden'}>
+            <Suspense fallback={null}>
+              {columnFrame('show', show, {
+                collapsed: toggle.collapsed,
+                visible: showVisible,
+              })}
+            </Suspense>
+          </CommandScope>
         </div>
         <div
           className={classNames(
@@ -265,9 +265,7 @@ export function Workspace({
           data-workspace-frame="prep"
           data-prep-frame
           data-prep-item={prepPanels.shownItem ?? prepItemId ?? undefined}
-          data-prep-settled={
-            prepPanels.pictureIdentity?.startsWith('edit:') ? 'true' : 'false'
-          }
+          data-prep-editing={prepPanels.editing === true ? 'true' : 'false'}
           inert={visibleId !== 'prep'}
           aria-hidden={visibleId !== 'prep'}
         >
@@ -278,12 +276,12 @@ export function Workspace({
                 : prepPanels.shownItem
             }
           >
-            <PrepPictureSwitch identity={prepPanels.pictureIdentity ?? 'table'}>
+            <CommandScope value={visibleId === 'prep' ? 'visible' : 'hidden'}>
               {columnFrame('prep', prepPanels, {
                 collapsed: false,
                 visible: visibleId === 'prep',
               })}
-            </PrepPictureSwitch>
+            </CommandScope>
           </ShownItemProvider>
         </div>
         {visibleId === 'screens' ? (

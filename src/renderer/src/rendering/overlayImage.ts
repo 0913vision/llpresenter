@@ -2,7 +2,6 @@ import {loadBackgroundImage} from './backgroundImage';
 import {classes} from './classes';
 
 interface OverlayImageOptions {
-  readonly readableImages?: boolean;
   readonly mediaUrl: (id: string) => string;
   readonly onError: (message: string, error: unknown) => void;
 }
@@ -32,7 +31,6 @@ export class OverlayImageView {
       const image = document.createElement('img');
       image.className = classes.overlayImage;
       image.alt = '';
-      if (options.readableImages === true) image.crossOrigin = 'anonymous';
       image.hidden = true;
       return image;
     };

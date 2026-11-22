@@ -5,7 +5,6 @@ import {Button} from '@renderer/ui/Button';
 import {isComposing} from '@renderer/ui/ime';
 import {Panel, PanelBody} from '@renderer/ui/Panel';
 import {Properties, PropertyGroup, PropertyRow} from '@renderer/ui/PropertyRow';
-import {PrepInspectorContent} from './PrepInspectorContent';
 import {
   TransitionSection,
   type TransitionSectionProps,
@@ -33,19 +32,16 @@ export interface InspectorAdapter {
 /** Renders the same preview, property and transition surface for each adapter. */
 export function SlideInspectorView({
   identity,
-  pending,
-  waitForPicture = false,
-  pictureCount = 1,
   preview,
+  text,
   beforeProperties,
   afterProperties,
   adapter,
 }: {
   readonly identity?: string | undefined;
-  readonly pending?: boolean | undefined;
-  readonly waitForPicture?: boolean | undefined;
-  readonly pictureCount?: number | undefined;
   readonly preview?: ReactNode;
+  /** The fields of the selected slide's texts. */
+  readonly text?: ReactNode;
   readonly beforeProperties?: ReactNode;
   readonly afterProperties?: ReactNode;
   readonly adapter?: InspectorAdapter | undefined;
@@ -72,69 +68,61 @@ export function SlideInspectorView({
     <Panel label={'슬라이드 속성'}>
       <PanelBody>
         {identity === undefined || adapter === undefined ? null : (
-          <PrepInspectorContent
-            identity={identity}
-            pending={pending ?? false}
-            waitForPicture={waitForPicture}
-            pictureCount={pictureCount}
-            content={
-              <div onKeyDown={keyDown}>
-                {preview}
-                {beforeProperties}
-                {label === undefined &&
-                adapter.transition === undefined &&
-                afterProperties === undefined ? null : (
-                  <Properties>
-                    {label === undefined ? null : (
-                      <PropertyGroup>
-                        <PropertyRow label={'이름표'}>
-                          {({controlId}) => (
-                            <Button
-                              id={
-                                label.associateControl === false
-                                  ? undefined
-                                  : controlId
-                              }
-                              size="md"
-                              className={styles.full}
-                              disabled={label.disabled}
-                              onClick={event => setAnchor(event.currentTarget)}
-                            >
-                              {label.mixed
-                                ? '혼합'
-                                : label.value === undefined ||
-                                    label.value === ''
-                                  ? '없음'
-                                  : label.value}
-                            </Button>
-                          )}
-                        </PropertyRow>
-                      </PropertyGroup>
-                    )}
-                    {adapter.transition === undefined ? null : (
-                      <TransitionSection
-                        {...adapter.transition}
-                        selectionKey={`${adapter.transition.selectionKey}:${JSON.stringify(adapter.selectedIds)}`}
-                      />
-                    )}
-                    {afterProperties}
-                  </Properties>
+          <div onKeyDown={keyDown}>
+            {preview}
+            {text}
+            {beforeProperties}
+            {label === undefined &&
+            adapter.transition === undefined &&
+            afterProperties === undefined ? null : (
+              <Properties>
+                {label === undefined ? null : (
+                  <PropertyGroup>
+                    <PropertyRow label={'이름표'}>
+                      {({controlId}) => (
+                        <Button
+                          id={
+                            label.associateControl === false
+                              ? undefined
+                              : controlId
+                          }
+                          size="md"
+                          className={styles.full}
+                          disabled={label.disabled}
+                          onClick={event => setAnchor(event.currentTarget)}
+                        >
+                          {label.mixed
+                            ? '혼합'
+                            : label.value === undefined || label.value === ''
+                              ? '없음'
+                              : label.value}
+                        </Button>
+                      )}
+                    </PropertyRow>
+                  </PropertyGroup>
                 )}
-                {label === undefined || anchor === null ? null : (
-                  <LabelMenu
-                    store={label.store}
-                    anchor={anchor}
-                    selected={label.mixed ? undefined : label.value}
-                    onChoose={label.change}
-                    onClose={restore => {
-                      setAnchor(null);
-                      if (restore) anchor.focus();
-                    }}
+                {adapter.transition === undefined ? null : (
+                  <TransitionSection
+                    {...adapter.transition}
+                    selectionKey={`${adapter.transition.selectionKey}:${JSON.stringify(adapter.selectedIds)}`}
                   />
                 )}
-              </div>
-            }
-          />
+                {afterProperties}
+              </Properties>
+            )}
+            {label === undefined || anchor === null ? null : (
+              <LabelMenu
+                store={label.store}
+                anchor={anchor}
+                selected={label.mixed ? undefined : label.value}
+                onChoose={label.change}
+                onClose={restore => {
+                  setAnchor(null);
+                  if (restore) anchor.focus();
+                }}
+              />
+            )}
+          </div>
         )}
       </PanelBody>
     </Panel>

@@ -64,7 +64,7 @@ export function ServiceItemPanel({
       serviceId === null || itemId === null ? null : {serviceId, itemId},
     );
   }, [items, serviceId, itemId]);
-  const {item, song, songStatus, position, service} = useSyncExternalStore(
+  const {item, song, songStatus, service} = useSyncExternalStore(
     items.subscribe,
     items.getSnapshot,
   );
@@ -85,9 +85,6 @@ export function ServiceItemPanel({
       <BibleItemPanel
         key={`${service.service.id}:${item.id}`}
         item={item}
-        serviceId={service.service.id}
-        position={position}
-        onSelect={index => items.selectPosition(index)}
         sizeClass={sizeClass}
       >
         <ItemSlideGrid items={items} editor={editor} sizeClass={sizeClass} />
@@ -103,7 +100,7 @@ export function ServiceItemPanel({
       <OtherItemPanel
         item={item}
         sizeClass={sizeClass}
-        textFields={mode === 'list' ? renderTextFields?.(0) : undefined}
+        textFields={mode === 'list' ? renderTextFields?.('media') : undefined}
         view={
           renderTextFields === undefined ? undefined : (
             <SlideSurfaceView ui={ui} />

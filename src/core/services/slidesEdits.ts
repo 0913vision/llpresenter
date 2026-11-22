@@ -49,16 +49,6 @@ export function mergeSlidesChanges(
     edited.slides.name,
     fresh.slides.name,
   );
-  const advance = mergeValue(
-    base.slides.advance,
-    edited.slides.advance,
-    fresh.slides.advance,
-  );
-  const loop = mergeValue(
-    base.slides.loop,
-    edited.slides.loop,
-    fresh.slides.loop,
-  );
   const slides = mergeValue(
     base.slides.slides,
     edited.slides.slides,
@@ -82,8 +72,6 @@ export function mergeSlidesChanges(
   );
   if (
     name === MERGE_CONFLICT ||
-    advance === MERGE_CONFLICT ||
-    loop === MERGE_CONFLICT ||
     slides === MERGE_CONFLICT ||
     theme === MERGE_CONFLICT ||
     cardTheme === MERGE_CONFLICT ||
@@ -100,10 +88,6 @@ export function mergeSlidesChanges(
     return null;
   }
   const merged = {...fresh, slides: {...fresh.slides, name, slides}};
-  if (advance === undefined) delete merged.slides.advance;
-  else merged.slides.advance = advance;
-  if (loop === undefined) delete merged.slides.loop;
-  else merged.slides.loop = loop;
   if (theme === undefined) delete merged.theme;
   else merged.theme = theme;
   if (merged.sectionCard !== undefined && cardTheme !== undefined) {

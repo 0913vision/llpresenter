@@ -30,10 +30,10 @@ import {InlineSongController} from '@renderer/features/songs/editor/InlineSongCo
 import type {SongEditorWindowModel} from '@renderer/features/songs/editor/useSongEditorWindow';
 import {useSlidesEditor} from '@renderer/features/service/slides/useSlidesEditor';
 import {reportPrepOpenFailure} from './prepOpenFailure';
-import {drawnPictures} from '@renderer/rendering/drawnPictures';
 
 const noEditorSubscription = (): (() => void) => () => undefined;
-const PREP_REVEAL_WAIT_MS = 10_000;
+/** The longest 준비 stays hidden while it turns to the opened song. */
+const PREP_REVEAL_WAIT_MS = 500;
 
 interface ServiceSongTarget {
   readonly serviceId: string;
@@ -381,7 +381,6 @@ export function usePrepActions({
                   const itemId = target.from.itemId;
                   const request = songOpen.current;
                   const started = performance.now();
-                  let previous = -1;
                   onPrepareItem(itemId);
                   const wait = (): void => {
                     const current = useShow.getState();
@@ -394,28 +393,16 @@ export function usePrepActions({
                     }
                     const frame =
                       document.querySelector<HTMLElement>('[data-prep-frame]');
-                    const count =
-                      frame?.dataset['prepItem'] === itemId &&
-                      frame.dataset['prepSettled'] === 'true'
-                        ? drawnPictures(frame)
-                        : -1;
-                    if (count > 0 && count === previous) {
+                    if (
+                      (frame?.dataset['prepItem'] === itemId &&
+                        frame.dataset['prepEditing'] === 'true') ||
+                      performance.now() - started >= PREP_REVEAL_WAIT_MS
+                    ) {
                       onWorkspace('prep');
                       openItem(itemId);
                       return;
                     }
-                    previous = count;
-                    if (performance.now() - started < PREP_REVEAL_WAIT_MS) {
-                      requestAnimationFrame(wait);
-                    } else {
-                      session.report({
-                        key: 'prep:song-open',
-                        kind: 'warning',
-                        icon: 'warning',
-                        title: '곡 열기 실패',
-                        time: noticeTime(),
-                      });
-                    }
+                    requestAnimationFrame(wait);
                   };
                   requestAnimationFrame(wait);
                   return;

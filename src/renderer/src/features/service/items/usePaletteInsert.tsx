@@ -75,9 +75,6 @@ export function usePaletteInsert(editing: PaletteEditing | null) {
               if (!prepared.ok) return prepared;
               const passage = prepared.value;
               if (passage === null) return {ok: true, value: false};
-              if (!isItemOfKind(passage, 'bible')) {
-                throw Error('Missing Bible passage');
-              }
               const item = {
                 id: passage.id,
                 sermon: {
@@ -90,9 +87,6 @@ export function usePaletteInsert(editing: PaletteEditing | null) {
                         closingTransition: defaults.sermonTitleTransition,
                       }),
                 },
-                ...(passage.bibleTransitions === undefined
-                  ? {}
-                  : {bibleTransitions: passage.bibleTransitions}),
               };
               const result = await edits.insertItem(
                 id,

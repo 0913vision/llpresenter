@@ -101,6 +101,7 @@ export function withSectionCard(
   if (cached !== undefined) return cached;
   const projected: readonly ShowTile[] = [
     {
+      key: 'section',
       label: card.label ?? card.name,
       ...(card.label === undefined ? {} : {slideLabel: card.label}),
       labelColor: 'none',

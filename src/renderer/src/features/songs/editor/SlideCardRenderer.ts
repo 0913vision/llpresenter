@@ -3,7 +3,8 @@ import type {Slide} from '@core/services/slidesEdits';
 export type SlideSurfaceMode = 'list' | 'grid';
 
 /** A projected position or a stable source ID, which can represent several verse parts. */
-export type RenderSlideTextFields = (slide?: number | string) => ReactNode;
+/** The fields of the theme's own text boxes on the slide with this key. */
+export type RenderSlideTextFields = (slide: string) => ReactNode;
 
 /** Return custom card contents for a slide, or undefined for the standard row or cell. */
 export type SlideCardRenderer<T = Slide> = (

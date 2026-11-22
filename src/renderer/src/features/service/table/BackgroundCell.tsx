@@ -1,4 +1,4 @@
-import {use, useState, type JSX} from 'react';
+import {useState, type JSX} from 'react';
 import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import type {ItemBackgroundChoice} from '@renderer/session/serviceBackground';
 import type {ItemRow} from '@core/presentation/model';
@@ -15,9 +15,6 @@ import {classNames} from '@renderer/ui/classNames';
 import {titleTooltip, useTooltip, withTooltipProps} from '@renderer/ui/Tooltip';
 import {CellButton} from './CellButton';
 import styles from './ServiceTable.module.css';
-import {usePrepPictureSwitch} from '@renderer/rendering/PrepPictureSwitch';
-import {pictures} from '@renderer/rendering/pictures/pictureService';
-import {thumbnailReady} from '@renderer/rendering/pictures/thumbnailReady';
 
 const NONE = '없음';
 /** Noneditable cells stay blank when this item kind has no background. */
@@ -31,10 +28,6 @@ function Shown({
   readonly media: MediaId | undefined;
   readonly name: string;
 }): JSX.Element {
-  const switching = usePrepPictureSwitch();
-  if (switching && media !== undefined && !pictures.drawInPlace) {
-    use(thumbnailReady(thumbnailSrc(media)));
-  }
   return (
     <>
       {media === undefined ? null : (

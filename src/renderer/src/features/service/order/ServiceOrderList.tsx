@@ -1,8 +1,5 @@
 import {SERMON_TITLE_THEME_ID} from '@core/themes/sundayScripture';
 import {useShownItemId} from '@renderer/session/shownItem';
-import {tilesForView} from '@renderer/session/showLibrary';
-import {useBibleProjections} from '@renderer/features/bible/useBibleProjections';
-import {splitSourceFor} from '@renderer/features/bible/splitProjection';
 import {serviceRowIcon} from './serviceItemIcons';
 import {useMediaOrderDrop} from './useMediaOrderDrop';
 import {usePaletteEditing} from '../items/PaletteEditing';
@@ -197,22 +194,8 @@ function ItemRows({
     row: ServiceRow,
   ) => import('@renderer/ui/ListRow').GroupRename | undefined;
 }): JSX.Element {
-  const show = useShow(view => view);
-  const tiles = show.tiles;
-  const {projections} = useBibleProjections({
-    enabled: items.some(row => row.kind === 'bible'),
-  });
-  const countOf = (row: ServiceRow): number => {
-    if (row.kind !== 'bible') {
-      return tiles[row.id]?.length ?? 0;
-    }
-    const source = splitSourceFor(show, row.id);
-    const measured = source === null ? null : projections?.get(source);
-    return measured == null
-      ? tilesForView(show, row.id).length
-      : measured.tiles.length +
-          (tiles[row.id]?.[0]?.sectionCard === undefined ? 0 : 1);
-  };
+  const tiles = useShow(view => view.tiles);
+  const countOf = (row: ServiceRow): number => tiles[row.id]?.length ?? 0;
   return (
     <>
       {items.map(row =>

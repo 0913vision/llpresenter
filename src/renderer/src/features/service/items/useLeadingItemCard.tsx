@@ -2,7 +2,8 @@ import {useSyncExternalStore} from 'react';
 import {hasSectionCard} from '@core/services/sectionCards';
 import type {LeadingSlideCard} from '@renderer/features/songs/editor';
 import {CardSlideBody} from './CardSlideBody';
-import {saveCard, saveField} from './sectionCardActions';
+import {CardFields} from './CardFields';
+import {saveCard} from './sectionCardActions';
 import type {ServiceItemStore} from './serviceItemStore';
 import type {RenderSlideTextFields} from '@renderer/features/songs/editor/SlideCardRenderer';
 
@@ -40,16 +41,20 @@ export function useLeadingItemCard(
           itemId={item.id}
           card={card}
           mode={mode}
-          hideSourceFields={renderTextFields !== undefined}
-          textOverrides={item.textOverrides?.['section']}
-          disabled={disabled}
-          onChange={(field, value) => {
-            if (items.getSnapshot().item?.id === item.id) {
-              saveField(items, field, value);
-            }
-          }}
+          texts={item.texts?.['section']}
         />
-        {mode === 'list' ? renderTextFields?.(0) : null}
+        {mode === 'grid' ? null : (
+          <div>
+            <CardFields
+              items={items}
+              serviceId={service.service.id}
+              itemId={item.id}
+              card={card}
+              readOnly={service.access === 'readOnly'}
+            />
+            {renderTextFields?.('section')}
+          </div>
+        )}
       </>
     ),
     onDelete: () => {

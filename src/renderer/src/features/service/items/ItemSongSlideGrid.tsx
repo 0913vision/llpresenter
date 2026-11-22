@@ -16,7 +16,7 @@ import {useSlideDefaults} from '@renderer/features/songs/editor/useSlideDefaults
 import {VirtualSlides} from '@renderer/features/songs/editor/VirtualSlides';
 import {useThumbnailScale} from '@renderer/platform/thumbnailScale';
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
-import {SlidePicture} from '@renderer/rendering/SlidePicture';
+import {SlidePicture} from '@renderer/pictures/SlidePicture';
 import type {ServiceItemStore} from './serviceItemStore';
 import {openItemSong} from './openItemSong';
 import {OverlayClips} from './OverlayClip';
@@ -165,7 +165,6 @@ function ItemSongTiles({
             <SlidePicture
               {...theme}
               background={theme.background ?? session.background}
-              songSource={{songId: session.document.song.id, slideId: slide.id}}
               slide={{
                 itemId: item.id,
                 position: index,

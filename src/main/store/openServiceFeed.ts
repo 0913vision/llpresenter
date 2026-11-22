@@ -9,11 +9,6 @@ import type {ContentStore} from './contentStore';
 import {buildShowService, songBackgroundId} from './showService';
 import {resolveServicePassages} from '../bible/servicePassages';
 import type {BibleLookupSession} from '../bible/lookup';
-import type {BibleProjectionPayload} from '@core/schema/bibleProjection';
-import type {SettingsReader} from '@core/schema/settingsReader';
-import type {ShowTile} from '@core/schema/showService';
-import {sameBibleVerse} from '@core/bible/selection';
-import {adTitleSettingsFrom} from '@core/presentation/slides';
 
 const FIRST_REVISION = 1;
 
@@ -27,61 +22,6 @@ export interface OpenServiceSources {
   readonly backgroundBible?: Pick<BibleLookupSession, 'lookup'> | undefined;
   /** The media list, for the names of media items. */
   readonly mediaItems?: () => readonly MediaItem[];
-  readonly settings?: SettingsReader | null;
-}
-
-function matchingVerses(
-  original: readonly ShowTile[],
-  parts: readonly ShowTile[],
-): boolean {
-  let index = 0;
-  const content = (tile: ShowTile): string =>
-    tile.lines.join('').replace(/\s|\(계속\)/gu, '');
-  const verses = original.filter(tile => tile.sectionCard === undefined);
-  for (const verse of verses) {
-    if (verse.biblePart !== undefined) {
-      const part = parts[index++];
-      if (
-        part?.biblePart !== verse.biblePart ||
-        part.continued !== verse.continued ||
-        verse.bibleVerse === undefined ||
-        part.bibleVerse === undefined ||
-        !sameBibleVerse(verse.bibleVerse, part.bibleVerse) ||
-        content(part) !== content(verse)
-      ) {
-        return false;
-      }
-      continue;
-    }
-    let text = '';
-    let count = 0;
-    let continued = true;
-    while (continued) {
-      const part = parts[index++];
-      if (
-        !part ||
-        part.sectionCard !== undefined ||
-        part.biblePart !== ++count ||
-        (verse.bibleVerse !== undefined &&
-          part.bibleVerse !== undefined &&
-          !sameBibleVerse(verse.bibleVerse, part.bibleVerse))
-      ) {
-        return false;
-      }
-      text += content(part);
-      continued = part.continued === true;
-    }
-    const full = content(verse);
-    const number =
-      verse.bibleVerse?.verse.toString() ?? verse.label?.match(/:(\d+)$/u)?.[1];
-    if (
-      text !== full &&
-      !(verses.length === 1 && number !== undefined && full === number + text)
-    ) {
-      return false;
-    }
-  }
-  return index === parts.length;
 }
 
 /**
@@ -98,11 +38,6 @@ export class OpenServiceFeed {
   private refreshing: Promise<void> | null = null;
   private disposed = false;
   private initialized = false;
-  private readonly bibleProjections = new Map<
-    string,
-    {readonly item: string; readonly projection: BibleProjectionPayload}
-  >();
-  private originalTiles: ShowService['tiles'] = {};
   private readonly liveLoads = new Map<string, 'loading' | 'failed' | 'done'>();
   private readonly liveQueue: Array<{
     key: string;
@@ -119,43 +54,6 @@ export class OpenServiceFeed {
 
   current(): ShowService | null {
     return this.shown;
-  }
-
-  private projectionSettingsMatch(next: BibleProjectionPayload): boolean {
-    const settings = this.sources.settings;
-    return (
-      settings?.get('themes').revision === next.measurement.themes &&
-      settings.get('screens').revision === next.measurement.screens
-    );
-  }
-
-  acceptBibleProjection(next: BibleProjectionPayload): void {
-    if (this.disposed || !this.projectionSettingsMatch(next)) return;
-    const service =
-      this.sources.serviceId === null
-        ? undefined
-        : this.sources.content.storedService(this.sources.serviceId);
-    if (
-      service?.data.id !== next.serviceId ||
-      service.revision !== next.revision
-    ) {
-      return;
-    }
-    const item = service.data.order.find(item => item.id === next.itemId);
-    if (item === undefined || !isItemOfKind(item, 'bible')) return;
-    const original = this.originalTiles[next.itemId];
-    if (original === undefined || !matchingVerses(original, next.tiles)) return;
-    if (
-      JSON.stringify(this.bibleProjections.get(next.itemId)?.projection) ===
-      JSON.stringify(next)
-    ) {
-      return;
-    }
-    this.bibleProjections.set(next.itemId, {
-      item: JSON.stringify(item),
-      projection: next,
-    });
-    this.refresh().catch(this.reportError);
   }
 
   /** Rechecks background files and sends the projection only when it changed. */
@@ -324,37 +222,11 @@ export class OpenServiceFeed {
       labels,
       revision: FIRST_REVISION,
       backgrounds,
-      adTitleSettings: adTitleSettingsFrom(
-        this.sources.settings?.get('themes'),
-        this.sources.settings?.get('screens'),
-      ),
       ...(mediaById === undefined ? {} : {media: mediaById}),
       ...(passages === undefined ? {} : {passages}),
     });
-    this.originalTiles = built.tiles;
-    const tiles = {...built.tiles};
-    const items = new Map(service.data.order.map(item => [item.id, item]));
-    for (const [id, {item, projection}] of this.bibleProjections) {
-      const original = tiles[id];
-      if (
-        projection.serviceId !== service.data.id ||
-        !this.projectionSettingsMatch(projection) ||
-        item !== JSON.stringify(items.get(projection.itemId)) ||
-        original === undefined ||
-        !matchingVerses(original, projection.tiles)
-      ) {
-        this.bibleProjections.delete(id);
-        continue;
-      }
-      const first = original[0];
-      tiles[id] =
-        first?.sectionCard === undefined
-          ? projection.tiles
-          : [first, ...projection.tiles];
-    }
     return {
       ...built,
-      tiles,
       rows: built.rows.map(row =>
         loading.has(row.id) &&
         row.kind !== 'header' &&

@@ -9,7 +9,7 @@ import {
 } from '@core/bible/split/manualSplit';
 import {splitVerseWithChooser} from '@core/bible/split/splitter';
 import type {BibleTextElement} from '@renderer/rendering/bibleMeasure';
-import type {BibleProjection} from './splitProjection';
+import type {BibleSplit} from './passageSplitter';
 
 export const verseKey = (reference: VerseInput['reference']): string =>
   `${reference.translation}:${reference.book}:${reference.chapter}:${reference.verse}`;
@@ -77,7 +77,7 @@ export class BibleRefinementRun {
 
   constructor(
     private readonly api: LlpApi['bible'] | undefined,
-    private readonly projection: BibleProjection | null,
+    private readonly projection: BibleSplit | null,
     private readonly cache = new BibleRefinements(),
   ) {}
 
@@ -120,11 +120,7 @@ export class BibleRefinementRun {
     const current = (): boolean => this.generation === generation;
     const projection = this.projection;
     const api = this.api;
-    if (
-      projection === null ||
-      api === undefined ||
-      projection.source.review === false
-    ) {
+    if (projection === null || api === undefined) {
       this.publish(new Set());
       return;
     }

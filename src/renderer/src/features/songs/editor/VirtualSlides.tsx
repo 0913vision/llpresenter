@@ -13,8 +13,8 @@ import {SlideThumbnail, ThumbnailGrid} from '@renderer/ui/SlideThumbnail';
 import {thumbnailWidth} from '@renderer/ui/thumbnailSize';
 import {isComposing} from '@renderer/ui/ime';
 import type {Song} from '@core/schema/song';
-import {SlidePicture} from '@renderer/rendering/SlidePicture';
-import {songPictureLayer} from '@renderer/rendering/pictureSpec';
+import {SlidePicture} from '@renderer/pictures/SlidePicture';
+import {songSlideLayer} from '@renderer/rendering/slideStillSpec';
 import {visibleGridInsertionPosition} from './gridInsertionPosition';
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
 import styles from './SongPanels.module.css';
@@ -371,7 +371,6 @@ export function VirtualSlides<T extends SlideListItem>({
             const sourceIndex = session === undefined ? number - 1 : at;
             const slide = slides[sourceIndex];
             if (slide === undefined) return null;
-            const source = 'id' in song ? song.slides[sourceIndex] : undefined;
             const own = list?.slides[at];
             const thumbnail = (
               <SlideThumbnail
@@ -390,12 +389,7 @@ export function VirtualSlides<T extends SlideListItem>({
                     <SlidePicture
                       {...theme}
                       background={slide.picture ?? background}
-                      songSource={
-                        'id' in song && source !== undefined
-                          ? {songId: song.id, slideId: source.id}
-                          : undefined
-                      }
-                      slide={songPictureLayer('thumbnail', sourceIndex, slide)}
+                      slide={songSlideLayer('thumbnail', sourceIndex, slide)}
                     />
                   ))
                 }

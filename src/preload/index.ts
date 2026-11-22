@@ -6,7 +6,6 @@ import {windowPlatform} from './platform';
 import {slidesEditorPreload} from './slidesEditor';
 import {biblePreload} from './bible';
 import {updatePreload} from './update';
-import {picturePreload} from './picture';
 
 const log = badValueLog(ipcRenderer, outputEndpoints.log.channel);
 const port = createIpcPort(ipcRenderer, log);
@@ -30,6 +29,5 @@ contextBridge.exposeInMainWorld(
     slidesEditor: slidesEditorPreload(port),
     bible: biblePreload(port),
     update: updatePreload(port),
-    picture: picturePreload(port, ipcRenderer),
   }),
 );

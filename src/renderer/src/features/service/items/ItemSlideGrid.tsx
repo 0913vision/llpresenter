@@ -11,17 +11,15 @@ import {SlideThumbnail, ThumbnailGrid, thumbnailWidth} from '@renderer/ui';
 import {defaultThumbnailColumns, type SizeClass} from '@renderer/ui/sizeClass';
 import {useThumbnailScale} from '@renderer/platform/thumbnailScale';
 import {useGridMeasure} from '@renderer/ui/useGridMeasure';
-import {useBibleTileProjection} from '@renderer/features/bible/useBibleProjections';
-import {SlidePicture} from '@renderer/rendering/SlidePicture';
-import {useSlideTheme} from '@renderer/platform/useSlideTheme';
+import {itemThemes, useThemeSettings} from '@renderer/pictures/itemThemes';
+import {TilePicture} from '@renderer/pictures/TilePicture';
 import {useShow} from '@renderer/session/show';
-import {mediaTextSlide, slideLayerOf} from '@core/presentation/slideLayer';
+import {slideLayerOf} from '@core/presentation/slideLayer';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {OverlayWarning} from '../details/ItemThemeRow';
 import {OverlayClips} from './OverlayClip';
 import type {ServiceItemStore} from './serviceItemStore';
 import {openItemSong} from './openItemSong';
-import {useItemSlides, type ItemSlide} from './useItemSlides';
 import {useOverlayControl} from './useOverlayControl';
 import {useOverlayEditing} from './useOverlayEditing';
 import styles from './ItemOverlays.module.css';
@@ -42,47 +40,22 @@ export function ItemSlideGrid({
   readonly sizeClass?: SizeClass;
 }): JSX.Element {
   const state = useSyncExternalStore(items.subscribe, items.getSnapshot);
-  const rawSlides = useItemSlides(items, editor);
-  const mediaId =
-    state.item && isItemOfKind(state.item, 'media') ? state.item.id : undefined;
-  const mediaRow = useShow(view => view.rows.find(row => row.id === mediaId));
-  const mediaTiles = useShow(view =>
-    mediaId === undefined ? undefined : view.tiles[mediaId],
+  const itemId = state.item?.id;
+  const row = useShow(view => view.rows.find(entry => entry.id === itemId));
+  const saved = useShow(view =>
+    itemId === undefined ? undefined : view.tiles[itemId],
   );
-  const mediaTheme = useSlideTheme(
-    mediaRow?.kind === 'media' ? mediaRow : undefined,
-  );
-  const songTheme = useSlideTheme(
-    state.item !== null && isItemOfKind(state.item, 'song')
-      ? {
-          id: state.item.id,
-          kind: 'song',
-          title: state.song?.history.snapshot.song.title ?? '',
-          ...(state.item.theme === undefined ? {} : {theme: state.item.theme}),
-        }
-      : undefined,
-  );
+  const themes = itemThemes(row, saved ?? [], useThemeSettings());
   const bible = state.item !== null && isItemOfKind(state.item, 'bible');
   const offset = bible ? cardOffset(state.item) : 0;
-  const projection = useBibleTileProjection({
-    itemId: bible ? state.item.id : null,
-    ...(state.service === null ? {} : {serviceId: state.service.service.id}),
-  });
-  const slides = useMemo<readonly ItemSlide[]>(
-    () =>
-      projection?.tiles.map(tile => ({
-        text: tile.lines.join('\n'),
-        label: tile.slideLabel ?? tile.label ?? undefined,
-        color: tile.labelColor,
-        media: undefined,
-      })) ?? rawSlides,
-    [projection, rawSlides],
+  const tiles = useMemo(
+    () => (saved ?? []).filter(tile => tile.sectionCard === undefined),
+    [saved],
   );
   const grid = useRef<HTMLDivElement>(null);
   const counts = new Map<string, number>();
-  const reflowIds = slides.map(slide => {
-    const identity =
-      slide.id ?? JSON.stringify([slide.text, slide.label, slide.media]);
+  const reflowIds = tiles.map(tile => {
+    const identity = tile.key ?? JSON.stringify(tile.lines);
     const occurrence = counts.get(identity) ?? 0;
     counts.set(identity, occurrence + 1);
     return `${identity}:${occurrence}`;
@@ -116,7 +89,7 @@ export function ItemSlideGrid({
   const {editing, missing} = useOverlayEditing({
     api: editor.api,
     item: state.item,
-    count: slides.length,
+    count: tiles.length,
     reason,
     change: change => items.changeOverlays(change),
   });
@@ -125,73 +98,20 @@ export function ItemSlideGrid({
   const song = isItemOfKind(state.item, 'song');
   const selected = Math.min(
     Math.max(0, state.position - offset),
-    Math.max(0, slides.length - 1),
+    Math.max(0, tiles.length - 1),
   );
   const edit = (index: number): void => {
     if (song) openItemSong({items, editor, position: index});
   };
   const canvasFor = (index: number): JSX.Element | undefined => {
-    const mediaTile = mediaTiles?.[index];
-    if (
-      mediaId !== undefined &&
-      mediaTile?.media !== undefined &&
-      mediaTile.textOverrides !== undefined &&
-      mediaTheme !== undefined
-    ) {
-      const slide = slideLayerOf(
-        {itemId: mediaId, index},
-        () => mediaTiles ?? [],
-      );
-      if (slide !== null) {
-        return (
-          <SlidePicture
-            {...mediaTheme}
-            slide={mediaTextSlide(slide)}
-            background={mediaTile.media.mediaId}
-          />
-        );
-      }
-    }
-    const songSlide = slides[index];
-    if (songTheme !== undefined && songSlide !== undefined) {
-      return (
-        <SlidePicture
-          {...songTheme}
-          slide={{
-            itemId: state.item?.id ?? 'thumbnail',
-            position: index,
-            label: songSlide.label ?? null,
-            lines: songSlide.text.split('\n'),
-            ...(songSlide.titleSlide === undefined
-              ? {}
-              : {titleSlide: songSlide.titleSlide}),
-            ...(songSlide.titleLineCount === undefined
-              ? {}
-              : {titleLineCount: songSlide.titleLineCount}),
-            ...(songSlide.titleLayout === undefined
-              ? {}
-              : {titleLayout: songSlide.titleLayout}),
-            ...(songSlide.lyricFormat === undefined
-              ? {}
-              : {lyricFormat: songSlide.lyricFormat}),
-          }}
-        />
-      );
-    }
-    const appearance = projection?.appearance;
-    const layer =
-      projection === null
-        ? null
-        : slideLayerOf(
-            {itemId: projection.source.id, index},
-            () => projection.tiles,
-          );
-    return appearance === undefined || layer === null ? undefined : (
-      <SlidePicture
-        slide={layer}
-        layout={appearance.theme.layout}
-        emptyColor={appearance.theme.emptyColor}
-        item={appearance.theme.item}
+    const tile = tiles[index];
+    if (tile === undefined || itemId === undefined) return undefined;
+    if (tile.media !== undefined && tile.texts === undefined) return undefined;
+    return (
+      <TilePicture
+        tile={tile}
+        slide={slideLayerOf({itemId, index}, () => tiles)}
+        themes={themes}
       />
     );
   };
@@ -227,31 +147,35 @@ export function ItemSlideGrid({
           label={GRID_LABEL}
           columns={COLUMNS}
           tileWidth={tileWidth}
-          selected={slides.length === 0 ? undefined : selected}
+          selected={tiles.length === 0 ? undefined : selected}
           onSelect={index => items.selectPosition(index + offset)}
           onMenu={(index, anchor) => {
             items.selectPosition(index + offset);
             setMenu({index, anchor});
           }}
         >
-          {slides.map((slide, index) => (
-            <SlideThumbnail
-              key={reflowIds[index] ?? index}
-              reflowId={reflowIds[index]}
-              number={index + 1 + offset}
-              selectionStyle="plate"
-              label={slide.label === '' ? undefined : slide.label}
-              labelColor={slide.color}
-              text={slide.media === undefined ? slide.text : undefined}
-              canvas={canvasFor(index)}
-              media={
-                slide.media === undefined
-                  ? undefined
-                  : thumbnailSrc(slide.media)
-              }
-              selected={index === selected}
-            />
-          ))}
+          {tiles.map((tile, index) => {
+            const media =
+              state.item !== null &&
+              isItemOfKind(state.item, 'media') &&
+              tile.texts === undefined
+                ? state.item.media
+                : undefined;
+            return (
+              <SlideThumbnail
+                key={reflowIds[index] ?? index}
+                reflowId={reflowIds[index]}
+                number={index + 1 + offset}
+                selectionStyle="plate"
+                label={tile.slideLabel ?? tile.label ?? undefined}
+                labelColor={tile.labelColor}
+                text={media === undefined ? tile.lines.join('\n') : undefined}
+                canvas={canvasFor(index)}
+                media={media === undefined ? undefined : thumbnailSrc(media)}
+                selected={index === selected}
+              />
+            );
+          })}
         </ThumbnailGrid>
         <OverlayClips control={control} />
         {menu === null ? null : (

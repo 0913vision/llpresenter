@@ -1,59 +1,29 @@
 import {useEffect, useMemo, useState, useSyncExternalStore} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {VerseInput} from '@core/bible/split/splitVerses';
-import type {BibleProjection} from './splitProjection';
-import {sourceContent} from './splitProjection';
+import type {BibleSplit} from './passageSplitter';
 import {BibleRefinementRun} from './BibleRefinements';
 
-/** Owns one cancellable refinement run for the current source and text layout. */
+/** Owns one cancellable refinement run for the current verses and text box. */
 export function useBibleRefinement(
   api: LlpApi['bible'] | undefined,
-  projection: BibleProjection | null,
+  split: BibleSplit,
   {
     references,
   }: {
     readonly references?: ReadonlyArray<VerseInput['reference']> | undefined;
   } = {},
 ) {
-  const content =
-    projection === null
-      ? null
-      : projection.source.kind === 'slides'
-        ? JSON.stringify([
-            projection.source.id,
-            projection.source.input.map(tile => [
-              tile.sourceSlideId,
-              tile.verse,
-            ]),
-          ])
-        : sourceContent(projection.source);
-  const element =
-    projection === null
-      ? null
-      : JSON.stringify([
-          projection.element,
-          projection.layout.spec,
-          projection.appearance?.theme.layout,
-        ]);
-  const numbered = projection?.numbered;
-  const review = projection?.source.review;
-  const [request, setRequest] = useState({
-    content,
-    element,
-    numbered,
-    review,
-    projection,
-  });
-  if (
-    request.content !== content ||
-    request.element !== element ||
-    request.numbered !== numbered ||
-    request.review !== review
-  ) {
-    setRequest({content, element, numbered, review, projection});
-  }
+  const key = JSON.stringify([
+    split.verses,
+    split.element,
+    split.layout.spec,
+    split.numbered,
+  ]);
+  const [request, setRequest] = useState({key, split});
+  if (request.key !== key) setRequest({key, split});
   const run = useMemo(
-    () => new BibleRefinementRun(api, request.projection),
+    () => new BibleRefinementRun(api, request.split),
     [api, request],
   );
   const progress = useSyncExternalStore(run.subscribe, run.getSnapshot);
@@ -65,14 +35,9 @@ export function useBibleRefinement(
       );
     return () => run.cancel();
   }, [run, references]);
-  const current =
-    request.content === content &&
-    request.element === element &&
-    request.numbered === numbered &&
-    request.review === review;
   return {
     ...progress,
-    initialized: current && progress.initialized,
+    initialized: request.key === key && progress.initialized,
     cancel: run.cancel,
     suggestCuts: run.suggestCuts,
   };

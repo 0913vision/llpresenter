@@ -44,7 +44,7 @@ function showMedia(
 export const contentSlice = defineSlice({
   commands: [
     'slide.show',
-    'slide.text.override',
+    'slide.update',
     'bible.passage.title.set',
     'stage.next.set',
     'media.show',
@@ -54,22 +54,29 @@ export const contentSlice = defineSlice({
   initial: {layers: {slide: null, media: null, message: null}},
   reduce: (history, command, context) => {
     switch (command.type) {
-      case 'slide.text.override': {
-        const {layers} = history.state;
+      case 'slide.update': {
+        const {layers, themeItem} = history.state;
         const slide = layers.slide;
         if (
-          slide?.itemId !== command.itemId ||
-          slide.position !== command.position ||
-          JSON.stringify(slide.textOverrides ?? null) ===
-            JSON.stringify(command.textOverrides)
+          slide?.itemId !== command.slide.itemId ||
+          slide.position !== command.slide.position ||
+          themeItem?.contentCleared === true
         ) {
           return history;
         }
-        const {textOverrides: _previous, ...base} = slide;
-        const updated =
-          command.textOverrides === null
-            ? base
-            : {...base, textOverrides: command.textOverrides};
+        // NOTE(0913vision): The slide stays the same output; only what it shows
+        // is new, so a running transition and the next cue go on.
+        const updated: SlideLayer = {
+          ...command.slide,
+          ...(slide.transitionStartedAt === undefined
+            ? {}
+            : {transitionStartedAt: slide.transitionStartedAt}),
+          ...(slide.reverseTransition === undefined
+            ? {}
+            : {reverseTransition: slide.reverseTransition}),
+          ...(slide.next === undefined ? {} : {next: slide.next}),
+        };
+        if (JSON.stringify(slide) === JSON.stringify(updated)) return history;
         const {undo} = history;
         const saved = undo?.layers.slide;
         return withLayers(

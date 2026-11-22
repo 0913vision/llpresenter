@@ -21,6 +21,7 @@ import {
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import type {SongEditorStore} from './songEditorStore';
+import {editorTask} from './editorTask';
 
 const PROBLEMS = {
   open: '곡 열기 실패',
@@ -113,7 +114,12 @@ export function useSongEditorWindow(
 
   const askLeave = (proceed: () => void, cancel?: () => void): void => {
     const ask = (): void => {
-      if (store.getSnapshot().session?.unsaved === true) {
+      const {session} = store.getSnapshot();
+      if (session?.itemSession === true) {
+        // NOTE(0913vision): A service item saves itself; leaving never asks.
+        editorTask(session.flush());
+        proceed();
+      } else if (session?.unsaved === true) {
         const open = shown.current;
         if (open?.kind === 'leave') open.cancel?.();
         shown.current = {kind: 'leave', proceed, cancel};

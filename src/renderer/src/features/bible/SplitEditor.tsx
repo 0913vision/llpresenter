@@ -23,7 +23,7 @@ import {
 import {Dialog} from '@renderer/ui/Dialog';
 import {Spinner} from '@renderer/ui/Spinner';
 import type {BibleTextElement} from '@renderer/rendering/bibleMeasure';
-import type {SplitAppearance} from './splitProjection';
+import type {BibleAppearance} from './passageSplitter';
 import {SplitSlidePicture} from './SplitSlidePicture';
 import styles from './SplitEditor.module.css';
 
@@ -36,11 +36,14 @@ export interface SplitEditorProps {
   readonly cuts: readonly number[];
   readonly layout: SplitLayout;
   readonly element: BibleTextElement;
-  readonly appearance?: SplitAppearance | undefined;
+  readonly appearance?: BibleAppearance | undefined;
   readonly prefix: string;
   readonly position: number;
   readonly total: number;
-  readonly onConfirm: (cuts: readonly number[]) => Promise<void>;
+  readonly onConfirm: (
+    cuts: readonly number[],
+    texts: readonly string[],
+  ) => Promise<void>;
   readonly onCancel: () => void;
 }
 
@@ -201,7 +204,10 @@ function VerseSplitEditor(
     setBusy(true);
     setProblem(undefined);
     props
-      .onConfirm(plan.cuts)
+      .onConfirm(
+        plan.cuts,
+        plan.slides.map(slide => slide.text),
+      )
       .catch((cause: unknown) => {
         if (active.current) {
           setProblem(

@@ -19,7 +19,7 @@ import {
   useSettingsDocument,
   type NamedDocument,
 } from '@renderer/platform/useSettingsDocument';
-import {isBibleSource} from '@renderer/session/showLibrary';
+import {isBibleSource, tilesForView} from '@renderer/session/showLibrary';
 import type {Notice} from '@renderer/ui/notices';
 import type {SizeClass} from '@renderer/ui/sizeClass';
 import {
@@ -43,7 +43,11 @@ export function ShowShortcuts({
 }): ReactNode {
   useShowKeys();
   useLibrarySongSync(onProblem);
-  return <BibleSplitTools onProblem={onProblem} />;
+  const itemId = useShownItemId();
+  const tile = useShow(view =>
+    itemId === null ? undefined : tilesForView(view, itemId)[view.selectedTile],
+  );
+  return <BibleSplitTools itemId={itemId} tile={tile} onProblem={onProblem} />;
 }
 
 function showPanelParts({

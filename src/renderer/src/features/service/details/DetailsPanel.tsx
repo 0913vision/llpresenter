@@ -1,7 +1,5 @@
-import {withPreferenceDefaults} from '@core/schema/preferences';
 import {requestSongEditor} from '@renderer/features/songs/editor/songEditorRequests';
 import {
-  useContext,
   useEffect,
   useState,
   useSyncExternalStore,
@@ -10,14 +8,14 @@ import {
 } from 'react';
 import {isItemOfKind} from '@core/schema/service';
 import {hasSectionCard} from '@core/services/sectionCards';
+import {slideLayerOf} from '@core/presentation/slideLayer';
 import type {ServiceItemId, SongId} from '@core/schema/ids';
 import type {LlpApi} from '@contracts/ipc/api';
 import {noticeTime} from '@renderer/ui/notices';
 import type {ShowLibrarySong} from '@core/schema/showLibrarySong';
-import {useShow} from '@renderer/session/show';
-import {useSlideTheme} from '@renderer/platform/useSlideTheme';
-import {sermonPreviewRow} from '@renderer/platform/sermonPreview';
-import {useBibleTileProjection} from '@renderer/features/bible/useBibleProjections';
+import {stageSlideOf, useShow} from '@renderer/session/show';
+import {itemThemes, useThemeSettings} from '@renderer/pictures/itemThemes';
+import {TilePicture} from '@renderer/pictures/TilePicture';
 import {BibleLoadNotice} from '@renderer/features/bible/BibleLoadNotice';
 import {Panel, PanelBody, PanelTabs} from '@renderer/ui/Panel';
 import {GridFooter} from '@renderer/ui/GridFooter';
@@ -28,32 +26,19 @@ import type {SizeClass} from '@renderer/ui/sizeClass';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import type {SongEditorStore} from '@renderer/features/songs/editor';
 import type {ServiceItemStore} from '../items/serviceItemStore';
-import {useItemSlides} from '../items/useItemSlides';
 import {useItemMedia} from '../items/useItemSources';
 import {useItemSettings} from '../items/useItemSources';
-import {previewAppearance} from '@renderer/features/songs/editor/songPreviewModel';
-import {slideBand} from '../slides/SlidesVisuals';
-import {adSlideTitles} from '@core/presentation/slides';
 import {
   detailsHeading,
   detailsKindLine,
   sectionItemCount,
 } from './detailsHeading';
-import {detailsPicture} from './detailsPicture';
 import {DetailsInfo} from './DetailsInfo';
 import {useItemTheme} from './ItemThemeRow';
 import {DetailsSlides} from './DetailsSlides';
 import {SlidePreview, usePreviewScreen} from './SlidePreview';
-import {AheadBox, DrawAhead} from '@renderer/rendering/DrawAhead';
-
-/** The 슬라이드 tab tiles drawn ahead while 정보 shows: about a screen of them. */
-const DETAILS_AHEAD = 12;
-/** Drawing ahead starts this long after the panel shows an item. */
-const DETAILS_AHEAD_AFTER_MS = 400;
 import {detailsScale} from '@renderer/platform/thumbnailScale';
 import styles from './DetailsPanel.module.css';
-import {AtomicPictureContent} from '@renderer/rendering/AtomicPictureContent';
-import {PictureReadiness} from '@renderer/rendering/PictureReadiness';
 
 type Target =
   | {readonly kind: 'item'; readonly itemId: ServiceItemId}
@@ -75,31 +60,6 @@ function DetailsShell({
       <PanelBody>{children}</PanelBody>
       {footer}
     </Panel>
-  );
-}
-
-function SelectedPreview({
-  identity,
-  pending,
-  waitForPicture,
-  content,
-}: {
-  readonly identity: string;
-  readonly pending: boolean;
-  readonly waitForPicture: boolean;
-  readonly content: JSX.Element;
-}): JSX.Element {
-  const parent = useContext(PictureReadiness);
-  if (parent !== null) return content;
-  return (
-    <AtomicPictureContent
-      identity={identity}
-      pending={pending}
-      waitForPicture={waitForPicture}
-      initial={content}
-      initialReady
-      content={content}
-    />
   );
 }
 
@@ -149,7 +109,6 @@ function DetailsPanelContent({
   const state = useSyncExternalStore(items.subscribe, items.getSnapshot);
   const service = state.service;
   const media = useItemMedia(editor.api.media);
-  const raw = useItemSlides(items, editor, media);
   const detailsKey =
     target === null
       ? 'none'
@@ -168,8 +127,6 @@ function DetailsPanelContent({
     index: number;
   }>({key: null, index: 0});
   const selected = selection.key === targetKey ? selection.index : 0;
-  const [aheadDone, setAheadDone] = useState<string | null>(null);
-  const [aheadDue, setAheadDue] = useState<string | null>(null);
   const songId = target?.kind === 'song' ? target.songId : null;
   useEffect(() => {
     let active = true;
@@ -201,15 +158,6 @@ function DetailsPanelContent({
       ? state.item
       : null;
   const themeData = useItemTheme(api.settings, item);
-  const adTitle =
-    item !== null && isItemOfKind(item, 'slides')
-      ? adSlideTitles(
-          item,
-          themeData.targets.length === 0
-            ? undefined
-            : {file: themeData.file, screens: themeData.targets},
-        )
-      : undefined;
   const showRow = useShow(view =>
     item === null ? undefined : view.rows.find(row => row.id === item.id),
   );
@@ -222,184 +170,67 @@ function DetailsPanelContent({
   const projectedTiles = useShow(view =>
     item === null ? undefined : view.tiles[item.id],
   );
-  const card =
-    item !== null && hasSectionCard(item) ? item.sectionCard : undefined;
-  const offset = card === undefined ? 0 : 1;
-  const bible =
-    item !== null &&
-    (isItemOfKind(item, 'bible') || isItemOfKind(item, 'sermon'));
-  const themeSettings = useItemSettings(api.settings, 'themes', bible);
+  const tiles = library?.tiles ?? projectedTiles ?? [];
+  const offset = item !== null && hasSectionCard(item) ? 1 : 0;
   const screenSettings = useItemSettings(api.settings, 'screens');
   const screens =
     screenSettings.document?.name === 'screens'
       ? screenSettings.document.value.screens
       : [];
   const previewScreen = usePreviewScreen(screens);
-  const targetScreen = previewScreen.target;
-  const role = targetScreen?.kind ?? 'audience';
-  const previewPreferences = useItemSettings(
-    api.settings,
-    'preferences',
-    bible && role === 'stage',
-  );
-  const screenId = targetScreen?.id;
-  const aheadIdentity = `${detailsKey}:${screenId ?? ''}`;
-  useEffect(() => {
-    const timer = setTimeout(
-      () => setAheadDue(aheadIdentity),
-      DETAILS_AHEAD_AFTER_MS,
-    );
-    return () => clearTimeout(timer);
-  }, [aheadIdentity]);
-  const projection = useBibleTileProjection({
-    itemId: bible ? item.id : null,
-    ...(service === null ? {} : {serviceId: service.service.id}),
+  const settings = useThemeSettings({
+    api,
+    role: previewScreen.target?.kind ?? 'audience',
+    screenId: previewScreen.target?.id,
+    source: library === null ? 'service' : 'external',
   });
-  const bibleTiles = projection?.tiles.filter(
-    tile => tile.sectionCard === undefined,
+  const themes = itemThemes(
+    library === null
+      ? showRow
+      : {
+          id: library.songId,
+          kind: 'song',
+          title: library.title,
+          ...(library.background === undefined
+            ? {}
+            : {background: library.background}),
+        },
+    tiles,
+    settings,
   );
   const {title, kind, count} = detailsHeading({
     item: item !== null && isItemOfKind(item, 'header') ? null : item,
     song: state.song,
     library,
-    rawCount: bibleTiles?.length ?? raw.length,
-    offset,
+    count: tiles.length,
     mediaTitle:
       item !== null && isItemOfKind(item, 'media')
         ? media.document?.value.items.find(file => file.id === item.media)?.name
         : undefined,
   });
-  const reflowCounts = new Map<string, number>();
-  const detailsIds = Array.from({length: count}, (_, index) => {
-    const position = index - offset;
-    const identity =
-      index === 0 && card !== undefined
-        ? 'section-card'
-        : item !== null && isItemOfKind(item, 'slides')
-          ? item.slides.slides[position]?.id
-          : raw[position]?.id;
-    const base =
-      identity ??
-      JSON.stringify(
-        library?.tiles[index] ??
-          bibleTiles?.[position] ??
-          raw[position] ??
-          index,
-      );
-    const ordinal = reflowCounts.get(base) ?? 0;
-    reflowCounts.set(base, ordinal + 1);
-    return `${base}:${ordinal}`;
-  });
-  const itemTheme =
-    item?.theme ??
-    (item !== null && isItemOfKind(item, 'song')
-      ? state.song?.history.snapshot.song.theme
-      : undefined);
-  const bibleAppearance =
-    bible && projection?.appearance?.theme.item
-      ? previewAppearance({
-          role,
-          screenId,
-          stageLyricLabelPosition:
-            previewPreferences.document?.name === 'preferences'
-              ? withPreferenceDefaults(previewPreferences.document.value).output
-                  .stageLyricLabelPosition
-              : undefined,
-          themes:
-            themeSettings.document?.name === 'themes'
-              ? themeSettings.document.value
-              : undefined,
-          screens:
-            screenSettings.document?.name === 'screens'
-              ? screenSettings.document.value
-              : undefined,
-          item: {
-            ...projection.appearance.theme.item,
-            ...(item.theme === undefined ? {} : {theme: item.theme}),
-          },
-        })
-      : undefined;
-  const theme = useSlideTheme(
-    item === null && library === null
-      ? undefined
-      : {
-          id: item?.id ?? library?.songId ?? '',
-          kind: item !== null && isItemOfKind(item, 'media') ? 'media' : 'song',
-          title,
-          ...(itemTheme === undefined ? {} : {theme: itemTheme}),
-        },
-    library === null ? 'service' : 'external',
-    {
-      api,
-      role,
-      ...(screenId === undefined ? {} : {screenId}),
-      ...(itemTheme === undefined ? {} : {theme: itemTheme}),
-    },
+  const detailsIds = tiles.map(
+    (tile, index) => tile.key ?? tile.sourceSlide?.slideId ?? String(index),
   );
-  const sermonTheme = useSlideTheme(
-    item !== null && isItemOfKind(item, 'sermon')
-      ? sermonPreviewRow(item.id, item.sermon.passage.ref)
-      : undefined,
-    'service',
-    {api, role, ...(screenId === undefined ? {} : {screenId})},
-  );
-  const cardTheme = useSlideTheme(
-    card === undefined || item === null
-      ? undefined
-      : {
-          id: item.id,
-          kind: 'slides',
-          form: 'blank',
-          title: card.name,
-          theme: card.theme,
-        },
-    'service',
-    {api, role, ...(screenId === undefined ? {} : {screenId})},
-  );
-  const picture = (index: number): JSX.Element | undefined =>
-    detailsPicture(
-      {
-        item,
-        library,
-        song: state.song,
-        raw,
-        projectedTiles,
-        role,
-        screenId,
-        bibleAppearance,
-        card,
-        offset,
-        theme,
-        cardTheme,
-        sermonTheme,
-        projection,
-        bibleTiles,
-        editor,
-      },
-      index,
-    );
-  const labelAt = (index: number): string | undefined => {
-    if (index === 0 && card !== undefined) return card.label ?? card.name;
-    if (item !== null && isItemOfKind(item, 'slides')) {
-      const slide = item.slides.slides[index - offset];
-      return slide === undefined
-        ? undefined
-        : slideBand(slide, media.document?.value.items ?? [], adTitle);
-    }
+  const picture = (index: number): JSX.Element | undefined => {
+    const tile = tiles[index];
+    if (tile === undefined) return undefined;
+    const itemId = item?.id ?? library?.songId ?? '';
     return (
-      library?.tiles[index]?.label ??
-      bibleTiles?.[index - offset]?.slideLabel ??
-      bibleTiles?.[index - offset]?.label ??
-      raw[index - offset]?.label
+      <TilePicture
+        tile={tile}
+        slide={
+          (item === null ? null : stageSlideOf({itemId, index})) ??
+          slideLayerOf({itemId, index}, () => tiles)
+        }
+        themes={themes}
+      />
     );
   };
-  const labelColorAt = (index: number) =>
-    index === 0 && card !== undefined
-      ? (projectedTiles?.[0]?.labelColor ?? 'none')
-      : (library?.tiles[index]?.labelColor ??
-        bibleTiles?.[index - offset]?.labelColor ??
-        raw[index - offset]?.color ??
-        'none');
+  const labelAt = (index: number): string | undefined => {
+    const tile = tiles[index];
+    return tile?.slideLabel ?? tile?.label ?? undefined;
+  };
+  const labelColorAt = (index: number) => tiles[index]?.labelColor ?? 'none';
   const select = (index: number): void => {
     if (item !== null) items.selectPosition(index);
     else setSelection({key: targetKey, index});
@@ -485,181 +316,110 @@ function DetailsPanelContent({
       // the item leaves the service; the panel empties with the row.
       !listed;
     return (
-      <AtomicPictureContent
-        initial={<DetailsShell />}
-        identity={detailsKey}
-        showLoading
-        loadingIndicator={<Spinner size="sm" />}
-        pending={target !== null && !deleted}
-        content={<DetailsShell />}
-      />
+      <DetailsShell>
+        {target !== null && !deleted ? <Spinner size="sm" /> : null}
+      </DetailsShell>
     );
   }
   if (item !== null && isItemOfKind(item, 'header')) {
     const itemCount = sectionItemCount(service?.service.order ?? [], item.id);
     return (
-      <AtomicPictureContent
-        initial={<DetailsShell />}
-        identity={detailsKey}
-        pending={false}
-        content={
-          <DetailsShell>
-            <div className={styles.title} title={item.header}>
-              {item.header}
-            </div>
-            <div className={styles.meta}>구역, 항목 {itemCount}개</div>
-          </DetailsShell>
-        }
-      />
+      <DetailsShell>
+        <div className={styles.title} title={item.header}>
+          {item.header}
+        </div>
+        <div className={styles.meta}>구역, 항목 {itemCount}개</div>
+      </DetailsShell>
     );
   }
   const selectedIndex = Math.min(
     Math.max(0, count - 1),
     item === null ? selected : state.position,
   );
-  const firstPicture =
-    passageProblem === undefined ? picture(selectedIndex) : undefined;
-  const waitForPicture = passageProblem === undefined && count > 0;
-  const pending =
-    (screenSettings.document === null && !screenSettings.failed) ||
-    (waitForPicture && firstPicture === undefined) ||
-    (item !== null && !themeData.ready) ||
-    (item !== null &&
-      isItemOfKind(item, 'song') &&
-      state.songStatus === 'loading') ||
-    (item !== null &&
-      (isItemOfKind(item, 'song') || isItemOfKind(item, 'slides')) &&
-      media.document === null &&
-      !media.failed);
-  const identity = `${detailsKey}:${screenId ?? ''}`;
-  // NOTE(0913vision): While 정보 shows, the 슬라이드 tab's first tiles draw out
-  // of sight, so switching tabs shows every tile drawn, the first one too,
-  // whose picture the large preview above is using.
-  const ahead =
-    tab === 'info' &&
-    !pending &&
-    aheadDue === identity &&
-    aheadDone !== identity
-      ? Array.from({length: Math.min(count, DETAILS_AHEAD)}, (_, index) =>
-          picture(index),
-        ).filter(each => each !== undefined)
-      : null;
   return (
-    <AtomicPictureContent
-      initial={<DetailsShell />}
-      identity={identity}
-      showLoading
-      loadingIndicator={<Spinner size="sm" />}
-      aside={
-        ahead === null ? null : (
-          <AheadBox>
-            <DrawAhead
-              key={identity}
-              pictures={ahead}
-              onDone={() => setAheadDone(identity)}
-            />
-          </AheadBox>
-        )
-      }
-      waitForPicture={waitForPicture}
-      pending={pending}
-      content={
-        <DetailsShell
-          footer={
-            tab === 'slides' ? (
-              <GridFooter
-                count={count}
-                zoom={
-                  <ThumbnailSizeControl
-                    compact
-                    value={scale}
-                    onChange={value => detailsScale.show(sizeClass, value)}
-                    onCommit={value =>
-                      detailsScale.save(sizeClass, value, api.ui)
-                    }
-                  />
-                }
-              />
-            ) : null
-          }
-        >
-          <SelectedPreview
-            identity={`${identity}:${selectedIndex}`}
-            pending={pending}
-            waitForPicture={waitForPicture}
-            content={
-              <SlidePreview
-                picture={
-                  passageProblem === undefined ? (
-                    firstPicture
-                  ) : (
-                    <BibleLoadNotice row={passageProblem} />
-                  )
-                }
-                screen={previewScreen}
-                number={count === 0 ? undefined : selectedIndex + 1}
-                label={labelAt(selectedIndex)}
-                color={labelColorAt(selectedIndex)}
+    <DetailsShell
+      footer={
+        tab === 'slides' ? (
+          <GridFooter
+            count={count}
+            zoom={
+              <ThumbnailSizeControl
+                compact
+                value={scale}
+                onChange={value => detailsScale.show(sizeClass, value)}
+                onCommit={value => detailsScale.save(sizeClass, value, api.ui)}
               />
             }
           />
-          <div className={styles.title} title={title}>
-            {title}
-          </div>
-          <div className={styles.meta}>
-            {title === '' || passageProblem !== undefined
-              ? ''
-              : detailsKindLine(item, kind, count)}
-          </div>
-          {onOpenPrep !== undefined &&
-          item !== null &&
-          (isItemOfKind(item, 'bible') ||
-            isItemOfKind(item, 'sermon') ||
-            isItemOfKind(item, 'media')) ? (
-            <Button icon="edit" onClick={() => edit(selectedIndex)}>
-              편집
-            </Button>
-          ) : null}
-          <PanelTabs
-            tabs={tabs}
-            value={tab}
-            onChange={value => setTabState({key: detailsKey, value})}
-          />
-          {tab === 'info' ? (
-            <DetailsInfo
-              details={{
-                item,
-                service,
-                state,
-                library,
-                media,
-                themeData,
-                items,
-                editor,
-                reason,
-                api,
-                openSource,
-                edit,
-              }}
-            />
-          ) : (
-            <PictureReadiness.Provider value={null}>
-              <DetailsSlides
-                count={count}
-                ids={detailsIds}
-                scope={detailsKey}
-                scale={scale}
-                selected={selectedIndex}
-                onSelect={select}
-                onEdit={edit}
-                labelAt={labelAt}
-                colorAt={labelColorAt}
-                picture={picture}
-              />
-            </PictureReadiness.Provider>
-          )}
-        </DetailsShell>
+        ) : null
       }
-    />
+    >
+      <SlidePreview
+        picture={
+          passageProblem === undefined ? (
+            picture(selectedIndex)
+          ) : (
+            <BibleLoadNotice row={passageProblem} />
+          )
+        }
+        screen={previewScreen}
+        number={count === 0 ? undefined : selectedIndex + 1}
+        label={labelAt(selectedIndex)}
+        color={labelColorAt(selectedIndex)}
+      />
+      <div className={styles.title} title={title}>
+        {title}
+      </div>
+      <div className={styles.meta}>
+        {title === '' || passageProblem !== undefined
+          ? ''
+          : detailsKindLine(item, kind, count)}
+      </div>
+      {onOpenPrep !== undefined &&
+      item !== null &&
+      (isItemOfKind(item, 'bible') ||
+        isItemOfKind(item, 'sermon') ||
+        isItemOfKind(item, 'media')) ? (
+        <Button icon="edit" onClick={() => edit(selectedIndex)}>
+          편집
+        </Button>
+      ) : null}
+      <PanelTabs
+        tabs={tabs}
+        value={tab}
+        onChange={value => setTabState({key: detailsKey, value})}
+      />
+      {tab === 'info' ? (
+        <DetailsInfo
+          details={{
+            item,
+            service,
+            state,
+            library,
+            media,
+            themeData,
+            items,
+            editor,
+            reason,
+            api,
+            openSource,
+            edit,
+          }}
+        />
+      ) : (
+        <DetailsSlides
+          count={count}
+          ids={detailsIds}
+          scope={detailsKey}
+          scale={scale}
+          selected={selectedIndex}
+          onSelect={select}
+          onEdit={edit}
+          labelAt={labelAt}
+          colorAt={labelColorAt}
+          picture={picture}
+        />
+      )}
+    </DetailsShell>
   );
 }

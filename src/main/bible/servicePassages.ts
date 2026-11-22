@@ -1,10 +1,6 @@
-import {
-  bibleVerseTiles,
-  sermonTitleTile,
-  withoutDeletedBibleSlides,
-} from '@core/bible/bibleTiles';
+import {bibleItemTiles} from '@core/bible/bibleTiles';
 import {BIBLE_BOOKS} from '@core/bible/bibleBooks';
-import {biblePartEffect, biblePartLabel} from '@core/bible/partTransitions';
+import {isPassageItem, passageOf} from '@core/services/passageEdits';
 import type {RecentPassage} from '@core/schema/bible';
 import {
   parseBibleLookupRequest,
@@ -106,72 +102,15 @@ export async function resolveServicePassages(
       slides.set(item.id, found);
       continue;
     }
-    if (!isItemOfKind(item, 'bible') && !isItemOfKind(item, 'sermon')) continue;
-    const settings = isItemOfKind(item, 'sermon')
-      ? item.sermon.passage
-      : item.bible;
+    if (!isPassageItem(item)) continue;
+    const settings = passageOf(item);
     const passage = await load(settings.translation, settings.ref);
-    if (
-      passage === null ||
-      passage.verses.length + (isItemOfKind(item, 'sermon') ? 2 : 0) >
-        SHOW_SERVICE_LIMITS.tiles
-    ) {
+    const shown = passage === null ? [] : bibleItemTiles(item, passage);
+    if (passage === null || shown.length > SHOW_SERVICE_LIMITS.tiles) {
       unavailable.add(item.id);
       continue;
     }
-    tiles.set(
-      item.id,
-      withoutDeletedBibleSlides(
-        [
-          ...(isItemOfKind(item, 'sermon')
-            ? [
-                sermonTitleTile({
-                  side: 'opening',
-                  title: item.sermon.title,
-                  reference: passage.displayRef,
-                  label: item.sermon.openingLabel,
-                  transition: item.sermon.openingTransition,
-                }),
-              ]
-            : []),
-          ...bibleVerseTiles(passage, {
-            verseNumbers: settings.verseNumbers,
-            reference: settings.reference,
-            translationName: settings.translationName,
-            transition: settings.transition,
-            pinnedVerses: settings.pinnedVerses,
-            deletedSlides: settings.deletedSlides,
-          }).map(tile => {
-            const reference = tile.bibleVerse;
-            if (reference === undefined) return tile;
-            const part = tile.biblePart ?? 1;
-            const transition = biblePartEffect(
-              item.bibleTransitions,
-              reference,
-              part,
-            );
-            const label = biblePartLabel(item.bibleLabels, reference, part);
-            return {
-              ...tile,
-              ...(transition === undefined ? {} : {transition}),
-              ...(label === undefined ? {} : {slideLabel: label}),
-            };
-          }),
-          ...(isItemOfKind(item, 'sermon')
-            ? [
-                sermonTitleTile({
-                  side: 'closing',
-                  title: item.sermon.title,
-                  reference: passage.displayRef,
-                  label: item.sermon.closingLabel,
-                  transition: item.sermon.closingTransition,
-                }),
-              ]
-            : []),
-        ],
-        settings.deletedSlides,
-      ),
-    );
+    tiles.set(item.id, shown);
     const {ref, translation} = passage;
     references.set(item.id, {ref, translation, passage});
   }

@@ -489,6 +489,10 @@ export class SlideLayerView {
     if (this.current !== null) this.fit(this.page);
   }
 
+  refit(): void {
+    if (this.current !== null) this.fit(this.page);
+  }
+
   /** The fitted CSS font size in scaled layout pixels, before any canvas transform. */
   fittedSize(): number | undefined {
     if (this.current === null) return undefined;

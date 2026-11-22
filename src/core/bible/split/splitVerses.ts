@@ -1,14 +1,9 @@
 import type {BibleCutEntry, BibleCutsFile} from '../../schema/bibleCuts';
+import type {BibleSlides} from '../../schema/biblePassage';
 import type {VerseSlide} from '../../schema/service';
-import {CONT_MARKER, layoutText, type SplitLayout} from './layout';
-import {
-  cutsFromChunks,
-  normalizeVerse,
-  offsetsFromChunks,
-  planSlides,
-  planSlidesAtOffsets,
-} from './manualSplit';
-import {knownCutEntryFor, textHash} from './splitCache';
+import {CONT_MARKER, type SplitLayout} from './layout';
+import {cutsFromChunks, planSlides, planSlidesAtOffsets} from './manualSplit';
+import {cacheKey, knownCutEntryFor, textHash} from './splitCache';
 import {splitVerse} from './splitter';
 
 export interface VerseInput {
@@ -24,50 +19,6 @@ export interface VersePart extends VerseInput {
   readonly partCount: number;
   readonly manual: boolean;
   readonly problem?: 'measurement';
-}
-
-/** Captures original boundaries before the first text-box edit to a split verse. */
-export function pinVerseParts(
-  raw: string,
-  parts: readonly VersePart[],
-): readonly string[] | undefined {
-  const offsets = offsetsFromChunks(raw, parts);
-  if (offsets === undefined) return undefined;
-  const text = normalizeVerse(raw);
-  const boundaries = [0, ...offsets, text.length];
-  return boundaries
-    .slice(0, -1)
-    .map((offset, index) => text.slice(offset, boundaries[index + 1]));
-}
-
-export function validatedPinnedVerse(
-  raw: string,
-  parts: readonly string[] | undefined,
-): readonly string[] | undefined {
-  return parts?.join('') === normalizeVerse(raw) ? parts : undefined;
-}
-
-export function projectPinnedVerse(
-  verse: VerseInput,
-  parts: readonly string[],
-  {layout, prefix}: {readonly layout: SplitLayout; readonly prefix: string},
-): readonly VersePart[] {
-  return parts.map((part, index) => {
-    const text = part.trimEnd();
-    const continued = index < parts.length - 1;
-    const numbered = (index === 0 ? prefix : '') + text;
-    const measured = layoutText(numbered, layout, continued);
-    return {
-      reference: verse.reference,
-      text,
-      display: text + (continued ? CONT_MARKER : ''),
-      lines: measured.lines,
-      continued,
-      part: index + 1,
-      partCount: parts.length,
-      manual: true,
-    };
-  });
 }
 
 export function firstSlidePrefix(
@@ -91,6 +42,23 @@ function partsOfPlan(
     part: index + 1,
     partCount: plan.slideCount,
     manual,
+  }));
+}
+
+/** The parts of a verse as its kept slides show them. */
+export function keptVerseParts(
+  verse: VerseInput,
+  slides: BibleSlides | undefined,
+): readonly VersePart[] | undefined {
+  const kept = slides?.[cacheKey(verse.reference)];
+  return kept?.map((slide, index) => ({
+    reference: verse.reference,
+    text: slide.text,
+    display: slide.text + (index < kept.length - 1 ? CONT_MARKER : ''),
+    continued: index < kept.length - 1,
+    part: index + 1,
+    partCount: kept.length,
+    manual: true,
   }));
 }
 

@@ -133,7 +133,6 @@ export class ThemeElementView {
   private imageGeneration = 0;
   private readonly options: RenderLayerOptions;
   private readonly gaps: ThemeGaps;
-  private manualText: string | undefined;
   private shownText: string | null = null;
   private shownSlideKey: string | null = null;
   private shownContinued = false;
@@ -219,7 +218,6 @@ export class ThemeElementView {
       });
       const guide = document.createElement('div');
       guide.className = classes.bibleGuide;
-      if (options.biblePreview?.hideGuide === true) guide.hidden = true;
       textParent.append(guide);
     }
     parent.append(this.box);
@@ -285,7 +283,7 @@ export class ThemeElementView {
     if (element.kind === 'image' && this.image !== null) {
       this.imageReady = false;
       this.image.alt = '';
-      if (options.readableImages === true) this.image.crossOrigin = 'anonymous';
+      if (options.mode === 'preview') this.image.decoding = 'sync';
       Object.assign(this.image.style, {
         width: '100%',
         height: '100%',
@@ -344,14 +342,10 @@ export class ThemeElementView {
     frame: RenderFrame,
     {
       videoRemaining,
-      manual,
     }: {
       readonly videoRemaining?: number | undefined;
-      readonly manual?: ReadonlyMap<string, string> | undefined;
     } = {},
   ): void {
-    const manualText = manual?.get(this.element.id);
-    this.manualText = manualText;
     if (this.previewMaxLines !== undefined) {
       this.box.dataset['overflow'] = String(
         (layers.slide?.lines.length ?? 0) > this.previewMaxLines,
@@ -552,8 +546,7 @@ export class ThemeElementView {
           ? nextAdTitle.trim() === ''
             ? null
             : `다음광고: ${nextAdTitle.trim()}`
-          : (manualText ??
-            cue ??
+          : (cue ??
             (stage &&
             isSong &&
             element.kind === 'currentText' &&
@@ -582,7 +575,7 @@ export class ThemeElementView {
       if (inlineLabel !== undefined) this.box.style.overflow = 'visible';
       this.text?.setStageInlineLabel(inlineLabel);
       this.showText(displayedText, frame, {
-        cue: cue !== undefined && manualText === undefined,
+        cue: cue !== undefined,
         lyricFormat:
           stage &&
           isSong &&
@@ -607,16 +600,14 @@ export class ThemeElementView {
               }
             : frame.screen?.kind === 'audience'
               ? (element.lyricFormat ??
-                (manualText === undefined &&
-                isSong &&
-                element.kind === 'currentText'
+                (isSong && element.kind === 'currentText'
                   ? layers.slide?.lyricFormat
                   : undefined))
               : undefined,
         vAlign:
           stage && element.kind === 'nextText'
             ? 'top'
-            : cue !== undefined && manualText === undefined
+            : cue !== undefined
               ? 'middle'
               : isThemeTextElement(element)
                 ? themeTextVAlign(element, layers.slide?.lines.join('\n') ?? '')
@@ -658,7 +649,6 @@ export class ThemeElementView {
   ): void {
     const {element} = this;
     const target =
-      this.manualText !== undefined ||
       element.clearTarget === 'slide' ||
       isSectionBandGradient(element.id) ||
       element.id === SECTION_NAME_ID ||
@@ -668,9 +658,7 @@ export class ThemeElementView {
           ? 'media'
           : undefined;
     const stageUtility =
-      stage &&
-      this.manualText === undefined &&
-      ['clock', 'timer', 'stageMessage'].includes(element.kind);
+      stage && ['clock', 'timer', 'stageMessage'].includes(element.kind);
     const opacity = String(
       stageUtility
         ? 1
@@ -684,7 +672,6 @@ export class ThemeElementView {
 
   /** Timed elements leave the DOM untouched until their displayed value changes. */
   tick(layers: LiveLayers, frame: RenderFrame, videoRemaining?: number): void {
-    if (this.manualText !== undefined) return;
     const text = this.textContent(layers, frame, videoRemaining);
     if (text !== this.shownText) this.showText(text, frame);
   }
@@ -1127,6 +1114,10 @@ export class ThemeElementView {
     const gridY = Math.round(y * 64) / 64;
     this.box.style.top = `${gridY}px`;
     this.box.style.transform = `translateY(${y - gridY}px)`;
+  }
+
+  refit(): void {
+    this.text?.refit();
   }
 
   fittedTextSize(): number | undefined {

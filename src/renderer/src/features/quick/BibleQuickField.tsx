@@ -11,7 +11,6 @@ import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useEffect, useLayoutEffect, useState, type JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
-import type {BiblePreviewOptions} from '@core/bible/source';
 import {useShow} from '@renderer/session/show';
 import {useLive} from '@renderer/session/live';
 import {useCommittedShownItem} from '@renderer/session/shownItem';
@@ -24,35 +23,11 @@ import {
   beginOutputRequest,
   isOutputRequestCurrent,
 } from '@renderer/session/showOutput';
-import {pictures} from '@renderer/rendering/pictures/pictureService';
 import {BibleReferenceField} from '../bible/BibleReferenceField';
 import {openBiblePassage, showBiblePassage} from '../bible/actions';
 import {focusSlideGrid} from '../presentation/focusSlideGrid';
 import {PassageDialog} from '../bible/PassageDialog';
 import {useBibleDisplayDefaults} from '../bible/useBibleDisplayDefaults';
-import {prepareBiblePictures} from '../bible/prepareBiblePictures';
-
-const PICTURE_WAIT_MS = 2500;
-
-async function picturePreparation(
-  passage: BibleLookupPassage,
-  options: BiblePreviewOptions,
-): Promise<boolean> {
-  let deadline: ReturnType<typeof setTimeout> | undefined;
-  try {
-    return await Promise.race([
-      prepareBiblePictures(passage, options),
-      new Promise<false>(resolve => {
-        deadline = setTimeout(() => resolve(false), PICTURE_WAIT_MS);
-      }),
-    ]);
-  } catch (error) {
-    console.error('Could not prepare the Bible passage pictures', error);
-    return false;
-  } finally {
-    clearTimeout(deadline);
-  }
-}
 
 /** The quick-panel mount; previewing never writes output or recent history. */
 export function BibleQuickField({
@@ -82,50 +57,6 @@ export function BibleQuickField({
       focusSlideGrid();
     }
   }, [committed, overlayOpen]);
-  const staged = useRef<{
-    passage: BibleLookupPassage;
-    options: BiblePreviewOptions;
-    ready: Promise<boolean>;
-  } | null>(null);
-  useEffect(
-    () => () => {
-      staged.current = null;
-    },
-    [],
-  );
-  const withPictures = (
-    passage: BibleLookupPassage,
-    options: BiblePreviewOptions,
-    apply: (ready: boolean) => void,
-  ): void => {
-    if (pictures.drawInPlace) {
-      apply(false);
-      return;
-    }
-    const request = beginOutputRequest();
-    const version = useLive.getState().commandVersion;
-    const previous = staged.current;
-    const ready =
-      previous?.passage === passage &&
-      previous.options.verseNumbers === options.verseNumbers &&
-      previous.options.reference === options.reference &&
-      previous.options.translationName === options.translationName
-        ? previous.ready
-        : picturePreparation(passage, options);
-    staged.current = {passage, options, ready};
-    ready
-      .then(drawn => {
-        if (
-          staged.current?.ready !== ready ||
-          !isOutputRequestCurrent(request, version)
-        ) {
-          return;
-        }
-        staged.current = null;
-        apply(drawn);
-      })
-      .catch((error: unknown) => console.error(error));
-  };
   const closeFinder = (): void => {
     finderGeneration.current += 1;
     beginOutputRequest();
@@ -223,20 +154,6 @@ export function BibleQuickField({
       return;
     }
     focusItem.current = id;
-    if (!pictures.drawInPlace) {
-      // NOTE(0913vision): Give the incoming grid priority in the picture queue
-      // after the live command has been sent.
-      setTimeout(() => {
-        if (useShow.getState().openItemId === id) {
-          prepareBiblePictures(target, options).catch((error: unknown) => {
-            console.error(
-              'Could not prepare the Bible passage pictures',
-              error,
-            );
-          });
-        }
-      }, 0);
-    }
   };
   const pick = async (recent: RecentPassage): Promise<void> => {
     if (display === null) return;
@@ -321,14 +238,11 @@ export function BibleQuickField({
           }
         }}
         onPreview={passage => {
-          if (display !== null) {
-            const options = {
+          if (display !== null && !overlayOpen) {
+            openBiblePassage(passage, {
               ...display,
               review: false,
               transition: QUICK_BIBLE_TRANSITION,
-            };
-            withPictures(passage, options, ready => {
-              if (!overlayOpen) openBiblePassage(passage, options, {ready});
             });
           }
         }}
@@ -342,7 +256,7 @@ export function BibleQuickField({
       translation={currentTranslation}
       translations={translations}
       recents={document?.value.recents ?? []}
-      action={'띠우기'}
+      action="띄우기"
       onClose={closeFinder}
       onSubmit={passage => show(passage)}
       onPick={recent => {

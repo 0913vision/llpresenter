@@ -1,17 +1,19 @@
 import type {VerseInput} from '@core/bible/split/splitVerses';
-import type {BibleCutEntry} from '@core/schema/bibleCuts';
-import type {BibleProjection} from './splitProjection';
+import type {BibleSplit} from './passageSplitter';
 
 export interface BibleInsertionRequest {
   readonly serviceId: string;
   readonly serviceEpoch: number;
-  readonly projection: BibleProjection;
+  readonly projection: BibleSplit;
   readonly references: ReadonlyArray<VerseInput['reference']>;
 }
 
+/** The confirmed texts of each reviewed verse, by its key. */
+export type ReviewedVerses = Readonly<Record<string, readonly string[]>>;
+
 type Review = (
   request: BibleInsertionRequest,
-) => Promise<Readonly<Record<string, BibleCutEntry>> | null>;
+) => Promise<ReviewedVerses | null>;
 
 let review: Review | undefined;
 

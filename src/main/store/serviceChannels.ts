@@ -6,12 +6,10 @@ import type {Logger} from '../log';
 import type {AppConfigFile} from './appConfigFile';
 import type {ContentStore} from './contentStore';
 import type {OpenServiceFeed} from './openServiceFeed';
-import {parseBibleProjection} from '@core/schema/bibleProjection';
 
 export interface ServiceSession {
   readonly content: Pick<ContentStore, 'openService'>;
-  readonly feed: Pick<OpenServiceFeed, 'current' | 'refresh'> &
-    Partial<Pick<OpenServiceFeed, 'acceptBibleProjection'>>;
+  readonly feed: Pick<OpenServiceFeed, 'current' | 'refresh'>;
 }
 
 export const MAX_PENDING_SERVICE_SWITCHES = 16;
@@ -36,21 +34,6 @@ export function registerServiceChannels(
     log.error('could not open service channels', error);
     return null;
   });
-  const bibleProjection = (
-    _event: Electron.IpcMainEvent,
-    value: unknown,
-  ): void => {
-    const parsed = parseBibleProjection(value);
-    if (!parsed.ok) return;
-    ready
-      .then(opened => {
-        if (!disposed) opened?.feed.acceptBibleProjection?.(parsed.value);
-      })
-      .catch((error: unknown) =>
-        log.error('could not accept Bible projection', error),
-      );
-  };
-  ipcMain.on(serviceEndpoints.bibleProjection.channel, bibleProjection);
   ipcMain.handle(serviceEndpoints.get.channel, async () => {
     const opened = await ready;
     if (disposed || opened === null) return null;
@@ -109,10 +92,6 @@ export function registerServiceChannels(
       disposed = true;
       ipcMain.removeHandler(serviceEndpoints.get.channel);
       ipcMain.removeHandler(serviceEndpoints.open.channel);
-      ipcMain.removeListener(
-        serviceEndpoints.bibleProjection.channel,
-        bibleProjection,
-      );
       closing ??= switching;
       return closing;
     },

@@ -19,8 +19,6 @@ import type {ShowView} from '@renderer/session/showStore';
 import {SlideThumbnail, ThumbnailGrid, thumbnailWidth} from '@renderer/ui';
 import {firstSlideWindowSize} from './useSlideWindow';
 import {useGridMeasure} from '@renderer/ui/useGridMeasure';
-import {useBibleProjections} from '../bible/useBibleProjections';
-import {splitSourceFor} from '../bible/splitProjection';
 import {useSlideTransitionProgress} from './useSlideTransitionProgress';
 import {revealSlideItem} from '@renderer/session/visibleSlideItem';
 import {liveReturn} from './liveReturn';
@@ -28,7 +26,12 @@ import type {SlideGridProps} from './SlideGrid';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import {slideMenuEntries} from '@renderer/features/songs/editor/slideMenuEntries';
 import {ShowSlideEntry} from './showPanelNavigation';
-import {serviceTileThemes, tilePicture, type TileThemes} from './tilePicture';
+import {
+  itemThemes,
+  useThemeSettings,
+  type ItemThemes,
+} from '@renderer/pictures/itemThemes';
+import {TilePicture} from '@renderer/pictures/TilePicture';
 import styles from './SlideGrid.module.css';
 import {tileReflowIds} from './tileReflowIds';
 import {useReflow} from '@renderer/ui/useReflow';
@@ -118,7 +121,7 @@ function SectionGrid({
   live: number | null;
   progress: TransitionProgress | undefined;
   onMenu: (index: number, anchor: MenuAnchor) => void;
-  themes: TileThemes;
+  themes: ItemThemes;
 }): JSX.Element {
   const {row, tiles} = section;
   const ids = tileReflowIds(tiles, row.id);
@@ -147,7 +150,7 @@ function SectionGrid({
             reflowId={ids[index]}
             selectionStyle="plate"
             number={section.number + index + 1}
-            canvas={tilePicture(tile, slide, themes)}
+            canvas={<TilePicture tile={tile} slide={slide} themes={themes} />}
             label={
               (tile.slideLabel ?? tile.label) === ''
                 ? undefined
@@ -187,9 +190,7 @@ export function ContinuousSlideGrid({
   const initialized = useRef(false);
   const slide = useLive(view => view.state?.layers.slide ?? null);
   const view = useShow();
-  const {themes, screens, projections} = useBibleProjections({
-    enabled: view.rows.length > 0,
-  });
+  const settings = useThemeSettings();
   const projected = projectedLiveCursor(view, slide);
   const cursorItem = projected?.itemId;
   const cursorIndex = projected?.index;
@@ -511,8 +512,6 @@ export function ContinuousSlideGrid({
             section.top <= metrics.top + metrics.height + stride,
         )
         .map(section => {
-          const source = splitSourceFor(view, section.row.id);
-          const bible = source === null ? null : projections?.get(source);
           const first = Math.max(
             0,
             Math.floor((metrics.top - section.top - BAND) / stride) - 1,
@@ -575,11 +574,7 @@ export function ContinuousSlideGrid({
                         : null
                     }
                     progress={progress}
-                    themes={serviceTileThemes(section.row, section.tiles, {
-                      themes: themes?.value,
-                      screens: screens?.value.screens,
-                      bibleAppearance: bible?.appearance,
-                    })}
+                    themes={itemThemes(section.row, section.tiles, settings)}
                     onMenu={(index, anchor) =>
                       setMenu({itemId: section.row.id, index, anchor})
                     }

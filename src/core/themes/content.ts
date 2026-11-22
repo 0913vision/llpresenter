@@ -2,7 +2,6 @@ import {cardOffset} from '../services/sectionCards';
 import type {LiveLayers, SlideLayer} from '../live/state';
 import type {LiveThemeItem} from '../schema/liveTheme';
 import type {ScreenId} from '../schema/ids';
-import type {ThemeTextRole} from '../schema/themeTextSlot';
 import type {ThemeElement} from '../schema/themes';
 import type {ItemOverlay} from '../schema/itemOverlays';
 
@@ -18,26 +17,16 @@ export function isThemeTextElement(
   );
 }
 
-const slideEditableRoles: ReadonlySet<string> = new Set<ThemeTextRole>([
-  'currentText',
-  'reference',
-  'itemName',
-  'slideName',
-  'slideNumber',
-  'text',
-  'memo',
-]);
-
-export function isSlideEditableTextRole(role: string): boolean {
-  return slideEditableRoles.has(role);
+/** A theme's own text box, which each slide can fill with its own text. */
+export function isOwnTextBox(
+  element: ThemeElement,
+): element is Extract<ThemeElement, {readonly kind: 'text'}> {
+  return element.kind === 'text';
 }
 
-export function isSlideEditableElement(element: ThemeElement): boolean {
-  return (
-    isThemeTextElement(element) &&
-    isSlideEditableTextRole(element.kind) &&
-    isSlideEditableTextRole(element.textSlot?.role ?? element.kind)
-  );
+/** The name a slide keeps the text of an own text box under. */
+export function ownTextKey(element: ThemeElement): string {
+  return element.name ?? element.id;
 }
 
 /** A blank or ad text slide can use Scripture body layout. */
@@ -102,50 +91,24 @@ export function themeElementText(
   element: ThemeElement,
   content: ThemeContent,
 ): string | null {
-  const slot = isThemeTextElement(element) ? element.textSlot : undefined;
-  const text = automaticElementText(
-    element,
-    slot?.role ?? element.kind,
-    content,
-  );
-  return (
-    text ?? (content.layers.slide === null ? null : (slot?.fallback ?? null))
-  );
-}
-
-function automaticElementText(
-  element: ThemeElement,
-  role: ThemeElement['kind'],
-  content: ThemeContent,
-): string | null {
   const {layers, item} = content;
   const slide = layers.slide;
   const bibleReference =
     slide?.reference === undefined
       ? null
-      : item?.kind === 'bible'
+      : item?.kind === 'bible' && slide.ownReference !== true
         ? (item.title ?? slide.reference)
         : slide.reference;
-  switch (role) {
+  switch (element.kind) {
     case 'currentText': {
       if (slide === null) return null;
       const text = slide.lines.join('\n');
-      return text.trim() === ''
-        ? ((isThemeTextElement(element)
-            ? element.textSlot?.fallback
-            : undefined) ??
-            (element.kind === 'currentText'
-              ? element.fallbackText
-              : undefined) ??
-            text)
-        : text;
+      return text.trim() === '' ? (element.fallbackText ?? text) : text;
     }
     case 'reference':
       return slide === null
         ? null
-        : element.kind === 'reference' &&
-            element.source === 'item' &&
-            item?.kind === 'bible'
+        : element.source === 'item' && item?.kind === 'bible'
           ? bibleReference
           : (slide.reference ?? null);
     case 'nextText': {
@@ -153,7 +116,7 @@ function automaticElementText(
       const lines = slide.next.title?.trim()
         ? [slide.next.title, ...slide.next.lines]
         : slide.next.lines;
-      return element.kind !== 'nextText' || element.lineLimit === undefined
+      return element.lineLimit === undefined
         ? lines.join('\n')
         : lines
             .flatMap(line => line.split('\n'))
@@ -161,8 +124,7 @@ function automaticElementText(
             .join('\n');
     }
     case 'label': {
-      const hideWhenItemTitle =
-        element.kind === 'label' && element.hideWhenItemTitle;
+      const {hideWhenItemTitle} = element;
       if (hideWhenItemTitle && item?.kind === 'bible') {
         return bibleReference;
       }
@@ -186,7 +148,7 @@ function automaticElementText(
     case 'memo':
       return item?.contentCleared ? null : (item?.memo ?? null);
     case 'text':
-      return element.kind === 'text' ? element.content : null;
+      return slide?.texts?.[ownTextKey(element)] ?? element.content;
     case 'clock':
       return content.clock ?? null;
     case 'timer':
@@ -202,7 +164,7 @@ function automaticElementText(
     case 'box':
       return null;
     default: {
-      const unhandled: never = role;
+      const unhandled: never = element;
       return unhandled;
     }
   }

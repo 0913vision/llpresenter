@@ -1,17 +1,15 @@
 import {useLayoutEffect, useRef, useState, type JSX} from 'react';
-import {cacheKey} from '@core/bible/split/splitCache';
-import type {BibleCutEntry} from '@core/schema/bibleCuts';
+import {verseKey} from '@core/bible/bibleTiles';
 import {useShow} from '@renderer/session/show';
 import {BibleAddSplitReview} from './BibleAddSplitReview';
 import {
   installBibleInsertionReview,
   type BibleInsertionRequest,
+  type ReviewedVerses,
 } from './reviewBibleInsertion';
 
 interface Insertion extends BibleInsertionRequest {
-  readonly complete: (
-    cuts: Readonly<Record<string, BibleCutEntry>> | null,
-  ) => void;
+  readonly complete: (verses: ReviewedVerses | null) => void;
 }
 
 /** Hosts passage review across the service table, palette, and preview. */
@@ -21,7 +19,7 @@ export function BibleInsertionReview(): JSX.Element | null {
   const api = window.llp;
   const [insertion, setInsertion] = useState<Insertion | null>(null);
   const pending = useRef<Insertion | null>(null);
-  const cuts = useRef<Record<string, BibleCutEntry>>({});
+  const reviewed = useRef<Record<string, readonly string[]>>({});
   useLayoutEffect(() => {
     if (api === undefined || serviceId === null) return;
     const uninstall = installBibleInsertionReview(request => {
@@ -45,7 +43,7 @@ export function BibleInsertionReview(): JSX.Element | null {
       uninstall();
       pending.current?.complete(null);
       pending.current = null;
-      cuts.current = {};
+      reviewed.current = {};
     };
   }, [api, serviceId, serviceEpoch]);
   if (
@@ -60,18 +58,18 @@ export function BibleInsertionReview(): JSX.Element | null {
     if (current !== insertion) return;
     pending.current = null;
     setInsertion(null);
-    const entries = cuts.current;
-    cuts.current = {};
-    current.complete(confirmed ? entries : null);
+    const verses = reviewed.current;
+    reviewed.current = {};
+    current.complete(confirmed ? verses : null);
   };
   return (
     <BibleAddSplitReview
       projection={insertion.projection}
       references={insertion.references}
       api={api}
-      onConfirmed={(verse, entry) => {
+      onConfirmed={(verse, texts) => {
         if (pending.current === insertion) {
-          cuts.current[cacheKey(verse.reference)] = entry;
+          reviewed.current[verseKey(verse.reference)] = texts;
         }
       }}
       onCancel={() => finish(false)}

@@ -22,8 +22,7 @@ import {SlideSizeControl} from '@renderer/platform/SlideSizeControl';
 import {useThumbnailScale} from '@renderer/platform/thumbnailScale';
 import type {ServiceItemStore} from '../items/serviceItemStore';
 import {useItemMedia, useItemSettings} from '../items/useItemSources';
-import {SlidesCanvas, slideBand, useSlidesAppearance} from './SlidesVisuals';
-import {useSlidesVerseProjection} from '@renderer/features/bible/useSlidesVerseProjection';
+import {SlidesCanvas, slideBand, useSlidesThemes} from './SlidesVisuals';
 import {SongSlideSurface} from '../../songs/editor/SongSlideSurface';
 import {VirtualSlides} from '../../songs/editor/VirtualSlides';
 import {SlidesListSession} from './slidesListSession';
@@ -101,8 +100,7 @@ function SlidesItemTiles({
   const {item, selected} = session.draft.snapshot;
   const scale = useThumbnailScale('normal');
   const offset = cardOffset(item);
-  const {appearance, adTitle, adTitleSettings} = useSlidesAppearance(api, item);
-  const {projection} = useSlidesVerseProjection(api, item);
+  const {themes} = useSlidesThemes(item);
   const media = useItemMedia(api.media).document?.value.items ?? [];
   useEffect(
     () => items.selectPosition(selected + offset),
@@ -151,7 +149,7 @@ function SlidesItemTiles({
             session={session}
             song={{
               slides: view.slides.map(slide => ({
-                label: slideBand(slide, media, adTitle),
+                label: slideBand(item, slide, media),
                 lines: [],
               })),
             }}
@@ -163,13 +161,7 @@ function SlidesItemTiles({
             onSelect={index => session.draft.select(index)}
             onEdit={edit}
             canvasFor={index => (
-              <SlidesCanvas
-                item={item}
-                index={index}
-                appearance={appearance}
-                projection={projection}
-                adTitleSettings={adTitleSettings}
-              />
+              <SlidesCanvas item={item} index={index} themes={themes} />
             )}
           />
         </SongSlideSurface>

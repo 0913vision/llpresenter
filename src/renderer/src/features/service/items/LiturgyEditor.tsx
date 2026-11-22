@@ -13,14 +13,14 @@ import {
   type LiturgyTranslation,
 } from '@core/services/liturgy';
 import {LITURGY_SLIDES} from '@core/services/liturgySlides';
+import {liturgySlideTextKey} from '@core/services/liturgy';
 import {SelectMenu} from '@renderer/ui/SelectMenu';
 import {useShow} from '@renderer/session/show';
 import {slideLayerOf} from '@core/presentation/slideLayer';
 import {CREED_PRAYER_THEME_ID} from '@core/themes/creedPrayer';
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
-import {SlidePicture} from '@renderer/rendering/SlidePicture';
+import {SlidePicture} from '@renderer/pictures/SlidePicture';
 import {SlideThumbnailBand} from '@renderer/ui/SlideThumbnail';
-import {TextArea} from '@renderer/ui/TextArea';
 import {ItemEditorShell} from '@renderer/platform/ItemEditorShell';
 import {SongSlideSurface} from '@renderer/features/songs/editor/SongSlideSurface';
 import {BibleSlideSession} from './BibleSlideSession';
@@ -273,19 +273,13 @@ function LiturgyContent({
                     labelColor={tiles?.[index + offset]?.labelColor}
                   />
                 </div>
-                {editableRow ? (
-                  renderTextFields(index + offset)
-                ) : renderTextFields ? (
-                  <p className={styles.verse}>{text}</p>
-                ) : (
-                  <TextArea
-                    className={styles.verse}
-                    value={text}
-                    onChange={() => undefined}
-                    rows={4}
-                    readOnly
-                    aria-label={`${index + 1}번 예식문`}
-                  />
+                {mode === 'grid' ? null : (
+                  <div className={styles.verse}>
+                    <p>{text}</p>
+                    {renderTextFields?.(
+                      liturgySlideTextKey(item.liturgy, index),
+                    )}
+                  </div>
                 )}
               </div>
             );

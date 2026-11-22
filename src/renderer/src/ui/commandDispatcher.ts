@@ -1,4 +1,11 @@
-import {useEffect, useEffectEvent, useRef, useSyncExternalStore} from 'react';
+import {
+  createContext,
+  use,
+  useEffect,
+  useEffectEvent,
+  useRef,
+  useSyncExternalStore,
+} from 'react';
 import {commandBindings, shortcutCommand} from '@core/shortcuts/bindings';
 import {
   matchesBinding,
@@ -39,6 +46,16 @@ interface ShortcutOwner {
   /** Every handler, including those whose key the operator cleared. */
   readonly all: () => readonly WindowShortcut[];
   readonly blocked: () => boolean;
+}
+
+/**
+ * Whether the commands below are on screen. A workspace that stays built while
+ * another one shows keeps only its window-wide commands.
+ */
+export const CommandScope = createContext<'visible' | 'hidden'>('visible');
+
+function isWindowWide({id}: WindowShortcut): boolean {
+  return shortcutCommand(id)?.contexts.includes('control') === true;
 }
 
 const owners = new Set<ShortcutOwner>();
@@ -433,16 +450,18 @@ export function useCommandShortcuts(
     commandBindingStore.subscribe,
     commandBindingStore.get,
   );
-  const enabled = handlers.filter(
+  const scope = use(CommandScope);
+  const active = scope === 'visible' ? handlers : handlers.filter(isWindowWide);
+  const enabled = active.filter(
     handler =>
       handler.id.startsWith('slide.') ||
       (handler.fixedBindings?.length ?? 0) > 0 ||
       commandBindings(handler.id, bindings).length > 0,
   );
   const commands = useEffectEvent(() => enabled);
-  const latest = useRef(handlers);
+  const latest = useRef(active);
   useEffect(() => {
-    latest.current = handlers;
+    latest.current = active;
     if (
       handlers.some(
         handler => handler.id === 'edit.undo' || handler.id === 'edit.redo',

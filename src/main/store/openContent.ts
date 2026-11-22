@@ -142,7 +142,6 @@ async function createContent(
       backgroundOf: library.backgroundOf,
       bible,
       backgroundBible,
-      settings,
       mediaItems: () => media?.get().value.items ?? [],
     },
     service => broadcast(serviceEndpoints.changed.channel, service, log),

@@ -1,5 +1,4 @@
 import {
-  Suspense,
   useLayoutEffect,
   useRef,
   useState,
@@ -7,11 +6,8 @@ import {
   type JSX,
 } from 'react';
 import type {PowerPointSource} from '@core/schema/powerpointImport';
-import type {
-  PictureSpec,
-  PictureService,
-} from '@renderer/rendering/pictures/pictureService';
-import {Picture} from '@renderer/rendering/pictures/Picture';
+import {SlidePicture} from '@renderer/pictures/SlidePicture';
+import type {SlideInput} from '@renderer/rendering/slideStillSpec';
 import {SlideThumbnail} from '@renderer/ui/SlideThumbnail';
 import styles from './PowerPointImport.module.css';
 
@@ -27,18 +23,16 @@ interface Measure {
 }
 const EMPTY: Measure = {width: 0, height: 0, gap: 0, band: 0};
 
-/** Shows only visible rows, waiting for each output picture before revealing them. */
+/** Draws only the rows in view. */
 export function PowerPointPreviewGrid({
   slides,
-  specs,
-  service,
+  pictures,
   start,
   end,
   onSelect,
 }: {
   readonly slides: PowerPointSource['slides'];
-  readonly specs: readonly PictureSpec[];
-  readonly service: PictureService;
+  readonly pictures: readonly SlideInput[];
   readonly start: number;
   readonly end: number;
   readonly onSelect: (index: number, shift: boolean) => void;
@@ -94,39 +88,38 @@ export function PowerPointPreviewGrid({
       onScroll={event => setScrollTop(event.currentTarget.scrollTop)}
     >
       <div className={styles.gridSpacer} style={{height: rows * stride}}>
-        <Suspense fallback={null}>
-          <div className={styles.grid} style={offset}>
-            {slides.slice(begin, finish).map((slide, local) => {
-              const index = begin + local;
-              const spec = specs[index];
-              return (
-                <div
-                  key={slide.number}
-                  className={styles.tile}
-                  onClick={event => onSelect(index, event.shiftKey)}
-                >
-                  <SlideThumbnail
-                    number={slide.number}
-                    label={
-                      spec?.layers.slide?.titleSlide
-                        ? '제목'
-                        : spec?.layers.slide?.lines.length === 0
-                          ? '빈 슬라이드'
-                          : undefined
-                    }
-                    text={spec?.layers.slide?.lines.join('\n')}
-                    canvas={
-                      spec === undefined ? undefined : (
-                        <Picture wait service={service} {...spec} />
-                      )
-                    }
-                    selected={index >= start && index <= end}
-                  />
-                </div>
-              );
-            })}
-          </div>
-        </Suspense>
+        <div className={styles.grid} style={offset}>
+          {slides.slice(begin, finish).map((slide, local) => {
+            const index = begin + local;
+            const picture = pictures[index];
+            const lines = picture?.slide.lines;
+            return (
+              <div
+                key={slide.number}
+                className={styles.tile}
+                onClick={event => onSelect(index, event.shiftKey)}
+              >
+                <SlideThumbnail
+                  number={slide.number}
+                  label={
+                    picture?.slide.titleSlide
+                      ? '제목'
+                      : lines?.length === 0
+                        ? '빈 슬라이드'
+                        : undefined
+                  }
+                  text={lines?.join('\n')}
+                  canvas={
+                    picture === undefined ? undefined : (
+                      <SlidePicture {...picture} />
+                    )
+                  }
+                  selected={index >= start && index <= end}
+                />
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

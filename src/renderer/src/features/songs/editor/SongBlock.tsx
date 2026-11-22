@@ -16,7 +16,7 @@ import type {LabelColor} from '@core/labels/colors';
 import {SlideThumbnailBand} from '@renderer/ui/SlideThumbnail';
 import {isComposing} from '@renderer/ui/ime';
 import {linearSlidesOf, type EditorSlideItem} from '@core/songs/blockEdits';
-import {linesOf, type BlockCommand} from '@core/songs/blockModel';
+import type {BlockCommand} from '@core/songs/blockModel';
 import {adjacentBlock, editorCommand} from './editorKeys';
 import type {SongSession} from './songSession';
 import {
@@ -33,13 +33,9 @@ import type {
   RenderSlideTextFields,
   SlideCardRenderer,
 } from './SlideCardRenderer';
-import {Picture} from '@renderer/rendering/pictures/Picture';
-import {usePrepPictureSwitch} from '@renderer/rendering/PrepPictureSwitch';
+import {SlidePicture} from '@renderer/pictures/SlidePicture';
+import type {SlideInput} from '@renderer/rendering/slideStillSpec';
 import {isInTextEntry} from '@renderer/ui/textEntry';
-import {
-  pictures,
-  type PictureSpec,
-} from '@renderer/rendering/pictures/pictureService';
 
 export interface EditorFocus {
   inputs: Array<HTMLTextAreaElement | null>;
@@ -71,7 +67,7 @@ interface BlockProps {
   readonly rowHeight?: number | undefined;
   readonly onMeasure?: ((id: string, height: number) => void) | undefined;
   readonly caret?: boolean;
-  readonly picture?: PictureSpec | undefined;
+  readonly picture?: SlideInput | undefined;
   readonly renderCard?: SlideCardRenderer<EditorSlideItem> | undefined;
   readonly renderTextFields?: RenderSlideTextFields | undefined;
 }
@@ -108,7 +104,6 @@ export const SongBlock = memo(
     const blockRef = useRef<HTMLDivElement>(null);
     const chrome = useRef<{node: HTMLElement; height: number} | null>(null);
     const text = slide.lines.join('\n');
-    const switching = usePrepPictureSwitch();
     const measureFields = renderTextFields !== undefined;
     useLayoutEffect(() => {
       const node = blockRef.current;
@@ -188,13 +183,6 @@ export const SongBlock = memo(
       input: HTMLTextAreaElement,
       command: Extract<BlockCommand, {type: 'text' | 'paste'}>,
     ): void => {
-      if (
-        picture !== undefined &&
-        !slide.titleSlide &&
-        command.type === 'text'
-      ) {
-        pictures.prepareEditedLyrics(picture, linesOf(command.text));
-      }
       flushSync(() => {
         select(input);
         if (command.type === 'paste') {
@@ -202,17 +190,6 @@ export const SongBlock = memo(
           focus.current.target = 'lyrics';
         }
         session.edit(command);
-        if (
-          picture !== undefined &&
-          (slide.titleSlide || command.type === 'paste')
-        ) {
-          const edited = session.history.model
-            .getContent()
-            .slides.find(candidate => candidate.id === slide.id);
-          if (edited !== undefined) {
-            pictures.prepareEditedLyrics(picture, edited.lines);
-          }
-        }
       });
     };
 
@@ -367,21 +344,10 @@ export const SongBlock = memo(
           <>
             <div className={styles.thumbnail} data-editor-thumbnail>
               <div className={styles.thumbnailCanvas}>
-                {picture === undefined ? null : (
-                  <Picture
-                    {...picture}
-                    editing={focused}
-                    wait={switching === true}
-                    switchSlot={
-                      switching === true
-                        ? `prep:${session.slideDocumentId}:${slide.id}`
-                        : undefined
-                    }
-                  />
-                )}
+                {picture === undefined ? null : <SlidePicture {...picture} />}
                 <SlideTransitionMark transition={slide.transition} />
               </div>
-              {editable && (!grid || renderTextFields === undefined) ? (
+              {editable ? (
                 <button
                   ref={labelButtonRef}
                   type="button"
@@ -407,11 +373,7 @@ export const SongBlock = memo(
               )}
             </div>
             <div className={styles.text} data-grid-text>
-              {renderTextFields !== undefined ? (
-                grid ? null : (
-                  renderTextFields(slide.id)
-                )
-              ) : (
+              {grid ? null : (
                 <textarea
                   ref={input => {
                     focus.current.inputs[block] = input;
@@ -471,6 +433,7 @@ export const SongBlock = memo(
                   }}
                 />
               )}
+              {grid ? null : renderTextFields?.(slide.id)}
             </div>
           </>
         )}

@@ -20,7 +20,7 @@ import type {SongSession} from './songSession';
 import styles from './SongEditor.module.css';
 import type {SongId} from '@core/schema/ids';
 import type {UiApi} from '@contracts/ipc/ui';
-import type {ItemTextOverrides} from '@core/schema/slideTextOverrides';
+import type {ItemTexts} from '@core/schema/slideTexts';
 import {isComposing} from '@renderer/ui/ime';
 import {
   linearSlidesOf,
@@ -35,7 +35,7 @@ import {useSongBlockWindow} from './useSongBlockWindow';
 import {visibleGridInsertionPosition} from './gridInsertionPosition';
 import {SongSlideSurface} from './SongSlideSurface';
 import {useSongSlideAppearance} from './useSongSlideAppearance';
-import {pictureSpec, songPictureLayer} from '@renderer/rendering/pictureSpec';
+import {songSlideLayer} from '@renderer/rendering/slideStillSpec';
 import {useShow} from '@renderer/session/show';
 import {useEditorFocus} from './useEditorFocus';
 import {SONG_LIMITS} from '@core/schema/song';
@@ -66,7 +66,7 @@ export function SongEditor({
   addCard,
   ui,
   renderTextFields,
-  textOverrides,
+  texts,
 }: {
   readonly store: SongEditorStore;
   readonly shownSession?: SongSession | null | undefined;
@@ -76,7 +76,7 @@ export function SongEditor({
   readonly leadingCard?: LeadingSlideCard | undefined;
   readonly addCard?: ReactNode;
   readonly renderTextFields?: RenderSlideTextFields | undefined;
-  readonly textOverrides?: ItemTextOverrides | undefined;
+  readonly texts?: ItemTexts | undefined;
   readonly onImportedSave?: ((id: SongId) => void) | undefined;
   /** Shows the dot before the title while edits wait for 저장. */
   readonly unsaved?: boolean;
@@ -200,7 +200,7 @@ export function SongEditor({
               renderCard={renderCard}
               leadingCard={leadingCard}
               renderTextFields={renderTextFields}
-              textOverrides={textOverrides}
+              texts={texts}
             />
           </SongSlideSurface>
         </ItemEditorShell>
@@ -215,14 +215,14 @@ function SongBlocks({
   renderCard,
   leadingCard,
   renderTextFields,
-  textOverrides,
+  texts,
 }: {
   readonly store: SongEditorStore;
   readonly session: SongSession;
   readonly renderCard?: SlideCardRenderer<EditorSlideItem> | undefined;
   readonly leadingCard?: LeadingSlideCard | undefined;
   readonly renderTextFields: RenderSlideTextFields | undefined;
-  readonly textOverrides?: ItemTextOverrides | undefined;
+  readonly texts?: ItemTexts | undefined;
 }): JSX.Element {
   const state = useSyncExternalStore(store.subscribe, store.getSnapshot);
   const {song, selection} = session.history.snapshot;
@@ -489,22 +489,18 @@ function SongBlocks({
               picture={
                 theme === undefined
                   ? undefined
-                  : pictureSpec({
-                      kind: 'slide',
-                      input: {
-                        ...theme,
-                        songSource: {songId: song.id, slideId: slide.id},
-                        background:
-                          songSlideBackground(
-                            slide.picture,
-                            theme.songBackground,
-                          ) ?? theme.background,
-                        slide: songPictureLayer(song.id, block, {
-                          ...slide,
-                          textOverrides: textOverrides?.[`slide:${slide.id}`],
-                        }),
-                      },
-                    }).spec
+                  : {
+                      ...theme,
+                      background:
+                        songSlideBackground(
+                          slide.picture,
+                          theme.songBackground,
+                        ) ?? theme.background,
+                      slide: songSlideLayer(song.id, block, {
+                        ...slide,
+                        texts: texts?.[slide.id],
+                      }),
+                    }
               }
               locked={state.busy || session.readOnly}
               editable={!session.readOnly}

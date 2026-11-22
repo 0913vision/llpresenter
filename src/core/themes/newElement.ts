@@ -4,8 +4,6 @@ import {checkPart} from '../schema/fileFormat';
 import {themeElementSchema, type ThemeElement} from '../schema/themes';
 import {DEFAULT_THEME_TEXT} from './defaults';
 import {THEME_LIMITS, type ThemeElementKind} from './elementRules';
-import {isThemeTextElement} from './content';
-import {themeTextRoleNames} from '../schema/themeTextSlot';
 
 const TEXT_WIDTH = 800;
 const TEXT_HEIGHT = 240;
@@ -73,17 +71,5 @@ export function newThemeElement({
       break;
   }
   const parsed = checkPart(themeElementSchema, value);
-  if (!parsed.ok) return undefined;
-  const element = parsed.value;
-  return isThemeTextElement(element)
-    ? {
-        ...element,
-        textSlot: {
-          slotId: id,
-          role: element.kind,
-          name: themeTextRoleNames[element.kind],
-          scope: 'screen',
-        },
-      }
-    : element;
+  return parsed.ok ? parsed.value : undefined;
 }

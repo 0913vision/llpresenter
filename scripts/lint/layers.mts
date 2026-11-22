@@ -6,7 +6,14 @@ const RENDERER = 'src/renderer/src';
 const SHARED = ['core', 'contracts'];
 
 /** Renderer layers that every renderer feature may use. */
-const FEATURE_BASE = [...SHARED, 'ui', 'platform', 'session', 'rendering'];
+const FEATURE_BASE = [
+  ...SHARED,
+  'ui',
+  'platform',
+  'session',
+  'rendering',
+  'pictures',
+];
 
 /**
  * The renderer features from the most basic to the most composed. A feature
@@ -39,7 +46,7 @@ const ALL_FEATURES = FEATURE_LAYERS.map(layer => layer.name);
  * rules, `contracts` the IPC and file contracts, and each process builds on
  * them. In the control window, `app` composes the features, which build on
  * `session`, `platform`, and `ui`; `rendering` draws for both the previews and
- * the output window.
+ * the output window, and `pictures` shows what it draws in the control window.
  */
 export const LAYER_MAP: LayerMap = {
   aliases: {
@@ -59,6 +66,11 @@ export const LAYER_MAP: LayerMap = {
       name: 'session',
       dir: `${RENDERER}/session`,
       imports: [...SHARED, 'ui', 'platform'],
+    },
+    {
+      name: 'pictures',
+      dir: `${RENDERER}/pictures`,
+      imports: [...SHARED, 'ui', 'platform', 'rendering'],
     },
     ...FEATURE_LAYERS,
     {

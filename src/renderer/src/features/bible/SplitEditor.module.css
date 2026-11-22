@@ -164,18 +164,3 @@
     transform: translateX(-5px);
   }
 }
-
-.guideSpace {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-.guide {
-  position: absolute;
-  outline: 1px dashed color-mix(in srgb, var(--text-on-fill) 20%, transparent);
-}
-
-.preview[data-overflow='true'] .guide {
-  outline: 1px solid var(--live);
-}

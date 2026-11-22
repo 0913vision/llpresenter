@@ -17,7 +17,6 @@ import {isComposing} from '@renderer/ui/ime';
 import {hasModifier} from '@renderer/ui/modifierKeys';
 import {durationText, sizeText} from './mediaEntries';
 import {MediaPreviewPlayer} from './MediaPreviewPlayer';
-import {AtomicPictureContent} from '@renderer/rendering/AtomicPictureContent';
 import {
   MIN_SPEED,
   MAX_SPEED,
@@ -323,36 +322,26 @@ export function MediaPropertiesPanel({
         />
       </PanelHeader>
       <PanelBody tab={tab}>
-        <AtomicPictureContent
-          identity={item?.id ?? 'none'}
-          pending={false}
-          waitForPicture={
-            item !== null && item.kind !== 'audio' && !view.missing.has(item.id)
-          }
-          initial={<p className={styles.empty}>선택한 미디어 없음</p>}
-          content={
-            item === null ? (
-              <p className={styles.empty}>선택한 미디어 없음</p>
+        {item === null ? (
+          <p className={styles.empty}>선택한 미디어 없음</p>
+        ) : (
+          <Fragment key={item.id}>
+            <MediaPreviewPlayer
+              item={item}
+              missing={view.missing.has(item.id)}
+              onReveal={() => library.reveal(item.id)}
+            />
+            {tab === 'props' ? (
+              <MediaProperties
+                item={item}
+                disabled={disabled}
+                workspace={workspace}
+              />
             ) : (
-              <Fragment key={item.id}>
-                <MediaPreviewPlayer
-                  item={item}
-                  missing={view.missing.has(item.id)}
-                  onReveal={() => library.reveal(item.id)}
-                />
-                {tab === 'props' ? (
-                  <MediaProperties
-                    item={item}
-                    disabled={disabled}
-                    workspace={workspace}
-                  />
-                ) : (
-                  <MediaInfo item={item} />
-                )}
-              </Fragment>
-            )
-          }
-        />
+              <MediaInfo item={item} />
+            )}
+          </Fragment>
+        )}
       </PanelBody>
     </Panel>
   );

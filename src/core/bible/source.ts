@@ -1,7 +1,8 @@
 import type {BibleLookupPassage} from '../schema/bibleLookup';
 import type {TranslationId} from '../schema/ids';
 import type {BiblePassage} from '../schema/biblePassage';
-import {bibleVerseTiles} from './bibleTiles';
+import type {BibleSlides} from '../schema/biblePassage';
+import {passageTiles} from './bibleTiles';
 import type {SlideTile} from '../presentation/model';
 import type {SlideTransition} from '../schema/slideTransition';
 
@@ -13,6 +14,8 @@ export interface BibleDisplayOptions {
 }
 
 export interface BiblePreviewOptions extends BibleDisplayOptions {
+  /** The passage cut into slides; whole verses when absent. */
+  readonly slides?: BibleSlides | undefined;
   readonly transition?: SlideTransition | undefined;
   readonly review?: boolean | undefined;
   readonly enteredRef?: string | undefined;
@@ -60,7 +63,9 @@ export function bibleSource(
     ...(options.enteredTranslation === undefined
       ? {}
       : {enteredTranslation: options.enteredTranslation}),
-    tiles: bibleVerseTiles(passage, {
+    ...(options.slides === undefined ? {} : {slides: options.slides}),
+    tiles: passageTiles(passage, {
+      slides: options.slides,
       verseNumbers,
       reference,
       translationName,

@@ -60,7 +60,8 @@ import styles from './App.module.css';
 import {useLaunchReady} from './useLaunchReady';
 import {UPDATE_NOTICE_KEY, useUpdate} from './update/useUpdate';
 import {addNotice} from '@renderer/ui/notices';
-import {BibleServiceProjection} from '@renderer/features/bible/BibleServiceProjection';
+import {BiblePassages} from '@renderer/features/bible/BiblePassages';
+import {ServicePictures} from './ServicePictures';
 import {BibleInsertionReview} from '@renderer/features/bible/BibleInsertionReview';
 import {LoadReadiness, LoadReadinessContext} from '@renderer/ui/loadReadiness';
 
@@ -201,7 +202,8 @@ function ControlApp({
         : undefined;
   const content = (
     <div className={styles.app} data-size={sizeClass}>
-      <BibleServiceProjection />
+      <BiblePassages />
+      <ServicePictures />
       <BibleInsertionReview />
       <NumberJumpOverlay />
       <ToolObjectShortcuts api={session.api} onProblem={session.report} />

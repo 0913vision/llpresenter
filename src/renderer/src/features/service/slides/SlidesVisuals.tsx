@@ -1,47 +1,45 @@
-import {parseMediaId} from '@core/schema/ids';
-import {useShow} from '@renderer/session/show';
-import {useEffect, useMemo, useRef, useState, type JSX} from 'react';
+import {useMemo, useState, type JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
+import {parseMediaId} from '@core/schema/ids';
+import type {SlideLayer} from '@core/live/state';
 import type {MediaItem} from '@core/schema/mediaList';
+import type {ThemesFile} from '@core/schema/themes';
 import {BIBLE_BOOKS} from '@core/bible/bibleBooks';
-import {
-  adSlideTitles,
-  adTitleSettingsFrom,
-  type AdSlideTitle,
-} from '@core/presentation/slides';
-import {withPreferenceDefaults} from '@core/schema/preferences';
+import {slideLayerOf} from '@core/presentation/slideLayer';
+import {adSlideTitle, projectSlides} from '@core/presentation/slides';
+import type {ItemRow} from '@core/presentation/model';
 import type {Slide, SlidesItem} from '@core/services/slidesEdits';
-import type {BibleProjection} from '@renderer/features/bible/splitProjection';
-import {useSlidesVerseProjection} from '@renderer/features/bible/useSlidesVerseProjection';
-import {Button} from '@renderer/ui/Button';
-import {Picture} from '@renderer/rendering/pictures/Picture';
-import {pictureSpec} from '@renderer/rendering/pictureSpec';
-import {usePrepPictureSwitch} from '@renderer/rendering/PrepPictureSwitch';
+import {cardOffset, withSectionCard} from '@core/services/sectionCards';
 import {
-  previewAppearance,
-  type PreviewRole,
-} from '@renderer/features/songs/editor/songPreviewModel';
+  itemThemes,
+  useThemeSettings,
+  type ItemThemes,
+} from '@renderer/pictures/itemThemes';
+import {TilePicture} from '@renderer/pictures/TilePicture';
+import {useShow} from '@renderer/session/show';
+import type {PreviewRole} from '@renderer/features/songs/editor/songPreviewModel';
 import {RolePreview} from '@renderer/features/songs/editor/RolePreview';
-import {useItemSettings} from '../items/useItemSources';
 import styles from './SlidesEditor.module.css';
 
+/** The name under a slide's thumbnail. */
 export function slideBand(
+  item: SlidesItem,
   slide: Slide,
   media: readonly MediaItem[],
-  adTitle?: AdSlideTitle,
 ): string {
-  if (adTitle !== undefined) return adTitle(slide);
+  if (item.slides.form === 'ad') return adSlideTitle(item, slide);
   if (slide.label !== undefined) return slide.label;
   if ('verse' in slide) {
     const book = BIBLE_BOOKS.find(book => book.id === slide.verse.book);
-    return `${book?.korean ?? '?깃꼍'} ${slide.verse.chapter}:${slide.verse.verse}`;
+    return `${book?.korean ?? '성경'} ${slide.verse.chapter}:${slide.verse.verse}`;
   }
   if ('media' in slide) {
     const file = media.find(file => file.id === slide.media);
     if (file?.internal === true) return '';
     return file?.file.split(/[\\/]/).at(-1) ?? file?.name ?? '미디어 없음';
   }
-  return slide.name ?? slide.text.split('\n')[0] ?? '';
+  const reference = slide.reference?.trim() ?? '';
+  return reference === '' ? (slide.text.split('\n')[0] ?? '') : reference;
 }
 
 /** Combines the current projected background with the editor's unsaved slide draft. */
@@ -51,139 +49,80 @@ export function useSlidesItemWithBackground(draftItem: SlidesItem): SlidesItem {
   );
   if (row?.kind !== 'slides') return draftItem;
   const parsed = parseMediaId(row.background?.mediaId);
-  const {
-    background: _background,
-    textOverrides: _overrides,
-    ...item
-  } = draftItem;
+  const {background: _background, ...item} = draftItem;
+  return {...item, ...(parsed.ok ? {background: parsed.value} : {})};
+}
+
+function rowOf(item: SlidesItem): ItemRow {
   return {
-    ...item,
-    ...(row.textOverrides === undefined
+    id: item.id,
+    kind: 'slides',
+    form: item.slides.form,
+    title: item.slides.name,
+    ...(item.theme === undefined ? {} : {theme: item.theme}),
+    ...(item.backgroundNone === true ? {backgroundNone: true as const} : {}),
+    ...(item.background === undefined
       ? {}
-      : {textOverrides: row.textOverrides}),
-    ...(parsed.ok ? {background: parsed.value} : {}),
+      : {background: {mediaId: item.background, loop: true}}),
   };
 }
 
-export function useSlidesAppearance(
-  api: Pick<LlpApi, 'settings'>,
+function tilesOf(item: SlidesItem) {
+  return withSectionCard(item.sectionCard, projectSlides(item));
+}
+
+function themeNameOf(themes: ItemThemes, file: ThemesFile | undefined): string {
+  const id = themes.theme?.themeId;
+  if (file !== undefined && id === file.standby.id) return file.standby.name;
+  const deleted = file?.deletedThemes?.find(theme => theme.id === id);
+  if (deleted !== undefined) return `(${deleted.name})`;
+  return file?.themes.find(theme => theme.id === id)?.name ?? '기본';
+}
+
+/** The themes a slides item is drawn with on the screen of a role. */
+export function useSlidesThemes(
   item: SlidesItem,
   options: {
-    readonly role?: PreviewRole;
+    readonly api?: LlpApi | undefined;
+    readonly role?: PreviewRole | undefined;
     readonly screenId?: string | undefined;
   } = {},
 ) {
-  const {role = 'audience', screenId} = options;
-  const themes = useItemSettings(api.settings, 'themes');
-  const screens = useItemSettings(api.settings, 'screens');
-  const preferences = useItemSettings(
-    api.settings,
-    'preferences',
-    role === 'stage',
-  );
-  const themeFile =
-    themes.document?.name === 'themes' ? themes.document.value : undefined;
-  const screenFile =
-    screens.document?.name === 'screens' ? screens.document.value : undefined;
-  const adTitleSettings = useMemo(
-    () => adTitleSettingsFrom(themes.document, screens.document),
-    [themes.document, screens.document],
-  );
-  const adTitle = useMemo(
-    () => adSlideTitles(item, adTitleSettings),
-    [item, adTitleSettings],
-  );
-  const appearance = useMemo(
-    () =>
-      previewAppearance({
-        role,
-        screenId,
-        themes: themeFile,
-        screens: screenFile,
-        stageLyricLabelPosition:
-          preferences.document?.name === 'preferences'
-            ? withPreferenceDefaults(preferences.document.value).output
-                .stageLyricLabelPosition
-            : undefined,
-        item: {
-          ...item,
-          kind: item.slides.form,
-          source: 'service',
-          title: item.slides.name,
-        },
-      }),
-    [role, screenId, themeFile, screenFile, item, preferences.document],
-  );
+  const settings = useThemeSettings(options);
+  const themes = itemThemes(rowOf(item), tilesOf(item), settings);
   return {
-    appearance,
-    adTitle,
-    adTitleSettings,
-    themes: themeFile,
-    ready:
-      (themes.document !== null || themes.failed) &&
-      (screens.document !== null || screens.failed),
+    themes,
+    file: settings.file,
+    themeName: themeNameOf(themes, settings.file),
+    ready: settings.ready,
   };
 }
 
+/** A slide of the draft, drawn as its screen will show it. */
 export function SlidesCanvas({
   item,
   index,
-  appearance,
-  projection,
-  part,
+  themes,
   outputSlide,
-  adTitleSettings,
 }: {
   readonly item: SlidesItem;
   readonly index: number;
-  readonly appearance: ReturnType<typeof previewAppearance>;
-  readonly projection?: BibleProjection | null;
-  readonly part?: number;
-  readonly outputSlide?: import('@core/live/state').SlideLayer | null;
-  readonly adTitleSettings?: ReturnType<typeof adTitleSettingsFrom>;
-}): JSX.Element {
-  const spec = useMemo(
-    () =>
-      pictureSpec({
-        kind: 'slides',
-        item,
-        index,
-        projection,
-        part,
-        outputSlide,
-        adTitleSettings,
-        appearance,
-      }).spec,
-    [item, index, projection, part, outputSlide, appearance, adTitleSettings],
-  );
-  const host = useRef<HTMLDivElement>(null);
-  const switching = usePrepPictureSwitch();
-  const [visible, setVisible] = useState(
-    switching === true || typeof IntersectionObserver === 'undefined',
-  );
-  useEffect(() => {
-    if (host.current === null || typeof IntersectionObserver === 'undefined') {
-      return;
-    }
-    const observer = new IntersectionObserver(
-      entries => {
-        setVisible(entries.some(entry => entry.isIntersecting));
-      },
-      {rootMargin: '200px'},
-    );
-    observer.observe(host.current);
-    return () => observer.disconnect();
-  }, []);
+  readonly themes: ItemThemes;
+  readonly outputSlide?: SlideLayer | null;
+}): JSX.Element | null {
+  const tiles = useMemo(() => tilesOf(item), [item]);
+  const position = index + cardOffset(item);
+  const tile = tiles[position];
+  if (tile === undefined) return null;
   return (
-    <div
-      ref={host}
-      className={styles.canvas}
-      data-preview-ready={visible ? undefined : 'deferred'}
-    >
-      {visible || switching === true ? (
-        <Picture wait={switching === true} {...spec} />
-      ) : null}
-    </div>
+    <TilePicture
+      tile={tile}
+      slide={
+        outputSlide ??
+        slideLayerOf({itemId: item.id, index: position}, () => tiles)
+      }
+      themes={themes}
+    />
   );
 }
 
@@ -192,90 +131,46 @@ export function SlidesPreview({
   item,
   selected,
   media,
-  projection,
   offset = 0,
 }: {
-  readonly api: Pick<LlpApi, 'settings' | 'bible'>;
+  readonly api?: LlpApi | undefined;
   readonly item: SlidesItem;
   readonly selected: number;
   readonly offset?: number;
   readonly media: readonly MediaItem[];
-  readonly projection?: BibleProjection | null;
 }): JSX.Element {
   const [role, setRole] = useState<PreviewRole>('audience');
-  const audience = useSlidesAppearance(api, item, {role: 'audience'});
-  const appearances = {
-    audience: audience.appearance,
-    stage: useSlidesAppearance(api, item, {role: 'stage'}).appearance,
-    broadcast: useSlidesAppearance(api, item, {role: 'broadcast'}).appearance,
-  };
-  const appearance = appearances[role];
+  const audience = useSlidesThemes(item, {api, role: 'audience'});
+  const stage = useSlidesThemes(item, {api, role: 'stage'});
+  const broadcast = useSlidesThemes(item, {api, role: 'broadcast'});
+  const shown = {audience, stage, broadcast};
   const slide = item.slides.slides[selected];
-  const {projection: localProjection} = useSlidesVerseProjection(
-    api,
-    item,
-    projection === undefined,
-  );
-  const shown = projection === undefined ? localProjection : projection;
-  const shownProjection = shown;
-  const count =
-    shown?.tiles.filter(tile => tile.sourceSlideId === slide?.id).length ?? 1;
-  const [chosenPart, setChosenPart] = useState({id: slide?.id, index: 0});
-  const part =
-    chosenPart.id === slide?.id
-      ? Math.min(chosenPart.index, Math.max(0, count - 1))
-      : 0;
   return (
     <RolePreview
       big={role}
       onBigChange={setRole}
       renderRole={forRole => (
-        <SlidesCanvas
-          item={item}
-          index={selected}
-          appearance={appearances[forRole]}
-          projection={shownProjection}
-          part={part}
-          adTitleSettings={audience.adTitleSettings}
-        />
-      )}
-      caption={() =>
-        slide === undefined ? (
-          <span className={styles.themeName}>{appearance.themeName}</span>
-        ) : (
-          <>
-            <span>
-              {item.slides.form !== 'ad' && 'text' in slide
-                ? slide.name
-                : slideBand(slide, media, audience.adTitle)}
-            </span>
-            <span>
-              {selected + 1 + offset} / {item.slides.slides.length + offset}
-            </span>
-            <span className={styles.themeName}>{appearance.themeName}</span>
-          </>
-        )
-      }
-    >
-      {slide === undefined || count <= 1 ? null : (
-        <div className={styles.caption} data-preview-extra="">
-          <Button
-            disabled={part === 0}
-            onClick={() => setChosenPart({id: slide.id, index: part - 1})}
-          >
-            ?댁쟾 遺遺?{' '}
-          </Button>
-          <span>
-            {part + 1} / {count}
-          </span>
-          <Button
-            disabled={part + 1 >= count}
-            onClick={() => setChosenPart({id: slide.id, index: part + 1})}
-          >
-            ?ㅼ쓬 遺遺?{' '}
-          </Button>
+        <div className={styles.canvas}>
+          <SlidesCanvas
+            item={item}
+            index={selected}
+            themes={shown[forRole].themes}
+          />
         </div>
       )}
-    </RolePreview>
+      caption={() => (
+        <>
+          {slide === undefined ? null : (
+            <>
+              <span>{slideBand(item, slide, media)}</span>
+              <span>
+                {selected + 1 + offset} / {item.slides.slides.length + offset}
+              </span>
+            </>
+          )}
+          <span className={styles.themeName}>{shown[role].themeName}</span>
+        </>
+      )}
+    />
   );
 }

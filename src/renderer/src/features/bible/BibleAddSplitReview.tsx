@@ -1,13 +1,12 @@
 import type {JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {VerseInput} from '@core/bible/split/splitVerses';
-import type {BibleCutEntry} from '@core/schema/bibleCuts';
 import {planSlides} from '@core/bible/split/manualSplit';
 import {Dialog} from '@renderer/ui/Dialog';
 import {verseKey} from './BibleRefinements';
 import {SplitReview} from './SplitReview';
 import {confirmBibleCuts} from './saveBibleCuts';
-import type {BibleProjection} from './splitProjection';
+import type {BibleSplit} from './passageSplitter';
 import {useBibleRefinement} from './useBibleRefinement';
 
 /** Opens at the first ready verse and lets later suggestions arrive in place. */
@@ -20,11 +19,11 @@ export function BibleAddSplitReview({
   onConfirmed,
 }: {
   readonly api: Pick<LlpApi, 'bible' | 'settings'>;
-  readonly projection: BibleProjection;
+  readonly projection: BibleSplit;
   readonly references: ReadonlyArray<VerseInput['reference']>;
   readonly onComplete: () => void;
   readonly onCancel: () => void;
-  readonly onConfirmed?: (verse: VerseInput, entry: BibleCutEntry) => void;
+  readonly onConfirmed?: (verse: VerseInput, texts: readonly string[]) => void;
 }): JSX.Element {
   const refinement = useBibleRefinement(api.bible, projection, {references});
   const first = references[0];
@@ -58,9 +57,9 @@ export function BibleAddSplitReview({
           : undefined;
       }}
       onCancel={onCancel}
-      onConfirm={async (verse, cuts) => {
-        const entry = await confirmBibleCuts(api.settings, verse, cuts);
-        onConfirmed?.(verse, entry);
+      onConfirm={async (verse, {selection, texts}) => {
+        await confirmBibleCuts(api.settings, verse, selection);
+        onConfirmed?.(verse, texts);
       }}
       onComplete={onComplete}
     />

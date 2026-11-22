@@ -1,20 +1,9 @@
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
-import {
-  use,
-  useEffect,
-  useId,
-  useMemo,
-  useRef,
-  useState,
-  type JSX,
-} from 'react';
+import {useEffect, useId, useMemo, useRef, useState, type JSX} from 'react';
 import type {MediaDocument} from '@core/schema/mediaEdit';
 import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import {Select} from '@renderer/ui/Select';
 import {keptDocument} from '@renderer/platform/useFollowedDocument';
-import {usePrepPictureSwitch} from '@renderer/rendering/PrepPictureSwitch';
-import {pictures} from '@renderer/rendering/pictures/pictureService';
-import {thumbnailReady} from '@renderer/rendering/pictures/thumbnailReady';
 import {MediaPicker, NONE_LABEL} from './MediaPicker';
 import type {SongEditorStore} from './songEditorStore';
 import type {SongSession} from './songSession';
@@ -90,10 +79,6 @@ export function SongBackground({
     [state.doc],
   );
   const selected = items.find(item => item.id === session.background);
-  const switching = usePrepPictureSwitch();
-  if (switching && session.background !== undefined && !pictures.drawInPlace) {
-    use(thumbnailReady(thumbnailSrc(session.background)));
-  }
   const missing =
     session.background !== undefined &&
     selected === undefined &&

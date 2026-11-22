@@ -1,4 +1,4 @@
-import {use, useEffect, useRef, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import type {SongDocument} from '@core/schema/contentDocuments';
 import {isItemOfKind, type ServiceItemOf} from '@core/schema/service';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
@@ -26,10 +26,6 @@ interface SongMenuData {
   readonly usedBy: number;
 }
 
-const prepared = new WeakMap<
-  LlpApi,
-  Map<string, Promise<SongMenuData | null>>
->();
 async function readSongMenu(
   api: LlpApi,
   target: SongMenuTarget,
@@ -61,56 +57,17 @@ async function readSongMenu(
     readOnly: service.access === 'readOnly',
   };
 }
-function prepareSongMenu(
-  api: LlpApi,
-  target: SongMenuTarget,
-  revision: number | null,
-): Promise<SongMenuData | null> {
-  let entries = prepared.get(api);
-  if (entries === undefined) {
-    entries = new Map();
-    prepared.set(api, entries);
-  }
-  const key = JSON.stringify([target.serviceId, target.id, revision]);
-  let pending = entries.get(key);
-  if (pending === undefined) {
-    pending = readSongMenu(api, target, revision).catch(() => null);
-    entries.set(key, pending);
-    if (entries.size > 32) {
-      const oldest = entries.keys().next().value;
-      if (oldest !== undefined) entries.delete(oldest);
-    }
-  }
-  return pending;
-}
-
 /** Reads only the clicked item's song; leaving the menu invalidates its reads. */
 export function useServiceSongMenu(
   target: SongMenuTarget | null,
   onProblem: (notice: Notice) => void,
   options: {
     readonly beforeSave?: (() => Promise<number | null>) | undefined;
-    readonly wait?: boolean | undefined;
   } = {},
 ) {
-  const {beforeSave, wait = false} = options;
+  const {beforeSave} = options;
   const api = target?.api ?? window.llp;
   const revision = useShow(view => view.revision);
-  const ready =
-    wait && target !== null && api !== undefined && target.serviceId !== null
-      ? use(prepareSongMenu(api, target, revision))
-      : null;
-  const [preparedState, setPreparedState] = useState<SongMenuData | null>(
-    ready,
-  );
-  if (
-    ready !== null &&
-    (preparedState?.target.id !== ready.target.id ||
-      preparedState.target.serviceId !== ready.target.serviceId ||
-      preparedState.revision !== ready.revision)
-  ) {
-    setPreparedState(ready);
-  }
   const [data, setData] = useState<SongMenuData | null>(null);
   const [failure, setFailure] = useState<{
     target: SongMenuTarget;
@@ -130,46 +87,10 @@ export function useServiceSongMenu(
       return;
     }
     const read = async (): Promise<void> => {
-      const existing = prepared
-        .get(api)
-        ?.get(JSON.stringify([target.serviceId, target.id, revision]));
-      if (existing !== undefined) {
-        const result = await existing;
-        if (!current()) return;
-        if (result === null) setFailure({target, revision});
-        else setData({...result, target});
-        return;
-      }
-      const service = await api.services.get(serviceId);
-      const item = service?.service.order.find(item => item.id === target.id);
+      const result = await readSongMenu(api, target, revision);
       if (!current()) return;
-      if (
-        service?.service.id !== serviceId ||
-        !item ||
-        !isItemOfKind(item, 'song')
-      ) {
-        setFailure({target, revision});
-        return;
-      }
-      const document = await api.songs.get(item.song);
-      if (!current()) return;
-      if (document?.song.id !== item.song) {
-        setFailure({target, revision});
-        return;
-      }
-      const usedBy =
-        (await api.songs.list()).find(entry => entry.id === item.song)?.usedBy
-          .length ?? 0;
-      if (!current()) return;
-      setData({
-        target,
-        revision,
-        item,
-        document,
-        serviceRevision: service.revision,
-        usedBy,
-        readOnly: service.access === 'readOnly',
-      });
+      if (result === null) setFailure({target, revision});
+      else setData(result);
     };
     read().catch((cause: unknown) => {
       if (!current()) return;
@@ -182,20 +103,10 @@ export function useServiceSongMenu(
     });
     return () => {
       active = false;
-      prepared
-        .get(api)
-        ?.delete(JSON.stringify([target.serviceId, target.id, revision]));
     };
   }, [api, target, revision]);
   const current =
-    data?.target === target && data.revision === revision
-      ? data
-      : target !== null &&
-          preparedState?.target.id === target.id &&
-          preparedState.target.serviceId === target.serviceId &&
-          preparedState.revision === revision
-        ? {...preparedState, target}
-        : null;
+    data?.target === target && data.revision === revision ? data : null;
   const reason = !api
     ? '곡을 불러올 수 없습니다'
     : failure?.target === target && failure.revision === revision

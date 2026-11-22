@@ -5,6 +5,8 @@ import {useLive} from '@renderer/session/live';
 import {bibleSourceFor, tilesForView} from '@renderer/session/showLibrary';
 import {bibleSource, type BiblePreviewOptions} from '@core/bible/source';
 import {retainedBibleSelection} from '@core/bible/selection';
+import {slidesOfParts} from '@core/bible/split/splitPassage';
+import {passageSplitter} from './passageSplitter';
 
 function samePassage(
   first: BibleLookupPassage,
@@ -13,19 +15,34 @@ function samePassage(
   return first.ref === second.ref && first.translation === second.translation;
 }
 
+/** Opens a passage, cut to fit the 말씀 theme, without sending it out. */
 export function openBiblePassage(
   passage: BibleLookupPassage,
-  options?: BiblePreviewOptions,
-  {
-    ready = false,
-    waitForLive = false,
-  }: {
-    readonly ready?: boolean;
-    readonly waitForLive?: boolean;
-  } = {},
+  options: BiblePreviewOptions = {verseNumbers: true},
+  {waitForLive = false}: {readonly waitForLive?: boolean} = {},
 ): void {
-  const source = bibleSource(passage, options);
   const view = useShow.getState();
+  const opened = bibleSourceFor(view, view.openItemId);
+  // NOTE(0913vision): A longer passage keeps the slides of the verses it had.
+  const slides =
+    opened?.passage.translation === passage.translation
+      ? opened.slides
+      : undefined;
+  const split = passageSplitter()?.split(passage, {
+    verseNumbers: options.verseNumbers,
+    slides,
+    source: 'external',
+  });
+  const source = bibleSource(passage, {
+    ...options,
+    slides:
+      split == null
+        ? undefined
+        : slidesOfParts(split.parts, {
+            slides,
+            transition: options.transition,
+          }),
+  });
   const live = useLive.getState();
   const liveItemId = live.state?.layers.slide?.itemId ?? null;
   const liveBibleSource = bibleSourceFor(view, liveItemId);
@@ -35,15 +52,14 @@ export function openBiblePassage(
       ? previous.insertion
       : {serviceId: view.serviceId, itemId: view.openItemId};
   beginOutputRequest();
-  const readyPassage =
-    ready && waitForLive
-      ? {
-          id: source.id,
-          previous: view.openItemId,
-          previousSource: previous,
-          title: passage.displayRef,
-        }
-      : null;
+  const readyPassage = waitForLive
+    ? {
+        id: source.id,
+        previous: view.openItemId,
+        previousSource: previous,
+        title: passage.displayRef,
+      }
+    : null;
   const next = {
     bibleSource: {...source, insertion},
     liveBibleSource,
@@ -52,7 +68,7 @@ export function openBiblePassage(
         ? null
         : view.requestedBibleSource,
     openItemId: source.id,
-    readyItemId: ready ? source.id : null,
+    readyItemId: source.id,
     readyPassage,
   };
   const nextTiles = tilesForView({...view, ...next}, source.id);

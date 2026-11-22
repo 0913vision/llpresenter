@@ -13,7 +13,7 @@ import {ScreenFrames} from '../rendering/screenFrames';
 import {startFrameRateMeter, type FrameRateMeter} from './frameRateMeter';
 import {followLiveState} from './liveFeed';
 import {followPlaybackProblems} from '../rendering/playbackProblem';
-import {openPreviewMedia} from '../rendering/previewMedia';
+import {previewMediaOf} from '../rendering/previewMedia';
 
 /** What an output window runs on. */
 export interface OutputContext {
@@ -107,14 +107,13 @@ export function startOutput({
     });
   };
   const stopCatching = catchUncaughtErrors(report);
-  const mediaProgress = openPreviewMedia(api);
   const slides = new SlideSwitch({
     create: () =>
       new OutputRenderer(root, {
         transparent: ndi,
         textStyle: DEFAULT_TEXT_STYLE,
         mediaUrl,
-        previewMedia: mediaProgress,
+        previewMedia: previewMediaOf(api),
         onError: report,
       }),
     present: presentTransition,
@@ -291,8 +290,7 @@ export function startOutput({
     if (!enabled() && !revealPending) return;
     meter ??= startFrameRateMeter({
       onFrame: noteFrame,
-      active: () =>
-        revealPending || (enabled() && slides.renderer().moving()),
+      active: () => revealPending || (enabled() && slides.renderer().moving()),
       reportIdle: () => api.output.reportHealth({screenId}),
       report: fps => api.output.reportFrameRate({screenId, fps}),
     });
@@ -325,7 +323,8 @@ export function startOutput({
       const slide = state.layers.slide;
       const moved =
         shown?.itemId !== slide?.itemId || shown?.position !== slide?.position;
-      const covered = latest?.blackScreen !== true && state.blackScreen === true;
+      const covered =
+        latest?.blackScreen !== true && state.blackScreen === true;
       const uncovered =
         latest?.blackScreen === true && state.blackScreen !== true;
       if (moved && slide !== null) {
@@ -365,7 +364,6 @@ export function startOutput({
     stopFollowing();
     frames.dispose();
     slides.dispose();
-    mediaProgress?.dispose();
     stopCatching();
     stopPlaybackProblems();
   };

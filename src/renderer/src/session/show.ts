@@ -1,5 +1,4 @@
 import {rememberLiveAnchor, resolveLiveAnchor} from './liveAnchor';
-import {acceptSongPictureDrafts} from '@core/presentation/songPictureDrafts';
 import {QUICK_BIBLE_TRANSITION} from '@core/bible/quickTransition';
 import {retainedBibleSelection} from '@core/bible/selection';
 import {beginQuickPassage, finishQuickPassage} from './quickReturn';
@@ -9,7 +8,6 @@ import type {Preferences} from '@core/schema/preferences';
 import type {MediaChoice, NextSlide, SlideLayer} from '@core/live/state';
 import type {SingleLiveCommand} from '@core/live/commands';
 import {findSlideHotKey} from '@core/services/slideHotKeys';
-import {textSlideKey} from '@core/presentation/textOverrides';
 import {parseServiceItemId} from '@core/schema/ids';
 import type {ShowService} from '@core/schema/showService';
 import {SERMON_TITLE_THEME_ID} from '@core/themes/sundayScripture';
@@ -44,7 +42,6 @@ import {
   isLibrarySource,
   liveTileIndex,
   projectedLiveCursor,
-  publishSlidesProjection,
   outputLibraryTile,
   tilesForView,
 } from './showLibrary';
@@ -173,8 +170,7 @@ function outputOtherTile(cursor: TileCursor): boolean {
   const tile = tilesOf(cursor.itemId)[cursor.index];
   if (tile?.media === undefined) return false;
   beginOutputRequest();
-  const slide =
-    tile.textOverrides === undefined ? null : slideLayerOf(cursor, tilesOf);
+  const slide = tile.texts === undefined ? null : slideLayerOf(cursor, tilesOf);
   sendMediaOutput(
     tile.media,
     startServiceItem(cursor.itemId),
@@ -259,9 +255,6 @@ export function outputTile(
     source.transition.sec === QUICK_BIBLE_TRANSITION.sec;
   if (quickPassage) beginQuickPassage();
   const liveItemId = live.state?.layers.slide?.itemId ?? null;
-  if (row?.kind === 'slides') {
-    publishSlidesProjection(view, cursor.itemId, tilesOf(cursor.itemId));
-  }
   sendSlideOutput(
     source === null
       ? slide
@@ -564,7 +557,6 @@ function nextKey(next: NextSlide | null | undefined): string {
         next.adTitle ?? null,
         next.itemKind ?? null,
         next.lines,
-        next.textOverrides ?? null,
         next.continued ?? null,
         next.biblePart ?? null,
         next.bibleVerse ?? null,
@@ -575,11 +567,22 @@ function nextKey(next: NextSlide | null | undefined): string {
       ]);
 }
 
-function refreshLiveTextOverrides(previous: ShowView): void {
+function shownContent(slide: SlideLayer): string {
+  const {
+    next: _next,
+    position: _position,
+    sequenceLength: _length,
+    ...own
+  } = slide;
+  return JSON.stringify(own);
+}
+
+/** Shows an edit of the live slide at once, as the same output. */
+function refreshLiveSlide(previous: ShowView): void {
   const live = useLive.getState().state;
-  const slide = live?.layers.slide;
   const current = useShow.getState();
-  if (!slide) {
+  const slide = live?.layers.slide ?? null;
+  if (slide === null) {
     const item = live?.themeItem;
     const media = live?.layers.media;
     if (
@@ -589,41 +592,43 @@ function refreshLiveTextOverrides(previous: ShowView): void {
     ) {
       return;
     }
-    const oldTile = tilesForView(previous, item.id)[0];
+    const before = tilesForView(previous, item.id)[0];
     const tile = tilesForView(current, item.id)[0];
     if (
-      oldTile === undefined ||
-      oldTile.textOverrides !== undefined ||
+      before?.texts !== undefined ||
       tile?.media?.mediaId !== media.mediaId ||
-      tile.textOverrides === undefined
+      tile.texts === undefined
     ) {
       return;
     }
-    const projected = slideLayerOf({itemId: item.id, index: 0}, () => [tile]);
-    if (projected !== null) {
-      sendLive({type: 'slide.show', slide: mediaTextSlide(projected)});
+    const shown = slideLayerOf({itemId: item.id, index: 0}, () => [tile]);
+    if (shown !== null) {
+      sendLive({type: 'slide.show', slide: mediaTextSlide(shown)});
     }
     return;
   }
   const before = projectedLiveCursor(previous, slide);
   const after = projectedLiveCursor(current, slide);
-  if (!before || !after) return;
-  const oldTile = tilesForView(previous, slide.itemId)[before.index];
-  const tile = tilesForView(current, slide.itemId)[after.index];
-  if (!oldTile || !tile) return;
-  const key = textSlideKey(tile);
+  if (before === null || after === null) return;
+  const was = slideLayerOf(before, id => tilesForView(previous, id));
+  const now = slideLayerOf(after, id => tilesForView(current, id));
   if (
-    key === undefined ||
-    textSlideKey(oldTile) !== key ||
-    JSON.stringify(oldTile.textOverrides) === JSON.stringify(tile.textOverrides)
+    was === null ||
+    now === null ||
+    was.sourceSlideId !== now.sourceSlideId ||
+    shownContent(was) === shownContent(now)
   ) {
     return;
   }
+  const own = slide.kind === 'media' ? mediaTextSlide(now) : now;
   sendLive({
-    type: 'slide.text.override',
-    itemId: slide.itemId,
-    position: slide.position,
-    textOverrides: tile.textOverrides ?? null,
+    type: 'slide.update',
+    slide: {
+      ...own,
+      position: slide.position,
+      ...(slide.kind === undefined ? {} : {kind: slide.kind}),
+      ...(slide.title === undefined ? {} : {title: slide.title}),
+    },
   });
 }
 
@@ -892,7 +897,7 @@ export function applyService(service: ShowService | null): void {
       }
       sendLive({type: 'themes.refresh'});
     }
-    refreshLiveTextOverrides(view);
+    refreshLiveSlide(view);
     refreshStageNext();
   }
 }
@@ -936,9 +941,6 @@ export function startServiceSync(): () => void {
     if (stopped) return;
     pushed = true;
     applyService(service);
-    for (const tiles of Object.values(service?.tiles ?? {})) {
-      acceptSongPictureDrafts(tiles);
-    }
   });
   api.service.get().then(
     service => {

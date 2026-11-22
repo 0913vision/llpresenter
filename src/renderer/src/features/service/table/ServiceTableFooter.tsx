@@ -5,7 +5,8 @@ import {
   type ServiceId,
   type SongId,
 } from '@core/schema/ids';
-import {isItemOfKind} from '@core/schema/service';
+import type {Result} from '@core/common/result';
+import {isItemOfKind, type ServiceItem} from '@core/schema/service';
 import {useHeaderRename} from '@renderer/session/headerRename';
 import {useShow} from '@renderer/session/show';
 import {quickAddBefore} from '@core/services/quickAddPosition';
@@ -56,7 +57,14 @@ export function ServiceTableFooter({
           : undefined;
   const disabled = reason !== undefined || editing.busy;
   const append = (
-    prepare: (id: ServiceId) => ReturnType<typeof passageItemWithParts>,
+    prepare: (
+      id: ServiceId,
+    ) => Promise<
+      Result<
+        ServiceItem | null,
+        {readonly reason: 'full'; readonly message: string}
+      >
+    >,
     focusText = false,
   ): void => {
     const {rows, openItemId} = useShow.getState();

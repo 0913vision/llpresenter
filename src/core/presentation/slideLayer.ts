@@ -77,9 +77,6 @@ export function nextSlideOf(
       ? {labelContinued: true as const}
       : {}),
     lines: tile.sectionCard === undefined && !notice ? tile.lines : [],
-    ...(tile.textOverrides === undefined
-      ? {}
-      : {textOverrides: tile.textOverrides}),
     ...(kind === undefined ? {} : {itemKind: kind}),
     ...(title === undefined || title.trim() === '' ? {} : {title}),
     ...(tile.continued === undefined ? {} : {continued: tile.continued}),
@@ -197,9 +194,7 @@ export function slideLayerOf(
       ? {labelContinued: true as const}
       : {}),
     lines: tile.lines,
-    ...(tile.textOverrides === undefined
-      ? {}
-      : {textOverrides: tile.textOverrides}),
+    ...(tile.texts === undefined ? {} : {texts: tile.texts}),
     ...(tile.sectionCard === undefined ? {} : {sectionCard: tile.sectionCard}),
     ...(tile.sermonTitle === undefined ? {} : {sermonTitle: tile.sermonTitle}),
     ...(tile.titleSlide === undefined ? {} : {titleSlide: tile.titleSlide}),
@@ -214,6 +209,9 @@ export function slideLayerOf(
     ...(tile.kind === undefined ? {} : {kind: tile.kind}),
     ...(tile.continued === undefined ? {} : {continued: tile.continued}),
     ...(tile.reference === undefined ? {} : {reference: tile.reference}),
+    ...(tile.ownReference === undefined
+      ? {}
+      : {ownReference: tile.ownReference}),
     ...(next === undefined
       ? {}
       : {

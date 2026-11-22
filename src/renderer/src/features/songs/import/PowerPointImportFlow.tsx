@@ -1,5 +1,4 @@
 import {
-  Suspense,
   useCallback,
   useEffect,
   useMemo,
@@ -29,11 +28,10 @@ import {
   PowerPointPreviewLimitError,
   type PowerPointPreviewProgress,
 } from './preparePowerPointImages';
-import {powerPointPictureSpecs} from './powerPointPictureSpecs';
+import {powerPointPictures} from './powerPointPictures';
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
 import {useApiSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {PowerPointPreviewGrid} from './PowerPointPreviewGrid';
-import {PictureService} from '@renderer/rendering/pictures/pictureService';
 
 async function importBackground(
   api: LlpApi,
@@ -333,8 +331,6 @@ function PowerPointPreparing({
     phase: 'export',
     percent: 0,
   });
-  const [pictures] = useState(() => new PictureService({waitForReady: true}));
-  useEffect(() => () => pictures.reset(), [pictures]);
   const cancelled = useRef(false);
   const [themesFailed, setThemesFailed] = useState(false);
   const [screensFailed, setScreensFailed] = useState(false);
@@ -444,19 +440,16 @@ function PowerPointPreparing({
     return loading;
   }
   return (
-    <Suspense fallback={loading}>
-      <PowerPointDialog
-        api={api}
-        store={store}
-        source={source}
-        images={prepared.ids}
-        full={prepared.full}
-        pictures={pictures}
-        onDone={onDone}
-        onEdit={onEdit}
-        onProblem={onProblem}
-      />
-    </Suspense>
+    <PowerPointDialog
+      api={api}
+      store={store}
+      source={source}
+      images={prepared.ids}
+      full={prepared.full}
+      onDone={onDone}
+      onEdit={onEdit}
+      onProblem={onProblem}
+    />
   );
 }
 
@@ -466,7 +459,6 @@ function PowerPointDialog({
   source,
   images,
   full,
-  pictures,
   onDone,
   onEdit,
   onProblem,
@@ -476,7 +468,6 @@ function PowerPointDialog({
   readonly source: PowerPointSource;
   readonly images: ReadonlyMap<string, string>;
   readonly full: ReadonlyMap<string, Blob>;
-  readonly pictures: PictureService;
   readonly onDone: () => void;
   readonly onEdit: () => void;
   readonly onProblem: (notice: Notice) => void;
@@ -534,10 +525,10 @@ function PowerPointDialog({
     'service',
     {api},
   );
-  const specs =
+  const previews =
     theme === undefined
       ? []
-      : powerPointPictureSpecs(source.slides, background ? images : new Map(), {
+      : powerPointPictures(source.slides, background ? images : new Map(), {
           ...theme,
           mediaOnly: !lyrics,
           selection: {start, end: finish},
@@ -673,8 +664,7 @@ function PowerPointDialog({
           </div>
           <PowerPointPreviewGrid
             slides={source.slides}
-            specs={specs}
-            service={pictures}
+            pictures={previews}
             start={start}
             end={finish}
             onSelect={(index, shift) => {

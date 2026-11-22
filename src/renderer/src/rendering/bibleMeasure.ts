@@ -39,21 +39,25 @@ export function measureBibleLines(
       line = '';
     }
   };
-  for (const word of text.trim().split(/\s+/).filter(Boolean)) {
+  const add = (word: string): void => {
     const candidate = line === '' ? word : `${line} ${word}`;
     if (width(candidate) <= spec.width) {
       line = candidate;
-      continue;
+      return;
     }
     flush();
     if (width(word) <= spec.width) {
       line = word;
-      continue;
+      return;
     }
     for (const character of word) {
       if (line !== '' && width(line + character) > spec.width) flush();
       line += character;
     }
+  };
+  for (const typed of text.trim().split('\n')) {
+    flush();
+    for (const word of typed.split(/\s+/).filter(Boolean)) add(word);
   }
   const marker = spec.marker.trimStart();
   if (marker !== '') {

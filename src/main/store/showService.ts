@@ -19,12 +19,9 @@ import {
   type ShowService,
   type ShowTile,
 } from '@core/schema/showService';
-import {
-  colorSlideLabels,
-  projectSlides,
-  type AdTitleSettings,
-} from '@core/presentation/slides';
-import {textOverridesForTiles} from '@core/presentation/textOverrides';
+import {colorSlideLabels, projectSlides} from '@core/presentation/slides';
+import {withSlideTexts} from '@core/presentation/slideTexts';
+import {isPassageItem, passageOf} from '@core/services/passageEdits';
 import type {ServicePassages} from '../bible/servicePassages';
 import {LITURGY, liturgySlideTextKey} from '@core/services/liturgy';
 import {LITURGY_SLIDES} from '@core/services/liturgySlides';
@@ -47,7 +44,6 @@ export interface ShowServiceSources {
   readonly serviceRevision?: number;
   readonly backgrounds?: ReadonlyMap<string, MediaChoice>;
   readonly passages?: ServicePassages;
-  readonly adTitleSettings?: AdTitleSettings | undefined;
   /** The media list by id, for the names and kinds of media items. */
   readonly media?: ReadonlyMap<string, MediaItem>;
 }
@@ -71,7 +67,6 @@ export function buildShowService({
   serviceRevision,
   backgrounds = new Map(),
   passages,
-  adTitleSettings,
   media,
 }: ShowServiceSources): ShowService {
   const {id, name, order} = service.data;
@@ -112,7 +107,6 @@ export function buildShowService({
       media,
       passages,
       colors,
-      adTitleSettings,
     });
     if (tiles !== undefined) itemTiles[item.id] = tiles;
   }
@@ -141,7 +135,7 @@ export function buildShowService({
   for (const item of order) {
     const tiles = itemTiles[item.id];
     if (tiles !== undefined) {
-      itemTiles[item.id] = textOverridesForTiles(tiles, item.textOverrides);
+      itemTiles[item.id] = withSlideTexts(tiles, item.texts);
     }
   }
   const rowSources: RowSources = {
@@ -182,7 +176,6 @@ interface OtherSources {
   readonly backgrounds: ReadonlyMap<string, MediaChoice>;
   readonly media: ReadonlyMap<string, MediaItem> | undefined;
   readonly passages: ServicePassages | undefined;
-  readonly adTitleSettings: AdTitleSettings | undefined;
 }
 
 /**
@@ -190,12 +183,12 @@ interface OtherSources {
  */
 function otherTiles(
   item: ServiceItem,
-  {backgrounds, media, passages, colors, adTitleSettings}: OtherSources,
+  {backgrounds, media, passages, colors}: OtherSources,
 ): readonly ShowTile[] | undefined {
   if (isItemOfKind(item, 'liturgy')) {
     return LITURGY_SLIDES[item.liturgy.kind][item.liturgy.translation].map(
       (text, index) => ({
-        textSlideKey: liturgySlideTextKey(item.liturgy, index),
+        key: liturgySlideTextKey(item.liturgy, index),
         label:
           item.liturgy.labels?.find(entry => entry.index === index)?.label ??
           text.split('\n')[0] ??
@@ -226,7 +219,6 @@ function otherTiles(
     return colorSlideLabels(
       projectSlides(item, media, {
         passages: passages?.slides?.get(item.id),
-        adTitleSettings,
       }),
       colors,
     );
@@ -238,6 +230,7 @@ function otherTiles(
     if (choice === undefined || found === undefined) return [];
     return [
       {
+        key: 'media',
         label: item.slideLabel ?? null,
         ...(item.slideLabel === undefined ? {} : {slideLabel: item.slideLabel}),
         labelColor:
@@ -302,9 +295,6 @@ function rowOf(item: ServiceItem, sources: RowSources): ShowRow {
       id,
       title: item.slides.name,
       form: item.slides.form,
-      ...(item.textOverrides === undefined
-        ? {}
-        : {textOverrides: item.textOverrides}),
       ...(sources.serviceRevision === undefined
         ? {}
         : {sourceRevision: sources.serviceRevision}),
@@ -328,10 +318,8 @@ function rowOf(item: ServiceItem, sources: RowSources): ShowRow {
             : {}),
     };
   }
-  if (isItemOfKind(item, 'bible') || isItemOfKind(item, 'sermon')) {
-    const settings = isItemOfKind(item, 'sermon')
-      ? item.sermon.passage
-      : item.bible;
+  if (isPassageItem(item)) {
+    const settings = passageOf(item);
     const sermonTitle = isItemOfKind(item, 'sermon')
       ? item.sermon.title
       : undefined;
@@ -356,44 +344,15 @@ function rowOf(item: ServiceItem, sources: RowSources): ShowRow {
             bible: {
               ...bible,
               ...(sermonTitle === undefined ? {} : {sermonTitle}),
-              ...(isItemOfKind(item, 'sermon') &&
-              item.sermon.openingLabel !== undefined
-                ? {sermonOpeningLabel: item.sermon.openingLabel}
-                : {}),
-              ...(isItemOfKind(item, 'sermon') &&
-              item.sermon.closingLabel !== undefined
-                ? {sermonClosingLabel: item.sermon.closingLabel}
-                : {}),
-              ...(isItemOfKind(item, 'sermon') &&
-              item.sermon.openingTransition !== undefined
-                ? {sermonOpeningTransition: item.sermon.openingTransition}
-                : {}),
-              ...(isItemOfKind(item, 'sermon') &&
-              item.sermon.closingTransition !== undefined
-                ? {sermonClosingTransition: item.sermon.closingTransition}
-                : {}),
               verseNumbers: settings.verseNumbers,
               translationName: settings.translationName,
               reference: settings.reference,
-              ...(settings.cuts === undefined ? {} : {cuts: settings.cuts}),
-              ...(settings.pinnedVerses === undefined
+              ...(settings.slides === undefined
                 ? {}
-                : {pinnedVerses: settings.pinnedVerses}),
-              ...(settings.deletedSlides === undefined
-                ? {}
-                : {deletedSlides: settings.deletedSlides}),
-              ...(item.textOverrides === undefined
-                ? {}
-                : {textOverrides: item.textOverrides}),
+                : {slides: settings.slides}),
               ...(settings.transition === undefined
                 ? {}
                 : {transition: settings.transition}),
-              ...(item.bibleTransitions === undefined
-                ? {}
-                : {transitions: item.bibleTransitions}),
-              ...(item.bibleLabels === undefined
-                ? {}
-                : {labels: item.bibleLabels}),
               ...(item.theme === undefined ? {} : {theme: item.theme}),
             },
           }),
@@ -491,6 +450,7 @@ export function projectSongTiles(
   return {
     capped: false,
     tiles: song.slides.map(slide => ({
+      key: slide.id,
       label: slide.label ?? null,
       labelColor:
         slide.label === undefined

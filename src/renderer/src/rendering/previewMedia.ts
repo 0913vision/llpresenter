@@ -52,71 +52,67 @@ export function lendPreviewImage(
 }
 
 export interface PreviewMediaSource {
+  /** The picture's address, when this window already knows it. */
+  readonly peek: (mediaId: string) => string | undefined;
   readonly url: (mediaId: string) => Promise<string>;
   readonly remaining: (media: MediaLayer) => number | undefined;
 }
 
-/** Shares bounded media metadata and main's progress across a window's previews. */
+/** Images keep their original pixels; a video shows its still. */
 class PreviewMediaLibrary implements PreviewMediaSource {
   private items = new Map<string, MediaItem>();
   private revision = -1;
-  private stopped = false;
+  private progress: MediaProgress | null = null;
   private unlock: () => void = () => undefined;
   private readonly ready = new Promise<void>(resolve => {
     this.unlock = resolve;
   });
-  private unsubscribe: (() => void) | undefined;
-  private stopProgress: (() => void) | undefined;
-  private progress: MediaProgress | null = null;
-  private started = false;
 
-  constructor(private readonly api: LlpApi) {}
-
-  private start(): void {
-    if (this.started || this.stopped) return;
-    this.started = true;
-    const {api} = this;
-    this.unsubscribe = api.media.subscribe(document => this.accept(document));
+  constructor(api: LlpApi) {
+    api.media.subscribe(document => this.accept(document));
     api.media.get().then(
       document => this.accept(document),
       () => this.unlock(),
     );
     let pushed = false;
-    this.stopProgress = api.live.subscribeMediaProgress(reading => {
-      if (this.stopped) return;
+    api.live.subscribeMediaProgress(reading => {
       pushed = true;
       this.progress = reading;
     });
     api.live.mediaProgress().then(
       reading => {
-        if (!this.stopped && !pushed) this.progress = reading;
+        if (!pushed) this.progress = reading;
       },
       () => undefined,
     );
   }
 
   private accept(document: MediaDocument): void {
-    if (this.stopped || document.revision <= this.revision) return;
+    if (document.revision <= this.revision) return;
     this.revision = document.revision;
     this.items = new Map(document.value.items.map(item => [item.id, item]));
     this.unlock();
   }
 
-  async url(mediaId: string): Promise<string> {
+  peek(mediaId: string): string | undefined {
     const temporary = temporaryImages.get(mediaId);
     if (temporary !== undefined) return temporary.url;
-    this.start();
+    const item = this.items.get(mediaId);
+    if (item === undefined || item.kind === 'audio') return undefined;
+    return item.kind === 'video' ? thumbnailUrl(mediaId) : mediaUrl(mediaId);
+  }
+
+  async url(mediaId: string): Promise<string> {
     await this.ready;
-    const item = this.stopped ? undefined : this.items.get(mediaId);
-    if (item === undefined || item.kind === 'audio') {
+    const url = this.peek(mediaId);
+    if (url === undefined) {
       throw new Error('No preview picture for this media');
     }
-    return item.kind === 'video' ? thumbnailUrl(mediaId) : mediaUrl(mediaId);
+    return url;
   }
 
   /** Live countdowns read main's samples; preparation stills keep their start. */
   remaining(media: MediaLayer): number | undefined {
-    this.start();
     if (media.startedAt === 0) {
       const item = this.items.get(media.mediaId);
       return item?.kind === 'video' && item.duration !== undefined
@@ -133,59 +129,19 @@ class PreviewMediaLibrary implements PreviewMediaSource {
     }
     return Math.max(0, reading.durationSeconds - reading.positionSeconds);
   }
-
-  /** The records of these media as this window knows them now. */
-  describe(ids: readonly string[]): string {
-    return JSON.stringify(
-      ids.map(id => [
-        id,
-        temporaryImages.get(id)?.url ?? this.items.get(id) ?? null,
-      ]),
-    );
-  }
-
-  dispose(): void {
-    this.stopped = true;
-    this.unsubscribe?.();
-    this.stopProgress?.();
-    this.progress = null;
-    this.items.clear();
-    this.unlock();
-  }
 }
 
-const libraries = new WeakMap<
-  LlpApi,
-  {library: PreviewMediaLibrary; users: number}
->();
+const libraries = new WeakMap<LlpApi, PreviewMediaLibrary>();
 
-/** Images retain their original pixels; only videos use the media-bin still. */
-export function openPreviewMedia(api: LlpApi | undefined):
-  | (PreviewMediaSource & {
-      readonly describe: (ids: readonly string[]) => string;
-      readonly dispose: () => void;
-    })
-  | undefined {
+/** The media this window draws, followed once for every picture in it. */
+export function previewMediaOf(
+  api: LlpApi | undefined,
+): PreviewMediaSource | undefined {
   if (api === undefined) return undefined;
-  let shared = libraries.get(api);
-  if (shared === undefined) {
-    shared = {library: new PreviewMediaLibrary(api), users: 0};
-    libraries.set(api, shared);
+  let library = libraries.get(api);
+  if (library === undefined) {
+    library = new PreviewMediaLibrary(api);
+    libraries.set(api, library);
   }
-  const entry = shared;
-  entry.users++;
-  let active = true;
-  return {
-    url: id => entry.library.url(id),
-    remaining: media => entry.library.remaining(media),
-    describe: ids => entry.library.describe(ids),
-    dispose: () => {
-      if (!active) return;
-      active = false;
-      if (--entry.users === 0) {
-        entry.library.dispose();
-        libraries.delete(api);
-      }
-    },
-  };
+  return library;
 }

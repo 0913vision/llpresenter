@@ -7,12 +7,12 @@ import {
   planSlidesAtOffsets,
 } from '@core/bible/split/manualSplit';
 import type {BibleCutSelection} from '@core/schema/bibleCuts';
-import type {BibleProjection} from './splitProjection';
+import type {BibleSplit} from './passageSplitter';
 import {verseKey} from './BibleRefinements';
 import {SplitEditor} from './SplitEditor';
 
 function reviewPlan(
-  projection: BibleProjection,
+  projection: BibleSplit,
   verse: VerseInput,
   suggestion: readonly number[] | undefined,
 ) {
@@ -50,7 +50,7 @@ export function SplitReview({
   onComplete,
   onCancel,
 }: {
-  readonly projection: BibleProjection;
+  readonly projection: BibleSplit;
   readonly references: ReadonlyArray<VerseInput['reference']>;
   readonly pending: ReadonlySet<string>;
   readonly suggestCuts?:
@@ -58,7 +58,10 @@ export function SplitReview({
     | undefined;
   readonly onConfirm: (
     verse: VerseInput,
-    cuts: BibleCutSelection,
+    cut: {
+      readonly selection: BibleCutSelection;
+      readonly texts: readonly string[];
+    },
   ) => Promise<void>;
   readonly onComplete: () => void;
   readonly onCancel: () => void;
@@ -106,12 +109,13 @@ export function SplitReview({
       position={position}
       total={queue.length}
       onCancel={onCancel}
-      onConfirm={async cuts => {
+      onConfirm={async (cuts, texts) => {
         const offsets = entry.prepared?.offsets;
-        await onConfirm(
-          entry.verse,
-          offsets === undefined ? {cuts} : {cuts: offsets, unit: 'character'},
-        );
+        await onConfirm(entry.verse, {
+          selection:
+            offsets === undefined ? {cuts} : {cuts: offsets, unit: 'character'},
+          texts,
+        });
         if (!active.current) return;
         if (position + 1 < queue.length) setPosition(position + 1);
         else onComplete();

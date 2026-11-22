@@ -2,14 +2,15 @@ import {useSyncExternalStore, type JSX} from 'react';
 import type {SlideTransition} from '@core/schema/slideTransition';
 import type {LlpApi} from '@contracts/ipc/api';
 import {useItemMedia} from '../items/useItemSources';
-import {useSlidesVerseProjection} from '../../bible/useSlidesVerseProjection';
 import {
   SlidesCanvas,
   slideBand,
-  useSlidesAppearance,
   useSlidesItemWithBackground,
+  useSlidesThemes,
 } from '../slides/SlidesVisuals';
 import type {SlidesListSession} from '../slides/slidesListSession';
+import {SlideFields} from '../slides/SlideFields';
+import type {RenderSlideTextFields} from '@renderer/features/songs/editor/SlideCardRenderer';
 import {SlideInspectorView} from './SlideInspectorView';
 import {inspectorTransition, useTransitionSelection} from './TransitionSection';
 import type {SongEditorStore} from '@renderer/features/songs/editor/songEditorStore';
@@ -22,7 +23,9 @@ export function SlidesInspector({
   store,
   onApplyAll,
   cardSelected = false,
+  renderTextFields,
 }: {
+  readonly renderTextFields?: RenderSlideTextFields | undefined;
   readonly cardSelected?: boolean;
   readonly onApplyAll?: ((transition: SlideTransition) => void) | undefined;
   readonly api: LlpApi;
@@ -36,11 +39,7 @@ export function SlidesInspector({
   const {item: draftItem, selected} = session.draft.snapshot;
   const item = useSlidesItemWithBackground(draftItem);
   const media = useItemMedia(api.media).document?.value.items ?? [];
-  const {appearance, ready, adTitle, adTitleSettings} = useSlidesAppearance(
-    api,
-    item,
-  );
-  const {projection} = useSlidesVerseProjection(api, item);
+  const {themes} = useSlidesThemes(item, {api});
   const slide = view.slides[selected];
   const card = cardSelected ? draftItem.sectionCard : undefined;
   const selectedSlides = view.slides.filter(entry =>
@@ -138,26 +137,47 @@ export function SlidesInspector({
   return (
     <SlideInspectorView
       identity={`${item.id}:${selected}:${selectedSlides.map(entry => entry.id).join(',')}:${cardSelected}`}
-      pending={!ready}
-      waitForPicture
       preview={
         <>
           <div className={styles.picture} data-background-picture>
-            <SlidesCanvas
-              item={item}
-              index={selected}
-              appearance={appearance}
-              projection={projection}
-              adTitleSettings={adTitleSettings}
-            />
+            <SlidesCanvas item={item} index={selected} themes={themes} />
           </div>
           <div className={styles.caption}>
-            {slideBand(slide, media, adTitle)}
+            {slideBand(item, slide, media)}
             <span>
               {selected + 1} / {view.slides.length}
             </span>
           </div>
         </>
+      }
+      text={
+        <fieldset className={styles.text} disabled={session.readOnly}>
+          {'media' in slide ? null : (
+            <SlideFields
+              slide={slide}
+              form={item.slides.form}
+              name={slideBand(item, slide, media)}
+              change={(next, field) => {
+                const current = session.draft.snapshot.item;
+                session.draft.change(
+                  {
+                    ...current,
+                    slides: {
+                      ...current.slides,
+                      slides: current.slides.slides.map(entry =>
+                        entry.id === next.id ? next : entry,
+                      ),
+                    },
+                  },
+                  selected,
+                  `${next.id}:${field}`,
+                );
+              }}
+              endTyping={() => session.draft.endTyping()}
+            />
+          )}
+          {renderTextFields?.(slide.id)}
+        </fieldset>
       }
       adapter={{
         selectedIds: [

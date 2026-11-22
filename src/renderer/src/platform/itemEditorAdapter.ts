@@ -15,7 +15,6 @@ export interface ItemEditorCapabilities {
   readonly addVerse: boolean;
   readonly addTitle: boolean;
   readonly splitVerses: boolean;
-  readonly timedAdvance: boolean;
 }
 
 export function itemEditorAdapter(item: ServiceItem): ItemEditorCapabilities {
@@ -45,8 +44,7 @@ export function editorCapabilities(
     addPicture: kind === 'blank' || kind === 'ad',
     addVerse: kind === 'blank',
     addTitle: ['song', 'blank', 'ad', 'bible'].includes(kind),
-    splitVerses: kind === 'bible',
-    timedAdvance: kind === 'blank' || kind === 'ad',
+    splitVerses: kind === 'bible' || kind === 'sermon',
   };
 }
 

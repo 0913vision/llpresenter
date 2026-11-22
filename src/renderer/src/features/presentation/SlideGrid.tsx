@@ -10,33 +10,27 @@ import {
 } from 'react';
 import {outputTile, useShow} from '@renderer/session/show';
 import {
+  bibleSourceFor,
   isBibleSource,
   liveTileIndex,
   shownTilesFor,
 } from '@renderer/session/showLibrary';
 import {useLive} from '@renderer/session/live';
-import {
-  commitShownItem,
-  useCommittedShownItem,
-  useShownItemId,
-} from '@renderer/session/shownItem';
+import {commitShownItem, useShownItemId} from '@renderer/session/shownItem';
 import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import {SlideThumbnail, ThumbnailGrid, thumbnailWidth} from '@renderer/ui';
 import {useGridMeasure} from '@renderer/ui/useGridMeasure';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import {slideMenuEntries} from '@renderer/features/songs/editor/slideMenuEntries';
-import {isItemRow} from '@core/presentation/model';
 import {slideLayerOf} from '@core/presentation/slideLayer';
-import {useSlideTheme} from '@renderer/platform/useSlideTheme';
-import {sermonPreviewRow} from '@renderer/platform/sermonPreview';
-import {useBibleTileProjection} from '../bible/useBibleProjections';
+import {itemThemes, useThemeSettings} from '@renderer/pictures/itemThemes';
+import {TilePicture} from '@renderer/pictures/TilePicture';
 import {BibleLoadNotice} from '../bible/BibleLoadNotice';
 import styles from './SlideGrid.module.css';
 import {useSlideWindow} from './useSlideWindow';
 import {ShowSlideEntry} from './showPanelNavigation';
 import {serviceSlideOffset} from './serviceSlideNumbers';
 import {useSlideTransitionProgress} from './useSlideTransitionProgress';
-import {tilePicture} from './tilePicture';
 import {tileReflowIds} from './tileReflowIds';
 import {useReflow} from '@renderer/ui/useReflow';
 
@@ -65,49 +59,35 @@ export function SlideGrid({
   const tiles = useShow(view => shownTilesFor(view, openItemId));
   const row = useShow(view => view.rows.find(value => value.id === openItemId));
   const librarySong = useShow(view => view.librarySong);
-  const theme = useSlideTheme(
-    row !== undefined && isItemRow(row)
-      ? row
-      : librarySong === null
-        ? undefined
-        : {
+  const bibleSource = useShow(view => bibleSourceFor(view, openItemId));
+  const settings = useThemeSettings({
+    source: row === undefined ? 'external' : 'service',
+  });
+  const themes = itemThemes(
+    row ??
+      (librarySong !== null && bibleSource === null
+        ? {
             id: `library:${librarySong.songId}`,
             kind: 'song',
             title: librarySong.title,
             ...(librarySong.background === undefined
               ? {}
               : {background: librarySong.background}),
-          },
-    row === undefined ? 'external' : 'service',
+          }
+        : bibleSource === null
+          ? undefined
+          : {
+              id: bibleSource.id,
+              kind: 'bible',
+              title: bibleSource.passage.displayRef,
+            }),
+    tiles ?? [],
+    settings,
   );
-  const card = tiles?.find(tile => tile.sectionCard !== undefined)?.sectionCard;
-  const cardTheme = useSlideTheme(
-    card === undefined || openItemId === null
-      ? undefined
-      : {
-          id: openItemId,
-          kind: 'slides',
-          form: 'blank',
-          title: card.name,
-          theme: card.theme,
-        },
-  );
-  const sermonTheme = useSlideTheme(
-    row?.kind === 'bible' &&
-      row.sermonTitle !== undefined &&
-      row.bible !== undefined
-      ? sermonPreviewRow(row.id, row.bible.ref)
-      : undefined,
-  );
-  const bible = useBibleTileProjection({itemId: openItemId, anyItem: true});
   const liveSlide = useLive(view => view.state?.layers.slide ?? null);
   const liveIndex = useShow(view =>
     liveTileIndex({...view, openItemId}, liveSlide),
   );
-  // NOTE(0913vision): Tiles of an item the grid switches to wait for their
-  // pictures, holding the grid as it was; tiles a scroll or resize brings in
-  // draw where they show.
-  const switching = useCommittedShownItem() !== openItemId;
   useLayoutEffect(() => {
     commitShownItem(openItemId);
   }, [openItemId]);
@@ -239,13 +219,9 @@ export function SlideGrid({
                 reflowId={reflowIds[index]}
                 selectionStyle="plate"
                 number={(offset ?? 0) + index + 1}
-                canvas={tilePicture(tile, slide, {
-                  theme,
-                  cardTheme,
-                  sermonTheme,
-                  bibleAppearance: bible?.appearance,
-                  switchSlot: switching ? `${openItemId}:${index}` : undefined,
-                })}
+                canvas={
+                  <TilePicture tile={tile} slide={slide} themes={themes} />
+                }
                 label={
                   (tile.slideLabel ?? tile.label) === ''
                     ? undefined

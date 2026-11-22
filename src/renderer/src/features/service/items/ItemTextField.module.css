@@ -1,0 +1,17 @@
+.fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  gap: var(--space-8);
+  min-inline-size: 0;
+  padding-block: var(--space-8);
+  flex-shrink: 0;
+}
+
+.field {
+  display: grid;
+  align-content: start;
+  gap: var(--space-4);
+  min-inline-size: 0;
+  font: var(--type-caption);
+  color: var(--text-3);
+}

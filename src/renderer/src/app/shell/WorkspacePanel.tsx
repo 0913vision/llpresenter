@@ -35,7 +35,7 @@ export interface WorkspacePanels {
   readonly columns: ReadonlyArray<readonly string[]>;
   readonly partsOf: (title: string) => PanelParts;
   readonly shownItem?: string | null | undefined;
-  readonly pictureIdentity?: string | undefined;
+  readonly editing?: boolean | undefined;
 }
 
 /** Logs a panel problem when the workspace has no notification handler. */

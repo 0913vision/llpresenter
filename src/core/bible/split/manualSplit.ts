@@ -8,6 +8,12 @@ import {layoutText, type SplitLayout} from './layout';
 
 export const normalizeVerse = (text: string): string =>
   text.trim().replace(/\s+/g, ' ');
+/** One space between words, with the line breaks that were typed kept. */
+export const tidyVerse = (text: string): string =>
+  text
+    .trim()
+    .replace(/[^\S\n]+/g, ' ')
+    .replace(/ ?\n ?/g, '\n');
 export const wordsOf = (text: string): readonly Token[] =>
   tokenize(normalizeVerse(text));
 export const normalizeCuts = (
@@ -116,7 +122,7 @@ export function planSlides(
   rawCuts: readonly number[],
   layout: PlanLayout,
 ) {
-  return new CutPlanner(normalizeVerse(rawText), layout).plan(rawCuts);
+  return new CutPlanner(tidyVerse(rawText), layout).plan(rawCuts);
 }
 
 /** Replays the UTF-16 boundaries of a fitting split inside an oversized word. */
@@ -125,7 +131,7 @@ export function planSlidesAtOffsets(
   offsets: readonly number[],
   layout: PlanLayout,
 ): ReturnType<typeof planSlides> | null {
-  const text = normalizeVerse(rawText);
+  const text = tidyVerse(rawText);
   const cuts = normalizeCuts(offsets, text.length);
   if (cuts.length !== offsets.length) return null;
   const words: Token[] = [];
@@ -158,11 +164,11 @@ export function offsetsFromChunks(
   rawText: string,
   chunks: ReadonlyArray<{readonly text: string}>,
 ): readonly number[] | undefined {
-  const text = normalizeVerse(rawText);
+  const text = tidyVerse(rawText);
   const offsets: number[] = [];
   let at = 0;
   for (const chunk of chunks) {
-    if (text[at] === ' ') at++;
+    if (text[at] === ' ' || text[at] === '\n') at++;
     if (!text.startsWith(chunk.text, at)) return undefined;
     if (at > 0) offsets.push(at);
     at += chunk.text.length;

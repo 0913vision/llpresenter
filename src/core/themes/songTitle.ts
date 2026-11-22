@@ -36,7 +36,6 @@ export type ResolvedThemeElement = ThemeElement & {
   readonly broadcastSong?: 'band' | 'bandText' | 'text';
   readonly broadcastBibleFlow?: boolean;
   readonly broadcastText?: string;
-  readonly manualText?: string;
   readonly broadcastSongTitle?: string;
   readonly broadcastSongTitleWrap?: boolean;
   readonly broadcastSingleLine?: boolean;
@@ -58,9 +57,7 @@ export function songTitleLayout(
   const lyrics = layout.elements.find(
     element => element.kind === 'currentText',
   );
-  const value =
-    lyrics && 'manualText' in lyrics ? lyrics.manualText : undefined;
-  const lines = typeof value === 'string' ? value.split('\n') : slide.lines;
+  const {lines} = slide;
   const imported = slide.lyricFormat;
   if (
     imported?.lines.length === lines.length &&
@@ -127,8 +124,7 @@ export function songTitleLayout(
     id: createThemeElementId('00000000-0000-4000-8000-000000000384'),
     kind: 'text',
     clearTarget: 'slide',
-    content:
-      typeof value === 'string' ? lines.slice(1).join('\n') : (lines[1] ?? ''),
+    content: lines[1] ?? '',
     frame: {x: 252, y: spacing.subtitleTop, w: 1416, h: 90},
     text: {...text, weight: 400, size: 64, tracking: spacing.subtitleTracking},
   };

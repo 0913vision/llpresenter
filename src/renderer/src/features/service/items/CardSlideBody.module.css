@@ -12,31 +12,6 @@
   background: var(--output-black);
 }
 
-.select {
-  position: absolute;
-  inset: 0;
-  border: 0;
-  background: transparent;
-}
-
-.fields {
-  display: grid;
-  gap: var(--space-6);
-  min-width: 0;
-}
-
-.fields label {
-  display: grid;
-  gap: var(--space-4);
-  font: var(--type-caption);
-  color: var(--text-3);
-}
-
-.fields input {
-  min-width: 0;
-  width: 100%;
-  box-sizing: border-box;
-}
 :global([data-leading-card]):has(> .thumbnail) {
   display: grid;
   grid-template-columns: minmax(0, 144px) minmax(0, 1fr);

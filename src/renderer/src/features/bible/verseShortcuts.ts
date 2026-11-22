@@ -13,7 +13,6 @@ import {openBiblePassage} from './actions';
 import type {VerseDirection} from '@core/bible/adjacentVerses';
 import {labelEdge} from '@core/bible/bibleTiles';
 import {lookupAdjacentPassage} from './lookupAdjacentPassage';
-import {prepareBiblePictures} from './prepareBiblePictures';
 
 /**
  * Outputs the verse beside the live one in the open passage. On the passage's
@@ -93,8 +92,6 @@ export async function outputAdjacentBibleVerse(
       enteredRef: source?.enteredRef ?? passage.ref,
       enteredTranslation: source?.enteredTranslation ?? passage.translation,
     };
-    const ready = await prepareBiblePictures(expanded, options);
-    if (!current()) return;
     const tiles = tilesForView(initial, itemId).filter(
       tile => tile.sectionCard === undefined,
     );
@@ -107,10 +104,10 @@ export async function outputAdjacentBibleVerse(
           direction === 'previous' ? 'first' : 'last',
         )
     ) {
-      openBiblePassage(expanded, options, {ready});
+      openBiblePassage(expanded, options);
       return;
     }
-    openBiblePassage(expanded, options, {ready, waitForLive: true});
+    openBiblePassage(expanded, options, {waitForLive: true});
     const id = useShow.getState().openItemId;
     if (id !== null) {
       const nextTiles = tilesForView(useShow.getState(), id);

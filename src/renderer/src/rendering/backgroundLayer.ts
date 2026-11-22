@@ -19,7 +19,6 @@ export interface BackgroundLayerOptions {
   /** The original library URL, also used for image elements in previews. */
   readonly mediaUrl: (mediaId: string) => string;
   readonly previewMedia?: PreviewMediaSource | undefined;
-  readonly readableImages?: boolean;
   readonly onError: (message: string, error: unknown) => void;
   /** `output` when absent. */
   readonly mode?: RenderMode;
@@ -763,7 +762,9 @@ export class BackgroundLayerView {
   }
 
   moveTo(parent: HTMLElement): boolean {
-    return this.view.moveTo(parent);
+    return this.view instanceof PlaybackBackgroundLayerView
+      ? this.view.moveTo(parent)
+      : this.view.moveTo();
   }
 
   dispose(): void {

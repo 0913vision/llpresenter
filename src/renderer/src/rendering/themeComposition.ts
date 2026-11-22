@@ -1,7 +1,6 @@
 import {isSectionTheme} from '@core/themes/sundaySections';
 import {fitBroadcastLook, isBroadcastLook} from './broadcastLook';
 import {stageBarLayout} from './stageBar';
-import {manualThemeText, withSlideTextOverrides} from '@core/themes/textSlots';
 import type {LiveLayers} from '@core/live/state';
 import type {SlideLayer} from '@core/live/state';
 import type {LiveThemeItem} from '@core/schema/liveTheme';
@@ -15,10 +14,7 @@ import {ThemeGaps} from './themeGaps';
 import {setPlaybackProblem} from './playbackProblem';
 import {THEME_LIMITS} from '@core/themes/elementRules';
 import {themeBackgroundStyle} from './themeBackground';
-import {
-  songTitleLayout,
-  type ResolvedThemeElement,
-} from '@core/themes/songTitle';
+import {songTitleLayout} from '@core/themes/songTitle';
 import {songTitleLines} from '@core/presentation/songTitleLines';
 import {STAGE_LYRIC_LABEL_ID, stageLyricLabelLayout} from './stageLyricLabel';
 import {
@@ -29,7 +25,6 @@ import {
 
 interface PreparedLayout {
   readonly layout: ThemeScreenLayout;
-  readonly manual: ReadonlyMap<string, string>;
   readonly signature: string;
 }
 
@@ -59,25 +54,12 @@ function itemBackgroundOverride(frame: RenderFrame, transparent: boolean) {
 
 const layoutSignatures = new WeakMap<ThemeScreenLayout, string>();
 
-function layoutSignature(
-  layout: ThemeScreenLayout,
-  manual: ReadonlyMap<string, string>,
-): string {
-  const cached = layoutSignatures.get(layout);
-  if (cached !== undefined) return cached;
-  const structure =
-    manual.size === 0
-      ? layout
-      : {
-          ...layout,
-          elements: layout.elements.map((element: ResolvedThemeElement) => {
-            if (!manual.has(element.id)) return element;
-            const {manualText: _manual, ...style} = element;
-            return style;
-          }),
-        };
-  const signature = JSON.stringify(structure);
-  layoutSignatures.set(layout, signature);
+function layoutSignature(layout: ThemeScreenLayout): string {
+  let signature = layoutSignatures.get(layout);
+  if (signature === undefined) {
+    signature = JSON.stringify(layout);
+    layoutSignatures.set(layout, signature);
+  }
   return signature;
 }
 
@@ -129,7 +111,6 @@ export class ThemeCompositionView {
   private content: {
     layers: LiveLayers;
     frame: RenderFrame;
-    manual: ReadonlyMap<string, string> | undefined;
   } | null = null;
   private input: {layers: LiveLayers; frame: RenderFrame} | null = null;
   private audienceMeasure: ThemeCompositionView | null = null;
@@ -164,9 +145,7 @@ export class ThemeCompositionView {
     readonly band: ThemeScreenLayout;
     readonly result: PreparedLayout;
   } | null = null;
-  private slotLayout: {
-    readonly theme: ThemeFrame;
-    readonly slide: SlideLayer | null;
+  private look: {
     readonly layout: ThemeScreenLayout;
     readonly broadcast: boolean;
   } | null = null;
@@ -299,7 +278,7 @@ export class ThemeCompositionView {
       frame = {...frame, theme: {...frame.theme, layout: prepared.layout}};
     }
     this.gaps.follow(frame);
-    this.content = {layers, frame, manual: prepared?.manual};
+    this.content = {layers, frame};
     const theme = frame.theme;
     setPlaybackProblem(
       this.root,
@@ -312,7 +291,7 @@ export class ThemeCompositionView {
     if (theme === undefined || prepared === null) {
       this.bandFit = null;
       this.prepared = null;
-      this.slotLayout = null;
+      this.look = null;
       this.clear();
       return;
     }
@@ -362,14 +341,15 @@ export class ThemeCompositionView {
     } else if ((rebuilt || pendingSlide) && this.leaving !== null) {
       this.awaitIncoming();
     }
+    const still = frame.standby === true || frame.still === true;
     const ticks =
-      !frame.standby &&
+      !still &&
       (this.page?.ticking.some(
         view => !(view.element.kind === 'clock' && view.element.seconds),
       ) ??
         false);
     const seconds =
-      !frame.standby &&
+      !still &&
       (this.page?.ticking.some(
         view => view.element.kind === 'clock' && view.element.seconds,
       ) ??
@@ -398,28 +378,11 @@ export class ThemeCompositionView {
     slide: SlideLayer | null,
     frame: RenderFrame,
   ): PreparedLayout {
-    const slots = this.slotLayout;
-    if (
-      slots?.theme.layout !== theme.layout ||
-      slots.theme.themeId !== theme.themeId ||
-      slots.theme.sourceScreenId !== theme.sourceScreenId ||
-      slots.slide?.textOverrides !== slide?.textOverrides ||
-      slots.slide?.next?.textOverrides !== slide?.next?.textOverrides ||
-      slots.slide?.continued !== slide?.continued ||
-      slots.slide?.next?.continued !== slide?.next?.continued
-    ) {
-      this.slotLayout = {
-        theme,
-        slide,
-        layout: withSlideTextOverrides(theme, slide),
-        broadcast:
-          slots?.theme.layout === theme.layout
-            ? slots.broadcast
-            : isBroadcastLook(theme.layout),
-      };
+    const resolved = theme.layout;
+    if (this.look?.layout !== resolved) {
+      this.look = {layout: resolved, broadcast: isBroadcastLook(resolved)};
     }
-    const resolved = this.slotLayout?.layout ?? theme.layout;
-    const band = this.slotLayout?.broadcast
+    const band = this.look.broadcast
       ? this.fitBand(resolved, slide, {
           item: theme.item,
           songCaption:
@@ -465,17 +428,12 @@ export class ThemeCompositionView {
     ) {
       layout = importedLyricsLayout(layout, slide);
     }
-    const manual = new Map<string, string>();
-    for (const element of layout.elements) {
-      const text = manualThemeText(element);
-      if (text !== undefined) manual.set(element.id, text);
-    }
     const signature = JSON.stringify([
       theme.themeId,
-      layoutSignature(layout, manual),
+      layoutSignature(layout),
       itemBackgroundOverride(frame, this.options.transparent === true),
     ]);
-    const result = {layout, signature, manual};
+    const result = {layout, signature};
     this.prepared = {
       theme,
       slide,
@@ -734,7 +692,7 @@ export class ThemeCompositionView {
         ? undefined
         : this.options.previewMedia?.remaining(content.layers.media));
     const frame = {...content.frame, transitions: false};
-    const values = {videoRemaining: video, manual: content.manual};
+    const values = {videoRemaining: video};
     for (const view of page.elements) {
       if (
         content.frame.screen?.kind === 'stage' &&
@@ -814,13 +772,14 @@ export class ThemeCompositionView {
       width / THEME_LIMITS.width,
       height / THEME_LIMITS.height,
     );
+    const css = this.options.cssScale === true;
     for (const page of [this.page, this.leaving]) {
       if (page !== null) {
-        page.canvas.style.transform = `translate(-50%, -50%) scale(${scale})`;
-        if (this.options.biblePreview !== undefined && scale > 0) {
+        page.canvas.style.transform = `translate(-50%, -50%) scale(${css ? 'var(--picture-scale)' : scale})`;
+        if (this.options.biblePreview !== undefined && (css || scale > 0)) {
           page.canvas.style.setProperty(
             '--bible-guide-width',
-            `${1 / scale}px`,
+            css ? 'calc(1px / var(--picture-scale))' : `${1 / scale}px`,
           );
         }
       }
@@ -869,6 +828,13 @@ export class ThemeCompositionView {
         this.gaps.failed(view.element.id, error);
       }
     }
+  }
+
+  /** Lays the text out again, when fonts arrived after it was drawn. */
+  refit(): void {
+    this.bandFit = null;
+    this.audienceMeasure?.refit();
+    for (const view of this.page?.elements ?? []) view.refit();
   }
 
   ready(): boolean {
@@ -981,7 +947,7 @@ export class ThemeCompositionView {
     this.content = null;
     this.bandFit = null;
     this.prepared = null;
-    this.slotLayout = null;
+    this.look = null;
     this.broadcastTitle = null;
     this.root.remove();
   }

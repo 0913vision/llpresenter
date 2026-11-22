@@ -1,5 +1,4 @@
 import {
-  use,
   useEffect,
   useEffectEvent,
   useMemo,
@@ -25,9 +24,6 @@ import {
 import {MediaPicker} from '@renderer/features/songs/editor/MediaPicker';
 import {PropertyRow} from '@renderer/ui/PropertyRow';
 import {Select} from '@renderer/ui/Select';
-import {usePrepPictureSwitch} from '@renderer/rendering/PrepPictureSwitch';
-import {pictures} from '@renderer/rendering/pictures/pictureService';
-import {thumbnailReady} from '@renderer/rendering/pictures/thumbnailReady';
 import {SelectMenu} from '@renderer/ui/SelectMenu';
 import {TextArea} from '@renderer/ui/TextArea';
 import type {ItemTarget, ServiceItemStore} from '../items/serviceItemStore';
@@ -139,10 +135,6 @@ export function ItemBackgroundRow({
     item.backgroundNone === true
       ? undefined
       : (item.background ?? session?.background);
-  const switching = usePrepPictureSwitch();
-  if (switching && mediaId !== undefined && !pictures.drawInPlace) {
-    use(thumbnailReady(thumbnailSrc(mediaId)));
-  }
   const inherited =
     item.backgroundNone !== true && item.background === undefined;
   const list = media.document?.value.items ?? [];

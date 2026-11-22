@@ -1,8 +1,8 @@
 import {useSyncExternalStore, type JSX} from 'react';
 import type {SlideTransition} from '@core/schema/slideTransition';
 import {formatSlideHotKey} from '@renderer/ui/SlideThumbnail';
-import {SlidePicture} from '@renderer/rendering/SlidePicture';
-import {songPictureLayer} from '@renderer/rendering/pictureSpec';
+import {SlidePicture} from '@renderer/pictures/SlidePicture';
+import {songSlideLayer} from '@renderer/rendering/slideStillSpec';
 import {SlideInspectorView} from './SlideInspectorView';
 import {useSongSlideAppearance} from '@renderer/features/songs/editor/useSongSlideAppearance';
 import {inspectorTransition, useTransitionSelection} from './TransitionSection';
@@ -11,6 +11,8 @@ import {Button} from '@renderer/ui/Button';
 import {labelInk} from '@renderer/ui/labelInk';
 import {PropertyGroup, PropertyRow} from '@renderer/ui/PropertyRow';
 import styles from './SlideInspector.module.css';
+import type {RenderSlideTextFields} from '@renderer/features/songs/editor/SlideCardRenderer';
+import {SongSlideText} from '@renderer/features/songs/editor/SongSlideText';
 import {SongTitleLayoutControl} from '@renderer/features/songs/editor/SongTitleLayoutControl';
 
 /** Adapts the current song session to the shared inspector. */
@@ -18,7 +20,9 @@ export function SlideInspector({
   store,
   shownSession,
   cardSelected = false,
+  renderTextFields,
 }: {
+  readonly renderTextFields?: RenderSlideTextFields | undefined;
   readonly cardSelected?: boolean;
   readonly store: SongEditorStore;
   readonly shownSession?:
@@ -35,6 +39,7 @@ export function SlideInspector({
       session={session}
       busy={state.busy}
       cardSelected={cardSelected}
+      renderTextFields={renderTextFields}
     />
   );
 }
@@ -44,7 +49,9 @@ function InspectorContent({
   session,
   busy,
   cardSelected,
+  renderTextFields,
 }: {
+  readonly renderTextFields: RenderSlideTextFields | undefined;
   readonly cardSelected: boolean;
   readonly store: SongEditorStore;
   readonly session: NonNullable<
@@ -93,8 +100,6 @@ function InspectorContent({
   return (
     <SlideInspectorView
       identity={`${session.slideDocumentId}:${snapshot.selection.block}:${selected.map(item => item.id).join(',')}:${cardSelected}`}
-      pending={appearance === undefined || slide === undefined}
-      waitForPicture
       preview={
         <>
           <div className={styles.picture} data-background-picture>
@@ -102,8 +107,7 @@ function InspectorContent({
               <SlidePicture
                 {...appearance}
                 background={slide.picture ?? appearance.background}
-                songSource={{songId: snapshot.song.id, slideId: slide.id}}
-                slide={songPictureLayer(
+                slide={songSlideLayer(
                   snapshot.song.id,
                   snapshot.selection.block,
                   slide,
@@ -125,6 +129,12 @@ function InspectorContent({
               {snapshot.selection.block + 1} / {view.slides.length}
             </span>
           </div>
+        </>
+      }
+      text={
+        <>
+          <SongSlideText session={session} disabled={busy} />
+          {slide === undefined ? null : renderTextFields?.(slide.id)}
         </>
       }
       beforeProperties={

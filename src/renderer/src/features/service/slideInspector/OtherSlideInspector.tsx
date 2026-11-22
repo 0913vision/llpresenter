@@ -1,61 +1,45 @@
-import {
-  useContext,
-  useEffect,
-  useRef,
-  useSyncExternalStore,
-  type JSX,
-} from 'react';
-import {isItemOfKind} from '@core/schema/service';
-import {
-  biblePartEffect,
-  biblePartLabel,
-  setBiblePartEffect,
-  setBiblePartLabel,
-} from '@core/bible/partTransitions';
+import {useSyncExternalStore, type JSX} from 'react';
+import {isItemOfKind, type ServiceItem} from '@core/schema/service';
+import type {ShowTile} from '@core/schema/showService';
 import type {SlideTransition} from '@core/schema/slideTransition';
-import {editorTask} from '@renderer/features/songs/editor/editorTask';
-import {inspectorTransition} from './TransitionSection';
-import {cardOffset, hasSectionCard} from '@core/services/sectionCards';
+import type {MediaItem} from '@core/schema/mediaList';
+import {hasSectionCard} from '@core/services/sectionCards';
+import {
+  changeBibleSlides,
+  isPassageItem,
+  passageOf,
+  slideIds,
+  withPassage,
+} from '@core/services/passageEdits';
+import {liturgySlideTextKey} from '@core/services/liturgy';
 import {slideLayerOf} from '@core/presentation/slideLayer';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
-import {useShow} from '@renderer/session/show';
-import {useBibleTileProjection} from '@renderer/features/bible/useBibleProjections';
-import {useSlideTheme} from '@renderer/platform/useSlideTheme';
-import {sermonPreviewRow} from '@renderer/platform/sermonPreview';
-import {SlidePicture} from '@renderer/rendering/SlidePicture';
-import {
-  biblePictureInput,
-  cardPictureLayer,
-} from '@renderer/rendering/pictureSpec';
-import {SlideInspectorView} from './SlideInspectorView';
-import {PictureReadiness} from '@renderer/rendering/PictureReadiness';
-import type {MediaItem} from '@core/schema/mediaList';
-import {MediaProperties} from '@renderer/features/media/MediaPropertiesPanel';
-import {labelInk} from '@renderer/ui/labelInk';
-import {LITURGY} from '@core/services/liturgy';
-import {LITURGY_SLIDES} from '@core/services/liturgySlides';
-import {CREED_PRAYER_THEME_ID} from '@core/themes/creedPrayer';
+import {editorTask} from '@renderer/features/songs/editor/editorTask';
 import type {SongEditorStore} from '@renderer/features/songs/editor/songEditorStore';
+import {MediaProperties} from '@renderer/features/media/MediaPropertiesPanel';
+import {itemThemes, useThemeSettings} from '@renderer/pictures/itemThemes';
+import {TilePicture} from '@renderer/pictures/TilePicture';
+import {useShow} from '@renderer/session/show';
+import {labelInk} from '@renderer/ui/labelInk';
 import {useItemMedia} from '../items/useItemSources';
-import {savedItemTiles, savedPassageTiles} from '../items/bibleItemModel';
 import type {ServiceItemStore} from '../items/serviceItemStore';
+import {BibleSlideFields} from '../items/BibleSlideFields';
+import {CardFields} from '../items/CardFields';
+import {SermonTitleFields} from '../items/SermonTitleFields';
+import type {RenderSlideTextFields} from '@renderer/features/songs/editor/SlideCardRenderer';
+import {SlideInspectorView} from './SlideInspectorView';
+import {inspectorTransition} from './TransitionSection';
 import styles from './SlideInspector.module.css';
+
+const NO_TILES: readonly ShowTile[] = [];
+const CUT: SlideTransition = {kind: 'none', sec: 0.5};
 
 function InspectorMediaPicture({
   file,
 }: {
   readonly file: MediaItem;
 }): JSX.Element {
-  const ready = useContext(PictureReadiness);
-  const source = useRef({});
-  const alive = useRef(true);
-  useEffect(() => {
-    alive.current = true;
-    return () => {
-      alive.current = false;
-    };
-  }, []);
   return (
     <img
       className={styles.mediaPicture}
@@ -63,20 +47,184 @@ function InspectorMediaPicture({
       alt=""
       onError={event => {
         event.currentTarget.style.visibility = 'hidden';
-        ready?.(source.current);
       }}
       onLoad={event => {
-        const image = event.currentTarget;
-        image.style.visibility = '';
-        if (ready === null) return;
-        const finish = (): void => {
-          if (alive.current) ready(source.current);
-        };
-        if (typeof image.decode === 'function') {
-          image.decode().then(finish, finish);
-        } else finish();
+        event.currentTarget.style.visibility = '';
       }}
     />
+  );
+}
+
+/** The slides of an item that are selected in its editor. */
+function selectedTiles(
+  item: ServiceItem,
+  tiles: readonly ShowTile[],
+  {
+    position,
+    selection,
+    cardSelected,
+  }: {
+    readonly position: number;
+    readonly selection: readonly number[];
+    readonly cardSelected: boolean;
+  },
+): readonly ShowTile[] {
+  const offset = hasSectionCard(item) ? 1 : 0;
+  const indices = new Set(selection.map(index => index + offset));
+  if (indices.size === 0) indices.add(position);
+  if (cardSelected && hasSectionCard(item)) indices.add(0);
+  return tiles.filter((_, index) => indices.has(index));
+}
+
+/** Changes the transition of these slides, or only its seconds. */
+function withTransition(
+  item: ServiceItem,
+  slides: readonly ShowTile[],
+  next: SlideTransition | number,
+): ServiceItem {
+  const keys = new Set(slides.map(tile => tile.key));
+  const effect = (
+    old: SlideTransition | undefined,
+  ): SlideTransition | undefined =>
+    typeof next === 'number'
+      ? old === undefined
+        ? undefined
+        : {...old, sec: next}
+      : next;
+  let updated = item;
+  if (keys.has('section') && hasSectionCard(updated)) {
+    const transition = effect(updated.sectionCard.transition);
+    if (transition !== undefined) {
+      updated = {
+        ...updated,
+        sectionCard: {...updated.sectionCard, transition},
+      };
+    }
+  }
+  if (isPassageItem(updated)) {
+    const passage = passageOf(updated);
+    if (passage.slides !== undefined) {
+      updated = withPassage(updated, {
+        ...passage,
+        slides: changeBibleSlides(passage.slides, slideIds(slides), slide => {
+          const transition = effect(slide.transition ?? passage.transition);
+          return transition === undefined ? slide : {...slide, transition};
+        }),
+      });
+    }
+  }
+  if (isItemOfKind(updated, 'sermon')) {
+    const {openingTransition, closingTransition, ...sermon} = updated.sermon;
+    const opening = keys.has('sermon:opening')
+      ? (effect(openingTransition) ?? openingTransition)
+      : openingTransition;
+    const closing = keys.has('sermon:closing')
+      ? (effect(closingTransition) ?? closingTransition)
+      : closingTransition;
+    updated = {
+      ...updated,
+      sermon: {
+        ...sermon,
+        ...(opening === undefined ? {} : {openingTransition: opening}),
+        ...(closing === undefined ? {} : {closingTransition: closing}),
+      },
+    };
+  }
+  if (isItemOfKind(updated, 'liturgy')) {
+    const {liturgy} = updated;
+    const before = liturgy.transitions ?? [];
+    const changed = liturgyIndices(updated, slides).flatMap(index => {
+      const transition = effect(
+        before.find(entry => entry.index === index)?.transition,
+      );
+      return transition === undefined ? [] : [{index, transition}];
+    });
+    updated = {
+      ...updated,
+      liturgy: {
+        ...liturgy,
+        transitions: [
+          ...before.filter(
+            entry => !changed.some(each => each.index === entry.index),
+          ),
+          ...changed,
+        ],
+      },
+    };
+  }
+  return updated;
+}
+
+/** Gives these slides a 이름표, or takes it away. */
+function withLabel(
+  item: ServiceItem,
+  slides: readonly ShowTile[],
+  name: string | undefined,
+): ServiceItem {
+  const keys = new Set(slides.map(tile => tile.key));
+  const own = name === undefined ? {} : {label: name};
+  let updated = item;
+  if (isItemOfKind(updated, 'media')) {
+    const {slideLabel: _label, ...rest} = updated;
+    return {...rest, ...(name === undefined ? {} : {slideLabel: name})};
+  }
+  if (keys.has('section') && hasSectionCard(updated)) {
+    const {label: _label, ...card} = updated.sectionCard;
+    updated = {...updated, sectionCard: {...card, ...own}};
+  }
+  if (isPassageItem(updated)) {
+    const passage = passageOf(updated);
+    if (passage.slides !== undefined) {
+      updated = withPassage(updated, {
+        ...passage,
+        slides: changeBibleSlides(
+          passage.slides,
+          slideIds(slides),
+          ({label: _label, ...slide}) => ({...slide, ...own}),
+        ),
+      });
+    }
+  }
+  if (isItemOfKind(updated, 'sermon')) {
+    const {openingLabel, closingLabel, ...sermon} = updated.sermon;
+    const opening = keys.has('sermon:opening') ? name : openingLabel;
+    const closing = keys.has('sermon:closing') ? name : closingLabel;
+    updated = {
+      ...updated,
+      sermon: {
+        ...sermon,
+        ...(opening === undefined ? {} : {openingLabel: opening}),
+        ...(closing === undefined ? {} : {closingLabel: closing}),
+      },
+    };
+  }
+  if (isItemOfKind(updated, 'liturgy')) {
+    const indices = liturgyIndices(updated, slides);
+    updated = {
+      ...updated,
+      liturgy: {
+        ...updated.liturgy,
+        labels: [
+          ...(updated.liturgy.labels ?? []).filter(
+            entry => !indices.includes(entry.index),
+          ),
+          ...(name === undefined
+            ? []
+            : indices.map(index => ({index, label: name}))),
+        ],
+      },
+    };
+  }
+  return updated;
+}
+
+function liturgyIndices(
+  item: Extract<ServiceItem, {readonly liturgy: unknown}>,
+  slides: readonly ShowTile[],
+): readonly number[] {
+  const keys = new Set(slides.map(tile => tile.key));
+  return Array.from({length: 200}, (_, index) => index).filter(index =>
+    keys.has(liturgySlideTextKey(item.liturgy, index)),
   );
 }
 
@@ -91,7 +239,9 @@ export function OtherSlideInspector({
   changeLabel,
   replayDraft,
   shownItem,
+  renderTextFields,
 }: {
+  readonly renderTextFields?: RenderSlideTextFields | undefined;
   readonly changeSelected?:
     ((change: SlideTransition | number) => void) | undefined;
   readonly cardTransition?: SlideTransition | null | undefined;
@@ -104,10 +254,7 @@ export function OtherSlideInspector({
   readonly shownItem?: ReturnType<ServiceItemStore['getSnapshot']> | undefined;
 }): JSX.Element {
   const current = useSyncExternalStore(items.subscribe, items.getSnapshot);
-  const editorState = useSyncExternalStore(
-    editor.subscribe,
-    editor.getSnapshot,
-  );
+  useSyncExternalStore(editor.subscribe, editor.getSnapshot);
   const state =
     shownItem !== undefined &&
     (shownItem.item?.id !== current.item?.id ||
@@ -115,586 +262,206 @@ export function OtherSlideInspector({
       ? shownItem
       : current;
   const {item, service, position, busy, bibleSelection, cardSelected} = state;
-  const bible =
-    item !== null &&
-    (isItemOfKind(item, 'bible') || isItemOfKind(item, 'sermon'));
-  const passage =
-    item !== null && isItemOfKind(item, 'sermon')
-      ? item.sermon.passage
-      : item !== null && isItemOfKind(item, 'bible')
-        ? item.bible
-        : undefined;
-  const liturgy = item !== null && isItemOfKind(item, 'liturgy') ? item : null;
-  const liturgyIndex = liturgy === null ? -1 : position - cardOffset(liturgy);
-  const liturgyIndices = (
-    liturgy === null
-      ? []
-      : bibleSelection.length > 0
-        ? bibleSelection
-        : liturgyIndex >= 0 && !cardSelected
-          ? [liturgyIndex]
-          : []
-  ).filter(
-    index =>
-      liturgy !== null &&
-      index >= 0 &&
-      index <
-        LITURGY_SLIDES[liturgy.liturgy.kind][liturgy.liturgy.translation]
-          .length,
+  const row = useShow(view => view.rows.find(entry => entry.id === item?.id));
+  const tiles = useShow(view =>
+    item === null ? NO_TILES : (view.tiles[item.id] ?? NO_TILES),
   );
-  const liturgyTiles = useShow(view =>
-    liturgy === null ? undefined : view.tiles[liturgy.id],
-  );
-  const liturgyLayer =
-    liturgy === null || liturgyTiles === undefined
-      ? null
-      : slideLayerOf({itemId: liturgy.id, index: position}, () => liturgyTiles);
-  const liturgyTheme = useSlideTheme(
-    liturgy === null
-      ? undefined
-      : {
-          kind: 'slides',
-          form: 'blank',
-          id: liturgy.id,
-          title: LITURGY[liturgy.liturgy.kind].name,
-          theme: liturgy.theme ?? CREED_PRAYER_THEME_ID,
-        },
-  );
+  const settings = useThemeSettings();
   const media = useItemMedia(
     editor.api.media,
     item !== null && isItemOfKind(item, 'media'),
   );
-  const raw = useShow(view =>
-    shownItem === undefined
-      ? savedPassageTiles(
-          view,
-          service?.service.id,
-          bible ? item.id : undefined,
-        )
-      : savedItemTiles(view, service?.service.id, bible ? item.id : undefined),
-  );
-  const projection = useBibleTileProjection({
-    anyItem: shownItem !== undefined,
-    itemId: bible ? item.id : null,
-    ...(service === null ? {} : {serviceId: service.service.id}),
+  if (item === null || service === null) return <SlideInspectorView />;
+  const passage = isPassageItem(item);
+  const liturgy = isItemOfKind(item, 'liturgy');
+  const file = isItemOfKind(item, 'media')
+    ? media.document?.value.items.find(
+        entry => entry.id === item.media && entry.kind !== 'audio',
+      )
+    : undefined;
+  const selected = selectedTiles(item, tiles, {
+    position,
+    selection: bibleSelection,
+    cardSelected,
   });
-  const tiles = (projection?.tiles ?? raw).filter(
-    tile => tile.sectionCard === undefined,
+  const tile = tiles[position];
+  const labels = selected.map(each =>
+    each.key === 'section' && cardLabel !== undefined
+      ? (cardLabel ?? undefined)
+      : each.slideLabel,
   );
-  const index = bible ? position - cardOffset(item) : -1;
-  const card =
-    item !== null && hasSectionCard(item) && position === 0
-      ? item.sectionCard
-      : undefined;
-  const cardColor =
-    editorState.labels?.value.labels.find(label => label.name === card?.label)
-      ?.color ?? 'none';
-  const count =
-    liturgy !== null
-      ? (liturgyTiles?.length ?? 0)
-      : item !== null && isItemOfKind(item, 'slides')
-        ? item.slides.slides.length + 1
-        : tiles.length + (item !== null && hasSectionCard(item) ? 1 : 0);
-  const cardTheme = useSlideTheme(
-    card === undefined || item === null
-      ? undefined
-      : {
-          id: item.id,
-          kind: 'slides',
-          form: 'blank',
-          title: card.name,
-          theme: card.theme,
-        },
-  );
-  const sermonTheme = useSlideTheme(
-    item !== null && isItemOfKind(item, 'sermon')
-      ? sermonPreviewRow(item.id, item.sermon.passage.ref)
-      : undefined,
-  );
-  const tile = index >= 0 ? tiles[index] : undefined;
-  const layer =
-    bible && tile !== undefined
-      ? slideLayerOf({itemId: item.id, index}, () => tiles)
-      : null;
-  const file =
-    item !== null && isItemOfKind(item, 'media')
-      ? media.document?.value.items.find(entry => entry.id === item.media)
-      : undefined;
-  const appearance = projection?.appearance;
-  const part = index >= 0 ? projection?.partsByTile[index] : undefined;
-  const selectedParts =
-    bible && (bibleSelection.length > 0 || card === undefined)
-      ? (bibleSelection.length > 0 ? bibleSelection : [index])
-          .map(selectedIndex => projection?.partsByTile[selectedIndex])
-          .filter(part => part != null)
-      : [];
-  const selectedIndices = bibleSelection.length > 0 ? bibleSelection : [index];
-  const selectedTitles =
-    item !== null && isItemOfKind(item, 'sermon')
-      ? selectedIndices.filter(i => tiles[i]?.sermonTitle === true)
-      : [];
-  const selectedCard =
-    item !== null && cardSelected && hasSectionCard(item)
-      ? item.sectionCard
-      : card;
-  const selectedLabels = [
-    ...(item !== null &&
-    isItemOfKind(item, 'media') &&
-    file !== undefined &&
-    file.kind !== 'audio'
-      ? [item.slideLabel]
-      : []),
-    ...(selectedCard === undefined
-      ? []
-      : [
-          cardLabel === undefined
-            ? selectedCard.label
-            : (cardLabel ?? undefined),
-        ]),
-    ...(bible
-      ? selectedParts.map(part =>
-          biblePartLabel(item.bibleLabels, part.reference, part.part),
-        )
-      : []),
-    ...(item !== null && isItemOfKind(item, 'sermon')
-      ? selectedTitles.map(index =>
-          index === 0 ? item.sermon.openingLabel : item.sermon.closingLabel,
-        )
-      : []),
-    ...liturgyIndices.map(
-      index =>
-        liturgy?.liturgy.labels?.find(entry => entry.index === index)?.label,
+  const {value, mixed} = inspectorTransition(
+    selected.map(each =>
+      each.key === 'section' && cardTransition !== undefined
+        ? (cardTransition ?? CUT)
+        : (each.transition ?? CUT),
     ),
-  ];
-  const selectedLabel = selectedLabels[0];
-  const mixedLabels = selectedLabels.some(label => label !== selectedLabel);
-  const values = [
-    ...(selectedCard === undefined
-      ? []
-      : [
-          (cardTransition === undefined
-            ? selectedCard.transition
-            : cardTransition) ?? {kind: 'none' as const, sec: 0.5},
-        ]),
-    ...selectedTitles.map(
-      i => tiles[i]?.transition ?? {kind: 'none' as const, sec: 0.5},
-    ),
-    ...(bible
-      ? selectedParts.map(
-          selectedPart =>
-            biblePartEffect(
-              item.bibleTransitions,
-              selectedPart.reference,
-              selectedPart.part,
-            ) ??
-            passage?.transition ?? {kind: 'none' as const, sec: 0.5},
-        )
-      : []),
-    ...(liturgy === null
-      ? []
-      : liturgyIndices.map(
-          index =>
-            liturgy.liturgy.transitions?.find(entry => entry.index === index)
-              ?.transition ?? {kind: 'none' as const, sec: 0.5},
-        )),
-  ];
-  const {value, mixed} = inspectorTransition(values);
+  );
+  const disabled = busy || service.access !== 'editable';
+  const submit = (
+    failure: string,
+    change: (fresh: ServiceItem) => ServiceItem,
+  ): void =>
+    editorTask(
+      items.submitItemEdit({
+        target: {serviceId: service.service.id, itemId: item.id},
+        failure,
+        change,
+      }),
+    );
   const changeTransition = (
     next: SlideTransition | number,
     all = false,
   ): void => {
-    if (item === null || service === null) return;
-    if (!all && changeSelected !== undefined) {
-      changeSelected(next);
-      return;
+    if (!all && changeSelected !== undefined) changeSelected(next);
+    else {
+      submit('전환 저장 실패', fresh =>
+        withTransition(fresh, all ? tiles : selected, next),
+      );
     }
-    editorTask(
-      items.submitItemEdit({
-        target: {serviceId: service.service.id, itemId: item.id},
-        failure: '전환 저장 실패',
-        change: current => {
-          let updated = current;
-          if ((all || selectedCard !== undefined) && hasSectionCard(updated)) {
-            const old = updated.sectionCard.transition;
-            const effect =
-              typeof next === 'number'
-                ? old === undefined
-                  ? undefined
-                  : {...old, sec: next}
-                : next;
-            if (effect !== undefined) {
-              updated = {
-                ...updated,
-                sectionCard: {...updated.sectionCard, transition: effect},
-              };
-            }
-          }
-          if (
-            isItemOfKind(updated, 'bible') ||
-            isItemOfKind(updated, 'sermon')
-          ) {
-            const settings = isItemOfKind(updated, 'sermon')
-              ? updated.sermon.passage
-              : updated.bible;
-            const parts = all
-              ? (projection?.partsByTile ?? []).filter(part => part != null)
-              : selectedParts;
-            let transitions = updated.bibleTransitions ?? [];
-            for (const entry of parts) {
-              const old =
-                biblePartEffect(transitions, entry.reference, entry.part) ??
-                settings.transition;
-              const effect =
-                typeof next === 'number'
-                  ? old === undefined
-                    ? undefined
-                    : {...old, sec: next}
-                  : next;
-              if (effect !== undefined) {
-                transitions = setBiblePartEffect(
-                  transitions,
-                  {verse: entry.reference, part: entry.part},
-                  effect,
-                );
-              }
-            }
-            if (isItemOfKind(updated, 'sermon')) {
-              const indices = all ? [0, tiles.length - 1] : selectedTitles;
-              let sermon = updated.sermon;
-              for (const titleIndex of indices) {
-                const key =
-                  titleIndex === 0 ? 'openingTransition' : 'closingTransition';
-                const old = sermon[key];
-                const effect =
-                  typeof next === 'number'
-                    ? old === undefined
-                      ? undefined
-                      : {...old, sec: next}
-                    : next;
-                sermon =
-                  effect === undefined ? sermon : {...sermon, [key]: effect};
-              }
-              updated = {...updated, sermon};
-            }
-            const {bibleTransitions: _old, ...rest} = updated;
-            return {
-              ...rest,
-              ...(transitions.length === 0
-                ? {}
-                : {bibleTransitions: transitions}),
-            };
-          }
-          if (
-            isItemOfKind(updated, 'liturgy') &&
-            (liturgyIndices.length > 0 || all)
-          ) {
-            const indices = all
-              ? (liturgyTiles ?? [])
-                  .slice(cardOffset(updated))
-                  .map((_, index) => index)
-              : liturgyIndices;
-            let transitions = [...(updated.liturgy.transitions ?? [])];
-            for (const index of indices) {
-              const old = transitions.find(
-                entry => entry.index === index,
-              )?.transition;
-              const effect =
-                typeof next === 'number'
-                  ? old === undefined
-                    ? undefined
-                    : {...old, sec: next}
-                  : next;
-              transitions =
-                effect === undefined
-                  ? transitions
-                  : [
-                      ...transitions.filter(entry => entry.index !== index),
-                      {index, transition: effect},
-                    ];
-            }
-            return {...updated, liturgy: {...updated.liturgy, transitions}};
-          }
-          return updated;
-        },
-      }),
-    );
   };
-  const hasFile = file !== undefined && file.kind !== 'audio';
-  const hasCard =
-    card !== undefined && cardTheme !== undefined && item !== null;
-  const hasLiturgy =
-    card === undefined &&
-    liturgy !== null &&
-    liturgyLayer !== null &&
-    liturgyTheme !== undefined;
-  const hasBible =
-    tile !== undefined && layer !== null && appearance !== undefined;
-  const pictureCount = [hasFile, hasCard, hasLiturgy, hasBible].filter(
-    Boolean,
-  ).length;
-  const hasSelection =
-    selectedCard !== undefined ||
-    part != null ||
-    selectedParts.length > 0 ||
-    selectedTitles.length > 0 ||
-    liturgyIndices.length > 0 ||
-    (item !== null &&
-      isItemOfKind(item, 'media') &&
-      file !== undefined &&
-      file.kind !== 'audio');
-  const changeItemLabel = (name: string | undefined): void => {
-    if (item === null || service === null) return;
-
-    if (changeLabel !== undefined) {
-      changeLabel(name);
-      return;
-    }
-    editorTask(
-      items.submitItemEdit({
-        target: {
-          serviceId: service.service.id,
-          itemId: item.id,
-        },
-        failure: '이름표 저장 실패',
-        change: current => {
-          let updated = current;
-          if (isItemOfKind(updated, 'media')) {
-            const {slideLabel: _label, ...rest} = updated;
-            return {
-              ...rest,
-              ...(name === undefined ? {} : {slideLabel: name}),
-            };
-          }
-          if (selectedCard !== undefined && hasSectionCard(updated)) {
-            const {label: _label, ...card} = updated.sectionCard;
-            updated = {
-              ...updated,
-              sectionCard: {
-                ...card,
-                ...(name === undefined ? {} : {label: name}),
-              },
-            };
-          }
-          if (
-            isItemOfKind(updated, 'bible') ||
-            isItemOfKind(updated, 'sermon')
-          ) {
-            let labels = updated.bibleLabels ?? [];
-            for (const part of selectedParts) {
-              labels = setBiblePartLabel(
-                labels,
-                {verse: part.reference, part: part.part},
-                name,
-              );
-            }
-            if (isItemOfKind(updated, 'sermon') && selectedTitles.length > 0) {
-              const {openingLabel, closingLabel, ...sermon} = updated.sermon;
-              const opening = selectedTitles.includes(0) ? name : openingLabel;
-              const closing = selectedTitles.some(index => index !== 0)
-                ? name
-                : closingLabel;
-              updated = {
-                ...updated,
-                sermon: {
-                  ...sermon,
-                  ...(opening === undefined ? {} : {openingLabel: opening}),
-                  ...(closing === undefined ? {} : {closingLabel: closing}),
-                },
-              };
-            }
-            return {...updated, bibleLabels: labels};
-          }
-          if (isItemOfKind(updated, 'liturgy')) {
-            const labels = (updated.liturgy.labels ?? []).filter(
-              entry => !liturgyIndices.includes(entry.index),
-            );
-            if (name !== undefined) {
-              labels.push(
-                ...liturgyIndices.map(index => ({
-                  index,
-                  label: name,
-                })),
-              );
-            }
-            return {
-              ...updated,
-              liturgy: {...updated.liturgy, labels},
-            };
-          }
-          return updated;
-        },
-      }),
-    );
-  };
+  if (selected.length === 0 && file === undefined) {
+    return <SlideInspectorView />;
+  }
   return (
     <SlideInspectorView
-      identity={`${item?.id ?? 'none'}:${position}:${bibleSelection.join(',')}:${cardSelected}`}
-      pending={
-        (item !== null &&
-          isItemOfKind(item, 'media') &&
-          media.document === null &&
-          !media.failed) ||
-        (card !== undefined && cardTheme === undefined) ||
-        (card === undefined &&
-          liturgy !== null &&
-          (liturgyLayer === null || liturgyTheme === undefined)) ||
-        (tile !== undefined && (layer === null || appearance === undefined))
-      }
-      waitForPicture={pictureCount > 0}
-      pictureCount={pictureCount}
+      identity={`${item.id}:${position}:${bibleSelection.join(',')}:${cardSelected}`}
       preview={
-        <>
-          {file === undefined || file.kind === 'audio' ? null : (
-            <>
-              <div className={styles.picture} data-background-picture>
-                <InspectorMediaPicture file={file} />
-              </div>
-              <div
-                onKeyDownCapture={event => {
-                  if (
-                    event.key !== 'Enter' ||
-                    event.nativeEvent.isComposing ||
-                    event.ctrlKey ||
-                    event.metaKey ||
-                    event.altKey ||
-                    !(event.target instanceof HTMLInputElement)
-                  ) {
-                    return;
-                  }
-                  event.preventDefault();
-                  event.stopPropagation();
-                  event.target.blur();
-                  document
-                    .querySelector<HTMLElement>(
-                      '[data-song-slide][aria-selected="true"], [data-song-slide]',
-                    )
-                    ?.focus();
-                }}
-              >
-                <MediaProperties
-                  item={file}
-                  disabled={media.document?.access !== 'editable'}
-                />
-              </div>
-            </>
-          )}
-          {card === undefined ||
-          cardTheme === undefined ||
-          item === null ? null : (
+        file === undefined ? (
+          tile === undefined ? null : (
             <>
               <div className={styles.picture} data-background-picture>
                 <div className={styles.canvas}>
-                  <SlidePicture
-                    {...cardTheme}
-                    slide={cardPictureLayer(
-                      item.id,
-                      card,
-                      item.textOverrides?.['section'],
+                  <TilePicture
+                    tile={tile}
+                    slide={slideLayerOf(
+                      {itemId: item.id, index: position},
+                      () => tiles,
                     )}
+                    themes={itemThemes(row, tiles, settings)}
                   />
-                </div>
-              </div>
-              <div className={styles.caption} style={labelInk(cardColor)}>
-                {card.label ?? card.name}
-                <span>1 / {count}</span>
-              </div>
-            </>
-          )}
-          {card === undefined &&
-          liturgy !== null &&
-          liturgyLayer !== null &&
-          liturgyTheme !== undefined ? (
-            <>
-              <div className={styles.picture} data-background-picture>
-                <div className={styles.canvas}>
-                  <SlidePicture {...liturgyTheme} slide={liturgyLayer} />
-                </div>
-              </div>
-              <div className={styles.caption} style={labelInk('none')}>
-                {LITURGY[liturgy.liturgy.kind].name}
-                <span>
-                  {position + 1} / {count}
-                </span>
-              </div>
-            </>
-          ) : null}
-          {tile === undefined ||
-          layer === null ||
-          appearance === undefined ? null : (
-            <>
-              <div className={styles.picture} data-background-picture>
-                <div className={styles.canvas}>
-                  {tile.sermonTitle === true && sermonTheme !== undefined ? (
-                    <SlidePicture {...sermonTheme} slide={layer} />
-                  ) : (
-                    <SlidePicture {...biblePictureInput(layer, appearance)} />
-                  )}
                 </div>
               </div>
               <div className={styles.caption} style={labelInk(tile.labelColor)}>
                 {tile.slideLabel ?? tile.label ?? ''}
                 <span>
-                  {index + 1} / {tiles.length}
+                  {position + 1} / {tiles.length}
                 </span>
               </div>
             </>
-          )}
-        </>
+          )
+        ) : (
+          <>
+            <div className={styles.picture} data-background-picture>
+              <InspectorMediaPicture key={file.id} file={file} />
+            </div>
+            <div
+              onKeyDownCapture={event => {
+                if (
+                  event.key !== 'Enter' ||
+                  event.nativeEvent.isComposing ||
+                  event.ctrlKey ||
+                  event.metaKey ||
+                  event.altKey ||
+                  !(event.target instanceof HTMLInputElement)
+                ) {
+                  return;
+                }
+                event.preventDefault();
+                event.stopPropagation();
+                event.target.blur();
+                document
+                  .querySelector<HTMLElement>(
+                    '[data-song-slide][aria-selected="true"], [data-song-slide]',
+                  )
+                  ?.focus();
+              }}
+            >
+              <MediaProperties
+                item={file}
+                disabled={media.document?.access !== 'editable'}
+              />
+            </div>
+          </>
+        )
+      }
+      text={
+        tile === undefined ? null : (
+          <div className={styles.text}>
+            {hasSectionCard(item) && tile.sectionCard !== undefined ? (
+              <CardFields
+                key={item.id}
+                items={items}
+                serviceId={service.service.id}
+                itemId={item.id}
+                card={item.sectionCard}
+                readOnly={disabled}
+              />
+            ) : isItemOfKind(item, 'sermon') && tile.sermonTitle === true ? (
+              <SermonTitleFields
+                items={items}
+                serviceId={service.service.id}
+                item={item}
+                readOnly={disabled}
+              />
+            ) : isPassageItem(item) ? (
+              <BibleSlideFields
+                items={items}
+                serviceId={service.service.id}
+                item={item}
+                lookup={row?.kind === 'bible' ? row.bible?.passage : undefined}
+                tile={tile}
+                readOnly={disabled}
+              />
+            ) : null}
+            {tile.key === undefined ? null : renderTextFields?.(tile.key)}
+          </div>
+        )
       }
       adapter={{
-        selectedIds: [
-          ...(selectedCard === undefined ? [] : ['card']),
-          ...selectedParts.map(
-            part => `bible:${JSON.stringify([part.reference, part.part])}`,
-          ),
-          ...selectedTitles.map(
-            index => `sermon:${index === 0 ? 'opening' : 'closing'}`,
-          ),
-          ...liturgyIndices.map(index => `liturgy:${index}`),
-          ...(file === undefined ? [] : [`media:${file.id}`]),
-        ],
-        label:
-          !hasSelection || service === null || selectedLabels.length === 0
-            ? undefined
-            : {
-                store: editor,
-                value: selectedLabel,
-                mixed: mixedLabels,
-                disabled: busy || service.access !== 'editable',
-                change: changeItemLabel,
+        selectedIds: selected.map((each, index) => each.key ?? String(index)),
+        label: {
+          store: editor,
+          value: labels[0],
+          mixed: labels.some(label => label !== labels[0]),
+          disabled,
+          change: name => {
+            if (changeLabel !== undefined) changeLabel(name);
+            else {
+              submit('이름표 저장 실패', fresh =>
+                withLabel(fresh, selected, name),
+              );
+            }
+          },
+        },
+        transition: isItemOfKind(item, 'media')
+          ? undefined
+          : {
+              value,
+              mixed,
+              disabled,
+              allowAll: passage || liturgy || applyAll !== undefined,
+              selectionKey: `${item.id}:${position}:${cardSelected}:${bibleSelection.join(',')}`,
+              onChange: changeTransition,
+              onSeconds: sec => changeTransition(sec),
+              onApplyAll: () => {
+                if (applyAll === undefined) changeTransition(value, true);
+                else applyAll(value);
               },
-        transition:
-          !hasSelection ||
-          service === null ||
-          (item !== null && isItemOfKind(item, 'media'))
-            ? undefined
-            : {
-                value,
-                mixed,
-                disabled: busy || service.access !== 'editable',
-                allowAll: bible || liturgy !== null || applyAll !== undefined,
-                selectionKey: `${item?.id ?? ''}:${position}:${cardSelected}:${selectedIndices.join(',')}`,
-                onChange: changeTransition,
-                onSeconds: sec => changeTransition(sec),
-                onApplyAll: () => {
-                  if (applyAll === undefined) changeTransition(value, true);
-                  else applyAll(value);
-                },
-              },
+            },
         undo:
-          !hasSelection ||
-          (!bible &&
-            liturgy === null &&
-            changeSelected === undefined &&
-            replayDraft === undefined)
+          !passage &&
+          !liturgy &&
+          changeSelected === undefined &&
+          replayDraft === undefined
             ? undefined
             : action => {
                 if (replayDraft !== undefined) replayDraft(action);
-                else if (bible || liturgy !== null) {
+                else if (passage || liturgy) {
                   editorTask(items.replayItemEdit(action));
                 } else editor.getSnapshot().session?.edit(action);
               },
-        undoDisabled: busy || service?.access !== 'editable',
+        undoDisabled: disabled,
       }}
     />
   );

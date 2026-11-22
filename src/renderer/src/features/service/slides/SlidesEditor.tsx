@@ -13,10 +13,9 @@ import {createSlideId, themeIdSchema} from '@core/schema/ids';
 import {parsePayload} from '@core/schema/payload';
 import {withItemTheme} from '@core/services/itemFieldChanges';
 import {canChooseItemTheme} from '@core/themes/sectionThemeChoices';
-import {SLIDES_LIMITS, type VerseSlide} from '@core/schema/service';
+import {SLIDES_LIMITS} from '@core/schema/service';
+import type {ThemesFile} from '@core/schema/themes';
 import {BibleSlidesDialog} from '@renderer/features/bible/BibleSlidesDialog';
-import {useSlidesVerseProjection} from '@renderer/features/bible/useSlidesVerseProjection';
-import type {BibleProjection} from '@renderer/features/bible/splitProjection';
 import {
   newTextSlide,
   SLIDES_LIMIT,
@@ -25,14 +24,14 @@ import {
   type SlidesItem,
 } from '@core/services/slidesEdits';
 import {MediaPicker} from '@renderer/features/songs/editor/MediaPicker';
+import {SlideFields} from './SlideFields';
 import {editorTask} from '@renderer/features/songs/editor/editorTask';
 import {useSlideDefaults} from '@renderer/features/songs/editor/useSlideDefaults';
 import {useEditorFocus} from '@renderer/features/songs/editor/useEditorFocus';
-import {Button, Checkbox, TextField} from '@renderer/ui';
+import {Button, TextField} from '@renderer/ui';
 import {ItemEditorAddBar} from '@renderer/platform/ItemEditorAddBar';
 import {ItemEditorShell} from '@renderer/platform/ItemEditorShell';
 import {itemEditorAdapter} from '@renderer/platform/itemEditorAdapter';
-import {TextArea} from '@renderer/ui/TextArea';
 import {SlideThumbnailBand} from '@renderer/ui/SlideThumbnail';
 import {SelectMenu} from '@renderer/ui/SelectMenu';
 import {useShow} from '@renderer/session/show';
@@ -44,8 +43,8 @@ import {
   SlidesCanvas,
   SlidesPreview,
   slideBand,
-  useSlidesAppearance,
   useSlidesItemWithBackground,
+  useSlidesThemes,
 } from './SlidesVisuals';
 import type {SlidesEditorModel} from './useSlidesEditor';
 import {SlideRows, type SlideCardRenderer} from './SlideRows';
@@ -57,8 +56,6 @@ import {SlidesBackButton} from './SlidesBackButton';
 import headerStyles from '../../songs/editor/SongHeader.module.css';
 import {SlideTransitionMark} from '@renderer/ui/SlideTransitionMark';
 
-const ADVANCES = [3, 5, 8, 10, 15, 20, 30];
-const TEXT_LIMIT = SLIDES_LIMITS.text;
 const NAME_LIMIT = SLIDES_LIMITS.name;
 
 function SlidesHeader({
@@ -73,7 +70,7 @@ function SlidesHeader({
 }: {
   readonly draft: SlidesDraft;
   readonly update: () => void;
-  readonly themes: ReturnType<typeof useSlidesAppearance>['themes'];
+  readonly themes: ThemesFile | undefined;
   readonly themeName: string;
   readonly onCommitName: () => void;
   readonly onBack: (() => void) | undefined;
@@ -153,135 +150,9 @@ function SlidesHeader({
               }}
             />
           </span>
-          {itemEditorAdapter(item).timedAdvance ? (
-            <>
-              <span className={styles.setting}>
-                <span>넘기기</span>
-                <SelectMenu
-                  aria-label="넘기기"
-                  disabled={disabled}
-                  size="sm"
-                  value={String(item.slides.advance ?? '')}
-                  options={[
-                    {value: '', label: '손으로'},
-                    ...ADVANCES.map(seconds => ({
-                      value: String(seconds),
-                      label: `${seconds}초마다`,
-                    })),
-                  ]}
-                  onChange={value => {
-                    const slides = {...item.slides};
-                    if (value === '') delete slides.advance;
-                    else slides.advance = Number(value);
-                    change(slides);
-                  }}
-                />
-              </span>
-              <span className={styles.setting}>
-                <Checkbox
-                  aria-label="반복"
-                  disabled={disabled}
-                  checked={item.slides.loop ?? false}
-                  onChange={loop => change({...item.slides, loop})}
-                />
-                <span>반복</span>
-              </span>
-            </>
-          ) : null}
         </div>
       </header>
     </>
-  );
-}
-
-function SlideFields({
-  slide,
-  form,
-  name,
-  projection,
-  replace,
-  change,
-  endTyping,
-}: {
-  readonly slide: Slide;
-  readonly form: SlidesItem['slides']['form'];
-  readonly name: string;
-  readonly projection: BibleProjection | null;
-  readonly replace: (button: HTMLElement) => void;
-  readonly change: (slide: Slide, field: string) => void;
-  readonly endTyping: () => void;
-}): JSX.Element {
-  if ('verse' in slide) {
-    const index = projection?.tiles.findIndex(
-      tile => tile.sourceSlideId === slide.id,
-    );
-    const tile = index === undefined ? undefined : projection?.tiles[index];
-    const part =
-      index === undefined ? undefined : projection?.partsByTile[index];
-    return (
-      <div className={styles.fields}>
-        <span className={styles.verseReference}>
-          {tile?.reference ?? name}
-          {part !== null && part !== undefined && part.partCount > 1
-            ? ` (${part.part}/${part.partCount})`
-            : ''}
-        </span>
-        <span className={styles.verseText}>
-          {part?.text ?? tile?.lines.join('\n')}
-        </span>
-      </div>
-    );
-  }
-  if ('media' in slide) {
-    return (
-      <div className={styles.pictureFile}>
-        <span>{name}</span>
-        <Button variant="ghost" onClick={event => replace(event.currentTarget)}>
-          바꾸기
-        </Button>
-      </div>
-    );
-  }
-  const {reference, ...textSlide} =
-    'reference' in slide ? slide : {...slide, reference: undefined};
-  return (
-    <div className={styles.fields} data-form={form}>
-      {form === 'ad' ? (
-        <>
-          <label htmlFor={`name-${slide.id}`}>이름</label>
-          <TextField
-            className={styles.nameField}
-            id={`name-${slide.id}`}
-            aria-label="슬라이드 이름"
-            value={slide.name ?? ''}
-            maxLength={NAME_LIMIT}
-            onChange={name => change({...slide, name}, 'name')}
-            onBlur={endTyping}
-          />
-        </>
-      ) : null}
-      {form === 'ad' ? <label htmlFor={`text-${slide.id}`}>내용</label> : null}
-      <TextArea
-        id={`text-${slide.id}`}
-        aria-label={form === 'ad' ? '내용' : '글'}
-        value={slide.text}
-        maxLength={TEXT_LIMIT}
-        onChange={text => change({...slide, text}, 'text')}
-        onBlur={endTyping}
-      />
-      <label htmlFor={`reference-${slide.id}`}>본문 주소</label>
-      <TextField
-        id={`reference-${slide.id}`}
-        value={reference ?? ''}
-        maxLength={SLIDES_LIMITS.reference}
-        onChange={value => {
-          const next =
-            value === '' ? textSlide : {...textSlide, reference: value};
-          change(next, 'reference');
-        }}
-        onBlur={endTyping}
-      />
-    </div>
   );
 }
 
@@ -353,14 +224,11 @@ function SlidesEditorBody({
   useLayoutEffect(() => {
     if (!focusText) return;
     const row = root.current?.querySelector('[data-slide-index="0"]');
-    const field =
-      row?.querySelector<HTMLTextAreaElement>(
-        '[data-slide-text-role="currentText"]',
-      ) ?? row?.querySelector<HTMLTextAreaElement>('textarea');
+    const field = row?.querySelector<HTMLTextAreaElement>('textarea');
     if (field === null || field === undefined) return;
     field.focus({preventScroll: true});
     consumeTextFocus();
-  }, [draft, focusText, consumeTextFocus, renderTextFields]);
+  }, [draft, focusText, consumeTextFocus]);
   useWindowShortcuts([
     {
       id: 'songWindow.save',
@@ -377,14 +245,8 @@ function SlidesEditorBody({
   const labels = labelsDoc?.name === 'labels' ? labelsDoc.value.labels : [];
   const mediaSource = useItemMedia(api.media);
   const media = mediaSource.document?.value.items ?? [];
-  const {appearance, themes, adTitle, adTitleSettings} = useSlidesAppearance(
-    api,
-    item,
-  );
-  const {projection} = useSlidesVerseProjection(api, item);
-  const [bibleDialog, setBibleDialog] = useState<{
-    slideId?: VerseSlide['id'];
-  } | null>(null);
+  const {themes, file, themeName} = useSlidesThemes(item, {api});
+  const [bibleDialog, setBibleDialog] = useState(false);
   const [picker, setPicker] = useState<{
     anchor: HTMLElement;
     slideId?: string;
@@ -397,7 +259,7 @@ function SlidesEditorBody({
   const at = Math.max(0, Math.min(selected, rows.length - 1));
   const restoreBibleFocus = useRef(false);
   useEffect(() => {
-    if (bibleDialog !== null) {
+    if (bibleDialog) {
       restoreBibleFocus.current = true;
       return;
     }
@@ -442,21 +304,8 @@ function SlidesEditorBody({
       event.defaultPrevented ||
       isComposing(event) ||
       model.stopped ||
-      bibleDialog !== null
+      bibleDialog
     ) {
-      return;
-    }
-    const verse = rows[at];
-    if (
-      event.ctrlKey &&
-      !event.altKey &&
-      event.code === 'KeyE' &&
-      verse !== undefined &&
-      'verse' in verse
-    ) {
-      event.preventDefault();
-      event.stopPropagation();
-      setBibleDialog({slideId: verse.id});
       return;
     }
     if (
@@ -465,7 +314,7 @@ function SlidesEditorBody({
       isInTextEntry(event.target) &&
       !(
         event.target instanceof Element &&
-        event.target.matches('[data-slide-text-role]')
+        event.target.matches('[data-slide-box-text]')
       ) &&
       ['z', 'y'].includes(event.key.toLowerCase())
     ) {
@@ -508,7 +357,7 @@ function SlidesEditorBody({
                 disabled={
                   model.stopped ||
                   model.session?.readOnly === true ||
-                  bibleDialog !== null ||
+                  bibleDialog ||
                   picker !== null ||
                   rows.length >= SLIDES_LIMIT
                 }
@@ -524,11 +373,11 @@ function SlidesEditorBody({
                 disabled={
                   model.stopped ||
                   model.session?.readOnly === true ||
-                  bibleDialog !== null ||
+                  bibleDialog ||
                   picker !== null ||
                   rows.length >= SLIDES_LIMIT
                 }
-                onClick={() => setBibleDialog({})}
+                onClick={() => setBibleDialog(true)}
               >
                 성경 구절 추가…
               </Button>
@@ -540,7 +389,7 @@ function SlidesEditorBody({
                 disabled={
                   model.stopped ||
                   model.session?.readOnly === true ||
-                  bibleDialog !== null ||
+                  bibleDialog ||
                   picker !== null ||
                   rows.length >= SLIDES_LIMIT
                 }
@@ -568,8 +417,8 @@ function SlidesEditorBody({
               onBack={onBack}
               serviceName={serviceName}
               update={update}
-              themes={themes}
-              themeName={appearance.themeName}
+              themes={file}
+              themeName={themeName}
               onCommitName={() =>
                 rowList.current
                   ?.querySelector<HTMLTextAreaElement>('textarea')
@@ -590,7 +439,7 @@ function SlidesEditorBody({
             blocked={
               model.stopped ||
               model.session?.readOnly === true ||
-              bibleDialog !== null ||
+              bibleDialog ||
               picker !== null
             }
             update={update}
@@ -618,18 +467,12 @@ function SlidesEditorBody({
               <>
                 <div className={styles.thumbnail} data-editor-thumbnail>
                   <div className={styles.thumbnailCanvas}>
-                    <SlidesCanvas
-                      item={item}
-                      index={index}
-                      appearance={appearance}
-                      projection={projection}
-                      adTitleSettings={adTitleSettings}
-                    />
+                    <SlidesCanvas item={item} index={index} themes={themes} />
                     <SlideTransitionMark transition={slide.transition} />
                   </div>
                   <SlideThumbnailBand
                     number={index + 1 + (leadingCard === undefined ? 0 : 1)}
-                    label={slideBand(slide, media, adTitle)}
+                    label={slideBand(item, slide, media)}
                     labelColor={
                       item.slides.form === 'ad'
                         ? undefined
@@ -638,21 +481,19 @@ function SlidesEditorBody({
                     }
                   />
                 </div>
-                {renderTextFields === undefined ||
-                (mode === 'list' && 'media' in slide) ? (
-                  <SlideFields
-                    slide={slide}
-                    form={item.slides.form}
-                    name={slideBand(slide, media, adTitle)}
-                    projection={projection}
-                    replace={button => showPicker(button, slide.id)}
-                    change={(next, field) => changeSlide(index, next, field)}
-                    endTyping={() => draft.endTyping()}
-                  />
-                ) : null}
-                {mode === 'list' && renderTextFields !== undefined ? (
-                  <div>{renderTextFields(slide.id)}</div>
-                ) : null}
+                {mode === 'grid' ? null : (
+                  <div className={styles.fieldColumn}>
+                    <SlideFields
+                      slide={slide}
+                      form={item.slides.form}
+                      name={slideBand(item, slide, media)}
+                      replace={button => showPicker(button, slide.id)}
+                      change={(next, field) => changeSlide(index, next, field)}
+                      endTyping={() => draft.endTyping()}
+                    />
+                    {renderTextFields?.(slide.id)}
+                  </div>
+                )}
               </>
             )}
           />
@@ -660,37 +501,20 @@ function SlidesEditorBody({
       </ItemEditorShell>
       {onBack !== undefined ? null : (
         <div className={styles.side}>
-          <SlidesPreview
-            api={api}
-            item={item}
-            selected={at}
-            media={media}
-            projection={projection}
-          />
+          <SlidesPreview api={api} item={item} selected={at} media={media} />
         </div>
       )}
-      {bibleDialog === null ? null : (
+      {!bibleDialog ? null : (
         <BibleSlidesDialog
           api={api}
           item={item}
-          selected={at}
-          {...(bibleDialog.slideId === undefined
-            ? {}
-            : {slideId: bibleDialog.slideId})}
-          onConfirmCut={(id, cut) => {
-            const index = rows.findIndex(slide => slide.id === id);
-            const slide = rows[index];
-            if (slide !== undefined && 'verse' in slide) {
-              changeSlide(index, {...slide, cut}, 'bibleCut');
-            }
-          }}
           onInsert={slides => {
             model.session?.requestReveal();
             if (draft.insert(slides)) {
               update();
             }
           }}
-          onClose={() => setBibleDialog(null)}
+          onClose={() => setBibleDialog(false)}
         />
       )}
       {picker === null ? null : (

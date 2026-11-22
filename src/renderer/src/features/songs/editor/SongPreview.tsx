@@ -18,7 +18,7 @@ import {slideCountOf} from '@core/songs/blockEdits';
 import {songItemBackground} from '@core/songs/songBackground';
 import {useShow} from '@renderer/session/show';
 import {RolePreview} from './RolePreview';
-import {Picture} from '@renderer/rendering/pictures/Picture';
+import {Still} from '@renderer/pictures/SlidePicture';
 import {
   previewAppearance,
   selectedPreview,
@@ -297,15 +297,9 @@ export function ContentPreviewFrame({
         picture === null ? (
           <div className={styles.screen} data-blank="" />
         ) : (
-          <Picture
-            layers={layers}
-            appearance={appearances[shown]}
-            songSource={
-              song?.slides[block] === undefined
-                ? tilePicture?.tile.sourceSlide
-                : {songId: song.id, slideId: song.slides[block].id}
-            }
-          />
+          <div className={styles.screen}>
+            <Still layers={layers} appearance={appearances[shown]} />
+          </div>
         )
       }
       caption={() => (

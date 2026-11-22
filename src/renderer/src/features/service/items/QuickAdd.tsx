@@ -1,5 +1,6 @@
 import {useState, type JSX} from 'react';
-import {isItemOfKind} from '@core/schema/service';
+import type {Result} from '@core/common/result';
+import {isItemOfKind, type ServiceItem} from '@core/schema/service';
 import {
   createServiceItemId,
   type ServiceId,
@@ -65,7 +66,14 @@ export function ServiceQuickAdd({
     editing.run((edits, id) => insertSelectedSong(edits, id, song));
   };
   const insertItem = (
-    prepare: (id: ServiceId) => ReturnType<typeof passageItemWithParts>,
+    prepare: (
+      id: ServiceId,
+    ) => Promise<
+      Result<
+        ServiceItem | null,
+        {readonly reason: 'full'; readonly message: string}
+      >
+    >,
     focusText = false,
   ): void => {
     const api = window.llp;

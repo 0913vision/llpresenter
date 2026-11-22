@@ -1,50 +1,17 @@
 import * as v from 'valibot';
 import type {ReadonlyKnown} from './fileFormat';
-import {translationIdSchema} from './ids';
-import {jsonObject, jsonRecord, nonBlankText} from './primitives';
-import {slideTransitionSchema} from './slideTransition';
-import {bibleVerseCutsSchema} from './bibleCuts';
+import {BIBLE_CUTS_LIMITS, verseKeySchema} from './bibleCuts';
 import {BIBLE_LOOKUP_LIMITS} from './bibleLookup';
-import {LIVE_STATE_LIMITS} from './liveLimits';
-
-export const deletedBibleSlidesSchema = v.pipe(
-  v.array(
-    v.pipe(
-      nonBlankText,
-      v.maxLength(320),
-      v.regex(/^(?:sermon:(?:opening|closing)|verse:.+:\d+:\d+:\d+:\d+)$/u),
-    ),
-  ),
-  v.maxLength(LIVE_STATE_LIMITS.bibleItemSlides),
-  v.check(
-    keys => new Set(keys).size === keys.length,
-    'Expected distinct deleted Bible slides',
-  ),
-);
-
-export const pinnedBibleVersesSchema = v.pipe(
-  jsonRecord(
-    v.pipe(nonBlankText, v.maxLength(256)),
-    v.pipe(
-      v.array(v.pipe(nonBlankText, v.maxLength(BIBLE_LOOKUP_LIMITS.verseText))),
-      v.minLength(1),
-      v.maxLength(LIVE_STATE_LIMITS.bibleItemSlides),
-      v.check(
-        parts => parts.join('').length <= BIBLE_LOOKUP_LIMITS.verseText,
-        'Bible verse is too long',
-      ),
-    ),
-  ),
-  v.maxEntries(LIVE_STATE_LIMITS.bibleItemSlides),
-  v.check(
-    verses =>
-      Object.values(verses).reduce(
-        (sum, parts) => sum + parts.join('').length,
-        0,
-      ) <= LIVE_STATE_LIMITS.bibleItemCharacters,
-    'Too much pinned Bible text',
-  ),
-);
+import {slideIdSchema, translationIdSchema} from './ids';
+import {
+  jsonObject,
+  jsonRecord,
+  listWithUniqueIds,
+  nonBlankText,
+} from './primitives';
+import {SONG_NAME_MAX_LENGTH} from './song';
+import {slideLabelSchema} from './slideLabel';
+import {slideTransitionSchema} from './slideTransition';
 
 /** Which slides of a passage show its reference. */
 export const bibleReferenceSchema = v.picklist([
@@ -54,6 +21,30 @@ export const bibleReferenceSchema = v.picklist([
   'none',
 ]);
 
+/** A slide of a verse: its own text, and its settings like any other slide's. */
+export const bibleSlideSchema = jsonObject({
+  id: slideIdSchema,
+  text: v.pipe(v.string(), v.maxLength(BIBLE_LOOKUP_LIMITS.verseText)),
+  /** A reference typed for this slide; the verse's own when absent. */
+  reference: v.exactOptional(
+    v.pipe(v.string(), v.maxLength(SONG_NAME_MAX_LENGTH)),
+  ),
+  label: v.exactOptional(slideLabelSchema),
+  transition: v.exactOptional(slideTransitionSchema),
+});
+
+/** The slides of each verse, by book:chapter:verse. An empty list hides it. */
+export const bibleSlidesSchema = v.pipe(
+  jsonRecord(
+    verseKeySchema,
+    v.pipe(
+      listWithUniqueIds(bibleSlideSchema),
+      v.maxLength(BIBLE_CUTS_LIMITS.cuts + 1),
+    ),
+  ),
+  v.maxEntries(10_000),
+);
+
 export const biblePassageSchema = jsonObject({
   translation: translationIdSchema,
   ref: nonBlankText,
@@ -62,15 +53,17 @@ export const biblePassageSchema = jsonObject({
   verseNumbers: v.boolean(),
   translationName: v.boolean(),
   transition: v.exactOptional(slideTransitionSchema),
-  cuts: v.exactOptional(bibleVerseCutsSchema),
-  pinnedVerses: v.exactOptional(pinnedBibleVersesSchema),
-  deletedSlides: v.exactOptional(deletedBibleSlidesSchema),
+  slides: v.exactOptional(bibleSlidesSchema),
 });
 
 /**
  * A Bible passage as a 예배 순서 item or a 빠른 실행 item holds it: the
- * translation, the normalized reference, and how to split and label it.
+ * translation, the normalized reference, and the slides of its verses.
  */
 export type BiblePassage = ReadonlyKnown<
   v.InferOutput<typeof biblePassageSchema>
+>;
+export type BibleSlide = ReadonlyKnown<v.InferOutput<typeof bibleSlideSchema>>;
+export type BibleSlides = ReadonlyKnown<
+  v.InferOutput<typeof bibleSlidesSchema>
 >;

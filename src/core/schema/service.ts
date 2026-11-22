@@ -1,6 +1,6 @@
 import {slideTransitionSchema} from './slideTransition';
 import * as v from 'valibot';
-import {itemTextOverridesSchema} from './slideTextOverrides';
+import {itemTextsSchema} from './slideTexts';
 import type {Result} from '../common/result';
 import {isRecord} from '../common/guards';
 import {biblePassageSchema} from './biblePassage';
@@ -26,7 +26,8 @@ import {
 } from './ids';
 import {itemOverlaysSchema, songItemOverlaysSchema} from './itemOverlays';
 import {LIVE_STATE_LIMITS} from './liveLimits';
-import {SONG_LIMITS, SONG_NAME_MAX_LENGTH, songSlidesSchema} from './song';
+import {SONG_NAME_MAX_LENGTH, songSlidesSchema} from './song';
+import {slideLabelSchema} from './slideLabel';
 import type {MigrationStep} from './migration';
 import {
   jsonObject,
@@ -34,7 +35,6 @@ import {
   localDateTime,
   positiveInteger,
   nonNegativeInteger,
-  positiveSeconds,
   timeOfDay,
 } from './primitives';
 
@@ -66,12 +66,6 @@ const slideReferenceSchema = v.pipe(
   v.string(),
   v.maxLength(SLIDES_LIMITS.reference),
 );
-const slideLabelSchema = v.pipe(
-  v.string(),
-  v.trim(),
-  v.minLength(1),
-  v.maxLength(SONG_LIMITS.label),
-);
 const slideTextSchema = v.pipe(v.string(), v.maxLength(SLIDES_LIMITS.text));
 
 export const bibleVerseReferenceSchema = jsonObject({
@@ -83,55 +77,6 @@ export const bibleVerseReferenceSchema = jsonObject({
   chapter: v.pipe(positiveInteger, v.maxValue(BIBLE_LOOKUP_LIMITS.chapters)),
   verse: v.pipe(positiveInteger, v.maxValue(BIBLE_LOOKUP_LIMITS.verses)),
 });
-
-/** A saved effect belongs to a stable verse and one-based split part. */
-export const biblePartTransitionSchema = jsonObject({
-  verse: bibleVerseReferenceSchema,
-  part: v.pipe(positiveInteger, v.maxValue(10_000)),
-  transition: slideTransitionSchema,
-});
-export const biblePartTransitionsSchema = v.pipe(
-  v.array(biblePartTransitionSchema),
-  v.maxLength(10_000),
-  v.check(
-    entries =>
-      new Set(
-        entries.map(entry =>
-          JSON.stringify([
-            entry.verse.translation,
-            entry.verse.book,
-            entry.verse.chapter,
-            entry.verse.verse,
-            entry.part,
-          ]),
-        ),
-      ).size === entries.length,
-    'Duplicate Bible part transition',
-  ),
-);
-export type BiblePartTransition = ReadonlyKnown<
-  v.InferOutput<typeof biblePartTransitionSchema>
->;
-
-export const biblePartLabelsSchema = v.pipe(
-  v.array(
-    jsonObject({
-      verse: bibleVerseReferenceSchema,
-      part: v.pipe(positiveInteger, v.maxValue(10_000)),
-      label: slideLabelSchema,
-    }),
-  ),
-  v.maxLength(10_000),
-  v.check(
-    entries =>
-      new Set(entries.map(entry => JSON.stringify([entry.verse, entry.part])))
-        .size === entries.length,
-    'Duplicate Bible part label',
-  ),
-);
-export type BiblePartLabel = ReadonlyKnown<
-  v.InferOutput<typeof biblePartLabelsSchema>[number]
->;
 
 export const verseSlideSchema = jsonObject({
   id: slideIdSchema,
@@ -184,8 +129,6 @@ export const slidesSchema = v.pipe(
       listWithUniqueIds(slideSchema),
       v.maxLength(SLIDES_LIMITS.slides),
     ),
-    advance: v.exactOptional(positiveSeconds),
-    loop: v.exactOptional(v.boolean()),
   }),
   v.check(
     item =>
@@ -222,7 +165,7 @@ const itemFields = {
   id: serviceItemIdSchema,
   theme: v.exactOptional(themeIdSchema),
   overlays: v.exactOptional(itemOverlaysSchema),
-  textOverrides: v.exactOptional(itemTextOverridesSchema),
+  texts: v.exactOptional(itemTextsSchema),
 };
 
 const startFields = {
@@ -259,8 +202,6 @@ const itemSchemas = {
     ...itemFields,
     sectionCard: v.exactOptional(sectionCardSchema),
     bible: biblePassageSchema,
-    bibleTransitions: v.exactOptional(biblePartTransitionsSchema),
-    bibleLabels: v.exactOptional(biblePartLabelsSchema),
     ...startFields,
   }),
   sermon: jsonObject({
@@ -272,14 +213,14 @@ const itemSchemas = {
       closingLabel: v.exactOptional(slideLabelSchema),
       openingTransition: v.exactOptional(slideTransitionSchema),
       closingTransition: v.exactOptional(slideTransitionSchema),
+      openingHidden: v.exactOptional(v.boolean()),
+      closingHidden: v.exactOptional(v.boolean()),
       passage: biblePassageSchema,
       originalTitle: v.exactOptional(
         v.union([songItemSchema, slidesItemSchema]),
       ),
       originalTitleText: v.exactOptional(sermonTitleSchema),
     }),
-    bibleTransitions: v.exactOptional(biblePartTransitionsSchema),
-    bibleLabels: v.exactOptional(biblePartLabelsSchema),
     ...startFields,
   }),
   liturgy: jsonObject({

@@ -1,144 +1,61 @@
-import {normalizeVerse} from '@core/bible/split/manualSplit';
-import {cacheKey} from '@core/bible/split/splitCache';
 import {
-  pinVerseParts,
-  validatedPinnedVerse,
-  type VersePart,
-} from '@core/bible/split/splitVerses';
-import {textSlideKey, textVerseKey} from '@core/presentation/textOverrides';
-import {
-  deletedBibleSlidesSchema,
-  pinnedBibleVersesSchema,
-} from '@core/schema/biblePassage';
-import {parsePayload} from '@core/schema/payload';
-import {isItemOfKind, type ServiceItemOf} from '@core/schema/service';
+  changeBibleSlides,
+  isPassageItem,
+  keptSlides,
+  passageOf,
+  slideIds,
+  withPassage,
+} from '@core/services/passageEdits';
+import {isItemOfKind, type ServiceItem} from '@core/schema/service';
 import type {ShowTile} from '@core/schema/showService';
-import type {BibleProjection} from '@renderer/features/bible/splitProjection';
-import {useShow} from '@renderer/session/show';
+import type {BibleLookupPassage} from '@core/schema/bibleLookup';
 import type {ServiceItemStore} from './serviceItemStore';
 
-/** Persists a set of removed occurrences and the original boundaries of the affected verses. */
-export async function deleteBibleSlides({
+/** Takes these slides out of a passage or sermon item. */
+export function deleteBibleSlides({
   items,
   serviceId,
-  item,
+  itemId,
   tiles,
-  projection,
+  lookup,
   removeCard,
 }: {
   readonly items: ServiceItemStore;
   readonly serviceId: string;
-  readonly item: ServiceItemOf<'bible' | 'sermon'>;
+  readonly itemId: string;
   readonly tiles: readonly ShowTile[];
-  readonly projection: BibleProjection | null;
+  readonly lookup: BibleLookupPassage | undefined;
   readonly removeCard: boolean;
 }): Promise<boolean> {
-  const passage = isItemOfKind(item, 'bible')
-    ? item.bible
-    : item.sermon.passage;
-  const view = useShow.getState();
-  const row =
-    view.serviceId === serviceId
-      ? view.rows.find(row => row.id === item.id)
-      : undefined;
-  const lookup = row?.kind === 'bible' ? row.bible?.passage : undefined;
-  const rawVerses = new Map(
-    lookup?.verses.map(verse => [
-      `${verse.chapter}:${verse.verse}`,
-      verse.text,
-    ]),
-  );
-  const measuredVerses = new Map(
-    projection?.verses.map(verse => [
-      textVerseKey(verse.reference),
-      verse.text,
-    ]),
-  );
-  const measuredParts = new Map<string, VersePart[]>();
-  for (const part of projection?.parts ?? []) {
-    const key = textVerseKey(part.reference);
-    const existing = measuredParts.get(key);
-    if (existing === undefined) measuredParts.set(key, [part]);
-    else existing.push(part);
-  }
-  const removed = new Set<string>();
-  const pins = new Map<
-    string,
-    {readonly cuts: string; readonly parts: readonly string[]}
-  >();
-  for (const tile of tiles) {
-    const key = textSlideKey(tile);
-    if (key === undefined) return false;
-    removed.add(key);
-    const reference = tile.bibleVerse;
-    if (reference === undefined) continue;
-    const pinKey = textVerseKey(reference);
-    if (pins.has(pinKey)) continue;
-    const verse = measuredVerses.get(pinKey);
-    const raw =
-      lookup?.translation === reference.translation &&
-      tile.biblePart === undefined
-        ? rawVerses.get(`${reference.chapter}:${reference.verse}`)
-        : undefined;
-    const canonical = verse ?? raw;
-    if (canonical === undefined) return false;
-    const parts =
-      validatedPinnedVerse(canonical, passage.pinnedVerses?.[pinKey]) ??
-      (verse !== undefined
-        ? pinVerseParts(verse, measuredParts.get(pinKey) ?? [])
-        : raw === undefined
-          ? undefined
-          : [normalizeVerse(raw)]);
-    if (parts === undefined) return false;
-    pins.set(pinKey, {cuts: cacheKey(reference), parts});
-  }
-  if (removed.size === 0 && !removeCard) return false;
+  const keys = new Set(tiles.map(tile => tile.key));
   return items.submitItemEdit({
-    target: {serviceId, itemId: item.id},
+    target: {serviceId, itemId},
     failure: '슬라이드 삭제 실패',
     change: fresh => {
-      if (!isItemOfKind(fresh, 'bible') && !isItemOfKind(fresh, 'sermon')) {
-        return null;
+      if (!isPassageItem(fresh)) return null;
+      let updated: ServiceItem = fresh;
+      const passage = passageOf(fresh);
+      if (lookup !== undefined && slideIds(tiles).size > 0) {
+        updated = withPassage(fresh, {
+          ...passage,
+          slides: changeBibleSlides(
+            keptSlides(passage, lookup),
+            slideIds(tiles),
+            () => null,
+          ),
+        });
       }
-      const current = isItemOfKind(fresh, 'bible')
-        ? fresh.bible
-        : fresh.sermon.passage;
-      if (
-        current.ref !== passage.ref ||
-        current.translation !== passage.translation
-      ) {
-        return null;
+      if (isItemOfKind(updated, 'sermon')) {
+        updated = {
+          ...updated,
+          sermon: {
+            ...updated.sermon,
+            ...(keys.has('sermon:opening') ? {openingHidden: true} : {}),
+            ...(keys.has('sermon:closing') ? {closingHidden: true} : {}),
+          },
+        };
       }
-      const pinnedVerses = {...current.pinnedVerses};
-      for (const [key, {cuts, parts}] of pins) {
-        if (
-          JSON.stringify(current.cuts?.[cuts]) !==
-            JSON.stringify(passage.cuts?.[cuts]) ||
-          JSON.stringify(pinnedVerses[key]) !==
-            JSON.stringify(passage.pinnedVerses?.[key])
-        ) {
-          return null;
-        }
-        pinnedVerses[key] = parts;
-      }
-      const deletedSlides = [
-        ...new Set([...(current.deletedSlides ?? []), ...removed]),
-      ];
-      if (
-        !parsePayload(deletedBibleSlidesSchema, deletedSlides).ok ||
-        !parsePayload(pinnedBibleVersesSchema, pinnedVerses).ok
-      ) {
-        return null;
-      }
-      const next = {
-        ...current,
-        ...(pins.size === 0 ? {} : {pinnedVerses}),
-        ...(removed.size === 0 ? {} : {deletedSlides}),
-      };
-      const updated = isItemOfKind(fresh, 'bible')
-        ? {...fresh, bible: next}
-        : {...fresh, sermon: {...fresh.sermon, passage: next}};
-      if (!removeCard) return updated;
+      if (!removeCard || !('sectionCard' in updated)) return updated;
       const {sectionCard: _card, ...rest} = updated;
       return rest;
     },

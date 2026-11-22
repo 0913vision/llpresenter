@@ -21,24 +21,13 @@ function signature(slide: SlideLayer): string {
 }
 
 function identity(tile: SlideTile): string | null {
-  if (tile.sermonTitle && tile.textSlideKey !== undefined) {
-    return tile.textSlideKey;
-  }
-  if (tile.sectionCard !== undefined) {
-    return `section:${tile.sectionCard.name}:${tile.sectionCard.theme}`;
-  }
-  if (tile.sourceSlide !== undefined) {
-    return `song:${tile.sourceSlide.songId}:${tile.sourceSlide.slideId}`;
-  }
-  if (tile.sourceSlideId !== undefined) {
-    return `slide:${tile.sourceSlideId}:${tile.biblePart ?? 1}`;
-  }
   if (tile.bibleVerse !== undefined) {
     const {translation, book, chapter, verse} = tile.bibleVerse;
     return `verse:${translation}:${book}:${chapter}:${verse}:${tile.biblePart ?? 1}`;
   }
-  if (tile.biblePart !== undefined) {
-    return `verse:${tile.label}:${tile.biblePart}`;
+  if (tile.key !== undefined) return `slide:${tile.key}`;
+  if (tile.sourceSlide !== undefined) {
+    return `slide:${tile.sourceSlide.slideId}`;
   }
   return `text:${tile.label}:${JSON.stringify(tile.lines)}`;
 }

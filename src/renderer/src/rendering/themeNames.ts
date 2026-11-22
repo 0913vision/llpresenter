@@ -1,5 +1,5 @@
 import type {ThemeElementKind} from '@core/themes/elementRules';
-import {themeTextRoleNames} from '@core/schema/themeTextSlot';
+import {themeTextRoleNames} from '@core/schema/themeTextRoles';
 
 export const themeElementNames: Readonly<Record<ThemeElementKind, string>> = {
   ...themeTextRoleNames,

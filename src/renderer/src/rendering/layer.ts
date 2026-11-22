@@ -67,6 +67,8 @@ export interface RenderFrame {
   readonly transitions?: boolean;
   /** Prepares a paused frame without audio, animation or clock updates. */
   readonly standby?: boolean;
+  /** Draws once, for a thumbnail: no clocks or timers run. */
+  readonly still?: boolean;
   readonly screen?: RenderScreen;
   /** How this screen draws a 메시지; absent draws the 기본 style. */
   readonly messageStyle?: TextStyle;
@@ -87,13 +89,11 @@ export interface RenderLayerOptions {
   readonly biblePreview?: {
     readonly elementId: string;
     readonly maxLines: number;
-    readonly hideGuide?: boolean;
   };
   readonly textStyle: TextStyle;
   /** The original library URL, also used for image elements in previews. */
   readonly mediaUrl: (mediaId: string) => string;
   readonly previewMedia?: PreviewMediaSource | undefined;
-  readonly readableImages?: boolean;
   /** Receives drawing errors, which never reach the other layers. */
   readonly onError: (message: string, error: unknown) => void;
   /** Signals an incomplete draw to a caller that captures the resulting frame. */
@@ -101,6 +101,8 @@ export interface RenderLayerOptions {
   /** A preview draws still pictures without video elements; `output` when absent. */
   readonly mode?: RenderMode;
   readonly muted?: boolean;
+  /** Scales with the `--picture-scale` of the box around it. */
+  readonly cssScale?: boolean;
 }
 
 /** One persistent layer instance, owned and released by its output renderer. */

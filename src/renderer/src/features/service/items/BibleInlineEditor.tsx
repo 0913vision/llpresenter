@@ -9,21 +9,13 @@ import {
 import type {UiApi} from '@contracts/ipc/ui';
 import {isItemOfKind, type ServiceItemOf} from '@core/schema/service';
 import {slideLayerOf} from '@core/presentation/slideLayer';
-import {useBibleTileProjection} from '@renderer/features/bible/useBibleProjections';
-import {
-  canReviewBiblePart,
-  type BibleProjection,
-} from '@renderer/features/bible/splitProjection';
-import type {ShowTile} from '@core/schema/showService';
 import {useMeasuredRows} from '@renderer/ui/useMeasuredRows';
 import {
   SlideSurfaceView,
   useSlideSurfaceView,
 } from '@renderer/features/songs/editor/SlideSurfaceView';
-import {SlidePicture} from '@renderer/rendering/SlidePicture';
-import {biblePictureInput} from '@renderer/rendering/pictureSpec';
-import {useSlideTheme} from '@renderer/platform/useSlideTheme';
-import {sermonPreviewRow} from '@renderer/platform/sermonPreview';
+import {TilePicture} from '@renderer/pictures/TilePicture';
+import {itemThemes, useThemeSettings} from '@renderer/pictures/itemThemes';
 import {LeadingSlideCardView} from '@renderer/features/songs/editor/LeadingSlideCardView';
 import {useSongBlockWindow} from '@renderer/features/songs/editor/useSongBlockWindow';
 import {SongSlideSurface} from '@renderer/features/songs/editor/SongSlideSurface';
@@ -34,15 +26,13 @@ import {isInTextEntry} from '@renderer/ui/textEntry';
 import {ItemEditorShell} from '@renderer/platform/ItemEditorShell';
 import {ItemEditorAddBar} from '@renderer/platform/ItemEditorAddBar';
 import {SlideThumbnailBand} from '@renderer/ui/SlideThumbnail';
-import {
-  bibleEditorData,
-  savedItemTiles,
-  savedPassageTiles,
-} from './bibleItemModel';
+import {bibleEditorData, savedItemTiles} from './bibleItemModel';
 import {useLeadingItemCard} from './useLeadingItemCard';
 import {AddSectionCard} from './AddSectionCard';
 import {BibleSlideSession} from './BibleSlideSession';
 import {deleteBibleSlides} from './deleteBibleSlides';
+import {BibleSlideFields} from './BibleSlideFields';
+import {SermonTitleFields} from './SermonTitleFields';
 import {editorTask} from '@renderer/features/songs/editor/editorTask';
 import {itemEditorAdapter} from '@renderer/platform/itemEditorAdapter';
 import {MeasuredRow} from '../slides/SlideRows';
@@ -119,29 +109,15 @@ function BibleEditorContent({
   readonly locked: boolean;
   readonly renderTextFields: RenderSlideTextFields | undefined;
 }): JSX.Element {
-  const saved = useShow(view =>
-    shownItem === undefined
-      ? savedPassageTiles(view, serviceId, item.id)
-      : savedItemTiles(view, serviceId, item.id),
-  );
-  const projection = useBibleTileProjection({
-    itemId: item.id,
-    serviceId,
-    anyItem: shownItem !== undefined,
-  });
-  const data = useMemo(
-    () => bibleEditorData(item, saved, projection?.tiles),
-    [item, saved, projection?.tiles],
-  );
+  const saved = useShow(view => savedItemTiles(view, serviceId, item.id));
+  const row = useShow(view => view.rows.find(entry => entry.id === item.id));
+  const lookup = row?.kind === 'bible' ? row.bible?.passage : undefined;
+  const themes = itemThemes(row, saved, useThemeSettings());
+  const data = useMemo(() => bibleEditorData(item, saved), [item, saved]);
   const card = useLeadingItemCard(items, item.id, {
     shownItem,
     renderTextFields,
   });
-  const sermonTheme = useSlideTheme(
-    isItemOfKind(item, 'sermon')
-      ? sermonPreviewRow(item.id, item.sermon.passage.ref)
-      : undefined,
-  );
   const {mode, scale} = useSlideSurfaceView();
   const verses = useMemo(
     () =>
@@ -177,9 +153,9 @@ function BibleEditorContent({
       deleteBibleSlides({
         items,
         serviceId,
-        item,
+        itemId: item.id,
         tiles,
-        projection,
+        lookup,
         removeCard,
       }).then(saved => {
         const current = items.getSnapshot();
@@ -269,7 +245,7 @@ function BibleEditorContent({
             <Button
               className={styles.split}
               disabled={
-                locked || !canReviewBiblePart(projection, position - offset)
+                locked || verses[position - offset]?.bibleVerse === undefined
               }
               onClick={onSplit}
             >
@@ -392,12 +368,13 @@ function BibleEditorContent({
                   >
                     <div className={styles.thumbnail}>
                       <div className={styles.canvas}>
-                        <VersePicture
-                          itemId={item.id}
-                          index={index - offset}
-                          verses={verses}
-                          projection={projection}
-                          sermonTheme={sermonTheme}
+                        <TilePicture
+                          tile={slide.tile}
+                          slide={slideLayerOf(
+                            {itemId: item.id, index: index - offset},
+                            () => verses,
+                          )}
+                          themes={themes}
                         />
                       </div>
                       <SlideThumbnailBand
@@ -407,12 +384,29 @@ function BibleEditorContent({
                         }
                       />
                     </div>
-                    {renderTextFields && mode === 'list' ? (
-                      renderTextFields(index)
-                    ) : (
+                    {mode === 'grid' ? null : (
                       <div className={styles.verse}>
-                        <strong>{slide.tile.label}</strong>
-                        <span>{slide.tile.lines.join('\n')}</span>
+                        {isItemOfKind(item, 'sermon') &&
+                        slide.tile.sermonTitle === true ? (
+                          <SermonTitleFields
+                            items={items}
+                            serviceId={serviceId}
+                            item={item}
+                            readOnly={locked}
+                          />
+                        ) : (
+                          <BibleSlideFields
+                            items={items}
+                            serviceId={serviceId}
+                            item={item}
+                            lookup={lookup}
+                            tile={slide.tile}
+                            readOnly={locked}
+                          />
+                        )}
+                        {slide.tile.key === undefined
+                          ? null
+                          : renderTextFields?.(slide.tile.key)}
                       </div>
                     )}
                   </div>
@@ -440,33 +434,5 @@ function BibleEditorContent({
         </div>
       </SongSlideSurface>
     </ItemEditorShell>
-  );
-}
-
-function VersePicture({
-  itemId,
-  index,
-  verses,
-  projection,
-  sermonTheme,
-}: {
-  readonly sermonTheme: ReturnType<typeof useSlideTheme>;
-  readonly itemId: string;
-  readonly index: number;
-  readonly verses: readonly ShowTile[];
-  readonly projection: BibleProjection | null;
-}): JSX.Element | null {
-  const appearance = projection?.appearance;
-  const layer = slideLayerOf({itemId, index}, () => verses);
-  if (layer?.sermonTitle === true && sermonTheme !== undefined) {
-    return <SlidePicture {...sermonTheme} slide={layer} />;
-  }
-  if (appearance === undefined || layer === null) return null;
-  return (
-    <SlidePicture
-      {...biblePictureInput(layer, appearance, {
-        background: appearance.background,
-      })}
-    />
   );
 }

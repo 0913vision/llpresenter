@@ -31,7 +31,6 @@ import {
 } from './primitives';
 import {textStyleEntries} from './textStyle';
 import {themeBackgroundSchema} from './themeBackground';
-import {themeTextRoleSchema, themeTextSlotSchema} from './themeTextSlot';
 
 const range = (min: number, max: number) =>
   v.pipe(v.number(), v.finite(), v.minValue(min), v.maxValue(max));
@@ -113,7 +112,12 @@ const boxEntries = {
 const textBox = v.exactOptional(
   jsonObject({...boxEntries, radius: v.exactOptional(radius)}),
 );
-const base = {id: themeElementIdSchema, frame: themeFrameSchema};
+const base = {
+  id: themeElementIdSchema,
+  frame: themeFrameSchema,
+  /** What the user calls this box. */
+  name: v.exactOptional(v.pipe(nonBlankText, v.maxLength(THEME_LIMITS.name))),
+};
 const fit = v.picklist(['fit', 'fill', 'stretch']);
 
 function textElement<TKind extends string, TEntries extends v.ObjectEntries>(
@@ -124,7 +128,6 @@ function textElement<TKind extends string, TEntries extends v.ObjectEntries>(
     ...base,
     kind: v.literal(kind),
     text: themeTextSchema,
-    textSlot: v.exactOptional(themeTextSlotSchema),
     fitLines: v.exactOptional(maxLines),
     stack: v.exactOptional(
       jsonObject({
@@ -215,9 +218,6 @@ export const themeScreenLayoutSchema = jsonObject({
     ),
   ),
   stageBar: v.exactOptional(v.literal('message-row')),
-  ambiguousTextRoles: v.exactOptional(
-    v.pipe(v.array(themeTextRoleSchema), v.maxLength(14)),
-  ),
   songTitle: v.exactOptional(v.picklist(['sunday', 'sunday-light'])),
   mode: v.pipe(
     jsonObject({}),
@@ -233,14 +233,6 @@ export const themeScreenLayoutSchema = jsonObject({
       elements => themeElementProblem(elements) === undefined,
       'Invalid theme element limits',
     ),
-    v.check(elements => {
-      const ids = elements.flatMap(element =>
-        v.is(themeTextSlotSchema, element.textSlot)
-          ? [element.textSlot.slotId]
-          : [],
-      );
-      return new Set(ids).size === ids.length;
-    }, 'Text placements on one screen need distinct slot identities'),
   ),
   // NOTE(0913vision): Absence inherits the screen's configured empty color.
   background: v.exactOptional(themeBackgroundSchema),

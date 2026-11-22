@@ -33,8 +33,6 @@ import {
   RECOVERY_RECORD_FILE,
 } from './live/recovery/session';
 import {registerThemeOutput} from './live/themes';
-import {registerSlideAdvance} from './live/slideAdvance';
-import {registerSlidesProjection} from './live/slidesProjection';
 import type {createLogger, Logger} from './log';
 import {registerIpc} from './ipc';
 import {diagnosticsText} from './diagnostics';
@@ -66,7 +64,6 @@ import {registerAudioOutput} from './windows/audio';
 import {registerPlaybackProblems} from './outputs/playbackProblems';
 import {registerControlClose} from './windows/controlClose';
 import {serveMedia} from './windows/mediaProtocol';
-import {registerPictureChannels} from './windows/pictureChannels';
 import type {WindowMode} from './windows/testWindows';
 import {completeSplashStep} from './windows/splash';
 import {showStartupError} from './windows/startupError';
@@ -128,8 +125,6 @@ export function start(
   app
     .whenReady()
     .then(async () => {
-      const stopPictureChannels = registerPictureChannels();
-      shutdown.add({name: 'stop picture painter', run: stopPictureChannels});
       const recoveryFolder = join(app.getPath('userData'), RECOVERY_FOLDER);
       const session = await openRecoverySession({folder: recoveryFolder, log});
       if (session.crashed) {
@@ -255,17 +250,6 @@ export function start(
         store,
         data: dataStore,
         log,
-      });
-      const slidesProjection = registerSlidesProjection({
-        content: dataStore.content,
-        settings: dataStore.settings,
-        log,
-      });
-      const stopSlideAdvance = registerSlideAdvance({
-        store,
-        data: dataStore,
-        log,
-        projection: slidesProjection,
       });
       const analysis = startMediaAnalysis({
         media: dataStore.media,
@@ -717,11 +701,6 @@ export function start(
       });
       shutdown.add({name: 'stop overlays', run: stopOverlays});
       shutdown.add({name: 'stop theme output', run: stopThemeOutput});
-      shutdown.add({name: 'stop slide advance', run: stopSlideAdvance});
-      shutdown.add({
-        name: 'stop slides projection',
-        run: slidesProjection.dispose,
-      });
       shutdown.add({name: 'stop the outputs', run: () => outputs.stop()});
       shutdown.add({name: 'save the UI state', run: () => ui.dispose()});
       shutdown.add({name: 'stop UI zoom', run: () => zoom.dispose()});

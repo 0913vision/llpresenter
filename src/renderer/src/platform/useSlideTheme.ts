@@ -49,8 +49,7 @@ export function useSlideTheme(
   source: 'service' | 'external' = 'service',
   options: SlideThemeOptions & {readonly api?: LlpApi} = {},
 ) {
-  const enabled =
-    row?.kind === 'slides' || row?.kind === 'song' || row?.kind === 'media';
+  const enabled = row !== undefined && row.kind !== 'unknown';
   const api = options.api ?? window.llp;
   const file = useApiSettingsDocument({
     api,
@@ -95,12 +94,10 @@ export function slideTheme(
     readonly screens: readonly Screen[] | undefined;
   },
 ) {
-  if (row?.kind !== 'slides' && row?.kind !== 'song' && row?.kind !== 'media') {
-    return undefined;
-  }
-  const kind =
-    row.kind === 'slides' ? row.form : row.kind === 'song' ? 'song' : 'media';
-  const ownTheme = options.theme ?? row.theme;
+  if (row === undefined || row.kind === 'unknown') return undefined;
+  const kind = row.kind === 'slides' ? row.form : row.kind;
+  const ownTheme =
+    options.theme ?? (row.kind === 'bible' ? row.bible?.theme : row.theme);
   const targets: readonly Screen[] = screens ?? [
     {
       id: createScreenId(STARTER_SCREEN_IDS.main),
@@ -142,7 +139,10 @@ export function slideTheme(
     id: row.id,
     kind,
     source,
-    title: row.title,
+    title:
+      row.kind === 'bible'
+        ? (row.bible?.passage?.displayRef ?? row.title)
+        : row.title,
     ...(backgroundOverride === undefined ? {} : {backgroundOverride}),
   } as const;
   const audienceScreen =
