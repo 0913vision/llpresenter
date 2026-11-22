@@ -1,14 +1,5 @@
 import {useLayoutEffect, useRef, type RefObject} from 'react';
-
-function scrollParent(node: HTMLElement | null): HTMLElement | null {
-  let parent = node?.parentElement ?? null;
-  while (parent !== null) {
-    const overflow = getComputedStyle(parent).overflowY;
-    if (overflow === 'auto' || overflow === 'scroll') return parent;
-    parent = parent.parentElement;
-  }
-  return null;
-}
+import {scrollParent} from '@renderer/ui/scrollParent';
 
 /** Restores 준비's selected order row before the workspace is painted. */
 export function usePrepOrderPosition(

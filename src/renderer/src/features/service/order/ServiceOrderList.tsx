@@ -47,6 +47,7 @@ import {useMovedRowFocus} from './useMovedRowFocus';
 import {useOrderEditFocus} from './useOrderEditFocus';
 import {useOrderResizeFocus} from './useOrderResizeFocus';
 import {useOrderFollow} from './useOrderFollow';
+import {useOrderTop} from './useOrderTop';
 import {usePrepOrderPosition} from './usePrepOrderPosition';
 import {serviceRowLabel} from './serviceRowLabel';
 import {isInTextEntry} from '@renderer/ui/textEntry';
@@ -334,6 +335,7 @@ export function ServiceOrderList({
   const followId = rows.some(row => row.id === liveItemId)
     ? liveItemId
     : openItemId;
+  useOrderTop(listRef, serviceId);
   useOrderFollow(listRef, {
     target: followId,
     liveItemId,

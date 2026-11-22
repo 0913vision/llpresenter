@@ -9,6 +9,7 @@ import type {LabelColor} from '@core/labels/colors';
 import {SlideThumbnail, ThumbnailGrid} from '@renderer/ui/SlideThumbnail';
 import {detailsGridGeometry} from './detailsGridGeometry';
 import styles from './DetailsSlides.module.css';
+import {scrollParent} from '@renderer/ui/scrollParent';
 import {useReflow} from '@renderer/ui/useReflow';
 
 const COLUMNS = 2;
@@ -20,17 +21,6 @@ interface Range {
   readonly stride: number;
   readonly columns: number;
   readonly tileWidth: number;
-}
-
-function scrollParent(element: HTMLElement): HTMLElement | null {
-  let parent = element.parentElement;
-  while (
-    parent !== null &&
-    !['auto', 'scroll'].includes(getComputedStyle(parent).overflowY)
-  ) {
-    parent = parent.parentElement;
-  }
-  return parent;
 }
 
 function reveal(viewport: HTMLElement, top: number, stride: number): void {
