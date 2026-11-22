@@ -40,9 +40,13 @@ message inside a 테마, this section replaces it.
   operator switches columns on and off there. The 테마 sets only which columns
   are on at first: 말씀 본문 starts with 본문 on and 주소 off. The property
   panel always shows every box. The grid edits nothing.
-- **Next text.** Each 테마 says what the 슬라이드 before it shows as the next
-  text on 무대, as a phrase with box names: `{본문}` for 말씀 본문,
-  `다음광고: {제목}` for 광고, nothing for the 대기 화면. A 테마 can hide the
+- **Next text.** What the 슬라이드 before one shows as its next text on 무대 is
+  a box that the 테마 makes: a phrase with box names, such as `{본문}` for 말씀
+  본문, `다음 곡: {제목}[ ({이름표})]` for 찬양 제목, `다음 순서: 설교 ({제목})`
+  for 설교 제목, `다음 순서: {제목}` for 타이틀, and `다음 광고: {제목}` for
+  광고. A part in brackets is left out when a value in it is missing. A 슬라이드
+  can have its own text instead; clearing that text brings the phrase back. The
+  property panel always shows it and its column starts off. A 테마 can hide the
   next text on the last 슬라이드 of an item, as 말씀 본문 and 설교 제목 do.
 - **Separate 테마.** 찬양 제목, 찬양 가사, 설교 제목, and 말씀 본문 are four
   테마. A 테마 has a purpose and is offered only for 슬라이드 of that purpose.
