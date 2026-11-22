@@ -107,7 +107,8 @@ the compact 예배 순서, or the library; its right column shows the selected
   picture. Below it are three tabs, which stay the same from 슬라이드 to
   슬라이드: 내용, 디자인, and 전환. Each tab has named groups, whose rows are
   indented: 텍스트, 이름표, and 부가 정보; 테마, 배경, and 배경 위치; 화면 전환.
-  The last button of 디자인 and of 전환, right below the rows and as wide as its
+  A 슬라이드 whose 테마 writes a hymn has 찬송가 (종류 and 장 번호) first. The
+  last button of 디자인 and of 전환, right below the rows and as wide as its
   name, gives the background or the transition to every 슬라이드. A setting
   changes every selected 슬라이드; differing values are shown as mixed.
 - **What fills itself** and is seldom changed is locked: 부가 정보 (boxes with a

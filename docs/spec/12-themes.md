@@ -40,9 +40,9 @@ The user's needs (October 30 and November 22):
   of an item, as 말씀 본문 and 설교 제목 do.
 - **Separate 테마.** 찬양 제목, 찬양 가사, 설교 제목, and 말씀 본문 are four
   테마. A 테마 has a purpose and is offered only for 슬라이드 of that purpose.
-- **Hymns.** 찬송가 제목 is a second 테마 for 찬양 제목. Its box 찬송가 holds
-  the number (새찬송가 91장) and stands above 제목, which fills itself with the
-  title that the hymnal gives the number until it gets a text of its own.
+- **Hymns.** 찬송가 제목 is a second 테마 for 찬양 제목. Its 슬라이드 says only
+  which hymn it is, and its boxes fill themselves: 찬송가 with the number
+  (새찬송가 91장), and 제목 under it with the title in the hymnal.
 - **Not in a 테마.** The clock, timers, and the stage message show at fixed
   places on 무대, whatever the 슬라이드.
 - **Files.** A 테마 is one JSON file with the layouts of the 청중, 무대, and
@@ -83,8 +83,8 @@ The user's needs (October 30 and November 22):
 - A template names boxes and values in braces: `{제목}`, `{본문}`. A part in
   square brackets is left out when a value in it is missing:
   `{제목}[ ({이름표})]`. The values the app fills in are 번호, 항목 이름, 구절,
-  곡 제목, 찬송가 장과 제목, 찬송가 제목 (the title that the hymnal gives the
-  number on the 슬라이드), 이름표, and 새 이름표 (only where the label changes).
+  곡 제목, 찬송가 장과 제목, 찬송가 장 and 찬송가 제목 (the hymn the 슬라이드 is
+  the title of), 이름표, and 새 이름표 (only where the label changes).
 - A 글 can have other templates and a color for when none of the first has its
   values, such as the (없음) of an empty 슬라이드 on 무대.
 - A 글 can take the size, or the size and the rows, that 청중 gives the same
