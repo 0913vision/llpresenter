@@ -1,8 +1,9 @@
 import type {TextImportDraft} from '@core/schema/textImport';
+import type {Hymn} from '@core/schema/hymn';
 import type {Slide} from '@core/schema/slide';
 import type {SlideBackground} from '@core/schema/theme';
 import {SONG_THEME_IDS} from '@core/theme';
-import {hymnAt, hymnLabel, isTitleOf, type Hymn} from '@core/hymns';
+import {hymnAt, hymnLabel, hymnTitle, isTitleOf} from '@core/hymns';
 import {makeSlide, type SlideMaking} from './make';
 
 type ImportedSlide = TextImportDraft['slides'][number];
@@ -37,7 +38,7 @@ export function importedSongTitle(slide: ImportedSlide): string {
   const {hymn, title} = titleOf(slide);
   const name = title.split('\n').join(' ').trim();
   if (hymn === null) return name;
-  return `${hymnLabel(hymn)} ${name || hymn.title}`;
+  return `${hymnLabel(hymn)} ${name || hymnTitle(hymn)}`;
 }
 
 function titleSlide(
@@ -54,14 +55,12 @@ function titleSlide(
       ...(light ? {theme: SONG_THEME_IDS.light.title} : {}),
     });
   }
-  // NOTE(0913vision): The theme fills in the title of the hymnal, so only a
-  // title with other words is a text of the slide.
+  // NOTE(0913vision): The theme writes the hymn and its title in the hymnal, so
+  // only a title with other words is a text of the slide.
   return makeSlide(making, 'songTitle', {
     ...common,
-    texts: textOf({
-      찬송가: hymnLabel(hymn),
-      제목: isTitleOf(hymn, title) ? '' : title,
-    }),
+    hymn,
+    texts: textOf({제목: isTitleOf(hymn, title) ? '' : title}),
     theme: (light ? SONG_THEME_IDS.light : SONG_THEME_IDS.dark).hymnTitle,
   });
 }

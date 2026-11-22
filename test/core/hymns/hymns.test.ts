@@ -1,5 +1,6 @@
 import {describe, expect, it} from 'vitest';
-import {hymnAt, hymnLabel, isTitleOf} from '@core/hymns';
+import {hymnAt, hymnLabel, hymnTitle, isTitleOf} from '@core/hymns';
+import {HYMN_COUNTS} from '@core/schema/hymn';
 
 function read(row: string) {
   const named = hymnAt(row);
@@ -29,16 +30,22 @@ describe('the hymn of a row', () => {
 });
 
 it('has the title of its own hymnal', () => {
-  expect(hymnAt('새찬송가 91장')?.hymn.title).toBe('슬픈 마음 있는 사람');
-  expect(hymnAt('새찬송가 1장')?.hymn.title).toBe('만복의 근원 하나님');
-  expect(hymnAt('새찬송가 645장')?.hymn.title).toBe('일곱 번 아멘');
-  expect(hymnAt('통일찬송가 6장')?.hymn.title).toBe('찬양 성부 성자 성령');
-  expect(hymnAt('통일찬송가 558장')?.hymn.title).toBe('일곱 번 아멘');
+  expect(hymnTitle({hymnal: 'new', number: 91})).toBe('슬픈 마음 있는 사람');
+  expect(hymnTitle({hymnal: 'new', number: 1})).toBe('만복의 근원 하나님');
+  expect(hymnTitle({hymnal: 'unified', number: 6})).toBe('찬양 성부 성자 성령');
+});
+
+it.each(['new', 'unified'] as const)('has every title of %s', hymnal => {
+  const count = HYMN_COUNTS[hymnal];
+  const titles = Array.from({length: count}, (_, index) =>
+    hymnTitle({hymnal, number: index + 1}),
+  );
+  expect(titles.filter(title => title.trim() === '')).toEqual([]);
+  expect(hymnTitle({hymnal, number: count + 1})).toBe('');
 });
 
 it('knows its title however it is spaced', () => {
-  const hymn = hymnAt('새찬송가 182장')?.hymn;
-  if (hymn === undefined) throw new Error('no hymn');
+  const hymn = {hymnal: 'new', number: 182} as const;
   expect(isTitleOf(hymn, '강물 같이 흐르는 기쁨')).toBe(true);
   expect(isTitleOf(hymn, '강물 같이 넘치는 기쁨')).toBe(false);
 });

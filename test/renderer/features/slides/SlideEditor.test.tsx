@@ -1,7 +1,7 @@
 import {act, fireEvent, screen, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import {BUILT_IN_THEME_IDS} from '@core/theme/builtIn/ids';
+import {BUILT_IN_THEME_IDS, SONG_THEME_IDS} from '@core/theme/builtIn/ids';
 import {MEDIA_DRAG_MIME} from '@renderer/features/media/mediaDrag';
 import {useMedia} from '@renderer/platform/media';
 import {fixtureMedia, itemMedia} from '@fixtures/core/mediaList';
@@ -484,5 +484,36 @@ describe('the background of a slide', () => {
     expect(
       current.slides.every(slide => slide.background?.kind === 'media'),
     ).toBe(true);
+  });
+});
+
+describe('the title slide of a hymn', () => {
+  const hymn = () => [
+    slideOf(1, 'songTitle', {theme: SONG_THEME_IDS.dark.hymnTitle}),
+    ...song().slice(1),
+  ];
+
+  it('is told by its hymnal and its number', async () => {
+    const {current} = renderEditor(hymn());
+    await userEvent.click(row(0));
+    await openTab('내용');
+    const group = within(inspector().getByRole('group', {name: '찬송가'}));
+    const number = group.getByRole('spinbutton', {name: '장 번호'});
+    expect(number).toHaveProperty('value', '');
+    await userEvent.type(number, '91{Enter}');
+    expect(current.slides[0]?.hymn).toEqual({hymnal: 'new', number: 91});
+    expect(field(0, '찬송가').placeholder).toBe('새찬송가 91장');
+    expect(field(0, '제목').placeholder).toBe('슬픈 마음 있는 사람');
+    await userEvent.clear(number);
+    await userEvent.type(number, '600{Enter}');
+    await userEvent.click(group.getByRole('radio', {name: '통일찬송가'}));
+    expect(current.slides[0]?.hymn).toEqual({hymnal: 'unified', number: 558});
+  });
+
+  it('is asked for by no other theme', async () => {
+    renderEditor(song());
+    await userEvent.click(row(0));
+    await openTab('내용');
+    expect(inspector().queryByRole('group', {name: '찬송가'})).toBeNull();
   });
 });

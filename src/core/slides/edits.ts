@@ -1,3 +1,4 @@
+import type {Hymn} from '@core/schema/hymn';
 import type {SlideId, ThemeId} from '@core/schema/ids';
 import type {Slide, VerseReference} from '@core/schema/slide';
 import type {SlideBackground} from '@core/schema/theme';
@@ -53,6 +54,10 @@ export function withBackground(
 ): Slide {
   const {background: _background, ...kept} = slide;
   return background === undefined ? kept : {...kept, background};
+}
+
+export function withHymn(slide: Slide, hymn: Hymn): Slide {
+  return {...slide, hymn};
 }
 
 export function withTransition(

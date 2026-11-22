@@ -70,18 +70,19 @@ Everything that has 슬라이드 holds the same form of them: a song, and every 
 of a service except a 구역. It names the 테마 that draws it and holds the text
 of that 테마's boxes (12). How they look is in the 테마 alone.
 
-| Field        | Type                                            | Meaning                                                                              |
-| ------------ | ----------------------------------------------- | ------------------------------------------------------------------------------------ |
-| `id`         | UUID v4 (`SlideId`)                             | Unique within its list; kept through moves and edits.                                |
-| `theme`      | 테마 ID                                         | The 테마 that draws it.                                                              |
-| `texts`      | Object: box name to text, at most 4,000 each    | Its texts. A box without one shows the default of the box.                           |
-| `next`       | String, optional                                | What the 슬라이드 before shows as its next text; the phrase of the 테마 when absent. |
-| `label`      | Trimmed string, 1 to 64, optional               | 이름표.                                                                              |
-| `background` | Background (12), optional                       | Its own background; the background of the 테마 when absent.                          |
-| `transition` | `{kind, dir?, sec}`, optional                   | Its transition; none cuts.                                                           |
-| `hotKey`     | `KeyA`–`KeyZ` or `Digit0`–`Digit9`, optional    | Unique within its list.                                                              |
-| `verse`      | `{translation, book, chapter, verse}`, optional | The verse its text was taken from.                                                   |
-| `continued`  | `true`, optional                                | The text goes on on the next 슬라이드.                                               |
+| Field        | Type                                            | Meaning                                                                                      |
+| ------------ | ----------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `id`         | UUID v4 (`SlideId`)                             | Unique within its list; kept through moves and edits.                                        |
+| `theme`      | 테마 ID                                         | The 테마 that draws it.                                                                      |
+| `texts`      | Object: box name to text, at most 4,000 each    | Its texts. A box without one shows the default of the box.                                   |
+| `next`       | String, optional                                | What the 슬라이드 before shows as its next text; the phrase of the 테마 when absent.         |
+| `label`      | Trimmed string, 1 to 64, optional               | 이름표.                                                                                      |
+| `background` | Background (12), optional                       | Its own background; the background of the 테마 when absent.                                  |
+| `transition` | `{kind, dir?, sec}`, optional                   | Its transition; none cuts.                                                                   |
+| `hotKey`     | `KeyA`–`KeyZ` or `Digit0`–`Digit9`, optional    | Unique within its list.                                                                      |
+| `verse`      | `{translation, book, chapter, verse}`, optional | The verse its text was taken from.                                                           |
+| `hymn`       | `{hymnal, number}`, optional                    | The hymn it is the title of: `new` (새찬송가, 1 to 645) or `unified` (통일찬송가, 1 to 558). |
+| `continued`  | `true`, optional                                | The text goes on on the next 슬라이드.                                                       |
 
 A list holds at most 10,000. A copy gets new IDs and no hot key; a split keeps
 the first half as it was. Unknown fields survive at every level. Catalog names

@@ -1,6 +1,7 @@
 import {BIBLE_BOOKS, displayReference} from '@core/bible';
-import {hymnAt, hymnLabel, type Hymn} from '@core/hymns';
+import {hymnAt, hymnLabel, hymnTitle} from '@core/hymns';
 import {NO_LABEL_COLOR, type LabelColor} from '@core/labels';
+import type {Hymn} from '@core/schema/hymn';
 import type {ShowTile} from '@core/schema/showService';
 import {
   hasSlides,
@@ -24,23 +25,14 @@ export interface SlideSource {
   readonly passage?: string | undefined;
 }
 
-/** The hymn whose number a slide shows. */
-function shownHymn({texts}: Slide): Hymn | null {
-  for (const row of Object.values(texts).flatMap(text => text.split('\n'))) {
-    const named = hymnAt(row);
-    if (named?.rest === '') return named.hymn;
-  }
-  return null;
-}
-
 /** The song's name after its hymn number, from its name or its title slide. */
-function nameWithHymn(name: string, shown: Hymn | null): string {
+function nameWithHymn(name: string, shown: Hymn | undefined): string {
   const title = name.split(/\r?\n/u)[0]?.trim() ?? '';
   const named = hymnAt(title);
   const hymn = named?.hymn ?? shown;
-  if (hymn === null) return title;
-  const rest = named === null ? title : named.rest || hymn.title;
-  return `${hymnLabel(hymn)} ${rest}`;
+  if (hymn === undefined) return title;
+  const own = named === null ? title : named.rest;
+  return `${hymnLabel(hymn)} ${own || hymnTitle(hymn)}`;
 }
 
 /** The values a theme can use on each slide of a list. */
@@ -49,19 +41,14 @@ export function autoValues(
   source: SlideSource,
 ): readonly AutoValues[] {
   const counts = new Map<string, number>();
-  const [first] = slides;
-  const hymn =
+  const named =
     source.kind === 'song'
-      ? nameWithHymn(
-          source.title,
-          first === undefined ? null : shownHymn(first),
-        )
+      ? nameWithHymn(source.title, slides[0]?.hymn)
       : undefined;
   return slides.map((slide, index) => {
-    const shown = source.kind === 'song' ? shownHymn(slide) : null;
     const number = (counts.get(slide.theme) ?? 0) + 1;
     counts.set(slide.theme, number);
-    const {label} = slide;
+    const {label, hymn} = slide;
     const repeated = label !== undefined && slides[index - 1]?.label === label;
     return {
       [AUTO_TOKENS.number]: String(number),
@@ -74,8 +61,13 @@ export function autoValues(
         ? {}
         : {[AUTO_TOKENS.passage]: source.passage}),
       ...(source.kind === 'song' ? {[AUTO_TOKENS.song]: source.title} : {}),
-      ...(hymn === undefined ? {} : {[AUTO_TOKENS.hymn]: hymn}),
-      ...(shown === null ? {} : {[AUTO_TOKENS.hymnTitle]: shown.title}),
+      ...(named === undefined ? {} : {[AUTO_TOKENS.hymn]: named}),
+      ...(hymn === undefined
+        ? {}
+        : {
+            [AUTO_TOKENS.hymnNumber]: hymnLabel(hymn),
+            [AUTO_TOKENS.hymnTitle]: hymnTitle(hymn),
+          }),
     };
   });
 }

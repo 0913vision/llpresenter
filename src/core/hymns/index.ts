@@ -1,1 +1,1 @@
-export {type Hymn, hymnAt, hymnLabel, isTitleOf} from './hymns';
+export {HYMNAL_NAMES, hymnAt, hymnLabel, hymnTitle, isTitleOf} from './hymns';

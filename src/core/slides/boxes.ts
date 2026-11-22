@@ -1,5 +1,6 @@
 import type {ShowTile} from '@core/schema/showService';
 import type {Slide} from '@core/schema/slide';
+import {AUTO_TOKENS} from '@core/schema/slideContent';
 import type {ThemeFile} from '@core/schema/theme';
 import {contentValues, nextPhraseOf} from '@core/theme';
 import {withNext, withText} from './edits';
@@ -18,6 +19,15 @@ export function fillsItself(theme: ThemeFile, box: string): boolean {
   return (
     box === NEXT_BOX ||
     theme.boxes.find(entry => entry.name === box)?.default !== undefined
+  );
+}
+
+const HYMN_VALUES = [AUTO_TOKENS.hymnNumber, AUTO_TOKENS.hymnTitle];
+
+/** Whether a theme writes the hymn that its slides are the titles of. */
+export function showsHymn(theme: ThemeFile): boolean {
+  return theme.boxes.some(box =>
+    HYMN_VALUES.some(value => box.default?.includes(`{${value}}`)),
   );
 }
 

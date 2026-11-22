@@ -1,10 +1,11 @@
 import type {JSX} from 'react';
 import type {ShowTile} from '@core/schema/showService';
 import type {ThemeFile} from '@core/schema/theme';
-import {boxesOf, fillsItself} from '@core/slides';
+import {boxesOf, fillsItself, showsHymn} from '@core/slides';
 import {PropertyGroup} from '@renderer/ui/PropertyRow';
 import {SlideTextField} from '../SlideTextField';
 import type {ChosenSlides} from './changeSelected';
+import {HymnGroup} from './HymnGroup';
 import {LabelRow} from './LabelRow';
 import styles from './SlideInspector.module.css';
 
@@ -28,6 +29,9 @@ export function TextsTab({
   const filled = boxes.filter(box => !own.includes(box));
   return (
     <>
+      {place === null || !showsHymn(place.theme) ? null : (
+        <HymnGroup deck={deck} chosen={chosen} />
+      )}
       {place === null || own.length === 0 ? null : (
         <PropertyGroup title="텍스트">
           <div className={styles.texts}>

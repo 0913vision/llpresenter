@@ -8,7 +8,8 @@
     {
       "name": "찬송가",
       "column": true,
-      "rows": "one"
+      "rows": "one",
+      "default": "{찬송가 장}"
     },
     {
       "name": "제목",

@@ -12,27 +12,29 @@ function titleOf(lines: string[], more: {titleLineCount?: number} = {}) {
 }
 
 describe('the title slide of a hymn', () => {
-  it('keeps the number and leaves the title to the hymnal', () => {
-    const slide = titleOf(['슬픈 마음 있는 사람', '새찬송가 91장']);
-    expect(slide?.theme).toBe(SONG_THEME_IDS.dark.hymnTitle);
-    expect(slide?.texts).toEqual({찬송가: '새찬송가 91장'});
+  it('is the hymn, whose title the hymnal has', () => {
+    expect(titleOf(['슬픈 마음 있는 사람', '새찬송가 91장'])).toMatchObject({
+      theme: SONG_THEME_IDS.dark.hymnTitle,
+      hymn: {hymnal: 'new', number: 91},
+      texts: {},
+    });
   });
 
   it('keeps a title with other words', () => {
-    const slide = titleOf(['예수로 나의 구주 삼고', '새찬송가 288장']);
-    expect(slide?.texts).toEqual({
-      찬송가: '새찬송가 288장',
-      제목: '예수로 나의 구주 삼고',
+    expect(titleOf(['예수로 나의 구주 삼고', '새찬송가 288장'])).toMatchObject({
+      hymn: {hymnal: 'new', number: 288},
+      texts: {제목: '예수로 나의 구주 삼고'},
     });
   });
 
   it('may say its number alone or before its title', () => {
-    expect(titleOf(['통일찬송가 6장'])?.texts).toEqual({
-      찬송가: '통일찬송가 6장',
+    expect(titleOf(['통일찬송가 6장'])).toMatchObject({
+      hymn: {hymnal: 'unified', number: 6},
+      texts: {},
     });
-    expect(titleOf(['91장 슬픈 노래'])?.texts).toEqual({
-      찬송가: '새찬송가 91장',
-      제목: '슬픈 노래',
+    expect(titleOf(['91장 슬픈 노래'])).toMatchObject({
+      hymn: {hymnal: 'new', number: 91},
+      texts: {제목: '슬픈 노래'},
     });
   });
 

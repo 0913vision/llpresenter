@@ -4,6 +4,7 @@ export {
   filledText,
   fillsItself,
   ownText,
+  showsHymn,
   withOwnText,
 } from './boxes';
 export {
@@ -18,6 +19,7 @@ export {
   sameVerse,
   slidesText,
   withBackground,
+  withHymn,
   withLabel,
   withTheme,
   withTransition,

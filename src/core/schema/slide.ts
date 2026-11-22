@@ -1,6 +1,7 @@
 import * as v from 'valibot';
 import type {ReadonlyKnown} from './fileFormat';
 import {BIBLE_LOOKUP_LIMITS} from './bibleLookup';
+import {hymnSchema} from './hymn';
 import {slideIdSchema, themeIdSchema, translationIdSchema} from './ids';
 import {LIVE_STATE_LIMITS, liveTextSchema} from './liveLimits';
 import {
@@ -64,6 +65,8 @@ export const slideSchema = jsonObject({
   transition: v.exactOptional(slideTransitionSchema),
   hotKey: v.exactOptional(slideHotKeySchema),
   verse: v.exactOptional(bibleVerseReferenceSchema),
+  /** The hymn that the slide is the title of. */
+  hymn: v.exactOptional(hymnSchema),
   /** The text goes on on the next slide. */
   continued: v.exactOptional(v.literal(true)),
 });
