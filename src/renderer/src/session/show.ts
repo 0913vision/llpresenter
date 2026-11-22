@@ -1,3 +1,4 @@
+import {stagePassageBoundary} from '@core/presentation/stagePassageBoundary';
 import {rememberLiveAnchor, resolveLiveAnchor} from './liveAnchor';
 import {acceptSongPictureDrafts} from '@core/presentation/songPictureDrafts';
 import {QUICK_BIBLE_TRANSITION} from '@core/bible/quickTransition';
@@ -285,40 +286,6 @@ export function outputTile(
   }
 }
 
-// NOTE(0913vision): TEMPORARY rule for the 2026-11-15 service; replace by grouping the sermon passage with the 설교 제목 item (user request)
-/** Finds the preceding sermon title for the last slide of a service Bible item. */
-function sermonNext(cursor: TileCursor): NextSlide | undefined {
-  const view = useShow.getState();
-  const index = view.rows.findIndex(row => row.id === cursor.itemId);
-  const row = view.rows[index];
-  if (
-    row?.kind !== 'bible' ||
-    cursor.index !== tilesOf(cursor.itemId).length - 1
-  ) {
-    return undefined;
-  }
-  if (row.bible?.sermonTitle !== undefined) return undefined;
-  const sermon = view.rows[index - 1];
-  if (
-    sermon === undefined ||
-    (sermon.kind !== 'slides' && sermon.kind !== 'song') ||
-    sermon.theme !== SERMON_TITLE_THEME_ID
-  ) {
-    return undefined;
-  }
-  const tile = tilesOf(sermon.id).find(
-    value =>
-      value.sectionCard === undefined &&
-      value.lines.some(line => line.trim() !== ''),
-  );
-  const title = tile?.lines
-    .join('\n')
-    .split('\n')
-    .find(line => line.trim() !== '')
-    ?.trim();
-  return title ? {label: null, lines: [title], sermonTitle: true} : undefined;
-}
-
 /** The imported scripture decks are blank-slide items named for their passage. */
 function passageKey(row: ShowRow | undefined): string | undefined {
   if (row === undefined || (row.kind !== 'bible' && row.kind !== 'slides')) {
@@ -416,6 +383,26 @@ function stageStandbyNext(live: TileCursor, next: TileCursor | null): boolean {
   );
 }
 
+/** Suppresses stage cues at passage and opening-title boundaries only. */
+function suppressStageNext(live: TileCursor, next: TileCursor | null): boolean {
+  const rows = useShow.getState().rows;
+  const row = rows.find(entry => entry.id === live.itemId);
+  const tiles = tilesOf(live.itemId);
+  const nextRow =
+    next === null ? undefined : rows.find(entry => entry.id === next.itemId);
+  const nextIsPassage =
+    nextRow?.kind === 'bible' || passageKey(nextRow) !== undefined;
+  return stagePassageBoundary({
+    tiles,
+    index: live.index,
+    passage: row?.kind === 'bible' || passageKey(row) !== undefined,
+    legacyTitleBeforePassage:
+      (row?.kind === 'song' || row?.kind === 'slides') &&
+      row.theme === SERMON_TITLE_THEME_ID &&
+      nextIsPassage,
+  });
+}
+
 function stageNext(
   live: TileCursor | null,
   cursor: TileCursor | null,
@@ -436,10 +423,9 @@ function stageNext(
         : row.kind === 'unknown'
           ? 'blank'
           : row.kind;
-  const sermon = live === null ? undefined : sermonNext(live);
+  if (live !== null && suppressStageNext(live, cursor)) return null;
   const projected =
-    sermon ??
-    (live !== null && stageStandbyNext(live, cursor)
+    live !== null && stageStandbyNext(live, cursor)
       ? {label: null, lines: [], stageStandby: true as const}
       : tile === undefined || cursor === null
         ? null
@@ -451,13 +437,11 @@ function stageNext(
                 : tiles[cursor.index - 1],
             after: tiles[cursor.index + 1],
             textSlideNumber: noticeNumber(tiles, cursor.index),
-          }));
+          });
   return (
     withStageReference(
       projected,
-      sermon === undefined && live !== null
-        ? stageReference(live, cursor)
-        : undefined,
+      live === null ? undefined : stageReference(live, cursor),
     ) ?? null
   );
 }

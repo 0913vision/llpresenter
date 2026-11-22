@@ -623,216 +623,141 @@ describe('show state', () => {
     expect(slides().at(-1)?.slide.next).toBeUndefined();
   });
 
-  it('previews the closing sermon title after the last verse only', () => {
+  it('keeps order and ad cues while passage boundaries suppress their next card', () => {
+    const ordinary = SUNDAY_SECTIONS.find(section => section.name === '봉헌');
+    const notice = SUNDAY_SECTIONS.find(section => section.name === '광고');
+    if (!ordinary || !notice) throw Error('Missing order cards');
+    const tile = {label: null, labelColor: 'none' as const, lines: ['Text']};
+    const card = (section: typeof ordinary) => ({
+      ...tile,
+      sectionCard: sectionCardOf(section),
+      lines: [section.english],
+    });
+    useShow.setState({
+      rows: [
+        {kind: 'song', id: 'before', title: 'Song'},
+        {kind: 'slides', id: 'order', title: '봉헌', form: 'blank'},
+        {kind: 'bible', id: 'sermon', title: 'Sermon', sermonTitle: 'Sermon'},
+        {kind: 'slides', id: 'ads', title: '광고', form: 'ad'},
+      ],
+      tiles: {
+        before: [tile],
+        order: [card(ordinary)],
+        sermon: [
+          {...tile, sermonTitle: true as const},
+          {...tile, lines: ['First verse']},
+          {...tile, lines: ['Last verse']},
+        ],
+        ads: [
+          card(notice),
+          {...tile, kind: 'ad' as const, label: 'Saved ad', name: 'Old name'},
+        ],
+      },
+    });
+    setAtLastSlide('nextItem');
+    expect(stageSlideOf({itemId: 'before', index: 0})?.next).toMatchObject({
+      title: '봉헌',
+      orderTitle: '봉헌',
+    });
+    expect(stageSlideOf({itemId: 'sermon', index: 0})?.next).toBeUndefined();
+    expect(stageSlideOf({itemId: 'sermon', index: 1})?.next?.lines).toEqual([
+      'Last verse',
+    ]);
+    expect(stageSlideOf({itemId: 'sermon', index: 2})?.next).toBeUndefined();
+    expect(stageSlideOf({itemId: 'ads', index: 0})?.next).toMatchObject({
+      adTitle: 'Saved ad',
+    });
+  });
+
+  it('suppresses passage boundaries while keeping middle verses and navigation', () => {
     const id = 'sermon-item';
-    const passage = lookupRequest('John 3:16');
     const title = {
       label: null,
       labelColor: 'none' as const,
       lines: ['Sermon'],
       sermonTitle: true as const,
     };
+    const verse = {
+      label: '3:16',
+      labelColor: 'none' as const,
+      lines: ['Verse'],
+    };
     useShow.setState({
       rows: [
-        {
-          kind: 'bible',
-          id,
-          title: 'Sermon',
-          sermonTitle: 'Sermon',
-          bible: {
-            translation: passage.translation,
-            ref: passage.input,
-            sermonTitle: 'Sermon',
-          },
-        },
+        {kind: 'bible', id, title: 'Sermon', sermonTitle: 'Sermon'},
+        {kind: 'bible', id: 'next-passage', title: 'John 3:17'},
       ],
       tiles: {
-        [id]: [
-          title,
-          {label: '3:16', labelColor: 'none', lines: ['Verse']},
-          title,
-        ],
+        [id]: [title, verse, {...verse, lines: ['Second verse']}, title],
+        'next-passage': [{...verse, lines: ['Next passage']}],
       },
     });
+    setAtLastSlide('nextItem');
+    outputTile({itemId: id, index: 0});
+    expect(slides().at(-1)?.slide.next).toBeUndefined();
     outputTile({itemId: id, index: 1});
-    expect(slides().at(-1)?.slide.next).toMatchObject({
-      sermonTitle: true,
-      lines: ['Sermon'],
-    });
+    expect(slides().at(-1)?.slide.next?.lines).toEqual(['Second verse']);
     outputTile({itemId: id, index: 2});
-    expect(slides().at(-1)?.slide.next?.sermonTitle).not.toBe(true);
+    expect(slides().at(-1)?.slide.next).toBeUndefined();
+    setLive(id, 2);
+    outputNext();
+    expect(slides().at(-1)?.slide.position).toBe(3);
+    outputTile({itemId: id, index: 3});
+    expect(slides().at(-1)?.slide.next?.lines).toEqual(['Next passage']);
   });
 
-  it('labels only a different, non-sermon next Bible passage', () => {
-    const passage = {
-      kind: 'bible' as const,
-      id: 'psalm-23',
-      title: '시편 23:1~3',
-    };
-    const other = {
-      kind: 'bible' as const,
-      id: 'other',
-      title: '민수기 12:3',
-    };
-    const sermon = {
-      kind: 'slides' as const,
-      id: 'sermon',
-      title: 'Sermon',
-      form: 'blank' as const,
-      theme: SERMON_TITLE_THEME_ID,
-    };
-    useShow.setState(state => ({
-      rows: [passage, other],
-      tiles: {...state.tiles, other: state.tiles['psalm-23'] ?? []},
-    }));
-    setAtLastSlide('nextItem');
-    outputTile({itemId: 'psalm-23', index: 1});
-    expect(slides().at(-1)?.slide.next?.stageReference).toBeUndefined();
-    outputTile({itemId: 'psalm-23', index: 2});
-    expect(slides().at(-1)?.slide.next?.stageReference).toBe('민수기 12:3');
-    setLive('psalm-23', 2);
-    sent.length = 0;
-    applyService({
-      ...sampleService,
-      rows: [passage, other],
-      tiles: {
-        ...sampleService.tiles,
-        other: sampleService.tiles['psalm-23'] ?? [],
-      },
-    });
-    expect(sent.at(-1)).toMatchObject({
-      type: 'stage.next.set',
-      next: {stageReference: '민수기 12:3'},
-    });
-    useShow.setState({rows: [passage, sermon, other]});
-    outputTile({itemId: 'sermon', index: 0});
-    useShow.setState(state => ({
-      rows: [passage, other, sermon, {...other, id: 'sermon-passage'}],
-      tiles: {...state.tiles, 'sermon-passage': state.tiles.other ?? []},
-    }));
-    outputTile({itemId: 'psalm-23', index: 2});
-    expect(slides().at(-1)?.slide.next?.stageReference).toBeUndefined();
-    useShow.setState({
-      rows: [passage, {kind: 'song', id: 'song-river', title: 'Sermon'}],
-    });
-    outputTile({itemId: 'psalm-23', index: 2});
-    expect(slides().at(-1)?.slide.next?.stageReference).toBeUndefined();
-  });
-
-  it('recognizes scripture decks named for a passage after a different sermon title', () => {
-    const title = {
-      kind: 'slides' as const,
-      id: 'song-river',
-      title: '마태복음 11:29~30',
-      form: 'blank' as const,
-      theme: SERMON_TITLE_THEME_ID,
-    };
-    const scripture = {
-      kind: 'slides' as const,
-      id: 'psalm-23',
-      title: '민수기 12:3',
-      form: 'blank' as const,
-    };
-    useShow.setState({rows: [title, scripture]});
-    setAtLastSlide('nextItem');
-    outputTile({itemId: 'song-river', index: 2});
-    expect(slides().at(-1)?.slide.next?.stageReference).toBe('민수기 12:3');
-    outputTile({itemId: 'psalm-23', index: 0});
-    expect(slides().at(-1)?.slide.next?.stageReference).toBeUndefined();
-  });
-
-  it.each(['before', 'after'] as const)(
-    'only previews a sermon that comes %s the Bible item',
-    position => {
-      const bible = {kind: 'bible' as const, id: 'psalm-23', title: 'Passage'};
-      const sermon = {
+  it.each(['bible', 'slides'] as const)(
+    'suppresses the end of a %s passage and legacy opening title',
+    kind => {
+      const title = {
         kind: 'slides' as const,
-        id: 'sermon',
+        id: 'title',
         title: 'Sermon',
         form: 'blank' as const,
         theme: SERMON_TITLE_THEME_ID,
       };
-      useShow.setState(state => ({
-        rows: position === 'before' ? [sermon, bible] : [bible, sermon],
+      const passage =
+        kind === 'bible'
+          ? {kind: 'bible' as const, id: 'passage', title: 'John 3:16'}
+          : {
+              kind: 'slides' as const,
+              id: 'passage',
+              title: 'John 3:16',
+              form: 'blank' as const,
+            };
+      const tile = {label: null, labelColor: 'none' as const, lines: ['Text']};
+      useShow.setState({
+        rows: [title, passage, {kind: 'song', id: 'song-river', title: 'Song'}],
         tiles: {
-          ...state.tiles,
-          sermon: [
-            {
-              label: null,
-              labelColor: 'none',
-              lines: ['Sermon title', 'English subtitle'],
-            },
-          ],
-        },
-      }));
-      setAtLastSlide('stop');
-      outputTile({itemId: 'psalm-23', index: 2});
-      if (position === 'before') {
-        expect(slides().at(-1)?.slide.next).toEqual({
-          label: null,
-          lines: ['Sermon title'],
-          sermonTitle: true,
-        });
-      } else {
-        expect(slides().at(-1)?.slide.next).toBeUndefined();
-      }
-      outputTile({itemId: 'psalm-23', index: 1});
-      expect(slides().at(-1)?.slide.next).not.toHaveProperty('sermonTitle');
-      setLive('psalm-23', 2);
-      sent.length = 0;
-      applyService({
-        ...sampleService,
-        revision: 3,
-        rows: position === 'before' ? [sermon, bible] : [bible, sermon],
-        tiles: {
-          ...sampleService.tiles,
-          sermon: [
-            {
-              label: null,
-              labelColor: 'none',
-              lines: ['Updated title', 'English'],
-            },
-          ],
+          title: [tile, tile],
+          passage: [tile, {...tile, lines: ['Second verse']}],
+          'song-river': [tile],
         },
       });
-      if (position === 'before') {
-        expect(sent.at(-1)).toMatchObject({
-          type: 'stage.next.set',
-          next: {lines: ['Updated title'], sermonTitle: true},
-        });
-      } else {
-        expect(
-          sent.some(
-            command =>
-              command.type === 'stage.next.set' &&
-              command.next?.sermonTitle === true,
-          ),
-        ).toBe(false);
-      }
+      setAtLastSlide('nextItem');
+      outputTile({itemId: 'title', index: 0});
+      expect(slides().at(-1)?.slide.next?.lines).toEqual(['Text']);
+      outputTile({itemId: 'title', index: 1});
+      expect(slides().at(-1)?.slide.next).toBeUndefined();
+      outputTile({itemId: 'passage', index: 0});
+      expect(slides().at(-1)?.slide.next?.lines).toEqual(['Second verse']);
+      outputTile({itemId: 'passage', index: 1});
+      expect(slides().at(-1)?.slide.next).toBeUndefined();
     },
   );
 
-  it('does not add a sermon preview when a Bible item is not adjacent to the sermon', () => {
-    useShow.setState(state => ({
+  it('shows the reference for the next passage from a song', () => {
+    const tile = {label: null, labelColor: 'none' as const, lines: ['Text']};
+    useShow.setState({
       rows: [
-        {kind: 'bible', id: 'psalm-23', title: 'Passage'},
-        {kind: 'header', id: 'gap', title: 'Gap'},
-        {
-          kind: 'slides',
-          id: 'sermon',
-          title: 'Sermon',
-          form: 'blank',
-          theme: SERMON_TITLE_THEME_ID,
-        },
+        {kind: 'song', id: 'song', title: 'Song'},
+        {kind: 'bible', id: 'passage', title: 'John 3:16'},
       ],
-      tiles: {
-        ...state.tiles,
-        sermon: [{label: null, labelColor: 'none', lines: ['Title']}],
-      },
-    }));
-    setAtLastSlide('stop');
-    outputTile({itemId: 'psalm-23', index: 2});
-    expect(slides().at(-1)?.slide.next).toBeUndefined();
+      tiles: {song: [tile], passage: [tile]},
+    });
+    setAtLastSlide('nextItem');
+    outputTile({itemId: 'song', index: 0});
+    expect(slides().at(-1)?.slide.next?.stageReference).toBe('John 3:16');
   });
 
   it('updates the stage preview when continuous navigation changes while a slide is live', () => {

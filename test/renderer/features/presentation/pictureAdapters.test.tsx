@@ -1,3 +1,4 @@
+import {stageSlideOf, useShow} from '@renderer/session/show';
 import {isValidElement} from 'react';
 import {expect, it, onTestFinished, vi} from 'vitest';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
@@ -168,6 +169,79 @@ it('shares a split Bible part and its resolved appearance between details and pr
   expect(details.layers.media).toEqual(preloaded.layers.media);
   expect(details.appearance.screen).toEqual(preloaded.appearance.screen);
   expect(details.appearance.theme).toEqual(preloaded.appearance.theme);
+});
+
+it('uses the same sermon boundary cues in preparation and show previews', () => {
+  const item = templateOrder.find(value => isItemOfKind(value, 'bible'));
+  if (item === undefined || !isItemOfKind(item, 'bible')) {
+    throw new Error('Missing Bible item');
+  }
+  const screens = {
+    format: 'llsettings.screens' as const,
+    schemaVersion: 1 as const,
+    screens: themeScreens,
+  };
+  const appearance = previewAppearance({
+    role: 'stage',
+    themes: themeFile(),
+    screens,
+    item: {id: item.id, kind: 'bible', source: 'service', title: 'Passage'},
+  });
+  const title = {
+    label: null,
+    labelColor: 'none' as const,
+    lines: ['Sermon'],
+    sermonTitle: true as const,
+  };
+  const tiles: readonly SlideTile[] = [
+    title,
+    {label: '1:1', labelColor: 'none', lines: ['First verse']},
+    {label: '1:2', labelColor: 'none', lines: ['Final verse']},
+    title,
+  ];
+  const sermonTheme = slideTheme(
+    {id: item.id, kind: 'slides', form: 'blank', title: 'Passage'},
+    {
+      source: 'service',
+      file: themeFile(),
+      screens: themeScreens,
+      role: 'stage',
+    },
+  );
+  if (sermonTheme === undefined) throw new Error('Missing sermon theme');
+  const data = context({
+    item,
+    projection: {tiles, appearance},
+    bibleTiles: tiles,
+    sermonTheme,
+    role: 'stage',
+  });
+  const previous = useShow.getState();
+  onTestFinished(() => useShow.setState(previous, true));
+  useShow.setState({
+    rows: [
+      {kind: 'bible', id: item.id, title: 'Passage', sermonTitle: 'Sermon'},
+    ],
+    tiles: {[item.id]: tiles},
+  });
+  for (const index of [0, 1, 2, 3]) {
+    expect(detailsSpec(data, index).layers.slide?.next).toEqual(
+      stageSlideOf({itemId: item.id, index})?.next,
+    );
+  }
+  expect(detailsSpec(data, 0).layers.slide?.next).toBeUndefined();
+  expect(detailsSpec(data, 1).layers.slide?.next?.lines).toEqual([
+    'Final verse',
+  ]);
+  expect(detailsSpec(data, 2).layers.slide?.next).toBeUndefined();
+  for (const role of ['audience', 'broadcast'] as const) {
+    expect(detailsSpec({...data, role}, 0).layers.slide?.next?.lines).toEqual([
+      'First verse',
+    ]);
+    expect(detailsSpec({...data, role}, 2).layers.slide?.next?.lines).toEqual([
+      'Sermon',
+    ]);
+  }
 });
 
 it('preserves formatted song data in the item fallback while projection is loading', () => {

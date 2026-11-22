@@ -1,3 +1,5 @@
+import {LIGHT_SONG_THEME_ID} from '@core/themes/lightSong';
+import {SONG_THEME_ID} from '@core/themes/songTitle';
 import {CREED_PRAYER_THEME_ID} from '@core/themes/creedPrayer';
 import {
   PREPARATION_THEME_ID,
@@ -76,7 +78,11 @@ it('places song lyrics near the top while retaining the starter broadcast styles
     STARTER_STAGE_ELEMENTS.map(element =>
       element.kind === 'currentLabel'
         ? {...element.frame, y: 10, h: 80}
-        : element.frame,
+        : element.kind === 'currentSlide'
+          ? {x: 96, y: 130, w: 1728, h: 610}
+          : element.kind === 'nextSlide'
+            ? {x: 96, y: 748, w: 1728, h: 272}
+            : element.frame,
     ),
   );
   expect(theme.screens[stage]?.elements.map(element => element.kind)).toEqual([
@@ -181,14 +187,14 @@ it('shows a small left-aligned Bible reference above its stage text', () => {
   const stage = createScreenId(STARTER_SCREEN_IDS.stage);
   const elements = builtInTheme('bible').screens[stage]?.elements ?? [];
   expect(elements.find(element => element.kind === 'reference')).toMatchObject({
-    frame: {x: 154, y: 120, h: 104},
+    frame: {x: 96, y: 120, h: 104},
     text: {size: 72, align: 'left'},
   });
   expect(
     elements.find(element => element.kind === 'currentText'),
-  ).toMatchObject({frame: {x: 154, y: 230}, text: {size: 104, align: 'left'}});
+  ).toMatchObject({frame: {x: 96, y: 230}, text: {size: 104, align: 'left'}});
   expect(elements.find(element => element.kind === 'nextText')).toMatchObject({
-    frame: {x: 154},
+    frame: {x: 96},
     text: {align: 'left'},
   });
 });
@@ -368,13 +374,13 @@ it('offers one sermon title theme with automatic bars', () => {
   expect(
     stage?.elements.find(element => element.kind === 'reference'),
   ).toMatchObject({
-    frame: {x: 154, y: 245, h: 90},
-    text: {size: 52, align: 'left'},
+    frame: {x: 96, y: 245, h: 90},
+    text: {size: 72, align: 'left'},
   });
   expect(
     stage?.elements.find(element => element.kind === 'currentText'),
   ).toMatchObject({
-    frame: {x: 154, y: 345, h: 340},
+    frame: {x: 96, y: 345, h: 340},
     text: {size: 140, align: 'left', maxLines: 2},
   });
   expect(stage?.elements.filter(element => element.kind === 'clock')).toEqual(
@@ -619,14 +625,14 @@ it('keeps the label centered and the clock above the lyric frames', () => {
 
   expect(clock.text).toMatchObject({size: 60, color: '#E6E6E6'});
   expect(clock.frame).toEqual({x: 1460, y: 20, w: 400, h: 80});
-  expect(current.frame).toEqual({x: 154, y: 130, w: 1612, h: 568});
-  expect(next.frame).toEqual({x: 154, y: 706, w: 1612, h: 272});
+  expect(current.frame).toEqual({x: 96, y: 130, w: 1728, h: 610});
+  expect(next.frame).toEqual({x: 96, y: 748, w: 1728, h: 272});
   expect(clock.frame.y + clock.frame.h).toBeLessThanOrEqual(current.frame.y);
   expect(clock.frame.x + clock.frame.w).toBeLessThanOrEqual(
     REFERENCE_SCREEN.width,
   );
   for (const element of [current, next]) {
-    expect(element.frame.x / REFERENCE_SCREEN.width).toBeCloseTo(0.08, 2);
+    expect(element.frame.x / REFERENCE_SCREEN.width).toBeCloseTo(0.05, 2);
     expect(element.frame.x + element.frame.w).toBe(
       REFERENCE_SCREEN.width - element.frame.x,
     );
@@ -673,8 +679,10 @@ it('uses the stage clock and next preview geometry across built-in themes', () =
       {
         frame:
           theme.id === BIBLE_THEME_ID || theme.id === CREED_PRAYER_THEME_ID
-            ? {y: 786, h: 192}
-            : {y: 706, h: 272},
+            ? {y: 828, h: 192}
+            : theme.id === SONG_THEME_ID || theme.id === LIGHT_SONG_THEME_ID
+              ? {y: 748, h: 272}
+              : {y: 706, h: 272},
       },
     );
   }
@@ -723,6 +731,11 @@ it('matches each audience text size without overlapping stage next and clock', (
     });
     expect(next.text.font).toBe(audienceText.text.font);
     expect(current.frame.y + current.frame.h).toBeLessThanOrEqual(next.frame.y);
+    if (kind !== 'ad') {
+      expect(next.frame.y + next.frame.h).toBeLessThanOrEqual(1020);
+      expect(next.frame.x).toBeGreaterThanOrEqual(96);
+      expect(next.frame.x + next.frame.w).toBeLessThanOrEqual(1824);
+    }
     expect(clock.frame.y + clock.frame.h).toBeLessThanOrEqual(current.frame.y);
   }
 });

@@ -198,10 +198,10 @@ export function sermonTitleStageLayout(
         return {
           ...element,
           source: 'slide',
-          frame: {x: 154, y: 245, w: 1612, h: 90},
+          frame: {x: 96, y: 245, w: 1728, h: 90},
           text: {
             ...text,
-            size: 52,
+            size: 72,
             tracking: 0,
             lineHeight: 1.2,
             align: 'left',
@@ -212,7 +212,7 @@ export function sermonTitleStageLayout(
       if (element.kind !== 'currentText') return element;
       return {
         ...element,
-        frame: {...element.frame, y: 345, h: 340},
+        frame: {...element.frame, x: 96, w: 1728, y: 345, h: 340},
         text: {
           ...element.text,
           size: 140,
