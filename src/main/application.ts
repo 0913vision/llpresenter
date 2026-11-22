@@ -464,7 +464,6 @@ export function start(
         windowMode,
         log,
         media: dataStore.media,
-        ownedMedia: dataStore.media,
       });
       const playbackProblems = registerPlaybackProblems({
         log,

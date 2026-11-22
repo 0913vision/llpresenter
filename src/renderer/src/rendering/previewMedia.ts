@@ -44,6 +44,11 @@ export function lendPreviewImage(
   };
 }
 
+/** The address of an image that is lent to previews now. */
+export function lentPreviewUrl(id: string): string | undefined {
+  return temporaryImages.get(id)?.url;
+}
+
 export interface PreviewMediaSource {
   /** The picture's address, when this window already knows it. */
   readonly peek: (mediaId: string) => string | undefined;

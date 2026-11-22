@@ -93,7 +93,12 @@ export function usePrepActions(session: ControlSession): PrepActions {
           {source === 'powerpoint-images' ? (
             <PowerPointImagesFlow api={api} onDone={done} onProblem={report} />
           ) : source === 'powerpoint' ? (
-            <PowerPointImportFlow api={api} onDone={done} onProblem={report} />
+            <PowerPointImportFlow
+              api={api}
+              onDone={done}
+              onProblem={report}
+              onDismiss={session.dismiss}
+            />
           ) : source === null ? null : (
             <TextImportFlow
               api={api}

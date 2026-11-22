@@ -165,12 +165,12 @@ it('leaves an untouched new song at once', async () => {
 it('asks before an imported song is left, although nothing was changed', async () => {
   await setup();
   const proceed = vi.fn();
-  act(() =>
+  act(() => {
     openImportedSong({
       title: '가져온 노래',
       slides: [{lines: ['첫 줄'], section: 0}],
-    }),
-  );
+    });
+  });
   expect(texts()).toEqual(['가져온 노래', '첫 줄']);
   act(() => requestLeaveSong(proceed));
   expect(proceed).not.toHaveBeenCalled();

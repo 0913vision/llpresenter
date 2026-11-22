@@ -2,7 +2,6 @@ import {app, dialog, ipcMain} from 'electron';
 import {copyFile, mkdtemp, readFile, rm, stat, unlink} from 'node:fs/promises';
 import {constants as fsConstants, existsSync} from 'node:fs';
 import {basename, dirname, extname, join} from 'node:path';
-import {randomUUID} from 'node:crypto';
 import {powerpointEndpoints} from '@contracts/ipc/powerpoint';
 import {
   parsePowerPointBackgroundsRequest,
@@ -17,14 +16,16 @@ import {
 import type {TextImportRegistration} from './register';
 import {TEST_IMPORT_FILE_VARIABLE} from './testImportFile';
 import {PowerPointJobs} from './powerpointJob';
-import type {MediaStore} from '../store/mediaStore';
-import {createMediaId} from '@core/schema/ids';
-import {boundedPowerPointImage} from './powerpointImage';
+import {powerPointImageSize} from './powerpointImage';
 import {
   PowerPointImagesJob,
   type PowerPointImagesResult,
 } from './powerpointImages';
-
+import {
+  storeBackgrounds,
+  storeSlidePictures,
+  type PictureStore,
+} from './storePictures';
 import {pickerFolder, rememberPickerFile} from './pickerFolder';
 import {isPowerPointFourThree} from './powerpointSize';
 
@@ -108,7 +109,7 @@ async function readBoundedPicture(path: string): Promise<Buffer | null> {
       return null;
     }
     const bytes = await readFile(path);
-    return boundedPowerPointImage(bytes) ? bytes : null;
+    return powerPointImageSize(bytes) === null ? null : bytes;
   } catch {
     return null;
   }
@@ -127,11 +128,7 @@ function picturesOf(slides: unknown): ReadonlyArray<string | undefined> {
 
 export function registerPowerPointImport(
   context: TextImportRegistration & {
-    readonly media?: Promise<Pick<MediaStore, 'get' | 'fileOf'> | null>;
-    readonly ownedMedia?: Promise<Pick<
-      MediaStore,
-      'get' | 'folder' | 'add'
-    > | null>;
+    readonly media?: Promise<PictureStore | null>;
   },
   jobs: Pick<PowerPointJobs, 'run' | 'dispose'> &
     Partial<Pick<PowerPointJobs, 'cancel'>> = new PowerPointJobs(),
@@ -156,6 +153,8 @@ export function registerPowerPointImport(
   let exporting: string | null = null;
   /** Settles when PowerPoint is out of the way of the next export. */
   let closing: Promise<void> = Promise.resolve();
+  /** The pictures are done, and PowerPoint only closes. */
+  let leaving = false;
   const retiredDirectories = new Set<string>();
   const cleanRetired = (): void => {
     if (imagesBusy) return;
@@ -219,63 +218,19 @@ export function registerPowerPointImport(
       ) {
         return {ok: false, message: 'PowerPoint 이미지 가져오기 실패'};
       }
-      const media = await context.ownedMedia;
+      const media = await context.media;
       if (!media || isDisposed()) {
         return {ok: false, message: '미디어 저장소를 사용할 수 없습니다'};
       }
-      const files = parsed.value.paths.map(path => ({
-        path,
-        id: createMediaId(randomUUID()),
-      }));
-      const created: string[] = [];
-      let applied = false;
+      const {paths, title} = parsed.value;
       try {
-        const copies = await Promise.allSettled(
-          files.map(async ({path, id}) => {
-            const name = `llp-ppt-${id}.png`;
-            const target = join(media.folder, name);
-            await copyFile(path, target, fsConstants.COPYFILE_EXCL);
-            created.push(target);
-            const info = await stat(target);
-            return {
-              id,
-              name: '',
-              kind: 'image' as const,
-              internal: true as const,
-              file: name,
-              size: info.size,
-              width: 1920,
-              height: 1080,
-            };
-          }),
-        );
-        const items = copies.flatMap(result =>
-          result.status === 'fulfilled' ? [result.value] : [],
-        );
-        if (items.length !== files.length) throw new Error('Image copy failed');
-        for (let attempt = 0; attempt < 3; attempt++) {
-          const result = await media.add(
-            {items, baseRevision: media.get().revision},
-            null,
-          );
-          if (result.ok) {
-            applied = true;
-            return {ok: true, value: files.map(file => file.id)};
-          }
-          if (result.error.reason === 'write-failed') {
-            applied = true;
-            throw new Error('Media save failed');
-          }
-          if (result.error.reason !== 'stale') {
-            throw new Error(result.error.message);
-          }
-        }
-        throw new Error('Media changed while importing');
+        const value =
+          title === undefined
+            ? await storeSlidePictures(media, paths)
+            : await storeBackgrounds(media, paths, title);
+        return {ok: true, value};
       } catch (error) {
-        context.log.warn('could not store owned PowerPoint images', error);
-        if (!applied) {
-          await Promise.all(created.map(path => rm(path, {force: true})));
-        }
+        context.log.warn('could not store PowerPoint pictures', error);
         return {ok: false, message: 'PowerPoint 이미지 가져오기 실패'};
       }
     },
@@ -413,8 +368,8 @@ export function registerPowerPointImport(
   });
   ipcMain.handle(
     powerpointEndpoints.read.channel,
-    async (): Promise<PowerPointReadResult> => {
-      if (busy || imagesBusy) {
+    async (event): Promise<PowerPointReadResult> => {
+      if (busy || (imagesBusy && !leaving)) {
         return {ok: false, message: 'PowerPoint 파일을 읽는 중입니다.'};
       }
       busy = true;
@@ -443,6 +398,11 @@ export function registerPowerPointImport(
           rememberPickerFile(context.uiState, 'powerpointImportFolder', path);
         }
         if (!path) throw new Error('파일을 열 수 없습니다.');
+        if (!event.sender.isDestroyed()) {
+          event.sender.send(powerpointEndpoints.reading.channel, {
+            fileName: basename(path),
+          });
+        }
         let importPath = path;
         if (extname(path).toLowerCase() === '.ppt') {
           directory = await mkdtemp(join(app.getPath('temp'), 'llp-ppt-'));
@@ -636,6 +596,7 @@ export function registerPowerPointImport(
         context.log.warn('could not export PowerPoint backgrounds', error);
         return null;
       } finally {
+        leaving = true;
         closing = closed
           .catch((error: unknown) =>
             context.log.warn('could not close PowerPoint', error),
@@ -644,6 +605,7 @@ export function registerPowerPointImport(
             exporting = null;
             await removeIfEmpty(directory);
             imagesBusy = false;
+            leaving = false;
             cleanRetired();
           })
           .catch((error: unknown) =>
@@ -674,39 +636,6 @@ export function registerPowerPointImport(
       return request.ok ? release(request.value.path) : false;
     },
   );
-  ipcMain.handle(
-    powerpointEndpoints.match.channel,
-    async (_event, value: unknown) => {
-      const request = parsePowerPointReleaseRequest(value);
-      if (!request.ok || !tempFiles.has(request.value.path) || disposed) {
-        return null;
-      }
-      const media = await context.media;
-      if (!media || !tempFiles.has(request.value.path) || isDisposed()) {
-        return null;
-      }
-      const candidates = media.get().value.items.flatMap(item => {
-        if (item.kind !== 'image') return [];
-        const path = media.fileOf(item.id);
-        return path === null ? [] : [{id: item.id, path}];
-      });
-      const matched = await jobs.run({
-        kind: 'match',
-        path: request.value.path,
-        candidates,
-      });
-      const candidate = candidates.find(item => item.id === matched);
-      return typeof matched === 'string' &&
-        media.fileOf(matched) === candidate?.path &&
-        media
-          .get()
-          .value.items.some(
-            item => item.id === matched && item.kind === 'image',
-          )
-        ? createMediaId(matched)
-        : null;
-    },
-  );
   return () => {
     if (disposed) return;
     disposed = true;
@@ -718,7 +647,6 @@ export function registerPowerPointImport(
     ipcMain.removeHandler(powerpointEndpoints.backgrounds.channel);
     ipcMain.removeHandler(powerpointEndpoints.release.channel);
     ipcMain.removeHandler(powerpointEndpoints.previewImage.channel);
-    ipcMain.removeHandler(powerpointEndpoints.match.channel);
     ipcMain.removeHandler(powerpointEndpoints.images.channel);
     ipcMain.removeHandler(powerpointEndpoints.cancelImages.channel);
     ipcMain.removeHandler(powerpointEndpoints.storeImages.channel);

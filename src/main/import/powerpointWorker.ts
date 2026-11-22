@@ -5,7 +5,6 @@ import {POWERPOINT_IMPORT_LIMITS} from '@core/songs/textImportLimits';
 import {readPowerPoint, readPowerPointSize} from './powerpointRead';
 import {PowerPointZip} from './powerpointZip';
 import type {PowerPointJob} from './powerpointJob';
-import {sameImage} from './matchImage';
 
 function parseJob(value: unknown): PowerPointJob {
   if (
@@ -19,28 +18,6 @@ function parseJob(value: unknown): PowerPointJob {
   }
   if (value.kind === 'read') return {kind: 'read', path: value.path};
   if (value.kind === 'size') return {kind: 'size', path: value.path};
-  if (
-    value.kind === 'match' &&
-    'candidates' in value &&
-    Array.isArray(value.candidates)
-  ) {
-    const candidates: readonly unknown[] = value.candidates;
-    const valid: Array<{id: string; path: string}> = [];
-    for (const item of candidates) {
-      if (
-        typeof item !== 'object' ||
-        item === null ||
-        !('id' in item) ||
-        typeof item.id !== 'string' ||
-        !('path' in item) ||
-        typeof item.path !== 'string'
-      ) {
-        throw new Error('Invalid media candidate');
-      }
-      valid.push({id: item.id, path: item.path});
-    }
-    return {kind: 'match', path: value.path, candidates: valid};
-  }
   if (
     value.kind === 'pictures' &&
     'digest' in value &&
@@ -103,16 +80,6 @@ async function readBounded(path: string): Promise<Buffer> {
 async function run(): Promise<void> {
   const input: unknown = workerData;
   const job = parseJob(input);
-  if (job.kind === 'match') {
-    for (const candidate of job.candidates) {
-      if (await sameImage(job.path, candidate.path)) {
-        parentPort?.postMessage(candidate.id);
-        return;
-      }
-    }
-    parentPort?.postMessage(null);
-    return;
-  }
   const bytes = await readBounded(job.path);
   if (job.kind === 'size') {
     parentPort?.postMessage(readPowerPointSize(bytes));

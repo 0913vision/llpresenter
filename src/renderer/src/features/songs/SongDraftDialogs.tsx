@@ -104,7 +104,7 @@ function TakenDialog({
 
 /** The questions of saving the open song, and of leaving it unsaved. */
 export function SongDraftDialogs(): JSX.Element | null {
-  const {draft, question, saving, library} = useSongDraft();
+  const {draft, question, saving, library, pictures} = useSongDraft();
   if (question === null || draft === null) return null;
   const close = (): void => ask(null);
   const title = draft.song.title;
@@ -170,7 +170,7 @@ export function SongDraftDialogs(): JSX.Element | null {
             {
               label: '저장',
               primary: true,
-              disabled: saving,
+              disabled: saving || pictures?.busy === true,
               onSelect: () =>
                 run(
                   draft.document === null

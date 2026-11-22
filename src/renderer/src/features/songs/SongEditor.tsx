@@ -16,6 +16,7 @@ import {Button} from '@renderer/ui/Button';
 import {Icon} from '@renderer/ui/Icon';
 import {isComposing} from '@renderer/ui/ime';
 import {menuAvailability} from '@renderer/ui/menuModel';
+import {Progress} from '@renderer/ui';
 import {TextField} from '@renderer/ui/TextField';
 import {Tooltip} from '@renderer/ui/Tooltip';
 import {BackgroundDrop} from '../slides/BackgroundDrop';
@@ -59,6 +60,8 @@ export function useSongDeck(): SlideDeck | null {
   }, [draft]);
 }
 
+const PICTURES_REASON = '배경을 가져오는 중입니다';
+
 function save(): void {
   requestSave().catch((error: unknown) =>
     console.error('Could not save the song', error),
@@ -70,7 +73,8 @@ function SongHeader({
 }: {
   readonly onBack: () => void;
 }): JSX.Element | null {
-  const {draft, library, libraryStatus, saving, titleFocus} = useSongDraft();
+  const {draft, library, libraryStatus, pictures, saving, titleFocus} =
+    useSongDraft();
   const frame = useRef<HTMLDivElement>(null);
   const focused = useRef(0);
   useLayoutEffect(() => {
@@ -83,7 +87,9 @@ function SongHeader({
   if (draft === null) return null;
   const unsaved = isUnsaved(draft);
   const readOnly = draft.document?.access === 'readOnly';
-  const reason = songTitleProblem(draft, library);
+  const busy = pictures !== null && (pictures.busy || saving);
+  const titleReason = songTitleProblem(draft, library);
+  const reason = titleReason ?? (busy ? PICTURES_REASON : undefined);
   const usage = songUsage(library, libraryStatus, draft.song.id);
   return (
     <header className={styles.header}>
@@ -110,8 +116,8 @@ function SongHeader({
           onChange={editSongTitle}
           readOnly={readOnly || saving}
           title={readOnly ? NEWER_FILE_REASON : undefined}
-          invalid={reason !== undefined}
-          invalidReason={reason}
+          invalid={titleReason !== undefined}
+          invalidReason={titleReason}
           onKeyDown={event => {
             if (event.key !== 'Enter' || isComposing(event)) return;
             event.preventDefault();
@@ -122,6 +128,7 @@ function SongHeader({
           }}
         />
       </div>
+      {busy ? <Progress value={null} label="배경 가져오는 중" /> : null}
       {draft.document === null ? null : (
         <Button
           disabled={saving || readOnly}

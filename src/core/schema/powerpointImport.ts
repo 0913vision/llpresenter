@@ -108,7 +108,6 @@ export const parsePowerPointBackgroundsResult = (value: unknown) =>
 const releaseRequest = payloadObject({
   path: v.pipe(v.string(), v.minLength(1)),
 });
-const matchResult = v.nullable(mediaIdSchema);
 const imageExportProgress = payloadObject({
   done: nonNegativeInteger,
   total: nonNegativeInteger,
@@ -122,6 +121,8 @@ const imageExportProgress = payloadObject({
 });
 const ownedImagesRequest = payloadObject({
   paths: v.pipe(v.array(v.string()), v.minLength(1), v.maxLength(200)),
+  /** The song the pictures are backgrounds of, or slides of their own. */
+  title: v.exactOptional(v.pipe(v.string(), v.maxLength(1000))),
 });
 const ownedImagesResult = v.variant('ok', [
   v.object({
@@ -172,6 +173,12 @@ export const parsePowerPointImageExportResult = (value: unknown) =>
   checkPart(imageExportResult, value);
 export const parsePowerPointImageExportProgress = (value: unknown) =>
   checkPart(imageExportProgress, value);
+const reading = payloadObject({
+  fileName: v.pipe(v.string(), v.maxLength(260)),
+});
+export type PowerPointReading = v.InferOutput<typeof reading>;
+export const parsePowerPointReading = (value: unknown) =>
+  checkPart(reading, value);
 export type PowerPointPreviewImage = v.InferOutput<typeof encodedImage> | null;
 export const parsePowerPointPreviewImage = (value: unknown) =>
   checkPart(v.nullable(encodedImage), value);
@@ -184,5 +191,3 @@ export const parsePowerPointReleaseRequest = (value: unknown) =>
   checkPart(releaseRequest, value);
 export const parsePowerPointReleaseResult = (value: unknown) =>
   checkPart(v.boolean(), value);
-export const parsePowerPointMatchResult = (value: unknown) =>
-  checkPart(matchResult, value);

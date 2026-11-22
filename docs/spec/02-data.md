@@ -133,7 +133,8 @@ There are two imports: 곡 가져오기 and 이미지로 가져오기.
   that shows a title again, is a title too. The largest row of a title is its
   name; the others become the subtitle. Every other text is lyrics.
 - PowerPoint exports the backgrounds. They show as they come in, each kind once.
-- A deck whose texts are mostly dark gets the 테마 for a bright background.
+- The slides of a background whose texts are mostly dark get the 테마 for a
+  bright background.
 - 이미지로 가져오기 makes one 빈 슬라이드 item with a picture for each slide.
 
 ## Service file (`.llservice`)

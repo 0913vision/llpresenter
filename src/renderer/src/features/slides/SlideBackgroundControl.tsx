@@ -16,12 +16,15 @@ import {
   type MediaPickerItem,
 } from '@renderer/features/media/MediaPicker';
 import {pictureMedia, useMedia} from '@renderer/platform/media';
+import {lentPreviewUrl} from '@renderer/rendering/previewMedia';
 import {backgroundPaint} from '@renderer/rendering/themeBackground';
 import {Select} from '@renderer/ui/Select';
 
 const FILL = 'fill:';
 const THEME_LABEL = '테마 배경';
 const MIXED = '혼합';
+/** A picture of an import that is not saved yet. */
+const IMPORTED_LABEL = '가져온 배경';
 
 function paintOf(background: SlideBackground): string {
   const {backgroundColor, backgroundImage} = backgroundPaint(background);
@@ -57,7 +60,9 @@ export function slideBackgroundName(
           ?.name ?? '그라데이션'
       );
     case 'media':
-      return backgroundName(media, background.media);
+      return lentPreviewUrl(background.media) === undefined
+        ? backgroundName(media, background.media)
+        : IMPORTED_LABEL;
   }
 }
 
@@ -90,8 +95,10 @@ export function SlideBackgroundControl({
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const shown = value?.kind === 'media' ? value.media : undefined;
+  const lent = shown === undefined ? undefined : lentPreviewUrl(shown);
   const missing =
     shown !== undefined &&
+    lent === undefined &&
     !pictures.some(item => item.id === shown) &&
     backgroundPicture(shown) === undefined;
   const choose = (choice: string | undefined): void => {
@@ -120,7 +127,7 @@ export function SlideBackgroundControl({
         lead={
           shown === undefined || mixed
             ? undefined
-            : {kind: 'media', src: thumbnailSrc(shown)}
+            : {kind: 'media', src: lent ?? thumbnailSrc(shown)}
         }
         title={missing ? missingBackgroundTip() : undefined}
         disabled={disabled}

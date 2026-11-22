@@ -3,7 +3,7 @@ import type {LlpApi} from '@contracts/ipc/api';
 import {sameJson} from '@core/common/sameJson';
 import type {LibrarySong, SongDocument} from '@core/schema/contentDocuments';
 import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
-import {createSongId, type SongId} from '@core/schema/ids';
+import {createSongId, type MediaId, type SongId} from '@core/schema/ids';
 import {SONG_SCHEMA_VERSION, type Song} from '@core/schema/song';
 import type {TextImportDraft} from '@core/schema/textImport';
 import {
@@ -46,6 +46,17 @@ export interface SongDraft {
   readonly future: readonly Step[];
 }
 
+/** Pictures that an imported song shows before they are files of the list. */
+export interface ImportPictures {
+  /** The files of these pictures, made where the media list has none. */
+  readonly keep: (
+    ids: ReadonlySet<MediaId>,
+    title: string,
+  ) => Promise<ReadonlyMap<MediaId, MediaId>>;
+  /** Stops what still comes in and frees the rest. */
+  readonly release: () => void;
+}
+
 /** What is asked before the draft is saved or left. */
 export type SongQuestion =
   | {readonly kind: 'overwrite'}
@@ -59,6 +70,11 @@ export type SongQuestion =
 
 export interface SongDraftView {
   readonly draft: SongDraft | null;
+  /** The pictures of the import that is open, and whether more come in. */
+  readonly pictures: {
+    readonly source: ImportPictures;
+    readonly busy: boolean;
+  } | null;
   readonly question: SongQuestion | null;
   readonly saving: boolean;
   readonly library: readonly LibrarySong[];
@@ -69,6 +85,7 @@ export interface SongDraftView {
 
 export const useSongDraft = create<SongDraftView>(() => ({
   draft: null,
+  pictures: null,
   question: null,
   saving: false,
   library: [],
@@ -97,8 +114,10 @@ function show(
   document: SongDocument | null,
   imported = false,
 ): void {
+  view().pictures?.source.release();
   useSongDraft.setState({
     draft: {song, document, imported, past: [], future: []},
+    pictures: null,
     question: null,
   });
 }
@@ -161,7 +180,10 @@ export function openNewSong(): void {
 }
 
 /** Opens a song that was read from a file or the clipboard. */
-export function openImportedSong(draft: TextImportDraft): void {
+export function openImportedSong(
+  draft: TextImportDraft,
+  pictures?: ImportPictures,
+): void {
   const title = normalizeSongTitle(draft.title) || IMPORTED_TITLE;
   const slides = songSlides(slideMaking(), draft);
   show(
@@ -174,11 +196,82 @@ export function openImportedSong(draft: TextImportDraft): void {
     null,
     true,
   );
+  if (pictures !== undefined) {
+    useSongDraft.setState({pictures: {source: pictures, busy: true}});
+  }
   focusTitle();
 }
 
 export function closeSongDraft(): void {
-  useSongDraft.setState({draft: null, question: null});
+  view().pictures?.source.release();
+  useSongDraft.setState({draft: null, pictures: null, question: null});
+}
+
+/** Changes the song and every step of its history alike. */
+function amend(change: (song: Song) => Song): void {
+  const {draft} = view();
+  if (draft === null) return;
+  const amended = (step: Step): Step => ({
+    ...step,
+    before: change(step.before),
+    after: change(step.after),
+  });
+  useSongDraft.setState({
+    draft: {
+      ...draft,
+      song: change(draft.song),
+      past: draft.past.map(amended),
+      future: draft.future.map(amended),
+    },
+  });
+}
+
+/** Null takes the picture away. */
+type Replacements = ReadonlyMap<MediaId, MediaId | null>;
+
+function withPictures(song: Song, pictures: Replacements): Song {
+  return {
+    ...song,
+    slides: song.slides.map(slide => {
+      const {background, ...rest} = slide;
+      if (background?.kind !== 'media') return slide;
+      const picture = pictures.get(background.media);
+      if (picture === undefined) return slide;
+      return picture === null
+        ? rest
+        : {...slide, background: {...background, media: picture}};
+    }),
+  };
+}
+
+/** Puts pictures that came in where others stood in for them. */
+export function replaceImportedPictures(
+  source: ImportPictures,
+  pictures: Replacements,
+): void {
+  if (view().pictures?.source !== source) return;
+  amend(song => withPictures(song, pictures));
+}
+
+/** No more pictures come in. */
+export function finishImportedPictures(source: ImportPictures): void {
+  if (view().pictures?.source !== source) return;
+  useSongDraft.setState({pictures: {source, busy: false}});
+}
+
+/** The song with the files of the pictures it was imported with. */
+async function withPictureFiles(song: Song): Promise<Song> {
+  const source = view().pictures?.source;
+  if (source === undefined) return song;
+  const files = await source.keep(
+    new Set(
+      song.slides.flatMap(({background}) =>
+        background?.kind === 'media' ? [background.media] : [],
+      ),
+    ),
+    song.title,
+  );
+  return withPictures(song, files);
 }
 
 /** Changes the song that is open. */
@@ -323,7 +416,15 @@ export function saveNewSong(
   return guarded(async () => {
     const {draft} = view();
     if (draft === null) return false;
-    const {title, slides} = sent(draft);
+    let song: Song;
+    try {
+      song = await withPictureFiles(sent(draft));
+    } catch (error) {
+      console.error('Could not keep the pictures of a song', error);
+      problem('배경 가져오기 실패');
+      return false;
+    }
+    const {title, slides} = song;
     const result = await send({
       type: 'song.import',
       target,
@@ -364,8 +465,12 @@ export function saveSongAs(title: string): Promise<boolean> {
 
 /** Saves the open song, asking first when another song would be replaced. */
 export async function requestSave(): Promise<boolean> {
-  const {draft, library, libraryStatus} = view();
-  if (draft === null || songTitleProblem(draft, library) !== undefined) {
+  const {draft, library, libraryStatus, pictures} = view();
+  if (
+    draft === null ||
+    pictures?.busy === true ||
+    songTitleProblem(draft, library) !== undefined
+  ) {
     return false;
   }
   if (draft.document !== null) {
@@ -422,15 +527,12 @@ export function suggestedCopyTitle(): string {
 
 /** Follows a rename of a label in slides that are not saved yet. */
 export function renameDraftLabel(from: string, to: string): void {
-  const {draft} = view();
-  if (draft === null) return;
-  const renamed = (song: Song): Song => ({
+  amend(song => ({
     ...song,
     slides: song.slides.map(slide =>
       slide.label === from ? {...slide, label: to} : slide,
     ),
-  });
-  useSongDraft.setState({draft: {...draft, song: renamed(draft.song)}});
+  }));
 }
 
 /**

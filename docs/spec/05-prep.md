@@ -755,15 +755,23 @@ Hidden slides are skipped. A 4:3 file is refused: "4:3 파일은 가져올 수
 
 ### 곡 가져오기
 
-The texts show at once, and the whole background of each slide, as PowerPoint
-draws it without the text, comes in as it is exported. Slides that look the same
-share one picture. The dialog shows every slide in the song 테마; click and
-Shift-click choose a range. Which slides are titles is in 02, "PowerPoint". 편집
-opens the unsaved song in the song editor. A picture that is already in the
-media library is used again; others are named after the song.
+There is no dialog. A notice with 취소 shows while the file is read, and then
+the song editor opens every slide as one unsaved song, asking first about
+another song with unsaved changes. Which slides are titles is in 02,
+"PowerPoint". Slides that are not wanted are deleted in the editor.
+
+The whole background of each slide, as PowerPoint draws it without the text,
+comes in while the song can be edited already; slides that look the same share
+one picture. Until then the slide is plain, black, or white under dark texts. A
+small bar in the header shows that pictures still come in, and 저장 waits for
+them. Leaving the song stops the export.
+
+Saving puts the backgrounds that the slides still use into the media library. A
+picture that is there already is used again; others are named after the song. A
+song that is left unsaved leaves nothing behind.
 
 If PowerPoint is missing or can't export a slide, its background stays empty and
-the dialog says so. Closing the dialog stops the export.
+a notice says so. Another file can't be read while pictures come in.
 
 ### 이미지로 가져오기
 

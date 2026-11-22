@@ -124,13 +124,15 @@ function luminance(color: number): number {
   );
 }
 
-/** Whether most of the slides write in a dark color, on a bright background. */
-export function powerpointDarkLyrics(
+/** The backgrounds that most of the slides on them write on in a dark color. */
+export function powerpointBrightBackgrounds(
   slides: readonly PowerPointSlide[],
-): boolean {
-  const colors = slides.flatMap(({shapes, textColor}) =>
-    textColor === null || shapes.length === 0 ? [] : [textColor],
-  );
-  const dark = colors.filter(color => luminance(color) < 0.5).length;
-  return dark * 2 > colors.length;
+): ReadonlySet<string> {
+  const dark = new Map<string, number>();
+  for (const {shapes, textColor, background} of slides) {
+    if (textColor === null || shapes.length === 0) continue;
+    const vote = luminance(textColor) < 0.5 ? 1 : -1;
+    dark.set(background, (dark.get(background) ?? 0) + vote);
+  }
+  return new Set([...dark].flatMap(([key, votes]) => (votes > 0 ? [key] : [])));
 }

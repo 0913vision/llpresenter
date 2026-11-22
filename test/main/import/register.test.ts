@@ -82,6 +82,11 @@ function setup(windowMode: 'normal' | 'offscreen' = 'normal') {
   return {control, log, stop};
 }
 
+/** The window that asks, which hears what goes on meanwhile. */
+function windowEvent(send = vi.fn()) {
+  return {sender: {isDestroyed: () => false, send}};
+}
+
 const readRequest = {source: 'file', encoding: 'auto'};
 
 describe('PowerPoint import', () => {
@@ -102,7 +107,10 @@ describe('PowerPoint import', () => {
     onTestFinished(
       registerPowerPointImport({control, windowMode: 'normal', log}, jobs),
     );
-    const pending = handler(powerpointEndpoints.read.channel)({}, undefined);
+    const pending = handler(powerpointEndpoints.read.channel)(
+      windowEvent(),
+      undefined,
+    );
     await vi.waitFor(() => expect(electron.chooseFile).toHaveBeenCalled());
     expect(
       await handler(powerpointEndpoints.cancelRead.channel)({}, undefined),
@@ -133,8 +141,16 @@ describe('PowerPoint import', () => {
       canceled: false,
       filePaths: ['deck.pptx'],
     });
-    const pending = handler(powerpointEndpoints.read.channel)({}, undefined);
+    const send = vi.fn();
+    const pending = handler(powerpointEndpoints.read.channel)(
+      windowEvent(send),
+      undefined,
+    );
     await vi.waitFor(() => expect(jobs.run).toHaveBeenCalledOnce());
+    expect(send).toHaveBeenCalledExactlyOnceWith(
+      powerpointEndpoints.reading.channel,
+      {fileName: 'deck.pptx'},
+    );
     expect(
       await handler(powerpointEndpoints.cancelRead.channel)({}, undefined),
     ).toBe(true);
@@ -287,7 +303,10 @@ describe('PowerPoint import', () => {
         canceled: false,
         filePaths: [source],
       });
-      const pending = handler(powerpointEndpoints[kind].channel)({}, undefined);
+      const pending = handler(powerpointEndpoints[kind].channel)(
+        windowEvent(),
+        undefined,
+      );
       await vi.waitFor(() => expect(converter.run).toHaveBeenCalledOnce());
       const cancel = kind === 'read' ? 'cancelRead' : 'cancelImages';
       expect(
@@ -323,7 +342,10 @@ describe('PowerPoint import', () => {
         filePaths: [source],
       });
       expect(
-        await handler(powerpointEndpoints[kind].channel)({}, undefined),
+        await handler(powerpointEndpoints[kind].channel)(
+          windowEvent(),
+          undefined,
+        ),
       ).toEqual({
         ok: false,
         message: '이 파일을 가져오려면 PowerPoint가 설치되어 있어야 합니다.',

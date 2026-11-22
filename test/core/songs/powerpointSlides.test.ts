@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {
-  powerpointDarkLyrics,
+  powerpointBrightBackgrounds,
   powerpointSlides,
   type PowerPointShape,
   type PowerPointSlide,
@@ -100,16 +100,24 @@ describe('powerpointSlides', () => {
   });
 });
 
-describe('powerpointDarkLyrics', () => {
-  it('counts the slides that write in a dark color', () => {
-    const at = (textColor: number, number: number): PowerPointSlide => ({
-      ...slide('a', '가사'),
-      textColor,
-      number,
-    });
-    expect(powerpointDarkLyrics([at(0, 1), at(0, 2), at(0xffffff, 3)])).toBe(
-      true,
-    );
-    expect(powerpointDarkLyrics([at(0, 1), at(0xffffff, 2)])).toBe(false);
+describe('powerpointBrightBackgrounds', () => {
+  const at = (background: string, textColor: number | null) => ({
+    ...slide(background, '가사'),
+    textColor,
+    number: 1,
+  });
+
+  it('counts the slides of each background that write in a dark color', () => {
+    expect([
+      ...powerpointBrightBackgrounds([
+        at('a', 0),
+        at('a', 0),
+        at('a', 0xffffff),
+        at('b', 0xffffff),
+        at('b', 0),
+        at('c', 0xffffff),
+        at('d', null),
+      ]),
+    ]).toEqual([at('a', 0).background]);
   });
 });

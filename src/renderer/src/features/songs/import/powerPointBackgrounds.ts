@@ -1,15 +1,14 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import type {MediaId} from '@core/schema/ids';
 import type {PowerPointSource} from '@core/schema/powerpointImport';
-import {powerpointBackgroundName} from '@core/media/powerpointBackground';
 import {lendPreviewImage} from '@renderer/rendering/previewMedia';
 
-/** Most pictures one request of the main process exports. */
+/** Most pictures of one request to the main process. */
 const BATCH_SIZE = 200;
 
 export interface PowerPointBackground {
   readonly path: string;
-  /** Draws it before it is a file of the media list. */
+  /** Stands for it until it is a file of the media list. */
   readonly preview: MediaId;
 }
 
@@ -109,97 +108,24 @@ export async function exportPowerPointBackgrounds(
   return {found, release};
 }
 
-/** Adds a picture file to the media list, named after the song. */
-async function addToMedia(
+/** The media files of pictures of an import, adding the new ones. */
+export async function storePowerPointBackgrounds(
   api: LlpApi,
-  path: string,
+  pictures: readonly PowerPointBackground[],
   title: string,
-): Promise<MediaId> {
-  const phases = new Map<string, string>();
-  let changed: (() => void) | undefined;
-  const stop = api.media.subscribeImports(event => {
-    phases.set(event.mediaId, event.phase);
-    changed?.();
-  });
-  try {
-    const result = await api.media.import({
-      source: {kind: 'files', paths: [path]},
-      playlist: null,
-    });
-    const job = result.ok ? result.value[0] : undefined;
-    if (
-      job === undefined ||
-      job.phase === 'failed' ||
-      job.phase === 'cancelled'
-    ) {
-      throw new Error('Background import failed');
-    }
-    const id = job.mediaId;
-    if (job.phase !== 'complete') {
-      await new Promise<void>((resolve, reject) => {
-        const check = (): void => {
-          const phase = phases.get(id);
-          if (phase === 'complete') resolve();
-          else if (phase === 'failed' || phase === 'cancelled') {
-            reject(new Error('Background import failed'));
-          }
-        };
-        changed = check;
-        check();
-      });
-    }
-    await nameMedia(api, id, title);
-    return id;
-  } finally {
-    stop();
-  }
-}
-
-async function nameMedia(
-  api: LlpApi,
-  id: MediaId,
-  title: string,
-): Promise<void> {
-  for (let attempt = 0; attempt < 3; attempt++) {
-    const document = await api.media.get();
-    const name = powerpointBackgroundName(
+): Promise<ReadonlyMap<MediaId, MediaId>> {
+  const files = new Map<MediaId, MediaId>();
+  for (let start = 0; start < pictures.length; start += BATCH_SIZE) {
+    const batch = pictures.slice(start, start + BATCH_SIZE);
+    const stored = await api.powerpoint.storeImages({
+      paths: batch.map(({path}) => path),
       title,
-      document.value.items
-        .filter(item => item.id !== id)
-        .map(item => item.name),
-    );
-    const renamed = await api.media.edit({
-      type: 'media.properties.update',
-      mediaId: id,
-      changes: {name},
-      baseRevision: document.revision,
     });
-    if (renamed.ok || renamed.error.reason !== 'stale') return;
+    if (!stored.ok) throw new Error(stored.message);
+    for (const [index, {preview}] of batch.entries()) {
+      const file = stored.value[index];
+      if (file !== undefined) files.set(preview, file);
+    }
   }
-}
-
-/** The media files of the backgrounds a song uses, adding the new ones. */
-export async function importPowerPointBackgrounds(
-  api: LlpApi,
-  keys: ReadonlySet<string>,
-  {
-    found,
-    title,
-  }: {
-    readonly found: PowerPointBackgrounds['found'];
-    readonly title: string;
-  },
-): Promise<ReadonlyMap<string, MediaId>> {
-  const media = new Map<string, MediaId>();
-  for (const key of keys) {
-    const background = found.get(key);
-    if (background === undefined) continue;
-    const {path} = background;
-    media.set(
-      key,
-      (await api.powerpoint.match({path})) ??
-        (await addToMedia(api, path, title)),
-    );
-  }
-  return media;
+  return files;
 }

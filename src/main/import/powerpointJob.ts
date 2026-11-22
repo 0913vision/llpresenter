@@ -5,14 +5,6 @@ export type PowerPointJob =
   | {readonly kind: 'read'; readonly path: string}
   | {readonly kind: 'size'; readonly path: string}
   | {
-      readonly kind: 'match';
-      readonly path: string;
-      readonly candidates: ReadonlyArray<{
-        readonly id: string;
-        readonly path: string;
-      }>;
-    }
-  | {
       readonly kind: 'pictures';
       readonly path: string;
       readonly digest: string;

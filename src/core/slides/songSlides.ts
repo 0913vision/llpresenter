@@ -7,7 +7,7 @@ import {makeSlide, type SlideMaking} from './make';
 /** The slides of a song that was imported, its title slide first. */
 export function songSlides(
   making: SlideMaking,
-  draft: Pick<TextImportDraft, 'background' | 'light' | 'slides'>,
+  draft: Pick<TextImportDraft, 'background' | 'slides'>,
 ): readonly Slide[] {
   return draft.slides.map(source => {
     const label = source.label?.trim();
@@ -22,7 +22,7 @@ export function songSlides(
       return makeSlide(making, 'lyrics', {
         ...common,
         texts: textOf({가사: source.lines.join('\n')}),
-        ...(draft.light === true ? {theme: LIGHT_SONG_THEME_IDS.lyrics} : {}),
+        ...(source.light === true ? {theme: LIGHT_SONG_THEME_IDS.lyrics} : {}),
       });
     }
     const count = source.titleLineCount ?? 1;
@@ -32,7 +32,7 @@ export function songSlides(
         제목: source.lines.slice(0, count).join('\n'),
         부제: source.lines.slice(count).join('\n'),
       }),
-      ...(draft.light === true ? {theme: LIGHT_SONG_THEME_IDS.songTitle} : {}),
+      ...(source.light === true ? {theme: LIGHT_SONG_THEME_IDS.songTitle} : {}),
     });
   });
 }

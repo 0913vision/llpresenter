@@ -9,11 +9,12 @@ import {
   type PowerPointPreviewImage,
   parsePowerPointReleaseRequest,
   parsePowerPointReleaseResult,
-  parsePowerPointMatchResult,
   type PowerPointReadResult,
   type PowerPointReleaseRequest,
   parsePowerPointImageExportResult,
   parsePowerPointImageExportProgress,
+  parsePowerPointReading,
+  type PowerPointReading,
   type PowerPointImageExportResult,
   type PowerPointImageExportProgress,
   parsePowerPointOwnedImagesRequest,
@@ -21,7 +22,6 @@ import {
   type PowerPointOwnedImagesRequest,
   type PowerPointOwnedImagesResult,
 } from '@core/schema/powerpointImport';
-import type {MediaId} from '@core/schema/ids';
 export const powerpointEndpoints = {
   storeImages: request<
     PowerPointOwnedImagesRequest,
@@ -41,6 +41,11 @@ export const powerpointEndpoints = {
   imageProgress: push<PowerPointImageExportProgress>(
     'import:powerpoint:images:progress',
     parsePowerPointImageExportProgress,
+  ),
+  /** A file was chosen and is being read. */
+  reading: push<PowerPointReading>(
+    'import:powerpoint:reading',
+    parsePowerPointReading,
   ),
   cancelRead: query<boolean>(
     'import:powerpoint:read:cancel',
@@ -71,10 +76,6 @@ export const powerpointEndpoints = {
       reply: parsePowerPointReleaseResult,
     },
   ),
-  match: request<PowerPointReleaseRequest, MediaId | null>(
-    'import:powerpoint:match',
-    {request: parsePowerPointReleaseRequest, reply: parsePowerPointMatchResult},
-  ),
 };
 export function powerpointApi(port: IpcPort) {
   return {
@@ -83,12 +84,12 @@ export function powerpointApi(port: IpcPort) {
     cancelImages: port.query(powerpointEndpoints.cancelImages),
     subscribeImageProgress: port.subscribe(powerpointEndpoints.imageProgress),
     read: port.query(powerpointEndpoints.read),
+    subscribeReading: port.subscribe(powerpointEndpoints.reading),
     cancelRead: port.query(powerpointEndpoints.cancelRead),
     /** What is behind the texts of slides, as one picture file each. */
     backgrounds: port.request(powerpointEndpoints.backgrounds),
     previewImage: port.request(powerpointEndpoints.previewImage),
     release: port.request(powerpointEndpoints.release),
-    match: port.request(powerpointEndpoints.match),
   };
 }
 export type PowerPointApi = ReturnType<typeof powerpointApi>;

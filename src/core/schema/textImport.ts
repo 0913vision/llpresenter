@@ -23,6 +23,8 @@ const importSlideSchema = jsonObject({
   titleSlide: v.exactOptional(v.literal(true)),
   titleLineCount: v.exactOptional(v.pipe(positiveInteger, v.maxValue(1000))),
   picture: v.exactOptional(mediaIdSchema),
+  /** Its background is bright, so the texts on it are black. */
+  light: v.exactOptional(v.literal(true)),
   section: v.exactOptional(nonNegativeInteger),
 });
 
@@ -80,8 +82,6 @@ const draftSchema = payloadObject({
   title: v.string(),
   preserveSlides: v.exactOptional(v.boolean()),
   background: v.exactOptional(mediaIdSchema),
-  /** The background is bright, so the texts on it are black. */
-  light: v.exactOptional(v.boolean()),
   slides: v.pipe(v.array(importSlideSchema), v.minLength(1)),
 });
 

@@ -53,11 +53,11 @@ export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
       cancelImages: () => Promise.resolve(false),
       subscribeImageProgress: () => () => undefined,
       read: () => Promise.resolve({ok: true, value: null}),
+      subscribeReading: () => () => undefined,
       cancelRead: () => Promise.resolve(false),
       backgrounds: () => Promise.resolve(null),
       previewImage: () => Promise.resolve(null),
       release: () => Promise.resolve(true),
-      match: () => Promise.resolve(null),
       ...overrides.powerpoint,
     },
     update: {
