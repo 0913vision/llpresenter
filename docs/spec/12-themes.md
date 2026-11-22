@@ -142,7 +142,7 @@ A thumbnail and a preview are the 슬라이드 drawn by the same code as the out
 
 - Each screen has one 빈 화면 색, set in the 화면 설정 window: black by default,
   and `chroma` green on 방송 화면 when its method is the capture window.
-- A screen in 비움, or a screen with nothing live, shows its 빈 화면 색.
+- A screen in 비움 shows its 빈 화면 색.
 - The background of a 슬라이드 or a 테마 is 없음, 단색, 그라데이션, or a media
   file. A picture or video can be fitted (채우기, 맞추기, 늘리기) and has a size
   from 10 to 400 percent and a place from -100 to 100 percent of the screen.
@@ -277,9 +277,9 @@ not preset names or indices, so the rename does not change existing themes.
   오버레이, resuming captured playback positions. It does not change the current
   그래픽, 메시지, or audio, including their clocks. Its one capture is temporary
   and new output content invalidates it, as for the other clear keys.
-- With nothing live, every screen shows its 빈 화면 색. The 청중 화면 keeps the
-  background of the 대기 화면 테마 behind it, so a service can start from it.
-  The same shows at launch when outputs turn on and nothing is live.
+- With nothing live, every screen shows the 대기 화면 테마: the church's service
+  times on 청중 화면, the clock and the timer on 무대 화면, and nothing on 방송
+  화면. The same shows at launch when outputs turn on and nothing is live.
 
 ## Data
 
