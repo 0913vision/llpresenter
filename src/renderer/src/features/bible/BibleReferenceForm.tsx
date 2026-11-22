@@ -693,8 +693,8 @@ export function BibleReferenceForm(
                       ? '불러오는 중...'
                       : `${part === 'end' && fields.start ? fields.start : 1}~${lastVerse}`
                     : LABELS[part]
-                : part === 'end' && lastVerse !== undefined
-                  ? String(lastVerse)
+                : part !== 'chapter' && lastVerse !== undefined
+                  ? String(part === 'start' ? 1 : lastVerse)
                   : props.overlayLabels
                     ? ''
                     : LABELS[part]
