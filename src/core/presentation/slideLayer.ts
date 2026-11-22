@@ -44,6 +44,12 @@ export function nextSlideOf(
     readonly previous?: SlideTile | undefined;
   },
 ): NextSlide {
+  const card = tile.sectionCard;
+  const noticeCard =
+    card !== undefined &&
+    (card.name.trim() === '광고' ||
+      card.name.trim().toLowerCase() === 'notice' ||
+      card.english.trim().toLowerCase() === 'notice');
   const notice =
     tile.sectionCard === undefined &&
     tile.kind === 'ad' &&
@@ -52,7 +58,7 @@ export function nextSlideOf(
     (notice && context?.textSlideNumber !== undefined
       ? `${context.textSlideNumber}. ${tile.name ?? ''}`.trim()
       : undefined) ??
-    tile.sectionCard?.name ??
+    (noticeCard ? '광고' : card?.name) ??
     tile.name ??
     (tile.media !== undefined ||
     (tile.picture !== undefined && tile.kind !== undefined)
@@ -60,14 +66,7 @@ export function nextSlideOf(
       : undefined);
   const nextNotice =
     tile.kind === 'ad' && tile.sectionCard === undefined ? tile : undefined;
-  const card = tile.sectionCard;
-  const orderTitle =
-    card !== undefined &&
-    card.name.trim() !== '광고' &&
-    card.name.trim().toLowerCase() !== 'notice' &&
-    card.english.trim().toLowerCase() !== 'notice'
-      ? card.name
-      : undefined;
+  const orderTitle = card !== undefined && !noticeCard ? card.name : undefined;
   return {
     ...(nextNotice === undefined
       ? {}

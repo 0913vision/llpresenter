@@ -39,6 +39,27 @@ it('does not treat a song background as a picture-only next slide', () => {
   );
 });
 
+it.each([
+  {name: '광고', english: ''},
+  {name: 'Notice', english: ''},
+  {name: 'Different name', english: 'Notice'},
+])('normalizes the next notice card to 광고: $name', ({name, english}) => {
+  const tile: SlideTile = {
+    label: null,
+    labelColor: 'none',
+    lines: ['Card subtitle'],
+    sectionCard: {
+      name,
+      english,
+      theme: createThemeId('00000000-0000-4000-8000-000000000124'),
+    },
+  };
+  const next = nextSlideOf(tile, 'blank');
+  expect(next).toMatchObject({title: '광고', lines: []});
+  expect(next).not.toHaveProperty('orderTitle');
+  expect(next).not.toHaveProperty('adTitle');
+});
+
 it('carries the unnumbered projected ad title for same-item and following-item cues', () => {
   const nextAd: SlideTile = {
     label: '3. Anniversary',
@@ -81,7 +102,7 @@ it('carries the unnumbered projected ad title for same-item and following-item c
     },
   };
   expect(nextSlideOf(card, 'blank', {after: nextAd})).toMatchObject({
-    title: 'Notice',
+    title: '광고',
   });
   expect(nextSlideOf(card, 'blank', {after: nextAd})).not.toHaveProperty(
     'adTitle',
@@ -91,7 +112,7 @@ it('carries the unnumbered projected ad title for same-item and following-item c
       {...card, sectionCard: {...card.sectionCard, english: ''}},
       'blank',
     ),
-  ).not.toHaveProperty('orderTitle');
+  ).toMatchObject({title: '광고'});
   const imageAd: SlideTile = {
     label: 'Actual image title',
     labelColor: 'none',
@@ -135,7 +156,7 @@ it('carries the unnumbered projected ad title for same-item and following-item c
           after: firstAd,
         },
       );
-      expect(beforeCard?.next).toMatchObject({title: 'Notice', lines: []});
+      expect(beforeCard?.next).toMatchObject({title: '광고', lines: []});
       expect(beforeCard?.next).not.toHaveProperty('adTitle');
       const cardLive = slideLayerOf({itemId: 'card', index: 0}, () => [
         card,
