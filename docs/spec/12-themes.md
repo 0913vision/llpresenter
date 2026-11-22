@@ -72,8 +72,8 @@ The user's needs (October 30 and November 22):
 | ------- | -------------------------------------------------------------------------------------------------------------- | ---------- |
 | 글      | A text made of named boxes, values, and fixed words. The first of its templates that has all its values shows. | Several    |
 | 다음 글 | What the next 슬라이드 lets this one show                                                                      | One        |
-| 그림    | A fixed picture: a user image or one of the app's                                                              | Several    |
-| 도형    | A rectangle with a fill, a border, a radius, and a shadow                                                      | Several    |
+| 이미지  | A fixed picture: a user image or one of the app's                                                              | Several    |
+| 사각형  | A rectangle with a fill, a border, a radius, and a shadow                                                      | Several    |
 | 배경    | The background of the 슬라이드, or of the 테마                                                                 | One        |
 
 - A template names boxes and values in braces: `{제목}`, `{본문}`. A part in
@@ -93,7 +93,7 @@ The user's needs (October 30 and November 22):
   title without a subtitle stays centered.
 - **Splits.** A split puts 다음 글 under the 슬라이드's own text. Each takes the
   room the other does not need, and neither is ever drawn over the other.
-- A 도형 can reach around texts, or stand a distance above or below them.
+- A 사각형 can reach around texts, or stand a distance above or below them.
 - 메시지 and 그래픽 are not elements. They draw above the 테마 on the screens
   they were sent to, in the order 그래픽, 메시지.
 

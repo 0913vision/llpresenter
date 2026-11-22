@@ -20,7 +20,7 @@ export const purposeNames: Readonly<Record<SlidePurpose, string>> = {
   preparation: '예배 준비',
   standby: '대기 화면',
   blank: '빈 슬라이드',
-  picture: '그림',
+  picture: '이미지',
   media: '영상',
 };
 
