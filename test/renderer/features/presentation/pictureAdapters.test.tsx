@@ -1,4 +1,6 @@
-import {stageSlideOf, useShow} from '@renderer/session/show';
+import {stageSlideOf, useShow, setAtLastSlide} from '@renderer/session/show';
+import {SERMON_TITLE_THEME_ID} from '@core/themes/sundayScripture';
+import {newSlidesItem} from '@core/services/slidesEdits';
 import {isValidElement} from 'react';
 import {expect, it, onTestFinished, vi} from 'vitest';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
@@ -242,6 +244,54 @@ it('uses the same sermon boundary cues in preparation and show previews', () => 
       'Sermon',
     ]);
   }
+});
+
+it('passes the suppressed legacy sermon title cue to the preparation picture', () => {
+  const item = newSlidesItem('blank', ids.doxology);
+  const tile = {label: null, labelColor: 'none' as const, lines: ['Title']};
+  const previous = useShow.getState();
+  onTestFinished(() => {
+    setAtLastSlide('stop');
+    useShow.setState(previous, true);
+  });
+  useShow.setState({
+    rows: [
+      {
+        kind: 'slides',
+        id: item.id,
+        title: 'Sermon',
+        form: 'blank',
+        theme: SERMON_TITLE_THEME_ID,
+      },
+      {kind: 'bible', id: 'passage', title: 'John 3:16'},
+    ],
+    tiles: {
+      [item.id]: [tile, {...tile, lines: ['Last title']}],
+      passage: [{...tile, lines: ['Verse']}],
+    },
+  });
+  setAtLastSlide('nextItem');
+  const previousPicture = detailsPicture(context({item, role: 'stage'}), 0);
+  if (
+    !isValidElement<{outputSlide: ReturnType<typeof stageSlideOf>}>(
+      previousPicture,
+    )
+  ) {
+    throw Error('Missing preparation picture');
+  }
+  expect(previousPicture.props.outputSlide?.next?.lines).toEqual([
+    'Last title',
+  ]);
+  const picture = detailsPicture(context({item, role: 'stage'}), 1);
+  if (
+    !isValidElement<{outputSlide: ReturnType<typeof stageSlideOf>}>(picture)
+  ) {
+    throw Error('Missing preparation picture');
+  }
+  expect(picture.props.outputSlide?.next).toBeUndefined();
+  expect(picture.props.outputSlide).toEqual(
+    stageSlideOf({itemId: item.id, index: 1}),
+  );
 });
 
 it('preserves formatted song data in the item fallback while projection is loading', () => {

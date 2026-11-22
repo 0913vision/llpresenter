@@ -746,6 +746,81 @@ describe('show state', () => {
     },
   );
 
+  it.each([
+    'native-opening',
+    'native-final',
+    'legacy-title',
+    'bible-final',
+    'imported-final',
+  ] as const)(
+    'clears a stale stage next reference on refresh at %s',
+    boundary => {
+      const verse = {
+        label: null,
+        labelColor: 'none' as const,
+        lines: ['Verse'],
+      };
+      const title = {...verse, lines: ['Title'], sermonTitle: true as const};
+      const native =
+        boundary === 'native-opening' || boundary === 'native-final';
+      const legacy = boundary === 'legacy-title';
+      const imported = boundary === 'imported-final';
+      const row = legacy
+        ? {
+            kind: 'slides' as const,
+            id: 'current',
+            title: 'Title',
+            form: 'blank' as const,
+            theme: SERMON_TITLE_THEME_ID,
+          }
+        : imported
+          ? {
+              kind: 'slides' as const,
+              id: 'current',
+              title: 'John 3:16',
+              form: 'blank' as const,
+            }
+          : {kind: 'bible' as const, id: 'current', title: 'John 3:16'};
+      const tiles = native ? [title, verse, title] : [verse];
+      const position = boundary === 'native-final' ? 1 : 0;
+      useShow.setState({
+        rows: [row, {kind: 'bible', id: 'following', title: 'John 3:17'}],
+        tiles: {current: tiles, following: [verse]},
+        openItemId: 'current',
+      });
+      setAtLastSlide('nextItem');
+      setLive('current', position);
+      const state = useLive.getState().state;
+      if (state?.layers.slide === null || state === null) {
+        throw Error('Missing live slide');
+      }
+      useLive.setState({
+        state: {
+          ...state,
+          layers: {
+            ...state.layers,
+            slide: {
+              ...state.layers.slide,
+              next: {
+                label: null,
+                lines: ['Stale'],
+                stageReference: 'Old reference',
+              },
+            },
+          },
+        },
+      });
+      sent.length = 0;
+      setAtLastSlide('nextItem');
+      expect(sent).toContainEqual({
+        type: 'stage.next.set',
+        itemId: 'current',
+        position,
+        next: null,
+      });
+    },
+  );
+
   it('shows the reference for the next passage from a song', () => {
     const tile = {label: null, labelColor: 'none' as const, lines: ['Text']};
     useShow.setState({
