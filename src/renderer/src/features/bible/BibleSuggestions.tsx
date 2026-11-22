@@ -1,4 +1,4 @@
-import {displayReference} from '@core/bible/displayReference';
+import {displayReference} from '@core/bible';
 import {
   useEffect,
   useEffectEvent,

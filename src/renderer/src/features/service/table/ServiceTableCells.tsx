@@ -1,7 +1,7 @@
 import type {JSX} from 'react';
-import type {ItemRow} from '@core/presentation/model';
+import type {ItemRow} from '@core/presentation';
 import {hasSlides, type ServiceItem} from '@core/schema/service';
-import {withMemo, withStartMacro} from '@core/services/itemFields';
+import {withMemo, withStartMacro} from '@core/services';
 import {runEdit, type Report} from '@renderer/session/serviceEdit';
 import {editItem} from '@renderer/session/openService';
 import {classNames} from '@renderer/ui/classNames';

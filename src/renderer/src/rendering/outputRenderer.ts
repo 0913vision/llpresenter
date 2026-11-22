@@ -11,7 +11,7 @@ import type {
   RenderScreen,
 } from './layer';
 import {renderLayers} from './layers';
-import {scaleFor} from '@core/overlays/textStyle';
+import {scaleFor} from '@core/overlays';
 import {PICTURE_TRANSFORM, pictureTransform} from './pictureCorrection';
 
 const CHROMA_BACKGROUND = 'var(--chroma)';

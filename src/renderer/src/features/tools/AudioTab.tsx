@@ -5,7 +5,7 @@ import {Checkbox, SelectMenu} from '@renderer/ui';
 import type {Notice} from '@renderer/ui/notices';
 import type {AudioPlaylistId} from '@core/schema/ids';
 import type {MediaItem} from '@core/schema/mediaList';
-import {audioTracks} from '@core/media/audioTracks';
+import {audioTracks} from '@core/media';
 import {setAudioLoop} from './audioLoop';
 import {AudioTransport} from './AudioTransport';
 import {useAudioMedia} from './useAudioMedia';

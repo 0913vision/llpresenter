@@ -4,7 +4,7 @@ import {
   type KeyboardEvent,
   type MouseEvent,
 } from 'react';
-import type {MacroColor} from '@core/labels/colors';
+import type {MacroColor} from '@core/labels';
 import {classNames} from './classNames';
 import {Icon} from './Icon';
 import {openOnArrowDown} from './menuButton';

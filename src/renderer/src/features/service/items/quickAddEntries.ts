@@ -7,8 +7,8 @@ import {
   LITURGY_NAMES,
   noticeItem,
   titleItem,
-} from '@core/slides/items';
-import {SERVICE_TITLES} from '@core/slides/titles';
+  SERVICE_TITLES,
+} from '@core/slides';
 import {mediaName} from '@renderer/features/media/backgroundChoices';
 import {mediaAddAvailability} from '@renderer/platform/mediaAddAvailability';
 import {slideMaking} from '@renderer/platform/themes';

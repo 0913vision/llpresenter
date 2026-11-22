@@ -1,6 +1,6 @@
 import type {JSX, KeyboardEvent} from 'react';
 import type {ShowTile} from '@core/schema/showService';
-import {themeOfSlide} from '@core/theme/themes';
+import {themeOfSlide} from '@core/theme';
 import {useThemes} from '@renderer/platform/themes';
 import {outputSlideOf} from '@renderer/session/show';
 import {isComposing} from '@renderer/ui/ime';

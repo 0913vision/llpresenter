@@ -1,5 +1,5 @@
 import {useLayoutEffect, useRef, type RefObject} from 'react';
-import type {ServiceRow} from '@core/presentation/model';
+import type {ServiceRow} from '@core/presentation';
 
 /** Keeps a history/delete command in the list without stealing later focus. */
 export function useOrderEditFocus({

@@ -3,7 +3,7 @@ import type {ServiceEntry} from '@core/schema/contentDocuments';
 import {applyService, useShow} from '@renderer/session/show';
 import {useServiceSwitchGuard} from '../useServiceSwitchGuard';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
-import {serviceDay} from '@core/services/serviceDate';
+import {serviceDay} from '@core/services';
 
 const names = new Intl.Collator('ko', {numeric: true});
 const problemTitles = {

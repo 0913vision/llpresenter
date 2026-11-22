@@ -1,5 +1,4 @@
-import {commandBindings} from '@core/shortcuts/bindings';
-import {shortcutNames} from '@core/shortcuts/keys';
+import {commandBindings, shortcutNames} from '@core/shortcuts';
 import {useShortcutText} from './commandBindings';
 import {createContext, useContext, type JSX, type ReactNode} from 'react';
 import type {ClearTarget} from '@core/schema/live';

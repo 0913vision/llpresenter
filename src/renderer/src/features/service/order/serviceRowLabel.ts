@@ -1,4 +1,4 @@
-import type {ItemRow} from '@core/presentation/model';
+import type {ItemRow} from '@core/presentation';
 
 /** Names title-less items without adding a visible or saved title. */
 export function serviceRowLabel(row: ItemRow, position: number): string {

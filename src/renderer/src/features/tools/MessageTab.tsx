@@ -11,7 +11,11 @@ import type {Screen} from '@core/schema/screens';
 import {
   messageBlankNames,
   MAX_MESSAGE_CHARACTERS,
-} from '@core/overlays/messageText';
+  currentMessageTargets,
+  toggleMessageScreen,
+  prepareMessage,
+  type DraftTargets,
+} from '@core/overlays';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {sendLive} from '@renderer/session/live';
 import {
@@ -24,12 +28,6 @@ import {
   TextField,
 } from '@renderer/ui';
 import type {Notice} from '@renderer/ui/notices';
-import {
-  currentMessageTargets,
-  toggleMessageScreen,
-  prepareMessage,
-  type DraftTargets,
-} from '@core/overlays/messageDraft';
 import styles from './MessageTab.module.css';
 import {MessageEditing} from './MessageEditing';
 import {ActiveMessages} from './ActiveMessages';

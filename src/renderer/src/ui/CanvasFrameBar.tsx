@@ -1,11 +1,7 @@
 import type {JSX} from 'react';
 import {IconButton} from './IconButton';
 import {GeometryField} from './GeometryField';
-import {
-  MIN_SIZE,
-  type ElementFrame,
-  type FrameField,
-} from '@core/canvas/frameEdit';
+import {MIN_SIZE, type ElementFrame, type FrameField} from '@core/canvas';
 import styles from './CanvasFrameBar.module.css';
 
 const FIELDS = ['x', 'y', 'w', 'h'] as const;

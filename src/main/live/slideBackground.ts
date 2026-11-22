@@ -1,5 +1,5 @@
 import type {MediaChoice, SlideLayer} from '@core/schema/live';
-import {mediaLoops} from '@core/media/mediaEndRule';
+import {mediaLoops} from '@core/media';
 import type {ThemeId} from '@core/schema/ids';
 import type {SlideBackground} from '@core/schema/theme';
 import {setLayer, type LiveHistory} from './history';

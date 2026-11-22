@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import type {Result} from '../common/result';
+import type {Result} from '@core/common/result';
 import {mediaIdSchema} from './ids';
 import {checkPart, type ReadonlyKnown} from './fileFormat';
 import {payloadObject, plainObject} from './payload';

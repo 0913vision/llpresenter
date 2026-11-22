@@ -4,7 +4,7 @@ import {
   type SongId,
 } from '@core/schema/ids';
 import {hasSlides, type ServiceItem} from '@core/schema/service';
-import {quickAddBefore} from '@core/services/quickAddPosition';
+import {quickAddBefore} from '@core/services';
 import {useHeaderRename} from './headerRename';
 import {insertItem, insertSong} from './serviceOrderEdits';
 import {openInPrep} from './prepTarget';

@@ -1,9 +1,9 @@
-import {displayReference} from '../bible/displayReference';
-import {createServiceItemId, type MediaId} from '../schema/ids';
-import type {BiblePassage} from '../schema/biblePassage';
-import type {ServiceItemOf, SlidesItem} from '../schema/service';
-import type {Slide} from '../schema/slide';
-import type {Song} from '../schema/song';
+import {displayReference} from '@core/bible';
+import {createServiceItemId, type MediaId} from '@core/schema/ids';
+import type {BiblePassage} from '@core/schema/biblePassage';
+import type {ServiceItemOf, SlidesItem} from '@core/schema/service';
+import type {Slide} from '@core/schema/slide';
+import type {Song} from '@core/schema/song';
 import {LITURGY_SLIDES} from './liturgySlides';
 import {copySlide, makeSlide, type SlideMaking} from './make';
 import {serviceTitle, titleSlide, type TitleCard} from './titles';

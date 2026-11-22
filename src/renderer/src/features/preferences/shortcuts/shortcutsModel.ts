@@ -4,9 +4,10 @@ import {
   commandBindings,
   objectShortcutCommand,
   shortcutConflicts,
-} from '@core/shortcuts/bindings';
-import {shortcutNames} from '@core/shortcuts/keys';
-import {shortcutCommands, type ShortcutCommand} from '@core/shortcuts/registry';
+  shortcutNames,
+  shortcutCommands,
+  type ShortcutCommand,
+} from '@core/shortcuts';
 
 export type Overrides = ShortcutsFile['bindings'];
 

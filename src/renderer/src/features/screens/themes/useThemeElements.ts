@@ -4,7 +4,7 @@ import {
   frameWithinBounds,
   type ElementFrame,
   type FrameFieldChange,
-} from '@core/canvas/frameEdit';
+} from '@core/canvas';
 import type {MediaId} from '@core/schema/ids';
 import type {Screen} from '@core/schema/screens';
 import {
@@ -13,16 +13,18 @@ import {
   type ThemeElement,
   type ThemeFile,
 } from '@core/schema/theme';
-import {addBox} from '@core/theme/boxes';
 import {
+  addBox,
   changeElement,
   newElement,
   removeElements,
   type AddableKind,
-} from '@core/theme/elements';
-import {drawnFrame, moveElement} from '@core/theme/frames';
-import type {ThemePlacement} from '@core/theme/layout';
-import {ownScreenOf, withScreen} from '@core/theme/screens';
+  drawnFrame,
+  moveElement,
+  type ThemePlacement,
+  ownScreenOf,
+  withScreen,
+} from '@core/theme';
 import type {ThemeSelection} from './useThemeSelection';
 import type {ThemeWrites} from './useThemeWrites';
 

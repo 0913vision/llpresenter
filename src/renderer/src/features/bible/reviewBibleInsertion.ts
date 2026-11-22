@@ -1,4 +1,4 @@
-import type {VerseInput} from '@core/bible/split/splitVerses';
+import type {VerseInput} from '@core/bible';
 import type {BibleSplit} from './passageSplitter';
 
 export interface BibleInsertionRequest {

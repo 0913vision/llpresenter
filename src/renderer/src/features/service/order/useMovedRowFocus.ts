@@ -1,5 +1,5 @@
 import {useLayoutEffect, useRef, type RefObject} from 'react';
-import type {ServiceRow} from '@core/presentation/model';
+import type {ServiceRow} from '@core/presentation';
 
 interface ArmedFocus {
   readonly id: string;

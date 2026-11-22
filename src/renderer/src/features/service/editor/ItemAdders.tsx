@@ -2,10 +2,13 @@ import {useState, type JSX} from 'react';
 import {parseMediaId} from '@core/schema/ids';
 import type {BibleLookupPassage} from '@core/schema/bibleLookup';
 import type {SlidesItem} from '@core/schema/service';
-import {pictureSlide} from '@core/slides/items';
-import {makeSlide} from '@core/slides/make';
-import {SERVICE_TITLES, titleSlide} from '@core/slides/titles';
-import {themeOfSlide} from '@core/theme/themes';
+import {
+  pictureSlide,
+  makeSlide,
+  SERVICE_TITLES,
+  titleSlide,
+} from '@core/slides';
+import {themeOfSlide} from '@core/theme';
 import {makePassageSlides} from '@renderer/features/bible/makePassageSlides';
 import {MediaPicker} from '@renderer/features/media/MediaPicker';
 import {addReason, addSlides} from '@renderer/features/slides/deckCommands';

@@ -69,7 +69,7 @@ import {useServiceSongMenu} from './useServiceSongMenu';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {serviceOrderRowId, useServiceOrderDrag} from './useServiceOrderDrag';
 import {useMediaDurations} from '../../media/useMediaDurations';
-import type {RowProblem, ServiceRow} from '@core/presentation/model';
+import type {RowProblem, ServiceRow} from '@core/presentation';
 import styles from './ServiceOrderList.module.css';
 
 const problemTips: Readonly<Record<RowProblem, string>> = {

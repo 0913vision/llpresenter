@@ -6,7 +6,7 @@ import {
   type MessageLayer,
   type SlideLayer,
 } from './live';
-import type {Result} from '../common/result';
+import type {Result} from '@core/common/result';
 import {screenIdSchema} from './ids';
 import {layerSchemas, mediaChoiceSchema} from './liveState';
 import {liveActionOptions, type LiveAction} from './liveActions';

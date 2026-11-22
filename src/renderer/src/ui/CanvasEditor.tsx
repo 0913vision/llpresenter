@@ -1,7 +1,19 @@
 import {
   translateFrames,
   type SelectedFrame,
-} from '@core/canvas/selectionFrames';
+  editFrameValue,
+  containFrameGesture,
+  frameWithinBounds,
+  MIN_SIZE,
+  resizeHandles,
+  type ElementFrame,
+  type FrameFieldChange,
+  type ResizeHandle,
+  fitAspect,
+  roundGeometryFrame,
+  guideFrame,
+  type GuideLines,
+} from '@core/canvas';
 import {useCommandShortcuts} from './commandDispatcher';
 import {
   useLayoutEffect,
@@ -11,19 +23,6 @@ import {
   type PointerEvent,
   type ReactNode,
 } from 'react';
-import {
-  editFrameValue,
-  containFrameGesture,
-  frameWithinBounds,
-  MIN_SIZE,
-  resizeHandles,
-  type ElementFrame,
-  type FrameFieldChange,
-  type ResizeHandle,
-} from '@core/canvas/frameEdit';
-import {fitAspect} from '@core/canvas/fitAspect';
-import {roundGeometryFrame} from '@core/canvas/geometryValue';
-import {guideFrame, type GuideLines} from '@core/canvas/smartGuides';
 import {useElementSize} from './useElementSize';
 import {CanvasFrameBar} from './CanvasFrameBar';
 import styles from './CanvasEditor.module.css';

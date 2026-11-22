@@ -1,5 +1,5 @@
-import type {ItemKind, ItemRow, SlideTile} from '@core/presentation/model';
-import {themeOfSlide} from '@core/theme/themes';
+import type {ItemKind, ItemRow, SlideTile} from '@core/presentation';
+import {themeOfSlide} from '@core/theme';
 import {useThemes} from '@renderer/platform/themes';
 
 /** Icons shared by the order table and its insertable item palette. */

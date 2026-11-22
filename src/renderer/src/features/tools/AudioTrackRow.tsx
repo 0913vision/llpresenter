@@ -2,7 +2,7 @@ import type {JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import {Icon, TruncatedText} from '@renderer/ui';
 import {durationText} from '@renderer/features/media/mediaEntries';
-import type {AudioTrack} from '@core/media/audioTracks';
+import type {AudioTrack} from '@core/media';
 import styles from './AudioTrackRow.module.css';
 
 export function AudioTrackRow({

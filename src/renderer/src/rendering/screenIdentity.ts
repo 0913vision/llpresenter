@@ -1,8 +1,7 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import type {Screen} from '@core/schema/screens';
 import type {PictureCorrection, RenderScreen} from './layer';
-import {emptyScreenColor} from '@core/screens/emptyColor';
-import {pictureSizeForScreen} from '@core/screens/pictureSize';
+import {emptyScreenColor, pictureSizeForScreen} from '@core/screens';
 import {followSettingsDocument} from './settingsFeed';
 
 function pictureCorrection(screen: Screen): PictureCorrection | undefined {

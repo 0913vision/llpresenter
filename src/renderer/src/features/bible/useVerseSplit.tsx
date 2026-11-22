@@ -1,11 +1,16 @@
 import {useState, type JSX} from 'react';
-import {BIBLE_BOOKS} from '@core/bible/bibleBooks';
-import {isCutOfVerse, slidesOfVerse} from '@core/slides/splitPassage';
+import {BIBLE_BOOKS} from '@core/bible';
+import {
+  isCutOfVerse,
+  slidesOfVerse,
+  replaceVerse,
+  sameVerse,
+  verseSlides,
+  versesOfPassage,
+} from '@core/slides';
 import type {BiblePassage} from '@core/schema/biblePassage';
 import type {SlideId} from '@core/schema/ids';
 import type {VerseReference} from '@core/schema/slide';
-import {replaceVerse, sameVerse} from '@core/slides/edits';
-import {verseSlides, versesOfPassage} from '@core/slides/passageSlides';
 import {
   selectAdded,
   focusedSlide,

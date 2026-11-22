@@ -1,4 +1,4 @@
-import type {ImportSlide} from '../schema/textImport';
+import type {ImportSlide} from '@core/schema/textImport';
 
 export interface PowerPointShape {
   readonly role: 'title' | 'body' | 'free';

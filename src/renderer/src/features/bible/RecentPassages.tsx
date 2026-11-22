@@ -9,11 +9,13 @@ import {
 } from 'react';
 import type {RecentPassage, Translation} from '@core/schema/bible';
 import type {TranslationId} from '@core/schema/ids';
-import {recentPassages} from '@core/bible/bibleRecents';
-import {displayReference} from '@core/bible/displayReference';
-import {commandBindings} from '@core/shortcuts/bindings';
-import {editsText, matchesBinding} from '@core/shortcuts/matching';
-import {shortcutNames} from '@core/shortcuts/keys';
+import {recentPassages, displayReference} from '@core/bible';
+import {
+  commandBindings,
+  editsText,
+  matchesBinding,
+  shortcutNames,
+} from '@core/shortcuts';
 import {commandBindingStore} from '@renderer/ui/commandBindings';
 import {isInputMethodKey} from '@renderer/ui/commandDispatcher';
 import styles from './RecentPassages.module.css';

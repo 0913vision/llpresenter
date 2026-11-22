@@ -2,4 +2,4 @@ export {
   shortcutNames,
   shortcutPress,
   type ShortcutPress,
-} from '@core/shortcuts/keys';
+} from '@core/shortcuts';

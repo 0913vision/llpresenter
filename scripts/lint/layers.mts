@@ -1,9 +1,60 @@
 import type {Layer, LayerMap} from './layer-rule.mts';
+import type {ModuleMap} from './module-rule.mts';
 
 const RENDERER = 'src/renderer/src';
 
+const ALIASES = {
+  '@core/': 'src/core',
+  '@contracts/': 'src/contracts',
+  '@renderer/': RENDERER,
+  '@main/': 'src/main',
+};
+
+/** Folders of core whose files every module of core uses. */
+const CORE_BASE = ['common', 'schema'];
+
+/** The modules of core, each with the modules it builds on. */
+const CORE_MODULES: Readonly<Record<string, readonly string[]>> = {
+  app: [],
+  bible: [],
+  canvas: [],
+  live: ['overlays'],
+  macros: [],
+  media: [],
+  output: [],
+  overlays: [],
+  presentation: ['slides', 'theme'],
+  screens: [],
+  search: [],
+  services: ['presentation'],
+  shortcuts: [],
+  slides: ['bible', 'labels', 'theme'],
+  songs: [],
+  theme: ['canvas'],
+  timers: [],
+};
+
+function coreLayer(name: string, imports: readonly string[]): Layer {
+  return {
+    name: `core/${name}`,
+    dir: `src/core/${name}`,
+    imports: imports.map(other => `core/${other}`),
+  };
+}
+
+const CORE_LAYERS: readonly Layer[] = [
+  coreLayer('common', []),
+  coreLayer('labels', []),
+  coreLayer('schema', ['common', 'labels']),
+  ...Object.entries(CORE_MODULES).map(([name, imports]) =>
+    coreLayer(name, [...CORE_BASE, ...imports]),
+  ),
+];
+
+const CORE = CORE_LAYERS.map(layer => layer.name);
+
 /** Shared by every process: pure rules, then the contracts between processes. */
-const SHARED = ['core', 'contracts'];
+const SHARED = [...CORE, 'contracts'];
 
 /** Renderer layers that every renderer feature may use. */
 const FEATURE_BASE = [
@@ -49,14 +100,10 @@ const ALL_FEATURES = FEATURE_LAYERS.map(layer => layer.name);
  * the output window, and `pictures` shows what it draws in the control window.
  */
 export const LAYER_MAP: LayerMap = {
-  aliases: {
-    '@core/': 'src/core',
-    '@contracts/': 'src/contracts',
-    '@renderer/': RENDERER,
-  },
+  aliases: ALIASES,
   layers: [
-    {name: 'core', dir: 'src/core', imports: []},
-    {name: 'contracts', dir: 'src/contracts', imports: ['core']},
+    ...CORE_LAYERS,
+    {name: 'contracts', dir: 'src/contracts', imports: CORE},
     {name: 'main', dir: 'src/main', imports: SHARED},
     {name: 'preload', dir: 'src/preload', imports: SHARED},
     {name: 'ui', dir: `${RENDERER}/ui`, imports: SHARED},
@@ -92,11 +139,18 @@ export const LAYER_MAP: LayerMap = {
   ],
 };
 
+/** The modules whose inside is private (`llp/module-entry`). */
+export const MODULE_MAP: ModuleMap = {
+  aliases: ALIASES,
+  areas: [{dir: 'src/core', open: CORE_BASE}],
+};
+
 const RENDERER_LAYERS = LAYER_MAP.layers
   .filter(layer => layer.dir.startsWith(`${RENDERER}/`))
   .map(layer => layer.name);
 
 function testImports(layer: Layer): readonly string[] {
+  if (CORE.includes(layer.name)) return CORE;
   return layer.dir.startsWith(`${RENDERER}/`)
     ? [...SHARED, ...RENDERER_LAYERS]
     : layer.imports;
@@ -117,11 +171,7 @@ const TEST_FOLDERS: Readonly<Record<string, string>> = {
  * follow the same rule.
  */
 export const TEST_LAYER_MAP: LayerMap = {
-  aliases: {
-    ...LAYER_MAP.aliases,
-    '@main/': 'src/main',
-    '@fixtures/': 'test/fixtures',
-  },
+  aliases: {...ALIASES, '@fixtures/': 'test/fixtures'},
   mirrors: Object.fromEntries(
     Object.entries(TEST_FOLDERS).flatMap(([area, dir]) => [
       [`test/${area}`, dir],

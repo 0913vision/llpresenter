@@ -4,7 +4,7 @@ import {audioPositionSeconds} from '@core/schema/audioState';
 import {fadeAudio} from './audioFade';
 import {applySink} from './audioSink';
 import {setPlaybackProblem} from './playbackProblem';
-import {DEFAULT_AUDIO_TIMES, type AudioTimes} from '@core/media/audioTimes';
+import {DEFAULT_AUDIO_TIMES, type AudioTimes} from '@core/media';
 import type {ClearEffect} from '@core/schema/clearFade';
 
 interface AudioPlayerOptions {

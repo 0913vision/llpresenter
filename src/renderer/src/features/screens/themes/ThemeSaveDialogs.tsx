@@ -1,6 +1,6 @@
 import type {JSX} from 'react';
 import {THEME_FILE_LIMITS} from '@core/schema/theme';
-import {copiedThemeName} from '@core/theme/list';
+import {copiedThemeName} from '@core/theme';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
 import {
   USAGE_LOADING,

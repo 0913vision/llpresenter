@@ -1,4 +1,4 @@
-import {withSongTitle} from '@core/slides/songSlides';
+import {withSongTitle} from '@core/slides';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {LibrarySong, SongDocument} from '@core/schema/contentDocuments';
@@ -8,7 +8,7 @@ import {
   type LibrarySearchResult,
 } from '@core/schema/librarySearch';
 import type {SongId} from '@core/schema/ids';
-import {copyTitle, normalizeSongTitle} from '@core/songs/songTitle';
+import {copyTitle, normalizeSongTitle} from '@core/songs';
 import {noticeTime, type Notice, type NoticeAction} from '@renderer/ui/notices';
 
 export type LibraryApi = Pick<LlpApi, 'songs' | 'content' | 'services'> & {

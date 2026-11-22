@@ -1,13 +1,13 @@
-import type {MediaId} from '../schema/ids';
-import type {Song} from '../schema/song';
-import type {MediaList} from '../schema/mediaList';
-import type {MediaUses} from '../schema/mediaUses';
-import type {MacrosFile} from '../schema/macros';
-import type {PropsFile} from '../schema/props';
-import type {Slide} from '../schema/slide';
-import type {SlideBackground, ThemeFile} from '../schema/theme';
-import type {Themes} from '../schema/themes';
-import {hasSlides, type Service} from '../schema/service';
+import type {MediaId} from '@core/schema/ids';
+import type {Song} from '@core/schema/song';
+import type {MediaList} from '@core/schema/mediaList';
+import type {MediaUses} from '@core/schema/mediaUses';
+import type {MacrosFile} from '@core/schema/macros';
+import type {PropsFile} from '@core/schema/props';
+import type {Slide} from '@core/schema/slide';
+import type {SlideBackground, ThemeFile} from '@core/schema/theme';
+import type {Themes} from '@core/schema/themes';
+import {hasSlides, type Service} from '@core/schema/service';
 
 /** The documents that can use a media item. */
 export interface MediaUseSources {

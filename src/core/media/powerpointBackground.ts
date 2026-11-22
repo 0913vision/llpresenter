@@ -1,4 +1,4 @@
-import {MEDIA_LIMITS} from '../schema/mediaList';
+import {MEDIA_LIMITS} from '@core/schema/mediaList';
 
 /** Names a new PowerPoint background without colliding with the media list. */
 export function powerpointBackgroundName(

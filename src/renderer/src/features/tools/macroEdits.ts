@@ -10,10 +10,7 @@ import {
 } from '@core/schema/macros';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {withinLookupTimeout} from '@renderer/session/showOutput';
-import {
-  editMacroActions,
-  type MacroActionEdit,
-} from '@core/macros/macroActionEdits';
+import {editMacroActions, type MacroActionEdit} from '@core/macros';
 
 export type MacroChanges = Partial<
   Pick<Macro, 'name' | 'icon' | 'color' | 'runOnStartup'>

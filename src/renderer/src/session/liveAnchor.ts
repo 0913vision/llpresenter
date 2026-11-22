@@ -1,5 +1,5 @@
 import type {SlideLayer} from '@core/schema/live';
-import type {TileCursor} from '@core/presentation/model';
+import type {TileCursor} from '@core/presentation';
 import {projectedLiveCursor, tilesForView} from './showLibrary';
 import type {ShowView} from './showStore';
 

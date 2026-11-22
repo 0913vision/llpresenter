@@ -1,6 +1,6 @@
 import {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {Themes} from '@core/schema/themes';
-import type {ThemeListResult} from '@core/theme/list';
+import type {ThemeListResult} from '@core/theme';
 import type {NamedDocument} from '@renderer/platform/useSettingsDocument';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {THEME_READ_ONLY} from './themeNames';

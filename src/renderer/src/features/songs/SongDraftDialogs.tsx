@@ -5,7 +5,7 @@ import {
   DUPLICATE_TITLE_REASON,
   normalizeSongTitle,
   SONG_TITLE_LIMIT,
-} from '@core/songs/songTitle';
+} from '@core/songs';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
 import {countedMeta} from '@renderer/ui/countedMeta';

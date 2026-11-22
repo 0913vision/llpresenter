@@ -5,8 +5,11 @@ import {
   defaultPreferences,
   withPreferenceDefaults,
 } from '@core/schema/preferences';
-import {isKeyBackground} from '@core/screens/emptyColor';
-import {messageBandFor, resolveMessageStyle} from '@core/screens/messageStyle';
+import {
+  isKeyBackground,
+  messageBandFor,
+  resolveMessageStyle,
+} from '@core/screens';
 import type {Timer} from '@core/schema/timers';
 import type {FontCatalog, FontCatalogSnapshot} from '@core/schema/fontCatalog';
 import type {RenderFrame, RenderScreen} from './layer';

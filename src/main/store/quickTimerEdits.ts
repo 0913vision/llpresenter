@@ -1,5 +1,5 @@
 import type {EditFailure, EditSuccess} from '@core/schema/contentEdit';
-import {nextTimerName} from '@core/timers/timerNames';
+import {nextTimerName} from '@core/timers';
 import type {Result} from '@core/common/result';
 import {isKnownQuickItem, MAX_QUICK_ITEMS} from '@core/schema/quick';
 import {

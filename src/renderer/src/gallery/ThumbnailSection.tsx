@@ -1,5 +1,5 @@
 import {useState, type JSX} from 'react';
-import type {LabelColor} from '@core/labels/colors';
+import type {LabelColor} from '@core/labels';
 import dawnSky from '../../../../design/system/upload/Media/dawn-sky.jpg';
 import {
   Panel,

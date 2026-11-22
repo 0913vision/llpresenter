@@ -3,7 +3,7 @@ import type {LlpApi} from '@contracts/ipc/api';
 import type {ServiceItemId, SongId} from '@core/schema/ids';
 import {hasSlides, isItemOfKind} from '@core/schema/service';
 import type {ShowLibrarySong} from '@core/schema/showLibrarySong';
-import {itemTiles} from '@core/slides/tiles';
+import {itemTiles} from '@core/slides';
 import {useLabelColors} from '@renderer/features/labels/labels';
 import type {Report} from '@renderer/session/serviceEdit';
 import {detailsScale} from '@renderer/platform/thumbnailScale';

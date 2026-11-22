@@ -1,6 +1,6 @@
 import {useMemo, type JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
-import {withMemo, withStartMacro} from '@core/services/itemFields';
+import {withMemo, withStartMacro} from '@core/services';
 import type {SlidesItem} from '@core/schema/service';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import {runEdit, type Report} from '@renderer/session/serviceEdit';

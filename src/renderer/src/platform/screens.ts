@@ -1,8 +1,11 @@
 import {NDI_DEFAULT_FPS, type Screen} from '@core/schema/screens';
 import type {MonitorList} from '@core/schema/monitors';
-import {monitorAssignment} from '@core/screens/monitorAssignment';
-import {SCREEN_KIND_ORDER} from '@core/screens/screens';
-import {UNASSIGNED_TARGET, targetByMethod} from '@core/screens/screenRows';
+import {
+  monitorAssignment,
+  SCREEN_KIND_ORDER,
+  UNASSIGNED_TARGET,
+  targetByMethod,
+} from '@core/screens';
 import type {PreviewTarget} from '@renderer/ui/PreviewFrame';
 
 export interface ScreenSummary {

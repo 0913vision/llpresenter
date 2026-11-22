@@ -2,8 +2,8 @@ import {MAX_ACTIVE_PROPS} from '@core/schema/overlayState';
 import {classes} from '../classes';
 import type {LayerDefinition} from '../layer';
 import {OverlayImageView} from '../overlayImage';
-import type {TimerNow} from '@core/timers/timerClock';
-import type {TextStyle} from '@core/overlays/textStyle';
+import type {TimerNow} from '@core/timers';
+import type {TextStyle} from '@core/overlays';
 import {OverlayTextView} from '../overlayText';
 import {
   fillTimerTokens,

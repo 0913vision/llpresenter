@@ -1,4 +1,4 @@
-import type {VerseDirection} from '@core/bible/adjacentVerses';
+import type {VerseDirection} from '@core/bible';
 import type {BiblePassage} from '@core/schema/biblePassage';
 import type {BibleLookupPassage} from '@core/schema/bibleLookup';
 import {useLive} from '@renderer/session/live';

@@ -1,4 +1,4 @@
-import {freeName} from '../common/freeName';
+import {freeName} from '@core/common/freeName';
 import {
   THEME_FILE_LIMITS,
   type OwnThemeScreen,
@@ -6,9 +6,9 @@ import {
   type ThemeBox,
   type ThemeFile,
   type ThemeScreen,
-} from '../schema/theme';
+} from '@core/schema/theme';
 import {BUILT_IN_THEME_IDS} from './builtIn/ids';
-import {AUTO_TOKENS} from '../schema/slideContent';
+import {AUTO_TOKENS} from '@core/schema/slideContent';
 import {removeElements} from './elements';
 import {templateTokens} from './template';
 import {builtInTheme} from './themes';

@@ -1,15 +1,16 @@
-import {BIBLE_BOOKS} from '@core/bible/bibleBooks';
-import {BIBLE_VERSE_COUNTS} from '@core/bible/bibleVerseCounts';
-import {LIVE_BIBLE_ID} from '@core/bible/liveTranslation';
 import {
+  BIBLE_BOOKS,
+  BIBLE_VERSE_COUNTS,
+  LIVE_BIBLE_ID,
   parseReference,
   resolvePassage,
   type ReferenceProblem,
   type ResolvedPassage,
-} from '@core/bible/reference';
+  exactBibleBook,
+  matchBooks,
+} from '@core/bible';
 import {BIBLE_LOOKUP_LIMITS} from '@core/schema/bibleLookup';
 import type {Result} from '@core/common/result';
-import {exactBibleBook, matchBooks} from '@core/bible/bibleMatching';
 import {
   loadBibleChapterLibrary,
   type BibleChapterLibrary,

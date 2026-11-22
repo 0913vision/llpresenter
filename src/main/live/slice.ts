@@ -8,7 +8,7 @@ import type {LiveLayers, LiveState} from '@core/schema/live';
 import type {LiveHistory} from './history';
 import type {MacroId, MessageId, ScreenId} from '@core/schema/ids';
 import type {SlideBackground} from '@core/schema/theme';
-import type {ThemedSlide} from '@core/theme/themes';
+import type {ThemedSlide} from '@core/theme';
 import type {PayloadError} from '@core/schema/payload';
 import type {MediaList} from '@core/schema/mediaList';
 

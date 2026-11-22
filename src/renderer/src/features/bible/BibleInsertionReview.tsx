@@ -1,5 +1,5 @@
 import {useLayoutEffect, useRef, useState, type JSX} from 'react';
-import {verseKey} from '@core/slides/passageSlides';
+import {verseKey} from '@core/slides';
 import {BibleAddSplitReview} from './BibleAddSplitReview';
 import {
   installBibleInsertionReview,

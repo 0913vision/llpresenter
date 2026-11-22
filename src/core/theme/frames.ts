@@ -1,4 +1,4 @@
-import {roundGeometryFrame} from '../canvas/geometryValue';
+import {roundGeometryFrame} from '@core/canvas';
 import type {
   OwnThemeScreen,
   ThemeElement,
@@ -6,7 +6,7 @@ import type {
   ThemeShape,
   ThemeSplit,
   ThemeStack,
-} from '../schema/theme';
+} from '@core/schema/theme';
 import {changeElement} from './elements';
 import type {ThemePlacement} from './layout';
 

@@ -1,4 +1,4 @@
-import type {GradientBackground} from '@core/theme/gradientPresets';
+import type {GradientBackground} from '@core/theme';
 import {themeGradientColorAt} from './themeBackground';
 
 /** The color the output shows at a place of a gradient. */

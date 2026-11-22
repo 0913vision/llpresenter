@@ -4,7 +4,7 @@ import type {PreferencePageId} from '@core/schema/preferencePages';
 import {CLEAR_FADE_LIMIT_MS, DEFAULT_CLEAR_FADE} from '@core/schema/clearFade';
 import {clearName} from '@renderer/ui/ClearButton';
 import {UI_ZOOM} from '@core/schema/uiZoom';
-import {lastBackupText} from '@core/ui/lastBackupText';
+import {lastBackupText} from './lastBackupText';
 import {
   PropertyGroup,
   PropertyRow,

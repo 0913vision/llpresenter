@@ -1,5 +1,5 @@
 import {create} from 'zustand';
-import {STARTER_SCREEN_IDS} from '@core/screens/screens';
+import {STARTER_SCREEN_IDS} from '@core/screens';
 import {parseScreenId} from '@core/schema/ids';
 import type {UiState} from '@core/schema/uiState';
 

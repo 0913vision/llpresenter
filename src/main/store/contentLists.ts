@@ -1,4 +1,4 @@
-import {serviceDay} from '@core/services/serviceDate';
+import {serviceDay} from '@core/services';
 import {
   ENTRY_ITEM_COUNT_MAX,
   type LibrarySong,

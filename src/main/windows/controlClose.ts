@@ -1,7 +1,7 @@
 import {randomUUID} from 'node:crypto';
 import {ipcMain, type IpcMainEvent} from 'electron';
 import {appEndpoints} from '@contracts/ipc/app';
-import {closeStepAfter, type FlushOutcome} from '@core/app/closePolicy';
+import {closeStepAfter, type FlushOutcome} from '@core/app';
 import {
   APP_FLUSH_LIMITS,
   parseAppFlushDone,

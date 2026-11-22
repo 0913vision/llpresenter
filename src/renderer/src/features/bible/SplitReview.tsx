@@ -1,11 +1,12 @@
 import {useEffect, useMemo, useRef, useState, type JSX} from 'react';
-import {BIBLE_BOOKS} from '@core/bible/bibleBooks';
-import {cutsOfVerse, type VerseInput} from '@core/bible/split/splitVerses';
 import {
+  BIBLE_BOOKS,
+  cutsOfVerse,
+  type VerseInput,
   offsetsFromChunks,
   planSlides,
   planSlidesAtOffsets,
-} from '@core/bible/split/manualSplit';
+} from '@core/bible';
 import type {BibleCutSelection} from '@core/schema/bibleCuts';
 import type {BibleSplit} from './passageSplitter';
 import {verseKey} from './BibleRefinements';

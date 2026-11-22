@@ -1,4 +1,4 @@
-import type {TileCursor} from '@core/presentation/model';
+import type {TileCursor} from '@core/presentation';
 import {tilesForView} from '@renderer/session/showLibrary';
 import type {ShowView} from '@renderer/session/showStore';
 

@@ -1,7 +1,6 @@
 import {useMemo, type JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
-import {displayReference} from '@core/bible/displayReference';
-import {withLiveBible} from '@core/bible/liveTranslation';
+import {displayReference, withLiveBible} from '@core/bible';
 import type {BiblePassage} from '@core/schema/biblePassage';
 import type {SongId} from '@core/schema/ids';
 import {isItemOfKind, type SlidesItem} from '@core/schema/service';

@@ -1,7 +1,6 @@
 import {NOT_IN_THIS_WINDOW} from '@renderer/platform/problemReasons';
 import {shortcutText, commandBindingStore} from '@renderer/ui/commandBindings';
-import {commandBindings} from '@core/shortcuts/bindings';
-import {matchesBinding} from '@core/shortcuts/matching';
+import {commandBindings, matchesBinding} from '@core/shortcuts';
 import {
   menuAvailability,
   type MenuEntry,

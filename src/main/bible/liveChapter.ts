@@ -1,5 +1,5 @@
 import {parse, type DefaultTreeAdapterTypes} from 'parse5';
-import {BIBLE_BOOKS} from '@core/bible/bibleBooks';
+import {BIBLE_BOOKS} from '@core/bible';
 
 type Node = DefaultTreeAdapterTypes.Node;
 type Element = DefaultTreeAdapterTypes.Element;

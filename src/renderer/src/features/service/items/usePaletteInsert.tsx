@@ -1,5 +1,5 @@
 import {useState, type JSX} from 'react';
-import type {LiturgyTranslation} from '@core/slides/items';
+import type {LiturgyTranslation} from '@core/slides';
 import {createServiceItemId, type ServiceItemId} from '@core/schema/ids';
 import type {ServiceItem} from '@core/schema/service';
 import type {Report} from '@renderer/session/serviceEdit';

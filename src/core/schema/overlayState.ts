@@ -4,7 +4,7 @@ import {messageIdSchema, propIdSchema, screenIdSchema} from './ids';
 import {parsePayload, payloadObject, type PayloadError} from './payload';
 import {nonNegativeNumber} from './primitives';
 import {propContentSchema} from './props';
-import type {Result} from '../common/result';
+import type {Result} from '@core/common/result';
 import {LIVE_STATE_LIMITS, liveNonBlankTextSchema} from './liveLimits';
 
 export const MAX_ACTIVE_MESSAGES = 200;

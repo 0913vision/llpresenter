@@ -1,4 +1,4 @@
-import type {Screen} from '../schema/screens';
+import type {Screen} from '@core/schema/screens';
 
 /** The saved size that determines this screen's output aspect ratio. */
 export function pictureSizeForScreen(

@@ -4,8 +4,7 @@ import {loadBackgroundImage} from './backgroundImage';
 import {classes} from './classes';
 import {applySink} from './audioSink';
 import {setPlaybackProblem} from './playbackProblem';
-import {backgroundElapsedSeconds} from '@core/media/backgroundPosition';
-import {mediaObjectFit} from '@core/media/objectFit';
+import {backgroundElapsedSeconds, mediaObjectFit} from '@core/media';
 import {StillBackgroundLayerView} from './stillBackgroundLayer';
 import type {PreviewMediaSource} from './previewMedia';
 

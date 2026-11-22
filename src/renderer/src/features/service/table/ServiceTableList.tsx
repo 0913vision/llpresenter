@@ -1,7 +1,7 @@
 import {useMemo, useState, type ComponentProps, type JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import {hasSlides, type ServiceItem} from '@core/schema/service';
-import {withMemo} from '@core/services/itemFields';
+import {withMemo} from '@core/services';
 import {menuAvailability} from '@renderer/ui/menuModel';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {editItem, useOpenService} from '@renderer/session/openService';

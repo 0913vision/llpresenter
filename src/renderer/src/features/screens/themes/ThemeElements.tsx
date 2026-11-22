@@ -6,7 +6,7 @@ import {
   canAddElement,
   moveElements,
   type AddableKind,
-} from '@core/theme/elements';
+} from '@core/theme';
 import {isUnchangedSelectionMove} from '@core/common/selectionOrder';
 import {selectionDragImage} from '@renderer/ui/selectionDrag';
 import {Button} from '@renderer/ui/Button';

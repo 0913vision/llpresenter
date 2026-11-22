@@ -2,11 +2,8 @@ import type {LlpApi} from '@contracts/ipc/api';
 import type {MediaId} from '@core/schema/ids';
 import type {PowerPointSource} from '@core/schema/powerpointImport';
 import type {TextImportDraft} from '@core/schema/textImport';
-import {isHymnNumber} from '@core/slides/tiles';
-import {
-  powerpointBrightBackgrounds,
-  powerpointSlides,
-} from '@core/songs/powerpointSlides';
+import {isHymnNumber} from '@core/slides';
+import {powerpointBrightBackgrounds, powerpointSlides} from '@core/songs';
 import {lendPreviewImage} from '@renderer/rendering/previewMedia';
 import {openInPrep} from '@renderer/session/prepTarget';
 import {noticeTime, type Notice} from '@renderer/ui/notices';

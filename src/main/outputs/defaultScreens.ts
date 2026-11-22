@@ -1,5 +1,5 @@
 import {createScreenId} from '@core/schema/ids';
-import {STARTER_SCREEN_IDS} from '@core/screens/screens';
+import {STARTER_SCREEN_IDS} from '@core/screens';
 import {findControlMonitor, type Monitor} from '../displays/monitor';
 import type {Rect} from '../displays/rect';
 import type {OutputScreen, ScreenSource} from './screens';

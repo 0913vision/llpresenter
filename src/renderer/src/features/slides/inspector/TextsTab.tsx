@@ -1,7 +1,7 @@
 import type {JSX} from 'react';
 import type {ShowTile} from '@core/schema/showService';
 import type {ThemeFile} from '@core/schema/theme';
-import {boxesOf, fillsItself} from '@core/slides/boxes';
+import {boxesOf, fillsItself} from '@core/slides';
 import {PropertyGroup} from '@renderer/ui/PropertyRow';
 import {SlideTextField} from '../SlideTextField';
 import type {ChosenSlides} from './changeSelected';

@@ -1,6 +1,8 @@
-import type {AddableKind} from '@core/theme/elements';
-import type {ThemeListProblem} from '@core/theme/list';
-import {templateTokens} from '@core/theme/template';
+import {
+  type AddableKind,
+  type ThemeListProblem,
+  templateTokens,
+} from '@core/theme';
 import type {
   SlidePurpose,
   ThemeElement,

@@ -16,7 +16,7 @@ import {
   type DisplayLayoutModel,
   type MonitorBox,
 } from './layoutBoxes';
-import {fitAspect, type BoxSize} from '@core/canvas/fitAspect';
+import {fitAspect, type BoxSize} from '@core/canvas';
 import {
   useScreenView,
   useScreensSelection,

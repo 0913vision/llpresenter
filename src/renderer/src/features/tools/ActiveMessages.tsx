@@ -1,5 +1,5 @@
 import {useEffect, useState, type JSX} from 'react';
-import {liveMessages, messageTimeLeft} from '@core/overlays/messagePlayback';
+import {liveMessages, messageTimeLeft} from '@core/overlays';
 import {useLive} from '@renderer/session/live';
 import {IconButton, TruncatedText} from '@renderer/ui';
 import {dismissMessage} from './messageDismiss';

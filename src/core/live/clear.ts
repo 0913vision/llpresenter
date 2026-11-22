@@ -1,4 +1,8 @@
-import {type ClearTarget, hasAnyLayer, type LiveLayers} from '../schema/live';
+import {
+  type ClearTarget,
+  hasAnyLayer,
+  type LiveLayers,
+} from '@core/schema/live';
 
 /** Command IDs of the clear commands, as in `docs/spec/10-shortcuts-and-settings.md`. */
 export type ClearCommandId =

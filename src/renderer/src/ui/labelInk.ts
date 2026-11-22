@@ -1,5 +1,5 @@
 import type {CSSProperties} from 'react';
-import {NO_LABEL_COLOR, type LabelColor} from '@core/labels/colors';
+import {NO_LABEL_COLOR, type LabelColor} from '@core/labels';
 
 /** The fill and text colors of an 이름표, as CSS variables on an element. */
 export type LabelInkStyle = CSSProperties &

@@ -1,7 +1,7 @@
-import {passageBook} from '../bible/adjacentVerses';
-import type {BibleLookupPassage} from '../schema/bibleLookup';
-import type {BiblePassage} from '../schema/biblePassage';
-import type {Slide, VerseReference} from '../schema/slide';
+import {passageBook} from '@core/bible';
+import type {BibleLookupPassage} from '@core/schema/bibleLookup';
+import type {BiblePassage} from '@core/schema/biblePassage';
+import type {Slide, VerseReference} from '@core/schema/slide';
 import {copySlide, makeSlide, transitionFor, type SlideMaking} from './make';
 
 /** The verses of a looked-up passage, each with its full reference. */

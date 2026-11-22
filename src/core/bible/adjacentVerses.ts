@@ -1,5 +1,8 @@
 import {exactBibleBook} from './bibleMatching';
-import type {BibleLookupPassage, BibleLookupReply} from '../schema/bibleLookup';
+import type {
+  BibleLookupPassage,
+  BibleLookupReply,
+} from '@core/schema/bibleLookup';
 
 export type VerseDirection = 'previous' | 'next';
 

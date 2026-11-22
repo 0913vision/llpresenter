@@ -1,11 +1,18 @@
-import {BIBLE_BOOKS} from '../bible/bibleBooks';
-import {displayReference} from '../bible/displayReference';
-import {NO_LABEL_COLOR, type LabelColor} from '../labels/colors';
-import type {ShowTile} from '../schema/showService';
-import {hasSlides, type ServiceItem, type SlidesItem} from '../schema/service';
-import type {Slide} from '../schema/slide';
-import type {Song} from '../schema/song';
-import {AUTO_TOKENS, type AutoValues} from '../schema/slideContent';
+import {BIBLE_BOOKS, displayReference} from '@core/bible';
+import {NO_LABEL_COLOR, type LabelColor} from '@core/labels';
+import type {ShowTile} from '@core/schema/showService';
+import {
+  hasSlides,
+  type ServiceItem,
+  type SlidesItem,
+} from '@core/schema/service';
+import type {Slide} from '@core/schema/slide';
+import {
+  type SlideContent,
+  AUTO_TOKENS,
+  type AutoValues,
+} from '@core/schema/slideContent';
+import type {Song} from '@core/schema/song';
 import {verseKey} from './passageSlides';
 
 /** What an item says about its slides beside the slides themselves. */
@@ -116,6 +123,16 @@ export function slideTiles(
         ? NO_LABEL_COLOR
         : (colors.get(slide.label) ?? NO_LABEL_COLOR),
   }));
+}
+
+/** The texts of a tile, as its theme draws them. */
+export function tileContent({slide, auto}: ShowTile): SlideContent {
+  return {
+    texts: slide.texts,
+    auto,
+    ...(slide.next === undefined ? {} : {next: slide.next}),
+    ...(slide.continued === undefined ? {} : {continued: true}),
+  };
 }
 
 /** What an item is called: its own name, or what its slides are. */

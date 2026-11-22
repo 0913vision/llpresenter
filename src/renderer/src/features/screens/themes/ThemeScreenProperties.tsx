@@ -1,6 +1,6 @@
 import type {JSX} from 'react';
 import {THEME_CANVAS, screenKinds, type ScreenKind} from '@core/schema/theme';
-import {canFollow, ownLayoutFrom} from '@core/theme/screens';
+import {canFollow, ownLayoutFrom} from '@core/theme';
 import {
   Properties,
   PropertyGroup,

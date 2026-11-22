@@ -1,6 +1,12 @@
-import {filledText, NEXT_BOX, ownText, withOwnText} from '@core/slides/boxes';
-import {changeSlides} from '@core/slides/edits';
-import {splitSlide, type TextEdit} from '@core/slides/textEdits';
+import {
+  filledText,
+  NEXT_BOX,
+  ownText,
+  withOwnText,
+  changeSlides,
+  splitSlide,
+  type TextEdit,
+} from '@core/slides';
 import type {ShowTile} from '@core/schema/showService';
 import type {ThemeFile} from '@core/schema/theme';
 import {slideMaking} from '@renderer/platform/themes';

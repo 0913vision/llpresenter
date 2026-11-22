@@ -1,8 +1,8 @@
 import type {LiveLayers, SlideLayer} from '@core/schema/live';
 import type {LiveThemeOutput} from '@core/schema/liveTheme';
-import {isKeyBackground} from '@core/screens/emptyColor';
+import {isKeyBackground} from '@core/screens';
 import type {SlideContent} from '@core/schema/slideContent';
-import {themeScreenOf} from '@core/theme/themes';
+import {themeScreenOf} from '@core/theme';
 import type {RenderFrame, RenderScreen} from '../layer';
 import type {ThemeDrawing} from './themeView';
 

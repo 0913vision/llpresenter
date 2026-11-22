@@ -13,7 +13,7 @@ import {markMenuTarget} from './contextMenu';
 import {menuItems, type MenuEntry} from './menuModel';
 import type {MenuSearch} from './MenuParts';
 import {MenuSurface, type MenuSurfaceProps} from './MenuSurface';
-import {placeAtPoint, placeBelow, viewportSize, type Point} from './placement';
+import {placeAtPoint, placeBelow, type Point, viewportSize} from './placement';
 import styles from './Menu.module.css';
 import {contextMenuEntries} from './contextMenuEntries';
 

@@ -10,7 +10,7 @@ import {macroDroppedProblem, type AppProblem} from '@core/schema/appProblem';
 import type {LiveState} from '@core/schema/live';
 import type {Logger} from '../log';
 import type {MediaList} from '@core/schema/mediaList';
-import {backgroundProgress} from '@core/media/backgroundPosition';
+import {backgroundProgress} from '@core/media';
 import type {MediaProgress} from '@core/schema/mediaProgress';
 import {SYSTEM_CLOCK, type LiveClock} from './clock';
 import {initialHistory, liveSlices, type LiveHistory} from './reducer';

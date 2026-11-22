@@ -1,14 +1,14 @@
-import {copyName} from '../common/copyName';
-import {freeName} from '../common/freeName';
-import {moveSelection} from '../common/selectionOrder';
-import type {Result} from '../common/result';
-import type {ThemeId} from '../schema/ids';
+import {copyName} from '@core/common/copyName';
+import {freeName} from '@core/common/freeName';
+import {moveSelection} from '@core/common/selectionOrder';
+import type {Result} from '@core/common/result';
+import type {ThemeId} from '@core/schema/ids';
 import {
   THEME_FILE_LIMITS,
   type SlidePurpose,
   type ThemeFile,
-} from '../schema/theme';
-import {THEMES_LIMITS, type Themes} from '../schema/themes';
+} from '@core/schema/theme';
+import {THEMES_LIMITS, type Themes} from '@core/schema/themes';
 import {builtInTheme, themeFor} from './themes';
 
 const NEW_THEME_NAME = '새 테마';

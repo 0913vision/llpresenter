@@ -9,7 +9,7 @@ import {
   APP_PICTURE_IDS,
   THEME_BACKGROUNDS,
   THEME_DECORATIONS,
-} from '@core/theme/pictures';
+} from '@core/theme';
 import type {BundledPicture} from './bundledPicture';
 
 const files = new Map([

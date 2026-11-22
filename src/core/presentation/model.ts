@@ -1,4 +1,8 @@
-import type {ShowRow, ShowTile, showRowProblems} from '../schema/showService';
+import type {
+  ShowRow,
+  ShowTile,
+  showRowProblems,
+} from '@core/schema/showService';
 
 /** Id of a row in the 예배 순서 (service order). */
 export type ItemId = string;

@@ -1,4 +1,4 @@
-import {OUTPUT_REVEAL_DEADLINE_MS} from '@core/output/revealDeadline';
+import {OUTPUT_REVEAL_DEADLINE_MS} from '@core/output';
 
 /** Wait for the incoming composition, bounded even when animation frames stop. */
 export function waitForReady(

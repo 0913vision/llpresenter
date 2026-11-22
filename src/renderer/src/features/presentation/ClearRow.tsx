@@ -11,7 +11,7 @@ import {
   toggleItem,
 } from '@renderer/session/clear';
 import {useLive} from '@renderer/session/live';
-import {clearButtons, type ClearButtonSpec} from '@core/live/clear';
+import {clearButtons, type ClearButtonSpec} from '@core/live';
 import styles from './ClearRow.module.css';
 
 function ItemOffButton({compact}: {readonly compact: boolean}): JSX.Element {

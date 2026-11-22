@@ -1,11 +1,11 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
-import type {TileCursor} from '@core/presentation/model';
+import type {TileCursor} from '@core/presentation';
 import type {MediaDocument} from '@core/schema/mediaEdit';
 import type {ShowService, ShowTile} from '@core/schema/showService';
 import type {ThemeFile} from '@core/schema/theme';
 import type {Themes} from '@core/schema/themes';
-import {themeOfSlide} from '@core/theme/themes';
+import {themeOfSlide} from '@core/theme';
 
 const LOAD_DEADLINE_MS = 2000;
 /** Open players are scarce, so only the next few videos stay loaded. */

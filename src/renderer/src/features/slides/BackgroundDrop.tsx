@@ -1,5 +1,5 @@
 import {useEffect, useRef, type DragEvent, type ReactNode} from 'react';
-import {changeSlides, withBackground} from '@core/slides/edits';
+import {changeSlides, withBackground} from '@core/slides';
 import {hasMediaDrag, readMediaDrag} from '@renderer/features/media/mediaDrag';
 import {canAddMedia, mediaItem} from '@renderer/platform/media';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';

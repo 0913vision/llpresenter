@@ -1,6 +1,19 @@
-import {BIBLE_BOOKS} from '@core/bible/bibleBooks';
-import {BIBLE_VERSE_COUNTS} from '@core/bible/bibleVerseCounts';
-import {LIVE_BIBLE_ID} from '@core/bible/liveTranslation';
+import {
+  BIBLE_BOOKS,
+  BIBLE_VERSE_COUNTS,
+  LIVE_BIBLE_ID,
+  exactBibleBook,
+  findBibleBooks,
+  parseReference,
+  recentPassages,
+  changeReferenceField,
+  EMPTY_REFERENCE,
+  reconcileReferenceFields,
+  referenceFieldsState,
+  selectedBook,
+  type ReferenceFields,
+  type ReferencePart,
+} from '@core/bible';
 import {
   useEffect,
   useEffectEvent,
@@ -14,9 +27,6 @@ import {
   type Ref,
 } from 'react';
 import type {BibleLookupApi} from '@contracts/ipc/bible';
-import {exactBibleBook, findBibleBooks} from '@core/bible/bibleMatching';
-import {parseReference} from '@core/bible/reference';
-import {recentPassages} from '@core/bible/bibleRecents';
 import type {RecentPassage} from '@core/schema/bible';
 import {
   BIBLE_LOOKUP_LIMITS,
@@ -27,15 +37,6 @@ import {TextField} from '@renderer/ui';
 import {isComposing} from '@renderer/ui/ime';
 import {BibleSuggestions, type BibleSuggestion} from './BibleSuggestions';
 import {useBibleLookup} from './useBibleLookup';
-import {
-  changeReferenceField,
-  EMPTY_REFERENCE,
-  reconcileReferenceFields,
-  referenceFieldsState,
-  selectedBook,
-  type ReferenceFields,
-  type ReferencePart,
-} from '@core/bible/referenceFields';
 import styles from './BibleReferenceField.module.css';
 
 export interface BibleReferenceFormProps {

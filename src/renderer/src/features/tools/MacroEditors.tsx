@@ -3,7 +3,7 @@ import {RenameDialog} from '@renderer/ui/RenameDialog';
 import {Dialog, TextField} from '@renderer/ui';
 import type {Notice} from '@renderer/ui/notices';
 import {isKnownMacroAction} from '@core/schema/macros';
-import {draftMacroAction} from '@core/macros/macroActionDraft';
+import {draftMacroAction} from '@core/macros';
 import {MacroActionDialog} from './MacroActionDialog';
 import {useMacroTargets} from './useMacroTargets';
 import {MacroIconDialog} from './MacroIconDialog';

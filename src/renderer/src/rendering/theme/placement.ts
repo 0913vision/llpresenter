@@ -2,8 +2,8 @@ import {
   layoutTheme,
   type SameText,
   type ThemePlacement,
-} from '@core/theme/layout';
-import {templateTokens} from '@core/theme/template';
+  templateTokens,
+} from '@core/theme';
 import {measuredText} from './measureRows';
 import {
   isLabel,

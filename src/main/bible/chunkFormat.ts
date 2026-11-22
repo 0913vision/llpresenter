@@ -2,7 +2,7 @@ import {
   parseBibleChunkHeader as parseHeader,
   type BibleChunkHeader,
 } from '@core/schema/bibleChunks';
-import {BIBLE_BOOKS} from '@core/bible/bibleBooks';
+import {BIBLE_BOOKS} from '@core/bible';
 
 export {
   BIBLE_HEADER_MAX_BYTES,

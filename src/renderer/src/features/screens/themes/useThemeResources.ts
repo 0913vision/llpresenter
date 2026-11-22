@@ -1,5 +1,5 @@
 import {useState} from 'react';
-import {screensInOrder} from '@core/theme/screens';
+import {screensInOrder} from '@core/theme';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import type {Notice} from '@renderer/ui/notices';
 

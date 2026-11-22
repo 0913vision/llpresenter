@@ -5,8 +5,7 @@ import {
   type ThemeFile,
   THEME_CANVAS,
 } from '@core/schema/theme';
-import {nextPhraseOf} from '@core/theme/content';
-import {sampleContent} from '@core/theme/samples';
+import {nextPhraseOf, sampleContent} from '@core/theme';
 import {
   pictureScreen,
   type SlideDrawing,

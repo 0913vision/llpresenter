@@ -7,9 +7,8 @@ import type {
   ThemeTextElement,
 } from '@core/schema/theme';
 import type {MediaLayer} from '@core/schema/live';
-import {contentValues} from '@core/theme/content';
+import {contentValues, fillTemplates, templateTokens} from '@core/theme';
 import {AUTO_TOKENS, type SlideContent} from '@core/schema/slideContent';
-import {fillTemplates, templateTokens} from '@core/theme/template';
 import type {RowsText} from './textRows';
 
 /** Where the label of a slide shows on 무대. */

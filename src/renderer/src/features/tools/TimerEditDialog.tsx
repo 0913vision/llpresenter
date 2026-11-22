@@ -1,8 +1,7 @@
 import type {JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {Timer} from '@core/schema/timers';
-import {localDateText} from '@core/timers/timerConfiguration';
-import {timerEditDraft} from '@core/timers/timerEditDraft';
+import {localDateText, timerEditDraft} from '@core/timers';
 import type {Notice} from '@renderer/ui/notices';
 import {TimerDialog} from './TimerDialog';
 import {saveTimerEdit} from './timerEdits';

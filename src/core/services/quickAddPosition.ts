@@ -1,4 +1,4 @@
-import type {ServiceRow} from '../presentation/model';
+import type {ServiceRow} from '@core/presentation';
 
 /** Index after an item or at the end of a selected section. */
 export function sectionInsertIndex<T extends {readonly id: string}>(

@@ -1,8 +1,7 @@
 import {useEffect, useLayoutEffect, useRef, type JSX} from 'react';
 import {THEME_FILE_LIMITS} from '@core/schema/theme';
 import {limitReason} from '@core/common/limitReason';
-import {moveGradientStop} from '@core/theme/gradientEdits';
-import type {GradientBackground} from '@core/theme/gradientPresets';
+import {moveGradientStop, type GradientBackground} from '@core/theme';
 import {backgroundPaint} from '@renderer/rendering/themeBackground';
 import styles from './ThemeGradient.module.css';
 

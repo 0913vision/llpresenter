@@ -6,7 +6,7 @@ import {
   placeBelow,
   placeSubmenu,
   placeTooltip,
-} from '@core/ui/placement';
+} from '@renderer/ui/placement';
 
 const viewport = {width: 1280, height: 720};
 

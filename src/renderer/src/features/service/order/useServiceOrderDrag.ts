@@ -8,10 +8,9 @@ import {
 import {selectionDragImage} from '@renderer/ui/selectionDrag';
 import {useEffect, useRef, useState, type DragEvent} from 'react';
 import {readSongDragData, SONG_DRAG_MIME} from '@core/schema/songDrag';
-import type {ServiceRow} from '@core/presentation/model';
-import {quickAddBefore} from '@core/services/quickAddPosition';
+import type {ServiceRow} from '@core/presentation';
+import {quickAddBefore, sectionBoundaryIndex} from '@core/services';
 import {useShow} from '@renderer/session/showStore';
-import {sectionBoundaryIndex} from '@core/services/serviceSections';
 import {beforeRowMidpoint} from '@renderer/ui/rowDrag';
 import {useDragClickGuard} from '@renderer/ui/useDragClickGuard';
 

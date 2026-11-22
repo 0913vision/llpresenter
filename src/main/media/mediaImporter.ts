@@ -9,7 +9,7 @@ import type {
   MediaImportResult,
 } from '@core/schema/mediaEdit';
 import type {AnalysisFailureReason} from '@core/schema/mediaAnalysis';
-import {importedProps, type MediaDefaults} from '@core/media/importedProps';
+import {importedProps, type MediaDefaults} from '@core/media';
 import {MEDIA_LIMITS, type MediaItem} from '@core/schema/mediaList';
 import {defaultPreferences} from '@core/schema/preferences';
 import type {Logger} from '../log';

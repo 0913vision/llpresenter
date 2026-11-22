@@ -13,7 +13,7 @@ import {useScreensSelection} from './selection';
 import type {NamedDocument} from '../../platform/useSettingsDocument';
 import {useScreenEditor} from './useScreenEditor';
 import type {ScreenRenameProblem} from './screenEditor';
-import {lastOfKind, nameProblem} from '@core/screens/screenEdits';
+import {lastOfKind, nameProblem} from '@core/screens';
 import {ScreenContextMenu} from './screenMenuEntries';
 
 const PROBLEMS: Readonly<Record<ScreenRenameProblem, string>> = {

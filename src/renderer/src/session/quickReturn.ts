@@ -1,5 +1,5 @@
-import type {TileCursor} from '@core/presentation/model';
-import {QUICK_BIBLE_TRANSITION} from '@core/bible/quickTransition';
+import type {TileCursor} from '@core/presentation';
+import {QUICK_BIBLE_TRANSITION} from '@core/bible';
 import {useLive} from './live';
 import {liveCursor, outputTile, tilesOf, useShow} from './show';
 import {bibleSourceFor, isLibrarySource} from './showLibrary';

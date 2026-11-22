@@ -1,4 +1,4 @@
-import {coverCrop, type Crop} from '@core/media/coverCrop';
+import {coverCrop, type Crop} from '@core/media';
 import type {PixelSize} from '@core/common/pixelSize';
 import {
   MAX_ANALYSIS_MESSAGE_LENGTH,

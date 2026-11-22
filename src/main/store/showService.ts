@@ -1,10 +1,10 @@
-import type {LabelColor} from '@core/labels/colors';
+import type {LabelColor} from '@core/labels';
 import type {LoadedFile} from '@core/schema/fileFormat';
 import type {Label} from '@core/schema/labels';
 import {hasSlides, type Service, type ServiceItem} from '@core/schema/service';
 import type {ShowRow, ShowService, ShowTile} from '@core/schema/showService';
 import type {Song} from '@core/schema/song';
-import {itemTiles, itemTitle} from '@core/slides/tiles';
+import {itemTiles, itemTitle} from '@core/slides';
 
 /** A document's content and whether a newer app version wrote it. */
 type Shown<T> = Pick<LoadedFile<T>, 'data' | 'access'>;

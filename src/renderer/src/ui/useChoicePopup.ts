@@ -10,11 +10,8 @@ import {isComposing} from '@renderer/ui/ime';
 import {hasModifier} from '@renderer/ui/modifierKeys';
 import {placeFloating} from '@renderer/ui/floating';
 import {usePopupPointing} from './usePopupPointing';
-import {
-  maxPopoverHeight,
-  placeBelow,
-  viewportSize,
-} from '@renderer/ui/placement';
+import {maxPopoverHeight, placeBelow} from './placement';
+import {viewportSize} from '@renderer/ui/placement';
 
 interface PopupOptions {
   readonly anchor: HTMLElement;

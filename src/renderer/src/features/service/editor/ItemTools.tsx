@@ -1,9 +1,8 @@
 import {useMemo, useState, type JSX} from 'react';
-import {displayReference} from '@core/bible/displayReference';
+import {displayReference} from '@core/bible';
 import type {BibleLookupPassage} from '@core/schema/bibleLookup';
 import {isItemOfKind, type ServiceItemOf} from '@core/schema/service';
-import {withLiturgyTranslation} from '@core/slides/items';
-import {replacePassage} from '@core/slides/edits';
+import {withLiturgyTranslation, replacePassage} from '@core/slides';
 import {BiblePassageDialog} from '@renderer/features/bible/BiblePassageDialog';
 import {makePassageSlides} from '@renderer/features/bible/makePassageSlides';
 import {useVerseSplit} from '@renderer/features/bible/useVerseSplit';

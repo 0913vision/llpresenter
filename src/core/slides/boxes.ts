@@ -1,9 +1,9 @@
-import {tileContent} from '../presentation/slideLayer';
-import type {ShowTile} from '../schema/showService';
-import type {Slide} from '../schema/slide';
-import type {ThemeFile} from '../schema/theme';
-import {contentValues, nextPhraseOf} from '../theme/content';
+import type {ShowTile} from '@core/schema/showService';
+import type {Slide} from '@core/schema/slide';
+import type {ThemeFile} from '@core/schema/theme';
+import {contentValues, nextPhraseOf} from '@core/theme';
 import {withNext, withText} from './edits';
+import {tileContent} from './tiles';
 
 /** The box of the text that the slide before shows, after those of a theme. */
 export const NEXT_BOX = '미리 보여줄 내용';

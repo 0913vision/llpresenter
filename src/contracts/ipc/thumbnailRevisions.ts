@@ -1,4 +1,4 @@
-import {thumbnailRevision} from '@core/media/thumbnailRevision';
+import {thumbnailRevision} from '@core/media';
 import type {MediaItem} from '@core/schema/mediaList';
 import {thumbnailUrl} from './mediaUrls';
 

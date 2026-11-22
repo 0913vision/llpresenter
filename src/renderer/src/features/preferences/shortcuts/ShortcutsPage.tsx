@@ -1,6 +1,6 @@
 import {useEffect, useMemo, useRef, useState, type JSX} from 'react';
 import type {KeyBinding} from '@core/schema/shortcuts';
-import {shortcutNames} from '@core/shortcuts/keys';
+import {shortcutNames} from '@core/shortcuts';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
 import {Button} from '@renderer/ui/Button';
 import {EmptyState} from '@renderer/ui/EmptyState';

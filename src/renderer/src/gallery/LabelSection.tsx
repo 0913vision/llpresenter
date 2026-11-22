@@ -5,7 +5,7 @@ import {
   paletteHex,
   type LabelColor,
   type PaletteColor,
-} from '@core/labels/colors';
+} from '@core/labels';
 import {LabelColorPicker, MacroColorPicker} from '../ui/LabelColorPicker';
 import styles from './LabelSection.module.css';
 import {ignore, Section, SpecGroup, SpecItem, Stateful} from './Spec';

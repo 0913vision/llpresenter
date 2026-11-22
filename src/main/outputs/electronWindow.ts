@@ -15,7 +15,7 @@ import {
   windowTestOptions,
   type WindowMode,
 } from '../windows/testWindows';
-import {CHROMA_KEY_COLOR} from '@core/screens/emptyColor';
+import {CHROMA_KEY_COLOR} from '@core/screens';
 import type {OutputWindowEvents, OutputWindowHandle} from './outputWindow';
 import type {OutputScreen} from './screens';
 import {OnTopKeeper} from './onTopKeeper';

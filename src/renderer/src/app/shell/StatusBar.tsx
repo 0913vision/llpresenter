@@ -1,6 +1,6 @@
 import {NDI_DEFAULT_FPS} from '@core/schema/screens';
 import type {JSX} from 'react';
-import {controlConflictReason} from '@core/screens/screenRows';
+import {controlConflictReason} from '@core/screens';
 import {useOutputStatuses} from '@renderer/features/screens/useOutputStatuses';
 import {ndiAccelerationLabel} from '@renderer/features/screens/ndiAcceleration';
 import {useMonitors} from '@renderer/features/screens/useMonitors';

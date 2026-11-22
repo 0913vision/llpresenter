@@ -1,4 +1,4 @@
-import {withLiveBible} from '@core/bible/liveTranslation';
+import {withLiveBible} from '@core/bible';
 import {useEffect, useRef, useState, type JSX} from 'react';
 import type {TranslationId} from '@core/schema/ids';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';

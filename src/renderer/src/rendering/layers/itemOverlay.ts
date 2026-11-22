@@ -1,4 +1,4 @@
-import {liveOverlay} from '@core/live/overlays';
+import {liveOverlay} from '@core/live';
 import {BackgroundLayerView} from '../backgroundLayer';
 import type {LayerDefinition} from '../layer';
 import {OverlayTextView} from '../overlayText';

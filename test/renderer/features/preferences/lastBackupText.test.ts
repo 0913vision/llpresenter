@@ -1,5 +1,5 @@
 import {expect, it} from 'vitest';
-import {lastBackupText} from '@core/ui/lastBackupText';
+import {lastBackupText} from '@renderer/features/preferences/lastBackupText';
 
 const now = new Date(2026, 10, 2, 15, 30);
 const at = (month: number, day: number, time: string) => {

@@ -11,7 +11,7 @@ import type {BibleLookupApi} from '@contracts/ipc/bible';
 import type {RecentPassage, Translation} from '@core/schema/bible';
 import type {BibleLookupPassage} from '@core/schema/bibleLookup';
 import type {TranslationId} from '@core/schema/ids';
-import {recentPassages} from '@core/bible/bibleRecents';
+import {recentPassages} from '@core/bible';
 import {isComposingKey} from '@renderer/ui/ime';
 import {Icon} from '@renderer/ui/Icon';
 import {Button} from '@renderer/ui/Button';

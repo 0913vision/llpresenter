@@ -9,14 +9,8 @@ import {
   SelectMenu,
   TextField,
 } from '@renderer/ui';
-import {
-  prepareMacroAction,
-  type MacroActionDraft,
-} from '@core/macros/macroActionDraft';
-import {
-  fillMessageText,
-  MAX_MESSAGE_CHARACTERS,
-} from '@core/overlays/messageText';
+import {prepareMacroAction, type MacroActionDraft} from '@core/macros';
+import {fillMessageText, MAX_MESSAGE_CHARACTERS} from '@core/overlays';
 
 export interface MacroActionChoice {
   readonly id: string;

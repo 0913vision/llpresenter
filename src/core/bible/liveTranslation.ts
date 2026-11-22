@@ -1,6 +1,6 @@
-import type {Translation} from '../schema/bible';
-import {LIVE_BIBLE_ID} from '../schema/ids';
-export {LIVE_BIBLE_ID} from '../schema/ids';
+import type {Translation} from '@core/schema/bible';
+import {LIVE_BIBLE_ID} from '@core/schema/ids';
+export {LIVE_BIBLE_ID} from '@core/schema/ids';
 
 export const LIVE_BIBLE: Translation = {
   id: LIVE_BIBLE_ID,

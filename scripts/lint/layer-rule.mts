@@ -1,11 +1,5 @@
-import {posix, relative, sep} from 'node:path';
 import type {Rule} from 'eslint';
-import type {
-  ExportAllDeclaration,
-  ExportNamedDeclaration,
-  ImportDeclaration,
-  ImportExpression,
-} from 'estree';
+import {checkedFile, onImports, type Aliases} from './imports.mts';
 
 /** One layer of the code: a folder and the layers it may import. */
 export interface Layer {
@@ -18,23 +12,12 @@ export interface Layer {
 /** The layers that `llp/layer-imports` enforces and how imports name them. */
 export interface LayerMap {
   readonly layers: readonly Layer[];
-  /** Import prefixes such as `@core/` and the folders they stand for. */
-  readonly aliases: Readonly<Record<string, string>>;
+  readonly aliases: Aliases;
   /**
    * Folders checked as if they were other folders, such as `test/core` for
    * `src/core`. The longest matching folder wins.
    */
   readonly mirrors?: Readonly<Record<string, string>>;
-}
-
-type ModuleReference =
-  | ImportDeclaration
-  | ExportAllDeclaration
-  | ExportNamedDeclaration
-  | ImportExpression;
-
-function toPosix(path: string): string {
-  return path.split(sep).join('/');
 }
 
 function mirrored(path: string, mirrors: LayerMap['mirrors']): string {
@@ -59,27 +42,6 @@ function layerOf(layers: readonly Layer[], path: string): Layer | undefined {
     );
 }
 
-function targetPath(
-  specifier: string,
-  importer: string,
-  aliases: LayerMap['aliases'],
-): string | null {
-  if (specifier.startsWith('.')) {
-    return posix.join(posix.dirname(importer), specifier);
-  }
-  const alias = Object.keys(aliases).find(prefix =>
-    specifier.startsWith(prefix),
-  );
-  if (alias === undefined) return null;
-  return posix.join(aliases[alias] ?? '', specifier.slice(alias.length));
-}
-
-function sourceOf(node: ModuleReference): string | null {
-  const {source} = node;
-  if (source?.type !== 'Literal') return null;
-  return typeof source.value === 'string' ? source.value : null;
-}
-
 /**
  * Keeps imports flowing one way between the layers of `map`: a file may
  * import its own layer and the layers its layer lists, nothing else. Files and
@@ -97,17 +59,11 @@ export function layerImportsRule(map: LayerMap): Rule.RuleModule {
       },
     },
     create(context) {
-      const importer = toPosix(relative(context.cwd, context.filename));
+      const importer = checkedFile(context);
       const own = layerOf(map.layers, mirrored(importer, map.mirrors));
       if (own === undefined) return {};
-      const check = (node: ModuleReference): void => {
-        const specifier = sourceOf(node);
-        if (specifier === null) return;
-        const path = targetPath(specifier, importer, map.aliases);
-        const target =
-          path === null
-            ? undefined
-            : layerOf(map.layers, mirrored(path, map.mirrors));
+      return onImports(importer, map.aliases, ({node, path}) => {
+        const target = layerOf(map.layers, mirrored(path, map.mirrors));
         if (target === undefined || target === own) return;
         if (own.imports.includes(target.name)) return;
         context.report({
@@ -119,13 +75,7 @@ export function layerImportsRule(map: LayerMap): Rule.RuleModule {
             allowed: own.imports.join(', ') || 'nothing else',
           },
         });
-      };
-      return {
-        ImportDeclaration: check,
-        ExportAllDeclaration: check,
-        ExportNamedDeclaration: check,
-        ImportExpression: check,
-      };
+      });
     },
   };
 }

@@ -1,4 +1,4 @@
-import {displayReference} from '@core/bible/displayReference';
+import {displayReference} from '@core/bible';
 import {RenameDialog} from '@renderer/ui/RenameDialog';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {contextMenuTarget, openMenuFromKey} from '@renderer/ui/contextMenu';

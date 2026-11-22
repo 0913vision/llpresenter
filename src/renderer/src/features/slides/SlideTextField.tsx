@@ -1,5 +1,5 @@
 import {useId, type JSX} from 'react';
-import {fillsItself} from '@core/slides/boxes';
+import {fillsItself} from '@core/slides';
 import {OwnTextButton} from './OwnTextButton';
 import {SlideTextArea, type SlideBox} from './SlideTextArea';
 import {useOwnText} from './useOwnText';

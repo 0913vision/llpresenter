@@ -2,8 +2,8 @@ import type {BibleLookupPassage} from '@core/schema/bibleLookup';
 import type {TranslationId} from '@core/schema/ids';
 import type {Slide} from '@core/schema/slide';
 import type {SlideTransition} from '@core/schema/slideTransition';
-import type {SlideTile} from '@core/presentation/model';
-import {slideTiles} from '@core/slides/tiles';
+import type {SlideTile} from '@core/presentation';
+import {slideTiles} from '@core/slides';
 
 /** How a passage opened by itself is made into slides. */
 export interface BibleDisplay {

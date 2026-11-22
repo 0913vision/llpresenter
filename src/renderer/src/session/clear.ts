@@ -1,5 +1,5 @@
 import type {ClearTarget} from '@core/schema/live';
-import {hasSomethingToClear} from '@core/live/clear';
+import {hasSomethingToClear} from '@core/live';
 import {sendLive, useLive} from './live';
 
 /** Stops the live item while leaving independent overlays and audio running. */

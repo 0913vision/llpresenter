@@ -1,8 +1,8 @@
 import * as v from 'valibot';
-import {paletteColors} from '../labels/colors';
-import {isRecord} from '../common/guards';
+import {paletteColors} from '@core/labels';
+import {isRecord} from '@core/common/guards';
 import {layerKinds} from './live';
-import type {Result} from '../common/result';
+import type {Result} from '@core/common/result';
 import {
   checkPart,
   parseFile,

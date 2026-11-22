@@ -1,5 +1,5 @@
 import {useState} from 'react';
-import {ownText} from '@core/slides/boxes';
+import {ownText} from '@core/slides';
 import {setOwnText} from './deckTexts';
 import type {SlideBox} from './SlideTextArea';
 

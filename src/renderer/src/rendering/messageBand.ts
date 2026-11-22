@@ -1,4 +1,4 @@
-import type {MessageBand} from '@core/screens/messageStyle';
+import type {MessageBand} from '@core/screens';
 import {classes} from './classes';
 import {fontFamilyFor} from './fontFamily';
 

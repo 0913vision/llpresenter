@@ -6,7 +6,7 @@ import {createSongId, type SongId} from '@core/schema/ids';
 import {songSchema, SONG_SCHEMA_VERSION, type Song} from '@core/schema/song';
 import {freeTitle, normalizeSongTitle} from './contentEdits';
 import {defaultSlideTransitions} from '@core/schema/preferences';
-import {newSongSlides} from '@core/slides/songSlides';
+import {newSongSlides} from '@core/slides';
 import type {ContentCommandContext, ContentHandlers} from './contentCommands';
 
 const NEW_SONG_TITLE = '새 곡';

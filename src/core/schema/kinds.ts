@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import {isRecord} from '../common/guards';
+import {isRecord} from '@core/common/guards';
 import {jsonObject, nonBlankText} from './primitives';
 
 /**

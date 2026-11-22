@@ -1,6 +1,11 @@
 import {useCallback, useEffect, useRef, useState, type JSX} from 'react';
-import {isLabelColor, type LabelColor} from '@core/labels/colors';
-import {colorToHsv, hsvToColor, type HsvColor} from '@core/labels/colorSpace';
+import {
+  isLabelColor,
+  type LabelColor,
+  colorToHsv,
+  hsvToColor,
+  type HsvColor,
+} from '@core/labels';
 import {Button} from './Button';
 import {Icon} from './Icon';
 import {TextField} from './TextField';

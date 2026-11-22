@@ -1,13 +1,16 @@
-import {emptyScreenColor} from '@core/screens/emptyColor';
-import {pictureSizeForScreen} from '@core/screens/pictureSize';
-import {STARTER_SCREEN_IDS} from '@core/screens/screens';
+import {
+  emptyScreenColor,
+  pictureSizeForScreen,
+  STARTER_SCREEN_IDS,
+} from '@core/screens';
 import {createScreenId} from '@core/schema/ids';
 import type {Screen} from '@core/schema/screens';
 import type {ShowTile} from '@core/schema/showService';
 import type {ThemeFile} from '@core/schema/theme';
 import type {Themes} from '@core/schema/themes';
-import {peersOf, tileContent} from '@core/presentation/slideLayer';
-import {themeOfSlide} from '@core/theme/themes';
+import {peersOf} from '@core/presentation';
+import {tileContent} from '@core/slides';
+import {themeOfSlide} from '@core/theme';
 import type {ThemesView} from '@renderer/platform/themes';
 import type {RenderScreen} from '@renderer/rendering/layer';
 import {themeOn} from '@renderer/rendering/theme/drawing';

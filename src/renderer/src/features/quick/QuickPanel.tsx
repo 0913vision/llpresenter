@@ -1,5 +1,4 @@
-import {displayReference} from '@core/bible/displayReference';
-import {parseReference} from '@core/bible/reference';
+import {displayReference, parseReference} from '@core/bible';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useReflow} from '@renderer/ui/useReflow';
 import {deleteSelection} from '@renderer/ui/useSelectionDelete';

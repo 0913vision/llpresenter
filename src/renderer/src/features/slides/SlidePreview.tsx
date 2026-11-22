@@ -1,8 +1,8 @@
 import {useState, type JSX} from 'react';
-import {nextTextOfTile} from '@core/presentation/slideLayer';
+import {nextTextOfTile} from '@core/presentation';
 import type {ScreenId} from '@core/schema/ids';
 import type {ShowTile} from '@core/schema/showService';
-import {KIND_NAMES, SCREEN_KIND_ORDER} from '@core/screens/screens';
+import {KIND_NAMES, SCREEN_KIND_ORDER} from '@core/screens';
 import {themeOfTile, useThemes} from '@renderer/platform/themes';
 import {TilePicture} from '@renderer/pictures/TilePicture';
 import {SlideThumbnailBand} from '@renderer/ui/SlideThumbnail';

@@ -1,5 +1,5 @@
-import type {Timer} from '../schema/timers';
-import type {TimerRun} from '../schema/timerState';
+import type {Timer} from '@core/schema/timers';
+import type {TimerRun} from '@core/schema/timerState';
 
 const MS_PER_SECOND = 1000;
 const SECONDS_PER_MINUTE = 60;

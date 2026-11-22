@@ -1,5 +1,5 @@
 import {MAX_ACTIVE_MESSAGES} from '@core/schema/overlayState';
-import {MESSAGE_BAND} from '@core/screens/messageStyle';
+import {MESSAGE_BAND} from '@core/screens';
 import type {LayerDefinition} from '../layer';
 import {MessageBandView} from '../messageBand';
 import {OverlayTextView} from '../overlayText';

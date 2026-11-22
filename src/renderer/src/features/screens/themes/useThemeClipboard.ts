@@ -1,9 +1,5 @@
 import type {HTMLAttributes} from 'react';
-import {
-  parseElements,
-  pasteElements,
-  serializeElements,
-} from '@core/theme/elements';
+import {parseElements, pasteElements, serializeElements} from '@core/theme';
 import {isInTextEntry} from '@renderer/ui/textEntry';
 import type {ThemeModel} from './useThemeEditor';
 

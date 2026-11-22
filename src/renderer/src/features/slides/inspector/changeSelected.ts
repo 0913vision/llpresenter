@@ -1,5 +1,5 @@
 import type {Slide} from '@core/schema/slide';
-import {changeSlides} from '@core/slides/edits';
+import {changeSlides} from '@core/slides';
 import {selectionOf} from '../deckSelection';
 import type {SlideDeck} from '../slideDeck';
 

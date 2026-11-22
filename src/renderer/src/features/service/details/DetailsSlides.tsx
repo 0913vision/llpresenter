@@ -5,7 +5,7 @@ import {
   type JSX,
   type ReactNode,
 } from 'react';
-import type {LabelColor} from '@core/labels/colors';
+import type {LabelColor} from '@core/labels';
 import {SlideThumbnail, ThumbnailGrid} from '@renderer/ui/SlideThumbnail';
 import {detailsGridGeometry} from './detailsGridGeometry';
 import styles from './DetailsSlides.module.css';

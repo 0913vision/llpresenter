@@ -15,10 +15,7 @@ import {backgroundKey, plainPicture} from './powerpointBackground';
 import {PowerPointParts} from './powerpointParts';
 import {textColorOf} from './powerpointTextColor';
 
-import type {
-  PowerPointSlide,
-  PowerPointShape,
-} from '@core/songs/powerpointSlides';
+import type {PowerPointSlide, PowerPointShape} from '@core/songs';
 
 /** A slide, with the picture in the file that all of its background is. */
 export interface PowerPointDeckSlide extends PowerPointSlide {

@@ -5,7 +5,7 @@ import {
   heldTimer,
   stopsAtZero,
   type TimerNow,
-} from '@core/timers/timerClock';
+} from '@core/timers';
 import type {LiveStore} from './store';
 
 const RECHECK_MS = 250;

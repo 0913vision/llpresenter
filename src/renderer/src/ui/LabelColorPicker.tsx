@@ -5,7 +5,7 @@ import {
   paletteHex,
   type LabelColor,
   type PaletteColor,
-} from '@core/labels/colors';
+} from '@core/labels';
 import {classNames} from './classNames';
 import {Icon} from './Icon';
 import {useRovingSelection} from './roving';

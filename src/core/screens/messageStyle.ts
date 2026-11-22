@@ -2,7 +2,7 @@ import {
   DEFAULT_MESSAGE_STYLE,
   MESSAGE_BAND_BACKGROUND,
   type MessageStyle,
-} from '../schema/messages';
+} from '@core/schema/messages';
 
 /**
  * The style a screen draws its 메시지 in. A missing or unknown id means the

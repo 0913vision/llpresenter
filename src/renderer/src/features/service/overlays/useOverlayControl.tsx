@@ -8,7 +8,7 @@ import {
   ITEM_OVERLAY_LIMITS,
   type PlacedOverlay,
 } from '@core/schema/itemOverlays';
-import {newOverlaySpan, overlayAt} from '@core/overlays/ranges';
+import {newOverlaySpan, overlayAt} from '@core/overlays';
 import {editorTask} from '@renderer/platform/editorTask';
 import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
 import {deleteSelection} from '@renderer/ui/useSelectionDelete';

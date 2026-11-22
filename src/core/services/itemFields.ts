@@ -1,4 +1,4 @@
-import {hasSlides, type ServiceItem} from '../schema/service';
+import {hasSlides, type ServiceItem} from '@core/schema/service';
 
 /** The item with a memo; none when it is empty. */
 export function withMemo(item: ServiceItem, memo: string): ServiceItem | null {

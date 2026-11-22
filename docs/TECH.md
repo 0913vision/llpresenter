@@ -106,6 +106,12 @@ service, presentation, screens, tools, quick. A feature that needs another
 feature's action takes it from a feature before it, or the action moves to the
 feature that owns it.
 
+- Each folder of `src/core/` is a module with one entry, its `index.ts`. Other
+  code imports the module by its alias (`@core/songs`) and never a file inside
+  it; inside a module, imports are relative (`llp/module-entry`). What a module
+  builds on is listed in `scripts/lint/layers.mts`, and no two modules build on
+  each other. `schema/` holds the data contracts and `common/` the small helpers
+  that every module uses; their files are imported one by one.
 - Put a rule that needs no I/O in `src/core/` and test it there. Renderer and
   main code call it instead of copying it.
 - 진행 and 준비 are compositions in `app/`, not owners of features. A feature
@@ -146,7 +152,7 @@ breaks one is not merged.
 | The 슬라이드 of an item         | `core/schema/service.ts`               | `.llservice`, the item's `slides` | 준비             |
 | The 슬라이드 of a song          | `core/schema/song.ts`                  | `.llsong`, `slides`               | 준비             |
 | Making 슬라이드                 | `core/slides/make.ts`                  |                                   | Insert, import   |
-| What each screen shows now      | `core/live/`                           | `live.json`                       | 진행             |
+| What each screen shows now      | `core/schema/live.ts`                  | `live.json`                       | 진행             |
 | Clock, timers, stage message    | `rendering/layers/`                    | `screens.json`                    | 화면 설정        |
 
 ## Registries (extension points)

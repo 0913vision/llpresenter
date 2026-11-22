@@ -1,7 +1,6 @@
 import type {LlpApi} from '@contracts/ipc/api';
-import type {VerseInput} from '@core/bible/split/splitVerses';
+import {type VerseInput, entryFor, saveCuts} from '@core/bible';
 import type {BibleCutEntry, BibleCutSelection} from '@core/schema/bibleCuts';
-import {entryFor, saveCuts} from '@core/bible/split/splitCache';
 
 const confirmations = new WeakMap<LlpApi['settings'], Promise<void>>();
 

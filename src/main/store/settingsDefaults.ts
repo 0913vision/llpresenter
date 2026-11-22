@@ -1,7 +1,7 @@
 import {defaultPreferences} from '@core/schema/preferences';
 import type {Screen} from '@core/schema/screens';
 import type {SettingsName} from '@core/schema/settingsDocuments';
-import {STARTER_SCREEN_IDS} from '@core/screens/screens';
+import {STARTER_SCREEN_IDS} from '@core/screens';
 import {DEFAULT_THEMES} from './themeFiles';
 import {DEFAULT_LABELS} from './defaults';
 

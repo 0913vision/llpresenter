@@ -6,7 +6,7 @@ import {
   type ReactNode,
 } from 'react';
 import type {UiApi} from '@contracts/ipc/ui';
-import {makeSlide} from '@core/slides/make';
+import {makeSlide} from '@core/slides';
 import {useLabelColors} from '@renderer/features/labels/labels';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {slideMaking} from '@renderer/platform/themes';

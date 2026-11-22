@@ -1,10 +1,10 @@
-import type {Screen} from '../schema/screens';
+import type {Screen} from '@core/schema/screens';
 import type {
   OwnThemeScreen,
   ScreenKind,
   ThemeFile,
   ThemeScreen,
-} from '../schema/theme';
+} from '@core/schema/theme';
 import {themeScreenOf} from './themes';
 
 type ScreenInfo = Pick<Screen, 'id' | 'kind'>;

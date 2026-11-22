@@ -1,4 +1,4 @@
-import {keyModifiers, type KeyBinding} from '../schema/shortcuts';
+import {keyModifiers, type KeyBinding} from '@core/schema/shortcuts';
 
 export interface PhysicalKeyPress {
   readonly code: string;

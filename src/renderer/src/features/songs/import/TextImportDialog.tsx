@@ -17,21 +17,18 @@ import {SelectMenu} from '@renderer/ui/SelectMenu';
 import type {Notice} from '@renderer/ui/notices';
 import {useLabelColors} from '@renderer/features/labels/labels';
 import {slideMaking, useThemes} from '@renderer/platform/themes';
-import {newSongSlides, songSlides} from '@core/slides/songSlides';
-import {songTiles} from '@core/slides/tiles';
+import {newSongSlides, songSlides, songTiles} from '@core/slides';
 import {SlidePreviewGrid} from './SlidePreviewGrid';
 import {
   DUPLICATE_TITLE_REASON,
   normalizeSongTitle,
-} from '@core/songs/songTitle';
-import {importLimitReason} from '@core/songs/importLimits';
-import {textImportHeaders} from '@core/songs/textImport';
-import {
+  importLimitReason,
+  textImportHeaders,
   applyImportLabelMapping,
   importHeaderKey,
   matchingImportLabel,
   suggestImportLabel,
-} from '@core/songs/importLabelMapping';
+} from '@core/songs';
 import {TEXT_ENCODINGS} from './textEncodings';
 import {ImportLabelMappingDialog} from './ImportLabelMappingDialog';
 import {useImportPreview} from './useImportPreview';

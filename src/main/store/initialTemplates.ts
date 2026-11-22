@@ -2,7 +2,7 @@ import {mkdir, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import type {FileError} from '@core/schema/fileFormat';
 import {serializeTemplate} from '@core/schema/service';
-import {sundayTemplate} from '@core/slides/serviceTemplate';
+import {sundayTemplate} from '@core/slides';
 import type {DataLocations} from './locations';
 
 /** Seeds the default only when its templates folder does not exist yet. */

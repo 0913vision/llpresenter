@@ -1,6 +1,6 @@
 import {ipcMain} from 'electron';
 import {mediaEndpoints} from '@contracts/ipc/media';
-import {countMediaUses} from '@core/media/mediaUses';
+import {countMediaUses} from '@core/media';
 import {parseMediaUsesRequest} from '@core/schema/mediaUses';
 import type {Logger} from '../log';
 import type {OpenedContent} from './openContent';

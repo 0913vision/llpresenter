@@ -12,7 +12,7 @@ import {
 import type {PayloadError} from '@core/schema/payload';
 import type {Logger} from '../log';
 import type {WindowMode} from '../windows/testWindows';
-import {convertTextImport} from '@core/songs/textImport';
+import {convertTextImport} from '@core/songs';
 import {readTextImport, type TextImportInputs} from './read';
 import {TEXT_IMPORT_LIMITS} from '@core/schema/textImportLimits';
 import type {UiStateFields} from '../store/appConfigFile';

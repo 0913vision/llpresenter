@@ -1,7 +1,7 @@
 import {useState, type JSX} from 'react';
 import {sameJson} from '@core/common/sameJson';
 import type {SlideBackground} from '@core/schema/theme';
-import {withBackground} from '@core/slides/edits';
+import {withBackground} from '@core/slides';
 import {PropertyGroup, PropertyRow} from '@renderer/ui/PropertyRow';
 import {OwnTextButton} from '../OwnTextButton';
 import {BackgroundPlace, isPlaced, unplaced} from './BackgroundPlace';

@@ -15,7 +15,7 @@ import {
   type JSX,
 } from 'react';
 import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
-import {mediaLoops} from '@core/media/mediaEndRule';
+import {mediaLoops} from '@core/media';
 import {type MediaId} from '@core/schema/ids';
 import {type MediaItem, MEDIA_LIMITS} from '@core/schema/mediaList';
 import {RenameDialog} from '@renderer/ui/RenameDialog';

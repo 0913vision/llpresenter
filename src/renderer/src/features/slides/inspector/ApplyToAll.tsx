@@ -1,6 +1,6 @@
 import type {JSX} from 'react';
 import type {Slide} from '@core/schema/slide';
-import {withBackground, withTransition} from '@core/slides/edits';
+import {withBackground, withTransition} from '@core/slides';
 import {Button} from '@renderer/ui/Button';
 import {Properties, PropertyRow} from '@renderer/ui/PropertyRow';
 import type {ChosenSlides} from './changeSelected';

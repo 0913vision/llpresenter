@@ -2,7 +2,7 @@ import {randomUUID} from 'node:crypto';
 import {createServiceItemId, type ServiceItemId} from '@core/schema/ids';
 import {isItemOfKind, type ServiceItem} from '@core/schema/service';
 
-export {normalizeSongTitle} from '@core/songs/songTitle';
+export {normalizeSongTitle} from '@core/songs';
 
 /** A fresh version 4 id, checked against the schema of its kind. */
 export function newItemId(): ServiceItemId {

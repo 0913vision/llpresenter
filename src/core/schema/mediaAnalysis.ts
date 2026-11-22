@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import type {PixelSize} from '../common/pixelSize';
+import type {PixelSize} from '@core/common/pixelSize';
 import {parsePayload, plainObject} from './payload';
 import {pixelCount, seconds} from './primitives';
 

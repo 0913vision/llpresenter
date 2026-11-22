@@ -8,8 +8,8 @@ import {
   standbyItem,
   titleItem,
   type LiturgyTranslation,
-} from '@core/slides/items';
-import {SERVICE_TITLES} from '@core/slides/titles';
+  SERVICE_TITLES,
+} from '@core/slides';
 import {slideMaking, useThemes} from '@renderer/platform/themes';
 import {iconByKind} from '../order/serviceItemIcons';
 

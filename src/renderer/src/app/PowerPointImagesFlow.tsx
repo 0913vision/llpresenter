@@ -2,7 +2,7 @@ import {useEffect} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import {createServiceItemId, type MediaId} from '@core/schema/ids';
 import type {ServiceItem} from '@core/schema/service';
-import {blankItem, pictureSlide} from '@core/slides/items';
+import {blankItem, pictureSlide} from '@core/slides';
 import {slideMaking} from '@renderer/platform/themes';
 import type {OpenServiceResult} from '@renderer/session/openService';
 import {insertItems} from '@renderer/session/serviceOrderEdits';

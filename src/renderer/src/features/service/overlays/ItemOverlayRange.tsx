@@ -1,6 +1,6 @@
 import {useState, type JSX} from 'react';
 import type {PlacedOverlay} from '@core/schema/itemOverlays';
-import {overlayRangesOverlap} from '@core/overlays/ranges';
+import {overlayRangesOverlap} from '@core/overlays';
 import {editorTask} from '@renderer/platform/editorTask';
 import {NumberField} from '@renderer/ui/NumberField';
 import {PropertyRow} from '@renderer/ui/PropertyRow';

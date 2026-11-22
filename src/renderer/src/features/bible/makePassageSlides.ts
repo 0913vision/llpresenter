@@ -1,14 +1,14 @@
-import {cutBy} from '@core/slides/splitPassage';
-import {versesToReview} from '@core/bible/split/splitVerses';
-import type {BiblePassage} from '@core/schema/biblePassage';
-import type {BibleLookupPassage} from '@core/schema/bibleLookup';
-import type {Slide} from '@core/schema/slide';
 import {
+  cutBy,
   passageAddress,
   passageSlides,
   verseKey,
   type CutVerse,
-} from '@core/slides/passageSlides';
+} from '@core/slides';
+import {versesToReview} from '@core/bible';
+import type {BiblePassage} from '@core/schema/biblePassage';
+import type {BibleLookupPassage} from '@core/schema/bibleLookup';
+import type {Slide} from '@core/schema/slide';
 import type {LlpApi} from '@contracts/ipc/api';
 import {slideMaking} from '@renderer/platform/themes';
 import {passageSplitter} from './passageSplitter';

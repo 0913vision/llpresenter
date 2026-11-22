@@ -9,8 +9,10 @@ import {
   newTheme,
   ownThemeCount,
   type ThemeListEdit,
-} from '@core/theme/list';
-import {builtInTheme, isEditedTheme, themeFor} from '@core/theme/themes';
+  builtInTheme,
+  isEditedTheme,
+  themeFor,
+} from '@core/theme';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {IconButton} from '@renderer/ui/IconButton';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';

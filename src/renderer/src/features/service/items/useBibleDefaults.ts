@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react';
-import {LIVE_BIBLE_ID} from '@core/bible/liveTranslation';
+import {LIVE_BIBLE_ID} from '@core/bible';
 import type {TranslationId} from '@core/schema/ids';
 import type {Preferences} from '@core/schema/preferences';
 import type {PassageDefaults} from './passageItems';

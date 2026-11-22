@@ -8,7 +8,7 @@ import {
   useState,
   type JSX,
 } from 'react';
-import {type ServiceRow, type SlideTile} from '@core/presentation/model';
+import type {ServiceRow, SlideTile} from '@core/presentation';
 import {flushSync} from 'react-dom';
 import {useLive} from '@renderer/session/live';
 import {outputTile, useShow} from '@renderer/session/show';

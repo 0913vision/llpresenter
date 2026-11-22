@@ -1,13 +1,13 @@
 import type {LayerKind, LiveLayers} from '@core/schema/live';
 import type {ClearEffect} from '@core/schema/clearFade';
 import type {RenderMode} from './backgroundLayer';
-import type {TextStyle} from '@core/overlays/textStyle';
+import type {TextStyle} from '@core/overlays';
 import type {RenderTimers} from './timerTokens';
 import type {ScreenId, TimerId} from '@core/schema/ids';
 import type {Screen} from '@core/schema/screens';
 import type {LiveItem, LiveThemeOutput} from '@core/schema/liveTheme';
 import type {FontCatalog} from '@core/schema/fontCatalog';
-import type {MessageBand} from '@core/screens/messageStyle';
+import type {MessageBand} from '@core/screens';
 import type {PreviewMediaSource} from './previewMedia';
 import type {LabelPlace} from './theme/themeView';
 

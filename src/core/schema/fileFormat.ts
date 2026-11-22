@@ -1,6 +1,6 @@
 import * as v from 'valibot';
-import {isRecord} from '../common/guards';
-import type {Result} from '../common/result';
+import {isRecord} from '@core/common/guards';
+import type {Result} from '@core/common/result';
 import {currentVersion, migrate, type MigrationStep} from './migration';
 import {jsonObject, positiveInteger} from './primitives';
 import {escapeKeys, restoreKeyPath, restoreKeys} from './safeKeys';

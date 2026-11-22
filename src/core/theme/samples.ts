@@ -1,5 +1,5 @@
-import type {SlidePurpose, ThemeFile} from '../schema/theme';
-import {AUTO_TOKENS, type SlideContent} from '../schema/slideContent';
+import type {SlidePurpose, ThemeFile} from '@core/schema/theme';
+import {AUTO_TOKENS, type SlideContent} from '@core/schema/slideContent';
 
 const AUTO: SlideContent['auto'] = {
   [AUTO_TOKENS.label]: '1절',

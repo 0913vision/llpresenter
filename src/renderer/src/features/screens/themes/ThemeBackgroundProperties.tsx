@@ -1,8 +1,6 @@
 import type {JSX} from 'react';
 import type {SlideBackground} from '@core/schema/theme';
-import {createGradient} from '@core/theme/gradientEdits';
-import {GRADIENT_PRESETS} from '@core/theme/gradientPresets';
-import {APP_PICTURE_IDS} from '@core/theme/pictures';
+import {createGradient, GRADIENT_PRESETS, APP_PICTURE_IDS} from '@core/theme';
 import {PropertyRow, SelectMenu} from '@renderer/ui';
 import {ColorProperty} from '../ColorProperty';
 import {ThemeGradientProperties} from './ThemeGradientProperties';

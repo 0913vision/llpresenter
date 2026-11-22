@@ -8,8 +8,7 @@ import {
   serializeThemeList,
   type Themes,
 } from '@core/schema/themes';
-import {BUILT_IN_THEMES} from '@core/theme/builtIn';
-import {builtInTheme} from '@core/theme/themes';
+import {BUILT_IN_THEMES, builtInTheme} from '@core/theme';
 import {loadFolder} from './library';
 import type {SaveRequest} from './saver';
 

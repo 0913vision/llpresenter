@@ -1,4 +1,4 @@
-import {LIVE_BIBLE_ID} from '@core/bible/liveTranslation';
+import {LIVE_BIBLE_ID} from '@core/bible';
 import {fetchLiveChapter} from './liveChapter';
 import {readLiveChapter, writeLiveChapter} from './liveChapterDisk';
 import {basename, extname, join} from 'node:path';

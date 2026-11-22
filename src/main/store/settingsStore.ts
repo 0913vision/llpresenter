@@ -1,4 +1,4 @@
-import {deletedObjectShortcuts} from '@core/shortcuts/deletion';
+import {deletedObjectShortcuts} from '@core/shortcuts';
 import {applySettingsDeletionDelta} from './settingsDeletionDelta';
 import type {
   SettingsListener,

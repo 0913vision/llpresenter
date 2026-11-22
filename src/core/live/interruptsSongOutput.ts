@@ -1,4 +1,4 @@
-import type {LiveCommand} from '../schema/liveCommand';
+import type {LiveCommand} from '@core/schema/liveCommand';
 
 /** Whether this command interrupts pending song-output navigation. */
 export function interruptsSongOutput(command: LiveCommand): boolean {

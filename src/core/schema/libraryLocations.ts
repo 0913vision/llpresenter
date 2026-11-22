@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import type {Result} from '../common/result';
+import type {Result} from '@core/common/result';
 import {parsePayload, payloadObject, type PayloadError} from './payload';
 
 /** The `app.json` fields that 환경설정 changes: 곡, 미디어, and 백업 위치. */

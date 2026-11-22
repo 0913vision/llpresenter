@@ -3,8 +3,7 @@ import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import {sameJson} from '@core/common/sameJson';
 import {parseMediaId} from '@core/schema/ids';
 import type {SlideBackground} from '@core/schema/theme';
-import {GRADIENT_PRESETS} from '@core/theme/gradientPresets';
-import {THEME_BACKGROUNDS} from '@core/theme/pictures';
+import {GRADIENT_PRESETS, THEME_BACKGROUNDS} from '@core/theme';
 import {
   backgroundName,
   backgroundPicture,

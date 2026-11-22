@@ -4,8 +4,8 @@ import type {ThemeId} from '@core/schema/ids';
 import type {Slide} from '@core/schema/slide';
 import type {ThemeFile} from '@core/schema/theme';
 import type {Themes} from '@core/schema/themes';
-import {splitPassage, type PassageSplit} from '@core/slides/splitPassage';
-import {themeFor, themeOf} from '@core/theme/themes';
+import {splitPassage, type PassageSplit} from '@core/slides';
+import {themeFor, themeOf} from '@core/theme';
 import {
   elementOfBox,
   splitLayoutOf,

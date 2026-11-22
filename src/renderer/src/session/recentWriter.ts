@@ -1,5 +1,5 @@
 import type {LlpApi} from '@contracts/ipc/api';
-import {rememberPassage} from '@core/bible/bibleRecents';
+import {rememberPassage} from '@core/bible';
 import type {RecentPassage} from '@core/schema/bible';
 
 const SAVE_ATTEMPTS = 2;

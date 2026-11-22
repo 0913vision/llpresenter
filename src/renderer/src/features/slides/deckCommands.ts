@@ -5,9 +5,10 @@ import {
   moveSlides,
   pasteSlides,
   removeSlides,
-} from '@core/slides/edits';
-import {slideInsertionIndex} from '@core/slides/selection';
-import {slideAfter, slidesOfText} from '@core/slides/newSlides';
+  slideInsertionIndex,
+  slideAfter,
+  slidesOfText,
+} from '@core/slides';
 import {slideMaking} from '@renderer/platform/themes';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {

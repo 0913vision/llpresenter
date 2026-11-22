@@ -7,10 +7,10 @@ import {
   type JSX,
   type KeyboardEvent,
 } from 'react';
-import type {VerseInput} from '@core/bible/split/splitVerses';
-import {planSlides} from '@core/bible/split/manualSplit';
-import type {SplitLayout} from '@core/bible/split/layout';
 import {
+  type VerseInput,
+  planSlides,
+  type SplitLayout,
   effectiveCuts,
   hintCharFromEvent,
   hintLabels,
@@ -19,7 +19,7 @@ import {
   redoEdit,
   undoEdit,
   type EditHistory,
-} from '@core/bible/split/cutState';
+} from '@core/bible';
 import {Dialog} from '@renderer/ui/Dialog';
 import {Spinner} from '@renderer/ui/Spinner';
 import type {ThemeFile} from '@core/schema/theme';

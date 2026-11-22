@@ -2,7 +2,7 @@ import type {JSX} from 'react';
 import {DEFAULT_MESSAGE_STYLE} from '@core/schema/messages';
 import type {MessageStyleId} from '@core/schema/ids';
 import type {Screen} from '@core/schema/screens';
-import {resolveMessageStyle} from '@core/screens/messageStyle';
+import {resolveMessageStyle} from '@core/screens';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {PropertyRow, SelectMenu} from '@renderer/ui';
 import type {Notice} from '@renderer/ui/notices';

@@ -1,6 +1,6 @@
 import {create} from 'zustand';
 import {useShallow} from 'zustand/react/shallow';
-import {interruptsSongOutput} from '@core/live/interruptsSongOutput';
+import {interruptsSongOutput} from '@core/live';
 import type {LiveCommand} from '@core/schema/liveCommand';
 import type {LiveState} from '@core/schema/live';
 

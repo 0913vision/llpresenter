@@ -10,8 +10,8 @@ import {
 import type {SlideId} from '@core/schema/ids';
 import type {ShowTile} from '@core/schema/showService';
 import type {ThemeFile} from '@core/schema/theme';
-import {changeSlides, withLabel} from '@core/slides/edits';
-import {themeOfSlide} from '@core/theme/themes';
+import {changeSlides, withLabel} from '@core/slides';
+import {themeOfSlide} from '@core/theme';
 import {LabelMenu} from '@renderer/features/labels/LabelMenu';
 import {useLabelCatalog} from '@renderer/features/labels/labels';
 import {useThemes} from '@renderer/platform/themes';

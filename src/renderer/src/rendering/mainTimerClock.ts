@@ -1,4 +1,4 @@
-import type {TimerNow} from '@core/timers/timerClock';
+import type {TimerNow} from '@core/timers';
 import type {WallClockSample} from '@core/schema/wallClock';
 
 /**

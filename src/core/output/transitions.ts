@@ -1,5 +1,5 @@
-import type {SlideTransition} from '../schema/slideTransition';
-import type {SlideLayer} from '../schema/live';
+import type {SlideTransition} from '@core/schema/slideTransition';
+import type {SlideLayer} from '@core/schema/live';
 
 /** A slide without an assigned effect cuts. */
 export function reverseSlideTransition(

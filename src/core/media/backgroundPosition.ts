@@ -1,6 +1,6 @@
-import type {MediaLayer} from '../schema/live';
-import type {MediaItem} from '../schema/mediaList';
-import type {MediaProgress} from '../schema/mediaProgress';
+import type {MediaLayer} from '@core/schema/live';
+import type {MediaItem} from '@core/schema/mediaList';
+import type {MediaProgress} from '@core/schema/mediaProgress';
 
 /** Elapsed source seconds on main's background timeline, including speed changes. */
 export function backgroundElapsedSeconds(

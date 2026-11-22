@@ -1,4 +1,4 @@
-import type {UnknownRecord} from '../common/guards';
+import type {UnknownRecord} from '@core/common/guards';
 
 const FIRST_VERSION = 1;
 

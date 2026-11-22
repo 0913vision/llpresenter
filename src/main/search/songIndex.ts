@@ -7,11 +7,7 @@ import {
   type LibrarySearchResult,
 } from '@core/schema/librarySearch';
 import type {Song} from '@core/schema/song';
-import {
-  isInitialQuery,
-  normalizeSearch,
-  searchInitials,
-} from '@core/search/searchText';
+import {isInitialQuery, normalizeSearch, searchInitials} from '@core/search';
 
 export const INDEX_CHUNK_SIZE = 25;
 

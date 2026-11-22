@@ -15,10 +15,10 @@ import {useScreenView} from './selection';
 import {useMonitors} from './useMonitors';
 import {useSettingsDocument} from '../../platform/useSettingsDocument';
 import styles from './OutputPreview.module.css';
-import {fitAspect} from '@core/canvas/fitAspect';
+import {fitAspect} from '@core/canvas';
 import {useElementSize} from '@renderer/ui/useElementSize';
 import {THEME_CANVAS} from '@core/schema/theme';
-import {pictureSizeForScreen} from '@core/screens/pictureSize';
+import {pictureSizeForScreen} from '@core/screens';
 import {useScreenSize} from '@renderer/pictures/screenSizes';
 
 const LOAD_TITLE = '화면';

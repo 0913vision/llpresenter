@@ -1,3 +1,4 @@
+import {readdirSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {RuleTester} from 'eslint';
 import tseslint from 'typescript-eslint';
@@ -112,8 +113,18 @@ describe('the declared layers', () => {
   });
 
   it('keep core free of every other layer', () => {
-    const core = LAYER_MAP.layers.find(({name}) => name === 'core');
-    expect(core?.imports).toEqual([]);
+    const modules = LAYER_MAP.layers.filter(({name}) =>
+      name.startsWith('core/'),
+    );
+    const outside = modules
+      .flatMap(({imports}) => imports)
+      .filter(name => !name.startsWith('core/'));
+    expect(outside).toEqual([]);
+  });
+
+  it('cover every folder of core', () => {
+    const folders = readdirSync('src/core').map(name => `core/${name}`);
+    expect(names).toEqual(expect.arrayContaining(folders));
   });
 });
 
@@ -128,7 +139,7 @@ describe('the layers tests may import', () => {
   it('keep every test inside its own process', () => {
     expect(importsOf('ui')).not.toContain('main');
     expect(importsOf('main')).not.toContain('app');
-    expect(importsOf('core')).toEqual([]);
+    expect(importsOf('core/songs')).not.toContain('contracts');
   });
 });
 

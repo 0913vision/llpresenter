@@ -5,7 +5,7 @@ import {
   EMPTY_TITLE_REASON,
   normalizeSongTitle,
   SONG_TITLE_LIMIT,
-} from '@core/songs/songTitle';
+} from '@core/songs';
 
 /**
  * Why a title cannot be saved for a library song, by the rule of the 곡 편집

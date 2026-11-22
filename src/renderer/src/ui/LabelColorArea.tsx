@@ -1,5 +1,5 @@
 import {useRef, type JSX, type KeyboardEvent, type PointerEvent} from 'react';
-import type {HsvColor} from '@core/labels/colorSpace';
+import type {HsvColor} from '@core/labels';
 import styles from './LabelColorPopover.module.css';
 
 const clamp = (value: number, max = 100): number =>

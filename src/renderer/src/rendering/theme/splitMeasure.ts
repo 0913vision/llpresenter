@@ -3,9 +3,9 @@ import {
   type Measure,
   type SplitLayout,
   type SplitSpec,
-} from '@core/bible/split/layout';
+} from '@core/bible';
 import type {ThemeFile, ThemeTextElement} from '@core/schema/theme';
-import {templateTokens} from '@core/theme/template';
+import {templateTokens} from '@core/theme';
 import {fontFamilyFor} from '../fontFamily';
 
 type TextWidth = (text: string, size: number) => number;

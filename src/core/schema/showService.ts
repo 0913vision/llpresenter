@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import {labelColorSchema} from './labelColor';
-import type {Result} from '../common/result';
+import type {Result} from '@core/common/result';
 import type {ReadonlyKnown} from './fileFormat';
 import {biblePassageSchema} from './biblePassage';
 import {songIdSchema} from './ids';

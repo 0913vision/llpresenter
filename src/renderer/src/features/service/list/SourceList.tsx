@@ -14,7 +14,7 @@ import {EMPTY_SOURCE, sourceKey, type ServiceSource} from './useServiceSources';
 import styles from './ServiceDialogs.module.css';
 import {isContextMenuKey, type ContextMenuEvent} from '../../../ui/contextMenu';
 import {useReflow} from '@renderer/ui/useReflow';
-import {serviceDay} from '@core/services/serviceDate';
+import {serviceDay} from '@core/services';
 
 const names = new Intl.Collator('ko', {numeric: true});
 

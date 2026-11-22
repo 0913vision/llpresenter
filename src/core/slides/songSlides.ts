@@ -1,7 +1,7 @@
-import type {TextImportDraft} from '../schema/textImport';
-import type {Slide} from '../schema/slide';
-import type {SlideBackground} from '../schema/theme';
-import {LIGHT_SONG_THEME_IDS} from '../theme/builtIn/ids';
+import type {TextImportDraft} from '@core/schema/textImport';
+import type {Slide} from '@core/schema/slide';
+import type {SlideBackground} from '@core/schema/theme';
+import {LIGHT_SONG_THEME_IDS} from '@core/theme';
 import {makeSlide, type SlideMaking} from './make';
 
 /** The slides of a song that was imported, its title slide first. */

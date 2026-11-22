@@ -10,7 +10,7 @@ import {
   type PointerEvent,
 } from 'react';
 import type {ItemOverlayId} from '@core/schema/ids';
-import {resizedSpan, type OverlaySpan} from '@core/overlays/ranges';
+import {resizedSpan, type OverlaySpan} from '@core/overlays';
 import {editorTask} from '@renderer/platform/editorTask';
 import {isComposing} from '@renderer/ui/ime';
 import {hasModifier} from '@renderer/ui/modifierKeys';

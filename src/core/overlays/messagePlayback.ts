@@ -1,4 +1,4 @@
-import type {MessageLayer} from '../schema/live';
+import type {MessageLayer} from '@core/schema/live';
 
 export interface MessagePlaybackItem {
   readonly messageId: string;

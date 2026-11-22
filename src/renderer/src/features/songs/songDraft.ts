@@ -6,19 +6,15 @@ import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
 import {createSongId, type MediaId, type SongId} from '@core/schema/ids';
 import {SONG_SCHEMA_VERSION, type Song} from '@core/schema/song';
 import type {TextImportDraft} from '@core/schema/textImport';
+import {newSongSlides, songSlides, withSongTitle} from '@core/slides';
 import {
-  newSongSlides,
-  songSlides,
-  withSongTitle,
-} from '@core/slides/songSlides';
-import {importLimitReason} from '@core/songs/importLimits';
-import {
+  importLimitReason,
   copyTitle,
   DUPLICATE_TITLE_REASON,
   EMPTY_TITLE_REASON,
   normalizeSongTitle,
   SONG_TITLE_LIMIT,
-} from '@core/songs/songTitle';
+} from '@core/songs';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {slideMaking} from '@renderer/platform/themes';
 import {noticeTime, type Notice} from '@renderer/ui/notices';

@@ -1,5 +1,5 @@
 import {nativeImage} from 'electron';
-import {coverCrop} from '@core/media/coverCrop';
+import {coverCrop} from '@core/media';
 import type {PixelSize} from '@core/common/pixelSize';
 import type {MediaFacts} from './mediaAnalyser';
 

@@ -1,6 +1,6 @@
 import type {JSX} from 'react';
 import {parseScreenId} from '@core/schema/ids';
-import {themeScreenOf} from '@core/theme/themes';
+import {themeScreenOf} from '@core/theme';
 import {useLive, useOutputs} from '@renderer/session/live';
 import {
   useHasMediaView,

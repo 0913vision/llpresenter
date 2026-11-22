@@ -7,9 +7,12 @@ import {
   THEME_CANVAS,
 } from '@core/schema/theme';
 import type {MediaLayer} from '@core/schema/live';
-import type {ShapePlacement, ThemePlacement} from '@core/theme/layout';
-import {templateTokens} from '@core/theme/template';
-import {mediaObjectFit} from '@core/media/objectFit';
+import {
+  type ShapePlacement,
+  type ThemePlacement,
+  templateTokens,
+} from '@core/theme';
+import {mediaObjectFit} from '@core/media';
 import {BackgroundLayerView, type RenderMode} from '../backgroundLayer';
 import type {PreviewMediaSource} from '../previewMedia';
 import {backgroundPaint} from '../themeBackground';

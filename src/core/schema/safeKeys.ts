@@ -1,4 +1,4 @@
-import type {Result} from '../common/result';
+import type {Result} from '@core/common/result';
 
 // NOTE(0913vision): valibot drops object keys named __proto__, prototype, and
 // constructor to prevent prototype pollution, which would lose unknown fields

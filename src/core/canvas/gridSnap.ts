@@ -1,8 +1,4 @@
-import {
-  MIN_SIZE,
-  type ElementFrame,
-  type ResizeHandle,
-} from '@core/canvas/frameEdit';
+import {MIN_SIZE, type ElementFrame, type ResizeHandle} from './frameEdit';
 
 const GRID_STEP = 20;
 interface Point {

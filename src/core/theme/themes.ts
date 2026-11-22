@@ -1,11 +1,11 @@
-import type {ThemeId} from '../schema/ids';
-import type {Slide} from '../schema/slide';
-import type {Screen} from '../schema/screens';
-import type {OwnThemeScreen, SlidePurpose, ThemeFile} from '../schema/theme';
-import type {Themes} from '../schema/themes';
+import type {ThemeId} from '@core/schema/ids';
+import type {Slide} from '@core/schema/slide';
+import type {Screen} from '@core/schema/screens';
+import type {OwnThemeScreen, SlidePurpose, ThemeFile} from '@core/schema/theme';
+import type {Themes} from '@core/schema/themes';
 import {BUILT_IN_THEMES} from './builtIn';
 import {BUILT_IN_THEME_IDS} from './builtIn/ids';
-import {sameJson} from '../common/sameJson';
+import {sameJson} from '@core/common/sameJson';
 
 type ThemeList = Pick<Themes, 'themes' | 'defaults'>;
 

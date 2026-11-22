@@ -4,8 +4,13 @@ import {
   type ThemeElement,
   type ThemeGroupedText,
 } from '@core/schema/theme';
-import {themeValues} from '@core/theme/boxes';
-import {changeSplit, changeStack, splitOf, stackOf} from '@core/theme/frames';
+import {
+  themeValues,
+  changeSplit,
+  changeStack,
+  splitOf,
+  stackOf,
+} from '@core/theme';
 import {GeometryField} from '@renderer/ui/GeometryField';
 import {
   Properties,

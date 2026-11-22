@@ -28,7 +28,7 @@ import {
 import {TextField} from '@renderer/ui/TextField';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {RenameDialog} from '@renderer/ui/RenameDialog';
-import {SONG_TITLE_LIMIT} from '@core/songs/songTitle';
+import {SONG_TITLE_LIMIT} from '@core/songs';
 import {songTitleReason} from './songTitleReason';
 import {EmptyState} from '@renderer/ui/EmptyState';
 import {LibraryList} from './LibraryList';

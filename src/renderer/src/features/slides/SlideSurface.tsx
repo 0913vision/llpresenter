@@ -10,7 +10,7 @@ import {
 } from 'react';
 import {isUnchangedSelectionMove} from '@core/common/selectionOrder';
 import type {Slide} from '@core/schema/slide';
-import {changeSlides, withLabel} from '@core/slides/edits';
+import {changeSlides, withLabel} from '@core/slides';
 import {LabelMenu} from '@renderer/features/labels/LabelMenu';
 import {useLabelCatalog} from '@renderer/features/labels/labels';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';

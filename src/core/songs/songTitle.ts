@@ -1,4 +1,4 @@
-import {copyName} from '../common/copyName';
+import {copyName} from '@core/common/copyName';
 
 /** The longest song title, in characters. */
 export const SONG_TITLE_LIMIT = 200;

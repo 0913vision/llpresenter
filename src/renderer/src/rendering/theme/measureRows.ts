@@ -1,4 +1,4 @@
-import type {MeasuredText, TextMetrics} from '@core/theme/layout';
+import type {MeasuredText, TextMetrics} from '@core/theme';
 import {fontFamilyFor} from '../fontFamily';
 import {sizeRows, wrappedRows, writeRows, type RowsText} from './textRows';
 

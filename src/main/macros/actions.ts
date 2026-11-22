@@ -1,8 +1,8 @@
 import type {SingleLiveCommand} from '@core/schema/liveCommand';
-import {mediaLoops} from '@core/media/mediaEndRule';
+import {mediaLoops} from '@core/media';
 import {MissingLiveTargetError} from '../live/commandErrors';
 import {defineMacroAction, MacroActionRegistry} from './actionRegistry';
-import {fillMessageText} from '@core/overlays/messageText';
+import {fillMessageText} from '@core/overlays';
 import type {ActionContext, ActionResolution} from './types';
 
 function command(value: SingleLiveCommand): ActionResolution {

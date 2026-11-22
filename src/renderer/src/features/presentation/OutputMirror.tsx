@@ -1,6 +1,6 @@
 import {useEffect, useRef, type JSX} from 'react';
 import styles from './OutputMirror.module.css';
-import {pictureBounds} from '@core/screens/pictureSize';
+import {pictureBounds} from '@core/screens';
 
 /** A stream of the actual output web contents; no second picture renderer. */
 export function OutputMirror({

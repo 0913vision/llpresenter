@@ -30,9 +30,9 @@ import {
   maxPopoverHeight,
   menuChainShift,
   placeSubmenu,
-  viewportSize,
   type Point,
   type Size,
+  viewportSize,
 } from './placement';
 import {
   focusMenu,

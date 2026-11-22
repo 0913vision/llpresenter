@@ -1,6 +1,6 @@
 import {useEffect, useMemo, useState, useSyncExternalStore} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
-import type {VerseInput} from '@core/bible/split/splitVerses';
+import type {VerseInput} from '@core/bible';
 import type {BibleSplit} from './passageSplitter';
 import {BibleRefinementRun} from './BibleRefinements';
 

@@ -1,5 +1,5 @@
 import {useEffect, useRef, type JSX} from 'react';
-import type {PaletteColor} from '@core/labels/colors';
+import type {PaletteColor} from '@core/labels';
 import {MacroColorPicker} from '@renderer/ui/LabelColorPicker';
 import {useChoicePopup} from '@renderer/ui/useChoicePopup';
 import {Popover} from '@renderer/ui/Popover';

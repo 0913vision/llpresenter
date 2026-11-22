@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import {parsePayload, payloadObject, type PayloadError} from './payload';
-import type {Result} from '../common/result';
+import type {Result} from '@core/common/result';
 
 const schema = payloadObject({
   wall: v.pipe(v.number(), v.finite()),

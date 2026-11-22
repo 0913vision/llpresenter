@@ -1,5 +1,5 @@
 import type {SlideBackground} from '@core/schema/theme';
-import type {GradientBackground} from '@core/theme/gradientPresets';
+import type {GradientBackground} from '@core/theme';
 
 const NOISE_SIZE = 64;
 const NEUTRAL_CHANNEL_SPREAD = 2;

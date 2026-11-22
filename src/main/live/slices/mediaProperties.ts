@@ -2,7 +2,7 @@ import {audioPositionSeconds} from '@core/schema/audioState';
 import {outputMediaProperties} from '@core/schema/outputMedia';
 import {withLayers} from '../history';
 import {defineSlice} from '../slice';
-import {backgroundElapsedSeconds} from '@core/media/backgroundPosition';
+import {backgroundElapsedSeconds} from '@core/media';
 
 export const mediaPropertiesSlice = defineSlice({
   commands: ['media.properties.refresh'],

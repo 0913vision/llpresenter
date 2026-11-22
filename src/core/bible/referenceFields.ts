@@ -1,5 +1,5 @@
 import {exactBibleBook, findBibleBooks} from './bibleMatching';
-import type {BibleLookupReply} from '../schema/bibleLookup';
+import type {BibleLookupReply} from '@core/schema/bibleLookup';
 
 export interface ReferenceFields {
   readonly book: string;

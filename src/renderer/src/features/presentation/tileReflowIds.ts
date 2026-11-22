@@ -1,4 +1,4 @@
-import type {SlideTile} from '@core/presentation/model';
+import type {SlideTile} from '@core/presentation';
 
 /** Where each tile moves from when the list changes: its slide stays its slide. */
 export function tileReflowIds(

@@ -1,4 +1,4 @@
-import type {MessageTemplate} from '../schema/messages';
+import type {MessageTemplate} from '@core/schema/messages';
 
 export const MAX_MESSAGE_CHARACTERS = 4000;
 const MAX_BLANK_NAME_IN_ERROR = 128;

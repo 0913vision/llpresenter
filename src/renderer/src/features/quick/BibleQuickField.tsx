@@ -1,7 +1,6 @@
-import {withLiveBible} from '@core/bible/liveTranslation';
+import {withLiveBible, QUICK_BIBLE_TRANSITION} from '@core/bible';
 import type {RecentPassage} from '@core/schema/bible';
 import type {BibleLookupPassage} from '@core/schema/bibleLookup';
-import {QUICK_BIBLE_TRANSITION} from '@core/bible/quickTransition';
 import {
   useRef,
   useSyncExternalStore,
@@ -10,8 +9,7 @@ import {
   useState,
   type JSX,
 } from 'react';
-import {commandBindings} from '@core/shortcuts/bindings';
-import {editsText, matchesBinding} from '@core/shortcuts/matching';
+import {commandBindings, editsText, matchesBinding} from '@core/shortcuts';
 import {commandBindingStore} from '@renderer/ui/commandBindings';
 import {isInputMethodKey} from '@renderer/ui/commandDispatcher';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';

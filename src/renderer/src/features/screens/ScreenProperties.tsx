@@ -9,8 +9,20 @@ import {
   NDI_SOURCE_NAME_MAX,
   type Screen,
 } from '@core/schema/screens';
-import {emptyScreenColor} from '@core/screens/emptyColor';
-import {KIND_NAMES, SCREEN_KIND_ORDER} from '@core/screens/screens';
+import {
+  emptyScreenColor,
+  KIND_NAMES,
+  SCREEN_KIND_ORDER,
+  monitorAssignment,
+  CAPTURE_RESOLUTIONS,
+  EDGE_MARGIN_MAX,
+  OFFSET_LIMIT,
+  alwaysOnTopOf,
+  nameProblem,
+  lastOfKind,
+  onDisconnectOf,
+  type ScreenChange,
+} from '@core/screens';
 import {ColorProperty} from './ColorProperty';
 import {
   Checkbox,
@@ -27,17 +39,6 @@ import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {isComposing} from '@renderer/ui/ime';
 import {hasModifier} from '@renderer/ui/modifierKeys';
 import {monitorPixelSize, sizeText, targetSize} from './displaySizes';
-import {monitorAssignment} from '@core/screens/monitorAssignment';
-import {
-  CAPTURE_RESOLUTIONS,
-  EDGE_MARGIN_MAX,
-  OFFSET_LIMIT,
-  alwaysOnTopOf,
-  nameProblem,
-  lastOfKind,
-  onDisconnectOf,
-  type ScreenChange,
-} from '@core/screens/screenEdits';
 import {MessageStyleRow} from './MessageStyleRow';
 import {useScreenView, useScreensSelection} from './selection';
 import {useMonitors} from './useMonitors';

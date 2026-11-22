@@ -1,5 +1,10 @@
 import {BibleChapterCache} from './chapterCache';
-import {LIVE_BIBLE_ID} from '@core/bible/liveTranslation';
+import {
+  LIVE_BIBLE_ID,
+  BOOK_SUGGESTION_LIMIT,
+  findBibleBooks,
+  matchBooks,
+} from '@core/bible';
 import type {SettingsReader} from '@core/schema/settingsReader';
 import {
   BIBLE_LOOKUP_LIMITS,
@@ -9,11 +14,6 @@ import {
 } from '@core/schema/bibleLookup';
 import type {Logger} from '../log';
 import {BibleLibrary, loadBibleLibrary} from './library';
-import {
-  BOOK_SUGGESTION_LIMIT,
-  findBibleBooks,
-  matchBooks,
-} from '@core/bible/bibleMatching';
 
 const BOOK_PREFIX = /^(요한\s*[1-3]\s*서|(?:[1-3]\s*)?[\p{L}\p{M}\s]+)(.*)$/u;
 const WARNED_FILE_LIMIT = 128;

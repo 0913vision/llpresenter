@@ -1,5 +1,5 @@
 import {type JSX, type Ref} from 'react';
-import type {LabelColor} from '@core/labels/colors';
+import type {LabelColor} from '@core/labels';
 import {classNames} from './classNames';
 import {Icon} from './Icon';
 import {labelInk} from './labelInk';

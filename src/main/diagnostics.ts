@@ -2,11 +2,7 @@ import {open} from 'node:fs/promises';
 import {homedir} from 'node:os';
 import {join} from 'node:path';
 import {app, screen} from 'electron';
-import {
-  errorLinesOf,
-  formatDiagnostics,
-  type DiagnosticsInfo,
-} from '@core/app/diagnostics';
+import {errorLinesOf, formatDiagnostics, type DiagnosticsInfo} from '@core/app';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import type {Logger} from './log';
 

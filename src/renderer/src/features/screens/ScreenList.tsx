@@ -18,13 +18,17 @@ import {
   StatusDot,
 } from '@renderer/ui';
 import type {Screen} from '@core/schema/screens';
-import {KIND_NAMES, SCREEN_KIND_ORDER} from '@core/screens/screens';
+import {
+  KIND_NAMES,
+  SCREEN_KIND_ORDER,
+  screenGroups,
+  type ScreenRow,
+} from '@core/screens';
 import {sendLive, useOutputs} from '@renderer/session/live';
 import type {Notice} from '@renderer/ui/notices';
 import {MAX_TARGET_SCREENS} from '@core/schema/overlayState';
 import {useScreenCreation} from './useScreenCreation';
 import {ScreenGroupActions} from './ScreenGroupActions';
-import {screenGroups, type ScreenRow} from '@core/screens/screenRows';
 import {selectedScreenIn, useScreensSelection} from './selection';
 import {useOutputStatuses} from './useOutputStatuses';
 import {useSettingsDocument} from '../../platform/useSettingsDocument';

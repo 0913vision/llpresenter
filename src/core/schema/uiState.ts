@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import type {Result} from '../common/result';
+import type {Result} from '@core/common/result';
 import {appLayoutSchema, sizeClasses, type AppConfig} from './appConfig';
 import {mediaBrowserSchema} from './mediaBrowser';
 import {screenIdSchema, macroCollectionIdSchema} from './ids';

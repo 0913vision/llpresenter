@@ -5,7 +5,7 @@ import {
   type AudioChoice,
   type AudioDevice,
   type ResolvedSink,
-} from '@core/media/audioOutput';
+} from '@core/media';
 
 interface SinkState {
   /** The device the element has taken; the Windows default at the start. */

@@ -6,15 +6,15 @@ import type {TimerDelete} from '@core/schema/timerDeletion';
 import type {TimerRename} from '@core/schema/timerEdit';
 import {TIMER_NAME_LIMIT} from '@core/schema/quickTimerEdit';
 import {MAX_TIMER_DEFINITIONS} from '@core/schema/timers';
-import {nextTimerName} from '@core/timers/timerNames';
-import {prepareTimerEdit} from './timerEditPlan';
-import type {TimerEditDraft} from '@core/timers/timerEditDraft';
-import {pendingWritesOf} from '@renderer/platform/pendingWrites';
-import {withinLookupTimeout} from '@renderer/session/showOutput';
 import {
+  nextTimerName,
+  type TimerEditDraft,
   validTimerConfiguration,
   type TimerConfiguration,
-} from '@core/timers/timerConfiguration';
+} from '@core/timers';
+import {prepareTimerEdit} from './timerEditPlan';
+import {pendingWritesOf} from '@renderer/platform/pendingWrites';
+import {withinLookupTimeout} from '@renderer/session/showOutput';
 
 const SAVE_ATTEMPTS = 2;
 export interface NewCountdown {

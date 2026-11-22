@@ -3,7 +3,7 @@ import {
   SLIDE_TRANSITION_LIMITS,
   type SlideTransition,
 } from '@core/schema/slideTransition';
-import {withTransition} from '@core/slides/edits';
+import {withTransition} from '@core/slides';
 import {TextField} from '@renderer/ui/TextField';
 import {EffectPicture} from '@renderer/ui/SlideTransitionControl';
 import transitionStyles from '@renderer/ui/SlideTransitionControl.module.css';

@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import {monitorIdentityPayloadSchema} from './monitorIdentity';
-import type {Result} from '../common/result';
+import type {Result} from '@core/common/result';
 import {MONITOR_NUMBER_MAX} from './outputStatus';
 import {parsePayload, payloadObject, type PayloadError} from './payload';
 

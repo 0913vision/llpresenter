@@ -1,5 +1,5 @@
-import type {BibleCutEntry, BibleCutsFile} from '../../schema/bibleCuts';
-import type {VerseReference} from '../../schema/slide';
+import type {BibleCutEntry, BibleCutsFile} from '@core/schema/bibleCuts';
+import type {VerseReference} from '@core/schema/slide';
 import {CONT_MARKER, type SplitLayout} from './layout';
 import {cutsFromChunks, planSlides, planSlidesAtOffsets} from './manualSplit';
 import {knownCutEntryFor, textHash} from './splitCache';

@@ -1,5 +1,5 @@
 import type * as v from 'valibot';
-import {isRecord} from '../common/guards';
+import {isRecord} from '@core/common/guards';
 
 type Node = Readonly<Record<string, unknown>>;
 

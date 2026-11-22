@@ -11,8 +11,8 @@ import type {Screen} from '@core/schema/screens';
 import type {SettingsName} from '@core/schema/settingsDocuments';
 import type {ThemeFile} from '@core/schema/theme';
 import type {Themes} from '@core/schema/themes';
-import type {SlideMaking} from '@core/slides/make';
-import {themeOfSlide} from '@core/theme/themes';
+import type {SlideMaking} from '@core/slides';
+import {themeOfSlide} from '@core/theme';
 
 /** The themes and screens as every part of this window draws slides. */
 export interface ThemesView {

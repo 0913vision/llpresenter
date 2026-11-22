@@ -302,6 +302,9 @@ export const lintConfig = defineConfig(
       // scripts/lint/layers.mts, so a change in a feature never reaches
       // the layers below it.
       'llp/layer-imports': 'error',
+      // NOTE(0913vision): A module is imported through its index.ts, so its
+      // inside can change without touching another module.
+      'llp/module-entry': 'error',
     },
   },
   {

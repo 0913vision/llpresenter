@@ -3,7 +3,7 @@ import {
   REFERENCE_SCREEN,
   TEXT_EFFECTS,
   type TextStyle,
-} from '@core/overlays/textStyle';
+} from '@core/overlays';
 import type {ThemeTextStyle} from '@core/schema/theme';
 import {measuredText} from './theme/measureRows';
 import {sizeRows, writeRows, type RowsText} from './theme/textRows';

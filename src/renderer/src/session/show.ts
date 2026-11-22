@@ -1,19 +1,17 @@
 import type {SingleLiveCommand} from '@core/schema/liveCommand';
 import type {SlideLayer} from '@core/schema/live';
-import {QUICK_BIBLE_TRANSITION} from '@core/bible/quickTransition';
+import {QUICK_BIBLE_TRANSITION} from '@core/bible';
 import {
   type ItemId,
   type SlideTile,
   type TileCursor,
-} from '@core/presentation/model';
-import {
   adjacentItem,
   liveItem,
   nextTileAtLast,
   previousTileAtFirst,
   type SequenceState,
-} from '@core/presentation/navigation';
-import {slideLayerOf} from '@core/presentation/slideLayer';
+  slideLayerOf,
+} from '@core/presentation';
 import {parseServiceItemId} from '@core/schema/ids';
 import type {Preferences} from '@core/schema/preferences';
 import type {ShowService} from '@core/schema/showService';

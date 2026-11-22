@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import {monitorIdentitySchema} from './monitorIdentity';
-import type {Result} from '../common/result';
+import type {Result} from '@core/common/result';
 import {
   parseFile,
   serializeFile,

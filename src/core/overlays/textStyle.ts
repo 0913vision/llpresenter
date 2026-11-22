@@ -1,4 +1,4 @@
-import type {TextOutline, TextShadow} from '../schema/textEffects';
+import type {TextOutline, TextShadow} from '@core/schema/textEffects';
 
 /**
  * How a text layer draws its text: the lyrics of a 장, a 테마 text element, a

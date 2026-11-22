@@ -1,4 +1,4 @@
-import type {PixelSize} from '../common/pixelSize';
+import type {PixelSize} from '@core/common/pixelSize';
 
 /** A part of a picture, in its pixels. */
 export interface Crop extends PixelSize {

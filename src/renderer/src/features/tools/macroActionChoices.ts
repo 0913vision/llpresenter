@@ -2,10 +2,7 @@ import {timerCommandLabels} from '@renderer/ui/timerCommandLabels';
 import type {MacroActionKind, KnownMacroAction} from '@core/schema/macros';
 import type {MenuEntry, MenuItem} from '@renderer/ui/menuModel';
 import {menuSeparator} from '@renderer/ui/menuRows';
-import {
-  draftMacroAction,
-  type MacroActionDraft,
-} from '@core/macros/macroActionDraft';
+import {draftMacroAction, type MacroActionDraft} from '@core/macros';
 import type {MacroTargetChoice} from './macroTargets';
 
 const operations = {

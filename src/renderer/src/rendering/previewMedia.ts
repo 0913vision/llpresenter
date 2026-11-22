@@ -2,7 +2,7 @@ import type {LlpApi} from '@contracts/ipc/api';
 import {mediaUrl, thumbnailUrl} from '@contracts/ipc/mediaUrls';
 import type {MediaLayer} from '@core/schema/live';
 import {createMediaId, type MediaId} from '@core/schema/ids';
-import {APP_PICTURE_IDS} from '@core/theme/pictures';
+import {APP_PICTURE_IDS} from '@core/theme';
 import type {MediaDocument} from '@core/schema/mediaEdit';
 import type {MediaItem} from '@core/schema/mediaList';
 import type {MediaProgress} from '@core/schema/mediaProgress';

@@ -3,9 +3,9 @@ import type {
   TextImportOptions,
   TextImportPreviewRequest,
   TextImportPreviewResult,
-} from '../schema/textImport';
-import {fileStem} from '../common/fileName';
-import {TEXT_IMPORT_LIMITS} from '../schema/textImportLimits';
+} from '@core/schema/textImport';
+import {fileStem} from '@core/common/fileName';
+import {TEXT_IMPORT_LIMITS} from '@core/schema/textImportLimits';
 import {importHeaderKey} from './importLabelMapping';
 
 type DraftSlide = TextImportDraft['slides'][number];

@@ -1,5 +1,5 @@
 import {useState, type JSX} from 'react';
-import {resolveAudioSink, type AudioDevice} from '@core/media/audioOutput';
+import {resolveAudioSink, type AudioDevice} from '@core/media';
 import {DEFAULT_AUDIO_DEVICE} from '@core/schema/preferences';
 import {Icon} from '@renderer/ui/Icon';
 import {PropertyRow} from '@renderer/ui/PropertyRow';

@@ -1,9 +1,8 @@
 import {useSelectionDelete} from '@renderer/ui/useSelectionDelete';
 import {selectionLabel} from '@renderer/ui/selectionDrag';
 import {useEffect, useLayoutEffect, useRef, useState, type JSX} from 'react';
-import type {ElementFrame} from '@core/canvas/frameEdit';
-import {restackElements, type StackingStep} from '@core/theme/elements';
-import {drawnFrame} from '@core/theme/frames';
+import type {ElementFrame} from '@core/canvas';
+import {restackElements, type StackingStep, drawnFrame} from '@core/theme';
 import {SlidePicture} from '@renderer/pictures/SlidePicture';
 import {CanvasEditor} from '@renderer/ui/CanvasEditor';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';

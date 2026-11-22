@@ -4,12 +4,10 @@ import {
   addGradientStop,
   moveGradientStop,
   removeGradientStop,
-} from '@core/theme/gradientEdits';
-import {
   GRADIENT_PRESETS,
   isGradientPreset,
   type GradientBackground,
-} from '@core/theme/gradientPresets';
+} from '@core/theme';
 import {backgroundPaint} from '@renderer/rendering/themeBackground';
 import {sampleGradient} from '@renderer/rendering/sampleGradient';
 import {IconButton, NumberField, PropertyRow} from '@renderer/ui';

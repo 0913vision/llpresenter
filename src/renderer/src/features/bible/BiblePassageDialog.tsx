@@ -1,4 +1,4 @@
-import {withLiveBible} from '@core/bible/liveTranslation';
+import {withLiveBible} from '@core/bible';
 import {
   useEffect,
   useLayoutEffect,

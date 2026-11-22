@@ -1,5 +1,5 @@
 import {useState, type JSX} from 'react';
-import {withLabel} from '@core/slides/edits';
+import {withLabel} from '@core/slides';
 import {LabelMenu} from '@renderer/features/labels/LabelMenu';
 import {useLabelCatalog} from '@renderer/features/labels/labels';
 import {PropertyRow} from '@renderer/ui/PropertyRow';

@@ -6,7 +6,7 @@ import {
 } from './monitorIdentity';
 import {MONITOR_LIST_MAX} from './monitors';
 import {payloadObject, parsePayload, type PayloadError} from './payload';
-import type {Result} from '../common/result';
+import type {Result} from '@core/common/result';
 
 const NATIVE_TEXT_MAX = 512;
 const COORDINATE_MAX = 1_000_000;

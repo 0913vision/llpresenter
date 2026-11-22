@@ -1,4 +1,4 @@
-import {audioPlayCommand} from '@core/media/audioPlayCommand';
+import {audioPlayCommand} from '@core/media';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import type {JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';

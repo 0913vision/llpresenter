@@ -3,7 +3,7 @@ import {
   MIN_SIZE,
   type ElementFrame,
   type ResizeHandle,
-} from '@core/canvas/frameEdit';
+} from './frameEdit';
 import {snapToGrid} from './gridSnap';
 
 type Axis = 'x' | 'y';

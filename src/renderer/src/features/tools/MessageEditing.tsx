@@ -6,7 +6,7 @@ import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {createMessageTemplateId} from '@core/schema/ids';
 import type {Screen} from '@core/schema/screens';
 import type {MessageTemplate} from '@core/schema/messages';
-import {MAX_MESSAGE_CHARACTERS} from '@core/overlays/messageText';
+import {MAX_MESSAGE_CHARACTERS} from '@core/overlays';
 import type {NamedDocument} from '@renderer/platform/useSettingsDocument';
 import {
   Button,

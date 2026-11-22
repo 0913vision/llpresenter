@@ -1,7 +1,7 @@
 import {create} from 'zustand';
 import type {ShowLibrarySong} from '@core/schema/showLibrarySong';
 import type {BibleSource} from './bibleSource';
-import type {ItemId, ServiceRow, SlideTile} from '@core/presentation/model';
+import type {ItemId, ServiceRow, SlideTile} from '@core/presentation';
 
 export interface ShowView {
   /** The passages opened by themselves, the last one first. */

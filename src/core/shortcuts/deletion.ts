@@ -1,4 +1,7 @@
-import type {SettingsDocument, SettingsName} from '../schema/settingsDocuments';
+import type {
+  SettingsDocument,
+  SettingsName,
+} from '@core/schema/settingsDocuments';
 
 function objectCommands(document: SettingsDocument): readonly string[] {
   switch (document.name) {

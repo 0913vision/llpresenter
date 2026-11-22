@@ -14,7 +14,7 @@ import {
 } from '@core/schema/service';
 import type {LabelRename} from '@core/schema/settingsDocuments';
 import {randomUUID} from 'node:crypto';
-import {normalizeSongTitle} from '@core/songs/songTitle';
+import {normalizeSongTitle} from '@core/songs';
 import {dirname, extname, join} from 'node:path';
 import type {Logger} from '../log';
 import {

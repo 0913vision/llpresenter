@@ -1,5 +1,5 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
-import type {BoxSize} from '@core/canvas/fitAspect';
+import type {BoxSize} from '@core/canvas';
 
 /** The element's content box, as a resize observer reports it. */
 function contentSize(element: HTMLElement): BoxSize {

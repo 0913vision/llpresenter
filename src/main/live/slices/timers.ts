@@ -6,7 +6,7 @@ import {
   heldTimer,
   localDay,
   stopsAtZero,
-} from '@core/timers/timerClock';
+} from '@core/timers';
 import {MissingLiveTargetError} from '../commandErrors';
 import type {LiveHistory} from '../history';
 import {defineSlice, type CommandOf, type SliceContext} from '../slice';

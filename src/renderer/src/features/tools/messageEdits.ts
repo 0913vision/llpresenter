@@ -3,7 +3,7 @@ import {duplicateAfter} from '@core/common/duplicateAfter';
 import type {MessageTemplate, MessagesFile} from '@core/schema/messages';
 import {createMessageTemplateId} from '@core/schema/ids';
 import type {EditResult} from '@core/schema/contentEdit';
-import {MAX_MESSAGE_CHARACTERS} from '@core/overlays/messageText';
+import {MAX_MESSAGE_CHARACTERS} from '@core/overlays';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {withinLookupTimeout} from '@renderer/session/showOutput';
 

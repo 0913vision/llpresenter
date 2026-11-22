@@ -1,6 +1,6 @@
 import * as v from 'valibot';
-import type {Result} from '../common/result';
-import {isRecord} from '../common/guards';
+import type {Result} from '@core/common/result';
+import {isRecord} from '@core/common/guards';
 import {biblePassageSchema} from './biblePassage';
 import {
   parseFile,

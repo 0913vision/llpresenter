@@ -3,7 +3,7 @@ import type {ScreenId} from '@core/schema/ids';
 import type {Screen} from '@core/schema/screens';
 import {MAX_TARGET_SCREENS} from '@core/schema/overlayState';
 import type {MonitorInfo} from '@core/schema/monitors';
-import {defaultScreenName} from '@core/screens/screenEdits';
+import {defaultScreenName} from '@core/screens';
 import {assignScreenMonitor} from './assignScreenMonitor';
 
 export interface NewScreen {

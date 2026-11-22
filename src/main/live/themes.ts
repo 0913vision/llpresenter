@@ -1,10 +1,10 @@
-import {placedOverlays} from '@core/live/overlays';
+import {placedOverlays} from '@core/live';
 import type {LiveItem} from '@core/schema/liveTheme';
 import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
 import {hasSlides} from '@core/schema/service';
 import {songIdSchema} from '@core/schema/ids';
 import {parsePayload} from '@core/schema/payload';
-import {itemTitle} from '@core/slides/tiles';
+import {itemTitle} from '@core/slides';
 import type {DataStore} from '../store/register';
 import type {Logger} from '../log';
 import {ThemeRuntime} from './themeRuntime';

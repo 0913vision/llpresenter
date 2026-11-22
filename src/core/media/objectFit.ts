@@ -1,4 +1,4 @@
-import type {OutputMediaProperties} from '../schema/outputMedia';
+import type {OutputMediaProperties} from '@core/schema/outputMedia';
 
 /** Maps fit, fill, and stretch to CSS contain, cover, and fill, respectively. */
 export function mediaObjectFit(

@@ -7,7 +7,7 @@ import {
   selectSlideList,
   type SlideListSelection,
   type SlideSelectionAction,
-} from '@core/slides/selection';
+} from '@core/slides';
 
 export type DeckSelection = SlideListSelection<SlideId>;
 

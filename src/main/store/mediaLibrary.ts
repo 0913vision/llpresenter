@@ -1,7 +1,7 @@
 import {dirname, isAbsolute, resolve} from 'node:path';
 import {stat} from 'node:fs/promises';
 import type {MediaChoice} from '@core/schema/live';
-import {mediaLoops} from '@core/media/mediaEndRule';
+import {mediaLoops} from '@core/media';
 import type {Result} from '@core/common/result';
 import type {FileError} from '@core/schema/fileFormat';
 import type {BundledPicture} from './bundledPicture';

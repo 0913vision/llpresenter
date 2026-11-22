@@ -1,6 +1,6 @@
-import type {Slide} from '../schema/slide';
-import type {SlideBackground} from '../schema/theme';
-import {gradientNamed} from '../theme/gradientPresets';
+import type {Slide} from '@core/schema/slide';
+import type {SlideBackground} from '@core/schema/theme';
+import {gradientNamed} from '@core/theme';
 import {makeSlide, type SlideMaking} from './make';
 
 /** A 타이틀 that can be put in: its names and what is behind them. */

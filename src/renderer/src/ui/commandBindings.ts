@@ -1,7 +1,10 @@
 import {useSyncExternalStore} from 'react';
 import type {ShortcutsFile} from '@core/schema/shortcuts';
-import {commandBindings, shortcutConflicts} from '@core/shortcuts/bindings';
-import {shortcutNames} from '@core/shortcuts/keys';
+import {
+  commandBindings,
+  shortcutConflicts,
+  shortcutNames,
+} from '@core/shortcuts';
 
 let bindings: ShortcutsFile['bindings'] = {};
 let conflicts = shortcutConflicts(bindings);

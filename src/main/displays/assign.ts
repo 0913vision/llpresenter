@@ -1,7 +1,7 @@
 import type {Monitor} from './monitor';
 import {sameRect, type Rect} from './rect';
 import type {MonitorIdentity} from '@core/schema/monitorIdentity';
-import {monitorSerialKey} from '@core/screens/monitorIdentity';
+import {monitorSerialKey} from '@core/screens';
 
 /** The monitor that 화면 설정 saved for a full screen output. */
 export interface SavedDisplay {

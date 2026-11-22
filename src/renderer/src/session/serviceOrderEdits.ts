@@ -13,9 +13,8 @@ import {
   type Service,
   type ServiceItem,
 } from '@core/schema/service';
-import {sectionInsertIndex} from '@core/services/quickAddPosition';
-import {sectionBoundaryIndex} from '@core/services/serviceSections';
-import {songItem} from '@core/slides/items';
+import {sectionInsertIndex, sectionBoundaryIndex} from '@core/services';
+import {songItem} from '@core/slides';
 import {
   editOpenService,
   type EditOptions,

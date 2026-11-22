@@ -1,7 +1,7 @@
-import type {SlideId, ThemeId} from '../schema/ids';
-import type {Slide, VerseReference} from '../schema/slide';
-import type {SlideBackground} from '../schema/theme';
-import type {SlideTransition} from '../schema/slideTransition';
+import type {SlideId, ThemeId} from '@core/schema/ids';
+import type {Slide, VerseReference} from '@core/schema/slide';
+import type {SlideBackground} from '@core/schema/theme';
+import type {SlideTransition} from '@core/schema/slideTransition';
 import {copySlide} from './make';
 import {verseKey} from './passageSlides';
 

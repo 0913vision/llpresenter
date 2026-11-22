@@ -1,5 +1,5 @@
 import type {Slide} from '@core/schema/slide';
-import {slidesText} from '@core/slides/edits';
+import {slidesText} from '@core/slides';
 import {readSlideText, writeSlideText} from './systemSlideClipboard';
 
 interface Copied {

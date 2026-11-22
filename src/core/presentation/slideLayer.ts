@@ -1,23 +1,13 @@
-import type {SlideLayer, SlidePeer} from '../schema/live';
-import {LIVE_STATE_LIMITS} from '../schema/liveLimits';
-import type {ThemeFile} from '../schema/theme';
-import {nextTextOf} from '../theme/content';
-import type {SlideContent} from '../schema/slideContent';
+import type {SlideLayer, SlidePeer} from '@core/schema/live';
+import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
+import type {ThemeFile} from '@core/schema/theme';
+import {nextTextOf} from '@core/theme';
+import {tileContent} from '@core/slides';
 import type {SlideTile, TileCursor} from './model';
 import type {TilesOf} from './navigation';
 
 /** The theme a slide is drawn with. */
 export type ThemeLookup = (tile: SlideTile) => ThemeFile;
-
-/** The texts of a tile, as its theme draws them. */
-export function tileContent({slide, auto}: SlideTile): SlideContent {
-  return {
-    texts: slide.texts,
-    auto,
-    ...(slide.next === undefined ? {} : {next: slide.next}),
-    ...(slide.continued === undefined ? {} : {continued: true}),
-  };
-}
 
 /** What a tile lets the slide before it show as its next text. */
 export function nextTextOfTile(

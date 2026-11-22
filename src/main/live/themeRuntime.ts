@@ -9,13 +9,8 @@ import type {
 import type {Screen} from '@core/schema/screens';
 import type {SlideBackground} from '@core/schema/theme';
 import type {Themes} from '@core/schema/themes';
-import {emptyScreenColor} from '@core/screens/emptyColor';
-import {
-  themeFor,
-  themeOf,
-  themeOfSlide,
-  type ThemedSlide,
-} from '@core/theme/themes';
+import {emptyScreenColor} from '@core/screens';
+import {themeFor, themeOf, themeOfSlide, type ThemedSlide} from '@core/theme';
 import {resetClearToggles, type LiveHistory, type UndoEntry} from './history';
 import type {ThemeReduction} from './slice';
 

@@ -1,4 +1,4 @@
-import {serviceDay} from '@core/services/serviceDate';
+import {serviceDay} from '@core/services';
 import type {Result} from '@core/common/result';
 import type {FileError, LoadedFile} from '@core/schema/fileFormat';
 import {parseMediaList} from '@core/schema/mediaList';

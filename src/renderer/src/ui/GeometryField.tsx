@@ -1,5 +1,5 @@
 import type {JSX} from 'react';
-import {formatGeometryValue} from '@core/canvas/geometryValue';
+import {formatGeometryValue} from '@core/canvas';
 import {NumberField, type NumberFieldProps} from './NumberField';
 
 /** Shares geometry display precision while retaining explicitly typed values. */

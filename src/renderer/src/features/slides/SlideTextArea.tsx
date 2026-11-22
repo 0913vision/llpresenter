@@ -8,9 +8,14 @@ import {
 import {SLIDE_LIMITS} from '@core/schema/slide';
 import type {ShowTile} from '@core/schema/showService';
 import type {ThemeFile} from '@core/schema/theme';
-import {filledText, ownText, withOwnText} from '@core/slides/boxes';
-import {changeSlides} from '@core/slides/edits';
-import {joinSlide, pasteSlideText} from '@core/slides/textEdits';
+import {
+  filledText,
+  ownText,
+  withOwnText,
+  changeSlides,
+  joinSlide,
+  pasteSlideText,
+} from '@core/slides';
 import {slideMaking} from '@renderer/platform/themes';
 import {classNames} from '@renderer/ui/classNames';
 import {isComposing} from '@renderer/ui/ime';

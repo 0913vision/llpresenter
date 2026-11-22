@@ -1,5 +1,5 @@
-import type {SlideContent} from '../schema/slideContent';
-import type {ThemeFile} from '../schema/theme';
+import type {SlideContent} from '@core/schema/slideContent';
+import type {ThemeFile} from '@core/schema/theme';
 import {fillTemplates} from './template';
 
 /** What each value of a theme's templates is on this slide. */

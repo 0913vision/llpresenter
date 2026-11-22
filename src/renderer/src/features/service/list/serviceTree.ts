@@ -7,7 +7,7 @@ import {
   type ServiceItem,
   type SlidesItem,
 } from '@core/schema/service';
-import {itemTitle} from '@core/slides/tiles';
+import {itemTitle} from '@core/slides';
 
 /** One row of the 예배 순서 tree in the service dialogs. */
 export interface TreeRow {

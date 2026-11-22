@@ -1,5 +1,5 @@
 import type {LlpApi} from '@contracts/ipc/api';
-import {quickAddBefore} from '@core/services/quickAddPosition';
+import {quickAddBefore} from '@core/services';
 import {createServiceItemId, type SongId} from '@core/schema/ids';
 import type {OpenServiceResult} from './openService';
 import {insertSong} from './serviceOrderEdits';

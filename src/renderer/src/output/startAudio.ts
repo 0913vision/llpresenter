@@ -6,7 +6,7 @@ import {followLiveState} from './liveFeed';
 import {BackgroundAudio} from './backgroundAudio';
 import {followAudioOutput} from '../rendering/audioSink';
 import {followSettingsDocument} from '../rendering/settingsFeed';
-import {audioTimes} from '@core/media/audioTimes';
+import {audioTimes} from '@core/media';
 import {withPreferenceDefaults} from '@core/schema/preferences';
 import {
   followPlaybackProblems,

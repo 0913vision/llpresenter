@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import type {Result} from '../common/result';
+import type {Result} from '@core/common/result';
 import {revisionSchema} from './contentDocuments';
 import {checkPart, type ReadonlyKnown} from './fileFormat';
 import {

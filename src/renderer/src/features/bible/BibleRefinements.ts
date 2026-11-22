@@ -1,13 +1,14 @@
 import type {BibleAiState} from '@core/schema/bibleAi';
 import type {LlpApi} from '@contracts/ipc/api';
-import {type VerseInput, versesToReview} from '@core/bible/split/splitVerses';
 import {
+  type VerseInput,
+  versesToReview,
   normalizeVerse,
   cutsFromChunks,
   planSlides,
-} from '@core/bible/split/manualSplit';
-import {splitVerseWithChooser} from '@core/bible/split/splitter';
-import type {SplitLayout} from '@core/bible/split/layout';
+  splitVerseWithChooser,
+  type SplitLayout,
+} from '@core/bible';
 import type {BibleSplit} from './passageSplitter';
 
 export const verseKey = (reference: VerseInput['reference']): string =>

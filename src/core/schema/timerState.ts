@@ -2,7 +2,7 @@ import * as v from 'valibot';
 import type {ReadonlyKnown} from './fileFormat';
 import {timerIdSchema} from './ids';
 import {epochMillisecondsSchema} from './overlayState';
-import type {Result} from '../common/result';
+import type {Result} from '@core/common/result';
 import {parsePayload, plainObject, type PayloadError} from './payload';
 import {nonNegativeNumber} from './primitives';
 import {timerSchema} from './timers';

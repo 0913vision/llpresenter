@@ -6,17 +6,17 @@ import {
   useRef,
   useSyncExternalStore,
 } from 'react';
-import {commandBindings, shortcutCommand} from '@core/shortcuts/bindings';
 import {
+  commandBindings,
+  shortcutCommand,
   matchesBinding,
   PhysicalModifiers,
   sourceSlideCode,
-} from '@core/shortcuts/matching';
-import {
   commandPressAction,
   type ShortcutFocus,
-} from '@core/shortcuts/precedence';
-import type {CommandContext, CommandPriority} from '@core/shortcuts/registry';
+  type CommandContext,
+  type CommandPriority,
+} from '@core/shortcuts';
 import type {KeyBinding} from '@core/schema/shortcuts';
 import {commandBindingStore} from './commandBindings';
 import {commitDraftBeforeShortcut} from './commitDraft';

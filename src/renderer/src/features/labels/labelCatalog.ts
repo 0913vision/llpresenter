@@ -1,6 +1,6 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import type {Label} from '@core/schema/labels';
-import type {LabelColor} from '@core/labels/colors';
+import type {LabelColor} from '@core/labels';
 import type {LabelColorPreview} from '@core/schema/labelColorPreview';
 import type {
   SettingsDocument,

@@ -9,7 +9,7 @@ import {
   editThemeList,
   type ThemeListProblem,
   type ThemeListResult,
-} from '@core/theme/list';
+} from '@core/theme';
 import {INVALID_CHANGE, themeProblems} from './themeNames';
 
 interface DraftOptions {

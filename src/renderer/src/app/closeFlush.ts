@@ -1,4 +1,4 @@
-import {closeStepAfter} from '@core/app/closePolicy';
+import {closeStepAfter} from '@core/app';
 import type {LlpApi, Unsubscribe} from '@contracts/ipc/api';
 import {APP_FLUSH_LIMITS, type AppFlushRequest} from '@core/schema/appFlush';
 import type {DraftOutcome} from '@renderer/platform/pendingWrites';

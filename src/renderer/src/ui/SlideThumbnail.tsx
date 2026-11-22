@@ -1,7 +1,7 @@
 import type {TransitionProgress} from './transitionProgress';
 import {TransitionProgressFill} from './TransitionProgressFill';
 import {memo, type CSSProperties, type JSX, type ReactNode} from 'react';
-import {NO_LABEL_COLOR, type LabelColor} from '@core/labels/colors';
+import {NO_LABEL_COLOR, type LabelColor} from '@core/labels';
 import {classNames} from './classNames';
 import {labelInk} from './labelInk';
 import {MissingFileMark, missingFileText} from './MissingFile';

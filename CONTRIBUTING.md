@@ -173,6 +173,8 @@ grows:
 - Imports flow one way: a layer uses only the layers below it. When a lower
   layer needs something from a higher one, the thing is in the wrong place; move
   it down instead of reaching up.
+- A module is used through its entry, so that its inside can change without
+  touching other code. Export from `index.ts` only what another module uses.
 - One rule lives in one place. A rule that needs no I/O goes in `src/core/` with
   its tests, and every caller uses it. The previews and the output draw with the
   same rules; never write a second copy for one view.

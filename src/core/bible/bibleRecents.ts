@@ -1,4 +1,4 @@
-import type {RecentPassage} from '../schema/bible';
+import type {RecentPassage} from '@core/schema/bible';
 import {parseReference} from './reference';
 
 export const RECENT_PASSAGE_LIMIT = 10;

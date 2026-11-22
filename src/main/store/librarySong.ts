@@ -9,7 +9,7 @@ import {
   type ShowLibrarySong,
 } from '@core/schema/showLibrarySong';
 import type {Song} from '@core/schema/song';
-import {songTiles} from '@core/slides/tiles';
+import {songTiles} from '@core/slides';
 import type {Logger} from '../log';
 
 export interface LibrarySongDocument {

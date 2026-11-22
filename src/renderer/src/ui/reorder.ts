@@ -1,5 +1,4 @@
-import {commandBindings} from '@core/shortcuts/bindings';
-import {matchesBinding} from '@core/shortcuts/matching';
+import {commandBindings, matchesBinding} from '@core/shortcuts';
 import {commandBindingStore} from './commandBindings';
 import {useCommandShortcuts} from './commandDispatcher';
 import {isInTextEntry} from './textEntry';

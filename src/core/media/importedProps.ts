@@ -1,5 +1,5 @@
-import type {Preferences} from '../schema/preferences';
-import type {MediaItem} from '../schema/mediaList';
+import type {Preferences} from '@core/schema/preferences';
+import type {MediaItem} from '@core/schema/mediaList';
 
 /** The 새 미디어 defaults of 환경설정 (spec 02, `media.defaults`). */
 export type MediaDefaults = Preferences['media']['defaults'];

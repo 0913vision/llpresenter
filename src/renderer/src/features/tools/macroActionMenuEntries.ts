@@ -7,7 +7,7 @@ import {
   type MacroActionKind,
   type KnownMacroAction,
 } from '@core/schema/macros';
-import type {MacroActionDraft} from '@core/macros/macroActionDraft';
+import type {MacroActionDraft} from '@core/macros';
 import type {MacroActionDescriptor} from '@renderer/platform/macroActionDescriptor';
 import {
   menuAvailability,
