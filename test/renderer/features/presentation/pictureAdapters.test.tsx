@@ -234,6 +234,14 @@ it('uses the same sermon boundary cues in preparation and show previews', () => 
     'Final verse',
   ]);
   expect(detailsSpec(data, 2).layers.slide?.next).toBeUndefined();
+  for (const role of ['audience', 'broadcast'] as const) {
+    expect(detailsSpec({...data, role}, 0).layers.slide?.next?.lines).toEqual([
+      'First verse',
+    ]);
+    expect(detailsSpec({...data, role}, 2).layers.slide?.next?.lines).toEqual([
+      'Sermon',
+    ]);
+  }
 });
 
 it('preserves formatted song data in the item fallback while projection is loading', () => {

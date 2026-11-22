@@ -72,8 +72,15 @@ function biblePicture(
   context: PictureContext,
   index: number,
 ): JSX.Element | undefined {
-  const {item, projection, offset, bibleTiles, bibleAppearance, sermonTheme} =
-    context;
+  const {
+    item,
+    projection,
+    offset,
+    bibleTiles,
+    bibleAppearance,
+    sermonTheme,
+    role,
+  } = context;
   if (
     item === null ||
     (!isItemOfKind(item, 'bible') && !isItemOfKind(item, 'sermon')) ||
@@ -89,9 +96,11 @@ function biblePicture(
   );
   if (projected === null) return undefined;
   const {next: _next, ...withoutNext} = projected;
-  const slide = stagePassageBoundary({tiles, index: position, passage: true})
-    ? withoutNext
-    : projected;
+  const slide =
+    role === 'stage' &&
+    stagePassageBoundary({tiles, index: position, passage: true})
+      ? withoutNext
+      : projected;
   if (slide.sermonTitle === true && sermonTheme !== undefined) {
     return <SlidePicture {...sermonTheme} slide={slide} />;
   }
