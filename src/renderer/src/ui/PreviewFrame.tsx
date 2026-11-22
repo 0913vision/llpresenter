@@ -1,3 +1,5 @@
+import type {TransitionProgress} from './transitionProgress';
+import {TransitionProgressFill} from './TransitionProgressFill';
 import type {CSSProperties, JSX, ReactNode} from 'react';
 import {classNames} from './classNames';
 import {Icon, type IconSize} from './Icon';
@@ -36,7 +38,7 @@ export interface PreviewScreen<Id extends string> {
   readonly status: PreviewStatus;
   /** Draws the frame in `chroma`, as the capture window of 방송 화면 does. */
   readonly chroma?: boolean | undefined;
-  readonly transitionProgress?: number | undefined;
+  readonly transitionProgress?: TransitionProgress | undefined;
   /** A picture-specific state, separate from whether the screen output is on. */
   readonly indicator?:
     {readonly icon: string; readonly text: string} | undefined;
@@ -177,9 +179,15 @@ function Caption<Id extends string>({
       </span>
       {screen.transitionProgress === undefined ? null : (
         <span aria-hidden="true" className={styles.transitionTrack}>
-          <span
+          <TransitionProgressFill
+            key={
+              typeof screen.transitionProgress === 'number'
+                ? 'fixed'
+                : `${screen.transitionProgress.startedAt}:${screen.transitionProgress.duration}`
+            }
+            progress={screen.transitionProgress}
             className={styles.transitionFill}
-            style={{transform: `scaleX(${screen.transitionProgress})`}}
+            animatedClassName={styles.animatedTransition}
           />
         </span>
       )}

@@ -3,11 +3,10 @@ import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {RENDERER_LOG_LIMITS} from '@core/schema/ipcPayloads';
 import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {OutputRenderer} from '../rendering/outputRenderer';
-import {SlideAnimation} from '../rendering/slideAnimation';
 import {ServiceMediaPreloader} from './serviceMediaPreloader';
-import {afterTwoFrames, waitForReady} from './waitForReady';
+import {SlideSwitch} from './slideSwitch';
 import {OUTPUT_REVEAL_DEADLINE_MS} from '@core/output/revealDeadline';
-import {reverseSlideTransition} from '@core/output/transitions';
+import {slideTransitionFor} from '@core/output/transitions';
 import type {SlideTransition} from '@core/schema/slideTransition';
 import type {LiveState} from '@core/live/state';
 import {ScreenFrames} from '../rendering/screenFrames';
@@ -22,6 +21,8 @@ export interface OutputContext {
   readonly api: LlpApi;
   readonly screenId: string;
   readonly ndi?: boolean;
+  /** Blends slide transitions outside the page, when a presenter shows it. */
+  readonly presentTransition?: (effect: SlideTransition) => void;
 }
 
 type ErrorReport = (message: string, error: unknown) => void;
@@ -92,6 +93,7 @@ export function startOutput({
   api,
   screenId,
   ndi = false,
+  presentTransition,
 }: OutputContext): () => void {
   const stopPlaybackProblems = followPlaybackProblems(
     root,
@@ -106,13 +108,31 @@ export function startOutput({
   };
   const stopCatching = catchUncaughtErrors(report);
   const mediaProgress = openPreviewMedia(api);
-  let renderer: OutputRenderer | null = null;
-  const retired: OutputRenderer[] = [];
-  const animations: SlideAnimation[] = [];
+  const slides = new SlideSwitch({
+    create: () =>
+      new OutputRenderer(root, {
+        transparent: ndi,
+        textStyle: DEFAULT_TEXT_STYLE,
+        mediaUrl,
+        previewMedia: mediaProgress,
+        onError: report,
+      }),
+    present: presentTransition,
+    onLate: incoming => {
+      api.log.write({
+        level: 'warn',
+        message: `incoming slide not ready after ${OUTPUT_REVEAL_DEADLINE_MS} ms; showing it anyway`,
+        detail: JSON.stringify({
+          screenId,
+          elements: incoming.unreadyElements(),
+          fontsReady,
+        }),
+      });
+      incoming.revealIncomplete();
+    },
+    onError: report,
+  });
   let preloader: ServiceMediaPreloader | null = null;
-  let snapshotMode = false;
-  let snapshotEpoch = 0;
-  let cancelReady: (() => void) | null = null;
   let hasFrame = false;
   let latest: LiveState | null = null;
   let stopped = false;
@@ -129,7 +149,7 @@ export function startOutput({
   let readyTimer: ReturnType<typeof setTimeout> | null = null;
   const enabled = (): boolean => latest?.outputs[screenId] === true;
   const draw = (): void => {
-    if (latest === null || renderer === null) return;
+    if (latest === null) return;
     if (!enabled()) {
       enableEpoch += 1;
       revealPending = true;
@@ -148,11 +168,11 @@ export function startOutput({
         preloader.dispose();
         preloader = null;
       }
-      renderer.render(latest.layers, {
+      slides.renderer().render(latest.layers, {
         ...frame,
         standby: !enabled(),
         ...(!enabled() ? {clearEffects: []} : {}),
-        transitions: enabled() && !revealPending && !snapshotMode,
+        transitions: enabled() && !revealPending && !slides.changing,
       });
       hasFrame = true;
       drawCount += 1;
@@ -187,7 +207,7 @@ export function startOutput({
       );
   }
   const complete = (): boolean =>
-    fontsReady && hasFrame && renderer?.ready() === true;
+    fontsReady && hasFrame && slides.renderer().ready();
   const frameKey = (): string =>
     `${drawCount}/${window.innerWidth}/${window.innerHeight}`;
   // NOTE(0913vision): Only a pending reveal needs readiness work. A frame is
@@ -271,7 +291,8 @@ export function startOutput({
     if (!enabled() && !revealPending) return;
     meter ??= startFrameRateMeter({
       onFrame: noteFrame,
-      active: () => revealPending || (enabled() && renderer?.moving() === true),
+      active: () =>
+        revealPending || (enabled() && slides.renderer().moving()),
       reportIdle: () => api.output.reportHealth({screenId}),
       report: fps => api.output.reportFrameRate({screenId, fps}),
     });
@@ -289,13 +310,6 @@ export function startOutput({
       lastAttempt = -Infinity;
       lastReady = false;
     }
-    renderer ??= new OutputRenderer(root, {
-      transparent: ndi,
-      textStyle: DEFAULT_TEXT_STYLE,
-      mediaUrl,
-      previewMedia: mediaProgress,
-      onError: report,
-    });
     const content = drawnContent(state);
     if (content !== drawnState || wasEnabled !== enabled()) {
       drawnState = content;
@@ -304,166 +318,42 @@ export function startOutput({
     reportFrameRates();
     watchReadiness();
   };
-  const effectFor = (state: LiveState): SlideTransition | undefined => {
-    const slide = state.layers.slide;
-    if (slide === null) return undefined;
-    return slide.reverseTransition !== undefined
-      ? reverseSlideTransition(slide.reverseTransition)
-      : slide.transition;
-  };
-  const clearRetired = (): void => {
-    for (const animation of animations.splice(0)) animation.cancel();
-    for (const previous of retired.splice(0)) previous.dispose();
-  };
   const stopFollowing = followLiveState(
     api.live,
     state => {
-      const old = latest?.layers.slide;
+      const shown = latest?.layers.slide ?? null;
       const slide = state.layers.slide;
-      const effect = effectFor(state);
-      const audience = latest !== null && frames.screenKind() === 'audience';
-      const uncoveringBlack =
-        latest?.blackScreen === true &&
-        state.blackScreen !== true &&
-        slide?.transitionStartedAt !== undefined &&
-        slide.transitionStartedAt !== old?.transitionStartedAt;
-      const changed =
-        slide !== null &&
-        (old?.itemId !== slide.itemId ||
-          old.position !== slide.position ||
-          uncoveringBlack);
-      let currentRenderer = renderer;
-      if (changed) {
+      const moved =
+        shown?.itemId !== slide?.itemId || shown?.position !== slide?.position;
+      const covered = latest?.blackScreen !== true && state.blackScreen === true;
+      const uncovered =
+        latest?.blackScreen === true && state.blackScreen !== true;
+      if (moved && slide !== null) {
         preloader?.request({itemId: slide.itemId, index: slide.position});
       }
-      const epoch =
-        changed || !audience || state.outputs[screenId] !== true
-          ? ++snapshotEpoch
-          : snapshotEpoch;
-      if (changed || !audience || state.outputs[screenId] !== true) {
-        cancelReady?.();
-        cancelReady = null;
-      }
-      if (
-        !audience ||
-        !enabled() ||
-        revealPending ||
-        !changed ||
-        effect === undefined ||
-        effect.kind === 'none' ||
-        currentRenderer === null
-      ) {
-        if (changed || !audience || state.outputs[screenId] !== true) {
-          snapshotMode = false;
-          clearRetired();
-          if (currentRenderer !== null) {
-            currentRenderer.transitionSurface().style.visibility = '';
-          }
-        }
-        applyState(state);
+      const effect = slideTransitionFor(slide);
+      const animates =
+        frames.screenKind() === 'audience' &&
+        state.outputs[screenId] === true &&
+        enabled() &&
+        !revealPending &&
+        slide !== null &&
+        effect.kind !== 'none' &&
+        (moved ||
+          (uncovered &&
+            slide.transitionStartedAt !== shown?.transitionStartedAt));
+      if (animates) {
+        slides.change(effect, {draw: () => applyState(state), complete});
         return;
       }
-      // NOTE(0913vision): An interrupted unready slide must not replace the visible outgoing picture.
-      if (currentRenderer.transitionSurface().style.visibility === 'hidden') {
-        const visible = retired.pop();
-        if (visible !== undefined) {
-          currentRenderer.dispose();
-          currentRenderer = visible;
-        }
-      }
-      clearRetired();
-      currentRenderer.freeze();
-      retired.push(currentRenderer);
-      renderer = new OutputRenderer(root, {
-        transparent: ndi,
-        textStyle: DEFAULT_TEXT_STYLE,
-        mediaUrl,
-        previewMedia: mediaProgress,
-        onError: report,
-      });
-      const incoming = renderer;
-      snapshotMode = true;
-      const surface = incoming.transitionSurface();
-      surface.style.visibility = 'hidden';
-      const animation = new SlideAnimation(true);
-      animations.push(animation);
+      const turnedOff = enabled() && state.outputs[screenId] !== true;
+      if (moved || covered || uncovered || turnedOff) slides.end();
       applyState(state);
-      const finish = (): void => {
-        if (!stopped && epoch === snapshotEpoch) {
-          clearRetired();
-          snapshotMode = false;
-        }
-      };
-      let timedOut = false;
-      const reveal = (): void => {
-        if (stopped || epoch !== snapshotEpoch) return;
-        cancelReady = null;
-        try {
-          if (effect.kind === 'wipe') {
-            animation.prepare(
-              currentRenderer.transitionSurface(),
-              surface,
-              effect,
-            );
-            surface.style.visibility = '';
-            const start = (): void => {
-              if (stopped || epoch !== snapshotEpoch) return;
-              cancelReady = null;
-              try {
-                animation.start();
-                const completion = animation.finished();
-                if (completion === null) finish();
-                else void completion.then(finish, finish);
-              } catch (error) {
-                report('could not start the incoming slide', error);
-                finish();
-              }
-            };
-            if (timedOut) start();
-            else cancelReady = afterTwoFrames(start);
-          } else {
-            animation.play(
-              currentRenderer.transitionSurface(),
-              surface,
-              effect,
-            );
-            surface.style.visibility = '';
-            const completion = animation.finished();
-            if (completion === null) finish();
-            else void completion.then(finish, finish);
-          }
-        } catch (error) {
-          report('could not animate the incoming slide', error);
-          surface.style.visibility = '';
-          finish();
-        }
-      };
-      if (complete()) {
-        reveal();
-      } else {
-        cancelReady = waitForReady(
-          () => incoming === renderer && complete(),
-          reveal,
-          () => {
-            timedOut = true;
-            const elements = incoming.unreadyElements();
-            api.log.write({
-              level: 'warn',
-              message: `incoming slide not ready after ${OUTPUT_REVEAL_DEADLINE_MS} ms; showing it anyway`,
-              detail: JSON.stringify({screenId, elements, fontsReady}),
-            });
-            incoming.revealIncomplete();
-          },
-        );
-      }
     },
     report,
   );
   return () => {
     stopped = true;
-    snapshotEpoch += 1;
-    cancelReady?.();
-    clearRetired();
     preloader?.dispose();
     if (readyTimer !== null) clearTimeout(readyTimer);
     window.removeEventListener('resize', resized);
@@ -474,7 +364,7 @@ export function startOutput({
     }
     stopFollowing();
     frames.dispose();
-    renderer?.dispose();
+    slides.dispose();
     mediaProgress?.dispose();
     stopCatching();
     stopPlaybackProblems();

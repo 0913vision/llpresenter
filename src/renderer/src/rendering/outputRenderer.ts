@@ -1,4 +1,4 @@
-import {emptyLayers, type LayerKind, type LiveLayers} from '@core/live/state';
+import type {LayerKind, LiveLayers} from '@core/live/state';
 import {ThemeCompositionView} from './themeComposition';
 import {themeBackgroundColor} from './themeBackground';
 import {classes} from './classes';
@@ -15,12 +15,6 @@ import {scaleFor} from '@core/themes/textStyle';
 import {PICTURE_TRANSFORM, pictureTransform} from './pictureCorrection';
 
 const CHROMA_BACKGROUND = 'var(--chroma)';
-const THEME_LAYER_ORDERS: Readonly<Record<string, number>> = {
-  prop: 3,
-  message: 4,
-};
-const LEGACY_CONTENT_LAYERS = new Set(['background', 'lyrics']);
-const noContent = emptyLayers();
 
 export type OutputRendererOptions = RenderLayerOptions;
 
@@ -29,7 +23,6 @@ interface ActiveLayer {
   readonly view: RenderLayer;
   readonly box: HTMLElement;
   readonly fades: LayerKind | undefined;
-  hidden: boolean;
 }
 
 function createLayerBox(
@@ -153,32 +146,12 @@ export class OutputRenderer {
       }
       this.theme?.render(fading.layers, frame);
     });
-    const {clearOpacity: _clearOpacity, ...legacyFrame} = frame;
     for (const layer of this.layers) {
-      const themed = frame.theme !== undefined;
-      const legacy = LEGACY_CONTENT_LAYERS.has(layer.kind);
-      this.setHidden(
-        layer,
-        (themed && legacy) ||
-          (this.options.transparent === true && layer.kind === 'background'),
-      );
-      const order =
-        renderLayers.find(entry => entry.kind === layer.kind)?.order ?? 0;
-      layer.box.style.zIndex = String(
-        themed ? (THEME_LAYER_ORDERS[layer.kind] ?? order) : order,
-      );
       const opacity =
         layer.fades === undefined ? undefined : fading.opacity[layer.fades];
-      layer.box.style.opacity = layer.hidden
-        ? '0'
-        : opacity === undefined
-          ? ''
-          : String(opacity);
+      layer.box.style.opacity = opacity === undefined ? '' : String(opacity);
       this.attempt(layer.kind, 'draw', () =>
-        layer.view.render(
-          themed && legacy ? noContent : fading.layers,
-          themed && legacy ? legacyFrame : frame,
-        ),
+        layer.view.render(fading.layers, frame),
       );
     }
     if (fading.active) {
@@ -214,9 +187,7 @@ export class OutputRenderer {
       !this.disposed &&
       (this.testPattern ||
         ((this.theme?.ready() ?? true) &&
-          this.layers.every(
-            ({hidden, view}) => hidden || (view.ready?.() ?? true),
-          )))
+          this.layers.every(({view}) => view.ready?.() ?? true)))
     );
   }
 
@@ -225,8 +196,8 @@ export class OutputRenderer {
     if (this.disposed || this.testPattern) return [];
     return [
       ...(this.theme?.unreadyElements() ?? []),
-      ...this.layers.flatMap(({kind, hidden, view}) =>
-        !hidden && view.ready?.() === false ? [{kind, id: null}] : [],
+      ...this.layers.flatMap(({kind, view}) =>
+        view.ready?.() === false ? [{kind, id: null}] : [],
       ),
     ];
   }
@@ -300,15 +271,6 @@ export class OutputRenderer {
     } else this.root.style.setProperty(PICTURE_TRANSFORM, transform);
   }
 
-  // NOTE(0913vision): A hidden layer keeps drawing under opacity 0, so its
-  // content and video playback stay ready, and a descendant's own visibility
-  // can't show it.
-  private setHidden(layer: ActiveLayer, hidden: boolean): void {
-    if (hidden === layer.hidden) return;
-    layer.hidden = hidden;
-    layer.box.classList.toggle(classes.hidden, hidden);
-  }
-
   private createLayer(layer: RegisteredLayer): ActiveLayer[] {
     const box = createLayerBox(this.root, layer);
     try {
@@ -318,7 +280,6 @@ export class OutputRenderer {
           view: layer.create(box, this.options),
           box,
           fades: layer.fades,
-          hidden: false,
         },
       ];
     } catch (error) {

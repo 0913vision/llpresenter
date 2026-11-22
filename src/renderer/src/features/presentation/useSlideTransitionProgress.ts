@@ -1,33 +1,33 @@
-import {useEffect, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import {useLive} from '@renderer/session/live';
-import {WIPE_DURATION_MS_PER_SECOND} from '@renderer/rendering/slideAnimation';
+import {slideTransitionFor} from '@core/output/transitions';
+import type {TransitionProgress} from '@renderer/ui/transitionProgress';
 
 /** Follows the actual live slide transition using main's wall clock start. */
-export function useSlideTransitionProgress(): number | undefined {
+export function useSlideTransitionProgress(): TransitionProgress | undefined {
   const slide = useLive(view => view.state?.layers.slide);
-  const start = slide?.transitionStartedAt;
-  const effect =
-    slide?.reverseTransition !== undefined
-      ? slide.reverseTransition
-      : slide?.transition;
-  const duration =
-    effect == null || effect.kind === 'none'
-      ? 0
-      : effect.sec *
-        (effect.kind === 'wipe' ? WIPE_DURATION_MS_PER_SECOND : 1000);
-  const [now, setNow] = useState(() => Date.now());
+  const startedAt = slide?.transitionStartedAt;
+  const effect = slideTransitionFor(slide ?? null);
+  const duration = effect.kind === 'none' ? 0 : effect.sec * 1000;
+  const end = startedAt === undefined ? undefined : startedAt + duration;
+  const [finished, setFinished] = useState<number | undefined>();
   useEffect(() => {
-    if (start === undefined || duration <= 0) return;
-    let handle = 0;
-    const update = (): void => {
-      const current = Date.now();
-      setNow(current);
-      if (current < start + duration) handle = requestAnimationFrame(update);
-    };
-    handle = requestAnimationFrame(update);
-    return () => cancelAnimationFrame(handle);
-  }, [start, duration]);
-  if (start === undefined || duration <= 0) return undefined;
-  const elapsed = Math.max(0, now - start);
-  return elapsed >= duration ? undefined : elapsed / duration;
+    if (end === undefined || duration <= 0) return;
+    const timer = setTimeout(
+      () => setFinished(end),
+      Math.max(0, end - Date.now()),
+    );
+    return () => clearTimeout(timer);
+  }, [end, duration]);
+  return useMemo(() => {
+    if (
+      startedAt === undefined ||
+      end === undefined ||
+      duration <= 0 ||
+      finished === end
+    ) {
+      return undefined;
+    }
+    return {startedAt, duration};
+  }, [startedAt, duration, end, finished]);
 }

@@ -120,27 +120,27 @@ export class BackgroundAudio {
         this.overlayStartedAt !== null &&
         this.overlayStartedAt !== overlay.startedAt
       ) {
-        this.overlay?.show(null, false);
+        this.overlay?.show(null);
       }
       this.overlayStartedAt = overlay?.startedAt ?? null;
-      this.overlay?.show(overlay, false);
+      this.overlay?.show(overlay);
       const audible = themeMediaAudible(state);
       const media = state.layers.media;
       if (!audible) {
         this.stopFade();
         this.previous = null;
-        this.view.show(null, false);
+        this.view.show(null);
         return;
       }
       if (media !== null) {
         /** The picture held its position, so sound must seek on restore. */
         if (this.fade !== null) {
-          this.view.show(null, false);
+          this.view.show(null);
         }
         this.stopFade();
         this.previous =
           media.properties?.audio === true ? this.sound(media) : null;
-        this.view.show(this.previous, false);
+        this.view.show(this.previous);
         return;
       }
       const effect = state.clearEffects?.find(
@@ -148,7 +148,7 @@ export class BackgroundAudio {
       );
       if (effect === undefined || this.previous === null) {
         this.stopFade();
-        this.view.show(null, false);
+        this.view.show(null);
         return;
       }
       if (
@@ -164,7 +164,7 @@ export class BackgroundAudio {
       );
       if (remaining === 0) {
         this.previous = null;
-        this.view.show(null, false);
+        this.view.show(null);
         return;
       }
       const startGain = Math.min(1, remaining / effect.durationMs);
@@ -177,7 +177,7 @@ export class BackgroundAudio {
           this.fade = null;
           this.previous = null;
           try {
-            this.view.show(null, false);
+            this.view.show(null);
           } finally {
             this.view.setAudioGain(1);
           }

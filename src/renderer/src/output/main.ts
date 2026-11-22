@@ -4,7 +4,6 @@ import './output.css';
 import {showMonitorNumber} from './monitorNumber';
 import {startOutput} from './startOutput';
 import {startAudio} from './startAudio';
-import {handSlideTransitionsTo} from '../rendering/slideAnimation';
 import {startPainter} from './painter';
 
 const SCREEN_PARAMETER = 'screen';
@@ -25,21 +24,22 @@ if (root !== null && parameters.get('painter') === '1') {
 } else if (root !== null && monitorNumber !== null) {
   showMonitorNumber(root, monitorNumber, parameters.get('monitor-details'));
 } else if (root !== null && screenId !== null && api !== undefined) {
-  if (parameters.get('presenter') === '1') {
-    handSlideTransitionsTo(({kind, dir, sec}) =>
-      api.output.presentTransition({
-        screenId,
-        transition:
-          dir !== undefined && (kind === 'push' || kind === 'wipe')
-            ? {kind, dir, sec}
-            : {kind, sec},
-      }),
-    );
-  }
   startOutput({
     root,
     api,
     screenId,
     ndi,
+    ...(parameters.get('presenter') === '1'
+      ? {
+          presentTransition: ({kind, dir, sec}) =>
+            api.output.presentTransition({
+              screenId,
+              transition:
+                dir !== undefined && (kind === 'push' || kind === 'wipe')
+                  ? {kind, dir, sec}
+                  : {kind, sec},
+            }),
+        }
+      : {}),
   });
 }

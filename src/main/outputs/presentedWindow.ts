@@ -40,7 +40,7 @@ const FIRST_TEXTURE_TIMEOUT_MS = 5000;
 /** Hands a slide transition of one screen's page to its presenter. */
 const transitionTargets = new Map<string, (effect: SlideTransition) => void>();
 
-/** Starts the slide transition the page of `screenId` just cut to. */
+/** Ends the transition `screenId` is in and starts this one, unless it's a cut. */
 export function presentTransition(
   screenId: string,
   effect: SlideTransition,
@@ -411,7 +411,6 @@ function createPresenterPart(
     log.info('output presenter opened', {screen: current.id, ...pixels, hz});
   };
   transitionTargets.set(screen.id, effect => {
-    if (effect.kind === 'none') return;
     post({
       type: 'transition',
       kind: effect.kind,

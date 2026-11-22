@@ -11,7 +11,6 @@ export const classes = {
   video: classOf('video'),
   image: classOf('image'),
   overlayImage: classOf('overlayImage'),
-  dissolving: classOf('dissolving'),
   page: classOf('page'),
   instant: classOf('instant'),
   shown: classOf('shown'),
@@ -20,7 +19,6 @@ export const classes = {
   bibleGuide: classOf('bibleGuide'),
   shadow: classOf('shadow'),
   outline: classOf('outline'),
-  hidden: classOf('hidden'),
   band: classOf('band'),
   bandText: classOf('bandText'),
 } as const;

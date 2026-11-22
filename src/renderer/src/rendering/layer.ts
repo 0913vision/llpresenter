@@ -12,7 +12,6 @@ import type {
 } from '@core/schema/liveTheme';
 import type {FontCatalog} from '@core/schema/fontCatalog';
 import type {MessageBand} from '@core/screens/messageStyle';
-import type {TransitionTimes} from '@core/output/transitions';
 import type {PreviewMediaSource} from './previewMedia';
 
 export interface ThemeFrame extends ThemeComposition {
@@ -59,7 +58,6 @@ export interface RenderFrame {
     | undefined;
   readonly stageLyricLabelPosition?: import('@core/schema/preferences').StageLyricLabelPosition;
   readonly slide?: import('@core/live/state').SlideLayer;
-  readonly slideTransition?: import('@core/schema/slideTransition').SlideTransition;
   readonly stageTimerId?: TimerId;
   readonly theme?: ThemeFrame;
   readonly fonts?: FontCatalog;
@@ -74,8 +72,6 @@ export interface RenderFrame {
   readonly messageStyle?: TextStyle;
   /** Set when the screen's style is the built-in 기본 band; absent draws `messageStyle` as text. */
   readonly messageBand?: MessageBand;
-  /** The 전환 times of 환경설정; absent keeps the default times. */
-  readonly transitionTimes?: TransitionTimes;
   readonly stageMessage?: string | null;
   /** What `{timer:<id>}` tokens in 소품 text read; absent reads as no 타이머. */
   readonly timers?: RenderTimers;

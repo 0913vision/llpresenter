@@ -1,15 +1,17 @@
 import {DEFAULT_TEXT_STYLE, type TextStyle} from '@core/themes/textStyle';
 import {SlideLayerView} from './slideLayer';
 
+const FADE_IN_MS = 200;
+
 /** The style of overlay text with no style of its own (the 무대 메시지; 소품 text supplies its stored style). */
 export const DEFAULT_OVERLAY_TEXT_STYLE: TextStyle = DEFAULT_TEXT_STYLE;
 
-/** Reuses two text pages; even multiline text occupies one row per page. */
+/** Overlay text fades in; even multiline text occupies one row. */
 export class OverlayTextView {
   private readonly view: SlideLayerView;
   private text: string | null = null;
 
-  constructor(parent: HTMLElement) {
+  constructor(private readonly parent: HTMLElement) {
     this.view = new SlideLayerView(parent, DEFAULT_OVERLAY_TEXT_STYLE);
   }
 
@@ -30,6 +32,9 @@ export class OverlayTextView {
             lines: [text],
           },
     );
+    if (text !== null && typeof this.parent.animate === 'function') {
+      this.parent.animate([{opacity: 0}, {}], FADE_IN_MS);
+    }
   }
 
   /**

@@ -1,8 +1,6 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import type {LiveState} from '@core/live/state';
 import type {MessageStyle} from '@core/schema/messages';
-import {slideTransitionFor, transitionTimes} from '@core/output/transitions';
-import type {SlideLayer} from '@core/live/state';
 import {
   defaultPreferences,
   withPreferenceDefaults,
@@ -39,12 +37,6 @@ export class ScreenFrames {
   private timers: readonly Timer[] = [];
   private messageStyles: readonly MessageStyle[] | undefined;
   private preferences = defaultPreferences;
-  private previousSlide: SlideLayer | null = null;
-  private previousItemId: string | null = null;
-  private effect: import('@core/schema/slideTransition').SlideTransition = {
-    kind: 'none',
-    sec: 0.5,
-  };
   private readonly stops: ReadonlyArray<() => void>;
   private readonly timerClock: MainTimerClock;
 
@@ -149,17 +141,6 @@ export class ScreenFrames {
     const {screen} = this;
     if (screen === undefined) return undefined;
     const slide = state?.layers.slide ?? null;
-    const itemId = slide?.itemId ?? state?.themeItem?.id ?? null;
-    if (
-      itemId !== this.previousItemId ||
-      slide?.position !== this.previousSlide?.position
-    ) {
-      this.effect = slideTransitionFor(
-        slide ?? (itemId === null ? null : {itemId}),
-      );
-    }
-    this.previousSlide = slide;
-    this.previousItemId = itemId;
     const output = state?.themeOutput;
     const composition = output?.screens[screen.id];
     if (output === undefined || composition === undefined) return undefined;
@@ -196,10 +177,6 @@ export class ScreenFrames {
           screen,
         ),
     );
-    const effect =
-      screen.kind === 'audience'
-        ? this.effect
-        : {kind: 'none' as const, sec: this.effect.sec};
     return {
       stageLyricLabelPosition: this.preferences.output.stageLyricLabelPosition,
       theme,
@@ -226,8 +203,6 @@ export class ScreenFrames {
         ? {}
         : {stageTimerId: state.stageTimerId}),
       screen,
-      transitionTimes: transitionTimes(effect),
-      slideTransition: effect,
       messageStyle,
       ...(band === undefined ? {} : {messageBand: band}),
       ...(state?.clearEffects === undefined

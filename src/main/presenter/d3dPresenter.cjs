@@ -1,13 +1,16 @@
 const {Buffer} = require('node:buffer');
 const {performance} = require('node:perf_hooks');
 const k = require('koffi');
+const {createTransitionClock} = require('./transitionClock.cjs');
 
 // NOTE(0913vision): Chromium paces every window by the primary display's
 // vblank on Windows, so an output on a monitor with another refresh rate
 // shows its frames unevenly. This window presents through its own flip swap
 // chain, which DXGI paces by the vblank of the monitor it is on, the way
 // PowerPoint's slide show does. Slide transitions are blended here, one step
-// per vblank, between the picture that was shown and the live page.
+// per vblank, between the slide that was shown and the live page. A new slide
+// ends a running transition at once: the slide it was going to is shown whole,
+// and the new slide's own transition starts from there.
 
 const user32 = k.load('user32.dll');
 const kernel32 = k.load('kernel32.dll');
@@ -271,7 +274,7 @@ const SHADER = [
   '  if (mode < 1.5) {',
   // NOTE(0913vision): Wipe dir 0 is left (new from the right), 1 right, 2 up (new from the bottom), 3 down.
   '    float s = dir < 0.5 ? uv.x : dir < 1.5 ? 1 - uv.x : dir < 2.5 ? uv.y : 1 - uv.y;',
-  '    float t = saturate((s - (0.915 - 2.02 * progress)) / 0.97);',
+  '    float t = saturate((s - (1 - 1.97 * progress)) / 0.97);',
   '    return lerp(shown, next, t * t * (3 - 2 * t)); }',
   '  if (mode < 2.5) return lerp(shown, next, progress);',
   // NOTE(0913vision): Push moves the shown picture out and the new one in behind it.
@@ -281,6 +284,8 @@ const SHADER = [
 ].join('\n');
 
 const MODES = {cut: 0, wipe: 1, dissolve: 2, push: 3};
+/** How long a transition waits for the page to paint the new slide. */
+const FIRST_FRAME_WAIT_MS = 200;
 const DIRECTIONS = {left: 0, right: 1, up: 2, down: 3};
 
 let classRegistered = false;
@@ -606,13 +611,7 @@ function createPresenter({x, y, width, height, hz, topmost}) {
     release(t.texture);
   };
   let live = null;
-  // NOTE(0913vision): Two pictures of what was shown, so a transition that
-  // starts during another one can draw the current blend from one into the other.
-  let held = texture(
-    DXGI_FORMAT_B8G8R8A8_UNORM,
-    D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET,
-  );
-  let spare = texture(
+  const held = texture(
     DXGI_FORMAT_B8G8R8A8_UNORM,
     D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET,
   );
@@ -624,13 +623,14 @@ function createPresenter({x, y, width, height, hz, topmost}) {
   viewport.writeFloatLE(1, 20);
   const params = Buffer.alloc(32);
   const message = Buffer.alloc(48);
-  const refresh = hz > 0 ? hz : 60;
-  let blend = {mode: MODES.cut, dir: 0, frames: 0, step: 0};
+  const clock = createTransitionClock(hz);
+  const cut = {mode: MODES.cut, dir: 0, progress: 1};
+  let blend = cut;
+  let waiting = null;
+  let ended = null;
   let visible = false;
   let hasFrame = false;
   let closed = false;
-  let lastPresent = 0;
-  const intervals = [];
   let mirror = null;
   let mirrorFailure = null;
 
@@ -719,10 +719,8 @@ function createPresenter({x, y, width, height, hz, topmost}) {
     viewport.writeFloatLE(y, 4);
     viewport.writeFloatLE(drawWidth, 8);
     viewport.writeFloatLE(drawHeight, 12);
-    const progress =
-      state.frames > 0 ? Math.min(1, state.step / state.frames) : 1;
-    params.writeFloatLE(progress >= 1 ? MODES.cut : state.mode, 0);
-    params.writeFloatLE(progress, 4);
+    params.writeFloatLE(state.progress >= 1 ? MODES.cut : state.mode, 0);
+    params.writeFloatLE(state.progress, 4);
     params.writeFloatLE(state.dir, 8);
     params.writeFloatLE(drawWidth, 12);
     params.writeFloatLE(drawHeight, 16);
@@ -754,6 +752,12 @@ function createPresenter({x, y, width, height, hz, topmost}) {
     CloseHandle(copying.proc);
     copying = null;
     return true;
+  }
+
+  function begin() {
+    if (waiting === null) return;
+    clock.start(waiting.sec);
+    waiting = null;
   }
 
   // NOTE(0913vision): A preview reads the already-composited back buffer. Its
@@ -950,6 +954,7 @@ function createPresenter({x, y, width, height, hz, topmost}) {
         frameCalls.end(query[0]);
         copying = {shared, handle: handle[0], proc};
         hasFrame = true;
+        begin();
       } catch (error) {
         release(shared);
         if (handle[0]) CloseHandle(handle[0]);
@@ -961,17 +966,18 @@ function createPresenter({x, y, width, height, hz, topmost}) {
     copied() {
       return copyDone();
     },
-    /** Starts a transition from what is shown now to the live picture. */
+    /** Ends a running transition and starts this one from the whole slide. */
     transition({kind, dir, sec}) {
-      draw(spare.target, blend);
-      [held, spare] = [spare, held];
       const mode = MODES[kind] ?? MODES.cut;
-      blend = {
-        mode,
-        dir: DIRECTIONS[dir] ?? 0,
-        frames: mode === MODES.cut ? 0 : Math.max(1, Math.round(sec * refresh)),
-        step: 0,
-      };
+      clock.stop();
+      waiting = null;
+      blend = cut;
+      if (mode === MODES.cut) return;
+      // NOTE(0913vision): The page is about to paint the new slide. Until that
+      // frame is here the shown slide stays, so the new one never jumps in.
+      draw(held.target, cut);
+      blend = {mode, dir: DIRECTIONS[dir] ?? 0, progress: 0};
+      waiting = {sec, since: performance.now()};
     },
     /** Draws and presents one frame; blocks until the monitor takes it. */
     frame() {
@@ -980,8 +986,13 @@ function createPresenter({x, y, width, height, hz, topmost}) {
         DispatchMessageW(message);
       }
       if (!visible || closed) return false;
-      const moving = blend.frames > 0 && blend.step < blend.frames;
-      if (moving) blend.step++;
+      const started = performance.now();
+      if (waiting !== null && started - waiting.since > FIRST_FRAME_WAIT_MS) {
+        begin();
+      }
+      if (blend !== cut && waiting === null) {
+        blend = {...blend, progress: clock.progress(started)};
+      }
       draw(backTarget[0], blend);
       if (mirror !== null && mirror.requested) {
         try {
@@ -996,7 +1007,7 @@ function createPresenter({x, y, width, height, hz, topmost}) {
             frameCalls.clear(mirror.scaled.target, mirror.clear);
             draw(
               mirror.scaled.target,
-              {mode: MODES.cut, dir: 0, frames: 0, step: 0},
+              cut,
               w,
               h,
               (640 - w) / 2,
@@ -1016,9 +1027,11 @@ function createPresenter({x, y, width, height, hz, topmost}) {
         }
       }
       check(frameCalls.present(1, 0), 'Present');
-      const now = performance.now();
-      if (moving && lastPresent !== 0) intervals.push(now - lastPresent);
-      lastPresent = now;
+      clock.presented(performance.now());
+      if (waiting === null && blend !== cut && blend.progress >= 1) {
+        blend = cut;
+        ended = clock.finish();
+      }
       return true;
     },
     show(onTop) {
@@ -1033,6 +1046,7 @@ function createPresenter({x, y, width, height, hz, topmost}) {
         SWP_NOACTIVATE | SWP_SHOWWINDOW,
       );
       ShowWindow(hwnd, SW_SHOWNOACTIVATE);
+      clock.pause();
       visible = true;
       return true;
     },
@@ -1054,12 +1068,14 @@ function createPresenter({x, y, width, height, hz, topmost}) {
     get visible() {
       return visible;
     },
-    /** Present intervals (ms) measured during transitions since the last call. */
-    takeIntervals() {
-      return intervals.splice(0);
+    /** The transition that ended since the last call, or null. */
+    takeEnded() {
+      const value = ended;
+      ended = null;
+      return value;
     },
     get busy() {
-      return blend.frames > 0 && blend.step < blend.frames;
+      return blend !== cut;
     },
     close() {
       if (closed) return;
@@ -1073,7 +1089,6 @@ function createPresenter({x, y, width, height, hz, topmost}) {
       }
       releaseTexture(live);
       releaseTexture(held);
-      releaseTexture(spare);
       releaseTexture(black);
       for (const obj of created.reverse()) release(obj);
       release(device1[0]);

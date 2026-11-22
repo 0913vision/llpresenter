@@ -13,8 +13,6 @@ import {BackgroundLayerView} from './backgroundLayer';
 import {positionFollowingBoxes} from './themeFollow';
 import {ThemeGaps} from './themeGaps';
 import {setPlaybackProblem} from './playbackProblem';
-import {OUTPUT_TRANSITIONS} from './transitions';
-import {SlideAnimation} from './slideAnimation';
 import {THEME_LIMITS} from '@core/themes/elementRules';
 import {themeBackgroundStyle} from './themeBackground';
 import {
@@ -118,18 +116,16 @@ function importedLyricsLayout(
   };
 }
 
-/** Keeps at most two compositions during a whole-screen theme dissolve. */
+/** Keeps the page before this one until this one is completely drawn. */
 export class ThemeCompositionView {
   private readonly root = document.createElement('div');
   private readonly gaps: ThemeGaps;
   private page: ThemePage | null = null;
   private leaving: ThemePage | null = null;
-  private releaseTimer: ReturnType<typeof setTimeout> | null = null;
   private ticker: ReturnType<typeof setInterval> | null = null;
   private clockTicker: ReturnType<typeof setTimeout> | null = null;
   private animation: number | null = null;
   private preparing = false;
-  private readonly slideAnimation: SlideAnimation;
   private content: {
     layers: LiveLayers;
     frame: RenderFrame;
@@ -191,7 +187,6 @@ export class ThemeCompositionView {
     private readonly options: RenderLayerOptions,
     private readonly measureAudienceText = false,
   ) {
-    this.slideAnimation = new SlideAnimation(!options.transparent);
     this.root.className = classes.layer;
     this.root.dataset['layer'] = 'theme';
     this.root.style.zIndex = '1';
@@ -340,12 +335,7 @@ export class ThemeCompositionView {
         })?.mediaId;
     const rebuilt =
       signature !== this.page?.signature ||
-      (slideChanged && backgroundChanged && !this.preparing) ||
-      (slideChanged &&
-        !this.preparing &&
-        frame.transitions !== false &&
-        frame.slideTransition !== undefined &&
-        frame.slideTransition.kind !== 'none');
+      (slideChanged && backgroundChanged && !this.preparing);
     let pendingSlide = false;
     if (rebuilt) this.build(signature, frame, layers);
     else if (this.leaving !== null && this.page !== null) {
@@ -370,7 +360,7 @@ export class ThemeCompositionView {
     if (frame.standby || (frame.transitions === false && this.ready())) {
       this.releaseLeaving();
     } else if ((rebuilt || pendingSlide) && this.leaving !== null) {
-      this.awaitIncoming(frame);
+      this.awaitIncoming();
     }
     const ticks =
       !frame.standby &&
@@ -568,7 +558,7 @@ export class ThemeCompositionView {
     const old = this.page;
     const page = document.createElement('div');
     page.dataset['themePage'] = theme.themeId;
-    page.className = `${classes.layer} ${classes.instant}`;
+    page.className = classes.layer;
     const background = document.createElement('div');
     const override = itemBackgroundOverride(
       frame,
@@ -669,76 +659,20 @@ export class ThemeCompositionView {
       this.leaving = old;
       this.preparing = true;
       page.style.opacity = '0';
-      if (
-        frame.transitions === false ||
-        frame.slideTransition === undefined ||
-        frame.slideTransition.kind === 'none'
-      ) {
-        for (const incoming of elements) {
-          old.elements.forEach(previous =>
-            incoming.retainMedia(previous, layers, frame),
-          );
-        }
+      for (const incoming of elements) {
+        old.elements.forEach(previous =>
+          incoming.retainMedia(previous, layers, frame),
+        );
       }
     }
     this.rescale();
   }
 
-  private awaitIncoming(frame: RenderFrame): void {
-    const page = this.page;
-    if (page === null) return;
+  private awaitIncoming(): void {
     if (this.animation !== null) cancelAnimationFrame(this.animation);
-    const effect =
-      frame.theme?.item?.kind === 'media' ? undefined : frame.slideTransition;
-    const duration =
-      frame.transitions === false
-        ? 0
-        : frame.theme?.item?.kind === 'media'
-          ? (frame.transitionTimes?.backgroundMs ??
-            OUTPUT_TRANSITIONS.backgroundMs)
-          : effect !== undefined
-            ? effect.kind === 'none'
-              ? 0
-              : effect.sec * 1000
-            : (frame.transitionTimes?.slideMs ?? OUTPUT_TRANSITIONS.slideMs);
-    page.root.style.transition =
-      effect !== undefined && effect.kind !== 'none'
-        ? 'none'
-        : `opacity ${duration}ms linear`;
-    // NOTE(0913vision): A newly inserted page needs its zero-opacity style
-    // committed before rAF; otherwise Chromium paints its first frame opaque.
-    getComputedStyle(page.root).getPropertyValue('opacity');
     const check = (): void => {
-      this.animation = null;
-      if (!this.ready()) {
-        this.animation = requestAnimationFrame(check);
-        return;
-      }
-      this.preparing = false;
-      page.root.style.opacity = '1';
-      if (effect !== undefined && this.leaving !== null) {
-        this.slideAnimation.play(
-          this.leaving.root,
-          page.root,
-          frame.transitions === false
-            ? {kind: 'none', sec: effect.sec}
-            : effect,
-        );
-      } else if (this.options.transparent && this.leaving !== null) {
-        this.leaving.root.style.transition = `opacity ${duration}ms linear`;
-        this.leaving.root.style.opacity = '0';
-      }
-      const finished = this.slideAnimation.finished();
-      if (finished === null) {
-        this.releaseTimer = setTimeout(() => this.releaseLeaving(), duration);
-      } else {
-        finished.then(
-          () => {
-            if (this.page === page) this.releaseLeaving();
-          },
-          () => undefined,
-        );
-      }
+      this.animation = this.ready() ? null : requestAnimationFrame(check);
+      if (this.animation === null) this.releaseLeaving();
     };
     this.animation = requestAnimationFrame(check);
   }
@@ -785,7 +719,6 @@ export class ThemeCompositionView {
           content.layers.media?.slidePicture === true
             ? null
             : content.layers.media,
-          content.frame.transitions,
           content.frame.standby,
         );
       }
@@ -871,10 +804,6 @@ export class ThemeCompositionView {
         view.capTextSize(maximum);
       }
     }
-    page.root.classList.toggle(
-      classes.instant,
-      content.frame.standby === true || content.frame.transitions === false,
-    );
   }
 
   rescale(
@@ -969,15 +898,9 @@ export class ThemeCompositionView {
   }
 
   private releaseLeaving(): void {
-    this.slideAnimation.cancel();
-    if (this.page !== null) {
-      this.page.root.style.transition = 'none';
-      this.page.root.style.opacity = '1';
-    }
+    if (this.page !== null) this.page.root.style.opacity = '1';
     if (this.animation !== null) cancelAnimationFrame(this.animation);
     this.animation = null;
-    if (this.releaseTimer !== null) clearTimeout(this.releaseTimer);
-    this.releaseTimer = null;
     if (this.leaving !== null) this.disposePage(this.leaving);
     this.leaving = null;
     this.preparing = false;
@@ -1038,8 +961,6 @@ export class ThemeCompositionView {
     this.ticker = null;
     if (this.clockTicker !== null) clearTimeout(this.clockTicker);
     this.clockTicker = null;
-    if (this.releaseTimer !== null) clearTimeout(this.releaseTimer);
-    this.releaseTimer = null;
     if (this.animation !== null) cancelAnimationFrame(this.animation);
     this.animation = null;
     if (typeof document.fonts !== 'undefined') {

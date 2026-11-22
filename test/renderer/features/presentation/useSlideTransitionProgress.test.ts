@@ -3,6 +3,7 @@ import {afterEach, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import {useLive} from '@renderer/session/live';
 import {useSlideTransitionProgress} from '@renderer/features/presentation/useSlideTransitionProgress';
+import {progressStyle} from '@renderer/ui/transitionProgress';
 
 afterEach(() => {
   vi.useRealTimers();
@@ -22,11 +23,19 @@ it('tracks the full wipe duration, restarts and hides for cuts', () => {
     transitionStartedAt: 10_000,
   };
   useLive.setState({state: {...state, layers: {...state.layers, slide}}});
-  const {result} = renderHook(() => useSlideTransitionProgress());
+  let renders = 0;
+  const {result} = renderHook(() => {
+    renders++;
+    return useSlideTransitionProgress();
+  });
+  const initialRenders = renders;
+  const initial = result.current;
   act(() => {
     vi.advanceTimersByTime(2000);
   });
-  expect(result.current).toBeCloseTo(0.5, 1);
+  expect(result.current).toEqual({startedAt: 10_000, duration: 4000});
+  expect(result.current).toBe(initial);
+  expect(renders).toBe(initialRenders);
   act(() =>
     useLive.setState({
       state: {
@@ -41,11 +50,11 @@ it('tracks the full wipe duration, restarts and hides for cuts', () => {
   act(() => {
     vi.advanceTimersByTime(32);
   });
-  expect(result.current).toBeLessThan(0.02);
+  expect(result.current).toEqual({startedAt: 12_000, duration: 4000});
   act(() => {
     vi.advanceTimersByTime(3900);
   });
-  expect(result.current).toBeGreaterThan(0.97);
+  expect(result.current).toEqual({startedAt: 12_000, duration: 4000});
   act(() => {
     vi.advanceTimersByTime(96);
   });
@@ -62,4 +71,17 @@ it('tracks the full wipe duration, restarts and hides for cuts', () => {
     }),
   );
   expect(result.current).toBeUndefined();
+});
+
+it('starts the bar at the elapsed time when it mounts late', () => {
+  vi.useFakeTimers();
+  vi.setSystemTime(12_000);
+  expect(progressStyle({startedAt: 10_000, duration: 4000})).toEqual({
+    animationDuration: '4000ms',
+    animationDelay: '-2000ms',
+  });
+  expect(progressStyle({startedAt: 12_100, duration: 4000})).toEqual({
+    animationDuration: '4000ms',
+    animationDelay: '100ms',
+  });
 });

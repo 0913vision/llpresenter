@@ -4,8 +4,6 @@ import {fitTextInFrame, fitsLineLimit} from './fitText';
 import {measureTextInk} from './textInk';
 import {classes} from './classes';
 import {TEXT_EFFECTS, type TextStyle} from '@core/themes/textStyle';
-import type {SlideTransition} from '@core/schema/slideTransition';
-import {SlideAnimation, type SlideAnimationFrame} from './slideAnimation';
 import {continuationText} from '@core/bible/split/continuation';
 import {contSizeOf} from '@core/bible/split/layout';
 import {bulletTextStyle, textParagraphs} from './textParagraphs';
@@ -14,9 +12,6 @@ import {resolveTextTracking} from '@core/themes/textTracking';
 import {TextFitCache} from './textFitCache';
 
 const textFits = new WeakMap<Document, TextFitCache>();
-
-/** Initial slide transition duration. */
-export const SLIDE_DISSOLVE_MS = 200;
 
 export const STAGE_NEXT_MIN_SIZE = 48;
 
@@ -122,8 +117,6 @@ const JUSTIFY: Readonly<Record<TextStyle['vAlign'], string>> = {
   middle: 'center',
   bottom: 'flex-end',
 };
-
-type PageIndex = 0 | 1;
 
 function effects(style: TextStyle) {
   return {
@@ -389,19 +382,10 @@ export function measureSlideText(
   };
 }
 
-/** Removes the active page translation from measured bounds. */
-export function unshiftTextBounds(
-  bounds: {top: number; bottom: number},
-  offset: number,
-): {top: number; bottom: number} {
-  return {top: bounds.top - offset, bottom: bounds.bottom - offset};
-}
-
-/** Two pages take turns rendering and transitioning slide text. */
+/** Draws one text box, fitted to its frame. */
 export class SlideLayerView {
   private readonly element = document.createElement('div');
-  private readonly pages: readonly [Page, Page];
-  private front: PageIndex = 0;
+  private readonly page: Page;
   private current: SlideLayer | null = null;
   private scale = 1;
   private maximumSize: number | undefined;
@@ -413,9 +397,6 @@ export class SlideLayerView {
   private balanceWrap = false;
   private fixedLineSpacing = false;
   private stageInlineLabel: string | undefined;
-  private dissolveMs: number = SLIDE_DISSOLVE_MS;
-  private effect: SlideTransition | undefined;
-  private readonly animation = new SlideAnimation();
 
   constructor(
     parent: HTMLElement,
@@ -425,105 +406,65 @@ export class SlideLayerView {
     this.element.className = classes.layer;
     this.element.classList.toggle(classes.shadow, effects(style).shadow.on);
     this.element.classList.toggle(classes.outline, effects(style).outline.on);
-    this.element.style.setProperty(
-      '--slide-dissolve',
-      `${SLIDE_DISSOLVE_MS}ms`,
-    );
-    this.pages = [createPage(style), createPage(style)];
+    this.page = createPage(style);
     this.rescale(1);
-    this.element.append(this.pages[0].element, this.pages[1].element);
+    this.element.append(this.page.element);
     parent.append(this.element);
   }
 
-  /** Shows the 장 with a dissolve, or clears the layer at once for null. */
-  show(slide: SlideLayer | null, transitions = true): void {
-    if (!transitions) this.animation.cancel();
+  /** Shows the text, or clears the box for null. */
+  show(slide: SlideLayer | null): void {
     if (sameSlide(this.current, slide)) return;
     this.current = slide;
+    this.page.element.classList.toggle(classes.shown, slide !== null);
     if (slide === null) {
-      this.clearAtOnce();
+      writeLines(this.page, ['']);
       return;
     }
-    const back: PageIndex = this.front === 0 ? 1 : 0;
-    const next = this.pages[back];
-    writeLines(next, slide.lines, {
+    writeLines(this.page, slide.lines, {
       continued: slide.continued,
       bullets: this.style.bullets,
       biblePart: slide.biblePart,
       lyricFormat: slide.lyricFormat,
     });
-    this.fit(next);
-    this.element.classList.toggle(classes.instant, !transitions);
-    next.element.classList.add(classes.shown);
-    this.pages[this.front].element.classList.remove(classes.shown);
-    if (this.effect !== undefined) {
-      this.animation.play(
-        this.pages[this.front].element,
-        next.element,
-        transitions ? this.effect : {kind: 'none', sec: this.effect.sec},
-      );
-    }
-    this.front = back;
+    this.fit(this.page);
   }
 
-  /** Rewrites the lines on screen in place, without a dissolve; nothing shown stays empty. */
+  /** Rewrites the lines on screen in place; nothing shown stays empty. */
   replaceLines(lines: readonly string[]): void {
     if (this.current === null) return;
     this.current = {...this.current, lines};
-    const front = this.pages[this.front];
-    writeLines(front, lines, {
+    writeLines(this.page, lines, {
       continued: this.current.continued,
       bullets: this.style.bullets,
       biblePart: this.current.biblePart,
       lyricFormat: this.current.lyricFormat,
     });
-    this.fit(front);
+    this.fit(this.page);
   }
 
-  /** Selects the next effect without restarting the animation already running. */
-  setTransition(effect: SlideTransition, frame?: SlideAnimationFrame): void {
-    this.effect = effect;
-    this.animation.setFrame(frame);
-    for (const page of this.pages) {
-      page.element.style.willChange = 'transform, opacity, clip-path';
-    }
-  }
-
-  finishTransition(): void {
-    this.animation.cancel();
-  }
-
-  setDissolveMs(ms: number): void {
-    if (ms === this.dissolveMs) return;
-    this.dissolveMs = ms;
-    this.element.style.setProperty('--slide-dissolve', `${ms}ms`);
-  }
-
-  /** Applies a changed text style in place, without replacing pages or dissolving. */
+  /** Applies a changed text style in place. */
   setStyle(style: TextStyle): void {
     if (STYLE_FIELDS.every(key => this.style[key] === style[key])) return;
     const bulletsChanged = this.style.bullets !== style.bullets;
     this.style = style;
-    this.element.classList.add(classes.instant);
     this.element.classList.toggle(classes.shadow, effects(style).shadow.on);
     this.element.classList.toggle(classes.outline, effects(style).outline.on);
-    for (const page of this.pages) {
-      applyStyle(page, style);
-      if (bulletsChanged) {
-        writeLines(page, page.lines, {
-          continued: page.continued,
-          bullets: style.bullets,
-          biblePart: page.biblePart,
-        });
-      }
+    applyStyle(this.page, style);
+    if (bulletsChanged) {
+      writeLines(this.page, this.page.lines, {
+        continued: this.page.continued,
+        bullets: style.bullets,
+        biblePart: this.page.biblePart,
+      });
     }
     this.rescale(this.scale);
   }
 
-  /** Lays the 장 out again at a new screen scale, without a dissolve. */
+  /** Lays the text out again at a new screen scale. */
   rescale(scale: number): void {
     this.scale = scale;
-    for (const page of this.pages) this.applyTracking(page);
+    this.applyTracking(this.page);
     const {shadow, outline} = effects(this.style);
     const angle = (shadow.angle * Math.PI) / 180;
     const x = Math.round(Math.cos(angle) * shadow.distance * scale * 1e6) / 1e6;
@@ -545,52 +486,35 @@ export class SlideLayerView {
     );
     this.element.style.setProperty('--lyric-shadow-color', shadow.color);
     this.element.style.setProperty('--lyric-outline-color', outline.color);
-    if (this.current !== null) this.fit(this.pages[this.front]);
+    if (this.current !== null) this.fit(this.page);
   }
 
   /** The fitted CSS font size in scaled layout pixels, before any canvas transform. */
   fittedSize(): number | undefined {
     if (this.current === null) return undefined;
-    return Number.parseFloat(this.pages[this.front].block.style.fontSize);
+    return Number.parseFloat(this.page.block.style.fontSize);
   }
 
   /** The actual line boxes produced by the audience's text layout. */
   renderedLines(): readonly string[] | undefined {
     if (this.current === null) return undefined;
-    const page = this.pages[this.front];
+    const page = this.page;
     return Array.from(page.block.children).flatMap(renderedRowLines);
   }
 
   lineBoxBounds(): {top: number; bottom: number} | undefined {
-    if (this.current === null) return undefined;
-    const rect = this.pages[this.front].block.getBoundingClientRect();
-    return unshiftTextBounds(rect, this.transitionOffset());
-  }
-
-  private transitionOffset(): number {
-    const transform = getComputedStyle(
-      this.pages[this.front].element,
-    ).transform;
-    if (!transform || transform === 'none') return 0;
-    const matrix = new DOMMatrixReadOnly(transform);
-    const rect = this.element.getBoundingClientRect();
-    const scale =
-      this.element.clientWidth > 0 ? rect.width / this.element.clientWidth : 1;
-    return matrix.m42 * scale;
+    return this.current === null
+      ? undefined
+      : this.page.block.getBoundingClientRect();
   }
 
   inkBounds(): {top: number; bottom: number} | undefined {
-    if (this.current === null) return undefined;
-    const block = this.pages[this.front].block;
-    const bounds = measureTextInk(block);
-    if (bounds === undefined) return undefined;
-    const offset = this.transitionOffset();
-    return unshiftTextBounds(bounds, offset);
+    return this.current === null ? undefined : measureTextInk(this.page.block);
   }
 
   capSize(maximum: number | undefined): void {
     this.maximumSize = maximum === undefined ? undefined : maximum / this.scale;
-    if (this.current !== null) this.fit(this.pages[this.front]);
+    if (this.current !== null) this.fit(this.page);
   }
 
   /** Fit toward this size even when the saved style sets a smaller default. */
@@ -598,41 +522,41 @@ export class SlideLayerView {
     const size = target === undefined ? undefined : target / this.scale;
     if (size === this.targetSize) return;
     this.targetSize = size;
-    if (this.current !== null) this.fit(this.pages[this.front]);
+    if (this.current !== null) this.fit(this.page);
   }
 
   /** Keep source lines intact unless a song would become too small. */
   setLineMode(mode: 'normal' | 'song' | 'lyrics' | 'bar'): void {
     if (mode === this.lineMode) return;
     this.lineMode = mode;
-    if (this.current !== null) this.fit(this.pages[this.front]);
+    if (this.current !== null) this.fit(this.page);
   }
 
   setEllipsis(enabled: boolean): void {
     if (enabled === this.ellipsis) return;
     this.ellipsis = enabled;
-    if (this.current !== null) this.fit(this.pages[this.front]);
+    if (this.current !== null) this.fit(this.page);
   }
 
   /** Balance each authored lyric line if it wraps. */
   setBalanceWrap(balance: boolean): void {
     if (this.balanceWrap === balance) return;
     this.balanceWrap = balance;
-    if (this.current !== null) this.fit(this.pages[this.front]);
+    if (this.current !== null) this.fit(this.page);
   }
 
   /** Keep the lyric line pitch independent of width-driven font fitting. */
   setFixedLineSpacing(fixed: boolean): void {
     if (this.fixedLineSpacing === fixed) return;
     this.fixedLineSpacing = fixed;
-    if (this.current !== null) this.fit(this.pages[this.front]);
+    if (this.current !== null) this.fit(this.page);
   }
 
   /** Fits lyrics first, then places an optional stage label without resizing them. */
   setStageInlineLabel(label: string | undefined): void {
     if (this.stageInlineLabel === label) return;
     this.stageInlineLabel = label;
-    if (this.current !== null) this.fit(this.pages[this.front]);
+    if (this.current !== null) this.fit(this.page);
   }
 
   setFitLines(limit: number | undefined): void {
@@ -642,22 +566,11 @@ export class SlideLayerView {
   setMinimumSize(minimum: number | undefined): void {
     if (this.minimumSize === minimum) return;
     this.minimumSize = minimum;
-    if (this.current !== null) this.fit(this.pages[this.front]);
+    if (this.current !== null) this.fit(this.page);
   }
 
   dispose(): void {
-    this.animation.cancel();
     this.element.remove();
-  }
-
-  private clearAtOnce(): void {
-    this.animation.cancel();
-    this.element.classList.add(classes.instant);
-    for (const page of this.pages) {
-      if (this.effect !== undefined) page.element.style.opacity = '0';
-      page.element.classList.remove(classes.shown);
-      writeLines(page, ['']);
-    }
   }
 
   private applyTracking(page: Page): void {

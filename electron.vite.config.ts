@@ -52,7 +52,11 @@ export default defineConfig({
           }
           const presenter = resolve(mainOutputDir, 'presenter');
           mkdirSync(presenter, {recursive: true});
-          for (const file of ['presenter-utility.cjs', 'd3dPresenter.cjs']) {
+          for (const file of [
+            'presenter-utility.cjs',
+            'd3dPresenter.cjs',
+            'transitionClock.cjs',
+          ]) {
             copyFileSync(
               resolve('src/main/presenter', file),
               resolve(presenter, file),

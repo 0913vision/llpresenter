@@ -1,6 +1,6 @@
 import type {MessageBand} from '@core/screens/messageStyle';
 import {classes} from './classes';
-import {fontFamilyFor, SLIDE_DISSOLVE_MS} from './slideLayer';
+import {fontFamilyFor} from './slideLayer';
 
 /**
  * The built-in 기본 메시지 style: a full-width band at the top edge with the
@@ -19,10 +19,6 @@ export class MessageBandView {
   ) {
     this.element.className = classes.band;
     this.text.className = classes.bandText;
-    this.element.style.setProperty(
-      '--slide-dissolve',
-      `${SLIDE_DISSOLVE_MS}ms`,
-    );
     this.setBackground(band.background);
     this.element.style.color = band.color;
     this.element.style.fontFamily = fontFamilyFor(band.font);

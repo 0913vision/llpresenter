@@ -16,10 +16,6 @@
   transform: var(--picture-transform, none);
 }
 
-.hidden {
-  opacity: 0;
-}
-
 .video,
 .image {
   position: absolute;
@@ -42,24 +38,11 @@
   object-fit: contain;
 }
 
-.dissolving {
-  transition: opacity var(--background-dissolve) linear;
-}
-
 .page {
   position: absolute;
   display: flex;
   flex-direction: column;
   opacity: 0;
-  transition: opacity var(--slide-dissolve) linear;
-}
-
-.instant .page {
-  transition: none;
-}
-
-.instant .dissolving {
-  transition: none;
 }
 
 .shown {
@@ -127,7 +110,7 @@
   box-sizing: border-box;
   text-align: center;
   opacity: 0;
-  transition: opacity var(--slide-dissolve) linear;
+  transition: opacity 0.2s linear;
 }
 
 .band.shown {

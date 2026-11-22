@@ -963,13 +963,6 @@ export class ThemeElementView {
         onError: this.reportMediaError,
       });
     }
-    if (
-      this.media !== null &&
-      frame.transitionTimes !== undefined &&
-      this.element.kind !== 'overlay'
-    ) {
-      this.media.setDissolveMs(frame.transitionTimes.backgroundMs);
-    }
     this.mediaId = media?.mediaId ?? null;
     if (
       this.element.kind === 'overlay' &&
@@ -977,7 +970,7 @@ export class ThemeElementView {
       this.mediaStartedAt !== null &&
       this.mediaStartedAt !== media.startedAt
     ) {
-      this.media?.show(null, false);
+      this.media?.show(null);
     }
     this.mediaStartedAt = media?.startedAt ?? null;
     const corrected =
@@ -998,12 +991,12 @@ export class ThemeElementView {
       this.media?.hold();
     } else {
       try {
-        this.media?.show(corrected, frame.transitions, frame.standby);
+        this.media?.show(corrected, frame.standby);
         setPlaybackProblem(this.box, 'media-missing', false);
       } catch {
         setPlaybackProblem(this.box, 'media-missing', true);
         if (this.mediaId !== null) this.gaps.missing('media', this.mediaId);
-        this.media?.show(null, false);
+        this.media?.show(null);
       }
     }
   }
@@ -1069,22 +1062,11 @@ export class ThemeElementView {
       };
     }
     this.text.setStyle(style);
-    if (frame.transitions === false || frame.standby) {
-      this.text.finishTransition();
-    }
-    if (
-      frame.transitionTimes !== undefined &&
-      SLIDE_ELEMENT_KINDS.includes(this.element.kind)
-    ) {
-      this.text.setDissolveMs(frame.transitionTimes.slideMs);
-      if (frame.slideTransition !== undefined) {
-        this.text.setTransition(frame.slideTransition, this.element.frame);
-        this.box.style.overflow =
-          frame.slideTransition.kind === 'push' ||
-          (frame.screen?.kind === 'stage' && this.element.kind === 'nextText')
-            ? 'visible'
-            : 'hidden';
-      }
+    if (SLIDE_ELEMENT_KINDS.includes(this.element.kind)) {
+      this.box.style.overflow =
+        frame.screen?.kind === 'stage' && this.element.kind === 'nextText'
+          ? 'visible'
+          : 'hidden';
     }
     const slideKey =
       SLIDE_ELEMENT_KINDS.includes(this.element.kind) &&
@@ -1119,8 +1101,6 @@ export class ThemeElementView {
               ...(lyricFormat === undefined ? {} : {lyricFormat}),
               ...(biblePart === undefined ? {} : {biblePart}),
             },
-        frame.transitions !== false &&
-          (frame.screen === undefined || frame.screen.kind === 'audience'),
       );
     }
     this.shownText = text;

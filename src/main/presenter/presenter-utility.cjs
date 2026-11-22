@@ -89,14 +89,8 @@ function tick() {
       post({type: 'copied'});
       show();
     }
-    if (wasBusy && !presenter.busy) {
-      const intervals = presenter.takeIntervals();
-      const late = intervals.filter(value => value > 25).length;
-      const mean =
-        intervals.reduce((sum, value) => sum + value, 0) /
-        Math.max(1, intervals.length);
-      post({type: 'transitioned', frames: intervals.length, late, mean});
-    }
+    const ended = presenter.takeEnded();
+    if (ended !== null) post({type: 'transitioned', ...ended});
   } catch (error) {
     fail(error);
     return;

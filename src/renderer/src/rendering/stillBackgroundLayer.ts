@@ -4,7 +4,6 @@ import {loadBackgroundImage} from './backgroundImage';
 import type {BackgroundLayerOptions} from './backgroundLayer';
 import type {PreviewMediaSource} from './previewMedia';
 import {classes} from './classes';
-import {OUTPUT_TRANSITIONS} from './transitions';
 
 /** A control preview owns only cached pictures, never a media element. */
 export class StillBackgroundLayerView {
@@ -22,8 +21,6 @@ export class StillBackgroundLayerView {
   private media: MediaLayer | null = null;
   private generation = 0;
   private pending = false;
-  private dissolveMs: number = OUTPUT_TRANSITIONS.backgroundMs;
-  private finish: ReturnType<typeof setTimeout> | null = null;
   private onError: BackgroundLayerOptions['onError'];
   private readonly url: BackgroundLayerOptions['mediaUrl'];
   private readonly previewMedia: PreviewMediaSource | undefined;
@@ -46,11 +43,7 @@ export class StillBackgroundLayerView {
     this.onError = onError;
   }
 
-  setDissolveMs(ms: number): void {
-    this.dissolveMs = ms;
-  }
-
-  show(media: MediaLayer | null, transitions = true): void {
+  show(media: MediaLayer | null): void {
     this.media = media;
     for (const image of this.images) {
       image.style.objectFit = mediaObjectFit(media?.properties?.fit ?? 'fill');
@@ -58,10 +51,8 @@ export class StillBackgroundLayerView {
     if ((media?.mediaId ?? null) === this.current) return;
     this.current = media?.mediaId ?? null;
     const generation = ++this.generation;
-    this.cancelFinish();
     const to = this.front === 0 ? 1 : 0;
     this.clear(to);
-    this.images[this.front].classList.remove(classes.dissolving);
     if (media === null) {
       this.clear(this.front);
       this.pending = false;
@@ -96,20 +87,8 @@ export class StillBackgroundLayerView {
               this.front = to;
               image.style.zIndex = '1';
               this.images[outgoing].style.zIndex = '0';
-              const dissolve = transitions && this.dissolveMs > 0;
-              this.element.style.setProperty(
-                '--background-dissolve',
-                `${this.dissolveMs}ms`,
-              );
-              image.classList.toggle(classes.dissolving, dissolve);
-              getComputedStyle(image).getPropertyValue('opacity');
               image.classList.add(classes.shown);
-              if (dissolve) {
-                this.finish = setTimeout(() => {
-                  this.finish = null;
-                  this.clear(outgoing);
-                }, this.dissolveMs);
-              } else this.clear(outgoing);
+              this.clear(outgoing);
             },
             () => {
               if (image.getAttribute('src') === src) fail();
@@ -145,7 +124,6 @@ export class StillBackgroundLayerView {
       const snapshot = image.cloneNode();
       if (!(snapshot instanceof HTMLImageElement)) return false;
       snapshot.dataset['mediaSnapshot'] = '';
-      snapshot.classList.remove(classes.dissolving);
       const outgoing = this.element.parentElement;
       outgoing?.querySelector('[data-media-snapshot]')?.remove();
       outgoing?.append(snapshot);
@@ -156,21 +134,15 @@ export class StillBackgroundLayerView {
 
   dispose(): void {
     this.generation++;
-    this.cancelFinish();
     this.clear(0);
     this.clear(1);
     this.element.remove();
-  }
-
-  private cancelFinish(): void {
-    if (this.finish !== null) clearTimeout(this.finish);
-    this.finish = null;
   }
 
   private clear(index: 0 | 1): void {
     this.stops[index]?.();
     this.stops[index] = null;
     this.images[index].removeAttribute('src');
-    this.images[index].classList.remove(classes.shown, classes.dissolving);
+    this.images[index].classList.remove(classes.shown);
   }
 }
