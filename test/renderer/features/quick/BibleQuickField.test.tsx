@@ -124,6 +124,47 @@ describe('BibleQuickField', () => {
     expect(screen.queryByText('AI 켜짐')).toBeNull();
   });
 
+  it('starts a typed passage at its first verse, although another one of it is live', async () => {
+    const fixture = panelApi();
+    window.llp = fixture.api;
+    const before = openBiblePassage(await passage('요한복음 3:16-18'));
+    const live = outputSlideOf({itemId: before.id, index: 2});
+    if (live === null) throw Error('Missing live verse');
+    const state = emptyLiveState();
+    useLive.setState({
+      state: {...state, layers: {...state.layers, slide: live}},
+    });
+    render(
+      <>
+        <BibleQuickField api={fixture.api} />
+        <SlideGrid columns={4} scalePercent={100} />
+      </>,
+    );
+    fireEvent.change(await book(), {target: {value: '요'}});
+    for (const [label, value] of [
+      ['장', '3'],
+      ['시작절', '17'],
+      ['끝절', '20'],
+    ] as const) {
+      fireEvent.change(screen.getByRole('textbox', {name: label}), {
+        target: {value},
+      });
+    }
+    await waitFor(() => expect(currentRef()).toBe('요한복음 3:17-20'));
+    await waitFor(() => expect(useShow.getState().selectedTile).toBe(1));
+    fireEvent.keyDown(screen.getByRole('textbox', {name: '끝절'}), {
+      key: 'Enter',
+    });
+    await waitFor(() =>
+      expect(
+        lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0]),
+      ).toMatchObject({
+        type: 'slide.show',
+        slide: {position: 0, verse: {verse: 17}},
+      }),
+    );
+  });
+
   it('selects a finder recent with arrows while keeping the book caret', async () => {
     const fixture = panelApi();
     window.llp = fixture.api;

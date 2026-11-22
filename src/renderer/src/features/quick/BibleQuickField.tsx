@@ -11,7 +11,8 @@ import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useEffect, useLayoutEffect, useState, type JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
-import {useShow} from '@renderer/session/show';
+import type {BibleSource} from '@renderer/session/bibleSource';
+import {selectTile, useShow} from '@renderer/session/show';
 import {useLive} from '@renderer/session/live';
 import {useCommittedShownItem} from '@renderer/session/shownItem';
 import {bibleSourceFor, isBibleSource} from '@renderer/session/showLibrary';
@@ -28,6 +29,22 @@ import {openBiblePassage, showBiblePassage} from '../bible/actions';
 import {focusSlideGrid} from '../presentation/focusSlideGrid';
 import {PassageDialog} from '../bible/PassageDialog';
 import {useBibleDisplayDefaults} from '../bible/useBibleDisplayDefaults';
+
+/** The tile of a source that the entered passage starts with. */
+function firstVerseOf(
+  {tiles}: BibleSource,
+  {verses}: BibleLookupPassage,
+): number {
+  const [first] = verses;
+  return Math.max(
+    0,
+    tiles.findIndex(
+      ({slide}) =>
+        slide.verse?.chapter === first?.chapter &&
+        slide.verse?.verse === first?.verse,
+    ),
+  );
+}
 
 /** The quick-panel mount; previewing never writes output or recent history. */
 export function BibleQuickField({
@@ -144,6 +161,14 @@ export function BibleQuickField({
       transition: QUICK_BIBLE_TRANSITION,
     };
     beginQuickPassage();
+    // NOTE(0913vision): The grid selects the live verse in a passage that has
+    // it too; a passage that is not live starts at its first verse.
+    if (
+      prepared !== null &&
+      prepared.id !== useLive.getState().state?.layers.slide?.itemId
+    ) {
+      selectTile(firstVerseOf(prepared, passage));
+    }
     showBiblePassage(target, options);
     setOverlayOpen(false);
     finishQuickPassage();
