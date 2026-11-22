@@ -37,6 +37,7 @@ export function PassageDialog({
   onKeyDownCapture,
   initialRef,
   children,
+  name = '성경 구절',
   disabled = false,
   preparation = false,
   onSubmitIntent,
@@ -48,6 +49,7 @@ export function PassageDialog({
   readonly action: string;
   readonly initialRef?: string | undefined;
   readonly children?: ReactNode;
+  readonly name?: string;
   readonly disabled?: boolean;
   readonly preparation?: boolean;
   readonly onSubmitIntent?: (() => void) | undefined;
@@ -211,7 +213,7 @@ export function PassageDialog({
         className={styles.dialog}
         role="dialog"
         aria-modal="true"
-        aria-label={'성경 구절'}
+        aria-label={name}
         onKeyDown={keys}
         onKeyDownCapture={capture}
         onCompositionStart={() => setHighlight(-1)}
@@ -269,7 +271,7 @@ export function PassageDialog({
         <footer className={styles.footer}>
           <span className={styles.title}>
             <Icon name="book" size={16} />
-            {'성경 구절'}
+            {name}
           </span>
           {preparation ? (
             <>

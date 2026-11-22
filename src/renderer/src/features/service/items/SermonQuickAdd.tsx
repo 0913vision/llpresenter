@@ -25,6 +25,7 @@ export function SermonQuickAdd({
   return (
     <BiblePassageDialog
       api={window.llp.bible}
+      name="설교"
       translation={defaults?.translation}
       disabled={title.trim() === '' || defaults === null}
       onClose={onClose}

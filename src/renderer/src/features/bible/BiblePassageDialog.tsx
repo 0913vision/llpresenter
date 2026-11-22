@@ -22,6 +22,7 @@ export function BiblePassageDialog({
   onClose,
   initialRef,
   children,
+  name,
   disabled = false,
   action = '추가',
   onReferenceEdit,
@@ -33,6 +34,7 @@ export function BiblePassageDialog({
   readonly onClose: () => void;
   readonly initialRef?: string | undefined;
   readonly children?: ReactNode;
+  readonly name?: string;
   readonly disabled?: boolean;
   readonly action?: string;
   readonly onReferenceEdit?: (() => void) | undefined;
@@ -85,6 +87,7 @@ export function BiblePassageDialog({
       translations={withLiveBible(document?.value.translations ?? [])}
       recents={document?.value.recents ?? []}
       action={action}
+      {...(name === undefined ? {} : {name})}
       initialRef={initialRef}
       disabled={disabled}
       onClose={() => {
