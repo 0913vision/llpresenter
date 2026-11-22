@@ -21,6 +21,41 @@ Showing or hiding layers, with one 배경 layer for every screen, cannot give
 ProPresenter's Looks turn layers on and off per screen (S4 pp. 37 to 38), so
 they have the same limit. A 테마 sets the elements of each screen itself.
 
+## The model
+
+This section is the rule. Where a later section still describes a 테마 of an
+item, an element that takes its content from a kind, or a clock, timer, or stage
+message inside a 테마, this section replaces it.
+
+- **A 슬라이드 has a 테마.** An item has no 테마 and no background. One item can
+  hold 슬라이드 of different 테마: a 설교 has 설교 제목, 말씀 본문, and 설교
+  제목 슬라이드, and a song has 찬양 제목 and 찬양 가사 슬라이드. A 슬라이드 may
+  also have its own background; otherwise it shows the background of its 테마.
+- **A 테마 has named text boxes.** A named box is a placeholder: the 슬라이드
+  holds its text, and 준비 edits every named box and nothing else of the 테마.
+  Text without a name is fixed and changes only in the 테마 editor. A box can
+  have a default, such as the address of a passage; it shows while the 슬라이드
+  has no text of its own for that box.
+- **Columns.** The list view of the editor has a column for each named box. The
+  operator switches columns on and off there. The 테마 sets only which columns
+  are on at first: 말씀 본문 starts with 본문 on and 주소 off. The property
+  panel always shows every box. The grid edits nothing.
+- **Next text.** Each 테마 says what the 슬라이드 before it shows as the next
+  text on 무대, as a phrase with box names: `{본문}` for 말씀 본문,
+  `다음광고: {제목}` for 광고, nothing for the 대기 화면. A 테마 can hide the
+  next text on the last 슬라이드 of an item, as 말씀 본문 and 설교 제목 do.
+- **Separate 테마.** 찬양 제목, 찬양 가사, 설교 제목, and 말씀 본문 are four
+  테마. A 테마 has a purpose and is offered only for 슬라이드 of that purpose.
+- **Not in a 테마.** The clock, timers, and the stage message show at fixed
+  places on 무대, whatever the 슬라이드.
+- **Files.** A 테마 is one JSON file with the layouts of the 청중, 무대, and
+  방송 screens. Every size, place, and font is in that file. The drawing code
+  reads the file and has no rule for a kind of item. Built-in 테마 are such
+  files too.
+- **Filling.** Importing a song, inserting a passage, or adding a notice only
+  says which box of which 테마 gets which text. Sizes and places of an imported
+  file are never taken over.
+
 ## Concepts
 
 - A 테마 (theme) is a saved preset that sets all three screens at once: 청중
