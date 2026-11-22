@@ -8,10 +8,8 @@ import {SONG_NAME_MAX_LENGTH} from './song';
 
 export const SONG_IMPORT_LIMITS = {
   slides: 5000,
-  lines: 20_000,
   characters: 1_500_000,
   name: SONG_NAME_MAX_LENGTH,
-  labels: 10_000,
 } as const;
 
 export const songImportDraftSchema = v.pipe(

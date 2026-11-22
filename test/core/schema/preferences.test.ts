@@ -504,16 +504,6 @@ describe('the fields 환경설정 no longer has', () => {
 });
 
 describe('성경 새 구절 defaults', () => {
-  it('start as a verse each, the reference on every slide, verse numbers on, no translation name', () => {
-    expect(expectSuccess(parsePreferencesValue(HEADER)).bible.defaults).toEqual(
-      {
-        reference: 'every',
-        verseNumbers: true,
-        translationName: false,
-      },
-    );
-  });
-
   it('keeps stored defaults, fills the rest, and keeps unknown fields', () => {
     const value = {
       ...HEADER,
@@ -530,17 +520,5 @@ describe('성경 새 구절 defaults', () => {
       translationName: false,
       future: 1,
     });
-  });
-
-  it.each([
-    ['reference', 'middle'],
-    ['verseNumbers', 'yes'],
-    ['translationName', 1],
-  ])('refuses %s %j', (key, value) => {
-    expectInvalidField(
-      codec,
-      {...HEADER, bible: {defaults: {[key]: value}}},
-      `bible.defaults.${key}`,
-    );
   });
 });

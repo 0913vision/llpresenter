@@ -1,6 +1,7 @@
+import {shownText} from '@fixtures/core/liveSlide';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {describe, expect, it} from 'vitest';
-import {createMediaId, createMessageId, createThemeId} from '@core/schema/ids';
+import {createMediaId, createMessageId} from '@core/schema/ids';
 import {
   CAPTIONS,
   MAIN,
@@ -47,8 +48,7 @@ function message(id: number, fields: Record<string, unknown> = {}) {
 const LIVE_SLIDE = {
   itemId: SONG_ITEM,
   position: 3,
-  label: 'Recorded label',
-  lines: ['Recorded line'],
+  ...shownText('Recorded line', 4),
 };
 
 describe('recovery plan', () => {
@@ -102,7 +102,12 @@ describe('recovery plan', () => {
     const record = recoveryRecordOf({
       layers: {
         slide: LIVE_SLIDE,
-        media: {mediaId: MEDIA, loop: true, startedAt: SAVED_AT_MS - 5000},
+        media: {
+          mediaId: MEDIA,
+          loop: true,
+          chosen: true,
+          startedAt: SAVED_AT_MS - 5000,
+        },
       },
     });
     expect(planRecovery(record, sources())).toEqual([
@@ -248,46 +253,4 @@ describe('recovery plan', () => {
       'showing',
     ]);
   });
-});
-
-it('does not restore a recorded card after the source card is removed', () => {
-  const card = {
-    name: 'Section',
-    english: 'Section',
-    theme: createThemeId('00000000-0000-4000-8000-000000000111'),
-  };
-  const record = recoveryRecordOf({
-    layers: {
-      slide: {
-        itemId: SONG_ITEM,
-        position: 0,
-        label: 'Section',
-        lines: ['Section'],
-        sectionCard: card,
-      },
-    },
-  });
-  expect(planRecovery(record, sources())).toEqual([]);
-});
-
-it('rejects an over-limit captured Bible sequence length', () => {
-  const card = {
-    name: 'Section',
-    english: 'Section',
-    theme: createThemeId('00000000-0000-4000-8000-000000000111'),
-  };
-  expect(() =>
-    recoveryRecordOf({
-      layers: {
-        slide: {
-          itemId: SONG_ITEM,
-          position: 0,
-          label: 'Section',
-          lines: ['Section'],
-          sectionCard: card,
-          sequenceLength: 10001,
-        },
-      },
-    }),
-  ).toThrow();
 });

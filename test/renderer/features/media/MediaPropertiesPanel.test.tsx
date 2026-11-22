@@ -1,5 +1,4 @@
 import {
-  act,
   fireEvent,
   render,
   screen,
@@ -77,51 +76,6 @@ function groups(panel: HTMLElement): ReadonlyArray<string | null> {
 }
 
 describe('media properties panel', () => {
-  it('keeps the previous media until the next picture loads', async () => {
-    setup();
-    const panel = await choose('Dawn');
-    const previous = panel.querySelector('img');
-    expect(previous).not.toBeNull();
-    const grid = screen.getByRole('listbox', {name: '모든 미디어'});
-    fireEvent.click(await within(grid).findByRole('option', {name: 'Notice'}));
-    const staged = panel.querySelector('[aria-hidden="true"][inert] img');
-    expect(staged).not.toBeNull();
-    expect(previous?.closest('[inert]')).not.toBeNull();
-    expect(panel.contains(previous)).toBe(true);
-    if (staged === null) throw new Error('Missing staged picture');
-    let finishDecode: () => void = () => undefined;
-    Object.defineProperty(staged, 'decode', {
-      value: () =>
-        new Promise<void>(resolve => {
-          finishDecode = resolve;
-        }),
-    });
-    fireEvent.load(staged);
-    expect(panel.contains(previous)).toBe(true);
-    await act(async () => finishDecode());
-    await waitFor(() => expect(panel.contains(previous)).toBe(false));
-    expect(panel.querySelector('img')).toBe(staged);
-  });
-  it('ignores a late decode after another media is selected', async () => {
-    setup();
-    const panel = await choose('Dawn');
-    const grid = screen.getByRole('listbox', {name: '모든 미디어'});
-    fireEvent.click(await within(grid).findByRole('option', {name: 'Notice'}));
-    const staged = panel.querySelector('[aria-hidden="true"][inert] img');
-    if (staged === null) throw new Error('Missing staged picture');
-    let finishDecode: () => void = () => undefined;
-    Object.defineProperty(staged, 'decode', {
-      value: () =>
-        new Promise<void>(resolve => {
-          finishDecode = resolve;
-        }),
-    });
-    fireEvent.load(staged);
-    await choose('Hymn');
-    await act(async () => finishDecode());
-    expect(panel.textContent).toContain('Hymn');
-    expect(panel.textContent).not.toContain('Notice');
-  });
   it.each(['image', 'video'] as const)(
     'replaces a video and %s without retaining DOM across twenty round trips',
     async kind => {

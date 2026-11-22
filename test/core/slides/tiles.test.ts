@@ -30,9 +30,9 @@ describe('slideTiles', () => {
   it('counts the slides of each theme', () => {
     const tiles = slideTiles(
       [
-        slideOf(1, 'title', {제목: '광고'}),
-        slideOf(2, 'notice', {제목: '하나'}),
-        slideOf(3, 'notice', {제목: '둘'}),
+        slideOf(1, 'title', {texts: {제목: '광고'}}),
+        slideOf(2, 'notice', {texts: {제목: '하나'}}),
+        slideOf(3, 'notice', {texts: {제목: '둘'}}),
       ],
       {kind: 'notice', title: '광고'},
     );
@@ -47,9 +47,9 @@ describe('slideTiles', () => {
   it('names the parts of a verse', () => {
     const tiles = slideTiles(
       [
-        slideOf(1, 'scripture', {본문: '가'}, {verse: verseOf(1)}),
-        slideOf(2, 'scripture', {본문: '나'}, {verse: verseOf(1)}),
-        slideOf(3, 'scripture', {본문: '다'}, {verse: verseOf(2)}),
+        slideOf(1, 'scripture', {texts: {본문: '가'}, verse: verseOf(1)}),
+        slideOf(2, 'scripture', {texts: {본문: '나'}, verse: verseOf(1)}),
+        slideOf(3, 'scripture', {texts: {본문: '다'}, verse: verseOf(2)}),
       ],
       {kind: 'bible', title: '창세기 1:1-2', passage: '창세기 1:1-2'},
     );
@@ -66,7 +66,9 @@ describe('the number of a hymn', () => {
     expect(hymnTitle('91장 슬픈 마음', [])).toBe('새찬송가 91장 슬픈 마음');
     expect(
       hymnTitle('슬픈 마음', [
-        slideOf(1, 'songTitle', {제목: '슬픈 마음', 부제: '새찬송가 91장'}),
+        slideOf(1, 'songTitle', {
+          texts: {제목: '슬픈 마음', 부제: '새찬송가 91장'},
+        }),
       ]),
     ).toBe('새찬송가 91장 슬픈 마음');
     expect(hymnTitle('빛의 길', [])).toBe('빛의 길');

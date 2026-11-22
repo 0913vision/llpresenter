@@ -15,14 +15,13 @@ export function slideId(number: number) {
 export function slideOf(
   number: number,
   purpose: SlidePurpose,
-  texts: Slide['texts'] = {},
-  more: Partial<Slide> = {},
+  slide: Partial<Slide> = {},
 ): Slide {
   return {
     id: slideId(number),
     theme: BUILT_IN_THEME_IDS[purpose],
-    texts,
-    ...more,
+    texts: {},
+    ...slide,
   };
 }
 
@@ -33,7 +32,10 @@ export function lyricsSlide(
   more: Partial<Slide> = {},
 ): Slide {
   const lyrics = typeof text === 'string' ? text : text.join('\n');
-  return slideOf(number, 'lyrics', lyrics === '' ? {} : {가사: lyrics}, more);
+  return slideOf(number, 'lyrics', {
+    texts: lyrics === '' ? {} : {가사: lyrics},
+    ...more,
+  });
 }
 
 /** A verse of the first chapter of the Bible. */

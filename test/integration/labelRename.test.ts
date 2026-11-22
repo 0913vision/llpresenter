@@ -1,5 +1,4 @@
-import {lyricsSlide} from '@fixtures/core/slides';
-import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
+import {lyricsSlide, slideOf} from '@fixtures/core/slides';
 import {join, resolve} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {
@@ -72,10 +71,10 @@ function setup({
           future: 'kept',
           slides: [
             {
-              id: fixtureSlideId(1),
-              lines: ['Invented line'],
+              ...lyricsSlide(1, 'Invented line', {
+                label: index === 3 ? 'Other' : 'Before',
+              }),
               future: 'kept',
-              label: index === 3 ? 'Other' : 'Before',
             },
             lyricsSlide(2, ['Another invented line']),
           ],
@@ -145,14 +144,12 @@ function setup({
         ...items,
         {
           id: itemId(82),
-          slides: {
-            form: 'blank',
-            name: 'Slides',
-            slides: [
-              {id: fixtureSlideId(82), text: 'Text', label: 'Before'},
-              {id: fixtureSlideId(83), media: itemId(83), label: 'Before'},
-            ],
-          },
+          kind: 'blank',
+          name: 'Slides',
+          slides: [
+            slideOf(82, 'blank', {texts: {본문: 'Text'}, label: 'Before'}),
+            slideOf(83, 'picture', {label: 'Before'}),
+          ],
         },
       ]
     : items;
@@ -194,7 +191,7 @@ describe('renaming a label in the label list and in every song', () => {
     expect(await content.renameLabel(settings, rename)).toMatchObject({
       ok: true,
     });
-    const expected = {slides: {slides: [{label: 'After'}, {label: 'After'}]}};
+    const expected = {slides: [{label: 'After'}, {label: 'After'}]};
     expect(content.service(SUNDAY)?.service.order[1]).toMatchObject(expected);
     expect(content.template(TEMPLATE)?.template.order[1]).toMatchObject(
       expected,
@@ -405,7 +402,7 @@ describe('renaming a label in the label list and in every song', () => {
           future: 'kept',
           slides: [
             {future: 'kept', label: 'After'},
-            {lines: ['Another invented line']},
+            {texts: {가사: 'Another invented line'}},
           ],
         },
       });

@@ -68,9 +68,7 @@ describe('layoutTheme', () => {
   it('centers a stack of one text where a stack of two is', () => {
     const screen = screenOf('title', 'audience');
     const stack = screen.stacks?.[0];
-    if (stack === undefined || stack.anchor !== 'center') {
-      throw new Error('No stack');
-    }
+    if (stack?.anchor !== 'center') throw new Error('No stack');
     const [id] = stack.texts;
     if (id === undefined) throw new Error('No text');
     const text = layoutTheme(screen, new Map([[id, rows(1)]])).texts.get(id);

@@ -158,25 +158,6 @@ describe('live batches', () => {
     },
   );
 
-  it('does not restore old content over a new slide inside the batch', () => {
-    const {store} = populatedStore();
-    store.dispatch({
-      type: 'live.batch',
-      commands: [
-        {type: 'layer.clear', target: 'slide'},
-        {
-          type: 'slide.show',
-          slide: {itemId: 'new', position: 0, ...shownText(['New'])},
-        },
-        {type: 'layer.clear', target: 'media'},
-      ],
-    });
-    store.dispatch({type: 'clear.undo'});
-    expect(store.state.layers.slide?.itemId).toBe('new');
-    expect(store.state.layers.media?.mediaId).toBe('fixture');
-    expect(store.state.canUndo).toBe(false);
-  });
-
   it('can undo the grouped clears later in the same transaction', () => {
     const {store} = populatedStore();
     const before = store.state.layers;

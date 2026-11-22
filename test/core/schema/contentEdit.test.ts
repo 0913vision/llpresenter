@@ -1,5 +1,4 @@
 import {lyricsSlide} from '@fixtures/core/slides';
-import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
 import {describe, expect, it} from 'vitest';
 import {parseContentEdit, parseEditResult} from '@core/schema/contentEdit';
 
@@ -26,7 +25,15 @@ function service() {
     id: SERVICE_ID,
     name: '주일 예배',
     date: '2026-11-01T11:00',
-    order: [{id: ITEM_ID, song: SONG_ID, slides: song().slides}],
+    order: [
+      {
+        id: ITEM_ID,
+        kind: 'song',
+        name: song().title,
+        song: SONG_ID,
+        slides: song().slides,
+      },
+    ],
   };
 }
 
@@ -69,10 +76,7 @@ describe('parseContentEdit', () => {
         baseRevision: 1,
         song: {
           ...keyed,
-          slides: [
-            ...keyed.slides,
-            {id: fixtureSlideId(2), lines: [], hotKey: 'KeyK'},
-          ],
+          slides: [...keyed.slides, lyricsSlide(2, '', {hotKey: 'KeyK'})],
         },
       }).ok,
     ).toBe(false);

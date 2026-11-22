@@ -5,7 +5,6 @@ import {parseTimers, type Timer} from '@core/schema/timers';
 import type {TimerRuns} from '@core/schema/timerState';
 import type {TimerNow} from '@core/timers/timerClock';
 import {MAIN, overlayUuid, PROP, TEXT_STYLE} from '@fixtures/core/overlays';
-import {classes} from '@renderer/rendering/classes';
 import {OutputRenderer} from '@renderer/rendering/outputRenderer';
 import {MAX_REPORTED_TICK_ERRORS} from '@renderer/rendering/layers/props';
 import {OverlayTextView} from '@renderer/rendering/overlayText';
@@ -106,7 +105,7 @@ function setup() {
     });
   const shown = () =>
     parent.querySelector<HTMLElement>(
-      `[data-layer="prop"] .${classes.page}.${classes.shown}`,
+      '[data-layer="prop"] [data-overlay-text]:not([hidden])',
     );
   return {renderer, render, shown, parent, onError};
 }
@@ -160,7 +159,7 @@ describe('타이머 tokens in 소품 text', () => {
     const blocks = () =>
       [
         ...parent.querySelectorAll<HTMLElement>(
-          `[data-layer="prop"] .${classes.page}.${classes.shown} .${classes.block}`,
+          '[data-layer="prop"] [data-overlay-text]:not([hidden]) > div',
         ),
       ].map(({style, textContent}) => [textContent, style.color]);
     const before = blocks();
@@ -225,7 +224,7 @@ describe('타이머 tokens in 소품 text', () => {
     }
     const texts = [
       ...parent.querySelectorAll(
-        `[data-layer="prop"] .${classes.page}.${classes.shown}`,
+        '[data-layer="prop"] [data-overlay-text]:not([hidden])',
       ),
     ].map(({textContent}) => textContent);
     expect(texts).toEqual(['설교 1:00', '남은 0:20']);

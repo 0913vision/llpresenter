@@ -33,11 +33,17 @@ const service = parseServiceDocument({
     order: [
       {
         id: '00000000-0000-4000-8000-000000000004',
+        kind: 'media',
+        name: '영상',
+        slides: [],
         media: '00000000-0000-4000-8000-000000000005',
         macro: id,
       },
       {
         id: '00000000-0000-4000-8000-000000000006',
+        kind: 'media',
+        name: '영상',
+        slides: [],
         media: '00000000-0000-4000-8000-000000000005',
         macro: id,
       },

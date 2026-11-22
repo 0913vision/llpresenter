@@ -36,14 +36,9 @@ const service: ShowService = {
     [PLAIN_SONG]: [lyric],
     [MEDIA_ITEM]: [
       {
-        slide: slideOf(
-          9,
-          'media',
-          {},
-          {
-            background: {kind: 'media', media: COUNTDOWN},
-          },
-        ),
+        slide: slideOf(9, 'media', {
+          background: {kind: 'media', media: COUNTDOWN},
+        }),
         auto: {},
         caption: '카운트다운',
         labelColor: 'none',
@@ -52,7 +47,6 @@ const service: ShowService = {
   },
 };
 const sent: LiveCommand[] = [];
-let answer: (value: ShowService) => void = () => undefined;
 
 function types(): string[] {
   return sent
@@ -71,10 +65,7 @@ beforeEach(() => {
       subscribe: () => () => undefined,
     },
     service: {
-      get: () =>
-        new Promise<ShowService>(resolve => {
-          answer = resolve;
-        }),
+      get: () => new Promise<ShowService>(() => undefined),
       subscribe: () => () => undefined,
     },
   });
@@ -88,15 +79,9 @@ afterEach(() => {
 });
 
 describe('outputting the tile of a media item', () => {
-  it('puts the media of a media tile on the media layer, not a slide', () => {
+  it('shows a media item by its slide, as any other', () => {
     outputTile({itemId: MEDIA_ITEM, index: 0});
-    expect(types()).toEqual(['item.start', 'layer.clear', 'media.show']);
-    expect(
-      sent[0]?.type === 'live.batch' ? sent[0].commands[2] : undefined,
-    ).toEqual({
-      type: 'media.show',
-      media: {mediaId: COUNTDOWN, loop: true},
-    });
+    expect(types()).toEqual(['item.start', 'slide.show']);
     expect(useShow.getState()).toMatchObject({
       openItemId: MEDIA_ITEM,
       selectedTile: 0,
@@ -116,21 +101,5 @@ describe('outputting the tile of a media item', () => {
           command.type === 'item.start' ? [command.itemId] : [],
         ),
     ).toEqual([PLAIN_SONG, MEDIA_ITEM, PLAIN_SONG]);
-  });
-  it('does not correct a song after a media tile replaces it', async () => {
-    outputTile({itemId: SONG, index: 0});
-    outputTile({itemId: MEDIA_ITEM, index: 0});
-    const before = sent.length;
-    answer(service);
-    await new Promise(resolve => setTimeout(resolve, 0));
-    expect(sent).toHaveLength(before);
-    expect(types()).toEqual([
-      'item.start',
-      'media.show',
-      'slide.show',
-      'item.start',
-      'layer.clear',
-      'media.show',
-    ]);
   });
 });

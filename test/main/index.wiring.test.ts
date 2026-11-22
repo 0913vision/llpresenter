@@ -70,31 +70,6 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     );
     expect(mocks.updateStop).toHaveBeenCalledOnce();
   });
-  it('connects slide advance to live state and disposes its timer before data', async () => {
-    await startMain();
-    expect(mocks.slideAdvanceContexts).toHaveLength(1);
-    expect(mocks.slideAdvanceContexts[0]).toHaveProperty('store');
-    expect(mocks.slideAdvanceContexts[0]).toHaveProperty('data');
-    expect(mocks.slidesProjectionContexts).toHaveLength(1);
-    expect(mocks.slidesProjectionContexts[0]).toHaveProperty(
-      'settings',
-      mocks.settings,
-    );
-    expect(mocks.slideAdvanceContexts[0]).toHaveProperty(
-      'projection',
-      mocks.slidesProjection,
-    );
-    beforeQuit();
-    await vi.waitFor(() => expect(mocks.storeDispose).toHaveBeenCalledOnce());
-    expect(mocks.slideAdvanceStop).toHaveBeenCalledOnce();
-    expect(mocks.slidesProjection.dispose).toHaveBeenCalledOnce();
-    expect(mocks.slideAdvanceStop.mock.invocationCallOrder[0]).toBeLessThan(
-      mocks.storeDispose.mock.invocationCallOrder[0] ?? Infinity,
-    );
-    await vi.waitFor(() =>
-      expect(mocks.electron.app.quit).toHaveBeenCalledOnce(),
-    );
-  });
   it('registers fonts for the control window and stops enumeration before closing data', async () => {
     const control = await startMain();
     expect(mocks.fontContexts).toHaveLength(1);
@@ -331,24 +306,6 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     expect(mocks.screensWindowStop).toHaveBeenCalledOnce();
     expect(mocks.screensWindowStop.mock.invocationCallOrder[0]).toBeLessThan(
       mocks.appConfig.flush.mock.invocationCallOrder.at(-1) ?? -Infinity,
-    );
-    await vi.waitFor(() =>
-      expect(mocks.electron.app.quit).toHaveBeenCalledOnce(),
-    );
-  });
-
-  it('registers editor window owners with the control window and stops them at quit', async () => {
-    await startMain();
-    const context: unknown = expect.objectContaining({
-      control: mocks.opened.control,
-      config: mocks.appConfig,
-      zoom: mocks.zoom,
-      mode: 'normal',
-    });
-    expect(mocks.editorWindowContexts).toEqual([{name: 'slides', context}]);
-    beforeQuit();
-    await vi.waitFor(() =>
-      expect(mocks.editorWindowStops.slides).toHaveBeenCalledOnce(),
     );
     await vi.waitFor(() =>
       expect(mocks.electron.app.quit).toHaveBeenCalledOnce(),

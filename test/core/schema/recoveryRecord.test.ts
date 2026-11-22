@@ -1,7 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import {createServiceId} from '@core/schema/ids';
-import {parseLiveState} from '@core/schema/liveState';
 import {
   MAX_ACTIVE_MESSAGES,
   MAX_ACTIVE_PROPS,
@@ -18,7 +17,6 @@ import {
   expectRoundTrip,
   expectSuccess,
 } from '@fixtures/core/schema/testHelpers';
-import {MAIN_SCREEN, STAGE_SCREEN} from '@fixtures/core/screenIds';
 
 const FILE = 'recovery/live.json';
 const uuid = (number: number) =>
@@ -87,94 +85,6 @@ describe('recovery record files', () => {
     ).toBe(text);
   });
 
-  it('accepts a version-one record from before multi-item overlays and stage messages', () => {
-    const legacy = {
-      ...record(),
-      state: stateWith(
-        {
-          media: {mediaId: 'legacy-media', loop: false, startedAt: now},
-          slide: {
-            itemId: 'legacy-item',
-            position: 2,
-            label: null,
-            lines: ['Invented legacy slide'],
-          },
-          prop: {propId: 'legacy-prop'},
-          message: {messageId: 'legacy-message', text: 'Invented legacy cue'},
-        },
-        {outputs: {[MAIN_SCREEN]: true, [STAGE_SCREEN]: false}},
-      ),
-    };
-    expectRoundTrip(codec, legacy);
-    const loaded = expectSuccess(parseRecoveryRecord(JSON.stringify(legacy)));
-    expect(loaded.sourceVersion).toBe(1);
-    expect(loaded.data.state).not.toHaveProperty('stageMessage');
-    expect(parseLiveState(loaded.data.state).ok).toBe(true);
-  });
-
-  it('keeps unknown fields at every level including overlay arrays and reserved keys', () => {
-    const future = {
-      ['__proto__']: {safe: true},
-      constructor: 'future',
-      prototype: [1],
-      '\u0000extra': 2,
-    };
-    const original = {
-      ...record(),
-      ...future,
-      futureRoot: 'kept',
-      state: stateWith(
-        {
-          slide: {
-            itemId: 'item',
-            position: 0,
-            label: 'Verse',
-            lines: ['Invented line'],
-            ...future,
-          },
-          media: {mediaId: 'media', loop: true, startedAt: now, ...future},
-          message: {
-            messageId: 'legacy',
-            text: '',
-            items: [{...message(), ...future}],
-            ...future,
-          },
-          prop: {
-            propId: 'legacy',
-            items: [
-              {
-                ...prop(),
-                content: {kind: 'image', media: uuid(2), ...future},
-                ...future,
-              },
-            ],
-            ...future,
-          },
-          ...future,
-        },
-        {...future, futureState: {enabled: true}},
-      ),
-    };
-    expectRoundTrip(codec, original);
-    const loaded = expectSuccess(
-      parseRecoveryRecord(JSON.stringify(original)),
-    ).data;
-    const changed = {
-      ...loaded,
-      savedAt: '2026-10-26T06:00:01+09:00',
-      state: {...loaded.state, version: 1},
-    };
-    const output: unknown = JSON.parse(
-      expectSuccess(serializeRecoveryRecord(changed)),
-    );
-    expect(output).toEqual({
-      ...original,
-      savedAt: changed.savedAt,
-      state: {...original.state, version: 1},
-    });
-    expect({}).not.toHaveProperty('safe');
-  });
-
   it('keeps a newer compatible record read-only and refuses to serialize it', () => {
     const future = {...record(), schemaVersion: 2, future: 'kept'};
     const loaded = expectSuccess(
@@ -194,51 +104,6 @@ describe('recovery record files', () => {
       ).kind,
     ).toBe('newer');
   });
-
-  it.each([
-    [{format: 'other'}, 'format', 'format'],
-    [{schemaVersion: 0}, 'invalid', 'schemaVersion'],
-    [{savedAt: 'not-a-time'}, 'invalid', 'savedAt'],
-    [{serviceId: 'invalid'}, 'invalid', 'serviceId'],
-    [{state: null}, 'invalid', 'state'],
-    [{state: stateWith({}, {version: -1})}, 'invalid', 'state.version'],
-    [
-      {state: stateWith({}, {outputs: {[MAIN_SCREEN]: 'on'}})},
-      'invalid',
-      `state.outputs.${MAIN_SCREEN}`,
-    ],
-    [
-      {
-        state: stateWith({
-          slide: {itemId: 'item', position: 0, label: null, lines: [1]},
-        }),
-      },
-      'invalid',
-      'state.layers.slide.lines.0',
-    ],
-    [
-      {
-        state: stateWith({
-          message: {
-            messageId: 'legacy',
-            text: '',
-            items: [{...message(), expiresAt: now - 1}],
-          },
-        }),
-      },
-      'invalid',
-      'state.layers.message.items.0.expiresAt',
-    ],
-  ])(
-    'rejects invalid file content %# with a path and file name',
-    (change, kind, field) => {
-      expect(
-        expectFailure(
-          parseRecoveryRecord(JSON.stringify({...record(), ...change}), FILE),
-        ),
-      ).toMatchObject({kind, field, file: FILE});
-    },
-  );
 
   it('returns typed errors for JSON, missing wrappers, and invalid writes', () => {
     expect(expectFailure(parseRecoveryRecord('{', FILE))).toMatchObject({

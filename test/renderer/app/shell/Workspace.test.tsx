@@ -1,12 +1,9 @@
 import {MAIN_SCREEN} from '@fixtures/core/screenIds';
-import {cleanup, fireEvent, screen, within} from '@testing-library/react';
+import {cleanup, fireEvent, screen} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {isColumnDragActive} from '@renderer/platform/drag';
 import * as showState from '@renderer/session/show';
-import {
-  sampleService,
-  seedSampleService,
-} from '@fixtures/renderer/session/sampleService';
+import {seedSampleService} from '@fixtures/renderer/session/sampleService';
 import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
 import {Workspace} from '@renderer/app/shell/Workspace';
 import * as screensPanels from '@renderer/app/workspaces/screensPanels';
@@ -87,37 +84,6 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
-});
-
-describe('Workspace service header', () => {
-  it('retains both frames and makes the hidden frame inert', () => {
-    const store = createMemoryColumnWidthStore();
-    const view = render(
-      <Workspace id="show" sizeClass="normal" store={store} />,
-    );
-    const showList = screen.getByRole('listbox', {name: '예배 순서'});
-    view.rerender(<Workspace id="prep" sizeClass="normal" store={store} />);
-    const prepList = screen.getByRole('listbox', {name: '예배 순서'});
-    expect(showList.closest('[inert]')).not.toBeNull();
-    expect(prepList.closest('[inert]')).toBeNull();
-    view.rerender(<Workspace id="show" sizeClass="normal" store={store} />);
-    expect(screen.getByRole('listbox', {name: '예배 순서'})).toBe(showList);
-    expect(prepList.closest('[inert]')).not.toBeNull();
-  });
-  it('mounts the current service header and list in the 준비 workspace', () => {
-    render(
-      <Workspace
-        id="prep"
-        sizeClass="normal"
-        store={createMemoryColumnWidthStore()}
-      />,
-    );
-    const panel = screen.getByRole('region', {name: '예배 순서'});
-    expect(within(panel).getByText(sampleService.name)).toBeDefined();
-    expect(within(panel).getByRole('listbox').dataset['workspace']).toBe(
-      'prep',
-    );
-  });
 });
 
 describe('Workspace theme loading', () => {

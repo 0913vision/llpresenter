@@ -19,6 +19,7 @@ it('mirrors changed presenter frames at most ten times per second', () => {
     busy: false,
     frame: vi.fn(),
     copied: () => false,
+    takeEnded: () => null,
     submit: vi.fn(),
     startMirror: vi.fn(),
     stopMirror: vi.fn(),

@@ -75,6 +75,7 @@ describe('a background that left the library', () => {
       type: 'slide.show' as const,
       slide: {itemId: 'item', position: 0, ...shownText([text])},
     });
+    store.dispatch(slide('before'));
     store.dispatch({type: 'media.show', media});
     store.dispatch(slide('first'));
     expect(store.state.layers.media?.mediaId).toBe(IMAGES[0]);
@@ -83,18 +84,19 @@ describe('a background that left the library', () => {
     expect(store.state.layers.media?.mediaId).toBe(IMAGES[0]);
     store.dispatch(slide('second'));
     expect(store.state.layers.media).toBeNull();
-    expect(store.state.layers.slide).toMatchObject({lines: ['second']});
+    expect(store.state.layers.slide).toMatchObject({
+      texts: {가사: 'second'},
+    });
   });
 
   it('keeps a background that is still in the library', () => {
     const {store} = started([0]);
     const first = IMAGES[0];
     if (first === undefined) throw new Error('No id');
+    const slide = {itemId: 'item', position: 0, ...shownText(['first'])};
+    store.dispatch({type: 'slide.show', slide});
     store.dispatch({type: 'media.show', media: {mediaId: first, loop: false}});
-    store.dispatch({
-      type: 'slide.show',
-      slide: {itemId: 'item', position: 0, ...shownText(['first'])},
-    });
+    store.dispatch({type: 'slide.show', slide});
     expect(store.state.layers.media?.mediaId).toBe(IMAGES[0]);
   });
 });

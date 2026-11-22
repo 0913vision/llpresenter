@@ -11,6 +11,16 @@ Object.defineProperty(globalThis, 'ResizeObserver', {
   },
 });
 
+// NOTE(0913vision): jsdom has no fonts.
+Object.defineProperty(document, 'fonts', {
+  configurable: true,
+  value: Object.assign(new EventTarget(), {
+    ready: Promise.resolve(),
+    load: () => Promise.resolve([]),
+    check: () => true,
+  }),
+});
+
 // NOTE(0913vision): jsdom has no image decode; tests can override this default.
 Object.defineProperty(HTMLImageElement.prototype, 'decode', {
   configurable: true,

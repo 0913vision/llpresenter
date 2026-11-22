@@ -34,8 +34,10 @@ function document(service: string, uses: number) {
       name: '예배',
       date: '2026-11-01T11:00',
       order: Array.from({length: uses}, (_, i) => ({
-        slides: [],
         id: serviceId(i + 100),
+        kind: 'song',
+        name: '곡',
+        slides: [],
         song: serviceId(i + 200),
         macro,
       })),

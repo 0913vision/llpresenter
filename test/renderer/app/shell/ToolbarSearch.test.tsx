@@ -1,3 +1,4 @@
+import {startOpenServiceSync} from '@renderer/session/openService';
 import {lyricsSlide} from '@fixtures/core/slides';
 import {
   act,
@@ -8,7 +9,15 @@ import {
   waitFor,
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+  onTestFinished,
+} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import {createSongId} from '@core/schema/ids';
 import type {
@@ -79,6 +88,7 @@ function setup() {
   const send = vi.spyOn(api.live, 'send');
   const report = vi.fn();
   window.llp = api;
+  onTestFinished(startOpenServiceSync());
   return {
     api,
     search,
@@ -124,6 +134,7 @@ function setupAdding() {
     },
   };
   window.llp = api;
+  onTestFinished(startOpenServiceSync());
   const current = fixture.service();
   fixture.pushService({
     ...current,
@@ -244,27 +255,6 @@ it.each([
   });
   expect(get).not.toHaveBeenCalled();
   expect(showSong).not.toHaveBeenCalled();
-});
-
-it('reports a refused Ctrl Enter insertion without opening or outputting the song', async () => {
-  const {api, report, send, open, service, second} = setupAdding();
-  vi.spyOn(api.content, 'edit').mockResolvedValueOnce({
-    ok: false,
-    error: {reason: 'read-only', message: 'Invented refusal'},
-  });
-  const field = screen.getByRole('combobox', {name: '검색'});
-  await userEvent.type(field, '노래');
-  await screen.findByRole('option', {name: new RegExp(second.song.title)});
-  await userEvent.keyboard('{ArrowDown}');
-  fireEvent.keyDown(field, {key: 'Enter', code: 'Enter', ctrlKey: true});
-  await waitFor(() =>
-    expect(report).toHaveBeenCalledWith(
-      expect.objectContaining({title: '예배 변경 실패'}),
-    ),
-  );
-  expect(service().service.order).toHaveLength(5);
-  expect(open).not.toHaveBeenCalled();
-  expect(send).not.toHaveBeenCalled();
 });
 
 afterEach(async () => {

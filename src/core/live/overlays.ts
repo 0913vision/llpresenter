@@ -51,14 +51,19 @@ export function liveOverlay(
   );
 }
 
-/** Whether the sound of the live background is heard: a video item's is. */
-export function backgroundAudible({item, layers}: LiveState): boolean {
+/**
+ * Whether the sound of the live background is heard: a media item's is while a
+ * screen is on, and fades when its media is cleared.
+ */
+export function backgroundAudible({item, layers, outputs}: LiveState): boolean {
+  if (item?.kind !== 'media' || !Object.values(outputs).includes(true)) {
+    return false;
+  }
+  const {media} = layers;
   return (
-    item?.kind === 'media' &&
-    layers.media !== null &&
-    (item.source === 'external'
-      ? layers.media.mediaId === item.id
-      : layers.media.chosen !== true && layers.media.itemId === item.id)
+    media === null ||
+    media.itemId === item.id ||
+    (item.source === 'external' && media.mediaId === item.id)
   );
 }
 

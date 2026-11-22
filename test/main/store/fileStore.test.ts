@@ -134,7 +134,7 @@ describe('loadStore', () => {
       name: '주일 템플릿',
       time: '11:00',
       order: [
-        {id: itemId(1), slot: 'song', title: '찬양', future: {enabled: true}},
+        {id: itemId(1), kind: 'header', name: '찬양', future: {enabled: true}},
       ],
     });
     await writeJson(

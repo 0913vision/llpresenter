@@ -1,5 +1,4 @@
 import {lyricsSlide} from '@fixtures/core/slides';
-import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
 import {
   ask,
   developmentContext,
@@ -20,7 +19,6 @@ import {readdir, readFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';
 import {DATA_FOLDER_NAME} from '@main/store/locations';
-import {settingsCodecs} from '@main/store/settingsCodecs';
 import {
   HYMN_ONE_ID,
   hymnOne,
@@ -48,10 +46,8 @@ describe('registerStore', () => {
         title: `Invented song ${index}`,
         slides: [
           {
-            id: fixtureSlideId(1),
-            lines: ['Invented line'],
+            ...lyricsSlide(1, 'Invented line', {label: 'Before'}),
             future: 'kept',
-            label: 'Before',
           },
         ],
       });
@@ -200,6 +196,8 @@ describe('registerStore', () => {
     const context = await developmentContext();
     await register(mockLog(), context, () => true);
     for (const name of settingsNames) {
+      // NOTE(0913vision): The themes have files only after a change.
+      if (name === 'themes') continue;
       const reply = parseSettingsDocument(
         await ask(settingsEndpoints.get.channel, {name}),
       );
@@ -212,14 +210,10 @@ describe('registerStore', () => {
       );
       const text = await readFile(file, 'utf8');
       const stored: unknown = JSON.parse(text);
-      const themes =
-        name === 'themes' ? settingsCodecs.themes.parse(text, file) : null;
-      if (themes !== null && !themes.ok) throw new Error(themes.error.message);
-      const value = themes?.ok ? themes.value.data : stored;
       if (!reply.ok) throw new Error(reply.error.message);
       expect(reply.value).toMatchObject({
         name,
-        value,
+        value: stored,
         revision: 1,
         access: 'editable',
       });

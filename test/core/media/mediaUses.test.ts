@@ -1,13 +1,10 @@
 import {describe, expect, it} from 'vitest';
 import {countMediaUses, type MediaUseSources} from '@core/media/mediaUses';
 import {createMediaId} from '@core/schema/ids';
-import {parseService} from '@core/schema/service';
 import {parseMediaDocument} from '@core/schema/mediaEdit';
 import {parseMediaUses, parseMediaUsesRequest} from '@core/schema/mediaUses';
 import {themes as sampleThemes} from '@fixtures/core/themeOutput';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
-import {song} from '@fixtures/core/songs/blockFixtures';
-import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {IMAGES, overlaySettings} from '@fixtures/core/overlays';
 
 const uuid = (index: number): string =>
@@ -20,22 +17,6 @@ function fixtureProps(): MediaUseSources['props'] {
   const value = overlaySettings().reader.get('props');
   if (value.name !== 'props') throw new Error('Missing props');
   return value.value;
-}
-
-function service(items: readonly object[]) {
-  return expectSuccess(
-    parseService(
-      JSON.stringify({
-        format: 'llservice',
-        schemaVersion: 1,
-        id: uuid(500),
-        name: '주일',
-        date: '2026-11-01T11:00',
-        order: items,
-      }),
-      'service.llservice',
-    ),
-  ).data;
 }
 
 function mediaList(): MediaUseSources['media'] {
@@ -76,21 +57,6 @@ function sources(change: Partial<MediaUseSources> = {}): MediaUseSources {
 }
 
 describe('the places that use a media item', () => {
-  it('counts slide pictures once per song or service item', () => {
-    const original = song();
-    const slides = original.slides.map(slide => ({...slide, picture: target}));
-    const withPictures = {...original, slides};
-    const usedService = service([
-      {id: uuid(1), song: original.id, slides},
-      {id: uuid(2), song: original.id, slides, background: target},
-    ]);
-    expect(
-      countMediaUses(
-        target,
-        sources({songs: [withPictures], services: [usedService]}),
-      ),
-    ).toMatchObject({songBackgrounds: 1, serviceItems: 2});
-  });
   it('counts playlists and 그래픽 that hold it', () => {
     const uses = countMediaUses(target, sources());
     expect(uses).toMatchObject({
@@ -106,54 +72,6 @@ describe('the places that use a media item', () => {
       themes: 0,
       macros: 0,
     });
-  });
-
-  it('counts song backgrounds, an item background, a media item, and an item overlay', () => {
-    const withBackground = {...song(), background: target};
-    const free = song();
-    const services = [
-      service([
-        {
-          id: uuid(1),
-          kind: 'song',
-          name: '곡',
-          song: free.id,
-          slides: [],
-          background: target,
-        },
-        {id: uuid(2), kind: 'song', name: '곡', song: free.id, slides: []},
-        {id: uuid(3), media: target},
-        {id: uuid(4), media: other},
-        {
-          id: uuid(5),
-          media: other,
-          overlays: [
-            {
-              id: uuid(6),
-              name: '오버레이',
-              from: 1,
-              to: 1,
-              screens: [],
-              content: {media: target, loop: false, sound: false},
-            },
-            {
-              id: uuid(7),
-              name: '글자',
-              from: 2,
-              to: 2,
-              screens: [],
-              content: {text: 'x'},
-            },
-          ],
-        },
-      ]),
-    ];
-    expect(
-      countMediaUses(
-        target,
-        sources({songs: [withBackground, free], services}),
-      ),
-    ).toMatchObject({songBackgrounds: 1, serviceItems: 2, itemOverlays: 1});
   });
 });
 

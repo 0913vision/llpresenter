@@ -18,7 +18,7 @@ const RANDOM_SEED = 20261024;
 const slide = (position: number): SlideLayer => ({
   itemId: 'item-1',
   position,
-  ...shownText(['만복의 근원 하나님', '온 백성 찬송 드리고']),
+  ...shownText(['만복의 근원 하나님', '온 백성 찬송 드리고'], position + 1),
 });
 
 const NEW_CONTENT: readonly LiveCommand[] = [
@@ -68,7 +68,7 @@ function randomCommand(random: () => number): LiveCommand {
 }
 
 describe('applyCommand', () => {
-  it('records and restarts transitions only when the live slide changes', () => {
+  it('starts a transition when the slide changes and ends it when it is shown again', () => {
     const first = applyAt(
       initialHistory(emptyLiveState()),
       {
@@ -86,7 +86,7 @@ describe('applyCommand', () => {
       },
       LATER,
     );
-    expect(same.state.layers.slide?.transitionStartedAt).toBe(NOW);
+    expect(same.state.layers.slide?.transitionStartedAt).toBeUndefined();
     const next = applyAt(
       same,
       {
@@ -98,12 +98,6 @@ describe('applyCommand', () => {
     expect(next.state.layers.slide?.transitionStartedAt).toBe(LATER);
     const cut = applyAt(next, {type: 'slide.show', slide: slide(3)}, LATER);
     expect(cut.state.layers.slide?.transitionStartedAt).toBeUndefined();
-  });
-
-  it('returns the same history when the same slide object is shown again', () => {
-    const shown = slide(1);
-    const once = run([{type: 'slide.show', slide: shown}]);
-    expect(applyCommand(once, {type: 'slide.show', slide: shown})).toBe(once);
   });
 
   it('restores the layers from right before a clear on undo', () => {
@@ -155,8 +149,8 @@ describe('applyCommand', () => {
 
   it('undoes only the last clear, one level deep', () => {
     const cleared = run([
-      {type: 'media.show', media: {mediaId: 'warm-light', loop: true}},
       {type: 'slide.show', slide: slide(2)},
+      {type: 'media.show', media: {mediaId: 'warm-light', loop: true}},
       {type: 'layer.clear', target: 'slide'},
       {type: 'layer.clear', target: 'media'},
     ]);
@@ -212,6 +206,7 @@ describe('applyCommand', () => {
     expect(shown.state.layers.media).toEqual({
       mediaId: 'warm-light',
       loop: true,
+      chosen: true,
       startedAt: NOW,
     });
     const next = applyAt(
@@ -224,8 +219,8 @@ describe('applyCommand', () => {
 
   it('keeps the same background playing when it is shown again', () => {
     const cleared = run([
-      {type: 'media.show', media: {mediaId: 'warm-light', loop: true}},
       {type: 'slide.show', slide: slide(2)},
+      {type: 'media.show', media: {mediaId: 'warm-light', loop: true}},
       {type: 'layer.clear', target: 'slide'},
     ]);
     const again = applyAt(
@@ -242,6 +237,7 @@ describe('applyCommand', () => {
     expect(stopping.state.layers.media).toEqual({
       mediaId: 'warm-light',
       loop: false,
+      chosen: true,
       startedAt: NOW,
     });
   });

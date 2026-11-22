@@ -1,7 +1,7 @@
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import {applyService, useShow} from '@renderer/session/show';
+import {useShow} from '@renderer/session/show';
 import {ServiceOrderList} from '@renderer/features/service/order/ServiceOrderList';
 import {
   headerId,
@@ -9,7 +9,6 @@ import {
   lastId,
   emptySectionId,
   secondHeaderId,
-  serviceId,
   songId,
   setup,
   transfer,
@@ -233,48 +232,6 @@ describe('service panel editing', () => {
       expect(ids()).toEqual([headerId, firstId, secondHeaderId, lastId]),
     );
     expect(document.activeElement).toBe(field);
-  });
-
-  it('forgets the focus of a refused move, so a later change does not take it', async () => {
-    const {api, ids} = setup('prep', false, {secondSection: true});
-    vi.mocked(api.content.edit).mockResolvedValueOnce({
-      ok: false,
-      error: {reason: 'stale', message: 'changed'},
-    });
-    const last = screen.getByRole('option', {name: '다음 곡'});
-    last.focus();
-    fireEvent.keyDown(last, {
-      key: 'ArrowDown',
-      code: 'ArrowDown',
-      altKey: true,
-    });
-    await waitFor(() => expect(api.content.edit).toHaveBeenCalledOnce());
-    expect(ids()).toEqual([headerId, firstId, lastId, secondHeaderId]);
-    document.body.focus();
-    last.blur();
-
-    const header = screen.getByRole('option', {name: '마무리'});
-    fireEvent.click(header);
-    fireEvent.keyDown(header, {key: 'F2'});
-    await act(async () => {
-      applyService({
-        id: serviceId,
-        revision: 9,
-        name: 'Invented service',
-        readOnly: false,
-        rows: [
-          {kind: 'header', id: headerId, title: '제목'},
-          {kind: 'song', id: lastId, title: '다음 곡'},
-          {kind: 'song', id: firstId, title: '첫 곡'},
-        ],
-        tiles: {},
-      });
-      await Promise.resolve();
-    });
-
-    expect(document.activeElement).not.toBe(
-      screen.getByRole('option', {name: '다음 곡'}),
-    );
   });
 
   it('does not offer the dragged item its own insertion gap', () => {

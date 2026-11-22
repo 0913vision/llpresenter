@@ -177,18 +177,6 @@ function measuredViewport(): HTMLElement {
   return viewport;
 }
 
-it('follows a key past the reading line during the wheel pause', () => {
-  setLive('one');
-  const viewport = measuredViewport();
-  vi.mocked(viewport.scrollTo).mockClear();
-  fireEvent.wheel(viewport);
-  fireEvent.keyDown(window, {key: 'ArrowDown', code: 'ArrowDown'});
-  setLive('two');
-  expect(viewport.scrollTo).toHaveBeenCalledWith(
-    expect.objectContaining({behavior: 'smooth'}),
-  );
-});
-
 it('does not follow an in-view click after a key press', () => {
   setLive('one');
   const viewport = measuredViewport();

@@ -121,7 +121,7 @@ it('waits for media metadata and never loads a picture as background sound or ov
   expect(view.show).not.toHaveBeenCalled();
   initial.resolve(document('image'));
   await initial.promise;
-  expect(view.show).toHaveBeenLastCalledWith(null, false);
+  expect(view.show).toHaveBeenLastCalledWith(null);
   expect(BackgroundLayerView).toHaveBeenCalledTimes(1);
   player.dispose();
   expect(stop).toHaveBeenCalledOnce();
@@ -134,14 +134,14 @@ it.each(['video', 'audio'] as const)(
     const view = layer;
     player.show(state);
     receive(document(kind, 2));
-    expect(view.show).toHaveBeenLastCalledWith(media, false);
+    expect(view.show).toHaveBeenLastCalledWith(media);
     receive(document('image', 3));
-    expect(view.show).toHaveBeenLastCalledWith(null, false);
+    expect(view.show).toHaveBeenLastCalledWith(null);
     initial.resolve(document(kind, 1));
     await initial.promise;
-    expect(view.show).toHaveBeenLastCalledWith(null, false);
+    expect(view.show).toHaveBeenLastCalledWith(null);
     receive(document(kind, 4));
-    expect(view.show).toHaveBeenLastCalledWith(media, false);
+    expect(view.show).toHaveBeenLastCalledWith(media);
     player.dispose();
   },
 );
@@ -153,7 +153,7 @@ it('does not load a stale item when metadata arrives, or revive audio after disp
   player.show({...state, layers: {...state.layers, media: null}});
   initial.resolve(document('video'));
   await initial.promise;
-  expect(view.show).toHaveBeenLastCalledWith(null, false);
+  expect(view.show).toHaveBeenLastCalledWith(null);
   player.dispose();
   vi.mocked(view.show).mockClear();
   receive(document('video', 2));
@@ -173,23 +173,14 @@ it('recovers background and overlay playback after metadata failure without a ca
     'could not read background audio media',
     error,
   );
-  expect(view.show.mock.calls).toEqual([
-    [media, false],
-    [media, false],
-  ]);
+  expect(view.show.mock.calls).toEqual([[media], [media]]);
   expect(BackgroundLayerView).toHaveBeenCalledTimes(2);
   view.show.mockClear();
   player.show({...state, layers: {...state.layers, media: null}});
-  expect(view.show.mock.calls).toEqual([
-    [media, false],
-    [null, false],
-  ]);
+  expect(view.show.mock.calls).toEqual([[media], [null]]);
   view.show.mockClear();
   receive(document('image'));
-  expect(view.show.mock.calls).toEqual([
-    [null, false],
-    [null, false],
-  ]);
+  expect(view.show.mock.calls).toEqual([[null], [null]]);
   player.dispose();
 });
 
@@ -199,7 +190,7 @@ it('plays a later live update when metadata failed before any state arrived', as
   await initial.promise.catch(() => undefined);
   expect(layer.show).not.toHaveBeenCalled();
   player.show(state);
-  expect(layer.show).toHaveBeenLastCalledWith(media, false);
+  expect(layer.show).toHaveBeenLastCalledWith(media);
   player.dispose();
 });
 
@@ -211,7 +202,7 @@ it('keeps pushed picture filtering when the initial read later rejects', async (
   layer.show.mockClear();
   initial.reject(new Error('Unavailable'));
   await initial.promise.catch(() => undefined);
-  expect(layer.show.mock.calls).toEqual([[null, false]]);
+  expect(layer.show.mock.calls).toEqual([[null]]);
   expect(BackgroundLayerView).toHaveBeenCalledTimes(1);
   player.dispose();
 });

@@ -1,5 +1,4 @@
 import {describe, expect, it} from 'vitest';
-import {classes} from '@renderer/rendering/classes';
 import {
   DEFAULT_OVERLAY_TEXT_STYLE,
   OverlayTextView,
@@ -8,85 +7,80 @@ import {
 function setUp() {
   const parent = document.createElement('div');
   const view = new OverlayTextView(parent);
-  const front = () =>
-    parent.querySelector<HTMLElement>(`.${classes.page}.${classes.shown}`);
-  return {parent, view, front};
+  const shown = () => {
+    const canvas = parent.firstElementChild;
+    return canvas instanceof HTMLElement && !canvas.hidden ? canvas : null;
+  };
+  const block = () => shown()?.querySelector<HTMLElement>('div');
+  return {parent, view, shown, block};
 }
 
 describe('OverlayTextView', () => {
-  it('reuses its pages and keeps a bounded row count across long multiline changes and clears', () => {
-    const {parent, view} = setUp();
-    const pages = [...parent.querySelectorAll(`.${classes.page}`)];
-    for (let change = 0; change < 100; change += 1) {
-      view.show(`Message ${change}\n${'Line\n'.repeat(200)}`);
+  it('draws in the same elements through many changes and clears', () => {
+    const {parent, view, shown} = setUp();
+    view.show('First');
+    const canvas = shown();
+    for (let change = 0; change < 20; change += 1) {
+      view.show(`Message ${change}\n${'Line\n'.repeat(10)}`);
       if (change % 3 === 0) view.show(null);
     }
-    expect([...parent.querySelectorAll(`.${classes.page}`)]).toEqual(pages);
-    expect(parent.querySelectorAll(`.${classes.block} > div`)).toHaveLength(2);
+    view.show('Last');
+    expect(shown()).toBe(canvas);
+    expect(parent.children).toHaveLength(1);
     view.dispose();
     expect(parent.children).toHaveLength(0);
   });
 
-  it('leaves no text on a cleared layer', () => {
-    const {parent, view} = setUp();
+  it('shows nothing once it is cleared', () => {
+    const {view, shown} = setUp();
     view.show('설교 시간 30분 남음');
     view.show(null);
-    expect(parent.textContent).not.toContain('설교 시간');
+    expect(shown()).toBeNull();
+    view.show('Again');
+    expect(shown()?.textContent).toBe('Again');
   });
 
-  it('renders text literally and preserves newlines in one row', () => {
-    const {view, front} = setUp();
-    const text = '<script>not markup</script>\nSecond line';
-    view.show(text);
-    expect(front()?.textContent).toBe(text);
-    expect(front()?.querySelector('script')).toBeNull();
+  it('draws a text as it is, in one row for each of its rows', () => {
+    const {view, block} = setUp();
+    view.show('<script>not markup</script>\nSecond line');
+    expect(
+      [...(block()?.children ?? [])].map(({textContent}) => textContent),
+    ).toEqual(['<script>not markup</script>', 'Second line']);
+    expect(block()?.querySelector('script')).toBeNull();
   });
 
-  it('keeps unchanged text on the same page and updates a stored prop style in place', () => {
-    const {view, front} = setUp();
+  it('takes a new style in place', () => {
+    const {view, block} = setUp();
     view.show('Same text');
-    const page = front();
-    view.show('Same text', {...DEFAULT_OVERLAY_TEXT_STYLE});
-    expect(front()).toBe(page);
+    const before = block();
     view.show('Same text', {
       ...DEFAULT_OVERLAY_TEXT_STYLE,
       color: '#00FF00',
       align: 'left',
       margin: 10,
     });
-    expect(front()).toBe(page);
-    expect(front()?.style.inset).toBe('10%');
-    expect(front()?.style.textAlign).toBe('left');
-    expect(
-      front()?.querySelector<HTMLElement>(`.${classes.block}`)?.style.color,
-    ).toBe('rgb(0, 255, 0)');
+    expect(block()).toBe(before);
+    expect(before?.style).toMatchObject({
+      color: 'rgb(0, 255, 0)',
+      textAlign: 'left',
+      left: '192px',
+      width: '1536px',
+    });
+  });
+
+  it('scales with the screen', () => {
+    const {view, shown} = setUp();
+    view.show('Text');
     view.rescale(0.5);
-    expect(
-      front()?.querySelector<HTMLElement>(`.${classes.block}`)?.style.fontSize,
-    ).toBe('42px');
+    expect(shown()?.style.transform).toBe('scale(0.5)');
   });
 
-  it('replaces shown text in place and never shows text that only replaced nothing', () => {
-    const {view, front} = setUp();
+  it('replaces a shown text in place, and shows none that replaced nothing', () => {
+    const {view, shown} = setUp();
     view.replace('Before anything');
-    expect(front()).toBeNull();
+    expect(shown()).toBeNull();
     view.show('Before anything');
-    const page = front();
-    expect(page?.textContent).toBe('Before anything');
     view.replace('Changed in place');
-    expect(front()).toBe(page);
-    expect(page?.textContent).toBe('Changed in place');
-    view.dispose();
-  });
-
-  it('clears immediately and can show text again without recreating pages', () => {
-    const {parent, view, front} = setUp();
-    view.show('First');
-    const pages = [...parent.querySelectorAll(`.${classes.page}`)];
-    view.show(null);
-    expect(front()).toBeNull();
-    view.show('Again');
-    expect(front()?.textContent).toBe('Again');
-    expect([...parent.querySelectorAll(`.${classes.page}`)]).toEqual(pages);
+    expect(shown()?.textContent).toBe('Changed in place');
   });
 });

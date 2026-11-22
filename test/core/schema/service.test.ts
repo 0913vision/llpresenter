@@ -42,12 +42,11 @@ const ITEMS: readonly object[] = [
     name: '요한복음 3:16-18',
     passage: PASSAGE,
     slides: [
-      slideOf(
-        2,
-        'scripture',
-        {본문: '가'},
-        {verse: verseOf(1), continued: true},
-      ),
+      slideOf(2, 'scripture', {
+        texts: {본문: '가'},
+        verse: verseOf(1),
+        continued: true,
+      }),
     ],
   },
   {
@@ -55,7 +54,7 @@ const ITEMS: readonly object[] = [
     id: itemId(4),
     name: '온유',
     passage: PASSAGE,
-    slides: [slideOf(3, 'sermonTitle', {제목: '온유'})],
+    slides: [slideOf(3, 'sermonTitle', {texts: {제목: '온유'}})],
   },
   {
     kind: 'liturgy',
@@ -63,13 +62,13 @@ const ITEMS: readonly object[] = [
     name: '사도신경',
     liturgy: 'creed',
     translation: 'new',
-    slides: [slideOf(4, 'creed', {본문: '나는'})],
+    slides: [slideOf(4, 'creed', {texts: {본문: '나는'}})],
   },
   {
     kind: 'notice',
     id: itemId(6),
     name: '광고',
-    slides: [slideOf(5, 'notice', {제목: '하나'})],
+    slides: [slideOf(5, 'notice', {texts: {제목: '하나'}})],
   },
   {kind: 'blank', id: itemId(7), name: '빈 슬라이드', slides: []},
   {kind: 'media', id: itemId(8), name: '영상', media: MEDIA, slides: []},
@@ -121,9 +120,8 @@ describe('a service file', () => {
     ],
     ['a liturgy it does not know', {...ITEMS[4], liturgy: 'other'}],
     ['an item without a name', {...ITEMS[6], name: undefined}],
-    ['an item that is none', 'header'],
   ])('refuses %s', (_name, item) => {
-    expect(parse(service([item as object])).ok).toBe(false);
+    expect(parse(service([item])).ok).toBe(false);
   });
 
   it('keeps an item of a kind it does not know unchanged', () => {

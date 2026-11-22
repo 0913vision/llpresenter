@@ -22,7 +22,7 @@ function setUp() {
   const layer = messageLayer.create(parent, OPTIONS);
   const block = () =>
     parent.querySelector<HTMLElement>(
-      `.${classes.page}.${classes.shown} .${classes.block}`,
+      '[data-overlay-text]:not([hidden]) > div',
     );
   const band = () =>
     parent.querySelector<HTMLElement>(`.${classes.band}.${classes.shown}`);

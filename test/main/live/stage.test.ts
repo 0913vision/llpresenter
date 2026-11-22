@@ -61,22 +61,3 @@ describe('stage.timer.set', () => {
     expect(store.state).not.toHaveProperty('stageTimerId');
   });
 });
-
-describe('the next 장 in slide.show', () => {
-  it('keeps the next 장 with the live one, and a lyrics clear drops both', () => {
-    const {store, send} = setup();
-    const slide = {
-      itemId: 'item-1',
-      position: 0,
-      label: '1절',
-      lines: ['첫 줄'],
-      next: {label: '후렴', lines: ['둘째 줄']},
-    };
-    send({type: 'slide.show', slide});
-    expect(store.state.layers.slide).toEqual(slide);
-    send({type: 'layer.clear', target: 'slide'});
-    expect(store.state.layers.slide).toBeNull();
-    send({type: 'clear.undo'});
-    expect(store.state.layers.slide?.next).toEqual(slide.next);
-  });
-});

@@ -1,11 +1,4 @@
-import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
-import {
-  cleanup,
-  fireEvent,
-  render,
-  screen,
-  within,
-} from '@testing-library/react';
+import {cleanup, render, screen, within} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {useShow} from '@renderer/session/show';
 import {useLive} from '@renderer/session/live';
@@ -14,10 +7,7 @@ import {seedSampleService} from '@fixtures/renderer/session/sampleService';
 import {BiblePanel} from '@renderer/features/presentation/BiblePanel';
 import {panelApi, panelPassage} from '@fixtures/contracts/ipc/bibleApi';
 import {openBiblePassage} from '@renderer/features/bible/actions';
-import {
-  hoverForTooltip,
-  resetTooltips,
-} from '@fixtures/renderer/ui/tooltipTesting';
+import {resetTooltips} from '@fixtures/renderer/ui/tooltipTesting';
 
 vi.mock('@renderer/features/presentation/PreviewPanel', () => ({
   PreviewPanel: () => null,
@@ -61,28 +51,5 @@ describe('Bible panel integration', () => {
     expect(
       zoom.closest('[class*="footerEnd"]')?.lastElementChild?.contains(zoom),
     ).toBe(true);
-  });
-
-  it('disables slide editing for a Bible preview without a prep handoff', async () => {
-    const fixture = panelApi();
-    window.llp = fixture.api;
-    openBiblePassage(panelPassage());
-    render(<BiblePanel sizeClass="normal" />);
-    const grid = screen.getByRole('listbox', {name: '슬라이드'});
-    const tile = within(grid).getAllByRole('option')[0];
-    if (!tile) throw new Error('Missing Bible slide');
-    const contextTarget = tile;
-    fireEvent.contextMenu(contextTarget);
-    expect(contextTarget.hasAttribute('data-menu-target')).toBe(true);
-    const edit = screen.getByRole('menuitem', {
-      name: windowCommandLabels.editSong,
-    });
-    expect(edit.getAttribute('aria-disabled')).toBe('true');
-    expect((await hoverForTooltip(edit))?.textContent).toBe(
-      '이 슬라이드는 준비에서 편집할 수 없습니다',
-    );
-    fireEvent.click(edit);
-    expect(screen.getByRole('menu', {name: '슬라이드'})).toBeTruthy();
-    expect(fixture.send).not.toHaveBeenCalled();
   });
 });

@@ -4,9 +4,12 @@ import {lyricsSlide} from '@fixtures/core/slides';
 // NOTE(0913vision): The hooks below apply to each test file that imports this
 // module.
 import {render, screen} from '@testing-library/react';
-import {beforeEach, vi} from 'vitest';
+import {beforeEach, onTestFinished, vi} from 'vitest';
 import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
-import type {ServiceDocument} from '@core/schema/contentDocuments';
+import type {
+  ServiceChange,
+  ServiceDocument,
+} from '@core/schema/contentDocuments';
 import {isItemOfKind, type ServiceItem} from '@core/schema/service';
 import {
   createServiceId,
@@ -17,6 +20,7 @@ import {
 import {SONG_DRAG_MIME} from '@core/schema/songDrag';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {applyService} from '@renderer/session/show';
+import {startOpenServiceSync} from '@renderer/session/openService';
 import {useLive} from '@renderer/session/live';
 import {ServiceOrderList} from '@renderer/features/service/order/ServiceOrderList';
 
@@ -45,7 +49,7 @@ function songItem(id: ServiceItemId, name: string): ServiceItem {
 }
 
 export function setup(
-  workspace: 'show' | 'prep' = 'show',
+  workspace: 'show' | 'prep' = 'prep',
   readOnly = false,
   extra: {
     emptySection?: boolean;
@@ -96,9 +100,16 @@ export function setup(
       ),
       tiles: {},
     });
+  const listeners = new Set<(change: ServiceChange) => void>();
   const send = vi.fn();
   const api = mockLlpApi({
-    services: {get: () => Promise.resolve(document)},
+    services: {
+      get: () => Promise.resolve(document),
+      subscribe: listener => {
+        listeners.add(listener);
+        return () => listeners.delete(listener);
+      },
+    },
     live: {send},
     songs: {
       get: () =>
@@ -129,6 +140,7 @@ export function setup(
           revision: document.revision + 1,
         };
         publish();
+        for (const listener of listeners) listener({serviceId, document});
         return Promise.resolve({
           ok: true,
           value: {id: serviceId, revision: document.revision},
@@ -138,6 +150,8 @@ export function setup(
   });
   window.llp = api;
   publish();
+  onTestFinished(startOpenServiceSync());
+  for (const listener of listeners) listener({serviceId, document});
   const onProblem = vi.fn();
   const onOpenPrep = vi.fn();
   const onShowInLibrary = vi.fn();

@@ -115,7 +115,18 @@ describe('quick editing', () => {
                   song: fixture.song.songId,
                   slides: [],
                 }
-              : {id: quickId(901), bible: bible.ref},
+              : {
+                  id: quickId(901),
+                  kind: 'bible',
+                  name: bible.ref.ref,
+                  slides: [],
+                  passage: {
+                    translation: bible.ref.translation,
+                    ref: bible.ref.ref,
+                    verseNumbers: bible.ref.verseNumbers,
+                    translationName: bible.ref.translationName,
+                  },
+                },
           ],
         },
       });
@@ -140,7 +151,7 @@ describe('quick editing', () => {
       await waitFor(() =>
         expect(fixture.current().value.items.at(-1)).toMatchObject({
           kind,
-          ref: kind === 'song' ? fixture.song.songId : bible.ref,
+          ref: kind === 'song' ? fixture.song.songId : {ref: bible.ref.ref},
         }),
       );
       expect(fixture.send).not.toHaveBeenCalled();
@@ -165,8 +176,6 @@ describe('quick editing', () => {
           kind: 'bible',
           ref: {
             ref: panelPassage().ref,
-            split: 'verse',
-            reference: 'none',
             verseNumbers,
           },
         }),
@@ -180,18 +189,18 @@ describe('quick editing', () => {
       act(() =>
         openBiblePassage(panelPassage(), {verseNumbers: !verseNumbers}),
       );
-      await act(async () =>
-        quickRunner(fixture.api, fixture.problem).run(stored),
-      );
+      await act(async () => {
+        await quickRunner(fixture.api, fixture.problem).run(stored);
+      });
       expect(
         lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0]),
       ).toMatchObject({
         type: 'slide.show',
         slide: {
           position: 0,
-          lines: [
-            `${verseNumbers ? '16 ' : ''}Invented book 43, chapter 3, verse 16`,
-          ],
+          texts: {
+            본문: `${verseNumbers ? '16 ' : ''}Invented book 43, chapter 3, verse 16`,
+          },
         },
       });
       expect(fixture.problem).not.toHaveBeenCalled();

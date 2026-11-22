@@ -83,7 +83,14 @@ it.each([
     await writeJson(
       file,
       service(serviceId, '2026-10-26T10:00', [
-        {id: target.itemId, media: itemId(3), memo: oldMemo},
+        {
+          id: target.itemId,
+          kind: 'media',
+          name: '영상',
+          media: itemId(3),
+          slides: [],
+          memo: oldMemo,
+        },
       ]),
     );
     const log = recordingLogger();

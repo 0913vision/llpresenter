@@ -63,6 +63,7 @@ export class OverlayTextView {
       height: `${REFERENCE_SCREEN.height}px`,
       transformOrigin: 'top left',
     });
+    this.canvas.dataset['overlayText'] = '';
     this.block.style.position = 'absolute';
     this.canvas.hidden = true;
     this.canvas.append(this.block);

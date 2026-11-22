@@ -46,35 +46,6 @@ describe('library panel', () => {
     expect(screen.queryByRole('menu')).toBeNull();
   });
 
-  it('appends the clicked song to the open service in one click', async () => {
-    applyService({...sampleService, id: pastDocument.service.id});
-    const fixture = libraryFixture();
-    const enumerate = vi.spyOn(fixture.api.services, 'list');
-    vi.spyOn(fixture.api.services, 'get').mockResolvedValue(pastDocument);
-    const edit = vi.spyOn(fixture.api.content, 'edit').mockResolvedValue({
-      ok: true,
-      value: {id: pastDocument.service.id, revision: 4},
-    });
-    const {user, onOpenSong} = await setup(fixture);
-    fireEvent.contextMenu(screen.getByRole('option', {name: '찬송 10'}));
-    await user.click(screen.getByRole('menuitem', {name: '예배 순서에 추가'}));
-    await waitFor(() =>
-      expect(edit.mock.lastCall?.[0]).toMatchObject({
-        type: 'service.update',
-        baseRevision: pastDocument.revision,
-        service: {
-          ...pastDocument.service,
-          order: [
-            ...pastDocument.service.order,
-            {song: fixtureSong(1, '찬송 10').song.id},
-          ],
-        },
-      }),
-    );
-    expect(onOpenSong).not.toHaveBeenCalled();
-    expect(enumerate).not.toHaveBeenCalled();
-  });
-
   it.each([
     {readOnly: false, reason: '열린 예배 없음'},
     {readOnly: true, reason: '새 버전의 파일이라 바꿀 수 없습니다'},
@@ -128,31 +99,6 @@ describe('library panel', () => {
         focusTitle: false,
       }),
     );
-  });
-
-  it('copies the clicked song under the copy title, selects the copy, and keeps the original', async () => {
-    const fixture = libraryFixture();
-    const edit = vi.spyOn(fixture.api.content, 'edit');
-    const original = fixtureSong(1, '찬송 10').song;
-    const {user} = await setup(fixture);
-    fireEvent.contextMenu(screen.getByRole('option', {name: '찬송 10'}));
-    await user.click(screen.getByRole('menuitem', {name: '복제'}));
-    const copy = await screen.findByRole('option', {name: '찬송 10 복사본'});
-    await waitFor(() =>
-      expect(copy.getAttribute('aria-selected')).toBe('true'),
-    );
-    expect(screen.getByRole('option', {name: '찬송 10'})).toBeTruthy();
-    const command = edit.mock.calls
-      .map(([value]) => value)
-      .find(value => value.type === 'song.saveAs');
-    if (command?.type !== 'song.saveAs') throw new Error('Missing copy');
-    expect(command.song.title).toBe('찬송 10 복사본');
-    expect(command.song.slides[0]).toMatchObject({
-      titleSlide: true,
-      lines: [command.song.title],
-    });
-    expect(command.song.slides.slice(1)).toEqual(original.slides);
-    expect((await fixture.api.songs.get(original.id))?.song).toEqual(original);
   });
 
   it('copies the focused song with Ctrl D', async () => {

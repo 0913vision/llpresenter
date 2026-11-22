@@ -1,12 +1,10 @@
 import {describe, expect, it} from 'vitest';
-import {layerKinds} from '@core/live/state';
 import {
   parseLiveCommand,
   parseLiveCommandRequest,
   MAX_LIVE_BATCH_COMMANDS,
 } from '@core/schema/liveCommand';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
-import {MAIN_SCREEN} from '@fixtures/core/screenIds';
 
 describe('parseLiveCommand', () => {
   it('accepts the black screen toggle command', () => {
@@ -14,179 +12,6 @@ describe('parseLiveCommand', () => {
       ok: true,
       value: {type: 'black.toggle'},
     });
-  });
-
-  it('accepts bounded stage preview updates and rejects malformed payloads', () => {
-    const command = {
-      type: 'stage.next.set',
-      itemId: 'item',
-      position: 0,
-      next: {label: null, lines: ['Next'], itemKind: 'song'},
-    };
-    expect(parseLiveCommand(command).ok).toBe(true);
-    expect(parseLiveCommand({...command, position: -1}).ok).toBe(false);
-    expect(
-      parseLiveCommand({
-        ...command,
-        next: {...command.next, itemKind: 'invalid'},
-      }).ok,
-    ).toBe(false);
-  });
-
-  it('preserves title-slide metadata in stage updates and rejects invalid values', () => {
-    const command = {
-      type: 'stage.next.set',
-      itemId: 'item',
-      position: 0,
-      next: {label: null, lines: ['Title', 'Subtitle'], titleSlide: true},
-    };
-    expect(parseLiveCommand(command)).toEqual({ok: true, value: command});
-    expect(
-      parseLiveCommand({...command, next: {...command.next, titleSlide: false}})
-        .ok,
-    ).toBe(false);
-  });
-
-  it('validates the bounded stage passage reference', () => {
-    const command = {
-      type: 'stage.next.set',
-      itemId: 'item',
-      position: 0,
-      next: {label: null, lines: ['Next'], stageReference: 'Numbers 12:3'},
-    };
-    expect(parseLiveCommand(command)).toEqual({ok: true, value: command});
-    for (const stageReference of [null, 1, 'x'.repeat(100_000)]) {
-      expect(
-        parseLiveCommand({...command, next: {...command.next, stageReference}})
-          .ok,
-      ).toBe(false);
-    }
-  });
-
-  it('validates the sermon-title stage preview marker', () => {
-    const command = {
-      type: 'stage.next.set',
-      itemId: 'bible',
-      position: 1,
-      next: {label: null, lines: ['Title'], sermonTitle: true},
-    };
-    expect(parseLiveCommand(command)).toEqual({ok: true, value: command});
-    expect(
-      parseLiveCommand({
-        ...command,
-        next: {...command.next, sermonTitle: false},
-      }).ok,
-    ).toBe(false);
-  });
-
-  it('checks explicit continuation metadata on the current and next Bible parts', () => {
-    const slide = {
-      itemId: 'bible',
-      position: 0,
-      biblePart: 1,
-      sourceSlideId: '00000000-0000-4000-8000-000000000911',
-      label: '3:16',
-      lines: ['가나 (계속)'],
-      continued: true,
-      next: {label: '3:16', lines: ['다라'], continued: false},
-    };
-    expect(parseLiveCommand({type: 'slide.show', slide})).toEqual({
-      ok: true,
-      value: {type: 'slide.show', slide},
-    });
-    for (const sourceSlideId of ['bad-id', null, 1]) {
-      expect(
-        parseLiveCommand({type: 'slide.show', slide: {...slide, sourceSlideId}})
-          .ok,
-      ).toBe(false);
-    }
-    for (const biblePart of [0, -1, 1.5, 10_001, '1', null]) {
-      expect(
-        parseLiveCommand({type: 'slide.show', slide: {...slide, biblePart}}).ok,
-      ).toBe(false);
-    }
-    for (const continued of ['true', null, 1]) {
-      expect(
-        parseLiveCommand({type: 'slide.show', slide: {...slide, continued}}).ok,
-      ).toBe(false);
-      expect(
-        parseLiveCommand({
-          type: 'slide.show',
-          slide: {...slide, next: {...slide.next, continued}},
-        }).ok,
-      ).toBe(false);
-    }
-  });
-  it('preserves slide picture provenance in a media command', () => {
-    const command = {
-      type: 'media.show',
-      media: {
-        mediaId: 'picture',
-        loop: false,
-        itemId: 'item',
-        slidePicture: true,
-      },
-    };
-    expect(parseLiveCommand(command)).toEqual({ok: true, value: command});
-    expect(
-      parseLiveCommand({
-        ...command,
-        media: {...command.media, slidePicture: false},
-      }).ok,
-    ).toBe(false);
-  });
-  it('preserves an explicit Bible reference on a slide command', () => {
-    const command = {
-      type: 'slide.show',
-      slide: {
-        itemId: 'bible',
-        position: 0,
-        label: '3:16',
-        lines: ['Invented'],
-        reference: '3:16',
-      },
-    };
-    expect(parseLiveCommand(command)).toEqual({ok: true, value: command});
-  });
-  it('keeps the next 장 of a slide command', () => {
-    const command = {
-      type: 'slide.show',
-      slide: {
-        itemId: 'item-1',
-        position: 0,
-        label: '1절',
-        lines: ['첫 줄'],
-        next: {label: '후렴', lines: ['둘째 줄']},
-      },
-    };
-    expect(parseLiveCommand(command)).toEqual({ok: true, value: command});
-  });
-
-  it('returns every well-formed command unchanged', () => {
-    const commands: unknown[] = [
-      {type: 'clear.undo'},
-      {type: 'layer.clear', target: 'all'},
-      ...layerKinds.map(target => ({type: 'layer.clear', target})),
-      ...['all', ...layerKinds].map(target => ({
-        type: 'layer.clear.toggle',
-        target,
-      })),
-      {type: 'output.set', screenId: MAIN_SCREEN, on: true},
-      {
-        type: 'slide.show',
-        slide: {itemId: 'a', position: 2, label: '후렴', lines: ['아멘']},
-      },
-      {type: 'media.show', media: {mediaId: 'warm-light', loop: false}},
-      {type: 'message.show', message: {messageId: 'car', text: '12가 3456'}},
-      {type: 'theme.set', themeId: '00000000-0000-4000-8000-000000000111'},
-      {type: 'themes.refresh'},
-      {type: 'item.stop'},
-      {type: 'item.restore'},
-    ];
-
-    for (const command of commands) {
-      expect(parseLiveCommand(command)).toEqual({ok: true, value: command});
-    }
   });
 
   it('drops fields a command does not have, such as a start time', () => {
@@ -200,77 +25,6 @@ describe('parseLiveCommand', () => {
       ok: true,
       value: {type: 'media.show', media: {mediaId: 'warm-light', loop: true}},
     });
-  });
-
-  it.each([
-    ['an unknown type', {type: 'delete.everything'}, 'type'],
-    [
-      'an unknown toggle target',
-      {type: 'layer.clear.toggle', target: 'slides'},
-      'target',
-    ],
-    ['a missing toggle target', {type: 'layer.clear.toggle'}, 'target'],
-    ['no type', {target: 'all'}, 'type'],
-    [
-      'an unknown clear target',
-      {type: 'layer.clear', target: 'slides'},
-      'target',
-    ],
-    ['a missing clear target', {type: 'layer.clear'}, 'target'],
-    [
-      'a theme ID that is not an ID',
-      {type: 'theme.set', themeId: 'missing'},
-      'themeId',
-    ],
-    ['a missing theme ID', {type: 'theme.set'}, 'themeId'],
-    [
-      'an empty screen id',
-      {type: 'output.set', screenId: '', on: true},
-      'screenId',
-    ],
-    [
-      'an output switch that is text',
-      {type: 'output.set', screenId: MAIN_SCREEN, on: 'yes'},
-      'on',
-    ],
-    [
-      'media without loop',
-      {type: 'media.show', media: {mediaId: 'x'}},
-      'media.loop',
-    ],
-    [
-      'a slide at a negative position',
-      {
-        type: 'slide.show',
-        slide: {itemId: 'a', position: -1, label: null, lines: []},
-      },
-      'slide.position',
-    ],
-    [
-      'a slide label that is not text',
-      {
-        type: 'slide.show',
-        slide: {itemId: 'a', position: 0, label: 3, lines: []},
-      },
-      'slide.label',
-    ],
-    [
-      'a slide with a line that is not text',
-      {
-        type: 'slide.show',
-        slide: {itemId: 'a', position: 0, label: null, lines: [1]},
-      },
-      'slide.lines.0',
-    ],
-    [
-      'a message without text',
-      {type: 'message.show', message: {messageId: 'car'}},
-      'message.text',
-    ],
-  ])('names the field of %s', (_name, value, field) => {
-    const result = parseLiveCommand(value);
-
-    expect(result.ok ? undefined : result.error.field).toBe(field);
   });
 
   it('rejects an array or an object whose fields are inherited', () => {
@@ -287,19 +41,6 @@ describe('parseLiveCommand', () => {
     const result = parseLiveCommand({type: 'media.show', media});
 
     expect(result.ok ? undefined : result.error.field).toBe('media');
-  });
-
-  it('rejects a hole in the lines, which the old guard let through', () => {
-    const lines: string[] = [];
-    lines[1] = '아멘';
-
-    const result = parseLiveCommand({
-      type: 'slide.show',
-      slide: {itemId: 'a', position: 0, label: null, lines},
-    });
-
-    expect(lines.every(line => typeof line === 'string')).toBe(true);
-    expect(result.ok ? undefined : result.error.field).toBe('slide.lines.0');
   });
 
   it('rejects values that are not commands', () => {

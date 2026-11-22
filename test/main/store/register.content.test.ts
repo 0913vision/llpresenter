@@ -35,7 +35,13 @@ describe('registerStore', () => {
     await writeJson(
       join(root, 'Services', 'open.llservice'),
       service(SUNDAY_ID, '2026-11-01T11:00', [
-        {slides: hymnOne().slides, id: itemId(1), song: HYMN_ONE_ID},
+        {
+          id: itemId(1),
+          kind: 'song',
+          name: '곡',
+          song: HYMN_ONE_ID,
+          slides: hymnOne().slides,
+        },
       ]),
     );
     const store = await register(mockLog(), context, () => true);
@@ -48,7 +54,7 @@ describe('registerStore', () => {
       ...current,
       slides: current.slides
         .slice(0, 1)
-        .map(slide => ({...slide, lines: ['새로 편집한 가사']})),
+        .map(slide => ({...slide, texts: {가사: '새로 편집한 가사'}})),
     };
 
     const answer = parseEditResult(
@@ -92,7 +98,7 @@ describe('registerStore', () => {
       ok: true,
       value: {
         data: {
-          slides: [{lines: ['새로 편집한 가사']}],
+          slides: [{texts: {가사: '새로 편집한 가사'}}],
           future: {enabled: true},
         },
       },

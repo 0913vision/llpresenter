@@ -1,3 +1,4 @@
+import {lyricsSlide} from '@fixtures/core/slides';
 import {describe, expect, it, vi} from 'vitest';
 import {
   parseServiceDocument,
@@ -8,9 +9,6 @@ import {
   createServiceId,
   createServiceItemId,
   createSongId,
-  createSlideId,
-  createMediaId,
-  createThemeId,
 } from '@core/schema/ids';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {
@@ -23,13 +21,7 @@ const first = createServiceItemId('20000000-0000-4000-8000-000000000001');
 const second = createServiceItemId('20000000-0000-4000-8000-000000000002');
 const third = createServiceItemId('20000000-0000-4000-8000-000000000003');
 const songId = createSongId('30000000-0000-4000-8000-000000000001');
-const slides = [
-  {
-    id: createSlideId('60000000-0000-4000-8000-000000000001'),
-    lines: ['Original song slide'],
-    label: 'Verse',
-  },
-];
+const slides = [lyricsSlide(1, 'Original song slide', {label: 'Verse'})];
 
 function document(order: readonly unknown[]): ServiceDocument {
   const parsed = parseServiceDocument({
@@ -59,7 +51,12 @@ function setup(
   order: readonly unknown[] = [
     {id: first, kind: 'song', name: '곡', song: songId, slides, memo: 'First'},
     {id: second, kind: 'header', name: 'Second'},
-    {id: third, futureKind: {slides: [{id: 'nested', lines: ['Third']}]}},
+    {
+      id: third,
+      kind: 'later',
+      name: 'Third',
+      futureKind: {slides: [{id: 'nested', lines: ['Third']}]},
+    },
   ],
 ) {
   const state: {document: ServiceDocument | null} = {document: document(order)};
@@ -84,12 +81,10 @@ describe('service item clipboard', () => {
         slides,
         memo: 'Memo',
         macro: 'macro',
-        background: createMediaId('40000000-0000-4000-8000-000000000001'),
-        theme: createThemeId('50000000-0000-4000-8000-000000000001'),
         future: nested,
       },
       {id: second, kind: 'header', name: 'Not selected'},
-      {id: third, futureKind: {value: 3}},
+      {id: third, kind: 'later', name: 'Third', futureKind: {value: 3}},
     ]);
     expect(await clipboard.copy(serviceId, new Set([third, first]))).toEqual({
       ok: true,
@@ -104,8 +99,6 @@ describe('service item clipboard', () => {
         slides,
         memo: 'Memo',
         macro: 'macro',
-        background: '40000000-0000-4000-8000-000000000001',
-        theme: '50000000-0000-4000-8000-000000000001',
         future: {
           slides: [{id: 'nested', lines: ['Original']}],
           links: ['nested'],
@@ -166,7 +159,12 @@ describe('service item clipboard', () => {
       error: 'missing',
     });
     state.document = document([
-      {id: first, futureKind: 'x'.repeat(16 * 1024 * 1024)},
+      {
+        id: first,
+        kind: 'later',
+        name: 'First',
+        futureKind: 'x'.repeat(16 * 1024 * 1024),
+      },
     ]);
     expect(await clipboard.copy(serviceId, new Set([first]))).toEqual({
       ok: false,

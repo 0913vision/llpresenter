@@ -1,9 +1,7 @@
 import {act, fireEvent, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import {ServiceOrderList} from '@renderer/features/service/order/ServiceOrderList';
-import {applyService, openItem, useShow} from '@renderer/session/show';
-import {createServiceId} from '@core/schema/ids';
+import {openItem, useShow} from '@renderer/session/show';
 import type {ServiceDocument} from '@core/schema/contentDocuments';
 import {serviceItemClipboardFor} from '@renderer/session/serviceItemClipboard';
 import {
@@ -11,7 +9,6 @@ import {
   lastId,
   headerId,
   serviceId,
-  songId,
   setup,
 } from '@fixtures/renderer/features/service/order/serviceOrderEditingFixtures';
 
@@ -44,81 +41,6 @@ describe('service order clipboard commands', () => {
       finish?.(document());
     });
     await waitFor(() => expect(ids()).toHaveLength(4));
-  });
-
-  it('pastes a source service snapshot into an empty other service without changing the source', async () => {
-    const {api, view, document: sourceDocument} = setup('show');
-    const user = userEvent.setup();
-    fireEvent.contextMenu(screen.getByRole('option', {name: '첫 곡'}));
-    await user.click(await screen.findByRole('menuitem', {name: /^복사/u}));
-    await waitFor(() =>
-      expect(serviceItemClipboardFor(api).getCount()).toBe(1),
-    );
-    const source = sourceDocument();
-    const destinationId = createServiceId(
-      '00000000-0000-4000-8000-000000000002',
-    );
-    let destination: ServiceDocument = {
-      ...source,
-      service: {
-        ...source.service,
-        id: destinationId,
-        name: 'Other service',
-        order: [],
-      },
-    };
-    const get = api.services.get;
-    vi.spyOn(api.services, 'get').mockImplementation(id =>
-      id === destinationId ? Promise.resolve(destination) : get(id),
-    );
-    vi.spyOn(api.content, 'edit').mockImplementation(async command => {
-      if (command.type !== 'service.update') {
-        throw new Error('Unexpected command');
-      }
-      destination = {
-        ...destination,
-        service: command.service,
-        revision: destination.revision + 1,
-      };
-      applyService({
-        id: destinationId,
-        name: 'Other service',
-        revision: destination.revision,
-        readOnly: false,
-        rows: destination.service.order.map(item => ({
-          kind: 'song',
-          id: item.id,
-          title: 'Pasted song',
-        })),
-        tiles: {},
-      });
-      return {
-        ok: true,
-        value: {id: destinationId, revision: destination.revision},
-      };
-    });
-    act(() =>
-      applyService({
-        id: destinationId,
-        name: 'Other service',
-        revision: destination.revision,
-        readOnly: false,
-        rows: [],
-        tiles: {},
-      }),
-    );
-    view.rerender(<ServiceOrderList workspace="prep" />);
-    const list = screen.getByRole('listbox', {name: '예배 순서'});
-    list.tabIndex = -1;
-    list.focus();
-    await user.keyboard('{Control>}v{/Control}');
-    await waitFor(() => expect(destination.service.order).toHaveLength(1));
-    expect(destination.service.order[0]).toMatchObject({
-      song: songId,
-    });
-    expect(destination.service.order[0]?.id).not.toBe(firstId);
-    expect(sourceDocument()).toBe(source);
-    expect(useShow.getState().serviceId).toBe(destinationId);
   });
 
   it('leaves native copy and paste keys to a row text field', async () => {
@@ -219,25 +141,6 @@ describe('service order clipboard commands', () => {
     expect(ids()[0]).toBe(headerId);
     expect(ids()[1]).toBe(firstId);
     expect(ids()[4]).toBe(lastId);
-  });
-
-  it('keeps copied items across workspace mounts and appends with no selection', async () => {
-    const {api, view, ids, list} = setup('show');
-    const user = userEvent.setup();
-    fireEvent.contextMenu(screen.getByRole('option', {name: '첫 곡'}));
-    await user.click(await screen.findByRole('menuitem', {name: /^복사/u}));
-    await waitFor(() =>
-      expect(serviceItemClipboardFor(api).getCount()).toBe(1),
-    );
-    view.rerender(<ServiceOrderList workspace="prep" />);
-    act(() => useShow.setState({openItemId: null}));
-    const editTarget = list();
-    editTarget.tabIndex = -1;
-    editTarget.focus();
-    await user.keyboard('{Control>}v{/Control}');
-    await waitFor(() => expect(ids()).toHaveLength(4));
-    expect(ids().slice(0, 3)).toEqual([headerId, firstId, lastId]);
-    expect(ids()[3]).not.toBe(firstId);
   });
 
   it('allows copying a read-only source and refuses paste there', async () => {

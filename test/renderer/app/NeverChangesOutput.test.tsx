@@ -56,7 +56,7 @@ beforeEach(() => {
 
 afterEach(async () => {
   cleanup();
-  await Promise.all(sessions.splice(0).map(session => session.dispose()));
+  for (const session of sessions.splice(0)) session.dispose();
   applyService(null);
   useLive.setState({state: null});
   delete window.llp;

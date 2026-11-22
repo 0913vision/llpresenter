@@ -41,7 +41,7 @@ describe('ContentStore 예배 순서 and 템플릿 edits', () => {
     const id = fromTemplate.ok ? fromTemplate.value.id : '';
     const order = store.service(id)?.service.order ?? [];
     expect(
-      order.map(item => ('header' in item ? item.header : 'slot')),
+      order.map(item => (item.kind === 'header' ? item.name : 'slot')),
     ).toEqual(['찬양', '찬양']);
     expect(order.map(({id: itemIdOf}) => itemIdOf)).not.toContain(itemId(21));
     const emptyId = empty.ok ? empty.value.id : '';
@@ -80,16 +80,20 @@ describe('ContentStore 예배 순서 and 템플릿 edits', () => {
     });
 
     const order = store.service(SUNDAY)?.service.order ?? [];
-    expect(
-      order.map(item => Object.keys(item).find(key => key !== 'id')),
-    ).toEqual(['header', 'header', 'song', 'header']);
+    expect(order.map(item => item.kind)).toEqual([
+      'header',
+      'header',
+      'song',
+      'header',
+    ]);
     expect(new Set(order.map(({id}) => id)).size).toBe(4);
   });
 
   it('refuses an import that would pass the item limit and leaves the target unchanged', async () => {
     const full = Array.from({length: SERVICE_LIMITS.items - 1}, (_, index) => ({
       id: itemId(1000 + index),
-      header: '구역',
+      kind: 'header',
+      name: '구역',
     }));
     const {store} = setUp([
       serviceFile(SUNDAY_ID, full),
@@ -150,7 +154,7 @@ describe('ContentStore 예배 순서 and 템플릿 edits', () => {
     const id = answer.ok ? answer.value.id : '';
     expect(store.template(id)?.template).toMatchObject({
       name: '주일 오전',
-      order: [{header: '찬양'}],
+      order: [{kind: 'header', name: '찬양'}],
     });
     expect(store.template(id)?.template).not.toHaveProperty('time');
     expect(store.template(id)?.template.order[0]?.id).not.toBe(itemId(1));

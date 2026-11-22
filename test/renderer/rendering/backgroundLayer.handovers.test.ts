@@ -65,8 +65,6 @@ describe('BackgroundLayerView handovers', () => {
   });
 });
 
-describe('BackgroundLayerView rapid changes', () => {});
-
 describe('startOffsetSeconds', () => {
   const STARTED = 1_000_000;
   const DURATION = 20;

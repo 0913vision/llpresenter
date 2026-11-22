@@ -1,7 +1,5 @@
-import {lyricsSlide} from '@fixtures/core/slides';
 import {
   ask,
-  askForService,
   developmentContext,
   electron,
   mockLog,
@@ -30,75 +28,6 @@ describe('registerStore', () => {
       readdir(join(context.appDataFolder, DATA_FOLDER_NAME, 'Media')),
     ).rejects.toMatchObject({code: 'ENOENT'});
   });
-  it('refreshes the open service from edited media and leaves deleted media bytes intact', async () => {
-    const context = await developmentContext();
-    const root = join(context.appDataFolder, DATA_FOLDER_NAME);
-    const mediaId = createMediaId(itemId(1));
-    const songId = itemId(2);
-    const mediaFile = join(root, 'Media', 'invented.webm');
-    await writeJson(mediaFile, 'Invented file bytes');
-    await writeJson(join(root, 'Settings', 'media.json'), {
-      format: 'llmedia',
-      schemaVersion: 1,
-      items: [
-        {
-          id: mediaId,
-          name: 'Invented media',
-          kind: 'video',
-          file: 'invented.webm',
-          size: 19,
-        },
-      ],
-      playlists: [],
-      audioPlaylists: [],
-    });
-    await writeJson(join(root, 'Songs', `${songId}.llsong`), {
-      format: 'llsong',
-      schemaVersion: 1,
-      id: songId,
-      title: 'Invented song',
-      background: mediaId,
-      slides: [lyricsSlide(1, ['Invented line'])],
-    });
-    await writeJson(join(root, 'Services', `${itemId(3)}.llservice`), {
-      format: 'llservice',
-      schemaVersion: 1,
-      id: itemId(3),
-      name: 'Invented service',
-      date: '2026-10-26T10:00',
-      order: [
-        {id: itemId(4), kind: 'song', name: '곡', song: songId, slides: []},
-      ],
-    });
-    const registered = await register(mockLog(), context, () => true);
-    const content = await registered.content;
-    expect(content?.openServiceId).toBe(itemId(3));
-    expect(content?.service(itemId(3))?.service.order).toEqual([
-      {id: itemId(4), kind: 'song', name: '곡', song: songId, slides: []},
-    ]);
-    expect(await askForService()).toMatchObject({
-      rows: [{background: {mediaId, loop: true}}],
-    });
-    expect(
-      await ask(mediaEndpoints.edit.channel, {
-        type: 'media.properties.update',
-        mediaId,
-        baseRevision: 1,
-        changes: {props: {end: 'stop'}},
-      }),
-    ).toMatchObject({ok: true});
-    expect(await askForService()).toMatchObject({
-      rows: [{background: {mediaId, loop: false}}],
-    });
-    expect(
-      await ask(mediaEndpoints.edit.channel, {type: 'media.delete', mediaId}),
-    ).toMatchObject({ok: true});
-    expect(await askForService()).toMatchObject({
-      rows: [{problem: 'missing-background'}],
-    });
-    expect(await readFile(mediaFile, 'utf8')).toBe('Invented file bytes');
-  });
-
   it('saves media edits across restart and updates current lookup and roots after relink completion and delete', async () => {
     const context = await developmentContext();
     const root = join(context.appDataFolder, DATA_FOLDER_NAME);

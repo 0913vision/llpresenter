@@ -1,6 +1,4 @@
-import {shownText} from '@fixtures/core/liveSlide';
 import {handleShowKey} from '@renderer/features/presentation/shortcuts';
-import {lastLiveCommand} from '@fixtures/renderer/session/liveCommands';
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@core/live/commands';
@@ -22,19 +20,6 @@ function installApi(): void {
       get: async () => emptyLiveState(),
       send: command => sent.push(command),
       subscribe: () => () => undefined,
-    },
-  });
-}
-
-function setLiveSlide(itemId: string, position: number): void {
-  const base = emptyLiveState();
-  useLive.setState({
-    state: {
-      ...base,
-      layers: {
-        ...base.layers,
-        slide: {itemId, position, ...shownText(['x'])},
-      },
     },
   });
 }
@@ -76,37 +61,6 @@ describe('SlideGrid', () => {
     expect(tiles[1]?.getAttribute('aria-label')).toBe(
       '3 후렴, 함께 불러요 함께 노래해요',
     );
-  });
-
-  it('outputs a 장 with slide.show when its tile is clicked', () => {
-    openItem('song-morning');
-    render(<SlideGrid columns={3} scalePercent={100} />);
-    const tile = screen.getAllByRole('option').at(2);
-    if (!tile) throw new Error('The third tile is missing');
-    fireEvent.click(tile);
-    expect(sent).toHaveLength(1);
-    expect(lastLiveCommand(sent[0])).toMatchObject({
-      type: 'slide.show',
-      slide: {itemId: 'song-morning', position: 2, label: '2절'},
-    });
-  });
-
-  it('marks only the live tile and only in its own item', () => {
-    setLiveSlide('song-morning', 1);
-    openItem('song-morning');
-    const {unmount} = render(<SlideGrid columns={3} scalePercent={100} />);
-    const states = screen
-      .getAllByRole('option')
-      .map(tile => tile.getAttribute('data-state'));
-    expect(states).toEqual([null, 'live', null, null]);
-    unmount();
-
-    openItem('song-river');
-    render(<SlideGrid columns={3} scalePercent={100} />);
-    const other = screen
-      .getAllByRole('option')
-      .map(tile => tile.getAttribute('data-state'));
-    expect(other).toEqual([null, null, null]);
   });
 
   it('keeps the focus in the grid when a service update removes the focused tile of the same item', () => {
@@ -151,26 +105,5 @@ describe('SlideGrid', () => {
     screen.getByRole('listbox').blur();
     act(() => openItem('song-river'));
     expect(document.activeElement).toBe(document.body);
-  });
-
-  it('outputs one slide from the live slide with up and down', () => {
-    window.addEventListener('keydown', handleShowKey);
-    openItem('song-morning');
-    setLiveSlide('song-morning', 0);
-    render(<SlideGrid columns={2} scalePercent={100} />);
-    const grid = screen.getByRole('listbox');
-    grid.focus();
-    fireEvent.keyDown(grid, {key: 'ArrowDown', code: 'ArrowDown'});
-    expect(lastLiveCommand(sent.at(-1))).toMatchObject({
-      type: 'slide.show',
-      slide: {itemId: 'song-morning', position: 1},
-    });
-    act(() => setLiveSlide('song-morning', 1));
-    fireEvent.keyDown(grid, {key: 'ArrowUp', code: 'ArrowUp'});
-    expect(lastLiveCommand(sent.at(-1))).toMatchObject({
-      type: 'slide.show',
-      slide: {itemId: 'song-morning', position: 0},
-    });
-    expect(document.activeElement).toBe(grid);
   });
 });

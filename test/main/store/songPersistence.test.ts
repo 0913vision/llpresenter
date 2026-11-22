@@ -1,5 +1,4 @@
 import {lyricsSlide} from '@fixtures/core/slides';
-import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
 import {mkdir, readFile, readdir, writeFile} from 'node:fs/promises';
 import {dirname, join} from 'node:path';
 import {beforeEach, expect, it, onTestFinished, vi} from 'vitest';
@@ -40,12 +39,7 @@ const stored = {
   title: 'Invented stored song',
   extension: {keep: true},
   slides: [
-    {
-      id: fixtureSlideId(1),
-      lines: ['Invented dawn'],
-      note: 'first',
-      label: 'Verse',
-    },
+    {...lyricsSlide(1, 'Invented dawn', {label: 'Verse'}), note: 'first'},
     lyricsSlide(2, ['Invented noon'], {label: 'Verse'}),
     lyricsSlide(3, ['Invented evening'], {label: 'Chorus'}),
   ],
@@ -129,7 +123,7 @@ async function revise(content: ContentStore, line: string) {
     song: {
       ...song,
       slides: song.slides.map((slide, index) =>
-        index === 0 ? {...slide, lines: [line]} : slide,
+        index === 0 ? {...slide, texts: {가사: line}} : slide,
       ),
     },
   });
@@ -190,7 +184,9 @@ it('preserves the file on atomic rename failure and retries the newest slide-dec
   await content.flush();
   const saved: unknown = JSON.parse(await readFile(file, 'utf8'));
   expect(saved).toMatchObject({schemaVersion: 1, extension: {keep: true}});
-  expect(saved).toHaveProperty('slides.0.lines', ['Invented newest line']);
+  expect(saved).toHaveProperty('slides.0.texts', {
+    가사: 'Invented newest line',
+  });
   expect(await recoveryText(loaded)).toBe(original);
 });
 
@@ -228,12 +224,7 @@ it('keeps a known newer slide-deck file read-only without rewriting it', async (
     title: 'Invented future song',
     future: {keep: true},
     slides: [
-      {
-        id: fixtureSlideId(4),
-        lines: ['Invented future line'],
-        hotKey: 'KeyA',
-        label: 'Verse',
-      },
+      lyricsSlide(4, 'Invented future line', {hotKey: 'KeyA', label: 'Verse'}),
     ],
   };
   const {file, original, content, write} = await scenario(source);

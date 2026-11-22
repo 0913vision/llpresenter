@@ -62,7 +62,7 @@ it('stops an item through its Output command', () => {
   const {send} = fixture();
   const live = {
     ...emptyLiveState(),
-    themeItem: {id: 'item', kind: 'song' as const, source: 'service' as const},
+    item: {id: 'item', kind: 'song' as const, source: 'service' as const},
   };
   useLive.setState({state: live});
   itemStopEntry(true).onSelect?.();

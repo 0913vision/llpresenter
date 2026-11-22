@@ -1,5 +1,4 @@
 import {lyricsSlide} from '@fixtures/core/slides';
-import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
 import {describe, expect, it} from 'vitest';
 import {parseContentEdit} from '@core/schema/contentEdit';
 import {SONG_IMPORT_LIMITS} from '@core/schema/songImport';
@@ -29,19 +28,28 @@ describe('song.import contract', () => {
   ])('rejects invalid target %o', target => {
     expect(parseContentEdit({...request, target}).ok).toBe(false);
   });
-  it('accepts slide and line limits and retains safe extension fields', () => {
+  it('accepts the most slides and the fields it does not know', () => {
     for (const slides of [
       slidesOf(SONG_IMPORT_LIMITS.slides),
-      [
-        {
-          id: fixtureSlideId(1),
-          lines: Array.from({length: SONG_IMPORT_LIMITS.lines}, () => ''),
-        },
-      ],
-      [{id: fixtureSlideId(1), lines: ['Line'], future: {kept: true}}],
+      [{...lyricsSlide(1, 'Line'), future: {kept: true}}],
     ]) {
       const edit = {...request, draft: {title: 'Limit', slides}};
       expect(parseContentEdit(edit)).toEqual({ok: true, value: edit});
     }
+    const slides = slidesOf(SONG_IMPORT_LIMITS.slides + 1);
+    expect(
+      parseContentEdit({...request, draft: {title: 'Limit', slides}}).ok,
+    ).toBe(false);
+  });
+
+  it('refuses a draft over the character limit', () => {
+    const line = 'x'.repeat(4000);
+    const count = Math.ceil(SONG_IMPORT_LIMITS.characters / line.length);
+    const slides = Array.from({length: count}, (_, index) =>
+      lyricsSlide(index + 1, line),
+    );
+    expect(
+      parseContentEdit({...request, draft: {title: 'Limit', slides}}).ok,
+    ).toBe(false);
   });
 });

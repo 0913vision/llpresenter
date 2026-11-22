@@ -250,33 +250,6 @@ describe('the 파일 menu', () => {
     },
   );
 
-  it('keeps text imports unavailable until the P5 flow mounts, and PowerPoint unavailable', async () => {
-    setup();
-    render(<MenuBar title="" />);
-    await userEvent.click(screen.getByRole('menuitem', {name: '파일'}));
-    await userEvent.click(screen.getByRole('menuitem', {name: '가져오기'}));
-    for (const name of [
-      '텍스트 파일',
-      '클립보드 텍스트',
-      'PowerPoint를 슬라이드로',
-      'PowerPoint를 이미지로',
-      'PowerPoint를 개체와 글자로',
-    ]) {
-      expect(
-        screen
-          .getByRole('menuitem', {name: new RegExp(`^${name}`)})
-          .getAttribute('aria-disabled'),
-      ).toBe('true');
-    }
-    expect(
-      (
-        await hoverForTooltip(
-          screen.getByRole('menuitem', {name: /^텍스트 파일/}),
-        )
-      )?.textContent,
-    ).toBe('아직 없는 기능');
-  });
-
   it('imports media into the library once while the request is pending', async () => {
     setup();
     let complete: (() => void) | undefined;

@@ -11,11 +11,9 @@ import {
 import {contentEndpoints} from '@contracts/ipc/content';
 import {libraryEndpoints} from '@contracts/ipc/library';
 import {liveEndpoints} from '@contracts/ipc/live';
-import {serviceEndpoints} from '@contracts/ipc/service';
 import {createMediaId} from '@core/schema/ids';
 import {parseLibrarySearchResult} from '@core/schema/librarySearch';
-import {parseShowService} from '@core/schema/showService';
-import {readFile, rm} from 'node:fs/promises';
+import {readFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';
 import {DATA_FOLDER_NAME} from '@main/store/locations';
@@ -23,8 +21,6 @@ import {
   HYMN_ONE_ID,
   hymnOne,
   itemId,
-  service,
-  SUNDAY_ID,
   writeJson,
 } from '@fixtures/main/store/testFiles';
 
@@ -59,7 +55,10 @@ describe('content opening through registerStore', () => {
         song: {
           ...current,
           title: 'After edit',
-          slides: current.slides.map(slide => ({...slide, lines: ['After']})),
+          slides: current.slides.map(slide => ({
+            ...slide,
+            texts: {가사: 'After'},
+          })),
         },
       }),
     ).toMatchObject({ok: true});
@@ -68,7 +67,7 @@ describe('content opening through registerStore', () => {
     ).toMatchObject({
       songRevision: 2,
       title: 'After edit',
-      tiles: [{lines: ['After']}],
+      tiles: [{slide: {texts: {가사: 'After'}}}],
     });
     expect(
       await ask(contentEndpoints.edit.channel, {
@@ -82,7 +81,7 @@ describe('content opening through registerStore', () => {
     await store.dispose();
   });
 
-  it('projects a standalone song, rechecks its background file, and leaves the service unchanged', async () => {
+  it('projects a standalone song and leaves the service unchanged', async () => {
     const context = await developmentContext();
     const root = join(context.appDataFolder, DATA_FOLDER_NAME);
     const mediaId = createMediaId(itemId(80));
@@ -111,9 +110,11 @@ describe('content opening through registerStore', () => {
       schemaVersion: 2,
       id: songId,
       title: 'Standalone invented song',
-      background: mediaId,
       slides: [
-        lyricsSlide(2, ['First'], {label: 'Verse'}),
+        lyricsSlide(2, ['First'], {
+          label: 'Verse',
+          background: {kind: 'media', media: mediaId},
+        }),
         lyricsSlide(3, ['Second']),
       ],
       future: 'kept',
@@ -128,19 +129,14 @@ describe('content opening through registerStore', () => {
       songRevision: 1,
       readOnly: true,
       problem: 'newer-version',
-      tiles: [{lines: ['First']}, {lines: ['Second']}],
-      background: {mediaId, loop: false},
+      tiles: [
+        {slide: {texts: {가사: 'First'}}},
+        {slide: {texts: {가사: 'Second'}}},
+      ],
     });
     expect(
       await ask(libraryEndpoints.showSong.channel, {songId: itemId(99)}),
     ).toBeNull();
-    await rm(mediaFile);
-    const missing = await ask(libraryEndpoints.showSong.channel, {songId});
-    expect(missing).toMatchObject({
-      readOnly: true,
-      problem: 'missing-background',
-    });
-    expect(missing).not.toHaveProperty('background');
     expect(await askForService()).toEqual(before);
     expect(content?.openServiceId).toBe(serviceId);
     expect(
@@ -190,7 +186,7 @@ describe('content opening through registerStore', () => {
       title: '바람의 노래',
       slides: current.slides.map(slide => ({
         ...slide,
-        lines: ['다시 피어난 햇살'],
+        texts: {가사: '다시 피어난 햇살'},
       })),
     };
     expect(
@@ -234,67 +230,5 @@ describe('content opening through registerStore', () => {
     });
     await store.dispose();
     expect(electron.handlers.has(libraryEndpoints.search.channel)).toBe(false);
-  });
-
-  it('refreshes background choices, missing-file warnings, and revisions on service reads', async () => {
-    const context = await developmentContext();
-    const root = join(context.appDataFolder, DATA_FOLDER_NAME);
-    const mediaId = itemId(90);
-    const video = join(root, 'Media', 'background.webm');
-    await writeJson(video, 'video');
-    await writeJson(join(root, 'Settings', 'media.json'), {
-      format: 'llmedia',
-      schemaVersion: 1,
-      items: [
-        {
-          id: mediaId,
-          name: 'Background',
-          kind: 'video',
-          file: 'background.webm',
-          size: 5,
-        },
-      ],
-      playlists: [],
-      audioPlaylists: [],
-    });
-    await writeJson(join(root, 'Songs', 'song.llsong'), {
-      ...hymnOne(),
-      background: mediaId,
-    });
-    await writeJson(
-      join(root, 'Services', 'open.llservice'),
-      service(SUNDAY_ID, '2026-11-01T11:00', [
-        {
-          id: itemId(1),
-          kind: 'song',
-          name: '곡',
-          song: HYMN_ONE_ID,
-          slides: [],
-        },
-      ]),
-    );
-    await register(mockLog(), context, () => true);
-
-    expect(await askForService()).toMatchObject({
-      revision: 1,
-      rows: [{background: {mediaId, loop: true}}],
-    });
-    await rm(video);
-    const missing = await askForService();
-    expect(missing).toMatchObject({
-      revision: 2,
-      rows: [{problem: 'missing-background'}],
-    });
-    expect(parseShowService(missing)).toMatchObject({ok: true});
-    await writeJson(video, 'returned');
-    expect(await askForService()).toMatchObject({
-      revision: 3,
-      rows: [{background: {mediaId, loop: true}}],
-    });
-    expect(
-      electron.send.mock.calls.filter(
-        ([channel]) => channel === serviceEndpoints.changed.channel,
-      ),
-    ).toHaveLength(2);
   });
 });

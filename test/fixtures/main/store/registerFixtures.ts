@@ -25,6 +25,7 @@ const electron = vi.hoisted(() => ({
 export {electron};
 
 vi.mock('electron', () => ({
+  shell: {trashItem: () => Promise.resolve()},
   BrowserWindow: {
     getAllWindows: () => [
       {

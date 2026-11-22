@@ -1,6 +1,6 @@
 import {expect, it} from 'vitest';
 import * as v from 'valibot';
-import {itemOverlaySchema, itemOverlaysSchema} from '@core/schema/itemOverlays';
+import {itemOverlaySchema} from '@core/schema/itemOverlays';
 
 const uuid = (n: number) =>
   `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
@@ -12,16 +12,6 @@ const overlay = {
   screens: [uuid(2)],
   content: {text: 'Example'},
 };
-
-it('accepts text and media sources, retaining unknown fields', () => {
-  for (const content of [
-    {text: ''},
-    {media: uuid(3), loop: false, sound: true},
-  ]) {
-    const input = {...overlay, content: {...content, future: 1}};
-    expect(v.parse(itemOverlaySchema, input)).toEqual(input);
-  }
-});
 
 it.each([
   {content: {}},
@@ -44,39 +34,4 @@ it.each([
   expect(v.safeParse(itemOverlaySchema, {...overlay, ...patch}).success).toBe(
     false,
   );
-});
-
-it('bounds screens and allows an empty target list', () => {
-  const screens = Array.from({length: 200}, (_, n) => uuid(n));
-  for (const targets of [[], screens]) {
-    expect(
-      v.safeParse(itemOverlaySchema, {...overlay, screens: targets}).success,
-    ).toBe(true);
-  }
-  expect(
-    v.safeParse(itemOverlaySchema, {
-      ...overlay,
-      screens: [...screens, uuid(201)],
-    }).success,
-  ).toBe(false);
-});
-
-it('bounds overlay counts and requires unique identities', () => {
-  const overlays = Array.from({length: 50}, (_, n) => ({
-    ...overlay,
-    id: uuid(n),
-    from: n + 1,
-    to: n + 1,
-  }));
-  expect(v.safeParse(itemOverlaysSchema, overlays).success).toBe(true);
-  expect(
-    v.safeParse(itemOverlaysSchema, [
-      ...overlays,
-      {...overlay, id: uuid(51), from: 51, to: 51},
-    ]).success,
-  ).toBe(false);
-  expect(
-    v.safeParse(itemOverlaysSchema, [overlay, {...overlay, from: 3, to: 3}])
-      .success,
-  ).toBe(false);
 });

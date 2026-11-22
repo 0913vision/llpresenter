@@ -1,3 +1,4 @@
+import {startOpenServiceSync} from '@renderer/session/openService';
 import {MEDIA_LIMITS} from '@core/schema/mediaList';
 import {WorkspaceNavigation} from '@renderer/platform/WorkspaceNavigation';
 import {
@@ -71,6 +72,7 @@ function setup(
   const problems = vi.fn();
   const navigate = vi.fn();
   window.llp = fixture.api;
+  onTestFinished(startOpenServiceSync());
   onTestFinished(() => {
     delete window.llp;
   });
@@ -163,50 +165,6 @@ describe('media view', () => {
     act(() => actions.addToService?.(mediaId(1)));
     expect(edit).not.toHaveBeenCalled();
     expect(items.service().service.order).toHaveLength(5);
-  });
-  it('adds a media tile after the selected service item and selects it after projection', async () => {
-    const items = itemFixture();
-    const media = mediaFixture(mediaDocument([mediaItem(1, {name: 'Dawn'})]));
-    const fixture = {
-      ...media,
-      api: {
-        ...media.api,
-        services: items.api.services,
-        songs: items.api.songs,
-        content: items.api.content,
-      },
-    };
-    const rows = [
-      {kind: 'song' as const, id: fixtureItems.arranged, title: '첫 곡'},
-      {kind: 'song' as const, id: fixtureItems.plain, title: '다음 곡'},
-    ];
-    useShow.setState({
-      serviceId: fixtureServiceId,
-      readOnly: false,
-      openItemId: fixtureItems.arranged,
-      rows,
-    });
-    onTestFinished(() =>
-      useShow.setState({serviceId: null, openItemId: null, rows: []}),
-    );
-    setup(fixture);
-    fireEvent.contextMenu(await tile('Dawn'));
-    await userEvent.click(
-      await screen.findByRole('menuitem', {name: '예배 순서에 추가'}),
-    );
-    await waitFor(() => expect(items.service().service.order).toHaveLength(6));
-    const order = items.service().service.order;
-    const index = order.findIndex(row => row.id === fixtureItems.arranged);
-    const added = order[index + 1];
-    expect(added).toMatchObject({media: mediaId(1)});
-    expect(order[index + 2]?.id).toBe(fixtureItems.plain);
-    if (added === undefined) throw new Error('Missing media item');
-    act(() =>
-      useShow.setState({
-        rows: [...rows, {kind: 'media', id: added.id, title: 'Dawn'}],
-      }),
-    );
-    expect(useShow.getState().openItemId).toBe(added.id);
   });
 
   it.each(['cancel', 'failed', 'complete'] as const)(
@@ -674,6 +632,7 @@ describe('media view', () => {
       ),
     );
     window.llp = fixture.api;
+    onTestFinished(startOpenServiceSync());
     onTestFinished(() => {
       delete window.llp;
     });
@@ -889,6 +848,7 @@ describe('media view', () => {
       access: 'readOnly',
     });
     window.llp = fixture.api;
+    onTestFinished(startOpenServiceSync());
     onTestFinished(() => {
       delete window.llp;
     });

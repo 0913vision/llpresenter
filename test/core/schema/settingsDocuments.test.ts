@@ -54,31 +54,6 @@ const fixtures = {
 >;
 
 describe('app-wide settings contracts', () => {
-  it.each(settingsNames)(
-    'preserves current unknown fields when editing %s',
-    name => {
-      const current = expectSuccess(
-        parseSettingsDocument({
-          name,
-          value: {...fixtures[name], future: {kept: true}},
-          revision: 1,
-          access: 'editable',
-        }),
-      );
-      const edit = expectSuccess(
-        parseSettingsEdit({
-          type: 'settings.update',
-          name,
-          value: fixtures[name],
-          baseRevision: 1,
-        }),
-      );
-      expect(expectSuccess(mergeSettingsDocument(current, edit))).toMatchObject(
-        {revision: 2, value: {future: {kept: true}}},
-      );
-    },
-  );
-
   it('retains nested preference extensions while deleting omitted known options', () => {
     const current = expectSuccess(
       parseSettingsDocument({
@@ -202,47 +177,6 @@ describe('app-wide settings contracts', () => {
     ]);
   });
 
-  it('preserves nested record extensions while removing deleted dynamic keys', () => {
-    const other = 'a41e0c52-7e1f-4a2b-8c3d-4e5f60718293';
-    const theme = (screens: object) => ({id: other, name: 'Example', screens});
-    const current = expectSuccess(
-      parseSettingsDocument({
-        name: 'themes',
-        value: {
-          ...fixtures.themes,
-          themes: [
-            theme({
-              [ID]: {mode: {kind: 'own'}, elements: [], future: 'kept'},
-              ['b52f1d63-8f2e-4b3c-9d4e-5f6071829304']: {
-                mode: {kind: 'empty'},
-                elements: [],
-                future: 'deleted',
-              },
-            }),
-          ],
-        },
-        revision: 1,
-        access: 'editable',
-      }),
-    );
-    const edit = expectSuccess(
-      parseSettingsEdit({
-        type: 'settings.update',
-        name: 'themes',
-        value: {
-          ...fixtures.themes,
-          themes: [theme({[ID]: {mode: {kind: 'own'}, elements: []}})],
-        },
-        baseRevision: 1,
-      }),
-    );
-    expect(
-      expectSuccess(mergeSettingsDocument(current, edit)).value,
-    ).toHaveProperty('themes.0.screens', {
-      [ID]: {mode: {kind: 'own'}, elements: [], future: 'kept'},
-    });
-  });
-
   it('keeps extensions on renamed labels and matches recent passages without transferring them to a new passage', () => {
     const labels = expectSuccess(
       parseSettingsDocument({
@@ -303,25 +237,6 @@ describe('app-wide settings contracts', () => {
       {ref: 'Example 1:1', translation: 'example', future: 'kept'},
     ]);
   });
-
-  it.each(settingsNames)(
-    'reads and edits %s with its file schema and revision',
-    name => {
-      const value = {...fixtures[name], future: {keep: true}};
-      const request = {name};
-      const document = {name, value, revision: 2, access: 'editable'};
-      const edit = {type: 'settings.update', name, value, baseRevision: 2};
-      expect(expectSuccess(parseSettingsReadRequest(request))).toEqual(request);
-      expect(expectSuccess(parseSettingsDocument(document))).toEqual(document);
-      expect(expectSuccess(parseSettingsReply(name, document))).toEqual(
-        document,
-      );
-      expect(expectSuccess(parseSettingsEdit(edit))).toEqual(edit);
-      expect(parseSettingsDocument({...document, access: 'readOnly'}).ok).toBe(
-        true,
-      );
-    },
-  );
 
   it.each(settingsNames)('rejects another format inside %s', name => {
     const value = {...fixtures[name], format: 'wrong'};

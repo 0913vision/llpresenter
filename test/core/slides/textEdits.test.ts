@@ -54,12 +54,10 @@ describe('splitSlide', () => {
   });
 
   it('marks a verse that goes on', () => {
-    const verse = slideOf(
-      1,
-      'scripture',
-      {본문: '태초에 하나님이'},
-      {verse: VERSE},
-    );
+    const verse = slideOf(1, 'scripture', {
+      texts: {본문: '태초에 하나님이'},
+      verse: VERSE,
+    });
     const result = splitSlide(making, [verse], {...at(4), box: '본문'});
     expect(result?.slides.map(slide => slide.continued)).toEqual([
       true,
@@ -81,7 +79,11 @@ describe('joinSlide', () => {
 
   it('joins the parts of one verse in one row', () => {
     const part = (number: number, text: string, more: Partial<Slide> = {}) =>
-      slideOf(number, 'scripture', {본문: text}, {verse: VERSE, ...more});
+      slideOf(number, 'scripture', {
+        texts: {본문: text},
+        verse: VERSE,
+        ...more,
+      });
     expect(
       joinSlide(
         [part(1, '태초에', {continued: true}), part(2, '하나님이')],
@@ -94,7 +96,10 @@ describe('joinSlide', () => {
   it('leaves slides of two themes apart', () => {
     expect(
       joinSlide(
-        [slideOf(1, 'songTitle', {제목: '빛의 길'}), lyricsSlide(2, '가사')],
+        [
+          slideOf(1, 'songTitle', {texts: {제목: '빛의 길'}}),
+          lyricsSlide(2, '가사'),
+        ],
         slideId(2),
         '가사',
       ),

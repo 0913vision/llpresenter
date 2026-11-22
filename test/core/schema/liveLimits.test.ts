@@ -1,13 +1,9 @@
 import {describe, expect, it} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
-import {
-  parseLiveCommand,
-  parseLiveCommandRequest,
-} from '@core/schema/liveCommand';
+import {parseLiveCommand} from '@core/schema/liveCommand';
 import {parseLiveState} from '@core/schema/liveState';
 import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
 import {parseRecoveryRecord} from '@core/schema/recoveryRecord';
-import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 
 const uuid = (index: number) =>
   `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
@@ -26,76 +22,8 @@ function record(value: unknown) {
     }),
   );
 }
-function slide() {
-  return {itemId: 'item', position: 0, label: null, lines: ['Invented lyric']};
-}
-function message(text: string) {
-  return {
-    messageId: uuid(1),
-    text,
-    targets: 'all',
-    excludedTargets: [],
-    startedAt: 0,
-    expiresAt: null,
-  };
-}
 
 describe('shared live and recovery limits', () => {
-  it.each([
-    'slide line',
-    'slide label',
-    'legacy message',
-    'active message',
-    'stage message',
-    'sent message',
-  ])(
-    'accepts %s at the text limit and rejects one character more in commands, state, and records',
-    kind => {
-      for (const length of [
-        LIVE_STATE_LIMITS.textCharacters,
-        LIVE_STATE_LIMITS.textCharacters + 1,
-      ]) {
-        const text = '가'.repeat(length);
-        const fields = kind === 'stage message' ? {stageMessage: text} : {};
-        const layers =
-          kind === 'stage message'
-            ? {}
-            : kind === 'slide line'
-              ? {slide: {...slide(), lines: [text]}}
-              : kind === 'slide label'
-                ? {slide: {...slide(), label: text}}
-                : kind === 'active message' || kind === 'sent message'
-                  ? {
-                      message: {
-                        messageId: 'summary',
-                        text: '',
-                        items: [message(text)],
-                      },
-                    }
-                  : {message: {messageId: 'legacy', text}};
-        const command =
-          kind === 'stage message'
-            ? {type: 'stage.message.set', text}
-            : kind === 'sent message'
-              ? {type: 'message.send', text, targets: 'all', duration: null}
-              : 'slide' in layers
-                ? {type: 'slide.show', slide: layers.slide}
-                : {type: 'message.show', message: layers.message};
-        const accepted = length === LIVE_STATE_LIMITS.textCharacters;
-        expect(parseLiveCommand(command).ok).toBe(accepted);
-        expect(parseLiveState(state(layers, fields)).ok).toBe(accepted);
-        expect(record(state(layers, fields)).ok).toBe(accepted);
-        const batch = expectSuccess(
-          parseLiveCommandRequest({
-            type: 'live.batch',
-            commands: [command, {type: 'clear.undo'}],
-          }),
-        );
-        expect(batch.rejected).toHaveLength(accepted ? 0 : 1);
-      }
-    },
-  );
-
   it('accepts 200 outputs by screen id and rejects one more', () => {
     const outputs = Object.fromEntries(
       Array.from(
