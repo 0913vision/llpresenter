@@ -11,7 +11,7 @@ export interface RowsText {
   readonly wrap: 'normal' | 'balance';
   /** The text goes on on the next slide. */
   readonly continued: boolean;
-  /** Shown in front of the first row, smaller than nothing else. */
+  /** Shown in front of the first row, such as the label of the slide. */
   readonly prefix?: string | undefined;
 }
 

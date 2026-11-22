@@ -60,7 +60,7 @@ function open(item: ServiceItem) {
 /** Measures every character as 40 wide. */
 const canvas = {
   font: '',
-  measureText: (text: string) => ({width: [...text].length * 40}),
+  measureText: (text: string) => ({width: Array.from(text).length * 40}),
 };
 
 beforeEach(() => {
