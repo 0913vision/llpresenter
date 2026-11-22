@@ -1,4 +1,4 @@
-/* 41 PreviewFrame: preview panel body. One large preview + two small previews. The panel body gives the panel-inset 14 padding. */
+/* 41 PreviewFrame: preview panel body. One large preview + two small previews. The panel body gives the panel-inset 20 padding. */
 .ll-monitor { display: flex; flex-direction: column; gap: var(--space-10); min-width: 0; }
 .ll-monitor__main { display: flex; flex-direction: column; gap: var(--space-10); min-width: 0; }
 

@@ -302,12 +302,12 @@ describe('what fills itself', () => {
     const {current} = renderEditor(song());
     await userEvent.click(row(2));
     await openTab('내용');
-    expect(edit().getAttribute('aria-label')).toBe('편집');
+    expect(edit().textContent).toBe('편집');
     await userEvent.click(edit());
     expect(next().value).toBe('빛을 따라가요');
     await userEvent.type(next(), ' 다시');
     expect(current.slides[2]?.next).toBe('빛을 따라가요 다시');
-    expect(edit().getAttribute('aria-label')).toBe('기본값으로');
+    expect(edit().textContent).toBe('기본값으로');
     await userEvent.click(edit());
     expect(current.slides[2]?.next).toBeUndefined();
     expect(next().readOnly).toBe(true);

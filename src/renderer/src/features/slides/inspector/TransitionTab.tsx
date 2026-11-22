@@ -15,11 +15,12 @@ import {
   SLIDE_EFFECTS,
 } from '@renderer/ui/slideTransitionChoices';
 import {focusSlides} from '../deckSelection';
+import {ApplyToAll} from './ApplyToAll';
 import {changeSelected, type ChosenSlides} from './changeSelected';
 import styles from './SlideInspector.module.css';
 
 /** The transition of several slides, or the one to start from. */
-export function chosenTransition(chosen: ChosenSlides['chosen']): {
+function chosenTransition(chosen: ChosenSlides['chosen']): {
   readonly value: SlideTransition;
   readonly mixed: boolean;
 } {
@@ -94,7 +95,7 @@ export function TransitionTab({deck, chosen}: ChosenSlides): JSX.Element {
   const set = (transition: SlideTransition): void =>
     changeSelected(deck, slide => withTransition(slide, transition));
   return (
-    <PropertyGroup>
+    <PropertyGroup title="화면 전환">
       <div className={styles.transitionRows}>
         <PropertyRow label="효과">
           {() => (
@@ -177,6 +178,12 @@ export function TransitionTab({deck, chosen}: ChosenSlides): JSX.Element {
             />
           )}
         </PropertyRow>
+        <ApplyToAll
+          deck={deck}
+          change={mixed ? null : slide => withTransition(slide, value)}
+        >
+          전체 슬라이드에 적용
+        </ApplyToAll>
       </div>
     </PropertyGroup>
   );

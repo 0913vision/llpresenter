@@ -10,7 +10,6 @@ import {focusedSlide, selectedSlides, useDeckSelection} from '../deckSelection';
 import {SlidePreview, usePreviewScreen} from '../SlidePreview';
 import {SlideSidePanel} from '../SlideSidePanel';
 import type {SlideDeck} from '../slideDeck';
-import {ApplyToAll} from './ApplyToAll';
 import {
   INSPECTOR_TABS,
   showInspectorTab,
@@ -90,7 +89,6 @@ export function SlideInspector({
               <TransitionTab deck={deck} chosen={chosen} />
             )}
           </Properties>
-          <ApplyToAll deck={deck} chosen={chosen} tab={tab} />
         </div>
       )}
     </SlideSidePanel>

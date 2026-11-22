@@ -6,7 +6,7 @@ import {useThemes} from '@renderer/platform/themes';
 import {WorkspaceNavigation} from '@renderer/platform/WorkspaceNavigation';
 import {openTheme} from '@renderer/session/themeRequests';
 import {Button} from '@renderer/ui/Button';
-import {PropertyRow} from '@renderer/ui/PropertyRow';
+import {PropertyControl} from '@renderer/ui/PropertyRow';
 import {SelectMenu} from '@renderer/ui/SelectMenu';
 import {changeSelected, type ChosenSlides} from './changeSelected';
 import styles from './SlideInspector.module.css';
@@ -24,35 +24,32 @@ export function ThemeRow({deck, chosen}: ChosenSlides): JSX.Element {
       ? (themes?.themes ?? []).filter(theme => purposes.has(theme.purpose))
       : [];
   return (
-    <PropertyRow label="테마">
-      {({controlId}) => (
-        <span className={styles.withAction}>
-          <SelectMenu<ThemeId>
-            id={controlId}
-            aria-label="테마"
-            block
-            disabled={deck.readOnly || options.length === 0}
-            value={mixed ? undefined : first?.id}
-            valueText={mixed ? '혼합' : (first?.name ?? '없음')}
-            options={options.map(theme => ({
-              value: theme.id,
-              label: theme.name,
-            }))}
-            onChange={id => changeSelected(deck, slide => withTheme(slide, id))}
-          />
-          <Button
-            size="md"
-            disabled={navigate === undefined || first === undefined}
-            onClick={() => {
-              if (first === undefined) return;
-              openTheme(first.id);
-              navigate?.('screens');
-            }}
-          >
-            테마 편집
-          </Button>
-        </span>
-      )}
-    </PropertyRow>
+    <PropertyControl>
+      <span className={styles.withAction}>
+        <SelectMenu<ThemeId>
+          aria-label="테마"
+          block
+          disabled={deck.readOnly || options.length === 0}
+          value={mixed ? undefined : first?.id}
+          valueText={mixed ? '혼합' : (first?.name ?? '없음')}
+          options={options.map(theme => ({
+            value: theme.id,
+            label: theme.name,
+          }))}
+          onChange={id => changeSelected(deck, slide => withTheme(slide, id))}
+        />
+        <Button
+          size="md"
+          disabled={navigate === undefined || first === undefined}
+          onClick={() => {
+            if (first === undefined) return;
+            openTheme(first.id);
+            navigate?.('screens');
+          }}
+        >
+          테마 편집
+        </Button>
+      </span>
+    </PropertyControl>
   );
 }

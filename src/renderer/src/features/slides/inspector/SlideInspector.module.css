@@ -8,6 +8,10 @@
   width: var(--size-field-number);
 }
 
+.applyToAll {
+  margin-top: var(--space-8);
+}
+
 .transitionRows {
   display: grid;
   gap: var(--space-8);

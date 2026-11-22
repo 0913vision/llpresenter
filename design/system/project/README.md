@@ -43,7 +43,7 @@ is never wrong.
 7. **Dense but readable.** Design for a 1920×1080 full-screen window. UI text is
    never smaller than 14px, `body` text is 16px, and the default row height is
    `size-row` (30px). Text and grids in a panel start at the `panel-inset`
-   (14px) line.
+   (20px) line.
 
 ## Color
 
@@ -168,7 +168,7 @@ replaced by a system font.
 - Every spacing value is a `space-*` token. The base unit is 4px; 2, 6, 10, and
   14px appear only where they are already used.
 - `panel-gap` (4px) is between panels and at the window edges, `panel-inset`
-  (14px) inside panels, and `dialog-inset` (16px) inside dialogs.
+  (20px) inside panels, and `dialog-inset` (16px) inside dialogs.
 
 | Height | Token                                                        | Where to use                                                  |
 | ------ | ------------------------------------------------------------ | ------------------------------------------------------------- |

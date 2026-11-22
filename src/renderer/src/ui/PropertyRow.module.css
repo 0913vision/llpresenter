@@ -3,6 +3,8 @@
   --property-row-height: var(--size-prop-row);
   --property-gap: var(--space-12);
   --property-control-max: none;
+  --property-indent: var(--space-14);
+  --property-group-padding: var(--space-16);
 }
 
 .window {
@@ -10,6 +12,8 @@
   --property-row-height: var(--size-prop-row-wide);
   --property-gap: var(--space-16);
   --property-control-max: var(--size-prop-control-max);
+  --property-indent: 0px;
+  --property-group-padding: var(--space-12);
 }
 
 .columns {
@@ -35,7 +39,7 @@
 }
 
 .group {
-  padding: var(--space-12) 0 var(--space-8);
+  padding: var(--property-group-padding) 0;
   border-bottom: 1px solid var(--line);
 }
 
@@ -47,9 +51,14 @@
   display: flex;
   align-items: center;
   gap: var(--space-6);
-  margin: 0 0 var(--space-4);
-  color: var(--text-2);
+  min-height: var(--size-control-sm);
+  margin: 0 0 var(--space-6);
+  color: var(--text);
   font: var(--type-caption-strong);
+}
+
+.titled > .rows {
+  padding-left: var(--property-indent);
 }
 
 .row {

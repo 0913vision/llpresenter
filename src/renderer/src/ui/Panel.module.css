@@ -213,6 +213,10 @@
   padding-top: 0;
 }
 
+.properties {
+  padding: 0 var(--panel-inset);
+}
+
 .flush {
   padding: 0;
 }

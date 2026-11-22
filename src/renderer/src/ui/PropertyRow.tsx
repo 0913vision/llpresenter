@@ -77,7 +77,7 @@ export function PropertyGroup({
     <div
       role="group"
       aria-labelledby={title === undefined ? undefined : titleId}
-      className={styles.group}
+      className={classNames(styles.group, title !== undefined && styles.titled)}
     >
       {title === undefined ? null : (
         <p id={titleId} className={styles.groupTitle}>
@@ -90,7 +90,20 @@ export function PropertyGroup({
           )}
         </p>
       )}
-      {children}
+      <div className={styles.rows}>{children}</div>
+    </div>
+  );
+}
+
+/** A control that the title of its group names, over the whole row. */
+export function PropertyControl({
+  children,
+}: {
+  readonly children: ReactNode;
+}): JSX.Element {
+  return (
+    <div className={styles.row}>
+      <span className={styles.control}>{children}</span>
     </div>
   );
 }

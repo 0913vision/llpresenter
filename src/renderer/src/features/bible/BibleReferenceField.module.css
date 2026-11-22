@@ -1,5 +1,5 @@
 .field {
-  padding: var(--space-8) var(--panel-inset);
+  padding: var(--space-8) calc(var(--panel-inset) - var(--space-8));
 }
 
 .form {

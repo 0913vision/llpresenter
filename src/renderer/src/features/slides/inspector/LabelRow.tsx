@@ -2,7 +2,7 @@ import {useState, type JSX} from 'react';
 import {withLabel} from '@core/slides';
 import {LabelMenu} from '@renderer/features/labels/LabelMenu';
 import {useLabelCatalog} from '@renderer/features/labels/labels';
-import {PropertyRow} from '@renderer/ui/PropertyRow';
+import {PropertyControl} from '@renderer/ui/PropertyRow';
 import {Select} from '@renderer/ui/Select';
 import {changeSelected, type ChosenSlides} from './changeSelected';
 
@@ -15,20 +15,17 @@ export function LabelRow({deck, chosen}: ChosenSlides): JSX.Element {
   const mixed = chosen.some(slide => slide.label !== label);
   return (
     <>
-      <PropertyRow label="이름표">
-        {({controlId}) => (
-          <Select
-            ref={setTrigger}
-            id={controlId}
-            aria-label="이름표"
-            block
-            value={mixed ? '혼합' : (label ?? '없음')}
-            disabled={deck.readOnly || catalog === null}
-            expanded={open}
-            onExpandedChange={setOpen}
-          />
-        )}
-      </PropertyRow>
+      <PropertyControl>
+        <Select
+          ref={setTrigger}
+          aria-label="이름표"
+          block
+          value={mixed ? '혼합' : (label ?? '없음')}
+          disabled={deck.readOnly || catalog === null}
+          expanded={open}
+          onExpandedChange={setOpen}
+        />
+      </PropertyControl>
       {!open || trigger === null || catalog === null ? null : (
         <LabelMenu
           store={catalog}

@@ -63,6 +63,7 @@
   min-height: var(--size-row);
   height: auto;
   padding: var(--space-8);
+  justify-content: flex-start;
   white-space: normal;
   word-break: keep-all;
   text-align: left;
@@ -70,7 +71,7 @@
 
 /* NOTE(0913vision): Two columns of tiles break the longer names in a narrow
    left column; one column keeps every name on one line. */
-@container (max-width: 250px) {
+@container (max-width: 340px) {
   .tiles {
     grid-template-columns: minmax(0, 1fr);
   }

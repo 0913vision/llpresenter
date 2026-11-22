@@ -52,7 +52,7 @@ export function ThemeProperties({
           onChange={model.setTab}
         />
       </PanelHeader>
-      <PanelBody tab={model.tab}>
+      <PanelBody variant="properties" tab={model.tab}>
         {model.tab === 'theme' ? (
           <ThemeFileProperties model={model} />
         ) : model.tab === 'screen' ? (

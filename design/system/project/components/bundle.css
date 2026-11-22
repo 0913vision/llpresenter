@@ -688,9 +688,10 @@
 /* ---- 27-property.css ---- */
 /* 27 PropertyRow: property group (ll-prop-group) and row (ll-prop). The placement (panel, window) sets the name cell width */
 .ll-props { font-family: var(--font-ui); }
-.ll-prop-group { padding: var(--space-12) 0 var(--space-8); border-bottom: 1px solid var(--line); }
+.ll-prop-group { padding: var(--space-16) 0; border-bottom: 1px solid var(--line); }
 .ll-prop-group:last-child { border-bottom: 0; }
-.ll-prop-group__title { display: flex; align-items: center; gap: var(--space-6); margin: 0 0 var(--space-4); font: var(--type-caption-strong); color: var(--text-3); }
+.ll-prop-group__title { display: flex; align-items: center; gap: var(--space-6); min-height: var(--size-control-sm); margin: 0 0 var(--space-6); font: var(--type-caption-strong); color: var(--text); }
+.ll-prop-group__title ~ * { margin-left: var(--space-14); }
 .ll-prop-group__title .ll-i { width: var(--size-icon-12); height: var(--size-icon-12); }
 
 .ll-prop { display: flex; align-items: center; gap: var(--space-12); min-height: var(--size-prop-row); }
@@ -706,6 +707,8 @@
 .ll-prop--top .ll-prop__label { padding-top: 7px; }
 
 /* Window (Preferences) */
+.ll-props--window .ll-prop-group { padding: var(--space-12) 0; }
+.ll-props--window .ll-prop-group__title ~ * { margin-left: 0; }
 .ll-props--window .ll-prop { gap: var(--space-16); min-height: var(--size-prop-row-wide); }
 .ll-props--window .ll-prop__label { flex-basis: var(--size-prop-label-wide); }
 .ll-props--window .ll-prop__control { flex: 0 1 340px; }
@@ -1036,7 +1039,7 @@
 @media (prefers-reduced-motion: reduce) { .ll-thumb { transition: none; } }
 
 /* ---- 41-previewframe.css ---- */
-/* 41 PreviewFrame: preview panel body. One large preview + two small previews. The panel body gives the panel-inset 14 padding. */
+/* 41 PreviewFrame: preview panel body. One large preview + two small previews. The panel body gives the panel-inset 20 padding. */
 .ll-monitor { display: flex; flex-direction: column; gap: var(--space-10); min-width: 0; }
 .ll-monitor__main { display: flex; flex-direction: column; gap: var(--space-10); min-width: 0; }
 

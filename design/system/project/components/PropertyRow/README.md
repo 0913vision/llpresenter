@@ -16,8 +16,8 @@ A row that places one name and one control side by side in a property field or a
 
 ## Anatomy
 
-- Group `ll-prop-group`: top `space-12`, bottom `space-8`, a 1px `line` below. The last group has no line.
-- Group name `ll-prop-group__title`: `caption-strong` (16/22/600), `text-2`, bottom `space-4`. Every group head and message head of a panel reads the same, so none looks dimmer than the next. If it needs a leading icon, use 12px, 6px from the name (메모).
+- Group `ll-prop-group`: `space-16` above and below (`space-12` in a window), a 1px `line` below. The last group has no line.
+- Group name `ll-prop-group__title`: `caption-strong` (16/22/600), `text`, bottom `space-6`. In a panel the rows under it are indented by `space-14`, so every group of a panel has a name. A group with one control that the name already says (테마, 배경) has no name cell: in code `PropertyControl`. Every group head and message head of a panel reads the same, so none looks dimmer than the next. If it needs a leading icon, use 12px, 6px from the name (메모).
 - Row `ll-prop`: name cell + control cell, vertically centered.
 - Name `ll-prop__label`: `label` (14/20), `text-2`. Write it as `label for` so that it connects to the control.
 - Control cell `ll-prop__control`: the remaining width. Gap between the items inside it `space-8`. Place md controls (`size-control-md` 30) in it: `TextField`, `Select` (`--block`), `SegmentedControl` (`--fill`), `Checkbox`, `Slider` (`--block`), number field + unit.
@@ -27,7 +27,7 @@ A row that places one name and one control side by side in a property field or a
 - A value plus a button in a 환경설정 row (마지막 백업 and 지금 백업, a folder path and 바꾸기…) keeps the value first and the md `Button` after it.
 - An action-only row (기록 폴더, 진단 정보, 모니터) has no value: its md `Button` starts the control cell, like any other control, and a result such as 복사했습니다 follows it in `label` `text-2`. It is not pushed to the right end.
 - A dependent value sits on its parent's row: the seconds field of a transition follows the segmented control on the same row, and only while the choice needs it.
-- A group of lead rows that need no name (일반, 출력) uses `PropertyGroup` without a title.
+- A group of lead rows that need no name (일반, 출력) uses `PropertyGroup` without a title, only in a window.
 - Put a multi-line control (메모) under the group name at the full cell width, without a name cell. If a multi-line control really needs a name cell, use `ll-prop--top` to align the name with the first line.
 
 ### Name cell width rules
@@ -49,7 +49,7 @@ The place where the row sits sets the name cell width. Don't set it separately f
 | --- | --- | --- | --- |
 | Panel row | 36 | Name `label` 14/20 `text-2` | Property panels, 테마 grid |
 | Window row `ll-props--window` | 38 | Same | Preferences |
-| Group name | 22 | `caption-strong` 16/22/600 `text-2` | All groups |
+| Group name | 26 | `caption-strong` 16/22/600 `text` | All groups |
 | Value | 22 | `body` 16/22 `text-2` | Read-only values |
 
 ## States

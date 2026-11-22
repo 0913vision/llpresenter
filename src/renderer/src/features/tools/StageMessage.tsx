@@ -2,7 +2,7 @@ import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useState, type JSX} from 'react';
 import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
 import {sendLive, useLive} from '@renderer/session/live';
-import {Button, LiveBadge, TextField} from '@renderer/ui';
+import {Button, LiveBadge, PropertyGroup, TextField} from '@renderer/ui';
 import {isComposing} from '@renderer/ui/ime';
 import {hideStageMessage} from './toolCommands';
 import styles from './StageTab.module.css';
@@ -31,11 +31,10 @@ export function StageMessage({
   };
   useWindowShortcuts([{id: 'stage.sendMessage', run: () => send(text)}]);
   return (
-    <section aria-label="무대 메시지" className={styles.message}>
-      <div className={styles.heading}>
-        <span>무대 메시지</span>
-        {live ? <LiveBadge /> : null}
-      </div>
+    <PropertyGroup
+      title="무대 메시지"
+      action={live ? <LiveBadge /> : undefined}
+    >
       <div className={styles.compose}>
         <TextField
           aria-label="무대 메시지"
@@ -76,6 +75,6 @@ export function StageMessage({
           보내기
         </Button>
       </div>
-    </section>
+    </PropertyGroup>
   );
 }

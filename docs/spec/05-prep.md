@@ -105,16 +105,16 @@ the compact 예배 순서, or the library; its right column shows the selected
 - **The right column** has the header of the 미리보기 panel of 진행: the name,
   and at its right end 청중, 무대 and 방송, which choose the screen of the
   picture. Below it are three tabs, which stay the same from 슬라이드 to
-  슬라이드: 내용 (the texts, 이름표, and 부가 정보), 디자인 (테마, 배경, and
-  배경 위치), and 전환. Groups of one tab have a line between them. The last
-  button of 모양 and of 전환, right below their rows, gives the background or
-  the transition to every 슬라이드. A setting changes every selected 슬라이드;
-  differing values are shown as mixed.
+  슬라이드: 내용, 디자인, and 전환. Each tab has named groups, whose rows are
+  indented: 텍스트, 이름표, and 부가 정보; 테마, 배경, and 배경 위치; 화면 전환.
+  The last button of 디자인 and of 전환, right below the rows and as wide as its
+  name, gives the background or the transition to every 슬라이드. A setting
+  changes every selected 슬라이드; differing values are shown as mixed.
 - **What fills itself** and is seldom changed is locked: 부가 정보 (boxes with a
   default such as 주소, and 미리 보여줄 내용), and 배경 위치 (맞춤, size, and
   place of a picture). Each shows its default until 편집 is pressed; a text then
-  starts from the default. Pressing it again locks it and puts the default back.
-  The list view locks its columns the same way.
+  starts from the default, and the button becomes 기본값으로, which locks it and
+  puts the default back. The list view locks its columns the same way.
 - 미리 보여줄 내용 is what the 슬라이드 before shows on 무대.
 - 슬라이드 추가 makes one in the 테마 that follows the one before it, with the
   same background. 타이틀 adds a title of the list.

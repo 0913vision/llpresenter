@@ -33,7 +33,7 @@ One row of a list. The base is a 30px row with a 16px type icon, a 16px name, an
 
 ## Anatomy
 
-- Row `ll-row`: height `size-row` (30px), horizontal padding `panel-inset` (14px), width 100%. It reaches the panel edges and has no corner radius.
+- Row `ll-row`: height `size-row` (30px), horizontal padding `panel-inset` (20px), width 100%. It reaches the panel edges and has no corner radius.
   - Icon `ll-row__icon`: 16px `text-2`, `space-10` from the name.
   - Name `ll-row__title`: `body` (16/22) `text`, one line, truncated with an ellipsis.
   - Extra information `ll-row__meta`: at the right end, `caption` (14/20) `text-3`, tabular numbers. 슬라이드 (slide) count ("슬라이드 9개"), duration ("5:00"), count ("42"), 구성 (arrangement) name ("주일용").

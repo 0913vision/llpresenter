@@ -56,8 +56,8 @@ export function StageTab({
             )}
           </PropertyRow>
         </PropertyGroup>
+        <StageMessage available={unavailable === undefined} />
       </Properties>
-      <StageMessage available={unavailable === undefined} />
     </div>
   );
 }

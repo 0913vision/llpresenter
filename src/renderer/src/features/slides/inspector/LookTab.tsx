@@ -1,9 +1,10 @@
-import {useState, type JSX} from 'react';
+import {useState, type JSX, type ReactNode} from 'react';
 import {sameJson} from '@core/common/sameJson';
 import type {SlideBackground} from '@core/schema/theme';
 import {withBackground} from '@core/slides';
-import {PropertyGroup, PropertyRow} from '@renderer/ui/PropertyRow';
+import {PropertyControl, PropertyGroup} from '@renderer/ui/PropertyRow';
 import {OwnTextButton} from '../OwnTextButton';
+import {ApplyToAll} from './ApplyToAll';
 import {BackgroundPlace, isPlaced, unplaced} from './BackgroundPlace';
 import {changeSelected, type ChosenSlides} from './changeSelected';
 import {SlideBackgroundControl} from './SlideBackgroundControl';
@@ -16,7 +17,11 @@ function PlaceGroup({
   deck,
   chosen,
   picture,
-}: ChosenSlides & {readonly picture: Picture}): JSX.Element {
+  children,
+}: ChosenSlides & {
+  readonly picture: Picture;
+  readonly children: ReactNode;
+}): JSX.Element {
   const ids = chosen.map(slide => slide.id).join(',');
   const [open, setOpen] = useState<string | null>(null);
   const placed = isPlaced(picture);
@@ -44,12 +49,13 @@ function PlaceGroup({
         disabled={deck.readOnly || !on}
         onChange={set}
       />
+      {children}
     </PropertyGroup>
   );
 }
 
 /** The background that the chosen slides share, or the first one's. */
-export function chosenBackground(chosen: ChosenSlides['chosen']): {
+function chosenBackground(chosen: ChosenSlides['chosen']): {
   readonly value: SlideBackground | undefined;
   readonly mixed: boolean;
 } {
@@ -63,27 +69,38 @@ export function chosenBackground(chosen: ChosenSlides['chosen']): {
 /** The theme and the background of the selected slides. */
 export function LookTab({deck, chosen}: ChosenSlides): JSX.Element {
   const {value, mixed} = chosenBackground(chosen);
+  const placed = !mixed && value?.kind === 'media' ? value : null;
+  const applyToAll = (
+    <ApplyToAll
+      deck={deck}
+      change={mixed ? null : slide => withBackground(slide, value)}
+    >
+      배경을 전체 슬라이드에 적용
+    </ApplyToAll>
+  );
   return (
     <>
-      <PropertyGroup>
+      <PropertyGroup title="테마">
         <ThemeRow deck={deck} chosen={chosen} />
-        <PropertyRow label="배경">
-          {({controlId}) => (
-            <SlideBackgroundControl
-              id={controlId}
-              value={value}
-              mixed={mixed}
-              disabled={deck.readOnly}
-              onChange={background =>
-                changeSelected(deck, slide => withBackground(slide, background))
-              }
-            />
-          )}
-        </PropertyRow>
       </PropertyGroup>
-      {!mixed && value?.kind === 'media' ? (
-        <PlaceGroup deck={deck} chosen={chosen} picture={value} />
-      ) : null}
+      <PropertyGroup title="배경">
+        <PropertyControl>
+          <SlideBackgroundControl
+            value={value}
+            mixed={mixed}
+            disabled={deck.readOnly}
+            onChange={background =>
+              changeSelected(deck, slide => withBackground(slide, background))
+            }
+          />
+        </PropertyControl>
+        {placed === null ? applyToAll : null}
+      </PropertyGroup>
+      {placed === null ? null : (
+        <PlaceGroup deck={deck} chosen={chosen} picture={placed}>
+          {applyToAll}
+        </PlaceGroup>
+      )}
     </>
   );
 }

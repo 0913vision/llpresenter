@@ -136,7 +136,7 @@ export function ThemeFileProperties({
           </Button>
         </div>
       </PropertyGroup>
-      <PropertyGroup title="앞 슬라이드에 보여줄 글">
+      <PropertyGroup title="미리 보여줄 내용">
         <ThemeTemplates
           model={model}
           label="문구"

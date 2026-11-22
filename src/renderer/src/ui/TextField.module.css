@@ -138,6 +138,10 @@
   gap: var(--space-8);
 }
 
+.numberRow .input:read-only {
+  color: var(--text-3);
+}
+
 .unit {
   flex: none;
   color: var(--text-3);

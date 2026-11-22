@@ -327,11 +327,12 @@ export function PanelTools({
 }
 
 /** A body with 14px padding, a list body, or a body with no padding. */
-export type PanelBodyVariant = 'padded' | 'list' | 'flush';
+export type PanelBodyVariant = 'padded' | 'list' | 'properties' | 'flush';
 
 const bodyClass = {
   padded: undefined,
   list: styles.list,
+  properties: styles.properties,
   flush: styles.flush,
 } as const satisfies Record<PanelBodyVariant, string | undefined>;
 

@@ -29,7 +29,7 @@ export function TextsTab({
   return (
     <>
       {place === null || own.length === 0 ? null : (
-        <PropertyGroup>
+        <PropertyGroup title="텍스트">
           <div className={styles.texts}>
             {own.map(box => (
               <SlideTextField key={box} {...place} box={box} />
@@ -37,7 +37,7 @@ export function TextsTab({
           </div>
         </PropertyGroup>
       )}
-      <PropertyGroup>
+      <PropertyGroup title="이름표">
         <LabelRow deck={deck} chosen={chosen} />
       </PropertyGroup>
       {place === null || filled.length === 0 ? null : (
