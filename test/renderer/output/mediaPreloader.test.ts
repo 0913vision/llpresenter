@@ -50,6 +50,7 @@ async function setup(decks: Readonly<Record<string, readonly Slide[]>>) {
     ),
   };
   const document: MediaDocument = {
+    name: 'media',
     value: {
       format: 'llmedia',
       schemaVersion: 1,

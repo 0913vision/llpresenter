@@ -2,6 +2,7 @@ import {render} from '@testing-library/react';
 import {useMemo, useState, type JSX} from 'react';
 import type {Slide} from '@core/schema/slide';
 import type {SlideSource} from '@core/slides/tiles';
+import {BackgroundDrop} from '@renderer/features/slides/BackgroundDrop';
 import {SlideEditor} from '@renderer/features/slides/SlideEditor';
 import {SlideInspector} from '@renderer/features/slides/SlideInspector';
 import {
@@ -10,6 +11,7 @@ import {
 } from '@renderer/features/slides/slideDeck';
 import {seedSlideSurfaceView} from '@renderer/features/slides/SlideSurfaceView';
 import {useThemes} from '@renderer/platform/themes';
+import type {Report} from '@renderer/session/serviceEdit';
 import {themes, themeScreens} from '@fixtures/core/themeOutput';
 
 const NO_COLORS = new Map();
@@ -23,11 +25,13 @@ export function renderEditor(
     grid = false,
     source = {kind: 'song', title: '새 노래'},
     onBack = () => undefined,
+    report = () => undefined,
   }: {
     readonly readOnly?: boolean;
     readonly grid?: boolean;
     readonly source?: SlideSource;
     readonly onBack?: () => void;
+    readonly report?: Report;
   } = {},
 ) {
   useThemes.setState({themes: themes(), screens: themeScreens});
@@ -67,7 +71,7 @@ export function renderEditor(
     );
     const tiles = useDeckTiles(deck, NO_COLORS);
     return (
-      <>
+      <BackgroundDrop deck={deck} report={report}>
         <SlideEditor
           deck={deck}
           tiles={tiles}
@@ -75,7 +79,7 @@ export function renderEditor(
           onBack={onBack}
         />
         <SlideInspector deck={deck} tiles={tiles} />
-      </>
+      </BackgroundDrop>
     );
   }
   return {...render(<Harness />), current};

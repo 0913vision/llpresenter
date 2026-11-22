@@ -1,7 +1,10 @@
 import {act, fireEvent, screen, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import {beforeEach, expect, it, vi} from 'vitest';
+import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {BUILT_IN_THEME_IDS} from '@core/theme/builtIn/ids';
+import {MEDIA_DRAG_MIME} from '@renderer/features/media/mediaDrag';
+import {useMedia} from '@renderer/platform/media';
+import {fixtureMedia, itemMedia} from '@fixtures/core/mediaList';
 import {lyricsSlide, slideId, slideOf} from '@fixtures/core/slides';
 import {renderEditor, textsOf} from '@fixtures/renderer/features/slides/editor';
 
@@ -314,4 +317,89 @@ it('moves from a field beside the slides to them with Esc', async () => {
   await userEvent.click(inspector().getByRole('textbox', {name: '제목'}));
   await userEvent.keyboard('{Escape}');
   expect(document.activeElement).toBe(surface());
+});
+
+describe('the background of a slide', () => {
+  const {warm, dawn, hymn} = fixtureMedia;
+
+  beforeEach(() => {
+    const document = itemMedia();
+    useMedia.setState({
+      document,
+      items: document.value.items,
+      missing: new Set(),
+    });
+  });
+
+  function drop(index: number, id: string) {
+    fireEvent.drop(row(index), {
+      dataTransfer: {types: [MEDIA_DRAG_MIME], getData: () => id},
+    });
+  }
+
+  it('is a media file dropped on it', () => {
+    const {current} = renderEditor(song());
+    drop(1, warm);
+    expect(current.slides.map(slide => slide.background)).toEqual([
+      undefined,
+      {kind: 'media', media: warm},
+      undefined,
+    ]);
+  });
+
+  it('is the dropped file for the whole selection, when one of it is meant', () => {
+    const {current} = renderEditor(song());
+    act(() => surface().focus());
+    key('ArrowDown', {shiftKey: true});
+    drop(1, dawn);
+    expect(current.slides.map(slide => slide.background?.kind)).toEqual([
+      'media',
+      'media',
+      undefined,
+    ]);
+  });
+
+  it('is no audio, and no file that is gone', () => {
+    const report = vi.fn();
+    const {current} = renderEditor(song(), {report});
+    drop(1, hymn);
+    useMedia.setState({missing: new Set([warm])});
+    drop(1, warm);
+    expect(report).toHaveBeenCalledTimes(2);
+    expect(current.slides).toEqual(song());
+  });
+
+  it('is chosen at the right, and taken away again', async () => {
+    const {current} = renderEditor(song());
+    const choose = async (name: string) => {
+      await userEvent.click(inspector().getByRole('button', {name: '배경'}));
+      fireEvent.change(screen.getByRole('combobox'), {target: {value: name}});
+      fireEvent.click(screen.getByRole('option', {name}));
+    };
+    await choose('따뜻한 빛');
+    expect(current.slides[0]?.background).toEqual({kind: 'media', media: warm});
+    expect(inspector().getByRole('button', {name: '맞춤'})).toBeTruthy();
+    await choose('없음');
+    expect(current.slides[0]?.background).toEqual({kind: 'none'});
+    await choose('테마 배경');
+    expect(current.slides[0]?.background).toBeUndefined();
+  });
+
+  it('is given to every slide', async () => {
+    const {current} = renderEditor(
+      song().map((slide, index) =>
+        index === 0
+          ? {...slide, background: {kind: 'media' as const, media: warm}}
+          : slide,
+      ),
+    );
+    const [apply] = inspector().getAllByRole('button', {
+      name: '전체 슬라이드에 적용',
+    });
+    if (apply === undefined) throw new Error('Missing button');
+    await userEvent.click(apply);
+    expect(
+      current.slides.every(slide => slide.background?.kind === 'media'),
+    ).toBe(true);
+  });
 });
