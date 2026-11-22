@@ -1,4 +1,5 @@
 import type {BibleLookupPassage} from '@core/schema/bibleLookup';
+import type {Slide} from '@core/schema/slide';
 import {cutBy} from '@core/bible/split/splitPassage';
 import {passageSlides} from '@core/slides/passageSlides';
 import {slideMaking} from '@renderer/platform/themes';
@@ -20,7 +21,7 @@ function samePassage(
   return first.ref === second.ref && first.translation === second.translation;
 }
 
-/** Whether a passage shows verses of another one the same way. */
+/** Whether a passage shows every verse of another one, the same way. */
 function goesOnFrom(
   opened: BibleSource | null,
   passage: BibleLookupPassage,
@@ -31,7 +32,7 @@ function goesOnFrom(
     opened.passage.translation === passage.translation &&
     opened.verseNumbers === display.verseNumbers &&
     (opened.translationName ?? false) === (display.translationName ?? false) &&
-    opened.passage.verses.some(verse =>
+    opened.passage.verses.every(verse =>
       passage.verses.some(
         other => other.chapter === verse.chapter && other.verse === verse.verse,
       ),
@@ -68,11 +69,34 @@ function sourceOf(
   });
 }
 
+/** The tile of a slide, or of its verse or the next one that is there. */
+function tileOf({tiles}: BibleSource, slide: Slide | undefined): number {
+  const own = tiles.findIndex(tile => tile.slide.id === slide?.id);
+  const verse = slide?.verse;
+  if (own >= 0 || verse === undefined) return Math.max(0, own);
+  const next = tiles.findIndex(
+    tile =>
+      tile.slide.verse !== undefined &&
+      (tile.slide.verse.chapter > verse.chapter ||
+        (tile.slide.verse.chapter === verse.chapter &&
+          tile.slide.verse.verse >= verse.verse)),
+  );
+  return next < 0 ? Math.max(0, tiles.length - 1) : next;
+}
+
 /** Opens a passage, cut to fit the 말씀 theme, without sending it out. */
 export function openBiblePassage(
   passage: BibleLookupPassage,
   display: BibleDisplay = {verseNumbers: true},
-  before?: BibleSource,
+  {
+    before,
+    keepsVerse = false,
+  }: {
+    /** The passage it grows from, instead of the one that is open. */
+    readonly before?: BibleSource | undefined;
+    /** Stays at the selected verse although the passage is another one. */
+    readonly keepsVerse?: boolean;
+  } = {},
 ): BibleSource {
   const view = useShow.getState();
   const opened = before ?? bibleSourceFor(view, view.openItemId);
@@ -81,7 +105,8 @@ export function openBiblePassage(
     opened?.insertion?.serviceId === view.serviceId
       ? opened.insertion
       : {serviceId: view.serviceId, itemId: view.openItemId};
-  const selected = opened?.tiles[view.selectedTile]?.slide.id;
+  const stays =
+    opened !== null && (keepsVerse || samePassage(opened.passage, passage));
   beginOutputRequest();
   useShow.setState({
     bibleSources: withBibleSource(
@@ -90,10 +115,9 @@ export function openBiblePassage(
       useLive.getState().state?.layers.slide?.itemId ?? null,
     ),
     openItemId: source.id,
-    selectedTile: Math.max(
-      0,
-      source.tiles.findIndex(tile => tile.slide.id === selected),
-    ),
+    selectedTile: stays
+      ? tileOf(source, opened.tiles[view.selectedTile]?.slide)
+      : 0,
   });
   return source;
 }

@@ -63,15 +63,19 @@ export function BibleAdjacentButtons({
         setEdge(direction);
         return;
       }
-      openBiblePassage(passage, {
-        verseNumbers: source.verseNumbers,
-        translationName: source.translationName,
-        transition: source.transition,
-        review: source.review,
-        enteredRef: source.enteredRef ?? source.passage.ref,
-        enteredTranslation:
-          source.enteredTranslation ?? source.passage.translation,
-      });
+      openBiblePassage(
+        passage,
+        {
+          verseNumbers: source.verseNumbers,
+          translationName: source.translationName,
+          transition: source.transition,
+          review: source.review,
+          enteredRef: source.enteredRef ?? source.passage.ref,
+          enteredTranslation:
+            source.enteredTranslation ?? source.passage.translation,
+        },
+        {keepsVerse: true},
+      );
     } catch (cause) {
       if (current()) {
         api.log.write({

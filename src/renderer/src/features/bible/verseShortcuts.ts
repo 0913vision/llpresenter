@@ -118,7 +118,9 @@ export async function outputAdjacentBibleVerse(
       enteredTranslation:
         source.enteredTranslation ?? source.passage.translation,
     };
-    const opened = openBiblePassage(expanded, display, source);
+    const opened = openBiblePassage(expanded, display, {
+      before: source,
+    });
     outputTile({
       itemId: opened.id,
       index: Math.max(0, edgeIndex(opened, expanded, direction)),
