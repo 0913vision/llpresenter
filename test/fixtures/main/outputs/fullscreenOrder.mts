@@ -3,7 +3,7 @@ import {isAbsolute} from 'node:path';
 import {setTimeout as delay} from 'node:timers/promises';
 import {app, BrowserWindow, screen} from 'electron';
 import {centeredRect, type Rect} from '../../../../src/main/displays/rect';
-import type {Logger} from '../../../../src/main/log';
+import type {Logger} from '@main/base/log';
 import {watchPixelFixture} from '../windows/pixelFixtureLifecycle.mts';
 import {
   ON_TOP_CHECK_MS,

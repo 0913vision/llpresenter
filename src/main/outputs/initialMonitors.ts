@@ -4,7 +4,7 @@ import type {SettingsEdit} from '@core/schema/settingsDocuments';
 import type {SettingsReader} from '@core/schema/settingsReader';
 import {findControlMonitor, type Monitor} from '../displays/monitor';
 import type {Rect} from '../displays/rect';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 
 interface InitialMonitorOptions {
   readonly settings: Promise<SettingsReader | null>;

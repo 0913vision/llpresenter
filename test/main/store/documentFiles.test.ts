@@ -2,7 +2,7 @@ import {mkdir, readFile, readdir, rm, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';
 import {makeTempDir} from '@fixtures/tempDir';
-import type {Logger} from '@main/log';
+import type {Logger} from '@main/base/log';
 import {ContentPersistence} from '@main/store/contentPersistence';
 import {documentFiles} from '@main/store/documentFiles';
 import {RecoveryCopies} from '@main/store/recoveryCopies';

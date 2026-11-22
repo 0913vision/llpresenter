@@ -10,13 +10,13 @@ import {
   type TextImportReadResult,
 } from '@core/schema/textImport';
 import type {PayloadError} from '@core/schema/payload';
-import type {Logger} from '../log';
-import type {WindowMode} from '../windows/testWindows';
+import type {Logger} from '../base/log';
+import type {WindowMode} from '../base/testWindows';
 import {convertTextImport} from '@core/songs';
 import {readTextImport, type TextImportInputs} from './read';
 import {TEXT_IMPORT_LIMITS} from '@core/schema/textImportLimits';
 import type {UiStateFields} from '../store/appConfigFile';
-import {pickerFolder, rememberPickerFile} from './pickerFolder';
+import {pickerFolder, rememberPickerFile} from '../uiState/pickerFolder';
 
 export interface TextImportRegistration {
   readonly control: BrowserWindow;

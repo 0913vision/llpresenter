@@ -23,7 +23,7 @@ import {
   withPreferenceDefaults,
   type Preferences,
 } from '@core/schema/preferences';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import type {DocumentFiles, PersistedFile} from './contentPersistence';
 import type {WriteResult} from './fileWriter';
 import {documentFiles} from './documentFiles';

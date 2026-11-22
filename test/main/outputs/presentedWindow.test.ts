@@ -92,7 +92,7 @@ vi.mock('electron', async () => {
     },
   };
 });
-vi.mock('@main/windows/page', () => ({
+vi.mock('@main/base/page', () => ({
   blockNavigation: () => undefined,
   preloadPath: 'preload.js',
   startLoading: async () => undefined,

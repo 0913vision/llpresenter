@@ -13,7 +13,7 @@ import {
   templateIdSchema,
 } from '@core/schema/ids';
 import type {PayloadError} from '@core/schema/payload';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import type {ContentEvents, ContentStore} from './contentStore';
 
 const HANDLED = [

@@ -9,7 +9,7 @@ import {
 import {BUILT_IN_THEME_IDS} from '@core/theme';
 import type {SlideLayer} from '@core/schema/live';
 import {parsePayload} from '@core/schema/payload';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import {MAIN_SCREEN_ID} from '../outputs/defaultScreens';
 import {STARTER_SCREEN_IDS} from '@core/screens';
 import {readSoakSettings} from './recorder';

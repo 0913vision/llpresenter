@@ -11,7 +11,7 @@ import {
   type Size,
 } from '../displays/rect';
 import type {MonitorNumbersPort} from '../live/slice';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 
 /** How long 모니터 번호 표시 shows the numbers (docs/spec/06-settings.md). */
 export const MONITOR_NUMBER_MS = 3000;

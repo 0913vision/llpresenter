@@ -1,5 +1,5 @@
 import type {MediaStore} from '../store/mediaStore';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import {dispatchLogged, type LiveStore} from './store';
 
 /** Keeps output properties current through the revisioned media document. */

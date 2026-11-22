@@ -8,7 +8,7 @@ import {
   defaultPreferences,
   withPreferenceDefaults,
 } from '@core/schema/preferences';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import {broadcast} from './contentChannels';
 import {
   LibraryLocations,

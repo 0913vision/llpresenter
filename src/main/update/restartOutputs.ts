@@ -4,10 +4,10 @@ import {parseUpdateRestart} from '@core/schema/update';
 import type {LiveState} from '@core/schema/live';
 import type {SettingsReader} from '@core/schema/settingsReader';
 import {dispatchBatched} from '../live/store';
-import type {Logger} from '../log';
-import {switchableScreens} from '../outputs/savedScreens';
-import {writeFileAtomically} from '../store/atomicWrite';
-import {isMissingFile} from '../store/fsErrors';
+import type {Logger} from '../base/log';
+import {switchableScreens} from '../base/savedScreens';
+import {writeFileAtomically} from '../base/atomicWrite';
+import {isMissingFile} from '../base/fsErrors';
 
 const FILE = 'update-restart.json';
 const MAX_BYTES = 4096;

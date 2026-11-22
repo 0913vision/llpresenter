@@ -1,12 +1,12 @@
 import type {Preferences} from '@core/schema/preferences';
 import type {FileError} from '@core/schema/fileFormat';
 import {settingsNames} from '@core/schema/settingsDocuments';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import {Backups, type BackupOutcome} from './backup';
 import {type LoadedStore} from './fileStore';
 import {dataFileFolders} from './locations';
 import {settingsLocation} from './settingsFile';
-import {removeStaleTempFiles} from './staleTempFiles';
+import {removeStaleTempFiles} from '../base/staleTempFiles';
 
 const MAX_LOGGED_PROBLEMS = 50;
 

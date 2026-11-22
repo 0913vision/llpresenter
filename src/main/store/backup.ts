@@ -2,8 +2,8 @@ import {cp, mkdir, readdir, realpath, rename, rm, stat} from 'node:fs/promises';
 import {basename, join} from 'node:path';
 import type {Result} from '@core/common/result';
 import type {Preferences} from '@core/schema/preferences';
-import {isTemporaryFileName, type WriteProblem} from './atomicWrite';
-import {isMissingFile} from './fsErrors';
+import {isTemporaryFileName, type WriteProblem} from '../base/atomicWrite';
+import {isMissingFile} from '../base/fsErrors';
 import {
   dataFileFolders,
   FOLDER_NAMES,

@@ -1,7 +1,7 @@
 import {app, BrowserWindow, ipcMain, type WebContents} from 'electron';
 import {join} from 'node:path';
 import {outputEndpoints} from '@contracts/ipc/output';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import {FontCatalogCache} from './fontCatalog';
 import {readCatalogFile, writeCatalogFile} from './catalogFile';
 import {readWindowsFontStamp} from './windowsFontStamp';

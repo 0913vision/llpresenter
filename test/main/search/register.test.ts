@@ -1,7 +1,7 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {libraryEndpoints} from '@contracts/ipc/library';
 import {LIBRARY_SEARCH_LIMITS} from '@core/schema/librarySearch';
-import type {Logger} from '@main/log';
+import type {Logger} from '@main/base/log';
 import {registerLibrarySearch} from '@main/search/register';
 import type {SongSearchIndex} from '@main/search/songIndex';
 

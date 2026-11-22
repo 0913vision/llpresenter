@@ -33,13 +33,13 @@ import {
   RECOVERY_RECORD_FILE,
 } from './live/recovery/session';
 import {registerThemeOutput} from './live/themes';
-import type {createLogger, Logger} from './log';
+import type {createLogger, Logger} from './base/log';
 import {registerIpc} from './ipc';
 import {diagnosticsText} from './diagnostics';
 import {showOutputsOnLaunch} from './outputs/launch';
 import {registerProblemFeed} from './problemFeed';
 import {startOutputs} from './outputs/start';
-import {ShutdownCoordinator} from './shutdown';
+import {ShutdownCoordinator} from './base/shutdown';
 import {
   deferSoakScenario,
   prepareSoakGarbageCollection,
@@ -58,11 +58,11 @@ import {ControlHeartbeat} from './windows/controlHeartbeat';
 import {GraphicsRecovery} from './windows/graphicsRecovery';
 import {announceReloadAfterCrash} from './windows/reloadNotice';
 import {registerSettingsWindow} from './windows/settingsWindow';
-import {registerAudioOutput} from './windows/audio';
+import {registerAudioOutput} from './outputs/audio';
 import {registerPlaybackProblems} from './outputs/playbackProblems';
 import {registerControlClose} from './windows/controlClose';
 import {serveMedia} from './windows/mediaProtocol';
-import type {WindowMode} from './windows/testWindows';
+import type {WindowMode} from './base/testWindows';
 import {completeSplashStep} from './windows/splash';
 import {showStartupError} from './windows/startupError';
 

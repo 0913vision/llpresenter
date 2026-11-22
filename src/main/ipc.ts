@@ -10,14 +10,14 @@ import {liveEndpoints} from '@contracts/ipc/live';
 import {outputEndpoints} from '@contracts/ipc/output';
 import {parseTextEditAction, windowEndpoints} from '@contracts/ipc/window';
 import {parseLiveCommandRequest} from '@core/schema/liveCommand';
-import type {Logger} from './log';
+import type {Logger} from './base/log';
 import {dispatchLogged, type LiveStore} from './live/store';
 import {
   WindowLogLimiter,
   handleLogWrite,
   type MessageHandler,
 } from './rendererMessages';
-import {allowsWindowAction, type WindowMode} from './windows/testWindows';
+import {allowsWindowAction, type WindowMode} from './base/testWindows';
 import {startMediaProgress} from './live/mediaProgress';
 import {wallClockSample, startWallClockWatcher} from './live/wallClock';
 

@@ -1,6 +1,6 @@
 import {BrowserWindow} from 'electron';
-import type {Logger} from '../log';
-import {blockNavigation, startLoading} from '../windows/page';
+import type {Logger} from '../base/log';
+import {blockNavigation, startLoading} from '../base/page';
 import type {AnalysisPage} from './mediaAnalyser';
 
 function load(win: BrowserWindow, signal: AbortSignal): Promise<void> {

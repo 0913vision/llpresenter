@@ -1,7 +1,7 @@
 import {ipcMain} from 'electron';
 import {recoveryEndpoints} from '@contracts/ipc/recovery';
 import {parseRecoveryApply, type RecoveryResult} from '@core/schema/recovery';
-import type {Logger} from '../../log';
+import type {Logger} from '../../base/log';
 import type {RecoveryPort} from './controller';
 
 const MALFORMED: RecoveryResult = {

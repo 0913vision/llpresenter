@@ -48,7 +48,10 @@ export default defineConfig({
             'gpu-utility.cjs',
             'd3d.cjs',
           ]) {
-            copyFileSync(resolve('src/main/ndi', file), resolve(target, file));
+            copyFileSync(
+              resolve('src/main/outputs/ndi', file),
+              resolve(target, file),
+            );
           }
           const presenter = resolve(mainOutputDir, 'presenter');
           mkdirSync(presenter, {recursive: true});

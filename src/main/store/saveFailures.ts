@@ -3,7 +3,7 @@ import {
   type AppProblem,
   type AppProblemOf,
 } from '@core/schema/appProblem';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 
 /** How long waiting files wait before main writes them again by itself. */
 export const SAVE_RETRY_INTERVAL_MS = 30_000;

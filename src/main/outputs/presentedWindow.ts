@@ -9,13 +9,13 @@ import {
 import {join} from 'node:path';
 import type {SlideTransition} from '@core/schema/slideTransition';
 import {sameRect, type Rect, type Size} from '../displays/rect';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import {
   blockNavigation,
   preloadPath,
   startLoading,
   type PageRequest,
-} from '../windows/page';
+} from '../base/page';
 import type {OutputWindowEvents, OutputWindowHandle} from './outputWindow';
 import type {OutputScreen} from './screens';
 import {

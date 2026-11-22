@@ -1,7 +1,7 @@
 import {afterEach, expect, it, vi} from 'vitest';
 import {outputEndpoints} from '@contracts/ipc/output';
 import {fontFamilyFixture} from '@fixtures/core/fontCatalog';
-import type {Logger} from '@main/log';
+import type {Logger} from '@main/base/log';
 import {registerFonts} from '@main/fonts/register';
 
 interface Event {

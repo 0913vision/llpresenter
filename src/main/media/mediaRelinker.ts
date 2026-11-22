@@ -3,7 +3,7 @@ import {basename, dirname, join, relative} from 'node:path';
 import type {MediaId} from '@core/schema/ids';
 import type {MediaDocument, MediaEditResult} from '@core/schema/mediaEdit';
 import {MEDIA_LIMITS} from '@core/schema/mediaList';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import {mediaRefusal} from '../store/mediaEdits';
 import type {MediaItemsCommit} from '../store/mediaStore';
 import {fileExists} from './missingFiles';

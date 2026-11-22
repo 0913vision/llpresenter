@@ -1,8 +1,8 @@
 import {readdir, readFile, rm, stat} from 'node:fs/promises';
 import {join} from 'node:path';
 import {parseMediaId, type MediaId} from '@core/schema/ids';
-import type {Logger} from '../log';
-import {writeFileAtomically} from '../store/atomicWrite';
+import type {Logger} from '../base/log';
+import {writeFileAtomically} from '../base/atomicWrite';
 import {fileExists} from './missingFiles';
 
 /** How many thumbnails the cache keeps; the least recently used go first. */

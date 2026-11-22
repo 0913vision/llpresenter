@@ -10,11 +10,11 @@ import {
   createMediaHandler,
   parseRange,
 } from '@main/windows/mediaResponse';
-import {realPathInside} from '@main/windows/insideRoots';
+import {realPathInside} from '@main/base/insideRoots';
 
-vi.mock('@main/windows/insideRoots', async importOriginal => {
+vi.mock('@main/base/insideRoots', async importOriginal => {
   const actual =
-    await importOriginal<typeof import('@main/windows/insideRoots')>();
+    await importOriginal<typeof import('@main/base/insideRoots')>();
   return {...actual, realPathInside: vi.fn(actual.realPathInside)};
 });
 vi.mock('node:fs', async importOriginal => {

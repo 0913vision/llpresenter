@@ -1,7 +1,7 @@
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {uiEndpoints} from '@contracts/ipc/ui';
 import type {UiStateFields} from '@main/store/appConfigFile';
-import type {Logger} from '@main/log';
+import type {Logger} from '@main/base/log';
 
 type Handler = (event: unknown, value?: unknown) => unknown;
 

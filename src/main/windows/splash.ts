@@ -1,6 +1,6 @@
 import {BrowserWindow} from 'electron';
 import icon from '../../../build/icon-small.svg?raw';
-import type {WindowMode} from './testWindows';
+import type {WindowMode} from '../base/testWindows';
 
 export type StartupStep =
   'settings' | 'content' | 'window' | 'renderer' | 'paint';

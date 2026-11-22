@@ -1,7 +1,7 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {libraryEndpoints} from '@contracts/ipc/library';
 import {registerSongReveal} from '@main/store/revealSong';
-import type {Logger} from '@main/log';
+import type {Logger} from '@main/base/log';
 
 type Listener = (event: unknown, value: unknown) => void;
 

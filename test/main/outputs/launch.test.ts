@@ -6,9 +6,9 @@ import {createScreenId} from '@core/schema/ids';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {dispatchBatched, type LiveStore} from '@main/live/store';
 import {launchOutputCommands, showOutputsOnLaunch} from '@main/outputs/launch';
-import {switchableScreens} from '@main/outputs/savedScreens';
+import {switchableScreens} from '@main/base/savedScreens';
 
-vi.mock('@main/outputs/savedScreens', () => ({switchableScreens: vi.fn()}));
+vi.mock('@main/base/savedScreens', () => ({switchableScreens: vi.fn()}));
 vi.mock('@main/live/store', async importOriginal => ({
   ...(await importOriginal<typeof import('@main/live/store')>()),
   dispatchBatched: vi.fn(() => true),

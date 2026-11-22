@@ -6,7 +6,7 @@ import {songIdSchema} from '@core/schema/ids';
 import {parsePayload} from '@core/schema/payload';
 import {itemTitle} from '@core/slides';
 import type {DataStore} from '../store/register';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import {ThemeRuntime} from './themeRuntime';
 import {dispatchLogged, type LiveStore} from './store';
 

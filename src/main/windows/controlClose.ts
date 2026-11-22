@@ -11,7 +11,7 @@ import {
   createAppFlushRequestId,
   type AppFlushRequestId,
 } from '@core/schema/ids';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 
 type CloseListener = (event: {preventDefault(): void}) => void;
 

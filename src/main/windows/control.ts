@@ -2,18 +2,23 @@ import {watchWindowMinimized} from './windowMinimized';
 import {app, BrowserWindow, ipcMain, screen, type IpcMainEvent} from 'electron';
 import {windowEndpoints} from '@contracts/ipc/window';
 import {serviceEndpoints} from '@contracts/ipc/service';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import type {UiZoomRegistration} from '../store/uiZoom';
-import {audioMutedByDefault} from './audioPolicy';
-import {appIconPath} from './appIcon';
+import {audioMutedByDefault} from '../outputs/audioPolicy';
+import {appIconPath} from '../base/appIcon';
 import {reloadAfterCrash} from './crashReload';
-import {logWindowResponsiveness} from './responsiveness';
-import {blockNavigation, loadPage, preloadPath, type PageRequest} from './page';
+import {logWindowResponsiveness} from '../base/responsiveness';
+import {
+  blockNavigation,
+  loadPage,
+  preloadPath,
+  type PageRequest,
+} from '../base/page';
 import {
   discardTestFrames,
   windowTestOptions,
   type WindowMode,
-} from './testWindows';
+} from '../base/testWindows';
 
 const MIN_WIDTH = 1280;
 const MIN_HEIGHT = 720;

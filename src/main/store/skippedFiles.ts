@@ -3,7 +3,7 @@ import {
   fileSkippedProblem,
   type AppProblem,
 } from '@core/schema/appProblem';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 
 /** A data file that couldn't be read, by its path. */
 export interface SkippedFile {

@@ -7,7 +7,7 @@ import type {RecoveryRecord} from '@core/schema/recoveryRecord';
 import type {Screen} from '@core/schema/screens';
 import {hasSlides, type Service, type ServiceItem} from '@core/schema/service';
 import {itemTitle} from '@core/slides';
-import {savedScreens, switchableScreens} from '../../outputs/savedScreens';
+import {savedScreens, switchableScreens} from '../../base/savedScreens';
 
 const MILLISECONDS_PER_SECOND = 1000;
 

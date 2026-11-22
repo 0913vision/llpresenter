@@ -6,7 +6,7 @@ import type {
   SettingsDocument,
   SettingsName,
 } from '@core/schema/settingsDocuments';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 
 /** Main-only settings reads and change subscriptions. */
 export interface SettingsAccess {

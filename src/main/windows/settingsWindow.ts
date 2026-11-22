@@ -6,7 +6,7 @@ import {
 } from '@contracts/ipc/window';
 import type {PreferencePageId} from '@core/schema/preferencePages';
 import type {AppConfigFile} from '../store/appConfigFile';
-import {logWindowResponsiveness} from './responsiveness';
+import {logWindowResponsiveness} from '../base/responsiveness';
 import {registerControlClose, type ControlClose} from './controlClose';
 import {
   createPreferencesWindow,

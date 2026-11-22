@@ -10,7 +10,7 @@ import {
   parseOutputRetryRequest,
   parseOutputShowWindowRequest,
 } from '@core/schema/outputStatus';
-import type {Logger} from './log';
+import type {Logger} from './base/log';
 
 /** A window's web contents id, which tells windows apart. */
 export type WindowId = number;

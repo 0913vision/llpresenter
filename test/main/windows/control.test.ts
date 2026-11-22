@@ -1,10 +1,10 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {createControlWindow} from '@main/windows/control';
-import {appIconPath} from '@main/windows/appIcon';
-import {loadPage} from '@main/windows/page';
-import {CRASH_LIMIT, CRASH_PERIOD_MS} from '@main/outputs/restartBudget';
-import {audioMutedByDefault} from '@main/windows/audioPolicy';
+import {appIconPath} from '@main/base/appIcon';
+import {loadPage} from '@main/base/page';
+import {CRASH_LIMIT, CRASH_PERIOD_MS} from '@main/base/restartBudget';
+import {audioMutedByDefault} from '@main/outputs/audioPolicy';
 import {serviceEndpoints} from '@contracts/ipc/service';
 
 const electron = await vi.hoisted(async () => {
@@ -41,10 +41,10 @@ vi.mock('electron', () => ({
     getPrimaryDisplay: () => ({workAreaSize: {width: 1920, height: 1080}}),
   },
 }));
-vi.mock('@main/windows/audioPolicy', () => ({
+vi.mock('@main/outputs/audioPolicy', () => ({
   audioMutedByDefault: vi.fn(() => true),
 }));
-vi.mock('@main/windows/page', () => ({
+vi.mock('@main/base/page', () => ({
   preloadPath: 'preload.js',
   loadPage: vi.fn(),
   blockNavigation: vi.fn(),

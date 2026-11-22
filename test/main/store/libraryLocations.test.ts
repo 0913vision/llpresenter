@@ -6,7 +6,7 @@ import type {
   LocationsView,
 } from '@core/schema/libraryLocations';
 import {defaultPreferences} from '@core/schema/preferences';
-import type {Logger} from '@main/log';
+import type {Logger} from '@main/base/log';
 import {BackupGate, backupFolderName} from '@main/store/backup';
 import {
   LibraryLocations,

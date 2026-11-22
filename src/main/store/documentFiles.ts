@@ -1,5 +1,5 @@
 import {rm} from 'node:fs/promises';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import type {DocumentFiles} from './contentPersistence';
 import type {RecoveryCopies} from './recoveryCopies';
 import type {SaveFailureSink} from './saveFailures';

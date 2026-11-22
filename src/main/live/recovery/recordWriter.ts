@@ -2,8 +2,8 @@ import type {LiveState} from '@core/schema/live';
 import type {Result} from '@core/common/result';
 import type {ServiceId} from '@core/schema/ids';
 import {serializeRecoveryRecord} from '@core/schema/recoveryRecord';
-import type {Logger} from '../../log';
-import {writeFileAtomically, type WriteProblem} from '../../store/atomicWrite';
+import type {Logger} from '../../base/log';
+import {writeFileAtomically, type WriteProblem} from '../../base/atomicWrite';
 import type {LiveStore} from '../store';
 
 /** Ordinary edits are throttled; output switches bypass this interval. */

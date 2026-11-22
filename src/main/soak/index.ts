@@ -1,7 +1,7 @@
 import {appendFile} from 'node:fs/promises';
 import {performance} from 'node:perf_hooks';
 import {app, webContents} from 'electron';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import {
   pageProcessName,
   processSamples,

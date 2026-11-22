@@ -1,4 +1,4 @@
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 
 /** The record format version that `scripts/soak/run.mts` reads. */
 export const SOAK_RECORD_VERSION = 1;

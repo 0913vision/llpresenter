@@ -7,7 +7,7 @@ import type {
   LocationsView,
 } from '@core/schema/libraryLocations';
 import type {Preferences} from '@core/schema/preferences';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import {backupGate, Backups, lastBackupTime, type BackupGate} from './backup';
 import {
   isInside,

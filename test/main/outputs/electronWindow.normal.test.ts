@@ -10,7 +10,7 @@ import {
 } from '@fixtures/main/outputs/electronWindowFixtures';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {installMockClock} from '@fixtures/mockClock';
-import {startLoading} from '@main/windows/page';
+import {startLoading} from '@main/base/page';
 import {createElectronOutputWindow} from '@main/outputs/electronWindow';
 import {ON_TOP_CHECK_MS} from '@main/outputs/onTopKeeper';
 import designTokens from '../../../design/system/project/tokens.json';

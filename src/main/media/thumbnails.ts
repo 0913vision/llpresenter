@@ -4,7 +4,7 @@ import {relative} from 'node:path';
 import {parseMediaId, type MediaId} from '@core/schema/ids';
 import type {MediaDocument} from '@core/schema/mediaEdit';
 import {MEDIA_LIMITS} from '@core/schema/mediaList';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import type {Analysis, AnalysisRequest} from './mediaAnalyser';
 import type {ThumbnailCache} from './thumbnailCache';
 

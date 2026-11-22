@@ -1,7 +1,7 @@
 import type {BrowserWindow} from 'electron';
-import type {Logger} from '../log';
-import {RestartBudget} from '../outputs/restartBudget';
-import {loadPage, type PageRequest} from './page';
+import type {Logger} from '../base/log';
+import {RestartBudget} from '../base/restartBudget';
+import {loadPage, type PageRequest} from '../base/page';
 
 /**
  * Loads a window's page again when its renderer process dies, so the window

@@ -1,8 +1,8 @@
 import type {SettingsReader} from '@core/schema/settingsReader';
 import type {SingleLiveCommand} from '@core/schema/liveCommand';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import {dispatchBatched} from '../live/store';
-import {switchableScreens} from './savedScreens';
+import {switchableScreens} from '../base/savedScreens';
 
 interface LaunchOutputOptions {
   readonly store: Parameters<typeof dispatchBatched>[0];

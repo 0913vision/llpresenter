@@ -14,7 +14,7 @@ import {
   serializeMediaList,
   type MediaItem,
 } from '@core/schema/mediaList';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import type {DocumentFiles} from './contentPersistence';
 import {
   audioReferencesFit,

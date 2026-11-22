@@ -7,7 +7,7 @@ import type {FileError} from '@core/schema/fileFormat';
 import type {BundledPicture} from './bundledPicture';
 import type {MediaItem} from '@core/schema/mediaList';
 import {isInside} from './locations';
-import {realPathInside} from '../windows/insideRoots';
+import {realPathInside} from '../base/insideRoots';
 
 const LEAVES_MEDIA_FOLDER =
   'Ignored: a relative file path must stay inside the media folder';

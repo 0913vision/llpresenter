@@ -16,7 +16,7 @@ import type {LabelRename} from '@core/schema/settingsDocuments';
 import {randomUUID} from 'node:crypto';
 import {normalizeSongTitle} from '@core/songs';
 import {dirname, extname, join} from 'node:path';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import {
   createContentAnnouncements,
   type ContentAnnouncements,

@@ -1,4 +1,4 @@
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import type {Autosave} from './autosave';
 import type {WriteResult} from './fileWriter';
 

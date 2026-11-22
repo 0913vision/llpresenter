@@ -8,14 +8,14 @@ import {defaultPreferences} from '@core/schema/preferences';
 import {makeTempDir} from '@fixtures/tempDir';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {dispatchBatched} from '@main/live/store';
-import {switchableScreens} from '@main/outputs/savedScreens';
+import {switchableScreens} from '@main/base/savedScreens';
 import {
   cancelRestartOutputs,
   restoreRestartOutputs,
   saveRestartOutputs,
 } from '@main/update/restartOutputs';
 
-vi.mock('@main/outputs/savedScreens', () => ({switchableScreens: vi.fn()}));
+vi.mock('@main/base/savedScreens', () => ({switchableScreens: vi.fn()}));
 vi.mock('@main/live/store', () => ({dispatchBatched: vi.fn(() => true)}));
 
 const main = createScreenId('00000000-0000-4000-8000-000000000001');

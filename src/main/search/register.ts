@@ -1,7 +1,7 @@
 import {ipcMain} from 'electron';
 import {libraryEndpoints} from '@contracts/ipc/library';
 import {parseLibrarySearchRequest} from '@core/schema/librarySearch';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import type {SongSearchIndex} from './songIndex';
 
 /** Registers the validated search read and returns its shutdown cleanup. */

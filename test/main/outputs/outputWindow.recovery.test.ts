@@ -39,8 +39,8 @@ const mocks = vi.hoisted(() => {
   return {Recovery, Watch, recoveries, watches};
 });
 
-vi.mock('@main/outputs/rendererRecovery', async importOriginal => ({
-  ...(await importOriginal<typeof import('@main/outputs/rendererRecovery')>()),
+vi.mock('@main/base/rendererRecovery', async importOriginal => ({
+  ...(await importOriginal<typeof import('@main/base/rendererRecovery')>()),
   RendererRecovery: mocks.Recovery,
 }));
 vi.mock('@main/outputs/hangWatch', async importOriginal => ({

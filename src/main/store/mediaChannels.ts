@@ -11,7 +11,7 @@ import {
   type MediaImportResult,
 } from '@core/schema/mediaEdit';
 import type {MediaId} from '@core/schema/ids';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import {broadcast} from './contentChannels';
 import {mediaRefusal} from './mediaEdits';
 import type {MediaStore} from './mediaStore';

@@ -1,5 +1,5 @@
 import type {SettingsReader} from '@core/schema/settingsReader';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import {dispatchBatched, dispatchLogged, type LiveStore} from './store';
 import {followMessageExpiry} from './messageExpiry';
 import {overlayRefreshCommands, timerRefreshCommands} from './overlayRefresh';

@@ -1,4 +1,4 @@
-import type {Logger} from '@main/log';
+import type {Logger} from '@main/base/log';
 import {
   numberMonitors,
   type DisplayInfo,

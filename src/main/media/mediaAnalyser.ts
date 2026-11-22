@@ -7,7 +7,7 @@ import {
   type AnalysisJob,
   type AnalysisReply,
 } from '@core/schema/mediaAnalysis';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import type {AnalysisFiles} from './analysisFiles';
 import type {MediaKind} from './mediaKinds';
 

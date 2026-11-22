@@ -26,7 +26,7 @@ import {
   storeSlidePictures,
   type PictureStore,
 } from './storePictures';
-import {pickerFolder, rememberPickerFile} from './pickerFolder';
+import {pickerFolder, rememberPickerFile} from '../uiState/pickerFolder';
 import {isPowerPointFourThree} from './powerpointSize';
 
 class PowerPointConversionError extends Error {

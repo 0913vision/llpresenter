@@ -5,7 +5,7 @@ import {MAIN_SCREEN} from '@fixtures/core/screenIds';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {LiveStore} from '@main/live/store';
 import {RecoveryRecordWriter} from '@main/live/recovery/recordWriter';
-import type {WriteProblem} from '@main/store/atomicWrite';
+import type {WriteProblem} from '@main/base/atomicWrite';
 import type {Result} from '@core/common/result';
 
 function setup() {

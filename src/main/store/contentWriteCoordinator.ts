@@ -6,7 +6,7 @@ import type {
 import type {Song} from '@core/schema/song';
 import type {Service, Template} from '@core/schema/service';
 import {basename} from 'node:path';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import {Autosave} from './autosave';
 import type {
   Checked,

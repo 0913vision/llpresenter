@@ -1,4 +1,4 @@
-import {writeFileAtomically, type WriteProblem} from './atomicWrite';
+import {writeFileAtomically, type WriteProblem} from '../base/atomicWrite';
 import {FileWriter, type WriteFile, type WriteResult} from './fileWriter';
 import type {RecoveryCopies, RecoveryTarget} from './recoveryCopies';
 

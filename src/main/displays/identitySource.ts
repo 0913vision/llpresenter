@@ -1,5 +1,5 @@
 import type {MonitorIdentity} from '@core/schema/monitorIdentity';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import {numberMonitors, sameMonitors, type DisplayInfo} from './monitor';
 import {
   DISPLAY_SETTLE_MS,

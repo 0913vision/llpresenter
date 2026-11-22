@@ -5,7 +5,7 @@ import {
   UI_ZOOM,
   type UiZoomCommand,
 } from '@core/schema/uiZoom';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import {broadcast} from './contentChannels';
 import type {AppConfigFile} from './appConfigFile';
 

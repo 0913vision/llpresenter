@@ -1,6 +1,6 @@
 import {ipcMain} from 'electron';
 import {uiEndpoints} from '@contracts/ipc/ui';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import type {UiStateFields} from '../store/appConfigFile';
 import {UiStateStore} from './uiStateStore';
 

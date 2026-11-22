@@ -1,6 +1,6 @@
 import type {LiveState} from '@core/schema/live';
 import type {LiveStore} from '../live/store';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 
 /** Keeps the display and the system awake: Electron's `powerSaveBlocker` in the app. */
 export interface WakeLock {

@@ -10,8 +10,8 @@ import {
   RECOVERY_RECORD_LIMITS,
   type RecoveryRecord,
 } from '@core/schema/recoveryRecord';
-import type {Logger} from '../../log';
-import {isMissingFile} from '../../store/fsErrors';
+import type {Logger} from '../../base/log';
+import {isMissingFile} from '../../base/fsErrors';
 import {dispatchBatchedCommitted} from '../store';
 import {
   planRecovery,

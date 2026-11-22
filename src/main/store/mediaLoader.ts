@@ -9,7 +9,7 @@ import {
   serializeMediaList,
   type MediaList,
 } from '@core/schema/mediaList';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import {EMPTY_MEDIA_LIST} from './defaults';
 import {documentFiles} from './documentFiles';
 import type {LoadedStore} from './fileStore';

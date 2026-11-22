@@ -8,8 +8,8 @@ import {
   type PlaybackProblems,
 } from '@core/schema/playbackProblems';
 import {answerWindows, listenToWindows, sendToWindows} from '../ipc';
-import type {Logger} from '../log';
-import type {RendererState} from './rendererRecovery';
+import type {Logger} from '../base/log';
+import type {RendererState} from '../base/rendererRecovery';
 
 interface Source {
   readonly source: string;

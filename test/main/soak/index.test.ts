@@ -1,5 +1,5 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import type {Logger} from '@main/log';
+import type {Logger} from '@main/base/log';
 import {
   prepareSoakGarbageCollection,
   registerSoakRecorder,

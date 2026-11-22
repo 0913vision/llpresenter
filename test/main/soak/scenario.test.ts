@@ -2,7 +2,7 @@ import {describe, expect, it, vi} from 'vitest';
 import {type LiveCommand, parseLiveCommand} from '@core/schema/liveCommand';
 import {createAudioPlaylistId} from '@core/schema/ids';
 import {installMockClock} from '@fixtures/mockClock';
-import type {Logger} from '@main/log';
+import type {Logger} from '@main/base/log';
 import {
   deferSoakScenario,
   registerSoakScenario,

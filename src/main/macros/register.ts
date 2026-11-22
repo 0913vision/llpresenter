@@ -3,7 +3,7 @@ import type {MediaList} from '@core/schema/mediaList';
 import type {ServiceItem} from '@core/schema/service';
 import type {SettingsReader} from '@core/schema/settingsReader';
 import {dispatchLogged, type LiveStore} from '../live/store';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import {MacroRunner} from './runner';
 import type {MacroPlan} from './types';
 

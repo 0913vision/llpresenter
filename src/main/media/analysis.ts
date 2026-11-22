@@ -1,5 +1,5 @@
 import type {MediaId} from '@core/schema/ids';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import {AnalysisFiles} from './analysisFiles';
 import {openAnalysisPage} from './analysisPage';
 import {measureImage} from './measureImage';

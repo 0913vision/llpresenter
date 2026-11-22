@@ -1,16 +1,16 @@
 import {watchWindowMinimized} from './windowMinimized';
 import {BrowserWindow, screen} from 'electron';
 import type {UiZoomRegistration} from '../store/uiZoom';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import type {AppConfig} from '@core/schema/appConfig';
-import {blockNavigation, loadPage, preloadPath} from './page';
+import {blockNavigation, loadPage, preloadPath} from '../base/page';
 import {reloadAfterCrash} from './crashReload';
-import {appIconPath} from './appIcon';
+import {appIconPath} from '../base/appIcon';
 import {
   discardTestFrames,
   windowTestOptions,
   type WindowMode,
-} from './testWindows';
+} from '../base/testWindows';
 
 export const PREFERENCES_WIDTH = 1040;
 export const PREFERENCES_HEIGHT = 800;

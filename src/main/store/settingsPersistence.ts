@@ -1,4 +1,4 @@
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import {Autosave} from './autosave';
 import {
   ContentPersistence,

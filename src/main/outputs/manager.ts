@@ -8,9 +8,9 @@ import {findControlMonitor, type Monitor} from '../displays/monitor';
 import type {Rect} from '../displays/rect';
 import type {MonitorRemovedListener} from '../displays/registry';
 import type {LiveStore} from '../live/store';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import {OutputWindow, type CreateOutputWindowHandle} from './outputWindow';
-import type {RendererState} from './rendererRecovery';
+import type {RendererState} from '../base/rendererRecovery';
 import {
   planPlacement,
   fitAspectBounds,

@@ -275,7 +275,7 @@ vi.mock('@main/macros/register', () => ({
     return {dispose: mocks.macrosStop, startFresh: mocks.macrosStartFresh};
   },
 }));
-vi.mock('@main/windows/audio', () => ({
+vi.mock('@main/outputs/audio', () => ({
   registerAudioOutput: (context: unknown) => {
     mocks.audioContexts.push(context);
     return mocks.audioStop;

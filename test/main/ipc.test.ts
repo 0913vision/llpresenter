@@ -5,7 +5,7 @@ import {windowEndpoints} from '@contracts/ipc/window';
 import {registerIpc} from '@main/ipc';
 import {emptyLiveState, type LiveState} from '@core/schema/live';
 import type {LiveStore} from '@main/live/store';
-import type {Logger} from '@main/log';
+import type {Logger} from '@main/base/log';
 import {MAIN_SCREEN, STAGE_SCREEN} from '@fixtures/core/screenIds';
 
 const FACTS = {

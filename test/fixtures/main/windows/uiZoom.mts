@@ -3,7 +3,7 @@ import {readFile, writeFile} from 'node:fs/promises';
 import {isAbsolute, join} from 'node:path';
 import {app, BrowserWindow, Menu} from 'electron';
 import {parseAppConfig} from '@core/schema/appConfig';
-import type {Logger} from '../../../../src/main/log';
+import type {Logger} from '@main/base/log';
 import {
   openAppConfig,
   type AppConfigFile,

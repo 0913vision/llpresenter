@@ -2,8 +2,8 @@
 // vi.mock calls only reach modules that load after it.
 import {beforeEach, expect, onTestFinished, vi} from 'vitest';
 import type {Rect} from '@main/displays/rect';
-import type {Logger} from '@main/log';
-import type {WindowMode} from '@main/windows/testWindows';
+import type {Logger} from '@main/base/log';
+import type {WindowMode} from '@main/base/testWindows';
 import {createElectronOutputWindow} from '@main/outputs/electronWindow';
 import type {OutputWindowHandle} from '@main/outputs/outputWindow';
 import type {OutputScreen} from '@main/outputs/screens';
@@ -72,7 +72,7 @@ vi.mock('electron', () => ({
   BrowserWindow: electron.MockBrowserWindow,
   screen: {getDisplayMatching: electron.getDisplayMatching},
 }));
-vi.mock('@main/windows/page', () => ({
+vi.mock('@main/base/page', () => ({
   preloadPath: 'preload.js',
   loadPage: vi.fn(),
   startLoading: vi.fn(() => Promise.resolve()),

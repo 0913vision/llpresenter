@@ -1,10 +1,10 @@
 import {randomUUID} from 'node:crypto';
 import {lstat, open, rm} from 'node:fs/promises';
 import {join} from 'node:path';
-import type {Logger} from '../../log';
-import {writeFileAtomically} from '../../store/atomicWrite';
-import {isMissingFile} from '../../store/fsErrors';
-import {removeStaleTempFiles} from '../../store/staleTempFiles';
+import type {Logger} from '../../base/log';
+import {writeFileAtomically} from '../../base/atomicWrite';
+import {isMissingFile} from '../../base/fsErrors';
+import {removeStaleTempFiles} from '../../base/staleTempFiles';
 
 export const SESSION_LOCK_FILE = 'session.lock';
 export const RECOVERY_RECORD_FILE = 'live.json';

@@ -1,5 +1,5 @@
 import type {BrowserWindow, Event, Input, WebContents} from 'electron';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 
 const MAX_PENDING_OUTPUT_KEYS = 64;
 

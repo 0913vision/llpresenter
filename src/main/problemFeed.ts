@@ -3,7 +3,7 @@ import {appEndpoints} from '@contracts/ipc/app';
 import {APP_PROBLEM_LIMITS, type AppProblem} from '@core/schema/appProblem';
 import {sendToWindows} from './ipc';
 import type {LiveStore} from './live/store';
-import type {Logger} from './log';
+import type {Logger} from './base/log';
 
 /** How many one-shot problems wait for a window that loads after them. */
 export const MAX_UNREAD_PROBLEMS = 16;

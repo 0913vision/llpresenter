@@ -4,7 +4,7 @@ const console = require('node:console');
 const {Buffer} = require('node:buffer');
 const {writeFileSync} = require('node:fs');
 const koffi = require('koffi');
-const {runtimePath} = require('../../../src/main/ndi/ndi-library.cjs');
+const {runtimePath} = require('../../../src/main/outputs/ndi/ndi-library.cjs');
 
 const dll = runtimePath();
 if (!dll || !process.argv[2]) {

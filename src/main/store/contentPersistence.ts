@@ -1,5 +1,5 @@
 import {basename} from 'node:path';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import type {WriteResult} from './fileWriter';
 import type {RecoveryTarget} from './recoveryCopies';
 import {MAX_WAITING_SAVES, type SaveFailureSink} from './saveFailures';

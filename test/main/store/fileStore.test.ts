@@ -3,7 +3,7 @@ import {join} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {makeTempDir} from '@fixtures/tempDir';
 import {parseSong} from '@core/schema/song';
-import type {Logger} from '@main/log';
+import type {Logger} from '@main/base/log';
 import {openAppConfig} from '@main/store/appConfigFile';
 import {loadStore, type LoadedStore} from '@main/store/fileStore';
 import {DATA_FOLDER_NAME} from '@main/store/locations';

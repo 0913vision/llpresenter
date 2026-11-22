@@ -12,13 +12,13 @@ import type {AnalysisFailureReason} from '@core/schema/mediaAnalysis';
 import {importedProps, type MediaDefaults} from '@core/media';
 import {MEDIA_LIMITS, type MediaItem} from '@core/schema/mediaList';
 import {defaultPreferences} from '@core/schema/preferences';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import {mediaRefusal, type PlaylistRef} from '../store/mediaEdits';
 import type {MediaItemsCommit} from '../store/mediaStore';
 import {copyWithProgress, freePath, type CopyOptions} from './copyFile';
 import type {Analysis, AnalysisRequest, MediaFacts} from './mediaAnalyser';
 import {mediaKindOf, type MediaKind} from './mediaKinds';
-import {realPathInside} from '../windows/insideRoots';
+import {realPathInside} from '../base/insideRoots';
 import {storedPath} from './storedPath';
 import {
   beginMediaImport,

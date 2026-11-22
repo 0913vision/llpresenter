@@ -12,7 +12,7 @@ import {
   type BibleLookupReply,
   type BibleLookupRequest,
 } from '@core/schema/bibleLookup';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import {BibleLibrary, loadBibleLibrary} from './library';
 
 const BOOK_PREFIX = /^(요한\s*[1-3]\s*서|(?:[1-3]\s*)?[\p{L}\p{M}\s]+)(.*)$/u;

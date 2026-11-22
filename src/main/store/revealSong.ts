@@ -1,8 +1,8 @@
 import {ipcMain, shell, type IpcMainEvent} from 'electron';
 import {libraryEndpoints} from '@contracts/ipc/library';
 import {parseShowLibrarySongRequest} from '@core/schema/showLibrarySong';
-import type {WindowMode} from '../windows/testWindows';
-import type {Logger} from '../log';
+import type {WindowMode} from '../base/testWindows';
+import type {Logger} from '../base/log';
 
 /**
  * Shows a 라이브러리 song's file in the file manager when a window asks by id.

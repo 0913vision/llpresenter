@@ -3,7 +3,7 @@ import {
   type FontCatalog,
   type FontCatalogSnapshot,
 } from '@core/schema/fontCatalog';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import type {SavedFontCatalog} from './catalogFile';
 
 const REFRESH_MS = 60_000;

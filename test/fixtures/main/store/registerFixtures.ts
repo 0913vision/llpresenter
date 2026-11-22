@@ -5,7 +5,7 @@ import {parseSongDocument} from '@core/schema/contentDocuments';
 import {join} from 'node:path';
 import {afterEach, beforeEach, vi} from 'vitest';
 import {makeTempDir} from '@fixtures/tempDir';
-import type {Logger} from '@main/log';
+import type {Logger} from '@main/base/log';
 import {openAppConfig} from '@main/store/appConfigFile';
 import {registerStore, type DataStore} from '@main/store/register';
 

@@ -1,7 +1,7 @@
 import {DEFAULT_LABELS} from './defaults';
 import {defaultPreferences} from '@core/schema/preferences';
 import {serviceEndpoints} from '@contracts/ipc/service';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import {buildSongSearchIndex, type SongSearchIndex} from '../search/songIndex';
 import {broadcast, broadcastEvents} from './contentChannels';
 import {ContentStore} from './contentStore';

@@ -10,7 +10,7 @@ import {
 } from '@core/schema/showLibrarySong';
 import type {Song} from '@core/schema/song';
 import {songTiles} from '@core/slides';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 
 export interface LibrarySongDocument {
   readonly song: Song;

@@ -17,8 +17,8 @@ import {
   parsePreviewFrame,
   parsePreviewRequest,
 } from '@core/schema/previewMirror';
-import type {Logger} from '../log';
-import type {WindowMode} from '../windows/testWindows';
+import type {Logger} from '../base/log';
+import type {WindowMode} from '../base/testWindows';
 import {
   handleFrameRate,
   handleOutputHealth,
@@ -45,7 +45,7 @@ import {findControlMonitor} from '../displays/monitor';
 import {watchControlMonitor} from './controlMonitor';
 import type {PlaybackProblemBoard} from './playbackProblems';
 import type {ProblemFeed} from '../problemFeed';
-import {createNdiOutput} from '../ndi/output';
+import {createNdiOutput} from './ndi/output';
 import type {OutputScreen} from './screens';
 import type {OutputWindowEvents} from './outputWindow';
 import {

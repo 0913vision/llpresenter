@@ -7,7 +7,7 @@ import {
   parseSettingsReadRequest,
   type LabelRename,
 } from '@core/schema/settingsDocuments';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import {broadcast} from './contentChannels';
 import type {SettingsProblemListener, SettingsStore} from './settingsStore';
 

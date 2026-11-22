@@ -1,11 +1,11 @@
 import {BrowserWindow} from 'electron';
-import type {Logger} from '../log';
-import {blockNavigation, loadPage} from '../windows/page';
+import type {Logger} from '../base/log';
+import {blockNavigation, loadPage} from '../base/page';
 import {
   discardTestFrames,
   windowTestOptions,
   type WindowMode,
-} from '../windows/testWindows';
+} from '../base/testWindows';
 import {OUTPUT_BACKGROUND} from './electronWindow';
 import type {NumberSpot, NumberWindow} from './monitorNumbers';
 

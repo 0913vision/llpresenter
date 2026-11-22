@@ -1,9 +1,9 @@
 import {app, protocol} from 'electron';
 import {join} from 'node:path';
 import {MEDIA_SCHEME} from '@contracts/ipc/mediaUrls';
-import {createLogger, flushWithin} from './log';
-import {applyUserDataOverride, defaultUserDataPath} from './userData';
-import {windowModeFrom} from './windows/testWindows';
+import {createLogger, flushWithin} from './base/log';
+import {applyUserDataOverride, defaultUserDataPath} from './base/userData';
+import {windowModeFrom} from './base/testWindows';
 import {createSplash} from './windows/splash';
 
 const BAD_ENVIRONMENT_EXIT_CODE = 1;

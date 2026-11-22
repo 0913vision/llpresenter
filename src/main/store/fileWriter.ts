@@ -1,5 +1,5 @@
 import type {Result} from '@core/common/result';
-import type {WriteProblem} from './atomicWrite';
+import type {WriteProblem} from '../base/atomicWrite';
 
 export type WriteResult = Result<void, WriteProblem>;
 

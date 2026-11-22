@@ -15,13 +15,13 @@ import {
   parseMediaCheckRequest,
   parseMediaRevealRequest,
 } from '@core/schema/mediaFiles';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import {broadcast} from '../store/contentChannels';
 import type {MediaBackendPort} from '../store/mediaChannels';
 import type {UiStateFields} from '../store/appConfigFile';
-import {realPathInside} from '../windows/insideRoots';
-import {pickerFolder, rememberPickerFile} from '../import/pickerFolder';
-import type {WindowMode} from '../windows/testWindows';
+import {realPathInside} from '../base/insideRoots';
+import {pickerFolder, rememberPickerFile} from '../uiState/pickerFolder';
+import type {WindowMode} from '../base/testWindows';
 import type {MediaAnalysis} from './analysis';
 import {MediaImporter, type ImportStore} from './mediaImporter';
 import {mediaDialogFilters, type MediaKind} from './mediaKinds';

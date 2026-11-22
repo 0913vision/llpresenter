@@ -3,7 +3,7 @@ import type {DisplayInfo} from './monitor';
 import type {DisplaySource} from './registry';
 import {IdentityDisplaySource} from './identitySource';
 import {readWindowsMonitors} from './windowsMonitors';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 
 function toDisplayInfo(display: Display, primaryId: number): DisplayInfo {
   return {

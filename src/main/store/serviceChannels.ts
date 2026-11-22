@@ -2,7 +2,7 @@ import {ipcMain} from 'electron';
 import {serviceEndpoints} from '@contracts/ipc/service';
 import type {ShowService} from '@core/schema/showService';
 import {parseServiceOpenRequest} from '@core/schema/serviceOpen';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import type {AppConfigFile} from './appConfigFile';
 import type {ContentStore} from './contentStore';
 import type {OpenServiceFeed} from './openServiceFeed';

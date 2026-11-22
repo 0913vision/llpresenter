@@ -4,7 +4,7 @@ import type {ServiceItem} from '@core/schema/service';
 import type {MediaList} from '@core/schema/mediaList';
 import type {LiveHistory} from '../live/history';
 import type {CommandOf, MacroCommandPort, SliceContext} from '../live/slice';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import {readMacroCatalog} from './catalog';
 import {compileMacro} from './compiler';
 import {requireMacroTarget} from './actions';

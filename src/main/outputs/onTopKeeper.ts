@@ -1,4 +1,4 @@
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 
 /** How often a shown output that should stay on top checks that it still is. */
 export const ON_TOP_CHECK_MS = 3000;

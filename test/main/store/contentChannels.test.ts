@@ -6,7 +6,7 @@ import {
   templateIdSchema,
 } from '@core/schema/ids';
 import {testId} from '@fixtures/core/schema/testHelpers';
-import type {Logger} from '@main/log';
+import type {Logger} from '@main/base/log';
 import type {ContentStore} from '@main/store/contentStore';
 import {
   broadcast,

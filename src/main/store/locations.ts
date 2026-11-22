@@ -12,7 +12,7 @@ import {isRecord} from '@core/common/guards';
 import type {Result} from '@core/common/result';
 import {parseAppConfig, type AppConfig} from '@core/schema/appConfig';
 import type {FileError} from '@core/schema/fileFormat';
-import {isMissingFile} from './fsErrors';
+import {isMissingFile} from '../base/fsErrors';
 
 /** The name of the data folder in Documents, and in the development folder. */
 export const DATA_FOLDER_NAME = 'LoveLight';

@@ -167,7 +167,7 @@ const RESTRICTED_IMPORTS = [
   [
     'a main alias',
     'src/renderer/src/lint-main-alias.ts',
-    "import '@main/log';",
+    "import '@main/base/log';",
   ],
   [
     'a main type export',
@@ -230,7 +230,7 @@ const ALLOWED_IMPORTS = [
   [
     'main in a renderer test',
     'test/renderer/lint-main.test.ts',
-    "import '../../src/main/log';",
+    "import '@main/base/log';",
   ],
   [
     'main in a renderer testing helper',

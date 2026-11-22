@@ -1,5 +1,5 @@
 import {sameRect, type Rect} from '../displays/rect';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 
 export const FULLSCREEN_EXIT_DEADLINE_MS = 500;
 export const BOUNDS_RECHECK_MS = 100;

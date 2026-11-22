@@ -1,8 +1,8 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {recordingLogger} from '@fixtures/main/displays/testing';
-import {loadPage} from '@main/windows/page';
+import {loadPage} from '@main/base/page';
 import {openNumberWindow} from '@main/outputs/numberWindow';
-import {discardTestFrames, windowTestOptions} from '@main/windows/testWindows';
+import {discardTestFrames, windowTestOptions} from '@main/base/testWindows';
 
 const electron = await vi.hoisted(async () => {
   const {EventEmitter} = await import('node:events');
@@ -30,12 +30,12 @@ const electron = await vi.hoisted(async () => {
 });
 
 vi.mock('electron', () => ({BrowserWindow: electron.MockBrowserWindow}));
-vi.mock('@main/windows/testWindows', async importOriginal => ({
-  ...(await importOriginal<typeof import('@main/windows/testWindows')>()),
+vi.mock('@main/base/testWindows', async importOriginal => ({
+  ...(await importOriginal<typeof import('@main/base/testWindows')>()),
   windowTestOptions: vi.fn(() => ({})),
   discardTestFrames: vi.fn(),
 }));
-vi.mock('@main/windows/page', () => ({
+vi.mock('@main/base/page', () => ({
   loadPage: vi.fn(),
   blockNavigation: vi.fn(),
 }));

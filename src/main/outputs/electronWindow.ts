@@ -1,20 +1,20 @@
 import {BrowserWindow, screen as displays} from 'electron';
 import {centeredRect, sameRect, type Rect, type Size} from '../displays/rect';
-import {appIconPath} from '../windows/appIcon';
-import type {Logger} from '../log';
-import {logWindowResponsiveness} from '../windows/responsiveness';
+import {appIconPath} from '../base/appIcon';
+import type {Logger} from '../base/log';
+import {logWindowResponsiveness} from '../base/responsiveness';
 import {
   blockNavigation,
   loadPage,
   preloadPath,
   startLoading,
   type PageRequest,
-} from '../windows/page';
+} from '../base/page';
 import {
   discardTestFrames,
   windowTestOptions,
   type WindowMode,
-} from '../windows/testWindows';
+} from '../base/testWindows';
 import {CHROMA_KEY_COLOR} from '@core/screens';
 import type {OutputWindowEvents, OutputWindowHandle} from './outputWindow';
 import type {OutputScreen} from './screens';

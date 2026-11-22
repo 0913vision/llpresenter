@@ -1,0 +1,467 @@
+import {readFile} from 'node:fs/promises';
+import {join} from 'node:path';
+import {describe, expect, it, vi} from 'vitest';
+import {installMockClock} from '@fixtures/mockClock';
+import {makeTempDir} from '@fixtures/tempDir';
+import {recordingLogger} from '@fixtures/main/displays/testing';
+import {createLogger, type Logger} from '@main/base/log';
+import {
+  LOG_FLUSH_LIMIT_MS,
+  SAVE_LIMIT_MS,
+  ShutdownCoordinator,
+  type ShutdownApp,
+} from '@main/base/shutdown';
+
+// NOTE(0913vision): The mock quits like Electron (qa bug M1-11): a quit made
+// while a quit event is being handled is ignored, and after a prevented one
+// only a quit from a later task gets through.
+class MockApp implements ShutdownApp {
+  quitted = false;
+  quitRequests = 0;
+  lockReleased = false;
+  private quitting = false;
+  private readonly listeners: Array<(event: {preventDefault(): void}) => void> =
+    [];
+
+  on(
+    _event: 'before-quit',
+    listener: (event: {preventDefault(): void}) => void,
+  ): void {
+    this.listeners.push(listener);
+  }
+
+  releaseSingleInstanceLock(): void {
+    this.lockReleased = true;
+  }
+
+  quit(): void {
+    this.quitRequests += 1;
+    if (this.quitting) return;
+    this.quitting = true;
+    const event = new QuitEvent();
+    for (const listener of this.listeners) listener(event);
+    if (!event.prevented) {
+      this.quitted = true;
+      return;
+    }
+    setImmediate(() => {
+      this.quitting = false;
+    });
+  }
+}
+
+class QuitEvent {
+  prevented = false;
+
+  preventDefault(): void {
+    this.prevented = true;
+  }
+}
+
+function deferred(): {promise: Promise<void>; resolve: () => void} {
+  let resolve: () => void = () => undefined;
+  const promise = new Promise<void>(done => {
+    resolve = done;
+  });
+  return {promise, resolve};
+}
+
+const never = (): Promise<void> => new Promise<void>(() => undefined);
+const saved = {savePending: (): Promise<boolean> => Promise.resolve(true)};
+
+describe('ShutdownCoordinator', () => {
+  it('waits for the update handoff to paint before stopping services', async () => {
+    const app = new MockApp();
+    const coordinator = new ShutdownCoordinator({app, log: recordingLogger()});
+    const handoff = deferred();
+    const beforeShutdown = vi.fn(() => handoff.promise);
+    const stop = vi.fn();
+    coordinator.add({name: 'stop services', run: stop});
+    const result = coordinator.quitForUpdate(
+      () => {},
+      () => true,
+      {
+        ...saved,
+        beforeShutdown,
+      },
+    );
+    await vi.waitFor(() => expect(beforeShutdown).toHaveBeenCalledOnce());
+    expect(stop).not.toHaveBeenCalled();
+    expect(app.quitted).toBe(false);
+    handoff.resolve();
+    await result;
+    expect(stop).toHaveBeenCalledOnce();
+  });
+  it('keeps the app and services running when the installer fails to launch', async () => {
+    const app = new MockApp();
+    const coordinator = new ShutdownCoordinator({app, log: recordingLogger()});
+    const stop = vi.fn();
+    coordinator.add({name: 'stop services', run: stop});
+    await expect(
+      coordinator.quitForUpdate(
+        () => Promise.reject(new Error('launch failed')),
+        () => true,
+        saved,
+      ),
+    ).rejects.toThrow('launch failed');
+    expect(stop).not.toHaveBeenCalled();
+    expect(app.quitted).toBe(false);
+    expect(app.lockReleased).toBe(false);
+    await expect(
+      coordinator.quitForUpdate(
+        () => {},
+        () => true,
+        saved,
+      ),
+    ).resolves.toBe(true);
+  });
+  it('keeps services alive until the installer confirms the update handoff', async () => {
+    const app = new MockApp();
+    const coordinator = new ShutdownCoordinator({app, log: recordingLogger()});
+    const handoff = deferred();
+    const install = vi.fn(() => handoff.promise);
+    const stop = vi.fn();
+    coordinator.add({name: 'stop services', run: stop});
+    const result = coordinator.quitForUpdate(install, () => true, saved);
+    await vi.waitFor(() => expect(install).toHaveBeenCalledOnce());
+    expect(stop).not.toHaveBeenCalled();
+    expect(app.quitted).toBe(false);
+    handoff.resolve();
+    expect(await result).toBe(true);
+    expect(stop).toHaveBeenCalledOnce();
+  });
+  it('keeps stores alive when durability verification fails or exceeds its bound', async () => {
+    const app = new MockApp();
+    const install = vi.fn();
+    const dispose = vi.fn();
+    const coordinator = new ShutdownCoordinator({
+      app,
+      log: recordingLogger(),
+      saveLimitMs: 1,
+    });
+    const confirm = vi.fn().mockResolvedValue(true);
+    coordinator.confirmWith(confirm);
+    coordinator.add({name: 'dispose stores', run: dispose});
+    for (const save of [
+      () => Promise.resolve(false),
+      () => new Promise<boolean>(() => undefined),
+    ]) {
+      expect(
+        await coordinator.quitForUpdate(install, () => true, {
+          savePending: save,
+        }),
+      ).toBe(false);
+    }
+    expect(confirm).toHaveBeenCalledWith(true);
+    expect(dispose).not.toHaveBeenCalled();
+    expect(install).not.toHaveBeenCalled();
+    expect(app.quitted).toBe(false);
+    expect(app.lockReleased).toBe(false);
+  });
+
+  it('rejects a final save that reports failure without throwing', async () => {
+    const app = new MockApp();
+    const install = vi.fn();
+    const coordinator = new ShutdownCoordinator({app, log: recordingLogger()});
+    coordinator.add({name: 'save pending edits', run: () => false});
+    expect(await coordinator.quitForUpdate(install, () => true, saved)).toBe(
+      true,
+    );
+    await vi.waitFor(() => expect(app.quitted).toBe(true));
+    expect(install).toHaveBeenCalledOnce();
+  });
+
+  it('reports failure when recovery cleanup silently retained its marker', async () => {
+    const app = new MockApp();
+    const install = vi.fn();
+    const coordinator = new ShutdownCoordinator({app, log: recordingLogger()});
+    expect(
+      await coordinator.quitForUpdate(install, () => true, {
+        ...saved,
+        verifyClean: () => Promise.resolve(false),
+      }),
+    ).toBe(true);
+    await vi.waitFor(() => expect(app.quitted).toBe(true));
+    expect(install).toHaveBeenCalledOnce();
+  });
+  it('starts the installer after durable saves and then completes shutdown', async () => {
+    const app = new MockApp();
+    const order: string[] = [];
+    const coordinator = new ShutdownCoordinator({app, log: recordingLogger()});
+    coordinator.confirmWith(async () => {
+      order.push('confirm');
+      return true;
+    });
+    for (const name of ['save', 'outputs off', 'recovery clean']) {
+      coordinator.add({
+        name,
+        run: () => {
+          order.push(name);
+        },
+      });
+    }
+    expect(
+      await coordinator.quitForUpdate(
+        () => {
+          order.push('install');
+        },
+        () => true,
+        {
+          savePending: async () => {
+            order.push('durable');
+            return true;
+          },
+        },
+      ),
+    ).toBe(true);
+    await vi.waitFor(() => expect(app.quitted).toBe(true));
+    expect(order).toEqual([
+      'confirm',
+      'durable',
+      'install',
+      'save',
+      'outputs off',
+      'recovery clean',
+    ]);
+  });
+
+  it('cancels installation if output turns on during confirmation', async () => {
+    const app = new MockApp();
+    let allowed = true;
+    const install = vi.fn();
+    const coordinator = new ShutdownCoordinator({app, log: recordingLogger()});
+    coordinator.confirmWith(async () => {
+      allowed = false;
+      return true;
+    });
+    expect(await coordinator.quitForUpdate(install, () => allowed, saved)).toBe(
+      false,
+    );
+    expect(install).not.toHaveBeenCalled();
+    expect(app.quitted).toBe(false);
+  });
+
+  it('keeps the app open on failed confirmation and reports final shutdown failure', async () => {
+    const app = new MockApp();
+    const install = vi.fn();
+    const coordinator = new ShutdownCoordinator({app, log: recordingLogger()});
+    coordinator.confirmWith(() => Promise.reject(new Error('flush failed')));
+    expect(await coordinator.quitForUpdate(install, () => true, saved)).toBe(
+      false,
+    );
+    expect(install).not.toHaveBeenCalled();
+    coordinator.confirmWith(() => Promise.resolve(true));
+    coordinator.add({
+      name: 'save',
+      run: () => {
+        throw new Error('disk full');
+      },
+    });
+    expect(await coordinator.quitForUpdate(install, () => true, saved)).toBe(
+      true,
+    );
+    await vi.waitFor(() => expect(app.quitted).toBe(true));
+    expect(install).toHaveBeenCalledOnce();
+  });
+
+  it('reports when shutdown exceeds the save deadline after handoff', async () => {
+    const app = new MockApp();
+    const install = vi.fn();
+    const coordinator = new ShutdownCoordinator({
+      app,
+      log: recordingLogger(),
+      saveLimitMs: 1,
+    });
+    coordinator.add({name: 'stuck save', run: never});
+    expect(await coordinator.quitForUpdate(install, () => true, saved)).toBe(
+      true,
+    );
+    await vi.waitFor(() => expect(app.quitted).toBe(true));
+    expect(install).toHaveBeenCalledOnce();
+  });
+  it('quits with nothing to save and nothing in the log', async () => {
+    const app = new MockApp();
+    new ShutdownCoordinator({app, log: createLogger(await makeTempDir())});
+    app.quit();
+    await vi.waitFor(() => expect(app.quitted).toBe(true));
+  });
+
+  it('releases the single-instance lock only when the shutdown is done', async () => {
+    const app = new MockApp();
+    const shutdown = new ShutdownCoordinator({
+      app,
+      log: createLogger(await makeTempDir()),
+    });
+    const save = deferred();
+    shutdown.add({name: 'save the UI state', run: () => save.promise});
+    app.quit();
+    await new Promise(resolve => setImmediate(resolve));
+    expect(app.lockReleased).toBe(false);
+    save.resolve();
+    await vi.waitFor(() => expect(app.quitted).toBe(true));
+    expect(app.lockReleased).toBe(true);
+  });
+
+  it('runs the steps in order, then flushes the log, then quits', async () => {
+    const dir = await makeTempDir();
+    const log = createLogger(dir);
+    const app = new MockApp();
+    const shutdown = new ShutdownCoordinator({app, log});
+    const order: string[] = [];
+    const soak = deferred();
+    shutdown.add({
+      name: 'stop the outputs',
+      run: () => void order.push('outputs'),
+    });
+    shutdown.add({
+      name: 'finish the soak record',
+      run: async () => {
+        order.push('soak');
+        await soak.promise;
+        log.info('soak record closed');
+      },
+    });
+    shutdown.add({name: 'save the UI state', run: () => void order.push('ui')});
+    app.quit();
+    await vi.waitFor(() => expect(order).toEqual(['outputs', 'soak']));
+    expect(app.quitted).toBe(false);
+    soak.resolve();
+    await vi.waitFor(() => expect(app.quitted).toBe(true));
+    expect(order).toEqual(['outputs', 'soak', 'ui']);
+    const text = await readFile(join(dir, 'main.log'), 'utf8');
+    expect(text).toContain('soak record closed');
+  });
+
+  it('holds every quit request on the same shutdown', async () => {
+    const app = new MockApp();
+    const shutdown = new ShutdownCoordinator({
+      app,
+      log: createLogger(await makeTempDir()),
+    });
+    const save = deferred();
+    const run = vi.fn(() => save.promise);
+    shutdown.add({name: 'save the UI state', run});
+    app.quit();
+    await new Promise(resolve => setImmediate(resolve));
+    app.quit();
+    app.quit();
+    expect(app.quitted).toBe(false);
+    expect(run).toHaveBeenCalledTimes(1);
+    save.resolve();
+    await vi.waitFor(() => expect(app.quitted).toBe(true));
+  });
+
+  it('confirms before any step and keeps running when the check refuses', async () => {
+    const log = recordingLogger();
+    const app = new MockApp();
+    const shutdown = new ShutdownCoordinator({app, log});
+    const order: string[] = [];
+    const answers = [false, true];
+    shutdown.confirmWith(async () => {
+      order.push('confirm');
+      return answers.shift() ?? true;
+    });
+    shutdown.add({name: 'save the UI state', run: () => void order.push('ui')});
+    app.quit();
+    await vi.waitFor(() =>
+      expect(log.messages('info')).toEqual(['quit cancelled before saving']),
+    );
+    await new Promise(resolve => setImmediate(resolve));
+    expect(order).toEqual(['confirm']);
+    expect(app.quitted).toBe(false);
+    expect(app.lockReleased).toBe(false);
+    app.quit();
+    await vi.waitFor(() => expect(app.quitted).toBe(true));
+    expect(order).toEqual(['confirm', 'confirm', 'ui']);
+  });
+
+  it('holds repeated quit requests on one pending confirmation', async () => {
+    const app = new MockApp();
+    const shutdown = new ShutdownCoordinator({app, log: recordingLogger()});
+    let answer: (value: boolean) => void = () => undefined;
+    const confirm = vi.fn(
+      () =>
+        new Promise<boolean>(resolve => {
+          answer = resolve;
+        }),
+    );
+    shutdown.confirmWith(confirm);
+    app.quit();
+    await new Promise(resolve => setImmediate(resolve));
+    app.quit();
+    expect(confirm).toHaveBeenCalledOnce();
+    answer(true);
+    await vi.waitFor(() => expect(app.quitted).toBe(true));
+  });
+
+  it('logs a failing confirmation and quits anyway', async () => {
+    const log = recordingLogger();
+    const app = new MockApp();
+    const shutdown = new ShutdownCoordinator({app, log});
+    shutdown.confirmWith(() => Promise.reject(new Error('Invented failure')));
+    app.quit();
+    await vi.waitFor(() => expect(app.quitted).toBe(true));
+    expect(log.messages('error')).toEqual([
+      'could not confirm quitting; quitting anyway',
+    ]);
+  });
+
+  it('logs a failing step and carries on with the next', async () => {
+    const log = recordingLogger();
+    const app = new MockApp();
+    const shutdown = new ShutdownCoordinator({app, log});
+    const after = vi.fn();
+    shutdown.add({
+      name: 'save the UI state',
+      run: () => {
+        throw new Error('disk full');
+      },
+    });
+    shutdown.add({name: 'finish the soak record', run: after});
+    app.quit();
+    await vi.waitFor(() => expect(app.quitted).toBe(true));
+    expect(after).toHaveBeenCalled();
+    expect(log.messages('error')).toEqual([
+      'could not save the UI state before quitting',
+    ]);
+  });
+
+  it('quits after the save limit when a step never ends', async () => {
+    const clock = installMockClock();
+    const log = recordingLogger();
+    const app = new MockApp();
+    const shutdown = new ShutdownCoordinator({app, log});
+    shutdown.add({name: 'finish the soak record', run: never});
+    app.quit();
+    await clock.advance(SAVE_LIMIT_MS - 1);
+    expect(app.quitted).toBe(false);
+    await clock.advance(1);
+    await clock.runAll();
+    expect(app.quitted).toBe(true);
+    expect(log.entries.at(-1)).toMatchObject({
+      level: 'error',
+      message: 'saving before quitting took too long; quitting anyway',
+      detail: {waitingFor: 'finish the soak record'},
+    });
+  });
+
+  it('quits after the log flush limit when the disk is stuck', async () => {
+    const clock = installMockClock();
+    vi.spyOn(console, 'error').mockReturnValue(undefined);
+    const stuck: Logger = {
+      info: () => undefined,
+      warn: () => undefined,
+      error: () => undefined,
+      flush: never,
+    };
+    const app = new MockApp();
+    new ShutdownCoordinator({app, log: stuck});
+    app.quit();
+    await clock.advance(LOG_FLUSH_LIMIT_MS - 1);
+    expect(app.quitted).toBe(false);
+    await clock.advance(1);
+    await clock.runAll();
+    expect(app.quitted).toBe(true);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+});

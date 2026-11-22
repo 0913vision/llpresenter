@@ -4,7 +4,7 @@ import {
 } from '@core/schema/settingsDocuments';
 import type {SettingsReader} from '@core/schema/settingsReader';
 import type {EditResult} from '@core/schema/contentEdit';
-import type {Logger} from './log';
+import type {Logger} from './base/log';
 
 /** The part of Electron's `app` that runs the Windows sign-in item. */
 export interface LoginItems {

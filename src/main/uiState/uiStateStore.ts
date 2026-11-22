@@ -6,7 +6,7 @@ import {
   type UiState,
 } from '@core/schema/uiState';
 import {parseMediaBrowserChange} from '@core/schema/mediaBrowser';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import type {UiStateFields} from '../store/appConfigFile';
 import {withLayoutChange} from './layout';
 

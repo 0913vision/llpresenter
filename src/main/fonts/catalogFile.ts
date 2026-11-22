@@ -1,8 +1,8 @@
 import {readFile, stat} from 'node:fs/promises';
 import {isRecord} from '@core/common/guards';
 import {parseFontCatalog, type FontCatalog} from '@core/schema/fontCatalog';
-import {writeFileAtomically} from '../store/atomicWrite';
-import {isMissingFile} from '../store/fsErrors';
+import {writeFileAtomically} from '../base/atomicWrite';
+import {isMissingFile} from '../base/fsErrors';
 
 const MAX_CACHE_BYTES = 2 * 1024 * 1024;
 const STAMP = /^[a-f0-9]{64}$/;

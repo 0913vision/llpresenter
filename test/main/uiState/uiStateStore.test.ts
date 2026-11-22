@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import type {AppLayout} from '@core/schema/appConfig';
 import type {UiFields, UiStateFields} from '@main/store/appConfigFile';
-import type {Logger} from '@main/log';
+import type {Logger} from '@main/base/log';
 import {UiStateStore} from '@main/uiState/uiStateStore';
 import {createScreenId} from '@core/schema/ids';
 

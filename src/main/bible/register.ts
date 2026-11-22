@@ -2,7 +2,7 @@ import {ipcMain} from 'electron';
 import {bibleEndpoints} from '@contracts/ipc/bible';
 import {parseBibleLookupRequest} from '@core/schema/bibleLookup';
 import type {BibleLookupSession} from './lookup';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 
 /** Registers validated reads using the data store's shared Bible session. */
 export function registerBible({

@@ -3,7 +3,7 @@ import type {
   UpdateSnapshot,
   UpdateStatus,
 } from '@core/schema/update';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import type {UpdaterPort} from './port';
 
 interface UpdateOptions {

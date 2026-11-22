@@ -1,5 +1,5 @@
 import type {MediaProgress} from '@core/schema/mediaProgress';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import type {LiveStore} from './store';
 
 const UPDATE_MS = 1000;

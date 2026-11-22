@@ -13,7 +13,7 @@ import {parseSettingsDocument} from '@core/schema/settingsDocuments';
 import {testId} from '@fixtures/core/schema/testHelpers';
 import {join, resolve} from 'node:path';
 import {onTestFinished, vi} from 'vitest';
-import type {Logger} from '@main/log';
+import type {Logger} from '@main/base/log';
 import {
   ContentStore,
   type ContentEvents,

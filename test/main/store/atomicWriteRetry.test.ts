@@ -2,10 +2,7 @@ import {readdir, readFile} from 'node:fs/promises';
 import {basename, join} from 'node:path';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {makeTempDir} from '@fixtures/tempDir';
-import {
-  isTemporaryFileName,
-  writeFileAtomically,
-} from '@main/store/atomicWrite';
+import {isTemporaryFileName, writeFileAtomically} from '@main/base/atomicWrite';
 
 const renameFailures = vi.hoisted(() => {
   const codes: string[] = [];

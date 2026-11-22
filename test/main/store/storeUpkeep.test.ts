@@ -4,7 +4,7 @@ import type {FileError} from '@core/schema/fileFormat';
 import type {BackupOutcome, BackupsOptions} from '@main/store/backup';
 import {resolveLocations} from '@main/store/locations';
 import {settingsLocation} from '@main/store/settingsFile';
-import {removeStaleTempFiles} from '@main/store/staleTempFiles';
+import {removeStaleTempFiles} from '@main/base/staleTempFiles';
 import {logLoadedStore, upkeepAtLaunch} from '@main/store/storeUpkeep';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 
@@ -32,7 +32,7 @@ vi.mock('@main/store/backup', () => ({
     }
   },
 }));
-vi.mock('@main/store/staleTempFiles', () => ({
+vi.mock('@main/base/staleTempFiles', () => ({
   removeStaleTempFiles: vi.fn(),
 }));
 

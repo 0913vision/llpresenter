@@ -1,7 +1,7 @@
 import {EventEmitter} from 'node:events';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {uiEndpoints} from '@contracts/ipc/ui';
-import type {Logger} from '@main/log';
+import type {Logger} from '@main/base/log';
 import {registerUiZoom, type ZoomControl} from '@main/store/uiZoom';
 
 type Handler = (

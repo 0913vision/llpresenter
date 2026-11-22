@@ -1,11 +1,11 @@
 import {mkdir, readFile, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import {writeFileAtomically} from '@main/store/atomicWrite';
+import {writeFileAtomically} from '@main/base/atomicWrite';
 import {serviceIdSchema} from '@core/schema/ids';
 import {testId} from '@fixtures/core/schema/testHelpers';
 import {makeTempDir} from '@fixtures/tempDir';
-import type {Logger} from '@main/log';
+import type {Logger} from '@main/base/log';
 import {UiStateStore} from '@main/uiState/uiStateStore';
 import {openAppConfig} from '@main/store/appConfigFile';
 import type {WriteResult} from '@main/store/fileWriter';

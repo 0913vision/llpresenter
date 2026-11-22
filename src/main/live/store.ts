@@ -8,7 +8,7 @@ import {randomUUID} from 'node:crypto';
 import {createMessageId} from '@core/schema/ids';
 import {macroDroppedProblem, type AppProblem} from '@core/schema/appProblem';
 import type {LiveState} from '@core/schema/live';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import type {MediaList} from '@core/schema/mediaList';
 import {backgroundProgress} from '@core/media';
 import type {MediaProgress} from '@core/schema/mediaProgress';

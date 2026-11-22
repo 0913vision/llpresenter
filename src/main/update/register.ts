@@ -3,8 +3,8 @@ import {updateEndpoints} from '@contracts/ipc/update';
 import {parseUpdateAction} from '@core/schema/update';
 import {isAnyOutputOn} from '@core/schema/live';
 import type {LiveStore} from '../live/store';
-import type {Logger} from '../log';
-import type {ShutdownCoordinator} from '../shutdown';
+import type {Logger} from '../base/log';
+import type {ShutdownCoordinator} from '../base/shutdown';
 import {UpdateController} from './controller';
 import {createUpdater} from './electronUpdater';
 

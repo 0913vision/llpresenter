@@ -1,7 +1,7 @@
 import {readdir, readFile} from 'node:fs/promises';
 import type {Result} from '@core/common/result';
 import type {FileError, LoadedFile} from '@core/schema/fileFormat';
-import {isMissingFile} from './fsErrors';
+import {isMissingFile} from '../base/fsErrors';
 
 /** Reads one file's text the way the schemas do. Never throws. */
 export type ParseFile<T> = (

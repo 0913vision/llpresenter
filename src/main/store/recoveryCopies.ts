@@ -2,8 +2,8 @@ import {copyFile, mkdir, readdir, rm} from 'node:fs/promises';
 import {join} from 'node:path';
 import type {Result} from '@core/common/result';
 import {PREFERENCE_LIMITS} from '@core/schema/preferences';
-import type {WriteProblem} from './atomicWrite';
-import {isMissingFile} from './fsErrors';
+import type {WriteProblem} from '../base/atomicWrite';
+import {isMissingFile} from '../base/fsErrors';
 
 const COPY_EXTENSION = '.json';
 const MIN_INTERVAL_MS = 5 * 60 * 1000;

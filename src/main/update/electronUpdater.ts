@@ -1,7 +1,7 @@
 import type {AppUpdater} from 'electron-updater';
 import {app, autoUpdater as electronAutoUpdater} from 'electron';
 import {parseUpdateVersion} from '@core/schema/update';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import type {UpdaterPort} from './port';
 
 /** Creates the sole electron-updater adapter, only for an installed Windows app. */

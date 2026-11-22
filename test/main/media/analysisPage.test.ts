@@ -48,7 +48,7 @@ vi.mock('electron', () => ({
   },
 }));
 
-vi.mock('@main/windows/page', () => ({
+vi.mock('@main/base/page', () => ({
   startLoading: mocks.startLoading,
   blockNavigation: mocks.blockNavigation,
 }));

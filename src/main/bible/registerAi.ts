@@ -1,7 +1,7 @@
 import {BrowserWindow, ipcMain} from 'electron';
 import {bibleEndpoints} from '@contracts/ipc/bible';
 import {parseBibleAiCancel, parseBibleAiRequest} from '@core/schema/bibleAi';
-import type {Logger} from '../log';
+import type {Logger} from '../base/log';
 import {createChooser} from './llm/chooser';
 import {ChooserQueue} from './llm/queue';
 import {LlmServer} from './llm/server';
