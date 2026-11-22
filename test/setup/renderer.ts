@@ -21,6 +21,16 @@ Object.defineProperty(document, 'fonts', {
   }),
 });
 
+// NOTE(0913vision): jsdom lays nothing out.
+Object.defineProperties(Range.prototype, {
+  getClientRects: {configurable: true, writable: true, value: () => []},
+  getBoundingClientRect: {
+    configurable: true,
+    writable: true,
+    value: () => new DOMRect(),
+  },
+});
+
 // NOTE(0913vision): jsdom has no image decode; tests can override this default.
 Object.defineProperty(HTMLImageElement.prototype, 'decode', {
   configurable: true,
