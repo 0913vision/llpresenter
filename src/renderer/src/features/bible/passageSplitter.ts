@@ -15,6 +15,8 @@ import {
 /** A passage cut for the text box of its theme on 청중. */
 export interface BibleSplit extends PassageSplit {
   readonly theme: ThemeFile;
+  /** The address its slides show. */
+  readonly address: string;
 }
 
 export interface SplitRequest {
@@ -53,7 +55,7 @@ export class PassageSplitter {
     });
     return split.parts.some(part => part.problem !== undefined)
       ? null
-      : {...split, theme};
+      : {...split, theme, address: passage.displayRef};
   }
 }
 

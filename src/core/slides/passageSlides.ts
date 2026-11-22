@@ -78,7 +78,7 @@ export function passageSlides(
         slide.verse?.translation === reference.translation &&
         verseKey(slide.verse) === key,
     );
-    if (kept.length > 0) return kept;
+    if (kept.length > 0) return withNumber(kept, {reference, text, numbered});
     return verseSlides(making, {
       reference,
       texts: cut(text.trim(), reference).map((part, index) =>
@@ -87,6 +87,38 @@ export function passageSlides(
       address: shown,
     });
   });
+}
+
+function oneRow(text: string): string {
+  return text.replace(/\s+/gu, ' ').trim();
+}
+
+/**
+ * The slides of a verse with its number or without it. A verse that was
+ * changed by hand keeps the text it has.
+ */
+function withNumber(
+  slides: readonly Slide[],
+  {
+    reference,
+    text,
+    numbered,
+  }: {
+    readonly reference: VerseReference;
+    readonly text: string;
+    readonly numbered: boolean;
+  },
+): readonly Slide[] {
+  const [first, ...others] = slides;
+  if (first === undefined) return slides;
+  const own = first.texts['본문'] ?? '';
+  const number = `${reference.verse} `;
+  const bare = own.startsWith(number) ? own.slice(number.length) : own;
+  const whole = [bare, ...others.map(slide => slide.texts['본문'] ?? '')];
+  const wanted = numbered ? number + bare : bare;
+  return wanted === own || oneRow(whole.join(' ')) !== oneRow(text)
+    ? slides
+    : [{...first, texts: {...first.texts, 본문: wanted}}, ...others];
 }
 
 /** The slides of one verse, cut into these texts. */

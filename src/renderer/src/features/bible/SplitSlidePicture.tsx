@@ -2,6 +2,7 @@ import type {JSX} from 'react';
 import {createSlideId} from '@core/schema/ids';
 import type {ShowTile} from '@core/schema/showService';
 import type {ThemeFile} from '@core/schema/theme';
+import {AUTO_TOKENS} from '@core/theme/content';
 import {TilePicture} from '@renderer/pictures/TilePicture';
 import styles from './SplitEditor.module.css';
 
@@ -11,12 +12,12 @@ const PREVIEW_ID = createSlideId('00000000-0000-4000-8000-000000000001');
 export function SplitSlidePicture({
   text,
   continued,
-  reference,
+  address,
   theme,
 }: {
   readonly text: string;
   readonly continued: boolean;
-  readonly reference: string;
+  readonly address: string;
   readonly theme: ThemeFile;
 }): JSX.Element {
   const tile: ShowTile = {
@@ -26,7 +27,7 @@ export function SplitSlidePicture({
       texts: {본문: text},
       ...(continued ? {continued: true} : {}),
     },
-    auto: {구절: reference},
+    auto: {[AUTO_TOKENS.passage]: address},
     caption: null,
     labelColor: 'none',
   };

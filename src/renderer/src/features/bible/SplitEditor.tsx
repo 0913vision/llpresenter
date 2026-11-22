@@ -35,6 +35,7 @@ export interface SplitEditorProps {
   readonly cuts: readonly number[];
   readonly layout: SplitLayout;
   readonly theme: ThemeFile;
+  readonly address: string;
   readonly prefix: string;
   readonly position: number;
   readonly total: number;
@@ -373,7 +374,7 @@ function VerseSplitEditor(
                     slide.index === 0 ? props.prefix + slide.text : slide.text
                   }
                   continued={!slide.isLast}
-                  reference={props.label}
+                  address={props.address}
                   theme={props.theme}
                 />
               </div>
