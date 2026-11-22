@@ -1,0 +1,336 @@
+{
+  "format": "lltheme",
+  "schemaVersion": 1,
+  "id": "00000000-0000-4000-8000-000000000106",
+  "name": "설교 제목",
+  "purpose": "sermonTitle",
+  "boxes": [
+    {
+      "name": "주소",
+      "column": false,
+      "rows": "one",
+      "default": "{구절}"
+    },
+    {
+      "name": "제목",
+      "column": true,
+      "rows": "one"
+    }
+  ],
+  "next": {
+    "content": ["다음 순서: 설교 ({제목})"],
+    "column": false
+  },
+  "hideNextAtEnd": true,
+  "then": "00000000-0000-4000-8000-000000000102",
+  "background": {
+    "kind": "media",
+    "media": "00000000-0000-4000-8000-000000000381",
+    "fit": "stretch"
+  },
+  "screens": {
+    "audience": {
+      "mode": "own",
+      "elements": [
+        {
+          "id": "00000000-0000-4000-9000-000000000001",
+          "kind": "background",
+          "frame": {
+            "x": 0,
+            "y": 0,
+            "w": 1920,
+            "h": 1080
+          },
+          "fit": "stretch"
+        },
+        {
+          "id": "00000000-0000-4000-9000-000000000002",
+          "kind": "shape",
+          "frame": {
+            "x": 542,
+            "y": 0,
+            "w": 837,
+            "h": 4
+          },
+          "fill": {
+            "color": "#737D87",
+            "opacity": 100
+          },
+          "beside": {
+            "texts": [
+              "00000000-0000-4000-9000-000000000004",
+              "00000000-0000-4000-9000-000000000005"
+            ],
+            "side": "above",
+            "gap": 98.55
+          }
+        },
+        {
+          "id": "00000000-0000-4000-9000-000000000003",
+          "kind": "shape",
+          "frame": {
+            "x": 542,
+            "y": 0,
+            "w": 837,
+            "h": 4
+          },
+          "fill": {
+            "color": "#737D87",
+            "opacity": 100
+          },
+          "beside": {
+            "texts": [
+              "00000000-0000-4000-9000-000000000004",
+              "00000000-0000-4000-9000-000000000005"
+            ],
+            "side": "below",
+            "gap": 98.55
+          }
+        },
+        {
+          "id": "00000000-0000-4000-9000-000000000004",
+          "kind": "text",
+          "frame": {
+            "x": 260,
+            "y": 356,
+            "w": 1400,
+            "h": 150
+          },
+          "content": ["{주소}"],
+          "style": {
+            "font": "KoPubWorldDotum",
+            "weight": 500,
+            "size": 86,
+            "color": "#FFFFFF",
+            "lineHeight": 1.2,
+            "tracking": 6,
+            "align": "center",
+            "vAlign": "top"
+          }
+        },
+        {
+          "id": "00000000-0000-4000-9000-000000000005",
+          "kind": "text",
+          "frame": {
+            "x": 100,
+            "y": 509.7,
+            "w": 1720,
+            "h": 390
+          },
+          "content": ["{제목}"],
+          "style": {
+            "font": "KoPubWorldDotum",
+            "weight": 700,
+            "size": 140,
+            "color": "#FFFFFF",
+            "lineHeight": 1.19,
+            "tracking": -6,
+            "align": "center",
+            "vAlign": "top"
+          },
+          "fit": {
+            "rows": 2
+          }
+        }
+      ],
+      "stacks": [
+        {
+          "texts": [
+            "00000000-0000-4000-9000-000000000004",
+            "00000000-0000-4000-9000-000000000005"
+          ],
+          "anchor": "center",
+          "at": 540,
+          "gap": 27.1,
+          "ink": true
+        }
+      ]
+    },
+    "broadcast": {
+      "mode": "own",
+      "elements": [
+        {
+          "id": "00000000-0000-4000-9000-000000000001",
+          "kind": "shape",
+          "frame": {
+            "x": 0,
+            "y": 748,
+            "w": 1920,
+            "h": 242
+          },
+          "fill": {
+            "angle": 90,
+            "stops": [
+              {
+                "color": "#000000",
+                "opacity": 0,
+                "position": 8.3333
+              },
+              {
+                "color": "#000000",
+                "opacity": 88,
+                "position": 25
+              },
+              {
+                "color": "#000000",
+                "opacity": 88,
+                "position": 75
+              },
+              {
+                "color": "#000000",
+                "opacity": 0,
+                "position": 91.6667
+              }
+            ]
+          }
+        },
+        {
+          "id": "00000000-0000-4000-9000-000000000002",
+          "kind": "text",
+          "frame": {
+            "x": 160,
+            "y": 781,
+            "w": 1600,
+            "h": 42
+          },
+          "content": ["{주소}"],
+          "style": {
+            "font": "NanumSquare",
+            "weight": 700,
+            "size": 38,
+            "color": "#FFFFFF",
+            "lineHeight": 1.2,
+            "tracking": 0,
+            "align": "center",
+            "vAlign": "middle"
+          }
+        },
+        {
+          "id": "00000000-0000-4000-9000-000000000003",
+          "kind": "text",
+          "frame": {
+            "x": 160,
+            "y": 826,
+            "w": 1600,
+            "h": 154
+          },
+          "content": ["{제목}"],
+          "style": {
+            "font": "NanumSquare",
+            "weight": 700,
+            "size": 64,
+            "color": "#FFFFFF",
+            "lineHeight": 1.2,
+            "tracking": 0,
+            "align": "center",
+            "vAlign": "middle"
+          },
+          "fit": {
+            "rows": 2
+          }
+        }
+      ],
+      "stacks": [
+        {
+          "texts": [
+            "00000000-0000-4000-9000-000000000002",
+            "00000000-0000-4000-9000-000000000003"
+          ],
+          "anchor": "center",
+          "at": 869,
+          "gap": 4
+        }
+      ]
+    },
+    "stage": {
+      "mode": "own",
+      "elements": [
+        {
+          "id": "00000000-0000-4000-9000-000000000001",
+          "kind": "text",
+          "frame": {
+            "x": 154,
+            "y": 245,
+            "w": 1612,
+            "h": 110
+          },
+          "content": ["{주소}"],
+          "style": {
+            "font": "KoPubWorldDotum",
+            "weight": 500,
+            "size": 86,
+            "color": "#FFFFFF",
+            "lineHeight": 1.2,
+            "tracking": 0,
+            "align": "left",
+            "vAlign": "middle"
+          },
+          "same": "size"
+        },
+        {
+          "id": "00000000-0000-4000-9000-000000000002",
+          "kind": "text",
+          "frame": {
+            "x": 154,
+            "y": 345,
+            "w": 1612,
+            "h": 340
+          },
+          "content": ["{제목}"],
+          "style": {
+            "font": "NanumSquare",
+            "weight": 700,
+            "size": 140,
+            "color": "#FFFFFF",
+            "lineHeight": 1.2,
+            "tracking": 0,
+            "align": "left",
+            "vAlign": "middle"
+          },
+          "same": "size"
+        },
+        {
+          "id": "00000000-0000-4000-9000-000000000090",
+          "kind": "next",
+          "frame": {
+            "x": 154,
+            "y": 706,
+            "w": 1612,
+            "h": 272
+          },
+          "style": {
+            "font": "NanumSquare",
+            "weight": 700,
+            "size": 80,
+            "color": "#FFD66B",
+            "lineHeight": 1.2,
+            "tracking": 0,
+            "align": "left",
+            "vAlign": "top"
+          },
+          "fit": {
+            "min": 48
+          },
+          "wrap": "balance",
+          "ratio": 0.6667,
+          "of": "00000000-0000-4000-9000-000000000002"
+        }
+      ],
+      "backdrop": "#000000",
+      "splits": [
+        {
+          "upper": [
+            "00000000-0000-4000-9000-000000000001",
+            "00000000-0000-4000-9000-000000000002"
+          ],
+          "lower": "00000000-0000-4000-9000-000000000090",
+          "top": 130,
+          "bottom": 1064,
+          "at": 706,
+          "gap": 8,
+          "upperGap": 8
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,182 @@
+{
+  "format": "lltheme",
+  "schemaVersion": 1,
+  "id": "00000000-0000-4000-8000-000000000110",
+  "name": "예배 준비",
+  "purpose": "preparation",
+  "boxes": [
+    {
+      "name": "제목",
+      "column": true,
+      "rows": "one",
+      "default": "잠시후에 예배가 시작됩니다"
+    },
+    {
+      "name": "안내",
+      "column": true,
+      "rows": "one",
+      "default": "지금은 기도로 예배를 준비하는 시간입니다"
+    }
+  ],
+  "next": {
+    "content": ["다음 순서: {제목}"],
+    "column": false
+  },
+  "background": {
+    "kind": "media",
+    "media": "00000000-0000-4000-8000-000000000391",
+    "fit": "stretch"
+  },
+  "screens": {
+    "audience": {
+      "mode": "own",
+      "elements": [
+        {
+          "id": "00000000-0000-4000-9000-000000000001",
+          "kind": "background",
+          "frame": {
+            "x": 0,
+            "y": 0,
+            "w": 1920,
+            "h": 1080
+          },
+          "fit": "stretch"
+        },
+        {
+          "id": "00000000-0000-4000-9000-000000000002",
+          "kind": "text",
+          "frame": {
+            "x": 200,
+            "y": 408,
+            "w": 1520,
+            "h": 200
+          },
+          "content": ["{제목}"],
+          "style": {
+            "font": "KoPubWorldDotum",
+            "weight": 700,
+            "size": 120,
+            "color": "#FFFFFF",
+            "lineHeight": 1.2,
+            "tracking": -3,
+            "align": "center",
+            "vAlign": "top"
+          }
+        },
+        {
+          "id": "00000000-0000-4000-9000-000000000003",
+          "kind": "text",
+          "frame": {
+            "x": 200,
+            "y": 573,
+            "w": 1520,
+            "h": 110
+          },
+          "content": ["{안내}"],
+          "style": {
+            "font": "KoPubWorldDotum",
+            "weight": 700,
+            "size": 74,
+            "color": "#FFFFFF",
+            "lineHeight": 1.2,
+            "tracking": -6,
+            "align": "center",
+            "vAlign": "top"
+          }
+        }
+      ]
+    },
+    "broadcast": {
+      "mode": "empty"
+    },
+    "stage": {
+      "mode": "own",
+      "elements": [
+        {
+          "id": "00000000-0000-4000-9000-000000000001",
+          "kind": "text",
+          "frame": {
+            "x": 154,
+            "y": 130,
+            "w": 1612,
+            "h": 260
+          },
+          "content": ["{제목}"],
+          "style": {
+            "font": "NanumSquare",
+            "weight": 800,
+            "size": 108,
+            "color": "#FFFFFF",
+            "lineHeight": 1.2,
+            "tracking": 0,
+            "align": "center",
+            "vAlign": "middle"
+          },
+          "wrap": "balance"
+        },
+        {
+          "id": "00000000-0000-4000-9000-000000000002",
+          "kind": "text",
+          "frame": {
+            "x": 154,
+            "y": 390,
+            "w": 1612,
+            "h": 260
+          },
+          "content": ["{안내}"],
+          "style": {
+            "font": "NanumSquare",
+            "weight": 800,
+            "size": 108,
+            "color": "#FFFFFF",
+            "lineHeight": 1.2,
+            "tracking": 0,
+            "align": "center",
+            "vAlign": "middle"
+          },
+          "wrap": "balance"
+        },
+        {
+          "id": "00000000-0000-4000-9000-000000000090",
+          "kind": "next",
+          "frame": {
+            "x": 154,
+            "y": 706,
+            "w": 1612,
+            "h": 272
+          },
+          "style": {
+            "font": "NanumSquare",
+            "weight": 700,
+            "size": 72,
+            "color": "#FFD66B",
+            "lineHeight": 1.2,
+            "tracking": 0,
+            "align": "center",
+            "vAlign": "top"
+          },
+          "fit": {
+            "min": 48
+          },
+          "wrap": "balance",
+          "ratio": 0.6667,
+          "of": "00000000-0000-4000-9000-000000000001"
+        }
+      ],
+      "backdrop": "#000000",
+      "splits": [
+        {
+          "upper": [
+            "00000000-0000-4000-9000-000000000001",
+            "00000000-0000-4000-9000-000000000002"
+          ],
+          "lower": "00000000-0000-4000-9000-000000000090",
+          "top": 130,
+          "bottom": 1064,
+          "at": 706,
+          "gap": 8
+        }
+      ]
+    }
+  }
+}

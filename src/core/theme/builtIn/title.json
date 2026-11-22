@@ -1,0 +1,252 @@
+{
+  "format": "lltheme",
+  "schemaVersion": 1,
+  "id": "00000000-0000-4000-8000-000000000111",
+  "name": "타이틀",
+  "purpose": "title",
+  "boxes": [
+    {
+      "name": "제목",
+      "column": true,
+      "rows": "one"
+    },
+    {
+      "name": "영문",
+      "column": true,
+      "rows": "one"
+    }
+  ],
+  "next": {
+    "content": ["다음 순서: {제목}"],
+    "column": false
+  },
+  "background": {
+    "kind": "gradient",
+    "angle": 135,
+    "stops": [
+      {
+        "color": "#002E38",
+        "position": 0
+      },
+      {
+        "color": "#00768C",
+        "position": 100
+      }
+    ]
+  },
+  "screens": {
+    "audience": {
+      "mode": "own",
+      "elements": [
+        {
+          "id": "00000000-0000-4000-9000-000000000001",
+          "kind": "background",
+          "frame": {
+            "x": 0,
+            "y": 0,
+            "w": 1920,
+            "h": 1080
+          },
+          "fit": "stretch"
+        },
+        {
+          "id": "00000000-0000-4000-9000-000000000002",
+          "kind": "picture",
+          "frame": {
+            "x": 0,
+            "y": 0,
+            "w": 1920,
+            "h": 1080
+          },
+          "media": "00000000-0000-4000-8000-000000000407",
+          "fit": "stretch"
+        },
+        {
+          "id": "00000000-0000-4000-9000-000000000003",
+          "kind": "text",
+          "frame": {
+            "x": 44,
+            "y": 412,
+            "w": 1876,
+            "h": 240
+          },
+          "content": ["{제목}"],
+          "style": {
+            "font": "KoPubWorldDotum",
+            "weight": 700,
+            "size": 152,
+            "color": "#FFFFFF",
+            "lineHeight": 1,
+            "tracking": 52,
+            "align": "center",
+            "vAlign": "top",
+            "short": {
+              "letters": 2,
+              "tracking": 152,
+              "texts": {
+                "회개와간구의기도": 40,
+                "봉헌": 52
+              }
+            }
+          }
+        },
+        {
+          "id": "00000000-0000-4000-9000-000000000004",
+          "kind": "text",
+          "frame": {
+            "x": 40,
+            "y": 613,
+            "w": 1880,
+            "h": 90
+          },
+          "content": ["{영문}"],
+          "style": {
+            "font": "KoPubWorldDotum",
+            "weight": 300,
+            "size": 56,
+            "color": "#FFFFFF",
+            "lineHeight": 1,
+            "tracking": 34,
+            "align": "center",
+            "vAlign": "top"
+          },
+          "fit": {
+            "rows": 1
+          }
+        }
+      ]
+    },
+    "broadcast": {
+      "mode": "own",
+      "elements": [
+        {
+          "id": "00000000-0000-4000-9000-000000000001",
+          "kind": "shape",
+          "frame": {
+            "x": 0,
+            "y": 756,
+            "w": 1920,
+            "h": 234
+          },
+          "fill": {
+            "angle": 90,
+            "stops": [
+              {
+                "color": "#000000",
+                "opacity": 0,
+                "position": 0
+              },
+              {
+                "color": "#000000",
+                "opacity": 88,
+                "position": 18
+              },
+              {
+                "color": "#000000",
+                "opacity": 88,
+                "position": 82
+              },
+              {
+                "color": "#000000",
+                "opacity": 0,
+                "position": 100
+              }
+            ]
+          }
+        },
+        {
+          "id": "00000000-0000-4000-9000-000000000002",
+          "kind": "text",
+          "frame": {
+            "x": 160,
+            "y": 818,
+            "w": 1600,
+            "h": 110
+          },
+          "content": ["{제목}"],
+          "style": {
+            "font": "Pretendard Variable",
+            "weight": 700,
+            "size": 88,
+            "color": "#FFFFFF",
+            "lineHeight": 1.25,
+            "tracking": 0,
+            "align": "center",
+            "vAlign": "middle",
+            "shadow": {
+              "on": true,
+              "color": "#000000",
+              "opacity": 80,
+              "angle": 90,
+              "blur": 6,
+              "distance": 2
+            }
+          }
+        }
+      ]
+    },
+    "stage": {
+      "mode": "own",
+      "elements": [
+        {
+          "id": "00000000-0000-4000-9000-000000000001",
+          "kind": "text",
+          "frame": {
+            "x": 154,
+            "y": 220,
+            "w": 1612,
+            "h": 260
+          },
+          "content": ["{제목}"],
+          "style": {
+            "font": "NanumSquare",
+            "weight": 800,
+            "size": 170,
+            "color": "#FFFFFF",
+            "lineHeight": 1.2,
+            "tracking": 0,
+            "align": "center",
+            "vAlign": "middle"
+          }
+        },
+        {
+          "id": "00000000-0000-4000-9000-000000000090",
+          "kind": "next",
+          "frame": {
+            "x": 154,
+            "y": 706,
+            "w": 1612,
+            "h": 272
+          },
+          "style": {
+            "font": "NanumSquare",
+            "weight": 700,
+            "size": 80,
+            "color": "#FFD66B",
+            "lineHeight": 1.2,
+            "tracking": 0,
+            "align": "center",
+            "vAlign": "top"
+          },
+          "fit": {
+            "min": 48
+          },
+          "wrap": "balance",
+          "ratio": 0.6667,
+          "of": "00000000-0000-4000-9000-000000000001"
+        }
+      ],
+      "backdrop": "#000000",
+      "splits": [
+        {
+          "upper": ["00000000-0000-4000-9000-000000000001"],
+          "lower": "00000000-0000-4000-9000-000000000090",
+          "top": 130,
+          "bottom": 1064,
+          "at": 706,
+          "gap": 8
+        }
+      ]
+    }
+  }
+}

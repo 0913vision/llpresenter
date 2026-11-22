@@ -1,0 +1,228 @@
+{
+  "format": "lltheme",
+  "schemaVersion": 1,
+  "id": "00000000-0000-4000-8000-000000000151",
+  "name": "찬양 제목 (밝은 배경)",
+  "purpose": "songTitle",
+  "boxes": [
+    {
+      "name": "제목",
+      "column": true,
+      "rows": "one"
+    },
+    {
+      "name": "부제",
+      "column": true,
+      "rows": "one"
+    }
+  ],
+  "next": {
+    "content": ["다음 곡: {제목}[ ({이름표})]"],
+    "column": false
+  },
+  "then": "00000000-0000-4000-8000-000000000398",
+  "background": {
+    "kind": "none"
+  },
+  "screens": {
+    "audience": {
+      "mode": "own",
+      "elements": [
+        {
+          "id": "00000000-0000-4000-9000-000000000001",
+          "kind": "background",
+          "frame": {
+            "x": 0,
+            "y": 0,
+            "w": 1920,
+            "h": 1080
+          },
+          "fit": "fill"
+        },
+        {
+          "id": "00000000-0000-4000-9000-000000000002",
+          "kind": "text",
+          "frame": {
+            "x": 339,
+            "y": 181,
+            "w": 1242,
+            "h": 160
+          },
+          "content": ["{제목}"],
+          "style": {
+            "font": "NanumSquare",
+            "weight": 800,
+            "size": 120,
+            "color": "#000000",
+            "lineHeight": 1.2,
+            "tracking": 0,
+            "align": "center",
+            "vAlign": "top"
+          }
+        },
+        {
+          "id": "00000000-0000-4000-9000-000000000003",
+          "kind": "text",
+          "frame": {
+            "x": 252,
+            "y": 345,
+            "w": 1416,
+            "h": 90
+          },
+          "content": ["{부제}"],
+          "style": {
+            "font": "NanumSquare",
+            "weight": 400,
+            "size": 64,
+            "color": "#000000",
+            "lineHeight": 1.2,
+            "tracking": 24,
+            "align": "center",
+            "vAlign": "top"
+          }
+        }
+      ],
+      "backdrop": "#FFFFFF"
+    },
+    "broadcast": {
+      "mode": "own",
+      "elements": [
+        {
+          "id": "00000000-0000-4000-9000-000000000001",
+          "kind": "shape",
+          "frame": {
+            "x": 0,
+            "y": 780,
+            "w": 1920,
+            "h": 260
+          },
+          "fill": {
+            "color": "#000000",
+            "opacity": 100
+          },
+          "around": {
+            "texts": ["00000000-0000-4000-9000-000000000002"],
+            "padding": {
+              "top": 40,
+              "bottom": 40
+            }
+          }
+        },
+        {
+          "id": "00000000-0000-4000-9000-000000000002",
+          "kind": "text",
+          "frame": {
+            "x": 160,
+            "y": 820,
+            "w": 1600,
+            "h": 180
+          },
+          "content": ["{제목}"],
+          "style": {
+            "font": "Pretendard Variable",
+            "weight": 700,
+            "size": 72,
+            "color": "#FFFFFF",
+            "lineHeight": 1.25,
+            "tracking": 0,
+            "align": "center",
+            "vAlign": "middle"
+          },
+          "fit": {
+            "rows": 2
+          },
+          "height": 180
+        }
+      ]
+    },
+    "stage": {
+      "mode": "own",
+      "elements": [
+        {
+          "id": "00000000-0000-4000-9000-000000000001",
+          "kind": "text",
+          "frame": {
+            "x": 154,
+            "y": 130,
+            "w": 1612,
+            "h": 200
+          },
+          "content": ["{제목}"],
+          "style": {
+            "font": "NanumSquare",
+            "weight": 800,
+            "size": 120,
+            "color": "#FFFFFF",
+            "lineHeight": 1.2,
+            "tracking": 0,
+            "align": "center",
+            "vAlign": "middle"
+          },
+          "same": "size"
+        },
+        {
+          "id": "00000000-0000-4000-9000-000000000002",
+          "kind": "text",
+          "frame": {
+            "x": 154,
+            "y": 330,
+            "w": 1612,
+            "h": 120
+          },
+          "content": ["{부제}"],
+          "style": {
+            "font": "NanumSquare",
+            "weight": 800,
+            "size": 64,
+            "color": "#FFFFFF",
+            "lineHeight": 1.2,
+            "tracking": 0,
+            "align": "center",
+            "vAlign": "middle"
+          },
+          "same": "size"
+        },
+        {
+          "id": "00000000-0000-4000-9000-000000000090",
+          "kind": "next",
+          "frame": {
+            "x": 154,
+            "y": 706,
+            "w": 1612,
+            "h": 272
+          },
+          "style": {
+            "font": "NanumSquare",
+            "weight": 700,
+            "size": 80,
+            "color": "#FFD66B",
+            "lineHeight": 1.2,
+            "tracking": 0,
+            "align": "center",
+            "vAlign": "top"
+          },
+          "fit": {
+            "min": 48
+          },
+          "wrap": "balance",
+          "ratio": 0.6667,
+          "of": "00000000-0000-4000-9000-000000000001"
+        }
+      ],
+      "backdrop": "#000000",
+      "splits": [
+        {
+          "upper": [
+            "00000000-0000-4000-9000-000000000001",
+            "00000000-0000-4000-9000-000000000002"
+          ],
+          "lower": "00000000-0000-4000-9000-000000000090",
+          "top": 130,
+          "bottom": 1064,
+          "at": 706,
+          "gap": 8
+        }
+      ]
+    }
+  }
+}

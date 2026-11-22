@@ -98,6 +98,7 @@ it, and lint enforces the order (`llp/layer-imports`, declared in
 | `renderer/src/session/`     | The control window's working session: the open 예배 순서 and the show | core, contracts, ui, platform               |
 | `renderer/src/features/`    | One folder per feature, in the order below                            | The layers above and the features before it |
 | `renderer/src/app/`         | The control window: composes the features into 진행, 준비, 화면 설정  | Everything in the control window            |
+| `renderer/src/pictures/`    | Slides drawn in the control window                                    | core, contracts, ui, platform, rendering    |
 | `renderer/src/output/`      | The output windows                                                    | core, contracts, rendering                  |
 
 The features, from the most basic to the most composed: media, songs, bible,
@@ -117,6 +118,36 @@ feature that owns it.
   the code it tests, and may use any layer of its own process around that code,
   never another process's code. Shared mocks and fixtures live in
   `test/fixtures/` and follow the same rule.
+
+## Themes and slides
+
+A 테마 is the slide master: it makes the whole frame, and a 슬라이드 only fills
+it (`docs/spec/12-themes.md`, "The model"). Four rules follow, and a change that
+breaks one is not merged.
+
+1. **One value, one home.** A size, place, font, or phrase is in the theme file.
+   A text is in the 슬라이드. Nothing copies either, and an item holds neither.
+2. **One module per job.** The table names it. Other code calls it.
+3. **Drawing knows no kinds.** `core/theme/` and `rendering/theme/` never name a
+   song, a passage, a notice, or a built-in theme. What differs is in the files.
+4. **A kind only makes slides.** A song, a passage, or a sermon decides how its
+   슬라이드 are made and which extra tools the editor has, and nothing after
+   that.
+
+| What                            | Owned by                               | Stored in                         | Changed in       |
+| ------------------------------- | -------------------------------------- | --------------------------------- | ---------------- |
+| The form of a 테마              | `core/schema/theme.ts`                 |                                   |                  |
+| The 테마 that come with the app | `core/theme/builtIn/*.json`            | The app                           | A change of code |
+| The operator's 테마             | `main/store/themes.ts`                 | `Settings	hemes\<id>.lltheme`      | 테마             |
+| Values and phrases              | `core/theme/template.ts`, `content.ts` |                                   |                  |
+| Sizes and places                | `core/theme/layout.ts`                 |                                   |                  |
+| Drawing                         | `rendering/theme/`                     |                                   |                  |
+| The form of a 슬라이드          | `core/schema/slide.ts`                 |                                   |                  |
+| The 슬라이드 of an item         | `core/schema/service.ts`               | `.llservice`, the item's `slides` | 준비             |
+| The 슬라이드 of a song          | `core/schema/song.ts`                  | `.llsong`, `slides`               | 준비             |
+| Making 슬라이드                 | `core/slides/make/`                    |                                   | Insert, import   |
+| What each screen shows now      | `core/live/`                           | `live.json`                       | 진행             |
+| Clock, timers, stage message    | `rendering/layers/`                    | `screens.json`                    | 화면 설정        |
 
 ## Registries (extension points)
 

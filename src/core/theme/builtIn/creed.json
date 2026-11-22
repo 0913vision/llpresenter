@@ -1,0 +1,204 @@
+{
+  "format": "lltheme",
+  "schemaVersion": 1,
+  "id": "00000000-0000-4000-8000-000000000371",
+  "name": "사도신경, 주기도문",
+  "purpose": "creed",
+  "boxes": [
+    {
+      "name": "본문",
+      "column": true,
+      "rows": "many"
+    }
+  ],
+  "next": {
+    "content": ["{본문}"],
+    "column": false
+  },
+  "background": {
+    "kind": "media",
+    "media": "00000000-0000-4000-8000-000000000381",
+    "fit": "stretch"
+  },
+  "screens": {
+    "audience": {
+      "mode": "own",
+      "elements": [
+        {
+          "id": "00000000-0000-4000-9000-000000000001",
+          "kind": "background",
+          "frame": {
+            "x": 0,
+            "y": 0,
+            "w": 1920,
+            "h": 1080
+          },
+          "fit": "stretch"
+        },
+        {
+          "id": "00000000-0000-4000-9000-000000000002",
+          "kind": "text",
+          "frame": {
+            "x": 129,
+            "y": 95,
+            "w": 1676,
+            "h": 750
+          },
+          "content": ["{본문}"],
+          "style": {
+            "font": "NanumSquare",
+            "weight": 700,
+            "size": 104,
+            "color": "#FFFFFF",
+            "lineHeight": 1.3173,
+            "tracking": -3,
+            "align": "left",
+            "vAlign": "top"
+          }
+        }
+      ]
+    },
+    "broadcast": {
+      "mode": "own",
+      "elements": [
+        {
+          "id": "00000000-0000-4000-9000-000000000001",
+          "kind": "shape",
+          "frame": {
+            "x": 58,
+            "y": 0,
+            "w": 1804,
+            "h": 100
+          },
+          "fill": {
+            "color": "#FEFDF9",
+            "opacity": 90
+          },
+          "solid": {
+            "color": "#FEFDF9",
+            "opacity": 100
+          },
+          "radius": 18,
+          "border": {
+            "width": 6,
+            "color": "#E8E8E8",
+            "opacity": 45
+          },
+          "shadow": {
+            "blur": 16,
+            "color": "#000000",
+            "opacity": 35
+          },
+          "around": {
+            "texts": ["00000000-0000-4000-9000-000000000004"],
+            "padding": {
+              "top": 22,
+              "bottom": 26
+            }
+          }
+        },
+        {
+          "id": "00000000-0000-4000-9000-000000000004",
+          "kind": "text",
+          "frame": {
+            "x": 90,
+            "y": 0,
+            "w": 1740,
+            "h": 900
+          },
+          "content": ["{본문}"],
+          "style": {
+            "font": "Pretendard Variable",
+            "weight": 700,
+            "size": 57,
+            "color": "#1F1F1F",
+            "lineHeight": 1.35,
+            "tracking": 0,
+            "align": "left",
+            "vAlign": "top"
+          },
+          "fit": {
+            "sizes": [57, 48],
+            "rows": 3,
+            "together": true,
+            "min": 20
+          },
+          "rows": 3
+        }
+      ],
+      "stacks": [
+        {
+          "texts": ["00000000-0000-4000-9000-000000000004"],
+          "anchor": "bottom",
+          "at": 1000,
+          "gap": 0
+        }
+      ]
+    },
+    "stage": {
+      "mode": "own",
+      "elements": [
+        {
+          "id": "00000000-0000-4000-9000-000000000001",
+          "kind": "text",
+          "frame": {
+            "x": 154,
+            "y": 130,
+            "w": 1660,
+            "h": 500
+          },
+          "content": ["{본문}"],
+          "style": {
+            "font": "NanumSquare",
+            "weight": 700,
+            "size": 104,
+            "color": "#FFFFFF",
+            "lineHeight": 1.2,
+            "tracking": -3,
+            "align": "left",
+            "vAlign": "top"
+          },
+          "same": "size",
+          "wrap": "balance"
+        },
+        {
+          "id": "00000000-0000-4000-9000-000000000090",
+          "kind": "next",
+          "frame": {
+            "x": 154,
+            "y": 706,
+            "w": 1612,
+            "h": 272
+          },
+          "style": {
+            "font": "NanumSquare",
+            "weight": 700,
+            "size": 72,
+            "color": "#FFD66B",
+            "lineHeight": 1.2,
+            "tracking": 0,
+            "align": "left",
+            "vAlign": "top"
+          },
+          "fit": {
+            "min": 48
+          },
+          "wrap": "balance",
+          "ratio": 0.6667,
+          "of": "00000000-0000-4000-9000-000000000001"
+        }
+      ],
+      "backdrop": "#000000",
+      "splits": [
+        {
+          "upper": ["00000000-0000-4000-9000-000000000001"],
+          "lower": "00000000-0000-4000-9000-000000000090",
+          "top": 130,
+          "bottom": 1064,
+          "at": 786,
+          "gap": 8
+        }
+      ]
+    }
+  }
+}

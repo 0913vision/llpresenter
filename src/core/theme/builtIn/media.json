@@ -1,0 +1,54 @@
+{
+  "format": "lltheme",
+  "schemaVersion": 1,
+  "id": "00000000-0000-4000-8000-000000000104",
+  "name": "영상",
+  "purpose": "media",
+  "boxes": [],
+  "next": {
+    "content": ["({이름표})", "[다음 순서: {항목 이름}]"],
+    "column": false
+  },
+  "background": {
+    "kind": "none"
+  },
+  "screens": {
+    "audience": {
+      "mode": "own",
+      "elements": [
+        {
+          "id": "00000000-0000-4000-9000-000000000001",
+          "kind": "background",
+          "frame": {
+            "x": 0,
+            "y": 0,
+            "w": 1920,
+            "h": 1080
+          },
+          "fit": "fill"
+        }
+      ],
+      "backdrop": "#000000"
+    },
+    "broadcast": {
+      "mode": "empty"
+    },
+    "stage": {
+      "mode": "own",
+      "elements": [
+        {
+          "id": "00000000-0000-4000-9000-000000000001",
+          "kind": "background",
+          "frame": {
+            "x": 0,
+            "y": 0,
+            "w": 1920,
+            "h": 1080
+          },
+          "fit": "fill"
+        }
+      ],
+      "backdrop": "#000000"
+    }
+  }
+}

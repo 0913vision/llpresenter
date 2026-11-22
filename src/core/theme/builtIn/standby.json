@@ -1,0 +1,154 @@
+{
+  "format": "lltheme",
+  "schemaVersion": 1,
+  "id": "00000000-0000-4000-8000-000000000100",
+  "name": "대기 화면",
+  "purpose": "standby",
+  "boxes": [],
+  "next": {
+    "content": [],
+    "column": false
+  },
+  "background": {
+    "kind": "media",
+    "media": "00000000-0000-4000-8000-000000000392",
+    "fit": "stretch"
+  },
+  "screens": {
+    "audience": {
+      "mode": "own",
+      "elements": [
+        {
+          "id": "00000000-0000-4000-9000-000000000001",
+          "kind": "background",
+          "frame": {
+            "x": 0,
+            "y": 0,
+            "w": 1920,
+            "h": 1080
+          },
+          "fit": "stretch"
+        },
+        {
+          "id": "00000000-0000-4000-9000-000000000002",
+          "kind": "text",
+          "frame": {
+            "x": 650,
+            "y": 89,
+            "w": 620,
+            "h": 120
+          },
+          "content": ["LOVELIGHT"],
+          "style": {
+            "font": "Noto Sans CJK KR",
+            "weight": 900,
+            "size": 80,
+            "color": "#FFFFFF",
+            "lineHeight": 1.2,
+            "tracking": 12,
+            "align": "center",
+            "vAlign": "top"
+          }
+        },
+        {
+          "id": "00000000-0000-4000-9000-000000000003",
+          "kind": "text",
+          "frame": {
+            "x": 556,
+            "y": 282,
+            "w": 150,
+            "h": 520
+          },
+          "content": ["SUN\nSUN\nSUN\nSUN\nWED\nFRI\nWEEK"],
+          "style": {
+            "font": "Noto Sans CJK KR",
+            "weight": 100,
+            "size": 52,
+            "color": "#FFFFFF",
+            "lineHeight": 1.39,
+            "tracking": -3,
+            "align": "right",
+            "vAlign": "top"
+          }
+        },
+        {
+          "id": "00000000-0000-4000-9000-000000000004",
+          "kind": "text",
+          "frame": {
+            "x": 740,
+            "y": 282,
+            "w": 210,
+            "h": 520
+          },
+          "content": [
+            "AM 08:00\nAM 11:30\nAM 11:30\nPM 01:30\nPM 08:00\nPM 09:00\nAM 09:00"
+          ],
+          "style": {
+            "font": "Noto Sans CJK KR",
+            "weight": 400,
+            "size": 52,
+            "color": "#FFFFFF",
+            "lineHeight": 1.39,
+            "tracking": -3.4,
+            "align": "left",
+            "vAlign": "top"
+          }
+        },
+        {
+          "id": "00000000-0000-4000-9000-000000000005",
+          "kind": "text",
+          "frame": {
+            "x": 980,
+            "y": 281,
+            "w": 320,
+            "h": 520
+          },
+          "content": [
+            "주일 1부 예배\n청소년부 예배\n주일 2부 예배\n청년부 예배\n수요 예배\n금요 예배\n아침 기도회"
+          ],
+          "style": {
+            "font": "KoPubWorldDotum",
+            "weight": 500,
+            "size": 52,
+            "color": "#FFFFFF",
+            "lineHeight": 1.39,
+            "tracking": -3,
+            "align": "left",
+            "vAlign": "top"
+          }
+        },
+        {
+          "id": "00000000-0000-4000-9000-000000000006",
+          "kind": "text",
+          "frame": {
+            "x": 215,
+            "y": 881,
+            "w": 1490,
+            "h": 100
+          },
+          "content": [
+            "우리 가운데서 역사하시는 능력대로 우리가 구하거나 생각하는 모든 것에 더 넘치도록 능히 하실 이에게 교회 안에서와\n그리스도 예수 안에서 영광이 대대로 영원무궁하기를 원하노라 아멘 (에베소서 3:20-21)"
+          ],
+          "style": {
+            "font": "KoPubWorldDotum",
+            "weight": 500,
+            "size": 36,
+            "color": "#FFFFFF",
+            "lineHeight": 1.236,
+            "tracking": -2.92,
+            "align": "center",
+            "vAlign": "top"
+          }
+        }
+      ]
+    },
+    "broadcast": {
+      "mode": "empty"
+    },
+    "stage": {
+      "mode": "own",
+      "elements": [],
+      "backdrop": "#000000"
+    }
+  }
+}
