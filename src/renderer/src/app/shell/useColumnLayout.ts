@@ -7,15 +7,21 @@ import {
 } from 'react';
 import {ColumnLayout} from './ColumnLayout';
 import type {ColumnDrag} from './ColumnGap';
+import type {RightColumn} from './columns';
 import type {ColumnWidthStore} from './columnWidthStore';
 import type {ColumnWidths, SizeClass} from '../../ui/sizeClass';
 
 const LEFT_VARIABLE = '--ll-col-left';
 const RIGHT_VARIABLE = '--ll-col-right';
+const PREP_RIGHT_VARIABLE = '--ll-col-prep-right';
 
-function showOn(grid: HTMLElement, {left, right}: ColumnWidths): void {
+function showOn(
+  grid: HTMLElement,
+  {left, right, prepRight}: ColumnWidths,
+): void {
   grid.style.setProperty(LEFT_VARIABLE, `${left}px`);
   grid.style.setProperty(RIGHT_VARIABLE, `${right}px`);
+  grid.style.setProperty(PREP_RIGHT_VARIABLE, `${prepRight}px`);
 }
 
 function watchWindowResize(layout: ColumnLayout): () => void {
@@ -41,6 +47,7 @@ function watchWindowResize(layout: ColumnLayout): () => void {
 export function useColumnLayout(
   sizeClass: SizeClass,
   store: ColumnWidthStore,
+  right: RightColumn,
 ): {
   readonly gridRef: RefObject<HTMLElement | null>;
   readonly drag: ColumnDrag;
@@ -73,6 +80,10 @@ export function useColumnLayout(
   useLayoutEffect(() => {
     layoutRef.current?.setSizeClass(sizeClass);
   }, [store, sizeClass]);
+
+  useLayoutEffect(() => {
+    layoutRef.current?.setRight(right);
+  }, [store, right]);
 
   const drag = useMemo<ColumnDrag>(
     () => ({

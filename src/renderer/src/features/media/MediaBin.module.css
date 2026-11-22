@@ -10,6 +10,10 @@
   overflow: hidden;
 }
 
+[data-workspace-layout='prep'] .bin {
+  --ll-col-right: var(--ll-col-prep-right);
+}
+
 .bin[data-resizable-columns] {
   grid-template-columns:
     var(--ll-col-left) var(--panel-gap) minmax(0, 1fr)

@@ -77,7 +77,7 @@ export function PropertyGroup({
     <div
       role="group"
       aria-labelledby={title === undefined ? undefined : titleId}
-      className={classNames(styles.group, title !== undefined && styles.titled)}
+      className={styles.group}
     >
       {title === undefined ? null : (
         <p id={titleId} className={styles.groupTitle}>
@@ -90,7 +90,7 @@ export function PropertyGroup({
           )}
         </p>
       )}
-      <div className={styles.rows}>{children}</div>
+      {children}
     </div>
   );
 }

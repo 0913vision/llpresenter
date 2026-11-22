@@ -27,6 +27,7 @@ const columnLayoutSchema = jsonObject({
   leftCollapsed: v.exactOptional(v.boolean()),
   left: v.exactOptional(nonNegativeNumber),
   right: v.exactOptional(nonNegativeNumber),
+  prepRight: v.exactOptional(nonNegativeNumber),
   thumbnailScalePercent: v.exactOptional(positiveInteger),
   detailsSlideScalePercent: v.exactOptional(positiveInteger),
   editorSlideView: v.exactOptional(v.picklist(['list', 'grid'])),

@@ -13,7 +13,9 @@
 }
 
 .blocks {
-  --slides-thumbnail-width: calc(var(--size-editor-label) - var(--space-8));
+  --slides-thumbnail-width: calc(
+    (var(--size-editor-label) - var(--space-8)) * var(--slides-scale, 1)
+  );
   flex: 1 1 auto;
   min-height: 0;
   overflow: auto;

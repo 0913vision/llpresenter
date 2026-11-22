@@ -1,20 +1,5 @@
-.timeField {
-  display: flex;
-  align-items: center;
-  gap: var(--space-8);
-}
-
-.timeField > :first-child {
-  width: var(--size-field-number);
-}
-
 .applyToAll {
   margin-top: var(--space-8);
-}
-
-.transitionRows {
-  display: grid;
-  gap: var(--space-8);
 }
 
 .texts {

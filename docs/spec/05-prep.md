@@ -96,19 +96,20 @@ the compact 예배 순서, or the library; its right column shows the selected
 - **목록** has a row for each 슬라이드 with its picture and a column for each
   named box of its 테마. The 열 menu switches the columns, 미리 보여줄 내용
   included, on and off; the choice is kept for each 테마. **격자** shows the
-  pictures alone and edits nothing.
+  pictures alone and edits nothing. The size slider stays in both and sizes the
+  pictures of either.
 - **Typing.** Enter adds a row. Ctrl Enter cuts the 슬라이드 at the caret.
   Backspace at the beginning joins it to the one before when both have one 테마;
   parts of one verse join in one row. Pasted text starts a 슬라이드 at each
   blank row. Leaving the last row or the first with an arrow goes on in the next
   슬라이드.
-- **The right column** has the header of the 미리보기 panel of 진행: the name,
-  and at its right end 청중, 무대 and 방송, which choose the screen of the
-  picture. Below it are three tabs, which stay the same from 슬라이드 to
-  슬라이드: 내용, 디자인, and 전환. Each tab has named groups, whose rows are
-  indented: 텍스트, 이름표, and 부가 정보; 테마, 배경, and 배경 위치; 화면 전환.
-  A 슬라이드 whose 테마 writes a hymn has 찬송가 (종류 and 장 번호) first. The
-  last button of 디자인 and of 전환, right below the rows and as wide as its
+- **The right column** is 320 wide and dragged on its own. It has the header of
+  the 미리보기 panel of 진행: the name, and at its right end 청중, 무대 and
+  방송, which choose the screen of the picture. Below it are three tabs, which
+  stay the same from 슬라이드 to 슬라이드: 내용, 디자인, and 전환. Each tab has
+  named groups: 텍스트, 이름표, and 부가 정보; 테마, 배경, and 배경 위치; 화면
+  전환. A 슬라이드 whose 테마 writes a hymn has 찬송가 (종류 and 장 번호) first.
+  The last button of 디자인 and of 전환, right below the rows and as wide as its
   name, gives the background or the transition to every 슬라이드. A setting
   changes every selected 슬라이드; differing values are shown as mixed.
 - **What fills itself** and is seldom changed is locked: 부가 정보 (boxes with a

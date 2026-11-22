@@ -15,13 +15,15 @@ export function sizeClassFor(width: number): SizeClass {
 export interface ColumnWidths {
   readonly left: number;
   readonly right: number;
+  /** The right column of 준비, which holds properties. */
+  readonly prepRight: number;
 }
 
 /** Default column widths per size class (design system tokens `col-*`). */
 export const defaultColumns: Readonly<Record<SizeClass, ColumnWidths>> = {
-  narrow: {left: 220, right: 360},
-  normal: {left: 280, right: 480},
-  wide: {left: 320, right: 640},
+  narrow: {left: 220, right: 360, prepRight: 300},
+  normal: {left: 280, right: 480, prepRight: 320},
+  wide: {left: 320, right: 640, prepRight: 400},
 };
 
 /** Default thumbnail columns of the 장 grid per size class (design system `Layout`). */

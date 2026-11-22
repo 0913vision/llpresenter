@@ -67,14 +67,12 @@ export function SlideSurfaceView({
         value={current.mode}
         onChange={mode => saveMode(mode, ui)}
       />
-      {current.mode === 'grid' ? (
-        <ThumbnailSizeControl
-          compact
-          value={current.scale}
-          onChange={scale => update({scale: clampThumbnailScale(scale)})}
-          onCommit={scale => saveScale(scale, ui)}
-        />
-      ) : null}
+      <ThumbnailSizeControl
+        compact
+        value={current.scale}
+        onChange={scale => update({scale: clampThumbnailScale(scale)})}
+        onCommit={scale => saveScale(scale, ui)}
+      />
     </div>
   );
 }

@@ -91,6 +91,10 @@
   gap: 0;
 }
 
+[data-workspace-frame='prep'] .columns {
+  --ll-col-right: var(--ll-col-prep-right);
+}
+
 [data-workspace-frame='show'] .columns {
   --preview-picture: calc(var(--col-right) - 2 * var(--panel-inset));
 }

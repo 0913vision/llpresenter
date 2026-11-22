@@ -210,7 +210,11 @@ describe('Workspace column gaps', () => {
       left: '400px',
       right: '624px',
     });
-    expect(store.load('normal')).toEqual({left: 400, right: 720});
+    expect(store.load('normal')).toEqual({
+      left: 400,
+      right: 720,
+      prepRight: 320,
+    });
   });
 
   it('lets only one pointer drag across both gaps', () => {

@@ -8,12 +8,13 @@ import {parsePayload, payloadObject, type PayloadError} from './payload';
 import {slideColumnsSchema} from './slideColumns';
 
 /**
- * The ranges of the design system `Layout`: the left and right column widths
- * (px) and thumbnail scale (%).
+ * The ranges of the design system `Layout`: the column widths (px) and
+ * thumbnail scale (%).
  */
 export const COLUMN_LIMITS = {
   left: {min: 200, max: 400},
   right: {min: 320, max: 720},
+  prepRight: {min: 280, max: 560},
   thumbnailScalePercent: {min: 50, max: 200},
 } as const;
 
@@ -35,6 +36,7 @@ const layoutChangeSchema = v.pipe(
     leftCollapsed: v.exactOptional(v.boolean()),
     left: integerIn(COLUMN_LIMITS.left),
     right: integerIn(COLUMN_LIMITS.right),
+    prepRight: integerIn(COLUMN_LIMITS.prepRight),
     thumbnailScalePercent: integerIn(COLUMN_LIMITS.thumbnailScalePercent),
     detailsSlideScalePercent: integerIn(COLUMN_LIMITS.thumbnailScalePercent),
     editorSlideView: v.exactOptional(v.picklist(['list', 'grid'])),

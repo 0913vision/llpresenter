@@ -1,15 +1,36 @@
-.gallery {
-  display: flex;
-  flex-wrap: wrap;
+.rows {
+  display: grid;
+  gap: var(--space-8);
+}
+
+.effects {
+  display: grid;
+  flex: 1 1 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-6);
 }
 
 .directions {
-  display: flex;
+  display: grid;
+  flex: 1 1 0;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--space-6);
 }
 
-.tile,
+.time {
+  display: flex;
+  flex: 1 1 0;
+  align-items: center;
+  gap: var(--space-8);
+  min-width: 0;
+}
+
+.time > :first-child {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.effect,
 .directions button {
   border: 0;
   border-radius: var(--radius-md);
@@ -19,16 +40,15 @@
   cursor: pointer;
 }
 
-.tile {
+.effect {
   display: grid;
   justify-items: center;
   gap: var(--space-2);
-  width: calc(var(--space-16) * 4);
   padding: var(--space-4);
   font: var(--type-caption);
 }
 
-.tile svg {
+.effect svg {
   width: var(--size-panel-header);
   height: var(--space-24);
 }
@@ -48,28 +68,28 @@
 }
 
 .directions button {
-  width: var(--size-panel-header);
   height: var(--size-control-md);
+  padding: 0;
 }
 
-.tile[aria-pressed='true'],
+.effect[aria-pressed='true'],
 .directions button[aria-pressed='true'] {
   background: var(--selection);
   box-shadow: var(--ring-selected);
 }
 
-.tile:hover:not(:disabled),
+.effect:hover:not(:disabled),
 .directions button:hover:not(:disabled) {
   background: var(--bg-control-hover);
 }
 
-.tile:focus-visible,
+.effect:focus-visible,
 .directions button:focus-visible {
   outline: var(--space-2) solid var(--accent);
   outline-offset: var(--space-2);
 }
 
-.tile:disabled,
+.effect:disabled,
 .directions button:disabled {
   background: var(--bg-well);
   color: var(--text-off);

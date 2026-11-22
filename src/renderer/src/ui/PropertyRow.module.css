@@ -3,7 +3,8 @@
   --property-row-height: var(--size-prop-row);
   --property-gap: var(--space-12);
   --property-control-max: none;
-  --property-indent: var(--space-14);
+  --field-fill: var(--bg-control);
+  --field-grow: 1;
   --property-group-padding: var(--space-16);
 }
 
@@ -12,7 +13,8 @@
   --property-row-height: var(--size-prop-row-wide);
   --property-gap: var(--space-16);
   --property-control-max: var(--size-prop-control-max);
-  --property-indent: 0px;
+  --field-fill: var(--bg-well);
+  --field-grow: 0;
   --property-group-padding: var(--space-12);
 }
 
@@ -55,10 +57,6 @@
   margin: 0 0 var(--space-6);
   color: var(--text);
   font: var(--type-caption-strong);
-}
-
-.titled > .rows {
-  padding-left: var(--property-indent);
 }
 
 .row {

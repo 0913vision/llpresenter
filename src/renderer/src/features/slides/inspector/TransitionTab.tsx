@@ -5,8 +5,6 @@ import {
 } from '@core/schema/slideTransition';
 import {withTransition} from '@core/slides';
 import {TextField} from '@renderer/ui/TextField';
-import {EffectPicture} from '@renderer/ui/SlideTransitionControl';
-import transitionStyles from '@renderer/ui/SlideTransitionControl.module.css';
 import {PropertyGroup, PropertyRow} from '@renderer/ui/PropertyRow';
 import {
   INITIAL_SLIDE_EFFECT,
@@ -17,7 +15,8 @@ import {
 import {focusSlides} from '../deckSelection';
 import {ApplyToAll} from './ApplyToAll';
 import {changeSelected, type ChosenSlides} from './changeSelected';
-import styles from './SlideInspector.module.css';
+import {EffectPicture} from './EffectPicture';
+import styles from './TransitionTab.module.css';
 
 /** The transition of several slides, or the one to start from. */
 function chosenTransition(chosen: ChosenSlides['chosen']): {
@@ -57,7 +56,7 @@ function TimeField({
     setDraft(null);
   };
   return (
-    <span className={styles.timeField}>
+    <span className={styles.time}>
       <TextField
         id={id}
         aria-label="전환 시간"
@@ -96,19 +95,15 @@ export function TransitionTab({deck, chosen}: ChosenSlides): JSX.Element {
     changeSelected(deck, slide => withTransition(slide, transition));
   return (
     <PropertyGroup title="화면 전환">
-      <div className={styles.transitionRows}>
+      <div className={styles.rows}>
         <PropertyRow label="효과">
           {() => (
-            <div
-              className={transitionStyles.gallery}
-              role="group"
-              aria-label="효과"
-            >
+            <div className={styles.effects} role="group" aria-label="효과">
               {SLIDE_EFFECTS.map(([kind, label]) => (
                 <button
                   key={kind}
                   type="button"
-                  className={transitionStyles.tile}
+                  className={styles.effect}
                   disabled={locked}
                   aria-pressed={!mixed && value.kind === kind}
                   onClick={() => {
@@ -130,11 +125,7 @@ export function TransitionTab({deck, chosen}: ChosenSlides): JSX.Element {
         </PropertyRow>
         <PropertyRow label="방향">
           {() => (
-            <div
-              className={transitionStyles.directions}
-              role="group"
-              aria-label="방향"
-            >
+            <div className={styles.directions} role="group" aria-label="방향">
               {SLIDE_DIRECTIONS.map(([dir, arrow, label]) => (
                 <button
                   key={dir}

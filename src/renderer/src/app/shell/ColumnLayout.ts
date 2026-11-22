@@ -1,4 +1,9 @@
-import {dragColumn, fitToWindow, type DraggableColumn} from './columns';
+import {
+  dragColumn,
+  fitToWindow,
+  type DraggableColumn,
+  type RightColumn,
+} from './columns';
 import type {ColumnWidthStore} from './columnWidthStore';
 import {
   defaultColumns,
@@ -43,6 +48,7 @@ export class ColumnLayout {
   private saved: ColumnWidths;
   private shown: ColumnWidths;
   private drag: Drag | null = null;
+  private right: RightColumn = 'right';
 
   constructor(private readonly options: ColumnLayoutOptions) {
     this.sizeClass = options.sizeClass;
@@ -57,6 +63,11 @@ export class ColumnLayout {
     this.sizeClass = sizeClass;
     this.saved = this.loadSaved();
     this.refit();
+  }
+
+  /** Says which right column is on screen. */
+  setRight(right: RightColumn): void {
+    this.right = right;
   }
 
   /**
@@ -112,7 +123,11 @@ export class ColumnLayout {
 
   private refitDrag(drag: Drag, windowWidth: number): void {
     const fitted = fitToWindow(this.shown, windowWidth);
-    if (fitted.left === this.shown.left && fitted.right === this.shown.right) {
+    if (
+      fitted.left === this.shown.left &&
+      fitted.right === this.shown.right &&
+      fitted.prepRight === this.shown.prepRight
+    ) {
       return;
     }
     drag.widthsAtLastFit = fitted;
@@ -130,6 +145,7 @@ export class ColumnLayout {
         start: drag.widthsAtLastFit,
         delta: delta - drag.movementAtLastFit,
         windowWidth: this.options.windowWidth(),
+        right: this.right,
       }),
     );
   }

@@ -112,7 +112,8 @@ export function Workspace({
   readonly sidebar?: SidebarCollapse | undefined;
   readonly themeLeave?: ThemeLeaveGuard | undefined;
 }): JSX.Element {
-  const {gridRef, drag} = useColumnLayout(sizeClass, store);
+  const right = id === 'prep' ? 'prepRight' : 'right';
+  const {gridRef, drag} = useColumnLayout(sizeClass, store, right);
   const screens = useScreensPanels({
     active: id === 'screens',
     onProblem,
@@ -173,7 +174,16 @@ export function Workspace({
       <Fragment key={column}>
         {column === 1 && collapsed ? <div aria-hidden="true" /> : null}
         {column > 0 && !(column === 1 && collapsed) ? (
-          <ColumnGap column={column === 1 ? 'left' : 'right'} drag={drag} />
+          <ColumnGap
+            column={
+              column === 1
+                ? 'left'
+                : workspace === 'prep'
+                  ? 'prepRight'
+                  : 'right'
+            }
+            drag={drag}
+          />
         ) : null}
         {column === 0 && collapsed ? (
           <div className={styles.column} data-panel="예배 순서">
@@ -297,7 +307,12 @@ export function Workspace({
           onProblem={onProblem ?? ignoreProblem}
           rowStore={store}
           sizeClass={sizeClass}
-          columnGap={column => <ColumnGap column={column} drag={drag} />}
+          columnGap={column => (
+            <ColumnGap
+              column={column === 'right' ? right : column}
+              drag={drag}
+            />
+          )}
         />
       ) : null}
     </main>

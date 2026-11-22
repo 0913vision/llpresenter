@@ -1,7 +1,10 @@
 import {COLUMN_LIMITS} from '@core/schema/uiState';
 import type {ColumnWidths} from '../../ui/sizeClass';
 
-export type DraggableColumn = 'left' | 'right';
+/** The right column of 준비 has a width of its own. */
+export type RightColumn = 'right' | 'prepRight';
+
+export type DraggableColumn = 'left' | RightColumn;
 
 export interface WidthRange {
   readonly min: number;
@@ -25,9 +28,10 @@ export function clamp(value: number, {min, max}: WidthRange): number {
 /** Width left for the center column, which takes all the remaining width. */
 export function centerWidth(
   windowWidth: number,
-  {left, right}: ColumnWidths,
+  widths: ColumnWidths,
+  right: RightColumn = 'right',
 ): number {
-  return windowWidth - FIXED_GAPS_WIDTH - left - right;
+  return windowWidth - FIXED_GAPS_WIDTH - widths.left - widths[right];
 }
 
 function widthAvailableToSides(windowWidth: number): number {
@@ -43,14 +47,19 @@ export function fitToWindow(
   saved: ColumnWidths,
   windowWidth: number,
 ): ColumnWidths {
-  const left = clamp(saved.left, COLUMN_RANGES.left);
-  const right = clamp(saved.right, COLUMN_RANGES.right);
-  let excess = left + right - widthAvailableToSides(windowWidth);
-  if (excess <= 0) return {left, right};
-  const shrunkRight = Math.max(right - excess, COLUMN_RANGES.right.min);
-  excess -= right - shrunkRight;
-  const shrunkLeft = Math.max(left - excess, COLUMN_RANGES.left.min);
-  return {left: shrunkLeft, right: shrunkRight};
+  const available = widthAvailableToSides(windowWidth);
+  const beside = (column: RightColumn, left: number): number => {
+    const range = COLUMN_RANGES[column];
+    const width = clamp(saved[column], range);
+    return Math.max(Math.min(width, available - left), range.min);
+  };
+  const wanted = clamp(saved.left, COLUMN_RANGES.left);
+  const right = beside('right', wanted);
+  const left = Math.max(
+    Math.min(wanted, available - right),
+    COLUMN_RANGES.left.min,
+  );
+  return {left, right, prepRight: beside('prepRight', left)};
 }
 
 export interface DragInput {
@@ -60,6 +69,8 @@ export interface DragInput {
   /** Pointer movement since the drag started, positive to the right. */
   readonly delta: number;
   readonly windowWidth: number;
+  /** The right column that is on screen. */
+  readonly right: RightColumn;
 }
 
 /**
@@ -72,17 +83,16 @@ export function dragColumn({
   start,
   delta,
   windowWidth,
+  right,
 }: DragInput): ColumnWidths {
   const {min, max} = COLUMN_RANGES[column];
   const requested =
-    column === 'left' ? start.left + delta : start.right - delta;
-  const other = column === 'left' ? start.right : start.left;
+    column === 'left' ? start.left + delta : start[column] - delta;
+  const other = column === 'left' ? start[right] : start.left;
   const roomForColumn = widthAvailableToSides(windowWidth) - other;
   const width = clamp(requested, {
     min,
     max: Math.max(min, Math.min(max, roomForColumn)),
   });
-  return column === 'left'
-    ? {left: width, right: start.right}
-    : {left: start.left, right: width};
+  return {...start, [column]: width};
 }

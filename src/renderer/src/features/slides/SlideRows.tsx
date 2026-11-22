@@ -40,7 +40,9 @@ import {GRID_GAP, useSlideRowWindow} from './useSlideRowWindow';
 import styles from './SlideEditor.module.css';
 
 const NO_BOXES: readonly string[] = [];
-const LIST_ROW_HEIGHT = 116;
+/** The height of a row of the list without its picture, and the picture's. */
+const LIST_ROW_CHROME = 53;
+const LIST_PICTURE_HEIGHT = 63;
 const TEXT_ROW_HEIGHT = 22;
 const GRID_CELL_CHROME = 60;
 
@@ -65,6 +67,13 @@ function useRowThemes(
     }
     return own;
   }, [tiles, themes, columns]);
+}
+
+/** How large the pictures of the list are. */
+function scaleStyle(
+  scale: number,
+): CSSProperties & Readonly<Record<'--slides-scale', number>> {
+  return {'--slides-scale': scale / 100};
 }
 
 function textRows({slide}: ShowTile): number {
@@ -123,9 +132,12 @@ export function SlideRows({
       if (measured !== undefined) return measured;
       return grid
         ? (cellWidth * 9) / 16 + GRID_CELL_CHROME
-        : Math.max(LIST_ROW_HEIGHT, 40 + TEXT_ROW_HEIGHT * textRows(tile));
+        : Math.max(
+            LIST_ROW_CHROME + (LIST_PICTURE_HEIGHT * view.scale) / 100,
+            40 + TEXT_ROW_HEIGHT * textRows(tile),
+          );
     },
-    [tiles, current, grid],
+    [tiles, current, grid, view.scale],
   );
   const focusedIndex = useMemo(() => {
     const {focus} = selection;
@@ -267,6 +279,7 @@ export function SlideRows({
       role="group"
       aria-label="슬라이드"
       className={styles.blocks}
+      style={scaleStyle(view.scale)}
       data-slide-deck={deck.id}
       data-view={view.mode}
       data-slide-columns={columns}

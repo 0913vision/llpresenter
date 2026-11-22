@@ -1,7 +1,11 @@
 import type {LayoutChange, UiState} from '@core/schema/uiState';
 import {PANEL_ROW_LIMITS, type PanelRows} from '@core/schema/panelRows';
 import {clamp, COLUMN_RANGES} from './columns';
-import type {ColumnWidths, SizeClass} from '../../ui/sizeClass';
+import {
+  defaultColumns,
+  type ColumnWidths,
+  type SizeClass,
+} from '../../ui/sizeClass';
 
 /** Remembers the column widths that the operator set, per size class. */
 export interface ColumnWidthStore {
@@ -65,13 +69,18 @@ export function createIpcColumnWidthStore(
       if (entry?.left === undefined || entry.right === undefined) {
         return undefined;
       }
-      return {left: entry.left, right: entry.right};
+      const prepRight = entry.prepRight ?? defaultColumns[sizeClass].prepRight;
+      return {left: entry.left, right: entry.right, prepRight};
     },
     save: (sizeClass, widths) => {
       const left = clamp(Math.round(widths.left), COLUMN_RANGES.left);
       const right = clamp(Math.round(widths.right), COLUMN_RANGES.right);
-      changed.set(sizeClass, {left, right});
-      send({sizeClass, left, right});
+      const prepRight = clamp(
+        Math.round(widths.prepRight),
+        COLUMN_RANGES.prepRight,
+      );
+      changed.set(sizeClass, {left, right, prepRight});
+      send({sizeClass, left, right, prepRight});
     },
   };
 }

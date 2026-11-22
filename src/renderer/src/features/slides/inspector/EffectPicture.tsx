@@ -1,7 +1,8 @@
 import type {JSX} from 'react';
 import type {SlideTransition} from '@core/schema/slideTransition';
-import styles from './SlideTransitionControl.module.css';
+import styles from './TransitionTab.module.css';
 
+/** A small picture of what a transition does. */
 export function EffectPicture({
   kind,
 }: {

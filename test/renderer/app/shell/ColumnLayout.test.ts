@@ -64,7 +64,7 @@ describe('ColumnLayout', () => {
     drag(layout, 'left', 40);
     drag(layout, 'right', -40);
     layout.reset('left');
-    expect(shown.at(-1)).toEqual({left: 280, right: 520});
+    expect(shown.at(-1)).toEqual({left: 280, right: 520, prepRight: 320});
     layout.reset();
     expect(shown.at(-1)).toEqual(defaultColumns.normal);
     expect(store.load('wide')).toEqual(defaultColumns.wide);
@@ -79,10 +79,14 @@ describe('ColumnLayout', () => {
     const {layout, shown, store} = createHarness('normal', 1920);
     const session = begin(layout, 'left');
     session.move(40);
-    expect(shown.at(-1)).toEqual({left: 320, right: 480});
+    expect(shown.at(-1)).toEqual({left: 320, right: 480, prepRight: 320});
     expect(store.load('normal')).toBeUndefined();
     session.end();
-    expect(store.load('normal')).toEqual({left: 320, right: 480});
+    expect(store.load('normal')).toEqual({
+      left: 320,
+      right: 480,
+      prepRight: 320,
+    });
   });
 
   it('measures every move from where the drag started', () => {
@@ -90,7 +94,7 @@ describe('ColumnLayout', () => {
     const session = begin(layout, 'right');
     session.move(-30);
     session.move(-10);
-    expect(shown.at(-1)).toEqual({left: 280, right: 490});
+    expect(shown.at(-1)).toEqual({left: 280, right: 490, prepRight: 320});
   });
 
   it('does not start a second drag while one is in progress', () => {
@@ -114,7 +118,11 @@ describe('ColumnLayout', () => {
     session.move(100);
     session.end();
     expect(shown).toHaveLength(before);
-    expect(store.load('normal')).toEqual({left: 320, right: 480});
+    expect(store.load('normal')).toEqual({
+      left: 320,
+      right: 480,
+      prepRight: 320,
+    });
   });
 
   it('keeps the widths of each size class apart', () => {
@@ -124,7 +132,7 @@ describe('ColumnLayout', () => {
     layout.setSizeClass('wide');
     expect(shown.at(-1)).toEqual(defaultColumns.wide);
     layout.setSizeClass('normal');
-    expect(shown.at(-1)).toEqual({left: 320, right: 480});
+    expect(shown.at(-1)).toEqual({left: 320, right: 480, prepRight: 320});
   });
 
   it('does nothing when the size class stays the same', () => {
@@ -138,15 +146,15 @@ describe('ColumnLayout', () => {
     const harness = createHarness('normal', 1920);
     const {layout, shown} = harness;
     drag(layout, 'right', -240);
-    expect(shown.at(-1)).toEqual({left: 280, right: 720});
+    expect(shown.at(-1)).toEqual({left: 280, right: 720, prepRight: 320});
 
     harness.setWindowWidth(1500);
     layout.refit();
-    expect(shown.at(-1)).toEqual({left: 280, right: 644});
+    expect(shown.at(-1)).toEqual({left: 280, right: 644, prepRight: 320});
 
     harness.setWindowWidth(1920);
     layout.refit();
-    expect(shown.at(-1)).toEqual({left: 280, right: 720});
+    expect(shown.at(-1)).toEqual({left: 280, right: 720, prepRight: 320});
   });
 
   it('keeps the saved widths while the screen shows shrunk ones', () => {
@@ -156,12 +164,16 @@ describe('ColumnLayout', () => {
 
     harness.setWindowWidth(1280);
     layout.refit();
-    expect(shown.at(-1)).toEqual({left: 280, right: 424});
-    expect(store.load('normal')).toEqual({left: 280, right: 720});
+    expect(shown.at(-1)).toEqual({left: 280, right: 424, prepRight: 320});
+    expect(store.load('normal')).toEqual({
+      left: 280,
+      right: 720,
+      prepRight: 320,
+    });
 
     harness.setWindowWidth(1920);
     layout.refit();
-    expect(shown.at(-1)).toEqual({left: 280, right: 720});
+    expect(shown.at(-1)).toEqual({left: 280, right: 720, prepRight: 320});
   });
 
   it('saves only the dragged column when the other one is shrunk', () => {
@@ -172,7 +184,11 @@ describe('ColumnLayout', () => {
     harness.setWindowWidth(1280);
     layout.refit();
     drag(layout, 'left', -40);
-    expect(store.load('normal')).toEqual({left: 240, right: 720});
+    expect(store.load('normal')).toEqual({
+      left: 240,
+      right: 720,
+      prepRight: 320,
+    });
   });
 
   it('does not overwrite a saved width when a gap is pressed without moving', () => {
@@ -183,10 +199,14 @@ describe('ColumnLayout', () => {
 
     harness.setWindowWidth(1600);
     layout.refit();
-    expect(shown.at(-1)).toEqual({left: 400, right: 624});
+    expect(shown.at(-1)).toEqual({left: 400, right: 624, prepRight: 320});
 
     begin(layout, 'right').end();
-    expect(store.load('normal')).toEqual({left: 400, right: 720});
+    expect(store.load('normal')).toEqual({
+      left: 400,
+      right: 720,
+      prepRight: 320,
+    });
   });
 
   it('does not save a drag that returns to the starting width', () => {
@@ -216,8 +236,10 @@ describe('ColumnLayout', () => {
     begin(layout, 'right').move(0);
     harness.setWindowWidth(1600);
     layout.refit();
-    expect(shown.at(-1)).toEqual({left: 400, right: 624});
-    expect(centerWidth(1600, shown.at(-1) ?? {left: 0, right: 0})).toBe(560);
+    expect(shown.at(-1)).toEqual({left: 400, right: 624, prepRight: 320});
+    expect(
+      centerWidth(1600, shown.at(-1) ?? {left: 0, right: 0, prepRight: 320}),
+    ).toBe(560);
   });
 
   it('goes on from the fitted widths when the pointer moves again', () => {
@@ -230,11 +252,11 @@ describe('ColumnLayout', () => {
     session.move(-10);
     harness.setWindowWidth(1600);
     layout.refit();
-    expect(shown.at(-1)).toEqual({left: 400, right: 624});
+    expect(shown.at(-1)).toEqual({left: 400, right: 624, prepRight: 320});
     session.move(-10);
-    expect(shown.at(-1)).toEqual({left: 400, right: 624});
+    expect(shown.at(-1)).toEqual({left: 400, right: 624, prepRight: 320});
     session.move(50);
-    expect(shown.at(-1)).toEqual({left: 400, right: 564});
+    expect(shown.at(-1)).toEqual({left: 400, right: 564, prepRight: 320});
   });
 
   it('does not save a width that only the window resize shrank', () => {
@@ -247,7 +269,11 @@ describe('ColumnLayout', () => {
     harness.setWindowWidth(1600);
     layout.refit();
     session.end();
-    expect(store.load('normal')).toEqual({left: 400, right: 720});
+    expect(store.load('normal')).toEqual({
+      left: 400,
+      right: 720,
+      prepRight: 320,
+    });
   });
 
   it('saves the width on screen when the pointer returns to its first place after a resize', () => {
@@ -255,19 +281,27 @@ describe('ColumnLayout', () => {
     const {layout, shown, store} = harness;
     drag(layout, 'right', -220);
     drag(layout, 'left', 120);
-    expect(store.load('normal')).toEqual({left: 400, right: 700});
+    expect(store.load('normal')).toEqual({
+      left: 400,
+      right: 700,
+      prepRight: 320,
+    });
 
     const session = begin(layout, 'right');
     session.move(-10);
-    expect(shown.at(-1)).toEqual({left: 400, right: 710});
+    expect(shown.at(-1)).toEqual({left: 400, right: 710, prepRight: 320});
     harness.setWindowWidth(1600);
     layout.refit();
-    expect(shown.at(-1)).toEqual({left: 400, right: 624});
+    expect(shown.at(-1)).toEqual({left: 400, right: 624, prepRight: 320});
     session.move(0);
-    expect(shown.at(-1)).toEqual({left: 400, right: 614});
+    expect(shown.at(-1)).toEqual({left: 400, right: 614, prepRight: 320});
     session.end();
-    expect(store.load('normal')).toEqual({left: 400, right: 614});
-    expect(shown.at(-1)).toEqual({left: 400, right: 614});
+    expect(store.load('normal')).toEqual({
+      left: 400,
+      right: 614,
+      prepRight: 320,
+    });
+    expect(shown.at(-1)).toEqual({left: 400, right: 614, prepRight: 320});
   });
 
   it('fits the widths again when the drag ends after the window grew', () => {
@@ -278,8 +312,12 @@ describe('ColumnLayout', () => {
     harness.setWindowWidth(1920);
     layout.refit();
     session.end();
-    expect(store.load('normal')).toEqual({left: 340, right: 480});
-    expect(shown.at(-1)).toEqual({left: 340, right: 480});
+    expect(store.load('normal')).toEqual({
+      left: 340,
+      right: 480,
+      prepRight: 320,
+    });
+    expect(shown.at(-1)).toEqual({left: 340, right: 480, prepRight: 320});
   });
 
   it('drops a drag when the size class changes', () => {
@@ -301,6 +339,6 @@ describe('ColumnLayout', () => {
     stale.move(100);
     stale.end();
     fresh.move(-10);
-    expect(shown.at(-1)).toEqual({left: 280, right: 490});
+    expect(shown.at(-1)).toEqual({left: 280, right: 490, prepRight: 320});
   });
 });
