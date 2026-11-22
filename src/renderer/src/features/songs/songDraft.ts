@@ -40,6 +40,8 @@ export interface SongDraft {
   readonly song: Song;
   /** What its file has; none for a song that was never saved. */
   readonly document: SongDocument | null;
+  /** It was read from a file or the clipboard, and is lost unless it is saved. */
+  readonly imported: boolean;
   readonly past: readonly Step[];
   readonly future: readonly Step[];
 }
@@ -90,9 +92,13 @@ function problem(title: string): void {
 
 const view = () => useSongDraft.getState();
 
-function show(song: Song, document: SongDocument | null): void {
+function show(
+  song: Song,
+  document: SongDocument | null,
+  imported = false,
+): void {
   useSongDraft.setState({
-    draft: {song, document, past: [], future: []},
+    draft: {song, document, imported, past: [], future: []},
     question: null,
   });
 }
@@ -166,6 +172,7 @@ export function openImportedSong(draft: TextImportDraft): void {
         : [...newSongSlides(slideMaking(), title).slice(0, 1), ...slides],
     ),
     null,
+    true,
   );
   focusTitle();
 }
@@ -392,7 +399,10 @@ export function requestLeaveSong(
 ): void {
   const {draft} = view();
   const untouched =
-    draft !== null && draft.document === null && draft.past.length === 0;
+    draft !== null &&
+    draft.document === null &&
+    !draft.imported &&
+    draft.past.length === 0;
   if (draft === null || untouched || !isUnsaved(draft)) {
     closeSongDraft();
     proceed();
