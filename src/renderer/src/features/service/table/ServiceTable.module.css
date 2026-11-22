@@ -12,9 +12,7 @@
     var(--size-table-number) + var(--space-10) + var(--size-icon-16) +
       var(--space-10)
   );
-  --table-fixed-width: calc(
-    var(--size-table-slides) + var(--size-table-start)
-  );
+  --table-fixed-width: calc(var(--size-table-slides) + var(--size-table-start));
   --table-cells-width: calc(var(--table-fixed-width) + var(--size-table-memo));
 
   min-width: 0;
@@ -156,7 +154,6 @@ button.cell:not([aria-disabled='true']):hover {
   font-variant-numeric: tabular-nums;
 }
 
-
 .truncate {
   min-width: 0;
   overflow: hidden;
@@ -180,7 +177,6 @@ button.cell:not([aria-disabled='true']):hover {
   color: var(--text);
   font: var(--type-body);
 }
-
 
 .footer {
   display: flex;

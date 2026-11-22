@@ -42,8 +42,7 @@ function createTransitionClock(hz) {
     start(seconds) {
       running = {
         duration: seconds * 1000,
-        frame:
-          recent.length < MINIMUM_SAMPLES ? reported : frameLength(recent),
+        frame: recent.length < MINIMUM_SAMPLES ? reported : frameLength(recent),
         started: null,
         steps: 0,
         intervals: [],

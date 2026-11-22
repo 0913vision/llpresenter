@@ -31,8 +31,5 @@
    length over length, which gives a plain number; no script has to measure the
    tile. */
 .frame > * {
-  --picture-scale: min(
-    tan(atan2(100cqw, 1920px)),
-    tan(atan2(100cqh, 1080px))
-  );
+  --picture-scale: min(tan(atan2(100cqw, 1920px)), tan(atan2(100cqh, 1080px)));
 }

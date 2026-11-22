@@ -1005,14 +1005,7 @@ function createPresenter({x, y, width, height, hz, topmost}) {
             const w = width * scale;
             const h = height * scale;
             frameCalls.clear(mirror.scaled.target, mirror.clear);
-            draw(
-              mirror.scaled.target,
-              cut,
-              w,
-              h,
-              (640 - w) / 2,
-              (360 - h) / 2,
-            );
+            draw(mirror.scaled.target, cut, w, h, (640 - w) / 2, (360 - h) / 2);
           } finally {
             live = previousLive;
           }
