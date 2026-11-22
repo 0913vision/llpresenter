@@ -31,14 +31,18 @@ The user's needs (October 30 and November 22):
   panel always shows every box. The grid edits nothing.
 - **Next text.** What the 슬라이드 before one shows as its next text on 무대 is
   a box that the 테마 makes: a phrase with box names, such as `{본문}` for 말씀
-  본문, `다음 곡: {제목}[ ({이름표})]` for 찬양 제목, `다음 순서: 설교 ({제목})`
-  for 설교 제목, `다음 순서: {제목}` for 타이틀, and `다음 광고: {제목}` for
-  광고. A part in brackets is left out when a value in it is missing. A 슬라이드
-  can have its own text instead; clearing that text brings the phrase back. The
-  property panel always shows it and its column starts off. A 테마 can hide the
-  next text on the last 슬라이드 of an item, as 말씀 본문 and 설교 제목 do.
+  본문, `다음 곡: {제목}[ ({이름표})]` for 찬양 제목, the same after `{찬송가}`
+  for 찬송가 제목, `다음 순서: 설교 ({제목})` for 설교 제목, `다음 순서: {제목}`
+  for 타이틀, and `다음 광고: {제목}` for 광고. A part in brackets is left out
+  when a value in it is missing. A 슬라이드 can have its own text instead;
+  clearing that text brings the phrase back. The property panel always shows it
+  and its column starts off. A 테마 can hide the next text on the last 슬라이드
+  of an item, as 말씀 본문 and 설교 제목 do.
 - **Separate 테마.** 찬양 제목, 찬양 가사, 설교 제목, and 말씀 본문 are four
   테마. A 테마 has a purpose and is offered only for 슬라이드 of that purpose.
+- **Hymns.** 찬송가 제목 is a second 테마 for 찬양 제목. Its box 찬송가 holds
+  the number (새찬송가 91장) and stands above 제목, which fills itself with the
+  title that the hymnal gives the number until it gets a text of its own.
 - **Not in a 테마.** The clock, timers, and the stage message show at fixed
   places on 무대, whatever the 슬라이드.
 - **Files.** A 테마 is one JSON file with the layouts of the 청중, 무대, and
@@ -79,7 +83,8 @@ The user's needs (October 30 and November 22):
 - A template names boxes and values in braces: `{제목}`, `{본문}`. A part in
   square brackets is left out when a value in it is missing:
   `{제목}[ ({이름표})]`. The values the app fills in are 번호, 항목 이름, 구절,
-  곡 제목, 찬송가 제목, 이름표, and 새 이름표 (only where the label changes).
+  곡 제목, 찬송가 장과 제목, 찬송가 제목 (the title that the hymnal gives the
+  number on the 슬라이드), 이름표, and 새 이름표 (only where the label changes).
 - A 글 can have other templates and a color for when none of the first has its
   values, such as the (없음) of an empty 슬라이드 on 무대.
 - A 글 can take the size, or the size and the rows, that 청중 gives the same

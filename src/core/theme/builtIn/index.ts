@@ -1,6 +1,8 @@
 import {themeOfFile, type ThemeFile} from '@core/schema/theme';
 import blank from './blank.json';
 import creed from './creed.json';
+import hymnTitle from './hymn-title.json';
+import hymnTitleLight from './hymn-title-light.json';
 import lyrics from './lyrics.json';
 import lyricsLight from './lyrics-light.json';
 import media from './media.json';
@@ -17,8 +19,10 @@ import title from './title.json';
 /** The themes that come with the app, in the order the editor lists them. */
 export const BUILT_IN_THEMES: readonly ThemeFile[] = [
   songTitle,
+  hymnTitle,
   lyrics,
   songTitleLight,
+  hymnTitleLight,
   lyricsLight,
   sermonTitle,
   scripture,

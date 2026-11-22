@@ -2,7 +2,7 @@ import type {LlpApi} from '@contracts/ipc/api';
 import type {MediaId} from '@core/schema/ids';
 import type {PowerPointSource} from '@core/schema/powerpointImport';
 import type {TextImportDraft} from '@core/schema/textImport';
-import {isHymnNumber} from '@core/slides';
+import {importedSongTitle} from '@core/slides';
 import {powerpointBrightBackgrounds, powerpointSlides} from '@core/songs';
 import {lendPreviewImage} from '@renderer/rendering/previewMedia';
 import {openInPrep} from '@renderer/session/prepTarget';
@@ -42,12 +42,11 @@ function warn({report}: Reports, title: string, meta?: string): void {
 /** The title the slides show, or the name of the file. */
 function titleOf({fileName, slides}: PowerPointSource): string {
   const slide = powerpointSlides(slides).find(entry => entry.titleSlide);
-  const rows = (slide?.lines ?? []).map(row => row.trim());
-  const count = slide?.titleLineCount ?? 1;
-  const name = rows.slice(0, count).join(' ').trim();
-  const hymn = rows.slice(count).find(isHymnNumber);
-  if (name === '') return fileName.replace(/\.[^.]+$/u, '');
-  return hymn === undefined ? name : `${hymn} ${name}`;
+  const name =
+    slide === undefined
+      ? ''
+      : importedSongTitle({...slide, lines: [...slide.lines]});
+  return name === '' ? fileName.replace(/\.[^.]+$/u, '') : name;
 }
 
 /** Stands in for a background until it comes, in the color its texts need. */

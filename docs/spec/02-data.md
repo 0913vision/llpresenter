@@ -132,6 +132,13 @@ There are two imports: 곡 가져오기 and 이미지로 가져오기.
   row have is the title of a song. A short slide with a title of its own, or
   that shows a title again, is a title too. The largest row of a title is its
   name; the others become the subtitle. Every other text is lyrics.
+- A title with the number of a hymn (새찬송가 91장, 통일찬송가 204장, 찬송가
+  91장 or 91장, which are of 새찬송가) becomes a 찬송가 제목 슬라이드. Only its
+  number is taken, and the title comes from the hymnal; a title with other words
+  than the hymnal's stays a text of the 슬라이드. A title with more rows than a
+  number and a title is an ordinary one. The song is named after both.
+- The titles of 새찬송가 (645) and 통일찬송가 (558) come with the app
+  (`core/hymns/`).
 - PowerPoint exports the backgrounds. They show as they come in, each kind once.
 - The slides of a background whose texts are mostly dark get the 테마 for a
   bright background.

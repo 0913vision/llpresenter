@@ -1,4 +1,5 @@
 import {BIBLE_BOOKS, displayReference} from '@core/bible';
+import {hymnAt, hymnLabel, type Hymn} from '@core/hymns';
 import {NO_LABEL_COLOR, type LabelColor} from '@core/labels';
 import type {ShowTile} from '@core/schema/showService';
 import {
@@ -23,27 +24,23 @@ export interface SlideSource {
   readonly passage?: string | undefined;
 }
 
-const HYMN_NUMBER = /^새찬송가\s*(\d+)\s*장(?:\s|$)/u;
-
-/** Whether a text is the number of a hymn and nothing else. */
-export function isHymnNumber(text: string): boolean {
-  return /^새찬송가\s*\d+\s*장$/u.test(text.trim());
+/** The hymn whose number a slide shows. */
+function shownHymn({texts}: Slide): Hymn | null {
+  for (const row of Object.values(texts).flatMap(text => text.split('\n'))) {
+    const named = hymnAt(row);
+    if (named?.rest === '') return named.hymn;
+  }
+  return null;
 }
 
 /** The song's name after its hymn number, from its name or its title slide. */
-export function hymnTitle(name: string, slides: readonly Slide[]): string {
+function nameWithHymn(name: string, shown: Hymn | null): string {
   const title = name.split(/\r?\n/u)[0]?.trim() ?? '';
-  if (HYMN_NUMBER.test(title)) return title;
-  const own = /^(\d+)\s*장(?:\s|$)/u.exec(title)?.[1];
-  if (own !== undefined) {
-    const rest = title.replace(/^\d+\s*장\s*/u, '');
-    return `새찬송가 ${own}장${rest ? ` ${rest}` : ''}`;
-  }
-  const number = Object.values(slides[0]?.texts ?? {})
-    .flatMap(text => text.split('\n'))
-    .map(row => HYMN_NUMBER.exec(row.trim())?.[1])
-    .find(Boolean);
-  return number === undefined ? title : `새찬송가 ${number}장 ${title}`;
+  const named = hymnAt(title);
+  const hymn = named?.hymn ?? shown;
+  if (hymn === null) return title;
+  const rest = named === null ? title : named.rest || hymn.title;
+  return `${hymnLabel(hymn)} ${rest}`;
 }
 
 /** The values a theme can use on each slide of a list. */
@@ -52,9 +49,16 @@ export function autoValues(
   source: SlideSource,
 ): readonly AutoValues[] {
   const counts = new Map<string, number>();
+  const [first] = slides;
   const hymn =
-    source.kind === 'song' ? hymnTitle(source.title, slides) : undefined;
+    source.kind === 'song'
+      ? nameWithHymn(
+          source.title,
+          first === undefined ? null : shownHymn(first),
+        )
+      : undefined;
   return slides.map((slide, index) => {
+    const shown = source.kind === 'song' ? shownHymn(slide) : null;
     const number = (counts.get(slide.theme) ?? 0) + 1;
     counts.set(slide.theme, number);
     const {label} = slide;
@@ -71,6 +75,7 @@ export function autoValues(
         : {[AUTO_TOKENS.passage]: source.passage}),
       ...(source.kind === 'song' ? {[AUTO_TOKENS.song]: source.title} : {}),
       ...(hymn === undefined ? {} : {[AUTO_TOKENS.hymn]: hymn}),
+      ...(shown === null ? {} : {[AUTO_TOKENS.hymnTitle]: shown.title}),
     };
   });
 }

@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {isHymnNumber, hymnTitle, slideTiles} from '@core/slides/tiles';
+import {slideTiles} from '@core/slides/tiles';
 import {AUTO_TOKENS} from '@core/schema/slideContent';
 import {lyricsSlide, slideOf, verseOf} from '@fixtures/core/slides';
 
@@ -61,21 +61,27 @@ describe('slideTiles', () => {
   });
 });
 
-describe('the number of a hymn', () => {
-  it('is read from the name or from the title slide', () => {
-    expect(hymnTitle('91장 슬픈 마음', [])).toBe('새찬송가 91장 슬픈 마음');
-    expect(
-      hymnTitle('슬픈 마음', [
-        slideOf(1, 'songTitle', {
-          texts: {제목: '슬픈 마음', 부제: '새찬송가 91장'},
-        }),
-      ]),
-    ).toBe('새찬송가 91장 슬픈 마음');
-    expect(hymnTitle('빛의 길', [])).toBe('빛의 길');
+describe('a hymn', () => {
+  const valuesOf = (title: string, texts: Readonly<Record<string, string>>) =>
+    slideTiles([slideOf(1, 'songTitle', {texts})], {kind: 'song', title})[0]
+      ?.auto;
+
+  it('has its number before its name', () => {
+    const hymn = (title: string, texts = {}) =>
+      valuesOf(title, texts)?.[AUTO_TOKENS.hymn];
+    expect(hymn('91장 슬픈 마음')).toBe('새찬송가 91장 슬픈 마음');
+    expect(hymn('슬픈 마음', {찬송가: '새찬송가 91장'})).toBe(
+      '새찬송가 91장 슬픈 마음',
+    );
+    expect(hymn('새찬송가 91장')).toBe('새찬송가 91장 슬픈 마음 있는 사람');
+    expect(hymn('빛의 길')).toBe('빛의 길');
   });
 
-  it('is nothing else', () => {
-    expect(isHymnNumber('새찬송가 91장')).toBe(true);
-    expect(isHymnNumber('새찬송가 91장 슬픈 마음')).toBe(false);
+  it('gives the title of the number on the slide', () => {
+    const title = (texts: Readonly<Record<string, string>>) =>
+      valuesOf('곡', texts)?.[AUTO_TOKENS.hymnTitle];
+    expect(title({찬송가: '새찬송가 91장'})).toBe('슬픈 마음 있는 사람');
+    expect(title({찬송가: '통일찬송가 6장'})).toBe('찬양 성부 성자 성령');
+    expect(title({제목: '빛의 길'})).toBeUndefined();
   });
 });

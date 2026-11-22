@@ -92,7 +92,7 @@
             "w": 1600,
             "h": 180
           },
-          "content": ["{가사}", "{찬송 제목}"],
+          "content": ["{가사}", "{찬송가 장과 제목}"],
           "style": {
             "font": "Pretendard Variable",
             "weight": 700,

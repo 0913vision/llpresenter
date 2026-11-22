@@ -58,7 +58,12 @@ export {
   slideInsertionIndex,
 } from './selection';
 export {sundayTemplate} from './serviceTemplate';
-export {newSongSlides, songSlides, withSongTitle} from './songSlides';
+export {
+  importedSongTitle,
+  newSongSlides,
+  songSlides,
+  withSongTitle,
+} from './songSlides';
 export {
   type PassageSplit,
   cutBy,
@@ -74,7 +79,6 @@ export {
 } from './textEdits';
 export {
   type SlideSource,
-  isHymnNumber,
   itemTiles,
   itemTitle,
   slideSourceOf,

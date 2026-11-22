@@ -23,8 +23,12 @@ export const BUILT_IN_THEME_IDS = {
   media: id(104),
 } as const satisfies Record<SlidePurpose, unknown>;
 
-/** The song themes whose black texts stay readable on a bright background. */
-export const LIGHT_SONG_THEME_IDS = {
-  songTitle: id(151),
-  lyrics: id(398),
+/** The song themes: white texts, and black ones for a bright background. */
+export const SONG_THEME_IDS = {
+  dark: {
+    title: BUILT_IN_THEME_IDS.songTitle,
+    hymnTitle: id(154),
+    lyrics: BUILT_IN_THEME_IDS.lyrics,
+  },
+  light: {title: id(151), hymnTitle: id(155), lyrics: id(398)},
 } as const;

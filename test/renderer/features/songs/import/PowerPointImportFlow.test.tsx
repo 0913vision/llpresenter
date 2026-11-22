@@ -9,10 +9,7 @@ import type {
   PowerPointReading,
   PowerPointSource,
 } from '@core/schema/powerpointImport';
-import {
-  BUILT_IN_THEME_IDS,
-  LIGHT_SONG_THEME_IDS,
-} from '@core/theme/builtIn/ids';
+import {BUILT_IN_THEME_IDS, SONG_THEME_IDS} from '@core/theme/builtIn/ids';
 import {PowerPointImportFlow} from '@renderer/features/songs/import/PowerPointImportFlow';
 import {
   closeSongDraft,
@@ -330,8 +327,8 @@ it('gives the theme for a bright background to the slides on it', async () => {
   show();
   await opened();
   expect(draft().slides.map(slide => slide.theme)).toEqual([
-    LIGHT_SONG_THEME_IDS.songTitle,
-    LIGHT_SONG_THEME_IDS.lyrics,
+    SONG_THEME_IDS.light.title,
+    SONG_THEME_IDS.light.lyrics,
     BUILT_IN_THEME_IDS.songTitle,
     BUILT_IN_THEME_IDS.lyrics,
   ]);

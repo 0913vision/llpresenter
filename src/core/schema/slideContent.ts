@@ -7,7 +7,9 @@ export const AUTO_TOKENS = {
   passage: '구절',
   song: '곡 제목',
   /** The song's name after its hymn number, when it has one. */
-  hymn: '찬송 제목',
+  hymn: '찬송가 장과 제목',
+  /** The title that the hymnal gives the number on the slide. */
+  hymnTitle: '찬송가 제목',
   item: '항목 이름',
 } as const;
 
