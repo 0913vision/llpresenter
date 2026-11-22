@@ -7,6 +7,7 @@ import {
   children,
   named,
   descendants,
+  numberAttribute,
   xml,
   relationships,
 } from './powerpointXml';
@@ -31,28 +32,48 @@ export interface PowerPointDeck {
   readonly height: number;
 }
 
-function lines(shape: Element): string[] {
+interface Row {
+  readonly text: string;
+  /** The largest size written in the file for it; 0 for none. */
+  readonly size: number;
+}
+
+function rowsOf(shape: Element): Row[] {
   const tx = named(shape, 'txBody')[0];
   if (!tx) return [];
-  const result: string[] = [];
+  const rows: Row[] = [];
   for (const paragraph of named(tx, 'p')) {
-    let text = '';
+    let row = {text: '', size: 0};
+    const end = (): void => {
+      const text = row.text.trimEnd();
+      if (text !== '') rows.push({text, size: row.size});
+      row = {text: '', size: 0};
+    };
     for (const part of children(paragraph)) {
-      if (part.localName === 'br') text += '\n';
+      if (part.localName === 'br') end();
       else if (part.localName === 'r' || part.localName === 'fld') {
-        text += named(part, 't')
+        row.text += named(part, 't')
           .map(t => t.textContent)
           .join('');
+        row.size = Math.max(
+          row.size,
+          numberAttribute(named(part, 'rPr')[0], 'sz'),
+        );
       }
     }
-    result.push(
-      ...text
-        .split('\n')
-        .map(line => line.trimEnd())
-        .filter(line => line.length > 0),
-    );
+    end();
   }
-  return result;
+  return rows;
+}
+
+/** The one row of a text that is larger than all the others. */
+function mainRow(rows: readonly Row[]): number | undefined {
+  const largest = Math.max(...rows.map(({size}) => size));
+  const found = rows.filter(({size}) => size === largest);
+  const index = rows.findIndex(({size}) => size === largest);
+  return rows.length > 1 && largest > 0 && found.length === 1
+    ? index
+    : undefined;
 }
 function roleOf(shape: Element): PowerPointShape['role'] {
   const ph = descendants(shape, 'ph')[0];
@@ -66,8 +87,16 @@ function shapes(tree: Element): PowerPointShape[] {
   return children(tree).flatMap(shape => {
     if (shape.localName === 'grpSp') return shapes(shape);
     if (shape.localName !== 'sp') return [];
-    const text = lines(shape);
-    return text.length === 0 ? [] : [{role: roleOf(shape), lines: text}];
+    const rows = rowsOf(shape);
+    if (rows.length === 0) return [];
+    const main = mainRow(rows);
+    return [
+      {
+        role: roleOf(shape),
+        lines: rows.map(({text}) => text),
+        ...(main === undefined ? {} : {main}),
+      },
+    ];
   });
 }
 

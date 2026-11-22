@@ -18,6 +18,11 @@ export interface SlideSource {
 
 const HYMN_NUMBER = /^새찬송가\s*(\d+)\s*장(?:\s|$)/u;
 
+/** Whether a text is the number of a hymn and nothing else. */
+export function isHymnNumber(text: string): boolean {
+  return /^새찬송가\s*\d+\s*장$/u.test(text.trim());
+}
+
 /** The song's name after its hymn number, from its name or its title slide. */
 export function hymnTitle(name: string, slides: readonly Slide[]): string {
   const title = name.split(/\r?\n/u)[0]?.trim() ?? '';

@@ -15,7 +15,7 @@ import {
   powerpointSlides,
 } from '@core/songs/powerpointSlides';
 import {songSlides} from '@core/slides/songSlides';
-import {songTiles} from '@core/slides/tiles';
+import {isHymnNumber, songTiles} from '@core/slides/tiles';
 import {slideMaking, useThemes} from '@renderer/platform/themes';
 import {openInPrep} from '@renderer/session/prepTarget';
 import {Checkbox, Progress, TextField} from '@renderer/ui';
@@ -57,29 +57,22 @@ function draftOf(
 /** The title the slides show, or the name of the file. */
 function titleOf(range: PowerPointSource['slides'], fileName: string): string {
   const slide = powerpointSlides(range).find(entry => entry.titleSlide);
-  const shown = slide?.lines
-    .slice(0, slide.titleLineCount ?? 1)
-    .map(row => row.trim())
-    .filter(row => row !== '')
-    .join(' ');
-  return shown === undefined || shown === ''
-    ? fileName.replace(/\.[^.]+$/u, '')
-    : shown;
+  const rows = (slide?.lines ?? []).map(row => row.trim());
+  const count = slide?.titleLineCount ?? 1;
+  const name = rows.slice(0, count).join(' ').trim();
+  const hymn = rows.slice(count).find(isHymnNumber);
+  if (name === '') return fileName.replace(/\.[^.]+$/u, '');
+  return hymn === undefined ? name : `${hymn} ${name}`;
 }
 
 interface Exported {
-  readonly backgrounds: PowerPointBackgrounds | null;
-  readonly done: number;
-  readonly total: number;
+  readonly found: PowerPointBackgrounds['found'];
+  readonly done: boolean;
 }
 
 /** What is behind the slides, exported while the dialog is open. */
 function useBackgrounds(api: LlpApi, source: PowerPointSource): Exported {
-  const [state, setState] = useState<Exported>({
-    backgrounds: null,
-    done: 0,
-    total: 0,
-  });
+  const [state, setState] = useState<Exported>({found: new Map(), done: false});
   useEffect(() => {
     let active = true;
     let release: (() => void) | undefined;
@@ -88,9 +81,7 @@ function useBackgrounds(api: LlpApi, source: PowerPointSource): Exported {
     const timer = setTimeout(() => {
       exportPowerPointBackgrounds(api, source.slides, {
         active: () => active,
-        progress: (done, total) => {
-          if (active) setState(before => ({...before, done, total}));
-        },
+        onFound: found => setState({found, done: false}),
       }).then(
         backgrounds => {
           if (!active) {
@@ -98,15 +89,11 @@ function useBackgrounds(api: LlpApi, source: PowerPointSource): Exported {
             return;
           }
           release = backgrounds.release;
-          setState(before => ({...before, backgrounds}));
+          setState({found: backgrounds.found, done: true});
         },
         (error: unknown) => {
           console.error('Could not export the PowerPoint backgrounds', error);
-          if (!active) return;
-          setState(before => ({
-            ...before,
-            backgrounds: {found: new Map(), release: () => undefined},
-          }));
+          if (active) setState(before => ({...before, done: true}));
         },
       );
     }, 0);
@@ -132,7 +119,7 @@ function PowerPointDialog({
   readonly onProblem: (notice: Notice) => void;
 }): JSX.Element {
   const themes = useThemes(view => view.themes);
-  const exported = useBackgrounds(api, source);
+  const {found, done} = useBackgrounds(api, source);
   const [anchor, setAnchor] = useState(0);
   const [end, setEnd] = useState(source.slides.length - 1);
   const [typed, setTyped] = useState<string | null>(null);
@@ -152,11 +139,10 @@ function PowerPointDialog({
     [source, start, finish],
   );
   const title = typed ?? titleOf(range, source.fileName);
-  const found = exported.backgrounds?.found;
   const previews = useMemo(
     () =>
       new Map(
-        [...(background ? (found ?? []) : [])].map(
+        [...(background ? found : [])].map(
           ([key, {preview}]) => [key, preview] as const,
         ),
       ),
@@ -177,7 +163,8 @@ function PowerPointDialog({
       }),
     [themes, source, title, previews],
   );
-  const waiting = background && exported.backgrounds === null;
+  const waiting =
+    background && !done && range.some(slide => !found.has(slide.background));
   const create = async (): Promise<void> => {
     setBusy(true);
     try {
@@ -185,7 +172,7 @@ function PowerPointDialog({
         ? await importPowerPointBackgrounds(
             api,
             new Set(range.map(slide => slide.background)),
-            {found: found ?? new Map(), title},
+            {found, title},
           )
         : new Map<string, MediaId>();
       if (!active.current) return;
@@ -227,17 +214,7 @@ function PowerPointDialog({
         },
       }}
       footerStart={
-        waiting ? (
-          <Progress
-            value={
-              exported.total === 0
-                ? null
-                : (exported.done / exported.total) * 100
-            }
-            label="배경 가져오는 중"
-            valueText={`${exported.done} / ${exported.total}`}
-          />
-        ) : undefined
+        waiting ? <Progress value={null} label="배경 가져오는 중" /> : undefined
       }
     >
       <div className={styles.content}>

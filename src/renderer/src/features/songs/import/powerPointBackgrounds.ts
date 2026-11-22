@@ -43,25 +43,30 @@ async function previewOf(
       );
 }
 
-/** Exports what is behind the texts of the slides, each picture once. */
+/**
+ * Exports what is behind the texts of the slides, each picture once, and tells
+ * of every picture as soon as it is there.
+ */
 export async function exportPowerPointBackgrounds(
   api: LlpApi,
   slides: PowerPointSource['slides'],
   {
     active,
-    progress,
+    onFound,
   }: {
     readonly active: () => boolean;
-    readonly progress: (done: number, total: number) => void;
+    readonly onFound: (found: PowerPointBackgrounds['found']) => void;
   },
 ): Promise<PowerPointBackgrounds> {
   const wanted = distinct(slides);
-  const found = new Map<string, PowerPointBackground>();
-  const releases: Array<() => void> = [];
-  const paths: string[] = [];
+  const keys = new Map(wanted.map(({key, index}) => [index, key]));
+  let found: PowerPointBackgrounds['found'] = new Map();
+  const images: Array<() => void> = [];
+  const paths = new Set<string>();
   const release = (): void => {
-    for (const each of releases.splice(0)) each();
-    for (const path of paths.splice(0)) {
+    for (const each of images.splice(0)) each();
+    for (const path of paths) {
+      paths.delete(path);
       api.powerpoint
         .release({path})
         .catch((error: unknown) =>
@@ -69,26 +74,37 @@ export async function exportPowerPointBackgrounds(
         );
     }
   };
-  const keep = async (key: string, path: string): Promise<void> => {
+  const keep = async (index: number, path: string): Promise<void> => {
+    const key = keys.get(index);
+    if (key === undefined || paths.has(path)) return;
+    paths.add(path);
     const image = await previewOf(api, path);
     if (image === null) return;
-    releases.push(image.release);
-    found.set(key, {path, preview: image.id});
-  };
-  for (let start = 0; start < wanted.length; start += BATCH_SIZE) {
-    if (!active()) break;
-    const batch = wanted.slice(start, start + BATCH_SIZE);
-    const stop = api.powerpoint.subscribeImageProgress(({done}) =>
-      progress(start + done, wanted.length),
-    );
-    const files = await api.powerpoint
-      .backgrounds({indices: batch.map(entry => entry.index)})
-      .finally(stop);
-    paths.push(...(files ?? []).map(file => file.path));
-    for (const {index, path} of files ?? []) {
-      const key = batch.find(entry => entry.index === index)?.key;
-      if (key !== undefined && active()) await keep(key, path);
+    images.push(image.release);
+    if (!active()) {
+      release();
+      return;
     }
+    found = new Map([...found, [key, {path, preview: image.id}]]);
+    onFound(found);
+  };
+  const shown: Array<Promise<void>> = [];
+  const stop = api.powerpoint.subscribeImageProgress(({picture}) => {
+    if (picture !== undefined) shown.push(keep(picture.index, picture.path));
+  });
+  try {
+    for (let start = 0; start < wanted.length; start += BATCH_SIZE) {
+      if (!active()) break;
+      const files = await api.powerpoint.backgrounds({
+        indices: wanted
+          .slice(start, start + BATCH_SIZE)
+          .map(entry => entry.index),
+      });
+      for (const {index, path} of files ?? []) shown.push(keep(index, path));
+    }
+    await Promise.all(shown);
+  } finally {
+    stop();
   }
   return {found, release};
 }

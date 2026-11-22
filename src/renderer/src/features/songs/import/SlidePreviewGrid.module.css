@@ -3,6 +3,7 @@
   height: 100%;
   min-height: 0;
   overflow: auto;
+  scrollbar-gutter: stable;
 }
 
 .spacer {
@@ -11,8 +12,8 @@
 
 .grid {
   position: absolute;
-  left: 0;
-  right: 0;
+  left: var(--space-4);
+  right: var(--space-4);
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   align-content: start;

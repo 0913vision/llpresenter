@@ -1,6 +1,6 @@
 import {app, dialog, ipcMain} from 'electron';
 import {copyFile, mkdtemp, readFile, rm, stat, unlink} from 'node:fs/promises';
-import {constants as fsConstants} from 'node:fs';
+import {constants as fsConstants, existsSync} from 'node:fs';
 import {basename, dirname, extname, join} from 'node:path';
 import {randomUUID} from 'node:crypto';
 import {powerpointEndpoints} from '@contracts/ipc/powerpoint';
@@ -126,13 +126,6 @@ function picturesOf(slides: unknown): ReadonlyArray<string | undefined> {
   );
 }
 
-function isFile(path: string): Promise<boolean> {
-  return stat(path).then(
-    () => true,
-    () => false,
-  );
-}
-
 export function registerPowerPointImport(
   context: TextImportRegistration & {
     readonly media?: Promise<Pick<MediaStore, 'get' | 'fileOf'> | null>;
@@ -160,6 +153,10 @@ export function registerPowerPointImport(
   let imagesCancelled = false;
   const isImagesCancelled = (): boolean => imagesCancelled;
   const imageDirectories = new Set<string>();
+  /** The folder PowerPoint writes pictures in right now. */
+  let exporting: string | null = null;
+  /** Settles when PowerPoint is out of the way of the next export. */
+  let closing: Promise<void> = Promise.resolve();
   const retiredDirectories = new Set<string>();
   const cleanRetired = (): void => {
     if (imagesBusy) return;
@@ -179,6 +176,18 @@ export function registerPowerPointImport(
     cleanRetired();
     return true;
   };
+  /** Removes a folder of pictures once nobody needs one of them any more. */
+  const removeIfEmpty = async (directory: string): Promise<void> => {
+    if (
+      directory === exporting ||
+      !imageDirectories.has(directory) ||
+      [...tempFiles].some(file => dirname(file) === directory)
+    ) {
+      return;
+    }
+    await rm(directory, {recursive: true, force: true});
+    imageDirectories.delete(directory);
+  };
   const release = async (path: string): Promise<boolean> => {
     if (!tempFiles.has(path)) return false;
     try {
@@ -192,14 +201,7 @@ export function registerPowerPointImport(
         }
       });
       tempFiles.delete(path);
-      const directory = dirname(path);
-      if (
-        imageDirectories.has(directory) &&
-        ![...tempFiles].some(file => dirname(file) === directory)
-      ) {
-        await rm(directory, {recursive: true, force: true});
-        imageDirectories.delete(directory);
-      }
+      await removeIfEmpty(dirname(path));
       return true;
     } catch (error) {
       context.log.warn('could not remove PowerPoint temporary image', error);
@@ -287,6 +289,7 @@ export function registerPowerPointImport(
     return true;
   });
   ipcMain.handle(powerpointEndpoints.images.channel, async event => {
+    await closing;
     if (imagesBusy || busy || disposed) {
       return {ok: false, message: 'PowerPoint 파일을 읽는 중입니다.'};
     }
@@ -545,47 +548,49 @@ export function registerPowerPointImport(
     }
     return files;
   };
-  /** Has PowerPoint draw the slides without their texts, one picture each. */
+  /**
+   * Has PowerPoint draw the slides without their texts, one picture each. The
+   * pictures are ready before PowerPoint has closed again.
+   */
   const exportPictures = async (
     current: Retained,
     directory: string,
     {
       indices,
-      progress,
+      onPicture,
     }: {
       readonly indices: readonly number[];
-      readonly progress: (done: number) => void;
+      readonly onPicture: (index: number, path: string) => void;
     },
-  ): Promise<ReadonlyMap<number, string>> => {
-    const files = new Map<number, string>();
-    if (indices.length === 0) return files;
+  ): Promise<{readonly closed: Promise<void>}> => {
+    if (indices.length === 0) return {closed: Promise.resolve()};
     const copy = join(directory, `presentation${extname(current.path)}`);
     await copyFile(current.path, copy, fsConstants.COPYFILE_EXCL);
-    const result = await imageJobs.run(
-      copy,
-      directory,
-      Object.assign(progress, {
-        decorationSlides: indices.map(
-          index => current.source.slides[index]?.number ?? 0,
-        ),
-      }),
+    const decorationSlides = indices.map(
+      index => current.source.slides[index]?.number ?? 0,
     );
-    await rm(copy, {force: true});
-    if (result !== 'ok') {
-      context.log.warn(`PowerPoint background export: ${result}`);
-    }
-    for (const [position, index] of indices.entries()) {
-      const path = join(
-        directory,
-        `llp-ppt-${String(position + 1).padStart(4, '0')}.png`,
-      );
-      if (await isFile(path)) files.set(index, path);
-    }
-    return files;
+    let closed = Promise.resolve();
+    await new Promise<void>((resolve, reject) => {
+      const onDone = (done: number): void => {
+        const index = indices[done - 1];
+        const name = `llp-ppt-${String(done).padStart(4, '0')}.png`;
+        if (index !== undefined) onPicture(index, join(directory, name));
+        if (done >= indices.length) resolve();
+      };
+      closed = imageJobs
+        .run(copy, directory, Object.assign(onDone, {decorationSlides}))
+        .then(result => {
+          if (result === 'ok') return;
+          context.log.warn(`PowerPoint background export: ${result}`);
+        });
+      closed.then(resolve, reject);
+    });
+    return {closed};
   };
   ipcMain.handle(
     powerpointEndpoints.backgrounds.channel,
     async (event, value: unknown): Promise<PowerPointBackgroundsResult> => {
+      await closing;
       const request = parsePowerPointBackgroundsRequest(value);
       const current = retained;
       if (!request.ok || current === null || disposed || imagesBusy) {
@@ -597,48 +602,54 @@ export function registerPowerPointImport(
       }
       imagesBusy = true;
       imagesCancelled = false;
-      let directory: string | null = null;
       const stopped = (): boolean =>
         isImagesCancelled() || isDisposed() || retained !== current;
-      try {
-        const workDirectory = await mkdtemp(
-          join(app.getPath('temp'), 'llp-ppt-'),
-        );
-        directory = workDirectory;
-        const files = new Map(
-          await writePictures(current, workDirectory, indices),
-        );
-        if (stopped()) return null;
-        const send = (done: number): void => {
-          if (event.sender.isDestroyed()) return;
-          event.sender.send(powerpointEndpoints.imageProgress.channel, {
-            done,
-            total: indices.length,
-          });
-        };
-        const ready = files.size;
-        send(ready);
-        const others = indices.filter(index => !files.has(index));
-        const exported = await exportPictures(current, workDirectory, {
-          indices: others,
-          progress: done => send(ready + done),
+      const directory = await mkdtemp(join(app.getPath('temp'), 'llp-ppt-'));
+      exporting = directory;
+      const files = new Map<number, string>();
+      const onPicture = (index: number, path: string): void => {
+        if (stopped() || event.sender.isDestroyed() || !existsSync(path)) {
+          return;
+        }
+        tempFiles.add(path);
+        files.set(index, path);
+        event.sender.send(powerpointEndpoints.imageProgress.channel, {
+          done: files.size,
+          total: indices.length,
+          picture: {index, path},
         });
-        if (stopped()) return null;
-        for (const [index, path] of exported) files.set(index, path);
-        if (files.size === 0) return null;
-        for (const path of files.values()) tempFiles.add(path);
-        imageDirectories.add(workDirectory);
-        directory = null;
-        return [...files].map(([index, path]) => ({index, path}));
+      };
+      imageDirectories.add(directory);
+      let closed = Promise.resolve();
+      try {
+        const plain = await writePictures(current, directory, indices);
+        for (const [index, path] of plain) onPicture(index, path);
+        if (!stopped()) {
+          ({closed} = await exportPictures(current, directory, {
+            indices: indices.filter(index => !files.has(index)),
+            onPicture,
+          }));
+        }
+        return stopped() || files.size === 0
+          ? null
+          : [...files].map(([index, path]) => ({index, path}));
       } catch (error) {
         context.log.warn('could not export PowerPoint backgrounds', error);
         return null;
       } finally {
-        if (directory !== null) {
-          await rm(directory, {recursive: true, force: true});
-        }
-        imagesBusy = false;
-        cleanRetired();
+        closing = closed
+          .catch((error: unknown) =>
+            context.log.warn('could not close PowerPoint', error),
+          )
+          .then(async () => {
+            exporting = null;
+            await removeIfEmpty(directory);
+            imagesBusy = false;
+            cleanRetired();
+          })
+          .catch((error: unknown) =>
+            context.log.warn('could not remove PowerPoint pictures', error),
+          );
       }
     },
   );

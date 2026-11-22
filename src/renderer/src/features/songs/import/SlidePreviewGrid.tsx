@@ -19,8 +19,10 @@ interface Measure {
   readonly height: number;
   readonly gap: number;
   readonly band: number;
+  /** The room around the tiles, for their outlines. */
+  readonly inset: number;
 }
-const EMPTY: Measure = {width: 0, height: 0, gap: 0, band: 0};
+const EMPTY: Measure = {width: 0, height: 0, gap: 0, band: 0, inset: 0};
 
 /** The slides of an import as they will be, drawing only the rows in view. */
 export function SlidePreviewGrid({
@@ -49,6 +51,7 @@ export function SlidePreviewGrid({
         height: node.clientHeight,
         gap: px('--space-16'),
         band: px('--size-thumb-band'),
+        inset: px('--space-4'),
       });
     };
     const observer = new ResizeObserver(read);
@@ -58,7 +61,7 @@ export function SlidePreviewGrid({
   }, []);
   const tileWidth = Math.max(
     0,
-    (measure.width - measure.gap * (COLUMNS - 1)) / COLUMNS,
+    (measure.width - measure.inset * 2 - measure.gap * (COLUMNS - 1)) / COLUMNS,
   );
   const stride =
     tileWidth > 0 ? (tileWidth * 9) / 16 + measure.band + measure.gap : 1;
@@ -77,14 +80,17 @@ export function SlidePreviewGrid({
     tiles.length,
     (first + visible + OVERSCAN * 2) * COLUMNS,
   );
-  const offset: CSSProperties = {top: first * stride};
+  const offset: CSSProperties = {top: first * stride + measure.inset};
   return (
     <div
       ref={viewport}
       className={styles.viewport}
       onScroll={event => setScrollTop(event.currentTarget.scrollTop)}
     >
-      <div className={styles.spacer} style={{height: rows * stride}}>
+      <div
+        className={styles.spacer}
+        style={{height: rows * stride + measure.inset}}
+      >
         <div className={styles.grid} style={offset}>
           {tiles.slice(begin, finish).map((tile, local) => {
             const index = begin + local;

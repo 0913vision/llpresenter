@@ -3,6 +3,8 @@ import type {ImportSlide} from '../schema/textImport';
 export interface PowerPointShape {
   readonly role: 'title' | 'body' | 'free';
   readonly lines: readonly string[];
+  /** The one row that is written larger than the others. */
+  readonly main?: number;
 }
 
 export interface PowerPointSlide {
@@ -21,43 +23,86 @@ function rowsOf(shapes: readonly PowerPointShape[]): readonly string[] {
   return shapes.flatMap(shape => shape.lines);
 }
 
+/** The rows of a title with its name first, and how many rows the name has. */
+function nameFirst({lines, main}: PowerPointShape): {
+  readonly name: readonly string[];
+  readonly rest: readonly string[];
+} {
+  const own = main === undefined ? undefined : lines[main];
+  return own === undefined
+    ? {name: lines, rest: []}
+    : {name: [own], rest: lines.filter((_, index) => index !== main)};
+}
+
 /** The song title a slide shows, or null when it shows lyrics. */
 function titleOf(
   shapes: readonly PowerPointShape[],
-  {first, known}: {readonly first: boolean; readonly known: string | undefined},
+  {
+    starts,
+    known,
+  }: {readonly starts: boolean; readonly known: string | undefined},
 ): ImportSlide | null {
   if (shapes.some(shape => shape.role === 'body')) return null;
   const rows = rowsOf(shapes);
   if (rows.length === 0 || rows.length > TITLE_ROWS) return null;
   const named = shapes.find(shape => shape.role === 'title');
-  if (!first && named === undefined && rows[0] !== known) return null;
   const main = named ?? shapes[0];
+  if (main === undefined) return null;
+  const {name, rest} = nameFirst(main);
+  if (!starts && named === undefined && name[0] !== known) return null;
   const others = shapes.filter(shape => shape !== main);
-  const titleLineCount = main?.lines.length ?? 0;
   return {
     titleSlide: true,
-    lines: [...(main?.lines ?? []), ...rowsOf(others)],
-    ...(titleLineCount > 1 ? {titleLineCount} : {}),
+    lines: [...name, ...rest, ...rowsOf(others)],
+    ...(name.length > 1 ? {titleLineCount: name.length} : {}),
   };
 }
 
+/** The slides where a song starts: the first with text on a new background. */
+function songStarts(slides: readonly PowerPointSlide[]): ReadonlySet<number> {
+  const starts = new Set<number>();
+  const seen = new Set<string>();
+  let waiting = true;
+  slides.forEach(({background, shapes}, index) => {
+    if (!seen.has(background)) {
+      seen.add(background);
+      waiting ||= runFrom(slides, index) >= SONG_SLIDES;
+    }
+    if (!waiting || shapes.length === 0) return;
+    starts.add(index);
+    waiting = false;
+  });
+  return starts;
+}
+
+/** A background that fewer slides in a row have is not one of a song. */
+const SONG_SLIDES = 3;
+
+function runFrom(slides: readonly PowerPointSlide[], start: number): number {
+  const end = slides.findIndex(
+    (slide, index) =>
+      index > start && slide.background !== slides[start]?.background,
+  );
+  return (end < 0 ? slides.length : end) - start;
+}
+
 /**
- * The slides of a presentation as the slides of a song. A short slide without
- * a body is a song title when it comes first, has a title of its own, or shows
- * the title that came first; every other text is lyrics.
+ * The slides of a presentation as the slides of songs. A short slide without
+ * a body is a song title when a song starts with it, when it has a title of
+ * its own, or when it shows the title of the song again; every other text is
+ * lyrics.
  */
 export function powerpointSlides(
   slides: readonly PowerPointSlide[],
 ): readonly ImportSlide[] {
+  const starts = songStarts(slides);
   let known: string | undefined;
-  let first = true;
-  return slides.map(({shapes}) => {
+  return slides.map(({shapes}, index) => {
     const rows = rowsOf(shapes);
     if (rows.length === 0) return {lines: []};
-    const title = titleOf(shapes, {first, known});
-    first = false;
+    const title = titleOf(shapes, {starts: starts.has(index), known});
     if (title !== null) {
-      known ??= title.lines[0];
+      if (starts.has(index)) [known] = title.lines;
       return title;
     }
     const body = shapes.filter(shape => shape.role === 'body');

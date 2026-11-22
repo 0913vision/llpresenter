@@ -21,6 +21,7 @@ const shape = payloadObject({
     v.array(v.pipe(v.string(), v.maxLength(TEXT_IMPORT_LIMITS.characters))),
     v.maxLength(TEXT_IMPORT_LIMITS.lines),
   ),
+  main: v.exactOptional(nonNegativeInteger),
 });
 const slide = payloadObject({
   number: v.pipe(
@@ -111,6 +112,13 @@ const matchResult = v.nullable(mediaIdSchema);
 const imageExportProgress = payloadObject({
   done: nonNegativeInteger,
   total: nonNegativeInteger,
+  /** The background of a slide that was just exported. */
+  picture: v.exactOptional(
+    payloadObject({
+      index: nonNegativeInteger,
+      path: v.pipe(v.string(), v.minLength(1)),
+    }),
+  ),
 });
 const ownedImagesRequest = payloadObject({
   paths: v.pipe(v.array(v.string()), v.minLength(1), v.maxLength(200)),

@@ -1,7 +1,11 @@
 import {useMemo, type JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
+import {displayReference} from '@core/bible/displayReference';
+import {withLiveBible} from '@core/bible/liveTranslation';
+import type {BiblePassage} from '@core/schema/biblePassage';
 import type {SongId} from '@core/schema/ids';
 import {isItemOfKind, type SlidesItem} from '@core/schema/service';
+import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import type {Report} from '@renderer/session/serviceEdit';
 import {songUsage} from '@renderer/features/songs/library/songUsage';
 import {useSongDraft} from '@renderer/features/songs/songDraft';
@@ -97,6 +101,27 @@ function SongSource({
   );
 }
 
+/** The passage the slides of an item were made of. */
+function PassageSource({
+  passage,
+}: {
+  readonly passage: BiblePassage;
+}): JSX.Element {
+  const bible = useSettingsDocument('bible', '성경', undefined);
+  const translation = withLiveBible(bible?.value.translations ?? []).find(
+    entry => entry.id === passage.translation,
+  );
+  return (
+    <PropertyGroup title="원본">
+      <PropertyValue label="구절" value={displayReference(passage.ref)} />
+      <PropertyValue
+        label="성경"
+        value={translation?.name ?? passage.translation}
+      />
+    </PropertyGroup>
+  );
+}
+
 /** What the selected source is made of, and how it plays in this service. */
 export function DetailsInfo({
   item,
@@ -163,9 +188,7 @@ export function DetailsInfo({
           report={report}
         />
       ) : item !== undefined && 'passage' in item ? (
-        <PropertyGroup title="원본">
-          <PropertyValue label="성경" value={item.passage.translation} />
-        </PropertyGroup>
+        <PassageSource passage={item.passage} />
       ) : null}
     </Properties>
   );
