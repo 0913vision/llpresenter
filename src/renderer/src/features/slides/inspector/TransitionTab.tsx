@@ -15,17 +15,18 @@ import {
   SLIDE_EFFECTS,
 } from '@renderer/ui/slideTransitionChoices';
 import {focusSlides} from '../deckSelection';
-import {ApplyToAll} from './ApplyToAll';
 import {changeSelected, type ChosenSlides} from './changeSelected';
 import styles from './SlideInspector.module.css';
 
 /** The transition of several slides, or the one to start from. */
-function commonTransition(values: ReadonlyArray<SlideTransition | undefined>): {
+export function chosenTransition(chosen: ChosenSlides['chosen']): {
   readonly value: SlideTransition;
   readonly mixed: boolean;
 } {
-  const value = values[0] ?? INITIAL_SLIDE_EFFECT;
-  const mixed = values.some(effect => !sameSlideTransition(effect, value));
+  const value = chosen[0]?.transition ?? INITIAL_SLIDE_EFFECT;
+  const mixed = chosen.some(
+    slide => !sameSlideTransition(slide.transition, value),
+  );
   return {value: mixed ? INITIAL_SLIDE_EFFECT : value, mixed};
 }
 
@@ -59,7 +60,6 @@ function TimeField({
       <TextField
         id={id}
         aria-label="전환 시간"
-        block
         inputMode="decimal"
         placeholder={mixed ? '혼합' : undefined}
         disabled={disabled}
@@ -88,47 +88,41 @@ function TimeField({
 }
 
 /** The transition the selected slides come in with. */
-export function TransitionSection({deck, chosen}: ChosenSlides): JSX.Element {
-  const {value, mixed} = commonTransition(
-    chosen.map(slide => slide.transition),
-  );
+export function TransitionTab({deck, chosen}: ChosenSlides): JSX.Element {
+  const {value, mixed} = chosenTransition(chosen);
   const locked = deck.readOnly;
   const set = (transition: SlideTransition): void =>
     changeSelected(deck, slide => withTransition(slide, transition));
   return (
-    <PropertyGroup title="전환">
+    <PropertyGroup>
       <div className={styles.transitionRows}>
-        <PropertyRow label="효과">
-          {() => (
-            <div
-              className={transitionStyles.gallery}
-              role="group"
-              aria-label="효과"
+        <div
+          className={transitionStyles.gallery}
+          role="group"
+          aria-label="효과"
+        >
+          {SLIDE_EFFECTS.map(([kind, label]) => (
+            <button
+              key={kind}
+              type="button"
+              className={transitionStyles.tile}
+              disabled={locked}
+              aria-pressed={!mixed && value.kind === kind}
+              onClick={() => {
+                set({
+                  kind,
+                  sec: value.sec,
+                  ...(kind === 'push' || kind === 'wipe'
+                    ? {dir: value.dir ?? 'left'}
+                    : {}),
+                });
+              }}
             >
-              {SLIDE_EFFECTS.map(([kind, label]) => (
-                <button
-                  key={kind}
-                  type="button"
-                  className={transitionStyles.tile}
-                  disabled={locked}
-                  aria-pressed={!mixed && value.kind === kind}
-                  onClick={() => {
-                    set({
-                      kind,
-                      sec: value.sec,
-                      ...(kind === 'push' || kind === 'wipe'
-                        ? {dir: value.dir ?? 'left'}
-                        : {}),
-                    });
-                  }}
-                >
-                  <EffectPicture kind={kind} />
-                  <span>{label}</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </PropertyRow>
+              <EffectPicture kind={kind} />
+              <span>{label}</span>
+            </button>
+          ))}
+        </div>
         <PropertyRow label="방향">
           {() => (
             <div
@@ -179,11 +173,6 @@ export function TransitionSection({deck, chosen}: ChosenSlides): JSX.Element {
             />
           )}
         </PropertyRow>
-        <ApplyToAll
-          deck={deck}
-          mixed={mixed}
-          change={slide => withTransition(slide, value)}
-        />
       </div>
     </PropertyGroup>
   );

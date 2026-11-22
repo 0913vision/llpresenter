@@ -4,9 +4,8 @@
   gap: var(--space-8);
 }
 
-.full {
-  width: 100%;
-  justify-content: flex-start;
+.timeField > :first-child {
+  width: var(--size-field-number);
 }
 
 .transitionRows {
@@ -14,20 +13,30 @@
   gap: var(--space-8);
 }
 
-.text {
+.texts {
   display: grid;
   gap: var(--space-8);
-  min-inline-size: 0;
-  padding: var(--space-8) 0 0;
-  border: 0;
-  margin: 0;
+  min-width: 0;
 }
 
 .body {
   display: grid;
   align-content: start;
-  gap: var(--space-8);
   min-width: 0;
+}
+
+.tabs {
+  display: flex;
+  align-items: stretch;
+  height: var(--size-panel-header);
+  margin: var(--space-8) calc(-1 * var(--panel-inset)) 0;
+  padding: 0 var(--panel-inset);
+  border-bottom: 1px solid var(--line);
+}
+
+.applyToAll {
+  width: 100%;
+  margin-top: var(--space-8);
 }
 
 .withAction {
@@ -40,15 +49,4 @@
 .withAction > :first-child {
   flex: 1 1 0;
   min-width: 0;
-}
-
-.filled {
-  display: grid;
-  gap: var(--space-8);
-}
-
-.applyToAll {
-  display: flex;
-  justify-content: flex-end;
-  padding-top: var(--space-8);
 }

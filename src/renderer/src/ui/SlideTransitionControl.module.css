@@ -1,11 +1,12 @@
-.gallery,
-.directions {
-  display: flex;
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--space-6);
 }
 
-.gallery {
-  flex-wrap: wrap;
+.directions {
+  display: flex;
+  gap: var(--space-6);
 }
 
 .tile,
@@ -21,14 +22,15 @@
 .tile {
   display: grid;
   justify-items: center;
-  gap: var(--space-4);
-  padding: var(--space-6) var(--space-8);
-  min-width: calc(var(--space-16) * 4);
+  gap: var(--space-2);
+  min-width: 0;
+  padding: var(--space-4);
+  font: var(--type-caption);
 }
 
 .tile svg {
-  width: var(--size-dialog-header);
-  height: var(--size-control-md);
+  width: var(--size-panel-header);
+  height: var(--space-24);
 }
 
 .old {
