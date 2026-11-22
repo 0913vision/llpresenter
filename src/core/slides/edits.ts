@@ -1,5 +1,5 @@
 import type {SlideId, ThemeId} from '../schema/ids';
-import {SLIDE_LIMITS, type Slide, type VerseReference} from '../schema/slide';
+import type {Slide, VerseReference} from '../schema/slide';
 import type {SlideBackground} from '../schema/theme';
 import type {SlideTransition} from '../schema/slideTransition';
 import {copySlide} from './make';
@@ -61,11 +61,6 @@ export function withTransition(
 ): Slide {
   const {transition: _transition, ...kept} = slide;
   return transition === undefined ? kept : {...kept, transition};
-}
-
-/** Whether as many slides more fit in an item or a song. */
-export function fitsSlides(slides: readonly Slide[], more: number): boolean {
-  return slides.length + more <= SLIDE_LIMITS.slides;
 }
 
 export function insertSlides(

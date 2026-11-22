@@ -26,7 +26,6 @@ import {selectAddedItem} from './selectAddedItem';
 import {useShow} from './showStore';
 
 type Order = Service['order'];
-export type ServiceOrderEditResult = OpenServiceResult;
 
 /** What a refused add says when the 예배 순서 has reached its item limit. */
 export const ORDER_FULL_REASON = limitReason(

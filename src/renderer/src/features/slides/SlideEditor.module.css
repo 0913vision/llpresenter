@@ -12,10 +12,6 @@
   min-height: 0;
 }
 
-.back {
-  max-width: var(--size-field-title);
-}
-
 .blocks {
   --slides-thumbnail-width: calc(var(--size-editor-label) - var(--space-8));
   flex: 1 1 auto;
@@ -38,7 +34,6 @@
 .blockWindow {
   position: relative;
 }
-
 
 .surface {
   display: flex;
@@ -133,11 +128,6 @@
   background: var(--accent);
   content: '';
 }
-
-
-
-
-
 
 .block[data-grid] .thumbnail {
   position: relative;

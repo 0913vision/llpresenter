@@ -208,10 +208,3 @@ export function isItemOfKind<TKind extends ServiceItemKind>(
 export function hasSlides(item: ServiceItem): item is SlidesItem {
   return item.kind !== 'header' && isKnownKind(serviceItemKinds, item.kind);
 }
-
-/** The kind of an item, or `unknown` for a kind this version doesn't know. */
-export function serviceItemKind(
-  item: ServiceItem,
-): ServiceItemKind | 'unknown' {
-  return serviceItemKinds.find(kind => kind === item.kind) ?? 'unknown';
-}

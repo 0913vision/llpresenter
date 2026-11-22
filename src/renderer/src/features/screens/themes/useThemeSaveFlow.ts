@@ -76,4 +76,3 @@ export function useThemeSaveFlow({
     },
   };
 }
-export type ThemeSaveFlow = ReturnType<typeof useThemeSaveFlow>;

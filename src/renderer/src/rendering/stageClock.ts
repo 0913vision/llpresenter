@@ -1,6 +1,3 @@
-/** How often a shown clock or running 타이머 redraws. */
-export const STAGE_TICK_MS = 1000;
-
 type ClockFormat = '24h' | '12h';
 
 function twoDigits(value: number): string {

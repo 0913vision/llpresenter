@@ -25,8 +25,3 @@ export function openInPrep(target: PrepTarget): void {
 export function closePrepEditor(): void {
   usePrepTarget.setState({target: null});
 }
-
-/** Brings up 준비 with its table. */
-export function showPrepTable(): void {
-  usePrepTarget.setState(({request}) => ({target: null, request: request + 1}));
-}

@@ -114,11 +114,6 @@ export function shownTilesFor(
   return tiles === noTiles ? undefined : tiles;
 }
 
-/** Selects the open source's tiles without copying either projection. */
-export function shownTiles(view: ShowView): readonly SlideTile[] | undefined {
-  return shownTilesFor(view, view.openItemId);
-}
-
 /** Opens a checked library projection without writing a service or output. */
 export function openLibrarySong(song: ShowLibrarySong): void {
   beginOutputRequest();

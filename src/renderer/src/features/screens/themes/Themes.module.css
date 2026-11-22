@@ -127,10 +127,6 @@
   overflow: hidden;
   border: 1px solid var(--line-strong);
 }
-.propertyBody {
-  flex: 1;
-  min-height: 0;
-}
 .templates {
   display: flex;
   flex: 1;
@@ -155,9 +151,4 @@
 .boxTools {
   display: flex;
   gap: var(--space-4);
-}
-.mode {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-8);
 }

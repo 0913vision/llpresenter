@@ -64,14 +64,3 @@
   width: auto;
   height: auto;
 }
-
-.leading {
-  position: absolute;
-  box-sizing: border-box;
-  padding: var(--space-14);
-  outline: none;
-}
-[data-leading-active] .leading {
-  background: var(--selection);
-  border-radius: var(--radius-sm);
-}
