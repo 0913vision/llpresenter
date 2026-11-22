@@ -52,11 +52,11 @@ the same staging, so a blank native frame is never exposed. Only quitting or
 losing the window releases the renderer. Inactive views still suspend their
 effects and previews; every close performs its own save handshake.
 
-| Column | 화면 설정 window                                                                      | 테마 workspace (12)                                       |
-| ------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| Left   | 화면 list, grouped into 청중, 무대, and 방송                                          | 테마 list, then 요소 and 요소 추가 for the current screen |
-| Center | 배치 (monitor layout and 별도 창 및 미지정 화면), then 출력 미리보기 with 테스트 패턴 | The canvas of the current screen                          |
-| Right  | Selected screen properties                                                            | The three screens, then the 요소 and 화면 tabs            |
+| Column | 화면 설정 window                                                                      | 테마 workspace (12)                        |
+| ------ | ------------------------------------------------------------------------------------- | ------------------------------------------ |
+| Left   | 화면 list, grouped into 청중, 무대, and 방송                                          | 테마 list                                  |
+| Center | 배치 (monitor layout and 별도 창 및 미지정 화면), then 출력 미리보기 with 테스트 패턴 | The canvas of the current screen           |
+| Right  | Selected screen properties                                                            | The 슬라이드, the screen and its 요소 (12) |
 
 - The toolbar workspace tab is 테마. The 테마 editor is specified in 12; "The
   테마 editor canvas" below holds the canvas and color rules it shares.

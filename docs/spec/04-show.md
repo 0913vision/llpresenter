@@ -210,24 +210,13 @@ Source: `ServiceSwitch`, `Main` decision "예배 순서 바꾸기", `Panel` READ
 
 ### 슬라이드 grid
 
-- 빈 슬라이드 and 광고 items use the same click and slide navigation commands as
-  songs. Their attached caption strips show only the sequence number because
-  these slides have no labels.
-- With 넘기기 set to an interval, the main process advances the live item's
-  slides every N seconds, even if the control window reloads. With 반복 on, the
-  last slide returns to the first; otherwise it stays on the last. Clicking a
-  slide again or moving manually starts a full new interval. Starting another
-  item, 지우기, or 항목 끄기 stops the timer. Selecting a different row alone
-  leaves the live sequence running. Shutdown releases the timer. An item with
-  손으로 never schedules a timer.
-
-- For a song item, the grid shows its own slides in stored order. Repeated
-  lyrics are independent slides with distinct IDs.
-- A tile is a 16:9 picture with an 이름표 band below it. The picture shows only
-  the 슬라이드's lines, not the song's background. The band shows the position
-  across the whole service (from 1) and the 이름표 name on a strip filled with
-  the 이름표 color. Bible verse labels and named or media slides also keep their
-  labels in the band. Without a label, the band shows only the number.
+- The grid shows the 슬라이드 of the item in their order. Every kind of item
+  uses the same clicks and slide navigation commands.
+- A tile is a 16:9 picture with an 이름표 band below it. The picture is the
+  whole 슬라이드 as 청중 shows it. The band shows the position across the whole
+  service (from 1) and the 이름표 name on a strip filled with the 이름표 color.
+  Without a label, a verse shows its short reference and any other 슬라이드 but
+  one of a song shows the first line of its text.
 - Clicking a tile outputs that 슬라이드 at once (see 03). The live tile has a
   red ring around its picture: only that tile, not other tiles of the same
   슬라이드. There is no separate tile selection. Keyboard focus draws an accent
@@ -957,23 +946,11 @@ keeps the removed slides out of the editor and outputs. The item keeps its
 passage reference. The app preserves the boundaries of verses with deleted parts
 so splits made in other verses do not bring them back.
 
-Blank slides items also resolve each stored verse reference into these parts,
-interleaved with their text and picture slides in source order. Each part is a
-separate navigation position, uses the item's theme, and shows its own Bible
-reference. Non-last parts end with the smaller ` (계속)` marker. Repeated
-references remain separate source slides; selection and live navigation track
-the source slide ID and part when cuts or themes change.
-
-The renderer sends the current measured sequence, bound to the service revision,
-to main before outputting a verse slide. Main retains one validated sequence for
-timed advance, so changing workspace does not stop advance or collapse a verse
-to its first part. An outdated or unavailable sequence pauses timed advance;
-refreshing it never changes the current output by itself. The sequence also
-carries the themes, screens and Bible cuts revisions used in measurement.
-Changes to those settings invalidate it in main even while 진행 is closed. Timed
-advance pauses until a projection using the current revisions arrives. A clear
-or item stop stays stopped through projection updates and workspace changes;
-only explicitly outputting a slide starts advance again.
+A new passage is cut for the 본문 box of the 말씀 본문 테마, and the cuts are
+saved as 슬라이드 with their own texts (02, "Passages"). A passage in a 빈
+슬라이드 item keeps its address on every 슬라이드. Non-last parts of a verse end
+with the smaller ` (계속)` marker. A later change of the 테마 cuts nothing
+again.
 
 Rules split all verses first. Valid confirmed cuts skip both AI and review. If
 the local AI is ready when a lookup starts, unconfirmed multi-part verses are
@@ -981,17 +958,17 @@ refined in queue order, one at a time. A fitting candidate is forced when it is
 the only one; otherwise the chooser's clamped index selects it. A failed
 comparison falls back to the rule choice for that boundary and continues.
 Refined cuts remain in a bounded memory cache by normalized text, prefix and
-text layout. Projections and navigation reuse them; only confirmation writes
-them to `bibleCuts.json`. New lookups, theme changes and closing review cancel
-remaining work and discard late results. A server becoming ready later does not
-restart an existing lookup.
+text layout, and later cuts reuse them; only confirmation writes them to
+`bibleCuts.json`. New lookups, theme changes and closing review cancel remaining
+work and discard late results. A server becoming ready later does not restart an
+existing lookup.
 
-Preparation accepts measured default cuts automatically when a saved passage is
-added or changed, without replacing an existing confirmed cut. Defaults for
-several verses are saved in order without overwriting other edits. The operator
-can open ? ??? from the preparation slide editor. It never opens automatically
-in ??, and quick output does not wait for review. The editor's subtitle shows
-the verse reference, and Ctrl E opens the selected verse in preparation.
+With 환경설정 > 성경 > 나눌 자리 확인 on, adding a passage in 준비 first opens
+the review of its verses that need several 슬라이드; nothing is added when it is
+left. Otherwise the measured cuts are taken as they are, without replacing a
+confirmed cut. The operator opens 절 나누기 from the tools of the item in 준비,
+or with Ctrl E on a verse in 진행 and 준비. It never opens by itself in 진행,
+and quick output does not wait for it. Its subtitle shows the verse reference.
 
 The text has labels between words, in Copible's order
 `asdfghjkl qwertyuiop zxcvbnm 1234567890`. Above 36 gaps, all labels have two
@@ -1031,16 +1008,15 @@ enough clearance to hide the preceding row, including its overflow ring; other
 updates preserve the scroll position. Removing all cuts shows one centered
 overflowing result. A fitting single slide skips review.
 
-Thumbnails use the slides editor's renderer and the item's audience theme,
-including background, text box, font, reference, measured lines and smaller
-continuation marker. Part numbers appear above them, without line counts. A
-dashed white 20% guide shows the theme's maximum-line area. An overflowing part
-has a 2px live ring, a solid live guide and light live overflow text over live
-hatching, at the configured font size. 확정 stays disabled and Enter or Space
-shakes the overflowing results. The footer's left side shows only a save
-failure. Confirming saves only the verse hash, word indices and time through the
-settings store. A failed save keeps the dialog open and reports the failure.
-There is no editable verse text.
+Thumbnails are the 슬라이드 as 청중 shows them, with the background, text box,
+font, reference, measured lines and smaller continuation marker. Part numbers
+appear above them, without line counts. A dashed white 20% guide shows the
+theme's maximum-line area. An overflowing part has a 2px live ring, a solid live
+guide and light live overflow text over live hatching, at the configured font
+size. 확정 stays disabled and Enter or Space shakes the overflowing results. The
+footer's left side shows only a save failure. Confirming saves only the verse
+hash, word indices and time through the settings store. A failed save keeps the
+dialog open and reports the failure. There is no editable verse text.
 
 ### Local AI boundary chooser
 
@@ -1071,30 +1047,19 @@ integration use this contract, with a distinct cancellable ID per lookup.
 
 - Header: the passage reference, without a generic panel name or slide count.
 
-- Settings row: the installed translation select (개역한글) and AI status as one
-  group, followed by 절 번호 (verse numbers) and 역본 이름 (translation name).
-  - Beside the translation, a 6px dot and AI 켜짐, AI 켜는 중, or AI 꺼짐 show
-    the optional chooser's state. Only a failed state has a tooltip containing
-    its reason; no explanatory helper text is shown.
-  - The installed translation, 절 번호, and 역본 이름 controls change this
-    preview only; they do not change the defaults, saved items, or live output.
-    A translation lookup retains the range and selected verse when available. If
-    the selected verse is omitted, choose the next available verse, or the last
-    one when no later verse remains. A failed or superseded lookup keeps the old
-    preview.
+- Settings row: the installed translation select (개역한글), 절 번호 (verse
+  numbers) and 역본 이름 (translation name).
+  - These change this preview only; they do not change the defaults, saved
+    items, or live output. A change of one retains the range and the selected
+    verse when available. If the selected verse is omitted, choose the next
+    available verse, or the last one when no later verse remains. A failed or
+    superseded lookup keeps the old preview.
   - Each verse starts a new slide. A long verse splits by Copible 1.6's boundary
-    scores and global minimum-slide DP, using the theme's 현재 슬라이드 글 font,
-    size, box width and height, and 성경 분할 줄 수 (`maxLines`). The font is
-    measured at its configured size rather than shrunk to avoid splitting. This
-    applies to saved 성경 구절 items and the 진행 Bible panel, including
-    next/previous navigation. Unmeasured fallback slides follow the same verse
-    boundary rule. The legacy `two` and `fit` packing values remain readable but
-    never combine verses; new passages store `verse`, and there is no packing
-    preference (02, 10).
-  - The open service publishes the same measured Bible parts to its service
-    projection, so preparation, navigation, and output use the same labels and
-    cuts. Changes to the passage, theme, screens, or confirmed cuts replace the
-    measured projection; a stale measurement is never reused.
+    scores and global minimum-slide DP, using the font, size, width and height
+    of the theme's 본문 box and its `maxLines`. The font is measured at its
+    configured size rather than shrunk to avoid splitting. This applies to saved
+    성경 구절 and 설교 items and the 진행 Bible panel alike. A verse that can't
+    be measured stays whole.
   - Every non-last part ends with ` (계속)`, two steps smaller on the PowerPoint
     size list. Numbering, when enabled for a multi-verse passage, appears only
     on the first part of each verse and is included in measurement. A single
@@ -1105,30 +1070,20 @@ integration use this contract, with a distinct cancellable ID per lookup.
     preceding gap or body tracking.
   - Confirmed word cuts in `bibleCuts.json` are reused only when the text hash
     matches and the current theme still fits. An overflowing saved entry stays
-    in the file while automatic splitting is used. Measurement failure retains
-    the whole verse; exceeding the projection cap refuses the projection with a
-    visible reason, without dropping source data.
-    - Changing cuts or the theme retains the selected verse and its part, even
-      when earlier verses gain or lose parts. Live output stays unchanged; next
-      and previous continue from that verse and part in the new projection. If
-      that part no longer exists, navigation starts from the verse's last part.
-  - 참조 chooses 슬라이드마다, 첫 슬라이드만, 마지막 슬라이드만, or 없음. Each
-    live slide shows its own verses with the full book name: `요한복음 3:16`,
-    `요한복음 3:16~18`, or `요한복음 3:34~4:2`. Ranges use `~` without spaces,
-    following copible, including book names such as 요한일서. Book names follow
-    the translation's language (02), including `John` and `1 John` for KJV. The
-    theme's 출처 element draws this text wherever it is placed.
+    in the file while automatic splitting is used.
+  - The 주소 box shows the address of the whole passage with the full book name:
+    `요한복음 3:16`, `요한복음 3:16~18`, or `요한복음 3:34~4:2`. Ranges use `~`
+    without spaces, following copible, including book names such as 요한일서.
+    Book names follow the translation's language (02), including `John` and
+    `1 John` for KJV. An address typed on a 슬라이드 replaces it there.
   - Turning on 역본 이름 appends the translation's `shortName` in parentheses:
-    `요한복음 3:16~18 (개역한글)`. It draws wherever the reference draws, on the
-    same slides. The default is off, set in 환경설정 > 성경 > 새 구절.
+    `요한복음 3:16~18 (개역한글)`. The default is off, set in 환경설정 > 성경 >
+    새 구절.
 - Bible 슬라이드 grid: each 슬라이드 shows its verse numbers and text, and the
   band shows the Korean short book name and reference (`합3:17`, `합3:17-18`). A
   verse split across slides adds its part number (`합3:17 (1)`, `합3:17 (2)`) in
   진행 and 준비. Clicking a tile outputs that 슬라이드 at once. The next and
   previous keys work within the passage.
-- 화면별 보기 (per-screen view, "1 / 3"): shows how the selected 슬라이드 looks
-  on the 청중 화면 and the 방송 화면, with the screen name, target, and style
-  name.
 - Buttons: 앞 절 추가 (add the previous verse), 뒤 절 추가 (add the next verse),
   and 예배 순서에 넣기 (add to the 예배 순서).
 - Bible passages opened or shown from 빠른 실행 use a 0.7-second wipe to the
@@ -1166,8 +1121,7 @@ integration use this contract, with a distinct cancellable ID per lookup.
   a tooltip, for example "구절을 찾을 수 없습니다" (passage not recognized)
   (proposal).
 - Bible 슬라이드 go to the lyrics layer. Output from the Bible panel counts as a
-  new item and uses the default 테마 of 성경, 말씀, with the 현재 슬라이드 글
-  and 성경 출처 elements (12).
+  new item and uses the 테마 for 말씀 본문 (12).
 - A passage that the operator outputs or adds to the 예배 순서 goes to the front
   of the recent list (up to 10, proposal). A passage that is already in the list
   (same reference and translation) moves to the front instead of appearing
