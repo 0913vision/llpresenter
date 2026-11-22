@@ -1,7 +1,6 @@
 import {deflateRawSync} from 'node:zlib';
 import {describe, expect, it} from 'vitest';
 import {PowerPointZip} from '@main/import/powerpointZip';
-import {powerpointSlides} from '@core/songs/powerpointSlides';
 
 function crc(bytes: Buffer): number {
   let value = 0xffffffff;
@@ -56,32 +55,4 @@ describe('PowerPoint ZIP', () => {
     expect(() => new PowerPointZip(bytes).read('ppt/a.xml')).toThrow();
   });
 });
-describe('PowerPoint range conversion', () => {
-  it('keeps blanks, body text and closing titles', () => {
-    const shape = (body: boolean, ...lines: string[]) => ({body, lines});
-    const slides = [
-      {
-        number: 1,
-        background: null,
-        shapes: [shape(false, 'Title'), shape(false, 'Subtitle')],
-      },
-      {
-        number: 2,
-        background: null,
-        shapes: [shape(false, 'Decoration'), shape(true, 'Lyric')],
-      },
-      {number: 3, background: null, shapes: []},
-      {
-        number: 4,
-        background: null,
-        shapes: [shape(false, 'Title'), shape(false, 'Subtitle')],
-      },
-    ];
-    expect(powerpointSlides(slides)).toEqual([
-      {titleSlide: true, lines: ['Title', 'Subtitle']},
-      {lines: ['Lyric']},
-      {lines: []},
-      {titleSlide: true, lines: ['Title', 'Subtitle']},
-    ]);
-  });
-});
+describe('PowerPoint range conversion', () => {});

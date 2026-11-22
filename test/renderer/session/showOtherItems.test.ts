@@ -1,3 +1,5 @@
+import {lyricsSlide, slideOf} from '@fixtures/core/slides';
+import {createMediaId} from '@core/schema/ids';
 import {afterEach, beforeEach, describe, expect, it} from 'vitest';
 import type {LiveCommand} from '@core/live/commands';
 import {emptyLiveState} from '@core/live/state';
@@ -7,8 +9,14 @@ import {useLive} from '@renderer/session/live';
 import {applyService, outputTile, useShow} from '@renderer/session/show';
 const SONG = '1f1a2b4c-5d6e-4f70-8a91-b2c3d4e5f601';
 const PLAIN_SONG = '2f1a2b4c-5d6e-4f70-8a91-b2c3d4e5f602';
+const COUNTDOWN = createMediaId('4f1a2b4c-5d6e-4f70-8a91-b2c3d4e5f608');
 const MEDIA_ITEM = '3f1a2b4c-5d6e-4f70-8a91-b2c3d4e5f607';
-const lyric = {label: null, labelColor: 'none', lines: ['가사']} as const;
+const lyric = {
+  slide: lyricsSlide(8, ['가사']),
+  auto: {},
+  caption: null,
+  labelColor: 'none',
+} as const;
 const service: ShowService = {
   revision: 1,
   id: 'service',
@@ -19,7 +27,6 @@ const service: ShowService = {
       kind: 'song',
       id: SONG,
       title: '배경 있는 곡',
-      background: {mediaId: 'song-video', loop: true},
     },
     {kind: 'song', id: PLAIN_SONG, title: '배경 없는 곡'},
     {kind: 'media', id: MEDIA_ITEM, title: '카운트다운'},
@@ -29,10 +36,17 @@ const service: ShowService = {
     [PLAIN_SONG]: [lyric],
     [MEDIA_ITEM]: [
       {
-        label: null,
+        slide: slideOf(
+          9,
+          'media',
+          {},
+          {
+            background: {kind: 'media', media: COUNTDOWN},
+          },
+        ),
+        auto: {},
+        caption: '카운트다운',
         labelColor: 'none',
-        lines: ['카운트다운'],
-        media: {mediaId: 'countdown-video', loop: true},
       },
     ],
   },
@@ -81,7 +95,7 @@ describe('outputting the tile of a media item', () => {
       sent[0]?.type === 'live.batch' ? sent[0].commands[2] : undefined,
     ).toEqual({
       type: 'media.show',
-      media: {mediaId: 'countdown-video', loop: true},
+      media: {mediaId: COUNTDOWN, loop: true},
     });
     expect(useShow.getState()).toMatchObject({
       openItemId: MEDIA_ITEM,

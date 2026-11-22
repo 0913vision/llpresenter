@@ -36,16 +36,6 @@ describe('output screen identity', () => {
     expect(resolveRenderScreen('unknown', value.screens)).toBeUndefined();
   });
 
-  it('passes the chosen song caption from the selected screen', () => {
-    const {value} = screens();
-    const configured = value.screens.map(screen =>
-      screen.id === CAPTIONS
-        ? {...screen, songCaption: 'text' as const}
-        : screen,
-    );
-    expect(resolveRenderScreen(CAPTIONS, configured)?.songCaption).toBe('text');
-    expect(resolveRenderScreen(MAIN, configured)?.songCaption).toBeUndefined();
-  });
   it('includes the configured capture size in the render identity', () => {
     const {value} = screens();
     const configured = value.screens.map(screen =>

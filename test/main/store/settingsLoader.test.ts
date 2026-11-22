@@ -19,7 +19,7 @@ import {
 } from '@main/store/settingsFile';
 import {loadSettingsArea} from '@main/store/settingsLoader';
 import {openSettingsStore, SettingsStore} from '@main/store/settingsStore';
-import {createDefaultThemes} from '@core/themes/defaults';
+import {themes as sampleThemes} from '@fixtures/core/themeOutput';
 import {createThemeId} from '@core/schema/ids';
 import type {Saver} from '@main/store/saver';
 import type {DocumentFiles} from '@main/store/contentPersistence';
@@ -303,7 +303,7 @@ describe('loadSettingsArea', () => {
   });
 
   it('retains read themes after a failed startup rewrite and preserves them on the next save', async () => {
-    const defaults = createDefaultThemes();
+    const defaults = sampleThemes();
     const builtin = defaults.themes[0];
     if (builtin === undefined) {
       throw new Error('Missing built-in theme');

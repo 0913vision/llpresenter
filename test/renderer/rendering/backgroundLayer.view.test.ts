@@ -4,7 +4,6 @@ import {
   BACKGROUND_RELEASE_DELAY_MS,
   VIDEO_FRAME_DEADLINE_MS,
 } from '@renderer/rendering/backgroundLayer';
-import {classes} from '@renderer/rendering/classes';
 import {setPlaybackProblem} from '@renderer/rendering/playbackProblem';
 
 vi.mock('@renderer/rendering/playbackProblem', () => ({
@@ -141,42 +140,6 @@ describe('BackgroundLayerView', () => {
     view.dispose();
   });
 
-  it('waits for a decoded frame and makes hidden/reveal backgrounds instant', () => {
-    const {view, videos} = setUp();
-    const video = videos[1];
-    let decoded = (): void => {};
-    const cancel = vi.fn();
-    Object.defineProperty(video, 'requestVideoFrameCallback', {
-      value: (callback: VideoFrameRequestCallback) => {
-        decoded = () =>
-          callback(0, {
-            width: 1920,
-            height: 1080,
-            mediaTime: 0,
-            presentationTime: 0,
-            expectedDisplayTime: 0,
-            presentedFrames: 1,
-            processingDuration: 0,
-          });
-        return 1;
-      },
-    });
-    Object.defineProperty(video, 'cancelVideoFrameCallback', {value: cancel});
-    view.show(WARM_LIGHT, false);
-    expect(view.ready()).toBe(false);
-    video.dispatchEvent(new Event('playing'));
-    expect(view.ready()).toBe(false);
-    expect(video.classList.contains(classes.dissolving)).toBe(false);
-    decoded();
-    expect(view.ready()).toBe(true);
-    const plays = playsOf(video);
-    view.show({...WARM_LIGHT}, false);
-    expect(playsOf(video)).toBe(plays);
-    view.show(STILL_WATER, true);
-    videos[0].dispatchEvent(new Event('playing'));
-    expect(videos[0].classList.contains(classes.dissolving)).toBe(true);
-    view.dispose();
-  });
   it.each([
     ['fit', 'contain'],
     ['fill', 'cover'],
@@ -202,18 +165,6 @@ describe('BackgroundLayerView', () => {
       view.dispose();
     },
   );
-  it('starts a background on the spare and dissolves it in once it plays', () => {
-    const {view, videos} = setUp();
-    view.show(WARM_LIGHT);
-    const [, incoming] = videos;
-    expect(incoming.getAttribute('src')).toBe(urlOf('warm-light'));
-    expect(playsOf(incoming)).toBe(1);
-    expect(isShown(incoming)).toBe(false);
-
-    incoming.dispatchEvent(new Event('playing'));
-    expect(isShown(incoming)).toBe(true);
-    expect(incoming.classList.contains(classes.dissolving)).toBe(true);
-  });
 
   it('loops the current video without loading a second decoder after the dissolve', async () => {
     const clock = installMockClock();

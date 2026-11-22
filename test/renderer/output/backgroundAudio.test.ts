@@ -1,14 +1,12 @@
+import {BUILT_IN_THEME_IDS} from '@core/theme/builtIn/ids';
 import {beforeEach, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import {parseLiveState} from '@core/schema/liveState';
-import {createMediaId} from '@core/schema/ids';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {MAIN_ID} from '@fixtures/core/screenDocuments';
 import {BackgroundAudio} from '@renderer/output/backgroundAudio';
-import {resolveThemeOutput} from '@core/themes/output';
 import {
-  themeFile,
-  themeScreens,
+  themeOutput,
   THEME_MAIN,
   THEME_CAPTURE,
 } from '@fixtures/core/themeOutput';
@@ -17,13 +15,8 @@ function audioState() {
   const item = {id: 'audio-item', kind: 'media', source: 'external'} as const;
   return {
     ...emptyLiveState(),
-    themeItem: item,
-    themeOutput: resolveThemeOutput({
-      file: themeFile(),
-      screens: themeScreens,
-      item,
-      revision: 1,
-    }),
+    item,
+    themeOutput: themeOutput(BUILT_IN_THEME_IDS.media),
   };
 }
 
@@ -33,68 +26,12 @@ beforeEach(() => {
   vi.spyOn(HTMLMediaElement.prototype, 'load').mockReturnValue(undefined);
 });
 
-it.each(['song', 'bible', 'blank', 'ad'] as const)(
-  'never plays a %s item background soundtrack even when audio is enabled',
-  async kind => {
-    const item = {
-      id: 'item',
-      kind,
-      source: 'service' as const,
-      backgroundOverride: {
-        kind: 'media' as const,
-        mediaId: createMediaId('00000000-0000-4000-8000-000000000004'),
-        loop: true,
-      },
-    };
-    const root = document.createElement('div');
-    const audio = new BackgroundAudio({
-      root,
-      api: mockLlpApi(),
-      muted: false,
-      report: vi.fn(),
-      now: () => 1000,
-    });
-    audio.show({
-      ...emptyLiveState(),
-      themeItem: item,
-      themeOutput: resolveThemeOutput({
-        file: themeFile(),
-        screens: themeScreens,
-        item,
-        revision: 1,
-      }),
-      outputs: Object.fromEntries(
-        themeScreens.map(screen => [screen.id, true]),
-      ),
-      layers: {
-        ...emptyLiveState().layers,
-        media: {
-          mediaId: item.backgroundOverride.mediaId,
-          loop: true,
-          startedAt: 1000,
-          properties: {speed: 1, fit: 'fill', volume: 100, audio: true},
-        },
-      },
-    });
-    await Promise.resolve();
-    await Promise.resolve();
-    expect(root.querySelector('video[src]')).toBeNull();
-    expect(HTMLMediaElement.prototype.play).not.toHaveBeenCalled();
-    audio.dispose();
-  },
-);
-
 it('plays one soundtrack for several themed screens without reading legacy settings', async () => {
-  const output = resolveThemeOutput({
-    file: themeFile(),
-    screens: themeScreens,
-    item: {id: 'song', kind: 'media', source: 'external'},
-    revision: 1,
-  });
+  const output = themeOutput(BUILT_IN_THEME_IDS.media);
   const state = {
     ...emptyLiveState(),
     themeOutput: output,
-    themeItem: {id: 'song', kind: 'media', source: 'external'} as const,
+    item: {id: 'song', kind: 'media', source: 'external'} as const,
     outputs: {[THEME_MAIN]: true, [THEME_CAPTURE]: true},
     layers: {
       ...emptyLiveState().layers,

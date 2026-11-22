@@ -1,5 +1,5 @@
 import {settingsDocument} from '@fixtures/core/settingsDocument';
-import {themeFile} from '@fixtures/core/themeOutput';
+import {themesDocument} from '@fixtures/core/themeOutput';
 import {vi} from 'vitest';
 import type {LlpApi} from '@contracts/ipc/api';
 import {emptyLiveState} from '@core/live/state';
@@ -17,7 +17,7 @@ export function stageFixture(overrides: readonly SettingsDocument[] = []) {
   const documents = new Map(
     [
       screensDocument(),
-      settingsDocument('themes', themeFile()),
+      themesDocument(),
       settingsDocument('timers', {
         timers: [{id: TIMER_ID, name: '예배 시작', kind: 'clock'}],
       }),

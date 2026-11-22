@@ -1,8 +1,9 @@
-import {parseSong, type Song, type SongSlide} from '@core/schema/song';
+import type {Slide} from '@core/schema/slide';
+import {parseSong, type Song} from '@core/schema/song';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
-import {fixtureSlideId} from './slideFixtures';
+import {lyricsSlide} from '../slides';
 
-export const SONG_SLIDES = [1, 2, 3].map(fixtureSlideId);
+export const SONG_SLIDES = [1, 2, 3].map(number => lyricsSlide(number, '').id);
 
 export function song(
   lines: readonly string[] = ['first'],
@@ -17,14 +18,9 @@ export function song(
         title: '새 아침',
         future: {kept: true},
         slides: [
-          {id: fixtureSlideId(1), label: '1절', lines, futureSlide: 1},
-          {
-            id: fixtureSlideId(2),
-            label: '후렴',
-            lines: ['second'],
-            futureSlide: 2,
-          },
-          {id: fixtureSlideId(3), lines: ['third']},
+          {...lyricsSlide(1, lines.join('\n'), {label: '1절'}), futureSlide: 1},
+          {...lyricsSlide(2, 'second', {label: '후렴'}), futureSlide: 2},
+          lyricsSlide(3, 'third'),
         ],
       }),
       'memory.llsong',
@@ -33,10 +29,10 @@ export function song(
 }
 
 export function sampleSong(
-  slides: readonly SongSlide[] = [
-    {id: fixtureSlideId(1), label: '1절', lines: ['first']},
-    {id: fixtureSlideId(2), label: '1절', lines: ['second']},
-    {id: fixtureSlideId(3), label: '후렴', lines: ['third']},
+  slides: readonly Slide[] = [
+    lyricsSlide(1, 'first', {label: '1절'}),
+    lyricsSlide(2, 'second', {label: '1절'}),
+    lyricsSlide(3, 'third', {label: '후렴'}),
   ],
 ): Song {
   return {...song(), slides};

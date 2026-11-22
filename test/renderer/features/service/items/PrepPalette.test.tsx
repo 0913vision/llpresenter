@@ -2,11 +2,18 @@ import {useState, type ReactNode} from 'react';
 import {cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {PrepPalette} from '@renderer/features/service/items/PrepPalette';
-import {ELEMENT_DRAG_MIME} from '@renderer/features/service/items/paletteItems';
+import {ELEMENT_DRAG_MIME} from '@renderer/features/service/items/newItems';
 
 function Palette({library}: {readonly library: ReactNode}) {
   const [tab, setTab] = useState<'elements' | 'songs'>('elements');
-  return <PrepPalette library={library} tab={tab} onTabChange={setTab} />;
+  return (
+    <PrepPalette
+      library={library}
+      tab={tab}
+      onTabChange={setTab}
+      report={() => undefined}
+    />
+  );
 }
 
 const insert = vi.hoisted(() => vi.fn());

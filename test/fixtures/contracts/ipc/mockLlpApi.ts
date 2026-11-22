@@ -47,24 +47,14 @@ export type MockLlpApiParts = {
  */
 export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
   return {
-    picture: {
-      paint: () => Promise.resolve(new Uint8Array()),
-      peek: () => Promise.resolve(null),
-      remember: () => undefined,
-      release: () => undefined,
-      reserve: () => false,
-      ...overrides.picture,
-    },
     powerpoint: {
       storeImages: () => Promise.resolve({ok: false, message: 'not available'}),
       images: () => Promise.resolve({ok: true, value: null}),
       cancelImages: () => Promise.resolve(false),
       subscribeImageProgress: () => () => undefined,
-      layers: () => Promise.resolve(null),
       read: () => Promise.resolve({ok: true, value: null}),
       cancelRead: () => Promise.resolve(false),
-      background: () => Promise.resolve(null),
-      decorationBatch: () => Promise.resolve(null),
+      backgrounds: () => Promise.resolve(null),
       previewImage: () => Promise.resolve(null),
       release: () => Promise.resolve(true),
       match: () => Promise.resolve(null),
@@ -215,8 +205,6 @@ export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
     },
     service: {
       ready: () => undefined,
-      slidesProjection: () => undefined,
-      bibleProjection: () => undefined,
       get: () => Promise.resolve(null),
       open: () => Promise.resolve(null),
       subscribe: () => () => undefined,
@@ -311,14 +299,6 @@ export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
       choose: () => Promise.resolve({ok: false, error: {reason: 'canceled'}}),
       backUpNow: () => Promise.resolve({ok: true, value: undefined}),
       ...overrides.locations,
-    },
-    slidesEditor: {
-      open: () => Promise.resolve({ok: true, value: undefined}),
-      target: () => Promise.resolve(null),
-      onRetarget: () => () => undefined,
-      saved: () => undefined,
-      onSaved: () => () => undefined,
-      ...overrides.slidesEditor,
     },
   };
 }

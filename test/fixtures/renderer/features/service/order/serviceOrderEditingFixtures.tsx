@@ -1,4 +1,4 @@
-import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
+import {lyricsSlide} from '@fixtures/core/slides';
 // NOTE(0913vision): The hooks below apply to each test file that imports this
 // module.
 // NOTE(0913vision): The hooks below apply to each test file that imports this
@@ -7,11 +7,12 @@ import {render, screen} from '@testing-library/react';
 import {beforeEach, vi} from 'vitest';
 import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
 import type {ServiceDocument} from '@core/schema/contentDocuments';
-import type {ServiceItem} from '@core/schema/service';
+import {isItemOfKind, type ServiceItem} from '@core/schema/service';
 import {
   createServiceId,
   createServiceItemId,
   createSongId,
+  type ServiceItemId,
 } from '@core/schema/ids';
 import {SONG_DRAG_MIME} from '@core/schema/songDrag';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
@@ -39,6 +40,10 @@ export const secondHeaderId = createServiceItemId(
   '10000000-0000-4000-8000-000000000004',
 );
 
+function songItem(id: ServiceItemId, name: string): ServiceItem {
+  return {id, kind: 'song', name, song: songId, slides: []};
+}
+
 export function setup(
   workspace: 'show' | 'prep' = 'show',
   readOnly = false,
@@ -58,14 +63,16 @@ export function setup(
       name: 'Invented service',
       date: '2026-10-26T09:00',
       order: [
-        ...(extra.unheaded ? [] : [{id: headerId, header: '제목'}]),
-        extra.firstItem ?? {slides: [], id: firstId, song: songId},
-        {slides: [], id: lastId, song: songId},
+        ...(extra.unheaded
+          ? []
+          : [{id: headerId, kind: 'header' as const, name: '제목'}]),
+        extra.firstItem ?? songItem(firstId, '첫 곡'),
+        songItem(lastId, '다음 곡'),
         ...(extra.secondSection
-          ? [{id: secondHeaderId, header: '마무리'}]
+          ? [{id: secondHeaderId, kind: 'header' as const, name: '마무리'}]
           : []),
         ...(extra.emptySection
-          ? [{id: emptySectionId, header: '빈 구역'}]
+          ? [{id: emptySectionId, kind: 'header' as const, name: '빈 구역'}]
           : []),
       ],
     },
@@ -79,8 +86,8 @@ export function setup(
       name: 'Invented service',
       readOnly,
       rows: document.service.order.map(item =>
-        'header' in item
-          ? {kind: 'header', id: item.id, title: item.header}
+        isItemOfKind(item, 'header')
+          ? {kind: 'header', id: item.id, title: item.name}
           : {
               kind: 'song',
               id: item.id,
@@ -104,7 +111,7 @@ export function setup(
                   schemaVersion: 1,
                   id: songId,
                   title: 'Invented song',
-                  slides: [{id: fixtureSlideId(1), lines: []}],
+                  slides: [lyricsSlide(1, '')],
                 },
                 revision: 1,
                 access: 'editable',

@@ -1,3 +1,4 @@
+import {shownText} from '@fixtures/core/liveSlide';
 import {readFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
@@ -250,7 +251,7 @@ describe('recovery record writer', () => {
     store.change({
       layers: {
         ...emptyLiveState().layers,
-        slide: {itemId: 'item', position: -1, label: null, lines: []},
+        slide: {itemId: 'item', position: -1, ...shownText([])},
       },
     });
     await vi.advanceTimersByTimeAsync(RECORD_INTERVAL_MS);

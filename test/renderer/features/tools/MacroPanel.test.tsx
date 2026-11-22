@@ -1,4 +1,3 @@
-import {themeFile} from '@fixtures/core/themeOutput';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {
   act,
@@ -13,7 +12,6 @@ import {afterEach, expect, it, vi} from 'vitest';
 import {deferred} from '@fixtures/renderer/features/tools/quickTesting';
 import type {EditResult} from '@core/schema/contentEdit';
 import {MacroPanel} from '@renderer/features/tools/MacroPanel';
-import {WorkspaceNavigation} from '@renderer/platform/WorkspaceNavigation';
 import {useMacroPalette} from '@renderer/features/tools/state/macroPalette';
 
 import {
@@ -460,61 +458,4 @@ it('appends a timer operation from nested target menus', async () => {
     },
   ]);
   expect(f.send).not.toHaveBeenCalled();
-});
-
-it('lists action kinds in order and opens the theme workspace', async () => {
-  const themes = themeFile().themes;
-  const first = themes[0];
-  if (!first) throw new Error('Missing theme fixture');
-  fixture([{kind: 'theme', theme: first.id}]);
-  const navigate = vi.fn();
-  render(
-    <WorkspaceNavigation value={navigate}>
-      <MacroPanel />
-    </WorkspaceNavigation>,
-  );
-  await openActionSubmenu('동작 추가');
-  const menu = screen.getByRole('menu', {name: '동작 추가'});
-  expect(
-    [...menu.querySelectorAll('[role="menuitem"], [role="separator"]')].map(
-      row => (row.getAttribute('role') === 'separator' ? '|' : row.textContent),
-    ),
-  ).toEqual([
-    '지우기',
-    '테마 바꾸기',
-    '슬라이드 출력 대상',
-    '타이머',
-    '그래픽',
-    '메시지',
-    '배경 미디어',
-    '오디오',
-    '오디오 재생목록',
-    '외부 장치 신호',
-    '오디오 입력',
-    '영상 입력',
-    '매크로',
-    '녹화와 방송',
-    '|',
-    '동작 팔레트',
-  ]);
-  fireEvent.keyDown(menu, {key: 'Escape'});
-  await openSubmenu(`동작 편집: ${first.name}`);
-  const edit = screen.getByRole('menu', {name: `동작 편집: ${first.name}`});
-  expect(
-    [...edit.querySelectorAll('[role^="menuitem"], [role="separator"]')].map(
-      row => (row.getAttribute('role') === 'separator' ? '|' : row.textContent),
-    ),
-  ).toEqual([
-    ...themes.map(theme => theme.name),
-    '|',
-    `동작 삭제: ${first.name}`,
-    '테마 편집',
-  ]);
-  expect(
-    screen
-      .getByRole('menuitemradio', {name: first.name})
-      .getAttribute('aria-checked'),
-  ).toBe('true');
-  fireEvent.click(screen.getByRole('menuitem', {name: '테마 편집'}));
-  expect(navigate).toHaveBeenCalledExactlyOnceWith('screens');
 });

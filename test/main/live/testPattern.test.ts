@@ -1,3 +1,4 @@
+import {shownText} from '@fixtures/core/liveSlide';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {describe, expect, it, vi} from 'vitest';
 import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
@@ -60,7 +61,7 @@ describe('screen.testPattern.set', () => {
 
   it('does not restore a previously cleared slide when clear follows a test pattern', () => {
     const {store, set} = setup();
-    const slide = {itemId: 'item-1', position: 0, label: null, lines: ['줄']};
+    const slide = {itemId: 'item-1', position: 0, ...shownText(['줄'])};
     store.dispatch({type: 'slide.show', slide});
     store.dispatch({type: 'layer.clear.toggle', target: 'all'});
     expect(store.state.clearToggles).toContain('all');
@@ -85,21 +86,6 @@ describe('screen.testPattern.set', () => {
     expect(store.state.stageMessage).toBe('Stage message');
     store.dispatch({type: 'stage.message.set', text: null});
     expect(store.state.testPatterns).toEqual([MAIN, STAGE]);
-  });
-
-  it('replaces the pattern with a slide, standby, or clear', () => {
-    const {store, set} = setup();
-    store.connectThemes({reduce: ({after}) => after});
-    const slide = {itemId: 'item-1', position: 0, label: null, lines: ['줄']};
-    set(MAIN, true);
-    store.dispatch({type: 'slide.show', slide});
-    expect(store.state.testPatterns ?? []).toEqual([]);
-    set(MAIN, true);
-    store.dispatch({type: 'item.stop'});
-    expect(store.state.testPatterns ?? []).toEqual([]);
-    set(MAIN, true);
-    store.dispatch({type: 'layer.clear', target: 'all'});
-    expect(store.state.testPatterns ?? []).toEqual([]);
   });
 
   it('keeps the pattern when standby is rejected before themes are ready', () => {

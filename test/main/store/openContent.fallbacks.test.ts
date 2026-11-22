@@ -1,4 +1,3 @@
-import {DEFAULT_LABELS} from '@main/store/defaults';
 import {join} from 'node:path';
 import {expect, it, onTestFinished, vi} from 'vitest';
 import {makeTempDir} from '@fixtures/tempDir';
@@ -40,23 +39,6 @@ it('logs a reader that fails to open and returns no content', async () => {
   expect(log.entries).toEqual([
     expect.objectContaining({level: 'error', detail: failure}),
   ]);
-});
-
-it('falls back to default labels and loaded media backgrounds while the settings and the media list are missing', async () => {
-  const {store, log, readers} = await setup();
-  const background = vi
-    .spyOn(store.media, 'backgroundOf')
-    .mockResolvedValue(null);
-  const opened = await openContent(Promise.resolve(store), log, readers);
-  if (opened === null) throw new Error('the content did not open');
-  onTestFinished(async () => {
-    opened.removeSettings();
-    await opened.content.flush();
-    opened.content.dispose();
-  });
-  expect(opened.library.labels).toBe(DEFAULT_LABELS);
-  expect(await opened.library.backgroundOf('invented-media')).toBeNull();
-  expect(background).toHaveBeenCalledWith('invented-media');
 });
 
 it('refreshes the open service for 환경설정 only for labels and Bible changes, never for another 환경설정 change', async () => {

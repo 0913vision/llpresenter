@@ -1,5 +1,5 @@
 import {expect, it, vi} from 'vitest';
-import {DEFAULT_TEXT_STYLE, type TextStyle} from '@core/themes/textStyle';
+import {type TextStyle} from '@core/overlays/textStyle';
 import {emptyLayers, type LiveLayers} from '@core/live/state';
 import {DEFAULT_MESSAGE_STYLE} from '@core/schema/messages';
 import {MESSAGE_BAND} from '@core/screens/messageStyle';
@@ -13,7 +13,6 @@ const LAYERS: LiveLayers = {
 };
 
 const OPTIONS: RenderLayerOptions = {
-  textStyle: DEFAULT_TEXT_STYLE,
   mediaUrl: mediaId => `https://media.test/${mediaId}.mp4`,
   onError: vi.fn(),
 };

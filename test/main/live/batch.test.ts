@@ -1,3 +1,4 @@
+import {shownText} from '@fixtures/core/liveSlide';
 import {describe, expect, it, vi} from 'vitest';
 import type {LiveBatch, LiveCommand} from '@core/live/commands';
 import {parseLiveCommand} from '@core/schema/liveCommand';
@@ -33,7 +34,7 @@ function populatedStore() {
   const store = new LiveStore(undefined, () => now);
   store.dispatch({
     type: 'slide.show',
-    slide: {itemId: 'fixture', position: 0, label: null, lines: ['Fixture']},
+    slide: {itemId: 'fixture', position: 0, ...shownText(['Fixture'])},
   });
   store.dispatch({type: 'media.show', media: {mediaId: 'fixture', loop: true}});
   store.dispatch({
@@ -165,7 +166,7 @@ describe('live batches', () => {
         {type: 'layer.clear', target: 'slide'},
         {
           type: 'slide.show',
-          slide: {itemId: 'new', position: 0, label: null, lines: ['New']},
+          slide: {itemId: 'new', position: 0, ...shownText(['New'])},
         },
         {type: 'layer.clear', target: 'media'},
       ],

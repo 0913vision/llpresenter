@@ -1,3 +1,4 @@
+import {shownText} from '@fixtures/core/liveSlide';
 import {act, render, screen, within} from '@testing-library/react';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
@@ -51,8 +52,7 @@ describe('workspace slide header connection', () => {
             slide: {
               itemId: 'song-morning',
               position: 1,
-              label: null,
-              lines: ['Invented words'],
+              ...shownText(['Invented words']),
             },
           },
         },

@@ -1,3 +1,4 @@
+import {lyricsSlide} from '@fixtures/core/slides';
 import {
   act,
   cleanup,
@@ -17,7 +18,7 @@ import type {
 import type {ShowLibrarySong} from '@core/schema/showLibrarySong';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
-import {themeFile} from '@fixtures/core/themeOutput';
+import {themes as sampleThemes} from '@fixtures/core/themeOutput';
 import {sampleService} from '@fixtures/renderer/session/sampleService';
 import {useLive} from '@renderer/session/live';
 import {applyService, openItem, useShow} from '@renderer/session/show';
@@ -46,7 +47,14 @@ const projected: ShowLibrarySong = {
   songRevision: 1,
   title: '새벽빛',
   readOnly: false,
-  tiles: [{label: null, labelColor: 'none', lines: ['창작한 슬라이드 줄']}],
+  tiles: [
+    {
+      slide: lyricsSlide(2, ['창작한 슬라이드 줄']),
+      auto: {},
+      caption: null,
+      labelColor: 'none',
+    },
+  ],
 };
 const matches: readonly LibrarySearchMatch[] = [
   {songId, title: '새벽빛', slideCount: 1, match: {kind: 'title'}},
@@ -60,7 +68,7 @@ const matches: readonly LibrarySearchMatch[] = [
 
 function setup() {
   const api = mockLlpApi({
-    settings: {get: async () => settingsDocument('themes', themeFile())},
+    settings: {get: async () => settingsDocument('themes', sampleThemes())},
   });
   const search = vi
     .spyOn(api.library, 'search')
@@ -123,7 +131,7 @@ function setupAdding() {
       ...current.service,
       order: current.service.order.map(item =>
         item.id === fixtureItems.slot
-          ? {id: item.id, header: 'Next section'}
+          ? {id: item.id, kind: 'header', name: 'Next section'}
           : item,
       ),
     },
@@ -175,7 +183,11 @@ it.each(['section', 'end'])(
     ).toMatchObject({song: second.song.id});
     expect(
       service().service.order[location === 'section' ? 4 : 3],
-    ).toMatchObject({id: fixtureItems.slot, header: 'Next section'});
+    ).toMatchObject({
+      id: fixtureItems.slot,
+      kind: 'header',
+      name: 'Next section',
+    });
     expect(open).not.toHaveBeenCalled();
     expect(send).not.toHaveBeenCalled();
     const added = service().service.order[location === 'section' ? 2 : 5];

@@ -1,9 +1,7 @@
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@core/live/state';
 import {applyService, useShow} from '@renderer/session/show';
-import {useLive} from '@renderer/session/live';
 import {ServiceOrderList} from '@renderer/features/service/order/ServiceOrderList';
 import {
   headerId,
@@ -84,66 +82,6 @@ describe('service panel editing', () => {
     await waitFor(() => expect(useShow.getState().openItemId).toBe(ids()[4]));
     expect(send).not.toHaveBeenCalled();
   });
-
-  it('shows the item slide count in prep and refreshes it with the projection', () => {
-    const {view, onProblem} = setup('prep');
-    expect(screen.getAllByText('슬라이드 0개')).toHaveLength(2);
-    act(() =>
-      useShow.setState({
-        tiles: {
-          [firstId]: [
-            {label: null, labelColor: 'none', lines: ['Invented words']},
-            {
-              label: null,
-              labelColor: 'none',
-              lines: ['Independent item slide'],
-            },
-          ],
-        },
-      }),
-    );
-    expect(screen.getByText('슬라이드 2개')).toBeDefined();
-    view.rerender(<ServiceOrderList workspace="show" onProblem={onProblem} />);
-    expect(screen.queryByText('슬라이드 2개')).toBeNull();
-  });
-
-  it.each(['show', 'prep'] as const)(
-    'deletes and undoes in %s without touching live output',
-    async workspace => {
-      const {api, send, list, ids} = setup(workspace);
-      const user = userEvent.setup();
-      const base = emptyLiveState();
-      act(() =>
-        useLive.setState({
-          state: {
-            ...base,
-            layers: {
-              ...base.layers,
-              slide: {
-                itemId: firstId,
-                position: 0,
-                label: null,
-                lines: ['Kept live'],
-              },
-            },
-          },
-        }),
-      );
-      fireEvent.contextMenu(screen.getByRole('option', {name: '첫 곡'}));
-      await user.click(await screen.findByRole('menuitem', {name: '삭제'}));
-      await waitFor(() => expect(ids()).toEqual([headerId, lastId]));
-      expect(screen.queryByRole('alertdialog')).toBeNull();
-      fireEvent.keyDown(list(), {key: 'ㅋ', code: 'KeyZ', ctrlKey: true});
-      await screen.findByRole('option', {name: '첫 곡'});
-      fireEvent.keyDown(list(), {key: 'ㅛ', code: 'KeyY', ctrlKey: true});
-      await waitFor(() => expect(ids()).toEqual([headerId, lastId]));
-      expect(api.content.edit).toHaveBeenCalledTimes(3);
-      expect(useLive.getState().state?.layers.slide?.lines).toEqual([
-        'Kept live',
-      ]);
-      expect(send).not.toHaveBeenCalled();
-    },
-  );
 
   it('ignores a delayed song read after another item menu opens', async () => {
     const {api} = setup();

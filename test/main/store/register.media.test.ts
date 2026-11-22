@@ -1,4 +1,4 @@
-import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
+import {lyricsSlide} from '@fixtures/core/slides';
 import {
   ask,
   askForService,
@@ -58,7 +58,7 @@ describe('registerStore', () => {
       id: songId,
       title: 'Invented song',
       background: mediaId,
-      slides: [{id: fixtureSlideId(1), lines: ['Invented line']}],
+      slides: [lyricsSlide(1, ['Invented line'])],
     });
     await writeJson(join(root, 'Services', `${itemId(3)}.llservice`), {
       format: 'llservice',
@@ -66,13 +66,15 @@ describe('registerStore', () => {
       id: itemId(3),
       name: 'Invented service',
       date: '2026-10-26T10:00',
-      order: [{slides: [], id: itemId(4), song: songId}],
+      order: [
+        {id: itemId(4), kind: 'song', name: '곡', song: songId, slides: []},
+      ],
     });
     const registered = await register(mockLog(), context, () => true);
     const content = await registered.content;
     expect(content?.openServiceId).toBe(itemId(3));
     expect(content?.service(itemId(3))?.service.order).toEqual([
-      {slides: [], id: itemId(4), song: songId},
+      {id: itemId(4), kind: 'song', name: '곡', song: songId, slides: []},
     ]);
     expect(await askForService()).toMatchObject({
       rows: [{background: {mediaId, loop: true}}],

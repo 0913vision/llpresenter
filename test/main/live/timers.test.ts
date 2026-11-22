@@ -1,3 +1,4 @@
+import {shownText} from '@fixtures/core/liveSlide';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {describe, expect, it, vi} from 'vitest';
 import {createTimerId} from '@core/schema/ids';
@@ -185,7 +186,7 @@ describe('timer slice', () => {
     store.dispatch(command('timer.start', SERMON));
     store.dispatch({
       type: 'slide.show',
-      slide: {itemId: 'item', position: 0, label: null, lines: ['Fixture']},
+      slide: {itemId: 'item', position: 0, ...shownText(['Fixture'])},
     });
     const timers = store.state.timers;
     store.dispatch({type: 'layer.clear', target: 'all'});

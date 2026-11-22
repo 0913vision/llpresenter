@@ -12,9 +12,11 @@ import {
   createSongId,
   createTemplateId,
   translationIdSchema,
+  type ServiceItemId,
+  type SongId,
 } from '@core/schema/ids';
 import {parsePayload} from '@core/schema/payload';
-import type {ServiceItem} from '@core/schema/service';
+import type {ServiceItem, ServiceItemOf} from '@core/schema/service';
 import type {Result} from '@core/common/result';
 
 function sample<T>(result: Result<T, unknown>): T {
@@ -46,34 +48,45 @@ export const titles = {
   second: '저녁 노을 아래서',
 };
 
+function songItem(
+  id: ServiceItemId,
+  song: SongId,
+  name: string,
+): ServiceItemOf<'song'> {
+  return {id, kind: 'song', name, song, slides: []};
+}
+
 /** A 템플릿 with two populated sections followed by two empty sections. */
 export const templateOrder: readonly ServiceItem[] = [
-  {id: ids.praise, header: '찬양'},
-  {slides: [], id: ids.doxology, song: ids.firstSong},
-  {slides: [], id: ids.nearer, song: ids.secondSong},
-  {id: ids.word, header: '말씀'},
+  {id: ids.praise, kind: 'header', name: '찬양'},
+  songItem(ids.doxology, ids.firstSong, titles.first),
+  songItem(ids.nearer, ids.secondSong, titles.second),
+  {id: ids.word, kind: 'header', name: '말씀'},
   {
     id: ids.psalm,
-    bible: {
+    kind: 'bible',
+    name: '시편 23:1-6',
+    slides: [],
+    passage: {
       translation: sample(parsePayload(translationIdSchema, 'krv')),
       ref: '시편 23:1-6',
-      split: 'verse',
-      reference: 'first',
       verseNumbers: true,
       translationName: false,
     },
   },
-  {id: ids.offering, header: '헌금 찬양'},
-  {id: ids.closing, header: '광고'},
+  {id: ids.offering, kind: 'header', name: '헌금 찬양'},
+  {id: ids.closing, kind: 'header', name: '광고'},
 ];
 
 /** Sample media items for the tree labels. */
 export const otherItems: readonly ServiceItem[] = [
   {
     id: createServiceItemId('80000000-0000-4000-8000-000000000001'),
+    kind: 'media',
+    name: '인사 영상',
+    slides: [],
     media: createMediaId('90000000-0000-4000-8000-000000000001'),
   },
-  {id: createServiceItemId('80000000-0000-4000-8000-000000000003')},
 ];
 
 export const songTitles: ReadonlyMap<string, string> = new Map([
@@ -104,8 +117,8 @@ export const pastDocument: ServiceDocument = {
     name: '지난 주일 예배',
     date: '2026-10-25T09:30',
     order: [
-      {id: ids.pastHeader, header: '찬양'},
-      {slides: [], id: ids.pastSong, song: ids.firstSong},
+      {id: ids.pastHeader, kind: 'header', name: '찬양'},
+      songItem(ids.pastSong, ids.firstSong, titles.first),
     ],
   },
   revision: 3,

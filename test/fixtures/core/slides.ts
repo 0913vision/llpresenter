@@ -1,33 +1,47 @@
-import {
-  createMediaId,
-  createServiceItemId,
-  createSlideId,
-} from '@core/schema/ids';
-import type {ServiceItemOf} from '@core/schema/service';
+import * as v from 'valibot';
+import {createSlideId, translationIdSchema} from '@core/schema/ids';
+import type {Slide, VerseReference} from '@core/schema/slide';
+import type {SlidePurpose} from '@core/schema/theme';
+import {BUILT_IN_THEME_IDS} from '@core/theme/builtIn/ids';
 
-const uuid = (index: number) =>
-  `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
-export const SLIDE_PICTURE = createMediaId(uuid(901));
-export const SLIDES_ITEM = createServiceItemId(uuid(900));
+/** The id of the sample slide of a number. */
+export function slideId(number: number) {
+  return createSlideId(
+    `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`,
+  );
+}
 
-export function slidesItem(
-  form: 'blank' | 'ad' = 'ad',
-): ServiceItemOf<'slides'> {
+/** A sample slide in the app's theme of a purpose. */
+export function slideOf(
+  number: number,
+  purpose: SlidePurpose,
+  texts: Slide['texts'] = {},
+  more: Partial<Slide> = {},
+): Slide {
   return {
-    id: SLIDES_ITEM,
-    slides: {
-      form,
-      name: 'Invented slides',
-      advance: 3,
-      slides: [
-        {
-          id: createSlideId(uuid(902)),
-          text: 'First line\nSecond line',
-          ...(form === 'ad' ? {name: 'Meeting'} : {}),
-        },
-        {id: createSlideId(uuid(903)), media: SLIDE_PICTURE},
-        {id: createSlideId(uuid(904)), text: 'Last line'},
-      ],
-    },
+    id: slideId(number),
+    theme: BUILT_IN_THEME_IDS[purpose],
+    texts,
+    ...more,
+  };
+}
+
+/** A sample slide of lyrics. */
+export function lyricsSlide(
+  number: number,
+  text: string | readonly string[],
+  more: Partial<Slide> = {},
+): Slide {
+  const lyrics = typeof text === 'string' ? text : text.join('\n');
+  return slideOf(number, 'lyrics', lyrics === '' ? {} : {가사: lyrics}, more);
+}
+
+/** A verse of the first chapter of the Bible. */
+export function verseOf(verse: number): VerseReference {
+  return {
+    translation: v.parse(translationIdSchema, 'krv'),
+    book: 1,
+    chapter: 1,
+    verse,
   };
 }

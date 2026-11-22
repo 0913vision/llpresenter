@@ -1,3 +1,4 @@
+import {lyricsSlide} from '@fixtures/core/slides';
 import {describe, expect, it} from 'vitest';
 import type {ItemId, ServiceRow, SlideTile} from '@core/presentation/model';
 import {
@@ -20,7 +21,12 @@ const rows: readonly ServiceRow[] = [
 ];
 
 function tile(label: string | null): SlideTile {
-  return {label, labelColor: 'none', lines: ['line']};
+  return {
+    slide: lyricsSlide(1, 'line'),
+    auto: {},
+    caption: label,
+    labelColor: 'none',
+  };
 }
 
 const tiles: Readonly<Record<ItemId, readonly SlideTile[]>> = {

@@ -1,9 +1,11 @@
-import {createScreenId, createThemeElementId} from '@core/schema/ids';
+import {createScreenId, type ThemeId} from '@core/schema/ids';
+import type {LiveThemeOutput} from '@core/schema/liveTheme';
 import type {Screen} from '@core/schema/screens';
-import type {ThemeElement} from '@core/schema/themes';
+import type {Themes} from '@core/schema/themes';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
-import {STARTER_TEXT_STYLE} from '@core/themes/starterLayout';
-import {createDefaultThemes} from '@core/themes/defaults';
+import {BUILT_IN_THEMES} from '@core/theme/builtIn';
+import {BUILT_IN_THEME_IDS} from '@core/theme/builtIn/ids';
+import {settingsDocument} from './settingsDocument';
 
 export const THEME_MAIN = createScreenId(STARTER_SCREEN_IDS.main);
 export const THEME_CAPTURE = createScreenId(STARTER_SCREEN_IDS.broadcast);
@@ -20,47 +22,43 @@ export const themeScreens: readonly Screen[] = [
   {id: THEME_STAGE, name: 'Stage', kind: 'stage', method: 'window'},
 ];
 
-export function themeFile() {
-  return createDefaultThemes(themeScreens);
+/** A theme of the app. */
+export function builtIn(id: ThemeId) {
+  const theme = BUILT_IN_THEMES.find(found => found.id === id);
+  if (theme === undefined) throw new Error(`No theme ${id}`);
+  return theme;
 }
 
-export function fixedThemeText(
-  content = 'Invented fixed text',
-  index = 20,
-): ThemeElement {
+/** A theme of the app on output, with the empty colors of the screens. */
+export function themeOutput(
+  id: ThemeId = BUILT_IN_THEME_IDS.lyrics,
+  more: Partial<LiveThemeOutput> = {},
+): LiveThemeOutput {
   return {
-    id: createThemeElementId(
-      `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`,
+    theme: builtIn(id),
+    background: {kind: 'none'},
+    revision: 1,
+    missing: [],
+    emptyColors: Object.fromEntries(
+      themeScreens.map(screen => [screen.id, screen.emptyColor ?? '#000000']),
     ),
-    kind: 'text',
-    frame: {x: 80, y: 80, w: 400, h: 200},
-    text: STARTER_TEXT_STYLE,
-    content,
+    ...more,
   };
 }
 
-export function themeElementBase(index = 30) {
+/** The themes of the app, with no change of the operator. */
+export function themes(): Themes {
   return {
-    id: createThemeElementId(
-      `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`,
-    ),
-    frame: {x: 0, y: 0, w: 1920, h: 1080},
-    text: {...STARTER_TEXT_STYLE, maxLines: 12},
+    format: 'llsettings.themes',
+    schemaVersion: 1,
+    defaults: {},
+    titles: [],
+    themes: BUILT_IN_THEMES,
   };
 }
 
-export function liveThemeTextElements() {
-  return [
-    {
-      ...themeElementBase(130),
-      kind: 'clock',
-      clockFormat: '24h',
-      seconds: true,
-    },
-    {...themeElementBase(131), kind: 'timer'},
-    {...themeElementBase(132), kind: 'stageMessage'},
-    {...themeElementBase(133), kind: 'videoTimeLeft'},
-    {...themeElementBase(134), kind: 'nextText'},
-    {...themeElementBase(135), kind: 'nextLabel'},
-  ] as const satisfies readonly ThemeElement[];
+export function themesDocument() {
+  const document = settingsDocument('themes', themes());
+  if (document.name !== 'themes') throw new Error('Invalid theme fixture');
+  return document;
 }

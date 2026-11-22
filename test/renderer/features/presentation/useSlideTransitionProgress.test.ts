@@ -1,3 +1,4 @@
+import {shownText} from '@fixtures/core/liveSlide';
 import {act, renderHook} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
@@ -17,8 +18,7 @@ it('tracks the full wipe duration, restarts and hides for cuts', () => {
   const slide = {
     itemId: 'one',
     position: 0,
-    label: null,
-    lines: ['one'],
+    ...shownText(['one']),
     transition: {kind: 'wipe' as const, sec: 4},
     transitionStartedAt: 10_000,
   };

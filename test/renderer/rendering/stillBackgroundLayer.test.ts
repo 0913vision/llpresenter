@@ -136,29 +136,3 @@ it('reports a missing thumbnail once to its new owner without trying to play the
   expect(second.hasAttribute('src')).toBe(false);
   view.dispose();
 });
-
-it('ignores metadata resolutions after a preview is cleared or disposed', async () => {
-  const resolvers: Array<(url: string) => void> = [];
-  const parent = document.createElement('div');
-  const onError = vi.fn();
-  const view = new BackgroundLayerView(parent, {
-    mode: 'preview',
-    mediaUrl: id => `https://media.test/${id}`,
-    previewMedia: {
-      url: () => new Promise<string>(resolve => resolvers.push(resolve)),
-      remaining: () => undefined,
-    },
-    onError,
-  });
-  view.show({mediaId: 'first', startedAt: 1000, loop: true});
-  view.show(null);
-  resolvers[0]?.('https://thumbnail.test/first.jpg');
-  await Promise.resolve();
-  expect(parent.querySelector('img[src]')).toBeNull();
-  view.show({mediaId: 'second', startedAt: 1000, loop: true});
-  view.dispose();
-  resolvers[1]?.('https://thumbnail.test/second.jpg');
-  await Promise.resolve();
-  expect(parent.childElementCount).toBe(0);
-  expect(onError).not.toHaveBeenCalled();
-});

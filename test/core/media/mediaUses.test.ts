@@ -1,11 +1,10 @@
 import {describe, expect, it} from 'vitest';
 import {countMediaUses, type MediaUseSources} from '@core/media/mediaUses';
-import {createMediaId, createThemeElementId} from '@core/schema/ids';
+import {createMediaId} from '@core/schema/ids';
 import {parseService} from '@core/schema/service';
 import {parseMediaDocument} from '@core/schema/mediaEdit';
 import {parseMediaUses, parseMediaUsesRequest} from '@core/schema/mediaUses';
-import {createDefaultThemes} from '@core/themes/defaults';
-import {newThemeElement} from '@core/themes/newElement';
+import {themes as sampleThemes} from '@fixtures/core/themeOutput';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {song} from '@fixtures/core/songs/blockFixtures';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
@@ -62,7 +61,7 @@ function mediaList(): MediaUseSources['media'] {
 }
 
 function sources(change: Partial<MediaUseSources> = {}): MediaUseSources {
-  const themes = createDefaultThemes();
+  const themes = sampleThemes();
   const macros = settingsDocument('macros', {macros: [], collections: []});
   if (macros.name !== 'macros') throw new Error('Missing macros');
   return {
@@ -114,8 +113,15 @@ describe('the places that use a media item', () => {
     const free = song();
     const services = [
       service([
-        {slides: [], id: uuid(1), song: free.id, background: target},
-        {slides: [], id: uuid(2), song: free.id},
+        {
+          id: uuid(1),
+          kind: 'song',
+          name: '곡',
+          song: free.id,
+          slides: [],
+          background: target,
+        },
+        {id: uuid(2), kind: 'song', name: '곡', song: free.id, slides: []},
         {id: uuid(3), media: target},
         {id: uuid(4), media: other},
         {
@@ -148,73 +154,6 @@ describe('the places that use a media item', () => {
         sources({songs: [withBackground, free], services}),
       ),
     ).toMatchObject({songBackgrounds: 1, serviceItems: 2, itemOverlays: 1});
-  });
-
-  it('counts a theme once for any image element, and a macro for a media or audio action', () => {
-    const themes = createDefaultThemes();
-    const first = themes.themes[0];
-    if (first === undefined) throw new Error('No theme');
-    const [layoutKey, layout] = Object.entries(first.screens)[0] ?? [];
-    const image = newThemeElement({
-      id: createThemeElementId(uuid(300)),
-      kind: 'image',
-      mediaId: target,
-    });
-    if (
-      layoutKey === undefined ||
-      layout === undefined ||
-      image === undefined
-    ) {
-      throw new Error('No layout');
-    }
-    const used = {
-      ...themes,
-      themes: [
-        {
-          ...first,
-          screens: {
-            ...first.screens,
-            [layoutKey]: {...layout, elements: [...layout.elements, image]},
-          },
-        },
-        ...themes.themes.slice(1),
-      ],
-    };
-    const macros = settingsDocument('macros', {
-      macros: [
-        {
-          id: uuid(400),
-          name: 'a',
-          icon: 'play',
-          color: 'teal',
-          actions: [
-            {kind: 'media', media: target},
-            {kind: 'audio', operation: 'play', media: target},
-          ],
-        },
-        {
-          id: uuid(401),
-          name: 'b',
-          icon: 'play',
-          color: 'teal',
-          actions: [{kind: 'media', media: other}],
-        },
-      ],
-      collections: [],
-    });
-    if (macros.name !== 'macros') throw new Error('Missing macros');
-    expect(
-      countMediaUses(target, sources({themes: used, macros: macros.value})),
-    ).toMatchObject({themes: 1, macros: 1});
-    const deletedTheme = used.themes[0];
-    if (deletedTheme === undefined) throw new Error('No used theme');
-    const deleted = {
-      ...used,
-      themes: used.themes.slice(1),
-      deletedThemes: [deletedTheme],
-    };
-    expect(countMediaUses(target, sources({themes: deleted})).themes).toBe(1);
-    expect(countMediaUses(other, sources({themes: deleted})).themes).toBe(0);
   });
 });
 

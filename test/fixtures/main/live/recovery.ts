@@ -51,14 +51,22 @@ export function recoveryContent(): RecoveryContent {
   });
   const services = new Map<string, ReturnType<typeof serviceOf>>(
     [
-      serviceOf(EVENING_ID, [{id: itemId(104), header: '찬양'}]),
+      serviceOf(EVENING_ID, [{id: itemId(104), kind: 'header', name: '찬양'}]),
       serviceOf(SUNDAY_ID, [
-        {slides, id: SONG_ITEM, song: HYMN_ONE_ID},
-        {id: HEADER_ITEM, header: '말씀'},
         {
-          slides: [],
+          id: SONG_ITEM,
+          kind: 'song',
+          name: hymn.title,
+          song: HYMN_ONE_ID,
+          slides,
+        },
+        {id: HEADER_ITEM, kind: 'header', name: '말씀'},
+        {
           id: MISSING_SONG_ITEM,
+          kind: 'song',
+          name: '없는 곡',
           song: 'f0f0f0f0-f0f0-4f0f-8f0f-f0f0f0f0f0f0',
+          slides: [],
         },
       ]),
     ].map(document => [document.id, document]),
@@ -69,7 +77,6 @@ export function recoveryContent(): RecoveryContent {
       const found = services.get(id);
       return found === undefined ? null : {service: found};
     },
-    song: id => (id === HYMN_ONE_ID ? {song: hymn} : null),
   };
 }
 

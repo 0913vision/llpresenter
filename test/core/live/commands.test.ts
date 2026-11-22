@@ -1,3 +1,4 @@
+import {shownText} from '@fixtures/core/liveSlide';
 import {describe, expect, it} from 'vitest';
 import {
   interruptsSongOutput,
@@ -12,7 +13,7 @@ describe('interruptsSongOutput', () => {
     const children: readonly SingleLiveCommand[] = [
       {
         type: 'slide.show',
-        slide: {itemId: 'a', position: 0, label: null, lines: []},
+        slide: {itemId: 'a', position: 0, ...shownText([])},
       },
       {type: 'media.show', media: {mediaId: 'a', loop: false}},
       {type: 'screen.testPattern.set', screenId: MAIN_SCREEN, on: true},
@@ -80,7 +81,7 @@ describe('interruptsSongOutput', () => {
     expect(
       interruptsSongOutput({
         type: 'slide.show',
-        slide: {itemId: 'a', position: 0, label: null, lines: []},
+        slide: {itemId: 'a', position: 0, ...shownText([])},
       }),
     ).toBe(true);
     for (const target of ['all', 'slide', 'media'] as const) {

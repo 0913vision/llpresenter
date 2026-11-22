@@ -96,24 +96,6 @@ describe('shared live and recovery limits', () => {
     },
   );
 
-  it('uses the same slide line count for a command, live state, and recovery record', () => {
-    for (const count of [
-      LIVE_STATE_LIMITS.slideLines,
-      LIVE_STATE_LIMITS.slideLines + 1,
-    ]) {
-      const value = {
-        ...slide(),
-        lines: Array.from({length: count}, () => 'Invented'),
-      };
-      const accepted = count === LIVE_STATE_LIMITS.slideLines;
-      expect(parseLiveCommand({type: 'slide.show', slide: value}).ok).toBe(
-        accepted,
-      );
-      expect(parseLiveState(state({slide: value})).ok).toBe(accepted);
-      expect(record(state({slide: value})).ok).toBe(accepted);
-    }
-  });
-
   it('accepts 200 outputs by screen id and rejects one more', () => {
     const outputs = Object.fromEntries(
       Array.from(

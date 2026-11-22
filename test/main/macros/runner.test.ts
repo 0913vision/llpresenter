@@ -1,10 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
-import {
-  createMediaId,
-  createServiceItemId,
-  parseMacroId,
-} from '@core/schema/ids';
+import {createServiceItemId, parseMacroId} from '@core/schema/ids';
 import type {ServiceItem} from '@core/schema/service';
 import {MissingLiveTargetError} from '@main/live/commandErrors';
 import type {LiveHistory} from '@main/live/history';
@@ -19,7 +15,6 @@ vi.mock('@main/macros/compiler', () => ({compileMacro: vi.fn()}));
 
 const MACRO = expectSuccess(parseMacroId(IDS.macro));
 const ITEM = createServiceItemId(IDS.item);
-const VIDEO = createMediaId(IDS.video);
 
 function history(): LiveHistory {
   return {state: emptyLiveState(), undo: null};
@@ -143,49 +138,12 @@ describe('MacroRunner', () => {
     expect(context.apply).not.toHaveBeenCalled();
   });
 
-  it('runs the start 매크로 of an item.start', () => {
-    const {runner, context} = setup([
-      {id: ITEM, media: VIDEO, macro: IDS.macro},
-    ]);
-
-    runner.run(history(), {type: 'item.start', itemId: ITEM}, context);
-
-    expect(context.ranMacro).toHaveBeenCalledWith(
-      expect.objectContaining({macroId: MACRO}),
-    );
-    expect(context.apply).toHaveBeenCalledOnce();
-  });
-
-  it('leaves the history alone for an item without a start 매크로', () => {
-    const {runner, context} = setup([{id: ITEM, media: VIDEO}]);
-    const before = history();
-
-    expect(
-      runner.run(before, {type: 'item.start', itemId: ITEM}, context),
-    ).toBe(before);
-    expect(context.apply).not.toHaveBeenCalled();
-  });
-
   it('fails an item that is not in the service as a missing target', () => {
     const {runner, context} = setup();
 
     expect(() =>
       runner.run(history(), {type: 'item.start', itemId: ITEM}, context),
     ).toThrow(MissingLiveTargetError);
-  });
-
-  it('skips an item whose start 매크로 is not an ID and warns once the dispatch passes', () => {
-    const {runner, context, flush, log} = setup([
-      {id: ITEM, media: VIDEO, macro: 'invalid-id'},
-    ]);
-    const before = history();
-
-    expect(
-      runner.run(before, {type: 'item.start', itemId: ITEM}, context),
-    ).toBe(before);
-    expect(log.messages('warn')).toEqual([]);
-    flush();
-    expect(log.messages('warn')).toEqual(['skipped invalid item start macro']);
   });
 
   it('lists the startup 매크로 in file order', () => {

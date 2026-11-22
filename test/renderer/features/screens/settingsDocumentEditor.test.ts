@@ -2,12 +2,12 @@ import {expect, it, vi} from 'vitest';
 import type {LlpApi} from '@contracts/ipc/api';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
-import {themeFile} from '@fixtures/core/themeOutput';
+import {themes as sampleThemes} from '@fixtures/core/themeOutput';
 import type {NamedDocument} from '@renderer/platform/useSettingsDocument';
 import {SettingsDocumentEditor} from '@renderer/features/screens/settingsDocumentEditor';
 
 it('retains applied revisions but requires disk success for rename completion', async () => {
-  const initial = settingsDocument('themes', themeFile());
+  const initial = settingsDocument('themes', sampleThemes());
   if (initial.name !== 'themes') throw Error('Expected themes');
   let revision = initial.revision;
   const edit = vi.fn<LlpApi['settings']['edit']>().mockImplementation(() =>
@@ -49,7 +49,7 @@ it('retains applied revisions but requires disk success for rename completion', 
 });
 
 it('writes an unchanged retry at the applied revision until saving succeeds', async () => {
-  const initial = settingsDocument('themes', themeFile());
+  const initial = settingsDocument('themes', sampleThemes());
   if (initial.name !== 'themes') throw Error('Expected themes');
   let revision = 1;
   const edit = vi.fn<LlpApi['settings']['edit']>().mockImplementation(() =>

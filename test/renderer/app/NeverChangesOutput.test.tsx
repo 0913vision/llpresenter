@@ -8,7 +8,7 @@ import {
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
-import {editorFixture} from '@fixtures/renderer/features/songs/editor/editorFixture';
+import {editorFixture} from '@fixtures/renderer/features/songs/editorFixture';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
 import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
 import {useLive} from '@renderer/session/live';

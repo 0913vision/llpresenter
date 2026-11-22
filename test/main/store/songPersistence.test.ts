@@ -1,3 +1,4 @@
+import {lyricsSlide} from '@fixtures/core/slides';
 import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
 import {mkdir, readFile, readdir, writeFile} from 'node:fs/promises';
 import {dirname, join} from 'node:path';
@@ -45,8 +46,8 @@ const stored = {
       note: 'first',
       label: 'Verse',
     },
-    {id: fixtureSlideId(2), lines: ['Invented noon'], label: 'Verse'},
-    {id: fixtureSlideId(3), lines: ['Invented evening'], label: 'Chorus'},
+    lyricsSlide(2, ['Invented noon'], {label: 'Verse'}),
+    lyricsSlide(3, ['Invented evening'], {label: 'Chorus'}),
   ],
 };
 
@@ -117,7 +118,7 @@ function documentOf(content: ContentStore) {
 }
 
 function linesIn(song: Song): string[] {
-  return song.slides.flatMap(slide => slide.lines);
+  return song.slides.map(slide => slide.texts['가사'] ?? '');
 }
 
 async function revise(content: ContentStore, line: string) {

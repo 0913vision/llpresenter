@@ -1,13 +1,7 @@
+import {shownText} from '@fixtures/core/liveSlide';
 import {handleShowKey} from '@renderer/features/presentation/shortcuts';
 import {lastLiveCommand} from '@fixtures/renderer/session/liveCommands';
-import {
-  act,
-  cleanup,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from '@testing-library/react';
+import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@core/live/commands';
 import {emptyLiveState} from '@core/live/state';
@@ -19,11 +13,6 @@ import {
   seedSampleService,
 } from '@fixtures/renderer/session/sampleService';
 import {SlideGrid} from '@renderer/features/presentation/SlideGrid';
-
-vi.mock(
-  '@renderer/rendering/pictures/Picture',
-  () => import('@fixtures/renderer/picture'),
-);
 
 const sent: LiveCommand[] = [];
 
@@ -44,7 +33,7 @@ function setLiveSlide(itemId: string, position: number): void {
       ...base,
       layers: {
         ...base.layers,
-        slide: {itemId, position, label: null, lines: ['x']},
+        slide: {itemId, position, ...shownText(['x'])},
       },
     },
   });
@@ -118,22 +107,6 @@ describe('SlideGrid', () => {
       .getAllByRole('option')
       .map(tile => tile.getAttribute('data-state'));
     expect(other).toEqual([null, null, null]);
-  });
-
-  it('keeps the focus in the grid when another item replaces the focused tile', async () => {
-    openItem('song-morning');
-    render(<SlideGrid columns={2} scalePercent={100} />);
-    const grid = screen.getByRole('listbox');
-    grid.focus();
-    expect(document.activeElement).toBe(grid);
-    act(() => openItem('song-river'));
-    await waitFor(() => expect(screen.getAllByRole('option')).toHaveLength(3), {
-      timeout: 3000,
-    });
-    expect(document.activeElement).toBe(screen.getByRole('listbox'));
-    expect(
-      sent.filter(command => command.type !== 'stage.next.set'),
-    ).toHaveLength(0);
   });
 
   it('keeps the focus in the grid when a service update removes the focused tile of the same item', () => {

@@ -1,3 +1,4 @@
+import {shownText} from '@fixtures/core/liveSlide';
 import type {LiveCommand} from '@core/live/commands';
 import {describe, expect, it, vi} from 'vitest';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
@@ -76,7 +77,7 @@ describe('presenter clear all', () => {
         ...state,
         layers: {
           ...state.layers,
-          slide: {itemId: 'test', position: 0, label: null, lines: ['test']},
+          slide: {itemId: 'test', position: 0, ...shownText(['test'])},
         },
       },
     });

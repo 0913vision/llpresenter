@@ -3,8 +3,6 @@ import {
   isPowerPointWidescreen,
   readPowerPoint,
 } from '@main/import/powerpointRead';
-import {PowerPointLayerReader} from '@main/import/powerpointLayers';
-import {PowerPointZip} from '@main/import/powerpointZip';
 import {powerpointSlides} from '@core/songs/powerpointSlides';
 import {isPowerPointFourThree} from '@main/import/powerpointSize';
 
@@ -111,12 +109,6 @@ describe('PowerPoint XML reader', () => {
     const nonStandard = readPowerPoint(ten);
     expect(nonStandard.widescreen).toBe(false);
     expect(nonStandard.slides[0]?.background).toMatch(/^[a-f0-9]{64}$/);
-    const background = new PowerPointLayerReader(new PowerPointZip(ten)).read(
-      'ppt/slides/slide1.xml',
-      {width: 1600, height: 1000},
-    ).layers[0];
-    expect(background?.matrix.e).toBeCloseTo(96);
-    expect(background?.matrix.a).toBeCloseTo(1728);
   });
 });
 

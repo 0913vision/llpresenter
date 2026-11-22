@@ -1,6 +1,6 @@
 import {expect, it} from 'vitest';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
-import {themeFile} from '@fixtures/core/themeOutput';
+import {themes} from '@fixtures/core/themeOutput';
 import type {
   SettingsDocument,
   SettingsName,
@@ -10,7 +10,7 @@ import {deletedObjectShortcuts} from '@core/shortcuts/deletion';
 const ID = '44000000-0000-4000-8000-000000000001';
 
 it('removes only a deleted theme binding and keeps Item Off and future commands', () => {
-  const file = themeFile();
+  const file = themes();
   const theme = file.themes[0];
   if (!theme) throw new Error('Missing theme fixture');
   const shortcuts = settingsDocument('shortcuts', {

@@ -1,3 +1,4 @@
+import {shownText} from '@fixtures/core/liveSlide';
 import {describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import {initialHistory, type LiveHistory} from '@main/live/reducer';
@@ -155,7 +156,7 @@ describe('SliceRegistry', () => {
         commands: ['slide.show'],
         initial: {
           layers: {
-            slide: {itemId: 'initial', position: 0, label: null, lines: []},
+            slide: {itemId: 'initial', position: 0, ...shownText([])},
           },
         },
         reduce: history => history,

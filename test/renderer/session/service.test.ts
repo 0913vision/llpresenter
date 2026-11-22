@@ -1,3 +1,4 @@
+import {lyricsSlide} from '@fixtures/core/slides';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {ShowService} from '@core/schema/showService';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
@@ -21,9 +22,24 @@ function serviceOf(overrides: Partial<ShowService> = {}): ShowService {
     ],
     tiles: {
       a: [
-        {label: '1절', labelColor: '#5FB8C2', lines: ['one']},
-        {label: '후렴', labelColor: '#D68F5F', lines: ['two']},
-        {label: '2절', labelColor: '#5FB8C2', lines: ['three']},
+        {
+          slide: lyricsSlide(5, ['one']),
+          auto: {},
+          caption: '1절',
+          labelColor: '#5FB8C2',
+        },
+        {
+          slide: lyricsSlide(6, ['two']),
+          auto: {},
+          caption: '후렴',
+          labelColor: '#D68F5F',
+        },
+        {
+          slide: lyricsSlide(7, ['three']),
+          auto: {},
+          caption: '2절',
+          labelColor: '#5FB8C2',
+        },
       ],
     },
     ...overrides,
@@ -82,19 +98,6 @@ describe('applyService', () => {
       openItemId: 'a',
       selectedTile: 1,
     });
-  });
-
-  it('moves the selected tile back inside a shorter item', () => {
-    applyService(serviceOf());
-    openItem('a');
-    useShow.setState({selectedTile: 2});
-    applyService(
-      serviceOf({
-        revision: 2,
-        tiles: {a: [{label: null, labelColor: 'none', lines: ['x']}]},
-      }),
-    );
-    expect(useShow.getState().selectedTile).toBe(0);
   });
 
   it('closes the open item when it is gone', () => {

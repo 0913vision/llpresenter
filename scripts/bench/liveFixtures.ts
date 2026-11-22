@@ -1,3 +1,4 @@
+import {shownText} from '@fixtures/core/liveSlide';
 import {emptyLiveState, type LiveState} from '../../src/core/live/state';
 import {parseLiveState} from '../../src/core/schema/liveState';
 import {
@@ -26,8 +27,7 @@ export function typicalState(): LiveState {
       slide: {
         itemId: 'invented-item',
         position: 0,
-        label: 'Verse',
-        lines: ['Invented morning light', 'Invented song of hope'],
+        ...shownText(['Invented morning light', 'Invented song of hope']),
       },
       message: {messageId: 'invented-message', text: 'Invented service cue'},
     },
@@ -52,10 +52,7 @@ export function heavyState(): LiveState {
       slide: {
         itemId: 'invented-item',
         position: 0,
-        label: 'Verse',
-        lines: Array.from({length: 1000}, (_, i) =>
-          `Invented line ${i}: ${'x'.repeat(3000)}`.slice(0, 3000),
-        ),
+        ...shownText('x'.repeat(4000)),
       },
       message: {
         messageId: 'summary',

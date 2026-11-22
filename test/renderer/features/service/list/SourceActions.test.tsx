@@ -315,7 +315,7 @@ describe('the service source menu', () => {
         ...templateDocument.template,
         id: createTemplateId('30000000-0000-4000-8000-000000000002'),
         name: '찬양 예배',
-        order: [{id: ids.praise, header: '다른 순서'}],
+        order: [{id: ids.praise, kind: 'header', name: '다른 순서'}],
       },
     };
     const {changeTemplate, pushTemplates} = setup(undefined, [otherTemplate]);

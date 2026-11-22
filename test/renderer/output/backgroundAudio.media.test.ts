@@ -1,15 +1,13 @@
+import {themeOutput} from '@fixtures/core/themeOutput';
+import {emptyLiveState} from '@core/live/state';
 import {beforeEach, expect, it, vi} from 'vitest';
 import type {MediaDocument} from '@core/schema/mediaEdit';
-import {createMediaId, createThemeId} from '@core/schema/ids';
-import {
-  emptyLiveState,
-  type MediaLayer,
-  type LiveState,
-} from '@core/live/state';
+import {createMediaId} from '@core/schema/ids';
+import {type MediaLayer, type LiveState} from '@core/live/state';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {BackgroundAudio} from '@renderer/output/backgroundAudio';
 import {BackgroundLayerView} from '@renderer/rendering/backgroundLayer';
-import {themeMediaAudible, themeOverlayAudio} from '@core/themes/audio';
+import {backgroundAudible, overlayAudio} from '@core/live/overlays';
 
 const layer = vi.hoisted(() => ({show: vi.fn()}));
 
@@ -23,9 +21,9 @@ vi.mock('@renderer/rendering/backgroundLayer', () => ({
     },
   ),
 }));
-vi.mock('@core/themes/audio', () => ({
-  themeMediaAudible: vi.fn(),
-  themeOverlayAudio: vi.fn(),
+vi.mock('@core/live/overlays', () => ({
+  backgroundAudible: vi.fn(),
+  overlayAudio: vi.fn(),
 }));
 
 const media: MediaLayer = {
@@ -90,13 +88,8 @@ function setup() {
   });
   const state: LiveState = {
     ...emptyLiveState(),
-    themeItem: {id: 'media', kind: 'media', source: 'external'},
-    themeOutput: {
-      themeId: createThemeId('00000000-0000-4000-8000-000000000005'),
-      missing: [],
-      screens: {},
-      revision: 1,
-    },
+    item: {id: 'media', kind: 'media', source: 'external'},
+    themeOutput: themeOutput(),
     layers: {...emptyLiveState().layers, media},
   };
   return {
@@ -116,14 +109,14 @@ function documentRoot(): HTMLElement {
 beforeEach(() => {
   layer.show.mockClear();
   vi.mocked(BackgroundLayerView).mockClear();
-  vi.mocked(themeMediaAudible).mockReturnValue(true);
-  vi.mocked(themeOverlayAudio).mockReturnValue(null);
+  vi.mocked(backgroundAudible).mockReturnValue(true);
+  vi.mocked(overlayAudio).mockReturnValue(null);
 });
 
 it('waits for media metadata and never loads a picture as background sound or overlay sound', async () => {
   const {initial, player, state, stop} = setup();
   const view = layer;
-  vi.mocked(themeOverlayAudio).mockReturnValue(media);
+  vi.mocked(overlayAudio).mockReturnValue(media);
   player.show(state);
   expect(view.show).not.toHaveBeenCalled();
   initial.resolve(document('image'));
@@ -171,7 +164,7 @@ it('does not load a stale item when metadata arrives, or revive audio after disp
 it('recovers background and overlay playback after metadata failure without a catalog push', async () => {
   const {initial, receive, player, state, report} = setup();
   const view = layer;
-  vi.mocked(themeOverlayAudio).mockReturnValue(media);
+  vi.mocked(overlayAudio).mockReturnValue(media);
   player.show(state);
   const error = new Error('Unavailable');
   initial.reject(error);
@@ -212,7 +205,7 @@ it('plays a later live update when metadata failed before any state arrived', as
 
 it('keeps pushed picture filtering when the initial read later rejects', async () => {
   const {initial, receive, player, state} = setup();
-  vi.mocked(themeOverlayAudio).mockReturnValue(media);
+  vi.mocked(overlayAudio).mockReturnValue(media);
   player.show(state);
   receive(document('image'));
   layer.show.mockClear();

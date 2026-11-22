@@ -1,4 +1,4 @@
-import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
+import {lyricsSlide} from '@fixtures/core/slides';
 import {MAIN_SCREEN} from '@fixtures/core/screenIds';
 import {mkdir, readFile, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
@@ -34,9 +34,7 @@ it(
         schemaVersion: 1,
         id: SONG,
         title: '창작 복구 곡',
-        slides: [
-          {id: fixtureSlideId(1), lines: ['새로 만든 점검 문장'], label: '1절'},
-        ],
+        slides: [lyricsSlide(1, ['새로 만든 점검 문장'], {label: '1절'})],
       }),
       'utf8',
     );
@@ -50,13 +48,7 @@ it(
         date: '2026-01-01T10:00',
         order: [
           {
-            slides: [
-              {
-                id: fixtureSlideId(1),
-                lines: ['새로 만든 점검 문장'],
-                label: '1절',
-              },
-            ],
+            slides: [lyricsSlide(1, ['새로 만든 점검 문장'], {label: '1절'})],
             id: ITEM,
             song: SONG,
           },

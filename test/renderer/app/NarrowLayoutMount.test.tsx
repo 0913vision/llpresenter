@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import type {UiState} from '@core/schema/uiState';
-import {editorFixture} from '@fixtures/renderer/features/songs/editor/editorFixture';
+import {editorFixture} from '@fixtures/renderer/features/songs/editorFixture';
 import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
 import {useLive} from '@renderer/session/live';
 import type {LiveCommand} from '@core/live/commands';

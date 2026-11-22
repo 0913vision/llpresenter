@@ -1,3 +1,5 @@
+import {lyricsSlide} from '@fixtures/core/slides';
+import {shownText} from '@fixtures/core/liveSlide';
 import {useRef} from 'react';
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -17,11 +19,6 @@ import {useLive} from '@renderer/session/live';
 import {emptyLiveState} from '@core/live/state';
 import {commandBindingStore} from '@renderer/ui/commandBindings';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-
-vi.mock(
-  '@renderer/rendering/pictures/Picture',
-  () => import('@fixtures/renderer/picture'),
-);
 
 function Surface({
   hidden = false,
@@ -112,9 +109,10 @@ beforeEach(() => {
     rows: [{id: 'song', kind: 'song', title: 'Song'}],
     tiles: {
       song: Array.from({length: 80}, (_, index) => ({
-        label: null,
-        labelColor: 'none',
-        lines: [`Slide ${index + 1}`],
+        slide: lyricsSlide(index + 1, `Slide ${index + 1}`),
+        auto: {},
+        caption: null,
+        labelColor: 'none' as const,
       })),
     },
   });
@@ -198,7 +196,7 @@ it('reveals an unmounted live slide on entry, without changing output', async ()
         ...state,
         layers: {
           ...state.layers,
-          slide: {itemId: 'song', position: 65, label: null, lines: ['Live']},
+          slide: {itemId: 'song', position: 65, ...shownText(['Live'])},
         },
       },
     }),
@@ -223,8 +221,7 @@ it.each([{selected: 2}, {selected: 65}])(
         slide: {
           itemId: 'song',
           position: 65,
-          label: null,
-          lines: ['Still on output'],
+          ...shownText(['Still on output']),
         },
       },
     };

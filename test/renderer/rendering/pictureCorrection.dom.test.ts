@@ -1,14 +1,14 @@
+import {shownText} from '@fixtures/core/liveSlide';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {emptyLayers, type LiveLayers} from '@core/live/state';
 import {MAIN, PROP, TEXT_STYLE} from '@fixtures/core/overlays';
 import {classes} from '@renderer/rendering/classes';
-import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {OutputRenderer} from '@renderer/rendering/outputRenderer';
 
 const LAYERS: LiveLayers = {
   ...emptyLayers(),
   media: {mediaId: 'warm-light', loop: true, startedAt: 0},
-  slide: {itemId: 'hymn-1', position: 0, label: null, lines: ['만복의 근원']},
+  slide: {itemId: 'hymn-1', position: 0, ...shownText(['만복의 근원'])},
   prop: {
     propId: PROP,
     items: [
@@ -41,7 +41,6 @@ afterEach(() => {
 
 it('selects one box per layer with the transformed selector, never a box nested in a layer', () => {
   const renderer = new OutputRenderer(document.body, {
-    textStyle: DEFAULT_TEXT_STYLE,
     mediaUrl: id => `https://media.test/${id}`,
     onError: vi.fn(),
   });

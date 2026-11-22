@@ -1,4 +1,4 @@
-import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
+import {lyricsSlide} from '@fixtures/core/slides';
 import type {Result} from '@core/common/result';
 import type {ContentEdit} from '@core/schema/contentEdit';
 import type {FileError, LoadedFile} from '@core/schema/fileFormat';
@@ -89,8 +89,8 @@ export function serviceFile(id: string, items: readonly object[]) {
 /** Builds a neutral template document without reading or writing files. */
 export function templateFile(
   items: readonly object[] = [
-    {id: itemId(21), header: '찬양'},
-    {id: itemId(22), header: '찬양'},
+    {id: itemId(21), kind: 'header', name: '찬양'},
+    {id: itemId(22), kind: 'header', name: '찬양'},
   ],
   id = TEMPLATE_ID,
 ) {
@@ -278,7 +278,5 @@ export function importSetup(
 /** A neutral fixture value; declaring it does not read or write files. */
 export const importedDraft = {
   title: 'Invented import',
-  slides: [
-    {id: fixtureSlideId(1), lines: ['Invented line'], label: 'New label'},
-  ],
+  slides: [lyricsSlide(1, ['Invented line'], {label: 'New label'})],
 };

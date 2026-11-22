@@ -7,7 +7,7 @@ import {
   resolveMessageStyle,
 } from '@core/screens/messageStyle';
 import {isChromaKeyColor, isKeyBackground} from '@core/screens/emptyColor';
-import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
+import {DEFAULT_TEXT_STYLE} from '@core/overlays/textStyle';
 
 const BIG = {
   ...DEFAULT_MESSAGE_STYLE,

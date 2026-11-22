@@ -1,3 +1,4 @@
+import {shownText} from '@fixtures/core/liveSlide';
 import {describe, expect, it} from 'vitest';
 import type {} from '@core/live/state';
 import {LiveStore} from '@main/live/store';
@@ -72,7 +73,7 @@ describe('a background that left the library', () => {
     const media = {mediaId: first, loop: false};
     const slide = (text: string) => ({
       type: 'slide.show' as const,
-      slide: {itemId: 'item', position: 0, label: null, lines: [text]},
+      slide: {itemId: 'item', position: 0, ...shownText([text])},
     });
     store.dispatch({type: 'media.show', media});
     store.dispatch(slide('first'));
@@ -92,7 +93,7 @@ describe('a background that left the library', () => {
     store.dispatch({type: 'media.show', media: {mediaId: first, loop: false}});
     store.dispatch({
       type: 'slide.show',
-      slide: {itemId: 'item', position: 0, label: null, lines: ['first']},
+      slide: {itemId: 'item', position: 0, ...shownText(['first'])},
     });
     expect(store.state.layers.media?.mediaId).toBe(IMAGES[0]);
   });

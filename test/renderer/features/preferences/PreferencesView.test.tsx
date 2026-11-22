@@ -20,7 +20,7 @@ import {
   defaultPreferences,
   type PreferencesFile,
 } from '@core/schema/preferences';
-import {translationIdSchema, themeIdSchema} from '@core/schema/ids';
+import {translationIdSchema} from '@core/schema/ids';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import type {PreferencePageId} from '@core/schema/preferencePages';
@@ -106,11 +106,7 @@ function install(
         schemaVersion: 1,
         themes: [],
         defaults: {},
-        standby: {
-          id: v.parse(themeIdSchema, '00000000-0000-4000-8000-000000000001'),
-          name: 'Standby',
-          screens: {},
-        },
+        titles: [],
       },
     },
     {
@@ -873,30 +869,6 @@ describe('PreferencesView', () => {
         bible: {defaults: {verseNumbers: false}},
       }),
     );
-  });
-
-  it('shows the 새 구절 defaults, and writes each choice beside the other fields', async () => {
-    await mount();
-    await openPage('성경');
-    expect(screen.queryByRole('button', {name: /한 슬라이드에/})).toBeNull();
-    expect(
-      screen.getByRole('button', {name: /구절 표시/}).textContent,
-    ).toContain('슬라이드마다');
-    const translationName = screen.getByRole('checkbox', {name: '역본 이름'});
-    expect(translationName.getAttribute('aria-checked')).toBe('false');
-    await userEvent.click(translationName);
-    await waitFor(() =>
-      expect(written().bible?.defaults?.translationName).toBe(true),
-    );
-    edit.mockClear();
-    await userEvent.click(screen.getByRole('button', {name: /구절 표시/}));
-    await userEvent.click(
-      await screen.findByRole('menuitemradio', {name: '마지막 슬라이드만'}),
-    );
-    await waitFor(() =>
-      expect(written().bible?.defaults?.reference).toBe('last'),
-    );
-    expect(written()).toMatchObject(UNKNOWN_FIELDS);
   });
 
   it('never replaces a newer pushed document with an older reply', async () => {

@@ -6,7 +6,7 @@ import type {ShowService} from '@core/schema/showService';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {LiveStore} from '@main/live/store';
 import {ThemeRuntime} from '@main/live/themeRuntime';
-import {themeFile, themeScreens} from '@fixtures/core/themeOutput';
+import {themes as sampleThemes, themeScreens} from '@fixtures/core/themeOutput';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {serviceStandby} from '@main/live/serviceStandby';
 import {
@@ -68,7 +68,7 @@ function setup() {
     flush: vi.fn(() => Promise.resolve()),
   };
   const live = new LiveStore();
-  const themes = themeFile();
+  const themes = sampleThemes();
   live.connectThemes(
     new ThemeRuntime({
       settings: {
@@ -146,45 +146,6 @@ describe('service open channels', () => {
     expect(await open(SECOND)).toEqual(shown(SECOND));
     expect(onServiceChanged).toHaveBeenCalledOnce();
   });
-
-  it.each([false, true])(
-    'returns all outputs to standby on a different service with blackout %s',
-    async black => {
-      const {live, themes, onServiceChanged, openService} = setup();
-      live.dispatch({
-        type: 'slide.show',
-        slide: {
-          itemId: 'song',
-          position: 0,
-          label: null,
-          lines: ['Live lyric'],
-        },
-      });
-      if (black) live.dispatch({type: 'black.toggle'});
-      expect(live.state.themeItem?.id).toBe('song');
-      const before = live.state;
-      const dispatch = vi.spyOn(live, 'dispatch');
-      expect(await open(FIRST)).toEqual(shown(FIRST));
-      expect(live.state).toBe(before);
-      openService.mockResolvedValueOnce({
-        ok: false,
-        error: {reason: 'not-found', message: 'Missing'},
-      });
-      expect(await open(SECOND)).toBeNull();
-      expect(live.state).toBe(before);
-      expect(dispatch).not.toHaveBeenCalled();
-      expect(await open(SECOND)).toEqual(shown(SECOND));
-      expect(onServiceChanged).toHaveBeenCalledOnce();
-      expect(dispatch).toHaveBeenCalledWith({type: 'item.stop'});
-      expect(live.state.layers.slide).toBeNull();
-      expect(live.state.blackScreen).not.toBe(true);
-      expect(live.state.themeItem).toBeNull();
-      expect(live.state.themeOutput?.themeId).toBe(themes.standby.id);
-      expect(Object.keys(live.state.themeOutput?.screens ?? {})).toHaveLength(
-        3,
-      );
-    },
-  );
 
   it('reports remembering failures while returning the service that opened', async () => {
     const {config, log} = setup();

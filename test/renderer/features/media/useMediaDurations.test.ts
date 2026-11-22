@@ -23,7 +23,9 @@ const service: ServiceDocument = {
     id: serviceId,
     name: 'Invented service',
     date: '2026-10-26T09:00',
-    order: [{id: itemId, media: mediaId}],
+    order: [
+      {id: itemId, kind: 'media', name: '영상', media: mediaId, slides: []},
+    ],
   },
   revision: 1,
   access: 'editable',

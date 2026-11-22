@@ -1,4 +1,4 @@
-import {resolveThemeOutput} from '@core/themes/output';
+import {themeOutput} from '@fixtures/core/themeOutput';
 import {Activity} from 'react';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {act, cleanup, render, screen, waitFor} from '@testing-library/react';
@@ -148,12 +148,7 @@ describe('the output preview', () => {
         state: {
           ...emptyLiveState(),
           outputs: {[MAIN_ID]: true},
-          themeOutput: resolveThemeOutput({
-            file: null,
-            screens: corrected.value.screens,
-            item: null,
-            revision: 1,
-          }),
+          themeOutput: themeOutput(),
           testPatterns: [v.parse(screenIdSchema, MAIN_ID)],
         },
       }),

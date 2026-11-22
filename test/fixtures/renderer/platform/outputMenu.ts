@@ -1,5 +1,5 @@
 import {vi} from 'vitest';
-import {themeFile} from '@fixtures/core/themeOutput';
+import {themes} from '@fixtures/core/themeOutput';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {screensDocument, STAGE_ID} from '@fixtures/core/screenDocuments';
 import {summarizeScreens} from '@renderer/platform/screens';
@@ -13,7 +13,7 @@ export function outputMenuFixture() {
   window.llp = mockLlpApi({live: {send}});
   const input = {
     screens: summarizeScreens(screens.value.screens),
-    themes: themeFile(),
+    themes: themes(),
     themeId: undefined,
     hasItem: false,
     outputs: {[screens.value.screens[0]?.id ?? '']: true},

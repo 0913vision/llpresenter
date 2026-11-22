@@ -1,4 +1,4 @@
-import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
+import {lyricsSlide} from '@fixtures/core/slides';
 import {mkdir, writeFile} from 'node:fs/promises';
 import {dirname} from 'node:path';
 
@@ -14,17 +14,13 @@ export function hymnOne(): Record<string, unknown> {
     id: HYMN_ONE_ID,
     title: '만복의 근원 하나님',
     slides: [
-      {
-        id: fixtureSlideId(1),
-        lines: ['만복의 근원 하나님', '온 백성 찬송 드리고'],
+      lyricsSlide(1, ['만복의 근원 하나님', '온 백성 찬송 드리고'], {
         label: '1절',
-      },
-      {
-        id: fixtureSlideId(2),
-        lines: ['저 천사여 찬송하세', '찬송 성부 성자 성령'],
+      }),
+      lyricsSlide(2, ['저 천사여 찬송하세', '찬송 성부 성자 성령'], {
         label: '후렴',
-      },
-      {id: fixtureSlideId(3), lines: ['아멘']},
+      }),
+      lyricsSlide(3, ['아멘']),
     ],
   };
 }

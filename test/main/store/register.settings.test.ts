@@ -1,3 +1,4 @@
+import {lyricsSlide} from '@fixtures/core/slides';
 import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
 import {
   ask,
@@ -281,11 +282,7 @@ describe('registerStore', () => {
         draft: {
           title: 'Invented import',
           slides: [
-            {
-              id: fixtureSlideId(3),
-              lines: ['Invented line'],
-              label: 'Invented label',
-            },
+            lyricsSlide(3, ['Invented line'], {label: 'Invented label'}),
           ],
         },
         target: {kind: 'overwrite', songId: HYMN_ONE_ID, baseRevision: 1},

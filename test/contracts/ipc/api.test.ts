@@ -11,11 +11,9 @@ import {liveEndpoints} from '@contracts/ipc/live';
 import {mediaEndpoints} from '@contracts/ipc/media';
 import {locationsEndpoints} from '@contracts/ipc/locations';
 import {outputEndpoints} from '@contracts/ipc/output';
-import {pictureEndpoints} from '@contracts/ipc/picture';
 import {recoveryEndpoints} from '@contracts/ipc/recovery';
 import {serviceEndpoints} from '@contracts/ipc/service';
 import {settingsEndpoints} from '@contracts/ipc/settings';
-import {slidesEditorEndpoints} from '@contracts/ipc/slidesEditor';
 import {uiEndpoints} from '@contracts/ipc/ui';
 import {windowEndpoints} from '@contracts/ipc/window';
 
@@ -41,9 +39,7 @@ const DECLARED = [
   uiEndpoints,
   windowEndpoints,
   outputEndpoints,
-  pictureEndpoints,
   locationsEndpoints,
-  slidesEditorEndpoints,
 ].flatMap(endpointsIn);
 
 function recordingPort() {
@@ -75,18 +71,11 @@ function recordingPort() {
 const PLATFORM: WindowPlatform = {pathForFile: () => '', zoomFactor: () => 1};
 
 describe('window.llp', () => {
-  it('accepts the existing slides bridge argument and additive preload bridges', () => {
+  it('takes the bridges the preload adds', () => {
     const {port} = recordingPort();
     const original = llpApi(port, PLATFORM);
-    expect(llpApi(port, PLATFORM, original.slidesEditor).slidesEditor).toBe(
-      original.slidesEditor,
-    );
-    const custom = llpApi(port, PLATFORM, {
-      bible: original.bible,
-      slidesEditor: original.slidesEditor,
-    });
+    const custom = llpApi(port, PLATFORM, {bible: original.bible});
     expect(custom.bible).toBe(original.bible);
-    expect(custom.slidesEditor).toBe(original.slidesEditor);
   });
   it('exposes every declared endpoint through exactly one member', () => {
     const {port, used} = recordingPort();

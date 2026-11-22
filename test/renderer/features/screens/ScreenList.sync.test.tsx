@@ -1,9 +1,9 @@
+import {emptyLiveState} from '@core/live/state';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {act, cleanup, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@core/live/state';
-import {createDefaultThemes} from '@core/themes/defaults';
+import {themes as sampleThemes} from '@fixtures/core/themeOutput';
 import type {LiveCommand} from '@core/live/commands';
 import type {MonitorList} from '@core/schema/monitors';
 import type {OutputStatuses} from '@core/schema/outputStatus';
@@ -45,7 +45,7 @@ function readDocument(name: string): Promise<SettingsDocument> {
     case 'screens':
       return Promise.resolve(screensDocument());
     case 'themes':
-      return Promise.resolve(settingsDocument('themes', createDefaultThemes()));
+      return Promise.resolve(settingsDocument('themes', sampleThemes()));
     case 'macros':
       return Promise.resolve(
         settingsDocument('macros', {macros: [], collections: []}),

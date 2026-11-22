@@ -1,3 +1,4 @@
+import {shownText} from '@fixtures/core/liveSlide';
 import {lastLiveCommand} from '@fixtures/renderer/session/liveCommands';
 import {act, renderHook, waitFor} from '@testing-library/react';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
@@ -55,7 +56,7 @@ beforeEach(() => {
       ...emptyLiveState(),
       layers: {
         ...emptyLiveState().layers,
-        slide: {itemId: 'song-morning', position: 3, label: null, lines: ['x']},
+        slide: {itemId: 'song-morning', position: 3, ...shownText(['x'])},
       },
     },
   });

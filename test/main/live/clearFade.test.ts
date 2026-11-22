@@ -1,3 +1,4 @@
+import {shownText} from '@fixtures/core/liveSlide';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {expect, it, vi} from 'vitest';
 import {emptyLiveState, layerKinds} from '@core/live/state';
@@ -16,8 +17,7 @@ import {MAX_CLEAR_EFFECTS} from '@core/schema/clearFade';
 const slide = {
   itemId: 'fade-check',
   position: 0,
-  label: null,
-  lines: ['Invented clear frame'],
+  ...shownText(['Invented clear frame']),
 };
 const transition = {fade: true, durationMs: 1200};
 

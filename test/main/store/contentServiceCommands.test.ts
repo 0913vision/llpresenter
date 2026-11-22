@@ -50,10 +50,16 @@ describe('ContentStore 예배 순서 and 템플릿 edits', () => {
 
   it('appends imported items in source order with new ids, from a 예배 순서 or a 템플릿', async () => {
     const {store} = setUp([
-      serviceFile(SUNDAY_ID, [{id: itemId(1), header: '말씀'}]),
+      serviceFile(SUNDAY_ID, [{id: itemId(1), kind: 'header', name: '말씀'}]),
       serviceFile(EVENING_ID, [
-        {id: itemId(2), header: '찬양'},
-        {slides: [], id: itemId(3), song: HYMN_ONE_ID},
+        {id: itemId(2), kind: 'header', name: '찬양'},
+        {
+          id: itemId(3),
+          kind: 'song',
+          name: '곡',
+          song: HYMN_ONE_ID,
+          slides: [],
+        },
       ]),
     ]);
 
@@ -88,8 +94,14 @@ describe('ContentStore 예배 순서 and 템플릿 edits', () => {
     const {store} = setUp([
       serviceFile(SUNDAY_ID, full),
       serviceFile(EVENING_ID, [
-        {id: itemId(2), header: '찬양'},
-        {slides: [], id: itemId(3), song: HYMN_ONE_ID},
+        {id: itemId(2), kind: 'header', name: '찬양'},
+        {
+          id: itemId(3),
+          kind: 'song',
+          name: '곡',
+          song: HYMN_ONE_ID,
+          slides: [],
+        },
       ]),
     ]);
     const edit = (ids: readonly string[]) =>
@@ -126,7 +138,7 @@ describe('ContentStore 예배 순서 and 템플릿 edits', () => {
 
   it('saves a 예배 순서 as a 템플릿 with new item ids and no time', async () => {
     const {store, events} = setUp([
-      serviceFile(SUNDAY_ID, [{id: itemId(1), header: '찬양'}]),
+      serviceFile(SUNDAY_ID, [{id: itemId(1), kind: 'header', name: '찬양'}]),
     ]);
 
     const answer = await store.apply({

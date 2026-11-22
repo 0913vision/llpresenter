@@ -1,3 +1,5 @@
+import {lyricsSlide} from '@fixtures/core/slides';
+import {shownText} from '@fixtures/core/liveSlide';
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {ContinuousSlideGrid} from '@renderer/features/presentation/ContinuousSlideGrid';
@@ -58,8 +60,22 @@ beforeEach(() => {
       {id: 'empty', kind: 'song', title: 'Empty'},
     ],
     tiles: {
-      one: [{label: null, labelColor: 'none', lines: ['First slide']}],
-      two: [{label: null, labelColor: 'none', lines: ['Second slide']}],
+      one: [
+        {
+          slide: lyricsSlide(1, 'First slide'),
+          auto: {},
+          caption: null,
+          labelColor: 'none',
+        },
+      ],
+      two: [
+        {
+          slide: lyricsSlide(2, 'Second slide'),
+          auto: {},
+          caption: null,
+          labelColor: 'none',
+        },
+      ],
     },
   });
   openItem('one');
@@ -139,8 +155,7 @@ function setLive(itemId: string): void {
           slide: {
             itemId,
             position: 0,
-            label: null,
-            lines: ['Live'],
+            ...shownText(['Live']),
           },
         },
       },

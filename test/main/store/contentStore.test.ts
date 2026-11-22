@@ -27,11 +27,17 @@ describe('ContentStore lists', () => {
   it('counts the items of each 예배 순서 and 템플릿 without their headers', () => {
     const {store} = setUp([
       serviceFile(SUNDAY, [
-        {id: itemId(1), header: '찬양'},
-        {slides: [], id: itemId(2), song: HYMN_ONE_ID},
-        {id: itemId(3), header: '찬양'},
-        {id: itemId(4), header: '말씀'},
-        {id: itemId(5), header: '말씀'},
+        {id: itemId(1), kind: 'header', name: '찬양'},
+        {
+          id: itemId(2),
+          kind: 'song',
+          name: '곡',
+          song: HYMN_ONE_ID,
+          slides: [],
+        },
+        {id: itemId(3), kind: 'header', name: '찬양'},
+        {id: itemId(4), kind: 'header', name: '말씀'},
+        {id: itemId(5), kind: 'header', name: '말씀'},
       ]),
     ]);
     expect(store.serviceList()).toMatchObject([{id: SUNDAY, itemCount: 1}]);
@@ -122,7 +128,13 @@ describe('ContentStore persistence and notifications', () => {
   it('serializes a save and deletion while the first write waits', async () => {
     const {store, files} = setUp([
       serviceFile(SUNDAY_ID, [
-        {id: itemId(1), song: HYMN_ONE_ID, slides: songFile().data.slides},
+        {
+          id: itemId(1),
+          kind: 'song',
+          name: '곡',
+          song: HYMN_ONE_ID,
+          slides: songFile().data.slides,
+        },
       ]),
     ]);
     const write = files.write;

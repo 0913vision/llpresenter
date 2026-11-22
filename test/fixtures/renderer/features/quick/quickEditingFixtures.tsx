@@ -183,9 +183,6 @@ beforeEach(() => {
   HTMLElement.prototype.scrollIntoView = vi.fn();
   useShow.setState({
     openItemId: null,
-    bibleSource: null,
-    liveBibleSource: null,
-    requestedBibleSource: null,
     librarySong: null,
     serviceId: null,
   });

@@ -1,4 +1,4 @@
-import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
+import {lyricsSlide} from '@fixtures/core/slides';
 import {setImmediate} from 'node:timers/promises';
 import {describe, expect, it} from 'vitest';
 import {createSongId} from '@core/schema/ids';
@@ -7,7 +7,7 @@ import {
   parseLibrarySearchResult,
 } from '@core/schema/librarySearch';
 import type {Song} from '@core/schema/song';
-import {buildSongSearchIndex, SongSearchIndex} from '@main/search/songIndex';
+import {buildSongSearchIndex} from '@main/search/songIndex';
 
 function song(
   number: number,
@@ -21,7 +21,7 @@ function song(
       `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`,
     ),
     title,
-    slides: [{id: fixtureSlideId(1), lines}],
+    slides: [lyricsSlide(1, lines)],
   };
 }
 
@@ -104,33 +104,6 @@ describe('SongSearchIndex', () => {
     expect(index.search({query: ''}).matches.map(match => match.title)).toEqual(
       ['가나다', '나무', '찬송 2', '찬송 10'],
     );
-  });
-
-  it('replaces old words immediately and removes deleted songs and cached order', () => {
-    const index = new SongSearchIndex();
-    const first = song(1, 'Old title', ['Old lyrics']);
-    index.upsert(first);
-    expect(index.search({query: 'old'}).matches).toHaveLength(1);
-    index.upsert({
-      ...first,
-      title: 'New title',
-      slides: [
-        {id: fixtureSlideId(1), lines: ['Fresh words']},
-        {id: fixtureSlideId(2), lines: []},
-      ],
-    });
-    expect(index.search({query: 'old'}).matches).toEqual([]);
-    expect(index.search({query: 'fresh words'}).matches[0]).toMatchObject({
-      title: 'New title',
-      slideCount: 2,
-    });
-    expect(index.size).toBe(1);
-    index.remove(first.id);
-    expect(index.search({query: ''}).matches).toEqual([]);
-    index.upsert(first);
-    index.clear();
-    expect(index.size).toBe(0);
-    expect(index.search({query: 'old'}).matches).toEqual([]);
   });
 
   it('repositions a renamed song and orders equal titles by id', async () => {

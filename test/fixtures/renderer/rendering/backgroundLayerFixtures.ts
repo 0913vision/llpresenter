@@ -46,7 +46,6 @@ export function setUp(mode: RenderMode = 'output') {
     onError,
     mode,
   });
-  view.setDissolveMs(500);
   const [first, second] = [...parent.querySelectorAll('video')];
   if (first === undefined || second === undefined) {
     throw new Error('expected two video elements');

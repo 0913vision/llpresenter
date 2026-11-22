@@ -1,7 +1,6 @@
 import {readFileSync} from 'node:fs';
 import {describe, expect, it} from 'vitest';
 import {paletteHex} from '@core/labels/colors';
-import {STAGE_COLORS} from '@core/themes/stageColors';
 import {labelInk} from '@renderer/ui/labelInk';
 
 const read = (path: string): string => readFileSync(path, 'utf8');
@@ -88,18 +87,4 @@ describe('thumbnail label contrast', () => {
       (token(source, 'bg-control') + 0.05);
     expect(neutral).toBeGreaterThanOrEqual(4.5);
   });
-});
-
-it('keeps the saved stage output colors aligned with the design tokens', () => {
-  const source = read('design/system/project/tokens.json');
-  for (const [name, color] of [
-    ['stage-bar', STAGE_COLORS.bar],
-    ['stage-next', STAGE_COLORS.next],
-    ['text-2', STAGE_COLORS.muted],
-  ] as const) {
-    const value = new RegExp(
-      `"name": "${name}",\\s*"value": "(#[0-9a-f]{6})"`,
-    ).exec(source)?.[1];
-    expect(value).toBe(color.toLowerCase());
-  }
 });

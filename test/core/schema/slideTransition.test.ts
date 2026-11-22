@@ -1,8 +1,8 @@
 import {describe, expect, it} from 'vitest';
 import * as v from 'valibot';
 import {slideTransitionSchema} from '@core/schema/slideTransition';
-import {songSlideSchema} from '@core/schema/song';
-import {slideSchema} from '@core/schema/service';
+import {slideSchema} from '@core/schema/slide';
+import {lyricsSlide} from '@fixtures/core/slides';
 
 describe('slide transitions', () => {
   it.each(['none', 'dissolve', 'push', 'wipe'])(
@@ -43,32 +43,12 @@ describe('slide transitions', () => {
   ])('rejects invalid transition %j', value => {
     expect(v.safeParse(slideTransitionSchema, value).success).toBe(false);
   });
-  it('keeps old song slides untouched and preserves transition extension fields', () => {
-    const slide = {
-      id: '00000000-0000-4000-8000-000000000001',
-      lines: ['A new morning'],
-      extra: 1,
-    };
-    expect(v.parse(songSlideSchema, slide)).toEqual(slide);
+  it('keeps the fields of a transition it does not know', () => {
+    const slide = lyricsSlide(1, 'A new morning');
     const own = {
       ...slide,
       transition: {kind: 'wipe', dir: 'left', sec: 4, future: 1},
     };
-    expect(v.parse(songSlideSchema, own)).toEqual(own);
-  });
-  it.each([
-    {id: '00000000-0000-4000-8000-000000000001', text: ''},
-    {
-      id: '00000000-0000-4000-8000-000000000001',
-      text: 'Announcement',
-      name: 'News',
-    },
-    {
-      id: '00000000-0000-4000-8000-000000000001',
-      media: '00000000-0000-4000-8000-000000000002',
-    },
-  ])('validates the same override on a service slide %j', slide => {
-    const own = {...slide, transition: {kind: 'push', dir: 'down', sec: 2}};
     expect(v.parse(slideSchema, own)).toEqual(own);
     expect(
       v.safeParse(slideSchema, {...slide, transition: {kind: 'push', sec: 11}})

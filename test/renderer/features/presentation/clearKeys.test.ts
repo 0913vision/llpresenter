@@ -1,52 +1,11 @@
-import {act, renderHook} from '@testing-library/react';
+import {emptyLiveState} from '@core/live/state';
+import {renderHook} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import * as clearState from '@renderer/session/clear';
 import {useClearKeys} from '@renderer/features/presentation/clearKeys';
 import {commandBindingStore} from '@renderer/ui/commandBindings';
-import {emptyLiveState} from '@core/live/state';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {useLive} from '@renderer/session/live';
-
-it('dispatches an assigned Item Off and Restore key with no default binding', () => {
-  const send = vi.fn();
-  window.llp = mockLlpApi({live: {send}});
-  useLive.setState({
-    state: {
-      ...emptyLiveState(),
-      themeItem: {id: 'item', kind: 'song', source: 'service'},
-    },
-  });
-  appendTo('section', {'data-workspace-layout': 'show'});
-  const {unmount} = renderHook(() => useClearKeys());
-  const pressItemOff = (target: Element): KeyboardEvent => {
-    const event = new KeyboardEvent('keydown', {
-      code: 'F8',
-      key: 'F8',
-      bubbles: true,
-      cancelable: true,
-    });
-    target.dispatchEvent(event);
-    return event;
-  };
-  expect(pressItemOff(document.body).defaultPrevented).toBe(false);
-  act(() => commandBindingStore.set({'item.stop': [{code: 'F8', mods: []}]}));
-  try {
-    expect(pressItemOff(document.body).defaultPrevented).toBe(true);
-    expect(send).toHaveBeenCalledExactlyOnceWith({type: 'item.stop'});
-    act(() =>
-      useLive.setState({
-        state: {...emptyLiveState(), themeItem: null, canRestoreItem: true},
-      }),
-    );
-    expect(pressItemOff(document.body).defaultPrevented).toBe(true);
-    expect(send).toHaveBeenLastCalledWith({type: 'item.restore'});
-  } finally {
-    unmount();
-    commandBindingStore.set({});
-    useLive.setState({state: null});
-    delete window.llp;
-  }
-});
 
 it.each([
   ['input', 'input', {}],
@@ -63,7 +22,7 @@ it.each([
     useLive.setState({
       state: {
         ...emptyLiveState(),
-        themeItem: {id: 'item', kind: 'song', source: 'service'},
+        item: {id: 'item', kind: 'song', source: 'service'},
       },
     });
     commandBindingStore.set({'item.stop': [{code: 'F8', mods: []}]});

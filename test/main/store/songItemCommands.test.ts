@@ -19,8 +19,21 @@ function fixture() {
   return {
     ...setUp([
       serviceFile(SUNDAY_ID, [
-        {id: first, song: HYMN_ONE_ID, slides, memo: 'Keep item memo'},
-        {id: itemId(2), song: HYMN_ONE_ID, slides: source.slides},
+        {
+          id: first,
+          kind: 'song',
+          name: '곡',
+          song: HYMN_ONE_ID,
+          slides,
+          memo: 'Keep item memo',
+        },
+        {
+          id: itemId(2),
+          kind: 'song',
+          name: '곡',
+          song: HYMN_ONE_ID,
+          slides: source.slides,
+        },
       ]),
     ]),
     slides,
@@ -78,7 +91,9 @@ describe('explicit song item transfers', () => {
   });
   it('refuses saving an empty item over a nonempty library song', async () => {
     const {store, files} = setUp([
-      serviceFile(SUNDAY_ID, [{id: first, song: HYMN_ONE_ID, slides: []}]),
+      serviceFile(SUNDAY_ID, [
+        {id: first, kind: 'song', name: '곡', song: HYMN_ONE_ID, slides: []},
+      ]),
     ]);
     expect(await store.apply(command)).toMatchObject({
       ok: false,

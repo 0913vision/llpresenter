@@ -68,8 +68,38 @@ function mockData(
   settingsReader: Promise<SettingsReader | null> = Promise.resolve(settings),
 ) {
   const services = new Map<string, {service: {order: ServiceItem[]}}>([
-    ['first', {service: {order: [{id: ITEM, media: FIRST_VIDEO}]}}],
-    ['second', {service: {order: [{id: ITEM, media: SECOND_VIDEO}]}}],
+    [
+      'first',
+      {
+        service: {
+          order: [
+            {
+              id: ITEM,
+              kind: 'media',
+              name: '영상',
+              media: FIRST_VIDEO,
+              slides: [],
+            },
+          ],
+        },
+      },
+    ],
+    [
+      'second',
+      {
+        service: {
+          order: [
+            {
+              id: ITEM,
+              kind: 'media',
+              name: '영상',
+              media: SECOND_VIDEO,
+              slides: [],
+            },
+          ],
+        },
+      },
+    ],
   ]);
   const content: MockContent = {
     openServiceId: 'first',
@@ -193,9 +223,21 @@ describe('registerMacros', () => {
 
     expect(options.settings).toBe(settings);
     expect(options.media()).toBe(mediaList);
-    expect(options.item(ITEM)).toEqual({id: ITEM, media: FIRST_VIDEO});
+    expect(options.item(ITEM)).toEqual({
+      id: ITEM,
+      kind: 'media',
+      name: '영상',
+      media: FIRST_VIDEO,
+      slides: [],
+    });
     content.openServiceId = 'second';
-    expect(options.item(ITEM)).toEqual({id: ITEM, media: SECOND_VIDEO});
+    expect(options.item(ITEM)).toEqual({
+      id: ITEM,
+      kind: 'media',
+      name: '영상',
+      media: SECOND_VIDEO,
+      slides: [],
+    });
     content.openServiceId = null;
     expect(options.item(ITEM)).toBeUndefined();
     store.handles.mockReturnValueOnce(false);

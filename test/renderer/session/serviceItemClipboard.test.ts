@@ -8,7 +8,7 @@ import {
   createServiceId,
   createServiceItemId,
   createSongId,
-  createSongSlideId,
+  createSlideId,
   createMediaId,
   createThemeId,
 } from '@core/schema/ids';
@@ -25,7 +25,7 @@ const third = createServiceItemId('20000000-0000-4000-8000-000000000003');
 const songId = createSongId('30000000-0000-4000-8000-000000000001');
 const slides = [
   {
-    id: createSongSlideId('60000000-0000-4000-8000-000000000001'),
+    id: createSlideId('60000000-0000-4000-8000-000000000001'),
     lines: ['Original song slide'],
     label: 'Verse',
   },
@@ -57,8 +57,8 @@ function metadata(item: unknown): unknown {
 
 function setup(
   order: readonly unknown[] = [
-    {id: first, song: songId, slides, memo: 'First'},
-    {id: second, header: 'Second'},
+    {id: first, kind: 'song', name: '곡', song: songId, slides, memo: 'First'},
+    {id: second, kind: 'header', name: 'Second'},
     {id: third, futureKind: {slides: [{id: 'nested', lines: ['Third']}]}},
   ],
 ) {
@@ -78,6 +78,8 @@ describe('service item clipboard', () => {
     const {clipboard, state} = setup([
       {
         id: first,
+        kind: 'song',
+        name: '곡',
         song: songId,
         slides,
         memo: 'Memo',
@@ -86,7 +88,7 @@ describe('service item clipboard', () => {
         theme: createThemeId('50000000-0000-4000-8000-000000000001'),
         future: nested,
       },
-      {id: second, header: 'Not selected'},
+      {id: second, kind: 'header', name: 'Not selected'},
       {id: third, futureKind: {value: 3}},
     ]);
     expect(await clipboard.copy(serviceId, new Set([third, first]))).toEqual({
@@ -131,7 +133,9 @@ describe('service item clipboard', () => {
     const older = clipboard.copy(serviceId, new Set([first]));
     await clipboard.copy(serviceId, new Set([third]));
     finish?.({
-      ...document([{id: first, song: songId, slides}]),
+      ...document([
+        {id: first, kind: 'song', name: '곡', song: songId, slides},
+      ]),
       access: 'readOnly',
     });
     await older;
@@ -139,7 +143,9 @@ describe('service item clipboard', () => {
       {futureKind: {slides: [{lines: ['Third']}]}},
     ]);
     get.mockResolvedValueOnce({
-      ...document([{id: first, song: songId, slides}]),
+      ...document([
+        {id: first, kind: 'song', name: '곡', song: songId, slides},
+      ]),
       access: 'readOnly',
     });
     expect(await clipboard.copy(serviceId, new Set([first]))).toEqual({

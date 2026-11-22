@@ -1,3 +1,4 @@
+import {shownText} from '@fixtures/core/liveSlide';
 import {
   BROADCAST_SCREEN,
   MAIN_SCREEN,
@@ -98,7 +99,7 @@ const allOn = {
   [STAGE_SCREEN]: true,
   [BROADCAST_SCREEN]: true,
 };
-const slide = {itemId: 'a', position: 0, label: null, lines: ['x']};
+const slide = {itemId: 'a', position: 0, ...shownText(['x'])};
 
 beforeEach(() => {
   instances.list.length = 0;

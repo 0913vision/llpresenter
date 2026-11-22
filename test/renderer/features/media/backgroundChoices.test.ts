@@ -1,6 +1,6 @@
 import {fixtureMedia, itemMedia} from '@fixtures/core/mediaList';
 import {describe, expect, it} from 'vitest';
-import {SUNDAY_NOTICE_PICTURE_ID} from '@core/themes/sundayNotice';
+import {APP_PICTURE_IDS} from '@core/theme/pictures';
 import {
   backgroundName,
   mediaName,
@@ -15,7 +15,7 @@ describe('background names', () => {
     expect(backgroundName(items, fixtureMedia.warm)).toBe('따뜻한 빛');
     expect(backgroundName([], fixtureMedia.warm)).toBe('배경 파일 없음');
     expect(backgroundName(items, fixtureMedia.hymn)).toBe('배경 파일 없음');
-    expect(backgroundName([], SUNDAY_NOTICE_PICTURE_ID)).toBe('광고 배경');
+    expect(backgroundName([], APP_PICTURE_IDS.notice)).toBe('광고 배경');
   });
   it('names known missing files and does not invent a name for an absent catalog entry', () => {
     expect(missingBackgroundTip('Warm light')).toContain('Warm light');

@@ -1,3 +1,4 @@
+import {lyricsSlide} from '@fixtures/core/slides';
 import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
 import {join, resolve} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
@@ -76,7 +77,7 @@ function setup({
               future: 'kept',
               label: index === 3 ? 'Other' : 'Before',
             },
-            {id: fixtureSlideId(2), lines: ['Another invented line']},
+            lyricsSlide(2, ['Another invented line']),
           ],
         }),
         file,
@@ -130,14 +131,12 @@ function setup({
   const items = [
     {
       id: itemId(80),
+      kind: 'song',
+      name: '곡',
       song: itemId(1),
       slides: [
-        {
-          id: fixtureSlideId(80),
-          label: 'Before',
-          lines: ['Independent item lyric'],
-        },
-        {id: fixtureSlideId(81), label: 'Local name', lines: []},
+        lyricsSlide(80, ['Independent item lyric'], {label: 'Before'}),
+        lyricsSlide(81, [], {label: 'Local name'}),
       ],
     },
   ];
@@ -207,12 +206,8 @@ describe('renaming a label in the label list and in every song', () => {
       await content.renameLabel(settings, {...rename, to: ' After '}),
     ).toMatchObject({ok: true});
     const expected = [
-      {
-        id: fixtureSlideId(80),
-        label: 'After',
-        lines: ['Independent item lyric'],
-      },
-      {id: fixtureSlideId(81), label: 'Local name', lines: []},
+      lyricsSlide(80, ['Independent item lyric'], {label: 'After'}),
+      lyricsSlide(81, [], {label: 'Local name'}),
     ];
     expect(content.service(SUNDAY)?.service.order[0]).toMatchObject({
       slides: expected,

@@ -1,6 +1,7 @@
 import type {LabelColor} from '@core/labels/colors';
 import type {ShowService} from '@core/schema/showService';
 import {applyService} from '@renderer/session/show';
+import {lyricsSlide} from '@fixtures/core/slides';
 import type {ItemId, ServiceRow, SlideTile} from '@core/presentation/model';
 
 const sampleRows: readonly ServiceRow[] = [
@@ -22,11 +23,15 @@ const labelColors: Readonly<Record<string, LabelColor>> = {
   브리지: '#A99AE0',
 };
 
+let count = 0;
+
 function tile(label: string | null, ...lines: string[]): SlideTile {
+  count += 1;
   return {
-    label,
+    slide: lyricsSlide(count, lines.join('\n'), label === null ? {} : {label}),
+    auto: {},
+    caption: label,
     labelColor: label ? (labelColors[label] ?? '#A3A3A3') : 'none',
-    lines,
   };
 }
 

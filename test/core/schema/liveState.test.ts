@@ -1,3 +1,4 @@
+import {shownText} from '@fixtures/core/liveSlide';
 import {describe, expect, it} from 'vitest';
 import {emptyLiveState, type LiveState} from '@core/live/state';
 import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
@@ -15,8 +16,7 @@ function busyState(): LiveState {
       slide: {
         itemId: 'item-1',
         position: 2,
-        label: '후렴',
-        lines: ['저 천사여 찬송하세', '찬송 성부 성자 성령'],
+        ...shownText(['저 천사여 찬송하세', '찬송 성부 성자 성령']),
       },
       prop: {propId: 'logo'},
       audio: {mediaId: 'prelude'},
@@ -28,30 +28,6 @@ function busyState(): LiveState {
 }
 
 describe('parseLiveState', () => {
-  it('validates the bounded Bible item slide sequence', () => {
-    const state = busyState();
-    const withSlides = (bibleItemSlides: unknown) => ({
-      ...state,
-      layers: {
-        ...state.layers,
-        slide: {...state.layers.slide, bibleItemSlides},
-      },
-    });
-    const sequence = [{lines: ['First'], continued: true}, {lines: ['Second']}];
-    expect(parseLiveState(withSlides(sequence))).toMatchObject({
-      ok: true,
-      value: {layers: {slide: {bibleItemSlides: sequence}}},
-    });
-    for (const invalid of [
-      [],
-      [{lines: ['x'], continued: 'yes'}],
-      [{lines: Array(51).fill('x'.repeat(4000))}],
-      Array(21).fill({lines: Array(1000).fill('')}),
-      Array(LIVE_STATE_LIMITS.bibleItemSlides + 1).fill({lines: ['x']}),
-    ]) {
-      expect(parseLiveState(withSlides(invalid)).ok).toBe(false);
-    }
-  });
   it('preserves bounded title layout on a later live title and rejects invalid positions', () => {
     const state = busyState();
     const titleLayout = {
@@ -83,7 +59,7 @@ describe('parseLiveState', () => {
         ...state.layers,
         slide: {
           ...state.layers.slide,
-          next: {label: null, lines: ['Body'], title},
+          next: {...shownText(['Body']), title},
         },
       },
     });
@@ -109,7 +85,7 @@ describe('parseLiveState', () => {
             ...state.layers,
             slide: {
               ...state.layers.slide,
-              next: {label: null, lines: ['Next'], itemKind},
+              next: {...shownText(['Next']), itemKind},
             },
           },
         }).ok,
@@ -131,9 +107,8 @@ describe('parseLiveState', () => {
     const slide = {
       itemId: 'verse',
       position: 0,
-      label: null,
-      lines: ['First'],
-      next: {label: null, lines: ['Next']},
+      ...shownText(['First']),
+      next: {...shownText(['Next'])},
     };
     for (const biblePart of [1, 10_000]) {
       const state = {
@@ -158,7 +133,7 @@ describe('parseLiveState', () => {
     }
   });
   it('accepts only a bounded positive integer for the optional ad text-slide number', () => {
-    const slide = {itemId: 'ad', position: 0, label: null, lines: ['Notice']};
+    const slide = {itemId: 'ad', position: 0, ...shownText(['Notice'])};
     for (const textSlideNumber of [1, 200]) {
       const state = {
         ...emptyLiveState(),
@@ -236,8 +211,7 @@ describe('parseLiveState', () => {
     const slide = {
       itemId: 'item-1',
       position: 0,
-      label: 'Label',
-      lines: [],
+      ...shownText([]),
       title: 'Item',
       reference: '3:16',
     };
@@ -356,91 +330,6 @@ describe('parseLiveState', () => {
     expect(result.ok ? undefined : result.error.field).toBe(field);
   });
 
-  it.each([
-    [
-      'a slide with lines that are not text',
-      {slide: {itemId: 'i', position: 0, label: null, lines: [1]}},
-      'layers.slide.lines.0',
-    ],
-    [
-      'a next slide without lines',
-      {
-        slide: {
-          itemId: 'i',
-          position: 0,
-          label: null,
-          lines: [],
-          next: {label: null},
-        },
-      },
-      'layers.slide.next.lines',
-    ],
-    [
-      'a next slide past the line cap',
-      {
-        slide: {
-          itemId: 'i',
-          position: 0,
-          label: null,
-          lines: [],
-          next: {
-            label: null,
-            lines: Array.from(
-              {length: LIVE_STATE_LIMITS.slideLines + 1},
-              () => 'line',
-            ),
-          },
-        },
-      },
-      'layers.slide.next.lines',
-    ],
-    [
-      'a next slide with a label past the text cap',
-      {
-        slide: {
-          itemId: 'i',
-          position: 0,
-          label: null,
-          lines: [],
-          next: {
-            label: 'a'.repeat(LIVE_STATE_LIMITS.textCharacters + 1),
-            lines: [],
-          },
-        },
-      },
-      'layers.slide.next.label',
-    ],
-    [
-      'a slide at a fractional position',
-      {slide: {itemId: 'i', position: 0.5, label: null, lines: []}},
-      'layers.slide.position',
-    ],
-    [
-      'media without an id',
-      {media: {mediaId: '', loop: true}},
-      'layers.media.mediaId',
-    ],
-    [
-      'a background without a start time',
-      {media: {mediaId: 'm', loop: true}},
-      'layers.media.startedAt',
-    ],
-    [
-      'an infinite start time',
-      {media: {mediaId: 'm', loop: true, startedAt: Infinity}},
-      'layers.media.startedAt',
-    ],
-  ])('rejects a layer with %s', (_name, layers, field) => {
-    const state = busyState();
-
-    const result = parseLiveState({
-      ...state,
-      layers: {...state.layers, ...layers},
-    });
-
-    expect(result.ok ? undefined : result.error.field).toBe(field);
-  });
-
   it('carries the screens that show the 테스트 패턴, each once and within the cap', () => {
     const shown = {
       ...emptyLiveState(),
@@ -477,9 +366,8 @@ describe('parseLiveState', () => {
         slide: {
           itemId: 'item-1',
           position: 0,
-          label: '1절',
-          lines: ['첫 줄'],
-          next: {label: null, lines: ['둘째 줄']},
+          ...shownText(['첫 줄']),
+          next: {...shownText(['둘째 줄'])},
         },
       },
       stageTimerId: screenUuid(6),
@@ -505,8 +393,7 @@ it('bounds the recorded card sequence length', () => {
   const slide = {
     itemId: 'item',
     position: 0,
-    label: null,
-    lines: ['Section'],
+    ...shownText(['Section']),
     sequenceLength: 2,
   };
   expect(parseLiveState({...state, layers: {...state.layers, slide}}).ok).toBe(

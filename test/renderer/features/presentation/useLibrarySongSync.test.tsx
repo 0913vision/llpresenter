@@ -1,6 +1,7 @@
+import {lyricsSlide} from '@fixtures/core/slides';
 import {act, renderHook, waitFor} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {createMediaId, createSongId} from '@core/schema/ids';
+import {createSongId} from '@core/schema/ids';
 import type {ShowLibrarySong} from '@core/schema/showLibrarySong';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {sampleService} from '@fixtures/renderer/session/sampleService';
@@ -9,7 +10,6 @@ import {applyService, useShow} from '@renderer/session/show';
 import {openLibrarySong} from '@renderer/session/showLibrary';
 
 const songId = createSongId('10000000-0000-4000-8000-000000000001');
-const mediaId = createMediaId('30000000-0000-4000-8000-000000000001');
 
 function song(overrides: Partial<ShowLibrarySong> = {}): ShowLibrarySong {
   return {
@@ -18,10 +18,19 @@ function song(overrides: Partial<ShowLibrarySong> = {}): ShowLibrarySong {
     title: '새벽의 빛',
     readOnly: false,
     tiles: [
-      {label: '1절', labelColor: '#5FB8C2', lines: ['창작한 첫 줄']},
-      {label: '후렴', labelColor: '#D68F5F', lines: ['창작한 두 번째 줄']},
+      {
+        slide: lyricsSlide(3, ['창작한 첫 줄']),
+        auto: {},
+        caption: '1절',
+        labelColor: '#5FB8C2',
+      },
+      {
+        slide: lyricsSlide(4, ['창작한 두 번째 줄']),
+        auto: {},
+        caption: '후렴',
+        labelColor: '#D68F5F',
+      },
     ],
-    background: {mediaId, loop: true},
     ...overrides,
   };
 }

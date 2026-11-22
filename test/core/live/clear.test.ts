@@ -1,8 +1,9 @@
+import {shownText} from '@fixtures/core/liveSlide';
 import {describe, expect, it} from 'vitest';
 import {hasSomethingToClear} from '@core/live/clear';
 import {emptyLayers} from '@core/live/state';
 
-const slide = {itemId: 'song', position: 0, label: null, lines: ['가사']};
+const slide = {itemId: 'song', position: 0, ...shownText(['가사'])};
 
 describe('hasSomethingToClear', () => {
   it('checks one layer, and any layer for all', () => {

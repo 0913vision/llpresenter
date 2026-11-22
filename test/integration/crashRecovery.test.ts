@@ -1,3 +1,4 @@
+import {shownText} from '@fixtures/core/liveSlide';
 import type {SettingsReader} from '@core/schema/settingsReader';
 import {readFile, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
@@ -41,7 +42,7 @@ const CRASH_STATE: LiveState = {
   stageMessage: 'Fixture stage note',
   layers: {
     ...emptyLiveState().layers,
-    slide: {itemId: SONG_ITEM, position: 0, label: null, lines: ['old']},
+    slide: {itemId: SONG_ITEM, position: 0, ...shownText(['old'])},
   },
 };
 
@@ -398,8 +399,7 @@ describe('a record written after another service opened', () => {
       slide: {
         itemId: SONG_ITEM,
         position: 1,
-        label: '후렴',
-        lines: ['Fixture'],
+        ...shownText(['Fixture']),
       },
     });
     open = OTHER_SERVICE;

@@ -18,7 +18,7 @@ import {
   parseSettingsDocument,
   type SettingsDocument,
 } from '@core/schema/settingsDocuments';
-import {createDefaultThemes} from '@core/themes/defaults';
+import {themes as sampleThemes} from '@fixtures/core/themeOutput';
 import {defaultPreferences} from '@core/schema/preferences';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {
@@ -61,7 +61,7 @@ function install(parts: {
   const defaults = mockLlpApi();
   const extra = new Map<string, SettingsDocument>();
   for (const [name, value] of [
-    ['themes', createDefaultThemes()],
+    ['themes', sampleThemes()],
     ['props', {format: 'llsettings.props', schemaVersion: 1, props: []}],
     [
       'macros',

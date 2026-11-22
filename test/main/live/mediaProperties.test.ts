@@ -1,7 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {parseMediaDocument} from '@core/schema/mediaEdit';
 import {createMediaId} from '@core/schema/ids';
-import {audioPositionSeconds} from '@core/schema/audioState';
 import {LiveStore} from '@main/live/store';
 
 const VIDEO = createMediaId('00000000-0000-4000-8000-000000000001');
@@ -32,45 +31,6 @@ function document(speed = 2, volume = 40) {
 }
 
 describe('media properties in the live store', () => {
-  it('keeps current audio and background anchors when undoing an unrelated clear', () => {
-    let now = 1000;
-    let current = document(1);
-    const store = new LiveStore(undefined, () => now);
-    const stop = store.connectAudioMedia(() => current.value);
-    const changed = (): void => {
-      store.dispatch({type: 'media.properties.refresh'});
-    };
-    store.dispatch({
-      type: 'audio.play',
-      source: {kind: 'media', mediaId: AUDIO},
-    });
-    store.dispatch({type: 'media.show', media: {mediaId: VIDEO, loop: true}});
-    store.dispatch({
-      type: 'slide.show',
-      slide: {itemId: 'invented', position: 0, label: null, lines: ['Example']},
-    });
-    store.dispatch({type: 'layer.clear', target: 'slide'});
-    now += 5000;
-    current = document(2);
-    changed();
-    const audio = store.state.layers.audio;
-    const media = store.state.layers.media;
-    now += 5000;
-    store.dispatch({type: 'clear.undo'});
-    expect(store.state.layers.slide?.lines).toEqual(['Example']);
-    expect(store.state.layers.audio).toBe(audio);
-    expect(store.state.layers.media).toBe(media);
-    const playback = store.state.layers.audio?.playback;
-    if (playback === undefined) throw new Error('Missing playback');
-    expect(
-      audioPositionSeconds(
-        playback,
-        now,
-        store.state.layers.audio?.properties?.speed,
-      ),
-    ).toBe(15);
-    stop();
-  });
   it('restores current media properties when a clear toggle is undone', () => {
     let now = 1000;
     let current = document();

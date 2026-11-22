@@ -1,4 +1,4 @@
-import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
+import {lyricsSlide} from '@fixtures/core/slides';
 import type {
   LibrarySong,
   SongChange,
@@ -6,7 +6,6 @@ import type {
 } from '@core/schema/contentDocuments';
 import {parseSongDocument} from '@core/schema/contentDocuments';
 import {createServiceId, createSongId} from '@core/schema/ids';
-import {sourceSlideCount} from '@core/schema/song';
 import {LIBRARY_SEARCH_LIMITS} from '@core/schema/librarySearch';
 import type {EditResult} from '@core/schema/contentEdit';
 import type {LibraryApi} from '@renderer/features/songs/library/useLibrary';
@@ -20,7 +19,7 @@ export function fixtureSong(number: number, title: string): SongDocument {
         `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`,
       ),
       title,
-      slides: [{id: fixtureSlideId(1), lines: [`Invented words ${number}`]}],
+      slides: [lyricsSlide(1, `Invented words ${number}`)],
     },
     revision: 1,
     access: 'editable',
@@ -51,7 +50,7 @@ export function libraryFixture(
     [...documents.values()].map(document => ({
       id: document.song.id,
       title: document.song.title,
-      slideCount: sourceSlideCount(document.song),
+      slideCount: document.song.slides.length,
       access: document.access,
       usedBy:
         document.song.id === initial[0]?.song.id

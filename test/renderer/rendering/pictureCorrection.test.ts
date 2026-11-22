@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {scaleFor} from '@core/themes/textStyle';
+import {scaleFor} from '@core/overlays/textStyle';
 import {pictureTransform} from '@renderer/rendering/pictureCorrection';
 
 const STILL = {x: 0, y: 0};

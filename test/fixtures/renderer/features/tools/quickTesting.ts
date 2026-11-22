@@ -1,3 +1,4 @@
+import {lyricsSlide} from '@fixtures/core/slides';
 import {vi} from 'vitest';
 import type {LlpApi} from '@contracts/ipc/api';
 import {isKnownQuickItem, type QuickItemKind} from '@core/schema/quick';
@@ -105,7 +106,14 @@ export function quickFixture() {
     songRevision: 1,
     title: '저장된 곡',
     readOnly: false,
-    tiles: [{label: '절 1', labelColor: 'none', lines: ['Invented song']}],
+    tiles: [
+      {
+        slide: lyricsSlide(1, ['Invented song']),
+        auto: {},
+        caption: '절 1',
+        labelColor: 'none',
+      },
+    ],
     background: {mediaId: quickId(102), loop: true},
   });
   if (!song.ok || song.value === null) throw new Error('Invalid song fixture');

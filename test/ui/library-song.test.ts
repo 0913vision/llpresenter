@@ -1,4 +1,4 @@
-import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
+import {lyricsSlide} from '@fixtures/core/slides';
 import {mkdir, readdir, readFile, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import type {Page} from 'playwright-core';
@@ -62,7 +62,7 @@ async function seedSong(
       schemaVersion: 1,
       id: song.id,
       title: song.title,
-      slides: [{id: fixtureSlideId(1), lines: [song.text], label: '1절'}],
+      slides: [lyricsSlide(1, [song.text], {label: '1절'})],
     }),
     'utf8',
   );

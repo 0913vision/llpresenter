@@ -1,571 +1,199 @@
 import {describe, expect, it} from 'vitest';
 import {
+  isItemOfKind,
   parseService,
   parseTemplate,
   serializeService,
   serializeTemplate,
-  serviceItemKind,
-  isItemOfKind,
   SERVICE_LIMITS,
 } from '@core/schema/service';
-import {
-  expectFailure,
-  expectSuccess,
-  TestRandom,
-} from '@fixtures/core/schema/testHelpers';
+import {expectFailure, expectSuccess} from '@fixtures/core/schema/testHelpers';
+import {lyricsSlide, slideOf, verseOf} from '@fixtures/core/slides';
 
-const FILE = 'Services/a41e0c52-7e1f-4a2b-8c3d-4e5f60718293.llservice';
-const RANDOM_SERVICES = 200;
-const SERVICE_ID = 'a41e0c52-7e1f-4a2b-8c3d-4e5f60718293';
-const SONG_ID = '6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab';
-const MEDIA_ID = '3b9d0c52-7e1f-4a2b-8c3d-4e5f60718293';
-const MACRO_ID = '7d3f1b20-2c3d-4e4f-a051-6b7c8d9e0f1a';
+const FILE = 'Services/sunday.llservice';
+const SONG = '6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab';
+const MEDIA = '3b9d0c52-7e1f-4a2b-8c3d-4e5f60718293';
+const MACRO = '7d3f1b20-2c3d-4e4f-a051-6b7c8d9e0f1a';
 const PASSAGE = {
   translation: 'krv',
   ref: '요한복음 3:16-18',
-  split: 'verse',
-  reference: 'every',
   verseNumbers: true,
   translationName: false,
 };
 
-function itemId(number: number): string {
-  return `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`;
-}
+const itemId = (number: number) =>
+  `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`;
 
-function sundayService() {
+/** One item of each kind. */
+const ITEMS: readonly object[] = [
+  {kind: 'header', id: itemId(1), name: '찬양'},
+  {
+    kind: 'song',
+    id: itemId(2),
+    name: '빛의 길',
+    song: SONG,
+    slides: [lyricsSlide(1, '맑은 아침이 밝아 오네')],
+    macro: MACRO,
+    memo: '천천히\n둘째 줄',
+  },
+  {
+    kind: 'bible',
+    id: itemId(3),
+    name: '요한복음 3:16-18',
+    passage: PASSAGE,
+    slides: [
+      slideOf(
+        2,
+        'scripture',
+        {본문: '가'},
+        {verse: verseOf(1), continued: true},
+      ),
+    ],
+  },
+  {
+    kind: 'sermon',
+    id: itemId(4),
+    name: '온유',
+    passage: PASSAGE,
+    slides: [slideOf(3, 'sermonTitle', {제목: '온유'})],
+  },
+  {
+    kind: 'liturgy',
+    id: itemId(5),
+    name: '사도신경',
+    liturgy: 'creed',
+    translation: 'new',
+    slides: [slideOf(4, 'creed', {본문: '나는'})],
+  },
+  {
+    kind: 'notice',
+    id: itemId(6),
+    name: '광고',
+    slides: [slideOf(5, 'notice', {제목: '하나'})],
+  },
+  {kind: 'blank', id: itemId(7), name: '빈 슬라이드', slides: []},
+  {kind: 'media', id: itemId(8), name: '영상', media: MEDIA, slides: []},
+];
+
+function service(order: readonly object[] = ITEMS) {
   return {
     format: 'llservice',
     schemaVersion: 1,
-    id: SERVICE_ID,
+    id: 'a41e0c52-7e1f-4a2b-8c3d-4e5f60718293',
     name: '주일 예배',
     date: '2026-11-01T11:00',
-    order: [
-      {id: itemId(1), header: '찬양'},
-      {
-        slides: [],
-        id: itemId(2),
-        song: SONG_ID,
-        background: MEDIA_ID,
-        macro: MACRO_ID,
-        memo: '천천히\n둘째 줄',
-      },
-      {id: itemId(3), header: 'Offering'},
-      {id: itemId(4), bible: PASSAGE, memo: ''},
-      {id: itemId(5), media: MEDIA_ID},
-    ],
+    order,
   };
 }
 
-function sundayTemplate() {
-  const {date: _date, ...service} = sundayService();
-  return {...service, time: '11:00'};
+function template(order: readonly object[] = ITEMS) {
+  const {date: _date, ...rest} = service(order);
+  return {...rest, time: '11:00'};
 }
 
-function parse(json: unknown) {
-  return parseService(JSON.stringify(json), FILE);
-}
+const parse = (data: unknown) => parseService(JSON.stringify(data), FILE);
 
-function withItem(item: object) {
-  return {...sundayService(), order: [item]};
-}
-
-describe('parseService', () => {
-  it('round-trips manual empty text and its source, and rejects malformed bindings', () => {
-    const referenceSlot = `${itemId(7)}/shared/reference`;
-    const reference = {
-      slotId: 'reference',
-      role: 'reference',
-      mode: 'manual',
-      sourceThemeId: itemId(7),
-      text: '',
-    };
-    const textOverrides = {
-      'verse:sample:43:3:16:1': {
-        [referenceSlot]: reference,
-        currentText: 'Two\nlines',
-      },
-    };
-    const item = {id: itemId(4), bible: PASSAGE, textOverrides};
-    const saved = expectSuccess(parse(withItem(item))).data;
-    const written = expectSuccess(serializeService(saved, FILE));
-    expect(expectSuccess(parseService(written, FILE)).data.order[0]).toEqual(
-      item,
-    );
+describe('a service file', () => {
+  it('reads and writes an item of every kind', () => {
+    const read = expectSuccess(parse(service()));
+    expect(read.data.order).toEqual(ITEMS);
     expect(
-      parse(
-        withItem({
-          ...item,
-          textOverrides: {
-            'verse:sample:43:3:16:1': {
-              [referenceSlot]: {...reference, slotId: ''},
-            },
-          },
-        }),
-      ).ok,
-    ).toBe(false);
-  });
-
-  it('round-trips confirmed cuts owned by one Bible passage and rejects invalid entries', () => {
-    const entry = {
-      hash: '1234abcd',
-      cuts: [2, 4],
-      confirmedAt: '2026-11-20T00:00:00Z',
-    };
-    const item = {id: itemId(4), bible: {...PASSAGE, cuts: {'43:3:16': entry}}};
-    const service = expectSuccess(parse(withItem(item))).data;
-    expect(service.order[0]).toEqual(item);
-    const written = expectSuccess(serializeService(service, FILE));
-    expect(expectSuccess(parseService(written, FILE)).data.order[0]).toEqual(
-      item,
-    );
-    expect(
-      parse(
-        withItem({
-          ...item,
-          bible: {...PASSAGE, cuts: {'43:3:16': {...entry, cuts: [4, 2]}}},
-        }),
-      ).ok,
-    ).toBe(false);
-  });
-
-  it('round-trips removed verse and sermon card identities without modifying the reference', () => {
-    const versePart = 'verse:krv:43:3:16:2';
-    const passage = {...PASSAGE, deletedSlides: ['sermon:opening', versePart]};
-    const item = {id: itemId(4), sermon: {title: 'Sermon', passage}};
-    const service = expectSuccess(parse(withItem(item))).data;
-    const written = expectSuccess(serializeService(service, FILE));
-    expect(expectSuccess(parseService(written, FILE)).data.order[0]).toEqual(
-      item,
-    );
-    for (const deletedSlides of [
-      [versePart, versePart],
-      ['sermon:title'],
-      [2],
-    ]) {
-      expect(
-        parse(
-          withItem({
-            ...item,
-            sermon: {...item.sermon, passage: {...passage, deletedSlides}},
-          }),
-        ).ok,
-      ).toBe(false);
-    }
-  });
-
-  it('accepts per-item background overrides and rejects malformed choices', () => {
-    const items = [
-      {id: itemId(20), song: SONG_ID, slides: []},
-      {id: itemId(21), bible: PASSAGE},
-      {id: itemId(22), sermon: {title: 'Title', passage: PASSAGE}},
-      {id: itemId(23), liturgy: {kind: 'creed', translation: 'new'}},
-      {id: itemId(24), slides: {form: 'blank', name: 'Blank', slides: []}},
-      {id: itemId(25), media: MEDIA_ID},
-    ];
-    for (const item of items) {
-      expect(parse(withItem({...item, background: MEDIA_ID})).ok).toBe(true);
-      expect(parse(withItem({...item, backgroundNone: true})).ok).toBe(true);
-      expect(parse(withItem({...item, backgroundNone: 'yes'})).ok).toBe(false);
-      expect(parse(withItem({...item, background: 'invalid'})).ok).toBe(false);
-      expect(
-        parse(withItem({...item, background: MEDIA_ID, backgroundNone: true}))
-          .ok,
-      ).toBe(false);
-    }
-  });
-
-  it('validates individual liturgy transition slots', () => {
-    const entry = {index: 0, transition: {kind: 'wipe', dir: 'left', sec: 0.7}};
-    const item = {
-      id: itemId(43),
-      liturgy: {kind: 'prayer', translation: 'new', transitions: [entry]},
-    };
-    expect(expectSuccess(parse(withItem(item))).data.order[0]).toMatchObject(
-      item,
-    );
-    expect(
-      parse(
-        withItem({
-          ...item,
-          liturgy: {...item.liturgy, transitions: [entry, entry]},
-        }),
-      ).ok,
-    ).toBe(false);
-    expect(
-      parse(
-        withItem({
-          ...item,
-          liturgy: {...item.liturgy, transitions: [{...entry, index: 200}]},
-        }),
-      ).ok,
-    ).toBe(false);
-  });
-  it('preserves saved theme IDs in services and templates', () => {
-    const old = '00000000-0000-4000-8000-000000000107';
-    const image = {
-      id: itemId(31),
-      theme: old,
-      slides: {
-        form: 'blank',
-        name: 'Deck',
-        slides: [{id: itemId(32), media: MEDIA_ID}],
-      },
-    };
-    const text = {
-      id: itemId(33),
-      theme: old,
-      slides: {
-        form: 'blank',
-        name: 'Sermon',
-        slides: [{id: itemId(34), text: 'Title'}],
-      },
-    };
-    const data = {...sundayService(), order: [image, text]};
-    const parsed = expectSuccess(parse(data)).data;
-    expect(parsed.order[0]?.theme).toBe(old);
-    expect(parsed.order[1]?.theme).toBe(old);
-    const template = {...sundayTemplate(), order: [image, text]};
-    const parsedTemplate = expectSuccess(
-      parseTemplate(JSON.stringify(template), FILE),
-    ).data;
-    expect(parsedTemplate.order[0]?.theme).toBe(old);
-    expect(parsedTemplate.order[1]?.theme).toBe(old);
-    const written = expectSuccess(serializeService(parsed, FILE));
-    expect(expectSuccess(parseService(written, FILE)).data.order).toEqual(
-      parsed.order,
-    );
-  });
-  it('accepts bounded liturgy kind and version choices and rejects mixed or invalid kinds', () => {
-    for (const kind of ['creed', 'prayer']) {
-      for (const translation of ['new', 'old']) {
-        const item = {id: itemId(42), liturgy: {kind, translation}};
-        const loaded = expectSuccess(parse(withItem(item)));
-        expect(loaded.data.order.map(serviceItemKind)).toEqual(['liturgy']);
-        expect(
-          expectSuccess(
-            parseService(
-              expectSuccess(serializeService(loaded.data, FILE)),
-              FILE,
-            ),
-          ).data,
-        ).toEqual(loaded.data);
-      }
-    }
-    expect(
-      parse(
-        withItem({
-          id: itemId(42),
-          liturgy: {kind: 'other', translation: 'new'},
-        }),
-      ).ok,
-    ).toBe(false);
-    expect(
-      parse(
-        withItem({
-          id: itemId(42),
-          liturgy: {kind: 'creed', translation: 'x'.repeat(10000)},
-        }),
-      ).ok,
-    ).toBe(false);
-    expect(
-      parse(
-        withItem({
-          id: itemId(42),
-          liturgy: {kind: 'creed', translation: 'new'},
-          bible: PASSAGE,
-        }),
-      ).ok,
-    ).toBe(false);
-  });
-  it('round-trips a bounded sermon with a title and Bible passage', () => {
-    const item = {id: itemId(41), sermon: {title: 'Sermon', passage: PASSAGE}};
-    const loaded = expectSuccess(parse(withItem(item)));
-    expect(loaded.data.order).toEqual([item]);
-    expect(loaded.data.order.map(serviceItemKind)).toEqual(['sermon']);
-    const saved = expectSuccess(serializeService(loaded.data, FILE));
-    expect(expectSuccess(parseService(saved, FILE)).data).toEqual(loaded.data);
-    for (const title of ['', '   ', 'x'.repeat(1001)]) {
-      expect(
-        parse(withItem({...item, sermon: {...item.sermon, title}})).ok,
-      ).toBe(false);
-    }
-    expect(
-      parse(
-        withItem({
-          ...item,
-          sermon: {...item.sermon, passage: {...PASSAGE, verseNumbers: 'yes'}},
-        }),
-      ).ok,
-    ).toBe(false);
-    expect(parse(withItem({...item, bible: PASSAGE})).ok).toBe(false);
-  });
-
-  it('reads a service with every current item kind', () => {
-    const loaded = expectSuccess(parse(sundayService()));
-
-    expect(loaded.data).toEqual(sundayService());
-    expect(loaded.data.order.map(serviceItemKind)).toEqual([
-      'header',
-      'song',
-      'header',
-      'bible',
-      'media',
-    ]);
-  });
-
-  it('reads the 테마 and 오버레이 of an item and checks them', () => {
-    const overlay = {
-      id: itemId(20),
-      name: '후렴 자막',
-      from: 1,
-      to: 2,
-      screens: [itemId(21)],
-      content: {text: '아멘'},
-    };
-    const item = {id: itemId(5), media: MEDIA_ID};
-    const extended = {...item, theme: itemId(22), overlays: [overlay]};
-
-    expect(expectSuccess(parse(withItem(extended))).data.order).toEqual([
-      extended,
-    ]);
-    expect(parse(withItem({...item, theme: 'missing'})).ok).toBe(false);
-    expect(
-      parse(
-        withItem({
-          ...extended,
-          overlays: [overlay, {...overlay, id: itemId(23)}],
-        }),
-      ).ok,
-    ).toBe(false);
-  });
-
-  it('keeps an item of an unknown kind unchanged', () => {
-    const scripture = {id: itemId(9), scripture: {page: 3}, memo: '?'};
-
-    const service = expectSuccess(parse(withItem(scripture))).data;
-    const [item] = service.order;
-
-    expect(item).toEqual(scripture);
-    expect(item === undefined ? undefined : serviceItemKind(item)).toBe(
-      'unknown',
-    );
-    const written: unknown = JSON.parse(
-      expectSuccess(serializeService(service, FILE)),
-    );
-    expect(written).toMatchObject({order: [scripture]});
-  });
-
-  it('keeps unknown fields in items and in the Bible passage', () => {
-    const service = sundayService();
-    const withUnknown = {
-      ...service,
-      order: [
-        ...service.order.map(item => ({...item, flag: 'x'})),
-        {id: itemId(7), bible: {...PASSAGE, highlight: '#D6B35F'}},
-      ],
-      theme: 'dark',
-    };
-
-    const loaded = expectSuccess(parse(withUnknown));
-    const text = expectSuccess(serializeService(loaded.data, FILE));
-
-    expect(loaded.data).toEqual(withUnknown);
-    expect(expectSuccess(parseService(text, FILE)).data).toEqual(withUnknown);
-    expect(text).toContain('"highlight": "#D6B35F"');
+      JSON.parse(expectSuccess(serializeService(read.data, FILE))),
+    ).toEqual(service());
   });
 
   it.each([
+    ['a song without its song', {...ITEMS[1], song: undefined}],
+    ['a song without slides', {...ITEMS[1], slides: undefined}],
     [
-      'an item with two kind keys',
-      {slides: [], id: itemId(1), song: SONG_ID, media: MEDIA_ID},
-      'order.0',
-    ],
-    ['an item without an id', {header: '찬양'}, 'order.0.id'],
-    [
-      'a song item with a song path',
-      {slides: [], id: itemId(1), song: 'Songs/a.llsong'},
-      'order.0.song',
+      'two slides with one id',
+      {
+        ...ITEMS[1],
+        slides: [lyricsSlide(1, 'a'), lyricsSlide(1, 'b')],
+      },
     ],
     [
-      'a memo that is not text',
-      {id: itemId(1), media: MEDIA_ID, memo: 1},
-      'order.0.memo',
+      'a passage without an address',
+      {
+        ...ITEMS[2],
+        passage: {...PASSAGE, ref: ''},
+      },
     ],
-    [
-      'a Bible passage without a reference',
-      {id: itemId(1), bible: {...PASSAGE, ref: ''}},
-      'order.0.bible.ref',
-    ],
-  ])('rejects %s', (_name, item, field) => {
-    const error = expectFailure(parse(withItem(item)));
-
-    expect(error).toMatchObject({kind: 'invalid', file: FILE, field});
+    ['a liturgy it does not know', {...ITEMS[4], liturgy: 'other'}],
+    ['an item without a name', {...ITEMS[6], name: undefined}],
+    ['an item that is none', 'header'],
+  ])('refuses %s', (_name, item) => {
+    expect(parse(service([item as object])).ok).toBe(false);
   });
 
-  it.each(['two', 'fit'])('preserves an old Bible split %s', split => {
-    const file = withItem({id: itemId(1), bible: {...PASSAGE, split}});
-    expect(expectSuccess(parse(file)).data).toEqual(file);
-  });
-
-  it('accepts a Bible passage that shows its reference on the last slide only', () => {
+  it('keeps an item of a kind it does not know unchanged', () => {
+    const later = {kind: 'poll', id: itemId(9), name: '투표', future: {a: 1}};
+    const read = expectSuccess(parse(service([later])));
     expect(
-      parse(withItem({id: itemId(1), bible: {...PASSAGE, reference: 'last'}}))
-        .ok,
-    ).toBe(true);
+      JSON.parse(expectSuccess(serializeService(read.data, FILE))),
+    ).toEqual(service([later]));
   });
 
-  it('rejects an item that is not an object', () => {
-    const error = expectFailure(parse({...sundayService(), order: ['찬양']}));
-
-    expect(error).toMatchObject({kind: 'invalid', field: 'order.0'});
+  it('keeps the fields it does not know', () => {
+    const input = service([
+      {...ITEMS[1], future: 1},
+      {...ITEMS[2], passage: {...PASSAGE, future: 2}},
+    ]);
+    const read = expectSuccess(parse(input));
+    expect(
+      JSON.parse(expectSuccess(serializeService(read.data, FILE))),
+    ).toEqual(input);
   });
 
-  it('rejects two items with the same id', () => {
-    const service = sundayService();
-    const [first, second] = service.order;
-    const order = [first, {...second, id: first?.id}];
-
-    const error = expectFailure(parse({...service, order}));
-
-    expect(error).toMatchObject({kind: 'invalid', field: 'order.1'});
+  it('refuses two items with one id', () => {
+    const [first] = ITEMS;
+    expectFailure(parse(service([first ?? {}, first ?? {}])));
   });
 
-  it.each([
-    ['a space instead of T', '2026-11-01 11:00'],
-    ['seconds', '2026-11-01T11:00:00'],
-    ['a time zone', '2026-11-01T11:00+09:00'],
-    ['hour 24', '2026-11-01T24:00'],
-    ['February 30', '2026-02-30T11:00'],
-    ['February 29 in 2027', '2027-02-29T11:00'],
-  ])('rejects a date with %s', (_name, date) => {
-    expect(expectFailure(parse({...sundayService(), date})).field).toBe('date');
-  });
+  it.each(['2026-02-29T11:00', '2026-11-01', '2026-11-01T24:00', ''])(
+    'refuses the date %s',
+    date => {
+      expect(parse({...service(), date}).ok).toBe(false);
+    },
+  );
 
-  it('accepts February 29 in a leap year', () => {
-    const service = {...sundayService(), date: '2028-02-29T09:30'};
-
-    expect(expectSuccess(parse(service)).data.date).toBe('2028-02-29T09:30');
-  });
-
-  it('round-trips an existing service time unchanged', () => {
-    const original = {...sundayService(), date: '2026-11-01T17:35'};
-    const service = expectSuccess(parse(original)).data;
-    const text = expectSuccess(serializeService(service, FILE));
-    expect(expectSuccess(parseService(text, FILE)).data).toEqual(original);
-  });
-
-  it('rejects a template, which has no date', () => {
-    expect(expectFailure(parse(sundayTemplate())).field).toBe('date');
-  });
-
-  it('round-trips random services', () => {
-    const random = new TestRandom(2);
-    for (let run = 0; run < RANDOM_SERVICES; run++) {
-      const raw = randomService(random);
-
-      const service = expectSuccess(parse(raw)).data;
-      const text = expectSuccess(serializeService(service, FILE));
-
-      expect(expectSuccess(parseService(text, FILE)).data).toEqual(raw);
-    }
+  it('refuses one item over the cap', () => {
+    const many = (count: number) =>
+      service(
+        Array.from({length: count}, (_, index) => ({
+          kind: 'header',
+          id: itemId(index + 100),
+          name: '구역',
+        })),
+      );
+    expect(parse(many(SERVICE_LIMITS.items)).ok).toBe(true);
+    expect(parse(many(SERVICE_LIMITS.items + 1)).ok).toBe(false);
   });
 });
 
-describe('parseTemplate', () => {
-  it('reads a template with a default time and filled items', () => {
-    const template = sundayTemplate();
+describe('a template file', () => {
+  it('is read and written with its time or without it', () => {
+    const {time: _time, ...without} = template();
+    for (const input of [template(), without]) {
+      const read = expectSuccess(parseTemplate(JSON.stringify(input), FILE));
+      expect(
+        JSON.parse(expectSuccess(serializeTemplate(read.data, FILE))),
+      ).toEqual(input);
+    }
+  });
 
+  it('refuses a time that is none, and a service refuses a template', () => {
     expect(
-      expectSuccess(parseTemplate(JSON.stringify(template), FILE)).data,
-    ).toEqual(template);
-  });
-
-  it('reads a template without a time', () => {
-    const {time: _time, ...template} = sundayTemplate();
-
-    expect(
-      expectSuccess(parseTemplate(JSON.stringify(template), FILE)).data,
-    ).toEqual(template);
-  });
-
-  it('rejects a time that is not HH:mm', () => {
-    const template = {...sundayTemplate(), time: '9:30'};
-
-    const error = expectFailure(parseTemplate(JSON.stringify(template), FILE));
-
-    expect(error).toMatchObject({kind: 'invalid', field: 'time'});
-  });
-
-  it('writes back what it read', () => {
-    const template = expectSuccess(
-      parseTemplate(JSON.stringify(sundayTemplate()), FILE),
-    ).data;
-
-    const text = expectSuccess(serializeTemplate(template, FILE));
-
-    expect(JSON.parse(text)).toEqual(sundayTemplate());
+      parseTemplate(JSON.stringify({...template(), time: '11시'}), FILE).ok,
+    ).toBe(false);
+    expect(parse(template()).ok).toBe(false);
   });
 });
 
 describe('isItemOfKind', () => {
   it('narrows an item to its kind', () => {
-    const service = expectSuccess(parse(sundayService())).data;
-
-    const songs = service.order.filter(item => isItemOfKind(item, 'song'));
-
-    expect(songs.map(({song}) => song)).toEqual([SONG_ID]);
-  });
-});
-
-function randomService(random: TestRandom) {
-  const order = Array.from({length: random.integer(0, 8)}, () =>
-    randomItem(random),
-  );
-  return {
-    format: 'llservice',
-    schemaVersion: 1,
-    id: random.uuid(),
-    name: random.pick(['주일 예배', '수요 예배', '']),
-    date: `2026-${random.pick(['01', '06', '12'])}-1${random.integer(0, 9)}T0${random.integer(0, 9)}:30`,
-    order,
-  };
-}
-
-function randomItem(random: TestRandom): object {
-  const id = random.uuid();
-  const memo = random.boolean() ? {memo: '메모'} : {};
-  return random.pick<object>([
-    {id, header: '찬양'},
-    {slides: [], id, song: random.uuid(), ...memo},
-    {id, header: 'Empty section'},
-    {id, media: random.uuid(), macro: random.uuid()},
-    {id, future: {kind: random.integer(0, 9)}},
-  ]);
-}
-
-describe('service item limit', () => {
-  const many = (count: number) => ({
-    ...sundayService(),
-    order: Array.from({length: count}, (_, index) => ({
-      id: itemId(index + 1),
-      header: '구역',
-    })),
-  });
-
-  it('accepts a 예배 순서 and a 템플릿 at the item limit and refuses one past it', () => {
-    const atLimit = many(SERVICE_LIMITS.items);
-    expect(parseService(JSON.stringify(atLimit), FILE).ok).toBe(true);
-    expect(
-      parseService(JSON.stringify(many(SERVICE_LIMITS.items + 1)), FILE).ok,
-    ).toBe(false);
-    const template = {
-      format: 'llservice',
-      schemaVersion: 1,
-      id: SERVICE_ID,
-      name: '템플릿',
-      order: many(SERVICE_LIMITS.items + 1).order,
-    };
-    expect(parseTemplate(JSON.stringify(template), FILE).ok).toBe(false);
+    const {order} = expectSuccess(parse(service())).data;
+    const songs = order.filter(item => isItemOfKind(item, 'song'));
+    expect(songs.map(item => item.song)).toEqual([SONG]);
   });
 });

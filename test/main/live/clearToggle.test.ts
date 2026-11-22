@@ -1,9 +1,10 @@
+import {shownText} from '@fixtures/core/liveSlide';
 import {expect, it} from 'vitest';
 import type {ClearTarget} from '@core/live/commands';
 import {emptyLiveState, layerKinds} from '@core/live/state';
 import {LiveStore} from '@main/live/store';
 
-const slide = {itemId: 'fixture', position: 0, label: null, lines: ['Current']};
+const slide = {itemId: 'fixture', position: 0, ...shownText(['Current'])};
 function setup() {
   const initial = emptyLiveState();
   return new LiveStore(
@@ -20,51 +21,6 @@ function setup() {
     {wall: () => 1000, timer: () => 1000},
   );
 }
-
-it('updates the live Bible passage title without changing the slide, black state, or clear undo', () => {
-  const state = emptyLiveState();
-  const bible = {...slide, reference: '요한복음 3:16', title: '요한복음 3:16'};
-  const store = new LiveStore({
-    ...state,
-    layers: {
-      ...state.layers,
-      slide: bible,
-      media: {mediaId: 'background', loop: true, startedAt: 0},
-    },
-    themeItem: {
-      id: slide.itemId,
-      kind: 'bible',
-      source: 'external',
-      title: '요한복음 3:16',
-    },
-  });
-  store.dispatch({type: 'layer.clear', target: 'media'});
-  store.dispatch({type: 'black.toggle'});
-  store.dispatch({
-    type: 'bible.passage.title.set',
-    itemId: slide.itemId,
-    position: 0,
-    title: '요한복음 3:16~17',
-  });
-  expect(store.state.blackScreen).toBe(true);
-  expect(store.state.canUndo).toBe(true);
-  expect(store.state.themeItem?.title).toBe('요한복음 3:16~17');
-  expect(store.state.layers.slide).toEqual({
-    ...bible,
-    title: '요한복음 3:16~17',
-  });
-  store.dispatch({
-    type: 'bible.passage.title.set',
-    itemId: 'other',
-    position: 0,
-    title: 'stale',
-  });
-  expect(store.state.themeItem?.title).toBe('요한복음 3:16~17');
-  store.dispatch({type: 'clear.undo'});
-  expect(store.state.layers.media?.mediaId).toBe('background');
-  expect(store.state.themeItem?.title).toBe('요한복음 3:16~17');
-  expect(store.state.layers.slide?.title).toBe('요한복음 3:16~17');
-});
 
 it.each<ClearTarget>(['all', ...layerKinds])(
   'clears and restores %s on successive key presses',
@@ -150,47 +106,6 @@ it('drops saved restore flags when recovery has no in-memory clear captures', ()
   expect(store.dispatch({type: 'layer.clear.toggle', target: 'slide'})).toBe(
     false,
   );
-});
-
-it.each(['media', 'message'] as const)(
-  'keeps %s clear undo while updating stage preview',
-  target => {
-    const store = setup();
-    const cleared = store.state.layers[target];
-    store.dispatch({type: 'layer.clear', target});
-    expect(store.state.canUndo).toBe(true);
-    store.dispatch({
-      type: 'stage.next.set',
-      itemId: slide.itemId,
-      position: slide.position,
-      next: {label: null, lines: ['Next']},
-    });
-    expect(store.state.canUndo).toBe(true);
-    expect(store.state.layers.slide).toEqual({
-      ...slide,
-      next: {label: null, lines: ['Next']},
-    });
-    store.dispatch({type: 'clear.undo'});
-    expect(store.state.layers[target]).toEqual(cleared);
-    expect(store.state.layers.slide).toEqual({
-      ...slide,
-      next: {label: null, lines: ['Next']},
-    });
-  },
-);
-
-it('keeps a clear toggle capture when the stage preview changes', () => {
-  const store = setup();
-  store.dispatch({type: 'layer.clear.toggle', target: 'media'});
-  store.dispatch({
-    type: 'stage.next.set',
-    itemId: slide.itemId,
-    position: slide.position,
-    next: {label: null, lines: ['Next']},
-  });
-  expect(store.state.clearToggles).toEqual(['media']);
-  store.dispatch({type: 'layer.clear.toggle', target: 'media'});
-  expect(store.state.layers.media?.mediaId).toBe('background');
 });
 
 it('toggles black without changing the live slide, media, audio or overlays', () => {

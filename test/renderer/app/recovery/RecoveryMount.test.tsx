@@ -1,9 +1,10 @@
+import {shownText} from '@fixtures/core/liveSlide';
 import {act, cleanup, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import type {RecoveryResult, RecoverySummary} from '@core/schema/recovery';
-import {editorFixture} from '@fixtures/renderer/features/songs/editor/editorFixture';
+import {editorFixture} from '@fixtures/renderer/features/songs/editorFixture';
 import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
 import {useLive} from '@renderer/session/live';
 import {applyService} from '@renderer/session/show';
@@ -105,7 +106,7 @@ it('lets F1 clear the screens while the dialog is open', async () => {
       ...empty,
       layers: {
         ...empty.layers,
-        slide: {itemId: 'invented', position: 0, label: null, lines: ['가사']},
+        slide: {itemId: 'invented', position: 0, ...shownText(['가사'])},
       },
     },
   });

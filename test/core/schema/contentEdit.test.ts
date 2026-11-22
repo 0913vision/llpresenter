@@ -1,3 +1,4 @@
+import {lyricsSlide} from '@fixtures/core/slides';
 import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
 import {describe, expect, it} from 'vitest';
 import {parseContentEdit, parseEditResult} from '@core/schema/contentEdit';
@@ -14,9 +15,7 @@ function song() {
     schemaVersion: 1,
     id: SONG_ID,
     title: '만복의 근원 하나님',
-    slides: [
-      {id: fixtureSlideId(1), lines: ['Invented contract line'], label: '1절'},
-    ],
+    slides: [lyricsSlide(1, ['Invented contract line'], {label: '1절'})],
   };
 }
 

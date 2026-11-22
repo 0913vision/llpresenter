@@ -1,3 +1,4 @@
+import {shownText} from '@fixtures/core/liveSlide';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {liveEndpoints} from '@contracts/ipc/live';
 import {windowEndpoints} from '@contracts/ipc/window';
@@ -143,7 +144,7 @@ describe('registerIpc live commands', () => {
       const itemId = 'bible:fixture';
       const first: LiveState = {
         ...emptyLiveState(),
-        themeItem: {
+        item: {
           id: itemId,
           kind: 'bible',
           source: 'external',
@@ -151,7 +152,7 @@ describe('registerIpc live commands', () => {
         },
         layers: {
           ...emptyLiveState().layers,
-          slide: {itemId, position: 0, lines: ['Text'], label: null},
+          slide: {itemId, position: 0, ...shownText(['Text'])},
         },
       };
       const store = {
@@ -170,7 +171,7 @@ describe('registerIpc live commands', () => {
         const next = {
           ...first,
           version: 1,
-          themeItem: {
+          item: {
             id: itemId,
             kind: 'bible' as const,
             source: 'external' as const,
@@ -199,7 +200,7 @@ describe('registerIpc live commands', () => {
     const next: LiveState = {
       ...store.state,
       version: 1,
-      themeItem: {
+      item: {
         id: 'bible:fixture',
         kind: 'bible',
         source: 'external',
@@ -210,8 +211,7 @@ describe('registerIpc live commands', () => {
         slide: {
           itemId: 'bible:fixture',
           position: 0,
-          lines: ['Text'],
-          label: null,
+          ...shownText(['Text']),
         },
       },
     };

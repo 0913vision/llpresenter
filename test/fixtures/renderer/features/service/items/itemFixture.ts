@@ -1,6 +1,3 @@
-import * as songEditorRequests from '@renderer/features/songs/editor/songEditorRequests';
-import {onTestFinished, vi} from 'vitest';
-import type {LlpApi} from '@contracts/ipc/api';
 import {
   parseServiceDocument,
   type ServiceChange,
@@ -10,7 +7,7 @@ import type {EditResult} from '@core/schema/contentEdit';
 import {createServiceId, createServiceItemId} from '@core/schema/ids';
 import {parseSettingsDocument} from '@core/schema/settingsDocuments';
 import {itemMedia} from '@fixtures/core/mediaList';
-import {editorFixture} from '@fixtures/renderer/features/songs/editor/editorFixture';
+import {editorFixture} from '@fixtures/renderer/features/songs/editorFixture';
 
 export const fixtureServiceId = createServiceId(
   '40000000-0000-4000-8000-000000000001',
@@ -85,24 +82,30 @@ export function itemFixture() {
       name: '주일 예배',
       date: '2026-10-25T11:00',
       order: [
-        {id: fixtureItems.header, header: '찬양'},
+        {id: fixtureItems.header, kind: 'header', name: '찬양'},
         {
-          slides: editor.first.song.slides,
           id: fixtureItems.arranged,
+          kind: 'song',
+          name: editor.first.song.title,
           song: editor.first.song.id,
+          slides: editor.first.song.slides,
           memo: '천천히',
           future: {keep: true},
         },
         {
-          slides: editor.first.song.slides,
           id: fixtureItems.plain,
+          kind: 'song',
+          name: editor.second.song.title,
           song: editor.second.song.id,
-        },
-        {id: fixtureItems.slot, header: '헌금 찬양'},
-        {
           slides: editor.first.song.slides,
+        },
+        {id: fixtureItems.slot, kind: 'header', name: '헌금 찬양'},
+        {
           id: fixtureItems.lost,
+          kind: 'song',
+          name: editor.first.song.title,
           song: editor.first.song.id,
+          slides: editor.first.song.slides,
         },
       ],
     },
@@ -174,15 +177,4 @@ export function itemFixture() {
     pushService,
     serviceListeners: () => services.size,
   };
-}
-
-/** Makes `window.llp` the fixture's API and records the 곡 편집 window opens. */
-export function spyOnSongEditorWindow(api: LlpApi) {
-  window.llp = api;
-  onTestFinished(() => {
-    delete window.llp;
-  });
-  return vi
-    .spyOn(songEditorRequests, 'requestSongEditor')
-    .mockResolvedValue({ok: true, value: undefined});
 }

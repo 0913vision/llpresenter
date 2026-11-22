@@ -14,7 +14,6 @@ beforeEach(() => {
     openItemId: 'first',
     selectedTile: 2,
     librarySong: null,
-    bibleSource: null,
   });
 });
 

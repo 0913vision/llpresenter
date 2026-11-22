@@ -1,4 +1,4 @@
-import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
+import {lyricsSlide} from '@fixtures/core/slides';
 import {
   ask,
   askForService,
@@ -37,7 +37,7 @@ describe('content opening through registerStore', () => {
       schemaVersion: 1,
       id: itemId(82),
       title: 'Standalone editable song',
-      slides: [{id: fixtureSlideId(1), lines: ['Before']}],
+      slides: [lyricsSlide(1, ['Before'])],
     };
     await writeJson(join(root, 'Songs', `${song.id}.llsong`), song);
     const store = await register(mockLog(), context, () => true);
@@ -113,8 +113,8 @@ describe('content opening through registerStore', () => {
       title: 'Standalone invented song',
       background: mediaId,
       slides: [
-        {id: fixtureSlideId(2), lines: ['First'], label: 'Verse'},
-        {id: fixtureSlideId(3), lines: ['Second']},
+        lyricsSlide(2, ['First'], {label: 'Verse'}),
+        lyricsSlide(3, ['Second']),
       ],
       future: 'kept',
     });
@@ -164,7 +164,7 @@ describe('content opening through registerStore', () => {
     const original = {
       ...hymnOne(),
       title: '새벽의 길',
-      slides: [{id: fixtureSlideId(4), lines: ['돌아온 아침빛']}],
+      slides: [lyricsSlide(4, ['돌아온 아침빛'])],
     };
     await writeJson(join(root, 'Songs', 'song.llsong'), original);
     const store = await register(mockLog(), context, () => true);
@@ -264,7 +264,13 @@ describe('content opening through registerStore', () => {
     await writeJson(
       join(root, 'Services', 'open.llservice'),
       service(SUNDAY_ID, '2026-11-01T11:00', [
-        {slides: [], id: itemId(1), song: HYMN_ONE_ID},
+        {
+          id: itemId(1),
+          kind: 'song',
+          name: '곡',
+          song: HYMN_ONE_ID,
+          slides: [],
+        },
       ]),
     );
     await register(mockLog(), context, () => true);

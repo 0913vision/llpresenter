@@ -13,7 +13,7 @@ import {emptyLiveState} from '@core/live/state';
 import type {UiState} from '@core/schema/uiState';
 import type {MediaImportProgress} from '@core/schema/mediaEdit';
 import {createMediaId} from '@core/schema/ids';
-import {editorFixture} from '@fixtures/renderer/features/songs/editor/editorFixture';
+import {editorFixture} from '@fixtures/renderer/features/songs/editorFixture';
 import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
 import {useLive} from '@renderer/session/live';
 import {applyService} from '@renderer/session/show';

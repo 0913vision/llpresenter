@@ -1,17 +1,16 @@
+import {emptyLiveState} from '@core/live/state';
+import {settingsDefaults} from '@main/store/settingsDefaults';
 import {describe, expect, it, vi} from 'vitest';
-import {emptyLiveState, type LiveState} from '@core/live/state';
+import {type LiveState} from '@core/live/state';
 import {parseLiveCommand} from '@core/schema/liveCommand';
-import {parseLiveState} from '@core/schema/liveState';
 import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
 import {parseSettingsDocument} from '@core/schema/settingsDocuments';
 import {defaultPreferences} from '@core/schema/preferences';
-import {MAX_ACTIVE_MESSAGES} from '@core/schema/overlayState';
 import {serializeRecoveryRecord} from '@core/schema/recoveryRecord';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {parseMacroId} from '@core/schema/ids';
-import {STARTER_TEXT_STYLE} from '@core/themes/starterLayout';
+import {DEFAULT_TEXT_STYLE} from '@core/overlays/textStyle';
 import {recordingLogger} from '@fixtures/main/displays/testing';
-import {settingsDefaults} from '@main/store/settingsDefaults';
 import {LiveStore, dispatchLogged} from '@main/live/store';
 import {SliceRegistry} from '@main/live/sliceRegistry';
 import {batchSlice} from '@main/live/slices/batch';
@@ -343,73 +342,6 @@ describe('live admission limits', () => {
     releaseSettings();
   });
 
-  it('rejects a batch whose valid children together overflow the byte budget', () => {
-    const slide = {
-      itemId: 'item',
-      position: 0,
-      label: null,
-      lines: Array.from({length: LIVE_STATE_LIMITS.slideLines}, () =>
-        '가'.repeat(1380),
-      ),
-    };
-    expect(parseLiveCommand({type: 'slide.show', slide}).ok).toBe(true);
-    expect(
-      parseLiveCommand({
-        type: 'slide.show',
-        slide: {...slide, transitionStartedAt: 123},
-      }).ok,
-    ).toBe(true);
-    expect(
-      parseLiveCommand({
-        type: 'slide.show',
-        slide: {...slide, transitionStartedAt: Infinity},
-      }).ok,
-    ).toBe(false);
-    const initial = {
-      ...emptyLiveState(),
-      layers: {...emptyLiveState().layers, slide},
-    };
-    expect(parseLiveState(initial).ok).toBe(true);
-    expect(canSave(initial)).toBe(true);
-    const message = {
-      messageId: 'summary',
-      text: '',
-      items: Array.from({length: MAX_ACTIVE_MESSAGES}, (_, i) => ({
-        messageId: uuid(i),
-        text: '나'.repeat(LIVE_STATE_LIMITS.textCharacters),
-        targets: 'all',
-        excludedTargets: [],
-        startedAt: 0,
-        expiresAt: null,
-      })),
-    };
-    const command = expectSuccess(
-      parseLiveCommand({
-        type: 'live.batch',
-        commands: [
-          {type: 'message.show', message},
-          {type: 'output.set', screenId: MAIN_SCREEN, on: true},
-        ],
-      }),
-    );
-    const store = new LiveStore(initial, () => 0, registry());
-    const before = store.state;
-    const size = vi.spyOn(budget, 'fitsLiveStateByteBudget');
-    const shape = vi.spyOn(liveSchema, 'parseLiveState');
-    const log = recordingLogger();
-    dispatchLogged(store, command, log);
-    expect(store.state).toBe(before);
-    expect(store.state.layers.message).toBeNull();
-    expect(store.state.outputs).toEqual({});
-    expect(shape).toHaveBeenCalledOnce();
-    expect(size).toHaveBeenCalledOnce();
-    expect(log.messages('warn')).toEqual(['dropped live dispatch']);
-    expect(log.entries[0]).toMatchObject({
-      detail: {type: 'live.batch', error: {field: ''}},
-    });
-    expect(canSave(store.state)).toBe(true);
-  });
-
   it.each([
     LIVE_STATE_LIMITS.textCharacters,
     LIVE_STATE_LIMITS.textCharacters + 1,
@@ -431,11 +363,7 @@ describe('live admission limits', () => {
                 content: {
                   kind: 'text',
                   text: 'x'.repeat(length),
-                  style: {
-                    ...STARTER_TEXT_STYLE,
-                    shadow: STARTER_TEXT_STYLE.shadow.on,
-                    outline: STARTER_TEXT_STYLE.outline.on,
-                  },
+                  style: DEFAULT_TEXT_STYLE,
                 },
                 targets: [],
               },

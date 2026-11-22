@@ -1,9 +1,11 @@
+import {emptyLayers} from '@core/live/state';
+import {shownText} from '@fixtures/core/liveSlide';
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@core/live/commands';
 import type {LlpApi} from '@contracts/ipc/api';
-import {emptyLayers, emptyLiveState, type LiveLayers} from '@core/live/state';
+import {emptyLiveState, type LiveLayers} from '@core/live/state';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {cssRules} from '@fixtures/renderer/ui/cssRules';
 import styles from '@renderer/features/presentation/ClearRow.module.css';
@@ -56,7 +58,7 @@ function setLayers(layers: Partial<LiveLayers>): void {
   });
 }
 
-const slide = {itemId: 'a', position: 0, label: null, lines: ['x']};
+const slide = {itemId: 'a', position: 0, ...shownText(['x'])};
 const media = {mediaId: 'm', loop: true, startedAt: 0};
 
 function renderActiveItemOff() {
@@ -65,55 +67,13 @@ function renderActiveItemOff() {
   useLive.setState({
     state: {
       ...emptyLiveState(),
-      themeItem: {id: 'item', kind: 'song', source: 'service'},
+      item: {id: 'item', kind: 'song', source: 'service'},
     },
   });
   render(<ClearRow compact={false} />);
   const button = screen.getByRole('button', {name: '대기 화면으로'});
   return {button, send};
 }
-
-it('names Item Off by its standby result, sends the shared command, and disables it in standby', async () => {
-  const {button, send} = renderActiveItemOff();
-  expect(screen.getAllByRole('button')[0]).toBe(button);
-  expect(button.textContent).toBe('대기 화면');
-  expect((await hoverForTooltip(button))?.textContent).toBe('대기 화면으로');
-  fireEvent.click(button);
-  expect(send).toHaveBeenCalledExactlyOnceWith({type: 'item.stop'});
-  act(() => useLive.setState({state: {...emptyLiveState(), themeItem: null}}));
-  expect(button.getAttribute('aria-disabled')).toBe('true');
-  fireEvent.click(button);
-  expect(send).toHaveBeenCalledOnce();
-});
-
-it('offers Item Restore after a stop, preserving its pressed state until main acknowledges the restore', async () => {
-  const {button, send} = renderActiveItemOff();
-  fireEvent.click(button);
-  act(() =>
-    useLive.setState({
-      state: {...emptyLiveState(), themeItem: null, canRestoreItem: true},
-    }),
-  );
-  expect(screen.getByRole('button', {name: '항목 되돌리기'})).toBe(button);
-  expect(button.getAttribute('aria-disabled')).toBe('false');
-  expect(button.getAttribute('aria-pressed')).toBe('true');
-  expect(button.textContent).toBe('대기 화면');
-  expect((await hoverForTooltip(button))?.textContent).toBe('항목 되돌리기');
-  fireEvent.click(button);
-  expect(send).toHaveBeenLastCalledWith({type: 'item.restore'});
-  expect(button.getAttribute('aria-pressed')).toBe('true');
-  act(() =>
-    useLive.setState({
-      state: {
-        ...emptyLiveState(),
-        themeItem: {id: 'item', kind: 'song', source: 'service'},
-        canRestoreItem: false,
-      },
-    }),
-  );
-  expect(screen.getByRole('button', {name: '대기 화면으로'})).toBe(button);
-  expect(button.getAttribute('aria-pressed')).toBe('false');
-});
 
 it('activates Item Off with unmodified Space and Enter', async () => {
   const {button, send} = renderActiveItemOff();

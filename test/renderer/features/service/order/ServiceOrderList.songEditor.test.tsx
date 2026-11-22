@@ -53,6 +53,8 @@ beforeEach(() => {
               order: [
                 {
                   id: SONG_ITEM,
+                  kind: 'song',
+                  name: '곡',
                   song: '50000000-0000-4000-8000-000000000001',
                   slides: [],
                 },

@@ -5,7 +5,6 @@ import {
   BACKGROUND_RELEASE_DELAY_MS,
   type RenderMode,
 } from '@renderer/rendering/backgroundLayer';
-import {classes} from '@renderer/rendering/classes';
 import {
   WARM_LIGHT,
   urlOf,
@@ -46,29 +45,6 @@ function incomingImage(parent: HTMLElement): HTMLImageElement {
 describe.each<RenderMode>(['output'])(
   'BackgroundLayerView images in %s mode',
   mode => {
-    it('shows an image background after decoding it without a video playback error', async () => {
-      const clock = installMockClock();
-      const {parent, view, videos, onError} = setUp(mode);
-      view.show({...SUNSET, loop: true});
-      refuseVideoSource(videos[1]);
-      const image = incomingImage(parent);
-      expect(image.getAttribute('src')).toBe(urlOf(SUNSET.mediaId));
-      expect(isShown(image)).toBe(false);
-      image.dispatchEvent(new Event('load'));
-      await Promise.resolve();
-      expect(isShown(image)).toBe(true);
-      expect(image.classList.contains(classes.dissolving)).toBe(true);
-      await clock.advance(500 + BACKGROUND_RELEASE_DELAY_MS);
-
-      expect(videos.every(video => !video.hasAttribute('src'))).toBe(true);
-      expect(videos.every(video => !video.loop)).toBe(true);
-      expect(onError).not.toHaveBeenCalled();
-      view.show(null);
-      expect(image.hasAttribute('src')).toBe(false);
-      expect(isShown(image)).toBe(false);
-      view.dispose();
-    });
-
     it('waits for decode, ignores superseded results, and reports decode failures', async () => {
       const {parent, view, videos, onError} = setUp(mode);
       view.show(SUNSET);

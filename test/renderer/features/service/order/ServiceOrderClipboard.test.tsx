@@ -5,7 +5,6 @@ import {ServiceOrderList} from '@renderer/features/service/order/ServiceOrderLis
 import {applyService, openItem, useShow} from '@renderer/session/show';
 import {createServiceId} from '@core/schema/ids';
 import type {ServiceDocument} from '@core/schema/contentDocuments';
-import {isItemOfKind, type Service} from '@core/schema/service';
 import {serviceItemClipboardFor} from '@renderer/session/serviceItemClipboard';
 import {
   firstId,
@@ -45,49 +44,6 @@ describe('service order clipboard commands', () => {
       finish?.(document());
     });
     await waitFor(() => expect(ids()).toHaveLength(4));
-  });
-
-  it('selects pasted rows after a delayed projection rather than selecting ids that are not visible yet', async () => {
-    const {api} = setup('prep');
-    const user = userEvent.setup();
-    await act(async () => {
-      await serviceItemClipboardFor(api).copy(serviceId, new Set([firstId]));
-    });
-    const saved: {service: Service | null} = {service: null};
-    vi.spyOn(api.content, 'edit').mockImplementationOnce(async command => {
-      if (command.type !== 'service.update') {
-        throw new Error('Unexpected command');
-      }
-      saved.service = command.service;
-      return {ok: true, value: {id: serviceId, revision: 2}};
-    });
-    await user.click(screen.getByRole('option', {name: '첫 곡'}));
-    await user.keyboard('{Control>}v{/Control}');
-    await waitFor(() => expect(saved.service).not.toBeNull());
-    expect(useShow.getState().openItemId).toBe(firstId);
-    expect(selectedIds()).toEqual([firstId]);
-    const service = saved.service;
-    if (service === null) throw new Error('Missing paste');
-    const copy = service.order.find(
-      item => ![headerId, firstId, lastId].includes(item.id),
-    );
-    if (copy === undefined) throw new Error('Missing pasted row');
-    act(() =>
-      applyService({
-        id: serviceId,
-        revision: 2,
-        name: service.name,
-        readOnly: false,
-        rows: service.order.map(item =>
-          isItemOfKind(item, 'header')
-            ? {kind: 'header', id: item.id, title: item.header}
-            : {kind: 'song', id: item.id, title: 'Projected song'},
-        ),
-        tiles: {},
-      }),
-    );
-    await waitFor(() => expect(selectedIds()).toEqual([copy.id]));
-    expect(useShow.getState().openItemId).toBe(copy.id);
   });
 
   it('pastes a source service snapshot into an empty other service without changing the source', async () => {

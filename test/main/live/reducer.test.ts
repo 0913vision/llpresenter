@@ -1,3 +1,4 @@
+import {shownText} from '@fixtures/core/liveSlide';
 import {describe, expect, it} from 'vitest';
 import type {LiveCommand} from '@core/live/commands';
 import {emptyLiveState, layerKinds, type SlideLayer} from '@core/live/state';
@@ -17,8 +18,7 @@ const RANDOM_SEED = 20261024;
 const slide = (position: number): SlideLayer => ({
   itemId: 'item-1',
   position,
-  label: '후렴',
-  lines: ['만복의 근원 하나님', '온 백성 찬송 드리고'],
+  ...shownText(['만복의 근원 하나님', '온 백성 찬송 드리고']),
 });
 
 const NEW_CONTENT: readonly LiveCommand[] = [
