@@ -165,7 +165,7 @@ describe('elements', () => {
     ).toHaveLength(2);
     await user.click(elementRows()[0] ?? added);
     await user.keyboard('{Delete}');
-    expect(elementRows().some(row => /상자/u.test(row.textContent ?? ''))).toBe(
+    expect(elementRows().some(row => row.textContent.includes('상자'))).toBe(
       false,
     );
   });
@@ -283,9 +283,12 @@ describe('the list', () => {
   async function menu(user: User, row: HTMLElement, entry: string) {
     fireEvent.contextMenu(row);
     await user.click(
-      screen.getByRole(/지정$/u.test(entry) ? 'menuitemcheckbox' : 'menuitem', {
-        name: entry,
-      }),
+      screen.getByRole(
+        entry.endsWith('지정') ? 'menuitemcheckbox' : 'menuitem',
+        {
+          name: entry,
+        },
+      ),
     );
   }
 
