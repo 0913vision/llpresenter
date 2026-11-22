@@ -146,6 +146,81 @@ it('uses the mouse change action for a valid existing sermon and requires a titl
   );
 });
 
+it.each(['Enter', 'mouse'])(
+  'does not queue a chapter submission with an empty sermon title via %s',
+  async method => {
+    const fixture = panelApi();
+    window.llp = fixture.api;
+    onTestFinished(() => {
+      delete window.llp;
+    });
+    const insert = vi.fn();
+    const chapterRef = '요한복음 3';
+    let finish: ((reply: BibleLookupReply) => void) | undefined;
+    fixture.lookup.mockImplementation(request =>
+      request.input === chapterRef
+        ? new Promise(resolve => {
+            finish = resolve;
+          })
+        : formLookupReply(request),
+    );
+    render(<SermonQuickAdd onClose={vi.fn()} onInsert={insert} />);
+    fireEvent.change(screen.getByRole('combobox', {name: '책'}), {
+      target: {value: '요한복음'},
+    });
+    const chapter = screen.getByRole('textbox', {name: '장'});
+    fireEvent.change(chapter, {target: {value: '3'}});
+    if (method === 'Enter') fireEvent.keyDown(chapter, {key: 'Enter'});
+    else fireEvent.click(screen.getByRole('button', {name: '추가'}));
+    fireEvent.change(screen.getByRole('textbox', {name: '제목'}), {
+      target: {value: 'Title'},
+    });
+    await act(async () => {
+      if (finish) finish(await formLookupReply(lookupRequest(chapterRef)));
+    });
+    expect(fixture.lookup).not.toHaveBeenCalledWith(
+      expect.objectContaining({input: chapterRef}),
+    );
+    expect(insert).not.toHaveBeenCalled();
+  },
+);
+
+it('ignores a delayed chapter lookup after Escape closes the sermon dialog', async () => {
+  const fixture = panelApi();
+  window.llp = fixture.api;
+  onTestFinished(() => {
+    delete window.llp;
+  });
+  const insert = vi.fn();
+  const close = vi.fn();
+  const chapterRef = '요한복음 3';
+  let finish: ((reply: BibleLookupReply) => void) | undefined;
+  fixture.lookup.mockImplementation(request =>
+    request.input === chapterRef
+      ? new Promise(resolve => {
+          finish = resolve;
+        })
+      : formLookupReply(request),
+  );
+  render(<SermonQuickAdd onClose={close} onInsert={insert} />);
+  fireEvent.change(screen.getByRole('textbox', {name: '제목'}), {
+    target: {value: 'Title'},
+  });
+  fireEvent.change(screen.getByRole('combobox', {name: '책'}), {
+    target: {value: '요한복음'},
+  });
+  const chapter = screen.getByRole('textbox', {name: '장'});
+  fireEvent.change(chapter, {target: {value: '3'}});
+  fireEvent.keyDown(chapter, {key: 'Enter'});
+  await waitFor(() => expect(finish).toBeDefined());
+  fireEvent.keyDown(chapter, {key: 'Escape'});
+  expect(close).toHaveBeenCalledOnce();
+  await act(async () =>
+    finish?.(await formLookupReply(lookupRequest(chapterRef))),
+  );
+  expect(insert).not.toHaveBeenCalled();
+});
+
 it('does not insert a pending recent after the title is cleared', async () => {
   const fixture = panelApi();
   window.llp = fixture.api;

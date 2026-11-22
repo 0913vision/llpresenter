@@ -252,6 +252,25 @@ it('submits a chapter without filling verse fields by mouse', async () => {
   expect(end.value).toBe('');
 });
 
+it('does not enable mouse confirmation for a full reference outside chapter bounds', async () => {
+  const choose = vi.fn();
+  render(
+    <BiblePassageDialog
+      api={{lookup: formLookupReply}}
+      translation={lookupRequest().translation}
+      onChoose={choose}
+      onClose={vi.fn()}
+    />,
+  );
+  fireEvent.change(screen.getByRole('combobox', {name: '책'}), {
+    target: {value: '요한복음 99:1'},
+  });
+  const add = screen.getByRole('button', {name: '추가'});
+  await waitFor(() => expect(add.getAttribute('aria-disabled')).toBe('true'));
+  fireEvent.click(add);
+  expect(choose).not.toHaveBeenCalled();
+});
+
 it('submits a full typed reference from the book field by mouse', async () => {
   const choose = vi.fn();
   render(

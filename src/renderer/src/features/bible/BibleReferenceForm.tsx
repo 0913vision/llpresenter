@@ -40,6 +40,7 @@ import styles from './BibleReferenceField.module.css';
 
 export interface BibleReferenceFormProps {
   readonly submitRef?: Ref<{submit: () => void}> | undefined;
+  readonly submissionDisabled?: boolean | undefined;
   readonly initialRef?: string | undefined;
   readonly dialogMode?: boolean;
   readonly onEffectiveTranslation?: ((id: TranslationId) => void) | undefined;
@@ -74,6 +75,34 @@ const LIVE_BOUNDS = new Map(
     {bookId: book.id, chapterVerses: BIBLE_VERSE_COUNTS[book.id - 1] ?? []},
   ]),
 );
+
+/** Resolve a complete reference using the same bounds as submission. */
+function fullReferenceCandidate(value: string) {
+  const parsed = parseReference(value);
+  if (!parsed.ok || parsed.value.chapter !== parsed.value.endChapter) {
+    return null;
+  }
+  const reference = parsed.value;
+  const bounds = LIVE_BOUNDS.get(reference.book.id);
+  const last = bounds?.chapterVerses[reference.chapter - 1];
+  const next: ReferenceFields = {
+    book: reference.book.korean,
+    chapter: String(reference.chapter),
+    start: String(reference.verse ?? 1),
+    end: String(reference.endVerse ?? last ?? 1),
+  };
+  const parsedState = referenceFieldsState(next, bounds);
+  const input =
+    reference.verse === null && parsedState.input
+      ? `${reference.book.korean} ${reference.chapter}`
+      : parsedState.input;
+  const invalidPart: ReferencePart = parsedState.errors.chapter
+    ? 'chapter'
+    : parsedState.errors.start
+      ? 'start'
+      : 'end';
+  return {reference, next, parsedState, input, invalidPart};
+}
 
 function focusPart(root: HTMLElement | null, part: ReferencePart): void {
   const field = root?.querySelector<HTMLInputElement>(
@@ -187,16 +216,14 @@ export function BibleReferenceForm(
   const reconciled = reconcileReferenceFields(fields, metadataBounds);
   if (reconciled !== fields) setFields(reconciled);
   const state = referenceFieldsState(reconciled, metadataBounds);
-  const fullReference = parseReference(reconciled.book);
+  const fullReference = fullReferenceCandidate(reconciled.book);
   const chapterOnly =
     fields.start === '' &&
     state.errors.chapter === undefined &&
     book !== undefined &&
     translation !== undefined;
   const hasSubmitCandidate =
-    chapterOnly ||
-    (fullReference.ok &&
-      fullReference.value.chapter === fullReference.value.endChapter);
+    chapterOnly || (fullReference !== null && fullReference.input !== '');
   const onSubmitCandidate = props.onSubmitCandidate;
   useEffect(
     () => onSubmitCandidate?.(hasSubmitCandidate),
@@ -353,29 +380,9 @@ export function BibleReferenceForm(
     setChapterFocus({bookId: candidate.id, translation});
   };
   const acceptFullReference = (value: string, submit: boolean): boolean => {
-    const parsed = parseReference(value);
-    if (!parsed.ok || parsed.value.chapter !== parsed.value.endChapter) {
-      return false;
-    }
-    const reference = parsed.value;
-    const bounds = LIVE_BOUNDS.get(reference.book.id);
-    const last = bounds?.chapterVerses[reference.chapter - 1];
-    const next: ReferenceFields = {
-      book: reference.book.korean,
-      chapter: String(reference.chapter),
-      start: String(reference.verse ?? 1),
-      end: String(reference.endVerse ?? last ?? 1),
-    };
-    const parsedState = referenceFieldsState(next, bounds);
-    const input =
-      reference.verse === null && parsedState.input
-        ? `${reference.book.korean} ${reference.chapter}`
-        : parsedState.input;
-    const invalidPart: ReferencePart = parsedState.errors.chapter
-      ? 'chapter'
-      : parsedState.errors.start
-        ? 'start'
-        : 'end';
+    const candidate = fullReferenceCandidate(value);
+    if (candidate === null) return false;
+    const {reference, next, parsedState, input, invalidPart} = candidate;
     props.onIntent?.();
     props.onEdit?.(null);
     setRecent(
@@ -476,6 +483,11 @@ export function BibleReferenceForm(
         chooseSuggestion(highlighted);
         return;
       }
+      if (event.key === 'Enter' && props.submissionDisabled) {
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
       if (
         (event.key === 'Enter' || (event.key === 'Tab' && !event.shiftKey)) &&
         !event.repeat &&
@@ -550,7 +562,7 @@ export function BibleReferenceForm(
     submit(part);
   };
   const submit = (part: ReferencePart): void => {
-    if (props.translation === undefined) return;
+    if (props.translation === undefined || props.submissionDisabled) return;
     if (chapterOnly) {
       const input = `${book.korean} ${fields.chapter}`;
       setRecent({
@@ -593,6 +605,7 @@ export function BibleReferenceForm(
   };
   useImperativeHandle(props.submitRef, () => ({
     submit: () => {
+      if (props.submissionDisabled) return;
       const bookValue = readReferenceFields(root.current, fields).book;
       if (!acceptFullReference(bookValue, true)) submit('book');
     },

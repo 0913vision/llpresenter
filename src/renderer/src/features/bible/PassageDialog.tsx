@@ -220,6 +220,7 @@ export function PassageDialog({
         <div className={styles.header}>
           <BibleReferenceForm
             submitRef={form}
+            submissionDisabled={preparation && disabled}
             key={resetKey}
             dialogMode
             autoFocus={children === undefined}
