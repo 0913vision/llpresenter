@@ -14,7 +14,7 @@ import {commandBindingStore} from '@renderer/ui/commandBindings';
 import {isInputMethodKey} from '@renderer/ui/commandDispatcher';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import type {LlpApi} from '@contracts/ipc/api';
-import type {SettingsDocument} from '@core/schema/settingsDocuments';
+import {useApiSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import type {BibleSource} from '@renderer/session/bibleSource';
 import {selectTile, useShow} from '@renderer/session/show';
 import {useLive} from '@renderer/session/live';
@@ -98,24 +98,14 @@ export function BibleQuickField({
     if (overlayOpen) root.current?.querySelector('input')?.focus();
   }, [overlayOpen]);
   const display = useBibleDisplayDefaults(api.preferences);
-  const [document, setDocument] = useState<Extract<
-    SettingsDocument,
-    {name: 'bible'}
-  > | null>(null);
+  const document = useApiSettingsDocument({
+    api,
+    name: 'bible',
+    title: '성경',
+    onProblem: undefined,
+  });
   const [session, setSession] = useState(0);
   useEffect(() => {
-    let active = true;
-    const accept = (next: SettingsDocument): void => {
-      if (active && next.name === 'bible') {
-        setDocument(previous =>
-          previous && previous.revision >= next.revision ? previous : next,
-        );
-      }
-    };
-    const stop = api.settings.subscribe(accept);
-    void api.settings.get({name: 'bible'}).then(accept, (error: unknown) => {
-      if (active) console.error('Could not read Bible settings', error);
-    });
     const stopSelection = useShow.subscribe((next, previous) => {
       const cancelledPreview =
         next.openItemId === null &&
@@ -128,12 +118,8 @@ export function BibleQuickField({
         setSession(value => value + 1);
       }
     });
-    return () => {
-      active = false;
-      stop();
-      stopSelection();
-    };
-  }, [api.settings]);
+    return stopSelection;
+  }, []);
   const translations = document
     ? withLiveBible(document.value.translations)
     : [];

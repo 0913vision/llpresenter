@@ -841,17 +841,21 @@ describe('BibleQuickField', () => {
     expect(openSource()?.passage.translation).toBe(lookupRequest().translation);
   });
 
-  it('logs an initial settings failure but ignores one delivered after unmount', async () => {
-    const error = vi
-      .spyOn(console, 'error')
-      .mockImplementation(() => undefined);
+  it('logs an initial settings failure and lets go of a later one after unmount', async () => {
     const fixture = panelApi();
+    const log = vi.spyOn(fixture.api.log, 'write');
     fixture.get.mockRejectedValueOnce(new Error('Invented settings failure'));
     const first = render(<BibleQuickField api={fixture.api} />);
-    await waitFor(() => expect(error).toHaveBeenCalledOnce());
+    await waitFor(() =>
+      expect(log).toHaveBeenCalledWith(
+        expect.objectContaining({
+          level: 'error',
+          message: 'Could not load bible settings',
+        }),
+      ),
+    );
     expect(screen.getByRole<HTMLInputElement>('combobox').disabled).toBe(true);
     first.unmount();
-    error.mockClear();
     let fail: (error: Error) => void = () => undefined;
     fixture.get.mockReturnValueOnce(
       new Promise((_resolve, reject) => {
@@ -861,8 +865,8 @@ describe('BibleQuickField', () => {
     const second = render(<BibleQuickField api={fixture.api} />);
     second.unmount();
     await act(async () => fail(new Error('Invented late failure')));
-    expect(error).not.toHaveBeenCalled();
     expect(fixture.listenerCount()).toBe(0);
+    expect(screen.queryByRole('combobox')).toBeNull();
   });
 
   it('retains newer pushed settings over the initial read', async () => {
