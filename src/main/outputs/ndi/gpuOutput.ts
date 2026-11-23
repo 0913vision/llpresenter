@@ -1,7 +1,6 @@
 import {NDI_DEFAULT_SOURCE_NAME, NDI_DEFAULT_FPS} from '@core/schema/screens';
 import {
   app,
-  BrowserWindow,
   utilityProcess,
   type UtilityProcess,
   type OffscreenSharedTexture,
@@ -17,7 +16,7 @@ import {
   publishPresenterMirror,
   setPresenterMirror,
 } from '../presenterMirror';
-import {blockNavigation, preloadPath, startLoading} from '../../base/page';
+import {createNdiWindow, stopSender} from './ndiWindow';
 import {
   TextureQueue,
   NDI_FRAME_WIDTH,
@@ -271,37 +270,10 @@ function gpuHandle(
     pixels?: ((data: Uint8Array, release: () => void) => void) | undefined;
   },
 ): OutputWindowHandle & {activateMirror(): void} {
-  const win = new BrowserWindow({
-    show: false,
-    skipTaskbar: true,
-    width: NDI_FRAME_WIDTH,
-    height: NDI_FRAME_HEIGHT,
-    useContentSize: true,
-    frame: false,
-    transparent: true,
-    backgroundColor: '#00000000',
-    webPreferences: {
-      preload: preloadPath,
-      sandbox: true,
-      contextIsolation: true,
-      nodeIntegration: false,
-      backgroundThrottling: false,
-      offscreen: {useSharedTexture: true},
-    },
+  const {win, reload} = createNdiWindow(initial, events, {
+    sharedTexture: true,
+    onLoadError: error => fail(error),
   });
-  win.webContents.stopPainting();
-  win.setMinimumSize(NDI_FRAME_WIDTH, NDI_FRAME_HEIGHT);
-  win.setContentSize(NDI_FRAME_WIDTH, NDI_FRAME_HEIGHT);
-  win.webContents.setFrameRate(
-    (initial.ndi?.fps ?? NDI_DEFAULT_FPS) > 30 ? 60 : 30,
-  );
-  const page = {name: 'output' as const, query: {screen: initial.id, ndi: '1'}};
-  blockNavigation(win);
-  win.on('page-title-updated', event => event.preventDefault());
-  win.webContents.on('render-process-gone', (_event, details) =>
-    events.onRendererGone(details),
-  );
-  void startLoading(win, page).catch((error: unknown) => fail(error));
   let current = initial;
   let child: UtilityProcess | null = null;
   const postMirror = (message: object): void => {
@@ -347,20 +319,11 @@ function gpuHandle(
       finish();
       return;
     }
-    const killTimer = setTimeout(() => old.kill(), GPU_STOP_TIMEOUT_MS);
-    killTimer.unref();
-    old.once('exit', () => {
-      clearTimeout(killTimer);
-      finish();
+    stopSender(old, {
+      timeoutMs: GPU_STOP_TIMEOUT_MS,
+      now: outstanding !== null,
+      exited: finish,
     });
-    if (outstanding) old.kill();
-    else {
-      try {
-        old.postMessage({type: 'stop'});
-      } catch {
-        old.kill();
-      }
-    }
   };
   const fail = (reason: unknown): void => {
     if (!closed) fallback(reason);
@@ -588,7 +551,7 @@ function gpuHandle(
     bringToFront: () => undefined,
     bounds: () => null,
     hide: () => clear(),
-    reload: () => startLoading(win, page),
+    reload,
     crashRenderer: () => win.webContents.forcefullyCrashRenderer(),
     ping: async () => {
       await win.webContents.executeJavaScript('0');

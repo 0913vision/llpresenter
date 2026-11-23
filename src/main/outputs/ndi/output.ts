@@ -4,7 +4,6 @@ import {
   NDI_DEFAULT_SOURCE_NAME,
 } from '@core/schema/screens';
 import {
-  BrowserWindow,
   utilityProcess,
   type UtilityProcess,
   type NativeImage,
@@ -14,9 +13,9 @@ import {join} from 'node:path';
 import type {OutputScreen} from '../screens';
 import type {OutputWindowEvents, OutputWindowHandle} from '../outputWindow';
 import type {Logger} from '../../base/log';
-import {blockNavigation, preloadPath, startLoading} from '../../base/page';
 import {unionDirty} from './rect';
 import {createGpuOutput} from './gpuOutput';
+import {createNdiWindow, stopSender} from './ndiWindow';
 import {NDI_FRAME_WIDTH, NDI_FRAME_HEIGHT} from './textureQueue';
 import type {OutputScreenStatus} from '@core/schema/outputStatus';
 
@@ -112,38 +111,10 @@ function createBitmapOutput(
   options: {log: Logger; onFailure: (id: string, missing: boolean) => void},
 ): BitmapSender {
   const {log, onFailure} = options;
-  const win = new BrowserWindow({
-    show: false,
-    skipTaskbar: true,
-    width: NDI_FRAME_WIDTH,
-    height: NDI_FRAME_HEIGHT,
-    useContentSize: true,
-    frame: false,
-    transparent: true,
-    backgroundColor: '#00000000',
-    webPreferences: {
-      preload: preloadPath,
-      sandbox: true,
-      contextIsolation: true,
-      nodeIntegration: false,
-      backgroundThrottling: false,
-      offscreen: true,
-    },
+  const {win, reload} = createNdiWindow(screen, events, {
+    sharedTexture: false,
+    onLoadError: error => log.error('could not load NDI output', error),
   });
-  win.setMinimumSize(NDI_FRAME_WIDTH, NDI_FRAME_HEIGHT);
-  win.setContentSize(NDI_FRAME_WIDTH, NDI_FRAME_HEIGHT);
-  win.webContents.setFrameRate(
-    (screen.ndi?.fps ?? NDI_DEFAULT_FPS) > 30 ? 60 : 30,
-  );
-  const page = {name: 'output' as const, query: {screen: screen.id, ndi: '1'}};
-  blockNavigation(win);
-  win.on('page-title-updated', event => event.preventDefault());
-  win.webContents.on('render-process-gone', (_event, details) =>
-    events.onRendererGone(details),
-  );
-  void startLoading(win, page).catch((error: unknown) =>
-    log.error('could not load NDI output', error),
-  );
   let current = screen;
   let child: UtilityProcess | null = null;
   let ready = false;
@@ -225,16 +196,7 @@ function createBitmapOutput(
     pendingGpu = null;
     gpuSent = null;
     if (old === null || exited) return;
-    const killTimer = setTimeout(() => old.kill(), NDI_STOP_TIMEOUT_MS);
-    killTimer.unref();
-    old.once('exit', () => clearTimeout(killTimer));
-    try {
-      old.postMessage({type: 'stop'});
-    } catch (error) {
-      log.warn('NDI sender already stopped', error);
-      clearTimeout(killTimer);
-      old.kill();
-    }
+    stopSender(old, {timeoutMs: NDI_STOP_TIMEOUT_MS, log});
   };
   const fail = (
     worker: UtilityProcess,
@@ -364,7 +326,7 @@ function createBitmapOutput(
     bringToFront: () => undefined,
     bounds: () => null,
     hide: stop,
-    reload: () => startLoading(win, page),
+    reload,
     crashRenderer: () => win.webContents.forcefullyCrashRenderer(),
     ping: async () => {
       await win.webContents.executeJavaScript('0');
