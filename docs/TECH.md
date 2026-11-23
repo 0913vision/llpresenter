@@ -125,6 +125,10 @@ feature that owns it.
   `:set`, and any other command names what it does (`service:open`). An action
   is one call: a call that differs from another only in an argument takes that
   argument as optional instead.
+- A reply says one thing. `null` means only that the thing is not there,
+  `boolean` only whether the call was accepted, and a call that can fail for
+  reasons the operator should tell apart answers a result with the reason
+  (`service:open` answers the opened service, or `missing`, `busy` or `failed`).
 - `src/` holds no test code. A test lives in `test/`, in the folder that mirrors
   the code it tests, and may use any layer of its own process around that code,
   never another process's code. Shared mocks and fixtures live in
