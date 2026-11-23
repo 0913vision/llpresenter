@@ -173,7 +173,8 @@ it('adds a validated template and selects it without sending', async () => {
   fill('문구', '  ');
   expect(
     screen.getByRole('textbox', {name: '문구'}).getAttribute('aria-invalid'),
-  ).toBe('true');
+  ).toBeNull();
+  expect(button('추가').getAttribute('aria-disabled')).toBe('true');
   fill('문구', '{이름} 안내석으로 와 주세요');
   fireEvent.click(button('추가'));
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());

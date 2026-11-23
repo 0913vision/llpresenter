@@ -74,10 +74,10 @@ function TemplateDialog({
   );
   const nameReason = messageNameReason(name);
   const textReason = messageTextReason(text);
-  // NOTE(0913vision): An empty field is not marked; 추가 stays off and says
-  // why, as in the other 추가 dialogs. Spaces alone are marked.
-  const nameShown = name === '' ? undefined : nameReason;
-  const textShown = text === '' ? undefined : textReason;
+  // NOTE(0913vision): A blank field is not marked; 추가 stays off and says
+  // why, as in the other 추가 dialogs.
+  const nameShown = name.trim() === '' ? undefined : nameReason;
+  const textShown = text.trim() === '' ? undefined : textReason;
   return (
     <Dialog
       title={editor.kind === 'add' ? '메시지 추가' : '메시지 수정'}
