@@ -56,15 +56,20 @@ function twinOf(
   );
 }
 
+interface Followed extends PlacedTexts {
+  /** The sizes 청중 gives the texts that follow it. */
+  readonly same: ReadonlyMap<string, SameText>;
+}
+
 /** Places the texts of a screen; those of 무대 may follow 청중. */
-export function placeTexts(drawing: ThemeDrawing): PlacedTexts {
+function placeFollowing(drawing: ThemeDrawing): Followed {
   const shown = shownTexts(drawing);
   const {audience} = drawing;
   const follows = [...shown.values()].some(
     ({element}) => element.kind === 'text' && element.same !== undefined,
   );
   if (audience === undefined || !follows) {
-    return {texts: shown, placement: layout(drawing, shown)};
+    return {texts: shown, placement: layout(drawing, shown), same: new Map()};
   }
   const texts = new Map(shown);
   const same = new Map<string, SameText>();
@@ -87,5 +92,26 @@ export function placeTexts(drawing: ThemeDrawing): PlacedTexts {
       });
     }
   }
-  return {texts, placement: layout(drawing, texts, same)};
+  return {texts, placement: layout(drawing, texts, same), same};
+}
+
+/** Whether a text that carries the label came out smaller than on 청중. */
+function labelShrinks({texts, placement, same}: Followed): boolean {
+  return [...texts.values()].some(({element}) => {
+    if (element.kind !== 'text' || element.label !== true) return false;
+    const target = same.get(element.id)?.size;
+    const size = placement.texts.get(element.id)?.size;
+    return target !== undefined && size !== undefined && size < target;
+  });
+}
+
+/**
+ * Places the texts of a screen; those of 무대 may follow 청중. A label in
+ * front of the first row goes on a row of its own above when it would make
+ * the row smaller than on 청중.
+ */
+export function placeTexts(drawing: ThemeDrawing): PlacedTexts {
+  const placed = placeFollowing(drawing);
+  if (drawing.labels !== 'inline' || !labelShrinks(placed)) return placed;
+  return placeFollowing({...drawing, labels: 'line'});
 }
