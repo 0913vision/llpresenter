@@ -12,10 +12,10 @@ import {
 import {limitReason} from '@core/common/limitReason';
 import {parseMacroCollectionId} from '@core/schema/ids';
 import {MACRO_FILE_LIMITS, type MacroCollection} from '@core/schema/macros';
-import {Button, Icon, IconButton} from '@renderer/ui';
+import {Icon, Select} from '@renderer/ui';
+import {MenuCheck} from '@renderer/ui/MenuParts';
 import {classNames} from '@renderer/ui/classNames';
 import {Popover} from '@renderer/ui/Popover';
-import {openOnArrowDown} from '@renderer/ui/menuButton';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
 import {hasModifier} from '@renderer/ui/modifierKeys';
@@ -159,6 +159,13 @@ function CollectionPopover({
     if (!noChange) save({kind: 'move', id, before});
   };
   const rows = [{id: ALL, name: '모든 매크로'}, ...collections];
+  const cannotAdd =
+    locked ||
+    props.onNew === undefined ||
+    collections.length >= MACRO_FILE_LIMITS.collections;
+  const add = (): void => {
+    if (!cannotAdd) props.onNew?.();
+  };
   return (
     <>
       <Popover>
@@ -167,8 +174,8 @@ function CollectionPopover({
             ref={surface}
             role="dialog"
             aria-label="매크로 모음"
-            data-check-column="false"
             className={menuStyles.menu}
+            style={{minWidth: anchor.getBoundingClientRect().width}}
             onKeyDown={onKeyDown}
             onBlur={event => {
               if (
@@ -182,19 +189,6 @@ function CollectionPopover({
               }
             }}
           >
-            <div className={styles.head}>
-              <span>매크로 모음</span>
-              <IconButton
-                icon="plus"
-                label="새 매크로 모음"
-                disabled={
-                  locked ||
-                  !props.onNew ||
-                  collections.length >= MACRO_FILE_LIMITS.collections
-                }
-                onClick={props.onNew}
-              />
-            </div>
             <div
               role="listbox"
               aria-label="매크로 모음 목록"
@@ -343,11 +337,36 @@ function CollectionPopover({
                       ) : (
                         <span className={menuStyles.label}>{row.name}</span>
                       )}
+                      {row.id === (value ?? ALL) ? <MenuCheck /> : null}
                     </div>
                   </Fragment>
                 );
               })}
               {insertBefore === null ? <ListInsertLine /> : null}
+            </div>
+            <div role="separator" className={menuStyles.separator} />
+            <div
+              role="button"
+              tabIndex={-1}
+              data-choice=""
+              className={classNames(menuStyles.item, styles.row)}
+              aria-disabled={cannotAdd ? true : undefined}
+              onClick={add}
+              onKeyDown={event => {
+                if (
+                  !hasModifier(event) &&
+                  !isComposing(event) &&
+                  (event.key === 'Enter' || event.key === ' ')
+                ) {
+                  event.preventDefault();
+                  add();
+                }
+              }}
+            >
+              <span className={menuStyles.icon}>
+                <Icon name="plus" size={16} />
+              </span>
+              <span className={menuStyles.label}>새 매크로 모음</span>
             </div>
           </div>
         </div>
@@ -382,6 +401,7 @@ function CollectionPopover({
 }
 
 export function MacroCollectionPicker(props: CollectionProps): JSX.Element {
+  const [trigger, setTrigger] = useState<HTMLButtonElement | null>(null);
   const [anchor, setAnchor] = useState<HTMLButtonElement | null>(null);
   const collection = props.collections.find(item => item.id === props.value);
   const close = (restore: boolean): void => {
@@ -390,11 +410,14 @@ export function MacroCollectionPicker(props: CollectionProps): JSX.Element {
   };
   return (
     <>
-      <Button
-        className={styles.trigger}
+      <Select
+        ref={setTrigger}
+        block
+        popup="dialog"
         aria-label="매크로 모음"
-        aria-haspopup="dialog"
-        aria-expanded={anchor !== null}
+        value={collection?.name ?? '모든 매크로'}
+        expanded={anchor !== null}
+        onExpandedChange={open => setAnchor(open ? trigger : null)}
         onBlur={event => {
           if (
             event.relatedTarget instanceof Element &&
@@ -405,22 +428,7 @@ export function MacroCollectionPicker(props: CollectionProps): JSX.Element {
             setAnchor(null);
           }
         }}
-        onClick={event =>
-          setAnchor(anchor === null ? event.currentTarget : null)
-        }
-        onKeyDown={event =>
-          openOnArrowDown(event, {
-            expanded: anchor !== null,
-            onExpandedChange: open =>
-              setAnchor(open ? event.currentTarget : null),
-          })
-        }
-      >
-        <span className={menuStyles.label}>
-          {collection?.name ?? '모든 매크로'}
-        </span>
-        <Icon name="down" size={14} />
-      </Button>
+      />
       {anchor === null ? null : (
         <CollectionPopover {...props} anchor={anchor} onClose={close} />
       )}

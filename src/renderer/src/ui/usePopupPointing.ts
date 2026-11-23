@@ -1,5 +1,6 @@
-import {useLayoutEffect, useRef, type RefObject} from 'react';
+import {useLayoutEffect, useRef, useState, type RefObject} from 'react';
 import {isComposingKey} from './ime';
+import {lastInputWasKeyboard} from './inputModality';
 
 const CHOICE = '[data-choice], [role="option"], [role="radio"]';
 
@@ -9,13 +10,20 @@ function available(element: HTMLElement | null): boolean {
   );
 }
 
-/** Owns transient pointing attributes independently of selection and DOM focus. */
+/**
+ * Owns transient pointing attributes independently of selection and DOM focus.
+ * Like a menu, a popup opened from the keyboard points its focused row; one
+ * opened with the pointer points nothing until the pointer or a key moves.
+ */
 export function usePopupPointing(
   surface: RefObject<HTMLElement | null>,
   activeId: string | undefined,
 ): void {
   const pointed = useRef<HTMLElement | null>(null);
-  const source = useRef<'keyboard' | 'pointer' | null>('keyboard');
+  const [opened] = useState(() =>
+    lastInputWasKeyboard() ? ('keyboard' as const) : null,
+  );
+  const source = useRef<'keyboard' | 'pointer' | null>(opened);
   const active = useRef(activeId);
   useLayoutEffect(() => {
     active.current = activeId;
@@ -94,13 +102,15 @@ export function usePopupPointing(
     element.addEventListener('pointerleave', leave, {signal});
     document.addEventListener('keydown', keyboard, {signal, capture: true});
     element.addEventListener('focusin', focus, {signal});
-    point(
-      choice(
-        active.current === undefined
-          ? document.activeElement
-          : document.getElementById(active.current),
-      ),
-    );
+    if (source.current === 'keyboard') {
+      point(
+        choice(
+          active.current === undefined
+            ? document.activeElement
+            : document.getElementById(active.current),
+        ),
+      );
+    }
     return () => {
       controller.abort();
       point(null);

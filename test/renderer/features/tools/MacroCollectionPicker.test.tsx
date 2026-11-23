@@ -59,7 +59,6 @@ afterEach(() => {
 it('lists collections first and the row menu in spec order with immutable all macros', async () => {
   const f = setup();
   const popup = await open();
-  expect(popup.getAttribute('data-check-column')).toBe('false');
   const rows = within(popup).getAllByRole('option');
   expect(rows.map(row => row.textContent)).toEqual([
     '모든 매크로',
@@ -67,6 +66,11 @@ it('lists collections first and the row menu in spec order with immutable all ma
     '평일',
   ]);
   expect(rows[0]?.getAttribute('aria-selected')).toBe('true');
+  expect(rows.map(row => row.childElementCount > 1)).toEqual([
+    true,
+    false,
+    false,
+  ]);
   expect(popup.querySelector('[aria-checked]')).toBeNull();
   const all = within(popup).getByRole('option', {name: '모든 매크로'});
   fireEvent.keyDown(all, {key: 'ContextMenu'});
