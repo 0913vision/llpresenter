@@ -31,6 +31,7 @@ import type {MacroMenuHandlers} from './macroMenuEntries';
 import {macroMenuHandlers, type MacroEditor} from './macroMenuHandlers';
 import type {MacroCollectionEdit} from './macroCollectionEdits';
 import {useMacroEditor} from './useMacroEditor';
+import {useMacroRemovals} from './useMacroRemovals';
 import {useMacroLayout} from './useMacroLayout';
 
 export type {MacroEditor} from './macroMenuHandlers';
@@ -244,60 +245,14 @@ export function useMacroPanel({
   const focusGrid = (): void => {
     focusHistorySurface(root?.current ?? null);
   };
-  const removeMacro = (item: Macro): void =>
-    deleteSelection(
-      1,
-      () => !locked && macros.some(value => value.id === item.id),
-      () => {
-        focusGrid();
-        commit({kind: 'delete', id: item.id});
-      },
-    );
-  /** Runs `now` at once, or after the menu has closed when it is open. */
-  const viaMenu = <T>(
-    handoff: (target: T) => void,
-    now: (target: T) => void,
-    target: T,
-  ): void => {
-    if (menu) {
-      handoff(target);
-      setMenu(null);
-    } else now(target);
-  };
-  const removeAfterMenu = useMenuHandoff<Macro>(menu !== null, removeMacro);
-  const askDelete = (item: Macro): void =>
-    viaMenu(removeAfterMenu, removeMacro, item);
-  const removeActions = ({
-    item,
-    index,
-  }: {
-    item: Macro;
-    index: number | null;
-  }): void => {
-    deleteSelection(
-      index === null
-        ? item.actions.length
-        : Number(index >= 0 && index < item.actions.length),
-      () => !locked && macros.some(value => value.id === item.id),
-      () => {
-        focusGrid();
-        commit({
-          kind: 'action',
-          id: item.id,
-          action:
-            index === null
-              ? {kind: 'removeAll', expected: item.actions}
-              : {kind: 'remove', index, expected: item.actions},
-        });
-      },
-    );
-  };
-  const removeActionsAfterMenu = useMenuHandoff<{
-    item: Macro;
-    index: number | null;
-  }>(menu !== null, removeActions);
-  const askRemoveActions = (item: Macro, index: number | null): void =>
-    viaMenu(removeActionsAfterMenu, removeActions, {item, index});
+  const {askDelete, askRemoveActions} = useMacroRemovals({
+    macros,
+    locked,
+    menuOpen: menu !== null,
+    closeMenu: () => setMenu(null),
+    focusGrid,
+    commit: edit => commit(edit),
+  });
   const menuHandlers = (item: Macro): MacroMenuHandlers =>
     macroMenuHandlers(item, {
       start,
