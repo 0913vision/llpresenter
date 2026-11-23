@@ -43,9 +43,8 @@ export function useQuickAdd(report: Report): {
       media: media.items,
       missing: media.missing,
       failed: media.failed,
-      onInsert: (item, edit) =>
-        insertNewItem(item, rowAfterSelected(), {report, edit}),
-      onBible: () => palette.insert('bible'),
+      onElement: palette.insert,
+      onMedia: item => insertNewItem(item, rowAfterSelected(), {report}),
       onSong: () => setChoosingSong(true),
     }),
     dialogs: (

@@ -194,7 +194,7 @@ export function ServiceOrderList({
     onElement:
       table === undefined || navigator
         ? undefined
-        : (key, before) => palette.insert(key, before),
+        : (key, before) => palette.insert(key, {before}),
     onMedia:
       table === undefined || navigator
         ? undefined

@@ -12,6 +12,15 @@ import {newPaletteItem} from './newItems';
 import {newBibleItem, newSermonItem} from './passageItems';
 import {SermonQuickAdd} from './SermonQuickAdd';
 
+/** Where an element goes and how it is made. */
+export interface InsertOptions {
+  /** The row it goes before; null for the end, none for after the selection. */
+  readonly before?: string | null | undefined;
+  readonly translation?: LiturgyTranslation | undefined;
+  /** Opens the new item in the editor to be filled in. */
+  readonly edit?: boolean | undefined;
+}
+
 interface Asking {
   readonly kind: 'bible' | 'sermon';
   readonly before: ServiceItemId | null;
@@ -20,11 +29,7 @@ interface Asking {
 
 /** Puts what the palette offers in the 예배 순서, asking for a passage first. */
 export function usePaletteInsert(report: Report): {
-  readonly insert: (
-    key: string,
-    before?: string | null,
-    translation?: LiturgyTranslation,
-  ) => void;
+  readonly insert: (key: string, options?: InsertOptions) => void;
   readonly disabled: boolean;
   readonly dialog: JSX.Element | null;
 } {
@@ -35,8 +40,7 @@ export function usePaletteInsert(report: Report): {
   const disabled = serviceId === null || readOnly || full;
   const insert = (
     key: string,
-    before?: string | null,
-    translation?: LiturgyTranslation,
+    {before, translation, edit = false}: InsertOptions = {},
   ): void => {
     if (serviceId === null || disabled) return;
     const target =
@@ -50,7 +54,7 @@ export function usePaletteInsert(report: Report): {
       return;
     }
     const item = newPaletteItem(key, translation);
-    if (item !== null) insertNewItem(item, target, {report});
+    if (item !== null) insertNewItem(item, target, {report, edit});
   };
   const add = (made: Promise<ServiceItem | null>): void => {
     const before = asking?.before ?? null;

@@ -119,7 +119,9 @@ export function PrepPalette({
             id: `translation:${index}`,
             label,
             onSelect: () => {
-              palette.insert(menu.id, undefined, index === 0 ? 'new' : 'old');
+              palette.insert(menu.id, {
+                translation: index === 0 ? 'new' : 'old',
+              });
               setMenu(null);
             },
           }))}

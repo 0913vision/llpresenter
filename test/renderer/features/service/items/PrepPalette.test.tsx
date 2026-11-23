@@ -47,7 +47,7 @@ describe('preparation palette', () => {
     expect(insert).toHaveBeenCalledWith('card:묵상기도');
     fireEvent.contextMenu(creed);
     fireEvent.click(screen.getByRole('menuitem', {name: '옛 번역'}));
-    expect(insert).toHaveBeenCalledWith('creed', undefined, 'old');
+    expect(insert).toHaveBeenCalledWith('creed', {translation: 'old'});
   });
   it('starts a native element drag', () => {
     render(<Palette library={null} />);
