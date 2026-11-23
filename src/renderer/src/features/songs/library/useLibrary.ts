@@ -1,12 +1,17 @@
-import {withSongTitle} from '@core/slides';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {LibrarySong, SongDocument} from '@core/schema/contentDocuments';
 import type {EditResult} from '@core/schema/contentEdit';
 import type {SongId} from '@core/schema/ids';
-import {copyTitle, normalizeSongTitle} from '@core/songs';
 import {noticeTime, type Notice, type NoticeAction} from '@renderer/ui/notices';
 import {useLibrarySearch} from './useLibrarySearch';
+import {
+  createSong,
+  deleteSong,
+  duplicateSong,
+  renameSong,
+  type SongCommandContext,
+} from './songCommands';
 
 export type LibraryApi = Pick<LlpApi, 'songs' | 'content' | 'services'> & {
   readonly library: Pick<LlpApi['library'], 'search' | 'revealSong'>;
@@ -226,14 +231,21 @@ export function useLibrary(
   const editable = (id: SongId): boolean =>
     rows.current.find(song => song.id === id)?.access === 'editable';
 
+  const commands: SongCommandContext = {
+    api,
+    applied: appliedId,
+    relist,
+    isActive,
+    missing: () => report('missing'),
+  };
+
   const create = (): Promise<void> =>
     runEdit('create', undefined, async () => {
       search.change('');
       const version = ++requests.current.open;
       opening.current = null;
-      const id = appliedId(await api.content.edit({type: 'song.create'}));
-      if (id === null || !isActive()) return;
-      await relist();
+      const id = await createSong(commands);
+      if (id === null) return;
       const document = await api.songs.get(id);
       if (!isActive() || version !== requests.current.open) return;
       if (document === null) {
@@ -244,70 +256,26 @@ export function useLibrary(
       onOpenSong({document, focusTitle: true});
     });
 
-  /**
-   * Copies a song: its groups, 이름표, 구성, and background under a new id and
-   * the copy title, then selects the copy.
-   */
   const duplicate = async (id: SongId): Promise<void> => {
     if (!editable(id)) return;
     await runEdit('create', undefined, async () => {
-      const source = await api.songs.get(id);
-      if (source === null) {
-        report('missing');
-        return;
-      }
-      const title = copyTitle(
-        source.song.title,
+      const copyId = await duplicateSong(
+        commands,
+        id,
         rows.current.map(song => song.title),
       );
-      const result = await api.content.edit({
-        type: 'song.saveAs',
-        song: {
-          ...source.song,
-          title,
-          slides: withSongTitle(source.song.slides, source.song.title, title),
-        },
-      });
-      const copyId = appliedId(result);
-      if (copyId === null || !isActive()) return;
-      await relist();
+      if (copyId === null) return;
       const created = await api.songs.get(copyId);
       if (created !== null && isActive()) setSelected(created.song.id);
     });
   };
 
   const remove = async (id: SongId): Promise<boolean> =>
-    editable(id) &&
-    runEdit('delete', false, async () => {
-      const result = await api.content.edit({type: 'song.delete', songId: id});
-      if (!isActive() || appliedId(result) === null) return false;
-      await relist();
-      return isActive();
-    });
+    editable(id) && runEdit('delete', false, () => deleteSong(commands, id));
 
-  /**
-   * Gives a song a new title by the 곡 편집 title rule. A title another song
-   * has is refused with `false`, as main refuses it.
-   */
   const rename = async (id: SongId, title: string): Promise<boolean> =>
     editable(id) &&
-    runEdit('change', false, async () => {
-      const document = await api.songs.get(id);
-      if (!isActive()) return false;
-      if (document === null) {
-        report('missing');
-        return false;
-      }
-      const result = await api.content.edit({
-        type: 'song.update',
-        baseRevision: document.revision,
-        song: {...document.song, title: normalizeSongTitle(title)},
-      });
-      if (!result.ok && result.error.reason === 'duplicate-title') return false;
-      if (!isActive() || appliedId(result) === null) return false;
-      await relist();
-      return isActive();
-    });
+    runEdit('change', false, () => renameSong(commands, id, title));
 
   return {
     songs,
