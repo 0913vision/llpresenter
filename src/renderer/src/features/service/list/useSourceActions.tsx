@@ -13,7 +13,7 @@ import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {useShow} from '@renderer/session/show';
 import {contentDeleteHistory} from '@renderer/platform/contentDeleteHistory';
 import {deleteSelection} from '@renderer/ui/deleteSelection';
-import {isInTextEntry} from '@renderer/ui/textEntry';
+import {historyKey} from '@renderer/ui/historyKey';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
 import {RenameDialog} from '@renderer/ui/RenameDialog';
@@ -261,23 +261,7 @@ export function useSourceActions({
     overlays,
     confirmDelete: remove,
     onHistoryKey: event => {
-      if (
-        !event.ctrlKey ||
-        event.altKey ||
-        event.metaKey ||
-        isInTextEntry(event.target)
-      ) {
-        return;
-      }
-      const key = event.key.toLowerCase();
-      const kind =
-        key === 'z'
-          ? event.shiftKey
-            ? 'redo'
-            : 'undo'
-          : key === 'y' && !event.shiftKey
-            ? 'redo'
-            : null;
+      const kind = historyKey(event);
       if (kind === null || historyState.busy || historyState[kind] === 0) {
         return;
       }

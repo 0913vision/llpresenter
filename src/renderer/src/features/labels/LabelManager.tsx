@@ -1,4 +1,3 @@
-import {isUnchangedSelectionMove} from '@core/common/selectionOrder';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {
   useEffect,
@@ -8,7 +7,6 @@ import {
   useSyncExternalStore,
   type JSX,
   type Ref,
-  type DragEvent,
 } from 'react';
 import {Button} from '@renderer/ui/Button';
 import type {Label} from '@core/schema/labels';
@@ -20,15 +18,15 @@ import {settingsDeleteHistory} from '@renderer/platform/settingsDeleteHistory';
 import {useToolDeleteShortcuts} from '@renderer/platform/useToolDeleteShortcuts';
 import {deleteSelection} from '@renderer/ui/deleteSelection';
 import {useReflow} from '@renderer/ui/useReflow';
-import {isInTextEntry} from '@renderer/ui/textEntry';
+import {historyKey} from '@renderer/ui/historyKey';
 import {LabelNameField} from './LabelNameField';
 import {useLabelRows} from './useLabelRows';
+import {useLabelReorder} from './useLabelReorder';
 import {editorTask} from '@renderer/platform/editorTask';
 import type {LabelCatalog} from './labelCatalog';
 import styles from './LabelMenu.module.css';
 
 const EMPTY_LABELS: readonly Label[] = [];
-const LABEL_DRAG = 'application/x-llp-label';
 
 export interface LabelManagerHandle {
   readonly settle: () => Promise<boolean>;
@@ -75,16 +73,7 @@ export function LabelManager({
   const addButton = useRef<HTMLButtonElement>(null);
   const drafts = useRef(new Map<number, () => Promise<boolean>>());
   const acting = useRef(false);
-  const dragging = useRef<string | null>(null);
-  const [dropIndex, setDropIndex] = useState<number | null>(null);
   const {rows, prepareRename} = useLabelRows(labels);
-  useEffect(
-    () => () => {
-      // NOTE(0913vision): Removing the dragged element can prevent dragend.
-      if (dragging.current !== null) window.dispatchEvent(new Event('dragend'));
-    },
-    [],
-  );
   useEffect(() => {
     if (focusRequest === null || focused.current === focusRequest || busy) {
       return;
@@ -166,13 +155,12 @@ export function LabelManager({
       }),
     );
   };
-  const dropPosition = (
-    event: DragEvent<HTMLDivElement>,
-    index: number,
-  ): number => {
-    const bounds = event.currentTarget.getBoundingClientRect();
-    return index + (event.clientY >= bounds.top + bounds.height / 2 ? 1 : 0);
-  };
+  const reorder = useLabelReorder({
+    shown: rows.map(row => row.label.name),
+    locked,
+    names: () => currentLabels().map(label => label.name),
+    move,
+  });
   const add = (
     <Button
       ref={addButton}
@@ -191,23 +179,7 @@ export function LabelManager({
       ref={body}
       className={styles.settings}
       onKeyDown={event => {
-        if (
-          !event.ctrlKey ||
-          event.altKey ||
-          event.metaKey ||
-          isInTextEntry(event.target)
-        ) {
-          return;
-        }
-        const key = event.key.toLowerCase();
-        const kind =
-          key === 'z'
-            ? event.shiftKey
-              ? 'redo'
-              : 'undo'
-            : key === 'y' && !event.shiftKey
-              ? 'redo'
-              : null;
+        const kind = historyKey(event);
         if (kind === null || historyState.busy || historyState[kind] === 0) {
           return;
         }
@@ -223,106 +195,15 @@ export function LabelManager({
           data-reflow-id={label.name}
           aria-label={label.name}
           className={styles.settingsRow}
-          data-drop={
-            dropIndex === index
-              ? 'before'
-              : index === rows.length - 1 && dropIndex === rows.length
-                ? 'after'
-                : undefined
-          }
-          onDragOver={event => {
-            if (
-              locked ||
-              dragging.current === null ||
-              !event.dataTransfer.types.includes(LABEL_DRAG)
-            ) {
-              return;
-            }
-            event.preventDefault();
-            event.dataTransfer.dropEffect = 'move';
-            const position = dropPosition(event, index);
-            setDropIndex(
-              isUnchangedSelectionMove(
-                rows.map(row => row.label.name),
-                new Set([dragging.current]),
-                position,
-              )
-                ? null
-                : position,
-            );
-          }}
-          onDragLeave={event => {
-            if (!(
-              event.relatedTarget instanceof Node &&
-              event.currentTarget.contains(event.relatedTarget)
-            )) {
-              setDropIndex(null);
-            }
-          }}
-          onDrop={event => {
-            event.preventDefault();
-            const name = dragging.current;
-            dragging.current = null;
-            setDropIndex(null);
-            if (
-              locked ||
-              name === null ||
-              event.dataTransfer.getData(LABEL_DRAG) !== name
-            ) {
-              return;
-            }
-            const source = currentLabels().findIndex(
-              label => label.name === name,
-            );
-            const insertion = dropPosition(event, index);
-            if (
-              isUnchangedSelectionMove(
-                currentLabels().map(label => label.name),
-                new Set([name]),
-                insertion,
-              )
-            ) {
-              return;
-            }
-            move(name, insertion - (source < insertion ? 1 : 0));
-          }}
+          data-drop={reorder.dropAt(index)}
+          {...reorder.row(index)}
         >
           <button
             type="button"
             className={styles.grip}
             aria-label={`${label.name} 순서 이동`}
             aria-disabled={locked || undefined}
-            draggable={!locked}
-            onDragStart={event => {
-              // NOTE(0913vision): Portaled events reach the slide surface drag handler.
-              event.stopPropagation();
-              if (locked) {
-                event.preventDefault();
-                return;
-              }
-              dragging.current = label.name;
-              event.dataTransfer.setData(LABEL_DRAG, label.name);
-              event.dataTransfer.effectAllowed = 'move';
-            }}
-            onDragEnd={() => {
-              dragging.current = null;
-              setDropIndex(null);
-            }}
-            onKeyDown={event => {
-              if (
-                locked ||
-                !event.altKey ||
-                event.ctrlKey ||
-                event.metaKey ||
-                event.shiftKey ||
-                !['ArrowUp', 'ArrowDown'].includes(event.key)
-              ) {
-                return;
-              }
-              event.preventDefault();
-              event.stopPropagation();
-              move(label.name, index + (event.key === 'ArrowUp' ? -1 : 1));
-            }}
+            {...reorder.grip(label.name, index)}
           >
             <Icon name="grip" size={16} />
           </button>
