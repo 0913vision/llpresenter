@@ -205,7 +205,40 @@ function BoxProperties({
   };
   const fixed = appBoxes(theme.purpose).has(box.name) ? APP_BOX : undefined;
   return (
-    <PropertyGroup title={`글 상자: ${box.name}`}>
+    <PropertyGroup
+      title={`글 상자: ${box.name}`}
+      action={
+        <>
+          <IconButton
+            icon="up"
+            label={`${box.name} 글 상자 위로`}
+            disabled={reason !== undefined || index === 0}
+            title={reason}
+            onClick={() =>
+              model.themeChange(current => moveBox(current, box.name, -1))
+            }
+          />
+          <IconButton
+            icon="down"
+            label={`${box.name} 글 상자 아래로`}
+            disabled={reason !== undefined || index === theme.boxes.length - 1}
+            title={reason}
+            onClick={() =>
+              model.themeChange(current => moveBox(current, box.name, 1))
+            }
+          />
+          <IconButton
+            icon="trash"
+            label={`${box.name} 글 상자 삭제`}
+            disabled={reason !== undefined}
+            title={reason}
+            onClick={() =>
+              model.themeChange(current => removeBox(current, box.name))
+            }
+          />
+        </>
+      }
+    >
       <StringProperty
         label="이름"
         value={box.name}
@@ -278,33 +311,6 @@ function BoxProperties({
         reason={reason}
         change={column => change(current => ({...current, column}))}
       />
-      <div className={styles.boxTools}>
-        <Button
-          disabled={reason !== undefined || index === 0}
-          onClick={() =>
-            model.themeChange(current => moveBox(current, box.name, -1))
-          }
-        >
-          위로
-        </Button>
-        <Button
-          disabled={reason !== undefined || index === theme.boxes.length - 1}
-          onClick={() =>
-            model.themeChange(current => moveBox(current, box.name, 1))
-          }
-        >
-          아래로
-        </Button>
-        <IconButton
-          icon="trash"
-          label={`${box.name} 글 상자 삭제`}
-          disabled={reason !== undefined}
-          title={reason}
-          onClick={() =>
-            model.themeChange(current => removeBox(current, box.name))
-          }
-        />
-      </div>
     </PropertyGroup>
   );
 }
