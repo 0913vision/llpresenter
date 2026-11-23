@@ -9,7 +9,6 @@ import {
   type JSX,
 } from 'react';
 import type {ServiceRow, SlideTile} from '@core/presentation';
-import {flushSync} from 'react-dom';
 import {useLive} from '@renderer/session/live';
 import {outputTile, useShow} from '@renderer/session/show';
 import {projectedLiveCursor, tilesForView} from '@renderer/session/showLibrary';
@@ -28,7 +27,7 @@ import {TilePicture, tileProps} from '@renderer/pictures/TilePicture';
 import styles from './SlideGrid.module.css';
 import {tileReflowIds} from './tileReflowIds';
 import {useReflow} from '@renderer/ui/useReflow';
-import {watchUserScroll} from './userScroll';
+import {useContinuousViewport} from './useContinuousViewport';
 
 const BAND = 30;
 const HEADING = 37;
@@ -182,22 +181,16 @@ export function ContinuousSlideGrid({
     tileWidth > 0
       ? Math.max(1, Math.floor((width + gap) / (tileWidth + gap)))
       : columns;
-  const [metrics, setMetrics] = useState({
-    height: 0,
-    top: 0,
-    band: 0,
-    rowGap: 0,
-  });
-  const metricsRef = useRef(metrics);
-  const pause = useRef(0);
   const windowKeyRef = useRef<
     ((top: number, height: number) => string) | undefined
   >(undefined);
-  const dragging = useRef(false);
+  const {metrics, control: scrolling} = useContinuousViewport(
+    keeper,
+    windowKeyRef,
+  );
   const followRef = useRef<
     (behavior?: ScrollBehavior, keyed?: 'down' | 'other') => void
   >(() => undefined);
-  const keyed = useRef(0);
   const followed = useRef<{
     item: string | undefined;
     index: number | undefined;
@@ -210,85 +203,6 @@ export function ContinuousSlideGrid({
     },
     [],
   );
-  useLayoutEffect(() => {
-    const viewport = keeper.current?.parentElement;
-    const grid = keeper.current?.querySelector<HTMLElement>(
-      '[data-continuous-measure]',
-    );
-    if (!viewport || !grid) return;
-    const read = (): void => {
-      const css = getComputedStyle(grid);
-      const px = (name: string): number =>
-        parseFloat(css.getPropertyValue(name)) || 0;
-      const next = {
-        height: viewport.clientHeight,
-        top: viewport.scrollTop,
-        band: px('--size-control-xs') + px('--space-6'),
-        rowGap: px('row-gap'),
-      };
-      const old = metricsRef.current;
-      if (
-        old.height === next.height &&
-        old.top === next.top &&
-        old.band === next.band &&
-        old.rowGap === next.rowGap
-      ) {
-        return;
-      }
-      metricsRef.current = next;
-      setMetrics(next);
-    };
-    const scroll = (): void => {
-      const old = metricsRef.current;
-      const top = viewport.scrollTop;
-      const key = windowKeyRef.current;
-      if (
-        top === old.top ||
-        (key !== undefined && key(old.top, old.height) === key(top, old.height))
-      ) {
-        return;
-      }
-      const next = {...old, top};
-      metricsRef.current = next;
-      setMetrics(next);
-    };
-    // NOTE(0913vision): Where the user scrolls, the grid stays; it follows
-    // the live slide again only when the live slide changes.
-    const defer = (): void => {
-      pause.current = Date.now() + 1500;
-    };
-    // NOTE(0913vision): A resize renders in its own frame, before it paints.
-    const observer = new ResizeObserver(() => flushSync(read));
-    observer.observe(viewport);
-    observer.observe(grid);
-    viewport.addEventListener('scroll', scroll, {passive: true});
-    const stopWatching = watchUserScroll(viewport, {
-      moved: defer,
-      dragging: on => {
-        dragging.current = on;
-      },
-    });
-    // NOTE(0913vision): Only a key press counts as keyboard navigation; any
-    // pointer press after it (a Shift+click, say) is a click again.
-    const key = (event: KeyboardEvent): void => {
-      if (!['Shift', 'Control', 'Alt', 'Meta'].includes(event.key)) {
-        keyed.current = Date.now();
-      }
-    };
-    const pointer = (): void => {
-      keyed.current = 0;
-    };
-    window.addEventListener('keydown', key, true);
-    window.addEventListener('pointerdown', pointer, true);
-    read();
-    return () => {
-      observer.disconnect();
-      viewport.removeEventListener('scroll', scroll);
-      stopWatching();
-      window.removeEventListener('keydown', key, true);
-      window.removeEventListener('pointerdown', pointer, true);
-    };
-  }, []);
   const stride =
     tileWidth > 0 ? (tileWidth * 9) / 16 + metrics.band + metrics.rowGap : 1;
   const sections = useMemo(
@@ -322,8 +236,8 @@ export function ContinuousSlideGrid({
         !viewport ||
         !section ||
         cursorIndex === undefined ||
-        dragging.current ||
-        (keyed === undefined && Date.now() < pause.current) ||
+        scrolling.dragging() ||
+        (keyed === undefined && scrolling.paused()) ||
         stride <= 1
       ) {
         return;
@@ -359,12 +273,20 @@ export function ContinuousSlideGrid({
       (order(cursorItem) > order(last.item) ||
         (cursorItem === last.item &&
           (cursorIndex ?? 0) > (last.index ?? Number.MAX_SAFE_INTEGER)));
-    const byKey = moved && Date.now() - keyed.current < 1000;
+    const byKey = moved && scrolling.keyedWithin(1000);
     followRef.current(
       moved ? 'smooth' : 'instant',
       byKey ? (down ? 'down' : 'other') : undefined,
     );
-  }, [cursorItem, cursorIndex, sections, stride, tracks, metrics.rowGap]);
+  }, [
+    cursorItem,
+    cursorIndex,
+    sections,
+    stride,
+    tracks,
+    metrics.rowGap,
+    scrolling,
+  ]);
   useLayoutEffect(() => {
     if (initialized.current || tileWidth <= 0 || sections.length === 0) return;
     initialized.current = true;
@@ -393,7 +315,7 @@ export function ContinuousSlideGrid({
         value => event instanceof CustomEvent && value.row.id === event.detail,
       );
       if (!section) return;
-      pause.current = Date.now() + 1500;
+      scrolling.pause();
       keeper.current?.parentElement?.scrollTo({
         top: section.top,
         behavior: 'smooth',
@@ -401,7 +323,7 @@ export function ContinuousSlideGrid({
     };
     window.addEventListener('show-grid-item', select);
     return () => window.removeEventListener('show-grid-item', select);
-  }, [sections]);
+  }, [sections, scrolling]);
   useEffect(() => {
     const index = Math.max(
       0,
@@ -429,7 +351,7 @@ export function ContinuousSlideGrid({
     liveReturn.offer(() => {
       const viewport = keeper.current?.parentElement;
       if (!viewport || liveTile === null) return;
-      pause.current = 0;
+      scrolling.resume();
       viewport.scrollTo({
         top: Math.max(
           0,
@@ -438,7 +360,7 @@ export function ContinuousSlideGrid({
         behavior: 'smooth',
       });
     });
-  }, [liveTile]);
+  }, [liveTile, scrolling]);
   useEffect(() => () => liveReturn.offer(null), []);
   useEffect(() => {
     liveReturn.report(
