@@ -1,32 +1,33 @@
-import {useEffect, useRef, useState, type JSX} from 'react';
-import {limitReason} from '@core/common/limitReason';
-import {createThemeId, type ThemeId} from '@core/schema/ids';
+import {useState, type JSX} from 'react';
 import {slidePurposes, type ThemeFile} from '@core/schema/theme';
-import {THEMES_LIMITS} from '@core/schema/themes';
-import {
-  copiedThemeName,
-  editThemeList,
-  newTheme,
-  ownThemeCount,
-  type ThemeListEdit,
-  builtInTheme,
-  themeFor,
-} from '@core/theme';
-import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {IconButton} from '@renderer/ui/IconButton';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import {Panel, PanelActions, PanelHeader, PanelTitle} from '@renderer/ui/Panel';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
-import {deleteSelection} from '@renderer/ui/deleteSelection';
 import {ChoiceRows} from '../ChoiceRows';
-import {purposeNames, themeProblems} from './themeNames';
+import {purposeNames} from './themeNames';
 import {ThemeMenu} from './ThemeMenu';
 import type {ThemeModel} from './useThemeEditor';
+import {useThemeListActions} from './useThemeListActions';
 import styles from './Themes.module.css';
-import {useAlive} from '@renderer/ui/useAlive';
 
-function newId(): ThemeId {
-  return createThemeId(crypto.randomUUID());
+/** 기본 on the default theme of its purpose, else the purpose a renamed theme is for. */
+function ThemeTag({
+  theme,
+  isDefault,
+}: {
+  readonly theme: ThemeFile;
+  readonly isDefault: boolean;
+}): JSX.Element {
+  return (
+    <span className={styles.tags}>
+      {isDefault ? (
+        <span className={styles.tag}>기본</span>
+      ) : theme.name === purposeNames[theme.purpose] ? null : (
+        <span className={styles.tag}>{purposeNames[theme.purpose]}</span>
+      )}
+    </span>
+  );
 }
 
 export function ThemeList({
@@ -43,90 +44,18 @@ export function ThemeList({
   } | null>(null);
   const [adding, setAdding] = useState<HTMLElement | null>(null);
   const [renaming, setRenaming] = useState<string | null>(null);
-  const alive = useAlive();
-  const focusCreated = useRef<ThemeId | null>(null);
-  useEffect(() => {
-    const id = focusCreated.current;
-    if (id === null) return;
-    const row = document.querySelector<HTMLElement>(
-      `[role="listbox"][aria-label="테마"] [role="option"][data-value="${id}"]`,
-    );
-    if (row !== null) {
-      row.focus({preventScroll: true});
-      focusCreated.current = null;
-    }
-  }, [model.theme?.id]);
+  const actions = useThemeListActions(model);
   const renameAfterMenu = useMenuHandoff<ThemeFile>(menu !== null, theme => {
     model.chooseTheme(theme.id);
     setRenaming(theme.id);
   });
-  const execute = async (edit: ThemeListEdit): Promise<boolean> => {
-    const unchanged = model.guardInteraction();
-    const result = await model.change(
-      value => editThemeList(value, edit),
-      edit.kind === 'rename' ? 'saved' : 'applied',
-    );
-    if (!alive.current) return false;
-    if (!result.ok) {
-      model.report(themeProblems[result.error]);
-      return false;
-    }
-    if (result.value && edit.kind === 'add' && unchanged()) {
-      model.chooseTheme(edit.theme.id);
-      focusCreated.current = edit.theme.id;
-    }
-    return result.value;
-  };
-  const run = (edit: ThemeListEdit): void => {
-    execute(edit).catch(model.reportError);
-  };
-  const requestDelete = (theme: ThemeFile): void => {
-    deleteSelection(
-      1,
-      () => model.reason === undefined && builtInTheme(theme.id) === undefined,
-      () => {
-        if (model.dirtyThemeId === theme.id) model.discard();
-        run({kind: 'delete', id: theme.id});
-      },
-    );
-  };
   const deleteAfterMenu = useMenuHandoff<ThemeFile>(
     menu !== null,
-    requestDelete,
+    actions.requestDelete,
   );
-  const full = list !== null && ownThemeCount(list) >= THEMES_LIMITS.themes;
-  const addReason =
-    reason ?? (full ? limitReason('테마', THEMES_LIMITS.themes) : undefined);
-  const duplicate = (theme: ThemeFile): void => {
-    if (list === null) return;
-    run({
-      kind: 'add',
-      theme: {
-        ...theme,
-        id: newId(),
-        name: copiedThemeName(list, theme.name),
-      },
-      after: theme.id,
-    });
-  };
-  useWindowShortcuts([
-    {
-      id: 'edit.duplicate',
-      when: event =>
-        event.target instanceof Element &&
-        event.target.closest('[role="listbox"][aria-label="테마"]') !== null &&
-        model.theme !== undefined,
-      unavailable: () => addReason,
-      run: () => {
-        if (addReason === undefined && model.theme !== undefined) {
-          duplicate(model.theme);
-        }
-      },
-    },
-  ]);
-  const isDefault = (theme: ThemeFile): boolean =>
-    list !== null && themeFor(list, theme.purpose).id === theme.id;
   const choices = list?.themes ?? [];
+  const find = (id: string | null): ThemeFile | undefined =>
+    choices.find(theme => theme.id === id);
   return (
     <>
       <Panel label="테마 목록" className={styles.themeList}>
@@ -136,8 +65,8 @@ export function ThemeList({
             <IconButton
               icon="plus"
               label="새 테마"
-              disabled={addReason !== undefined}
-              title={addReason}
+              disabled={actions.addReason !== undefined}
+              title={actions.addReason}
               onClick={event => setAdding(event.currentTarget)}
             />
           </PanelActions>
@@ -151,21 +80,20 @@ export function ThemeList({
           }
           label="테마"
           onSelect={id => {
-            const theme = choices.find(value => value.id === id);
+            const theme = find(id);
             if (theme !== undefined) model.chooseTheme(theme.id);
           }}
           canMove={() => reason === undefined}
           onMove={(id, before) => {
-            const source = choices.find(theme => theme.id === id);
-            const next = choices.find(theme => theme.id === before);
+            const source = find(id);
             if (source !== undefined) {
-              run({kind: 'move', id: source.id, before: next?.id ?? null});
+              actions.move(source.id, find(before)?.id ?? null);
             }
           }}
           onRename={theme => {
             if (reason === undefined) setRenaming(theme.id);
           }}
-          onDelete={requestDelete}
+          onDelete={actions.requestDelete}
           onMenu={(theme, anchor) => {
             model.chooseTheme(theme.id);
             setMenu({theme, anchor});
@@ -177,27 +105,17 @@ export function ThemeList({
                   id: renaming,
                   handlers: {
                     onCommit: async name => {
-                      const theme = choices.find(
-                        value => value.id === renaming,
-                      );
+                      const theme = find(renaming);
                       return theme === undefined
                         ? false
-                        : execute({kind: 'rename', id: theme.id, name});
+                        : actions.rename(theme.id, name);
                     },
                     onClose: () => setRenaming(null),
                   },
                 }
           }
           rowEnd={theme => (
-            <span className={styles.tags}>
-              {isDefault(theme) ? (
-                <span className={styles.tag}>기본</span>
-              ) : theme.name === purposeNames[theme.purpose] ? null : (
-                <span className={styles.tag}>
-                  {purposeNames[theme.purpose]}
-                </span>
-              )}
-            </span>
+            <ThemeTag theme={theme} isDefault={actions.isDefault(theme)} />
           )}
         />
       </Panel>
@@ -206,16 +124,13 @@ export function ThemeList({
           theme={menu.theme}
           anchor={menu.anchor}
           actions={{
-            isDefault: isDefault(menu.theme),
+            isDefault: actions.isDefault(menu.theme),
             reason,
-            addReason,
-            makeDefault: () => run({kind: 'default', id: menu.theme.id}),
-            duplicate: () => duplicate(menu.theme),
+            addReason: actions.addReason,
+            makeDefault: () => actions.makeDefault(menu.theme.id),
+            duplicate: () => actions.duplicate(menu.theme),
             rename: () => renameAfterMenu(menu.theme),
-            restore: () => {
-              if (model.dirtyThemeId === menu.theme.id) model.discard();
-              run({kind: 'restore', id: menu.theme.id});
-            },
+            restore: () => actions.restore(menu.theme.id),
             remove: () => {
               deleteAfterMenu(menu.theme);
               setMenu(null);
@@ -232,12 +147,7 @@ export function ThemeList({
             kind: 'item',
             id: purpose,
             label: purposeNames[purpose],
-            onSelect: () =>
-              run({
-                kind: 'add',
-                theme: newTheme(list, purpose, newId()),
-                after: themeFor(list, purpose).id,
-              }),
+            onSelect: () => actions.add(purpose),
           }))}
           onClose={() => setAdding(null)}
         />
