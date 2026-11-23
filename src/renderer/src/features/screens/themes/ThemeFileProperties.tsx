@@ -1,4 +1,4 @@
-import type {JSX} from 'react';
+import {useRef, type JSX} from 'react';
 import {limitReason} from '@core/common/limitReason';
 import {
   THEME_FILE_LIMITS,
@@ -31,6 +31,7 @@ import {StringProperty} from '../StringProperty';
 import {ThemeBackgroundProperties} from './ThemeBackgroundProperties';
 import {ThemeTextArea} from './ThemePropertyFields';
 import {ThemeTemplates} from './ThemeTemplates';
+import {textWithValue, ThemeValueButton} from './ThemeValueButton';
 import {purposeNames} from './themeNames';
 import type {ThemeModel} from './useThemeEditor';
 import styles from './Themes.module.css';
@@ -177,6 +178,12 @@ function BoxProperties({
     model.themeChange(current => changeBox(current, box.name, update));
   };
   const fixed = appBoxes(theme.purpose).has(box.name) ? APP_BOX : undefined;
+  const defaultArea = useRef<HTMLTextAreaElement | null>(null);
+  const setDefault = (text: string): void =>
+    change(current => {
+      const {default: _default, ...rest} = current;
+      return text === '' ? rest : {...rest, default: text};
+    });
   return (
     <PropertyGroup
       title={`글 상자: ${box.name}`}
@@ -224,41 +231,30 @@ function BoxProperties({
       />
       <PropertyRow label="처음 글" alignTop>
         {({controlId}) => (
-          <ThemeTextArea
-            id={controlId}
-            label={`${box.name} 처음 글`}
-            value={box.default ?? ''}
-            reason={reason}
-            begin={model.beginEditGroup}
-            change={text =>
-              change(current => {
-                const {default: _default, ...rest} = current;
-                return text === '' ? rest : {...rest, default: text};
-              })
-            }
-          />
-        )}
-      </PropertyRow>
-      <PropertyRow label="값 넣기">
-        {({controlId}) => (
-          <SelectMenu
-            id={controlId}
-            block
-            value={undefined}
-            valueText="선택"
-            disabled={reason !== undefined}
-            title={reason}
-            options={Object.values(AUTO_TOKENS).map(value => ({
-              value,
-              label: value,
-            }))}
-            onChange={value =>
-              change(current => ({
-                ...current,
-                default: `${current.default ?? ''}{${value}}`,
-              }))
-            }
-          />
+          <div className={styles.template}>
+            <ThemeTextArea
+              id={controlId}
+              label={`${box.name} 처음 글`}
+              value={box.default ?? ''}
+              reason={reason}
+              begin={model.beginEditGroup}
+              change={setDefault}
+              area={element => {
+                defaultArea.current = element;
+              }}
+            />
+            <div className={styles.templateTools}>
+              <ThemeValueButton
+                values={Object.values(AUTO_TOKENS)}
+                reason={reason}
+                onPick={text =>
+                  setDefault(
+                    textWithValue(box.default ?? '', defaultArea.current, text),
+                  )
+                }
+              />
+            </div>
+          </div>
         )}
       </PropertyRow>
       <PropertyRow label="줄">

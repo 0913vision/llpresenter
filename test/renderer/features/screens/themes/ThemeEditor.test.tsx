@@ -248,6 +248,22 @@ describe('a theme and its screens', () => {
     );
   });
 
+  it('puts a value in brackets into the first text of a box', async () => {
+    const {user, saved} = await setup();
+    await user.click(themeRow(BUILT_IN_THEME_IDS.lyrics));
+    await openTab(user, '테마');
+    const [insert] = properties().getAllByRole('button', {name: '값 넣기'});
+    if (insert === undefined) throw new Error('no 값 넣기');
+    await user.click(insert);
+    await user.click(screen.getByRole('menuitem', {name: '(구절)'}));
+    await overwrite(user);
+    await waitFor(() =>
+      expect(saved(BUILT_IN_THEME_IDS.lyrics)?.boxes[0]?.default).toBe(
+        '{(구절)}',
+      ),
+    );
+  });
+
   it('asks before another theme is opened, and can drop the changes', async () => {
     const {user, saved} = await setup();
     await user.click(themeRow(BUILT_IN_THEME_IDS.lyrics));

@@ -1,11 +1,11 @@
-import {useRef, useState, type JSX} from 'react';
+import {useRef, type JSX} from 'react';
 import {limitReason} from '@core/common/limitReason';
 import {THEME_FILE_LIMITS} from '@core/schema/theme';
 import {Button} from '@renderer/ui/Button';
 import {IconButton} from '@renderer/ui/IconButton';
-import {Menu} from '@renderer/ui/Menu';
 import {PropertyRow} from '@renderer/ui/PropertyRow';
 import {ThemeTextArea} from './ThemePropertyFields';
+import {textWithValue, ThemeValueButton} from './ThemeValueButton';
 import type {ThemeModel} from './useThemeEditor';
 import styles from './Themes.module.css';
 
@@ -31,20 +31,12 @@ export function ThemeTemplates({
   readonly change: (templates: string[]) => void;
 }): JSX.Element {
   const areas = useRef(new Map<number, HTMLTextAreaElement>());
-  const [inserting, setInserting] = useState<{
-    readonly index: number;
-    readonly anchor: HTMLElement;
-  } | null>(null);
   const replaceAt = (index: number, template: string): void =>
     change(templates.map((entry, at) => (at === index ? template : entry)));
-  const insert = (index: number, value: string): void => {
-    const template = templates[index] ?? '';
-    const area = areas.current.get(index);
-    const start = area?.selectionStart ?? template.length;
-    const end = area?.selectionEnd ?? start;
+  const insert = (index: number, text: string): void => {
     replaceAt(
       index,
-      `${template.slice(0, start)}{${value}}${template.slice(end)}`,
+      textWithValue(templates[index] ?? '', areas.current.get(index), text),
     );
   };
   const full = templates.length >= THEME_FILE_LIMITS.templates;
@@ -71,14 +63,10 @@ export function ThemeTemplates({
                 }}
               />
               <div className={styles.templateTools}>
-                <IconButton
-                  icon="plus"
-                  label="값 넣기"
-                  disabled={reason !== undefined}
-                  title={reason}
-                  onClick={event =>
-                    setInserting({index, anchor: event.currentTarget})
-                  }
+                <ThemeValueButton
+                  values={values}
+                  reason={reason}
+                  onPick={text => insert(index, text)}
                 />
                 <IconButton
                   icon="trash"
@@ -110,29 +98,6 @@ export function ThemeTemplates({
             >
               문구 추가
             </Button>
-            {inserting === null ? null : (
-              <Menu
-                label="값 넣기"
-                anchor={{kind: 'element', element: inserting.anchor}}
-                entries={[
-                  ...values.map(value => ({
-                    kind: 'item' as const,
-                    id: value,
-                    label: value,
-                    onSelect: () => insert(inserting.index, value),
-                  })),
-                  {kind: 'separator', id: 'brackets'},
-                  {kind: 'group', id: 'bracketed', label: '괄호로 감싸기'},
-                  ...values.map(value => ({
-                    kind: 'item' as const,
-                    id: `(${value})`,
-                    label: `(${value})`,
-                    onSelect: () => insert(inserting.index, `(${value})`),
-                  })),
-                ]}
-                onClose={() => setInserting(null)}
-              />
-            )}
           </div>
         )}
       </PropertyRow>
