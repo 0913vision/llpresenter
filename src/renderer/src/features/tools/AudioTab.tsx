@@ -1,7 +1,7 @@
 import {useAudioSelection} from './state/audioSelection';
 import {useMemo, type JSX} from 'react';
 import {useLive} from '@renderer/session/live';
-import {Checkbox, SelectMenu} from '@renderer/ui';
+import {CheckRow, SelectMenu} from '@renderer/ui';
 import type {Notice} from '@renderer/ui/notices';
 import type {AudioPlaylistId} from '@core/schema/ids';
 import type {MediaItem} from '@core/schema/mediaList';
@@ -78,25 +78,23 @@ export function AudioTab({
           onChange={setChosen}
         />
         <span>{selected?.items.length ?? 0}곡</span>
-        <label className={styles.repeat}>
-          반복{' '}
-          <Checkbox
-            aria-label="반복"
-            checked={selected?.loop ?? false}
-            disabled={
-              !selected || editing.busy || document?.access !== 'editable'
+        <CheckRow
+          label="반복"
+          className={styles.repeat}
+          checked={selected?.loop ?? false}
+          disabled={
+            !selected || editing.busy || document?.access !== 'editable'
+          }
+          onChange={loop => {
+            if (selected) {
+              editing
+                .run({id: selected.id, loop})
+                .catch((cause: unknown) =>
+                  console.error('Repeat callback failed:', cause),
+                );
             }
-            onChange={loop => {
-              if (selected) {
-                editing
-                  .run({id: selected.id, loop})
-                  .catch((cause: unknown) =>
-                    console.error('Repeat callback failed:', cause),
-                  );
-              }
-            }}
-          />
-        </label>
+          }}
+        />
       </div>
       {api && selected ? (
         <WindowedAudioTracks key={selected.id} api={api} tracks={tracks} />

@@ -7,11 +7,6 @@
 .root {
   padding: var(--space-8) var(--inset-end) var(--space-8) var(--panel-inset);
 }
-.tools {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: var(--space-8);
-}
 
 .text {
   display: grid;

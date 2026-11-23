@@ -1,3 +1,4 @@
+import {PanelAction} from '@renderer/ui/PanelActionSlot';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {limitReason} from '@core/common/limitReason';
 import {useRef, useState, type JSX} from 'react';
@@ -73,7 +74,7 @@ export function TimerTab({
           : undefined;
   return (
     <div className={styles.root} ref={root}>
-      <div className={styles.tools}>
+      <PanelAction>
         <IconButton
           icon="plus"
           label="타이머 추가"
@@ -81,7 +82,7 @@ export function TimerTab({
           title={reason}
           onClick={() => setAdding(true)}
         />
-      </div>
+      </PanelAction>
       {api ? (
         <WindowedTimers
           api={api}

@@ -1,8 +1,12 @@
-import type {JSX} from 'react';
+import {useState, type JSX} from 'react';
 import type {SizeClass} from '@renderer/ui/sizeClass';
 import {useShowToolTab} from '@renderer/features/tools/state/showToolTab';
 import {Panel, PanelBody, PanelHeader} from '@renderer/ui/Panel';
 import {ResponsivePanelTabs} from '@renderer/ui/ResponsivePanelTabs';
+import {
+  PanelActionScope,
+  PanelActionTarget,
+} from '@renderer/ui/PanelActionSlot';
 import type {Notice} from '@renderer/ui/notices';
 import {SHOW_TOOLS, showTool} from './showTools';
 import {AudioTab} from './AudioTab';
@@ -24,6 +28,7 @@ export function ShowToolsPanel({
   const setTool = useShowToolTab(state => state.setTool);
   const selectedTab = showTool(tool);
   const selected = selectedTab.value;
+  const [actions, setActions] = useState<HTMLElement | null>(null);
 
   return (
     <div className={styles.root}>
@@ -35,17 +40,22 @@ export function ShowToolsPanel({
             onChange={setTool}
             moreLabel="더 보기"
           />
+          <PanelActionTarget onPlace={setActions} />
         </PanelHeader>
         <PanelBody
           variant={selectedTab.scrolls ? 'flush' : 'fixed'}
           tab={selected}
         >
-          {selected === 'audio' ? <AudioTab onProblem={onProblem} /> : null}
-          {selected === 'stage' ? <StageTab onProblem={onProblem} /> : null}
-          {selected === 'timer' ? <TimerTab onProblem={onProblem} /> : null}
-          {selected === 'message' ? <MessageTab onProblem={onProblem} /> : null}
-          {selected === 'prop' ? <PropTab onProblem={onProblem} /> : null}
-          {selected === 'macro' ? <MacroTab onProblem={onProblem} /> : null}
+          <PanelActionScope place={actions}>
+            {selected === 'audio' ? <AudioTab onProblem={onProblem} /> : null}
+            {selected === 'stage' ? <StageTab onProblem={onProblem} /> : null}
+            {selected === 'timer' ? <TimerTab onProblem={onProblem} /> : null}
+            {selected === 'message' ? (
+              <MessageTab onProblem={onProblem} />
+            ) : null}
+            {selected === 'prop' ? <PropTab onProblem={onProblem} /> : null}
+            {selected === 'macro' ? <MacroTab onProblem={onProblem} /> : null}
+          </PanelActionScope>
         </PanelBody>
       </Panel>
     </div>

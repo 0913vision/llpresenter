@@ -1,3 +1,4 @@
+import {PanelAction} from '@renderer/ui/PanelActionSlot';
 import {useLayoutEffect, useRef, useState, type JSX} from 'react';
 import {limitReason} from '@core/common/limitReason';
 import {createPropId} from '@core/schema/ids';
@@ -114,14 +115,14 @@ export function PropTab({
   });
   return (
     <div className={styles.root} ref={root}>
-      <div className={styles.tools}>
+      <PanelAction>
         <IconButton
           icon="plus"
           label="그래픽 추가"
           disabled={locked || document.value.props.length >= MAX_PROPS}
           onClick={() => setEditor({kind: 'add'})}
         />
-      </div>
+      </PanelAction>
       <PropGrid
         props={document?.value.props ?? []}
         screens={screens?.value.screens ?? []}

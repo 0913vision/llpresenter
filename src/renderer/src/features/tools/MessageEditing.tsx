@@ -1,3 +1,4 @@
+import {PanelAction} from '@renderer/ui/PanelActionSlot';
 import {limitReason} from '@core/common/limitReason';
 import {contextMenuTarget, isContextMenuKey} from '@renderer/ui/contextMenu';
 import {useRef, useState, type JSX, type ReactNode} from 'react';
@@ -36,7 +37,6 @@ import {
   type MessageFields,
   type MessageEdit,
 } from './messageEdits';
-import styles from './MessageTab.module.css';
 import {messageMenuEntries, toolMenuReason} from './toolMenuEntries';
 
 type Editor =
@@ -296,7 +296,7 @@ export function MessageEditing({
   });
   return (
     <>
-      <div className={styles.editingTools}>
+      <PanelAction>
         <IconButton
           icon="plus"
           label="메시지 추가"
@@ -306,7 +306,7 @@ export function MessageEditing({
           }
           onClick={() => setEditor({kind: 'add'})}
         />
-      </div>
+      </PanelAction>
       <div
         ref={root}
         onContextMenu={event => {

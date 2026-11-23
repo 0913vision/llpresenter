@@ -625,14 +625,14 @@ panel past the resizable border or disappears below that border.
   resumes. Clicking a running timer resets it to its configured stopped value.
   The quick row does not pause. The separate timer-tab pause and 처음으로
   controls above remain available (user decision from the October 26 check).
-- No board shows where to add or edit a 타이머. The app has a plus button in the
-  tab and a right-click menu on each row (수정…, 복제, 이름 바꾸기, 삭제). 수정…
-  opens 타이머 수정 with the saved kind and values; 저장 keeps the timer's id
-  and name, so every use (빠른 실행, 매크로, 무대 화면, 테마 elements) stays
-  linked, and a kind change is allowed. A 빠른 실행 row of a 타이머 has the same
-  수정… for the timer it refers to (decided November 3). A new timer opens at
-  5분 (our own default; ProPresenter's timer article names none) and a new 경과
-  timer at 0.
+- No board shows where to add or edit a 타이머. The app has a plus button at the
+  right end of the tab row and a right-click menu on each row (수정…, 복제, 이름
+  바꾸기, 삭제). 수정… opens 타이머 수정 with the saved kind and values; 저장
+  keeps the timer's id and name, so every use (빠른 실행, 매크로, 무대 화면,
+  테마 elements) stays linked, and a kind change is allowed. A 빠른 실행 row of
+  a 타이머 has the same 수정… for the timer it refers to (decided November 3). A
+  new timer opens at 5분 (our own default; ProPresenter's timer article names
+  none) and a new 경과 timer at 0.
 - Editing a 타이머 (duration, target time or date, start value, 0 지나면, kind)
   while it runs or is paused never moves that count: the run keeps the
   definition it started with. The edit applies after 처음으로, and when a
@@ -691,8 +691,8 @@ T03, T07 and T09.
   retain their deadlines. Batched clears share one undo entry, and a following
   whole-message clear pauses every restored message's lifetime.
 - No board shows where to add or edit templates (open question). Version 1 uses
-  a plus button in the tab and a right-click menu (edit, delete) to set the name
-  and sentence (proposal).
+  a plus button at the right end of the tab row and a right-click menu (edit,
+  delete) to set the name and sentence (proposal).
 
 ### 그래픽
 
@@ -702,8 +702,8 @@ T03, T07 and T09.
   그래픽 can be on at the same time.
 - The 그래픽 clear (F4) turns every 그래픽 off.
 - No board shows where to create or edit a 그래픽 (open question). Version 1 has
-  a plus button in the tab and a right-click menu to set the name, content
-  (image or text), and target screens (proposal).
+  a plus button at the right end of the tab row and a right-click menu to set
+  the name, content (image or text), and target screens (proposal).
 
 ### 매크로
 

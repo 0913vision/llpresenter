@@ -15,9 +15,7 @@
   white-space: nowrap;
 }
 .repeat {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
+  flex: none;
   white-space: nowrap;
 }
 .empty {
