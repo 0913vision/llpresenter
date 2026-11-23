@@ -19,20 +19,17 @@ import {useMacroPalette} from './state/macroPalette';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
 import type {MacroViewMode} from './MacroView';
-import {saveMacroEdit, type MacroEdit} from './macroEdits';
 import {deleteSelection} from '@renderer/ui/deleteSelection';
-import {useToolEditing} from './useToolEditing';
 import {useToolDeleteShortcuts} from '@renderer/platform/useToolDeleteShortcuts';
 import {focusHistorySurface} from '@renderer/ui/focusHistorySurface';
 import {toolMenuReason} from './toolMenuEntries';
 import {useOptimisticCreation} from './useOptimisticCreation';
-import {saveMacroCollectionEdit} from './macroCollectionEdits';
 import type {MacroMenuHandlers} from './macroMenuEntries';
 import {macroMenuHandlers, type MacroEditor} from './macroMenuHandlers';
-import type {MacroCollectionEdit} from './macroCollectionEdits';
 import {useMacroEditor} from './useMacroEditor';
 import {useMacroRemovals} from './useMacroRemovals';
 import {useMacroLayout} from './useMacroLayout';
+import {useMacroWrites} from './useMacroWrites';
 
 export type {MacroEditor} from './macroMenuHandlers';
 
@@ -118,75 +115,14 @@ export function useMacroPanel({
   } | null>(null);
   const palette = useMacroPalette();
   const paletteFor = palette.target;
-  const revision = useRef(0);
-  const editing = useToolEditing({
-    api: window.llp,
-    write: saveMacroEdit,
-    onProblem,
-    area: {
-      key: 'macros',
-      label: '매크로',
-      log: 'Could not edit macros',
-      history: 'macros',
-    },
-  });
-  const {busy, run} = editing;
-  useToolDeleteShortcuts(root ?? fallbackRoot, editing);
-  const collectionEdit = useToolEditing({
-    api: window.llp,
-    write: saveMacroCollectionEdit,
-    onProblem,
-    area: {
-      key: 'macro-collections',
-      label: '모음',
-      log: 'Could not edit macro collections',
-      history: 'macros',
-    },
-  });
-  const locked =
-    busy ||
-    collectionEdit.busy ||
-    document?.access !== 'editable' ||
-    !window.llp;
+  const writes = useMacroWrites(onProblem);
+  const {busy, run, commit, commitCollection} = writes;
+  useToolDeleteShortcuts(root ?? fallbackRoot, writes.macros);
+  const locked = busy || document?.access !== 'editable' || !window.llp;
   const currentGroup = collections.find(item => item.id === collection);
   const currentCollection = currentGroup?.id;
-  /**
-   * Runs `after` once `save` holds, unless the operator did something else
-   * in the meantime.
-   */
-  const afterSave = (
-    save: Promise<boolean>,
-    after: (() => void) | undefined,
-    failure: string,
-  ): void => {
-    const at = revision.current;
-    save.then(
-      saved => {
-        if (saved && at === revision.current) after?.();
-      },
-      (cause: unknown) =>
-        window.llp?.log.write({
-          level: 'error',
-          message: failure,
-          detail: String(cause),
-        }),
-    );
-  };
-  const commitCollection = (
-    edit: MacroCollectionEdit,
-    after: () => void,
-  ): void =>
-    afterSave(
-      collectionEdit.run(edit),
-      after,
-      'Macro collection callback failed',
-    );
-  const commit = (edit: MacroEdit, after?: () => void): void =>
-    afterSave(run(edit), after, 'Macro edit callback failed');
   const editorState = useMacroEditor({
-    onClose: () => {
-      revision.current++;
-    },
+    onClose: writes.moved,
     commit,
     commitCollection,
     saveName: (id, name) => run({kind: 'update', id, changes: {name}}, 'saved'),
@@ -196,7 +132,7 @@ export function useMacroPanel({
     setEditor({kind: 'rename', item}),
   );
   const start = (item: Macro): void => {
-    revision.current++;
+    writes.moved();
     setSelected(undefined);
     sendLive({type: 'macro.run', macroId: item.id});
   };
@@ -211,7 +147,7 @@ export function useMacroPanel({
       color: 'teal',
       actions: [],
     };
-    revision.current++;
+    writes.moved();
     setSelected(item.id);
     macroCreation.create(
       {...item, collection: currentCollection},
@@ -231,13 +167,8 @@ export function useMacroPanel({
       name: freeName('새 모음', new Set(collections.map(item => item.name))),
       macroIds: [],
     };
-    revision.current++;
-    const at = revision.current;
-    const saved = collectionEdit.run({kind: 'add', collection: item});
-    layout.showUnsaved(
-      item.id,
-      saved.then(held => held && at === revision.current),
-    );
+    const saved = writes.runCollection({kind: 'add', collection: item});
+    layout.showUnsaved(item.id, writes.heldUntouched(saved));
     collectionCreation.create(item, saved, () =>
       layout.restoreCollection(item.id, collection),
     );
@@ -270,7 +201,7 @@ export function useMacroPanel({
       },
     });
   const askDeleteCollection = (item: MacroCollection): void => {
-    revision.current++;
+    writes.moved();
     deleteSelection(
       1,
       () => !locked && collections.some(value => value.id === item.id),
@@ -283,11 +214,11 @@ export function useMacroPanel({
     );
   };
   const selectCollection = (id: MacroCollection['id'] | undefined): void => {
-    revision.current++;
+    writes.moved();
     layout.showCollection(id);
   };
   const changeMode = (value: MacroViewMode): void => {
-    revision.current++;
+    writes.moved();
     layout.changeMode(value);
   };
   const openMenu = (
@@ -295,7 +226,7 @@ export function useMacroPanel({
     anchor: MenuAnchor,
     trigger: HTMLElement | undefined,
   ): void => {
-    revision.current++;
+    writes.moved();
     setSelected(item.id);
     setMenu({item, anchor, trigger});
   };
@@ -304,13 +235,13 @@ export function useMacroPanel({
     ? undefined
     : (item, actionKind) => {
         if (item.actions.length >= MACRO_FILE_LIMITS.actions) return;
-        revision.current++;
+        writes.moved();
         setEditor({kind: 'action', item, actionKind});
       };
   const choosePaletteAction = (actionKind: MacroActionKind): void => {
     const item = document?.value.macros.find(macro => macro.id === paletteFor);
     if (!locked && item && item.actions.length < MACRO_FILE_LIMITS.actions) {
-      revision.current++;
+      writes.moved();
       setEditor({kind: 'action', item, actionKind});
     }
   };
@@ -324,10 +255,10 @@ export function useMacroPanel({
     editor,
     palette,
     locked,
-    lockReason: toolMenuReason(locked, busy || collectionEdit.busy),
+    lockReason: toolMenuReason(locked, busy),
     onProblem,
     newDisabledReason:
-      toolMenuReason(locked, busy || collectionEdit.busy) ??
+      toolMenuReason(locked, busy) ??
       (macros.length >= MACRO_FILE_LIMITS.macros
         ? limitReason('매크로', MACRO_FILE_LIMITS.macros)
         : undefined),
