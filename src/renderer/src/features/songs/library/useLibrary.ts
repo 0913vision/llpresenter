@@ -3,13 +3,11 @@ import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {LibrarySong, SongDocument} from '@core/schema/contentDocuments';
 import type {EditResult} from '@core/schema/contentEdit';
-import {
-  LIBRARY_SEARCH_LIMITS,
-  type LibrarySearchResult,
-} from '@core/schema/librarySearch';
+import type {LibrarySearchResult} from '@core/schema/librarySearch';
 import type {SongId} from '@core/schema/ids';
 import {copyTitle, normalizeSongTitle} from '@core/songs';
 import {noticeTime, type Notice, type NoticeAction} from '@renderer/ui/notices';
+import {libraryRows, searchAllPages} from './librarySearch';
 
 export type LibraryApi = Pick<LlpApi, 'songs' | 'content' | 'services'> & {
   readonly library: Pick<LlpApi['library'], 'search' | 'revealSong'>;
@@ -21,10 +19,7 @@ export interface LibrarySelection {
   readonly position?: number | undefined;
 }
 
-export interface LibraryRow {
-  readonly song: LibrarySong;
-  readonly line?: string;
-}
+export type {LibraryRow} from './librarySearch';
 
 const titles = new Intl.Collator('ko', {numeric: true});
 const problemTitles = {
@@ -168,22 +163,12 @@ export function useLibrary(
     if (query === '') return undefined;
     let current = true;
     const load = async (): Promise<void> => {
-      const matches: Array<LibrarySearchResult['matches'][number]> = [];
-      for (
-        let offset = 0;
-        offset < songs.length;
-        offset += LIBRARY_SEARCH_LIMITS.max
-      ) {
-        const result = await api.library.search({
-          query,
-          limit: LIBRARY_SEARCH_LIMITS.max,
-          ...(offset === 0 ? {} : {offset}),
-        });
-        if (!current || result.query !== query) return;
-        matches.push(...result.matches);
-        if (result.matches.length < LIBRARY_SEARCH_LIMITS.max) break;
-      }
-      if (current) setSearch({query, matches});
+      const found = await searchAllPages(api.library.search, {
+        query,
+        total: songs.length,
+        stale: () => !current,
+      });
+      if (current && found !== null) setSearch(found);
     };
     load().catch(() => {
       if (current) {
@@ -202,21 +187,10 @@ export function useLibrary(
     };
   }, [api, query, songs, searchVersion, report, isActive]);
 
-  const visible = useMemo<readonly LibraryRow[]>(() => {
-    if (query === '') return songs.map(song => ({song}));
-    if (search?.query !== query) return [];
-    const byId = new Map(songs.map(song => [song.id, song]));
-    return search.matches.flatMap(match => {
-      const song = byId.get(match.songId);
-      if (song === undefined) return [];
-      return [
-        {
-          song,
-          ...(match.match.kind === 'lyrics' ? {line: match.match.line} : {}),
-        },
-      ];
-    });
-  }, [songs, query, search]);
+  const visible = useMemo(
+    () => libraryRows(songs, query, search),
+    [songs, query, search],
+  );
 
   const open = async (songId: SongId, position?: number): Promise<void> => {
     const version = ++requests.current.open;
