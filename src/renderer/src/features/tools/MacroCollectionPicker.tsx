@@ -1,6 +1,5 @@
 import {isUnchangedSelectionMove} from '@core/common/selectionOrder';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
-import {contextMenuTarget, isContextMenuKey} from '@renderer/ui/contextMenu';
 import {
   Fragment,
   useLayoutEffect,
@@ -13,7 +12,6 @@ import {limitReason} from '@core/common/limitReason';
 import {parseMacroCollectionId} from '@core/schema/ids';
 import {MACRO_FILE_LIMITS, type MacroCollection} from '@core/schema/macros';
 import {Icon, Select} from '@renderer/ui';
-import {MenuCheck} from '@renderer/ui/MenuParts';
 import {classNames} from '@renderer/ui/classNames';
 import {Popover} from '@renderer/ui/Popover';
 import type {MenuAnchor} from '@renderer/ui/Menu';
@@ -21,7 +19,7 @@ import type {Notice} from '@renderer/ui/notices';
 import {hasModifier} from '@renderer/ui/modifierKeys';
 import {isComposing} from '@renderer/ui/ime';
 import {ListInsertLine} from '@renderer/ui/ListRow';
-import {rowMoveDirection, stepMove} from '@renderer/ui/reorder';
+import {stepMove} from '@renderer/ui/reorder';
 import {useChoicePopup} from '@renderer/ui/useChoicePopup';
 import menuStyles from '@renderer/ui/Menu.module.css';
 import {useToolEditing} from './useToolEditing';
@@ -30,7 +28,7 @@ import {
   type MacroCollectionEdit,
 } from './macroCollectionEdits';
 import {MacroCollectionMenu} from './macroCollectionMenuEntries';
-import {RenameField} from '@renderer/ui/RenameField';
+import {MacroCollectionRow} from './MacroCollectionRow';
 import styles from './MacroCollectionPicker.module.css';
 
 const ALL = 'all';
@@ -225,120 +223,75 @@ function CollectionPopover({
                     {insertBefore !== undefined && insertBefore === item?.id ? (
                       <ListInsertLine />
                     ) : null}
-                    <div
-                      data-collection-id={item?.id}
-                      role="option"
-                      data-choice=""
-                      tabIndex={row.id === (value ?? ALL) ? 0 : -1}
-                      aria-selected={row.id === (value ?? ALL)}
-                      className={classNames(menuStyles.item, styles.row)}
-                      draggable={
-                        item !== undefined && !locked && renaming !== row.id
+                    <MacroCollectionRow
+                      name={row.name}
+                      selected={row.id === (value ?? ALL)}
+                      locked={locked}
+                      drag={{
+                        draggable:
+                          item !== undefined && !locked && renaming !== row.id,
+                        onDragStart: event => {
+                          if (item === undefined || locked) return;
+                          dragging.current = item.id;
+                          event.dataTransfer.effectAllowed = 'move';
+                          event.dataTransfer.setData(DRAG_MIME, item.id);
+                        },
+                        onDragEnd: () => {
+                          dragging.current = null;
+                          setInsertBefore(undefined);
+                        },
+                        onDragOver: event => {
+                          if (locked || dragging.current === null) return;
+                          event.preventDefault();
+                          event.stopPropagation();
+                          event.dataTransfer.dropEffect = 'move';
+                          const before = item?.id ?? collections[0]?.id;
+                          setInsertBefore(
+                            unchanged(before) ? undefined : (before ?? null),
+                          );
+                        },
+                        onDrop: event =>
+                          move(event, item?.id ?? collections[0]?.id),
+                      }}
+                      rename={
+                        renaming !== item?.id
+                          ? undefined
+                          : {
+                              validate: name =>
+                                name.length > 256
+                                  ? '이름이 너무 깁니다.'
+                                  : undefined,
+                              onCommit: name =>
+                                run(
+                                  {kind: 'rename', id: item.id, name},
+                                  'saved',
+                                ),
+                              onClose: () => setRenaming(null),
+                            }
                       }
-                      onDragStart={event => {
-                        if (item === undefined || locked) return;
-                        dragging.current = item.id;
-                        event.dataTransfer.effectAllowed = 'move';
-                        event.dataTransfer.setData(DRAG_MIME, item.id);
-                      }}
-                      onDragEnd={() => {
-                        dragging.current = null;
-                        setInsertBefore(undefined);
-                      }}
-                      onDragOver={event => {
-                        if (locked || dragging.current === null) return;
-                        event.preventDefault();
-                        event.stopPropagation();
-                        event.dataTransfer.dropEffect = 'move';
-                        const before = item?.id ?? collections[0]?.id;
-                        setInsertBefore(
-                          unchanged(before) ? undefined : (before ?? null),
-                        );
-                      }}
-                      onDrop={event =>
-                        move(event, item?.id ?? collections[0]?.id)
+                      onChoose={() => choose(item?.id)}
+                      onMenu={showContext}
+                      onDuplicate={
+                        item === undefined ? undefined : () => duplicate(item)
                       }
-                      onClick={() => choose(item?.id)}
-                      onContextMenu={event => {
-                        event.preventDefault();
-                        event.currentTarget.focus();
-                        showContext({
-                          kind: 'point',
-                          target: contextMenuTarget(event),
-                          point: {x: event.clientX, y: event.clientY},
-                        });
-                      }}
-                      onKeyDown={event => {
-                        if (
-                          event.target !== event.currentTarget ||
-                          isComposing(event)
-                        ) {
-                          return;
-                        }
-                        const direction = rowMoveDirection(event.nativeEvent);
-                        if (
-                          item !== undefined &&
-                          event.ctrlKey &&
-                          !event.shiftKey &&
-                          !event.altKey &&
-                          event.code === 'KeyD'
-                        ) {
-                          event.preventDefault();
-                          duplicate(item);
-                        } else if (direction !== undefined) {
-                          event.preventDefault();
-                          const step =
-                            item === undefined || locked
-                              ? undefined
-                              : stepMove(
-                                  collections.map(entry => entry.id),
-                                  item.id,
-                                  direction,
-                                );
-                          if (item !== undefined && step !== undefined) {
-                            save({
-                              kind: 'move',
-                              id: item.id,
-                              before: step.before ?? undefined,
-                            });
-                          }
-                        } else if (isContextMenuKey(event)) {
-                          event.preventDefault();
-                          showContext({
-                            kind: 'element',
-                            target: contextMenuTarget(event),
-                            element: event.currentTarget,
+                      onStep={direction => {
+                        const step =
+                          item === undefined || locked
+                            ? undefined
+                            : stepMove(
+                                collections.map(entry => entry.id),
+                                item.id,
+                                direction,
+                              );
+                        if (item !== undefined && step !== undefined) {
+                          save({
+                            kind: 'move',
+                            id: item.id,
+                            before: step.before ?? undefined,
                           });
-                        } else if (
-                          !hasModifier(event) &&
-                          (event.key === 'Enter' || event.key === ' ')
-                        ) {
-                          event.preventDefault();
-                          choose(item?.id);
                         }
                       }}
-                    >
-                      {renaming === item?.id ? (
-                        <RenameField
-                          label="모음 이름"
-                          maxLength={256}
-                          name={item.name}
-                          locked={locked}
-                          rename={{
-                            validate: name =>
-                              name.length > 256
-                                ? '이름이 너무 깁니다.'
-                                : undefined,
-                            onCommit: name =>
-                              run({kind: 'rename', id: item.id, name}, 'saved'),
-                            onClose: () => setRenaming(null),
-                          }}
-                        />
-                      ) : (
-                        <span className={menuStyles.label}>{row.name}</span>
-                      )}
-                      {row.id === (value ?? ALL) ? <MenuCheck /> : null}
-                    </div>
+                    />
                   </Fragment>
                 );
               })}
