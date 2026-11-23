@@ -157,6 +157,17 @@ export function filterRows(
   });
 }
 
+/** What the list says when the search or the filter leaves no row. */
+export function emptyRowsText(
+  query: string,
+  filter: ShortcutFilter,
+): string | undefined {
+  if (query.trim() !== '') return '검색 결과 없음';
+  if (filter === 'changed') return '바꾼 단축키 없음';
+  if (filter === 'conflict') return '겹친 단축키 없음';
+  return undefined;
+}
+
 /** The rows in groups, in the order the groups first appear. */
 export function groupRows(
   rows: readonly ShortcutRow[],

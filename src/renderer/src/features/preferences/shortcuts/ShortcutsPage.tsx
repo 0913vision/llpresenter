@@ -1,37 +1,27 @@
 import {useEffect, useMemo, useRef, useState, type JSX} from 'react';
-import type {KeyBinding} from '@core/schema/shortcuts';
-import {shortcutNames} from '@core/shortcuts';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
 import {Button} from '@renderer/ui/Button';
 import {EmptyState} from '@renderer/ui/EmptyState';
 import {contextMenuAnchor, isContextMenuKey} from '@renderer/ui/contextMenu';
-import {KeyCombo, KeyList} from '@renderer/ui/KeyCap';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
-import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
 import {SegmentedControl} from '@renderer/ui/SegmentedControl';
-import {ShortcutField} from '@renderer/ui/ShortcutField';
 import {TextField} from '@renderer/ui/TextField';
 import type {Notice} from '@renderer/ui/notices';
 import {
   buildRows,
+  emptyRowsText,
   filterRows,
   groupRows,
   shortcutCounts,
   type ShortcutFilter,
-  type ShortcutRow,
 } from './shortcutsModel';
 import {useShortcutEdits} from './useShortcutEdits';
+import {CommandRow} from './CommandRow';
+import {SelectedShortcutBar} from './SelectedShortcutBar';
+import {shortcutRowMenuEntries} from './shortcutRowMenu';
 import styles from './ShortcutsPage.module.css';
 
-const NO_DEFAULT = '기본값 없음';
-const RESET_LABEL = '기본값으로';
-const CLEAR_LABEL = '지우기';
-const CLEAR_BUTTON_LABEL = '단축키 지우기';
 const LIST_LABEL = '명령';
-
-function keysOf(binding: KeyBinding): readonly string[] {
-  return shortcutNames(binding);
-}
 
 function commandRowOf(
   target: EventTarget,
@@ -47,82 +37,6 @@ function commandRowOf(
 /** Opens below the row itself, also when a key opened the menu. */
 function rowAnchor(row: HTMLElement): MenuAnchor {
   return {kind: 'element', element: row, target: row};
-}
-
-function KeyCells({row}: {readonly row: ShortcutRow}): JSX.Element {
-  const state =
-    row.conflictWith !== undefined
-      ? 'warning'
-      : row.changed
-        ? 'changed'
-        : 'default';
-  return (
-    <KeyList>
-      {row.bindings.map(binding => (
-        <KeyCombo
-          key={keysOf(binding).join('+')}
-          keys={keysOf(binding)}
-          state={state}
-          conflictWith={row.conflictWith}
-        />
-      ))}
-    </KeyList>
-  );
-}
-
-function CommandRow({
-  row,
-  selected,
-  editing,
-  locked,
-  onSelect,
-  onEdit,
-  onRecord,
-  onCancel,
-}: {
-  readonly row: ShortcutRow;
-  readonly selected: boolean;
-  readonly editing: boolean;
-  readonly locked: boolean;
-  readonly onSelect: () => void;
-  readonly onEdit: () => void;
-  readonly onRecord: (binding: KeyBinding | null) => void;
-  readonly onCancel: () => void;
-}): JSX.Element {
-  return (
-    <div
-      role="option"
-      aria-selected={selected}
-      tabIndex={selected ? 0 : -1}
-      data-command={row.command.id}
-      data-conflict={row.conflictWith === undefined ? undefined : 'true'}
-      className={styles.row}
-      onClick={onSelect}
-      onDoubleClick={() => {
-        if (!locked) onEdit();
-      }}
-      onKeyDown={event => {
-        if (event.target !== event.currentTarget || event.key !== 'Enter') {
-          return;
-        }
-        event.preventDefault();
-        if (!locked) onEdit();
-      }}
-    >
-      <span className={styles.name}>{row.command.name}</span>
-      <span className={styles.keys}>
-        {editing ? (
-          <ShortcutField
-            aria-label={`${row.command.name} 단축키`}
-            onRecord={onRecord}
-            onCancel={onCancel}
-          />
-        ) : (
-          <KeyCells row={row} />
-        )}
-      </span>
-    </div>
-  );
 }
 
 // TODO(0913vision): Virtualize the rows if the objects can grow without a cap.
@@ -149,14 +63,7 @@ export function ShortcutsPage({
   const counts = shortcutCounts(rows);
   const shown = filterRows(rows, query, filter);
   const groups = groupRows(shown);
-  const emptyText =
-    query.trim() !== ''
-      ? '검색 결과 없음'
-      : filter === 'changed'
-        ? '바꾼 단축키 없음'
-        : filter === 'conflict'
-          ? '겹친 단축키 없음'
-          : undefined;
+  const emptyText = emptyRowsText(query, filter);
   const selected = rows.find(row => row.command.id === selectedId);
   const locked = edits.lockedReason !== undefined;
   useEffect(() => {
@@ -169,36 +76,6 @@ export function ShortcutsPage({
     }
   }, [editingId, selectedId]);
   const menuRow = rows.find(row => row.command.id === menu?.id);
-  const rowMenuEntries = (row: ShortcutRow): readonly MenuEntry[] => [
-    {
-      kind: 'item',
-      id: 'edit',
-      contextGroup: 'default',
-      label: '단축키 편집',
-      ...menuAvailability(edits.lockedReason),
-      onSelect: () => setEditingId(row.command.id),
-    },
-    {
-      kind: 'item',
-      id: 'reset',
-      label: RESET_LABEL,
-      ...menuAvailability(
-        edits.lockedReason ?? (row.changed ? undefined : '바꾼 키 없음'),
-      ),
-      onSelect: () => edits.reset(row.command.id),
-    },
-    {
-      kind: 'item',
-      id: 'clear',
-      contextGroup: 'delete',
-      label: CLEAR_LABEL,
-      ...menuAvailability(
-        edits.lockedReason ??
-          (row.bindings.length === 0 ? '지울 키 없음' : undefined),
-      ),
-      onSelect: () => edits.record(row.command, null),
-    },
-  ];
   const openMenu = (id: string, anchor: MenuAnchor): void => {
     setSelectedId(id);
     setMenu({id, anchor});
@@ -334,47 +211,19 @@ export function ShortcutsPage({
           label="단축키 행 메뉴"
           anchor={menu.anchor}
           onClose={() => setMenu(null)}
-          entries={rowMenuEntries(menuRow)}
+          entries={shortcutRowMenuEntries(menuRow, edits.lockedReason, {
+            edit: setEditingId,
+            reset: edits.reset,
+            clear: command => edits.record(command, null),
+          })}
         />
       )}
-      <footer className={styles.bar}>
-        {selected === undefined ? null : (
-          <>
-            <span className={styles.barName}>{selected.command.name}</span>
-            <span className={styles.barDefault}>
-              {selected.command.defaults.length === 0 ? (
-                NO_DEFAULT
-              ) : (
-                <>
-                  기본값
-                  <KeyList>
-                    {selected.command.defaults.map(binding => (
-                      <KeyCombo
-                        key={keysOf(binding).join('+')}
-                        keys={keysOf(binding)}
-                      />
-                    ))}
-                  </KeyList>
-                </>
-              )}
-            </span>
-            <Button
-              disabled={locked || !selected.changed}
-              title={edits.lockedReason}
-              onClick={() => edits.reset(selected.command.id)}
-            >
-              {RESET_LABEL}
-            </Button>
-            <Button
-              disabled={locked || selected.bindings.length === 0}
-              title={edits.lockedReason}
-              onClick={() => edits.record(selected.command, null)}
-            >
-              {CLEAR_BUTTON_LABEL}
-            </Button>
-          </>
-        )}
-      </footer>
+      <SelectedShortcutBar
+        row={selected}
+        lockedReason={edits.lockedReason}
+        onReset={id => edits.reset(id)}
+        onClear={command => edits.record(command, null)}
+      />
       {confirmingAll ? (
         <AlertDialog
           icon="undo"
