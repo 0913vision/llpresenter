@@ -108,8 +108,16 @@ describe('the declared layers', () => {
   it('let a feature import only the features before it', () => {
     const songs = LAYER_MAP.layers.find(({name}) => name === 'features/songs');
     expect(songs?.imports).toContain('features/media');
+    expect(songs?.imports).toContain('features/slides');
     expect(songs?.imports).not.toContain('features/bible');
-    expect(FEATURE_ORDER.at(0)).toBe('media');
+    expect(FEATURE_ORDER.at(0)).toBe('labels');
+  });
+
+  it('cover every feature folder of the renderer', () => {
+    const folders = readdirSync('src/renderer/src/features').filter(
+      name => !name.includes('.'),
+    );
+    expect([...FEATURE_ORDER].sort()).toEqual(folders.sort());
   });
 
   it('keep core free of every other layer', () => {
