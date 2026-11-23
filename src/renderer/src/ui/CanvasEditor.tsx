@@ -1,62 +1,21 @@
-import {
-  translateFrames,
-  type SelectedFrame,
-  editFrameValue,
-  containFrameGesture,
-  frameWithinBounds,
-  MIN_SIZE,
-  resizeHandles,
-  type ElementFrame,
-  type FrameFieldChange,
-  type ResizeHandle,
-  fitAspect,
-  roundGeometryFrame,
-  guideFrame,
-  type GuideLines,
-} from '@core/canvas';
+import {MIN_SIZE, resizeHandles, type ResizeHandle} from '@core/canvas';
 import {useCommandShortcuts} from './commandDispatcher';
-import {
-  useLayoutEffect,
-  useRef,
-  useState,
-  type JSX,
-  type PointerEvent,
-  type ReactNode,
-} from 'react';
+import {useRef, useState, type JSX, type ReactNode} from 'react';
 import {useElementSize} from './useElementSize';
 import {CanvasFrameBar} from './CanvasFrameBar';
+import {CanvasGuides} from './CanvasGuides';
+import {
+  withDraft,
+  type CanvasDocument,
+  type CanvasElement,
+} from './canvasDraft';
+import {fitAspect, type ElementFrame} from '@core/canvas';
+import {useCanvasGesture, type CanvasActions} from './useCanvasGesture';
 import styles from './CanvasEditor.module.css';
 
-export interface CanvasElement {
-  readonly id: string;
-  readonly name: string;
-  readonly frame: ElementFrame;
-}
-export interface CanvasDocument<T extends CanvasElement> {
-  readonly width: number;
-  readonly height: number;
-  readonly elements: readonly T[];
-  readonly minimumSize?: number;
-  readonly contained?: boolean;
-}
-export interface CanvasActions {
-  readonly frames?: (
-    values: readonly SelectedFrame[],
-    completed: (saved: boolean) => void,
-  ) => void;
-  readonly frame: (
-    id: string,
-    frame: ElementFrame,
-    completed: (saved: boolean) => void,
-  ) => void;
-  readonly frameValue: (
-    id: string,
-    change: FrameFieldChange,
-    completed: (frame: ElementFrame | null) => void,
-  ) => void;
-  readonly nudge: (id: string, delta: {x: number; y: number}) => void;
-  readonly remove: (id: string) => void;
-}
+export type {CanvasDocument, CanvasElement} from './canvasDraft';
+export type {CanvasActions} from './useCanvasGesture';
+
 export interface CanvasEditorProps<T extends CanvasElement> {
   readonly value: CanvasDocument<T>;
   readonly label: string;
@@ -77,24 +36,6 @@ export interface CanvasEditorProps<T extends CanvasElement> {
   readonly renderContent: (elements: readonly T[]) => ReactNode;
 }
 
-interface Gesture {
-  readonly members: readonly SelectedFrame[];
-  readonly id: number;
-  readonly elementId: string;
-  readonly start: ElementFrame;
-  readonly x: number;
-  readonly y: number;
-  readonly scale: number;
-  readonly handle: ResizeHandle | 'move';
-  readonly target: HTMLElement;
-  readonly keepRatio: boolean;
-  readonly snapGrid: boolean;
-  readonly distance: number;
-  readonly targets: readonly ElementFrame[];
-  readonly minimumSize: number;
-  delta: {x: number; y: number};
-  frame: ElementFrame;
-}
 const handleNames: Readonly<Record<ResizeHandle, string>> = {
   nw: '왼쪽 위',
   n: '위',
@@ -105,6 +46,18 @@ const handleNames: Readonly<Record<ResizeHandle, string>> = {
   sw: '왼쪽 아래',
   w: '왼쪽',
 };
+
+/** The arrow commands of the canvas and how far each moves, in pixels. */
+const NUDGES: ReadonlyArray<readonly [string, number, number]> = [
+  ['stageEditor.moveLeft', -1, 0],
+  ['stageEditor.moveLeftLarge', -10, 0],
+  ['stageEditor.moveRight', 1, 0],
+  ['stageEditor.moveRightLarge', 10, 0],
+  ['stageEditor.moveUp', 0, -1],
+  ['stageEditor.moveUpLarge', 0, -10],
+  ['stageEditor.moveDown', 0, 1],
+  ['stageEditor.moveDownLarge', 0, 10],
+];
 
 /** Edits frames in reference pixels while the caller renders content and owns saves. */
 export function CanvasEditor<T extends CanvasElement>({
@@ -128,26 +81,23 @@ export function CanvasEditor<T extends CanvasElement>({
 }: CanvasEditorProps<T>): JSX.Element {
   const readOnly = readOnlyReason !== undefined;
   const [zoomFactor, setZoomFactor] = useState(1);
-  const [draft, setDraft] = useState<{
-    id: string;
-    frame: ElementFrame;
-    frames?: readonly SelectedFrame[] | undefined;
-    pending?: boolean;
-    waiting?: boolean;
-    guides?: GuideLines;
-  } | null>(null);
-  const gesture = useRef<Gesture | null>(null);
   const canvas = useRef<HTMLDivElement>(null);
+  const {draft, clear, gesture, dragged, start, update, move, stop, type} =
+    useCanvasGesture({
+      layout,
+      canvas,
+      actions,
+      readOnly,
+      selectedIds,
+      select,
+      keepRatio,
+      snapGrid,
+    });
   const ownsCommand = (event: KeyboardEvent): boolean =>
     event.target instanceof Node &&
     canvas.current?.contains(event.target) === true &&
     !readOnly &&
     gesture.current === null;
-  const nudge = (x: number, y: number): void => {
-    if (selected === null) return;
-    setDraft(null);
-    actions.nudge(selected, {x, y});
-  };
   useCommandShortcuts([
     {
       id: 'edit.delete',
@@ -155,71 +105,23 @@ export function CanvasEditor<T extends CanvasElement>({
       when: ownsCommand,
       run: () => {
         if (selected === null) return;
-        setDraft(null);
+        clear();
         actions.remove(selected);
         select(null);
       },
     },
-    {
-      id: 'stageEditor.moveLeft',
-      context: 'canvas',
+    ...NUDGES.map(([id, x, y]) => ({
+      id,
+      context: 'canvas' as const,
       when: ownsCommand,
-      run: () => nudge(-1, 0),
-    },
-    {
-      id: 'stageEditor.moveLeftLarge',
-      context: 'canvas',
-      when: ownsCommand,
-      run: () => nudge(-10, 0),
-    },
-    {
-      id: 'stageEditor.moveRight',
-      context: 'canvas',
-      when: ownsCommand,
-      run: () => nudge(1, 0),
-    },
-    {
-      id: 'stageEditor.moveRightLarge',
-      context: 'canvas',
-      when: ownsCommand,
-      run: () => nudge(10, 0),
-    },
-    {
-      id: 'stageEditor.moveUp',
-      context: 'canvas',
-      when: ownsCommand,
-      run: () => nudge(0, -1),
-    },
-    {
-      id: 'stageEditor.moveUpLarge',
-      context: 'canvas',
-      when: ownsCommand,
-      run: () => nudge(0, -10),
-    },
-    {
-      id: 'stageEditor.moveDown',
-      context: 'canvas',
-      when: ownsCommand,
-      run: () => nudge(0, 1),
-    },
-    {
-      id: 'stageEditor.moveDownLarge',
-      context: 'canvas',
-      when: ownsCommand,
-      run: () => nudge(0, 10),
-    },
+      run: () => {
+        if (selected === null) return;
+        clear();
+        actions.nudge(selected, {x, y});
+      },
+    })),
   ]);
 
-  const active = useRef(true);
-  const draggedClick = useRef(false);
-  const saveSequence = useRef(0);
-  useLayoutEffect(() => {
-    active.current = true;
-    return () => {
-      active.current = false;
-      gesture.current = null;
-    };
-  }, []);
   // NOTE(0913vision): Measure outside the scroller so its bars and selection
   // handles cannot change the fit size.
   const [watchSpace, available] = useElementSize();
@@ -231,164 +133,7 @@ export function CanvasEditor<T extends CanvasElement>({
     width: fitted.width * zoomFactor,
     height: fitted.height * zoomFactor,
   };
-  const picture =
-    draft === null
-      ? layout
-      : {
-          ...layout,
-          elements: layout.elements.map(element =>
-            draft.frames?.some(row => row.id === element.id)
-              ? {
-                  ...element,
-                  frame:
-                    draft.frames.find(row => row.id === element.id)?.frame ??
-                    element.frame,
-                }
-              : element.id === draft.id
-                ? {...element, frame: draft.frame}
-                : element,
-          ),
-        };
-  if (draft?.pending && !draft.waiting) {
-    const frame = layout.elements.find(
-      element => element.id === draft.id,
-    )?.frame;
-    if (
-      frame?.x === draft.frame.x &&
-      frame.y === draft.frame.y &&
-      frame.w === draft.frame.w &&
-      frame.h === draft.frame.h
-    ) {
-      setDraft(null);
-    }
-  }
-  const stop = (commit: boolean): void => {
-    const current = gesture.current;
-    gesture.current = null;
-    if (current === null) return;
-    if (current.target.hasPointerCapture(current.id)) {
-      current.target.releasePointerCapture(current.id);
-    }
-    if (!commit) {
-      setDraft(null);
-      return;
-    }
-    if (
-      current.frame.x === current.start.x &&
-      current.frame.y === current.start.y &&
-      current.frame.w === current.start.w &&
-      current.frame.h === current.start.h
-    ) {
-      setDraft(null);
-      return;
-    }
-    const sequence = ++saveSequence.current;
-    draggedClick.current = true;
-    const frames =
-      current.members.length > 1
-        ? translateFrames(
-            current.members,
-            {
-              x: current.frame.x - current.start.x,
-              y: current.frame.y - current.start.y,
-            },
-            layout,
-          )
-        : undefined;
-    setDraft({
-      id: current.elementId,
-      frame: current.frame,
-      pending: true,
-      frames,
-    });
-    const completed = (saved: boolean): void => {
-      if (!saved && active.current && saveSequence.current === sequence) {
-        setDraft(null);
-      }
-    };
-    if (frames !== undefined && actions.frames !== undefined) {
-      actions.frames(frames, completed);
-    } else actions.frame(current.elementId, current.frame, completed);
-  };
-  const start = (
-    event: PointerEvent<HTMLButtonElement>,
-    element: T,
-    handle: Gesture['handle'],
-  ): void => {
-    if (event.button !== 0 || readOnly || gesture.current !== null) return;
-    draggedClick.current = false;
-    const surface = canvas.current;
-    const width = surface?.getBoundingClientRect().width ?? 0;
-    if (surface === null || width <= 0) return;
-    event.preventDefault();
-    event.currentTarget.focus();
-    const group =
-      handle === 'move' &&
-      actions.frames !== undefined &&
-      selectedIds?.includes(element.id);
-    if (!group) select(element.id);
-    const members = group
-      ? layout.elements.filter(row => selectedIds?.includes(row.id))
-      : [element];
-    gesture.current = {
-      members,
-      id: event.pointerId,
-      elementId: element.id,
-      start: element.frame,
-      frame: element.frame,
-      x: event.clientX,
-      y: event.clientY,
-      scale: width / layout.width,
-      handle,
-      target: event.currentTarget,
-      keepRatio,
-      snapGrid,
-      minimumSize: layout.minimumSize ?? MIN_SIZE,
-      distance: Number.parseFloat(
-        getComputedStyle(surface).getPropertyValue('--size-guide-snap'),
-      ),
-      targets: [
-        {x: 0, y: 0, w: layout.width, h: layout.height},
-        ...layout.elements
-          .filter(item => !members.some(member => member.id === item.id))
-          .map(item => item.frame),
-      ],
-      delta: {x: 0, y: 0},
-    };
-    event.currentTarget.setPointerCapture(event.pointerId);
-  };
-  const update = (bypass: boolean): void => {
-    const current = gesture.current;
-    if (current === null) return;
-    if (current.delta.x === 0 && current.delta.y === 0) {
-      current.frame = current.start;
-      setDraft({id: current.elementId, frame: current.start, guides: {}});
-      return;
-    }
-    const guided = guideFrame({...current, bypass});
-    const contained = layout.contained
-      ? containFrameGesture(guided.frame, {...current, bounds: layout})
-      : guided.frame;
-    const rounded = roundGeometryFrame(contained);
-    const frame = layout.contained
-      ? roundGeometryFrame(frameWithinBounds(rounded, layout))
-      : rounded;
-    const guides = frame === guided.frame ? guided.guides : {};
-    const frames =
-      current.members.length > 1
-        ? translateFrames(
-            current.members,
-            {
-              x: frame.x - current.start.x,
-              y: frame.y - current.start.y,
-            },
-            layout,
-          )
-        : undefined;
-    current.frame =
-      frames?.find(row => row.id === current.elementId)?.frame ?? frame;
-    setDraft({id: current.elementId, frame: current.frame, frames, guides});
-  };
+  const picture = withDraft(layout, draft);
   return (
     <section
       className={styles.editor}
@@ -410,15 +155,7 @@ export function CanvasEditor<T extends CanvasElement>({
             tabIndex={0}
             role="group"
             aria-label={`${label} 캔버스`}
-            onPointerMove={event => {
-              const current = gesture.current;
-              if (current?.id !== event.pointerId) return;
-              current.delta = {
-                x: (event.clientX - current.x) / current.scale,
-                y: (event.clientY - current.y) / current.scale,
-              };
-              update(event.altKey);
-            }}
+            onPointerMove={move}
             onPointerUp={event => {
               if (gesture.current?.id === event.pointerId) stop(true);
             }}
@@ -488,30 +225,11 @@ export function CanvasEditor<T extends CanvasElement>({
               </span>
             ) : null}
             {draft?.guides === undefined || selected !== draft.id ? null : (
-              <div className={styles.guides} aria-hidden="true">
-                {draft.guides.x === undefined ||
-                draft.guides.x < 0 ||
-                draft.guides.x > layout.width ? null : (
-                  <span
-                    className={styles.guideX}
-                    data-canvas-guide="x"
-                    style={{
-                      left: `min(${(100 * draft.guides.x) / layout.width}%, calc(100% - var(--size-guide-line)))`,
-                    }}
-                  />
-                )}
-                {draft.guides.y === undefined ||
-                draft.guides.y < 0 ||
-                draft.guides.y > layout.height ? null : (
-                  <span
-                    className={styles.guideY}
-                    data-canvas-guide="y"
-                    style={{
-                      top: `min(${(100 * draft.guides.y) / layout.height}%, calc(100% - var(--size-guide-line)))`,
-                    }}
-                  />
-                )}
-              </div>
+              <CanvasGuides
+                guides={draft.guides}
+                width={layout.width}
+                height={layout.height}
+              />
             )}
             {picture.elements.map(element => {
               const frame = resolvedFrames?.[element.id] ?? element.frame;
@@ -536,8 +254,8 @@ export function CanvasEditor<T extends CanvasElement>({
                       selectedIds?.includes(element.id) === true
                     }
                     onClick={() => {
-                      if (!draggedClick.current) select(element.id);
-                      draggedClick.current = false;
+                      if (!dragged.current) select(element.id);
+                      dragged.current = false;
                     }}
                     onPointerDown={event => start(event, element, 'move')}
                   />
@@ -579,31 +297,7 @@ export function CanvasEditor<T extends CanvasElement>({
           const element = picture.elements.find(
             element => element.id === selected,
           );
-          if (element === undefined || readOnly || gesture.current !== null) {
-            return;
-          }
-          const sequence = ++saveSequence.current;
-          setDraft({
-            id: element.id,
-            frame: editFrameValue(
-              element.frame,
-              {field, value, keepRatio},
-              layout,
-            ),
-            waiting: true,
-            pending: true,
-          });
-          actions.frameValue(element.id, {field, value, keepRatio}, frame => {
-            if (active.current && saveSequence.current === sequence) {
-              setDraft(current =>
-                current?.id !== element.id
-                  ? current
-                  : frame === null
-                    ? null
-                    : {id: element.id, frame, pending: true},
-              );
-            }
-          });
+          if (element !== undefined) type(element, {field, value});
         }}
       />
     </section>
