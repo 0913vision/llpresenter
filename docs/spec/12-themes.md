@@ -45,6 +45,13 @@ The user's needs (October 30 and November 22):
 - **Hymns.** 찬송가 제목 is a second 테마 for 찬양 제목. Its 슬라이드 says only
   which hymn it is, and its boxes fill themselves: 찬송가 with the number
   (새찬송가 91장), and 제목 under it with the title in the hymnal.
+- **Song lines on 방송.** 방송 shows a song's name the same way wherever it
+  shows it: on the title 슬라이드 (전주), on a 슬라이드 without lyrics (간주),
+  and at the end (후주), one line at the lyrics' size: 성부 성자 성령 (새찬송가
+  7장), or the name alone for a song that is not a hymn.
+- **Labels on title 슬라이드.** On 무대 a title 슬라이드 shows its label like a
+  lyrics 슬라이드: (전주) above the title, or in front of it as the 환경설정
+  says.
 - **Not in a 테마.** The clock, timers, and the stage message show at fixed
   places on 무대, whatever the 슬라이드.
 - **Files.** A 테마 is one JSON file with the layouts of the 청중, 무대, and

@@ -101,6 +101,13 @@
           "fill": {
             "color": "#000000",
             "opacity": 100
+          },
+          "around": {
+            "texts": ["00000000-0000-4000-9000-000000000002"],
+            "padding": {
+              "top": 40,
+              "bottom": 40
+            }
           }
         },
         {
@@ -108,32 +115,11 @@
           "kind": "text",
           "frame": {
             "x": 160,
-            "y": 818,
+            "y": 820,
             "w": 1600,
-            "h": 52
+            "h": 180
           },
-          "content": ["{찬송가}"],
-          "style": {
-            "font": "Pretendard Variable",
-            "weight": 600,
-            "size": 40,
-            "color": "#FFFFFF",
-            "lineHeight": 1.25,
-            "tracking": 0,
-            "align": "center",
-            "vAlign": "top"
-          }
-        },
-        {
-          "id": "00000000-0000-4000-9000-000000000003",
-          "kind": "text",
-          "frame": {
-            "x": 160,
-            "y": 870,
-            "w": 1600,
-            "h": 90
-          },
-          "content": ["{제목}"],
+          "content": ["{제목} {(찬송가)}"],
           "style": {
             "font": "Pretendard Variable",
             "weight": 700,
@@ -142,28 +128,40 @@
             "lineHeight": 1.25,
             "tracking": 0,
             "align": "center",
-            "vAlign": "top"
+            "vAlign": "middle"
           },
           "fit": {
-            "rows": 1
-          }
-        }
-      ],
-      "stacks": [
-        {
-          "texts": [
-            "00000000-0000-4000-9000-000000000002",
-            "00000000-0000-4000-9000-000000000003"
-          ],
-          "anchor": "center",
-          "at": 910,
-          "gap": 4
+            "rows": 2
+          },
+          "height": 180
         }
       ]
     },
     "stage": {
       "mode": "own",
       "elements": [
+        {
+          "id": "00000000-0000-4000-9000-000000000005",
+          "kind": "text",
+          "frame": {
+            "x": 48,
+            "y": 130,
+            "w": 1824,
+            "h": 106
+          },
+          "content": ["{(새 이름표)}"],
+          "style": {
+            "font": "NanumSquare",
+            "weight": 800,
+            "size": 88,
+            "color": "#FFFFFF",
+            "lineHeight": 1.2,
+            "tracking": 0,
+            "align": "center",
+            "vAlign": "middle"
+          },
+          "label": true
+        },
         {
           "id": "00000000-0000-4000-9000-000000000001",
           "kind": "text",
@@ -184,7 +182,8 @@
             "align": "center",
             "vAlign": "middle"
           },
-          "same": "size"
+          "same": "size",
+          "label": true
         },
         {
           "id": "00000000-0000-4000-9000-000000000002",
@@ -237,6 +236,7 @@
       "splits": [
         {
           "upper": [
+            "00000000-0000-4000-9000-000000000005",
             "00000000-0000-4000-9000-000000000001",
             "00000000-0000-4000-9000-000000000002"
           ],
