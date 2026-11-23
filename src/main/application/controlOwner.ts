@@ -1,7 +1,15 @@
-import {app, type BrowserWindow, type WebContents} from 'electron';
+import {
+  app,
+  type BrowserWindow,
+  type Rectangle,
+  type WebContents,
+} from 'electron';
 import type {Logger} from '../base/log';
 import type {ProblemFeed} from '../base/problemFeed';
 import type {WindowMode} from '../base/testWindows';
+import type {LaunchIdle} from '../store/launchIdle';
+import type {UiZoomRegistration} from '../store/uiZoom';
+import {createControlWindow} from '../windows/control';
 import {registerControlClose, type ControlClose} from '../windows/controlClose';
 import {ControlHeartbeat} from '../windows/controlHeartbeat';
 import {announceReloadAfterCrash} from '../windows/reloadNotice';
@@ -13,9 +21,17 @@ const ABORTED = -3;
 const PAGE_STEPS = 3;
 const ONE_PIXEL = {x: 0, y: 0, width: 1, height: 1};
 
+/** Where a control window opens. */
+export interface ControlPlacement {
+  readonly startMaximized: boolean;
+  readonly bounds?: Rectangle | undefined;
+}
+
 export interface ControlOwnerOptions {
   readonly windowMode: WindowMode;
   readonly launch: LaunchProgress;
+  readonly launchIdle: Pick<LaunchIdle, 'ready'>;
+  readonly zoom: Pick<UiZoomRegistration, 'attachControl'>;
   readonly problems: Pick<ProblemFeed, 'report'>;
   /**
    * The window stopped answering.
@@ -48,21 +64,23 @@ export class ControlOwner {
     return win === this.win;
   }
 
-  /** Takes a control window, in the place of the one before it. */
-  take(win: BrowserWindow): void {
-    const {problems, log} = this.options;
-    this.closing?.dispose();
-    this.stopReloadNotice();
-    this.win = win;
-    this.watchLaunch(win);
-    this.watchHeartbeat(win);
-    win.once('closed', () => {
-      if (this.isCurrent(win)) app.quit();
+  /** Opens a control window, in the place of the one before it. */
+  open({startMaximized, bounds}: ControlPlacement): BrowserWindow {
+    const {windowMode, launch, launchIdle, zoom, log} = this.options;
+    launch.begin('window');
+    const win = createControlWindow(log, windowMode, {
+      attachControl: contents => zoom.attachControl(contents),
+      outputsReady: launchIdle.ready,
+      startMaximized,
+      onOverdue: () => launch.giveUp(),
+      onOpen: () => {
+        if (this.isCurrent(win)) launch.end();
+      },
     });
-    this.closing = registerControlClose({control: win, log});
-    this.stopReloadNotice = announceReloadAfterCrash(win.webContents, () =>
-      problems.report({kind: 'control-reloaded'}),
-    );
+    if (bounds !== undefined) win.setBounds(bounds);
+    launch.finish('window');
+    this.take(win);
+    return win;
   }
 
   /** Brings the window back to the front, as a second launch does. */
@@ -91,6 +109,22 @@ export class ControlOwner {
     this.stopReloadNotice();
   }
 
+  private take(win: BrowserWindow): void {
+    const {problems, log} = this.options;
+    this.closing?.dispose();
+    this.stopReloadNotice();
+    this.win = win;
+    this.watchLaunch(win);
+    this.watchHeartbeat(win);
+    win.once('closed', () => {
+      if (this.isCurrent(win)) app.quit();
+    });
+    this.closing = registerControlClose({control: win, log});
+    this.stopReloadNotice = announceReloadAfterCrash(win.webContents, () =>
+      problems.report({kind: 'control-reloaded'}),
+    );
+  }
+
   private watchLaunch(win: BrowserWindow): void {
     const {windowMode, launch, log} = this.options;
     launch.begin('page');
@@ -103,9 +137,6 @@ export class ControlOwner {
     win.webContents.once('dom-ready', () => step('dom'));
     win.webContents.once('did-finish-load', () => step('load'));
     win.once('ready-to-show', () => step('paint'));
-    win.once('show', () => {
-      if (this.isCurrent(win)) launch.end();
-    });
     win.webContents.on('did-fail-load', (_event, code, ...details) => {
       const isMainFrame = details[2];
       if (

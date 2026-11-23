@@ -124,9 +124,11 @@ export class LaunchProgress implements LaunchTracker {
     }
   }
 
-  /** What did not end in time is not waited for any more. */
+  /** What began and did not end in time is not waited for any more. */
   giveUp(): void {
-    for (const task of this.unfinished()) this.fail(task, 'it took too long');
+    for (const task of this.unfinished()) {
+      if (this.tasks.has(task)) this.fail(task, 'it took too long');
+    }
   }
 
   /** Calls the listener once the launch ended with tasks that failed. */

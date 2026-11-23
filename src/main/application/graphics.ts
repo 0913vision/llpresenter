@@ -1,7 +1,6 @@
 import {app} from 'electron';
 import {startOutputs} from '../outputs/start';
 import type {registerPlaybackProblems} from '../outputs/playbackProblems';
-import {createControlWindow} from '../windows/control';
 import {controlRecoveryPlacement} from '../windows/controlRecovery';
 import {GraphicsRecovery} from '../windows/graphicsRecovery';
 import type {ControlOwner} from './controlOwner';
@@ -75,17 +74,10 @@ export class Graphics {
   }
 
   private async replaceWindows(reason: string): Promise<void> {
-    const {problems, launchIdle, zoom, windowMode, log} = this.foundation;
+    const {problems, log} = this.foundation;
     const {control, settingsWindow} = this.parts;
     const previous = control.window;
-    const placement = controlRecoveryPlacement(previous);
-    const replacement = createControlWindow(log, windowMode, {
-      attachControl: contents => zoom.attachControl(contents),
-      outputsReady: launchIdle.ready,
-      startMaximized: placement.startMaximized,
-    });
-    if (placement.bounds !== undefined) replacement.setBounds(placement.bounds);
-    control.take(replacement);
+    const replacement = control.open(controlRecoveryPlacement(previous));
     settingsWindow.replaceControl(replacement);
     replacement.webContents.once('did-finish-load', () => {
       problems.feed.report({kind: 'graphics-recovered'});

@@ -63,11 +63,9 @@ export async function openFoundation({
     .then(ready => {
       if (!ready) return;
       launch.finish('quiet');
-      // NOTE(0913vision): An offscreen control window never shows, so nothing
-      // else ends its launch.
-      if (windowMode !== 'offscreen') return;
-      launch.end();
-      if (app.isPackaged) log.info('installer smoke ready');
+      if (app.isPackaged && windowMode === 'offscreen') {
+        log.info('installer smoke ready');
+      }
     })
     .catch((error: unknown) =>
       log.warn('Could not record launch readiness', error),

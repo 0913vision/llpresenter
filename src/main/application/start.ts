@@ -4,7 +4,6 @@ import type {Logger} from '../base/log';
 import type {WindowMode} from '../base/testWindows';
 import {registerPlaybackProblems} from '../outputs/playbackProblems';
 import {prepareSoakGarbageCollection} from '../soak';
-import {createControlWindow} from '../windows/control';
 import {registerGpuTestHook} from '../windows/gpuTestHook';
 import {startControlFeatures} from './controlFeatures';
 import {ControlOwner} from './controlOwner';
@@ -57,26 +56,18 @@ class Application {
   async open(): Promise<void> {
     const {windowMode, log, shutdown} = this.options;
     const foundation = await openFoundation(this.options);
-    const {store, data, zoom, launch, launchIdle, problems} = foundation;
+    const {store, data, problems} = foundation;
     const control = new ControlOwner({
-      windowMode,
-      launch,
+      ...foundation,
       problems: problems.feed,
       onHang: scriptAnswered => this.controlHangs(scriptAnswered),
-      log,
     });
     const services = startServices(foundation, win => control.isCurrent(win));
-    launch.begin('window');
-    const win = createControlWindow(log, windowMode, {
-      attachControl: contents => zoom.attachControl(contents),
-      outputsReady: launchIdle.ready,
+    this.control = control;
+    const win = control.open({
       startMaximized:
         (await data.settings)?.preferences().general.startMaximized ?? true,
-      onOverdue: () => launch.giveUp(),
     });
-    launch.finish('window');
-    this.control = control;
-    control.take(win);
     const features = startControlFeatures(foundation, services, control);
     const playbackProblems = registerPlaybackProblems({
       log,

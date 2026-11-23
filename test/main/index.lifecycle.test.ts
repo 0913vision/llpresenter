@@ -1,10 +1,11 @@
 import {
   ENTRY_TEST_TIMEOUT_MS,
-  mocks,
-  startMain,
+  beforeQuit,
   deferred,
   launchAgain,
-  beforeQuit,
+  mocks,
+  opens,
+  startMain,
 } from '@fixtures/main/indexWiringFixtures';
 import {join} from 'node:path';
 import {EventEmitter} from 'node:events';
@@ -35,12 +36,10 @@ describe('main entry lifecycle', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     expect(mocks.barEnd).toHaveBeenLastCalledWith('page', false);
   });
 
-  it('closes the splash when the control window shows', async () => {
-    const control = await startMain();
+  it('closes the splash when the control window opens', async () => {
+    await startMain();
     expect(mocks.splash.close).not.toHaveBeenCalled();
-    control.emit('ready-to-show');
-    expect(mocks.splash.close).not.toHaveBeenCalled();
-    control.emit('show');
+    opens(0);
     expect(mocks.splash.close).toHaveBeenCalledOnce();
   });
 
@@ -57,9 +56,9 @@ describe('main entry lifecycle', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     if (!(replacement instanceof EventEmitter)) {
       throw new Error('Missing replacement control window');
     }
-    original.emit('show');
+    opens(0);
     expect(mocks.splash.close).not.toHaveBeenCalled();
-    replacement.emit('show');
+    opens(1);
     expect(mocks.splash.close).toHaveBeenCalledOnce();
   });
 

@@ -39,8 +39,10 @@ export function createControlWindow(
   zoom: Pick<UiZoomRegistration, 'attachControl'> & {
     readonly outputsReady?: Promise<boolean>;
     readonly startMaximized?: boolean;
-    /** Told when the window shows without all it waits for. */
+    /** Told when the window opens without all it waits for. */
     readonly onOverdue?: () => void;
+    /** Told when the window opens; an offscreen one never shows. */
+    readonly onOpen?: () => void;
   },
 ): BrowserWindow {
   const area = screen.getPrimaryDisplay().workAreaSize;
@@ -82,7 +84,14 @@ export function createControlWindow(
   // NOTE(0913vision): The main process keeps the live state, so reloading the
   // control window loses nothing on output.
   reloadAfterCrash({win, page: CONTROL_PAGE, label: 'control', log});
-  if (mode === 'normal') showWhenReady(win, {...zoom, log});
+  openWhenReady(win, {
+    ...zoom,
+    onOpen: () => {
+      if (mode === 'normal') show(win, zoom.startMaximized ?? true);
+      zoom.onOpen?.();
+    },
+    log,
+  });
   loadPage(win, CONTROL_PAGE, log);
   return win;
 }
@@ -97,21 +106,26 @@ function watchFullScreen(win: BrowserWindow, log: Logger): void {
   win.on('leave-full-screen', () => push(false));
 }
 
+function show(win: BrowserWindow, maximized: boolean): void {
+  if (maximized) win.maximize();
+  win.show();
+}
+
 /**
- * Shows the window once its page has drawn, with its data and the outputs
+ * Opens the window once its page has drawn, with its data and the outputs
  * ready. Data and outputs that take too long are not waited for.
  */
-function showWhenReady(
+function openWhenReady(
   win: BrowserWindow,
   {
     outputsReady = Promise.resolve(true),
-    startMaximized = true,
     onOverdue = () => undefined,
+    onOpen,
     log,
   }: {
     readonly outputsReady?: Promise<boolean>;
-    readonly startMaximized?: boolean;
     readonly onOverdue?: () => void;
+    readonly onOpen: () => void;
     readonly log: Logger;
   },
 ): void {
@@ -122,11 +136,10 @@ function showWhenReady(
     if (missing.size > 0 || win.isDestroyed()) return;
     clearTimeout(timeout);
     ipc.close();
-    if (startMaximized) win.maximize();
-    win.show();
+    onOpen();
   };
   const timeout = setTimeout(() => {
-    log.warn('the control window shows without waiting', {
+    log.warn('the control window opens without waiting', {
       missing: [...missing],
     });
     onOverdue();

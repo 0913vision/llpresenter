@@ -134,7 +134,7 @@ const mocks = vi.hoisted(() => {
     },
     uiDispose: vi.fn<() => Promise<void>>(),
     zoom: {attachControl: vi.fn(), dispose: vi.fn()},
-    zoomForControl: new Array<unknown>(),
+    zoomForControl: new Array<{readonly onOpen?: () => void}>(),
     soakStop: vi.fn<() => Promise<void>>(),
     soakSources,
     scenarioStop: vi.fn<() => void>(),
@@ -391,7 +391,11 @@ vi.mock('@main/windows/mediaProtocol', () => ({
   },
 }));
 vi.mock('@main/windows/control', () => ({
-  createControlWindow: (_log: unknown, _mode: unknown, zoom: unknown) => {
+  createControlWindow: (
+    _log: unknown,
+    _mode: unknown,
+    zoom: {readonly onOpen?: () => void},
+  ) => {
     mocks.zoomForControl.push(zoom);
     mocks.order.push('control window');
     const win = Object.assign(new EventEmitter(), mocks.controlWindow, {
@@ -444,6 +448,11 @@ export async function startMain(): Promise<
     throw new Error('no control window');
   }
   return Object.assign(control, {webContents: control.webContents});
+}
+
+/** A control window opens, in the order they were created. */
+export function opens(index: number): void {
+  mocks.zoomForControl[index]?.onOpen?.();
 }
 
 export function deferred(): {promise: Promise<void>; resolve: () => void} {

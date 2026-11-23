@@ -76,13 +76,13 @@ describe('LaunchProgress', () => {
     expect(log.messages('warn')).toEqual(['launch task was slow']);
   });
 
-  it('fails what is missing when it gives up', () => {
+  it('fails what runs when it gives up, not what never began', () => {
     const {progress, failed} = setup();
     progress.finish('files');
+    progress.begin('outputs');
     progress.giveUp();
     progress.end();
-    expect(failed.mock.calls[0]?.[0]).toContain('outputs');
-    expect(failed.mock.calls[0]?.[0]).not.toContain('files');
+    expect(failed).toHaveBeenCalledExactlyOnceWith(['outputs']);
   });
 
   it('closes the launch window once and keeps what the launch took for the next', () => {
