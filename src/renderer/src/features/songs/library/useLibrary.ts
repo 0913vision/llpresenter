@@ -1,13 +1,12 @@
 import {withSongTitle} from '@core/slides';
-import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {LibrarySong, SongDocument} from '@core/schema/contentDocuments';
 import type {EditResult} from '@core/schema/contentEdit';
-import type {LibrarySearchResult} from '@core/schema/librarySearch';
 import type {SongId} from '@core/schema/ids';
 import {copyTitle, normalizeSongTitle} from '@core/songs';
 import {noticeTime, type Notice, type NoticeAction} from '@renderer/ui/notices';
-import {libraryRows, searchAllPages} from './librarySearch';
+import {useLibrarySearch} from './useLibrarySearch';
 
 export type LibraryApi = Pick<LlpApi, 'songs' | 'content' | 'services'> & {
   readonly library: Pick<LlpApi['library'], 'search' | 'revealSong'>;
@@ -44,9 +43,6 @@ export function useLibrary(
   onProblem: (notice: Notice) => void,
 ) {
   const [songs, setSongs] = useState<readonly LibrarySong[]>([]);
-  const [query, setQuery] = useState('');
-  const [search, setSearch] = useState<LibrarySearchResult | null>(null);
-  const [searchVersion, setSearchVersion] = useState(0);
   const [selected, setSelected] = useState<SongId | null>(null);
   const [loading, setLoading] = useState(true);
   const [listed, setListed] = useState(false);
@@ -78,27 +74,41 @@ export function useLibrary(
     [],
   );
 
-  const accept = useCallback((entries: readonly LibrarySong[]) => {
-    requests.current.list++;
-    const sorted = [...entries].sort(
-      (a, b) => titles.compare(a.title, b.title) || a.id.localeCompare(b.id),
-    );
-    rows.current = sorted;
-    setSongs(sorted);
-    setSearch(null);
-    setLoading(false);
-    setListed(true);
-    setSelected(current =>
-      sorted.some(song => song.id === current) ? current : null,
-    );
-    if (
-      opening.current !== null &&
-      !sorted.some(song => song.id === opening.current)
-    ) {
-      requests.current.open++;
-      opening.current = null;
-    }
-  }, []);
+  const {
+    clear: clearSearch,
+    again: searchAgain,
+    ...search
+  } = useLibrarySearch({
+    api,
+    songs,
+    report,
+    isActive,
+  });
+
+  const accept = useCallback(
+    (entries: readonly LibrarySong[]) => {
+      requests.current.list++;
+      const sorted = [...entries].sort(
+        (a, b) => titles.compare(a.title, b.title) || a.id.localeCompare(b.id),
+      );
+      rows.current = sorted;
+      setSongs(sorted);
+      clearSearch();
+      setLoading(false);
+      setListed(true);
+      setSelected(current =>
+        sorted.some(song => song.id === current) ? current : null,
+      );
+      if (
+        opening.current !== null &&
+        !sorted.some(song => song.id === opening.current)
+      ) {
+        requests.current.open++;
+        opening.current = null;
+      }
+    },
+    [clearSearch],
+  );
 
   const readList = useCallback(async () => {
     const version = ++requests.current.list;
@@ -134,10 +144,7 @@ export function useLibrary(
     const stopList = api.songs.subscribeList(entries => {
       if (isActive()) accept(entries);
     });
-    const stopSongs = api.songs.subscribe(() => {
-      setSearch(null);
-      setSearchVersion(value => value + 1);
-    });
+    const stopSongs = api.songs.subscribe(searchAgain);
     const version = ++pending.list;
     api.songs.list().then(
       entries => {
@@ -157,40 +164,7 @@ export function useLibrary(
       stopList();
       stopSongs();
     };
-  }, [api, accept, report, isActive, reload]);
-
-  useEffect(() => {
-    if (query === '') return undefined;
-    let current = true;
-    const load = async (): Promise<void> => {
-      const found = await searchAllPages(api.library.search, {
-        query,
-        total: songs.length,
-        stale: () => !current,
-      });
-      if (current && found !== null) setSearch(found);
-    };
-    load().catch(() => {
-      if (current) {
-        setSearch(null);
-        report('search', {
-          icon: 'refresh',
-          label: '다시 검색',
-          onSelect: () => {
-            if (isActive()) setSearchVersion(value => value + 1);
-          },
-        });
-      }
-    });
-    return () => {
-      current = false;
-    };
-  }, [api, query, songs, searchVersion, report, isActive]);
-
-  const visible = useMemo(
-    () => libraryRows(songs, query, search),
-    [songs, query, search],
-  );
+  }, [api, accept, report, isActive, reload, searchAgain]);
 
   const open = async (songId: SongId, position?: number): Promise<void> => {
     const version = ++requests.current.open;
@@ -254,7 +228,7 @@ export function useLibrary(
 
   const create = (): Promise<void> =>
     runEdit('create', undefined, async () => {
-      setQuery('');
+      search.change('');
       const version = ++requests.current.open;
       opening.current = null;
       const id = appliedId(await api.content.edit({type: 'song.create'}));
@@ -337,13 +311,9 @@ export function useLibrary(
 
   return {
     songs,
-    visible,
-    query,
-    setQuery: (value: string): void => {
-      if (value === query) return;
-      setSearch(null);
-      setQuery(value);
-    },
+    visible: search.visible,
+    query: search.query,
+    setQuery: search.change,
     selected,
     select: setSelected,
     clearSelection: (): void => {
@@ -355,7 +325,7 @@ export function useLibrary(
     /** The song list has been read at least once, so an empty list is real. */
     listed,
     /** The search for the current query has answered. */
-    searched: query !== '' && search?.query === query,
+    searched: search.searched,
     busy,
     report,
     open,
