@@ -1,38 +1,8 @@
-import {useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import type {MediaDocument} from '@core/schema/mediaEdit';
+import {useMemo} from 'react';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
-import {noticeTime, type Notice} from '@renderer/ui/notices';
-import {subscribeMediaDocument} from '@renderer/features/media/subscribeMediaDocument';
+import type {Notice} from '@renderer/ui/notices';
 import {buildMacroTargets} from './macroTargets';
-
-function useMacroMedia(
-  onProblem: ((notice: Notice) => void) | undefined,
-): MediaDocument | null {
-  const [document, setDocument] = useState<MediaDocument | null>(null);
-  const report = useRef(onProblem);
-  useLayoutEffect(() => {
-    report.current = onProblem;
-  });
-  useEffect(() => {
-    const api = window.llp;
-    if (!api) return undefined;
-    return subscribeMediaDocument(api.media, setDocument, (cause: unknown) => {
-      api.log.write({
-        level: 'error',
-        message: 'Could not load macro media',
-        detail: String(cause),
-      });
-      report.current?.({
-        key: 'macro:media',
-        kind: 'warning',
-        icon: 'warning',
-        title: '미디어 불러오기 실패',
-        time: noticeTime(),
-      });
-    });
-  }, []);
-  return document;
-}
+import {useMediaDocument} from './useMediaDocument';
 
 export function useMacroTargets(
   onProblem: ((notice: Notice) => void) | undefined,
@@ -43,7 +13,7 @@ export function useMacroTargets(
   const timers = useSettingsDocument('timers', '타이머', onProblem);
   const macros = useSettingsDocument('macros', '매크로', onProblem);
   const screens = useSettingsDocument('screens', '화면', onProblem);
-  const media = useMacroMedia(onProblem);
+  const media = useMediaDocument(onProblem, 'macro');
   return useMemo(() => {
     if (
       !themes ||

@@ -8,7 +8,7 @@ import type {MediaItem} from '@core/schema/mediaList';
 import {audioTracks} from '@core/media';
 import {setAudioLoop} from './audioLoop';
 import {AudioTransport} from './AudioTransport';
-import {useAudioMedia} from './useAudioMedia';
+import {useMediaDocument} from './useMediaDocument';
 import {useAudioMissing} from './useAudioMissing';
 import {useToolEditing} from './useToolEditing';
 import {WindowedAudioTracks} from './WindowedAudioTracks';
@@ -22,7 +22,7 @@ export function AudioTab({
   readonly onProblem?: ((notice: Notice) => void) | undefined;
 }): JSX.Element {
   const api = window.llp;
-  const document = useAudioMedia(onProblem);
+  const document = useMediaDocument(onProblem, 'audio');
   const missing = useAudioMissing(onProblem);
   const {chosen, setChosen} = useAudioSelection();
   const playlists = document?.value.audioPlaylists ?? [];

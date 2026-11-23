@@ -12,7 +12,7 @@ import type {Notice} from '@renderer/ui/notices';
 import {PropDialog} from './PropDialog';
 import {PropGrid} from './PropGrid';
 import {MAX_PROPS, savePropEdit, type PropEdit} from './propEdits';
-import {useAudioMedia} from './useAudioMedia';
+import {useMediaDocument} from './useMediaDocument';
 import {focusedOptionIndex, useDuplicateShortcut} from './useDuplicateShortcut';
 import {useToolEditing} from './useToolEditing';
 import {useToolDeleteShortcuts} from '@renderer/platform/useToolDeleteShortcuts';
@@ -31,7 +31,7 @@ export function PropTab({
 }): JSX.Element {
   const document = useSettingsDocument('props', '그래픽', onProblem);
   const screens = useSettingsDocument('screens', '화면', onProblem);
-  const media = useAudioMedia(onProblem, 'prop');
+  const media = useMediaDocument(onProblem, 'prop');
   const [editor, setEditor] = useState<Editor | null>(null);
   const [menu, setMenu] = useState<{
     prop: Prop;

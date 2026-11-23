@@ -3,7 +3,7 @@ import {afterEach, expect, it, vi} from 'vitest';
 import {parseMediaDocument, type MediaDocument} from '@core/schema/mediaEdit';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {deferred} from '@fixtures/renderer/features/tools/quickTesting';
-import {useAudioMedia} from '@renderer/features/tools/useAudioMedia';
+import {useMediaDocument} from '@renderer/features/tools/useMediaDocument';
 
 afterEach(() => {
   cleanup();
@@ -39,7 +39,9 @@ it('keeps the newest pushed document when the initial read resolves late and uns
       },
     },
   });
-  const {result, unmount} = renderHook(() => useAudioMedia(undefined));
+  const {result, unmount} = renderHook(() =>
+    useMediaDocument(undefined, 'audio'),
+  );
   act(() => push(document(2)));
   await act(async () => {
     read.resolve(document(1));
@@ -59,7 +61,7 @@ it('reports a failed initial read', async () => {
       },
     },
   });
-  renderHook(() => useAudioMedia(report));
+  renderHook(() => useMediaDocument(report, 'audio'));
   await waitFor(() => expect(report).toHaveBeenCalledOnce());
   expect(report).toHaveBeenCalledWith(
     expect.objectContaining({key: 'audio:load'}),

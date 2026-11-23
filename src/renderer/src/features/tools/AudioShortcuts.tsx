@@ -5,7 +5,7 @@ import {commandBindingStore} from '@renderer/ui/commandBindings';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useLive} from '@renderer/session/live';
 import type {Notice} from '@renderer/ui/notices';
-import {useAudioMedia} from './useAudioMedia';
+import {useMediaDocument} from './useMediaDocument';
 import {useAudioMissing} from './useAudioMissing';
 import {useAudioSelection} from './state/audioSelection';
 import {useToolEditing} from './useToolEditing';
@@ -35,7 +35,7 @@ function BoundAudioShortcuts({
   readonly onProblem: (notice: Notice) => void;
 }): null {
   const api = window.llp;
-  const document = useAudioMedia(onProblem);
+  const document = useMediaDocument(onProblem, 'audio');
   const missing = useAudioMissing(onProblem);
   const chosen = useAudioSelection(view => view.chosen);
   const playlists = document?.value.audioPlaylists ?? [];
