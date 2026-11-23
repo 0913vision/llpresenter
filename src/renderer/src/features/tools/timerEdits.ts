@@ -13,10 +13,14 @@ import {
   type TimerConfiguration,
 } from '@core/timers';
 import {prepareTimerEdit} from './timerEditPlan';
-import {pendingWritesOf} from '@renderer/platform/pendingWrites';
-import {withinLookupTimeout} from '@renderer/session/showOutput';
+import {
+  editableSettings,
+  gatedSettingsWrite,
+  readSettings,
+  unchangedSettings,
+  writeSettings,
+} from '@renderer/session/settingsWrites';
 
-const SAVE_ATTEMPTS = 2;
 export interface NewCountdown {
   readonly id: TimerId;
   readonly duration: number;
@@ -38,14 +42,14 @@ export function deleteTimer(
   api: LlpApi,
   edit: TimerDelete,
 ): Promise<EditResult> {
-  return writeTimerEdit(api, () => api.settings.edit(edit));
+  return gatedSettingsWrite(api, () => api.settings.edit(edit));
 }
 
 export function renameTimer(
   api: LlpApi,
   edit: TimerRename,
 ): Promise<EditResult> {
-  return writeTimerEdit(api, () => api.settings.edit(edit));
+  return gatedSettingsWrite(api, () => api.settings.edit(edit));
 }
 
 /** A copy of one 타이머: its own id, the copy name, right after the original. */
@@ -58,108 +62,60 @@ export function duplicateTimer(
   api: LlpApi,
   copy: TimerCopy,
 ): Promise<EditResult> {
-  return writeTimerEdit(api, () => sendCopy(api, copy));
-}
-
-async function sendCopy(
-  api: LlpApi,
-  copy: TimerCopy,
-  attempt = 0,
-): Promise<EditResult> {
-  const document = await withinLookupTimeout(() =>
-    api.settings.get({name: 'timers'}),
-  );
-  if (document.name !== 'timers' || document.access !== 'editable') {
-    throw new Error('Timer settings cannot be edited');
-  }
-  const timers = duplicateAfter(document.value.timers, copy, {
-    limit: MAX_TIMER_DEFINITIONS,
-    maxName: TIMER_NAME_LIMIT,
+  return writeSettings(api, async () => {
+    const document = await editableSettings(api, 'timers');
+    const timers = duplicateAfter(document.value.timers, copy, {
+      limit: MAX_TIMER_DEFINITIONS,
+      maxName: TIMER_NAME_LIMIT,
+    });
+    return timers === document.value.timers
+      ? unchangedSettings(document)
+      : {
+          type: 'settings.update',
+          name: 'timers',
+          baseRevision: document.revision,
+          value: {...document.value, timers},
+        };
   });
-  if (timers === document.value.timers) {
-    return {ok: true, value: {id: 'timers', revision: document.revision}};
-  }
-  const result = await api.settings.edit({
-    type: 'settings.update',
-    name: 'timers',
-    baseRevision: document.revision,
-    value: {...document.value, timers},
-  });
-  if (result.ok || result.error.reason === 'write-failed') return result;
-  if (result.error.reason === 'stale' && attempt + 1 < SAVE_ATTEMPTS) {
-    return sendCopy(api, copy, attempt + 1);
-  }
-  throw new Error(result.error.message);
 }
 
 export function saveNewTimer(
   api: LlpApi,
   timer: NewTimer,
 ): Promise<EditResult> {
-  return writeTimerEdit(api, () => sendTimer(api, timer));
-}
-
-async function writeTimerEdit(
-  api: LlpApi,
-  write: () => Promise<EditResult>,
-): Promise<EditResult> {
-  const result = await pendingWritesOf(api).run<EditResult | null>({
-    write,
-    refused: null,
-    sent: outcome =>
-      outcome !== null &&
-      (outcome.ok || outcome.error.reason === 'write-failed'),
-  });
-  if (result === null) throw new Error('Timer edits stopped for closing');
-  return result;
-}
-
-async function sendTimer(
-  api: LlpApi,
-  timer: NewTimer,
-  attempt = 0,
-): Promise<EditResult> {
   if (!validTimerConfiguration(timer)) {
-    throw new Error('Invalid timer configuration');
+    return Promise.reject(new Error('Invalid timer configuration'));
   }
-  const document = await withinLookupTimeout(() =>
-    api.settings.get({name: 'timers'}),
-  );
-  if (document.name !== 'timers' || document.access !== 'editable') {
-    throw new Error('Timer settings cannot be edited');
-  }
-  const existing = document.value.timers.find(item => item.id === timer.id);
-  if (existing) {
-    const saved = new Map<string, unknown>(Object.entries(existing));
-    if (
-      Object.entries(timer).some(
-        ([key, value]) =>
-          (key === 'overrun' ? (saved.get(key) ?? true) : saved.get(key)) !==
-          value,
-      )
-    ) {
-      throw new Error('The timer ID is already in use');
+  return writeSettings(api, async () => {
+    const document = await editableSettings(api, 'timers');
+    const existing = document.value.timers.find(item => item.id === timer.id);
+    if (existing) {
+      const saved = new Map<string, unknown>(Object.entries(existing));
+      if (
+        Object.entries(timer).some(
+          ([key, value]) =>
+            (key === 'overrun' ? (saved.get(key) ?? true) : saved.get(key)) !==
+            value,
+        )
+      ) {
+        throw new Error('The timer ID is already in use');
+      }
+      return unchangedSettings(document, timer.id);
     }
-    return {ok: true, value: {id: timer.id, revision: document.revision}};
-  }
-  if (document.value.timers.length >= MAX_TIMER_DEFINITIONS) {
-    throw new Error('The timer list is full');
-  }
-  const name = nextTimerName(document.value.timers.map(timer => timer.name));
-  const result = await api.settings.edit({
-    type: 'settings.update',
-    name: 'timers',
-    baseRevision: document.revision,
-    value: {
-      ...document.value,
-      timers: [...document.value.timers, {name, ...timer}],
-    },
+    if (document.value.timers.length >= MAX_TIMER_DEFINITIONS) {
+      throw new Error('The timer list is full');
+    }
+    const name = nextTimerName(document.value.timers.map(item => item.name));
+    return {
+      type: 'settings.update',
+      name: 'timers',
+      baseRevision: document.revision,
+      value: {
+        ...document.value,
+        timers: [...document.value.timers, {name, ...timer}],
+      },
+    };
   });
-  if (result.ok || result.error.reason === 'write-failed') return result;
-  if (result.error.reason === 'stale' && attempt + 1 < SAVE_ATTEMPTS) {
-    return sendTimer(api, timer, attempt + 1);
-  }
-  throw new Error(result.error.message);
 }
 
 /** One 타이머's new configuration; its id and name stay. */
@@ -172,29 +128,15 @@ export function saveTimerEdit(
   api: LlpApi,
   edit: TimerReconfiguration,
 ): Promise<EditResult> {
-  return writeTimerEdit(api, () => sendReconfiguration(api, edit));
-}
-
-async function sendReconfiguration(
-  api: LlpApi,
-  edit: TimerReconfiguration,
-  attempt = 0,
-): Promise<EditResult> {
-  const document = await withinLookupTimeout(() =>
-    api.settings.get({name: 'timers'}),
-  );
-  if (document.name !== 'timers') throw new Error('Not the timer settings');
-  const plan = prepareTimerEdit(document, edit.id, edit.draft);
-  if (plan.kind === 'unchanged') {
-    return {ok: true, value: {id: 'timers', revision: plan.revision}};
-  }
-  if (plan.kind === 'refused') {
-    throw new Error(`The timer edit was refused: ${plan.reason}`);
-  }
-  const result = await api.settings.edit(plan.edit);
-  if (result.ok || result.error.reason === 'write-failed') return result;
-  if (result.error.reason === 'stale' && attempt + 1 < SAVE_ATTEMPTS) {
-    return sendReconfiguration(api, edit, attempt + 1);
-  }
-  throw new Error(result.error.message);
+  return writeSettings(api, async () => {
+    const document = await readSettings(api, 'timers');
+    const plan = prepareTimerEdit(document, edit.id, edit.draft);
+    if (plan.kind === 'unchanged') {
+      return {ok: true, value: {id: 'timers', revision: plan.revision}};
+    }
+    if (plan.kind === 'refused') {
+      throw new Error(`The timer edit was refused: ${plan.reason}`);
+    }
+    return plan.edit;
+  });
 }

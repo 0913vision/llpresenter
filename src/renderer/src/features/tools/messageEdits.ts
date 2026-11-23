@@ -4,12 +4,14 @@ import type {MessageTemplate, MessagesFile} from '@core/schema/messages';
 import {createMessageTemplateId} from '@core/schema/ids';
 import type {EditResult} from '@core/schema/contentEdit';
 import {MAX_MESSAGE_CHARACTERS} from '@core/overlays';
-import {pendingWritesOf} from '@renderer/platform/pendingWrites';
-import {withinLookupTimeout} from '@renderer/session/showOutput';
+import {
+  editableSettings,
+  unchangedSettings,
+  writeSettings,
+} from '@renderer/session/settingsWrites';
 
 export const MAX_MESSAGE_TEMPLATES = 500;
 export const MESSAGE_NAME_LIMIT = 256;
-const SAVE_ATTEMPTS = 2;
 export type MessageFields = Pick<MessageTemplate, 'name' | 'text'> &
   Partial<Pick<MessageTemplate, 'icon' | 'targets' | 'duration'>>;
 export type MessageEdit =
@@ -87,44 +89,20 @@ function applyEdit(file: MessagesFile, edit: MessageEdit): MessagesFile {
   };
 }
 
-export async function saveMessageEdit(
+export function saveMessageEdit(
   api: LlpApi,
   edit: MessageEdit,
 ): Promise<EditResult> {
-  const result = await pendingWritesOf(api).run<EditResult | null>({
-    write: () => sendEdit(api, edit),
-    refused: null,
-    sent: outcome =>
-      outcome !== null &&
-      (outcome.ok || outcome.error.reason === 'write-failed'),
+  return writeSettings(api, async () => {
+    const document = await editableSettings(api, 'messages');
+    const value = applyEdit(document.value, edit);
+    return value === document.value
+      ? unchangedSettings(document)
+      : {
+          type: 'settings.update',
+          name: 'messages',
+          baseRevision: document.revision,
+          value,
+        };
   });
-  if (result === null) throw new Error('Message edits stopped for closing');
-  return result;
-}
-async function sendEdit(
-  api: LlpApi,
-  edit: MessageEdit,
-  attempt = 0,
-): Promise<EditResult> {
-  const document = await withinLookupTimeout(() =>
-    api.settings.get({name: 'messages'}),
-  );
-  if (document.name !== 'messages' || document.access !== 'editable') {
-    throw new Error('Message settings cannot be edited');
-  }
-  const value = applyEdit(document.value, edit);
-  if (value === document.value) {
-    return {ok: true, value: {id: 'messages', revision: document.revision}};
-  }
-  const result = await api.settings.edit({
-    type: 'settings.update',
-    name: 'messages',
-    baseRevision: document.revision,
-    value,
-  });
-  if (result.ok || result.error.reason === 'write-failed') return result;
-  if (result.error.reason === 'stale' && attempt + 1 < SAVE_ATTEMPTS) {
-    return sendEdit(api, edit, attempt + 1);
-  }
-  throw new Error(result.error.message);
 }

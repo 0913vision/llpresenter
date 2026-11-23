@@ -8,9 +8,12 @@ import {
   type MacroCollection,
   type MacrosFile,
 } from '@core/schema/macros';
-import {pendingWritesOf} from '@renderer/platform/pendingWrites';
-import {withinLookupTimeout} from '@renderer/session/showOutput';
 import {editMacroActions, type MacroActionEdit} from '@core/macros';
+import {
+  editableSettings,
+  unchangedSettings,
+  writeSettings,
+} from '@renderer/session/settingsWrites';
 
 export type MacroChanges = Partial<
   Pick<Macro, 'name' | 'icon' | 'color' | 'runOnStartup'>
@@ -207,44 +210,20 @@ function apply(file: MacrosFile, edit: MacroEdit): MacrosFile {
   return next;
 }
 
-export async function saveMacroEdit(
+export function saveMacroEdit(
   api: LlpApi,
   edit: MacroEdit,
 ): Promise<EditResult> {
-  const result = await pendingWritesOf(api).run<EditResult | null>({
-    write: () => send(api, edit),
-    refused: null,
-    sent: value =>
-      value !== null && (value.ok || value.error.reason === 'write-failed'),
+  return writeSettings(api, async () => {
+    const document = await editableSettings(api, 'macros');
+    const value = apply(document.value, edit);
+    return value === document.value
+      ? unchangedSettings(document)
+      : {
+          type: 'settings.update',
+          name: 'macros',
+          baseRevision: document.revision,
+          value,
+        };
   });
-  if (result === null) throw new Error('Macro edits stopped for closing');
-  return result;
-}
-
-async function send(
-  api: LlpApi,
-  edit: MacroEdit,
-  attempt = 0,
-): Promise<EditResult> {
-  const document = await withinLookupTimeout(() =>
-    api.settings.get({name: 'macros'}),
-  );
-  if (document.name !== 'macros' || document.access !== 'editable') {
-    throw new Error('Macro settings cannot be edited');
-  }
-  const value = apply(document.value, edit);
-  if (value === document.value) {
-    return {ok: true, value: {id: 'macros', revision: document.revision}};
-  }
-  const result = await api.settings.edit({
-    type: 'settings.update',
-    name: 'macros',
-    baseRevision: document.revision,
-    value,
-  });
-  if (result.ok || result.error.reason === 'write-failed') return result;
-  if (result.error.reason === 'stale' && attempt < 1) {
-    return send(api, edit, attempt + 1);
-  }
-  throw new Error(result.error.message);
 }

@@ -8,8 +8,11 @@ import {
   isKnownQuickItem,
   MAX_QUICK_ITEMS,
 } from '@core/schema/quick';
-import {withinLookupTimeout} from '@renderer/session/showOutput';
-import {pendingWritesOf} from '@renderer/platform/pendingWrites';
+import {
+  editableSettings,
+  gatedSettingsWrite,
+  unchangedSettings,
+} from '@renderer/session/settingsWrites';
 import type {EditResult} from '@core/schema/contentEdit';
 import {
   TIMER_NAME_LIMIT,
@@ -127,19 +130,11 @@ function applyEdit(
 }
 
 /** Keeps the complete settings operation in the window's close gate. */
-export async function saveQuickEdit(
+export function saveQuickEdit(
   api: LlpApi,
   edit: QuickEdit,
 ): Promise<EditResult> {
-  const result = await pendingWritesOf(api).run<EditResult | null>({
-    write: () => sendQuickEdit(api, edit),
-    refused: null,
-    sent: outcome =>
-      outcome !== null &&
-      (outcome.ok || outcome.error.reason === 'write-failed'),
-  });
-  if (result === null) throw new Error('Quick edits stopped for closing');
-  return result;
+  return gatedSettingsWrite(api, () => sendQuickEdit(api, edit));
 }
 
 /**
@@ -170,12 +165,7 @@ async function duplicateQuickTimer({
   if (items.length >= MAX_QUICK_ITEMS) {
     throw new Error('The quick list is full');
   }
-  const timers = await withinLookupTimeout(() =>
-    api.settings.get({name: 'timers'}),
-  );
-  if (timers.name !== 'timers' || timers.access !== 'editable') {
-    throw new Error('Timer settings cannot be edited');
-  }
+  const timers = await editableSettings(api, 'timers');
   const copied = duplicateAfter(
     timers.value.timers,
     {id: source.ref, copyId: timerCopyId},
@@ -193,12 +183,7 @@ async function duplicateQuickTimer({
     throw new Error(timerResult.error.message);
   }
   try {
-    const quick = await withinLookupTimeout(() =>
-      api.settings.get({name: 'quick'}),
-    );
-    if (quick.name !== 'quick' || quick.access !== 'editable') {
-      throw new Error('Quick settings cannot be edited');
-    }
+    const quick = await editableSettings(api, 'quick');
     const at = quick.value.items.findIndex(item => item.id === source.id);
     if (at < 0) throw new Error('The original no longer exists');
     const row = {
@@ -268,12 +253,7 @@ async function sendQuickEdit(
       ...(edit.overrun === undefined ? {} : {overrun: edit.overrun}),
     });
   }
-  const document = await withinLookupTimeout(() =>
-    api.settings.get({name: 'quick'}),
-  );
-  if (document.name !== 'quick' || document.access !== 'editable') {
-    throw new Error('Quick settings cannot be edited');
-  }
+  const document = await editableSettings(api, 'quick');
   if (edit.kind === 'rename') {
     const item = document.value.items.find(item => item.id === edit.id);
     if (item && isKnownQuickItem(item) && item.kind === 'timer') {
@@ -306,7 +286,7 @@ async function sendQuickEdit(
   }
   const items = applyEdit(document.value.items, edit);
   if (items === document.value.items) {
-    return {ok: true, value: {id: 'quick', revision: document.revision}};
+    return unchangedSettings(document);
   }
   const result = await api.settings.edit({
     type: 'settings.update',

@@ -2,13 +2,15 @@ import type {LlpApi} from '@contracts/ipc/api';
 import {duplicateAfter} from '@core/common/duplicateAfter';
 import type {EditResult} from '@core/schema/contentEdit';
 import {serializeProps, type Prop, type PropsFile} from '@core/schema/props';
-import {pendingWritesOf} from '@renderer/platform/pendingWrites';
-import {withinLookupTimeout} from '@renderer/session/showOutput';
+import {
+  editableSettings,
+  unchangedSettings,
+  writeSettings,
+} from '@renderer/session/settingsWrites';
 
 export const MAX_PROPS = 500;
 const MAX_NAME = 256;
 const MAX_TEXT = 4000;
-const ATTEMPTS = 2;
 
 export type PropEdit =
   | {readonly kind: 'add'; readonly prop: Prop}
@@ -84,45 +86,17 @@ function apply(file: PropsFile, edit: PropEdit): PropsFile {
   return next;
 }
 
-export async function savePropEdit(
-  api: LlpApi,
-  edit: PropEdit,
-): Promise<EditResult> {
-  const result = await pendingWritesOf(api).run<EditResult | null>({
-    write: () => send(api, edit),
-    refused: null,
-    sent: outcome =>
-      outcome !== null &&
-      (outcome.ok || outcome.error.reason === 'write-failed'),
+export function savePropEdit(api: LlpApi, edit: PropEdit): Promise<EditResult> {
+  return writeSettings(api, async () => {
+    const document = await editableSettings(api, 'props');
+    const value = apply(document.value, edit);
+    return value === document.value
+      ? unchangedSettings(document)
+      : {
+          type: 'settings.update',
+          name: 'props',
+          baseRevision: document.revision,
+          value,
+        };
   });
-  if (result === null) throw new Error('Prop edits stopped for closing');
-  return result;
-}
-
-async function send(
-  api: LlpApi,
-  edit: PropEdit,
-  attempt = 0,
-): Promise<EditResult> {
-  const document = await withinLookupTimeout(() =>
-    api.settings.get({name: 'props'}),
-  );
-  if (document.name !== 'props' || document.access !== 'editable') {
-    throw new Error('Prop settings cannot be edited');
-  }
-  const value = apply(document.value, edit);
-  if (value === document.value) {
-    return {ok: true, value: {id: 'props', revision: document.revision}};
-  }
-  const result = await api.settings.edit({
-    type: 'settings.update',
-    name: 'props',
-    baseRevision: document.revision,
-    value,
-  });
-  if (result.ok || result.error.reason === 'write-failed') return result;
-  if (result.error.reason === 'stale' && attempt + 1 < ATTEMPTS) {
-    return send(api, edit, attempt + 1);
-  }
-  throw new Error(result.error.message);
 }
