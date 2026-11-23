@@ -1,16 +1,19 @@
 import {describe, expect, it, vi} from 'vitest';
 import {monotonicNow, SYSTEM_CLOCK} from '@main/live/clock';
 
-let systemWall = Date.now();
-vi.mock('@main/base/systemTime', () => ({systemNow: () => systemWall}));
-
 describe('live clocks', () => {
   it('keeps the 타이머 clock moving forward when the wall clock steps back', () => {
-    const wallBefore = SYSTEM_CLOCK.wall();
-    const timerBefore = SYSTEM_CLOCK.timer();
-    systemWall = wallBefore - 60_000;
-    expect(SYSTEM_CLOCK.wall()).toBeLessThan(wallBefore);
-    expect(SYSTEM_CLOCK.timer()).toBeGreaterThanOrEqual(timerBefore);
+    vi.useFakeTimers({toFake: ['Date']});
+    try {
+      vi.setSystemTime(Date.now());
+      const wallBefore = SYSTEM_CLOCK.wall();
+      const timerBefore = SYSTEM_CLOCK.timer();
+      vi.setSystemTime(wallBefore - 60_000);
+      expect(SYSTEM_CLOCK.wall()).toBeLessThan(wallBefore);
+      expect(SYSTEM_CLOCK.timer()).toBeGreaterThanOrEqual(timerBefore);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('reads epoch-like milliseconds', () => {
