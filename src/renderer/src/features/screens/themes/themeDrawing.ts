@@ -48,7 +48,7 @@ export function sampleDrawing(
       ...on,
       screen: layout ?? on.screen,
       content,
-      next: nextPhraseOf(theme, content, false),
+      next: nextPhraseOf(theme, content),
       background: theme.background,
       labels,
       opaque: false,

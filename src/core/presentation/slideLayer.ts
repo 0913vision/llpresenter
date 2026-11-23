@@ -13,9 +13,8 @@ export type ThemeLookup = (tile: SlideTile) => ThemeFile;
 export function nextTextOfTile(
   tile: SlideTile,
   theme: ThemeLookup,
-  first: boolean,
 ): string | null {
-  return nextTextOf(theme(tile), tileContent(tile), first);
+  return nextTextOf(theme(tile), tileContent(tile));
 }
 
 /** Whether a theme sizes a text together with the other slides of the item. */
@@ -71,11 +70,7 @@ export function slideLayerOf(
   const next =
     after === undefined || hidesNext(slide)
       ? null
-      : nextTextOfTile(
-          after,
-          theme,
-          following?.itemId !== cursor.itemId || following.index === 0,
-        );
+      : nextTextOfTile(after, theme);
   return {
     itemId: cursor.itemId,
     slideId: slide.id,

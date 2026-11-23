@@ -23,21 +23,17 @@ export function contentValues(
 export function nextTextOf(
   theme: Pick<ThemeFile, 'boxes' | 'next'>,
   content: SlideContent,
-  first: boolean,
 ): string | null {
   if (content.next !== undefined && content.next.trim() !== '') {
     return content.next;
   }
-  return nextPhraseOf(theme, content, first);
+  return nextPhraseOf(theme, content);
 }
 
 /** The phrase a theme makes for the slide before, without the slide's own. */
 export function nextPhraseOf(
   {boxes, next}: Pick<ThemeFile, 'boxes' | 'next'>,
   content: SlideContent,
-  first: boolean,
 ): string | null {
-  const templates =
-    first && next.atStart !== undefined ? next.atStart : next.content;
-  return fillTemplates(templates, contentValues({boxes}, content));
+  return fillTemplates(next.content, contentValues({boxes}, content));
 }

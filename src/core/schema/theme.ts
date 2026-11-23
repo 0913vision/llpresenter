@@ -352,8 +352,6 @@ export const themeFileSchema = v.pipe(
     /** The box of the text that the slide before one with this theme shows. */
     next: jsonObject({
       content: templates,
-      /** The same, when the slide is the first of its item. */
-      atStart: v.exactOptional(templates),
     }),
     /** The theme of a slide added after one with this theme. */
     then: v.exactOptional(themeIdSchema),

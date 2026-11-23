@@ -85,7 +85,7 @@ export function PreviewPicture({
       ? nextAtEnd
       : hidesNext(tile.slide)
         ? null
-        : nextTextOfTile(after, themeOfTile, false);
+        : nextTextOfTile(after, themeOfTile);
   return (
     <div className={styles.canvas}>
       <TilePicture

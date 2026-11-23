@@ -237,14 +237,10 @@ describe('a theme and its screens', () => {
     const {user, saved} = await setup();
     await user.click(themeRow(BUILT_IN_THEME_IDS.lyrics));
     await openTab(user, '테마');
-    await user.click(
-      properties().getByRole('button', {name: '첫 장일 때 1 삭제'}),
-    );
+    await user.click(properties().getByRole('button', {name: '문구 3 삭제'}));
     await overwrite(user);
     await waitFor(() =>
-      expect(saved(BUILT_IN_THEME_IDS.lyrics)?.next).not.toHaveProperty(
-        'atStart',
-      ),
+      expect(saved(BUILT_IN_THEME_IDS.lyrics)?.next.content).toHaveLength(2),
     );
   });
 

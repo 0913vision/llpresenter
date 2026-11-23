@@ -146,17 +146,6 @@ export function ThemeFileProperties({
           reason={reason}
           change={content => change({next: {...next, content}})}
         />
-        <ThemeTemplates
-          model={model}
-          label="첫 장일 때"
-          templates={next.atStart ?? []}
-          values={themeValues(theme)}
-          reason={reason}
-          change={atStart => {
-            const {atStart: _atStart, ...rest} = next;
-            change({next: atStart.length === 0 ? rest : {...rest, atStart}});
-          }}
-        />
       </PropertyGroup>
     </Properties>
   );

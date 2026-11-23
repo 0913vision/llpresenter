@@ -184,10 +184,7 @@ export function SlideTextArea({
       rows={many ? Math.max(1, value.split('\n').length) : 1}
       maxLength={SLIDE_LIMITS.text}
       value={value}
-      placeholder={filledText(theme, tile, {
-        box,
-        first: deck.slides[0]?.id === slide.id,
-      })}
+      placeholder={filledText(theme, tile, box)}
       readOnly={readOnly}
       spellCheck={false}
       onChange={event => {

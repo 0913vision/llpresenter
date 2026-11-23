@@ -54,8 +54,7 @@ export function setOwnText(
   own: boolean,
 ): void {
   const {slide} = tile;
-  const first = deck.slides[0]?.id === slide.id;
-  const text = own ? filledText(theme, tile, {box, first}) : '';
+  const text = own ? filledText(theme, tile, box) : '';
   if (ownText(slide, box) === text) return;
   deck.edit(slides =>
     changeSlides(slides, new Set([slide.id]), entry =>

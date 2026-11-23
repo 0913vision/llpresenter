@@ -42,10 +42,8 @@ The user's needs (October 30 and November 22):
   has no say in it. A 슬라이드 is made with it off, except the last 슬라이드 of
   a 말씀 passage and the closing title of a 설교, which are made with it on; the
   operator can change any of them. Making a passage again sets it once more: on
-  for its last 슬라이드 only. A 테마 can have other phrases for a 슬라이드 that
-  is the first of its item (첫 장일 때), such as 다음 곡: {곡 제목} over the
-  first lyrics of a song without a title 슬라이드; without them the first
-  슬라이드 uses the usual phrase.
+  for its last 슬라이드 only. The 테마 of the slide that comes says the phrase,
+  the same wherever that slide stands in its item.
 - **Separate 테마.** 찬양 제목, 찬양 가사, 설교 제목, and 말씀 본문 are four
   테마. A 테마 has a purpose and is offered only for 슬라이드 of that purpose.
 - **Hymns.** 찬송가 제목 is a second 테마 for 찬양 제목. Its 슬라이드 says only
@@ -325,18 +323,18 @@ not preset names or indices, so the rename does not change existing themes.
 
 One 테마. The app's own 테마 have a file only after the operator changes them.
 
-| Field           | Type                                             | Meaning                                                                          |
-| --------------- | ------------------------------------------------ | -------------------------------------------------------------------------------- |
-| `format`        | `"lltheme"`                                      | File type.                                                                       |
-| `schemaVersion` | Integer                                          | 1.                                                                               |
-| `id`, `name`    | UUID, string up to 80 characters                 | Identity and name.                                                               |
-| `purpose`       | One of the purposes                              | What 슬라이드 can have it.                                                       |
-| `boxes[]`       | `{name, default?, rows}`                         | Named boxes. `rows` is `one` or `many`.                                          |
-| `next`          | `{content, atStart?}`                            | What the 슬라이드 before shows; `atStart` (첫 장일 때) for the first of an item. |
-| `then`          | 테마 ID, optional                                | The 테마 of a 슬라이드 added after one with this 테마.                           |
-| `background`    | Background                                       | Shown unless the 슬라이드 has its own.                                           |
-| `screens`       | `audience`, `broadcast`, `stage`: screen layouts | `own` with elements, stacks, and splits; `same`; or `empty`.                     |
-| `others`        | Screen ID to layout, optional                    | Screens that differ from the others of their kind.                               |
+| Field           | Type                                             | Meaning                                                      |
+| --------------- | ------------------------------------------------ | ------------------------------------------------------------ |
+| `format`        | `"lltheme"`                                      | File type.                                                   |
+| `schemaVersion` | Integer                                          | 1.                                                           |
+| `id`, `name`    | UUID, string up to 80 characters                 | Identity and name.                                           |
+| `purpose`       | One of the purposes                              | What 슬라이드 can have it.                                   |
+| `boxes[]`       | `{name, default?, rows}`                         | Named boxes. `rows` is `one` or `many`.                      |
+| `next`          | `{content}`                                      | What the 슬라이드 before shows.                              |
+| `then`          | 테마 ID, optional                                | The 테마 of a 슬라이드 added after one with this 테마.       |
+| `background`    | Background                                       | Shown unless the 슬라이드 has its own.                       |
+| `screens`       | `audience`, `broadcast`, `stage`: screen layouts | `own` with elements, stacks, and splits; `same`; or `empty`. |
+| `others`        | Screen ID to layout, optional                    | Screens that differ from the others of their kind.           |
 
 ### `Settings\themes.json`
 

@@ -65,9 +65,9 @@ export function withTypedText(
 export function filledText(
   theme: ThemeFile,
   tile: ShowTile,
-  {box, first}: {readonly box: string; readonly first: boolean},
+  box: string,
 ): string {
   return box === NEXT_BOX
-    ? (nextPhraseOf(theme, tileContent(tile), first) ?? '')
+    ? (nextPhraseOf(theme, tileContent(tile)) ?? '')
     : (contentValues(theme, {texts: {}, auto: tile.auto})(box) ?? '');
 }

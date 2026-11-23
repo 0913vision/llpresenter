@@ -87,7 +87,6 @@ function mapTemplates(
       next: {
         ...next,
         content: all(next.content),
-        ...(next.atStart === undefined ? {} : {atStart: all(next.atStart)}),
       },
     },
     screen => ({

@@ -284,7 +284,7 @@ describe('next and previous', () => {
 });
 
 describe('the next text', () => {
-  it('is empty after the last slide, and the next item when going on', () => {
+  it('is empty after the last slide, and the first slide of the next item when going on', () => {
     applyService(
       serviceOf({
         one: [lyricsSlide(1, '가')],
@@ -295,7 +295,7 @@ describe('the next text', () => {
     expect(slide.next).toBeNull();
     setAtLastSlide('nextItem');
     expect(updates()).toHaveLength(1);
-    expect(updates()[0]?.next).toContain('맑은시냇물');
+    expect(updates()[0]?.next).toBe('나');
   });
 
   it('is the own text of the next slide when it has one', () => {
