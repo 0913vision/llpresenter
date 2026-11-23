@@ -1,19 +1,11 @@
 import {EmptyState} from '@renderer/ui/EmptyState';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
-import {deleteSelection} from '@renderer/ui/deleteSelection';
-import {useMemo, useRef, useState, type JSX} from 'react';
+import {useMemo, type JSX} from 'react';
 import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import {mediaLoops} from '@core/media';
-import {type MediaId} from '@core/schema/ids';
 import {type MediaItem, MEDIA_LIMITS} from '@core/schema/mediaList';
 import {RenameDialog} from '@renderer/ui/RenameDialog';
-import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
-import {focusHistorySurface} from '@renderer/ui/focusHistorySurface';
 import {useLive} from '@renderer/session/live';
-import {sendMediaOutput} from '@renderer/session/itemOutput';
-import {useShow} from '@renderer/session/showStore';
-import {useOrderFull} from '@renderer/session/orderFull';
-import {ORDER_FULL_REASON} from '@renderer/session/serviceOrderEdits';
 import {
   Button,
   MediaTile,
@@ -25,16 +17,13 @@ import {
   PanelTabs,
   Slider,
 } from '@renderer/ui';
-import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
+import {Menu} from '@renderer/ui/Menu';
 import {ViewModeSwitch} from '@renderer/ui/ViewModeSwitch';
-import type {MenuEntry} from '@renderer/ui/menuModel';
-import {noticeTime, type Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/notices';
 import {
   UNNAMED_PLAYLIST,
-  chosenPlaylist,
   durationText,
   mediaEntries,
-  mediaName,
   totalText,
   type ChosenPlaylist,
   type MediaEntry,
@@ -53,11 +42,8 @@ import {
 import {useMediaPicks} from './useMediaPicks';
 import {useMediaShortcuts} from './useMediaShortcuts';
 import type {MediaLibrary} from './mediaLibrary';
-import {mediaItem} from '@renderer/platform/media';
-import {insertNewItem, rowAfterSelected} from '@renderer/session/insertNewItem';
-import {newMediaItem} from './newMediaItem';
 import styles from './MediaView.module.css';
-import {mediaTileMenuEntries, type MediaTileActions} from './mediaMenuEntries';
+import {entryName, useMediaActions} from './useMediaActions';
 
 export {DEFAULT_MEDIA_COLUMNS} from './useMediaLayout';
 
@@ -68,19 +54,10 @@ export interface MediaViewProps {
   readonly onCollapse?: ((button: HTMLButtonElement) => void) | undefined;
 }
 
-interface OpenMenu {
-  readonly entries: readonly MenuEntry[];
-  readonly anchor: MenuAnchor;
-}
-
 function playlistRef(playlist: ChosenPlaylist) {
   return playlist.kind === 'media'
     ? ({kind: 'media', id: playlist.id} as const)
     : ({kind: 'audio', id: playlist.id} as const);
-}
-
-function nameOf(entry: MediaEntry): string {
-  return entry.kind === 'copy' ? entry.job.fileName : mediaName(entry.item);
 }
 
 function EntryTile({
@@ -99,7 +76,7 @@ function EntryTile({
   if (entry.kind === 'copy') {
     return (
       <MediaTile
-        name={nameOf(entry)}
+        name={entryName(entry)}
         copying={entry.job.percent}
         view={display}
       />
@@ -110,7 +87,7 @@ function EntryTile({
   return (
     <MediaTile
       view={display}
-      name={nameOf(entry)}
+      name={entryName(entry)}
       picture={showsPicture ? thumbnailSrc(item.id) : undefined}
       duration={item.kind === 'image' ? undefined : durationText(item.duration)}
       loop={item.kind === 'video' && mediaLoops(item)}
@@ -140,169 +117,19 @@ export function MediaView({
   onCollapse,
 }: MediaViewProps): JSX.Element {
   const {library, view, choice, selected, select: setSelected} = useMediaView();
-  const serviceId = useShow(state => state.serviceId);
-  const serviceReadOnly = useShow(state => state.readOnly);
-  const orderFull = useOrderFull();
-  const addReason =
-    serviceId === null
-      ? '열린 예배 없음'
-      : serviceReadOnly
-        ? NEWER_FILE_REASON
-        : orderFull
-          ? ORDER_FULL_REASON
-          : undefined;
   const imported = useMediaImportCompletion();
   const {display, columns, changeDisplay, changeColumns} = useMediaLayout();
-  const [menu, setMenu] = useState<OpenMenu | null>(null);
-  const menuTarget = useRef<HTMLElement | undefined>(undefined);
-  const [renaming, setRenaming] = useState<MediaItem | null>(null);
-  const renameAfterMenu = useMenuHandoff(menu !== null, setRenaming);
   const entries = useMemo(() => mediaEntries(view, choice), [view, choice]);
   const picks = useMediaPicks({entries, selected, setSelected});
-  const deleteItem = (
-    item: MediaItem,
-    target: HTMLElement | undefined,
-  ): void => {
-    const deleted = picks.picked.has(item.id)
-      ? (view.document?.value.items ?? []).filter(({id}) =>
-          picks.picked.has(id),
-        )
-      : [item];
-    deleteSelection(
-      deleted.length,
-      () =>
-        view.document?.access === 'editable' &&
-        view.document.value.items.some(value => value.id === item.id),
-      () => {
-        focusHistorySurface(
-          target?.closest<HTMLElement>('section[aria-label="미디어 보기"]') ??
-            null,
-        );
-        picks.clear();
-        for (const media of deleted) {
-          library
-            .deleteMedia(media.id, mediaName(media))
-            .catch((cause: unknown) =>
-              console.error('Deleting media failed:', cause),
-            );
-        }
-      },
-    );
-  };
-  const deleteAfterMenu = useMenuHandoff<{
-    item: MediaItem;
-    target: HTMLElement | undefined;
-  }>(menu !== null, ({item, target}) => deleteItem(item, target));
-  const askToDelete = (item: MediaItem): void => {
-    deleteAfterMenu({item, target: menuTarget.current});
-    setMenu(null);
-  };
+  const actions = useMediaActions({entries, picks, workspace, onProblem});
+  const {playlist, missing, renaming} = actions;
   const liveId = useLive(state => state.state?.layers.media?.mediaId);
-  const playlist = chosenPlaylist(view.document, choice);
   const title =
     playlist === null ? '모든 미디어' : playlist.name || UNNAMED_PLAYLIST;
   const items = entries.flatMap(entry =>
     entry.kind === 'media' ? [entry.item] : [],
   );
-  const missing = (entry: MediaEntry): boolean =>
-    entry.kind === 'media' && view.missing.has(entry.item.id);
   const {index, select} = picks;
-
-  const relink = (mediaId: MediaId, name: string): void => {
-    library.relink(mediaId, name).catch((cause: unknown) => {
-      console.error('Media relink failed:', cause);
-    });
-  };
-  const activate = (at: number): void => {
-    const entry = entries[at];
-    if (entry === undefined || entry.kind === 'copy') return;
-    if (missing(entry)) relink(entry.item.id, nameOf(entry));
-    else if (workspace === 'show') output(at);
-    else select(entry.id);
-  };
-  const output = (at: number): void => {
-    const entry = entries[at];
-    if (
-      entry?.kind !== 'media' ||
-      entry.item.kind === 'audio' ||
-      entry.copying !== undefined ||
-      missing(entry)
-    ) {
-      return;
-    }
-    try {
-      sendMediaOutput({
-        mediaId: entry.item.id,
-        loop: mediaLoops(entry.item),
-        itemId: `media:${entry.item.id}`,
-        title: nameOf(entry),
-      });
-    } catch (cause: unknown) {
-      console.error('Media output failed:', cause);
-      onProblem({
-        key: 'media-view:output',
-        kind: 'warning',
-        icon: 'warning',
-        title: '미디어 내보내기 실패',
-        time: noticeTime(),
-      });
-    }
-  };
-  const duplicateMedia = (mediaId: MediaId): void => {
-    library
-      .duplicateMedia(mediaId)
-      .then(copyId => {
-        if (copyId !== null) setSelected(copyId);
-      })
-      .catch((cause: unknown) => {
-        console.error('Copying media failed:', cause);
-      });
-  };
-  const actions = (entry: MediaEntry): MediaTileActions => ({
-    output: () => output(entries.findIndex(row => row.id === entry.id)),
-    missing: missing(entry),
-    editable: view.document?.access === 'editable',
-    inPlaylist: playlist !== null,
-    audioPlaylist: playlist?.kind === 'audio',
-    addReason,
-    addToService: mediaId => {
-      if (
-        addReason !== undefined ||
-        library.getSnapshot().missing.has(mediaId)
-      ) {
-        return;
-      }
-      const media = mediaItem(mediaId);
-      if (media === undefined) return;
-      insertNewItem(newMediaItem(media), rowAfterSelected(), {
-        report: onProblem,
-      });
-    },
-    properties: setSelected,
-    cancel: mediaId => {
-      library.cancel(mediaId, nameOf(entry)).catch((cause: unknown) => {
-        console.error('Stopping a media copy failed:', cause);
-      });
-    },
-    relink: mediaId => relink(mediaId, nameOf(entry)),
-    leave: mediaId => {
-      if (playlist === null) return;
-      library
-        .removeFromPlaylist(playlist, mediaId, nameOf(entry))
-        .catch((cause: unknown) => {
-          console.error('Removing media from a playlist failed:', cause);
-        });
-    },
-    duplicate: duplicateMedia,
-    setProps: (id, change) => {
-      library.updateProps(id, change).catch((cause: unknown) => {
-        console.error('Changing media properties failed:', cause);
-      });
-    },
-    remove: askToDelete,
-    reveal: mediaId => library.reveal(mediaId),
-    rename: renameAfterMenu,
-  });
   const selectedItem =
     entries[index]?.kind === 'media' ? entries[index].item : undefined;
   const copyReason =
@@ -312,8 +139,8 @@ export function MediaView({
     title,
     selected: selectedItem,
     reason: copyReason,
-    remove: deleteItem,
-    duplicate: duplicateMedia,
+    remove: actions.deleteItem,
+    duplicate: actions.duplicateMedia,
   });
   const {
     reason: importReason,
@@ -398,20 +225,9 @@ export function MediaView({
             selected={index < 0 ? undefined : index}
             onSelect={at => select(entries[at]?.id ?? null)}
             onPick={picks.pick}
-            onActivate={activate}
-            onOutput={workspace === 'show' ? () => undefined : output}
-            onMenu={(at, anchor) => {
-              menuTarget.current = anchor.target;
-              const entry = entries[at];
-              if (entry !== undefined && !picks.picked.has(entry.id)) {
-                select(entry.id);
-              }
-              const choices =
-                entry === undefined
-                  ? []
-                  : mediaTileMenuEntries(entry, actions(entry));
-              if (choices.length > 0) setMenu({entries: choices, anchor});
-            }}
+            onActivate={actions.activate}
+            onOutput={workspace === 'show' ? () => undefined : actions.output}
+            onMenu={actions.openMenu}
             tile={at => {
               const entry = entries[at];
               return entry === undefined ? null : (
@@ -461,19 +277,19 @@ export function MediaView({
           {totalText(items)}
         </PanelFooter>
       </Panel>
-      {menu === null ? null : (
+      {actions.menu === null ? null : (
         <Menu
           context
           label="미디어 메뉴"
-          anchor={menu.anchor}
-          onClose={() => setMenu(null)}
-          entries={menu.entries}
+          anchor={actions.menu.anchor}
+          onClose={actions.closeMenu}
+          entries={actions.menu.entries}
         />
       )}
       {renaming === null ? null : (
         <MediaRenameDialog
           item={renaming}
-          onClose={() => setRenaming(null)}
+          onClose={actions.closeRenaming}
           onCommit={name => library.rename(renaming.id, name)}
         />
       )}
