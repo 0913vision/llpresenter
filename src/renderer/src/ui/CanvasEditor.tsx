@@ -1,6 +1,13 @@
 import {MIN_SIZE, resizeHandles, type ResizeHandle} from '@core/canvas';
 import {useCommandShortcuts} from './commandDispatcher';
-import {useRef, useState, type JSX, type ReactNode} from 'react';
+import {
+  useRef,
+  useState,
+  type CSSProperties,
+  type JSX,
+  type PointerEvent,
+  type ReactNode,
+} from 'react';
 import {useElementSize} from './useElementSize';
 import {CanvasFrameBar} from './CanvasFrameBar';
 import {CanvasGuides} from './CanvasGuides';
@@ -58,6 +65,82 @@ const NUDGES: ReadonlyArray<readonly [string, number, number]> = [
   ['stageEditor.moveDown', 0, 1],
   ['stageEditor.moveDownLarge', 0, 10],
 ];
+
+/** Where a frame sits on the canvas, in percent of the layout. */
+function placeOf(
+  frame: Pick<ElementFrame, 'x' | 'y'> & Partial<Pick<ElementFrame, 'w' | 'h'>>,
+  layout: {readonly width: number; readonly height: number},
+): CSSProperties {
+  return {
+    left: `${(100 * frame.x) / layout.width}%`,
+    top: `${(100 * frame.y) / layout.height}%`,
+    ...(frame.w === undefined
+      ? {}
+      : {width: `${(100 * frame.w) / layout.width}%`}),
+    ...(frame.h === undefined
+      ? {}
+      : {height: `${(100 * frame.h) / layout.height}%`}),
+  };
+}
+
+/**
+ * One element on the canvas: a button that picks and moves it, and the
+ * resize handles of the chosen one.
+ */
+function CanvasElementBox({
+  element,
+  frame,
+  layout,
+  label,
+  selected,
+  inSelection,
+  handles,
+  priority,
+  onChoose,
+  onPress,
+}: {
+  readonly element: CanvasElement;
+  readonly frame: ElementFrame;
+  readonly layout: {readonly width: number; readonly height: number};
+  readonly label: string;
+  readonly selected: boolean;
+  /** One of several chosen elements. */
+  readonly inSelection: boolean;
+  readonly handles: boolean;
+  readonly priority: number | undefined;
+  readonly onChoose: () => void;
+  readonly onPress: (
+    event: PointerEvent<HTMLButtonElement>,
+    handle: 'move' | ResizeHandle,
+  ) => void;
+}): JSX.Element {
+  return (
+    <div
+      className={`${styles.element} ${selected || inSelection ? styles.selected : ''}`}
+      style={{...placeOf(frame, layout), zIndex: priority}}
+      data-canvas-element={element.id}
+    >
+      <button
+        className={styles.move}
+        aria-label={label}
+        aria-pressed={selected || inSelection}
+        onClick={onChoose}
+        onPointerDown={event => onPress(event, 'move')}
+      />
+      {handles
+        ? resizeHandles.map(handle => (
+            <button
+              key={handle}
+              className={styles.handle}
+              data-handle={handle}
+              aria-label={`${element.name} ${handleNames[handle]} 크기 조절`}
+              onPointerDown={event => onPress(event, handle)}
+            />
+          ))
+        : null}
+    </div>
+  );
+}
 
 /** Edits frames in reference pixels while the caller renders content and owns saves. */
 export function CanvasEditor<T extends CanvasElement>({
@@ -216,10 +299,7 @@ export function CanvasEditor<T extends CanvasElement>({
               <span
                 className={styles.dragCount}
                 aria-hidden="true"
-                style={{
-                  left: `${(100 * draft.frame.x) / layout.width}%`,
-                  top: `${(100 * draft.frame.y) / layout.height}%`,
-                }}
+                style={placeOf(draft.frame, layout)}
               >
                 {draft.frames.length}
               </span>
@@ -231,48 +311,24 @@ export function CanvasEditor<T extends CanvasElement>({
                 height={layout.height}
               />
             )}
-            {picture.elements.map(element => {
-              const frame = resolvedFrames?.[element.id] ?? element.frame;
-              return (
-                <div
-                  key={element.id}
-                  className={`${styles.element} ${selected === element.id || selectedIds?.includes(element.id) ? styles.selected : ''}`}
-                  style={{
-                    left: `${(100 * frame.x) / layout.width}%`,
-                    top: `${(100 * frame.y) / layout.height}%`,
-                    width: `${(100 * frame.w) / layout.width}%`,
-                    height: `${(100 * frame.h) / layout.height}%`,
-                    zIndex: hitPriority?.[element.id],
-                  }}
-                  data-canvas-element={element.id}
-                >
-                  <button
-                    className={styles.move}
-                    aria-label={getElementLabel(element)}
-                    aria-pressed={
-                      selected === element.id ||
-                      selectedIds?.includes(element.id) === true
-                    }
-                    onClick={() => {
-                      if (!dragged.current) select(element.id);
-                      dragged.current = false;
-                    }}
-                    onPointerDown={event => start(event, element, 'move')}
-                  />
-                  {selected !== element.id || readOnly
-                    ? null
-                    : resizeHandles.map(handle => (
-                        <button
-                          key={handle}
-                          className={styles.handle}
-                          data-handle={handle}
-                          aria-label={`${element.name} ${handleNames[handle]} 크기 조절`}
-                          onPointerDown={event => start(event, element, handle)}
-                        />
-                      ))}
-                </div>
-              );
-            })}
+            {picture.elements.map(element => (
+              <CanvasElementBox
+                key={element.id}
+                element={element}
+                frame={resolvedFrames?.[element.id] ?? element.frame}
+                layout={layout}
+                label={getElementLabel(element)}
+                selected={selected === element.id}
+                inSelection={selectedIds?.includes(element.id) === true}
+                handles={selected === element.id && !readOnly}
+                priority={hitPriority?.[element.id]}
+                onChoose={() => {
+                  if (!dragged.current) select(element.id);
+                  dragged.current = false;
+                }}
+                onPress={(event, handle) => start(event, element, handle)}
+              />
+            ))}
           </div>
         </div>
       </div>
