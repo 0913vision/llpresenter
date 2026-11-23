@@ -34,9 +34,12 @@ it('starts, pauses and resets one timer without commanding another', async () =>
     {...countdown, id: '00000000-0000-4000-8000-000000000002', name: '안내'},
   ]);
   const {unmount} = render(<TimerTab />);
-  const group = await screen.findByRole('group', {name: '설교'});
-  expect(group.textContent).toContain('0:30');
-  fireEvent.click(within(group).getByRole('button', {name: '시작'}));
+  // NOTE(0913vision): The row is found again for each step: a settings
+  // answer that comes late may draw it anew.
+  const group = () => screen.getByRole('group', {name: '설교'});
+  await screen.findByRole('group', {name: '설교'});
+  expect(group().textContent).toContain('0:30');
+  fireEvent.click(within(group()).getByRole('button', {name: '시작'}));
   expect(f.send).toHaveBeenLastCalledWith({type: 'timer.start', timerId: id});
   act(() =>
     f.live({
@@ -50,7 +53,9 @@ it('starts, pauses and resets one timer without commanding another', async () =>
       },
     }),
   );
-  fireEvent.click(within(group).getByRole('button', {name: '일시 정지'}));
+  fireEvent.click(
+    await within(group()).findByRole('button', {name: '일시 정지'}),
+  );
   expect(f.send).toHaveBeenLastCalledWith({type: 'timer.pause', timerId: id});
   act(() =>
     f.live({
@@ -65,8 +70,8 @@ it('starts, pauses and resets one timer without commanding another', async () =>
       },
     }),
   );
-  expect(group.textContent).toContain('0:25');
-  fireEvent.click(within(group).getByRole('button', {name: '처음으로'}));
+  await waitFor(() => expect(group().textContent).toContain('0:25'));
+  fireEvent.click(within(group()).getByRole('button', {name: '처음으로'}));
   expect(f.send).toHaveBeenLastCalledWith({type: 'timer.reset', timerId: id});
   expect(f.send).toHaveBeenCalledTimes(3);
   unmount();
