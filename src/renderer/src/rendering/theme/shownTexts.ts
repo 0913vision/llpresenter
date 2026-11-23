@@ -7,7 +7,12 @@ import type {
   ThemeTextElement,
 } from '@core/schema/theme';
 import type {MediaLayer} from '@core/schema/live';
-import {contentValues, fillTemplates, templateTokens} from '@core/theme';
+import {
+  contentValues,
+  fillTemplates,
+  isLabelText,
+  templateTokens,
+} from '@core/theme';
 import {AUTO_TOKENS, type SlideContent} from '@core/schema/slideContent';
 import type {RowsText} from './textRows';
 
@@ -49,15 +54,6 @@ export function isText(element: ThemeElement): element is TextElement {
   return element.kind === 'text' || element.kind === 'next';
 }
 
-/** Whether a text is only the label of its slide. */
-export function isLabel(element: ThemeTextElement): boolean {
-  const tokens = templateTokens(element.content);
-  return (
-    tokens.size === 1 &&
-    (tokens.has(AUTO_TOKENS.newLabel) || tokens.has(AUTO_TOKENS.label))
-  );
-}
-
 /** One flowing row, for a text of more typed rows than its element takes. */
 function joined(text: string, limit: number | undefined): string {
   return limit !== undefined && text.split('\n').length > limit
@@ -97,7 +93,7 @@ function textOf(
 ): RowsText | null {
   const values = contentValues(theme, content);
   const text = fillTemplates(element.content, values);
-  if (element.label === true && isLabel(element)) {
+  if (element.label === true && isLabelText(element)) {
     const carried = screen.elements.some(
       other =>
         other.kind === 'text' &&

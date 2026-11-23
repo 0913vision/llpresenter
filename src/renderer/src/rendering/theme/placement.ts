@@ -1,12 +1,12 @@
 import {
+  followedText,
+  isLabelText,
   layoutTheme,
   type SameText,
   type ThemePlacement,
-  templateTokens,
 } from '@core/theme';
 import {measuredText} from './measureRows';
 import {
-  isLabel,
   peerRows,
   shownTexts,
   type ShownText,
@@ -36,26 +36,6 @@ function layout(
   );
 }
 
-function shareToken(a: readonly string[], b: readonly string[]): boolean {
-  const other = templateTokens(b);
-  return [...templateTokens(a)].some(token => other.has(token));
-}
-
-/** The text of 청중 that a text of 무대 takes its size from. */
-function twinOf(
-  shown: ShownText,
-  there: ReadonlyMap<string, ShownText>,
-): ShownText | undefined {
-  const {element} = shown;
-  if (element.kind !== 'text') return undefined;
-  const label = isLabel(element);
-  return [...there.values()].find(
-    ({element: other}) =>
-      other.kind === 'text' &&
-      (label ? !isLabel(other) : shareToken(other.content, element.content)),
-  );
-}
-
 interface Followed extends PlacedTexts {
   /** The sizes 청중 gives the texts that follow it. */
   readonly same: ReadonlyMap<string, SameText>;
@@ -80,11 +60,16 @@ function placeFollowing(drawing: ThemeDrawing): Followed {
     if (entry.element.kind !== 'text' || entry.element.same === undefined) {
       continue;
     }
-    const twin = twinOf(entry, there);
+    const followed = followedText(
+      entry.element,
+      drawing.screen.elements,
+      audience.elements,
+    );
+    const twin = followed === undefined ? undefined : there.get(followed.id);
     const placed = twin === undefined ? undefined : places.get(twin.element.id);
     if (twin === undefined || placed === undefined) continue;
     same.set(id, {size: placed.size});
-    if (entry.element.same === 'rows' && !isLabel(entry.element)) {
+    if (entry.element.same === 'rows' && !isLabelText(entry.element)) {
       const rows = measuredText(twin.rows).wrapped(placed.size);
       texts.set(id, {
         ...entry,

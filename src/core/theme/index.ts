@@ -10,6 +10,7 @@ export {
 export {BUILT_IN_THEME_IDS, SONG_THEME_IDS} from './builtIn/ids';
 export {BUILT_IN_THEMES} from './builtIn/index';
 export {contentValues, nextPhraseOf, nextTextOf} from './content';
+export {followedText, isLabelText} from './follow';
 export {
   type AddableKind,
   type StackingStep,

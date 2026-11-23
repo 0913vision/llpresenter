@@ -146,54 +146,9 @@
             "x": 48,
             "y": 130,
             "w": 1824,
-            "h": 106
+            "h": 150
           },
           "content": ["{(새 이름표)}"],
-          "style": {
-            "font": "NanumSquare",
-            "weight": 800,
-            "size": 88,
-            "color": "#FFFFFF",
-            "lineHeight": 1.2,
-            "tracking": 0,
-            "align": "center",
-            "vAlign": "middle"
-          },
-          "label": true
-        },
-        {
-          "id": "00000000-0000-4000-9000-000000000001",
-          "kind": "text",
-          "frame": {
-            "x": 48,
-            "y": 130,
-            "w": 1824,
-            "h": 106
-          },
-          "content": ["{찬송가}"],
-          "style": {
-            "font": "NanumSquare",
-            "weight": 700,
-            "size": 88,
-            "color": "#FFFFFF",
-            "lineHeight": 1.2,
-            "tracking": 0,
-            "align": "center",
-            "vAlign": "middle"
-          },
-          "same": "size",
-          "label": true
-        },
-        {
-          "id": "00000000-0000-4000-9000-000000000002",
-          "kind": "text",
-          "frame": {
-            "x": 48,
-            "y": 240,
-            "w": 1824,
-            "h": 200
-          },
-          "content": ["{제목}"],
           "style": {
             "font": "NanumSquare",
             "weight": 800,
@@ -204,6 +159,30 @@
             "align": "center",
             "vAlign": "middle"
           },
+          "label": true,
+          "same": "size"
+        },
+        {
+          "id": "00000000-0000-4000-9000-000000000002",
+          "kind": "text",
+          "frame": {
+            "x": 48,
+            "y": 130,
+            "w": 1824,
+            "h": 300
+          },
+          "content": ["{제목}\n{(찬송가)}"],
+          "style": {
+            "font": "NanumSquare",
+            "weight": 800,
+            "size": 120,
+            "color": "#FFFFFF",
+            "lineHeight": 1.2,
+            "tracking": 0,
+            "align": "center",
+            "vAlign": "middle"
+          },
+          "label": true,
           "same": "size"
         },
         {
@@ -236,7 +215,6 @@
         {
           "upper": [
             "00000000-0000-4000-9000-000000000005",
-            "00000000-0000-4000-9000-000000000001",
             "00000000-0000-4000-9000-000000000002"
           ],
           "lower": "00000000-0000-4000-9000-000000000090",

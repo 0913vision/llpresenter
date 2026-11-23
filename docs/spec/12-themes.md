@@ -103,9 +103,10 @@ The user's needs (October 30 and November 22):
   the first: one is used when every value of the ones above is missing, such as
   the (없음) of an empty 슬라이드 on 무대. A template without values always
   shows. A 글 can have a color for these.
-- A 글 can take the size, or the size and the rows, that 청중 gives the same
-  content. The sung lyrics on 무대 do, so they break where the congregation's
-  do.
+- A 글 can take the size, or the size and the rows, that 청중 gives the 글 that
+  leads with the same value: the hymn title on 무대, 제목 with (찬송가) on a row
+  under it, follows `{제목}` on 청중. A label takes the size of the 글 it
+  labels. The sung lyrics on 무대 do, so they break where the congregation's do.
 - **Fit.** A text is drawn at its size, or at the first of its listed sizes that
   fits, and shrinks to its smallest size. It can keep its typed rows while it
   shrinks, take at most some rows, and be sized together with every 슬라이드 of
