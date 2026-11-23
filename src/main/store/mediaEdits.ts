@@ -1,7 +1,7 @@
 import {randomUUID} from 'node:crypto';
 import type {Result} from '@core/common/result';
 import type {EditFailure, EditRefusalReason} from '@core/schema/contentEdit';
-import {copyName} from '@core/common/copyName';
+import {duplicateAfter} from '@core/common/duplicateAfter';
 import {
   createAudioPlaylistId,
   createMediaId,
@@ -34,6 +34,14 @@ export interface MediaChange {
 }
 
 const NEW_PLAYLIST_NAME = '새 재생목록';
+
+/** The media list after an edit, and the id of what the edit made or changed. */
+function changed(
+  id: string,
+  value: MediaList,
+): Result<MediaChange, EditFailure> {
+  return {ok: true, value: {id, value}};
+}
 
 export function mediaRefusal(reason: EditRefusalReason, message: string) {
   return {ok: false, error: {reason, message}} as const;
@@ -84,34 +92,22 @@ export function editMediaList(
     case 'media.playlist.create': {
       if (edit.kind === 'media') {
         const id = createMediaPlaylistId(randomUUID());
-        return {
-          ok: true,
-          value: {
-            id,
-            value: {
-              ...value,
-              playlists: [
-                ...value.playlists,
-                {id, name: NEW_PLAYLIST_NAME, items: []},
-              ],
-            },
-          },
-        };
+        return changed(id, {
+          ...value,
+          playlists: [
+            ...value.playlists,
+            {id, name: NEW_PLAYLIST_NAME, items: []},
+          ],
+        });
       }
       const id = createAudioPlaylistId(randomUUID());
-      return {
-        ok: true,
-        value: {
-          id,
-          value: {
-            ...value,
-            audioPlaylists: [
-              ...value.audioPlaylists,
-              {id, name: NEW_PLAYLIST_NAME, items: [], loop: false},
-            ],
-          },
-        },
-      };
+      return changed(id, {
+        ...value,
+        audioPlaylists: [
+          ...value.audioPlaylists,
+          {id, name: NEW_PLAYLIST_NAME, items: [], loop: false},
+        ],
+      });
     }
     case 'media.playlist.update': {
       const {playlist} = edit;
@@ -128,86 +124,66 @@ export function editMediaList(
           'Playlist items must exist and audio playlists accept only audio',
         );
       }
-      return {
-        ok: true,
-        value: {
-          id: playlist.value.id,
-          value:
-            playlist.kind === 'media'
-              ? {
-                  ...value,
-                  playlists: value.playlists.map(item =>
-                    item.id === playlist.value.id ? playlist.value : item,
-                  ),
-                }
-              : {
-                  ...value,
-                  audioPlaylists: value.audioPlaylists.map(item =>
-                    item.id === playlist.value.id ? playlist.value : item,
-                  ),
-                },
-        },
-      };
+      return changed(
+        playlist.value.id,
+        playlist.kind === 'media'
+          ? {
+              ...value,
+              playlists: value.playlists.map(item =>
+                item.id === playlist.value.id ? playlist.value : item,
+              ),
+            }
+          : {
+              ...value,
+              audioPlaylists: value.audioPlaylists.map(item =>
+                item.id === playlist.value.id ? playlist.value : item,
+              ),
+            },
+      );
     }
     case 'media.playlist.delete': {
       if (!hasPlaylist(value, edit.playlist)) {
         return mediaRefusal('not-found', 'This playlist no longer exists');
       }
       const {id, kind} = edit.playlist;
-      return {
-        ok: true,
-        value: {
-          id,
-          value:
-            kind === 'media'
-              ? {
-                  ...value,
-                  playlists: value.playlists.filter(item => item.id !== id),
-                }
-              : {
-                  ...value,
-                  audioPlaylists: value.audioPlaylists.filter(
-                    item => item.id !== id,
-                  ),
-                },
-        },
-      };
+      return changed(
+        id,
+        kind === 'media'
+          ? {
+              ...value,
+              playlists: value.playlists.filter(item => item.id !== id),
+            }
+          : {
+              ...value,
+              audioPlaylists: value.audioPlaylists.filter(
+                item => item.id !== id,
+              ),
+            },
+      );
     }
     case 'media.duplicate': {
-      const at = value.items.findIndex(item => item.id === edit.mediaId);
-      const source = value.items[at];
-      if (source === undefined) {
+      if (!value.items.some(item => item.id === edit.mediaId)) {
         return mediaRefusal('not-found', 'This media no longer exists');
       }
       if (value.items.length >= MEDIA_LIMITS.items) {
         return mediaRefusal('invalid', 'The media list is full');
       }
       const id = createMediaId(randomUUID());
-      const name = copyName(
-        source.name,
-        value.items.map(item => item.name),
-        {maxLength: MEDIA_LIMITS.name},
-      );
-      return {
-        ok: true,
-        value: {
-          id,
-          value: {
-            ...value,
-            items: [
-              ...value.items.slice(0, at + 1),
-              {...source, id, name},
-              ...value.items.slice(at + 1),
-            ],
-          },
-        },
-      };
+      return changed(id, {
+        ...value,
+        items: duplicateAfter(
+          value.items,
+          {id: edit.mediaId, copyId: id},
+          {limit: MEDIA_LIMITS.items, maxName: MEDIA_LIMITS.name},
+        ),
+      });
     }
     case 'media.playlist.duplicate': {
       const {playlist} = edit;
       if (!hasPlaylist(value, playlist)) {
         return mediaRefusal('not-found', 'This playlist no longer exists');
       }
+      // NOTE(0913vision): Media and audio playlists share one limit.
       if (
         value.playlists.length + value.audioPlaylists.length >=
         MEDIA_LIMITS.playlists
@@ -216,98 +192,58 @@ export function editMediaList(
       }
       if (playlist.kind === 'media') {
         const id = createMediaPlaylistId(randomUUID());
-        const at = value.playlists.findIndex(item => item.id === playlist.id);
-        const source = value.playlists[at];
-        if (source === undefined) {
-          return mediaRefusal('not-found', 'This playlist no longer exists');
-        }
-        const name = copyName(
-          source.name,
-          value.playlists.map(item => item.name),
-          {maxLength: MEDIA_LIMITS.name},
-        );
-        return {
-          ok: true,
-          value: {
-            id,
-            value: {
-              ...value,
-              playlists: [
-                ...value.playlists.slice(0, at + 1),
-                {...source, id, name},
-                ...value.playlists.slice(at + 1),
-              ],
+        return changed(id, {
+          ...value,
+          playlists: duplicateAfter(
+            value.playlists,
+            {id: playlist.id, copyId: id},
+            {
+              limit: MEDIA_LIMITS.playlists - value.audioPlaylists.length,
+              maxName: MEDIA_LIMITS.name,
             },
-          },
-        };
+          ),
+        });
       }
       const id = createAudioPlaylistId(randomUUID());
-      const at = value.audioPlaylists.findIndex(
-        item => item.id === playlist.id,
-      );
-      const source = value.audioPlaylists[at];
-      if (source === undefined) {
-        return mediaRefusal('not-found', 'This playlist no longer exists');
-      }
-      const name = copyName(
-        source.name,
-        value.audioPlaylists.map(item => item.name),
-        {maxLength: MEDIA_LIMITS.name},
-      );
-      return {
-        ok: true,
-        value: {
-          id,
-          value: {
-            ...value,
-            audioPlaylists: [
-              ...value.audioPlaylists.slice(0, at + 1),
-              {...source, id, name},
-              ...value.audioPlaylists.slice(at + 1),
-            ],
+      return changed(id, {
+        ...value,
+        audioPlaylists: duplicateAfter(
+          value.audioPlaylists,
+          {id: playlist.id, copyId: id},
+          {
+            limit: MEDIA_LIMITS.playlists - value.playlists.length,
+            maxName: MEDIA_LIMITS.name,
           },
-        },
-      };
+        ),
+      });
     }
     case 'media.properties.update': {
       if (!value.items.some(item => item.id === edit.mediaId)) {
         return mediaRefusal('not-found', 'This media no longer exists');
       }
-      return {
-        ok: true,
-        value: {
-          id: edit.mediaId,
-          value: {
-            ...value,
-            items: value.items.map(item =>
-              item.id === edit.mediaId ? {...item, ...edit.changes} : item,
-            ),
-          },
-        },
-      };
+      return changed(edit.mediaId, {
+        ...value,
+        items: value.items.map(item =>
+          item.id === edit.mediaId ? {...item, ...edit.changes} : item,
+        ),
+      });
     }
     case 'media.delete': {
       if (!value.items.some(item => item.id === edit.mediaId)) {
         return mediaRefusal('not-found', 'This media no longer exists');
       }
-      return {
-        ok: true,
-        value: {
-          id: edit.mediaId,
-          value: {
-            ...value,
-            items: value.items.filter(item => item.id !== edit.mediaId),
-            playlists: value.playlists.map(playlist => ({
-              ...playlist,
-              items: playlist.items.filter(id => id !== edit.mediaId),
-            })),
-            audioPlaylists: value.audioPlaylists.map(playlist => ({
-              ...playlist,
-              items: playlist.items.filter(id => id !== edit.mediaId),
-            })),
-          },
-        },
-      };
+      return changed(edit.mediaId, {
+        ...value,
+        items: value.items.filter(item => item.id !== edit.mediaId),
+        playlists: value.playlists.map(playlist => ({
+          ...playlist,
+          items: playlist.items.filter(id => id !== edit.mediaId),
+        })),
+        audioPlaylists: value.audioPlaylists.map(playlist => ({
+          ...playlist,
+          items: playlist.items.filter(id => id !== edit.mediaId),
+        })),
+      });
     }
   }
 }
