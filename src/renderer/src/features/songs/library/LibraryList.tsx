@@ -1,10 +1,5 @@
-import {
-  useLayoutEffect,
-  useRef,
-  useState,
-  type JSX,
-  type KeyboardEvent,
-} from 'react';
+import {useLayoutEffect, useRef, type JSX, type KeyboardEvent} from 'react';
+import {listKeyTarget, useRowRange} from '@renderer/ui/useRowRange';
 import type {SongId} from '@core/schema/ids';
 import {SONG_DRAG_MIME, serializeSongDragPayload} from '@core/schema/songDrag';
 import {ListBox, ListRow} from '@renderer/ui/ListRow';
@@ -15,6 +10,12 @@ import {useDragClickGuard} from '@renderer/ui/useDragClickGuard';
 
 const OVERSCAN = 4;
 const INITIAL_ROWS = 12;
+/** One row is as tall as the design system's `--size-row`. */
+const rowHeight = (list: HTMLElement): number =>
+  Number.parseFloat(
+    getComputedStyle(list).getPropertyValue('--size-row') ||
+      getComputedStyle(document.documentElement).getPropertyValue('--size-row'),
+  ) || 0;
 
 interface LibraryListProps {
   readonly rows: readonly LibraryRow[];
@@ -34,50 +35,20 @@ export function LibraryList({
   onNavigate,
   onContextMenu,
 }: LibraryListProps): JSX.Element {
-  const viewport = useRef<HTMLDivElement>(null);
+  const {viewport, start, end, view, measure, center, reveal} = useRowRange({
+    count: rows.length,
+    rowHeight,
+    initialRows: INITIAL_ROWS,
+    overscan: OVERSCAN,
+  });
   const click = useDragClickGuard();
   const focusNext = useRef<string | null>(null);
-  const [view, setView] = useState({top: 0, height: 0, row: 0});
-  const measure = (): void => {
-    const element = viewport.current;
-    if (element === null) return;
-    const row =
-      Number.parseFloat(
-        getComputedStyle(element).getPropertyValue('--size-row') ||
-          getComputedStyle(document.documentElement).getPropertyValue(
-            '--size-row',
-          ),
-      ) || 0;
-    setView({top: element.scrollTop, height: element.clientHeight, row});
-  };
   useLayoutEffect(() => {
-    const element = viewport.current;
-    if (element === null || typeof ResizeObserver === 'undefined') {
-      return undefined;
-    }
-    const observer = new ResizeObserver(measure);
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, []);
-  const first = view.row > 0 ? Math.floor(view.top / view.row) : 0;
-  const count =
-    view.row > 0 && view.height > 0
-      ? Math.ceil(view.height / view.row)
-      : INITIAL_ROWS;
-  const start = Math.max(0, Math.min(first - OVERSCAN, rows.length - count));
-  const end = Math.min(rows.length, start + count + OVERSCAN * 2);
-  useLayoutEffect(() => {
-    const element = viewport.current;
     const index = rows.findIndex(row => row.song.id === selected);
-    if (
-      element &&
-      view.row > 0 &&
-      index >= 0 &&
-      (index < start || index >= end)
-    ) {
-      element.scrollTop = index * view.row;
+    if (view.row > 0 && index >= 0 && (index < start || index >= end)) {
+      reveal(index);
     }
-  }, [rows, selected, start, end, view.row]);
+  }, [rows, selected, start, end, view.row, reveal]);
   useLayoutEffect(() => {
     const id = focusNext.current;
     if (id === null) return;
@@ -88,32 +59,20 @@ export function LibraryList({
       row.focus();
       focusNext.current = null;
     }
-  }, [start, end, selected]);
+  }, [start, end, selected, viewport]);
 
   const navigate = (event: KeyboardEvent): void => {
     if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
       return;
     }
     const current = rows.findIndex(row => row.song.id === selected);
-    const targets: Readonly<Record<string, number>> = {
-      ArrowDown: current + 1,
-      ArrowUp: current - 1,
-      Home: 0,
-      End: rows.length - 1,
-    };
-    const target = targets[event.key];
-    if (target === undefined) return;
-    const next = rows[Math.max(0, Math.min(target, rows.length - 1))];
-    if (!next) return;
+    const target = listKeyTarget(event.key, current, rows.length);
+    const next = target === undefined ? undefined : rows[target];
+    if (target === undefined || !next) return;
     event.preventDefault();
     event.stopPropagation();
     focusNext.current = next.song.id;
-    const element = viewport.current;
-    if (element && view.row > 0) {
-      const index = rows.indexOf(next);
-      element.scrollTop = Math.max(0, index * view.row - view.height / 2);
-      measure();
-    }
+    if (view.row > 0) center(target);
     onNavigate(next.song.id);
   };
 

@@ -1,11 +1,5 @@
-import {
-  useCallback,
-  useLayoutEffect,
-  useRef,
-  useState,
-  type JSX,
-  type KeyboardEvent,
-} from 'react';
+import {useLayoutEffect, useRef, type JSX, type KeyboardEvent} from 'react';
+import {listKeyTarget, useRowRange} from '@renderer/ui/useRowRange';
 import type {Timer} from '@core/schema/timers';
 import type {LlpApi} from '@contracts/ipc/api';
 import {TimerRow} from './TimerRow';
@@ -15,6 +9,18 @@ import styles from './TimerTab.module.css';
 
 const INITIAL_ROWS = 4;
 const OVERSCAN = 2;
+const rowHeight = (list: HTMLElement): number =>
+  list.querySelector<HTMLElement>('[data-timer-row]')?.getBoundingClientRect()
+    .height ?? 0;
+
+/** The part of a timer row that takes the focus. */
+function focusTarget(row: HTMLElement): HTMLElement {
+  return (
+    row.querySelector<HTMLElement>('button') ??
+    row.querySelector<HTMLElement>('[role=group]') ??
+    row
+  );
+}
 
 export function WindowedTimers({
   api,
@@ -31,7 +37,12 @@ export function WindowedTimers({
   readonly onProblem?: ((notice: Notice) => void) | undefined;
   readonly onRemove?: ((timer: Timer) => void) | undefined;
 }): JSX.Element {
-  const viewport = useRef<HTMLDivElement>(null);
+  const {viewport, start, end, view, measure, center} = useRowRange({
+    count: timers.length,
+    rowHeight,
+    initialRows: INITIAL_ROWS,
+    overscan: OVERSCAN,
+  });
   useReflow(viewport, {
     ids: timers.map(timer => timer.id),
     selector: '[data-reflow-id]',
@@ -39,59 +50,15 @@ export function WindowedTimers({
     scope: 'timers',
   });
   const pendingFocus = useRef<number | null>(null);
-  const [view, setView] = useState({top: 0, height: 0, row: 0});
-  const measure = useCallback(() => {
-    const node = viewport.current;
-    if (!node) return;
-    const next = {
-      top: node.scrollTop,
-      height: node.clientHeight,
-      row:
-        node
-          .querySelector<HTMLElement>('[data-timer-row]')
-          ?.getBoundingClientRect().height ?? 0,
-    };
-    setView(old =>
-      old.top === next.top && old.height === next.height && old.row === next.row
-        ? old
-        : next,
-    );
-  }, []);
-  useLayoutEffect(() => {
-    measure();
-    const node = viewport.current;
-    if (!node || typeof ResizeObserver === 'undefined') return;
-    const observer = new ResizeObserver(measure);
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, [measure, timers.length]);
-  const visible =
-    view.height > 0 && view.row > 0
-      ? Math.ceil(view.height / view.row)
-      : INITIAL_ROWS;
-  const start = Math.max(
-    0,
-    Math.min(
-      Math.floor(view.top / (view.row || 1)) - OVERSCAN,
-      timers.length - visible,
-    ),
-  );
-  const end = Math.min(timers.length, start + visible + OVERSCAN * 2);
   useLayoutEffect(() => {
     const index = pendingFocus.current;
     if (index === null || index < start || index >= end) return;
     const row = viewport.current?.querySelector<HTMLElement>(
       `[data-timer-row="${index}"]`,
     );
-    (
-      row?.querySelector<HTMLElement>('button') ??
-      row?.querySelector<HTMLElement>('[role=group]') ??
-      row
-    )?.focus({
-      preventScroll: true,
-    });
+    if (row) focusTarget(row).focus({preventScroll: true});
     pendingFocus.current = null;
-  }, [start, end, view.top]);
+  }, [start, end, view.top, viewport]);
   const navigate = (event: KeyboardEvent<HTMLDivElement>): void => {
     if (
       event.altKey ||
@@ -108,32 +75,18 @@ export function WindowedTimers({
         : null;
     if (row === null && event.target !== event.currentTarget) return;
     const current = Number(row?.dataset['timerRow'] ?? -1);
-    const targets: Readonly<Record<string, number>> = {
-      ArrowDown: current + 1,
-      ArrowUp: current - 1,
-      Home: 0,
-      End: timers.length - 1,
-    };
-    const proposed = targets[event.key];
+    const target = listKeyTarget(event.key, current, timers.length);
     const node = viewport.current;
-    if (proposed === undefined || !node) return;
+    if (target === undefined || !node) return;
     event.preventDefault();
     event.stopPropagation();
-    const target = Math.max(0, Math.min(timers.length - 1, proposed));
     pendingFocus.current = target;
-    node.scrollTop = Math.max(0, target * view.row - node.clientHeight / 2);
-    measure();
+    center(target);
     const rendered = node.querySelector<HTMLElement>(
       `[data-timer-row="${target}"]`,
     );
     if (rendered) {
-      (
-        rendered.querySelector<HTMLElement>('button') ??
-        rendered.querySelector<HTMLElement>('[role=group]') ??
-        rendered
-      ).focus({
-        preventScroll: true,
-      });
+      focusTarget(rendered).focus({preventScroll: true});
       pendingFocus.current = null;
     }
   };
