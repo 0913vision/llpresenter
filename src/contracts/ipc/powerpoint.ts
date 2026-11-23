@@ -29,6 +29,7 @@ export const powerpointEndpoints = {
   >('import:powerpoint:images:store', {
     request: parsePowerPointOwnedImagesRequest,
     reply: parsePowerPointOwnedImagesResult,
+    refuse: () => ({ok: false, message: 'PowerPoint 이미지 가져오기 실패'}),
   }),
   images: query<PowerPointImageExportResult>(
     'import:powerpoint:images',
@@ -61,12 +62,14 @@ export const powerpointEndpoints = {
   >('import:powerpoint:backgrounds', {
     request: parsePowerPointBackgroundsRequest,
     reply: parsePowerPointBackgroundsResult,
+    refuse: () => null,
   }),
   previewImage: request<PowerPointReleaseRequest, PowerPointPreviewImage>(
     'import:powerpoint:preview-image',
     {
       request: parsePowerPointReleaseRequest,
       reply: parsePowerPointPreviewImage,
+      refuse: () => null,
     },
   ),
   release: request<PowerPointReleaseRequest, boolean>(
@@ -74,6 +77,7 @@ export const powerpointEndpoints = {
     {
       request: parsePowerPointReleaseRequest,
       reply: parsePowerPointReleaseResult,
+      refuse: () => false,
     },
   ),
 };

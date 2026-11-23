@@ -5,8 +5,9 @@ import {nonNegativeInteger} from './primitives';
 import {mediaIdSchema} from './ids';
 import {POWERPOINT_IMPORT_LIMITS, TEXT_IMPORT_LIMITS} from './textImportLimits';
 
-/** Limits of one picture of a slide. */
+/** Limits of the pictures of slides: how many, and how large one is. */
 export const POWERPOINT_PICTURE_LIMITS = {
+  count: 200,
   bytes: 32 * 1024 * 1024,
   pixels: 64 * 1024 * 1024,
   side: 16384,
@@ -76,7 +77,7 @@ const backgroundsRequest = payloadObject({
   indices: v.pipe(
     v.array(nonNegativeInteger),
     v.minLength(1),
-    v.maxLength(200),
+    v.maxLength(POWERPOINT_PICTURE_LIMITS.count),
     v.check(indices => new Set(indices).size === indices.length),
   ),
 });
@@ -89,7 +90,7 @@ const backgroundsResult = v.nullable(
       }),
     ),
     v.minLength(1),
-    v.maxLength(200),
+    v.maxLength(POWERPOINT_PICTURE_LIMITS.count),
   ),
 );
 export type PowerPointBackgroundsRequest = v.InferOutput<
@@ -117,14 +118,22 @@ const imageExportProgress = payloadObject({
   ),
 });
 const ownedImagesRequest = payloadObject({
-  paths: v.pipe(v.array(v.string()), v.minLength(1), v.maxLength(200)),
+  paths: v.pipe(
+    v.array(v.string()),
+    v.minLength(1),
+    v.maxLength(POWERPOINT_PICTURE_LIMITS.count),
+  ),
   /** The song the pictures are backgrounds of, or slides of their own. */
   title: v.exactOptional(v.pipe(v.string(), v.maxLength(1000))),
 });
 const ownedImagesResult = v.variant('ok', [
   v.object({
     ok: v.literal(true),
-    value: v.pipe(v.array(mediaIdSchema), v.minLength(1), v.maxLength(200)),
+    value: v.pipe(
+      v.array(mediaIdSchema),
+      v.minLength(1),
+      v.maxLength(POWERPOINT_PICTURE_LIMITS.count),
+    ),
   }),
   v.object({ok: v.literal(false), message: v.string()}),
 ]);
@@ -148,7 +157,7 @@ const imageExportResult = v.variant('ok', [
           v.array(
             payloadObject({path: v.string(), number: positiveSlideNumber()}),
           ),
-          v.maxLength(200),
+          v.maxLength(POWERPOINT_PICTURE_LIMITS.count),
         ),
       }),
     ),

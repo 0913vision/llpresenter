@@ -2,7 +2,7 @@ import * as v from 'valibot';
 import type {Result} from '@core/common/result';
 import {mediaIdSchema} from './ids';
 import {checkPart, type ReadonlyKnown} from './fileFormat';
-import {payloadObject, plainObject} from './payload';
+import {payloadObject, plainObject, type PayloadError} from './payload';
 import {
   textImportEncodingSchema,
   textImportFirstLineSchema,
@@ -132,6 +132,17 @@ export type TextImportPreviewResult = Result<
   TextImportDraft,
   TextImportFailure
 >;
+
+/** The answer to a call that fails its check. */
+export function refuseInvalidTextImport({field, message}: PayloadError): {
+  readonly ok: false;
+  readonly error: TextImportFailure;
+} {
+  return {
+    ok: false,
+    error: {reason: 'invalid', message: `${field}: ${message}`},
+  };
+}
 
 export function parseTextImportReadRequest(value: unknown) {
   return checkPart(readRequestSchema, value);

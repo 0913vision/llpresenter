@@ -1,39 +1,26 @@
-import {TEST_IMPORT_FILE_VARIABLE} from './testImportFile';
-export {TEST_IMPORT_FILE_VARIABLE} from './testImportFile';
-import {clipboard, dialog, ipcMain, type BrowserWindow} from 'electron';
+import {clipboard, dialog, type BrowserWindow} from 'electron';
 import {libraryEndpoints} from '@contracts/ipc/library';
-import {
-  parseTextImportPreviewRequest,
-  parseTextImportReadRequest,
-  type TextImportFailure,
-  type TextImportPreviewResult,
-  type TextImportReadResult,
+import type {
+  TextImportPreviewRequest,
+  TextImportPreviewResult,
+  TextImportReadRequest,
+  TextImportReadResult,
 } from '@core/schema/textImport';
-import type {PayloadError} from '@core/schema/payload';
+import {TEXT_IMPORT_LIMITS} from '@core/schema/textImportLimits';
+import {convertTextImport} from '@core/songs';
+import {IpcHost} from '../base/ipcHost';
 import type {Logger} from '../base/log';
 import type {WindowMode} from '../base/testWindows';
-import {convertTextImport} from '@core/songs';
-import {readTextImport, type TextImportInputs} from './read';
-import {TEXT_IMPORT_LIMITS} from '@core/schema/textImportLimits';
 import type {UiStateFields} from '../store/appConfigFile';
 import {pickerFolder, rememberPickerFile} from '../uiState/pickerFolder';
+import {readTextImport, type TextImportInputs} from './read';
+import {TEST_IMPORT_FILE_VARIABLE} from './testImportFile';
 
 export interface TextImportRegistration {
   readonly control: BrowserWindow;
   readonly windowMode: WindowMode;
   readonly log: Logger;
   readonly uiState?: UiStateFields;
-}
-
-function invalidRequest(
-  log: Logger,
-  error: PayloadError,
-): {readonly ok: false; readonly error: TextImportFailure} {
-  log.warn('dropped a malformed text import request', error);
-  return {
-    ok: false,
-    error: {reason: 'invalid', message: `${error.field}: ${error.message}`},
-  };
 }
 
 function nativeInputs(options: TextImportRegistration): TextImportInputs {
@@ -101,9 +88,7 @@ class TextImportSession {
     }
   }
 
-  async read(value: unknown): Promise<TextImportReadResult> {
-    const parsed = parseTextImportReadRequest(value);
-    if (!parsed.ok) return invalidRequest(this.log, parsed.error);
+  async read(request: TextImportReadRequest): Promise<TextImportReadResult> {
     if (this.isDisposed() || this.reading) {
       return {
         ok: false,
@@ -115,10 +100,10 @@ class TextImportSession {
     }
     this.reading = true;
     try {
-      const result = await readTextImport(parsed.value, {
+      const result = await readTextImport(request, {
         ...this.inputs,
         chooseFile: async () => {
-          if (parsed.value.again === true && this.lastFile !== null) {
+          if (request.again === true && this.lastFile !== null) {
             return this.lastFile;
           }
           const path = await this.inputs.chooseFile();
@@ -141,48 +126,46 @@ class TextImportSession {
     }
   }
 
-  preview(value: unknown): TextImportPreviewResult {
-    const parsed = parseTextImportPreviewRequest(value);
-    if (!parsed.ok) return invalidRequest(this.log, parsed.error);
+  preview(request: TextImportPreviewRequest): TextImportPreviewResult {
     if (this.isDisposed()) {
       return {
         ok: false,
         error: {reason: 'invalid', message: 'The text import was closed'},
       };
     }
-    const result = convertTextImport(parsed.value);
+    const result = convertTextImport(request);
     if (!result.ok) {
       this.log.warn('could not convert text import input', result.error);
     }
     return result;
   }
 
-  close(): boolean {
-    if (this.disposed) return false;
+  close(): void {
     this.disposed = true;
-    return true;
   }
 }
 
-/** Answers read/preview IPC and returns the handler cleanup. */
+/**
+ * Answers the calls that bring in a song from text.
+ *
+ * @returns A function that stops answering.
+ */
 export function registerTextImport(
   context: TextImportRegistration,
 ): () => void {
+  const ipc = new IpcHost(context.log);
   const session = new TextImportSession(nativeInputs(context), context.log);
-  ipcMain.handle(libraryEndpoints.clipboardAvailable.channel, () =>
+  ipc.whenClosed(() => {
+    session.close();
+  });
+  ipc.query(libraryEndpoints.clipboardAvailable, () =>
     session.clipboardAvailable(),
   );
-  ipcMain.handle(libraryEndpoints.readText.channel, (_event, value: unknown) =>
-    session.read(value),
-  );
-  ipcMain.handle(
-    libraryEndpoints.previewText.channel,
-    (_event, value: unknown) => session.preview(value),
+  ipc.request(libraryEndpoints.readText, request => session.read(request));
+  ipc.request(libraryEndpoints.previewText, request =>
+    session.preview(request),
   );
   return () => {
-    if (!session.close()) return;
-    ipcMain.removeHandler(libraryEndpoints.readText.channel);
-    ipcMain.removeHandler(libraryEndpoints.clipboardAvailable.channel);
-    ipcMain.removeHandler(libraryEndpoints.previewText.channel);
+    ipc.close();
   };
 }

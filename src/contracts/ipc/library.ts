@@ -16,6 +16,7 @@ import {
   parseTextImportPreviewResult,
   parseTextImportReadRequest,
   parseTextImportReadResult,
+  refuseInvalidTextImport,
   type TextImportPreviewRequest,
   type TextImportPreviewResult,
   type TextImportReadRequest,
@@ -47,13 +48,18 @@ export const libraryEndpoints = {
   ),
   readText: request<TextImportReadRequest, TextImportReadResult>(
     'import:text:read',
-    {request: parseTextImportReadRequest, reply: parseTextImportReadResult},
+    {
+      request: parseTextImportReadRequest,
+      reply: parseTextImportReadResult,
+      refuse: refuseInvalidTextImport,
+    },
   ),
   previewText: request<TextImportPreviewRequest, TextImportPreviewResult>(
     'import:text:preview',
     {
       request: parseTextImportPreviewRequest,
       reply: parseTextImportPreviewResult,
+      refuse: refuseInvalidTextImport,
     },
   ),
 };
