@@ -5,7 +5,7 @@ import {boxesOf, fillsItself, NEXT_BOX, showsHymn} from '@core/slides';
 import {PropertyGroup} from '@renderer/ui/PropertyRow';
 import {SlideTextField} from '../SlideTextField';
 import type {ChosenSlides} from './changeSelected';
-import {HideNextRow} from './HideNextRow';
+import {ShowNextRow} from './ShowNextRow';
 import {HymnGroup} from './HymnGroup';
 import {LabelRow} from './LabelRow';
 import styles from './SlideInspector.module.css';
@@ -54,7 +54,7 @@ export function TextsTab({
         <LabelRow deck={deck} chosen={chosen} />
       </PropertyGroup>
       <PropertyGroup title="무대 화면">
-        <HideNextRow deck={deck} chosen={chosen} tiles={tiles} />
+        <ShowNextRow deck={deck} chosen={chosen} tiles={tiles} />
       </PropertyGroup>
       {place === null ? null : (
         <PropertyGroup title="부가 정보">

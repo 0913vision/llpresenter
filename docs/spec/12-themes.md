@@ -37,8 +37,8 @@ The user's needs (October 30 and November 22):
   when a value in it is missing. A 슬라이드 can have its own text instead;
   clearing that text brings the phrase back. The property panel always shows it
   and its column starts off. A 슬라이드 can show nothing of the next one (다음
-  슬라이드 내용 보여주지 않기); until the operator chooses, 말씀 본문 and 설교
-  제목 do so on the last 슬라이드 of an item and of each passage in it.
+  슬라이드 내용 표시 off); until the operator chooses, 말씀 본문 and 설교 제목
+  do so on the last 슬라이드 of an item and of each passage in it.
 - **Separate 테마.** 찬양 제목, 찬양 가사, 설교 제목, and 말씀 본문 are four
   테마. A 테마 has a purpose and is offered only for 슬라이드 of that purpose.
 - **Hymns.** 찬송가 제목 is a second 테마 for 찬양 제목. Its 슬라이드 says only

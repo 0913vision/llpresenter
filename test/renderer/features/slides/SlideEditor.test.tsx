@@ -526,19 +526,17 @@ describe('showing the next slide', () => {
         verse: verseOf(verse),
       }),
     );
-  const hide = () =>
-    inspector().getByRole('checkbox', {
-      name: '다음 슬라이드 내용 보여주지 않기',
-    });
+  const show = () =>
+    inspector().getByRole('checkbox', {name: '다음 슬라이드 내용 표시'});
 
   it('is off at the end of a passage until the operator says so', async () => {
     const {current} = renderEditor(passage());
     await userEvent.click(row(1));
     await openTab('내용');
-    expect(hide().getAttribute('aria-checked')).toBe('true');
-    await userEvent.click(hide());
+    expect(show().getAttribute('aria-checked')).toBe('false');
+    await userEvent.click(show());
     expect(current.slides[1]?.hideNext).toBe(false);
-    await userEvent.click(hide());
+    await userEvent.click(show());
     expect(current.slides[1]).not.toHaveProperty('hideNext');
   });
 
@@ -549,7 +547,7 @@ describe('showing the next slide', () => {
     const note = /앞 슬라이드에서 이 내용을 보여주지 않도록/u;
     expect(inspector().queryByText(note)).toBeNull();
     await userEvent.click(row(0));
-    await userEvent.click(hide());
+    await userEvent.click(show());
     await userEvent.click(row(1));
     expect(inspector().getByText(note)).toBeTruthy();
   });

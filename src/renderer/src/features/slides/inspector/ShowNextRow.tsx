@@ -7,7 +7,7 @@ import {changeSelected, type ChosenSlides} from './changeSelected';
 import styles from './SlideInspector.module.css';
 
 /** Whether the selected slides show the one after them on 무대. */
-export function HideNextRow({
+export function ShowNextRow({
   deck,
   chosen,
   tiles,
@@ -22,21 +22,21 @@ export function HideNextRow({
       ? []
       : [hidesNext(tiles, place.index, themeOfTile(place.tile))];
   });
-  const all = states.every(Boolean);
+  const none = !states.some(Boolean);
   return (
     <div className={styles.check}>
       <Checkbox
         id={id}
-        checked={all ? true : states.some(Boolean) ? 'mixed' : false}
+        checked={none ? true : states.every(Boolean) ? false : 'mixed'}
         disabled={deck.readOnly}
-        onChange={hide =>
+        onChange={show =>
           changeSelected(deck, slide => {
             const place = places.get(slide.id);
             return place === undefined
               ? slide
               : withHideNext(
                   slide,
-                  hide,
+                  !show,
                   hidesNextByDefault(
                     tiles,
                     place.index,
@@ -46,7 +46,7 @@ export function HideNextRow({
           })
         }
       />
-      <label htmlFor={id}>다음 슬라이드 내용 보여주지 않기</label>
+      <label htmlFor={id}>다음 슬라이드 내용 표시</label>
     </div>
   );
 }
