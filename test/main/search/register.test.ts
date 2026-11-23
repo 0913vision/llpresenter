@@ -1,4 +1,4 @@
-import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
+import {afterEach, describe, expect, it, vi} from 'vitest';
 import {libraryEndpoints} from '@contracts/ipc/library';
 import {LIBRARY_SEARCH_LIMITS} from '@core/schema/librarySearch';
 import type {Logger} from '@main/base/log';
@@ -16,15 +16,10 @@ function mockIndex() {
   };
 }
 
-type Handler = (event: unknown, value: unknown) => unknown;
-const electron = vi.hoisted(() => ({handlers: new Map<string, Handler>()}));
-vi.mock('electron', () => ({
-  ipcMain: {
-    handle: (channel: string, handler: Handler) =>
-      electron.handlers.set(channel, handler),
-    removeHandler: (channel: string) => electron.handlers.delete(channel),
-  },
-}));
+const ipc = await vi.hoisted(async () =>
+  (await import('@fixtures/main/base/mockIpcMain')).mockIpcMain(),
+);
+vi.mock('electron', () => ({ipcMain: ipc.ipcMain}));
 const stops: Array<() => void> = [];
 function log(): Logger {
   return {
@@ -37,15 +32,12 @@ function log(): Logger {
 function register(ready: Promise<Index | null>, logger = log()) {
   const stop = registerLibrarySearch(ready, logger);
   stops.push(stop);
-  const handler = electron.handlers.get(libraryEndpoints.search.channel);
-  if (handler === undefined) throw new Error('Missing search handler');
   return {
-    ask: (value: unknown) => Promise.resolve(handler({}, value)),
+    ask: (value: unknown) => ipc.invoke(libraryEndpoints.search, value),
     stop,
     logger,
   };
 }
-beforeEach(() => electron.handlers.clear());
 afterEach(() => stops.splice(0).forEach(stop => stop()));
 
 describe('registerLibrarySearch', () => {
@@ -95,7 +87,9 @@ describe('registerLibrarySearch', () => {
     {query: 'x', limit: LIBRARY_SEARCH_LIMITS.max + 1},
   ])('rejects and logs malformed request %j', async value => {
     const {ask, logger} = register(Promise.resolve(mockIndex()));
-    await expect(ask(value)).rejects.toThrow('Invalid library search request');
+    await expect(ask(value)).rejects.toThrow(
+      'Malformed library:search request',
+    );
     expect(logger.warn).toHaveBeenCalledTimes(1);
   });
 
@@ -115,7 +109,7 @@ describe('registerLibrarySearch', () => {
     const {ask, stop} = register(ready);
     const answer = ask({query: ''});
     stop();
-    expect(electron.handlers.has(libraryEndpoints.search.channel)).toBe(false);
+    expect(ipc.has(libraryEndpoints.search.channel)).toBe(false);
     const index = mockIndex();
     finish(index);
     await expect(answer).resolves.toEqual({query: '', matches: []});

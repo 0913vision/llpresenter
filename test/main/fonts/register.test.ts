@@ -8,7 +8,7 @@ interface Event {
   readonly sender: object;
   readonly senderFrame: object;
 }
-type Handler = (event: Event, ...args: unknown[]) => unknown;
+type Handler = (event: Event) => unknown;
 const native = vi.hoisted(() => ({
   handlers: new Map<string, Handler>(),
   read: vi.fn(),
@@ -40,7 +40,7 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-it('answers trusted main frames, rejects foreign output pages and arguments, and removes the handler', async () => {
+it('answers trusted main frames, rejects foreign output pages and frames, and removes the handler', async () => {
   const control = {
     webContents: {mainFrame: {}, getURL: () => 'file:///app/index.html'},
   };
@@ -70,8 +70,6 @@ it('answers trusted main frames, rejects foreign output pages and arguments, and
       throw new Error('Missing font snapshot handler');
     }
     expect(() => snapshot({...event, senderFrame: {}})).toThrow('Invalid');
-    expect(() => snapshot(event, {})).toThrow('Invalid');
-    expect(() => ask(event, {})).toThrow('Invalid');
     expect(native.read).not.toHaveBeenCalled();
     await expect(ask(event)).resolves.toEqual([fontFamilyFixture()]);
     await expect(ask(event)).resolves.toEqual([fontFamilyFixture()]);

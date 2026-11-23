@@ -21,7 +21,7 @@ describe('output windows at launch', () => {
     save([main, {...main, id: CAPTIONS, kind: 'broadcast', method: 'capture'}]);
     await loaded(false);
     const report = (screenId: string, version: number, ready = true) =>
-      mocks.answers.get(outputEndpoints.frameReady.channel)?.(undefined, {
+      mocks.ipc.answer(outputEndpoints.frameReady, {
         screenId,
         version,
         ...windows.only(screenId).contentSize(),

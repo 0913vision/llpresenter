@@ -2,7 +2,7 @@ import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {appEndpoints} from '@contracts/ipc/app';
 import type {AppProblem} from '@core/schema/appProblem';
 import {recordingLogger} from '@fixtures/main/displays/testing';
-import type {StandingProblems} from '@main/problemFeed';
+import type {StandingProblems} from '@main/base/problemFeed';
 import {SaveFailures} from '@main/store/saveFailures';
 import {registerSaveProblems} from '@main/store/saveProblems';
 

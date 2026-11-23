@@ -1,6 +1,5 @@
-import {ipcMain} from 'electron';
 import {libraryEndpoints} from '@contracts/ipc/library';
-import {parseLibrarySearchRequest} from '@core/schema/librarySearch';
+import {IpcHost} from '../base/ipcHost';
 import type {Logger} from '../base/log';
 import type {SongSearchIndex} from './songIndex';
 
@@ -9,28 +8,21 @@ export function registerLibrarySearch(
   ready: Promise<Pick<SongSearchIndex, 'search'> | null>,
   log: Logger,
 ): () => void {
+  const ipc = new IpcHost(log);
   let disposed = false;
-  ipcMain.handle(
-    libraryEndpoints.search.channel,
-    async (_event, value: unknown) => {
-      const parsed = parseLibrarySearchRequest(value);
-      if (!parsed.ok) {
-        log.warn('dropped a malformed library search', parsed.error);
-        throw new Error('Invalid library search request');
-      }
-      try {
-        const index = await ready;
-        return disposed || index === null
-          ? {query: parsed.value.query, matches: []}
-          : index.search(parsed.value);
-      } catch (error: unknown) {
-        log.error('could not search the song library', error);
-        throw new Error('Could not search the song library', {cause: error});
-      }
-    },
-  );
+  ipc.request(libraryEndpoints.search, async request => {
+    try {
+      const index = await ready;
+      return disposed || index === null
+        ? {query: request.query, matches: []}
+        : index.search(request);
+    } catch (error: unknown) {
+      log.error('could not search the song library', error);
+      throw new Error('Could not search the song library', {cause: error});
+    }
+  });
   return () => {
     disposed = true;
-    ipcMain.removeHandler(libraryEndpoints.search.channel);
+    ipc.close();
   };
 }

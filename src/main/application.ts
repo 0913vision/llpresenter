@@ -34,10 +34,12 @@ import {
 } from './live/recovery/session';
 import {registerThemeOutput} from './live/themes';
 import type {createLogger, Logger} from './base/log';
-import {registerIpc} from './ipc';
+import {registerLiveChannels} from './live/channels';
+import {registerWindowChannels} from './windows/windowChannels';
+import {registerWindowLog} from './base/windowLog';
 import {diagnosticsText} from './diagnostics';
 import {showOutputsOnLaunch} from './outputs/launch';
-import {registerProblemFeed} from './problemFeed';
+import {registerProblemFeed} from './base/problemFeed';
 import {startOutputs} from './outputs/start';
 import {ShutdownCoordinator} from './base/shutdown';
 import {
@@ -163,7 +165,7 @@ export function start(
         name: 'cancel deferred launch work',
         run: () => launchIdle.dispose(),
       });
-      const problems = registerProblemFeed({store, log});
+      const problems = registerProblemFeed({source: store, log});
       const dataStore = registerStore({
         log,
         launchIdle: launchIdle.ready,
@@ -214,7 +216,9 @@ export function start(
       const stopOutputPersistence = store.connectOutputPersistence(state =>
         recoveryRecord.persistOutputs(state),
       );
-      const disposeIpc = registerIpc(store, log, {
+      const stopLiveChannels = registerLiveChannels(store, log);
+      const stopWindowLog = registerWindowLog(log);
+      const stopWindowChannels = registerWindowChannels(log, {
         windowMode,
         isControlWindow: candidate => candidate === control,
         app: {
@@ -687,7 +691,15 @@ export function start(
         name: 'stop the control reload notice',
         run: () => stopReloadNotice(),
       });
-      shutdown.add({name: 'remove the IPC channels', run: disposeIpc});
+      shutdown.add({
+        name: 'remove the live channels',
+        run: stopLiveChannels,
+      });
+      shutdown.add({
+        name: 'remove the window channels',
+        run: stopWindowChannels,
+      });
+      shutdown.add({name: 'stop the window log', run: stopWindowLog});
       shutdown.add({
         name: 'remove the recovery channels',
         run: stopRecoveryChannels,

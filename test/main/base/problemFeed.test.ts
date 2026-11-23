@@ -12,12 +12,12 @@ import {recordingLogger} from '@fixtures/main/displays/testing';
 import {defineSlice} from '@main/live/slice';
 import {SliceRegistry} from '@main/live/sliceRegistry';
 import {LiveStore} from '@main/live/store';
-import {MAX_UNREAD_PROBLEMS, registerProblemFeed} from '@main/problemFeed';
+import {MAX_UNREAD_PROBLEMS, registerProblemFeed} from '@main/base/problemFeed';
 
-const electron = vi.hoisted(() => ({
-  handlers: new Map<string, () => unknown>(),
-  send: vi.fn(),
-}));
+const ipc = await vi.hoisted(async () =>
+  (await import('@fixtures/main/base/mockIpcMain')).mockIpcMain(),
+);
+const electron = vi.hoisted(() => ({send: vi.fn()}));
 
 vi.mock('electron', () => ({
   BrowserWindow: {
@@ -28,14 +28,7 @@ vi.mock('electron', () => ({
       },
     ],
   },
-  ipcMain: {
-    handle: (channel: string, handler: () => unknown) => {
-      electron.handlers.set(channel, handler);
-    },
-    removeHandler: (channel: string) => {
-      electron.handlers.delete(channel);
-    },
-  },
+  ipcMain: ipc.ipcMain,
 }));
 
 const uuid = (index: number) =>
@@ -64,7 +57,7 @@ const overflowingMacroSlice = defineSlice({
 });
 
 function list(): unknown {
-  return electron.handlers.get(appEndpoints.problemList.channel)?.();
+  return ipc.answer(appEndpoints.problemList);
 }
 
 function setup() {
@@ -74,13 +67,12 @@ function setup() {
     new SliceRegistry([overflowingMacroSlice]),
   );
   const log = recordingLogger();
-  const registered = registerProblemFeed({store, log});
+  const registered = registerProblemFeed({source: store, log});
   onTestFinished(registered.dispose);
   return {store, log, ...registered};
 }
 
 beforeEach(() => {
-  electron.handlers.clear();
   electron.send.mockClear();
 });
 
@@ -149,6 +141,6 @@ describe('problem feed', () => {
     dispose();
     store.dispatch({type: 'macro.run', macroId: macroId(7)});
     expect(electron.send).not.toHaveBeenCalled();
-    expect(electron.handlers.has(appEndpoints.problemList.channel)).toBe(false);
+    expect(ipc.has(appEndpoints.problemList.channel)).toBe(false);
   });
 });

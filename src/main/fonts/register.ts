@@ -1,11 +1,11 @@
-import {app, BrowserWindow, ipcMain, type WebContents} from 'electron';
+import {app, BrowserWindow, type WebContents} from 'electron';
 import {join} from 'node:path';
 import {outputEndpoints} from '@contracts/ipc/output';
+import {IpcHost, type Caller} from '../base/ipcHost';
 import type {Logger} from '../base/log';
 import {FontCatalogCache} from './fontCatalog';
 import {readCatalogFile, writeCatalogFile} from './catalogFile';
 import {readWindowsFontStamp} from './windowsFontStamp';
-import {sendToWindows} from '../ipc';
 import {readWindowsFonts} from './windowsFonts';
 
 interface FontReader {
@@ -40,6 +40,7 @@ export function registerFonts(
   log: Logger,
   ready?: Promise<boolean>,
 ): () => void {
+  const ipc = new IpcHost(log);
   const file = join(app.getPath('userData'), 'font-catalog.json');
   const catalog = new FontCatalogCache({
     ...(ready === undefined ? {} : {ready}),
@@ -48,29 +49,29 @@ export function registerFonts(
     stamp: readWindowsFontStamp,
     load: () => readCatalogFile(file),
     save: value => writeCatalogFile(file, value),
-    changed: value =>
-      sendToWindows(outputEndpoints.fontsChanged.channel, value, log),
+    changed: value => ipc.push(outputEndpoints.fontsChanged, value),
   });
-  for (const [channel, read] of [
-    [outputEndpoints.fonts.channel, () => catalog.get()],
-    [outputEndpoints.fontSnapshot.channel, () => catalog.snapshot()],
-  ] as const) {
-    ipcMain.handle(channel, (event, ...args: unknown[]) => {
-      if (
-        args.length !== 0 ||
-        event.senderFrame !== event.sender.mainFrame ||
-        (event.sender !== control.webContents &&
-          !isRenderReader(event.sender, control.webContents))
-      ) {
-        log.warn('Refused an invalid font catalog request');
-        throw new Error('Invalid font catalog request');
-      }
-      return read();
-    });
-  }
+  const check = ({contents, isMainFrame}: Caller): void => {
+    if (
+      isMainFrame &&
+      (contents === control.webContents ||
+        isRenderReader(contents, control.webContents))
+    ) {
+      return;
+    }
+    log.warn('Refused an invalid font catalog request');
+    throw new Error('Invalid font catalog request');
+  };
+  ipc.query(outputEndpoints.fonts, caller => {
+    check(caller);
+    return catalog.get();
+  });
+  ipc.query(outputEndpoints.fontSnapshot, caller => {
+    check(caller);
+    return catalog.snapshot();
+  });
   return () => {
-    ipcMain.removeHandler(outputEndpoints.fonts.channel);
-    ipcMain.removeHandler(outputEndpoints.fontSnapshot.channel);
+    ipc.close();
     catalog.dispose();
   };
 }

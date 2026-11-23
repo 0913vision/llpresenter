@@ -14,6 +14,10 @@ export const recoveryEndpoints = {
   apply: request<RecoveryApply, RecoveryResult>('recovery:apply', {
     request: parseRecoveryApply,
     reply: parseRecoveryResult,
+    refuse: () => ({
+      ok: false,
+      error: {reason: 'invalid-selection', message: 'The answer is malformed'},
+    }),
   }),
   startFresh: query<RecoveryResult>(
     'recovery:start-fresh',

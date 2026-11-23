@@ -1,6 +1,5 @@
-import {BrowserWindow, ipcMain} from 'electron';
 import {bibleEndpoints} from '@contracts/ipc/bible';
-import {parseBibleAiCancel, parseBibleAiRequest} from '@core/schema/bibleAi';
+import {IpcHost} from '../base/ipcHost';
 import type {Logger} from '../base/log';
 import {createChooser} from './llm/chooser';
 import {ChooserQueue} from './llm/queue';
@@ -8,20 +7,9 @@ import {LlmServer} from './llm/server';
 
 /** Owns the optional local server and each window's cancellable chooser work. */
 export function registerBibleAi({log}: {readonly log: Logger}): () => void {
+  const ipc = new IpcHost(log);
   const server = new LlmServer({
-    onStatusChange: state => {
-      for (const window of BrowserWindow.getAllWindows()) {
-        if (window.isDestroyed() || window.webContents.isDestroyed()) continue;
-        try {
-          window.webContents.send(
-            bibleEndpoints.llmStatusChanged.channel,
-            state,
-          );
-        } catch (error: unknown) {
-          log.warn('could not send local LLM status', error);
-        }
-      }
-    },
+    onStatusChange: state => ipc.push(bibleEndpoints.llmStatusChanged, state),
   });
   const queue = new ChooserQueue((request, signal) =>
     createChooser({endpoint: server.endpoint, signal})(
@@ -30,34 +18,26 @@ export function registerBibleAi({log}: {readonly log: Logger}): () => void {
       request.candidates,
     ),
   );
-  ipcMain.handle(bibleEndpoints.llmStatus.channel, () => server.getState());
-  ipcMain.handle(
-    bibleEndpoints.chooseBoundary.channel,
-    async (event, value: unknown) => {
-      const parsed = parseBibleAiRequest(value);
-      if (!parsed.ok) throw new Error('Invalid Bible boundary request');
+  ipc.query(bibleEndpoints.llmStatus, () => server.getState());
+  ipc.request(
+    bibleEndpoints.chooseBoundary,
+    async (request, {contents: sender}) => {
       if (!server.getState().available) {
         throw new Error('Local LLM unavailable');
       }
-      const sender = event.sender;
       const cancel = (): void => {
         queue.cancel(sender.id);
       };
       sender.once('destroyed', cancel);
       try {
-        return await queue.enqueue(sender.id, parsed.value);
+        return await queue.enqueue(sender.id, request);
       } finally {
         sender.removeListener('destroyed', cancel);
       }
     },
   );
-  ipcMain.handle(
-    bibleEndpoints.cancelBoundary.channel,
-    (event, value: unknown) => {
-      const parsed = parseBibleAiCancel(value);
-      if (!parsed.ok) throw new Error('Invalid Bible boundary cancellation');
-      return queue.cancel(event.sender.id, parsed.value.lookupId);
-    },
+  ipc.request(bibleEndpoints.cancelBoundary, ({lookupId}, {contents}) =>
+    queue.cancel(contents.id, lookupId),
   );
   server
     .start()
@@ -65,8 +45,6 @@ export function registerBibleAi({log}: {readonly log: Logger}): () => void {
   return () => {
     queue.stop();
     server.stop();
-    ipcMain.removeHandler(bibleEndpoints.chooseBoundary.channel);
-    ipcMain.removeHandler(bibleEndpoints.cancelBoundary.channel);
-    ipcMain.removeHandler(bibleEndpoints.llmStatus.channel);
+    ipc.close();
   };
 }

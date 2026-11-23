@@ -1,9 +1,7 @@
-import {ipcMain} from 'electron';
 import {appEndpoints} from '@contracts/ipc/app';
 import {APP_PROBLEM_LIMITS, type AppProblem} from '@core/schema/appProblem';
-import {sendToWindows} from './ipc';
-import type {LiveStore} from './live/store';
-import type {Logger} from './base/log';
+import {IpcHost} from './ipcHost';
+import type {Logger} from './log';
 
 /** How many one-shot problems wait for a window that loads after them. */
 export const MAX_UNREAD_PROBLEMS = 16;
@@ -33,7 +31,10 @@ class WindowProblemFeed implements ProblemFeed {
   private unread: readonly AppProblem[] = [];
   private readonly standing = new Set<StandingProblems>();
 
-  constructor(private readonly log: Logger) {}
+  constructor(
+    private readonly ipc: IpcHost,
+    private readonly log: Logger,
+  ) {}
 
   report(problem: AppProblem): void {
     this.push(problem);
@@ -41,7 +42,7 @@ class WindowProblemFeed implements ProblemFeed {
   }
 
   push(problem: AppProblem): void {
-    sendToWindows(appEndpoints.problems.channel, problem, this.log);
+    this.ipc.push(appEndpoints.problems, problem);
   }
 
   addStanding(source: StandingProblems): () => void {
@@ -77,31 +78,31 @@ class WindowProblemFeed implements ProblemFeed {
 
 /** The arguments of {@link registerProblemFeed}. */
 export interface ProblemFeedRegistration {
-  readonly store: Pick<LiveStore, 'subscribeProblems'>;
+  /** Something that meets problems as the app runs, such as the live store. */
+  readonly source: {
+    subscribeProblems(listener: (problem: AppProblem) => void): () => void;
+  };
   readonly log: Logger;
 }
 
 /**
- * Answers `app:problem:list` and reports the live store's problems, such as a
+ * Answers `app:problem:list` and reports the problems of a source, such as a
  * dropped 매크로, on `app:problem`.
  *
  * @returns The feed, and a function that removes the handler and the
  * subscription.
  */
-export function registerProblemFeed({store, log}: ProblemFeedRegistration): {
+export function registerProblemFeed({source, log}: ProblemFeedRegistration): {
   readonly feed: ProblemFeed;
   readonly dispose: () => void;
 } {
-  const feed = new WindowProblemFeed(log);
-  ipcMain.handle(appEndpoints.problemList.channel, () => feed.list());
-  const stopLive = store.subscribeProblems(problem => {
-    feed.report(problem);
-  });
-  return {
-    feed,
-    dispose: () => {
-      stopLive();
-      ipcMain.removeHandler(appEndpoints.problemList.channel);
-    },
-  };
+  const ipc = new IpcHost(log);
+  const feed = new WindowProblemFeed(ipc, log);
+  ipc.query(appEndpoints.problemList, () => feed.list());
+  ipc.whenClosed(
+    source.subscribeProblems(problem => {
+      feed.report(problem);
+    }),
+  );
+  return {feed, dispose: () => ipc.close()};
 }

@@ -13,7 +13,6 @@ import {parseLiveCommand} from '@core/schema/liveCommand';
 import {displayInfo} from '@fixtures/main/displays/testing';
 import {CAPTIONS, MAIN} from '@fixtures/core/overlays';
 import {openNumberWindow} from '@main/outputs/numberWindow';
-import {sendToWindows} from '@main/ipc';
 import {MAIN_SCREEN} from '@fixtures/core/screenIds';
 import {installMockClock} from '@fixtures/mockClock';
 
@@ -63,9 +62,7 @@ describe('saved output backend', () => {
       await loaded();
       expect(store.state.outputs[MAIN]).toBe(true);
       expect(windows.only(MAIN).mode.kind).toBe('fullscreen');
-      expect(
-        mocks.answers.get(outputEndpoints.status.channel)?.(),
-      ).toMatchObject({
+      expect(mocks.ipc.answer(outputEndpoints.status)).toMatchObject({
         [MAIN]: {placement: 'fullscreen', monitorAvailable: true},
       });
     }
@@ -86,11 +83,9 @@ describe('saved output backend', () => {
     await clock.advance(300);
     expect(store.state.outputs[MAIN]).toBe(false);
     expect(windows.only(MAIN).mode.kind).toBe('hidden');
-    expect(mocks.answers.get(outputEndpoints.status.channel)?.()).toMatchObject(
-      {
-        [MAIN]: {placement: 'off', monitorAvailable: true, monitor: 2},
-      },
-    );
+    expect(mocks.ipc.answer(outputEndpoints.status)).toMatchObject({
+      [MAIN]: {placement: 'off', monitorAvailable: true, monitor: 2},
+    });
   });
   it('protects the control window on the audience monitor and restores output when it leaves', async () => {
     const clock = installMockClock();
@@ -103,15 +98,14 @@ describe('saved output backend', () => {
     controlWindow.emit('move');
     await clock.advance(0);
     expect(windows.only(MAIN).mode.kind).toBe('window');
-    expect(mocks.answers.get(outputEndpoints.status.channel)?.()).toMatchObject(
-      {[MAIN]: {placement: 'window', controlConflict: true, monitor: 2}},
-    );
-    expect(sendToWindows).toHaveBeenCalledWith(
+    expect(mocks.ipc.answer(outputEndpoints.status)).toMatchObject({
+      [MAIN]: {placement: 'window', controlConflict: true, monitor: 2},
+    });
+    expect(mocks.sent).toHaveBeenCalledWith(
       outputEndpoints.monitorsChanged.channel,
       expect.arrayContaining([
         expect.objectContaining({id: 2, hasMainWindow: true}),
       ]),
-      expect.anything(),
     );
     bounds.mockReturnValue(original);
     controlWindow.emit('resize');
@@ -133,7 +127,7 @@ describe('saved output backend', () => {
     expect(store.listenerCount).toBe(0);
     expect(settings.listeners.size).toBe(0);
     expect(mocks.displays?.watcherCount).toBe(0);
-    expect(mocks.handlers.size + mocks.answers.size).toBe(0);
+    expect(mocks.ipc.open()).toBe(0);
   });
 
   it('renders monitor identification in offscreen windows while running', async () => {
@@ -196,11 +190,8 @@ describe('saved output backend', () => {
     if (displays === null) throw new Error('Missing displays');
     displays.displays = [displayInfo({id: 1, primary: true}), stage];
 
-    mocks.handlers.get(outputEndpoints.findMonitors.channel)?.(undefined, 1);
-    mocks.handlers.get(outputEndpoints.showWindow.channel)?.(
-      {screenId: MAIN_SCREEN},
-      1,
-    );
+    mocks.ipc.send(outputEndpoints.findMonitors);
+    mocks.ipc.send(outputEndpoints.showWindow, {screenId: MAIN_SCREEN});
 
     expect(output.mode.kind).toBe('window');
     expect(output.raises).toBe(1);
@@ -212,12 +203,9 @@ describe('saved output backend', () => {
     save([{...main, id: CAPTIONS, method: 'window'}]);
     store.dispatch({type: 'output.set', screenId: CAPTIONS, on: true});
     expect(store.state.outputs).toEqual({[CAPTIONS]: true});
-    mocks.handlers.get(outputEndpoints.frameRate.channel)?.(
-      {screenId: CAPTIONS, fps: 60},
-      1,
-    );
+    mocks.ipc.send(outputEndpoints.frameRate, {screenId: CAPTIONS, fps: 60});
     expect(running.frameRates()).toEqual([{screen: CAPTIONS, fps: 60}]);
-    const statuses = mocks.answers.get(outputEndpoints.status.channel)?.();
+    const statuses = mocks.ipc.answer(outputEndpoints.status);
     expect(statuses).toMatchObject({[CAPTIONS]: {fps: 60}});
     expect(Object.keys(statuses ?? {})).toEqual([CAPTIONS]);
     expect(windows.only(CAPTIONS).mode.kind).toBe('window');
@@ -231,7 +219,7 @@ describe('saved output backend', () => {
     await loaded();
     const numbers = () => {
       const parsed = parseMonitorList(
-        mocks.answers.get(outputEndpoints.monitors.channel)?.(),
+        mocks.ipc.answer(outputEndpoints.monitors),
       );
       if (!parsed.ok) throw new Error(parsed.error.message);
       return parsed.value.map(monitor => monitor.number);
@@ -241,30 +229,27 @@ describe('saved output backend', () => {
     const displays = mocks.displays;
     if (displays === null) throw new Error('Missing displays');
     displays.displays = [displayInfo({id: 1, primary: true}), stage];
-    mocks.handlers.get(outputEndpoints.findMonitors.channel)?.(undefined, 1);
+    mocks.ipc.send(outputEndpoints.findMonitors);
 
     expect(numbers()).toEqual([1, 2]);
-    expect(vi.mocked(sendToWindows)).toHaveBeenCalledWith(
+    expect(mocks.sent).toHaveBeenCalledWith(
       outputEndpoints.monitorsChanged.channel,
       expect.arrayContaining([expect.objectContaining({number: 2})]),
-      expect.anything(),
     );
     stop();
-    expect(mocks.answers.has(outputEndpoints.monitors.channel)).toBe(false);
+    expect(mocks.ipc.has(outputEndpoints.monitors.channel)).toBe(false);
   });
 
   it('pushes the monitor list when only the assignment changes', async () => {
     const {save} = setup();
     await loaded();
-    vi.mocked(sendToWindows).mockClear();
+    mocks.sent.mockClear();
 
     save([{...main, display: savedDisplay(stage)}]);
 
-    const pushes = vi
-      .mocked(sendToWindows)
-      .mock.calls.filter(
-        ([channel]) => channel === outputEndpoints.monitorsChanged.channel,
-      );
+    const pushes = mocks.sent.mock.calls.filter(
+      ([channel]) => channel === outputEndpoints.monitorsChanged.channel,
+    );
     const parsed = parseMonitorList(pushes.at(-1)?.[1]);
     if (!parsed.ok) throw new Error(parsed.error.message);
     expect(

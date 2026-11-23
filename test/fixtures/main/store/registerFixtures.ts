@@ -129,7 +129,7 @@ export function askForService(): Promise<unknown> {
 export function ask(channel: string, value?: unknown): Promise<unknown> {
   const handler = electron.handlers.get(channel);
   if (handler === undefined) throw new Error(`Missing handler: ${channel}`);
-  return Promise.resolve(handler({}, value));
+  return Promise.resolve(handler({sender: {id: 1}}, value));
 }
 
 /** Reads a parsed grouped song from the existing mock IPC fixture. */

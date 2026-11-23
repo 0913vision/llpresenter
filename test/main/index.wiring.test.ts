@@ -341,7 +341,7 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
   it('reports the live store problems to the windows and stops on shutdown', async () => {
     await startMain();
     expect(mocks.problemContexts).toEqual([
-      expect.objectContaining({store: mocks.outputContexts[0]?.store}),
+      expect.objectContaining({source: mocks.outputContexts[0]?.store}),
     ]);
     expect(mocks.storeOptions[0]).toHaveProperty('problems', mocks.problemFeed);
     const options = mocks.recordOptions[0];

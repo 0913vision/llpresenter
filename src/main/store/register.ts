@@ -9,7 +9,7 @@ import {app, ipcMain, shell} from 'electron';
 import {join} from 'node:path';
 import {BibleLookupSession} from '../bible/lookup';
 import type {Logger} from '../base/log';
-import type {ProblemFeed} from '../problemFeed';
+import type {ProblemFeed} from '../base/problemFeed';
 import {registerLibrarySearch} from '../search/register';
 import type {AppConfigFile} from './appConfigFile';
 import {registerContentChannels} from './contentChannels';

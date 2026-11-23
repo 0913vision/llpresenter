@@ -1,7 +1,7 @@
 import {ipcMain} from 'electron';
 import {appEndpoints} from '@contracts/ipc/app';
 import type {Logger} from '../base/log';
-import type {ProblemFeed} from '../problemFeed';
+import type {ProblemFeed} from '../base/problemFeed';
 import type {SaveFailures} from './saveFailures';
 
 /**

@@ -2,12 +2,10 @@ import type {WebContents} from 'electron';
 import {outputEndpoints} from '@contracts/ipc/output';
 import {
   PLAYBACK_PROBLEM_LIMITS,
-  parsePlaybackProblemReport,
-  parsePlaybackRetry,
   type PlaybackProblemKind,
   type PlaybackProblems,
 } from '@core/schema/playbackProblems';
-import {answerWindows, listenToWindows, sendToWindows} from '../ipc';
+import {IpcHost} from '../base/ipcHost';
 import type {Logger} from '../base/log';
 import type {RendererState} from '../base/rendererRecovery';
 
@@ -113,24 +111,15 @@ export function registerPlaybackProblems({
   readonly enabled: (source: string) => boolean;
   readonly subscribe: (changed: () => void) => () => void;
 }) {
+  const ipc = new IpcHost(log);
   const board = new PlaybackProblemBoard(enabled, next =>
-    sendToWindows(outputEndpoints.playbackChanged.channel, next, log),
+    ipc.push(outputEndpoints.playbackChanged, next),
   );
-  const stops = [
-    answerWindows(outputEndpoints.playbackProblems.channel, () =>
-      board.snapshot(),
-    ),
-    listenToWindows(outputEndpoints.playbackReport.channel, (value, sender) => {
-      const parsed = parsePlaybackProblemReport(value);
-      if (parsed.ok) board.report(sender, parsed.value);
-      else log.warn('invalid playback problem report', parsed.error);
-    }),
-    listenToWindows(outputEndpoints.playbackRetry.channel, value => {
-      const parsed = parsePlaybackRetry(value);
-      if (parsed.ok) board.retry(parsed.value.source);
-      else log.warn('invalid playback retry', parsed.error);
-    }),
-    subscribe(() => board.refresh()),
-  ];
-  return {board, stop: () => stops.forEach(stop => stop())};
+  ipc.query(outputEndpoints.playbackProblems, () => board.snapshot());
+  ipc.message(outputEndpoints.playbackReport, (kinds, {contents}) =>
+    board.report(contents.id, kinds),
+  );
+  ipc.message(outputEndpoints.playbackRetry, ({source}) => board.retry(source));
+  ipc.whenClosed(subscribe(() => board.refresh()));
+  return {board, stop: () => ipc.close()};
 }

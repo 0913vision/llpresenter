@@ -7,7 +7,7 @@ import type {LiveStore} from '@main/live/store';
 import type {MediaBackendRegistration} from '@main/media/register';
 import type {MediaHandlerOptions} from '@main/windows/mediaResponse';
 import type {BibleLookupSession} from '@main/bible/lookup';
-import type {StandingProblems} from '@main/problemFeed';
+import type {StandingProblems} from '@main/base/problemFeed';
 import type {RecoveryRecordWriter} from '@main/live/recovery/recordWriter';
 import type {registerUpdates} from '@main/update/register';
 
@@ -394,8 +394,16 @@ vi.mock('@main/store/register', () => ({
     };
   },
 }));
-vi.mock('@main/ipc', () => ({registerIpc: () => () => undefined}));
-vi.mock('@main/problemFeed', () => ({
+vi.mock('@main/live/channels', () => ({
+  registerLiveChannels: () => () => undefined,
+}));
+vi.mock('@main/windows/windowChannels', () => ({
+  registerWindowChannels: () => () => undefined,
+}));
+vi.mock('@main/base/windowLog', () => ({
+  registerWindowLog: () => () => undefined,
+}));
+vi.mock('@main/base/problemFeed', () => ({
   registerProblemFeed: (context: unknown) => {
     mocks.problemContexts.push(context);
     return {feed: mocks.problemFeed, dispose: mocks.problemsStop};

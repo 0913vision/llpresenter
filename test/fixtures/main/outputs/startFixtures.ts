@@ -3,7 +3,6 @@ import type {SettingsReader} from '@core/schema/settingsReader';
 import {BrowserWindow} from 'electron';
 import {beforeEach, onTestFinished, vi} from 'vitest';
 import {outputEndpoints} from '@contracts/ipc/output';
-import type {MessageHandler} from '@main/rendererMessages';
 import {
   MockDisplaySource,
   displayInfo,
@@ -16,15 +15,16 @@ import type {WindowMode} from '@main/base/testWindows';
 import {mockWindows, type MockWindows} from '@fixtures/main/outputs/testing';
 import {startOutputs} from '@main/outputs/start';
 
-const mocks = vi.hoisted(() => {
+const mocks = await vi.hoisted(async () => {
+  const {mockIpcMain} = await import('@fixtures/main/base/mockIpcMain');
   const inputs: {
     displays: MockDisplaySource | null;
     windows: MockWindows | null;
   } = {displays: null, windows: null};
   return {
     ...inputs,
-    handlers: new Map<string, MessageHandler>(),
-    answers: new Map<string, (event?: unknown, value?: unknown) => unknown>(),
+    ipc: mockIpcMain(),
+    sent: vi.fn<(channel: string, value: unknown) => void>(),
     start: vi.fn(() => 7),
     stop: vi.fn(),
     closeNumber: vi.fn(),
@@ -50,14 +50,15 @@ const control = await vi.hoisted(async () => {
   return {MockControl};
 });
 vi.mock('electron', () => ({
-  BrowserWindow: control.MockControl,
-  ipcMain: {
-    handle: (
-      channel: string,
-      handler: (event?: unknown, value?: unknown) => unknown,
-    ) => mocks.answers.set(channel, handler),
-    removeHandler: (channel: string) => mocks.answers.delete(channel),
-  },
+  BrowserWindow: Object.assign(control.MockControl, {
+    getAllWindows: () => [
+      {
+        isDestroyed: () => false,
+        webContents: {isDestroyed: () => false, send: mocks.sent},
+      },
+    ],
+  }),
+  ipcMain: mocks.ipc.ipcMain,
   powerSaveBlocker: {
     start: mocks.start,
     stop: mocks.stop,
@@ -79,25 +80,6 @@ vi.mock('@main/outputs/electronWindow', () => ({
 vi.mock('@main/outputs/numberWindow', () => ({
   openNumberWindow: vi.fn(() => ({close: mocks.closeNumber})),
 }));
-vi.mock('@main/ipc', () => ({
-  listenToWindows: (channel: string, handler: MessageHandler) => {
-    mocks.handlers.set(channel, handler);
-    return () => {
-      mocks.handlers.delete(channel);
-    };
-  },
-  answerWindows: (
-    channel: string,
-    answer: (event?: unknown, value?: unknown) => unknown,
-  ) => {
-    mocks.answers.set(channel, answer);
-    return () => {
-      mocks.answers.delete(channel);
-    };
-  },
-  sendToWindows: vi.fn(),
-}));
-
 export const STAGE_SCREEN = '00000000-0000-4000-8000-0000000000e3';
 export const projector = displayInfo({id: 2, x: 1920});
 export const stage = displayInfo({id: 3, x: 3840});
@@ -129,8 +111,6 @@ beforeEach(() => {
     stage,
   );
   mocks.windows = mockWindows();
-  mocks.handlers.clear();
-  mocks.answers.clear();
 });
 
 export function setup(
@@ -161,9 +141,11 @@ export function setup(
   const dispatch = store.dispatch.bind(store);
   vi.spyOn(store, 'dispatch').mockImplementation((...args) => {
     const result = dispatch(...args);
-    if (!autoReady) return result;
+    if (!autoReady || !mocks.ipc.has(outputEndpoints.frameReady.channel)) {
+      return result;
+    }
     for (const window of mocks.windows?.created ?? []) {
-      mocks.answers.get(outputEndpoints.frameReady.channel)?.(undefined, {
+      mocks.ipc.answer(outputEndpoints.frameReady, {
         screenId: window.screen.id,
         version: store.state.version,
         ...window.contentSize(),
@@ -198,9 +180,9 @@ export function setup(
 export async function loaded(autoReady = true) {
   await Promise.resolve();
   await Promise.resolve();
-  if (!autoReady) return;
+  if (!autoReady || !mocks.ipc.has(outputEndpoints.frameReady.channel)) return;
   for (const window of mocks.windows?.created ?? []) {
-    mocks.answers.get(outputEndpoints.frameReady.channel)?.(undefined, {
+    mocks.ipc.answer(outputEndpoints.frameReady, {
       screenId: window.screen.id,
       version: mocks.liveVersion(),
       ...window.contentSize(),

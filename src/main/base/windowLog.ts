@@ -1,0 +1,86 @@
+import {outputEndpoints} from '@contracts/ipc/output';
+import {IpcHost} from './ipcHost';
+import type {Logger} from './log';
+
+/** A window's web contents id, which tells windows apart. */
+type WindowId = number;
+
+/** How many log lines one window may write per second; more are counted and dropped. */
+export const WINDOW_LOG_LINES_PER_SECOND = 20;
+
+const RATE_PERIOD_MS = 1000;
+
+const MAX_TRACKED_WINDOWS = 32;
+
+interface WindowLogRate {
+  readonly periodStart: number;
+  readonly lines: number;
+  readonly dropped: number;
+}
+
+/**
+ * Keeps one window from filling the main log: each window may write
+ * {@link WINDOW_LOG_LINES_PER_SECOND} lines a second. Lines over that are
+ * dropped, and their count is logged when the window next writes. It
+ * remembers 32 windows; the one heard from least recently is forgotten first.
+ */
+export class WindowLogLimiter {
+  private readonly rates = new Map<WindowId, WindowLogRate>();
+
+  constructor(
+    private readonly log: Logger,
+    private readonly now: () => number = Date.now,
+  ) {}
+
+  /** @returns Whether this line from the window may go to the log. */
+  admit(windowId: WindowId): boolean {
+    const rate = this.currentPeriod(windowId);
+    const admitted = rate.lines < WINDOW_LOG_LINES_PER_SECOND;
+    this.remember(
+      windowId,
+      admitted
+        ? {...rate, lines: rate.lines + 1}
+        : {...rate, dropped: rate.dropped + 1},
+    );
+    return admitted;
+  }
+
+  private currentPeriod(windowId: WindowId): WindowLogRate {
+    const time = this.now();
+    const rate = this.rates.get(windowId);
+    if (rate !== undefined && time - rate.periodStart < RATE_PERIOD_MS) {
+      return rate;
+    }
+    if (rate !== undefined && rate.dropped > 0) {
+      this.log.warn('dropped log lines from a window that logged too fast', {
+        window: windowId,
+        dropped: rate.dropped,
+      });
+    }
+    return {periodStart: time, lines: 0, dropped: 0};
+  }
+
+  private remember(windowId: WindowId, rate: WindowLogRate): void {
+    this.rates.delete(windowId);
+    this.rates.set(windowId, rate);
+    const [oldest] = this.rates.keys();
+    if (this.rates.size > MAX_TRACKED_WINDOWS && oldest !== undefined) {
+      this.rates.delete(oldest);
+    }
+  }
+}
+
+/**
+ * Writes the log lines of the windows to the main log, marked as coming from a
+ * window. A window that writes too fast is held back.
+ *
+ * @returns A function that stops listening.
+ */
+export function registerWindowLog(log: Logger): () => void {
+  const limiter = new WindowLogLimiter(log);
+  const ipc = new IpcHost(log);
+  ipc.message(outputEndpoints.log, ({level, message, detail}, {contents}) => {
+    if (limiter.admit(contents.id)) log[level](`window: ${message}`, detail);
+  });
+  return () => ipc.close();
+}

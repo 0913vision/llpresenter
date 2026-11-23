@@ -19,19 +19,15 @@ describe('saved output backend', () => {
       const {store, running} = setup();
       await loaded();
       store.dispatch({type: 'output.set', screenId: MAIN, on: true});
-      const status = (): unknown =>
-        mocks.answers.get(outputEndpoints.status.channel)?.();
+      const status = (): unknown => mocks.ipc.answer(outputEndpoints.status);
       const rate = (): void => {
-        mocks.handlers.get(outputEndpoints.frameRate.channel)?.(
-          {screenId: MAIN, fps: 30},
-          1,
-        );
+        mocks.ipc.send(outputEndpoints.frameRate, {screenId: MAIN, fps: 30});
       };
       rate();
       now += 2100;
       rate();
       expect(status()).toMatchObject({[MAIN]: {fps: 30, fpsLow: true}});
-      mocks.handlers.get(outputEndpoints.health.channel)?.({screenId: MAIN}, 1);
+      mocks.ipc.send(outputEndpoints.health, {screenId: MAIN});
       expect(status()).toMatchObject({
         [MAIN]: {fps: null, fpsLow: false, renderer: 'running'},
       });
@@ -41,8 +37,8 @@ describe('saved output backend', () => {
       displays.displays = displays.displays.filter(
         display => display.id !== projector.id,
       );
-      mocks.handlers.get(outputEndpoints.findMonitors.channel)?.(undefined, 1);
-      mocks.handlers.get(outputEndpoints.health.channel)?.({screenId: MAIN}, 1);
+      mocks.ipc.send(outputEndpoints.findMonitors);
+      mocks.ipc.send(outputEndpoints.health, {screenId: MAIN});
       expect(status()).toMatchObject({
         [MAIN]: {placement: 'monitorMissing', fpsLow: false},
       });
@@ -52,7 +48,7 @@ describe('saved output backend', () => {
       expect(status()).toMatchObject({
         [MAIN]: {placement: 'monitorMissing', fpsLow: true},
       });
-      mocks.handlers.get(outputEndpoints.health.channel)?.({screenId: ''}, 1);
+      mocks.ipc.send(outputEndpoints.health, {screenId: ''});
       expect(status()).toMatchObject({[MAIN]: {fpsLow: true}});
     } finally {
       clock.mockRestore();
@@ -74,10 +70,10 @@ describe('saved output backend', () => {
     expect(store.listenerCount).toBe(0);
     expect(settings.listeners.size).toBe(0);
     expect(mocks.displays?.watcherCount).toBe(0);
-    expect(mocks.answers.size).toBe(0);
+    expect(mocks.ipc.open()).toBe(0);
     expect(log.entries).toContainEqual({
       level: 'error',
-      message: 'could not release an output resource',
+      message: 'could not stop answering the windows',
       detail: failure,
     });
     stop();
@@ -102,10 +98,10 @@ describe('saved output backend', () => {
       expect(log.messages('warn')).toContain(
         'using built-in output screens because settings are unavailable',
       );
-      mocks.handlers.get(outputEndpoints.frameRate.channel)?.(
-        {screenId: MAIN_SCREEN, fps: 60},
-        1,
-      );
+      mocks.ipc.send(outputEndpoints.frameRate, {
+        screenId: MAIN_SCREEN,
+        fps: 60,
+      });
       expect(running.frameRates()).toEqual([{screen: MAIN, fps: 60}]);
       store.dispatch({type: 'output.set', screenId: MAIN_SCREEN, on: false});
       expect(output.mode.kind).toBe('hidden');

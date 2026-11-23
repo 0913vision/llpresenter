@@ -1,11 +1,7 @@
 import {describe, expect, it, vi} from 'vitest';
 import {PlaybackProblemBoard} from '@main/outputs/playbackProblems';
 
-vi.mock('@main/ipc', () => ({
-  answerWindows: vi.fn(),
-  listenToWindows: vi.fn(),
-  sendToWindows: vi.fn(),
-}));
+vi.mock('electron', () => ({}));
 
 function setup() {
   const enabled = new Set(['screen', 'audio']);
