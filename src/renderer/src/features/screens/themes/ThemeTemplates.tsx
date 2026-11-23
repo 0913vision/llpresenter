@@ -10,8 +10,10 @@ import type {ThemeModel} from './useThemeEditor';
 import styles from './Themes.module.css';
 
 /**
- * The phrases of a text. The first one whose values are all there shows, and
- * `[...]` is left out when a value inside it is missing.
+ * The phrases of a text. The first one that has any of its values shows; a
+ * missing value is left out, with its brackets when it was put in with them.
+ * Each phrase after the first is an 없으면 row: what shows when the ones above
+ * have none of their values.
  */
 export function ThemeTemplates({
   model,
@@ -47,13 +49,17 @@ export function ThemeTemplates({
   };
   const full = templates.length >= THEME_FILE_LIMITS.templates;
   return (
-    <PropertyRow label={label} alignTop>
-      {({controlId}) => (
-        <div className={styles.templates}>
-          {templates.map((template, index) => (
-            <div key={index} className={styles.template}>
+    <>
+      {templates.map((template, index) => (
+        <PropertyRow
+          key={index}
+          label={index === 0 ? label : '없으면'}
+          alignTop
+        >
+          {({controlId}) => (
+            <div className={styles.template}>
               <ThemeTextArea
-                id={index === 0 ? controlId : undefined}
+                id={controlId}
                 label={`${label} ${index + 1}`}
                 value={template}
                 reason={reason}
@@ -85,35 +91,51 @@ export function ThemeTemplates({
                 />
               </div>
             </div>
-          ))}
-          <Button
-            icon="plus"
-            disabled={reason !== undefined || full}
-            title={
-              reason ??
-              (full
-                ? limitReason('문구', THEME_FILE_LIMITS.templates)
-                : undefined)
-            }
-            onClick={() => change([...templates, ''])}
-          >
-            문구 추가
-          </Button>
-          {inserting === null ? null : (
-            <Menu
-              label="값 넣기"
-              anchor={{kind: 'element', element: inserting.anchor}}
-              entries={values.map(value => ({
-                kind: 'item',
-                id: value,
-                label: value,
-                onSelect: () => insert(inserting.index, value),
-              }))}
-              onClose={() => setInserting(null)}
-            />
           )}
-        </div>
-      )}
-    </PropertyRow>
+        </PropertyRow>
+      ))}
+      <PropertyRow label={templates.length === 0 ? label : ''}>
+        {() => (
+          <div className={styles.templates}>
+            <Button
+              icon="plus"
+              disabled={reason !== undefined || full}
+              title={
+                reason ??
+                (full
+                  ? limitReason('문구', THEME_FILE_LIMITS.templates)
+                  : undefined)
+              }
+              onClick={() => change([...templates, ''])}
+            >
+              문구 추가
+            </Button>
+            {inserting === null ? null : (
+              <Menu
+                label="값 넣기"
+                anchor={{kind: 'element', element: inserting.anchor}}
+                entries={[
+                  ...values.map(value => ({
+                    kind: 'item' as const,
+                    id: value,
+                    label: value,
+                    onSelect: () => insert(inserting.index, value),
+                  })),
+                  {kind: 'separator', id: 'brackets'},
+                  {kind: 'group', id: 'bracketed', label: '괄호로 감싸기'},
+                  ...values.map(value => ({
+                    kind: 'item' as const,
+                    id: `(${value})`,
+                    label: `(${value})`,
+                    onSelect: () => insert(inserting.index, `(${value})`),
+                  })),
+                ]}
+                onClose={() => setInserting(null)}
+              />
+            )}
+          </div>
+        )}
+      </PropertyRow>
+    </>
   );
 }

@@ -18,7 +18,7 @@
     }
   ],
   "next": {
-    "content": ["다음 순서: 설교 ({제목})"],
+    "content": ["다음 순서: 설교 {(제목)}"],
     "column": false
   },
   "hideNextAtEnd": true,

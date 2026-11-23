@@ -6,7 +6,7 @@
   "purpose": "picture",
   "boxes": [],
   "next": {
-    "content": ["({이름표})", "[다음 순서: {항목 이름}]"],
+    "content": ["{(이름표)}", "다음 순서: {항목 이름}"],
     "column": false
   },
   "background": {

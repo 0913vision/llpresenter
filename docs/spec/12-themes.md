@@ -31,14 +31,15 @@ The user's needs (October 30 and November 22):
   panel always shows every box. The grid edits nothing.
 - **Next text.** What the 슬라이드 before one shows as its next text on 무대 is
   a box that the 테마 makes: a phrase with box names, such as `{본문}` for 말씀
-  본문, `다음 곡: {제목}[ ({이름표})]` for 찬양 제목, the same after `{찬송가}`
-  for 찬송가 제목, `다음 순서: 설교 ({제목})` for 설교 제목, `다음 순서: {제목}`
-  for 타이틀, and `다음 광고: {제목}` for 광고. A part in brackets is left out
-  when a value in it is missing. A 슬라이드 can have its own text instead;
-  clearing that text brings the phrase back. The property panel always shows it
-  and its column starts off. A 슬라이드 can show nothing of the next one (다음
-  슬라이드 내용 표시 off); until the operator chooses, 말씀 본문 and 설교 제목
-  do so on the last 슬라이드 of an item and of each passage in it.
+  본문, `다음 곡: {제목} {(이름표)}` for 찬양 제목,
+  `다음 곡: {제목} {(찬송가)} {(이름표)}` for 찬송가 제목,
+  `다음 순서: 설교 {(제목)}` for 설교 제목, `다음 순서: {제목}` for 타이틀, and
+  `다음 광고: {제목}` for 광고. A missing value is left out with its brackets. A
+  슬라이드 can have its own text instead; clearing that text brings the phrase
+  back. The property panel always shows it and its column starts off. A 슬라이드
+  can show nothing of the next one (다음 슬라이드 내용 표시 off); until the
+  operator chooses, 말씀 본문 and 설교 제목 do so on the last 슬라이드 of an
+  item and of each passage in it.
 - **Separate 테마.** 찬양 제목, 찬양 가사, 설교 제목, and 말씀 본문 are four
   테마. A 테마 has a purpose and is offered only for 슬라이드 of that purpose.
 - **Hymns.** 찬송가 제목 is a second 테마 for 찬양 제목. Its 슬라이드 says only
@@ -73,21 +74,28 @@ The user's needs (October 30 and November 22):
 
 ## Elements
 
-| Element          | What it shows                                                                                                  | Per screen |
-| ---------------- | -------------------------------------------------------------------------------------------------------------- | ---------- |
-| 글               | A text made of named boxes, values, and fixed words. The first of its templates that has all its values shows. | Several    |
-| 미리 보여줄 내용 | What the next 슬라이드 lets this one show                                                                      | One        |
-| 이미지           | A fixed picture: a user image or one of the app's                                                              | Several    |
-| 사각형           | A rectangle with a fill, a border, a radius, and a shadow                                                      | Several    |
-| 배경             | The background of the 슬라이드, or of the 테마                                                                 | One        |
+| Element          | What it shows                                                                                                     | Per screen |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------- | ---------- |
+| 글               | A text made of named boxes, values, and fixed words. The first of its templates that has any of its values shows. | Several    |
+| 미리 보여줄 내용 | What the next 슬라이드 lets this one show                                                                         | One        |
+| 이미지           | A fixed picture: a user image or one of the app's                                                                 | Several    |
+| 사각형           | A rectangle with a fill, a border, a radius, and a shadow                                                         | Several    |
+| 배경             | The background of the 슬라이드, or of the 테마                                                                    | One        |
 
-- A template names boxes and values in braces: `{제목}`, `{본문}`. A part in
-  square brackets is left out when a value in it is missing:
-  `{제목}[ ({이름표})]`. The values the app fills in are 번호, 항목 이름, 구절,
-  곡 제목, 찬송가 장과 제목, 찬송가 장 and 찬송가 제목 (the hymn the 슬라이드 is
-  the title of), 이름표, and 새 이름표 (only where the label changes).
-- A 글 can have other templates and a color for when none of the first has its
-  values, such as the (없음) of an empty 슬라이드 on 무대.
+- A template names boxes and values in braces: `{제목}`, `{본문}`. A value can
+  be put in brackets: `{(이름표)}` shows (전주). The operator puts a value in
+  with 값 넣기 (+) beside the template, which offers each value as it is and
+  under 괄호로 감싸기. A missing value is left out together with its brackets
+  and one space beside it: `다음 곡: {제목} {(찬송가)} {(이름표)}` shows 다음
+  곡: 성부 성자 성령 (새찬송가 7장) when there is no 이름표. Brackets typed
+  outside the braces are plain text and always show. The values the app fills in
+  are 번호, 항목 이름, 구절, 곡 제목, 찬송가 장과 제목, 찬송가 장 and 찬송가
+  제목 (the hymn the 슬라이드 is the title of), 이름표, and 새 이름표 (only
+  where the label changes).
+- A 글 and 미리 보여줄 내용 can have more templates, shown as 없으면 rows under
+  the first: one is used when every value of the ones above is missing, such as
+  the (없음) of an empty 슬라이드 on 무대. A template without values always
+  shows. A 글 can have a color for these.
 - A 글 can take the size, or the size and the rows, that 청중 gives the same
   content. The sung lyrics on 무대 do, so they break where the congregation's
   do.

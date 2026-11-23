@@ -17,7 +17,7 @@
     }
   ],
   "next": {
-    "content": ["{본문}", "({이름표})", "(없음)"],
+    "content": ["{본문}", "{(이름표)}", "(없음)"],
     "column": false
   },
   "background": {
@@ -286,7 +286,7 @@
           "wrap": "balance",
           "label": true,
           "empty": {
-            "content": ["({이름표})", "(없음)"],
+            "content": ["{(이름표)}", "(없음)"],
             "color": "#B4B4B4"
           }
         },

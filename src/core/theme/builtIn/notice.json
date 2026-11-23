@@ -133,7 +133,7 @@
             "w": 1824,
             "h": 130
           },
-          "content": ["[{번호}. ]{제목}"],
+          "content": ["{번호}. {제목}"],
           "style": {
             "font": "KoPubWorldDotum",
             "weight": 700,

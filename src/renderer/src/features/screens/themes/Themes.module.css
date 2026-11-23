@@ -138,8 +138,10 @@
 }
 .template {
   display: flex;
+  flex: 1;
   align-self: stretch;
   gap: var(--space-4);
+  min-width: 0;
 }
 .template > :first-child {
   flex: 1;
