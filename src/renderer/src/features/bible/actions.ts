@@ -1,7 +1,5 @@
 import type {BibleLookupPassage} from '@core/schema/bibleLookup';
 import type {Slide} from '@core/schema/slide';
-import {cutBy, passageSlides} from '@core/slides';
-import {slideMaking} from '@renderer/platform/themes';
 import {
   bibleSource,
   type BibleDisplay,
@@ -11,7 +9,7 @@ import {useLive} from '@renderer/session/live';
 import {outputTile, useShow} from '@renderer/session/show';
 import {beginOutputRequest} from '@renderer/session/showOutput';
 import {bibleSourceFor, withBibleSource} from '@renderer/session/showLibrary';
-import {passageSplitter} from './passageSplitter';
+import {measurePassage, slidesOfPassage} from './makePassageSlides';
 
 function samePassage(
   first: BibleLookupPassage,
@@ -48,16 +46,12 @@ function sourceOf(
   const kept = goesOnFrom(opened, passage, display) ? opened : null;
   const {verseNumbers, translationName = false, transition} = display;
   const before = kept?.slides ?? [];
-  const split = passageSplitter()?.split(passage, {
-    verseNumbers,
-    slides: before,
-  });
-  const slides = passageSlides(slideMaking(), {
+  const settings = {verseNumbers, translationName};
+  const slides = slidesOfPassage(
     passage,
-    settings: {verseNumbers, translationName},
-    cut: split == null ? text => [text] : cutBy(split),
-    before,
-  }).map(slide =>
+    measurePassage(passage, settings, before),
+    {settings, before},
+  ).map(slide =>
     transition === undefined || before.includes(slide)
       ? slide
       : {...slide, transition},

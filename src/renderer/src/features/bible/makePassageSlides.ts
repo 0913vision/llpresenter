@@ -11,8 +11,57 @@ import type {BibleLookupPassage} from '@core/schema/bibleLookup';
 import type {Slide} from '@core/schema/slide';
 import type {LlpApi} from '@contracts/ipc/api';
 import {slideMaking} from '@renderer/platform/themes';
-import {passageSplitter} from './passageSplitter';
+import {passageSplitter, type BibleSplit} from './passageSplitter';
 import {reviewBibleInsertion} from './reviewBibleInsertion';
+
+type Settings = Pick<BiblePassage, 'verseNumbers' | 'translationName'>;
+
+/**
+ * Cuts a passage for the text box of the 말씀 theme, keeping the slides some
+ * verses have already. Null while nothing can measure the theme.
+ */
+export function measurePassage(
+  passage: BibleLookupPassage,
+  settings: Settings,
+  before: readonly Slide[],
+): BibleSplit | null {
+  return (
+    passageSplitter()?.split(passage, {
+      verseNumbers: settings.verseNumbers,
+      slides: before,
+    }) ?? null
+  );
+}
+
+/**
+ * The slides of a passage, cut as `split` measured or a verse to a slide
+ * without it; `reviewed` holds the cuts the operator chose for some verses.
+ */
+export function slidesOfPassage(
+  passage: BibleLookupPassage,
+  split: BibleSplit | null,
+  {
+    settings,
+    before = [],
+    reviewed = {},
+    ownAddress = false,
+  }: {
+    readonly settings: Settings;
+    readonly before?: readonly Slide[];
+    readonly reviewed?: Readonly<Record<string, readonly string[]>>;
+    /** Keeps the address on every slide, for an item of no passage. */
+    readonly ownAddress?: boolean;
+  },
+): readonly Slide[] {
+  const automatic: CutVerse = split === null ? text => [text] : cutBy(split);
+  return passageSlides(slideMaking(), {
+    passage,
+    settings,
+    cut: (text, verse) => reviewed[verseKey(verse)] ?? automatic(text, verse),
+    before,
+    ...(ownAddress ? {address: passageAddress(passage)} : {}),
+  });
+}
 
 /**
  * The slides of a passage, after its long verses were looked over. Null when
@@ -26,18 +75,15 @@ export async function makePassageSlides(
     before = [],
     ownAddress = false,
   }: {
-    readonly settings: Pick<BiblePassage, 'verseNumbers' | 'translationName'>;
+    readonly settings: Settings;
     /** Slides some of the verses have already. */
     readonly before?: readonly Slide[];
     /** Keeps the address on every slide, for an item of no passage. */
     readonly ownAddress?: boolean;
   },
 ): Promise<readonly Slide[] | null> {
-  const split = passageSplitter()?.split(passage, {
-    verseNumbers: settings.verseNumbers,
-    slides: before,
-  });
-  if (split == null) throw new Error('절 나누기를 측정할 수 없음');
+  const split = measurePassage(passage, settings, before);
+  if (split === null) throw new Error('절 나누기를 측정할 수 없음');
   const references = versesToReview(split.parts);
   const asks =
     references.length > 0 &&
@@ -46,14 +92,10 @@ export async function makePassageSlides(
     ? await reviewBibleInsertion({projection: split, references})
     : {};
   if (reviewed === null) return null;
-  const automatic = cutBy(split);
-  const cut: CutVerse = (text, verse) =>
-    reviewed[verseKey(verse)] ?? automatic(text, verse);
-  return passageSlides(slideMaking(), {
-    passage,
+  return slidesOfPassage(passage, split, {
     settings,
-    cut,
     before,
-    ...(ownAddress ? {address: passageAddress(passage)} : {}),
+    reviewed,
+    ownAddress,
   });
 }
