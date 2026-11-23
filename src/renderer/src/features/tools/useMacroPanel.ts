@@ -20,7 +20,7 @@ import type {MenuAnchor} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
 import type {MacroViewMode} from './MacroView';
 import {deleteSelection} from '@renderer/ui/deleteSelection';
-import {useToolDeleteShortcuts} from '@renderer/platform/useToolDeleteShortcuts';
+import {useUndoKeys} from '@renderer/platform/useUndoKeys';
 import {focusHistorySurface} from '@renderer/ui/focusHistorySurface';
 import {toolMenuReason} from './toolMenuEntries';
 import {useOptimisticCreation} from './useOptimisticCreation';
@@ -117,7 +117,7 @@ export function useMacroPanel({
   const paletteFor = palette.target;
   const writes = useMacroWrites(onProblem);
   const {busy, run, commit, commitCollection} = writes;
-  useToolDeleteShortcuts(root ?? fallbackRoot, writes.macros);
+  useUndoKeys(root ?? fallbackRoot);
   const locked = busy || document?.access !== 'editable' || !window.llp;
   const currentGroup = collections.find(item => item.id === collection);
   const currentCollection = currentGroup?.id;

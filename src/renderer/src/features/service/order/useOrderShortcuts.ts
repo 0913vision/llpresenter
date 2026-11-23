@@ -1,15 +1,8 @@
 import type {RefObject} from 'react';
 import type {ServiceRow} from '@core/presentation';
-import {
-  NOTHING_TO_REDO,
-  NOTHING_TO_UNDO,
-} from '@renderer/platform/problemReasons';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
-import {
-  redoService,
-  undoService,
-  useOpenService,
-} from '@renderer/session/openService';
+import {undoReason, undoTimeline} from '@renderer/platform/undoTimeline';
+import type {Notice} from '@renderer/ui/notices';
 import {ORDER_FULL_REASON} from '@renderer/session/serviceOrderEdits';
 import {isInTextEntry} from '@renderer/ui/textEntry';
 import type {Workspace} from '@renderer/ui/workspace';
@@ -38,6 +31,7 @@ export function useOrderShortcuts({
   selection,
   clipboard,
   edits,
+  report,
 }: {
   readonly list: RefObject<HTMLElement | null>;
   readonly rows: readonly ServiceRow[];
@@ -51,10 +45,17 @@ export function useOrderShortcuts({
   readonly selection: ChosenRows;
   readonly clipboard: Clipboard;
   readonly edits: ReturnType<typeof useOrderEdits>;
+  /** Tells why a step of the window could not run back. */
+  readonly report: (notice: Notice) => void;
 }): void {
-  const canUndo = useOpenService(view => view.past.length > 0);
-  const canRedo = useOpenService(view => view.future.length > 0);
   const {targets, moveItems, runFocusedEdit, remove, duplicate} = edits;
+  // NOTE(0913vision): The latest step of the window may be another one than
+  // a change of this list; its own history tells why it could not run.
+  const replayLatest = (kind: 'undo' | 'redo'): void =>
+    runFocusedEdit(async () => ({
+      ok: true,
+      value: await undoTimeline.replay(kind, report),
+    }));
 
   const ownsCommand = (event: KeyboardEvent): boolean =>
     event.target instanceof Node &&
@@ -124,19 +125,15 @@ export function useOrderShortcuts({
       id: 'edit.undo',
       context: 'service',
       when: ownsHistory,
-      unavailable: () => (editable && canUndo ? undefined : NOTHING_TO_UNDO),
-      run: () => {
-        if (editable) runFocusedEdit(() => undoService());
-      },
+      unavailable: () => undoReason('undo'),
+      run: () => replayLatest('undo'),
     },
     {
       id: 'edit.redo',
       context: 'service',
       when: ownsHistory,
-      unavailable: () => (editable && canRedo ? undefined : NOTHING_TO_REDO),
-      run: () => {
-        if (editable) runFocusedEdit(() => redoService());
-      },
+      unavailable: () => undoReason('redo'),
+      run: () => replayLatest('redo'),
     },
     {
       id: 'edit.duplicate',

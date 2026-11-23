@@ -135,7 +135,6 @@ export function MediaView({
   const copyReason =
     view.document?.access === 'editable' ? undefined : NEWER_FILE_REASON;
   useMediaShortcuts({
-    library,
     title,
     selected: selectedItem,
     reason: copyReason,

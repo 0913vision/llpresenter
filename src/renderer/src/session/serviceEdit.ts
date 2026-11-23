@@ -1,21 +1,12 @@
-import {noticeTime, type Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/notices';
 import type {OpenServiceResult} from './openService';
-import {orderFailureTitle} from './serviceOrderEdits';
+import {serviceEditNotice} from './serviceProblem';
 
 export type Report = (notice: Notice) => void;
 
 function reportEdit(result: OpenServiceResult, report: Report): void {
-  if (result.ok) return;
-  report({
-    key: `slides:${result.error.reason}`,
-    kind: 'warning',
-    icon: 'warning',
-    title:
-      result.error.reason === 'write-failed'
-        ? '예배 저장 실패'
-        : orderFailureTitle(result.error, '슬라이드 변경 실패'),
-    time: noticeTime(),
-  });
+  const notice = serviceEditNotice(result);
+  if (notice !== null) report(notice);
 }
 
 /** Runs an edit of the open service and reports why it was refused. */

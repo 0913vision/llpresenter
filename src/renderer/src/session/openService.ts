@@ -14,6 +14,8 @@ import {
 import type {Slide} from '@core/schema/slide';
 import {pendingWritesOf} from '../platform/pendingWrites';
 import {useShow} from './showStore';
+import {serviceEditNotice} from './serviceProblem';
+import {undoTimeline, type UndoOwner} from '../platform/undoTimeline';
 
 type Order = Service['order'];
 type EditApi = Pick<LlpApi, 'services' | 'content' | 'log'>;
@@ -100,6 +102,7 @@ class OpenServiceEditor {
         }
       }
       useOpenService.setState({past: [], future: []});
+      undoTimeline.forget(serviceHistory);
     }
     this.base = document;
     this.show();
@@ -159,6 +162,7 @@ class OpenServiceEditor {
         : [...past, step].slice(-HISTORY_LIMIT),
       future: [],
     });
+    if (!goesOn) undoTimeline.record(serviceHistory);
   }
 
   /** What is shown: the document with every change that waits. */
@@ -355,6 +359,16 @@ export function undoService(): Promise<OpenServiceResult> {
 export function redoService(): Promise<OpenServiceResult> {
   return replay('redo');
 }
+
+/** The service edits, as one history of the window's 실행 취소. */
+const serviceHistory: UndoOwner = {
+  replay: (kind, report) =>
+    replay(kind).then(result => {
+      const notice = serviceEditNotice(result);
+      if (notice !== null) report(notice);
+      return result.ok;
+    }),
+};
 
 /** The item of the open 예배 순서 with this id, as this window edits it. */
 export function useServiceItem(itemId: string | null): ServiceItem | undefined {

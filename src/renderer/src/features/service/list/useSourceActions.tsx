@@ -1,13 +1,8 @@
+import {undoReason, undoTimeline} from '@renderer/platform/undoTimeline';
 import {focusHistorySurface} from '@renderer/ui/focusHistorySurface';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {menuAvailability} from '@renderer/ui/menuModel';
-import {
-  useRef,
-  useState,
-  useSyncExternalStore,
-  type KeyboardEvent,
-  type ReactNode,
-} from 'react';
+import {useRef, useState, type KeyboardEvent, type ReactNode} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {ServiceEntry} from '@core/schema/contentDocuments';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
@@ -55,10 +50,6 @@ const problemTitles = {
 function kindName(source: NamedSource): string {
   return source.kind === 'template' ? '템플릿' : '예배';
 }
-
-const emptyHistory = {undo: 0, redo: 0, busy: false};
-const noHistory = () => emptyHistory;
-const noSubscribe = () => () => undefined;
 
 // NOTE(0913vision): A rename sends the whole document with the revision it
 // was read at, as every `*.update` does; main refuses it as stale when the
@@ -126,10 +117,6 @@ export function useSourceActions({
   const [busy, setBusy] = useState(false);
   const root = useRef<HTMLElement>(null);
   const history = api ? contentDeleteHistory(api.content) : null;
-  const historyState = useSyncExternalStore(
-    history?.subscribe ?? noSubscribe,
-    history?.get ?? noHistory,
-  );
   const renameAfterMenu = useMenuHandoff<SourceRow>(menu !== null, row =>
     setDialog({kind: 'rename', row}),
   );
@@ -256,13 +243,11 @@ export function useSourceActions({
     confirmDelete: remove,
     onHistoryKey: event => {
       const kind = historyKey(event);
-      if (kind === null || historyState.busy || historyState[kind] === 0) {
-        return;
-      }
+      if (kind === null || undoReason(kind) !== undefined) return;
       event.preventDefault();
       event.stopPropagation();
-      history
-        ?.replay(kind)
+      undoTimeline
+        .replay(kind, onProblem)
         .catch((cause: unknown) =>
           console.error('Could not restore a service source:', cause),
         );

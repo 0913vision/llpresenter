@@ -4,10 +4,8 @@ import type {SongId} from '@core/schema/ids';
 import {insertSelectedSong} from '@renderer/session/insertSelectedSong';
 import {useShow} from '@renderer/session/show';
 import {useOrderFull} from '@renderer/session/orderFull';
-import {
-  ORDER_FULL_REASON,
-  orderFailureTitle,
-} from '@renderer/session/serviceOrderEdits';
+import {ORDER_FULL_REASON} from '@renderer/session/serviceOrderEdits';
+import {orderFailureTitle} from '@renderer/session/serviceProblem';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import type {LibraryApi} from './useLibrary';
 

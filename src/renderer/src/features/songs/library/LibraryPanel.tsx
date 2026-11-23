@@ -1,17 +1,10 @@
 import {focusHistorySurface} from '@renderer/ui/focusHistorySurface';
-import {
-  useEffect,
-  useEffectEvent,
-  useRef,
-  useState,
-  useSyncExternalStore,
-  type JSX,
-} from 'react';
+import {useEffect, useEffectEvent, useRef, useState, type JSX} from 'react';
 import type {LibrarySong} from '@core/schema/contentDocuments';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import type {SongId} from '@core/schema/ids';
 import {contentDeleteHistory} from '@renderer/platform/contentDeleteHistory';
-import {useToolDeleteShortcuts} from '@renderer/platform/useToolDeleteShortcuts';
+import {useUndoKeys} from '@renderer/platform/useUndoKeys';
 import {deleteSelection} from '@renderer/ui/deleteSelection';
 import {useReflow} from '@renderer/ui/useReflow';
 import {IconButton} from '@renderer/ui/IconButton';
@@ -110,11 +103,7 @@ export function LibraryPanel({
   const renamed = library.songs.find(song => song.id === renaming);
   const listArea = useRef<HTMLDivElement>(null);
   const history = contentDeleteHistory(api.content);
-  const historyState = useSyncExternalStore(history.subscribe, history.get);
-  useToolDeleteShortcuts(listArea, {
-    history: historyState,
-    replay: kind => history.replay(kind),
-  });
+  useUndoKeys(listArea);
   useReflow(listArea, {
     ids: library.visible.map(row => row.song.id),
     selector: '[role="option"][data-value]',

@@ -1,4 +1,6 @@
 import type {LlpApi} from '@contracts/ipc/api';
+import type {Notice} from '@renderer/ui/notices';
+import {undoFailure, undoTimeline, type UndoOwner} from './undoTimeline';
 
 type Area = 'song' | 'service' | 'template';
 interface Entry {
@@ -11,7 +13,7 @@ interface State {
   readonly busy: boolean;
 }
 
-class ContentDeleteHistory {
+class ContentDeleteHistory implements UndoOwner {
   private readonly undo: Entry[] = [];
   private redo: Entry[] = [];
   private state: State = {undo: 0, redo: 0, busy: false};
@@ -30,8 +32,17 @@ class ContentDeleteHistory {
     this.undo.push({area, id});
     this.redo = [];
     this.publish(false);
+    undoTimeline.record(this);
   }
-  async replay(kind: 'undo' | 'redo'): Promise<boolean> {
+  readonly replay = async (
+    kind: 'undo' | 'redo',
+    report?: (notice: Notice) => void,
+  ): Promise<boolean> => {
+    const done = await this.run(kind);
+    if (!done) report?.(undoFailure(kind, '삭제'));
+    return done;
+  };
+  private async run(kind: 'undo' | 'redo'): Promise<boolean> {
     const from = kind === 'undo' ? this.undo : this.redo;
     const to = kind === 'undo' ? this.redo : this.undo;
     const entry = from.at(-1);

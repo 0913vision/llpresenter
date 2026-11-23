@@ -16,7 +16,12 @@ import {IconButton} from '@renderer/ui/IconButton';
 import {Icon} from '@renderer/ui/Icon';
 import {LabelColorControl} from '@renderer/ui/LabelColorPopover';
 import {settingsDeleteHistory} from '@renderer/platform/settingsDeleteHistory';
-import {useToolDeleteShortcuts} from '@renderer/platform/useToolDeleteShortcuts';
+import {useUndoKeys} from '@renderer/platform/useUndoKeys';
+import {
+  logUndoProblem,
+  undoReason,
+  undoTimeline,
+} from '@renderer/platform/undoTimeline';
 import {deleteSelection} from '@renderer/ui/deleteSelection';
 import {useReflow} from '@renderer/ui/useReflow';
 import {historyKey} from '@renderer/ui/historyKey';
@@ -61,11 +66,7 @@ export function LabelManager({
   const body = useRef<HTMLDivElement>(null);
   const pageRoot = useRef<HTMLDivElement>(null);
   const history = settingsDeleteHistory(store.api, 'labels');
-  const historyState = useSyncExternalStore(history.subscribe, history.get);
-  useToolDeleteShortcuts(frame.placement === 'page' ? pageRoot : body, {
-    history: historyState,
-    replay: kind => history.replay(kind),
-  });
+  useUndoKeys(frame.placement === 'page' ? pageRoot : body);
   useReflow(body, {
     ids: labels.map(label => label.name),
     selector: '[data-reflow-id]',
@@ -135,12 +136,10 @@ export function LabelManager({
       className={styles.settings}
       onKeyDown={event => {
         const kind = historyKey(event);
-        if (kind === null || historyState.busy || historyState[kind] === 0) {
-          return;
-        }
+        if (kind === null || undoReason(kind) !== undefined) return;
         event.preventDefault();
         event.stopPropagation();
-        editorTask(history.replay(kind));
+        editorTask(undoTimeline.replay(kind, logUndoProblem));
       }}
     >
       {rows.map(({label, key}, index) => (

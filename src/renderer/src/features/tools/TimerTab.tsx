@@ -11,7 +11,7 @@ import type {Notice} from '@renderer/ui/notices';
 import {TimerDialog} from './TimerDialog';
 import {deleteTimer, saveNewTimer, type NewTimer} from './timerEdits';
 import {useToolEditing} from './useToolEditing';
-import {useToolDeleteShortcuts} from '@renderer/platform/useToolDeleteShortcuts';
+import {useUndoKeys} from '@renderer/platform/useUndoKeys';
 import {focusHistorySurface} from '@renderer/ui/focusHistorySurface';
 import {WindowedTimers} from './WindowedTimers';
 import styles from './TimerTab.module.css';
@@ -60,7 +60,7 @@ export function TimerTab({
       history: 'timers',
     },
   });
-  useToolDeleteShortcuts(root, removal);
+  useUndoKeys(root);
   const [adding, setAdding] = useState(false);
   const locked =
     editing.busy || removal.busy || document?.access !== 'editable';

@@ -1,7 +1,7 @@
 import {useRef, useState} from 'react';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import type {OpenServiceResult} from './openService';
-import {orderFailureTitle} from './serviceOrderEdits';
+import {orderFailureTitle} from './serviceProblem';
 import {useAlive} from '@renderer/ui/useAlive';
 
 type Operation = () => Promise<OpenServiceResult>;

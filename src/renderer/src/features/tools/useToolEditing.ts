@@ -112,36 +112,5 @@ export function useToolEditing<Edit>({
       if (isActive()) setBusy(false);
     }
   };
-  const replay = async (kind: 'undo' | 'redo'): Promise<boolean> => {
-    try {
-      const applied = (await history?.replay(kind)) ?? false;
-      if (!applied && isActive()) {
-        onProblem?.({
-          key: `${area.key}:history`,
-          kind: 'warning',
-          icon: 'warning',
-          title: `${area.label} 변경 실패`,
-          time: noticeTime(),
-        });
-      }
-      return applied;
-    } catch (error: unknown) {
-      api?.log.write({
-        level: 'error',
-        message: area.log,
-        detail: String(error),
-      });
-      if (isActive()) {
-        onProblem?.({
-          key: `${area.key}:history`,
-          kind: 'warning',
-          icon: 'warning',
-          title: `${area.label} 변경 실패`,
-          time: noticeTime(),
-        });
-      }
-      return false;
-    }
-  };
-  return {busy: busy || historyState.busy, run, history: historyState, replay};
+  return {busy: busy || historyState.busy, run};
 }

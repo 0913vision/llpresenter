@@ -1,9 +1,5 @@
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
-import {
-  NEWER_FILE_REASON,
-  NOTHING_TO_UNDO,
-  NOTHING_TO_REDO,
-} from '@renderer/platform/problemReasons';
+import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {deleteSelection} from '@renderer/ui/deleteSelection';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {useRef, useState, type JSX} from 'react';
@@ -136,20 +132,6 @@ function usePlaylistEditing(kind: 'media' | 'audio') {
       });
   };
   useWindowShortcuts([
-    ...(['undo', 'redo'] as const).map(action => ({
-      id: `edit.${action}`,
-      context: 'service' as const,
-      when: (event: KeyboardEvent) =>
-        event.target instanceof Element &&
-        event.target.closest(`[data-playlist-history="${kind}"]`) !== null,
-      unavailable: () =>
-        (action === 'undo' ? library.canUndoDelete() : library.canRedoDelete())
-          ? undefined
-          : action === 'undo'
-            ? NOTHING_TO_UNDO
-            : NOTHING_TO_REDO,
-      run: () => library.historyDelete(action),
-    })),
     {
       id: 'edit.delete',
       when: event => focusedPlaylist(event, kind) !== undefined,

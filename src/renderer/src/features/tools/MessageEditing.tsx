@@ -23,7 +23,7 @@ import type {MenuAnchor} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
 import {useDuplicateShortcut} from './useDuplicateShortcut';
 import {useToolEditing} from './useToolEditing';
-import {useToolDeleteShortcuts} from '@renderer/platform/useToolDeleteShortcuts';
+import {useUndoKeys} from '@renderer/platform/useUndoKeys';
 import {focusHistorySurface} from '@renderer/ui/focusHistorySurface';
 import {useReflow} from '@renderer/ui/useReflow';
 import {
@@ -181,7 +181,7 @@ export function MessageEditing({
   });
   const {busy, run} = editing;
   const root = useRef<HTMLDivElement>(null);
-  useToolDeleteShortcuts(root, editing);
+  useUndoKeys(root);
   useReflow(root, {
     ids: document?.value.templates.map(item => item.id) ?? [],
     selector: '[role="option"][data-value]',

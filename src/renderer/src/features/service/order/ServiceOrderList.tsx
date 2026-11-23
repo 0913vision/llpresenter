@@ -241,6 +241,7 @@ export function ServiceOrderList({
     selection,
     clipboard,
     edits,
+    report: onProblem,
   });
 
   const openOrderEditor = (id: string | null): boolean => {

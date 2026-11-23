@@ -126,9 +126,9 @@ order, no row dims.
   items with 항목 추가 (proposal: the header has an 항목 추가 button).
 - No board shows the row's right-click menu. Version 1 has "준비에서 열기" (open
   in 준비) and "삭제" (delete). Delete is immediate for any selection, without a
-  confirmation or notice, and Ctrl Z or 편집 > 실행 취소 restores the whole
-  deletion. Both always run edit undo and never restore cleared output (M2 check
-  1 row 8; 03, 10).
+  confirmation or notice. 실행 취소 is off in 진행; in 준비, Ctrl Z or 편집 >
+  실행 취소 restores the whole deletion as one step, and never restores cleared
+  output (03, 10).
 - Deleting or moving the item that is on output doesn't change the output.
 - Ctrl C and 복사 copy the selected 예배 순서 rows. Shift selects a range (also
   with the up/down arrows, Home and End), Ctrl toggles individual rows, and an
@@ -453,7 +453,8 @@ each preview follows ProPresenter's rule: it shows what goes out.
   방송 화면. The 무대 화면 keeps the elements that no clear touches: the clock,
   the 타이머, and the stage message (03, "Clear buttons and shortcuts").
 - The optional 되돌리기 button brings the cleared layers back in the previews
-  and the outputs together (03). Ctrl Z only undoes edits.
+  and the outputs together (03). Ctrl Z never brings cleared layers back, and is
+  off in 진행.
 - The clear buttons show which layers have something to clear (`ClearButton`
   README). ProPresenter turns a clear button red when its layer has content
   (guide p. 25); this app shows it with brightness, because red is only for 출력
@@ -1178,7 +1179,7 @@ keys are changed are in 10, "Shortcut system".
 | Ctrl L                                           | Open the item of the live 슬라이드 (출력 중인 항목 열기)                 | Follows ProPresenter (Show Triggered Presentation, S1)                                   |
 | Alt →, Alt ←                                     | Next or previous background in the shared media bin's playlist           | Follows ProPresenter (Next and Previous Background, S1)                                  |
 | F1 to F6                                         | Clear all, lyrics, media, 그래픽, audio, 메시지                          | Follows ProPresenter (S1)                                                                |
-| Ctrl Z                                           | 실행 취소 (edit undo for the 예배 순서 or a text field)                  | M2 check 1 row 8; never restores cleared output (03, 10)                                 |
+| Ctrl Z                                           | Off in 진행, except in a text field; 실행 취소 runs in 준비              | USER Nov 24; never restores cleared output (03, 10)                                      |
 | Ctrl 1                                           | Audience screen outputs (청중 화면 and 방송 화면) on or off              | Follows ProPresenter (Toggle Output Screens, S1; S4 p. 172)                              |
 | Ctrl 2                                           | 무대 화면 output on or off                                               | Follows ProPresenter (Toggle Stage Display Screens, S1)                                  |
 | Alt S, Ctrl M, Ctrl Shift C, Ctrl Shift P, Alt C | The 무대, 메시지, 타이머, and 그래픽 tabs, and the action palette        | Follows ProPresenter (S1)                                                                |
@@ -1186,7 +1187,8 @@ keys are changed are in 10, "Shortcut system".
 | Slide hot key (a bare letter or digit)           | Its particular source slide in the open song, first projected occurrence | Follows ProPresenter per-slide assignment (S4 p. 58); S26 user decision; no default keys |
 | A key set for a 테마, 그래픽, 매크로, or 타이머  | That object's command                                                    | No default keys; follows ProPresenter's Key Mappings for 그래픽 and 매크로 (S2, S3)      |
 
-In the 준비 palette, Ctrl Z from the 곡 tab undoes the latest 예배 순서 edit.
+In 준비, Ctrl Z from the 곡 tab, like everywhere, runs back the latest step of
+the window.
 
 Stage and broadcast next-slide elements follow the live slide and its item, not
 the item or slide being browsed in Show or Prep. Continuous navigation may

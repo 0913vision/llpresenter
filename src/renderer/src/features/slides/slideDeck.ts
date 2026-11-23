@@ -1,3 +1,4 @@
+import {undoTimeline, useUndoTimeline} from '@renderer/platform/undoTimeline';
 import {useMemo} from 'react';
 import type {LabelColor} from '@core/labels';
 import {hasSlides, type SlidesItem} from '@core/schema/service';
@@ -6,8 +7,6 @@ import type {Slide} from '@core/schema/slide';
 import {slideSourceOf, slideTiles, type SlideSource} from '@core/slides';
 import {
   editItemSlides,
-  redoService,
-  undoService,
   useOpenService,
   useServiceItem,
 } from '@renderer/session/openService';
@@ -37,8 +36,9 @@ export function useItemDeck(
 ): SlideDeck | null {
   const item = useServiceItem(itemId);
   const readOnly = useOpenService(view => view.readOnly);
-  const canUndo = useOpenService(view => view.past.length > 0);
-  const canRedo = useOpenService(view => view.future.length > 0);
+  const timeline = useUndoTimeline();
+  const canUndo = timeline.undo > 0;
+  const canRedo = timeline.redo > 0;
   return useMemo(() => {
     if (item === undefined || !hasSlides(item)) return null;
     return {
@@ -58,8 +58,11 @@ export function useItemDeck(
           ),
           report,
         ),
-      replay: kind =>
-        runEdit(kind === 'undo' ? undoService() : redoService(), report),
+      replay: kind => {
+        undoTimeline.replay(kind, report).catch((error: unknown) => {
+          console.error('Could not undo', error);
+        });
+      },
     };
   }, [item, readOnly, canUndo, canRedo, report]);
 }

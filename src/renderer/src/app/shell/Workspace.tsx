@@ -4,6 +4,7 @@ import {
   Fragment,
   Suspense,
   useCallback,
+  useEffect,
   useRef,
   useState,
   type JSX,
@@ -39,6 +40,8 @@ import {
 import type {PrepTarget} from '@renderer/session/prepTarget';
 import {ShownItemProvider} from '@renderer/session/shownItem';
 import {returnFocus} from '@renderer/ui/returnFocus';
+import {undoTimeline} from '@renderer/platform/undoTimeline';
+import {NO_UNDO_IN_SHOW} from '@renderer/platform/problemReasons';
 import {useWorkspaceServiceHistory} from './useWorkspaceServiceHistory';
 
 const ignoreProblem = (): void => undefined;
@@ -127,6 +130,11 @@ export function Workspace({
     visibleId !== 'screens',
     onProblem ?? logPanelProblem,
   );
+  // NOTE(0913vision): 진행 sends what is on the screens, so 실행 취소 there
+  // would change it behind the operator; edits are run back in 준비.
+  useEffect(() => {
+    undoTimeline.block(showVisible ? NO_UNDO_IN_SHOW : undefined);
+  }, [showVisible]);
   // NOTE(0913vision): 진행 stays built, hidden, while another workspace
   // shows, so going back to 진행 shows its panels in the next frame instead of
   // building them again.

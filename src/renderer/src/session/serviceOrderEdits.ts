@@ -32,17 +32,6 @@ export const ORDER_FULL_REASON = limitReason(
   SERVICE_LIMITS.items,
 );
 
-/**
- * The title of a notice for a refused 예배 순서 edit: the limit's sentence when
- * the edit would pass the item limit, else `fallback`.
- */
-export function orderFailureTitle(
-  error: {readonly reason: string; readonly message: string},
-  fallback: string,
-): string {
-  return error.reason === 'full' ? error.message : fallback;
-}
-
 const isHeader = (item: ServiceItem): boolean => item.kind === 'header';
 
 const newItemId = (): ServiceItemId => createServiceItemId(crypto.randomUUID());

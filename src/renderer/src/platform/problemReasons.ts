@@ -12,3 +12,6 @@ export const NOTHING_TO_REDO = '다시 실행할 편집이 없습니다.';
 
 /** Why a 그래픽 cannot be shown: its media left the library. */
 export const MISSING_MEDIA_TIP = '미디어 파일을 찾을 수 없습니다.';
+
+/** 진행 sends what is on the screens; edits are run back in 준비. */
+export const NO_UNDO_IN_SHOW = '진행에서는 실행 취소를 쓰지 않습니다.';

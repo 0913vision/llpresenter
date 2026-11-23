@@ -16,7 +16,7 @@ import {MAX_PROPS, savePropEdit, type PropEdit} from './propEdits';
 import {useMediaDocument} from './useMediaDocument';
 import {focusedOptionIndex, useDuplicateShortcut} from './useDuplicateShortcut';
 import {useToolEditing} from './useToolEditing';
-import {useToolDeleteShortcuts} from '@renderer/platform/useToolDeleteShortcuts';
+import {useUndoKeys} from '@renderer/platform/useUndoKeys';
 import {focusHistorySurface} from '@renderer/ui/focusHistorySurface';
 import {useReflow} from '@renderer/ui/useReflow';
 import styles from './PropGrid.module.css';
@@ -66,7 +66,7 @@ export function PropTab({
       copyId: createPropId(crypto.randomUUID()),
     });
   const root = useRef<HTMLDivElement>(null);
-  useToolDeleteShortcuts(root, editing);
+  useUndoKeys(root);
   const props = document?.value.props ?? [];
   useLayoutEffect(() => {
     root.current

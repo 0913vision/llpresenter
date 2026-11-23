@@ -1,3 +1,4 @@
+import {undoTimeline, type UndoOwner} from '@renderer/platform/undoTimeline';
 import type {LlpApi} from '@contracts/ipc/api';
 import {
   noteThumbnailItems,
@@ -107,6 +108,11 @@ export class MediaLibrary {
   private historyPending = false;
 
   constructor(private readonly api: MediaApi) {}
+
+  /** Its deletions, as one history of the window's 실행 취소. */
+  readonly history: UndoOwner = {
+    replay: kind => this.historyDelete(kind),
+  };
 
   readonly subscribe = (listener: () => void): (() => void) => {
     this.listeners.add(listener);
@@ -390,10 +396,12 @@ export class MediaLibrary {
           MEDIA_DELETE_HISTORY_LIMIT,
         );
         this.redoCount = 0;
+        undoTimeline.record(this.history);
       } else {
         this.undoCount = 0;
         this.redoCount = 0;
         this.historyRevision = null;
+        undoTimeline.forget(this.history);
       }
       this.update({});
       return true;
@@ -436,6 +444,7 @@ export class MediaLibrary {
         this.undoCount = 0;
         this.redoCount = 0;
         this.historyRevision = null;
+        undoTimeline.forget(this.history);
       }
       this.update({});
       return true;
@@ -443,6 +452,7 @@ export class MediaLibrary {
     this.undoCount = 0;
     this.redoCount = 0;
     this.historyRevision = null;
+    undoTimeline.forget(this.history);
     this.update({});
     this.refused('Changing media history was refused', result.error.message);
     this.onProblem(warning('media-view:history', '미디어 변경 실패'));
@@ -525,10 +535,12 @@ export class MediaLibrary {
           MEDIA_DELETE_HISTORY_LIMIT,
         );
         this.redoCount = 0;
+        undoTimeline.record(this.history);
       } else {
         this.undoCount = 0;
         this.redoCount = 0;
         this.historyRevision = null;
+        undoTimeline.forget(this.history);
       }
       this.update({});
       return true;

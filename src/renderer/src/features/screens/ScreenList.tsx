@@ -7,7 +7,6 @@ import {
   useMemo,
   useRef,
   useState,
-  useSyncExternalStore,
   type JSX,
   type ReactNode,
 } from 'react';
@@ -42,15 +41,12 @@ import {useScreenRowActions} from './useScreenRowActions';
 import {useScreenListWindow} from './useScreenListWindow';
 import {useMonitors} from './useMonitors';
 import {settingsDeleteHistory} from '@renderer/platform/settingsDeleteHistory';
-import {useToolDeleteShortcuts} from '@renderer/platform/useToolDeleteShortcuts';
+import {useUndoKeys} from '@renderer/platform/useUndoKeys';
 import {useReflow} from '@renderer/ui/useReflow';
 
 const LIST_LABEL = '화면';
 const LOAD_TITLE = '화면';
 const noScreens: readonly Screen[] = [];
-const noHistory = {undo: 0, redo: 0, busy: false};
-const emptyHistory = () => noHistory;
-const noSubscribe = () => () => undefined;
 
 function RowView({
   row,
@@ -128,14 +124,7 @@ export function ScreenList({
     () => (window.llp ? settingsDeleteHistory(window.llp, 'screens') : null),
     [],
   );
-  const historyState = useSyncExternalStore(
-    history?.subscribe ?? noSubscribe,
-    history?.get ?? emptyHistory,
-  );
-  useToolDeleteShortcuts(listRoot, {
-    history: historyState,
-    replay: kind => history?.replay(kind) ?? Promise.resolve(false),
-  });
+  useUndoKeys(listRoot, onProblem);
   const actions = useScreenRowActions(document, onProblem, {
     onDeleted: revision => history?.record(revision),
     focusList: () => {

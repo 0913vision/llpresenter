@@ -367,12 +367,18 @@ the keys that earlier rules pass on.
 4. **An open menu, a dialog, or a drag** takes its own keys (arrows, Enter, Esc,
    Space). Only F1 to F6 and UI zoom pass through; Ctrl Z can undo text in a
    dialog field but never restores cleared output. Outside a text field, Ctrl Z
-   and 편집 > 실행 취소 undo the last edit of the 예배 순서 from 준비, whatever
-   kind it was: an order edit (add, move, delete) or a change of an item's own
-   fields in the right column (테마, 배경, 오버레이). The history holds the
-   newest 100 steps and ends with the window. An edit made in another window (곡
-   편집, 순서 편집) is not in it; if one changed the order since, 실행 취소
-   refuses instead of overwriting it.
+   and 편집 > 실행 취소 run back the latest step of the window, wherever it was
+   made, as PowerPoint does: an edit of the 예배 순서 or of an item's slides, or
+   the deletion of a song, service, template, 이름표, screen, 타이머, 메시지,
+   그래픽, 매크로 or media item. Each kind keeps its own steps (the 예배 순서
+   the newest 100); one timeline of the window keeps their order, and a new step
+   drops what could be redone. An edit made in another window (곡 편집, 순서
+   편집) is not in it; if one changed the order since, 실행 취소 refuses instead
+   of overwriting it. The song and theme editors keep their own steps while the
+   focus is in them. **In 진행, 실행 취소 and 다시 실행 are off** (keys, 편집
+   menu and title bar buttons; the reason "진행에서는 실행 취소를 쓰지
+   않습니다."): 진행 sends what is on the screens, so a step is run back in
+   준비, where the steps made in 진행 are kept too.
 5. **In the Show workspace**, the slide grid passes ↑ and ↓ to the previous and
    next slide commands; Enter and keypad Enter advance the slide. The service
    order list keeps ↑, ↓, Home, End, and Enter for selection without output.
@@ -724,7 +730,7 @@ decision; no equivalent generic ProPresenter panel command is claimed.
 | 새 예배                             | `service.new`                                 | None                                      | None                        | Decided, no ProPresenter source found (Kept, 05 says "with the shortcut the operator sets").                                                                                                                                                                                                               | All                                                     | 1     |
 | 다른 예배에서 가져오기              | `service.importItems`                         | None                                      | None                        | Decided, no ProPresenter source found (05)                                                                                                                                                                                                                                                                 | All                                                     | 1     |
 | 예배를 템플릿으로 저장              | `service.saveAsTemplate`                      | None                                      | None                        | Decided, no ProPresenter source found (05)                                                                                                                                                                                                                                                                 | All                                                     | 1     |
-| 실행 취소                           | `edit.undo`                                   | Ctrl Z                                    | Undo, Ctrl Z                | Decided, follows ProPresenter for edit undo only. Includes 예배 순서 edits in 진행 (M2 check 1 row 8; 03, 04). Never restores a clear. Also steps back through the unsaved edits of the 테마 workspace (12).                                                                                               | Editable lists, 준비 edits, text fields, 테마 workspace | 1     |
+| 실행 취소                           | `edit.undo`                                   | Ctrl Z                                    | Undo, Ctrl Z                | Decided, follows ProPresenter for edit undo only. Runs back the latest step of the window; off in 진행 (USER Nov 24, "진행에서 실행취소가 먹는건 이상한데"). Never restores a clear. Also steps back through the unsaved edits of the 테마 workspace (12).                                                 | Editable lists, 준비 edits, text fields, 테마 workspace | 1     |
 | 다시 실행                           | `edit.redo`                                   | Ctrl Y, Ctrl Shift Z                      | Redo, Ctrl Y                | Decided, follows ProPresenter for Ctrl Y. Ctrl Shift Z added because many Windows editors accept it.                                                                                                                                                                                                       | Editable lists, 준비 edits, text fields                 | 1     |
 | 슬라이드 나누기                     | `editor.splitSlide`                           | Ctrl Enter                                | None                        | Decided, no ProPresenter source found; follows EasyWorship (S9). Splits the block at the cursor. Enter on an empty line still splits (05).                                                                                                                                                                 | Song editor                                             | 1     |
 | 새 슬라이드                         | `editor.newSlide`                             | Ctrl Shift N                              | New Slide, Ctrl Shift N     | Decided, follows ProPresenter. Inserts an empty block after the current block.                                                                                                                                                                                                                             | Song editor                                             | 1     |
@@ -854,7 +860,7 @@ same place. Native window and field keys are identified separately.
 | Alt P                                       | 오디오 재생 또는 일시 정지                                   | Control windows, subject to focus and IME precedence           |
 | Ctrl ↓, Ctrl ↑                              | 다음 항목, 이전 항목                                         | 진행                                                           |
 | Alt →, Alt ←                                | 이름표 오른쪽으로, 이름표 왼쪽으로                           | Chip strip in 준비 (no overlap with 진행)                      |
-| Ctrl Z                                      | 실행 취소 (edit undo only)                                   | Editable lists, 준비 edits, text fields; no clear undo         |
+| Ctrl Z                                      | 실행 취소 (edit undo only)                                   | 준비 and 테마; off in 진행; no clear undo                      |
 | Ctrl Y, Ctrl Shift Z                        | 다시 실행                                                    | Editable lists, 준비 edits, text fields                        |
 | Ctrl 1, Ctrl 2                              | 청중 화면 출력, 무대 화면 출력                               | All                                                            |
 | Ctrl Alt 1                                  | 화면 설정                                                    | All                                                            |
