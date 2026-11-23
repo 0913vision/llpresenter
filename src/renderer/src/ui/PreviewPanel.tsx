@@ -7,9 +7,39 @@ import {usePreviewRoom} from './usePreviewRoom';
 import styles from './PreviewPanel.module.css';
 import {PreviewSizingContext} from './PreviewSizingContext';
 import {ResizeGap} from './ResizeGap';
-import {clampPreviewRatio, DEFAULT_PREVIEW_RATIO} from './previewRatio';
+import {
+  clampPreviewRatio,
+  DEFAULT_PREVIEW_RATIO,
+  largestShownRatio,
+} from './previewRatio';
 
 const ALL_SCREENS = 'all';
+
+/**
+ * The height the large and small rows share in the frame, without their
+ * caption rows and the divider gap, and the least height of a small tile.
+ */
+function splitRoom(
+  frame: HTMLElement | null,
+): {readonly space: number; readonly smallest: number} | null {
+  const monitor = frame?.firstElementChild;
+  if (!frame || !(monitor instanceof HTMLElement) || frame.clientHeight <= 0) {
+    return null;
+  }
+  const css = getComputedStyle(monitor);
+  const px = (name: string): number =>
+    Number.parseFloat(css.getPropertyValue(name)) || 0;
+  return {
+    space: Math.max(
+      1,
+      frame.clientHeight -
+        px('--size-control-md') -
+        px('--size-control-sm') -
+        px('--space-12'),
+    ),
+    smallest: (px('--preview-tile-min') * 9) / 16,
+  };
+}
 
 function extraHeight(anchor: HTMLElement): number {
   let height = 0;
@@ -105,13 +135,24 @@ export function PreviewPanel<Id extends string>({
                         name="preview.split"
                         onReset={() => sizing.save(DEFAULT_PREVIEW_RATIO)}
                         begin={() => {
-                          const height = frameRef.current?.clientHeight ?? 0;
-                          if (height <= 0) return undefined;
-                          const start = ratio;
+                          const room = splitRoom(frameRef.current);
+                          if (room === null) return undefined;
+                          // NOTE(0913vision): The divider moves with the
+                          // pointer only inside the range the rows can show;
+                          // a ratio past it would stay saved and leave a dead
+                          // zone, so the small tiles never grew back.
+                          const most = largestShownRatio(
+                            room.space,
+                            room.smallest,
+                          );
+                          const start = Math.min(ratio, most);
                           let next = start;
                           return {
                             move: delta => {
-                              next = clampPreviewRatio(start + delta / height);
+                              next = Math.min(
+                                most,
+                                clampPreviewRatio(start + delta / room.space),
+                              );
                               setDragRatio(next);
                             },
                             end: () => {

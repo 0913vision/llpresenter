@@ -128,6 +128,52 @@ describe('shared preview panel', () => {
     fireEvent.doubleClick(divider);
     expect(save).toHaveBeenLastCalledWith(0.667);
   });
+  it('moves the divider only inside what the rows can show, so dragging back follows the pointer', () => {
+    const save = vi.fn();
+    HTMLElement.prototype.setPointerCapture = vi.fn();
+    const {container} = render(
+      <PreviewSizingContext.Provider value={{ratio: 0.85, save}}>
+        <PreviewPanel
+          screens={screens}
+          big="audience"
+          onBigChange={vi.fn()}
+          renderScreen={() => null}
+        />
+      </PreviewSizingContext.Provider>,
+    );
+    const divider = container.querySelector<HTMLElement>(
+      '[data-row-gap="preview.split"]',
+    );
+    const monitor = container.querySelector<HTMLElement>(
+      '[style*="--preview-ratio"]',
+    );
+    if (divider === null || monitor?.parentElement == null) {
+      throw new Error('Missing split');
+    }
+    for (const [name, value] of [
+      ['--size-control-md', '30px'],
+      ['--size-control-sm', '26px'],
+      ['--space-12', '12px'],
+      ['--preview-tile-min', '120px'],
+    ] as const) {
+      monitor.style.setProperty(name, value);
+    }
+    Object.defineProperty(monitor.parentElement, 'clientHeight', {
+      configurable: true,
+      value: 300,
+    });
+    const shown = () =>
+      Number(monitor.style.getPropertyValue('--preview-ratio'));
+    const most = 1 - 67.5 / 232;
+    fireEvent.pointerDown(divider, {pointerId: 1, button: 0, clientY: 100});
+    fireEvent.pointerMove(divider, {pointerId: 1, clientY: 150});
+    expect(shown()).toBeCloseTo(most);
+    fireEvent.pointerMove(divider, {pointerId: 1, clientY: 50});
+    expect(shown()).toBeCloseTo(most - 50 / 232);
+    fireEvent.pointerMove(divider, {pointerId: 1, clientY: 100});
+    fireEvent.pointerUp(divider, {pointerId: 1, clientY: 100});
+    expect(save).toHaveBeenLastCalledWith(most);
+  });
   it('clamps invalid and out-of-range saved ratios', () => {
     expect(clampPreviewRatio(9)).toBe(0.85);
     expect(clampPreviewRatio(-1)).toBe(0.15);
