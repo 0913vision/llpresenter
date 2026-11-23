@@ -14,7 +14,7 @@ import {message, push, query, signal, type IpcPort} from './endpoint';
 
 /** The calls that close the app safely and report its problems. */
 export const appEndpoints = {
-  savePending: query<boolean>('app:save-pending', parseAppSavePendingResult),
+  savePending: query<boolean>('app:save-pending:get', parseAppSavePendingResult),
   flushProgress: message<AppFlushRequest>(
     'app:flush-progress',
     parseAppFlushRequest,
@@ -26,7 +26,7 @@ export const appEndpoints = {
   flushDone: message<AppFlushDone>('app:flush-done', parseAppFlushDone),
   closeAnyway: signal('app:close-anyway'),
   problemList: query<readonly AppProblem[]>(
-    'app:problem:list',
+    'app:problems:get',
     parseAppProblems,
   ),
   problems: push<AppProblem>('app:problem', parseAppProblem),

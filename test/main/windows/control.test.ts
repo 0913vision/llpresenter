@@ -5,7 +5,7 @@ import {appIconPath} from '@main/base/appIcon';
 import {loadPage} from '@main/base/page';
 import {CRASH_LIMIT, CRASH_PERIOD_MS} from '@main/base/restartBudget';
 import {audioMutedByDefault} from '@main/base/audioPolicy';
-import {serviceEndpoints} from '@contracts/ipc/service';
+import {launchEndpoints} from '@contracts/ipc/launch';
 
 const ipc = await vi.hoisted(async () =>
   (await import('@fixtures/main/base/mockIpcMain')).mockIpcMain(),
@@ -112,9 +112,9 @@ describe('createControlWindow', () => {
     expect(win.options).not.toHaveProperty('webPreferences.offscreen');
     win.emit('ready-to-show');
     expect(win.show).not.toHaveBeenCalled();
-    ipc.send(serviceEndpoints.ready, undefined, {id: -1});
+    ipc.send(launchEndpoints.ready, undefined, {id: -1});
     expect(win.show).not.toHaveBeenCalled();
-    ipc.send(serviceEndpoints.ready, undefined, win.webContents);
+    ipc.send(launchEndpoints.ready, undefined, win.webContents);
     expect(win.show).not.toHaveBeenCalled();
     finish(true);
     await Promise.resolve();
@@ -129,7 +129,7 @@ describe('createControlWindow', () => {
     });
     const win = lastWindow();
     win.emit('ready-to-show');
-    ipc.send(serviceEndpoints.ready, undefined, win.webContents);
+    ipc.send(launchEndpoints.ready, undefined, win.webContents);
     await Promise.resolve();
     expect(win.show).toHaveBeenCalledOnce();
     expect(win.maximize).not.toHaveBeenCalled();

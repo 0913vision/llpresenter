@@ -51,7 +51,7 @@ export const settingsEndpoints = {
     },
   ),
   labelColorPreview: push<LabelColorPreview | null>(
-    'labels:color-preview',
+    'labels:color-preview:changed',
     parseLabelColorPreview,
   ),
 };

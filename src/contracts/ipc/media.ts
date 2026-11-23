@@ -65,9 +65,9 @@ export const mediaEndpoints = {
     reply: parseMediaUses,
   }),
   missing: query<MissingMedia>('media:missing:get', parseMissingMedia),
-  missingChanged: push<MissingMedia>('media:missing', parseMissingMedia),
+  missingChanged: push<MissingMedia>('media:missing:changed', parseMissingMedia),
   stamps: query<MediaStamps>('media:stamps:get', parseMediaStamps),
-  stampsChanged: push<MediaStamps>('media:stamps', parseMediaStamps),
+  stampsChanged: push<MediaStamps>('media:stamps:changed', parseMediaStamps),
   check: message<MediaFileRequest>('media:check', parseMediaCheckRequest),
   reveal: message<MediaFileRequest>('media:reveal', parseMediaRevealRequest),
 };

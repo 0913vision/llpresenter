@@ -1,21 +1,12 @@
 import {describe, expect, it} from 'vitest';
 import {llpApi} from '@contracts/ipc/api';
-import {appEndpoints} from '@contracts/ipc/app';
-import {updateEndpoints} from '@contracts/ipc/update';
-import {bibleEndpoints} from '@contracts/ipc/bible';
-import {contentEndpoints} from '@contracts/ipc/content';
 import type {IpcPort, WindowPlatform} from '@contracts/ipc/endpoint';
-import {libraryEndpoints} from '@contracts/ipc/library';
-import {powerpointEndpoints} from '@contracts/ipc/powerpoint';
-import {liveEndpoints} from '@contracts/ipc/live';
-import {mediaEndpoints} from '@contracts/ipc/media';
-import {locationsEndpoints} from '@contracts/ipc/locations';
-import {outputEndpoints} from '@contracts/ipc/output';
-import {recoveryEndpoints} from '@contracts/ipc/recovery';
-import {serviceEndpoints} from '@contracts/ipc/service';
-import {settingsEndpoints} from '@contracts/ipc/settings';
-import {uiEndpoints} from '@contracts/ipc/ui';
-import {windowEndpoints} from '@contracts/ipc/window';
+
+/** Every file of the contracts, so a new area is checked without a list. */
+const AREAS = import.meta.glob<Record<string, unknown>>(
+  '/src/contracts/ipc/*.ts',
+  {eager: true},
+);
 
 function endpointsIn(table: object): object[] {
   return Object.values(table).flatMap((entry: unknown) => {
@@ -24,23 +15,15 @@ function endpointsIn(table: object): object[] {
   });
 }
 
-const DECLARED = [
-  appEndpoints,
-  updateEndpoints,
-  bibleEndpoints,
-  contentEndpoints,
-  libraryEndpoints,
-  powerpointEndpoints,
-  liveEndpoints,
-  mediaEndpoints,
-  recoveryEndpoints,
-  serviceEndpoints,
-  settingsEndpoints,
-  uiEndpoints,
-  windowEndpoints,
-  outputEndpoints,
-  locationsEndpoints,
-].flatMap(endpointsIn);
+const DECLARED = Object.values(AREAS)
+  .flatMap(area =>
+    Object.entries(area).flatMap(([name, value]) =>
+      name.endsWith('Endpoints') && typeof value === 'object' && value !== null
+        ? [value]
+        : [],
+    ),
+  )
+  .flatMap(endpointsIn);
 
 function recordingPort() {
   const used: object[] = [];

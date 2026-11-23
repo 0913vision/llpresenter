@@ -162,7 +162,7 @@ export function parseOnOff(value: unknown): Result<boolean, PayloadError> {
 /** The title bar calls. */
 export const windowEndpoints = {
   settingsRequest: query<SettingsRequest>(
-    'window:settings-request',
+    'window:settings-request:get',
     parseSettingsRequest,
   ),
   showSettingsRequest: push<SettingsRequest>(
@@ -188,14 +188,14 @@ export const windowEndpoints = {
     parsePreferencePage,
   ),
   openLogFolder: signal('window:open-log-folder'),
-  appInfo: query<AppInfo>('window:app-info', parseAppInfo),
-  diagnostics: query<string>('window:diagnostics', parseDiagnosticsText),
+  appInfo: query<AppInfo>('window:app-info:get', parseAppInfo),
+  diagnostics: query<string>('window:diagnostics:get', parseDiagnosticsText),
   verboseLogging: message<boolean>('window:verbose-logging', parseOnOff),
   verboseLoggingState: query<boolean>('window:verbose-logging:get', parseOnOff),
   control: message<WindowAction>('window:control', parseWindowAction),
-  fullScreen: query<boolean>('window:full-screen', parseOnOff),
+  fullScreen: query<boolean>('window:full-screen:get', parseOnOff),
   fullScreenChanged: push<boolean>('window:full-screen:changed', parseOnOff),
-  minimized: query<boolean>('window:minimized', parseOnOff),
+  minimized: query<boolean>('window:minimized:get', parseOnOff),
   minimizedChanged: push<boolean>('window:minimized:changed', parseOnOff),
   editText: message<TextEditAction>('window:edit-text', parseTextEditAction),
 };

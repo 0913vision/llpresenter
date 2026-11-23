@@ -1,6 +1,6 @@
 import {app, BrowserWindow, screen} from 'electron';
 import {windowEndpoints} from '@contracts/ipc/window';
-import {serviceEndpoints} from '@contracts/ipc/service';
+import {launchEndpoints} from '@contracts/ipc/launch';
 import {IpcHost, pushToWindow} from '../base/ipcHost';
 import type {Logger} from '../base/log';
 import type {UiZoomRegistration} from '../store/uiZoom';
@@ -146,7 +146,7 @@ function openWhenReady(
     ready('data', 'outputs');
   }, STARTUP_TIMEOUT_MS);
   timeout.unref();
-  ipc.signal(serviceEndpoints.ready, ({contents, isMainFrame}) => {
+  ipc.signal(launchEndpoints.ready, ({contents, isMainFrame}) => {
     if (contents === win.webContents && isMainFrame) ready('data');
   });
   outputsReady.then(

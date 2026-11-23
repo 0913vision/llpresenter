@@ -1,18 +1,10 @@
 import {describe, expect, it} from 'vitest';
-import {appEndpoints} from '@contracts/ipc/app';
-import {updateEndpoints} from '@contracts/ipc/update';
-import {bibleEndpoints} from '@contracts/ipc/bible';
-import {contentEndpoints} from '@contracts/ipc/content';
-import {libraryEndpoints} from '@contracts/ipc/library';
-import {powerpointEndpoints} from '@contracts/ipc/powerpoint';
-import {liveEndpoints} from '@contracts/ipc/live';
-import {mediaEndpoints} from '@contracts/ipc/media';
-import {outputEndpoints} from '@contracts/ipc/output';
-import {recoveryEndpoints} from '@contracts/ipc/recovery';
-import {serviceEndpoints} from '@contracts/ipc/service';
-import {settingsEndpoints} from '@contracts/ipc/settings';
-import {uiEndpoints} from '@contracts/ipc/ui';
-import {windowEndpoints} from '@contracts/ipc/window';
+
+/** Every file of the contracts, so a new area is checked without a list. */
+const AREAS = import.meta.glob<Record<string, unknown>>(
+  '/src/contracts/ipc/*.ts',
+  {eager: true},
+);
 
 function channelsOf(table: object): string[] {
   return Object.values(table).flatMap((entry: unknown) => {
@@ -22,24 +14,20 @@ function channelsOf(table: object): string[] {
   });
 }
 
-const DECLARED = [
-  appEndpoints,
-  updateEndpoints,
-  bibleEndpoints,
-  contentEndpoints,
-  libraryEndpoints,
-  powerpointEndpoints,
-  liveEndpoints,
-  mediaEndpoints,
-  outputEndpoints,
-  recoveryEndpoints,
-  serviceEndpoints,
-  settingsEndpoints,
-  uiEndpoints,
-  windowEndpoints,
-].flatMap(channelsOf);
+const TABLES = Object.values(AREAS).flatMap(area =>
+  Object.entries(area).flatMap(([name, value]) =>
+    name.endsWith('Endpoints') && typeof value === 'object' && value !== null
+      ? [value]
+      : [],
+  ),
+);
+const DECLARED = TABLES.flatMap(channelsOf);
 
 describe('IPC endpoints', () => {
+  it('find the tables of every area', () => {
+    expect(TABLES.length).toBeGreaterThanOrEqual(17);
+  });
+
   it('give every channel to exactly one endpoint', () => {
     expect(new Set(DECLARED).size).toBe(DECLARED.length);
   });
@@ -48,5 +36,11 @@ describe('IPC endpoints', () => {
     for (const channel of DECLARED) {
       expect(channel).toMatch(/^[a-z]+(?:-[a-z]+)*(?::[a-z]+(?:-[a-z]+)*)+$/);
     }
+  });
+
+  it('name a change as :changed, never -changed', () => {
+    expect(DECLARED.filter(channel => channel.endsWith('-changed'))).toEqual(
+      [],
+    );
   });
 });

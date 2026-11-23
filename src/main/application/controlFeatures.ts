@@ -1,5 +1,5 @@
 import {app} from 'electron';
-import {serviceEndpoints} from '@contracts/ipc/service';
+import {launchEndpoints} from '@contracts/ipc/launch';
 import {VIEW_TASK_IDS} from '@core/schema/launch';
 import {IpcHost, type Caller} from '../base/ipcHost';
 import {registerFonts} from '../fonts/register';
@@ -30,14 +30,14 @@ function watchReadiness(
   const isControl = ({contents, isMainFrame}: Caller): boolean =>
     contents === control.webContents && isMainFrame;
   ipc.message(
-    serviceEndpoints.preparing,
+    launchEndpoints.preparing,
     ({task, done, total, ended}, caller) => {
       if (!isControl(caller)) return;
       launch.advance(task, done, total);
       if (ended) launch.finish(task);
     },
   );
-  ipc.signal(serviceEndpoints.ready, caller => {
+  ipc.signal(launchEndpoints.ready, caller => {
     if (!isControl(caller)) return;
     for (const task of VIEW_TASK_IDS) launch.finish(task);
     data.content.then(

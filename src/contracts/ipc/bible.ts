@@ -28,8 +28,8 @@ export const bibleEndpoints = {
     request: parseBibleAiCancel,
     reply: parseBibleAiCancelled,
   }),
-  llmStatus: query('bible:llm-status', parseBibleAiState),
-  llmStatusChanged: push('bible:llm-status-changed', parseBibleAiState),
+  llmStatus: query('bible:llm-status:get', parseBibleAiState),
+  llmStatusChanged: push('bible:llm-status:changed', parseBibleAiState),
 };
 
 /** The Bible part of `window.llp`. */

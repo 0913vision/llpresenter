@@ -2,7 +2,7 @@ import {readdir, readFile, writeFile} from 'node:fs/promises';
 import {basename, dirname, join} from 'node:path';
 import {BrowserWindow} from 'electron';
 import {beforeEach, describe, expect, it, onTestFinished, vi} from 'vitest';
-import {libraryEndpoints} from '@contracts/ipc/library';
+import {textImportEndpoints} from '@contracts/ipc/textImport';
 import {powerpointEndpoints} from '@contracts/ipc/powerpoint';
 import {registerPowerPointImport} from '@main/import/registerPowerPoint';
 import {makeTempDir} from '@fixtures/tempDir';
@@ -344,9 +344,9 @@ describe('clipboard availability', () => {
     async ({text, available}) => {
       setup();
       electron.readClipboard.mockResolvedValueOnce(text);
-      expect(await handler(libraryEndpoints.clipboardAvailable.channel)()).toBe(
-        available,
-      );
+      expect(
+        await handler(textImportEndpoints.clipboardAvailable.channel)(),
+      ).toBe(available);
       expect(electron.chooseFile).not.toHaveBeenCalled();
     },
   );
@@ -359,12 +359,12 @@ describe('clipboard availability', () => {
         resolve = finish;
       }),
     );
-    const query = handler(libraryEndpoints.clipboardAvailable.channel);
+    const query = handler(textImportEndpoints.clipboardAvailable.channel);
     const first = query();
     expect(query()).toBe(first);
     expect(electron.readClipboard).toHaveBeenCalledOnce();
     expect(
-      await handler(libraryEndpoints.readText.channel)(readRequest),
+      await handler(textImportEndpoints.readText.channel)(readRequest),
     ).toEqual({
       ok: true,
       value: null,
@@ -381,9 +381,9 @@ describe('clipboard availability', () => {
     electron.readClipboard.mockRejectedValueOnce(
       new Error('Clipboard unavailable'),
     );
-    expect(await handler(libraryEndpoints.clipboardAvailable.channel)()).toBe(
-      false,
-    );
+    expect(
+      await handler(textImportEndpoints.clipboardAvailable.channel)(),
+    ).toBe(false);
     expect(log.warn).toHaveBeenCalledOnce();
   });
 });
@@ -421,7 +421,7 @@ describe('text import IPC registration', () => {
     });
 
     expect(
-      await handler(libraryEndpoints.readText.channel)(readRequest),
+      await handler(textImportEndpoints.readText.channel)(readRequest),
     ).toEqual({ok: true, value: file});
     expect(readTextImport).toHaveBeenLastCalledWith(
       readRequest,
@@ -438,9 +438,9 @@ describe('text import IPC registration', () => {
       value: {title: 'Title', slides: []},
     };
     vi.mocked(convertTextImport).mockReturnValueOnce(converted);
-    expect(handler(libraryEndpoints.previewText.channel)(previewRequest)).toBe(
-      converted,
-    );
+    expect(
+      handler(textImportEndpoints.previewText.channel)(previewRequest),
+    ).toBe(converted);
     expect(convertTextImport).toHaveBeenLastCalledWith(previewRequest);
     expect(log.warn).not.toHaveBeenCalled();
   });
@@ -468,7 +468,7 @@ describe('text import IPC registration', () => {
       canceled: false,
       filePaths: ['C:/data/Example.txt'],
     });
-    const read = handler(libraryEndpoints.readText.channel);
+    const read = handler(textImportEndpoints.readText.channel);
     await read(readRequest);
     await read({...readRequest, encoding: 'cp949', again: true});
 
@@ -478,7 +478,7 @@ describe('text import IPC registration', () => {
 
   it('awaits clipboard text, preserves cancellation, and resets after input failure', async () => {
     const {log} = setup();
-    const read = handler(libraryEndpoints.readText.channel);
+    const read = handler(textImportEndpoints.readText.channel);
     expect(await read(readRequest)).toEqual({ok: true, value: null});
     electron.readClipboard.mockRejectedValueOnce(new Error('Clipboard busy'));
     expect(await read({source: 'clipboard', encoding: 'auto'})).toMatchObject({
@@ -494,12 +494,12 @@ describe('text import IPC registration', () => {
 
   it('drops and logs malformed requests before opening a dialog or reading the clipboard', async () => {
     const {log} = setup();
-    const invalidRead = await handler(libraryEndpoints.readText.channel)({
+    const invalidRead = await handler(textImportEndpoints.readText.channel)({
       source: 'path',
       path: 'Example.txt',
       encoding: 'auto',
     });
-    const invalidPreview = handler(libraryEndpoints.previewText.channel)({
+    const invalidPreview = handler(textImportEndpoints.previewText.channel)({
       ...previewRequest,
       options: {...previewRequest.options, unitsPerSlide: 0},
     });
@@ -516,7 +516,7 @@ describe('text import IPC registration', () => {
   it('refuses native file dialogs in offscreen mode or after the control window closes', async () => {
     setup('offscreen');
     expect(
-      await handler(libraryEndpoints.readText.channel)(readRequest),
+      await handler(textImportEndpoints.readText.channel)(readRequest),
     ).toMatchObject({ok: false, error: {reason: 'read-failed'}});
     expect(electron.chooseFile).not.toHaveBeenCalled();
   });
@@ -530,7 +530,7 @@ describe('text import IPC registration', () => {
     });
     const offscreen = setup('offscreen');
     expect(
-      await handler(libraryEndpoints.readText.channel)(readRequest),
+      await handler(textImportEndpoints.readText.channel)(readRequest),
     ).toMatchObject({
       ok: true,
       value: {fileName: 'Injected.txt', text: 'Injected lyrics'},
@@ -538,7 +538,7 @@ describe('text import IPC registration', () => {
     expect(electron.chooseFile).not.toHaveBeenCalled();
     offscreen.stop();
     setup();
-    await handler(libraryEndpoints.readText.channel)(readRequest);
+    await handler(textImportEndpoints.readText.channel)(readRequest);
     expect(electron.chooseFile).toHaveBeenCalledOnce();
   });
 
@@ -546,7 +546,7 @@ describe('text import IPC registration', () => {
     setup();
     electron.destroyed = true;
     expect(
-      await handler(libraryEndpoints.readText.channel)(readRequest),
+      await handler(textImportEndpoints.readText.channel)(readRequest),
     ).toMatchObject({ok: false, error: {reason: 'read-failed'}});
     expect(electron.chooseFile).not.toHaveBeenCalled();
   });
@@ -561,8 +561,8 @@ describe('text import IPC registration', () => {
         resolve = done;
       }),
     );
-    const read = handler(libraryEndpoints.readText.channel);
-    const preview = handler(libraryEndpoints.previewText.channel);
+    const read = handler(textImportEndpoints.readText.channel);
+    const preview = handler(textImportEndpoints.previewText.channel);
     const pending = read(readRequest);
     expect(await read(readRequest)).toMatchObject({
       ok: false,

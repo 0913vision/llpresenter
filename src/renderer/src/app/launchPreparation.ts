@@ -5,8 +5,8 @@ import type {LoadCount, LoadReadiness} from '@renderer/ui/loadReadiness';
 const IDLE_LIMIT_MS = 1000;
 const NONE: LoadCount = {done: 0, total: 0};
 
-type Api = Pick<LlpApi, 'service' | 'log'>;
-type ViewTask = Parameters<Api['service']['preparing']>[0]['task'];
+type Api = Pick<LlpApi, 'launch' | 'service' | 'log'>;
+type ViewTask = Parameters<Api['launch']['preparing']>[0]['task'];
 
 function fontsReady(): Promise<unknown> {
   try {
@@ -80,7 +80,7 @@ export class LaunchPreparation {
 
   private tell(task: ViewTask, {done, total}: LoadCount, ended: boolean): void {
     if (this.stopped || this.sent) return;
-    this.api.service.preparing({task, done, total, ended});
+    this.api.launch.preparing({task, done, total, ended});
   }
 
   private tellLoads(): void {
@@ -147,7 +147,7 @@ export class LaunchPreparation {
     this.preparing = false;
     if (this.stopped || this.sent || !this.hasLoaded()) return;
     this.sent = true;
-    this.api.service.ready();
+    this.api.launch.ready();
   }
 
   private warn(message: string, error: unknown): void {

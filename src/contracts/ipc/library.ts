@@ -10,22 +10,10 @@ import {
   type ShowLibrarySong,
   type ShowLibrarySongRequest,
 } from '@core/schema/showLibrarySong';
-import {
-  parseTextImportClipboardAvailable,
-  parseTextImportPreviewRequest,
-  parseTextImportPreviewResult,
-  parseTextImportReadRequest,
-  parseTextImportReadResult,
-  refuseInvalidTextImport,
-  type TextImportPreviewRequest,
-  type TextImportPreviewResult,
-  type TextImportReadRequest,
-  type TextImportReadResult,
-} from '@core/schema/textImport';
 import type {SongId} from '@core/schema/ids';
-import {message, query, request, type IpcPort} from './endpoint';
+import {message, request, type IpcPort} from './endpoint';
 
-/** The calls that search the 라이브러리 and import songs from text. */
+/** The calls that search the 라이브러리 and show its songs. */
 export const libraryEndpoints = {
   search: request<LibrarySearchRequest, LibrarySearchResult>('library:search', {
     request: parseLibrarySearchRequest,
@@ -42,26 +30,6 @@ export const libraryEndpoints = {
     'library:reveal-song',
     parseShowLibrarySongRequest,
   ),
-  clipboardAvailable: query<boolean>(
-    'import:text:clipboard-available',
-    parseTextImportClipboardAvailable,
-  ),
-  readText: request<TextImportReadRequest, TextImportReadResult>(
-    'import:text:read',
-    {
-      request: parseTextImportReadRequest,
-      reply: parseTextImportReadResult,
-      refuse: refuseInvalidTextImport,
-    },
-  ),
-  previewText: request<TextImportPreviewRequest, TextImportPreviewResult>(
-    'import:text:preview',
-    {
-      request: parseTextImportPreviewRequest,
-      reply: parseTextImportPreviewResult,
-      refuse: refuseInvalidTextImport,
-    },
-  ),
 };
 
 /** The 라이브러리 part of `window.llp`. */
@@ -77,17 +45,4 @@ export function libraryApi(port: IpcPort) {
   };
 }
 
-/** The text import part of `window.llp`. */
-export function textImportApi(port: IpcPort) {
-  return {
-    /** Checks for usable clipboard text without opening or reserving a file read. */
-    clipboardAvailable: port.query(libraryEndpoints.clipboardAvailable),
-    /** Reads decoded text; a null success means the file dialog was cancelled. */
-    read: port.request(libraryEndpoints.readText),
-    /** Rebuilds an unsaved draft from retained text and options; never saves. */
-    preview: port.request(libraryEndpoints.previewText),
-  };
-}
-
 export type LibraryApi = ReturnType<typeof libraryApi>;
-export type TextImportApi = ReturnType<typeof textImportApi>;

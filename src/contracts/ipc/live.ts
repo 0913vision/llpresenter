@@ -36,10 +36,10 @@ function parseLiveCommandParts(
 /** The live output calls. Main owns the live state; windows send commands. */
 export const liveEndpoints = {
   get: query<LiveState>('live:get', parseLiveState),
-  clock: query<number>('live:clock', parseTimerClockReading),
-  wallClock: query<WallClockSample>('live:wall-clock', parseWallClockSample),
+  clock: query<number>('live:clock:get', parseTimerClockReading),
+  wallClock: query<WallClockSample>('live:wall-clock:get', parseWallClockSample),
   wallClockChanged: push<WallClockSample>(
-    'live:wall-clock-changed',
+    'live:wall-clock:changed',
     parseWallClockSample,
   ),
   command: partialMessage<LiveCommand>('live:command', parseLiveCommandParts),
@@ -49,11 +49,11 @@ export const liveEndpoints = {
     parseLiveVersion,
   ),
   mediaProgress: query<MediaProgress | null>(
-    'live:media-progress',
+    'live:media-progress:get',
     parseMediaProgress,
   ),
   mediaProgressChanged: push<MediaProgress | null>(
-    'live:media-progress-changed',
+    'live:media-progress:changed',
     parseMediaProgress,
   ),
 };

@@ -10,7 +10,7 @@ import {query, request, type IpcPort} from './endpoint';
 
 /** The calls that restore the live output after a crash. */
 export const recoveryEndpoints = {
-  summary: query<RecoverySummary>('recovery:summary', parseRecoverySummary),
+  summary: query<RecoverySummary>('recovery:summary:get', parseRecoverySummary),
   apply: request<RecoveryApply, RecoveryResult>('recovery:apply', {
     request: parseRecoveryApply,
     reply: parseRecoveryResult,

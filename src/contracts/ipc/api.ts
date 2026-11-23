@@ -1,5 +1,6 @@
 import {powerpointApi, type PowerPointApi} from './powerpoint';
 import {appApi, problemsApi, type AppApi, type ProblemsApi} from './app';
+import {launchApi, type LaunchApi} from './launch';
 import {updateApi, type UpdateApi} from './update';
 import {bibleApi, type BibleApi} from './bible';
 import {
@@ -10,12 +11,8 @@ import {
   type DocumentApi,
 } from './content';
 import type {IpcPort, WindowPlatform} from './endpoint';
-import {
-  libraryApi,
-  textImportApi,
-  type LibraryApi,
-  type TextImportApi,
-} from './library';
+import {libraryApi, type LibraryApi} from './library';
+import {textImportApi, type TextImportApi} from './textImport';
 import {liveApi, type LiveApi} from './live';
 import {mediaApi, type MediaApi} from './media';
 import {
@@ -68,6 +65,7 @@ export interface LlpApi {
   readonly update: UpdateApi;
   readonly bible: BibleApi;
   readonly app: AppApi;
+  readonly launch: LaunchApi;
   readonly problems: ProblemsApi;
   readonly live: LiveApi;
   readonly window: WindowApi;
@@ -113,6 +111,7 @@ export function llpApi(
     update: custom.update ?? updateApi(port),
     bible: custom.bible ?? bibleApi(port),
     app: appApi(port),
+    launch: launchApi(port),
     problems: problemsApi(port),
     live: liveApi(port),
     window: windowApi(port),

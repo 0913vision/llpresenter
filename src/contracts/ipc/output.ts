@@ -110,7 +110,7 @@ export const outputEndpoints = {
   monitorsChanged: push<MonitorList>('monitors:changed', parseMonitorList),
   fonts: query<FontCatalog>('fonts:get', parseFontCatalog),
   fontSnapshot: query<FontCatalogSnapshot>(
-    'fonts:snapshot',
+    'fonts:snapshot:get',
     parseFontCatalogSnapshot,
   ),
   fontsChanged: push<FontCatalogSnapshot>(

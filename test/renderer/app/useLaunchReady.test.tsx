@@ -26,8 +26,8 @@ it('signals only after service loading, paint and renderer idle, and cancels on 
   const ready = vi.fn();
   let loaded: () => void = () => undefined;
   const api = mockLlpApi({
+    launch: {ready},
     service: {
-      ready,
       get: () =>
         new Promise(resolve => {
           loaded = () => resolve(null);
@@ -66,7 +66,7 @@ it('waits for the tracked first reads before signaling', async () => {
   const readiness = new LoadReadiness();
   const finish = readiness.begin();
   const ready = vi.fn();
-  const api = mockLlpApi({service: {ready}});
+  const api = mockLlpApi({launch: {ready}});
   renderHook(() => useLaunchReady(api, readiness));
   await act(async () => Promise.resolve());
   expect(ready).not.toHaveBeenCalled();
@@ -94,7 +94,7 @@ it('tells how far each of its tasks is', async () => {
   const read = readiness.begin();
   const picture = readiness.begin('picture');
   const preparing = vi.fn<(value: Preparation) => void>();
-  const api = mockLlpApi({service: {preparing}});
+  const api = mockLlpApi({launch: {preparing}});
   const last = (task: Preparation['task']): Preparation | undefined =>
     preparing.mock.calls
       .map(([value]) => value)

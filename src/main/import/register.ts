@@ -1,5 +1,5 @@
 import {clipboard, dialog, type BrowserWindow} from 'electron';
-import {libraryEndpoints} from '@contracts/ipc/library';
+import {textImportEndpoints} from '@contracts/ipc/textImport';
 import type {
   TextImportPreviewRequest,
   TextImportPreviewResult,
@@ -158,11 +158,11 @@ export function registerTextImport(
   ipc.whenClosed(() => {
     session.close();
   });
-  ipc.query(libraryEndpoints.clipboardAvailable, () =>
+  ipc.query(textImportEndpoints.clipboardAvailable, () =>
     session.clipboardAvailable(),
   );
-  ipc.request(libraryEndpoints.readText, request => session.read(request));
-  ipc.request(libraryEndpoints.previewText, request =>
+  ipc.request(textImportEndpoints.readText, request => session.read(request));
+  ipc.request(textImportEndpoints.previewText, request =>
     session.preview(request),
   );
   return () => {
