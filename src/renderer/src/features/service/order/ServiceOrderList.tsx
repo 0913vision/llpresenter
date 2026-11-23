@@ -28,7 +28,7 @@ import {isInTextEntry} from '@renderer/ui/textEntry';
 import {clickFocusProps} from '@renderer/ui/clickFocus';
 import {openItem, useShow} from '@renderer/session/show';
 import {useVisibleSlideItem} from '@renderer/session/visibleSlideItem';
-import {ListBox, ListGroup, ListInsertLine, Menu} from '@renderer/ui';
+import {ListBox, ListInsertLine, Menu} from '@renderer/ui';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
 import type {Workspace} from '@renderer/ui/workspace';
@@ -40,6 +40,7 @@ import {useServiceSongMenu} from './useServiceSongMenu';
 import {useServiceOrderDrag} from './useServiceOrderDrag';
 import {useMediaDurations} from '../../media/useMediaDurations';
 import {ItemRows, type RowContext} from './ItemRows';
+import {OrderSection} from './OrderSection';
 import {groupRows, itemNumbers, rowsOfMenu} from './orderRows';
 import {useLiveItemId} from './useLiveItemId';
 import styles from './ServiceOrderList.module.css';
@@ -309,51 +310,26 @@ export function ServiceOrderList({
           group.label === undefined ? (
             <ItemRows key={group.id} items={group.items} context={rowContext} />
           ) : (
-            <div
+            <OrderSection
               key={group.id}
-              data-order-id={group.id}
+              group={group}
+              label={group.label}
+              context={rowContext}
+              workspace={workspace}
+              editable={editable}
               className={table?.sectionClass}
-              draggable={editable && workspace === 'prep'}
-              onDoubleClick={event => {
-                const row =
-                  event.target instanceof Element
-                    ? event.target.closest('[data-order-id]')
-                    : null;
-                if (
-                  workspace === 'prep' &&
-                  editable &&
-                  row === event.currentTarget
-                ) {
-                  rename.start(group.id);
-                }
-              }}
-            >
-              {insertBefore === group.id ? <ListInsertLine /> : null}
-              <ListGroup
-                done={done.has(group.id)}
-                selected={selection.selected.has(group.id)}
-                // NOTE(0913vision): In 진행 a section is a plain label: no
-                // click, hover, selection, or arrow stop (spec 04).
-                value={workspace === 'prep' ? group.id : undefined}
-                label={group.label}
-                rename={
-                  rename.renaming === group.id
-                    ? {
-                        onCommit: name =>
-                          editing.save(() =>
-                            renameOrderItem(
-                              createServiceItemId(group.id),
-                              name,
-                            ),
-                          ),
-                        onClose: rename.stop,
-                      }
-                    : undefined
-                }
-              >
-                <ItemRows items={group.items} context={rowContext} />
-              </ListGroup>
-            </div>
+              insertLine={insertBefore === group.id}
+              done={done.has(group.id)}
+              selected={selection.selected.has(group.id)}
+              renaming={rename.renaming === group.id}
+              onRename={() => rename.start(group.id)}
+              onCommitName={name =>
+                editing.save(() =>
+                  renameOrderItem(createServiceItemId(group.id), name),
+                )
+              }
+              onCloseRename={rename.stop}
+            />
           ),
         )}
         {rows.length === 0 && serviceId !== null ? (
