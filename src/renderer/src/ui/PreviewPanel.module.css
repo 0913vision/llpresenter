@@ -5,7 +5,9 @@
   gap: var(--space-8);
   box-sizing: border-box;
   min-height: 0;
-  padding: var(--panel-inset);
+  padding: var(--panel-inset)
+    calc(var(--panel-inset) - var(--size-scrollbar-thumb)) var(--panel-inset)
+    var(--panel-inset);
   overflow: auto;
   scrollbar-gutter: stable;
 }

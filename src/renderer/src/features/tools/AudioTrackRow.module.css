@@ -4,7 +4,7 @@
   gap: var(--space-8);
   width: 100%;
   height: var(--size-row);
-  padding: 0 var(--panel-inset);
+  padding: 0 var(--inset-end) 0 var(--panel-inset);
   border: 0;
   background: transparent;
   color: var(--text);

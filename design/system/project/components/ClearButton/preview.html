@@ -12,37 +12,39 @@
 <div class="ll-preview">
 
 <div class="pv-group">
-<div class="ll-spec-title">지우기 row, regular window (column 480), padding 8, gap 4, 모두 at 1.4×</div>
+<div class="ll-spec-title">지우기 row, regular window (column 480), panel inset, gap 4, 12 before 되돌리기</div>
 <div class="ll-spec">
 <div class="ll-spec-item">
 <div class="ll-clear-row" role="group" aria-label="지우기" style="width: var(--col-right)">
-<button type="button" class="ll-clear ll-clear--all" aria-label="모두 지우기" aria-keyshortcuts="F1" title="모두 지우기 F1"><span class="ll-i ll-i-layers"></span><span class="ll-clear__label">모두</span></button>
+<div class="ll-clear-row__group">
+<button type="button" class="ll-clear" aria-label="모두 지우기" aria-keyshortcuts="F1" title="모두 지우기 F1"><span class="ll-i ll-i-layers"></span><span class="ll-clear__label">모두</span></button>
 <button type="button" class="ll-clear" aria-label="가사 지우기" aria-keyshortcuts="F2" title="가사 지우기 F2"><span class="ll-i ll-i-text"></span><span class="ll-clear__label">가사</span></button>
 <button type="button" class="ll-clear" aria-label="미디어 지우기" aria-keyshortcuts="F3" title="미디어 지우기 F3"><span class="ll-i ll-i-image"></span><span class="ll-clear__label">미디어</span></button>
 <button type="button" class="ll-clear" aria-label="그래픽 지우기" aria-keyshortcuts="F4" title="그래픽 지우기 F4"><span class="ll-i ll-i-prop"></span><span class="ll-clear__label">그래픽</span></button>
 <button type="button" class="ll-clear" aria-label="오디오 지우기" aria-keyshortcuts="F5" title="오디오 지우기 F5" data-state="off" aria-disabled="true"><span class="ll-i ll-i-audio"></span><span class="ll-clear__label">오디오</span></button>
 <button type="button" class="ll-clear" aria-label="메시지 지우기" aria-keyshortcuts="F6" title="메시지 지우기 F6"><span class="ll-i ll-i-msg"></span><span class="ll-clear__label">메시지</span></button>
-<span class="ll-clear-row__divider"></span>
-<button type="button" class="ll-clear ll-clear--undo" aria-label="되돌리기" title="되돌리기"><span class="ll-i ll-i-undo"></span><span class="ll-clear__label">되돌리기</span></button>
+</div>
+<button type="button" class="ll-clear" aria-label="되돌리기" title="되돌리기"><span class="ll-i ll-i-undo"></span><span class="ll-clear__label">되돌리기</span></button>
 </div>
 <span class="ll-spec-label">Live, nothing to clear in 오디오</span></div>
 <div class="ll-spec-item">
 <div class="ll-clear-row" role="group" aria-label="지우기" style="width: var(--col-right)">
-<button type="button" class="ll-clear ll-clear--all" aria-label="모두 지우기" aria-keyshortcuts="F1" title="모두 지우기 F1" data-state="off" aria-disabled="true"><span class="ll-i ll-i-layers"></span><span class="ll-clear__label">모두</span></button>
+<div class="ll-clear-row__group">
+<button type="button" class="ll-clear" aria-label="모두 지우기" aria-keyshortcuts="F1" title="모두 지우기 F1" data-state="off" aria-disabled="true"><span class="ll-i ll-i-layers"></span><span class="ll-clear__label">모두</span></button>
 <button type="button" class="ll-clear" aria-label="가사 지우기" aria-keyshortcuts="F2" title="가사 지우기 F2" data-state="off" aria-disabled="true"><span class="ll-i ll-i-text"></span><span class="ll-clear__label">가사</span></button>
 <button type="button" class="ll-clear" aria-label="미디어 지우기" aria-keyshortcuts="F3" title="미디어 지우기 F3" data-state="off" aria-disabled="true"><span class="ll-i ll-i-image"></span><span class="ll-clear__label">미디어</span></button>
 <button type="button" class="ll-clear" aria-label="그래픽 지우기" aria-keyshortcuts="F4" title="그래픽 지우기 F4" data-state="off" aria-disabled="true"><span class="ll-i ll-i-prop"></span><span class="ll-clear__label">그래픽</span></button>
 <button type="button" class="ll-clear" aria-label="오디오 지우기" aria-keyshortcuts="F5" title="오디오 지우기 F5" data-state="off" aria-disabled="true"><span class="ll-i ll-i-audio"></span><span class="ll-clear__label">오디오</span></button>
 <button type="button" class="ll-clear" aria-label="메시지 지우기" aria-keyshortcuts="F6" title="메시지 지우기 F6" data-state="off" aria-disabled="true"><span class="ll-i ll-i-msg"></span><span class="ll-clear__label">메시지</span></button>
-<span class="ll-clear-row__divider"></span>
-<button type="button" class="ll-clear ll-clear--undo" aria-label="되돌리기" title="되돌리기"><span class="ll-i ll-i-undo"></span><span class="ll-clear__label">되돌리기</span></button>
+</div>
+<button type="button" class="ll-clear" aria-label="되돌리기" title="되돌리기"><span class="ll-i ll-i-undo"></span><span class="ll-clear__label">되돌리기</span></button>
 </div>
 <span class="ll-spec-label">After 모두, only 되돌리기 is available</span></div>
 </div>
 </div>
 
 <div class="pv-group">
-<div class="ll-spec-title">Single button, 52, caption-strong under icon 18</div>
+<div class="ll-spec-title">Single button, 52, label under icon 18</div>
 <div class="ll-spec ll-on-panel">
 <div class="ll-spec-item"><div style="display: flex; width: 60px"><button type="button" class="ll-clear" aria-label="가사 지우기" aria-keyshortcuts="F2" title="가사 지우기 F2"><span class="ll-i ll-i-text"></span><span class="ll-clear__label">가사</span></button></div><span class="ll-spec-label">Something to clear</span></div>
 <div class="ll-spec-item"><div style="display: flex; width: 60px"><button type="button" class="ll-clear is-hover" aria-label="가사 지우기" aria-keyshortcuts="F2" title="가사 지우기 F2"><span class="ll-i ll-i-text"></span><span class="ll-clear__label">가사</span></button></div><span class="ll-spec-label">Hover</span></div>
@@ -50,9 +52,9 @@
 <div class="ll-spec-item"><div style="display: flex; width: 60px"><button type="button" class="ll-clear is-focus" aria-label="가사 지우기" aria-keyshortcuts="F2" title="가사 지우기 F2"><span class="ll-i ll-i-text"></span><span class="ll-clear__label">가사</span></button></div><span class="ll-spec-label">Focus</span></div>
 <div class="ll-spec-item"><div style="display: flex; width: 60px"><button type="button" class="ll-clear" aria-label="가사 지우기" aria-keyshortcuts="F2" title="가사 지우기 F2" data-state="off" aria-disabled="true"><span class="ll-i ll-i-text"></span><span class="ll-clear__label">가사</span></button></div><span class="ll-spec-label">Nothing to clear</span></div>
 <div class="ll-spec-item"><div style="display: flex; width: 60px"><button type="button" class="ll-clear is-hover" aria-label="가사 지우기" aria-keyshortcuts="F2" title="가사 지우기 F2" data-state="off" aria-disabled="true"><span class="ll-i ll-i-text"></span><span class="ll-clear__label">가사</span></button></div><span class="ll-spec-label">Nothing to clear + hover</span></div>
-<div class="ll-spec-item"><div style="display: flex; width: 60px"><button type="button" class="ll-clear ll-clear--undo" aria-label="되돌리기" title="되돌리기"><span class="ll-i ll-i-undo"></span><span class="ll-clear__label">되돌리기</span></button></div><span class="ll-spec-label">되돌리기</span></div>
-<div class="ll-spec-item"><div style="display: flex; width: 60px"><button type="button" class="ll-clear ll-clear--undo is-hover" aria-label="되돌리기" title="되돌리기"><span class="ll-i ll-i-undo"></span><span class="ll-clear__label">되돌리기</span></button></div><span class="ll-spec-label">되돌리기 hover</span></div>
-<div class="ll-spec-item"><div style="display: flex; width: 60px"><button type="button" class="ll-clear ll-clear--undo" aria-label="되돌리기" title="되돌리기" data-state="off" aria-disabled="true"><span class="ll-i ll-i-undo"></span><span class="ll-clear__label">되돌리기</span></button></div><span class="ll-spec-label">Nothing to undo</span></div>
+<div class="ll-spec-item"><div style="display: flex; width: 60px"><button type="button" class="ll-clear" aria-label="되돌리기" title="되돌리기"><span class="ll-i ll-i-undo"></span><span class="ll-clear__label">되돌리기</span></button></div><span class="ll-spec-label">되돌리기</span></div>
+<div class="ll-spec-item"><div style="display: flex; width: 60px"><button type="button" class="ll-clear is-hover" aria-label="되돌리기" title="되돌리기"><span class="ll-i ll-i-undo"></span><span class="ll-clear__label">되돌리기</span></button></div><span class="ll-spec-label">되돌리기 hover</span></div>
+<div class="ll-spec-item"><div style="display: flex; width: 60px"><button type="button" class="ll-clear" aria-label="되돌리기" title="되돌리기" data-state="off" aria-disabled="true"><span class="ll-i ll-i-undo"></span><span class="ll-clear__label">되돌리기</span></button></div><span class="ll-spec-label">Nothing to undo</span></div>
 </div>
 <div class="ll-spec">
 <div class="ll-spec-item"><span class="ll-tooltip">가사 지우기<span class="ll-tooltip__key">F2</span></span><span class="ll-spec-label">Tooltip, name and shortcut</span></div>
@@ -66,14 +68,15 @@
 <div class="ll-spec">
 <div class="ll-spec-item">
 <div class="ll-clear-row ll-clear-row--compact" role="group" aria-label="지우기" style="width: var(--col-right-compact)">
-<button type="button" class="ll-clear ll-clear--all" aria-label="모두 지우기" aria-keyshortcuts="F1" title="모두 지우기 F1"><span class="ll-i ll-i-layers"></span><span class="ll-clear__label">모두</span></button>
+<div class="ll-clear-row__group">
+<button type="button" class="ll-clear" aria-label="모두 지우기" aria-keyshortcuts="F1" title="모두 지우기 F1"><span class="ll-i ll-i-layers"></span><span class="ll-clear__label">모두</span></button>
 <button type="button" class="ll-clear" aria-label="가사 지우기" aria-keyshortcuts="F2" title="가사 지우기 F2"><span class="ll-i ll-i-text"></span><span class="ll-clear__label">가사</span></button>
 <button type="button" class="ll-clear" aria-label="미디어 지우기" aria-keyshortcuts="F3" title="미디어 지우기 F3"><span class="ll-i ll-i-image"></span><span class="ll-clear__label">미디어</span></button>
 <button type="button" class="ll-clear" aria-label="그래픽 지우기" aria-keyshortcuts="F4" title="그래픽 지우기 F4"><span class="ll-i ll-i-prop"></span><span class="ll-clear__label">그래픽</span></button>
 <button type="button" class="ll-clear" aria-label="오디오 지우기" aria-keyshortcuts="F5" title="오디오 지우기 F5" data-state="off" aria-disabled="true"><span class="ll-i ll-i-audio"></span><span class="ll-clear__label">오디오</span></button>
 <button type="button" class="ll-clear" aria-label="메시지 지우기" aria-keyshortcuts="F6" title="메시지 지우기 F6"><span class="ll-i ll-i-msg"></span><span class="ll-clear__label">메시지</span></button>
-<span class="ll-clear-row__divider"></span>
-<button type="button" class="ll-clear ll-clear--undo" aria-label="되돌리기" title="되돌리기"><span class="ll-i ll-i-undo"></span><span class="ll-clear__label">되돌리기</span></button>
+</div>
+<button type="button" class="ll-clear" aria-label="되돌리기" title="되돌리기"><span class="ll-i ll-i-undo"></span><span class="ll-clear__label">되돌리기</span></button>
 </div>
 <span class="ll-spec-label">Names in the tooltip and aria-label</span></div>
 </div>

@@ -1,53 +1,15 @@
-import {commandBindings, shortcutNames} from '@core/shortcuts';
-import {useShortcutText} from './commandBindings';
 import {createContext, useContext, type JSX, type ReactNode} from 'react';
-import type {ClearTarget} from '@core/schema/live';
 import {classNames} from './classNames';
-import {Icon, type IconSize} from './Icon';
+import {Icon} from './Icon';
 import {useButtonPress} from './press';
 import {useTooltip, withTooltipProps} from './Tooltip';
 import styles from './ClearButton.module.css';
 
-const ROW_NAME = '지우기';
-const ICON_SIZE: IconSize = 18;
-const COMPACT_ICON_SIZE: IconSize = 16;
-
-interface ClearFace {
-  readonly name: string;
-  readonly icon: string;
-}
-
-const clearFaces: Readonly<Record<ClearTarget, ClearFace>> = {
-  all: {name: '모두', icon: 'layers'},
-  slide: {name: '가사', icon: 'text'},
-  media: {name: '미디어', icon: 'image'},
-  prop: {name: '그래픽', icon: 'prop'},
-  audio: {name: '오디오', icon: 'audio'},
-  message: {name: '메시지', icon: 'msg'},
-};
-
-/** The one-word name of a layer on its 지우기 button. */
-export function clearName(layer: ClearTarget): string {
-  return clearFaces[layer].name;
-}
-
-/** The name of a 지우기 button, as its tooltip and `aria-label` say it. */
-export function clearLabel(layer: ClearTarget): string {
-  return `${clearName(layer)} 지우기`;
-}
-
-/** The default key of a 지우기 button, F1 to F6. */
-export function defaultClearShortcut(layer: ClearTarget): string {
-  const binding = commandBindings(`clear.${layer}`, {})[0];
-  return binding === undefined ? '' : shortcutNames(binding).join(' ');
-}
-
 const CompactRow = createContext(false);
 
 /**
- * The 지우기 row of the 진행 workspace (`ll-clear-row`): the 지우기 buttons in
- * their order, then optional 되돌리기. `compact` is the narrow window form, with
- * icons only and the names in the tooltips.
+ * The 지우기 row of 진행. `compact` is the narrow window form, with icons only
+ * and the names in the tooltips.
  */
 export function ClearRow({
   compact = false,
@@ -59,7 +21,7 @@ export function ClearRow({
   return (
     <div
       role="group"
-      aria-label={ROW_NAME}
+      aria-label="지우기"
       className={classNames(styles.row, compact && styles.compact)}
     >
       <CompactRow value={compact}>{children}</CompactRow>
@@ -67,22 +29,43 @@ export function ClearRow({
   );
 }
 
-interface ControlProps {
-  readonly name: string;
-  readonly icon: string;
-  readonly label: string;
-  readonly shortcut: string | undefined;
-  readonly available: boolean;
-  readonly onPress: () => void;
-  readonly className?: string | undefined;
+/** Buttons of the row that belong together. */
+export function ClearGroup({
+  children,
+}: {
+  readonly children: ReactNode;
+}): JSX.Element {
+  return <div className={styles.group}>{children}</div>;
 }
 
-function ClearControl(props: ControlProps): JSX.Element {
-  const {name, icon, label, shortcut, available, onPress} = props;
+export interface ClearButtonProps {
+  /** The short name on the button. */
+  readonly name: string;
+  readonly icon: string;
+  /** What a press does, for the tooltip and assistive technology. */
+  readonly label: string;
+  readonly command: string;
+  /** Whether a press does anything now; it draws the off state otherwise. */
+  readonly active: boolean;
+  /** A press brings back what the last one took off. */
+  readonly restores?: boolean | undefined;
+  readonly onPress: () => void;
+}
+
+/** One button of the 지우기 row. */
+export function ClearButton({
+  name,
+  icon,
+  label,
+  command,
+  active,
+  restores,
+  onPress,
+}: ClearButtonProps): JSX.Element {
   const compact = useContext(CompactRow);
-  const {targetProps, tooltip} = useTooltip({text: label, shortcut});
+  const {targetProps, tooltip} = useTooltip({text: label, command});
   const {onBlur: pressBlur, ...press} = useButtonPress<HTMLButtonElement>({
-    disabled: !available,
+    disabled: !active,
     onPress,
   });
   return (
@@ -91,49 +74,16 @@ function ClearControl(props: ControlProps): JSX.Element {
         {...withTooltipProps({onBlur: pressBlur}, targetProps)}
         type="button"
         aria-label={label}
-        aria-disabled={available ? undefined : true}
-        data-state={available ? undefined : 'off'}
-        className={classNames(styles.button, props.className)}
+        aria-pressed={restores}
+        aria-disabled={active ? undefined : true}
+        data-state={active ? undefined : 'off'}
+        className={styles.button}
         {...press}
       >
-        <Icon name={icon} size={compact ? COMPACT_ICON_SIZE : ICON_SIZE} />
-        <span className={styles.label}>{name}</span>
+        <Icon name={icon} size={compact ? 16 : 18} />
+        {compact ? null : <span className={styles.name}>{name}</span>}
       </button>
       {tooltip}
     </>
-  );
-}
-
-export interface ClearButtonProps {
-  readonly layer: ClearTarget;
-  /** Whether that layer, or for `all` any layer, is on the screens now. */
-  readonly active: boolean;
-  readonly onClear: () => void;
-  /** The current key, as the shortcut table writes it; F1 to F6 by default. */
-  readonly shortcut?: string | undefined;
-}
-
-/**
- * Takes one layer, or every layer, off the screens at once. With nothing to
- * clear it draws the off state and its press and key do nothing.
- */
-export function ClearButton({
-  layer,
-  active,
-  onClear,
-  shortcut,
-}: ClearButtonProps): JSX.Element {
-  const current = useShortcutText(`clear.${layer}`);
-  const face = clearFaces[layer];
-  return (
-    <ClearControl
-      name={face.name}
-      icon={face.icon}
-      label={clearLabel(layer)}
-      shortcut={shortcut ?? current}
-      available={active}
-      onPress={onClear}
-      className={layer === 'all' ? styles.all : undefined}
-    />
   );
 }

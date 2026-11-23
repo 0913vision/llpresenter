@@ -9,7 +9,11 @@ import {
 import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
 import {useShowToolTab} from '@renderer/features/tools/state/showToolTab';
 import {useMacroPalette} from '@renderer/features/tools/state/macroPalette';
-import {SHOW_TOOLS, type ShowTool} from '@renderer/features/tools/showTools';
+import {
+  SHOW_TOOLS,
+  showTool,
+  type ShowTool,
+} from '@renderer/features/tools/showTools';
 import type {Workspace} from './Toolbar';
 import type {WindowShortcut} from '../../platform/windowShortcuts';
 
@@ -111,7 +115,7 @@ function toolRows(
     kind: 'item',
     id: `tool.${tool}`,
     command: toolCommands[tool],
-    label: SHOW_TOOLS.find(entry => entry.value === tool)?.label ?? tool,
+    label: showTool(tool).label,
     ...menuAvailability(
       onWorkspace === undefined ? NOT_IN_THIS_WINDOW : undefined,
     ),

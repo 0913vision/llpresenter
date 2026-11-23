@@ -1,4 +1,6 @@
 .viewport {
+  --inset-end: calc(var(--panel-inset) - var(--size-scrollbar-thumb));
+
   flex: 1;
   min-height: 0;
   overflow: auto;

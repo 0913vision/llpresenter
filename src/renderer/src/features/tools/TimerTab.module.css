@@ -10,6 +10,8 @@
   padding: var(--space-4) var(--panel-inset);
 }
 .list {
+  --inset-end: calc(var(--panel-inset) - var(--size-scrollbar-thumb));
+
   flex: 1;
   min-height: 0;
   overflow: auto;
@@ -26,7 +28,7 @@
 .row {
   height: 100%;
   box-sizing: border-box;
-  padding: var(--space-8) var(--panel-inset);
+  padding: var(--space-8) var(--inset-end) var(--space-8) var(--panel-inset);
   border-bottom: 1px solid var(--line);
 }
 .row:focus-visible {

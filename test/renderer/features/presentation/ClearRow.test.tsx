@@ -6,8 +6,6 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@core/schema/liveCommand';
 import type {LlpApi} from '@contracts/ipc/api';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {cssRules} from '@fixtures/renderer/ui/cssRules';
-import styles from '@renderer/features/presentation/ClearRow.module.css';
 import {useLive} from '@renderer/session/live';
 import {
   hoverForTooltip,
@@ -107,28 +105,27 @@ afterEach(() => {
 });
 
 describe('ClearRow', () => {
-  it('keeps undo and its divider in the row, off, while there is nothing to bring back', () => {
+  it('keeps undo in the row, off, while there is nothing to bring back', () => {
     installApi();
     setCanUndo(false);
     const state = useLive.getState().state;
     render(<ClearRow compact={false} />);
     const group = screen.getByRole('group', {name: '지우기'});
-    expect(group.querySelectorAll('button')).toHaveLength(8);
+    expect(
+      [...group.querySelectorAll('button')].map(button => button.textContent),
+    ).toEqual([
+      '대기 화면',
+      '모두',
+      '가사',
+      '미디어',
+      '그래픽',
+      '오디오',
+      '메시지',
+      '되돌리기',
+    ]);
     const undo = screen.getByRole('button', {name: '되돌리기'});
     expect(undo.getAttribute('aria-disabled')).toBe('true');
     expect(undo.getAttribute('data-state')).toBe('off');
-    const dividers = group.querySelectorAll(':scope > [aria-hidden="true"]');
-    expect(dividers).toHaveLength(2);
-    expect(
-      dividers[0]?.previousElementSibling?.getAttribute('aria-label'),
-    ).toBe('대기 화면으로');
-    expect(dividers[0]?.nextElementSibling?.getAttribute('aria-label')).toBe(
-      '모두 지우기',
-    );
-    expect(dividers[1]?.nextElementSibling?.getAttribute('aria-label')).toBe(
-      '되돌리기',
-    );
-    expect(dividers[0]?.className).toBe(dividers[1]?.className);
     fireEvent.click(undo);
     expect(useLive.getState().state).toBe(state);
     expect(sent).toEqual([]);
@@ -156,20 +153,6 @@ describe('ClearRow', () => {
     expect(screen.getAllByRole('button')).toHaveLength(8);
   });
 
-  it('shows only undo and its divider while a clear can be brought back', () => {
-    installApi();
-    setCanUndo(true);
-    const state = useLive.getState().state;
-    render(<ClearRow compact={false} />);
-    const group = screen.getByRole('group', {name: '지우기'});
-    expect(
-      [...group.querySelectorAll('button')].at(-1)?.getAttribute('aria-label'),
-    ).toBe('되돌리기');
-    expect(group.querySelectorAll('[aria-hidden="true"]')).toHaveLength(2);
-    expect(useLive.getState().state).toBe(state);
-    expect(sent).toEqual([]);
-  });
-
   it('gives each button its shortcut and a tooltip with it', async () => {
     render(<ClearRow compact={false} />);
     const lyrics = screen.getByRole('button', {name: '가사 지우기'});
@@ -190,7 +173,7 @@ describe('ClearRow', () => {
     render(<ClearRow compact={false} />);
     const lyrics = screen.getByRole('button', {name: '가사 지우기'});
     const media = screen.getByRole('button', {name: '미디어 지우기'});
-    expect(lyrics.getAttribute('aria-disabled')).toBe('false');
+    expect(lyrics.getAttribute('aria-disabled')).toBeNull();
     expect(lyrics.getAttribute('data-state')).toBeNull();
     expect(media.getAttribute('aria-disabled')).toBe('true');
     expect(media.getAttribute('data-state')).toBe('off');
@@ -215,7 +198,7 @@ describe('ClearRow', () => {
     useLive.setState({state: {...emptyLiveState(), clearToggles: ['slide']}});
     render(<ClearRow compact={false} />);
     const button = screen.getByRole('button', {name: '가사 되돌리기'});
-    expect(button.getAttribute('aria-disabled')).toBe('false');
+    expect(button.getAttribute('aria-disabled')).toBeNull();
     expect(button.getAttribute('aria-pressed')).toBe('true');
     expect((await hoverForTooltip(button))?.textContent).toBe(
       '가사 되돌리기F2',
@@ -274,22 +257,14 @@ describe('ClearRow', () => {
     expect(screen.getByRole('button', {name: '가사 지우기'})).toBeTruthy();
   });
 
-  it.each([false, true])(
-    'keeps standby apart from the six clears, including without labels (compact: %s)',
-    compact => {
-      render(<ClearRow compact={compact} />);
-      const standby = screen.getByRole('button', {name: '대기 화면으로'});
-      const all = screen.getByRole('button', {name: '모두 지우기'});
-      expect([...standby.classList]).toContain(styles.standby);
-      const divider = standby.nextElementSibling;
-      expect(divider?.className).toBe(styles.divider);
-      expect(divider?.nextElementSibling).toBe(all);
-      const rules = cssRules(
-        'src/renderer/src/features/presentation/ClearRow.module.css',
-      );
-      expect(rules('.row')).toContain('gap: var(--space-4)');
-      expect(rules('.divider')).toContain('background: var(--line)');
-      expect(rules('.compact .standby')).not.toContain('margin');
-    },
-  );
+  it('keeps standby and undo apart from the six clears', () => {
+    render(<ClearRow compact={false} />);
+    const clears = screen.getByRole('button', {
+      name: '모두 지우기',
+    }).parentElement;
+    expect(clears?.querySelectorAll('button')).toHaveLength(6);
+    for (const name of ['대기 화면으로', '되돌리기']) {
+      expect(clears?.contains(screen.getByRole('button', {name}))).toBe(false);
+    }
+  });
 });

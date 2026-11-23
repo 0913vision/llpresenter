@@ -52,7 +52,14 @@ const controls = [
   {
     name: 'clear',
     render: (press: () => void) => (
-      <ClearButton layer="slide" active onClear={press} />
+      <ClearButton
+        name="가사"
+        icon="text"
+        label="가사 지우기"
+        command="clear.slide"
+        active
+        onPress={press}
+      />
     ),
     label: '가사 지우기',
   },

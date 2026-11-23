@@ -1,5 +1,5 @@
 .root {
-  padding: 0 var(--panel-inset);
+  padding: 0 var(--inset-end) 0 var(--panel-inset);
 }
 
 .compose {

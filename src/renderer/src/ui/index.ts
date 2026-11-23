@@ -13,13 +13,7 @@ export {
   type CheckState,
   type CheckboxProps,
 } from './Checkbox';
-export {
-  ClearButton,
-  ClearRow,
-  clearLabel,
-  defaultClearShortcut,
-  type ClearButtonProps,
-} from './ClearButton';
+export {ClearButton, ClearRow, type ClearButtonProps} from './ClearButton';
 export {
   CLICK_FOCUS_ATTRIBUTE,
   CLICK_FOCUS_SELECTOR,

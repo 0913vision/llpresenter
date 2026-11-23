@@ -1,5 +1,7 @@
 import type {JSX} from 'react';
 import {parseScreenId} from '@core/schema/ids';
+import type {Screen} from '@core/schema/screens';
+import {KIND_NAMES} from '@core/screens';
 import {themeScreenOf} from '@core/theme';
 import {useLive, useOutputs} from '@renderer/session/live';
 import {
@@ -20,6 +22,15 @@ import {useSlideTransitionProgress} from './useSlideTransitionProgress';
 import {MISSING_STILL_BACKGROUND_TIP} from '@renderer/platform/problemReasons';
 import {LiveMediaProgress} from './LiveMediaProgress';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
+
+/** 청중, 무대, or 방송, while one screen has the kind. */
+function shortNameOf(
+  kind: Screen['kind'],
+  summaries: ReturnType<typeof useScreenSummaries>,
+): string | undefined {
+  const same = summaries.filter(screen => (screen.kind ?? 'audience') === kind);
+  return same.length === 1 ? KIND_NAMES[kind] : undefined;
+}
 
 const NO_STILL_SCREENS: ReadonlySet<string> = new Set();
 
@@ -87,6 +98,7 @@ function PreviewPanelFrame({
     screen => ({
       id: screen.id,
       name: screen.statusLabel,
+      shortName: shortNameOf(screen.kind ?? 'audience', summaries),
       target: {
         kind: screen.targetKind,
         label: screen.target,

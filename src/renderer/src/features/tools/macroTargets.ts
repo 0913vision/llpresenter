@@ -1,7 +1,7 @@
 import type {ClearTarget} from '@core/schema/live';
 import {messageBlankNames} from '@core/overlays';
 import type {MacroActionKind} from '@core/schema/macros';
-import {clearName} from '@renderer/ui/ClearButton';
+import {clearName} from '@core/live';
 
 export interface MacroTargetChoice {
   readonly id: string;

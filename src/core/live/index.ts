@@ -1,4 +1,9 @@
-export {type ClearButtonSpec, clearButtons, hasSomethingToClear} from './clear';
+export {
+  type ClearButtonSpec,
+  clearButtons,
+  clearName,
+  hasSomethingToClear,
+} from './clear';
 export {interruptsSongOutput} from './interruptsSongOutput';
 export {
   backgroundAudible,

@@ -1,20 +1,21 @@
 import type {JSX} from 'react';
-import {Icon, useTooltip} from '@renderer/ui';
-import {useButtonPress} from '@renderer/ui/press';
-import {withTooltipProps} from '@renderer/ui/Tooltip';
+import {clearButtons, type ClearButtonSpec} from '@core/live';
 import {
   clearLayer,
+  toggleItem,
   undoClear,
   useCanUndo,
-  useSomethingToClear,
   useClearRestores,
-  toggleItem,
+  useSomethingToClear,
 } from '@renderer/session/clear';
 import {useLive} from '@renderer/session/live';
-import {clearButtons, type ClearButtonSpec} from '@core/live';
-import styles from './ClearRow.module.css';
+import {
+  ClearButton,
+  ClearGroup,
+  ClearRow as Row,
+} from '@renderer/ui/ClearButton';
 
-function ItemOffButton({compact}: {readonly compact: boolean}): JSX.Element {
+function StandbyButton(): JSX.Element {
   const hasItem = useLive(
     view =>
       view.state?.item != null || (view.state?.testPatterns?.length ?? 0) > 0,
@@ -24,96 +25,31 @@ function ItemOffButton({compact}: {readonly compact: boolean}): JSX.Element {
       (view.state?.testPatterns?.length ?? 0) === 0 &&
       (view.state?.canRestoreItem ?? false),
   );
-  const active = hasItem || restores;
-  const name = restores ? '항목 되돌리기' : '대기 화면으로';
-  const {targetProps, tooltip} = useTooltip({
-    text: name,
-    command: 'item.stop',
-  });
-  const {onBlur: pressBlur, ...press} = useButtonPress<HTMLButtonElement>({
-    disabled: !active,
-    onPress: toggleItem,
-  });
   return (
-    <>
-      <button
-        {...withTooltipProps({onBlur: pressBlur}, targetProps)}
-        type="button"
-        className={`${styles.button} ${styles.standby}`}
-        aria-label={name}
-        aria-pressed={restores}
-        aria-disabled={!active}
-        data-state={active ? undefined : 'off'}
-        {...press}
-      >
-        <Icon name="slides" size={compact ? 16 : 18} />
-        {compact ? null : <span className={styles.label}>대기 화면</span>}
-      </button>
-      {tooltip}
-    </>
+    <ClearButton
+      name="대기 화면"
+      icon="slides"
+      label={restores ? '항목 되돌리기' : '대기 화면으로'}
+      command="item.stop"
+      active={hasItem || restores}
+      restores={restores}
+      onPress={toggleItem}
+    />
   );
 }
 
-function ClearButton({
-  spec,
-  compact,
-}: {
-  readonly spec: ClearButtonSpec;
-  readonly compact: boolean;
-}): JSX.Element {
-  const active = useSomethingToClear(spec.target);
+function LayerButton({spec}: {readonly spec: ClearButtonSpec}): JSX.Element {
   const restores = useClearRestores(spec.target);
-  const name = `${spec.label} ${restores ? '되돌리기' : '지우기'}`;
-  const classes =
-    spec.target === 'all' ? `${styles.button} ${styles.all}` : styles.button;
-  const {targetProps, tooltip} = useTooltip({
-    text: name,
-    command: spec.command,
-  });
   return (
-    <>
-      <button
-        {...targetProps}
-        type="button"
-        className={classes}
-        aria-label={name}
-        aria-pressed={restores}
-        aria-disabled={!active}
-        data-state={active ? undefined : 'off'}
-        onClick={() => clearLayer(spec.target)}
-      >
-        <Icon name={spec.icon} size={compact ? 16 : 18} />
-        {compact ? null : <span className={styles.label}>{spec.label}</span>}
-      </button>
-      {tooltip}
-    </>
-  );
-}
-
-function UndoButton({compact}: {readonly compact: boolean}): JSX.Element {
-  const active = useCanUndo();
-  const {targetProps, tooltip} = useTooltip({
-    text: '되돌리기',
-    command: 'clear.undo',
-  });
-  return (
-    <>
-      <button
-        {...targetProps}
-        type="button"
-        className={`${styles.button} ${styles.undo}`}
-        aria-label="되돌리기"
-        aria-disabled={!active}
-        data-state={active ? undefined : 'off'}
-        onClick={() => {
-          if (active) undoClear();
-        }}
-      >
-        <Icon name="undo" size={compact ? 16 : 18} />
-        {compact ? null : <span className={styles.label}>되돌리기</span>}
-      </button>
-      {tooltip}
-    </>
+    <ClearButton
+      name={spec.label}
+      icon={spec.icon}
+      label={`${spec.label} ${restores ? '되돌리기' : '지우기'}`}
+      command={spec.command}
+      active={useSomethingToClear(spec.target)}
+      restores={restores}
+      onPress={() => clearLayer(spec.target)}
+    />
   );
 }
 
@@ -121,29 +57,30 @@ function UndoButton({compact}: {readonly compact: boolean}): JSX.Element {
 // bring back, like the buttons that have nothing to clear. Showing it only
 // when it can act made the other buttons shrink and move under the operator's
 // hand (design README, principle 6).
-function UndoControls({compact}: {readonly compact: boolean}): JSX.Element {
+function UndoButton(): JSX.Element {
   return (
-    <>
-      <span className={styles.divider} aria-hidden="true" />
-      <UndoButton compact={compact} />
-    </>
+    <ClearButton
+      name="되돌리기"
+      icon="undo"
+      label="되돌리기"
+      command="clear.undo"
+      active={useCanUndo()}
+      onPress={undoClear}
+    />
   );
 }
 
-/** The 지우기 row; 되돌리기 is off until a clear can be brought back. */
+/** The 지우기 row of 진행, on the live output. */
 export function ClearRow({compact}: {readonly compact: boolean}): JSX.Element {
   return (
-    <div
-      role="group"
-      aria-label="지우기"
-      className={compact ? `${styles.row} ${styles.compact}` : styles.row}
-    >
-      <ItemOffButton compact={compact} />
-      <span className={styles.divider} aria-hidden="true" />
-      {clearButtons.map(spec => (
-        <ClearButton key={spec.target} spec={spec} compact={compact} />
-      ))}
-      <UndoControls compact={compact} />
-    </div>
+    <Row compact={compact}>
+      <StandbyButton />
+      <ClearGroup>
+        {clearButtons.map(spec => (
+          <LayerButton key={spec.target} spec={spec} />
+        ))}
+      </ClearGroup>
+      <UndoButton />
+    </Row>
   );
 }

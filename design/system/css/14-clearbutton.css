@@ -1,38 +1,32 @@
-/* 14 ClearButton: the 지우기 row in the 진행 workspace. Button 52, caption-strong name under an 18 icon. Narrow window: 40, icon only */
+/* 14 ClearButton: the 지우기 row in the 진행 workspace. Button 52, label name under an 18 icon. Narrow window: 40, icon only */
 .ll-clear-row {
-  box-sizing: border-box; display: flex; flex: none; align-items: center; gap: var(--space-4);
-  padding: var(--space-8); border-radius: var(--radius-lg); background: var(--bg-panel);
+  box-sizing: border-box; display: flex; flex: none; gap: var(--space-12);
+  padding: var(--space-8) var(--panel-inset); border-radius: var(--radius-lg); background: var(--bg-panel);
 }
-.ll-clear-row__divider { flex: none; width: 1px; height: 32px; margin: 0 var(--space-4); background: var(--line); }
+.ll-clear-row__group { display: grid; flex: 1 1 auto; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: var(--space-4); min-width: 0; }
 
 .ll-clear, :is(.ll-root, .ll-preview) .ll-clear {
-  box-sizing: border-box; position: relative; display: flex; flex: 1 1 0; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-4);
-  height: var(--size-clear-button); min-width: 0; margin: 0; padding: 0;
+  box-sizing: border-box; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-4);
+  height: var(--size-clear-button); min-width: 0; margin: 0; padding: 0 var(--space-4);
   border: 0; border-radius: var(--radius-md); background: var(--bg-control); color: var(--text);
-  font: var(--type-caption-strong); white-space: nowrap;
+  font: var(--type-label); white-space: nowrap;
   cursor: default; user-select: none; -webkit-user-select: none;
-  transition: background-color 100ms ease-out, color 100ms ease-out;
+  transition: background-color 100ms ease-out;
 }
 .ll-clear .ll-i { width: var(--size-icon-18); height: var(--size-icon-18); }
 .ll-clear__label { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
-.ll-clear.ll-clear--all { flex-grow: 1.4; }
-
-/* Undo does a different job from 지우기, so its background is one step lower */
-.ll-clear.ll-clear--undo { background: var(--bg-toolbar-hover); }
-
 .ll-clear:not([data-state="off"], :disabled, [aria-disabled="true"]):is(:hover, .is-hover, :active, .is-active) { background: var(--bg-control-hover); }
 .ll-clear:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .ll-clear:focus:not(:focus-visible) { outline: none; }
 
 /* Nothing to clear (or undo): a click changes nothing, so there is no hover */
-.ll-clear.ll-clear[data-state="off"] { background: var(--bg-control-off); color: var(--text-off); }
-.ll-clear.ll-clear--undo[data-state="off"] { background: var(--bg-toolbar-hover); }
+.ll-clear.ll-clear[data-state="off"] { color: var(--text-off); }
+.ll-clear.ll-clear[data-state="off"] .ll-clear__label { color: var(--text-3); }
 
 /* Narrow window: the name moves to the tooltip and aria-label */
 .ll-clear-row.ll-clear-row--compact { padding: var(--space-6); }
 .ll-clear-row--compact .ll-clear.ll-clear { height: var(--size-toolbar-compact); gap: 0; }
 .ll-clear-row--compact .ll-clear .ll-i { width: var(--size-icon-16); height: var(--size-icon-16); }
 .ll-clear-row--compact .ll-clear__label { display: none; }
-.ll-clear-row--compact .ll-clear-row__divider { height: 24px; margin: 0 var(--space-2); }
 
 @media (prefers-reduced-motion: reduce) { .ll-clear, :is(.ll-root, .ll-preview) .ll-clear { transition: none; } }

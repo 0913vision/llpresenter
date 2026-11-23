@@ -15,19 +15,17 @@ The clear row removes a layer or all layers from the output screens.
 
 ## Anatomy
 
-- Row: background `bg-panel`, corner radius `radius-lg`, padding `space-8`, gap between buttons `space-4`. The row is a panel of its own and has no header.
-- Order: standby, then all, slide, media, prop, audio, and message.
-- Button: height `size-clear-button` (52px), corner radius `radius-md`, name `caption-strong` (16/22/600) under an icon `size-icon-18`, gap `space-4`. Buttons share the row width (flex 1). 모두 is 1.4 times as wide.
-- 대기 화면: flex 1.4 with at least its label's width. In the narrow row it returns to flex 1 with no minimum width. The `space-12` group gap stays at every width, so the icon-only row keeps the distinction.
-- Narrow window: row padding `space-6`, button height 40, icon `size-icon-16` only, no name. All stays 1.4 times as wide.
+- Row: background `bg-panel`, corner radius `radius-lg`, padding `space-8` by `panel-inset`, so its buttons begin and end on the lines of the panels around it. The row is a panel of its own and has no header.
+- Order: 대기 화면, the six clears (모두, 가사, 미디어, 그래픽, 오디오, 메시지), 되돌리기. The clears are one group with `space-4` between them; `space-12` sets 대기 화면 and 되돌리기 apart. There are no dividers.
+- Button: height `size-clear-button` (52px), corner radius `radius-md`, background `bg-control`, name `label` under an icon `size-icon-18`, gap `space-4`. The clears are equally wide; 대기 화면 and 되돌리기 are as wide as their names.
+- The group gap stays at every width, so the icon-only row keeps the distinction.
+- Narrow window: row padding `space-6`, button height 40, icon `size-icon-16` only, no name.
 
 ## Sizes and variants
 
 | Name | Height | Text | Where to use |
 | --- | --- | --- | --- |
-| 지우기 | `size-clear-button` 52 | `caption-strong` | Regular window (column `col-right` 480) |
-| 대기 화면 | 52, 1.4 times as wide, at least its label | `caption-strong` | First place, before the group gap |
-| 모두 | 52, 1.4 times as wide | `caption-strong` | First of the six clears |
+| 지우기 | `size-clear-button` 52 | `label` | Regular window (column `col-right` 480) |
 | Compact | 40 | No name (icon 16) | Narrow window (column `col-right-compact` 360) |
 
 ## States
@@ -36,7 +34,7 @@ The clear row removes a layer or all layers from the output screens.
 | --- | --- | --- | --- |
 | Something to clear | `bg-control` | `text` | That layer is on the screens now |
 | Hover, pressed | `bg-control-hover` | `text` | 100ms ease-out |
-| Nothing to clear | `bg-control-off` | `text-off` | No hover, a click does nothing |
+| Nothing to clear | `bg-control` | Icon `text-off`, name `text-3` | No hover, a click does nothing |
 | Focus | Unchanged | Unchanged | `outline: 2px solid accent`, offset 1px, on keyboard focus only |
 
 Don't use red because a layer is live. Show only whether there is something to clear, with brightness.
@@ -60,13 +58,16 @@ Don't use red because a layer is live. Show only whether there is something to c
 
 ```jsx
 <ClearRow compact={narrow}>
-  <ClearButton layer="all" active={anyOn} onClear={clearAll} />
-  <ClearButton layer="slide" active={on.slide} onClear={() => clear('slide')} />
-  …
+  <ClearButton name="대기 화면" icon="slides" label="대기 화면으로" command="item.stop" active={on} onPress={stop} />
+  <ClearGroup>
+    <ClearButton name="가사" icon="text" label="가사 지우기" command="clear.slide" active={on.slide} onPress={() => clear('slide')} />
+    …
+  </ClearGroup>
+  <ClearButton name="되돌리기" icon="undo" label="되돌리기" command="clear.undo" active={canUndo} onPress={undo} />
 </ClearRow>
 ```
 
-- `layer` (`all`, `slide`, `media`, `prop`, `audio`, `message`, the shared `ClearTarget`) sets the icon, the name, and the default shortcut (see the lists above). Pass `shortcut` with the current key when the 단축키 page changed it. With `active={false}`, the button draws `data-state="off"` and `aria-disabled`.
+- The row knows no layer: the caller gives each button its name, its icon, what a press does, and its command. The tooltip shows the current key of the command. With `active={false}`, the button draws `data-state="off"` and `aria-disabled`.
 
 ```html
 <button class="ll-clear" aria-label="가사 지우기" aria-keyshortcuts="F2">

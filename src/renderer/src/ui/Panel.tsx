@@ -327,13 +327,16 @@ export function PanelTools({
 }
 
 /** A body with 14px padding, a list body, or a body with no padding. */
-export type PanelBodyVariant = 'padded' | 'list' | 'properties' | 'flush';
+/** `fixed` does not scroll; what is in it does. */
+export type PanelBodyVariant =
+  'padded' | 'list' | 'properties' | 'flush' | 'fixed';
 
 const bodyClass = {
   padded: undefined,
   list: styles.list,
   properties: styles.properties,
   flush: styles.flush,
+  fixed: styles.fixed,
 } as const satisfies Record<PanelBodyVariant, string | undefined>;
 
 /** The scrolling body. With `tab`, it is the tab panel of that tab. */

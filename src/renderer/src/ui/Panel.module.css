@@ -185,6 +185,12 @@
   padding-left: var(--space-8);
 }
 
+/* NOTE(0913vision): A choice has a box, so its edge is on the line of the
+   panel's other boxes; a button alone keeps its icon there. */
+.actions:has(> [role='radiogroup']:last-child) {
+  margin-right: calc(var(--panel-inset) - var(--space-8));
+}
+
 .tools {
   display: flex;
   flex: none;
@@ -200,9 +206,16 @@
 .body {
   flex: 1 1 auto;
   min-height: 0;
-  padding: var(--panel-inset);
+  padding: var(--panel-inset) var(--inset-end) var(--panel-inset)
+    var(--panel-inset);
   overflow: auto;
   scrollbar-gutter: stable;
+}
+
+/* NOTE(0913vision): The room of the scroll bar is part of the inset, so what
+   scrolls ends on the same line as what does not. */
+.body {
+  --inset-end: calc(var(--panel-inset) - var(--size-scrollbar-thumb));
 }
 
 .list {
@@ -214,11 +227,19 @@
 }
 
 .properties {
-  padding: 0 var(--panel-inset);
+  padding: 0 var(--inset-end) 0 var(--panel-inset);
 }
 
 .flush {
   padding: 0;
+}
+
+.fixed {
+  --inset-end: var(--panel-inset);
+
+  padding: 0;
+  overflow: hidden;
+  scrollbar-gutter: auto;
 }
 
 .footer {

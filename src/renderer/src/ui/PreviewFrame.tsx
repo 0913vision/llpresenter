@@ -33,6 +33,8 @@ export interface PreviewScreen<Id extends string> {
   readonly id: Id;
   /** 청중 화면, 무대 화면, or 방송 화면. */
   readonly name: string;
+  /** 청중, 무대, or 방송, for a choice among them. */
+  readonly shortName?: string | undefined;
   /** Where it goes out; absent for a picture that goes nowhere, as in 준비. */
   readonly target?: PreviewTarget | undefined;
   readonly status: PreviewStatus;

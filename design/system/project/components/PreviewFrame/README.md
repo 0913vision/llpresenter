@@ -22,10 +22,9 @@ their editing canvases instead.
 
 ## Layout selector
 
-The selector sits at the right end of the preview header. It has exactly two
-choices: `한 화면` shows one large screen and the screen picker below it;
-`세 화면` shows one large screen and the other two as small tiles.
-Selecting a screen does not change the layout.
+One choice sits at the right end of the preview header: the short name of each
+screen (청중, 무대, 방송) shows that screen alone, and 전체 shows one large
+screen with the other two as small tiles.
 
 ## Anatomy
 

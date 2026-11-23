@@ -4,7 +4,7 @@ import {useShowToolTab} from '@renderer/features/tools/state/showToolTab';
 import {Panel, PanelBody, PanelHeader} from '@renderer/ui/Panel';
 import {ResponsivePanelTabs} from '@renderer/ui/ResponsivePanelTabs';
 import type {Notice} from '@renderer/ui/notices';
-import {AVAILABLE_TOOL_TABS} from './showTools';
+import {SHOW_TOOLS, showTool} from './showTools';
 import {AudioTab} from './AudioTab';
 import {StageTab} from './StageTab';
 import {MessageTab} from './MessageTab';
@@ -22,22 +22,24 @@ export function ShowToolsPanel({
 }): JSX.Element {
   const tool = useShowToolTab(state => state.tool);
   const setTool = useShowToolTab(state => state.setTool);
-  const selected = AVAILABLE_TOOL_TABS.some(tab => tab.value === tool)
-    ? tool
-    : 'stage';
+  const selectedTab = showTool(tool);
+  const selected = selectedTab.value;
 
   return (
     <div className={styles.root}>
       <Panel label="진행 도구" className={styles.panel}>
         <PanelHeader>
           <ResponsivePanelTabs
-            tabs={AVAILABLE_TOOL_TABS}
+            tabs={SHOW_TOOLS}
             value={selected}
             onChange={setTool}
             moreLabel="더 보기"
           />
         </PanelHeader>
-        <PanelBody variant="flush" tab={selected}>
+        <PanelBody
+          variant={selectedTab.scrolls ? 'flush' : 'fixed'}
+          tab={selected}
+        >
           {selected === 'audio' ? <AudioTab onProblem={onProblem} /> : null}
           {selected === 'stage' ? <StageTab onProblem={onProblem} /> : null}
           {selected === 'timer' ? <TimerTab onProblem={onProblem} /> : null}

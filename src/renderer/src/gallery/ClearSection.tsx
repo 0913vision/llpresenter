@@ -1,21 +1,13 @@
 import type {JSX} from 'react';
 import type {ClearTarget} from '@core/schema/live';
-import {ClearButton, ClearRow} from '../ui/ClearButton';
+import {clearButtons} from '@core/live';
+import {ClearButton, ClearGroup, ClearRow} from '../ui/ClearButton';
 import {ignore, Section, SpecGroup, SpecItem, type SpecPin} from './Spec';
 
 const ROW_WIDTH = 480;
 const COMPACT_ROW_WIDTH = 360;
 const SINGLE_WIDTH = 60;
 const SINGLE_BOX = {display: 'flex', width: '100%'} as const;
-
-const layers: readonly ClearTarget[] = [
-  'all',
-  'slide',
-  'media',
-  'prop',
-  'audio',
-  'message',
-];
 
 function Row({
   isActive,
@@ -26,14 +18,19 @@ function Row({
 }): JSX.Element {
   return (
     <ClearRow compact={compact}>
-      {layers.map(layer => (
-        <ClearButton
-          key={layer}
-          layer={layer}
-          active={isActive(layer)}
-          onClear={ignore}
-        />
-      ))}
+      <ClearGroup>
+        {clearButtons.map(spec => (
+          <ClearButton
+            key={spec.target}
+            name={spec.label}
+            icon={spec.icon}
+            label={`${spec.label} 지우기`}
+            command={spec.command}
+            active={isActive(spec.target)}
+            onPress={ignore}
+          />
+        ))}
+      </ClearGroup>
     </ClearRow>
   );
 }
@@ -58,7 +55,14 @@ const singleStates: readonly SingleState[] = [
 function Single({state}: {readonly state: SingleState}): JSX.Element {
   return (
     <div style={SINGLE_BOX}>
-      <ClearButton layer="slide" active={state.available} onClear={ignore} />
+      <ClearButton
+        name="가사"
+        icon="text"
+        label="가사 지우기"
+        command="clear.slide"
+        active={state.available}
+        onPress={ignore}
+      />
     </div>
   );
 }
@@ -67,17 +71,14 @@ export function ClearSection(): JSX.Element {
   return (
     <Section title="ClearButton">
       <SpecGroup
-        title="지우기 row, regular window (column 480), padding 8, gap 4, 모두 at 1.4×"
+        title="지우기 row, regular window (column 480), panel inset, gap 4"
         alignTop
       >
         <SpecItem label="Live, nothing to clear in 오디오" width={ROW_WIDTH}>
           <Row isActive={layer => !quietLayers.has(layer)} />
         </SpecItem>
       </SpecGroup>
-      <SpecGroup
-        title="Single button, 52, caption-strong under icon 18"
-        surface="panel"
-      >
+      <SpecGroup title="Single button, 52, label under icon 18" surface="panel">
         {singleStates.map(state => (
           <SpecItem
             key={state.label}

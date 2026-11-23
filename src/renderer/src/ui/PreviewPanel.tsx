@@ -9,6 +9,8 @@ import {PreviewSizingContext} from './PreviewSizingContext';
 import {ResizeGap} from './ResizeGap';
 import {clampPreviewRatio, DEFAULT_PREVIEW_RATIO} from './previewRatio';
 
+const ALL_SCREENS = 'all';
+
 function extraHeight(anchor: HTMLElement): number {
   let height = 0;
   for (const row of anchor.querySelectorAll('[data-preview-extra]')) {
@@ -47,19 +49,23 @@ export function PreviewPanel<Id extends string>({
         <PanelTitle title="미리보기" />
         {onVisibleChange === undefined ? null : (
           <PanelActions>
-            <SegmentedControl
-              label="미리보기 배치"
+            <SegmentedControl<Id | typeof ALL_SCREENS>
+              label="미리보기 화면"
               options={[
-                {value: 'single', label: '한 화면'},
-                {value: 'main', label: '세 화면'},
+                ...frame.screens.map(({id, shortName, name}) => ({
+                  value: id,
+                  label: shortName ?? name,
+                })),
+                {value: ALL_SCREENS, label: '전체'},
               ]}
-              value={visible ? 'main' : 'single'}
+              value={visible ? ALL_SCREENS : frame.big}
               onChange={value => {
-                const nextVisible = value === 'main';
-                if (nextVisible === visible) return;
+                const all = value === ALL_SCREENS;
+                if (!all) frame.onBigChange(value);
+                if (all === visible) return;
                 setDragRatio(null);
                 sizing?.save(DEFAULT_PREVIEW_RATIO);
-                onVisibleChange(nextVisible);
+                onVisibleChange(all);
               }}
             />
           </PanelActions>
@@ -126,15 +132,6 @@ export function PreviewPanel<Id extends string>({
             }
           />
         </div>
-        {!visible && !blank && frame.screens.length > 1 ? (
-          <div className={styles.picker} data-preview-extra>
-            <PreviewScreenPicker
-              screens={frame.screens}
-              big={frame.big}
-              onChange={frame.onBigChange}
-            />
-          </div>
-        ) : null}
         {children}
       </div>
     </Panel>

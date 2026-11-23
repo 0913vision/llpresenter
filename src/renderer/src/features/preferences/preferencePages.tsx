@@ -2,7 +2,7 @@ import {useContext, useEffect, useState, type JSX} from 'react';
 import {LoadReadinessContext} from '@renderer/ui/loadReadiness';
 import type {PreferencePageId} from '@core/schema/preferencePages';
 import {CLEAR_FADE_LIMIT_MS, DEFAULT_CLEAR_FADE} from '@core/schema/clearFade';
-import {clearName} from '@renderer/ui/ClearButton';
+import {clearName} from '@core/live';
 import {UI_ZOOM} from '@core/schema/uiZoom';
 import {lastBackupText} from './lastBackupText';
 import {

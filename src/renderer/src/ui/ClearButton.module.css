@@ -1,65 +1,63 @@
 .row {
+  container-type: inline-size;
   display: flex;
-  width: 100%;
   flex: none;
-  align-items: center;
-  gap: var(--space-4);
-  padding: var(--space-8);
+  gap: var(--space-12);
+  padding: var(--space-8) var(--panel-inset);
   border-radius: var(--radius-lg);
   background: var(--bg-panel);
 }
 
-.button {
-  --clear-all-share: 1.4;
+.group {
+  display: grid;
+  flex: 1 1 auto;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
 
-  position: relative;
+.button {
   display: flex;
-  flex: 1 1 0;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: var(--space-4);
-  height: var(--size-clear-button);
   min-width: 0;
-  padding: 0;
+  height: var(--size-clear-button);
+  padding: 0 var(--space-4);
   border: 0;
   border-radius: var(--radius-md);
   background: var(--bg-control);
   color: var(--text);
-  font: var(--type-caption-strong);
+  font: var(--type-label);
   white-space: nowrap;
   user-select: none;
 }
 
 /* NOTE(0913vision): Only the pointer's look fades; a state change shows at
-   once. */
-.button:hover,
-.button:active {
-  transition:
-    background-color var(--motion-hover),
-    color var(--motion-hover);
-}
-
-.label {
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.all {
-  flex-grow: var(--clear-all-share);
-}
-
+   once, both where it starts and where it ends. */
 .button:not([data-state='off']):is(:hover, :active) {
   background: var(--bg-control-hover);
+  transition: background-color var(--motion-hover);
+}
+
+.button[aria-pressed='true'] {
+  background: var(--bg-control-hover);
+  transition: none;
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
 }
 
 .button[data-state='off'] {
-  background: var(--bg-control-off);
   color: var(--text-off);
+  cursor: default;
 }
 
-.button[data-state='off'] .label {
+.button[data-state='off'] .name {
   color: var(--text-3);
 }
 
@@ -68,10 +66,15 @@
 }
 
 .compact .button {
-  gap: 0;
-  height: var(--size-toolbar-compact);
+  height: var(--size-clear-button-compact);
 }
 
-.compact .label {
-  display: none;
+@container (max-width: 400px) {
+  .button {
+    height: var(--size-clear-button-compact);
+  }
+
+  .name {
+    display: none;
+  }
 }

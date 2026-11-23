@@ -9,9 +9,9 @@ import {clampPreviewRatio} from '@renderer/ui/previewRatio';
 vi.mock('@renderer/ui/usePreviewRoom', () => ({usePreviewRoom: vi.fn()}));
 
 const screens: ReadonlyArray<PreviewScreen<string>> = [
-  {id: 'audience', name: '청중 화면', status: {kind: 'on'}},
-  {id: 'stage', name: '무대 화면', status: {kind: 'on'}},
-  {id: 'broadcast', name: '방송 화면', status: {kind: 'on'}},
+  {id: 'audience', name: '청중 화면', shortName: '청중', status: {kind: 'on'}},
+  {id: 'stage', name: '무대 화면', shortName: '무대', status: {kind: 'on'}},
+  {id: 'broadcast', name: '방송 화면', shortName: '방송', status: {kind: 'on'}},
 ];
 
 beforeEach(() => {
@@ -20,14 +20,15 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe('shared preview panel', () => {
-  it('shows one picture with its screen picker below in the original layout', () => {
+  it('shows one picture, chosen in the header', () => {
     const select = vi.fn();
+    const change = vi.fn();
     const {container} = render(
       <PreviewPanel
         screens={screens}
         big="audience"
         visible={false}
-        onVisibleChange={vi.fn()}
+        onVisibleChange={change}
         onBigChange={select}
         renderScreen={entry => <span>{entry.id}</span>}
       />,
@@ -36,29 +37,37 @@ describe('shared preview panel', () => {
       container.querySelector('[data-role="large"]')?.textContent,
     ).toContain('audience');
     expect(container.querySelectorAll('[data-preview-slot]')).toHaveLength(0);
-    const picker = screen.getByRole('radiogroup', {name: '미리보기 화면'});
     expect(
-      container.querySelector('[data-preview-extra]')?.contains(picker),
-    ).toBe(true);
-    fireEvent.click(screen.getByRole('radio', {name: '무대 화면'}));
+      screen.getAllByRole('radio').map(radio => radio.textContent),
+    ).toEqual(['청중', '무대', '방송', '전체']);
+    expect(
+      screen.getByRole('radio', {name: '청중'}).getAttribute('aria-checked'),
+    ).toBe('true');
+    fireEvent.click(screen.getByRole('radio', {name: '무대'}));
     expect(select).toHaveBeenCalledWith('stage');
-    expect(screen.queryByRole('radio', {name: '3개 작게'})).toBeNull();
+    expect(change).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('radio', {name: '전체'}));
+    expect(change).toHaveBeenCalledExactlyOnceWith(true);
   });
-  it('offers two named layout modes for live previews', () => {
+  it('goes from the three screens to the one that is chosen', () => {
     const change = vi.fn();
+    const select = vi.fn();
     render(
       <PreviewPanel
         screens={screens}
         big="audience"
         visible
         onVisibleChange={change}
-        onBigChange={vi.fn()}
+        onBigChange={select}
         renderScreen={() => null}
       />,
     );
-    fireEvent.click(screen.getByRole('radio', {name: '한 화면'}));
+    expect(
+      screen.getByRole('radio', {name: '전체'}).getAttribute('aria-checked'),
+    ).toBe('true');
+    fireEvent.click(screen.getByRole('radio', {name: '무대'}));
+    expect(select).toHaveBeenCalledWith('stage');
     expect(change).toHaveBeenCalledWith(false);
-    expect(screen.getByRole('radio', {name: '세 화면'})).toBeDefined();
   });
   it('keeps adjustable show tiles and resets the saved split on double click', () => {
     vi.mocked(usePreviewRoom).mockReturnValue(false);
@@ -140,11 +149,11 @@ describe('shared preview panel', () => {
       </PreviewSizingContext.Provider>
     );
     const view = render(panel(true));
-    fireEvent.click(screen.getByRole('radio', {name: '한 화면'}));
+    fireEvent.click(screen.getByRole('radio', {name: '청중'}));
     expect(save).toHaveBeenLastCalledWith(0.667);
     expect(change).toHaveBeenLastCalledWith(false);
     view.rerender(panel(false));
-    fireEvent.click(screen.getByRole('radio', {name: '세 화면'}));
+    fireEvent.click(screen.getByRole('radio', {name: '전체'}));
     expect(save).toHaveBeenCalledTimes(2);
     expect(save).toHaveBeenLastCalledWith(0.667);
     expect(change).toHaveBeenLastCalledWith(true);

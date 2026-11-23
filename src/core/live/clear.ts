@@ -62,6 +62,11 @@ export const clearButtons: readonly ClearButtonSpec[] = [
   },
 ];
 
+/** The one-word name of a layer on its 지우기 button. */
+export function clearName(target: ClearTarget): string {
+  return clearButtons.find(button => button.target === target)?.label ?? '';
+}
+
 /** Whether a layer, or any layer for 모두, holds something to clear. */
 export function hasSomethingToClear(
   layers: LiveLayers,
