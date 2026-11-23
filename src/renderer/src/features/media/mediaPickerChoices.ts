@@ -106,3 +106,28 @@ export function pickerChoices({
     found: term !== '' && matches.length > 0,
   };
 }
+
+/**
+ * Where row `index` of the picker starts, in pixels: the rows above it, the
+ * divider under the special choices, and the group headings above it.
+ */
+export function pickerRowTop(
+  index: number,
+  {
+    row,
+    gap,
+    specialCount,
+    groups,
+  }: {
+    readonly row: number;
+    readonly gap: number;
+    readonly specialCount: number;
+    readonly groups: ReadonlyArray<{readonly index: number}>;
+  },
+): number {
+  return (
+    index * row +
+    (index >= specialCount ? gap : 0) +
+    groups.filter(group => group.index <= index).length * row
+  );
+}

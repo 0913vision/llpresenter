@@ -10,8 +10,10 @@ import {
   choiceLabel,
   isChosenChoice,
   pickerChoices,
+  pickerRowTop,
   searchName,
   type MediaPickerItem,
+  type PickerChoice,
 } from './mediaPickerChoices';
 import {Icon} from '@renderer/ui/Icon';
 import {classNames} from '@renderer/ui/classNames';
@@ -67,6 +69,65 @@ interface PickerProps {
   readonly onClose: (restore: boolean) => void;
 }
 
+/** One row of the picker: a check when chosen, the kind of media, and its name. */
+function PickerOption({
+  item,
+  index,
+  count,
+  id,
+  name,
+  checked,
+  detail,
+  top,
+  press,
+  onPoint,
+}: {
+  readonly item: PickerChoice;
+  readonly index: number;
+  readonly count: number;
+  readonly id: string;
+  readonly name: string;
+  readonly checked: boolean;
+  /** What the default choice stands for, shown after its name. */
+  readonly detail: string | undefined;
+  readonly top: number;
+  readonly press: ReturnType<typeof useButtonPress<HTMLButtonElement>>;
+  readonly onPoint: () => void;
+}): JSX.Element {
+  return (
+    <button
+      {...press}
+      type="button"
+      role="option"
+      aria-label={name}
+      aria-description={detail}
+      id={id}
+      tabIndex={-1}
+      aria-selected={checked}
+      aria-posinset={index + 1}
+      aria-setsize={count}
+      className={classNames(menu.item, styles.option)}
+      data-index={index}
+      style={{top}}
+      onPointerMove={onPoint}
+      onMouseDown={event => event.preventDefault()}
+    >
+      <span className={menu.lead}>
+        {checked ? <Icon name="check" size={14} /> : null}
+      </span>
+      {item == null ? null : item.kind === 'fill' ? (
+        <span className={styles.paint} style={{background: item.paint}} />
+      ) : (
+        <Icon name={item.kind === 'video' ? 'film' : item.kind} size={14} />
+      )}
+      <span className={menu.label}>{name}</span>
+      {detail === undefined ? null : (
+        <span className={classNames(menu.meta, styles.detail)}>{detail}</span>
+      )}
+    </button>
+  );
+}
+
 /** Keeps the full media list keyboard reachable while mounting a small window. */
 export function MediaPicker({
   allowNone = true,
@@ -100,8 +161,8 @@ export function MediaPicker({
   const [top, setTop] = useState(0);
   const [row, setRow] = useState(0);
   const [gap, setGap] = useState(0);
-  const groupOffset = (index: number): number =>
-    groups.filter(group => group.index <= index).length * row;
+  const rowTop = (index: number): number =>
+    pickerRowTop(index, {row, gap, specialCount, groups});
   const separator = useRef<HTMLDivElement>(null);
   const separated =
     defaultChoice !== undefined && choices.length > specialCount;
@@ -137,9 +198,7 @@ export function MediaPicker({
       element.scrollTop =
         active === 0
           ? 0
-          : active * row +
-            (active >= specialCount ? nextGap : 0) +
-            groups.filter(group => group.index <= active).length * row;
+          : pickerRowTop(active, {row, gap: nextGap, specialCount, groups});
       setTop(element.scrollTop);
     }
   }, [active, row, surface, separated, gap, groups, specialCount]);
@@ -148,8 +207,7 @@ export function MediaPicker({
     const element = viewport.current;
     if (element === null) return;
     const height = element.clientHeight || row * VISIBLE_ROWS;
-    const y =
-      index * row + (index >= specialCount ? gap : 0) + groupOffset(index);
+    const y = rowTop(index);
     if (index === 0) element.scrollTop = 0;
     else if (y < element.scrollTop) element.scrollTop = y;
     else if (y + row > element.scrollTop + height) {
@@ -206,49 +264,20 @@ export function MediaPicker({
       : undefined;
   const option = (index: number): JSX.Element => {
     const item = choices[index];
-    const checked = isChosenChoice(item, selected, specials);
-    const name = choiceLabel(item, specials);
     return (
-      <button
-        {...optionPress}
+      <PickerOption
         key={item === null ? 'explicit-none' : (item?.id ?? 'default')}
-        type="button"
-        role="option"
-        aria-label={name}
-        aria-description={
-          item === undefined ? defaultChoice?.detail : undefined
-        }
+        item={item}
+        index={index}
+        count={choices.length}
         id={`${id}-${index}`}
-        tabIndex={-1}
-        aria-selected={checked}
-        aria-posinset={index + 1}
-        aria-setsize={choices.length}
-        className={classNames(menu.item, styles.option)}
-        data-index={index}
-        style={{
-          top:
-            index * row +
-            (index >= specialCount ? gap : 0) +
-            groupOffset(index),
-        }}
-        onPointerMove={() => setActive(index)}
-        onMouseDown={event => event.preventDefault()}
-      >
-        <span className={menu.lead}>
-          {checked ? <Icon name="check" size={14} /> : null}
-        </span>
-        {item == null ? null : item.kind === 'fill' ? (
-          <span className={styles.paint} style={{background: item.paint}} />
-        ) : (
-          <Icon name={item.kind === 'video' ? 'film' : item.kind} size={14} />
-        )}
-        <span className={menu.label}>{name}</span>
-        {item === undefined && defaultChoice !== undefined ? (
-          <span className={classNames(menu.meta, styles.detail)}>
-            {defaultChoice.detail}
-          </span>
-        ) : null}
-      </button>
+        name={choiceLabel(item, specials)}
+        checked={isChosenChoice(item, selected, specials)}
+        detail={item === undefined ? defaultChoice?.detail : undefined}
+        top={rowTop(index)}
+        press={optionPress}
+        onPoint={() => setActive(index)}
+      />
     );
   };
   return (
