@@ -4,7 +4,6 @@ import {insertLibrarySong} from '@renderer/session/insertNewItem';
 import {usePaletteInsert} from '../items/usePaletteInsert';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {useReflow} from '@renderer/ui/useReflow';
-import {orderedSelection} from '@core/common/selectionOrder';
 import {useOrderFull} from '@renderer/session/orderFull';
 import {
   moveItems as moveOrderItems,
@@ -21,10 +20,10 @@ import {
 } from '@renderer/ui/contextMenu';
 import {useEffect, useMemo, useRef, useState, type JSX} from 'react';
 import {createServiceItemId, type SongId} from '@core/schema/ids';
-import {editorTask} from '@renderer/platform/editorTask';
 import {hasModifier} from '@renderer/ui/modifierKeys';
 import {useOrderEdits} from './useOrderEdits';
 import {useOrderRename} from './useOrderRename';
+import {orderMenuEntries} from './orderMenuEntries';
 import {useOrderShortcuts} from './useOrderShortcuts';
 import {useOrderResizeFocus} from './useOrderResizeFocus';
 import {useOrderFollow} from './useOrderFollow';
@@ -41,14 +40,12 @@ import type {Workspace} from '@renderer/ui/workspace';
 import {useServiceOrderEditing} from '@renderer/session/useServiceOrderEditing';
 import {useServiceItemSelection} from './useServiceItemSelection';
 import {useServiceItemClipboard} from './useServiceItemClipboard';
-import {fitOrderMenu, serviceOrderMenuEntries} from './serviceOrderMenu';
 import type {ServiceTableParts} from './serviceTableParts';
 import {useServiceSongMenu} from './useServiceSongMenu';
-import type {MenuEntry} from '@renderer/ui/menuModel';
 import {serviceOrderRowId, useServiceOrderDrag} from './useServiceOrderDrag';
 import {useMediaDurations} from '../../media/useMediaDurations';
 import {ItemRows, type RowContext} from './ItemRows';
-import {canMoveItems, groupRows, itemNumbers, rowsOfMenu} from './orderRows';
+import {groupRows, itemNumbers, rowsOfMenu} from './orderRows';
 import {useLiveItemId} from './useLiveItemId';
 import styles from './ServiceOrderList.module.css';
 
@@ -260,84 +257,6 @@ export function ServiceOrderList({
     return true;
   };
 
-  const menuEntries = (
-    target: NonNullable<typeof menu>,
-  ): readonly MenuEntry[] => {
-    const row = rows.find(value => value.id === target.id);
-    if (row === undefined) return [];
-    const ids = edits.targets(target.id);
-    const count = ids.length;
-    const closing = (run: () => void) => (): void => {
-      run();
-      setMenu(null);
-    };
-    const entries: readonly MenuEntry[] = [
-      ...serviceOrderMenuEntries({
-        row,
-        editable,
-        editSong:
-          workspace === 'prep'
-            ? {
-                editSong: closing(() => openOrderEditor(target.id)),
-              }
-            : undefined,
-        song: {
-          save: songMenu.save,
-          reload: songMenu.reload,
-          reason: songMenu.reason,
-          locked: songMenu.locked,
-          showInLibrary:
-            songMenu.songId && onShowInLibrary
-              ? closing(() => {
-                  if (songMenu.songId) onShowInLibrary(songMenu.songId);
-                })
-              : undefined,
-        },
-        openInPrep:
-          workspace === 'show' && onOpenPrep !== undefined
-            ? closing(() => onOpenPrep(target.id))
-            : undefined,
-        rename: closing(() =>
-          rename.afterMenu({id: target.id, serviceId: target.serviceId}),
-        ),
-        full,
-        moveUpReason: canMoveItems(rows, ids, 'up')
-          ? undefined
-          : '맨 위입니다.',
-        moveDownReason: canMoveItems(rows, ids, 'down')
-          ? undefined
-          : '맨 아래입니다.',
-        clipboard: {
-          copy: closing(() =>
-            editorTask(
-              clipboard.copy(
-                selection.selected.has(target.id)
-                  ? selection.selected
-                  : new Set([target.id]),
-              ),
-            ),
-          ),
-          paste: closing(() => editorTask(clipboard.paste(target.id))),
-          copyReason:
-            window.llp === undefined || serviceId === null
-              ? '예배 순서 불러오기 불가'
-              : undefined,
-          pasteReason: clipboard.pasteReason,
-        },
-        duplicate: closing(() => edits.duplicate(ids)),
-        moveUp: closing(() => edits.moveItems(ids, 'up', target.id)),
-        moveDown: closing(() => edits.moveItems(ids, 'down', target.id)),
-        remove: closing(() => edits.remove(ids)),
-      }),
-      ...(count === 1 ? (table?.menuFor?.(row) ?? []) : []),
-    ];
-    return fitOrderMenu(entries, {
-      workspace,
-      count,
-      copies: orderedSelection(rows, new Set(ids), row => row.kind === 'header')
-        .length,
-    });
-  };
   /** Opens the item menu on a row, choosing the row when it is not chosen. */
   const openMenu = (
     id: string,
@@ -501,7 +420,23 @@ export function ServiceOrderList({
           label="예배 순서 항목 메뉴"
           anchor={menu.anchor}
           onClose={() => setMenu(null)}
-          entries={menuEntries(menu)}
+          entries={orderMenuEntries(menu, {
+            rows,
+            workspace,
+            editable,
+            full,
+            serviceId,
+            edits,
+            selection,
+            clipboard,
+            songMenu,
+            table,
+            openOrderEditor,
+            renameAfterMenu: rename.afterMenu,
+            onOpenPrep,
+            onShowInLibrary,
+            setMenu,
+          })}
         />
       ) : null}
       {songMenu.dialog}
