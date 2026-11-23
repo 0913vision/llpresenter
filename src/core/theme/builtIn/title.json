@@ -202,6 +202,7 @@
         {
           "id": "00000000-0000-4000-9000-000000000001",
           "kind": "text",
+          "same": "size",
           "frame": {
             "x": 48,
             "y": 220,
@@ -212,7 +213,7 @@
           "style": {
             "font": "NanumSquare",
             "weight": 800,
-            "size": 170,
+            "size": 152,
             "color": "#FFFFFF",
             "lineHeight": 1.2,
             "tracking": 0,
