@@ -82,8 +82,9 @@ export interface LaunchBarTask {
 /**
  * How much of the bar is full, and the task that runs now, or -1. Every task
  * has the part of the bar up to the time it is expected to end. The bar moves
- * on through the part of the task that runs, as its parts are done or as its
- * time passes, and never leaves that part before the task has ended.
+ * on through the part of the task that runs as its time passes, and faster
+ * when more of its parts are done, and never leaves that part before the task
+ * has ended.
  *
  * The launch window runs this function in its own page, so it uses nothing
  * outside itself.
@@ -109,15 +110,10 @@ export function launchFraction(
   const span = Math.max(1, task.endsAt - from);
   const passed = Math.max(0, now - since) / span;
   const timed = passed < 1 ? 0.95 * passed : 1 - 0.05 / passed;
-  const counted =
-    task.total > 0
-      ? Math.max(
-          task.done / task.total,
-          Math.min(timed, (task.done + 0.95) / task.total),
-        )
-      : timed;
+  const counted = task.total > 0 ? task.done / task.total : 0;
   return {
-    fraction: (from + span * Math.min(counted, 1)) / Math.max(1, last.endsAt),
+    fraction:
+      (from + span * Math.max(timed, counted)) / Math.max(1, last.endsAt),
     current,
   };
 }

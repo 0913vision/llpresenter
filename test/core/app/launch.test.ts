@@ -28,13 +28,13 @@ describe('the bar of the launch', () => {
     expect(launchFraction(tasks, 400_000).fraction).toBeLessThan(0.4);
   });
 
-  it('counts the parts that are done, without passing the next one', () => {
-    const at = (done: number) =>
-      launchFraction([task(1000, {done, total: 4})], 1).fraction;
-    expect(at(0)).toBeLessThan(0.01);
-    expect(at(2)).toBe(0.5);
-    const late = launchFraction([task(1000, {done: 2, total: 4})], 10_000);
-    expect(late.fraction).toBeLessThan(0.75);
+  it('is at least as far as the parts that are done', () => {
+    const at = (done: number, now: number) =>
+      launchFraction([task(1000, {done, total: 4})], now).fraction;
+    expect(at(0, 1)).toBeLessThan(0.01);
+    expect(at(2, 1)).toBe(0.5);
+    expect(at(2, 800)).toBeCloseTo(0.76);
+    expect(at(0, 10_000)).toBeLessThan(1);
   });
 
   it('goes to the next task that runs, from when the ones before it ended', () => {
