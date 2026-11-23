@@ -30,6 +30,7 @@ import {saveMacroCollectionEdit} from './macroCollectionEdits';
 import type {MacroMenuHandlers} from './macroMenuEntries';
 import {macroMenuHandlers, type MacroEditor} from './macroMenuHandlers';
 import type {MacroCollectionEdit} from './macroCollectionEdits';
+import {useMacroEditor} from './useMacroEditor';
 import {useMacroLayout} from './useMacroLayout';
 
 export type {MacroEditor} from './macroMenuHandlers';
@@ -114,10 +115,6 @@ export function useMacroPanel({
     anchor: MenuAnchor;
     trigger: HTMLElement | undefined;
   } | null>(null);
-  const [editor, setEditor] = useState<MacroEditor | null>(null);
-  const renameAfterMenu = useMenuHandoff<Macro>(menu !== null, item =>
-    setEditor({kind: 'rename', item}),
-  );
   const palette = useMacroPalette();
   const paletteFor = palette.target;
   const revision = useRef(0);
@@ -183,12 +180,20 @@ export function useMacroPanel({
       after,
       'Macro collection callback failed',
     );
-  const close = (): void => {
-    revision.current++;
-    setEditor(null);
-  };
   const commit = (edit: MacroEdit, after?: () => void): void =>
     afterSave(run(edit), after, 'Macro edit callback failed');
+  const editorState = useMacroEditor({
+    onClose: () => {
+      revision.current++;
+    },
+    commit,
+    commitCollection,
+    saveName: (id, name) => run({kind: 'update', id, changes: {name}}, 'saved'),
+  });
+  const {editor, setEditor, close} = editorState;
+  const renameAfterMenu = useMenuHandoff<Macro>(menu !== null, item =>
+    setEditor({kind: 'rename', item}),
+  );
   const start = (item: Macro): void => {
     revision.current++;
     setSelected(undefined);
@@ -354,51 +359,6 @@ export function useMacroPanel({
       setEditor({kind: 'action', item, actionKind});
     }
   };
-  const saveIcon = (icon: string): void => {
-    if (editor?.kind !== 'icon') return;
-    commit({kind: 'update', id: editor.item.id, changes: {icon}}, close);
-  };
-  const saveColor = (color: Macro['color']): void => {
-    if (editor?.kind !== 'color') return;
-    commit({kind: 'update', id: editor.item.id, changes: {color}}, close);
-  };
-  const saveAction = (action: KnownMacroAction): void => {
-    if (editor?.kind !== 'action') return;
-    commit(
-      {
-        kind: 'action',
-        id: editor.item.id,
-        action:
-          editor.index === undefined
-            ? {kind: 'append', action}
-            : {
-                kind: 'replace',
-                index: editor.index,
-                action,
-                expected: editor.item.actions,
-              },
-      },
-      close,
-    );
-  };
-  const saveNewCollection = (name: string): void => {
-    if (editor?.kind !== 'new-collection') return;
-
-    const id = parseMacroCollectionId(crypto.randomUUID());
-    if (!id.ok) return;
-    commitCollection(
-      {
-        kind: 'add',
-        collection: {id: id.value, name, macroIds: [editor.item.id]},
-        requireMember: editor.item.id,
-      },
-      close,
-    );
-  };
-  const rename = (name: string): Promise<boolean> => {
-    if (editor?.kind !== 'rename') return Promise.resolve(false);
-    return run({kind: 'update', id: editor.item.id, changes: {name}}, 'saved');
-  };
   return {
     macros,
     collections,
@@ -428,10 +388,10 @@ export function useMacroPanel({
     choosePaletteAction,
     menuHandlers,
     close,
-    saveIcon,
-    saveColor,
-    saveAction,
-    saveNewCollection,
-    rename,
+    saveIcon: editorState.saveIcon,
+    saveColor: editorState.saveColor,
+    saveAction: editorState.saveAction,
+    saveNewCollection: editorState.saveNewCollection,
+    rename: editorState.rename,
   };
 }
