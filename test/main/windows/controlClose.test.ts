@@ -9,42 +9,10 @@ import {
   type CloseableWindow,
 } from '@main/windows/controlClose';
 
-const electron = vi.hoisted(() => ({
-  ipcMain: new (class {
-    readonly listeners = new Map<
-      string,
-      Set<(event: unknown, value?: unknown) => void>
-    >();
-
-    on(channel: string, listener: (event: unknown, value?: unknown) => void) {
-      const set = this.listeners.get(channel) ?? new Set();
-      set.add(listener);
-      this.listeners.set(channel, set);
-    }
-
-    removeListener(
-      channel: string,
-      listener: (event: unknown, value?: unknown) => void,
-    ) {
-      this.listeners.get(channel)?.delete(listener);
-    }
-
-    emit(channel: string, senderId: number, value?: unknown) {
-      for (const listener of this.listeners.get(channel) ?? []) {
-        listener({sender: {id: senderId}}, value);
-      }
-    }
-
-    count(): number {
-      return [...this.listeners.values()].reduce(
-        (total, set) => total + set.size,
-        0,
-      );
-    }
-  })(),
-}));
-
-vi.mock('electron', () => ({ipcMain: electron.ipcMain}));
+const ipc = await vi.hoisted(async () =>
+  (await import('@fixtures/main/base/mockIpcMain')).mockIpcMain(),
+);
+vi.mock('electron', () => ({ipcMain: ipc.ipcMain}));
 
 const CONTROL_ID = 7;
 const OTHER_ID = 8;
@@ -98,10 +66,14 @@ function setup(beforeClose?: () => void) {
     return Reflect.get(Object(call[1]), 'requestId');
   };
   const reply = (result: boolean, senderId = CONTROL_ID, index = 0) => {
-    electron.ipcMain.emit(appEndpoints.flushDone.channel, senderId, {
-      requestId: requestId(index),
-      result,
-    });
+    ipc.send(
+      appEndpoints.flushDone,
+      {
+        requestId: requestId(index),
+        result,
+      },
+      {id: senderId},
+    );
   };
   return {control, log, closing, requestId, reply};
 }
@@ -111,7 +83,7 @@ async function settled(): Promise<void> {
 }
 
 beforeEach(() => {
-  electron.ipcMain.listeners.clear();
+  ipc.reset();
 });
 
 describe('control window close handshake', () => {
@@ -122,7 +94,7 @@ describe('control window close handshake', () => {
       const {control, closing} = setup();
       const confirmation = closing.confirmClose(true);
       if (outcome === 'forced') {
-        electron.ipcMain.emit(appEndpoints.closeAnyway.channel, CONTROL_ID);
+        ipc.send(appEndpoints.closeAnyway, undefined, {id: CONTROL_ID});
       } else {
         await clock.advance(APP_FLUSH_LIMITS.timeoutMs);
       }
@@ -134,7 +106,7 @@ describe('control window close handshake', () => {
   it('requires a fresh successful flush after an unverified normal close', async () => {
     const {closing, reply} = setup();
     const normal = closing.confirmClose();
-    electron.ipcMain.emit(appEndpoints.closeAnyway.channel, CONTROL_ID);
+    ipc.send(appEndpoints.closeAnyway, undefined, {id: CONTROL_ID});
     expect(await normal).toBe(true);
     expect(await closing.confirmClose(true)).toBe(false);
     closing.resume();
@@ -158,10 +130,14 @@ describe('control window close handshake', () => {
     const reply = (index: number, result: boolean): void => {
       const value: unknown = control.webContents.send.mock.calls[index]?.[1];
       const requestId: unknown = Reflect.get(Object(value), 'requestId');
-      electron.ipcMain.emit(appEndpoints.flushDone.channel, CONTROL_ID, {
-        requestId,
-        result,
-      });
+      ipc.send(
+        appEndpoints.flushDone,
+        {
+          requestId,
+          result,
+        },
+        {id: CONTROL_ID},
+      );
     };
     control.close();
     reply(0, true);
@@ -197,9 +173,10 @@ describe('control window close handshake', () => {
   });
   it('ignores another window flush traffic while this handshake is idle', () => {
     const {control, log} = setup();
-    electron.ipcMain.emit(appEndpoints.flushDone.channel, OTHER_ID, {});
-    electron.ipcMain.emit(appEndpoints.flushProgress.channel, OTHER_ID, {});
-    electron.ipcMain.emit(appEndpoints.closeAnyway.channel, OTHER_ID);
+    const requestId = '00000000-0000-4000-8000-000000000001';
+    ipc.send(appEndpoints.flushDone, {requestId, result: true}, {id: OTHER_ID});
+    ipc.send(appEndpoints.flushProgress, {requestId}, {id: OTHER_ID});
+    ipc.send(appEndpoints.closeAnyway, undefined, {id: OTHER_ID});
     expect(control.destroyed).toBe(false);
     expect(log.messages('warn')).toEqual([]);
   });
@@ -213,11 +190,7 @@ describe('control window close handshake', () => {
       elapsed < APP_FLUSH_LIMITS.timeoutMs * 2;
       elapsed += APP_FLUSH_LIMITS.progressIntervalMs
     ) {
-      electron.ipcMain.emit(
-        appEndpoints.flushProgress.channel,
-        CONTROL_ID,
-        request,
-      );
+      ipc.send(appEndpoints.flushProgress, request, {id: CONTROL_ID});
       await clock.advance(APP_FLUSH_LIMITS.progressIntervalMs);
       expect(control.destroyed).toBe(false);
     }
@@ -234,13 +207,21 @@ describe('control window close handshake', () => {
     const {control, requestId} = setup();
     control.close();
     await clock.advance(APP_FLUSH_LIMITS.timeoutMs - 1);
-    electron.ipcMain.emit(appEndpoints.flushProgress.channel, OTHER_ID, {
-      requestId: requestId(),
-    });
-    electron.ipcMain.emit(appEndpoints.flushProgress.channel, CONTROL_ID, {
-      requestId: '00000000-0000-4000-8000-000000000001',
-    });
-    electron.ipcMain.emit(appEndpoints.flushProgress.channel, CONTROL_ID, null);
+    ipc.send(
+      appEndpoints.flushProgress,
+      {
+        requestId: requestId(),
+      },
+      {id: OTHER_ID},
+    );
+    ipc.send(
+      appEndpoints.flushProgress,
+      {
+        requestId: '00000000-0000-4000-8000-000000000001',
+      },
+      {id: CONTROL_ID},
+    );
+    ipc.send(appEndpoints.flushProgress, null, {id: CONTROL_ID});
     await clock.advance(1);
     expect(control.destroyed).toBe(true);
   });
@@ -256,17 +237,17 @@ describe('control window close handshake', () => {
 
   it('keeps the window open after a refused flush until 강제로 닫기', async () => {
     const {control, log, reply} = setup();
-    electron.ipcMain.emit(appEndpoints.closeAnyway.channel, CONTROL_ID);
+    ipc.send(appEndpoints.closeAnyway, undefined, {id: CONTROL_ID});
     control.close();
     reply(false);
     await settled();
     expect(control.destroyed).toBe(false);
-    electron.ipcMain.emit(appEndpoints.closeAnyway.channel, OTHER_ID);
+    ipc.send(appEndpoints.closeAnyway, undefined, {id: OTHER_ID});
     expect(control.destroyed).toBe(false);
-    electron.ipcMain.emit(appEndpoints.closeAnyway.channel, CONTROL_ID);
+    ipc.send(appEndpoints.closeAnyway, undefined, {id: CONTROL_ID});
     expect(control.destroyed).toBe(true);
     expect(log.messages('warn')).toEqual([
-      `ignored ${appEndpoints.closeAnyway.channel} from another window`,
+      'ignored a close message of another window',
     ]);
   });
 
@@ -274,7 +255,7 @@ describe('control window close handshake', () => {
     const {control, log, closing} = setup();
     control.close();
     const quit = closing.confirmClose();
-    electron.ipcMain.emit(appEndpoints.closeAnyway.channel, CONTROL_ID);
+    ipc.send(appEndpoints.closeAnyway, undefined, {id: CONTROL_ID});
     await expect(quit).resolves.toBe(true);
     await settled();
     expect(control.destroyed).toBe(true);
@@ -314,19 +295,27 @@ describe('control window close handshake', () => {
     const {control, log, closing, requestId, reply} = setup();
     const confirmed = closing.confirmClose();
     reply(true, OTHER_ID);
-    electron.ipcMain.emit(appEndpoints.flushDone.channel, CONTROL_ID, {
-      requestId: '00000000-0000-4000-8000-000000000001',
-      result: true,
-    });
-    electron.ipcMain.emit(appEndpoints.flushDone.channel, CONTROL_ID, {
-      requestId: requestId(),
-      result: 'yes',
-    });
+    ipc.send(
+      appEndpoints.flushDone,
+      {
+        requestId: '00000000-0000-4000-8000-000000000001',
+        result: true,
+      },
+      {id: CONTROL_ID},
+    );
+    ipc.send(
+      appEndpoints.flushDone,
+      {
+        requestId: requestId(),
+        result: 'yes',
+      },
+      {id: CONTROL_ID},
+    );
     await settled();
     expect(log.messages('warn')).toEqual([
-      `ignored ${appEndpoints.flushDone.channel} from another window`,
-      'ignored a malformed flush reply',
-      'ignored a malformed flush reply',
+      'ignored a close message of another window',
+      'ignored a reply to another flush request',
+      'dropped a malformed app:flush-done message',
     ]);
     reply(false);
     await expect(confirmed).resolves.toBe(false);
@@ -359,7 +348,7 @@ describe('control window close handshake', () => {
     });
     await expect(other.closing.confirmClose()).resolves.toBe(true);
     expect(other.log.messages('warn')).toEqual([
-      'could not ask the control window to flush',
+      'could not send app:flush-request to a window',
     ]);
     await expect(closing.confirmClose()).resolves.toBe(true);
   });
@@ -369,7 +358,7 @@ describe('control window close handshake', () => {
     const confirmed = closing.confirmClose();
     closing.dispose();
     await expect(confirmed).resolves.toBe(true);
-    expect(electron.ipcMain.count()).toBe(0);
+    expect(ipc.open()).toBe(0);
     expect(control.listenerCount('close')).toBe(0);
     expect(control.webContents.listenerCount('render-process-gone')).toBe(0);
     control.close();
@@ -387,7 +376,7 @@ describe('control window close handshake', () => {
       },
     });
     expect(() => closing.dispose()).not.toThrow();
-    expect(electron.ipcMain.count()).toBe(0);
+    expect(ipc.open()).toBe(0);
     expect(() => closing.dispose()).not.toThrow();
   });
 });

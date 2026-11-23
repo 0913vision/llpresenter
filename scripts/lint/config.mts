@@ -41,6 +41,17 @@ const RENDERER_IMPORT = {
   message: 'Main modules must use shared contracts instead of src/renderer/.',
 };
 
+const IPC_MAIN_IMPORT = {
+  name: 'electron',
+  importNames: ['ipcMain'],
+  message: 'Answer the windows through IpcHost, which checks what they send.',
+};
+// NOTE(0913vision): The test hook has a channel of its own outside the contracts.
+const IPC_MAIN_FILES = [
+  'src/main/base/ipcHost.ts',
+  'src/main/windows/gpuTestHook.ts',
+];
+
 const MAX_PARAMS = 3;
 const MAX_DEPTH = 3;
 
@@ -289,6 +300,18 @@ export const lintConfig = defineConfig(
     ignores: BOUNDARY_TEST_FILES,
     rules: {
       // NOTE(0913vision): Main must not depend on renderer implementations.
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [IPC_MAIN_IMPORT],
+          patterns: [VALIBOT_IMPORT, RENDERER_IMPORT],
+        },
+      ],
+    },
+  },
+  {
+    files: IPC_MAIN_FILES,
+    rules: {
       'no-restricted-imports': [
         'error',
         {patterns: [VALIBOT_IMPORT, RENDERER_IMPORT]},

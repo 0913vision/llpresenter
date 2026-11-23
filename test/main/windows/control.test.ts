@@ -7,10 +7,14 @@ import {CRASH_LIMIT, CRASH_PERIOD_MS} from '@main/base/restartBudget';
 import {audioMutedByDefault} from '@main/outputs/audioPolicy';
 import {serviceEndpoints} from '@contracts/ipc/service';
 
+const ipc = await vi.hoisted(async () =>
+  (await import('@fixtures/main/base/mockIpcMain')).mockIpcMain(),
+);
 const electron = await vi.hoisted(async () => {
   const {EventEmitter} = await import('node:events');
   class MockBrowserWindow extends EventEmitter {
     readonly webContents = Object.assign(new EventEmitter(), {
+      id: 1,
       setAudioMuted: vi.fn(),
       mainFrame: {},
     });
@@ -29,13 +33,12 @@ const electron = await vi.hoisted(async () => {
     MockBrowserWindow,
     created,
     app: {isPackaged: false},
-    ipcMain: new EventEmitter(),
   };
 });
 
 vi.mock('electron', () => ({
   BrowserWindow: electron.MockBrowserWindow,
-  ipcMain: electron.ipcMain,
+  ipcMain: ipc.ipcMain,
   app: electron.app,
   screen: {
     getPrimaryDisplay: () => ({workAreaSize: {width: 1920, height: 1080}}),
@@ -62,7 +65,7 @@ beforeEach(() => {
 });
 afterEach(() => {
   for (const win of electron.created) win.emit('closed');
-  electron.ipcMain.removeAllListeners();
+  ipc.reset();
   vi.unstubAllEnvs();
 });
 
@@ -109,15 +112,9 @@ describe('createControlWindow', () => {
     expect(win.options).not.toHaveProperty('webPreferences.offscreen');
     win.emit('ready-to-show');
     expect(win.show).not.toHaveBeenCalled();
-    electron.ipcMain.emit(serviceEndpoints.ready.channel, {
-      sender: {},
-      senderFrame: {},
-    });
+    ipc.send(serviceEndpoints.ready, undefined, {id: -1});
     expect(win.show).not.toHaveBeenCalled();
-    electron.ipcMain.emit(serviceEndpoints.ready.channel, {
-      sender: win.webContents,
-      senderFrame: win.webContents.mainFrame,
-    });
+    ipc.send(serviceEndpoints.ready, undefined, win.webContents);
     expect(win.show).not.toHaveBeenCalled();
     finish(true);
     await Promise.resolve();
@@ -132,10 +129,7 @@ describe('createControlWindow', () => {
     });
     const win = lastWindow();
     win.emit('ready-to-show');
-    electron.ipcMain.emit(serviceEndpoints.ready.channel, {
-      sender: win.webContents,
-      senderFrame: win.webContents.mainFrame,
-    });
+    ipc.send(serviceEndpoints.ready, undefined, win.webContents);
     await Promise.resolve();
     expect(win.show).toHaveBeenCalledOnce();
     expect(win.maximize).not.toHaveBeenCalled();

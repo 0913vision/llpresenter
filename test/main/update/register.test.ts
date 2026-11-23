@@ -1,12 +1,10 @@
 import {describe, expect, it, vi, afterEach} from 'vitest';
+import {updateEndpoints} from '@contracts/ipc/update';
 import {registerUpdates, updatesAllowed} from '@main/update/register';
 import {LiveStore} from '@main/live/store';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 
-type Handler = (event: unknown, ...args: unknown[]) => unknown;
 const fake = vi.hoisted(() => ({
-  handlers: new Map<string, Handler>(),
-  signals: new Map<string, Handler>(),
   updater: {
     check: vi.fn<() => Promise<string | null>>(),
     download: vi.fn<() => Promise<void>>(),
@@ -15,16 +13,10 @@ const fake = vi.hoisted(() => ({
   },
   create: vi.fn(),
 }));
-vi.mock('electron', () => ({
-  ipcMain: {
-    handle: (channel: string, handler: Handler) =>
-      fake.handlers.set(channel, handler),
-    removeHandler: (channel: string) => fake.handlers.delete(channel),
-    on: (channel: string, handler: Handler) =>
-      fake.signals.set(channel, handler),
-    removeListener: (channel: string) => fake.signals.delete(channel),
-  },
-}));
+const ipc = await vi.hoisted(async () =>
+  (await import('@fixtures/main/base/mockIpcMain')).mockIpcMain(),
+);
+vi.mock('electron', () => ({ipcMain: ipc.ipcMain}));
 vi.mock('@main/update/electronUpdater', () => ({
   createUpdater: () => {
     fake.create();
@@ -33,8 +25,7 @@ vi.mock('@main/update/electronUpdater', () => ({
 }));
 afterEach(() => {
   vi.clearAllMocks();
-  fake.handlers.clear();
-  fake.signals.clear();
+  ipc.reset();
 });
 
 function setup(enabled = true) {
@@ -44,7 +35,12 @@ function setup(enabled = true) {
   });
   fake.updater.check.mockResolvedValue(null);
   const control = {
-    webContents: {mainFrame: {}, isDestroyed: () => false, send: vi.fn()},
+    webContents: {
+      id: 1,
+      mainFrame: {},
+      isDestroyed: () => false,
+      send: vi.fn(),
+    },
   };
   const shutdown = {
     quitForUpdate: vi.fn<() => Promise<boolean>>().mockResolvedValue(true),
@@ -63,11 +59,7 @@ function setup(enabled = true) {
     log: recordingLogger(),
     store: new LiveStore(),
   });
-  const event = {
-    sender: control.webContents,
-    senderFrame: control.webContents.mainFrame,
-  };
-  return {ready, stop, control, event, shutdown};
+  return {ready, stop, control, shutdown};
 }
 
 describe('update registration', () => {
@@ -88,14 +80,13 @@ describe('update registration', () => {
     ready(true);
     await vi.waitFor(() => expect(fake.updater.check).toHaveBeenCalledOnce());
     stop();
-    expect(fake.handlers.size).toBe(0);
-    expect(fake.signals.size).toBe(0);
+    expect(ipc.open()).toBe(0);
     expect(fake.updater.dispose).toHaveBeenCalledOnce();
   });
   it('never constructs the network adapter in dev or test mode', async () => {
-    const {ready, stop, event} = setup(false);
+    const {ready, stop, control} = setup(false);
     ready(true);
-    fake.signals.get('update:check')?.(event);
+    ipc.send(updateEndpoints.check, undefined, control.webContents);
     await Promise.resolve();
     expect(fake.create).not.toHaveBeenCalled();
     expect(fake.updater.check).not.toHaveBeenCalled();
@@ -111,24 +102,21 @@ describe('update registration', () => {
     await Promise.resolve();
     expect(fake.updater.check).not.toHaveBeenCalled();
   });
-  it('rejects another sender, subframes, extra arguments and malformed actions', () => {
-    const {stop, event, control} = setup();
-    const events = [
-      {sender: {}, senderFrame: {}},
-      {...event, senderFrame: {}},
-    ];
-    for (const bad of events) {
-      expect(() => fake.handlers.get('update:get')?.(bad)).toThrow();
-      fake.signals.get('update:check')?.(bad);
-      fake.signals.get('update:act')?.(bad, {revision: 0, action: 'install'});
-    }
-    fake.signals.get('update:check')?.(event, 'extra');
-    fake.signals.get('update:act')?.(event, {revision: 0, action: 'erase'});
-    fake.signals.get('update:act')?.(
-      event,
-      {revision: 0, action: 'install'},
-      'extra',
+  it('rejects another window, a frame inside the page, and malformed actions', () => {
+    const {stop, control} = setup();
+    const install = {revision: 0, action: 'install'};
+    const frame = {sender: control.webContents, senderFrame: {}};
+    ipc.send(updateEndpoints.check, undefined, {id: 2});
+    ipc.send(updateEndpoints.act, install, {id: 2});
+    ipc.send(
+      updateEndpoints.act,
+      {...install, action: 'erase'},
+      control.webContents,
     );
+    expect(() => ipc.answer(updateEndpoints.get, undefined, {id: 2})).toThrow();
+    expect(() =>
+      ipc.handlers.get(updateEndpoints.get.channel)?.(frame),
+    ).toThrow();
     expect(fake.updater.check).not.toHaveBeenCalled();
     expect(fake.updater.install).not.toHaveBeenCalled();
     expect(control.webContents.send).not.toHaveBeenCalled();

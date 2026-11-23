@@ -1,12 +1,15 @@
 import type {BrowserWindow} from 'electron';
 import {windowEndpoints} from '@contracts/ipc/window';
+import {pushToWindow} from '../base/ipcHost';
+import type {Logger} from '../base/log';
 
-/** Sends native minimize and restore changes to the owning renderer. */
-export function watchWindowMinimized(win: BrowserWindow): void {
-  const send = (minimized: boolean): void => {
-    if (win.isDestroyed() || win.webContents.isDestroyed()) return;
-    win.webContents.send(windowEndpoints.minimizedChanged.channel, minimized);
+/** Tells a window when it is minimized and restored. */
+export function watchWindowMinimized(win: BrowserWindow, log: Logger): void {
+  const push = (value: boolean): void => {
+    if (win.isDestroyed()) return;
+    const {minimizedChanged} = windowEndpoints;
+    pushToWindow(win.webContents, minimizedChanged, {value, log});
   };
-  win.on('minimize', () => send(true));
-  win.on('restore', () => send(false));
+  win.on('minimize', () => push(true));
+  win.on('restore', () => push(false));
 }

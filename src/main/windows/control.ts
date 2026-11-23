@@ -1,12 +1,11 @@
-import {watchWindowMinimized} from './windowMinimized';
-import {app, BrowserWindow, ipcMain, screen, type IpcMainEvent} from 'electron';
+import {app, BrowserWindow, screen} from 'electron';
 import {windowEndpoints} from '@contracts/ipc/window';
 import {serviceEndpoints} from '@contracts/ipc/service';
+import {IpcHost, pushToWindow} from '../base/ipcHost';
 import type {Logger} from '../base/log';
 import type {UiZoomRegistration} from '../store/uiZoom';
 import {audioMutedByDefault} from '../outputs/audioPolicy';
 import {appIconPath} from '../base/appIcon';
-import {reloadAfterCrash} from './crashReload';
 import {logWindowResponsiveness} from '../base/responsiveness';
 import {
   blockNavigation,
@@ -19,6 +18,8 @@ import {
   windowTestOptions,
   type WindowMode,
 } from '../base/testWindows';
+import {reloadAfterCrash} from './crashReload';
+import {watchWindowMinimized} from './windowMinimized';
 
 const MIN_WIDTH = 1280;
 const MIN_HEIGHT = 720;
@@ -69,80 +70,75 @@ export function createControlWindow(
   win.webContents.setAudioMuted(
     mode === 'offscreen' || audioMutedByDefault(process.env, app.isPackaged),
   );
-  watchWindowMinimized(win);
+  watchWindowMinimized(win, log);
   win.removeMenu();
   logWindowResponsiveness(win, 'control', log);
-  const sendFullScreen = (on: boolean): void => {
-    if (win.isDestroyed() || win.webContents.isDestroyed()) return;
-    win.webContents.send(windowEndpoints.fullScreenChanged.channel, on);
-  };
-  win.on('enter-full-screen', () => sendFullScreen(true));
-  win.on('leave-full-screen', () => sendFullScreen(false));
+  watchFullScreen(win, log);
   discardTestFrames(win.webContents, mode);
   zoom.attachControl(win.webContents);
   blockNavigation(win);
   // NOTE(0913vision): The main process keeps the live state, so reloading the
   // control window loses nothing on output.
   reloadAfterCrash({win, page: CONTROL_PAGE, label: 'control', log});
-  if (mode === 'normal') {
-    let painted = false;
-    let dataReady = false;
-    let outputsPrepared = false;
-    let shown = false;
-    const show = (): void => {
-      if (
-        shown ||
-        !painted ||
-        !dataReady ||
-        !outputsPrepared ||
-        win.isDestroyed()
-      ) {
-        return;
-      }
-      shown = true;
-      clearTimeout(timeout);
-      ipcMain.removeListener(serviceEndpoints.ready.channel, onReady);
-      if (zoom.startMaximized ?? true) win.maximize();
-      win.show();
-    };
-    const onReady = (event: IpcMainEvent, ...args: unknown[]): void => {
-      if (
-        event.sender !== win.webContents ||
-        event.senderFrame !== win.webContents.mainFrame ||
-        args.length !== 0
-      ) {
-        return;
-      }
-      dataReady = true;
-      show();
-    };
-    const timeout = setTimeout(() => {
-      dataReady = true;
-      outputsPrepared = true;
-      show();
-    }, STARTUP_TIMEOUT_MS);
-    timeout.unref();
-    ipcMain.on(serviceEndpoints.ready.channel, onReady);
-    (zoom.outputsReady ?? Promise.resolve(true)).then(
-      () => {
-        outputsPrepared = true;
-        show();
-      },
-      (error: unknown) => {
-        log.warn('Could not confirm output readiness', error);
-        outputsPrepared = true;
-        show();
-      },
-    );
-    win.once('closed', () => {
-      clearTimeout(timeout);
-      ipcMain.removeListener(serviceEndpoints.ready.channel, onReady);
-    });
-    win.once('ready-to-show', () => {
-      painted = true;
-      show();
-    });
-  }
+  if (mode === 'normal') showWhenReady(win, {...zoom, log});
   loadPage(win, CONTROL_PAGE, log);
   return win;
+}
+
+function watchFullScreen(win: BrowserWindow, log: Logger): void {
+  const push = (value: boolean): void => {
+    if (win.isDestroyed()) return;
+    const {fullScreenChanged} = windowEndpoints;
+    pushToWindow(win.webContents, fullScreenChanged, {value, log});
+  };
+  win.on('enter-full-screen', () => push(true));
+  win.on('leave-full-screen', () => push(false));
+}
+
+/**
+ * Shows the window once its page has drawn, with its data and the outputs
+ * ready. Data and outputs that take too long are not waited for.
+ */
+function showWhenReady(
+  win: BrowserWindow,
+  {
+    outputsReady = Promise.resolve(true),
+    startMaximized = true,
+    log,
+  }: {
+    readonly outputsReady?: Promise<boolean>;
+    readonly startMaximized?: boolean;
+    readonly log: Logger;
+  },
+): void {
+  const ipc = new IpcHost(log);
+  const missing = new Set(['page', 'data', 'outputs']);
+  const ready = (...parts: readonly string[]): void => {
+    for (const part of parts) missing.delete(part);
+    if (missing.size > 0 || win.isDestroyed()) return;
+    clearTimeout(timeout);
+    ipc.close();
+    if (startMaximized) win.maximize();
+    win.show();
+  };
+  const timeout = setTimeout(
+    () => ready('data', 'outputs'),
+    STARTUP_TIMEOUT_MS,
+  );
+  timeout.unref();
+  ipc.signal(serviceEndpoints.ready, ({contents, isMainFrame}) => {
+    if (contents === win.webContents && isMainFrame) ready('data');
+  });
+  outputsReady.then(
+    () => ready('outputs'),
+    (error: unknown) => {
+      log.warn('Could not confirm output readiness', error);
+      ready('outputs');
+    },
+  );
+  win.once('closed', () => {
+    clearTimeout(timeout);
+    ipc.close();
+  });
+  win.once('ready-to-show', () => ready('page'));
 }

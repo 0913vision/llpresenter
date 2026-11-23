@@ -20,30 +20,13 @@ import {registerStore} from '@main/store/register';
 import {ShutdownCoordinator} from '@main/base/shutdown';
 import {itemId, service, writeJson} from '@fixtures/main/store/testFiles';
 
-type Handler = (event: unknown, value?: unknown) => unknown;
-const electron = vi.hoisted(() => ({
-  handlers: new Map<string, Handler>(),
-}));
-const ipc = new EventEmitter();
-
+const ipc = await vi.hoisted(async () =>
+  (await import('@fixtures/main/base/mockIpcMain')).mockIpcMain(),
+);
 vi.mock('electron', () => ({
   BrowserWindow: {getAllWindows: () => []},
-  ipcMain: {
-    handle: (channel: string, handler: Handler) => {
-      electron.handlers.set(channel, handler);
-    },
-    removeHandler: (channel: string) => electron.handlers.delete(channel),
-    on: (channel: string, listener: Handler) => ipc.on(channel, listener),
-    removeListener: (channel: string, listener: Handler) =>
-      ipc.removeListener(channel, listener),
-  },
+  ipcMain: ipc.ipcMain,
 }));
-
-async function ask(channel: string, value?: unknown): Promise<unknown> {
-  const handler = electron.handlers.get(channel);
-  if (handler === undefined) throw new Error(`Missing handler: ${channel}`);
-  return handler({sender: {}, senderFrame: undefined}, value);
-}
 
 async function readMemo(file: string) {
   const parsed = parseService(await readFile(file, 'utf8'), file);
@@ -56,7 +39,7 @@ async function readMemo(file: string) {
 
 async function currentService(serviceId: string) {
   const parsed = parseServiceDocument(
-    await ask(contentEndpoints.services.get.channel, serviceId),
+    await ipc.invoke(contentEndpoints.services.get, serviceId),
   );
   if (!parsed.ok || parsed.value === null) throw new Error('Missing service');
   return parsed.value;
@@ -190,7 +173,7 @@ it.each([
       const parsed = parseAppFlushRequest(value);
       if (!parsed.ok) throw new Error('Invalid flush request');
       const progress = (): void => {
-        ipc.emit(appEndpoints.flushProgress.channel, {sender}, parsed.value);
+        ipc.send(appEndpoints.flushProgress, parsed.value, sender);
       };
       progress();
       const interval = setInterval(
@@ -199,7 +182,7 @@ it.each([
       );
       try {
         const document = await currentService(serviceId);
-        await ask(contentEndpoints.edit.channel, {
+        await ipc.invoke(contentEndpoints.edit, {
           type: 'service.update',
           baseRevision: document.revision,
           service: {
@@ -209,13 +192,9 @@ it.each([
             ),
           },
         });
-        const result = (await ask(appEndpoints.savePending.channel)) === true;
+        const result = (await ipc.invoke(appEndpoints.savePending)) === true;
         replies.push(result);
-        ipc.emit(
-          appEndpoints.flushDone.channel,
-          {sender},
-          {...parsed.value, result},
-        );
+        ipc.send(appEndpoints.flushDone, {...parsed.value, result}, sender);
       } finally {
         clearInterval(interval);
       }

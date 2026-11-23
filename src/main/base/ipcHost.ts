@@ -24,9 +24,15 @@ export interface Caller {
 
 type Log = Pick<Logger, 'warn' | 'error'>;
 
+/** What a value is sent to. */
+interface Receiver {
+  isDestroyed(): boolean;
+  send(channel: string, value: unknown): void;
+}
+
 /** Sends a value to one window; what fails is logged, and answers false. */
 export function pushToWindow<TValue>(
-  contents: WebContents,
+  contents: Receiver,
   {channel}: PushEndpoint<TValue>,
   {value, log}: {readonly value: TValue; readonly log: Log},
 ): boolean {

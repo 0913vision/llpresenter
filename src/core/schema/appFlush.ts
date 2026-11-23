@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import {appFlushRequestIdSchema, type AppFlushRequestId} from './ids';
+import {appFlushRequestIdSchema} from './ids';
 import {parsePayload, payloadObject} from './payload';
 
 /** Bounds for main's close-handshake waiter. */
@@ -30,21 +30,6 @@ export function parseAppSavePendingResult(value: unknown) {
   return parsePayload(v.boolean(), value);
 }
 
-/** Validates a result and optionally the pending request it must answer. */
-export function parseAppFlushDone(
-  value: unknown,
-  expectedRequestId?: AppFlushRequestId,
-) {
-  const parsed = parsePayload(doneSchema, value);
-  return parsed.ok &&
-    expectedRequestId !== undefined &&
-    parsed.value.requestId !== expectedRequestId
-    ? ({
-        ok: false,
-        error: {
-          field: 'requestId',
-          message: 'The reply names another flush request',
-        },
-      } as const)
-    : parsed;
+export function parseAppFlushDone(value: unknown) {
+  return parsePayload(doneSchema, value);
 }

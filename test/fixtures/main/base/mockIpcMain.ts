@@ -1,14 +1,15 @@
 type Handler = (event: unknown, value?: unknown) => unknown;
 
-/** A window that calls main. */
+/** A window that calls main, from its main frame. */
 export interface MockCaller {
   readonly id: number;
+  readonly mainFrame?: unknown;
 }
 
 const WINDOW: MockCaller = {id: 1};
 
 function eventOf(sender: MockCaller = WINDOW) {
-  return {sender, senderFrame: undefined};
+  return {sender, senderFrame: sender.mainFrame};
 }
 
 /** An `ipcMain` whose channels a test calls as a window would. */

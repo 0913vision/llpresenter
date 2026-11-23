@@ -85,7 +85,7 @@ export function createPreferencesWindow({
       ...webPreferences,
     },
   });
-  watchWindowMinimized(created);
+  watchWindowMinimized(created, log);
   created.removeMenu();
   created.contentView.setVisible(false);
   // NOTE(0913vision): Offscreen rendering has its own frame pump, independent

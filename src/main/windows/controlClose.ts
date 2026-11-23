@@ -1,16 +1,16 @@
 import {randomUUID} from 'node:crypto';
-import {ipcMain, type IpcMainEvent} from 'electron';
 import {appEndpoints} from '@contracts/ipc/app';
 import {closeStepAfter, type FlushOutcome} from '@core/app';
 import {
   APP_FLUSH_LIMITS,
-  parseAppFlushDone,
-  parseAppFlushRequest,
+  type AppFlushDone,
+  type AppFlushRequest,
 } from '@core/schema/appFlush';
 import {
   createAppFlushRequestId,
   type AppFlushRequestId,
 } from '@core/schema/ids';
+import {IpcHost, pushToWindow, type Caller} from '../base/ipcHost';
 import type {Logger} from '../base/log';
 
 type CloseListener = (event: {preventDefault(): void}) => void;
@@ -69,7 +69,7 @@ class ControlCloseHandshake implements ControlClose {
   private refused = false;
   private disposed = false;
   private readonly controlId: number;
-  private readonly stops: Array<() => void> = [];
+  private readonly ipc: IpcHost;
 
   constructor(private readonly options: ControlCloseOptions) {
     const {control} = options;
@@ -81,43 +81,25 @@ class ControlCloseHandshake implements ControlClose {
     const onGone = (): void => {
       this.pending?.settle('no-reply');
     };
-    const onDone = (event: IpcMainEvent, value: unknown): void => {
-      this.handleReply(event, value);
-    };
-    const onCloseAnyway = (event: IpcMainEvent): void => {
-      this.handleCloseAnyway(event);
-    };
-    const onProgress = (event: IpcMainEvent, value: unknown): void => {
-      const pending = this.pending;
-      if (pending === null) return;
-      if (!this.fromControl(event, appEndpoints.flushProgress.channel)) return;
-      const parsed = parseAppFlushRequest(value);
-      if (!parsed.ok) {
-        this.options.log.warn('ignored malformed flush progress', parsed.error);
-        return;
-      }
-      if (parsed.value.requestId === pending.requestId) {
-        this.armTimeout(pending);
-      }
-    };
     control.on('close', onClose);
     contents.on('render-process-gone', onGone);
-    ipcMain.on(appEndpoints.flushDone.channel, onDone);
-    ipcMain.on(appEndpoints.closeAnyway.channel, onCloseAnyway);
-    ipcMain.on(appEndpoints.flushProgress.channel, onProgress);
-    this.stops.push(
-      () => control.removeListener('close', onClose),
-      () => {
-        if (!contents.isDestroyed()) {
-          contents.removeListener('render-process-gone', onGone);
-        }
-      },
-      () => ipcMain.removeListener(appEndpoints.flushDone.channel, onDone),
-      () =>
-        ipcMain.removeListener(appEndpoints.closeAnyway.channel, onCloseAnyway),
-      () =>
-        ipcMain.removeListener(appEndpoints.flushProgress.channel, onProgress),
-    );
+    const ipc = new IpcHost(options.log);
+    this.ipc = ipc;
+    ipc.whenClosed(() => control.removeListener('close', onClose));
+    ipc.whenClosed(() => {
+      if (!contents.isDestroyed()) {
+        contents.removeListener('render-process-gone', onGone);
+      }
+    });
+    ipc.message(appEndpoints.flushDone, (done, caller) => {
+      this.handleReply(done, caller);
+    });
+    ipc.message(appEndpoints.flushProgress, (progress, caller) => {
+      this.handleProgress(progress, caller);
+    });
+    ipc.signal(appEndpoints.closeAnyway, caller => {
+      this.handleCloseAnyway(caller);
+    });
   }
 
   async confirmClose(requireSaved = false): Promise<boolean> {
@@ -144,7 +126,7 @@ class ControlCloseHandshake implements ControlClose {
     if (this.disposed) return;
     this.disposed = true;
     this.pending?.settle('no-reply');
-    for (const stop of this.stops) stop();
+    this.ipc.close();
   }
 
   private handleClose(event: {preventDefault(): void}): void {
@@ -164,21 +146,25 @@ class ControlCloseHandshake implements ControlClose {
     );
   }
 
-  private handleReply(event: IpcMainEvent, value: unknown): void {
+  private handleReply({requestId, result}: AppFlushDone, caller: Caller): void {
     const pending = this.pending;
-    if (pending === null) return;
-    if (!this.fromControl(event, appEndpoints.flushDone.channel)) return;
-    const parsed = parseAppFlushDone(value, pending.requestId);
-    if (!parsed.ok) {
-      this.options.log.warn('ignored a malformed flush reply', parsed.error);
+    if (pending === null || !this.fromControl(caller)) return;
+    if (requestId !== pending.requestId) {
+      this.options.log.warn('ignored a reply to another flush request');
       return;
     }
-    pending.settle(parsed.value.result ? 'flushed' : 'refused');
+    pending.settle(result ? 'flushed' : 'refused');
   }
 
-  private handleCloseAnyway(event: IpcMainEvent): void {
+  private handleProgress({requestId}: AppFlushRequest, caller: Caller): void {
+    const pending = this.pending;
+    if (pending === null || !this.fromControl(caller)) return;
+    if (requestId === pending.requestId) this.armTimeout(pending);
+  }
+
+  private handleCloseAnyway(caller: Caller): void {
     if (this.pending === null && !this.refused) return;
-    if (!this.fromControl(event, appEndpoints.closeAnyway.channel)) return;
+    if (!this.fromControl(caller)) return;
     if (this.pending !== null) {
       this.options.log.info('closing the control window before its flush ends');
       this.pending.settle('forced');
@@ -191,9 +177,9 @@ class ControlCloseHandshake implements ControlClose {
     this.closeWindow();
   }
 
-  private fromControl(event: IpcMainEvent, channel: string): boolean {
-    if (event.sender.id === this.controlId) return true;
-    this.options.log.warn(`ignored ${channel} from another window`);
+  private fromControl({contents}: Caller): boolean {
+    if (contents.id === this.controlId) return true;
+    this.options.log.warn('ignored a close message of another window');
     return false;
   }
 
@@ -219,12 +205,11 @@ class ControlCloseHandshake implements ControlClose {
     };
     this.pending = pending;
     this.armTimeout(pending);
-    try {
-      control.webContents.send(appEndpoints.flushRequests.channel, {requestId});
-    } catch (error) {
-      log.warn('could not ask the control window to flush', error);
-      pending.settle('no-reply');
-    }
+    const sent = pushToWindow(control.webContents, appEndpoints.flushRequests, {
+      value: {requestId},
+      log,
+    });
+    if (!sent) pending.settle('no-reply');
     return outcome;
   }
 

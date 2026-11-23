@@ -1,4 +1,4 @@
-import {app, ipcMain, BrowserWindow, type IpcMainEvent} from 'electron';
+import {app, BrowserWindow} from 'electron';
 import {serviceEndpoints} from '@contracts/ipc/service';
 import {LaunchIdle} from './store/launchIdle';
 import {registerUpdates, updatesAllowed} from './update/register';
@@ -33,6 +33,7 @@ import {
   RECOVERY_RECORD_FILE,
 } from './live/recovery/session';
 import {registerThemeOutput} from './live/themes';
+import {IpcHost} from './base/ipcHost';
 import type {createLogger, Logger} from './base/log';
 import {registerLiveChannels} from './live/channels';
 import {registerWindowChannels} from './windows/windowChannels';
@@ -62,6 +63,7 @@ import {announceReloadAfterCrash} from './windows/reloadNotice';
 import {registerSettingsWindow} from './windows/settingsWindow';
 import {registerAudioOutput} from './outputs/audio';
 import {registerPlaybackProblems} from './outputs/playbackProblems';
+import {registerGpuTestHook} from './windows/gpuTestHook';
 import {registerControlClose} from './windows/controlClose';
 import {serveMedia} from './windows/mediaProtocol';
 import type {WindowMode} from './base/testWindows';
@@ -365,25 +367,19 @@ export function start(
         });
       };
       watchControl(win);
-      const serviceReady = (event: IpcMainEvent, ...args: unknown[]): void => {
-        if (
-          event.sender !== activeControl.webContents ||
-          event.senderFrame !== activeControl.webContents.mainFrame ||
-          args.length !== 0
-        ) {
-          return;
-        }
-        void dataStore.content.then(
+      const readiness = new IpcHost(log);
+      readiness.signal(serviceEndpoints.ready, ({contents, isMainFrame}) => {
+        if (contents !== activeControl.webContents || !isMainFrame) return;
+        dataStore.content.then(
           () => launchIdle.serviceReady(),
           (error: unknown) =>
             log.warn('Could not confirm launch readiness', error),
         );
-      };
-      ipcMain.on(serviceEndpoints.ready.channel, serviceReady);
+      });
       shutdown.add({
         name: 'stop startup readiness',
         run: () => {
-          ipcMain.removeListener(serviceEndpoints.ready.channel, serviceReady);
+          readiness.close();
         },
       });
       let stopReloadNotice = announceReloadAfterCrash(win.webContents, () =>
@@ -529,33 +525,9 @@ export function start(
         !app.isPackaged &&
         process.env['LLP_TEST_GPU_CRASH'] === '1'
       ) {
-        const crashGpu = (event: IpcMainEvent, kind: unknown): void => {
-          if (
-            event.sender !== activeControl.webContents ||
-            (kind !== 'crash' && kind !== 'hang')
-          ) {
-            return;
-          }
-          const hidden = new BrowserWindow({
-            show: false,
-            webPreferences: {offscreen: true},
-          });
-          hidden.webContents.once('render-process-gone', () => {
-            if (!hidden.isDestroyed()) hidden.destroy();
-          });
-          hidden.loadURL(`chrome://gpu${kind}`).catch((error: unknown) => {
-            log.info('GPU test navigation ended', {kind, error: String(error)});
-          });
-          setTimeout(() => {
-            if (!hidden.isDestroyed()) hidden.destroy();
-          }, 90000);
-        };
-        ipcMain.on('test:gpu-failure', crashGpu);
         shutdown.add({
           name: 'stop GPU test hook',
-          run: () => {
-            ipcMain.removeListener('test:gpu-failure', crashGpu);
-          },
+          run: registerGpuTestHook(() => activeControl.webContents, log),
         });
       }
       shutdown.add({

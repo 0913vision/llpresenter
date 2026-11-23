@@ -1,8 +1,7 @@
-import {ipcMain, type IpcMainEvent, type IpcMainInvokeEvent} from 'electron';
 import {updateEndpoints} from '@contracts/ipc/update';
-import {parseUpdateAction} from '@core/schema/update';
 import {isAnyOutputOn} from '@core/schema/live';
 import type {LiveStore} from '../live/store';
+import {IpcHost, pushToWindow, type Caller} from '../base/ipcHost';
 import type {Logger} from '../base/log';
 import type {ShutdownCoordinator} from '../base/shutdown';
 import {UpdateController} from './controller';
@@ -47,14 +46,8 @@ export function registerUpdates(options: RegisterOptions): () => void {
     version: options.version,
     outputsOn,
     log,
-    changed: snapshot => {
-      try {
-        if (!control.webContents.isDestroyed()) {
-          control.webContents.send(updateEndpoints.changed.channel, snapshot);
-        }
-      } catch (error) {
-        log.warn('Could not send update state', error);
-      }
+    changed: value => {
+      pushToWindow(control.webContents, updateEndpoints.changed, {value, log});
     },
     installAfterShutdown: async (install, version, onHandoff) => {
       let cancelled = false;
@@ -93,18 +86,18 @@ export function registerUpdates(options: RegisterOptions): () => void {
       }
     },
   });
-  const trusted = (event: IpcMainEvent | IpcMainInvokeEvent): boolean =>
-    event.sender === control.webContents &&
-    event.senderFrame === control.webContents.mainFrame;
-  ipcMain.handle(updateEndpoints.get.channel, (event, ...args: unknown[]) => {
-    if (!trusted(event) || args.length !== 0) {
-      throw new Error('Invalid update query');
+  const ipc = new IpcHost(log);
+  const isControl = ({contents, isMainFrame}: Caller): boolean =>
+    contents === control.webContents && isMainFrame;
+  ipc.query(updateEndpoints.get, caller => {
+    if (!isControl(caller)) {
+      throw new Error('Only the control window may ask about updates');
     }
     return controller.get();
   });
-  const check = (event: IpcMainEvent, ...args: unknown[]): void => {
-    if (!trusted(event) || args.length !== 0) {
-      log.warn('Refused an invalid update check');
+  ipc.signal(updateEndpoints.check, caller => {
+    if (!isControl(caller)) {
+      log.warn('Refused an update check of another window');
       return;
     }
     controller
@@ -112,17 +105,11 @@ export function registerUpdates(options: RegisterOptions): () => void {
       .catch((error: unknown) =>
         log.warn('Could not check for updates', error),
       );
-  };
-  const act = (event: IpcMainEvent, ...args: unknown[]): void => {
-    const parsed = parseUpdateAction(args[0]);
-    if (!trusted(event) || args.length !== 1 || !parsed.ok) {
-      log.warn('Refused an invalid update action');
-      return;
-    }
-    controller.act(parsed.value);
-  };
-  ipcMain.on(updateEndpoints.check.channel, check);
-  ipcMain.on(updateEndpoints.act.channel, act);
+  });
+  ipc.message(updateEndpoints.act, (action, caller) => {
+    if (isControl(caller)) controller.act(action);
+    else log.warn('Refused an update action of another window');
+  });
   const unsubscribe = store.subscribe(() => controller.outputsChanged());
   options.ready
     .then(ready => {
@@ -132,8 +119,6 @@ export function registerUpdates(options: RegisterOptions): () => void {
   return () => {
     controller.dispose();
     unsubscribe();
-    ipcMain.removeHandler(updateEndpoints.get.channel);
-    ipcMain.removeListener(updateEndpoints.check.channel, check);
-    ipcMain.removeListener(updateEndpoints.act.channel, act);
+    ipc.close();
   };
 }
