@@ -66,18 +66,29 @@ class PreviewMediaLibrary implements PreviewMediaSource {
     this.unlock = resolve;
   });
 
-  constructor(api: LlpApi) {
+  private following = false;
+
+  constructor(private readonly api: LlpApi) {
     api.media.subscribe(document => this.accept(document));
     api.media.get().then(
       document => this.accept(document),
       () => this.unlock(),
     );
+  }
+
+  /**
+   * Follows main's playback samples from the first countdown of a playing
+   * video on: a window that shows none never takes the feed.
+   */
+  private followProgress(): void {
+    if (this.following) return;
+    this.following = true;
     let pushed = false;
-    api.live.subscribeMediaProgress(reading => {
+    this.api.live.subscribeMediaProgress(reading => {
       pushed = true;
       this.progress = reading;
     });
-    api.live.mediaProgress().then(
+    this.api.live.mediaProgress().then(
       reading => {
         if (!pushed) this.progress = reading;
       },
@@ -118,6 +129,7 @@ class PreviewMediaLibrary implements PreviewMediaSource {
         ? Math.max(0, item.duration - (media.positionSeconds ?? 0))
         : undefined;
     }
+    this.followProgress();
     const reading = this.progress;
     if (
       reading?.mediaId !== media.mediaId ||

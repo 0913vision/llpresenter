@@ -1,9 +1,9 @@
-import {useLayoutEffect, useState, type JSX} from 'react';
-import {emptyLayers, type LiveLayers} from '@core/schema/live';
+import {useLayoutEffect, useRef, type JSX} from 'react';
+import {mediaUrl} from '@contracts/ipc/mediaUrls';
+import {emptyLayers} from '@core/schema/live';
+import {OutputRenderer} from '@renderer/rendering/outputRenderer';
+import {previewMediaOf} from '@renderer/rendering/previewMedia';
 import {ScreenFrames} from '@renderer/rendering/screenFrames';
-import type {SlideDrawing} from '@renderer/pictures/slideDrawing';
-import {SlidePicture} from '@renderer/pictures/SlidePicture';
-import {liveDrawing} from '@renderer/rendering/theme/drawing';
 import {useLive} from '@renderer/session/live';
 import {classNames} from '@renderer/ui/classNames';
 import styles from './ScreenPreview.module.css';
@@ -15,34 +15,11 @@ function reportDrawingError(message: string, error: unknown): void {
   window.llp?.log.write({level: 'error', message, detail});
 }
 
-interface Snapshot {
-  readonly screenId: string;
-  readonly black: boolean;
-  readonly picture: SlideDrawing | undefined;
-}
-
-function snapshotOf(
-  screenId: string,
-  frame: ReturnType<ScreenFrames['frame']>,
-  layers: LiveLayers,
-): Snapshot {
-  return {
-    screenId,
-    black: frame?.blackScreen === true,
-    picture:
-      frame?.screen === undefined
-        ? undefined
-        : {
-            screen: frame.screen,
-            drawing:
-              frame.item?.contentCleared === true
-                ? null
-                : liveDrawing(layers, frame, false),
-          },
-  };
-}
-
-/** What a screen that is off would show now. */
+/**
+ * What a screen that is off would show now, drawn by the renderer of the
+ * outputs: the slide and every layer over it, such as the clock, 무대
+ * message, graphics, and messages, as still pictures.
+ */
 export function ScreenPreview({
   screenId,
   chroma,
@@ -50,52 +27,57 @@ export function ScreenPreview({
   readonly screenId: string;
   readonly chroma: boolean;
 }): JSX.Element {
-  const [state, setState] = useState<Snapshot>();
+  const host = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
     const api = window.llp;
-    if (api === undefined) return undefined;
+    const parent = host.current;
+    if (api === undefined || parent === null) return undefined;
     let stopped = false;
+    const renderer = new OutputRenderer(parent, {
+      mediaUrl,
+      previewMedia: previewMediaOf(api),
+      mode: 'preview',
+      muted: true,
+      onError: reportDrawingError,
+    });
     const holder: {frames?: ScreenFrames} = {};
-    const update = (): void => {
+    const draw = (): void => {
       const {frames} = holder;
       if (stopped || frames === undefined) return;
       const live = useLive.getState().state;
       try {
-        setState(
-          snapshotOf(screenId, frames.frame(live), live?.layers ?? noLayers),
-        );
+        const frame = frames.frame(live);
+        if (frame !== undefined) {
+          renderer.render(live?.layers ?? noLayers, frame);
+        }
       } catch (error) {
         reportDrawingError('could not update the screen preview', error);
       }
     };
-    const frames = new ScreenFrames({
+    holder.frames = new ScreenFrames({
       fonts: api.fonts,
       settings: api.settings,
       clock: () => api.live.clock(),
       wallClock: api.live,
       screenId,
-      onChange: update,
+      onChange: draw,
       onError: reportDrawingError,
     });
-    holder.frames = frames;
-    update();
+    draw();
     const stopLive = useLive.subscribe((next, previous) => {
-      if (next.state !== previous.state) update();
+      if (next.state !== previous.state) draw();
     });
     return () => {
       stopped = true;
       stopLive();
-      frames.dispose();
+      holder.frames?.dispose();
+      renderer.dispose();
     };
   }, [screenId]);
-  const shown = state?.screenId === screenId ? state : undefined;
   return (
-    <div className={classNames(styles.screen, chroma && styles.chroma)}>
-      {shown?.black === true ? (
-        <div className={styles.black} data-black-screen />
-      ) : shown?.picture === undefined ? null : (
-        <SlidePicture {...shown.picture} />
-      )}
-    </div>
+    <div
+      ref={host}
+      className={classNames(styles.screen, chroma && styles.chroma)}
+    />
   );
 }
