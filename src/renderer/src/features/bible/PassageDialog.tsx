@@ -48,6 +48,7 @@ export function PassageDialog({
   disabled = false,
   preparation = false,
   onSubmitIntent,
+  onAhead,
 }: {
   readonly api: BibleLookupApi;
   readonly translation: TranslationId | undefined;
@@ -60,6 +61,8 @@ export function PassageDialog({
   readonly disabled?: boolean;
   readonly preparation?: boolean;
   readonly onSubmitIntent?: (() => void) | undefined;
+  /** A whole reference typed in the 책 field, looked up before Enter. */
+  readonly onAhead?: ((passage: BibleLookupPassage) => void) | undefined;
   readonly onClose: () => void;
   readonly onSubmit: (passage: BibleLookupPassage) => void;
   readonly onPick: (recent: RecentPassage) => void;
@@ -205,6 +208,7 @@ export function PassageDialog({
             onEscape={close}
             onPreview={() => undefined}
             onReady={setReady}
+            onAhead={onAhead}
             onSubmitCandidate={setSubmitCandidate}
             onSubmit={passage => {
               if (!disabled && submissionVersion.current === formVersion) {

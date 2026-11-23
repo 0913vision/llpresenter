@@ -11,26 +11,49 @@ import type {BibleLookupPassage} from '@core/schema/bibleLookup';
 import type {Slide} from '@core/schema/slide';
 import type {LlpApi} from '@contracts/ipc/api';
 import {slideMaking} from '@renderer/platform/themes';
-import {passageSplitter, type BibleSplit} from './passageSplitter';
+import {
+  passageSplitter,
+  type BibleSplit,
+  type PassageSplitter,
+} from './passageSplitter';
 import {reviewBibleInsertion} from './reviewBibleInsertion';
 
 type Settings = Pick<BiblePassage, 'verseNumbers' | 'translationName'>;
 
+const MEASURES_KEPT = 8;
+/** Cuts already measured, by splitter; a new theme or saved cut makes a new splitter. */
+const measures = new WeakMap<PassageSplitter, Map<string, BibleSplit | null>>();
+
 /**
  * Cuts a passage for the text box of the 말씀 theme, keeping the slides some
- * verses have already. Null while nothing can measure the theme.
+ * verses have already. Null while nothing can measure the theme. The last
+ * few cuts are kept, so a passage cut ahead while it was typed is ready.
  */
 export function measurePassage(
   passage: BibleLookupPassage,
   settings: Settings,
   before: readonly Slide[],
 ): BibleSplit | null {
-  return (
-    passageSplitter()?.split(passage, {
-      verseNumbers: settings.verseNumbers,
-      slides: before,
-    }) ?? null
-  );
+  const splitter = passageSplitter();
+  if (splitter === null) return null;
+  let kept = measures.get(splitter);
+  if (kept === undefined) {
+    kept = new Map();
+    measures.set(splitter, kept);
+  }
+  const key = JSON.stringify([passage, settings.verseNumbers, before]);
+  const known = kept.get(key);
+  if (known !== undefined || kept.has(key)) return known ?? null;
+  const split = splitter.split(passage, {
+    verseNumbers: settings.verseNumbers,
+    slides: before,
+  });
+  if (kept.size >= MEASURES_KEPT) {
+    const oldest = kept.keys().next();
+    if (oldest.done !== true) kept.delete(oldest.value);
+  }
+  kept.set(key, split);
+  return split;
 }
 
 /**

@@ -37,16 +37,43 @@ function goesOnFrom(
   );
 }
 
+/** What a passage is cut with when it opens now: its numbers and the slides kept. */
+function cutWith(
+  passage: BibleLookupPassage,
+  display: BibleDisplay,
+  opened: BibleSource | null,
+) {
+  const kept = goesOnFrom(opened, passage, display) ? opened : null;
+  const {verseNumbers, translationName = false} = display;
+  return {kept, settings: {verseNumbers, translationName}};
+}
+
+/**
+ * Cuts a passage ahead, as opening it would, so its slides are ready when the
+ * operator presses Enter; nothing opens or goes out.
+ */
+export function preparePassage(
+  passage: BibleLookupPassage,
+  display: BibleDisplay,
+): void {
+  const view = useShow.getState();
+  const {kept, settings} = cutWith(
+    passage,
+    display,
+    bibleSourceFor(view, view.openItemId),
+  );
+  measurePassage(passage, settings, kept?.slides ?? []);
+}
+
 /** Makes the slides of a passage, with the ones its verses had already. */
 function sourceOf(
   passage: BibleLookupPassage,
   display: BibleDisplay,
   opened: BibleSource | null,
 ): BibleSource {
-  const kept = goesOnFrom(opened, passage, display) ? opened : null;
-  const {verseNumbers, translationName = false, transition} = display;
+  const {kept, settings} = cutWith(passage, display, opened);
+  const {transition} = display;
   const before = kept?.slides ?? [];
-  const settings = {verseNumbers, translationName};
   const slides = slidesOfPassage(
     passage,
     measurePassage(passage, settings, before),

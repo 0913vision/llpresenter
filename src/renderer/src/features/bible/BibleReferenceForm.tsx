@@ -25,6 +25,7 @@ import type {RecentPassage} from '@core/schema/bible';
 import {
   BIBLE_LOOKUP_LIMITS,
   type BibleLookupPassage,
+  type BibleLookupReply,
 } from '@core/schema/bibleLookup';
 import type {TranslationId} from '@core/schema/ids';
 import {TextField} from '@renderer/ui';
@@ -49,7 +50,7 @@ import {
 } from './referenceKeyActions';
 import {useBibleLookup} from './useBibleLookup';
 import {useChosenRecent} from './useChosenRecent';
-import {usePendingSubmit} from './usePendingSubmit';
+import {usePendingSubmit, type PendingSubmit} from './usePendingSubmit';
 import styles from './BibleReferenceField.module.css';
 
 export interface BibleReferenceFormProps {
@@ -71,6 +72,8 @@ export interface BibleReferenceFormProps {
   readonly recents?: readonly RecentPassage[];
   readonly onReady?: (passage: BibleLookupPassage | null) => void;
   readonly onSubmitCandidate?: ((valid: boolean) => void) | undefined;
+  /** A whole reference typed in the 책 field, looked up before Enter. */
+  readonly onAhead?: ((passage: BibleLookupPassage) => void) | undefined;
   /** In a dialog, Esc dismisses the form after closing book suggestions. */
   readonly onEscape?: (() => void) | undefined;
 }
@@ -173,6 +176,14 @@ export function BibleReferenceForm(
   if (reconciled !== fields) setFields(reconciled);
   const state = referenceFieldsState(reconciled, metadataBounds);
   const fullReference = fullReferenceCandidate(reconciled.book);
+  // NOTE(0913vision): A whole reference typed in the 책 field is looked up as
+  // it is typed, so Enter sends it at once and it can be cut ahead.
+  const ahead = useBibleLookup({
+    ...props,
+    translation,
+    input: fullReference?.input ?? '',
+    onPreview: props.onAhead ?? ignorePreview,
+  });
   const chapterOnly =
     fields.start === '' &&
     state.errors.chapter === undefined &&
@@ -202,21 +213,25 @@ export function BibleReferenceForm(
   }, [effective, onEffectiveTranslation]);
   const liveTranslation =
     (passage?.translation ?? metadata?.effectiveTranslation) === LIVE_BIBLE_ID;
+  const settle = (
+    pending: PendingSubmit,
+    result: BibleLookupReply['result'],
+  ): void => {
+    if (!result.ok) {
+      setBlocked(pending.part);
+      return;
+    }
+    if (pending.clampedEnd !== undefined) {
+      setFields(previous => ({...previous, end: String(pending.clampedEnd)}));
+    }
+    setOpen(false);
+    props.onSubmit(result.value);
+  };
   const pendingSubmit = usePendingSubmit({
     reply,
     input: selectedRecent?.ref ?? state.input,
     translation,
-    settle: (pending, result) => {
-      if (!result.ok) {
-        setBlocked(pending.part);
-        return;
-      }
-      if (pending.clampedEnd !== undefined) {
-        setFields(previous => ({...previous, end: String(pending.clampedEnd)}));
-      }
-      setOpen(false);
-      props.onSubmit(result.value);
-    },
+    settle,
   });
   const onReady = props.onReady;
   useEffect(() => onReady?.(passage ?? null), [onReady, passage]);
@@ -308,12 +323,17 @@ export function BibleReferenceForm(
     setOpen(false);
     setBlocked(input ? null : invalidPart);
     if (submit && input && translation !== undefined) {
-      pendingSubmit.wait({
+      const pending = {
         input,
         translation,
         clampedEnd: parsedState.clampedEnd,
-        part: 'end',
-      });
+        part: 'end' as const,
+      };
+      if (ahead?.input === input && ahead.translation === translation) {
+        settle(pending, ahead.result);
+      } else {
+        pendingSubmit.wait(pending);
+      }
     } else {
       pendingSubmit.forget();
       queueMicrotask(() =>

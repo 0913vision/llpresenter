@@ -29,7 +29,11 @@ import {
   isOutputRequestCurrent,
 } from '@renderer/session/showOutput';
 import {BibleReferenceField} from '../bible/BibleReferenceField';
-import {openBiblePassage, showBiblePassage} from '../bible/actions';
+import {
+  openBiblePassage,
+  preparePassage,
+  showBiblePassage,
+} from '../bible/actions';
 import {focusSlideGrid} from '../presentation/focusSlideGrid';
 import {PassageDialog} from '../bible/PassageDialog';
 import {useBibleDisplayDefaults} from '../bible/useBibleDisplayDefaults';
@@ -164,6 +168,29 @@ export function BibleQuickField({
     }
     focusItem.current = id;
   };
+  // NOTE(0913vision): A passage typed whole is looked up as it is typed;
+  // cutting it into slides then too, when the window is idle, leaves only
+  // the output for Enter.
+  const ahead = useRef<number | null>(null);
+  useEffect(
+    () => () => {
+      if (ahead.current !== null) cancelIdleCallback(ahead.current);
+    },
+    [],
+  );
+  const prepareAhead = (passage: BibleLookupPassage): void => {
+    if (ahead.current !== null) cancelIdleCallback(ahead.current);
+    ahead.current = null;
+    if (display === null) return;
+    const options = {...display, transition: QUICK_BIBLE_TRANSITION};
+    ahead.current = requestIdleCallback(
+      () => {
+        ahead.current = null;
+        preparePassage(passage, options);
+      },
+      {timeout: 250},
+    );
+  };
   const pick = async (recent: RecentPassage): Promise<void> => {
     if (display === null) return;
     onIntent?.();
@@ -268,6 +295,7 @@ export function BibleQuickField({
       action="띄우기"
       onClose={closeFinder}
       onSubmit={passage => show(passage)}
+      onAhead={prepareAhead}
       onPick={recent => {
         pick(recent).catch((error: unknown) => console.error(error));
       }}
