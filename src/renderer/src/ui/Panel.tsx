@@ -296,13 +296,17 @@ export function PanelMeta({
 export function PanelTitle({
   title,
   meta,
+  children,
 }: {
   readonly title: string;
   readonly meta?: string | undefined;
+  /** Marks right after the title, such as a warning icon. */
+  readonly children?: ReactNode;
 }): JSX.Element {
   return (
     <div className={styles.title}>
       <TruncatedText text={title} className={styles.titleText} />
+      {children}
       {meta === undefined ? null : <PanelMeta>{meta}</PanelMeta>}
     </div>
   );

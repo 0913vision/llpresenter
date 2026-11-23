@@ -10,7 +10,7 @@ import {
 } from '@renderer/session/showLibrary';
 import {useThumbnailScale} from '@renderer/platform/thumbnailScale';
 import {SlideSizeControl} from '@renderer/platform/SlideSizeControl';
-import {Button, Icon} from '@renderer/ui';
+import {Button, Icon, PanelTitle} from '@renderer/ui';
 import {GridFooter} from '@renderer/ui/GridFooter';
 import {useTooltip} from '@renderer/ui/Tooltip';
 import {SlideGrid} from './SlideGrid';
@@ -93,8 +93,7 @@ export function SlidePanelMeta(): JSX.Element | null {
   const position =
     livePosition === null ? undefined : `${livePosition + 1} / ${count}`;
   return (
-    <span className={styles.meta}>
-      <span className={styles.name}>{title}</span>
+    <PanelTitle title={title} meta={position}>
       {reason ? (
         <>
           <span
@@ -108,10 +107,7 @@ export function SlidePanelMeta(): JSX.Element | null {
           {tooltip}
         </>
       ) : null}
-      {position === undefined ? null : (
-        <span className={styles.position}>{position}</span>
-      )}
-    </span>
+    </PanelTitle>
   );
 }
 
