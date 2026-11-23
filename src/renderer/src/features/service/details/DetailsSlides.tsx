@@ -11,6 +11,7 @@ import {detailsGridGeometry} from './detailsGridGeometry';
 import styles from './DetailsSlides.module.css';
 import {scrollParent} from '@renderer/ui/scrollParent';
 import {useReflow} from '@renderer/ui/useReflow';
+import {gridRange, scrollIntoBand} from '@renderer/ui/useRowRange';
 
 const COLUMNS = 2;
 const INITIAL_COUNT = 8;
@@ -21,13 +22,6 @@ interface Range {
   readonly stride: number;
   readonly columns: number;
   readonly tileWidth: number;
-}
-
-function reveal(viewport: HTMLElement, top: number, stride: number): void {
-  if (top < viewport.scrollTop) viewport.scrollTop = top;
-  else if (top + stride > viewport.scrollTop + viewport.clientHeight) {
-    viewport.scrollTop = top + stride - viewport.clientHeight;
-  }
 }
 
 /** Windows the grid against the panel's own scroll, so pictures outside it are not drawn. */
@@ -91,25 +85,15 @@ export function DetailsSlides({
         scale,
       );
       const stride = Math.max(1, (tileWidth * 9) / 16 + band + gapY);
-      const top = Math.max(
-        0,
+      const top =
         scroll.getBoundingClientRect().top -
-          element.getBoundingClientRect().top,
-      );
-      const first = Math.max(
-        0,
-        Math.min(
-          Math.max(0, Math.ceil(count / columns) - 1),
-          Math.floor(top / stride) - OVERSCAN,
-        ),
-      );
-      const last = Math.min(
-        Math.ceil(count / columns),
-        Math.ceil((top + scroll.clientHeight) / stride) + OVERSCAN,
-      );
+        element.getBoundingClientRect().top;
       setRange({
-        start: first * columns,
-        end: Math.min(count, Math.max(first, last) * columns),
+        ...gridRange({top, height: scroll.clientHeight, row: stride}, count, {
+          columns,
+          initialRows: INITIAL_COUNT / COLUMNS,
+          overscan: OVERSCAN,
+        }),
         stride,
         columns,
         tileWidth,
@@ -150,7 +134,7 @@ export function DetailsSlides({
       viewport.getBoundingClientRect().top +
       viewport.scrollTop +
       Math.floor(index / range.columns) * range.stride;
-    reveal(viewport, top, range.stride);
+    scrollIntoBand(viewport, top, range.stride);
   };
   return (
     <div

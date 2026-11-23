@@ -18,7 +18,7 @@ export function WindowedAudioTracks({
   readonly api: LlpApi;
   readonly tracks: readonly AudioTrack[];
 }): JSX.Element {
-  const {viewport, start, end, view, measure, center} = useRowRange({
+  const {viewport, start, end, view, measure, show} = useRowRange({
     count: tracks.length,
     rowHeight,
     initialRows: INITIAL_ROWS,
@@ -60,7 +60,7 @@ export function WindowedAudioTracks({
     }
     if (target < 0 || target >= tracks.length) return;
     focus.current = target;
-    center(target);
+    show(target);
     const rendered = node.querySelector<HTMLButtonElement>(
       `[data-audio-row="${target}"] button`,
     );

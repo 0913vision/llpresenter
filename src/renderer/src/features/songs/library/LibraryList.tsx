@@ -1,5 +1,10 @@
-import {useLayoutEffect, useRef, type JSX, type KeyboardEvent} from 'react';
-import {listKeyTarget, useRowRange} from '@renderer/ui/useRowRange';
+import {type JSX, type KeyboardEvent} from 'react';
+import {
+  optionKeyTarget,
+  useFocusOption,
+  useRowRange,
+  useShowSelected,
+} from '@renderer/ui/useRowRange';
 import type {SongId} from '@core/schema/ids';
 import {SONG_DRAG_MIME, serializeSongDragPayload} from '@core/schema/songDrag';
 import {ListBox, ListRow} from '@renderer/ui/ListRow';
@@ -10,12 +15,6 @@ import {useDragClickGuard} from '@renderer/ui/useDragClickGuard';
 
 const OVERSCAN = 4;
 const INITIAL_ROWS = 12;
-/** One row is as tall as the design system's `--size-row`. */
-const rowHeight = (list: HTMLElement): number =>
-  Number.parseFloat(
-    getComputedStyle(list).getPropertyValue('--size-row') ||
-      getComputedStyle(document.documentElement).getPropertyValue('--size-row'),
-  ) || 0;
 
 interface LibraryListProps {
   readonly rows: readonly LibraryRow[];
@@ -35,44 +34,31 @@ export function LibraryList({
   onNavigate,
   onContextMenu,
 }: LibraryListProps): JSX.Element {
-  const {viewport, start, end, view, measure, center, reveal} = useRowRange({
+  const {viewport, start, end, view, measure, show} = useRowRange({
     count: rows.length,
-    rowHeight,
     initialRows: INITIAL_ROWS,
     overscan: OVERSCAN,
   });
   const click = useDragClickGuard();
-  const focusNext = useRef<string | null>(null);
-  useLayoutEffect(() => {
-    const index = rows.findIndex(row => row.song.id === selected);
-    if (view.row > 0 && index >= 0 && (index < start || index >= end)) {
-      reveal(index);
-    }
-  }, [rows, selected, start, end, view.row, reveal]);
-  useLayoutEffect(() => {
-    const id = focusNext.current;
-    if (id === null) return;
-    const row = viewport.current?.querySelector<HTMLElement>(
-      `[data-value="${id}"]`,
-    );
-    if (row) {
-      row.focus();
-      focusNext.current = null;
-    }
-  }, [start, end, selected, viewport]);
+  const focusLater = useFocusOption(viewport);
+  useShowSelected(
+    rows.findIndex(row => row.song.id === selected),
+    view.row,
+    show,
+  );
 
   const navigate = (event: KeyboardEvent): void => {
-    if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
-      return;
-    }
-    const current = rows.findIndex(row => row.song.id === selected);
-    const target = listKeyTarget(event.key, current, rows.length);
-    const next = target === undefined ? undefined : rows[target];
-    if (target === undefined || !next) return;
+    const target = optionKeyTarget(
+      event,
+      rows.map(row => row.song.id),
+      selected,
+    );
+    const next = target === undefined ? undefined : rows[target.index];
+    if (target === undefined || next === undefined) return;
     event.preventDefault();
     event.stopPropagation();
-    focusNext.current = next.song.id;
-    if (view.row > 0) center(target);
+    focusLater(target.id);
+    show(target.index);
     onNavigate(next.song.id);
   };
 

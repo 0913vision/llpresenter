@@ -2,13 +2,19 @@ import {isUnchangedSelectionMove} from '@core/common/selectionOrder';
 import {useReflow} from '@renderer/ui/useReflow';
 import {contextMenuTarget, openMenuFromKey} from '@renderer/ui/contextMenu';
 import {
-  useLayoutEffect,
   useRef,
   useState,
+  type DragEvent,
   type JSX,
   type KeyboardEvent,
   type ReactNode,
 } from 'react';
+import {
+  optionKeyTarget,
+  useFocusOption,
+  useRowRange,
+  useShowSelected,
+} from '@renderer/ui/useRowRange';
 import type {Choice} from './choices';
 import {ListBox, ListRow, type GroupRename} from '@renderer/ui/ListRow';
 import type {MenuAnchor} from '@renderer/ui/Menu';
@@ -16,6 +22,24 @@ import styles from './ChoiceRows.module.css';
 
 const INITIAL_ROWS = 12;
 const OVERSCAN = 4;
+
+/**
+ * Where `dragged` lands when dropped on row `id`: after it when the pointer
+ * is in its lower half, before the row `before` (null at the end). Null when
+ * it would stay where it is.
+ */
+function dropPlace(
+  event: DragEvent<HTMLElement>,
+  ids: readonly string[],
+  {id, dragged}: {readonly id: string; readonly dragged: string},
+): {readonly after: boolean; readonly before: string | null} | null {
+  const rect = event.currentTarget.getBoundingClientRect();
+  const after = event.clientY >= rect.top + rect.height / 2;
+  const index = ids.indexOf(id) + (after ? 1 : 0);
+  return isUnchangedSelectionMove(ids, new Set([dragged]), index)
+    ? null
+    : {after, before: ids[index] ?? null};
+}
 
 /** Windows long choice lists while keeping keyboard navigation over every row. */
 export function ChoiceRows<T extends Choice>({
@@ -52,87 +76,34 @@ export function ChoiceRows<T extends Choice>({
   readonly onRename?: (choice: T) => void;
   readonly onDelete?: (choice: T) => void;
 }): JSX.Element {
-  const viewport = useRef<HTMLDivElement>(null);
+  const {viewport, start, end, view, measure, show} = useRowRange({
+    count: choices.length,
+    initialRows: INITIAL_ROWS,
+    overscan: OVERSCAN,
+  });
   useReflow(viewport, {
     ids: choices.map(choice => choice.id),
     selector: '[role="option"][data-value]',
     attribute: 'data-value',
     scope: label,
   });
-  const focusNext = useRef<string | null>(null);
+  const focusLater = useFocusOption(viewport);
   const dragged = useRef<string | null>(null);
   const [drop, setDrop] = useState<{id: string; after: boolean} | null>(null);
-  const [view, setView] = useState({top: 0, height: 0, row: 0});
-  const measure = (): void => {
-    const element = viewport.current;
-    if (element === null) return;
-    const row =
-      Number.parseFloat(
-        getComputedStyle(element).getPropertyValue('--size-row') ||
-          getComputedStyle(document.documentElement).getPropertyValue(
-            '--size-row',
-          ),
-      ) || 0;
-    setView({top: element.scrollTop, height: element.clientHeight, row});
-  };
-  useLayoutEffect(() => {
-    const element = viewport.current;
-    if (element === null) return undefined;
-    measure();
-    if (typeof ResizeObserver === 'undefined') return undefined;
-    const observer = new ResizeObserver(measure);
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, []);
-  const count =
-    view.row > 0 && view.height > 0
-      ? Math.ceil(view.height / view.row)
-      : INITIAL_ROWS;
-  const start = Math.max(
-    0,
-    Math.min(
-      (view.row > 0 ? Math.floor(view.top / view.row) : 0) - OVERSCAN,
-      choices.length - count,
-    ),
+  useShowSelected(
+    choices.findIndex(choice => choice.id === selected),
+    view.row,
+    show,
   );
-  const end = Math.min(choices.length, start + count + OVERSCAN * 2);
-  useLayoutEffect(() => {
-    const element = viewport.current;
-    const index = choices.findIndex(choice => choice.id === selected);
-    if (
-      element !== null &&
-      view.row > 0 &&
-      index >= 0 &&
-      (index * view.row < element.scrollTop ||
-        index * view.row >=
-          element.scrollTop + Math.max(element.clientHeight, view.row))
-    ) {
-      element.scrollTop = index * view.row;
-      measure();
-    }
-  }, [choices, selected, view.row]);
-  useLayoutEffect(() => {
-    if (focusNext.current === null) return;
-    const row = viewport.current?.querySelector<HTMLElement>(
-      `[data-value="${focusNext.current}"]`,
-    );
-    if (row !== undefined && row !== null) {
-      row.focus();
-      focusNext.current = null;
-    }
-  }, [start, end, selected]);
+  const ids = choices.map(choice => choice.id);
   const navigate = (event: KeyboardEvent): void => {
-    if (
-      event.target instanceof HTMLInputElement ||
-      event.altKey ||
-      event.ctrlKey ||
-      event.metaKey ||
-      event.shiftKey
-    ) {
-      return;
-    }
     const selectedChoice = choices.find(choice => choice.id === selected);
     if (
+      !(event.target instanceof HTMLInputElement) &&
+      !event.altKey &&
+      !event.ctrlKey &&
+      !event.metaKey &&
+      !event.shiftKey &&
       selectedChoice &&
       ((event.key === 'F2' && onRename) || (event.key === 'Delete' && onDelete))
     ) {
@@ -142,38 +113,13 @@ export function ChoiceRows<T extends Choice>({
       else onDelete?.(selectedChoice);
       return;
     }
-    const option =
-      event.target instanceof Element
-        ? event.target.closest<HTMLElement>('[role="option"][data-value]')
-        : null;
-    const focused = choices.findIndex(
-      choice => choice.id === option?.dataset['value'],
-    );
-    const index =
-      focused >= 0
-        ? focused
-        : choices.findIndex(choice => choice.id === selected);
-    const targets: Readonly<Record<string, number>> = {
-      ArrowDown: index + 1,
-      ArrowUp: index - 1,
-      Home: 0,
-      End: choices.length - 1,
-    };
-    const target = targets[event.key];
+    const target = optionKeyTarget(event, ids, selected);
     if (target === undefined) return;
-    const next = choices[Math.max(0, Math.min(target, choices.length - 1))];
-    if (next === undefined) return;
     event.preventDefault();
     event.stopPropagation();
-    focusNext.current = next.id;
-    if (viewport.current !== null && view.row > 0) {
-      viewport.current.scrollTop = Math.max(
-        0,
-        target * view.row - view.height / 2,
-      );
-    }
-    measure();
-    onSelect(next.id);
+    focusLater(target.id);
+    show(target.index);
+    onSelect(target.id);
   };
   return (
     <div
@@ -223,20 +169,11 @@ export function ChoiceRows<T extends Choice>({
               }
               event.preventDefault();
               event.dataTransfer.dropEffect = 'move';
-              const rect = event.currentTarget.getBoundingClientRect();
-              const after = event.clientY >= rect.top + rect.height / 2;
-              const index =
-                choices.findIndex(value => value.id === choice.id) +
-                (after ? 1 : 0);
-              setDrop(
-                isUnchangedSelectionMove(
-                  choices.map(value => value.id),
-                  new Set([dragged.current]),
-                  index,
-                )
-                  ? null
-                  : {id: choice.id, after},
-              );
+              const place = dropPlace(event, ids, {
+                id: choice.id,
+                dragged: dragged.current,
+              });
+              setDrop(place === null ? null : {id: choice.id, ...place});
             }}
             onDrop={event => {
               if (
@@ -247,20 +184,11 @@ export function ChoiceRows<T extends Choice>({
                 return;
               }
               event.preventDefault();
-              const rect = event.currentTarget.getBoundingClientRect();
-              const after = event.clientY >= rect.top + rect.height / 2;
-              const index = choices.findIndex(value => value.id === choice.id);
-              const unchanged = isUnchangedSelectionMove(
-                choices.map(value => value.id),
-                new Set([dragged.current]),
-                index + (after ? 1 : 0),
-              );
-              if (!unchanged) {
-                onMove(
-                  dragged.current,
-                  after ? (choices[index + 1]?.id ?? null) : choice.id,
-                );
-              }
+              const place = dropPlace(event, ids, {
+                id: choice.id,
+                dragged: dragged.current,
+              });
+              if (place !== null) onMove(dragged.current, place.before);
               dragged.current = null;
               setDrop(null);
             }}

@@ -37,7 +37,7 @@ export function WindowedTimers({
   readonly onProblem?: ((notice: Notice) => void) | undefined;
   readonly onRemove?: ((timer: Timer) => void) | undefined;
 }): JSX.Element {
-  const {viewport, start, end, view, measure, center} = useRowRange({
+  const {viewport, start, end, view, measure, show} = useRowRange({
     count: timers.length,
     rowHeight,
     initialRows: INITIAL_ROWS,
@@ -81,7 +81,7 @@ export function WindowedTimers({
     event.preventDefault();
     event.stopPropagation();
     pendingFocus.current = target;
-    center(target);
+    show(target);
     const rendered = node.querySelector<HTMLElement>(
       `[data-timer-row="${target}"]`,
     );

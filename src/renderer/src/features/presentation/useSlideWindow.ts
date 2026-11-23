@@ -11,6 +11,7 @@ import {
   type RefObject,
 } from 'react';
 import {flushSync} from 'react-dom';
+import {gridRange} from '@renderer/ui/useRowRange';
 
 const OVERSCAN_ROWS = 1;
 const INITIAL_ROWS = 2;
@@ -259,21 +260,17 @@ export function useSlideWindow(
   const stride =
     tileWidth > 0 ? (tileWidth * 9) / 16 + measure.band + measure.rowGap : 1;
   const rows = Math.ceil(count / tracks);
-  const visible =
-    measure.height > 0 && tileWidth > 0
-      ? Math.ceil(measure.height / stride)
-      : INITIAL_ROWS;
-  const first = Math.max(
-    0,
-    Math.min(
-      Math.floor(Math.max(0, scrollTop - measure.inset) / stride) -
-        OVERSCAN_ROWS,
-      rows - visible,
-    ),
+  const {start, end} = gridRange(
+    {
+      top: scrollTop - measure.inset,
+      height: measure.height,
+      row: tileWidth > 0 ? stride : 0,
+    },
+    count,
+    {columns: tracks, initialRows: INITIAL_ROWS, overscan: OVERSCAN_ROWS},
   );
-  const start = first * tracks;
+  const first = start / tracks;
   const windowSize = firstSlideWindowSize(tracks, measure.height, stride);
-  const end = Math.min(count, start + windowSize);
   useLayoutEffect(() => {
     const viewport = keeper.current?.parentElement;
     const old = geometry.current;
