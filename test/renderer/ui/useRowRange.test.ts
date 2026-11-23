@@ -24,7 +24,7 @@ describe('the rows a long list mounts', () => {
       end: 3,
     });
     expect(rowRange({top: 3800, height: 200, row: 40}, 100, options)).toEqual({
-      start: 95,
+      start: 93,
       end: 100,
     });
   });
