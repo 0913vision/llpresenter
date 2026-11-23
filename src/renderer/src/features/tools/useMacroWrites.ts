@@ -8,6 +8,26 @@ import {saveMacroEdit, type MacroEdit} from './macroEdits';
 import {useToolEditing} from './useToolEditing';
 
 /**
+ * The writes of 매크로 모음, in the panel and in its picker alike; a deleted
+ * 모음 can be brought back with undo.
+ */
+export function useCollectionEditing(
+  onProblem: ((notice: Notice) => void) | undefined,
+) {
+  return useToolEditing({
+    api: window.llp,
+    write: saveMacroCollectionEdit,
+    onProblem,
+    area: {
+      key: 'macro-collections',
+      label: '모음',
+      log: 'Could not edit macro collections',
+      history: 'macros',
+    },
+  });
+}
+
+/**
  * The writes of the 매크로 panel: macros and 모음 each through their own
  * editing, and a step to run after a save that is dropped when the operator
  * has done something else in the meantime (`moved`).
@@ -27,17 +47,7 @@ export function useMacroWrites(
       history: 'macros',
     },
   });
-  const collections = useToolEditing({
-    api: window.llp,
-    write: saveMacroCollectionEdit,
-    onProblem,
-    area: {
-      key: 'macro-collections',
-      label: '모음',
-      log: 'Could not edit macro collections',
-      history: 'macros',
-    },
-  });
+  const collections = useCollectionEditing(onProblem);
   /** Runs `after` once `save` holds, unless the operator moved on. */
   const afterSave = (
     save: Promise<boolean>,

@@ -14,11 +14,8 @@ import {ListInsertLine} from '@renderer/ui/ListRow';
 import {stepMove} from '@renderer/ui/reorder';
 import {useChoicePopup} from '@renderer/ui/useChoicePopup';
 import menuStyles from '@renderer/ui/Menu.module.css';
-import {useToolEditing} from './useToolEditing';
-import {
-  saveMacroCollectionEdit,
-  type MacroCollectionEdit,
-} from './macroCollectionEdits';
+import type {MacroCollectionEdit} from './macroCollectionEdits';
+import {useCollectionEditing} from './useMacroWrites';
 import {MacroCollectionMenu} from './macroCollectionMenuEntries';
 import {MacroCollectionRow} from './MacroCollectionRow';
 import {useCollectionDrag} from './useCollectionDrag';
@@ -35,6 +32,41 @@ interface CollectionProps {
   readonly onNew?: (() => void) | undefined;
 }
 
+/** The row under the 모음 that makes a new one. */
+function NewCollectionRow({
+  disabled,
+  onAdd,
+}: {
+  readonly disabled: boolean;
+  readonly onAdd: () => void;
+}): JSX.Element {
+  return (
+    <div
+      role="button"
+      tabIndex={-1}
+      data-choice=""
+      className={classNames(menuStyles.item, styles.row)}
+      aria-disabled={disabled ? true : undefined}
+      onClick={onAdd}
+      onKeyDown={event => {
+        if (
+          !hasModifier(event) &&
+          !isComposing(event) &&
+          (event.key === 'Enter' || event.key === ' ')
+        ) {
+          event.preventDefault();
+          onAdd();
+        }
+      }}
+    >
+      <span className={menuStyles.icon}>
+        <Icon name="plus" size={16} />
+      </span>
+      <span className={menuStyles.label}>새 매크로 모음</span>
+    </div>
+  );
+}
+
 function CollectionPopover({
   anchor,
   onClose,
@@ -44,16 +76,7 @@ function CollectionPopover({
   readonly onClose: (restore: boolean) => void;
 }): JSX.Element {
   const {collections, value, onChange, onDelete} = props;
-  const {busy, run} = useToolEditing({
-    api: window.llp,
-    write: saveMacroCollectionEdit,
-    onProblem: props.onProblem,
-    area: {
-      key: 'macro-collections',
-      label: '모음',
-      log: 'Could not edit macro collections',
-    },
-  });
+  const {busy, run} = useCollectionEditing(props.onProblem);
   const locked = props.locked || busy || window.llp === undefined;
   const [context, setContext] = useState<{
     id: string;
@@ -220,29 +243,7 @@ function CollectionPopover({
               {drag.insertBefore === null ? <ListInsertLine /> : null}
             </div>
             <div role="separator" className={menuStyles.separator} />
-            <div
-              role="button"
-              tabIndex={-1}
-              data-choice=""
-              className={classNames(menuStyles.item, styles.row)}
-              aria-disabled={cannotAdd ? true : undefined}
-              onClick={add}
-              onKeyDown={event => {
-                if (
-                  !hasModifier(event) &&
-                  !isComposing(event) &&
-                  (event.key === 'Enter' || event.key === ' ')
-                ) {
-                  event.preventDefault();
-                  add();
-                }
-              }}
-            >
-              <span className={menuStyles.icon}>
-                <Icon name="plus" size={16} />
-              </span>
-              <span className={menuStyles.label}>새 매크로 모음</span>
-            </div>
+            <NewCollectionRow disabled={cannotAdd} onAdd={add} />
           </div>
         </div>
       </Popover>
