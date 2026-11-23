@@ -48,6 +48,156 @@ function changeText(
   );
 }
 
+/** 짧은 글 자간: a few letters set wider apart, as a short title is. */
+function ShortTracking({
+  text,
+  reason,
+  change,
+}: {
+  readonly text: ThemeTextStyle;
+  readonly reason: string | undefined;
+  readonly change: (update: (style: ThemeTextStyle) => ThemeTextStyle) => void;
+}): JSX.Element {
+  return (
+    <>
+      <ThemeCheck
+        label="짧은 글 자간"
+        checked={text.short !== undefined}
+        reason={reason}
+        change={on =>
+          change(style => {
+            const {short: _short, ...rest} = style;
+            return on
+              ? {...rest, short: {letters: 2, tracking: style.tracking}}
+              : rest;
+          })
+        }
+      />
+      {text.short === undefined ? null : (
+        <>
+          <ThemeNumber
+            label="최대 글자 수"
+            value={text.short.letters}
+            min={1}
+            max={THEME_FILE_LIMITS.rows}
+            reason={reason}
+            change={letters =>
+              change(style =>
+                style.short === undefined
+                  ? style
+                  : {...style, short: {...style.short, letters}},
+              )
+            }
+          />
+          <ThemeNumber
+            label="짧은 글 자간 값"
+            value={text.short.tracking}
+            min={THEME_FILE_LIMITS.tracking.min}
+            max={THEME_FILE_LIMITS.tracking.max}
+            reason={reason}
+            change={tracking =>
+              change(style =>
+                style.short === undefined
+                  ? style
+                  : {...style, short: {...style.short, tracking}},
+              )
+            }
+          />
+        </>
+      )}
+    </>
+  );
+}
+
+/** The 효과 of a text box: its outline and its shadow. */
+function ThemeTextEffects({
+  outline,
+  shadow,
+  reason,
+  changeOutline,
+  changeShadow,
+}: {
+  readonly outline: TextOutline;
+  readonly shadow: TextShadow;
+  readonly reason: string | undefined;
+  readonly changeOutline: (update: Partial<TextOutline>) => void;
+  readonly changeShadow: (update: Partial<TextShadow>) => void;
+}): JSX.Element {
+  return (
+    <PropertyGroup title="효과">
+      <ThemeCheck
+        label="외곽선"
+        checked={outline.on}
+        reason={reason}
+        change={on => changeOutline({on})}
+      />
+      {outline.on ? (
+        <>
+          <ThemeNumber
+            label="두께"
+            value={outline.width}
+            min={TEXT_EFFECT_LIMITS.outlineWidth.min}
+            max={TEXT_EFFECT_LIMITS.outlineWidth.max}
+            reason={reason}
+            change={width => changeOutline({width})}
+          />
+          <ColorProperty
+            label="외곽선 색"
+            value={outline.color}
+            reason={reason}
+            commit={color => changeOutline({color})}
+          />
+        </>
+      ) : null}
+      <ThemeCheck
+        label="그림자"
+        checked={shadow.on}
+        reason={reason}
+        change={on => changeShadow({on})}
+      />
+      {shadow.on ? (
+        <>
+          {(
+            [
+              {
+                key: 'blur',
+                label: '흐림',
+                max: TEXT_EFFECT_LIMITS.shadowBlur,
+              },
+              {
+                key: 'distance',
+                label: '거리',
+                max: TEXT_EFFECT_LIMITS.shadowDistance,
+              },
+              {
+                key: 'angle',
+                label: '각도',
+                max: TEXT_EFFECT_LIMITS.shadowAngle,
+              },
+              {key: 'opacity', label: '불투명도', max: 100},
+            ] as const
+          ).map(({key, label, max}) => (
+            <ThemeNumber
+              key={key}
+              label={label}
+              value={shadow[key]}
+              max={max}
+              reason={reason}
+              change={number => changeShadow({[key]: number})}
+            />
+          ))}
+          <ColorProperty
+            label="그림자 색"
+            value={shadow.color}
+            reason={reason}
+            commit={color => changeShadow({color})}
+          />
+        </>
+      ) : null}
+    </PropertyGroup>
+  );
+}
+
 export function ThemeTextProperties({
   model,
   element,
@@ -136,51 +286,7 @@ export function ThemeTextProperties({
           reason={reason}
           change={tracking => change(value => ({...value, tracking}))}
         />
-        <ThemeCheck
-          label="짧은 글 자간"
-          checked={text.short !== undefined}
-          reason={reason}
-          change={on =>
-            change(style => {
-              const {short: _short, ...rest} = style;
-              return on
-                ? {...rest, short: {letters: 2, tracking: style.tracking}}
-                : rest;
-            })
-          }
-        />
-        {text.short === undefined ? null : (
-          <>
-            <ThemeNumber
-              label="최대 글자 수"
-              value={text.short.letters}
-              min={1}
-              max={THEME_FILE_LIMITS.rows}
-              reason={reason}
-              change={letters =>
-                change(style =>
-                  style.short === undefined
-                    ? style
-                    : {...style, short: {...style.short, letters}},
-                )
-              }
-            />
-            <ThemeNumber
-              label="짧은 글 자간 값"
-              value={text.short.tracking}
-              min={THEME_FILE_LIMITS.tracking.min}
-              max={THEME_FILE_LIMITS.tracking.max}
-              reason={reason}
-              change={tracking =>
-                change(style =>
-                  style.short === undefined
-                    ? style
-                    : {...style, short: {...style.short, tracking}},
-                )
-              }
-            />
-          </>
-        )}
+        <ShortTracking text={text} reason={reason} change={change} />
         <ThemeCheck
           label="글머리 기호"
           checked={text.bullets ?? false}
@@ -224,77 +330,13 @@ export function ThemeTextProperties({
           )}
         </PropertyRow>
       </PropertyGroup>
-      <PropertyGroup title="효과">
-        <ThemeCheck
-          label="외곽선"
-          checked={outline.on}
-          reason={reason}
-          change={on => changeOutline({on})}
-        />
-        {outline.on ? (
-          <>
-            <ThemeNumber
-              label="두께"
-              value={outline.width}
-              min={TEXT_EFFECT_LIMITS.outlineWidth.min}
-              max={TEXT_EFFECT_LIMITS.outlineWidth.max}
-              reason={reason}
-              change={width => changeOutline({width})}
-            />
-            <ColorProperty
-              label="외곽선 색"
-              value={outline.color}
-              reason={reason}
-              commit={color => changeOutline({color})}
-            />
-          </>
-        ) : null}
-        <ThemeCheck
-          label="그림자"
-          checked={shadow.on}
-          reason={reason}
-          change={on => changeShadow({on})}
-        />
-        {shadow.on ? (
-          <>
-            {(
-              [
-                {
-                  key: 'blur',
-                  label: '흐림',
-                  max: TEXT_EFFECT_LIMITS.shadowBlur,
-                },
-                {
-                  key: 'distance',
-                  label: '거리',
-                  max: TEXT_EFFECT_LIMITS.shadowDistance,
-                },
-                {
-                  key: 'angle',
-                  label: '각도',
-                  max: TEXT_EFFECT_LIMITS.shadowAngle,
-                },
-                {key: 'opacity', label: '불투명도', max: 100},
-              ] as const
-            ).map(({key, label, max}) => (
-              <ThemeNumber
-                key={key}
-                label={label}
-                value={shadow[key]}
-                max={max}
-                reason={reason}
-                change={number => changeShadow({[key]: number})}
-              />
-            ))}
-            <ColorProperty
-              label="그림자 색"
-              value={shadow.color}
-              reason={reason}
-              commit={color => changeShadow({color})}
-            />
-          </>
-        ) : null}
-      </PropertyGroup>
+      <ThemeTextEffects
+        outline={outline}
+        shadow={shadow}
+        reason={reason}
+        changeOutline={changeOutline}
+        changeShadow={changeShadow}
+      />
     </>
   );
 }
