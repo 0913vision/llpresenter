@@ -1,3 +1,4 @@
+import {useScreenList} from '@renderer/platform/useScreenList';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {
   memo,
@@ -7,7 +8,7 @@ import {
   type JSX,
 } from 'react';
 import type {MessageTemplate} from '@core/schema/messages';
-import {inScreenOrder, type Screen} from '@core/schema/screens';
+import type {Screen} from '@core/schema/screens';
 import {
   messageBlankNames,
   MAX_MESSAGE_CHARACTERS,
@@ -175,7 +176,7 @@ export function MessageTab({
   readonly onProblem?: ((notice: Notice) => void) | undefined;
 }): JSX.Element {
   const messages = useSettingsDocument('messages', '메시지', onProblem);
-  const screens = useSettingsDocument('screens', '화면', onProblem);
+  const screens = useScreenList(onProblem);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected =
     messages?.value.templates.find(template => template.id === selectedId) ??
@@ -185,7 +186,7 @@ export function MessageTab({
       <ActiveMessages />
       <MessageEditing
         document={messages}
-        screens={inScreenOrder(screens?.value.screens ?? [])}
+        screens={screens ?? []}
         onProblem={onProblem}
         onSelect={setSelectedId}
       >
@@ -209,7 +210,7 @@ export function MessageTab({
             selected.duration ?? null,
           ])}
           template={selected}
-          screens={inScreenOrder(screens?.value.screens ?? [])}
+          screens={screens ?? []}
         />
       )}
     </>

@@ -1,3 +1,4 @@
+import {useScreenList} from '@renderer/platform/useScreenList';
 import type {JSX} from 'react';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {sendLive, useLive} from '@renderer/session/live';
@@ -13,11 +14,10 @@ export function StageTab({
 }: {
   readonly onProblem?: ((notice: Notice) => void) | undefined;
 }): JSX.Element {
-  const screens = useSettingsDocument('screens', '화면', onProblem);
+  const screens = useScreenList(onProblem);
   const timers = useSettingsDocument('timers', '타이머', onProblem);
   const stageTimerId = useLive(view => view.state?.stageTimerId);
-  const stageScreens =
-    screens?.value.screens.filter(s => s.kind === 'stage') ?? [];
+  const stageScreens = screens?.filter(s => s.kind === 'stage') ?? [];
   const unavailable = stageScreens.length === 0 ? '무대 화면 없음' : undefined;
   const timerId = timers?.value.timers.find(t => t.id === stageTimerId)?.id;
   return (

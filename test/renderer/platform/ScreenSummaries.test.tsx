@@ -14,6 +14,7 @@ import {
   useScreenSummaries,
 } from '@renderer/platform/ScreenSummaries';
 import {summarizeScreens} from '@renderer/platform/screens';
+import {inScreenOrder} from '@core/schema/screens';
 import {projector} from '@fixtures/renderer/features/screens/monitors';
 
 function Labels(): JSX.Element {
@@ -40,11 +41,9 @@ it('orders toolbar and preview screens by kind without changing saved names or o
   const document = screensDocument();
   if (document.name !== 'screens') throw new Error('Expected screens');
   const original = document.value.screens;
-  expect(summarizeScreens(original).map(screen => screen.statusLabel)).toEqual([
-    '청중 화면',
-    '무대 화면',
-    '방송 화면',
-  ]);
+  expect(
+    summarizeScreens(inScreenOrder(original)).map(screen => screen.statusLabel),
+  ).toEqual(['청중 화면', '무대 화면', '방송 화면']);
   expect(original.map(screen => screen.name)).toEqual([
     '청중 화면',
     '방송 화면',
@@ -63,7 +62,9 @@ it('orders toolbar and preview screens by kind without changing saved names or o
   });
   if (extended.name !== 'screens') throw new Error('Expected screens');
   expect(
-    summarizeScreens(extended.value.screens).map(screen => screen.statusLabel),
+    summarizeScreens(inScreenOrder(extended.value.screens)).map(
+      screen => screen.statusLabel,
+    ),
   ).toEqual(['청중 화면', '두 번째 청중', '무대 화면', '방송 화면']);
 });
 
@@ -197,8 +198,8 @@ it('projects every saved output method and monitor identity in screen-kind order
     ],
   });
   if (value.name !== 'screens') throw new Error('Expected screens');
-  const summaries = summarizeScreens(value.value.screens);
-  const matched = summarizeScreens(value.value.screens, [
+  const summaries = summarizeScreens(inScreenOrder(value.value.screens));
+  const matched = summarizeScreens(inScreenOrder(value.value.screens), [
     {...projector, number: 1, name: 'Current', screenIds: [MAIN_ID]},
   ]);
   expect(matched[0]?.target).toBe('모니터 1 Current');

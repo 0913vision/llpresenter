@@ -1,5 +1,5 @@
+import {useScreenList} from '@renderer/platform/useScreenList';
 import {useState} from 'react';
-import {inScreenOrder} from '@core/schema/screens';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import type {Notice} from '@renderer/ui/notices';
 
@@ -29,18 +29,12 @@ export function useThemeResources(
     '테마',
     reportLoad,
   );
-  const screensDocument = useSettingsDocument(
-    active ? 'screens' : null,
-    '화면',
-    reportLoad,
-  );
+  const screens = useScreenList(reportLoad, active);
   return {
     document,
     themesFailed: load.themesFailed,
     screensReady:
-      screensDocument !== null ||
-      load.screensFailed ||
-      window.llp === undefined,
-    screens: inScreenOrder(screensDocument?.value.screens ?? []),
+      screens !== null || load.screensFailed || window.llp === undefined,
+    screens: screens ?? [],
   };
 }

@@ -1,3 +1,4 @@
+import {useScreenList} from './useScreenList';
 import {
   createContext,
   useContext,
@@ -5,7 +6,6 @@ import {
   type JSX,
   type ReactNode,
 } from 'react';
-import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import type {Notice} from '@renderer/ui/notices';
 import {summarizeScreens, type ScreenSummary} from './screens';
 import type {MonitorList} from '@core/schema/monitors';
@@ -26,13 +26,10 @@ export function ScreenSummariesProvider({
   readonly onProblem: (notice: Notice) => void;
   readonly monitors?: MonitorList;
 }): JSX.Element {
-  const document = useSettingsDocument('screens', '화면', onProblem);
+  const list = useScreenList(onProblem);
   const screens = useMemo(
-    () =>
-      document === null
-        ? noScreens
-        : summarizeScreens(document.value.screens, monitors),
-    [document, monitors],
+    () => (list === null ? noScreens : summarizeScreens(list, monitors)),
+    [list, monitors],
   );
   return (
     <ScreenSummariesContext value={screens}>{children}</ScreenSummariesContext>

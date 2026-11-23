@@ -1,4 +1,4 @@
-import {inScreenOrder} from '@core/schema/screens';
+import {useScreenList} from '@renderer/platform/useScreenList';
 import {PanelAction} from '@renderer/ui/PanelActionSlot';
 import {useLayoutEffect, useRef, useState, type JSX} from 'react';
 import {limitReason} from '@core/common/limitReason';
@@ -31,7 +31,7 @@ export function PropTab({
   readonly onProblem?: ((notice: Notice) => void) | undefined;
 }): JSX.Element {
   const document = useSettingsDocument('props', '그래픽', onProblem);
-  const screens = useSettingsDocument('screens', '화면', onProblem);
+  const screens = useScreenList(onProblem);
   const media = useMediaDocument(onProblem, 'prop');
   const [editor, setEditor] = useState<Editor | null>(null);
   const [menu, setMenu] = useState<{
@@ -126,7 +126,7 @@ export function PropTab({
       </PanelAction>
       <PropGrid
         props={document?.value.props ?? []}
-        screens={inScreenOrder(screens?.value.screens ?? [])}
+        screens={screens ?? []}
         media={media?.value.items}
         onMenu={(prop, anchor, action) => {
           setMenu({prop, anchor, ...action});
@@ -163,7 +163,7 @@ export function PropTab({
       {editor ? (
         <PropDialog
           initial={editor.kind === 'edit' ? editor.prop : undefined}
-          screens={inScreenOrder(screens?.value.screens ?? [])}
+          screens={screens ?? []}
           media={media?.value.items ?? []}
           locked={locked}
           onCancel={() => setEditor(null)}

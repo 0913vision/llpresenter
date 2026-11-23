@@ -1,8 +1,4 @@
-import {
-  inScreenOrder,
-  NDI_DEFAULT_FPS,
-  type Screen,
-} from '@core/schema/screens';
+import {NDI_DEFAULT_FPS, type Screen} from '@core/schema/screens';
 import type {MonitorList} from '@core/schema/monitors';
 import {
   monitorAssignment,
@@ -25,13 +21,13 @@ export interface ScreenSummary {
   readonly kind?: Screen['kind'] | undefined;
 }
 
-/** Screen-kind order, retaining saved order and names within each kind. */
+/** The toolbar and status bar names of screens, in the order they are given. */
 export function summarizeScreens(
   screens: readonly Screen[],
   monitors: MonitorList = [],
 ): readonly ScreenSummary[] {
   const assignment = monitorAssignment(monitors);
-  return inScreenOrder(screens).map(screen => {
+  return screens.map(screen => {
     const display = assignment.get(screen.id) ?? screen.display;
     return {
       id: screen.id,

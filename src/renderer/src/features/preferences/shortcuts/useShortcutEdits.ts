@@ -1,4 +1,4 @@
-import {inScreenOrder} from '@core/schema/screens';
+import {useScreenList} from '@renderer/platform/useScreenList';
 import {useMemo} from 'react';
 import type {KeyBinding} from '@core/schema/shortcuts';
 import type {ShortcutCommand} from '@core/shortcuts';
@@ -52,7 +52,7 @@ export function useShortcutEdits(
   const props = useSettingsDocument('props', '그래픽', onProblem);
   const macros = useSettingsDocument('macros', '매크로', onProblem);
   const timers = useSettingsDocument('timers', '타이머', onProblem);
-  const screens = useSettingsDocument('screens', '화면', onProblem);
+  const screens = useScreenList(onProblem);
   const commands = useMemo(
     () =>
       allCommands({
@@ -60,7 +60,7 @@ export function useShortcutEdits(
         props: props?.value.props ?? NO_NAMES,
         macros: macros?.value.macros ?? NO_NAMES,
         timers: timers?.value.timers ?? NO_NAMES,
-        screens: inScreenOrder(screens?.value.screens ?? []),
+        screens: screens ?? NO_NAMES,
       }),
     [themes, props, macros, timers, screens],
   );

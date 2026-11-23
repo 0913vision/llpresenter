@@ -1,4 +1,4 @@
-import {inScreenOrder} from '@core/schema/screens';
+import {useScreenList} from '@renderer/platform/useScreenList';
 import {useMemo} from 'react';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import type {Notice} from '@renderer/ui/notices';
@@ -13,7 +13,7 @@ export function useMacroTargets(
   const messages = useSettingsDocument('messages', '메시지', onProblem);
   const timers = useSettingsDocument('timers', '타이머', onProblem);
   const macros = useSettingsDocument('macros', '매크로', onProblem);
-  const screens = useSettingsDocument('screens', '화면', onProblem);
+  const screens = useScreenList(onProblem);
   const media = useMediaDocument(onProblem, 'macro');
   return useMemo(() => {
     if (
@@ -33,7 +33,7 @@ export function useMacroTargets(
       messages: messages.value,
       timers: timers.value,
       macros: macros.value,
-      screens: inScreenOrder(screens.value.screens),
+      screens,
       media: media.value,
     });
   }, [themes, props, messages, timers, macros, screens, media]);
