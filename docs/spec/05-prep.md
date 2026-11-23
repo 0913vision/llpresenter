@@ -117,7 +117,10 @@ the compact 예배 순서, or the library; its right column shows the selected
   place of a picture). Each shows its default until 편집 is pressed; a text then
   starts from the default, and the button becomes 기본값으로, which locks it and
   puts the default back. The list view locks its columns the same way.
-- 미리 보여줄 내용 is what the 슬라이드 before shows on 무대.
+- 미리 보여줄 내용 is what the 슬라이드 before shows on 무대. 다음 슬라이드 내용
+  보여주지 않기 under it stops the 슬라이드 from showing the next one, and the
+  next one says so in yellow: "앞 슬라이드에서 보여주지 않도록 설정되어
+  있습니다".
 - 슬라이드 추가 makes one in the 테마 that follows the one before it, with the
   same background. 타이틀 adds a title of the list.
 - A media tile dropped on a 슬라이드, or on the picture at the right, becomes

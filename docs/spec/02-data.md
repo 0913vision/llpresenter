@@ -76,6 +76,7 @@ of that 테마's boxes (12). How they look is in the 테마 alone.
 | `theme`      | 테마 ID                                         | The 테마 that draws it.                                                                      |
 | `texts`      | Object: box name to text, at most 4,000 each    | Its texts. A box without one shows the default of the box.                                   |
 | `next`       | String, optional                                | What the 슬라이드 before shows as its next text; the phrase of the 테마 when absent.         |
+| `hideNext`   | Boolean, optional                               | Whether it shows nothing of the next 슬라이드; the rule of the 테마 when absent.             |
 | `label`      | Trimmed string, 1 to 64, optional               | 이름표.                                                                                      |
 | `background` | Background (12), optional                       | Its own background; the background of the 테마 when absent.                                  |
 | `transition` | `{kind, dir?, sec}`, optional                   | Its transition; none cuts.                                                                   |

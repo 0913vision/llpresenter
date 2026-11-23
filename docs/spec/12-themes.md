@@ -36,8 +36,9 @@ The user's needs (October 30 and November 22):
   for 타이틀, and `다음 광고: {제목}` for 광고. A part in brackets is left out
   when a value in it is missing. A 슬라이드 can have its own text instead;
   clearing that text brings the phrase back. The property panel always shows it
-  and its column starts off. A 테마 can hide the next text on the last 슬라이드
-  of an item, as 말씀 본문 and 설교 제목 do.
+  and its column starts off. A 슬라이드 can show nothing of the next one (다음
+  슬라이드 내용 보여주지 않기); until the operator chooses, 말씀 본문 and 설교
+  제목 do so on the last 슬라이드 of an item and of each passage in it.
 - **Separate 테마.** 찬양 제목, 찬양 가사, 설교 제목, and 말씀 본문 are four
   테마. A 테마 has a purpose and is offered only for 슬라이드 of that purpose.
 - **Hymns.** 찬송가 제목 is a second 테마 for 찬양 제목. Its 슬라이드 says only
@@ -293,19 +294,19 @@ not preset names or indices, so the rename does not change existing themes.
 
 One 테마. The app's own 테마 have a file only after the operator changes them.
 
-| Field           | Type                                             | Meaning                                                             |
-| --------------- | ------------------------------------------------ | ------------------------------------------------------------------- |
-| `format`        | `"lltheme"`                                      | File type.                                                          |
-| `schemaVersion` | Integer                                          | 1.                                                                  |
-| `id`, `name`    | UUID, string up to 80 characters                 | Identity and name.                                                  |
-| `purpose`       | One of the purposes                              | What 슬라이드 can have it.                                          |
-| `boxes[]`       | `{name, default?, column, rows}`                 | Named boxes. `rows` is `one` or `many`; `column` shows it in 준비.  |
-| `next`          | `{content, atStart?, column}`                    | What the 슬라이드 before shows; `atStart` for the first of an item. |
-| `hideNextAtEnd` | Boolean, optional                                | The last 슬라이드 of an item shows no next text.                    |
-| `then`          | 테마 ID, optional                                | The 테마 of a 슬라이드 added after one with this 테마.              |
-| `background`    | Background                                       | Shown unless the 슬라이드 has its own.                              |
-| `screens`       | `audience`, `broadcast`, `stage`: screen layouts | `own` with elements, stacks, and splits; `same`; or `empty`.        |
-| `others`        | Screen ID to layout, optional                    | Screens that differ from the others of their kind.                  |
+| Field           | Type                                             | Meaning                                                                                     |
+| --------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------- |
+| `format`        | `"lltheme"`                                      | File type.                                                                                  |
+| `schemaVersion` | Integer                                          | 1.                                                                                          |
+| `id`, `name`    | UUID, string up to 80 characters                 | Identity and name.                                                                          |
+| `purpose`       | One of the purposes                              | What 슬라이드 can have it.                                                                  |
+| `boxes[]`       | `{name, default?, column, rows}`                 | Named boxes. `rows` is `one` or `many`; `column` shows it in 준비.                          |
+| `next`          | `{content, atStart?, column}`                    | What the 슬라이드 before shows; `atStart` for the first of an item.                         |
+| `hideNextAtEnd` | Boolean, optional                                | The last 슬라이드 of an item, and of a passage in it, shows no next text unless it says so. |
+| `then`          | 테마 ID, optional                                | The 테마 of a 슬라이드 added after one with this 테마.                                      |
+| `background`    | Background                                       | Shown unless the 슬라이드 has its own.                                                      |
+| `screens`       | `audience`, `broadcast`, `stage`: screen layouts | `own` with elements, stacks, and splits; `same`; or `empty`.                                |
+| `others`        | Screen ID to layout, optional                    | Screens that differ from the others of their kind.                                          |
 
 ### `Settings\themes.json`
 
