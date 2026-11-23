@@ -812,15 +812,16 @@ never appear in media lists. A notice shows the progress with 취소.
   - 오디오 panel (header "오디오" with 새 오디오 재생목록, new audio playlist):
     the audio playlists with their counts.
 - Center inside the bin: a header with the playlist name and count ("배경 영상
-  7"), a grid and list view toggle, and 가져오기 (import). A grid of media tiles
-  (picture, duration chip with a loop icon when the media loops, name). Footer:
-  count and total size ("7개 2.1GB") and a thumbnail size slider (2 to 8
-  columns). Before an operator adjusts it, the shared 진행/준비 bin starts from
-  five columns and adds columns as needed to fit one complete 16:9 picture, its
-  name and panel insets in the viewport height. This automatic fit follows
-  window and bin resizing. The slider describes that initial state as 자동 크기;
-  changing it selects an explicit column count, retained across subsequent
-  resizes while the view remains open.
+  7") and 가져오기 (import). A grid of media tiles (picture, duration chip with
+  a loop icon when the media loops, name). Footer: count and total size ("7개
+  2.1GB"), then at the right the 목록 보기 and 격자 보기 icons and a thumbnail
+  size slider (2 to 8 columns), as in the editor and 매크로. Before an operator
+  adjusts it, the shared 진행/준비 bin starts from five columns and adds columns
+  as needed to fit one complete 16:9 picture, its name and panel insets in the
+  viewport height. This automatic fit follows window and bin resizing. The
+  slider describes that initial state as 자동 크기; changing it selects an
+  explicit column count, retained across subsequent resizes while the view
+  remains open.
 - Right inside the bin: the 미디어 속성 panel with the tabs 미디어 속성 (media
   properties), 정보 (info), 전환 (transition), and 소리 (sound). Above the
   groups: a preview player with a play button, the position ("0:12"), the time

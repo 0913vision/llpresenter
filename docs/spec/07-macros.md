@@ -29,9 +29,13 @@ ProPresenter).
 
 - A collection select (folder icon, for example "주일 예배") and the count
   ("8개", 8 매크로).
-- A view toggle: 격자 보기 (grid view) and 목록 보기 (list view).
 - The collection select lists 모든 매크로 (all 매크로) and each collection
   (proposal for 모든 매크로).
+
+### Footer
+
+- The count ("8개") at the left; the 목록 보기 and 격자 보기 icons at the right,
+  as in the editor and 미디어.
 
 ### Grid view
 

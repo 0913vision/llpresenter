@@ -26,6 +26,7 @@ import {
   Slider,
 } from '@renderer/ui';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
+import {ViewModeSwitch} from '@renderer/ui/ViewModeSwitch';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {
@@ -341,15 +342,6 @@ export function MediaView({
           />
           <PanelActions>
             <Button
-              aria-label="미디어 목록 보기"
-              aria-pressed={display === 'list'}
-              onClick={() =>
-                changeDisplay(display === 'grid' ? 'list' : 'grid')
-              }
-            >
-              목록
-            </Button>
-            <Button
               icon="download"
               disabled={importReason !== undefined}
               title={importReason}
@@ -437,26 +429,33 @@ export function MediaView({
         </PanelBody>
         <PanelFooter
           end={
-            <Slider
-              label="타일 크기"
-              disabled={display === 'list'}
-              title={display === 'list' ? '격자 보기에서 조절' : undefined}
-              workspace={workspace}
-              icon="grid"
-              width="compact"
-              min={MIN_MEDIA_COLUMNS}
-              max={MAX_MEDIA_COLUMNS}
-              step={1}
-              value={
-                MIN_MEDIA_COLUMNS +
-                MAX_MEDIA_COLUMNS -
-                (columns ?? DEFAULT_MEDIA_COLUMNS)
-              }
-              valueText={columns === undefined ? '자동 크기' : `${columns}열`}
-              onChange={size =>
-                changeColumns(MIN_MEDIA_COLUMNS + MAX_MEDIA_COLUMNS - size)
-              }
-            />
+            <>
+              <ViewModeSwitch
+                label="미디어 보기 방식"
+                value={display}
+                onChange={changeDisplay}
+              />
+              <Slider
+                label="타일 크기"
+                disabled={display === 'list'}
+                title={display === 'list' ? '격자 보기에서 조절' : undefined}
+                workspace={workspace}
+                icon="grid"
+                width="compact"
+                min={MIN_MEDIA_COLUMNS}
+                max={MAX_MEDIA_COLUMNS}
+                step={1}
+                value={
+                  MIN_MEDIA_COLUMNS +
+                  MAX_MEDIA_COLUMNS -
+                  (columns ?? DEFAULT_MEDIA_COLUMNS)
+                }
+                valueText={columns === undefined ? '자동 크기' : `${columns}열`}
+                onChange={size =>
+                  changeColumns(MIN_MEDIA_COLUMNS + MAX_MEDIA_COLUMNS - size)
+                }
+              />
+            </>
           }
         >
           {totalText(items)}

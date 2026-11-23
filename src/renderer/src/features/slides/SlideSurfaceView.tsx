@@ -3,7 +3,7 @@ import type {JSX} from 'react';
 import type {UiState} from '@core/schema/uiState';
 import type {UiApi} from '@contracts/ipc/ui';
 import type {SlideSurfaceMode} from './useSlideRowWindow';
-import {SegmentedControl} from '@renderer/ui/SegmentedControl';
+import {ViewModeSwitch} from '@renderer/ui/ViewModeSwitch';
 import {ThumbnailSizeControl} from '@renderer/ui/ThumbnailSizeControl';
 import {
   clampThumbnailScale,
@@ -57,13 +57,8 @@ export function SlideSurfaceView({
   const current = useSlideSurfaceView();
   return (
     <div role="toolbar" aria-label="슬라이드 보기" className={styles.toolbar}>
-      <SegmentedControl
-        kind="toggle"
-        label={'슬라이드 보기 방식'}
-        options={[
-          {value: 'list', label: '목록', icon: 'rows'},
-          {value: 'grid', label: '격자', icon: 'grid'},
-        ]}
+      <ViewModeSwitch
+        label="슬라이드 보기 방식"
         value={current.mode}
         onChange={mode => saveMode(mode, ui)}
       />

@@ -102,13 +102,11 @@ describe('media view', () => {
     });
     const save = vi.spyOn(fixture.api.ui, 'setRememberedView');
     setup(fixture);
-    const toggle = screen.getByRole('button', {name: '미디어 목록 보기'});
-    await waitFor(() =>
-      expect(toggle.getAttribute('aria-pressed')).toBe('true'),
-    );
+    const list = screen.getByRole('button', {name: '목록 보기'});
+    await waitFor(() => expect(list.getAttribute('aria-pressed')).toBe('true'));
     const slider = screen.getByRole('slider', {name: '타일 크기'});
     expect(slider).toHaveProperty('disabled', true);
-    fireEvent.click(toggle);
+    fireEvent.click(screen.getByRole('button', {name: '격자 보기'}));
     expect(save).toHaveBeenCalledWith({mediaBrowser: {view: 'grid'}});
     expect(slider).toHaveProperty('disabled', false);
     expect(slider.getAttribute('aria-valuetext')).toBe('3열');

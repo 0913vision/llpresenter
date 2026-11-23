@@ -7,11 +7,12 @@ import type {
   MacroCollection,
 } from '@core/schema/macros';
 import {MACRO_ACTION_MIME, readMacroActionDrag} from './macroPaletteCatalog';
-import {Button, MacroGrid, MacroList, MacroRow, MacroTile} from '@renderer/ui';
+import {MacroGrid, MacroList, MacroRow, MacroTile} from '@renderer/ui';
 import type {Notice} from '@renderer/ui/notices';
 import {MacroCollectionPicker} from './MacroCollectionPicker';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import {PanelFooter} from '@renderer/ui/Panel';
+import {ViewModeSwitch} from '@renderer/ui/ViewModeSwitch';
 import styles from './MacroView.module.css';
 
 export type MacroViewMode = 'grid' | 'list';
@@ -189,12 +190,6 @@ export function MacroView({
           onProblem={onProblem}
           onNew={onNewCollection}
         />
-        <Button aria-pressed={mode === 'grid'} onClick={() => onMode('grid')}>
-          격자 보기
-        </Button>
-        <Button aria-pressed={mode === 'list'} onClick={() => onMode('list')}>
-          목록 보기
-        </Button>
       </div>
       <div className={styles.content}>
         {mode === 'grid' ? (
@@ -232,7 +227,16 @@ export function MacroView({
           </MacroList>
         )}
       </div>
-      <PanelFooter count={shown.length} />
+      <PanelFooter
+        count={shown.length}
+        end={
+          <ViewModeSwitch
+            label="매크로 보기 방식"
+            value={mode}
+            onChange={onMode}
+          />
+        }
+      />
     </div>
   );
 }
