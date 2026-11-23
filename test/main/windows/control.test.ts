@@ -4,7 +4,7 @@ import {createControlWindow} from '@main/windows/control';
 import {appIconPath} from '@main/base/appIcon';
 import {loadPage} from '@main/base/page';
 import {CRASH_LIMIT, CRASH_PERIOD_MS} from '@main/base/restartBudget';
-import {audioMutedByDefault} from '@main/outputs/audioPolicy';
+import {audioMutedByDefault} from '@main/base/audioPolicy';
 import {serviceEndpoints} from '@contracts/ipc/service';
 
 const ipc = await vi.hoisted(async () =>
@@ -44,7 +44,7 @@ vi.mock('electron', () => ({
     getPrimaryDisplay: () => ({workAreaSize: {width: 1920, height: 1080}}),
   },
 }));
-vi.mock('@main/outputs/audioPolicy', () => ({
+vi.mock('@main/base/audioPolicy', () => ({
   audioMutedByDefault: vi.fn(() => true),
 }));
 vi.mock('@main/base/page', () => ({

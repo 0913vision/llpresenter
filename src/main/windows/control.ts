@@ -4,7 +4,7 @@ import {serviceEndpoints} from '@contracts/ipc/service';
 import {IpcHost, pushToWindow} from '../base/ipcHost';
 import type {Logger} from '../base/log';
 import type {UiZoomRegistration} from '../store/uiZoom';
-import {audioMutedByDefault} from '../outputs/audioPolicy';
+import {audioMutedByDefault} from '../base/audioPolicy';
 import {appIconPath} from '../base/appIcon';
 import {logWindowResponsiveness} from '../base/responsiveness';
 import {

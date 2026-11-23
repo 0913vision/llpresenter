@@ -54,8 +54,58 @@ const CORE_LAYERS: readonly Layer[] = [
 
 const CORE = CORE_LAYERS.map(layer => layer.name);
 
+/** The modules of main, each with the modules it builds on beside `base`. */
+const MAIN_MODULES: Readonly<Record<string, readonly string[]>> = {
+  displays: [],
+  fonts: [],
+  search: [],
+  bible: [],
+  store: [],
+  uiState: ['store'],
+  live: ['store'],
+  macros: ['live'],
+  media: ['store', 'uiState'],
+  import: ['store', 'uiState'],
+  outputs: ['displays', 'live', 'store'],
+  update: ['live'],
+  windows: ['outputs', 'store'],
+  soak: ['outputs'],
+};
+
 /** Shared by every process: pure rules, then the contracts between processes. */
 const SHARED = [...CORE, 'contracts'];
+
+function mainLayer(name: string, imports: readonly string[]): Layer {
+  return {
+    name: `main/${name}`,
+    dir: `src/main/${name}`,
+    imports: [...SHARED, ...imports.map(other => `main/${other}`)],
+  };
+}
+
+const MAIN_MODULE_LAYERS = Object.entries(MAIN_MODULES).map(([name, imports]) =>
+  mainLayer(name, ['base', ...imports]),
+);
+
+/**
+ * Main from the most basic to the most composed: `base` is what every module
+ * shares, `application` puts the modules together, and the entry starts it.
+ */
+const MAIN_LAYERS: readonly Layer[] = [
+  mainLayer('base', []),
+  ...MAIN_MODULE_LAYERS,
+  mainLayer('application', [
+    'base',
+    ...MAIN_MODULE_LAYERS.map(layer => layer.name.slice('main/'.length)),
+  ]),
+  {
+    name: 'main',
+    dir: 'src/main',
+    imports: [...SHARED, 'main/base', 'main/windows', 'main/application'],
+  },
+];
+
+const MAIN = MAIN_LAYERS.map(layer => layer.name);
 
 /** Renderer layers that every renderer feature may use. */
 const FEATURE_BASE = [
@@ -105,7 +155,7 @@ export const LAYER_MAP: LayerMap = {
   layers: [
     ...CORE_LAYERS,
     {name: 'contracts', dir: 'src/contracts', imports: CORE},
-    {name: 'main', dir: 'src/main', imports: SHARED},
+    ...MAIN_LAYERS,
     {name: 'preload', dir: 'src/preload', imports: SHARED},
     {name: 'ui', dir: `${RENDERER}/ui`, imports: SHARED},
     {name: 'rendering', dir: `${RENDERER}/rendering`, imports: SHARED},
@@ -152,6 +202,7 @@ const RENDERER_LAYERS = LAYER_MAP.layers
 
 function testImports(layer: Layer): readonly string[] {
   if (CORE.includes(layer.name)) return CORE;
+  if (MAIN.includes(layer.name)) return [...SHARED, ...MAIN];
   return layer.dir.startsWith(`${RENDERER}/`)
     ? [...SHARED, ...RENDERER_LAYERS]
     : layer.imports;

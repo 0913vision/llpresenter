@@ -6,7 +6,7 @@ import {connectMediaPlayback} from '@main/live/mediaPlayback';
 import type {LiveStore} from '@main/live/store';
 import type {MediaStore} from '@main/store/mediaStore';
 import {registerAudioOutput} from '@main/outputs/audio';
-import {audioMutedByDefault} from '@main/outputs/audioPolicy';
+import {audioMutedByDefault} from '@main/base/audioPolicy';
 import {loadPage, startLoading} from '@main/base/page';
 import type {WindowMode} from '@main/base/testWindows';
 import type {RecoveryOptions, RendererState} from '@main/base/rendererRecovery';
@@ -58,7 +58,7 @@ vi.mock('@main/base/page', () => ({
   blockNavigation: vi.fn(),
   preloadPath: 'preload.js',
 }));
-vi.mock('@main/outputs/audioPolicy', () => ({
+vi.mock('@main/base/audioPolicy', () => ({
   audioMutedByDefault: vi.fn(() => true),
 }));
 vi.mock('@main/live/mediaPlayback', () => ({

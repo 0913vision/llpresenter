@@ -301,7 +301,7 @@ vi.mock('@main/windows/controlClose', () => ({
     return {confirmClose: mocks.confirmClose, dispose: mocks.closeStop};
   },
 }));
-vi.mock('@main/launchAtLogin', () => ({
+vi.mock('@main/application/launchAtLogin', () => ({
   loginItemsAllowed: () => false,
   registerLaunchAtLogin: vi.fn(() => () => undefined),
 }));
