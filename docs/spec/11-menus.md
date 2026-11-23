@@ -189,7 +189,9 @@ guards as their keys. Right-clicking a selected slide keeps the selection; an
 unselected slide selects itself. The item grid keeps its 오버레이 commands and
 bar handles.
 
-- Where: 진행 and 준비 thumbnail grids (item view and song editor).
+- Where: 준비 thumbnail grids (item view and song editor). In 진행 the menu of a
+  slide has only 출력 and 준비에서 열기: 진행 sends slides out and edits nothing
+  (USER Nov 24).
 - Opens: Right-click, Menu key, or Shift F10 on a slide.
 - Purpose: Act on this one slide.
 - PP: PP slide right-click (https://www.youtube.com/watch?v=08NRxdDFdHc at
