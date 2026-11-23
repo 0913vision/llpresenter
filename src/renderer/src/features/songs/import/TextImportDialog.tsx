@@ -11,9 +11,8 @@ import type {
   TextImportOptions,
   TextImportSource,
 } from '@core/schema/textImport';
-import {Checkbox, NumberField, TextField} from '@renderer/ui';
-import {Dialog, DialogField} from '@renderer/ui/Dialog';
-import {SelectMenu} from '@renderer/ui/SelectMenu';
+import {TextField} from '@renderer/ui';
+import {Dialog} from '@renderer/ui/Dialog';
 import type {Notice} from '@renderer/ui/notices';
 import {useLabelColors} from '@renderer/features/labels/labels';
 import {slideMaking, useThemes} from '@renderer/platform/themes';
@@ -25,26 +24,13 @@ import {
   importLimitReason,
   applyImportLabelMapping,
 } from '@core/songs';
-import {TEXT_ENCODINGS} from './textEncodings';
 import {ImportLabelMappingDialog} from './ImportLabelMappingDialog';
 import {useImportLabelMapping} from './useImportLabelMapping';
 import {useImportPreview} from './useImportPreview';
+import {TextImportChoices, type TextImportChoice} from './TextImportChoices';
 import styles from './TextImportDialog.module.css';
 
-const MAX_UNITS = 1000;
-const MAX_SYMBOL = 32;
-const SPLITS = [
-  {value: 'blankLine', label: '빈 줄'},
-  {value: 'lineBreak', label: '줄 바꿈'},
-  {value: 'symbol', label: '기호'},
-] as const;
-const FIRST_LINES = [
-  {value: 'title', label: '제목'},
-  {value: 'lyrics', label: '가사'},
-] as const;
-
-/** The choices of the dialog that the next import starts from. */
-export type TextImportChoice = Partial<Preferences['import']['txt']>;
+export type {TextImportChoice} from './TextImportChoices';
 
 /** The song a draft becomes, with the title slide the editor adds. */
 function songOf(draft: TextImportDraft, title: string): Song {
@@ -175,91 +161,17 @@ export function TextImportDialog({
           },
         }}
         topBar={
-          <>
-            <DialogField label="슬라이드 나누기">
-              <SelectMenu
-                aria-label="슬라이드 나누기"
-                options={SPLITS}
-                value={options.split}
-                onChange={split => {
-                  onRemember?.({split});
-                  setOptions(current => {
-                    const {symbol, ...shared} = current;
-                    return {
-                      ...shared,
-                      split,
-                      ...(split === 'symbol'
-                        ? {symbol: symbol?.trim() ? symbol : '/'}
-                        : {}),
-                      unitsPerSlide: split === 'lineBreak' ? 2 : 1,
-                    };
-                  });
-                }}
-              />
-            </DialogField>
-            {options.split === 'symbol' ? (
-              <DialogField label="기호">
-                <TextField
-                  aria-label="기호"
-                  value={options.symbol ?? ''}
-                  onChange={symbol =>
-                    setOptions(current => ({...current, symbol}))
-                  }
-                  maxLength={MAX_SYMBOL}
-                  invalid={preview.invalidSymbol}
-                  invalidReason="나누기 기호를 적어야 합니다."
-                />
-              </DialogField>
-            ) : null}
-            <DialogField label="한 슬라이드에">
-              <NumberField
-                aria-label="한 슬라이드에"
-                value={options.unitsPerSlide}
-                min={1}
-                max={MAX_UNITS}
-                onChange={unitsPerSlide =>
-                  setOptions(current => ({...current, unitsPerSlide}))
-                }
-              />
-            </DialogField>
-            <DialogField label="이름표 인식">
-              <Checkbox
-                aria-label="이름표 인식"
-                checked={options.labels === 'bracketLine'}
-                onChange={checked => {
-                  if (checked) mapping.ask();
-                  onRemember?.({labels: checked ? 'bracketLine' : 'off'});
-                  setOptions(current => ({
-                    ...current,
-                    labels: checked ? 'bracketLine' : 'off',
-                  }));
-                }}
-              />
-            </DialogField>
-            {source.source === 'clipboard' ? (
-              <DialogField label="첫 줄">
-                <SelectMenu
-                  aria-label="첫 줄"
-                  options={FIRST_LINES}
-                  value={options.firstLine}
-                  onChange={firstLine => {
-                    onRemember?.({firstLine});
-                    setOptions(current => ({...current, firstLine}));
-                  }}
-                />
-              </DialogField>
-            ) : (
-              <DialogField label="글자 인코딩">
-                <SelectMenu
-                  aria-label="글자 인코딩"
-                  options={TEXT_ENCODINGS}
-                  value={defaults.encoding}
-                  disabled={reading}
-                  onChange={encoding => onEncoding?.(encoding)}
-                />
-              </DialogField>
-            )}
-          </>
+          <TextImportChoices
+            options={options}
+            setOptions={setOptions}
+            fromClipboard={source.source === 'clipboard'}
+            encoding={defaults.encoding}
+            reading={reading}
+            invalidSymbol={preview.invalidSymbol}
+            onLabelsOn={mapping.ask}
+            onRemember={onRemember}
+            onEncoding={onEncoding}
+          />
         }
       >
         <div className={styles.content}>
