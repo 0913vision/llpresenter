@@ -1,3 +1,4 @@
+import {inScreenOrder} from '@core/schema/screens';
 import {useMemo} from 'react';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import type {Notice} from '@renderer/ui/notices';
@@ -32,7 +33,7 @@ export function useMacroTargets(
       messages: messages.value,
       timers: timers.value,
       macros: macros.value,
-      screens: screens.value.screens,
+      screens: inScreenOrder(screens.value.screens),
       media: media.value,
     });
   }, [themes, props, messages, timers, macros, screens, media]);

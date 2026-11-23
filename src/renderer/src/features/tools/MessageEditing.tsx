@@ -74,6 +74,10 @@ function TemplateDialog({
   );
   const nameReason = messageNameReason(name);
   const textReason = messageTextReason(text);
+  // NOTE(0913vision): An empty field is not marked; 추가 stays off and says
+  // why, as in the other 추가 dialogs. Spaces alone are marked.
+  const nameShown = name === '' ? undefined : nameReason;
+  const textShown = text === '' ? undefined : textReason;
   return (
     <Dialog
       title={editor.kind === 'add' ? '메시지 추가' : '메시지 수정'}
@@ -97,8 +101,8 @@ function TemplateDialog({
               onChange={setName}
               maxLength={MESSAGE_NAME_LIMIT}
               readOnly={locked}
-              invalid={nameReason !== undefined}
-              invalidReason={nameReason}
+              invalid={nameShown !== undefined}
+              invalidReason={nameShown}
             />
           )}
         </PropertyRow>
@@ -110,8 +114,8 @@ function TemplateDialog({
               onChange={setText}
               maxLength={MAX_MESSAGE_CHARACTERS}
               readOnly={locked}
-              invalid={textReason !== undefined}
-              invalidReason={textReason}
+              invalid={textShown !== undefined}
+              invalidReason={textShown}
             />
           )}
         </PropertyRow>

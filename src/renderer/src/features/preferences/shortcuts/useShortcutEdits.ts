@@ -1,3 +1,4 @@
+import {inScreenOrder} from '@core/schema/screens';
 import {useMemo} from 'react';
 import type {KeyBinding} from '@core/schema/shortcuts';
 import type {ShortcutCommand} from '@core/shortcuts';
@@ -59,7 +60,7 @@ export function useShortcutEdits(
         props: props?.value.props ?? NO_NAMES,
         macros: macros?.value.macros ?? NO_NAMES,
         timers: timers?.value.timers ?? NO_NAMES,
-        screens: screens?.value.screens ?? NO_NAMES,
+        screens: inScreenOrder(screens?.value.screens ?? []),
       }),
     [themes, props, macros, timers, screens],
   );

@@ -1,3 +1,4 @@
+import {inScreenOrder} from '@core/schema/screens';
 import {PanelAction} from '@renderer/ui/PanelActionSlot';
 import {useLayoutEffect, useRef, useState, type JSX} from 'react';
 import {limitReason} from '@core/common/limitReason';
@@ -125,7 +126,7 @@ export function PropTab({
       </PanelAction>
       <PropGrid
         props={document?.value.props ?? []}
-        screens={screens?.value.screens ?? []}
+        screens={inScreenOrder(screens?.value.screens ?? [])}
         media={media?.value.items}
         onMenu={(prop, anchor, action) => {
           setMenu({prop, anchor, ...action});
@@ -162,7 +163,7 @@ export function PropTab({
       {editor ? (
         <PropDialog
           initial={editor.kind === 'edit' ? editor.prop : undefined}
-          screens={screens?.value.screens ?? []}
+          screens={inScreenOrder(screens?.value.screens ?? [])}
           media={media?.value.items ?? []}
           locked={locked}
           onCancel={() => setEditor(null)}

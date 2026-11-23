@@ -63,7 +63,7 @@ it('adds a text prop with a target and sends a settings edit', async () => {
   fireEvent.change(screen.getByRole('textbox', {name: '이름'}), {
     target: {value: '안내'},
   });
-  fireEvent.change(screen.getByRole('textbox', {name: '내용'}), {
+  fireEvent.change(screen.getByRole('textbox', {name: '문구'}), {
     target: {value: '환영합니다'},
   });
   fireEvent.change(screen.getByRole('textbox', {name: '글꼴'}), {

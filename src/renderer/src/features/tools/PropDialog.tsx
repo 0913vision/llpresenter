@@ -126,7 +126,7 @@ export function PropDialog({
           )}
         </PropertyRow>
         {kind === 'text' ? (
-          <PropertyRow label="내용" alignTop>
+          <PropertyRow label="문구" alignTop>
             {({controlId}) => (
               <TextArea
                 id={controlId}
