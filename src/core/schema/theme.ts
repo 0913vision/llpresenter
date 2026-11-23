@@ -355,8 +355,6 @@ export const themeFileSchema = v.pipe(
       /** The same, when the slide is the first of its item. */
       atStart: v.exactOptional(templates),
     }),
-    /** Shows no next text on the last slide of its item. */
-    hideNextAtEnd: v.exactOptional(v.boolean()),
     /** The theme of a slide added after one with this theme. */
     then: v.exactOptional(themeIdSchema),
     background: slideBackgroundSchema,

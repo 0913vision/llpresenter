@@ -153,10 +153,7 @@ export function isHiddenBeforeItem(itemId: ItemId): boolean {
   );
   if (before === null) return false;
   const tiles = tilesOf(before.itemId);
-  const tile = tiles[before.index];
-  return (
-    tile !== undefined && hidesNext(tiles, before.index, themeOfTile(tile))
-  );
+  return hidesNext(tiles[before.index]?.slide);
 }
 
 /** Outputs a tile and shows it selected in the 장 panel. */

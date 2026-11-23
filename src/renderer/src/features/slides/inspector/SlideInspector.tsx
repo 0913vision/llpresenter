@@ -2,7 +2,7 @@ import type {JSX, KeyboardEvent} from 'react';
 import type {ShowTile} from '@core/schema/showService';
 import {hidesNext} from '@core/slides';
 import {themeOfSlide} from '@core/theme';
-import {themeOfTile, useThemes} from '@renderer/platform/themes';
+import {useThemes} from '@renderer/platform/themes';
 import {isHiddenBeforeItem, outputSlideOf} from '@renderer/session/show';
 import {isComposing} from '@renderer/ui/ime';
 import {PanelTabs} from '@renderer/ui/Panel';
@@ -46,7 +46,7 @@ function isHiddenBefore(
 ): boolean {
   const before = tiles[index - 1];
   if (before !== undefined) {
-    return hidesNext(tiles, index - 1, themeOfTile(before));
+    return hidesNext(before.slide);
   }
   return deck.item !== undefined && isHiddenBeforeItem(deck.id);
 }

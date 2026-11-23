@@ -5,57 +5,20 @@ import {hidesNext, withHideNext} from '@core/slides/nextText';
 import {joinSlide, splitSlide} from '@core/slides/textEdits';
 import {slideOf, verseOf} from '@fixtures/core/slides';
 
-const ENDS = {hideNextAtEnd: true};
-
 function verseSlide(id: number, verse: number, more: Partial<Slide> = {}) {
   return slideOf(id, 'scripture', {verse: verseOf(verse), ...more});
 }
 
-function hiding(slides: readonly Slide[], theme = ENDS): readonly boolean[] {
-  const tiles = slides.map(slide => ({slide}));
-  return slides.map((_, index) => hidesNext(tiles, index, theme));
-}
-
-describe('hidesNext', () => {
-  it('is on at the end of a list, when the theme wants it', () => {
-    const slides = [verseSlide(1, 1), verseSlide(2, 2)];
-    expect(hiding(slides)).toEqual([false, true]);
-    expect(hiding(slides, {hideNextAtEnd: false})).toEqual([false, false]);
-  });
-
-  it('is on at the end of each passage of a list', () => {
-    const slides = [
-      verseSlide(1, 1),
-      verseSlide(2, 1),
-      verseSlide(3, 2),
-      verseSlide(4, 10),
-      slideOf(5, 'blank'),
-    ];
-    expect(hiding(slides)).toEqual([false, false, true, true, true]);
-  });
-
-  it('goes on into the next chapter', () => {
-    const slides = [
-      verseSlide(1, 31),
-      verseSlide(2, 1, {verse: {...verseOf(1), chapter: 2}}),
-    ];
-    expect(hiding(slides)).toEqual([false, true]);
-  });
-
-  it('is what the slide says, whatever the theme wants', () => {
-    const slides = [
-      verseSlide(1, 1, {hideNext: true}),
-      verseSlide(2, 2, {hideNext: false}),
-    ];
-    expect(hiding(slides)).toEqual([true, false]);
-  });
+it('shows the next slide unless the slide says otherwise', () => {
+  expect(hidesNext(verseSlide(1, 1))).toBe(false);
+  expect(hidesNext(verseSlide(2, 2, {hideNext: true}))).toBe(true);
+  expect(hidesNext(undefined)).toBe(false);
 });
 
-it('keeps only a choice that differs from the rule', () => {
+it('keeps only the choice to hide the next slide', () => {
   const slide = verseSlide(1, 1);
-  expect(withHideNext(slide, true, false)).toEqual({...slide, hideNext: true});
-  expect(withHideNext({...slide, hideNext: true}, false, false)).toEqual(slide);
-  expect(withHideNext(slide, false, true)).toEqual({...slide, hideNext: false});
+  expect(withHideNext(slide, true)).toEqual({...slide, hideNext: true});
+  expect(withHideNext({...slide, hideNext: true}, false)).toEqual(slide);
 });
 
 describe('the choice of a slide', () => {

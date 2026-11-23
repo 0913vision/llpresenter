@@ -18,7 +18,6 @@
   "next": {
     "content": ["{본문}"]
   },
-  "hideNextAtEnd": true,
   "background": {
     "kind": "media",
     "media": "00000000-0000-4000-8000-000000000381",

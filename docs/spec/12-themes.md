@@ -38,8 +38,11 @@ The user's needs (October 30 and November 22):
   `다음 광고: {제목}` for 광고. A missing value is left out with its brackets. A
   슬라이드 can have its own text instead; clearing that text brings the phrase
   back. The property panel always shows it. A 슬라이드 can show nothing of the
-  next one (다음 슬라이드 내용 표시 off); until the operator chooses, 말씀 본문
-  and 설교 제목 do so on the last 슬라이드 of an item and of each passage in it.
+  next one: 다음 슬라이드 내용 표시 is a choice of the 슬라이드, on until the
+  operator turns it off there; the 테마 has no say in it. A 테마 can have other
+  phrases for a 슬라이드 that is the first of its item (첫 장일 때), such as
+  다음 곡: {곡 제목} over the first lyrics of a song without a title 슬라이드;
+  without them the first 슬라이드 uses the usual phrase.
 - **Separate 테마.** 찬양 제목, 찬양 가사, 설교 제목, and 말씀 본문 are four
   테마. A 테마 has a purpose and is offered only for 슬라이드 of that purpose.
 - **Hymns.** 찬송가 제목 is a second 테마 for 찬양 제목. Its 슬라이드 says only
@@ -318,19 +321,18 @@ not preset names or indices, so the rename does not change existing themes.
 
 One 테마. The app's own 테마 have a file only after the operator changes them.
 
-| Field           | Type                                             | Meaning                                                                                     |
-| --------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------- |
-| `format`        | `"lltheme"`                                      | File type.                                                                                  |
-| `schemaVersion` | Integer                                          | 1.                                                                                          |
-| `id`, `name`    | UUID, string up to 80 characters                 | Identity and name.                                                                          |
-| `purpose`       | One of the purposes                              | What 슬라이드 can have it.                                                                  |
-| `boxes[]`       | `{name, default?, rows}`                         | Named boxes. `rows` is `one` or `many`.                                                     |
-| `next`          | `{content, atStart?}`                            | What the 슬라이드 before shows; `atStart` for the first of an item.                         |
-| `hideNextAtEnd` | Boolean, optional                                | The last 슬라이드 of an item, and of a passage in it, shows no next text unless it says so. |
-| `then`          | 테마 ID, optional                                | The 테마 of a 슬라이드 added after one with this 테마.                                      |
-| `background`    | Background                                       | Shown unless the 슬라이드 has its own.                                                      |
-| `screens`       | `audience`, `broadcast`, `stage`: screen layouts | `own` with elements, stacks, and splits; `same`; or `empty`.                                |
-| `others`        | Screen ID to layout, optional                    | Screens that differ from the others of their kind.                                          |
+| Field           | Type                                             | Meaning                                                                          |
+| --------------- | ------------------------------------------------ | -------------------------------------------------------------------------------- |
+| `format`        | `"lltheme"`                                      | File type.                                                                       |
+| `schemaVersion` | Integer                                          | 1.                                                                               |
+| `id`, `name`    | UUID, string up to 80 characters                 | Identity and name.                                                               |
+| `purpose`       | One of the purposes                              | What 슬라이드 can have it.                                                       |
+| `boxes[]`       | `{name, default?, rows}`                         | Named boxes. `rows` is `one` or `many`.                                          |
+| `next`          | `{content, atStart?}`                            | What the 슬라이드 before shows; `atStart` (첫 장일 때) for the first of an item. |
+| `then`          | 테마 ID, optional                                | The 테마 of a 슬라이드 added after one with this 테마.                           |
+| `background`    | Background                                       | Shown unless the 슬라이드 has its own.                                           |
+| `screens`       | `audience`, `broadcast`, `stage`: screen layouts | `own` with elements, stacks, and splits; `same`; or `empty`.                     |
+| `others`        | Screen ID to layout, optional                    | Screens that differ from the others of their kind.                               |
 
 ### `Settings\themes.json`
 

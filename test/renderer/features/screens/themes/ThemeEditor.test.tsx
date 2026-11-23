@@ -238,11 +238,13 @@ describe('a theme and its screens', () => {
     await user.click(themeRow(BUILT_IN_THEME_IDS.lyrics));
     await openTab(user, '테마');
     await user.click(
-      properties().getByRole('checkbox', {name: '마지막에는 숨김'}),
+      properties().getByRole('button', {name: '첫 장일 때 1 삭제'}),
     );
     await overwrite(user);
     await waitFor(() =>
-      expect(saved(BUILT_IN_THEME_IDS.lyrics)?.hideNextAtEnd).toBe(true),
+      expect(saved(BUILT_IN_THEME_IDS.lyrics)?.next).not.toHaveProperty(
+        'atStart',
+      ),
     );
   });
 

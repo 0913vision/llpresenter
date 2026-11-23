@@ -532,13 +532,13 @@ describe('showing the next slide', () => {
   const show = () =>
     inspector().getByRole('checkbox', {name: '다음 슬라이드 내용 표시'});
 
-  it('is off at the end of a passage until the operator says so', async () => {
+  it('is on, at the end of a passage too, until the operator says so', async () => {
     const {current} = renderEditor(passage());
     await userEvent.click(row(1));
     await openTab('내용');
-    expect(show().getAttribute('aria-checked')).toBe('false');
+    expect(show().getAttribute('aria-checked')).toBe('true');
     await userEvent.click(show());
-    expect(current.slides[1]?.hideNext).toBe(false);
+    expect(current.slides[1]?.hideNext).toBe(true);
     await userEvent.click(show());
     expect(current.slides[1]).not.toHaveProperty('hideNext');
   });

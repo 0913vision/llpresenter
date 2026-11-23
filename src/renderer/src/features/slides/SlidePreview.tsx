@@ -83,7 +83,7 @@ export function PreviewPicture({
   const next =
     after === undefined
       ? nextAtEnd
-      : hidesNext(tiles, index, themeOfTile(tile))
+      : hidesNext(tile.slide)
         ? null
         : nextTextOfTile(after, themeOfTile, false);
   return (

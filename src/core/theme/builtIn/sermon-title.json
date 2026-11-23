@@ -18,7 +18,6 @@
   "next": {
     "content": ["다음 순서: 설교 {(제목)}"]
   },
-  "hideNextAtEnd": true,
   "then": "00000000-0000-4000-8000-000000000102",
   "background": {
     "kind": "media",

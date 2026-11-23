@@ -29,7 +29,7 @@ import {SegmentedControl} from '@renderer/ui/SegmentedControl';
 import {SelectMenu} from '@renderer/ui/SelectMenu';
 import {StringProperty} from '../StringProperty';
 import {ThemeBackgroundProperties} from './ThemeBackgroundProperties';
-import {ThemeCheck, ThemeTextArea} from './ThemePropertyFields';
+import {ThemeTextArea} from './ThemePropertyFields';
 import {ThemeTemplates} from './ThemeTemplates';
 import {purposeNames} from './themeNames';
 import type {ThemeModel} from './useThemeEditor';
@@ -145,37 +145,16 @@ export function ThemeFileProperties({
           reason={reason}
           change={content => change({next: {...next, content}})}
         />
-        <ThemeCheck
-          label="첫 슬라이드 따로"
-          checked={next.atStart !== undefined}
+        <ThemeTemplates
+          model={model}
+          label="첫 장일 때"
+          templates={next.atStart ?? []}
+          values={themeValues(theme)}
           reason={reason}
-          change={on => {
+          change={atStart => {
             const {atStart: _atStart, ...rest} = next;
-            change({
-              next: on ? {...rest, atStart: [...next.content]} : rest,
-            });
+            change({next: atStart.length === 0 ? rest : {...rest, atStart}});
           }}
-        />
-        {next.atStart === undefined ? null : (
-          <ThemeTemplates
-            model={model}
-            label="첫 슬라이드"
-            templates={next.atStart}
-            values={themeValues(theme)}
-            reason={reason}
-            change={atStart => change({next: {...next, atStart}})}
-          />
-        )}
-        <ThemeCheck
-          label="마지막에는 숨김"
-          checked={theme.hideNextAtEnd ?? false}
-          reason={reason}
-          change={on =>
-            model.themeChange(current => {
-              const {hideNextAtEnd: _hide, ...rest} = current;
-              return on ? {...rest, hideNextAtEnd: true} : rest;
-            })
-          }
         />
       </PropertyGroup>
     </Properties>

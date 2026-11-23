@@ -1,7 +1,6 @@
 import {useId, type JSX} from 'react';
 import type {ShowTile} from '@core/schema/showService';
-import {hidesNext, hidesNextByDefault, withHideNext} from '@core/slides';
-import {themeOfTile} from '@renderer/platform/themes';
+import {hidesNext, withHideNext} from '@core/slides';
 import {Checkbox} from '@renderer/ui/Checkbox';
 import {changeSelected, type ChosenSlides} from './changeSelected';
 import styles from './SlideInspector.module.css';
@@ -13,15 +12,10 @@ export function ShowNextRow({
   tiles,
 }: ChosenSlides & {readonly tiles: readonly ShowTile[]}): JSX.Element {
   const id = useId();
-  const places = new Map(
-    tiles.map((tile, index) => [tile.slide.id, {tile, index}]),
+  const shown = new Set(tiles.map(tile => tile.slide.id));
+  const states = chosen.flatMap(slide =>
+    shown.has(slide.id) ? [hidesNext(slide)] : [],
   );
-  const states = chosen.flatMap(slide => {
-    const place = places.get(slide.id);
-    return place === undefined
-      ? []
-      : [hidesNext(tiles, place.index, themeOfTile(place.tile))];
-  });
   const none = !states.some(Boolean);
   return (
     <div className={styles.check}>
@@ -30,20 +24,9 @@ export function ShowNextRow({
         checked={none ? true : states.every(Boolean) ? false : 'mixed'}
         disabled={deck.readOnly}
         onChange={show =>
-          changeSelected(deck, slide => {
-            const place = places.get(slide.id);
-            return place === undefined
-              ? slide
-              : withHideNext(
-                  slide,
-                  !show,
-                  hidesNextByDefault(
-                    tiles,
-                    place.index,
-                    themeOfTile(place.tile),
-                  ),
-                );
-          })
+          changeSelected(deck, slide =>
+            shown.has(slide.id) ? withHideNext(slide, !show) : slide,
+          )
         }
       />
       <label htmlFor={id}>다음 슬라이드 내용 표시</label>

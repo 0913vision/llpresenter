@@ -45,7 +45,7 @@ export {
 } from './items';
 export {type SlideMaking, makeSlide} from './make';
 export {slideAfter, slidesOfText} from './newSlides';
-export {hidesNext, hidesNextByDefault, withHideNext} from './nextText';
+export {hidesNext, withHideNext} from './nextText';
 export {
   type CutVerse,
   passageAddress,

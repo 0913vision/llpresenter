@@ -69,7 +69,7 @@ export function slideLayerOf(
   const after =
     following === null ? undefined : tilesOf(following.itemId)[following.index];
   const next =
-    after === undefined || hidesNext(tiles, cursor.index, own)
+    after === undefined || hidesNext(slide)
       ? null
       : nextTextOfTile(
           after,
