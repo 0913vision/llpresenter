@@ -10,11 +10,10 @@ import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {EditResult} from '@core/schema/contentEdit';
 import type {ShortcutsFile} from '@core/schema/shortcuts';
-import {settingsDefaults} from '@main/store/settingsDefaults';
+import {emptySettingsDocument} from '@fixtures/core/settingsDocument';
 import {
   parseSettingsDocument,
   type SettingsEdit,
-  type SettingsName,
 } from '@core/schema/settingsDocuments';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
@@ -32,18 +31,6 @@ function documentOf(name: string, value: object, access: string) {
   );
 }
 
-function defaultDocument(name: SettingsName) {
-  return documentOf(
-    name,
-    {
-      format: `llsettings.${name}`,
-      schemaVersion: 1,
-      ...settingsDefaults[name],
-    },
-    'editable',
-  );
-}
-
 function install(
   bindings: Bindings = {},
   access: 'editable' | 'readOnly' = 'editable',
@@ -57,7 +44,7 @@ function install(
     settings: {
       get: ({name}) =>
         Promise.resolve(
-          name === 'shortcuts' ? shortcuts : defaultDocument(name),
+          name === 'shortcuts' ? shortcuts : emptySettingsDocument(name),
         ),
       edit: request => edit(request),
     },

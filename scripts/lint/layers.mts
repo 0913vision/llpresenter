@@ -122,7 +122,10 @@ const FEATURE_BASE = [
  * imports only the features to its left.
  */
 export const FEATURE_ORDER = [
+  'labels',
   'media',
+  'slides',
+  'preferences',
   'songs',
   'bible',
   'service',
