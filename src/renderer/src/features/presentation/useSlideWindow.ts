@@ -13,6 +13,7 @@ import {
 import {flushSync} from 'react-dom';
 import {gridRange} from '@renderer/ui/useRowRange';
 import {watchUserScroll} from './userScroll';
+import {resizeAnchor, type ResizeAnchor} from './slideWindowAnchor';
 
 const OVERSCAN_ROWS = 1;
 const INITIAL_ROWS = 2;
@@ -105,7 +106,7 @@ export function useSlideWindow(
     tracks: number;
     stride: number;
     inset: number;
-    anchor?: {index: number; offset: number; target: number} | undefined;
+    anchor?: ResizeAnchor | undefined;
   } | null>(null);
   const pausedUntil = useRef(0);
   const dragging = useRef(false);
@@ -259,7 +260,13 @@ export function useSlideWindow(
     const viewport = keeper.current?.parentElement;
     const old = geometry.current;
     if (!viewport || isHiddenWorkspace(workspaceFrame(viewport))) return;
-    const next: NonNullable<typeof old> = {
+    const next: {
+      itemId: string | null;
+      tracks: number;
+      stride: number;
+      inset: number;
+      anchor?: ResizeAnchor | undefined;
+    } = {
       itemId,
       tracks,
       stride,
@@ -274,35 +281,15 @@ export function useSlideWindow(
       (old.stride !== stride || old.tracks !== tracks)
     ) {
       const top = viewport.scrollTop;
-      const liveTop =
-        live === null
-          ? -Infinity
-          : old.inset + Math.floor(live / old.tracks) * old.stride;
-      const liveVisible =
-        live !== null &&
-        live < count &&
-        liveTop + old.stride > top &&
-        liveTop < top + measure.height;
-      const index =
-        old.anchor && old.anchor.index < count
-          ? old.anchor.index
-          : liveVisible
-            ? live
-            : Math.min(
-                count - 1,
-                Math.max(0, Math.ceil((top - old.inset) / old.stride)) *
-                  old.tracks,
-              );
-      const oldTop = old.inset + Math.floor(index / old.tracks) * old.stride;
-      const offset = old.anchor?.offset ?? oldTop - top;
-      const newTop = measure.inset + Math.floor(index / tracks) * stride;
-      const height =
-        Math.max(0, rows * stride - measure.rowGap) + measure.inset * 2;
-      const target = Math.max(
-        0,
-        Math.min(height - measure.height, newTop - offset),
-      );
-      next.anchor = {index, offset, target};
+      const anchor = resizeAnchor(old, next, {
+        top,
+        height: measure.height,
+        live,
+        count,
+        rowGap: measure.rowGap,
+      });
+      const {target} = anchor;
+      next.anchor = anchor;
       geometry.current = next;
       if (Math.abs(target - top) > 0.5) {
         viewport.scrollTo({top: target, behavior: 'instant'});
@@ -314,7 +301,7 @@ export function useSlideWindow(
       ...next,
       ...(old?.itemId === itemId && old.anchor ? {anchor: old.anchor} : {}),
     };
-  }, [keeper, itemId, tracks, stride, measure, count, live, rows]);
+  }, [keeper, itemId, tracks, stride, measure, count, live]);
   useLayoutEffect(() => {
     current.current = (behavior = 'smooth') => {
       if (
