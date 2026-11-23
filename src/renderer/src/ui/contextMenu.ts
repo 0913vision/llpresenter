@@ -93,3 +93,37 @@ export function contextMenuAnchor(event: ContextMenuEvent): MenuAnchor {
       : null;
   return {kind: 'element', element: row ?? event.currentTarget, target};
 }
+
+/**
+ * Passes a right-click that landed on the layer behind an open menu on to
+ * what is under the pointer, so it opens its own menu there, as in Windows.
+ * Whether the click reaches that element by itself depends on how fast the
+ * old menu closes, so the layer always passes it on.
+ */
+export function passContextMenu(
+  event: globalThis.MouseEvent,
+  layer: Element | null,
+): void {
+  // NOTE(0913vision): jsdom, used by the tests, has no elementsFromPoint.
+  const below = (
+    typeof document.elementsFromPoint === 'function'
+      ? document.elementsFromPoint(event.clientX, event.clientY)
+      : []
+  ).find(element => !layer?.contains(element));
+  below?.dispatchEvent(
+    new globalThis.MouseEvent('contextmenu', {
+      bubbles: true,
+      cancelable: true,
+      composed: true,
+      button: 2,
+      clientX: event.clientX,
+      clientY: event.clientY,
+      screenX: event.screenX,
+      screenY: event.screenY,
+      ctrlKey: event.ctrlKey,
+      shiftKey: event.shiftKey,
+      altKey: event.altKey,
+      metaKey: event.metaKey,
+    }),
+  );
+}

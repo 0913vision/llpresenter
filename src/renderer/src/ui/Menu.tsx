@@ -9,7 +9,7 @@ import {
 import {Popover} from './Popover';
 import type {MenuCloseReason} from './menuKeys';
 import {modalStack} from './modalStack';
-import {markMenuTarget} from './contextMenu';
+import {markMenuTarget, passContextMenu} from './contextMenu';
 import {menuItems, type MenuEntry} from './menuModel';
 import type {MenuSearch} from './MenuParts';
 import {MenuSurface, type MenuSurfaceProps} from './MenuSurface';
@@ -140,6 +140,12 @@ export function Menu({
           className={styles.catcher}
           onPointerDown={event => {
             event.preventDefault();
+            // NOTE(0913vision): A right-click outside closes the menu at once;
+            // the click itself goes on to what is under the pointer.
+            if (event.button === 2 && !renaming) {
+              onClose('outside');
+              return;
+            }
             if (renaming) {
               const field =
                 event.currentTarget.parentElement?.querySelector<HTMLElement>(
@@ -173,7 +179,15 @@ export function Menu({
             closingFromAnchor.current = false;
             onClose('outside');
           }}
-          onContextMenu={event => event.preventDefault()}
+          onContextMenu={event => {
+            event.preventDefault();
+            if (!renaming) {
+              passContextMenu(
+                event.nativeEvent,
+                event.currentTarget.parentElement,
+              );
+            }
+          }}
         />
         <MenuSurface
           label={label}

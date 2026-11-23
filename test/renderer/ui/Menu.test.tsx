@@ -98,6 +98,42 @@ describe('Menu', () => {
     );
   });
 
+  it('closes on a right-click outside and passes the click on to what is under it', () => {
+    const outside = document.createElement('button');
+    const passed: MouseEvent[] = [];
+    outside.addEventListener('contextmenu', event => passed.push(event));
+    document.body.append(outside);
+    const onClose = vi.fn();
+    const view = render(
+      <Menu
+        context
+        label="항목 메뉴"
+        entries={[{kind: 'item', id: 'one', label: '하나', onSelect: vi.fn()}]}
+        anchor={{kind: 'point', point: {x: 10, y: 10}}}
+        onClose={onClose}
+      />,
+    );
+    const catcher = document.querySelector(
+      '[data-llp-layer="popover"] > div > div',
+    );
+    if (catcher === null) throw new Error('No click catcher');
+    // NOTE(0913vision): jsdom has no elementsFromPoint; this one reports the
+    // catcher and, under it, the outside button.
+    Object.defineProperty(document, 'elementsFromPoint', {
+      configurable: true,
+      value: () => [catcher, outside],
+    });
+    fireEvent.pointerDown(catcher, {button: 2, clientX: 300, clientY: 200});
+    expect(onClose).toHaveBeenLastCalledWith('outside');
+    fireEvent.contextMenu(catcher, {clientX: 300, clientY: 200});
+    expect(
+      passed.map(event => [event.clientX, event.clientY, event.button]),
+    ).toEqual([[300, 200, 2]]);
+    Reflect.deleteProperty(document, 'elementsFromPoint');
+    view.unmount();
+    outside.remove();
+  });
+
   it('closes on Tab and on a click outside', async () => {
     const onClose = vi.fn();
     render(<Harness onClose={onClose} />);
