@@ -1110,6 +1110,8 @@ integration use this contract, with a distinct cancellable ID per lookup.
   unchanged. A plain → on the last verse does nothing. Text fields and dialogs
   keep their keys, and holding a key adds only one verse. A failed or superseded
   lookup keeps the last good output.
+- Enter on an entered passage outputs its first verse, also when the same
+  passage is live and another verse of it is on the screens (USER Nov 24).
 - 예배 순서에 넣기 inserts a Bible passage item into the selected section or the
   section containing the selected 예배 순서 item, following 항목 추가's
   insertion rule (05). An empty section stays as the passage's section row.

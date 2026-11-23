@@ -150,14 +150,9 @@ export function BibleQuickField({
       transition: QUICK_BIBLE_TRANSITION,
     };
     beginQuickPassage();
-    // NOTE(0913vision): The grid selects the live verse in a passage that has
-    // it too; a passage that is not live starts at its first verse.
-    if (
-      prepared !== null &&
-      prepared.id !== useLive.getState().state?.layers.slide?.itemId
-    ) {
-      selectTile(firstVerseOf(prepared, passage));
-    }
+    // NOTE(0913vision): An entered passage starts at its first verse, also
+    // when it is the live one typed again.
+    if (prepared !== null) selectTile(firstVerseOf(prepared, passage));
     showBiblePassage(target, options);
     setOverlayOpen(false);
     finishQuickPassage();
