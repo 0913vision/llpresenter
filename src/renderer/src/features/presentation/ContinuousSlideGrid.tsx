@@ -28,6 +28,7 @@ import {TilePicture, tileProps} from '@renderer/pictures/TilePicture';
 import styles from './SlideGrid.module.css';
 import {tileReflowIds} from './tileReflowIds';
 import {useReflow} from '@renderer/ui/useReflow';
+import {watchUserScroll} from './userScroll';
 
 const BAND = 30;
 const HEADING = 37;
@@ -256,27 +257,17 @@ export function ContinuousSlideGrid({
     const defer = (): void => {
       pause.current = Date.now() + 1500;
     };
-    const down = (event: PointerEvent): void => {
-      if (event.target === viewport || event.pointerType === 'touch') {
-        dragging.current = true;
-        defer();
-      }
-    };
-    const move = (): void => {
-      if (dragging.current) defer();
-    };
-    const up = (): void => {
-      if (dragging.current) {
-        dragging.current = false;
-        defer();
-      }
-    };
     // NOTE(0913vision): A resize renders in its own frame, before it paints.
     const observer = new ResizeObserver(() => flushSync(read));
     observer.observe(viewport);
     observer.observe(grid);
     viewport.addEventListener('scroll', scroll, {passive: true});
-    viewport.addEventListener('wheel', defer, {passive: true});
+    const stopWatching = watchUserScroll(viewport, {
+      moved: defer,
+      dragging: on => {
+        dragging.current = on;
+      },
+    });
     // NOTE(0913vision): Only a key press counts as keyboard navigation; any
     // pointer press after it (a Shift+click, say) is a click again.
     const key = (event: KeyboardEvent): void => {
@@ -289,21 +280,13 @@ export function ContinuousSlideGrid({
     };
     window.addEventListener('keydown', key, true);
     window.addEventListener('pointerdown', pointer, true);
-    viewport.addEventListener('pointerdown', down);
-    window.addEventListener('pointermove', move);
-    window.addEventListener('pointerup', up);
-    window.addEventListener('pointercancel', up);
     read();
     return () => {
       observer.disconnect();
       viewport.removeEventListener('scroll', scroll);
-      viewport.removeEventListener('wheel', defer);
+      stopWatching();
       window.removeEventListener('keydown', key, true);
       window.removeEventListener('pointerdown', pointer, true);
-      viewport.removeEventListener('pointerdown', down);
-      window.removeEventListener('pointermove', move);
-      window.removeEventListener('pointerup', up);
-      window.removeEventListener('pointercancel', up);
     };
   }, []);
   const stride =

@@ -12,6 +12,7 @@ import {
 } from 'react';
 import {flushSync} from 'react-dom';
 import {gridRange} from '@renderer/ui/useRowRange';
+import {watchUserScroll} from './userScroll';
 
 const OVERSCAN_ROWS = 1;
 const INITIAL_ROWS = 2;
@@ -154,20 +155,6 @@ export function useSlideWindow(
         if (!dragging.current) current.current();
       }, 1500);
     };
-    const down = (event: PointerEvent): void => {
-      if (event.target !== viewport && event.pointerType !== 'touch') return;
-      dragging.current = true;
-      defer();
-    };
-    const move = (): void => {
-      if (dragging.current) defer();
-    };
-    const up = (): void => {
-      if (dragging.current) {
-        dragging.current = false;
-        defer();
-      }
-    };
     const readNow = (sync: boolean): void => {
       if (isHiddenWorkspace(frame)) return;
       // NOTE(0913vision): the buffered grid element changes per item; read the current one.
@@ -216,21 +203,18 @@ export function useSlideWindow(
           });
     observer?.observe(viewport);
     viewport.addEventListener('scroll', scroll, {passive: true});
-    viewport.addEventListener('wheel', defer, {passive: true});
-    viewport.addEventListener('pointerdown', down);
-    window.addEventListener('pointermove', move);
-    window.addEventListener('pointerup', up);
-    window.addEventListener('pointercancel', up);
+    const stopWatching = watchUserScroll(viewport, {
+      moved: defer,
+      dragging: on => {
+        dragging.current = on;
+      },
+    });
     if (!shownAgain || observer === undefined) readNow(false);
     return () => {
       unwatch();
       observer?.disconnect();
       viewport.removeEventListener('scroll', scroll);
-      viewport.removeEventListener('wheel', defer);
-      viewport.removeEventListener('pointerdown', down);
-      window.removeEventListener('pointermove', move);
-      window.removeEventListener('pointerup', up);
-      window.removeEventListener('pointercancel', up);
+      stopWatching();
       if (timer.current !== undefined) clearTimeout(timer.current);
       remeasure.current = () => undefined;
     };
