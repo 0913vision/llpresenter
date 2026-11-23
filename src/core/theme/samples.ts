@@ -7,7 +7,6 @@ const AUTO: SlideContent['auto'] = {
   [AUTO_TOKENS.number]: '1',
   [AUTO_TOKENS.passage]: '요한복음 3:16',
   [AUTO_TOKENS.song]: '슬픈 마음 있는 사람',
-  [AUTO_TOKENS.hymn]: '새찬송가 91장 슬픈 마음 있는 사람',
   [AUTO_TOKENS.hymnNumber]: '새찬송가 91장',
   [AUTO_TOKENS.hymnTitle]: '슬픈 마음 있는 사람',
   [AUTO_TOKENS.item]: '찬양',

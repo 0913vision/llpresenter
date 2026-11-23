@@ -25,14 +25,32 @@ export interface SlideSource {
   readonly passage?: string | undefined;
 }
 
-/** The song's name after its hymn number, from its name or its title slide. */
-function nameWithHymn(name: string, shown: Hymn | undefined): string {
-  const title = name.split(/\r?\n/u)[0]?.trim() ?? '';
-  const named = hymnAt(title);
+interface SongName {
+  /** The song's name without its hymn number. */
+  readonly title: string;
+  readonly hymn: Hymn | undefined;
+}
+
+/**
+ * A song's name and the hymn it is, from its name (새찬송가 91장 슬픈 마음)
+ * or from its title slide; a name that is only the number takes the title of
+ * the hymnal.
+ */
+function songName(name: string, shown: Hymn | undefined): SongName {
+  const first = name.split(/\r?\n/u)[0]?.trim() ?? '';
+  const named = hymnAt(first);
   const hymn = named?.hymn ?? shown;
-  if (hymn === undefined) return title;
-  const own = named === null ? title : named.rest;
-  return `${hymnLabel(hymn)} ${own || hymnTitle(hymn)}`;
+  const own = named === null ? first : named.rest;
+  return {title: own || (hymn === undefined ? '' : hymnTitle(hymn)), hymn};
+}
+
+function hymnValues(hymn: Hymn | undefined): AutoValues {
+  return hymn === undefined
+    ? {}
+    : {
+        [AUTO_TOKENS.hymnNumber]: hymnLabel(hymn),
+        [AUTO_TOKENS.hymnTitle]: hymnTitle(hymn),
+      };
 }
 
 /** The values a theme can use on each slide of a list. */
@@ -41,9 +59,9 @@ export function autoValues(
   source: SlideSource,
 ): readonly AutoValues[] {
   const counts = new Map<string, number>();
-  const named =
+  const song =
     source.kind === 'song'
-      ? nameWithHymn(source.title, slides[0]?.hymn)
+      ? songName(source.title, slides.find(slide => slide.hymn)?.hymn)
       : undefined;
   return slides.map((slide, index) => {
     const number = (counts.get(slide.theme) ?? 0) + 1;
@@ -60,14 +78,8 @@ export function autoValues(
       ...(source.passage === undefined
         ? {}
         : {[AUTO_TOKENS.passage]: source.passage}),
-      ...(source.kind === 'song' ? {[AUTO_TOKENS.song]: source.title} : {}),
-      ...(named === undefined ? {} : {[AUTO_TOKENS.hymn]: named}),
-      ...(hymn === undefined
-        ? {}
-        : {
-            [AUTO_TOKENS.hymnNumber]: hymnLabel(hymn),
-            [AUTO_TOKENS.hymnTitle]: hymnTitle(hymn),
-          }),
+      ...(song === undefined ? {} : {[AUTO_TOKENS.song]: song.title}),
+      ...hymnValues(hymn ?? song?.hymn),
     };
   });
 }

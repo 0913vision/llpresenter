@@ -68,13 +68,32 @@ describe('a hymn', () => {
     slideTiles([slideOf(1, 'songTitle', slide)], {kind: 'song', title})[0]
       ?.auto;
 
-  it('has its number before its name', () => {
-    const hymn = (title: string, slide?: Partial<Slide>) =>
-      valuesOf(title, slide)?.[AUTO_TOKENS.hymn];
-    expect(hymn('91장 슬픈 마음')).toBe('새찬송가 91장 슬픈 마음');
-    expect(hymn('슬픈 마음', {hymn: sad})).toBe('새찬송가 91장 슬픈 마음');
-    expect(hymn('새찬송가 91장')).toBe('새찬송가 91장 슬픈 마음 있는 사람');
-    expect(hymn('빛의 길')).toBe('빛의 길');
+  it('names the song without its number and gives the number apart', () => {
+    const named = (title: string, slide?: Partial<Slide>) => {
+      const values = valuesOf(title, slide);
+      return [values?.[AUTO_TOKENS.song], values?.[AUTO_TOKENS.hymnNumber]];
+    };
+    expect(named('91장 슬픈 마음')).toEqual(['슬픈 마음', '새찬송가 91장']);
+    expect(named('슬픈 마음', {hymn: sad})).toEqual([
+      '슬픈 마음',
+      '새찬송가 91장',
+    ]);
+    expect(named('새찬송가 91장')).toEqual([
+      '슬픈 마음 있는 사람',
+      '새찬송가 91장',
+    ]);
+    expect(named('빛의 길')).toEqual(['빛의 길', undefined]);
+  });
+
+  it('gives every slide of a hymn its number and its title', () => {
+    const tiles = slideTiles(
+      [slideOf(1, 'songTitle', {hymn: sad}), slideOf(2, 'lyrics')],
+      {kind: 'song', title: '슬픈 마음'},
+    );
+    expect(tiles[1]?.auto).toMatchObject({
+      [AUTO_TOKENS.hymnNumber]: '새찬송가 91장',
+      [AUTO_TOKENS.hymnTitle]: '슬픈 마음 있는 사람',
+    });
   });
 
   it('gives its slide its number and its title in the hymnal', () => {

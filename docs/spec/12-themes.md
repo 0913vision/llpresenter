@@ -89,9 +89,9 @@ The user's needs (October 30 and November 22):
   and one space beside it: `다음 곡: {제목} {(찬송가)} {(이름표)}` shows 다음
   곡: 성부 성자 성령 (새찬송가 7장) when there is no 이름표. Brackets typed
   outside the braces are plain text and always show. The values the app fills in
-  are 번호, 항목 이름, 구절, 곡 제목, 찬송가 장과 제목, 찬송가 장 and 찬송가
-  제목 (the hymn the 슬라이드 is the title of), 이름표, and 새 이름표 (only
-  where the label changes).
+  are 번호, 항목 이름, 구절, 곡 제목 (the song's name without its hymn number),
+  찬송가 장 and 찬송가 제목 (on every 슬라이드 of a song that is a hymn),
+  이름표, and 새 이름표 (only where the label changes).
 - A 글 and 미리 보여줄 내용 can have more templates, shown as 없으면 rows under
   the first: one is used when every value of the ones above is missing, such as
   the (없음) of an empty 슬라이드 on 무대. A template without values always

@@ -5,10 +5,9 @@ export const AUTO_TOKENS = {
   newLabel: '새 이름표',
   number: '번호',
   passage: '구절',
+  /** The song's name without its hymn number. */
   song: '곡 제목',
-  /** The song's name after its hymn number, when it has one. */
-  hymn: '찬송가 장과 제목',
-  /** The hymn that the slide is the title of, and its title in its hymnal. */
+  /** The hymn the song is, and its title in its hymnal. */
   hymnNumber: '찬송가 장',
   hymnTitle: '찬송가 제목',
   item: '항목 이름',
