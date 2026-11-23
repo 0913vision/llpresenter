@@ -249,18 +249,43 @@ export function useLibrary(
     return null;
   };
 
-  const create = async (): Promise<void> => {
-    if (editing.current) return;
+  /**
+   * Runs one song edit at a time with the panel busy. When it throws,
+   * `failure` is reported and `fallback` answered.
+   */
+  const runEdit = async <T>(
+    failure: keyof typeof problemTitles,
+    fallback: T,
+    run: () => Promise<T>,
+  ): Promise<T> => {
+    if (editing.current) return fallback;
     editing.current = true;
     setBusy(true);
-    setQuery('');
-    const version = ++requests.current.open;
-    opening.current = null;
     try {
-      const result = await api.content.edit({type: 'song.create'});
-      const id = appliedId(result);
+      return await run();
+    } catch {
+      report(failure);
+      return fallback;
+    } finally {
+      editing.current = false;
+      if (isActive()) setBusy(false);
+    }
+  };
+  /** Reads the list again after an edit, so the change shows at once. */
+  const relist = async (): Promise<void> => {
+    if (!(await readList())) report('load', loadAction(reload));
+  };
+  const editable = (id: SongId): boolean =>
+    rows.current.find(song => song.id === id)?.access === 'editable';
+
+  const create = (): Promise<void> =>
+    runEdit('create', undefined, async () => {
+      setQuery('');
+      const version = ++requests.current.open;
+      opening.current = null;
+      const id = appliedId(await api.content.edit({type: 'song.create'}));
       if (id === null || !isActive()) return;
-      if (!(await readList())) report('load', loadAction(reload));
+      await relist();
       const document = await api.songs.get(id);
       if (!isActive() || version !== requests.current.open) return;
       if (document === null) {
@@ -269,26 +294,15 @@ export function useLibrary(
       }
       setSelected(document.song.id);
       onOpenSong({document, focusTitle: true});
-    } catch {
-      report('create');
-    } finally {
-      editing.current = false;
-      if (isActive()) setBusy(false);
-    }
-  };
+    });
 
   /**
    * Copies a song: its groups, 이름표, 구성, and background under a new id and
    * the copy title, then selects the copy.
    */
   const duplicate = async (id: SongId): Promise<void> => {
-    if (editing.current) return;
-    if (rows.current.find(song => song.id === id)?.access !== 'editable') {
-      return;
-    }
-    editing.current = true;
-    setBusy(true);
-    try {
+    if (!editable(id)) return;
+    await runEdit('create', undefined, async () => {
       const source = await api.songs.get(id);
       if (source === null) {
         report('missing');
@@ -308,54 +322,28 @@ export function useLibrary(
       });
       const copyId = appliedId(result);
       if (copyId === null || !isActive()) return;
-      if (!(await readList())) report('load', loadAction(reload));
+      await relist();
       const created = await api.songs.get(copyId);
       if (created !== null && isActive()) setSelected(created.song.id);
-    } catch {
-      report('create');
-    } finally {
-      editing.current = false;
-      if (isActive()) setBusy(false);
-    }
+    });
   };
 
-  const remove = async (id: SongId): Promise<boolean> => {
-    if (
-      editing.current ||
-      rows.current.find(song => song.id === id)?.access !== 'editable'
-    ) {
-      return false;
-    }
-    editing.current = true;
-    setBusy(true);
-    try {
+  const remove = async (id: SongId): Promise<boolean> =>
+    editable(id) &&
+    runEdit('delete', false, async () => {
       const result = await api.content.edit({type: 'song.delete', songId: id});
       if (!isActive() || appliedId(result) === null) return false;
-      if (!(await readList())) report('load', loadAction(reload));
+      await relist();
       return isActive();
-    } catch {
-      report('delete');
-      return false;
-    } finally {
-      editing.current = false;
-      if (isActive()) setBusy(false);
-    }
-  };
+    });
 
   /**
    * Gives a song a new title by the 곡 편집 title rule. A title another song
    * has is refused with `false`, as main refuses it.
    */
-  const rename = async (id: SongId, title: string): Promise<boolean> => {
-    if (
-      editing.current ||
-      rows.current.find(song => song.id === id)?.access !== 'editable'
-    ) {
-      return false;
-    }
-    editing.current = true;
-    setBusy(true);
-    try {
+  const rename = async (id: SongId, title: string): Promise<boolean> =>
+    editable(id) &&
+    runEdit('change', false, async () => {
       const document = await api.songs.get(id);
       if (!isActive()) return false;
       if (document === null) {
@@ -369,16 +357,9 @@ export function useLibrary(
       });
       if (!result.ok && result.error.reason === 'duplicate-title') return false;
       if (!isActive() || appliedId(result) === null) return false;
-      if (!(await readList())) report('load', loadAction(reload));
+      await relist();
       return isActive();
-    } catch {
-      report('change');
-      return false;
-    } finally {
-      editing.current = false;
-      if (isActive()) setBusy(false);
-    }
-  };
+    });
 
   return {
     songs,
