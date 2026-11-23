@@ -93,45 +93,43 @@
           "id": "00000000-0000-4000-9000-000000000001",
           "kind": "text",
           "frame": {
-            "x": 48,
+            "x": 200.0,
             "y": 130,
-            "w": 1824,
-            "h": 260
+            "w": 1520,
+            "h": 200
           },
           "content": ["{제목}"],
           "style": {
-            "font": "NanumSquare",
-            "weight": 800,
-            "size": 108,
+            "font": "KoPubWorldDotum",
+            "weight": 700,
+            "size": 120,
             "color": "#FFFFFF",
             "lineHeight": 1.2,
-            "tracking": 0,
+            "tracking": -3,
             "align": "center",
             "vAlign": "middle"
-          },
-          "wrap": "balance"
+          }
         },
         {
           "id": "00000000-0000-4000-9000-000000000002",
           "kind": "text",
           "frame": {
-            "x": 48,
+            "x": 200.0,
             "y": 390,
-            "w": 1824,
-            "h": 260
+            "w": 1520,
+            "h": 110
           },
           "content": ["{안내}"],
           "style": {
-            "font": "NanumSquare",
-            "weight": 800,
-            "size": 108,
+            "font": "KoPubWorldDotum",
+            "weight": 700,
+            "size": 74,
             "color": "#FFFFFF",
             "lineHeight": 1.2,
-            "tracking": 0,
+            "tracking": -6,
             "align": "center",
             "vAlign": "middle"
-          },
-          "wrap": "balance"
+          }
         },
         {
           "id": "00000000-0000-4000-9000-000000000090",

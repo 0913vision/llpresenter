@@ -136,8 +136,8 @@
             "weight": 700,
             "size": 108,
             "color": "#FFFFFF",
-            "lineHeight": 1.2,
-            "tracking": 0,
+            "lineHeight": 1,
+            "tracking": -3,
             "align": "left",
             "vAlign": "top"
           }
@@ -148,8 +148,8 @@
           "frame": {
             "x": 48,
             "y": 240,
-            "w": 1824,
-            "h": 458
+            "w": 1676,
+            "h": 776
           },
           "content": ["{내용}"],
           "style": {
@@ -158,7 +158,7 @@
             "size": 86,
             "color": "#FFFFFF",
             "lineHeight": 1.4884,
-            "tracking": 0,
+            "tracking": -3,
             "align": "left",
             "vAlign": "top",
             "bullets": true
@@ -202,7 +202,8 @@
           "top": 110,
           "bottom": 1064,
           "at": 706,
-          "gap": 8
+          "gap": 8,
+          "upperGap": 35
         }
       ]
     }
