@@ -563,21 +563,13 @@ export function ContinuousSlideGrid({
           context
           label="슬라이드"
           anchor={menu.anchor}
-          entries={[
-            {
-              kind: 'item',
-              id: 'output',
-              contextGroup: 'default',
-              label: '출력',
-              onSelect: () =>
-                outputTile({itemId: menu.itemId, index: menu.index}),
-            },
-            ...slideMenuEntries(
+          entries={slideMenuEntries({
+            output: () => outputTile({itemId: menu.itemId, index: menu.index}),
+            edit:
               onOpenPrep === undefined
                 ? undefined
                 : () => onOpenPrep(menu.itemId, menu.index),
-            ),
-          ]}
+          })}
           onClose={() => setMenu(null)}
         />
       ) : null}

@@ -194,20 +194,13 @@ export function SlideGrid({
           context
           label="슬라이드"
           anchor={menu.anchor}
-          entries={[
-            {
-              kind: 'item',
-              id: 'output',
-              contextGroup: 'default',
-              label: '출력',
-              onSelect: () => onOutput(menu.index),
-            },
-            ...slideMenuEntries(
+          entries={slideMenuEntries({
+            output: () => onOutput(menu.index),
+            edit:
               onOpenPrep === undefined
                 ? undefined
                 : () => onOpenPrep(menu.itemId, menu.index),
-            ),
-          ]}
+          })}
           onClose={() => setMenu(null)}
         />
       ) : null}

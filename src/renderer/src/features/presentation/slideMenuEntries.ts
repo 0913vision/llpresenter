@@ -5,10 +5,25 @@ import {
   menuSeparator,
 } from '@renderer/ui/menuRows';
 
-export function slideMenuEntries(
-  edit: (() => void) | undefined,
-): readonly MenuEntry[] {
+/**
+ * The menu of a slide tile in 진행: 출력, then 준비에서 열기 when the slide
+ * can be edited there, then the commands still to come.
+ */
+export function slideMenuEntries({
+  output,
+  edit,
+}: {
+  readonly output: () => void;
+  readonly edit: (() => void) | undefined;
+}): readonly MenuEntry[] {
   return [
+    {
+      kind: 'item',
+      id: 'output',
+      contextGroup: 'default',
+      label: '출력',
+      onSelect: output,
+    },
     laterRow('quick-edit', '빠른 편집'),
     {
       kind: 'item',
