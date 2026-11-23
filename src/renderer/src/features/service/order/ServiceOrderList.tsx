@@ -13,16 +13,11 @@ import {openInPrep} from '@renderer/session/prepTarget';
 import {EmptyState} from '@renderer/ui/EmptyState';
 import {NoServiceState} from './NoServiceState';
 import {useServiceActions} from '@renderer/features/service/list/useServiceActions';
-import {
-  contextMenuAnchor,
-  contextMenuTarget,
-  isContextMenuKey,
-} from '@renderer/ui/contextMenu';
 import {useEffect, useMemo, useRef, useState, type JSX} from 'react';
 import {createServiceItemId, type SongId} from '@core/schema/ids';
-import {hasModifier} from '@renderer/ui/modifierKeys';
 import {useOrderEdits} from './useOrderEdits';
 import {useOrderRename} from './useOrderRename';
+import {useOrderListEvents} from './useOrderListEvents';
 import {orderMenuEntries} from './orderMenuEntries';
 import {useOrderShortcuts} from './useOrderShortcuts';
 import {useOrderResizeFocus} from './useOrderResizeFocus';
@@ -42,7 +37,7 @@ import {useServiceItemSelection} from './useServiceItemSelection';
 import {useServiceItemClipboard} from './useServiceItemClipboard';
 import type {ServiceTableParts} from './serviceTableParts';
 import {useServiceSongMenu} from './useServiceSongMenu';
-import {serviceOrderRowId, useServiceOrderDrag} from './useServiceOrderDrag';
+import {useServiceOrderDrag} from './useServiceOrderDrag';
 import {useMediaDurations} from '../../media/useMediaDurations';
 import {ItemRows, type RowContext} from './ItemRows';
 import {groupRows, itemNumbers, rowsOfMenu} from './orderRows';
@@ -270,6 +265,14 @@ export function ServiceOrderList({
       anchor: anchor(rowsOfMenu(list, id, selection.selected)),
     });
   };
+  const listEvents = useOrderListEvents({
+    navigator,
+    workspace,
+    selection,
+    clickCapture: dragProps.onClickCapture,
+    openMenu,
+    openOrderEditor,
+  });
   const rowContext: RowContext = {
     navigator,
     selected: selection.selected,
@@ -292,55 +295,7 @@ export function ServiceOrderList({
       className={styles.list}
       aria-busy={editing.busy}
       {...dragProps}
-      onMouseDownCapture={event => {
-        if (
-          navigator &&
-          event.button === 0 &&
-          event.target instanceof Element &&
-          event.target.closest('[role="option"]') !== null &&
-          document.activeElement?.closest('[data-panel="편집"]') !== null
-        ) {
-          event.preventDefault();
-        }
-      }}
-      onClickCapture={event => {
-        dragProps.onClickCapture(event);
-        if (!event.defaultPrevented) selection.captureClick(event);
-      }}
-      onContextMenu={event => {
-        const id = serviceOrderRowId(event.target);
-        if (id === null || workspace === 'show') return;
-        event.preventDefault();
-        openMenu(id, event.currentTarget, targets => ({
-          kind: 'point',
-          target: contextMenuTarget(event),
-          targets,
-          point: {x: event.clientX, y: event.clientY},
-        }));
-      }}
-      onDoubleClick={event => {
-        if (isInTextEntry(event.target)) return;
-        openOrderEditor(serviceOrderRowId(event.target));
-      }}
-      onKeyDownCapture={event => {
-        if (isInTextEntry(event.target)) return;
-        selection.captureKey(event);
-        if (event.defaultPrevented) return;
-        if (event.key === 'Enter' && !hasModifier(event)) {
-          openOrderEditor(serviceOrderRowId(event.target));
-        }
-        if (isContextMenuKey(event) && workspace === 'prep') {
-          const id = serviceOrderRowId(event.target);
-          if (id === null) return;
-          event.preventDefault();
-          event.stopPropagation();
-          openMenu(id, event.currentTarget, targets => ({
-            ...contextMenuAnchor(event),
-            targets,
-          }));
-          return;
-        }
-      }}
+      {...listEvents}
     >
       {table?.header}
       <ListBox
