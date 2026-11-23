@@ -9,6 +9,7 @@ import {
 import {flushSync} from 'react-dom';
 import type {QuickItem} from '@core/schema/quick';
 import {isComposing} from '@renderer/ui/ime';
+import {listKeyTarget, rowRange} from '@renderer/ui/useRowRange';
 
 const FALLBACK_ROW = 30;
 const INITIAL_ROWS = 10;
@@ -70,16 +71,10 @@ export function useQuickWindow(items: readonly QuickItem[]) {
       observer?.disconnect();
     };
   }, [measure, items.length]);
-  const visible =
-    view.height > 0 ? Math.ceil(view.height / view.row) : INITIAL_ROWS;
-  const start = Math.max(
-    0,
-    Math.min(
-      Math.floor(view.top / view.row) - OVERSCAN,
-      items.length - visible,
-    ),
-  );
-  const end = Math.min(items.length, start + visible + OVERSCAN * 2);
+  const {start, end} = rowRange(view, items.length, {
+    initialRows: INITIAL_ROWS,
+    overscan: OVERSCAN,
+  });
   const shown = items.flatMap((item, index) =>
     (index >= start && index < end) || item.id === pinned || item.id === tabStop
       ? [{item, index}]
@@ -115,23 +110,8 @@ export function useQuickWindow(items: readonly QuickItem[]) {
     const row = target.closest<HTMLElement>('[data-quick-id]');
     const index = items.findIndex(item => item.id === row?.dataset['quickId']);
     if (index < 0) return;
-    let next: number;
-    switch (event.key) {
-      case 'Home':
-        next = 0;
-        break;
-      case 'End':
-        next = items.length - 1;
-        break;
-      case 'ArrowDown':
-        next = Math.min(items.length - 1, index + 1);
-        break;
-      case 'ArrowUp':
-        next = Math.max(0, index - 1);
-        break;
-      default:
-        return;
-    }
+    const next = listKeyTarget(event.key, index, items.length);
+    if (next === undefined) return;
     const item = items[next];
     const viewport = list.current?.parentElement;
     if (!item || !viewport) return;
