@@ -35,14 +35,6 @@ const mocks = vi.hoisted(() => {
     audioStop: vi.fn<() => void>(),
     themeOutputContexts: new Array<unknown>(),
     themeOutputStop: vi.fn<() => void>(),
-    slideAdvanceContexts: new Array<unknown>(),
-    slideAdvanceStop: vi.fn<() => void>(),
-    slidesProjectionContexts: new Array<unknown>(),
-    slidesProjection: {
-      get: vi.fn(),
-      subscribe: vi.fn(() => () => undefined),
-      dispose: vi.fn<() => void>(),
-    },
     recovery: {
       crashed: false,
       markQuitting: vi.fn<() => Promise<void>>(),
@@ -72,15 +64,6 @@ const mocks = vi.hoisted(() => {
     screensWindowContexts: new Array<unknown>(),
     screensWindowStop: vi.fn<() => void>(),
     screensWindowClose: vi.fn<() => Promise<boolean>>(),
-    editorWindowContexts: new Array<{
-      readonly name: string;
-      readonly context: unknown;
-    }>(),
-    editorWindowStops: {
-      order: vi.fn<() => void>(),
-      song: vi.fn<() => void>(),
-      slides: vi.fn<() => void>(),
-    },
     bibleContexts: new Array<unknown>(),
     bible: {lookup: vi.fn<BibleLookupSession['lookup']>()},
     bibleStop: vi.fn<() => void>(),
@@ -208,15 +191,6 @@ vi.mock('@main/windows/settingsWindow', () => ({
     };
   },
 }));
-vi.mock('@main/windows/slidesEditor', () => ({
-  registerSlidesEditorWindow: (context: unknown) => {
-    mocks.editorWindowContexts.push({name: 'slides', context});
-    return {
-      close: () => Promise.resolve(true),
-      dispose: mocks.editorWindowStops.slides,
-    };
-  },
-}));
 vi.mock('@main/bible/register', () => ({
   registerBible: (context: unknown) => {
     mocks.bibleContexts.push(context);
@@ -291,18 +265,6 @@ vi.mock('@main/live/themes', () => ({
   registerThemeOutput: (context: unknown) => {
     mocks.themeOutputContexts.push(context);
     return mocks.themeOutputStop;
-  },
-}));
-vi.mock('@main/live/slideAdvance', () => ({
-  registerSlideAdvance: (context: unknown) => {
-    mocks.slideAdvanceContexts.push(context);
-    return mocks.slideAdvanceStop;
-  },
-}));
-vi.mock('@main/live/slidesProjection', () => ({
-  registerSlidesProjection: (context: unknown) => {
-    mocks.slidesProjectionContexts.push(context);
-    return mocks.slidesProjection;
   },
 }));
 vi.mock('@main/media/analysis', () => ({
@@ -499,10 +461,6 @@ beforeEach(async () => {
   mocks.updateContexts.length = 0;
   mocks.updateStop.mockClear();
   mocks.screensWindowContexts.length = 0;
-  mocks.editorWindowContexts.length = 0;
-  mocks.editorWindowStops.order.mockClear();
-  mocks.editorWindowStops.song.mockClear();
-  mocks.editorWindowStops.slides.mockClear();
   mocks.screensWindowStop.mockClear();
   mocks.screensWindowClose.mockReset().mockResolvedValue(true);
   mocks.electron.app.getPath.mockReturnValue(await makeTempDir());
@@ -517,10 +475,6 @@ beforeEach(async () => {
   mocks.audioStop.mockReset();
   mocks.themeOutputContexts.length = 0;
   mocks.themeOutputStop.mockReset();
-  mocks.slideAdvanceContexts.length = 0;
-  mocks.slideAdvanceStop.mockReset();
-  mocks.slidesProjectionContexts.length = 0;
-  mocks.slidesProjection.dispose.mockReset();
   mocks.recovery.crashed = false;
   mocks.recovery.markQuitting.mockReset();
   mocks.recovery.cleanExit.mockReset();
