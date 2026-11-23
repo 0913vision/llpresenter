@@ -10,6 +10,7 @@ import {
 } from './deckCommands';
 import type {SlideDeck} from './slideDeck';
 import type {SlideCommands} from './useSlideCommands';
+import {fixedKeyText} from '@renderer/ui/fixedKeys';
 
 /** The menu of a slide or of the ground between slides. */
 export function slideMenuEntries({
@@ -71,7 +72,7 @@ export function slideMenuEntries({
       id: 'copy',
       contextGroup: 'clipboard',
       label: selectionLabel('복사', count),
-      meta: 'Ctrl C',
+      meta: fixedKeyText('copy'),
       ...menuAvailability(copyReason(deck)),
       onSelect: () => copySelected(deck),
     },
@@ -80,7 +81,7 @@ export function slideMenuEntries({
       id: 'cut',
       contextGroup: 'clipboard',
       label: selectionLabel('잘라내기', count),
-      meta: 'Ctrl X',
+      meta: fixedKeyText('cut'),
       ...menuAvailability(selectionReason(deck)),
       onSelect: commands.cut,
     },
@@ -89,7 +90,7 @@ export function slideMenuEntries({
       id: 'paste',
       contextGroup: 'clipboard',
       label: '붙여넣기',
-      meta: 'Ctrl V',
+      meta: fixedKeyText('paste'),
       ...menuAvailability(addReason(deck)),
       onSelect: commands.paste,
     },

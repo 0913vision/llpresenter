@@ -11,13 +11,7 @@ import {
 import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
 import {isInTextEntry} from '@renderer/ui/textEntry';
 import type {TextEditAction} from '@contracts/ipc/api';
-
-const TEXT_KEYS = {
-  cut: 'Ctrl X',
-  copy: 'Ctrl C',
-  paste: 'Ctrl V',
-  selectAll: 'Ctrl A',
-} as const;
+import {fixedKeyText} from '@renderer/ui/fixedKeys';
 
 /** Why a text editing row is off when no text field had focus. */
 export const TEXT_FIELD_ONLY = '글자 입력란에서만 쓸 수 있습니다';
@@ -91,7 +85,7 @@ function textRow(
     kind: 'item',
     id: action,
     label,
-    meta: TEXT_KEYS[action],
+    meta: fixedKeyText(action),
     ...menuAvailability(reason),
     onSelect: afterMenu(() => {
       if (field !== null) edit(field, action);

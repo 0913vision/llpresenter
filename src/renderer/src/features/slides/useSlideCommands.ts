@@ -18,6 +18,7 @@ import {
 import {selectInDeck} from './deckSelection';
 import {clipboardText} from './slideClipboard';
 import type {SlideDeck} from './slideDeck';
+import {FIXED_KEYS} from '@renderer/ui/fixedKeys';
 
 type History = 'undo' | 'redo';
 
@@ -105,7 +106,7 @@ export function useSlideCommands({
     },
     {
       id: 'edit.copy',
-      fixedBindings: [{code: 'KeyC', mods: ['ctrl']}],
+      fixedBindings: [FIXED_KEYS.copy],
       context: 'song',
       when: owns,
       unavailable: () => copyReason(deck),
@@ -113,7 +114,7 @@ export function useSlideCommands({
     },
     {
       id: 'edit.cut',
-      fixedBindings: [{code: 'KeyX', mods: ['ctrl']}],
+      fixedBindings: [FIXED_KEYS.cut],
       context: 'song',
       when: owns,
       unavailable: () => selectionReason(deck),
@@ -121,7 +122,7 @@ export function useSlideCommands({
     },
     {
       id: 'edit.paste',
-      fixedBindings: [{code: 'KeyV', mods: ['ctrl']}],
+      fixedBindings: [FIXED_KEYS.paste],
       context: 'song',
       when: owns,
       unavailable: () => addReason(deck),
@@ -129,7 +130,7 @@ export function useSlideCommands({
     },
     {
       id: 'edit.selectAll',
-      fixedBindings: [{code: 'KeyA', mods: ['ctrl']}],
+      fixedBindings: [FIXED_KEYS.selectAll],
       context: 'song',
       when: owns,
       run: () => selectInDeck(deck, {type: 'all'}),

@@ -10,6 +10,7 @@ import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
 import {selectionLabel} from '@renderer/ui/selectionDrag';
 import type {Workspace} from '@renderer/ui/workspace';
 import type {ServiceRow} from '@core/presentation';
+import {fixedKeyText} from '@renderer/ui/fixedKeys';
 
 /** What the 예배 순서 item menu can ask the list to do. */
 export interface ServiceOrderMenuInput {
@@ -184,7 +185,7 @@ export function serviceOrderMenuEntries(
       id: 'copy',
       contextGroup: 'clipboard',
       label: '복사',
-      meta: 'Ctrl C',
+      meta: fixedKeyText('copy'),
       ...menuAvailability(
         input.clipboard?.copyReason ??
           (input.clipboard === undefined
@@ -198,7 +199,7 @@ export function serviceOrderMenuEntries(
       id: 'paste',
       contextGroup: 'clipboard',
       label: '붙여넣기',
-      meta: 'Ctrl V',
+      meta: fixedKeyText('paste'),
       ...menuAvailability(
         input.clipboard?.pasteReason ??
           (input.clipboard === undefined

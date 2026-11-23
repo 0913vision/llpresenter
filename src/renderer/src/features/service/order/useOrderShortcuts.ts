@@ -16,6 +16,7 @@ import type {Workspace} from '@renderer/ui/workspace';
 import type {ChosenRows, useOrderEdits} from './useOrderEdits';
 import type {useServiceItemClipboard} from './useServiceItemClipboard';
 import {serviceOrderRowId} from './useServiceOrderDrag';
+import {FIXED_KEYS} from '@renderer/ui/fixedKeys';
 
 type Clipboard = Pick<
   ReturnType<typeof useServiceItemClipboard>,
@@ -105,7 +106,7 @@ export function useOrderShortcuts({
     },
     {
       id: 'edit.copy',
-      fixedBindings: [{code: 'KeyC', mods: ['ctrl']}],
+      fixedBindings: [FIXED_KEYS.copy],
       context: 'service',
       when: ownsCommand,
       unavailable: () => clipboard.copyReason,
@@ -113,7 +114,7 @@ export function useOrderShortcuts({
     },
     {
       id: 'edit.paste',
-      fixedBindings: [{code: 'KeyV', mods: ['ctrl']}],
+      fixedBindings: [FIXED_KEYS.paste],
       context: 'service',
       when: ownsCommand,
       unavailable: () => clipboard.pasteReason,

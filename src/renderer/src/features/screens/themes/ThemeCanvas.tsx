@@ -26,6 +26,7 @@ import {useThemeClipboard, type ThemeEditorEvents} from './useThemeClipboard';
 import {themeCanvasBounds, type ThemeModel} from './useThemeEditor';
 import {framesMoved} from './useThemeElements';
 import styles from './Themes.module.css';
+import {fixedKeyText} from '@renderer/ui/fixedKeys';
 
 export function useThemeSurfaces(
   model: ThemeModel,
@@ -109,7 +110,7 @@ export function useThemeSurfaces(
       id: 'copy',
       contextGroup: 'clipboard',
       label: selectionLabel('복사', ids.size),
-      meta: 'Ctrl C',
+      meta: fixedKeyText('copy'),
       ...menuAvailability(
         model.selectedIds.length === 0 ? '선택한 요소 없음' : undefined,
       ),
@@ -120,7 +121,7 @@ export function useThemeSurfaces(
       id: 'paste',
       contextGroup: 'clipboard',
       label: '붙여넣기',
-      meta: 'Ctrl V',
+      meta: fixedKeyText('paste'),
       ...menuAvailability(model.elementReason),
       onSelect: clipboard.paste,
     },
