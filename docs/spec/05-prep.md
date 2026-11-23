@@ -243,9 +243,9 @@ Source: `Reflow`, `PrepService`, `AddSongs`, `ListRow` README.
 
 - The right-click menu of a 라이브러리 row has 삭제. It deletes immediately
   without a confirmation or notice; undo restores the song.
-- After the delete, 예배 순서 items that point to the song show the problem
-  state, with the tooltip "곡을 찾을 수 없습니다." (song not found), and can't
-  output.
+- After the delete, 예배 순서 items of the song keep their own slides and still
+  go out, also while one is live; its 원본 shows that the library song is gone.
+  Checked Nov 24 with the live item (screens unchanged, stepping goes on).
 - No board shows song deletion (open question).
 
 Source: `Reflow`, `PrepService`, `TextField` README, `AlertDialog` README.
