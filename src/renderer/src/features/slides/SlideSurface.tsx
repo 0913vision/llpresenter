@@ -1,38 +1,27 @@
 import {
-  useEffect,
   useRef,
   useState,
-  type DragEvent,
   type JSX,
   type KeyboardEvent,
   type MouseEvent,
   type ReactNode,
 } from 'react';
-import {isUnchangedSelectionMove} from '@core/common/selectionOrder';
 import type {Slide} from '@core/schema/slide';
 import {changeSlides, withLabel} from '@core/slides';
 import {LabelMenu} from '@renderer/features/labels/LabelMenu';
 import {useLabelCatalog} from '@renderer/features/labels/labels';
-import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
-import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {contextMenuAnchor, isContextMenuKey} from '@renderer/ui/contextMenu';
 import {isComposing} from '@renderer/ui/ime';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
-import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
-import {selectionDragImage, selectionLabel} from '@renderer/ui/selectionDrag';
+import type {MenuEntry} from '@renderer/ui/menuModel';
 import {isInTextEntry} from '@renderer/ui/textEntry';
 import {useDragClickGuard} from '@renderer/ui/useDragClickGuard';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {useReflow} from '@renderer/ui/useReflow';
-import {deleteSelection} from '@renderer/ui/deleteSelection';
 import {
   addReason,
-  addSlide,
-  copyReason,
   copySelected,
   deleteSelected,
-  duplicateSelected,
-  moveSelected,
   pasteInto,
   selectionReason,
 } from './deckCommands';
@@ -42,22 +31,20 @@ import {
   selectionOf,
   useDeckSelection,
 } from './deckSelection';
-import {emptySlideGap, slideDropPosition} from './gridInsertionPosition';
-import {clipboardText} from './slideClipboard';
+import {emptySlideGap} from './gridInsertionPosition';
 import type {SlideDeck} from './slideDeck';
+import {slideIdAt, slideMove, slideRow} from './slideKeys';
+import {slideMenuEntries} from './slideMenu';
+import {useSlideCommands} from './useSlideCommands';
+import {useSlideDrag} from './useSlideDrag';
 import styles from './SlideEditor.module.css';
 
-export const SLIDE_DRAG = 'application/x-llp-song-slide-move';
-const NOTHING_TO_UNDO = '실행 취소할 변경이 없습니다';
-const NOTHING_TO_REDO = '다시 실행할 변경이 없습니다';
-
-function slideIdAt(target: EventTarget | null): string | undefined {
-  return target instanceof Element
-    ? target.closest<HTMLElement>('[data-song-slide]')?.dataset['songSlide']
-    : undefined;
-}
-
-function plainKey(event: KeyboardEvent): boolean {
+function plainKey(event: {
+  readonly ctrlKey: boolean;
+  readonly metaKey: boolean;
+  readonly altKey: boolean;
+  readonly shiftKey: boolean;
+}): boolean {
   return !event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey;
 }
 
@@ -83,250 +70,39 @@ export function SlideSurface({
     readonly anchor: MenuAnchor;
     readonly addAt: number;
   } | null>(null);
+  const count = selection.ids.size;
+  const focused = focusedSlide(deck, selection);
+  const slideOf = (id: string | undefined): Slide | undefined =>
+    id === undefined ? undefined : deck.slides.find(slide => slide.id === id);
+  const rowOf = (id: string | undefined): HTMLElement | null =>
+    slideRow(surface.current, id);
+  const focusedRow = (): HTMLElement | null =>
+    rowOf(focused?.id) ?? surface.current;
   const [labelAnchor, setLabelAnchor] = useState<HTMLElement | null>(null);
-  const labelAfterMenu = useMenuHandoff(menu !== null, setLabelAnchor);
+  /** Opens the 이름표 menu on the focused slide once the slide menu closed. */
+  const labelsAfterMenu = useMenuHandoff<true>(menu !== null, () =>
+    setLabelAnchor(focusedRow()),
+  );
   const dragClick = useDragClickGuard();
-  const releaseDrag = useRef<(() => void) | undefined>(undefined);
-  useEffect(() => () => releaseDrag.current?.(), []);
   useReflow(surface, {
     ids: deck.slides.map(slide => slide.id),
     selector: '[data-song-slide]',
     attribute: 'data-song-slide',
     scope: deck.id,
   });
-  const count = selection.ids.size;
-  const focused = focusedSlide(deck, selection);
+  const commands = useSlideCommands({
+    deck,
+    surface: () => surface.current,
+    count,
+    openLabels: () => setLabelAnchor(focusedRow()),
+  });
+  const {focusSurface} = commands;
+  const drag = useSlideDrag({
+    deck,
+    surface,
+    onDragged: dragClick.markDragged,
+  });
 
-  const focusSurface = (): void =>
-    surface.current?.focus({preventScroll: true});
-  const slideOf = (id: string | undefined): Slide | undefined =>
-    id === undefined ? undefined : deck.slides.find(slide => slide.id === id);
-  const rowOf = (id: string | undefined): HTMLElement | null =>
-    id === undefined
-      ? null
-      : (surface.current?.querySelector<HTMLElement>(
-          `[data-song-slide="${CSS.escape(id)}"]`,
-        ) ?? null);
-  const columns = (): number =>
-    Number(
-      surface.current?.querySelector<HTMLElement>('[data-slide-columns]')
-        ?.dataset['slideColumns'] ?? 1,
-    );
-
-  const paste = (): void => {
-    if (addReason(deck) !== undefined) return;
-    focusSurface();
-    clipboardText().then(
-      text => {
-        if (
-          surface.current?.contains(document.activeElement) === true &&
-          !isInTextEntry(document.activeElement)
-        ) {
-          pasteInto(deck, text);
-        }
-      },
-      (error: unknown) => console.error('Could not read the clipboard', error),
-    );
-  };
-  const cut = (): void => {
-    if (selectionReason(deck) !== undefined) return;
-    focusSurface();
-    copySelected(deck);
-    deleteSelected(deck);
-  };
-  const remove = (): void => {
-    if (selectionReason(deck) !== undefined) return;
-    const {slides} = deck;
-    deleteSelection(
-      count,
-      () => deck.slides === slides && !deck.readOnly,
-      () => {
-        focusSurface();
-        deleteSelected(deck);
-      },
-    );
-  };
-  const replay = (kind: 'undo' | 'redo'): void => {
-    focusSurface();
-    deck.replay(kind);
-  };
-  const replayReason = (kind: 'undo' | 'redo'): string | undefined => {
-    if (deck.readOnly) return NEWER_FILE_REASON;
-    if (kind === 'undo') return deck.canUndo ? undefined : NOTHING_TO_UNDO;
-    return deck.canRedo ? undefined : NOTHING_TO_REDO;
-  };
-  const owns = (event: globalThis.KeyboardEvent): boolean =>
-    event.target instanceof Node &&
-    surface.current?.contains(event.target) === true &&
-    !isInTextEntry(event.target);
-  useWindowShortcuts([
-    {
-      id: 'editor.labelMenu',
-      context: 'song',
-      when: owns,
-      unavailable: () => selectionReason(deck),
-      run: () => setLabelAnchor(rowOf(focused?.id) ?? surface.current),
-    },
-    {
-      id: 'edit.copy',
-      fixedBindings: [{code: 'KeyC', mods: ['ctrl']}],
-      context: 'song',
-      when: owns,
-      unavailable: () => copyReason(deck),
-      run: () => copySelected(deck),
-    },
-    {
-      id: 'edit.cut',
-      fixedBindings: [{code: 'KeyX', mods: ['ctrl']}],
-      context: 'song',
-      when: owns,
-      unavailable: () => selectionReason(deck),
-      run: cut,
-    },
-    {
-      id: 'edit.paste',
-      fixedBindings: [{code: 'KeyV', mods: ['ctrl']}],
-      context: 'song',
-      when: owns,
-      unavailable: () => addReason(deck),
-      run: paste,
-    },
-    {
-      id: 'edit.selectAll',
-      fixedBindings: [{code: 'KeyA', mods: ['ctrl']}],
-      context: 'song',
-      when: owns,
-      run: () => selectInDeck(deck, {type: 'all'}),
-    },
-    {
-      id: 'edit.duplicate',
-      context: 'song',
-      when: owns,
-      unavailable: () => selectionReason(deck) ?? addReason(deck, count),
-      run: () => duplicateSelected(deck),
-    },
-    {
-      id: 'edit.delete',
-      context: 'song',
-      when: owns,
-      unavailable: () => selectionReason(deck),
-      run: remove,
-    },
-    {
-      id: 'edit.undo',
-      context: 'song',
-      when: owns,
-      unavailable: () => replayReason('undo'),
-      run: () => replay('undo'),
-    },
-    {
-      id: 'edit.redo',
-      context: 'song',
-      when: owns,
-      unavailable: () => replayReason('redo'),
-      run: () => replay('redo'),
-    },
-  ]);
-
-  const entries: readonly MenuEntry[] = [
-    {
-      kind: 'item',
-      id: 'add-slide',
-      label: '슬라이드 추가',
-      ...menuAvailability(addReason(deck)),
-      onSelect: () => addSlide(deck, menu?.addAt),
-    },
-    ...(extraMenu?.(deck.slides.findIndex(slide => slide.id === focused?.id)) ??
-      []),
-    ...(onHotKey === undefined || count !== 1 || focused === undefined
-      ? []
-      : [
-          {
-            kind: 'item' as const,
-            id: 'hot-key',
-            label: '단축키…',
-            ...menuAvailability(selectionReason(deck)),
-            onSelect: () => onHotKey(focused),
-          },
-        ]),
-    ...(catalog === null
-      ? []
-      : [
-          {
-            kind: 'item' as const,
-            id: 'label',
-            label: '이름표',
-            command: 'editor.labelMenu' as const,
-            ...menuAvailability(selectionReason(deck)),
-            onSelect: () =>
-              labelAfterMenu(rowOf(focused?.id) ?? surface.current),
-          },
-        ]),
-    {
-      kind: 'item',
-      id: 'copy',
-      contextGroup: 'clipboard',
-      label: selectionLabel('복사', count),
-      meta: 'Ctrl C',
-      ...menuAvailability(copyReason(deck)),
-      onSelect: () => copySelected(deck),
-    },
-    {
-      kind: 'item',
-      id: 'cut',
-      contextGroup: 'clipboard',
-      label: selectionLabel('잘라내기', count),
-      meta: 'Ctrl X',
-      ...menuAvailability(selectionReason(deck)),
-      onSelect: cut,
-    },
-    {
-      kind: 'item',
-      id: 'paste',
-      contextGroup: 'clipboard',
-      label: '붙여넣기',
-      meta: 'Ctrl V',
-      ...menuAvailability(addReason(deck)),
-      onSelect: paste,
-    },
-    {
-      kind: 'item',
-      id: 'duplicate',
-      contextGroup: 'clipboard',
-      label: selectionLabel('복제', count),
-      meta: 'Ctrl D',
-      ...menuAvailability(selectionReason(deck) ?? addReason(deck, count)),
-      onSelect: () => duplicateSelected(deck),
-    },
-    {
-      kind: 'item',
-      id: 'delete',
-      contextGroup: 'delete',
-      label: selectionLabel('삭제', count),
-      meta: 'Delete',
-      ...menuAvailability(selectionReason(deck)),
-      onSelect: remove,
-    },
-    {kind: 'separator', id: 'history'},
-    {
-      kind: 'item',
-      id: 'undo',
-      contextGroup: 'clipboard',
-      label: '실행 취소',
-      meta: 'Ctrl Z',
-      ...menuAvailability(replayReason('undo')),
-      onSelect: () => replay('undo'),
-    },
-    {
-      kind: 'item',
-      id: 'redo',
-      contextGroup: 'clipboard',
-      label: '다시 실행',
-      meta: 'Ctrl Y',
-      ...menuAvailability(replayReason('redo')),
-      onSelect: () => replay('redo'),
-    },
-  ];
   const openMenu = (anchor: MenuAnchor, id: string | undefined): void => {
     const slide = slideOf(id);
     if (slide !== undefined && !selection.ids.has(slide.id)) {
@@ -336,16 +112,19 @@ export function SlideSurface({
     setMenu({
       anchor: {
         ...anchor,
-        targets: [
-          ...(surface.current?.querySelectorAll<HTMLElement>(
-            '[data-song-slide]',
-          ) ?? []),
-        ].filter(
-          row =>
-            slide !== undefined &&
-            row.dataset['songSlide'] !== undefined &&
-            [...ids].some(own => own === row.dataset['songSlide']),
-        ),
+        targets:
+          slide === undefined
+            ? []
+            : [
+                ...(surface.current?.querySelectorAll<HTMLElement>(
+                  '[data-song-slide]',
+                ) ?? []),
+              ].filter(row => {
+                const rowId = row.dataset['songSlide'];
+                return (
+                  rowId !== undefined && [...ids].some(own => own === rowId)
+                );
+              }),
       },
       addAt:
         slide === undefined
@@ -423,64 +202,33 @@ export function SlideSurface({
     openMenu({kind: 'element', element: rowOf(id) ?? target}, id);
   };
 
-  const move = (event: KeyboardEvent): (() => void) | undefined => {
-    const {key, shiftKey: shift} = event;
-    if (key.startsWith('Arrow')) {
-      const row = columns();
-      const delta =
-        key === 'ArrowUp'
-          ? -row
-          : key === 'ArrowDown'
-            ? row
-            : key === 'ArrowLeft'
-              ? -1
-              : 1;
-      return () => selectInDeck(deck, {type: 'arrow', delta, shift});
+  const keyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
+    if (
+      event.defaultPrevented ||
+      isComposing(event) ||
+      isInTextEntry(event.target) ||
+      event.altKey ||
+      event.ctrlKey ||
+      event.metaKey
+    ) {
+      return;
     }
-    if (key === 'Home' || key === 'End') {
-      const index = key === 'Home' ? 0 : deck.slides.length - 1;
-      const slide = deck.slides[index];
-      return () =>
-        selectInDeck(
-          deck,
-          selection.caret !== null || slide === undefined || count === 0
-            ? {type: 'gap', index: key === 'Home' ? 0 : deck.slides.length}
-            : {type: 'click', id: slide.id, shift},
-        );
-    }
-    if (key === 'Escape') {
-      return () => {
-        if (count > 1 || selection.caret !== null) {
-          if (focused === undefined) selectInDeck(deck, {type: 'clear'});
-          else selectInDeck(deck, {type: 'click', id: focused.id});
-        } else onBack?.();
-      };
-    }
-    return undefined;
+    const move = slideMove(event.key, event.shiftKey, {
+      slides: deck.slides,
+      selection,
+      focused,
+      columns: Number(
+        surface.current?.querySelector<HTMLElement>('[data-slide-columns]')
+          ?.dataset['slideColumns'] ?? 1,
+      ),
+    });
+    if (move === undefined) return;
+    event.preventDefault();
+    event.stopPropagation();
+    focusSurface();
+    if (move.kind === 'back') onBack?.();
+    else selectInDeck(deck, move.action);
   };
-
-  const dropIndex = (event: DragEvent<HTMLDivElement>): number | null => {
-    const node =
-      event.target instanceof Element
-        ? event.target.closest<HTMLElement>(
-            '[data-slide-gap], [data-slide-index]',
-          )
-        : null;
-    return node === null
-      ? null
-      : slideDropPosition(node, event.clientX, event.clientY);
-  };
-  const clearDrop = (): void => {
-    surface.current
-      ?.querySelectorAll('[data-slide-drop]')
-      .forEach(node => node.removeAttribute('data-slide-drop'));
-  };
-  const staysInPlace = (index: number): boolean =>
-    isUnchangedSelectionMove(
-      deck.slides.map(slide => slide.id),
-      selectionOf(deck).ids,
-      index,
-    );
 
   return (
     <div
@@ -537,24 +285,7 @@ export function SlideSurface({
         event.stopPropagation();
       }}
       onKeyDownCapture={keyDownCapture}
-      onKeyDown={event => {
-        if (
-          event.defaultPrevented ||
-          isComposing(event) ||
-          isInTextEntry(event.target) ||
-          event.altKey ||
-          event.ctrlKey ||
-          event.metaKey
-        ) {
-          return;
-        }
-        const run = move(event);
-        if (run === undefined) return;
-        event.preventDefault();
-        event.stopPropagation();
-        focusSurface();
-        run();
-      }}
+      onKeyDown={keyDown}
       onContextMenu={event => {
         if (isInTextEntry(event.target)) return;
         event.preventDefault();
@@ -562,60 +293,10 @@ export function SlideSurface({
         focusSurface();
         openMenu(contextMenuAnchor(event), slideIdAt(event.target));
       }}
-      onDragStart={event => {
-        const id = slideIdAt(event.target);
-        const slide = slideOf(id);
-        if (
-          deck.readOnly ||
-          isInTextEntry(event.target) ||
-          slide === undefined
-        ) {
-          event.preventDefault();
-          return;
-        }
-        if (!selection.ids.has(slide.id)) {
-          selectInDeck(deck, {type: 'click', id: slide.id});
-        }
-        event.dataTransfer.setData(SLIDE_DRAG, deck.id);
-        event.dataTransfer.effectAllowed = 'move';
-        releaseDrag.current?.();
-        releaseDrag.current = selectionDragImage(
-          event.dataTransfer,
-          rowOf(id) ?? event.currentTarget,
-          selectionOf(deck).ids.size,
-        );
-        dragClick.markDragged();
-      }}
-      onDragOver={event => {
-        if (deck.readOnly || !event.dataTransfer.types.includes(SLIDE_DRAG)) {
-          return;
-        }
-        event.preventDefault();
-        clearDrop();
-        const index = dropIndex(event);
-        if (index === null || staysInPlace(index)) return;
-        surface.current
-          ?.querySelector(`[data-slide-gap="${index}"]`)
-          ?.setAttribute('data-slide-drop', '');
-      }}
-      onDrop={event => {
-        if (
-          deck.readOnly ||
-          event.dataTransfer.getData(SLIDE_DRAG) !== deck.id
-        ) {
-          return;
-        }
-        const index = dropIndex(event);
-        clearDrop();
-        if (index === null || staysInPlace(index)) return;
-        event.preventDefault();
-        event.stopPropagation();
-        moveSelected(deck, index);
-      }}
-      onDragEnd={() => {
-        clearDrop();
-        releaseDrag.current?.();
-      }}
+      onDragStart={drag.onDragStart}
+      onDragOver={drag.onDragOver}
+      onDrop={drag.onDrop}
+      onDragEnd={drag.onDragEnd}
     >
       {children}
       {catalog === null || labelAnchor === null ? null : (
@@ -637,7 +318,21 @@ export function SlideSurface({
           context
           label="슬라이드"
           anchor={menu.anchor}
-          entries={entries}
+          entries={slideMenuEntries({
+            deck,
+            count,
+            addAt: menu.addAt,
+            extra:
+              extraMenu?.(
+                deck.slides.findIndex(slide => slide.id === focused?.id),
+              ) ?? [],
+            hotKey:
+              onHotKey === undefined || count !== 1 || focused === undefined
+                ? undefined
+                : () => onHotKey(focused),
+            label: catalog === null ? undefined : () => labelsAfterMenu(true),
+            commands,
+          })}
           onClose={() => {
             setMenu(null);
             focusSurface();

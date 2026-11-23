@@ -129,7 +129,7 @@ export function useThemeSurfaces(
       id: 'delete',
       contextGroup: 'delete',
       label: selectionLabel('삭제', ids.size),
-      meta: 'Delete',
+      command: 'edit.delete',
       ...menuAvailability(
         model.elementReason ??
           (model.selectedIds.length === 0 ? '선택한 요소 없음' : undefined),
