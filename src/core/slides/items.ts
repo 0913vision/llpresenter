@@ -141,7 +141,7 @@ export function bibleItem(
 
 /**
  * A sermon: its title, the passage, and the title again. The last title starts
- * with 다음 슬라이드 내용 표시 off, as the end of a passage does.
+ * with 다음 슬라이드 내용 숨기기 on, as the end of a passage does.
  */
 export function sermonItem(
   making: SlideMaking,

@@ -48,7 +48,7 @@ export function passageAddress(passage: BibleLookupPassage): string {
 /**
  * The slides of a passage: every verse on as many as its text needs. A verse
  * that keeps its slides from before keeps their settings too. The last slide
- * starts with 다음 슬라이드 내용 표시 off, so 무대 shows nothing past the
+ * starts with 다음 슬라이드 내용 숨기기 on, so 무대 shows nothing past the
  * passage until the operator turns it on.
  */
 export function passageSlides(

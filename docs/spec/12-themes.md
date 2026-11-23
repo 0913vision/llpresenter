@@ -38,11 +38,11 @@ The user's needs (October 30 and November 22):
   `다음 광고: {제목}` for 광고. A missing value is left out with its brackets. A
   슬라이드 can have its own text instead; clearing that text brings the phrase
   back. The property panel always shows it. A 슬라이드 can show nothing of the
-  next one: 다음 슬라이드 내용 표시 is a choice of the 슬라이드; the 테마 has no
-  say in it. A 슬라이드 is made with it on, except the last 슬라이드 of a 말씀
-  passage and the closing title of a 설교, which are made with it off; the
-  operator can change any of them. Making a passage again sets it once more: off
-  on its last 슬라이드 only. A 테마 can have other phrases for a 슬라이드 that
+  next one: 다음 슬라이드 내용 숨기기 is a check box of the 슬라이드; the 테마
+  has no say in it. A 슬라이드 is made with it off, except the last 슬라이드 of
+  a 말씀 passage and the closing title of a 설교, which are made with it on; the
+  operator can change any of them. Making a passage again sets it once more: on
+  for its last 슬라이드 only. A 테마 can have other phrases for a 슬라이드 that
   is the first of its item (첫 장일 때), such as 다음 곡: {곡 제목} over the
   first lyrics of a song without a title 슬라이드; without them the first
   슬라이드 uses the usual phrase.
