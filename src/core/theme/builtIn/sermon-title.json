@@ -189,15 +189,15 @@
           "kind": "text",
           "frame": {
             "x": 160,
-            "y": 781,
+            "y": 778,
             "w": 1600,
-            "h": 42
+            "h": 48
           },
           "content": ["{주소}"],
           "style": {
             "font": "NanumSquare",
             "weight": 700,
-            "size": 38,
+            "size": 40,
             "color": "#FFFFFF",
             "lineHeight": 1.2,
             "tracking": 0,
