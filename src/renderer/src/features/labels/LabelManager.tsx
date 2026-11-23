@@ -18,7 +18,7 @@ import {Icon} from '@renderer/ui/Icon';
 import {LabelColorControl} from '@renderer/ui/LabelColorPopover';
 import {settingsDeleteHistory} from '@renderer/platform/settingsDeleteHistory';
 import {useToolDeleteShortcuts} from '@renderer/platform/useToolDeleteShortcuts';
-import {deleteSelection} from '@renderer/ui/useSelectionDelete';
+import {deleteSelection} from '@renderer/ui/deleteSelection';
 import {useReflow} from '@renderer/ui/useReflow';
 import {isInTextEntry} from '@renderer/ui/textEntry';
 import {LabelNameField} from './LabelNameField';

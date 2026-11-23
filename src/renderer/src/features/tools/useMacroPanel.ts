@@ -21,7 +21,7 @@ import type {MenuAnchor} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
 import type {MacroViewMode} from './MacroView';
 import {saveMacroEdit, type MacroEdit} from './macroEdits';
-import {deleteSelection} from '@renderer/ui/useSelectionDelete';
+import {deleteSelection} from '@renderer/ui/deleteSelection';
 import {useToolEditing} from './useToolEditing';
 import {useToolDeleteShortcuts} from '@renderer/platform/useToolDeleteShortcuts';
 import {focusHistorySurface} from '@renderer/ui/focusHistorySurface';

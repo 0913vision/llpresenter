@@ -4,7 +4,7 @@ import {
   NOTHING_TO_UNDO,
   NOTHING_TO_REDO,
 } from '@renderer/platform/problemReasons';
-import {deleteSelection} from '@renderer/ui/useSelectionDelete';
+import {deleteSelection} from '@renderer/ui/deleteSelection';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {useRef, useState, type JSX} from 'react';
 import {useReflow} from '@renderer/ui/useReflow';

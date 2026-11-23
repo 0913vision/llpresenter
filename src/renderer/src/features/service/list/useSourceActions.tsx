@@ -13,7 +13,7 @@ import type {ServiceEntry} from '@core/schema/contentDocuments';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {useShow} from '@renderer/session/show';
 import {contentDeleteHistory} from '@renderer/platform/contentDeleteHistory';
-import {deleteSelection} from '@renderer/ui/useSelectionDelete';
+import {deleteSelection} from '@renderer/ui/deleteSelection';
 import {isInTextEntry} from '@renderer/ui/textEntry';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';

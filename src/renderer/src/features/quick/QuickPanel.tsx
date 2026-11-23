@@ -1,7 +1,7 @@
 import {displayReference, parseReference} from '@core/bible';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useReflow} from '@renderer/ui/useReflow';
-import {deleteSelection} from '@renderer/ui/useSelectionDelete';
+import {deleteSelection} from '@renderer/ui/deleteSelection';
 import {
   NOTHING_TO_UNDO,
   NOTHING_TO_REDO,

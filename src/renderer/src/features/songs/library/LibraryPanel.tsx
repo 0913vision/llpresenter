@@ -11,7 +11,7 @@ import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import type {SongId} from '@core/schema/ids';
 import {contentDeleteHistory} from '@renderer/platform/contentDeleteHistory';
 import {useToolDeleteShortcuts} from '@renderer/platform/useToolDeleteShortcuts';
-import {deleteSelection} from '@renderer/ui/useSelectionDelete';
+import {deleteSelection} from '@renderer/ui/deleteSelection';
 import {useReflow} from '@renderer/ui/useReflow';
 import {IconButton} from '@renderer/ui/IconButton';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';

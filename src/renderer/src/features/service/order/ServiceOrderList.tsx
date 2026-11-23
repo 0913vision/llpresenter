@@ -1,38 +1,20 @@
 import {useShownItemId} from '@renderer/session/shownItem';
-import {serviceRowIcon} from './serviceItemIcons';
 import {dropMediaInOrder} from './dropMediaInOrder';
 import {insertLibrarySong} from '@renderer/session/insertNewItem';
 import {usePaletteInsert} from '../items/usePaletteInsert';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
-import {useSelectionDelete} from '@renderer/ui/useSelectionDelete';
 import {useReflow} from '@renderer/ui/useReflow';
-import {selectionLabel} from '@renderer/ui/selectionDrag';
 import {orderedSelection} from '@core/common/selectionOrder';
 import {SONG_NAME_MAX_LENGTH} from '@core/schema/song';
 import {useOrderFull} from '@renderer/session/orderFull';
 import {
-  duplicateItems as duplicateOrderItems,
   moveItems as moveOrderItems,
-  moveItemsStep,
-  ORDER_FULL_REASON,
-  removeItems,
   renameItem as renameOrderItem,
 } from '@renderer/session/serviceOrderEdits';
-import {
-  redoService,
-  undoService,
-  useOpenService,
-} from '@renderer/session/openService';
 import {openInPrep} from '@renderer/session/prepTarget';
-import {
-  NEWER_FILE_REASON,
-  NOTHING_TO_REDO,
-  NOTHING_TO_UNDO,
-} from '@renderer/platform/problemReasons';
 import {EmptyState} from '@renderer/ui/EmptyState';
 import {NoServiceState} from './NoServiceState';
 import {useServiceActions} from '@renderer/features/service/list/useServiceActions';
-import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {
   contextMenuAnchor,
@@ -43,208 +25,42 @@ import {useEffect, useMemo, useRef, useState, type JSX} from 'react';
 import {createServiceItemId, type SongId} from '@core/schema/ids';
 import {editorTask} from '@renderer/platform/editorTask';
 import {hasModifier} from '@renderer/ui/modifierKeys';
-import {useMovedRowFocus} from './useMovedRowFocus';
-import {useOrderEditFocus} from './useOrderEditFocus';
+import {useOrderEdits} from './useOrderEdits';
+import {useOrderShortcuts} from './useOrderShortcuts';
 import {useOrderResizeFocus} from './useOrderResizeFocus';
 import {useOrderFollow} from './useOrderFollow';
 import {useOrderTop} from './useOrderTop';
 import {usePrepOrderPosition} from './usePrepOrderPosition';
-import {serviceRowLabel} from './serviceRowLabel';
 import {isInTextEntry} from '@renderer/ui/textEntry';
 import {clickFocusProps} from '@renderer/ui/clickFocus';
 import {useHeaderRename} from '@renderer/session/headerRename';
 import {openItem, useShow} from '@renderer/session/show';
 import {useVisibleSlideItem} from '@renderer/session/visibleSlideItem';
-import {useLive} from '@renderer/session/live';
-import {ListBox, ListGroup, ListInsertLine, ListRow, Menu} from '@renderer/ui';
+import {ListBox, ListGroup, ListInsertLine, Menu} from '@renderer/ui';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
 import type {Workspace} from '@renderer/ui/workspace';
 import {useServiceOrderEditing} from '@renderer/session/useServiceOrderEditing';
 import {useServiceItemSelection} from './useServiceItemSelection';
 import {useServiceItemClipboard} from './useServiceItemClipboard';
-import {serviceOrderMenuEntries} from './serviceOrderMenu';
+import {fitOrderMenu, serviceOrderMenuEntries} from './serviceOrderMenu';
 import type {ServiceTableParts} from './serviceTableParts';
 import {useServiceSongMenu} from './useServiceSongMenu';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {serviceOrderRowId, useServiceOrderDrag} from './useServiceOrderDrag';
 import {useMediaDurations} from '../../media/useMediaDurations';
-import type {RowProblem, ServiceRow} from '@core/presentation';
+import type {ServiceRow} from '@core/presentation';
+import type {GroupRename} from '@renderer/ui/ListRow';
+import {ItemRows, type RowContext} from './ItemRows';
+import {
+  canMoveItems,
+  groupRows,
+  isNamed,
+  itemNumbers,
+  rowsOfMenu,
+} from './orderRows';
+import {useLiveItemId} from './useLiveItemId';
 import styles from './ServiceOrderList.module.css';
-
-const problemTips: Readonly<Record<RowProblem, string>> = {
-  'missing-song': '곡 파일을 찾을 수 없습니다',
-  'missing-media': '미디어 파일을 찾을 수 없습니다',
-  'unknown-kind': '아직 없는 기능',
-  'newer-version': NEWER_FILE_REASON,
-};
-
-interface RowGroup {
-  readonly id: string;
-  readonly label: string | undefined;
-  readonly items: readonly ServiceRow[];
-}
-
-function movableItems(
-  rows: readonly ServiceRow[],
-  ids: readonly string[],
-): readonly string[] {
-  const selected = new Set(ids);
-  return rows
-    .filter(row => row.kind !== 'header' && selected.has(row.id))
-    .map(row => row.id);
-}
-
-function canMoveItems(
-  rows: readonly ServiceRow[],
-  ids: readonly string[],
-  direction: 'up' | 'down',
-): boolean {
-  const chosen = new Set(movableItems(rows, ids));
-  return rows.some((row, index) => {
-    const neighbor = rows[index + (direction === 'up' ? -1 : 1)];
-    return (
-      chosen.has(row.id) && neighbor !== undefined && !chosen.has(neighbor.id)
-    );
-  });
-}
-
-function groupRows(rows: readonly ServiceRow[]): readonly RowGroup[] {
-  const groups: Array<{
-    id: string;
-    label: string | undefined;
-    items: ServiceRow[];
-  }> = [];
-  for (const row of rows) {
-    if (row.kind === 'header') {
-      groups.push({id: row.id, label: row.title, items: []});
-      continue;
-    }
-    const last = groups.at(-1);
-    if (last === undefined) {
-      groups.push({id: row.id, label: undefined, items: [row]});
-    } else {
-      last.items.push(row);
-    }
-  }
-  return groups;
-}
-
-/**
- * The item on output: the slide's owner, otherwise the media's owner.
- * Older media without an owner use the matching last-started media item.
- */
-function useLiveItemId(): string | null {
-  const slideItem = useLive(view => view.state?.layers.slide?.itemId ?? null);
-  const mediaId = useLive(view => view.state?.layers.media?.mediaId);
-  const mediaItemId = useLive(view => view.state?.layers.media?.itemId ?? null);
-  const started = useLive(view => view.lastStartedItemId);
-  const row = useShow(view => view.rows.find(item => item.id === started));
-  const tile = useShow(view =>
-    started === null ? undefined : view.tiles[started]?.[0],
-  );
-  if (slideItem !== null) return slideItem;
-  if (mediaItemId !== null) return mediaItemId;
-  const background = tile?.slide.background;
-  if (
-    row?.kind === 'media' &&
-    background?.kind === 'media' &&
-    background.media === mediaId
-  ) {
-    return row.id;
-  }
-  return null;
-}
-
-function ItemRows({
-  items,
-  liveItemId,
-  done,
-  editable,
-  insertBefore,
-  workspace,
-  durations,
-  table,
-  numbers,
-  renaming,
-  rename,
-  selected,
-  navigator,
-}: {
-  readonly navigator: boolean;
-  readonly items: readonly ServiceRow[];
-  readonly selected: ReadonlySet<string>;
-  readonly liveItemId: string | null;
-  readonly done: ReadonlySet<string>;
-  readonly editable: boolean;
-  readonly insertBefore: string | null | undefined;
-  readonly workspace: Workspace;
-  readonly durations: Readonly<Record<string, string>>;
-  readonly table: ServiceTableParts | undefined;
-  /** The place of each item among all items, shown in the table. */
-  readonly numbers: ReadonlyMap<string, number>;
-  readonly renaming: string | null;
-  readonly rename: (
-    row: ServiceRow,
-  ) => import('@renderer/ui/ListRow').GroupRename | undefined;
-}): JSX.Element {
-  const tiles = useShow(view => view.tiles);
-  const countOf = (row: ServiceRow): number => tiles[row.id]?.length ?? 0;
-  return (
-    <>
-      {items.map(row =>
-        row.kind === 'header' ? null : (
-          <div
-            key={row.id}
-            data-order-id={row.id}
-            draggable={editable && workspace === 'prep'}
-          >
-            {insertBefore === row.id ? <ListInsertLine /> : null}
-            <ListRow
-              selected={selected.has(row.id)}
-              value={row.id}
-              title={row.title}
-              accessibleName={
-                row.title.trim() === ''
-                  ? serviceRowLabel(row, numbers.get(row.id) ?? 1)
-                  : undefined
-              }
-              rename={renaming === row.id ? rename(row) : undefined}
-              lead={
-                table === undefined && !navigator
-                  ? undefined
-                  : numbers.get(row.id)
-              }
-              className={navigator ? styles.navigatorRow : table?.rowClass}
-              icon={serviceRowIcon(row, tiles[row.id])}
-              live={row.id === liveItemId}
-              done={done.has(row.id)}
-              meta={
-                workspace !== 'prep' || table !== undefined || navigator
-                  ? undefined
-                  : row.kind === 'media'
-                    ? durations[row.id]
-                    : `슬라이드 ${countOf(row)}개`
-              }
-              cells={table?.cellsOf(
-                row,
-                serviceRowLabel(row, numbers.get(row.id) ?? 1),
-              )}
-              warning={
-                row.problem === undefined ? undefined : problemTips[row.problem]
-              }
-            />
-          </div>
-        ),
-      )}
-    </>
-  );
-}
-
-/** Whether a row has a name of its own that the operator gives it. */
-function isNamed(row: ServiceRow): boolean {
-  return row.kind === 'notice' || row.kind === 'blank' || row.kind === 'media';
-}
 
 const closeNothing = (): void => undefined;
 
@@ -275,15 +91,7 @@ export function ServiceOrderList({
   readonly onShowInLibrary?: ((songId: SongId) => void) | undefined;
 }): JSX.Element {
   const rows = useShow(view => view.rows);
-  const numbers = useMemo(
-    () =>
-      new Map(
-        rows
-          .filter(row => row.kind !== 'header')
-          .map((row, index) => [row.id, index + 1] as const),
-      ),
-    [rows],
-  );
+  const numbers = useMemo(() => itemNumbers(rows), [rows]);
   const openItemId = useShownItemId();
   const liveItemId = useLiveItemId();
   const preferences = useSettingsDocument('preferences', '환경설정', onProblem);
@@ -306,8 +114,6 @@ export function ServiceOrderList({
   // dialog has reported a failed copy.
   const serviceActions = useServiceActions({onProblem, onOpen: closeNothing});
   const editing = useServiceOrderEditing(onProblem);
-  const canUndo = useOpenService(view => view.past.length > 0);
-  const canRedo = useOpenService(view => view.future.length > 0);
   const durations = useMediaDurations(
     serviceId,
     workspace === 'prep' && rows.some(row => row.kind === 'media'),
@@ -347,12 +153,6 @@ export function ServiceOrderList({
     rows,
   });
   useOrderResizeFocus(listRef);
-  const editFocus = useOrderEditFocus({
-    list: listRef,
-    rows,
-    serviceId,
-    cursor: openItemId,
-  });
   const selectableIds = useMemo(
     () =>
       rows
@@ -418,10 +218,6 @@ export function ServiceOrderList({
       if (last !== undefined) selection.replace(ids, last);
     },
   });
-  const pasteAfter = (): string | null =>
-    openItemId !== null && selection.selected.has(openItemId)
-      ? openItemId
-      : (rows.filter(row => selection.selected.has(row.id)).at(-1)?.id ?? null);
   const [chosenRename, setRenaming] = useState<string | null>(null);
   const requestedRename = useHeaderRename(state => state.requested);
   const clearRenameRequest = useHeaderRename(state => state.clear);
@@ -460,19 +256,7 @@ export function ServiceOrderList({
       ?.focus({preventScroll: true});
   }, [openItemId]);
 
-  const ownsCommand = (event: KeyboardEvent): boolean =>
-    event.target instanceof Node &&
-    !isInTextEntry(event.target) &&
-    listRef.current?.contains(event.target) === true;
-  const ownsPaletteHistory = (event: KeyboardEvent): boolean =>
-    table !== undefined &&
-    !navigator &&
-    event.target instanceof Element &&
-    !isInTextEntry(event.target) &&
-    event.target.closest('[data-panel="prep-palette"]') !== null;
-  const renameItem = (
-    row: ServiceRow,
-  ): import('@renderer/ui/ListRow').GroupRename | undefined =>
+  const renameItem = (row: ServiceRow): GroupRename | undefined =>
     isNamed(row)
       ? {
           validate: value =>
@@ -486,194 +270,28 @@ export function ServiceOrderList({
           onClose: stopRenaming,
         }
       : undefined;
-  const movedFocus = useMovedRowFocus(listRef, rows, serviceId);
-  const moveItems = (
-    ids: readonly string[],
-    direction: 'up' | 'down',
-    focusId: string,
-  ): void => {
-    const movable = movableItems(rows, ids);
-    if (!editable || movable.length === 0) return;
-    if (!canMoveItems(rows, movable, direction)) return;
-    const disarm = movedFocus.arm(focusId);
-    editing
-      .save(() => moveItemsStep(movable.map(createServiceItemId), direction))
-      .then(
-        saved => {
-          if (!saved) disarm();
-        },
-        (error: unknown) => {
-          disarm();
-          console.error('Could not move a 예배 순서 item:', error);
-        },
-      );
-  };
-  const runFocusedEdit = (
-    operation: Parameters<typeof editing.run>[0],
-    deleted?: readonly string[],
-  ): void => {
-    const disarm = editFocus.arm(
-      workspace === 'prep' ? deleted : undefined,
-      workspace === 'prep' && deleted
-        ? id => selection.replace([id], id)
-        : undefined,
-    );
-    editing.run(async () => {
-      try {
-        const result = await operation();
-        if (
-          result.ok ? !result.value : result.error.reason !== 'write-failed'
-        ) {
-          disarm();
-        }
-        return result;
-      } catch (error) {
-        disarm();
-        throw error;
-      }
-    });
-  };
-  const deletion = useSelectionDelete();
-  const targets = (id?: string): readonly string[] =>
-    rows
-      .filter(row =>
-        id !== undefined && !selection.selected.has(id)
-          ? row.id === id
-          : selection.selected.has(row.id),
-      )
-      .map(row => row.id);
-  const askDelete = (ids: readonly string[]): void => {
-    if (!editable || ids.length === 0) return;
-    const snapshot = useShow.getState();
-    deletion.ask(
-      ids.length,
-      () =>
-        useShow.getState().serviceId === snapshot.serviceId &&
-        useShow.getState().rows === snapshot.rows &&
-        !useShow.getState().readOnly,
-      () =>
-        runFocusedEdit(() => removeItems(ids.map(createServiceItemId)), ids),
-    );
-  };
-  const deleteFromKey = (): void => askDelete(targets());
-  const duplicateItems = (ids: readonly string[]): void => {
-    if (!editable || ids.length === 0) return;
-    const copies = new Map(
-      orderedSelection(rows, new Set(ids), row => row.kind === 'header').map(
-        row => [
-          createServiceItemId(row.id),
-          createServiceItemId(crypto.randomUUID()),
-        ],
-      ),
-    );
-    const copyIds = [...copies.values()];
-    editing
-      .save(() => duplicateOrderItems(copies))
-      .then(saved => {
-        const last = copyIds.at(-1);
-        if (saved && last !== undefined) selection.replace(copyIds, last);
-      })
-      .catch((cause: unknown) =>
-        console.error('Could not duplicate service items:', cause),
-      );
-  };
-  const historyReason = (kind: 'undo' | 'redo'): string | undefined => {
-    if (kind === 'undo') {
-      return editable && canUndo ? undefined : NOTHING_TO_UNDO;
-    }
-    return editable && canRedo ? undefined : NOTHING_TO_REDO;
-  };
-  const moveFromKey = (
-    event: KeyboardEvent,
-    direction: 'up' | 'down',
-  ): void => {
-    const id = event.target === null ? null : serviceOrderRowId(event.target);
-    if (id === null) return;
-    moveItems(
-      selection.selected.has(id) ? [...selection.selected] : [id],
-      direction,
-      id,
-    );
-  };
-  useWindowShortcuts([
-    {
-      id: 'list.moveUp',
-      context: 'service',
-      when: event => workspace === 'prep' && ownsCommand(event),
-      run: event => moveFromKey(event, 'up'),
-    },
-    {
-      id: 'list.moveDown',
-      context: 'service',
-      when: event => workspace === 'prep' && ownsCommand(event),
-      run: event => moveFromKey(event, 'down'),
-    },
-    {
-      id: 'edit.copy',
-      fixedBindings: [{code: 'KeyC', mods: ['ctrl']}],
-      context: 'service',
-      when: ownsCommand,
-      unavailable: () => clipboard.copyReason,
-      run: () => clipboard.copyReason === undefined && clipboard.copy(),
-    },
-    {
-      id: 'edit.paste',
-      fixedBindings: [{code: 'KeyV', mods: ['ctrl']}],
-      context: 'service',
-      when: ownsCommand,
-      unavailable: () => clipboard.pasteReason,
-      run: () => clipboard.paste(pasteAfter()),
-    },
-    {
-      id: 'edit.undo',
-      context: 'service',
-      when: event => ownsCommand(event) || ownsPaletteHistory(event),
-      unavailable: () => historyReason('undo'),
-      run: () => {
-        if (editable) runFocusedEdit(() => undoService());
-      },
-    },
-    {
-      id: 'edit.redo',
-      context: 'service',
-      when: event => ownsCommand(event) || ownsPaletteHistory(event),
-      unavailable: () => historyReason('redo'),
-      run: () => {
-        if (editable) runFocusedEdit(() => redoService());
-      },
-    },
-    {
-      id: 'edit.duplicate',
-      context: 'service',
-      when: event =>
-        ownsCommand(event) &&
-        openItemId !== null &&
-        event.target instanceof Node &&
-        listRef.current
-          ?.querySelector('[role="listbox"]')
-          ?.contains(event.target) === true,
-      unavailable: () =>
-        editable
-          ? full
-            ? ORDER_FULL_REASON
-            : undefined
-          : '예배 순서 편집 불가',
-      run: () => {
-        if (!full) duplicateItems(targets());
-      },
-    },
-    {
-      id: 'edit.delete',
-      context: 'service',
-      when: event =>
-        ownsCommand(event) &&
-        event.target instanceof Node &&
-        listRef.current
-          ?.querySelector('[role="listbox"]')
-          ?.contains(event.target) === true,
-      run: deleteFromKey,
-    },
-  ]);
+  const edits = useOrderEdits({
+    list: listRef,
+    rows,
+    serviceId,
+    cursor: openItemId,
+    workspace,
+    editable,
+    editing,
+    selection,
+  });
+  useOrderShortcuts({
+    list: listRef,
+    rows,
+    cursor: openItemId,
+    workspace,
+    palette: table !== undefined && !navigator,
+    editable,
+    full,
+    selection,
+    clipboard,
+    edits,
+  });
 
   const openOrderEditor = (id: string | null): boolean => {
     if (workspace !== 'prep' || id === null || serviceId === null) return false;
@@ -690,8 +308,12 @@ export function ServiceOrderList({
   ): readonly MenuEntry[] => {
     const row = rows.find(value => value.id === target.id);
     if (row === undefined) return [];
-    const ids = targets(target.id);
+    const ids = edits.targets(target.id);
     const count = ids.length;
+    const closing = (run: () => void) => (): void => {
+      run();
+      setMenu(null);
+    };
     const entries: readonly MenuEntry[] = [
       ...serviceOrderMenuEntries({
         row,
@@ -699,10 +321,7 @@ export function ServiceOrderList({
         editSong:
           workspace === 'prep'
             ? {
-                editSong: () => {
-                  openOrderEditor(target.id);
-                  setMenu(null);
-                },
+                editSong: closing(() => openOrderEditor(target.id)),
               }
             : undefined,
         song: {
@@ -712,101 +331,80 @@ export function ServiceOrderList({
           locked: songMenu.locked,
           showInLibrary:
             songMenu.songId && onShowInLibrary
-              ? () => {
+              ? closing(() => {
                   if (songMenu.songId) onShowInLibrary(songMenu.songId);
-                  setMenu(null);
-                }
+                })
               : undefined,
         },
         openInPrep:
           workspace === 'show' && onOpenPrep !== undefined
-            ? () => {
-                onOpenPrep(target.id);
-                setMenu(null);
-              }
+            ? closing(() => onOpenPrep(target.id))
             : undefined,
-        rename: () => {
-          renameAfterMenu({id: target.id, serviceId: target.serviceId});
-          setMenu(null);
-        },
+        rename: closing(() =>
+          renameAfterMenu({id: target.id, serviceId: target.serviceId}),
+        ),
         full,
         moveUpReason: canMoveItems(rows, ids, 'up') ? undefined : '맨 위입니다',
         moveDownReason: canMoveItems(rows, ids, 'down')
           ? undefined
           : '맨 아래입니다',
         clipboard: {
-          copy: () => {
+          copy: closing(() =>
             editorTask(
               clipboard.copy(
                 selection.selected.has(target.id)
                   ? selection.selected
                   : new Set([target.id]),
               ),
-            );
-            setMenu(null);
-          },
-          paste: () => {
-            editorTask(clipboard.paste(target.id));
-            setMenu(null);
-          },
+            ),
+          ),
+          paste: closing(() => editorTask(clipboard.paste(target.id))),
           copyReason:
             window.llp === undefined || serviceId === null
               ? '예배 순서 불러오기 불가'
               : undefined,
           pasteReason: clipboard.pasteReason,
         },
-        duplicate: () => {
-          duplicateItems(ids);
-          setMenu(null);
-        },
-        moveUp: () => {
-          moveItems(ids, 'up', target.id);
-          setMenu(null);
-        },
-        moveDown: () => {
-          moveItems(ids, 'down', target.id);
-          setMenu(null);
-        },
-        remove: () => {
-          askDelete(ids);
-          setMenu(null);
-        },
+        duplicate: closing(() => edits.duplicate(ids)),
+        moveUp: closing(() => edits.moveItems(ids, 'up', target.id)),
+        moveDown: closing(() => edits.moveItems(ids, 'down', target.id)),
+        remove: closing(() => edits.remove(ids)),
       }),
       ...(count === 1 ? (table?.menuFor?.(row) ?? []) : []),
     ];
-    const common = new Set([
-      'copy',
-      'paste',
-      'duplicate',
-      'move-up',
-      'move-down',
-      'delete',
-    ]);
-    const duplicateCount = orderedSelection(
-      rows,
-      new Set(ids),
-      row => row.kind === 'header',
-    ).length;
-    return entries
-      .filter(
-        entry =>
-          (workspace === 'prep' ||
-            entry.kind !== 'item' ||
-            (entry.id !== 'move-up' && entry.id !== 'move-down')) &&
-          (count === 1 || (entry.kind === 'item' && common.has(entry.id))),
-      )
-      .map(entry =>
-        entry.kind !== 'item' ||
-        !['copy', 'duplicate', 'delete'].includes(entry.id)
-          ? entry
-          : {
-              ...entry,
-              label: selectionLabel(
-                entry.label,
-                entry.id === 'duplicate' ? duplicateCount : count,
-              ),
-            },
-      );
+    return fitOrderMenu(entries, {
+      workspace,
+      count,
+      copies: orderedSelection(rows, new Set(ids), row => row.kind === 'header')
+        .length,
+    });
+  };
+  /** Opens the item menu on a row, choosing the row when it is not chosen. */
+  const openMenu = (
+    id: string,
+    list: Element,
+    anchor: (targets: readonly HTMLElement[]) => MenuAnchor,
+  ): void => {
+    if (!selection.selected.has(id)) selection.replace([id], id);
+    setMenu({
+      id,
+      serviceId,
+      anchor: anchor(rowsOfMenu(list, id, selection.selected)),
+    });
+  };
+  const rowContext: RowContext = {
+    navigator,
+    selected: selection.selected,
+    liveItemId,
+    done,
+    editable,
+    insertBefore,
+    workspace,
+    durations,
+    table,
+    numbers,
+    renaming,
+    rename: renameItem,
   };
   return (
     <div
@@ -835,33 +433,12 @@ export function ServiceOrderList({
         const id = serviceOrderRowId(event.target);
         if (id === null || workspace === 'show') return;
         event.preventDefault();
-        if (!selection.selected.has(id)) selection.replace([id], id);
-        setMenu({
-          id,
-          serviceId,
-          anchor: {
-            kind: 'point',
-            target: contextMenuTarget(event),
-            targets: [
-              ...event.currentTarget.querySelectorAll<HTMLElement>(
-                '[data-order-id]',
-              ),
-            ]
-              .filter(row => {
-                const rowId = row.dataset.orderId;
-                return (
-                  rowId !== undefined &&
-                  (selection.selected.has(id)
-                    ? selection.selected.has(rowId)
-                    : rowId === id)
-                );
-              })
-              .map(
-                row => row.querySelector<HTMLElement>('[data-value]') ?? row,
-              ),
-            point: {x: event.clientX, y: event.clientY},
-          },
-        });
+        openMenu(id, event.currentTarget, targets => ({
+          kind: 'point',
+          target: contextMenuTarget(event),
+          targets,
+          point: {x: event.clientX, y: event.clientY},
+        }));
       }}
       onDoubleClick={event => {
         if (isInTextEntry(event.target)) return;
@@ -879,31 +456,10 @@ export function ServiceOrderList({
           if (id === null) return;
           event.preventDefault();
           event.stopPropagation();
-          if (!selection.selected.has(id)) selection.replace([id], id);
-          setMenu({
-            id,
-            serviceId,
-            anchor: {
-              ...contextMenuAnchor(event),
-              targets: [
-                ...event.currentTarget.querySelectorAll<HTMLElement>(
-                  '[data-order-id]',
-                ),
-              ]
-                .filter(row => {
-                  const rowId = row.dataset.orderId;
-                  return (
-                    rowId !== undefined &&
-                    (selection.selected.has(id)
-                      ? selection.selected.has(rowId)
-                      : rowId === id)
-                  );
-                })
-                .map(
-                  row => row.querySelector<HTMLElement>('[data-value]') ?? row,
-                ),
-            },
-          });
+          openMenu(id, event.currentTarget, targets => ({
+            ...contextMenuAnchor(event),
+            targets,
+          }));
           return;
         }
       }}
@@ -918,22 +474,7 @@ export function ServiceOrderList({
       >
         {groupRows(rows).map(group =>
           group.label === undefined ? (
-            <ItemRows
-              key={group.id}
-              items={group.items}
-              selected={selection.selected}
-              liveItemId={liveItemId}
-              done={done}
-              editable={editable}
-              insertBefore={insertBefore}
-              workspace={workspace}
-              durations={durations}
-              table={table}
-              numbers={numbers}
-              navigator={navigator}
-              renaming={renaming}
-              rename={renameItem}
-            />
+            <ItemRows key={group.id} items={group.items} context={rowContext} />
           ) : (
             <div
               key={group.id}
@@ -977,21 +518,7 @@ export function ServiceOrderList({
                     : undefined
                 }
               >
-                <ItemRows
-                  items={group.items}
-                  selected={selection.selected}
-                  liveItemId={liveItemId}
-                  done={done}
-                  editable={editable}
-                  insertBefore={insertBefore}
-                  workspace={workspace}
-                  durations={durations}
-                  table={table}
-                  numbers={numbers}
-                  navigator={navigator}
-                  renaming={renaming}
-                  rename={renameItem}
-                />
+                <ItemRows items={group.items} context={rowContext} />
               </ListGroup>
             </div>
           ),
@@ -1008,7 +535,6 @@ export function ServiceOrderList({
       {insertBefore === null ? <ListInsertLine /> : null}
       {table?.footer}
       {palette.dialog}
-      {deletion.dialog}
       {serviceActions.dialogs}
       {menu?.serviceId === serviceId ? (
         <Menu

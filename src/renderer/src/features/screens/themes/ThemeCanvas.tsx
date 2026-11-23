@@ -1,4 +1,4 @@
-import {useSelectionDelete} from '@renderer/ui/useSelectionDelete';
+import {deleteSelection} from '@renderer/ui/deleteSelection';
 import {selectionLabel} from '@renderer/ui/selectionDrag';
 import {useEffect, useLayoutEffect, useRef, useState, type JSX} from 'react';
 import type {ElementFrame} from '@core/canvas';
@@ -35,7 +35,6 @@ export function useThemeSurfaces(
     id: string | null;
     anchor: MenuAnchor;
   } | null>(null);
-  const deletion = useSelectionDelete();
   const current = useRef(model);
   useLayoutEffect(() => {
     current.current = model;
@@ -43,7 +42,7 @@ export function useThemeSurfaces(
   const requestDelete = (ids: readonly string[]): void => {
     if (model.elementReason !== undefined) return;
     const {target} = model;
-    deletion.ask(
+    deleteSelection(
       ids.length,
       () =>
         current.current.target?.theme.id === target?.theme.id &&
@@ -151,7 +150,6 @@ export function useThemeSurfaces(
           <ThemeImageDialog model={model} />
         )}
         <ThemeSaveDialogs model={model} />
-        {deletion.dialog}
         {menu === null ? null : (
           <Menu
             context

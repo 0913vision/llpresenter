@@ -4,7 +4,7 @@ import {
   NOTHING_TO_UNDO,
   NOTHING_TO_REDO,
 } from '@renderer/platform/problemReasons';
-import {deleteSelection} from '@renderer/ui/useSelectionDelete';
+import {deleteSelection} from '@renderer/ui/deleteSelection';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {
   useEffect,

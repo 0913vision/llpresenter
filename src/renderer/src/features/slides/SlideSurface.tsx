@@ -24,7 +24,7 @@ import {isInTextEntry} from '@renderer/ui/textEntry';
 import {useDragClickGuard} from '@renderer/ui/useDragClickGuard';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {useReflow} from '@renderer/ui/useReflow';
-import {useSelectionDelete} from '@renderer/ui/useSelectionDelete';
+import {deleteSelection} from '@renderer/ui/deleteSelection';
 import {
   addReason,
   addSlide,
@@ -85,7 +85,6 @@ export function SlideSurface({
   } | null>(null);
   const [labelAnchor, setLabelAnchor] = useState<HTMLElement | null>(null);
   const labelAfterMenu = useMenuHandoff(menu !== null, setLabelAnchor);
-  const deletion = useSelectionDelete();
   const dragClick = useDragClickGuard();
   const releaseDrag = useRef<(() => void) | undefined>(undefined);
   useEffect(() => () => releaseDrag.current?.(), []);
@@ -138,7 +137,7 @@ export function SlideSurface({
   const remove = (): void => {
     if (selectionReason(deck) !== undefined) return;
     const {slides} = deck;
-    deletion.ask(
+    deleteSelection(
       count,
       () => deck.slides === slides && !deck.readOnly,
       () => {
@@ -619,7 +618,6 @@ export function SlideSurface({
       }}
     >
       {children}
-      {deletion.dialog}
       {catalog === null || labelAnchor === null ? null : (
         <LabelMenu
           store={catalog}

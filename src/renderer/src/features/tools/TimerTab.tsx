@@ -5,7 +5,7 @@ import {createTimerId} from '@core/schema/ids';
 import {MAX_TIMER_DEFINITIONS} from '@core/schema/timers';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {IconButton} from '@renderer/ui';
-import {deleteSelection} from '@renderer/ui/useSelectionDelete';
+import {deleteSelection} from '@renderer/ui/deleteSelection';
 import type {Notice} from '@renderer/ui/notices';
 import {TimerDialog} from './TimerDialog';
 import {deleteTimer, saveNewTimer, type NewTimer} from './timerEdits';

@@ -1,7 +1,7 @@
 import {limitReason} from '@core/common/limitReason';
 import {contextMenuTarget, isContextMenuKey} from '@renderer/ui/contextMenu';
 import {useRef, useState, type JSX, type ReactNode} from 'react';
-import {deleteSelection} from '@renderer/ui/useSelectionDelete';
+import {deleteSelection} from '@renderer/ui/deleteSelection';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {createMessageTemplateId} from '@core/schema/ids';
 import type {Screen} from '@core/schema/screens';

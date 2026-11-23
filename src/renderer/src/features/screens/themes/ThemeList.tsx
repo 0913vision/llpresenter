@@ -19,7 +19,7 @@ import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
 import {Panel, PanelActions, PanelHeader, PanelTitle} from '@renderer/ui/Panel';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
-import {deleteSelection} from '@renderer/ui/useSelectionDelete';
+import {deleteSelection} from '@renderer/ui/deleteSelection';
 import {ChoiceRows} from '../ChoiceRows';
 import {purposeNames, themeProblems} from './themeNames';
 import type {ThemeModel} from './useThemeEditor';

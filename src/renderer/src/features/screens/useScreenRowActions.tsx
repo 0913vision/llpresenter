@@ -4,7 +4,7 @@ import {
 } from '@renderer/platform/problemReasons';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {useState} from 'react';
-import {deleteSelection} from '@renderer/ui/useSelectionDelete';
+import {deleteSelection} from '@renderer/ui/deleteSelection';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import {sendLive, useOutputs} from '@renderer/session/live';
 import type {GroupRename} from '@renderer/ui/ListRow';

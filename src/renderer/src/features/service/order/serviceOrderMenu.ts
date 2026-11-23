@@ -7,6 +7,8 @@ import {
   type MenuItem,
 } from '@renderer/ui/menuModel';
 import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
+import {selectionLabel} from '@renderer/ui/selectionDrag';
+import type {Workspace} from '@renderer/ui/workspace';
 import type {ServiceRow} from '@core/presentation';
 
 /** What the 예배 순서 item menu can ask the list to do. */
@@ -263,4 +265,56 @@ export function serviceOrderMenuEntries(
     },
     ...exportRows(input),
   ];
+}
+
+/** The commands that act on every chosen row at once. */
+const FOR_MANY_ROWS: ReadonlySet<string> = new Set([
+  'copy',
+  'paste',
+  'duplicate',
+  'move-up',
+  'move-down',
+  'delete',
+]);
+const MOVES: ReadonlySet<string> = new Set(['move-up', 'move-down']);
+
+/**
+ * Fits the item menu to where it opens and to the chosen rows: 진행 has no
+ * moves, several rows keep only the commands for all of them, and copy,
+ * duplicate and delete name how many rows they take.
+ */
+export function fitOrderMenu(
+  entries: readonly MenuEntry[],
+  {
+    workspace,
+    count,
+    copies,
+  }: {
+    readonly workspace: Workspace;
+    /** The chosen rows. */
+    readonly count: number;
+    /** The rows a duplicate makes: the chosen items, 구역 with their items. */
+    readonly copies: number;
+  },
+): readonly MenuEntry[] {
+  return entries
+    .filter(
+      entry =>
+        (workspace === 'prep' ||
+          entry.kind !== 'item' ||
+          !MOVES.has(entry.id)) &&
+        (count === 1 || (entry.kind === 'item' && FOR_MANY_ROWS.has(entry.id))),
+    )
+    .map(entry =>
+      entry.kind !== 'item' ||
+      !['copy', 'duplicate', 'delete'].includes(entry.id)
+        ? entry
+        : {
+            ...entry,
+            label: selectionLabel(
+              entry.label,
+              entry.id === 'duplicate' ? copies : count,
+            ),
+          },
+    );
 }

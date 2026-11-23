@@ -5,7 +5,7 @@ import type {Prop} from '@core/schema/props';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {IconButton, Menu} from '@renderer/ui';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
-import {deleteSelection} from '@renderer/ui/useSelectionDelete';
+import {deleteSelection} from '@renderer/ui/deleteSelection';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
 import {PropDialog} from './PropDialog';
