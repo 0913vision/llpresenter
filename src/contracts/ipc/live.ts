@@ -37,7 +37,10 @@ function parseLiveCommandParts(
 export const liveEndpoints = {
   get: query<LiveState>('live:get', parseLiveState),
   clock: query<number>('live:clock:get', parseTimerClockReading),
-  wallClock: query<WallClockSample>('live:wall-clock:get', parseWallClockSample),
+  wallClock: query<WallClockSample>(
+    'live:wall-clock:get',
+    parseWallClockSample,
+  ),
   wallClockChanged: push<WallClockSample>(
     'live:wall-clock:changed',
     parseWallClockSample,
