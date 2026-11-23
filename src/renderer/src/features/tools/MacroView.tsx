@@ -1,4 +1,4 @@
-import {useLayoutEffect, useRef, type DragEvent, type JSX} from 'react';
+import {useLayoutEffect, useRef, type JSX} from 'react';
 import {useReflow} from '@renderer/ui/useReflow';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import type {
@@ -67,14 +67,18 @@ export function MacroView({
     ((item: Macro, kind: MacroActionKind) => void) | undefined;
 }): JSX.Element {
   const root = useRef<HTMLDivElement>(null);
-  const dropTarget = (event: DragEvent): Macro | undefined => {
-    if (!(event.target instanceof Element)) return undefined;
-    const option = event.target.closest('[role="option"]');
-    if (!option || !root.current?.contains(option)) return undefined;
-    const options = Array.from(
-      root.current.querySelectorAll('[role="option"]'),
-    );
-    return shown[options.indexOf(option)];
+  /** The 매크로 of the tile or row an event happened in. */
+  const macroAt = (target: EventTarget | null): Macro | undefined => {
+    const option =
+      target instanceof Element ? target.closest('[role="option"]') : null;
+    if (option === null || root.current?.contains(option) !== true) {
+      return undefined;
+    }
+    return shown[
+      Array.from(root.current.querySelectorAll('[role="option"]')).indexOf(
+        option,
+      )
+    ];
   };
   const collection = collections.find(item => item.id === collectionId);
   const members = collection ? new Set(collection.macroIds) : undefined;
@@ -95,20 +99,8 @@ export function MacroView({
     scope: collectionId ?? 'all',
   });
   const selected = shown.findIndex(item => item.id === selectedId);
-  const focused = (event: KeyboardEvent): Macro | undefined => {
-    const option =
-      event.target instanceof Element
-        ? event.target.closest('[role="option"]')
-        : null;
-    if (option === null || root.current?.contains(option) !== true) {
-      return undefined;
-    }
-    return shown[
-      Array.from(root.current.querySelectorAll('[role="option"]')).indexOf(
-        option,
-      )
-    ];
-  };
+  const focused = (event: KeyboardEvent): Macro | undefined =>
+    macroAt(event.target);
   useWindowShortcuts([
     {
       id: 'edit.delete',
@@ -157,7 +149,7 @@ export function MacroView({
         if (
           onDropAction &&
           Array.from(event.dataTransfer.types).includes(MACRO_ACTION_MIME) &&
-          dropTarget(event)
+          macroAt(event.target)
         ) {
           event.preventDefault();
           event.dataTransfer.dropEffect = 'copy';
@@ -170,7 +162,7 @@ export function MacroView({
         ) {
           return;
         }
-        const item = dropTarget(event);
+        const item = macroAt(event.target);
         const kind = readMacroActionDrag(
           event.dataTransfer.getData(MACRO_ACTION_MIME),
         );
