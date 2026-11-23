@@ -5,7 +5,6 @@ import {usePaletteInsert} from '../items/usePaletteInsert';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {useReflow} from '@renderer/ui/useReflow';
 import {orderedSelection} from '@core/common/selectionOrder';
-import {SONG_NAME_MAX_LENGTH} from '@core/schema/song';
 import {useOrderFull} from '@renderer/session/orderFull';
 import {
   moveItems as moveOrderItems,
@@ -15,7 +14,6 @@ import {openInPrep} from '@renderer/session/prepTarget';
 import {EmptyState} from '@renderer/ui/EmptyState';
 import {NoServiceState} from './NoServiceState';
 import {useServiceActions} from '@renderer/features/service/list/useServiceActions';
-import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {
   contextMenuAnchor,
   contextMenuTarget,
@@ -26,6 +24,7 @@ import {createServiceItemId, type SongId} from '@core/schema/ids';
 import {editorTask} from '@renderer/platform/editorTask';
 import {hasModifier} from '@renderer/ui/modifierKeys';
 import {useOrderEdits} from './useOrderEdits';
+import {useOrderRename} from './useOrderRename';
 import {useOrderShortcuts} from './useOrderShortcuts';
 import {useOrderResizeFocus} from './useOrderResizeFocus';
 import {useOrderFollow} from './useOrderFollow';
@@ -33,7 +32,6 @@ import {useOrderTop} from './useOrderTop';
 import {usePrepOrderPosition} from './usePrepOrderPosition';
 import {isInTextEntry} from '@renderer/ui/textEntry';
 import {clickFocusProps} from '@renderer/ui/clickFocus';
-import {useHeaderRename} from '@renderer/session/headerRename';
 import {openItem, useShow} from '@renderer/session/show';
 import {useVisibleSlideItem} from '@renderer/session/visibleSlideItem';
 import {ListBox, ListGroup, ListInsertLine, Menu} from '@renderer/ui';
@@ -49,16 +47,8 @@ import {useServiceSongMenu} from './useServiceSongMenu';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {serviceOrderRowId, useServiceOrderDrag} from './useServiceOrderDrag';
 import {useMediaDurations} from '../../media/useMediaDurations';
-import type {ServiceRow} from '@core/presentation';
-import type {GroupRename} from '@renderer/ui/ListRow';
 import {ItemRows, type RowContext} from './ItemRows';
-import {
-  canMoveItems,
-  groupRows,
-  isNamed,
-  itemNumbers,
-  rowsOfMenu,
-} from './orderRows';
+import {canMoveItems, groupRows, itemNumbers, rowsOfMenu} from './orderRows';
 import {useLiveItemId} from './useLiveItemId';
 import styles from './ServiceOrderList.module.css';
 
@@ -218,31 +208,12 @@ export function ServiceOrderList({
       if (last !== undefined) selection.replace(ids, last);
     },
   });
-  const [chosenRename, setRenaming] = useState<string | null>(null);
-  const requestedRename = useHeaderRename(state => state.requested);
-  const clearRenameRequest = useHeaderRename(state => state.clear);
-  const requestedHeader = rows.some(
-    row => row.id === requestedRename && row.kind === 'header',
-  );
-  const renaming = chosenRename ?? (requestedHeader ? requestedRename : null);
-  const stopRenaming = (): void => {
-    setRenaming(null);
-    clearRenameRequest();
-  };
-
-  const renameAfterMenu = useMenuHandoff<{
-    id: string;
-    serviceId: string | null;
-  }>(menu !== null, target => {
-    if (
-      target.serviceId === serviceId &&
-      editable &&
-      rows.some(
-        row => row.id === target.id && (row.kind === 'header' || isNamed(row)),
-      )
-    ) {
-      setRenaming(target.id);
-    }
+  const rename = useOrderRename({
+    rows,
+    serviceId,
+    editable,
+    menuOpen: menu !== null,
+    save: editing.save,
   });
 
   useEffect(() => {
@@ -256,20 +227,6 @@ export function ServiceOrderList({
       ?.focus({preventScroll: true});
   }, [openItemId]);
 
-  const renameItem = (row: ServiceRow): GroupRename | undefined =>
-    isNamed(row)
-      ? {
-          validate: value =>
-            value.trim().length > SONG_NAME_MAX_LENGTH
-              ? '이름이 너무 깁니다.'
-              : undefined,
-          onCommit: name =>
-            editing.save(() =>
-              renameOrderItem(createServiceItemId(row.id), name),
-            ),
-          onClose: stopRenaming,
-        }
-      : undefined;
   const edits = useOrderEdits({
     list: listRef,
     rows,
@@ -341,7 +298,7 @@ export function ServiceOrderList({
             ? closing(() => onOpenPrep(target.id))
             : undefined,
         rename: closing(() =>
-          renameAfterMenu({id: target.id, serviceId: target.serviceId}),
+          rename.afterMenu({id: target.id, serviceId: target.serviceId}),
         ),
         full,
         moveUpReason: canMoveItems(rows, ids, 'up')
@@ -405,8 +362,8 @@ export function ServiceOrderList({
     durations,
     table,
     numbers,
-    renaming,
-    rename: renameItem,
+    renaming: rename.renaming,
+    rename: rename.itemRename,
   };
   return (
     <div
@@ -493,7 +450,7 @@ export function ServiceOrderList({
                   editable &&
                   row === event.currentTarget
                 ) {
-                  setRenaming(group.id);
+                  rename.start(group.id);
                 }
               }}
             >
@@ -506,7 +463,7 @@ export function ServiceOrderList({
                 value={workspace === 'prep' ? group.id : undefined}
                 label={group.label}
                 rename={
-                  renaming === group.id
+                  rename.renaming === group.id
                     ? {
                         onCommit: name =>
                           editing.save(() =>
@@ -515,7 +472,7 @@ export function ServiceOrderList({
                               name,
                             ),
                           ),
-                        onClose: stopRenaming,
+                        onClose: rename.stop,
                       }
                     : undefined
                 }
