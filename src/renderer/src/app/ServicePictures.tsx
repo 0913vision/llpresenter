@@ -1,4 +1,4 @@
-import {useEffect} from 'react';
+import {use, useEffect} from 'react';
 import {mediaUrl, thumbnailUrl} from '@contracts/ipc/mediaUrls';
 import type {MediaItem} from '@core/schema/mediaList';
 import type {ShowTile} from '@core/schema/showService';
@@ -8,6 +8,7 @@ import {useMedia} from '@renderer/platform/media';
 import {useThemes} from '@renderer/platform/themes';
 import {useShow} from '@renderer/session/show';
 import {keepThumbnails} from '@renderer/ui/keptThumbnails';
+import {LoadReadinessContext} from '@renderer/ui/loadReadiness';
 
 function mediaOf(background: SlideBackground | undefined): readonly string[] {
   return background?.kind === 'media' ? [background.media] : [];
@@ -50,17 +51,20 @@ function pictures(
 
 /**
  * Loads the pictures the open service and the themes use ahead, so a slide is
- * drawn with its picture in its first frame wherever it shows.
+ * drawn with its picture in its first frame wherever it shows. The launch
+ * waits for them.
  */
 export function ServicePictures(): null {
   const tiles = useShow(view => view.tiles);
   const themes = useThemes(view => view.themes);
   const items = useMedia(view => view.items);
+  const readiness = use(LoadReadinessContext);
   useEffect(() => {
-    if (themes !== null) keepThumbnails(pictures(themeMedia(themes), items));
-  }, [themes, items]);
+    if (themes === null) return;
+    keepThumbnails(pictures(themeMedia(themes), items), readiness?.begin);
+  }, [themes, items, readiness]);
   useEffect(() => {
-    keepThumbnails(pictures(serviceMedia(tiles), items));
-  }, [tiles, items]);
+    keepThumbnails(pictures(serviceMedia(tiles), items), readiness?.begin);
+  }, [tiles, items, readiness]);
   return null;
 }

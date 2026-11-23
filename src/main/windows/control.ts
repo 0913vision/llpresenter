@@ -39,6 +39,8 @@ export function createControlWindow(
   zoom: Pick<UiZoomRegistration, 'attachControl'> & {
     readonly outputsReady?: Promise<boolean>;
     readonly startMaximized?: boolean;
+    /** Told when the window shows without all it waits for. */
+    readonly onOverdue?: () => void;
   },
 ): BrowserWindow {
   const area = screen.getPrimaryDisplay().workAreaSize;
@@ -104,10 +106,12 @@ function showWhenReady(
   {
     outputsReady = Promise.resolve(true),
     startMaximized = true,
+    onOverdue = () => undefined,
     log,
   }: {
     readonly outputsReady?: Promise<boolean>;
     readonly startMaximized?: boolean;
+    readonly onOverdue?: () => void;
     readonly log: Logger;
   },
 ): void {
@@ -121,10 +125,13 @@ function showWhenReady(
     if (startMaximized) win.maximize();
     win.show();
   };
-  const timeout = setTimeout(
-    () => ready('data', 'outputs'),
-    STARTUP_TIMEOUT_MS,
-  );
+  const timeout = setTimeout(() => {
+    log.warn('the control window shows without waiting', {
+      missing: [...missing],
+    });
+    onOverdue();
+    ready('data', 'outputs');
+  }, STARTUP_TIMEOUT_MS);
   timeout.unref();
   ipc.signal(serviceEndpoints.ready, ({contents, isMainFrame}) => {
     if (contents === win.webContents && isMainFrame) ready('data');

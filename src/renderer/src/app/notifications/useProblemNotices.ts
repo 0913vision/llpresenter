@@ -8,6 +8,7 @@ import {
   BACKUP_FAILED_KEY,
   backupFailedCard,
   controlReloadedCard,
+  launchFailedCard,
   macroDroppedCard,
   skippedFilesCard,
   waitingSavesCard,
@@ -34,7 +35,7 @@ function problemGroup(problem: AppProblem): string {
  * a save change has been pushed, the list's older save state is ignored.
  */
 export function useProblemNotices(
-  api: Pick<LlpApi, 'problems'> | undefined,
+  api: Pick<LlpApi, 'problems' | 'window'> | undefined,
   target: Pick<NoticeTarget, 'report' | 'dismiss'>,
 ): boolean {
   const [saveFailed, setSaveFailed] = useState(false);
@@ -107,6 +108,14 @@ export function useProblemNotices(
             waitingSavesCard(problem, {
               time: noticeTime(),
               retry: () => problems.retrySaves(),
+            }),
+          );
+          return;
+        case 'launch-failed':
+          show(
+            launchFailedCard(problem, {
+              time: noticeTime(),
+              openLogs: () => api.window.openLogFolder(),
             }),
           );
           return;

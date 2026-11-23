@@ -200,6 +200,7 @@ export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
       ...overrides.output,
     },
     service: {
+      preparing: () => undefined,
       ready: () => undefined,
       get: () => Promise.resolve(null),
       open: () => Promise.resolve(null),

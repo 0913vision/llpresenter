@@ -49,11 +49,9 @@ export async function readThemes(settings: string): Promise<{
   readonly themes: readonly ThemeFile[];
   readonly problems: readonly FileError[];
 }> {
-  const read = await loadFolder(
-    themeFolder(settings),
-    THEME_EXTENSION,
-    parseTheme,
-  );
+  const read = await loadFolder(themeFolder(settings), THEME_EXTENSION, {
+    parse: parseTheme,
+  });
   return {
     themes: [...read.items.values()].map(({data}) => data),
     problems: read.problems,

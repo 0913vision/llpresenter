@@ -3,8 +3,12 @@ import {createContext, useEffect, useSyncExternalStore} from 'react';
 /** Tracks first reads within a view until their data or errors have rendered. */
 export class LoadReadiness {
   private readonly pending = new Set<symbol>();
+  private begun = 0;
   private readonly listeners = new Set<() => void>();
+  /** How many reads have not settled. */
   readonly getSnapshot = (): number => this.pending.size;
+  /** How many reads have begun so far. */
+  readonly getTotal = (): number => this.begun;
   readonly subscribe = (listener: () => void): (() => void) => {
     this.listeners.add(listener);
     return () => {
@@ -14,6 +18,7 @@ export class LoadReadiness {
   readonly begin = (): (() => void) => {
     const token = Symbol();
     this.pending.add(token);
+    this.begun++;
     this.publish();
     return () => {
       if (this.pending.delete(token)) this.publish();

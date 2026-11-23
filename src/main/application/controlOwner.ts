@@ -10,6 +10,7 @@ import type {LaunchProgress} from './launchProgress';
 
 /** The load error of a page that another load replaced. */
 const ABORTED = -3;
+const PAGE_STEPS = 3;
 const ONE_PIXEL = {x: 0, y: 0, width: 1, height: 1};
 
 export interface ControlOwnerOptions {
@@ -92,17 +93,19 @@ export class ControlOwner {
 
   private watchLaunch(win: BrowserWindow): void {
     const {windowMode, launch, log} = this.options;
-    win.webContents.once('did-finish-load', () => {
-      if (this.isCurrent(win)) launch.report('renderer');
-    });
-    win.once('ready-to-show', () => {
-      if (this.isCurrent(win)) launch.report('paint');
-    });
-    const handOver = (): void => {
-      if (this.isCurrent(win)) launch.end();
+    launch.begin('page');
+    const steps = new Set(['dom', 'load', 'paint']);
+    const step = (name: string): void => {
+      if (!this.isCurrent(win) || !steps.delete(name)) return;
+      launch.advance('page', PAGE_STEPS - steps.size, PAGE_STEPS);
+      if (steps.size === 0) launch.finish('page');
     };
-    if (windowMode === 'normal') win.once('show', handOver);
-    else win.once('ready-to-show', handOver);
+    win.webContents.once('dom-ready', () => step('dom'));
+    win.webContents.once('did-finish-load', () => step('load'));
+    win.once('ready-to-show', () => step('paint'));
+    win.once('show', () => {
+      if (this.isCurrent(win)) launch.end();
+    });
     win.webContents.on('did-fail-load', (_event, code, ...details) => {
       const isMainFrame = details[2];
       if (
@@ -114,6 +117,7 @@ export class ControlOwner {
         return;
       }
       log.error('control window failed to load during startup', {code});
+      launch.fail('page', `load error ${code}`);
       launch.end();
       if (windowMode === 'normal') showStartupError();
       app.quit();

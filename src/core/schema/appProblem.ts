@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 import {macroIdSchema, type MacroId} from './ids';
+import {LAUNCH_TASK_IDS, launchTaskIdSchema} from './launch';
 import {parsePayload, plainObject} from './payload';
 
 /**
@@ -35,6 +36,14 @@ const appProblemSchema = v.pipe(
       kind: v.literal('protection-write'),
       target: v.picklist(['record', 'copies']),
       failed: v.boolean(),
+    }),
+    v.object({
+      kind: v.literal('launch-failed'),
+      tasks: v.pipe(
+        v.array(launchTaskIdSchema),
+        v.minLength(1),
+        v.maxLength(LAUNCH_TASK_IDS.length),
+      ),
     }),
     v.object({kind: v.literal('control-reloaded')}),
     v.object({kind: v.literal('graphics-recovered')}),
@@ -74,6 +83,7 @@ const appProblemListSchema = v.pipe(
  * - `backup-failed`: the backup at launch could not be made; `name` is the
  *   backup location's folder name without the path (spec 08, "Backup
  *   location unavailable").
+ * - `launch-failed`: tasks of the launch failed or did not end in time.
  * - `control-reloaded`: the control window's renderer process died and the
  *   window loaded again (spec 08, "Control window crash").
  * - `file-skipped`: a data file couldn't be read at startup and was skipped

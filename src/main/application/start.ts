@@ -66,13 +66,15 @@ class Application {
       log,
     });
     const services = startServices(foundation, win => control.isCurrent(win));
+    launch.begin('window');
     const win = createControlWindow(log, windowMode, {
       attachControl: contents => zoom.attachControl(contents),
       outputsReady: launchIdle.ready,
       startMaximized:
         (await data.settings)?.preferences().general.startMaximized ?? true,
+      onOverdue: () => launch.giveUp(),
     });
-    launch.report('window');
+    launch.finish('window');
     this.control = control;
     control.take(win);
     const features = startControlFeatures(foundation, services, control);

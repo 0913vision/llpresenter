@@ -12,6 +12,9 @@ export class LaunchIdle {
     this.finish = resolve;
   });
 
+  /** @param onWait - Told once only the quiet turn is missing. */
+  constructor(private readonly onWait: () => void = () => undefined) {}
+
   serviceReady(): void {
     this.service = true;
     this.schedule();
@@ -39,6 +42,7 @@ export class LaunchIdle {
     ) {
       return;
     }
+    this.onWait();
     const due = performance.now() + IDLE_DELAY_MS;
     this.timer = setTimeout(() => {
       this.timer = undefined;

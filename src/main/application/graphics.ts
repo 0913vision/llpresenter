@@ -52,12 +52,18 @@ export class Graphics {
   }
 
   private startOutputs(): Outputs {
-    const {problems, launchIdle, store, data, windowMode, log} =
+    const {problems, launch, launchIdle, store, data, windowMode, log} =
       this.foundation;
+    launch.begin('outputs');
     return startOutputs({
       problems: problems.feed,
       playbackProblems: this.parts.playbackProblems.board,
-      onPrepared: () => launchIdle.outputsReady(),
+      onPrepared: ({done, total}) => {
+        launch.advance('outputs', done, total);
+        if (done < total) return;
+        launch.finish('outputs');
+        launchIdle.outputsReady();
+      },
       store,
       settings: data.settings,
       saveScreenSettings: data.applySettingsEdit,

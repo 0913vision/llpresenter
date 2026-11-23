@@ -18,6 +18,8 @@ export interface DiagnosticsInfo {
     readonly method: string;
     readonly monitorNumber?: number | undefined;
   }>;
+  /** What the launch did, one line per task. */
+  readonly launch: readonly string[];
   /** The last error lines of the log. */
   readonly errors: readonly string[];
 }
@@ -96,6 +98,8 @@ export function formatDiagnostics(info: DiagnosticsInfo): string {
             : ` on monitor ${screen.monitorNumber}`
         }`,
     ),
+    'Launch:',
+    ...info.launch.map(line => `  ${line}`),
     `Last errors (${Math.min(info.errors.length, DIAGNOSTICS_ERROR_LINES)}):`,
     ...info.errors
       .slice(-DIAGNOSTICS_ERROR_LINES)

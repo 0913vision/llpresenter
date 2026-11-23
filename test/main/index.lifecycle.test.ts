@@ -24,16 +24,15 @@ describe('main entry lifecycle', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     expect(await starting).toBeTruthy();
   });
 
-  it('reports real startup milestones to the splash', async () => {
+  it('follows the page of the control window on the bar', async () => {
     const control = await startMain();
-    expect(mocks.splashStep).toHaveBeenCalledWith(mocks.splash, 'settings');
-    expect(mocks.splashStep).toHaveBeenCalledWith(mocks.splash, 'content');
-    expect(mocks.splashStep).toHaveBeenCalledWith(mocks.splash, 'window');
-    expect(mocks.splashStep).not.toHaveBeenCalledWith(mocks.splash, 'paint');
+    expect(mocks.barEnd).toHaveBeenCalledWith('window', false);
+    expect(mocks.barEnd).not.toHaveBeenCalledWith('page', false);
+    control.webContents.emit('dom-ready');
+    expect(mocks.barAdvance).toHaveBeenLastCalledWith('page', 1, 3);
     control.webContents.emit('did-finish-load');
     control.emit('ready-to-show');
-    expect(mocks.splashStep).toHaveBeenCalledWith(mocks.splash, 'renderer');
-    expect(mocks.splashStep).toHaveBeenCalledWith(mocks.splash, 'paint');
+    expect(mocks.barEnd).toHaveBeenLastCalledWith('page', false);
   });
 
   it('closes the splash when the control window shows', async () => {
@@ -42,14 +41,6 @@ describe('main entry lifecycle', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     control.emit('ready-to-show');
     expect(mocks.splash.close).not.toHaveBeenCalled();
     control.emit('show');
-    expect(mocks.splash.close).toHaveBeenCalledOnce();
-  });
-
-  it('closes the splash when the offscreen control window is ready', async () => {
-    mocks.electron.app.isPackaged = false;
-    vi.stubEnv('LLP_TEST_WINDOWS', 'offscreen');
-    const control = await startMain();
-    control.emit('ready-to-show');
     expect(mocks.splash.close).toHaveBeenCalledOnce();
   });
 
@@ -78,6 +69,7 @@ describe('main entry lifecycle', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     control.webContents.emit('did-fail-load', {}, -2, 'failed', '', false);
     expect(mocks.splash.close).not.toHaveBeenCalled();
     control.webContents.emit('did-fail-load', {}, -2, 'failed', '', true);
+    expect(mocks.barEnd).toHaveBeenCalledWith('page', true);
     expect(mocks.splash.close).toHaveBeenCalledOnce();
     expect(mocks.electron.dialog.showErrorBox).toHaveBeenCalledWith(
       '시작 오류',

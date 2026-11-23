@@ -1,5 +1,6 @@
 import {extname, join} from 'node:path';
 import type {FileError, LoadedFile} from '@core/schema/fileFormat';
+import type {PartCounter} from '../base/launchTracker';
 import {listFolder, loadFile, type ParseFile} from './readFiles';
 
 const READ_CONCURRENCY = 8;
@@ -25,7 +26,14 @@ export interface LoadedFolder<T> {
 export async function loadFolder<T extends {readonly id: string}>(
   folder: string,
   extension: string,
-  parse: ParseFile<T>,
+  {
+    parse,
+    counter,
+  }: {
+    readonly parse: ParseFile<T>;
+    /** Counts the files that are read. */
+    readonly counter?: PartCounter | undefined;
+  },
 ): Promise<LoadedFolder<T>> {
   const names = await listFolder(folder);
   if (!names.ok) {
@@ -36,6 +44,7 @@ export async function loadFolder<T extends {readonly id: string}>(
   const files = names.value
     .filter(name => extname(name) === extension)
     .map(name => join(folder, name));
+  counter?.expect(files.length);
   for (let offset = 0; offset < files.length; offset += READ_CONCURRENCY) {
     const batch = await Promise.all(
       files.slice(offset, offset + READ_CONCURRENCY).map(async file => ({
@@ -43,6 +52,7 @@ export async function loadFolder<T extends {readonly id: string}>(
         loaded: await loadFile(file, parse),
       })),
     );
+    counter?.add(batch.length);
     for (const {file, loaded} of batch) {
       if (!loaded.ok) {
         problems.push(loaded.error);

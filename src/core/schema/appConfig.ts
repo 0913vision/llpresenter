@@ -13,6 +13,7 @@ import type {MigrationStep} from './migration';
 import {UI_ZOOM, uiZoomPercentSchema} from './uiZoom';
 import {mediaBrowserSchema} from './mediaBrowser';
 import {panelRowsSchema} from './panelRows';
+import {launchTimesSchema} from './launch';
 import {PREFERENCE_PAGE_IDS} from './preferencePages';
 import {slideColumnsSchema} from './slideColumns';
 import {
@@ -96,6 +97,7 @@ const appConfigSchema = jsonObject({
   textImportFolder: v.exactOptional(v.string()),
   powerpointImportFolder: v.exactOptional(v.string()),
   lastBackupAt: v.exactOptional(timestamp),
+  launchTimes: v.exactOptional(v.fallback(launchTimesSchema, {})),
 });
 
 const appConfigMigrations: readonly MigrationStep[] = [];

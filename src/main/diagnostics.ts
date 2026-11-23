@@ -61,6 +61,8 @@ export interface DiagnosticsSources {
   /** The app data folder, whose path is masked in error lines. */
   readonly dataFolder: string;
   readonly screens: () => Promise<SettingsDocument | undefined>;
+  /** What the launch did, one line per task. */
+  readonly launch: () => readonly string[];
   readonly log: Logger;
 }
 
@@ -73,6 +75,7 @@ export function diagnosticsText({
   logDirectory,
   dataFolder,
   screens,
+  launch,
   log,
 }: DiagnosticsSources): () => Promise<string> {
   return async () => {
@@ -105,6 +108,7 @@ export function diagnosticsText({
         scaleFactor: display.scaleFactor,
       })),
       screens: screensOf(saved),
+      launch: launch(),
       errors,
     };
     return formatDiagnostics(info);

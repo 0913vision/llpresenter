@@ -1,3 +1,4 @@
+import {PartCounter, type OnProgress} from '../base/launchTracker';
 import {serviceDay} from '@core/services';
 import type {Result} from '@core/common/result';
 import type {FileError, LoadedFile} from '@core/schema/fileFormat';
@@ -81,6 +82,7 @@ type DataRead = Pick<
  */
 export async function loadStore(
   context: StoreContext,
+  onProgress: OnProgress = () => undefined,
 ): Promise<Result<LoadedStore, FileError>> {
   const {appConfig} = context;
   const {locations, ignored} = resolveLocations(
@@ -92,7 +94,7 @@ export async function loadStore(
     return confined;
   }
   const initialProblem = await initialTemplates(confined.value);
-  const data = await readData(confined.value);
+  const data = await readData(confined.value, onProgress);
   return {
     ok: true,
     value: {
@@ -129,11 +131,21 @@ export function chooseOpenService(
   return newest?.id ?? null;
 }
 
-async function readData(locations: DataLocations): Promise<DataRead> {
+async function readData(
+  locations: DataLocations,
+  onProgress: OnProgress,
+): Promise<DataRead> {
+  const counter = new PartCounter(onProgress);
   const [songs, services, templates, media] = await Promise.all([
-    loadFolder(locations.songs, SONG_EXTENSION, parseSong),
-    loadFolder(locations.services, SERVICE_EXTENSION, parseService),
-    loadFolder(locations.templates, SERVICE_EXTENSION, parseTemplate),
+    loadFolder(locations.songs, SONG_EXTENSION, {parse: parseSong, counter}),
+    loadFolder(locations.services, SERVICE_EXTENSION, {
+      parse: parseService,
+      counter,
+    }),
+    loadFolder(locations.templates, SERVICE_EXTENSION, {
+      parse: parseTemplate,
+      counter,
+    }),
     readMedia(locations),
   ]);
   return {

@@ -24,6 +24,7 @@ const INFO = {
     },
     {name: '방송 화면', kind: 'broadcast', method: 'capture'},
   ],
+  launch: ['files: 0 to 120 ms, expected 150'],
   errors: ['2026-11-03T10:00:00.000Z ERROR could not play audio'],
 };
 
@@ -40,6 +41,8 @@ describe('formatDiagnostics', () => {
         'Screens:',
         '  청중 화면 (audience, fullscreen) on monitor 2',
         '  방송 화면 (broadcast, capture)',
+        'Launch:',
+        '  files: 0 to 120 ms, expected 150',
         'Last errors (1):',
         '  2026-11-03T10:00:00.000Z ERROR could not play audio',
         '',

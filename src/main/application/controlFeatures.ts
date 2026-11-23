@@ -1,6 +1,6 @@
 import {app} from 'electron';
 import {serviceEndpoints} from '@contracts/ipc/service';
-import {IpcHost} from '../base/ipcHost';
+import {IpcHost, type Caller} from '../base/ipcHost';
 import {registerFonts} from '../fonts/register';
 import {registerTextImport} from '../import/register';
 import {registerPowerPointImport} from '../import/registerPowerPoint';
@@ -22,12 +22,18 @@ export type ControlFeatures = ReturnType<typeof startControlFeatures>;
 
 /** Tells when the control window has its data, which ends the launch. */
 function watchReadiness(
-  {data, launchIdle, log, shutdown}: Foundation,
+  {data, launch, launchIdle, log, shutdown}: Foundation,
   control: ControlOwner,
 ): void {
   const ipc = new IpcHost(log);
-  ipc.signal(serviceEndpoints.ready, ({contents, isMainFrame}) => {
-    if (contents !== control.webContents || !isMainFrame) return;
+  const isControl = ({contents, isMainFrame}: Caller): boolean =>
+    contents === control.webContents && isMainFrame;
+  ipc.message(serviceEndpoints.preparing, ({done, total}, caller) => {
+    if (isControl(caller)) launch.advance('view', done, total);
+  });
+  ipc.signal(serviceEndpoints.ready, caller => {
+    if (!isControl(caller)) return;
+    launch.finish('view');
     data.content.then(
       () => launchIdle.serviceReady(),
       (error: unknown) => log.warn('Could not confirm launch readiness', error),

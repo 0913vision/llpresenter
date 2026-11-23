@@ -10,7 +10,10 @@ function fontsReady(): Promise<unknown> {
   }
 }
 
-/** Reports the first complete control view after its data, images and fonts settle. */
+/**
+ * Reports the first complete control view after its data, images and fonts
+ * settle, and how far it is before that.
+ */
 export function useLaunchReady(
   api: LlpApi | undefined,
   readiness?: LoadReadiness,
@@ -23,6 +26,20 @@ export function useLaunchReady(
     let preparing = false;
     let frame: number | undefined;
     let idle: number | undefined;
+    let parts = {done: 0, total: 1};
+    const report = (): void => {
+      if (stopped || sent) return;
+      const reads = readiness?.getTotal() ?? 0;
+      const pending = readiness?.getSnapshot() ?? 0;
+      api.service.preparing({
+        done: (loaded ? 1 : 0) + reads - pending + parts.done,
+        total: 1 + reads + parts.total,
+      });
+    };
+    const settled = (): void => {
+      parts = {...parts, done: parts.done + 1};
+      report();
+    };
     const isReady = (): boolean =>
       readiness?.getSnapshot() === 0 || readiness === undefined;
     const attempt = (): void => {
@@ -46,7 +63,11 @@ export function useLaunchReady(
             ? Promise.resolve().then(() => image.decode())
             : Promise.resolve(),
         );
-        Promise.allSettled([fontsReady(), ...decoded]).then(
+        const work = [fontsReady(), ...decoded];
+        parts = {done: 0, total: work.length};
+        report();
+        for (const part of work) part.then(settled, settled);
+        Promise.allSettled(work).then(
           () => {
             if (stopped) return;
             if (!isReady()) {
@@ -79,10 +100,14 @@ export function useLaunchReady(
         );
       });
     };
-    const stopReadiness = readiness?.subscribe(attempt);
+    const stopReadiness = readiness?.subscribe(() => {
+      report();
+      attempt();
+    });
     api.service.get().then(
       () => {
         loaded = true;
+        report();
         attempt();
       },
       (error: unknown) => {
@@ -92,6 +117,7 @@ export function useLaunchReady(
           detail: String(error),
         });
         loaded = true;
+        report();
         attempt();
       },
     );

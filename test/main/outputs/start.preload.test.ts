@@ -31,17 +31,17 @@ describe('output windows at launch', () => {
     const firstVersion = store.state.version;
     expect(report(MAIN, firstVersion)).toBe(true);
     expect(windows.only(MAIN).mode.kind).toBe('fullscreen');
-    expect(onPrepared).not.toHaveBeenCalled();
+    expect(onPrepared).toHaveBeenLastCalledWith({done: 1, total: 2});
     store.dispatch({type: 'screen.testPattern.set', screenId: MAIN, on: true});
     expect(store.state.version).toBeGreaterThan(firstVersion);
     expect(windows.only(MAIN).mode.kind).toBe('fullscreen');
     expect(report(MAIN, store.state.version)).toBe(true);
     expect(report(CAPTIONS, firstVersion)).toBe(false);
     expect(report(CAPTIONS, store.state.version, false)).toBe(false);
-    expect(onPrepared).not.toHaveBeenCalled();
+    expect(onPrepared).toHaveBeenLastCalledWith({done: 1, total: 2});
     expect(report(CAPTIONS, store.state.version)).toBe(false);
     expect(windows.only(CAPTIONS).mode.kind).toBe('hidden');
-    expect(onPrepared).toHaveBeenCalledOnce();
+    expect(onPrepared).toHaveBeenLastCalledWith({done: 2, total: 2});
   });
 
   it.each(['normal', 'offscreen'] as const)(

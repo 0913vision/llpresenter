@@ -1,3 +1,4 @@
+import {launchTaskName} from '@core/app';
 import type {AppProblemOf} from '@core/schema/appProblem';
 import type {Notice} from '@renderer/ui/notices';
 
@@ -12,6 +13,9 @@ export const BACKUP_FAILED_KEY = 'backup-failed';
 
 /** One card stands for the control window that loaded again. */
 export const CONTROL_RELOADED_KEY = 'control-reloaded';
+
+/** One card stands for the launch that did not end well. */
+export const LAUNCH_FAILED_KEY = 'launch-failed';
 
 const UNNAMED_MACRO = '이름 없는 매크로';
 
@@ -107,5 +111,24 @@ export function controlReloadedCard(time: string): Notice {
     title: '제어 창 다시 불러옴',
     time,
     meta: ['출력은 그대로'],
+  };
+}
+
+/**
+ * The 시작 준비 실패 card for a launch in which tasks failed or did not end in
+ * time, with what they prepare.
+ */
+export function launchFailedCard(
+  {tasks}: AppProblemOf<'launch-failed'>,
+  {time, openLogs}: {readonly time: string; readonly openLogs: () => void},
+): Notice {
+  return {
+    key: LAUNCH_FAILED_KEY,
+    kind: 'warning',
+    icon: 'warning',
+    title: '시작 준비 실패',
+    time,
+    meta: [tasks.map(launchTaskName).join(', ')],
+    actions: [{icon: 'folder', label: '로그 폴더 열기', onSelect: openLogs}],
   };
 }

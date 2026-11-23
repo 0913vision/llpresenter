@@ -14,6 +14,7 @@ import {registerStore} from '../store/register';
 import {registerUiZoom} from '../store/uiZoom';
 import {registerUiState} from '../uiState/register';
 import {cancelRestartOutputs} from '../update/restartOutputs';
+import {LaunchBar} from '../windows/splash';
 import {LaunchProgress} from './launchProgress';
 
 const UI_STATE_FILE = 'app.json';
@@ -50,23 +51,35 @@ export async function openFoundation({
   });
   const ui = registerUiState(appConfig, log);
   const zoom = registerUiZoom(appConfig, log);
-  const launch = new LaunchProgress(splash, log);
+  const launch = new LaunchProgress({
+    splash,
+    openBar: plan => new LaunchBar(splash, plan),
+    config: appConfig,
+    log,
+  });
   const store = new LiveStore();
-  const launchIdle = new LaunchIdle();
-  if (app.isPackaged && windowMode === 'offscreen') {
-    launchIdle.ready
-      .then(ready => {
-        if (ready) log.info('installer smoke ready');
-      })
-      .catch((error: unknown) =>
-        log.warn('Could not record installer smoke readiness', error),
-      );
-  }
+  const launchIdle = new LaunchIdle(() => launch.begin('quiet'));
+  launchIdle.ready
+    .then(ready => {
+      if (!ready) return;
+      launch.finish('quiet');
+      // NOTE(0913vision): An offscreen control window never shows, so nothing
+      // else ends its launch.
+      if (windowMode !== 'offscreen') return;
+      launch.end();
+      if (app.isPackaged) log.info('installer smoke ready');
+    })
+    .catch((error: unknown) =>
+      log.warn('Could not record launch readiness', error),
+    );
   shutdown.add({
     name: 'cancel deferred launch work',
     run: () => launchIdle.dispose(),
   });
   const problems = registerProblemFeed({source: store, log});
+  launch.onFailure(tasks => {
+    problems.feed.report({kind: 'launch-failed', tasks: [...tasks]});
+  });
   const data = registerStore({
     log,
     launchIdle: launchIdle.ready,
@@ -74,9 +87,8 @@ export async function openFoundation({
     onServiceChanged: () => serviceStandby(store),
     appConfig,
     problems: problems.feed,
+    launch,
   });
-  launch.reportWhen('settings', data.settings);
-  launch.reportWhen('content', data.content);
   return {
     windowMode,
     log,

@@ -148,6 +148,8 @@ const mocks = vi.hoisted(() => {
     appConfig: {
       flush: vi.fn<() => Promise<void>>(),
       savePending: vi.fn<() => Promise<boolean>>(),
+      launchTimes: {},
+      setLaunchTimes: vi.fn(),
     },
     storeOptions,
     findMediaFile: vi.fn<(mediaId: string) => Promise<string | null>>(),
@@ -159,7 +161,8 @@ const mocks = vi.hoisted(() => {
       close: vi.fn(),
       once: vi.fn<(_event: string, callback: () => void) => void>(),
     },
-    splashStep: vi.fn(),
+    barAdvance: vi.fn(),
+    barEnd: vi.fn(),
     controlWindow: {
       isMinimized: vi.fn(() => true),
       restore: vi.fn(),
@@ -400,7 +403,10 @@ vi.mock('@main/windows/control', () => ({
 }));
 vi.mock('@main/windows/splash', () => ({
   createSplash: () => mocks.splash,
-  completeSplashStep: mocks.splashStep,
+  LaunchBar: class {
+    advance = mocks.barAdvance;
+    end = mocks.barEnd;
+  },
 }));
 
 export async function startMain(): Promise<
@@ -454,7 +460,8 @@ beforeEach(async () => {
   mocks.splash.once.mockReset().mockImplementation((_event, callback) => {
     queueMicrotask(callback);
   });
-  mocks.splashStep.mockReset();
+  mocks.barAdvance.mockReset();
+  mocks.barEnd.mockReset();
   mocks.electron.dialog.showErrorBox.mockReset();
   mocks.updateContexts.length = 0;
   mocks.updateStop.mockClear();

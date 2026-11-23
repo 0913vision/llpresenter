@@ -23,6 +23,7 @@ import {
   withPreferenceDefaults,
   type Preferences,
 } from '@core/schema/preferences';
+import type {OnProgress} from '../base/launchTracker';
 import type {Logger} from '../base/log';
 import type {DocumentFiles, PersistedFile} from './contentPersistence';
 import type {WriteResult} from './fileWriter';
@@ -523,7 +524,13 @@ export class SettingsStore implements SettingsReader {
 export async function openSettingsStore(
   store: LoadedStore,
   log: Logger,
-  failures?: SaveFailureSink,
+  {
+    failures,
+    onProgress = () => undefined,
+  }: {
+    readonly failures?: SaveFailureSink | undefined;
+    readonly onProgress?: OnProgress | undefined;
+  } = {},
 ): Promise<SettingsStore> {
   let opened: SettingsStore | null = null;
   let startupPreferences = defaultPreferences;
@@ -540,11 +547,13 @@ export async function openSettingsStore(
   });
   const documents = new Map<SettingsName, SettingsDocument>();
   const problems: SettingsProblem[] = [];
+  let read = 0;
   for (const name of [
     'preferences',
     ...settingsNames.filter(name => name !== 'preferences'),
   ] as const) {
     const area = await loadSettingsArea(name, store.locations, saver);
+    onProgress(++read, settingsNames.length);
     if (area.document !== null) {
       documents.set(name, area.document);
       if (area.document.name === 'preferences') {

@@ -5,6 +5,11 @@ import type {SettingsEdit} from '@core/schema/settingsDocuments';
 import type {SettingsReader} from '@core/schema/settingsReader';
 import {app, shell} from 'electron';
 import {IpcHost} from '../base/ipcHost';
+import {
+  NO_LAUNCH,
+  type LaunchTracker,
+  type OnProgress,
+} from '../base/launchTracker';
 import type {Logger} from '../base/log';
 import type {ProblemFeed} from '../base/problemFeed';
 import type {AppConfigFile} from './appConfigFile';
@@ -50,6 +55,8 @@ export interface StoreRegistration {
   readonly context?: () => LocationContext;
   /** The app's problem cards, which list and push the waiting saves. */
   readonly problems: ProblemFeed;
+  /** Follows what is read at launch. */
+  readonly launch?: LaunchTracker;
 }
 
 /** What the main process wiring uses of the data store. */
@@ -98,45 +105,64 @@ export function registerStore({
   appConfig,
   context = electronLocationContext,
   problems,
+  launch = NO_LAUNCH,
 }: StoreRegistration): DataStore {
   const ipc = new IpcHost(log);
-  const loading = readStore(() => ({...context(), appConfig}), log);
+  const loading = launch.track(
+    'files',
+    readStore(
+      () => ({...context(), appConfig}),
+      log,
+      (done, total) => launch.advance('files', done, total),
+    ),
+  );
   const saveFailures = new SaveFailures({log});
   const removeSaveProblems = registerSaveProblems(saveFailures, problems, log);
   const skippedFiles = new SkippedFiles(log);
   const removeSkippedFiles = problems.addStanding(() => skippedFiles.list());
-  const settings = loading
-    .then(store =>
-      store === null ? null : openSettingsStore(store, log, saveFailures),
-    )
-    .catch((error: unknown) => {
-      log.error('could not open app-wide settings', error);
-      return null;
-    });
-  const media = loading
-    .then(async store => {
-      if (store === null) return null;
-      const readySettings = await settings;
-      const opened = await openMediaStore(store, {
-        pictures: SUNDAY_PICTURES,
-        discard: file => shell.trashItem(file),
-        settings: readySettings,
-        log,
-        failures: saveFailures,
-      });
-      readySettings?.addProblems(opened.problems);
-      return opened.store;
-    })
-    .catch((error: unknown) => {
-      log.error('could not open the media list', error);
-      return null;
-    });
+  const settings = launch.track(
+    'settings',
+    loading
+      .then(store =>
+        store === null
+          ? null
+          : openSettingsStore(store, log, {
+              failures: saveFailures,
+              onProgress: (done, total) =>
+                launch.advance('settings', done, total),
+            }),
+      )
+      .catch((error: unknown) => {
+        log.error('could not open app-wide settings', error);
+        return null;
+      }),
+  );
+  const media = launch.track(
+    'media',
+    loading
+      .then(async store => {
+        if (store === null) return null;
+        const readySettings = await settings;
+        const opened = await openMediaStore(store, {
+          pictures: SUNDAY_PICTURES,
+          discard: file => shell.trashItem(file),
+          settings: readySettings,
+          log,
+          failures: saveFailures,
+        });
+        readySettings?.addProblems(opened.problems);
+        return opened.store;
+      })
+      .catch((error: unknown) => {
+        log.error('could not open the media list', error);
+        return null;
+      }),
+  );
   const mediaChannels = registerMediaChannels(media, log);
-  const opened = openContent(loading, log, {
-    settings,
-    media,
-    failures: saveFailures,
-  });
+  const opened = launch.track(
+    'content',
+    openContent(loading, log, {settings, media, failures: saveFailures}),
+  );
   const settingsChannels = registerSettingsChannels(
     settings,
     log,
@@ -289,9 +315,10 @@ export function electronLocationContext(): LocationContext {
 async function readStore(
   context: () => StoreContext,
   log: Logger,
+  onProgress: OnProgress,
 ): Promise<LoadedStore | null> {
   try {
-    const loaded = await loadStore(context());
+    const loaded = await loadStore(context(), onProgress);
     if (!loaded.ok) {
       log.error('refused the data folder', loaded.error);
       return null;

@@ -18,7 +18,7 @@ import {createDefaultScreenSource} from './defaultScreens';
 import {createElectronWakeLock} from './electronWakeLock';
 import {presentTransition} from './presentedWindow';
 import {FrameRateTracker, type ScreenFrameRate} from './frameRates';
-import {OutputManager} from './manager';
+import {OutputManager, type PreparedScreens} from './manager';
 import {MonitorNumbers} from './monitorNumbers';
 import {openNumberWindow} from './numberWindow';
 import {OutputStatusBoard} from './statusBoard';
@@ -35,7 +35,8 @@ import {PreviewHub} from './previewHub';
 export interface OutputContext {
   readonly problems?: ProblemFeed;
   readonly playbackProblems?: PlaybackProblemBoard;
-  readonly onPrepared?: () => void;
+  /** Told whenever a screen has its picture, and when there are no screens. */
+  readonly onPrepared?: (screens: PreparedScreens) => void;
   readonly store: LiveStore;
   readonly settings: Promise<SettingsReader | null>;
   readonly saveScreenSettings?: (
@@ -78,13 +79,13 @@ function hearOutputs(
     readonly outputs: OutputManager;
     readonly frameRates: FrameRateTracker;
     readonly board: OutputStatusBoard;
-    readonly onPrepared: () => void;
+    readonly onPrepared: (screens: PreparedScreens) => void;
   },
 ): void {
   ipc.request(outputEndpoints.frameReady, report => {
     const {screenId, version} = report;
     const shown = outputs.frameReady(screenId, version, report);
-    if (outputs.allPrepared()) onPrepared();
+    onPrepared(outputs.preparedScreens());
     return shown;
   });
   const reported = (screenId: string): void => {
@@ -273,7 +274,9 @@ export function startOutputs({
   const releaseNumbers = store.connectMonitorNumbers(numbers);
   const stopRetaining = screens.subscribe(() => {
     frameRates.retain(screens.list().map(({id}) => id));
-    if (screens.ready && screens.list().length === 0) onPrepared?.();
+    if (screens.ready && screens.list().length === 0) {
+      onPrepared?.({done: 0, total: 0});
+    }
   });
   outputs.start();
   const previews = new PreviewHub({
@@ -290,7 +293,7 @@ export function startOutputs({
     outputs,
     frameRates,
     board,
-    onPrepared: () => onPrepared?.(),
+    onPrepared: screens => onPrepared?.(screens),
   });
   publishStatus(ipc, {board, outputs, displays});
   publishMonitors(ipc, {control, displays, outputs, controlBounds});

@@ -25,7 +25,7 @@ const THUMBNAIL_FOLDER = join('cache', 'thumbnails');
 export type Services = ReturnType<typeof startServices>;
 
 function startWindowChannels(
-  {windowMode, data, log}: Foundation,
+  {windowMode, data, launch, log}: Foundation,
   isControlWindow: (win: BrowserWindow) => boolean,
 ): () => void {
   const logDirectory = join(app.getPath('userData'), LOG_FOLDER);
@@ -40,6 +40,7 @@ function startWindowChannels(
         logDirectory,
         dataFolder: app.getPath('userData'),
         screens: async () => (await data.settings)?.get('screens'),
+        launch: () => launch.report(),
         log,
       }),
       setVerbose: on => log.setVerbose(on),

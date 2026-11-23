@@ -79,3 +79,32 @@ it('waits for the tracked first reads before signaling', async () => {
   act(() => idle({didTimeout: false, timeRemaining: () => 5}));
   expect(ready).toHaveBeenCalledOnce();
 });
+
+it('tells how much is prepared: the service, the reads, and the fonts', async () => {
+  let frame: FrameRequestCallback = () => undefined;
+  vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+    frame = callback;
+    return 1;
+  });
+  vi.stubGlobal('requestIdleCallback', () => 2);
+  vi.stubGlobal('cancelIdleCallback', vi.fn());
+  vi.stubGlobal('cancelAnimationFrame', vi.fn());
+  const readiness = new LoadReadiness();
+  const first = readiness.begin();
+  const second = readiness.begin();
+  const preparing = vi.fn();
+  const api = mockLlpApi({service: {preparing}});
+  const view = renderHook(() => useLaunchReady(api, readiness));
+  await act(async () => Promise.resolve());
+  expect(preparing).toHaveBeenLastCalledWith({done: 1, total: 4});
+  act(first);
+  expect(preparing).toHaveBeenLastCalledWith({done: 2, total: 4});
+  act(second);
+  await act(async () => {
+    frame(0);
+    await Promise.resolve();
+    await Promise.resolve();
+  });
+  expect(preparing).toHaveBeenLastCalledWith({done: 4, total: 4});
+  view.unmount();
+});

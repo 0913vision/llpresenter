@@ -26,14 +26,16 @@ it('bounds outstanding reads to eight and keeps sorted duplicate precedence desp
     active--;
     return parse('', file);
   });
-  const pending = loadFolder('/songs', '.llsong', (_text, file) => {
-    const value: LoadedFile<{id: string; title: string}> = {
-      data: {id: 'duplicate', title: basename(file)},
-      access: 'editable',
-      sourceVersion: 1,
-      dropped: [],
-    };
-    return {ok: true, value};
+  const pending = loadFolder('/songs', '.llsong', {
+    parse: (_text, file) => {
+      const value: LoadedFile<{id: string; title: string}> = {
+        data: {id: 'duplicate', title: basename(file)},
+        access: 'editable',
+        sourceVersion: 1,
+        dropped: [],
+      };
+      return {ok: true, value};
+    },
   });
   for (const count of [8, 8, 1]) {
     await vi.waitFor(() => expect(finishers).toHaveLength(count));

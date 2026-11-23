@@ -4,10 +4,12 @@ import {
   type ServiceOpenRequest,
 } from '@core/schema/serviceOpen';
 import {parseShowService, type ShowService} from '@core/schema/showService';
-import {push, query, request, signal, type IpcPort} from './endpoint';
+import {parsePreparation, type Preparation} from '@core/schema/preparation';
+import {message, push, query, request, signal, type IpcPort} from './endpoint';
 
 /** The calls about the open 예배 순서 as 진행 shows it. */
 export const serviceEndpoints = {
+  preparing: message<Preparation>('service:preparing', parsePreparation),
   ready: signal('service:ready'),
   get: query<ShowService | null>('service:get', parseShowService),
   open: request<ServiceOpenRequest, ShowService | null>('service:open', {
@@ -21,6 +23,9 @@ export const serviceEndpoints = {
 /** The open 예배 순서 part of `window.llp`. */
 export function serviceApi(port: IpcPort) {
   return {
+    /** Tells how much of the control window is prepared, during the launch. */
+    preparing: port.message(serviceEndpoints.preparing),
+    /** The control window is prepared, so it can show. */
     ready: port.signal(serviceEndpoints.ready),
     /**
      * Reads the open 예배 순서 as 진행 shows it, or `null` when none is open.

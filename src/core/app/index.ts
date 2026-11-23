@@ -4,3 +4,12 @@ export {
   errorLinesOf,
   formatDiagnostics,
 } from './diagnostics';
+export {
+  type LaunchBarTask,
+  expectedEnd,
+  launchFraction,
+  launchOrder,
+  launchTaskLabel,
+  launchTaskName,
+  learnedTimes,
+} from './launch';

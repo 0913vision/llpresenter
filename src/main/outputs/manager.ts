@@ -101,6 +101,12 @@ function sameAssignment(
   return a.size === b.size && [...a].every(([key, id]) => b.get(key) === id);
 }
 
+/** How many screens have their first picture. */
+export interface PreparedScreens {
+  readonly done: number;
+  readonly total: number;
+}
+
 /**
  * Keeps one output window per screen in line with the output switches in the
  * live state and with the connected monitors. The main process owns the live
@@ -171,14 +177,13 @@ export class OutputManager {
     return this.windows.get(screenId)?.frameReady(version, frame) ?? false;
   }
 
-  allPrepared(): boolean {
+  /** How many of the screens have their first picture. */
+  preparedScreens(): PreparedScreens {
     const screens = this.options.screens.list();
-    return (
-      screens.length > 0 &&
-      screens.every(
-        screen => this.windows.get(screen.id)?.framePrepared === true,
-      )
+    const prepared = screens.filter(
+      screen => this.windows.get(screen.id)?.framePrepared === true,
     );
+    return {done: prepared.length, total: screens.length};
   }
 
   /** 다시 시도 for a screen whose window holds the restart limit. */
