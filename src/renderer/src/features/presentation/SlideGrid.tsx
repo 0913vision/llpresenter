@@ -1,5 +1,4 @@
 import {
-  useCallback,
   useContext,
   useEffect,
   useEffectEvent,
@@ -8,7 +7,7 @@ import {
   useState,
   type JSX,
 } from 'react';
-import {outputTile, useShow} from '@renderer/session/show';
+import {useShow} from '@renderer/session/show';
 import {
   isBibleSource,
   liveTileIndex,
@@ -16,13 +15,11 @@ import {
 } from '@renderer/session/showLibrary';
 import {useLive} from '@renderer/session/live';
 import {commitShownItem, useShownItemId} from '@renderer/session/shownItem';
-import {SlideThumbnail, ThumbnailGrid, thumbnailWidth} from '@renderer/ui';
+import {thumbnailWidth} from '@renderer/ui';
 import {useGridMeasure} from '@renderer/ui/useGridMeasure';
-import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
-import {slideMenuEntries} from './slideMenuEntries';
-import {TilePicture, tileProps} from '@renderer/pictures/TilePicture';
 import styles from './SlideGrid.module.css';
 import {useSlideWindow} from './useSlideWindow';
+import {ShowTileMenu, ShowTiles, type TileMenu} from './ShowTiles';
 import {ShowSlideEntry} from './showPanelNavigation';
 import {serviceSlideOffset} from './serviceSlideNumbers';
 import {useSlideTransitionProgress} from './useSlideTransitionProgress';
@@ -63,11 +60,7 @@ export function SlideGrid({
   useEffect(() => {
     if (liveIndex !== null) useShow.setState({selectedTile: liveIndex});
   }, [liveIndex, openItemId]);
-  const [menu, setMenu] = useState<{
-    itemId: string;
-    index: number;
-    anchor: MenuAnchor;
-  } | null>(null);
+  const [menu, setMenu] = useState<TileMenu | null>(null);
   const keeperRef = useRef<HTMLDivElement>(null);
   const reflowIds = tileReflowIds(tiles ?? [], openItemId ?? '');
   useReflow(keeperRef, {
@@ -125,13 +118,6 @@ export function SlideGrid({
     };
   }, [entryRef]);
 
-  const onOutput = useCallback(
-    (index: number): void => {
-      if (openItemId !== null) outputTile({itemId: openItemId, index});
-    },
-    [openItemId],
-  );
-
   return (
     <div
       ref={keeperRef}
@@ -148,59 +134,24 @@ export function SlideGrid({
       style={{height: window.height}}
     >
       <div className={styles.window} style={{top: window.offset}}>
-        <ThumbnailGrid
-          workspace="show"
-          gridFocus
-          label="슬라이드"
+        <ShowTiles
+          itemId={openItemId}
+          tiles={tiles ?? []}
+          start={window.start}
+          end={window.end}
+          numberOffset={offset ?? 0}
           columns={columns}
           tileWidth={tileWidth}
-          positionOffset={window.start}
-          setSize={tiles?.length ?? 0}
-          selected={undefined}
-          onSelect={() => undefined}
-          onOutput={index => onOutput(window.start + index)}
-          onMenu={(index, anchor) => {
-            if (openItemId !== null) {
-              setMenu({
-                itemId: openItemId,
-                index: window.start + index,
-                anchor,
-              });
-            }
-          }}
+          live={liveIndex}
+          progress={transitionProgress}
+          onMenu={setMenu}
           className={styles.grid}
-        >
-          {tiles?.slice(window.start, window.end).map((tile, local) => {
-            const index = window.start + local;
-            return (
-              <SlideThumbnail
-                key={reflowIds[index] ?? `${openItemId}:${index}`}
-                reflowId={reflowIds[index]}
-                selectionStyle="plate"
-                number={(offset ?? 0) + index + 1}
-                canvas={<TilePicture tile={tile} />}
-                live={index === liveIndex}
-                transitionProgress={
-                  index === liveIndex ? transitionProgress : undefined
-                }
-                {...tileProps(tile)}
-              />
-            );
-          })}
-        </ThumbnailGrid>
+        />
       </div>
       {menu !== null && menu.itemId === openItemId && tiles?.[menu.index] ? (
-        <Menu
-          context
-          label="슬라이드"
-          anchor={menu.anchor}
-          entries={slideMenuEntries({
-            output: () => onOutput(menu.index),
-            edit:
-              onOpenPrep === undefined
-                ? undefined
-                : () => onOpenPrep(menu.itemId, menu.index),
-          })}
+        <ShowTileMenu
+          menu={menu}
+          onOpenPrep={onOpenPrep}
           onClose={() => setMenu(null)}
         />
       ) : null}

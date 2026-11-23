@@ -1,4 +1,3 @@
-import type {TransitionProgress} from '@renderer/ui/transitionProgress';
 import {
   useContext,
   useEffect,
@@ -10,24 +9,22 @@ import {
 } from 'react';
 import type {ServiceRow, SlideTile} from '@core/presentation';
 import {useLive} from '@renderer/session/live';
-import {outputTile, useShow} from '@renderer/session/show';
+import {useShow} from '@renderer/session/show';
 import {projectedLiveCursor, tilesForView} from '@renderer/session/showLibrary';
 import type {ShowView} from '@renderer/session/showStore';
-import {SlideThumbnail, ThumbnailGrid, thumbnailWidth} from '@renderer/ui';
+import {thumbnailWidth} from '@renderer/ui';
 import {firstSlideWindowSize} from './useSlideWindow';
 import {useGridMeasure} from '@renderer/ui/useGridMeasure';
 import {useSlideTransitionProgress} from './useSlideTransitionProgress';
 import {revealSlideItem} from '@renderer/session/visibleSlideItem';
 import {liveReturn} from './liveReturn';
 import type {SlideGridProps} from './SlideGrid';
-import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
-import {slideMenuEntries} from './slideMenuEntries';
 import {ShowSlideEntry} from './showPanelNavigation';
-import {TilePicture, tileProps} from '@renderer/pictures/TilePicture';
 import styles from './SlideGrid.module.css';
 import {tileReflowIds} from './tileReflowIds';
 import {useReflow} from '@renderer/ui/useReflow';
 import {useContinuousViewport} from './useContinuousViewport';
+import {ShowTileMenu, ShowTiles, type TileMenu} from './ShowTiles';
 
 const BAND = 30;
 const HEADING = 37;
@@ -62,92 +59,62 @@ function makeSections(
   return result;
 }
 
-/** Identifies the sections and tile rows rendered for a viewport position. */
-function windowKey(
-  sections: readonly Section[],
-  {
-    top,
-    height,
-    stride,
-    tracks,
-  }: {top: number; height: number; stride: number; tracks: number},
-): string {
-  const active =
-    [...sections].reverse().find(section => section.top <= top + 2)?.row.id ??
-    sections[0]?.row.id;
-  const visible = sections
-    .filter(
-      section =>
-        section.top + section.height >= top - stride &&
-        section.top <= top + height + stride,
-    )
-    .map(section => {
-      const first = Math.max(
-        0,
-        Math.floor((top - section.top - BAND) / stride) - 1,
-      );
-      const last = Math.min(
-        Math.ceil(section.tiles.length / tracks),
-        Math.ceil((top + height - section.top - BAND) / stride) + 1,
-      );
-      return [section.row.id, first, Math.max(first, last)];
-    });
-  return JSON.stringify([active, visible]);
+interface Viewport {
+  readonly top: number;
+  readonly height: number;
+  readonly stride: number;
+  readonly tracks: number;
 }
 
-function SectionGrid({
-  section,
-  start,
-  end,
-  columns,
-  tileWidth,
-  live,
-  progress,
-  onMenu,
-}: {
-  section: Section;
-  start: number;
-  end: number;
-  columns: number;
-  tileWidth: number;
-  live: number | null;
-  progress: TransitionProgress | undefined;
-  onMenu: (index: number, anchor: MenuAnchor) => void;
-}): JSX.Element {
-  const {row, tiles} = section;
-  const ids = tileReflowIds(tiles, row.id);
-  return (
-    <ThumbnailGrid
-      workspace="show"
-      gridFocus
-      label="슬라이드"
-      columns={columns}
-      tileWidth={tileWidth}
-      positionOffset={start}
-      setSize={tiles.length}
-      selected={undefined}
-      onSelect={() => undefined}
-      onOutput={index => outputTile({itemId: row.id, index: start + index})}
-      onMenu={(index, anchor) => onMenu(start + index, anchor)}
-      className={styles.continuousTiles}
-    >
-      {tiles.slice(start, end).map((tile, local) => {
-        const index = start + local;
-        return (
-          <SlideThumbnail
-            key={ids[index] ?? `${row.id}:${index}`}
-            reflowId={ids[index]}
-            selectionStyle="plate"
-            number={section.number + index + 1}
-            canvas={<TilePicture tile={tile} />}
-            live={index === live}
-            transitionProgress={index === live ? progress : undefined}
-            {...tileProps(tile)}
-          />
-        );
-      })}
-    </ThumbnailGrid>
+/** The sections that reach into the viewport, one tile row of margin each way. */
+function visibleSections(
+  sections: readonly Section[],
+  {top, height, stride}: Viewport,
+): Section[] {
+  return sections.filter(
+    section =>
+      section.top + section.height >= top - stride &&
+      section.top <= top + height + stride,
   );
+}
+
+/** The first and the end tile row of a section drawn for the viewport. */
+function drawnRows(
+  section: Section,
+  {top, height, stride, tracks}: Viewport,
+): {first: number; last: number} {
+  const first = Math.max(
+    0,
+    Math.floor((top - section.top - BAND) / stride) - 1,
+  );
+  const last = Math.min(
+    Math.ceil(section.tiles.length / tracks),
+    Math.ceil((top + height - section.top - BAND) / stride) + 1,
+  );
+  return {first, last: Math.max(first, last)};
+}
+
+/** The scroll top that puts a tile on the reading line, 40% down the view. */
+function readingTop(
+  tile: {readonly top: number; readonly bottom: number},
+  viewport: HTMLElement,
+): number {
+  return Math.max(
+    0,
+    (tile.top + tile.bottom) / 2 - viewport.clientHeight * 0.4,
+  );
+}
+
+/** Identifies the sections and tile rows rendered for a viewport position. */
+function windowKey(sections: readonly Section[], viewport: Viewport): string {
+  const active =
+    [...sections].reverse().find(section => section.top <= viewport.top + 2)
+      ?.row.id ?? sections[0]?.row.id;
+  const visible = visibleSections(sections, viewport).map(section => {
+    const {first, last} = drawnRows(section, viewport);
+    return [section.row.id, first, last];
+  });
+  return JSON.stringify([active, visible]);
 }
 
 /** A service-wide, row-windowed slide surface. */
@@ -158,11 +125,7 @@ export function ContinuousSlideGrid({
 }: SlideGridProps): JSX.Element {
   const keeper = useRef<HTMLDivElement>(null);
   const entryRef = useContext(ShowSlideEntry);
-  const [menu, setMenu] = useState<{
-    itemId: string;
-    index: number;
-    anchor: MenuAnchor;
-  } | null>(null);
+  const [menu, setMenu] = useState<TileMenu | null>(null);
   const initialized = useRef(false);
   const slide = useLive(view => view.state?.layers.slide ?? null);
   const view = useShow();
@@ -222,6 +185,12 @@ export function ContinuousSlideGrid({
     windowKeyRef.current = (top, height) =>
       windowKey(sections, {top, height, stride, tracks});
   }, [sections, stride, tracks]);
+  const liveTile = useMemo(() => {
+    const section = sections.find(value => value.row.id === cursorItem);
+    if (!section || cursorIndex === undefined || stride <= 1) return null;
+    const top = section.top + BAND + Math.floor(cursorIndex / tracks) * stride;
+    return {top, bottom: top + stride - metrics.rowGap};
+  }, [sections, cursorItem, cursorIndex, stride, tracks, metrics.rowGap]);
   const last = sections.at(-1);
   const total =
     (last?.top ?? INSET) + Math.max(last?.height ?? 0, metrics.height) + INSET;
@@ -231,32 +200,23 @@ export function ContinuousSlideGrid({
     // click or a scroll leaves the grid where the user put it.
     followRef.current = (behavior = 'smooth', keyed) => {
       const viewport = keeper.current?.parentElement;
-      const section = sections.find(value => value.row.id === cursorItem);
       if (
         !viewport ||
-        !section ||
-        cursorIndex === undefined ||
+        liveTile === null ||
         scrolling.dragging() ||
-        (keyed === undefined && scrolling.paused()) ||
-        stride <= 1
+        (keyed === undefined && scrolling.paused())
       ) {
         return;
       }
-      const top =
-        section.top + BAND + Math.floor(cursorIndex / tracks) * stride;
-      const bottom = top + stride - metrics.rowGap;
-      const center = (top + bottom) / 2;
+      const center = (liveTile.top + liveTile.bottom) / 2;
       const offscreen =
-        top < viewport.scrollTop ||
-        bottom > viewport.scrollTop + viewport.clientHeight;
+        liveTile.top < viewport.scrollTop ||
+        liveTile.bottom > viewport.scrollTop + viewport.clientHeight;
       const pastLine =
         keyed === 'down' &&
         center - viewport.scrollTop > viewport.clientHeight * 0.55;
       if (offscreen || pastLine) {
-        viewport.scrollTo({
-          top: Math.max(0, center - viewport.clientHeight * 0.4),
-          behavior,
-        });
+        viewport.scrollTo({top: readingTop(liveTile, viewport), behavior});
       }
     };
     // NOTE(0913vision): Only a new live tile scrolls smoothly. On entering
@@ -278,15 +238,7 @@ export function ContinuousSlideGrid({
       moved ? 'smooth' : 'instant',
       byKey ? (down ? 'down' : 'other') : undefined,
     );
-  }, [
-    cursorItem,
-    cursorIndex,
-    sections,
-    stride,
-    tracks,
-    metrics.rowGap,
-    scrolling,
-  ]);
+  }, [cursorItem, cursorIndex, sections, liveTile, scrolling]);
   useLayoutEffect(() => {
     if (initialized.current || tileWidth <= 0 || sections.length === 0) return;
     initialized.current = true;
@@ -341,22 +293,13 @@ export function ContinuousSlideGrid({
   useEffect(() => () => revealSlideItem(null), []);
   // NOTE(0913vision): The view stays where the user scrolled; 현 위치로 in the
   // footer brings the live slide back to the reading line.
-  const liveTile = useMemo(() => {
-    const section = sections.find(value => value.row.id === cursorItem);
-    if (!section || cursorIndex === undefined || stride <= 1) return null;
-    const top = section.top + BAND + Math.floor(cursorIndex / tracks) * stride;
-    return {top, bottom: top + stride - metrics.rowGap};
-  }, [sections, cursorItem, cursorIndex, stride, tracks, metrics.rowGap]);
   useEffect(() => {
     liveReturn.offer(() => {
       const viewport = keeper.current?.parentElement;
       if (!viewport || liveTile === null) return;
       scrolling.resume();
       viewport.scrollTo({
-        top: Math.max(
-          0,
-          (liveTile.top + liveTile.bottom) / 2 - viewport.clientHeight * 0.4,
-        ),
+        top: readingTop(liveTile, viewport),
         behavior: 'smooth',
       });
     });
@@ -369,6 +312,7 @@ export function ContinuousSlideGrid({
           liveTile.bottom > metrics.top + metrics.height),
     );
   }, [liveTile, metrics.top, metrics.height]);
+  const drawn = {top: metrics.top, height: metrics.height, stride, tracks};
   return (
     <div
       ref={keeper}
@@ -385,96 +329,69 @@ export function ContinuousSlideGrid({
         className={`${styles.measureGrid} ${styles.grid}`}
         data-continuous-measure
       />
-      {sections
-        .filter(
-          section =>
-            section.top + section.height >= metrics.top - stride &&
-            section.top <= metrics.top + metrics.height + stride,
-        )
-        .map(section => {
-          const first = Math.max(
-            0,
-            Math.floor((metrics.top - section.top - BAND) / stride) - 1,
-          );
-          const last = Math.min(
-            Math.ceil(section.tiles.length / tracks),
-            Math.ceil(
-              (metrics.top + metrics.height - section.top - BAND) / stride,
-            ) + 1,
-          );
-          const start = first * tracks,
-            end = Math.min(
-              section.tiles.length,
-              Math.max(first, last) * tracks,
-            );
-          return (
-            <div
-              key={section.row.id}
-              className={styles.continuousSection}
-              style={{top: section.top, height: section.height}}
-            >
-              {section.row.kind === 'header' ? (
-                <div
-                  data-reflow-id={`heading:${section.row.id}`}
-                  role="heading"
-                  aria-level={3}
-                  className={styles.continuousHeading}
-                >
-                  {section.row.title}
-                </div>
-              ) : (
-                <div
-                  data-reflow-id={`heading:${section.row.id}`}
-                  className={styles.continuousBand}
-                >
-                  <span>{section.row.title}</span>
-                  {section.tiles.length > 0 ? (
-                    <span>{section.tiles.length}</span>
-                  ) : null}
-                </div>
-              )}
-              {end > start ? (
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: BAND + first * stride,
-                    left: 0,
-                    right: 0,
-                  }}
-                >
-                  <SectionGrid
-                    section={section}
-                    start={start}
-                    end={end}
-                    columns={columns}
-                    tileWidth={tileWidth}
-                    live={
-                      cursorItem === section.row.id
-                        ? (cursorIndex ?? null)
-                        : null
-                    }
-                    progress={progress}
-                    onMenu={(index, anchor) =>
-                      setMenu({itemId: section.row.id, index, anchor})
-                    }
-                  />
-                </div>
-              ) : null}
-            </div>
-          );
-        })}
+      {visibleSections(sections, drawn).map(section => {
+        const {first, last} = drawnRows(section, drawn);
+        const start = first * tracks;
+        const end = Math.min(section.tiles.length, last * tracks);
+        return (
+          <div
+            key={section.row.id}
+            className={styles.continuousSection}
+            style={{top: section.top, height: section.height}}
+          >
+            {section.row.kind === 'header' ? (
+              <div
+                data-reflow-id={`heading:${section.row.id}`}
+                role="heading"
+                aria-level={3}
+                className={styles.continuousHeading}
+              >
+                {section.row.title}
+              </div>
+            ) : (
+              <div
+                data-reflow-id={`heading:${section.row.id}`}
+                className={styles.continuousBand}
+              >
+                <span>{section.row.title}</span>
+                {section.tiles.length > 0 ? (
+                  <span>{section.tiles.length}</span>
+                ) : null}
+              </div>
+            )}
+            {end > start ? (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: BAND + first * stride,
+                  left: 0,
+                  right: 0,
+                }}
+              >
+                <ShowTiles
+                  itemId={section.row.id}
+                  tiles={section.tiles}
+                  start={start}
+                  end={end}
+                  numberOffset={section.number}
+                  columns={columns}
+                  tileWidth={tileWidth}
+                  live={
+                    cursorItem === section.row.id ? (cursorIndex ?? null) : null
+                  }
+                  progress={progress}
+                  onMenu={setMenu}
+                  className={styles.continuousTiles}
+                />
+              </div>
+            ) : null}
+          </div>
+        );
+      })}
       {menu !== null ? (
-        <Menu
-          context
-          label="슬라이드"
-          anchor={menu.anchor}
-          entries={slideMenuEntries({
-            output: () => outputTile({itemId: menu.itemId, index: menu.index}),
-            edit:
-              onOpenPrep === undefined
-                ? undefined
-                : () => onOpenPrep(menu.itemId, menu.index),
-          })}
+        <ShowTileMenu
+          menu={menu}
+          onOpenPrep={onOpenPrep}
           onClose={() => setMenu(null)}
         />
       ) : null}
