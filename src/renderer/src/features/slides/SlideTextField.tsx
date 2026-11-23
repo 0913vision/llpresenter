@@ -1,5 +1,6 @@
 import {useId, type JSX} from 'react';
 import {fillsItself} from '@core/slides';
+import {Icon} from '@renderer/ui/Icon';
 import {OwnTextButton} from './OwnTextButton';
 import {SlideTextArea, type SlideBox} from './SlideTextArea';
 import {useOwnText} from './useOwnText';
@@ -9,11 +10,14 @@ import styles from './SlideTextField.module.css';
 export function SlideTextField({
   alone = false,
   inList = false,
+  note,
   ...place
 }: SlideBox & {
   /** The only field of its slide, so its name says nothing. */
   readonly alone?: boolean;
   readonly inList?: boolean;
+  /** Why the text does not show. */
+  readonly note?: string | undefined;
 }): JSX.Element {
   const id = useId();
   const {box, theme} = place;
@@ -37,6 +41,12 @@ export function SlideTextField({
         inList={inList}
         locked={filled && !own.on}
       />
+      {note === undefined ? null : (
+        <span className={styles.note}>
+          <Icon name="warning" size={14} />
+          {note}
+        </span>
+      )}
     </div>
   );
 }

@@ -12,6 +12,7 @@ import {
   type SequenceState,
   slideLayerOf,
 } from '@core/presentation';
+import {hidesNext} from '@core/slides';
 import {parseServiceItemId} from '@core/schema/ids';
 import type {Preferences} from '@core/schema/preferences';
 import type {ShowService} from '@core/schema/showService';
@@ -147,6 +148,21 @@ export function outputSlideOf(cursor: TileCursor): SlideLayer | null {
   return slide === null
     ? null
     : {...slide, ...outsideItem(view, cursor.itemId)};
+}
+
+/** Whether the item before one ends on a slide that shows nothing of it. */
+export function isHiddenBeforeItem(itemId: ItemId): boolean {
+  const before = previousTileAtFirst(
+    {live: {itemId, index: 0}, openItemId: itemId, tilesOf},
+    useShow.getState().rows,
+    'nextItem',
+  );
+  if (before === null) return false;
+  const tiles = tilesOf(before.itemId);
+  const tile = tiles[before.index];
+  return (
+    tile !== undefined && hidesNext(tiles, before.index, themeOfTile(tile))
+  );
 }
 
 /** Outputs a tile and shows it selected in the 장 panel. */

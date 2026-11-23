@@ -38,3 +38,11 @@
 .field[data-alone] .input:focus {
   box-shadow: var(--ring-field-focus);
 }
+
+.note {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-6);
+  color: var(--warning);
+  font: var(--type-label);
+}

@@ -1,5 +1,6 @@
 import {useState, type JSX} from 'react';
 import {nextTextOfTile} from '@core/presentation';
+import {hidesNext} from '@core/slides';
 import type {ScreenId} from '@core/schema/ids';
 import type {ShowTile} from '@core/schema/showService';
 import {KIND_NAMES, SCREEN_KIND_ORDER} from '@core/screens';
@@ -80,7 +81,11 @@ export function PreviewPicture({
   if (tile === undefined) return null;
   const after = tiles[index + 1];
   const next =
-    after === undefined ? nextAtEnd : nextTextOfTile(after, themeOfTile, false);
+    after === undefined
+      ? nextAtEnd
+      : hidesNext(tiles, index, themeOfTile(tile))
+        ? null
+        : nextTextOfTile(after, themeOfTile, false);
   return (
     <div className={styles.canvas}>
       <TilePicture

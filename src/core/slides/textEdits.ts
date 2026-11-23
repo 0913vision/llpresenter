@@ -36,7 +36,7 @@ function cutInto(
   {box, parts}: {readonly box: string; readonly parts: readonly string[]},
 ): readonly Slide[] {
   const purpose = themeOfSlide(making.themes, slide).purpose;
-  const {continued, ...whole} = slide;
+  const {continued, hideNext, ...whole} = slide;
   return parts.map((part, index) => {
     const own: Slide =
       index === 0
@@ -45,11 +45,12 @@ function cutInto(
             ...copySlide(whole),
             transition: transitionFor(making, purpose),
           };
-    const goesOn =
-      index < parts.length - 1 ? slide.verse !== undefined : continued === true;
+    const last = index === parts.length - 1;
+    const goesOn = last ? continued === true : slide.verse !== undefined;
     return {
       ...withBox(own, box, part),
       ...(goesOn ? {continued: true as const} : {}),
+      ...(last && hideNext !== undefined ? {hideNext} : {}),
     };
   });
 }
@@ -113,7 +114,7 @@ export function joinSlide(
     .filter(text => text !== '')
     .join(oneVerse ? ' ' : '\n');
   if (joined.length > SLIDE_LIMITS.text) return null;
-  const {continued: _continued, ...kept} = previous;
+  const {continued: _continued, hideNext: _hide, ...kept} = previous;
   return {
     slides: slides.flatMap(entry =>
       entry.id === slide.id
@@ -123,6 +124,9 @@ export function joinSlide(
               {
                 ...withBox(kept, box, joined),
                 ...(slide.continued === undefined ? {} : {continued: true}),
+                ...(slide.hideNext === undefined
+                  ? {}
+                  : {hideNext: slide.hideNext}),
               },
             ]
           : [entry],

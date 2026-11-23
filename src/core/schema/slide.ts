@@ -59,6 +59,8 @@ export const slideSchema = jsonObject({
   texts: slideTextsSchema,
   /** What the slide before shows as its next text; the theme's when absent. */
   next: v.exactOptional(liveTextSchema),
+  /** Whether it shows nothing of the next slide; the theme's rule when absent. */
+  hideNext: v.exactOptional(v.boolean()),
   label: v.exactOptional(slideLabelSchema),
   /** What is behind the texts; the theme's own when absent. */
   background: v.exactOptional(slideBackgroundSchema),

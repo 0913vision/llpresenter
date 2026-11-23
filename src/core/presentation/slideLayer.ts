@@ -2,7 +2,7 @@ import type {SlideLayer, SlidePeer} from '@core/schema/live';
 import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
 import type {ThemeFile} from '@core/schema/theme';
 import {nextTextOf} from '@core/theme';
-import {tileContent} from '@core/slides';
+import {hidesNext, tileContent} from '@core/slides';
 import type {SlideTile, TileCursor} from './model';
 import type {TilesOf} from './navigation';
 
@@ -68,9 +68,8 @@ export function slideLayerOf(
   const peers = peersOf(tiles, own);
   const after =
     following === null ? undefined : tilesOf(following.itemId)[following.index];
-  const atEnd = cursor.index === tiles.length - 1;
   const next =
-    after === undefined || (atEnd && own.hideNextAtEnd === true)
+    after === undefined || hidesNext(tiles, cursor.index, own)
       ? null
       : nextTextOfTile(
           after,

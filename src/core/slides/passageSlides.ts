@@ -138,21 +138,28 @@ export function verseSlides(
 ): readonly Slide[] {
   return texts.map((text, index) => {
     const last = before.at(-1);
-    const {continued: _continued, ...earlier} =
-      before[index] ??
-      (last === undefined
-        ? makeSlide(making, 'scripture', {
-            texts: address === undefined ? {} : {주소: address},
-            verse: reference,
-          })
-        : {
-            ...copySlide(last),
-            transition: transitionFor(making, 'scripture'),
-          });
+    const {
+      continued: _continued,
+      hideNext: _hide,
+      ...earlier
+    } = before[index] ??
+    (last === undefined
+      ? makeSlide(making, 'scripture', {
+          texts: address === undefined ? {} : {주소: address},
+          verse: reference,
+        })
+      : {
+          ...copySlide(last),
+          transition: transitionFor(making, 'scripture'),
+        });
     return {
       ...earlier,
       texts: {...earlier.texts, 본문: text},
-      ...(index < texts.length - 1 ? {continued: true as const} : {}),
+      ...(index < texts.length - 1
+        ? {continued: true as const}
+        : last?.hideNext === undefined
+          ? {}
+          : {hideNext: last.hideNext}),
     };
   });
 }

@@ -1,8 +1,9 @@
 import type {JSX, KeyboardEvent} from 'react';
 import type {ShowTile} from '@core/schema/showService';
+import {hidesNext} from '@core/slides';
 import {themeOfSlide} from '@core/theme';
-import {useThemes} from '@renderer/platform/themes';
-import {outputSlideOf} from '@renderer/session/show';
+import {themeOfTile, useThemes} from '@renderer/platform/themes';
+import {isHiddenBeforeItem, outputSlideOf} from '@renderer/session/show';
 import {isComposing} from '@renderer/ui/ime';
 import {PanelTabs} from '@renderer/ui/Panel';
 import {Properties} from '@renderer/ui/PropertyRow';
@@ -35,6 +36,19 @@ function replayFromFields(deck: SlideDeck, event: KeyboardEvent): void {
   event.preventDefault();
   event.stopPropagation();
   deck.replay(key === 'y' || event.shiftKey ? 'redo' : 'undo');
+}
+
+/** Whether the slide before one shows nothing of it. */
+function isHiddenBefore(
+  deck: SlideDeck,
+  tiles: readonly ShowTile[],
+  index: number,
+): boolean {
+  const before = tiles[index - 1];
+  if (before !== undefined) {
+    return hidesNext(tiles, index - 1, themeOfTile(before));
+  }
+  return deck.item !== undefined && isHiddenBeforeItem(deck.id);
 }
 
 /** Everything of the selected slides: what it looks like, texts and settings. */
@@ -82,7 +96,14 @@ export function SlideInspector({
           </div>
           <Properties>
             {tab === 'texts' ? (
-              <TextsTab deck={deck} chosen={chosen} tile={only} theme={theme} />
+              <TextsTab
+                deck={deck}
+                chosen={chosen}
+                tiles={tiles}
+                tile={only}
+                theme={theme}
+                hidden={isHiddenBefore(deck, tiles, index)}
+              />
             ) : tab === 'look' ? (
               <LookTab deck={deck} chosen={chosen} />
             ) : (

@@ -5,7 +5,7 @@ import {BUILT_IN_THEME_IDS, SONG_THEME_IDS} from '@core/theme/builtIn/ids';
 import {MEDIA_DRAG_MIME} from '@renderer/features/media/mediaDrag';
 import {useMedia} from '@renderer/platform/media';
 import {fixtureMedia, itemMedia} from '@fixtures/core/mediaList';
-import {lyricsSlide, slideId, slideOf} from '@fixtures/core/slides';
+import {lyricsSlide, slideId, slideOf, verseOf} from '@fixtures/core/slides';
 import {renderEditor, textsOf} from '@fixtures/renderer/features/slides/editor';
 
 let clipboard = '';
@@ -515,5 +515,42 @@ describe('the title slide of a hymn', () => {
     await userEvent.click(row(0));
     await openTab('내용');
     expect(inspector().queryByRole('group', {name: '찬송가'})).toBeNull();
+  });
+});
+
+describe('showing the next slide', () => {
+  const passage = () =>
+    [1, 2].map(verse =>
+      slideOf(verse, 'scripture', {
+        texts: {본문: `본문 ${verse}`},
+        verse: verseOf(verse),
+      }),
+    );
+  const hide = () =>
+    inspector().getByRole('checkbox', {
+      name: '다음 슬라이드 내용 보여주지 않기',
+    });
+
+  it('is off at the end of a passage until the operator says so', async () => {
+    const {current} = renderEditor(passage());
+    await userEvent.click(row(1));
+    await openTab('내용');
+    expect(hide().getAttribute('aria-checked')).toBe('true');
+    await userEvent.click(hide());
+    expect(current.slides[1]?.hideNext).toBe(false);
+    await userEvent.click(hide());
+    expect(current.slides[1]).not.toHaveProperty('hideNext');
+  });
+
+  it('is said on the slide that does not show', async () => {
+    renderEditor(passage());
+    await userEvent.click(row(1));
+    await openTab('내용');
+    const note = /앞 슬라이드에서 보여주지 않도록/u;
+    expect(inspector().queryByText(note)).toBeNull();
+    await userEvent.click(row(0));
+    await userEvent.click(hide());
+    await userEvent.click(row(1));
+    expect(inspector().getByText(note)).toBeTruthy();
   });
 });
