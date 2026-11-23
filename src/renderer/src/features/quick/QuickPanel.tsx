@@ -1,11 +1,6 @@
 import {displayReference, parseReference} from '@core/bible';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useReflow} from '@renderer/ui/useReflow';
-import {deleteSelection} from '@renderer/ui/deleteSelection';
-import {
-  NOTHING_TO_UNDO,
-  NOTHING_TO_REDO,
-} from '@renderer/platform/problemReasons';
 import {useEffect, useMemo, useState, type JSX} from 'react';
 import {
   isKnownQuickItem,
@@ -45,6 +40,7 @@ import {useQuickEditing} from './useQuickEditing';
 import {useRowMoveKeys} from '@renderer/ui/reorder';
 import {useQuickDrag} from './useQuickDrag';
 import {useQuickTimers} from './useQuickTimers';
+import {useQuickHistory} from './useQuickHistory';
 import {useQuickWindow} from './useQuickWindow';
 import {TimerValue} from '../tools/TimerValue';
 
@@ -91,19 +87,22 @@ export function QuickPanel({
   const document = initialDocument === undefined ? loaded : initialDocument;
   const timers = useQuickTimers(document, onProblem);
   const editing = useQuickEditing(api, onProblem);
-  const [history, setHistory] = useState<{
-    undo: Array<{item: QuickItem; before: QuickItem['id'] | null}>;
-    redo: Array<{item: QuickItem; before: QuickItem['id'] | null}>;
-  }>({undo: [], redo: []});
   const locked = document?.access !== 'editable' || editing.busy;
   const full = (document?.value.items.length ?? 0) >= MAX_QUICK_ITEMS;
   const items = document?.value.items ?? EMPTY_ITEMS;
+  const windowed = useQuickWindow(items);
+  const history = useQuickHistory({
+    items,
+    locked,
+    run: edit => editing.run(edit),
+    list: windowed.list,
+  });
   const runNewEdit = async (
     edit: QuickEdit,
     completion?: 'applied' | 'saved',
   ): Promise<boolean> => {
     const saved = await editing.run(edit, completion);
-    if (saved) setHistory(old => ({...old, redo: []}));
+    if (saved) history.clearRedo();
     return saved;
   };
   const timersFull = timers.definitions.size >= MAX_TIMER_DEFINITIONS;
@@ -122,80 +121,12 @@ export function QuickPanel({
     run: item => duplicateQuickItem(item, runNewEdit),
   });
   const ids = useMemo(() => items.map(item => item.id), [items]);
-  const windowed = useQuickWindow(items);
   useReflow(windowed.list, {
     ids,
     selector: '[data-quick-id]',
     attribute: 'data-quick-id',
     scope: 'quick',
   });
-  const removeItem = (item: QuickItem): void => {
-    const index = items.findIndex(value => value.id === item.id);
-    deleteSelection(
-      1,
-      () => !locked && index >= 0,
-      () => {
-        const before = items[index + 1]?.id ?? null;
-        const list = windowed.list.current;
-        if (list) {
-          list.tabIndex = -1;
-          list.focus({preventScroll: true});
-          list.removeAttribute('tabindex');
-        }
-        editing
-          .run({kind: 'delete', id: item.id})
-          .then(saved => {
-            if (saved) {
-              setHistory(old => ({
-                undo: [...old.undo, {item, before}],
-                redo: [],
-              }));
-            }
-          })
-          .catch((cause: unknown) =>
-            console.error('Quick delete callback failed:', cause),
-          );
-      },
-    );
-  };
-  const historyCommand = (kind: 'undo' | 'redo'): void => {
-    const step = (kind === 'undo' ? history.undo : history.redo).at(-1);
-    if (!step || locked) return;
-    const edit: QuickEdit =
-      kind === 'undo'
-        ? {kind: 'restore', item: step.item, before: step.before}
-        : {kind: 'delete', id: step.item.id};
-    editing
-      .run(edit)
-      .then(saved => {
-        if (saved) {
-          setHistory(old =>
-            kind === 'undo'
-              ? {undo: old.undo.slice(0, -1), redo: [...old.redo, step]}
-              : {undo: [...old.undo, step], redo: old.redo.slice(0, -1)},
-          );
-        }
-      })
-      .catch((cause: unknown) =>
-        console.error('Quick history callback failed:', cause),
-      );
-  };
-  useWindowShortcuts(
-    (['undo', 'redo'] satisfies Array<'undo' | 'redo'>).map(kind => ({
-      id: `edit.${kind}`,
-      when: (event: KeyboardEvent) =>
-        event.target instanceof Node &&
-        windowed.list.current?.contains(event.target) === true,
-      unavailable: () =>
-        !locked &&
-        (kind === 'undo' ? history.undo.length > 0 : history.redo.length > 0)
-          ? undefined
-          : kind === 'undo'
-            ? NOTHING_TO_UNDO
-            : NOTHING_TO_REDO,
-      run: () => historyCommand(kind),
-    })),
-  );
   const moveItem = (id: string, before: string | null): void => {
     const source = document?.value.items.find(item => item.id === id);
     const target = document?.value.items.find(item => item.id === before);
@@ -339,7 +270,7 @@ export function QuickPanel({
                   full={full}
                   timersFull={timersFull}
                   save={runNewEdit}
-                  onDelete={() => removeItem(item)}
+                  onDelete={() => history.remove(item)}
                   onPinChange={windowed.pin}
                   insertBefore={drag.before === item.id}
                 >
