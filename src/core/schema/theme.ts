@@ -197,11 +197,6 @@ export const themeElementSchema = v.pipe(
       content: templates,
       /** Shown instead, in this color, when no template of `content` fits. */
       empty: v.exactOptional(jsonObject({content: templates, color: hexColor})),
-      /**
-       * Takes the size, and the rows, that 청중 gives the text that leads with
-       * the same value.
-       */
-      same: v.exactOptional(v.picklist(['size', 'rows'])),
       /** May carry the label of the slide in front of its first row. */
       label: v.exactOptional(v.boolean()),
       /** A text of more typed rows than this becomes one flowing row. */

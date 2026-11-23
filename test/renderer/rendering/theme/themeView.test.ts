@@ -247,7 +247,6 @@ describe('what a screen draws of the live slide', () => {
     const drawn = liveDrawing(layers, frame('stage'), false);
     expect(drawn?.content).toEqual({texts: {가사: '가사'}, auto: {}});
     expect(drawn?.next).toBe('다음 가사');
-    expect(drawn?.audience).toBe(themeOutput().theme.screens.audience);
   });
 
   it('draws nothing on a screen the theme leaves empty', () => {

@@ -116,10 +116,10 @@
           "id": "00000000-0000-4000-9000-000000000001",
           "kind": "text",
           "frame": {
-            "x": 48,
+            "x": 36,
             "y": 130,
-            "w": 1824,
-            "h": 130
+            "w": 1848,
+            "h": 137
           },
           "content": ["({새 이름표})"],
           "style": {
@@ -127,12 +127,11 @@
             "weight": 800,
             "size": 108,
             "color": "#FFFFFF",
-            "lineHeight": 1.2,
-            "tracking": 0,
+            "lineHeight": 1.2685,
+            "tracking": -3,
             "align": "center",
             "vAlign": "middle"
           },
-          "same": "size",
           "label": true
         },
         {
@@ -142,7 +141,7 @@
             "x": 36,
             "y": 130,
             "w": 1848,
-            "h": 568
+            "h": 411
           },
           "content": ["{가사}"],
           "style": {
@@ -150,17 +149,17 @@
             "weight": 800,
             "size": 108,
             "color": "#FFFFFF",
-            "lineHeight": 1.2,
+            "lineHeight": 1.2685,
             "tracking": -3,
             "align": "center",
             "vAlign": "middle"
           },
-          "same": "rows",
           "label": true,
           "empty": {
             "content": ["{(이름표)}", "(없음)"],
             "color": "#B4B4B4"
-          }
+          },
+          "wrap": "balance"
         },
         {
           "id": "00000000-0000-4000-9000-000000000090",

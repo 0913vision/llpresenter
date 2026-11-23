@@ -103,19 +103,23 @@ The user's needs (October 30 and November 22):
   the first: one is used when every value of the ones above is missing, such as
   the (없음) of an empty 슬라이드 on 무대. A template without values always
   shows. A 글 can have a color for these.
-- A 글 can take the size, or the size and the rows, that 청중 gives the 글 that
-  leads with the same value: the hymn title on 무대, 제목 with (찬송가) on a row
-  under it, follows `{제목}` on 청중. A label takes the size of the 글 it
-  labels. The sung lyrics on 무대 do, so they break where the congregation's do.
+- **무대 is built like 청중.** Each screen draws its own 글 at the size its 테마
+  gives; no screen takes sizes from another. In the app's 테마 each 무대 글 has
+  the frame width and height, font, weight, size, letter spacing, line height,
+  and wrapping of the 청중 글 it shows, so it breaks and shrinks where 청중
+  does; only its place differs. An operator who changes 청중 changes 무대 too. A
+  label has the size of the 글 it labels.
 - **Fit.** A text is drawn at its size, or at the first of its listed sizes that
   fits, and shrinks to its smallest size. It can keep its typed rows while it
   shrinks, take at most some rows, and be sized together with every 슬라이드 of
   the item that has the same 테마.
 - **Stacks.** Texts of a stack stand one under another around a place, so a
   title without a subtitle stays centered.
-- **Splits.** A split puts 미리 보여줄 내용 under the 슬라이드's own text. Each
-  takes the room the other does not need, and neither is ever drawn over the
-  other.
+- **Splits.** A split puts 미리 보여줄 내용 under the 슬라이드's own text. The
+  슬라이드's own text takes the size its frame gives it, as anywhere; 미리
+  보여줄 내용 takes the room left and gets smaller first, down to its smallest
+  size. Only then does the 슬라이드's own text get smaller. Neither is ever
+  drawn over the other.
 - A 사각형 can reach around texts, or stand a distance above or below them.
 - 메시지 and 그래픽 are not elements. They draw above the 테마 on the screens
   they were sent to, in the order 그래픽, 메시지.
@@ -159,7 +163,8 @@ A thumbnail and a preview are the 슬라이드 drawn by the same code as the out
   space.
 - `output.stageLyricLabelPosition` chooses where a label shows: `line` (the
   default, on a row of its own above the lyrics), `inline` (in front of the
-  first row when it fits there), or `off`.
+  first row; on a row above instead when in front it would make the text smaller
+  or give it more rows), or `off`.
 
 ### Empty screens
 

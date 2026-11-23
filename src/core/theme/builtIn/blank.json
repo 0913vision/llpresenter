@@ -242,8 +242,8 @@
           "frame": {
             "x": 48,
             "y": 120,
-            "w": 1824,
-            "h": 104
+            "w": 1660,
+            "h": 120
           },
           "content": ["{주소}"],
           "style": {
@@ -256,7 +256,6 @@
             "align": "left",
             "vAlign": "top"
           },
-          "same": "size",
           "height": 110
         },
         {
@@ -265,8 +264,8 @@
           "frame": {
             "x": 48,
             "y": 230,
-            "w": 1824,
-            "h": 500
+            "w": 1660,
+            "h": 750
           },
           "content": ["{본문}"],
           "style": {
@@ -274,13 +273,11 @@
             "weight": 700,
             "size": 104,
             "color": "#FFFFFF",
-            "lineHeight": 1.2,
+            "lineHeight": 1.4423,
             "tracking": -3,
             "align": "left",
             "vAlign": "top"
           },
-          "same": "size",
-          "wrap": "balance",
           "label": true,
           "empty": {
             "content": ["{(이름표)}", "(없음)"],

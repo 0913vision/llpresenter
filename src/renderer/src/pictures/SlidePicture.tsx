@@ -27,14 +27,9 @@ interface FrameStyle extends CSSProperties {
 function sameDrawing(a: ThemeDrawing | null, b: ThemeDrawing | null): boolean {
   if (a === b) return true;
   if (a === null || b === null) return false;
-  const {theme, screen, audience, ...rest} = a;
-  const {theme: _theme, screen: _screen, audience: _audience, ...other} = b;
-  return (
-    theme === b.theme &&
-    screen === b.screen &&
-    audience === b.audience &&
-    sameJson(rest, other)
-  );
+  const {theme, screen, ...rest} = a;
+  const {theme: _theme, screen: _screen, ...other} = b;
+  return theme === b.theme && screen === b.screen && sameJson(rest, other);
 }
 
 /**

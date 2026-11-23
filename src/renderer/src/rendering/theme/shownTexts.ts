@@ -30,8 +30,6 @@ export interface ThemeDrawing {
   readonly background: SlideBackground;
   /** The playing state of a background from the media list. */
   readonly media?: MediaLayer | null | undefined;
-  /** The 청중 layout of the same theme, whose sizes 무대 follows. */
-  readonly audience?: OwnThemeScreen | undefined;
   /** The slides of the item with this theme, for texts sized together. */
   readonly peers?: readonly SlideContent[] | undefined;
   readonly labels?: LabelPlace | undefined;

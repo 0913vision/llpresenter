@@ -142,8 +142,8 @@
           "frame": {
             "x": 48,
             "y": 130,
-            "w": 1824,
-            "h": 500
+            "w": 1676,
+            "h": 750
           },
           "content": ["{본문}"],
           "style": {
@@ -151,13 +151,11 @@
             "weight": 700,
             "size": 104,
             "color": "#FFFFFF",
-            "lineHeight": 1.2,
+            "lineHeight": 1.3173,
             "tracking": -3,
             "align": "left",
             "vAlign": "middle"
-          },
-          "same": "size",
-          "wrap": "balance"
+          }
         },
         {
           "id": "00000000-0000-4000-9000-000000000090",

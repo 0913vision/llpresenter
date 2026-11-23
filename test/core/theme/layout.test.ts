@@ -99,4 +99,42 @@ describe('layoutTheme', () => {
       );
     }
   });
+
+  it('draws the slide text of 무대 at the size 청중 draws it', () => {
+    const audience = screenOf('scripture', 'audience');
+    const stage = screenOf('scripture', 'stage');
+    const body = (screen: OwnThemeScreen) =>
+      textElements(screen).find(element =>
+        element.kind === 'text' ? element.content[0] === '{본문}' : false,
+      );
+    const there = body(audience);
+    const here = body(stage);
+    if (there === undefined || here === undefined) throw new Error('No body');
+    const four = rows(4, 14);
+    const sizeOn = (screen: OwnThemeScreen, id: string) =>
+      layoutTheme(screen, new Map([[id, four]])).texts.get(id)?.size;
+    expect(sizeOn(stage, here.id)).toBe(sizeOn(audience, there.id));
+  });
+
+  it('makes the next text smaller before the text of the slide', () => {
+    const screen = screenOf('scripture', 'stage');
+    const split = screen.splits?.[0];
+    if (split === undefined) throw new Error('No split');
+    const [address, body] = split.upper;
+    if (address === undefined || body === undefined) throw new Error('No text');
+    const alone = layoutTheme(screen, new Map([[body, rows(4, 14)]]));
+    const placed = layoutTheme(
+      screen,
+      new Map([
+        [address, rows(1)],
+        [body, rows(4, 14)],
+        [split.lower, rows(4, 14)],
+      ]),
+    );
+    expect(placed.texts.get(body)?.size).toBe(alone.texts.get(body)?.size);
+    const next = textElements(screen).find(({id}) => id === split.lower);
+    expect(placed.texts.get(split.lower)?.size).toBeLessThan(
+      next?.style.size ?? 0,
+    );
+  });
 });

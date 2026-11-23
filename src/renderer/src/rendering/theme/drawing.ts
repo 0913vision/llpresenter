@@ -19,17 +19,9 @@ export function layerContent(slide: SlideLayer): SlideContent {
 export function themeOn(
   theme: LiveThemeOutput['theme'],
   screen: Pick<RenderScreen, 'id' | 'kind'>,
-): Pick<ThemeDrawing, 'theme' | 'screen' | 'audience'> | null {
+): Pick<ThemeDrawing, 'theme' | 'screen'> | null {
   const own = themeScreenOf(theme, screen);
-  if (own === null) return null;
-  const audience = theme.screens.audience;
-  return {
-    theme,
-    screen: own,
-    ...(screen.kind === 'audience' || audience.mode !== 'own'
-      ? {}
-      : {audience}),
-  };
+  return own === null ? null : {theme, screen: own};
 }
 
 /** What a screen draws of the live slide; null when its theme has nothing. */

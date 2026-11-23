@@ -25,11 +25,6 @@ export interface MeasuredText {
   };
 }
 
-/** A size, and rows, taken from another screen. */
-export interface SameText {
-  readonly size: number;
-}
-
 export interface TextPlacement {
   readonly x: number;
   readonly y: number;
@@ -193,7 +188,10 @@ type Texts = Map<string, TextPlacement>;
 class SplitLayout {
   private readonly upper: readonly Sized[];
   private readonly lower: Sized | undefined;
-  private readonly start: readonly number[];
+  /** The sizes the slide's own texts take in their frames. */
+  private start: readonly number[] = [];
+  /** The smallest the next text came to before the others shrink. */
+  private lowerLimit: number | undefined;
   private readonly gap: number;
   private readonly between: number;
 
@@ -203,7 +201,6 @@ class SplitLayout {
   ) {
     this.upper = split.upper.flatMap(id => all.get(id) ?? []);
     this.lower = all.get(split.lower);
-    this.start = this.upper.map(({size}) => size);
     this.gap =
       this.lower === undefined || this.upper.length === 0 ? 0 : split.gap;
     this.between = split.upperGap ?? 0;
@@ -259,7 +256,27 @@ class SplitLayout {
         Math.floor((this.start[index] ?? sized.size) * share),
       );
     });
-    if (this.lower !== undefined) followRatio(this.lower, this.all);
+    this.followUpper();
+  }
+
+  /** The next text in step with the slide's own, and no larger than it came to. */
+  private followUpper(): void {
+    const {lower, lowerLimit} = this;
+    if (lower === undefined) return;
+    followRatio(lower, this.all);
+    if (lowerLimit !== undefined) lower.size = Math.min(lower.size, lowerLimit);
+  }
+
+  /** Makes the next text smaller, down to its smallest size, until all fit. */
+  private shrinkLower(): void {
+    const {lower} = this;
+    if (lower === undefined) return;
+    const floor = lower.element.fit?.min ?? MIN_SIZE;
+    lower.size = shrink(lower.size, floor, size => {
+      lower.size = size;
+      return this.fits();
+    });
+    this.lowerLimit = lower.size;
   }
 
   private shrinkTogether(): void {
@@ -271,9 +288,17 @@ class SplitLayout {
     this.resize(size / largest);
   }
 
-  /** The largest sizes that leave each of them its room. */
+  /**
+   * The slide's own texts take the size their frames give them, as each text
+   * of a screen does. The next text takes the room left and gives way first;
+   * the slide's own texts shrink only when it is at its smallest.
+   */
   private size(): void {
-    this.resize(1);
+    for (const sized of this.upper) fitSize(sized, sized.element.frame.h);
+    this.start = this.upper.map(({size}) => size);
+    this.followUpper();
+    if (this.fits()) return;
+    this.shrinkLower();
     if (this.fits()) return;
     this.shrinkTogether();
     if (this.fits()) return;
@@ -317,21 +342,16 @@ function placeStack(
 function sizedTexts(
   screen: OwnThemeScreen,
   measured: ReadonlyMap<string, MeasuredText>,
-  same: ReadonlyMap<string, SameText>,
 ): ReadonlyMap<string, Sized> {
   const all = new Map<string, Sized>();
   for (const element of screen.elements) {
     const text = isText(element) ? measured.get(element.id) : undefined;
     if (!isText(element) || text === undefined) continue;
-    const taken = same.get(element.id);
     all.set(element.id, {
       element,
       text,
-      size: taken?.size ?? element.style.size,
-      keepRows:
-        taken !== undefined &&
-        element.kind === 'text' &&
-        element.same === 'rows',
+      size: element.style.size,
+      keepRows: false,
     });
   }
   return all;
@@ -345,9 +365,8 @@ function sizedTexts(
 export function layoutTheme(
   screen: OwnThemeScreen,
   measured: ReadonlyMap<string, MeasuredText>,
-  same: ReadonlyMap<string, SameText> = new Map(),
 ): ThemePlacement {
-  const all = sizedTexts(screen, measured, same);
+  const all = sizedTexts(screen, measured);
   const texts: Texts = new Map();
   const grouped = new Set<string>();
   for (const split of screen.splits ?? []) {

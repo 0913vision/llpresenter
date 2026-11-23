@@ -248,8 +248,8 @@
           "frame": {
             "x": 48,
             "y": 245,
-            "w": 1824,
-            "h": 110
+            "w": 1400,
+            "h": 150
           },
           "content": ["{주소}"],
           "style": {
@@ -258,11 +258,10 @@
             "size": 86,
             "color": "#FFFFFF",
             "lineHeight": 1.2,
-            "tracking": 0,
+            "tracking": 6,
             "align": "left",
             "vAlign": "middle"
-          },
-          "same": "size"
+          }
         },
         {
           "id": "00000000-0000-4000-9000-000000000002",
@@ -270,21 +269,23 @@
           "frame": {
             "x": 48,
             "y": 345,
-            "w": 1824,
-            "h": 340
+            "w": 1720,
+            "h": 390
           },
           "content": ["{제목}"],
           "style": {
-            "font": "NanumSquare",
+            "font": "KoPubWorldDotum",
             "weight": 700,
             "size": 140,
             "color": "#FFFFFF",
-            "lineHeight": 1.2,
-            "tracking": 0,
+            "lineHeight": 1.19,
+            "tracking": -6,
             "align": "left",
             "vAlign": "middle"
           },
-          "same": "size"
+          "fit": {
+            "rows": 2
+          }
         },
         {
           "id": "00000000-0000-4000-9000-000000000090",

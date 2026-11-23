@@ -199,21 +199,20 @@
         {
           "id": "00000000-0000-4000-9000-000000000001",
           "kind": "text",
-          "same": "size",
           "frame": {
-            "x": 48,
+            "x": 22.0,
             "y": 220,
-            "w": 1824,
-            "h": 260
+            "w": 1876,
+            "h": 240
           },
           "content": ["{제목}"],
           "style": {
-            "font": "NanumSquare",
-            "weight": 800,
+            "font": "KoPubWorldDotum",
+            "weight": 700,
             "size": 152,
             "color": "#FFFFFF",
-            "lineHeight": 1.2,
-            "tracking": 0,
+            "lineHeight": 1,
+            "tracking": 52,
             "align": "center",
             "vAlign": "top"
           }

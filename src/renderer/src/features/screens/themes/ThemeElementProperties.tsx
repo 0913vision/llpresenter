@@ -140,7 +140,7 @@ function ContentProperties({
   readonly model: ThemeModel;
   readonly element: TextElement;
 }): JSX.Element | null {
-  const {theme, screen, elementReason: reason} = model;
+  const {theme, elementReason: reason} = model;
   if (theme === undefined) return null;
   const change = (update: (text: TextElement) => TextElement): void => {
     model.property(element.id, value =>
@@ -218,30 +218,6 @@ function ContentProperties({
           })
         }
       />
-      {screen === undefined || screen.kind === 'audience' ? null : (
-        <PropertyRow label="청중과 같게">
-          {({controlId}) => (
-            <SelectMenu<'none' | 'size' | 'rows'>
-              id={controlId}
-              block
-              value={element.same ?? 'none'}
-              disabled={reason !== undefined}
-              title={reason}
-              options={[
-                {value: 'none', label: '없음'},
-                {value: 'size', label: '크기'},
-                {value: 'rows', label: '크기와 줄'},
-              ]}
-              onChange={same =>
-                change(text => {
-                  const {same: _same, ...rest} = text;
-                  return same === 'none' ? rest : {...rest, same};
-                })
-              }
-            />
-          )}
-        </PropertyRow>
-      )}
     </PropertyGroup>
   );
 }

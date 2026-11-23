@@ -1,10 +1,4 @@
-import {
-  followedText,
-  isLabelText,
-  layoutTheme,
-  type SameText,
-  type ThemePlacement,
-} from '@core/theme';
+import {layoutTheme, type ThemePlacement} from '@core/theme';
 import {measuredText} from './measureRows';
 import {
   peerRows,
@@ -19,12 +13,10 @@ export interface PlacedTexts {
   readonly placement: ThemePlacement;
 }
 
-function layout(
-  drawing: ThemeDrawing,
-  texts: ReadonlyMap<string, ShownText>,
-  same?: ReadonlyMap<string, SameText>,
-): ThemePlacement {
-  return layoutTheme(
+/** Places the texts of a screen at the sizes and places its theme gives. */
+function place(drawing: ThemeDrawing): PlacedTexts {
+  const texts = shownTexts(drawing);
+  const placement = layoutTheme(
     drawing.screen,
     new Map(
       [...texts].map(([id, entry]) => [
@@ -32,71 +24,34 @@ function layout(
         measuredText(entry.rows, peerRows(drawing, entry)),
       ]),
     ),
-    same,
   );
+  return {texts, placement};
 }
 
-interface Followed extends PlacedTexts {
-  /** The sizes 청중 gives the texts that follow it. */
-  readonly same: ReadonlyMap<string, SameText>;
-}
-
-/** Places the texts of a screen; those of 무대 may follow 청중. */
-function placeFollowing(drawing: ThemeDrawing): Followed {
-  const shown = shownTexts(drawing);
-  const {audience} = drawing;
-  const follows = [...shown.values()].some(
-    ({element}) => element.kind === 'text' && element.same !== undefined,
-  );
-  if (audience === undefined || !follows) {
-    return {texts: shown, placement: layout(drawing, shown), same: new Map()};
-  }
-  const texts = new Map(shown);
-  const same = new Map<string, SameText>();
-  const onAudience: ThemeDrawing = {...drawing, screen: audience};
-  const there = shownTexts(onAudience);
-  const places = layout(onAudience, there).texts;
-  for (const [id, entry] of shown) {
-    if (entry.element.kind !== 'text' || entry.element.same === undefined) {
-      continue;
-    }
-    const followed = followedText(
-      entry.element,
-      drawing.screen.elements,
-      audience.elements,
-    );
-    const twin = followed === undefined ? undefined : there.get(followed.id);
-    const placed = twin === undefined ? undefined : places.get(twin.element.id);
-    if (twin === undefined || placed === undefined) continue;
-    same.set(id, {size: placed.size});
-    if (entry.element.same === 'rows' && !isLabelText(entry.element)) {
-      const rows = measuredText(twin.rows).wrapped(placed.size);
-      texts.set(id, {
-        ...entry,
-        rows: {...entry.rows, text: rows.join('\n')},
-      });
-    }
-  }
-  return {texts, placement: layout(drawing, texts, same), same};
-}
-
-/** Whether a text that carries the label came out smaller than on 청중. */
-function labelShrinks({texts, placement, same}: Followed): boolean {
-  return [...texts.values()].some(({element}) => {
+/** Whether the label in front made a text smaller or gave it more rows. */
+function labelCosts(inFront: PlacedTexts, without: PlacedTexts): boolean {
+  return [...inFront.texts.values()].some(({element}) => {
     if (element.kind !== 'text' || element.label !== true) return false;
-    const target = same.get(element.id)?.size;
-    const size = placement.texts.get(element.id)?.size;
-    return target !== undefined && size !== undefined && size < target;
+    const there = inFront.placement.texts.get(element.id);
+    const plain = without.placement.texts.get(element.id);
+    return (
+      there !== undefined &&
+      plain !== undefined &&
+      (there.size < plain.size || there.h > plain.h + 1)
+    );
   });
 }
 
 /**
- * Places the texts of a screen; those of 무대 may follow 청중. A label in
- * front of the first row goes on a row of its own above when it would make
- * the row smaller than on 청중.
+ * Places the texts of a screen. A label in front of the first row goes on a
+ * row of its own above when in front it would make the text smaller or give
+ * it more rows than it has without the label.
  */
 export function placeTexts(drawing: ThemeDrawing): PlacedTexts {
-  const placed = placeFollowing(drawing);
-  if (drawing.labels !== 'inline' || !labelShrinks(placed)) return placed;
-  return placeFollowing({...drawing, labels: 'line'});
+  const placed = place(drawing);
+  if (drawing.labels !== 'inline') return placed;
+  const without = place({...drawing, labels: 'off'});
+  return labelCosts(placed, without)
+    ? place({...drawing, labels: 'line'})
+    : placed;
 }
