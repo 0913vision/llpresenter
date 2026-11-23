@@ -19,6 +19,20 @@ export function createFontMeasure(): FontMeasure | null {
   return document.createElement('canvas').getContext('2d');
 }
 
+/** Text widths already measured, by font and text; a loaded font clears them. */
+const widths = new Map<string, number>();
+const WIDTHS_KEPT = 20_000;
+let followingFonts = false;
+
+function rememberWidth(key: string, width: number): void {
+  if (!followingFonts && typeof document.fonts !== 'undefined') {
+    followingFonts = true;
+    document.fonts.addEventListener('loadingdone', () => widths.clear());
+  }
+  if (widths.size >= WIDTHS_KEPT) widths.clear();
+  widths.set(key, width);
+}
+
 /** Wraps shaped text with the output's keep-all rule, counting the smaller marker. */
 export function measureSplitLines(
   text: string,
@@ -112,9 +126,18 @@ export function splitLayoutOf(
     width: frame.w,
     maxLines: Math.floor((frame.h + 1) / (style.size * style.lineHeight)),
   };
+  const family = fontFamilyFor(style.font);
   const widthOf: TextWidth = (value, size) => {
-    context.font = `${style.weight} ${size}px ${fontFamilyFor(style.font)}`;
-    return context.measureText(value).width;
+    const font = `${style.weight} ${size}px ${family}`;
+    const key = `${font}|${value}`;
+    const known = widths.get(key);
+    if (known !== undefined) return known;
+    // NOTE(0913vision): Setting the font costs as much as measuring, and the
+    // wrap tries the same lines again and again, so each is measured once.
+    if (context.font !== font) context.font = font;
+    const width = context.measureText(value).width;
+    rememberWidth(key, width);
+    return width;
   };
   return {
     spec,
