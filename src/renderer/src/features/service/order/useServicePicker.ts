@@ -10,6 +10,7 @@ const problemTitles = {
   load: '예배 목록 불러오기 실패',
   open: '예배 열기 실패',
   missing: '예배를 찾을 수 없음',
+  busy: '예배를 여는 중',
 };
 
 function problemNotice(cause: keyof typeof problemTitles): Notice {
@@ -116,12 +117,13 @@ export function useServicePicker(onProblem: (notice: Notice) => void) {
     setBusy(true);
     const changes = serviceChanges.current;
     try {
-      const next = await api.service.open({serviceId: entry.id});
+      const answer = await api.service.open({serviceId: entry.id});
       if (!alive.current) return;
-      if (next === null) {
-        report('missing');
+      if (!answer.ok) {
+        report(answer.error.reason === 'failed' ? 'open' : answer.error.reason);
         return;
       }
+      const next = answer.value;
       if (next.id !== entry.id) {
         report('open');
         return;

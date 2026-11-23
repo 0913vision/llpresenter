@@ -84,8 +84,10 @@ async function createService({
   const opened = await settle(api, 'Could not open a service', () =>
     api.service.open({serviceId: id}),
   );
-  if (opened?.id !== id) return problem ?? 'not-opened';
-  applyService(opened);
+  if (opened?.ok !== true || opened.value.id !== id) {
+    return problem ?? 'not-opened';
+  }
+  applyService(opened.value);
   return problem;
 }
 

@@ -1,6 +1,9 @@
 import {serviceEndpoints} from '@contracts/ipc/service';
-import type {ShowService} from '@core/schema/showService';
-import type {ServiceOpenRequest} from '@core/schema/serviceOpen';
+import type {
+  ServiceOpenRefusal,
+  ServiceOpenRequest,
+  ServiceOpenResult,
+} from '@core/schema/serviceOpen';
 import {IpcHost} from '../base/ipcHost';
 import type {Logger} from '../base/log';
 import type {AppConfigFile} from './appConfigFile';
@@ -13,6 +16,10 @@ export interface ServiceSession {
 }
 
 export const MAX_PENDING_SERVICE_SWITCHES = 16;
+
+function refused(reason: ServiceOpenRefusal): ServiceOpenResult {
+  return {ok: false, error: {reason}};
+}
 
 interface ServiceSwitchOptions {
   readonly appConfig: Pick<AppConfigFile, 'setLastServiceId' | 'flush'>;
@@ -35,18 +42,18 @@ class ServiceSwitches {
   async open(
     session: ServiceSession,
     request: ServiceOpenRequest,
-  ): Promise<ShowService | null> {
+  ): Promise<ServiceOpenResult> {
     const {log} = this.options;
     if (this.pending >= MAX_PENDING_SERVICE_SWITCHES) {
       log.warn('too many pending service switches');
-      return null;
+      return refused('busy');
     }
     this.pending++;
     const result = this.last
       .then(() => this.switchTo(session, request))
-      .catch((error: unknown) => {
+      .catch((error: unknown): ServiceOpenResult => {
         log.error('could not open a service', error);
-        return null;
+        return refused('failed');
       })
       .finally(() => {
         this.pending--;
@@ -58,7 +65,7 @@ class ServiceSwitches {
   private async switchTo(
     {content, feed}: ServiceSession,
     {serviceId}: ServiceOpenRequest,
-  ): Promise<ShowService | null> {
+  ): Promise<ServiceOpenResult> {
     const {log, onServiceChanged} = this.options;
     const previousId = feed.current()?.id;
     const changed = await content.openService(serviceId, () => {
@@ -67,12 +74,15 @@ class ServiceSwitches {
     });
     if (!changed.ok) {
       log.warn('could not open a service', changed.error);
-      return null;
+      return refused(
+        changed.error.reason === 'not-found' ? 'missing' : 'failed',
+      );
     }
     if (previousId !== serviceId) onServiceChanged();
     await this.remember(serviceId);
     feed.refresh();
-    return feed.current();
+    const opened = feed.current();
+    return opened === null ? refused('failed') : {ok: true, value: opened};
   }
 
   private async remember(serviceId: ServiceOpenRequest['serviceId']) {
@@ -114,7 +124,9 @@ export function registerServiceChannels(
   });
   ipc.request(serviceEndpoints.open, async request => {
     const opened = await ready;
-    return disposed || opened === null ? null : switches.open(opened, request);
+    return disposed || opened === null
+      ? refused('failed')
+      : switches.open(opened, request);
   });
   return {
     /** Stops answering, and waits for the switches that were accepted. */

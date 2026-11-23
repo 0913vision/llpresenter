@@ -84,7 +84,7 @@ describe('the 파일 menu', () => {
       ]);
       const open = vi
         .spyOn(window.llp.service, 'open')
-        .mockResolvedValue(service);
+        .mockResolvedValue({ok: true, value: service});
       render(<MenuBar title="" />);
       if (source === 'menu') {
         await userEvent.click(screen.getByRole('menuitem', {name: '파일'}));
@@ -127,12 +127,15 @@ describe('the 파일 menu', () => {
       },
     ]);
     const open = vi.spyOn(api.service, 'open').mockResolvedValue({
-      id,
-      revision: 1,
-      name: 'Evening sermon',
-      readOnly: false,
-      rows: [],
-      tiles: {},
+      ok: true,
+      value: {
+        id,
+        revision: 1,
+        name: 'Evening sermon',
+        readOnly: false,
+        rows: [],
+        tiles: {},
+      },
     });
     const idle = emptyLiveState();
     useLive.setState({

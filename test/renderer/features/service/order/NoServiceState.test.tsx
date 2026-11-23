@@ -3,7 +3,6 @@ import userEvent from '@testing-library/user-event';
 import {afterEach, beforeAll, beforeEach, expect, it, vi} from 'vitest';
 import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
 import type {ServiceOpenRequest} from '@core/schema/serviceOpen';
-import type {ShowService} from '@core/schema/showService';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {
   ids,
@@ -17,6 +16,7 @@ import {
 import {sampleService} from '@fixtures/renderer/session/sampleService';
 import {ServiceOrderList} from '@renderer/features/service/order/ServiceOrderList';
 import {applyService, useShow} from '@renderer/session/show';
+import type {ServiceOpenResult} from '@core/schema/serviceOpen';
 
 const REFUSED: EditResult = {
   ok: false,
@@ -25,11 +25,10 @@ const REFUSED: EditResult = {
 
 function setup(answer: (edit: ContentEdit) => EditResult | Error) {
   const open = vi.fn(
-    ({serviceId}: ServiceOpenRequest): Promise<ShowService | null> =>
+    ({serviceId}: ServiceOpenRequest): Promise<ServiceOpenResult> =>
       Promise.resolve({
-        ...sampleService,
-        id: serviceId,
-        name: '새로 만든 예배',
+        ok: true,
+        value: {...sampleService, id: serviceId, name: '새로 만든 예배'},
       }),
   );
   window.llp = mockLlpApi({

@@ -10,6 +10,7 @@ import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {applyService, useShow} from '@renderer/session/show';
 import {useLive} from '@renderer/session/live';
 import {ServiceOrderHeader} from '@renderer/features/service/order/ServiceOrderHeader';
+import type {ServiceOpenResult} from '@core/schema/serviceOpen';
 
 const first = createServiceId('00000000-0000-4000-8000-000000000001');
 const second = createServiceId('00000000-0000-4000-8000-000000000002');
@@ -48,7 +49,10 @@ function setup() {
     },
     service: {
       open: vi.fn(({serviceId}: ServiceOpenRequest) =>
-        Promise.resolve(projection(serviceId)),
+        Promise.resolve<ServiceOpenResult>({
+          ok: true,
+          value: projection(serviceId),
+        }),
       ),
     },
   });
@@ -131,7 +135,10 @@ describe('service picker', () => {
 
   it('leaves the current service and output intact when an id is no longer installed', async () => {
     const {api, user, live, onProblem, send} = setup();
-    vi.spyOn(api.service, 'open').mockResolvedValueOnce(null);
+    vi.spyOn(api.service, 'open').mockResolvedValueOnce({
+      ok: false,
+      error: {reason: 'missing'},
+    });
     await openMenu(user);
     await user.click(screen.getByRole('menuitemradio', {name: /저녁 예배/}));
     await waitFor(() =>
@@ -187,7 +194,7 @@ describe('service picker', () => {
 
   it('does not let an older open response overwrite another service push or accept duplicate clicks', async () => {
     const {api, user} = setup();
-    let finish: (value: ShowService) => void = () => undefined;
+    let finish: (value: ServiceOpenResult) => void = () => undefined;
     vi.spyOn(api.service, 'open').mockImplementationOnce(
       () =>
         new Promise(resolve => {
@@ -201,7 +208,7 @@ describe('service picker', () => {
     expect(api.service.open).toHaveBeenCalledOnce();
     act(() => applyService(projection(third)));
     await act(async () => {
-      finish(projection(second));
+      finish({ok: true, value: projection(second)});
       await Promise.resolve();
     });
     expect(useShow.getState().serviceId).toBe(third);

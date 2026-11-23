@@ -203,7 +203,7 @@ export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
     },
     service: {
       get: () => Promise.resolve(null),
-      open: () => Promise.resolve(null),
+      open: () => Promise.resolve({ok: false, error: {reason: 'missing'}}),
       subscribe: () => () => undefined,
       ...overrides.service,
     },

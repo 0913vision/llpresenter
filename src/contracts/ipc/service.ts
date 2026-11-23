@@ -2,6 +2,7 @@ import {
   parseServiceOpenReply,
   parseServiceOpenRequest,
   type ServiceOpenRequest,
+  type ServiceOpenResult,
 } from '@core/schema/serviceOpen';
 import {parseShowService, type ShowService} from '@core/schema/showService';
 import {push, query, request, type IpcPort} from './endpoint';
@@ -9,10 +10,10 @@ import {push, query, request, type IpcPort} from './endpoint';
 /** The calls about the open 예배 순서 as 진행 shows it. */
 export const serviceEndpoints = {
   get: query<ShowService | null>('service:get', parseShowService),
-  open: request<ServiceOpenRequest, ShowService | null>('service:open', {
+  open: request<ServiceOpenRequest, ServiceOpenResult>('service:open', {
     request: parseServiceOpenRequest,
     reply: (value, sent) => parseServiceOpenReply(sent.serviceId, value),
-    refuse: () => null,
+    refuse: () => ({ok: false, error: {reason: 'failed'}}),
   }),
   changed: push<ShowService | null>('service:changed', parseShowService),
 };

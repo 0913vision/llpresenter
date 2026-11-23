@@ -59,7 +59,7 @@ describe('mockLlpApi', () => {
       api.service.open({
         serviceId: createServiceId('00000000-0000-4000-8000-000000000001'),
       }),
-    ).resolves.toBeNull();
+    ).resolves.toEqual({ok: false, error: {reason: 'missing'}});
     await expect(api.output.getStatus()).resolves.toEqual({});
     await expect(api.recovery.summary()).resolves.toBeNull();
     await expect(api.recovery.startFresh()).resolves.toEqual({

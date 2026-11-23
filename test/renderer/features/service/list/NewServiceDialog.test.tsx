@@ -13,7 +13,6 @@ import type {LiveCommand} from '@core/schema/liveCommand';
 import type {TemplateDocument} from '@core/schema/contentDocuments';
 import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
 import type {ServiceOpenRequest} from '@core/schema/serviceOpen';
-import type {ShowService} from '@core/schema/showService';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {applyService, useShow} from '@renderer/session/show';
 import {useLive} from '@renderer/session/live';
@@ -33,6 +32,7 @@ import {
   templateEntries,
   titles,
 } from '@fixtures/core/serviceList';
+import type {ServiceOpenResult} from '@core/schema/serviceOpen';
 
 const REFUSED: EditResult = {
   ok: false,
@@ -56,11 +56,10 @@ function setup(
   const edits: ContentEdit[] = [];
   const sent: LiveCommand[] = [];
   const open = vi.fn(
-    ({serviceId}: ServiceOpenRequest): Promise<ShowService | null> =>
+    ({serviceId}: ServiceOpenRequest): Promise<ServiceOpenResult> =>
       Promise.resolve({
-        ...sampleService,
-        id: serviceId,
-        name: '새로 만든 예배',
+        ok: true,
+        value: {...sampleService, id: serviceId, name: '새로 만든 예배'},
       }),
   );
   window.llp = mockLlpApi({
@@ -246,7 +245,10 @@ describe('NewServiceDialog', () => {
       },
       service: {
         open: ({serviceId}) =>
-          Promise.resolve({...sampleService, id: serviceId}),
+          Promise.resolve({
+            ok: true,
+            value: {...sampleService, id: serviceId},
+          }),
       },
     });
     render(<NewServiceDialog onClose={onClose} onProblem={() => undefined} />);
@@ -387,7 +389,7 @@ describe('NewServiceDialog', () => {
 
   it('closes and reports when the new service can not be opened', async () => {
     const {open, onClose, onProblem} = setup();
-    open.mockResolvedValueOnce(null);
+    open.mockResolvedValueOnce({ok: false, error: {reason: 'failed'}});
     await screen.findByRole('treeitem', {name: titles.first});
     await userEvent.click(createButton());
     await waitFor(() => expect(onClose).toHaveBeenCalled());

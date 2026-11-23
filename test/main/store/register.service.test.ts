@@ -47,7 +47,7 @@ describe('registerStore', () => {
     expect(await askForService()).toMatchObject({id: firstId});
     expect(
       await ask(serviceEndpoints.open.channel, {serviceId: itemId(9)}),
-    ).toBeNull();
+    ).toEqual({ok: false, error: {reason: 'missing'}});
     expect(await askForService()).toMatchObject({id: firstId});
     const current = await ask(contentEndpoints.services.get.channel, firstId);
     const parsed = parseServiceDocument(current);
@@ -62,7 +62,7 @@ describe('registerStore', () => {
     electron.send.mockClear();
     expect(
       await ask(serviceEndpoints.open.channel, {serviceId: secondId}),
-    ).toMatchObject({id: secondId});
+    ).toMatchObject({ok: true, value: {id: secondId}});
     expect(await askForService()).toMatchObject({id: secondId});
     expect(
       JSON.parse(
@@ -135,7 +135,7 @@ describe('registerStore', () => {
     });
     expect(
       await ask(serviceEndpoints.open.channel, {serviceId: secondId}),
-    ).toBeNull();
+    ).toEqual({ok: false, error: {reason: 'failed'}});
     expect(
       write.mock.calls.filter(([file]) => file === firstFile),
     ).toHaveLength(1);

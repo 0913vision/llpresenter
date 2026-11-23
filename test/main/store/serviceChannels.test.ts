@@ -105,12 +105,14 @@ function setup() {
 
 const open = (serviceId: unknown) =>
   ipc.invoke(serviceEndpoints.open, {serviceId});
+const opened = (id: string) => ({ok: true, value: shown(id)});
+const refused = (reason: string) => ({ok: false, error: {reason}});
 
 describe('service open channels', () => {
   it('opens the chosen service, remembers it, and answers with the refreshed projection', async () => {
     const {openService, feed, config} = setup();
 
-    expect(await open(SECOND)).toEqual(shown(SECOND));
+    expect(await open(SECOND)).toEqual(opened(SECOND));
     expect(openService).toHaveBeenCalledExactlyOnceWith(
       SECOND,
       expect.any(Function),
@@ -122,15 +124,15 @@ describe('service open channels', () => {
 
   it('enters standby only after a different service opens successfully', async () => {
     const {onServiceChanged, openService} = setup();
-    expect(await open(FIRST)).toEqual(shown(FIRST));
+    expect(await open(FIRST)).toEqual(opened(FIRST));
     expect(onServiceChanged).not.toHaveBeenCalled();
     openService.mockResolvedValueOnce({
       ok: false,
       error: {reason: 'not-found', message: 'Missing'},
     });
-    expect(await open(SECOND)).toBeNull();
+    expect(await open(SECOND)).toEqual(refused('missing'));
     expect(onServiceChanged).not.toHaveBeenCalled();
-    expect(await open(SECOND)).toEqual(shown(SECOND));
+    expect(await open(SECOND)).toEqual(opened(SECOND));
     expect(onServiceChanged).toHaveBeenCalledOnce();
   });
 
@@ -138,7 +140,7 @@ describe('service open channels', () => {
     const {config, log} = setup();
     config.flush.mockRejectedValueOnce(new Error('Config unavailable'));
 
-    expect(await open(SECOND)).toEqual(shown(SECOND));
+    expect(await open(SECOND)).toEqual(opened(SECOND));
     expect(log.messages('error')).toContain(
       'could not remember the open service',
     );
@@ -152,7 +154,7 @@ describe('service open channels', () => {
         open(SECOND),
       );
       await vi.waitFor(() => expect(openService).toHaveBeenCalledOnce());
-      expect(await open(SECOND)).toBeNull();
+      expect(await open(SECOND)).toEqual(refused('busy'));
       expect(log.messages('warn')).toContain(
         'too many pending service switches',
       );
@@ -174,8 +176,8 @@ describe('service open channels', () => {
       error: {reason: 'not-found', message: 'No service has this id'},
     });
 
-    expect(await open(SECOND)).toBeNull();
-    expect(await open('bad')).toBeNull();
+    expect(await open(SECOND)).toEqual(refused('missing'));
+    expect(await open('bad')).toEqual(refused('failed'));
     expect(openService).toHaveBeenCalledOnce();
     expect(config.setLastServiceId).not.toHaveBeenCalled();
     expect(log.messages('warn')).toEqual([
@@ -192,8 +194,8 @@ describe('service open channels', () => {
       const second = open(FIRST);
       await vi.waitFor(() => expect(openService).toHaveBeenCalledOnce());
       release();
-      expect(await first).toEqual(shown(SECOND));
-      expect(await second).toEqual(shown(FIRST));
+      expect(await first).toEqual(opened(SECOND));
+      expect(await second).toEqual(opened(FIRST));
       expect(config.setLastServiceId.mock.calls.map(([id]) => id)).toEqual([
         SECOND,
         FIRST,
@@ -212,7 +214,7 @@ describe('service open channels', () => {
       const closing = channels.dispose();
       expect(ipc.open()).toBe(0);
       release();
-      expect(await opening).toEqual(shown(SECOND));
+      expect(await opening).toEqual(opened(SECOND));
       await closing;
       expect(config.setLastServiceId).toHaveBeenCalledWith(SECOND);
     } finally {
@@ -231,6 +233,6 @@ describe('service open channels', () => {
     await late.dispose();
     finish(null);
     expect(await reading).toBeNull();
-    expect(await opening).toBeNull();
+    expect(await opening).toEqual(refused('failed'));
   });
 });
