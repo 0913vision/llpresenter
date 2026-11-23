@@ -1040,15 +1040,15 @@ stage output and previews; missing values use `line`.
 
 #### 저장 (Saving)
 
-| Group   | Row                          | Control and range                | Default                      | Stored in                                                 | Applies     | Tooltip                                              |
-| ------- | ---------------------------- | -------------------------------- | ---------------------------- | --------------------------------------------------------- | ----------- | ---------------------------------------------------- |
+| Group   | Row                          | Control and range                | Default                      | Stored in                                                 | Applies     | Tooltip                                               |
+| ------- | ---------------------------- | -------------------------------- | ---------------------------- | --------------------------------------------------------- | ----------- | ----------------------------------------------------- |
 | 폴더    | 곡 (songs folder)            | Read-only path, 바꾸기…          | `<data folder>\곡`           | `app.json` `songsPath`                                    | Next launch | 다음에 켤 때부터 씁니다. 있던 파일은 옮기지 않습니다. |
-| 폴더    | 미디어 (media folder)        | Read-only path, 바꾸기…          | `<data folder>\미디어`       | `app.json` `mediaPath`                                    | Next launch | Same                                                 |
-| 백업    | 자동 백업 (automatic backup) | Checkbox                         | On                           | `preferences.json` `backup.auto`                          | Next launch | 하루 한 번, 앱을 켤 때                               |
-| 백업    | 백업 폴더 (backup folder)    | Read-only path, 바꾸기…          | `Documents\LoveLightBackups` | `app.json` `backupPath`                                   | Next backup |                                                      |
-| 백업    | 보관 (keep)                  | Number, 개, 1 to 365             | 30                           | `backup.keep`                                             | Next backup |                                                      |
-| 백업    | 마지막 백업 (last backup)    | Read-only time, 지금 백업 button |                              | Not stored: the newest complete backup folder's name (02) | At once     |                                                      |
-| 이전 판 | 파일마다 (per file)          | Number, 개, 3 to 50              | 10                           | `backupCopies`                                            | Next save   | 곡과 예배 파일을 저장할 때 바로 전 판을 남깁니다     |
+| 폴더    | 미디어 (media folder)        | Read-only path, 바꾸기…          | `<data folder>\미디어`       | `app.json` `mediaPath`                                    | Next launch | Same                                                  |
+| 백업    | 자동 백업 (automatic backup) | Checkbox                         | On                           | `preferences.json` `backup.auto`                          | Next launch | 하루 한 번, 앱을 켤 때                                |
+| 백업    | 백업 폴더 (backup folder)    | Read-only path, 바꾸기…          | `Documents\LoveLightBackups` | `app.json` `backupPath`                                   | Next backup |                                                       |
+| 백업    | 보관 (keep)                  | Number, 개, 1 to 365             | 30                           | `backup.keep`                                             | Next backup |                                                       |
+| 백업    | 마지막 백업 (last backup)    | Read-only time, 지금 백업 button |                              | Not stored: the newest complete backup folder's name (02) | At once     |                                                       |
+| 이전 판 | 파일마다 (per file)          | Number, 개, 3 to 50              | 10                           | `backupCopies`                                            | Next save   | 곡과 예배 파일을 저장할 때 바로 전 판을 남깁니다      |
 
 - 보관 counts whole-data backups; 파일마다 counts the previous versions of one
   song or service file (02). They are different policies, so they sit in
