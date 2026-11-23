@@ -147,7 +147,32 @@
     },
     "stage": {
       "mode": "own",
-      "elements": [],
+      "elements": [
+        {
+          "id": "00000000-0000-4000-9000-000000000090",
+          "kind": "next",
+          "frame": {
+            "x": 48,
+            "y": 706,
+            "w": 1824,
+            "h": 272
+          },
+          "style": {
+            "font": "NanumSquare",
+            "weight": 700,
+            "size": 92,
+            "color": "#FFD66B",
+            "lineHeight": 1.2,
+            "tracking": 0,
+            "align": "center",
+            "vAlign": "top"
+          },
+          "fit": {
+            "min": 48
+          },
+          "wrap": "balance"
+        }
+      ],
       "backdrop": "#000000"
     }
   }

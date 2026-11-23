@@ -287,6 +287,9 @@ not preset names or indices, so the rename does not change existing themes.
 - With nothing live, every screen shows the 대기 화면 테마: the church's service
   times on 청중 화면, the clock and the timer on 무대 화면, and nothing on 방송
   화면. The same shows at launch when outputs turn on and nothing is live.
+- A 대기 화면 item in the 예배 순서 shows the same, and on 무대 화면 it also
+  shows what comes next in yellow, at the place of the 타이틀's (다음 곡: 성부
+  성자 성령 (새찬송가 7장)).
 
 ## Data
 
