@@ -1,3 +1,4 @@
+import {systemNow} from '../base/systemTime';
 /**
  * The clocks the live state reads: the wall clock for times of day and
  * deadlines, and main's monotonic 타이머 clock, which never steps back.
@@ -13,6 +14,6 @@ export function monotonicNow(): number {
 }
 
 export const SYSTEM_CLOCK: LiveClock = {
-  wall: () => Date.now(),
+  wall: () => systemNow(),
   timer: () => monotonicNow(),
 };

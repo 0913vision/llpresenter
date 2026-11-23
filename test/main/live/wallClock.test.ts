@@ -20,3 +20,23 @@ it('publishes clock jumps and time zone changes, but not normal ticks', () => {
   expect(publish).toHaveBeenLastCalledWith(reading);
   stop();
 });
+
+it('publishes a slow drift once it adds up past half a second', () => {
+  vi.useFakeTimers();
+  let reading = {wall: 10_000, monotonic: 5_000, timeZone: 'Asia/Seoul'};
+  const publish = vi.fn();
+  const stop = startWallClockWatcher(publish, () => reading);
+  for (let tick = 1; tick <= 5; tick++) {
+    reading = {
+      ...reading,
+      wall: 10_000 + tick * 1_100,
+      monotonic: 5_000 + tick * 1_000,
+    };
+    vi.advanceTimersByTime(1000);
+  }
+  expect(publish).not.toHaveBeenCalled();
+  reading = {...reading, wall: 10_000 + 6 * 1_100, monotonic: 11_000};
+  vi.advanceTimersByTime(1000);
+  expect(publish).toHaveBeenCalledOnce();
+  stop();
+});

@@ -1,3 +1,5 @@
+import type {WallClockSample} from '@core/schema/wallClock';
+import type {LlpApi} from '@contracts/ipc/api';
 import {act, cleanup, render, screen} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
@@ -20,7 +22,7 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-function fixture() {
+function fixture(liveApi: Partial<LlpApi['live']> = {}) {
   const document = expectSuccess(
     parseSettingsDocument({
       name: 'timers',
@@ -53,7 +55,7 @@ function fixture() {
   const run = live.timers?.[timer.id];
   const clock = vi.fn(async () => performance.timeOrigin);
   const write = vi.fn();
-  const api = mockLlpApi({live: {clock}, log: {write}});
+  const api = mockLlpApi({live: {clock, ...liveApi}, log: {write}});
   return {api, timer, run, clock, write};
 }
 
@@ -61,7 +63,13 @@ describe('timer values and their shared clock', () => {
   it('updates control clock and time-of-day countdown after a wall jump', async () => {
     const wall = Date.UTC(2026, 0, 1, 10);
     vi.setSystemTime(wall);
-    const f = fixture();
+    let push: (value: WallClockSample) => void = () => undefined;
+    const f = fixture({
+      subscribeWallClock: listener => {
+        push = listener;
+        return () => undefined;
+      },
+    });
     const clockTimer = {...f.timer, kind: 'clock' as const};
     const target = {
       ...f.timer,
@@ -85,6 +93,11 @@ describe('timer values and their shared clock', () => {
     expect(screen.getByText('30:00')).toBeDefined();
     act(() => {
       vi.setSystemTime(wall + 5 * 60_000);
+      push({
+        wall: wall + 5 * 60_000,
+        monotonic: performance.timeOrigin + performance.now(),
+        timeZone: 'UTC',
+      });
       vi.advanceTimersByTime(250);
     });
     expect(screen.getByText('10:05:00')).toBeDefined();

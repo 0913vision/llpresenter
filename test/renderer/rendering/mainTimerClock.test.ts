@@ -10,13 +10,17 @@ afterEach(() => {
 });
 
 describe('MainTimerClock', () => {
-  it('reads wall-clock jumps immediately without moving elapsed timers', async () => {
+  it('follows a wall-clock jump from main at once without moving elapsed timers', async () => {
     let wall = Date.UTC(2026, 0, 1, 10);
     vi.spyOn(Date, 'now').mockImplementation(() => wall);
     const monotonic = vi.spyOn(performance, 'now').mockReturnValue(100);
+    let push: (value: WallClockSample) => void = () => undefined;
     const clock = new MainTimerClock(() => Promise.resolve(1000), vi.fn(), {
       read: async () => ({wall, monotonic: 1000, timeZone: 'UTC'}),
-      subscribe: () => () => undefined,
+      subscribe: listener => {
+        push = listener;
+        return () => undefined;
+      },
       onChange: vi.fn(),
     });
     await Promise.resolve();
@@ -37,12 +41,14 @@ describe('MainTimerClock', () => {
     expect(timerText(target, run, clock.now())).toBe('30:00');
     wall += 5 * 60_000;
     monotonic.mockReturnValue(1100);
+    push({wall, monotonic: 2000, timeZone: 'UTC'});
     expect(
       stageClockText(clock.now().wall, '24h', {seconds: true, timeZone: 'UTC'}),
     ).toBe('10:05:00');
     expect(timerText(target, run, clock.now())).toBe('25:00');
     expect(timerText(elapsed, run, clock.now())).toBe('0:01');
     wall -= 5 * 60_000;
+    push({wall, monotonic: 2000, timeZone: 'UTC'});
     expect(timerText(target, run, clock.now())).toBe('30:00');
     expect(timerText(elapsed, run, clock.now())).toBe('0:01');
     clock.dispose();

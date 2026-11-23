@@ -7,12 +7,16 @@ import type {WallClockSample} from '@core/schema/wallClock';
  * (its midpoint). Until the answer arrives, both processes' time origins
  * stand in, which agree unless the computer's clock was corrected between
  * their starts.
- * Wall time is read from the system on each tick; main's wall notifications
- * supply the timezone and prompt a redraw after a correction.
+ * Wall time counts on from main's last wall sample with this window's steady
+ * clock: on Windows, Date.now() follows a clock set by hand only up to a
+ * minute later, while main reads Windows itself and sends a new sample at
+ * once. Before the first sample, Date.now() stands in.
  */
 export class MainTimerClock {
   private offset = performance.timeOrigin;
   private timeZone: string | undefined;
+  /** Main's last wall reading, and this window's steady time when it came. */
+  private wallBase: {readonly wall: number; readonly at: number} | undefined;
   private stopWall: (() => void) | undefined;
   private generation = 0;
   private disposed = false;
@@ -40,7 +44,10 @@ export class MainTimerClock {
 
   readonly now = (): TimerNow => ({
     timer: performance.now() + this.offset,
-    wall: Date.now(),
+    wall:
+      this.wallBase === undefined
+        ? Date.now()
+        : this.wallBase.wall + performance.now() - this.wallBase.at,
     ...(this.timeZone === undefined ? {} : {timeZone: this.timeZone}),
   });
   resume(): void {
@@ -53,6 +60,7 @@ export class MainTimerClock {
     const accept = (value: WallClockSample): void => {
       if (this.disposed || generation !== this.generation) return;
       this.timeZone = value.timeZone;
+      this.wallBase = {wall: value.wall, at: performance.now()};
       wall.onChange();
     };
     this.stopWall = wall.subscribe(value => {
