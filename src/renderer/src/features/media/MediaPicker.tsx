@@ -1,14 +1,18 @@
 import {
   useId,
   useLayoutEffect,
-  useMemo,
   useRef,
   useState,
   type JSX,
   type KeyboardEvent,
 } from 'react';
-import type {MediaItem} from '@core/schema/mediaList';
-import {mediaName} from './mediaEntries';
+import {
+  choiceLabel,
+  isChosenChoice,
+  pickerChoices,
+  searchName,
+  type MediaPickerItem,
+} from './mediaPickerChoices';
 import {Icon} from '@renderer/ui/Icon';
 import {classNames} from '@renderer/ui/classNames';
 import {isComposing} from '@renderer/ui/ime';
@@ -23,11 +27,7 @@ import styles from './MediaPicker.module.css';
 
 const VISIBLE_ROWS = 8;
 const OVERSCAN = 2;
-export const NONE_LABEL = '없음';
-
-function searchName(value: string): string {
-  return value.trim().normalize('NFC').toLocaleLowerCase();
-}
+export {NONE_LABEL, type MediaPickerItem} from './mediaPickerChoices';
 
 function targetFor(
   key: string,
@@ -43,15 +43,6 @@ function targetFor(
     default:
       return undefined;
   }
-}
-
-/** A file to choose, or a fill that is painted instead of a file. */
-export interface MediaPickerItem {
-  readonly id: string;
-  readonly name: string;
-  readonly kind: MediaItem['kind'] | 'fill';
-  readonly internal?: boolean | undefined;
-  readonly paint?: string | undefined;
 }
 
 interface PickerProps {
@@ -93,52 +84,15 @@ export function MediaPicker({
   onClose,
 }: PickerProps): JSX.Element {
   const [overModal] = useState(() => modalStack.isOpen);
-  const searchable = useMemo(
-    () =>
-      [...(leadingGroup?.items ?? []), ...items]
-        .filter(item => item.kind !== 'audio' && item.internal !== true)
-        .map(item => ({item, name: searchName(mediaName(item))})),
-    [items, leadingGroup],
-  );
-  const hasDefault = allowNone || defaultChoice !== undefined;
-  const specialCount =
-    (hasDefault ? 1 : 0) + (explicitNone === undefined ? 0 : 1);
-  const choices = useMemo(() => {
-    const term = searchName(query);
-    return [
-      ...(hasDefault ? [undefined] : []),
-      ...(explicitNone === undefined ? [] : [null]),
-      ...searchable
-        .filter(({name}) => name.includes(term))
-        .map(({item}) => item),
-    ];
-  }, [searchable, query, hasDefault, explicitNone]);
-  const groups = useMemo(() => {
-    const leadingIds = new Set(leadingGroup?.items.map(item => item.id));
-    const leadingCount = choices.filter(
-      item => item != null && leadingIds.has(item.id),
-    ).length;
-    const firstItem = specialCount;
-    return [
-      ...(leadingGroup !== undefined && leadingCount > 0
-        ? [{index: firstItem, label: leadingGroup.label}]
-        : []),
-      ...(itemsLabel !== undefined && choices.length > firstItem + leadingCount
-        ? [{index: firstItem + leadingCount, label: itemsLabel}]
-        : []),
-    ];
-  }, [choices, leadingGroup, itemsLabel, specialCount]);
+  const specials = {allowNone, defaultChoice, explicitNone};
+  const pick = (value: string) =>
+    pickerChoices({items, leadingGroup, itemsLabel, query: value, specials});
+  const {choices, groups, specialCount, hasDefault} = pick(query);
   const [activeIndex, setActive] = useState(() =>
     searchName(query) === ''
       ? Math.max(
           0,
-          choices.findIndex(item =>
-            item === null
-              ? explicitNone?.selected === true
-              : item === undefined
-                ? selected === undefined && explicitNone?.selected !== true
-                : item.id === selected,
-          ),
+          choices.findIndex(item => isChosenChoice(item, selected, specials)),
         )
       : Math.max(0, Math.min(specialCount, choices.length - 1)),
   );
@@ -215,14 +169,7 @@ export function MediaPicker({
   });
   const filter = (value: string): void => {
     onQueryChange(value);
-    const term = searchName(value);
-    setActive(
-      hasDefault &&
-        term !== '' &&
-        searchable.some(({name}) => name.includes(term))
-        ? specialCount
-        : 0,
-    );
+    setActive(hasDefault && pick(value).found ? specialCount : 0);
     if (viewport.current !== null) viewport.current.scrollTop = 0;
     setTop(0);
   };
@@ -259,25 +206,15 @@ export function MediaPicker({
       : undefined;
   const option = (index: number): JSX.Element => {
     const item = choices[index];
-    const checked =
-      item === null
-        ? explicitNone?.selected === true
-        : item === undefined
-          ? selected === undefined && explicitNone?.selected !== true
-          : item.id === selected;
+    const checked = isChosenChoice(item, selected, specials);
+    const name = choiceLabel(item, specials);
     return (
       <button
         {...optionPress}
         key={item === null ? 'explicit-none' : (item?.id ?? 'default')}
         type="button"
         role="option"
-        aria-label={
-          item === null
-            ? NONE_LABEL
-            : item === undefined
-              ? (defaultChoice?.label ?? NONE_LABEL)
-              : mediaName(item)
-        }
+        aria-label={name}
         aria-description={
           item === undefined ? defaultChoice?.detail : undefined
         }
@@ -305,13 +242,7 @@ export function MediaPicker({
         ) : (
           <Icon name={item.kind === 'video' ? 'film' : item.kind} size={14} />
         )}
-        <span className={menu.label}>
-          {item === null
-            ? NONE_LABEL
-            : item === undefined
-              ? (defaultChoice?.label ?? NONE_LABEL)
-              : mediaName(item)}
-        </span>
+        <span className={menu.label}>{name}</span>
         {item === undefined && defaultChoice !== undefined ? (
           <span className={classNames(menu.meta, styles.detail)}>
             {defaultChoice.detail}
