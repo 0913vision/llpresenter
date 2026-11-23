@@ -19,6 +19,14 @@
   max-width: var(--size-field-title);
 }
 
+.commands {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-10);
+  margin-left: auto;
+}
+
 .used {
   display: inline-flex;
   flex: none;

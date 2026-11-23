@@ -128,22 +128,6 @@ function SongHeader({
       </div>
       {busy ? <Progress value={null} label="배경 가져오는 중" /> : null}
       {draft.document === null ? null : (
-        <Button
-          disabled={saving || readOnly}
-          onClick={() => ask({kind: 'saveAs'})}
-        >
-          다른 이름으로 저장…
-        </Button>
-      )}
-      <Button
-        variant={draft.document === null ? 'primary' : undefined}
-        disabled={saving || readOnly || !unsaved || reason !== undefined}
-        title={reason ?? (unsaved ? undefined : '변경 없음')}
-        onClick={save}
-      >
-        저장
-      </Button>
-      {draft.document === null ? null : (
         <Tooltip text={usage.tooltip}>
           <span
             tabIndex={0}
@@ -155,6 +139,24 @@ function SongHeader({
           </span>
         </Tooltip>
       )}
+      <div className={styles.commands}>
+        {draft.document === null ? null : (
+          <Button
+            disabled={saving || readOnly}
+            onClick={() => ask({kind: 'saveAs'})}
+          >
+            다른 이름으로 저장…
+          </Button>
+        )}
+        <Button
+          variant={draft.document === null ? 'primary' : undefined}
+          disabled={saving || readOnly || !unsaved || reason !== undefined}
+          title={reason ?? (unsaved ? undefined : '변경 없음')}
+          onClick={save}
+        >
+          저장
+        </Button>
+      </div>
     </header>
   );
 }

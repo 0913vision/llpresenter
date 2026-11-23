@@ -64,7 +64,9 @@ function ItemHeader({
           }}
         />
       </div>
-      <ItemTools deck={deck} report={report} />
+      <div className={styles.commands}>
+        <ItemTools deck={deck} report={report} />
+      </div>
     </header>
   );
 }
