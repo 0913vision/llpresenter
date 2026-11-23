@@ -98,9 +98,15 @@ describe('the output preview', () => {
     act(() =>
       useLive.setState({state: {...state, outputs: {[MAIN_ID]: true}}}),
     );
-    expect(screen.getByTestId('output-mirror').textContent).toBe(MAIN_ID);
+    // NOTE(0913vision): The mirror mounts once the screens document is in,
+    // which can take one more turn on a slow machine.
+    expect((await screen.findByTestId('output-mirror')).textContent).toBe(
+      MAIN_ID,
+    );
     act(() => useLive.setState({state}));
-    expect(screen.queryByTestId('output-mirror')).toBeNull();
+    await waitFor(() =>
+      expect(screen.queryByTestId('output-mirror')).toBeNull(),
+    );
   });
 
   it('fits the configured output aspect ratio in the available space', async () => {
