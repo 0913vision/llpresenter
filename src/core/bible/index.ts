@@ -32,6 +32,7 @@ export {
 } from './referenceFields';
 export {
   type EditHistory,
+  changedGap,
   effectiveCuts,
   hintCharFromEvent,
   hintLabels,

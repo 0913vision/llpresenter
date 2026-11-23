@@ -9,6 +9,7 @@ import {
 } from 'react';
 import {
   type VerseInput,
+  changedGap,
   planSlides,
   type SplitLayout,
   effectiveCuts,
@@ -101,6 +102,67 @@ export function SplitEditor(props: SplitEditorProps): JSX.Element {
 }
 
 /** Copible's word-gap editor. Its parent remounts it for each verse. */
+/**
+ * One word of the verse and, after it, the key that cuts the verse there:
+ * the letters typed so far stand out while they match.
+ */
+function SplitWord({
+  text,
+  label,
+  typed,
+  last,
+  cut,
+  busy,
+  onCut,
+}: {
+  readonly text: string;
+  readonly label: string | undefined;
+  readonly typed: string;
+  readonly last: boolean;
+  readonly cut: boolean;
+  readonly busy: boolean;
+  readonly onCut: () => void;
+}): JSX.Element {
+  const matches = label?.startsWith(typed) === true;
+  return (
+    <span>
+      <span className={styles.group}>
+        <button
+          type="button"
+          className={styles.word}
+          disabled={last || busy}
+          onClick={onCut}
+        >
+          {text}
+        </button>
+        {label === undefined ? null : (
+          <>
+            {' '}
+            <button
+              type="button"
+              className={styles.hint}
+              aria-label={`${label.toUpperCase()}에서 자르기`}
+              aria-pressed={cut}
+              data-match={typed === '' || matches}
+              disabled={busy}
+              onClick={onCut}
+            >
+              {typed !== '' && matches ? (
+                <>
+                  <span className={styles.typed}>{typed.toUpperCase()}</span>
+                  {label.slice(typed.length).toUpperCase()}
+                </>
+              ) : (
+                label.toUpperCase()
+              )}
+            </button>
+          </>
+        )}
+      </span>{' '}
+    </span>
+  );
+}
+
 function VerseSplitEditor(
   props: SplitEditorProps & {readonly afterSpinner: boolean},
 ): JSX.Element {
@@ -119,7 +181,7 @@ function VerseSplitEditor(
   const active = useRef(true);
   const locked = useRef(false);
   const previews = useRef<HTMLDivElement>(null);
-  const changedGap = useRef<number | undefined>(undefined);
+  const changedGapRef = useRef<number | undefined>(undefined);
   useEffect(() => {
     active.current = true;
     return () => {
@@ -146,10 +208,10 @@ function VerseSplitEditor(
     props.preparedPlan,
   ]);
   useLayoutEffect(() => {
-    const gap = changedGap.current;
+    const gap = changedGapRef.current;
     const area = previews.current;
     if (gap === undefined || area === null) return;
-    changedGap.current = undefined;
+    changedGapRef.current = undefined;
     const part = plan.cuts.filter(cut => cut <= gap).length;
     const rowStart = Math.floor(part / RESULTS_PER_ROW) * RESULTS_PER_ROW;
     const target = area.children.item(rowStart);
@@ -160,21 +222,7 @@ function VerseSplitEditor(
   const labels = hintLabels(Math.max(0, plan.words.length - 1));
   const edit = (next: EditHistory, gap?: number): void => {
     if (next === history) return;
-    const previous = effectiveCuts(history.present);
-    const cuts = effectiveCuts(next.present);
-    const userGap = [...history.present.user, ...next.present.user].find(
-      value =>
-        history.present.user.includes(value) !==
-        next.present.user.includes(value),
-    );
-    const effectiveGap = [...previous, ...cuts].find(
-      value => previous.includes(value) !== cuts.includes(value),
-    );
-    changedGap.current =
-      gap ??
-      (history.present.dismissed !== next.present.dismissed
-        ? effectiveGap
-        : (userGap ?? effectiveGap));
+    changedGapRef.current = gap ?? changedGap(history, next);
     setHistory(next);
   };
   const cut = (j: number): void => {
@@ -307,49 +355,18 @@ function VerseSplitEditor(
           {props.ruleBased ? <p>규칙 기반 분할</p> : null}
           {props.ruleBased
             ? null
-            : plan.words.map((word, index) => {
-                const label = labels[index];
-                const matches = label?.startsWith(buffer) === true;
-                return (
-                  <span key={word.start}>
-                    <span className={styles.group}>
-                      <button
-                        type="button"
-                        className={styles.word}
-                        disabled={index === plan.words.length - 1 || busy}
-                        onClick={() => cut(index + 1)}
-                      >
-                        {word.text}
-                      </button>
-                      {label === undefined ? null : (
-                        <>
-                          {' '}
-                          <button
-                            type="button"
-                            className={styles.hint}
-                            aria-label={`${label.toUpperCase()}에서 자르기`}
-                            aria-pressed={plan.cuts.includes(index + 1)}
-                            data-match={buffer === '' || matches}
-                            disabled={busy}
-                            onClick={() => cut(index + 1)}
-                          >
-                            {buffer !== '' && matches ? (
-                              <>
-                                <span className={styles.typed}>
-                                  {buffer.toUpperCase()}
-                                </span>
-                                {label.slice(buffer.length).toUpperCase()}
-                              </>
-                            ) : (
-                              label.toUpperCase()
-                            )}
-                          </button>
-                        </>
-                      )}
-                    </span>{' '}
-                  </span>
-                );
-              })}
+            : plan.words.map((word, index) => (
+                <SplitWord
+                  key={word.start}
+                  text={word.text}
+                  label={labels[index]}
+                  typed={buffer}
+                  last={index === plan.words.length - 1}
+                  cut={plan.cuts.includes(index + 1)}
+                  busy={busy}
+                  onCut={() => cut(index + 1)}
+                />
+              ))}
         </div>
         <div
           ref={previews}

@@ -89,6 +89,30 @@ export function redoEdit(history: EditHistory): EditHistory {
       };
 }
 
+/**
+ * The gap an edit from `history` to `next` changed, for the view to bring
+ * into sight: the gap the operator pressed, or else the first cut that came
+ * or went. Showing or dropping the automatic cuts names the cut that moved.
+ */
+export function changedGap(
+  history: EditHistory,
+  next: EditHistory,
+): number | undefined {
+  const before = history.present;
+  const after = next.present;
+  const previous = effectiveCuts(before);
+  const cuts = effectiveCuts(after);
+  const userGap = [...before.user, ...after.user].find(
+    value => before.user.includes(value) !== after.user.includes(value),
+  );
+  const effectiveGap = [...previous, ...cuts].find(
+    value => previous.includes(value) !== cuts.includes(value),
+  );
+  return before.dismissed !== after.dismissed
+    ? effectiveGap
+    : (userGap ?? effectiveGap);
+}
+
 export const HINT_ALPHABET = 'asdfghjklqwertyuiopzxcvbnm1234567890';
 
 export function hintLabels(count: number): readonly string[] {

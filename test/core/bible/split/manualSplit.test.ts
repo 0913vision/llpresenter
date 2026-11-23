@@ -8,6 +8,7 @@ import {
   wordsOf,
 } from '@core/bible/split/manualSplit';
 import {
+  changedGap,
   effectiveCuts,
   EDIT_HISTORY_LIMIT,
   hintCharFromEvent,
@@ -156,5 +157,27 @@ describe('copible cut state, history, and hints', () => {
         hintCharFromEvent({code}),
       ),
     ).toEqual(['a', 's', '1', null]);
+  });
+});
+
+describe('changedGap', () => {
+  it('names the gap the operator pressed', () => {
+    const start = initialEditHistory([3, 6]);
+    const pressed = pressGap(start, 8);
+    expect(changedGap(start, pressed)).toBe(8);
+    const more = pressGap(pressed, 9);
+    expect(changedGap(pressed, more)).toBe(9);
+  });
+
+  it('names the cut that moved when the automatic cuts are dropped', () => {
+    const start = initialEditHistory([3, 6]);
+    const dismissed = pressGap(start, 3);
+    expect(changedGap(start, dismissed)).toBe(3);
+    expect(changedGap(dismissed, undoEdit(dismissed))).toBe(3);
+  });
+
+  it('names nothing when no cut changed', () => {
+    const start = initialEditHistory([3]);
+    expect(changedGap(start, start)).toBeUndefined();
   });
 });
