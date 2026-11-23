@@ -3,7 +3,7 @@ export {
   adjacentVerseRange,
   passageBook,
 } from './adjacentVerses';
-export {BIBLE_BOOKS} from './bibleBooks';
+export {BIBLE_BOOKS, type BibleBook} from './bibleBooks';
 export {
   BOOK_SUGGESTION_LIMIT,
   exactBibleBook,

@@ -1,17 +1,13 @@
 import {
-  BIBLE_BOOKS,
-  BIBLE_VERSE_COUNTS,
   LIVE_BIBLE_ID,
   exactBibleBook,
   findBibleBooks,
   parseReference,
-  recentPassages,
   changeReferenceField,
   EMPTY_REFERENCE,
   reconcileReferenceFields,
   referenceFieldsState,
   selectedBook,
-  type ReferenceFields,
   type ReferencePart,
 } from '@core/bible';
 import {
@@ -36,6 +32,19 @@ import type {TranslationId} from '@core/schema/ids';
 import {TextField} from '@renderer/ui';
 import {isComposing} from '@renderer/ui/ime';
 import {BibleSuggestions, type BibleSuggestion} from './BibleSuggestions';
+import {
+  LIVE_BOUNDS,
+  NUMBER_PARTS,
+  REFERENCE_LABELS,
+  fieldsOfReference,
+  focusPart,
+  fullReferenceCandidate,
+  numberPlaceholder,
+  readReferenceFields,
+  referenceKey,
+  referenceSuggestions,
+  type ReferenceKey,
+} from './referenceForm';
 import {useBibleLookup} from './useBibleLookup';
 import styles from './BibleReferenceField.module.css';
 
@@ -62,90 +71,15 @@ export interface BibleReferenceFormProps {
   readonly onEscape?: (() => void) | undefined;
 }
 
-const NUMBER_PARTS = ['chapter', 'start', 'end'] as const;
-const LABELS = {
-  book: '책',
-  chapter: '장',
-  start: '시작절',
-  end: '끝절',
-} as const;
 const ignorePreview = (): void => undefined;
-const LIVE_BOUNDS = new Map(
-  BIBLE_BOOKS.map(book => [
-    book.id,
-    {bookId: book.id, chapterVerses: BIBLE_VERSE_COUNTS[book.id - 1] ?? []},
-  ]),
-);
-
-/** Resolve a complete reference using the same bounds as submission. */
-function fullReferenceCandidate(value: string) {
-  const parsed = parseReference(value);
-  if (!parsed.ok || parsed.value.chapter !== parsed.value.endChapter) {
-    return null;
-  }
-  const reference = parsed.value;
-  const bounds = LIVE_BOUNDS.get(reference.book.id);
-  const last = bounds?.chapterVerses[reference.chapter - 1];
-  const next: ReferenceFields = {
-    book: reference.book.korean,
-    chapter: String(reference.chapter),
-    start: String(reference.verse ?? 1),
-    end: String(reference.endVerse ?? last ?? 1),
-  };
-  const parsedState = referenceFieldsState(next, bounds);
-  const input =
-    reference.verse === null && parsedState.input
-      ? `${reference.book.korean} ${reference.chapter}`
-      : parsedState.input;
-  const invalidPart: ReferencePart = parsedState.errors.chapter
-    ? 'chapter'
-    : parsedState.errors.start
-      ? 'start'
-      : 'end';
-  return {reference, next, parsedState, input, invalidPart};
-}
-
-function focusPart(root: HTMLElement | null, part: ReferencePart): void {
-  const field = root?.querySelector<HTMLInputElement>(
-    `[data-reference-part="${part}"]`,
-  );
-  field?.focus();
-  field?.select();
-}
-
-function readReferenceFields(
-  root: HTMLElement | null,
-  fallback: ReferenceFields,
-): ReferenceFields {
-  const current = {...fallback};
-  for (const part of ['book', ...NUMBER_PARTS] as const) {
-    const field = root?.querySelector<HTMLInputElement>(
-      `[data-reference-part="${part}"]`,
-    );
-    if (field !== undefined && field !== null) current[part] = field.value;
-  }
-  return current;
-}
 
 /** Shares book completion and endpoint validation across Show and Prep. */
 export function BibleReferenceForm(
   props: BibleReferenceFormProps,
 ): JSX.Element {
-  const [fields, setFields] = useState(() => {
-    const parsed =
-      props.initialRef === undefined ? null : parseReference(props.initialRef);
-    if (!parsed?.ok) return EMPTY_REFERENCE;
-    const value = parsed.value;
-    return {
-      book: value.book.korean,
-      chapter: String(value.chapter),
-      start: value.verse === null ? '' : String(value.verse),
-      end:
-        value.endVerse === null || value.endVerse === value.verse
-          ? ''
-          : String(value.endVerse),
-    };
-  });
+  const [fields, setFields] = useState(() =>
+    fieldsOfReference(props.initialRef),
+  );
   const [open, setOpen] = useState(false);
   const [pointed, setPointed] = useState(-1);
   const [keyboardPointed, setKeyboardPointed] = useState<number | null>(null);
@@ -172,17 +106,13 @@ export function BibleReferenceForm(
       ? (selectedRecent?.translation ?? props.translation)
       : props.translation;
   const root = useRef<HTMLDivElement>(null);
-  const [chapterFocus, setChapterFocus] = useState<{
-    readonly bookId: number;
-    readonly translation: TranslationId | undefined;
-  } | null>(null);
-  const advancedBook = useRef<typeof chapterFocus>(null);
+  /** Counts the books chosen with a move on to 장. */
+  const [toChapter, setToChapter] = useState(0);
   useLayoutEffect(() => {
-    if (chapterFocus === null) return;
+    if (toChapter === 0) return;
     // NOTE(0913vision): Completion must enable the chapter input before focus.
     focusPart(root.current, 'chapter');
-    advancedBook.current = chapterFocus;
-  }, [chapterFocus]);
+  }, [toChapter]);
   useEffect(() => {
     if (props.autoFocus && props.translation !== undefined) {
       root.current
@@ -193,7 +123,6 @@ export function BibleReferenceForm(
   const bookAnchor = useRef<HTMLDivElement>(null);
   const listId = useId();
   const book = selectedBook(fields.book);
-  const bookId = book?.id;
   const books = findBibleBooks(fields.book);
   const metadataBook =
     exactBibleBook(fields.book) ?? books[keyboardPointed ?? -1] ?? book;
@@ -205,15 +134,6 @@ export function BibleReferenceForm(
   });
   const metadataBounds =
     metadataBook === undefined ? undefined : LIVE_BOUNDS.get(metadataBook.id);
-  useEffect(() => {
-    const target = advancedBook.current;
-    if (target === null) return;
-    if (target.bookId !== bookId || target.translation !== translation) {
-      advancedBook.current = null;
-      return;
-    }
-    advancedBook.current = null;
-  }, [bookId, chapterFocus, translation]);
   const reconciled = reconcileReferenceFields(fields, metadataBounds);
   if (reconciled !== fields) setFields(reconciled);
   const state = referenceFieldsState(reconciled, metadataBounds);
@@ -280,22 +200,11 @@ export function BibleReferenceForm(
   }, [reply, selectedRecent?.ref, state.input, translation]);
   const onReady = props.onReady;
   useEffect(() => onReady?.(passage ?? null), [onReady, passage]);
-  const suggestions: readonly BibleSuggestion[] = [
-    ...books.map(candidate => ({
-      key: `book:${candidate.id}`,
-      bookId: candidate.id,
-      group: '책',
-      input: candidate.korean,
-      translation: props.translation,
-    })),
-    ...recentPassages(props.recents ?? []).map(item => ({
-      key: `recent:${item.translation}:${item.ref}`,
-      group: '최근',
-      input: item.ref,
-      ref: item.ref,
-      translation: item.translation,
-    })),
-  ];
+  const suggestions = referenceSuggestions(
+    books,
+    props.recents ?? [],
+    props.translation,
+  );
   const expanded =
     props.translation !== undefined && open && suggestions.length > 0;
   const change = (part: ReferencePart, value: string): void => {
@@ -305,7 +214,6 @@ export function BibleReferenceForm(
     );
     if (nextFields === fields && value !== fields[part]) return;
     pendingSubmit.current = null;
-    advancedBook.current = null;
     props.onIntent?.();
     if (nextFields !== fields || selectedRecent !== undefined) {
       const nextInput = referenceFieldsState(nextFields, metadataBounds).input;
@@ -329,14 +237,11 @@ export function BibleReferenceForm(
     setOpen(false);
   };
   const chooseSuggestion = (item: BibleSuggestion, advance = true): void => {
-    advancedBook.current = null;
     if (item.ref === undefined || item.translation === undefined) {
       choose(item.input);
       // NOTE(0913vision): A chosen book moves on to 장, as in copible, the
       // Bible reference app.
-      if (advance && item.bookId !== undefined) {
-        setChapterFocus({bookId: item.bookId, translation});
-      }
+      if (advance && item.bookId !== undefined) setToChapter(turn => turn + 1);
       return;
     }
     props.onIntent?.();
@@ -378,7 +283,7 @@ export function BibleReferenceForm(
       return;
     }
     choose(candidate.korean);
-    setChapterFocus({bookId: candidate.id, translation});
+    setToChapter(turn => turn + 1);
   };
   const acceptFullReference = (value: string, submit: boolean): boolean => {
     const candidate = fullReferenceCandidate(value);
@@ -409,158 +314,129 @@ export function BibleReferenceForm(
     }
     return true;
   };
+  const clear = (): void => {
+    props.onIntent?.();
+    setFields(EMPTY_REFERENCE);
+    setRecent(null);
+    setOpen(false);
+    setBlocked(null);
+    focusPart(root.current, 'book');
+  };
+  const act = (
+    part: ReferencePart,
+    action: ReferenceKey,
+    event: KeyboardEvent<HTMLInputElement>,
+  ): void => {
+    /** Keeps the key from the browser and from the window. */
+    const take = (): void => {
+      event.preventDefault();
+      event.stopPropagation();
+    };
+    switch (action.kind) {
+      case 'pass':
+        return;
+      case 'tab-after-composition':
+        event.preventDefault();
+        tabAfterComposition.current = true;
+        return;
+      case 'focus':
+        event.preventDefault();
+        focusPart(root.current, action.part);
+        return;
+      case 'point':
+        event.preventDefault();
+        setOpen(true);
+        setPointed(action.index);
+        setKeyboardPointed(action.index);
+        return;
+      case 'advance-book':
+        event.preventDefault();
+        advanceBook();
+        return;
+      case 'refuse':
+        event.preventDefault();
+        return;
+      case 'block':
+        event.preventDefault();
+        setBlocked(part);
+        return;
+      case 'clear':
+        take();
+        pendingSubmit.current = null;
+        clear();
+        return;
+      case 'escape':
+        take();
+        pendingSubmit.current = null;
+        props.onEscape?.();
+        return;
+      case 'close-suggestions':
+        take();
+        pendingSubmit.current = null;
+        setOpen(false);
+        return;
+      case 'to-book':
+        take();
+        pendingSubmit.current = null;
+        setBlocked(null);
+        root.current
+          ?.querySelector<HTMLInputElement>('[role="combobox"]')
+          ?.focus();
+        return;
+      case 'choose-highlighted': {
+        take();
+        const highlighted = suggestions[keyboardPointed ?? -1];
+        if (highlighted !== undefined) chooseSuggestion(highlighted);
+        return;
+      }
+      case 'full-reference':
+        take();
+        acceptFullReference(event.currentTarget.value, action.submit);
+        return;
+      case 'submit':
+        take();
+        submit(part);
+        return;
+      case 'ignore':
+      case 'repeat':
+        take();
+        return;
+    }
+  };
   const onKeyDown = (
     part: ReferencePart,
     event: KeyboardEvent<HTMLInputElement>,
   ): void => {
-    if (isComposing(event)) {
-      if (
-        part === 'book' &&
-        !event.shiftKey &&
-        (event.key === 'Tab' || event.nativeEvent.code === 'Tab')
-      ) {
-        event.preventDefault();
-        tabAfterComposition.current = true;
-      }
-      return;
-    }
-    if (event.altKey || event.ctrlKey || event.metaKey) return;
-    if (props.dialogMode && event.key === 'Escape') {
-      event.preventDefault();
-      event.stopPropagation();
-      pendingSubmit.current = null;
-      if (
-        [fields.book, fields.chapter, fields.start, fields.end].some(
-          value => value !== '',
-        )
-      ) {
-        props.onIntent?.();
-        setFields(EMPTY_REFERENCE);
-        setRecent(null);
-        setOpen(false);
-        setBlocked(null);
-        focusPart(root.current, 'book');
-      } else props.onEscape?.();
-      return;
-    }
-    if (
-      props.dialogMode &&
-      event.key === 'Backspace' &&
-      event.currentTarget.value === '' &&
-      part !== 'book'
-    ) {
-      event.preventDefault();
-      const index = NUMBER_PARTS.indexOf(part);
-      focusPart(
-        root.current,
-        index <= 0 ? 'book' : (NUMBER_PARTS[index - 1] ?? 'book'),
-      );
-      return;
-    }
-    if (event.key === 'Escape' && expanded) {
-      pendingSubmit.current = null;
-      event.preventDefault();
-      event.stopPropagation();
-      setOpen(false);
-      return;
-    }
-    if (event.key === 'Escape' && props.onEscape !== undefined) {
-      pendingSubmit.current = null;
-      event.preventDefault();
-      event.stopPropagation();
-      props.onEscape();
-      return;
-    }
-    if (part === 'book') {
-      const highlighted = suggestions[keyboardPointed ?? -1];
-      if (
-        expanded &&
-        !event.repeat &&
-        (event.key === 'Enter' || (event.key === 'Tab' && !event.shiftKey)) &&
-        highlighted?.bookId !== undefined
-      ) {
-        event.preventDefault();
-        event.stopPropagation();
-        chooseSuggestion(highlighted);
-        return;
-      }
-      if (event.key === 'Enter' && props.submissionDisabled) {
-        event.preventDefault();
-        event.stopPropagation();
-        return;
-      }
-      if (
-        (event.key === 'Enter' || (event.key === 'Tab' && !event.shiftKey)) &&
-        !event.repeat &&
-        acceptFullReference(event.currentTarget.value, event.key === 'Enter')
-      ) {
-        event.preventDefault();
-        event.stopPropagation();
-        return;
-      }
-      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-        advancedBook.current = null;
-        event.preventDefault();
-        setOpen(true);
-        const next =
-          event.key === 'ArrowDown'
-            ? Math.min(pointed + 1, suggestions.length - 1)
-            : Math.max(-1, pointed - 1);
-        setPointed(next);
-        setKeyboardPointed(next);
-        return;
-      }
-      if (event.key === 'Tab' && !event.shiftKey) {
-        if (
-          fields.book.trim() === '' &&
-          suggestions[keyboardPointed ?? -1] === undefined
-        ) {
-          return;
-        }
-        event.preventDefault();
-        advanceBook();
-        return;
-      }
-    }
-    if (event.key === 'Escape' && part !== 'book') {
-      pendingSubmit.current = null;
-      event.preventDefault();
-      event.stopPropagation();
-      setBlocked(null);
-      root.current
-        ?.querySelector<HTMLInputElement>('[role="combobox"]')
-        ?.focus();
-      return;
-    }
-    if (
-      (part === 'chapter' && event.key === ':' && state.enabled.start) ||
-      (part === 'start' && /^[-~\uFF5E]$/u.test(event.key) && state.enabled.end)
-    ) {
-      event.preventDefault();
-      focusPart(root.current, part === 'chapter' ? 'start' : 'end');
-      return;
-    }
-    if (part !== 'book' && event.key.length === 1 && !/^\d$/u.test(event.key)) {
-      event.preventDefault();
-      return;
-    }
-    if (
-      event.key === 'Tab' &&
-      !event.shiftKey &&
-      state.errors[part] &&
-      [fields.book, fields.chapter, fields.start, fields.end].some(
-        value => value.trim() !== '',
-      )
-    ) {
-      event.preventDefault();
-      setBlocked(part);
-      return;
-    }
-    if (event.key !== 'Enter') return;
-    event.preventDefault();
-    event.stopPropagation();
-    if (event.repeat) return;
-    submit(part);
+    const highlighted = suggestions[keyboardPointed ?? -1];
+    act(
+      part,
+      referenceKey(
+        part,
+        {
+          key: event.key,
+          code: event.nativeEvent.code,
+          shift: event.shiftKey,
+          command: event.altKey || event.ctrlKey || event.metaKey,
+          repeat: event.repeat,
+          composing: isComposing(event),
+          value: event.currentTarget.value,
+        },
+        {
+          dialogMode: props.dialogMode === true,
+          expanded,
+          escapes: props.onEscape !== undefined,
+          submissionDisabled: props.submissionDisabled === true,
+          highlightedBook: highlighted?.bookId !== undefined,
+          highlighted: highlighted !== undefined,
+          pointed,
+          suggestions: suggestions.length,
+          fields,
+          enabled: state.enabled,
+          error: state.errors[part] !== undefined,
+        },
+      ),
+      event,
+    );
   };
   const submit = (part: ReferencePart): void => {
     if (props.translation === undefined || props.submissionDisabled) return;
@@ -651,16 +527,9 @@ export function BibleReferenceForm(
           value={fields.book}
           onChange={value => change('book', value)}
           onKeyDown={event => onKeyDown('book', event)}
-          onFocus={() => {
-            advancedBook.current = null;
-            setOpen(true);
-          }}
-          onBlur={() => {
-            advancedBook.current = null;
-            setOpen(false);
-          }}
+          onFocus={() => setOpen(true)}
+          onBlur={() => setOpen(false)}
           onCompositionStart={() => {
-            advancedBook.current = null;
             tabAfterComposition.current = false;
           }}
           onCompositionEnd={() => {
@@ -682,35 +551,22 @@ export function BibleReferenceForm(
           <TextField
             size={props.overlayLabels ? 'md' : 'sm'}
             block
-            affix={props.overlayLabels ? LABELS[part] : undefined}
+            affix={props.overlayLabels ? REFERENCE_LABELS[part] : undefined}
             inputMode="numeric"
-            aria-label={LABELS[part]}
-            placeholder={
-              props.dialogMode
-                ? part === 'chapter' && metadataBook
-                  ? `1~${metadataBook.chapters}`
-                  : part !== 'chapter' && chapterNumber > 0
-                    ? lastVerse === undefined
-                      ? '불러오는 중...'
-                      : `${part === 'end' && fields.start ? fields.start : 1}~${lastVerse}`
-                    : LABELS[part]
-                : part !== 'chapter' && lastVerse !== undefined
-                  ? String(part === 'start' ? 1 : lastVerse)
-                  : props.overlayLabels
-                    ? ''
-                    : LABELS[part]
-            }
+            aria-label={REFERENCE_LABELS[part]}
+            placeholder={numberPlaceholder(part, {
+              dialogMode: props.dialogMode === true,
+              overlayLabels: props.overlayLabels === true,
+              chapters: metadataBook?.chapters,
+              chapter: chapterNumber,
+              lastVerse,
+              start: fields.start,
+            })}
             data-reference-part={part}
             maxLength={BIBLE_LOOKUP_LIMITS.input}
             value={fields[part]}
             onChange={value => change(part, value)}
             onKeyDown={event => onKeyDown(part, event)}
-            onBlur={() => {
-              advancedBook.current = null;
-            }}
-            onCompositionStart={() => {
-              advancedBook.current = null;
-            }}
             disabled={props.translation === undefined || !state.enabled[part]}
             invalid={reason(part) !== undefined}
             invalidReason={reason(part)}
