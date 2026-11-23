@@ -1,4 +1,4 @@
-import {useLayoutEffect, useRef, type JSX} from 'react';
+import {useContext, useLayoutEffect, useRef, type JSX} from 'react';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {emptyLayers} from '@core/schema/live';
 import {OutputRenderer} from '@renderer/rendering/outputRenderer';
@@ -6,6 +6,7 @@ import {previewMediaOf} from '@renderer/rendering/previewMedia';
 import {ScreenFrames} from '@renderer/rendering/screenFrames';
 import {useLive} from '@renderer/session/live';
 import {classNames} from '@renderer/ui/classNames';
+import {KeptFramesContext} from './keptScreenFrames';
 import styles from './ScreenPreview.module.css';
 
 const noLayers = emptyLayers();
@@ -28,6 +29,7 @@ export function ScreenPreview({
   readonly chroma: boolean;
 }): JSX.Element {
   const host = useRef<HTMLDivElement>(null);
+  const kept = useContext(KeptFramesContext);
   useLayoutEffect(() => {
     const api = window.llp;
     const parent = host.current;
@@ -54,15 +56,23 @@ export function ScreenPreview({
         reportDrawingError('could not update the screen preview', error);
       }
     };
-    holder.frames = new ScreenFrames({
-      fonts: api.fonts,
-      settings: api.settings,
-      clock: () => api.live.clock(),
-      wallClock: api.live,
-      screenId,
-      onChange: draw,
-      onError: reportDrawingError,
-    });
+    // NOTE(0913vision): The panel keeps every screen's frames ready, so a
+    // screen whose output just turned off draws in this very frame.
+    const followed = kept?.follow(screenId, draw) ?? null;
+    const own =
+      followed === null
+        ? new ScreenFrames({
+            fonts: api.fonts,
+            settings: api.settings,
+            clock: () => api.live.clock(),
+            wallClock: api.live,
+            screenId,
+            onChange: draw,
+            onError: reportDrawingError,
+          })
+        : null;
+    const frames = followed?.frames ?? own;
+    if (frames !== null) holder.frames = frames;
     draw();
     const stopLive = useLive.subscribe((next, previous) => {
       if (next.state !== previous.state) draw();
@@ -70,10 +80,11 @@ export function ScreenPreview({
     return () => {
       stopped = true;
       stopLive();
-      holder.frames?.dispose();
+      followed?.stop();
+      own?.dispose();
       renderer.dispose();
     };
-  }, [screenId]);
+  }, [screenId, kept]);
   return (
     <div
       ref={host}

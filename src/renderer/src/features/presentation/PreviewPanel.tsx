@@ -18,6 +18,7 @@ import type {PreviewScreen} from '@renderer/ui/PreviewFrame';
 import {PreviewPanel as SharedPreviewPanel} from '@renderer/ui/PreviewPanel';
 import {OutputMirror} from './OutputMirror';
 import {ScreenPreview} from './ScreenPreview';
+import {KeptFramesContext, useKeptScreenFrames} from './keptScreenFrames';
 import {useSlideTransitionProgress} from './useSlideTransitionProgress';
 import {MISSING_STILL_BACKGROUND_TIP} from '@renderer/platform/problemReasons';
 import {LiveMediaProgress} from './LiveMediaProgress';
@@ -33,6 +34,11 @@ function shortNameOf(
 }
 
 const NO_STILL_SCREENS: ReadonlySet<string> = new Set();
+
+function reportFramesError(message: string, error: unknown): void {
+  const detail = error instanceof Error ? (error.stack ?? error.message) : '';
+  window.llp?.log.write({level: 'error', message, detail});
+}
 
 function renderScreen(screen: PreviewScreen<string>): JSX.Element {
   return screen.status.kind === 'on' ? (
@@ -83,6 +89,10 @@ function PreviewPanelFrame({
   const transitionProgress = useSlideTransitionProgress();
   const outputs = useOutputs();
   const summaries = useScreenSummaries();
+  const kept = useKeptScreenFrames(
+    summaries.map(screen => screen.id),
+    reportFramesError,
+  );
   useWindowShortcuts(
     summaries.map(screen => ({
       id: `preview.focus.${screen.id}`,
@@ -115,16 +125,18 @@ function PreviewPanelFrame({
     }),
   );
   return (
-    <SharedPreviewPanel
-      screens={screens}
-      visible={visible}
-      onVisibleChange={setPreviewVisible}
-      big={large}
-      overlay={<LiveMediaProgress />}
-      onBigChange={id => {
-        showLarge(id);
-      }}
-      renderScreen={renderScreen}
-    />
+    <KeptFramesContext value={kept}>
+      <SharedPreviewPanel
+        screens={screens}
+        visible={visible}
+        onVisibleChange={setPreviewVisible}
+        big={large}
+        overlay={<LiveMediaProgress />}
+        onBigChange={id => {
+          showLarge(id);
+        }}
+        renderScreen={renderScreen}
+      />
+    </KeptFramesContext>
   );
 }
