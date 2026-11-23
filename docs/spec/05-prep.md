@@ -107,20 +107,21 @@ the compact 예배 순서, or the library; its right column shows the selected
   the 미리보기 panel of 진행: the name, and at its right end 청중, 무대 and
   방송, which choose the screen of the picture. Below it are three tabs, which
   stay the same from 슬라이드 to 슬라이드: 내용, 디자인, and 전환. Each tab has
-  named groups: 텍스트, 이름표, and 부가 정보; 테마, 배경, and 배경 위치; 화면
-  전환. A 슬라이드 whose 테마 writes a hymn has 찬송가 (종류 and 장 번호) first.
-  The last button of 디자인 and of 전환, right below the rows and as wide as its
-  name, gives the background or the transition to every 슬라이드. A setting
-  changes every selected 슬라이드; differing values are shown as mixed.
+  named groups: 텍스트, 이름표, 무대 화면, and 부가 정보; 테마, 배경, and 배경
+  위치; 화면 전환. A 슬라이드 whose 테마 writes a hymn has 찬송가 (종류 and 장
+  번호) first. The last button of 디자인 and of 전환, right below the rows and
+  as wide as its name, gives the background or the transition to every 슬라이드.
+  A setting changes every selected 슬라이드; differing values are shown as
+  mixed.
 - **What fills itself** and is seldom changed is locked: 부가 정보 (boxes with a
   default such as 주소, and 미리 보여줄 내용), and 배경 위치 (맞춤, size, and
   place of a picture). Each shows its default until 편집 is pressed; a text then
   starts from the default, and the button becomes 기본값으로, which locks it and
   puts the default back. The list view locks its columns the same way.
 - 미리 보여줄 내용 is what the 슬라이드 before shows on 무대. 다음 슬라이드 내용
-  보여주지 않기 under it stops the 슬라이드 from showing the next one, and the
-  next one says so in yellow: "앞 슬라이드에서 보여주지 않도록 설정되어
-  있습니다".
+  보여주지 않기, in the group 무대 화면, stops the 슬라이드 from showing the
+  next one, and the next one says so in yellow: "앞 슬라이드에서 보여주지 않도록
+  설정되어 있습니다".
 - 슬라이드 추가 makes one in the 테마 that follows the one before it, with the
   same background. 타이틀 adds a title of the list.
 - A media tile dropped on a 슬라이드, or on the picture at the right, becomes

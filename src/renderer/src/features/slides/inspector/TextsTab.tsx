@@ -10,7 +10,8 @@ import {HymnGroup} from './HymnGroup';
 import {LabelRow} from './LabelRow';
 import styles from './SlideInspector.module.css';
 
-const HIDDEN_NOTE = '앞 슬라이드에서 보여주지 않도록 설정되어 있습니다';
+const HIDDEN_NOTE =
+  '앞 슬라이드에서 이 내용을 보여주지 않도록 설정되어 있습니다';
 
 /** The texts of the slide: its own ones, its label, and what fills itself. */
 export function TextsTab({
@@ -52,8 +53,11 @@ export function TextsTab({
       <PropertyGroup title="이름표">
         <LabelRow deck={deck} chosen={chosen} />
       </PropertyGroup>
-      <PropertyGroup title="부가 정보">
-        {place === null ? null : (
+      <PropertyGroup title="무대 화면">
+        <HideNextRow deck={deck} chosen={chosen} tiles={tiles} />
+      </PropertyGroup>
+      {place === null ? null : (
+        <PropertyGroup title="부가 정보">
           <div className={styles.texts}>
             {filled.map(box => (
               <SlideTextField
@@ -64,9 +68,8 @@ export function TextsTab({
               />
             ))}
           </div>
-        )}
-        <HideNextRow deck={deck} chosen={chosen} tiles={tiles} />
-      </PropertyGroup>
+        </PropertyGroup>
+      )}
     </>
   );
 }

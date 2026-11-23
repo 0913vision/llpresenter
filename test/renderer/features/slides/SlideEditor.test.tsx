@@ -546,7 +546,7 @@ describe('showing the next slide', () => {
     renderEditor(passage());
     await userEvent.click(row(1));
     await openTab('내용');
-    const note = /앞 슬라이드에서 보여주지 않도록/u;
+    const note = /앞 슬라이드에서 이 내용을 보여주지 않도록/u;
     expect(inspector().queryByText(note)).toBeNull();
     await userEvent.click(row(0));
     await userEvent.click(hide());
