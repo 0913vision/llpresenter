@@ -62,7 +62,7 @@ describe('what a launch is expected to take', () => {
   });
 
   it('keeps a time that one odd launch gives within bounds', () => {
-    expect(learnedTimes({quiet: 2000}, {quiet: 900_000}).quiet).toBe(15_000);
+    expect(learnedTimes({view: 2000}, {view: 900_000}).view).toBe(15_000);
     expect(learnedTimes({files: 20}, {files: 1}).files).toBe(20);
   });
 

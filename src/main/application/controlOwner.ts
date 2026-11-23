@@ -30,7 +30,7 @@ export interface ControlPlacement {
 export interface ControlOwnerOptions {
   readonly windowMode: WindowMode;
   readonly launch: LaunchProgress;
-  readonly launchIdle: Pick<LaunchIdle, 'ready'>;
+  readonly launchIdle: Pick<LaunchIdle, 'prepared'>;
   readonly zoom: Pick<UiZoomRegistration, 'attachControl'>;
   readonly problems: Pick<ProblemFeed, 'report'>;
   /**
@@ -70,7 +70,7 @@ export class ControlOwner {
     launch.begin('window');
     const win = createControlWindow(log, windowMode, {
       attachControl: contents => zoom.attachControl(contents),
-      outputsReady: launchIdle.ready,
+      outputsReady: launchIdle.prepared,
       startMaximized,
       onOverdue: () => launch.giveUp(),
       onOpen: () => {

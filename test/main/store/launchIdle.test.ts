@@ -5,16 +5,18 @@ afterEach(() => vi.useRealTimers());
 
 it('waits for both readiness signals and an idle main turn, only once', async () => {
   vi.useFakeTimers();
-  const waiting = vi.fn();
-  const idle = new LaunchIdle(waiting);
+  const idle = new LaunchIdle();
+  const prepared = vi.fn();
+  void idle.prepared.then(prepared, prepared);
   const finished = vi.fn();
   void idle.ready.then(finished, finished);
   idle.serviceReady();
   await vi.advanceTimersByTimeAsync(2000);
   expect(finished).not.toHaveBeenCalled();
-  expect(waiting).not.toHaveBeenCalled();
+  expect(prepared).not.toHaveBeenCalled();
   idle.outputsReady();
-  expect(waiting).toHaveBeenCalledOnce();
+  await vi.advanceTimersByTimeAsync(0);
+  expect(prepared).toHaveBeenCalledExactlyOnceWith(true);
   await vi.advanceTimersByTimeAsync(999);
   expect(finished).not.toHaveBeenCalled();
   await vi.advanceTimersByTimeAsync(1);

@@ -22,7 +22,6 @@ const TASKS: Readonly<Record<LaunchTaskId, LaunchTask>> = {
   page: {label: '화면 불러오는 중', name: '화면', endsAt: 700},
   view: {label: '슬라이드 준비하는 중', name: '슬라이드', endsAt: 1100},
   outputs: {label: '출력 화면 준비하는 중', name: '출력 화면', endsAt: 1400},
-  quiet: {label: '마무리하는 중', name: '마무리', endsAt: 2400},
 };
 
 const TASK_TIME_RANGE = {min: 20, max: 15_000};

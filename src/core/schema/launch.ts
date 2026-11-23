@@ -11,7 +11,6 @@ export const LAUNCH_TASK_IDS = [
   'page',
   'view',
   'outputs',
-  'quiet',
 ] as const;
 
 export const launchTaskIdSchema = v.picklist(LAUNCH_TASK_IDS);
@@ -30,7 +29,6 @@ export const launchTimesSchema = jsonObject({
   page: taskTime,
   view: taskTime,
   outputs: taskTime,
-  quiet: taskTime,
 });
 
 export type LaunchTimes = Readonly<Partial<Record<LaunchTaskId, number>>>;

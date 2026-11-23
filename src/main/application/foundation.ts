@@ -58,12 +58,10 @@ export async function openFoundation({
     log,
   });
   const store = new LiveStore();
-  const launchIdle = new LaunchIdle(() => launch.begin('quiet'));
+  const launchIdle = new LaunchIdle();
   launchIdle.ready
     .then(ready => {
-      if (!ready) return;
-      launch.finish('quiet');
-      if (app.isPackaged && windowMode === 'offscreen') {
+      if (ready && app.isPackaged && windowMode === 'offscreen') {
         log.info('installer smoke ready');
       }
     })
