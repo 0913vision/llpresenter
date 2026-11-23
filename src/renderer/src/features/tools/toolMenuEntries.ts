@@ -93,12 +93,14 @@ export function namedToolMenuEntries({
 /** Message templates retain their edit, clipboard and delete groups. */
 export function messageMenuEntries({
   edit,
+  rename,
   duplicate,
   duplicateReason,
   remove,
   reason,
 }: {
   readonly edit: () => void;
+  readonly rename: () => void;
   readonly duplicate: () => void;
   /** Why 복제 can't run, such as a full list; the lock reason comes first. */
   readonly duplicateReason: string | undefined;
@@ -120,7 +122,7 @@ export function messageMenuEntries({
       },
       reason ?? duplicateReason,
     ),
-    laterRow('rename', '이름 바꾸기'),
+    command({id: 'rename', label: '이름 바꾸기', onSelect: rename}, reason),
     menuSeparator('delete-separator'),
     {
       ...command(
@@ -135,12 +137,14 @@ export function messageMenuEntries({
 /** Props keep their future rows while the existing commands expose lock reasons. */
 export function propMenuEntries({
   edit,
+  rename,
   duplicate,
   duplicateReason,
   remove,
   reason,
 }: {
   readonly edit: () => void;
+  readonly rename: () => void;
   readonly duplicate: () => void;
   /** Why 복제 can't run, such as a full list; the lock reason comes first. */
   readonly duplicateReason: string | undefined;
@@ -171,7 +175,7 @@ export function propMenuEntries({
       ),
       icon: 'duplicate',
     },
-    laterRow('rename', '이름 바꾸기'),
+    command({id: 'rename', label: '이름 바꾸기', onSelect: rename}, reason),
     menuSeparator('delete-separator'),
     {
       ...command(

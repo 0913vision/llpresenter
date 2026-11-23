@@ -13,7 +13,7 @@ import {
   TextArea,
   TextField,
 } from '@renderer/ui';
-import {propReason} from './propEdits';
+import {propReason, PROP_NAME_LIMIT} from './propEdits';
 import {ScreenTargetsRow} from './ScreenTargetsRow';
 
 const DEFAULT_STYLE = {
@@ -105,7 +105,7 @@ export function PropDialog({
               block
               value={name}
               onChange={setName}
-              maxLength={256}
+              maxLength={PROP_NAME_LIMIT}
               readOnly={locked}
             />
           )}

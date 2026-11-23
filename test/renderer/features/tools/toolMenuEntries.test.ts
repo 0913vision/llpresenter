@@ -13,8 +13,14 @@ it('keeps locked commands visible with a reason while future rows retain their o
   const copy = {duplicate: noop, duplicateReason: undefined};
   const reason = toolMenuReason(true, true);
   const menus = [
-    propMenuEntries({...copy, edit: noop, remove: noop, reason}),
-    messageMenuEntries({...copy, edit: noop, remove: noop, reason}),
+    propMenuEntries({...copy, edit: noop, rename: noop, remove: noop, reason}),
+    messageMenuEntries({
+      ...copy,
+      edit: noop,
+      rename: noop,
+      remove: noop,
+      reason,
+    }),
     namedToolMenuEntries({...copy, rename: noop, remove: noop, reason}),
     quickItemMenuEntries({...copy, rename: noop, remove: noop, reason}),
   ];
@@ -36,6 +42,7 @@ it('turns 복제 on, and gives a full list its own reason after the lock reason'
     (duplicateReason: string | undefined, reason?: string) =>
       messageMenuEntries({
         edit: noop,
+        rename: noop,
         duplicate: noop,
         duplicateReason,
         remove: noop,
@@ -44,6 +51,7 @@ it('turns 복제 on, and gives a full list its own reason after the lock reason'
     (duplicateReason: string | undefined, reason?: string) =>
       propMenuEntries({
         edit: noop,
+        rename: noop,
         duplicate: noop,
         duplicateReason,
         remove: noop,

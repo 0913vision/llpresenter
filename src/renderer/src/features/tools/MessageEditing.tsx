@@ -1,3 +1,4 @@
+import {RenameDialog} from '@renderer/ui/RenameDialog';
 import {PanelAction} from '@renderer/ui/PanelActionSlot';
 import {limitReason} from '@core/common/limitReason';
 import {contextMenuTarget, isContextMenuKey} from '@renderer/ui/contextMenu';
@@ -168,6 +169,11 @@ export function MessageEditing({
     item: MessageTemplate;
   } | null>(null);
   const [editor, setEditor] = useState<Editor | null>(null);
+  const [renaming, setRenaming] = useState<MessageTemplate | null>(null);
+  const renameAfterMenu = useMenuHandoff<MessageTemplate>(
+    menu !== null,
+    setRenaming,
+  );
   const editing = useToolEditing({
     api: window.llp,
     write: saveMessageEdit,
@@ -309,6 +315,7 @@ export function MessageEditing({
           entries={messageMenuEntries({
             reason: toolMenuReason(locked, busy),
             edit: () => setEditor({kind: 'edit', item: menu.item}),
+            rename: () => renameAfterMenu(menu.item),
             duplicate: () => duplicate(menu.item),
             duplicateReason: full
               ? limitReason('메시지', MAX_MESSAGE_TEMPLATES)
@@ -318,6 +325,25 @@ export function MessageEditing({
               setMenu(null);
             },
           })}
+        />
+      ) : null}
+      {renaming ? (
+        <RenameDialog
+          name={renaming.name}
+          title="메시지 이름 바꾸기"
+          locked={locked}
+          maxLength={MESSAGE_NAME_LIMIT}
+          rename={{
+            validate: name =>
+              name.trim() === '' ? undefined : messageNameReason(name),
+            onCommit: name =>
+              run({
+                kind: 'update',
+                id: renaming.id,
+                fields: {...renaming, name: name.trim()},
+              }),
+            onClose: () => setRenaming(null),
+          }}
         />
       ) : null}
       {editor ? (

@@ -1,3 +1,4 @@
+import {RenameDialog} from '@renderer/ui/RenameDialog';
 import {useScreenList} from '@renderer/platform/useScreenList';
 import {PanelAction} from '@renderer/ui/PanelActionSlot';
 import {useLayoutEffect, useRef, useState, type JSX} from 'react';
@@ -12,7 +13,12 @@ import type {MenuAnchor} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
 import {PropDialog} from './PropDialog';
 import {PropGrid} from './PropGrid';
-import {MAX_PROPS, savePropEdit, type PropEdit} from './propEdits';
+import {
+  MAX_PROPS,
+  savePropEdit,
+  type PropEdit,
+  PROP_NAME_LIMIT,
+} from './propEdits';
 import {useMediaDocument} from './useMediaDocument';
 import {focusedOptionIndex, useDuplicateShortcut} from './useDuplicateShortcut';
 import {useToolEditing} from './useToolEditing';
@@ -52,6 +58,7 @@ export function PropTab({
     },
   });
   const {busy, run} = editing;
+  const [renaming, setRenaming] = useState<Prop | null>(null);
   const locked = busy || document?.access !== 'editable' || !screens || !media;
   const full = (document?.value.props.length ?? 0) >= MAX_PROPS;
   const duplicateReason = locked
@@ -104,6 +111,7 @@ export function PropTab({
         }),
     );
   };
+  const renameAfterMenu = useMenuHandoff<Prop>(menu !== null, setRenaming);
   const deleteAfterMenu = useMenuHandoff<Prop>(menu !== null, prop => {
     deleteSelection(
       1,
@@ -150,6 +158,7 @@ export function PropTab({
             ...propMenuEntries({
               reason: toolMenuReason(locked, busy),
               edit: () => setEditor({kind: 'edit', prop: menu.prop}),
+              rename: () => renameAfterMenu(menu.prop),
               duplicate: () => duplicate(menu.prop),
               duplicateReason,
               remove: () => {
@@ -158,6 +167,23 @@ export function PropTab({
               },
             }),
           ]}
+        />
+      ) : null}
+      {renaming ? (
+        <RenameDialog
+          name={renaming.name}
+          title="그래픽 이름 바꾸기"
+          locked={locked}
+          maxLength={PROP_NAME_LIMIT}
+          rename={{
+            validate: name =>
+              name.trim().length > PROP_NAME_LIMIT
+                ? '이름이 너무 깁니다.'
+                : undefined,
+            onCommit: name =>
+              run({kind: 'update', prop: {...renaming, name: name.trim()}}),
+            onClose: () => setRenaming(null),
+          }}
         />
       ) : null}
       {editor ? (

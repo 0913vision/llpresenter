@@ -9,6 +9,8 @@ import {
 } from '@renderer/session/settingsWrites';
 
 export const MAX_PROPS = 500;
+/** The longest name of a 그래픽. */
+export const PROP_NAME_LIMIT = 256;
 const MAX_NAME = 256;
 const MAX_TEXT = 4000;
 
