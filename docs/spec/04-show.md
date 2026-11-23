@@ -129,7 +129,8 @@ order, no row dims.
   confirmation or notice. 실행 취소 is off in 진행; in 준비, Ctrl Z or 편집 >
   실행 취소 restores the whole deletion as one step, and never restores cleared
   output (03, 10).
-- Deleting or moving the item that is on output doesn't change the output.
+- The item that is on the screens can't be deleted (삭제 is off with "화면에
+  나가는 중입니다.", USER Nov 24); moving it doesn't change the output.
 - Ctrl C and 복사 copy the selected 예배 순서 rows. Shift selects a range (also
   with the up/down arrows, Home and End), Ctrl toggles individual rows, and an
   unmodified click or arrow returns to one selected row. 구역 labels remain
@@ -349,11 +350,10 @@ the 무대 next text at once; 청중 and 방송 show it when it goes out. The ti
 the 슬라이드 panel change at once.
 
 The LIVE outline follows the same source slide through text edits and
-insertions. Deleting the live slide or its service item leaves output unchanged
-and removes the outline; stage next and the next command continue with the
-deleted slide's first surviving successor. Undo restores the outline when the
-source slide returns. This applies to song, Bible, sermon, and liturgy decks,
-including edits made in preparation.
+insertions. The live slide and its service item can't be deleted or cut: 삭제
+and 잘라내기 are off with "화면에 나가는 중입니다." until another slide goes out
+or the screen is cleared (USER Nov 24, "못지우게하자"). This applies to song,
+Bible, sermon, and liturgy decks, including edits made in preparation.
 
 Source: `ShowH` (슬라이드 grid, 9 tiles in item slide order, background select),
 `Problems` (missing background file and 다시 연결), `SlideThumbnail` README,

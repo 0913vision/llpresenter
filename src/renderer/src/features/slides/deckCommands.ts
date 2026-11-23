@@ -1,3 +1,4 @@
+import {liveSlideReason} from '@renderer/session/liveGuard';
 import type {SlideId} from '@core/schema/ids';
 import {SLIDE_LIMITS, type Slide} from '@core/schema/slide';
 import {
@@ -35,6 +36,13 @@ export function addReason(deck: SlideDeck, count = 1): string | undefined {
 export function selectionReason(deck: SlideDeck): string | undefined {
   if (deck.readOnly) return NEWER_FILE_REASON;
   return selectionOf(deck).ids.size === 0 ? NOTHING_SELECTED : undefined;
+}
+
+/** Why the selected slides can't be removed (삭제, 잘라내기): also when one is on the screens. */
+export function removeReason(deck: SlideDeck): string | undefined {
+  return (
+    selectionReason(deck) ?? liveSlideReason(deck.id, selectionOf(deck).ids)
+  );
 }
 
 export function copyReason(deck: SlideDeck): string | undefined {

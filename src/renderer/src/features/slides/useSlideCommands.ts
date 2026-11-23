@@ -13,6 +13,7 @@ import {
   deleteSelected,
   duplicateSelected,
   pasteInto,
+  removeReason,
   selectionReason,
 } from './deckCommands';
 import {selectInDeck} from './deckSelection';
@@ -66,13 +67,13 @@ export function useSlideCommands({
     );
   };
   const cut = (): void => {
-    if (selectionReason(deck) !== undefined) return;
+    if (removeReason(deck) !== undefined) return;
     focusSurface();
     copySelected(deck);
     deleteSelected(deck);
   };
   const remove = (): void => {
-    if (selectionReason(deck) !== undefined) return;
+    if (removeReason(deck) !== undefined) return;
     const {slides} = deck;
     deleteSelection(
       count,
@@ -117,7 +118,7 @@ export function useSlideCommands({
       fixedBindings: [FIXED_KEYS.cut],
       context: 'song',
       when: owns,
-      unavailable: () => selectionReason(deck),
+      unavailable: () => removeReason(deck),
       run: cut,
     },
     {
@@ -146,7 +147,7 @@ export function useSlideCommands({
       id: 'edit.delete',
       context: 'song',
       when: owns,
-      unavailable: () => selectionReason(deck),
+      unavailable: () => removeReason(deck),
       run: remove,
     },
     {

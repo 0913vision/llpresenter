@@ -6,6 +6,7 @@ import {
   copyReason,
   copySelected,
   duplicateSelected,
+  removeReason,
   selectionReason,
 } from './deckCommands';
 import type {SlideDeck} from './slideDeck';
@@ -82,7 +83,7 @@ export function slideMenuEntries({
       contextGroup: 'clipboard',
       label: selectionLabel('잘라내기', count),
       meta: fixedKeyText('cut'),
-      ...menuAvailability(selectionReason(deck)),
+      ...menuAvailability(removeReason(deck)),
       onSelect: commands.cut,
     },
     {
@@ -109,7 +110,7 @@ export function slideMenuEntries({
       contextGroup: 'delete',
       label: selectionLabel('삭제', count),
       command: 'edit.delete',
-      ...menuAvailability(selectionReason(deck)),
+      ...menuAvailability(removeReason(deck)),
       onSelect: commands.remove,
     },
     {kind: 'separator', id: 'history'},

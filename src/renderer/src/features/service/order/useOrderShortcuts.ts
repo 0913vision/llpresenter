@@ -1,3 +1,4 @@
+import {liveItemReason} from '@renderer/session/liveGuard';
 import type {RefObject} from 'react';
 import type {ServiceRow} from '@core/presentation';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
@@ -153,6 +154,7 @@ export function useOrderShortcuts({
       id: 'edit.delete',
       context: 'service',
       when: inRows,
+      unavailable: () => liveItemReason(targets()),
       run: () => remove(targets()),
     },
   ]);

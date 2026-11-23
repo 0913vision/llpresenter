@@ -1,3 +1,4 @@
+import {liveItemReason} from '@renderer/session/liveGuard';
 import type {RefObject} from 'react';
 import {orderedSelection} from '@core/common/selectionOrder';
 import {createServiceItemId} from '@core/schema/ids';
@@ -109,7 +110,9 @@ export function useOrderEdits({
   };
 
   const remove = (ids: readonly string[]): void => {
-    if (!editable || ids.length === 0) return;
+    if (!editable || ids.length === 0 || liveItemReason(ids) !== undefined) {
+      return;
+    }
     const snapshot = useShow.getState();
     deleteSelection(
       ids.length,

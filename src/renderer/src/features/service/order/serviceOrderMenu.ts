@@ -33,6 +33,8 @@ export interface ServiceOrderMenuInput {
   /** Whether the 예배 순서 is at its item limit, which stops a copy. */
   readonly full?: boolean;
   readonly remove: () => void;
+  /** Why 삭제 can't run, such as an item on the screens. */
+  readonly removeReason?: string | undefined;
   /** 곡 편집 of the 준비 menu; undefined outside 준비. */
   readonly editSong?:
     | {
@@ -261,7 +263,9 @@ export function serviceOrderMenuEntries(
       command: 'edit.delete',
       label: '삭제',
       danger: true,
-      ...menuAvailability(input.editable ? undefined : '예배 순서 편집 불가'),
+      ...menuAvailability(
+        input.editable ? input.removeReason : '예배 순서 편집 불가',
+      ),
       onSelect: input.remove,
     },
     ...exportRows(input),

@@ -1,3 +1,4 @@
+import {liveItemReason} from '@renderer/session/liveGuard';
 import type {ServiceRow} from '@core/presentation';
 import {orderedSelection} from '@core/common/selectionOrder';
 import type {SongId} from '@core/schema/ids';
@@ -128,6 +129,7 @@ export function orderMenuEntries(
       moveUp: closing(() => edits.moveItems(ids, 'up', target.id)),
       moveDown: closing(() => edits.moveItems(ids, 'down', target.id)),
       remove: closing(() => edits.remove(ids)),
+      removeReason: liveItemReason(ids),
     }),
     ...(count === 1 ? (table?.menuFor?.(row) ?? []) : []),
   ];
