@@ -9,19 +9,6 @@ import {themeScreenOf} from './themes';
 
 type ScreenInfo = Pick<Screen, 'id' | 'kind'>;
 
-const ORDER: Readonly<Record<ScreenKind, number>> = {
-  audience: 0,
-  broadcast: 1,
-  stage: 2,
-};
-
-/** The screens as the theme editor lists them: 청중, 방송, 무대. */
-export function screensInOrder<T extends ScreenInfo>(
-  screens: readonly T[],
-): readonly T[] {
-  return screens.toSorted((a, b) => ORDER[a.kind] - ORDER[b.kind]);
-}
-
 /** Whether a screen is the one that the layout of its kind is for. */
 export function isFirstOfKind(
   screen: ScreenInfo,

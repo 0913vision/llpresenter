@@ -1,8 +1,11 @@
-import {NDI_DEFAULT_FPS, type Screen} from '@core/schema/screens';
+import {
+  inScreenOrder,
+  NDI_DEFAULT_FPS,
+  type Screen,
+} from '@core/schema/screens';
 import type {MonitorList} from '@core/schema/monitors';
 import {
   monitorAssignment,
-  SCREEN_KIND_ORDER,
   UNASSIGNED_TARGET,
   targetByMethod,
 } from '@core/screens';
@@ -28,34 +31,29 @@ export function summarizeScreens(
   monitors: MonitorList = [],
 ): readonly ScreenSummary[] {
   const assignment = monitorAssignment(monitors);
-  return screens
-    .toSorted(
-      (a, b) =>
-        SCREEN_KIND_ORDER.indexOf(a.kind) - SCREEN_KIND_ORDER.indexOf(b.kind),
-    )
-    .map(screen => {
-      const display = assignment.get(screen.id) ?? screen.display;
-      return {
-        id: screen.id,
-        icon:
-          screen.method === 'capture' || screen.method === 'ndi'
-            ? 'capture'
-            : 'mplay',
-        toolbarLabel: screen.name,
-        statusLabel: screen.name,
-        ndiFps: screen.ndi?.fps ?? NDI_DEFAULT_FPS,
-        target:
-          screen.method === 'fullscreen'
-            ? display === undefined
-              ? UNASSIGNED_TARGET
-              : `모니터 ${display.number} ${display.name}`
-            : targetByMethod[screen.method],
-        targetKind: screen.method === 'fullscreen' ? 'display' : screen.method,
-        kind: screen.kind,
-        chroma:
-          (screen.previewBackground ?? 'green') === 'green' &&
-          screen.kind !== 'stage' &&
-          (screen.method === 'capture' || screen.method === 'ndi'),
-      };
-    });
+  return inScreenOrder(screens).map(screen => {
+    const display = assignment.get(screen.id) ?? screen.display;
+    return {
+      id: screen.id,
+      icon:
+        screen.method === 'capture' || screen.method === 'ndi'
+          ? 'capture'
+          : 'mplay',
+      toolbarLabel: screen.name,
+      statusLabel: screen.name,
+      ndiFps: screen.ndi?.fps ?? NDI_DEFAULT_FPS,
+      target:
+        screen.method === 'fullscreen'
+          ? display === undefined
+            ? UNASSIGNED_TARGET
+            : `모니터 ${display.number} ${display.name}`
+          : targetByMethod[screen.method],
+      targetKind: screen.method === 'fullscreen' ? 'display' : screen.method,
+      kind: screen.kind,
+      chroma:
+        (screen.previewBackground ?? 'green') === 'green' &&
+        screen.kind !== 'stage' &&
+        (screen.method === 'capture' || screen.method === 'ndi'),
+    };
+  });
 }

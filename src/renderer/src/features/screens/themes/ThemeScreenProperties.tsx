@@ -1,5 +1,6 @@
 import type {JSX} from 'react';
-import {THEME_CANVAS, screenKinds, type ScreenKind} from '@core/schema/theme';
+import {SCREEN_KIND_ORDER} from '@core/schema/screens';
+import {THEME_CANVAS, type ScreenKind} from '@core/schema/theme';
 import {canFollow, ownLayoutFrom} from '@core/theme';
 import {
   Properties,
@@ -42,17 +43,17 @@ export function ThemeScreenProperties({
               title={reason}
               options={[
                 {value: 'own', label: '직접 배치'},
-                ...screenKinds
-                  .filter(as => canFollow(theme, screen, {as, screens}))
-                  .map(as => {
-                    const name =
-                      screens.find(entry => entry.kind === as)?.name ??
-                      kindNames[as];
-                    return {
-                      value: as,
-                      label: `${name}${withParticle(name)} 같음`,
-                    };
-                  }),
+                ...SCREEN_KIND_ORDER.filter(as =>
+                  canFollow(theme, screen, {as, screens}),
+                ).map(as => {
+                  const name =
+                    screens.find(entry => entry.kind === as)?.name ??
+                    kindNames[as];
+                  return {
+                    value: as,
+                    label: `${name}${withParticle(name)} 같음`,
+                  };
+                }),
                 {value: 'empty', label: '비움'},
               ]}
               onChange={mode =>

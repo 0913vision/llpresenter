@@ -26,6 +26,7 @@ import {
   positiveInteger,
   positiveNumber,
 } from './primitives';
+import {SCREEN_KIND_ORDER} from './screens';
 import {textOutlineSchema, textShadowSchema} from './textEffects';
 
 /** The canvas every theme is laid out on. */
@@ -299,14 +300,13 @@ const ownScreenSchema = v.looseObject({
   ),
 });
 
-export const screenKinds = ['audience', 'broadcast', 'stage'] as const;
-export type ScreenKind = (typeof screenKinds)[number];
+export type ScreenKind = (typeof SCREEN_KIND_ORDER)[number];
 
 export const themeScreenSchema = v.pipe(
   jsonObject({}),
   v.variant('mode', [
     ownScreenSchema,
-    v.looseObject({mode: v.literal('same'), as: v.picklist(screenKinds)}),
+    v.looseObject({mode: v.literal('same'), as: v.picklist(SCREEN_KIND_ORDER)}),
     v.looseObject({mode: v.literal('empty')}),
   ]),
 );

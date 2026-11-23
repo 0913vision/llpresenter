@@ -1,5 +1,5 @@
 import {useState} from 'react';
-import {screensInOrder} from '@core/theme';
+import {inScreenOrder} from '@core/schema/screens';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import type {Notice} from '@renderer/ui/notices';
 
@@ -41,6 +41,6 @@ export function useThemeResources(
       screensDocument !== null ||
       load.screensFailed ||
       window.llp === undefined,
-    screens: screensInOrder(screensDocument?.value.screens ?? []),
+    screens: inScreenOrder(screensDocument?.value.screens ?? []),
   };
 }

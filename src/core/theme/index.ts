@@ -68,13 +68,7 @@ export {
   type ThemePicture,
 } from './pictures';
 export {sampleContent} from './samples';
-export {
-  canFollow,
-  ownLayoutFrom,
-  ownScreenOf,
-  screensInOrder,
-  withScreen,
-} from './screens';
+export {canFollow, ownLayoutFrom, ownScreenOf, withScreen} from './screens';
 export {fillTemplates, templateTokens} from './template';
 export {
   type ThemedSlide,

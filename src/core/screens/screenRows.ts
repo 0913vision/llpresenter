@@ -96,7 +96,7 @@ export function controlConflictReason(number: number | undefined): string {
   return `${number === undefined ? '모니터' : `모니터 ${number}`}에 컨트롤 창이 있어 창으로 표시 중`;
 }
 
-/** The 청중, 방송, and 무대 groups, with destinations from current assignments. */
+/** The 청중, 무대, and 방송 groups, with destinations from current assignments. */
 export function screenGroups(
   screens: readonly Screen[],
   input: ScreenGroupsInput,

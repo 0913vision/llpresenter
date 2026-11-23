@@ -63,10 +63,23 @@ const ndiSchema = jsonObject({
   group: v.exactOptional(v.string()),
 });
 
+/** The kinds of screens in the order every list shows them: 청중, 무대, 방송. */
+export const SCREEN_KIND_ORDER = ['audience', 'stage', 'broadcast'] as const;
+
+/** Screens in the order of their kinds, keeping the saved order in a kind. */
+export function inScreenOrder<
+  T extends {readonly kind: (typeof SCREEN_KIND_ORDER)[number]},
+>(screens: readonly T[]): readonly T[] {
+  return screens.toSorted(
+    (a, b) =>
+      SCREEN_KIND_ORDER.indexOf(a.kind) - SCREEN_KIND_ORDER.indexOf(b.kind),
+  );
+}
+
 export const screenSchema = jsonObject({
   id: screenIdSchema,
   name: v.string(),
-  kind: v.picklist(['audience', 'broadcast', 'stage']),
+  kind: v.picklist(SCREEN_KIND_ORDER),
   messageStyleId: v.exactOptional(messageStyleIdSchema),
   method: v.picklist(['fullscreen', 'window', 'capture', 'ndi']),
   emptyColor: v.exactOptional(hexColor),

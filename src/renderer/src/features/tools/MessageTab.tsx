@@ -7,7 +7,7 @@ import {
   type JSX,
 } from 'react';
 import type {MessageTemplate} from '@core/schema/messages';
-import type {Screen} from '@core/schema/screens';
+import {inScreenOrder, type Screen} from '@core/schema/screens';
 import {
   messageBlankNames,
   MAX_MESSAGE_CHARACTERS,
@@ -237,7 +237,7 @@ export function MessageTab({
       <ActiveMessages />
       <MessageEditing
         document={messages}
-        screens={screens?.value.screens ?? []}
+        screens={inScreenOrder(screens?.value.screens ?? [])}
         onProblem={onProblem}
         onSelect={setSelectedId}
       >
@@ -261,7 +261,7 @@ export function MessageTab({
             selected.duration ?? null,
           ])}
           template={selected}
-          screens={screens?.value.screens ?? []}
+          screens={inScreenOrder(screens?.value.screens ?? [])}
         />
       )}
     </>
