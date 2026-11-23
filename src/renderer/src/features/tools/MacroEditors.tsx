@@ -158,7 +158,7 @@ export function MacroEditors({
           rename={{
             onClose: close,
             validate: name =>
-              name.length > 256 ? '이름이 너무 깁니다' : undefined,
+              name.length > 256 ? '이름이 너무 깁니다.' : undefined,
             onCommit: rename,
           }}
         />

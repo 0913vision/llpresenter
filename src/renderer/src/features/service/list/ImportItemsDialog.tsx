@@ -13,7 +13,7 @@ import {useImportItems} from './useImportItems';
 
 const DIALOG_HEIGHT = 700;
 const MISSING = '예배 읽기 실패';
-const NO_SOURCES = '가져올 템플릿이나 예배가 없습니다';
+const NO_SOURCES = '가져올 템플릿이나 예배가 없습니다.';
 
 /**
  * The 다른 예배에서 가져오기 dialog: copy items to the end of the open service.

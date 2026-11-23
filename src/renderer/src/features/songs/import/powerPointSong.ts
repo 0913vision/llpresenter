@@ -122,7 +122,7 @@ class SongBackgrounds implements ImportPictures {
     finishImportedPictures(this);
     this.close();
     if (missing) {
-      warn(this.reports, '배경을 모두 가져오지 못했습니다', 'PowerPoint');
+      warn(this.reports, '배경을 모두 가져오지 못했습니다.', 'PowerPoint');
     }
   }
 

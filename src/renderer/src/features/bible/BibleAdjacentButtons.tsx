@@ -100,7 +100,7 @@ export function BibleAdjacentButtons({
         const noVerse =
           edge === direction || (direction === 'previous' && beginning);
         const reason = !api
-          ? '구절을 불러올 수 없습니다'
+          ? '구절을 불러올 수 없습니다.'
           : busy
             ? '구절 불러오는 중'
             : noVerse

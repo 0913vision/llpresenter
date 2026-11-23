@@ -224,7 +224,7 @@ export function DisplayLayout({
                       key: 'screens:ndi-monitor',
                       kind: 'warning',
                       icon: 'warning',
-                      title: 'NDI 화면에는 모니터를 지정할 수 없습니다',
+                      title: 'NDI 화면에는 모니터를 지정할 수 없습니다.',
                       time: noticeTime(),
                     });
                     return;

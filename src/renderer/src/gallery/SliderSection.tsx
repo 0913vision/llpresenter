@@ -127,7 +127,7 @@ export function SliderSection(): JSX.Element {
             icon="audio"
             width="block"
             disabled
-            title="소리가 꺼져 있습니다"
+            title="소리가 꺼져 있습니다."
             initial={0}
           />
         </SpecItem>

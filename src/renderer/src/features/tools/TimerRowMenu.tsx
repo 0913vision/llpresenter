@@ -37,7 +37,7 @@ function TimerNameDialog({
         onCommit: save,
         onClose: onClose,
         validate: name =>
-          name.length > TIMER_NAME_LIMIT ? '이름이 너무 깁니다' : undefined,
+          name.length > TIMER_NAME_LIMIT ? '이름이 너무 깁니다.' : undefined,
       }}
     />
   );

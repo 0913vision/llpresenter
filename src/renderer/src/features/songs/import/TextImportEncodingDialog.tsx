@@ -38,7 +38,7 @@ export function TextImportEncodingDialog({
         title: reading
           ? '읽는 중'
           : same
-            ? '다른 글자 인코딩을 고릅니다'
+            ? '다른 글자 인코딩을 고릅니다.'
             : undefined,
         onSelect: () => onRead(encoding),
       }}

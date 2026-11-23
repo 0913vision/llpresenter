@@ -181,7 +181,7 @@ export function SourceList({
       </ListBox>
       {onRetry === undefined ? null : (
         <div className={styles.retry}>
-          <span>목록을 다 읽지 못했습니다</span>
+          <span>목록을 다 읽지 못했습니다.</span>
           <Button variant="ghost" icon="refresh" onClick={onRetry}>
             다시 시도
           </Button>

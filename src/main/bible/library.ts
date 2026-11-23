@@ -81,13 +81,13 @@ export class BibleLibrary {
       if (chapter > book.chapters || endChapter > book.chapters) {
         return {
           ok: false,
-          error: {code: 'chapter', message: '이 역본에 없는 장입니다'},
+          error: {code: 'chapter', message: '이 역본에 없는 장입니다.'},
         };
       }
       if (endChapter < chapter) {
         return {
           ok: false,
-          error: {code: 'reversed', message: '끝 절이 시작 절보다 앞입니다'},
+          error: {code: 'reversed', message: '끝 절이 시작 절보다 앞입니다.'},
         };
       }
       const chapters = Array.from({length: book.chapters}, () => ({
@@ -131,7 +131,7 @@ export class BibleLibrary {
     if (!header) {
       return {
         ok: false,
-        error: {code: 'translation', message: '역본을 사용할 수 없습니다'},
+        error: {code: 'translation', message: '역본을 사용할 수 없습니다.'},
       };
     }
     const result = await resolvePassage(

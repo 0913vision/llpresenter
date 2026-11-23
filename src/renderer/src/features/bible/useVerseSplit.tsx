@@ -78,16 +78,16 @@ export function useVerseSplit(
       : versesOfPassage(text).find(entry => sameVerse(entry.reference, verse));
   const reason =
     deck === null || verse === undefined
-      ? '말씀 슬라이드를 고르세요'
+      ? '말씀 슬라이드를 고르세요.'
       : deck.readOnly
-        ? '지금은 편집할 수 없습니다'
+        ? '지금은 편집할 수 없습니다.'
         : text === null
-          ? '본문을 불러오는 중입니다'
+          ? '본문을 불러오는 중입니다.'
           : original === undefined
-            ? '이 절의 본문을 찾을 수 없습니다'
+            ? '이 절의 본문을 찾을 수 없습니다.'
             : isCutOfVerse(deck.slides, original)
               ? undefined
-              : '직접 고친 절은 여기서 나눌 수 없습니다';
+              : '직접 고친 절은 여기서 나눌 수 없습니다.';
   const open = (): void => {
     if (
       deck === null ||

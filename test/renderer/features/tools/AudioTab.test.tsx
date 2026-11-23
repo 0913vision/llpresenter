@@ -146,5 +146,5 @@ it('updates and clears a deleted selection without retaining old tracks', async 
     }),
   );
   expect(screen.queryByRole('list', {name: '오디오 트랙 목록'})).toBeNull();
-  expect(screen.getByText('오디오 재생목록이 없습니다')).toBeDefined();
+  expect(screen.getByText('오디오 재생목록이 없습니다.')).toBeDefined();
 });

@@ -247,7 +247,7 @@ describe('shared Bible reference form', () => {
     expect(
       document.getElementById(view.book.getAttribute('aria-describedby') ?? '')
         ?.textContent,
-    ).toBe('입력한 이름과 일치하는 성경 책이 없습니다');
+    ).toBe('입력한 이름과 일치하는 성경 책이 없습니다.');
     fireEvent.change(view.book, {target: {value: 'ckd'}});
     await view.user.tab();
     expect(view.book.value).toBe('창세기');

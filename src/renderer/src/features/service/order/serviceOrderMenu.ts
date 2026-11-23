@@ -63,7 +63,7 @@ function songEditRows({
       ...menuAvailability(
         song?.reason ??
           (editSong.editSong === undefined
-            ? '곡을 찾을 수 없습니다'
+            ? '곡을 찾을 수 없습니다.'
             : undefined),
       ),
       onSelect: editSong.editSong,
@@ -189,7 +189,7 @@ export function serviceOrderMenuEntries(
       ...menuAvailability(
         input.clipboard?.copyReason ??
           (input.clipboard === undefined
-            ? '선택한 항목이 없습니다'
+            ? '선택한 항목이 없습니다.'
             : undefined),
       ),
       onSelect: input.clipboard?.copy,
@@ -203,7 +203,7 @@ export function serviceOrderMenuEntries(
       ...menuAvailability(
         input.clipboard?.pasteReason ??
           (input.clipboard === undefined
-            ? '복사한 예배 순서 항목이 없습니다'
+            ? '복사한 예배 순서 항목이 없습니다.'
             : undefined),
       ),
       onSelect: input.clipboard?.paste,

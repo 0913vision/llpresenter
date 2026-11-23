@@ -11,7 +11,7 @@ import {LabelRow} from './LabelRow';
 import styles from './SlideInspector.module.css';
 
 const HIDDEN_NOTE =
-  '앞 슬라이드에서 이 내용을 보여주지 않도록 설정되어 있습니다';
+  '앞 슬라이드에서 이 내용을 보여주지 않도록 설정되어 있습니다.';
 
 /** The texts of the slide: its own ones, its label, and what fills itself. */
 export function TextsTab({

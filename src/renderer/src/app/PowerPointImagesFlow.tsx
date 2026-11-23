@@ -76,7 +76,7 @@ export function PowerPointImagesFlow({
             : {}),
         });
       if (!serviceId || view.readOnly) {
-        notify('열린 예배가 필요합니다', 'warning');
+        notify('열린 예배가 필요합니다.', 'warning');
         onDone();
         return;
       }
@@ -99,7 +99,7 @@ export function PowerPointImagesFlow({
           return;
         }
         if (!result.value) {
-          notify('PowerPoint 이미지 가져오기를 취소했습니다', 'info');
+          notify('PowerPoint 이미지 가져오기를 취소했습니다.', 'info');
           return;
         }
         const {fileName, slides} = result.value;
@@ -120,7 +120,7 @@ export function PowerPointImagesFlow({
           if (!saved.ok && saved.error.reason !== 'write-failed') {
             throw new Error(saved.error.message);
           }
-          notify(`PowerPoint 이미지 ${media.length}개를 가져왔습니다`, 'info');
+          notify(`PowerPoint 이미지 ${media.length}개를 가져왔습니다.`, 'info');
         } finally {
           await Promise.all(
             slides.map(slide => api.powerpoint.release({path: slide.path})),
@@ -135,7 +135,7 @@ export function PowerPointImagesFlow({
         .finally(() => {
           unsubscribe();
           if (state.userCancelled && !state.cancelled) {
-            notify('PowerPoint 이미지 가져오기를 취소했습니다', 'info');
+            notify('PowerPoint 이미지 가져오기를 취소했습니다.', 'info');
           }
           if (!state.cancelled) onDone();
         });

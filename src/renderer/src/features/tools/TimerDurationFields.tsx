@@ -17,16 +17,16 @@ export function parseTimerDuration(
 ) {
   const minutesReason = wholeNumber(minutes, MAX_MINUTES)
     ? undefined
-    : '분은 0 이상이어야 합니다';
+    : '분은 0 이상이어야 합니다.';
   const secondsReason = wholeNumber(seconds, SECONDS_MAX)
     ? undefined
-    : '초는 0에서 59 사이여야 합니다';
+    : '초는 0에서 59 사이여야 합니다.';
   const duration = Number(minutes) * SECONDS_PER_MINUTE + Number(seconds);
   const totalReason =
     duration < minimum
-      ? '시간은 0보다 커야 합니다'
+      ? '시간은 0보다 커야 합니다.'
       : duration > MAX_TIMER_SECONDS
-        ? '시간이 너무 깁니다'
+        ? '시간이 너무 깁니다.'
         : undefined;
   return {
     minutesReason: minutesReason ?? totalReason,

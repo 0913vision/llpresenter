@@ -11,7 +11,7 @@ import type {PreferencesFile} from '@core/schema/preferences';
 import {CheckboxRow} from './PreferenceRows';
 import styles from './BiblePage.module.css';
 
-const ALREADY_DEFAULT = '이미 기본 역본입니다';
+const ALREADY_DEFAULT = '이미 기본 역본입니다.';
 
 function TranslationRow({
   translation,

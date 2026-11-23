@@ -9,9 +9,9 @@ import styles from './StageTab.module.css';
 
 function messageReason(text: string, available: boolean): string | undefined {
   if (!available) return '무대 화면 없음';
-  if (text.trim() === '') return '메시지를 적어야 보낼 수 있습니다';
+  if (text.trim() === '') return '메시지를 적어야 보낼 수 있습니다.';
   if (text.length > LIVE_STATE_LIMITS.textCharacters) {
-    return '메시지가 너무 깁니다';
+    return '메시지가 너무 깁니다.';
   }
   return undefined;
 }
@@ -62,7 +62,7 @@ export function StageMessage({
         />
         <Button
           disabled={!live}
-          title={!live ? '표시 중인 무대 메시지가 없습니다' : undefined}
+          title={!live ? '표시 중인 무대 메시지가 없습니다.' : undefined}
           onClick={hideStageMessage}
         >
           지우기

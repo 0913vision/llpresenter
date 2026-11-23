@@ -71,7 +71,7 @@ const ZOOM_OPTIONS = Array.from(
 const FOLDER_NOTE = '다음에 켤 때부터 씁니다. 있던 파일은 옮기지 않습니다.';
 const AUTO_BACKUP_NOTE = '하루 한 번, 앱을 켤 때';
 const PREVIOUS_VERSION_NOTE =
-  '곡과 예배 파일을 저장할 때 바로 전 판을 남깁니다';
+  '곡과 예배 파일을 저장할 때 바로 전 판을 남깁니다.';
 
 interface PageProps {
   readonly edits: PreferenceEdits;
@@ -619,16 +619,16 @@ export function AboutPage(): JSX.Element {
           action="복사"
           result={
             copied === 'done'
-              ? '복사했습니다'
+              ? '복사했습니다.'
               : copied === 'failed'
-                ? '복사하지 못했습니다'
+                ? '복사하지 못했습니다.'
                 : undefined
           }
           onAction={copy}
         />
         <CheckboxRow
           label="자세한 기록"
-          title="앱을 다시 켜면 꺼집니다"
+          title="앱을 다시 켜면 꺼집니다."
           checked={verbose}
           onChange={on => {
             setVerbose(on);

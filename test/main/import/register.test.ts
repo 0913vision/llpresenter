@@ -204,9 +204,9 @@ describe('PowerPoint import', () => {
   });
 
   it.each([
-    ['unavailable', 'PowerPoint가 설치되어 있지 않습니다'],
-    ['unresponsive', 'PowerPoint가 응답하지 않습니다'],
-    ['file', 'PowerPoint 파일을 읽을 수 없습니다'],
+    ['unavailable', 'PowerPoint가 설치되어 있지 않습니다.'],
+    ['unresponsive', 'PowerPoint가 응답하지 않습니다.'],
+    ['file', 'PowerPoint 파일을 읽을 수 없습니다.'],
   ] as const)(
     'reports %s and removes the temporary copy',
     async (failure, message) => {
@@ -256,7 +256,7 @@ describe('PowerPoint import', () => {
     });
     expect(await handler(powerpointEndpoints.images.channel)()).toEqual({
       ok: false,
-      message: 'PowerPoint 파일을 읽을 수 없습니다',
+      message: 'PowerPoint 파일을 읽을 수 없습니다.',
     });
     expect(images.run).not.toHaveBeenCalled();
     expect(await readdir(electron.tempDir)).toEqual([]);
@@ -325,7 +325,7 @@ describe('PowerPoint import', () => {
       });
       expect(await handler(powerpointEndpoints[kind].channel)()).toEqual({
         ok: false,
-        message: '이 파일을 가져오려면 PowerPoint가 설치되어 있어야 합니다',
+        message: '이 파일을 가져오려면 PowerPoint가 설치되어 있어야 합니다.',
       });
       expect(jobs.run).not.toHaveBeenCalled();
       expect(await readdir(electron.tempDir)).toEqual(['old.ppt']);

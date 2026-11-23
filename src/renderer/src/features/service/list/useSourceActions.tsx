@@ -45,7 +45,7 @@ type SourceActionsApi = Pick<
   'content' | 'services' | 'templates' | 'log'
 >;
 
-const OPEN_SERVICE = '열린 예배는 삭제할 수 없습니다';
+const OPEN_SERVICE = '열린 예배는 삭제할 수 없습니다.';
 const problemTitles = {
   rename: '이름 바꾸기 실패',
   delete: '삭제 실패',

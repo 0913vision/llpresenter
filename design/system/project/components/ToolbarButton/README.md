@@ -89,7 +89,7 @@ kind of navigation.
 - Tooltips (after 600ms, following the Tooltip rules):
   - On: "청중 화면 출력 끄기 (모니터 2)", "무대 화면 출력 끄기 (모니터 3)", "방송 화면 출력 끄기 (NDI)"
   - Off: "청중 화면 출력 켜기 (모니터 2)"
-  - No monitor: "청중 화면: 모니터 2를 찾을 수 없습니다"
+  - No monitor: "청중 화면: 모니터 2를 찾을 수 없습니다."
 - The media toggle's name remains visible in every form. Other icon-only
   controls keep an `aria-label`.
 
@@ -97,7 +97,7 @@ kind of navigation.
 
 - Names are nouns of one or two words: 진행, 준비, 화면 설정, 미디어, 청중 화면, 무대 화면, 방송 화면.
 - Write an output button tooltip as "what a click does (target)": "청중 화면 출력 끄기 (모니터 2)". For the target, use the output target name from 화면 설정 as it is.
-- Write a problem tooltip as "screen name: what doesn't work": "청중 화면: 모니터 2를 찾을 수 없습니다". Don't write out a long fix.
+- Write a problem tooltip as "screen name: what doesn't work": "청중 화면: 모니터 2를 찾을 수 없습니다.". Don't write out a long fix.
 
 ## Implementation notes
 
@@ -124,6 +124,6 @@ kind of navigation.
 
 - All boards (assemble.js `toolbar()`): output dot 7px (right −5, top −3) → 6px (right −4, top −3).
 - ShowH, Bible: gray dot (#3a3a3a) on an output that is off → the StatusMarks off dot (`line-strong`), so on, off, and no monitor each keep a dot in the same place. Output names use `text-2` when off so they remain readable.
-- Problems: no-monitor output with a #2a2210 background and #e3a23b painted all the way to the name → no background, only the icon and the dot in `warning`, name `text`. Dot ring #2a2210 → `ring-dot-cut`. Tooltip "모니터 3 연결 끊김, 창으로 표시 중" → "무대 화면: 모니터 3을 찾을 수 없습니다".
+- Problems: no-monitor output with a #2a2210 background and #e3a23b painted all the way to the name → no background, only the icon and the dot in `warning`, name `text`. Dot ring #2a2210 → `ring-dot-cut`. Tooltip "모니터 3 연결 끊김, 창으로 표시 중" → "무대 화면: 모니터 3을 찾을 수 없습니다.".
 - All boards: 테마 button arrow 14px → 12px.
 - Compact: removed the track behind the workspace tabs (#161616, padding 2, radius 6). Selected tab #2f2f2f → `bg-raised`. Tab, 테마, and output button height 30 → 32, radius 4 → `radius-lg`. Tab name weight 500 → 400. 미디어 34×34 → 32×32.

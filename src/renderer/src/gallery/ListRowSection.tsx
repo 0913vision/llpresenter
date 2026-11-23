@@ -279,7 +279,7 @@ export function ListRowSection(): JSX.Element {
               title="요한복음 3장 16절"
               meta="슬라이드 2개"
               disabled
-              reason="역본 파일을 찾을 수 없습니다"
+              reason="역본 파일을 찾을 수 없습니다."
             />
           </OneRowList>
         </SpecItem>

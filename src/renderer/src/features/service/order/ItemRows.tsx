@@ -11,8 +11,8 @@ import type {ServiceTableParts} from './serviceTableParts';
 import styles from './ServiceOrderList.module.css';
 
 const problemTips: Readonly<Record<RowProblem, string>> = {
-  'missing-song': '곡 파일을 찾을 수 없습니다',
-  'missing-media': '미디어 파일을 찾을 수 없습니다',
+  'missing-song': '곡 파일을 찾을 수 없습니다.',
+  'missing-media': '미디어 파일을 찾을 수 없습니다.',
   'unknown-kind': '아직 없는 기능',
   'newer-version': NEWER_FILE_REASON,
 };

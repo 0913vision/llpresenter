@@ -47,7 +47,7 @@ function mediaEntries({
     missing !== null
       ? undefined
       : failed
-        ? '상태를 확인하지 못했습니다'
+        ? '상태를 확인하지 못했습니다.'
         : '불러오는 중';
   return files.map(item => ({
     kind: 'item',

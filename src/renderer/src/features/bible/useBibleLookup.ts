@@ -45,7 +45,7 @@ export function useBibleLookup({
             ok: false,
             error: {
               code: 'translation',
-              message: '성경 구절을 불러올 수 없습니다',
+              message: '성경 구절을 불러올 수 없습니다.',
             },
           },
         });

@@ -69,7 +69,7 @@ A command button with a text label. Use it in the footers of dialogs and confirm
 <Button size="md">취소</Button>
 <Button variant="primary" size="md" onClick={overwrite}>덮어쓰기</Button>
 <Button variant="ghost" size="md" icon="plus">역본 추가</Button>
-<Button variant="primary" size="md" disabled title="곡 제목을 적어야 저장할 수 있습니다">저장</Button>
+<Button variant="primary" size="md" disabled title="곡 제목을 적어야 저장할 수 있습니다.">저장</Button>
 ```
 
 - props: `variant` `'secondary'` (default) | `'primary'` | `'ghost'`, `size` `'sm'` (default) | `'md'`, `icon` icon key (before the text), `disabled` (drawn with `aria-disabled`), `title` (tooltip text, drawn by Tooltip).

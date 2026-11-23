@@ -57,7 +57,7 @@ describe('IconButton', () => {
         label="반복"
         pressed={false}
         disabled
-        title="소리가 꺼져 있습니다"
+        title="소리가 꺼져 있습니다."
         onClick={onClick}
         onPressedChange={onPressedChange}
       />,
@@ -71,7 +71,7 @@ describe('IconButton', () => {
     expect(onPressedChange).not.toHaveBeenCalled();
     await userEvent.unhover(button);
     const tooltip = await hoverForTooltip(button);
-    expect(tooltip?.textContent).toBe('소리가 꺼져 있습니다');
+    expect(tooltip?.textContent).toBe('소리가 꺼져 있습니다.');
   });
 });
 

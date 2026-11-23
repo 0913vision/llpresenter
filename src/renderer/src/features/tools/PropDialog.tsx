@@ -77,12 +77,12 @@ export function PropDialog({
   const prop = content ? {id, name, content, targets} : undefined;
   const reason =
     kind === 'text' && !textStyle.font.trim()
-      ? '글꼴을 입력해야 저장할 수 있습니다'
+      ? '글꼴을 입력해야 저장할 수 있습니다.'
       : kind === 'text' && !isLyricTextColor(textStyle.color)
         ? '#RRGGBB 형식으로 입력'
         : prop
           ? propReason(prop)
-          : '이미지를 골라야 저장할 수 있습니다';
+          : '이미지를 골라야 저장할 수 있습니다.';
   return (
     <Dialog
       title={initial ? '그래픽 수정' : '그래픽 추가'}
@@ -147,7 +147,7 @@ export function PropDialog({
                 disabled={locked}
                 valueText={
                   mediaId && !selectedMedia
-                    ? '이미지를 찾을 수 없습니다'
+                    ? '이미지를 찾을 수 없습니다.'
                     : undefined
                 }
                 options={images.map(item => ({

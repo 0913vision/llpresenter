@@ -27,7 +27,7 @@ it('asks with the time of the record and every offered row checked', () => {
   const dialog = screen.getByRole('alertdialog', {
     name: '출력 내용을 복구할까요?',
   });
-  expect(dialog.textContent).toContain('앱이 갑자기 꺼졌습니다');
+  expect(dialog.textContent).toContain('앱이 갑자기 꺼졌습니다.');
   expect(dialog.textContent).toContain('10월 25일 오전 11:26');
   const group = screen.getByRole('group', {name: '복구할 항목'});
   const boxes = within(group).getAllByRole('checkbox');

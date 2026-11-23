@@ -21,7 +21,7 @@ function Dropdown(
 }
 
 const media = {kind: 'media', src: warmLight} as const;
-const MISSING_ARRANGEMENT_REASON = '선택한 화면을 사용할 수 없습니다';
+const MISSING_ARRANGEMENT_REASON = '선택한 화면을 사용할 수 없습니다.';
 
 export function SelectSection(): JSX.Element {
   return (

@@ -127,7 +127,7 @@ export function MacroActionDialog({
       primary={{
         label: '적용',
         disabled: locked || !action,
-        title: action ? undefined : '동작 설정을 확인해야 합니다',
+        title: action ? undefined : '동작 설정을 확인해야 합니다.',
         onSelect: () => {
           if (action) onSave(action);
         },
@@ -162,7 +162,7 @@ export function MacroActionDialog({
                 disabled={locked || options.length === 0}
                 value={selected?.id}
                 valueText={
-                  target && !selected ? '대상을 찾을 수 없습니다' : undefined
+                  target && !selected ? '대상을 찾을 수 없습니다.' : undefined
                 }
                 options={options.map(option => ({
                   value: option.id,

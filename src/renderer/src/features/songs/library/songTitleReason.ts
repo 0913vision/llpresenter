@@ -19,7 +19,7 @@ export function songTitleReason(
   const title = normalizeSongTitle(value);
   if (title === '') return EMPTY_TITLE_REASON;
   if (title.length > SONG_TITLE_LIMIT) {
-    return '곡 제목이 너무 깁니다';
+    return '곡 제목이 너무 깁니다.';
   }
   return songs.some(
     song => song.id !== songId && normalizeSongTitle(song.title) === title,

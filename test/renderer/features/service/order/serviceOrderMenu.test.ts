@@ -17,17 +17,17 @@ it('explains when selected rows cannot move farther', () => {
       remove: vi.fn(),
       moveUp: vi.fn(),
       moveDown: vi.fn(),
-      moveUpReason: '맨 위입니다',
-      moveDownReason: '맨 아래입니다',
+      moveUpReason: '맨 위입니다.',
+      moveDownReason: '맨 아래입니다.',
     }),
   );
   expect(entries.find(row => row.id === 'move-up')).toMatchObject({
     disabled: true,
-    title: '맨 위입니다',
+    title: '맨 위입니다.',
   });
   expect(entries.find(row => row.id === 'move-down')).toMatchObject({
     disabled: true,
-    title: '맨 아래입니다',
+    title: '맨 아래입니다.',
   });
 });
 
@@ -150,7 +150,7 @@ it('disables 곡 편집 without a song and both while the song loads', () => {
   const missing = menuItems(serviceOrderMenuEntries(base));
   expect(missing.find(row => row.id === 'edit-song')).toMatchObject({
     disabled: true,
-    title: '곡을 찾을 수 없습니다',
+    title: '곡을 찾을 수 없습니다.',
   });
   const loading = menuItems(
     serviceOrderMenuEntries({

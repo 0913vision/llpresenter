@@ -75,7 +75,7 @@ function TakenDialog({
         {
           label: '새 곡으로 저장',
           disabled: saving || other === null,
-          title: other === null ? '새 곡 제목이 너무 깁니다' : undefined,
+          title: other === null ? '새 곡 제목이 너무 깁니다.' : undefined,
           onSelect: () => {
             if (other === null) return;
             editSongTitle(other);

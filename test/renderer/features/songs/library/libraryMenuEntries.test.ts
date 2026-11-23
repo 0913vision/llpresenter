@@ -35,11 +35,11 @@ it('retains specific reasons ahead of busy state and explains busy commands', ()
     '열린 예배 없음',
   );
   expect(protectedRows.find(row => row.id === 'delete')?.title).toBe(
-    '새 버전의 파일이라 바꿀 수 없습니다',
+    '새 버전의 파일이라 바꿀 수 없습니다.',
   );
   expect(protectedRows.find(row => row.id === 'duplicate')).toMatchObject({
     disabled: true,
-    title: '새 버전의 파일이라 바꿀 수 없습니다',
+    title: '새 버전의 파일이라 바꿀 수 없습니다.',
   });
 });
 
@@ -124,6 +124,6 @@ it('runs 이름 바꾸기 and 탐색기에서 보기 as commands, and protects a
   );
   expect(newer.find(row => row.id === 'rename')).toMatchObject({
     disabled: true,
-    title: '새 버전의 파일이라 바꿀 수 없습니다',
+    title: '새 버전의 파일이라 바꿀 수 없습니다.',
   });
 });

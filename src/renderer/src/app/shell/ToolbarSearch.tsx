@@ -31,7 +31,7 @@ import {
 
 const SONG_ICON_SIZE = 16;
 const NO_RESULT = -1;
-const WORKSPACE_UNAVAILABLE_TIP = '여기서는 검색 결과를 열 수 없습니다';
+const WORKSPACE_UNAVAILABLE_TIP = '여기서는 검색 결과를 열 수 없습니다.';
 
 type ResultKey = 'ArrowDown' | 'ArrowUp';
 

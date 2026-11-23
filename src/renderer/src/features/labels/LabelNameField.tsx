@@ -7,8 +7,8 @@ import {hasModifier} from '@renderer/ui/modifierKeys';
 import type {AppliedRename, LabelCatalog} from './labelCatalog';
 
 export const EMPTY_LABEL_NAME_REASON =
-  '이름표 이름을 적어야 저장할 수 있습니다';
-export const DUPLICATE_LABEL_NAME_REASON = '같은 이름의 이름표가 있습니다';
+  '이름표 이름을 적어야 저장할 수 있습니다.';
+export const DUPLICATE_LABEL_NAME_REASON = '같은 이름의 이름표가 있습니다.';
 
 /** The labels file stores unique, nonblank names without trimming old names. */
 export function labelNameReason(

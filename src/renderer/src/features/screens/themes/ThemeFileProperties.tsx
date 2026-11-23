@@ -36,11 +36,11 @@ import type {ThemeModel} from './useThemeEditor';
 import styles from './Themes.module.css';
 
 const boxNameProblems = {
-  empty: '이름을 적어야 합니다',
-  brackets: '{ } [ ]는 쓸 수 없습니다',
+  empty: '이름을 적어야 합니다.',
+  brackets: '{ } [ ]는 쓸 수 없습니다.',
   taken: '같은 이름의 글 상자가 있음',
 } as const;
-const APP_BOX = '앱이 글을 넣는 글 상자는 이름을 바꿀 수 없습니다';
+const APP_BOX = '앱이 글을 넣는 글 상자는 이름을 바꿀 수 없습니다.';
 const SAME_THEME = '';
 
 /** What the slides of a theme have, whatever screen they are on. */

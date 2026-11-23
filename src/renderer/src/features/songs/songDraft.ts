@@ -132,7 +132,7 @@ export function songTitleProblem(
   if (title === '') return EMPTY_TITLE_REASON;
   if (draft.document === null) {
     return title.length > SONG_TITLE_LIMIT
-      ? '곡 제목이 너무 깁니다'
+      ? '곡 제목이 너무 깁니다.'
       : importLimitReason(draft.song);
   }
   return library.some(

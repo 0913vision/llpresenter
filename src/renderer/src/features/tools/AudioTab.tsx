@@ -99,7 +99,7 @@ export function AudioTab({
       {api && selected ? (
         <WindowedAudioTracks key={selected.id} api={api} tracks={tracks} />
       ) : (
-        <div className={styles.empty}>오디오 재생목록이 없습니다</div>
+        <div className={styles.empty}>오디오 재생목록이 없습니다.</div>
       )}
       {api ? (
         <AudioTransport

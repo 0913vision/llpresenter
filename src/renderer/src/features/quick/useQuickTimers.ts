@@ -39,8 +39,8 @@ export function useQuickTimers(
       if (!isKnownQuickItem(item) || item.kind !== 'timer') return undefined;
       if (timers === null) return '타이머 불러오는 중';
       const timer = definitions.get(item.ref);
-      if (!timer) return '타이머를 찾을 수 없습니다';
-      if (timer.kind === 'clock') return '시계는 시작과 멈춤이 없습니다';
+      if (!timer) return '타이머를 찾을 수 없습니다.';
+      if (timer.kind === 'clock') return '시계는 시작과 멈춤이 없습니다.';
       if (runs?.[timer.id] === undefined && full) {
         return limitReason('타이머', MAX_LIVE_TIMERS, '시작');
       }

@@ -160,7 +160,7 @@ export function ThemeGradientProperties({
                   title={
                     reason ??
                     (gradient.stops.length <= 2
-                      ? '색이 2개 이상 있어야 합니다'
+                      ? '색이 2개 이상 있어야 합니다.'
                       : undefined)
                   }
                   onClick={remove}

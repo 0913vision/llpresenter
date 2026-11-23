@@ -53,8 +53,8 @@ const LOAD_TITLE = '화면';
 const noScreens: readonly Screen[] = [];
 const READ_ONLY_REASON = NEWER_FILE_REASON;
 const NAME_PROBLEMS = {
-  empty: '이름을 적어야 저장할 수 있습니다',
-  taken: '같은 이름의 화면이 있습니다',
+  empty: '이름을 적어야 저장할 수 있습니다.',
+  taken: '같은 이름의 화면이 있습니다.',
 } as const;
 
 const KIND_OPTIONS = SCREEN_KIND_ORDER.map(value => ({
@@ -114,7 +114,7 @@ function NdiRows({
             value={draft ?? source}
             invalid={duplicate}
             invalidReason={
-              duplicate ? '같은 NDI 소스 이름이 있습니다' : undefined
+              duplicate ? '같은 NDI 소스 이름이 있습니다.' : undefined
             }
             onChange={setDraft}
             onBlur={() => {
@@ -447,7 +447,7 @@ function PropertyRows({
                     key: 'screens:kind',
                     kind: 'warning',
                     icon: 'warning',
-                    title: '마지막 화면의 종류는 바꿀 수 없습니다',
+                    title: '마지막 화면의 종류는 바꿀 수 없습니다.',
                     time: noticeTime(),
                   });
                   return;

@@ -94,7 +94,7 @@ export function useServiceRowMenu(
       ? undefined
       : {
           validate: name =>
-            name.trim() ? undefined : '이름을 적어야 저장할 수 있습니다',
+            name.trim() ? undefined : '이름을 적어야 저장할 수 있습니다.',
           onCommit: name => commit(entry, name),
           onClose: () => setRenaming(null),
         };

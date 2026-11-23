@@ -94,7 +94,7 @@ it('warns that the backup location is unavailable, with its folder and what happ
       key: 'backup-failed',
       kind: 'warning',
       icon: 'warning',
-      title: '백업 위치를 쓸 수 없습니다',
+      title: '백업 위치를 쓸 수 없습니다.',
       time: TIME,
       meta: ['백업', '백업 안 함'],
     },

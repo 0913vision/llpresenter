@@ -103,7 +103,7 @@ function collectionEntries(
         locked
           ? lockedReason(input)
           : shown === undefined
-            ? '모든 매크로에서는 옮길 수 없습니다'
+            ? '모든 매크로에서는 옮길 수 없습니다.'
             : undefined,
       ),
       submenu: collectionRows(input, {

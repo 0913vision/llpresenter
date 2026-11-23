@@ -106,7 +106,7 @@ describe('SourceList', () => {
         onRetry={onRetry}
       />,
     );
-    expect(screen.getByText('목록을 다 읽지 못했습니다')).toBeDefined();
+    expect(screen.getByText('목록을 다 읽지 못했습니다.')).toBeDefined();
     await userEvent.click(screen.getByRole('button', {name: '다시 시도'}));
     expect(onRetry).toHaveBeenCalledTimes(1);
     rerender(

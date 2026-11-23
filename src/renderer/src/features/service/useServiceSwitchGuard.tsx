@@ -47,7 +47,7 @@ export function useServiceSwitchGuard() {
             ? `‘${pending.name}’${objectParticle(pending.name)} 열까요?`
             : '새 예배를 만들까요?'
         }
-        meta={['모든 화면이 대기 화면으로 바뀝니다']}
+        meta={['모든 화면이 대기 화면으로 바뀝니다.']}
         initialFocus="cancel"
         onCancel={() => setPending(null)}
         actions={[

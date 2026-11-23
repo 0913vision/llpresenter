@@ -333,7 +333,7 @@ function CollectionPopover({
                           rename={{
                             validate: name =>
                               name.length > 256
-                                ? '이름이 너무 깁니다'
+                                ? '이름이 너무 깁니다.'
                                 : undefined,
                             onCommit: name =>
                               run({kind: 'rename', id: item.id, name}, 'saved'),
@@ -360,9 +360,9 @@ function CollectionPopover({
           actions={{
             reason:
               target === undefined
-                ? '모든 매크로는 바꿀 수 없습니다'
+                ? '모든 매크로는 바꿀 수 없습니다.'
                 : locked
-                  ? '지금은 모음을 바꿀 수 없습니다'
+                  ? '지금은 모음을 바꿀 수 없습니다.'
                   : undefined,
             duplicate: () => {
               if (target) duplicate(target);

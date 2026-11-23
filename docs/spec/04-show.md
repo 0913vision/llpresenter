@@ -1116,7 +1116,7 @@ integration use this contract, with a distinct cancellable ID per lookup.
 - Enter in any reference field outputs the selected passage. Tab moves between
   fields; selecting a recent passage preserves its stored reference.
 - If the reference isn't valid, the field shows an error ring with the reason in
-  a tooltip, for example "구절을 찾을 수 없습니다" (passage not recognized)
+  a tooltip, for example "구절을 찾을 수 없습니다." (passage not recognized)
   (proposal).
 - Bible 슬라이드 go to the lyrics layer. Output from the Bible panel counts as a
   new item and uses the 테마 for 말씀 본문 (12).

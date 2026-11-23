@@ -27,13 +27,13 @@ export type MessageEdit =
   | {readonly kind: 'delete'; readonly id: MessageTemplate['id']};
 
 export function messageNameReason(name: string): string | undefined {
-  if (name.trim() === '') return '이름을 적어야 저장할 수 있습니다';
-  if (name.trim().length > MESSAGE_NAME_LIMIT) return '이름이 너무 깁니다';
+  if (name.trim() === '') return '이름을 적어야 저장할 수 있습니다.';
+  if (name.trim().length > MESSAGE_NAME_LIMIT) return '이름이 너무 깁니다.';
   return undefined;
 }
 export function messageTextReason(text: string): string | undefined {
-  if (text.trim() === '') return '문구를 적어야 저장할 수 있습니다';
-  if (text.length > MAX_MESSAGE_CHARACTERS) return '문구가 너무 깁니다';
+  if (text.trim() === '') return '문구를 적어야 저장할 수 있습니다.';
+  if (text.length > MAX_MESSAGE_CHARACTERS) return '문구가 너무 깁니다.';
   return undefined;
 }
 export function newMessageTemplate(fields: MessageFields): MessageTemplate {

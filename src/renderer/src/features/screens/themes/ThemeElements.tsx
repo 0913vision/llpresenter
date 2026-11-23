@@ -26,7 +26,7 @@ import {addableNames, elementName} from './themeNames';
 import styles from './Themes.module.css';
 import {useReflow} from '@renderer/ui/useReflow';
 
-const ALREADY_THERE = '이 화면에 이미 있습니다';
+const ALREADY_THERE = '이 화면에 이미 있습니다.';
 export const THEME_TILE_DRAG = 'application/x-llp-theme-kind';
 export const THEME_ELEMENT_DRAG = 'application/x-llp-theme-element';
 export function droppedThemeKind(event: DragEvent) {

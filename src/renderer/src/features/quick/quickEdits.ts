@@ -60,8 +60,8 @@ export function newQuickItem(choice: QuickChoice): KnownQuickItem {
 }
 
 export function quickNameReason(name: string): string | undefined {
-  if (name.trim() === '') return '이름을 적어야 저장할 수 있습니다';
-  if (name.trim().length > QUICK_NAME_LIMIT) return '이름이 너무 깁니다';
+  if (name.trim() === '') return '이름을 적어야 저장할 수 있습니다.';
+  if (name.trim().length > QUICK_NAME_LIMIT) return '이름이 너무 깁니다.';
   return undefined;
 }
 

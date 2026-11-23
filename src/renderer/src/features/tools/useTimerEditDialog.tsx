@@ -33,7 +33,7 @@ export function useTimerEditDialog({
   const openAfterMenu = useMenuHandoff(menuOpen, () => setChanging(true));
   return {
     open: () => openAfterMenu(true),
-    reason: timer === undefined ? '타이머를 찾을 수 없습니다' : undefined,
+    reason: timer === undefined ? '타이머를 찾을 수 없습니다.' : undefined,
     dialog:
       changing && timer ? (
         <TimerEditDialog

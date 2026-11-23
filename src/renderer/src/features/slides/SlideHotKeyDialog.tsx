@@ -40,7 +40,7 @@ export function SlideHotKeyDialog({
       ? SLIDE_HOT_KEY_REASON
       : conflict === undefined
         ? undefined
-        : `슬라이드 ${conflict.slideNumber}에서 쓰는 단축키입니다`);
+        : `슬라이드 ${conflict.slideNumber}에서 쓰는 단축키입니다.`);
   const record = (event: KeyboardEvent<HTMLInputElement>): void => {
     if (composing.current) {
       event.preventDefault();

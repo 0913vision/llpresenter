@@ -184,7 +184,7 @@ Each 예배 순서 is one file. It holds only items.
 
 A 예배 순서 holds at most 1,000 items (`SERVICE_LIMITS.items`); a 템플릿 has the
 same limit. An add, a 복제, a 구역 copy, and an import past it are refused with
-"예배 순서 항목은 1000개까지 추가할 수 있습니다".
+"예배 순서 항목은 1000개까지 추가할 수 있습니다.".
 
 Every item has `id`, `kind`, and `name`. Every kind but 구역 also has `slides`
 and may have `overlays` (12), `macro`, and `memo`.
@@ -943,9 +943,9 @@ verse is one verse.
 | The end equals the start                     | Read as one verse                                   | 요 3:16-16 and 요 3:16-3:16 become 요 3:16                                                   |
 
 - An invalid reference shows the error ring with the reason in a tooltip (04):
-  "구절을 찾을 수 없습니다" (passage not recognized) for a form the grammar
+  "구절을 찾을 수 없습니다." (passage not recognized) for a form the grammar
   doesn't accept, "없는 장입니다" (no such chapter) or "없는 절입니다" (no such
-  verse) for an endpoint that doesn't exist, and "끝 절이 시작 절보다 앞입니다"
+  verse) for an endpoint that doesn't exist, and "끝 절이 시작 절보다 앞입니다."
   (the passage is reversed) for a reversed range (proposal for the wording).
 - The normalized `ref` of a Bible passage object uses the colon form and the
   full Korean book name, after these rules: "요한복음 3", "요한복음 3:16",
@@ -961,7 +961,7 @@ out, so every other verse keeps its original number. Lookup and display skip
 those verses and never renumber the rest:
 
 - **One verse.** A reference to one omitted verse is invalid, with the reason
-  "이 역본에는 없는 절입니다" (this translation doesn't have this verse) in the
+  "이 역본에는 없는 절입니다." (this translation doesn't have this verse) in the
   tooltip. The operator can choose another translation. The app never outputs a
   blank 슬라이드.
 - **A range or a whole chapter.** The omitted verses are left out, and the

@@ -41,7 +41,7 @@ function textImportRow(
           ? undefined
           : clipboard === 'checking'
             ? '확인 중'
-            : '클립보드에 텍스트가 없습니다',
+            : '클립보드에 텍스트가 없습니다.',
     ),
     onSelect: () => onImportText?.(source),
   };
@@ -67,7 +67,7 @@ export function fileMenuEntries(input: FileMenuInput): readonly MenuEntry[] {
       meta: shortcutText('service.switcher'),
       ...menuAvailability(
         input.onOpenService === undefined
-          ? '지금은 예배를 열 수 없습니다'
+          ? '지금은 예배를 열 수 없습니다.'
           : undefined,
       ),
       onSelect: () => input.onOpenService?.(),

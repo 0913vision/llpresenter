@@ -53,10 +53,10 @@ it('explains busy commands without hiding read-only and open-service protections
     }),
   );
   expect(protectedRows.find(row => row.id === 'rename')?.title).toBe(
-    '새 버전의 파일이라 바꿀 수 없습니다',
+    '새 버전의 파일이라 바꿀 수 없습니다.',
   );
   expect(protectedRows.find(row => row.id === 'delete')?.title).toBe(
-    '열린 예배는 삭제할 수 없습니다',
+    '열린 예배는 삭제할 수 없습니다.',
   );
 });
 beforeEach(() => {

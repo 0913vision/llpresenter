@@ -131,7 +131,7 @@ export function NotificationSection(): JSX.Element {
               key: 'import:target-changed',
               kind: 'warning',
               icon: 'warning',
-              title: '같은 곡이 바뀌었습니다',
+              title: '같은 곡이 바뀌었습니다.',
               time: '11:29',
             }}
             onClose={ignore}

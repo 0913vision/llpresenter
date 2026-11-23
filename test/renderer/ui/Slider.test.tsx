@@ -153,7 +153,7 @@ describe('Slider', () => {
         max={100}
         value={40}
         disabled
-        title="소리가 꺼져 있습니다"
+        title="소리가 꺼져 있습니다."
         onChange={() => {}}
       />,
     );
@@ -161,7 +161,7 @@ describe('Slider', () => {
     const row = slider('음량').parentElement;
     if (row === null) throw new Error('No row');
     expect((await hoverForTooltip(row))?.textContent).toBe(
-      '소리가 꺼져 있습니다',
+      '소리가 꺼져 있습니다.',
     );
   });
 

@@ -174,10 +174,10 @@ describe('screenGroups', () => {
   });
 
   it.each([
-    [{placement: 'monitorMissing'}, '모니터를 찾을 수 없습니다'],
+    [{placement: 'monitorMissing'}, '모니터를 찾을 수 없습니다.'],
     [{renderer: 'restarting'}, '출력 창 다시 시작 중'],
-    [{renderer: 'limited'}, '다시 시작을 더는 시도하지 않습니다'],
-    [{fpsLow: true}, '프레임 속도가 낮습니다'],
+    [{renderer: 'limited'}, '다시 시작을 더는 시도하지 않습니다.'],
+    [{fpsLow: true}, '프레임 속도가 낮습니다.'],
   ] as const)(
     'shows the amber dot with the reason for %j',
     (change, problem) => {

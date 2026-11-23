@@ -292,7 +292,7 @@ function VerseSplitEditor(
           onSelect: confirm,
           disabled: !plan.ok || busy,
           title: !plan.ok
-            ? '한 슬라이드에 들어가지 않는 구절이 있습니다'
+            ? '한 슬라이드에 들어가지 않는 구절이 있습니다.'
             : undefined,
         }}
         footerStart={

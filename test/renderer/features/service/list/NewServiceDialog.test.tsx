@@ -207,7 +207,7 @@ describe('NewServiceDialog', () => {
       name: '새 예배를 만들까요?',
     });
     expect(
-      within(guard).getByText('모든 화면이 대기 화면으로 바뀝니다'),
+      within(guard).getByText('모든 화면이 대기 화면으로 바뀝니다.'),
     ).toBeTruthy();
     expect(document.activeElement).toBe(
       within(guard).getByRole('button', {name: '취소'}),
@@ -281,7 +281,7 @@ describe('NewServiceDialog', () => {
     await userEvent.keyboard('{Enter}');
     expect(edits).toEqual([]);
     const tooltip = await hoverForTooltip(createButton());
-    expect(tooltip?.textContent).toBe('이름을 적어야 만들 수 있습니다');
+    expect(tooltip?.textContent).toBe('이름을 적어야 만들 수 있습니다.');
   });
 
   it('creates an empty service from 빈 예배 without using the current hour', async () => {

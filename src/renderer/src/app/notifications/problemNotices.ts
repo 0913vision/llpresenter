@@ -93,7 +93,7 @@ export function backupFailedCard(
     key: BACKUP_FAILED_KEY,
     kind: 'warning',
     icon: 'warning',
-    title: '백업 위치를 쓸 수 없습니다',
+    title: '백업 위치를 쓸 수 없습니다.',
     time,
     meta: [name, '백업 안 함'],
   };

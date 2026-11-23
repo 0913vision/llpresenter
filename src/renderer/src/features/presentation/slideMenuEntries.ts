@@ -17,7 +17,7 @@ export function slideMenuEntries(
       label: '준비에서 열기',
       ...menuAvailability(
         edit === undefined
-          ? '이 슬라이드는 준비에서 편집할 수 없습니다'
+          ? '이 슬라이드는 준비에서 편집할 수 없습니다.'
           : undefined,
       ),
       onSelect: edit,

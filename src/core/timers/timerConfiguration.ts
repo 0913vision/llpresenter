@@ -18,10 +18,10 @@ export type TimerConfiguration =
   | {readonly kind: 'clock'};
 
 export const timerDateReason = (date: string): string | undefined =>
-  checkPart(calendarDate, date).ok ? undefined : '날짜 형식이 맞지 않습니다';
+  checkPart(calendarDate, date).ok ? undefined : '날짜 형식이 맞지 않습니다.';
 
 export const timerTimeReason = (time: string): string | undefined =>
-  checkPart(timeOfDay, time).ok ? undefined : '시각 형식이 맞지 않습니다';
+  checkPart(timeOfDay, time).ok ? undefined : '시각 형식이 맞지 않습니다.';
 
 export function validTimerConfiguration(timer: TimerConfiguration): boolean {
   switch (timer.kind) {

@@ -55,11 +55,11 @@ export function BackgroundDrop({
     const id = readMediaDrag(event.dataTransfer);
     const media = id === undefined ? undefined : mediaItem(id);
     if (id === undefined || media === undefined || !canAddMedia(id)) {
-      problem('미디어 파일을 찾을 수 없습니다');
+      problem('미디어 파일을 찾을 수 없습니다.');
       return;
     }
     if (media.kind === 'audio') {
-      problem('오디오는 배경으로 사용할 수 없습니다');
+      problem('오디오는 배경으로 사용할 수 없습니다.');
       return;
     }
     if (deck.readOnly) {

@@ -47,9 +47,9 @@ export function useOverlayControl(editing: OverlayEditing): OverlayControl {
   const addReason = (position: number): string | undefined =>
     reason ??
     (overlays.length >= ITEM_OVERLAY_LIMITS.overlays
-      ? `오버레이는 ${ITEM_OVERLAY_LIMITS.overlays}개까지 추가할 수 있습니다`
+      ? `오버레이는 ${ITEM_OVERLAY_LIMITS.overlays}개까지 추가할 수 있습니다.`
       : newOverlaySpan(overlays, position, count) === undefined
-        ? '이 슬라이드에 오버레이가 있습니다'
+        ? '이 슬라이드에 오버레이가 있습니다.'
         : undefined);
 
   const add = (

@@ -43,7 +43,7 @@ const BUSY: PowerPointReadResult = {
 };
 const NOTHING: PowerPointReadResult = {ok: true, value: null};
 const UNREADABLE =
-  'PowerPoint 파일이 손상되었거나 암호화되었거나 크기 제한을 넘었습니다';
+  'PowerPoint 파일이 손상되었거나 암호화되었거나 크기 제한을 넘었습니다.';
 const DIGEST = /^[a-f0-9]{64}$/;
 
 function picturesOf(slides: unknown): ReadonlyArray<string | undefined> {

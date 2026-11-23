@@ -344,7 +344,7 @@ it('says so when PowerPoint cannot export the backgrounds', async () => {
   await filled();
   expect(backgrounds()).toEqual([null, null, null]);
   expect(onProblem.mock.calls.map(([notice]) => notice.title)).toEqual([
-    '배경을 모두 가져오지 못했습니다',
+    '배경을 모두 가져오지 못했습니다.',
   ]);
   log.mockRestore();
 });

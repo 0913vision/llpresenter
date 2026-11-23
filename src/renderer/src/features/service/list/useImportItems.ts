@@ -14,7 +14,7 @@ import {
 } from './useServiceSources';
 
 const NOTHING: TreeSelection = new Set();
-const NONE_PICKED = '항목을 골라야 가져올 수 있습니다';
+const NONE_PICKED = '항목을 골라야 가져올 수 있습니다.';
 const READ_ONLY = NEWER_FILE_REASON;
 const FAILED = '항목 가져오기 실패';
 

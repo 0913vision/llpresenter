@@ -136,7 +136,7 @@ export function SongPicker({
       primary={{
         label: '추가',
         disabled: choice === undefined,
-        title: choice === undefined ? '선택할 곡이 없습니다' : undefined,
+        title: choice === undefined ? '선택할 곡이 없습니다.' : undefined,
         onSelect: () => {
           if (choice !== undefined) onChoose(choice.id);
         },

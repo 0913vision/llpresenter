@@ -97,7 +97,7 @@ describe('service panel editing', () => {
     );
     expect(await screen.findByRole('tooltip')).toHaveProperty(
       'textContent',
-      '곡 파일을 찾을 수 없습니다',
+      '곡 파일을 찾을 수 없습니다.',
     );
     for (const name of [
       '라이브러리에 저장…',

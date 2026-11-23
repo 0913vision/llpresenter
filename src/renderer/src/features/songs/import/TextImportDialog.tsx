@@ -212,11 +212,11 @@ export function TextImportDialog({
             draftReason ??
             (reading ? '파일을 다시 읽는 중' : undefined) ??
             (preview.invalidSymbol
-              ? '나누기 기호를 적어야 합니다'
+              ? '나누기 기호를 적어야 합니다.'
               : preview.pending
                 ? '미리보기 준비 중'
                 : preview.draft === null
-                  ? '가져올 슬라이드가 없습니다'
+                  ? '가져올 슬라이드가 없습니다.'
                   : undefined),
           onSelect: () => {
             if (!reading && draft && draftReason === undefined) {
@@ -257,7 +257,7 @@ export function TextImportDialog({
                   }
                   maxLength={MAX_SYMBOL}
                   invalid={preview.invalidSymbol}
-                  invalidReason="나누기 기호를 적어야 합니다"
+                  invalidReason="나누기 기호를 적어야 합니다."
                 />
               </DialogField>
             ) : null}

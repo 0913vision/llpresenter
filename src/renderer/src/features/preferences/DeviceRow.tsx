@@ -12,7 +12,7 @@ const NO_NAME = '이름 없는 장치';
 const DEFAULT_DEVICE_TEXT = 'Windows 기본 장치';
 /** Why a saved device is not used: the choice stays and plays to the default. */
 export const MISSING_DEVICE_REASON =
-  '연결되지 않아 Windows 기본 장치로 재생합니다';
+  '연결되지 않아 Windows 기본 장치로 재생합니다.';
 
 /**
  * A row that picks an audio output device: Windows 기본 장치, then each

@@ -260,7 +260,7 @@ it('explains theme fit precedence in a tooltip while keeping media fit editable'
   const target = within(panel).getByTestId('media-fit-tooltip');
   fireEvent.pointerEnter(target);
   expect((await screen.findByRole('tooltip')).textContent).toContain(
-    '테마의 맞춤이 우선합니다',
+    '테마의 맞춤이 우선합니다.',
   );
   expect(within(group).getByRole('radio', {name: '채우기'})).toHaveProperty(
     'disabled',
@@ -279,7 +279,7 @@ it('shows the fit precedence tooltip on keyboard focus', async () => {
   });
   fireEvent.focus(control);
   expect((await screen.findByRole('tooltip')).textContent).toContain(
-    '테마의 맞춤이 우선합니다',
+    '테마의 맞춤이 우선합니다.',
   );
   match.mockRestore();
 });

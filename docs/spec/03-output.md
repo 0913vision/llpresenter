@@ -91,11 +91,11 @@ native resolution), `docs/TECH.md` (output windows show no dialogs).
 The 청중 화면, 무대, and 방송 화면 buttons at the right of the toolbar turn each
 screen's output on and off. There is no confirmation.
 
-| State           | Meaning                                                                                                      | Toolbar button           | Tooltip                                                                      |
-| --------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------ | ---------------------------------------------------------------------------- |
-| On              | The output window shows and draws content.                                                                   | Red dot                  | "청중 화면 출력 끄기 (모니터 2)" (turn off main screen output, monitor 2)    |
-| Off             | The output window is hidden.                                                                                 | No dot, dim label        | "청중 화면 출력 켜기 (모니터 2)" (turn on main screen output)                |
-| Monitor missing | The output is on, but the app can't find the monitor, so it shows in a window instead (see "Lost monitors"). | Amber dot and amber icon | "청중 화면: 모니터 2를 찾을 수 없습니다" (main screen: can't find monitor 2) |
+| State           | Meaning                                                                                                      | Toolbar button           | Tooltip                                                                       |
+| --------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------ | ----------------------------------------------------------------------------- |
+| On              | The output window shows and draws content.                                                                   | Red dot                  | "청중 화면 출력 끄기 (모니터 2)" (turn off main screen output, monitor 2)     |
+| Off             | The output window is hidden.                                                                                 | No dot, dim label        | "청중 화면 출력 켜기 (모니터 2)" (turn on main screen output)                 |
+| Monitor missing | The output is on, but the app can't find the monitor, so it shows in a window instead (see "Lost monitors"). | Amber dot and amber icon | "청중 화면: 모니터 2를 찾을 수 없습니다." (main screen: can't find monitor 2) |
 
 - The text in parentheses is the output target name from 화면 설정, for example
   모니터 2 (monitor 2), 캡처용 창, or NDI.

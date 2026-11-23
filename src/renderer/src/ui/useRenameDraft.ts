@@ -62,7 +62,7 @@ export function useRenameDraft(
     contract.commitsUnchanged !== true;
   const validation =
     contract.validate?.(name) ??
-    (name === '' ? '이름을 적어야 저장할 수 있습니다' : undefined);
+    (name === '' ? '이름을 적어야 저장할 수 있습니다.' : undefined);
   const problem = validation ?? failure;
   const close = (): void => {
     const focus = keyboardFocus.current;
@@ -89,7 +89,7 @@ export function useRenameDraft(
     try {
       const saved = await contract.onCommit(name);
       if (!mounted.current) return saved;
-      if (!saved) setFailure('이름을 저장할 수 없습니다');
+      if (!saved) setFailure('이름을 저장할 수 없습니다.');
       else {
         setNeedsPersistence(false);
         close();
@@ -97,7 +97,7 @@ export function useRenameDraft(
       return saved;
     } catch (cause: unknown) {
       console.error('Could not save a renamed item:', cause);
-      if (mounted.current) setFailure('이름을 저장할 수 없습니다');
+      if (mounted.current) setFailure('이름을 저장할 수 없습니다.');
       return false;
     } finally {
       pending.current = false;

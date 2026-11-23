@@ -18,11 +18,11 @@ function titleOf(status: UpdateStatus): string {
     case 'idle':
       return '';
     case 'unsupported':
-      return '설치된 Windows 앱에서 업데이트를 확인할 수 있습니다';
+      return '설치된 Windows 앱에서 업데이트를 확인할 수 있습니다.';
     case 'checking':
       return '업데이트 확인 중';
     case 'available':
-      return `새 버전 ${status.version}이 있습니다`;
+      return `새 버전 ${status.version}이 있습니다.`;
     case 'downloading':
       return `업데이트 내려받는 중 ${status.percent}%`;
     case 'downloaded':
@@ -32,7 +32,7 @@ function titleOf(status: UpdateStatus): string {
     case 'restarting':
       return '업데이트 후 다시 시작 중';
     case 'latest':
-      return `최신 버전 ${status.version}을 사용하고 있습니다`;
+      return `최신 버전 ${status.version}을 사용하고 있습니다.`;
     case 'error':
       return '업데이트 실패';
   }
@@ -91,7 +91,7 @@ export function useUpdate(
   const {status} = snapshot;
   const outputsOn = live || snapshot.outputsOn;
   const title = snapshot.busy
-    ? '이미 업데이트를 확인하거나 내려받고 있습니다'
+    ? '이미 업데이트를 확인하거나 내려받고 있습니다.'
     : titleOf(status);
   if (
     status.kind === 'downloading' ||
@@ -163,7 +163,7 @@ export function useUpdate(
   const download = status.kind === 'available';
   const install = status.kind === 'downloaded';
   if ((download || install) && outputsOn && !snapshot.notice) {
-    meta.push('업데이트 중 화면이 꺼지고 다시 시작하면 복원됩니다');
+    meta.push('업데이트 중 화면이 꺼지고 다시 시작하면 복원됩니다.');
   }
   if (
     (snapshot.notice === true && download && outputsOn) ||

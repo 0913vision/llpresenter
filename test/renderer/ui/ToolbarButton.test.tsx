@@ -159,7 +159,7 @@ describe('OutputToggle', () => {
   it.each([
     ['live', 'true', '청중 화면 출력 끄기 (모니터 2)'],
     ['off', 'false', '청중 화면 출력 켜기 (모니터 2)'],
-    ['warning', 'true', '청중 화면: 모니터 2를 찾을 수 없습니다'],
+    ['warning', 'true', '청중 화면: 모니터 2를 찾을 수 없습니다.'],
   ] as const)(
     'draws the %s state with aria-pressed %s, its dot, and its tooltip',
     async (state, pressed, tooltip) => {
@@ -196,7 +196,7 @@ describe('OutputToggle', () => {
     );
     const button = screen.getByRole('button', {name: '무대'});
     expect((await hoverForTooltip(button))?.textContent).toBe(
-      '무대 화면: 모니터 3을 찾을 수 없습니다',
+      '무대 화면: 모니터 3을 찾을 수 없습니다.',
     );
   });
 });

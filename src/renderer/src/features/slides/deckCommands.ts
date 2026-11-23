@@ -20,8 +20,8 @@ import {
 import {copySlides, slidesCopiedAs} from './slideClipboard';
 import type {SlideDeck} from './slideDeck';
 
-export const FULL_REASON = '슬라이드가 너무 많습니다';
-const NOTHING_SELECTED = '선택한 슬라이드가 없습니다';
+export const FULL_REASON = '슬라이드가 너무 많습니다.';
+const NOTHING_SELECTED = '선택한 슬라이드가 없습니다.';
 
 /** Why slides can't be added to a deck. */
 export function addReason(deck: SlideDeck, count = 1): string | undefined {

@@ -43,10 +43,10 @@ export function referenceFieldsState(
     bounds?.bookId === book?.id ? bounds?.chapterVerses : undefined;
   const verseCount = chapter === undefined ? undefined : counts?.[chapter - 1];
   const errors: Record<ReferencePart, string | undefined> = {
-    book: book ? undefined : '성경 책을 골라야 합니다',
+    book: book ? undefined : '성경 책을 골라야 합니다.',
     chapter:
       !chapter || (book && chapter > book.chapters)
-        ? '장을 확인해야 합니다'
+        ? '장을 확인해야 합니다.'
         : !counts
           ? '장 정보 불러오는 중'
           : !verseCount
@@ -54,17 +54,17 @@ export function referenceFieldsState(
             : undefined,
     start:
       !start || (verseCount !== undefined && start > verseCount)
-        ? '시작절을 확인해야 합니다'
+        ? '시작절을 확인해야 합니다.'
         : verseCount === undefined
           ? '장 정보 불러오는 중'
           : undefined,
     end:
       end === undefined || (start !== undefined && end < start)
-        ? '끝절을 확인해야 합니다'
+        ? '끝절을 확인해야 합니다.'
         : verseCount === undefined
           ? '장 정보 불러오는 중'
           : end > verseCount
-            ? '끝절을 확인해야 합니다'
+            ? '끝절을 확인해야 합니다.'
             : undefined,
   };
   const clampedEnd =

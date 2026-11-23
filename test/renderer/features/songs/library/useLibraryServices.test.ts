@@ -19,7 +19,7 @@ it('follows the open service access without enumerating saved service files', as
   await act(() => result.current.append(song.id));
   act(() => applyService({...sampleService, readOnly: true}));
   expect(result.current.disabledReason).toBe(
-    '새 버전의 파일이라 바꿀 수 없습니다',
+    '새 버전의 파일이라 바꿀 수 없습니다.',
   );
   await act(() => result.current.append(song.id));
   expect(edit).not.toHaveBeenCalled();

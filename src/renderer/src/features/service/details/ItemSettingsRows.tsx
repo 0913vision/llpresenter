@@ -19,7 +19,7 @@ const NO_MACRO = '';
 const MACRO_META = '매크로';
 const MISSING_MACRO = '매크로 없음';
 const LOADING_REASON = '불러오는 중';
-const MACROS_FAILED_REASON = '매크로를 불러오지 못했습니다';
+const MACROS_FAILED_REASON = '매크로를 불러오지 못했습니다.';
 
 type MacrosDocument = Extract<SettingsDocument, {name: 'macros'}>;
 export type Macro = MacrosDocument['value']['macros'][number];

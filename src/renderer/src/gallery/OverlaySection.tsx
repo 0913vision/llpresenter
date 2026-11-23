@@ -36,7 +36,7 @@ const fileMenu: readonly MenuEntry[] = [
         label: 'PowerPoint 파일',
         icon: 'fileppt',
         disabled: true,
-        title: '아직 지원하지 않습니다',
+        title: '아직 지원하지 않습니다.',
       },
     ],
   },
@@ -213,7 +213,7 @@ function NewServiceDialog({
         label: '만들기',
         onSelect: onClose,
         disabled: name === '',
-        title: '이름을 적어야 만들 수 있습니다',
+        title: '이름을 적어야 만들 수 있습니다.',
       }}
       aside={
         <ListBox label="템플릿" selected={source} onSelect={chooseSource} inset>
@@ -354,14 +354,14 @@ export function OverlaySection(): JSX.Element {
         </SpecItem>
         <SpecItem label="Two lines (error reason + extra info)">
           <Tooltip
-            text="라이브러리에 같은 제목의 곡이 있습니다"
+            text="라이브러리에 같은 제목의 곡이 있습니다."
             sub="라이브러리 곡 슬라이드 4개, 10월 20일 수정"
           >
             <Button>저장</Button>
           </Tooltip>
         </SpecItem>
         <SpecItem label="Long path wraps at 280">
-          <Tooltip text="D:\예배 자료\2026\배경 영상\부활절\따뜻한 빛 (긴 버전).mp4 파일을 찾을 수 없습니다">
+          <Tooltip text="D:\예배 자료\2026\배경 영상\부활절\따뜻한 빛 (긴 버전).mp4 파일을 찾을 수 없습니다.">
             <Button>배경</Button>
           </Tooltip>
         </SpecItem>
@@ -369,7 +369,7 @@ export function OverlaySection(): JSX.Element {
           <Button
             variant="primary"
             disabled
-            title="곡 제목을 적어야 저장할 수 있습니다"
+            title="곡 제목을 적어야 저장할 수 있습니다."
           >
             저장
           </Button>
@@ -410,7 +410,7 @@ export function OverlaySection(): JSX.Element {
               <AlertDialog
                 icon="trash"
                 title="이름표 삭제"
-                meta={['1절', '곡에 붙은 이름표는 남습니다']}
+                meta={['1절', '곡에 붙은 이름표는 남습니다.']}
                 onCancel={close}
                 actions={[
                   {
@@ -483,7 +483,7 @@ export function OverlaySection(): JSX.Element {
               <AlertDialog
                 icon="history"
                 title="출력 내용을 복구할까요?"
-                meta={['앱이 갑자기 꺼졌습니다', '10월 25일 오전 11:26']}
+                meta={['앱이 갑자기 꺼졌습니다.', '10월 25일 오전 11:26']}
                 actions={[
                   {label: '새로 시작', escape: true, onSelect: close},
                   {label: '복구', primary: true, onSelect: close},

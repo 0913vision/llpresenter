@@ -8,7 +8,7 @@ import {PropertyRow, SelectMenu} from '@renderer/ui';
 import type {Notice} from '@renderer/ui/notices';
 
 const LABEL = '메시지 스타일';
-const LOAD_TITLE = '메시지 스타일을 불러오지 못했습니다';
+const LOAD_TITLE = '메시지 스타일을 불러오지 못했습니다.';
 
 /** Picks the style the screen draws a 메시지 in. */
 export function MessageStyleRow({

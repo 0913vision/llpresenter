@@ -81,7 +81,7 @@ export function serviceRowMenuEntries({
       label: '삭제',
       ...menuAvailability(
         open
-          ? '열린 예배는 삭제할 수 없습니다'
+          ? '열린 예배는 삭제할 수 없습니다.'
           : busy
             ? '예배 저장 중'
             : undefined,

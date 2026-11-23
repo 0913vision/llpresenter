@@ -70,7 +70,7 @@ continues, and a successful query clears the line.
 | Frame rate dropped         | Status bar text ("방송 화면 프레임 낮음 (41fps)")                                                                                                                     | Output continues                                                                                                       | None in the UI. The cause needs a fix in the app.                                         | `StatusBar` README                          |
 | Save failed                | Warning notification "저장 실패" (save failed) (proposal)                                                                                                             | The content stays in memory                                                                                            | 다시 시도 (try again)                                                                     | 02                                          |
 | File can't be read         | Warning notification, and a log entry                                                                                                                                 | The app skips that file and keeps running                                                                              | Fix or remove the file                                                                    | `docs/TECH.md` storage                      |
-| Song of an item is missing | Warning icon on the 예배 순서 row, tooltip "곡을 찾을 수 없습니다" (song not found). The item has no 슬라이드 (proposal).                                             | Other items                                                                                                            | Fill the item again or delete it                                                          | Proposal                                    |
+| Song of an item is missing | Warning icon on the 예배 순서 row, tooltip "곡을 찾을 수 없습니다." (song not found). The item has no 슬라이드 (proposal).                                            | Other items                                                                                                            | Fill the item again or delete it                                                          | Proposal                                    |
 
 ## Lost monitor
 
@@ -159,7 +159,7 @@ rehearsal 4 B1).
 
 - It is marked as missing media, the same way everywhere: a 그래픽 tile of a
   deleted image shows the hatched frame with the amber file icon, and its
-  tooltip reads `미디어 파일을 찾을 수 없습니다` (there is no path to name). A
+  tooltip reads `미디어 파일을 찾을 수 없습니다.` (there is no path to name). A
   예배 순서 row and a background already do this (the table above).
 - A 그래픽 whose image is gone can't be shown, and its tile says why. One that
   is already on screen can still be taken down.
@@ -283,7 +283,7 @@ editor can change meanwhile.
 - When saving fails, the title becomes "저장 실패", as for other save failures
   (02), and the app stays open. 다시 시도 saves again and closes when that
   succeeds; 강제로 닫기 closes without the unsaved edits, and its tooltip says
-  so: "저장하지 못한 편집은 사라집니다". Edits are never dropped unless the
+  so: "저장하지 못한 편집은 사라집니다.". Edits are never dropped unless the
   operator picks 강제로 닫기.
 - When the control window doesn't answer within 5 seconds, the app closes
   without the dialog, because a frozen window can't draw it and must never keep

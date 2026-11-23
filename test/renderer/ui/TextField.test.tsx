@@ -168,7 +168,7 @@ describe('TextField', () => {
         value="만복의 근원 하나님"
         onChange={() => {}}
         invalid
-        invalidReason="라이브러리에 같은 제목의 곡이 있습니다"
+        invalidReason="라이브러리에 같은 제목의 곡이 있습니다."
       />,
     );
     const input = screen.getByRole('textbox', {name: '곡 제목'});
@@ -176,11 +176,11 @@ describe('TextField', () => {
     expect(input.getAttribute('aria-describedby')).not.toBeNull();
     expect(
       screen.getByRole('textbox', {
-        description: '라이브러리에 같은 제목의 곡이 있습니다',
+        description: '라이브러리에 같은 제목의 곡이 있습니다.',
       }),
     ).toBe(input);
     expect((await hoverForTooltip(input))?.textContent).toBe(
-      '라이브러리에 같은 제목의 곡이 있습니다',
+      '라이브러리에 같은 제목의 곡이 있습니다.',
     );
   });
 

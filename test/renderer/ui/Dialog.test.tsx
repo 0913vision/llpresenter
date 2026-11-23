@@ -379,7 +379,7 @@ describe('AlertDialog', () => {
       <AlertDialog
         icon="history"
         title="출력 내용을 복구할까요?"
-        meta={['앱이 갑자기 꺼졌습니다', '10월 25일 오전 11:26']}
+        meta={['앱이 갑자기 꺼졌습니다.', '10월 25일 오전 11:26']}
         actions={[
           {label: '새로 시작', escape: true, onSelect: onRestart},
           {label: '복구', primary: true, onSelect: onRestore},

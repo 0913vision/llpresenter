@@ -109,7 +109,7 @@ export function registerPowerPointImport(
     }
     const media = await context.media;
     if (!media || isDisposed()) {
-      return {ok: false, message: '미디어 저장소를 사용할 수 없습니다'};
+      return {ok: false, message: '미디어 저장소를 사용할 수 없습니다.'};
     }
     return storePictures(request, media, log);
   });

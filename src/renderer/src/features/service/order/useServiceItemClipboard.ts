@@ -11,8 +11,8 @@ import {
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import type {useServiceOrderEditing} from '@renderer/session/useServiceOrderEditing';
 
-const EMPTY_CLIPBOARD = '복사한 예배 순서 항목이 없습니다';
-const NO_ITEMS = '선택한 항목이 없습니다';
+const EMPTY_CLIPBOARD = '복사한 예배 순서 항목이 없습니다.';
+const NO_ITEMS = '선택한 항목이 없습니다.';
 const noop = (): void => undefined;
 const emptyCount = (): number => 0;
 
@@ -47,7 +47,7 @@ export function useServiceItemClipboard({
       : undefined;
   const pasteReason =
     serviceId === null
-      ? '열린 예배가 없습니다'
+      ? '열린 예배가 없습니다.'
       : !editable
         ? '예배 순서 편집 불가'
         : count === 0
@@ -98,7 +98,7 @@ export function useServiceItemClipboard({
         icon: 'warning',
         title:
           result.error === 'full'
-            ? '복사할 항목이 너무 큽니다'
+            ? '복사할 항목이 너무 큽니다.'
             : '항목 복사 실패',
         time: noticeTime(),
       });

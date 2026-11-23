@@ -23,7 +23,7 @@ export function ScreenDeviceRow({
   );
   const current = assigned ?? screen.display;
   const disabledReason =
-    reason ?? (choices.length === 0 ? '다른 모니터가 없습니다' : undefined);
+    reason ?? (choices.length === 0 ? '다른 모니터가 없습니다.' : undefined);
   return (
     <PropertyRow label="장치">
       {({controlId}) => (

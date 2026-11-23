@@ -71,13 +71,13 @@ A field for typing text directly. Use it for search, Bible verses in 빠른 실�
 ## Writing
 
 - In a placeholder, write only examples or kinds of what can be entered: "곡, 가사, 초성", "요 3:16, 창 1:1-5", "제목, 가사, 초성", "키 입력". Don't write guidance sentences such as "여기에 입력하세요" (Type here).
-- Don't write the error reason next to the field. Show it only in a tooltip. One sentence, facts only: "라이브러리에 같은 제목의 곡이 있습니다".
+- Don't write the error reason next to the field. Show it only in a tooltip. One sentence, facts only: "라이브러리에 같은 제목의 곡이 있습니다.".
 - Keep units short, one character: "개", "줄". Don't add a unit description ("개수") after the value.
 
 ## Implementation notes
 
 - `<TextField size="md" icon="search" placeholder="곡, 가사, 초성" clearable />`
-- `<TextField variant="number" value={10} unit="개" />`, `<TextField variant="title" invalid={dup} invalidReason="라이브러리에 같은 제목의 곡이 있습니다" />`
+- `<TextField variant="number" value={10} unit="개" />`, `<TextField variant="title" invalid={dup} invalidReason="라이브러리에 같은 제목의 곡이 있습니다." />`
 - `<NumberField value={0.2} min={0.1} max={2} step={0.1} largeStep={1} unit="초" onChange={setSeconds} />`; line-spacing and speed fields use step 0.05, default large step 0.5. Callers own ranges; these gallery examples do not decide settings defaults.
 - `<TextField multiline minRows={3} maxRows={8} />` draws `textarea.ll-textarea`.
 - Markup: `span.ll-field[.ll-field--sm|--num|--title|--ring|--block] > [span.ll-i.ll-field__icon] + input.ll-field__input + [button.ll-field__clear]`. Set an error with `aria-invalid="true"` on the input, and disabled with `disabled` on the input (the outer field follows through `:has()`).

@@ -113,7 +113,7 @@ export function BibleDisplayControls({
     }
   };
   const reason = !api
-    ? '구절을 불러올 수 없습니다'
+    ? '구절을 불러올 수 없습니다.'
     : busy
       ? '역본 불러오는 중'
       : document === null

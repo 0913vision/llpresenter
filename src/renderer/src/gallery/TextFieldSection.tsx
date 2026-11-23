@@ -4,7 +4,7 @@ import {TextArea} from '../ui/TextArea';
 import {TextField, type TextFieldProps} from '../ui/TextField';
 import {Section, SpecGroup, SpecItem, Stateful} from './Spec';
 
-const DUPLICATE_TITLE = '라이브러리에 같은 제목의 곡이 있습니다';
+const DUPLICATE_TITLE = '라이브러리에 같은 제목의 곡이 있습니다.';
 
 function Field({
   initial = '',

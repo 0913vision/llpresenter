@@ -99,7 +99,7 @@ describe('SlideHotKeyDialog', () => {
   it('keeps a read-only assignment unchanged and does not save a no-op', async () => {
     const {field, onSave, save} = setup(
       'KeyC',
-      '새 버전의 파일이라 바꿀 수 없습니다',
+      '새 버전의 파일이라 바꿀 수 없습니다.',
     );
     fireEvent.keyDown(field, {key: 'b', code: 'KeyB'});
     await userEvent.click(screen.getByRole('button', {name: '지우기'}));

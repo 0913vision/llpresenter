@@ -60,7 +60,7 @@ it('disables service insertion with a reason when the file is missing', () => {
   expect(add).toMatchObject({
     kind: 'item',
     disabled: true,
-    title: '미디어 파일을 찾을 수 없습니다',
+    title: '미디어 파일을 찾을 수 없습니다.',
   });
   expect(addToService).not.toHaveBeenCalled();
   const available = mediaTileMenuEntries(entry, actions({addToService})).find(
@@ -233,7 +233,7 @@ it('protects a list a newer version wrote from a rename', () => {
   );
   expect(renameRow).toMatchObject({
     disabled: true,
-    title: '새 버전의 파일이라 바꿀 수 없습니다',
+    title: '새 버전의 파일이라 바꿀 수 없습니다.',
   });
 });
 
@@ -305,7 +305,7 @@ it('turns off 맞춤 and 끝나면 for a list a newer version wrote, and 끝나�
   expect(choices(entries, 'scaling').disabled).toBe(false);
   expect(choices(entries, 'end')).toMatchObject({
     disabled: true,
-    title: '이미지는 재생할 수 없습니다',
+    title: '이미지는 재생할 수 없습니다.',
   });
 });
 

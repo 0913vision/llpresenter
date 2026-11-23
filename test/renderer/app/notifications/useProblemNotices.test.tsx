@@ -70,15 +70,15 @@ describe('useProblemNotices', () => {
     const {target} = setup([{kind: 'ndi-runtime-missing'}]);
     await waitFor(() => expect(target.report).toHaveBeenCalled());
     expect(target.report.mock.lastCall?.[0]).toMatchObject({
-      title: 'NDI Runtime을 찾을 수 없습니다',
-      meta: ['캡처용 창을 사용할 수 있습니다'],
+      title: 'NDI Runtime을 찾을 수 없습니다.',
+      meta: ['캡처용 창을 사용할 수 있습니다.'],
     });
   });
   it('shows the GPU fallback notice', async () => {
     const {target} = setup([{kind: 'ndi-gpu-fallback'}]);
     await waitFor(() => expect(target.report).toHaveBeenCalledOnce());
     expect(target.report.mock.lastCall?.[0]).toMatchObject({
-      title: '하드웨어 가속을 쓸 수 없어 일반 방식으로 보냅니다',
+      title: '하드웨어 가속을 쓸 수 없어 일반 방식으로 보냅니다.',
     });
   });
   it('shows protection warnings independently and clears each after recovery', async () => {
@@ -210,7 +210,7 @@ describe('useProblemNotices', () => {
       expect(target.report).toHaveBeenCalledWith(
         expect.objectContaining({
           key: 'backup-failed',
-          title: '백업 위치를 쓸 수 없습니다',
+          title: '백업 위치를 쓸 수 없습니다.',
         }),
       ),
     );

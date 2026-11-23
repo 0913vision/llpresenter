@@ -337,7 +337,7 @@ describe('media view', () => {
       expect((await hoverForTooltip(button))?.textContent).toBe(
         state === 'loading'
           ? '미디어를 불러오는 중'
-          : '새 버전의 파일이라 바꿀 수 없습니다',
+          : '새 버전의 파일이라 바꿀 수 없습니다.',
       );
       const dataTransfer = {
         types: ['Files'],

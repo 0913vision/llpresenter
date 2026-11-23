@@ -6,7 +6,7 @@ A small box that briefly shows a name, a shortcut, the reason something is disab
 
 - Names of icon-only buttons and toolbar buttons: "사이드바 접기", "청중 화면 출력 끄기 (모니터 2)"
 - Controls that have a shortcut: "가사 지우기 F2", "되돌리기 Ctrl Z"
-- The reason a control is disabled, the reason for a text field error: "라이브러리에 같은 제목의 곡이 있습니다"
+- The reason a control is disabled, the reason for a text field error: "라이브러리에 같은 제목의 곡이 있습니다."
 - The detailed reason behind a status icon: "미디어 파일 없음", "배경 파일을 찾을 수 없음"
 - The full name of a name truncated with an ellipsis
 
@@ -57,7 +57,7 @@ A small box that briefly shows a name, a shortcut, the reason something is disab
 
 - Write the name as what happens on a click: "가사 지우기", "사이드바 접기". For a toggle button, write the state that a click leads to, not the current state: when it is on, "청중 화면 출력 끄기 (모니터 2)".
 - Put the shortcut after the name, as text: "F2", "Ctrl Z".
-- Write a reason as one sentence about what is wrong, with no period: "라이브러리에 같은 제목의 곡이 있습니다", "배경 파일을 찾을 수 없음". Don't write long instructions for the fix.
+- Write a reason as one sentence about what is wrong, with no period: "라이브러리에 같은 제목의 곡이 있습니다.", "배경 파일을 찾을 수 없음". Don't write long instructions for the fix.
 - Don't repeat a name that is already visible on the target.
 
 ## Implementation notes
@@ -69,4 +69,4 @@ A small box that briefly shows a name, a shortcut, the reason something is disab
 
 ## Changes from the drafts
 
-- The drafts all use the browser `title` tooltip (ShowH, Bible, CueTake "되돌리기 Ctrl Z", the 지우기 buttons, Compact "사이드바 접기", ImportText, ImportSave, ImportEdit "라이브러리에 같은 제목의 곡이 있습니다", Problems "미디어 파일 없음", "배경 파일을 찾을 수 없음"). The app replaces them with this tooltip. Nothing new needs to be drawn on the boards.
+- The drafts all use the browser `title` tooltip (ShowH, Bible, CueTake "되돌리기 Ctrl Z", the 지우기 buttons, Compact "사이드바 접기", ImportText, ImportSave, ImportEdit "라이브러리에 같은 제목의 곡이 있습니다.", Problems "미디어 파일 없음", "배경 파일을 찾을 수 없음"). The app replaces them with this tooltip. Nothing new needs to be drawn on the boards.

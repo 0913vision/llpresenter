@@ -99,7 +99,9 @@ export const TimerRow = memo(
               </Button>
               <Button
                 disabled={run === undefined}
-                title={run === undefined ? '타이머가 멈춰 있습니다' : undefined}
+                title={
+                  run === undefined ? '타이머가 멈춰 있습니다.' : undefined
+                }
                 onClick={reset}
               >
                 {timerCommandLabels.reset}

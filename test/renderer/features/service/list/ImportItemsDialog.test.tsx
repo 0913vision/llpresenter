@@ -201,7 +201,7 @@ describe('ImportItemsDialog', () => {
     expect(screen.getByRole('option', {name: /지난 주일 예배/})).toBeDefined();
     expect(importButton().getAttribute('aria-disabled')).toBe('true');
     const tooltip = await hoverForTooltip(importButton());
-    expect(tooltip?.textContent).toBe('항목을 골라야 가져올 수 있습니다');
+    expect(tooltip?.textContent).toBe('항목을 골라야 가져올 수 있습니다.');
   });
 
   it('appends the checked items to the open service without an output command', async () => {
@@ -421,13 +421,13 @@ describe('ImportItemsDialog', () => {
     );
     expect(importButton().getAttribute('aria-disabled')).toBe('true');
     const tooltip = await hoverForTooltip(importButton());
-    expect(tooltip?.textContent).toBe('새 버전의 파일이라 바꿀 수 없습니다');
+    expect(tooltip?.textContent).toBe('새 버전의 파일이라 바꿀 수 없습니다.');
   });
 
   it('says so when there is nothing to import from', async () => {
     setup({templates: [], services: [current]});
     expect(
-      await screen.findByText('가져올 템플릿이나 예배가 없습니다'),
+      await screen.findByText('가져올 템플릿이나 예배가 없습니다.'),
     ).toBeDefined();
     expect(screen.queryByRole('tree')).toBeNull();
   });

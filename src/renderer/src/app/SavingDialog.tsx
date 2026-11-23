@@ -26,7 +26,7 @@ export function SavingDialog({
     {
       label: '닫기',
       onSelect: closeFlush.forceClose,
-      title: '저장하지 못한 편집은 사라집니다',
+      title: '저장하지 못한 편집은 사라집니다.',
     },
     {
       label: '다시 시도',

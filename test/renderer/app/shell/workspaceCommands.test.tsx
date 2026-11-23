@@ -176,10 +176,10 @@ describe('workspaceMenu', () => {
     on?.onSelect?.();
     expect(toggle).toHaveBeenCalledOnce();
     expect(
-      find({on: false, reason: '새 버전의 파일이라 바꿀 수 없습니다', toggle}),
+      find({on: false, reason: '새 버전의 파일이라 바꿀 수 없습니다.', toggle}),
     ).toMatchObject({
       disabled: true,
-      title: '새 버전의 파일이라 바꿀 수 없습니다',
+      title: '새 버전의 파일이라 바꿀 수 없습니다.',
     });
   });
 

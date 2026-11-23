@@ -53,11 +53,11 @@ export function elementName(element: ThemeElement): string {
 }
 
 export const themeProblems: Readonly<Record<ThemeListProblem, string>> = {
-  missing: '테마를 찾을 수 없습니다',
-  name: '이름을 확인해 주세요',
+  missing: '테마를 찾을 수 없습니다.',
+  name: '이름을 확인해 주세요.',
   taken: '같은 이름의 테마가 있음',
-  full: '테마는 더 만들 수 없습니다',
-  own: '기본 테마는 삭제할 수 없습니다',
+  full: '테마는 더 만들 수 없습니다.',
+  own: '기본 테마는 삭제할 수 없습니다.',
 };
 export const INVALID_CHANGE = '변경할 수 없는 값';
 export const THEME_READ_ONLY = NEWER_FILE_REASON;

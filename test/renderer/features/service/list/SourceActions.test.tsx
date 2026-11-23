@@ -139,12 +139,12 @@ describe('the service source menu', () => {
     {
       kind: 'template',
       name: /^주일 예배/,
-      reason: '새 버전의 파일이라 바꿀 수 없습니다',
+      reason: '새 버전의 파일이라 바꿀 수 없습니다.',
     },
     {
       kind: 'service',
       name: /^지난 주일 예배/,
-      reason: '새 버전의 파일이라 바꿀 수 없습니다',
+      reason: '새 버전의 파일이라 바꿀 수 없습니다.',
     },
   ])(
     'disables read-only $kind commands with a reason',

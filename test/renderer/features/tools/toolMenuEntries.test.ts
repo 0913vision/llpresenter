@@ -24,7 +24,7 @@ it('keeps locked commands visible with a reason while future rows retain their o
       expect(item.title).toBe(item.onSelect ? '저장 중' : '아직 없는 기능');
     }
   }
-  expect(toolMenuReason(true)).toBe('지금은 바꿀 수 없습니다');
+  expect(toolMenuReason(true)).toBe('지금은 바꿀 수 없습니다.');
   expect(toolMenuReason(false, false)).toBeUndefined();
 });
 

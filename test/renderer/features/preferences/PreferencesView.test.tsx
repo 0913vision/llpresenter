@@ -636,7 +636,7 @@ describe('PreferencesView', () => {
       await waitFor(() =>
         expect(clipboard).toHaveBeenCalledExactlyOnceWith('LoveLight 9.8.7'),
       );
-      expect(await screen.findByText('복사했습니다')).toBeDefined();
+      expect(await screen.findByText('복사했습니다.')).toBeDefined();
       const verbose = screen.getByRole('checkbox', {name: '자세한 기록'});
       expect(verbose.getAttribute('aria-checked')).toBe('false');
       await userEvent.click(verbose);
@@ -662,7 +662,7 @@ describe('PreferencesView', () => {
       });
       await openPage('정보');
       await userEvent.click(screen.getByRole('button', {name: '복사'}));
-      expect(await screen.findByText('복사하지 못했습니다')).toBeDefined();
+      expect(await screen.findByText('복사하지 못했습니다.')).toBeDefined();
     });
   });
 

@@ -248,7 +248,7 @@ Source: `Reflow`, `PrepService`, `AddSongs`, `ListRow` README.
 - The right-click menu of a 라이브러리 row has 삭제. It deletes immediately
   without a confirmation or notice; undo restores the song.
 - After the delete, 예배 순서 items that point to the song show the problem
-  state, with the tooltip "곡을 찾을 수 없습니다" (song not found), and can't
+  state, with the tooltip "곡을 찾을 수 없습니다." (song not found), and can't
   output.
 - No board shows song deletion (open question).
 
@@ -713,7 +713,7 @@ row-menu decision.
   its tooltip gives the reason. The previous draft stays unchanged; shortening a
   name or choosing another 이름표 can make 적용 available again.
 - If the 라이브러리 already has the title, the title field shows the error ring,
-  with the tooltip "라이브러리에 같은 제목의 곡이 있습니다". Don't add labels,
+  with the tooltip "라이브러리에 같은 제목의 곡이 있습니다.". Don't add labels,
   chips, or status text.
 - Footer: 저장 안 함 (discard) and 편집 (edit, the primary button). The dialog
   has no save button.
@@ -734,7 +734,7 @@ row-menu decision.
   않았습니다. 버릴까요?" (The imported song isn't saved. Discard it?) with 취소
   and 저장 안 함 (proposal).
 - 저장 is unavailable while the title is empty, with the tooltip "곡 제목을
-  적어야 저장할 수 있습니다".
+  적어야 저장할 수 있습니다.".
 - 저장 with a new title saves the song to the 라이브러리 with a new ID. The
   editor turns into the normal song editor (autosave from then on), and the song
   is selected in the 라이브러리.

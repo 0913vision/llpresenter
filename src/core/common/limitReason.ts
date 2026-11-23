@@ -12,5 +12,5 @@ function topicParticle(noun: string): string {
  * app.
  */
 export function limitReason(noun: string, max: number, verb = '추가'): string {
-  return `${noun}${topicParticle(noun)} ${max}개까지 ${verb}할 수 있습니다`;
+  return `${noun}${topicParticle(noun)} ${max}개까지 ${verb}할 수 있습니다.`;
 }

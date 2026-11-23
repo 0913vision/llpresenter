@@ -264,7 +264,7 @@ export function BibleReferenceForm(
       return fields.book.trim() !== '' &&
         books.length === 0 &&
         !parseReference(fields.book).ok
-        ? '입력한 이름과 일치하는 성경 책이 없습니다'
+        ? '입력한 이름과 일치하는 성경 책이 없습니다.'
         : undefined;
     }
     if (part === 'start' && reply?.result.ok === false) {

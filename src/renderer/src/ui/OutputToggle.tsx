@@ -44,7 +44,7 @@ export function outputTooltip({
     case 'off':
       return `${screenName} 출력 켜기 (${target})`;
     case 'warning':
-      return `${screenName}: ${target}${objectParticle(target)} 찾을 수 없습니다`;
+      return `${screenName}: ${target}${objectParticle(target)} 찾을 수 없습니다.`;
   }
 }
 

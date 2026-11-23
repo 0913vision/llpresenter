@@ -11,7 +11,7 @@ import {useNewService} from './useNewService';
 import {useServiceSwitchGuard} from '../useServiceSwitchGuard';
 
 const DIALOG_HEIGHT = 700;
-const NAME_NEEDED = '이름을 적어야 만들 수 있습니다';
+const NAME_NEEDED = '이름을 적어야 만들 수 있습니다.';
 const MISSING = '예배 읽기 실패';
 
 /**

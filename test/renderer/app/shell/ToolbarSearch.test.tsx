@@ -468,7 +468,7 @@ it.each(['source-change', 'unmount'] as const)(
 );
 
 it.each([
-  {failure: 'missing', title: '곡을 찾을 수 없습니다'},
+  {failure: 'missing', title: '곡을 찾을 수 없습니다.'},
   {failure: 'rejected', title: '곡 불러오기 실패'},
 ])(
   'reports a $failure source through its problem handler',

@@ -11,7 +11,7 @@ const MODIFIER_CODES: ReadonlySet<string> = new Set([
   'MetaRight',
 ]);
 
-export const SLIDE_HOT_KEY_REASON = '영문자나 숫자 키만 쓸 수 있습니다';
+export const SLIDE_HOT_KEY_REASON = '영문자나 숫자 키만 쓸 수 있습니다.';
 
 /** A recorder action, independent of the stored slide field. */
 export type SlideHotKeyPress =

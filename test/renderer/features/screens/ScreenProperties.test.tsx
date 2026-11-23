@@ -219,7 +219,7 @@ describe('the screen properties', () => {
     }
     expect(edits).toEqual([]);
     expect((await hoverForTooltip(alwaysOnTop))?.textContent).toBe(
-      '새 버전의 파일이라 바꿀 수 없습니다',
+      '새 버전의 파일이라 바꿀 수 없습니다.',
     );
   });
 
@@ -270,7 +270,7 @@ describe('the screen properties', () => {
     expect(screen.queryByRole('menu')).toBeNull();
     await hoverForTooltip(device);
     expect(screen.getByRole('tooltip').textContent).toBe(
-      '다른 모니터가 없습니다',
+      '다른 모니터가 없습니다.',
     );
     expect(edits).toEqual([]);
   });
@@ -386,7 +386,7 @@ describe('the screen properties', () => {
 
     await waitFor(() =>
       expect(onProblem).toHaveBeenCalledWith(
-        expect.objectContaining({title: '같은 이름의 화면이 있습니다'}),
+        expect.objectContaining({title: '같은 이름의 화면이 있습니다.'}),
       ),
     );
     expect(edits).toHaveLength(1);
@@ -548,7 +548,7 @@ describe('the screen properties', () => {
       expect(screen.queryByRole('menu')).toBeNull();
       expect(edits).toEqual([]);
       expect((await hoverForTooltip(row))?.textContent).toBe(
-        '새 버전의 파일이라 바꿀 수 없습니다',
+        '새 버전의 파일이라 바꿀 수 없습니다.',
       );
     });
   });

@@ -70,7 +70,7 @@ export function useThemeEditor(
     target === undefined ? '' : `${target.theme.id}:${target.screen.id}`;
   const elementReason =
     reason ??
-    (own?.mode !== 'own' ? '직접 배치에서만 바꿀 수 있습니다' : undefined);
+    (own?.mode !== 'own' ? '직접 배치에서만 바꿀 수 있습니다.' : undefined);
   const selection = useThemeSelection(scope, layout?.elements ?? []);
   const actions = useThemeElements(
     {target, layout, placement, elementReason},

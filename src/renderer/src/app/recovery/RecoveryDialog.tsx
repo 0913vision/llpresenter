@@ -4,7 +4,7 @@ import {AlertDialog} from '@renderer/ui/AlertDialog';
 import {CheckRow} from '@renderer/ui/Checkbox';
 import {recoveryRows, recoveryTime} from './recoveryView';
 
-const NOTHING_CHECKED_TIP = '복구할 항목을 골라야 합니다';
+const NOTHING_CHECKED_TIP = '복구할 항목을 골라야 합니다.';
 
 /**
  * The 출력 상태 복구 dialog (spec 08): the rows main offers, all checked at
@@ -41,7 +41,7 @@ export function RecoveryDialog({
     <AlertDialog
       icon="history"
       title="출력 내용을 복구할까요?"
-      meta={['앱이 갑자기 꺼졌습니다', recoveryTime(summary.savedAt)]}
+      meta={['앱이 갑자기 꺼졌습니다.', recoveryTime(summary.savedAt)]}
       actions={[
         {
           label: '새로 시작',

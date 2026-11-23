@@ -193,21 +193,21 @@ describe('screen creation and group outputs', () => {
     expect(remove().getAttribute('aria-disabled')).toBe('true');
     await userEvent.hover(remove());
     expect((await screen.findByRole('tooltip')).textContent).toBe(
-      '마지막 청중 화면은 삭제할 수 없습니다',
+      '마지막 청중 화면은 삭제할 수 없습니다.',
     );
     fireEvent.keyDown(screen.getByRole('menu'), {key: 'Escape'});
     fireEvent.contextMenu(screen.getByRole('option', {name: '방송 화면'}));
     expect(rows()).toEqual(expected);
     await userEvent.hover(remove());
     expect((await screen.findByRole('tooltip')).textContent).toBe(
-      '마지막 방송 화면은 삭제할 수 없습니다',
+      '마지막 방송 화면은 삭제할 수 없습니다.',
     );
     fireEvent.keyDown(screen.getByRole('menu'), {key: 'Escape'});
     fireEvent.contextMenu(screen.getByRole('option', {name: '무대 화면'}));
     expect(rows()).toEqual(expected);
     await userEvent.hover(remove());
     expect((await screen.findByRole('tooltip')).textContent).toBe(
-      '마지막 무대 화면은 삭제할 수 없습니다',
+      '마지막 무대 화면은 삭제할 수 없습니다.',
     );
   });
 
@@ -295,8 +295,8 @@ describe('screen creation and group outputs', () => {
   });
 
   it.each([
-    {draft: '', reason: '이름을 적어야 저장할 수 있습니다'},
-    {draft: '방송 화면', reason: '같은 이름의 화면이 있습니다'},
+    {draft: '', reason: '이름을 적어야 저장할 수 있습니다.'},
+    {draft: '방송 화면', reason: '같은 이름의 화면이 있습니다.'},
   ])(
     'shows inline draft validation for $reason before committing',
     async ({draft, reason}) => {
@@ -443,7 +443,7 @@ describe('screen creation and group outputs', () => {
     );
     await userEvent.hover(await screen.findByRole('menuitem', {name: '삭제'}));
     expect((await screen.findByRole('tooltip')).textContent).toBe(
-      '새 버전의 파일이라 바꿀 수 없습니다',
+      '새 버전의 파일이라 바꿀 수 없습니다.',
     );
   });
 
@@ -675,7 +675,7 @@ describe('screen creation and group outputs', () => {
     expect(screen.queryByRole('menu')).toBeNull();
     await hoverForTooltip(button);
     expect(screen.getByRole('tooltip').textContent).toContain(
-      '새 버전의 파일이라 바꿀 수 없습니다',
+      '새 버전의 파일이라 바꿀 수 없습니다.',
     );
     expect(edit).not.toHaveBeenCalled();
   });

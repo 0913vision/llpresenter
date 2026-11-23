@@ -56,8 +56,8 @@ export function useProblemNotices(
             kind: 'warning',
             icon: 'warning',
             time: noticeTime(),
-            title: 'NDI Runtime을 찾을 수 없습니다',
-            meta: ['캡처용 창을 사용할 수 있습니다'],
+            title: 'NDI Runtime을 찾을 수 없습니다.',
+            meta: ['캡처용 창을 사용할 수 있습니다.'],
           });
           return;
         case 'ndi-gpu-fallback':
@@ -66,7 +66,7 @@ export function useProblemNotices(
             kind: 'warning',
             icon: 'warning',
             time: noticeTime(),
-            title: '하드웨어 가속을 쓸 수 없어 일반 방식으로 보냅니다',
+            title: '하드웨어 가속을 쓸 수 없어 일반 방식으로 보냅니다.',
           });
           return;
         case 'ndi-failed':
@@ -127,7 +127,7 @@ export function useProblemNotices(
             key: 'graphics-recovered',
             kind: 'info',
             icon: 'refresh',
-            title: '화면을 다시 그렸습니다',
+            title: '화면을 다시 그렸습니다.',
             time: noticeTime(),
           });
           return;

@@ -60,7 +60,7 @@ export function useSongDeck(): SlideDeck | null {
   }, [draft]);
 }
 
-const PICTURES_REASON = '배경을 가져오는 중입니다';
+const PICTURES_REASON = '배경을 가져오는 중입니다.';
 
 function save(): void {
   requestSave().catch((error: unknown) =>

@@ -261,7 +261,7 @@ export function ServiceOrderList({
       ? {
           validate: value =>
             value.trim().length > SONG_NAME_MAX_LENGTH
-              ? '이름이 너무 깁니다'
+              ? '이름이 너무 깁니다.'
               : undefined,
           onCommit: name =>
             editing.save(() =>
@@ -344,10 +344,12 @@ export function ServiceOrderList({
           renameAfterMenu({id: target.id, serviceId: target.serviceId}),
         ),
         full,
-        moveUpReason: canMoveItems(rows, ids, 'up') ? undefined : '맨 위입니다',
+        moveUpReason: canMoveItems(rows, ids, 'up')
+          ? undefined
+          : '맨 위입니다.',
         moveDownReason: canMoveItems(rows, ids, 'down')
           ? undefined
-          : '맨 아래입니다',
+          : '맨 아래입니다.',
         clipboard: {
           copy: closing(() =>
             editorTask(

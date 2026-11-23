@@ -55,7 +55,7 @@ it('shows nothing, then 저장 중 with 다시 시도 off, then 저장할 수 �
   force.click();
   expect(closeAnyway).toHaveBeenCalledOnce();
   expect((await hoverForTooltip(force))?.textContent).toBe(
-    '저장하지 못한 편집은 사라집니다',
+    '저장하지 못한 편집은 사라집니다.',
   );
   resetTooltips();
   view.unmount();
