@@ -310,3 +310,41 @@ export function referenceKey(
   if (event.key !== 'Enter') return {kind: 'pass'};
   return event.repeat ? {kind: 'repeat'} : {kind: 'submit'};
 }
+
+/**
+ * Why field `part` is wrong, or nothing: a book no name matches, a verse the
+ * translation leaves out or that could not be read, or the field's own
+ * error once it has a value or a key could not get past it.
+ */
+export function fieldReason(
+  part: ReferencePart,
+  {
+    fields,
+    bookFound,
+    lookup,
+    blocked,
+    errors,
+  }: {
+    readonly fields: ReferenceFields;
+    /** Some book matches what the book field holds. */
+    readonly bookFound: boolean;
+    /** The answer of the passage lookup, when it failed. */
+    readonly lookup: {readonly code: string} | undefined;
+    readonly blocked: ReferencePart | null;
+    readonly errors: Readonly<Record<ReferencePart, string | undefined>>;
+  },
+): string | undefined {
+  if (part === 'book') {
+    return fields.book.trim() !== '' &&
+      !bookFound &&
+      !parseReference(fields.book).ok
+      ? '입력한 이름과 일치하는 성경 책이 없습니다.'
+      : undefined;
+  }
+  if (part === 'start' && lookup !== undefined) {
+    return lookup.code === 'omitted'
+      ? '이 역본에 없는 절'
+      : '구절 불러오기 실패';
+  }
+  return fields[part] !== '' || blocked === part ? errors[part] : undefined;
+}

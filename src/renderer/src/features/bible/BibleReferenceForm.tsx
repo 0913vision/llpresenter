@@ -2,7 +2,6 @@ import {
   LIVE_BIBLE_ID,
   exactBibleBook,
   findBibleBooks,
-  parseReference,
   changeReferenceField,
   EMPTY_REFERENCE,
   reconcileReferenceFields,
@@ -36,6 +35,7 @@ import {
   LIVE_BOUNDS,
   NUMBER_PARTS,
   REFERENCE_LABELS,
+  fieldReason,
   fieldsOfReference,
   focusPart,
   fullReferenceCandidate,
@@ -49,6 +49,7 @@ import {
   type ReferenceKeyHandlers,
 } from './referenceKeyActions';
 import {useBibleLookup} from './useBibleLookup';
+import {useChosenRecent} from './useChosenRecent';
 import styles from './BibleReferenceField.module.css';
 
 export interface BibleReferenceFormProps {
@@ -90,24 +91,11 @@ export function BibleReferenceForm(
   // NOTE(0913vision): Korean input still composes "합" when Tab is pressed, so
   // the book is completed after the IME commits, as with a plain Tab.
   const tabAfterComposition = useRef(false);
-  const [recent, setRecent] = useState<{
-    readonly provided: TranslationId | undefined;
-    readonly value: RecentPassage;
-  } | null>(null);
-  if (recent && recent.provided !== props.translation) {
-    setRecent({
-      provided: props.translation,
-      value: {
-        ...recent.value,
-        translation: props.translation ?? recent.value.translation,
-      },
-    });
-  }
-  const selectedRecent = recent?.value;
-  const translation =
-    recent?.provided === props.translation && props.translation !== undefined
-      ? (selectedRecent?.translation ?? props.translation)
-      : props.translation;
+  const {
+    recent: selectedRecent,
+    translation,
+    choose: setRecent,
+  } = useChosenRecent(props.translation);
   const root = useRef<HTMLDivElement>(null);
   /** Counts the books chosen with a move on to 장. */
   const [toChapter, setToChapter] = useState(0);
@@ -255,30 +243,18 @@ export function BibleReferenceForm(
     );
     setFields(EMPTY_REFERENCE);
     setBlocked(null);
-    setRecent({
-      provided: props.translation,
-      value: {ref: item.ref, translation: item.translation},
-    });
+    setRecent({ref: item.ref, translation: item.translation});
     setPointed(-1);
     setOpen(false);
   };
-  const reason = (part: ReferencePart): string | undefined => {
-    if (part === 'book') {
-      return fields.book.trim() !== '' &&
-        books.length === 0 &&
-        !parseReference(fields.book).ok
-        ? '입력한 이름과 일치하는 성경 책이 없습니다.'
-        : undefined;
-    }
-    if (part === 'start' && reply?.result.ok === false) {
-      return reply.result.error.code === 'omitted'
-        ? '이 역본에 없는 절'
-        : '구절 불러오기 실패';
-    }
-    return fields[part] !== '' || blocked === part
-      ? state.errors[part]
-      : undefined;
-  };
+  const reason = (part: ReferencePart): string | undefined =>
+    fieldReason(part, {
+      fields,
+      bookFound: books.length > 0,
+      lookup: reply?.result.ok === false ? reply.result.error : undefined,
+      blocked,
+      errors: state.errors,
+    });
   const advanceBook = (): void => {
     const candidate = metadataBook;
     if (!candidate) {
@@ -296,7 +272,7 @@ export function BibleReferenceForm(
     props.onEdit?.(null);
     setRecent(
       reference.verse === null && input && translation !== undefined
-        ? {provided: props.translation, value: {ref: input, translation}}
+        ? {ref: input, translation}
         : null,
     );
     setFields(next);
@@ -400,10 +376,7 @@ export function BibleReferenceForm(
     if (props.translation === undefined || props.submissionDisabled) return;
     if (chapterOnly) {
       const input = `${book.korean} ${fields.chapter}`;
-      setRecent({
-        provided: props.translation,
-        value: {ref: input, translation},
-      });
+      setRecent({ref: input, translation});
       pendingSubmit.current = {input, translation, clampedEnd: undefined, part};
       return;
     }
