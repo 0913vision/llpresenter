@@ -1,215 +1,118 @@
-import {ipcMain} from 'electron';
 import {mediaEndpoints} from '@contracts/ipc/media';
 import {
-  parseMediaEdit,
-  parseMediaImportRequest,
-  parseMediaImportResult,
   parseMediaEditResult,
-  parseMediaImportProgress,
+  parseMediaImportResult,
+  type MediaEdit,
   type MediaEditResult,
   type MediaImportRequest,
   type MediaImportResult,
 } from '@core/schema/mediaEdit';
-import type {MediaId} from '@core/schema/ids';
+import {IpcHost} from '../base/ipcHost';
 import type {Logger} from '../base/log';
-import {broadcast} from './contentChannels';
+import {
+  MEDIA_CLOSED,
+  MediaBackendSlot,
+  type MediaBackendPort,
+} from './mediaBackend';
 import {mediaRefusal} from './mediaEdits';
 import type {MediaStore} from './mediaStore';
 
-/** P6a owns copying, analysis, dialogs, and jobs; disconnect and shutdown abort its signal. */
-export interface MediaBackend {
-  import(request: MediaImportRequest, signal: AbortSignal): Promise<unknown>;
-  relink(mediaId: MediaId, signal: AbortSignal): Promise<unknown>;
-  cancel(mediaId: MediaId, signal: AbortSignal): Promise<unknown>;
-}
-
-/** P6a attaches one backend and sends schema-checked progress through this main-side port. */
-export interface MediaBackendPort {
-  connect(backend: MediaBackend): MediaBackendConnection;
-}
-
-export interface MediaBackendConnection {
-  report(progress: unknown): boolean;
-  disconnect(): void;
-}
-
-const UNAVAILABLE = mediaRefusal(
-  'not-found',
-  'Media operations are unavailable until the media backend is connected',
+const READ_ONLY = mediaRefusal(
+  'read-only',
+  'A newer app version wrote this file',
 );
-const CLOSED = mediaRefusal('not-found', 'Media list is unavailable');
-export const MAX_MEDIA_BACKEND_REQUESTS = 16;
 
-interface ConnectedBackend {
-  readonly handlers: MediaBackend;
-  readonly abort: AbortController;
-  pending: number;
+function edit(
+  store: MediaStore,
+  change: MediaEdit,
+  backend: MediaBackendSlot,
+): MediaEditResult | Promise<MediaEditResult> {
+  if (change.type !== 'media.relink' && change.type !== 'media.import.cancel') {
+    return store.apply(change);
+  }
+  const {access, value} = store.get();
+  if (access === 'readOnly') return READ_ONLY;
+  if (
+    change.type === 'media.relink' &&
+    !value.items.some(item => item.id === change.mediaId)
+  ) {
+    return mediaRefusal('not-found', 'This media no longer exists');
+  }
+  return backend.call({
+    name: 'edit',
+    run: (connected, signal) =>
+      change.type === 'media.relink'
+        ? connected.relink(change.mediaId, signal)
+        : connected.cancel(change.mediaId, signal),
+    parse: parseMediaEditResult,
+  });
 }
 
-/** Registers validated media IPC and exposes the P6a backend connection. */
+function importFiles(
+  store: MediaStore,
+  request: MediaImportRequest,
+  backend: MediaBackendSlot,
+): MediaImportResult | Promise<MediaImportResult> {
+  if (store.get().access === 'readOnly') return READ_ONLY;
+  return backend.call({
+    name: 'import',
+    run: (connected, signal) => connected.import(request, signal),
+    parse: parseMediaImportResult,
+  });
+}
+
+/** Answers the reads and edits of the media list, and takes its backend. */
 export function registerMediaChannels(
   loading: Promise<MediaStore | null>,
   log: Logger,
-) {
+): {
+  readonly port: MediaBackendPort;
+  /** Stops answering, and waits until the store has saved what it took. */
+  readonly dispose: () => Promise<void>;
+} {
+  const ipc = new IpcHost(log);
+  const backend = new MediaBackendSlot(ipc, log);
   let disposed = false;
-  let backend: ConnectedBackend | null = null;
   let closing: Promise<void> | null = null;
-  let remove: (() => void) | undefined;
   const ready = loading.catch((error: unknown) => {
     log.error('could not open media channels', error);
     return null;
   });
-  const subscription = ready.then(store => {
-    if (!disposed && store !== null) {
-      remove = store.subscribe(document =>
-        broadcast(mediaEndpoints.changed.channel, document, log),
-      );
-    }
-  });
-  const port: MediaBackendPort = {
-    connect: handlers => {
-      if (disposed) throw new Error('Media list is unavailable');
-      if (backend !== null) {
-        throw new Error('A media backend is already connected');
-      }
-      const connection = {handlers, abort: new AbortController(), pending: 0};
-      backend = connection;
-      return {
-        disconnect: () => {
-          if (backend === connection) {
-            backend = null;
-            connection.abort.abort();
-          }
-        },
-        report: progress => {
-          if (disposed || backend !== connection) return false;
-          const parsed = parseMediaImportProgress(progress);
-          if (!parsed.ok) {
-            log.warn('dropped malformed media import progress', parsed.error);
-            return false;
-          }
-          broadcast(mediaEndpoints.importChanged.channel, parsed.value, log);
-          return true;
-        },
-      };
-    },
-  };
-  ipcMain.handle(mediaEndpoints.get.channel, async () => {
+  const open = async (): Promise<MediaStore | null> => {
     const store = await ready;
-    if (disposed || store === null) {
-      throw new Error('Media list is unavailable');
-    }
+    return disposed ? null : store;
+  };
+  const following = open().then(store => {
+    if (store === null) return;
+    ipc.whenClosed(
+      store.subscribe(document => ipc.push(mediaEndpoints.changed, document)),
+    );
+  });
+  ipc.query(mediaEndpoints.get, async () => {
+    const store = await open();
+    if (store === null) throw new Error('Media list is unavailable');
     return store.get();
   });
-  ipcMain.handle(
-    mediaEndpoints.edit.channel,
-    async (_event, value: unknown): Promise<MediaEditResult> => {
-      const parsed = parseMediaEdit(value);
-      if (!parsed.ok) {
-        log.warn('dropped a malformed media edit', parsed.error);
-        return mediaRefusal('invalid', parsed.error.message);
-      }
-      const store = await ready;
-      if (disposed || store === null) return CLOSED;
-      const edit = parsed.value;
-      // NOTE(0913vision): Existing clients may still ask; app assets need no copy.
-      if (edit.type === 'media.sections.prepare') {
-        return {ok: true, value: null};
-      }
-      if (edit.type !== 'media.relink' && edit.type !== 'media.import.cancel') {
-        return store.apply(edit);
-      }
-      if (store.get().access === 'readOnly') {
-        return mediaRefusal('read-only', 'A newer app version wrote this file');
-      }
-      const connection = backend;
-      if (connection === null) return UNAVAILABLE;
-      if (
-        edit.type === 'media.relink' &&
-        !store.get().value.items.some(item => item.id === edit.mediaId)
-      ) {
-        return mediaRefusal('not-found', 'This media no longer exists');
-      }
-      if (connection.pending >= MAX_MEDIA_BACKEND_REQUESTS) {
-        return mediaRefusal('invalid', 'Too many pending media operations');
-      }
-      connection.pending++;
-      try {
-        const reply = await (edit.type === 'media.relink'
-          ? connection.handlers.relink(edit.mediaId, connection.abort.signal)
-          : connection.handlers.cancel(edit.mediaId, connection.abort.signal));
-        if (connection.abort.signal.aborted) return CLOSED;
-        const result = parseMediaEditResult(reply);
-        if (result.ok) return result.value;
-        log.warn('dropped a malformed media backend edit result', result.error);
-        return mediaRefusal('invalid', 'Invalid media backend edit result');
-      } catch (error: unknown) {
-        log.error('media backend edit failed', error);
-        return mediaRefusal('invalid', 'Media backend edit failed');
-      } finally {
-        connection.pending--;
-      }
-    },
-  );
-  ipcMain.handle(
-    mediaEndpoints.import.channel,
-    async (_event, value: unknown): Promise<MediaImportResult> => {
-      const parsed = parseMediaImportRequest(value);
-      if (!parsed.ok) {
-        log.warn('dropped a malformed media import', parsed.error);
-        return mediaRefusal('invalid', parsed.error.message);
-      }
-      const store = await ready;
-      if (disposed || store === null) return CLOSED;
-      if (store.get().access === 'readOnly') {
-        return mediaRefusal('read-only', 'A newer app version wrote this file');
-      }
-      const connection = backend;
-      if (connection === null) return UNAVAILABLE;
-      if (connection.pending >= MAX_MEDIA_BACKEND_REQUESTS) {
-        return mediaRefusal('invalid', 'Too many pending media operations');
-      }
-      connection.pending++;
-      try {
-        const reply = await connection.handlers.import(
-          parsed.value,
-          connection.abort.signal,
-        );
-        if (connection.abort.signal.aborted) return CLOSED;
-        const result = parseMediaImportResult(reply);
-        if (result.ok) return result.value;
-        log.warn(
-          'dropped a malformed media backend import result',
-          result.error,
-        );
-        return mediaRefusal('invalid', 'Invalid media backend import result');
-      } catch (error: unknown) {
-        log.error('media backend import failed', error);
-        return mediaRefusal('invalid', 'Media backend import failed');
-      } finally {
-        connection.pending--;
-      }
-    },
-  );
+  ipc.request(mediaEndpoints.edit, async change => {
+    const store = await open();
+    return store === null ? MEDIA_CLOSED : edit(store, change, backend);
+  });
+  ipc.request(mediaEndpoints.import, async request => {
+    const store = await open();
+    return store === null ? MEDIA_CLOSED : importFiles(store, request, backend);
+  });
+  const close = async (): Promise<void> => {
+    await following;
+    await (await ready)?.dispose();
+  };
   return {
-    port,
-    dispose: (): Promise<void> => {
+    port: backend,
+    dispose: () => {
       if (closing !== null) return closing;
       disposed = true;
-      backend?.abort.abort();
-      backend = null;
-      for (const channel of [
-        mediaEndpoints.get.channel,
-        mediaEndpoints.edit.channel,
-        mediaEndpoints.import.channel,
-      ]) {
-        ipcMain.removeHandler(channel);
-      }
-      remove?.();
-      closing = (async () => {
-        await subscription;
-        await (await ready)?.dispose();
-      })();
+      backend.close();
+      ipc.close();
+      closing = close();
       return closing;
     },
   };

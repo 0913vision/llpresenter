@@ -20,7 +20,6 @@ export type MediaListEdit = Exclude<
     readonly type:
       | 'media.relink'
       | 'media.import.cancel'
-      | 'media.sections.prepare'
       | 'media.undoDelete'
       | 'media.redoDelete';
   }

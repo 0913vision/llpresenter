@@ -3,23 +3,13 @@ import {libraryEndpoints} from '@contracts/ipc/library';
 import {registerSongReveal} from '@main/store/revealSong';
 import type {Logger} from '@main/base/log';
 
-type Listener = (event: unknown, value: unknown) => void;
-
-const electron = vi.hoisted(() => ({
-  listeners: new Map<string, Listener>(),
-  showItemInFolder: vi.fn<(path: string) => void>(),
-}));
-
+const ipc = await vi.hoisted(async () =>
+  (await import('@fixtures/main/base/mockIpcMain')).mockIpcMain(),
+);
+const showItemInFolder = vi.hoisted(() => vi.fn<(path: string) => void>());
 vi.mock('electron', () => ({
-  ipcMain: {
-    on: (channel: string, listener: Listener) => {
-      electron.listeners.set(channel, listener);
-    },
-    removeListener: (channel: string) => {
-      electron.listeners.delete(channel);
-    },
-  },
-  shell: {showItemInFolder: electron.showItemInFolder},
+  ipcMain: ipc.ipcMain,
+  shell: {showItemInFolder},
 }));
 
 const SONG = '00000000-0000-4000-8000-000000000051';
@@ -34,12 +24,14 @@ function mockLog() {
 }
 
 function ask(value: unknown): void {
-  electron.listeners.get(libraryEndpoints.revealSong.channel)?.({}, value);
+  ipc.send(libraryEndpoints.revealSong, value);
 }
 
+const stops: Array<() => void> = [];
+
 beforeEach(() => {
-  electron.listeners.clear();
-  electron.showItemInFolder.mockClear();
+  for (const stop of stops.splice(0)) stop();
+  showItemInFolder.mockClear();
 });
 
 describe('registerSongReveal', () => {
@@ -51,7 +43,7 @@ describe('registerSongReveal', () => {
     const stop = registerSongReveal({fileOf, windowMode: 'normal', log});
     ask({songId: SONG});
     await vi.waitFor(() =>
-      expect(electron.showItemInFolder).toHaveBeenCalledExactlyOnceWith(
+      expect(showItemInFolder).toHaveBeenCalledExactlyOnceWith(
         'C:/data/Songs/song.llsong',
       ),
     );
@@ -61,28 +53,28 @@ describe('registerSongReveal', () => {
         songId: '00000000-0000-4000-8000-000000000052',
       }),
     );
-    expect(electron.showItemInFolder).toHaveBeenCalledOnce();
+    expect(showItemInFolder).toHaveBeenCalledOnce();
     stop();
-    expect(electron.listeners.has(libraryEndpoints.revealSong.channel)).toBe(
-      false,
-    );
+    expect(ipc.has(libraryEndpoints.revealSong.channel)).toBe(false);
   });
 
   it('drops a malformed request and a path, and never opens in an offscreen run', () => {
     const log = mockLog();
-    registerSongReveal({fileOf, windowMode: 'normal', log});
+    const stop = registerSongReveal({fileOf, windowMode: 'normal', log});
     ask({path: 'C:/secret.txt'});
     ask('C:/secret.txt');
     expect(log.warn).toHaveBeenCalledTimes(2);
-    expect(electron.showItemInFolder).not.toHaveBeenCalled();
+    expect(showItemInFolder).not.toHaveBeenCalled();
 
-    electron.listeners.clear();
+    stop();
     const offscreen = mockLog();
-    registerSongReveal({fileOf, windowMode: 'offscreen', log: offscreen});
+    stops.push(
+      registerSongReveal({fileOf, windowMode: 'offscreen', log: offscreen}),
+    );
     ask({songId: SONG});
     expect(offscreen.info).toHaveBeenCalledWith(
       'song file reveal is unavailable in offscreen mode',
     );
-    expect(electron.showItemInFolder).not.toHaveBeenCalled();
+    expect(showItemInFolder).not.toHaveBeenCalled();
   });
 });

@@ -42,7 +42,7 @@ vi.mock('electron', () => ({
 async function ask(channel: string, value?: unknown): Promise<unknown> {
   const handler = electron.handlers.get(channel);
   if (handler === undefined) throw new Error(`Missing handler: ${channel}`);
-  return handler({}, value);
+  return handler({sender: {}, senderFrame: undefined}, value);
 }
 
 async function readMemo(file: string) {

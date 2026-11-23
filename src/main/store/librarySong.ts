@@ -1,15 +1,14 @@
-import {ipcMain} from 'electron';
 import {libraryEndpoints} from '@contracts/ipc/library';
 import type {FileAccess} from '@core/schema/fileFormat';
 import type {SongId} from '@core/schema/ids';
 import type {Label} from '@core/schema/labels';
 import {
   parseShowLibrarySongReply,
-  parseShowLibrarySongRequest,
   type ShowLibrarySong,
 } from '@core/schema/showLibrarySong';
 import type {Song} from '@core/schema/song';
 import {songTiles} from '@core/slides';
+import {IpcHost} from '../base/ipcHost';
 import type {Logger} from '../base/log';
 
 export interface LibrarySongDocument {
@@ -46,36 +45,31 @@ export function showLibrarySong(
   return checked.value;
 }
 
-/** Registers a read-only projection and releases its IPC handler on shutdown. */
+/**
+ * Answers a 라이브러리 song as 진행 shows it.
+ *
+ * @returns A function that stops answering.
+ */
 export function registerLibrarySong(
   ready: Promise<LibrarySongSources | null>,
   log: Logger,
 ): () => void {
+  const ipc = new IpcHost(log);
   let disposed = false;
   const isDisposed = () => disposed;
-  ipcMain.handle(
-    libraryEndpoints.showSong.channel,
-    async (_event, value: unknown) => {
-      const request = parseShowLibrarySongRequest(value);
-      if (!request.ok) {
-        log.warn('dropped a malformed library song request', request.error);
-        throw new Error('Invalid library song request');
-      }
-      try {
-        const sources = await ready;
-        if (isDisposed()) return null;
-        if (sources === null) {
-          throw new Error('The song library is unavailable');
-        }
-        return showLibrarySong(sources, request.value.songId);
-      } catch (error: unknown) {
-        log.error('could not show a library song', error);
-        throw new Error('Could not show a library song', {cause: error});
-      }
-    },
-  );
+  ipc.request(libraryEndpoints.showSong, async ({songId}) => {
+    try {
+      const sources = await ready;
+      if (isDisposed()) return null;
+      if (sources === null) throw new Error('The song library is unavailable');
+      return showLibrarySong(sources, songId);
+    } catch (error: unknown) {
+      log.error('could not show a library song', error);
+      throw new Error('Could not show a library song', {cause: error});
+    }
+  });
   return () => {
     disposed = true;
-    ipcMain.removeHandler(libraryEndpoints.showSong.channel);
+    ipc.close();
   };
 }

@@ -7,39 +7,28 @@ import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {MediaStore} from '@main/store/mediaStore';
 import {
-  registerMediaChannels,
   MAX_MEDIA_BACKEND_REQUESTS,
   type MediaBackend,
-} from '@main/store/mediaChannels';
+} from '@main/store/mediaBackend';
+import {registerMediaChannels} from '@main/store/mediaChannels';
 
-type Handler = (event: unknown, value?: unknown) => unknown;
-const electron = vi.hoisted(() => ({
-  handlers: new Map<string, Handler>(),
-  send: vi.fn(),
-}));
+const ipc = await vi.hoisted(async () =>
+  (await import('@fixtures/main/base/mockIpcMain')).mockIpcMain(),
+);
+const send = vi.hoisted(() => vi.fn());
 vi.mock('electron', () => ({
-  ipcMain: {
-    handle: (channel: string, handler: Handler) =>
-      electron.handlers.set(channel, handler),
-    removeHandler: (channel: string) => electron.handlers.delete(channel),
-  },
+  ipcMain: ipc.ipcMain,
   BrowserWindow: {
     getAllWindows: () => [
       {
         isDestroyed: () => false,
-        webContents: {isDestroyed: () => false, send: electron.send},
+        webContents: {isDestroyed: () => false, send},
       },
     ],
   },
 }));
 const ID = createMediaId('00000000-0000-4000-8000-000000000001');
 const OTHER = createMediaId('00000000-0000-4000-8000-000000000002');
-
-function handler(channel: string): Handler {
-  const found = electron.handlers.get(channel);
-  if (found === undefined) throw new Error(`Missing handler ${channel}`);
-  return found;
-}
 
 function mockBackend(): MediaBackend {
   return {
@@ -88,22 +77,11 @@ function setup(access: 'editable' | 'readOnly' = 'editable') {
   });
   const channels = registerMediaChannels(Promise.resolve(store), log);
   onTestFinished(() => channels.dispose());
-  electron.send.mockClear();
+  send.mockClear();
   return {store, log, channels};
 }
 
 describe('media backend boundary', () => {
-  it('acknowledges section preparation without adding any media', async () => {
-    const {store} = setup();
-    const before = store.get();
-    expect(
-      await handler(mediaEndpoints.edit.channel)(
-        {},
-        {type: 'media.sections.prepare'},
-      ),
-    ).toEqual({ok: true, value: null});
-    expect(store.get()).toBe(before);
-  });
   it('bounds pending backend work and rejects a disconnected late reply', async () => {
     const {channels, store} = setup();
     let release: (result: unknown) => void = () => undefined;
@@ -118,10 +96,10 @@ describe('media backend boundary', () => {
     const connected = channels.port.connect(backend);
     try {
       const pending = Array.from({length: MAX_MEDIA_BACKEND_REQUESTS}, () =>
-        handler(mediaEndpoints.import.channel)(
-          {},
-          {source: {kind: 'dialog'}, playlist: null},
-        ),
+        ipc.invoke(mediaEndpoints.import, {
+          source: {kind: 'dialog'},
+          playlist: null,
+        }),
       );
       await vi.waitFor(() =>
         expect(backend.import).toHaveBeenCalledTimes(
@@ -129,10 +107,10 @@ describe('media backend boundary', () => {
         ),
       );
       expect(
-        await handler(mediaEndpoints.import.channel)(
-          {},
-          {source: {kind: 'dialog'}, playlist: null},
-        ),
+        await ipc.invoke(mediaEndpoints.import, {
+          source: {kind: 'dialog'},
+          playlist: null,
+        }),
       ).toMatchObject({ok: false, error: {reason: 'invalid'}});
       connected.disconnect();
       release({ok: true, value: []});
@@ -156,12 +134,12 @@ describe('media backend boundary', () => {
       }),
       log,
     );
-    const reading = handler(mediaEndpoints.get.channel)({});
+    const reading = ipc.invoke(mediaEndpoints.get);
     const rejected = expect(reading).rejects.toThrow('unavailable');
-    const editing = handler(mediaEndpoints.edit.channel)(
-      {},
-      {type: 'media.delete', mediaId: ID},
-    );
+    const editing = ipc.invoke(mediaEndpoints.edit, {
+      type: 'media.delete',
+      mediaId: ID,
+    });
     const closing = late.dispose();
     finish(store);
     await rejected;
@@ -171,23 +149,23 @@ describe('media backend boundary', () => {
     });
     await closing;
     expect(apply).not.toHaveBeenCalled();
-    expect(electron.handlers.size).toBe(0);
+    expect(ipc.open()).toBe(0);
   });
   it('explicitly refuses import, relink, and cancel while P6a is unavailable', async () => {
     const {store, channels} = setup();
     for (const result of [
-      await handler(mediaEndpoints.import.channel)(
-        {},
-        {source: {kind: 'dialog'}, playlist: null},
-      ),
-      await handler(mediaEndpoints.edit.channel)(
-        {},
-        {type: 'media.relink', mediaId: ID},
-      ),
-      await handler(mediaEndpoints.edit.channel)(
-        {},
-        {type: 'media.import.cancel', mediaId: ID},
-      ),
+      await ipc.invoke(mediaEndpoints.import, {
+        source: {kind: 'dialog'},
+        playlist: null,
+      }),
+      await ipc.invoke(mediaEndpoints.edit, {
+        type: 'media.relink',
+        mediaId: ID,
+      }),
+      await ipc.invoke(mediaEndpoints.edit, {
+        type: 'media.import.cancel',
+        mediaId: ID,
+      }),
     ]) {
       expect(result).toMatchObject({ok: false, error: {reason: 'not-found'}});
       expect(result).toHaveProperty(
@@ -197,13 +175,13 @@ describe('media backend boundary', () => {
     }
     expect(store.get().revision).toBe(1);
     expect(
-      await handler(mediaEndpoints.edit.channel)(
-        {},
-        {type: 'media.delete', mediaId: 'bad'},
-      ),
+      await ipc.invoke(mediaEndpoints.edit, {
+        type: 'media.delete',
+        mediaId: 'bad',
+      }),
     ).toMatchObject({ok: false, error: {reason: 'invalid'}});
     await channels.dispose();
-    expect(electron.handlers.size).toBe(0);
+    expect(ipc.open()).toBe(0);
   });
 
   it('checks P6a replies and progress, aborts disconnected work, and ignores old connection pushes', async () => {
@@ -227,10 +205,10 @@ describe('media backend boundary', () => {
     };
     const connected = channels.port.connect(backend);
     expect(
-      await handler(mediaEndpoints.import.channel)(
-        {},
-        {source: {kind: 'dialog'}, playlist: null},
-      ),
+      await ipc.invoke(mediaEndpoints.import, {
+        source: {kind: 'dialog'},
+        playlist: null,
+      }),
     ).toEqual({ok: true, value: [job]});
     const signal = vi.mocked(backend.import).mock.calls[0]?.[1];
     expect(signal?.aborted).toBe(false);
@@ -241,10 +219,10 @@ describe('media backend boundary', () => {
       value: [{...job, percent: 900}],
     });
     expect(
-      await handler(mediaEndpoints.import.channel)(
-        {},
-        {source: {kind: 'dialog'}, playlist: null},
-      ),
+      await ipc.invoke(mediaEndpoints.import, {
+        source: {kind: 'dialog'},
+        playlist: null,
+      }),
     ).toMatchObject({ok: false, error: {reason: 'invalid'}});
     expect(log.messages('warn')).toContain(
       'dropped a malformed media backend import result',
@@ -252,9 +230,9 @@ describe('media backend boundary', () => {
     connected.disconnect();
     expect(signal?.aborted).toBe(true);
     const next = channels.port.connect(backend);
-    electron.send.mockClear();
+    send.mockClear();
     expect(connected.report(job)).toBe(false);
-    expect(electron.send).not.toHaveBeenCalled();
+    expect(send).not.toHaveBeenCalled();
     next.disconnect();
   });
 
@@ -264,7 +242,7 @@ describe('media backend boundary', () => {
     channels.port.connect(backend);
     for (const type of ['media.relink', 'media.import.cancel']) {
       expect(
-        await handler(mediaEndpoints.edit.channel)({}, {type, mediaId: ID}),
+        await ipc.invoke(mediaEndpoints.edit, {type, mediaId: ID}),
       ).toMatchObject({ok: false, error: {reason: 'read-only'}});
     }
     expect(backend.relink).not.toHaveBeenCalled();
@@ -276,10 +254,10 @@ describe('media backend boundary', () => {
     const backend = mockBackend();
     channels.port.connect(backend);
     expect(
-      await handler(mediaEndpoints.edit.channel)(
-        {},
-        {type: 'media.relink', mediaId: OTHER},
-      ),
+      await ipc.invoke(mediaEndpoints.edit, {
+        type: 'media.relink',
+        mediaId: OTHER,
+      }),
     ).toMatchObject({ok: false, error: {reason: 'not-found'}});
     expect(backend.relink).not.toHaveBeenCalled();
   });
@@ -303,14 +281,14 @@ describe('media backend boundary', () => {
     const failure = new Error('invented open failure');
     const channels = registerMediaChannels(Promise.reject(failure), log);
     onTestFinished(() => channels.dispose());
-    await expect(handler(mediaEndpoints.get.channel)({})).rejects.toThrow(
+    await expect(ipc.invoke(mediaEndpoints.get)).rejects.toThrow(
       'Media list is unavailable',
     );
     expect(
-      await handler(mediaEndpoints.edit.channel)(
-        {},
-        {type: 'media.delete', mediaId: ID},
-      ),
+      await ipc.invoke(mediaEndpoints.edit, {
+        type: 'media.delete',
+        mediaId: ID,
+      }),
     ).toMatchObject({ok: false, error: {reason: 'not-found'}});
     expect(log.entries).toContainEqual(
       expect.objectContaining({

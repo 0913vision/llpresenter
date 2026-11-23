@@ -1,99 +1,69 @@
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {uiEndpoints} from '@contracts/ipc/ui';
-import type {UiStateFields} from '@main/store/appConfigFile';
-import type {Logger} from '@main/base/log';
+import {recordingLogger} from '@fixtures/main/displays/testing';
+import type {UiFields, UiStateFields} from '@main/store/appConfigFile';
 
-type Handler = (event: unknown, value?: unknown) => unknown;
-
-const handlers = vi.hoisted(() => ({
-  handle: new Map<string, Handler>(),
-  on: new Map<string, Handler>(),
-}));
-
-vi.mock('electron', () => ({
-  ipcMain: {
-    handle: (channel: string, handler: Handler) =>
-      handlers.handle.set(channel, handler),
-    on: (channel: string, handler: Handler) =>
-      handlers.on.set(channel, handler),
-    removeHandler: (channel: string) => handlers.handle.delete(channel),
-    removeAllListeners: (channel: string) => handlers.on.delete(channel),
-  },
-}));
-
-const stores = vi.hoisted(() => {
-  const created: Array<{
-    readonly options: unknown;
-    readonly state: unknown;
-    readonly calls: Array<[string, unknown]>;
-  }> = [];
-  return {created};
-});
-
-vi.mock('@main/uiState/uiStateStore', () => ({
-  UiStateStore: class {
-    readonly state = {mediaStrip: true};
-    readonly calls: Array<[string, unknown]> = [];
-    constructor(readonly options: unknown) {
-      stores.created.push(this);
-    }
-    setLayout(value: unknown) {
-      this.calls.push(['setLayout', value]);
-    }
-    setMediaStrip(value: unknown) {
-      this.calls.push(['setMediaStrip', value]);
-    }
-    setMediaBrowser(value: unknown) {
-      this.calls.push(['setMediaBrowser', value]);
-    }
-  },
-}));
+const ipc = await vi.hoisted(async () =>
+  (await import('@fixtures/main/base/mockIpcMain')).mockIpcMain(),
+);
+vi.mock('electron', () => ({ipcMain: ipc.ipcMain}));
 
 const {registerUiState} = await import('@main/uiState/register');
 
-const log: Logger = {
-  info: () => undefined,
-  warn: () => undefined,
-  error: () => undefined,
-  flush: () => Promise.resolve(),
-};
+const stops: Array<() => void> = [];
 
-const fields: UiStateFields = {read: () => ({}), change: () => undefined};
+function register(initial: UiFields = {}) {
+  let current = initial;
+  const fields: UiStateFields = {
+    read: () => current,
+    change: next => {
+      current = {...current, ...next};
+    },
+  };
+  const log = recordingLogger();
+  const {dispose} = registerUiState(fields, log);
+  stops.push(dispose);
+  return {dispose, log, current: () => current};
+}
 
 afterEach(() => {
-  handlers.handle.clear();
-  handlers.on.clear();
+  for (const stop of stops.splice(0)) stop();
 });
 
 describe('registerUiState', () => {
   it('removes its channels when it is disposed', () => {
-    const registration = registerUiState(fields, log);
-    registration.dispose();
-    expect(handlers.handle.has(uiEndpoints.get.channel)).toBe(false);
-    expect(handlers.on.has(uiEndpoints.setLayout.channel)).toBe(false);
-    expect(handlers.on.has(uiEndpoints.setMediaStrip.channel)).toBe(false);
-    expect(handlers.on.has(uiEndpoints.setMediaBrowser.channel)).toBe(false);
+    const {dispose} = register();
+    dispose();
+    expect(ipc.open()).toBe(0);
   });
 
-  it('passes each channel to the matching store method and answers reads with its state', () => {
-    registerUiState(fields, log);
-    const store = stores.created.at(-1);
-    if (store === undefined) throw new Error('No store');
-    const send = (channel: string, value: unknown) =>
-      handlers.on.get(channel)?.({}, value);
+  it('keeps what each message changes and answers reads with it', async () => {
+    register();
+    ipc.send(uiEndpoints.setLayout, {
+      sizeClass: 'narrow',
+      thumbnailScalePercent: 120,
+    });
+    ipc.send(uiEndpoints.setMediaStrip, {visible: false});
+    ipc.send(uiEndpoints.setMediaBrowser, {columns: 6});
+    ipc.send(uiEndpoints.setRememberedView, {showToolTab: 'timer'});
+    expect(await ipc.invoke(uiEndpoints.get)).toEqual({
+      layout: {narrow: {thumbnailScalePercent: 120}},
+      mediaStrip: false,
+      mediaBrowser: {columns: 6},
+      showToolTab: 'timer',
+    });
+  });
 
-    send(uiEndpoints.setLayout.channel, {sizeClass: 'narrow'});
-    send(uiEndpoints.setMediaStrip.channel, {visible: false});
-    send(uiEndpoints.setMediaBrowser.channel, {columns: 6});
-
-    expect(store.options).toEqual({fields, log});
-    expect(store.calls).toEqual([
-      ['setLayout', {sizeClass: 'narrow'}],
-      ['setMediaStrip', {visible: false}],
-      ['setMediaBrowser', {columns: 6}],
-    ]);
-    expect(handlers.handle.get(uiEndpoints.get.channel)?.({})).toBe(
-      store.state,
-    );
+  it.each([
+    [uiEndpoints.setLayout, {sizeClass: 'huge', thumbnailScalePercent: 100}],
+    [uiEndpoints.setLayout, {sizeClass: 'normal', left: 300}],
+    [uiEndpoints.setMediaStrip, {visible: 'false'}],
+    [uiEndpoints.setMediaBrowser, {columns: 9}],
+    [uiEndpoints.setRememberedView, {showToolTab: 'wrong'}],
+  ])('drops and logs a malformed message %#', (endpoint, value) => {
+    const {log, current} = register({mediaStrip: true});
+    ipc.send(endpoint, value);
+    expect(current()).toEqual({mediaStrip: true});
+    expect(log.messages('warn')).toHaveLength(1);
   });
 });

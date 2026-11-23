@@ -15,25 +15,12 @@ import {
   type ServiceSession,
 } from '@main/store/serviceChannels';
 
-type Handler = (event: unknown, value?: unknown) => unknown;
-const handlers = vi.hoisted(() => new Map<string, Handler>());
-vi.mock('electron', () => ({
-  ipcMain: {
-    handle: (channel: string, handler: Handler) =>
-      handlers.set(channel, handler),
-    on: (channel: string, handler: Handler) => handlers.set(channel, handler),
-    removeListener: (channel: string) => handlers.delete(channel),
-    removeHandler: (channel: string) => handlers.delete(channel),
-  },
-}));
+const ipc = await vi.hoisted(async () =>
+  (await import('@fixtures/main/base/mockIpcMain')).mockIpcMain(),
+);
+vi.mock('electron', () => ({ipcMain: ipc.ipcMain}));
 const FIRST = createServiceId('00000000-0000-4000-8000-000000000001');
 const SECOND = createServiceId('00000000-0000-4000-8000-000000000002');
-
-function handler(channel: string): Handler {
-  const found = handlers.get(channel);
-  if (found === undefined) throw new Error(`Missing handler ${channel}`);
-  return found;
-}
 
 function shown(id: string): ShowService {
   return {
@@ -117,7 +104,7 @@ function setup() {
 }
 
 const open = (serviceId: unknown) =>
-  handler(serviceEndpoints.open.channel)({}, {serviceId});
+  ipc.invoke(serviceEndpoints.open, {serviceId});
 
 describe('service open channels', () => {
   it('opens the chosen service, remembers it, and answers with the refreshed projection', async () => {
@@ -169,9 +156,7 @@ describe('service open channels', () => {
       expect(log.messages('warn')).toContain(
         'too many pending service switches',
       );
-      expect(await handler(serviceEndpoints.get.channel)({})).toEqual(
-        shown(FIRST),
-      );
+      expect(await ipc.invoke(serviceEndpoints.get)).toEqual(shown(FIRST));
       release();
       await Promise.all(pending);
       expect(config.setLastServiceId).toHaveBeenCalledTimes(
@@ -195,7 +180,7 @@ describe('service open channels', () => {
     expect(config.setLastServiceId).not.toHaveBeenCalled();
     expect(log.messages('warn')).toEqual([
       'could not open a service',
-      'dropped a malformed service open request',
+      'refused a malformed service:open request',
     ]);
   });
 
@@ -225,7 +210,7 @@ describe('service open channels', () => {
       const opening = open(SECOND);
       await vi.waitFor(() => expect(openService).toHaveBeenCalledOnce());
       const closing = channels.dispose();
-      expect(handlers.size).toBe(0);
+      expect(ipc.open()).toBe(0);
       release();
       expect(await opening).toEqual(shown(SECOND));
       await closing;
@@ -241,7 +226,7 @@ describe('service open channels', () => {
       config,
       {log: recordingLogger()},
     );
-    const reading = handler(serviceEndpoints.get.channel)({});
+    const reading = ipc.invoke(serviceEndpoints.get);
     const opening = open(SECOND);
     await late.dispose();
     finish(null);

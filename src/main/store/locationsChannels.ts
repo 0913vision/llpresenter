@@ -1,15 +1,16 @@
-import {BrowserWindow, dialog, ipcMain, type OpenDialogOptions} from 'electron';
-import {locationsEndpoints} from '@contracts/ipc/locations';
 import {
-  parseBackUpNowRequest,
-  parseChooseLocationRequest,
-} from '@core/schema/libraryLocations';
+  BrowserWindow,
+  dialog,
+  type OpenDialogOptions,
+  type WebContents,
+} from 'electron';
+import {locationsEndpoints} from '@contracts/ipc/locations';
 import {
   defaultPreferences,
   withPreferenceDefaults,
 } from '@core/schema/preferences';
+import {IpcHost, pushToWindows} from '../base/ipcHost';
 import type {Logger} from '../base/log';
-import {broadcast} from './contentChannels';
 import {
   LibraryLocations,
   type FolderChooser,
@@ -19,57 +20,40 @@ import {resolveLocations, type LocationFields} from './locations';
 import {electronLocationContext} from './register';
 import type {SettingsAccess} from './settingsAccess';
 
+/** Asks for a folder in a dialog on the window that asked. */
+function folderChooser(contents: WebContents): FolderChooser {
+  const parent = BrowserWindow.fromWebContents(contents);
+  return async current => {
+    const options: OpenDialogOptions = {
+      defaultPath: current,
+      properties: ['openDirectory', 'createDirectory'],
+    };
+    const answer =
+      parent === null
+        ? await dialog.showOpenDialog(options)
+        : await dialog.showOpenDialog(parent, options);
+    return answer.canceled ? null : (answer.filePaths[0] ?? null);
+  };
+}
+
 /**
- * Answers the 위치 and 백업 calls of 환경설정. The folder dialog is parented
- * to the window that asked, so it never opens behind it.
+ * Answers the 위치 and 백업 calls of 환경설정.
  *
- * @returns A function that removes the handlers.
+ * @returns A function that stops answering.
  */
 export function registerLocationsChannels(
   locations: LibraryLocations,
   log: Logger,
 ): () => void {
-  const {get, choose, backUpNow} = locationsEndpoints;
-  ipcMain.handle(get.channel, () => locations.view());
-  ipcMain.handle(choose.channel, (event, value: unknown) => {
-    const request = parseChooseLocationRequest(value);
-    if (!request.ok) {
-      log.warn('dropped a malformed folder request', request.error);
-      throw new Error('Invalid folder request');
-    }
-    const parent = BrowserWindow.fromWebContents(event.sender);
-    const chooser: FolderChooser = async current => {
-      const options: OpenDialogOptions = {
-        defaultPath: current,
-        properties: ['openDirectory', 'createDirectory'],
-      };
-      const answer =
-        parent === null
-          ? await dialog.showOpenDialog(options)
-          : await dialog.showOpenDialog(parent, options);
-      return answer.canceled ? null : (answer.filePaths[0] ?? null);
-    };
-    return locations.choose(request.value.field, chooser);
-  });
-  ipcMain.handle(backUpNow.channel, (_event, value: unknown) => {
-    const request = parseBackUpNowRequest(value);
-    if (!request.ok) {
-      log.warn('dropped a malformed backup request', request.error);
-      throw new Error('Invalid backup request');
-    }
-    return locations.backUpNow();
-  });
+  const ipc = new IpcHost(log);
+  ipc.query(locationsEndpoints.get, () => locations.view());
+  ipc.request(locationsEndpoints.choose, ({field}, {contents}) =>
+    locations.choose(field, folderChooser(contents)),
+  );
+  ipc.request(locationsEndpoints.backUpNow, () => locations.backUpNow());
   return () => {
-    ipcMain.removeHandler(get.channel);
-    ipcMain.removeHandler(choose.channel);
-    ipcMain.removeHandler(backUpNow.channel);
+    ipc.close();
   };
-}
-
-/** Pushes the folders to every window after a change. */
-export function broadcastLocations(log: Logger) {
-  return (view: unknown): void =>
-    broadcast(locationsEndpoints.changed.channel, view, log);
 }
 
 /**
@@ -101,7 +85,9 @@ export function registerLibraryLocations({
         : defaultPreferences.backup;
     },
     isAnyOutputOn,
-    onChange: broadcastLocations(log),
+    onChange: view => {
+      pushToWindows(locationsEndpoints.changed, view, log);
+    },
     log,
   });
   const stopWatching = locations.watchBackups();

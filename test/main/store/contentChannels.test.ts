@@ -9,8 +9,7 @@ import {testId} from '@fixtures/core/schema/testHelpers';
 import type {Logger} from '@main/base/log';
 import type {ContentStore} from '@main/store/contentStore';
 import {
-  broadcast,
-  broadcastEvents,
+  pushContentEvents,
   registerContentChannels,
 } from '@main/store/contentChannels';
 import {HYMN_ONE_ID, SUNDAY_ID} from '@fixtures/main/store/testFiles';
@@ -23,27 +22,14 @@ interface WindowStub {
   };
 }
 
-type Handler = (event: unknown, value?: unknown) => unknown;
-
-const electron = vi.hoisted(() => {
-  const windows: WindowStub[] = [];
-  const handlers = new Map<string, Handler>();
-  return {windows, handlers};
-});
+const ipc = await vi.hoisted(async () =>
+  (await import('@fixtures/main/base/mockIpcMain')).mockIpcMain(),
+);
+const windows = vi.hoisted((): WindowStub[] => []);
 vi.mock('electron', () => ({
-  BrowserWindow: {getAllWindows: () => electron.windows},
-  ipcMain: {
-    handle: (channel: string, handler: Handler) =>
-      electron.handlers.set(channel, handler),
-    removeHandler: (channel: string) => electron.handlers.delete(channel),
-  },
+  BrowserWindow: {getAllWindows: () => windows},
+  ipcMain: ipc.ipcMain,
 }));
-
-function ask(channel: string, value?: unknown): Promise<unknown> {
-  const handler = electron.handlers.get(channel);
-  if (handler === undefined) throw new Error(`No handler for ${channel}`);
-  return Promise.resolve(handler({}, value));
-}
 
 function mockStore() {
   return {
@@ -76,8 +62,8 @@ function mockLog() {
 }
 
 beforeEach(() => {
-  electron.windows = [];
-  electron.handlers.clear();
+  windows.length = 0;
+  ipc.handlers.clear();
 });
 
 describe('registerContentChannels', () => {
@@ -90,8 +76,8 @@ describe('registerContentChannels', () => {
       }),
       mockLog(),
     );
-    const edit = ask(contentEndpoints.edit.channel, {type: 'song.create'});
-    const list = ask(contentEndpoints.songs.list.channel);
+    const edit = ipc.invoke(contentEndpoints.edit, {type: 'song.create'});
+    const list = ipc.invoke(contentEndpoints.songs.list);
     finish(store);
 
     expect(await edit).toEqual({
@@ -101,7 +87,7 @@ describe('registerContentChannels', () => {
     expect(store.apply).toHaveBeenCalledExactlyOnceWith({type: 'song.create'});
     expect(await list).toEqual([]);
     stop();
-    expect(electron.handlers.size).toBe(0);
+    expect(ipc.open()).toBe(0);
   });
 
   it('logs and refuses malformed edits and document ids without asking the store', async () => {
@@ -110,13 +96,13 @@ describe('registerContentChannels', () => {
     registerContentChannels(Promise.resolve(store), log);
 
     expect(
-      await ask(contentEndpoints.edit.channel, {type: 'song.update', song: {}}),
+      await ipc.invoke(contentEndpoints.edit, {type: 'song.update', song: {}}),
     ).toMatchObject({ok: false, error: {reason: 'invalid'}});
     expect(
-      await ask(contentEndpoints.songs.get.channel, '../outside'),
+      await ipc.invoke(contentEndpoints.songs.get, '../outside'),
     ).toBeNull();
-    expect(await ask(contentEndpoints.services.get.channel, 7)).toBeNull();
-    expect(await ask(contentEndpoints.templates.get.channel, null)).toBeNull();
+    expect(await ipc.invoke(contentEndpoints.services.get, 7)).toBeNull();
+    expect(await ipc.invoke(contentEndpoints.templates.get, null)).toBeNull();
     expect(log.warn).toHaveBeenCalledTimes(4);
     expect(store.apply).not.toHaveBeenCalled();
     expect(store.song).not.toHaveBeenCalled();
@@ -126,44 +112,21 @@ describe('registerContentChannels', () => {
     registerContentChannels(Promise.resolve(null), mockLog());
 
     expect(
-      await ask(contentEndpoints.edit.channel, {type: 'song.create'}),
+      await ipc.invoke(contentEndpoints.edit, {type: 'song.create'}),
     ).toMatchObject({ok: false, error: {reason: 'not-found'}});
-    expect(await ask(contentEndpoints.songs.list.channel)).toEqual([]);
+    expect(await ipc.invoke(contentEndpoints.songs.list)).toEqual([]);
     expect(
-      await ask(contentEndpoints.songs.get.channel, HYMN_ONE_ID),
+      await ipc.invoke(contentEndpoints.songs.get, HYMN_ONE_ID),
     ).toBeNull();
   });
 });
 
 describe('content broadcasts', () => {
-  it('skips destroyed windows and continues after a send throws', () => {
-    const destroyed = windowStub();
-    destroyed.isDestroyed = () => true;
-    const goneRenderer = windowStub();
-    goneRenderer.webContents.isDestroyed = () => true;
-    const failing = windowStub();
-    failing.webContents.send = () => {
-      throw new Error('renderer closed');
-    };
-    const receiving = windowStub();
-    electron.windows = [destroyed, goneRenderer, failing, receiving];
-    const log = mockLog();
-
-    broadcast(contentEndpoints.songs.listChanged.channel, [], log);
-
-    expect(destroyed.webContents.send).not.toHaveBeenCalled();
-    expect(goneRenderer.webContents.send).not.toHaveBeenCalled();
-    expect(receiving.webContents.send).toHaveBeenCalledWith(
-      contentEndpoints.songs.listChanged.channel,
-      [],
-    );
-    expect(log.warn).toHaveBeenCalledTimes(1);
-  });
-
   it('refreshes the open service only after song and service document changes', () => {
-    electron.windows = [windowStub()];
+    const win = windowStub();
+    windows.push(win);
     const refresh = vi.fn();
-    const events = broadcastEvents(mockLog(), refresh);
+    const events = pushContentEvents(mockLog(), refresh);
 
     events.songsListChanged([]);
     events.servicesListChanged([]);
@@ -182,6 +145,6 @@ describe('content broadcasts', () => {
       document: null,
     });
     expect(refresh).toHaveBeenCalledTimes(2);
-    expect(electron.windows[0]?.webContents.send).toHaveBeenCalledTimes(6);
+    expect(win.webContents.send).toHaveBeenCalledTimes(6);
   });
 });

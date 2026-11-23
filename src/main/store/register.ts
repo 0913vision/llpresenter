@@ -1,13 +1,13 @@
 import {BibleChapterCache} from '../bible/chapterCache';
 import {appEndpoints} from '@contracts/ipc/app';
-import {settingsEndpoints} from '@contracts/ipc/settings';
 import {backupFailedProblem, type AppProblem} from '@core/schema/appProblem';
 import type {EditResult} from '@core/schema/contentEdit';
 import type {SettingsEdit} from '@core/schema/settingsDocuments';
 import type {SettingsReader} from '@core/schema/settingsReader';
-import {app, ipcMain, shell} from 'electron';
+import {app, shell} from 'electron';
 import {join} from 'node:path';
 import {BibleLookupSession} from '../bible/lookup';
+import {IpcHost} from '../base/ipcHost';
 import type {Logger} from '../base/log';
 import type {ProblemFeed} from '../base/problemFeed';
 import {registerLibrarySearch} from '../search/register';
@@ -22,7 +22,8 @@ import {
 } from './fileStore';
 import {registerLibrarySong} from './librarySong';
 import {type LocationContext} from './locations';
-import {registerMediaChannels, type MediaBackendPort} from './mediaChannels';
+import type {MediaBackendPort} from './mediaBackend';
+import {registerMediaChannels} from './mediaChannels';
 import {registerMediaUses} from './mediaUses';
 import {LoadingMediaLibrary} from './mediaLibrary';
 import {openMediaStore} from './mediaLoader';
@@ -101,6 +102,7 @@ export function registerStore({
   context = electronLocationContext,
   problems,
 }: StoreRegistration): DataStore {
+  const ipc = new IpcHost(log);
   const loading = readStore(() => ({...context(), appConfig}), log);
   const saveFailures = new SaveFailures({log});
   const removeSaveProblems = registerSaveProblems(saveFailures, problems, log);
@@ -190,10 +192,6 @@ export function registerStore({
     log,
     onServiceChanged,
   });
-  ipcMain.handle(settingsEndpoints.preferences.channel, async () => {
-    const ready = await settings;
-    return ready?.preferences() ?? defaultPreferences;
-  });
   const removeMediaUses = registerMediaUses(
     {media, settings, content: opened},
     log,
@@ -250,7 +248,7 @@ export function registerStore({
       return false;
     }
   };
-  ipcMain.handle(appEndpoints.savePending.channel, savePending);
+  ipc.query(appEndpoints.savePending, savePending);
   return {
     savePending,
     get bible() {
@@ -280,8 +278,7 @@ export function registerStore({
       await settingsChannels.dispose();
       await serviceClosing;
       await mediaClosing;
-      ipcMain.removeHandler(settingsEndpoints.preferences.channel);
-      ipcMain.removeHandler(appEndpoints.savePending.channel);
+      ipc.close();
       removeMediaUses();
       removeContentChannels();
       removeSearch();

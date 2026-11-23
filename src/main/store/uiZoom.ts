@@ -1,12 +1,7 @@
-import {ipcMain} from 'electron';
 import {uiEndpoints} from '@contracts/ipc/ui';
-import {
-  parseUiZoomCommand,
-  UI_ZOOM,
-  type UiZoomCommand,
-} from '@core/schema/uiZoom';
+import {UI_ZOOM, type UiZoomCommand} from '@core/schema/uiZoom';
+import {IpcHost, type Caller} from '../base/ipcHost';
 import type {Logger} from '../base/log';
-import {broadcast} from './contentChannels';
 import type {AppConfigFile} from './appConfigFile';
 
 const PERCENT_PER_FACTOR = 100;
@@ -39,34 +34,28 @@ export function registerUiZoom(
   config: Pick<AppConfigFile, 'uiZoomPercent' | 'setUiZoomPercent'>,
   log: Logger,
 ): UiZoomRegistration {
+  const ipc = new IpcHost(log);
   const controls = new Map<number, AttachedControl>();
-  const requireControl = (id: number): void => {
+  const requireControl = ({contents: {id}}: Caller): void => {
     if (controls.has(id)) return;
     log.warn('dropped a UI zoom request from a non-control window', {
       senderId: id,
     });
     throw new Error('Only control windows may use UI zoom');
   };
-  ipcMain.handle(uiEndpoints.getZoom.channel, event => {
-    requireControl(event.sender.id);
+  ipc.query(uiEndpoints.getZoom, caller => {
+    requireControl(caller);
     return config.uiZoomPercent;
   });
-  ipcMain.handle(uiEndpoints.changeZoom.channel, (event, value: unknown) => {
-    requireControl(event.sender.id);
-    const command = parseUiZoomCommand(value);
-    if (!command.ok) {
-      log.warn('dropped a malformed UI zoom command', command.error);
-      throw new Error('Invalid UI zoom command');
-    }
-    const percent = changedZoom(config.uiZoomPercent, command.value);
+  ipc.request(uiEndpoints.changeZoom, (command, caller) => {
+    requireControl(caller);
+    const percent = changedZoom(config.uiZoomPercent, command);
     const changed = percent !== config.uiZoomPercent;
-    if (changed) {
-      config.setUiZoomPercent(percent);
-    }
-    if (changed || command.value.type === 'ui.zoomReset') {
+    if (changed) config.setUiZoomPercent(percent);
+    if (changed || command.type === 'ui.zoomReset') {
       for (const control of controls.values()) control.apply();
     }
-    if (changed) broadcast(uiEndpoints.zoomChanged.channel, percent, log);
+    if (changed) ipc.push(uiEndpoints.zoomChanged, percent);
     return percent;
   });
 
@@ -99,8 +88,7 @@ export function registerUiZoom(
       apply();
     },
     dispose: () => {
-      ipcMain.removeHandler(uiEndpoints.getZoom.channel);
-      ipcMain.removeHandler(uiEndpoints.changeZoom.channel);
+      ipc.close();
       for (const control of [...controls.values()]) control.dispose();
     },
   };

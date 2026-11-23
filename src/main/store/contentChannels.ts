@@ -1,30 +1,9 @@
-import {BrowserWindow, ipcMain} from 'electron';
-import {contentEndpoints} from '@contracts/ipc/content';
-import type {Result} from '@core/common/result';
-import {
-  parseContentEdit,
-  refuseInvalidEdit,
-  type EditResult,
-} from '@core/schema/contentEdit';
-import {checkPart} from '@core/schema/fileFormat';
-import {
-  songIdSchema,
-  serviceIdSchema,
-  templateIdSchema,
-} from '@core/schema/ids';
-import type {PayloadError} from '@core/schema/payload';
+import {contentEndpoints, type DocumentEndpoints} from '@contracts/ipc/content';
+import type {PushEndpoint} from '@contracts/ipc/endpoint';
+import type {EditResult} from '@core/schema/contentEdit';
+import {IpcHost, pushToWindows} from '../base/ipcHost';
 import type {Logger} from '../base/log';
 import type {ContentEvents, ContentStore} from './contentStore';
-
-const HANDLED = [
-  contentEndpoints.edit.channel,
-  contentEndpoints.songs.list.channel,
-  contentEndpoints.services.list.channel,
-  contentEndpoints.templates.list.channel,
-  contentEndpoints.songs.get.channel,
-  contentEndpoints.services.get.channel,
-  contentEndpoints.templates.get.channel,
-] as const;
 
 /** The parts of the content store that the channels read and edit. */
 type ChannelStore = Pick<
@@ -38,62 +17,46 @@ type ChannelStore = Pick<
   | 'template'
 >;
 
+/** Reading one kind of document. */
+interface DocumentReads<TEntry, TDocument> {
+  readonly list: () => Promise<readonly TEntry[]>;
+  readonly get: (id: string) => Promise<TDocument | null>;
+}
+
 const NO_DATA: EditResult = {
   ok: false,
   error: {reason: 'not-found', message: 'The data folder could not be read'},
 };
 
 /**
- * Answers the content channels: `content:edit` and the song, 예배 순서, and 템플릿
- * reads. A request that arrives before the data is read waits for it. A
- * malformed edit is logged and refused, never applied.
+ * Answers the edits of songs, 예배 순서, and 템플릿, and their reads. A request
+ * that arrives before the data is read waits for it.
  *
- * @returns A function that removes every handler.
+ * @returns A function that stops answering.
  */
 export function registerContentChannels(
   content: Promise<ChannelStore | null>,
   log: Logger,
 ): () => void {
-  ipcMain.handle(
-    contentEndpoints.edit.channel,
-    async (_event, value: unknown) => {
-      const edit = parseContentEdit(value);
-      if (!edit.ok) {
-        log.warn('dropped a malformed content edit', edit.error);
-        return refuseInvalidEdit(edit.error);
-      }
-      const store = await content;
-      return store === null ? NO_DATA : store.apply(edit.value);
-    },
-  );
-  handleRead(contentEndpoints.songs.list.channel, content, store =>
-    store.songList(),
-  );
-  handleRead(contentEndpoints.services.list.channel, content, store =>
-    store.serviceList(),
-  );
-  handleRead(contentEndpoints.templates.list.channel, content, store =>
-    store.templateList(),
-  );
-  handleDocument(contentEndpoints.songs.get.channel, content, {
-    parseId: value => checkPart(songIdSchema, value),
-    read: (store, id) => store.song(id),
-    log,
+  const ipc = new IpcHost(log);
+  ipc.request(contentEndpoints.edit, async edit => {
+    const store = await content;
+    return store === null ? NO_DATA : store.apply(edit);
   });
-  handleDocument(contentEndpoints.services.get.channel, content, {
-    parseId: value => checkPart(serviceIdSchema, value),
-    read: (store, id) => store.service(id),
-    log,
+  answerReads(ipc, contentEndpoints.songs, {
+    list: async () => (await content)?.songList() ?? [],
+    get: async id => (await content)?.song(id) ?? null,
   });
-  handleDocument(contentEndpoints.templates.get.channel, content, {
-    parseId: value => checkPart(templateIdSchema, value),
-    read: (store, id) => store.template(id),
-    log,
+  answerReads(ipc, contentEndpoints.services, {
+    list: async () => (await content)?.serviceList() ?? [],
+    get: async id => (await content)?.service(id) ?? null,
+  });
+  answerReads(ipc, contentEndpoints.templates, {
+    list: async () => (await content)?.templateList() ?? [],
+    get: async id => (await content)?.template(id) ?? null,
   });
   return () => {
-    for (const channel of HANDLED) {
-      ipcMain.removeHandler(channel);
-    }
+    ipc.close();
   };
 }
 
@@ -101,71 +64,37 @@ export function registerContentChannels(
  * Sends every content change to every window, and refreshes the open 예배
  * 순서 after song and service document changes.
  */
-export function broadcastEvents(
+export function pushContentEvents(
   log: Logger,
-  onChange: () => void,
+  refresh: () => void,
 ): ContentEvents {
-  const send = (channel: string) => (value: unknown) =>
-    broadcast(channel, value, log);
-  const refresh = (channel: string) => (value: unknown) => {
-    broadcast(channel, value, log);
-    onChange();
-  };
+  const push =
+    <TValue>(endpoint: PushEndpoint<TValue>) =>
+    (value: TValue): void => {
+      pushToWindows(endpoint, value, log);
+    };
+  const pushAndRefresh =
+    <TValue>(endpoint: PushEndpoint<TValue>) =>
+    (value: TValue): void => {
+      pushToWindows(endpoint, value, log);
+      refresh();
+    };
+  const {songs, services, templates} = contentEndpoints;
   return {
-    songChanged: refresh(contentEndpoints.songs.changed.channel),
-    songsListChanged: send(contentEndpoints.songs.listChanged.channel),
-    serviceChanged: refresh(contentEndpoints.services.changed.channel),
-    servicesListChanged: send(contentEndpoints.services.listChanged.channel),
-    templateChanged: send(contentEndpoints.templates.changed.channel),
-    templatesListChanged: send(contentEndpoints.templates.listChanged.channel),
+    songChanged: pushAndRefresh(songs.changed),
+    songsListChanged: push(songs.listChanged),
+    serviceChanged: pushAndRefresh(services.changed),
+    servicesListChanged: push(services.listChanged),
+    templateChanged: push(templates.changed),
+    templatesListChanged: push(templates.listChanged),
   };
 }
 
-/** Sends a value to every window that is still open. Never throws. */
-export function broadcast(channel: string, value: unknown, log: Logger): void {
-  for (const window of BrowserWindow.getAllWindows()) {
-    try {
-      if (window.isDestroyed() || window.webContents.isDestroyed()) {
-        continue;
-      }
-      window.webContents.send(channel, value);
-    } catch (error: unknown) {
-      log.warn('could not send a change to a window', {channel, error});
-    }
-  }
-}
-
-function handleRead(
-  channel: string,
-  content: Promise<ChannelStore | null>,
-  read: (store: ChannelStore) => readonly unknown[],
+function answerReads<TEntry, TDocument, TChange>(
+  ipc: IpcHost,
+  endpoints: DocumentEndpoints<TEntry, TDocument, TChange>,
+  {list, get}: DocumentReads<TEntry, TDocument>,
 ): void {
-  ipcMain.handle(channel, async () => {
-    const store = await content;
-    return store === null ? [] : read(store);
-  });
-}
-
-function handleDocument(
-  channel: string,
-  content: Promise<ChannelStore | null>,
-  {
-    parseId,
-    read,
-    log,
-  }: {
-    readonly parseId: (value: unknown) => Result<string, PayloadError>;
-    readonly read: (store: ChannelStore, id: string) => unknown;
-    readonly log: Logger;
-  },
-): void {
-  ipcMain.handle(channel, async (_event, id: unknown) => {
-    const checked = parseId(id);
-    if (!checked.ok) {
-      log.warn('dropped a malformed document id', {channel, ...checked.error});
-      return null;
-    }
-    const store = await content;
-    return store === null ? null : read(store, checked.value);
-  });
+  ipc.query(endpoints.list, list);
+  ipc.request(endpoints.get, get);
 }

@@ -21,7 +21,7 @@ import {
   playlistSchema,
   MEDIA_LIMITS,
 } from './mediaList';
-import {payloadObject, plainObject} from './payload';
+import {payloadObject, plainObject, type PayloadError} from './payload';
 import {nonBlankText, percent} from './primitives';
 import {settingsDocumentSchema} from './settingsDocuments';
 import {preserveUnknownFields} from './preserveUnknown';
@@ -56,7 +56,6 @@ const propertiesChangeSchema = v.pipe(
 const mediaEditSchema = v.pipe(
   plainObject,
   v.variant('type', [
-    v.object({type: v.literal('media.sections.prepare')}),
     v.object({
       type: v.literal('media.playlist.create'),
       kind: v.picklist(['media', 'audio']),
@@ -169,8 +168,7 @@ export type MediaImportProgress = ReadonlyKnown<
 
 /**
  * The success id names the affected entity; revision belongs to the whole
- * media list. Null success cancels a relink dialog or copy job, or leaves
- * already prepared section pictures unchanged.
+ * media list. Null success cancels a relink dialog or copy job.
  */
 export type MediaEditResult = Result<EditSuccess | null, EditFailure>;
 
@@ -179,6 +177,11 @@ export type MediaImportResult = Result<
   readonly MediaImportProgress[],
   EditFailure
 >;
+
+/** The answer to a media call that fails its check: refused, never applied. */
+export function refuseInvalidMediaEdit({message}: PayloadError) {
+  return {ok: false, error: {reason: 'invalid', message}} as const;
+}
 
 export function parseMediaDocument(value: unknown) {
   return checkPart(mediaDocument, value);

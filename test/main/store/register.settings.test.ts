@@ -17,7 +17,7 @@ import {
 } from '@core/schema/settingsDocuments';
 import {readdir, readFile} from 'node:fs/promises';
 import {join} from 'node:path';
-import {describe, expect, it} from 'vitest';
+import {describe, expect, it, vi} from 'vitest';
 import {DATA_FOLDER_NAME} from '@main/store/locations';
 import {
   HYMN_ONE_ID,
@@ -163,15 +163,16 @@ describe('registerStore', () => {
       value: {...base, templates: [updated]},
       baseRevision: 1,
     });
-    await Promise.resolve();
-    expect(electron.send).toHaveBeenCalledWith(
-      settingsEndpoints.changed.channel,
-      {
-        name: 'messages',
-        value: expected,
-        revision: 2,
-        access: 'editable',
-      },
+    await vi.waitFor(() =>
+      expect(electron.send).toHaveBeenCalledWith(
+        settingsEndpoints.changed.channel,
+        {
+          name: 'messages',
+          value: expected,
+          revision: 2,
+          access: 'editable',
+        },
+      ),
     );
     expect(await pending).toEqual({
       ok: true,

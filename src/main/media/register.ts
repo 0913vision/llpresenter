@@ -1,23 +1,13 @@
 import type {SettingsReader} from '@core/schema/settingsReader';
 import {randomUUID} from 'node:crypto';
-import {
-  dialog,
-  ipcMain,
-  shell,
-  type BrowserWindow,
-  type IpcMainEvent,
-} from 'electron';
+import {dialog, shell, type BrowserWindow} from 'electron';
 import {mediaEndpoints} from '@contracts/ipc/media';
 import {createMediaId} from '@core/schema/ids';
 import {defaultPreferences} from '@core/schema/preferences';
 import type {MediaImportProgress} from '@core/schema/mediaEdit';
-import {
-  parseMediaCheckRequest,
-  parseMediaRevealRequest,
-} from '@core/schema/mediaFiles';
+import {IpcHost} from '../base/ipcHost';
 import type {Logger} from '../base/log';
-import {broadcast} from '../store/contentChannels';
-import type {MediaBackendPort} from '../store/mediaChannels';
+import type {MediaBackendPort} from '../store/mediaBackend';
 import type {UiStateFields} from '../store/appConfigFile';
 import {realPathInside} from '../base/insideRoots';
 import {pickerFolder, rememberPickerFile} from '../uiState/pickerFolder';
@@ -106,22 +96,26 @@ function relinkDialog(
   };
 }
 
-function watchMissingFiles({media, log}: MediaBackendRegistration): {
-  readonly files: () => MissingFiles | null;
-  readonly dispose: () => void;
-} {
+function watchMissingFiles(
+  {media, log}: MediaBackendRegistration,
+  ipc: IpcHost,
+): () => MissingFiles | null {
   let missing: MissingFiles | null = null;
   let stopped = false;
+  ipc.whenClosed(() => {
+    stopped = true;
+    missing?.dispose();
+  });
   const ready = media.then(
     store => {
       if (stopped || store === null) return;
       missing = new MissingFiles({
         source: store,
         onChange: value => {
-          broadcast(mediaEndpoints.missingChanged.channel, value, log);
+          ipc.push(mediaEndpoints.missingChanged, value);
         },
         onStamps: value => {
-          broadcast(mediaEndpoints.stampsChanged.channel, value, log);
+          ipc.push(mediaEndpoints.stampsChanged, value);
         },
       });
       missing.start();
@@ -130,33 +124,18 @@ function watchMissingFiles({media, log}: MediaBackendRegistration): {
       log.error('could not check the media files', error);
     },
   );
-  ipcMain.handle(mediaEndpoints.missing.channel, async () => {
+  ipc.query(mediaEndpoints.missing, async () => {
     await ready;
     return missing?.list() ?? [];
   });
-  ipcMain.handle(mediaEndpoints.stamps.channel, async () => {
+  ipc.query(mediaEndpoints.stamps, async () => {
     await ready;
     return missing?.stampList() ?? {};
   });
-  const check = (_event: IpcMainEvent, value: unknown): void => {
-    const parsed = parseMediaCheckRequest(value);
-    if (!parsed.ok) {
-      log.warn('dropped a malformed media check', parsed.error);
-      return;
-    }
-    missing?.check(parsed.value.mediaId);
-  };
-  ipcMain.on(mediaEndpoints.check.channel, check);
-  return {
-    files: () => missing,
-    dispose: () => {
-      stopped = true;
-      missing?.dispose();
-      ipcMain.removeHandler(mediaEndpoints.missing.channel);
-      ipcMain.removeHandler(mediaEndpoints.stamps.channel);
-      ipcMain.removeListener(mediaEndpoints.check.channel, check);
-    },
-  };
+  ipc.message(mediaEndpoints.check, ({mediaId}) => {
+    missing?.check(mediaId);
+  });
+  return () => missing;
 }
 
 // NOTE(0913vision): A window names only a media id, and the file must be
@@ -180,29 +159,19 @@ async function revealFile(
   shell.showItemInFolder(inside);
 }
 
-function listenForReveals({
-  media,
-  log,
-  windowMode,
-}: MediaBackendRegistration): () => void {
-  const reveal = (_event: IpcMainEvent, value: unknown): void => {
-    const parsed = parseMediaRevealRequest(value);
-    if (!parsed.ok) {
-      log.warn('dropped a malformed media reveal', parsed.error);
-      return;
-    }
+function listenForReveals(
+  {media, log, windowMode}: MediaBackendRegistration,
+  ipc: IpcHost,
+): void {
+  ipc.message(mediaEndpoints.reveal, ({mediaId}) => {
     if (windowMode === 'offscreen') {
       log.info('media file reveal is unavailable in offscreen mode');
       return;
     }
-    revealFile(media, parsed.value.mediaId, log).catch((error: unknown) => {
+    revealFile(media, mediaId, log).catch((error: unknown) => {
       log.error('could not reveal a media file', error);
     });
-  };
-  ipcMain.on(mediaEndpoints.reveal.channel, reveal);
-  return () => {
-    ipcMain.removeListener(mediaEndpoints.reveal.channel, reveal);
-  };
+  });
 }
 
 /**
@@ -217,6 +186,7 @@ function listenForReveals({
 export function registerMediaBackend(
   options: MediaBackendRegistration,
 ): () => Promise<void> {
+  const ipc = new IpcHost(options.log);
   const progress: {send: (value: MediaImportProgress) => void} = {
     send: () => undefined,
   };
@@ -235,14 +205,14 @@ export function registerMediaBackend(
       (await options.settings)?.preferences().media.defaults ??
       defaultPreferences.media.defaults,
   });
-  const missing = watchMissingFiles(options);
-  const stopReveals = listenForReveals(options);
+  const missing = watchMissingFiles(options, ipc);
+  listenForReveals(options, ipc);
   const relinker = new MediaRelinker({
     store: () => options.media,
     chooseFile: relinkDialog(options),
-    isMissing: mediaId => missing.files()?.isMissing(mediaId) ?? false,
+    isMissing: mediaId => missing()?.isMissing(mediaId) ?? false,
     recheck: mediaIds => {
-      for (const mediaId of mediaIds) missing.files()?.check(mediaId);
+      for (const mediaId of mediaIds) missing()?.check(mediaId);
     },
     log: options.log,
   });
@@ -256,16 +226,14 @@ export function registerMediaBackend(
       connection.report(value);
     };
     return async () => {
-      missing.dispose();
-      stopReveals();
+      ipc.close();
       await importer.dispose();
       connection.disconnect();
     };
   } catch (error: unknown) {
     options.log.error('could not connect the media backend', error);
     return () => {
-      missing.dispose();
-      stopReveals();
+      ipc.close();
       return importer.dispose();
     };
   }

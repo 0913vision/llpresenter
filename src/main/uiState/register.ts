@@ -1,5 +1,5 @@
-import {ipcMain} from 'electron';
 import {uiEndpoints} from '@contracts/ipc/ui';
+import {IpcHost} from '../base/ipcHost';
 import type {Logger} from '../base/log';
 import type {UiStateFields} from '../store/appConfigFile';
 import {UiStateStore} from './uiStateStore';
@@ -21,28 +21,20 @@ export function registerUiState(
   fields: UiStateFields,
   log: Logger,
 ): UiStateRegistration {
-  const store = new UiStateStore({fields, log});
-  ipcMain.handle(uiEndpoints.get.channel, () => store.state);
-  ipcMain.on(uiEndpoints.setLayout.channel, (_event, value: unknown) =>
-    store.setLayout(value),
+  const ipc = new IpcHost(log);
+  const store = new UiStateStore(fields);
+  ipc.query(uiEndpoints.get, () => store.state);
+  ipc.message(uiEndpoints.setLayout, change => store.setLayout(change));
+  ipc.message(uiEndpoints.setMediaStrip, change => store.setMediaStrip(change));
+  ipc.message(uiEndpoints.setMediaBrowser, change =>
+    store.setMediaBrowser(change),
   );
-  ipcMain.on(uiEndpoints.setMediaStrip.channel, (_event, value: unknown) =>
-    store.setMediaStrip(value),
+  ipc.message(uiEndpoints.setRememberedView, change =>
+    store.setRememberedView(change),
   );
-  ipcMain.on(uiEndpoints.setMediaBrowser.channel, (_event, value: unknown) =>
-    store.setMediaBrowser(value),
-  );
-  ipcMain.on(uiEndpoints.setRememberedView.channel, (_event, value: unknown) =>
-    store.setRememberedView(value),
-  );
-
   return {
     dispose: () => {
-      ipcMain.removeHandler(uiEndpoints.get.channel);
-      ipcMain.removeAllListeners(uiEndpoints.setLayout.channel);
-      ipcMain.removeAllListeners(uiEndpoints.setMediaStrip.channel);
-      ipcMain.removeAllListeners(uiEndpoints.setMediaBrowser.channel);
-      ipcMain.removeAllListeners(uiEndpoints.setRememberedView.channel);
+      ipc.close();
     },
   };
 }

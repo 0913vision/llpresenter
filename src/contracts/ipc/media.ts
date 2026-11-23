@@ -6,6 +6,7 @@ import {
   parseMediaImportProgress,
   parseMediaImportRequest,
   parseMediaImportResult,
+  refuseInvalidMediaEdit,
   type MediaDocument,
   type MediaEdit,
   type MediaEditResult,
@@ -47,10 +48,12 @@ export const mediaEndpoints = {
   edit: request<MediaEdit, MediaEditResult>('media:edit', {
     request: parseMediaEdit,
     reply: parseMediaEditResult,
+    refuse: refuseInvalidMediaEdit,
   }),
   import: request<MediaImportRequest, MediaImportResult>('media:import', {
     request: parseMediaImportRequest,
     reply: parseMediaImportResult,
+    refuse: refuseInvalidMediaEdit,
   }),
   changed: push<MediaDocument>('media:changed', parseMediaDocument),
   importChanged: push<MediaImportProgress>(

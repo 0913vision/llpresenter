@@ -1,5 +1,5 @@
-import {ipcMain} from 'electron';
 import {appEndpoints} from '@contracts/ipc/app';
+import {IpcHost} from '../base/ipcHost';
 import type {Logger} from '../base/log';
 import type {ProblemFeed} from '../base/problemFeed';
 import type {SaveFailures} from './saveFailures';
@@ -17,22 +17,21 @@ export function registerSaveProblems(
   feed: ProblemFeed,
   log: Logger,
 ): () => void {
-  const removeStanding = feed.addStanding(() => [
-    ...saves.problems(),
-    ...saves.copyProblems(),
-  ]);
-  const stop = saves.subscribe(problem => {
-    feed.push(problem);
-  });
-  const retry = (): void => {
+  const ipc = new IpcHost(log);
+  ipc.whenClosed(
+    feed.addStanding(() => [...saves.problems(), ...saves.copyProblems()]),
+  );
+  ipc.whenClosed(
+    saves.subscribe(problem => {
+      feed.push(problem);
+    }),
+  );
+  ipc.signal(appEndpoints.retrySaves, () => {
     saves.retry().catch((error: unknown) => {
       log.error('could not retry the waiting saves', error);
     });
-  };
-  ipcMain.on(appEndpoints.retrySaves.channel, retry);
+  });
   return () => {
-    ipcMain.removeListener(appEndpoints.retrySaves.channel, retry);
-    stop();
-    removeStanding();
+    ipc.close();
   };
 }

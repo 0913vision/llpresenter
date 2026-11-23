@@ -1,4 +1,4 @@
-import {beforeEach, describe, expect, it, vi} from 'vitest';
+import {describe, expect, it, vi} from 'vitest';
 import {appEndpoints} from '@contracts/ipc/app';
 import type {AppProblem} from '@core/schema/appProblem';
 import {recordingLogger} from '@fixtures/main/displays/testing';
@@ -6,24 +6,10 @@ import type {StandingProblems} from '@main/base/problemFeed';
 import {SaveFailures} from '@main/store/saveFailures';
 import {registerSaveProblems} from '@main/store/saveProblems';
 
-const electron = vi.hoisted(() => ({
-  listeners: new Map<string, () => void>(),
-}));
-
-vi.mock('electron', () => ({
-  ipcMain: {
-    on: (channel: string, listener: () => void) => {
-      electron.listeners.set(channel, listener);
-    },
-    removeListener: (channel: string) => {
-      electron.listeners.delete(channel);
-    },
-  },
-}));
-
-beforeEach(() => {
-  electron.listeners.clear();
-});
+const ipc = await vi.hoisted(async () =>
+  (await import('@fixtures/main/base/mockIpcMain')).mockIpcMain(),
+);
+vi.mock('electron', () => ({ipcMain: ipc.ipcMain}));
 
 describe('save problems', () => {
   it('lists, pushes, and retries the waiting saves on the feed, and removes everything on dispose', async () => {
@@ -52,12 +38,12 @@ describe('save problems', () => {
     const problem = {kind: 'save-failed', name: 'a.json', count: 1};
     expect(push).toHaveBeenCalledExactlyOnceWith(problem);
     expect(listed()).toEqual([problem]);
-    electron.listeners.get(appEndpoints.retrySaves.channel)?.();
+    ipc.send(appEndpoints.retrySaves);
     await vi.waitFor(() => expect(push).toHaveBeenCalledTimes(2));
     expect(retry).toHaveBeenCalledOnce();
     remove();
     expect(sources.size).toBe(0);
-    expect(electron.listeners.size).toBe(0);
+    expect(ipc.open()).toBe(0);
     saves.saved('a.json');
     expect(push).toHaveBeenCalledTimes(2);
     saves.dispose();

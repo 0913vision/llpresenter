@@ -2,7 +2,11 @@ import {mkdir, readFile, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {writeFileAtomically} from '@main/base/atomicWrite';
-import {serviceIdSchema} from '@core/schema/ids';
+import {
+  createScreenId,
+  macroCollectionIdSchema,
+  serviceIdSchema,
+} from '@core/schema/ids';
 import {testId} from '@fixtures/core/schema/testHelpers';
 import {makeTempDir} from '@fixtures/tempDir';
 import type {Logger} from '@main/base/log';
@@ -38,12 +42,15 @@ async function readJson(file: string): Promise<unknown> {
 it('persists remembered views and preferences across reopen, including clearing a collection', async () => {
   const file = await appJson();
   const config = await openAppConfig({file, log: mockLog()});
-  const store = new UiStateStore({fields: config, log: mockLog()});
+  const store = new UiStateStore(config);
   store.setRememberedView({
-    previewBig: '00000000-0000-4000-8000-000000000001',
+    previewBig: createScreenId('00000000-0000-4000-8000-000000000001'),
     previewBigVisible: false,
     macroView: 'list',
-    macroCollection: '00000000-0000-4000-8000-000000000002',
+    macroCollection: testId(
+      macroCollectionIdSchema,
+      '00000000-0000-4000-8000-000000000002',
+    ),
     showToolTab: 'timer',
   });
   config.setPreferencesPage('media');
@@ -65,7 +72,7 @@ it('persists remembered views and preferences across reopen, including clearing 
   });
   expect(reopened.preferencesPage).toBe('media');
   expect(reopened.preferencesWindow?.width).toBe(1300);
-  new UiStateStore({fields: reopened, log: mockLog()}).setRememberedView({
+  new UiStateStore(reopened).setRememberedView({
     macroCollection: null,
   });
   await reopened.flush();
@@ -286,7 +293,7 @@ describe('openAppConfig', () => {
     await writeJson(file, config);
     const log = mockLog();
     const appConfig = await openAppConfig({file, log});
-    const ui = new UiStateStore({fields: appConfig, log});
+    const ui = new UiStateStore(appConfig);
     ui.setMediaStrip({visible: false});
     ui.setLayout({sizeClass: 'normal', leftCollapsed: true});
     ui.setMediaBrowser({view: 'list'});
@@ -303,7 +310,7 @@ describe('openAppConfig', () => {
       layout: {normal: {...config.layout.normal, leftCollapsed: true}},
     });
     const reopened = await openAppConfig({file, log});
-    expect(new UiStateStore({fields: reopened, log}).state).toEqual(ui.state);
+    expect(new UiStateStore(reopened).state).toEqual(ui.state);
     reopened.dispose();
     appConfig.dispose();
   });

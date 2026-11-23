@@ -19,7 +19,7 @@ import type {
   MediaBackend,
   MediaBackendConnection,
   MediaBackendPort,
-} from '@main/store/mediaChannels';
+} from '@main/store/mediaBackend';
 import type {Analysis, AnalysisRequest} from '@main/media/mediaAnalyser';
 import type {MediaImporterOptions} from '@main/media/mediaImporter';
 
@@ -36,15 +36,14 @@ import {
   type MediaBackendStore,
 } from '@main/media/register';
 
-type Listener = (event: unknown, value: unknown) => void;
-
+const ipc = await vi.hoisted(async () =>
+  (await import('@fixtures/main/base/mockIpcMain')).mockIpcMain(),
+);
 const electron = vi.hoisted(() => ({
   showOpenDialog: vi.fn(),
   destroyed: false,
   send: vi.fn<(channel: string, value: unknown) => void>(),
   showItemInFolder: vi.fn<(file: string) => void>(),
-  handlers: new Map<string, () => unknown>(),
-  listeners: new Map<string, Listener>(),
 }));
 
 vi.mock('electron', () => ({
@@ -64,22 +63,7 @@ vi.mock('electron', () => ({
   dialog: {showOpenDialog: electron.showOpenDialog},
   app: {getPath: () => join('D:', 'documents')},
   shell: {showItemInFolder: electron.showItemInFolder},
-  ipcMain: {
-    handle: (channel: string, handler: () => unknown) => {
-      electron.handlers.set(channel, handler);
-    },
-    removeHandler: (channel: string) => {
-      electron.handlers.delete(channel);
-    },
-    on: (channel: string, listener: Listener) => {
-      electron.listeners.set(channel, listener);
-    },
-    removeListener: (channel: string, listener: Listener) => {
-      if (electron.listeners.get(channel) === listener) {
-        electron.listeners.delete(channel);
-      }
-    },
-  },
+  ipcMain: ipc.ipcMain,
 }));
 
 const analysis = {
@@ -387,20 +371,17 @@ describe('media backend registration', () => {
         [MISSING],
       ),
     );
-    expect(
-      await electron.handlers.get(mediaEndpoints.missing.channel)?.(),
-    ).toEqual([MISSING]);
-    expect(
-      await electron.handlers.get(mediaEndpoints.stamps.channel)?.(),
-    ).toEqual(expect.any(Object));
-    const check = electron.listeners.get(mediaEndpoints.check.channel);
-    check?.({}, {mediaId: MISSING});
-    check?.({}, {mediaId: 'not an id'});
-    expect(log.messages('warn')).toEqual(['dropped a malformed media check']);
+    expect(await ipc.invoke(mediaEndpoints.missing)).toEqual([MISSING]);
+    expect(await ipc.invoke(mediaEndpoints.stamps)).toEqual(expect.any(Object));
+    ipc.send(mediaEndpoints.check, {mediaId: MISSING});
+    ipc.send(mediaEndpoints.check, {mediaId: 'not an id'});
+    expect(log.messages('warn')).toEqual([
+      'dropped a malformed media:check message',
+    ]);
     await stop();
-    expect(electron.handlers.has(mediaEndpoints.missing.channel)).toBe(false);
-    expect(electron.handlers.has(mediaEndpoints.stamps.channel)).toBe(false);
-    expect(electron.listeners.has(mediaEndpoints.check.channel)).toBe(false);
+    expect(ipc.has(mediaEndpoints.missing.channel)).toBe(false);
+    expect(ipc.has(mediaEndpoints.stamps.channel)).toBe(false);
+    expect(ipc.has(mediaEndpoints.check.channel)).toBe(false);
   });
 
   it('shows a media file in Explorer on 파일 위치 열기, and stops listening', async () => {
@@ -409,16 +390,17 @@ describe('media backend registration', () => {
     const store = await mediaStore();
     await writeFile(join(store.folder, 'gone.png'), 'invented');
     const stop = register(port, store, {log});
-    const reveal = electron.listeners.get(mediaEndpoints.reveal.channel);
-    reveal?.({}, {mediaId: MISSING});
-    reveal?.({}, {mediaId: 'not an id'});
+    ipc.send(mediaEndpoints.reveal, {mediaId: MISSING});
+    ipc.send(mediaEndpoints.reveal, {mediaId: 'not an id'});
     await vi.waitFor(() =>
       expect(electron.showItemInFolder).toHaveBeenCalledOnce(),
     );
     expect(electron.showItemInFolder.mock.calls[0]?.[0]).toMatch(/gone\.png$/);
-    expect(log.messages('warn')).toContain('dropped a malformed media reveal');
+    expect(log.messages('warn')).toContain(
+      'dropped a malformed media:reveal message',
+    );
     await stop();
-    expect(electron.listeners.has(mediaEndpoints.reveal.channel)).toBe(false);
+    expect(ipc.has(mediaEndpoints.reveal.channel)).toBe(false);
   });
 
   it('opens no Explorer window for 파일 위치 열기 in offscreen mode', async () => {
@@ -429,10 +411,7 @@ describe('media backend registration', () => {
       log,
       windowMode: 'offscreen',
     });
-    electron.listeners.get(mediaEndpoints.reveal.channel)?.(
-      {},
-      {mediaId: MISSING},
-    );
+    ipc.send(mediaEndpoints.reveal, {mediaId: MISSING});
     expect(log.messages('info')).toContain(
       'media file reveal is unavailable in offscreen mode',
     );
@@ -447,10 +426,7 @@ describe('media backend registration', () => {
     const outside = join(await makeTempDir(), 'secret.png');
     await writeFile(outside, 'invented');
     const stop = register(port, {...store, fileOf: () => outside}, {log});
-    electron.listeners.get(mediaEndpoints.reveal.channel)?.(
-      {},
-      {mediaId: MISSING},
-    );
+    ipc.send(mediaEndpoints.reveal, {mediaId: MISSING});
     await vi.waitFor(() =>
       expect(log.messages('info')).toContain(
         'no media file to reveal inside the media folders',
@@ -458,10 +434,7 @@ describe('media backend registration', () => {
     );
     await stop();
     const gone = register(mockPort().port, store, {log});
-    electron.listeners.get(mediaEndpoints.reveal.channel)?.(
-      {},
-      {mediaId: MISSING},
-    );
+    ipc.send(mediaEndpoints.reveal, {mediaId: MISSING});
     await vi.waitFor(() =>
       expect(
         log
@@ -491,6 +464,6 @@ describe('media backend registration', () => {
       'could not connect the media backend',
     ]);
     await expect(stop()).resolves.toBeUndefined();
-    expect(electron.handlers.has(mediaEndpoints.missing.channel)).toBe(false);
+    expect(ipc.has(mediaEndpoints.missing.channel)).toBe(false);
   });
 });

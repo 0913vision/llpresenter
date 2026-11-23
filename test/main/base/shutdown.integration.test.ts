@@ -66,7 +66,7 @@ describe('shutdown with the real UI state registration', () => {
       log,
     );
     electron.ipcHandlers.get(uiEndpoints.setLayout.channel)?.(
-      {},
+      {sender: {}},
       {sizeClass: 'narrow', left: 220, right: 360},
     );
     const shutdown = new ShutdownCoordinator({

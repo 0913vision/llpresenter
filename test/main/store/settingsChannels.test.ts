@@ -16,32 +16,23 @@ import type {
   SettingsStore,
 } from '@main/store/settingsStore';
 
-type Handler = (event: unknown, value: unknown) => unknown;
-const electron = vi.hoisted(() => ({
-  handlers: new Map<string, Handler>(),
-  send: vi.fn<(channel: string, value: unknown) => void>(),
-}));
+const ipc = await vi.hoisted(async () =>
+  (await import('@fixtures/main/base/mockIpcMain')).mockIpcMain(),
+);
+const send = vi.hoisted(() =>
+  vi.fn<(channel: string, value: unknown) => void>(),
+);
 vi.mock('electron', () => ({
   BrowserWindow: {
     getAllWindows: () => [
       {
         isDestroyed: () => false,
-        webContents: {isDestroyed: () => false, send: electron.send},
+        webContents: {isDestroyed: () => false, send},
       },
     ],
   },
-  ipcMain: {
-    handle: (channel: string, handler: Handler) =>
-      electron.handlers.set(channel, handler),
-    removeHandler: (channel: string) => electron.handlers.delete(channel),
-  },
+  ipcMain: ipc.ipcMain,
 }));
-
-function handler(channel: string): Handler {
-  const found = electron.handlers.get(channel);
-  if (found === undefined) throw new Error(`Missing handler ${channel}`);
-  return found;
-}
 
 function documentOf(name: string, value: object): SettingsDocument {
   return expectSuccess(
@@ -107,38 +98,36 @@ describe('settings channels', () => {
     onTestFinished(() => channels.dispose());
     await vi.waitFor(() => expect(store.subscribe).toHaveBeenCalledOnce());
     const sender = Object.assign(new EventEmitter(), {
+      id: 1,
       isDestroyed: () => false,
     });
-    const request = handler(settingsEndpoints.previewLabelColor.channel);
-    electron.send.mockClear();
-    expect(await request({sender}, {name: '1절', color: 'teal'})).toBe(false);
-    expect(await request({sender}, {name: 'missing', color: '#123456'})).toBe(
-      false,
-    );
-    expect(electron.send).not.toHaveBeenCalled();
-    expect(await request({sender}, {name: '1절', color: '#123456'})).toBe(true);
-    expect(electron.send).toHaveBeenLastCalledWith(
+    const request = (value: unknown) =>
+      ipc.invoke(settingsEndpoints.previewLabelColor, value, sender);
+    send.mockClear();
+    expect(await request({name: '1절', color: 'teal'})).toBe(false);
+    expect(await request({name: 'missing', color: '#123456'})).toBe(false);
+    expect(send).not.toHaveBeenCalled();
+    expect(await request({name: '1절', color: '#123456'})).toBe(true);
+    expect(send).toHaveBeenLastCalledWith(
       settingsEndpoints.labelColorPreview.channel,
       {name: '1절', color: '#123456'},
     );
     expect(store.apply).not.toHaveBeenCalled();
     sender.emit('destroyed');
-    expect(electron.send).toHaveBeenLastCalledWith(
+    expect(send).toHaveBeenLastCalledWith(
       settingsEndpoints.labelColorPreview.channel,
       null,
     );
     expect(sender.listenerCount('destroyed')).toBe(0);
-    await request({sender}, {name: '1절', color: '#654321'});
+    await request({name: '1절', color: '#654321'});
     emit(document);
-    expect(electron.send.mock.calls.slice(-2)).toEqual([
+    expect(send.mock.calls.slice(-2)).toEqual([
       [settingsEndpoints.labelColorPreview.channel, null],
       [settingsEndpoints.changed.channel, document],
     ]);
     expect(sender.listenerCount('destroyed')).toBe(0);
     store.get.mockReturnValue({...document, access: 'readOnly'});
-    expect(await request({sender}, {name: '1절', color: '#123456'})).toBe(
-      false,
-    );
+    expect(await request({name: '1절', color: '#123456'})).toBe(false);
   });
   it('sends every changed document, and the normalized preferences after a preferences change', async () => {
     const {store, emit} = mockStore();
@@ -148,14 +137,14 @@ describe('settings channels', () => {
     );
     onTestFinished(() => channels.dispose());
     await vi.waitFor(() => expect(store.subscribe).toHaveBeenCalledOnce());
-    electron.send.mockClear();
+    send.mockClear();
 
     emit(labels);
-    expect(electron.send.mock.calls).toEqual([
+    expect(send.mock.calls).toEqual([
       [settingsEndpoints.changed.channel, labels],
     ]);
     emit(preferences);
-    expect(electron.send).toHaveBeenLastCalledWith(
+    expect(send).toHaveBeenLastCalledWith(
       settingsEndpoints.preferencesChanged.channel,
       defaultPreferences,
     );
@@ -167,13 +156,15 @@ describe('settings channels', () => {
     const channels = registerSettingsChannels(Promise.resolve(store), log);
     onTestFinished(() => channels.dispose());
 
-    expect(
-      await handler(settingsEndpoints.get.channel)({}, {name: 'labels'}),
-    ).toBe(labels);
+    expect(await ipc.invoke(settingsEndpoints.get, {name: 'labels'})).toBe(
+      labels,
+    );
     await expect(
-      handler(settingsEndpoints.get.channel)({}, {name: 'unknown'}),
-    ).rejects.toThrow('Invalid settings read');
-    expect(log.messages('warn')).toEqual(['dropped a malformed settings read']);
+      ipc.invoke(settingsEndpoints.get, {name: 'unknown'}),
+    ).rejects.toThrow('Malformed settings:get request');
+    expect(log.messages('warn')).toEqual([
+      'refused a malformed settings:get request',
+    ]);
   });
 
   it('passes a valid edit to the store and logs and refuses a malformed one', async () => {
@@ -182,18 +173,21 @@ describe('settings channels', () => {
     const channels = registerSettingsChannels(Promise.resolve(store), log);
     onTestFinished(() => channels.dispose());
 
-    expect(
-      await handler(settingsEndpoints.edit.channel)({}, labelsUpdate),
-    ).toEqual({ok: true, value: {id: 'labels', revision: 2}});
+    expect(await ipc.invoke(settingsEndpoints.edit, labelsUpdate)).toEqual({
+      ok: true,
+      value: {id: 'labels', revision: 2},
+    });
     expect(store.apply).toHaveBeenCalledOnce();
     expect(
-      await handler(settingsEndpoints.edit.channel)(
-        {},
-        {type: 'settings.update', name: 'labels'},
-      ),
+      await ipc.invoke(settingsEndpoints.edit, {
+        type: 'settings.update',
+        name: 'labels',
+      }),
     ).toMatchObject({ok: false, error: {reason: 'invalid'}});
     expect(store.apply).toHaveBeenCalledOnce();
-    expect(log.messages('warn')).toEqual(['dropped a malformed settings edit']);
+    expect(log.messages('warn')).toEqual([
+      'refused a malformed settings:edit request',
+    ]);
   });
 
   it('finishes an accepted rename before closing its settings store', async () => {
@@ -218,19 +212,16 @@ describe('settings channels', () => {
       release({ok: true, value: {id: 'labels', revision: 2}});
       return channels.dispose();
     });
-    const pending = handler(settingsEndpoints.edit.channel)(
-      {},
-      {
-        type: 'labels.rename',
-        name: 'labels',
-        from: 'Before',
-        to: 'After',
-        baseRevision: 1,
-      },
-    );
+    const pending = ipc.invoke(settingsEndpoints.edit, {
+      type: 'labels.rename',
+      name: 'labels',
+      from: 'Before',
+      to: 'After',
+      baseRevision: 1,
+    });
     await started;
     const closing = channels.dispose();
-    expect(electron.handlers.size).toBe(0);
+    expect(ipc.open()).toBe(0);
     expect(store.dispose).not.toHaveBeenCalled();
     release({ok: true, value: {id: 'labels', revision: 2}});
     expect(await pending).toMatchObject({ok: true});
@@ -249,9 +240,9 @@ describe('settings channels', () => {
       finish(store);
       return channels.dispose();
     });
-    const read = handler(settingsEndpoints.get.channel)({}, {name: 'labels'});
+    const read = ipc.invoke(settingsEndpoints.get, {name: 'labels'});
     const failedRead = expect(read).rejects.toThrow('Settings unavailable');
-    const edit = handler(settingsEndpoints.edit.channel)({}, labelsUpdate);
+    const edit = ipc.invoke(settingsEndpoints.edit, labelsUpdate);
     const listener = vi.fn();
     channels.subscribe(listener)();
     const closing = channels.dispose();
@@ -263,7 +254,7 @@ describe('settings channels', () => {
     expect(store.apply).not.toHaveBeenCalled();
     expect(changes.size).toBe(0);
     expect(problems.size).toBe(0);
-    expect(electron.handlers.size).toBe(0);
+    expect(ipc.open()).toBe(0);
   });
 
   it('logs a rejected load and returns unavailable answers without unhandled subscriptions', async () => {
@@ -274,10 +265,10 @@ describe('settings channels', () => {
     );
     onTestFinished(() => channels.dispose());
     await expect(
-      handler(settingsEndpoints.get.channel)({}, {name: 'labels'}),
+      ipc.invoke(settingsEndpoints.get, {name: 'labels'}),
     ).rejects.toThrow('Settings unavailable');
     expect(
-      await handler(settingsEndpoints.edit.channel)({}, labelsUpdate),
+      await ipc.invoke(settingsEndpoints.edit, labelsUpdate),
     ).toMatchObject({ok: false, error: {reason: 'not-found'}});
     expect(log.messages('error')).toContain('could not open settings channels');
   });

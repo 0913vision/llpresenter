@@ -13,6 +13,7 @@ export const serviceEndpoints = {
   open: request<ServiceOpenRequest, ShowService | null>('service:open', {
     request: parseServiceOpenRequest,
     reply: (value, sent) => parseServiceOpenReply(sent.serviceId, value),
+    refuse: () => null,
   }),
   changed: push<ShowService | null>('service:changed', parseShowService),
 };

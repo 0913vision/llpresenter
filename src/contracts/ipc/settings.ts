@@ -1,4 +1,8 @@
-import {parseEditResult, type EditResult} from '@core/schema/contentEdit';
+import {
+  parseEditResult,
+  refuseInvalidEdit,
+  type EditResult,
+} from '@core/schema/contentEdit';
 import {
   parsePreferencesValue,
   type Preferences,
@@ -35,6 +39,7 @@ export const settingsEndpoints = {
   edit: request<SettingsEdit, EditResult>('settings:edit', {
     request: parseSettingsEdit,
     reply: parseEditResult,
+    refuse: refuseInvalidEdit,
   }),
   changed: push<SettingsDocument>('settings:changed', parseSettingsDocument),
   previewLabelColor: request<LabelColorPreviewRequest, boolean>(
@@ -42,6 +47,7 @@ export const settingsEndpoints = {
     {
       request: parseLabelColorPreviewRequest,
       reply: parseLabelColorPreviewReply,
+      refuse: () => false,
     },
   ),
   labelColorPreview: push<LabelColorPreview | null>(

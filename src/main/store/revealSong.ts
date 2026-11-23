@@ -1,8 +1,8 @@
-import {ipcMain, shell, type IpcMainEvent} from 'electron';
+import {shell} from 'electron';
 import {libraryEndpoints} from '@contracts/ipc/library';
-import {parseShowLibrarySongRequest} from '@core/schema/showLibrarySong';
-import type {WindowMode} from '../base/testWindows';
+import {IpcHost} from '../base/ipcHost';
 import type {Logger} from '../base/log';
+import type {WindowMode} from '../base/testWindows';
 
 /**
  * Shows a 라이브러리 song's file in the file manager when a window asks by id.
@@ -22,20 +22,16 @@ export function registerSongReveal({
   readonly windowMode: WindowMode;
   readonly log: Logger;
 }): () => void {
-  const reveal = (_event: IpcMainEvent, value: unknown): void => {
-    const parsed = parseShowLibrarySongRequest(value);
-    if (!parsed.ok) {
-      log.warn('dropped a malformed song reveal', parsed.error);
-      return;
-    }
+  const ipc = new IpcHost(log);
+  ipc.message(libraryEndpoints.revealSong, ({songId}) => {
     if (windowMode === 'offscreen') {
       log.info('song file reveal is unavailable in offscreen mode');
       return;
     }
-    fileOf(parsed.value.songId)
+    fileOf(songId)
       .then(file => {
         if (file === undefined) {
-          log.info('no song file to reveal', {songId: parsed.value.songId});
+          log.info('no song file to reveal', {songId});
           return;
         }
         shell.showItemInFolder(file);
@@ -43,9 +39,8 @@ export function registerSongReveal({
       .catch((error: unknown) => {
         log.error('could not reveal a song file', error);
       });
-  };
-  ipcMain.on(libraryEndpoints.revealSong.channel, reveal);
+  });
   return () => {
-    ipcMain.removeListener(libraryEndpoints.revealSong.channel, reveal);
+    ipc.close();
   };
 }

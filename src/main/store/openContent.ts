@@ -1,9 +1,10 @@
 import {DEFAULT_LABELS} from './defaults';
 import {defaultPreferences} from '@core/schema/preferences';
 import {serviceEndpoints} from '@contracts/ipc/service';
+import {pushToWindows} from '../base/ipcHost';
 import type {Logger} from '../base/log';
 import {buildSongSearchIndex, type SongSearchIndex} from '../search/songIndex';
-import {broadcast, broadcastEvents} from './contentChannels';
+import {pushContentEvents} from './contentChannels';
 import {ContentStore} from './contentStore';
 import {documentFiles} from './documentFiles';
 import {type LoadedStore} from './fileStore';
@@ -85,7 +86,7 @@ async function createContent(
       log.warn('could not keep a recovery copy', problem),
   });
   let feed: OpenServiceFeed | null = null;
-  const events = broadcastEvents(log, () => {
+  const events = pushContentEvents(log, () => {
     feed?.refresh();
   });
   const content = new ContentStore({
@@ -125,7 +126,7 @@ async function createContent(
       content,
       hasMedia: id => (media?.fileOf(id) ?? store.media.fileOf(id)) !== null,
     },
-    service => broadcast(serviceEndpoints.changed.channel, service, log),
+    service => pushToWindows(serviceEndpoints.changed, service, log),
     error => log.error('could not refresh the open 예배 순서', error),
   );
   const removeSettingsListener =
