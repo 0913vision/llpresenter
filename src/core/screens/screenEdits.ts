@@ -1,3 +1,4 @@
+import {freeName} from '@core/common/freeName';
 import {KIND_NAMES} from './screens';
 import {NDI_DEFAULT_SOURCE_NAME, type Screen} from '@core/schema/screens';
 
@@ -41,9 +42,7 @@ export function defaultScreenName(
 ): string {
   const base = `새 ${KIND_NAMES[kind]} 화면`;
   const names = new Set(screens.map(screen => screen.name.trim()));
-  let name = base;
-  for (let suffix = 2; names.has(name); suffix++) name = `${base} (${suffix})`;
-  return name;
+  return freeName(base, names, number => `${base} (${number})`);
 }
 
 /**
@@ -119,10 +118,11 @@ export function changeScreen(
     );
     let sourceName = screen.ndi?.sourceName ?? NDI_DEFAULT_SOURCE_NAME;
     if (method === 'ndi' && screen.method !== 'ndi') {
-      sourceName = NDI_DEFAULT_SOURCE_NAME;
-      for (let n = 2; usedNames.has(sourceName); n++) {
-        sourceName = `${NDI_DEFAULT_SOURCE_NAME} (${n})`;
-      }
+      sourceName = freeName(
+        NDI_DEFAULT_SOURCE_NAME,
+        usedNames,
+        number => `${NDI_DEFAULT_SOURCE_NAME} (${number})`,
+      );
     }
     const updated = {
       ...withMessageStyle(screen, messageStyleId),

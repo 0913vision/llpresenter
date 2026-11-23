@@ -4,7 +4,8 @@ import {checkPart} from '@core/schema/fileFormat';
 import {preserveUnknownFields} from '@core/schema/preserveUnknown';
 import {createSongId, type SongId} from '@core/schema/ids';
 import {songSchema, SONG_SCHEMA_VERSION, type Song} from '@core/schema/song';
-import {freeTitle, normalizeSongTitle} from './contentEdits';
+import {freeName} from '@core/common/freeName';
+import {normalizeSongTitle} from './contentEdits';
 import {defaultSlideTransitions} from '@core/schema/preferences';
 import {newSongSlides} from '@core/slides';
 import type {ContentCommandContext, ContentHandlers} from './contentCommands';
@@ -86,7 +87,8 @@ class SongContentCommands {
     const titles = new Set(
       this.context.songs.all().map(({data}) => normalizeSongTitle(data.title)),
     );
-    const title = freeTitle(NEW_SONG_TITLE, titles);
+    // NOTE(0913vision): docs/spec/05-prep.md, "New song".
+    const title = freeName(NEW_SONG_TITLE, titles);
     const themes = this.context.settings?.get('themes');
     const song: Song = {
       format: 'llsong',

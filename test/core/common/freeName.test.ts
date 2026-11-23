@@ -9,3 +9,8 @@ it.each([
 ])('picks the first free name among %j', (taken, expected) => {
   expect(freeName('새 매크로', new Set(taken))).toBe(expected);
 });
+
+it('numbers in the form the caller writes', () => {
+  const taken = new Set(['NDI', 'NDI (2)']);
+  expect(freeName('NDI', taken, number => `NDI (${number})`)).toBe('NDI (3)');
+});

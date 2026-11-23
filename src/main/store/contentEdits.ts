@@ -32,18 +32,3 @@ export function pickedItems(
   }
   return items.filter(({id}) => selected.has(id));
 }
-
-/**
- * The first title of `base`, `base 2`, `base 3`, and so on that no song has
- * (`docs/spec/05-prep.md`, "New song").
- */
-export function freeTitle(base: string, taken: ReadonlySet<string>): string {
-  if (!taken.has(base)) {
-    return base;
-  }
-  let number = 2;
-  while (taken.has(`${base} ${number}`)) {
-    number++;
-  }
-  return `${base} ${number}`;
-}
