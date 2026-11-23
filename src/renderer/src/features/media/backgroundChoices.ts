@@ -1,13 +1,9 @@
 import type {MediaId} from '@core/schema/ids';
 import type {MediaItem} from '@core/schema/mediaList';
 import {THEME_BACKGROUNDS, THEME_DECORATIONS} from '@core/theme';
+import {UNNAMED_MEDIA, mediaName} from './mediaEntries';
 
 export const MISSING_BACKGROUND_NAME = '이름을 알 수 없는 배경';
-const UNNAMED_MEDIA = '이름 없는 미디어';
-
-export function mediaName(media: Pick<MediaItem, 'name'>): string {
-  return media.name === '' ? UNNAMED_MEDIA : media.name;
-}
 
 /** The pictures a song item can take as its background: no audio. */
 export function backgroundMedia(

@@ -9,7 +9,7 @@ import {
   titleItem,
   SERVICE_TITLES,
 } from '@core/slides';
-import {mediaName} from '@renderer/features/media/backgroundChoices';
+import {mediaName} from '@renderer/features/media/mediaEntries';
 import {mediaAddAvailability} from '@renderer/platform/mediaAddAvailability';
 import {slideMaking} from '@renderer/platform/themes';
 import type {MenuEntry} from '@renderer/ui/menuModel';

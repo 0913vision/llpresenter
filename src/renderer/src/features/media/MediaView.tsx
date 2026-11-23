@@ -1,19 +1,7 @@
 import {EmptyState} from '@renderer/ui/EmptyState';
-import {
-  NEWER_FILE_REASON,
-  NOTHING_TO_UNDO,
-  NOTHING_TO_REDO,
-} from '@renderer/platform/problemReasons';
+import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {deleteSelection} from '@renderer/ui/deleteSelection';
-import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
-import {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type DragEvent,
-  type JSX,
-} from 'react';
+import {useMemo, useRef, useState, type JSX} from 'react';
 import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import {mediaLoops} from '@core/media';
 import {type MediaId} from '@core/schema/ids';
@@ -45,6 +33,7 @@ import {
   chosenPlaylist,
   durationText,
   mediaEntries,
+  mediaName,
   totalText,
   type ChosenPlaylist,
   type MediaEntry,
@@ -53,18 +42,23 @@ import {useMediaImportCompletion, useMediaView} from './MediaViewProvider';
 import {VirtualMediaGrid} from './VirtualMediaGrid';
 import {writeMediaDrag} from './mediaDrag';
 import {useMediaImportAction} from './useMediaImportAction';
+import {useMediaFileDrop} from './useMediaFileDrop';
+import {
+  DEFAULT_MEDIA_COLUMNS,
+  MAX_MEDIA_COLUMNS,
+  MIN_MEDIA_COLUMNS,
+  useMediaLayout,
+} from './useMediaLayout';
+import {useMediaPicks} from './useMediaPicks';
+import {useMediaShortcuts} from './useMediaShortcuts';
+import type {MediaLibrary} from './mediaLibrary';
 import {mediaItem} from '@renderer/platform/media';
 import {insertNewItem, rowAfterSelected} from '@renderer/session/insertNewItem';
 import {newMediaItem} from './newMediaItem';
 import styles from './MediaView.module.css';
 import {mediaTileMenuEntries, type MediaTileActions} from './mediaMenuEntries';
 
-/** The fewest and most grid columns the size slider sets. */
-export const MIN_MEDIA_COLUMNS = 2;
-export const MAX_MEDIA_COLUMNS = 8;
-export const DEFAULT_MEDIA_COLUMNS = 5;
-
-export const UNNAMED_MEDIA = '이름 없는 미디어';
+export {DEFAULT_MEDIA_COLUMNS} from './useMediaLayout';
 
 export interface MediaViewProps {
   readonly workspace?: 'show' | 'prep';
@@ -85,9 +79,7 @@ function playlistRef(playlist: ChosenPlaylist) {
 }
 
 function nameOf(entry: MediaEntry): string {
-  return entry.kind === 'copy'
-    ? entry.job.fileName
-    : entry.item.name || UNNAMED_MEDIA;
+  return entry.kind === 'copy' ? entry.job.fileName : mediaName(entry.item);
 }
 
 function EntryTile({
@@ -159,48 +151,21 @@ export function MediaView({
           ? ORDER_FULL_REASON
           : undefined;
   const imported = useMediaImportCompletion();
-  const [columns, setColumns] = useState<number>();
-  const [display, setDisplay] = useState<'grid' | 'list'>('grid');
-  const displayChanged = useRef(false);
-  const columnsChanged = useRef(false);
-  useEffect(() => {
-    let active = true;
-    window.llp?.ui
-      .get()
-      .then(state => {
-        if (
-          active &&
-          !displayChanged.current &&
-          state.mediaBrowser?.view !== undefined
-        ) {
-          setDisplay(state.mediaBrowser.view);
-        }
-        if (
-          active &&
-          !columnsChanged.current &&
-          state.mediaBrowser?.columns !== undefined
-        ) {
-          setColumns(state.mediaBrowser.columns);
-        }
-      })
-      .catch((error: unknown) =>
-        console.error('Could not read media view size', error),
-      );
-    return () => {
-      active = false;
-    };
-  }, []);
+  const {display, columns, changeDisplay, changeColumns} = useMediaLayout();
   const [menu, setMenu] = useState<OpenMenu | null>(null);
   const menuTarget = useRef<HTMLElement | undefined>(undefined);
   const [renaming, setRenaming] = useState<MediaItem | null>(null);
   const renameAfterMenu = useMenuHandoff(menu !== null, setRenaming);
-  const [picked, setPicked] = useState<ReadonlySet<string>>(new Set());
+  const entries = useMemo(() => mediaEntries(view, choice), [view, choice]);
+  const picks = useMediaPicks({entries, selected, setSelected});
   const deleteItem = (
     item: MediaItem,
     target: HTMLElement | undefined,
   ): void => {
-    const deleted = picked.has(item.id)
-      ? (view.document?.value.items ?? []).filter(({id}) => picked.has(id))
+    const deleted = picks.picked.has(item.id)
+      ? (view.document?.value.items ?? []).filter(({id}) =>
+          picks.picked.has(id),
+        )
       : [item];
     deleteSelection(
       deleted.length,
@@ -212,10 +177,10 @@ export function MediaView({
           target?.closest<HTMLElement>('section[aria-label="미디어 보기"]') ??
             null,
         );
-        setPicked(new Set());
-        for (const {id, name} of deleted) {
+        picks.clear();
+        for (const media of deleted) {
           library
-            .deleteMedia(id, name || UNNAMED_MEDIA)
+            .deleteMedia(media.id, mediaName(media))
             .catch((cause: unknown) =>
               console.error('Deleting media failed:', cause),
             );
@@ -232,40 +197,15 @@ export function MediaView({
     setMenu(null);
   };
   const liveId = useLive(state => state.state?.layers.media?.mediaId);
-  const entries = useMemo(() => mediaEntries(view, choice), [view, choice]);
   const playlist = chosenPlaylist(view.document, choice);
   const title =
     playlist === null ? '모든 미디어' : playlist.name || UNNAMED_PLAYLIST;
   const items = entries.flatMap(entry =>
     entry.kind === 'media' ? [entry.item] : [],
   );
-  const index = entries.findIndex(({id}) => id === selected);
   const missing = (entry: MediaEntry): boolean =>
     entry.kind === 'media' && view.missing.has(entry.item.id);
-  const select = (id: string | null): void => {
-    setPicked(new Set());
-    setSelected(id);
-  };
-  const pick = (at: number, range: boolean): void => {
-    const entry = entries[at];
-    if (entry === undefined) return;
-    if (range) {
-      const from = index < 0 ? at : index;
-      const ids = entries
-        .slice(Math.min(from, at), Math.max(from, at) + 1)
-        .map(({id}) => id);
-      setPicked(new Set(ids));
-      if (index < 0) setSelected(entry.id);
-      return;
-    }
-    const base = new Set(
-      picked.size === 0 && selected !== null ? [selected] : picked,
-    );
-    if (base.has(entry.id)) base.delete(entry.id);
-    else base.add(entry.id);
-    setPicked(base);
-    setSelected(entry.id);
-  };
+  const {index, select} = picks;
 
   const relink = (mediaId: MediaId, name: string): void => {
     library.relink(mediaId, name).catch((cause: unknown) => {
@@ -366,53 +306,14 @@ export function MediaView({
     entries[index]?.kind === 'media' ? entries[index].item : undefined;
   const copyReason =
     view.document?.access === 'editable' ? undefined : NEWER_FILE_REASON;
-  useWindowShortcuts([
-    ...(['undo', 'redo'] as const).map(kind => ({
-      id: `edit.${kind}`,
-      context: 'service' as const,
-      when: (event: KeyboardEvent) =>
-        event.target instanceof Element &&
-        event.target.closest('section[aria-label="미디어 보기"]') !== null,
-      unavailable: () =>
-        (kind === 'undo' ? library.canUndoDelete() : library.canRedoDelete())
-          ? undefined
-          : kind === 'undo'
-            ? NOTHING_TO_UNDO
-            : NOTHING_TO_REDO,
-      run: () => library.historyDelete(kind),
-    })),
-    {
-      id: 'edit.delete',
-      when: event =>
-        selectedItem !== undefined &&
-        event.target instanceof Element &&
-        event.target.closest(
-          'section[aria-label="미디어 보기"] [role="listbox"]',
-        ) !== null,
-      unavailable: () => copyReason,
-      run: event => {
-        if (selectedItem && copyReason === undefined) {
-          deleteItem(
-            selectedItem,
-            event.target instanceof HTMLElement ? event.target : undefined,
-          );
-        }
-      },
-    },
-    {
-      id: 'edit.duplicate',
-      when: event =>
-        selectedItem !== undefined &&
-        event.target instanceof Element &&
-        event.target.closest(`[aria-label="${CSS.escape(title)}"]`) !== null,
-      unavailable: () => copyReason,
-      run: () => {
-        if (selectedItem !== undefined && copyReason === undefined) {
-          duplicateMedia(selectedItem.id);
-        }
-      },
-    },
-  ]);
+  useMediaShortcuts({
+    library,
+    title,
+    selected: selectedItem,
+    reason: copyReason,
+    remove: deleteItem,
+    duplicate: duplicateMedia,
+  });
   const {
     reason: importReason,
     startImport,
@@ -424,29 +325,11 @@ export function MediaView({
       : library.importFiles(files, destination));
     imported(jobs ?? [], choice);
   });
-  const dragOver = (event: DragEvent<HTMLDivElement>): void => {
-    if (!event.dataTransfer.types.includes('Files')) return;
-    event.preventDefault();
-    event.stopPropagation();
-    event.dataTransfer.dropEffect =
-      importReason === undefined && !isPending() ? 'copy' : 'none';
-  };
-  const drop = (event: DragEvent<HTMLDivElement>): void => {
-    if (!event.dataTransfer.types.includes('Files')) return;
-    event.preventDefault();
-    event.stopPropagation();
-    if (importReason !== undefined || isPending()) return;
-    const files: File[] = [];
-    const count = Math.min(
-      event.dataTransfer.files.length,
-      MEDIA_LIMITS.importBatch,
-    );
-    for (let index = 0; index < count; index++) {
-      const file = event.dataTransfer.files[index];
-      if (file !== undefined) files.push(file);
-    }
-    if (files.length > 0) startImport(files);
-  };
+  const {dragOver, drop} = useMediaFileDrop({
+    reason: importReason,
+    isPending,
+    startImport,
+  });
   return (
     <>
       <Panel label="미디어 보기" className={styles.panel}>
@@ -460,12 +343,9 @@ export function MediaView({
             <Button
               aria-label="미디어 목록 보기"
               aria-pressed={display === 'list'}
-              onClick={() => {
-                const next = display === 'grid' ? 'list' : 'grid';
-                displayChanged.current = true;
-                setDisplay(next);
-                window.llp?.ui.setMediaBrowser({view: next});
-              }}
+              onClick={() =>
+                changeDisplay(display === 'grid' ? 'list' : 'grid')
+              }
             >
               목록
             </Button>
@@ -525,13 +405,13 @@ export function MediaView({
             fitHeight={display === 'grid' && columns === undefined}
             selected={index < 0 ? undefined : index}
             onSelect={at => select(entries[at]?.id ?? null)}
-            onPick={pick}
+            onPick={picks.pick}
             onActivate={activate}
             onOutput={workspace === 'show' ? () => undefined : output}
             onMenu={(at, anchor) => {
               menuTarget.current = anchor.target;
               const entry = entries[at];
-              if (entry !== undefined && !picked.has(entry.id)) {
+              if (entry !== undefined && !picks.picked.has(entry.id)) {
                 select(entry.id);
               }
               const choices =
@@ -549,11 +429,7 @@ export function MediaView({
                   display={display}
                   missing={missing(entry)}
                   live={liveId === entry.id}
-                  selected={
-                    picked.size === 0
-                      ? selected === entry.id
-                      : picked.has(entry.id)
-                  }
+                  selected={picks.isChosen(entry.id)}
                 />
               );
             }}
@@ -577,12 +453,9 @@ export function MediaView({
                 (columns ?? DEFAULT_MEDIA_COLUMNS)
               }
               valueText={columns === undefined ? '자동 크기' : `${columns}열`}
-              onChange={size => {
-                const next = MIN_MEDIA_COLUMNS + MAX_MEDIA_COLUMNS - size;
-                columnsChanged.current = true;
-                setColumns(next);
-                window.llp?.ui.setMediaBrowser({columns: next});
-              }}
+              onChange={size =>
+                changeColumns(MIN_MEDIA_COLUMNS + MAX_MEDIA_COLUMNS - size)
+              }
             />
           }
         >
@@ -599,22 +472,40 @@ export function MediaView({
         />
       )}
       {renaming === null ? null : (
-        <RenameDialog
-          title="미디어 이름 바꾸기"
-          label="미디어 이름"
-          name={renaming.name}
-          rename={{
-            validate: name =>
-              name.trim() === ''
-                ? '이름을 적어야 저장할 수 있습니다'
-                : name.trim().length > MEDIA_LIMITS.name
-                  ? `이름이 너무 깁니다`
-                  : undefined,
-            onClose: () => setRenaming(null),
-            onCommit: name => library.rename(renaming.id, name),
-          }}
+        <MediaRenameDialog
+          item={renaming}
+          onClose={() => setRenaming(null)}
+          onCommit={name => library.rename(renaming.id, name)}
         />
       )}
     </>
+  );
+}
+
+function MediaRenameDialog({
+  item,
+  onClose,
+  onCommit,
+}: {
+  readonly item: MediaItem;
+  readonly onClose: () => void;
+  readonly onCommit: (name: string) => ReturnType<MediaLibrary['rename']>;
+}): JSX.Element {
+  return (
+    <RenameDialog
+      title="미디어 이름 바꾸기"
+      label="미디어 이름"
+      name={item.name}
+      rename={{
+        validate: name =>
+          name.trim() === ''
+            ? '이름을 적어야 저장할 수 있습니다'
+            : name.trim().length > MEDIA_LIMITS.name
+              ? '이름이 너무 깁니다'
+              : undefined,
+        onClose,
+        onCommit,
+      }}
+    />
   );
 }

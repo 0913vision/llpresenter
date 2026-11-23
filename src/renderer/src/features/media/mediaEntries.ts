@@ -24,6 +24,12 @@ export const ALL_MEDIA: MediaListChoice = {kind: 'all'};
 
 /** What a playlist without a name is called. */
 export const UNNAMED_PLAYLIST = '이름 없는 재생목록';
+export const UNNAMED_MEDIA = '이름 없는 미디어';
+
+/** The name of a media item, or 이름 없는 미디어 when it has none. */
+export function mediaName(media: Pick<MediaItem, 'name'>): string {
+  return media.name === '' ? UNNAMED_MEDIA : media.name;
+}
 
 /** A playlist as the media view shows it, with the list's own ids. */
 export type ChosenPlaylist = (

@@ -3,9 +3,9 @@ import {describe, expect, it} from 'vitest';
 import {APP_PICTURE_IDS} from '@core/theme/pictures';
 import {
   backgroundName,
-  mediaName,
   missingBackgroundTip,
 } from '@renderer/features/media/backgroundChoices';
+import {mediaName} from '@renderer/features/media/mediaEntries';
 
 const {items} = itemMedia().value;
 

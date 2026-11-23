@@ -8,7 +8,7 @@ import {
   type KeyboardEvent,
 } from 'react';
 import type {MediaItem} from '@core/schema/mediaList';
-import {mediaName} from './backgroundChoices';
+import {mediaName} from './mediaEntries';
 import {Icon} from '@renderer/ui/Icon';
 import {classNames} from '@renderer/ui/classNames';
 import {isComposing} from '@renderer/ui/ime';
