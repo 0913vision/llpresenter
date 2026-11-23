@@ -11,7 +11,7 @@ import type {ThemeFile} from '@core/schema/theme';
 import {
   filledText,
   ownText,
-  withOwnText,
+  withTypedText,
   changeSlides,
   joinSlide,
   pasteSlideText,
@@ -155,7 +155,7 @@ export function SlideTextArea({
     deck.edit(
       slides =>
         changeSlides(slides, new Set([slide.id]), entry =>
-          withOwnText(entry, box, own),
+          withTypedText(theme, entry, {box, text: own}),
         ),
       `text:${slide.id}:${box}`,
     );

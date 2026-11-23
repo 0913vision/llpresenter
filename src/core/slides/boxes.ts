@@ -3,7 +3,8 @@ import type {Slide} from '@core/schema/slide';
 import {AUTO_TOKENS} from '@core/schema/slideContent';
 import type {ThemeFile} from '@core/schema/theme';
 import {contentValues, nextPhraseOf} from '@core/theme';
-import {withNext, withText} from './edits';
+import {hymnAt, isTitleOf} from '@core/hymns';
+import {withHymn, withNext, withText} from './edits';
 import {tileContent} from './tiles';
 
 /** The box of the text that the slide before shows, after those of a theme. */
@@ -38,6 +39,26 @@ export function ownText(slide: Slide, box: string): string {
 
 export function withOwnText(slide: Slide, box: string, text: string): Slide {
   return box === NEXT_BOX ? withNext(slide, text) : withText(slide, box, text);
+}
+
+/**
+ * The slide with a text typed into a box. A hymn typed into the box that
+ * writes the hymn's number, such as 새찬송가 7장, becomes the hymn of the
+ * slide, so its title comes from the hymnal as when the number is chosen.
+ */
+export function withTypedText(
+  theme: ThemeFile,
+  slide: Slide,
+  {box, text}: {readonly box: string; readonly text: string},
+): Slide {
+  const typed = withOwnText(slide, box, text);
+  const writesNumber = theme.boxes
+    .find(entry => entry.name === box)
+    ?.default?.includes(`{${AUTO_TOKENS.hymnNumber}}`);
+  const named = writesNumber === true ? hymnAt(text) : null;
+  if (named === null) return typed;
+  const {hymn, rest} = named;
+  return rest === '' || isTitleOf(hymn, rest) ? withHymn(typed, hymn) : typed;
 }
 
 /** What a box shows while the slide has no text of its own for it. */

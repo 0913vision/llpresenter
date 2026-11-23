@@ -6,6 +6,7 @@ export {
   ownText,
   showsHymn,
   withOwnText,
+  withTypedText,
 } from './boxes';
 export {
   assignHotKey,
