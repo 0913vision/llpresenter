@@ -128,7 +128,7 @@
             "size": 108,
             "color": "#FFFFFF",
             "lineHeight": 1.2685,
-            "tracking": -3,
+            "tracking": 0,
             "align": "center",
             "vAlign": "middle"
           },

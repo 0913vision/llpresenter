@@ -38,11 +38,14 @@ The user's needs (October 30 and November 22):
   `다음 광고: {제목}` for 광고. A missing value is left out with its brackets. A
   슬라이드 can have its own text instead; clearing that text brings the phrase
   back. The property panel always shows it. A 슬라이드 can show nothing of the
-  next one: 다음 슬라이드 내용 표시 is a choice of the 슬라이드, on until the
-  operator turns it off there; the 테마 has no say in it. A 테마 can have other
-  phrases for a 슬라이드 that is the first of its item (첫 장일 때), such as
-  다음 곡: {곡 제목} over the first lyrics of a song without a title 슬라이드;
-  without them the first 슬라이드 uses the usual phrase.
+  next one: 다음 슬라이드 내용 표시 is a choice of the 슬라이드; the 테마 has no
+  say in it. A 슬라이드 is made with it on, except the last 슬라이드 of a 말씀
+  passage and the closing title of a 설교, which are made with it off; the
+  operator can change any of them. Making a passage again sets it once more: off
+  on its last 슬라이드 only. A 테마 can have other phrases for a 슬라이드 that
+  is the first of its item (첫 장일 때), such as 다음 곡: {곡 제목} over the
+  first lyrics of a song without a title 슬라이드; without them the first
+  슬라이드 uses the usual phrase.
 - **Separate 테마.** 찬양 제목, 찬양 가사, 설교 제목, and 말씀 본문 are four
   테마. A 테마 has a purpose and is offered only for 슬라이드 of that purpose.
 - **Hymns.** 찬송가 제목 is a second 테마 for 찬양 제목. Its 슬라이드 says only
@@ -108,9 +111,10 @@ The user's needs (October 30 and November 22):
   shows. A 글 can have a color for these.
 - **무대 is built like 청중.** Each screen draws its own 글 at the size its 테마
   gives; no screen takes sizes from another. In the app's 테마 each 무대 글 has
-  the frame width and height, font, weight, size, letter spacing, line height,
-  and wrapping of the 청중 글 it shows, so it breaks and shrinks where 청중
-  does; only its place differs. An operator who changes 청중 changes 무대 too. A
+  the frame width and height, size, line height, and wrapping of the 청중 글 it
+  shows, so it breaks and shrinks where 청중 does. Its place and its look (font,
+  weight, letter spacing) are its own: 무대 keeps a plain, easy read, so 타이틀
+  is not letter spaced there. An operator who changes 청중 changes 무대 too. A
   label has the size of the 글 it labels.
 - **Fit.** A text is drawn at its size, or at the first of its listed sizes that
   fits, and shrinks to its smallest size. It can keep its typed rows while it

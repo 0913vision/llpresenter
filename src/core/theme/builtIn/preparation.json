@@ -100,12 +100,12 @@
           },
           "content": ["{제목}"],
           "style": {
-            "font": "KoPubWorldDotum",
-            "weight": 700,
+            "font": "NanumSquare",
+            "weight": 800,
             "size": 120,
             "color": "#FFFFFF",
             "lineHeight": 1.2,
-            "tracking": -3,
+            "tracking": 0,
             "align": "center",
             "vAlign": "middle"
           }
@@ -121,12 +121,12 @@
           },
           "content": ["{안내}"],
           "style": {
-            "font": "KoPubWorldDotum",
-            "weight": 700,
+            "font": "NanumSquare",
+            "weight": 800,
             "size": 74,
             "color": "#FFFFFF",
             "lineHeight": 1.2,
-            "tracking": -6,
+            "tracking": 0,
             "align": "center",
             "vAlign": "middle"
           }

@@ -207,12 +207,12 @@
           },
           "content": ["{제목}"],
           "style": {
-            "font": "KoPubWorldDotum",
-            "weight": 700,
+            "font": "NanumSquare",
+            "weight": 800,
             "size": 152,
             "color": "#FFFFFF",
             "lineHeight": 1,
-            "tracking": 52,
+            "tracking": 0,
             "align": "center",
             "vAlign": "top"
           }
