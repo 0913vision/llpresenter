@@ -11,7 +11,6 @@ import {
 } from '@core/bible';
 import {
   useEffect,
-  useEffectEvent,
   useId,
   useLayoutEffect,
   useImperativeHandle,
@@ -50,6 +49,7 @@ import {
 } from './referenceKeyActions';
 import {useBibleLookup} from './useBibleLookup';
 import {useChosenRecent} from './useChosenRecent';
+import {usePendingSubmit} from './usePendingSubmit';
 import styles from './BibleReferenceField.module.css';
 
 export interface BibleReferenceFormProps {
@@ -76,6 +76,50 @@ export interface BibleReferenceFormProps {
 }
 
 const ignorePreview = (): void => undefined;
+
+/** The 장, 절 or 끝 절 field of a reference. */
+function NumberPartField({
+  part,
+  dialogMode,
+  overlayLabels,
+  placeholder,
+  value,
+  disabled,
+  reason,
+  onChange,
+  onKeyDown,
+}: {
+  readonly part: (typeof NUMBER_PARTS)[number];
+  readonly dialogMode: boolean;
+  readonly overlayLabels: boolean;
+  readonly placeholder: string;
+  readonly value: string;
+  readonly disabled: boolean;
+  readonly reason: string | undefined;
+  readonly onChange: (value: string) => void;
+  readonly onKeyDown: (event: KeyboardEvent<HTMLInputElement>) => void;
+}): JSX.Element {
+  return (
+    <span className={dialogMode ? styles.argument : undefined} data-part={part}>
+      <TextField
+        size={overlayLabels ? 'md' : 'sm'}
+        block
+        affix={overlayLabels ? REFERENCE_LABELS[part] : undefined}
+        inputMode="numeric"
+        aria-label={REFERENCE_LABELS[part]}
+        placeholder={placeholder}
+        data-reference-part={part}
+        maxLength={BIBLE_LOOKUP_LIMITS.input}
+        value={value}
+        onChange={onChange}
+        onKeyDown={onKeyDown}
+        disabled={disabled}
+        invalid={reason !== undefined}
+        invalidReason={reason}
+      />
+    </span>
+  );
+}
 
 /** Shares book completion and endpoint validation across Show and Prep. */
 export function BibleReferenceForm(
@@ -158,37 +202,22 @@ export function BibleReferenceForm(
   }, [effective, onEffectiveTranslation]);
   const liveTranslation =
     (passage?.translation ?? metadata?.effectiveTranslation) === LIVE_BIBLE_ID;
-  const pendingSubmit = useRef<{
-    input: string;
-    translation: TranslationId;
-    clampedEnd: number | undefined;
-    part: ReferencePart;
-  } | null>(null);
-  const submitPending = useEffectEvent((value: BibleLookupPassage) => {
-    props.onSubmit(value);
+  const pendingSubmit = usePendingSubmit({
+    reply,
+    input: selectedRecent?.ref ?? state.input,
+    translation,
+    settle: (pending, result) => {
+      if (!result.ok) {
+        setBlocked(pending.part);
+        return;
+      }
+      if (pending.clampedEnd !== undefined) {
+        setFields(previous => ({...previous, end: String(pending.clampedEnd)}));
+      }
+      setOpen(false);
+      props.onSubmit(result.value);
+    },
   });
-  useEffect(() => {
-    const pending = pendingSubmit.current;
-    if (pending === null) return;
-    if (
-      pending.input !== (selectedRecent?.ref ?? state.input) ||
-      pending.translation !== translation
-    ) {
-      pendingSubmit.current = null;
-      return;
-    }
-    if (reply === null) return;
-    pendingSubmit.current = null;
-    if (!reply.result.ok) {
-      setBlocked(pending.part);
-      return;
-    }
-    if (pending.clampedEnd !== undefined) {
-      setFields(previous => ({...previous, end: String(pending.clampedEnd)}));
-    }
-    setOpen(false);
-    submitPending(reply.result.value);
-  }, [reply, selectedRecent?.ref, state.input, translation]);
   const onReady = props.onReady;
   useEffect(() => onReady?.(passage ?? null), [onReady, passage]);
   const suggestions = referenceSuggestions(
@@ -204,7 +233,7 @@ export function BibleReferenceForm(
       metadataBounds,
     );
     if (nextFields === fields && value !== fields[part]) return;
-    pendingSubmit.current = null;
+    pendingSubmit.forget();
     props.onIntent?.();
     if (nextFields !== fields || selectedRecent !== undefined) {
       const nextInput = referenceFieldsState(nextFields, metadataBounds).input;
@@ -279,14 +308,14 @@ export function BibleReferenceForm(
     setOpen(false);
     setBlocked(input ? null : invalidPart);
     if (submit && input && translation !== undefined) {
-      pendingSubmit.current = {
+      pendingSubmit.wait({
         input,
         translation,
         clampedEnd: parsedState.clampedEnd,
         part: 'end',
-      };
+      });
     } else {
-      pendingSubmit.current = null;
+      pendingSubmit.forget();
       queueMicrotask(() =>
         focusPart(root.current, input ? 'end' : invalidPart),
       );
@@ -331,7 +360,7 @@ export function BibleReferenceForm(
     },
     submit: part => submit(part),
     forgetSubmit: () => {
-      pendingSubmit.current = null;
+      pendingSubmit.forget();
     },
   };
   const onKeyDown = (
@@ -377,7 +406,7 @@ export function BibleReferenceForm(
     if (chapterOnly) {
       const input = `${book.korean} ${fields.chapter}`;
       setRecent({ref: input, translation});
-      pendingSubmit.current = {input, translation, clampedEnd: undefined, part};
+      pendingSubmit.wait({input, translation, clampedEnd: undefined, part});
       return;
     }
     // NOTE(0913vision): The last change can still be batched while the lookup
@@ -386,7 +415,7 @@ export function BibleReferenceForm(
     const currentState = referenceFieldsState(currentFields, metadataBounds);
     const input = selectedRecent?.ref ?? currentState.input;
     if (passage && reply?.input === input) {
-      pendingSubmit.current = null;
+      pendingSubmit.forget();
       if (currentFields.end !== '' && currentState.clampedEnd !== undefined) {
         setFields(previous => ({
           ...previous,
@@ -400,13 +429,13 @@ export function BibleReferenceForm(
       input !== '' &&
       reply?.input !== input
     ) {
-      pendingSubmit.current = {
+      pendingSubmit.wait({
         input,
         translation,
         clampedEnd:
           currentFields.end === '' ? undefined : currentState.clampedEnd,
         part,
-      };
+      });
     } else {
       setBlocked(part);
     }
@@ -432,7 +461,7 @@ export function BibleReferenceForm(
           !(event.relatedTarget instanceof Node) ||
           !event.currentTarget.contains(event.relatedTarget)
         ) {
-          pendingSubmit.current = null;
+          pendingSubmit.forget();
         }
       }}
     >
@@ -474,35 +503,25 @@ export function BibleReferenceForm(
         />
       </div>
       {NUMBER_PARTS.map(part => (
-        <span
+        <NumberPartField
           key={part}
-          className={props.dialogMode ? styles.argument : undefined}
-          data-part={part}
-        >
-          <TextField
-            size={props.overlayLabels ? 'md' : 'sm'}
-            block
-            affix={props.overlayLabels ? REFERENCE_LABELS[part] : undefined}
-            inputMode="numeric"
-            aria-label={REFERENCE_LABELS[part]}
-            placeholder={numberPlaceholder(part, {
-              dialogMode: props.dialogMode === true,
-              overlayLabels: props.overlayLabels === true,
-              chapters: metadataBook?.chapters,
-              chapter: chapterNumber,
-              lastVerse,
-              start: fields.start,
-            })}
-            data-reference-part={part}
-            maxLength={BIBLE_LOOKUP_LIMITS.input}
-            value={fields[part]}
-            onChange={value => change(part, value)}
-            onKeyDown={event => onKeyDown(part, event)}
-            disabled={props.translation === undefined || !state.enabled[part]}
-            invalid={reason(part) !== undefined}
-            invalidReason={reason(part)}
-          />
-        </span>
+          part={part}
+          dialogMode={props.dialogMode === true}
+          overlayLabels={props.overlayLabels === true}
+          placeholder={numberPlaceholder(part, {
+            dialogMode: props.dialogMode === true,
+            overlayLabels: props.overlayLabels === true,
+            chapters: metadataBook?.chapters,
+            chapter: chapterNumber,
+            lastVerse,
+            start: fields.start,
+          })}
+          value={fields[part]}
+          disabled={props.translation === undefined || !state.enabled[part]}
+          reason={reason(part)}
+          onChange={value => change(part, value)}
+          onKeyDown={event => onKeyDown(part, event)}
+        />
       ))}
       {!props.dialogMode &&
       (props.overlayLabels ||
