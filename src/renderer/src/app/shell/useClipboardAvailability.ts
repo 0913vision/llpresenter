@@ -1,4 +1,5 @@
-import {useEffect, useRef, useState} from 'react';
+import {useRef, useState} from 'react';
+import {useAlive} from '@renderer/ui/useAlive';
 
 export function useClipboardAvailability(
   read: (() => Promise<boolean>) | undefined,
@@ -7,13 +8,7 @@ export function useClipboardAvailability(
     'checking',
   );
   const pending = useRef(false);
-  const alive = useRef(true);
-  useEffect(() => {
-    alive.current = true;
-    return () => {
-      alive.current = false;
-    };
-  }, []);
+  const alive = useAlive();
   const check = (): void => {
     const query = read;
     setStatus('checking');

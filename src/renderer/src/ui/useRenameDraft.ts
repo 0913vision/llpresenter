@@ -1,12 +1,7 @@
-import {
-  useEffect,
-  useRef,
-  useState,
-  type KeyboardEvent,
-  type FocusEvent,
-} from 'react';
+import {useRef, useState, type KeyboardEvent, type FocusEvent} from 'react';
 import {isComposing} from './ime';
 import {hasModifier} from './modifierKeys';
+import {useAlive} from '@renderer/ui/useAlive';
 
 export interface RenameContract {
   readonly validate?: ((value: string) => string | undefined) | undefined;
@@ -44,17 +39,11 @@ export function useRenameDraft(
   const [failure, setFailure] = useState<string>();
   const pending = useRef(false);
   const finished = useRef(false);
-  const mounted = useRef(false);
+  const mounted = useAlive();
   const keyboardFocus = useRef<{
     field: HTMLInputElement;
     row: HTMLElement | null;
   } | null>(null);
-  useEffect(() => {
-    mounted.current = true;
-    return () => {
-      mounted.current = false;
-    };
-  }, []);
   const name = value.trim();
   const unchanged =
     name === initialName &&

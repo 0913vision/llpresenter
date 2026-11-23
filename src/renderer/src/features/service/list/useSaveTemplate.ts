@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState} from 'react';
+import {useState} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import {copyName} from '@core/common/copyName';
 import type {ServiceId, TemplateId} from '@core/schema/ids';
@@ -11,6 +11,7 @@ import {
   settle,
   warningNotice,
 } from './serviceEdits';
+import {useAlive} from '@renderer/ui/useAlive';
 
 type SaveTemplateApi = Pick<LlpApi, 'content' | 'templates' | 'log'>;
 interface TemplateService {
@@ -78,13 +79,7 @@ export function useSaveTemplate({
   const [naming, setNaming] = useState<TemplateService | null>(null);
   const [conflict, setConflict] = useState<PendingConflict | null>(null);
   const [busy, setBusy] = useState(false);
-  const alive = useRef(true);
-  useEffect(() => {
-    alive.current = true;
-    return () => {
-      alive.current = false;
-    };
-  }, []);
+  const alive = useAlive();
 
   const serviceId = asServiceId(currentId);
   const report = (problem: SaveProblem | null): void => {

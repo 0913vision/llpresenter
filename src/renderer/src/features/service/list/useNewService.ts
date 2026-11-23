@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useRef, useState} from 'react';
+import {useMemo, useState} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import {applyService} from '@renderer/session/show';
 import type {Notice} from '@renderer/ui/notices';
@@ -10,21 +10,15 @@ import {
   settle,
   warningNotice,
 } from './serviceEdits';
-import {
-  checkAll,
-  selectedIds,
-  treeRows,
-  type TreeSelection,
-} from './serviceTree';
+import {checkAll, selectedIds} from './serviceTree';
 import {
   EMPTY_SOURCE,
-  listedSource,
-  sourceKey,
-  useSourceDocument,
   useSourceLists,
   type ServiceSource,
   type SourceDocument,
 } from './useServiceSources';
+import {useSourcePick} from './useSourcePick';
+import {useAlive} from '@renderer/ui/useAlive';
 
 const DEFAULT_NAME = '새 예배';
 type CreateProblem = 'not-made' | 'not-copied' | 'not-opened';
@@ -105,7 +99,6 @@ export function useNewService({
 }) {
   const api = window.llp;
   const lists = useSourceLists(api);
-  const [chosen, setChosen] = useState<ServiceSource | null>(null);
   const firstTemplate = lists.templates[0]?.id;
   const fallback = useMemo<ServiceSource | null>(() => {
     if (!lists.ready) return null;
@@ -113,38 +106,15 @@ export function useNewService({
       ? EMPTY_SOURCE
       : {kind: 'template', id: firstTemplate};
   }, [lists.ready, firstTemplate]);
-  const {source, version} = listedSource(lists, chosen, fallback);
-  if (source !== chosen) setChosen(source);
-  const {document, missing, pending} = useSourceDocument(api, source, version);
-  const rows = useMemo(
-    () => (document === null ? [] : treeRows(document.order, lists.songTitles)),
-    [document, lists.songTitles],
-  );
-
-  const key = source === null ? null : sourceKey(source);
-  const [picked, setPicked] = useState<{
-    readonly key: string | null;
-    readonly selection: TreeSelection;
-  } | null>(null);
-  const [previousSelection, setPreviousSelection] =
-    useState<TreeSelection | null>(null);
-  const selection =
-    pending && previousSelection !== null
-      ? previousSelection
-      : picked?.key === key
-        ? picked.selection
-        : checkAll(rows, true);
-  const setSelection = (next: TreeSelection): void => {
-    if (!pending) setPicked({key, selection: next});
-  };
   // NOTE(0913vision): Changing sources checks every item again (spec 05),
   // also when the operator returns to a source they changed.
-  const choose = (next: ServiceSource): void => {
-    if (key === sourceKey(next)) return;
-    setPreviousSelection(selection);
-    setChosen(next);
-    setPicked(null);
-  };
+  const pick = useSourcePick({
+    api,
+    lists,
+    fallback,
+    fresh: rows => checkAll(rows, true),
+  });
+  const {document, pending, rows, selection} = pick;
 
   const [typedName, setName] = useState<string | null>(null);
   const name = typedName ?? defaultName(document);
@@ -152,13 +122,7 @@ export function useNewService({
   const [date, setDate] = useState(() => localDate(today));
 
   const [busy, setBusy] = useState(false);
-  const alive = useRef(true);
-  useEffect(() => {
-    alive.current = true;
-    return () => {
-      alive.current = false;
-    };
-  }, []);
+  const alive = useAlive();
 
   const trimmed = name.trim();
   const canCreate = document !== null && !pending && trimmed !== '' && !busy;
@@ -189,13 +153,14 @@ export function useNewService({
 
   return {
     lists,
-    source: pending ? (document?.source ?? source) : source,
-    choose,
+    ready: pick.ready,
+    source: pick.shown,
+    choose: pick.choose,
     document,
-    missing,
+    missing: pick.missing,
     rows,
     selection,
-    setSelection,
+    setSelection: pick.setSelection,
     name,
     setName,
     date,

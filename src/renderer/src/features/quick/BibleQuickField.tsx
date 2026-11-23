@@ -33,6 +33,7 @@ import {openBiblePassage, showBiblePassage} from '../bible/actions';
 import {focusSlideGrid} from '../presentation/focusSlideGrid';
 import {PassageDialog} from '../bible/PassageDialog';
 import {useBibleDisplayDefaults} from '../bible/useBibleDisplayDefaults';
+import {useAlive} from '@renderer/ui/useAlive';
 
 /** The tile of a source that the entered passage starts with. */
 function firstVerseOf(
@@ -61,13 +62,7 @@ export function BibleQuickField({
   readonly onIntent?: (() => void) | undefined;
 }): JSX.Element {
   const root = useRef<HTMLDivElement>(null);
-  const mounted = useRef(true);
-  useEffect(() => {
-    mounted.current = true;
-    return () => {
-      mounted.current = false;
-    };
-  }, []);
+  const mounted = useAlive();
   const [overlayOpen, setOverlayOpen] = useState(false);
   const finderGeneration = useRef(0);
   const focusItem = useRef<string | null>(null);

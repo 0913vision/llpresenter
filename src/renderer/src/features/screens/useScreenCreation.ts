@@ -1,4 +1,4 @@
-import {useLayoutEffect, useRef} from 'react';
+import {useRef} from 'react';
 import {parseScreenId, type ScreenId} from '@core/schema/ids';
 import type {Screen} from '@core/schema/screens';
 import type {MonitorInfo} from '@core/schema/monitors';
@@ -7,6 +7,7 @@ import type {NewScreen} from './addScreen';
 import {useScreensSelection} from './selection';
 import type {NamedDocument} from '../../platform/useSettingsDocument';
 import {useScreenEditor} from './useScreenEditor';
+import {useAlive} from '@renderer/ui/useAlive';
 
 /**
  * Creates screens without overriding a newer selection or an unmounted
@@ -19,14 +20,8 @@ export function useScreenCreation(
   switchOn: (screenId: ScreenId) => void,
 ) {
   const editor = useScreenEditor(document, onProblem);
-  const mounted = useRef(false);
+  const mounted = useAlive();
   const latest = useRef<string | null>(null);
-  useLayoutEffect(() => {
-    mounted.current = true;
-    return () => {
-      mounted.current = false;
-    };
-  }, []);
   const report = (cause: unknown): void => {
     window.llp?.log.write({
       level: 'error',

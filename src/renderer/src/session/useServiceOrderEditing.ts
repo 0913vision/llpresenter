@@ -1,7 +1,8 @@
-import {useEffect, useRef, useState} from 'react';
+import {useRef, useState} from 'react';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import type {OpenServiceResult} from './openService';
 import {orderFailureTitle} from './serviceOrderEdits';
+import {useAlive} from '@renderer/ui/useAlive';
 
 type Operation = () => Promise<OpenServiceResult>;
 
@@ -9,13 +10,7 @@ type Operation = () => Promise<OpenServiceResult>;
 export function useServiceOrderEditing(onProblem: (notice: Notice) => void) {
   const [busy, setBusy] = useState(false);
   const pending = useRef(false);
-  const alive = useRef(false);
-  useEffect(() => {
-    alive.current = true;
-    return () => {
-      alive.current = false;
-    };
-  }, []);
+  const alive = useAlive();
   const execute = async (
     operation: Operation,
     completion: 'applied' | 'saved' = 'applied',

@@ -1,6 +1,7 @@
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
-import {useEffect, useRef, useState} from 'react';
+import {useRef, useState} from 'react';
 import type {MediaDocument} from '@core/schema/mediaEdit';
+import {useAlive} from '@renderer/ui/useAlive';
 
 /** Shares loading/read-only checks and the synchronous double-click guard. */
 export function useMediaImportAction(
@@ -9,13 +10,7 @@ export function useMediaImportAction(
 ) {
   const [busy, setBusy] = useState(false);
   const pending = useRef(false);
-  const mounted = useRef(true);
-  useEffect(() => {
-    mounted.current = true;
-    return () => {
-      mounted.current = false;
-    };
-  }, []);
+  const mounted = useAlive();
   const reason = busy
     ? '미디어를 가져오는 중'
     : document === null

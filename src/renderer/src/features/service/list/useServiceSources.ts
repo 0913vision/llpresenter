@@ -187,6 +187,9 @@ export function useSourceLists(api: SourcesApi | undefined) {
   };
 }
 
+/** The 템플릿, the services and the song titles a source dialog lists. */
+export type SourceLists = ReturnType<typeof useSourceLists>;
+
 /**
  * The chosen source's document, retaining the previous document while a new
  * read is pending. `missing` means the current source was deleted or could

@@ -1,4 +1,4 @@
-import {useEffect, useLayoutEffect, useRef, useState} from 'react';
+import {useLayoutEffect, useRef, useState} from 'react';
 import type {Themes} from '@core/schema/themes';
 import type {ThemeListResult} from '@core/theme';
 import type {NamedDocument} from '@renderer/platform/useSettingsDocument';
@@ -6,6 +6,7 @@ import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {THEME_READ_ONLY} from './themeNames';
 import {ThemesEditor} from './themesEditor';
 import {useThemeDraft} from './useThemeDraft';
+import {useAlive} from '@renderer/ui/useAlive';
 
 /** The saved themes, the draft of one of them, and the writes of both. */
 export function useThemeWrites(
@@ -14,7 +15,7 @@ export function useThemeWrites(
 ) {
   const [saved, setSaved] = useState<Themes | null>(null);
   const reportRef = useRef(onProblem);
-  const mounted = useRef(true);
+  const mounted = useAlive();
   const api = window.llp;
 
   const report = (title: string): void =>
@@ -56,19 +57,13 @@ export function useThemeWrites(
     return () => {
       editor.current = null;
     };
-  }, [api]);
+  }, [api, mounted]);
   useLayoutEffect(() => {
     reportRef.current = onProblem;
   });
   useLayoutEffect(() => {
     editor.current?.adopt(document);
   }, [api, document]);
-  useEffect(() => {
-    mounted.current = true;
-    return () => {
-      mounted.current = false;
-    };
-  }, []);
 
   const reason = document?.access !== 'editable' ? THEME_READ_ONLY : undefined;
 

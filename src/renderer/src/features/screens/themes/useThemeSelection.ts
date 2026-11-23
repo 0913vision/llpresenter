@@ -1,5 +1,6 @@
 import {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {ThemeElement} from '@core/schema/theme';
+import {useAlive} from '@renderer/ui/useAlive';
 
 export type ThemeTab = 'element' | 'screen' | 'theme';
 export function useThemeSelection(
@@ -22,7 +23,7 @@ export function useThemeSelection(
     id: string | null;
   } | null>(null);
 
-  const mounted = useRef(true);
+  const mounted = useAlive();
 
   const selectionEpoch = useRef(0);
 
@@ -42,13 +43,6 @@ export function useThemeSelection(
       for (const event of events) {
         window.removeEventListener(event, interacted, true);
       }
-    };
-  }, []);
-
-  useEffect(() => {
-    mounted.current = true;
-    return () => {
-      mounted.current = false;
     };
   }, []);
 

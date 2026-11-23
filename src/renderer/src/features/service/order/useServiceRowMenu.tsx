@@ -1,5 +1,5 @@
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
-import {useEffect, useRef, useState} from 'react';
+import {useState} from 'react';
 import type {ServiceEntry} from '@core/schema/contentDocuments';
 import {useShow} from '@renderer/session/show';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
@@ -16,6 +16,7 @@ import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import type {GroupRename} from '@renderer/ui/ListRow';
 import type {Notice} from '@renderer/ui/notices';
 import {serviceRowMenuEntries} from './serviceRowMenu';
+import {useAlive} from '@renderer/ui/useAlive';
 
 export function useServiceRowMenu(
   onProblem: (notice: Notice) => void,
@@ -29,15 +30,9 @@ export function useServiceRowMenu(
   } | null>(null);
   const [renaming, setRenaming] = useState<ServiceEntry | null>(null);
   const [busy, setBusy] = useState(false);
-  const alive = useRef(true);
+  const alive = useAlive();
   const sources = useSourceActions({onProblem});
   const saver = useSaveTemplate({onProblem});
-  useEffect(() => {
-    alive.current = true;
-    return () => {
-      alive.current = false;
-    };
-  }, []);
   const renameAfterMenu = useMenuHandoff(menu !== null, setRenaming);
   const commit = async (
     entry: ServiceEntry,

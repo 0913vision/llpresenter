@@ -1,7 +1,6 @@
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {menuAvailability} from '@renderer/ui/menuModel';
 import {
-  useEffect,
   useRef,
   useState,
   useSyncExternalStore,
@@ -30,6 +29,7 @@ import {
   contextMenuAnchor,
   type ContextMenuEvent,
 } from '../../../ui/contextMenu';
+import {useAlive} from '@renderer/ui/useAlive';
 
 type NamedSource = Exclude<ServiceSource, {readonly kind: 'empty'}>;
 
@@ -132,13 +132,7 @@ export function useSourceActions({
   const renameAfterMenu = useMenuHandoff<SourceRow>(menu !== null, row =>
     setDialog({kind: 'rename', row}),
   );
-  const alive = useRef(true);
-  useEffect(() => {
-    alive.current = true;
-    return () => {
-      alive.current = false;
-    };
-  }, []);
+  const alive = useAlive();
 
   const run = (
     action: keyof typeof problemTitles,

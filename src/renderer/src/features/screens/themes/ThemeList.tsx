@@ -24,6 +24,7 @@ import {ChoiceRows} from '../ChoiceRows';
 import {purposeNames, themeProblems} from './themeNames';
 import type {ThemeModel} from './useThemeEditor';
 import styles from './Themes.module.css';
+import {useAlive} from '@renderer/ui/useAlive';
 
 function newId(): ThemeId {
   return createThemeId(crypto.randomUUID());
@@ -43,7 +44,7 @@ export function ThemeList({
   } | null>(null);
   const [adding, setAdding] = useState<HTMLElement | null>(null);
   const [renaming, setRenaming] = useState<string | null>(null);
-  const alive = useRef(true);
+  const alive = useAlive();
   const focusCreated = useRef<ThemeId | null>(null);
   useEffect(() => {
     const id = focusCreated.current;
@@ -56,12 +57,6 @@ export function ThemeList({
       focusCreated.current = null;
     }
   }, [model.theme?.id]);
-  useEffect(() => {
-    alive.current = true;
-    return () => {
-      alive.current = false;
-    };
-  }, []);
   const renameAfterMenu = useMenuHandoff<ThemeFile>(menu !== null, theme => {
     model.chooseTheme(theme.id);
     setRenaming(theme.id);

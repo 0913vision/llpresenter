@@ -1,17 +1,16 @@
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
-import {useEffect, useMemo, useRef, useState} from 'react';
+import {useMemo, useState} from 'react';
 import {useShow} from '@renderer/session/show';
 import type {Notice} from '@renderer/ui/notices';
 import {asServiceId, editApplied, warningNotice} from './serviceEdits';
-import {selectedIds, treeRows, type TreeSelection} from './serviceTree';
+import {selectedIds, type TreeSelection} from './serviceTree';
 import {
-  listedSource,
   logFailure,
-  sourceKey,
-  useSourceDocument,
   useSourceLists,
   type ServiceSource,
 } from './useServiceSources';
+import {useSourcePick} from './useSourcePick';
+import {useAlive} from '@renderer/ui/useAlive';
 
 const NOTHING: TreeSelection = new Set();
 const NONE_PICKED = '항목을 골라야 가져올 수 있습니다.';
@@ -37,7 +36,6 @@ export function useImportItems({
     () => lists.services.filter(entry => entry.id !== currentId),
     [lists.services, currentId],
   );
-  const [chosen, setChosen] = useState<ServiceSource | null>(null);
   const firstTemplate = lists.templates[0]?.id;
   const firstService = services[0]?.id;
   const fallback = useMemo<ServiceSource | null>(() => {
@@ -49,49 +47,15 @@ export function useImportItems({
       ? null
       : {kind: 'service', id: firstService};
   }, [lists.ready, firstTemplate, firstService]);
-  const {source, version} = listedSource(lists, chosen, fallback);
-  if (source !== chosen) setChosen(source);
-  const {document, missing, pending} = useSourceDocument(api, source, version);
-  const rows = useMemo(
-    () => (document === null ? [] : treeRows(document.order, lists.songTitles)),
-    [document, lists.songTitles],
-  );
-
-  const key = source === null ? null : sourceKey(source);
-  const [picked, setPicked] = useState<{
-    readonly key: string | null;
-    readonly selection: TreeSelection;
-  } | null>(null);
-  const [previousSelection, setPreviousSelection] =
-    useState<TreeSelection | null>(null);
-  const selection =
-    pending && previousSelection !== null
-      ? previousSelection
-      : picked?.key === key
-        ? picked.selection
-        : NOTHING;
-  const setSelection = (next: TreeSelection): void => {
-    if (!pending) setPicked({key, selection: next});
-  };
   // NOTE(0913vision): Changing sources checks nothing (spec 05), also when
   // the operator returns to one they checked items in.
-  const choose = (next: ServiceSource): void => {
-    if (key === sourceKey(next)) return;
-    setPreviousSelection(selection);
-    setChosen(next);
-    setPicked(null);
-  };
+  const pick = useSourcePick({api, lists, fallback, fresh: () => NOTHING});
+  const {source, document, pending, rows, selection} = pick;
   const itemIds = selectedIds(rows, selection);
 
   const [busy, setBusy] = useState(false);
-  const alive = useRef(true);
+  const alive = useAlive();
   const isAlive = (): boolean => alive.current;
-  useEffect(() => {
-    alive.current = true;
-    return () => {
-      alive.current = false;
-    };
-  }, []);
 
   const serviceId = asServiceId(currentId);
   const reason = readOnly
@@ -159,13 +123,14 @@ export function useImportItems({
     lists,
     templates: lists.templates,
     services,
-    source: pending ? (document?.source ?? source) : source,
-    choose,
+    ready: pick.ready,
+    source: pick.shown,
+    choose: pick.choose,
     document,
-    missing,
+    missing: pick.missing,
     rows,
     selection,
-    setSelection,
+    setSelection: pick.setSelection,
     reason,
     busy,
     canImport,
