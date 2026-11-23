@@ -1,7 +1,6 @@
 import {displayReference, parseReference} from '@core/bible';
-import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useReflow} from '@renderer/ui/useReflow';
-import {useEffect, useMemo, useState, type JSX} from 'react';
+import {useMemo, useState, type JSX} from 'react';
 import {
   isKnownQuickItem,
   type QuickItem,
@@ -25,7 +24,8 @@ import {
 } from '@renderer/ui/Panel';
 import type {Notice} from '@renderer/ui/notices';
 import {BibleQuickField} from './BibleQuickField';
-import {quickItemOn, quickItemUnavailable, quickRunner} from './quickActions';
+import {quickItemOn, quickItemUnavailable} from './quickActions';
+import {useQuickRunner} from './useQuickRunner';
 import styles from './QuickPanel.module.css';
 import {
   duplicateQuickItem,
@@ -162,40 +162,14 @@ export function QuickPanel({
     return source?.review === false ? source.passage.displayRef : null;
   });
   const [activationVersion, setActivationVersion] = useState(0);
-  const runner = useMemo(
-    () => (api ? quickRunner(api, onProblem) : null),
-    [api, onProblem],
-  );
-  useEffect(() => () => runner?.cancel(), [runner, selectionVersion, document]);
-  useEffect(
-    () =>
-      useShow.subscribe((next, previous) => {
-        if (
-          next.openItemId !== previous.openItemId ||
-          next.selectedTile !== previous.selectedTile
-        ) {
-          runner?.cancel();
-        }
-      }),
-    [runner],
-  );
-  useWindowShortcuts(
-    items.filter(isKnownQuickItem).map(item => ({
-      id: `quick.${item.id}`,
-      when: () =>
-        quickItemUnavailable(item) === undefined &&
-        timers.reason(item) === undefined,
-      run: () => {
-        runner?.run(item).catch((error: unknown) =>
-          api?.log.write({
-            level: 'error',
-            message: 'Could not run quick shortcut',
-            detail: String(error),
-          }),
-        );
-      },
-    })),
-  );
+  const runner = useQuickRunner({
+    api,
+    onProblem,
+    items,
+    timerReason: timers.reason,
+    selectionVersion,
+    document,
+  });
   if (api === undefined) return null;
   return (
     <Panel label="빠른 실행" className={styles.panel}>
