@@ -10,18 +10,17 @@ import {
   ownThemeCount,
   type ThemeListEdit,
   builtInTheme,
-  isEditedTheme,
   themeFor,
 } from '@core/theme';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {IconButton} from '@renderer/ui/IconButton';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
-import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
 import {Panel, PanelActions, PanelHeader, PanelTitle} from '@renderer/ui/Panel';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {deleteSelection} from '@renderer/ui/deleteSelection';
 import {ChoiceRows} from '../ChoiceRows';
 import {purposeNames, themeProblems} from './themeNames';
+import {ThemeMenu} from './ThemeMenu';
 import type {ThemeModel} from './useThemeEditor';
 import styles from './Themes.module.css';
 import {useAlive} from '@renderer/ui/useAlive';
@@ -125,71 +124,8 @@ export function ThemeList({
       },
     },
   ]);
-  const target = menu?.theme;
-  const available = menuAvailability(reason);
   const isDefault = (theme: ThemeFile): boolean =>
     list !== null && themeFor(list, theme.purpose).id === theme.id;
-  const entries: readonly MenuEntry[] =
-    target === undefined
-      ? []
-      : [
-          {
-            kind: 'item',
-            id: 'default',
-            label: '기본으로 지정',
-            check: 'checkbox',
-            checked: isDefault(target),
-            ...available,
-            onSelect: () => run({kind: 'default', id: target.id}),
-          },
-          {kind: 'separator', id: 'default-separator'},
-          {
-            kind: 'item',
-            id: 'duplicate',
-            contextGroup: 'clipboard',
-            label: '복제',
-            ...menuAvailability(addReason),
-            onSelect: () => duplicate(target),
-          },
-          {
-            kind: 'item',
-            id: 'rename',
-            label: '이름 바꾸기',
-            ...available,
-            onSelect: () => renameAfterMenu(target),
-          },
-          ...(isEditedTheme(target)
-            ? ([
-                {
-                  kind: 'item',
-                  id: 'restore',
-                  label: '처음으로 되돌리기',
-                  ...available,
-                  onSelect: () => {
-                    if (model.dirtyThemeId === target.id) model.discard();
-                    run({kind: 'restore', id: target.id});
-                  },
-                },
-              ] as const)
-            : []),
-          {kind: 'separator', id: 'delete-separator'},
-          {
-            kind: 'item',
-            id: 'delete',
-            contextGroup: 'delete',
-            label: '삭제',
-            ...menuAvailability(
-              reason ??
-                (builtInTheme(target.id) === undefined
-                  ? undefined
-                  : themeProblems.own),
-            ),
-            onSelect: () => {
-              deleteAfterMenu(target);
-              setMenu(null);
-            },
-          },
-        ];
   const choices = list?.themes ?? [];
   return (
     <>
@@ -266,11 +202,25 @@ export function ThemeList({
         />
       </Panel>
       {menu === null ? null : (
-        <Menu
-          context
-          label="테마"
+        <ThemeMenu
+          theme={menu.theme}
           anchor={menu.anchor}
-          entries={entries}
+          actions={{
+            isDefault: isDefault(menu.theme),
+            reason,
+            addReason,
+            makeDefault: () => run({kind: 'default', id: menu.theme.id}),
+            duplicate: () => duplicate(menu.theme),
+            rename: () => renameAfterMenu(menu.theme),
+            restore: () => {
+              if (model.dirtyThemeId === menu.theme.id) model.discard();
+              run({kind: 'restore', id: menu.theme.id});
+            },
+            remove: () => {
+              deleteAfterMenu(menu.theme);
+              setMenu(null);
+            },
+          }}
           onClose={() => setMenu(null)}
         />
       )}
