@@ -42,6 +42,85 @@ const icons: Readonly<Record<AddableKind, string>> = {
   background: 'film',
 };
 
+/**
+ * The 요소 추가 panel: a tile per kind of element, clicked or dragged into
+ * the list. A tile waits while the theme can't change, the screen is full,
+ * or the screen already has its one element of that kind.
+ */
+function ThemeAddTiles({model}: {readonly model: ThemeModel}): JSX.Element {
+  const {layout} = model;
+  const elements = layout?.elements ?? [];
+  return (
+    <Panel label="요소 추가" className={styles.tilesPanel}>
+      <PanelHeader>
+        <PanelTitle title="요소 추가" />
+      </PanelHeader>
+      <PanelBody>
+        <div className={styles.tiles}>
+          {addableKinds.map(kind => {
+            const reason =
+              model.elementReason ??
+              (layout === null || canAddElement(layout, kind)
+                ? undefined
+                : elements.length >= THEME_FILE_LIMITS.elements
+                  ? limitReason('요소', THEME_FILE_LIMITS.elements)
+                  : ALREADY_THERE);
+            return (
+              <Button
+                key={kind}
+                className={styles.tile}
+                icon={icons[kind]}
+                disabled={reason !== undefined}
+                title={reason}
+                draggable={reason === undefined}
+                onDragStart={event => {
+                  event.dataTransfer.setData(THEME_TILE_DRAG, kind);
+                  event.dataTransfer.effectAllowed = 'copy';
+                }}
+                onClick={() => model.requestAdd(kind)}
+              >
+                {addableNames[kind]}
+              </Button>
+            );
+          })}
+        </div>
+      </PanelBody>
+    </Panel>
+  );
+}
+
+/**
+ * The elements chosen after a click on row `index` of `rows` (top first):
+ * Ctrl or Command adds or drops the row, Shift takes the rows from the first
+ * chosen one to it. Undefined for a plain click, which the list handles.
+ */
+function clickedElements(
+  {
+    rows,
+    selected,
+    index,
+  }: {
+    readonly rows: readonly string[];
+    readonly selected: readonly string[];
+    readonly index: number;
+  },
+  {toggle, range}: {readonly toggle: boolean; readonly range: boolean},
+): readonly string[] | undefined {
+  const id = rows[index];
+  if (id === undefined) return undefined;
+  if (toggle) {
+    return selected.includes(id)
+      ? selected.filter(value => value !== id)
+      : [...selected, id];
+  }
+  if (!range) return undefined;
+  const anchor = rows.indexOf(selected[0] ?? '');
+  return rows.slice(
+    Math.min(anchor < 0 ? index : anchor, index),
+    Math.max(anchor, index) + 1,
+  );
+}
+
 export function ThemeElements({
   model,
   onMenu,
@@ -134,29 +213,21 @@ export function ThemeElements({
                   ) {
                     return;
                   }
-                  if (event.ctrlKey || event.metaKey) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    model.selectMany(
-                      model.selectedIds.includes(element.id)
-                        ? model.selectedIds.filter(id => id !== element.id)
-                        : [...model.selectedIds, element.id],
-                    );
-                  } else if (event.shiftKey) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    const anchor = topFirst.findIndex(
-                      row => row.id === model.selectedIds[0],
-                    );
-                    model.selectMany(
-                      topFirst
-                        .slice(
-                          Math.min(anchor < 0 ? index : anchor, index),
-                          Math.max(anchor, index) + 1,
-                        )
-                        .map(row => row.id),
-                    );
-                  }
+                  const next = clickedElements(
+                    {
+                      rows: topFirst.map(row => row.id),
+                      selected: model.selectedIds,
+                      index,
+                    },
+                    {
+                      toggle: event.ctrlKey || event.metaKey,
+                      range: event.shiftKey,
+                    },
+                  );
+                  if (next === undefined) return;
+                  event.preventDefault();
+                  event.stopPropagation();
+                  model.selectMany(next);
                 }}
                 onDragStart={event => {
                   const ids = model.selectedIds.includes(element.id)
@@ -222,41 +293,7 @@ export function ThemeElements({
         </div>
         <PanelFooter count={elements.length} />
       </Panel>
-      <Panel label="요소 추가" className={styles.tilesPanel}>
-        <PanelHeader>
-          <PanelTitle title="요소 추가" />
-        </PanelHeader>
-        <PanelBody>
-          <div className={styles.tiles}>
-            {addableKinds.map(kind => {
-              const reason =
-                model.elementReason ??
-                (layout === null || canAddElement(layout, kind)
-                  ? undefined
-                  : elements.length >= THEME_FILE_LIMITS.elements
-                    ? limitReason('요소', THEME_FILE_LIMITS.elements)
-                    : ALREADY_THERE);
-              return (
-                <Button
-                  key={kind}
-                  className={styles.tile}
-                  icon={icons[kind]}
-                  disabled={reason !== undefined}
-                  title={reason}
-                  draggable={reason === undefined}
-                  onDragStart={event => {
-                    event.dataTransfer.setData(THEME_TILE_DRAG, kind);
-                    event.dataTransfer.effectAllowed = 'copy';
-                  }}
-                  onClick={() => model.requestAdd(kind)}
-                >
-                  {addableNames[kind]}
-                </Button>
-              );
-            })}
-          </div>
-        </PanelBody>
-      </Panel>
+      <ThemeAddTiles model={model} />
     </>
   );
 }
