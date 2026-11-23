@@ -44,6 +44,17 @@ successful backup clears the launch backup warning and the manual backup
 warning. A Bible file that failed to load is checked again on the next lookup,
 so restoring the file does not require an app restart.
 
+The launch window names the task that runs and, for files, settings, pictures
+and screens, how many of them are done: 곡과 예배 파일 읽는 중, 설정 파일 읽는
+중, 프로그램 창 만드는 중, 미디어 목록 읽는 중, 지난 예배 여는 중, 프로그램 화면
+불러오는 중, 예배 순서, 설정, 미디어 목록 받는 중, 슬라이드 배경 그림 불러오는
+중, 글꼴 불러오는 중, 출력 화면 그리는 중, 프로그램 첫 화면 그리는 중. Its bar
+gives each task the part of the bar up to when the launches before ended it
+(`launchTimes` in `app.json`), moves on through that part as time passes and
+parts are done, and never passes a task that runs. The control window shows as
+soon as everything is prepared; a task that takes over 15 seconds is failed and
+not waited for. The log has when each task began and ended.
+
 Unavailable monitor identity shows only `모니터 정보 확인 안 됨` in the status
 bar after the query finishes. It adds no warning card; safe output placement
 continues, and a successful query clears the line.

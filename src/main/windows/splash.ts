@@ -13,6 +13,8 @@ export interface LaunchPlan {
     readonly label: string;
     readonly name: string;
     readonly endsAt: number;
+    /** The page shows how many of its parts are done. */
+    readonly counted: boolean;
   }>;
 }
 

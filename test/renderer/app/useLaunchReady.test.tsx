@@ -3,6 +3,7 @@ import {afterEach, expect, it, vi} from 'vitest';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {useLaunchReady} from '@renderer/app/useLaunchReady';
 import {LoadReadiness} from '@renderer/ui/loadReadiness';
+import type {Preparation} from '@core/schema/launch';
 
 afterEach(() => {
   vi.useRealTimers();
@@ -80,7 +81,7 @@ it('waits for the tracked first reads before signaling', async () => {
   expect(ready).toHaveBeenCalledOnce();
 });
 
-it('tells how much is prepared: the service, the reads, and the fonts', async () => {
+it('tells how far each of its tasks is', async () => {
   let frame: FrameRequestCallback = () => undefined;
   vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
     frame = callback;
@@ -90,21 +91,29 @@ it('tells how much is prepared: the service, the reads, and the fonts', async ()
   vi.stubGlobal('cancelIdleCallback', vi.fn());
   vi.stubGlobal('cancelAnimationFrame', vi.fn());
   const readiness = new LoadReadiness();
-  const first = readiness.begin();
-  const second = readiness.begin();
-  const preparing = vi.fn();
+  const read = readiness.begin();
+  const picture = readiness.begin('picture');
+  const preparing = vi.fn<(value: Preparation) => void>();
   const api = mockLlpApi({service: {preparing}});
+  const last = (task: Preparation['task']): Preparation | undefined =>
+    preparing.mock.calls
+      .map(([value]) => value)
+      .findLast(value => value.task === task);
   const view = renderHook(() => useLaunchReady(api, readiness));
+  expect(last('data')).toMatchObject({done: 0, total: 2, ended: false});
   await act(async () => Promise.resolve());
-  expect(preparing).toHaveBeenLastCalledWith({done: 1, total: 4});
-  act(first);
-  expect(preparing).toHaveBeenLastCalledWith({done: 2, total: 4});
-  act(second);
+  expect(last('data')).toMatchObject({done: 1, total: 2, ended: false});
+  act(read);
+  expect(last('data')).toMatchObject({done: 2, total: 2, ended: true});
+  expect(last('pictures')).toMatchObject({done: 0, total: 1, ended: false});
+  act(picture);
+  expect(last('pictures')).toMatchObject({done: 1, total: 1, ended: true});
   await act(async () => {
     frame(0);
     await Promise.resolve();
     await Promise.resolve();
   });
-  expect(preparing).toHaveBeenLastCalledWith({done: 4, total: 4});
+  expect(last('fonts')).toMatchObject({done: 1, total: 1, ended: true});
+  expect(last('drawing')).toMatchObject({ended: false});
   view.unmount();
 });

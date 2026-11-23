@@ -1,5 +1,6 @@
 import {app} from 'electron';
 import {serviceEndpoints} from '@contracts/ipc/service';
+import {VIEW_TASK_IDS} from '@core/schema/launch';
 import {IpcHost, type Caller} from '../base/ipcHost';
 import {registerFonts} from '../fonts/register';
 import {registerTextImport} from '../import/register';
@@ -28,12 +29,17 @@ function watchReadiness(
   const ipc = new IpcHost(log);
   const isControl = ({contents, isMainFrame}: Caller): boolean =>
     contents === control.webContents && isMainFrame;
-  ipc.message(serviceEndpoints.preparing, ({done, total}, caller) => {
-    if (isControl(caller)) launch.advance('view', done, total);
-  });
+  ipc.message(
+    serviceEndpoints.preparing,
+    ({task, done, total, ended}, caller) => {
+      if (!isControl(caller)) return;
+      launch.advance(task, done, total);
+      if (ended) launch.finish(task);
+    },
+  );
   ipc.signal(serviceEndpoints.ready, caller => {
     if (!isControl(caller)) return;
-    launch.finish('view');
+    for (const task of VIEW_TASK_IDS) launch.finish(task);
     data.content.then(
       () => launchIdle.serviceReady(),
       (error: unknown) => log.warn('Could not confirm launch readiness', error),

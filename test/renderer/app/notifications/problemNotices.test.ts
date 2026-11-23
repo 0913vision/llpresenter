@@ -115,14 +115,14 @@ it('tells that the control window loaded again, as information that closes by it
 it('names what the launch could not prepare, with the log folder', () => {
   const openLogs = vi.fn();
   const card = launchFailedCard(
-    {kind: 'launch-failed', tasks: ['outputs', 'view']},
+    {kind: 'launch-failed', tasks: ['outputs', 'pictures']},
     {time: TIME, openLogs},
   );
   expect(card).toMatchObject({
     key: 'launch-failed',
     kind: 'warning',
     title: '시작 준비 실패',
-    meta: ['출력 화면, 슬라이드'],
+    meta: ['출력 화면, 슬라이드 배경 그림'],
     actions: [{label: '로그 폴더 열기'}],
   });
   card.actions?.[0]?.onSelect();

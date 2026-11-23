@@ -7,6 +7,7 @@ export {
 export {
   type LaunchBarTask,
   expectedEnd,
+  isLaunchTaskCounted,
   launchFraction,
   launchOrder,
   launchTaskLabel,

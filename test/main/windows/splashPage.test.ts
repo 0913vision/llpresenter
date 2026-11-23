@@ -20,8 +20,27 @@ const FRAME_MS = 16;
 const PLAN: LaunchPlan = {
   elapsed: 0,
   tasks: [
-    {id: 'files', label: '곡과 예배 읽는 중', name: '곡과 예배', endsAt: 400},
-    {id: 'view', label: '슬라이드 준비하는 중', name: '슬라이드', endsAt: 1000},
+    {
+      id: 'files',
+      label: '곡과 예배 파일 읽는 중',
+      name: '곡과 예배 파일',
+      endsAt: 400,
+      counted: true,
+    },
+    {
+      id: 'page',
+      label: '프로그램 화면 불러오는 중',
+      name: '프로그램 화면',
+      endsAt: 500,
+      counted: false,
+    },
+    {
+      id: 'pictures',
+      label: '슬라이드 배경 그림 불러오는 중',
+      name: '슬라이드 배경 그림',
+      endsAt: 1000,
+      counted: true,
+    },
   ],
 };
 
@@ -78,7 +97,8 @@ describe('the page of the launch window', () => {
     const shown = [...draw(500)];
     launch.end('files', false);
     shown.push(...draw(800));
-    launch.end('view', false);
+    launch.end('page', false);
+    launch.end('pictures', false);
     shown.push(...draw(1200));
     for (const [index, value] of shown.entries()) {
       if (index === 0) continue;
@@ -92,24 +112,33 @@ describe('the page of the launch window', () => {
   it('never leaves the part of a task that still runs', () => {
     const {draw, says} = open();
     expect(draw(5000).at(-1)).toBeLessThan(0.4);
-    expect(says()).toBe('곡과 예배 읽는 중');
+    expect(says()).toBe('곡과 예배 파일 읽는 중');
   });
 
   it('counts the parts of the task that runs', () => {
     const {launch, draw, says} = open();
     launch.advance('files', 12, 38);
     draw(FRAME_MS);
-    expect(says()).toBe('곡과 예배 읽는 중 12/38');
+    expect(says()).toBe('곡과 예배 파일 읽는 중 12/38');
     launch.end('files', false);
+    launch.end('page', false);
     draw(FRAME_MS);
-    expect(says()).toBe('슬라이드 준비하는 중');
+    expect(says()).toBe('슬라이드 배경 그림 불러오는 중');
   });
 
   it('says what failed, and goes on', () => {
     const {launch, draw, says} = open();
     launch.end('files', true);
     const shown = draw(600);
-    expect(says()).toBe('곡과 예배 준비 실패');
+    expect(says()).toBe('곡과 예배 파일 준비 실패');
     expect(shown.at(-1)).toBeGreaterThan(0.4);
+  });
+
+  it('shows no count for a task whose parts are steps', () => {
+    const {launch, draw, says} = open();
+    launch.end('files', false);
+    launch.advance('page', 1, 3);
+    draw(FRAME_MS);
+    expect(says()).toBe('프로그램 화면 불러오는 중');
   });
 });

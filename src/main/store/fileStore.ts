@@ -12,7 +12,7 @@ import {
 import {parseSong, type Song} from '@core/schema/song';
 import type {AppConfigFile} from './appConfigFile';
 import {EMPTY_MEDIA_LIST} from './defaults';
-import {loadFolder, type StoredFile} from './library';
+import {listFiles, loadFiles, type StoredFile} from './library';
 import {
   buildMediaLibrary,
   type MediaLibrary,
@@ -136,16 +136,19 @@ async function readData(
   onProgress: OnProgress,
 ): Promise<DataRead> {
   const counter = new PartCounter(onProgress);
+  const listed = await Promise.all([
+    listFiles(locations.songs, SONG_EXTENSION),
+    listFiles(locations.services, SERVICE_EXTENSION),
+    listFiles(locations.templates, SERVICE_EXTENSION),
+  ]);
+  counter.expect(
+    listed.reduce((sum, files) => sum + (files.ok ? files.value.length : 0), 0),
+  );
+  const [songFiles, serviceFiles, templateFiles] = listed;
   const [songs, services, templates, media] = await Promise.all([
-    loadFolder(locations.songs, SONG_EXTENSION, {parse: parseSong, counter}),
-    loadFolder(locations.services, SERVICE_EXTENSION, {
-      parse: parseService,
-      counter,
-    }),
-    loadFolder(locations.templates, SERVICE_EXTENSION, {
-      parse: parseTemplate,
-      counter,
-    }),
+    loadFiles(songFiles, {parse: parseSong, counter}),
+    loadFiles(serviceFiles, {parse: parseService, counter}),
+    loadFiles(templateFiles, {parse: parseTemplate, counter}),
     readMedia(locations),
   ]);
   return {

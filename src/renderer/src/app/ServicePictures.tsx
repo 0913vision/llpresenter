@@ -8,7 +8,10 @@ import {useMedia} from '@renderer/platform/media';
 import {useThemes} from '@renderer/platform/themes';
 import {useShow} from '@renderer/session/show';
 import {keepThumbnails} from '@renderer/ui/keptThumbnails';
-import {LoadReadinessContext} from '@renderer/ui/loadReadiness';
+import {
+  LoadReadinessContext,
+  type LoadReadiness,
+} from '@renderer/ui/loadReadiness';
 
 function mediaOf(background: SlideBackground | undefined): readonly string[] {
   return background?.kind === 'media' ? [background.media] : [];
@@ -49,6 +52,10 @@ function pictures(
   );
 }
 
+function beginPicture(readiness: LoadReadiness | null): () => void {
+  return readiness?.begin('picture') ?? (() => undefined);
+}
+
 /**
  * Loads the pictures the open service and the themes use ahead, so a slide is
  * drawn with its picture in its first frame wherever it shows. The launch
@@ -61,10 +68,12 @@ export function ServicePictures(): null {
   const readiness = use(LoadReadinessContext);
   useEffect(() => {
     if (themes === null) return;
-    keepThumbnails(pictures(themeMedia(themes), items), readiness?.begin);
+    const sources = pictures(themeMedia(themes), items);
+    keepThumbnails(sources, () => beginPicture(readiness));
   }, [themes, items, readiness]);
   useEffect(() => {
-    keepThumbnails(pictures(serviceMedia(tiles), items), readiness?.begin);
+    const sources = pictures(serviceMedia(tiles), items);
+    keepThumbnails(sources, () => beginPicture(readiness));
   }, [tiles, items, readiness]);
   return null;
 }

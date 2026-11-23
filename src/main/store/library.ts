@@ -1,4 +1,5 @@
 import {extname, join} from 'node:path';
+import type {Result} from '@core/common/result';
 import type {FileError, LoadedFile} from '@core/schema/fileFormat';
 import type {PartCounter} from '../base/launchTracker';
 import {listFolder, loadFile, type ParseFile} from './readFiles';
@@ -16,16 +17,28 @@ export interface LoadedFolder<T> {
   readonly problems: readonly FileError[];
 }
 
-/**
- * Loads every file with the extension in a folder through its schema. A file
- * that fails is skipped and reported, and so is a second file with an id that
- * another file already has; the rest load. A missing folder holds nothing,
- * as on the first launch, and a file deleted while the folder loads is left
- * out. Never throws.
- */
-export async function loadFolder<T extends {readonly id: string}>(
+/** The files of a folder with the extension, or why it can't be listed. */
+export async function listFiles(
   folder: string,
   extension: string,
+): Promise<Result<readonly string[], FileError>> {
+  const names = await listFolder(folder);
+  if (!names.ok) return names;
+  return {
+    ok: true,
+    value: names.value
+      .filter(name => extname(name) === extension)
+      .map(name => join(folder, name)),
+  };
+}
+
+/**
+ * Loads files through their schema. A file that fails is skipped and
+ * reported, and so is a second file with an id that another file already
+ * has; the rest load. A file deleted meanwhile is left out. Never throws.
+ */
+export async function loadFiles<T extends {readonly id: string}>(
+  files: Result<readonly string[], FileError>,
   {
     parse,
     counter,
@@ -35,19 +48,13 @@ export async function loadFolder<T extends {readonly id: string}>(
     readonly counter?: PartCounter | undefined;
   },
 ): Promise<LoadedFolder<T>> {
-  const names = await listFolder(folder);
-  if (!names.ok) {
-    return {items: new Map(), problems: [names.error]};
-  }
+  if (!files.ok) return {items: new Map(), problems: [files.error]};
   const items = new Map<string, StoredFile<T>>();
   const problems: FileError[] = [];
-  const files = names.value
-    .filter(name => extname(name) === extension)
-    .map(name => join(folder, name));
-  counter?.expect(files.length);
-  for (let offset = 0; offset < files.length; offset += READ_CONCURRENCY) {
+  const list = files.value;
+  for (let offset = 0; offset < list.length; offset += READ_CONCURRENCY) {
     const batch = await Promise.all(
-      files.slice(offset, offset + READ_CONCURRENCY).map(async file => ({
+      list.slice(offset, offset + READ_CONCURRENCY).map(async file => ({
         file,
         loaded: await loadFile(file, parse),
       })),
@@ -70,6 +77,18 @@ export async function loadFolder<T extends {readonly id: string}>(
     }
   }
   return {items, problems};
+}
+
+/**
+ * Loads every file with the extension in a folder through its schema. A
+ * missing folder holds nothing, as on the first launch. Never throws.
+ */
+export async function loadFolder<T extends {readonly id: string}>(
+  folder: string,
+  extension: string,
+  options: {readonly parse: ParseFile<T>},
+): Promise<LoadedFolder<T>> {
+  return loadFiles(await listFiles(folder, extension), options);
 }
 
 function duplicateProblem(file: string): FileError {

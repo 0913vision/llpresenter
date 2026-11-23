@@ -69,10 +69,10 @@ describe('LaunchProgress', () => {
 
   it('warns about a task that took much longer than expected', () => {
     vi.useFakeTimers();
-    const {progress, log} = setup({view: 100});
-    progress.begin('view');
+    const {progress, log} = setup({drawing: 100});
+    progress.begin('drawing');
     vi.advanceTimersByTime(1300);
-    progress.finish('view');
+    progress.finish('drawing');
     expect(log.messages('warn')).toEqual(['launch task was slow']);
   });
 

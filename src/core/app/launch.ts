@@ -11,17 +11,55 @@ interface LaunchTask {
   readonly name: string;
   /** When it ends before any launch was measured, in ms. */
   readonly endsAt: number;
+  /** Its parts are things that can be counted, such as files. */
+  readonly counted?: true;
 }
 
 const TASKS: Readonly<Record<LaunchTaskId, LaunchTask>> = {
-  files: {label: '곡과 예배 읽는 중', name: '곡과 예배', endsAt: 150},
-  settings: {label: '설정 불러오는 중', name: '설정', endsAt: 250},
-  window: {label: '창 만드는 중', name: '창', endsAt: 300},
-  media: {label: '미디어 불러오는 중', name: '미디어', endsAt: 400},
-  content: {label: '예배 여는 중', name: '예배', endsAt: 500},
-  page: {label: '화면 불러오는 중', name: '화면', endsAt: 700},
-  view: {label: '슬라이드 준비하는 중', name: '슬라이드', endsAt: 1100},
-  outputs: {label: '출력 화면 준비하는 중', name: '출력 화면', endsAt: 1400},
+  files: {
+    label: '곡과 예배 파일 읽는 중',
+    name: '곡과 예배 파일',
+    endsAt: 100,
+    counted: true,
+  },
+  settings: {
+    label: '설정 파일 읽는 중',
+    name: '설정 파일',
+    endsAt: 150,
+    counted: true,
+  },
+  window: {label: '프로그램 창 만드는 중', name: '프로그램 창', endsAt: 200},
+  media: {label: '미디어 목록 읽는 중', name: '미디어 목록', endsAt: 350},
+  content: {label: '지난 예배 여는 중', name: '지난 예배', endsAt: 420},
+  page: {
+    label: '프로그램 화면 불러오는 중',
+    name: '프로그램 화면',
+    endsAt: 650,
+  },
+  data: {
+    label: '예배 순서, 설정, 미디어 목록 받는 중',
+    name: '예배 순서, 설정, 미디어 목록',
+    endsAt: 800,
+    counted: true,
+  },
+  pictures: {
+    label: '슬라이드 배경 그림 불러오는 중',
+    name: '슬라이드 배경 그림',
+    endsAt: 1100,
+    counted: true,
+  },
+  fonts: {label: '글꼴 불러오는 중', name: '글꼴', endsAt: 1120},
+  outputs: {
+    label: '출력 화면 그리는 중',
+    name: '출력 화면',
+    endsAt: 1150,
+    counted: true,
+  },
+  drawing: {
+    label: '프로그램 첫 화면 그리는 중',
+    name: '프로그램 첫 화면',
+    endsAt: 1300,
+  },
 };
 
 const TASK_TIME_RANGE = {min: 20, max: 15_000};
@@ -32,6 +70,11 @@ export function launchTaskLabel(task: LaunchTaskId): string {
 
 export function launchTaskName(task: LaunchTaskId): string {
   return TASKS[task].name;
+}
+
+/** Whether the launch window shows how many parts of a task are done. */
+export function isLaunchTaskCounted(task: LaunchTaskId): boolean {
+  return TASKS[task].counted === true;
 }
 
 /** When a task is expected to end, in ms after the launch began. */

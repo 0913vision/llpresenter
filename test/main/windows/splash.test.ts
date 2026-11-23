@@ -29,7 +29,13 @@ const {createSplash, LaunchBar} = await import('@main/windows/splash');
 const PLAN: LaunchPlan = {
   elapsed: 0,
   tasks: [
-    {id: 'files', label: '곡과 예배 읽는 중', name: '곡과 예배', endsAt: 100},
+    {
+      id: 'files',
+      label: '곡과 예배 파일 읽는 중',
+      name: '곡과 예배 파일',
+      endsAt: 100,
+      counted: true,
+    },
   ],
 };
 

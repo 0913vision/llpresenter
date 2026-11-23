@@ -1,10 +1,10 @@
+import {parsePreparation, type Preparation} from '@core/schema/launch';
 import {
   parseServiceOpenReply,
   parseServiceOpenRequest,
   type ServiceOpenRequest,
 } from '@core/schema/serviceOpen';
 import {parseShowService, type ShowService} from '@core/schema/showService';
-import {parsePreparation, type Preparation} from '@core/schema/preparation';
 import {message, push, query, request, signal, type IpcPort} from './endpoint';
 
 /** The calls about the open 예배 순서 as 진행 shows it. */

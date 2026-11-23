@@ -54,7 +54,7 @@ const SCRIPT = `
       percent.textContent = full + '%';
       const failed = tasks.filter(task => task.failed);
       const task = tasks[current];
-      const counted = task !== undefined && task.total > 1 ? ' ' + task.done + '/' + task.total : '';
+      const counted = task !== undefined && task.counted && task.total > 0 ? ' ' + task.done + '/' + task.total : '';
       says.className = failed.length > 0 ? 'failed' : '';
       if (failed.length > 0) says.textContent = failed[failed.length - 1].name + ' 준비 실패';
       else if (task !== undefined) says.textContent = task.label + counted;

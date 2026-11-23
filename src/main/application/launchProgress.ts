@@ -1,6 +1,7 @@
 import type {BrowserWindow} from 'electron';
 import {
   expectedEnd,
+  isLaunchTaskCounted,
   launchOrder,
   launchTaskLabel,
   launchTaskName,
@@ -59,6 +60,7 @@ export class LaunchProgress implements LaunchTracker {
         id,
         label: launchTaskLabel(id),
         name: launchTaskName(id),
+        counted: isLaunchTaskCounted(id),
         endsAt: expectedEnd(id, this.expected),
       })),
     });
