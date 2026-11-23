@@ -15,7 +15,12 @@ import type {Slide} from '@core/schema/slide';
 import {pendingWritesOf} from '../platform/pendingWrites';
 import {useShow} from './showStore';
 import {serviceEditNotice} from './serviceProblem';
-import {undoTimeline, type UndoOwner} from '../platform/undoTimeline';
+import {
+  undoTimeline,
+  type UndoOwner,
+  type UndoPlace,
+} from '../platform/undoTimeline';
+import {changedPlace} from '@core/services';
 
 type Order = Service['order'];
 type EditApi = Pick<LlpApi, 'services' | 'content' | 'log'>;
@@ -360,14 +365,28 @@ export function redoService(): Promise<OpenServiceResult> {
   return replay('redo');
 }
 
+let lastPlace: UndoPlace | undefined;
+
 /** The service edits, as one history of the window's 실행 취소. */
 const serviceHistory: UndoOwner = {
-  replay: (kind, report) =>
-    replay(kind).then(result => {
+  replay: (kind, report) => {
+    const {past, future} = useOpenService.getState();
+    const step = (kind === 'undo' ? past : future).at(-1);
+    return replay(kind).then(result => {
       const notice = serviceEditNotice(result);
       if (notice !== null) report(notice);
+      const changed =
+        step === undefined
+          ? undefined
+          : kind === 'undo'
+            ? changedPlace(step.after, step.before)
+            : changedPlace(step.before, step.after);
+      lastPlace =
+        changed === undefined ? undefined : {kind: 'service', ...changed};
       return result.ok;
-    }),
+    });
+  },
+  place: () => lastPlace,
 };
 
 /** The item of the open 예배 순서 with this id, as this window edits it. */

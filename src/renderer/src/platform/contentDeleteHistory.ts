@@ -1,6 +1,11 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import type {Notice} from '@renderer/ui/notices';
-import {undoFailure, undoTimeline, type UndoOwner} from './undoTimeline';
+import {
+  undoFailure,
+  undoTimeline,
+  type UndoOwner,
+  type UndoPlace,
+} from './undoTimeline';
 
 type Area = 'song' | 'service' | 'template';
 interface Entry {
@@ -34,14 +39,21 @@ class ContentDeleteHistory implements UndoOwner {
     this.publish(false);
     undoTimeline.record(this);
   }
+  private restored: Entry | undefined;
   readonly replay = async (
     kind: 'undo' | 'redo',
     report?: (notice: Notice) => void,
   ): Promise<boolean> => {
+    const entry = (kind === 'undo' ? this.undo : this.redo).at(-1);
     const done = await this.run(kind);
     if (!done) report?.(undoFailure(kind, '삭제'));
+    this.restored = done && kind === 'undo' ? entry : undefined;
     return done;
   };
+  readonly place = (): UndoPlace | undefined =>
+    this.restored?.area === 'song'
+      ? {kind: 'song', songId: this.restored.id}
+      : undefined;
   private async run(kind: 'undo' | 'redo'): Promise<boolean> {
     const from = kind === 'undo' ? this.undo : this.redo;
     const to = kind === 'undo' ? this.redo : this.undo;

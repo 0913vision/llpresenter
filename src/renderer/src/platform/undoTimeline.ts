@@ -2,6 +2,16 @@ import {useSyncExternalStore} from 'react';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {NOTHING_TO_REDO, NOTHING_TO_UNDO} from './problemReasons';
 
+/** Where a step that ran back or forward shows, so the window can bring it up. */
+export type UndoPlace =
+  | {
+      readonly kind: 'service';
+      readonly itemId: string;
+      readonly slideId?: string | undefined;
+    }
+  | {readonly kind: 'song'; readonly songId: string}
+  | {readonly kind: 'media'; readonly mediaId: string};
+
 /** A history that keeps its own steps: service edits, or deletions of one kind. */
 export interface UndoOwner {
   /**
@@ -12,6 +22,8 @@ export interface UndoOwner {
     kind: 'undo' | 'redo',
     report: (notice: Notice) => void,
   ) => Promise<boolean>;
+  /** Where its latest step that ran shows, if anywhere. */
+  readonly place?: (() => UndoPlace | undefined) | undefined;
 }
 
 export interface UndoTimelineState {
@@ -33,6 +45,7 @@ class UndoTimeline {
   private blockedBy: string | undefined;
   private state: UndoTimelineState = {undo: 0, redo: 0, busy: false};
   private readonly listeners = new Set<() => void>();
+  private readonly placeListeners = new Set<(place: UndoPlace) => void>();
 
   readonly get = (): UndoTimelineState => this.state;
 
@@ -47,6 +60,12 @@ class UndoTimeline {
     this.redo = [];
     this.publish(this.state.busy);
   }
+
+  /** Hears where each step that ran shows, to bring it into view. */
+  readonly onPlace = (listener: (place: UndoPlace) => void): (() => void) => {
+    this.placeListeners.add(listener);
+    return () => this.placeListeners.delete(listener);
+  };
 
   /** Why no step may run now, such as 진행 being shown; nothing to allow it again. */
   block(reason: string | undefined): void {
@@ -90,6 +109,10 @@ class UndoTimeline {
       if (done && kind === 'undo') this.redo = [...this.redo, owner];
       if (done && kind === 'redo') this.undo = [...this.undo, owner];
       this.publish(false);
+    }
+    const place = done ? owner.place?.() : undefined;
+    if (place !== undefined) {
+      for (const listener of this.placeListeners) listener(place);
     }
     return done;
   }

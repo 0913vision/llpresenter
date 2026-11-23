@@ -18,6 +18,7 @@ import {
 import {classNames} from '@renderer/ui/classNames';
 import type {Notice} from '@renderer/ui/notices';
 import {usePrepPanels, type PrepBinding} from '../workspaces/prepPanels';
+import {useUndoReveal} from './useUndoReveal';
 import type {ThemeLeaveGuard} from '@renderer/features/screens/themes/themeLeaveGuard';
 import {useScreensPanels} from '../workspaces/screensPanels';
 import {ShowShortcuts, useShowPanels} from '../workspaces/showPanels';
@@ -130,6 +131,7 @@ export function Workspace({
     visibleId !== 'screens',
     onProblem ?? logPanelProblem,
   );
+  useUndoReveal(onShowInLibrary);
   // NOTE(0913vision): 진행 sends what is on the screens, so 실행 취소 there
   // would change it behind the operator; edits are run back in 준비.
   useEffect(() => {

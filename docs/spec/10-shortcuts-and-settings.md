@@ -378,7 +378,10 @@ the keys that earlier rules pass on.
    focus is in them. **In 진행, 실행 취소 and 다시 실행 are off** (keys, 편집
    menu and title bar buttons; the reason "진행에서는 실행 취소를 쓰지
    않습니다."): 진행 sends what is on the screens, so a step is run back in
-   준비, where the steps made in 진행 are kept too.
+   준비, where the steps made in 진행 are kept too. A step that runs back or
+   forward brings its place up, as PowerPoint goes to the slide it changed: the
+   item with that slide chosen in 준비, the song that came back opened, or the
+   media item chosen in the whole media list.
 5. **In the Show workspace**, the slide grid passes ↑ and ↓ to the previous and
    next slide commands; Enter and keypad Enter advance the slide. The service
    order list keeps ↑, ↓, Home, End, and Enter for selection without output.

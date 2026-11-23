@@ -109,9 +109,16 @@ export class MediaLibrary {
 
   constructor(private readonly api: MediaApi) {}
 
+  /** The media item an undone deletion brought back, to show it. */
+  private restored: string | undefined;
+
   /** Its deletions, as one history of the window's 실행 취소. */
   readonly history: UndoOwner = {
     replay: kind => this.historyDelete(kind),
+    place: () =>
+      this.restored === undefined
+        ? undefined
+        : {kind: 'media', mediaId: this.restored},
   };
 
   readonly subscribe = (listener: () => void): (() => void) => {
@@ -430,6 +437,7 @@ export class MediaLibrary {
       .edit({type: kind === 'undo' ? 'media.undoDelete' : 'media.redoDelete'})
       .catch(rejected);
     this.historyPending = false;
+    this.restored = kind === 'undo' && result.ok ? result.value?.id : undefined;
     if (result.ok || result.error.reason === 'write-failed') {
       const revision = result.ok
         ? result.value?.revision

@@ -1,3 +1,4 @@
+import {undoTimeline} from '@renderer/platform/undoTimeline';
 import {
   createContext,
   use,
@@ -129,6 +130,17 @@ export function MediaViewProvider({
     select(mediaId);
     navigate?.('prep');
   });
+  // NOTE(0913vision): A media item whose deletion is undone is chosen in the
+  // whole list, where it came back.
+  useEffect(
+    () =>
+      undoTimeline.onPlace(place => {
+        if (place.kind !== 'media') return;
+        choose(ALL_MEDIA);
+        select(place.mediaId);
+      }),
+    [],
+  );
   useEffect(() => {
     if (!active) return undefined;
     const ready = readiness?.begin();
