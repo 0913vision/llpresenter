@@ -1,13 +1,5 @@
-import {isUnchangedSelectionMove} from '@core/common/selectionOrder';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
-import {
-  Fragment,
-  useLayoutEffect,
-  useRef,
-  useState,
-  type DragEvent,
-  type JSX,
-} from 'react';
+import {Fragment, useLayoutEffect, useState, type JSX} from 'react';
 import {limitReason} from '@core/common/limitReason';
 import {parseMacroCollectionId} from '@core/schema/ids';
 import {MACRO_FILE_LIMITS, type MacroCollection} from '@core/schema/macros';
@@ -29,10 +21,10 @@ import {
 } from './macroCollectionEdits';
 import {MacroCollectionMenu} from './macroCollectionMenuEntries';
 import {MacroCollectionRow} from './MacroCollectionRow';
+import {useCollectionDrag} from './useCollectionDrag';
 import styles from './MacroCollectionPicker.module.css';
 
 const ALL = 'all';
-const DRAG_MIME = 'application/x-llpresenter-macro-collection';
 interface CollectionProps {
   readonly collections: readonly MacroCollection[];
   readonly value: MacroCollection['id'] | undefined;
@@ -85,10 +77,6 @@ function CollectionPopover({
         console.error('Collection copy callback failed:', cause),
     );
   };
-  const dragging = useRef<MacroCollection['id'] | null>(null);
-  const [insertBefore, setInsertBefore] = useState<
-    MacroCollection['id'] | null | undefined
-  >();
   const {surface, onKeyDown} = useChoicePopup({
     anchor,
     onClose,
@@ -128,34 +116,11 @@ function CollectionPopover({
       },
     );
   };
-  const unchanged = (before: MacroCollection['id'] | undefined): boolean => {
-    if (dragging.current === null) return false;
-    const index =
-      before === undefined
-        ? collections.length
-        : collections.findIndex(item => item.id === before);
-    return (
-      index >= 0 &&
-      isUnchangedSelectionMove(
-        collections.map(item => item.id),
-        new Set([dragging.current]),
-        index,
-      )
-    );
-  };
-  const move = (
-    event: DragEvent,
-    before: MacroCollection['id'] | undefined,
-  ): void => {
-    const id = dragging.current;
-    if (locked || id === null) return;
-    event.preventDefault();
-    event.stopPropagation();
-    const noChange = unchanged(before);
-    dragging.current = null;
-    setInsertBefore(undefined);
-    if (!noChange) save({kind: 'move', id, before});
-  };
+  const drag = useCollectionDrag({
+    collections,
+    locked,
+    move: (id, before) => save({kind: 'move', id, before}),
+  });
   const rows = [{id: ALL, name: '모든 매크로'}, ...collections];
   const cannotAdd =
     locked ||
@@ -191,26 +156,7 @@ function CollectionPopover({
               role="listbox"
               aria-label="매크로 모음 목록"
               className={styles.list}
-              onDragOver={event => {
-                event.stopPropagation();
-                if (!locked && dragging.current !== null) {
-                  event.preventDefault();
-                  event.dataTransfer.dropEffect = 'move';
-                  setInsertBefore(unchanged(undefined) ? undefined : null);
-                }
-              }}
-              onDragLeave={event => {
-                if (
-                  !(event.relatedTarget instanceof Node) ||
-                  !event.currentTarget.contains(event.relatedTarget)
-                ) {
-                  setInsertBefore(undefined);
-                }
-              }}
-              onDrop={event => {
-                event.stopPropagation();
-                move(event, undefined);
-              }}
+              {...drag.list}
             >
               {rows.map(row => {
                 const item = collections.find(item => item.id === row.id);
@@ -220,39 +166,15 @@ function CollectionPopover({
                 };
                 return (
                   <Fragment key={row.id}>
-                    {insertBefore !== undefined && insertBefore === item?.id ? (
+                    {drag.insertBefore !== undefined &&
+                    drag.insertBefore === item?.id ? (
                       <ListInsertLine />
                     ) : null}
                     <MacroCollectionRow
                       name={row.name}
                       selected={row.id === (value ?? ALL)}
                       locked={locked}
-                      drag={{
-                        draggable:
-                          item !== undefined && !locked && renaming !== row.id,
-                        onDragStart: event => {
-                          if (item === undefined || locked) return;
-                          dragging.current = item.id;
-                          event.dataTransfer.effectAllowed = 'move';
-                          event.dataTransfer.setData(DRAG_MIME, item.id);
-                        },
-                        onDragEnd: () => {
-                          dragging.current = null;
-                          setInsertBefore(undefined);
-                        },
-                        onDragOver: event => {
-                          if (locked || dragging.current === null) return;
-                          event.preventDefault();
-                          event.stopPropagation();
-                          event.dataTransfer.dropEffect = 'move';
-                          const before = item?.id ?? collections[0]?.id;
-                          setInsertBefore(
-                            unchanged(before) ? undefined : (before ?? null),
-                          );
-                        },
-                        onDrop: event =>
-                          move(event, item?.id ?? collections[0]?.id),
-                      }}
+                      drag={drag.row(item, renaming === row.id)}
                       rename={
                         renaming !== item?.id
                           ? undefined
@@ -295,7 +217,7 @@ function CollectionPopover({
                   </Fragment>
                 );
               })}
-              {insertBefore === null ? <ListInsertLine /> : null}
+              {drag.insertBefore === null ? <ListInsertLine /> : null}
             </div>
             <div role="separator" className={menuStyles.separator} />
             <div
