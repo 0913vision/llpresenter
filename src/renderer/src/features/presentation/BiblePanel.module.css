@@ -25,6 +25,10 @@
   gap: var(--space-12);
   flex: 1;
   flex-wrap: wrap;
+
+  /* NOTE(0913vision): The tool row pads 8; the controls start at the panel
+     inset like the footer below. */
+  padding-left: calc(var(--panel-inset) - var(--space-8));
 }
 
 .translation {

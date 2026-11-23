@@ -41,11 +41,9 @@ export function BiblePanel({
         <SlidePanelBody sizeClass={sizeClass} />
       </PanelBody>
       <div className={styles.footer}>
-        <GridFooter
-          actions={<BibleAdjacentButtons key={source.id} source={source} />}
-          zoom={<SlideSizeControl sizeClass={sizeClass} />}
-        >
+        <GridFooter zoom={<SlideSizeControl sizeClass={sizeClass} />}>
           <BibleInsertButton source={source} onProblem={onProblem} />
+          <BibleAdjacentButtons key={source.id} source={source} />
         </GridFooter>
       </div>
     </Panel>
