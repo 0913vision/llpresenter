@@ -34,7 +34,7 @@ vi.mock('@renderer/app/PreferencesWindow', () => ({
     return (
       <main aria-label="preferences">
         <input aria-label="draft" defaultValue="" />
-        <button onClick={() => props.request && props.onReady?.(props.request)}>
+        <button onClick={() => props.request && props.onReady(props.request)}>
           preferences ready
         </button>
         <span>{props.request?.page}</span>

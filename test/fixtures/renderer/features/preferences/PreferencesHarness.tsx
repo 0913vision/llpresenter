@@ -42,14 +42,19 @@ export function PreferencesHarness({
   const next = useRef<PreferencePageId | null>(null);
   const busy = useRef(false);
   const open = useCallback((page: PreferencePageId): void => {
+    const isWaiting = (): boolean => next.current !== null;
+    const take = (): PreferencePageId | null => {
+      const wanted = next.current;
+      next.current = null;
+      return wanted;
+    };
     const run = async (): Promise<void> => {
       busy.current = true;
-      while (next.current !== null) {
-        const wanted = next.current;
-        next.current = null;
+      for (let wanted = take(); wanted !== null; wanted = take()) {
+        const page = wanted;
         const settled = (await view.current?.settle()) ?? true;
-        if (!settled || next.current !== null) continue;
-        setRequest(last => ({requestId: last.requestId + 1, page: wanted}));
+        if (!settled || isWaiting()) continue;
+        setRequest(last => ({requestId: last.requestId + 1, page}));
       }
       busy.current = false;
     };
