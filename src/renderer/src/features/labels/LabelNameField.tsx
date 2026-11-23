@@ -45,6 +45,8 @@ function NameDraft({
   readonly autoFocus: boolean;
 }): JSX.Element {
   const [applied, setApplied] = useState<AppliedRename | null>(null);
+  // NOTE(0913vision): A name that was accepted stays here, so settling again
+  // before the next draft starts says the same.
   const pendingSave = useRef<Promise<boolean> | null>(null);
   const currentName = applied?.name ?? label.name;
   const draft = useRenameDraft(
@@ -61,10 +63,18 @@ function NameDraft({
         const saved = retry
           ? store.retryRename(applied)
           : store.renameLabel(currentName, name, setApplied);
-        pendingSave.current = saved;
-        return saved.finally(() => {
-          pendingSave.current = null;
-        });
+        const pending = saved.then(
+          accepted => {
+            if (!accepted) pendingSave.current = null;
+            return accepted;
+          },
+          (error: unknown) => {
+            pendingSave.current = null;
+            throw error;
+          },
+        );
+        pendingSave.current = pending;
+        return pending;
       },
       onClose,
     },

@@ -9,7 +9,7 @@ import {
   within,
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import {Activity, StrictMode} from 'react';
+import {Activity} from 'react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {EditResult} from '@core/schema/contentEdit';
 import type {
@@ -23,8 +23,8 @@ import {
 import {translationIdSchema} from '@core/schema/ids';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import type {PreferencePageId} from '@core/schema/preferencePages';
 import {MISSING_DEVICE_REASON} from '@renderer/features/preferences/DeviceRow';
+import {PreferencesHarness} from '@fixtures/renderer/features/preferences/PreferencesHarness';
 import {PreferencesView} from '@renderer/features/preferences/PreferencesView';
 import {MenuBar} from '@renderer/app/shell/MenuBar';
 import {renderWithScreenSummaries} from '@fixtures/renderer/platform/screenSummaries';
@@ -161,7 +161,7 @@ function install(
 
 async function mount(options?: Parameters<typeof install>[0]) {
   install(options);
-  const view = render(<PreferencesView onProblem={onProblem} />);
+  const view = render(<PreferencesHarness onProblem={onProblem} />);
   await screen.findByRole('checkbox', {name: 'Windows 시작할 때 실행'});
   return view;
 }
@@ -209,6 +209,7 @@ describe('PreferencesView', () => {
           onProblem={onProblem}
           onReady={onReady}
           request={request}
+          onPageSelect={vi.fn()}
         />,
       );
       await waitFor(() => expect(onReady).toHaveBeenCalledWith(request));
@@ -219,8 +220,7 @@ describe('PreferencesView', () => {
     }
   });
   it('uses the current shared-window request after the view resumes', async () => {
-    const legacy = vi.fn(async () => 'general' as const);
-    install({window: {preferencesPage: legacy}});
+    install();
     const onReady = vi.fn();
     const request = {requestId: 2, page: 'shortcuts'} as const;
     const view = render(
@@ -229,6 +229,7 @@ describe('PreferencesView', () => {
           onProblem={onProblem}
           onReady={onReady}
           request={request}
+          onPageSelect={vi.fn()}
         />
       </Activity>,
     );
@@ -239,6 +240,7 @@ describe('PreferencesView', () => {
           onProblem={onProblem}
           onReady={onReady}
           request={request}
+          onPageSelect={vi.fn()}
         />
       </Activity>,
     );
@@ -250,12 +252,12 @@ describe('PreferencesView', () => {
           onProblem={onProblem}
           onReady={onReady}
           request={next}
+          onPageSelect={vi.fn()}
         />
       </Activity>,
     );
     await waitFor(() => expect(onReady).toHaveBeenCalledWith(next));
     expect(screen.getByRole('heading', {name: '성경'})).toBeTruthy();
-    expect(legacy).not.toHaveBeenCalled();
   });
   it.each([
     'bible',
@@ -270,12 +272,7 @@ describe('PreferencesView', () => {
     async name => {
       const page = name === 'bible' ? 'bible' : 'shortcuts';
       const request = {requestId: 7, page} as const;
-      install({
-        window: {
-          preferencesPage: async () => page,
-          preferencesRequest: async () => request,
-        },
-      });
+      install();
       const api = window.llp;
       if (api === undefined) throw new Error('Missing API');
       const get = api.settings.get;
@@ -288,7 +285,13 @@ describe('PreferencesView', () => {
         query.name === name ? pending : get(query),
       );
       const onReady = vi.fn();
-      render(<PreferencesView onProblem={onProblem} onReady={onReady} />);
+      render(
+        <PreferencesHarness
+          onProblem={onProblem}
+          onReady={onReady}
+          first={request}
+        />,
+      );
       await screen.findByRole('heading', {
         name: page === 'bible' ? '성경' : '단축키',
       });
@@ -316,13 +319,14 @@ describe('PreferencesView', () => {
       value: {ready},
     });
     try {
-      install({
-        window: {
-          preferencesPage: async () => 'output',
-          preferencesRequest: async () => ({requestId: 1, page: 'output'}),
-        },
-      });
-      render(<PreferencesView onProblem={onProblem} onReady={onReady} />);
+      install();
+      render(
+        <PreferencesHarness
+          onProblem={onProblem}
+          onReady={onReady}
+          first={{requestId: 1, page: 'output'}}
+        />,
+      );
       await screen.findByRole('heading', {name: '출력'});
       expect(onReady).not.toHaveBeenCalled();
       await act(async () => finishFonts());
@@ -346,42 +350,6 @@ describe('PreferencesView', () => {
     );
     expect(written()).toMatchObject(UNKNOWN_FIELDS);
   });
-  it('opens on the page main hands over once, also when StrictMode runs its effects twice', async () => {
-    let answers: Array<PreferencePageId | null> = ['shortcuts', null];
-    const preferencesPage = vi.fn(() =>
-      Promise.resolve(answers.shift() ?? null),
-    );
-    install({window: {preferencesPage}});
-    render(
-      <StrictMode>
-        <PreferencesView onProblem={onProblem} />
-      </StrictMode>,
-    );
-    await waitFor(() =>
-      expect(screen.getByRole('heading').textContent).toBe('단축키'),
-    );
-    expect(preferencesPage).toHaveBeenCalledOnce();
-    answers = [];
-  });
-
-  it('moves to a page main pushes while the window is open', async () => {
-    let show: (page: PreferencePageId) => void = () => undefined;
-    install({
-      window: {
-        onPreferencesPage: listener => {
-          show = listener;
-          return () => undefined;
-        },
-      },
-    });
-    render(<PreferencesView onProblem={onProblem} />);
-    await screen.findByRole('checkbox', {name: 'Windows 시작할 때 실행'});
-    act(() => show('bible'));
-    await waitFor(() =>
-      expect(screen.getByRole('heading').textContent).toBe('성경'),
-    );
-  });
-
   it('lists the pages and opens the 단축키 page', async () => {
     await mount();
 

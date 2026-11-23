@@ -25,7 +25,7 @@ import {
   hoverForTooltip,
   resetTooltips,
 } from '@fixtures/renderer/ui/tooltipTesting';
-import {PreferencesView} from '@renderer/features/preferences/PreferencesView';
+import {PreferencesHarness} from '@fixtures/renderer/features/preferences/PreferencesHarness';
 
 const SONGS = 'C:\\data\\Songs';
 const MEDIA = 'C:\\data\\Media';
@@ -134,7 +134,7 @@ function install(parts: {
 
 async function mount(page?: string) {
   const view = render(
-    <PreferencesView onProblem={onProblem} onDismiss={onDismiss} />,
+    <PreferencesHarness onProblem={onProblem} onDismiss={onDismiss} />,
   );
   await screen.findByRole('checkbox', {name: 'Windows 시작할 때 실행'});
   if (page !== undefined) {

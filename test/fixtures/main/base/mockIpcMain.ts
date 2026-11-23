@@ -44,6 +44,11 @@ export function mockIpcMain() {
         listeners.get(channel)?.delete(listener);
       },
     },
+    /** Forgets every channel. */
+    reset: () => {
+      handlers.clear();
+      listeners.clear();
+    },
     /** How many channels main answers or hears. */
     open: (): number =>
       [...listeners.values()].reduce(

@@ -183,32 +183,15 @@ export const windowEndpoints = {
   ),
   openScreens: signal('window:open-screens'),
   openPreferences: signal('window:open-preferences'),
-  preferencesReady: message<PreferencesRequest>(
-    'window:preferences-ready',
-    parsePreferencesRequest,
-  ),
-  preferencesRequest: query<PreferencesRequest>(
-    'window:preferences-request',
-    parsePreferencesRequest,
-  ),
   openPreferencesAt: message<PreferencePageId>(
     'window:open-preferences-at',
     parsePreferencePage,
-  ),
-  preferencesPage: query<PreferencePageId | null>(
-    'window:preferences-page',
-    value =>
-      value === null ? {ok: true, value: null} : parsePreferencePage(value),
   ),
   openLogFolder: signal('window:open-log-folder'),
   appInfo: query<AppInfo>('window:app-info', parseAppInfo),
   diagnostics: query<string>('window:diagnostics', parseDiagnosticsText),
   verboseLogging: message<boolean>('window:verbose-logging', parseOnOff),
   verboseLoggingState: query<boolean>('window:verbose-logging:get', parseOnOff),
-  showPreferencesPage: push<PreferencePageId>(
-    'window:show-preferences-page',
-    parsePreferencePage,
-  ),
   control: message<WindowAction>('window:control', parseWindowAction),
   fullScreen: query<boolean>('window:full-screen', parseOnOff),
   fullScreenChanged: push<boolean>('window:full-screen:changed', parseOnOff),
@@ -231,10 +214,6 @@ export function windowApi(port: IpcPort) {
     openScreens: port.signal(windowEndpoints.openScreens),
     /** Opens or focuses the 환경설정 window. */
     openPreferences: port.signal(windowEndpoints.openPreferences),
-    /** Reveals the preferences window after its content and fonts are drawn. */
-    preferencesReady: port.message(windowEndpoints.preferencesReady),
-    /** Reads the latest page request and its bounded identity. */
-    preferencesRequest: port.query(windowEndpoints.preferencesRequest),
     /** Opens the app's log folder in the file manager. */
     openLogFolder: port.signal(windowEndpoints.openLogFolder),
     /** The text 진단 정보 copies: versions, devices, and recent errors. */
@@ -247,10 +226,6 @@ export function windowApi(port: IpcPort) {
     appInfo: port.query(windowEndpoints.appInfo),
     /** Opens or focuses the 환경설정 window on one of its pages. */
     openPreferencesAt: port.message(windowEndpoints.openPreferencesAt),
-    /** The page the 환경설정 window was opened on, or null for the first. */
-    preferencesPage: port.query(windowEndpoints.preferencesPage),
-    /** Follows the page requests of a 환경설정 window that stays open. */
-    onPreferencesPage: port.subscribe(windowEndpoints.showPreferencesPage),
     /** Minimizes, maximizes or restores, or closes the calling window. */
     control: port.message(windowEndpoints.control),
     /** Whether the calling window is full screen. */
@@ -260,12 +235,11 @@ export function windowApi(port: IpcPort) {
      * @returns A function that removes the listener. Always call it.
      */
     onFullScreen: port.subscribe(windowEndpoints.fullScreenChanged),
-    /** Reads and follows the calling window?s native minimized state. */
+    /** Reads and follows the calling window's native minimized state. */
     minimized: port.query(windowEndpoints.minimized),
     onMinimized: port.subscribe(windowEndpoints.minimizedChanged),
     /** Runs a text editing action on the focused field of the calling window. */
     editText: port.message(windowEndpoints.editText),
-    /** Opens or retargets the 곡 편집 window on a song. */
   };
 }
 

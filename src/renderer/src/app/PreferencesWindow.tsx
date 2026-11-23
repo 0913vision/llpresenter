@@ -2,7 +2,6 @@ import {
   useCallback,
   useEffect,
   useRef,
-  useState,
   useSyncExternalStore,
   type JSX,
   type Ref,
@@ -17,7 +16,7 @@ import type {PreferencesRequest} from '@contracts/ipc/window';
 import {IconButton} from '@renderer/ui';
 import {watchInputModality} from '@renderer/ui/inputModality';
 import {NotificationStack} from '@renderer/ui/Notification';
-import {addNotice, removeNotice, type Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/notices';
 import type {CloseFlush} from './closeFlush';
 import type {ControlSession} from './controlSession';
 import {SavingDialog} from './SavingDialog';
@@ -26,7 +25,6 @@ import {useCloseKeys, useInitialListFocus} from './useWindowKeyboard';
 import styles from './PreferencesWindow.module.css';
 
 const TITLE = '환경설정';
-const noSubscription = () => () => undefined;
 
 /** The 환경설정 window: its own title bar and a close button. */
 export function PreferencesWindow({
@@ -38,46 +36,25 @@ export function PreferencesWindow({
   viewRef,
 }: {
   readonly closeFlush?: CloseFlush | undefined;
-  readonly session?: ControlSession | undefined;
-  readonly request?: PreferencesRequest | undefined;
-  readonly onReady?: ((request: PreferencesRequest) => void) | undefined;
-  readonly onPageSelect?: ((page: PreferencePageId) => void) | undefined;
+  readonly session: ControlSession;
+  readonly request: PreferencesRequest | undefined;
+  readonly onReady: (request: PreferencesRequest) => void;
+  readonly onPageSelect: (page: PreferencePageId) => void;
   readonly viewRef?: Ref<PreferencesViewHandle> | undefined;
 }): JSX.Element {
-  const [localNotices, setNotices] = useState<readonly Notice[]>([]);
-  const getLocalNotices = useCallback(() => localNotices, [localNotices]);
-  const notices = useSyncExternalStore(
-    session?.subscribe ?? noSubscription,
-    session?.getNotices ?? getLocalNotices,
-  );
+  const notices = useSyncExternalStore(session.subscribe, session.getNotices);
   useShortcutSettings(window.llp);
   useUiZoomKeys();
   const body = useRef<HTMLElement>(null);
   const close = useCallback(() => window.llp?.window.control('close'), []);
-  const ready = useCallback(
-    (request: PreferencesRequest) =>
-      window.llp?.window.preferencesReady(request),
-    [],
-  );
   useCloseKeys(close);
   useInitialListFocus(body, request?.requestId);
   useEffect(() => watchInputModality(window), []);
   const report = useCallback(
-    (notice: Notice) => {
-      if (session === undefined) {
-        setNotices(current => addNotice(current, notice));
-      } else session.report(notice);
-    },
+    (notice: Notice) => session.report(notice),
     [session],
   );
-  const dismiss = useCallback(
-    (key: string) => {
-      if (session === undefined) {
-        setNotices(current => removeNotice(current, key));
-      } else session.dismiss(key);
-    },
-    [session],
-  );
+  const dismiss = useCallback((key: string) => session.dismiss(key), [session]);
   return (
     <div className={styles.window} data-workspace-layout="preferences">
       <header className={styles.titlebar}>
@@ -90,8 +67,8 @@ export function PreferencesWindow({
         <PreferencesView
           onProblem={report}
           onDismiss={dismiss}
-          labelStore={session?.labels}
-          onReady={onReady ?? ready}
+          labelStore={session.labels}
+          onReady={onReady}
           request={request}
           onPageSelect={onPageSelect}
           viewRef={viewRef}

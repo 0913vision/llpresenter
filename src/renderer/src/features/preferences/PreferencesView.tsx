@@ -1,5 +1,4 @@
 import {
-  useCallback,
   useEffect,
   useRef,
   useState,
@@ -37,6 +36,7 @@ import type {LabelCatalog} from '../labels/labelCatalog';
 import type {LabelManagerHandle} from '../labels/LabelManager';
 
 const NAV_LABEL = '환경설정 항목';
+const FIRST_PAGE: PreferencePageId = 'general';
 const noSubscribe = () => () => undefined;
 function preferencesFontsReady(): Promise<unknown> {
   try {
@@ -50,9 +50,11 @@ interface PreferencesViewProps {
   readonly onProblem: (notice: Notice) => void;
   readonly onDismiss?: ((key: string) => void) | undefined;
   readonly labelStore?: LabelCatalog | undefined;
-  readonly onReady?: ((request: PreferencesRequest) => void) | undefined;
-  readonly request?: PreferencesRequest | undefined;
-  readonly onPageSelect?: ((page: PreferencePageId) => void) | undefined;
+  /** What the settings window asks for; none before it asks. */
+  readonly request: PreferencesRequest | undefined;
+  /** Told once the page that is asked for has drawn. */
+  readonly onReady: (request: PreferencesRequest) => void;
+  readonly onPageSelect: (page: PreferencePageId) => void;
   readonly viewRef?: Ref<PreferencesViewHandle> | undefined;
 }
 
@@ -76,16 +78,12 @@ function PreferencesContent({
   labelStore,
   onReady,
   readiness,
-  request: controlledRequest,
+  request,
   onPageSelect,
   viewRef,
 }: PreferencesViewProps & {readonly readiness: LoadReadiness}): JSX.Element {
   const audioOutputs = useAudioOutputs();
-  const [localPage, setPage] = useState<PreferencePageId>('general');
-  const page = controlledRequest?.page ?? localPage;
-  const [localStarted, setStarted] = useState(false);
-  const started = controlledRequest !== undefined || localStarted;
-  const [pageRequest, setPageRequest] = useState(0);
+  const page = request?.page ?? FIRST_PAGE;
   const pending = useSyncExternalStore(
     readiness.subscribe,
     readiness.getSnapshot,
@@ -96,14 +94,9 @@ function PreferencesContent({
       labelStore?.getSnapshot().labels !== null ||
       labelStore.getSnapshot().status === 'failed',
   );
-  const [localRequest, setRequest] = useState<PreferencesRequest | null>(null);
-  const request = controlledRequest ?? localRequest;
   const announced = useRef<PreferencesRequest | null>(null);
-  const currentPage = useRef(page);
   const labelManager = useRef<LabelManagerHandle>(null);
-  const requestedPage = useRef<PreferencePageId | null>(null);
   const stopPendingPage = useRef<(() => void) | null>(null);
-  const settling = useRef(false);
   useEffect(() => () => stopPendingPage.current?.(), []);
   useImperativeHandle(
     viewRef,
@@ -118,116 +111,11 @@ function PreferencesContent({
     }),
     [page],
   );
-  const requestPage = useCallback((next: PreferencePageId): void => {
-    setPageRequest(value => value + 1);
-    requestedPage.current = next;
-    if (settling.current) return;
-    const settle =
-      currentPage.current === 'labels'
-        ? labelManager.current?.settle
-        : undefined;
-    if (settle === undefined || next === currentPage.current) {
-      currentPage.current = next;
-      setPage(next);
-      requestedPage.current = null;
-      return;
-    }
-    settling.current = true;
-    settle()
-      .then(saved => {
-        const target = requestedPage.current;
-        if (saved && target !== null) {
-          currentPage.current = target;
-          setPage(target);
-        }
-      })
-      .catch((error: unknown) =>
-        window.llp?.log.write({
-          level: 'error',
-          message:
-            'Could not settle label drafts before changing preferences pages',
-          detail: error instanceof Error ? error.message : String(error),
-        }),
-      )
-      .finally(() => {
-        settling.current = false;
-        requestedPage.current = null;
-      });
-  }, []);
-  // NOTE(0913vision): Main hands the start page over once, and StrictMode runs
-  // the effect twice in a dev build, so the first answer is kept for the second
-  // run instead of asking again.
-  const start = useRef<Promise<PreferencePageId | null> | null>(null);
-  useEffect(() => {
-    if (controlledRequest !== undefined) {
-      return undefined;
-    }
-    const api = window.llp?.window;
-    if (api === undefined) return undefined;
-    let stopped = false;
-    let pushed = false;
-    start.current ??= api.preferencesPage();
-    start.current
-      .then(first => {
-        if (stopped) return;
-        if (!pushed && first !== null) requestPage(first);
-        setStarted(true);
-      })
-      .catch((error: unknown) => {
-        if (!stopped) setStarted(true);
-        window.llp?.log.write({
-          level: 'error',
-          message: 'Could not read the requested preferences page',
-          detail: error instanceof Error ? error.message : String(error),
-        });
-      });
-    const stop = api.onPreferencesPage(next => {
-      pushed = true;
-      requestPage(next);
-    });
-    return () => {
-      stopped = true;
-      requestedPage.current = null;
-      stop();
-    };
-  }, [requestPage, controlledRequest]);
-  useEffect(() => {
-    const api = window.llp?.window;
-    if (
-      api === undefined ||
-      onReady === undefined ||
-      controlledRequest !== undefined
-    ) {
-      return undefined;
-    }
-    let active = true;
-    api.preferencesRequest().then(
-      value => {
-        if (active) setRequest(value);
-      },
-      (error: unknown) =>
-        window.llp?.log.write({
-          level: 'error',
-          message: 'Could not read the preferences request identity',
-          detail: error instanceof Error ? error.message : String(error),
-        }),
-    );
-    return () => {
-      active = false;
-    };
-  }, [pageRequest, onReady, controlledRequest]);
   const edits = usePreferenceEdits(onProblem);
   const locations = useLibraryLocations(onProblem, onDismiss);
   const loaded = pending === 0 && (page !== 'labels' || labelsLoaded);
   useEffect(() => {
-    if (
-      !started ||
-      !loaded ||
-      onReady === undefined ||
-      request?.page !== page
-    ) {
-      return undefined;
-    }
+    if (request === undefined || !loaded) return undefined;
     let stopped = false;
     const draw = (): void => {
       if (
@@ -253,16 +141,7 @@ function PreferencesContent({
     return () => {
       stopped = true;
     };
-  }, [
-    started,
-    loaded,
-    onReady,
-    pageRequest,
-    page,
-    request,
-    readiness,
-    pending,
-  ]);
+  }, [loaded, onReady, request, readiness, pending]);
   const bible = useBibleEdits(onProblem);
   const current = preferencePages.find(entry => entry.id === page);
   const choosePage = (next: PreferencePageId): void => {
@@ -271,8 +150,7 @@ function PreferencesContent({
     const select = (): void => {
       stopPendingPage.current?.();
       stopPendingPage.current = null;
-      if (onPageSelect !== undefined) onPageSelect(next);
-      else requestPage(next);
+      onPageSelect(next);
     };
     if (readiness.getSnapshot() === 0 || next === page) {
       select();

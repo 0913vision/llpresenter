@@ -1,4 +1,4 @@
-import {app, BrowserWindow, ipcMain, type IpcMainEvent} from 'electron';
+import {app, BrowserWindow, type WebContents} from 'electron';
 import {
   windowEndpoints,
   PREFERENCES_REQUEST_LIMIT,
@@ -6,6 +6,7 @@ import {
 } from '@contracts/ipc/window';
 import type {PreferencePageId} from '@core/schema/preferencePages';
 import type {AppConfigFile} from '../store/appConfigFile';
+import {IpcHost, pushToWindow} from '../base/ipcHost';
 import {logWindowResponsiveness} from '../base/responsiveness';
 import {registerControlClose, type ControlClose} from './controlClose';
 import {
@@ -63,7 +64,6 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
   private opener: BrowserWindow | null = null;
   private warmup: ReturnType<typeof setTimeout> | undefined;
   private warmTargets: Target[] = [];
-  private requested: PreferencePageId | null = null;
   private preferencesPage: PreferencePageId = 'general';
   private request: SettingsRequest = {
     ...PREFERENCES,
@@ -71,31 +71,13 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
     preparing: true,
   };
 
+  private readonly ipc: IpcHost;
+
   constructor(private readonly options: SettingsWindowOptions) {
     this.control = options.control;
     this.preferencesPage = options.config?.preferencesPage ?? 'general';
-    ipcMain.on(windowEndpoints.openPreferences.channel, this.openPreferences);
-    ipcMain.on(windowEndpoints.openPreferencesAt.channel, this.openAt);
-    if (options.screens !== undefined) {
-      ipcMain.on(windowEndpoints.openScreens.channel, this.openScreens);
-    }
-    ipcMain.on(windowEndpoints.settingsReady.channel, this.ready);
-    ipcMain.on(windowEndpoints.preferencesReady.channel, this.preferencesReady);
-    ipcMain.on(windowEndpoints.rejectSettingsRequest.channel, this.reject);
-    ipcMain.handle(windowEndpoints.settingsRequest.channel, () => this.request);
-    ipcMain.handle(windowEndpoints.preferencesRequest.channel, () => ({
-      requestId: this.request.requestId,
-      page: this.request.page,
-    }));
-    ipcMain.handle(windowEndpoints.preferencesPage.channel, () => {
-      const page = this.requested;
-      this.requested = null;
-      return page;
-    });
-    ipcMain.handle(
-      windowEndpoints.beginSettingsRequest.channel,
-      (event, value: unknown) => this.accept(event, value),
-    );
+    this.ipc = new IpcHost(options.log);
+    this.listen();
     options.control.once('closed', this.controlClosed);
     options.control.webContents.once('did-finish-load', this.scheduleWarmup);
     if (!options.control.webContents.isLoadingMainFrame()) {
@@ -125,21 +107,38 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
     return (this.request.requestId + 1) % PREFERENCES_REQUEST_LIMIT;
   }
 
-  private readonly openPreferences = (): void =>
-    this.open({view: 'preferences', page: this.preferencesPage});
-  private readonly openScreens = (): void =>
-    this.open({view: 'screens', page: this.preferencesPage});
-  private readonly openAt = (_event: unknown, value: unknown): void => {
-    const page = windowEndpoints.openPreferencesAt.message(value);
-    if (!page.ok) {
-      this.options.log.warn(
-        'dropped a malformed preferences page request',
-        page.error,
-      );
-      return;
+  private listen(): void {
+    const {ipc} = this;
+    ipc.signal(windowEndpoints.openPreferences, () => {
+      this.open({view: 'preferences', page: this.preferencesPage});
+    });
+    ipc.message(windowEndpoints.openPreferencesAt, page => {
+      this.open({view: 'preferences', page}, true);
+    });
+    if (this.options.screens !== undefined) {
+      ipc.signal(windowEndpoints.openScreens, () => {
+        this.open({view: 'screens', page: this.preferencesPage});
+      });
     }
-    this.open({view: 'preferences', page: page.value}, true);
-  };
+    ipc.query(windowEndpoints.settingsRequest, () => this.request);
+    ipc.request(
+      windowEndpoints.beginSettingsRequest,
+      (request, {contents}) =>
+        this.isCurrent(request, contents) && this.accept(request),
+    );
+    ipc.message(windowEndpoints.settingsReady, (request, {contents}) => {
+      if (!this.isCurrent(request, contents)) return;
+      this.painted().catch((error: unknown) =>
+        this.options.log.error('could not prepare the settings frame', error),
+      );
+    });
+    ipc.message(
+      windowEndpoints.rejectSettingsRequest,
+      (request, {contents}) => {
+        if (this.isCurrent(request, contents)) this.reject();
+      },
+    );
+  }
 
   private open(target: Target, force = false): void {
     if (this.disposed || this.stopping) return;
@@ -184,21 +183,17 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
 
   private select(target: Target, preparing: boolean): void {
     this.request = {...target, requestId: this.nextId(), preparing};
-    this.requested = target.page;
     this.rendered = false;
     this.presented = null;
   }
 
   private pushRequest(): void {
     const contents = this.win?.webContents;
-    if (contents === undefined || contents.isDestroyed()) return;
-    contents.send(windowEndpoints.showSettingsRequest.channel, this.request);
-    if (this.request.view === 'preferences') {
-      contents.send(
-        windowEndpoints.showPreferencesPage.channel,
-        this.request.page,
-      );
-    }
+    if (contents === undefined) return;
+    pushToWindow(contents, windowEndpoints.showSettingsRequest, {
+      value: this.request,
+      log: this.options.log,
+    });
   }
 
   private prepare(): void {
@@ -231,7 +226,6 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
       this.presented = null;
       win.hide();
       win.setOpacity(0);
-      this.requested = this.request.page;
     });
     win.webContents.on('render-process-gone', (_event, details) => {
       if (win.isDestroyed() || details.reason === 'clean-exit') return;
@@ -240,31 +234,24 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
       win.hide();
       win.setOpacity(0);
       this.request = {...this.request, requestId: this.nextId()};
-      this.requested = this.request.page;
     });
     win.once('closed', this.closed);
   }
 
-  private incoming(
-    event: Pick<IpcMainEvent, 'sender'>,
-    value: unknown,
-  ): SettingsRequest | null {
-    if (event.sender.id !== this.win?.webContents.id) return null;
-    const parsed = windowEndpoints.settingsReady.message(value);
-    if (!parsed.ok) return null;
-    const request = parsed.value;
-    return request.requestId === this.request.requestId &&
+  /** Whether a window answers what it was asked for last. */
+  private isCurrent(request: SettingsRequest, contents: WebContents): boolean {
+    return (
+      contents.id === this.win?.webContents.id &&
+      request.requestId === this.request.requestId &&
       request.view === this.request.view &&
       request.page === this.request.page &&
       request.preparing === this.request.preparing
-      ? request
-      : null;
+    );
   }
 
-  private accept(event: Pick<IpcMainEvent, 'sender'>, value: unknown): boolean {
-    const request = this.incoming(event, value);
+  private accept(request: SettingsRequest): boolean {
     const win = this.win;
-    if (request === null || win === null || win.isDestroyed()) return false;
+    if (win === null || win.isDestroyed()) return false;
     if (request.view === 'screens' && this.options.screens === undefined) {
       return false;
     }
@@ -306,17 +293,8 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
     return true;
   }
 
-  private readonly ready = (event: IpcMainEvent, value: unknown): void => {
-    this.painted(event, value).catch((error: unknown) =>
-      this.options.log.error('could not prepare the settings frame', error),
-    );
-  };
-
-  private async painted(event: IpcMainEvent, value: unknown): Promise<void> {
-    if (
-      this.incoming(event, value) === null ||
-      (!this.request.preparing && this.geometryView !== this.request.view)
-    ) {
+  private async painted(): Promise<void> {
+    if (!this.request.preparing && this.geometryView !== this.request.view) {
       return;
     }
     this.rendered = true;
@@ -335,30 +313,13 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
     }
   }
 
-  private readonly preferencesReady = (
-    event: IpcMainEvent,
-    value: unknown,
-  ): void => {
-    const parsed = windowEndpoints.preferencesReady.message(value);
-    if (
-      !parsed.ok ||
-      this.request.view !== 'preferences' ||
-      parsed.value.requestId !== this.request.requestId ||
-      parsed.value.page !== this.request.page
-    ) {
-      return;
-    }
-    this.ready(event, this.request);
-  };
-
-  private readonly reject = (event: IpcMainEvent, value: unknown): void => {
-    if (this.incoming(event, value) === null) return;
+  private reject(): void {
     this.select(
       {view: this.geometryView ?? 'preferences', page: this.preferencesPage},
       false,
     );
     this.pushRequest();
-  };
+  }
 
   private async reveal(): Promise<void> {
     const win = this.win;
@@ -486,7 +447,6 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
     this.presented = null;
     this.wanted = false;
     this.preferencesPage = this.options.config?.preferencesPage ?? 'general';
-    this.requested = null;
     this.request = {...PREFERENCES, requestId: this.nextId(), preparing: true};
     if (this.control.isDestroyed()) app.quit();
     else this.scheduleWarmup();
@@ -533,35 +493,7 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
       return;
     }
     this.disposed = true;
-    ipcMain.removeListener(
-      windowEndpoints.openPreferences.channel,
-      this.openPreferences,
-    );
-    ipcMain.removeListener(
-      windowEndpoints.openPreferencesAt.channel,
-      this.openAt,
-    );
-    ipcMain.removeListener(
-      windowEndpoints.openScreens.channel,
-      this.openScreens,
-    );
-    ipcMain.removeListener(windowEndpoints.settingsReady.channel, this.ready);
-    ipcMain.removeListener(
-      windowEndpoints.preferencesReady.channel,
-      this.preferencesReady,
-    );
-    ipcMain.removeListener(
-      windowEndpoints.rejectSettingsRequest.channel,
-      this.reject,
-    );
-    for (const endpoint of [
-      windowEndpoints.settingsRequest,
-      windowEndpoints.preferencesRequest,
-      windowEndpoints.preferencesPage,
-      windowEndpoints.beginSettingsRequest,
-    ]) {
-      ipcMain.removeHandler(endpoint.channel);
-    }
+    this.ipc.close();
     const control = this.control;
     if (!control.isDestroyed()) {
       control.removeListener('closed', this.controlClosed);

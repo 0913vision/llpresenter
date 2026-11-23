@@ -10,7 +10,7 @@ import {
 import userEvent from '@testing-library/user-event';
 import {afterEach, expect, it, onTestFinished, vi} from 'vitest';
 import {editorFixture} from '@fixtures/renderer/features/songs/editorFixture';
-import {PreferencesView} from '@renderer/features/preferences/PreferencesView';
+import {PreferencesHarness} from '@fixtures/renderer/features/preferences/PreferencesHarness';
 import {LabelsPage} from '@renderer/features/labels/LabelsPage';
 import {LabelManagerDialog} from '@renderer/features/labels/LabelManagerDialog';
 import {LabelCatalog} from '@renderer/features/labels/labelCatalog';
@@ -63,11 +63,6 @@ it('waits to reveal requested labels until the editor catalog has loaded them', 
     }
     return get(query);
   });
-  vi.spyOn(f.api.window, 'preferencesPage').mockResolvedValue('labels');
-  vi.spyOn(f.api.window, 'preferencesRequest').mockResolvedValue({
-    requestId: 3,
-    page: 'labels',
-  });
   window.llp = f.api;
   const store = new LabelCatalog(f.api, vi.fn());
   onTestFinished(async () => {
@@ -76,10 +71,11 @@ it('waits to reveal requested labels until the editor catalog has loaded them', 
   });
   const onReady = vi.fn();
   render(
-    <PreferencesView
+    <PreferencesHarness
       labelStore={store}
       onProblem={vi.fn()}
       onReady={onReady}
+      first={{requestId: 3, page: 'labels'}}
     />,
   );
   await screen.findByRole('heading', {name: '이름표'});
@@ -145,7 +141,7 @@ it('edits the shared catalog from preferences while an editor dialog follows it'
   const f = await mount();
   render(
     <>
-      <PreferencesView onProblem={vi.fn()} labelStore={f.store} />
+      <PreferencesHarness onProblem={vi.fn()} labelStore={f.store} />
       <LabelManagerDialog store={f.other} onClose={vi.fn()} />
     </>,
   );
@@ -325,8 +321,14 @@ it('keeps hex focus through persistence so Escape closes only its popover', asyn
     expect(f.listenerCount()).toBe(0);
   });
   const control = vi.spyOn(f.api.window, 'control');
-  render(<PreferencesWindow session={session} />);
-  await user.click(screen.getByRole('option', {name: '이름표'}));
+  render(
+    <PreferencesWindow
+      session={session}
+      request={{requestId: 1, page: 'labels'}}
+      onReady={vi.fn()}
+      onPageSelect={vi.fn()}
+    />,
+  );
   await user.click(await screen.findByRole('button', {name: '1절 색'}));
   const field = screen.getByRole('textbox', {name: '색 코드'});
   await user.clear(field);
@@ -405,8 +407,14 @@ it('reports and dismisses a label save failure in the preferences window', async
     ok: false,
     error: {reason: 'stale', message: 'Invented catalog conflict'},
   });
-  render(<PreferencesWindow session={session} />);
-  await user.click(screen.getByRole('option', {name: '이름표'}));
+  render(
+    <PreferencesWindow
+      session={session}
+      request={{requestId: 1, page: 'labels'}}
+      onReady={vi.fn()}
+      onPageSelect={vi.fn()}
+    />,
+  );
   await user.click(await screen.findByRole('button', {name: '1절 색'}));
   const colors = await screen.findByRole('radiogroup', {name: '1절 색'});
   await user.click(within(colors).getByRole('radio', {name: '초록'}));
@@ -421,16 +429,21 @@ it.each(['sidebar', 'request'] as const)(
   async source => {
     const f = await mount();
     let request: (page: PreferencePageId) => void = () => undefined;
-    vi.spyOn(f.api.window, 'onPreferencesPage').mockImplementation(listener => {
-      request = listener;
-      return () => undefined;
-    });
+    const opener = (open: typeof request): void => {
+      request = open;
+    };
     let finish: (result: EditResult) => void = () => undefined;
     const write = new Promise<EditResult>(resolve => {
       finish = resolve;
     });
     const edit = vi.spyOn(f.api.settings, 'edit').mockReturnValueOnce(write);
-    render(<PreferencesView onProblem={vi.fn()} labelStore={f.store} />);
+    render(
+      <PreferencesHarness
+        onProblem={vi.fn()}
+        labelStore={f.store}
+        opener={opener}
+      />,
+    );
     await f.user.click(screen.getByRole('option', {name: '이름표'}));
     const field = screen.getByRole('textbox', {name: '1절 이름'});
     await f.user.clear(field);
@@ -476,10 +489,9 @@ it.each(['sidebar', 'request'] as const)(
 it('settles an unblurred rename before applying the latest requested page', async () => {
   const f = await mount();
   let request: (page: PreferencePageId) => void = () => undefined;
-  vi.spyOn(f.api.window, 'onPreferencesPage').mockImplementation(listener => {
-    request = listener;
-    return () => undefined;
-  });
+  const opener = (open: typeof request): void => {
+    request = open;
+  };
   let finish: () => void = () => undefined;
   const gate = new Promise<void>(resolve => {
     finish = resolve;
@@ -491,7 +503,13 @@ it('settles an unblurred rename before applying the latest requested page', asyn
       await gate;
       return original(value);
     });
-  render(<PreferencesView onProblem={vi.fn()} labelStore={f.store} />);
+  render(
+    <PreferencesHarness
+      onProblem={vi.fn()}
+      labelStore={f.store}
+      opener={opener}
+    />,
+  );
   await f.user.click(screen.getByRole('option', {name: '이름표'}));
   const field = screen.getByRole('textbox', {name: '1절 이름'});
   await f.user.clear(field);
@@ -512,7 +530,7 @@ it('settles an unblurred rename before applying the latest requested page', asyn
 
 it('keeps invalid label text when navigation cannot save it', async () => {
   const f = await mount();
-  render(<PreferencesView onProblem={vi.fn()} labelStore={f.store} />);
+  render(<PreferencesHarness onProblem={vi.fn()} labelStore={f.store} />);
   await f.user.click(screen.getByRole('option', {name: '이름표'}));
   const field = screen.getByRole('textbox', {name: '1절 이름'});
   await f.user.clear(field);
