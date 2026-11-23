@@ -7,19 +7,16 @@
   "boxes": [
     {
       "name": "주소",
-      "column": false,
       "rows": "one",
       "default": "{구절}"
     },
     {
       "name": "본문",
-      "column": true,
       "rows": "many"
     }
   ],
   "next": {
-    "content": ["{본문}"],
-    "column": false
+    "content": ["{본문}"]
   },
   "hideNextAtEnd": true,
   "background": {

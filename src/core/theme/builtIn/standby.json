@@ -6,8 +6,7 @@
   "purpose": "standby",
   "boxes": [],
   "next": {
-    "content": [],
-    "column": false
+    "content": []
   },
   "background": {
     "kind": "media",

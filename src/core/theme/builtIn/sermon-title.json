@@ -7,19 +7,16 @@
   "boxes": [
     {
       "name": "주소",
-      "column": false,
       "rows": "one",
       "default": "{구절}"
     },
     {
       "name": "제목",
-      "column": true,
       "rows": "one"
     }
   ],
   "next": {
-    "content": ["다음 순서: 설교 {(제목)}"],
-    "column": false
+    "content": ["다음 순서: 설교 {(제목)}"]
   },
   "hideNextAtEnd": true,
   "then": "00000000-0000-4000-8000-000000000102",

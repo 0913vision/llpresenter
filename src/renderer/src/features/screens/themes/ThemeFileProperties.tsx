@@ -167,12 +167,6 @@ export function ThemeFileProperties({
           />
         )}
         <ThemeCheck
-          label="준비에서 열로"
-          checked={next.column}
-          reason={reason}
-          change={column => change({next: {...next, column}})}
-        />
-        <ThemeCheck
           label="마지막에는 숨김"
           checked={theme.hideNextAtEnd ?? false}
           reason={reason}
@@ -305,12 +299,6 @@ function BoxProperties({
           />
         )}
       </PropertyRow>
-      <ThemeCheck
-        label="준비에서 열로"
-        checked={box.column}
-        reason={reason}
-        change={column => change(current => ({...current, column}))}
-      />
     </PropertyGroup>
   );
 }

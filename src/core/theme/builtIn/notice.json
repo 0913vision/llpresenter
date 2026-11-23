@@ -7,18 +7,15 @@
   "boxes": [
     {
       "name": "제목",
-      "column": true,
       "rows": "one"
     },
     {
       "name": "내용",
-      "column": true,
       "rows": "many"
     }
   ],
   "next": {
-    "content": ["다음 광고: {제목}", "{내용}"],
-    "column": false
+    "content": ["다음 광고: {제목}", "{내용}"]
   },
   "background": {
     "kind": "media",

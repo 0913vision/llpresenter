@@ -7,20 +7,17 @@
   "boxes": [
     {
       "name": "제목",
-      "column": true,
       "rows": "one",
       "default": "잠시후에 예배가 시작됩니다"
     },
     {
       "name": "안내",
-      "column": true,
       "rows": "one",
       "default": "지금은 기도로 예배를 준비하는 시간입니다"
     }
   ],
   "next": {
-    "content": ["다음 순서: {제목}"],
-    "column": false
+    "content": ["다음 순서: {제목}"]
   },
   "background": {
     "kind": "media",

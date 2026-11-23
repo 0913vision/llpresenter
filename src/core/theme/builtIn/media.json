@@ -6,8 +6,7 @@
   "purpose": "media",
   "boxes": [],
   "next": {
-    "content": ["{(이름표)}", "다음 순서: {항목 이름}"],
-    "column": false
+    "content": ["{(이름표)}", "다음 순서: {항목 이름}"]
   },
   "background": {
     "kind": "none"

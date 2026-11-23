@@ -7,18 +7,15 @@
   "boxes": [
     {
       "name": "주소",
-      "column": false,
       "rows": "one"
     },
     {
       "name": "본문",
-      "column": true,
       "rows": "many"
     }
   ],
   "next": {
-    "content": ["{본문}", "{(이름표)}", "(없음)"],
-    "column": false
+    "content": ["{본문}", "{(이름표)}", "(없음)"]
   },
   "background": {
     "kind": "media",

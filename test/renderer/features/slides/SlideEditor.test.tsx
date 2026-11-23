@@ -502,8 +502,11 @@ describe('the title slide of a hymn', () => {
     expect(number).toHaveProperty('value', '');
     await userEvent.type(number, '91{Enter}');
     expect(current.slides[0]?.hymn).toEqual({hymnal: 'new', number: 91});
-    expect(field(0, '찬송가').placeholder).toBe('새찬송가 91장');
-    expect(field(0, '제목').placeholder).toBe('슬픈 마음 있는 사람');
+    const own = (name: string): HTMLInputElement =>
+      inspector().getByRole<HTMLInputElement>('textbox', {name});
+    expect(own('찬송가').placeholder).toBe('새찬송가 91장');
+    expect(own('제목').placeholder).toBe('슬픈 마음 있는 사람');
+    expect(within(row(0)).queryAllByRole('textbox')).toHaveLength(0);
     await userEvent.clear(number);
     await userEvent.type(number, '600{Enter}');
     await userEvent.click(group.getByRole('radio', {name: '통일찬송가'}));

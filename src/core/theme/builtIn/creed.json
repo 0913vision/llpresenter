@@ -7,13 +7,11 @@
   "boxes": [
     {
       "name": "본문",
-      "column": true,
       "rows": "many"
     }
   ],
   "next": {
-    "content": ["{본문}"],
-    "column": false
+    "content": ["{본문}"]
   },
   "background": {
     "kind": "media",

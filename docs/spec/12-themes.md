@@ -26,9 +26,10 @@ The user's needs (October 30 and November 22):
   have a default, such as the address of a passage; it shows while the 슬라이드
   has no text of its own for that box.
 - **Columns.** The list view of the editor has a column for each named box. The
-  operator switches columns on and off there. The 테마 sets only which columns
-  are on at first: 말씀 본문 starts with 본문 on and 주소 off. The property
-  panel always shows every box. The grid edits nothing.
+  operator switches columns on and off there. At first a box the operator types
+  in shows its column, and one that fills itself (주소, 찬송가 장, 미리 보여줄
+  내용) does not. The property panel always shows every box. The grid edits
+  nothing.
 - **Next text.** What the 슬라이드 before one shows as its next text on 무대 is
   a box that the 테마 makes: a phrase with box names, such as `{본문}` for 말씀
   본문, `다음 곡: {제목} {(이름표)}` for 찬양 제목,
@@ -36,10 +37,9 @@ The user's needs (October 30 and November 22):
   `다음 순서: 설교 {(제목)}` for 설교 제목, `다음 순서: {제목}` for 타이틀, and
   `다음 광고: {제목}` for 광고. A missing value is left out with its brackets. A
   슬라이드 can have its own text instead; clearing that text brings the phrase
-  back. The property panel always shows it and its column starts off. A 슬라이드
-  can show nothing of the next one (다음 슬라이드 내용 표시 off); until the
-  operator chooses, 말씀 본문 and 설교 제목 do so on the last 슬라이드 of an
-  item and of each passage in it.
+  back. The property panel always shows it. A 슬라이드 can show nothing of the
+  next one (다음 슬라이드 내용 표시 off); until the operator chooses, 말씀 본문
+  and 설교 제목 do so on the last 슬라이드 of an item and of each passage in it.
 - **Separate 테마.** 찬양 제목, 찬양 가사, 설교 제목, and 말씀 본문 are four
   테마. A 테마 has a purpose and is offered only for 슬라이드 of that purpose.
 - **Hymns.** 찬송가 제목 is a second 테마 for 찬양 제목. Its 슬라이드 says only
@@ -319,8 +319,8 @@ One 테마. The app's own 테마 have a file only after the operator changes the
 | `schemaVersion` | Integer                                          | 1.                                                                                          |
 | `id`, `name`    | UUID, string up to 80 characters                 | Identity and name.                                                                          |
 | `purpose`       | One of the purposes                              | What 슬라이드 can have it.                                                                  |
-| `boxes[]`       | `{name, default?, column, rows}`                 | Named boxes. `rows` is `one` or `many`; `column` shows it in 준비.                          |
-| `next`          | `{content, atStart?, column}`                    | What the 슬라이드 before shows; `atStart` for the first of an item.                         |
+| `boxes[]`       | `{name, default?, rows}`                         | Named boxes. `rows` is `one` or `many`.                                                     |
+| `next`          | `{content, atStart?}`                            | What the 슬라이드 before shows; `atStart` for the first of an item.                         |
 | `hideNextAtEnd` | Boolean, optional                                | The last 슬라이드 of an item, and of a passage in it, shows no next text unless it says so. |
 | `then`          | 테마 ID, optional                                | The 테마 of a 슬라이드 added after one with this 테마.                                      |
 | `background`    | Background                                       | Shown unless the 슬라이드 has its own.                                                      |

@@ -2,7 +2,7 @@ import {create} from 'zustand';
 import type {SlideColumns} from '@core/schema/slideColumns';
 import type {ThemeFile} from '@core/schema/theme';
 import type {UiState} from '@core/schema/uiState';
-import {boxesOf, NEXT_BOX} from '@core/slides';
+import {boxesOf, fillsItself} from '@core/slides';
 
 const useColumns = create<{readonly columns: SlideColumns}>(() => ({
   columns: {},
@@ -13,10 +13,13 @@ export function seedSlideColumns(state: UiState): void {
   useColumns.setState({columns: state.slideColumns ?? {}});
 }
 
+/**
+ * Whether a column shows before the operator chooses: a box the operator
+ * types in does; one that fills itself, such as 주소 or 미리 보여줄 내용,
+ * does not.
+ */
 function firstState(theme: ThemeFile, box: string): boolean {
-  return box === NEXT_BOX
-    ? theme.next.column
-    : (theme.boxes.find(entry => entry.name === box)?.column ?? false);
+  return !fillsItself(theme, box);
 }
 
 /** The columns the list of slides shows for slides with a theme. */

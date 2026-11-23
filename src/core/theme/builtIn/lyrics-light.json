@@ -7,14 +7,12 @@
   "boxes": [
     {
       "name": "가사",
-      "column": true,
       "rows": "many"
     }
   ],
   "next": {
     "content": ["{(새 이름표)} {가사}", "{(이름표)}", "(없음)"],
-    "atStart": ["다음 곡: {곡 제목} {(찬송가 장)} {(이름표)}\n{가사}"],
-    "column": false
+    "atStart": ["다음 곡: {곡 제목} {(찬송가 장)} {(이름표)}\n{가사}"]
   },
   "background": {
     "kind": "none"

@@ -91,8 +91,6 @@ const boxSchema = jsonObject({
   name: boxName,
   /** Shows while the slide has no text of its own for this box. */
   default: v.exactOptional(template),
-  /** Whether the editor shows its column until the operator chooses. */
-  column: v.boolean(),
   rows: v.picklist(['one', 'many']),
 });
 
@@ -361,7 +359,6 @@ export const themeFileSchema = v.pipe(
       content: templates,
       /** The same, when the slide is the first of its item. */
       atStart: v.exactOptional(templates),
-      column: v.boolean(),
     }),
     /** Shows no next text on the last slide of its item. */
     hideNextAtEnd: v.exactOptional(v.boolean()),

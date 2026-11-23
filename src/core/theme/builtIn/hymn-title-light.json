@@ -7,20 +7,17 @@
   "boxes": [
     {
       "name": "찬송가",
-      "column": true,
       "rows": "one",
       "default": "{찬송가 장}"
     },
     {
       "name": "제목",
-      "column": true,
       "rows": "one",
       "default": "{찬송가 제목}"
     }
   ],
   "next": {
-    "content": ["다음 곡: {제목} {(찬송가)} {(이름표)}"],
-    "column": false
+    "content": ["다음 곡: {제목} {(찬송가)} {(이름표)}"]
   },
   "then": "00000000-0000-4000-8000-000000000398",
   "background": {

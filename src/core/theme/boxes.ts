@@ -120,7 +120,6 @@ export function addBox(theme: ThemeFile): {
   if (theme.boxes.length >= THEME_FILE_LIMITS.boxes) return null;
   const box: ThemeBox = {
     name: freeName(NEW_BOX_NAME, new Set(theme.boxes.map(({name}) => name))),
-    column: true,
     rows: 'many',
   };
   return {theme: {...theme, boxes: [...theme.boxes, box]}, box};

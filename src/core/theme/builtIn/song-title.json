@@ -7,18 +7,15 @@
   "boxes": [
     {
       "name": "제목",
-      "column": true,
       "rows": "one"
     },
     {
       "name": "부제",
-      "column": true,
       "rows": "one"
     }
   ],
   "next": {
-    "content": ["다음 곡: {제목} {(이름표)}"],
-    "column": false
+    "content": ["다음 곡: {제목} {(이름표)}"]
   },
   "then": "00000000-0000-4000-8000-000000000101",
   "background": {

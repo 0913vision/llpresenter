@@ -7,18 +7,15 @@
   "boxes": [
     {
       "name": "제목",
-      "column": true,
       "rows": "one"
     },
     {
       "name": "영문",
-      "column": true,
       "rows": "one"
     }
   ],
   "next": {
-    "content": ["다음 순서: {제목}"],
-    "column": false
+    "content": ["다음 순서: {제목}"]
   },
   "background": {
     "kind": "gradient",
