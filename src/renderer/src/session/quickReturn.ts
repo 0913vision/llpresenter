@@ -1,7 +1,8 @@
 import type {TileCursor} from '@core/presentation';
 import {QUICK_BIBLE_TRANSITION} from '@core/bible';
 import {useLive} from './live';
-import {liveCursor, outputTile, tilesOf, useShow} from './show';
+import {liveCursor, tilesOf} from './showCursor';
+import {useShow} from './showStore';
 import {bibleSourceFor, isLibrarySource} from './showLibrary';
 
 interface ReturnPoint {
@@ -45,7 +46,8 @@ export function finishQuickPassage(): void {
   quickId = useShow.getState().openItemId;
 }
 
-function returnCursor(): TileCursor | null {
+/** Where to go back to after the quick passage, if anywhere. */
+export function quickReturnCursor(): TileCursor | null {
   if (!quickIsLive() || previous === null) return null;
   const view = useShow.getState();
   const {cursor, serviceId, slideId} = previous;
@@ -70,13 +72,11 @@ function returnCursor(): TileCursor | null {
 }
 
 export function canReturnFromQuickPassage(): boolean {
-  return returnCursor() !== null;
+  return quickReturnCursor() !== null;
 }
 
-export function returnFromQuickPassage(): void {
-  const cursor = returnCursor();
-  if (cursor === null) return;
+/** Forgets the quick passage and what was on output before it. */
+export function forgetQuickPassage(): void {
   previous = null;
   quickId = null;
-  outputTile(cursor);
 }

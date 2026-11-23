@@ -3,7 +3,6 @@ import type {SlideLayer} from '@core/schema/live';
 import {QUICK_BIBLE_TRANSITION} from '@core/bible';
 import {
   type ItemId,
-  type SlideTile,
   type TileCursor,
   adjacentItem,
   liveItem,
@@ -21,14 +20,19 @@ import {themeOfTile, useThemes} from '@renderer/platform/themes';
 import {sendSlideOutput} from './itemOutput';
 import {sendLive, useLive} from './live';
 import {liveSuccessor, rememberLiveAnchor} from './liveAnchor';
-import {beginQuickPassage, finishQuickPassage} from './quickReturn';
+import {
+  beginQuickPassage,
+  finishQuickPassage,
+  forgetQuickPassage,
+  quickReturnCursor,
+} from './quickReturn';
+import {liveCursor, tilesOf} from './showCursor';
 import {
   bibleSourceFor,
   isBibleSource,
   isLibrarySource,
   liveTileIndex,
   projectedLiveCursor,
-  tilesForView,
 } from './showLibrary';
 import {beginOutputRequest} from './showOutput';
 import {noService, useShow, type ShowView} from './showStore';
@@ -48,17 +52,7 @@ if (typeof window !== 'undefined' && import.meta.env.DEV) {
   window.__llpShowStore = useShow;
 }
 
-export function tilesOf(itemId: ItemId): readonly SlideTile[] {
-  return tilesForView(useShow.getState(), itemId);
-}
-
-/** The tile on output, taken from the live slide. */
-export function liveCursor(): TileCursor | null {
-  return projectedLiveCursor(
-    useShow.getState(),
-    useLive.getState().state?.layers.slide ?? null,
-  );
-}
+export {liveCursor, tilesOf} from './showCursor';
 
 // NOTE(0913vision): A Bible passage that grew around the live verse is a new
 // item, so the next and previous 장 keys go on from that verse inside it
@@ -204,6 +198,14 @@ function outputIfPresent(cursor: TileCursor | null): void {
 // NOTE(0913vision): The value follows the 진행 workspace: `useAtLastSlide`
 // keeps it while that workspace is mounted, and nothing resets it on unmount.
 /** Tells the next-장 key what to do on the last 장 (환경설정, applied at once). */
+/** Goes back to what was on output before the quick passage. */
+export function returnFromQuickPassage(): void {
+  const cursor = quickReturnCursor();
+  if (cursor === null) return;
+  forgetQuickPassage();
+  outputTile(cursor);
+}
+
 export function setAtLastSlide(value: AtLastSlide): void {
   atLastSlide = value;
   refreshLiveSlide();

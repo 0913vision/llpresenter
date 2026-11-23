@@ -2,7 +2,6 @@ import {
   beginQuickPassage,
   finishQuickPassage,
   canReturnFromQuickPassage,
-  returnFromQuickPassage,
 } from '@renderer/session/quickReturn';
 import {SlideGrid} from '@renderer/features/presentation/SlideGrid';
 import {handleShowKey} from '@renderer/features/presentation/shortcuts';
@@ -30,7 +29,12 @@ import {BibleQuickField} from '@renderer/features/quick/BibleQuickField';
 import {BiblePanel} from '@renderer/features/presentation/BiblePanel';
 import {commandBindingStore} from '@renderer/ui/commandBindings';
 import {useLive} from '@renderer/session/live';
-import {openItem, outputSlideOf, useShow} from '@renderer/session/show';
+import {
+  openItem,
+  outputSlideOf,
+  returnFromQuickPassage,
+  useShow,
+} from '@renderer/session/show';
 import {bibleSourceFor} from '@renderer/session/showLibrary';
 import {
   beginOutputRequest,

@@ -12,16 +12,14 @@ import {
   outputBoundarySlide,
   outputNext,
   outputPrevious,
+  returnFromQuickPassage,
   revealLiveItem,
 } from '@renderer/session/show';
 import {useAtLastSlide} from './useAtLastSlide';
 import {useSlideHotKeys} from './useSlideHotKeys';
 import {outputAdjacentBibleVerse} from '../bible/verseShortcuts';
 import {clearLayer} from '@renderer/session/clear';
-import {
-  canReturnFromQuickPassage,
-  returnFromQuickPassage,
-} from '@renderer/session/quickReturn';
+import {canReturnFromQuickPassage} from '@renderer/session/quickReturn';
 import {useNumberJumpKeys} from './numberJump';
 import {returnFocus} from '@renderer/ui/returnFocus';
 
