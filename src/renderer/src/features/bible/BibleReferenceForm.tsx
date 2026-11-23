@@ -43,8 +43,11 @@ import {
   readReferenceFields,
   referenceKey,
   referenceSuggestions,
-  type ReferenceKey,
 } from './referenceForm';
+import {
+  runReferenceKey,
+  type ReferenceKeyHandlers,
+} from './referenceKeyActions';
 import {useBibleLookup} from './useBibleLookup';
 import styles from './BibleReferenceField.module.css';
 
@@ -322,120 +325,75 @@ export function BibleReferenceForm(
     setBlocked(null);
     focusPart(root.current, 'book');
   };
-  const act = (
-    part: ReferencePart,
-    action: ReferenceKey,
-    event: KeyboardEvent<HTMLInputElement>,
-  ): void => {
-    /** Keeps the key from the browser and from the window. */
-    const take = (): void => {
-      event.preventDefault();
-      event.stopPropagation();
-    };
-    switch (action.kind) {
-      case 'pass':
-        return;
-      case 'tab-after-composition':
-        event.preventDefault();
-        tabAfterComposition.current = true;
-        return;
-      case 'focus':
-        event.preventDefault();
-        focusPart(root.current, action.part);
-        return;
-      case 'point':
-        event.preventDefault();
-        setOpen(true);
-        setPointed(action.index);
-        setKeyboardPointed(action.index);
-        return;
-      case 'advance-book':
-        event.preventDefault();
-        advanceBook();
-        return;
-      case 'refuse':
-        event.preventDefault();
-        return;
-      case 'block':
-        event.preventDefault();
-        setBlocked(part);
-        return;
-      case 'clear':
-        take();
-        pendingSubmit.current = null;
-        clear();
-        return;
-      case 'escape':
-        take();
-        pendingSubmit.current = null;
-        props.onEscape?.();
-        return;
-      case 'close-suggestions':
-        take();
-        pendingSubmit.current = null;
-        setOpen(false);
-        return;
-      case 'to-book':
-        take();
-        pendingSubmit.current = null;
-        setBlocked(null);
-        root.current
-          ?.querySelector<HTMLInputElement>('[role="combobox"]')
-          ?.focus();
-        return;
-      case 'choose-highlighted': {
-        take();
-        const highlighted = suggestions[keyboardPointed ?? -1];
-        if (highlighted !== undefined) chooseSuggestion(highlighted);
-        return;
-      }
-      case 'full-reference':
-        take();
-        acceptFullReference(event.currentTarget.value, action.submit);
-        return;
-      case 'submit':
-        take();
-        submit(part);
-        return;
-      case 'ignore':
-      case 'repeat':
-        take();
-        return;
-    }
+  const keyHandlers: ReferenceKeyHandlers = {
+    tabAfterComposition: () => {
+      tabAfterComposition.current = true;
+    },
+    focus: part => focusPart(root.current, part),
+    point: index => {
+      setOpen(true);
+      setPointed(index);
+      setKeyboardPointed(index);
+    },
+    advanceBook: () => advanceBook(),
+    block: part => setBlocked(part),
+    clear: () => clear(),
+    escape: () => props.onEscape?.(),
+    closeSuggestions: () => setOpen(false),
+    toBook: () => {
+      setBlocked(null);
+      root.current
+        ?.querySelector<HTMLInputElement>('[role="combobox"]')
+        ?.focus();
+    },
+    chooseHighlighted: () => {
+      const highlighted = suggestions[keyboardPointed ?? -1];
+      if (highlighted !== undefined) chooseSuggestion(highlighted);
+    },
+    fullReference: (value, submitNow) => {
+      acceptFullReference(value, submitNow);
+    },
+    submit: part => submit(part),
+    forgetSubmit: () => {
+      pendingSubmit.current = null;
+    },
   };
   const onKeyDown = (
     part: ReferencePart,
     event: KeyboardEvent<HTMLInputElement>,
   ): void => {
     const highlighted = suggestions[keyboardPointed ?? -1];
-    act(
-      part,
-      referenceKey(
+    runReferenceKey(
+      {
         part,
-        {
-          key: event.key,
-          code: event.nativeEvent.code,
-          shift: event.shiftKey,
-          command: event.altKey || event.ctrlKey || event.metaKey,
-          repeat: event.repeat,
-          composing: isComposing(event),
-          value: event.currentTarget.value,
-        },
-        {
-          dialogMode: props.dialogMode === true,
-          expanded,
-          escapes: props.onEscape !== undefined,
-          submissionDisabled: props.submissionDisabled === true,
-          highlightedBook: highlighted?.bookId !== undefined,
-          highlighted: highlighted !== undefined,
-          pointed,
-          suggestions: suggestions.length,
-          fields,
-          enabled: state.enabled,
-          error: state.errors[part] !== undefined,
-        },
-      ),
-      event,
+        event,
+        action: referenceKey(
+          part,
+          {
+            key: event.key,
+            code: event.nativeEvent.code,
+            shift: event.shiftKey,
+            command: event.altKey || event.ctrlKey || event.metaKey,
+            repeat: event.repeat,
+            composing: isComposing(event),
+            value: event.currentTarget.value,
+          },
+          {
+            dialogMode: props.dialogMode === true,
+            expanded,
+            escapes: props.onEscape !== undefined,
+            submissionDisabled: props.submissionDisabled === true,
+            highlightedBook: highlighted?.bookId !== undefined,
+            highlighted: highlighted !== undefined,
+            pointed,
+            suggestions: suggestions.length,
+            fields,
+            enabled: state.enabled,
+            error: state.errors[part] !== undefined,
+          },
+        ),
+      },
+      keyHandlers,
     );
   };
   const submit = (part: ReferencePart): void => {
