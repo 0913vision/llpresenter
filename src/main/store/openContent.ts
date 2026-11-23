@@ -54,7 +54,7 @@ export async function openContent(
     return null;
   }
   try {
-    return await createContent(store, log, {
+    return createContent(store, log, {
       settings: await readers.settings,
       media: await readers.media,
       failures: readers.failures,
@@ -65,7 +65,7 @@ export async function openContent(
   }
 }
 
-async function createContent(
+function createContent(
   store: LoadedStore,
   log: Logger,
   {
@@ -77,7 +77,7 @@ async function createContent(
     readonly media: MediaStore | null;
     readonly failures: SaveFailureSink;
   },
-): Promise<OpenedContent> {
+): OpenedContent {
   const songListeners = new Set<(change: SongChange) => void>();
   const copies = new RecoveryCopies({
     folder: store.locations.recovery,
