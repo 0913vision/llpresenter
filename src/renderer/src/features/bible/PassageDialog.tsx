@@ -1,5 +1,4 @@
 import {
-  useEffect,
   useRef,
   useState,
   type JSX,
@@ -21,7 +20,15 @@ import {layerContainer} from '@renderer/ui/layers';
 import {useModal} from '@renderer/ui/useModal';
 import {BibleReferenceForm} from './BibleReferenceForm';
 import {RecentPassages} from './RecentPassages';
+import {useShownTranslation} from './useShownTranslation';
 import styles from './PassageDialog.module.css';
+
+/** Some field of the reference has text in it. */
+function hasTypedReference(surface: HTMLElement | null): boolean {
+  return Array.from(
+    surface?.querySelectorAll<HTMLInputElement>('[data-reference-part]') ?? [],
+  ).some(field => field.value !== '');
+}
 
 /** The shared passage finder used by Show and preparation. */
 export function PassageDialog({
@@ -69,14 +76,6 @@ export function PassageDialog({
   const [ready, setReady] = useState<BibleLookupPassage | null>(null);
   const [submitCandidate, setSubmitCandidate] = useState(false);
   const [resetKey, setResetKey] = useState(0);
-  const [resolved, setResolved] = useState<{
-    provided: TranslationId | undefined;
-    value: TranslationId;
-  } | null>(null);
-  const effective =
-    resolved !== null && resolved.provided === translation
-      ? resolved.value
-      : translation;
   const close = (): void => {
     intentVersion.current += 1;
     submissionVersion.current += 1;
@@ -90,36 +89,13 @@ export function PassageDialog({
   });
   const entries = recentPassages(recents);
   const firstRef = entries[0]?.ref;
-  useEffect(() => {
-    let active = true;
-    const version = intentVersion.current;
-    if (translation !== undefined && firstRef !== undefined) {
-      api
-        .lookup({input: firstRef, translation})
-        .then(reply => {
-          const value =
-            reply.effectiveTranslation ??
-            (reply.result.ok ? reply.result.value.translation : translation);
-          if (active && intentVersion.current === version) {
-            setResolved(previous =>
-              previous !== null &&
-              previous.provided === translation &&
-              previous.value === value
-                ? previous
-                : {provided: translation, value},
-            );
-          }
-        })
-        .catch(() => {
-          if (active && intentVersion.current === version) {
-            setResolved({provided: translation, value: translation});
-          }
-        });
-    }
-    return () => {
-      active = false;
-    };
-  }, [api, translation, firstRef]);
+  const named = useShownTranslation({
+    api,
+    translation,
+    firstRef,
+    intent: intentVersion,
+  });
+  const effective = named.shown;
   const label =
     translations.find(item => item.id === effective)?.name ?? effective;
   const pickRecent = (recent: RecentPassage): void => {
@@ -159,12 +135,7 @@ export function PassageDialog({
     if (event.key === 'Escape') {
       event.preventDefault();
       event.stopPropagation();
-      const hasText = Array.from(
-        surface.current?.querySelectorAll<HTMLInputElement>(
-          '[data-reference-part]',
-        ) ?? [],
-      ).some(field => field.value !== '');
-      if (hasText) {
+      if (hasTypedReference(surface.current)) {
         intentVersion.current += 1;
         submissionVersion.current += 1;
         setHighlight(-1);
@@ -192,11 +163,7 @@ export function PassageDialog({
     } else if (
       event.key === 'Enter' &&
       highlight >= 0 &&
-      !Array.from(
-        surface.current?.querySelectorAll<HTMLInputElement>(
-          '[data-reference-part]',
-        ) ?? [],
-      ).some(field => field.value !== '')
+      !hasTypedReference(surface.current)
     ) {
       const recent = entries[highlight];
       if (recent) {
@@ -229,15 +196,7 @@ export function PassageDialog({
             api={api}
             initialRef={resetKey === 0 ? initialRef : undefined}
             translation={translation}
-            onEffectiveTranslation={value =>
-              setResolved(previous =>
-                previous !== null &&
-                previous.provided === translation &&
-                previous.value === value
-                  ? previous
-                  : {provided: translation, value},
-              )
-            }
+            onEffectiveTranslation={named.found}
             onIntent={() => {
               setHighlight(-1);
               intentVersion.current += 1;
@@ -261,10 +220,7 @@ export function PassageDialog({
           recents={recents}
           translations={translations}
           translation={effective}
-          showTranslation={
-            (resolved !== null && resolved.provided === translation) ||
-            firstRef === undefined
-          }
+          showTranslation={named.known}
           onPick={pickRecent}
           highlight={highlight}
         />
