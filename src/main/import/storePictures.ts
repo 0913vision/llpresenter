@@ -1,3 +1,4 @@
+import {THEME_CANVAS} from '@core/schema/screens';
 import {randomUUID} from 'node:crypto';
 import {constants} from 'node:fs';
 import {copyFile, readFile, rm, stat} from 'node:fs/promises';
@@ -99,7 +100,7 @@ export async function storeSlidePictures(
     media,
     paths.map(path => ({
       path,
-      item: {name: '', internal: true as const, width: 1920, height: 1080},
+      item: {name: '', internal: true as const, ...THEME_CANVAS},
     })),
   );
 }

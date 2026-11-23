@@ -1,3 +1,4 @@
+import {THEME_CANVAS} from '@core/schema/screens';
 import type {MonitorInfo} from '@core/schema/monitors';
 import type {Screen} from '@core/schema/screens';
 
@@ -9,7 +10,7 @@ export interface PixelSize {
 
 // NOTE(0913vision): These match the sizes the output windows open with
 // (`CAPTURE_WINDOW_SIZE` and `OUTPUT_WINDOW_SIZE` in main's placement).
-const CAPTURE_DEFAULT_SIZE: PixelSize = {width: 1920, height: 1080};
+const CAPTURE_DEFAULT_SIZE: PixelSize = THEME_CANVAS;
 const WINDOW_SIZE: PixelSize = {width: 960, height: 540};
 
 /** The size as `1920×1080`. */

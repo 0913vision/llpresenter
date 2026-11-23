@@ -1,3 +1,4 @@
+import {THEME_CANVAS} from '@core/schema/screens';
 import type {TextOutline, TextShadow} from '@core/schema/textEffects';
 
 /**
@@ -46,9 +47,6 @@ export const DEFAULT_TEXT_STYLE = {
   outline: false,
 } as const satisfies TextStyle;
 
-/** The screen size that text sizes are written for. */
-export const REFERENCE_SCREEN = {width: 1920, height: 1080} as const;
-
 /** Fixed switch values from spec 03 and 10, in reference-screen pixels. */
 export const TEXT_EFFECTS = {
   outlineWidth: 3,
@@ -59,8 +57,5 @@ export const TEXT_EFFECTS = {
 
 /** The factor that turns reference px into px on a screen of this size. */
 export function scaleFor(width: number, height: number): number {
-  return Math.min(
-    width / REFERENCE_SCREEN.width,
-    height / REFERENCE_SCREEN.height,
-  );
+  return Math.min(width / THEME_CANVAS.width, height / THEME_CANVAS.height);
 }

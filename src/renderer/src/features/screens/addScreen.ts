@@ -1,3 +1,4 @@
+import {THEME_CANVAS} from '@core/schema/screens';
 import {limitReason} from '@core/common/limitReason';
 import type {ScreenId} from '@core/schema/ids';
 import type {Screen} from '@core/schema/screens';
@@ -34,9 +35,7 @@ export function addScreen(
       method: input.method,
       name,
       alwaysOnTop: false,
-      ...(input.method === 'capture'
-        ? {resolution: {width: 1920, height: 1080}}
-        : {}),
+      ...(input.method === 'capture' ? {resolution: THEME_CANVAS} : {}),
     },
   ];
   return input.monitor === undefined

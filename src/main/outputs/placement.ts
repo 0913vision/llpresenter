@@ -1,3 +1,4 @@
+import {THEME_CANVAS} from '@core/schema/screens';
 import type {Monitor} from '../displays/monitor';
 import {centeredRect, type Rect, type Size} from '../displays/rect';
 import type {OutputScreen} from './screens';
@@ -33,7 +34,7 @@ export type ShownPlacement = Exclude<Placement, {kind: 'off'}>;
  * 16:9 quarter of a 1920 x 1080 monitor (proposal).
  */
 export const OUTPUT_WINDOW_SIZE: Size = {width: 960, height: 540};
-export const CAPTURE_WINDOW_SIZE: Size = {width: 1920, height: 1080};
+export const CAPTURE_WINDOW_SIZE: Size = THEME_CANVAS;
 
 /** Fits a size proportionally in an area without enlarging it. */
 export function fitAspectBounds(area: Rect, size: Size): Rect {

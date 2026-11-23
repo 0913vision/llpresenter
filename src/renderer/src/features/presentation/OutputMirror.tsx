@@ -1,3 +1,4 @@
+import {THEME_CANVAS} from '@core/schema/screens';
 import {useEffect, useRef, type JSX} from 'react';
 import styles from './OutputMirror.module.css';
 import {pictureBounds} from '@core/screens';
@@ -290,8 +291,8 @@ export function OutputMirror({
             ? undefined
             : {
                 position: 'absolute',
-                width: `${(1920 / bounds.width) * 100}%`,
-                height: `${(1080 / bounds.height) * 100}%`,
+                width: `${(THEME_CANVAS.width / bounds.width) * 100}%`,
+                height: `${(THEME_CANVAS.height / bounds.height) * 100}%`,
                 left: `${(-bounds.x / bounds.width) * 100}%`,
                 top: `${(-bounds.y / bounds.height) * 100}%`,
               }

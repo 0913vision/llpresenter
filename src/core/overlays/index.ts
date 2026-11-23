@@ -20,7 +20,6 @@ export {
 } from './ranges';
 export {
   DEFAULT_TEXT_STYLE,
-  REFERENCE_SCREEN,
   TEXT_EFFECTS,
   type TextStyle,
   scaleFor,

@@ -1,8 +1,9 @@
+import {THEME_CANVAS} from '@core/schema/screens';
 import type {Rectangle} from 'electron';
 import {unionDirty} from './rect';
 
-export const NDI_FRAME_WIDTH = 1920;
-export const NDI_FRAME_HEIGHT = 1080;
+export const NDI_FRAME_WIDTH: number = THEME_CANVAS.width;
+export const NDI_FRAME_HEIGHT: number = THEME_CANVAS.height;
 const MAX_PENDING_TEXTURES = 2;
 
 export interface TextureFrame {

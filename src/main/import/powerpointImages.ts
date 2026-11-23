@@ -1,9 +1,14 @@
+import {THEME_CANVAS} from '@core/schema/screens';
 import {spawn, type ChildProcess} from 'node:child_process';
 import {writeFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {POWERPOINT_IMPORT_LIMITS} from '@core/schema/textImportLimits';
 
 /** Kept as a literal so paths are passed in the environment, never interpolated. */
+// NOTE(0913vision): Slides export at the canvas size; the script names it
+// through W and H.
+const {width: W, height: H} = THEME_CANVAS;
+
 export const POWERPOINT_IMAGE_SCRIPT = String.raw`
 $ErrorActionPreference = 'Stop'
 $powerpoint = $null
@@ -58,10 +63,10 @@ try {
   $slideWidth = [double]$presentation.PageSetup.SlideWidth
   $slideHeight = [double]$presentation.PageSetup.SlideHeight
   if ($slideWidth -le 0 -or $slideHeight -le 0) { throw 'Invalid slide size' }
-  $scale = [Math]::Min(1920.0 / $slideWidth, 1080.0 / $slideHeight)
-  $exportWidth = [Math]::Max(1, [Math]::Min(1920, [int][Math]::Round($slideWidth * $scale)))
-  $exportHeight = [Math]::Max(1, [Math]::Min(1080, [int][Math]::Round($slideHeight * $scale)))
-  $padded = $exportWidth -ne 1920 -or $exportHeight -ne 1080
+  $scale = [Math]::Min(${W}.0 / $slideWidth, ${H}.0 / $slideHeight)
+  $exportWidth = [Math]::Max(1, [Math]::Min(${W}, [int][Math]::Round($slideWidth * $scale)))
+  $exportHeight = [Math]::Max(1, [Math]::Min(${H}, [int][Math]::Round($slideHeight * $scale)))
+  $padded = $exportWidth -ne ${W} -or $exportHeight -ne ${H}
   if ($padded) { Add-Type -AssemblyName System.Drawing }
   if ($decorations) {
     $visible = @($decorations.Split(',') | ForEach-Object { $presentation.Slides.Item([int]$_) })
@@ -83,10 +88,10 @@ try {
         $graphics = $null
         try {
           $image = [System.Drawing.Image]::FromFile($path)
-          $surface = New-Object System.Drawing.Bitmap(1920, 1080)
+          $surface = New-Object System.Drawing.Bitmap(${W}, ${H})
           $graphics = [System.Drawing.Graphics]::FromImage($surface)
           $graphics.Clear([System.Drawing.Color]::Black)
-          $graphics.DrawImageUnscaled($image, [int]((1920 - $exportWidth) / 2), [int]((1080 - $exportHeight) / 2))
+          $graphics.DrawImageUnscaled($image, [int]((${W} - $exportWidth) / 2), [int]((${H} - $exportHeight) / 2))
           $surface.Save(($path + '.padded'), [System.Drawing.Imaging.ImageFormat]::Png)
         } finally {
           if ($null -ne $graphics) { $graphics.Dispose() }

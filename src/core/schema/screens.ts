@@ -64,6 +64,12 @@ const ndiSchema = jsonObject({
 });
 
 /** The kinds of screens in the order every list shows them: 청중, 무대, 방송. */
+/**
+ * The canvas every screen is drawn on: themes, overlays and messages are laid
+ * out on it, and a capture window and an NDI picture have its size, one to one.
+ */
+export const THEME_CANVAS = {width: 1920, height: 1080} as const;
+
 export const SCREEN_KIND_ORDER = ['audience', 'stage', 'broadcast'] as const;
 
 /** Screens in the order of their kinds, keeping the saved order in a kind. */

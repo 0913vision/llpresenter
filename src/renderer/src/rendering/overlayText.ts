@@ -1,9 +1,5 @@
-import {
-  DEFAULT_TEXT_STYLE,
-  REFERENCE_SCREEN,
-  TEXT_EFFECTS,
-  type TextStyle,
-} from '@core/overlays';
+import {THEME_CANVAS} from '@core/schema/screens';
+import {DEFAULT_TEXT_STYLE, TEXT_EFFECTS, type TextStyle} from '@core/overlays';
 import type {ThemeTextStyle} from '@core/schema/theme';
 import {measuredText} from './theme/measureRows';
 import {sizeRows, writeRows, type RowsText} from './theme/textRows';
@@ -59,8 +55,8 @@ export class OverlayTextView {
       position: 'absolute',
       top: '0',
       left: '0',
-      width: `${REFERENCE_SCREEN.width}px`,
-      height: `${REFERENCE_SCREEN.height}px`,
+      width: `${THEME_CANVAS.width}px`,
+      height: `${THEME_CANVAS.height}px`,
       transformOrigin: 'top left',
     });
     this.canvas.dataset['overlayText'] = '';
@@ -106,10 +102,10 @@ export class OverlayTextView {
     const {text, style} = this;
     this.canvas.hidden = text === null;
     if (text === null) return;
-    const marginX = (REFERENCE_SCREEN.width * style.margin) / 100;
-    const marginY = (REFERENCE_SCREEN.height * style.margin) / 100;
-    const width = REFERENCE_SCREEN.width - 2 * marginX;
-    const room = REFERENCE_SCREEN.height - 2 * marginY;
+    const marginX = (THEME_CANVAS.width * style.margin) / 100;
+    const marginY = (THEME_CANVAS.height * style.margin) / 100;
+    const width = THEME_CANVAS.width - 2 * marginX;
+    const room = THEME_CANVAS.height - 2 * marginY;
     const rows: RowsText = {
       text,
       style: rowsStyle(style),

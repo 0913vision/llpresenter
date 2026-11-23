@@ -29,8 +29,7 @@ import {
 import {SCREEN_KIND_ORDER} from './screens';
 import {textOutlineSchema, textShadowSchema} from './textEffects';
 
-/** The canvas every theme is laid out on. */
-export const THEME_CANVAS = {width: 1920, height: 1080} as const;
+export {THEME_CANVAS} from './screens';
 
 export const THEME_FILE_LIMITS = {
   name: 80,

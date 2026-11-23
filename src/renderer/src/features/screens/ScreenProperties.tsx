@@ -1,3 +1,4 @@
+import {THEME_CANVAS} from '@core/schema/screens';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useMemo, useState, type JSX} from 'react';
 import type {MonitorInfo, MonitorList} from '@core/schema/monitors';
@@ -48,6 +49,9 @@ import {useScreenEditor} from './useScreenEditor';
 import {useSettingsDocument} from '../../platform/useSettingsDocument';
 import {ScreenDeviceRow} from './ScreenDeviceRow';
 import styles from './ScreenProperties.module.css';
+
+/** The canvas size, as the 해상도 rows and position titles name it. */
+const CANVAS_SIZE = `${THEME_CANVAS.width} × ${THEME_CANVAS.height}`;
 
 const LOAD_TITLE = '화면';
 const noScreens: readonly Screen[] = [];
@@ -160,7 +164,7 @@ function NdiRows({
           value={accelerationReason}
         />
       ) : null}
-      <PropertyValue label="해상도" value="1920 × 1080" />
+      <PropertyValue label="해상도" value={CANVAS_SIZE} />
       <PropertyRow label="프레임 수">
         {({controlId}) => (
           <SelectMenu
@@ -315,7 +319,7 @@ function CorrectionRows({
               id={controlId}
               readOnly={reason !== undefined}
               aria-disabled={reason !== undefined ? true : undefined}
-              title={reason ?? '1920 × 1080 화면 기준 px'}
+              title={reason ?? `${CANVAS_SIZE} 화면 기준 px`}
               aria-label="가로 위치"
               value={offset.x}
               min={-OFFSET_LIMIT}
@@ -328,7 +332,7 @@ function CorrectionRows({
               aria-label="세로 위치"
               readOnly={reason !== undefined}
               aria-disabled={reason !== undefined ? true : undefined}
-              title={reason ?? '1920 × 1080 화면 기준 px'}
+              title={reason ?? `${CANVAS_SIZE} 화면 기준 px`}
               value={offset.y}
               min={-OFFSET_LIMIT}
               max={OFFSET_LIMIT}

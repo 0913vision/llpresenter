@@ -1,4 +1,4 @@
-import type {Screen} from '@core/schema/screens';
+import {THEME_CANVAS, type Screen} from '@core/schema/screens';
 
 /** The saved size that determines this screen's output aspect ratio. */
 export function pictureSizeForScreen(
@@ -13,8 +13,7 @@ export function pictureSizeForScreen(
   return undefined;
 }
 
-const PREVIEW_WIDTH = 1920;
-const PREVIEW_HEIGHT = 1080;
+const {width: PREVIEW_WIDTH, height: PREVIEW_HEIGHT} = THEME_CANVAS;
 
 /** Where a picture of this size lies inside a 16:9 preview frame. */
 export function pictureBounds(

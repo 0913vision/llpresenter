@@ -1,3 +1,4 @@
+import {THEME_CANVAS} from '@core/schema/screens';
 import {
   BrowserWindow,
   screen as displays,
@@ -26,7 +27,7 @@ import {OUTPUT_BACKGROUND} from './electronWindow';
 import {publishPresenterMirror, setPresenterMirror} from './presenterMirror';
 
 const PING_SCRIPT = '0';
-const DEFAULT_SIZE: Size = {width: 1920, height: 1080};
+const DEFAULT_SIZE: Size = THEME_CANVAS;
 const UTILITY_TIMEOUT_MS = 5000;
 const FIRST_TEXTURE_TIMEOUT_MS = 5000;
 
