@@ -67,9 +67,9 @@ describe('panel visibility state', () => {
       mediaStrip: true,
       mediaBrowser: {columns: 2, view: 'grid'},
     });
-    store.setMediaBrowser({view: 'list'});
-    store.setMediaBrowser({columns: 8});
-    store.setMediaStrip({visible: false});
+    store.setRememberedView({mediaBrowser: {view: 'list'}});
+    store.setRememberedView({mediaBrowser: {columns: 8}});
+    store.setRememberedView({mediaStrip: false});
     expect(store.state).toEqual({
       layout,
       mediaStrip: false,
@@ -88,7 +88,7 @@ describe('panel visibility state', () => {
       mediaStrip: true,
       macroView: 'list',
     });
-    store.setMediaStrip({visible: false});
+    store.setRememberedView({mediaStrip: false});
     expect(changes).toEqual([{mediaStrip: false}]);
     expect(store.state).toEqual({layout, mediaStrip: false, macroView: 'list'});
   });

@@ -1,10 +1,12 @@
 import {describe, expect, it} from 'vitest';
 import {parseAppConfig, serializeAppConfig} from '@core/schema/appConfig';
-import {
-  MEDIA_BROWSER,
-  parseMediaBrowserChange,
-} from '@core/schema/mediaBrowser';
-import {parseUiState} from '@core/schema/uiState';
+import {MEDIA_BROWSER} from '@core/schema/mediaBrowser';
+import {parseRememberedViewChange, parseUiState} from '@core/schema/uiState';
+
+const parseMediaBrowserChange = (mediaBrowser: unknown) => {
+  const result = parseRememberedViewChange({mediaBrowser});
+  return result.ok ? {ok: true, value: result.value.mediaBrowser} : result;
+};
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 
 describe('media browser UI boundaries', () => {
@@ -33,8 +35,6 @@ describe('media browser UI boundaries', () => {
   it.each([
     null,
     [],
-    {},
-    {future: true},
     {columns: 1},
     {columns: 9},
     {columns: 2.5},
@@ -46,7 +46,7 @@ describe('media browser UI boundaries', () => {
     {view: 'tiles'},
     {view: 0},
     {view: 'list', columns: -1},
-  ])('rejects malformed or empty updates %j', value => {
+  ])('rejects malformed updates %j', value => {
     expect(parseMediaBrowserChange(value).ok).toBe(false);
   });
 

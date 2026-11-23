@@ -1,15 +1,9 @@
 import {
-  parseMediaBrowserChange,
-  type MediaBrowserChange,
-} from '@core/schema/mediaBrowser';
-import {
   parseLayoutChange,
-  parseMediaStripChange,
   parseUiState,
   parseRememberedViewChange,
   type RememberedViewChange,
   type LayoutChange,
-  type MediaStripChange,
   type UiState,
 } from '@core/schema/uiState';
 import {
@@ -30,14 +24,6 @@ import {
 export const uiEndpoints = {
   get: query<UiState>('ui:get', parseUiState),
   setLayout: message<LayoutChange>('ui:layout:set', parseLayoutChange),
-  setMediaStrip: message<MediaStripChange>(
-    'ui:media-strip:set',
-    parseMediaStripChange,
-  ),
-  setMediaBrowser: message<MediaBrowserChange>(
-    'ui:media-browser:set',
-    parseMediaBrowserChange,
-  ),
   setRememberedView: message<RememberedViewChange>(
     'ui:remembered-view:set',
     parseRememberedViewChange,
@@ -63,10 +49,11 @@ export function uiApi(port: IpcPort, platform: WindowPlatform) {
      * thumbnail scale percentage, or sidebar state.
      */
     setLayout: port.message(uiEndpoints.setLayout),
-    /** Saves the media strip choice through the single app.json writer. */
-    setMediaStrip: port.message(uiEndpoints.setMediaStrip),
-    /** Changes only the supplied media browser fields through app.json. */
-    setMediaBrowser: port.message(uiEndpoints.setMediaBrowser),
+    /**
+     * Remembers how views were left: the media strip, the media browser's
+     * fields that are given, the big preview, the tool tab, the 매크로 view
+     * and 모음, and the slide columns.
+     */
     setRememberedView: port.message(uiEndpoints.setRememberedView),
     /** Reads the computer-local UI zoom percentage (100 to 200, step 10). */
     getZoom: port.query(uiEndpoints.getZoom),

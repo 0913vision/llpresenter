@@ -21,10 +21,12 @@ describe('mockLlpApi', () => {
     }
   });
   it('provides media state defaults and supports partial UI overrides', () => {
-    const setMediaBrowser = vi.fn();
-    const api = mockLlpApi({ui: {setMediaBrowser}});
-    api.ui.setMediaBrowser({columns: 3});
-    expect(setMediaBrowser).toHaveBeenCalledExactlyOnceWith({columns: 3});
+    const setRememberedView = vi.fn();
+    const api = mockLlpApi({ui: {setRememberedView}});
+    api.ui.setRememberedView({mediaBrowser: {columns: 3}});
+    expect(setRememberedView).toHaveBeenCalledExactlyOnceWith({
+      mediaBrowser: {columns: 3},
+    });
   });
   it('supplies flush defaults and supports a partial app override', () => {
     const requestId = createAppFlushRequestId(

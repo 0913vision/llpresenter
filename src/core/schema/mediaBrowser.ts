@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import type {ReadonlyKnown} from './fileFormat';
-import {parsePayload, payloadObject} from './payload';
+import {payloadObject} from './payload';
 import {jsonObject} from './primitives';
 
 export const MEDIA_BROWSER = {
@@ -24,20 +24,9 @@ const fields = {
 
 export const mediaBrowserSchema = jsonObject(fields);
 
-const changeSchema = v.pipe(
-  payloadObject(fields),
-  v.check(
-    value => value.columns !== undefined || value.view !== undefined,
-    'Expected media columns or view',
-  ),
-);
+/** A change of some of the fields; other fields are dropped. */
+export const mediaBrowserChangeSchema = payloadObject(fields);
 
 export type MediaBrowser = ReadonlyKnown<
   v.InferOutput<typeof mediaBrowserSchema>
 >;
-export type MediaBrowserChange = Readonly<v.InferOutput<typeof changeSchema>>;
-
-/** Checks a bounded partial media browser update, dropping unrelated fields. */
-export function parseMediaBrowserChange(value: unknown) {
-  return parsePayload(changeSchema, value);
-}

@@ -35,7 +35,7 @@ function setup(width = 1920, height = 1080, uiState: UiState = {}) {
   vi.stubGlobal('innerHeight', height);
   const {api} = editorFixture();
   const send = vi.spyOn(api.live, 'send');
-  const save = vi.spyOn(api.ui, 'setMediaStrip');
+  const save = vi.spyOn(api.ui, 'setRememberedView');
   window.llp = api;
   const session = new ControlSession(api);
   sessions.push(session);

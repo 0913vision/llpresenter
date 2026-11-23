@@ -3,7 +3,7 @@ import {
   COLUMN_LIMITS,
   isLayoutChange,
   parseLayoutChange,
-  parseMediaStripChange,
+  parseRememberedViewChange,
   parseUiState,
 } from '@core/schema/uiState';
 
@@ -153,10 +153,9 @@ describe('panel visibility changes', () => {
   it.each([true, false])(
     'accepts a boolean media choice and sidebar state %s alone or with existing fields',
     value => {
-      expect(parseMediaStripChange({visible: value, ignored: 1})).toEqual({
-        ok: true,
-        value: {visible: value},
-      });
+      expect(
+        parseRememberedViewChange({mediaStrip: value, ignored: 1}),
+      ).toEqual({ok: true, value: {mediaStrip: value}});
       for (const sizeClass of ['narrow', 'normal', 'wide']) {
         for (const fields of [
           {},
@@ -177,7 +176,7 @@ describe('panel visibility changes', () => {
   it.each([undefined, null, 0, 'true', [], {}])(
     'rejects invalid visibility %j',
     value => {
-      expect(parseMediaStripChange({visible: value}).ok).toBe(false);
+      expect(parseRememberedViewChange({mediaStrip: value}).ok).toBe(false);
       expect(
         parseLayoutChange({sizeClass: 'normal', leftCollapsed: value}).ok,
       ).toBe(false);
@@ -191,7 +190,7 @@ describe('panel visibility changes', () => {
   it.each([null, [], true, 'false', 1])(
     'rejects a non-object media change %j',
     value => {
-      expect(parseMediaStripChange(value).ok).toBe(false);
+      expect(parseRememberedViewChange(value).ok).toBe(false);
     },
   );
 

@@ -25,10 +25,6 @@ export function registerUiState(
   const store = new UiStateStore(fields);
   ipc.query(uiEndpoints.get, () => store.state);
   ipc.message(uiEndpoints.setLayout, change => store.setLayout(change));
-  ipc.message(uiEndpoints.setMediaStrip, change => store.setMediaStrip(change));
-  ipc.message(uiEndpoints.setMediaBrowser, change =>
-    store.setMediaBrowser(change),
-  );
   ipc.message(uiEndpoints.setRememberedView, change =>
     store.setRememberedView(change),
   );

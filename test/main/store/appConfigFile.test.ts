@@ -294,10 +294,10 @@ describe('openAppConfig', () => {
     const log = mockLog();
     const appConfig = await openAppConfig({file, log});
     const ui = new UiStateStore(appConfig);
-    ui.setMediaStrip({visible: false});
+    ui.setRememberedView({mediaStrip: false});
     ui.setLayout({sizeClass: 'normal', leftCollapsed: true});
-    ui.setMediaBrowser({view: 'list'});
-    ui.setMediaBrowser({columns: 8});
+    ui.setRememberedView({mediaBrowser: {view: 'list'}});
+    ui.setRememberedView({mediaBrowser: {columns: 8}});
     appConfig.setLastServiceId(SUNDAY);
     appConfig.setUiZoomPercent(120);
     await appConfig.flush();

@@ -1,10 +1,8 @@
 import {useCallback, useState} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
-import type {SizeClass} from '../../ui/sizeClass';
 
 /** A loaded choice wins defaults; only an operator's change is saved. */
 export function useMediaStripVisibility(
-  _sizeClass: SizeClass,
   initial: boolean | undefined,
   api: Pick<LlpApi, 'ui' | 'log'> | undefined,
 ) {
@@ -13,7 +11,7 @@ export function useMediaStripVisibility(
     (visible: boolean): void => {
       setChoice(visible);
       try {
-        api?.ui.setMediaStrip({visible});
+        api?.ui.setRememberedView({mediaStrip: visible});
       } catch (cause) {
         api?.log.write({
           level: 'error',

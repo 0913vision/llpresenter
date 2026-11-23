@@ -100,7 +100,7 @@ describe('media view', () => {
     vi.spyOn(fixture.api.ui, 'get').mockResolvedValue({
       mediaBrowser: {view: 'list', columns: 3},
     });
-    const save = vi.spyOn(fixture.api.ui, 'setMediaBrowser');
+    const save = vi.spyOn(fixture.api.ui, 'setRememberedView');
     setup(fixture);
     const toggle = screen.getByRole('button', {name: '미디어 목록 보기'});
     await waitFor(() =>
@@ -109,7 +109,7 @@ describe('media view', () => {
     const slider = screen.getByRole('slider', {name: '타일 크기'});
     expect(slider).toHaveProperty('disabled', true);
     fireEvent.click(toggle);
-    expect(save).toHaveBeenCalledWith({view: 'grid'});
+    expect(save).toHaveBeenCalledWith({mediaBrowser: {view: 'grid'}});
     expect(slider).toHaveProperty('disabled', false);
     expect(slider.getAttribute('aria-valuetext')).toBe('3열');
   });
@@ -119,14 +119,14 @@ describe('media view', () => {
     vi.spyOn(fixture.api.ui, 'get').mockResolvedValue({
       mediaBrowser: {columns: 3},
     });
-    const save = vi.spyOn(fixture.api.ui, 'setMediaBrowser');
+    const save = vi.spyOn(fixture.api.ui, 'setRememberedView');
     setup(fixture);
     const slider = screen.getByRole('slider', {name: '타일 크기'});
     await waitFor(() =>
       expect(slider.getAttribute('aria-valuetext')).toBe('3열'),
     );
     fireEvent.change(slider, {target: {value: '6'}});
-    expect(save).toHaveBeenCalledWith({columns: 4});
+    expect(save).toHaveBeenCalledWith({mediaBrowser: {columns: 4}});
   });
 
   it('refuses a stale add callback when the media file becomes missing', async () => {

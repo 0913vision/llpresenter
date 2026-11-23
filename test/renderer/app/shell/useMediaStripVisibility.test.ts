@@ -9,7 +9,7 @@ function setup(height: number, zoomFactor = 1) {
   const getZoomFactor = vi
     .spyOn(api.ui, 'getZoomFactor')
     .mockReturnValue(zoomFactor);
-  const save = vi.spyOn(api.ui, 'setMediaStrip');
+  const save = vi.spyOn(api.ui, 'setRememberedView');
   return {api, getZoomFactor, save};
 }
 
@@ -24,37 +24,28 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-it.each([
-  {sizeClass: 'normal', height: 900, visible: false},
-  {sizeClass: 'wide', height: 1080, visible: false},
-  {sizeClass: 'normal', height: 899, visible: false},
-  {sizeClass: 'narrow', height: 1080, visible: false},
-] as const)(
-  'starts $visible in a $sizeClass window $height high',
-  ({sizeClass, height, visible}) => {
+it.each([900, 1080, 899, 768])(
+  'starts hidden without a saved choice in a window %i high',
+  height => {
     const {api, save} = setup(height);
-    const {result} = renderHook(() =>
-      useMediaStripVisibility(sizeClass, undefined, api),
-    );
-    expect(result.current.visible).toBe(visible);
+    const {result} = renderHook(() => useMediaStripVisibility(undefined, api));
+    expect(result.current.visible).toBe(false);
     expect(save).not.toHaveBeenCalled();
   },
 );
 
 it.each([
-  {sizeClass: 'wide', height: 1080, saved: false},
-  {sizeClass: 'narrow', height: 768, saved: true},
+  {height: 1080, saved: false},
+  {height: 768, saved: true},
 ] as const)(
-  'restores a saved $saved choice at $sizeClass and saves only an explicit toggle',
-  ({sizeClass, height, saved}) => {
+  'restores a saved $saved choice and saves only an explicit toggle',
+  ({height, saved}) => {
     const {api, save} = setup(height);
-    const {result} = renderHook(() =>
-      useMediaStripVisibility(sizeClass, saved, api),
-    );
+    const {result} = renderHook(() => useMediaStripVisibility(saved, api));
     expect(result.current.visible).toBe(saved);
     expect(save).not.toHaveBeenCalled();
     act(() => result.current.setVisible(!saved));
-    expect(save).toHaveBeenCalledExactlyOnceWith({visible: !saved});
+    expect(save).toHaveBeenCalledExactlyOnceWith({mediaStrip: !saved});
     resizeTo(height + 1);
     expect(result.current.visible).toBe(!saved);
     expect(save).toHaveBeenCalledTimes(1);
@@ -63,9 +54,7 @@ it.each([
 
 it('keeps the default collapsed after a zoom change and resize without saving a choice', () => {
   const {api, getZoomFactor, save} = setup(750, 1.2);
-  const {result} = renderHook(() =>
-    useMediaStripVisibility('normal', undefined, api),
-  );
+  const {result} = renderHook(() => useMediaStripVisibility(undefined, api));
   expect(result.current.visible).toBe(false);
   getZoomFactor.mockReturnValue(1.5);
   resizeTo(600);
@@ -81,9 +70,7 @@ it('keeps the local choice and logs a save that fails', () => {
   save.mockImplementation(() => {
     throw new Error('Invented visibility send failure');
   });
-  const {result} = renderHook(() =>
-    useMediaStripVisibility('normal', undefined, api),
-  );
+  const {result} = renderHook(() => useMediaStripVisibility(undefined, api));
 
   act(() => result.current.setVisible(false));
 

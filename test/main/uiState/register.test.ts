@@ -43,8 +43,8 @@ describe('registerUiState', () => {
       sizeClass: 'narrow',
       thumbnailScalePercent: 120,
     });
-    ipc.send(uiEndpoints.setMediaStrip, {visible: false});
-    ipc.send(uiEndpoints.setMediaBrowser, {columns: 6});
+    ipc.send(uiEndpoints.setRememberedView, {mediaStrip: false});
+    ipc.send(uiEndpoints.setRememberedView, {mediaBrowser: {columns: 6}});
     ipc.send(uiEndpoints.setRememberedView, {showToolTab: 'timer'});
     expect(await ipc.invoke(uiEndpoints.get)).toEqual({
       layout: {narrow: {thumbnailScalePercent: 120}},
@@ -57,8 +57,8 @@ describe('registerUiState', () => {
   it.each([
     [uiEndpoints.setLayout, {sizeClass: 'huge', thumbnailScalePercent: 100}],
     [uiEndpoints.setLayout, {sizeClass: 'normal', left: 300}],
-    [uiEndpoints.setMediaStrip, {visible: 'false'}],
-    [uiEndpoints.setMediaBrowser, {columns: 9}],
+    [uiEndpoints.setRememberedView, {mediaStrip: 'false'}],
+    [uiEndpoints.setRememberedView, {mediaBrowser: {columns: 9}}],
     [uiEndpoints.setRememberedView, {showToolTab: 'wrong'}],
   ])('drops and logs a malformed message %#', (endpoint, value) => {
     const {log, current} = register({mediaStrip: true});

@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import type {Result} from '@core/common/result';
 import {appLayoutSchema, sizeClasses, type AppConfig} from './appConfig';
-import {mediaBrowserSchema} from './mediaBrowser';
+import {mediaBrowserChangeSchema, mediaBrowserSchema} from './mediaBrowser';
 import {screenIdSchema, macroCollectionIdSchema} from './ids';
 import {panelRowsChangeSchema} from './panelRows';
 import {parsePayload, payloadObject, type PayloadError} from './payload';
@@ -68,6 +68,9 @@ const uiStateSchema = payloadObject({
 
 const rememberedViewChangeSchema = v.pipe(
   payloadObject({
+    mediaStrip: v.exactOptional(v.boolean()),
+    /** Only the given fields change. */
+    mediaBrowser: v.exactOptional(mediaBrowserChangeSchema),
     previewBig: v.exactOptional(screenIdSchema),
     previewBigVisible: v.exactOptional(v.boolean()),
     macroView: v.exactOptional(v.picklist(['grid', 'list'])),
@@ -89,8 +92,6 @@ export function parseRememberedViewChange(value: unknown) {
   return parsePayload(rememberedViewChangeSchema, value);
 }
 
-const mediaStripChangeSchema = payloadObject({visible: v.boolean()});
-
 /**
  * The UI part of `app.json` that the control window reads once before its
  * first render. A missing or broken file gives `{}`.
@@ -107,15 +108,6 @@ export type UiState = Pick<
   | 'showToolTab'
   | 'slideColumns'
 >;
-
-/** One boolean choice; no collection or unconstrained numeric payload. */
-export type MediaStripChange = Readonly<
-  v.InferOutput<typeof mediaStripChangeSchema>
->;
-
-export function parseMediaStripChange(value: unknown) {
-  return parsePayload(mediaStripChangeSchema, value);
-}
 
 /** Checks a `ui:get` reply on the receiving side. Never throws. */
 export function parseUiState(value: unknown): Result<UiState, PayloadError> {

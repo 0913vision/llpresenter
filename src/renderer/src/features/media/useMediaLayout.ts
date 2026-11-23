@@ -1,9 +1,10 @@
 import {useEffect, useRef, useState} from 'react';
+import {MEDIA_BROWSER} from '@core/schema/mediaBrowser';
 
 /** The fewest and most grid columns the size slider sets. */
-export const MIN_MEDIA_COLUMNS = 2;
-export const MAX_MEDIA_COLUMNS = 8;
-export const DEFAULT_MEDIA_COLUMNS = 5;
+export const MIN_MEDIA_COLUMNS = MEDIA_BROWSER.minColumns;
+export const MAX_MEDIA_COLUMNS = MEDIA_BROWSER.maxColumns;
+export const DEFAULT_MEDIA_COLUMNS = MEDIA_BROWSER.defaultColumns;
 
 export type MediaDisplay = 'grid' | 'list';
 
@@ -44,12 +45,12 @@ export function useMediaLayout() {
     changeDisplay: (next: MediaDisplay): void => {
       displayChanged.current = true;
       setDisplay(next);
-      window.llp?.ui.setMediaBrowser({view: next});
+      window.llp?.ui.setRememberedView({mediaBrowser: {view: next}});
     },
     changeColumns: (next: number): void => {
       columnsChanged.current = true;
       setColumns(next);
-      window.llp?.ui.setMediaBrowser({columns: next});
+      window.llp?.ui.setRememberedView({mediaBrowser: {columns: next}});
     },
   };
 }

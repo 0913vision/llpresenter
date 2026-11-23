@@ -108,11 +108,7 @@ function ControlApp({
 }: AppProps & {readonly readiness: LoadReadiness}): JSX.Element {
   const recovery = useRecovery(session.api, session.report);
   const sizeClass = useSizeClass();
-  const mediaStrip = useMediaStripVisibility(
-    sizeClass,
-    uiState.mediaStrip,
-    session.api,
-  );
+  const mediaStrip = useMediaStripVisibility(uiState.mediaStrip, session.api);
   const sidebar = useSidebarCollapse(sizeClass, uiState.layout, session.api);
   const serviceName = useShow(view => view.serviceName);
   const warningMap = useOutputWarnings(state => state.warnings);
