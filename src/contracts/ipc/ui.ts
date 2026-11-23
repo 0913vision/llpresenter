@@ -29,7 +29,7 @@ export const uiEndpoints = {
     parseRememberedViewChange,
   ),
   getZoom: query<number>('ui:zoom:get', parseUiZoomPercent),
-  changeZoom: request<UiZoomCommand, number>('ui:zoom:change', {
+  changeZoom: request<UiZoomCommand, number>('ui:zoom:set', {
     request: parseUiZoomCommand,
     reply: parseUiZoomPercent,
   }),

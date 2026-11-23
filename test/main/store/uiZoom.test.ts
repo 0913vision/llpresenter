@@ -100,7 +100,7 @@ describe('control UI zoom', () => {
           },
           control,
         ),
-      ).rejects.toThrow('Malformed ui:zoom:change request');
+      ).rejects.toThrow('Malformed ui:zoom:set request');
 
       expect(config.setUiZoomPercent).not.toHaveBeenCalled();
     },
@@ -191,7 +191,7 @@ describe('control UI zoom', () => {
     const {control, config, log} = await setUp();
     await expect(
       ipc.invoke(uiEndpoints.changeZoom, value, control),
-    ).rejects.toThrow('Malformed ui:zoom:change request');
+    ).rejects.toThrow('Malformed ui:zoom:set request');
     expect(config.uiZoomPercent).toBe(120);
     expect(control.setZoomFactor).toHaveBeenCalledTimes(1);
     expect(log.warn).toHaveBeenCalledTimes(1);

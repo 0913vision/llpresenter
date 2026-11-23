@@ -141,7 +141,6 @@ export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
       editText: () => undefined,
       openScreens: () => undefined,
       openPreferences: () => undefined,
-      openPreferencesAt: () => undefined,
       openLogFolder: () => undefined,
       diagnostics: () => Promise.resolve('diagnostics'),
       setVerboseLogging: () => undefined,

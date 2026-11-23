@@ -113,7 +113,7 @@ export const contentEndpoints = {
   }),
   songs: documentEndpoints<LibrarySong, SongDocument, SongChange>({
     channels: {
-      list: 'songs:list',
+      list: 'songs:list:get',
       listChanged: 'songs:list:changed',
       get: 'songs:document:get',
       changed: 'songs:document:changed',
@@ -125,7 +125,7 @@ export const contentEndpoints = {
   }),
   services: documentEndpoints<ServiceEntry, ServiceDocument, ServiceChange>({
     channels: {
-      list: 'services:list',
+      list: 'services:list:get',
       listChanged: 'services:list:changed',
       get: 'services:document:get',
       changed: 'services:document:changed',
@@ -138,7 +138,7 @@ export const contentEndpoints = {
   templates: documentEndpoints<TemplateEntry, TemplateDocument, TemplateChange>(
     {
       channels: {
-        list: 'templates:list',
+        list: 'templates:list:get',
         listChanged: 'templates:list:changed',
         get: 'templates:document:get',
         changed: 'templates:document:changed',

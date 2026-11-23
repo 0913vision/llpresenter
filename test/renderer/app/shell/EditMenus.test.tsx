@@ -243,13 +243,13 @@ describe('the 편집 menu', () => {
   });
 
   it('opens 환경설정 at its 단축키 page', async () => {
-    const openPreferencesAt = vi.fn();
-    window.llp = mockLlpApi({window: {openPreferencesAt}});
+    const openPreferences = vi.fn();
+    window.llp = mockLlpApi({window: {openPreferences}});
     const user = userEvent.setup();
     render(<MenuBar title="" />);
     const menu = await openMenu(user, '편집');
     await user.click(rowOf(menu, '단축키…'));
-    expect(openPreferencesAt).toHaveBeenCalledExactlyOnceWith('shortcuts');
+    expect(openPreferences).toHaveBeenCalledExactlyOnceWith('shortcuts');
   });
 
   it('runs 복제 through the handler of the focused list, shows its key while off, and gives the list its own reason', async () => {
@@ -401,21 +401,19 @@ describe('the LoveLight menu', () => {
   it('opens preferences, screen settings, and shortcuts', async () => {
     const openPreferences = vi.fn();
     const openScreens = vi.fn();
-    const openPreferencesAt = vi.fn();
-    window.llp = mockLlpApi({
-      window: {openPreferences, openScreens, openPreferencesAt},
-    });
+    window.llp = mockLlpApi({window: {openPreferences, openScreens}});
     const user = userEvent.setup();
     render(<MenuBar title="" />);
     let menu = await openMenu(user, 'LoveLight');
     await user.click(rowOf(menu, '환경설정…'));
-    expect(openPreferences).toHaveBeenCalledOnce();
+    expect(openPreferences).toHaveBeenLastCalledWith();
     menu = await openMenu(user, 'LoveLight');
     await user.click(rowOf(menu, '화면 설정…'));
     expect(openScreens).toHaveBeenCalledOnce();
     menu = await openMenu(user, 'LoveLight');
     await user.click(rowOf(menu, '단축키…'));
-    expect(openPreferencesAt).toHaveBeenCalledExactlyOnceWith('shortcuts');
+    expect(openPreferences).toHaveBeenLastCalledWith('shortcuts');
+    expect(openPreferences).toHaveBeenCalledTimes(2);
   });
 
   it('opens the log folder', async () => {

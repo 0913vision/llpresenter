@@ -109,11 +109,10 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
 
   private listen(): void {
     const {ipc} = this;
-    ipc.signal(windowEndpoints.openPreferences, () => {
-      this.open({view: 'preferences', page: this.preferencesPage});
-    });
-    ipc.message(windowEndpoints.openPreferencesAt, page => {
-      this.open({view: 'preferences', page}, true);
+    ipc.message(windowEndpoints.openPreferences, page => {
+      if (page === null) {
+        this.open({view: 'preferences', page: this.preferencesPage});
+      } else this.open({view: 'preferences', page}, true);
     });
     if (this.options.screens !== undefined) {
       ipc.signal(windowEndpoints.openScreens, () => {

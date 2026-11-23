@@ -58,6 +58,13 @@ export function parsePreferencePage(
     : {ok: true, value: page};
 }
 
+/** A 환경설정 page, or null for the page it showed last. */
+function parsePreferencePageOrLast(
+  value: unknown,
+): Result<PreferencePageId | null, PayloadError> {
+  return value === null ? {ok: true, value: null} : parsePreferencePage(value);
+}
+
 export const PREFERENCES_REQUEST_LIMIT = 2_147_483_647;
 export interface PreferencesRequest {
   readonly requestId: number;
@@ -182,15 +189,14 @@ export const windowEndpoints = {
     parseSettingsRequest,
   ),
   openScreens: signal('window:open-screens'),
-  openPreferences: signal('window:open-preferences'),
-  openPreferencesAt: message<PreferencePageId>(
-    'window:open-preferences-at',
-    parsePreferencePage,
+  openPreferences: message<PreferencePageId | null>(
+    'window:open-preferences',
+    parsePreferencePageOrLast,
   ),
   openLogFolder: signal('window:open-log-folder'),
   appInfo: query<AppInfo>('window:app-info:get', parseAppInfo),
   diagnostics: query<string>('window:diagnostics:get', parseDiagnosticsText),
-  verboseLogging: message<boolean>('window:verbose-logging', parseOnOff),
+  verboseLogging: message<boolean>('window:verbose-logging:set', parseOnOff),
   verboseLoggingState: query<boolean>('window:verbose-logging:get', parseOnOff),
   control: message<WindowAction>('window:control', parseWindowAction),
   fullScreen: query<boolean>('window:full-screen:get', parseOnOff),
@@ -202,6 +208,7 @@ export const windowEndpoints = {
 
 /** The title bar part of `window.llp`. */
 export function windowApi(port: IpcPort) {
+  const openPreferences = port.message(windowEndpoints.openPreferences);
   return {
     /** Reads and follows the latest route of the one settings window. */
     settingsRequest: port.query(windowEndpoints.settingsRequest),
@@ -212,8 +219,12 @@ export function windowApi(port: IpcPort) {
     settingsReady: port.message(windowEndpoints.settingsReady),
     /** Opens or focuses the screen configuration window. */
     openScreens: port.signal(windowEndpoints.openScreens),
-    /** Opens or focuses the 환경설정 window. */
-    openPreferences: port.signal(windowEndpoints.openPreferences),
+    /**
+     * Opens or focuses the 환경설정 window: on `page`, or on the page it
+     * showed last.
+     */
+    openPreferences: (page?: PreferencePageId): void =>
+      openPreferences(page ?? null),
     /** Opens the app's log folder in the file manager. */
     openLogFolder: port.signal(windowEndpoints.openLogFolder),
     /** The text 진단 정보 copies: versions, devices, and recent errors. */
@@ -224,8 +235,6 @@ export function windowApi(port: IpcPort) {
     verboseLogging: port.query(windowEndpoints.verboseLoggingState),
     /** The app name and version. */
     appInfo: port.query(windowEndpoints.appInfo),
-    /** Opens or focuses the 환경설정 window on one of its pages. */
-    openPreferencesAt: port.message(windowEndpoints.openPreferencesAt),
     /** Minimizes, maximizes or restores, or closes the calling window. */
     control: port.message(windowEndpoints.control),
     /** Whether the calling window is full screen. */

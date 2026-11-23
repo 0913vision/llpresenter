@@ -120,6 +120,11 @@ feature that owns it.
   channel, the parsers for the request and the reply, and the member of
   `window.llp` built on the preload script's port. The preload script and its
   checks don't change per call.
+- A channel is named `area:thing:verb`. A read ends in `:get`, a value main
+  pushes when it changes ends in `:changed`, a write of one value ends in
+  `:set`, and any other command names what it does (`service:open`). An action
+  is one call: a call that differs from another only in an argument takes that
+  argument as optional instead.
 - `src/` holds no test code. A test lives in `test/`, in the folder that mirrors
   the code it tests, and may use any layer of its own process around that code,
   never another process's code. Shared mocks and fixtures live in

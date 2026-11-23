@@ -152,7 +152,7 @@ export function editMenuEntries(place: Element | null): readonly MenuEntry[] {
       kind: 'item',
       id: 'shortcuts',
       label: '단축키…',
-      onSelect: () => window.llp?.window.openPreferencesAt('shortcuts'),
+      onSelect: () => window.llp?.window.openPreferences('shortcuts'),
     },
   ];
 }

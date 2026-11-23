@@ -121,7 +121,7 @@ export function SettingsWindow({
     [api],
   );
   const selectPage = useCallback(
-    (page: PreferencePageId): void => api?.openPreferencesAt(page),
+    (page: PreferencePageId): void => api?.openPreferences(page),
     [api],
   );
   const screensReady = useCallback((): void => {

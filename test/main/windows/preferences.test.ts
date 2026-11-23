@@ -167,7 +167,7 @@ it('opens the remembered preferences page and saves a later choice', async () =>
     log: recordingLogger(),
     config,
   });
-  ipc.send(windowEndpoints.openPreferences);
+  ipc.send(windowEndpoints.openPreferences, null);
   const win = mocks.created.at(-1);
   if (win === undefined) throw new Error('Missing settings window');
   expect(request()).toMatchObject({page: 'media'});
@@ -180,7 +180,7 @@ it('opens the remembered preferences page and saves a later choice', async () =>
     height: 800,
     maximized: false,
   });
-  ipc.send(windowEndpoints.openPreferencesAt, 'shortcuts');
+  ipc.send(windowEndpoints.openPreferences, 'shortcuts');
   await drawn(win);
   expect(config.setPreferencesPage).toHaveBeenLastCalledWith('shortcuts');
   await owner.dispose();
@@ -201,7 +201,7 @@ function setup(mode: 'normal' | 'offscreen' = 'normal') {
     mode,
     log: recordingLogger(),
   });
-  const open = () => ipc.send(windowEndpoints.openPreferences);
+  const open = () => ipc.send(windowEndpoints.openPreferences, null);
   const last = () => {
     const win = mocks.created.at(-1);
     if (win === undefined || mocks.created.length < 2) {
@@ -263,11 +263,11 @@ describe('환경설정 window', () => {
 
   it('opens at the requested page, and tells an open window to show a later one', () => {
     const {last} = setup();
-    ipc.send(windowEndpoints.openPreferencesAt, 'shortcuts');
+    ipc.send(windowEndpoints.openPreferences, 'shortcuts');
     const win = last();
     expect(request()).toMatchObject({page: 'shortcuts'});
     expect(win.webContents.send).not.toHaveBeenCalled();
-    ipc.send(windowEndpoints.openPreferencesAt, 'bible');
+    ipc.send(windowEndpoints.openPreferences, 'bible');
     expect(mocks.created).toHaveLength(2);
     expect(win.webContents.send).toHaveBeenCalledWith(
       windowEndpoints.showSettingsRequest.channel,
@@ -287,10 +287,10 @@ describe('환경설정 window', () => {
       mode: 'normal',
       log,
     });
-    ipc.send(windowEndpoints.openPreferencesAt, 'nowhere');
+    ipc.send(windowEndpoints.openPreferences, 'nowhere');
     expect(mocks.created).toHaveLength(1);
     expect(log.messages('warn')).toEqual([
-      'dropped a malformed window:open-preferences-at message',
+      'dropped a malformed window:open-preferences message',
     ]);
   });
 
@@ -340,11 +340,11 @@ describe('환경설정 window', () => {
     vi.advanceTimersByTime(1000);
     const prepared = last();
     await drawn(prepared);
-    ipc.send(windowEndpoints.openPreferencesAt, 'shortcuts');
+    ipc.send(windowEndpoints.openPreferences, 'shortcuts');
     expect(prepared.show).not.toHaveBeenCalled();
     await drawn(prepared);
     expect(prepared.show).toHaveBeenCalledOnce();
-    ipc.send(windowEndpoints.openPreferencesAt, 'shortcuts');
+    ipc.send(windowEndpoints.openPreferences, 'shortcuts');
     expect(prepared.show).toHaveBeenCalledOnce();
     await drawn(prepared);
     expect(prepared.show).toHaveBeenCalledTimes(2);
@@ -376,11 +376,11 @@ describe('환경설정 window', () => {
     vi.advanceTimersByTime(1000);
     const prepared = last();
     const stale = request();
-    ipc.send(windowEndpoints.openPreferencesAt, 'shortcuts');
+    ipc.send(windowEndpoints.openPreferences, 'shortcuts');
     ipc.send(windowEndpoints.settingsReady, stale, prepared.webContents);
     expect(prepared.show).not.toHaveBeenCalled();
     const first = request();
-    ipc.send(windowEndpoints.openPreferencesAt, 'shortcuts');
+    ipc.send(windowEndpoints.openPreferences, 'shortcuts');
     ipc.send(windowEndpoints.settingsReady, first, prepared.webContents);
     expect(prepared.show).not.toHaveBeenCalled();
     await drawn(prepared);
@@ -393,7 +393,7 @@ describe('환경설정 window', () => {
     await drawn(last());
     last().isVisible.mockReturnValue(true);
     last().focus.mockClear();
-    ipc.send(windowEndpoints.openPreferencesAt, 'shortcuts');
+    ipc.send(windowEndpoints.openPreferences, 'shortcuts');
     expect(last().focus).toHaveBeenCalledOnce();
     open();
     expect(last().focus).toHaveBeenCalledTimes(2);
@@ -450,7 +450,7 @@ describe('환경설정 window', () => {
 
   it('replays the requested start page after a crash before the first reveal', async () => {
     const {last} = setup();
-    ipc.send(windowEndpoints.openPreferencesAt, 'shortcuts');
+    ipc.send(windowEndpoints.openPreferences, 'shortcuts');
     const win = last();
     const stale = request();
     win.webContents.emit('render-process-gone', {}, {reason: 'crashed'});
@@ -648,7 +648,7 @@ describe('the shared prepared settings window', () => {
 
   it('never reveals a painted frame whose window closed while capture was pending', async () => {
     const {owner, win, ready, accept} = shared();
-    ipc.send(windowEndpoints.openPreferences);
+    ipc.send(windowEndpoints.openPreferences, null);
     expect(accept()).toBe(true);
     let finish: () => void = () => undefined;
     win().webContents.capturePage.mockReturnValueOnce(
@@ -675,7 +675,7 @@ describe('the shared prepared settings window', () => {
     'reopens %s in the retained renderer after preferences closes',
     async target => {
       const {owner, win, accept, ready} = shared();
-      ipc.send(windowEndpoints.openPreferences);
+      ipc.send(windowEndpoints.openPreferences, null);
       expect(accept()).toBe(true);
       await ready();
       await owner.close();
@@ -683,7 +683,7 @@ describe('the shared prepared settings window', () => {
       if (target === 'screens') {
         ipc.send(windowEndpoints.openScreens);
       } else {
-        ipc.send(windowEndpoints.openPreferencesAt, 'shortcuts');
+        ipc.send(windowEndpoints.openPreferences, 'shortcuts');
       }
       expect(accept()).toBe(true);
       expect(win().show).not.toHaveBeenCalled();
@@ -696,7 +696,7 @@ describe('the shared prepared settings window', () => {
 
   it('changes geometry only after the renderer settles, and reveals only the matching view', async () => {
     const {win, request, accept, ready, config} = shared();
-    ipc.send(windowEndpoints.openPreferences);
+    ipc.send(windowEndpoints.openPreferences, null);
     expect(accept()).toBe(true);
     await ready();
     win().setBounds.mockClear();
@@ -718,7 +718,7 @@ describe('the shared prepared settings window', () => {
     await ready(stale);
     expect(win().show).toHaveBeenCalledTimes(1);
     await ready();
-    ipc.send(windowEndpoints.openPreferencesAt, 'shortcuts');
+    ipc.send(windowEndpoints.openPreferences, 'shortcuts');
     expect(accept()).toBe(true);
     expect(config.setScreensWindow).toHaveBeenCalledWith({
       x: 100,
@@ -772,7 +772,7 @@ describe('the shared prepared settings window', () => {
 
   it('restores the committed preferences page after a refused view change', async () => {
     const {win, request, ready, accept} = shared();
-    ipc.send(windowEndpoints.openPreferencesAt, 'labels');
+    ipc.send(windowEndpoints.openPreferences, 'labels');
     expect(accept()).toBe(true);
     await ready();
     ipc.send(windowEndpoints.openScreens);
@@ -789,7 +789,7 @@ describe('the shared prepared settings window', () => {
 
   it('ignores a superseded page when its native paint completes late', async () => {
     const {win, ready, accept} = shared();
-    ipc.send(windowEndpoints.openPreferences);
+    ipc.send(windowEndpoints.openPreferences, null);
     expect(accept()).toBe(true);
     let release: () => void = () => undefined;
     win().webContents.capturePage.mockReturnValueOnce(

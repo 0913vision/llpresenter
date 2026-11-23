@@ -43,7 +43,7 @@ export const settingsEndpoints = {
   }),
   changed: push<SettingsDocument>('settings:changed', parseSettingsDocument),
   previewLabelColor: request<LabelColorPreviewRequest, boolean>(
-    'labels:preview-color',
+    'labels:color-preview:set',
     {
       request: parseLabelColorPreviewRequest,
       reply: parseLabelColorPreviewReply,
