@@ -23,17 +23,17 @@ interface UpdateOptions {
 export function updateErrorReason(error: unknown): string {
   const message = error instanceof Error ? error.message : String(error);
   if (/ENOTFOUND|ENET|ECONN|ETIMEDOUT|net::|network|offline/iu.test(message)) {
-    return '인터넷 연결을 확인한 뒤 다시 시도해 주세요.';
+    return '인터넷 연결을 확인한 뒤 다시 시도해 주세요';
   }
   if (/404|No published|No releases|latest.yml/iu.test(message)) {
-    return '공개된 업데이트를 찾을 수 없습니다.';
+    return '공개된 업데이트를 찾을 수 없습니다';
   }
-  if (/ENOSPC|disk space/iu.test(message)) return '저장 공간이 부족합니다.';
+  if (/ENOSPC|disk space/iu.test(message)) return '저장 공간이 부족합니다';
   if (/sha512|checksum|signature/iu.test(message)) {
     return '설치 파일을 확인할 수 없습니다. 다시 내려받아 주세요.';
   }
   if (/EACCES|EPERM|permission/iu.test(message)) {
-    return '업데이트 파일을 저장할 권한이 없습니다.';
+    return '업데이트 파일을 저장할 권한이 없습니다';
   }
   return '업데이트를 완료할 수 없습니다. 잠시 후 다시 시도해 주세요.';
 }

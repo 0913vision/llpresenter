@@ -237,7 +237,7 @@ describe('저장 > 폴더 and 백업', () => {
           screen.getByDisplayValue(MEDIA).parentElement ?? document.body,
         )
       )?.textContent,
-    ).toBe('다음에 켤 때부터 씁니다. 있던 파일은 옮기지 않습니다');
+    ).toBe('다음에 켤 때부터 씁니다. 있던 파일은 옮기지 않습니다.');
   });
 
   it.each([

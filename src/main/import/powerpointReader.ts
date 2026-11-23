@@ -9,6 +9,7 @@ import type {Logger} from '../base/log';
 import {
   convertLegacyPowerPoint,
   isLegacyPowerPoint,
+  POWERPOINT_BUSY,
   powerPointMessage,
   unsupportedSlideSize,
 } from './powerpointFile';
@@ -38,11 +39,11 @@ export interface PowerPointReaderOptions {
 
 const BUSY: PowerPointReadResult = {
   ok: false,
-  message: 'PowerPoint 파일을 읽는 중입니다.',
+  message: POWERPOINT_BUSY,
 };
 const NOTHING: PowerPointReadResult = {ok: true, value: null};
 const UNREADABLE =
-  'PowerPoint 파일이 손상되었거나 암호화되었거나 크기 제한을 넘었습니다.';
+  'PowerPoint 파일이 손상되었거나 암호화되었거나 크기 제한을 넘었습니다';
 const DIGEST = /^[a-f0-9]{64}$/;
 
 function picturesOf(slides: unknown): ReadonlyArray<string | undefined> {

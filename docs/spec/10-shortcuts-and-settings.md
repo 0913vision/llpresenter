@@ -1042,7 +1042,7 @@ stage output and previews; missing values use `line`.
 
 | Group   | Row                          | Control and range                | Default                      | Stored in                                                 | Applies     | Tooltip                                              |
 | ------- | ---------------------------- | -------------------------------- | ---------------------------- | --------------------------------------------------------- | ----------- | ---------------------------------------------------- |
-| 폴더    | 곡 (songs folder)            | Read-only path, 바꾸기…          | `<data folder>\곡`           | `app.json` `songsPath`                                    | Next launch | 다음에 켤 때부터 씁니다. 있던 파일은 옮기지 않습니다 |
+| 폴더    | 곡 (songs folder)            | Read-only path, 바꾸기…          | `<data folder>\곡`           | `app.json` `songsPath`                                    | Next launch | 다음에 켤 때부터 씁니다. 있던 파일은 옮기지 않습니다. |
 | 폴더    | 미디어 (media folder)        | Read-only path, 바꾸기…          | `<data folder>\미디어`       | `app.json` `mediaPath`                                    | Next launch | Same                                                 |
 | 백업    | 자동 백업 (automatic backup) | Checkbox                         | On                           | `preferences.json` `backup.auto`                          | Next launch | 하루 한 번, 앱을 켤 때                               |
 | 백업    | 백업 폴더 (backup folder)    | Read-only path, 바꾸기…          | `Documents\LoveLightBackups` | `app.json` `backupPath`                                   | Next backup |                                                      |

@@ -764,7 +764,7 @@ and 59.
 가져오기…, also while an item is open. Both take `.ppt`, `.pptx`, and `.pptm`. A
 `.ppt` is converted from a private copy by PowerPoint with macros disabled.
 Hidden slides are skipped. A 4:3 file is refused: "4:3 파일은 가져올 수
-없습니다. PowerPoint에서 16:9로 바꿔 주세요".
+없습니다. PowerPoint에서 16:9로 바꿔 주세요."
 
 ### 곡 가져오기
 

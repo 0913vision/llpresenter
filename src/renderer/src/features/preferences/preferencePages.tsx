@@ -68,7 +68,7 @@ const ZOOM_OPTIONS = Array.from(
     return {value: String(percent), label: `${percent}%`};
   },
 );
-const FOLDER_NOTE = '다음에 켤 때부터 씁니다. 있던 파일은 옮기지 않습니다';
+const FOLDER_NOTE = '다음에 켤 때부터 씁니다. 있던 파일은 옮기지 않습니다.';
 const AUTO_BACKUP_NOTE = '하루 한 번, 앱을 켤 때';
 const PREVIOUS_VERSION_NOTE =
   '곡과 예배 파일을 저장할 때 바로 전 판을 남깁니다';

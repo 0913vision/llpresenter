@@ -324,6 +324,9 @@ remaining space.
 - A tooltip holds only the name and the shortcut, with no period:
   `가사 지우기  F2`. A sentence appears only to give the reason for a problem:
   `모니터 2를 찾을 수 없습니다`.
+- A notice of one sentence ends without a period: `PowerPoint가 응답하지
+  않습니다`. A notice of two or more sentences ends every sentence with one:
+  `4:3 파일은 가져올 수 없습니다. PowerPoint에서 16:9로 바꿔 주세요.`
 - An error says what went wrong and offers the fix as a button ("모니터 다시
   찾기", "다시 가져오기"). It never apologizes.
 

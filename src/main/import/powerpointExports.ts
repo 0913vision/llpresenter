@@ -11,6 +11,7 @@ import type {Logger} from '../base/log';
 import {
   convertLegacyPowerPoint,
   isLegacyPowerPoint,
+  POWERPOINT_BUSY,
   PowerPointError,
   powerPointMessage,
   unsupportedSlideSize,
@@ -43,10 +44,10 @@ type OnPicture = (index: number, path: string) => void;
 
 const BUSY: PowerPointImageExportResult = {
   ok: false,
-  message: 'PowerPoint 파일을 읽는 중입니다.',
+  message: POWERPOINT_BUSY,
 };
 const NOTHING: PowerPointImageExportResult = {ok: true, value: null};
-const UNREADABLE = 'PowerPoint 파일을 읽을 수 없습니다.';
+const UNREADABLE = 'PowerPoint 파일을 읽을 수 없습니다';
 const NUMBER_DIGITS = 4;
 
 /** The file that PowerPoint writes its picture number `done` to. */

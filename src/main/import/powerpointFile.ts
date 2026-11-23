@@ -98,21 +98,24 @@ export async function convertLegacyPowerPoint(
   return converted;
 }
 
+/** Why a PowerPoint file cannot be read now: another one is being read. */
+export const POWERPOINT_BUSY = 'PowerPoint 파일을 읽는 중입니다';
+
 /** Says what went wrong with a file, or `fallback` when nothing is known. */
 export function powerPointMessage(error: unknown, fallback: string): string {
   if (!(error instanceof PowerPointError)) return fallback;
   switch (error.reason) {
     case 'unavailable':
       return error.use === 'convert'
-        ? '이 파일을 가져오려면 PowerPoint가 설치되어 있어야 합니다.'
-        : 'PowerPoint가 설치되어 있지 않습니다.';
+        ? '이 파일을 가져오려면 PowerPoint가 설치되어 있어야 합니다'
+        : 'PowerPoint가 설치되어 있지 않습니다';
     case 'unresponsive':
-      return 'PowerPoint가 응답하지 않습니다.';
+      return 'PowerPoint가 응답하지 않습니다';
     case 'ok':
     case 'file':
     case 'cancelled':
       return error.use === 'convert'
-        ? 'PowerPoint 파일을 변환할 수 없습니다.'
+        ? 'PowerPoint 파일을 변환할 수 없습니다'
         : fallback;
   }
 }
@@ -137,5 +140,5 @@ export function unsupportedSlideSize(value: unknown): string | null {
     throw new Error('Invalid PowerPoint slide size');
   }
   if (!isPowerPointFourThree(value.width, value.height)) return null;
-  return '4:3 파일은 가져올 수 없습니다. PowerPoint에서 16:9로 바꿔 주세요';
+  return '4:3 파일은 가져올 수 없습니다. PowerPoint에서 16:9로 바꿔 주세요.';
 }
