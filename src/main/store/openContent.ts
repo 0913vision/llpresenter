@@ -1,9 +1,10 @@
 import {DEFAULT_LABELS} from './defaults';
+import type {SongChange} from '@core/schema/contentDocuments';
 import {defaultPreferences} from '@core/schema/preferences';
+import type {Song} from '@core/schema/song';
 import {serviceEndpoints} from '@contracts/ipc/service';
 import {pushToWindows} from '../base/ipcHost';
 import type {Logger} from '../base/log';
-import {buildSongSearchIndex, type SongSearchIndex} from '../search/songIndex';
 import {pushContentEvents} from './contentChannels';
 import {ContentStore} from './contentStore';
 import {documentFiles} from './documentFiles';
@@ -16,20 +17,26 @@ import {type SaveFailureSink} from './saveFailures';
 import {Saver} from './saver';
 import {type SettingsStore} from './settingsStore';
 
+/** The songs that are stored, and their changes. */
+export interface SongFeed {
+  songs(): Iterable<Song>;
+  subscribeSongs(listener: (change: SongChange) => void): () => void;
+}
+
 /**
- * The initialized content, search, library and current-service feed. The owner
+ * The initialized content, library and current-service feed. The owner
  * retains the existing flush/dispose and listener-removal responsibilities.
  */
 export interface OpenedContent {
   readonly library: LibrarySongSources;
   readonly content: ContentStore;
   readonly feed: OpenServiceFeed;
-  readonly search: SongSearchIndex;
+  readonly songs: SongFeed;
   readonly removeSettings: () => void;
 }
 
 /**
- * Opens the existing content/search/feed composition after loading and its
+ * Opens the existing content/feed composition after loading and its
  * readers, or logs a startup failure and returns null. It does not register IPC
  * handlers or own application shutdown.
  */
@@ -71,9 +78,7 @@ async function createContent(
     readonly failures: SaveFailureSink;
   },
 ): Promise<OpenedContent> {
-  const search = await buildSongSearchIndex(
-    [...store.songs.values()].map(({data}) => data),
-  );
+  const songListeners = new Set<(change: SongChange) => void>();
   const copies = new RecoveryCopies({
     folder: store.locations.recovery,
     keep: () =>
@@ -100,7 +105,7 @@ async function createContent(
     events: {
       ...events,
       songChanged: change => {
-        search.change(change);
+        for (const listener of songListeners) listener(change);
         events.songChanged(change);
       },
     },
@@ -142,5 +147,14 @@ async function createContent(
     removeMedia();
   };
   feed.refresh();
-  return {content, feed, search, removeSettings, library};
+  const songs: SongFeed = {
+    songs: () => [...content.storedSongs().values()].map(({data}) => data),
+    subscribeSongs: listener => {
+      songListeners.add(listener);
+      return () => {
+        songListeners.delete(listener);
+      };
+    },
+  };
+  return {content, feed, songs, removeSettings, library};
 }

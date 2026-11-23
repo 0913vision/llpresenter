@@ -50,6 +50,7 @@ export function shutdownSteps({
     {name: 'stop the settings window', run: features.settingsWindow.dispose},
     {name: 'stop the Windows sign-in item', run: services.stopLaunchAtLogin},
     {name: 'stop the location channels', run: services.stopLocations},
+    {name: 'stop the song search', run: services.stopSearch},
     {name: 'stop Bible lookup', run: services.stopBible},
     {name: 'stop font enumeration', run: features.stopFonts},
     {name: 'stop the media backend', run: features.stopMediaBackend},

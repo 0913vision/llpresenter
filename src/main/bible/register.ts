@@ -1,17 +1,19 @@
 import {bibleEndpoints} from '@contracts/ipc/bible';
-import type {BibleLookupSession} from './lookup';
 import {IpcHost} from '../base/ipcHost';
-import type {Logger} from '../base/log';
+import {BibleLookupSession, type BibleLookupOptions} from './lookup';
 
-/** Registers validated reads using the data store's shared Bible session. */
-export function registerBible({
-  session,
-  log,
-}: {
-  readonly session: Pick<BibleLookupSession, 'lookup'>;
-  readonly log: Logger;
-}): () => void {
+/**
+ * Answers the lookups of Bible passages.
+ *
+ * @returns A function that stops answering.
+ */
+export function registerBible(options: BibleLookupOptions): () => void {
+  const {log} = options;
   const ipc = new IpcHost(log);
+  const session = new BibleLookupSession(options);
+  ipc.whenClosed(() => {
+    session.dispose();
+  });
   ipc.request(bibleEndpoints.lookup, async request => {
     try {
       return await session.lookup(request, false, true);
@@ -20,5 +22,7 @@ export function registerBible({
       throw new Error('Could not look up a Bible passage', {cause: error});
     }
   });
-  return () => ipc.close();
+  return () => {
+    ipc.close();
+  };
 }

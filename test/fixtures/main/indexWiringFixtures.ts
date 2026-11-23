@@ -6,7 +6,6 @@ import {makeTempDir} from '@fixtures/tempDir';
 import type {LiveStore} from '@main/live/store';
 import type {MediaBackendRegistration} from '@main/media/register';
 import type {MediaHandlerOptions} from '@main/windows/mediaResponse';
-import type {BibleLookupSession} from '@main/bible/lookup';
 import type {StandingProblems} from '@main/base/problemFeed';
 import type {RecoveryRecordWriter} from '@main/live/recovery/recordWriter';
 import type {registerUpdates} from '@main/update/register';
@@ -65,7 +64,6 @@ const mocks = vi.hoisted(() => {
     screensWindowStop: vi.fn<() => void>(),
     screensWindowClose: vi.fn<() => Promise<boolean>>(),
     bibleContexts: new Array<unknown>(),
-    bible: {lookup: vi.fn<BibleLookupSession['lookup']>()},
     bibleStop: vi.fn<() => void>(),
     bibleAiStop: vi.fn<() => void>(),
     fontContexts: new Array<unknown>(),
@@ -346,7 +344,7 @@ vi.mock('@main/store/register', () => ({
     mocks.order.push('data store');
     mocks.storeOptions.push(options);
     return {
-      bible: mocks.bible,
+      songs: Promise.resolve(null),
       content: Promise.resolve(null),
       settings: mocks.settings,
       dispose: mocks.storeDispose,

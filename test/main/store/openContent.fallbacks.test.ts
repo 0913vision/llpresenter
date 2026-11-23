@@ -1,7 +1,6 @@
 import {join} from 'node:path';
 import {expect, it, onTestFinished, vi} from 'vitest';
 import {makeTempDir} from '@fixtures/tempDir';
-import type {BibleLookupSession} from '@main/bible/lookup';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {openAppConfig} from '@main/store/appConfigFile';
 import {loadStore} from '@main/store/fileStore';
@@ -23,7 +22,6 @@ async function setup() {
     settings: Promise.resolve(null),
     media: Promise.resolve(null),
     failures: {waiting: vi.fn(), saved: vi.fn(), remind: vi.fn()},
-    bible: {lookup: vi.fn<BibleLookupSession['lookup']>()},
   };
   return {store: loaded.value, log, readers};
 }

@@ -12,7 +12,6 @@ import {contentEndpoints} from '@contracts/ipc/content';
 import {libraryEndpoints} from '@contracts/ipc/library';
 import {liveEndpoints} from '@contracts/ipc/live';
 import {createMediaId} from '@core/schema/ids';
-import {parseLibrarySearchResult} from '@core/schema/librarySearch';
 import {readFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';
@@ -154,81 +153,33 @@ describe('content opening through registerStore', () => {
     );
   });
 
-  it('searches the initial library and applies song edits, deletion, and creation before the next search', async () => {
+  it('gives the stored songs and tells of edits, deletion, and creation', async () => {
     const context = await developmentContext();
     const root = join(context.appDataFolder, DATA_FOLDER_NAME);
-    const original = {
-      ...hymnOne(),
-      title: '새벽의 길',
-      slides: [lyricsSlide(4, ['돌아온 아침빛'])],
-    };
-    await writeJson(join(root, 'Songs', 'song.llsong'), original);
+    await writeJson(join(root, 'Songs', 'song.llsong'), hymnOne());
     const store = await register(mockLog(), context, () => true);
-    const initial = await ask(libraryEndpoints.search.channel, {
-      query: '아침빛',
-    });
-    expect(parseLibrarySearchResult(initial)).toMatchObject({
-      ok: true,
-      value: {
-        query: '아침빛',
-        matches: [
-          {
-            songId: HYMN_ONE_ID,
-            title: '새벽의 길',
-            match: {kind: 'lyrics', line: '돌아온 아침빛'},
-          },
-        ],
-      },
+    const songs = await store.songs;
+    if (songs === null) throw new Error('Missing songs');
+    expect([...songs.songs()].map(({id}) => id)).toEqual([HYMN_ONE_ID]);
+    const changes: Array<string | null> = [];
+    const stop = songs.subscribeSongs(({document}) => {
+      changes.push(document?.song.title ?? null);
     });
     const current = (await songDocument(HYMN_ONE_ID)).song;
-    const edited = {
-      ...current,
-      title: '바람의 노래',
-      slides: current.slides.map(slide => ({
-        ...slide,
-        texts: {가사: '다시 피어난 햇살'},
-      })),
-    };
-    expect(
-      await ask(contentEndpoints.edit.channel, {
-        type: 'song.update',
-        song: edited,
-        baseRevision: 1,
-      }),
-    ).toMatchObject({ok: true});
-    expect(
-      await ask(libraryEndpoints.search.channel, {query: '햇살'}),
-    ).toMatchObject({
-      matches: [{title: '바람의 노래'}],
+    await ask(contentEndpoints.edit.channel, {
+      type: 'song.update',
+      song: {...current, title: '바람의 노래'},
+      baseRevision: 1,
     });
-    expect(
-      await ask(libraryEndpoints.search.channel, {query: '아침빛'}),
-    ).toMatchObject({
-      matches: [],
+    await ask(contentEndpoints.edit.channel, {
+      type: 'song.delete',
+      songId: HYMN_ONE_ID,
     });
-    expect(
-      await ask(libraryEndpoints.search.channel, {query: '새벽의 길'}),
-    ).toMatchObject({matches: []});
-    expect(
-      await ask(contentEndpoints.edit.channel, {
-        type: 'song.delete',
-        songId: HYMN_ONE_ID,
-      }),
-    ).toMatchObject({ok: true});
-    expect(
-      await ask(libraryEndpoints.search.channel, {query: ''}),
-    ).toMatchObject({
-      matches: [],
-    });
-    expect(
-      await ask(contentEndpoints.edit.channel, {type: 'song.create'}),
-    ).toMatchObject({ok: true});
-    expect(
-      await ask(libraryEndpoints.search.channel, {query: '새곡'}),
-    ).toMatchObject({
-      matches: [{title: '새 곡'}],
-    });
+    await ask(contentEndpoints.edit.channel, {type: 'song.create'});
+    expect(changes).toEqual(['바람의 노래', null, '새 곡']);
+    stop();
+    await ask(contentEndpoints.edit.channel, {type: 'song.create'});
+    expect(changes).toHaveLength(3);
     await store.dispose();
-    expect(electron.handlers.has(libraryEndpoints.search.channel)).toBe(false);
   });
 });

@@ -10,12 +10,14 @@ import {registerLiveChannels} from '../live/channels';
 import {startOverlays} from '../live/overlays';
 import {registerThemeOutput} from '../live/themes';
 import {startMediaAnalysis} from '../media/analysis';
+import {registerLibrarySearch} from '../search/register';
 import {registerLibraryLocations} from '../store/locationsChannels';
 import {serveMedia} from '../windows/mediaProtocol';
 import {registerWindowChannels} from '../windows/windowChannels';
 import type {Foundation} from './foundation';
 import {startRecoveryRecord} from './recoveryRecord';
 
+const BIBLE_FOLDER = 'bible';
 const LOG_FOLDER = 'logs';
 const THUMBNAIL_FOLDER = join('cache', 'thumbnails');
 
@@ -69,7 +71,12 @@ export function startServices(
   const stopLiveChannels = registerLiveChannels(store, log);
   const stopWindowLog = registerWindowLog(log);
   const stopWindowChannels = startWindowChannels(foundation, isControlWindow);
-  const stopBible = registerBible({session: data.bible, log});
+  const stopSearch = registerLibrarySearch(data.songs, log);
+  const stopBible = registerBible({
+    folder: join(app.getPath('userData'), BIBLE_FOLDER),
+    settings: data.settings,
+    log,
+  });
   shutdown.add({name: 'stop local Bible AI', run: registerBibleAi({log})});
   // NOTE(0913vision): Register the reader owner before the output source;
   // their settings promise callbacks run in registration order.
@@ -95,6 +102,7 @@ export function startServices(
     stopLiveChannels,
     stopWindowLog,
     stopWindowChannels,
+    stopSearch,
     stopBible,
     stopOverlays,
     stopThemeOutput,

@@ -7,7 +7,6 @@ import {
   register,
 } from '@fixtures/main/store/registerFixtures';
 import {contentEndpoints} from '@contracts/ipc/content';
-import {libraryEndpoints} from '@contracts/ipc/library';
 import {settingsEndpoints} from '@contracts/ipc/settings';
 import {parseEditResult} from '@core/schema/contentEdit';
 import {
@@ -270,7 +269,7 @@ describe('registerStore', () => {
     const file = join(root, 'Songs', 'song.llsong');
     const original = {...hymnOne(), future: 'kept'};
     await writeJson(file, original);
-    await register(mockLog(), context);
+    const store = await register(mockLog(), context);
     const result = parseEditResult(
       await ask(contentEndpoints.edit.channel, {
         type: 'song.import',
@@ -311,8 +310,8 @@ describe('registerStore', () => {
       ),
     ).toHaveLength(0);
     expect(
-      await ask(libraryEndpoints.search.channel, {query: 'Invented import'}),
-    ).toMatchObject({matches: [{title: 'Invented import'}]});
+      [...((await store.songs)?.songs() ?? [])].map(({title}) => title),
+    ).toContain('Invented import');
   });
 
   it('waits for the existing load and answers both preference reads alike', async () => {

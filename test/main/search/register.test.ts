@@ -1,18 +1,48 @@
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {libraryEndpoints} from '@contracts/ipc/library';
+import type {SongChange} from '@core/schema/contentDocuments';
+import {createSongId} from '@core/schema/ids';
 import {LIBRARY_SEARCH_LIMITS} from '@core/schema/librarySearch';
+import type {Song} from '@core/schema/song';
+import {lyricsSlide} from '@fixtures/core/slides';
 import type {Logger} from '@main/base/log';
-import {registerLibrarySearch} from '@main/search/register';
-import type {SongSearchIndex} from '@main/search/songIndex';
+import {registerLibrarySearch, type SongSource} from '@main/search/register';
+import {SongSearchIndex} from '@main/search/songIndex';
 
-type Index = Pick<SongSearchIndex, 'search'>;
-
-function mockIndex() {
+function song(number: number, title: string, lines: readonly string[]): Song {
   return {
-    search: vi.fn<Index['search']>(request => ({
-      query: request.query,
-      matches: [],
-    })),
+    format: 'llsong',
+    schemaVersion: 1,
+    id: createSongId(
+      `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`,
+    ),
+    title,
+    slides: [lyricsSlide(1, lines)],
+  };
+}
+
+function sourceOf(songs: readonly Song[] = []) {
+  const listeners = new Set<(change: SongChange) => void>();
+  return {
+    songs: () => songs,
+    subscribeSongs: (listener: (change: SongChange) => void) => {
+      listeners.add(listener);
+      return () => {
+        listeners.delete(listener);
+      };
+    },
+    /** A song was created, edited, or deleted. */
+    change: (changed: Song, isDeleted = false) => {
+      for (const listener of listeners) {
+        listener({
+          songId: changed.id,
+          document: isDeleted
+            ? null
+            : {song: changed, revision: 2, access: 'editable'},
+        });
+      }
+    },
+    listeners,
   };
 }
 
@@ -29,7 +59,7 @@ function log(): Logger {
     flush: async () => undefined,
   };
 }
-function register(ready: Promise<Index | null>, logger = log()) {
+function register(ready: Promise<SongSource | null>, logger = log()) {
   const stop = registerLibrarySearch(ready, logger);
   stops.push(stop);
   return {
@@ -41,31 +71,51 @@ function register(ready: Promise<Index | null>, logger = log()) {
 afterEach(() => stops.splice(0).forEach(stop => stop()));
 
 describe('registerLibrarySearch', () => {
-  it('waits for the index and answers with its search', async () => {
-    let finish: (value: Index) => void = () => undefined;
-    const ready = new Promise<Index>(resolve => {
+  const dawn = song(1, '새벽의 길', ['돌아온 아침빛']);
+
+  it('waits for the songs and answers with the search of them', async () => {
+    let finish: (value: SongSource) => void = () => undefined;
+    const ready = new Promise<SongSource>(resolve => {
       finish = resolve;
     });
     const {ask} = register(ready);
     let completed = false;
-    const answer = ask({query: ' ㅁㅂㅇ '}).then(value => {
+    const answer = ask({query: ' ㅅㅂ '}).then(value => {
       completed = true;
       return value;
     });
     await Promise.resolve();
     expect(completed).toBe(false);
-    const index = mockIndex();
-    finish(index);
-    await expect(answer).resolves.toEqual({query: ' ㅁㅂㅇ ', matches: []});
-    expect(index.search).toHaveBeenCalledWith(
-      expect.objectContaining({query: ' ㅁㅂㅇ '}),
-    );
+    finish(sourceOf([dawn]));
+    await expect(answer).resolves.toMatchObject({
+      query: ' ㅅㅂ ',
+      matches: [{songId: dawn.id, match: {kind: 'title'}}],
+    });
+  });
+
+  it('follows edits, deletion, and creation, also while it reads the songs', async () => {
+    const source = sourceOf([dawn]);
+    const {ask, stop} = register(Promise.resolve(source));
+    await vi.waitFor(() => expect(source.listeners.size).toBe(1));
+    const edited = song(1, '바람의 노래', ['다시 피어난 햇살']);
+    source.change(edited);
+    expect(await ask({query: '햇살'})).toMatchObject({
+      matches: [{title: '바람의 노래'}],
+    });
+    expect(await ask({query: '아침빛'})).toMatchObject({matches: []});
+    source.change(song(2, '새 곡', []));
+    expect(await ask({query: '새곡'})).toMatchObject({
+      matches: [{title: '새 곡'}],
+    });
+    source.change(edited, true);
+    expect(await ask({query: '햇살'})).toMatchObject({matches: []});
+    stop();
+    expect(source.listeners.size).toBe(0);
   });
 
   it('passes the shared default and maximum through the IPC boundary', async () => {
-    const index = mockIndex();
-    const {search} = index;
-    const {ask} = register(Promise.resolve(index));
+    const search = vi.spyOn(SongSearchIndex.prototype, 'search');
+    const {ask} = register(Promise.resolve(sourceOf()));
     await ask({query: ''});
     expect(search).toHaveBeenLastCalledWith({
       query: '',
@@ -76,6 +126,7 @@ describe('registerLibrarySearch', () => {
       query: '',
       limit: LIBRARY_SEARCH_LIMITS.max,
     });
+    search.mockRestore();
   });
 
   it.each([
@@ -86,7 +137,7 @@ describe('registerLibrarySearch', () => {
     {query: 'x', limit: 1.5},
     {query: 'x', limit: LIBRARY_SEARCH_LIMITS.max + 1},
   ])('rejects and logs malformed request %j', async value => {
-    const {ask, logger} = register(Promise.resolve(mockIndex()));
+    const {ask, logger} = register(Promise.resolve(sourceOf()));
     await expect(ask(value)).rejects.toThrow(
       'Malformed library:search request',
     );
@@ -101,27 +152,28 @@ describe('registerLibrarySearch', () => {
     });
   });
 
-  it('removes the handler and ignores a read that finishes after disposal', async () => {
-    let finish: (value: Index) => void = () => undefined;
-    const ready = new Promise<Index>(resolve => {
+  it('removes the handler and ignores songs that come after disposal', async () => {
+    let finish: (value: SongSource) => void = () => undefined;
+    const ready = new Promise<SongSource>(resolve => {
       finish = resolve;
     });
     const {ask, stop} = register(ready);
     const answer = ask({query: ''});
     stop();
     expect(ipc.has(libraryEndpoints.search.channel)).toBe(false);
-    const index = mockIndex();
-    finish(index);
+    const source = sourceOf([dawn]);
+    finish(source);
     await expect(answer).resolves.toEqual({query: '', matches: []});
-    expect(index.search).not.toHaveBeenCalled();
+    expect(source.listeners.size).toBe(0);
   });
 
   it('logs unexpected search failures and rejects without stopping other work', async () => {
-    const index = mockIndex();
-    index.search.mockImplementationOnce(() => {
-      throw new Error('Search failed');
-    });
-    const {ask, logger} = register(Promise.resolve(index));
+    const search = vi
+      .spyOn(SongSearchIndex.prototype, 'search')
+      .mockImplementationOnce(() => {
+        throw new Error('Search failed');
+      });
+    const {ask, logger} = register(Promise.resolve(sourceOf()));
     await expect(ask({query: 'song'})).rejects.toThrow(
       'Could not search the song library',
     );
@@ -130,5 +182,6 @@ describe('registerLibrarySearch', () => {
       query: 'song',
       matches: [],
     });
+    search.mockRestore();
   });
 });

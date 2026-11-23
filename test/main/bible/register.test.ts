@@ -16,12 +16,11 @@ describe('Bible IPC registration', () => {
       error: vi.fn(),
       flush: async () => undefined,
     };
-    const session = new BibleLookupSession({
+    const stop = registerBible({
       folder: 'unused',
       settings: Promise.resolve(null),
       log,
     });
-    const stop = registerBible({session, log});
     try {
       const ask = (value: unknown) => ipc.invoke(bibleEndpoints.lookup, value);
       await expect(ask({})).rejects.toThrow('Malformed bible:lookup request');
@@ -33,8 +32,31 @@ describe('Bible IPC registration', () => {
     } finally {
       stop();
       stop();
-      session.dispose();
     }
     expect(ipc.has(bibleEndpoints.lookup.channel)).toBe(false);
+  });
+
+  it('looks up what the operator asks for, and closes its session', async () => {
+    const lookup = vi
+      .spyOn(BibleLookupSession.prototype, 'lookup')
+      .mockRejectedValue(new Error('Invented lookup stop'));
+    const dispose = vi.spyOn(BibleLookupSession.prototype, 'dispose');
+    const stop = registerBible({
+      folder: 'unused',
+      settings: Promise.resolve(null),
+      log: {
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
+        flush: async () => undefined,
+      },
+    });
+    const request = {translation: 'missing', input: '하박국 3:17-19'};
+    await expect(ipc.invoke(bibleEndpoints.lookup, request)).rejects.toThrow();
+    expect(lookup).toHaveBeenCalledWith(request, false, true);
+    stop();
+    expect(dispose).toHaveBeenCalledOnce();
+    lookup.mockRestore();
+    dispose.mockRestore();
   });
 });

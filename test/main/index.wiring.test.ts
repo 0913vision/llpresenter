@@ -90,11 +90,11 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     );
   });
 
-  it('connects Bible IPC to the data store reader and stops IPC before closing data', async () => {
+  it('gives the Bible lookup the settings and stops it before closing data', async () => {
     await startMain();
     expect(mocks.bibleContexts).toEqual([
       expect.objectContaining({
-        session: mocks.bible,
+        settings: mocks.settings,
       }),
     ]);
     expect(mocks.bibleContexts[0]).toHaveProperty('log');

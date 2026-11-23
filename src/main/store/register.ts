@@ -1,16 +1,12 @@
-import {BibleChapterCache} from '../bible/chapterCache';
 import {appEndpoints} from '@contracts/ipc/app';
 import {backupFailedProblem, type AppProblem} from '@core/schema/appProblem';
 import type {EditResult} from '@core/schema/contentEdit';
 import type {SettingsEdit} from '@core/schema/settingsDocuments';
 import type {SettingsReader} from '@core/schema/settingsReader';
 import {app, shell} from 'electron';
-import {join} from 'node:path';
-import {BibleLookupSession} from '../bible/lookup';
 import {IpcHost} from '../base/ipcHost';
 import type {Logger} from '../base/log';
 import type {ProblemFeed} from '../base/problemFeed';
-import {registerLibrarySearch} from '../search/register';
 import type {AppConfigFile} from './appConfigFile';
 import {registerContentChannels} from './contentChannels';
 import {ContentStore} from './contentStore';
@@ -29,7 +25,7 @@ import {LoadingMediaLibrary} from './mediaLibrary';
 import {openMediaStore} from './mediaLoader';
 import {SUNDAY_PICTURES} from './bundledPictures';
 import type {MediaStore} from './mediaStore';
-import {openContent, type OpenedContent} from './openContent';
+import {openContent, type OpenedContent, type SongFeed} from './openContent';
 import {SaveFailures} from './saveFailures';
 import {registerSaveProblems} from './saveProblems';
 import {backupGate} from './backup';
@@ -60,8 +56,9 @@ export interface StoreRegistration {
 export interface DataStore extends SettingsAccess {
   /** Flushes every store without disposing it and reports failed writes explicitly. */
   readonly savePending: () => Promise<boolean>;
-  readonly bible: Pick<BibleLookupSession, 'lookup'>;
   readonly content: Promise<ContentStore | null>;
+  /** The songs of the 라이브러리, once the data is read. */
+  readonly songs: Promise<SongFeed | null>;
   readonly settings: Promise<SettingsReader | null>;
   /** Applies a whole-file settings edit, for the few modules that write a setting. */
   readonly applySettingsEdit: (edit: SettingsEdit) => Promise<EditResult>;
@@ -135,22 +132,6 @@ export function registerStore({
       return null;
     });
   const mediaChannels = registerMediaChannels(media, log);
-  const bibleCache = new BibleChapterCache();
-  let bible: BibleLookupSession | undefined;
-  let bibleClosed = false;
-  const openBible = (): BibleLookupSession =>
-    (bible ??= new BibleLookupSession({
-      folder: join(app.getPath('userData'), 'bible'),
-      cache: bibleCache,
-      settings,
-      log,
-    }));
-  const bibleReader: Pick<BibleLookupSession, 'lookup'> = {
-    lookup: (request, cacheOnly, operatorLookup) =>
-      bibleClosed
-        ? Promise.reject(new Error('Bible lookup is unavailable'))
-        : openBible().lookup(request, cacheOnly, operatorLookup),
-  };
   const opened = openContent(loading, log, {
     settings,
     media,
@@ -197,10 +178,6 @@ export function registerStore({
     log,
   );
   const removeContentChannels = registerContentChannels(contentOf(opened), log);
-  const removeSearch = registerLibrarySearch(
-    opened.then(ready => ready?.search ?? null),
-    log,
-  );
   const removeLibrarySong = registerLibrarySong(
     opened.then(ready => ready?.library ?? null),
     log,
@@ -251,11 +228,8 @@ export function registerStore({
   ipc.query(appEndpoints.savePending, savePending);
   return {
     savePending,
-    get bible() {
-      if (!bibleClosed) openBible();
-      return bibleReader;
-    },
     content: contentOf(opened),
+    songs: opened.then(ready => ready?.songs ?? null),
     settings,
     applySettingsEdit: async edit => {
       const store = await settings;
@@ -281,18 +255,14 @@ export function registerStore({
       ipc.close();
       removeMediaUses();
       removeContentChannels();
-      removeSearch();
       removeLibrarySong();
       await upkeep;
       const ready = await opened;
       ready?.removeSettings();
       ready?.feed.dispose();
-      bibleClosed = true;
-      bible?.dispose();
       try {
         await ready?.content.flush();
       } finally {
-        ready?.search.clear();
         ready?.content.dispose();
         stopSkippedFiles();
         removeSkippedFiles();
