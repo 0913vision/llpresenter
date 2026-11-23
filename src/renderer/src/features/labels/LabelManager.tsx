@@ -1,3 +1,4 @@
+import {focusHistorySurface} from '@renderer/ui/focusHistorySurface';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {
   useEffect,
@@ -199,9 +200,7 @@ export function LabelManager({
                     () => !locked && name !== undefined,
                     () => {
                       if (name === undefined) return;
-                      body.current?.setAttribute('tabindex', '-1');
-                      body.current?.focus({preventScroll: true});
-                      body.current?.removeAttribute('tabindex');
+                      focusHistorySurface(body.current);
                       removal = store.updateLabels(
                         actions.current().filter(label => label.name !== name),
                         revision => history.record(revision),

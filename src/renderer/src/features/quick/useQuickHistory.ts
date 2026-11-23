@@ -1,3 +1,4 @@
+import {focusHistorySurface} from '@renderer/ui/focusHistorySurface';
 import {useState, type RefObject} from 'react';
 import type {QuickItem} from '@core/schema/quick';
 import {
@@ -81,12 +82,7 @@ export function useQuickHistory({
         () => !locked && index >= 0,
         () => {
           const before = items[index + 1]?.id ?? null;
-          const element = list.current;
-          if (element) {
-            element.tabIndex = -1;
-            element.focus({preventScroll: true});
-            element.removeAttribute('tabindex');
-          }
+          focusHistorySurface(list.current);
           run({kind: 'delete', id: item.id})
             .then(saved => {
               if (saved) {

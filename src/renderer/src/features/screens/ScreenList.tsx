@@ -1,3 +1,4 @@
+import {focusHistorySurface} from '@renderer/ui/focusHistorySurface';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {limitReason} from '@core/common/limitReason';
 import {contextMenuTarget, openMenuFromKey} from '@renderer/ui/contextMenu';
@@ -138,15 +139,10 @@ export function ScreenList({
   const actions = useScreenRowActions(document, onProblem, {
     onDeleted: revision => history?.record(revision),
     focusList: () => {
-      const list =
-        listRoot.current?.querySelector<HTMLElement>('[role="listbox"]');
-      if (list) {
-        const old = list.getAttribute('tabindex');
-        list.tabIndex = -1;
-        list.focus({preventScroll: true});
-        if (old === null) list.removeAttribute('tabindex');
-        else list.setAttribute('tabindex', old);
-      }
+      focusHistorySurface(
+        listRoot.current?.querySelector<HTMLElement>('[role="listbox"]') ??
+          null,
+      );
     },
   });
   const click = useDragClickGuard();

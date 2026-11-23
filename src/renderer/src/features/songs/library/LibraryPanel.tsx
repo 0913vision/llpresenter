@@ -1,3 +1,4 @@
+import {focusHistorySurface} from '@renderer/ui/focusHistorySurface';
 import {
   useEffect,
   useEffectEvent,
@@ -128,15 +129,10 @@ export function LibraryPanel({
         song.access === 'editable' &&
         library.songs.some(row => row.id === song.id),
       () => {
-        const list =
-          listArea.current?.querySelector<HTMLElement>('[role="listbox"]');
-        if (list) {
-          const old = list.getAttribute('tabindex');
-          list.tabIndex = -1;
-          list.focus({preventScroll: true});
-          if (old === null) list.removeAttribute('tabindex');
-          else list.setAttribute('tabindex', old);
-        }
+        focusHistorySurface(
+          listArea.current?.querySelector<HTMLElement>('[role="listbox"]') ??
+            null,
+        );
         library
           .remove(song.id)
           .then(removed => {

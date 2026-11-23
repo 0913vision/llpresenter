@@ -1,3 +1,4 @@
+import {focusHistorySurface} from '@renderer/ui/focusHistorySurface';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {menuAvailability} from '@renderer/ui/menuModel';
 import {
@@ -178,14 +179,7 @@ export function useSourceActions({
       1,
       () => !busy && row.access === 'editable' && !isOpen(row),
       () => {
-        const list = root.current;
-        if (list) {
-          const old = list.getAttribute('tabindex');
-          list.tabIndex = -1;
-          list.focus({preventScroll: true});
-          if (old === null) list.removeAttribute('tabindex');
-          else list.setAttribute('tabindex', old);
-        }
+        focusHistorySurface(root.current);
         run('delete', async next => {
           const done = await deleteSource(next, row.source);
           if (done) history?.record(row.source.kind, row.source.id);
