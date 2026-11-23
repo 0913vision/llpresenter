@@ -1,0 +1,25 @@
+import {expect, it} from 'vitest';
+import {defaultSlideTransitions} from '@core/schema/preferences';
+import type {ServiceItemOf} from '@core/schema/service';
+import {sermonItem} from '@core/slides/items';
+import {slideOf} from '@fixtures/core/slides';
+import {templateOrder} from '@fixtures/core/serviceList';
+
+const making = {themes: null, transitions: defaultSlideTransitions};
+const psalm = templateOrder.find(
+  (item): item is ServiceItemOf<'bible'> => item.kind === 'bible',
+);
+
+it('starts the last title of a sermon with the next one hidden on 무대', () => {
+  if (psalm === undefined) throw new Error('No passage');
+  const item = sermonItem(making, {
+    title: '빛의 길',
+    passage: psalm.passage,
+    slides: [slideOf(1, 'scripture')],
+  });
+  expect(item.slides.map(slide => slide.hideNext === true)).toEqual([
+    false,
+    false,
+    true,
+  ]);
+});

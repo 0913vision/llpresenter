@@ -65,7 +65,22 @@ describe('passageSlides', () => {
       cut: whole,
       before: [changed],
     });
-    expect(grown[0]).toEqual(changed);
+    expect(grown[0]?.texts).toEqual(changed.texts);
+    expect(grown[0]?.id).toBe(changed.id);
+  });
+
+  it('starts only the last slide with the next one hidden on 무대', () => {
+    const slides = passageSlides(making, {passage: TWO, settings, cut: whole});
+    expect(slides.map(slide => slide.hideNext === true)).toEqual([false, true]);
+    const [first] = slides;
+    if (first === undefined) throw new Error('No slide');
+    const grown = passageSlides(making, {
+      passage: TWO,
+      settings,
+      cut: whole,
+      before: [{...first, hideNext: true}],
+    });
+    expect(grown.map(slide => slide.hideNext === true)).toEqual([false, true]);
   });
 
   it('keeps the address when the name of the translation is shown', () => {

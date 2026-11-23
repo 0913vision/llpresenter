@@ -6,6 +6,7 @@ import type {Slide} from '@core/schema/slide';
 import type {Song} from '@core/schema/song';
 import {LITURGY_SLIDES} from './liturgySlides';
 import {copySlide, makeSlide, type SlideMaking} from './make';
+import {withHideNext} from './nextText';
 import {serviceTitle, titleSlide, type TitleCard} from './titles';
 
 export type LiturgyKind = ServiceItemOf<'liturgy'>['liturgy'];
@@ -138,7 +139,10 @@ export function bibleItem(
   };
 }
 
-/** A sermon: its title, the passage, and the title again. */
+/**
+ * A sermon: its title, the passage, and the title again. The last title starts
+ * with 다음 슬라이드 내용 표시 off, as the end of a passage does.
+ */
 export function sermonItem(
   making: SlideMaking,
   {
@@ -157,7 +161,7 @@ export function sermonItem(
     kind: 'sermon',
     name: title,
     passage,
-    slides: [titled(), ...slides, titled()],
+    slides: [titled(), ...slides, withHideNext(titled(), true)],
   };
 }
 

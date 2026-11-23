@@ -1220,4 +1220,6 @@ Bible verse labels are omitted.
 ### Sermon
 
 A sermon adds its title and main passage in one dialog. It is one item: a 설교
-제목 슬라이드, the 슬라이드 of the passage, and the same title again.
+제목 슬라이드, the 슬라이드 of the passage, and the same title again. The
+closing title and the last 슬라이드 of the passage are made with 다음 슬라이드
+내용 표시 off (12).

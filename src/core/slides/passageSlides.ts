@@ -3,6 +3,7 @@ import type {BibleLookupPassage} from '@core/schema/bibleLookup';
 import type {BiblePassage} from '@core/schema/biblePassage';
 import type {Slide, VerseReference} from '@core/schema/slide';
 import {copySlide, makeSlide, transitionFor, type SlideMaking} from './make';
+import {withHideNext} from './nextText';
 
 /** The verses of a looked-up passage, each with its full reference. */
 export function versesOfPassage(
@@ -46,7 +47,9 @@ export function passageAddress(passage: BibleLookupPassage): string {
 
 /**
  * The slides of a passage: every verse on as many as its text needs. A verse
- * that keeps its slides from before keeps their settings too.
+ * that keeps its slides from before keeps their settings too. The last slide
+ * starts with 다음 슬라이드 내용 표시 off, so 무대 shows nothing past the
+ * passage until the operator turns it on.
  */
 export function passageSlides(
   making: SlideMaking,
@@ -71,7 +74,7 @@ export function passageSlides(
     (settings.translationName && passage.translationLabel !== undefined
       ? passageAddress(passage)
       : undefined);
-  return versesOfPassage(passage).flatMap(({reference, text}) => {
+  const slides = versesOfPassage(passage).flatMap(({reference, text}) => {
     const key = verseKey(reference);
     const kept = before.filter(
       slide =>
@@ -87,6 +90,9 @@ export function passageSlides(
       address: shown,
     });
   });
+  return slides.map((slide, index) =>
+    withHideNext(slide, index === slides.length - 1),
+  );
 }
 
 function oneRow(text: string): string {
