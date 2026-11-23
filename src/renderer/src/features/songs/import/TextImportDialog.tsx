@@ -1,4 +1,4 @@
-import {useCallback, useMemo, useState, type JSX} from 'react';
+import {useMemo, useState, type JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {LibrarySong} from '@core/schema/contentDocuments';
 import {createSongId} from '@core/schema/ids';
@@ -23,14 +23,11 @@ import {
   DUPLICATE_TITLE_REASON,
   normalizeSongTitle,
   importLimitReason,
-  textImportHeaders,
   applyImportLabelMapping,
-  importHeaderKey,
-  matchingImportLabel,
-  suggestImportLabel,
 } from '@core/songs';
 import {TEXT_ENCODINGS} from './textEncodings';
 import {ImportLabelMappingDialog} from './ImportLabelMappingDialog';
+import {useImportLabelMapping} from './useImportLabelMapping';
 import {useImportPreview} from './useImportPreview';
 import styles from './TextImportDialog.module.css';
 
@@ -104,64 +101,17 @@ export function TextImportDialog({
   const colors = useLabelColors();
   const [title, setTitle] = useState<string | null>(null);
   const [selected, setSelected] = useState<number | undefined>(undefined);
-  const headers = useMemo(() => textImportHeaders(source.text), [source.text]);
-  const exactMapping = useMemo(
-    () =>
-      new Map(
-        headers.map(header => [
-          importHeaderKey(header.name),
-          matchingImportLabel(header.name, labels)?.name ?? header.name,
-        ]),
-      ),
-    [headers, labels],
-  );
-  const [mappingRequested, setMappingRequested] = useState(true);
-  const [edits, setEdits] = useState<ReadonlyMap<string, string>>(new Map());
-  const changeChoice = useCallback((key: string, value: string) => {
-    setEdits(current => new Map(current).set(key, value));
-  }, []);
-  const [applied, setApplied] = useState<ReadonlyMap<string, string> | null>(
-    null,
-  );
-  const suggestions = useMemo(
-    () =>
-      new Map(
-        headers.map(header => {
-          const key = importHeaderKey(header.name);
-          return [key, suggestImportLabel(header.name, labels)];
-        }),
-      ),
-    [headers, labels],
-  );
-  const choices = useMemo(
-    () => new Map([...suggestions, ...edits]),
-    [suggestions, edits],
-  );
-  const selectedMapping = useMemo(
-    () =>
-      new Map(
-        [...choices].map(([key, value]) => [
-          key,
-          matchingImportLabel(value, labels)?.name ?? value.trim(),
-        ]),
-      ),
-    [choices, labels],
-  );
+  const mapping = useImportLabelMapping(source.text, labels);
   const preview = useImportPreview({api, source, options, onProblem});
   const draft = useMemo(
     () =>
       preview.draft === null || options.labels === 'off'
         ? preview.draft
-        : applyImportLabelMapping(preview.draft, applied ?? exactMapping),
-    [preview.draft, applied, exactMapping, options.labels],
+        : applyImportLabelMapping(preview.draft, mapping.inUse),
+    [preview.draft, mapping.inUse, options.labels],
   );
   const mappingOpen =
-    options.labels === 'bracketLine' &&
-    mappingRequested &&
-    draft !== null &&
-    headers.some(
-      header => matchingImportLabel(header.name, labels) === undefined,
-    );
+    options.labels === 'bracketLine' && mapping.asking && draft !== null;
   const shownTitle = title ?? preview.draft?.title ?? '';
   const reason = library.some(
     song => normalizeSongTitle(song.title) === normalizeSongTitle(shownTitle),
@@ -187,11 +137,11 @@ export function TextImportDialog({
         ? undefined
         : importLimitReason(
             songOf(
-              applyImportLabelMapping(preview.draft, selectedMapping),
+              applyImportLabelMapping(preview.draft, mapping.chosen),
               shownTitle,
             ),
           ),
-    [mappingOpen, preview.draft, selectedMapping, shownTitle],
+    [mappingOpen, preview.draft, mapping.chosen, shownTitle],
   );
   return (
     <>
@@ -277,7 +227,7 @@ export function TextImportDialog({
                 aria-label="이름표 인식"
                 checked={options.labels === 'bracketLine'}
                 onChange={checked => {
-                  if (checked) setMappingRequested(true);
+                  if (checked) mapping.ask();
                   onRemember?.({labels: checked ? 'bracketLine' : 'off'});
                   setOptions(current => ({
                     ...current,
@@ -337,21 +287,15 @@ export function TextImportDialog({
       </Dialog>
       {mappingOpen ? (
         <ImportLabelMappingDialog
-          headers={headers}
+          headers={mapping.headers}
           labels={labels}
-          choices={choices}
+          choices={mapping.choices}
           applyReason={mappingReason}
-          onChange={changeChoice}
+          onChange={mapping.change}
           onApply={() => {
-            if (mappingReason !== undefined) return;
-            setApplied(selectedMapping);
-            setEdits(selectedMapping);
-            setMappingRequested(false);
+            if (mappingReason === undefined) mapping.apply();
           }}
-          onKeep={() => {
-            setApplied(new Map());
-            setMappingRequested(false);
-          }}
+          onKeep={mapping.keep}
         />
       ) : null}
     </>
