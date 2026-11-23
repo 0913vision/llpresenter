@@ -12,7 +12,6 @@ import {
   messageBlankNames,
   MAX_MESSAGE_CHARACTERS,
   currentMessageTargets,
-  toggleMessageScreen,
   prepareMessage,
   type DraftTargets,
 } from '@core/overlays';
@@ -24,13 +23,14 @@ import {
   ListRow,
   Properties,
   PropertyRow,
-  SelectMenu,
   TextField,
 } from '@renderer/ui';
 import type {Notice} from '@renderer/ui/notices';
 import styles from './MessageTab.module.css';
 import {MessageEditing} from './MessageEditing';
 import {ActiveMessages} from './ActiveMessages';
+import {ScreenTargetsRow} from './ScreenTargetsRow';
+import {DisplayTimeRow} from './DisplayTimeRow';
 
 function Sentence({text}: {readonly text: string}): JSX.Element {
   const names = messageBlankNames(text);
@@ -121,23 +121,6 @@ function Composer({
     }
   };
   useWindowShortcuts([{id: 'message.send', run: send}]);
-  const durations = [
-    {value: 'until', label: '계속'},
-    ...[30, 60, 120].map(value => ({
-      value: String(value),
-      label: value < 60 ? `${value}초` : `${value / 60}분`,
-    })),
-  ];
-  if (
-    template.duration !== undefined &&
-    template.duration !== null &&
-    !durations.some(option => option.value === String(template.duration))
-  ) {
-    durations.push({
-      value: String(template.duration),
-      label: `${template.duration}초`,
-    });
-  }
   return (
     <>
       <div className={styles.composer}>
@@ -150,52 +133,17 @@ function Composer({
               setValues={setValues}
             />
           ))}
-          <PropertyRow label="보낼 화면" alignTop>
-            {({labelId, controlId}) => (
-              <div
-                id={controlId}
-                role="group"
-                aria-labelledby={labelId}
-                className={styles.targets}
-              >
-                <Button
-                  aria-pressed={targets === 'all'}
-                  onClick={() => setTargets(targets === 'all' ? [] : 'all')}
-                >
-                  모든 화면
-                </Button>
-                {screens.map(screen => (
-                  <Button
-                    key={screen.id}
-                    aria-pressed={
-                      targets !== 'all' && targets.includes(screen.id)
-                    }
-                    onClick={() =>
-                      setTargets(current =>
-                        toggleMessageScreen(current, screen.id),
-                      )
-                    }
-                  >
-                    {screen.name || '이름 없음'}
-                  </Button>
-                ))}
-              </div>
-            )}
-          </PropertyRow>
-          <PropertyRow label="표시 시간">
-            {({controlId}) => (
-              <SelectMenu
-                id={controlId}
-                aria-label="메시지 표시 시간"
-                block
-                value={duration === null ? 'until' : String(duration)}
-                options={durations}
-                onChange={value =>
-                  setDuration(value === 'until' ? null : Number(value))
-                }
-              />
-            )}
-          </PropertyRow>
+          <ScreenTargetsRow
+            screens={screens}
+            targets={targets}
+            onChange={setTargets}
+          />
+          <DisplayTimeRow
+            duration={duration}
+            label="메시지 표시 시간"
+            saved={template.duration}
+            onChange={setDuration}
+          />
         </Properties>
         <output className={styles.preview} aria-label="메시지 미리보기">
           {ready.text}

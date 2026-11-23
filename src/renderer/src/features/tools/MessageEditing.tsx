@@ -10,7 +10,6 @@ import type {MessageTemplate} from '@core/schema/messages';
 import {MAX_MESSAGE_CHARACTERS} from '@core/overlays';
 import type {NamedDocument} from '@renderer/platform/useSettingsDocument';
 import {
-  Button,
   SelectMenu,
   Dialog,
   IconButton,
@@ -38,6 +37,8 @@ import {
   type MessageEdit,
 } from './messageEdits';
 import {messageMenuEntries, toolMenuReason} from './toolMenuEntries';
+import {ScreenTargetsRow} from './ScreenTargetsRow';
+import {DisplayTimeRow} from './DisplayTimeRow';
 
 type Editor =
   | {readonly kind: 'add'}
@@ -128,62 +129,18 @@ function TemplateDialog({
             />
           )}
         </PropertyRow>
-        <PropertyRow label="보낼 화면" alignTop>
-          {() => (
-            <div role="group" aria-label="보낼 화면">
-              <Button
-                disabled={locked}
-                aria-pressed={targets === 'all'}
-                onClick={() => setTargets(targets === 'all' ? [] : 'all')}
-              >
-                모든 화면
-              </Button>
-              {screens.map(screen => (
-                <Button
-                  key={screen.id}
-                  disabled={locked}
-                  aria-pressed={
-                    targets !== 'all' && targets.includes(screen.id)
-                  }
-                  onClick={() =>
-                    setTargets(current =>
-                      current === 'all'
-                        ? [screen.id]
-                        : current.includes(screen.id)
-                          ? current.filter(id => id !== screen.id)
-                          : [...current, screen.id],
-                    )
-                  }
-                >
-                  {screen.name || '이름 없음'}
-                </Button>
-              ))}
-            </div>
-          )}
-        </PropertyRow>
-        <PropertyRow label="표시 시간">
-          {({controlId}) => (
-            <SelectMenu
-              id={controlId}
-              value={duration === null ? 'until' : String(duration)}
-              disabled={locked}
-              options={[
-                {value: 'until', label: '계속'},
-                ...[
-                  30,
-                  60,
-                  120,
-                  ...(duration !== null && ![30, 60, 120].includes(duration)
-                    ? [duration]
-                    : []),
-                ].map(value => ({value: String(value), label: `${value}초`})),
-              ]}
-              onChange={value =>
-                setDuration(value === 'until' ? null : Number(value))
-              }
-            />
-          )}
-        </PropertyRow>
+        <ScreenTargetsRow
+          screens={screens}
+          targets={targets}
+          locked={locked}
+          onChange={setTargets}
+        />
+        <DisplayTimeRow
+          duration={duration}
+          saved={editor.kind === 'edit' ? (editor.item.duration ?? null) : null}
+          locked={locked}
+          onChange={setDuration}
+        />
       </Properties>
     </Dialog>
   );

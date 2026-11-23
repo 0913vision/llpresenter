@@ -5,7 +5,6 @@ import type {Prop} from '@core/schema/props';
 import {isLyricTextColor} from '@core/schema/textStyle';
 import type {Screen} from '@core/schema/screens';
 import {
-  Button,
   Dialog,
   Properties,
   NumberField,
@@ -15,6 +14,7 @@ import {
   TextField,
 } from '@renderer/ui';
 import {propReason} from './propEdits';
+import {ScreenTargetsRow} from './ScreenTargetsRow';
 
 const DEFAULT_STYLE = {
   font: 'Pretendard',
@@ -207,28 +207,13 @@ export function PropDialog({
             </PropertyRow>
           </>
         ) : null}
-        <PropertyRow label="보낼 화면" alignTop>
-          {() => (
-            <div role="group" aria-label="보낼 화면">
-              {screens.map(screen => (
-                <Button
-                  key={screen.id}
-                  disabled={locked}
-                  aria-pressed={targets.includes(screen.id)}
-                  onClick={() =>
-                    setTargets(current =>
-                      current.includes(screen.id)
-                        ? current.filter(id => id !== screen.id)
-                        : [...current, screen.id],
-                    )
-                  }
-                >
-                  {screen.name || '이름 없음'}
-                </Button>
-              ))}
-            </div>
-          )}
-        </PropertyRow>
+        <ScreenTargetsRow
+          screens={screens}
+          targets={targets}
+          all={false}
+          locked={locked}
+          onChange={next => setTargets(next === 'all' ? [] : next)}
+        />
       </Properties>
     </Dialog>
   );

@@ -2,7 +2,6 @@ import {timerCommandLabels} from '@renderer/ui/timerCommandLabels';
 import {useState, type JSX} from 'react';
 import type {KnownMacroAction, MacroActionKind} from '@core/schema/macros';
 import {
-  Button,
   Dialog,
   Properties,
   PropertyRow,
@@ -11,6 +10,8 @@ import {
 } from '@renderer/ui';
 import {prepareMacroAction, type MacroActionDraft} from '@core/macros';
 import {fillMessageText, MAX_MESSAGE_CHARACTERS} from '@core/overlays';
+import {ScreenTargetsRow} from './ScreenTargetsRow';
+import {DisplayTimeRow} from './DisplayTimeRow';
 
 export interface MacroActionChoice {
   readonly id: string;
@@ -191,64 +192,18 @@ export function MacroActionDialog({
                 )}
               </PropertyRow>
             ))}
-            <PropertyRow label="보낼 화면" alignTop>
-              {() => (
-                <div role="group" aria-label="보낼 화면">
-                  <Button
-                    disabled={locked}
-                    aria-pressed={currentTargets === 'all'}
-                    onClick={() =>
-                      setTargets(currentTargets === 'all' ? [] : 'all')
-                    }
-                  >
-                    모든 화면
-                  </Button>
-                  {screens.map(screen => (
-                    <Button
-                      key={screen.id}
-                      disabled={locked}
-                      aria-pressed={
-                        currentTargets !== 'all' &&
-                        currentTargets.includes(screen.id)
-                      }
-                      onClick={() =>
-                        setTargets(current =>
-                          current === 'all'
-                            ? [screen.id]
-                            : current.includes(screen.id)
-                              ? current.filter(id => id !== screen.id)
-                              : [...current, screen.id],
-                        )
-                      }
-                    >
-                      {screen.name}
-                    </Button>
-                  ))}
-                </div>
-              )}
-            </PropertyRow>
-            <PropertyRow label="표시 시간">
-              {({controlId}) => (
-                <SelectMenu
-                  id={controlId}
-                  block
-                  disabled={locked}
-                  value={duration === null ? 'until' : String(duration)}
-                  options={[
-                    {value: 'until', label: '계속'},
-                    {value: '30', label: '30초'},
-                    {value: '60', label: '1분'},
-                    {value: '120', label: '2분'},
-                    ...(duration !== null && ![30, 60, 120].includes(duration)
-                      ? [{value: String(duration), label: `${duration}초`}]
-                      : []),
-                  ]}
-                  onChange={value =>
-                    setDuration(value === 'until' ? null : Number(value))
-                  }
-                />
-              )}
-            </PropertyRow>
+            <ScreenTargetsRow
+              screens={screens}
+              targets={currentTargets}
+              locked={locked}
+              onChange={setTargets}
+            />
+            <DisplayTimeRow
+              duration={duration}
+              saved={initial?.duration ?? null}
+              locked={locked}
+              onChange={setDuration}
+            />
           </>
         ) : null}
       </Properties>
