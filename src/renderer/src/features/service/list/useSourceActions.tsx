@@ -16,7 +16,7 @@ import {deleteSelection} from '@renderer/ui/deleteSelection';
 import {isInTextEntry} from '@renderer/ui/textEntry';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
-import {RenameDialog} from './RenameDialog';
+import {RenameDialog} from '@renderer/ui/RenameDialog';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {
   editApplied,
@@ -239,13 +239,19 @@ export function useSourceActions({
       {dialog?.kind === 'rename' ? (
         <RenameDialog
           name={dialog.row.name}
-          busy={busy}
-          onCancel={closeDialog}
-          onRename={name =>
-            run('rename', next =>
-              renameSource(next, {source: dialog.row.source, name}),
-            )
+          title={
+            dialog.row.source.kind === 'template'
+              ? '템플릿 이름 바꾸기'
+              : '예배 이름 바꾸기'
           }
+          locked={busy}
+          rename={{
+            onCommit: name =>
+              run('rename', next =>
+                renameSource(next, {source: dialog.row.source, name}),
+              ),
+            onClose: closeDialog,
+          }}
         />
       ) : null}
     </>

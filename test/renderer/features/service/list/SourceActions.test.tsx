@@ -219,13 +219,13 @@ describe('the service source menu', () => {
     const field = screen.getAllByRole('textbox', {name: '이름'}).at(-1);
     if (field === undefined) throw new Error('No name field');
     expect(field).toHaveProperty('value', '주일 예배');
-    const rename = screen.getByRole('button', {name: '바꾸기'});
+    const rename = screen.getByRole('button', {name: '저장'});
     expect(rename.getAttribute('aria-disabled')).not.toBe('true');
     await userEvent.clear(field);
     await userEvent.type(field, ' 저녁 예배 ');
     await userEvent.click(rename);
     await waitFor(() =>
-      expect(screen.queryByRole('dialog', {name: '이름 바꾸기'})).toBeNull(),
+      expect(screen.queryByRole('dialog', {name: /이름 바꾸기$/})).toBeNull(),
     );
     expect(edits).toEqual([
       {
@@ -244,7 +244,7 @@ describe('the service source menu', () => {
     if (field === undefined) throw new Error('No name field');
     await userEvent.clear(field);
     await userEvent.type(field, '추수감사 예배');
-    await userEvent.click(screen.getByRole('button', {name: '바꾸기'}));
+    await userEvent.click(screen.getByRole('button', {name: '저장'}));
     await waitFor(() => expect(edits).toHaveLength(1));
     expect(edits[0]).toEqual({
       type: 'service.update',
@@ -260,12 +260,12 @@ describe('the service source menu', () => {
     const field = screen.getAllByRole('textbox', {name: '이름'}).at(-1);
     if (field === undefined) throw new Error('No name field');
     await userEvent.type(field, ' 2');
-    await userEvent.click(screen.getByRole('button', {name: '바꾸기'}));
+    await userEvent.click(screen.getByRole('button', {name: '저장'}));
     await waitFor(() => expect(onProblem).toHaveBeenCalled());
     expect(onProblem.mock.calls[0]?.[0]).toMatchObject({
       title: '이름 바꾸기 실패',
     });
-    expect(screen.getByRole('dialog', {name: '이름 바꾸기'})).toBeDefined();
+    expect(screen.getByRole('dialog', {name: /이름 바꾸기$/})).toBeDefined();
   });
 
   it('deletes a 템플릿 immediately, and the dialog moves on from it', async () => {
@@ -332,9 +332,9 @@ describe('the service source menu', () => {
     if (field === undefined) throw new Error('No name field');
     await userEvent.clear(field);
     await userEvent.type(field, '하늘 예배');
-    await userEvent.click(screen.getByRole('button', {name: '바꾸기'}));
+    await userEvent.click(screen.getByRole('button', {name: '저장'}));
     await waitFor(() =>
-      expect(screen.queryByRole('dialog', {name: '이름 바꾸기'})).toBeNull(),
+      expect(screen.queryByRole('dialog', {name: /이름 바꾸기$/})).toBeNull(),
     );
     changeTemplate({
       ...templateDocument,
@@ -401,7 +401,7 @@ describe('the service source menu', () => {
             answerEdit = resolve;
           }),
       );
-      await userEvent.click(screen.getByRole('button', {name: '바꾸기'}));
+      await userEvent.click(screen.getByRole('button', {name: '저장'}));
       const flushed = vi.fn();
       const flushing = pendingWritesOf(api).flush().then(flushed);
       await act(async () => {
@@ -443,12 +443,12 @@ describe('the service source menu', () => {
       const readTemplate = vi.spyOn(api.templates, 'get');
       const readService = vi.spyOn(api.services, 'get');
       expect(await pendingWritesOf(api).flush()).toBe(true);
-      await userEvent.click(screen.getByRole('button', {name: '바꾸기'}));
+      await userEvent.click(screen.getByRole('button', {name: '저장'}));
       await waitFor(() => expect(onProblem).toHaveBeenCalled());
       expect(readTemplate).not.toHaveBeenCalled();
       expect(readService).not.toHaveBeenCalled();
       expect(edits).toEqual([]);
-      expect(screen.getByRole('dialog', {name: '이름 바꾸기'})).toBeDefined();
+      expect(screen.getByRole('dialog', {name: /이름 바꾸기$/})).toBeDefined();
     },
   );
 

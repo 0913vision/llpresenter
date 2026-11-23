@@ -4,7 +4,7 @@ import {Menu} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
 import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
-import {RenameDialog} from '@renderer/features/service/list/RenameDialog';
+import {RenameDialog} from '@renderer/ui/RenameDialog';
 import {
   renameService,
   warningNotice,
@@ -106,13 +106,17 @@ export function useServicePickerMenu(onProblem: (notice: Notice) => void) {
       {renaming && current !== undefined && api !== undefined ? (
         <RenameDialog
           name={current.name}
-          busy={false}
-          onCancel={() => setRenaming(false)}
-          onRename={async name => {
-            const done = await renameService(api, current.id, name);
-            if (done) setRenaming(false);
-            else onProblem(warningNotice('service:rename', '이름 바꾸기 실패'));
-            return done;
+          title="예배 이름 바꾸기"
+          rename={{
+            onCommit: async name => {
+              const done = await renameService(api, current.id, name);
+              if (done) setRenaming(false);
+              else {
+                onProblem(warningNotice('service:rename', '이름 바꾸기 실패'));
+              }
+              return done;
+            },
+            onClose: () => setRenaming(false),
           }}
         />
       ) : null}

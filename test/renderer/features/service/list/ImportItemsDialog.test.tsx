@@ -318,9 +318,9 @@ describe('ImportItemsDialog', () => {
     const field = screen.getByRole('textbox', {name: '이름'});
     await userEvent.clear(field);
     await userEvent.type(field, '하늘 예배');
-    await userEvent.click(screen.getByRole('button', {name: '바꾸기'}));
+    await userEvent.click(screen.getByRole('button', {name: '저장'}));
     await waitFor(() =>
-      expect(screen.queryByRole('dialog', {name: '이름 바꾸기'})).toBeNull(),
+      expect(screen.queryByRole('dialog', {name: /이름 바꾸기$/})).toBeNull(),
     );
     selectedTemplate = {
       ...templateDocument,
