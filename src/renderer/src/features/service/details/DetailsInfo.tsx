@@ -1,5 +1,4 @@
 import {useMemo, type JSX} from 'react';
-import type {LlpApi} from '@contracts/ipc/api';
 import {displayReference, withLiveBible} from '@core/bible';
 import type {BiblePassage} from '@core/schema/biblePassage';
 import type {SongId} from '@core/schema/ids';
@@ -19,7 +18,6 @@ import {
 import {Tooltip} from '@renderer/ui/Tooltip';
 import {LiturgyVersion} from '../editor/ItemTools';
 import {useServiceSongMenu} from '../order/useServiceSongMenu';
-import {ItemMemo, ItemStartRow} from './ItemSettingsRows';
 import styles from './DetailsInfo.module.css';
 
 function SongSource({
@@ -121,11 +119,13 @@ function PassageSource({
   );
 }
 
-/** What the selected source is made of, and how it plays in this service. */
+/**
+ * What the selected source is made of (원본) and, for a 예식문, its version
+ * in this service. Nothing when there is neither.
+ */
 export function DetailsInfo({
   item,
   songId,
-  api,
   reason,
   onOpenSong,
   report,
@@ -133,62 +133,48 @@ export function DetailsInfo({
   readonly item: SlidesItem | undefined;
   /** The song of the library that is selected instead of an item. */
   readonly songId: SongId | null;
-  readonly api: LlpApi;
   readonly reason: string | undefined;
   readonly onOpenSong: (songId: SongId) => void;
   readonly report: Report;
-}): JSX.Element {
+}): JSX.Element | null {
   const song = item !== undefined && isItemOfKind(item, 'song') ? item : null;
+  const liturgy =
+    item !== undefined && isItemOfKind(item, 'liturgy') ? item : null;
+  const source =
+    song !== null ? (
+      <SongSource
+        songId={song.song}
+        itemId={song.id}
+        onOpenSong={onOpenSong}
+        report={report}
+      />
+    ) : songId !== null ? (
+      <SongSource
+        songId={songId}
+        itemId={null}
+        onOpenSong={onOpenSong}
+        report={report}
+      />
+    ) : item !== undefined && 'passage' in item ? (
+      <PassageSource passage={item.passage} />
+    ) : null;
+  if (liturgy === null && source === null) return null;
   return (
     <Properties className={styles.properties}>
-      {item === undefined ? null : (
+      {liturgy === null ? null : (
         <PropertyGroup title="이번 예배">
-          {isItemOfKind(item, 'liturgy') ? (
-            <PropertyRow label="예식문 버전">
-              {() => (
-                <LiturgyVersion
-                  item={item}
-                  disabled={reason !== undefined}
-                  report={report}
-                />
-              )}
-            </PropertyRow>
-          ) : null}
-          <ItemStartRow
-            api={api}
-            item={item}
-            lockReason={reason}
-            report={report}
-          />
-          <PropertyRow label="메모" alignTop>
+          <PropertyRow label="예식문 버전">
             {() => (
-              <ItemMemo
-                key={item.id}
-                item={item}
-                lockReason={reason}
+              <LiturgyVersion
+                item={liturgy}
+                disabled={reason !== undefined}
                 report={report}
               />
             )}
           </PropertyRow>
         </PropertyGroup>
       )}
-      {song !== null ? (
-        <SongSource
-          songId={song.song}
-          itemId={song.id}
-          onOpenSong={onOpenSong}
-          report={report}
-        />
-      ) : songId !== null ? (
-        <SongSource
-          songId={songId}
-          itemId={null}
-          onOpenSong={onOpenSong}
-          report={report}
-        />
-      ) : item !== undefined && 'passage' in item ? (
-        <PassageSource passage={item.passage} />
-      ) : null}
+      {source}
     </Properties>
   );
 }

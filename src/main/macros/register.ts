@@ -1,6 +1,5 @@
 import {setImmediate} from 'node:timers/promises';
 import type {MediaList} from '@core/schema/mediaList';
-import type {ServiceItem} from '@core/schema/service';
 import type {SettingsReader} from '@core/schema/settingsReader';
 import {dispatchLogged, type LiveStore} from '../live/store';
 import type {Logger} from '../base/log';
@@ -18,12 +17,6 @@ export interface MacroRegistration {
 interface MacroData {
   readonly settings: Promise<SettingsReader | null>;
   readonly media: Promise<{get(): {readonly value: MediaList}} | null>;
-  readonly content: Promise<{
-    readonly openServiceId: string | null;
-    service(
-      id: string,
-    ): {readonly service: {readonly order: readonly ServiceItem[]}} | null;
-  } | null>;
 }
 
 interface RegisterMacrosOptions {
@@ -60,23 +53,15 @@ export function registerMacros({
     });
     return starting;
   };
-  const ready = Promise.all([data.settings, data.media, data.content])
-    .then(async ([settings, media, content]) => {
+  const ready = Promise.all([data.settings, data.media])
+    .then(async ([settings, media]) => {
       if (disposed) return;
-      if (settings === null || media === null || content === null) {
+      if (settings === null || media === null) {
         throw new Error('Macro data is unavailable');
       }
       runner = new MacroRunner({
         settings,
         media: () => media.get().value,
-        item: id => {
-          const openId = content.openServiceId;
-          return openId === null
-            ? undefined
-            : content
-                .service(openId)
-                ?.service.order.find(item => item.id === id);
-        },
         supports: type => store.handles(type),
         log,
       });

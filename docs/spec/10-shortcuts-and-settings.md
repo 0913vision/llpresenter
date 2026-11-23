@@ -369,8 +369,7 @@ the keys that earlier rules pass on.
    dialog field but never restores cleared output. Outside a text field, Ctrl Z
    and 편집 > 실행 취소 undo the last edit of the 예배 순서 from 준비, whatever
    kind it was: an order edit (add, move, delete) or a change of an item's own
-   fields in its cells or the right column (메모, 테마, 배경, 시작할 때,
-   오버레이). A 메모 is one step per save, not per key. The history holds the
+   fields in the right column (테마, 배경, 오버레이). The history holds the
    newest 100 steps and ends with the window. An edit made in another window (곡
    편집, 순서 편집) is not in it; if one changed the order since, 실행 취소
    refuses instead of overwriting it.
@@ -1257,9 +1256,8 @@ Changes apply at once. The defaults apply when the operator creates the object.
 | 빠른 실행 item    | 대상 (target)                          | Set when the item is added: song, Bible passage, 그래픽, 타이머, 매크로, 검은 화면            |                            | `.kind`, `.ref`            | 1     | Kept (02, 04)                                                                                                                     |
 | Bible passage     | 역본, 나누기, 참조, 절 번호, 역본 이름 | The Bible panel controls (04)                                                                 | From 환경설정 > 성경       | The `bible` object (02)    | 1     | Kept (02, 04)                                                                                                                     |
 
-- Not in this inventory: 예배 순서 item fields (background override, start
-  매크로, memo) and song fields. They are service and song content (05, 02), not
-  settings.
+- Not in this inventory: 예배 순서 item fields (background override, overlays)
+  and song fields. They are service and song content (05, 02), not settings.
 
 ### Thumbnail size (proposal)
 
@@ -1400,7 +1398,6 @@ Settings considered and left out, with the reason.
 | 슬라이드 번호로 가기 (number plus Enter)                      | EW (S9)                                      | Digits are slide hot keys. Digits identify source slides.                                                                                                    |
 | 다중 레이어 지우기 (Clear Groups)                             | PP (S3, S7)                                  | Decided out of version 1 (07).                                                                                                                               |
 | 슬라이드 축소판 배경색 (thumbnail background color)           | PP Grid view settings (S4 p. 12)             | Thumbnails show only the lines (04).                                                                                                                         |
-| 시작 매크로 실행 끄기 (turn off start 매크로)                 | None                                         | Another way for a service to go wrong. Remove the 매크로 from the item instead.                                                                              |
 | 대체 글꼴 선택 (fallback font choice)                         | None                                         | Pretendard is always bundled.                                                                                                                                |
 | 대소문자, 오른쪽 정렬 (capitalization, right alignment)       | PP text tab (S4 p. 64)                       | Korean lyrics don't use case, and lyrics aren't right-aligned.                                                                                               |
 | Copy and paste text style                                     | PP (S1)                                      | The 테마 holds the formatting; there is nothing to copy between 슬라이드.                                                                                    |

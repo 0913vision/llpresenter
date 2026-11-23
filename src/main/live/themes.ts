@@ -64,7 +64,6 @@ export function registerThemeOutput({
             kind: item.kind,
             source: 'service',
             title: short(itemTitle(item)),
-            ...(item.memo === undefined ? {} : {memo: short(item.memo)}),
             ...(item.overlays === undefined
               ? {}
               : {overlays: placedOverlays(item.overlays, item.slides)}),

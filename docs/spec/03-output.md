@@ -208,14 +208,11 @@ A new page appears only when its pictures are ready to draw.
 
 1. The 슬라이드 becomes the live 슬라이드. There is always one live 슬라이드 or
    none.
-2. If the 슬라이드 comes from a different 예배 순서 item, that item starts. If
-   it has a start 매크로, the 매크로 runs first, and the 슬라이드 then draws
-   over the result, for example a clear (proposal: this order makes the 슬라이드
-   go out after the 매크로). The item's 테마 applies to every screen in the same
-   batch (12, "Which 테마 applies"). The control window sends the item start
-   (`item.start`) and the 슬라이드 output together as one batch (01), so the
-   start 매크로's result, the 테마, and the 슬라이드 reach the screens in one
-   change (proposal).
+2. If the 슬라이드 comes from a different 예배 순서 item, that item starts. The
+   item's 테마 applies to every screen in the same batch (12, "Which 테마
+   applies"). The control window sends the item start (`item.start`) and the
+   슬라이드 output together as one batch (01), so the 테마 and the 슬라이드
+   reach the screens in one change (proposal).
 3. For a song item, the app sets the background (see "Song item background
    rules").
 4. The 슬라이드 draws in the 현재 슬라이드 글 element of every screen whose 테마
@@ -428,8 +425,8 @@ duration clears at once; an enabled fade uses its configured duration, capped at
 
 Version 1 has no button that clears a chosen set of layers at once
 (ProPresenter's Clear Groups, S3 and S7, called "다중 레이어 지우기" in this
-project). Build it as a 매크로 with several clear actions. If needed, set that
-매크로 as the start 매크로 of a 예배 순서 item. See 07.
+project). Build it as a 매크로 with several clear actions and run it with its
+key or from 빠른 실행. See 07.
 
 ### Undo
 

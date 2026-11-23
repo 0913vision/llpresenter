@@ -130,11 +130,11 @@ Source: product log (2026-10-24), `Main` decision "화면 세 개".
 These ideas moved to the backup page of the boards or were replaced. Don't build
 them.
 
-| Idea                                                                                          | What replaced it                                               | Source                                   |
-| --------------------------------------------------------------------------------------------- | -------------------------------------------------------------- | ---------------------------------------- |
-| Cue-then-take output                                                                          | A click outputs at once                                        | product log version 61                   |
-| A service file that also holds screens, 테마, 매크로, and other settings (version 62 "scene") | App-wide settings, a 테마 per item or switched by start 매크로 | product log version 63                   |
-| A 다중 레이어 지우기 (Clear Groups) button                                                    | 매크로 with clear actions (see 07)                             | product log 2026-10-24, `Main` decisions |
-| Broadcast streaming and recording                                                             | OBS                                                            | product log 2026-10-23                   |
-| Musician features                                                                             | None (out of scope)                                            | product log 2026-10-24                   |
-| Bible PowerPoint export, TXT export, and styled clipboard copy from Copible                   | LoveLight outputs Bible passages directly                      | Bible scope decision, November 9         |
+| Idea                                                                                          | What replaced it                                         | Source                                   |
+| --------------------------------------------------------------------------------------------- | -------------------------------------------------------- | ---------------------------------------- |
+| Cue-then-take output                                                                          | A click outputs at once                                  | product log version 61                   |
+| A service file that also holds screens, 테마, 매크로, and other settings (version 62 "scene") | App-wide settings, a 테마 per item or switched by 매크로 | product log version 63                   |
+| A 다중 레이어 지우기 (Clear Groups) button                                                    | 매크로 with clear actions (see 07)                       | product log 2026-10-24, `Main` decisions |
+| Broadcast streaming and recording                                                             | OBS                                                      | product log 2026-10-23                   |
+| Musician features                                                                             | None (out of scope)                                      | product log 2026-10-24                   |
+| Bible PowerPoint export, TXT export, and styled clipboard copy from Copible                   | LoveLight outputs Bible passages directly                | Bible scope decision, November 9         |

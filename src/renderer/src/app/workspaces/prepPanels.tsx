@@ -212,7 +212,7 @@ export function usePrepPanels({
           onShowInLibrary,
           onOpenItem: () => undefined,
           actions: null,
-          table: {api: prep.api},
+          table: true,
         });
       case '라이브러리':
         return {

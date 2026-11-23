@@ -2,8 +2,8 @@
 
 A 매크로 (macro) is a button that runs several actions at once. This document
 covers the 매크로 tab, running 매크로, the right-click menu, the action palette
-and action kinds, collections, start 매크로 on 예배 순서 items, and the decision
-to replace Clear Groups with 매크로 in version 1.
+and action kinds, collections, and the decision to replace Clear Groups with
+매크로 in version 1. 예배 순서 items carry no 매크로 of their own.
 
 Terms: 출력 (output), 지우기 (clear), 슬라이드 (slide), 예배 순서 (service
 order), 진행 도구 (show tools), 테마 (theme), 그래픽 (prop), 메시지 (message),
@@ -103,8 +103,7 @@ Source: `MacroTile` README (runs at once, no confirmation), `docs/TECH.md`
 The rows, groups, and order of the 매크로 right-click menu follow ProPresenter
 and are set in [11-menus.md](11-menus.md), "매크로 오른쪽 클릭". 삭제 asks in a
 confirmation dialog, for example "‘예배 시작’ 매크로를 삭제할까요?" (Delete this
-매크로?). If 예배 순서 items use it as a start 매크로, the detail says how many
-("쓰는 곳: 예배 순서 항목 3곳") (proposal).
+매크로?).
 
 Source: `Macros`, 11-menus.md.
 
@@ -182,19 +181,6 @@ Source: `Macros`, `Overlays`.
 
 Source: `Macros` (collection 주일 예배, 8개), `Main` decision "매크로".
 
-## Start 매크로 on 예배 순서 items
-
-- The operator sets a start 매크로 in the 시작할 때 (on start) row of the item
-  settings in 준비 (see 05).
-- It runs when the item starts, before the 슬라이드 draws (see 03 and 04).
-- It doesn't run when the operator only selects the item, moves between 슬라이드
-  of the same item, or looks at the item in 준비.
-- Typical uses: change the 테마 for a section, clear several layers at once, set
-  a background, or start a 타이머.
-
-Source: `PrepService` (시작할 때: 찬양 매크로), `Main` decisions "라이브러리와
-예배 순서는 따로" and "설정은 앱 전체에 하나", product log version 63.
-
 ## Run at startup (open question)
 
 - The right-click menu has 시작할 때 실행 (run at startup). This spec reads it
@@ -219,11 +205,9 @@ Source: `PrepService` (시작할 때: 찬양 매크로), `Main` decisions "라�
 - Version 1 has no button that clears a chosen set of layers at once
   (ProPresenter's Clear Groups, S3 and S7, called "다중 레이어 지우기" here).
   The user decided this on 2026-10-24.
-- To clear several layers at once, put several 레이어 지우기 actions in a
-  매크로. If the clear belongs to a moment in the service, set that 매크로 as
-  the start 매크로 of the 예배 순서 item. For example, a 매크로 with 레이어
-  지우기 가사, 레이어 지우기 그래픽, and 테마 말씀, set as the start 매크로 of
-  the sermon item.
+- To clear several layers at once, put several 레이어 지우기 actions in a 매크로
+  and run it with its key or from 빠른 실행. For example, a 매크로 with 레이어
+  지우기 가사, 레이어 지우기 그래픽, and 테마 말씀 before the sermon.
 - The comparison board moved to the backup page. The `ClearButton` README says
   the same.
 

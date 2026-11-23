@@ -11,10 +11,18 @@
   font: var(--type-caption);
 }
 
-.tabs {
+.slidesHead {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-8);
   min-height: var(--size-panel-header);
+}
+
+/* NOTE(0913vision): The 슬라이드 heading reads like the 원본 group name above
+   it. */
+.slidesTitle {
+  margin: 0;
+  color: var(--text);
+  font: var(--type-caption-strong);
 }

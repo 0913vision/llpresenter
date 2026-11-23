@@ -112,14 +112,12 @@ order, no row dims.
 | Done      | Above the current output item, with 지난 순서 흐리게 on                               | Dim text and icon; section headings also dim           |
 | Problem   | Something is wrong, for example the song is missing or the background file is missing | Amber warning icon after the name, reason in a tooltip |
 
-### Starting an item and its start 매크로
+### Starting an item
 
 - An item starts at the moment the item that the live 슬라이드 comes from
   changes. Moving between 슬라이드 of the same item doesn't start it. Neither
   does clicking a 슬라이드 of the same item again after a lyrics clear
   (proposal).
-- If the item that starts has a start 매크로, run the 매크로 before drawing the
-  슬라이드 (see 03 and 07).
 
 ### Editing the 예배 순서 in 진행
 
@@ -307,13 +305,12 @@ source was found.
   picks the next item (다음 항목, Ctrl ↓) and presses →. With 다음 항목
   (환경설정, or the check row 진행 > 마지막 슬라이드에서 다음 항목으로;
   `show.atLastSlide`, applied at once), next on the last tile starts the next
-  item that can output on its first tile, with that item's start 매크로 and
-  테마, and opens it in the 슬라이드 panel, as 다음 항목 and then → do. 구역
-  rows and items without a 슬라이드 are skipped, and on the last item next does
-  nothing. At the end of a Bible item that is also the last service item, the
-  stage next text stays empty. Every command that means next 슬라이드 follows
-  this (the → key, Space, Page Down). On the first tile, previous does nothing
-  (proposal).
+  item that can output on its first tile, with that item's 테마, and opens it in
+  the 슬라이드 panel, as 다음 항목 and then → do. 구역 rows and items without a
+  슬라이드 are skipped, and on the last item next does nothing. At the end of a
+  Bible item that is also the last service item, the stage next text stays
+  empty. Every command that means next 슬라이드 follows this (the → key, Space,
+  Page Down). On the first tile, previous does nothing (proposal).
 - A slide hot key outputs its identified `{songId, slideId}` in the open item
   deck, independently of label names. Further presses target that same slide.
   Direct library playback uses the library deck.
@@ -345,9 +342,11 @@ editor at the clicked slide. A library source opens its library song. An unsaved
 draft asks before switching; cancel keeps it. No song editing window opens, and
 entering the editor never outputs a slide.
 
-If the operator edits the lyrics of a song on output in 준비, the output screens
-don't change until the next 슬라이드 goes out (proposal). The tiles in the
-슬라이드 panel change at once.
+If the operator edits the live 슬라이드 in 준비 (its text, its 이름표, or its
+background), every screen shows the change at once, as a PowerPoint slide show
+follows an edit of the slide it shows. An edit of the 슬라이드 after it changes
+the 무대 next text at once; 청중 and 방송 show it when it goes out. The tiles in
+the 슬라이드 panel change at once.
 
 The LIVE outline follows the same source slide through text edits and
 insertions. Deleting the live slide or its service item leaves output unchanged

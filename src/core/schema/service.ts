@@ -50,8 +50,6 @@ const slidesFields = {
   ...itemFields,
   slides: slidesSchema,
   overlays: v.exactOptional(itemOverlaysSchema),
-  macro: v.exactOptional(v.string()),
-  memo: v.exactOptional(v.string()),
 };
 
 const itemSchemas = {

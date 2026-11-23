@@ -15,7 +15,7 @@ import type {MediaList} from '@core/schema/mediaList';
 export interface MacroCommandPort {
   run(
     history: LiveHistory,
-    command: CommandOf<'macro.run' | 'item.start'>,
+    command: CommandOf<'macro.run'>,
     context: SliceContext,
   ): LiveHistory;
 }

@@ -13,13 +13,7 @@ interface MenuItemContent {
   readonly label: string;
   readonly unimplemented?: boolean;
   readonly contextGroup?:
-    | 'default'
-    | 'settings'
-    | 'memo'
-    | 'clipboard'
-    | 'library'
-    | 'hide'
-    | 'delete';
+    'default' | 'settings' | 'clipboard' | 'library' | 'hide' | 'delete';
   /** An 18px icon before the name. */
   readonly icon?: string | undefined;
   /** A noninteractive preview before the name, such as a monitor arrangement. */

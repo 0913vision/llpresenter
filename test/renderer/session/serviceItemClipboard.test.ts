@@ -49,7 +49,14 @@ function metadata(item: unknown): unknown {
 
 function setup(
   order: readonly unknown[] = [
-    {id: first, kind: 'song', name: '곡', song: songId, slides, memo: 'First'},
+    {
+      id: first,
+      kind: 'song',
+      name: '곡',
+      song: songId,
+      slides,
+      future: 'First',
+    },
     {id: second, kind: 'header', name: 'Second'},
     {
       id: third,
@@ -79,8 +86,6 @@ describe('service item clipboard', () => {
         name: '곡',
         song: songId,
         slides,
-        memo: 'Memo',
-        macro: 'macro',
         future: nested,
       },
       {id: second, kind: 'header', name: 'Not selected'},
@@ -97,8 +102,6 @@ describe('service item clipboard', () => {
       {
         song: songId,
         slides,
-        memo: 'Memo',
-        macro: 'macro',
         future: {
           slides: [{id: 'nested', lines: ['Original']}],
           links: ['nested'],
@@ -182,7 +185,7 @@ describe('service item clipboard', () => {
     });
     expect(log).toHaveBeenCalledOnce();
     expect(clipboard.createItems()).toMatchObject([
-      {song: songId, memo: 'First'},
+      {song: songId, future: 'First'},
     ]);
   });
 

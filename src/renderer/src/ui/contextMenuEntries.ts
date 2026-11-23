@@ -3,7 +3,6 @@ import type {MenuEntry, MenuItem} from './menuModel';
 const GROUPS = [
   'default',
   'settings',
-  'memo',
   'clipboard',
   'library',
   'hide',

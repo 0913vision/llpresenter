@@ -12,7 +12,6 @@ const contextGroups: Readonly<Record<string, MenuItem['contextGroup']>> = {
   print: 'library',
   'add-to': 'library',
   'move-to': 'library',
-  memo: 'memo',
   hide: 'hide',
   disable: 'hide',
   delete: 'delete',

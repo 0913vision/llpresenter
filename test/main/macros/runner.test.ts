@@ -1,7 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/schema/live';
-import {createServiceItemId, parseMacroId} from '@core/schema/ids';
-import type {ServiceItem} from '@core/schema/service';
+import {parseMacroId} from '@core/schema/ids';
 import {MissingLiveTargetError} from '@main/live/commandErrors';
 import type {LiveHistory} from '@main/live/history';
 import type {SliceContext} from '@main/live/slice';
@@ -14,7 +13,6 @@ import {environment, IDS, macro, uuid} from '@fixtures/main/macros/testing';
 vi.mock('@main/macros/compiler', () => ({compileMacro: vi.fn()}));
 
 const MACRO = expectSuccess(parseMacroId(IDS.macro));
-const ITEM = createServiceItemId(IDS.item);
 
 function history(): LiveHistory {
   return {state: emptyLiveState(), undo: null};
@@ -32,13 +30,12 @@ function problem(reason: MacroProblem['reason']): MacroProblem {
   return {macroId: MACRO, action: 0, reason, message: reason};
 }
 
-function setup(items: readonly ServiceItem[] = [], macros = [macro()]) {
+function setup(macros = [macro()]) {
   const env = environment(macros);
   const supports = vi.fn(() => true);
   const runner = new MacroRunner({
     settings: env.settings,
     media: () => env.media,
-    item: id => items.find(item => item.id === id),
     supports,
     log: env.log,
   });
@@ -138,23 +135,12 @@ describe('MacroRunner', () => {
     expect(context.apply).not.toHaveBeenCalled();
   });
 
-  it('fails an item that is not in the service as a missing target', () => {
-    const {runner, context} = setup();
-
-    expect(() =>
-      runner.run(history(), {type: 'item.start', itemId: ITEM}, context),
-    ).toThrow(MissingLiveTargetError);
-  });
-
   it('lists the startup 매크로 in file order', () => {
-    const {runner} = setup(
-      [],
-      [
-        macro(IDS.macro, [], {runOnStartup: true}),
-        macro(uuid(21)),
-        macro(uuid(22), [], {runOnStartup: true}),
-      ],
-    );
+    const {runner} = setup([
+      macro(IDS.macro, [], {runOnStartup: true}),
+      macro(uuid(21)),
+      macro(uuid(22), [], {runOnStartup: true}),
+    ]);
 
     expect(runner.startupIds()).toEqual([IDS.macro, uuid(22)]);
   });

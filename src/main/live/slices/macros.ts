@@ -1,12 +1,12 @@
 import {defineSlice} from '../slice';
 
 export const macrosSlice = defineSlice({
-  commands: ['macro.run', 'item.start'],
+  commands: ['macro.run'],
   initial: {},
   reduce: (history, command, context) =>
     context.macros === undefined
       ? context.reject({
-          field: command.type === 'macro.run' ? 'macroId' : 'itemId',
+          field: 'macroId',
           message: 'Macro execution is not ready',
         })
       : context.macros.run(history, command, context),

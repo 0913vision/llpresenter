@@ -1,7 +1,5 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import {createMediaId, createServiceItemId} from '@core/schema/ids';
 import type {MediaList} from '@core/schema/mediaList';
-import type {ServiceItem} from '@core/schema/service';
 import type {SettingsReader} from '@core/schema/settingsReader';
 import type {LiveStore} from '@main/live/store';
 import {registerMacros} from '@main/macros/register';
@@ -43,17 +41,6 @@ const mediaList: MediaList = {
   playlists: [],
   audioPlaylists: [],
 };
-const ITEM = createServiceItemId('00000000-0000-4000-8000-000000000030');
-const FIRST_VIDEO = createMediaId('00000000-0000-4000-8000-000000000009');
-const SECOND_VIDEO = createMediaId('00000000-0000-4000-8000-000000000010');
-
-interface MockContent {
-  openServiceId: string | null;
-  service(
-    id: string,
-  ): {readonly service: {readonly order: ServiceItem[]}} | null;
-}
-
 function mockStore() {
   const release = vi.fn();
   const store = {
@@ -67,50 +54,10 @@ function mockStore() {
 function mockData(
   settingsReader: Promise<SettingsReader | null> = Promise.resolve(settings),
 ) {
-  const services = new Map<string, {service: {order: ServiceItem[]}}>([
-    [
-      'first',
-      {
-        service: {
-          order: [
-            {
-              id: ITEM,
-              kind: 'media',
-              name: '영상',
-              media: FIRST_VIDEO,
-              slides: [],
-            },
-          ],
-        },
-      },
-    ],
-    [
-      'second',
-      {
-        service: {
-          order: [
-            {
-              id: ITEM,
-              kind: 'media',
-              name: '영상',
-              media: SECOND_VIDEO,
-              slides: [],
-            },
-          ],
-        },
-      },
-    ],
-  ]);
-  const content: MockContent = {
-    openServiceId: 'first',
-    service: id => services.get(id) ?? null,
-  };
   return {
-    content,
     data: {
       settings: settingsReader,
       media: Promise.resolve({get: () => ({value: mediaList})}),
-      content: Promise.resolve(content),
     },
   };
 }
@@ -121,8 +68,8 @@ function setup(startup: string[] = [], launch?: 'normal' | 'restore') {
   runners.lastRun = null;
   const log = recordingLogger();
   const {store, release} = mockStore();
-  const {data, content} = mockData();
-  return {log, store, release, data, content, launch};
+  const {data} = mockData();
+  return {log, store, release, data, launch};
 }
 
 function runs(store: ReturnType<typeof mockStore>['store']) {
@@ -213,8 +160,8 @@ describe('registerMacros', () => {
     );
   });
 
-  it('gives the runner the item of the open service, the media list, and the store support check', async () => {
-    const {log, store, data, content} = setup([], 'restore');
+  it('gives the runner the settings, the media list, and the store support check', async () => {
+    const {log, store, data} = setup([], 'restore');
     const registration = registerMacros({store, data, log, launch: 'restore'});
     onTestFinished(registration.dispose);
     await registration.ready;
@@ -223,23 +170,6 @@ describe('registerMacros', () => {
 
     expect(options.settings).toBe(settings);
     expect(options.media()).toBe(mediaList);
-    expect(options.item(ITEM)).toEqual({
-      id: ITEM,
-      kind: 'media',
-      name: '영상',
-      media: FIRST_VIDEO,
-      slides: [],
-    });
-    content.openServiceId = 'second';
-    expect(options.item(ITEM)).toEqual({
-      id: ITEM,
-      kind: 'media',
-      name: '영상',
-      media: SECOND_VIDEO,
-      slides: [],
-    });
-    content.openServiceId = null;
-    expect(options.item(ITEM)).toBeUndefined();
     store.handles.mockReturnValueOnce(false);
     expect(options.supports('clear.undo')).toBe(false);
   });

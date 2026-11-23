@@ -11,7 +11,7 @@ The clear row removes a layer or all layers from the output screens.
 
 - Clearing the contents of a list or a field (emptying a text field, deleting an item): Button, IconButton.
 - Taking items down one at a time from the 표시 중 (showing) list in 진행 도구 (show tools): IconButton (지우기).
-- Don't add a button that clears a chosen set of layers at once (like Clear Groups in ProPresenter) in v1. Build such combinations as 지우기 actions in a macro, and if needed, attach that macro to the 시작할 때 (on start) macro of a 예배 순서 (service order) item.
+- Don't add a button that clears a chosen set of layers at once (like Clear Groups in ProPresenter) in v1. Build such combinations as 지우기 actions in a macro, run with its key or from 빠른 실행.
 
 ## Anatomy
 

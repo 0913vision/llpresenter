@@ -4,7 +4,6 @@ import {ReadOnlyMark} from '@renderer/features/presentation/ReadOnlyMark';
 import {ServiceQuickAdd} from '@renderer/features/service/items/QuickAdd';
 import {ServiceOrderHeader} from '@renderer/features/service/order/ServiceOrderHeader';
 import {ServiceTableList} from '@renderer/features/service/table/ServiceTableList';
-import type {LlpApi} from '@contracts/ipc/api';
 import {ServiceOrderList} from '@renderer/features/service/order/ServiceOrderList';
 import type {Notice} from '@renderer/ui/notices';
 import {logPanelProblem, type PanelParts} from '../shell/WorkspacePanel';
@@ -22,7 +21,7 @@ export function serviceOrderParts({
   onShowInLibrary,
   onOpenItem,
   actions,
-  table,
+  table = false,
 }: {
   readonly workspace: 'show' | 'prep';
   readonly navigator?: boolean | undefined;
@@ -32,13 +31,13 @@ export function serviceOrderParts({
   readonly onShowInLibrary: ((songId: SongId) => void) | undefined;
   readonly onOpenItem: () => void;
   readonly actions: ReactNode;
-  /** With it, the list is the 예배 순서 table of 준비. */
-  readonly table?: {readonly api: LlpApi} | undefined;
+  /** The list is the 예배 순서 table of 준비. */
+  readonly table?: boolean | undefined;
 }): PanelParts {
   return {
     header: <ServiceOrderHeader onProblem={onProblem} />,
     body:
-      table === undefined || navigator ? (
+      !table || navigator ? (
         <ServiceOrderList
           workspace={workspace}
           navigator={navigator}
@@ -51,7 +50,6 @@ export function serviceOrderParts({
       ) : (
         <ServiceTableList
           onNavigate={onNavigate}
-          api={table.api}
           onProblem={onProblem}
           onOpenPrep={onOpenPrep}
           onShowInLibrary={onShowInLibrary}

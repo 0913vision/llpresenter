@@ -25,7 +25,7 @@ function fixture() {
           name: '곡',
           song: HYMN_ONE_ID,
           slides,
-          memo: 'Keep item memo',
+          future: 'Keep a field of the item',
         },
         {
           id: itemId(2),
@@ -70,7 +70,7 @@ describe('explicit song item transfers', () => {
     ).toEqual({ok: true, value: {id: SUNDAY, revision: 2}});
     expect(store.service(SUNDAY)?.service.order[0]).toMatchObject({
       slides: library?.song.slides,
-      memo: 'Keep item memo',
+      future: 'Keep a field of the item',
     });
     expect(store.service(SUNDAY)?.service.order[1]).toEqual(other);
     expect(store.song(SONG)).toEqual(library);

@@ -89,7 +89,6 @@ export function itemFixture() {
           name: editor.first.song.title,
           song: editor.first.song.id,
           slides: editor.first.song.slides,
-          memo: '천천히',
           future: {keep: true},
         },
         {

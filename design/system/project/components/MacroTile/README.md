@@ -9,7 +9,6 @@ A button that shows one macro as a 64px color tile with a name. Use it in the ma
 
 ## Where not to use
 
-- The 22px macro cell inside the "시작할 때" (on start) dropdown of a 예배 순서 (service order) item: use Select's `ll-select__tile`.
 - Action rows in the action palette: use the list row (ListRow).
 - The 빠른 실행 (quick launch) list: use the list row.
 

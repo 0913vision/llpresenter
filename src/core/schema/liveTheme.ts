@@ -28,7 +28,6 @@ export const liveItemSchema = payloadObject({
   kind: v.picklist(liveItemKinds),
   source: v.picklist(['service', 'external']),
   title: v.exactOptional(liveTextSchema),
-  memo: v.exactOptional(liveTextSchema),
   overlays: v.exactOptional(
     v.pipe(
       v.array(placedOverlaySchema),

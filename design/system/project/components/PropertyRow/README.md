@@ -17,7 +17,7 @@ A row that places one name and one control side by side in a property field or a
 ## Anatomy
 
 - Group `ll-prop-group`: `space-16` above and below (`space-12` in a window), a 1px `line` below. The last group has no line.
-- Group name `ll-prop-group__title`: `caption-strong` (16/22/600), `text`, bottom `space-6`. Every group of a panel has a name, and its rows start at the same line. A group with one control that the name already says (테마, 배경) has no name cell: in code `PropertyControl`. Every group head and message head of a panel reads the same, so none looks dimmer than the next. If it needs a leading icon, use 12px, 6px from the name (메모).
+- Group name `ll-prop-group__title`: `caption-strong` (16/22/600), `text`, bottom `space-6`. Every group of a panel has a name, and its rows start at the same line. A group with one control that the name already says (테마, 배경) has no name cell: in code `PropertyControl`. Every group head and message head of a panel reads the same, so none looks dimmer than the next. If it needs a leading icon, use 12px, 6px from the name.
 - Row `ll-prop`: name cell + control cell, vertically centered.
 - Name `ll-prop__label`: `label` (14/20), `text-2`. Write it as `label for` so that it connects to the control.
 - Control cell `ll-prop__control`: the remaining width. In a panel every control, a number field too, reaches the right edge of the cell, and every field has one fill, `bg-control`. Gap between the items inside it `space-8`. Place md controls (`size-control-md` 30) in it: `TextField`, `Select` (`--block`), `SegmentedControl` (`--fill`), `Checkbox`, `Slider` (`--block`), number field + unit.
@@ -28,7 +28,7 @@ A row that places one name and one control side by side in a property field or a
 - An action-only row (기록 폴더, 진단 정보, 모니터) has no value: its md `Button` starts the control cell, like any other control, and a result such as 복사했습니다 follows it in `label` `text-2`. It is not pushed to the right end.
 - A dependent value sits on its parent's row: the seconds field of a transition follows the segmented control on the same row, and only while the choice needs it.
 - A group of lead rows that need no name (일반, 출력) uses `PropertyGroup` without a title, only in a window.
-- Put a multi-line control (메모) under the group name at the full cell width, without a name cell. If a multi-line control really needs a name cell, use `ll-prop--top` to align the name with the first line.
+- Put a multi-line control under the group name at the full cell width, without a name cell. If a multi-line control really needs a name cell, use `ll-prop--top` to align the name with the first line.
 
 ### Name cell width rules
 
@@ -67,7 +67,7 @@ The place where the row sits sets the name cell width. Don't set it separately f
 
 ## Writing
 
-- Write names as short nouns: "배경", "시작할 때", "연결이 끊기면", "가장자리 여백". Don't add a question mark or "설정".
+- Write names as short nouns: "배경", "예식문 버전", "연결이 끊기면", "가장자리 여백". Don't add a question mark or "설정".
 - Write group names in one or two words: "원본", "이번 예배", "출력", "안정성", "보정", "백업".
 - Don't add a description to value text. Add only the unit (60Hz, 4.3MB).
 

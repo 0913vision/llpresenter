@@ -164,8 +164,7 @@ Each 예배 순서 is one file. It holds only items.
       "kind": "song",
       "name": "Invented song",
       "song": "6f1c2a9e-...",
-      "slides": [],
-      "memo": ""
+      "slides": []
     }
   ]
 }
@@ -187,7 +186,7 @@ same limit. An add, a 복제, a 구역 copy, and an import past it are refused w
 "예배 순서 항목은 1000개까지 추가할 수 있습니다.".
 
 Every item has `id`, `kind`, and `name`. Every kind but 구역 also has `slides`
-and may have `overlays` (12), `macro`, and `memo`.
+and may have `overlays` (12).
 
 | `kind`    | Item                                      | Its own fields                                                |
 | --------- | ----------------------------------------- | ------------------------------------------------------------- |

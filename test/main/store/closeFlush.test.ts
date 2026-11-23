@@ -28,12 +28,12 @@ vi.mock('electron', () => ({
   ipcMain: ipc.ipcMain,
 }));
 
-async function readMemo(file: string) {
+async function readName(file: string) {
   const parsed = parseService(await readFile(file, 'utf8'), file);
   if (!parsed.ok) throw new Error('Invalid service file');
   const item = parsed.value.data.order[0];
   return item !== undefined && isItemOfKind(item, 'media')
-    ? item.memo
+    ? item.name
     : undefined;
 }
 
@@ -61,18 +61,17 @@ it.each([
       'Services',
       `${serviceId}.llservice`,
     );
-    const oldMemo = 'Earlier persisted memo';
-    const newestMemo = 'Newest close flush memo';
+    const oldName = 'Earlier persisted name';
+    const newestName = 'Newest close flush name';
     await writeJson(
       file,
       service(serviceId, '2026-10-26T10:00', [
         {
           id: target.itemId,
           kind: 'media',
-          name: '영상',
+          name: oldName,
           media: itemId(3),
           slides: [],
-          memo: oldMemo,
         },
       ]),
     );
@@ -188,7 +187,7 @@ it.each([
           service: {
             ...document.service,
             order: document.service.order.map(item =>
-              item.id === target.itemId ? {...item, memo: newestMemo} : item,
+              item.id === target.itemId ? {...item, name: newestName} : item,
             ),
           },
         });
@@ -217,10 +216,10 @@ it.each([
     await vi.waitFor(() => expect(replies).toEqual([false]));
     expect(destroyed).toBe(false);
     expect((await currentService(serviceId)).service.order).toContainEqual(
-      expect.objectContaining({id: target.itemId, memo: newestMemo}),
+      expect.objectContaining({id: target.itemId, name: newestName}),
     );
-    expect(await readMemo(file)).toBe(
-      blocked === 'service' ? oldMemo : newestMemo,
+    expect(await readName(file)).toBe(
+      blocked === 'service' ? oldName : newestName,
     );
     expect(write.mock.calls.some(([path]) => path === blockedFile)).toBe(true);
     const app = {
@@ -255,7 +254,7 @@ it.each([
     await closed;
     expect(destroyed).toBe(true);
     expect(replies).toEqual([false, true]);
-    expect(await readMemo(file)).toBe(newestMemo);
+    expect(await readName(file)).toBe(newestName);
     const configAfter = parseAppConfig(
       await readFile(configFile, 'utf8'),
       configFile,

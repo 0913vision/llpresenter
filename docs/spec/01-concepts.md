@@ -45,7 +45,7 @@ This spec also uses these English terms:
 | Output state     | Everything the main process holds about what is on the screens now: which outputs are on, the live 테마, the live 슬라이드, the background, 그래픽, 메시지, the stage message, audio, 타이머 state, and the last clear. |
 | Live 슬라이드    | The 슬라이드 on the lyrics layer now. There is one live 슬라이드 or none.                                                                                                                                               |
 | Current item     | The 예배 순서 item that the live 슬라이드 came from. It stays the current item after a clear of the lyrics layer, until a 슬라이드 from another item goes out (proposal).                                               |
-| Start an item    | The moment the current item changes to another item. Start macros run at this moment (see 04 and 07).                                                                                                                   |
+| Start an item    | The moment the current item changes to another item (see 04).                                                                                                                                                           |
 | During a service | While at least one screen output is on (proposal).                                                                                                                                                                      |
 | Recovery record  | The file where the main process writes the output state at short intervals. The app uses it to restore the output state after a crash (see 02 and 08).                                                                  |
 | Sequence         | The order of 슬라이드 in the 슬라이드 panel. For a song item, this is the order of the chosen 구성.                                                                                                                     |
@@ -429,7 +429,6 @@ Source: `Main` decisions "화면 세 개" and "방송 화면은 NDI로", product
   라이브러리 song it came from. Editing either never changes the other;
   라이브러리에 저장… and 라이브러리에서 다시 불러오기 copy between them and ask
   first (05).
-- An item also holds a 매크로 to run when it starts, and a memo.
 - A 슬라이드 holds its 이름표 by name. The app looks up its color in the
   app-wide 이름표 list. A name that isn't in the list draws with no color. A hot
   key belongs to its 슬라이드, independent of its name or color.
@@ -444,16 +443,16 @@ Source: `Main` decisions "화면 세 개" and "방송 화면은 NDI로", product
 
 ### What belongs to a service, a song, or the app
 
-| Per service (`.llservice`)       | Per song (`.llsong`)             | One for the whole app                   |
-| -------------------------------- | -------------------------------- | --------------------------------------- |
-| Service name, date and time      | Title                            | Screens                                 |
-| Items and their order            | Its 슬라이드 (texts, background) | 테마                                    |
-| The 슬라이드 of each item        |                                  | 매크로 and collections                  |
-| Start 매크로 and memo of an item |                                  | 빠른 실행                               |
-|                                  |                                  | 메시지, 그래픽, 타이머                  |
-|                                  |                                  | 이름표 list (name, color)               |
-|                                  |                                  | 환경설정, shortcuts, Bible translations |
-|                                  |                                  | Media list and playlists                |
+| Per service (`.llservice`)  | Per song (`.llsong`)             | One for the whole app                   |
+| --------------------------- | -------------------------------- | --------------------------------------- |
+| Service name, date and time | Title                            | Screens                                 |
+| Items and their order       | Its 슬라이드 (texts, background) | 테마                                    |
+| The 슬라이드 of each item   |                                  | 매크로 and collections                  |
+|                             |                                  | 빠른 실행                               |
+|                             |                                  | 메시지, 그래픽, 타이머                  |
+|                             |                                  | 이름표 list (name, color)               |
+|                             |                                  | 환경설정, shortcuts, Bible translations |
+|                             |                                  | Media list and playlists                |
 
 - To make one service look different from another, give its 슬라이드 different
   테마 or backgrounds.

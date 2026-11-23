@@ -1,22 +1,14 @@
 .table {
-  /* NOTE(0913vision): The name and the cells share one row. At the regular
-     width the three cells keep their size-table-* widths and 메모 the rest of
-     its own; a narrower table shrinks the cells together and truncates; below
-     --table-memo-hides, where the name would get less than 160px, 메모 hides
-     (it stays in 항목 설정); a wider table gives the extra space to the name
-     and 메모 as 1.5 to 1.2, as draft g5 does. */
+  /* NOTE(0913vision): The name and the 슬라이드 cell share one row: the cell
+     keeps its size-table-slides width and the name takes the rest, at least
+     160px. */
   --table-name-min: 160px;
-  --table-name-grow: 1.5;
-  --table-memo-grow: 1.2;
   --table-name-inset: calc(
     var(--size-table-number) + var(--space-10) + var(--size-icon-16) +
       var(--space-10)
   );
-  --table-fixed-width: calc(var(--size-table-slides) + var(--size-table-start));
-  --table-cells-width: calc(var(--table-fixed-width) + var(--size-table-memo));
 
   min-width: 0;
-  container-type: inline-size;
 }
 
 .table .row {
@@ -57,27 +49,20 @@
 }
 
 /* NOTE(0913vision): The row title and its marks sit after the number and the
-   icon, and share the extra width with the cells. */
+   icon and take the width the 슬라이드 cell leaves. */
 .table .row > :has(> [id], > span > input[id]) {
-  flex: var(--table-name-grow) 0 var(--table-name-min);
+  flex: 1 1 var(--table-name-min);
   min-width: 0;
 }
 
-/* NOTE(0913vision): The list row wraps the cells in a box of its own, which
-   would size to the memo text; it takes the cells' share of the row instead,
-   so every row has the grid of the header. */
 .table .row > :has(> .grid) {
-  flex: var(--table-memo-grow) 1 var(--table-cells-width);
+  flex: 0 0 var(--size-table-slides);
   min-width: 0;
 }
 
 .grid {
   display: grid;
-  flex: 1 1 0;
-  grid-template-columns:
-    minmax(0, var(--size-table-slides))
-    minmax(0, var(--size-table-start))
-    minmax(0, 1fr);
+  grid-template-columns: minmax(0, var(--size-table-slides));
   align-items: center;
   min-width: 0;
 }
@@ -99,13 +84,12 @@
 }
 
 .header > .grid {
-  flex: var(--table-memo-grow) 1 var(--table-cells-width);
+  flex: 0 0 var(--size-table-slides);
 }
 
 .headerName {
   box-sizing: border-box;
-  flex: var(--table-name-grow) 0
-    calc(var(--table-name-min) + var(--table-name-inset));
+  flex: 1 1 calc(var(--table-name-min) + var(--table-name-inset));
   min-width: 0;
   padding-inline-start: var(--table-name-inset);
 }
@@ -116,15 +100,9 @@
 }
 
 .cell {
-  /* NOTE(0913vision): An empty 메모 cell keeps one line of height, so it can be
-     clicked to write a memo. */
   min-width: 0;
-  min-height: 1lh;
   overflow: hidden;
   padding: 0 var(--space-6);
-  border: 0;
-  border-radius: var(--radius-sm);
-  background: transparent;
   color: var(--text-2);
   font: var(--type-body);
   text-align: left;
@@ -132,75 +110,16 @@
   white-space: nowrap;
 }
 
-button.cell {
-  cursor: default;
-}
-
-/* NOTE(0913vision): An empty cell draws nothing until the pointer is over it,
-   then it shows the frame of a field, so the operator sees where to click. */
-button.cell:not([aria-disabled='true']):hover {
-  box-shadow: inset 0 0 0 1px var(--line-control);
-}
-
 .row[aria-selected='true'] .cell {
   color: var(--text-on-selection);
-}
-
-.dim {
-  color: var(--text-3);
 }
 
 .slides {
   font-variant-numeric: tabular-nums;
 }
 
-.truncate {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.memo {
-  font-weight: 400;
-}
-
-.memoField {
-  box-sizing: border-box;
-  width: 100%;
-  min-width: 0;
-  padding: 0 var(--space-6);
-  border: 0;
-  border-radius: var(--radius-sm);
-  background: var(--bg-well);
-  box-shadow: var(--ring-field-focus);
-  color: var(--text);
-  font: var(--type-body);
-}
-
 .footer {
   display: flex;
   gap: var(--space-10);
   padding: var(--space-8) var(--panel-inset);
-}
-
-/* NOTE(0913vision): The width where the name keeps its 160px with every column: the panel
-   inset, the number and the icon, the name, one gap, and the cells. */
-@container (max-width: 1010px) {
-  .memo {
-    display: none;
-  }
-
-  .header > .grid,
-  .table .row > :has(> .grid) {
-    flex-basis: var(--table-fixed-width);
-  }
-
-  .grid {
-    grid-template-columns:
-      minmax(0, var(--size-table-slides))
-      minmax(0, var(--size-table-theme))
-      minmax(0, var(--size-table-background))
-      minmax(0, var(--size-table-start));
-  }
 }

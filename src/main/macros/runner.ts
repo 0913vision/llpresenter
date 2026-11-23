@@ -1,6 +1,5 @@
 import type {SettingsReader} from '@core/schema/settingsReader';
-import {type MacroId, type ServiceItemId, parseMacroId} from '@core/schema/ids';
-import type {ServiceItem} from '@core/schema/service';
+import type {MacroId} from '@core/schema/ids';
 import type {MediaList} from '@core/schema/mediaList';
 import type {LiveHistory} from '../live/history';
 import type {CommandOf, MacroCommandPort, SliceContext} from '../live/slice';
@@ -15,7 +14,6 @@ export const MAX_LOGGED_MACRO_PROBLEMS = 5;
 export interface MacroRunnerOptions {
   readonly settings: SettingsReader;
   readonly media: () => MediaList;
-  readonly item: (id: ServiceItemId) => ServiceItem | undefined;
   readonly supports: ActionContext['supports'];
   readonly log: Logger;
 }
@@ -32,14 +30,10 @@ export class MacroRunner implements MacroCommandPort {
 
   run(
     history: LiveHistory,
-    command: CommandOf<'macro.run' | 'item.start'>,
+    command: CommandOf<'macro.run'>,
     context: SliceContext,
   ): LiveHistory {
-    const id =
-      command.type === 'macro.run'
-        ? command.macroId
-        : this.itemMacro(command.itemId, context);
-    if (id === undefined) return history;
+    const id = command.macroId;
     const catalog = readMacroCatalog(
       this.options.settings,
       this.options.media(),
@@ -95,29 +89,5 @@ export class MacroRunner implements MacroCommandPort {
           .filter(macro => macro.runOnStartup === true)
           .map(macro => macro.id)
       : [];
-  }
-
-  private itemMacro(
-    itemId: ServiceItemId,
-    context: SliceContext,
-  ): MacroId | undefined {
-    const item = requireMacroTarget(
-      this.options.item(itemId),
-      'service-item',
-      itemId,
-    );
-    if (!('macro' in item)) return undefined;
-    const parsed = parseMacroId(item.macro);
-    if (!parsed.ok) {
-      context.defer(() => {
-        this.options.log.warn('skipped invalid item start macro', {
-          itemId,
-          reason: 'invalid-action',
-          error: parsed.error,
-        });
-      });
-      return undefined;
-    }
-    return parsed.value;
   }
 }

@@ -57,9 +57,8 @@ The table and inline song editor share the service selection.
 
 ### 준비
 
-- The center table shows 이름, 슬라이드, 시작할 때, and 메모. Counts and
-  thumbnails use the item's own slides. The library stays on the left; 세부정보
-  stays on the right.
+- The center table shows 이름 and 슬라이드. Counts and thumbnails use the item's
+  own slides. The library stays on the left; 세부정보 stays on the right.
 - Column headings stay pinned while table rows scroll. This applies to every
   table, including shortcut settings and import label mapping. Scrolling a row
   into view leaves it below the headings.
@@ -77,11 +76,9 @@ The table and inline song editor share the service selection.
   starts with no highlight for an empty search; typing a character or pressing ↑
   or ↓ highlights the first result. It adds the single highlighted song with
   Enter, double-click, or 추가. The search field keeps focus as ↑ and ↓ move the
-  highlight; with no result, 추가 is disabled with a reason. Cell edits target
-  the row containing the cell, including when its background file is missing.
-- Cells without a start macro or memo stay empty while retaining their menu or
-  field on click and a frame on hover. Item rows are 44px and section rows 32px;
-  section names have a thin line above except the first.
+  highlight; with no result, 추가 is disabled with a reason.
+- Item rows are 44px and section rows 32px; section names have a thin line above
+  except the first.
 - The table shares 진행's item selection and clipboard (04, "Editing the 예배
   순서 in 진행"): Shift selects a range, Ctrl toggles rows, and Ctrl C/V, 편집
   and the row menu copy/paste complete items within or across services. Pasting
@@ -169,10 +166,9 @@ the compact 예배 순서, or the library; its right column shows the selected
   immediately removes all selected rows without a confirmation or notice, and
   Ctrl Z restores them in one step. The selection, counted drag image, duplicate
   and context-menu rules are shared with 진행 (04, 11). Ctrl Z and 편집 > 실행
-  취소 undo every edit of an item the same way, one step each: a change in its
-  cells or the right column (메모, 테마, 배경, 시작할 때, 오버레이) as well as
-  the order edits (10, "Focus precedence"). The right-click menu has 삭제
-  (delete) (proposal).
+  취소 undo every edit of an item the same way, one step each: a change in the
+  right column (테마, 배경, 오버레이) as well as the order edits (10, "Focus
+  precedence"). The right-click menu has 삭제 (delete) (proposal).
 - The list accepts 라이브러리 songs dropped on it (see "Adding items to the 예배
   순서").
 
@@ -364,16 +360,18 @@ name.
 
 ## 예배 순서 item settings
 
-The right column of the table shows the selected item: one 슬라이드 under the
-same header, then the 정보 and 슬라이드 tabs with 편집 at the right end of their
-row. 정보 has 시작할 때 and 메모 under 이번 예배, and what the item was made
-from under 원본. 슬라이드 shows the pictures of the item in a grid with a
-remembered size; a double click opens the editor at that 슬라이드.
+The right column of the table shows the selected item, with no tabs: one
+슬라이드 under the same header; then what the item was made from under 원본 (the
+라이브러리 song with 라이브러리에 저장 and 다시 불러오기, or the passage and its
+성경) and, for a 예식문, its 예식문 버전 under 이번 예배; then the 슬라이드
+heading with 편집 at its right end and the pictures of the item in a grid with a
+remembered size. A double click opens the editor at that 슬라이드. An item made
+from neither shows only the pictures.
 
 ### What belongs to the service and what belongs to the song
 
-An item owns its 슬라이드, overlays, start macro, and memo. The library song
-owns its title and its own 슬라이드. Explicit save and reload copy between them.
+An item owns its 슬라이드 and overlays. The library song owns its title and its
+own 슬라이드. Explicit save and reload copy between them.
 
 ## Adding items to the 예배 순서
 
@@ -385,8 +383,7 @@ owns its title and its own 슬라이드. Explicit save and reload copy between t
   순서. The spot right below a section (구역) is valid, including an empty
   section. Over a valid spot, the ghost row shows a plus.
 - Esc cancels the drag.
-- A drop inserts a song item with a copy of its slides and background, and no
-  start 매크로 (proposal).
+- A drop inserts a song item with a copy of its slides and background.
 - A drop into an empty section inserts a song after its section row. The section
   stays in the list.
 
@@ -464,13 +461,13 @@ Source: the user's decision from the m3-check3 check, October 26.
     template's time and a past service's time do not affect the new service.
   - 만들기 is unavailable while the name is empty, with the reason in a tooltip.
   - 만들기 creates a new service file with the checked items, in order, with new
-    item IDs. Song references, independent slide decks, background overrides,
-    start 매크로, and memos copy as they are. A section comes along if it or any
-    of its children is checked. The new service becomes the current service. The
-    live item stops and all outputs return to standby. Before creating anything,
-    the service-change guard asks for confirmation when an output shows live
-    content (04); cancel leaves the service and output unchanged. The flow
-    creates an empty service, copies only the checked items, and then opens it.
+    item IDs. Song references, independent slide decks, and background overrides
+    copy as they are. A section comes along if it or any of its children is
+    checked. The new service becomes the current service. The live item stops
+    and all outputs return to standby. Before creating anything, the
+    service-change guard asks for confirmation when an output shows live content
+    (04); cancel leaves the service and output unchanged. The flow creates an
+    empty service, copies only the checked items, and then opens it.
   - A `write-failed` result from creation or copying means the edit is already
     applied in main, with a pending disk save. Continue with the applied service
     id after creation and continue to opening after copying. Keep the copied

@@ -13,7 +13,6 @@ import {lyricsSlide, slideOf, verseOf} from '@fixtures/core/slides';
 const FILE = 'Services/sunday.llservice';
 const SONG = '6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab';
 const MEDIA = '3b9d0c52-7e1f-4a2b-8c3d-4e5f60718293';
-const MACRO = '7d3f1b20-2c3d-4e4f-a051-6b7c8d9e0f1a';
 const PASSAGE = {
   translation: 'krv',
   ref: '요한복음 3:16-18',
@@ -33,8 +32,6 @@ const ITEMS: readonly object[] = [
     name: '빛의 길',
     song: SONG,
     slides: [lyricsSlide(1, '맑은 아침이 밝아 오네')],
-    macro: MACRO,
-    memo: '천천히\n둘째 줄',
   },
   {
     kind: 'bible',

@@ -2,7 +2,7 @@ import {defineSlice} from '../slice';
 import {showBackground} from '../slideBackground';
 
 export const themesSlice = defineSlice({
-  commands: ['theme.set', 'themes.refresh', 'item.stop'],
+  commands: ['theme.set', 'themes.refresh', 'item.start', 'item.stop'],
   initial: {},
   reduce: (history, command, context) => {
     if (context.themes === undefined) {

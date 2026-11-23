@@ -13,7 +13,6 @@ import {outputSlideOf} from '@renderer/session/show';
 import {Button} from '@renderer/ui/Button';
 import {GridFooter} from '@renderer/ui/GridFooter';
 import {noticeTime} from '@renderer/ui/notices';
-import {PanelTabs} from '@renderer/ui/Panel';
 import type {SizeClass} from '@renderer/ui/sizeClass';
 import {Spinner} from '@renderer/ui/Spinner';
 import {ThumbnailSizeControl} from '@renderer/ui/ThumbnailSizeControl';
@@ -33,10 +32,6 @@ export type DetailsTarget =
   | {readonly kind: 'song'; readonly songId: SongId};
 
 const LABEL = '세부정보';
-const tabs = [
-  {value: 'info', label: '정보'},
-  {value: 'slides', label: '슬라이드'},
-] as const;
 
 /** The song of the library that is selected. */
 function useLibrarySong(
@@ -101,11 +96,6 @@ export function DetailsPanel({
       : target.kind === 'item'
         ? `item:${target.itemId}`
         : `song:${target.songId}`;
-  const [tabState, setTab] = useState<{
-    readonly key: string;
-    readonly value: 'info' | 'slides';
-  }>({key, value: 'info'});
-  const tab = tabState.key === key ? tabState.value : 'info';
   const [selection, setSelection] = useState({key, index: 0});
   const slidesItem = item !== undefined && hasSlides(item) ? item : undefined;
   const tiles = useMemo(
@@ -154,55 +144,45 @@ export function DetailsPanel({
       label={LABEL}
       screen={screen}
       footer={
-        tab === 'slides' ? (
-          <GridFooter
-            count={count}
-            zoom={
-              <ThumbnailSizeControl
-                compact
-                value={scale}
-                onChange={value => detailsScale.show(sizeClass, value)}
-                onCommit={value => detailsScale.save(sizeClass, value, api.ui)}
-              />
-            }
-          />
-        ) : null
+        <GridFooter
+          count={count}
+          zoom={
+            <ThumbnailSizeControl
+              compact
+              value={scale}
+              onChange={value => detailsScale.show(sizeClass, value)}
+              onCommit={value => detailsScale.save(sizeClass, value, api.ui)}
+            />
+          }
+        />
       }
     >
       <SlidePreview {...preview} index={selected} />
-      <div className={styles.tabs}>
-        <PanelTabs
-          tabs={tabs}
-          value={tab}
-          onChange={value => setTab({key, value})}
-        />
+      <DetailsInfo
+        item={slidesItem}
+        songId={library?.songId ?? null}
+        reason={readOnly ? NEWER_FILE_REASON : undefined}
+        onOpenSong={id => onOpenSong(id, 0)}
+        report={report}
+      />
+      <div className={styles.slidesHead}>
+        <p className={styles.slidesTitle}>슬라이드</p>
         <Button icon="edit" onClick={() => edit(selected)}>
           편집
         </Button>
       </div>
-      {tab === 'info' ? (
-        <DetailsInfo
-          item={slidesItem}
-          songId={library?.songId ?? null}
-          api={api}
-          reason={readOnly ? NEWER_FILE_REASON : undefined}
-          onOpenSong={id => onOpenSong(id, 0)}
-          report={report}
-        />
-      ) : (
-        <DetailsSlides
-          count={count}
-          ids={tiles.map(entry => entry.slide.id)}
-          scope={key}
-          scale={scale}
-          selected={selected}
-          onSelect={index => setSelection({key, index})}
-          onEdit={edit}
-          labelAt={index => tiles[index]?.caption ?? undefined}
-          colorAt={index => tiles[index]?.labelColor ?? 'none'}
-          picture={index => <PreviewPicture {...preview} index={index} />}
-        />
-      )}
+      <DetailsSlides
+        count={count}
+        ids={tiles.map(entry => entry.slide.id)}
+        scope={key}
+        scale={scale}
+        selected={selected}
+        onSelect={index => setSelection({key, index})}
+        onEdit={edit}
+        labelAt={index => tiles[index]?.caption ?? undefined}
+        colorAt={index => tiles[index]?.labelColor ?? 'none'}
+        picture={index => <PreviewPicture {...preview} index={index} />}
+      />
     </SlideSidePanel>
   );
 }

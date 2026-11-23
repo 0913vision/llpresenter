@@ -320,8 +320,6 @@ bar handles.
 
 ### 예배 순서 항목 오른쪽 클릭
 
-준비 adds 메모… for supported items, including when the memo column is hidden.
-
 - Where: 예배 순서 list (ServiceOrderList)
 - Opens: Right-click on an item or 구역 row.
 - Purpose: Act on this one item.

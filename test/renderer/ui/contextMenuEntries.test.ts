@@ -35,7 +35,6 @@ describe('context commands', () => {
         ...menuAvailability('Clipboard is empty'),
       },
       {kind: 'item', id: 'copy', label: 'Copy', contextGroup: 'clipboard'},
-      {kind: 'item', id: 'memo', label: 'Memo', contextGroup: 'memo'},
       {kind: 'item', id: 'theme', label: 'Theme'},
       {kind: 'item', id: 'edit', label: 'Edit', contextGroup: 'default'},
       {
@@ -56,8 +55,6 @@ describe('context commands', () => {
       'edit',
       'context:settings',
       'theme',
-      'context:memo',
-      'memo',
       'context:clipboard',
       'copy',
       'paste',

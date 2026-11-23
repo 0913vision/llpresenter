@@ -351,8 +351,8 @@ session over it. A second answer is refused while a restore is in progress.
 ### After the answer
 
 - 복구: apply the checked rows in this order: outputs on, the live 슬라이드 and
-  its background, then the items that were showing. Don't run the restored
-  item's start 매크로, and don't run startup 매크로 (proposal).
+  its background, then the items that were showing. Don't run startup 매크로
+  (proposal).
 - 새로 시작: start with an empty output state. Apply 켤 때 화면 출력 as on a
   normal launch, and run startup 매크로 (proposal).
 - Then delete the old recovery record and create a new `session.lock`.
@@ -415,11 +415,10 @@ Don't use notifications for problems of one item (they show in place) or for the
 results of the operator's own actions.
 
 When the main process drops a whole dispatch because its result would break the
-live state limits (01), and that dispatch ran a 매크로 (`macro.run`, or
-`item.start` with a start 매크로), a warning card titled "매크로 적용 실패"
-shows, with that 매크로's name as its detail line. A dropped dispatch with no
-매크로 is only logged. Nothing changes on output: the screens keep the state
-from before the dispatch.
+live state limits (01), and that dispatch ran a 매크로 (`macro.run`), a warning
+card titled "매크로 적용 실패" shows, with that 매크로's name as its detail
+line. A dropped dispatch with no 매크로 is only logged. Nothing changes on
+output: the screens keep the state from before the dispatch.
 
 Source: `Notification` README, `Problems`, `StatusBar` README, design system
 writing rules.
@@ -457,8 +456,8 @@ writing rules.
 - Never turn an output black because a background file is missing. Hold the last
   frame.
 - Never change the output without an action by the operator, except for actions
-  the operator set up in advance: start 매크로, startup 매크로, 메시지 display
-  times rotation, and media that ends.
+  the operator set up in advance: startup 매크로, 메시지 display times rotation,
+  and media that ends.
 - Never show Windows toast notifications from the app (proposal).
 
 Source: design system principle 6, `Dialog` and `ClearButton` READMEs (F1 to F6
