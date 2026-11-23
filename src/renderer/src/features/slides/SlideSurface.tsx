@@ -19,13 +19,6 @@ import {useDragClickGuard} from '@renderer/ui/useDragClickGuard';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {useReflow} from '@renderer/ui/useReflow';
 import {
-  addReason,
-  copySelected,
-  deleteSelected,
-  pasteInto,
-  selectionReason,
-} from './deckCommands';
-import {
   focusedSlide,
   selectInDeck,
   selectionOf,
@@ -37,6 +30,7 @@ import {slideIdAt, slideMove, slideRow} from './slideKeys';
 import {slideMenuEntries} from './slideMenu';
 import {useSlideCommands} from './useSlideCommands';
 import {useSlideDrag} from './useSlideDrag';
+import {useDeckClipboard} from './useDeckClipboard';
 import styles from './SlideEditor.module.css';
 
 function plainKey(event: {
@@ -230,6 +224,7 @@ export function SlideSurface({
     else selectInDeck(deck, move.action);
   };
 
+  const clipboard = useDeckClipboard(deck, focusSurface);
   return (
     <div
       {...dragClick.props}
@@ -239,33 +234,7 @@ export function SlideSurface({
       role="group"
       aria-label="슬라이드 편집 명령"
       data-slide-surface
-      onCopy={event => {
-        if (isInTextEntry(event.target)) return;
-        const text = copySelected(deck);
-        if (text === null) return;
-        event.preventDefault();
-        event.stopPropagation();
-        event.clipboardData.setData('text/plain', text);
-      }}
-      onCut={event => {
-        if (isInTextEntry(event.target)) return;
-        const text = copySelected(deck);
-        if (text === null || selectionReason(deck) !== undefined) return;
-        event.preventDefault();
-        event.stopPropagation();
-        event.clipboardData.setData('text/plain', text);
-        focusSurface();
-        deleteSelected(deck);
-      }}
-      onPaste={event => {
-        if (isInTextEntry(event.target) || addReason(deck) !== undefined) {
-          return;
-        }
-        event.preventDefault();
-        event.stopPropagation();
-        focusSurface();
-        pasteInto(deck, event.clipboardData.getData('text/plain'));
-      }}
+      {...clipboard}
       onPointerDownCapture={event => {
         dragClick.props.onPointerDownCapture();
         if (
