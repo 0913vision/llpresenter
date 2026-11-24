@@ -12,7 +12,7 @@ import {
 import {classNames} from '../classNames';
 import {clickFocusProps} from './clickFocus';
 import {hasModifier} from '../keys/modifierKeys';
-import type {Workspace} from './workspace';
+import type {ListWorkspace} from './workspace';
 import styles from './ListRow.module.css';
 
 const ANY_OPTION = '[role="option"]';
@@ -21,7 +21,7 @@ const ACTIVATION_KEYS: ReadonlySet<string> = new Set([' ', 'Enter']);
 
 /** Activation keys shared by list rows in each workspace. */
 export const workspaceActivationKeys: Readonly<
-  Record<Workspace, ReadonlySet<string>>
+  Record<ListWorkspace, ReadonlySet<string>>
 > = {
   show: new Set(['Enter']),
   prep: ACTIVATION_KEYS,
@@ -58,7 +58,7 @@ function createSelectionStore(initial: string | undefined): SelectionStore {
 export interface ListBoxState {
   readonly selection: SelectionStore;
   readonly onSelect: (value: string) => void;
-  readonly workspace: Workspace;
+  readonly workspace: ListWorkspace;
 }
 
 /** The list state read by rows without rerendering unrelated selections. */
@@ -114,7 +114,7 @@ function movesTabStop(record: MutationRecord): boolean {
 function useListBoxState(
   selected: string | undefined,
   onSelect: (value: string) => void,
-  workspace: Workspace,
+  workspace: ListWorkspace,
 ): ListBoxState {
   const [selection] = useState(() => createSelectionStore(selected));
   const latestOnSelect = useRef(onSelect);
@@ -175,7 +175,7 @@ export interface ListBoxProps {
    * only Enter selects; `prep` (the default) everywhere else, dialogs included.
    * 진행 keeps keyboard focus without drawing a row focus outline.
    */
-  readonly workspace?: Workspace | undefined;
+  readonly workspace?: ListWorkspace | undefined;
   readonly className?: string | undefined;
   readonly children: ReactNode;
 }

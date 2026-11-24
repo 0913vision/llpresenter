@@ -15,16 +15,16 @@ import {
   type TileListBaseProps,
 } from '../lists/TileList';
 import {titleTooltip, useTooltip} from '../popups/Tooltip';
-import type {Workspace} from '../lists/workspace';
+import type {ListWorkspace} from '../lists/workspace';
 import styles from './SlideThumbnail.module.css';
 import {SlideTransitionMark} from './SlideTransitionMark';
 
-const workspaceMoves: Readonly<Record<Workspace, TileMoves>> = {
+const workspaceMoves: Readonly<Record<ListWorkspace, TileMoves>> = {
   show: rowMoves,
   prep: gridMoves,
 };
 
-const workspaceSpaceKey: Readonly<Record<Workspace, TileSpaceKey>> = {
+const workspaceSpaceKey: Readonly<Record<ListWorkspace, TileSpaceKey>> = {
   show: 'pass',
   prep: 'press',
 };

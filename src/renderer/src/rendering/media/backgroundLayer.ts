@@ -7,12 +7,12 @@ import {setPlaybackProblem} from './playbackProblem';
 import {backgroundElapsedSeconds, mediaObjectFit} from '@core/media';
 import {StillBackgroundLayerView} from './stillBackgroundLayer';
 import type {PreviewMediaSource} from './previewMedia';
+import type {RenderMode} from '../layer';
 
 /**
  * Where a renderer draws: an output window, or a small preview in the control
  * window. A preview draws cached thumbnails without creating video elements.
  */
-export type RenderMode = 'output' | 'preview';
 
 export interface BackgroundLayerOptions {
   /** The original library URL, also used for image elements in previews. */

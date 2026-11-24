@@ -1,10 +1,8 @@
 import {beforeEach, vi} from 'vitest';
 import type {MediaLayer} from '@core/schema/live/live';
-import {
-  BackgroundLayerView,
-  type RenderMode,
-} from '@renderer/rendering/media/backgroundLayer';
+import {BackgroundLayerView} from '@renderer/rendering/media/backgroundLayer';
 import {classes} from '@renderer/rendering/classes';
+import {type RenderMode} from '@renderer/rendering/layer';
 
 export const WARM_LIGHT: MediaLayer = {
   mediaId: 'warm-light',

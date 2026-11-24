@@ -1,6 +1,6 @@
 import type {JSX} from 'react';
 import {ListGroup, ListInsertLine} from '@renderer/ui/lists/ListRow';
-import type {Workspace} from '@renderer/ui/lists/workspace';
+import type {ListWorkspace} from '@renderer/ui/lists/workspace';
 import {ItemRows, type RowContext} from './ItemRows';
 import type {RowGroup} from '../orderRows';
 import type {RenameContract} from '@renderer/ui/fields/renameContract';
@@ -28,7 +28,7 @@ export function OrderSection({
   readonly group: RowGroup;
   readonly label: string;
   readonly context: RowContext;
-  readonly workspace: Workspace;
+  readonly workspace: ListWorkspace;
   readonly editable: boolean;
   readonly className: string | undefined;
   /** The drop line shows above this 구역. */

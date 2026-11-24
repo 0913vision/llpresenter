@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {Slider, type SliderProps} from '@renderer/ui/choices/Slider';
-import type {Workspace} from '@renderer/ui/lists/workspace';
+import type {ListWorkspace} from '@renderer/ui/lists/workspace';
 import {
   hoverForTooltip,
   resetTooltips,
@@ -50,7 +50,7 @@ function FocusSlider({
   onCommit,
   disabled = false,
 }: {
-  readonly workspace?: Workspace;
+  readonly workspace?: ListWorkspace;
   readonly onCommit?: SliderProps['onCommit'];
   readonly disabled?: boolean | undefined;
 }): JSX.Element {

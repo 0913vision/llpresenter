@@ -40,7 +40,7 @@ import {TextField} from '@renderer/ui/fields/TextField';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import {isComposing} from '@renderer/ui/fields/ime';
 import {hasModifier} from '@renderer/ui/keys/modifierKeys';
-import {monitorPixelSize, sizeText, targetSize} from '../displaySizes';
+import {monitorPixelSize, pixelSizeText, targetSize} from '../displaySizes';
 import {MessageStyleRow} from './MessageStyleRow';
 import {useScreenView, useScreensSelection} from '../selection';
 import {useMonitors} from '../useMonitors';
@@ -260,13 +260,13 @@ function ResolutionRow({
             block
             menuLabel="해상도"
             options={CAPTURE_RESOLUTIONS.map(size => ({
-              value: sizeText(size),
-              label: sizeText(size),
+              value: pixelSizeText(size),
+              label: pixelSizeText(size),
             }))}
-            value={current === undefined ? undefined : sizeText(current)}
+            value={current === undefined ? undefined : pixelSizeText(current)}
             onChange={value => {
               const size = CAPTURE_RESOLUTIONS.find(
-                candidate => sizeText(candidate) === value,
+                candidate => pixelSizeText(candidate) === value,
               );
               if (size !== undefined) change({resolution: size});
             }}
@@ -277,7 +277,10 @@ function ResolutionRow({
   }
   if (screen.method !== 'fullscreen' || monitor === undefined) return null;
   return (
-    <PropertyValue label="해상도" value={sizeText(monitorPixelSize(monitor))} />
+    <PropertyValue
+      label="해상도"
+      value={pixelSizeText(monitorPixelSize(monitor))}
+    />
   );
 }
 

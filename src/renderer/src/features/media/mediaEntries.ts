@@ -110,7 +110,7 @@ export function durationText(seconds: number | undefined): string | undefined {
 }
 
 /** A file size with one decimal from KB up, such as 2.1GB or 512B. */
-export function sizeText(bytes: number): string {
+export function fileSizeText(bytes: number): string {
   let value = bytes;
   let unit = 0;
   while (value >= BYTES_PER_UNIT && unit < BYTE_UNITS.length - 1) {
@@ -124,5 +124,5 @@ export function sizeText(bytes: number): string {
 /** The media grid's footer, such as 7개 2.1GB. */
 export function totalText(items: readonly MediaItem[]): string {
   const bytes = items.reduce((total, {size}) => total + size, 0);
-  return `${items.length}개 ${sizeText(bytes)}`;
+  return `${items.length}개 ${fileSizeText(bytes)}`;
 }

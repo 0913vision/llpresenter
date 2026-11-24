@@ -10,7 +10,7 @@ import {
   THUMBNAIL_SCALE_SHIFT_STEP,
   THUMBNAIL_SCALE_STEP,
 } from './thumbnailSize';
-import type {Workspace} from '../lists/workspace';
+import type {ListWorkspace} from '../lists/workspace';
 import styles from './ThumbnailSizeControl.module.css';
 
 export interface ThumbnailSizeControlProps {
@@ -19,7 +19,7 @@ export interface ThumbnailSizeControlProps {
   readonly onChange: (value: number) => void;
   /** Whole percentage after pointer release, a key, Enter, or field blur. */
   readonly onCommit?: ((value: number) => void) | undefined;
-  readonly workspace?: Workspace | undefined;
+  readonly workspace?: ListWorkspace | undefined;
   readonly compact?: boolean | undefined;
   readonly disabled?: boolean | undefined;
   readonly className?: string | undefined;

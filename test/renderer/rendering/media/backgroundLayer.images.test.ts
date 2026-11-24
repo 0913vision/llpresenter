@@ -1,10 +1,7 @@
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import type {MediaLayer} from '@core/schema/live/live';
 import {installMockClock} from '@fixtures/mockClock';
-import {
-  BACKGROUND_RELEASE_DELAY_MS,
-  type RenderMode,
-} from '@renderer/rendering/media/backgroundLayer';
+import {BACKGROUND_RELEASE_DELAY_MS} from '@renderer/rendering/media/backgroundLayer';
 import {
   WARM_LIGHT,
   urlOf,
@@ -12,6 +9,7 @@ import {
   isShown,
   playsOf,
 } from '@fixtures/renderer/rendering/backgroundLayerFixtures';
+import {type RenderMode} from '@renderer/rendering/layer';
 
 afterEach(() => {
   vi.restoreAllMocks();

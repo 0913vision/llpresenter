@@ -11,7 +11,7 @@ import {
 } from '@renderer/session/service/serviceOrderEdits';
 import type {useServiceOrderEditing} from '@renderer/session/service/useServiceOrderEditing';
 import {deleteSelection} from '@renderer/ui/lists/deleteSelection';
-import type {Workspace} from '@renderer/ui/lists/workspace';
+import type {ListWorkspace} from '@renderer/ui/lists/workspace';
 import {canMoveItems, movableItems} from '../orderRows';
 import {useMovedRowFocus} from './useMovedRowFocus';
 import {useOrderEditFocus} from './useOrderEditFocus';
@@ -42,7 +42,7 @@ export function useOrderEdits({
   readonly serviceId: string | null;
   /** The open item. */
   readonly cursor: string | null;
-  readonly workspace: Workspace;
+  readonly workspace: ListWorkspace;
   readonly editable: boolean;
   readonly editing: ReturnType<typeof useServiceOrderEditing>;
   readonly selection: ChosenRows;

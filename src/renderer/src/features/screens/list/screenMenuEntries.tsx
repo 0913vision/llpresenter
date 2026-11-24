@@ -8,7 +8,7 @@ import type {MonitorInfo, MonitorList} from '@core/schema/screens/monitors';
 import type {Screen} from '@core/schema/screens/screens';
 import {Menu, type MenuProps} from '@renderer/ui/menus/Menu';
 import type {NewScreen} from '../addScreen';
-import {monitorPixelSize, sizeText} from '../displaySizes';
+import {monitorPixelSize, pixelSizeText} from '../displaySizes';
 import {displayLayout} from '../layout/layoutBoxes';
 import {MonitorThumbnail} from '../layout/MonitorThumbnail';
 
@@ -41,7 +41,7 @@ export function screenAddMenuEntries({
         kind: 'item',
         id: `monitor-${monitor.number}`,
         label: `모니터 ${monitor.number}`,
-        meta: `(${sizeText(monitorPixelSize(monitor))})`,
+        meta: `(${pixelSizeText(monitorPixelSize(monitor))})`,
         preview: <MonitorThumbnail layout={layout} number={monitor.number} />,
         ...menuAvailability(unavailable),
         onSelect: () => add('fullscreen', monitor),

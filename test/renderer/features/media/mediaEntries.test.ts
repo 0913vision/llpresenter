@@ -7,7 +7,7 @@ import {
   chosenPlaylist,
   durationText,
   mediaEntries,
-  sizeText,
+  fileSizeText,
   totalText,
   type MediaEntry,
 } from '@renderer/features/media/mediaEntries';
@@ -135,9 +135,9 @@ describe('media grid entries', () => {
     expect(durationText(undefined)).toBeUndefined();
     expect(durationText(30.9)).toBe('0:30');
     expect(durationText(725)).toBe('12:05');
-    expect(sizeText(512)).toBe('512B');
-    expect(sizeText(1536)).toBe('1.5KB');
-    expect(sizeText(2.1 * 1024 ** 3)).toBe('2.1GB');
+    expect(fileSizeText(512)).toBe('512B');
+    expect(fileSizeText(1536)).toBe('1.5KB');
+    expect(fileSizeText(2.1 * 1024 ** 3)).toBe('2.1GB');
     expect(
       totalText([mediaItem(1, {size: 1024}), mediaItem(2, {size: 512})]),
     ).toBe('2개 1.5KB');

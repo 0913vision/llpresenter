@@ -11,7 +11,7 @@ import {Menu} from '@renderer/ui/menus/Menu';
 import {clickFocusProps} from '@renderer/ui/lists/clickFocus';
 import {EmptyState} from '@renderer/ui/lists/EmptyState';
 import type {Notice} from '@renderer/ui/popups/notices';
-import type {Workspace} from '@renderer/ui/lists/workspace';
+import type {ListWorkspace} from '@renderer/ui/lists/workspace';
 import {useMediaDurations} from './rows/useMediaDurations';
 import {ItemRows, type RowContext} from './rows/ItemRows';
 import {NoServiceState} from './NoServiceState';
@@ -50,7 +50,7 @@ export function ServiceOrderList({
   onShowInLibrary,
   table,
 }: {
-  readonly workspace?: Workspace | undefined;
+  readonly workspace?: ListWorkspace | undefined;
   readonly navigator?: boolean | undefined;
   /** Opens another item in the editor that this list is beside. */
   readonly onNavigate?: ((id: string) => void) | undefined;

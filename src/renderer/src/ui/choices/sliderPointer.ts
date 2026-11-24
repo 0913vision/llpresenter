@@ -4,11 +4,11 @@ import {
   useRef,
   type PointerEventHandler,
 } from 'react';
-import type {Workspace} from '../lists/workspace';
+import type {ListWorkspace} from '../lists/workspace';
 import {returnFocus} from '../keys/returnFocus';
 
 interface SliderPointerOptions {
-  readonly workspace: Workspace;
+  readonly workspace: ListWorkspace;
   readonly disabled: boolean;
   readonly onCommit: ((value: number) => void) | undefined;
 }

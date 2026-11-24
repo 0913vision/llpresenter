@@ -12,7 +12,7 @@ import {
 } from '@renderer/ui/menus/menuModel';
 import {laterRow, menuSeparator} from '@renderer/ui/menus/menuRows';
 import {selectionLabel} from '@renderer/ui/lists/selectionDrag';
-import type {Workspace} from '@renderer/ui/lists/workspace';
+import type {ListWorkspace} from '@renderer/ui/lists/workspace';
 import type {ServiceRow} from '@core/presentation';
 import {fixedKeyText} from '@renderer/ui/keys/fixedKeys';
 
@@ -297,7 +297,7 @@ export function fitOrderMenu(
     count,
     copies,
   }: {
-    readonly workspace: Workspace;
+    readonly workspace: ListWorkspace;
     /** The chosen rows. */
     readonly count: number;
     /** The rows a duplicate makes: the chosen items, 구역 with their items. */

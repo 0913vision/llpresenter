@@ -1,7 +1,7 @@
 import type {JSX} from 'react';
 import {ThumbnailSizeControl} from '@renderer/ui/choices/ThumbnailSizeControl';
 import type {SizeClass} from '@renderer/ui/panels/sizeClass';
-import type {Workspace} from '@renderer/ui/lists/workspace';
+import type {ListWorkspace} from '@renderer/ui/lists/workspace';
 import {
   saveThumbnailScale,
   showThumbnailScale,
@@ -14,7 +14,7 @@ export function SlideSizeControl({
   workspace = 'show',
 }: {
   readonly sizeClass: SizeClass;
-  readonly workspace?: Workspace | undefined;
+  readonly workspace?: ListWorkspace | undefined;
 }): JSX.Element {
   const scale = useThumbnailScale(sizeClass);
   return (

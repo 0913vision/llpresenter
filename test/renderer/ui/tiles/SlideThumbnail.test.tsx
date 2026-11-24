@@ -10,7 +10,7 @@ import {
   thumbnailName,
 } from '@renderer/ui/tiles/SlideThumbnail';
 import {missingFileText} from '@renderer/ui/tiles/MissingFile';
-import type {Workspace} from '@renderer/ui/lists/workspace';
+import type {ListWorkspace} from '@renderer/ui/lists/workspace';
 import {
   hoverForTooltip,
   resetTooltips,
@@ -23,7 +23,7 @@ const SLIDE_COUNT = 7;
 const lyrics = '만복의 근원 하나님\n온 백성 찬송 드리고';
 
 interface SongGridProps {
-  readonly workspace: Workspace;
+  readonly workspace: ListWorkspace;
   readonly initial?: number;
   readonly onOutput?: (index: number) => void;
   readonly onSelect?: (index: number) => void;

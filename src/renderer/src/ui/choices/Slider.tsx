@@ -4,7 +4,7 @@ import {Icon} from '../Icon';
 import {sliderKeyValue, sliderPercent} from './sliderValue';
 import {useSliderPointer} from './sliderPointer';
 import {useTooltip} from '../popups/Tooltip';
-import type {Workspace} from '../lists/workspace';
+import type {ListWorkspace} from '../lists/workspace';
 import styles from './Slider.module.css';
 
 /** The slider width: 120, 96 (narrow window, 진행 도구 volume), or the cell. */
@@ -26,7 +26,7 @@ export interface SliderProps {
   /** Reports when a pointer interaction ends or a key changes the value. */
   readonly onCommit?: ((value: number) => void) | undefined;
   /** In Show, a pointer interaction returns focus to its previous owner. */
-  readonly workspace?: Workspace | undefined;
+  readonly workspace?: ListWorkspace | undefined;
   /** The accessible name and tooltip, such as 썸네일 크기 or 음량. */
   readonly label: string;
   /** A leading icon, such as `grid` or `audio`. */

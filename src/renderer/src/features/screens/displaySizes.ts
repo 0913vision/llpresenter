@@ -13,7 +13,7 @@ const CAPTURE_DEFAULT_SIZE: PixelSize = THEME_CANVAS;
 const WINDOW_SIZE: PixelSize = {width: 960, height: 540};
 
 /** The size as `1920×1080`. */
-export function sizeText({width, height}: PixelSize): string {
+export function pixelSizeText({width, height}: PixelSize): string {
   return `${width}×${height}`;
 }
 

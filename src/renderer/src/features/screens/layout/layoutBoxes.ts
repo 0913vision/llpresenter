@@ -1,6 +1,6 @@
 import type {MonitorInfo, MonitorList} from '@core/schema/screens/monitors';
 import type {Screen} from '@core/schema/screens/screens';
-import {monitorPixelSize, sizeText, targetSize} from '../displaySizes';
+import {monitorPixelSize, pixelSizeText, targetSize} from '../displaySizes';
 import {monitorAssignment, targetByMethod} from '@core/screens';
 
 /** A monitor's box in the display layout, placed in percent of the whole. */
@@ -71,7 +71,7 @@ function monitorBox(
   return {
     number: monitor.number,
     name: monitor.name,
-    resolution: sizeText(monitorPixelSize(monitor)),
+    resolution: pixelSizeText(monitorPixelSize(monitor)),
     left: ((bounds.x - whole.left) / whole.width) * PERCENT,
     top: ((bounds.y - whole.top) / whole.height) * PERCENT,
     width: (bounds.width / whole.width) * PERCENT,
@@ -85,7 +85,7 @@ function monitorBox(
 
 function sizeOf(screen: Screen): string | undefined {
   const size = targetSize(screen);
-  return size === undefined ? undefined : sizeText(size);
+  return size === undefined ? undefined : pixelSizeText(size);
 }
 
 function targetBoxes(

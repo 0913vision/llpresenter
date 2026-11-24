@@ -20,7 +20,7 @@ import {
 import {clickFocusProps} from './clickFocus';
 import {hasModifier} from '../keys/modifierKeys';
 import {useButtonPress} from '../buttons/press';
-import type {Workspace} from './workspace';
+import type {ListWorkspace} from './workspace';
 import type {MenuAnchor} from '../menus/menuModel';
 
 const TILE = '[role="option"]';
@@ -68,7 +68,7 @@ export interface TileListPosition {
 
 export interface TileListBaseProps extends TileListPosition {
   /** The workspace for the grid's focus appearance; defaults to 준비. */
-  readonly workspace?: Workspace | undefined;
+  readonly workspace?: ListWorkspace | undefined;
   /** The list name for assistive technology, such as 슬라이드 or 매크로. */
   readonly label: string;
   readonly moves: TileMoves;

@@ -5,4 +5,4 @@
  * Down on to 다음 슬라이드 and 이전 슬라이드 (docs/spec/10-shortcuts-and-settings.md,
  * rule 5). Everywhere else (`prep`), they keep the keys of their README.
  */
-export type Workspace = 'show' | 'prep';
+export type ListWorkspace = 'show' | 'prep';

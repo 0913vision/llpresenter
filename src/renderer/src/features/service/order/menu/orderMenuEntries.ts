@@ -4,7 +4,7 @@ import {orderedSelection} from '@core/common/selectionOrder';
 import type {SongId} from '@core/schema/common/ids';
 import {editorTask} from '@renderer/platform/editorTask';
 import type {MenuEntry, MenuAnchor} from '@renderer/ui/menus/menuModel';
-import type {Workspace} from '@renderer/ui/lists/workspace';
+import type {ListWorkspace} from '@renderer/ui/lists/workspace';
 import {canMoveItems} from '../orderRows';
 import {fitOrderMenu, serviceOrderMenuEntries} from './serviceOrderMenu';
 import type {ServiceTableParts} from '../serviceTableParts';
@@ -45,7 +45,7 @@ export function orderMenuEntries(
     setMenu,
   }: {
     readonly rows: readonly ServiceRow[];
-    readonly workspace: Workspace;
+    readonly workspace: ListWorkspace;
     readonly editable: boolean;
     readonly full: boolean;
     readonly serviceId: string | null;

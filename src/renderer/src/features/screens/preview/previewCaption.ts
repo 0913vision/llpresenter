@@ -1,6 +1,6 @@
 import type {MonitorInfo, MonitorList} from '@core/schema/screens/monitors';
 import type {Screen} from '@core/schema/screens/screens';
-import {monitorPixelSize, sizeText, targetSize} from '../displaySizes';
+import {monitorPixelSize, pixelSizeText, targetSize} from '../displaySizes';
 import {
   monitorAssignment,
   UNASSIGNED_TARGET,
@@ -24,9 +24,9 @@ function resolutionOf(
 ): string {
   if (screen.method !== 'fullscreen') {
     const size = targetSize(screen);
-    return size === undefined ? '' : sizeText(size);
+    return size === undefined ? '' : pixelSizeText(size);
   }
-  return monitor === undefined ? '' : sizeText(monitorPixelSize(monitor));
+  return monitor === undefined ? '' : pixelSizeText(monitorPixelSize(monitor));
 }
 
 function refreshRateOf(

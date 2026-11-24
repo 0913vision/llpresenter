@@ -17,7 +17,7 @@ import {
   templateTokens,
 } from '@core/theme';
 import {mediaObjectFit} from '@core/media';
-import {BackgroundLayerView, type RenderMode} from '../media/backgroundLayer';
+import {BackgroundLayerView} from '../media/backgroundLayer';
 import type {PreviewMediaSource} from '../media/previewMedia';
 import {backgroundPaint} from './themeBackground';
 import {measuredText} from './measureRows';
@@ -26,6 +26,7 @@ import {isText, type ShownText, type ThemeDrawing} from './shownTexts';
 import {sizeRows, writeRows} from './textRows';
 import styles from './theme.module.css';
 import {THEME_CANVAS} from '@core/schema/screens/screens';
+import {type RenderMode} from '../layer';
 
 export interface ThemeViewOptions {
   readonly mediaUrl: (mediaId: string) => string;

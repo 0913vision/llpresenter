@@ -22,7 +22,7 @@ import {Checkbox} from '@renderer/ui/choices/Checkbox';
 import {TextField} from '@renderer/ui/fields/TextField';
 import {isComposing} from '@renderer/ui/fields/ime';
 import {hasModifier} from '@renderer/ui/keys/modifierKeys';
-import {durationText, sizeText} from '../mediaEntries';
+import {durationText, fileSizeText} from '../mediaEntries';
 import {MediaPreviewPlayer} from './MediaPreviewPlayer';
 import {
   MIN_SPEED,
@@ -285,7 +285,7 @@ function MediaInfo({item}: {readonly item: MediaItem}): JSX.Element {
             value={durationText(item.duration) ?? '모름'}
           />
         )}
-        <PropertyValue label="크기" value={sizeText(item.size)} />
+        <PropertyValue label="크기" value={fileSizeText(item.size)} />
         <PropertyValue label="위치" value={item.file} />
       </PropertyGroup>
     </Properties>

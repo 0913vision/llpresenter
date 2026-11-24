@@ -7,7 +7,7 @@ import type {Notice} from '@renderer/ui/popups/notices';
 import {orderEditReason} from '@renderer/session/service/orderReasons';
 import {ORDER_FULL_REASON} from '@renderer/session/service/serviceOrderEdits';
 import {isInTextEntry} from '@renderer/ui/fields/textEntry';
-import type {Workspace} from '@renderer/ui/lists/workspace';
+import type {ListWorkspace} from '@renderer/ui/lists/workspace';
 import type {ChosenRows, useOrderEdits} from './useOrderEdits';
 import type {useServiceItemClipboard} from './useServiceItemClipboard';
 import {serviceOrderRowId} from './useServiceOrderDrag';
@@ -39,7 +39,7 @@ export function useOrderShortcuts({
   readonly rows: readonly ServiceRow[];
   /** The open item. */
   readonly cursor: string | null;
-  readonly workspace: Workspace;
+  readonly workspace: ListWorkspace;
   /** Whether 예배 요소 sits beside the list and shares its history keys. */
   readonly palette: boolean;
   readonly editable: boolean;

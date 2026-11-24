@@ -2,7 +2,6 @@ import {describe, expect, it, vi} from 'vitest';
 import {installMockClock} from '@fixtures/mockClock';
 import {
   BACKGROUND_RELEASE_DELAY_MS,
-  type RenderMode,
   MIN_SEEK_SECONDS,
   startOffsetSeconds,
 } from '@renderer/rendering/media/backgroundLayer';
@@ -14,6 +13,7 @@ import {
   isShown,
   playsOf,
 } from '@fixtures/renderer/rendering/backgroundLayerFixtures';
+import {type RenderMode} from '@renderer/rendering/layer';
 
 describe('BackgroundLayerView handovers', () => {
   it('restarts a short clip on its own while the spare still holds the last background', () => {

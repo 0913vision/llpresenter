@@ -4,7 +4,7 @@ import {insertLibrarySong} from '@renderer/session/service/insertNewItem';
 import {moveItems} from '@renderer/session/service/serviceOrderEdits';
 import type {useServiceOrderEditing} from '@renderer/session/service/useServiceOrderEditing';
 import type {Notice} from '@renderer/ui/popups/notices';
-import type {Workspace} from '@renderer/ui/lists/workspace';
+import type {ListWorkspace} from '@renderer/ui/lists/workspace';
 import {usePaletteInsert} from '../../items/usePaletteInsert';
 import {dropMediaInOrder} from './dropMediaInOrder';
 import type {useServiceItemSelection} from '../useServiceItemSelection';
@@ -28,7 +28,7 @@ export function useOrderDrop({
   onProblem,
 }: {
   readonly rows: readonly ServiceRow[];
-  readonly workspace: Workspace;
+  readonly workspace: ListWorkspace;
   readonly editable: boolean;
   /** The 준비 table with 예배 요소 beside it takes elements and media. */
   readonly takesNewItems: boolean;

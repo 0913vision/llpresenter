@@ -4,7 +4,7 @@ import {useSettingsDocument} from '@renderer/platform/documents/useSettingsDocum
 import {useShownItemId} from '@renderer/session/show/shownItem';
 import {useVisibleSlideItem} from '@renderer/session/show/visibleSlideItem';
 import type {Notice} from '@renderer/ui/popups/notices';
-import type {Workspace} from '@renderer/ui/lists/workspace';
+import type {ListWorkspace} from '@renderer/ui/lists/workspace';
 import {itemNumbers} from '../orderRows';
 import {useLiveItemId} from './useLiveItemId';
 import {useShow} from '@renderer/session/show/showStore';
@@ -24,7 +24,7 @@ function pastItems(
  * past.
  */
 export function useOrderRowStates(
-  workspace: Workspace,
+  workspace: ListWorkspace,
   onProblem: (notice: Notice) => void,
 ) {
   const rows = useShow(view => view.rows);

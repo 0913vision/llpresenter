@@ -1,5 +1,4 @@
-import type {RenderMode} from '../media/backgroundLayer';
-import type {RenderScreen} from '../layer';
+import type {RenderScreen, RenderMode} from '../layer';
 import styles from './testPatternView.module.css';
 
 /** The seven bars at full strength, left to right (docs/spec/06-settings.md). */

@@ -2,7 +2,7 @@ import {useEffect, type RefObject} from 'react';
 import type {ServiceRow} from '@core/presentation';
 import {isInTextEntry} from '@renderer/ui/fields/textEntry';
 import {useReflow} from '@renderer/ui/panels/useReflow';
-import type {Workspace} from '@renderer/ui/lists/workspace';
+import type {ListWorkspace} from '@renderer/ui/lists/workspace';
 import {useOrderFollow} from './useOrderFollow';
 import {useOrderResizeFocus} from './useOrderResizeFocus';
 import {useOrderTop} from './useOrderTop';
@@ -41,7 +41,7 @@ export function useOrderScroll(
   }: {
     readonly rows: readonly ServiceRow[];
     readonly serviceId: string | null;
-    readonly workspace: Workspace;
+    readonly workspace: ListWorkspace;
     readonly liveItemId: string | null;
     readonly openItemId: string | null;
   },

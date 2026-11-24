@@ -2,7 +2,7 @@ import type {JSX} from 'react';
 import type {RowProblem, ServiceRow} from '@core/presentation';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {ListInsertLine, ListRow} from '@renderer/ui/lists/ListRow';
-import type {Workspace} from '@renderer/ui/lists/workspace';
+import type {ListWorkspace} from '@renderer/ui/lists/workspace';
 import {serviceRowIcon} from '../../serviceItemIcons';
 import {serviceRowLabel} from './serviceRowLabel';
 import type {ServiceTableParts} from '../serviceTableParts';
@@ -25,7 +25,7 @@ export interface RowContext {
   readonly done: ReadonlySet<string>;
   readonly editable: boolean;
   readonly insertBefore: string | null | undefined;
-  readonly workspace: Workspace;
+  readonly workspace: ListWorkspace;
   readonly durations: Readonly<Record<string, string>>;
   readonly table: ServiceTableParts | undefined;
   /** The place of each item among all items, shown in the table. */

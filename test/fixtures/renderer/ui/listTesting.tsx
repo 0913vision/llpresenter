@@ -3,7 +3,7 @@ import {useState, type JSX} from 'react';
 import {IconButton} from '@renderer/ui/buttons/IconButton';
 import {ListBox} from '@renderer/ui/lists/ListBox';
 import {ListGroup, ListRow} from '@renderer/ui/lists/ListRow';
-import type {Workspace} from '@renderer/ui/lists/workspace';
+import type {ListWorkspace} from '@renderer/ui/lists/workspace';
 
 /** The existing selectable service-order fixture shared by list and row tests. */
 export function ServiceOrder({
@@ -15,7 +15,7 @@ export function ServiceOrder({
   readonly initial?: string;
   readonly onSelect?: (value: string) => void;
   readonly onDismiss?: () => void;
-  readonly workspace?: Workspace;
+  readonly workspace?: ListWorkspace;
 }): JSX.Element {
   const [selected, setSelected] = useState<string | undefined>(initial);
   return (

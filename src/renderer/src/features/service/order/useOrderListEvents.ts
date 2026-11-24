@@ -6,7 +6,7 @@ import {
 } from '@renderer/ui/menus/contextMenu';
 import {hasModifier} from '@renderer/ui/keys/modifierKeys';
 import {isInTextEntry} from '@renderer/ui/fields/textEntry';
-import type {Workspace} from '@renderer/ui/lists/workspace';
+import type {ListWorkspace} from '@renderer/ui/lists/workspace';
 import {serviceOrderRowId} from './edits/useServiceOrderDrag';
 import type {useServiceItemSelection} from './useServiceItemSelection';
 import type {MenuAnchor} from '@renderer/ui/menus/menuModel';
@@ -26,7 +26,7 @@ export function useOrderListEvents({
 }: {
   /** The list is beside the editor of an item, as in 준비. */
   readonly navigator: boolean;
-  readonly workspace: Workspace;
+  readonly workspace: ListWorkspace;
   readonly selection: ReturnType<typeof useServiceItemSelection>;
   /** The drag's own click handling, which may take the click. */
   readonly clickCapture: (event: MouseEvent<HTMLDivElement>) => void;

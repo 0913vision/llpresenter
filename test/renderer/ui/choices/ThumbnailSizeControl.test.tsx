@@ -4,7 +4,7 @@ import {useState, type JSX} from 'react';
 import {describe, expect, it, vi} from 'vitest';
 import {ThumbnailSizeControl} from '@renderer/ui/choices/ThumbnailSizeControl';
 import {DEFAULT_THUMBNAIL_SCALE_PERCENT} from '@renderer/ui/choices/thumbnailSize';
-import type {Workspace} from '@renderer/ui/lists/workspace';
+import type {ListWorkspace} from '@renderer/ui/lists/workspace';
 
 function Control({
   onChange = () => {},
@@ -14,7 +14,7 @@ function Control({
 }: {
   readonly onChange?: (value: number) => void;
   readonly onCommit?: (value: number) => void;
-  readonly workspace?: Workspace;
+  readonly workspace?: ListWorkspace;
   readonly disabled?: boolean;
 }): JSX.Element {
   const [value, setValue] = useState(DEFAULT_THUMBNAIL_SCALE_PERCENT);
