@@ -1,4 +1,4 @@
-import {mkdir, mkdtemp, rm} from 'node:fs/promises';
+import {mkdir, mkdtemp, readFile, rm} from 'node:fs/promises';
 import type {ChildProcess} from 'node:child_process';
 import {createRequire} from 'node:module';
 import {dirname, join, resolve} from 'node:path';
@@ -12,6 +12,34 @@ import {runStepProcess} from '../../scripts/verify/step-process.mts';
 import {electronTestArgs} from '@fixtures/electronLaunch';
 import {makeTempDir} from '@fixtures/tempDir';
 import {crashElectron, stopElectron} from './stop-electron';
+
+/** How many of the app's last log lines a failed start shows. */
+const LOG_TAIL_LINES = 40;
+
+/**
+ * The error of a start that failed, with the windows still open and the end of
+ * the app's own log, so a start that fails once on CI shows why.
+ */
+async function withAppLog(
+  error: unknown,
+  data: string,
+  app: ElectronApplication,
+): Promise<Error> {
+  const log = await readFile(join(data, 'logs', 'main.log'), 'utf8').catch(
+    (cause: unknown) => `(no main.log: ${String(cause)})`,
+  );
+  const windows = app.windows().map(window => window.url());
+  const tail = log.split('\n').slice(-LOG_TAIL_LINES).join('\n');
+  return new Error(
+    [
+      String(error),
+      `windows: ${JSON.stringify(windows)}`,
+      'main.log tail:',
+      tail,
+    ].join('\n'),
+    {cause: error},
+  );
+}
 
 const BUILD_TIMEOUT = 120_000;
 const START_TIMEOUT = 60_000;
@@ -120,9 +148,13 @@ export async function offscreenApp(): Promise<{
     // the menu bar, the first thing every control window draws. A test that
     // starts the control window in another state, such as a recovery or error
     // screen, must not use this `start()` unchanged.
-    await page
-      .locator('[role="menubar"]')
-      .waitFor({state: 'attached', timeout: POLL_TIMEOUT});
+    try {
+      await page
+        .locator('[role="menubar"]')
+        .waitFor({state: 'attached', timeout: POLL_TIMEOUT});
+    } catch (error: unknown) {
+      throw await withAppLog(error, data, current);
+    }
     const mounted = performance.now();
     console.info(
       `ui start: launch ${Math.round(launched - began)} ms, window ${Math.round(windowed - launched)} ms, menu bar ${Math.round(mounted - windowed)} ms`,
