@@ -14,11 +14,9 @@ import type {
   MediaImportRequest,
 } from '@core/schema/media/mediaEdit';
 import type {MediaStamps, MissingMedia} from '@core/schema/media/mediaFiles';
-import {
-  MEDIA_DELETE_HISTORY_LIMIT,
-  MEDIA_LIMITS,
-} from '@core/schema/media/mediaList';
+import {MEDIA_LIMITS} from '@core/schema/media/mediaList';
 import {updateActiveCopies, type CopyJob} from './import/mediaCopyJobs';
+import {MediaDeleteHistory, type HistoryStep} from './mediaDeleteHistory';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import {chosenPlaylist, type ChosenPlaylist} from './mediaEntries';
 import type {PicturePlace} from '@core/schema/media/picturePlace';
@@ -105,10 +103,7 @@ export class MediaLibrary {
   private onProblem: (notice: Notice) => void = () => undefined;
   private relinking = false;
   private unsavedRenameRevision: number | null = null;
-  private undoCount = 0;
-  private redoCount = 0;
-  private historyRevision: number | null = null;
-  private historyPending = false;
+  private readonly deletes = new MediaDeleteHistory();
 
   constructor(private readonly api: MediaApi) {}
 
@@ -395,25 +390,14 @@ export class MediaLibrary {
    * @returns Whether it went.
    */
   async deleteMedia(mediaId: MediaId, name: string): Promise<boolean> {
-    if (this.historyPending) return false;
-    this.historyPending = true;
+    if (this.deletes.busy) return false;
+    this.deletes.begin();
     const result = await this.api.media
       .edit({type: 'media.delete', mediaId})
       .catch(rejected);
-    this.historyPending = false;
+    this.deletes.end();
     if (result.ok || result.error.reason === 'write-failed') {
-      const revision = this.writtenRevision(result);
-      if (revision === null) this.forgetHistory();
-      else {
-        this.historyRevision = revision;
-        this.undoCount = Math.min(
-          this.undoCount + 1,
-          MEDIA_DELETE_HISTORY_LIMIT,
-        );
-        this.redoCount = 0;
-        undoTimeline.record(this.history);
-      }
-      this.update({});
+      this.recordDelete(result);
       return true;
     }
     this.refused('Deleting media was refused', result.error.message);
@@ -423,31 +407,18 @@ export class MediaLibrary {
     return false;
   }
 
-  canUndoDelete(): boolean {
-    return !this.historyPending && this.undoCount > 0;
-  }
-  canRedoDelete(): boolean {
-    return !this.historyPending && this.redoCount > 0;
-  }
-
-  async historyDelete(kind: 'undo' | 'redo'): Promise<boolean> {
-    if (kind === 'undo' ? !this.canUndoDelete() : !this.canRedoDelete()) {
-      return false;
-    }
-    this.historyPending = true;
+  private async historyDelete(step: HistoryStep): Promise<boolean> {
+    if (!this.deletes.can(step)) return false;
+    this.deletes.begin();
     this.update({});
     const result = await this.api.media
-      .edit({type: kind === 'undo' ? 'media.undoDelete' : 'media.redoDelete'})
+      .edit({type: step === 'undo' ? 'media.undoDelete' : 'media.redoDelete'})
       .catch(rejected);
-    this.historyPending = false;
-    this.restored = kind === 'undo' && result.ok ? result.value?.id : undefined;
+    this.deletes.end();
+    this.restored = step === 'undo' && result.ok ? result.value?.id : undefined;
     if (result.ok || result.error.reason === 'write-failed') {
-      const revision = this.writtenRevision(result);
-      if (revision === null) this.forgetHistory();
-      else {
-        this.historyRevision = revision;
-        this.undoCount += kind === 'undo' ? -1 : 1;
-        this.redoCount += kind === 'undo' ? 1 : -1;
+      if (!this.deletes.recordStep(step, this.writtenRevision(result))) {
+        undoTimeline.forget(this.history);
       }
       this.update({});
       return true;
@@ -457,6 +428,16 @@ export class MediaLibrary {
     this.refused('Changing media history was refused', result.error.message);
     this.onProblem(warningNotice('media-view:history', '미디어 변경 실패'));
     return false;
+  }
+
+  /** Makes a written delete one undo step, or drops the steps the list moved past. */
+  private recordDelete(result: MediaEditOutcome): void {
+    if (this.deletes.recordDelete(this.writtenRevision(result))) {
+      undoTimeline.record(this.history);
+    } else {
+      undoTimeline.forget(this.history);
+    }
+    this.update({});
   }
 
   /**
@@ -475,9 +456,7 @@ export class MediaLibrary {
   }
 
   private forgetHistory(): void {
-    this.undoCount = 0;
-    this.redoCount = 0;
-    this.historyRevision = null;
+    this.deletes.forget();
     undoTimeline.forget(this.history);
   }
 
@@ -532,8 +511,8 @@ export class MediaLibrary {
 
   /** 삭제 of a playlist; its media stay in 모든 미디어. */
   async deletePlaylist(playlist: ChosenPlaylist): Promise<boolean> {
-    if (this.historyPending) return false;
-    this.historyPending = true;
+    if (this.deletes.busy) return false;
+    this.deletes.begin();
     const result = await this.api.media
       .edit({
         type: 'media.playlist.delete',
@@ -543,20 +522,9 @@ export class MediaLibrary {
             : {kind: 'audio', id: playlist.id},
       })
       .catch(rejected);
-    this.historyPending = false;
+    this.deletes.end();
     if (result.ok || result.error.reason === 'write-failed') {
-      const revision = this.writtenRevision(result);
-      if (revision === null) this.forgetHistory();
-      else {
-        this.historyRevision = revision;
-        this.undoCount = Math.min(
-          this.undoCount + 1,
-          MEDIA_DELETE_HISTORY_LIMIT,
-        );
-        this.redoCount = 0;
-        undoTimeline.record(this.history);
-      }
-      this.update({});
+      this.recordDelete(result);
       return true;
     }
     this.refused('Deleting a playlist was refused', result.error.message);
@@ -686,14 +654,7 @@ export class MediaLibrary {
 
   private accept(document: MediaDocument): void {
     if (document.revision <= (this.view.document?.revision ?? -1)) return;
-    if (
-      !this.historyPending &&
-      this.historyRevision !== null &&
-      document.revision > this.historyRevision
-    ) {
-      this.redoCount = 0;
-      this.historyRevision = document.revision;
-    }
+    this.deletes.follow(document.revision);
     this.update({document});
   }
 
