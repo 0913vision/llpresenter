@@ -1,56 +1,41 @@
-import {
-  LIVE_BIBLE_ID,
-  exactBibleBook,
-  findBibleBooks,
-  changeReferenceField,
-  EMPTY_REFERENCE,
-  reconcileReferenceFields,
-  referenceFieldsState,
-  selectedBook,
-  type ReferencePart,
-} from '@core/bible';
+import {LIVE_BIBLE_ID, type ReferencePart} from '@core/bible';
 import {
   useEffect,
   useId,
   useLayoutEffect,
-  useImperativeHandle,
   useRef,
   useState,
   type JSX,
   type KeyboardEvent,
   type Ref,
+  type RefObject,
 } from 'react';
 import type {BibleLookupApi} from '@contracts/ipc/bible';
 import type {RecentPassage} from '@core/schema/bible';
 import {
   BIBLE_LOOKUP_LIMITS,
   type BibleLookupPassage,
-  type BibleLookupReply,
 } from '@core/schema/bibleLookup';
 import type {TranslationId} from '@core/schema/ids';
 import {TextField} from '@renderer/ui';
-import {isComposing} from '@renderer/ui/ime';
-import {BibleSuggestions, type BibleSuggestion} from './BibleSuggestions';
+import {BibleSuggestions} from './BibleSuggestions';
+import {useReferenceEdits} from './useReferenceEdits';
 import {
-  LIVE_BOUNDS,
   NUMBER_PARTS,
   REFERENCE_LABELS,
   fieldReason,
-  fieldsOfReference,
   focusPart,
-  fullReferenceCandidate,
   numberPlaceholder,
-  readReferenceFields,
-  referenceKey,
   referenceSuggestions,
 } from './referenceForm';
+import {focusBook, useReferenceKeyDown} from './useReferenceKeyDown';
+import {useBookSuggestions} from './useBookSuggestions';
+import {useReferenceEntry} from './useReferenceEntry';
 import {
-  runReferenceKey,
-  type ReferenceKeyHandlers,
-} from './referenceKeyActions';
-import {useBibleLookup} from './useBibleLookup';
-import {useChosenRecent} from './useChosenRecent';
-import {usePendingSubmit, type PendingSubmit} from './usePendingSubmit';
+  useReferenceLookups,
+  type ReferenceLookups,
+} from './useReferenceLookups';
+import {useReferenceSubmit} from './useReferenceSubmit';
 import styles from './BibleReferenceField.module.css';
 
 export interface BibleReferenceFormProps {
@@ -77,8 +62,6 @@ export interface BibleReferenceFormProps {
   /** In a dialog, Esc dismisses the form after closing book suggestions. */
   readonly onEscape?: (() => void) | undefined;
 }
-
-const ignorePreview = (): void => undefined;
 
 /** The 장, 절 or 끝 절 field of a reference. */
 function NumberPartField({
@@ -124,355 +107,133 @@ function NumberPartField({
   );
 }
 
+/**
+ * Moves the caret to 장 once the render that enables it is in.
+ *
+ * @returns The function that asks for the move.
+ */
+function useChapterFocus(root: RefObject<HTMLDivElement | null>): () => void {
+  const [asked, setAsked] = useState(0);
+  useLayoutEffect(() => {
+    if (asked > 0) focusPart(root.current, 'chapter');
+  }, [root, asked]);
+  return () => setAsked(turn => turn + 1);
+}
+
+/** Tells the form's owner what it can send, in which translation. */
+function useReferenceReports(
+  props: BibleReferenceFormProps,
+  lookups: ReferenceLookups,
+): void {
+  const {onSubmitCandidate, onEffectiveTranslation, onReady} = props;
+  const {chapterInput, fullReference, effectiveTranslation, passage} = lookups;
+  const hasCandidate =
+    chapterInput !== null ||
+    (fullReference !== null && fullReference.input !== '');
+  useEffect(
+    () => onSubmitCandidate?.(hasCandidate),
+    [onSubmitCandidate, hasCandidate],
+  );
+  useEffect(() => {
+    if (effectiveTranslation) onEffectiveTranslation?.(effectiveTranslation);
+  }, [effectiveTranslation, onEffectiveTranslation]);
+  useEffect(() => onReady?.(passage ?? null), [onReady, passage]);
+}
+
 /** Shares book completion and endpoint validation across Show and Prep. */
 export function BibleReferenceForm(
   props: BibleReferenceFormProps,
 ): JSX.Element {
-  const [fields, setFields] = useState(() =>
-    fieldsOfReference(props.initialRef),
-  );
-  const [open, setOpen] = useState(false);
-  const [pointed, setPointed] = useState(-1);
-  const [keyboardPointed, setKeyboardPointed] = useState<number | null>(null);
-  const [blocked, setBlocked] = useState<ReferencePart | null>(null);
-  // NOTE(0913vision): Korean input still composes "합" when Tab is pressed, so
-  // the book is completed after the IME commits, as with a plain Tab.
-  const tabAfterComposition = useRef(false);
-  const {
-    recent: selectedRecent,
-    translation,
-    choose: setRecent,
-  } = useChosenRecent(props.translation);
+  const dialogMode = props.dialogMode === true;
+  const overlayLabels = props.overlayLabels === true;
   const root = useRef<HTMLDivElement>(null);
-  /** Counts the books chosen with a move on to 장. */
-  const [toChapter, setToChapter] = useState(0);
-  useLayoutEffect(() => {
-    if (toChapter === 0) return;
-    // NOTE(0913vision): Completion must enable the chapter input before focus.
-    focusPart(root.current, 'chapter');
-  }, [toChapter]);
-  useEffect(() => {
-    if (props.autoFocus && props.translation !== undefined) {
-      root.current
-        ?.querySelector<HTMLInputElement>('[role="combobox"]')
-        ?.focus();
-    }
-  }, [props.autoFocus, props.translation]);
   const bookAnchor = useRef<HTMLDivElement>(null);
   const listId = useId();
-  const book = selectedBook(fields.book);
-  const books = findBibleBooks(fields.book);
-  const metadataBook =
-    exactBibleBook(fields.book) ?? books[keyboardPointed ?? -1] ?? book;
-  const metadata = useBibleLookup({
-    ...props,
-    translation,
-    input: metadataBook?.korean ?? '',
-    onPreview: ignorePreview,
-  });
-  const metadataBounds =
-    metadataBook === undefined ? undefined : LIVE_BOUNDS.get(metadataBook.id);
-  const reconciled = reconcileReferenceFields(fields, metadataBounds);
-  if (reconciled !== fields) setFields(reconciled);
-  const state = referenceFieldsState(reconciled, metadataBounds);
-  const fullReference = fullReferenceCandidate(reconciled.book);
-  // NOTE(0913vision): A whole reference typed in the 책 field is looked up as
-  // it is typed, so Enter sends it at once and it can be cut ahead.
-  const ahead = useBibleLookup({
-    ...props,
-    translation,
-    input: fullReference?.input ?? '',
-    onPreview: props.onAhead ?? ignorePreview,
-  });
-  const chapterOnly =
-    fields.start === '' &&
-    state.errors.chapter === undefined &&
-    book !== undefined &&
-    translation !== undefined;
-  const hasSubmitCandidate =
-    chapterOnly || (fullReference !== null && fullReference.input !== '');
-  const onSubmitCandidate = props.onSubmitCandidate;
-  useEffect(
-    () => onSubmitCandidate?.(hasSubmitCandidate),
-    [onSubmitCandidate, hasSubmitCandidate],
-  );
-  const chapterNumber = /^\d+$/u.test(reconciled.chapter)
-    ? Number(reconciled.chapter)
-    : 0;
-  const lastVerse = metadataBounds?.chapterVerses[chapterNumber - 1];
-  const reply = useBibleLookup({
-    ...props,
-    translation,
-    input: selectedRecent?.ref ?? state.input,
-  });
-  const passage = reply?.result.ok ? reply.result.value : undefined;
-  const effective = passage?.translation ?? metadata?.effectiveTranslation;
-  const onEffectiveTranslation = props.onEffectiveTranslation;
+  const moveToChapter = useChapterFocus(root);
   useEffect(() => {
-    if (effective) onEffectiveTranslation?.(effective);
-  }, [effective, onEffectiveTranslation]);
-  const liveTranslation =
-    (passage?.translation ?? metadata?.effectiveTranslation) === LIVE_BIBLE_ID;
-  const settle = (
-    pending: PendingSubmit,
-    result: BibleLookupReply['result'],
-  ): void => {
-    if (!result.ok) {
-      setBlocked(pending.part);
-      return;
+    if (props.autoFocus && props.translation !== undefined) {
+      focusBook(root.current);
     }
-    if (pending.clampedEnd !== undefined) {
-      setFields(previous => ({...previous, end: String(pending.clampedEnd)}));
-    }
-    setOpen(false);
-    props.onSubmit(result.value);
-  };
-  const pendingSubmit = usePendingSubmit({
-    reply,
-    input: selectedRecent?.ref ?? state.input,
-    translation,
-    settle,
+  }, [props.autoFocus, props.translation]);
+
+  const entry = useReferenceEntry(props.initialRef, props.translation);
+  const suggestions = useBookSuggestions();
+  const lookups = useReferenceLookups({
+    api: props.api,
+    entry,
+    keyboardPointed: suggestions.keyboardPointed,
+    onPreview: props.onPreview,
+    onAhead: props.onAhead,
   });
-  const onReady = props.onReady;
-  useEffect(() => onReady?.(passage ?? null), [onReady, passage]);
-  const suggestions = referenceSuggestions(
-    books,
+  useReferenceReports(props, lookups);
+  const submitting = useReferenceSubmit({
+    root,
+    entry,
+    lookups,
+    suggestions,
+    hasTranslation: props.translation !== undefined,
+    submissionDisabled: props.submissionDisabled === true,
+    submitRef: props.submitRef,
+    onSubmit: props.onSubmit,
+    onIntent: props.onIntent,
+    onEdit: props.onEdit,
+  });
+  const edits = useReferenceEdits({
+    root,
+    entry,
+    lookups,
+    suggestions,
+    moveToChapter,
+    forgetSubmit: submitting.forget,
+    onIntent: props.onIntent,
+    onEdit: props.onEdit,
+  });
+
+  const items = referenceSuggestions(
+    lookups.books,
     props.recents ?? [],
     props.translation,
   );
   const expanded =
-    props.translation !== undefined && open && suggestions.length > 0;
-  const change = (part: ReferencePart, value: string): void => {
-    const nextFields = reconcileReferenceFields(
-      changeReferenceField(fields, part, value),
-      metadataBounds,
-    );
-    if (nextFields === fields && value !== fields[part]) return;
-    pendingSubmit.forget();
-    props.onIntent?.();
-    if (nextFields !== fields || selectedRecent !== undefined) {
-      const nextInput = referenceFieldsState(nextFields, metadataBounds).input;
-      props.onEdit?.(
-        nextInput !== '' && nextInput === (selectedRecent?.ref ?? state.input)
-          ? (passage ?? null)
-          : null,
-      );
-    }
-    setRecent(null);
-    setFields(nextFields);
-    setBlocked(null);
-    if (part === 'book') {
-      setPointed(-1);
-      setKeyboardPointed(null);
-      setOpen(true);
-    }
-  };
-  const choose = (name: string): void => {
-    change('book', name);
-    setOpen(false);
-  };
-  const chooseSuggestion = (item: BibleSuggestion, advance = true): void => {
-    if (item.ref === undefined || item.translation === undefined) {
-      choose(item.input);
-      // NOTE(0913vision): A chosen book moves on to 장, as in copible, the
-      // Bible reference app.
-      if (advance && item.bookId !== undefined) setToChapter(turn => turn + 1);
-      return;
-    }
-    props.onIntent?.();
-    props.onEdit?.(
-      reply?.input === item.ref && reply.translation === item.translation
-        ? (passage ?? null)
-        : null,
-    );
-    setFields(EMPTY_REFERENCE);
-    setBlocked(null);
-    setRecent({ref: item.ref, translation: item.translation});
-    setPointed(-1);
-    setOpen(false);
-  };
+    props.translation !== undefined && suggestions.open && items.length > 0;
+  // NOTE(0913vision): Korean input still composes "합" when Tab is pressed, so
+  // the book is completed after the IME commits, as with a plain Tab.
+  const tabAfterComposition = useRef(false);
+  const onKeyDown = useReferenceKeyDown({
+    root,
+    entry,
+    lookups,
+    suggestions,
+    items,
+    expanded,
+    edits,
+    submitting,
+    dialogMode,
+    submissionDisabled: props.submissionDisabled === true,
+    onEscape: props.onEscape,
+    onTabWhileComposing: () => {
+      tabAfterComposition.current = true;
+    },
+  });
+  const {fields} = entry;
   const reason = (part: ReferencePart): string | undefined =>
     fieldReason(part, {
       fields,
-      bookFound: books.length > 0,
-      lookup: reply?.result.ok === false ? reply.result.error : undefined,
-      blocked,
-      errors: state.errors,
+      bookFound: lookups.books.length > 0,
+      lookup:
+        lookups.reply?.result.ok === false
+          ? lookups.reply.result.error
+          : undefined,
+      blocked: entry.blocked,
+      errors: lookups.state.errors,
     });
-  const advanceBook = (): void => {
-    const candidate = metadataBook;
-    if (!candidate) {
-      setBlocked('book');
-      return;
-    }
-    choose(candidate.korean);
-    setToChapter(turn => turn + 1);
-  };
-  const acceptFullReference = (value: string, submit: boolean): boolean => {
-    const candidate = fullReferenceCandidate(value);
-    if (candidate === null) return false;
-    const {reference, next, parsedState, input, invalidPart} = candidate;
-    props.onIntent?.();
-    props.onEdit?.(null);
-    setRecent(
-      reference.verse === null && input && translation !== undefined
-        ? {ref: input, translation}
-        : null,
-    );
-    setFields(next);
-    setOpen(false);
-    setBlocked(input ? null : invalidPart);
-    if (submit && input && translation !== undefined) {
-      const pending = {
-        input,
-        translation,
-        clampedEnd: parsedState.clampedEnd,
-        part: 'end' as const,
-      };
-      if (ahead?.input === input && ahead.translation === translation) {
-        settle(pending, ahead.result);
-      } else {
-        pendingSubmit.wait(pending);
-      }
-    } else {
-      pendingSubmit.forget();
-      queueMicrotask(() =>
-        focusPart(root.current, input ? 'end' : invalidPart),
-      );
-    }
-    return true;
-  };
-  const clear = (): void => {
-    props.onIntent?.();
-    setFields(EMPTY_REFERENCE);
-    setRecent(null);
-    setOpen(false);
-    setBlocked(null);
-    focusPart(root.current, 'book');
-  };
-  const keyHandlers: ReferenceKeyHandlers = {
-    tabAfterComposition: () => {
-      tabAfterComposition.current = true;
-    },
-    focus: part => focusPart(root.current, part),
-    point: index => {
-      setOpen(true);
-      setPointed(index);
-      setKeyboardPointed(index);
-    },
-    advanceBook: () => advanceBook(),
-    block: part => setBlocked(part),
-    clear: () => clear(),
-    escape: () => props.onEscape?.(),
-    closeSuggestions: () => setOpen(false),
-    toBook: () => {
-      setBlocked(null);
-      root.current
-        ?.querySelector<HTMLInputElement>('[role="combobox"]')
-        ?.focus();
-    },
-    chooseHighlighted: () => {
-      const highlighted = suggestions[keyboardPointed ?? -1];
-      if (highlighted !== undefined) chooseSuggestion(highlighted);
-    },
-    fullReference: (value, submitNow) => {
-      acceptFullReference(value, submitNow);
-    },
-    submit: part => submit(part),
-    forgetSubmit: () => {
-      pendingSubmit.forget();
-    },
-  };
-  const onKeyDown = (
-    part: ReferencePart,
-    event: KeyboardEvent<HTMLInputElement>,
-  ): void => {
-    const highlighted = suggestions[keyboardPointed ?? -1];
-    runReferenceKey(
-      {
-        part,
-        event,
-        action: referenceKey(
-          part,
-          {
-            key: event.key,
-            code: event.nativeEvent.code,
-            shift: event.shiftKey,
-            command: event.altKey || event.ctrlKey || event.metaKey,
-            repeat: event.repeat,
-            composing: isComposing(event),
-            value: event.currentTarget.value,
-          },
-          {
-            dialogMode: props.dialogMode === true,
-            expanded,
-            escapes: props.onEscape !== undefined,
-            submissionDisabled: props.submissionDisabled === true,
-            highlightedBook: highlighted?.bookId !== undefined,
-            highlighted: highlighted !== undefined,
-            pointed,
-            suggestions: suggestions.length,
-            fields,
-            enabled: state.enabled,
-            error: state.errors[part] !== undefined,
-          },
-        ),
-      },
-      keyHandlers,
-    );
-  };
-  const submit = (part: ReferencePart): void => {
-    if (props.translation === undefined || props.submissionDisabled) return;
-    if (chapterOnly) {
-      const input = `${book.korean} ${fields.chapter}`;
-      setRecent({ref: input, translation});
-      pendingSubmit.wait({input, translation, clampedEnd: undefined, part});
-      return;
-    }
-    // NOTE(0913vision): The last change can still be batched while the lookup
-    // and its rendered result refer to the previous value.
-    const currentFields = readReferenceFields(root.current, fields);
-    const currentState = referenceFieldsState(currentFields, metadataBounds);
-    const input = selectedRecent?.ref ?? currentState.input;
-    if (passage && reply?.input === input) {
-      pendingSubmit.forget();
-      if (currentFields.end !== '' && currentState.clampedEnd !== undefined) {
-        setFields(previous => ({
-          ...previous,
-          end: String(currentState.clampedEnd),
-        }));
-      }
-      setOpen(false);
-      props.onSubmit(passage);
-    } else if (
-      translation !== undefined &&
-      input !== '' &&
-      reply?.input !== input
-    ) {
-      pendingSubmit.wait({
-        input,
-        translation,
-        clampedEnd:
-          currentFields.end === '' ? undefined : currentState.clampedEnd,
-        part,
-      });
-    } else {
-      setBlocked(part);
-    }
-  };
-  useImperativeHandle(props.submitRef, () => ({
-    submit: () => {
-      if (props.submissionDisabled) return;
-      const bookValue = readReferenceFields(root.current, fields).book;
-      if (!acceptFullReference(bookValue, true)) submit('book');
-    },
-  }));
+  const liveTranslation = lookups.effectiveTranslation === LIVE_BIBLE_ID;
 
   return (
     <div
       ref={root}
       className={
-        props.dialogMode
+        dialogMode
           ? `${styles.form} ${styles.headerRow} ${styles.dialogForm}`
           : styles.form
       }
@@ -483,48 +244,48 @@ export function BibleReferenceForm(
           !(event.relatedTarget instanceof Node) ||
           !event.currentTarget.contains(event.relatedTarget)
         ) {
-          pendingSubmit.forget();
+          submitting.forget();
         }
       }}
     >
       <div
         ref={bookAnchor}
         className={
-          props.dialogMode
-            ? `${styles.book} ${styles.headerField}`
-            : styles.book
+          dialogMode ? `${styles.book} ${styles.headerField}` : styles.book
         }
       >
         <TextField
-          size={props.overlayLabels ? 'md' : 'sm'}
+          size={overlayLabels ? 'md' : 'sm'}
           block
           icon="book"
-          affix={props.overlayLabels ? '책' : undefined}
-          clearable={!props.dialogMode}
+          affix={overlayLabels ? '책' : undefined}
+          clearable={!dialogMode}
           autoFocus={props.autoFocus}
           aria-label="책"
           data-reference-part="book"
-          placeholder={props.overlayLabels ? '' : '책'}
+          placeholder={overlayLabels ? '' : '책'}
           role="combobox"
           aria-autocomplete="list"
           aria-expanded={expanded}
           aria-controls={expanded ? listId : undefined}
           aria-activedescendant={
-            expanded && pointed >= 0 ? `${listId}-${pointed}` : undefined
+            expanded && suggestions.pointed >= 0
+              ? `${listId}-${suggestions.pointed}`
+              : undefined
           }
           maxLength={BIBLE_LOOKUP_LIMITS.input}
           value={fields.book}
-          onChange={value => change('book', value)}
+          onChange={value => edits.change('book', value)}
           onKeyDown={event => onKeyDown('book', event)}
-          onFocus={() => setOpen(true)}
-          onBlur={() => setOpen(false)}
+          onFocus={suggestions.show}
+          onBlur={suggestions.hide}
           onCompositionStart={() => {
             tabAfterComposition.current = false;
           }}
           onCompositionEnd={() => {
             if (!tabAfterComposition.current) return;
             tabAfterComposition.current = false;
-            advanceBook();
+            edits.advanceBook();
           }}
           disabled={props.translation === undefined}
           invalid={reason('book') !== undefined}
@@ -535,27 +296,27 @@ export function BibleReferenceForm(
         <NumberPartField
           key={part}
           part={part}
-          dialogMode={props.dialogMode === true}
-          overlayLabels={props.overlayLabels === true}
+          dialogMode={dialogMode}
+          overlayLabels={overlayLabels}
           placeholder={numberPlaceholder(part, {
-            dialogMode: props.dialogMode === true,
-            overlayLabels: props.overlayLabels === true,
-            chapters: metadataBook?.chapters,
-            chapter: chapterNumber,
-            lastVerse,
+            dialogMode,
+            overlayLabels,
+            chapters: lookups.metadataBook?.chapters,
+            chapter: lookups.chapterNumber,
+            lastVerse: lookups.lastVerse,
             start: fields.start,
           })}
           value={fields[part]}
-          disabled={props.translation === undefined || !state.enabled[part]}
+          disabled={
+            props.translation === undefined || !lookups.state.enabled[part]
+          }
           reason={reason(part)}
-          onChange={value => change(part, value)}
+          onChange={value => edits.change(part, value)}
           onKeyDown={event => onKeyDown(part, event)}
         />
       ))}
-      {!props.dialogMode &&
-      (props.overlayLabels ||
-        props.onEscape !== undefined ||
-        liveTranslation) ? (
+      {!dialogMode &&
+      (overlayLabels || props.onEscape !== undefined || liveTranslation) ? (
         <span
           className={styles.translation}
           role={liveTranslation ? 'status' : undefined}
@@ -567,14 +328,11 @@ export function BibleReferenceForm(
         <BibleSuggestions
           id={listId}
           anchor={bookAnchor}
-          items={suggestions}
-          pointed={pointed}
-          onPoint={index => {
-            setPointed(index);
-            setKeyboardPointed(null);
-          }}
-          onChoose={chooseSuggestion}
-          onClose={() => setOpen(false)}
+          items={items}
+          pointed={suggestions.pointed}
+          onPoint={suggestions.pointByPointer}
+          onChoose={edits.chooseSuggestion}
+          onClose={suggestions.hide}
         />
       ) : null}
     </div>
