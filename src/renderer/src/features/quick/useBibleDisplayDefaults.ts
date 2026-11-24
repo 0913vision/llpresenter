@@ -1,4 +1,4 @@
-import {followLatest} from '@renderer/platform/followLatest';
+import {followLatest} from '@core/common/followLatest';
 import {useEffect, useState} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {BibleDisplay} from '@renderer/session/show/bibleSource';

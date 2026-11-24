@@ -1,4 +1,4 @@
-import {followLatest} from '@renderer/platform/followLatest';
+import {followLatest} from '@core/common/followLatest';
 import {useEffect, useState, type JSX} from 'react';
 import type {MediaProgress} from '@core/schema/media/mediaProgress';
 import {useLive} from '@renderer/session/live';

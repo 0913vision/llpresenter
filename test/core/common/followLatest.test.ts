@@ -1,5 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
-import {followLatest} from '@renderer/platform/followLatest';
+import {followLatest} from '@core/common/followLatest';
 
 function source<T>() {
   let listener: ((value: T) => void) | undefined;

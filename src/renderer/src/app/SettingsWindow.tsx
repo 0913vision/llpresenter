@@ -1,4 +1,4 @@
-import {followLatest} from '@renderer/platform/followLatest';
+import {followLatest} from '@core/common/followLatest';
 import {PanelFailureContext} from '@renderer/ui/panels/PanelBoundary';
 import {logPanelFailure} from './panelFailures';
 import {logFailure} from '@renderer/platform/logFailure';

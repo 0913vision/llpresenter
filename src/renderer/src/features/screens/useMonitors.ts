@@ -1,4 +1,4 @@
-import {followLatest} from '@renderer/platform/followLatest';
+import {followLatest} from '@core/common/followLatest';
 import {logFailure} from '@renderer/platform/logFailure';
 import {useContext, useEffect, useState} from 'react';
 import {LoadReadinessContext} from '@renderer/ui/loadReadiness';
