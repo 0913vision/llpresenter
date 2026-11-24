@@ -30,7 +30,7 @@ import {
   quickLive,
 } from '@fixtures/renderer/features/tools/quickTesting';
 
-vi.mock('@renderer/features/presentation/PreviewPanel', () => ({
+vi.mock('@renderer/features/presentation/preview/PreviewPanel', () => ({
   PreviewPanel: () => null,
 }));
 vi.mock('@renderer/features/tools/ShowToolsPanel', () => ({

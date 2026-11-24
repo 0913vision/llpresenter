@@ -9,7 +9,7 @@ import {panelApi, panelPassage} from '@fixtures/contracts/ipc/bibleApi';
 import {openBiblePassage} from '@renderer/features/bible/actions';
 import {resetTooltips} from '@fixtures/renderer/ui/tooltipTesting';
 
-vi.mock('@renderer/features/presentation/PreviewPanel', () => ({
+vi.mock('@renderer/features/presentation/preview/PreviewPanel', () => ({
   PreviewPanel: () => null,
 }));
 vi.mock('@renderer/features/tools/ShowToolsPanel', () => ({

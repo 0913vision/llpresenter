@@ -3,8 +3,8 @@ import {
   finishQuickPassage,
   canReturnFromQuickPassage,
 } from '@renderer/session/quickReturn';
-import {SlideGrid} from '@renderer/features/presentation/SlideGrid';
-import {handleShowKey} from '@renderer/features/presentation/shortcuts';
+import {SlideGrid} from '@renderer/features/presentation/grid/SlideGrid';
+import {handleShowKey} from '@renderer/features/presentation/keyboard/shortcuts';
 import {lastLiveCommand} from '@fixtures/renderer/session/liveCommands';
 import {
   act,

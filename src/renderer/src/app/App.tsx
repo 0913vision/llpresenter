@@ -1,6 +1,6 @@
 import {useAudioOutputs} from '@renderer/features/preferences/useAudioOutputs';
 import {ShownItemProvider} from '@renderer/session/shownItem';
-import {NumberJumpOverlay} from '@renderer/features/presentation/DraftOverlay';
+import {NumberJumpOverlay} from '@renderer/features/presentation/keyboard/DraftOverlay';
 import {useMonitors} from '@renderer/features/screens/useMonitors';
 import {AudioShortcuts} from '@renderer/features/tools/audio/AudioShortcuts';
 import {MediaViewProvider} from '@renderer/features/media/MediaViewProvider';
@@ -19,7 +19,7 @@ import {
 } from 'react';
 import type {UiState} from '@core/schema/app/uiState';
 import type {ColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
-import {useClearKeys} from '@renderer/features/presentation/clearKeys';
+import {useClearKeys} from '@renderer/features/presentation/keyboard/clearKeys';
 import {useLiveStateShortcuts} from '@renderer/features/tools/useLiveStateShortcuts';
 import {MenuBar} from '@renderer/app/shell/MenuBar';
 import {ScreenSummariesProvider} from '@renderer/platform/ScreenSummaries';
@@ -59,7 +59,7 @@ import {addNotice} from '@renderer/ui/popups/notices';
 import {NoticeHistoryButton, useRememberNotice} from './shell/NoticeHistory';
 import {BiblePassages} from '@renderer/features/bible/BiblePassages';
 import {ServicePictures} from './ServicePictures';
-import {BibleInsertionReview} from '@renderer/features/bible/BibleInsertionReview';
+import {BibleInsertionReview} from '@renderer/features/bible/split/BibleInsertionReview';
 import {LoadReadiness, LoadReadinessContext} from '@renderer/ui/loadReadiness';
 
 const noSubscription = (): (() => void) => () => undefined;

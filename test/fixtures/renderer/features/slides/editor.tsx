@@ -9,7 +9,7 @@ import {
   useDeckTiles,
   type SlideDeck,
 } from '@renderer/features/slides/slideDeck';
-import {seedSlideSurfaceView} from '@renderer/features/slides/SlideSurfaceView';
+import {seedSlideSurfaceView} from '@renderer/features/slides/rows/SlideSurfaceView';
 import {useThemes} from '@renderer/platform/themes';
 import type {Report} from '@renderer/session/serviceEdit';
 import {themes, themeScreens} from '@fixtures/core/themeOutput';

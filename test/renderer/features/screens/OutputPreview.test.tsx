@@ -15,7 +15,7 @@ import {useLive} from '@renderer/session/live';
 import {emptyLiveState} from '@core/schema/live/live';
 import {MAIN_ID, screensDocument} from '@fixtures/core/screenDocuments';
 
-vi.mock('@renderer/features/presentation/OutputMirror', () => ({
+vi.mock('@renderer/features/presentation/preview/OutputMirror', () => ({
   OutputMirror: ({screenId}: {screenId: string}) => (
     <div data-testid="output-mirror">{screenId}</div>
   ),

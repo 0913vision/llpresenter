@@ -14,7 +14,7 @@ import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore
 import {useLive} from '@renderer/session/live';
 import {applyService} from '@renderer/session/show';
 import {App} from '@renderer/app/App';
-import {useClearKeys} from '@renderer/features/presentation/clearKeys';
+import {useClearKeys} from '@renderer/features/presentation/keyboard/clearKeys';
 import * as clearState from '@renderer/session/clear';
 import {Dialog} from '@renderer/ui/popups/Dialog';
 import {TextField} from '@renderer/ui/fields/TextField';

@@ -5,7 +5,7 @@ import type {SlideBackground} from '@core/schema/screens/theme';
 import {withBackground} from '@core/slides';
 import {PicturePlaceRows} from '@renderer/ui/choices/PicturePlace';
 import {PropertyControl, PropertyGroup} from '@renderer/ui/panels/PropertyRow';
-import {OwnTextButton} from '../OwnTextButton';
+import {OwnTextButton} from '../texts/OwnTextButton';
 import {ApplyToAll} from './ApplyToAll';
 import {changeSelected, type ChosenSlides} from './changeSelected';
 import {SlideBackgroundControl} from './SlideBackgroundControl';

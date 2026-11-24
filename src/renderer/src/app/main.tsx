@@ -4,8 +4,8 @@ import {createRoot, type Root} from 'react-dom/client';
 import {startLiveSync} from '@renderer/session/live';
 import {startOpenServiceSync} from '@renderer/session/openService';
 import {startServiceSync} from '@renderer/session/show';
-import {seedSlideColumns} from '@renderer/features/slides/slideColumns';
-import {seedSlideSurfaceView} from '@renderer/features/slides/SlideSurfaceView';
+import {seedSlideColumns} from '@renderer/features/slides/rows/slideColumns';
+import {seedSlideSurfaceView} from '@renderer/features/slides/rows/SlideSurfaceView';
 import {
   renameDraftLabel,
   startSongDraftSync,

@@ -4,11 +4,11 @@ import {afterEach, beforeEach, vi} from 'vitest';
 import {setColumnDragActive} from '@renderer/ui/panels/columnDrag';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
 import * as showState from '@renderer/session/show';
-import * as bibleKeys from '@renderer/features/bible/verseShortcuts';
+import * as bibleKeys from '@renderer/features/bible/adjacent/verseShortcuts';
 import {
   handleShowKey,
   handleShowKeyUp,
-} from '@renderer/features/presentation/shortcuts';
+} from '@renderer/features/presentation/keyboard/shortcuts';
 
 export function keyEvent(params: {
   readonly type: 'keydown' | 'keyup';

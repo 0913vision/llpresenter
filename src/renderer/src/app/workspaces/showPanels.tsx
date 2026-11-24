@@ -3,15 +3,15 @@ import {useShownItemId} from '@renderer/session/shownItem';
 import type {SongId} from '@core/schema/common/ids';
 import {BiblePanel} from '@renderer/features/presentation/BiblePanel';
 import {ClearRow} from '@renderer/features/presentation/ClearRow';
-import {PreviewPanel} from '@renderer/features/presentation/PreviewPanel';
+import {PreviewPanel} from '@renderer/features/presentation/preview/PreviewPanel';
 import {
   SlidePanelBody,
   SlidePanelMeta,
   SlidePanelFooter,
-} from '@renderer/features/presentation/SlidePanel';
-import {useShowKeys} from '@renderer/features/presentation/shortcuts';
+} from '@renderer/features/presentation/grid/SlidePanel';
+import {useShowKeys} from '@renderer/features/presentation/keyboard/shortcuts';
 import {useLibrarySongSync} from '@renderer/features/presentation/useLibrarySongSync';
-import {useVerseSplit} from '@renderer/features/bible/useVerseSplit';
+import {useVerseSplit} from '@renderer/features/bible/split/useVerseSplit';
 import {useItemDeck} from '@renderer/features/slides/slideDeck';
 import {QuickPanel} from '@renderer/features/quick/QuickPanel';
 import {ShowToolsPanel} from '@renderer/features/tools/ShowToolsPanel';

@@ -6,7 +6,7 @@ import {withinLookupTimeout} from '@renderer/session/showOutput';
 import {CheckRow} from '@renderer/ui/choices/Checkbox';
 import {SelectMenu} from '@renderer/ui/choices/SelectMenu';
 import {openBiblePassage} from '../bible/actions';
-import {displayOf, usePassageSwap} from '../bible/usePassageSwap';
+import {displayOf, usePassageSwap} from '../bible/adjacent/usePassageSwap';
 import type {BibleSource} from '@renderer/session/bibleSource';
 import styles from './BiblePanel.module.css';
 

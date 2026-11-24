@@ -11,9 +11,9 @@ import {
   PanelTools,
 } from '@renderer/ui/panels/Panel';
 import {GridFooter} from '@renderer/ui/lists/GridFooter';
-import {SlidePanelBody} from './SlidePanel';
+import {SlidePanelBody} from './grid/SlidePanel';
 import {SlideSizeControl} from '@renderer/platform/SlideSizeControl';
-import {BibleAdjacentButtons} from '../bible/BibleAdjacentButtons';
+import {BibleAdjacentButtons} from '../bible/adjacent/BibleAdjacentButtons';
 import {BibleDisplayControls} from './BibleDisplayControls';
 import styles from './BiblePanel.module.css';
 import {BibleInsertButton} from '../service/items/BibleInsertButton';

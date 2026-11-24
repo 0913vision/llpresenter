@@ -1,4 +1,4 @@
-import {handleShowKey} from '@renderer/features/presentation/shortcuts';
+import {handleShowKey} from '@renderer/features/presentation/keyboard/shortcuts';
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@core/schema/live/liveCommand';
@@ -10,7 +10,7 @@ import {
   sampleService,
   seedSampleService,
 } from '@fixtures/renderer/session/sampleService';
-import {SlideGrid} from '@renderer/features/presentation/SlideGrid';
+import {SlideGrid} from '@renderer/features/presentation/grid/SlideGrid';
 
 const sent: LiveCommand[] = [];
 

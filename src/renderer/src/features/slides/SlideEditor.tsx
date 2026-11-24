@@ -6,13 +6,13 @@ import {assignHotKey} from '@core/slides';
 import {Button} from '@renderer/ui/buttons/Button';
 import {GridFooter} from '@renderer/ui/lists/GridFooter';
 import type {MenuEntry} from '@renderer/ui/menus/menuModel';
-import {ColumnMenu} from './ColumnMenu';
+import {ColumnMenu} from './rows/ColumnMenu';
 import {addReason, addSlide} from './deckCommands';
 import type {SlideDeck} from './slideDeck';
 import {SlideHotKeyDialog} from './SlideHotKeyDialog';
-import {SlideRows} from './SlideRows';
-import {SlideSurface} from './SlideSurface';
-import {SlideSurfaceView, useSlideSurfaceView} from './SlideSurfaceView';
+import {SlideRows} from './rows/SlideRows';
+import {SlideSurface} from './surface/SlideSurface';
+import {SlideSurfaceView, useSlideSurfaceView} from './rows/SlideSurfaceView';
 import {useEditorBack} from './useEditorBack';
 import styles from './SlideEditor.module.css';
 

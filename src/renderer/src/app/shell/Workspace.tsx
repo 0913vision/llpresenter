@@ -29,7 +29,7 @@ import styles from './Workspace.module.css';
 import {
   ShowSlideEntry,
   useShowPanelNavigation,
-} from '@renderer/features/presentation/showPanelNavigation';
+} from '@renderer/features/presentation/keyboard/showPanelNavigation';
 import type {PrepTarget} from '@renderer/session/prepTarget';
 import {ShownItemProvider} from '@renderer/session/shownItem';
 import {undoTimeline} from '@renderer/platform/undoTimeline';

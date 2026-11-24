@@ -3,7 +3,7 @@ import type {ShowTile} from '@core/schema/services/showService';
 import type {ThemeFile} from '@core/schema/screens/theme';
 import {boxesOf, fillsItself, NEXT_BOX, showsHymn} from '@core/slides';
 import {PropertyGroup} from '@renderer/ui/panels/PropertyRow';
-import {SlideTextField} from '../SlideTextField';
+import {SlideTextField} from '../texts/SlideTextField';
 import type {ChosenSlides} from './changeSelected';
 import {HideNextRow} from './HideNextRow';
 import {HymnGroup} from './HymnGroup';

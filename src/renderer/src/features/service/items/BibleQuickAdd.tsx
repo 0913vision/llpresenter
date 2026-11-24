@@ -1,6 +1,6 @@
 import type {JSX} from 'react';
 import type {BibleLookupPassage} from '@core/schema/bible/bibleLookup';
-import {BiblePassageDialog} from '@renderer/features/bible/BiblePassageDialog';
+import {BiblePassageDialog} from '@renderer/features/bible/finder/BiblePassageDialog';
 import type {PassageDefaults} from './passageItems';
 import {useBibleDefaults} from './useBibleDefaults';
 

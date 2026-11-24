@@ -23,8 +23,8 @@ import {
   preparePassage,
   showBiblePassage,
 } from '../bible/actions';
-import {BibleReferenceField} from '../bible/BibleReferenceField';
-import {PassageDialog} from '../bible/PassageDialog';
+import {BibleReferenceField} from '../bible/reference/BibleReferenceField';
+import {PassageDialog} from '../bible/finder/PassageDialog';
 import {useBibleDisplayDefaults} from '../bible/useBibleDisplayDefaults';
 import {focusSlideGrid} from '../presentation/focusSlideGrid';
 import {firstVerseOf, followQuickEdit, quickDisplay} from './quickPassage';

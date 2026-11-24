@@ -16,7 +16,7 @@ import {Panel} from './shell/WorkspacePanel';
 import styles from './ScreensWindow.module.css';
 import type {CloseFlush} from './closeFlush';
 import {SavingDialog} from './SavingDialog';
-import {useClearKeys} from '@renderer/features/presentation/clearKeys';
+import {useClearKeys} from '@renderer/features/presentation/keyboard/clearKeys';
 import {useLiveStateShortcuts} from '@renderer/features/tools/useLiveStateShortcuts';
 import {useUiZoomKeys} from './shell/uiZoomKeys';
 import {useInitialListFocus, useCloseKeys} from './useWindowKeyboard';
