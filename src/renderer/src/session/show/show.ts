@@ -26,7 +26,12 @@ import {
   forgetQuickPassage,
   quickReturnCursor,
 } from './quickReturn';
-import {liveCursor, tilesOf, clearedCursor} from './showCursor';
+import {
+  lastShownCursor,
+  liveCursor,
+  rememberShownTile,
+  tilesOf,
+} from './showCursor';
 import {
   bibleSourceFor,
   isBibleSource,
@@ -62,14 +67,14 @@ function sequenceState(): SequenceState {
   const live =
     view.openItemId !== null && index !== null
       ? {itemId: view.openItemId, index}
-      : (liveCursor() ?? clearedCursor());
+      : (liveCursor() ?? lastShownCursor());
   return {tilesOf, live, openItemId: view.openItemId};
 }
 
 /** Resolves a live quick-run library slide to its service-order position. */
 function previousSequenceState(): SequenceState {
   const state = sequenceState();
-  const actual = liveCursor() ?? clearedCursor();
+  const actual = liveCursor() ?? lastShownCursor();
   const view = useShow.getState();
   if (actual === null) return state;
   if (
@@ -429,6 +434,7 @@ export function startServiceSync(): () => void {
     useLive.getState().state?.layers.slide ?? null;
   const stops = [
     useLive.subscribe((next, previous) => {
+      rememberShownTile(next.state);
       const slide = next.state?.layers.slide;
       const before = previous.state?.layers.slide;
       if (slide === before) return;

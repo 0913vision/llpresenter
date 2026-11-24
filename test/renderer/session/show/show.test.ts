@@ -244,6 +244,33 @@ describe('next and previous', () => {
     expect(shown()[0]).toMatchObject({itemId: 'song-morning', position: 0});
   });
 
+  it('goes on from the song after a picture from the 미디어 panel took its place', () => {
+    openItem('song-morning');
+    goLive('song-morning', 1);
+    const live = useLive.getState().state;
+    if (live === null) throw new Error('No live state');
+    useLive.setState({
+      state: {
+        ...live,
+        layers: {...live.layers, slide: null},
+        item: {id: 'media-cross', kind: 'media', source: 'external'},
+      },
+    });
+    outputNext();
+    expect(shown()[0]).toMatchObject({itemId: 'song-morning', position: 2});
+    sent.length = 0;
+    outputPrevious();
+    expect(shown()[0]).toMatchObject({itemId: 'song-morning', position: 0});
+  });
+
+  it('starts the open item over once no item is live', () => {
+    openItem('song-morning');
+    goLive('song-morning', 2);
+    useLive.setState({state: emptyLiveState()});
+    outputNext();
+    expect(shown()[0]).toMatchObject({itemId: 'song-morning', position: 0});
+  });
+
   it('starts another open item from its first slide after a clear', () => {
     openItem('song-river');
     const state = emptyLiveState();
