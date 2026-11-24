@@ -4,8 +4,6 @@ import {
   type CiRun,
 } from '../../src/core/schema/dev/ciStatus.mts';
 
-export type {CiRun} from '../../src/core/schema/dev/ciStatus.mts';
-
 const API_URL =
   'https://api.github.com/repos/0913vision/llpresenter/actions/workflows/ci.yml/runs';
 const REQUEST_TIMEOUT_MS = 15_000;

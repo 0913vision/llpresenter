@@ -182,6 +182,19 @@ grows:
   features in `app/`; they don't own them.
 - An IPC call is declared once, in its area's file in `src/contracts/ipc/`, and
   main answers it with the same endpoint.
+- Folders tell the design: process, then layer, then feature, then family. A
+  folder that grows past about 20 source files splits into family folders named
+  by what they hold (`menus/`, `split/`), never by kind (`hooks/`, `utils/`).
+  What several families share stays at the folder root.
+- A name is imported from the file that declares it, in one statement per
+  module. Only a module's `index.ts` passes names on, and lint checks both.
+- A data shape that several files use (an interface or type that is not a
+  component's props or a hook's result) lives in a data file, not inside a
+  component or hook: `menuModel.ts` holds the menu shapes, `renameContract.ts`
+  the rename rules.
+- Every file reads the same way: imports, exported types, constants, the
+  exported API (the component, class, or main function), then private helpers. A
+  file is named after its main export.
 - A change that moves code changes nothing else. Moves and behavior changes go
   in separate commits.
 - `src/` holds no test code. Tests live in `test/`, in the folder that mirrors

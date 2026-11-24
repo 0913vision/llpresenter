@@ -1,5 +1,4 @@
-import {readFile, readdir, writeFile} from 'node:fs/promises';
-import * as files from 'node:fs/promises';
+import {open, readFile, readdir, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {makeTempDir} from '@fixtures/tempDir';
@@ -14,7 +13,7 @@ function inputs(
 }
 
 vi.mock('node:fs/promises', async importOriginal => {
-  const actual = await importOriginal<typeof files>();
+  const actual = await importOriginal<typeof import('node:fs/promises')>();
   return {...actual, open: vi.fn(actual.open)};
 });
 
@@ -31,8 +30,11 @@ describe('text import input reads', () => {
   it('refuses a file that grows beyond the size used for the read buffer', async () => {
     const path = join(await makeTempDir(), 'Changed.txt');
     await writeFile(path, 'More text than the earlier size');
-    const actual = await vi.importActual<typeof files>('node:fs/promises');
-    vi.mocked(files.open).mockImplementationOnce(async () => {
+    const actual =
+      await vi.importActual<typeof import('node:fs/promises')>(
+        'node:fs/promises',
+      );
+    vi.mocked(open).mockImplementationOnce(async () => {
       const file = await actual.open(path, 'r');
       const info = await file.stat();
       info.size = 1;

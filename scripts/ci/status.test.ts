@@ -1,11 +1,9 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import {parseLatestRun} from '../../src/core/schema/dev/ciStatus.mts';
 import {
-  CI_EXIT_CODES,
-  ciExitCode,
-  reportCiStatus,
+  parseLatestRun,
   type CiRun,
-} from './status.mts';
+} from '../../src/core/schema/dev/ciStatus.mts';
+import {CI_EXIT_CODES, ciExitCode, reportCiStatus} from './status.mts';
 
 const SHA = 'a'.repeat(40);
 const RUN_URL = 'https://github.com/0913vision/llpresenter/actions/runs/123';

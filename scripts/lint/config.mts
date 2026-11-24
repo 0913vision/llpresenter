@@ -81,6 +81,21 @@ const BANNED_DEFAULT_EXPORTS = [
   },
 ];
 
+// NOTE(0913vision): A name is imported from the file that declares it. Only a
+// module's index.ts passes names on, so every name has one import path.
+const BANNED_FORWARDING = [
+  {
+    selector: 'ExportNamedDeclaration[source]',
+    message:
+      'Import the name from the file that declares it; only index.ts re-exports.',
+  },
+  {
+    selector: 'ExportAllDeclaration',
+    message:
+      'Import the name from the file that declares it; only index.ts re-exports.',
+  },
+];
+
 // NOTE(0913vision): electron-vite 6 bundles electron.vite.config.ts into a
 // temporary electron.vite.config.ts.<time>-<hex>.mjs next to it and deletes it
 // after loading. verify builds while it lints, so lint could list that file and
@@ -158,6 +173,21 @@ export const lintConfig = defineConfig(
         'error',
         ...BANNED_SYNTAX,
         ...BANNED_DEFAULT_EXPORTS,
+      ],
+      // NOTE(0913vision): One statement per module keeps every file's imports
+      // readable at a glance.
+      'no-duplicate-imports': ['error', {includeExports: true}],
+    },
+  },
+  {
+    files: SOURCE_MODULE_FILES,
+    ignores: ['**/index.ts'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        ...BANNED_SYNTAX,
+        ...BANNED_DEFAULT_EXPORTS,
+        ...BANNED_FORWARDING,
       ],
     },
   },

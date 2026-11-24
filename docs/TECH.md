@@ -94,7 +94,7 @@ it, and lint enforces the order (`llp/layer-imports`, declared in
 | `src/main/`, `src/preload/` | The main process and the preload bridges                              | core, contracts                             |
 | `renderer/src/ui/`          | Design system components with no app state                            | core, contracts                             |
 | `renderer/src/rendering/`   | Drawing shared by the previews and the output windows                 | core, contracts                             |
-| `renderer/src/platform/`    | Renderer services shared by features: live mirror, shortcuts, drag    | core, contracts, ui                         |
+| `renderer/src/platform/`    | Renderer services shared by features: documents, undo, screens, keys  | core, contracts, ui                         |
 | `renderer/src/session/`     | The control window's working session: the open 예배 순서 and the show | core, contracts, ui, platform               |
 | `renderer/src/features/`    | One folder per feature, in the order below                            | The layers above and the features before it |
 | `renderer/src/app/`         | The control window: composes the features into 진행, 준비, 화면 설정  | Everything in the control window            |
