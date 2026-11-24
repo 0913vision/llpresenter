@@ -13,7 +13,7 @@ export function ThemeProperties({
 }: {
   readonly model: ThemeModel;
 }): JSX.Element {
-  const {theme, screens, labels} = model;
+  const {theme, screens} = model;
   const element =
     model.selectedIds.length === 1
       ? model.layout?.elements.find(value => value.id === model.selectedIds[0])
@@ -32,9 +32,7 @@ export function ThemeProperties({
           >
             <span className={styles.thumbnail}>
               {theme === undefined ? null : (
-                <SlidePicture
-                  {...sampleDrawing(theme, screen, {screens, labels})}
-                />
+                <SlidePicture {...sampleDrawing(theme, screen, {screens})} />
               )}
             </span>
             <span>{screen.name}</span>

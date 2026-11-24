@@ -46,9 +46,6 @@ export function liveDrawing(
     background: output.background,
     ...(standby ? {} : {media}),
     ...(slide?.peers === undefined ? {} : {peers: slide.peers}),
-    ...(frame.stageLyricLabelPosition === undefined
-      ? {}
-      : {labels: frame.stageLyricLabelPosition}),
     opaque:
       !transparent && isKeyBackground(on.screen.backdrop ?? emptyColor, screen),
     emptyColor,

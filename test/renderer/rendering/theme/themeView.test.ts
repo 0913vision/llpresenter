@@ -184,31 +184,19 @@ describe('the texts a screen shows', () => {
     ).toEqual(expect.arrayContaining(['(없음)', '다음 가사']));
   });
 
-  it.each([
-    ['line', ['(후렴)', '가사']],
-    ['inline', ['가사']],
-    ['off', ['가사']],
-  ] as const)(
-    'puts a label on 무대 where it is wanted: %s',
-    (labels, wanted) => {
-      const value = drawing(
-        BUILT_IN_THEME_IDS.lyrics,
-        {
-          content: {
-            texts: {가사: '가사'},
-            auto: {'새 이름표': '후렴', 이름표: '후렴'},
-          },
-          labels,
+  it('puts the label of a slide on its own row above the lyrics on 무대', () => {
+    const value = drawing(
+      BUILT_IN_THEME_IDS.lyrics,
+      {
+        content: {
+          texts: {가사: '가사'},
+          auto: {'새 이름표': '후렴', 이름표: '후렴'},
         },
-        'stage',
-      );
-      expect(textsOf(value)).toEqual([...wanted]);
-      const prefixes = [...shownTexts(value).values()].flatMap(
-        ({rows}) => rows.prefix ?? [],
-      );
-      expect(prefixes).toEqual(labels === 'inline' ? ['(후렴) '] : []);
-    },
-  );
+      },
+      'stage',
+    );
+    expect(textsOf(value)).toEqual(['(후렴)', '가사']);
+  });
 
   it('marks a verse that goes on on the next slide', () => {
     const value = drawing(BUILT_IN_THEME_IDS.scripture, {

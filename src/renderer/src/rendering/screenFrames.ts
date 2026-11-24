@@ -2,10 +2,6 @@ import type {LlpApi} from '@contracts/ipc/api';
 import type {LiveState} from '@core/schema/live';
 import type {MessageStyle} from '@core/schema/messages';
 import {
-  defaultPreferences,
-  withPreferenceDefaults,
-} from '@core/schema/preferences';
-import {
   isKeyBackground,
   messageBandFor,
   resolveMessageStyle,
@@ -37,7 +33,6 @@ export class ScreenFrames {
   private screen: RenderScreen | undefined;
   private timers: readonly Timer[] = [];
   private messageStyles: readonly MessageStyle[] | undefined;
-  private preferences = defaultPreferences;
   private readonly stops: ReadonlyArray<() => void>;
   private readonly timerClock: MainTimerClock;
 
@@ -104,19 +99,6 @@ export class ScreenFrames {
       }),
       followSettingsDocument({
         settings,
-        name: 'preferences',
-        select: document =>
-          document.name === 'preferences'
-            ? withPreferenceDefaults(document.value)
-            : undefined,
-        receive: preferences => {
-          this.preferences = preferences;
-          options.onChange();
-        },
-        onError: error => onError('could not read the 전환 times', error),
-      }),
-      followSettingsDocument({
-        settings,
         name: 'messages',
         select: document =>
           document.name === 'messages'
@@ -151,7 +133,6 @@ export class ScreenFrames {
       !this.transparent && isKeyBackground(screen.emptyColor, screen),
     );
     return {
-      stageLyricLabelPosition: this.preferences.output.stageLyricLabelPosition,
       theme,
       item: state?.item ?? null,
       ...(state?.blackScreen === true && screen.kind !== 'stage'

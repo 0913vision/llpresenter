@@ -166,10 +166,8 @@ A thumbnail and a preview are the 슬라이드 drawn by the same code as the out
 - The stage message is one row on a red band along the bottom. A message longer
   than the band flows to the left and comes in again. A line break becomes a
   space.
-- `output.stageLyricLabelPosition` chooses where a label shows: `line` (the
-  default, on a row of its own above the lyrics), `inline` (in front of the
-  first row; on a row above instead when in front it would make the text smaller
-  or give it more rows), or `off`.
+- A label shows in the theme's label box, on a row of its own above the lyrics.
+  No setting moves or hides it; a theme without a label box shows none.
 
 ### Empty screens
 

@@ -13,11 +13,8 @@ import {
   isLabelText,
   templateTokens,
 } from '@core/theme';
-import {AUTO_TOKENS, type SlideContent} from '@core/schema/slideContent';
+import type {SlideContent} from '@core/schema/slideContent';
 import type {RowsText} from './textRows';
-
-/** Where the label of a slide shows on 무대. */
-export type LabelPlace = 'line' | 'inline' | 'off';
 
 /** Everything that one screen shows of one slide. */
 export interface ThemeDrawing {
@@ -32,7 +29,6 @@ export interface ThemeDrawing {
   readonly media?: MediaLayer | null | undefined;
   /** The slides of the item with this theme, for texts sized together. */
   readonly peers?: readonly SlideContent[] | undefined;
-  readonly labels?: LabelPlace | undefined;
   /** The screen can not show transparent color. */
   readonly opaque?: boolean | undefined;
   readonly emptyColor: string;
@@ -86,7 +82,7 @@ function rowsOf(
 /** The text of one element with its color, or null when it shows nothing. */
 function textOf(
   element: ThemeTextElement,
-  {theme, screen, labels = 'line'}: ThemeDrawing,
+  {theme, screen}: ThemeDrawing,
   content: SlideContent,
 ): RowsText | null {
   const values = contentValues(theme, content);
@@ -99,9 +95,7 @@ function textOf(
         other.label === true &&
         fillTemplates(other.content, values) !== null,
     );
-    return labels === 'line' && carried && text !== null
-      ? rowsOf(element, text)
-      : null;
+    return carried && text !== null ? rowsOf(element, text) : null;
   }
   if (text === null) {
     const {empty} = element;
@@ -113,13 +107,8 @@ function textOf(
           style: {...element.style, color: empty.color},
         });
   }
-  const label = content.auto[AUTO_TOKENS.newLabel];
   return rowsOf(element, joined(text, element.joinRows), {
     continued: content.continued === true && usesLongBox(element, theme),
-    prefix:
-      element.label === true && labels === 'inline' && label !== undefined
-        ? `(${label}) `
-        : undefined,
   });
 }
 

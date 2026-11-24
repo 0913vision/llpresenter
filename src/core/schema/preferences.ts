@@ -114,15 +114,6 @@ export const textImportLabelsSchema = v.picklist(['bracketLine', 'off']);
 export const textImportFirstLineSchema = v.picklist(['title', 'lyrics']);
 export const textImportEncodingSchema = v.picklist(['auto', 'utf-8', 'cp949']);
 
-export const stageLyricLabelPositionSchema = v.picklist([
-  'line',
-  'inline',
-  'off',
-]);
-export type StageLyricLabelPosition = v.InferOutput<
-  typeof stageLyricLabelPositionSchema
->;
-
 export const preferencesSchema = jsonObject({
   format: v.literal(PREFERENCES_FORMAT),
   schemaVersion: positiveInteger,
@@ -176,11 +167,6 @@ export const preferencesSchema = jsonObject({
     jsonObject({
       auto: optionalBoolean,
       keep: v.exactOptional(backupKeepSchema),
-    }),
-  ),
-  output: v.exactOptional(
-    jsonObject({
-      stageLyricLabelPosition: v.exactOptional(stageLyricLabelPositionSchema),
     }),
   ),
   media: v.exactOptional(
@@ -241,7 +227,7 @@ type Complete<T> = T extends readonly unknown[]
 /** 환경설정 with every field present. */
 export type Preferences = Omit<
   Complete<PreferencesFile>,
-  'clearKeys' | 'output' | 'show'
+  'clearKeys' | 'show'
 > & {
   readonly clearKeys: NonNullable<PreferencesFile['clearKeys']>;
   readonly show: Omit<
@@ -249,9 +235,6 @@ export type Preferences = Omit<
     'slideDefaults'
   > & {
     readonly slideDefaults: SlideTransitionDefaults;
-  };
-  readonly output: {
-    readonly stageLyricLabelPosition: StageLyricLabelPosition;
   };
 };
 
@@ -270,9 +253,6 @@ export const defaultPreferences: Preferences = {
   general: {launchAtLogin: false, startMaximized: true},
   backupCopies: 10,
   showOnLaunch: false,
-  output: {
-    stageLyricLabelPosition: 'line',
-  },
   show: {
     atLastSlide: 'stop',
     continuousGrid: false,
@@ -308,11 +288,6 @@ export function withPreferenceDefaults(stored: PreferencesFile): Preferences {
   return {
     ...defaultPreferences,
     ...stored,
-    output: {
-      stageLyricLabelPosition:
-        stored.output?.stageLyricLabelPosition ??
-        defaultPreferences.output.stageLyricLabelPosition,
-    },
     general: {...defaultPreferences.general, ...stored.general},
     show: {
       ...defaultPreferences.show,

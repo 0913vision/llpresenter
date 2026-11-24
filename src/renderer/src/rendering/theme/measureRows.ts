@@ -128,7 +128,6 @@ function keyOf(text: RowsText): string {
     text.width,
     text.wrap,
     text.continued,
-    text.prefix,
     style.font,
     style.weight,
     style.lineHeight,

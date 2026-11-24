@@ -9,7 +9,6 @@ import type {LiveItem, LiveThemeOutput} from '@core/schema/liveTheme';
 import type {FontCatalog} from '@core/schema/fontCatalog';
 import type {MessageBand} from '@core/screens';
 import type {PreviewMediaSource} from './previewMedia';
-import type {LabelPlace} from './theme/themeView';
 
 /** 가장자리 여백 and 위치 미세 조정 of a screen (docs/spec/03-output.md). */
 export interface PictureCorrection {
@@ -34,7 +33,6 @@ export interface RenderScreen {
 }
 
 export interface RenderFrame {
-  readonly stageLyricLabelPosition?: LabelPlace;
   readonly stageTimerId?: TimerId;
   readonly theme?: LiveThemeOutput;
   readonly item?: LiveItem | null;

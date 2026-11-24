@@ -11,7 +11,6 @@ import {
   type SlideDrawing,
 } from '@renderer/pictures/slideDrawing';
 import {themeOn} from '@renderer/rendering/theme/drawing';
-import type {LabelPlace} from '@renderer/rendering/theme/themeView';
 
 // NOTE(0913vision): No output has this id, so the picture keeps its own size.
 const CANVAS_ID = createScreenId('00000000-0000-4000-8000-000000000000');
@@ -25,11 +24,9 @@ export function sampleDrawing(
   screen: Screen,
   {
     screens,
-    labels,
     layout,
   }: {
     readonly screens: readonly Screen[];
-    readonly labels: LabelPlace;
     /** A layout that is being changed, instead of the one of the theme. */
     readonly layout?: OwnThemeScreen | undefined;
   },
@@ -50,7 +47,6 @@ export function sampleDrawing(
       content,
       next: nextPhraseOf(theme, content),
       background: theme.background,
-      labels,
       opaque: false,
       emptyColor: shown.emptyColor ?? '#000000',
     },

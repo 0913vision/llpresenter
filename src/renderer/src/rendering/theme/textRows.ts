@@ -11,8 +11,6 @@ export interface RowsText {
   readonly wrap: 'normal' | 'balance';
   /** The text goes on on the next slide. */
   readonly continued: boolean;
-  /** Shown in front of the first row, such as the label of the slide. */
-  readonly prefix?: string | undefined;
 }
 
 /** The church's bullet, in shares of the size of its text. */
@@ -76,11 +74,6 @@ export function writeRows(block: HTMLElement, rows: RowsText): void {
         paragraph === '' && !(continued && last) ? NO_BREAK_SPACE : paragraph;
       if (style.bullets === true && paragraph.trim() !== '') {
         row.className = styles.bullet ?? '';
-      }
-      if (index === 0 && rows.prefix !== undefined) {
-        const prefix = document.createElement('span');
-        prefix.textContent = rows.prefix;
-        row.prepend(prefix);
       }
       if (continued && last) {
         const marker = document.createElement('span');

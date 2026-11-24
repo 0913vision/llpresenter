@@ -224,12 +224,6 @@ export function ServiceOrderPage({edits}: PageProps): JSX.Element | null {
   );
 }
 
-const STAGE_LABEL_OPTIONS = [
-  {value: 'line', label: '가사 위 한 줄'},
-  {value: 'inline', label: '가사 앞에 붙이기'},
-  {value: 'off', label: '표시 안 함'},
-] as const;
-
 /** 출력: 켤 때 출력, 모니터, 전환. */
 export function OutputPage({edits}: PageProps): JSX.Element | null {
   const {preferences, lockedReason, change} = edits;
@@ -245,19 +239,6 @@ export function OutputPage({edits}: PageProps): JSX.Element | null {
           checked={preferences.showOnLaunch}
           onChange={showOnLaunch =>
             change(stored => ({...stored, showOnLaunch}))
-          }
-        />
-        <SelectRow
-          label="무대 가사 이름표"
-          disabled={disabled}
-          title={lockedReason}
-          options={STAGE_LABEL_OPTIONS}
-          value={preferences.output.stageLyricLabelPosition}
-          onChange={stageLyricLabelPosition =>
-            change(stored => ({
-              ...stored,
-              output: {...stored.output, stageLyricLabelPosition},
-            }))
           }
         />
         <ActionRow

@@ -1036,10 +1036,6 @@ retain their own transitions.
 |       | 앱을 켤 때 출력 (output on launch) | Checkbox                                      | Off     | `preferences.json` `showOnLaunch` | Next launch |         |
 |       | 모니터 (monitors)                  | Button 화면 설정…: opens the 화면 설정 window |         |                                   | At click    |         |
 
-The output page also offers `output.stageLyricLabelPosition`: `line` (default),
-`inline`, or `off` for song labels on stage. Changes apply immediately to live
-stage output and previews; missing values use `line`.
-
 - Which monitor an output uses, whether its window stays on top, and what
   happens when its cable is pulled are set per screen in 화면 설정, which shows
   both 항상 위 and 연결이 끊기면 where they apply.

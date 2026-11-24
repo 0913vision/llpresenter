@@ -521,29 +521,6 @@ describe('PreferencesView', () => {
     expect(written()).toMatchObject({showOnLaunch: true});
   });
 
-  it('saves the stage lyric label position from output preferences', async () => {
-    await mount();
-    await openPage('출력');
-    expect(
-      screen.getByRole('button', {name: /무대 가사 이름표/}).textContent,
-    ).toContain('가사 위 한 줄');
-    await userEvent.click(
-      screen.getByRole('button', {name: /무대 가사 이름표/}),
-    );
-    expect(
-      await screen.findByRole('menuitemradio', {
-        name: /^가사 위 한 줄$/u,
-      }),
-    ).toBeDefined();
-    await userEvent.click(
-      await screen.findByRole('menuitemradio', {name: '가사 앞에 붙이기'}),
-    );
-    await waitFor(() =>
-      expect(written().output?.stageLyricLabelPosition).toBe('inline'),
-    );
-    expect(written()).toMatchObject(UNKNOWN_FIELDS);
-  });
-
   it('opens 화면 설정 from the 모니터 row', async () => {
     const openScreens = vi.fn();
     await mount({window: {openScreens}});

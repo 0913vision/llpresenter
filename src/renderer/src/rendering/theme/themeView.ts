@@ -22,7 +22,7 @@ import {isText, type ShownText, type ThemeDrawing} from './shownTexts';
 import {sizeRows, writeRows} from './textRows';
 import styles from './theme.module.css';
 
-export type {LabelPlace, ThemeDrawing} from './shownTexts';
+export type {ThemeDrawing} from './shownTexts';
 
 export interface ThemeViewOptions {
   readonly mediaUrl: (mediaId: string) => string;

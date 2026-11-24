@@ -5,7 +5,6 @@ import {
   defaultSlideTransitions,
   withPreferenceDefaults,
   type SlideTransitionDefaults,
-  type StageLyricLabelPosition,
 } from '@core/schema/preferences';
 import type {Screen} from '@core/schema/screens';
 import type {SettingsName} from '@core/schema/settingsDocuments';
@@ -19,14 +18,12 @@ export interface ThemesView {
   readonly themes: Themes | null;
   readonly screens: readonly Screen[];
   readonly transitions: SlideTransitionDefaults;
-  readonly labels: StageLyricLabelPosition;
 }
 
 export const useThemes = create<ThemesView>(() => ({
   themes: null,
   screens: [],
   transitions: defaultSlideTransitions,
-  labels: 'line',
 }));
 
 /** What new slides are made with. */
@@ -62,11 +59,8 @@ export function startThemesSync(api: Feeds | undefined): () => void {
     } else if (document.name === 'screens') {
       useThemes.setState({screens: document.value.screens});
     } else if (document.name === 'preferences') {
-      const {show, output} = withPreferenceDefaults(document.value);
-      useThemes.setState({
-        transitions: show.slideDefaults,
-        labels: output.stageLyricLabelPosition,
-      });
+      const {show} = withPreferenceDefaults(document.value);
+      useThemes.setState({transitions: show.slideDefaults});
     }
   };
   const unsubscribe = api.settings.subscribe(accept);

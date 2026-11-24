@@ -10,7 +10,6 @@ import {
   NOTHING_TO_REDO,
   NOTHING_TO_UNDO,
 } from '@renderer/platform/problemReasons';
-import {useThemes} from '@renderer/platform/themes';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {
   takeThemeRequest,
@@ -38,7 +37,6 @@ export function useThemeEditor(
   const writes = useThemeWrites(resources.document, onProblem);
   const {list, reason, edit} = writes;
   const {screens} = resources;
-  const labels = useThemes(view => view.labels);
   const [themeId, setThemeId] = useState<ThemeId | null>(null);
   const [screenId, setScreenId] = useState<ScreenId | null>(null);
 
@@ -62,8 +60,8 @@ export function useThemeEditor(
     () =>
       target === undefined
         ? null
-        : sampleDrawing(target.theme, target.screen, {screens, labels}),
-    [target, screens, labels],
+        : sampleDrawing(target.theme, target.screen, {screens}),
+    [target, screens],
   );
   const placement = useThemePlacement(drawing?.drawing ?? null);
   const scope =
@@ -153,7 +151,6 @@ export function useThemeEditor(
     ...writes,
     ...selection,
     ...actions,
-    labels,
     theme,
     screen,
     target,
