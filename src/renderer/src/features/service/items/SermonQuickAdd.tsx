@@ -2,15 +2,14 @@ import {useState, type JSX} from 'react';
 import type {BibleLookupPassage} from '@core/schema/bibleLookup';
 import {SLIDE_LIMITS} from '@core/schema/slide';
 import {BiblePassageDialog} from '@renderer/features/bible/BiblePassageDialog';
-import {Icon} from '@renderer/ui/Icon';
-import {TextArea} from '@renderer/ui/TextArea';
+import {PassageHeaderField} from '@renderer/features/bible/PassageHeaderField';
 import type {PassageDefaults} from './passageItems';
 import {useBibleDefaults} from './useBibleDefaults';
-import styles from './SermonQuickAdd.module.css';
 
-const ICON_SIZE = 18;
-
-/** Asks for the title of a sermon and its passage. */
+/**
+ * Asks for the title of a sermon and its passage. The title is one line;
+ * its line breaks are put in later on its 설교 제목 슬라이드 in 준비.
+ */
 export function SermonQuickAdd({
   onInsert,
   onClose,
@@ -38,22 +37,13 @@ export function SermonQuickAdd({
         }
       }}
     >
-      <div className={styles.titleRow}>
-        <Icon name="mic" size={ICON_SIZE} className={styles.icon} />
-        <TextArea
-          aria-label="설교 제목"
-          placeholder="설교 제목"
-          className={styles.title}
-          value={title}
-          rows={1}
-          maxLength={SLIDE_LIMITS.text}
-          autoFocus
-          onChange={setTitle}
-          onKeyDown={event => {
-            if (event.key === 'Enter') event.stopPropagation();
-          }}
-        />
-      </div>
+      <PassageHeaderField
+        icon="mic"
+        label="설교 제목"
+        value={title}
+        maxLength={SLIDE_LIMITS.text}
+        onChange={setTitle}
+      />
     </BiblePassageDialog>
   );
 }

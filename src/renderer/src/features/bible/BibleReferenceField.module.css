@@ -86,13 +86,33 @@
   text-overflow: ellipsis;
 }
 
-.dialogForm {
+/* NOTE(0913vision): A header row of the passage dialog: the book row and the
+   sermon title row share its inset and the hairline under it. */
+.headerRow {
   display: flex;
   align-items: center;
   gap: var(--space-6);
   min-height: var(--size-passage-header);
-  padding: 0 var(--size-passage-book-max) 0 var(--space-20);
+  padding: 0 var(--space-20);
   border-bottom: 1px solid var(--line);
+}
+.dialogForm {
+  padding-right: var(--size-passage-book-max);
+}
+/* NOTE(0913vision): A field written straight on a header row, with no box
+   and the large text and icon of the book field. */
+.headerField > span {
+  background: transparent;
+  box-shadow: none !important;
+  outline: none !important;
+}
+.headerField input {
+  font: 400 20px/1 var(--font-ui);
+}
+.headerField [aria-hidden='true'] {
+  width: var(--space-20) !important;
+  height: var(--space-20) !important;
+  color: var(--text-3);
 }
 .dialogForm .book {
   flex: none;
@@ -102,21 +122,16 @@
   display: flex;
   width: fit-content;
   min-width: var(--size-passage-book-min);
-  background: transparent;
-  box-shadow: none !important;
-  outline: none !important;
 }
 .dialogForm .book input {
   field-sizing: content;
   width: auto;
   min-width: var(--size-passage-query-min);
   max-width: var(--size-passage-book-max);
-  font: 400 20px/1 var(--font-ui);
 }
-.dialogForm .book [aria-hidden='true'] {
-  width: var(--space-20) !important;
-  height: var(--space-20) !important;
-  color: var(--text-3);
+.headerRow > .headerField:only-child {
+  flex: 1;
+  min-width: 0;
 }
 .dialogForm .argument {
   flex: none;

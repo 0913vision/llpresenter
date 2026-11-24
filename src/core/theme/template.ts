@@ -51,7 +51,9 @@ function fill(pieces: readonly Piece[], values: Values): string | null {
     if ('text' in piece) return piece.text;
     const value = values(piece.token)?.trim();
     if (value === undefined || value === '') return null;
-    return piece.brackets ? `(${value})` : value;
+    // NOTE(0913vision): A value in brackets sits inside a phrase, so its line
+    // breaks are spaces there.
+    return piece.brackets ? `(${value.replace(/\s*\n\s*/gu, ' ')})` : value;
   });
   const tokens = pieces.filter(piece => 'token' in piece).length;
   const missing = parts.filter(part => part === null).length;

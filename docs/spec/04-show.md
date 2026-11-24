@@ -1226,8 +1226,12 @@ Bible verse labels are omitted.
 ### Sermon
 
 A sermon adds its title and main passage in one dialog. The title is the
-dialog's first row, written straight on the dialog like the book field below it,
-with the 설교 icon and the placeholder "설교 제목" and no box; it grows a row
-for each line break. It is one item: a 설교 제목 슬라이드, the 슬라이드 of the
-passage, and the same title again. The closing title and the last 슬라이드 of
-the passage are made with 다음 슬라이드 내용 숨기기 on (12).
+dialog's first row, built like the book row under it: the same inset, a 설교
+icon, the placeholder "설교 제목", large text and no box. It is one line; Enter
+moves on to the book. Line breaks go in later in 준비, where the 제목 of a 설교
+제목 슬라이드 takes them (its box has 여러 줄). It is one item: a 설교 제목
+슬라이드, the 슬라이드 of the passage, and the same title again; editing the
+title of one of them changes the other with it. The closing title and the last
+슬라이드 of the passage are made with 다음 슬라이드 내용 숨기기 on (12). A title
+in brackets inside a phrase, such as 다음 순서: 설교 (제목) on 무대, is on one
+row: its line breaks are spaces there.

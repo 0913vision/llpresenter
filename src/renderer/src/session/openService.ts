@@ -12,6 +12,7 @@ import {
   type SlidesItem,
 } from '@core/schema/service';
 import type {Slide} from '@core/schema/slide';
+import {withOneSermonTitle} from '@core/slides';
 import {pendingWritesOf} from '../platform/pendingWrites';
 import {useShow} from './showStore';
 import {serviceEditNotice} from './serviceProblem';
@@ -316,7 +317,11 @@ export function editItemSlides(
     itemId,
     item => {
       if (!hasSlides(item)) return null;
-      const slides = change(item.slides, item);
+      const changed = change(item.slides, item);
+      const slides =
+        item.kind === 'sermon'
+          ? withOneSermonTitle(item.slides, changed)
+          : changed;
       return slides === item.slides ? item : {...item, slides};
     },
     options,

@@ -37,11 +37,13 @@ export {
   openedNotices,
   pictureSlide,
   preparationItem,
+  SERMON_TITLE_BOX,
   sermonItem,
   songItem,
   standbyItem,
   titleItem,
   withLiturgyTranslation,
+  withOneSermonTitle,
 } from './items';
 export {type SlideMaking, makeSlide} from './make';
 export {slideAfter, slidesOfText} from './newSlides';

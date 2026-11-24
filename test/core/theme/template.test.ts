@@ -19,6 +19,18 @@ it('puts a value in brackets only when it was put in with them', () => {
   expect(fillTemplates(['({제목})'], values({제목: '찬양'}))).toBe('(찬양)');
 });
 
+it('keeps a value in brackets on one row inside its phrase', () => {
+  const title = values({
+    제목: `하나님의 나라와${String.fromCharCode(10)}그의 의`,
+  });
+  expect(fillTemplates(['다음 순서: 설교 {(제목)}'], title)).toBe(
+    '다음 순서: 설교 (하나님의 나라와 그의 의)',
+  );
+  expect(fillTemplates(['{제목}'], title)).toBe(
+    `하나님의 나라와${String.fromCharCode(10)}그의 의`,
+  );
+});
+
 it('leaves a missing value out with one space beside it', () => {
   expect(
     fillTemplates(

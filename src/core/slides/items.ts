@@ -4,6 +4,7 @@ import type {BiblePassage} from '@core/schema/biblePassage';
 import type {ServiceItemOf, SlidesItem} from '@core/schema/service';
 import type {Slide} from '@core/schema/slide';
 import type {Song} from '@core/schema/song';
+import {withText} from './edits';
 import {LITURGY_SLIDES} from './liturgySlides';
 import {copySlide, makeSlide, type SlideMaking} from './make';
 import {withHideNext} from './nextText';
@@ -155,7 +156,8 @@ export function sermonItem(
     readonly slides: readonly Slide[];
   },
 ): ServiceItemOf<'sermon'> {
-  const titled = () => makeSlide(making, 'sermonTitle', {texts: {제목: title}});
+  const titled = () =>
+    makeSlide(making, 'sermonTitle', {texts: {[SERMON_TITLE_BOX]: title}});
   return {
     id: newId(),
     kind: 'sermon',
@@ -163,6 +165,36 @@ export function sermonItem(
     passage,
     slides: [titled(), ...slides, withHideNext(titled(), true)],
   };
+}
+
+/** The box of a 설교 제목 슬라이드 that holds the title. */
+export const SERMON_TITLE_BOX = '제목';
+
+/**
+ * A sermon has one title, shown before and after its passage. When an edit
+ * changes the title of one slide, the other slides that showed the same
+ * title take the new one too, line breaks and all.
+ */
+export function withOneSermonTitle(
+  before: readonly Slide[],
+  after: readonly Slide[],
+): readonly Slide[] {
+  const titleOf = (slide: Slide): string | undefined =>
+    slide.texts[SERMON_TITLE_BOX];
+  const old = new Map(before.map(slide => [slide.id, titleOf(slide)]));
+  const changed = after.filter(slide => {
+    const was = old.get(slide.id);
+    return was !== undefined && was !== '' && titleOf(slide) !== was;
+  });
+  const [edited] = changed;
+  if (edited === undefined || changed.length > 1) return after;
+  const was = old.get(edited.id);
+  const title = titleOf(edited) ?? '';
+  return after.map(slide =>
+    slide !== edited && old.get(slide.id) === was && titleOf(slide) === was
+      ? withText(slide, SERMON_TITLE_BOX, title)
+      : slide,
+  );
 }
 
 export function mediaItem(

@@ -472,7 +472,9 @@ export function BibleReferenceForm(
     <div
       ref={root}
       className={
-        props.dialogMode ? `${styles.form} ${styles.dialogForm}` : styles.form
+        props.dialogMode
+          ? `${styles.form} ${styles.headerRow} ${styles.dialogForm}`
+          : styles.form
       }
       role="group"
       aria-label="성경 구절"
@@ -485,7 +487,14 @@ export function BibleReferenceForm(
         }
       }}
     >
-      <div ref={bookAnchor} className={styles.book}>
+      <div
+        ref={bookAnchor}
+        className={
+          props.dialogMode
+            ? `${styles.book} ${styles.headerField}`
+            : styles.book
+        }
+      >
         <TextField
           size={props.overlayLabels ? 'md' : 'sm'}
           block

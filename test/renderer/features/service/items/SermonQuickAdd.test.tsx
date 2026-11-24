@@ -27,6 +27,28 @@ it('closes from the populated title with Escape and preserves IME composition', 
   expect(close).toHaveBeenCalledOnce();
 });
 
+it('keeps the title on one line and moves on to the book with Enter', () => {
+  const fixture = panelApi();
+  window.llp = fixture.api;
+  onTestFinished(() => {
+    delete window.llp;
+  });
+  const close = vi.fn();
+  const insert = vi.fn();
+  render(<SermonQuickAdd onClose={close} onInsert={insert} />);
+  const title = screen.getByRole('textbox', {name: '설교 제목'});
+  expect(title.tagName).toBe('INPUT');
+  fireEvent.change(title, {target: {value: 'Title'}});
+  fireEvent.keyDown(title, {key: 'Enter', isComposing: true, keyCode: 229});
+  expect(document.activeElement).toBe(title);
+  fireEvent.keyDown(title, {key: 'Enter'});
+  expect(document.activeElement).toBe(
+    screen.getByRole('combobox', {name: '책'}),
+  );
+  expect(close).not.toHaveBeenCalled();
+  expect(insert).not.toHaveBeenCalled();
+});
+
 it('ignores a delayed chapter lookup after Escape closes the sermon dialog', async () => {
   const fixture = panelApi();
   window.llp = fixture.api;
@@ -122,11 +144,11 @@ it('uses the passage dialog and preserves the sermon title for a recent passage'
   });
   fireEvent.click(recent);
   expect(onInsert).not.toHaveBeenCalled();
-  fireEvent.change(title, {target: {value: 'First line\nSecond line'}});
+  fireEvent.change(title, {target: {value: '하나님의 나라'}});
   fireEvent.click(recent);
   await waitFor(() => expect(onInsert).toHaveBeenCalledOnce());
   expect(onInsert).toHaveBeenCalledWith(
-    'First line\nSecond line',
+    '하나님의 나라',
     expect.objectContaining({ref: '요한복음 3:16', translation}),
     expect.objectContaining({translation}),
   );
