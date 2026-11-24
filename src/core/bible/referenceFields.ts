@@ -29,6 +29,9 @@ export function selectedBook(input: string) {
   );
 }
 
+/** What the 장, 시작절 and 끝절 boxes say until the verse counts arrive. */
+const LOADING_CHAPTER = '장 정보 불러오는 중';
+
 function positiveNumber(input: string): number | undefined {
   const value = /^\d+$/u.test(input) ? Number(input) : NaN;
   return Number.isSafeInteger(value) && value > 0 ? value : undefined;
@@ -52,7 +55,7 @@ export function referenceFieldsState(
       !chapter || (book && chapter > book.chapters)
         ? '장을 확인해야 합니다.'
         : !counts
-          ? '장 정보 불러오는 중'
+          ? LOADING_CHAPTER
           : !verseCount
             ? '역본에 없는 장'
             : undefined,
@@ -60,13 +63,13 @@ export function referenceFieldsState(
       !start || (verseCount !== undefined && start > verseCount)
         ? '시작절을 확인해야 합니다.'
         : verseCount === undefined
-          ? '장 정보 불러오는 중'
+          ? LOADING_CHAPTER
           : undefined,
     end:
       end === undefined || (start !== undefined && end < start)
         ? '끝절을 확인해야 합니다.'
         : verseCount === undefined
-          ? '장 정보 불러오는 중'
+          ? LOADING_CHAPTER
           : end > verseCount
             ? '끝절을 확인해야 합니다.'
             : undefined,
