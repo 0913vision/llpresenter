@@ -67,8 +67,9 @@ it('keeps the default collapsed after a zoom change and resize without saving a 
 it('keeps the local choice and logs a save that fails', () => {
   const {api, save} = setup(1080);
   const write = vi.spyOn(api.log, 'write');
+  const failure = new Error('Invented visibility send failure');
   save.mockImplementation(() => {
-    throw new Error('Invented visibility send failure');
+    throw failure;
   });
   const {result} = renderHook(() => useMediaStripVisibility(undefined, api));
 
@@ -78,6 +79,6 @@ it('keeps the local choice and logs a save that fails', () => {
   expect(write).toHaveBeenCalledWith({
     level: 'error',
     message: 'Could not save media strip visibility',
-    detail: expect.stringContaining('Invented visibility send failure'),
+    detail: failure.stack,
   });
 });

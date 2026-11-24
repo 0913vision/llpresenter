@@ -143,7 +143,8 @@ describe('UI zoom keys', () => {
   });
 
   it('logs a failed invoke without an unhandled rejection', async () => {
-    changeZoom.mockRejectedValueOnce(new Error('zoom failed'));
+    const failure = new Error('zoom failed');
+    changeZoom.mockRejectedValueOnce(failure);
     renderHook(() => useUiZoomKeys());
     await act(async () => {
       press('Equal');
@@ -151,7 +152,7 @@ describe('UI zoom keys', () => {
     expect(log).toHaveBeenCalledWith({
       level: 'error',
       message: 'could not change UI zoom',
-      detail: expect.stringContaining('zoom failed'),
+      detail: failure.stack,
     });
   });
 });

@@ -43,10 +43,11 @@ describe('useSourceLists', () => {
 
   it('keeps the lists that answered when one read fails, and retries only that one', async () => {
     const write = vi.fn();
+    const failure = new Error('Read failed');
     const templatesList = vi.fn(() => Promise.resolve(templateEntries));
     const songsList = vi
       .fn<() => Promise<typeof librarySongs>>()
-      .mockRejectedValueOnce(new Error('Read failed'))
+      .mockRejectedValueOnce(failure)
       .mockResolvedValue(librarySongs);
     const api = mockLlpApi({
       templates: {list: templatesList},
@@ -63,7 +64,7 @@ describe('useSourceLists', () => {
     expect(write).toHaveBeenCalledWith({
       level: 'error',
       message: 'Could not read the song titles',
-      detail: expect.stringContaining('Read failed'),
+      detail: failure.stack,
     });
     act(() => result.current.retry());
     expect(result.current.ready).toBe(true);
