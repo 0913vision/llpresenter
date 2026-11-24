@@ -51,6 +51,59 @@ function loadAction(onSelect: () => void): NoticeAction {
   return {icon: 'refresh', label: '다시 불러오기', onSelect};
 }
 
+type LibraryProblem = keyof typeof problemTitles;
+
+/** Reports a library problem as a warning card, with an action when given. */
+function useLibraryReport(
+  onProblem: (notice: Notice) => void,
+): (cause: LibraryProblem, action?: NoticeAction) => void {
+  const problemHandler = useRef(onProblem);
+  useEffect(() => {
+    problemHandler.current = onProblem;
+  }, [onProblem]);
+  return useCallback((cause: LibraryProblem, action?: NoticeAction) => {
+    // NOTE(0913vision): The handler belongs to the app, not to this panel, so
+    // a failure that ends after the panel is gone still gets its card.
+    const notice = warningNotice(`library:${cause}`, problemTitles[cause]);
+    problemHandler.current(
+      action === undefined ? notice : {...notice, actions: [action]},
+    );
+  }, []);
+}
+
+/**
+ * Runs one song edit at a time with the panel busy; a second edit asked while
+ * one runs is answered with its fallback at once.
+ */
+function useEditLock(
+  report: (cause: LibraryProblem) => void,
+  isActive: () => boolean,
+) {
+  const [busy, setBusy] = useState(false);
+  const editing = useRef(false);
+  /** Runs `run`; when it throws, `failure` is reported and `fallback` answered. */
+  const runEdit = async <T>(
+    failure: LibraryProblem,
+    fallback: T,
+    run: () => Promise<T>,
+  ): Promise<T> => {
+    if (editing.current) return fallback;
+    editing.current = true;
+    setBusy(true);
+    try {
+      return await run();
+    } catch {
+      report(failure);
+      return fallback;
+    } finally {
+      editing.current = false;
+      if (isActive()) setBusy(false);
+    }
+  };
+  const isEditing = useCallback((): boolean => editing.current, []);
+  return {busy, isEditing, runEdit};
+}
+
 /** Owns this panel's reads and edits; main remains the source of song data. */
 export function useLibrary(
   api: LibraryApi,
@@ -61,29 +114,13 @@ export function useLibrary(
   const [selected, setSelected] = useState<SongId | null>(null);
   const [loading, setLoading] = useState(true);
   const [listed, setListed] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const problemHandler = useRef(onProblem);
-  useEffect(() => {
-    problemHandler.current = onProblem;
-  }, [onProblem]);
   const alive = useRef(false);
   const rows = useRef<readonly LibrarySong[]>([]);
   const requests = useRef({list: 0, open: 0});
   const opening = useRef<string | null>(null);
-  const editing = useRef(false);
   const isActive = useCallback(() => alive.current, []);
-
-  const report = useCallback(
-    (cause: keyof typeof problemTitles, action?: NoticeAction) => {
-      // NOTE(0913vision): The handler belongs to the app, not to this panel, so
-      // a failure that ends after the panel is gone still gets its card.
-      const notice = warningNotice(`library:${cause}`, problemTitles[cause]);
-      problemHandler.current(
-        action === undefined ? notice : {...notice, actions: [action]},
-      );
-    },
-    [],
-  );
+  const report = useLibraryReport(onProblem);
+  const {busy, isEditing, runEdit} = useEditLock(report, isActive);
 
   const {
     clear: clearSearch,
@@ -137,7 +174,7 @@ export function useLibrary(
 
   const reload = useCallback(
     function retryLoad(): void {
-      if (!isActive() || editing.current) return;
+      if (!isActive() || isEditing()) return;
       setLoading(true);
       readList().then(
         loaded => {
@@ -146,7 +183,7 @@ export function useLibrary(
         () => report('load', loadAction(retryLoad)),
       );
     },
-    [isActive, readList, report],
+    [isActive, isEditing, readList, report],
   );
 
   useEffect(() => {
@@ -209,28 +246,6 @@ export function useLibrary(
     return null;
   };
 
-  /**
-   * Runs one song edit at a time with the panel busy. When it throws,
-   * `failure` is reported and `fallback` answered.
-   */
-  const runEdit = async <T>(
-    failure: keyof typeof problemTitles,
-    fallback: T,
-    run: () => Promise<T>,
-  ): Promise<T> => {
-    if (editing.current) return fallback;
-    editing.current = true;
-    setBusy(true);
-    try {
-      return await run();
-    } catch {
-      report(failure);
-      return fallback;
-    } finally {
-      editing.current = false;
-      if (isActive()) setBusy(false);
-    }
-  };
   /** Reads the list again after an edit, so the change shows at once. */
   const relist = async (): Promise<void> => {
     if (!(await readList())) report('load', loadAction(reload));
