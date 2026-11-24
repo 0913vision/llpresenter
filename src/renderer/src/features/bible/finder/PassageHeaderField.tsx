@@ -1,7 +1,7 @@
 import type {JSX, KeyboardEvent} from 'react';
 import {isComposing} from '@renderer/ui/fields/ime';
 import {TextField} from '@renderer/ui/fields/TextField';
-import styles from '../reference/BibleReferenceField.module.css';
+import styles from '../reference/BibleReference.module.css';
 
 /** Moves to the field after this one in the dialog, as Tab would. */
 function focusNextField(input: HTMLInputElement): void {

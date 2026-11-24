@@ -4,7 +4,7 @@ import {
   BibleReferenceForm,
   type BibleReferenceFormProps,
 } from './BibleReferenceForm';
-import styles from './BibleReferenceField.module.css';
+import styles from './BibleReference.module.css';
 
 export interface BibleReferenceFieldProps extends Omit<
   BibleReferenceFormProps,

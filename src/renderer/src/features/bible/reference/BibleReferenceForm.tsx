@@ -36,7 +36,7 @@ import {
   type ReferenceLookups,
 } from './useReferenceLookups';
 import {useReferenceSubmit} from './useReferenceSubmit';
-import styles from './BibleReferenceField.module.css';
+import styles from './BibleReference.module.css';
 
 export interface BibleReferenceFormProps {
   readonly submitRef?: Ref<{submit: () => void}> | undefined;
