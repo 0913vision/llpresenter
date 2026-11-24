@@ -683,6 +683,19 @@ describe('PreferencesView', () => {
     );
   });
 
+  it('shows 끝 제목 on by default and saves it off with the other show settings', async () => {
+    await mount({stored: {...STORED, show: {atLastSlide: 'nextItem'}}});
+    await openPage('준비');
+    const checkbox = screen.getByRole('checkbox', {name: '끝 제목'});
+    expect(checkbox.getAttribute('aria-checked')).toBe('true');
+    await userEvent.click(checkbox);
+    await waitFor(() => expect(edit).toHaveBeenCalledOnce());
+    expect(written()).toMatchObject({
+      ...UNKNOWN_FIELDS,
+      show: {closingSongTitle: false, atLastSlide: 'nextItem'},
+    });
+  });
+
   it('writes the 저장 backup rows', async () => {
     await mount();
     await openPage('저장');

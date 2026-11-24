@@ -186,7 +186,11 @@ it('keeps a new start disabled at the live cap while allowing an existing paused
       },
     }),
   );
-  expect(start.getAttribute('aria-disabled')).not.toBe('true');
+  // NOTE(0913vision): The live state reaches the button on the next render,
+  // which a loaded CI runner can draw after `act` returns (CI run 45509128157).
+  await waitFor(() =>
+    expect(start.getAttribute('aria-disabled')).not.toBe('true'),
+  );
   fireEvent.click(start);
   expect(f.send).toHaveBeenCalledExactlyOnceWith({
     type: 'timer.start',

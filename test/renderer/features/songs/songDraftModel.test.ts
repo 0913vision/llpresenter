@@ -116,6 +116,19 @@ describe('a draft against its file and the library', () => {
     expect(isUnsaved(freshDraft(titled(start, 'B'), document))).toBe(true);
   });
 
+  it('shows a song’s title slide first among its slides, and is saved as the file keeps it', () => {
+    const start = song();
+    const [titleSlide, ...slides] = start.slides;
+    if (titleSlide === undefined) throw new Error('Missing slide');
+    const kept: Song = {...start, titleSlide, slides};
+
+    const draft = freshDraft(kept, fileOf(kept));
+
+    expect(draft.song.slides).toEqual(start.slides);
+    expect(draft.song).not.toHaveProperty('titleSlide');
+    expect(isUnsaved(draft)).toBe(false);
+  });
+
   it('refuses an empty title, and a saved song taking another song’s title', () => {
     const start = song();
     const document = fileOf(start);
