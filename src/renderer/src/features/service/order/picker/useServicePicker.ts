@@ -1,3 +1,4 @@
+import {followLatest} from '@core/common/followLatest';
 import {logFailure} from '@renderer/platform/logFailure';
 import {useEffect, useMemo, useRef, useState} from 'react';
 import type {ServiceEntry} from '@core/schema/services/contentDocuments';
@@ -61,33 +62,24 @@ export function useServicePicker(onProblem: (notice: Notice) => void) {
   useEffect(() => {
     const api = window.llp;
     if (!open || api === undefined) return undefined;
-    let active = true;
-    let pushed = false;
-    const stop = api.services.subscribeList(next => {
-      if (!active) return;
-      pushed = true;
-      setEntries(sorted(next));
-      setReady(true);
-    });
-    api.services.list().then(
-      next => {
-        if (active && !pushed) {
+    return followLatest(
+      {
+        read: () => api.services.list(),
+        subscribe: listener => api.services.subscribeList(listener),
+      },
+      {
+        apply: next => {
           setEntries(sorted(next));
           setReady(true);
-        }
-      },
-      (cause: unknown) => {
-        logFailure(api, 'Could not load the service list', cause);
-        if (active && !pushed) {
+        },
+        failed: (cause, pushed) => {
+          logFailure(api, 'Could not load the service list', cause);
+          if (pushed) return;
           setReady(true);
           onProblem(problemNotice('load'));
-        }
+        },
       },
     );
-    return () => {
-      active = false;
-      stop();
-    };
   }, [open, onProblem]);
 
   const close = (): void => {

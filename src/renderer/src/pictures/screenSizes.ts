@@ -1,3 +1,4 @@
+import {followLatest} from '@core/common/followLatest';
 import {useSyncExternalStore} from 'react';
 import type {OutputStatuses} from '@core/schema/live/outputStatus';
 
@@ -37,16 +38,13 @@ function follow(): void {
   const output = window.llp?.output;
   if (following || output === undefined) return;
   following = true;
-  let pushed = false;
-  output.subscribeStatus(statuses => {
-    pushed = true;
-    accept(statuses);
-  });
-  output.getStatus().then(
-    statuses => {
-      if (!pushed) accept(statuses);
+  // NOTE(0913vision): The sizes are followed for the life of the window.
+  followLatest(
+    {read: output.getStatus, subscribe: output.subscribeStatus},
+    {
+      apply: accept,
+      failed: error => console.error('Could not read the outputs', error),
     },
-    (error: unknown) => console.error('Could not read the outputs', error),
   );
 }
 
