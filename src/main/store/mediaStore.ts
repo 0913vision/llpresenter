@@ -183,33 +183,34 @@ export class MediaStore implements MediaLibrary {
     });
   }
 
+  /**
+   * Why a commit of imported or relinked items can't apply to the list as it
+   * is now, or null when it can.
+   */
+  private commitRefusal(commit: MediaItemsCommit): MediaEditResult | null {
+    if (!Number.isSafeInteger(commit.baseRevision) || commit.baseRevision < 1) {
+      return mediaRefusal('invalid', 'Expected a positive list revision');
+    }
+    if (commit.items.length > MEDIA_LIMITS.importBatch) {
+      return mediaRefusal('invalid', 'Too many media items in one commit');
+    }
+    const refusal = this.refusal(commit.baseRevision);
+    if (refusal !== null) return {ok: false, error: refusal};
+    if (!audioReferencesFit(this.document.value, commit.items)) {
+      return mediaRefusal('invalid', 'Audio playlists accept only audio');
+    }
+    return null;
+  }
+
   /** Adds completed imports with reserved IDs and optionally selects their destination playlist. */
   add(
     commit: MediaItemsCommit,
     playlist: PlaylistRef | null,
   ): Promise<MediaEditResult> {
     return this.safely(() => {
-      if (
-        !Number.isSafeInteger(commit.baseRevision) ||
-        commit.baseRevision < 1
-      ) {
-        return Promise.resolve(
-          mediaRefusal('invalid', 'Expected a positive list revision'),
-        );
-      }
-      if (commit.items.length > MEDIA_LIMITS.importBatch) {
-        return Promise.resolve(
-          mediaRefusal('invalid', 'Too many media items in one commit'),
-        );
-      }
-      const refusal = this.refusal(commit.baseRevision);
-      if (refusal !== null) return Promise.resolve({ok: false, error: refusal});
+      const refused = this.commitRefusal(commit);
+      if (refused !== null) return Promise.resolve(refused);
       const current = this.document.value;
-      if (!audioReferencesFit(current, commit.items)) {
-        return Promise.resolve(
-          mediaRefusal('invalid', 'Audio playlists accept only audio'),
-        );
-      }
       if (
         commit.items.length === 0 ||
         commit.items.some(item =>
@@ -259,27 +260,9 @@ export class MediaStore implements MediaLibrary {
   /** Replaces analysed items after relinking, against the list revision P6a read. */
   replace(commit: MediaItemsCommit): Promise<MediaEditResult> {
     return this.safely(() => {
-      if (
-        !Number.isSafeInteger(commit.baseRevision) ||
-        commit.baseRevision < 1
-      ) {
-        return Promise.resolve(
-          mediaRefusal('invalid', 'Expected a positive list revision'),
-        );
-      }
-      if (commit.items.length > MEDIA_LIMITS.importBatch) {
-        return Promise.resolve(
-          mediaRefusal('invalid', 'Too many media items in one commit'),
-        );
-      }
-      const refusal = this.refusal(commit.baseRevision);
-      if (refusal !== null) return Promise.resolve({ok: false, error: refusal});
+      const refused = this.commitRefusal(commit);
+      if (refused !== null) return Promise.resolve(refused);
       const replacements = new Map(commit.items.map(item => [item.id, item]));
-      if (!audioReferencesFit(this.document.value, commit.items)) {
-        return Promise.resolve(
-          mediaRefusal('invalid', 'Audio playlists accept only audio'),
-        );
-      }
       if (
         commit.items.length === 0 ||
         replacements.size !== commit.items.length
