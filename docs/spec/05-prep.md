@@ -832,12 +832,17 @@ never appear in media lists. A notice shows the progress with 취소.
 | 재생 (playback) | 끝나면 (at the end)  | 반복 (loop) or 정지 (stop)                    |
 | 재생            | 구간 (range)         | 시작 (start) and 끝 (end) time fields         |
 | 재생            | 속도 (speed)         | Number field, for example 1.0×                |
-| 화면 (screen)   | 맞춤 (fit)           | 맞추기 (fit), 채우기 (fill), 늘리기 (stretch) |
+| 화면 (screen)   | 맞춤 (fit)           | 채우기 (fill), 맞추기 (fit), 늘리기 (stretch) |
+| 화면            | 크기 (size)          | Number field, 10 to 400 percent               |
+| 화면            | 가로 위치, 세로 위치 | Number fields, -100 to 100 percent            |
 | 소리 (sound)    | 소리 켜기 (sound on) | Checkbox                                      |
 | 소리            | 음량 (volume)        | Slider, unavailable while the sound is off    |
 
 - Changes apply at once and save. If the media is on output, the change applies
   live (proposal).
+- The 화면 rows are the four rows of 배경 위치 on a slide, from the same
+  control. They place the media when the operator shows it by itself; a slide
+  whose background is the media places it with its own 배경 위치 (12).
 - No board shows the content of the 정보, 전환, and 소리 tabs. The app shows
   read-only file information (kind, resolution, duration, size) in 정보, and
   leaves out the 전환 and 소리 tabs until they're defined (open question).

@@ -258,8 +258,8 @@ it('shows the current 맞춤 and 끝나면 with a check and writes the property 
   expect(
     fit.submenu?.map(row => row.kind === 'item' && [row.label, row.checked]),
   ).toEqual([
-    ['맞추기', false],
     ['채우기', false],
+    ['맞추기', false],
     ['늘리기', true],
   ]);
   const end = choices(entries, 'end');

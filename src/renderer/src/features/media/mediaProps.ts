@@ -1,7 +1,21 @@
 import type {MediaItem} from '@core/schema/mediaList';
+import type {PicturePlace} from '@core/schema/picturePlace';
 
 /** A media item's playback properties as stored. */
 export type MediaProps = NonNullable<MediaItem['props']>;
+
+/** The stored properties with another fit and place in place of theirs. */
+export function withPlace(
+  props: MediaProps | undefined,
+  {fit, area}: PicturePlace,
+): MediaProps {
+  const {fit: _fit, area: _area, ...kept} = props ?? {};
+  return {
+    ...kept,
+    ...(fit === undefined ? {} : {fit}),
+    ...(area === undefined ? {} : {area}),
+  };
+}
 
 /** The speed a media item plays at when it has none of its own. */
 export const DEFAULT_SPEED = 1;
@@ -24,6 +38,8 @@ export interface ShownProps {
   readonly stop: number | undefined;
   readonly speed: number;
   readonly fit: NonNullable<MediaProps['fit']>;
+  /** The fit and the place the media is shown with, as stored. */
+  readonly place: PicturePlace;
   readonly audio: boolean;
   readonly volume: number;
 }
@@ -43,6 +59,10 @@ export function shownProps(item: MediaItem): ShownProps {
     stop: props.out ?? item.duration,
     speed: props.speed ?? DEFAULT_SPEED,
     fit: props.fit ?? DEFAULT_FIT,
+    place: {
+      ...(props.fit === undefined ? {} : {fit: props.fit}),
+      ...(props.area === undefined ? {} : {area: props.area}),
+    },
     audio: props.audio ?? item.kind !== 'video',
     volume: props.volume ?? DEFAULT_VOLUME,
   };

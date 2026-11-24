@@ -7,6 +7,11 @@ import {
   THEME_CANVAS,
 } from '@core/schema/theme';
 import type {MediaLayer} from '@core/schema/live';
+import type {
+  PictureArea,
+  PictureFit,
+  PicturePlace,
+} from '@core/schema/picturePlace';
 import {
   type ShapePlacement,
   type ThemePlacement,
@@ -209,7 +214,8 @@ export class ThemeView {
       background.kind === 'media' && background.media === media?.mediaId
         ? background
         : undefined;
-    this.mediaBox.style.transform = placeOf(own?.area);
+    const {fit, area} = pictureOf(own, media, element.fit);
+    this.mediaBox.style.transform = placeOf(area);
     this.media?.show(
       media === null
         ? null
@@ -217,7 +223,7 @@ export class ThemeView {
             ...media,
             properties: {
               ...(media.properties ?? {speed: 1, volume: 100, audio: false}),
-              fit: own?.fit ?? (media.chosen ? 'fill' : element.fit),
+              fit,
             },
           },
       standby,
@@ -259,10 +265,27 @@ export class ThemeView {
   }
 }
 
-type Picture = Extract<SlideBackground, {readonly kind: 'media'}>;
+/**
+ * The fit and the place of the picture a background shows. The nearest owner
+ * decides all of it: the slide whose background it is, or else 미디어 속성 of
+ * media the operator showed by itself. With neither, a slide's media takes
+ * the theme's fit and shown media fills the screen.
+ */
+function pictureOf(
+  own: PicturePlace | undefined,
+  media: MediaLayer | null,
+  themeFit: PictureFit,
+): {readonly fit: PictureFit; readonly area: PictureArea | undefined} {
+  const shown = media?.chosen === true;
+  const place = own ?? (shown ? media.properties : undefined);
+  return {
+    fit: place?.fit ?? (shown ? 'fill' : themeFit),
+    area: place?.area,
+  };
+}
 
 /** Moves and scales a background picture from the whole of its box. */
-function placeOf(area: Picture['area']): string {
+function placeOf(area: PictureArea | undefined): string {
   return area === undefined
     ? ''
     : `translate(${area.x * 100}%, ${area.y * 100}%) scale(${area.scale})`;

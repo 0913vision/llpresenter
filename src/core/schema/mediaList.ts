@@ -14,6 +14,7 @@ import {
   mediaPlaylistIdSchema,
 } from './ids';
 import type {MigrationStep} from './migration';
+import {pictureAreaSchema, pictureFitSchema} from './picturePlace';
 import {
   jsonObject,
   listWithUniqueIds,
@@ -49,7 +50,8 @@ export const mediaPropsSchema = v.pipe(
     in: v.exactOptional(seconds),
     out: v.exactOptional(seconds),
     speed: v.exactOptional(positiveNumber),
-    fit: v.exactOptional(v.picklist(['fit', 'fill', 'stretch'])),
+    fit: v.exactOptional(pictureFitSchema),
+    area: v.exactOptional(pictureAreaSchema),
     audio: v.exactOptional(v.boolean()),
     volume: v.exactOptional(percent),
   }),

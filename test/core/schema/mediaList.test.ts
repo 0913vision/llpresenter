@@ -30,6 +30,7 @@ function warmLight() {
       out: 60,
       speed: 1,
       fit: 'fill',
+      area: {x: -0.1, y: 0.2, scale: 1.5},
       audio: false,
       volume: 80,
     },
@@ -113,6 +114,11 @@ describe('parseMediaList', () => {
     ['a volume over 100', {props: {volume: 120}}, 'items.0.props.volume'],
     ['speed zero', {props: {speed: 0}}, 'items.0.props.speed'],
     ['an unknown fit', {props: {fit: 'crop'}}, 'items.0.props.fit'],
+    [
+      'a place of size zero',
+      {props: {area: {x: 0, y: 0, scale: 0}}},
+      'items.0.props.area.scale',
+    ],
   ])('rejects an item with %s', (_name, change, field) => {
     expectInvalidField(codec, withItem({...warmLight(), ...change}), field);
   });

@@ -1074,7 +1074,7 @@ It is a list, not a set of rows.
 | Group     | Row                             | Control and range                                 | Default           | Stored in                               | Applies     | Tooltip |
 | --------- | ------------------------------- | ------------------------------------------------- | ----------------- | --------------------------------------- | ----------- | ------- |
 | 새 미디어 | 영상 끝나면 (video at the end)  | Segmented: 반복, 정지                             | 반복              | `media.defaults.end`                    | New imports |         |
-| 새 미디어 | 맞춤 (fit)                      | Segmented: 맞추기, 채우기, 늘리기                 | 채우기            | `media.defaults.fit`                    | New imports |         |
+| 새 미디어 | 맞춤 (fit)                      | Segmented: 채우기, 맞추기, 늘리기                 | 채우기            | `media.defaults.fit`                    | New imports |         |
 | 새 미디어 | 영상 소리 (video sound)         | Checkbox                                          | Off               | `media.defaults.audio`                  | New imports |         |
 | 소리      | 출력 장치 (output device)       | Select: Windows 기본 장치, then each audio device | Windows 기본 장치 | `media.audioOutput` (`{ id, label }`)   | At once     |         |
 | 소리      | 미리 듣기 장치 (preview device) | Select: Windows 기본 장치, then each audio device | Windows 기본 장치 | `media.previewOutput` (`{ id, label }`) | At once     |         |
@@ -1223,7 +1223,8 @@ and live if the media is on output (05).
 | 끝나면 (at the end)  | Segmented: 반복, 정지                                                   | From 환경설정 > 미디어 (반복)   | `.props.end`              | 1    | Kept (05, `Media`)                               |
 | 구간 (range)         | Two time fields, m:ss.s; the start before the end, both within the file | The whole file                  | `.props.in`, `.props.out` | 1    | Kept (05, `Media`); the default is a proposal    |
 | 속도 (speed)         | Number field, ×, 0.25 to 4.0, step 0.05                                 | 1.0                             | `.props.speed`            | 1    | Kept (05, `Media` 1.0×); the range is a proposal |
-| 맞춤 (fit)           | Segmented: 맞추기, 채우기, 늘리기                                       | From 환경설정 > 미디어 (채우기) | `.props.fit`              | 1    | Kept (05, `Media`)                               |
+| 맞춤 (fit)           | Menu: 채우기, 맞추기, 늘리기                                            | From 환경설정 > 미디어 (채우기) | `.props.fit`              | 1    | Kept (05, `Media`)                               |
+| 크기, 위치           | Number fields: 크기 10 to 400 %, 가로 위치 and 세로 위치 -100 to 100 %  | The whole screen                | `.props.area`             | 1    | Like 배경 위치 of a slide (12)                   |
 | 소리 켜기 (sound on) | Checkbox                                                                | From 환경설정 > 미디어 (off)    | `.props.audio`            | 1    | Kept (05); `Media` shows it off                  |
 | 음량 (volume)        | Slider, 0 to 100; unavailable while the sound is off                    | 100                             | `.props.volume`           | 1    | Kept (05, `Media`); the default is a proposal    |
 

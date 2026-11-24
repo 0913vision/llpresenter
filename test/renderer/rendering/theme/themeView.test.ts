@@ -135,6 +135,36 @@ describe('drawing a slide', () => {
     expect(moved?.style.transform).toBe('translate(10%, -20%) scale(2)');
   });
 
+  it('shows media the operator chose with the fit and place of its 미디어 속성', () => {
+    vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue(undefined);
+    const {parent, view} = setup();
+    view.draw({
+      ...lyrics('첫 줄'),
+      media: {
+        mediaId: PICTURE,
+        loop: true,
+        chosen: true,
+        startedAt: 0,
+        properties: {
+          speed: 1,
+          volume: 100,
+          audio: false,
+          fit: 'fit',
+          area: {scale: 0.5, x: -0.25, y: 0},
+        },
+      },
+    });
+    const moved = [...parent.querySelectorAll<HTMLElement>('div')].find(node =>
+      node.style.transform.includes('scale(0.5)'),
+    );
+    expect(moved?.style.transform).toBe('translate(-25%, 0%) scale(0.5)');
+    expect(
+      [...parent.querySelectorAll<HTMLElement>('img, video')].some(
+        node => node.style.objectFit === 'contain',
+      ),
+    ).toBe(true);
+  });
+
   it('fades the texts of the slide apart from its background', () => {
     const {view, nodes} = setup();
     view.draw(lyrics('첫 줄'));

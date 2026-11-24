@@ -1,6 +1,8 @@
 import {useEffect, useRef, useState, type JSX} from 'react';
 import {Checkbox} from '@renderer/ui/Checkbox';
+import type {PictureFit} from '@core/schema/picturePlace';
 import {NumberField} from '@renderer/ui/NumberField';
+import {PICTURE_FIT_OPTIONS} from '@renderer/ui/PicturePlace';
 import {PropertyRow} from '@renderer/ui/PropertyRow';
 import {SelectMenu} from '@renderer/ui/SelectMenu';
 import {TextArea} from '@renderer/ui/TextArea';
@@ -212,21 +214,15 @@ export function ThemeOptionalNumber({
   );
 }
 
-const FITS = [
-  {value: 'fit', label: '맞추기'},
-  {value: 'fill', label: '채우기'},
-  {value: 'stretch', label: '늘리기'},
-] as const;
-
 /** How a picture takes its frame. */
 export function ThemeFitRow({
   value,
   reason,
   change,
 }: {
-  readonly value: (typeof FITS)[number]['value'];
+  readonly value: PictureFit;
   readonly reason: string | undefined;
-  readonly change: (value: (typeof FITS)[number]['value']) => void;
+  readonly change: (value: PictureFit) => void;
 }): JSX.Element {
   return (
     <PropertyRow label="맞춤">
@@ -237,7 +233,7 @@ export function ThemeFitRow({
           value={value}
           disabled={reason !== undefined}
           title={reason}
-          options={FITS}
+          options={PICTURE_FIT_OPTIONS}
           onChange={change}
         />
       )}

@@ -1,16 +1,22 @@
 import {useState, type JSX, type ReactNode} from 'react';
 import {sameJson} from '@core/common/sameJson';
+import {isPlaced} from '@core/schema/picturePlace';
 import type {SlideBackground} from '@core/schema/theme';
 import {withBackground} from '@core/slides';
+import {PicturePlaceRows} from '@renderer/ui/PicturePlace';
 import {PropertyControl, PropertyGroup} from '@renderer/ui/PropertyRow';
 import {OwnTextButton} from '../OwnTextButton';
 import {ApplyToAll} from './ApplyToAll';
-import {BackgroundPlace, isPlaced, unplaced} from './BackgroundPlace';
 import {changeSelected, type ChosenSlides} from './changeSelected';
 import {SlideBackgroundControl} from './SlideBackgroundControl';
 import {ThemeRow} from './ThemeRow';
 
 type Picture = Extract<SlideBackground, {readonly kind: 'media'}>;
+
+function unplaced(picture: Picture): Picture {
+  const {fit: _fit, area: _area, ...kept} = picture;
+  return kept;
+}
 
 /** Where the background picture is, locked to the whole screen at first. */
 function PlaceGroup({
@@ -44,10 +50,10 @@ function PlaceGroup({
         />
       }
     >
-      <BackgroundPlace
+      <PicturePlaceRows
         value={picture}
         disabled={deck.readOnly || !on}
-        onChange={set}
+        onChange={place => set({...unplaced(picture), ...place})}
       />
       {children}
     </PropertyGroup>

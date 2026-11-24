@@ -177,6 +177,11 @@ A thumbnail and a preview are the 슬라이드 drawn by the same code as the out
 - The background of a 슬라이드 or a 테마 is 없음, 단색, 그라데이션, or a media
   file. A picture or video can be fitted (채우기, 맞추기, 늘리기) and has a size
   from 10 to 400 percent and a place from -100 to 100 percent of the screen.
+- One rule places a picture: the nearest owner decides its fit and place. A
+  slide's background uses its own 배경 위치, or else the fit of the theme's
+  background box. Media the operator shows by itself uses its 미디어 속성 (맞춤,
+  크기, 위치), or else 채우기 on the whole screen; the theme's fit doesn't
+  change it.
 - A gradient is linear, with a clockwise angle from 0 to 359 degrees: 0 runs
   left to right, 90 top to bottom, and 135 top-right to bottom-left. It uses the
   screen rectangle's projected gradient line, including its aspect ratio.

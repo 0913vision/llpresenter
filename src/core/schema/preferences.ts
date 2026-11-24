@@ -15,6 +15,7 @@ import {
 import type {MigrationStep} from './migration';
 import {jsonObject, positiveInteger} from './primitives';
 import type {PayloadError} from './payload';
+import {pictureFitSchema} from './picturePlace';
 import {clearFadeSchema} from './clearFade';
 import {slideTransitionSchema, type SlideTransition} from './slideTransition';
 
@@ -83,12 +84,9 @@ interface CountLimits {
 
 const optionalBoolean = v.exactOptional(v.boolean());
 
-/** The `fit` choices of a media item (how it fills the screen), as stored. */
-export const mediaFitChoices = ['fit', 'fill', 'stretch'] as const;
-
 const mediaDefaultsSchema = jsonObject({
   end: v.exactOptional(v.picklist(['loop', 'stop'])),
-  fit: v.exactOptional(v.picklist(mediaFitChoices)),
+  fit: v.exactOptional(pictureFitSchema),
   audio: optionalBoolean,
 });
 const backupCopiesSchema = countWithin(PREFERENCE_LIMITS.backupCopies);

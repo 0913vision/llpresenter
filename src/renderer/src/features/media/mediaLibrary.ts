@@ -15,7 +15,8 @@ import {MEDIA_DELETE_HISTORY_LIMIT, MEDIA_LIMITS} from '@core/schema/mediaList';
 import {updateActiveCopies, type CopyJob} from './mediaCopyJobs';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {chosenPlaylist, type ChosenPlaylist} from './mediaEntries';
-import type {MediaProps} from './mediaProps';
+import type {PicturePlace} from '@core/schema/picturePlace';
+import {withPlace, type MediaProps} from './mediaProps';
 import {mediaImportFailureNotice, requestMediaImport} from './mediaImport';
 
 /** What the media view uses of the window API. */
@@ -566,6 +567,18 @@ export class MediaLibrary {
    * revision, keeping the ones it doesn't name.
    */
   async updateProps(mediaId: MediaId, change: MediaProps): Promise<void> {
+    await this.editProps(mediaId, props => ({...props, ...change}));
+  }
+
+  /** Gives a media item another fit and place, as 미디어 속성 sets them. */
+  async place(mediaId: MediaId, place: PicturePlace): Promise<void> {
+    await this.editProps(mediaId, props => withPlace(props, place));
+  }
+
+  private async editProps(
+    mediaId: MediaId,
+    edit: (props: MediaProps | undefined) => MediaProps,
+  ): Promise<void> {
     const document = this.view.document;
     const item = document?.value.items.find(({id}) => id === mediaId);
     if (document === null || item === undefined) return;
@@ -573,7 +586,7 @@ export class MediaLibrary {
       .edit({
         type: 'media.properties.update',
         mediaId,
-        changes: {props: {...item.props, ...change}},
+        changes: {props: edit(item.props)},
         baseRevision: document.revision,
       })
       .catch(rejected);

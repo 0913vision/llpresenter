@@ -26,6 +26,7 @@ import {
   positiveInteger,
   positiveNumber,
 } from './primitives';
+import {pictureAreaSchema, pictureFitSchema} from './picturePlace';
 import {SCREEN_KIND_ORDER} from './screens';
 import {textOutlineSchema, textShadowSchema} from './textEffects';
 
@@ -212,12 +213,12 @@ export const themeElementSchema = v.pipe(
       ...elementBase,
       kind: v.literal('picture'),
       media: mediaIdSchema,
-      fit: v.picklist(['fit', 'fill', 'stretch']),
+      fit: pictureFitSchema,
     }),
     v.looseObject({
       ...elementBase,
       kind: v.literal('background'),
-      fit: v.picklist(['fit', 'fill', 'stretch']),
+      fit: pictureFitSchema,
     }),
     v.looseObject({
       ...elementBase,
@@ -327,15 +328,8 @@ export const slideBackgroundSchema = v.pipe(
       kind: v.literal('media'),
       media: mediaIdSchema,
       loop: v.exactOptional(v.boolean()),
-      fit: v.exactOptional(v.picklist(['fit', 'fill', 'stretch'])),
-      /** The place and size of the picture, in shares of the screen. */
-      area: v.exactOptional(
-        jsonObject({
-          x: finiteNumber,
-          y: finiteNumber,
-          scale: positiveNumber,
-        }),
-      ),
+      fit: v.exactOptional(pictureFitSchema),
+      area: v.exactOptional(pictureAreaSchema),
     }),
   ]),
 );

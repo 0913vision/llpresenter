@@ -8,8 +8,9 @@ import {
   PropertyRow,
   PropertyValue,
 } from '@renderer/ui/PropertyRow';
+import type {PicturePlace} from '@core/schema/picturePlace';
+import {PicturePlaceRows} from '@renderer/ui/PicturePlace';
 import {SegmentedControl} from '@renderer/ui/SegmentedControl';
-import {Tooltip} from '@renderer/ui/Tooltip';
 import {Slider} from '@renderer/ui/Slider';
 import {Checkbox} from '@renderer/ui/Checkbox';
 import {TextField} from '@renderer/ui/TextField';
@@ -49,6 +50,7 @@ interface Editing {
   readonly duration: number | undefined;
   readonly disabled: boolean;
   readonly change: (change: MediaProps) => void;
+  readonly place: (place: PicturePlace) => void;
 }
 
 function TimeField({
@@ -161,30 +163,15 @@ function PlaybackGroup({shown, duration, disabled, change, isAudio}: Editing) {
   );
 }
 
-function ScreenGroup({shown, disabled, change}: Editing) {
+/** How the media meets the screen when the operator shows it by itself. */
+function ScreenGroup({shown, disabled, place}: Editing) {
   return (
     <PropertyGroup title="화면">
-      <Tooltip text="테마의 맞춤이 우선합니다.">
-        <div data-testid="media-fit-tooltip">
-          <PropertyRow label="맞춤">
-            {({controlId, labelId}) => (
-              <SegmentedControl
-                id={controlId}
-                labelledBy={labelId}
-                fill
-                disabled={disabled}
-                options={[
-                  {value: 'fit', label: '맞추기'},
-                  {value: 'fill', label: '채우기'},
-                  {value: 'stretch', label: '늘리기'},
-                ]}
-                value={shown.fit}
-                onChange={fit => change({fit})}
-              />
-            )}
-          </PropertyRow>
-        </div>
-      </Tooltip>
+      <PicturePlaceRows
+        value={shown.place}
+        disabled={disabled}
+        onChange={place}
+      />
     </PropertyGroup>
   );
 }
@@ -255,6 +242,11 @@ export function MediaProperties({
     change: change => {
       library.updateProps(item.id, change).catch((cause: unknown) => {
         console.error('Changing media properties failed:', cause);
+      });
+    },
+    place: place => {
+      library.place(item.id, place).catch((cause: unknown) => {
+        console.error('Placing media failed:', cause);
       });
     },
   };

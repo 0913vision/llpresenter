@@ -102,12 +102,12 @@ describe('media properties panel', () => {
         await choose('Dawn');
         expect(panel.querySelectorAll('*')).toHaveLength(videoCount);
         expect(panel.querySelector('video')).toBeNull();
-        expect(within(panel).getAllByRole('spinbutton')).toHaveLength(1);
+        expect(within(panel).getAllByRole('spinbutton')).toHaveLength(4);
         await choose('Notice');
         expect(panel.querySelectorAll('*')).toHaveLength(imageCount);
         expect(panel.querySelector('video')).toBeNull();
         expect(within(panel).queryAllByRole('spinbutton')).toHaveLength(
-          kind === 'video' ? 1 : 0,
+          kind === 'video' ? 4 : 3,
         );
       }
     },
@@ -158,7 +158,8 @@ describe('media properties panel', () => {
       changes: {props: {audio: false, end: 'stop'}},
       baseRevision: 5,
     });
-    fireEvent.click(within(panel).getByRole('radio', {name: '맞추기'}));
+    fireEvent.click(within(panel).getByRole('button', {name: /맞춤/u}));
+    fireEvent.click(await screen.findByRole('menuitemradio', {name: '맞추기'}));
     expect(edit).toHaveBeenLastCalledWith(
       expect.objectContaining({changes: {props: {audio: false, fit: 'fit'}}}),
     );
@@ -253,35 +254,22 @@ describe('media properties panel', () => {
   });
 });
 
-it('explains theme fit precedence in a tooltip while keeping media fit editable', async () => {
-  setup();
+it('places shown media with 맞춤, 크기 and 위치 like a slide background', async () => {
+  const {edit} = setup();
   const panel = await choose('Notice');
-  const group = within(panel).getByRole('radiogroup', {name: '맞춤'});
-  const target = within(panel).getByTestId('media-fit-tooltip');
-  fireEvent.pointerEnter(target);
-  expect((await screen.findByRole('tooltip')).textContent).toContain(
-    '테마의 맞춤이 우선합니다.',
+  const size = within(panel).getByRole('spinbutton', {name: '크기'});
+  fireEvent.change(size, {target: {value: '150'}});
+  fireEvent.keyDown(size, {key: 'Enter'});
+  expect(edit).toHaveBeenLastCalledWith(
+    expect.objectContaining({
+      changes: {props: {area: {x: 0, y: 0, scale: 1.5}}},
+    }),
   );
-  expect(within(group).getByRole('radio', {name: '채우기'})).toHaveProperty(
-    'disabled',
-    false,
-  );
-});
-
-it('shows the fit precedence tooltip on keyboard focus', async () => {
-  setup();
-  const panel = await choose('Notice');
-  const target = within(panel).getByTestId('media-fit-tooltip');
-  // NOTE(0913vision): jsdom cannot determine :focus-visible; this stands in for keyboard modality.
-  const match = vi.spyOn(target, 'matches').mockReturnValue(true);
-  const control = within(panel).getByRole('radio', {
-    name: '채우기',
-  });
-  fireEvent.focus(control);
-  expect((await screen.findByRole('tooltip')).textContent).toContain(
-    '테마의 맞춤이 우선합니다.',
-  );
-  match.mockRestore();
+  const across = within(panel).getByRole('spinbutton', {name: '가로 위치'});
+  expect(across.getAttribute('readonly')).toBeNull();
+  expect(
+    within(panel).getByRole('spinbutton', {name: '세로 위치'}),
+  ).toBeDefined();
 });
 
 it('hides video-only controls for audio and retains volume', async () => {
