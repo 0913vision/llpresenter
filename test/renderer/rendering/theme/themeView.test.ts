@@ -3,7 +3,7 @@ import {emptyLayers, type SlideLayer} from '@core/schema/live';
 import {createMediaId, type ThemeId} from '@core/schema/ids';
 import type {OwnThemeScreen} from '@core/schema/theme';
 import {BUILT_IN_THEME_IDS} from '@core/theme/builtIn/ids';
-import {liveDrawing, themeOn} from '@renderer/rendering/theme/drawing';
+import {drawingOn, liveDrawing} from '@renderer/rendering/theme/drawing';
 import {shownTexts} from '@renderer/rendering/theme/shownTexts';
 import {
   ThemeView,
@@ -25,19 +25,19 @@ function drawing(
   more: Partial<ThemeDrawing> = {},
   kind: 'audience' | 'stage' = 'audience',
 ): ThemeDrawing {
-  const on = themeOn(builtIn(id), {
-    id: kind === 'stage' ? THEME_STAGE : THEME_MAIN,
-    kind,
-  });
-  if (on === null) throw new Error('Nothing to draw');
-  return {
-    ...on,
-    content: {texts: {}, auto: {}},
-    next: null,
-    background: {kind: 'none'},
-    emptyColor: '#123456',
-    ...more,
-  };
+  const shown = drawingOn(
+    {
+      theme: builtIn(id),
+      screen: {
+        id: kind === 'stage' ? THEME_STAGE : THEME_MAIN,
+        kind,
+        emptyColor: '#123456',
+      },
+    },
+    {content: {texts: {}, auto: {}}, next: null, background: {kind: 'none'}},
+  );
+  if (shown === null) throw new Error('Nothing to draw');
+  return {...shown, ...more};
 }
 
 const lyrics = (text: string) =>

@@ -13,7 +13,7 @@ import {tileContent} from '@core/slides';
 import {themeOfSlide} from '@core/theme';
 import type {ThemesView} from '@renderer/platform/themes';
 import type {RenderScreen} from '@renderer/rendering/layer';
-import {themeOn} from '@renderer/rendering/theme/drawing';
+import {drawingOn} from '@renderer/rendering/theme/drawing';
 import type {ThemeDrawing} from '@renderer/rendering/theme/themeView';
 
 type ScreenRole = Screen['kind'];
@@ -81,20 +81,18 @@ export function tileDrawing(
 ): SlideDrawing {
   const screen = pictureScreen(screens, options);
   const theme = options.theme ?? themeOfSlide(themes, tile.slide);
-  const on = themeOn(theme, screen);
-  if (on === null) return {drawing: null, screen};
-  const peers =
-    options.tiles === undefined ? undefined : peersOf(options.tiles, theme);
   return {
     screen,
-    drawing: {
-      ...on,
-      content: tileContent(tile),
-      next: options.next ?? null,
-      background: tile.slide.background ?? theme.background,
-      ...(peers === undefined ? {} : {peers}),
-      opaque: false,
-      emptyColor: screen.emptyColor ?? '#000000',
-    },
+    drawing: drawingOn(
+      {theme, screen},
+      {
+        content: tileContent(tile),
+        next: options.next ?? null,
+        background: tile.slide.background ?? theme.background,
+        ...(options.tiles === undefined
+          ? {}
+          : {peers: peersOf(options.tiles, theme)}),
+      },
+    ),
   };
 }

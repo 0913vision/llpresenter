@@ -10,7 +10,7 @@ import {
   pictureScreen,
   type SlideDrawing,
 } from '@renderer/pictures/slideDrawing';
-import {themeOn} from '@renderer/rendering/theme/drawing';
+import {drawingOn} from '@renderer/rendering/theme/drawing';
 
 // NOTE(0913vision): No output has this id, so the picture keeps its own size.
 const CANVAS_ID = createScreenId('00000000-0000-4000-8000-000000000000');
@@ -36,19 +36,20 @@ export function sampleDrawing(
     screenId: screen.id,
   });
   const canvas = {...shown, id: CANVAS_ID, pictureSize: THEME_CANVAS};
-  const on = themeOn(theme, shown);
-  if (on === null) return {drawing: null, screen: canvas};
   const content = sampleContent(theme);
-  return {
-    screen: canvas,
-    drawing: {
-      ...on,
-      screen: layout ?? on.screen,
+  const drawing = drawingOn(
+    {theme, screen: shown},
+    {
       content,
       next: nextPhraseOf(theme, content),
       background: theme.background,
-      opaque: false,
-      emptyColor: shown.emptyColor ?? '#000000',
     },
+  );
+  return {
+    screen: canvas,
+    drawing:
+      drawing === null || layout === undefined
+        ? drawing
+        : {...drawing, screen: layout},
   };
 }
