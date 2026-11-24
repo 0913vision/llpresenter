@@ -1,3 +1,5 @@
+import {PanelFailureContext} from '@renderer/ui/panels/PanelBoundary';
+import {logPanelFailure} from './panelFailures';
 import {useAudioOutputs} from '@renderer/features/preferences/useAudioOutputs';
 import {ShownItemProvider} from '@renderer/session/show/shownItem';
 import {NumberJumpOverlay} from '@renderer/features/presentation/keyboard/NumberJumpOverlay';
@@ -76,9 +78,11 @@ interface AppProps {
 export function App(props: AppProps): JSX.Element {
   const [readiness] = useState(() => new LoadReadiness());
   return (
-    <LoadReadinessContext value={readiness}>
-      <AppContent {...props} readiness={readiness} />
-    </LoadReadinessContext>
+    <PanelFailureContext value={logPanelFailure}>
+      <LoadReadinessContext value={readiness}>
+        <AppContent {...props} readiness={readiness} />
+      </LoadReadinessContext>
+    </PanelFailureContext>
   );
 }
 

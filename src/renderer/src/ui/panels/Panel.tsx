@@ -16,6 +16,7 @@ import {useButtonPress} from '../buttons/press';
 import {useRovingSelection} from '../lists/roving';
 import {useTabButton} from '../buttons/tabButton';
 import {TruncatedText} from '../text/TruncatedText';
+import {PanelBoundary} from './PanelBoundary';
 import styles from './Panel.module.css';
 
 const SWITCH_CHEVRON_SIZE = 12;
@@ -74,7 +75,7 @@ export function Panel({
         data-panel={dataPanel}
         className={classNames(styles.panel, className)}
       >
-        {children}
+        <PanelBoundary label={label}>{children}</PanelBoundary>
       </section>
     </PanelIdBase>
   );

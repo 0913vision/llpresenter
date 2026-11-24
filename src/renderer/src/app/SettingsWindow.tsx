@@ -1,3 +1,5 @@
+import {PanelFailureContext} from '@renderer/ui/panels/PanelBoundary';
+import {logPanelFailure} from './panelFailures';
 import {logFailure} from '@renderer/platform/logFailure';
 import {
   Activity,
@@ -121,25 +123,27 @@ export function SettingsWindow({
     if (current?.view === 'screens') api?.settingsReady(current);
   }, [api, current]);
   return (
-    <div className={styles.window}>
-      <Activity mode={current?.view === 'preferences' ? 'visible' : 'hidden'}>
-        <PreferencesWindow
-          session={session}
-          closeFlush={closeFlush}
-          request={current?.view === 'preferences' ? current : undefined}
-          onReady={preferencesReady}
-          onPageSelect={selectPage}
-          viewRef={preferences}
-        />
-      </Activity>
-      <Activity mode={current?.view === 'screens' ? 'visible' : 'hidden'}>
-        <ScreensWindow
-          closeFlush={closeFlush}
-          onReady={screensReady}
-          preparing={current?.preparing ?? true}
-          requestId={current?.requestId}
-        />
-      </Activity>
-    </div>
+    <PanelFailureContext value={logPanelFailure}>
+      <div className={styles.window}>
+        <Activity mode={current?.view === 'preferences' ? 'visible' : 'hidden'}>
+          <PreferencesWindow
+            session={session}
+            closeFlush={closeFlush}
+            request={current?.view === 'preferences' ? current : undefined}
+            onReady={preferencesReady}
+            onPageSelect={selectPage}
+            viewRef={preferences}
+          />
+        </Activity>
+        <Activity mode={current?.view === 'screens' ? 'visible' : 'hidden'}>
+          <ScreensWindow
+            closeFlush={closeFlush}
+            onReady={screensReady}
+            preparing={current?.preparing ?? true}
+            requestId={current?.requestId}
+          />
+        </Activity>
+      </div>
+    </PanelFailureContext>
   );
 }
