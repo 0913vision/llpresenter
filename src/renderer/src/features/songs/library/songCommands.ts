@@ -1,3 +1,4 @@
+import {songSlidesOf} from '@core/schema/songs/song';
 import {withSongTitle} from '@core/slides';
 import type {EditResult} from '@core/schema/services/contentEdit';
 import type {SongId} from '@core/schema/common/ids';
@@ -47,13 +48,20 @@ export async function duplicateSong(
     return null;
   }
   const title = copyTitle(source.song.title, takenTitles);
+  // NOTE(0913vision): The copy goes as the editor sends a song, title slide
+  // first among the slides; main keeps it apart again.
+  const {titleSlide: _titleSlide, ...copied} = source.song;
   const copyId = context.applied(
     await context.api.content.edit({
       type: 'song.saveAs',
       song: {
-        ...source.song,
+        ...copied,
         title,
-        slides: withSongTitle(source.song.slides, source.song.title, title),
+        slides: withSongTitle(
+          songSlidesOf(source.song),
+          source.song.title,
+          title,
+        ),
       },
     }),
   );

@@ -106,7 +106,7 @@ describe('content opening through registerStore', () => {
     });
     await writeJson(songFile, {
       format: 'llsong',
-      schemaVersion: 2,
+      schemaVersion: 3,
       id: songId,
       title: 'Standalone invented song',
       slides: [

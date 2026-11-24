@@ -302,6 +302,9 @@ async function reopen(id: SongId): Promise<boolean> {
   return true;
 }
 
+// NOTE(0913vision): The draft keeps the title slide first among the slides;
+// main keeps it apart in the file (`withSongSlides`), for every way a song is
+// saved.
 function sent(draft: SongDraft): Song {
   return {...draft.song, title: normalizeSongTitle(draft.song.title)};
 }

@@ -15,29 +15,39 @@ import {
   positiveInteger,
   timestamp,
 } from '../common/primitives';
-import {slidesSchema} from '../slides/slide';
+import {slideSchema, slidesSchema, type Slide} from '../slides/slide';
+import {songFileWithTitleSlide, splitSongTitle} from './songTitle';
 
 /** The longest song title, in characters. */
 export const SONG_NAME_MAX_LENGTH = 512;
 /** The version of the song file this app writes. */
-export const SONG_SCHEMA_VERSION = 1;
+export const SONG_SCHEMA_VERSION = 2;
 
 /**
- * A song as its file holds it (`Songs/<id>.llsong`); it has at least one slide.
+ * A song as its file holds it (`Songs/<id>.llsong`): its own title slide,
+ * without an 이름표, apart from its other slides (version 2). It has a title
+ * slide or at least one other slide.
  */
-export const songSchema = jsonObject({
-  format: v.literal('llsong'),
-  schemaVersion: positiveInteger,
-  id: songIdSchema,
-  title: nonBlankText,
-  slides: v.pipe(slidesSchema, v.minLength(1)),
-  updatedAt: v.exactOptional(timestamp),
-});
+export const songSchema = v.pipe(
+  jsonObject({
+    format: v.literal('llsong'),
+    schemaVersion: positiveInteger,
+    id: songIdSchema,
+    title: nonBlankText,
+    titleSlide: v.exactOptional(slideSchema),
+    slides: slidesSchema,
+    updatedAt: v.exactOptional(timestamp),
+  }),
+  v.check(
+    song => song.titleSlide !== undefined || song.slides.length > 0,
+    'Expected a title slide or another slide',
+  ),
+);
 
 const songFormat: FileFormat<typeof songSchema> = {
   format: 'llsong',
   schema: songSchema,
-  migrations: [],
+  migrations: [songFileWithTitleSlide],
 };
 
 /** A song file (`.llsong`). See `docs/spec/02-data.md`. */
@@ -57,4 +67,41 @@ export function serializeSong(
   file: string,
 ): Result<string, FileError> {
   return serializeFile(songFormat, song, file);
+}
+
+/**
+ * The slides of a song as it reads, its title slide first: what the library
+ * shows, searches and edits.
+ */
+export function songSlidesOf(
+  song: Pick<Song, 'titleSlide' | 'slides'>,
+): readonly Slide[] {
+  return song.titleSlide === undefined
+    ? song.slides
+    : [song.titleSlide, ...song.slides];
+}
+
+/**
+ * The song with these slides, read title first, kept as its file keeps them:
+ * the first title slide is the song's title, without its 이름표, and a title
+ * at the very end goes, because the 예배 순서 adds the closing title
+ * (`team/song-title-design.md`).
+ */
+export function withSongSlides(song: Song, slides: readonly Slide[]): Song {
+  const {titleSlide: _old, ...rest} = song;
+  return {...rest, ...songPartsOf(slides)};
+}
+
+/**
+ * The title slide and the other slides a song file keeps for slides read title
+ * first, as {@link withSongSlides} splits them.
+ */
+export function songPartsOf(
+  slides: readonly Slide[],
+): Pick<Song, 'titleSlide' | 'slides'> {
+  const parts = splitSongTitle(slides);
+  return {
+    ...(parts.titleSlide === undefined ? {} : {titleSlide: parts.titleSlide}),
+    slides: parts.slides,
+  };
 }

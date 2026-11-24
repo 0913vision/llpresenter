@@ -1020,6 +1020,10 @@ No execution history is kept. See 04, "Row states".
 
 #### 준비 (Preparation)
 
+곡을 예배 순서에 넣을 때 has one row, 끝 제목 (a check box, on by default): a
+song added to the 예배 순서 also ends with its title, 이름표 후주 (02, Songs).
+It is stored in `preferences.json` `show.closingSongTitle`.
+
 새 슬라이드 기본 전환 has rows for 곡 제목, 곡, 빈 슬라이드, 광고, 타이틀, 설교
 제목, 사도신경, 주기도문 and 성경 말씀. Each row has effect, direction and
 duration controls. Direction applies to push and wipe. The initial defaults are

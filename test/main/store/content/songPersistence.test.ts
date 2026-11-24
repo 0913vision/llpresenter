@@ -145,7 +145,9 @@ async function recoveryText(
 it('reads a file without writing it on read or idle flush', async () => {
   const {file, original, content, write} = await scenario();
   const {song} = documentOf(content);
-  expect(song.schemaVersion).toBe(1);
+  // NOTE(0913vision): The app reads a version 1 file as version 2 and leaves
+  // the file as it is until it saves the song.
+  expect(song.schemaVersion).toBe(2);
   expect(linesIn(song)).toEqual([
     'Invented dawn',
     'Invented noon',
@@ -164,7 +166,7 @@ it('writes the edit and keeps the original bytes as the recovery copy', async ()
   await revise(content, 'Invented revised dawn');
   await content.flush();
   const saved: unknown = JSON.parse(await readFile(file, 'utf8'));
-  expect(saved).toMatchObject({schemaVersion: 1, extension: {keep: true}});
+  expect(saved).toMatchObject({schemaVersion: 2, extension: {keep: true}});
   expect(documentOf(content).song.slides.map(slide => slide.id)).toEqual(ids);
   expect(await recoveryText(loaded)).toBe(original);
 });
@@ -184,7 +186,7 @@ it('preserves the file on atomic rename failure and retries the newest slide-dec
   fault.enabled = false;
   await content.flush();
   const saved: unknown = JSON.parse(await readFile(file, 'utf8'));
-  expect(saved).toMatchObject({schemaVersion: 1, extension: {keep: true}});
+  expect(saved).toMatchObject({schemaVersion: 2, extension: {keep: true}});
   expect(saved).toHaveProperty('slides.0.texts', {
     가사: 'Invented newest line',
   });
@@ -220,7 +222,7 @@ it('reloads slide identities, labels and hot keys after saving', async () => {
 it('keeps a known newer slide-deck file read-only without rewriting it', async () => {
   const source = {
     format: 'llsong',
-    schemaVersion: 2,
+    schemaVersion: 3,
     id: SONG_ID,
     title: 'Invented future song',
     future: {keep: true},
@@ -231,7 +233,7 @@ it('keeps a known newer slide-deck file read-only without rewriting it', async (
   const {file, original, content, write} = await scenario(source);
   const document = documentOf(content);
   expect(document.access).toBe('readOnly');
-  expect(document.song.schemaVersion).toBe(2);
+  expect(document.song.schemaVersion).toBe(3);
   const result = await content.apply({
     type: 'song.update',
     baseRevision: document.revision,

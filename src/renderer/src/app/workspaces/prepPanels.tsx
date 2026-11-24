@@ -1,3 +1,4 @@
+import {songSlidesOf} from '@core/schema/songs/song';
 import {useLayoutEffect, useRef, useState, type ReactNode} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import {parseServiceItemId, type SongId} from '@core/schema/common/ids';
@@ -110,7 +111,7 @@ function Library({
             openSongDraft(document, {focusTitle});
             openDeckAt(
               document.song.id,
-              document.song.slides[position ?? 0]?.id,
+              songSlidesOf(document.song)[position ?? 0]?.id,
             );
             openInPrep({kind: 'song'});
           }}

@@ -164,6 +164,8 @@ export const preferencesSchema = jsonObject({
     jsonObject({
       atLastSlide: v.exactOptional(atLastSlideSchema),
       continuousGrid: v.exactOptional(v.boolean()),
+      /** 준비, 끝 제목: a song added to the 예배 순서 also ends with its title. */
+      closingSongTitle: v.exactOptional(v.boolean()),
       dimPastItems: v.exactOptional(v.boolean()),
       slideDefaults: v.exactOptional(
         jsonObject({
@@ -280,6 +282,7 @@ export const defaultPreferences: Preferences = {
   show: {
     atLastSlide: 'stop',
     continuousGrid: false,
+    closingSongTitle: true,
     dimPastItems: false,
     slideDefaults: defaultSlideTransitions,
     audio: {transitionSeconds: 0.5, fadeOutSeconds: 3},

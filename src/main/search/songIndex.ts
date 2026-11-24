@@ -6,7 +6,7 @@ import {
   type LibrarySearchRequest,
   type LibrarySearchResult,
 } from '@core/schema/songs/librarySearch';
-import type {Song} from '@core/schema/songs/song';
+import {songSlidesOf, type Song} from '@core/schema/songs/song';
 import {isInitialQuery, normalizeSearch, searchInitials} from '@core/search';
 
 /**
@@ -56,7 +56,7 @@ export class SongSearchIndex {
 
   upsert(song: Song): void {
     this.remove(song.id);
-    const slides = song.slides;
+    const slides = songSlidesOf(song);
     const entry = {
       songId: song.id,
       title: searchable(song.title),

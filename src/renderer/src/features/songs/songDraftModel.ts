@@ -3,7 +3,7 @@ import type {
   LibrarySong,
   SongDocument,
 } from '@core/schema/services/contentDocuments';
-import type {Song} from '@core/schema/songs/song';
+import {songSlidesOf, type Song} from '@core/schema/songs/song';
 import {
   importLimitReason,
   DUPLICATE_TITLE_REASON,
@@ -37,18 +37,31 @@ export interface SongDraft {
   readonly future: readonly SongStep[];
 }
 
+/**
+ * A song as the editor shows it: its title slide first among its slides, as it
+ * was before the file kept the title apart; saving splits it again.
+ */
+export function editingSong(song: Song): Song {
+  if (song.titleSlide === undefined) return song;
+  const {titleSlide: _titleSlide, ...rest} = song;
+  return {...rest, slides: songSlidesOf(song)};
+}
+
 /** A draft of `song` with no history. */
 export function freshDraft(
   song: Song,
   document: SongDocument | null,
   imported = false,
 ): SongDraft {
-  return {song, document, imported, past: [], future: []};
+  return {song: editingSong(song), document, imported, past: [], future: []};
 }
 
 /** Whether a draft has changes its file does not have. */
 export function isUnsaved(draft: SongDraft): boolean {
-  return draft.document === null || !sameJson(draft.song, draft.document.song);
+  return (
+    draft.document === null ||
+    !sameJson(draft.song, editingSong(draft.document.song))
+  );
 }
 
 /** Why a draft can't have its title. */

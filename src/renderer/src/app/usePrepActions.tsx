@@ -1,3 +1,4 @@
+import {songSlidesOf} from '@core/schema/songs/song';
 import {useCallback, useState, type JSX} from 'react';
 import type {SongId} from '@core/schema/common/ids';
 import {PowerPointImportFlow} from '@renderer/features/songs/import/PowerPointImportFlow';
@@ -54,7 +55,7 @@ export function usePrepActions(session: ControlSession): PrepActions {
           return;
         }
         openSongDraft(document);
-        openDeckAt(document.song.id, document.song.slides[position]?.id);
+        openDeckAt(document.song.id, songSlidesOf(document.song)[position]?.id);
         openInPrep({kind: 'song'});
       }, failed);
     });

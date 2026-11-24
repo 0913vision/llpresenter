@@ -7,11 +7,14 @@ import {
   songSchema,
   SONG_SCHEMA_VERSION,
   type Song,
+  songPartsOf,
+  songSlidesOf,
+  withSongSlides,
 } from '@core/schema/songs/song';
 import {freeName} from '@core/common/freeName';
-import {defaultSlideTransitions} from '@core/schema/app/preferences';
 import {newSongSlides} from '@core/slides';
 import type {ContentCommandContext, ContentHandlers} from './contentCommands';
+import {slideMakingOf} from './slideMaking';
 import {normalizeSongTitle} from '@core/songs';
 
 const NEW_SONG_TITLE = '새 곡';
@@ -64,7 +67,7 @@ class SongContentCommands {
         schemaVersion: SONG_SCHEMA_VERSION,
         id,
         title,
-        slides: draft.slides,
+        ...songPartsOf(draft.slides),
         updatedAt: this.context.now(),
       }),
     );
@@ -93,20 +96,13 @@ class SongContentCommands {
     );
     // NOTE(0913vision): docs/spec/05-prep.md, "New song".
     const title = freeName(NEW_SONG_TITLE, titles);
-    const themes = this.context.settings?.get('themes');
     const song: Song = {
       format: 'llsong',
       schemaVersion: SONG_SCHEMA_VERSION,
       id,
       title,
-      slides: newSongSlides(
-        {
-          themes: themes?.name === 'themes' ? themes.value : null,
-          transitions:
-            this.context.settings?.preferences().show.slideDefaults ??
-            defaultSlideTransitions,
-        },
-        title,
+      ...songPartsOf(
+        newSongSlides(slideMakingOf(this.context.settings), title),
       ),
     };
     const file = join(this.context.locations.songs, `${id}${SONG_EXTENSION}`);
@@ -131,7 +127,7 @@ class SongContentCommands {
     }
     const id = createSongId(this.context.newId());
     const checked = checkPart(songSchema, {
-      ...input,
+      ...withSongSlides(input, songSlidesOf(input)),
       id,
       title,
       updatedAt: this.context.now(),
@@ -159,7 +155,11 @@ class SongContentCommands {
     }
     const validated = checkPart(
       songSchema,
-      preserveUnknownFields(songSchema, checked.value.data, input),
+      preserveUnknownFields(
+        songSchema,
+        checked.value.data,
+        withSongSlides(input, songSlidesOf(input)),
+      ),
     );
     if (!validated.ok) {
       return this.context.refuse('invalid', validated.error.message);
@@ -177,7 +177,11 @@ class SongContentCommands {
     }
     const full = this.context.savesFull([checked.value.file]);
     if (full !== null) return full;
-    const {updatedAt: _updatedAt, ...kept} = checked.value.data;
+    const {
+      updatedAt: _updatedAt,
+      titleSlide: _titleSlide,
+      ...kept
+    } = checked.value.data;
     const stored = this.context.songs.replace(checked.value, {
       ...kept,
       ...song,
@@ -194,7 +198,7 @@ class SongContentCommands {
     });
     if (
       checked.value.data.title !== title ||
-      checked.value.data.slides.length !== song.slides.length
+      songSlidesOf(checked.value.data).length !== songSlidesOf(song).length
     ) {
       this.context.announceList(
         'songs',

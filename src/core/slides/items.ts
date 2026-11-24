@@ -6,7 +6,7 @@ import type {Slide} from '@core/schema/slides/slide';
 import type {Song} from '@core/schema/songs/song';
 import {withText} from './edits';
 import {LITURGY_SLIDES} from './liturgySlides';
-import {copySlide, makeSlide, type SlideMaking} from './make';
+import {copySlide, makeSlide, transitionFor, type SlideMaking} from './make';
 import {withHideNext} from './nextText';
 import {serviceTitle, titleSlide, type TitleCard} from './titles';
 
@@ -25,17 +25,71 @@ function newId() {
   return createServiceItemId(crypto.randomUUID());
 }
 
+/** The 이름표 of the two titles a song gets in the 예배 순서. */
+export const SONG_TITLE_LABELS = {opening: '전주', closing: '후주'} as const;
+
+/**
+ * What the slide before a song's closing title shows on 무대, set as the
+ * closing title's own next text, so the last lyrics never announce the same
+ * song as the next one.
+ */
+export const CLOSING_TITLE_NEXT = `(${SONG_TITLE_LABELS.closing})`;
+
+/** How a song goes into the 예배 순서. */
+export interface SongItemOptions {
+  /** 환경설정 준비, 끝 제목: the song also ends with its title. */
+  readonly closingTitle: boolean;
+}
+
+/**
+ * The slides a song has in the 예배 순서 (`team/song-title-design.md`): its
+ * title with 이름표 전주, its other slides as they are, and, when the 환경설정
+ * says so, its title again with 이름표 후주. Both titles come in with the 곡
+ * 제목 transition. A song without a title slide of its own gets one made from
+ * its title.
+ */
+export function songItemSlides(
+  song: Song,
+  making: SlideMaking,
+  {closingTitle}: SongItemOptions,
+): readonly Slide[] {
+  const title =
+    song.titleSlide ??
+    makeSlide(making, 'songTitle', {texts: {제목: song.title}});
+  const transition = transitionFor(making, 'songTitle');
+  const opening: Slide = {
+    ...copySlide(title),
+    label: SONG_TITLE_LABELS.opening,
+    transition,
+  };
+  const closing: Slide = {
+    ...copySlide(title),
+    label: SONG_TITLE_LABELS.closing,
+    transition,
+    next: CLOSING_TITLE_NEXT,
+  };
+  return [
+    opening,
+    ...song.slides.map(slide => ({
+      ...copySlide(slide),
+      ...(slide.hotKey === undefined ? {} : {hotKey: slide.hotKey}),
+    })),
+    ...(closingTitle ? [closing] : []),
+  ];
+}
+
 /** A song of the library, with slides of its own in this service. */
-export function songItem(song: Song): ServiceItemOf<'song'> {
+export function songItem(
+  song: Song,
+  making: SlideMaking,
+  options: SongItemOptions,
+): ServiceItemOf<'song'> {
   return {
     id: newId(),
     kind: 'song',
     name: song.title,
     song: song.id,
-    slides: song.slides.map(slide => ({
-      ...copySlide(slide),
-      ...(slide.hotKey === undefined ? {} : {hotKey: slide.hotKey}),
-    })),
+    slides: songItemSlides(song, making, options),
   };
 }
 

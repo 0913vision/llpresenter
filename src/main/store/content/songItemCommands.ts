@@ -1,6 +1,8 @@
 import type {ContentEdit, EditResult} from '@core/schema/services/contentEdit';
 import {checkPart} from '@core/schema/common/fileFormat';
-import {songSchema} from '@core/schema/songs/song';
+import {songSchema, withSongSlides} from '@core/schema/songs/song';
+import {songItemSlides} from '@core/slides';
+import {closingSongTitleOf, slideMakingOf} from './slideMaking';
 import {isItemOfKind} from '@core/schema/services/service';
 import type {ContentCommandContext} from './contentCommands';
 
@@ -36,7 +38,14 @@ export async function transferSongItem(
       ...service.data,
       order: service.data.order.map(row =>
         row === item
-          ? {...item, slides: structuredClone(source.data.slides)}
+          ? {
+              ...item,
+              slides: songItemSlides(
+                source.data,
+                slideMakingOf(context.settings),
+                {closingTitle: closingSongTitleOf(context.settings)},
+              ),
+            }
           : row,
       ),
     });
@@ -48,8 +57,7 @@ export async function transferSongItem(
   const writable = context.checkEditable(source);
   if (!writable.ok) return writable.error;
   const validated = checkPart(songSchema, {
-    ...source.data,
-    slides: structuredClone(item.slides),
+    ...withSongSlides(source.data, structuredClone(item.slides)),
     updatedAt: context.now(),
   });
   if (!validated.ok) return context.refuse('invalid', validated.error.message);

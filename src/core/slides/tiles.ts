@@ -14,7 +14,7 @@ import {
   AUTO_TOKENS,
   type AutoValues,
 } from '@core/schema/slides/slideContent';
-import type {Song} from '@core/schema/songs/song';
+import {songSlidesOf, type Song} from '@core/schema/songs/song';
 import {verseKey} from './passageSlides';
 
 /** What an item says about its slides beside the slides themselves. */
@@ -174,8 +174,12 @@ export function itemTiles(
 
 /** The 장 tiles of a song of the library, in slide order. */
 export function songTiles(
-  song: Pick<Song, 'title' | 'slides'>,
+  song: Pick<Song, 'title' | 'titleSlide' | 'slides'>,
   colors?: ReadonlyMap<string, LabelColor>,
 ): readonly ShowTile[] {
-  return slideTiles(song.slides, {kind: 'song', title: song.title}, colors);
+  return slideTiles(
+    songSlidesOf(song),
+    {kind: 'song', title: song.title},
+    colors,
+  );
 }

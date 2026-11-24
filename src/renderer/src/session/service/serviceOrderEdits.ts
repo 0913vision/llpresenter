@@ -16,6 +16,10 @@ import {
 import {sectionInsertIndex, sectionBoundaryIndex} from '@core/services';
 import {songItem} from '@core/slides';
 import {
+  slideMaking,
+  songItemOptions,
+} from '@renderer/platform/documents/themes';
+import {
   editOpenService,
   type EditOptions,
   type OpenServiceResult,
@@ -238,7 +242,10 @@ export async function insertSong(
 ): Promise<OpenServiceResult> {
   const song = await api.songs.get(songId);
   return song?.song.id === songId
-    ? insertItem(songItem(song.song), beforeId)
+    ? insertItem(
+        songItem(song.song, slideMaking(), songItemOptions()),
+        beforeId,
+      )
     : refuse('not-found', 'The song no longer exists');
 }
 

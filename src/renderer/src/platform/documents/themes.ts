@@ -11,7 +11,7 @@ import type {Screen} from '@core/schema/screens/screens';
 import type {SettingsName} from '@core/schema/app/settingsDocuments';
 import type {ThemeFile} from '@core/schema/screens/theme';
 import type {Themes} from '@core/schema/screens/themes';
-import type {SlideMaking} from '@core/slides';
+import type {SlideMaking, SongItemOptions} from '@core/slides';
 import {themeOfSlide} from '@core/theme';
 
 /** The themes and screens as every part of this window draws slides. */
@@ -19,6 +19,8 @@ export interface ThemesView {
   readonly themes: Themes | null;
   readonly screens: readonly Screen[];
   readonly transitions: SlideTransitionDefaults;
+  /** 환경설정 준비, 끝 제목. */
+  readonly closingSongTitle: boolean;
 }
 
 /** This window's copy of the themes and the screens they draw on. */
@@ -26,12 +28,18 @@ export const useThemes = create<ThemesView>(() => ({
   themes: null,
   screens: [],
   transitions: defaultSlideTransitions,
+  closingSongTitle: true,
 }));
 
 /** What new slides are made with. */
 export function slideMaking(): SlideMaking {
   const {themes, transitions} = useThemes.getState();
   return {themes, transitions};
+}
+
+/** How a song goes into the 예배 순서, by the 환경설정. */
+export function songItemOptions(): SongItemOptions {
+  return {closingTitle: useThemes.getState().closingSongTitle};
 }
 
 /** The theme of a slide of a list. */
@@ -62,7 +70,10 @@ export function startThemesSync(api: Feeds | undefined): () => void {
       useThemes.setState({screens: document.value.screens});
     } else if (document.name === 'preferences') {
       const {show} = withPreferenceDefaults(document.value);
-      useThemes.setState({transitions: show.slideDefaults});
+      useThemes.setState({
+        transitions: show.slideDefaults,
+        closingSongTitle: show.closingSongTitle,
+      });
     }
   };
   const unsubscribe = api.settings.subscribe(accept);

@@ -7,7 +7,7 @@ import {lyricsSlide, slideOf} from '@fixtures/core/slides';
 function song(slides: readonly object[] = [lyricsSlide(1, 'Invented')]) {
   return {
     format: 'llsong',
-    schemaVersion: 1,
+    schemaVersion: 2,
     id: '00000000-0000-4000-8000-000000000100',
     title: 'Invented song',
     slides,
@@ -23,13 +23,9 @@ function roundTrip(data: unknown): unknown {
 }
 
 describe('a song file', () => {
-  it('keeps its slides and the fields it does not know', () => {
+  it('keeps its title slide, its slides and the fields it does not know', () => {
     const input = {
       ...song([
-        {
-          ...slideOf(1, 'songTitle', {texts: {제목: '빛의 길', 부제: ''}}),
-          future: 1,
-        },
         lyricsSlide(2, '', {
           label: '오늘',
           hotKey: 'KeyA',
@@ -38,9 +34,48 @@ describe('a song file', () => {
           next: '다음',
         }),
       ]),
+      titleSlide: {
+        ...slideOf(1, 'songTitle', {texts: {제목: '빛의 길', 부제: ''}}),
+        future: 1,
+      },
       future: {kept: true},
     };
     expect(roundTrip(input)).toEqual(input);
+  });
+
+  it('reads a version 1 file with its title slide apart, without its label, and without a closing title', () => {
+    const opening = slideOf(1, 'songTitle', {
+      texts: {제목: '빛의 길'},
+      label: '전주',
+    });
+    const medley = slideOf(3, 'songTitle', {texts: {제목: '다른 곡'}});
+    const closing = slideOf(5, 'songTitle', {
+      texts: {제목: '빛의 길'},
+      label: '후주',
+    });
+    const lyrics = [lyricsSlide(2, '첫 줄'), medley, lyricsSlide(4, '끝 줄')];
+
+    const {data} = expectSuccess(
+      parse({...song([opening, ...lyrics, closing]), schemaVersion: 1}),
+    );
+
+    const {label: _label, ...titleSlide} = opening;
+    expect(data.schemaVersion).toBe(2);
+    expect(data.titleSlide).toEqual(titleSlide);
+    expect(data.slides).toEqual(lyrics);
+  });
+
+  it('reads a version 1 file without a title slide as it is', () => {
+    const {data} = expectSuccess(
+      parse({...song([lyricsSlide(1, '첫 줄')]), schemaVersion: 1}),
+    );
+
+    expect(data).not.toHaveProperty('titleSlide');
+    expect(data.slides).toEqual([lyricsSlide(1, '첫 줄')]);
+  });
+
+  it('refuses a song with neither a title slide nor another slide', () => {
+    expect(parse(song([])).ok).toBe(false);
   });
 
   it('trims labels and refuses the empty and the long ones', () => {

@@ -112,11 +112,28 @@ song, service, and template.
 
 | Field                     | Type                         | Meaning                                      |
 | ------------------------- | ---------------------------- | -------------------------------------------- |
-| `format`, `schemaVersion` | `"llsong"`, positive integer | Version 1; newer known files stay read-only. |
+| `format`, `schemaVersion` | `"llsong"`, positive integer | Version 2; newer known files stay read-only. |
 | `id`                      | UUID v4                      | Library song identity.                       |
 | `title`                   | Nonblank string              | Song title.                                  |
-| `slides`                  | 1 to 10,000 슬라이드         | In playback order.                           |
+| `titleSlide`              | Optional 슬라이드            | The song's own title, without an 이름표.     |
+| `slides`                  | 0 to 10,000 슬라이드         | The other slides, in playback order.         |
 | `updatedAt`               | Optional timestamp           | Last update.                                 |
+
+A song has a title slide or at least one other slide. A version 1 file is read
+as version 2 and written as version 2 when it is saved: its first title slide (a
+slide with a 제목 and no 가사, or a hymn title) becomes `titleSlide` without its
+이름표, a title slide at the very end is dropped, and every other slide stays
+where it is. Every way a song is saved (곡 가져오기, 새 곡, 저장, 다른 이름으로
+저장, 라이브러리에 저장) keeps it the same way. The editor shows the title slide
+first among the others.
+
+A song goes into the 예배 순서 with its title first, 이름표 전주, then its other
+slides, then, unless 환경설정 준비 > 끝 제목 is off, its title again, 이름표
+후주, whose own next text is "(후주)" so the last lyrics show "(후주)" on 무대.
+Both titles come in with the 곡 제목 transition of 환경설정 (4 seconds by
+default). A song without a title slide gets one made from its title.
+라이브러리에서 다시 불러오기 makes the item's slides the same way. Titles inside
+a song (a medley) are the operator's own; nothing is added there.
 
 A song has no background, 테마, or groups of its own. An import caps a draft at
 5,000 슬라이드 and 1,500,000 serialized characters.

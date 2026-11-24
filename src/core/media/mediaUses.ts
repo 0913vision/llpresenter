@@ -1,5 +1,5 @@
 import type {MediaId} from '@core/schema/common/ids';
-import type {Song} from '@core/schema/songs/song';
+import {songSlidesOf, type Song} from '@core/schema/songs/song';
 import type {MediaList} from '@core/schema/media/mediaList';
 import type {MediaUses} from '@core/schema/media/mediaUses';
 import type {MacrosFile} from '@core/schema/tools/macros';
@@ -78,7 +78,7 @@ export function countMediaUses(
       prop => prop.content.kind === 'image' && prop.content.media === mediaId,
     ).length,
     songBackgrounds: sources.songs.filter(song =>
-      anySlide(song.slides, mediaId),
+      anySlide(songSlidesOf(song), mediaId),
     ).length,
     serviceItems: items.filter(
       item =>

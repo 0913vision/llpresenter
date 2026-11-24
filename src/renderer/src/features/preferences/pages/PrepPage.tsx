@@ -11,10 +11,40 @@ import {
   SLIDE_DIRECTIONS,
   SLIDE_EFFECTS,
 } from '@renderer/ui/choices/slideTransitionChoices';
+import {CheckboxRow} from '../PreferenceRows';
 import type {PageProps} from './pageProps';
 
-/** 준비: defaults for newly created slides. */
+/**
+ * 준비: how a song goes into the 예배 순서, and the defaults for newly created
+ * slides.
+ */
 export function PrepPage({edits}: PageProps): JSX.Element | null {
+  const {preferences, lockedReason, change} = edits;
+  if (preferences === null) return null;
+  const disabled = lockedReason !== undefined;
+  return (
+    <>
+      <PropertyGroup title="곡을 예배 순서에 넣을 때">
+        <CheckboxRow
+          label="끝 제목"
+          disabled={disabled}
+          title={lockedReason}
+          checked={preferences.show.closingSongTitle}
+          onChange={closingSongTitle =>
+            change(stored => ({
+              ...stored,
+              show: {...stored.show, closingSongTitle},
+            }))
+          }
+        />
+      </PropertyGroup>
+      <TransitionDefaults edits={edits} />
+    </>
+  );
+}
+
+/** 새 슬라이드 기본 전환: the transition each kind of new slide comes in with. */
+function TransitionDefaults({edits}: PageProps): JSX.Element | null {
   const {preferences, lockedReason, change} = edits;
   if (preferences === null) return null;
   const disabled = lockedReason !== undefined;

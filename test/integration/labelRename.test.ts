@@ -84,7 +84,7 @@ function setup({
       readOnlySong && index === 2
         ? expectSuccess(
             parseSong(
-              JSON.stringify({...current.data, schemaVersion: 2}),
+              JSON.stringify({...current.data, schemaVersion: 3}),
               file,
             ),
           )

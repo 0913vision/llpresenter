@@ -113,7 +113,7 @@ it(
       expect(await app.stop()).toBe(false);
       const contents = await readFile(file, 'utf8');
       const value: unknown = JSON.parse(contents);
-      expect(value).toMatchObject({title: '점검 알파 수정', schemaVersion: 1});
+      expect(value).toMatchObject({title: '점검 알파 수정', schemaVersion: 2});
       expect(contents).toContain('새로 만든 점검 문장');
     } catch (error) {
       throw new Error(await saveEvidence(editor, app.data, file), {
