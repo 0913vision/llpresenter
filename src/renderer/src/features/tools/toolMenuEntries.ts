@@ -28,217 +28,133 @@ function command(
   };
 }
 
-/** The shared timer list-row shape, including disabled editing commands. */
-export function namedToolMenuEntries({
-  edit,
-  rename,
-  duplicate,
-  duplicateReason,
-  remove,
-  reason,
-}: {
-  /** Opens the row's own editor; a row without one leaves it out. */
-  readonly edit?: (() => void) | undefined;
+/** What the rows of a tool's list can do, and why they can't now. */
+interface ToolRowActions {
   readonly rename: () => void;
   readonly duplicate: () => void;
   /** Why 복제 can't run, such as a full list; the lock reason comes first. */
   readonly duplicateReason: string | undefined;
-  readonly remove: (() => void) | undefined;
+  readonly remove: () => void;
   readonly reason: string | undefined;
-}): readonly MenuEntry[] {
-  return [
-    ...(edit
-      ? [
-          command(
-            {
-              id: 'edit',
-              contextGroup: 'default',
-              label: '수정…',
-              onSelect: edit,
-            },
-            reason,
-          ),
-        ]
-      : []),
-    command(
-      {
-        id: 'duplicate',
-        contextGroup: 'clipboard',
-        label: '복제',
-        onSelect: duplicate,
-      },
-      reason ?? duplicateReason,
+}
+
+function editRow(
+  onSelect: () => void,
+  reason: string | undefined,
+  contextGroup: MenuItem['contextGroup'] = 'default',
+): MenuItem {
+  return command({id: 'edit', contextGroup, label: '수정…', onSelect}, reason);
+}
+
+function duplicateRow({
+  duplicate,
+  duplicateReason,
+  reason,
+}: Pick<ToolRowActions, 'duplicate' | 'duplicateReason' | 'reason'>): MenuItem {
+  return command(
+    {
+      id: 'duplicate',
+      contextGroup: 'clipboard',
+      label: '복제',
+      onSelect: duplicate,
+    },
+    reason ?? duplicateReason,
+  );
+}
+
+function renameRow({
+  rename,
+  reason,
+}: Pick<ToolRowActions, 'rename' | 'reason'>): MenuItem {
+  return command(
+    {id: 'rename', label: '이름 바꾸기', onSelect: rename},
+    reason,
+  );
+}
+
+function deleteRow({
+  remove,
+  reason,
+}: Pick<ToolRowActions, 'remove' | 'reason'>): MenuItem {
+  return {
+    ...command(
+      {id: 'delete', contextGroup: 'delete', label: '삭제', onSelect: remove},
+      reason,
     ),
-    command({id: 'rename', label: '이름 바꾸기', onSelect: rename}, reason),
+    danger: true,
+  };
+}
+
+/** The shared timer list-row shape, including disabled editing commands. */
+export function namedToolMenuEntries(
+  actions: Omit<ToolRowActions, 'remove'> & {
+    /** Opens the row's own editor; a row without one leaves it out. */
+    readonly edit?: (() => void) | undefined;
+    readonly remove: (() => void) | undefined;
+  },
+): readonly MenuEntry[] {
+  const {edit, remove, reason} = actions;
+  return [
+    ...(edit ? [editRow(edit, reason)] : []),
+    duplicateRow(actions),
+    renameRow(actions),
     ...(remove
-      ? [
-          menuSeparator('delete-separator'),
-          {
-            ...command(
-              {
-                id: 'delete',
-                contextGroup: 'delete',
-                label: '삭제',
-                onSelect: remove,
-              },
-              reason,
-            ),
-            danger: true,
-          },
-        ]
+      ? [menuSeparator('delete-separator'), deleteRow({remove, reason})]
       : []),
   ];
 }
 
 /** Message templates retain their edit, clipboard and delete groups. */
-export function messageMenuEntries({
-  edit,
-  rename,
-  duplicate,
-  duplicateReason,
-  remove,
-  reason,
-}: {
-  readonly edit: () => void;
-  readonly rename: () => void;
-  readonly duplicate: () => void;
-  /** Why 복제 can't run, such as a full list; the lock reason comes first. */
-  readonly duplicateReason: string | undefined;
-  readonly remove: () => void;
-  readonly reason: string | undefined;
-}): readonly MenuEntry[] {
+export function messageMenuEntries(
+  actions: ToolRowActions & {readonly edit: () => void},
+): readonly MenuEntry[] {
   return [
-    command(
-      {id: 'edit', contextGroup: 'default', label: '수정…', onSelect: edit},
-      reason,
-    ),
+    editRow(actions.edit, actions.reason),
     menuSeparator('copy-separator'),
-    command(
-      {
-        id: 'duplicate',
-        contextGroup: 'clipboard',
-        label: '복제',
-        onSelect: duplicate,
-      },
-      reason ?? duplicateReason,
-    ),
-    command({id: 'rename', label: '이름 바꾸기', onSelect: rename}, reason),
+    duplicateRow(actions),
+    renameRow(actions),
     menuSeparator('delete-separator'),
-    {
-      ...command(
-        {id: 'delete', contextGroup: 'delete', label: '삭제', onSelect: remove},
-        reason,
-      ),
-      danger: true,
-    },
+    deleteRow(actions),
   ];
 }
 
 /** Props keep their future rows while the existing commands expose lock reasons. */
-export function propMenuEntries({
-  edit,
-  rename,
-  duplicate,
-  duplicateReason,
-  remove,
-  reason,
-}: {
-  readonly edit: () => void;
-  readonly rename: () => void;
-  readonly duplicate: () => void;
-  /** Why 복제 can't run, such as a full list; the lock reason comes first. */
-  readonly duplicateReason: string | undefined;
-  readonly remove: () => void;
-  readonly reason: string | undefined;
-}): readonly MenuEntry[] {
+export function propMenuEntries(
+  actions: ToolRowActions & {readonly edit: () => void},
+): readonly MenuEntry[] {
   return [
     laterRow('add-to', '모음에 추가', {submenu: true}),
     laterRow('move-to', '모음으로 옮기기', {submenu: true}),
     menuSeparator('edit-separator'),
-    command(
-      {id: 'edit', contextGroup: 'settings', label: '수정…', onSelect: edit},
-      reason,
-    ),
+    editRow(actions.edit, actions.reason, 'settings'),
     laterRow('transitions', '전환 효과…'),
     laterRow('auto-clear', '자동 지우기', {submenu: true}),
     menuSeparator('clipboard-separator'),
     ...laterClipboardRows(),
-    {
-      ...command(
-        {
-          id: 'duplicate',
-          contextGroup: 'clipboard',
-          label: '복제',
-          onSelect: duplicate,
-        },
-        reason ?? duplicateReason,
-      ),
-      icon: 'duplicate',
-    },
-    command({id: 'rename', label: '이름 바꾸기', onSelect: rename}, reason),
+    {...duplicateRow(actions), icon: 'duplicate'},
+    renameRow(actions),
     menuSeparator('delete-separator'),
-    {
-      ...command(
-        {id: 'delete', contextGroup: 'delete', label: '삭제', onSelect: remove},
-        reason,
-      ),
-      icon: 'trash',
-      danger: true,
-    },
+    {...deleteRow(actions), icon: 'trash'},
   ];
 }
 
 /** The quick item's three commands need neither icons nor a separator. */
-export function quickItemMenuEntries({
-  edit,
-  rename,
-  duplicate,
-  duplicateReason,
-  remove,
-  reason,
-}: {
-  /** A 타이머 row opens its 타이머 here, with the reason it can't. */
-  readonly edit?: {
-    readonly onSelect: () => void;
-    readonly reason: string | undefined;
-  };
-  readonly rename: () => void;
-  readonly duplicate: () => void;
-  /** Why 복제 can't run, such as a full list; the lock reason comes first. */
-  readonly duplicateReason: string | undefined;
-  readonly remove: () => void;
-  readonly reason: string | undefined;
-}): readonly MenuEntry[] {
+export function quickItemMenuEntries(
+  actions: ToolRowActions & {
+    /** A 타이머 row opens its 타이머 here, with the reason it can't. */
+    readonly edit?: {
+      readonly onSelect: () => void;
+      readonly reason: string | undefined;
+    };
+  },
+): readonly MenuEntry[] {
+  const {edit, reason} = actions;
   return [
     ...(edit
-      ? [
-          command(
-            {
-              id: 'edit',
-              contextGroup: 'settings',
-              label: '수정…',
-              onSelect: edit.onSelect,
-            },
-            reason ?? edit.reason,
-          ),
-        ]
+      ? [editRow(edit.onSelect, reason ?? edit.reason, 'settings')]
       : []),
-    command(
-      {
-        id: 'duplicate',
-        contextGroup: 'clipboard',
-        label: '복제',
-        onSelect: duplicate,
-      },
-      reason ?? duplicateReason,
-    ),
-    command({id: 'rename', label: '이름 바꾸기', onSelect: rename}, reason),
-    {
-      ...command(
-        {id: 'delete', contextGroup: 'delete', label: '삭제', onSelect: remove},
-        reason,
-      ),
-      danger: true,
-    },
+    duplicateRow(actions),
+    renameRow(actions),
+    deleteRow(actions),
   ];
 }
