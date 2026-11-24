@@ -3,6 +3,8 @@ import {createMessageStyleId, createScreenId} from '@core/schema/common/ids';
 import {
   alwaysOnTopOf,
   changeScreen,
+  defaultScreenName,
+  lastOfKind,
   nameProblem,
   onDisconnectOf,
 } from '@core/screens/screenEdits';
@@ -166,5 +168,28 @@ describe('screen defaults', () => {
 
     expect(onDisconnectOf(main)).toBe('window');
     expect(onDisconnectOf({...main, onDisconnect: 'off'})).toBe('off');
+  });
+});
+
+describe('defaultScreenName', () => {
+  it('names a new screen by its kind, numbered when the name is taken', () => {
+    expect(defaultScreenName('stage', [])).toBe('새 무대 화면');
+    expect(
+      defaultScreenName('stage', [
+        {name: '새 무대 화면'},
+        {name: ' 새 무대 화면 (2) '},
+      ]),
+    ).toBe('새 무대 화면 (3)');
+  });
+});
+
+describe('lastOfKind', () => {
+  it('keeps the last screen of a kind, with the reason, and lets one of two go', () => {
+    expect(lastOfKind([{kind: 'stage'}], {kind: 'stage'})).toBe(
+      '마지막 무대 화면은 삭제할 수 없습니다.',
+    );
+    expect(
+      lastOfKind([{kind: 'stage'}, {kind: 'stage'}], {kind: 'stage'}),
+    ).toBeUndefined();
   });
 });
