@@ -20,11 +20,13 @@ useShow.subscribe(view => {
 
 /**
  * The 예배 순서 row that new items go after: the open item when it is a row
- * of the order, or else the row opened last in this service, which a library
- * song or a passage opened since does not replace. Null when there is none.
+ * of the order; while a library song or a passage is open instead, the row
+ * opened last in this service. Null when nothing is open, so new items go to
+ * the end.
  */
 export function orderSelectionId(): ItemId | null {
   const view = useShow.getState();
+  if (view.openItemId === null) return null;
   if (isOrderRow(view, view.openItemId)) return view.openItemId;
   if (
     lastOrderRow?.serviceEpoch === view.serviceEpoch &&

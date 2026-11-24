@@ -26,3 +26,9 @@ it('forgets the row when another service opens', () => {
   }));
   expect(orderSelectionId()).toBeNull();
 });
+
+it('is none when nothing is open, so new items go to the end', () => {
+  useShow.setState({openItemId: 'song-morning'});
+  useShow.setState({openItemId: null});
+  expect(orderSelectionId()).toBeNull();
+});
