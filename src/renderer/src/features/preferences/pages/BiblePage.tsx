@@ -5,10 +5,10 @@ import {Icon} from '@renderer/ui/Icon';
 import {Menu} from '@renderer/ui/menus/Menu';
 import {menuAvailability} from '@renderer/ui/menus/menuModel';
 import {PropertyGroup} from '@renderer/ui/panels/PropertyRow';
-import type {BibleEdits} from './useBibleEdits';
-import type {PreferenceEdits} from './usePreferenceEdits';
+import type {BibleEdits} from '../useBibleEdits';
+import type {PreferenceEdits} from '../usePreferenceEdits';
 import type {PreferencesFile} from '@core/schema/app/preferences';
-import {CheckboxRow} from './PreferenceRows';
+import {CheckboxRow} from '../PreferenceRows';
 import styles from './BiblePage.module.css';
 
 const ALREADY_DEFAULT = '이미 기본 역본입니다.';

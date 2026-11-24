@@ -13,19 +13,17 @@ import {LoadReadiness, LoadReadinessContext} from '@renderer/ui/loadReadiness';
 import {ListRow} from '@renderer/ui/lists/ListRow';
 import {Properties} from '@renderer/ui/panels/PropertyRow';
 import type {Notice} from '@renderer/ui/popups/notices';
-import {
-  AboutPage,
-  GeneralPage,
-  ServiceOrderPage,
-  ShowPage,
-  MediaPage,
-  OutputPage,
-  PrepPage,
-  StoragePage,
-  preferencePages,
-} from './preferencePages';
+import {preferencePages} from './preferencePages';
+import {AboutPage} from './pages/AboutPage';
+import {GeneralPage} from './pages/GeneralPage';
+import {MediaPage} from './pages/MediaPage';
+import {OutputPage} from './pages/OutputPage';
+import {PrepPage} from './pages/PrepPage';
+import {ServiceOrderPage} from './pages/ServiceOrderPage';
+import {ShowPage} from './pages/ShowPage';
+import {StoragePage} from './pages/StoragePage';
 import {useLibraryLocations} from './useLibraryLocations';
-import {BiblePage} from './BiblePage';
+import {BiblePage} from './pages/BiblePage';
 import {ShortcutsPage} from './shortcuts/ShortcutsPage';
 import {useBibleEdits} from './useBibleEdits';
 import {usePreferenceEdits} from './usePreferenceEdits';
