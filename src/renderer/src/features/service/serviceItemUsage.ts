@@ -1,6 +1,6 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import type {ServiceItem} from '@core/schema/services/service';
-import {withinLookupTimeout} from '@renderer/session/show/showOutput';
+import {withinLookupTimeout} from '@renderer/session/lookupTimeout';
 
 const READ_BATCH = 8;
 

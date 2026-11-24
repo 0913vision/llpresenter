@@ -2,9 +2,9 @@ import type {LlpApi} from '@contracts/ipc/api';
 import type {AudioPlaylistId} from '@core/schema/common/ids';
 import type {EditResult} from '@core/schema/services/contentEdit';
 import {pendingWritesOf} from '@renderer/platform/documents/pendingWrites';
-import {withinLookupTimeout} from '@renderer/session/show/showOutput';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {useToolEditing} from '../useToolEditing';
+import {withinLookupTimeout} from '@renderer/session/lookupTimeout';
 
 const ATTEMPTS = 2;
 

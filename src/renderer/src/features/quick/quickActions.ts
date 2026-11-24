@@ -17,11 +17,11 @@ import {openLibrarySong} from '@renderer/session/show/showLibrary';
 import {
   beginOutputRequest,
   isOutputRequestCurrent,
-  withinLookupTimeout,
 } from '@renderer/session/show/showOutput';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import {openBiblePassage, showBiblePassage} from '../bible/passageActions';
 import {useShow} from '@renderer/session/show/showStore';
+import {withinLookupTimeout} from '@renderer/session/lookupTimeout';
 
 /** Why a quick item can't be used, or undefined when it can. */
 export function quickItemUnavailable(item: QuickItem): string | undefined {

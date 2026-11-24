@@ -32,7 +32,6 @@ import {sampleService} from '@fixtures/renderer/session/sampleService';
 import {useLive} from '@renderer/session/live';
 import {applyService, openItem} from '@renderer/session/show/show';
 import {librarySourceId} from '@renderer/session/show/showLibrary';
-import {LOOKUP_TIMEOUT_MS} from '@renderer/session/show/showOutput';
 import {
   nextPointed,
   ToolbarSearch,
@@ -44,6 +43,7 @@ import {
   itemFixture,
 } from '@fixtures/renderer/features/service/items/itemFixture';
 import {useShow} from '@renderer/session/show/showStore';
+import {LOOKUP_TIMEOUT_MS} from '@renderer/session/lookupTimeout';
 
 vi.mock('@renderer/rendering/outputRenderer', () => ({
   OutputRenderer: class {

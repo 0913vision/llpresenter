@@ -18,7 +18,6 @@ import {
   bibleSourceFor,
   isLibrarySource,
 } from '@renderer/session/show/showLibrary';
-import {withinLookupTimeout} from '@renderer/session/show/showOutput';
 import {IconButton} from '@renderer/ui/buttons/IconButton';
 import {Menu} from '@renderer/ui/menus/Menu';
 import {ListInsertLine} from '@renderer/ui/lists/ListRow';
@@ -34,6 +33,7 @@ import {useTimerEditDialog} from '../tools/timers/useTimerEditDialog';
 import {QuickTimerDialog} from './QuickTimerDialog';
 import {quickItemMenuEntries, toolMenuReason} from '../tools/toolMenuEntries';
 import {useShow} from '@renderer/session/show/showStore';
+import {withinLookupTimeout} from '@renderer/session/lookupTimeout';
 
 type Save = (
   edit: QuickEdit,

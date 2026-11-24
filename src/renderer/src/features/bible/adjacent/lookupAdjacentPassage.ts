@@ -1,11 +1,11 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import type {RecentPassage} from '@core/schema/bible/bible';
-import {withinLookupTimeout} from '@renderer/session/show/showOutput';
 import {
   adjacentVerseRange,
   passageBook,
   type VerseDirection,
 } from '@core/bible';
+import {withinLookupTimeout} from '@renderer/session/lookupTimeout';
 
 /** Reads one additional verse without applying a stale lookup to the view. */
 export async function lookupAdjacentPassage({
