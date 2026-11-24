@@ -1,8 +1,8 @@
 import type {KeyboardEvent, MouseEvent} from 'react';
 import {
   contextMenuAnchor,
-  contextMenuTarget,
   isContextMenuKey,
+  pointerMenuAnchor,
 } from '@renderer/ui/contextMenu';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import {hasModifier} from '@renderer/ui/modifierKeys';
@@ -60,10 +60,8 @@ export function useOrderListEvents({
       if (id === null || workspace === 'show') return;
       event.preventDefault();
       openMenu(id, event.currentTarget, targets => ({
-        kind: 'point',
-        target: contextMenuTarget(event),
+        ...pointerMenuAnchor(event),
         targets,
-        point: {x: event.clientX, y: event.clientY},
       }));
     },
     onDoubleClick: (event: MouseEvent<HTMLDivElement>): void => {
