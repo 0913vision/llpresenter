@@ -2,7 +2,6 @@ import {useState} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import {copyName} from '@core/common/copyName';
 import type {ServiceId, TemplateId} from '@core/schema/common/ids';
-import {useShow} from '@renderer/session/show/show';
 import {
   type Notice,
   noticeTime,
@@ -10,6 +9,7 @@ import {
 } from '@renderer/ui/popups/notices';
 import {appliedId, asServiceId, editApplied, settle} from './serviceEdits';
 import {useAlive} from '@renderer/ui/useAlive';
+import {useShow} from '@renderer/session/show/showStore';
 
 type SaveTemplateApi = Pick<LlpApi, 'content' | 'templates' | 'log'>;
 interface TemplateService {

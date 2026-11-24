@@ -5,12 +5,12 @@ import type {
 } from '@core/schema/services/contentDocuments';
 import {isItemOfKind, type ServiceItemOf} from '@core/schema/services/service';
 import {pendingWritesOf} from '@renderer/platform/documents/pendingWrites';
-import {useShow} from '@renderer/session/show/show';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import {AlertDialog} from '@renderer/ui/popups/AlertDialog';
 import {usageMeta} from '@renderer/ui/text/usageText';
 import {createServiceId} from '@core/schema/common/ids';
 import type {LlpApi} from '@contracts/ipc/api';
+import {useShow} from '@renderer/session/show/showStore';
 
 interface SongMenuTarget {
   readonly id: string;

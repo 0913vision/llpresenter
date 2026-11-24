@@ -10,8 +10,8 @@ import {
 import type {SizeClass} from '@renderer/ui/panels/sizeClass';
 import type {ColumnWidthStore} from '../columns/columnWidthStore';
 import {Panel, type WorkspacePanels} from './WorkspacePanel';
-import type {Workspace} from '../toolbar/Toolbar';
 import styles from './Workspace.module.css';
+import type {Workspace} from '../../../platform/WorkspaceNavigation';
 
 function rowId(
   workspace: Workspace,

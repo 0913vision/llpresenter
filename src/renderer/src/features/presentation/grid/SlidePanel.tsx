@@ -4,7 +4,6 @@ import {
   defaultThumbnailColumns,
   type SizeClass,
 } from '@renderer/ui/panels/sizeClass';
-import {useShow} from '@renderer/session/show/show';
 import {
   isLibrarySource,
   projectedLiveCursor,
@@ -25,6 +24,7 @@ import styles from './SlidePanel.module.css';
 import {useVisibleSlideItem} from '@renderer/session/show/visibleSlideItem';
 import {useShownItemId} from '@renderer/session/show/shownItem';
 import {useLive} from '@renderer/session/live';
+import {useShow} from '@renderer/session/show/showStore';
 
 const PROBLEM_ICON_SIZE = 14;
 

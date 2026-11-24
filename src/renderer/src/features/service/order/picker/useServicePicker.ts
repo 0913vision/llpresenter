@@ -1,9 +1,10 @@
 import {useEffect, useMemo, useRef, useState} from 'react';
 import type {ServiceEntry} from '@core/schema/services/contentDocuments';
-import {applyService, useShow} from '@renderer/session/show/show';
+import {applyService} from '@renderer/session/show/show';
 import {useServiceSwitchGuard} from '../../useServiceSwitchGuard';
 import {noticeTime, type Notice} from '@renderer/ui/popups/notices';
 import {serviceDay} from '@core/services';
+import {useShow} from '@renderer/session/show/showStore';
 
 const names = new Intl.Collator('ko', {numeric: true});
 const problemTitles = {

@@ -7,7 +7,6 @@ import {useSettingsDocument} from '@renderer/platform/documents/useSettingsDocum
 import type {Report} from '@renderer/session/service/serviceEdit';
 import {songUsage} from '@renderer/features/songs/library/songUsage';
 import {useSongDraft} from '@renderer/features/songs/songDraft';
-import {useShow} from '@renderer/session/show/show';
 import {Button} from '@renderer/ui/buttons/Button';
 import {
   Properties,
@@ -19,6 +18,7 @@ import {Tooltip} from '@renderer/ui/popups/Tooltip';
 import {LiturgyVersion} from '../editor/ItemTools';
 import {useServiceSongMenu} from '../order/menu/useServiceSongMenu';
 import styles from './DetailsInfo.module.css';
+import {useShow} from '@renderer/session/show/showStore';
 
 function SongSource({
   songId,

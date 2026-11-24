@@ -1,5 +1,4 @@
 import type {JSX} from 'react';
-import {useShow} from '@renderer/session/show/show';
 import {Icon} from '@renderer/ui/Icon';
 import {TruncatedText} from '@renderer/ui/text/TruncatedText';
 import type {Notice} from '@renderer/ui/popups/notices';
@@ -7,6 +6,7 @@ import {openOnArrowDown} from '@renderer/ui/menus/menuButton';
 import {useButtonPress} from '@renderer/ui/buttons/press';
 import {useServicePickerMenu} from './useServicePickerMenu';
 import styles from './ServiceOrderHeader.module.css';
+import {useShow} from '@renderer/session/show/showStore';
 
 const CHEVRON_SIZE = 12;
 

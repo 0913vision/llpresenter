@@ -13,7 +13,6 @@ import {
 } from '@renderer/features/slides/slideDeck';
 import {runEdit, type Report} from '@renderer/session/service/serviceEdit';
 import {renameItem} from '@renderer/session/service/serviceOrderEdits';
-import {useShow} from '@renderer/session/show/show';
 import {Button} from '@renderer/ui/buttons/Button';
 import {isComposing} from '@renderer/ui/fields/ime';
 import {RenameText} from '@renderer/ui/fields/RenameText';
@@ -22,6 +21,7 @@ import {useItemOverlays} from '../overlays/useItemOverlays';
 import {useOverlayControl} from '../overlays/useOverlayControl';
 import {ItemAdders} from './ItemAdders';
 import {ItemTools} from './ItemTools';
+import {useShow} from '@renderer/session/show/showStore';
 
 const EMPTY = {slides: [], source: {kind: 'blank', title: ''}} as const;
 

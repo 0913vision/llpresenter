@@ -18,7 +18,6 @@ import {
   showLarge,
   usePreview,
 } from '@renderer/session/show/preview';
-import {useShow} from '@renderer/session/show/show';
 import {PreviewPanel} from '@renderer/features/presentation/preview/PreviewPanel';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
 import {renderWithScreenSummaries as render} from '@fixtures/renderer/platform/screenSummaries';
@@ -26,6 +25,7 @@ import {ScreenSummariesContext} from '@renderer/platform/screens/ScreenSummaries
 import type {ScreenSummary} from '@renderer/platform/screens/screens';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
 import {commandBindingStore} from '@renderer/ui/keys/commandBindings';
+import {useShow} from '@renderer/session/show/showStore';
 
 interface Instance {
   readonly parent: HTMLElement;

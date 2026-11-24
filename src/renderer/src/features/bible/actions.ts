@@ -6,13 +6,14 @@ import {
   type BibleSource,
 } from '@renderer/session/show/bibleSource';
 import {useLive} from '@renderer/session/live';
-import {outputTile, useShow} from '@renderer/session/show/show';
+import {outputTile} from '@renderer/session/show/show';
 import {beginOutputRequest} from '@renderer/session/show/showOutput';
 import {
   bibleSourceFor,
   withBibleSource,
 } from '@renderer/session/show/showLibrary';
 import {measurePassage, slidesOfPassage} from './makePassageSlides';
+import {useShow} from '@renderer/session/show/showStore';
 
 function samePassage(
   first: BibleLookupPassage,

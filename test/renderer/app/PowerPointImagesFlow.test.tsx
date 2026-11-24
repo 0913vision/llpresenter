@@ -5,8 +5,8 @@ import type {PowerPointImageExportResult} from '@core/schema/songs/powerpointImp
 import {pastDocument} from '@fixtures/core/serviceList';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {PowerPointImagesFlow} from '@renderer/app/PowerPointImagesFlow';
-import {useShow} from '@renderer/session/show/show';
 import type {Notice} from '@renderer/ui/popups/notices';
+import {useShow} from '@renderer/session/show/showStore';
 
 const first = createMediaId('00000000-0000-4000-8000-000000000011');
 const second = createMediaId('00000000-0000-4000-8000-000000000012');

@@ -1,10 +1,10 @@
 import {useEffect, useEffectEvent, useRef, useState} from 'react';
 import type {SongId} from '@core/schema/common/ids';
 import type {LibrarySearchMatch} from '@core/schema/songs/librarySearch';
-import {useShow} from '@renderer/session/show/show';
 import {openLibrarySong} from '@renderer/session/show/showLibrary';
 import {withinLookupTimeout} from '@renderer/session/show/showOutput';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
+import {useShow} from '@renderer/session/show/showStore';
 
 export const TOOLBAR_SEARCH_LIMIT = 20;
 

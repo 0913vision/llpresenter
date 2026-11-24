@@ -1,5 +1,5 @@
 import {useLive} from '@renderer/session/live';
-import {useShow} from '@renderer/session/show/show';
+import {useShow} from '@renderer/session/show/showStore';
 
 /**
  * The item on output: the slide's owner, otherwise the media's owner.

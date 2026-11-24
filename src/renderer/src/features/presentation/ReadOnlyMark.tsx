@@ -1,8 +1,8 @@
 import type {JSX} from 'react';
 import {Icon} from '@renderer/ui/Icon';
-import {useShow} from '@renderer/session/show/show';
 import {READ_ONLY_TIP} from '../../platform/problemReasons';
 import styles from './ReadOnlyMark.module.css';
+import {useShow} from '@renderer/session/show/showStore';
 
 /** The warning on the 예배 순서 panel while the service can't be edited. */
 export function ReadOnlyMark(): JSX.Element | null {

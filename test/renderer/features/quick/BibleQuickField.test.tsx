@@ -33,13 +33,13 @@ import {
   openItem,
   outputSlideOf,
   returnFromQuickPassage,
-  useShow,
 } from '@renderer/session/show/show';
 import {bibleSourceFor} from '@renderer/session/show/showLibrary';
 import {
   beginOutputRequest,
   isOutputRequestCurrent,
 } from '@renderer/session/show/showOutput';
+import {useShow} from '@renderer/session/show/showStore';
 
 async function passage(input: string) {
   const reply = await formLookupReply(lookupRequest(input));

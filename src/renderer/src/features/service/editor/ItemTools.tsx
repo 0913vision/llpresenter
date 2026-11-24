@@ -10,11 +10,11 @@ import {type SlideDeck} from '@renderer/features/slides/slideDeck';
 import {runEdit, type Report} from '@renderer/session/service/serviceEdit';
 import {slideMaking} from '@renderer/platform/documents/themes';
 import {editItem} from '@renderer/session/service/openService';
-import {useShow} from '@renderer/session/show/show';
 import {Button} from '@renderer/ui/buttons/Button';
 import {warningNotice} from '@renderer/ui/popups/notices';
 import {SelectMenu} from '@renderer/ui/choices/SelectMenu';
 import {useServiceSongMenu} from '../order/menu/useServiceSongMenu';
+import {useShow} from '@renderer/session/show/showStore';
 
 /** Saves the slides of a song item as the song of the library. */
 function SongTools({

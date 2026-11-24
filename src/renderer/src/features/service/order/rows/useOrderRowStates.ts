@@ -1,13 +1,13 @@
 import {useMemo} from 'react';
 import type {ServiceRow} from '@core/presentation';
 import {useSettingsDocument} from '@renderer/platform/documents/useSettingsDocument';
-import {useShow} from '@renderer/session/show/show';
 import {useShownItemId} from '@renderer/session/show/shownItem';
 import {useVisibleSlideItem} from '@renderer/session/show/visibleSlideItem';
 import type {Notice} from '@renderer/ui/popups/notices';
 import type {Workspace} from '@renderer/ui/lists/workspace';
 import {itemNumbers} from '../orderRows';
 import {useLiveItemId} from './useLiveItemId';
+import {useShow} from '@renderer/session/show/showStore';
 
 /** The items above the live one, which 지난 순서 흐리게 dims. */
 function pastItems(

@@ -23,7 +23,7 @@ import {
   openInPrep,
   type PrepTarget,
 } from '@renderer/session/prepTarget';
-import {openItem, useShow} from '@renderer/session/show/show';
+import {openItem} from '@renderer/session/show/show';
 import {
   isLibrarySource,
   openLibrarySong,
@@ -37,6 +37,7 @@ import {
   type WorkspacePanels,
 } from '../shell/workspace/WorkspacePanel';
 import {SERVICE_ORDER, serviceOrderParts} from './serviceOrderPanel';
+import {useShow} from '@renderer/session/show/showStore';
 
 const COLUMNS = [['라이브러리'], [SERVICE_ORDER], ['세부정보']] as const;
 const ITEM_COLUMNS = [[SERVICE_ORDER], ['편집'], ['슬라이드 속성']] as const;

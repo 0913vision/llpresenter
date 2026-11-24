@@ -1,6 +1,5 @@
 import {NOT_IN_THIS_WINDOW} from '@renderer/platform/problemReasons';
 import {useState, type ReactNode} from 'react';
-import {useShow} from '@renderer/session/show/show';
 import {menuAvailability, type MenuItem} from '@renderer/ui/menus/menuModel';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {ImportItemsDialog} from './ImportItemsDialog';
@@ -8,6 +7,7 @@ import {NewServiceDialog} from './NewServiceDialog';
 import {SaveTemplatePrompt} from './SaveTemplatePrompt';
 import {SaveTemplateDialog} from './SaveTemplateDialog';
 import {useSaveTemplate} from './useSaveTemplate';
+import {useShow} from '@renderer/session/show/showStore';
 
 type ServiceDialog = 'new' | 'import';
 export type ServiceActionEntries = Readonly<

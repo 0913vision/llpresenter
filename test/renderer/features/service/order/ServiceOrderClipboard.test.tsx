@@ -1,7 +1,7 @@
 import {act, fireEvent, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import {openItem, useShow} from '@renderer/session/show/show';
+import {openItem} from '@renderer/session/show/show';
 import type {ServiceDocument} from '@core/schema/services/contentDocuments';
 import {serviceItemClipboardFor} from '@renderer/session/service/serviceItemClipboard';
 import {
@@ -11,6 +11,7 @@ import {
   serviceId,
   setup,
 } from '@fixtures/renderer/features/service/order/serviceOrderEditingFixtures';
+import {useShow} from '@renderer/session/show/showStore';
 
 afterEach(() => {
   delete window.llp;

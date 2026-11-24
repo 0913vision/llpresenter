@@ -6,13 +6,13 @@ import type {
   BibleSource,
 } from '@renderer/session/show/bibleSource';
 import {useLive} from '@renderer/session/live';
-import {useShow} from '@renderer/session/show/show';
 import {bibleSourceFor} from '@renderer/session/show/showLibrary';
 import {
   beginOutputRequest,
   isOutputRequestCurrent,
 } from '@renderer/session/show/showOutput';
 import {openBiblePassage} from '../actions';
+import {useShow} from '@renderer/session/show/showStore';
 
 /** How the passage of `source` shows now. */
 export function displayOf({

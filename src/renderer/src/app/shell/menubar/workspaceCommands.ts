@@ -17,8 +17,8 @@ import {
   showTool,
   type ShowTool,
 } from '@renderer/features/tools/showTools';
-import type {Workspace} from '../toolbar/Toolbar';
-import type {WindowShortcut} from '../../../platform/shortcuts/windowShortcuts';
+import type {Workspace} from '../../../platform/WorkspaceNavigation';
+import type {WindowShortcut} from '../../../ui/keys/commandDispatcher';
 
 interface WorkspaceActions {
   readonly onWorkspace: (workspace: Workspace) => void;

@@ -7,7 +7,6 @@ import {
   useState,
   type JSX,
 } from 'react';
-import {useShow} from '@renderer/session/show/show';
 import {
   isBibleSource,
   liveTileIndex,
@@ -28,6 +27,7 @@ import {serviceSlideOffset} from '../serviceSlideNumbers';
 import {useSlideTransitionProgress} from '../useSlideTransitionProgress';
 import {tileReflowIds} from './tileReflowIds';
 import {useReflow} from '@renderer/ui/panels/useReflow';
+import {useShow} from '@renderer/session/show/showStore';
 
 const GRID_SELECTOR = '[role="listbox"]';
 

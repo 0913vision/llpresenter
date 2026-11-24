@@ -1,10 +1,11 @@
 import {act, cleanup, render, screen} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import {ServiceOrderList} from '@renderer/features/service/order/ServiceOrderList';
-import {openItem, useShow} from '@renderer/session/show/show';
+import {openItem} from '@renderer/session/show/show';
 import {useLive} from '@renderer/session/live';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
+import {useShow} from '@renderer/session/show/showStore';
 
 afterEach(() => {
   cleanup();

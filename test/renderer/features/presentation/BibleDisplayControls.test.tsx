@@ -10,12 +10,7 @@ import {
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/schema/live/live';
 import type {BibleLookupReply} from '@core/schema/bible/bibleLookup';
-import {
-  openItem,
-  outputTile,
-  selectTile,
-  useShow,
-} from '@renderer/session/show/show';
+import {openItem, outputTile, selectTile} from '@renderer/session/show/show';
 import {useLive} from '@renderer/session/live';
 import {bibleSourceFor} from '@renderer/session/show/showLibrary';
 import {beginOutputRequest} from '@renderer/session/show/showOutput';
@@ -32,6 +27,7 @@ import {
 } from '@fixtures/contracts/ipc/bibleApi';
 import {lookupRequest} from '@fixtures/core/bibleLookups';
 import {formLookupReply} from '@fixtures/core/bibleReplies';
+import {useShow} from '@renderer/session/show/showStore';
 
 const alternate = lookupRequest('', 'alternate').translation;
 function translations() {

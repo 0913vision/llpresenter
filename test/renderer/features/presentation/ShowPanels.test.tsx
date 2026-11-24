@@ -5,12 +5,13 @@ import type {LiveCommand} from '@core/schema/live/liveCommand';
 import {emptyLiveState} from '@core/schema/live/live';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {useLive} from '@renderer/session/live';
-import {applyService, openItem, useShow} from '@renderer/session/show/show';
+import {applyService, openItem} from '@renderer/session/show/show';
 import {
   sampleService,
   seedSampleService,
 } from '@fixtures/renderer/session/sampleService';
 import {SlideGrid} from '@renderer/features/presentation/grid/SlideGrid';
+import {useShow} from '@renderer/session/show/showStore';
 
 const sent: LiveCommand[] = [];
 

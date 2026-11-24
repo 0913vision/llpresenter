@@ -30,7 +30,7 @@ import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {themes as sampleThemes} from '@fixtures/core/themeOutput';
 import {sampleService} from '@fixtures/renderer/session/sampleService';
 import {useLive} from '@renderer/session/live';
-import {applyService, openItem, useShow} from '@renderer/session/show/show';
+import {applyService, openItem} from '@renderer/session/show/show';
 import {librarySourceId} from '@renderer/session/show/showLibrary';
 import {LOOKUP_TIMEOUT_MS} from '@renderer/session/show/showOutput';
 import {
@@ -43,6 +43,7 @@ import {
   fixtureServiceId,
   itemFixture,
 } from '@fixtures/renderer/features/service/items/itemFixture';
+import {useShow} from '@renderer/session/show/showStore';
 
 vi.mock('@renderer/rendering/outputRenderer', () => ({
   OutputRenderer: class {

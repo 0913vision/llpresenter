@@ -5,8 +5,8 @@ import type {
   BibleSource,
 } from '@renderer/session/show/bibleSource';
 import {bibleSourceFor} from '@renderer/session/show/showLibrary';
-import {useShow} from '@renderer/session/show/show';
 import {openBiblePassage} from '../bible/actions';
+import {useShow} from '@renderer/session/show/showStore';
 
 /** How quick run opens a passage: at once, with its own transition. */
 export function quickDisplay(display: BibleDisplay): BibleDisplay {

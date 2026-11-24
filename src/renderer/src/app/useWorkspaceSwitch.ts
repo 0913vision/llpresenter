@@ -1,10 +1,10 @@
 import {useDeferredValue, useEffect, useMemo, useRef, useState} from 'react';
-import type {Workspace as WorkspaceId} from '@renderer/app/shell/toolbar/Toolbar';
 import {ThemeLeaveGuard} from '@renderer/features/screens/themes/saving/themeLeaveGuard';
 import {requestLeaveSong} from '@renderer/features/songs/songDraft';
 import {closePrepEditor, usePrepTarget} from '@renderer/session/prepTarget';
-import {useShow} from '@renderer/session/show/show';
 import {WorkspaceSelections} from '@renderer/session/show/workspaceSelections';
+import type {Workspace as WorkspaceId} from '@renderer/platform/WorkspaceNavigation';
+import {useShow} from '@renderer/session/show/showStore';
 
 /**
  * Which workspace the window shows, and the switch between them. A switch

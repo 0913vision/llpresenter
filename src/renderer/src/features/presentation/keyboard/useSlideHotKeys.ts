@@ -1,8 +1,6 @@
-import {
-  useWindowShortcuts,
-  type WindowShortcut,
-} from '@renderer/platform/shortcuts/windowShortcuts';
+import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
 import {hasSlideHotKey, outputHotKey} from '@renderer/session/show/show';
+import {type WindowShortcut} from '@renderer/ui/keys/commandDispatcher';
 
 const codes = [
   ...Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ', letter => `Key${letter}`),

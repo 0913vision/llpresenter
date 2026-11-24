@@ -6,12 +6,12 @@ import type {SlideBackground} from '@core/schema/screens/theme';
 import type {Themes} from '@core/schema/screens/themes';
 import {useMedia} from '@renderer/platform/documents/media';
 import {useThemes} from '@renderer/platform/documents/themes';
-import {useShow} from '@renderer/session/show/show';
 import {keepThumbnails} from '@renderer/ui/tiles/keptThumbnails';
 import {
   LoadReadinessContext,
   type LoadReadiness,
 } from '@renderer/ui/loadReadiness';
+import {useShow} from '@renderer/session/show/showStore';
 
 function mediaOf(background: SlideBackground | undefined): readonly string[] {
   return background?.kind === 'media' ? [background.media] : [];

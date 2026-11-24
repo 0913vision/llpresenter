@@ -1,6 +1,5 @@
 import {cleanup, render} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
-import type {WindowShortcut} from '@renderer/platform/shortcuts/windowShortcuts';
 import {sendLive} from '@renderer/session/live';
 import {
   toggleProp,
@@ -8,6 +7,7 @@ import {
   resetTimer,
 } from '@renderer/features/tools/toolCommands';
 import {ToolObjectShortcuts} from '@renderer/features/tools/ToolObjectShortcuts';
+import type {WindowShortcut} from '@renderer/ui/keys/commandDispatcher';
 
 const mock = vi.hoisted(() => ({
   bound: false,

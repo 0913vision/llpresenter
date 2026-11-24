@@ -12,8 +12,6 @@ import styles from './Toolbar.module.css';
 
 import type {Workspace} from '@renderer/platform/WorkspaceNavigation';
 
-export type {Workspace};
-
 const workspaceTabs: ReadonlyArray<ToolbarTab<Workspace>> = [
   {value: 'show', icon: 'slides', label: '진행'},
   {value: 'prep', icon: 'edit', label: '준비'},

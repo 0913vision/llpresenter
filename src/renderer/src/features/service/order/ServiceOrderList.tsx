@@ -4,7 +4,7 @@ import {useServiceActions} from '@renderer/features/service/list/useServiceActio
 import {useOrderFull} from '@renderer/session/service/orderReasons';
 import {openInPrep} from '@renderer/session/prepTarget';
 import {renameItem} from '@renderer/session/service/serviceOrderEdits';
-import {openItem, useShow} from '@renderer/session/show/show';
+import {openItem} from '@renderer/session/show/show';
 import {useServiceOrderEditing} from '@renderer/session/service/useServiceOrderEditing';
 import {ListBox, ListInsertLine, Menu} from '@renderer/ui';
 import {clickFocusProps} from '@renderer/ui/lists/clickFocus';
@@ -29,6 +29,7 @@ import {useOrderShortcuts} from './edits/useOrderShortcuts';
 import {useServiceItemClipboard} from './edits/useServiceItemClipboard';
 import {useServiceItemSelection} from './useServiceItemSelection';
 import styles from './ServiceOrderList.module.css';
+import {useShow} from '@renderer/session/show/showStore';
 
 const closeNothing = (): void => undefined;
 

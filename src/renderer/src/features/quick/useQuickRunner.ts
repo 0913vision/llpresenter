@@ -2,9 +2,9 @@ import {useEffect, useMemo} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import {isKnownQuickItem, type QuickItem} from '@core/schema/tools/quick';
 import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
-import {useShow} from '@renderer/session/show/show';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {quickItemUnavailable, quickRunner} from './quickActions';
+import {useShow} from '@renderer/session/show/showStore';
 
 /**
  * Runs the 빠른 실행 items, by a click or by their own keys. A run still

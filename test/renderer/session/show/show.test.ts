@@ -22,8 +22,6 @@ import {
   selectTile,
   setAtLastSlide,
   startServiceSync,
-  tilesOf,
-  useShow,
 } from '@renderer/session/show/show';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {lyricsSlide, slideOf} from '@fixtures/core/slides';
@@ -32,6 +30,8 @@ import {
   sampleService,
   seedSampleService,
 } from '@fixtures/renderer/session/sampleService';
+import {useShow} from '@renderer/session/show/showStore';
+import {tilesOf} from '@renderer/session/show/showCursor';
 
 const sent: LiveCommand[] = [];
 let stop = (): void => undefined;

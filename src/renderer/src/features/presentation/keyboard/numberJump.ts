@@ -1,11 +1,12 @@
 import {create} from 'zustand';
 import {useEffect} from 'react';
-import {outputNext, outputTile, useShow} from '@renderer/session/show/show';
+import {outputNext, outputTile} from '@renderer/session/show/show';
 import {isInTextEntry} from '@renderer/ui/fields/textEntry';
 import {modalStack} from '@renderer/ui/popups/modalStack';
 import {focusSlideGrid} from '../focusSlideGrid';
 import {serviceSlideAt} from '../serviceSlideNumbers';
 import {isColumnDragActive} from '@renderer/ui/panels/columnDrag';
+import {useShow} from '@renderer/session/show/showStore';
 
 export const useNumberJump = create<{value: string}>(() => ({value: ''}));
 const clear = (): void => useNumberJump.setState({value: ''});

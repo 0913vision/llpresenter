@@ -5,7 +5,7 @@ import type {BibleLookupReply} from '@core/schema/bible/bibleLookup';
 import {openBiblePassage} from '@renderer/features/bible/actions';
 import {outputAdjacentBibleVerse} from '@renderer/features/bible/adjacent/verseShortcuts';
 import {useLive} from '@renderer/session/live';
-import {openItem, outputSlideOf, useShow} from '@renderer/session/show/show';
+import {openItem, outputSlideOf} from '@renderer/session/show/show';
 import {bibleSourceFor} from '@renderer/session/show/showLibrary';
 import {beginOutputRequest} from '@renderer/session/show/showOutput';
 import {panelApi} from '@fixtures/contracts/ipc/bibleApi';
@@ -13,6 +13,7 @@ import {lookupRequest} from '@fixtures/core/bibleLookups';
 import {formLookupReply} from '@fixtures/core/bibleReplies';
 import {lastLiveCommand} from '@fixtures/renderer/session/liveCommands';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
+import {useShow} from '@renderer/session/show/showStore';
 
 const ends = {previous: 0, next: 2} as const;
 

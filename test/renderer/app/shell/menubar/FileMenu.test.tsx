@@ -10,7 +10,7 @@ import {
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {applyService, useShow} from '@renderer/session/show/show';
+import {applyService} from '@renderer/session/show/show';
 import {useLive} from '@renderer/session/live';
 import {emptyLiveState} from '@core/schema/live/live';
 import {createServiceId} from '@core/schema/common/ids';
@@ -26,6 +26,7 @@ import {
   resetTooltips,
 } from '@fixtures/renderer/ui/tooltipTesting';
 import {MenuBar} from '@renderer/app/shell/menubar/MenuBar';
+import {useShow} from '@renderer/session/show/showStore';
 
 function setup() {
   const edit = vi.fn(() =>

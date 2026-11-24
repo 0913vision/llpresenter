@@ -1,8 +1,8 @@
 import {cleanup, render} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import type {WindowShortcut} from '@renderer/platform/shortcuts/windowShortcuts';
 import {QuickObjectShortcuts} from '@renderer/features/quick/QuickObjectShortcuts';
+import type {WindowShortcut} from '@renderer/ui/keys/commandDispatcher';
 
 const mock = vi.hoisted(() => ({
   bound: false,

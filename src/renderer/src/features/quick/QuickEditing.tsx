@@ -14,7 +14,6 @@ import {MAX_QUICK_ITEMS, type QuickItem} from '@core/schema/tools/quick';
 import {MAX_TIMER_DEFINITIONS, type Timer} from '@core/schema/tools/timers';
 import {isItemOfKind} from '@core/schema/services/service';
 import {useSettingsDocument} from '@renderer/platform/documents/useSettingsDocument';
-import {useShow} from '@renderer/session/show/show';
 import {
   bibleSourceFor,
   isLibrarySource,
@@ -29,6 +28,7 @@ import {newQuickItem, type QuickChoice, type QuickEdit} from './quickEdits';
 import {useTimerEditDialog} from '../tools/timers/useTimerEditDialog';
 import {QuickTimerDialog} from './QuickTimerDialog';
 import {quickItemMenuEntries, toolMenuReason} from '../tools/toolMenuEntries';
+import {useShow} from '@renderer/session/show/showStore';
 
 type Save = (
   edit: QuickEdit,

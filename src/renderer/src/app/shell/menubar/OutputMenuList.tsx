@@ -11,7 +11,7 @@ import type {Notice} from '@renderer/ui/popups/notices';
 import {useScreenSummaries} from '../../../platform/screens/ScreenSummaries';
 import {outputMenuEntries} from './outputMenuEntries';
 import type {WarningScreen} from './MenuBar';
-import type {Workspace} from '../toolbar/Toolbar';
+import type {Workspace} from '../../../platform/WorkspaceNavigation';
 
 export function OutputMenuList({
   anchor,

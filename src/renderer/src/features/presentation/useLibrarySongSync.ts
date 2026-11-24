@@ -1,7 +1,7 @@
 import {useEffect, useEffectEvent} from 'react';
-import {useShow} from '@renderer/session/show/show';
 import {refreshLibrarySong} from '@renderer/session/show/showLibrary';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
+import {useShow} from '@renderer/session/show/showStore';
 
 /** Refreshes the single retained library projection and releases all feeds. */
 export function useLibrarySongSync(onProblem: (notice: Notice) => void): void {

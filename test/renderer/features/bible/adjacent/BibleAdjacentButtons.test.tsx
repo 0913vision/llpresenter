@@ -10,12 +10,7 @@ import type {JSX} from 'react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {BibleLookupReply} from '@core/schema/bible/bibleLookup';
 import {emptyLiveState} from '@core/schema/live/live';
-import {
-  openItem,
-  outputTile,
-  selectTile,
-  useShow,
-} from '@renderer/session/show/show';
+import {openItem, outputTile, selectTile} from '@renderer/session/show/show';
 import {useLive} from '@renderer/session/live';
 import {bibleSourceFor} from '@renderer/session/show/showLibrary';
 import {beginOutputRequest} from '@renderer/session/show/showOutput';
@@ -25,6 +20,7 @@ import {openBiblePassage} from '@renderer/features/bible/actions';
 import {panelApi} from '@fixtures/contracts/ipc/bibleApi';
 import {lookupRequest} from '@fixtures/core/bibleLookups';
 import {formLookupReply} from '@fixtures/core/bibleReplies';
+import {useShow} from '@renderer/session/show/showStore';
 
 async function passage(input = '요한복음 3:16-18') {
   const reply = await formLookupReply(lookupRequest(input));

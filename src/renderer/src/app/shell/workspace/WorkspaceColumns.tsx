@@ -5,9 +5,9 @@ import {ColumnGap, type ColumnDrag} from '../columns/ColumnGap';
 import type {ColumnWidthStore} from '../columns/columnWidthStore';
 import {PanelColumn} from './PanelColumn';
 import {CollapsedSidebar, type SidebarToggle} from './SidebarToggle';
-import type {Workspace as WorkspaceId} from '../toolbar/Toolbar';
 import type {WorkspacePanels} from './WorkspacePanel';
 import styles from './Workspace.module.css';
+import type {Workspace as WorkspaceId} from '../../../platform/WorkspaceNavigation';
 
 /**
  * The columns of one workspace with the gaps that resize them. A folded left

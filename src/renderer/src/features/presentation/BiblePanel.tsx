@@ -1,7 +1,6 @@
 import type {JSX} from 'react';
 import {useShownItemId} from '@renderer/session/show/shownItem';
 import type {SizeClass} from '@renderer/ui/panels/sizeClass';
-import {useShow} from '@renderer/session/show/show';
 import {bibleSourceFor} from '@renderer/session/show/showLibrary';
 import {
   Panel,
@@ -18,6 +17,7 @@ import {BibleDisplayControls} from './BibleDisplayControls';
 import styles from './BiblePanel.module.css';
 import {BibleInsertButton} from '../service/items/BibleInsertButton';
 import type {Notice} from '@renderer/ui/popups/notices';
+import {useShow} from '@renderer/session/show/showStore';
 
 export function BiblePanel({
   sizeClass,

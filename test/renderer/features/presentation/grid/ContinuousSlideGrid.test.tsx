@@ -3,12 +3,13 @@ import {shownText} from '@fixtures/core/liveSlide';
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {ContinuousSlideGrid} from '@renderer/features/presentation/grid/ContinuousSlideGrid';
-import {applyService, openItem, useShow} from '@renderer/session/show/show';
+import {applyService, openItem} from '@renderer/session/show/show';
 import {useLive} from '@renderer/session/live';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {emptyLiveState} from '@core/schema/live/live';
 import {liveReturn} from '@renderer/features/presentation/grid/liveReturn';
 import {SlidePanelMeta} from '@renderer/features/presentation/grid/SlidePanel';
+import {useShow} from '@renderer/session/show/showStore';
 
 class Observer implements ResizeObserver {
   static all: Observer[] = [];

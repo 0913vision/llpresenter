@@ -1,7 +1,6 @@
 import {warningNotice} from '@renderer/ui/popups/notices';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useMemo, useState} from 'react';
-import {useShow} from '@renderer/session/show/show';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {asServiceId, editApplied} from './serviceEdits';
 import {selectedIds, type TreeSelection} from './serviceTree';
@@ -12,6 +11,7 @@ import {
 } from './useServiceSources';
 import {useSourcePick} from './useSourcePick';
 import {useAlive} from '@renderer/ui/useAlive';
+import {useShow} from '@renderer/session/show/showStore';
 
 const NOTHING: TreeSelection = new Set();
 const NONE_PICKED = '항목을 골라야 가져올 수 있습니다.';

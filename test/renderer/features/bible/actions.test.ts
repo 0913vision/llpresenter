@@ -6,13 +6,15 @@ import {
   showBiblePassage,
 } from '@renderer/features/bible/actions';
 import {useLive} from '@renderer/session/live';
-import {selectTile, tilesOf, useShow} from '@renderer/session/show/show';
+import {selectTile} from '@renderer/session/show/show';
 import {bibleSourceFor} from '@renderer/session/show/showLibrary';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
 import {panelApi} from '@fixtures/contracts/ipc/bibleApi';
 import {lookupRequest} from '@fixtures/core/bibleLookups';
 import {formLookupReply} from '@fixtures/core/bibleReplies';
 import {shownText} from '@fixtures/core/liveSlide';
+import {useShow} from '@renderer/session/show/showStore';
+import {tilesOf} from '@renderer/session/show/showCursor';
 
 async function passage(input: string) {
   const reply = await formLookupReply(lookupRequest(input));

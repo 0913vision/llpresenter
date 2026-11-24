@@ -8,7 +8,7 @@ import {
 } from '@testing-library/react';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
-import {openItem, useShow} from '@renderer/session/show/show';
+import {openItem} from '@renderer/session/show/show';
 import {useLive} from '@renderer/session/live';
 import {SlideGrid} from '@renderer/features/presentation/grid/SlideGrid';
 import {NumberJumpOverlay} from '@renderer/features/presentation/keyboard/DraftOverlay';
@@ -19,6 +19,7 @@ import {
   serviceSlideAt,
   serviceSlideOffset,
 } from '@renderer/features/presentation/serviceSlideNumbers';
+import {useShow} from '@renderer/session/show/showStore';
 
 function Harness() {
   useNumberJumpKeys();

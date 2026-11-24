@@ -6,7 +6,6 @@ import {
   type NamedDocument,
 } from '@renderer/platform/documents/useSettingsDocument';
 import {useLive} from '@renderer/session/live';
-import {useShow} from '@renderer/session/show/show';
 import {bibleSourceFor} from '@renderer/session/show/showLibrary';
 import {ListInsertLine} from '@renderer/ui';
 import {
@@ -31,6 +30,7 @@ import {useQuickReorder} from './useQuickReorder';
 import {useQuickTimers} from './useQuickTimers';
 import {useQuickHistory} from './useQuickHistory';
 import {useQuickWindow} from './useQuickWindow';
+import {useShow} from '@renderer/session/show/showStore';
 
 const EMPTY_ITEMS: readonly QuickItem[] = [];
 

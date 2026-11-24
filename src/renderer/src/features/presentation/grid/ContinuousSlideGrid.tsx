@@ -9,7 +9,6 @@ import {
 } from 'react';
 import type {ServiceRow, SlideTile} from '@core/presentation';
 import {useLive} from '@renderer/session/live';
-import {useShow} from '@renderer/session/show/show';
 import {
   projectedLiveCursor,
   tilesForView,
@@ -28,6 +27,7 @@ import {tileReflowIds} from './tileReflowIds';
 import {useReflow} from '@renderer/ui/panels/useReflow';
 import {useContinuousViewport} from './useContinuousViewport';
 import {ShowTileMenu, ShowTiles, type TileMenu} from './ShowTiles';
+import {useShow} from '@renderer/session/show/showStore';
 
 const BAND = 30;
 const HEADING = 37;

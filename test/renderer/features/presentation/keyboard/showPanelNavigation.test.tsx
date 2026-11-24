@@ -9,16 +9,12 @@ import {
   useShowPanelNavigation,
 } from '@renderer/features/presentation/keyboard/showPanelNavigation';
 import {SlideGrid} from '@renderer/features/presentation/grid/SlideGrid';
-import {
-  applyService,
-  openItem,
-  selectTile,
-  tilesOf,
-} from '@renderer/session/show/show';
+import {applyService, openItem, selectTile} from '@renderer/session/show/show';
 import {useLive} from '@renderer/session/live';
 import {emptyLiveState} from '@core/schema/live/live';
 import {commandBindingStore} from '@renderer/ui/keys/commandBindings';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
+import {tilesOf} from '@renderer/session/show/showCursor';
 
 function Surface({
   hidden = false,

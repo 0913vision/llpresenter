@@ -29,7 +29,6 @@ import {
   useOutputWarnings,
   warningScreens,
 } from '@renderer/platform/screens/outputWarnings';
-import {useShow} from '@renderer/session/show/show';
 import {
   PrepItemNavigation,
   WorkspaceNavigation,
@@ -61,6 +60,7 @@ import {BiblePassages} from '@renderer/features/bible/BiblePassages';
 import {ServicePictures} from './ServicePictures';
 import {BibleInsertionReview} from '@renderer/features/bible/split/BibleInsertionReview';
 import {LoadReadiness, LoadReadinessContext} from '@renderer/ui/loadReadiness';
+import {useShow} from '@renderer/session/show/showStore';
 
 const noSubscription = (): (() => void) => () => undefined;
 

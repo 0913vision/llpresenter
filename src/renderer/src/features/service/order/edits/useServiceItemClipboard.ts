@@ -5,7 +5,6 @@ import {
   NO_SERVICE_REASON,
   orderEditReason,
 } from '@renderer/session/service/orderReasons';
-import {useShow} from '@renderer/session/show/show';
 import {revealAddedItem} from '@renderer/session/service/selectAddedItem';
 import {serviceItemClipboardFor} from '@renderer/session/service/serviceItemClipboard';
 import {
@@ -14,6 +13,7 @@ import {
 } from '@renderer/session/service/serviceOrderEdits';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import type {useServiceOrderEditing} from '@renderer/session/service/useServiceOrderEditing';
+import {useShow} from '@renderer/session/show/showStore';
 
 const EMPTY_CLIPBOARD = '복사한 예배 순서 항목이 없습니다.';
 const NO_ITEMS = '선택한 항목이 없습니다.';

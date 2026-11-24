@@ -15,7 +15,6 @@ import {useVerseSplit} from '@renderer/features/bible/split/useVerseSplit';
 import {useItemDeck} from '@renderer/features/slides/slideDeck';
 import {QuickPanel} from '@renderer/features/quick/QuickPanel';
 import {ShowToolsPanel} from '@renderer/features/tools/ShowToolsPanel';
-import {useShow} from '@renderer/session/show/show';
 import {
   useSettingsDocument,
   type NamedDocument,
@@ -29,6 +28,7 @@ import {
   type WorkspacePanels,
 } from '../shell/workspace/WorkspacePanel';
 import {SERVICE_ORDER, serviceOrderParts} from './serviceOrderPanel';
+import {useShow} from '@renderer/session/show/showStore';
 
 const SHOW_COLUMNS = [
   [SERVICE_ORDER, '빠른 실행'],

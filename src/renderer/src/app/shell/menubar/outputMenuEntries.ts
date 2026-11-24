@@ -6,8 +6,8 @@ import type {MenuEntry} from '@renderer/ui/menus/menuModel';
 import {menuSeparator} from '@renderer/ui/menus/menuRows';
 import type {Notice} from '@renderer/ui/popups/notices';
 import type {ScreenSummary} from '../../../platform/screens/screens';
-import type {Workspace} from '../toolbar/Toolbar';
 import type {WarningScreen} from './MenuBar';
+import type {Workspace} from '../../../platform/WorkspaceNavigation';
 
 interface OutputMenuInput {
   readonly screens: readonly ScreenSummary[];

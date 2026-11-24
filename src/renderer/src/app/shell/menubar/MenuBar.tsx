@@ -31,8 +31,8 @@ import {useClipboardAvailability} from './useClipboardAvailability';
 import {workspaceMenu, showMenu, type ContinuousRow} from './workspaceCommands';
 import {usePreferenceEdits} from '@renderer/features/preferences/usePreferenceEdits';
 import {fullScreenRow, useFullScreen} from './viewToggles';
-import type {Workspace} from '../toolbar/Toolbar';
 import {focusMenu} from '@renderer/ui/menus/useMenuNavigation';
+import type {Workspace} from '../../../platform/WorkspaceNavigation';
 
 const EDIT_MENU = '편집';
 const WINDOW_MENU = '창';

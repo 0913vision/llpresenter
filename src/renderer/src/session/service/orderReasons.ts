@@ -1,7 +1,7 @@
 import {SERVICE_LIMITS} from '@core/schema/services/service';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {ORDER_FULL_REASON} from './serviceOrderEdits';
-import {useShow} from '../show/show';
+import {useShow} from '../show/showStore';
 
 /** What an add to the 예배 순서 says when no service is open. */
 export const NO_SERVICE_REASON = '열린 예배 없음';

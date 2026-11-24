@@ -6,8 +6,8 @@ import {
   applyService,
   openItem,
   startServiceSync,
-  useShow,
 } from '@renderer/session/show/show';
+import {useShow} from '@renderer/session/show/showStore';
 
 function serviceOf(overrides: Partial<ShowService> = {}): ShowService {
   return {

@@ -12,7 +12,6 @@ import type {LlpApi} from '@contracts/ipc/api';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {parseSettingsDocument} from '@core/schema/app/settingsDocuments';
 import {resetTooltips} from '@fixtures/renderer/ui/tooltipTesting';
-import {useShow} from '@renderer/session/show/show';
 import {useLive} from '@renderer/session/live';
 import {QuickPanel} from '@renderer/features/quick/QuickPanel';
 import {
@@ -21,6 +20,7 @@ import {
   quickId,
   quickLive,
 } from '@fixtures/renderer/features/tools/quickTesting';
+import {useShow} from '@renderer/session/show/showStore';
 
 export function setup() {
   const base = quickFixture();

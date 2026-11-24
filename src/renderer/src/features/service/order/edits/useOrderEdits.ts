@@ -9,13 +9,13 @@ import {
   moveItemsStep,
   removeItems,
 } from '@renderer/session/service/serviceOrderEdits';
-import {useShow} from '@renderer/session/show/show';
 import type {useServiceOrderEditing} from '@renderer/session/service/useServiceOrderEditing';
 import {deleteSelection} from '@renderer/ui/lists/deleteSelection';
 import type {Workspace} from '@renderer/ui/lists/workspace';
 import {canMoveItems, movableItems} from '../orderRows';
 import {useMovedRowFocus} from './useMovedRowFocus';
 import {useOrderEditFocus} from './useOrderEditFocus';
+import {useShow} from '@renderer/session/show/showStore';
 
 /** The rows chosen in the list and the way to choose others. */
 export interface ChosenRows {

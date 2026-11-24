@@ -12,7 +12,6 @@ import type {EditResult} from '@core/schema/services/contentEdit';
 import {parseServiceDocument} from '@core/schema/services/contentDocuments';
 import {macroIdSchema, createQuickItemId} from '@core/schema/common/ids';
 import {isKnownQuickItem} from '@core/schema/tools/quick';
-import {useShow} from '@renderer/session/show/show';
 import {useLive} from '@renderer/session/live';
 import {openLibrarySong} from '@renderer/session/show/showLibrary';
 import {pendingWritesOf} from '@renderer/platform/documents/pendingWrites';
@@ -36,6 +35,7 @@ import {
   failPersistedEdit,
   openAddMenu,
 } from '@fixtures/renderer/features/quick/quickEditingFixtures';
+import {useShow} from '@renderer/session/show/showStore';
 
 describe('quick editing', () => {
   it('retains an applied rename draft and its disk warning until saving succeeds', async () => {

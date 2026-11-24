@@ -15,7 +15,7 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {BibleLookupReply} from '@core/schema/bible/bibleLookup';
 import {emptyLiveState} from '@core/schema/live/live';
 import {useLive} from '@renderer/session/live';
-import {openItem, useShow} from '@renderer/session/show/show';
+import {openItem} from '@renderer/session/show/show';
 import {bibleSourceFor} from '@renderer/session/show/showLibrary';
 import {openBiblePassage} from '@renderer/features/bible/actions';
 import {shownText} from '@fixtures/core/liveSlide';
@@ -29,6 +29,7 @@ import {
   quickId,
   quickLive,
 } from '@fixtures/renderer/features/tools/quickTesting';
+import {useShow} from '@renderer/session/show/showStore';
 
 vi.mock('@renderer/features/presentation/preview/PreviewPanel', () => ({
   PreviewPanel: () => null,

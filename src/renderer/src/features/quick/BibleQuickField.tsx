@@ -10,7 +10,7 @@ import {
   beginQuickPassage,
   finishQuickPassage,
 } from '@renderer/session/show/quickReturn';
-import {selectTile, useShow} from '@renderer/session/show/show';
+import {selectTile} from '@renderer/session/show/show';
 import {
   bibleSourceFor,
   isBibleSource,
@@ -32,6 +32,7 @@ import {useBibleDisplayDefaults} from '../bible/useBibleDisplayDefaults';
 import {focusSlideGrid} from '../presentation/focusSlideGrid';
 import {firstVerseOf, followQuickEdit, quickDisplay} from './quickPassage';
 import {usePassageFinder} from './usePassageFinder';
+import {useShow} from '@renderer/session/show/showStore';
 
 /**
  * Puts the keyboard on the slide grid once the item a passage opened is the

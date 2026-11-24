@@ -7,7 +7,6 @@ import {useRef, useState, type KeyboardEvent, type ReactNode} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {ServiceEntry} from '@core/schema/services/contentDocuments';
 import {pendingWritesOf} from '@renderer/platform/documents/pendingWrites';
-import {useShow} from '@renderer/session/show/show';
 import {contentDeleteHistory} from '@renderer/platform/undo/contentDeleteHistory';
 import {deleteSelection} from '@renderer/ui/lists/deleteSelection';
 import {historyKey} from '@renderer/ui/lists/historyKey';
@@ -22,6 +21,7 @@ import {
   type ContextMenuEvent,
 } from '../../../ui/menus/contextMenu';
 import {useAlive} from '@renderer/ui/useAlive';
+import {useShow} from '@renderer/session/show/showStore';
 
 type NamedSource = Exclude<ServiceSource, {readonly kind: 'empty'}>;
 

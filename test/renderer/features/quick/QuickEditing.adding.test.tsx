@@ -7,7 +7,6 @@ import {
   hoverForTooltip,
   resetTooltips,
 } from '@fixtures/renderer/ui/tooltipTesting';
-import {useShow} from '@renderer/session/show/show';
 import {pendingWritesOf} from '@renderer/platform/documents/pendingWrites';
 import {QuickRowEditor} from '@renderer/features/quick/QuickEditing';
 import {renderedToolMenuRows} from '@fixtures/renderer/features/tools/toolMenuTesting';
@@ -23,6 +22,7 @@ import {
   failPersistedEdit,
   openAddMenu,
 } from '@fixtures/renderer/features/quick/quickEditingFixtures';
+import {useShow} from '@renderer/session/show/showStore';
 
 describe('quick editing', () => {
   it('explains pending targets, empty lists and an unavailable current item', async () => {

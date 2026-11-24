@@ -2,7 +2,7 @@ import type {VerseDirection} from '@core/bible';
 import type {BiblePassage} from '@core/schema/bible/biblePassage';
 import type {BibleLookupPassage} from '@core/schema/bible/bibleLookup';
 import {useLive} from '@renderer/session/live';
-import {outputTile, useShow} from '@renderer/session/show/show';
+import {outputTile} from '@renderer/session/show/show';
 import {
   bibleSourceFor,
   liveTileIndex,
@@ -21,6 +21,7 @@ import {
 import {openBiblePassage} from '../actions';
 import {lookupAdjacentPassage} from './lookupAdjacentPassage';
 import {passageText} from '../passageText';
+import {useShow} from '@renderer/session/show/showStore';
 
 /** The passage an item shows, as if it had been opened by itself. */
 async function openedPassage(

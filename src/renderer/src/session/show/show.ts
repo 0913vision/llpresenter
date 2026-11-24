@@ -37,8 +37,6 @@ import {
 import {beginOutputRequest} from './showOutput';
 import {noService, useShow, type ShowView} from './showStore';
 
-export {useShow} from './showStore';
-
 type AtLastSlide = Preferences['show']['atLastSlide'];
 
 declare global {
@@ -51,8 +49,6 @@ declare global {
 if (typeof window !== 'undefined' && import.meta.env.DEV) {
   window.__llpShowStore = useShow;
 }
-
-export {liveCursor, tilesOf} from './showCursor';
 
 // NOTE(0913vision): A Bible passage that grew around the live verse is a new
 // item, so the next and previous 장 keys go on from that verse inside it

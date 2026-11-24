@@ -4,7 +4,6 @@ import {createServiceItemId, type ServiceItemId} from '@core/schema/common/ids';
 import type {ServiceItem} from '@core/schema/services/service';
 import type {Report} from '@renderer/session/service/serviceEdit';
 import {useOrderFull} from '@renderer/session/service/orderReasons';
-import {useShow} from '@renderer/session/show/show';
 import {warningNotice} from '@renderer/ui/popups/notices';
 import {BibleQuickAdd} from './BibleQuickAdd';
 import {
@@ -14,6 +13,7 @@ import {
 import {newPaletteItem} from './newItems';
 import {newBibleItem, newSermonItem} from './passageItems';
 import {SermonQuickAdd} from './SermonQuickAdd';
+import {useShow} from '@renderer/session/show/showStore';
 
 /** Where an element goes and how it is made. */
 export interface InsertOptions {

@@ -2,7 +2,6 @@ import {warningNotice} from '@renderer/ui/popups/notices';
 import {useMenuHandoff} from '@renderer/ui/menus/useMenuHandoff';
 import {useState} from 'react';
 import type {ServiceEntry} from '@core/schema/services/contentDocuments';
-import {useShow} from '@renderer/session/show/show';
 import {pendingWritesOf} from '@renderer/platform/documents/pendingWrites';
 import {
   duplicateService,
@@ -17,6 +16,7 @@ import type {RenameContract} from '@renderer/ui/fields/useRenameDraft';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {serviceRowMenuEntries} from './serviceRowMenu';
 import {useAlive} from '@renderer/ui/useAlive';
+import {useShow} from '@renderer/session/show/showStore';
 
 export function useServiceRowMenu(
   onProblem: (notice: Notice) => void,

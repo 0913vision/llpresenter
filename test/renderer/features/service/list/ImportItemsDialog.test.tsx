@@ -18,7 +18,7 @@ import type {
 import type {ContentEdit, EditResult} from '@core/schema/services/contentEdit';
 import {createServiceId, createTemplateId} from '@core/schema/common/ids';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {applyService, openItem, useShow} from '@renderer/session/show/show';
+import {applyService, openItem} from '@renderer/session/show/show';
 import {sampleService} from '@fixtures/renderer/session/sampleService';
 import {
   hoverForTooltip,
@@ -38,6 +38,7 @@ import {
   templateEntries,
   titles,
 } from '@fixtures/core/serviceList';
+import {useShow} from '@renderer/session/show/showStore';
 
 const currentId = createServiceId('40000000-0000-4000-8000-000000000009');
 const current: ServiceEntry = {

@@ -6,8 +6,9 @@ import type {ShowLibrarySong} from '@core/schema/songs/showLibrarySong';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {sampleService} from '@fixtures/renderer/session/sampleService';
 import {useLibrarySongSync} from '@renderer/features/presentation/useLibrarySongSync';
-import {applyService, useShow} from '@renderer/session/show/show';
+import {applyService} from '@renderer/session/show/show';
 import {openLibrarySong} from '@renderer/session/show/showLibrary';
+import {useShow} from '@renderer/session/show/showStore';
 
 const songId = createSongId('10000000-0000-4000-8000-000000000001');
 
