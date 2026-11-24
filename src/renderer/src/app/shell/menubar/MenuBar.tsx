@@ -4,14 +4,12 @@ import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
 import {useMenuShortcuts} from '@renderer/ui/menus/useMenuShortcuts';
 import {MenuWarmup} from '@renderer/ui/menus/MenuWarmup';
 import {useEffect, useState, type JSX} from 'react';
-import type {AppInfo, WindowAction} from '@contracts/ipc/window';
+import type {AppInfo} from '@contracts/ipc/window';
 import {AlertDialog} from '@renderer/ui/popups/AlertDialog';
 import type {TextImportReadRequest} from '@core/schema/songs/textImport';
 import {useServiceActions} from '@renderer/features/service/list/useServiceActions';
 import {useServicePickerMenu} from '@renderer/features/service/order/picker/useServicePickerMenu';
-import {Icon} from '@renderer/ui/Icon';
 import {Menu} from '@renderer/ui/menus/Menu';
-import {useTooltip} from '@renderer/ui/popups/Tooltip';
 import type {MenuEntry} from '@renderer/ui/menus/menuModel';
 import {openOnArrowDown} from '@renderer/ui/menus/menuButton';
 import {hasModifier} from '@renderer/ui/keys/modifierKeys';
@@ -29,6 +27,7 @@ import {useOutsideFocus} from './outsideFocus';
 import {windowMenuEntries} from './windowMenuEntries';
 import {useFileMediaImport} from './useFileMediaImport';
 import styles from './MenuBar.module.css';
+import {WindowControls} from './WindowControls';
 import {useClipboardAvailability} from './useClipboardAvailability';
 import {
   showViewMenuEntries,
@@ -87,53 +86,6 @@ export interface WarningScreen {
   readonly screenId: string;
   /** The full screen name, such as 무대 화면. */
   readonly screenName: string;
-}
-
-interface WindowControl {
-  readonly action: WindowAction;
-  readonly icon: string;
-  readonly label: string;
-}
-
-const windowControls: readonly WindowControl[] = [
-  {action: 'minimize', icon: 'min', label: '최소화'},
-  {action: 'toggle-maximize', icon: 'max', label: '최대화'},
-  {action: 'close', icon: 'x', label: '닫기'},
-];
-
-function WindowButton({
-  control,
-}: {
-  readonly control: WindowControl;
-}): JSX.Element {
-  const command =
-    control.action === 'minimize'
-      ? 'window.minimize'
-      : control.action === 'toggle-maximize'
-        ? 'window.maximize'
-        : 'app.quit';
-  const run = (): void => window.llp?.window.control(control.action);
-  useWindowShortcuts([{id: command, run}]);
-  const {targetProps, tooltip} = useTooltip({text: control.label, command});
-  const press = useButtonPress<HTMLButtonElement>({
-    disabled: false,
-    onPress: run,
-    onBlur: targetProps.onBlur,
-  });
-  return (
-    <>
-      <button
-        {...targetProps}
-        {...press}
-        type="button"
-        className={styles.control}
-        aria-label={control.label}
-      >
-        <Icon name={control.icon} size={14} />
-      </button>
-      {tooltip}
-    </>
-  );
 }
 
 const MENU_NAMES = [
@@ -533,11 +485,7 @@ export function MenuBar({
       </div>
       <HistoryButtons />
       <span className={styles.title}>{title}</span>
-      <div className={styles.controls}>
-        {windowControls.map(control => (
-          <WindowButton key={control.action} control={control} />
-        ))}
-      </div>
+      <WindowControls />
     </div>
   );
 }
