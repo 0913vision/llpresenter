@@ -1,30 +1,16 @@
-import {
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-  type JSX,
-  type KeyboardEvent,
-} from 'react';
+import {useState, type JSX, type KeyboardEvent, type RefObject} from 'react';
 import {
   type VerseInput,
-  changedGap,
   planSlides,
   type SplitLayout,
-  effectiveCuts,
   hintCharFromEvent,
-  hintLabels,
-  initialEditHistory,
-  pressGap,
-  redoEdit,
-  undoEdit,
-  type EditHistory,
 } from '@core/bible';
 import {Dialog} from '@renderer/ui/Dialog';
 import {Spinner} from '@renderer/ui/Spinner';
 import type {ThemeFile} from '@core/schema/theme';
 import {SplitSlidePicture} from './SplitSlidePicture';
+import {RESULTS_PER_ROW, useSplitDraft} from './useSplitDraft';
+import {useSplitSave} from './useSplitSave';
 import styles from './SplitEditor.module.css';
 
 export interface SplitEditorProps {
@@ -48,9 +34,6 @@ export interface SplitEditorProps {
 }
 
 const DIALOG_HEIGHT = 640;
-const RESULTS_PER_ROW = 3;
-const RESULT_TOP_INSET = 12;
-const CONFIRM_GUARD_MS = 400;
 
 /** Keeps one surface size while pending text is replaced by an editable verse. */
 export function SplitEditor(props: SplitEditorProps): JSX.Element {
@@ -101,7 +84,6 @@ export function SplitEditor(props: SplitEditorProps): JSX.Element {
   return <VerseSplitEditor {...props} afterSpinner={spun} />;
 }
 
-/** Copible's word-gap editor. Its parent remounts it for each verse. */
 /**
  * One word of the verse and, after it, the key that cuts the verse there:
  * the letters typed so far stand out while they match.
@@ -163,161 +145,85 @@ function SplitWord({
   );
 }
 
+/** Keys of the dialog that pass through it: Tab, F keys, Alt and Windows. */
+function passesThrough(event: KeyboardEvent): boolean {
+  return (
+    event.altKey ||
+    event.metaKey ||
+    event.code === 'Tab' ||
+    /^F\d+$/.test(event.code)
+  );
+}
+
+function isConfirmKey(event: KeyboardEvent): boolean {
+  return event.key === 'Enter' || event.code === 'Space';
+}
+
+/**
+ * Copible's word-gap editor. Typed hint letters cut the verse at a gap,
+ * Backspace and Ctrl Z undo, Ctrl Y redoes, Enter or Space confirms. Its
+ * parent remounts it for each verse.
+ */
 function VerseSplitEditor(
   props: SplitEditorProps & {readonly afterSpinner: boolean},
 ): JSX.Element {
-  const guarded = useRef(props.afterSpinner);
-  useEffect(() => {
-    if (!props.afterSpinner) return;
-    const timer = setTimeout(() => {
-      guarded.current = false;
-    }, CONFIRM_GUARD_MS);
-    return () => clearTimeout(timer);
-  }, [props.afterSpinner]);
-  const [history, setHistory] = useState(() => initialEditHistory(props.cuts));
-  const [buffer, setBuffer] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [problem, setProblem] = useState<string>();
-  const active = useRef(true);
-  const locked = useRef(false);
-  const previews = useRef<HTMLDivElement>(null);
-  const changedGapRef = useRef<number | undefined>(undefined);
-  useEffect(() => {
-    active.current = true;
-    return () => {
-      active.current = false;
-    };
-  }, []);
-  const plan = useMemo(() => {
-    const cuts = effectiveCuts(history.present);
-    if (
-      cuts.length === props.preparedPlan?.cuts.length &&
-      cuts.every((cut, i) => props.preparedPlan?.cuts[i] === cut)
-    ) {
-      return props.preparedPlan;
-    }
-    return planSlides(props.verse.text, cuts, {
-      ...props.layout,
-      prefix: props.prefix,
-    });
-  }, [
-    props.verse.text,
-    history.present,
-    props.layout,
-    props.prefix,
-    props.preparedPlan,
-  ]);
-  useLayoutEffect(() => {
-    const gap = changedGapRef.current;
-    const area = previews.current;
-    if (gap === undefined || area === null) return;
-    changedGapRef.current = undefined;
-    const part = plan.cuts.filter(cut => cut <= gap).length;
-    const rowStart = Math.floor(part / RESULTS_PER_ROW) * RESULTS_PER_ROW;
-    const target = area.children.item(rowStart);
-    if (target instanceof HTMLElement) {
-      area.scrollTop = Math.ceil(target.offsetTop - RESULT_TOP_INSET);
-    }
-  }, [plan]);
-  const labels = hintLabels(Math.max(0, plan.words.length - 1));
-  const edit = (next: EditHistory, gap?: number): void => {
-    if (next === history) return;
-    changedGapRef.current = gap ?? changedGap(history, next);
-    setHistory(next);
-  };
-  const cut = (j: number): void => {
-    if (locked.current) return;
-    setBuffer('');
-    edit(pressGap(history, j), j);
-    setProblem(undefined);
+  const draft = useSplitDraft(props);
+  const {plan} = draft;
+  const saving = useSplitSave({
+    plan,
+    previews: draft.previews,
+    shakeClass: styles.shake ?? 'shake',
+    afterSpinner: props.afterSpinner,
+    onConfirm: props.onConfirm,
+  });
+  const cutAt = (gap: number): void => {
+    if (saving.locked()) return;
+    draft.cut(gap);
+    saving.clearProblem();
   };
   const cancel = (): void => {
-    if (!locked.current) props.onCancel();
+    if (!saving.locked()) props.onCancel();
   };
-  const confirm = (): void => {
-    if (locked.current) return;
-    if (guarded.current) return;
-    if (!plan.ok) {
-      previews.current
-        ?.querySelectorAll<HTMLElement>('figure[data-overflow="true"]')
-        .forEach(preview => {
-          preview.classList.remove(styles.shake ?? 'shake');
-          preview.getBoundingClientRect();
-          preview.classList.add(styles.shake ?? 'shake');
-        });
-      return;
-    }
-    locked.current = true;
-    setBusy(true);
-    setProblem(undefined);
-    props
-      .onConfirm(
-        plan.cuts,
-        plan.slides.map(slide => slide.text),
-      )
-      .catch((cause: unknown) => {
-        if (active.current) {
-          setProblem(
-            cause instanceof Error ? cause.message : '절 나누기 저장 실패',
-          );
-        }
-      })
-      .finally(() => {
-        if (active.current) {
-          locked.current = false;
-          setBusy(false);
-        }
-      });
-  };
-  const keyDown = (event: KeyboardEvent): void => {
-    if (
-      event.altKey ||
-      event.metaKey ||
-      event.code === 'Tab' ||
-      /^F\d+$/.test(event.code)
-    ) {
-      return;
-    }
-    event.stopPropagation();
-    if (props.ruleBased) {
-      event.preventDefault();
-      if (!event.repeat && (event.key === 'Enter' || event.code === 'Space')) {
-        confirm();
-      } else if (event.code === 'Escape') cancel();
-      return;
-    }
-    if (event.ctrlKey) {
-      if (event.code !== 'KeyZ' && event.code !== 'KeyY') return;
-      event.preventDefault();
-      if (locked.current) return;
-      setBuffer('');
-      edit(
-        event.code === 'KeyY' || event.shiftKey
-          ? redoEdit(history)
-          : undoEdit(history),
-      );
-      return;
-    }
+
+  /** A rule-based split takes no cuts: only confirm and cancel. */
+  const ruleBasedKey = (event: KeyboardEvent): void => {
     event.preventDefault();
-    if (locked.current) return;
+    if (!event.repeat && isConfirmKey(event)) saving.confirm();
+    else if (event.code === 'Escape') cancel();
+  };
+  const historyKey = (event: KeyboardEvent): void => {
+    if (event.code !== 'KeyZ' && event.code !== 'KeyY') return;
+    event.preventDefault();
+    if (saving.locked()) return;
+    draft.clearTyped();
+    if (event.code === 'KeyY' || event.shiftKey) draft.redo();
+    else draft.undo();
+  };
+  const editKey = (event: KeyboardEvent): void => {
+    event.preventDefault();
+    if (saving.locked()) return;
     const letter = hintCharFromEvent(event);
     if (letter !== null) {
-      const typed = buffer + letter;
-      const index = labels.indexOf(typed);
-      if (index >= 0) cut(index + 1);
-      else {
-        setBuffer(labels.some(label => label.startsWith(typed)) ? typed : '');
-      }
-    } else if (event.key === 'Enter' || event.code === 'Space') {
-      if (!event.repeat) confirm();
+      const gap = draft.typeHint(letter);
+      if (gap !== null) cutAt(gap);
+    } else if (isConfirmKey(event)) {
+      if (!event.repeat) saving.confirm();
     } else if (event.code === 'Backspace') {
-      if (buffer !== '') setBuffer('');
-      else edit(undoEdit(history));
+      if (draft.typed !== '') draft.clearTyped();
+      else draft.undo();
     } else if (event.code === 'Escape') {
-      if (buffer !== '') setBuffer('');
+      if (draft.typed !== '') draft.clearTyped();
       else cancel();
     }
   };
+  const keyDown = (event: KeyboardEvent): void => {
+    if (passesThrough(event)) return;
+    event.stopPropagation();
+    if (props.ruleBased) ruleBasedKey(event);
+    else if (event.ctrlKey) historyKey(event);
+    else editKey(event);
+  };
+
   return (
     <div onKeyDownCapture={keyDown} style={{display: 'contents'}}>
       <Dialog
@@ -336,69 +242,93 @@ function VerseSplitEditor(
         initialFocus="surface"
         onCancel={cancel}
         primary={{
-          label: busy ? '저장 중' : '확정',
-          onSelect: confirm,
-          disabled: !plan.ok || busy,
+          label: saving.busy ? '저장 중' : '확정',
+          onSelect: saving.confirm,
+          disabled: !plan.ok || saving.busy,
           title: !plan.ok
             ? '한 슬라이드에 들어가지 않는 구절이 있습니다.'
             : undefined,
         }}
         footerStart={
-          problem === undefined ? undefined : (
+          saving.problem === undefined ? undefined : (
             <span role="alert" className={styles.problem}>
-              {problem}
+              {saving.problem}
             </span>
           )
         }
       >
         <div className={styles.words}>
-          {props.ruleBased ? <p>규칙 기반 분할</p> : null}
-          {props.ruleBased
-            ? null
-            : plan.words.map((word, index) => (
-                <SplitWord
-                  key={word.start}
-                  text={word.text}
-                  label={labels[index]}
-                  typed={buffer}
-                  last={index === plan.words.length - 1}
-                  cut={plan.cuts.includes(index + 1)}
-                  busy={busy}
-                  onCut={() => cut(index + 1)}
-                />
-              ))}
+          {props.ruleBased ? (
+            <p>규칙 기반 분할</p>
+          ) : (
+            plan.words.map((word, index) => (
+              <SplitWord
+                key={word.start}
+                text={word.text}
+                label={draft.labels[index]}
+                typed={draft.typed}
+                last={index === plan.words.length - 1}
+                cut={plan.cuts.includes(index + 1)}
+                busy={saving.busy}
+                onCut={() => cutAt(index + 1)}
+              />
+            ))
+          )}
         </div>
-        <div
-          ref={previews}
-          className={styles.previews}
-          data-centered={plan.slides.length < RESULTS_PER_ROW}
-          aria-label="나눈 결과"
-        >
-          {plan.slides.map(slide => (
-            <figure
-              key={slide.index}
-              className={styles.preview}
-              data-overflow={!slide.fits}
-            >
-              <figcaption>{slide.index + 1}</figcaption>
-              <div
-                role="img"
-                aria-label={`슬라이드 ${slide.index + 1}`}
-                className={styles.slide}
-              >
-                <SplitSlidePicture
-                  text={
-                    slide.index === 0 ? props.prefix + slide.text : slide.text
-                  }
-                  continued={!slide.isLast}
-                  address={props.address}
-                  theme={props.theme}
-                />
-              </div>
-            </figure>
-          ))}
-        </div>
+        <SplitPreviews
+          area={draft.previews}
+          slides={plan.slides}
+          prefix={props.prefix}
+          address={props.address}
+          theme={props.theme}
+        />
       </Dialog>
+    </div>
+  );
+}
+
+/** The slides the cuts give, as they will look. */
+function SplitPreviews({
+  area,
+  slides,
+  prefix,
+  address,
+  theme,
+}: {
+  readonly area: RefObject<HTMLDivElement | null>;
+  readonly slides: ReturnType<typeof planSlides>['slides'];
+  readonly prefix: string;
+  readonly address: string;
+  readonly theme: ThemeFile;
+}): JSX.Element {
+  return (
+    <div
+      ref={area}
+      className={styles.previews}
+      data-centered={slides.length < RESULTS_PER_ROW}
+      aria-label="나눈 결과"
+    >
+      {slides.map(slide => (
+        <figure
+          key={slide.index}
+          className={styles.preview}
+          data-overflow={!slide.fits}
+        >
+          <figcaption>{slide.index + 1}</figcaption>
+          <div
+            role="img"
+            aria-label={`슬라이드 ${slide.index + 1}`}
+            className={styles.slide}
+          >
+            <SplitSlidePicture
+              text={slide.index === 0 ? prefix + slide.text : slide.text}
+              continued={!slide.isLast}
+              address={address}
+              theme={theme}
+            />
+          </div>
+        </figure>
+      ))}
     </div>
   );
 }
