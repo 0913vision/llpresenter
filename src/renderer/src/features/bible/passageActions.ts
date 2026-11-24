@@ -144,13 +144,14 @@ export function openBiblePassage(
 }
 
 /**
- * Shows the open passage with other 절 번호 or 역본 이름 as the same item. Each
- * verse keeps the slides it had, so a verse on output changes at once, without
- * a transition, the way an edited lyric does.
+ * Shows the open passage with other 절 번호, 역본 이름 or translation as the
+ * same item. Each verse keeps the slides it had, so a verse on output changes
+ * at once, without a transition, the way an edited lyric does.
  */
 export function restyleBiblePassage(
   source: BibleSource,
   display: BibleDisplay,
+  passage: BibleLookupPassage = source.passage,
 ): BibleSource {
   const view = useShow.getState();
   const settings = {
@@ -158,11 +159,11 @@ export function restyleBiblePassage(
     translationName: display.translationName ?? false,
   };
   const recut = slidesOfPassage(
-    source.passage,
-    measurePassage(source.passage, settings, []),
+    passage,
+    measurePassage(passage, settings, []),
     {settings},
   );
-  const restyled = bibleSource(source.id, source.passage, {
+  const restyled = bibleSource(source.id, passage, {
     ...display,
     slides: withVerseSlideIds(source.slides, recut),
   });

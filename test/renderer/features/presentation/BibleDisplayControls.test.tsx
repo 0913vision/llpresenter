@@ -80,6 +80,15 @@ async function choose(name = 'Alternate'): Promise<void> {
   fireEvent.click(await screen.findByRole('menuitemradio', {name}));
 }
 
+/** Follows the live slide as the window does, with a service that never loads. */
+function followLive(api: NonNullable<typeof window.llp>): () => void {
+  window.llp = {
+    ...api,
+    service: {...api.service, get: () => new Promise(() => undefined)},
+  };
+  return startServiceSync();
+}
+
 beforeEach(() => {
   HTMLElement.prototype.scrollIntoView = vi.fn();
   seedSampleService();
@@ -131,7 +140,7 @@ describe('Bible preview display controls', () => {
 
   it('changes the verse on output at once when its numbering changes, as the same slide', async () => {
     const fixture = await setup();
-    const stop = startServiceSync();
+    const stop = followLive(fixture.api);
     const original = currentSource();
     const verse = original.tiles[1]?.slide;
     const slide = outputSlideOf({itemId: original.id, index: 1});
@@ -163,7 +172,36 @@ describe('Bible preview display controls', () => {
     stop();
   });
 
-  it('changes only the preview translation, keeping numbering and the selected verse', async () => {
+  it('changes the verse on output to another translation at once, as the same slide, with its name', async () => {
+    const fixture = await setup();
+    const stop = followLive(fixture.api);
+    const original = currentSource();
+    const verse = original.tiles[1]?.slide;
+    const slide = outputSlideOf({itemId: original.id, index: 1});
+    if (verse === undefined || slide === null) throw Error('Missing verse');
+    const state = emptyLiveState();
+    act(() => {
+      useLive.setState({state: {...state, layers: {...state.layers, slide}}});
+    });
+    fixture.send.mockClear();
+    await choose();
+    await waitFor(() =>
+      expect(currentSource().passage.translation).toBe(alternate),
+    );
+    expect(currentSource()).toMatchObject({
+      id: original.id,
+      translationName: true,
+    });
+    expect(currentSource().tiles[1]?.slide.id).toBe(verse.id);
+    expect(selectedVerse()).toBe(17);
+    expect(lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0])).toMatchObject({
+      type: 'slide.update',
+      slide: {slideId: verse.id},
+    });
+    stop();
+  });
+
+  it('changes the translation of the passage, keeping numbering and the selected verse', async () => {
     const fixture = await setup();
     fireEvent.click(screen.getByRole('checkbox', {name: '절 번호'}));
     await waitFor(() =>

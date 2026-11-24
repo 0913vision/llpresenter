@@ -1061,13 +1061,14 @@ integration use this contract, with a distinct cancellable ID per lookup.
 - Settings row: the installed translation select (개역한글), 절 번호 (verse
   numbers) and 역본 이름 (translation name).
   - These change this passage only; they do not change the defaults or saved
-    items. The translation select changes the preview, and output follows at the
-    next slide. 절 번호 and 역본 이름 keep the passage the same item and each
-    verse part the same slide, so a verse on output changes at once, without a
-    transition, like an edited lyric (user decision, November 24). A change of
-    one retains the range and the selected verse when available. If the selected
-    verse is omitted, choose the next available verse, or the last one when no
-    later verse remains. A failed or superseded lookup keeps the old preview.
+    items. The translation select, 절 번호 and 역본 이름 keep the passage the
+    same item and each verse part the same slide, so a verse on output changes
+    at once, without a transition, like an edited lyric (user decisions,
+    November 24). A new translation also takes the 역본 이름 rule of a new
+    passage. A change of one retains the range and the selected verse when
+    available. If the selected verse is omitted, choose the next available
+    verse, or the last one when no later verse remains. A failed or superseded
+    lookup keeps the old preview.
   - Each verse starts a new slide. A long verse splits by Copible 1.6's boundary
     scores and global minimum-slide DP, using the font, size, width and height
     of the theme's 본문 box and its `maxLines`. The font is measured at its

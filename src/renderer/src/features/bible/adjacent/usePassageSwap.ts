@@ -39,6 +39,12 @@ export interface SwapFailure {
   readonly problem: string;
 }
 
+/**
+ * Opens the passage a swap loaded; by default as a passage that grows from
+ * the open one, on the selected verse.
+ */
+export type SwapOpen = (passage: BibleLookupPassage) => void;
+
 /** How a swap ended: opened, nothing to open, or another came first. */
 export type SwapResult = 'opened' | 'none' | 'passed';
 
@@ -56,6 +62,7 @@ export function usePassageSwap(source: BibleSource): {
       current: () => boolean,
     ) => Promise<BibleLookupPassage | null>,
     failure: SwapFailure,
+    open?: SwapOpen,
   ) => Promise<SwapResult>;
 } {
   const locked = useRef(false);
@@ -75,6 +82,18 @@ export function usePassageSwap(source: BibleSource): {
       current: () => boolean,
     ) => Promise<BibleLookupPassage | null>,
     failure: SwapFailure,
+    open: SwapOpen = passage => {
+      openBiblePassage(
+        passage,
+        {
+          ...displayOf(source),
+          enteredRef: source.enteredRef ?? source.passage.ref,
+          enteredTranslation:
+            source.enteredTranslation ?? source.passage.translation,
+        },
+        {keepsVerse: true},
+      );
+    },
   ): Promise<SwapResult> => {
     const api = window.llp;
     if (!api || locked.current) return 'passed';
@@ -98,16 +117,7 @@ export function usePassageSwap(source: BibleSource): {
       const passage = await load(api, current);
       if (!current()) return 'passed';
       if (passage === null) return 'none';
-      openBiblePassage(
-        passage,
-        {
-          ...displayOf(source),
-          enteredRef: source.enteredRef ?? source.passage.ref,
-          enteredTranslation:
-            source.enteredTranslation ?? source.passage.translation,
-        },
-        {keepsVerse: true},
-      );
+      open(passage);
       return 'opened';
     } catch (cause) {
       if (current()) {

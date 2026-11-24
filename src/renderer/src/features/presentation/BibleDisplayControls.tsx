@@ -1,4 +1,4 @@
-import {withLiveBible} from '@core/bible';
+import {showsTranslationName, withLiveBible} from '@core/bible';
 import {useState, type JSX} from 'react';
 import type {TranslationId} from '@core/schema/common/ids';
 import {useSettingsDocument} from '@renderer/platform/documents/useSettingsDocument';
@@ -38,6 +38,19 @@ export function BibleDisplayControls({
       {
         log: 'Could not change the Bible preview translation',
         problem: '역본 불러오기 실패',
+      },
+      passage => {
+        restyleBiblePassage(
+          source,
+          {
+            ...displayOf(source),
+            translationName: showsTranslationName(
+              passage.translation,
+              translations,
+            ),
+          },
+          passage,
+        );
       },
     );
   };
