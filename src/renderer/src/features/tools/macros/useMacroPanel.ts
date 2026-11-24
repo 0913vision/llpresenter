@@ -35,18 +35,25 @@ import {useMacroLayout} from './useMacroLayout';
 import {useMacroWrites} from './useMacroWrites';
 import type {MenuAnchor} from '@renderer/ui/menus/menuModel';
 
-/** Owns panel snapshots and revision-guarded writes without delaying optimistic creates. */
+/** The context menu of one 매크로, and the button that opened it, if any. */
+interface MacroMenu {
+  readonly item: Macro;
+  readonly anchor: MenuAnchor;
+  readonly trigger: HTMLElement | undefined;
+}
+
+/**
+ * What the 매크로 panel shows and does: the macros and 모음 with the ones being
+ * made already in place, the selection, the menu and editor that are open, and
+ * every action, each saved against the file revision it was made on.
+ */
 export interface MacroPanelModel {
   readonly macros: readonly Macro[];
   readonly collections: readonly MacroCollection[];
   readonly currentCollection: MacroCollection['id'] | undefined;
   readonly mode: MacroViewMode;
   readonly selectedId: Macro['id'] | undefined;
-  readonly menu: {
-    item: Macro;
-    anchor: MenuAnchor;
-    trigger: HTMLElement | undefined;
-  } | null;
+  readonly menu: MacroMenu | null;
   readonly editor: MacroEditor | null;
   readonly palette: ReturnType<typeof useMacroPalette.getState>;
   readonly locked: boolean;
@@ -77,7 +84,10 @@ export interface MacroPanelModel {
   readonly rename: (name: string) => Promise<boolean>;
 }
 
-/** Keeps subscriptions, pending usage cancellation, optimistic items and save guards together. */
+/**
+ * The model of the 매크로 panel ({@link MacroPanelModel}). `root` is the
+ * panel's surface, where 실행 취소 keys work and focus returns after a delete.
+ */
 export function useMacroPanel({
   onProblem,
   root,
@@ -102,11 +112,7 @@ export function useMacroPanel({
     collectionCreation.items,
     macroCreation.pending,
   );
-  const [menu, setMenu] = useState<{
-    item: Macro;
-    anchor: MenuAnchor;
-    trigger: HTMLElement | undefined;
-  } | null>(null);
+  const [menu, setMenu] = useState<MacroMenu | null>(null);
   const palette = useMacroPalette();
   const paletteFor = palette.target;
   const writes = useMacroWrites(onProblem);
@@ -219,19 +225,18 @@ export function useMacroPanel({
     setMenu({item, anchor, trigger});
   };
   const closeMenu = (): void => setMenu(null);
+  /** Opens the editor of a new action of `actionKind` in `item`, below the cap. */
+  const editNewAction = (item: Macro, actionKind: MacroActionKind): void => {
+    if (locked || item.actions.length >= MACRO_FILE_LIMITS.actions) return;
+    writes.moved();
+    setEditor({kind: 'action', item, actionKind});
+  };
   const dropAction: MacroPanelModel['dropAction'] = locked
     ? undefined
-    : (item, actionKind) => {
-        if (item.actions.length >= MACRO_FILE_LIMITS.actions) return;
-        writes.moved();
-        setEditor({kind: 'action', item, actionKind});
-      };
+    : editNewAction;
   const choosePaletteAction = (actionKind: MacroActionKind): void => {
     const item = document?.value.macros.find(macro => macro.id === paletteFor);
-    if (!locked && item && item.actions.length < MACRO_FILE_LIMITS.actions) {
-      writes.moved();
-      setEditor({kind: 'action', item, actionKind});
-    }
+    if (item !== undefined) editNewAction(item, actionKind);
   };
   return {
     macros,
