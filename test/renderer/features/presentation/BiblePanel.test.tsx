@@ -39,7 +39,7 @@ describe('Bible panel integration', () => {
     const fixture = panelApi();
     window.llp = fixture.api;
     openBiblePassage(panelPassage());
-    render(<BiblePanel sizeClass="normal" />);
+    render(<BiblePanel sizeClass="normal" onProblem={() => undefined} />);
     const zoom = screen.getByRole('slider', {name: '슬라이드 크기'});
     const footer = zoom.closest('footer');
     if (!footer) throw new Error('Missing grid footer');

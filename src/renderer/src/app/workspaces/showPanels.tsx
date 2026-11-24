@@ -103,7 +103,12 @@ function showPanelParts({
     case '슬라이드':
       if (bibleOpen) {
         return {
-          embedded: <BiblePanel sizeClass={sizeClass} />,
+          embedded: (
+            <BiblePanel
+              sizeClass={sizeClass}
+              onProblem={onProblem ?? logPanelProblem}
+            />
+          ),
         };
       }
       return {

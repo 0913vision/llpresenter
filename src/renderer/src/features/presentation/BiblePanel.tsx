@@ -1,3 +1,4 @@
+import type {Notice} from '@renderer/ui/popups/notices';
 import type {JSX} from 'react';
 import {useShownItemId} from '@renderer/session/show/shownItem';
 import type {SizeClass} from '@renderer/ui/panels/sizeClass';
@@ -23,8 +24,11 @@ import {useShow} from '@renderer/session/show/showStore';
  */
 export function BiblePanel({
   sizeClass,
+  onProblem,
 }: {
   readonly sizeClass: SizeClass;
+  /** Shows what the panel could not do, such as load a translation. */
+  readonly onProblem: (notice: Notice) => void;
 }): JSX.Element | null {
   const shownItemId = useShownItemId();
   const source = useShow(view => bibleSourceFor(view, shownItemId));
@@ -35,7 +39,11 @@ export function BiblePanel({
         <PanelTitle title={source.passage.displayRef} />
       </PanelHeader>
       <PanelTools>
-        <BibleDisplayControls key={source.id} source={source} />
+        <BibleDisplayControls
+          key={source.id}
+          source={source}
+          onProblem={onProblem}
+        />
       </PanelTools>
       <PanelBody variant="flush" className={styles.body}>
         <SlidePanelBody sizeClass={sizeClass} />

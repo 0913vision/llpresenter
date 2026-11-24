@@ -9,6 +9,7 @@ import {
 } from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/schema/live/live';
+import type {Notice} from '@renderer/ui/popups/notices';
 import type {BibleLookupReply} from '@core/schema/bible/bibleLookup';
 import {
   openItem,
@@ -62,13 +63,14 @@ async function setup() {
   window.llp = fixture.api;
   openBiblePassage({...panelPassage(), translationLabel: '개역한글'});
   selectTile(1);
-  const view = render(<BiblePanel sizeClass="normal" />);
+  const onProblem = vi.fn<(notice: Notice) => void>();
+  const view = render(<BiblePanel sizeClass="normal" onProblem={onProblem} />);
   await waitFor(() =>
     expect(
       screen.getByRole('button', {name: '역본'}).getAttribute('aria-disabled'),
     ).toBeNull(),
   );
-  return {...fixture, ...view};
+  return {...fixture, ...view, onProblem};
 }
 async function choose(name = 'Alternate'): Promise<void> {
   await waitFor(() =>
@@ -199,6 +201,24 @@ describe('Bible preview display controls', () => {
       slide: {slideId: verse.id},
     });
     stop();
+  });
+
+  it('tells that a translation could not be loaded when main reads another one for its missing file', async () => {
+    const fixture = await setup();
+    const original = currentSource();
+    fixture.lookup.mockImplementation(request =>
+      formLookupReply({...request, translation: original.passage.translation}),
+    );
+    await choose();
+    await waitFor(() =>
+      expect(fixture.onProblem).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: '역본 불러오기 실패',
+          meta: ['Alternate'],
+        }),
+      ),
+    );
+    expect(currentSource()).toBe(original);
   });
 
   it('changes the translation of the passage, keeping numbering and the selected verse', async () => {

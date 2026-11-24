@@ -101,7 +101,7 @@ describe('BibleQuickField', () => {
     render(
       <>
         <BibleQuickField api={fixture.api} />
-        <BiblePanel sizeClass="normal" />
+        <BiblePanel sizeClass="normal" onProblem={() => undefined} />
       </>,
     );
     fireEvent.change(await book(), {target: {value: '요'}});

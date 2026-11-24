@@ -37,6 +37,8 @@ export function displayOf({
 export interface SwapFailure {
   readonly log: string;
   readonly problem: string;
+  /** Tells the operator at once, beside the control's own reason. */
+  readonly report?: ((problem: string) => void) | undefined;
 }
 
 /**
@@ -127,6 +129,7 @@ export function usePassageSwap(source: BibleSource): {
           detail: String(cause),
         });
         setProblem(failure.problem);
+        failure.report?.(failure.problem);
       }
       return 'passed';
     } finally {

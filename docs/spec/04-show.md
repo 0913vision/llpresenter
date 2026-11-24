@@ -1068,7 +1068,9 @@ integration use this contract, with a distinct cancellable ID per lookup.
     passage. A change of one retains the range and the selected verse when
     available. If the selected verse is omitted, choose the next available
     verse, or the last one when no later verse remains. A failed or superseded
-    lookup keeps the old preview.
+    lookup keeps the old preview. A translation that can't be read, such as one
+    whose file is missing, keeps the passage as it is and shows the warning 역본
+    불러오기 실패 with the translation's name.
   - Each verse starts a new slide. A long verse splits by Copible 1.6's boundary
     scores and global minimum-slide DP, using the font, size, width and height
     of the theme's 본문 box and its `maxLines`. The font is measured at its
