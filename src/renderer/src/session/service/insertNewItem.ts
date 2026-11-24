@@ -11,11 +11,11 @@ import {openInPrep} from '../prepTarget';
 import {rememberBiblePassage} from '../recentWriter';
 import {runEdit, type Report} from './serviceEdit';
 import {useShow} from '../show/showStore';
+import {orderSelectionId} from '../show/orderSelection';
 
 /** The row a new item goes in front of: after the selected one. */
 export function rowAfterSelected(): ServiceItemId | null {
-  const {rows, openItemId} = useShow.getState();
-  const before = quickAddBefore(rows, openItemId);
+  const before = quickAddBefore(useShow.getState().rows, orderSelectionId());
   return before === null ? null : createServiceItemId(before);
 }
 
