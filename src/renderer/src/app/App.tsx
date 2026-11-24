@@ -1,4 +1,7 @@
-import {PanelFailureContext} from '@renderer/ui/panels/PanelBoundary';
+import {
+  PanelBoundary,
+  PanelFailureContext,
+} from '@renderer/ui/panels/PanelBoundary';
 import {logPanelFailure} from './panelFailures';
 import {useAudioOutputs} from '@renderer/features/preferences/useAudioOutputs';
 import {ShownItemProvider} from '@renderer/session/show/shownItem';
@@ -190,34 +193,40 @@ function ControlApp({
       <QuickObjectShortcuts api={session.api} onProblem={session.report} />
       <AudioShortcuts onProblem={session.report} />
       {update.dialog}
-      <MenuBar
-        onWorkspace={onWorkspace}
-        onMedia={onMedia}
-        clipboardAvailable={
-          textImport && (() => textImport.clipboardAvailable())
-        }
-        onImportText={
-          prepActions.canImport ? prepActions.importSong : undefined
-        }
-        onNewSong={session.api === undefined ? undefined : prepActions.newSong}
-        title={serviceName}
-        onProblem={session.report}
-        warnings={warnings}
-        onShowWarning={screenId => {
-          for (const notice of outputWarningCards(screenId)) {
-            session.report(notice);
+      <PanelBoundary label="메뉴 모음">
+        <MenuBar
+          onWorkspace={onWorkspace}
+          onMedia={onMedia}
+          clipboardAvailable={
+            textImport && (() => textImport.clipboardAvailable())
           }
-        }}
-      />
-      <Toolbar
-        focusSearch={focusSearch}
-        onSearchFocused={searchFocused}
-        sizeClass={sizeClass}
-        workspace={shownWorkspace}
-        onWorkspace={onWorkspace}
-        onProblem={session.report}
-        onOpenPrepSong={prepActions.openSong}
-      />
+          onImportText={
+            prepActions.canImport ? prepActions.importSong : undefined
+          }
+          onNewSong={
+            session.api === undefined ? undefined : prepActions.newSong
+          }
+          title={serviceName}
+          onProblem={session.report}
+          warnings={warnings}
+          onShowWarning={screenId => {
+            for (const notice of outputWarningCards(screenId)) {
+              session.report(notice);
+            }
+          }}
+        />
+      </PanelBoundary>
+      <PanelBoundary label="도구 모음">
+        <Toolbar
+          focusSearch={focusSearch}
+          onSearchFocused={searchFocused}
+          sizeClass={sizeClass}
+          workspace={shownWorkspace}
+          onWorkspace={onWorkspace}
+          onProblem={session.report}
+          onOpenPrepSong={prepActions.openSong}
+        />
+      </PanelBoundary>
       <ShownItemProvider shownItem={shownFrame.item}>
         <Workspace
           id={shownWorkspace}
@@ -239,11 +248,13 @@ function ControlApp({
           themeLeave={themeLeave}
         />
       </ShownItemProvider>
-      <StatusBar
-        standby={recovery.offer !== null}
-        saveState={saveState}
-        end={<NoticeHistoryButton session={session} />}
-      />
+      <PanelBoundary label="상태 표시줄">
+        <StatusBar
+          standby={recovery.offer !== null}
+          saveState={saveState}
+          end={<NoticeHistoryButton session={session} />}
+        />
+      </PanelBoundary>
       {prepActions.surface}
       <RecoveryPrompt recovery={recovery} />
       <NotificationStack
