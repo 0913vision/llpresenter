@@ -38,4 +38,8 @@ export function useBookSuggestions() {
   };
 }
 
+/**
+ * What useBookSuggestions returns: whether the list is open, the row pointed
+ * at, and the calls that open, point and close it.
+ */
 export type BookSuggestions = ReturnType<typeof useBookSuggestions>;

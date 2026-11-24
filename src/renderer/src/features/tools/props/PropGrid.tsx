@@ -12,6 +12,7 @@ import {TileList, gridMoves} from '@renderer/ui/lists/TileList';
 import styles from './PropGrid.module.css';
 import type {MenuAnchor} from '@renderer/ui/menus/menuModel';
 
+/** The 그래픽 as tiles; `onMenu` opens the menu of one. */
 export function PropGrid({
   props,
   screens,

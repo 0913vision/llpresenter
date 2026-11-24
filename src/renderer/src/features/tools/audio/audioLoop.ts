@@ -28,6 +28,7 @@ export function useAudioLoopEditing(
   });
 }
 
+/** Saves whether an audio playlist repeats. */
 export async function setAudioLoop(
   api: LlpApi,
   playlistId: AudioPlaylistId,

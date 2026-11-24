@@ -28,6 +28,10 @@ const DEFAULT_STYLE = {
   outline: false,
 } as const;
 
+/**
+ * The dialog that makes or changes a 그래픽; `initial` is the one to change, and
+ * `onSave` takes the result.
+ */
 export function PropDialog({
   initial,
   screens,

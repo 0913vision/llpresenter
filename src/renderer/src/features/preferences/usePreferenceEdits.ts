@@ -21,6 +21,7 @@ const SAVE_FAILURE: Notice = {
 /** Changes the stored preferences file; the answer is the whole new file. */
 export type PreferenceChange = (stored: PreferencesFile) => PreferencesFile;
 
+/** What a preference page can read and change. */
 export interface PreferenceEdits {
   /** Every preference with its default filled in; null until the first read. */
   readonly preferences: Preferences | null;

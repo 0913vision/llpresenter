@@ -3,9 +3,12 @@ import {MEDIA_BROWSER} from '@core/schema/media/mediaBrowser';
 
 /** The fewest and most grid columns the size slider sets. */
 export const MIN_MEDIA_COLUMNS = MEDIA_BROWSER.minColumns;
+/** The most columns the media grid can have. */
 export const MAX_MEDIA_COLUMNS = MEDIA_BROWSER.maxColumns;
+/** The columns of the media grid before the operator chooses. */
 export const DEFAULT_MEDIA_COLUMNS = MEDIA_BROWSER.defaultColumns;
 
+/** Whether the media view shows tiles or rows. */
 export type MediaDisplay = 'grid' | 'list';
 
 /**

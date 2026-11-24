@@ -2,7 +2,16 @@ import {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {ThemeElement} from '@core/schema/screens/theme';
 import {useAlive} from '@renderer/ui/useAlive';
 
+/**
+ * The tab of the right pane of the theme editor: the selected element, the
+ * screen, or the theme.
+ */
 export type ThemeTab = 'element' | 'screen' | 'theme';
+/**
+ * The selected elements of one scope, with the open tab, the keep-ratio and
+ * snap-to-grid switches, and the request to focus a field; a new `scope` clears
+ * the selection.
+ */
 export function useThemeSelection(
   scope: string,
   visibleElements: readonly ThemeElement[],
@@ -97,4 +106,5 @@ export function useThemeSelection(
     focus: (id: string | null) => setFocusRequest({scope, id}),
   };
 }
+/** What useThemeSelection returns. */
 export type ThemeSelection = ReturnType<typeof useThemeSelection>;

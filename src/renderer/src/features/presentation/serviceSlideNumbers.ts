@@ -16,6 +16,10 @@ export function serviceSlideOffset(
   return null;
 }
 
+/**
+ * The tile that is slide `number` of the service, counting from 1 through the
+ * order, or null when there is none.
+ */
 export function serviceSlideAt(
   view: ShowView,
   number: number,

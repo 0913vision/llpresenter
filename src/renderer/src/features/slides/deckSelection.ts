@@ -9,6 +9,7 @@ import {
   type SlideSelectionAction,
 } from '@core/slides';
 
+/** The selected slides of a deck. */
 export type DeckSelection = SlideListSelection<SlideId>;
 
 /** Where the caret goes once the field of a slide is there. */
@@ -65,23 +66,35 @@ function selectionIn(deck: Deck, view: View): DeckSelection {
   return kept.length === 0 ? start : {...selection, ids: new Set(kept)};
 }
 
+/**
+ * The selection of `deck`: its first slide until something is selected, and
+ * without slides that are gone.
+ */
 export function selectionOf(deck: Deck): DeckSelection {
   return selectionIn(deck, useView.getState());
 }
 
+/** selectionOf as a hook, drawn again when the selection changes. */
 export function useDeckSelection(deck: Deck): DeckSelection {
   const view = useView();
   return useMemo(() => selectionIn(deck, view), [deck, view]);
 }
 
+/** Where the caret goes once the field of a slide is drawn, or null. */
 export function useTextFocus(): TextFocus | null {
   return useView(view => view.focus);
 }
 
+/**
+ * A number that grows with every edit whose new slides should come into view.
+ */
 export function useReveal(): number {
   return useView(view => view.reveal);
 }
 
+/**
+ * Applies a selection action to the slides of `deck` and drops the text focus.
+ */
 export function selectInDeck(
   deck: Deck,
   action: SlideSelectionAction<SlideId>,
@@ -116,6 +129,7 @@ export function focusText(deckId: string, focus: TextFocus): void {
   useView.setState({focus});
 }
 
+/** Drops the request to put the caret in a slide's field. */
 export function clearTextFocus(): void {
   useView.setState({focus: null});
 }

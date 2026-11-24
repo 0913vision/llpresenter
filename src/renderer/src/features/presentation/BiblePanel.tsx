@@ -19,6 +19,10 @@ import {BibleInsertButton} from '../service/items/BibleInsertButton';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {useShow} from '@renderer/session/show/showStore';
 
+/**
+ * The 성경 panel of the 진행 workspace for the Bible item that is shown; null when
+ * none is.
+ */
 export function BiblePanel({
   sizeClass,
   onProblem,

@@ -1,6 +1,7 @@
 import type {MediaItem} from '@core/schema/media/mediaList';
 import {mediaName} from '../mediaEntries';
 
+/** The name of the choice that picks no file and no fill. */
 export const NONE_LABEL = '없음';
 
 /** A file to choose, or a fill that is painted instead of a file. */

@@ -198,6 +198,10 @@ function QuickAddMenu({
   );
 }
 
+/**
+ * The button and menu that add an item to the 빠른 실행 panel; disabled while
+ * `locked`.
+ */
 export function QuickAdd({
   api,
   locked,
@@ -286,6 +290,11 @@ export function duplicateQuickItem(item: QuickItem, save: Save): void {
   );
 }
 
+/**
+ * Wraps one row of the 빠른 실행 panel with its context menu (run, edit a timer,
+ * rename, copy, delete) and the rename dialog; `full` and `timersFull` stop the
+ * copies the lists have no room for.
+ */
 export function QuickRowEditor({
   api,
   item,

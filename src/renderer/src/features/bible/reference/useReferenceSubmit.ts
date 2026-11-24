@@ -150,4 +150,8 @@ export function useReferenceSubmit({
   return {submit, acceptFullReference, forget: pendingSubmit.forget};
 }
 
+/**
+ * What useReferenceSubmit returns: the submit call, the one for a whole
+ * reference typed in the 책 field, and the call that forgets a waiting submit.
+ */
 export type ReferenceSubmit = ReturnType<typeof useReferenceSubmit>;

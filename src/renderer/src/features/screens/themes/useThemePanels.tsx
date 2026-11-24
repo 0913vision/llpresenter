@@ -5,6 +5,10 @@ import type {ThemeLeaveGuard} from './saving/themeLeaveGuard';
 import {ThemeProperties} from './properties/ThemeProperties';
 import {useThemeEditor} from './useThemeEditor';
 
+/**
+ * The parts of the theme editor for the screens window: its surfaces, the
+ * properties pane, and whether everything has loaded.
+ */
 export function useThemePanels(
   active: boolean,
   onProblem: ((notice: Notice) => void) | undefined,

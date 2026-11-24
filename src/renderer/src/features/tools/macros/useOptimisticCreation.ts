@@ -1,5 +1,9 @@
 import {useState} from 'react';
 
+/**
+ * Keeps items that were just created in view until the saved list has them, and
+ * takes one back when its save is refused or fails.
+ */
 export function useOptimisticCreation<T extends {readonly id: string}>(
   persisted: readonly T[],
 ) {

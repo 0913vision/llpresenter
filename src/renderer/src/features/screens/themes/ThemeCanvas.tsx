@@ -35,6 +35,10 @@ import {framesMoved, themeCanvasBounds} from './elements/useThemeElements';
 import styles from './Themes.module.css';
 import {fixedKeyText} from '@renderer/ui/keys/fixedKeys';
 
+/**
+ * The left and center panes of the theme editor with the menu of the elements
+ * and the delete that asks first; `liveId` is the theme on air.
+ */
 export function useThemeSurfaces(
   model: ThemeModel,
   liveId: string | undefined,

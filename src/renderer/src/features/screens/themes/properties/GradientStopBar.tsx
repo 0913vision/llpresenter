@@ -15,6 +15,10 @@ interface StopDrag {
   readonly finish: () => void;
 }
 
+/**
+ * The bar that edits the color stops of a gradient: select, add, remove and
+ * drag them; `reason` disables the editing.
+ */
 export function GradientStopBar({
   gradient,
   selected,

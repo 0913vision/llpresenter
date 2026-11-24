@@ -29,4 +29,8 @@ export function useReferenceEntry(
   };
 }
 
+/**
+ * What useReferenceEntry returns: the entered fields, the recent passage chosen
+ * in their place, and the field a refused submit marks.
+ */
 export type ReferenceEntry = ReturnType<typeof useReferenceEntry>;

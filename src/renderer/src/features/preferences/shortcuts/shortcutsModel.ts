@@ -9,6 +9,9 @@ import {
   type ShortcutCommand,
 } from '@core/shortcuts';
 
+/**
+ * The keys the operator changed, by command, as the shortcuts file stores them.
+ */
 export type Overrides = ShortcutsFile['bindings'];
 
 /** Which rows the filter shows. */
@@ -23,6 +26,7 @@ export interface ShortcutRow {
   readonly conflictWith: string | undefined;
 }
 
+/** A titled run of shortcut rows in the 단축키 table. */
 export interface ShortcutGroup {
   readonly title: string;
   readonly rows: readonly ShortcutRow[];

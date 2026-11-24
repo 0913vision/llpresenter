@@ -3,12 +3,14 @@ import type {Timer} from '@core/schema/tools/timers';
 import {MAX_LIVE_TIMERS} from '@core/schema/tools/timerState';
 import {sendLive, useLive} from '@renderer/session/live';
 
+/** Takes the text off the 무대 screens, if one is shown. */
 export function hideStageMessage(): void {
   if (useLive.getState().state?.stageMessage) {
     sendLive({type: 'stage.message.set', text: null});
   }
 }
 
+/** Shows the 그래픽 `propId` if it is off air, and hides it if it is on. */
 export function toggleProp(propId: PropId): void {
   const current = useLive.getState().state?.layers.prop;
   const on = current?.items
@@ -17,6 +19,10 @@ export function toggleProp(propId: PropId): void {
   sendLive({type: 'prop.set', propId, on: !on});
 }
 
+/**
+ * Pauses a running 타이머 or starts one that is not running; clocks do nothing,
+ * and so does a start when as many timers run as may.
+ */
 export function toggleTimer(
   timer: Timer,
   send: typeof sendLive = sendLive,
@@ -33,6 +39,7 @@ export function toggleTimer(
   });
 }
 
+/** Resets a 타이머 that has a run, not a clock. */
 export function resetTimer(
   timer: Timer,
   send: typeof sendLive = sendLive,

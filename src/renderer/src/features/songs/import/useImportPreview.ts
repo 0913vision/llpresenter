@@ -8,6 +8,11 @@ import type {
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import {createLatestRunner} from '../../../platform/latestRunner';
 
+/**
+ * Asks for the preview of an import for `source` and `options` and keeps only
+ * the answer to the latest ask; returns the draft, whether the answer is
+ * pending, and whether the split symbol is missing.
+ */
 export function useImportPreview({
   api,
   source,

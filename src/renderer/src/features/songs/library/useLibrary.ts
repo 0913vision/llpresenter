@@ -20,10 +20,15 @@ import {
   type SongCommandContext,
 } from './songCommands';
 
+/** The parts of the app API that the library uses. */
 export type LibraryApi = Pick<LlpApi, 'songs' | 'content' | 'services'> & {
   readonly library: Pick<LlpApi['library'], 'search' | 'revealSong'>;
 };
 
+/**
+ * The song open in the library, with whether its title field takes the focus
+ * and its place in the list, when known.
+ */
 export interface LibrarySelection {
   readonly document: SongDocument;
   readonly focusTitle: boolean;
@@ -298,4 +303,7 @@ export function useLibrary(
   };
 }
 
+/**
+ * What useLibrary returns: the songs, the selection and every action on them.
+ */
 export type Library = ReturnType<typeof useLibrary>;

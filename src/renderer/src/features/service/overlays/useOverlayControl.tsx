@@ -39,6 +39,10 @@ function nameOf(editing: OverlayEditing, media: MediaId): string | undefined {
     ?.name.slice(0, ITEM_OVERLAY_LIMITS.name);
 }
 
+/**
+ * Builds the control of an item's overlays from its editing: the chosen clip,
+ * the menu rows for a slide, and the dialog of the command in progress.
+ */
 export function useOverlayControl(editing: OverlayEditing): OverlayControl {
   const [chosen, choose] = useState<ItemOverlayId | null>(null);
   const [open, setOpen] = useState<Dialog | null>(null);

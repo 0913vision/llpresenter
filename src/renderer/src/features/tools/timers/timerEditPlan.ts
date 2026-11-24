@@ -13,6 +13,9 @@ type TimerUpdate = Extract<
   {type: 'settings.update'; name: 'timers'}
 >;
 
+/**
+ * What saving an edited 타이머 will do: nothing, an update, or why it is refused.
+ */
 export type TimerEditPlan =
   | {readonly kind: 'unchanged'; readonly revision: number}
   | {readonly kind: 'update'; readonly edit: TimerUpdate}
@@ -65,6 +68,7 @@ function configurationFields(draft: TimerEditDraft): TimerEditDraft {
   }
 }
 
+/** Plans the save of `draft` over the timer `timerId` of the document. */
 export function prepareTimerEdit(
   document: TimerDocument,
   timerId: TimerId,

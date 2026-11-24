@@ -1,5 +1,9 @@
 import type {OutputScreenStatus} from '@core/schema/live/outputStatus';
 
+/**
+ * Says whether an NDI screen sends with hardware acceleration, or that this is
+ * still being checked.
+ */
 export function ndiAccelerationLabel(
   status: OutputScreenStatus | undefined,
 ): string {
@@ -8,6 +12,10 @@ export function ndiAccelerationLabel(
   return '하드웨어 가속 확인 중';
 }
 
+/**
+ * Why an NDI screen has no hardware acceleration, or undefined when it has it
+ * or the answer isn't known yet.
+ */
 export function ndiAccelerationReason(
   status: OutputScreenStatus | undefined,
 ): string | undefined {

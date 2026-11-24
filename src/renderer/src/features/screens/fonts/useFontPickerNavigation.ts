@@ -11,6 +11,7 @@ import {hasModifier} from '@renderer/ui/keys/modifierKeys';
 import {useChoicePopup} from '@renderer/ui/choices/useChoicePopup';
 import {filterFamilies, type FontChoice} from './fontChoices';
 
+/** How many font rows the picker's list shows at once. */
 export const FONT_PICKER_VISIBLE_ROWS = 8;
 const OVERSCAN = 2;
 const DEFAULT_ROW_PX = 32;

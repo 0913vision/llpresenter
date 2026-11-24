@@ -67,6 +67,10 @@ export type SongQuestion =
       readonly cancel?: (() => void) | undefined;
     };
 
+/**
+ * The state of the song editor: the open draft, the pictures of an import, the
+ * question being asked, whether it saves, and the library's songs.
+ */
 export interface SongDraftView {
   readonly draft: SongDraft | null;
   /** The pictures of the import that is open, and whether more come in. */
@@ -82,6 +86,7 @@ export interface SongDraftView {
   readonly titleFocus: number;
 }
 
+/** The store of the song being edited. */
 export const useSongDraft = create<SongDraftView>(() => ({
   draft: null,
   pictures: null,
@@ -201,6 +206,7 @@ export function openImportedSong(
   focusTitle();
 }
 
+/** Closes the draft and frees the pictures of its import. */
 export function closeSongDraft(): void {
   view().pictures?.source.release();
   useSongDraft.setState({draft: null, pictures: null, question: null});
@@ -315,6 +321,10 @@ export function editSongTitle(title: string): void {
   );
 }
 
+/**
+ * Steps the draft back or forward through its history; nothing when there is no
+ * step.
+ */
 export function replaySong(kind: 'undo' | 'redo'): void {
   const {draft} = view();
   const step = (kind === 'undo' ? draft?.past : draft?.future)?.at(-1);
@@ -488,6 +498,10 @@ export async function requestSave(): Promise<boolean> {
   return false;
 }
 
+/**
+ * Shows `question`, or closes the open one with null; a pending 'leave'
+ * question that is replaced is cancelled.
+ */
 export function ask(question: SongQuestion | null): void {
   const before = view().question;
   if (before?.kind === 'leave' && question?.kind !== 'leave') {

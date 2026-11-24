@@ -7,6 +7,10 @@ import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import type {LibraryApi} from './useLibrary';
 import {useShow} from '@renderer/session/show/showStore';
 
+/**
+ * Adds songs of the library to the open service and reports a failure with
+ * `onProblem`.
+ */
 export function useLibraryServices(
   api: LibraryApi,
   onProblem: (notice: Notice) => void,

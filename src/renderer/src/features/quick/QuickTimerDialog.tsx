@@ -3,6 +3,7 @@ import {createQuickItemId, createTimerId} from '@core/schema/common/ids';
 import {CountdownDialog} from '../tools/timers/CountdownDialog';
 import type {QuickEdit} from './quickEdits';
 
+/** The dialog that adds a timer to the 빠른 실행 panel, saved with `save`. */
 export function QuickTimerDialog({
   locked,
   save,

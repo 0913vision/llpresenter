@@ -2,8 +2,11 @@ import {menuAvailability, type MenuEntry} from '@renderer/ui/menus/menuModel';
 import type {ShortcutCommand} from '@core/shortcuts';
 import type {ShortcutRow} from './shortcutsModel';
 
+/** The menu row that puts a shortcut back to its default key. */
 export const RESET_LABEL = '기본값으로';
+/** The menu row that removes the key of a shortcut. */
 export const CLEAR_LABEL = '지우기';
+/** The name of the button that removes the key of a shortcut. */
 export const CLEAR_BUTTON_LABEL = '단축키 지우기';
 
 /** What the menu of a row in the 단축키 list does. */

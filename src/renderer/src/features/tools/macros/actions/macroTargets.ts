@@ -3,6 +3,10 @@ import {messageBlankNames} from '@core/overlays';
 import type {MacroActionKind} from '@core/schema/tools/macros';
 import {clearName} from '@core/live';
 
+/**
+ * One thing a 동작 can point at, such as a theme or a timer, with what the dialog
+ * needs to show it.
+ */
 export interface MacroTargetChoice {
   readonly id: string;
   readonly name: string;
@@ -16,6 +20,7 @@ interface Named {
   readonly name: string;
 }
 
+/** The settings documents that the targets of the 동작 are read from. */
 export interface MacroTargetSources {
   readonly themes: {readonly themes: readonly Named[]};
   readonly props: {readonly props: readonly Named[]};
@@ -59,6 +64,10 @@ function choices(
   return items.map(({id, name}) => ({id, name}));
 }
 
+/**
+ * The choices each 동작 kind offers and the screens, made from the settings
+ * documents.
+ */
 export function buildMacroTargets(source: MacroTargetSources): {
   readonly choices: Partial<
     Readonly<Record<MacroActionKind, readonly MacroTargetChoice[]>>

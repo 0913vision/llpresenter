@@ -32,6 +32,10 @@ export function shownColumns(
   );
 }
 
+/**
+ * The columns the operator showed or hid in the list of slides, by theme and
+ * text box.
+ */
 export function useSlideColumns(): SlideColumns {
   return useColumns(view => view.columns);
 }

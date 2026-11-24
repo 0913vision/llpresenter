@@ -12,6 +12,10 @@ import {durationText} from '@renderer/features/media/mediaEntries';
 import {useTimerNow} from '../timers/useTimerNow';
 import styles from './AudioTransport.module.css';
 
+/**
+ * The play, position and volume controls of the 오디오 tab; `firstPlayable` is
+ * false when the first track can't be started.
+ */
 export function AudioTransport({
   api,
   audio,

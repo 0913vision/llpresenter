@@ -6,6 +6,10 @@ import {NumberField} from '@renderer/ui/fields/NumberField';
 import {PropertyRow} from '@renderer/ui/panels/PropertyRow';
 import type {OverlayEditing} from './overlayEditing';
 import styles from './ItemOverlays.module.css';
+/**
+ * The 슬라이드 fields that set the first and last slide an overlay covers; `reason`
+ * disables them.
+ */
 export function ItemOverlayRange({
   overlay,
   rows,

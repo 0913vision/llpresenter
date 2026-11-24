@@ -11,6 +11,10 @@ const wholeNumber = (text: string, max: number): boolean =>
   Number.isSafeInteger(Number(text)) &&
   Number(text) <= max;
 
+/**
+ * Reads the minutes and seconds fields as a duration in seconds, or the reason
+ * they can't be one; the duration must be at least `minimum` seconds.
+ */
 export function parseTimerDuration(
   minutes: string,
   seconds: string,
@@ -37,6 +41,7 @@ export function parseTimerDuration(
   };
 }
 
+/** The minutes and seconds fields of a duration. */
 export function TimerDurationFields({
   minutes,
   seconds,

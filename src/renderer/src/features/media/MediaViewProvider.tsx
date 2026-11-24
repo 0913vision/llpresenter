@@ -96,6 +96,7 @@ export function useMediaImportCompletion() {
   return use(MediaViewContext)?.imported ?? ignoreImported;
 }
 
+/** Whether a media view is provided above this component. */
 export function useHasMediaView(): boolean {
   return use(MediaViewContext) !== null;
 }

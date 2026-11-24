@@ -26,6 +26,7 @@ const SAVE_FAILURE: Notice = {
   time: '',
 };
 
+/** What the 단축키 page can read and change. */
 export interface ShortcutEdits {
   readonly commands: readonly ShortcutCommand[];
   /** The stored keys that differ from the defaults. */

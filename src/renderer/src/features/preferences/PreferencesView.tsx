@@ -59,6 +59,10 @@ interface PreferencesViewProps {
   readonly viewRef?: Ref<PreferencesViewHandle> | undefined;
 }
 
+/**
+ * What the owner of the 환경설정 view can ask of it: `settle` finishes the edits
+ * still under way and resolves false when one could not be saved.
+ */
 export interface PreferencesViewHandle {
   settle(): Promise<boolean>;
 }

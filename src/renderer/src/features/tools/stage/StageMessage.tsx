@@ -19,6 +19,10 @@ function messageReason(text: string, available: boolean): string | undefined {
   return undefined;
 }
 
+/**
+ * The field that sends a text to the 무대 screens; `available` is whether a 무대
+ * screen exists.
+ */
 export function StageMessage({
   available,
 }: {

@@ -90,4 +90,8 @@ export function useSplitSave({
   };
 }
 
+/**
+ * What useSplitSave returns: 확정, whether a save runs, and the problem of a
+ * failed save.
+ */
 export type SplitSave = ReturnType<typeof useSplitSave>;

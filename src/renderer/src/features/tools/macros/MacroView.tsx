@@ -23,6 +23,7 @@ import {ViewModeSwitch} from '@renderer/ui/choices/ViewModeSwitch';
 import styles from './MacroView.module.css';
 import type {MenuAnchor} from '@renderer/ui/menus/menuModel';
 
+/** Whether the macros are drawn as tiles or as rows. */
 export type MacroViewMode = 'grid' | 'list';
 
 /** Whether a drag carries a step from the 동작 palette. */
@@ -37,6 +38,10 @@ function optionsOf(root: HTMLElement | null): readonly HTMLElement[] {
   );
 }
 
+/**
+ * The macros of the chosen collection as tiles or rows, with their selection,
+ * menus and the drops of 동작.
+ */
 export function MacroView({
   macros,
   collections,

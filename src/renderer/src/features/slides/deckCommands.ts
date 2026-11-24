@@ -21,6 +21,7 @@ import {
 import {copySlides, slidesCopiedAs} from './slideClipboard';
 import type {SlideDeck} from './slideDeck';
 
+/** Why slides can't be added: the deck has as many slides as it may. */
 export const FULL_REASON = '슬라이드가 너무 많습니다.';
 const NOTHING_SELECTED = '선택한 슬라이드가 없습니다.';
 
@@ -45,6 +46,9 @@ export function removeReason(deck: SlideDeck): string | undefined {
   );
 }
 
+/**
+ * Why the selected slides can't be copied, or undefined when some are selected.
+ */
 export function copyReason(deck: SlideDeck): string | undefined {
   return selectionOf(deck).ids.size === 0 ? NOTHING_SELECTED : undefined;
 }
@@ -88,6 +92,7 @@ export function addSlide(deck: SlideDeck, at = insertionIndex(deck)): Slide {
   return slide;
 }
 
+/** Puts a copy of the selected slides right after the last selected one. */
 export function duplicateSelected(deck: SlideDeck): void {
   const chosen = selectedSlides(deck, selectionOf(deck));
   const last = chosen.at(-1);
@@ -100,11 +105,16 @@ export function duplicateSelected(deck: SlideDeck): void {
   );
 }
 
+/** The selected slides as clipboard text, or null when none is selected. */
 export function copySelected(deck: SlideDeck): string | null {
   const chosen = selectedSlides(deck, selectionOf(deck));
   return chosen.length === 0 ? null : copySlides(chosen);
 }
 
+/**
+ * Removes the selected slides and selects the next slide that stays, or the
+ * last one; nothing happens in a read-only deck.
+ */
 export function deleteSelected(deck: SlideDeck): void {
   const {ids} = selectionOf(deck);
   if (ids.size === 0 || deck.readOnly) return;

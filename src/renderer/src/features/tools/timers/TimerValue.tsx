@@ -5,6 +5,7 @@ import type {TimerRun} from '@core/schema/tools/timerState';
 import {isTimerTicking, timerText} from '@core/timers';
 import {useTimerNow} from './useTimerNow';
 
+/** The text of a 타이머's value now, drawn again every tick while it runs. */
 export function TimerValue({
   api,
   timer,

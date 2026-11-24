@@ -3,6 +3,7 @@ import {type TranslationId, LIVE_BIBLE_ID} from '@core/schema/common/ids';
 import type {Preferences} from '@core/schema/app/preferences';
 import type {PassageDefaults} from './passageItems';
 
+/** The translation and the passage settings a new Bible item starts with. */
 export interface BibleDefaults extends PassageDefaults {
   readonly translation: TranslationId;
 }

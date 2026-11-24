@@ -1,5 +1,6 @@
 /** The size of a preview picture, as main sends it and the relay sends it back. */
 export const PREVIEW_WIDTH = 640;
+/** The height, in pixels, of a preview picture. */
 export const PREVIEW_HEIGHT = 360;
 /** How often a captured picture goes back to main for the others. */
 const RELAY_INTERVAL_MS = 100;

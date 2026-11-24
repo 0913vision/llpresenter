@@ -15,6 +15,10 @@ import {TruncatedText} from '@renderer/ui/text/TruncatedText';
 import styles from './BibleReferenceField.module.css';
 import type {BibleSuggestion} from './bibleSuggestion';
 
+/**
+ * The list of books and recent passages under the 주소 field, in a popover below
+ * `anchor`; `pointed` is the row the pointer or the arrow keys are on.
+ */
 export function BibleSuggestions({
   id,
   anchor,

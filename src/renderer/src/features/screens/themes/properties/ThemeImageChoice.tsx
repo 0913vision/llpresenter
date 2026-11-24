@@ -13,6 +13,7 @@ const BACKGROUNDS = {
   })),
 };
 
+/** The field that chooses the picture of an element; `reason` disables it. */
 export function ThemeImageChoice({
   id,
   selected,

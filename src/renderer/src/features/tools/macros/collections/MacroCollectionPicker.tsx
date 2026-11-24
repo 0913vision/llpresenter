@@ -278,6 +278,7 @@ function CollectionPopover({
   );
 }
 
+/** The control that chooses which collection of macros is shown. */
 export function MacroCollectionPicker(props: CollectionProps): JSX.Element {
   const [trigger, setTrigger] = useState<HTMLButtonElement | null>(null);
   const [anchor, setAnchor] = useState<HTMLButtonElement | null>(null);

@@ -24,6 +24,10 @@ import {OwnTitles} from './OwnTitles';
 import styles from './PrepPalette.module.css';
 import {type MenuAnchor} from '@renderer/ui/menus/menuModel';
 
+/**
+ * The palette of 예배 요소 and, in the other tab, the song `library`, from which
+ * items are put into the order.
+ */
 export function PrepPalette({
   library,
   tab,

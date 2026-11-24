@@ -30,6 +30,10 @@ import {
 import {SlideSidePanel} from '../../slides/SlideSidePanel';
 import styles from './DetailsPanel.module.css';
 
+/**
+ * What the 세부정보 panel describes: an item of the service, or a song of the
+ * library.
+ */
 export type DetailsTarget =
   | {readonly kind: 'item'; readonly itemId: ServiceItemId}
   | {readonly kind: 'song'; readonly songId: SongId};

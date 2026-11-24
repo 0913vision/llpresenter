@@ -56,6 +56,7 @@ function dialogPrimaryOf(body: HTMLElement | null): HTMLElement | null {
   );
 }
 
+/** What the owner of a label manager can ask of it. */
 export interface LabelManagerHandle {
   readonly settle: () => Promise<boolean>;
 }

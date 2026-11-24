@@ -7,6 +7,7 @@ import menuStyles from '@renderer/ui/menus/Menu.module.css';
 import styles from '../MacroPanel.module.css';
 import {returnFocus} from '@renderer/ui/keys/returnFocus';
 
+/** The popover that picks the color of a macro, below `anchor`. */
 export function MacroColorPopover({
   anchor,
   value,

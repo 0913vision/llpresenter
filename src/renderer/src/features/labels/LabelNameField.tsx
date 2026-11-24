@@ -6,8 +6,10 @@ import {isComposing} from '@renderer/ui/fields/ime';
 import {hasModifier} from '@renderer/ui/keys/modifierKeys';
 import type {AppliedRename, LabelCatalog} from './labelCatalog';
 
+/** Why a blank label name can't be saved. */
 export const EMPTY_LABEL_NAME_REASON =
   '이름표 이름을 적어야 저장할 수 있습니다.';
+/** Why a label name that another label has can't be saved. */
 export const DUPLICATE_LABEL_NAME_REASON = '같은 이름의 이름표가 있습니다.';
 
 /** The labels file stores unique, nonblank names without trimming old names. */

@@ -16,6 +16,7 @@ import {
   writeSettings,
 } from '@renderer/session/settingsWrites';
 
+/** One change to the collections of macros. */
 export type MacroCollectionEdit =
   | {
       readonly kind: 'add';
@@ -115,6 +116,7 @@ function apply(file: MacrosFile, edit: MacroCollectionEdit): MacrosFile {
   return next;
 }
 
+/** Saves a change of the macro collections in the macros file. */
 export function saveMacroCollectionEdit(
   api: LlpApi,
   edit: MacroCollectionEdit,

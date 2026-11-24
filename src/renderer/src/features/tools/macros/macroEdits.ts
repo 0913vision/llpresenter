@@ -16,9 +16,11 @@ import {
   writeSettings,
 } from '@renderer/session/settingsWrites';
 
+/** The fields of a macro that an edit can change. */
 export type MacroChanges = Partial<
   Pick<Macro, 'name' | 'icon' | 'color' | 'runOnStartup'>
 >;
+/** One change to the macros. */
 export type MacroEdit =
   | {
       readonly kind: 'duplicate';
@@ -209,6 +211,7 @@ function apply(file: MacrosFile, edit: MacroEdit): MacrosFile {
   return next;
 }
 
+/** Saves a change of the macros in the macros file. */
 export function saveMacroEdit(
   api: LlpApi,
   edit: MacroEdit,

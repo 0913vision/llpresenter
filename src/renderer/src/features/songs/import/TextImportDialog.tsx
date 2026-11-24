@@ -45,6 +45,10 @@ function songOf(draft: TextImportDraft, title: string): Song {
   };
 }
 
+/**
+ * The dialog that previews a text file as songs with the import options;
+ * `onEdit` hands the draft on for editing and `onDiscard` drops the import.
+ */
 export function TextImportDialog({
   api,
   source,

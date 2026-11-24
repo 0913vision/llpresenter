@@ -19,6 +19,7 @@ export interface BibleSplit extends PassageSplit {
   readonly address: string;
 }
 
+/** What a split of one passage needs besides the passage itself. */
 export interface SplitRequest {
   readonly verseNumbers: boolean;
   /** Slides that some of the verses have already. */
@@ -61,6 +62,10 @@ export class PassageSplitter {
 
 let current: PassageSplitter | null = null;
 
+/**
+ * Makes `splitter` the one that passageSplitter() returns, and returns a
+ * function that removes it again.
+ */
 export function installPassageSplitter(
   splitter: PassageSplitter | null,
 ): () => void {

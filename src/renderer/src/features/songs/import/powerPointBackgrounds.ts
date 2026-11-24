@@ -6,12 +6,20 @@ import {lendPreviewImage} from '@renderer/rendering/media/previewMedia';
 /** Most pictures of one request to the main process. */
 const BATCH_SIZE = 200;
 
+/**
+ * A background picture found in a PowerPoint file: its path, and an id that
+ * stands for it in previews.
+ */
 export interface PowerPointBackground {
   readonly path: string;
   /** Stands for it until it is a file of the media list. */
   readonly preview: MediaId;
 }
 
+/**
+ * The backgrounds of a PowerPoint import by slide key; `release` frees their
+ * previews.
+ */
 export interface PowerPointBackgrounds {
   /** What each key of a slide stands for. */
   readonly found: ReadonlyMap<string, PowerPointBackground>;

@@ -14,10 +14,12 @@ const LOADING: LabelCatalogState = {
 };
 const nothing = (): (() => void) => () => undefined;
 
+/** The label catalog of the window, or null where none is provided. */
 export function useLabelCatalog(): LabelCatalog | null {
   return use(Labels);
 }
 
+/** The labels in their saved order, or none while the file is not read. */
 export function useLabels(): readonly Label[] {
   const catalog = use(Labels);
   const state = useSyncExternalStore(

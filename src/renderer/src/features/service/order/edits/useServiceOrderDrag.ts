@@ -33,6 +33,7 @@ function rowElement(target: EventTarget): HTMLElement | null {
     : null;
 }
 
+/** The id of the 예배 순서 row that `target` is in, or null when it is in none. */
 export function serviceOrderRowId(target: EventTarget): string | null {
   return rowElement(target)?.dataset['orderId'] ?? null;
 }

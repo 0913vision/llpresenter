@@ -4,6 +4,10 @@ import {withinLookupTimeout} from '@renderer/session/show/showOutput';
 
 const READ_BATCH = 8;
 
+/**
+ * Counts the items of every saved service for which `matches` holds, reading
+ * the services in batches; rejects when `signal` aborts.
+ */
 export async function countServiceItemUses(
   api: LlpApi,
   matches: (item: ServiceItem) => boolean,

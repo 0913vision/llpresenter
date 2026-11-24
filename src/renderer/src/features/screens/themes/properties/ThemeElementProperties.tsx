@@ -39,6 +39,10 @@ const FRAME_FIELDS = ['x', 'y', 'w', 'h'] as const;
 const FREE = '';
 const FIRST_RATIO = 0.65;
 
+/**
+ * The properties of one element of the theme: its frame and the fields of its
+ * kind.
+ */
 export function ThemeElementProperties({
   model,
   element,

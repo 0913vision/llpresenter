@@ -2,6 +2,7 @@ import type {JSX} from 'react';
 import {PropertyRow} from '@renderer/ui/panels/PropertyRow';
 import {SegmentedControl} from '@renderer/ui/choices/SegmentedControl';
 
+/** The 0 지나면 choice of a countdown: 계속 or 정지. */
 export function TimerOverrunField({
   value,
   onChange,

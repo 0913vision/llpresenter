@@ -15,6 +15,7 @@ export const useShowToolTab = create<ShowToolTab>(set => ({
     window.llp?.ui.setRememberedView({showToolTab: tool});
   },
 }));
+/** Opens the tab the UI state saved, or 무대 when none was saved. */
 export function seedShowToolTab(state: UiState): void {
   useShowToolTab.setState({tool: state.showToolTab ?? 'stage'});
 }

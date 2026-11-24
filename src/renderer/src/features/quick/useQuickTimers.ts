@@ -9,6 +9,10 @@ import {useLive} from '@renderer/session/live';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {type NamedDocument} from '@core/schema/app/settingsDocuments';
 
+/**
+ * The definitions of the timers that quick items point at, by id, and the
+ * reason a timer item can't start now, if any.
+ */
 export function useQuickTimers(
   quick: NamedDocument<'quick'> | null,
   onProblem: (notice: Notice) => void,

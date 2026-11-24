@@ -121,6 +121,10 @@ function PassageTools({
   );
 }
 
+/**
+ * The choice of the version of the text of a 예식문 item; `disabled` shows it
+ * without letting it change.
+ */
 export function LiturgyVersion({
   item,
   disabled,

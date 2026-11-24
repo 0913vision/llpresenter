@@ -1,6 +1,7 @@
 import {create} from 'zustand';
 import type {Screen} from '@core/schema/screens/screens';
 
+/** Which screen the screens list has selected. */
 export interface ScreensSelection {
   /** `null` until the operator picks a screen; the list then shows its first screen. */
   readonly id: string | null;

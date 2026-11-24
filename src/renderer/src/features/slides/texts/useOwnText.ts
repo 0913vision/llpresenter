@@ -10,6 +10,10 @@ export interface OwnText {
   readonly set: (on: boolean) => void;
 }
 
+/**
+ * Whether a slide keeps its own text in a box instead of the text that flows in
+ * from the slides around it, and the call that switches it.
+ */
 export function useOwnText({deck, tile, theme, box}: SlideBox): OwnText {
   // NOTE(0913vision): A text that is emptied stays open until it is locked.
   const [open, setOpen] = useState<string | null>(null);

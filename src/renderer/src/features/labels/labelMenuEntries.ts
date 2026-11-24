@@ -2,6 +2,11 @@ import type {Label} from '@core/schema/services/labels';
 import type {MenuEntry} from '@renderer/ui/menus/menuModel';
 import {menuSeparator} from '@renderer/ui/menus/menuRows';
 
+/**
+ * The menu for choosing an 이름표: 이름표 없음, one radio row per label with `selected`
+ * checked, and rows to manage the labels or to take a free name when those
+ * calls are given.
+ */
 export function labelMenuEntries({
   labels,
   selected,

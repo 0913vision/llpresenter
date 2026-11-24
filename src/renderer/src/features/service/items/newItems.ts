@@ -13,8 +13,11 @@ import {
 import {slideMaking, useThemes} from '@renderer/platform/documents/themes';
 import {iconByKind} from '../serviceItemIcons';
 
+/** The name of the palette of elements and songs. */
 export const PREP_PALETTE_LABEL = '예배 요소와 곡';
+/** The drag type of a palette element, whose data is its key. */
 export const ELEMENT_DRAG_MIME = 'application/x-llp-service-element';
+/** The name a new 구역 starts with. */
 export const NEW_SECTION_NAME = '새 구역';
 
 /** What can be put in the 예배 순서, in the order of the palette. */
@@ -54,10 +57,12 @@ export const PALETTE_TITLES = [
 const TITLE = 'card:';
 const OWN_TITLE = 'custom:';
 
+/** The palette key of the title card called `name`. */
 export function titleKey(name: string): string {
   return `${TITLE}${name}`;
 }
 
+/** The palette key of the operator's own title card with this id. */
 export function ownTitleKey(id: string): string {
   return `${OWN_TITLE}${id}`;
 }

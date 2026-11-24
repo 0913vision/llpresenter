@@ -89,4 +89,7 @@ export function useThemeWrites(
 
   return {...draft, saved, reason, change, report, reportError};
 }
+/**
+ * What useThemeWrites returns: the calls that save changes of the open theme.
+ */
 export type ThemeWrites = ReturnType<typeof useThemeWrites>;

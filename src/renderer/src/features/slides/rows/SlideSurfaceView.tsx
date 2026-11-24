@@ -49,6 +49,10 @@ function saveScale(
   update({scale: whole});
   ui?.setLayout({sizeClass: 'normal', editorSlideScalePercent: whole});
 }
+/**
+ * The toolbar that switches the slides between list and grid and sets the size
+ * of the thumbnails; `ui` saves the choice in the window layout.
+ */
 export function SlideSurfaceView({
   ui,
 }: {

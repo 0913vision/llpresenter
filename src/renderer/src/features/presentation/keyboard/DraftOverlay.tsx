@@ -3,6 +3,9 @@ import {type JSX, type ReactNode} from 'react';
 import {useNumberJump} from './numberJump';
 import styles from './DraftOverlay.module.css';
 
+/**
+ * A box over the window that shows what is being typed, closed by `onClose`.
+ */
 export function DraftOverlay({
   children,
   onClose,
@@ -46,6 +49,10 @@ function OverlayContents({
   );
 }
 
+/**
+ * The box that shows the slide number being typed; nothing while no digit is
+ * typed.
+ */
 export function NumberJumpOverlay(): JSX.Element | null {
   const value = useNumberJump(state => state.value);
   if (value === '') return null;

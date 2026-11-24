@@ -3,6 +3,7 @@ import type {MediaItem} from '@core/schema/media/mediaList';
 import {THEME_BACKGROUNDS, THEME_DECORATIONS} from '@core/theme';
 import {UNNAMED_MEDIA, mediaName} from '../mediaEntries';
 
+/** What a background is called when its file is gone and no name is known. */
 export const MISSING_BACKGROUND_NAME = '이름을 알 수 없는 배경';
 
 /** The pictures a song item can take as its background: no audio. */
@@ -24,6 +25,10 @@ export function backgroundName(
   return item === undefined ? '배경 파일 없음' : mediaName(item);
 }
 
+/**
+ * The built-in background or decoration with this id, or undefined when `id` is
+ * none of them.
+ */
 export function backgroundPicture(id: MediaId | undefined) {
   return [...THEME_BACKGROUNDS, ...THEME_DECORATIONS].find(
     item => item.id === id,

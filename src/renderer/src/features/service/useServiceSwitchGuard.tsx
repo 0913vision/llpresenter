@@ -8,6 +8,9 @@ import {useLive} from '@renderer/session/live';
 import {AlertDialog} from '@renderer/ui/popups/AlertDialog';
 import {objectParticle} from '@renderer/ui/text/korean';
 
+/**
+ * Whether leaving the open service needs a confirmation: something is on air.
+ */
 export function serviceChangeNeedsConfirmation(
   state: LiveState | null,
 ): boolean {
@@ -22,6 +25,10 @@ export function serviceChangeNeedsConfirmation(
   );
 }
 
+/**
+ * Holds a request to open or create a service and asks for confirmation first
+ * when something is on air; otherwise it goes on at once.
+ */
 export function useServiceSwitchGuard() {
   const [pending, setPending] = useState<{
     readonly kind: 'open' | 'create';

@@ -46,6 +46,7 @@ type TimerDialogProps = {
     }
 );
 
+/** The dialog that makes a 타이머 of any kind or changes one. */
 export function TimerDialog(props: TimerDialogProps): JSX.Element {
   const {initial, locked, onClose} = props;
   const [kind, setKind] = useState<TimerEditDraft['kind']>(

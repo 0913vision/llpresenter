@@ -11,6 +11,9 @@ import {watchUserScroll} from './userScroll';
 /** How long following the live slide waits after the operator scrolls. */
 const PAUSE_MS = 1500;
 
+/**
+ * The sizes of the continuous view, in pixels, that its rows are laid out with.
+ */
 export interface ContinuousMetrics {
   readonly height: number;
   readonly top: number;

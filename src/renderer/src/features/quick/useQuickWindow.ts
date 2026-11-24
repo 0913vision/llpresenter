@@ -15,6 +15,10 @@ const FALLBACK_ROW = 30;
 const INITIAL_ROWS = 10;
 const OVERSCAN = 3;
 
+/**
+ * Chooses which rows of the quick list to draw for the scroll position, and
+ * which row is the tab stop.
+ */
 export function useQuickWindow(items: readonly QuickItem[]) {
   const list = useRef<HTMLDivElement>(null);
   const [view, setView] = useState({top: 0, height: 0, row: FALLBACK_ROW});

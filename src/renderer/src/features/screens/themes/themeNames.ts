@@ -34,6 +34,7 @@ const kindNames: Readonly<Record<ThemeElementKind, string>> = {
   shape: '사각형',
 };
 
+/** The name of each kind of element the palette can add. */
 export const addableNames: Readonly<Record<AddableKind, string>> = {
   box: '글 상자',
   text: '글',
@@ -52,6 +53,7 @@ export function elementName(element: ThemeElement): string {
   return words === '' ? kindNames.text : words;
 }
 
+/** What each problem of the theme list says. */
 export const themeProblems: Readonly<Record<ThemeListProblem, string>> = {
   missing: '테마를 찾을 수 없습니다.',
   name: '이름을 확인해 주세요.',
@@ -59,5 +61,7 @@ export const themeProblems: Readonly<Record<ThemeListProblem, string>> = {
   full: '테마는 더 만들 수 없습니다.',
   own: '기본 테마는 삭제할 수 없습니다.',
 };
+/** Why an edit is refused when its value is not allowed. */
 export const INVALID_CHANGE = '변경할 수 없는 값';
+/** Why a theme can't be changed: its file is of a newer version. */
 export const THEME_READ_ONLY = NEWER_FILE_REASON;

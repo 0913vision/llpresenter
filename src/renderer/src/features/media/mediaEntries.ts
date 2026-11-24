@@ -24,10 +24,12 @@ export type MediaListChoice =
   | {readonly kind: 'all'}
   | {readonly kind: 'media' | 'audio'; readonly id: string};
 
+/** The choice of 모든 미디어, which lists every media item. */
 export const ALL_MEDIA: MediaListChoice = {kind: 'all'};
 
 /** What a playlist without a name is called. */
 export const UNNAMED_PLAYLIST = '이름 없는 재생목록';
+/** What a media item without a name is called. */
 export const UNNAMED_MEDIA = '이름 없는 미디어';
 
 /** The name of a media item, or 이름 없는 미디어 when it has none. */

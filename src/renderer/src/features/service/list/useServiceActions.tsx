@@ -10,6 +10,10 @@ import {useSaveTemplate} from './useSaveTemplate';
 import {useShow} from '@renderer/session/show/showStore';
 
 type ServiceDialog = 'new' | 'import';
+/**
+ * The menu rows of the service picker that start 새 예배, importing items, and
+ * saving a template.
+ */
 export type ServiceActionEntries = Readonly<
   Record<'newService' | 'importItems' | 'saveTemplate', MenuItem>
 >;

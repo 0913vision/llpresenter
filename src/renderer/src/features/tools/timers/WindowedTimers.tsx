@@ -22,6 +22,7 @@ function focusTarget(row: HTMLElement): HTMLElement {
   );
 }
 
+/** The 타이머 rows, drawing only the ones in view. */
 export function WindowedTimers({
   api,
   timers,

@@ -10,6 +10,7 @@ import {pendingWritesOf} from '@renderer/platform/documents/pendingWrites';
 import {noticeTime, type Notice} from '@renderer/ui/popups/notices';
 
 type LabelApi = Pick<LlpApi, 'settings' | 'content'>;
+/** The labels file as a settings document, with its revision and access. */
 export type LabelsDocument = Extract<SettingsDocument, {name: 'labels'}>;
 
 /** A rename the main process has; saving it again never repeats it. */
@@ -18,6 +19,10 @@ export interface AppliedRename {
   readonly revision: number;
 }
 
+/**
+ * What the label catalog holds at one moment: the file once read, how the read
+ * went, and whether a save runs.
+ */
 export interface LabelCatalogState {
   readonly labels: LabelsDocument | null;
   readonly status: 'loading' | 'ready' | 'failed';

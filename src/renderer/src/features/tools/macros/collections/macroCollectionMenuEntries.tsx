@@ -12,6 +12,7 @@ interface CollectionMenuActions {
   readonly remove: () => void;
 }
 
+/** The context menu of a macro collection, built from `actions`. */
 export function macroCollectionMenuEntries(
   actions: CollectionMenuActions,
 ): readonly MenuEntry[] {
@@ -43,6 +44,10 @@ export function macroCollectionMenuEntries(
   ];
 }
 
+/**
+ * The context menu of a macro collection, drawn at the position the other menu
+ * props give.
+ */
 export function MacroCollectionMenu({
   actions,
   ...props

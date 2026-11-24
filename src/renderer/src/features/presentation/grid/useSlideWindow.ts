@@ -18,6 +18,10 @@ import {resizeAnchor, type ResizeAnchor} from './slideWindowAnchor';
 const OVERSCAN_ROWS = 1;
 const INITIAL_ROWS = 2;
 
+/**
+ * How many slides to draw before the grid is measured: the visible rows plus
+ * the overscan, times `tracks` columns.
+ */
 export function firstSlideWindowSize(
   tracks: number,
   height: number,

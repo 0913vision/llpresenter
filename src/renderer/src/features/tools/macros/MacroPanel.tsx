@@ -9,6 +9,7 @@ import {macroDuplicateReason} from './menu/macroMenuEntries';
 import {useMacroPanel} from './useMacroPanel';
 import styles from './MacroPanel.module.css';
 
+/** The 매크로 panel of the 진행 tools; `lastRunId` marks the macro that ran last. */
 export function MacroPanel({
   lastRunId,
   onProblem,

@@ -22,6 +22,9 @@ export const DEFAULT_SPEED = 1;
 
 /** The speed range offered by properties and applied by the preview player. */
 export const MIN_SPEED = 0.25;
+/**
+ * The fastest playback speed of a media item, as a multiple of normal speed.
+ */
 export const MAX_SPEED = 4;
 
 /** The fit a media item fills the screen with when it has none: 채우기. */

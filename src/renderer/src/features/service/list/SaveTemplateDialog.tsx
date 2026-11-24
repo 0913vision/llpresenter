@@ -3,6 +3,10 @@ import {useState, type JSX} from 'react';
 import {Dialog, DialogField} from '@renderer/ui/popups/Dialog';
 import {TextField} from '@renderer/ui/fields/TextField';
 
+/**
+ * The dialog that asks for the name to save the open service as a template
+ * under; `busy` while the save runs.
+ */
 export function SaveTemplateDialog({
   name,
   busy,

@@ -15,7 +15,9 @@ export const SHOW_TOOLS = [
   scrolls: boolean;
 }>;
 
+/** One tab of the 진행 tools, with its name. */
 export type ShowToolEntry = (typeof SHOW_TOOLS)[number];
+/** The value of one tab of the 진행 tools. */
 export type ShowTool = ShowToolEntry['value'];
 
 const STAGE_TOOL: ShowToolEntry & {value: 'stage'} = SHOW_TOOLS[1];

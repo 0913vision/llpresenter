@@ -12,6 +12,10 @@ import type {MediaEntry} from '../mediaEntries';
 import {mediaAddAvailability} from '@renderer/platform/mediaAddAvailability';
 import {shownProps, type MediaProps} from '../properties/mediaProps';
 
+/**
+ * What the menu of a media tile can do, and which of its rows apply to this
+ * tile.
+ */
 export interface MediaTileActions {
   readonly output?: () => void;
   readonly missing: boolean;
@@ -189,6 +193,10 @@ function mediaRows(
   ];
 }
 
+/**
+ * The context menu of a media tile or of a file still being imported, built
+ * from `actions`.
+ */
 export function mediaTileMenuEntries(
   entry: MediaEntry,
   actions: MediaTileActions,
@@ -252,6 +260,10 @@ export function mediaTileMenuEntries(
   ];
 }
 
+/**
+ * The context menu of a playlist; its editing rows are disabled with a reason
+ * when `editable` is false.
+ */
 export function playlistMenuEntries(
   editable: boolean,
   duplicate?: () => void,

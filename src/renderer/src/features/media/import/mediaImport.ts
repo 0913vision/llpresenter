@@ -9,6 +9,7 @@ import {
   warningNotice,
 } from '@renderer/ui/popups/notices';
 
+/** The warning for a failed import, or undefined for any other progress. */
 export function mediaImportFailureNotice(
   progress: MediaImportProgress,
 ): Notice | undefined {

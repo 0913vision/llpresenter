@@ -6,8 +6,10 @@ import {
 import {defaultThumbnailColumns} from '@renderer/ui/panels/sizeClass';
 import {thumbnailWidth} from '@renderer/ui/choices/thumbnailSize';
 
+/** Whether the slides are drawn as rows or as a grid of tiles. */
 export type SlideSurfaceMode = 'list' | 'grid';
 
+/** The gap between the tiles of the slide grid, in pixels. */
 export const GRID_GAP = 24;
 const OVERSCAN = 2;
 /** Rows drawn before the list has been measured. */

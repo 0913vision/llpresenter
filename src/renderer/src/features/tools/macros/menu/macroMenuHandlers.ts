@@ -28,6 +28,10 @@ export type MacroEditor =
 export type MacroActionPlace =
   {readonly kind: 'screens'} | {readonly kind: 'tool'; readonly tool: ShowTool};
 
+/**
+ * Where 열기 of a 동작 goes: the 화면 settings or a tool of 진행, or null when it has
+ * no place to open.
+ */
 export function macroActionPlace(
   action: KnownMacroAction,
 ): MacroActionPlace | null {

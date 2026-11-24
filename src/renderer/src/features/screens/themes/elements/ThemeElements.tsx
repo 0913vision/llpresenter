@@ -28,8 +28,17 @@ import type {MenuAnchor} from '@renderer/ui/menus/menuModel';
 import {ListBox} from '@renderer/ui/lists/ListBox';
 
 const ALREADY_THERE = '이 화면에 이미 있습니다.';
+/**
+ * The drag type of a tile from the element palette, whose data is the kind to
+ * add.
+ */
 export const THEME_TILE_DRAG = 'application/x-llp-theme-kind';
+/** The drag type of an element of the list, whose data is its id. */
 export const THEME_ELEMENT_DRAG = 'application/x-llp-theme-element';
+/**
+ * The kind of element a dropped palette tile stands for, or undefined when the
+ * drop isn't one.
+ */
 export function droppedThemeKind(event: DragEvent) {
   const value = event.dataTransfer.getData(THEME_TILE_DRAG);
   return addableKinds.find(kind => kind === value);
@@ -122,6 +131,11 @@ function clickedElements(
   );
 }
 
+/**
+ * The palette of element kinds to add and the list of the elements of the
+ * theme's screen, top first; `editorEvents` give it the key, copy and paste
+ * handling of the editor.
+ */
 export function ThemeElements({
   model,
   onMenu,

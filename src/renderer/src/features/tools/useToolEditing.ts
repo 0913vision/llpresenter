@@ -15,6 +15,10 @@ const emptyHistory = {undo: 0, redo: 0, busy: false};
 const noSubscribe = (): (() => void) => () => undefined;
 const noHistory = () => emptyHistory;
 
+/**
+ * Runs the saves of a tool's settings document and tells the operator with
+ * `onProblem` when one fails; `busy` while one runs.
+ */
 export function useToolEditing<Edit>({
   api,
   write,

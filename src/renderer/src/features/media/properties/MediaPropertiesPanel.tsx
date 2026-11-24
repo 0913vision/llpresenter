@@ -227,6 +227,10 @@ function SoundGroup({
   );
 }
 
+/**
+ * The property fields of one media item in the 준비 or the 진행 workspace;
+ * `disabled` shows them without letting them change.
+ */
 export function MediaProperties({
   item,
   disabled,

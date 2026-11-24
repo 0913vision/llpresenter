@@ -19,6 +19,7 @@ const FOLDER_REFUSALS: Readonly<
 const BACKUP_FAILED = '백업하지 못함';
 const BACKUP_OUTPUT_ON = '출력 중에는 백업 안 함';
 
+/** What the 저장 page can read and ask for about the library folders. */
 export interface LibraryLocationsState {
   /** The folders and backup state; null until the first read. */
   readonly view: LocationsView | null;

@@ -36,6 +36,7 @@ function kindText(timer: Timer): string {
   }
 }
 
+/** One 타이머 of the list: its value and its controls. */
 export const TimerRow = memo(
   ({
     api,

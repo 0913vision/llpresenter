@@ -56,6 +56,11 @@ function beforeAt(
   return index >= 0 ? (ids?.[index + 1] ?? null) : null;
 }
 
+/**
+ * Reorders the quick rows by dragging; does nothing unless `enabled`, and
+ * reports a move with `onMove` as the id and the id it goes before, or null for
+ * the end.
+ */
 export function useQuickDrag({
   enabled,
   revision,

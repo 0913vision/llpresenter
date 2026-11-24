@@ -23,6 +23,10 @@ interface AssignmentSnapshot {
 /** Where the editor reports a failed save; the window shows it as a notice. */
 export type EditProblemReporter = (reason: string) => void;
 
+/**
+ * Why a screen can't take a name: a problem of any name, or that the screen is
+ * gone.
+ */
 export type ScreenRenameProblem = NameProblem | 'missing';
 
 /** What a screen's name field says for each problem. */

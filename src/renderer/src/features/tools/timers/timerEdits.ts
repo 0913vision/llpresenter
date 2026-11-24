@@ -21,13 +21,21 @@ import {
   writeSettings,
 } from '@renderer/session/settingsWrites';
 
+/**
+ * A countdown to make: its id, its duration in seconds and whether it runs on
+ * past 0.
+ */
 export interface NewCountdown {
   readonly id: TimerId;
   readonly duration: number;
   readonly overrun: boolean;
 }
+/** A 타이머 of any kind to make, with its id. */
 export type NewTimer = TimerConfiguration & {readonly id: TimerId};
 
+/**
+ * Adds a new countdown to the timers file; throws when its duration is invalid.
+ */
 export async function saveNewCountdown(
   api: LlpApi,
   timer: NewCountdown,
@@ -38,6 +46,7 @@ export async function saveNewCountdown(
   return saveNewTimer(api, {kind: 'countdown', ...timer});
 }
 
+/** Deletes a 타이머 from the timers file. */
 export function deleteTimer(
   api: LlpApi,
   edit: TimerDelete,
@@ -45,6 +54,7 @@ export function deleteTimer(
   return gatedSettingsWrite(api, () => api.settings.edit(edit));
 }
 
+/** Renames a 타이머 in the timers file. */
 export function renameTimer(
   api: LlpApi,
   edit: TimerRename,
@@ -58,6 +68,7 @@ export interface TimerCopy {
   readonly copyId: TimerId;
 }
 
+/** Adds a copy of a 타이머 right after the original, unless the list is full. */
 export function duplicateTimer(
   api: LlpApi,
   copy: TimerCopy,
@@ -79,6 +90,9 @@ export function duplicateTimer(
   });
 }
 
+/**
+ * Adds a new 타이머 to the timers file; rejects when its configuration is invalid.
+ */
 export function saveNewTimer(
   api: LlpApi,
   timer: NewTimer,
@@ -124,6 +138,7 @@ export interface TimerReconfiguration {
   readonly draft: TimerEditDraft;
 }
 
+/** Saves the new configuration of one 타이머, keeping its id and name. */
 export function saveTimerEdit(
   api: LlpApi,
   edit: TimerReconfiguration,

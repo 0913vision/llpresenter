@@ -13,6 +13,10 @@ import {sampleDrawing} from '../themeDrawing';
 import type {ThemeModel} from '../useThemeEditor';
 import styles from '../Themes.module.css';
 
+/**
+ * The right pane of the theme editor, with the tabs 요소, 화면 and 테마 and the
+ * screens to choose from.
+ */
 export function ThemeProperties({
   model,
 }: {

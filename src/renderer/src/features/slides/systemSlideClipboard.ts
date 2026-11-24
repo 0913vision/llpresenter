@@ -16,6 +16,10 @@ export function writeSlideText(owner: object, text: string): void {
   writes.set(owner, written);
 }
 
+/**
+ * Reads the text of the system clipboard once the copy that `owner` made has
+ * finished; throws when that copy failed.
+ */
 export async function readSlideText(owner: object): Promise<string> {
   for (;;) {
     const written = writes.get(owner);

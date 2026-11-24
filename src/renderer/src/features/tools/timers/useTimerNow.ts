@@ -63,6 +63,10 @@ class TimerClock {
 
 const clocks = new WeakMap<LlpApi, TimerClock>();
 
+/**
+ * The time a timer's value is figured from, drawn again every tick while
+ * `ticking`.
+ */
 export function useTimerNow(api: LlpApi, ticking: boolean): TimerNow {
   let clock = clocks.get(api);
   if (clock === undefined) {

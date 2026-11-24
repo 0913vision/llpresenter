@@ -8,6 +8,7 @@ import type {ServiceItem} from '@core/schema/services/service';
 import type {ServiceSource} from './serviceSource';
 import type {Unsubscribe} from '@contracts/ipc/endpoint';
 
+/** The source of a new service that starts with nothing in it. */
 export const EMPTY_SOURCE: ServiceSource = {kind: 'empty'};
 
 /** The chosen source's document, as far as the dialogs need it. */
@@ -17,6 +18,7 @@ export interface SourceDocument {
   readonly order: readonly ServiceItem[];
 }
 
+/** The parts of the app API that reading the sources of a new service needs. */
 export type SourcesApi = Pick<
   LlpApi,
   'services' | 'templates' | 'songs' | 'log'

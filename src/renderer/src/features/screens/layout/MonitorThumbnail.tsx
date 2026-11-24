@@ -4,6 +4,10 @@ import styles from './MonitorThumbnail.module.css';
 
 const VIEWBOX_WIDTH = 100;
 
+/**
+ * A small drawing of the monitor arrangement that marks the monitor numbered
+ * `number`.
+ */
 export function MonitorThumbnail({
   layout,
   number,

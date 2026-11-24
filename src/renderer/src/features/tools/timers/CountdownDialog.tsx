@@ -4,6 +4,10 @@ import {Properties} from '@renderer/ui/panels/PropertyRow';
 import {parseTimerDuration, TimerDurationFields} from './TimerDurationFields';
 import {TimerOverrunField} from './TimerOverrunField';
 
+/**
+ * The dialog that makes a countdown from a duration and what happens past 0;
+ * `onSave` takes them.
+ */
 export function CountdownDialog({
   locked,
   onSave,

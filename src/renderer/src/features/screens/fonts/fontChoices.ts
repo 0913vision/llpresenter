@@ -6,6 +6,10 @@ import {
 } from './fontAvailability';
 import type {FontCatalogState} from './useFontCatalog';
 
+/**
+ * One font of the picker: the value saved, the name shown, and the names that
+ * match it in a search.
+ */
 export interface FontChoice {
   readonly value: string;
   readonly label: string;

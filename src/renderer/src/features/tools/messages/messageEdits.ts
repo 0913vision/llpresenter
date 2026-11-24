@@ -12,9 +12,15 @@ import {
   writeSettings,
 } from '@renderer/session/settingsWrites';
 
+/** The most 메시지 templates the messages file may hold. */
 export const MAX_MESSAGE_TEMPLATES = 500;
+/**
+ * The fields a 메시지 template is made from: its name and text, and the optional
+ * icon, screens and duration.
+ */
 export type MessageFields = Pick<MessageTemplate, 'name' | 'text'> &
   Partial<Pick<MessageTemplate, 'icon' | 'targets' | 'duration'>>;
+/** One change to the 메시지 templates. */
 export type MessageEdit =
   | {readonly kind: 'add'; readonly item: MessageTemplate}
   | {
@@ -29,11 +35,16 @@ export type MessageEdit =
     }
   | {readonly kind: 'delete'; readonly id: MessageTemplate['id']};
 
+/** Why a message text can't be saved, or undefined when it can. */
 export function messageTextReason(text: string): string | undefined {
   if (text.trim() === '') return '문구를 적어야 저장할 수 있습니다.';
   if (text.length > MAX_MESSAGE_CHARACTERS) return '문구가 너무 깁니다.';
   return undefined;
 }
+/**
+ * Makes a template from `fields` with a new id, and the icon 'msg' unless one
+ * is given.
+ */
 export function newMessageTemplate(fields: MessageFields): MessageTemplate {
   return {
     icon: 'msg',
@@ -88,6 +99,7 @@ function applyEdit(file: MessagesFile, edit: MessageEdit): MessagesFile {
   };
 }
 
+/** Saves a change of the 메시지 templates in the messages file. */
 export function saveMessageEdit(
   api: LlpApi,
   edit: MessageEdit,

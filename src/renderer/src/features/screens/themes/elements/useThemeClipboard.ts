@@ -3,6 +3,10 @@ import {parseElements, pasteElements, serializeElements} from '@core/theme';
 import {isInTextEntry} from '@renderer/ui/fields/textEntry';
 import type {ThemeModel} from '../useThemeEditor';
 
+/**
+ * The key, copy and paste handlers to put on the part of the editor that has
+ * the focus.
+ */
 export type ThemeEditorEvents = Pick<
   HTMLAttributes<HTMLDivElement>,
   'onKeyDownCapture' | 'onCopy' | 'onPaste'

@@ -2,6 +2,9 @@ import {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {MediaId} from '@core/schema/common/ids';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 
+/**
+ * The ids of the audio files that the app reports as missing, kept up to date.
+ */
 export function useAudioMissing(
   onProblem: ((notice: Notice) => void) | undefined,
 ): ReadonlySet<MediaId> {

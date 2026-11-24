@@ -8,6 +8,7 @@ import {slideDropPosition} from '../gridInsertionPosition';
 import type {SlideDeck} from '../slideDeck';
 import {slideIdAt, slideRow} from './slideKeys';
 
+/** The drag type of slides being moved within a song. */
 export const SLIDE_DRAG = 'application/x-llp-song-slide-move';
 
 type Handler = (event: DragEvent<HTMLDivElement>) => void;

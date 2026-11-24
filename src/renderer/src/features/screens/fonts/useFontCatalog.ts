@@ -4,6 +4,10 @@ import type {
   FontCatalogSnapshot,
 } from '@core/schema/screens/fontCatalog';
 
+/**
+ * How reading the installed fonts went: still loading, failed, or ready with
+ * the families and whether the metadata was verified.
+ */
 export type FontCatalogState =
   | {readonly status: 'loading' | 'failed'}
   | {

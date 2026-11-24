@@ -106,6 +106,10 @@ function LabelField({
   );
 }
 
+/**
+ * The dialog that matches the heading lines of an imported file to 이름표;
+ * `onApply` uses the choices and `onKeep` keeps the headings as they are.
+ */
 export function ImportLabelMappingDialog({
   headers,
   labels,

@@ -14,6 +14,9 @@ import styles from './StageTab.module.css';
 
 const NO_TIMER = 'none';
 
+/**
+ * The 무대 tab of the 진행 tools: the timer and the message the 무대 screens show.
+ */
 export function StageTab({
   onProblem,
 }: {

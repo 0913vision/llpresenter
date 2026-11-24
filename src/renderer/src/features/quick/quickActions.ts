@@ -23,11 +23,16 @@ import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import {openBiblePassage, showBiblePassage} from '../bible/passageActions';
 import {useShow} from '@renderer/session/show/showStore';
 
+/** Why a quick item can't be used, or undefined when it can. */
 export function quickItemUnavailable(item: QuickItem): string | undefined {
   if (!isKnownQuickItem(item)) return '아직 없는 기능';
   return undefined;
 }
 
+/**
+ * Whether what the item controls is on now, or undefined for an item that has
+ * no on or off state.
+ */
 export function quickItemOn(
   item: KnownQuickItem,
   live: LiveState | null,

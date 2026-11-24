@@ -6,6 +6,7 @@ import {Dialog} from '@renderer/ui/popups/Dialog';
 import type {ThemeModel} from '../useThemeEditor';
 import styles from '../Themes.module.css';
 
+/** The dialog that chooses the picture of an image element from the media. */
 export function ThemeImageDialog({
   model,
 }: {

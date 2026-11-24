@@ -6,6 +6,10 @@ import {TextField} from '@renderer/ui/fields/TextField';
 import {MACRO_ACTION_MIME, searchMacroPalette} from './macroPaletteCatalog';
 import styles from './MacroPalette.module.css';
 
+/**
+ * The searchable palette of the 동작 kinds to put in a macro; `onChoose` takes a
+ * kind.
+ */
 export function MacroPalette({
   onChoose,
   onClose,

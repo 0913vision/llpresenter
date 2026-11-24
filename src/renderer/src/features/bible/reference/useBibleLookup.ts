@@ -7,6 +7,11 @@ import type {
 } from '@core/schema/bible/bibleLookup';
 import {LatestLookup} from './LatestLookup';
 
+/**
+ * Looks up the passage that `input` names in `translation` whenever either
+ * changes, and sends the passage found to `onPreview`. Returns the reply for
+ * the current input, or null until it comes back.
+ */
 export function useBibleLookup({
   api,
   input,

@@ -93,6 +93,10 @@ const UNITS: Readonly<Record<string, string>> = {
   '줄 간격': '배',
 };
 
+/**
+ * A number field of the theme properties, kept between `min` and `max`;
+ * `reason` disables it.
+ */
 export function ThemeNumber({
   label,
   value,
@@ -135,6 +139,7 @@ export function ThemeNumber({
     </PropertyRow>
   );
 }
+/** A check field of the theme properties; `reason` disables it. */
 export function ThemeCheck({
   label,
   checked,

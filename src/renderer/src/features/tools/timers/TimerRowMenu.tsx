@@ -44,6 +44,10 @@ function TimerNameDialog({
   );
 }
 
+/**
+ * Wraps a 타이머 row with its context menu and the dialogs it opens; `copyReason`
+ * is why 복제 can't run apart from a lock.
+ */
 export function TimerRowMenu({
   api,
   timer,

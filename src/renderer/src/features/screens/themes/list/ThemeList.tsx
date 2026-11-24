@@ -36,6 +36,7 @@ function ThemeTag({
   );
 }
 
+/** The list of themes; the one on air as `liveId` is marked as in use. */
 export function ThemeList({
   model,
   liveId,

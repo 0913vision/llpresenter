@@ -35,6 +35,7 @@ function NewTimerDialog({
   );
 }
 
+/** The 타이머 tab of the 진행 tools. */
 export function TimerTab({
   onProblem,
 }: {

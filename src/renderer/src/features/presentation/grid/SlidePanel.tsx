@@ -116,6 +116,7 @@ export function SlidePanelMeta(): JSX.Element | null {
   );
 }
 
+/** The footer under the slide grid, with the 현 위치로 button. */
 export function SlidePanelFooter({
   sizeClass,
 }: {

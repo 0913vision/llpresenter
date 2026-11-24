@@ -112,4 +112,8 @@ export function useSplitDraft({
   };
 }
 
+/**
+ * What useSplitDraft returns: the plan, the hint labels and typed letters, the
+ * previews, and the calls to cut, undo and redo.
+ */
 export type SplitDraft = ReturnType<typeof useSplitDraft>;

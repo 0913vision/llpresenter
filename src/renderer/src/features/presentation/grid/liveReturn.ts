@@ -15,6 +15,10 @@ function publish(next: LiveReturnState): void {
   for (const listener of listeners) listener();
 }
 
+/**
+ * The store behind the 현 위치로 button: whether the live slide is in sight of the
+ * continuous view, and the call that brings it back.
+ */
 export const liveReturn = {
   subscribe: (listener: () => void): (() => void) => {
     listeners.add(listener);

@@ -13,6 +13,7 @@ import {MACRO_OPERATIONS} from '../actions/macroActionChoices';
 import {ScreenTargetsRow} from '../../ScreenTargetsRow';
 import {DisplayTimeRow} from '../../DisplayTimeRow';
 
+/** One target a 동작 dialog offers for the kind it edits. */
 export interface MacroActionChoice {
   readonly id: string;
   readonly name: string;
@@ -20,6 +21,7 @@ export interface MacroActionChoice {
   readonly blanks?: readonly string[] | undefined;
   readonly text?: string | undefined;
 }
+/** The targets on offer, by 동작 kind. */
 export type MacroActionChoices = Partial<
   Readonly<Record<MacroActionKind, readonly MacroActionChoice[]>>
 >;
@@ -35,6 +37,10 @@ const defaultMode: Partial<Readonly<Record<MacroActionKind, string>>> = {
   audio: 'play',
 };
 
+/**
+ * The dialog that adds or changes one 동작 of a macro; `locked` shows it without
+ * letting it change.
+ */
 export function MacroActionDialog({
   kind,
   choices,

@@ -10,6 +10,10 @@ import {iconByKind} from '../serviceItemIcons';
 import {ORDER_ELEMENTS, PALETTE_TITLES, titleKey} from './newItems';
 import type {InsertOptions} from './usePaletteInsert';
 
+/**
+ * What the menu that adds an item to the 예배 순서 offers: the media items, and the
+ * calls for an element, a media item or a song.
+ */
 export interface QuickAddChoices {
   readonly media: readonly MediaItem[];
   readonly missing: ReadonlySet<MediaId> | null;

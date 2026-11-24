@@ -12,6 +12,10 @@ const commands = codes.map<WindowShortcut>(code => ({
   run: () => outputHotKey(code),
 }));
 
+/**
+ * Registers the shortcuts of the slide commands for the window while it is
+ * mounted.
+ */
 export function useSlideHotKeys(): void {
   useWindowShortcuts(commands);
 }

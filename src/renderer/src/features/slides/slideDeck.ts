@@ -15,6 +15,10 @@ import {
 } from '@renderer/session/service/openService';
 import {runEdit, type Report} from '@renderer/session/service/serviceEdit';
 
+/**
+ * A change of a deck's slides: takes the current slides and returns the new
+ * ones.
+ */
 export type SlidesChange = (slides: readonly Slide[]) => readonly Slide[];
 
 /** A list of slides that can be edited: of an item, or of a library song. */

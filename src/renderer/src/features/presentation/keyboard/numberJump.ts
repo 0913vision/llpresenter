@@ -8,6 +8,7 @@ import {serviceSlideAt} from '../serviceSlideNumbers';
 import {isColumnDragActive} from '@renderer/ui/panels/columnDrag';
 import {useShow} from '@renderer/session/show/showStore';
 
+/** The digits typed so far for a slide number, empty when none. */
 export const useNumberJump = create<{value: string}>(() => ({value: ''}));
 const clear = (): void => useNumberJump.setState({value: ''});
 
@@ -103,6 +104,10 @@ export function handleNumberJump(event: KeyboardEvent): void {
   }
 }
 
+/**
+ * Collects typed digits while it is mounted and outputs the slide of that
+ * number on Enter; Delete and Escape drop the digits.
+ */
 export function useNumberJumpKeys(): void {
   useEffect(() => {
     window.addEventListener('keydown', handleNumberJump, true);

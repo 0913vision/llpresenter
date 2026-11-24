@@ -12,6 +12,10 @@ import {monitorPixelSize, sizeText} from '../displaySizes';
 import {displayLayout} from '../layout/layoutBoxes';
 import {MonitorThumbnail} from '../layout/MonitorThumbnail';
 
+/**
+ * The menu for adding a screen: a row per monitor for a full screen one, then 새
+ * 창 and 새 캡처 창; all are disabled with `reason` when it is given.
+ */
 export function screenAddMenuEntries({
   monitors,
   reason,
@@ -72,6 +76,7 @@ interface ScreenMenuActions {
   readonly toggle: () => void;
 }
 
+/** The context menu of a screen in the list, built from `actions`. */
 export function screenMenuEntries(
   actions: ScreenMenuActions,
 ): readonly MenuEntry[] {
@@ -102,6 +107,7 @@ export function screenMenuEntries(
   ];
 }
 
+/** The context menu of a screen in the list, drawn from `actions`. */
 export function ScreenContextMenu({
   actions,
   ...props

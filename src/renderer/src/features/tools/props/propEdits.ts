@@ -14,9 +14,11 @@ import {
   writeSettings,
 } from '@renderer/session/settingsWrites';
 
+/** The most 그래픽 the props file may hold. */
 export const MAX_PROPS = 500;
 const MAX_TEXT = 4000;
 
+/** One change to the 그래픽. */
 export type PropEdit =
   | {readonly kind: 'add'; readonly prop: Prop}
   | {readonly kind: 'update'; readonly prop: Prop}
@@ -27,6 +29,7 @@ export type PropEdit =
     }
   | {readonly kind: 'delete'; readonly id: Prop['id']};
 
+/** Why a 그래픽 can't be saved, or undefined when it can. */
 export function propReason(prop: Prop): string | undefined {
   const named = nameReason(prop.name, NAME_LIMIT);
   if (named !== undefined) return named;
@@ -91,6 +94,7 @@ function apply(file: PropsFile, edit: PropEdit): PropsFile {
   return next;
 }
 
+/** Saves a change of the 그래픽 in the props file. */
 export function savePropEdit(api: LlpApi, edit: PropEdit): Promise<EditResult> {
   return writeSettings(api, async () => {
     const document = await editableSettings(api, 'props');

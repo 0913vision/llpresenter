@@ -10,6 +10,10 @@ import {MediaPicker} from '@renderer/features/media/picker/MediaPicker';
 import {Properties, PropertyRow} from '@renderer/ui/panels/PropertyRow';
 import {editorTask} from '@renderer/platform/editorTask';
 
+/**
+ * The dialog that sets what an overlay shows, a text or a media item, and saves
+ * it with `onSave`.
+ */
 export function ItemOverlayContent({
   overlay,
   media,

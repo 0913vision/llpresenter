@@ -13,6 +13,10 @@ export function songCopyReason(
   return busy ? '작업 중' : undefined;
 }
 
+/**
+ * The context menu of a song in the library: add to the 예배 순서, edit, copy,
+ * rename, delete and show in the file explorer.
+ */
 export function libraryMenuEntries({
   song,
   appendDisabledReason,

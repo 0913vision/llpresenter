@@ -5,6 +5,10 @@ import type {
 } from '@core/schema/app/settingsDocuments';
 import {pendingWritesOf} from '@renderer/platform/documents/pendingWrites';
 
+/**
+ * How a settings document is edited: how a new value becomes the update, what
+ * to tell the operator when it fails, and what to log.
+ */
 export interface SettingsDocumentEditorOptions<T extends SettingsDocument> {
   readonly update: (
     base: T,

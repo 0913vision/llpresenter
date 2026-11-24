@@ -5,6 +5,10 @@ import type {Notice} from '@renderer/ui/popups/notices';
 import {buildMacroTargets} from './macroTargets';
 import {useMediaDocument} from '../../useMediaDocument';
 
+/**
+ * The targets a 동작 can point at, or null until the documents they come from are
+ * read.
+ */
 export function useMacroTargets(
   onProblem: ((notice: Notice) => void) | undefined,
 ): ReturnType<typeof buildMacroTargets> | null {

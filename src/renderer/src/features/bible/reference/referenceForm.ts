@@ -13,7 +13,9 @@ import type {RecentPassage} from '@core/schema/bible/bible';
 import type {TranslationId} from '@core/schema/common/ids';
 import type {BibleSuggestion} from './bibleSuggestion';
 
+/** The numeric fields of a reference, in the order they are filled. */
 export const NUMBER_PARTS = ['chapter', 'start', 'end'] as const;
+/** The names of the four reference fields: 책, 장, 시작절 and 끝절. */
 export const REFERENCE_LABELS = {
   book: '책',
   chapter: '장',
@@ -73,6 +75,7 @@ export function fullReferenceCandidate(value: string) {
   return {reference, next, parsedState, input, invalidPart};
 }
 
+/** Focuses and selects the field of `part` inside `root`, if it is there. */
 export function focusPart(root: HTMLElement | null, part: ReferencePart): void {
   const field = root?.querySelector<HTMLInputElement>(
     `[data-reference-part="${part}"]`,
@@ -186,6 +189,7 @@ export type ReferenceKey =
   | {readonly kind: 'submit'}
   | {readonly kind: 'repeat'};
 
+/** A keydown reduced to the fields the reference form's key rules read. */
 export interface ReferenceKeyEvent {
   readonly key: string;
   readonly code: string;
@@ -198,6 +202,10 @@ export interface ReferenceKeyEvent {
   readonly value: string;
 }
 
+/**
+ * What the reference form shows when a key is pressed, which decides what the
+ * key does.
+ */
 export interface ReferenceKeyState {
   readonly dialogMode: boolean;
   /** The book suggestions are open. */

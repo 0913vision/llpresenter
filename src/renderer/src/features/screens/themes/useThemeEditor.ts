@@ -183,4 +183,8 @@ export function useThemeEditor(
     },
   };
 }
+/**
+ * What useThemeEditor returns: the themes, the open theme and screen, the
+ * selection and every edit of them.
+ */
 export type ThemeModel = ReturnType<typeof useThemeEditor>;

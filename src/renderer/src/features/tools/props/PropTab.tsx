@@ -30,6 +30,7 @@ import {propMenuEntries, toolMenuReason} from '../toolMenuEntries';
 
 type Editor = {kind: 'add'} | {kind: 'edit'; prop: Prop};
 
+/** The 그래픽 tab of the 진행 tools. */
 export function PropTab({
   onProblem,
 }: {

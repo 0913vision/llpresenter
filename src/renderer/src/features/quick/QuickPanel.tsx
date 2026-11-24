@@ -32,6 +32,10 @@ import {type NamedDocument} from '@core/schema/app/settingsDocuments';
 
 const EMPTY_ITEMS: readonly QuickItem[] = [];
 
+/**
+ * The 빠른 실행 panel, which lists the items that fire or toggle something with one
+ * click; null until its document is read.
+ */
 export function QuickPanel({
   selectionVersion,
   onProblem,

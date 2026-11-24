@@ -199,6 +199,7 @@ function ThemeTextEffects({
   );
 }
 
+/** The properties of a text element: its content, font, spacing and effects. */
 export function ThemeTextProperties({
   model,
   element,

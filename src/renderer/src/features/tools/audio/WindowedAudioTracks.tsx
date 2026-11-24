@@ -11,6 +11,7 @@ const rowHeight = (list: HTMLElement): number =>
   list.querySelector<HTMLElement>('[data-audio-row]')?.getBoundingClientRect()
     .height ?? 0;
 
+/** The tracks of an audio playlist, drawing only the rows in view. */
 export function WindowedAudioTracks({
   api,
   tracks,

@@ -153,6 +153,10 @@ function TemplateDialog({
   );
 }
 
+/**
+ * The editing of the 메시지 templates: their context menu, the add and edit
+ * dialogs and the saves; `children` are the list it wraps.
+ */
 export function MessageEditing({
   document,
   screens,

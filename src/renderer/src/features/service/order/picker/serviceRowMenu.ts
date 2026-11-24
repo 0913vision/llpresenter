@@ -3,6 +3,10 @@ import type {ServiceEntry} from '@core/schema/services/contentDocuments';
 import {menuAvailability, type MenuEntry} from '@renderer/ui/menus/menuModel';
 import {laterRow, menuSeparator} from '@renderer/ui/menus/menuRows';
 
+/**
+ * The context menu of a service in the picker: open, rename, save as a
+ * template, duplicate and delete.
+ */
 export function serviceRowMenuEntries({
   entry,
   currentId,

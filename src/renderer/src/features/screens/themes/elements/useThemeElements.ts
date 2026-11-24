@@ -27,8 +27,16 @@ import {
 import type {ThemeSelection} from '../useThemeSelection';
 import type {ThemeWrites} from '../saving/useThemeWrites';
 
+/**
+ * The canvas the elements are placed on, with the smallest size an element may
+ * be given.
+ */
 export const themeCanvasBounds = {...THEME_CANVAS, minimumSize: 10};
 
+/**
+ * Where a new element goes: at a place in the stacking order, at a point of the
+ * canvas, or both.
+ */
 export interface ThemeAddPlacement {
   readonly index?: number;
   readonly point?: {readonly x: number; readonly y: number};

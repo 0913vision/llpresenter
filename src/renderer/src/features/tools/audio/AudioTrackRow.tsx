@@ -6,6 +6,7 @@ import {durationText} from '@renderer/features/media/mediaEntries';
 import type {AudioTrack} from '@core/media';
 import styles from './AudioTrackRow.module.css';
 
+/** One track of an audio playlist. */
 export function AudioTrackRow({
   api,
   track,

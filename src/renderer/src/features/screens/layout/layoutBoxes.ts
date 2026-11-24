@@ -28,6 +28,10 @@ export interface TargetBox {
   readonly detail: string;
 }
 
+/**
+ * The monitors of the PC and the screens' targets on them, as boxes of one
+ * drawing.
+ */
 export interface DisplayLayoutModel {
   /** The width over the height of the whole arrangement. */
   readonly aspectRatio: number;

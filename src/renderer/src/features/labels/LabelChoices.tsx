@@ -8,6 +8,7 @@ import {useButtonPress} from '@renderer/ui/buttons/press';
 import menuStyles from '@renderer/ui/menus/Menu.module.css';
 import styles from './LabelMenu.module.css';
 
+/** The rows of the 이름표 menu, drawn as buttons that act on release. */
 export function LabelChoices({
   entries,
 }: {

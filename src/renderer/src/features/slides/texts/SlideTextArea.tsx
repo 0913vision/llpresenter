@@ -31,6 +31,7 @@ import {applyTextEdit} from './deckTexts';
 import type {SlideDeck} from '../slideDeck';
 import styles from './SlideTextField.module.css';
 
+/** One text box of one slide of a deck, with the theme that defines it. */
 export interface SlideBox {
   readonly deck: SlideDeck;
   readonly tile: ShowTile;

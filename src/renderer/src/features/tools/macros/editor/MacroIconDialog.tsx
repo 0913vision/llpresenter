@@ -8,6 +8,7 @@ const names = Object.keys(import.meta.glob('../../../../ui/icons/*.svg'))
   .sort();
 const columns = 8;
 
+/** The dialog that picks the icon of a macro. */
 export function MacroIconDialog({
   value,
   locked,

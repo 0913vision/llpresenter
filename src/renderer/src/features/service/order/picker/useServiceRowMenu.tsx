@@ -18,6 +18,10 @@ import {useShow} from '@renderer/session/show/showStore';
 import {type MenuAnchor} from '@renderer/ui/menus/menuModel';
 import type {RenameContract} from '@renderer/ui/fields/renameContract';
 
+/**
+ * Opens the context menu of a service row of the picker and runs its actions,
+ * reporting failures with `onProblem`.
+ */
 export function useServiceRowMenu(
   onProblem: (notice: Notice) => void,
   closePicker: () => void,

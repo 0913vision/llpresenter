@@ -136,6 +136,7 @@ const CLEAR_TARGETS = [
   'message',
 ] as const;
 
+/** The 진행 page of the 환경설정 window; null until the preferences are read. */
 export function ShowPage({edits}: PageProps): JSX.Element | null {
   const {preferences, lockedReason, change} = edits;
   if (preferences === null) return null;

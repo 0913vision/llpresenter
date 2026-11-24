@@ -114,4 +114,5 @@ export function useReferenceEdits({
   return {change, chooseSuggestion, advanceBook, clear};
 }
 
+/** What useReferenceEdits returns: one call per kind of change to the form. */
 export type ReferenceEdits = ReturnType<typeof useReferenceEdits>;

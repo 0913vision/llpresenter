@@ -167,6 +167,7 @@ function Composer({
   );
 }
 
+/** The 메시지 tab of the 진행 tools: the message templates. */
 export function MessageTab({
   onProblem,
 }: {

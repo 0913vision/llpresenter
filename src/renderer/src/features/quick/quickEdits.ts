@@ -21,10 +21,12 @@ import {MAX_TIMER_DEFINITIONS} from '@core/schema/tools/timers';
 
 const SAVE_ATTEMPTS = 2;
 
+/** What a new quick item points at, before it has an id. */
 export type QuickChoice = {
   [Kind in QuickItemKind]: Omit<Extract<KnownQuickItem, {kind: Kind}>, 'id'>;
 }[QuickItemKind];
 
+/** One change to the 빠른 실행 items. */
 export type QuickEdit =
   | (Omit<
       Extract<QuickTimerEdit, {type: 'quick.timer.create'}>,
@@ -55,6 +57,7 @@ export type QuickEdit =
       readonly before: QuickItem['id'] | null;
     };
 
+/** Gives a choice a new id and makes it an item. */
 export function newQuickItem(choice: QuickChoice): KnownQuickItem {
   return {...choice, id: createQuickItemId(crypto.randomUUID())};
 }

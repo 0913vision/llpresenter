@@ -15,6 +15,10 @@ import styles from './AudioTab.module.css';
 
 const NO_ITEMS: readonly MediaItem[] = [];
 
+/**
+ * The 오디오 tab of the 진행 tools: the audio playlists and the tracks of the chosen
+ * one.
+ */
 export function AudioTab({
   onProblem,
 }: {

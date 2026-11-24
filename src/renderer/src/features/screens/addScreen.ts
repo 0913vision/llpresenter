@@ -6,6 +6,7 @@ import type {MonitorInfo} from '@core/schema/screens/monitors';
 import {defaultScreenName} from '@core/screens';
 import {assignScreenMonitor} from './assignScreenMonitor';
 
+/** A screen to add, with the monitor it is to appear on, if any. */
 export interface NewScreen {
   readonly id: ScreenId;
   readonly kind: Screen['kind'];

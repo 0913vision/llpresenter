@@ -49,6 +49,7 @@ export async function settle<T>(
   }
 }
 
+/** Renames a service, resolving false when it could not be read or saved. */
 export async function renameService(
   api: Pick<LlpApi, 'services' | 'content' | 'log'>,
   serviceId: ServiceId,

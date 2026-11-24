@@ -13,6 +13,7 @@ const SAVE_FAILURE: Notice = {
   time: '',
 };
 
+/** What the 성경 page can read and change. */
 export interface BibleEdits {
   /** The installed translations; null until the first read. */
   readonly translations: readonly Translation[] | null;

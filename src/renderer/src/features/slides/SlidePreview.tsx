@@ -32,6 +32,10 @@ export function usePreviewScreen() {
   };
 }
 
+/**
+ * The screen a preview shows: its id and role, the call that chooses another,
+ * and the choices.
+ */
 export type PreviewScreen = ReturnType<typeof usePreviewScreen>;
 
 /** A slide of a list on the chosen screen, as every side panel shows it. */

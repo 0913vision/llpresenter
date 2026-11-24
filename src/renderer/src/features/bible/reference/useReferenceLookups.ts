@@ -91,4 +91,8 @@ export function useReferenceLookups({
   };
 }
 
+/**
+ * What useReferenceLookups returns: the book, its bounds, the state of every
+ * field and the replies of the lookups.
+ */
 export type ReferenceLookups = ReturnType<typeof useReferenceLookups>;
