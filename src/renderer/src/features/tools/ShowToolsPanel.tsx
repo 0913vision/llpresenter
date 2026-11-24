@@ -1,6 +1,6 @@
 import {useState, type JSX} from 'react';
 import type {SizeClass} from '@renderer/ui/panels/sizeClass';
-import {useShowToolTab} from '@renderer/features/tools/state/showToolTab';
+import {useShowToolTab} from '@renderer/features/tools/showToolTab';
 import {Panel, PanelBody, PanelHeader} from '@renderer/ui/panels/Panel';
 import {ResponsivePanelTabs} from '@renderer/ui/panels/ResponsivePanelTabs';
 import {
@@ -9,12 +9,12 @@ import {
 } from '@renderer/ui/panels/PanelActionSlot';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {SHOW_TOOLS, showTool} from './showTools';
-import {AudioTab} from './AudioTab';
-import {StageTab} from './StageTab';
-import {MessageTab} from './MessageTab';
-import {TimerTab} from './TimerTab';
-import {PropTab} from './PropTab';
-import {MacroTab} from './MacroTab';
+import {AudioTab} from './audio/AudioTab';
+import {StageTab} from './stage/StageTab';
+import {MessageTab} from './messages/MessageTab';
+import {TimerTab} from './timers/TimerTab';
+import {PropTab} from './props/PropTab';
+import {MacroTab} from './macros/MacroTab';
 import styles from './ShowToolsPanel.module.css';
 
 /** Shows the 진행 도구 tabs whose panels have working controls. */

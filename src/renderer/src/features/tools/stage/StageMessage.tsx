@@ -1,0 +1,80 @@
+import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
+import {useState, type JSX} from 'react';
+import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
+import {sendLive, useLive} from '@renderer/session/live';
+import {Button, LiveBadge, PropertyGroup, TextField} from '@renderer/ui';
+import {isComposing} from '@renderer/ui/fields/ime';
+import {hideStageMessage} from '../toolCommands';
+import styles from './StageTab.module.css';
+
+function messageReason(text: string, available: boolean): string | undefined {
+  if (!available) return '무대 화면 없음';
+  if (text.trim() === '') return '메시지를 적어야 보낼 수 있습니다.';
+  if (text.length > LIVE_STATE_LIMITS.textCharacters) {
+    return '메시지가 너무 깁니다.';
+  }
+  return undefined;
+}
+
+export function StageMessage({
+  available,
+}: {
+  readonly available: boolean;
+}): JSX.Element {
+  const [text, setText] = useState('');
+  const live = useLive(view => view.state?.stageMessage);
+  const reason = messageReason(text, available);
+  const send = (value: string): void => {
+    if (messageReason(value, available) === undefined) {
+      sendLive({type: 'stage.message.set', text: value.trim()});
+    }
+  };
+  useWindowShortcuts([{id: 'stage.sendMessage', run: () => send(text)}]);
+  return (
+    <PropertyGroup
+      title="무대 메시지"
+      action={live ? <LiveBadge /> : undefined}
+    >
+      <div className={styles.compose}>
+        <TextField
+          aria-label="무대 메시지"
+          block
+          className={styles.text}
+          value={text}
+          onChange={setText}
+          maxLength={LIVE_STATE_LIMITS.textCharacters}
+          onKeyDown={event => {
+            if (
+              event.code !== 'Enter' ||
+              event.ctrlKey ||
+              event.altKey ||
+              event.shiftKey ||
+              event.metaKey ||
+              isComposing(event)
+            ) {
+              return;
+            }
+            event.preventDefault();
+            event.stopPropagation();
+            if (event.repeat) return;
+            send(text);
+          }}
+        />
+        <Button
+          disabled={!live}
+          title={!live ? '표시 중인 무대 메시지가 없습니다.' : undefined}
+          onClick={hideStageMessage}
+        >
+          지우기
+        </Button>
+        <Button
+          disabled={reason !== undefined}
+          title={reason}
+          onClick={() => send(text)}
+        >
+          보내기
+        </Button>
+      </div>
+    </PropertyGroup>
+  );
+}

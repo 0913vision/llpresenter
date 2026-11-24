@@ -2,7 +2,7 @@ import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {cleanup, render, screen, waitFor, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, expect, it} from 'vitest';
-import {useShowToolTab} from '@renderer/features/tools/state/showToolTab';
+import {useShowToolTab} from '@renderer/features/tools/showToolTab';
 import {ShowToolsPanel} from '@renderer/features/tools/ShowToolsPanel';
 import {stageFixture} from '@fixtures/renderer/features/tools/stageTesting';
 import {mockPanelTabWidths} from '@fixtures/renderer/ui/responsiveTabTesting';

@@ -1,5 +1,5 @@
 import {vi} from 'vitest';
-import type {MacroMenuHandlers} from '@renderer/features/tools/macroMenuEntries';
+import type {MacroMenuHandlers} from '@renderer/features/tools/macros/macroMenuEntries';
 
 /** Handlers that record every call, for tests of the 매크로 menu. */
 export function mockHandlers(): MacroMenuHandlers {

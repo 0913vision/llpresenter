@@ -7,8 +7,8 @@ import {
   type MenuItem,
 } from '@renderer/ui/menus/menuModel';
 import {laterRow, menuSeparator} from '@renderer/ui/menus/menuRows';
-import {useShowToolTab} from '@renderer/features/tools/state/showToolTab';
-import {useMacroPalette} from '@renderer/features/tools/state/macroPalette';
+import {useShowToolTab} from '@renderer/features/tools/showToolTab';
+import {useMacroPalette} from '@renderer/features/tools/macros/useMacroPalette';
 import {
   SHOW_TOOLS,
   showTool,

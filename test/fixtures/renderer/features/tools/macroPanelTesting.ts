@@ -5,7 +5,7 @@ import {
 } from '@core/schema/contentDocuments';
 import {parseMediaDocument} from '@core/schema/mediaEdit';
 import {stageFixture} from '@fixtures/renderer/features/tools/stageTesting';
-import type {MacroPanelModel} from '@renderer/features/tools/useMacroPanel';
+import type {MacroPanelModel} from '@renderer/features/tools/macros/useMacroPanel';
 
 export const id = '00000000-0000-4000-8000-000000000001';
 const groupId = '00000000-0000-4000-8000-000000000002';

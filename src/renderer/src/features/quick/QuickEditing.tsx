@@ -20,7 +20,7 @@ import {openOnArrowDown} from '@renderer/ui/menus/menuButton';
 import {menuAvailability, type MenuEntry} from '@renderer/ui/menus/menuModel';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import {newQuickItem, type QuickChoice, type QuickEdit} from './quickEdits';
-import {useTimerEditDialog} from '../tools/useTimerEditDialog';
+import {useTimerEditDialog} from '../tools/timers/useTimerEditDialog';
 import {QuickTimerDialog} from './QuickTimerDialog';
 import {quickItemMenuEntries, toolMenuReason} from '../tools/toolMenuEntries';
 

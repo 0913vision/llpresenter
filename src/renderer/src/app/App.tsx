@@ -2,7 +2,7 @@ import {useAudioOutputs} from '@renderer/features/preferences/useAudioOutputs';
 import {ShownItemProvider} from '@renderer/session/shownItem';
 import {NumberJumpOverlay} from '@renderer/features/presentation/DraftOverlay';
 import {useMonitors} from '@renderer/features/screens/useMonitors';
-import {AudioShortcuts} from '@renderer/features/tools/AudioShortcuts';
+import {AudioShortcuts} from '@renderer/features/tools/audio/AudioShortcuts';
 import {MediaViewProvider} from '@renderer/features/media/MediaViewProvider';
 import {ToolObjectShortcuts} from '@renderer/features/tools/ToolObjectShortcuts';
 import {QuickObjectShortcuts} from '@renderer/features/quick/QuickObjectShortcuts';

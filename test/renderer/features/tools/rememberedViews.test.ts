@@ -5,7 +5,7 @@ import {seedPreview, showLarge, usePreview} from '@renderer/session/preview';
 import {
   seedShowToolTab,
   useShowToolTab,
-} from '@renderer/features/tools/state/showToolTab';
+} from '@renderer/features/tools/showToolTab';
 
 afterEach(() => {
   delete window.llp;

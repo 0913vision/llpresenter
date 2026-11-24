@@ -1,0 +1,115 @@
+import {limitReason} from '@core/common/limitReason';
+import {toggleTimer, resetTimer} from '../toolCommands';
+import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
+import {timerCommandLabels} from '@renderer/ui/keys/timerCommandLabels';
+import {memo, type JSX} from 'react';
+import type {LlpApi} from '@contracts/ipc/api';
+import type {Timer} from '@core/schema/timers';
+import {MAX_LIVE_TIMERS} from '@core/schema/timerState';
+import {useLive} from '@renderer/session/live';
+import {Button, Icon, TruncatedText} from '@renderer/ui';
+import {TimerValue} from './TimerValue';
+import {TimerRowMenu} from './TimerRowMenu';
+import type {Notice} from '@renderer/ui/popups/notices';
+import styles from './TimerTab.module.css';
+
+/** A countdown's length as the 분 and 초 fields of its dialog: 30초, 1분, 2분 30초. */
+function durationText(seconds: number): string {
+  const minutes = Math.floor(seconds / 60);
+  const rest = seconds % 60;
+  if (minutes === 0) return `${rest}초`;
+  return rest === 0 ? `${minutes}분` : `${minutes}분 ${rest}초`;
+}
+
+function kindText(timer: Timer): string {
+  switch (timer.kind) {
+    case 'countdown':
+      return durationText(timer.duration);
+    case 'countdownTo':
+      return `${timer.date ? `${timer.date} ` : ''}${timer.time}까지`;
+    case 'elapsed':
+      return '경과';
+    case 'clock':
+      return '시계';
+  }
+}
+
+export const TimerRow = memo(
+  ({
+    api,
+    timer,
+    editable = false,
+    copyReason,
+    onProblem,
+    onRemove,
+  }: {
+    readonly api: LlpApi;
+    readonly timer: Timer;
+    readonly editable?: boolean;
+    readonly copyReason?: string | undefined;
+    readonly onProblem?: ((notice: Notice) => void) | undefined;
+    readonly onRemove?: ((timer: Timer) => void) | undefined;
+  }): JSX.Element => {
+    const run = useLive(view => view.state?.timers?.[timer.id]);
+    const full = useLive(
+      view => Object.keys(view.state?.timers ?? {}).length >= MAX_LIVE_TIMERS,
+    );
+    const running = run?.state === 'running';
+    const reason =
+      run === undefined && full
+        ? limitReason('타이머', MAX_LIVE_TIMERS, '시작')
+        : undefined;
+    const toggle = (): void =>
+      toggleTimer(timer, command => api.live.send(command));
+    const reset = (): void =>
+      resetTimer(timer, command => api.live.send(command));
+    useWindowShortcuts([
+      {id: `timer.${timer.id}.toggle`, run: toggle},
+      {id: `timer.${timer.id}.reset`, run: reset},
+    ]);
+    return (
+      <TimerRowMenu
+        api={api}
+        timer={timer}
+        editable={editable}
+        copyReason={copyReason}
+        onProblem={onProblem}
+        onRemove={onRemove}
+      >
+        <div className={styles.heading}>
+          <Icon name="timer" size={16} />
+          <TruncatedText
+            className={styles.name}
+            text={timer.name || '이름 없음'}
+          />
+          <span className={styles.kind}>{kindText(timer)}</span>
+        </div>
+        <div className={styles.reading}>
+          <div className={styles.value}>
+            <TimerValue api={api} timer={timer} run={run} />
+          </div>
+          {timer.kind === 'clock' ? null : (
+            <div className={styles.actions}>
+              <Button
+                disabled={reason !== undefined}
+                title={reason}
+                onClick={toggle}
+              >
+                {running ? timerCommandLabels.pause : timerCommandLabels.start}
+              </Button>
+              <Button
+                disabled={run === undefined}
+                title={
+                  run === undefined ? '타이머가 멈춰 있습니다.' : undefined
+                }
+                onClick={reset}
+              >
+                {timerCommandLabels.reset}
+              </Button>
+            </div>
+          )}
+        </div>
+      </TimerRowMenu>
+    );
+  },
+);

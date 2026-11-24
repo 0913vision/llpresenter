@@ -1,6 +1,6 @@
 import {useState, type JSX} from 'react';
 import {createQuickItemId, createTimerId} from '@core/schema/ids';
-import {CountdownDialog} from '../tools/CountdownDialog';
+import {CountdownDialog} from '../tools/timers/CountdownDialog';
 import type {QuickEdit} from './quickEdits';
 
 export function QuickTimerDialog({

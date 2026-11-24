@@ -12,13 +12,13 @@ import {
 } from '@core/schema/settingsDocuments';
 import type {EditResult} from '@core/schema/contentEdit';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {saveMacroCollectionEdit} from '@renderer/features/tools/macroCollectionEdits';
+import {saveMacroCollectionEdit} from '@renderer/features/tools/macros/macroCollectionEdits';
 import {
   MAX_MESSAGE_TEMPLATES,
   saveMessageEdit,
-} from '@renderer/features/tools/messageEdits';
-import {MAX_PROPS, savePropEdit} from '@renderer/features/tools/propEdits';
-import {duplicateTimer} from '@renderer/features/tools/timerEdits';
+} from '@renderer/features/tools/messages/messageEdits';
+import {MAX_PROPS, savePropEdit} from '@renderer/features/tools/props/propEdits';
+import {duplicateTimer} from '@renderer/features/tools/timers/timerEdits';
 import {MAX_TIMER_DEFINITIONS} from '@core/schema/timers';
 import {MACRO_FILE_LIMITS} from '@core/schema/macros';
 

@@ -17,7 +17,7 @@ import {
   detailsScale,
 } from '@renderer/platform/thumbnailScale';
 import {seedPreview} from '@renderer/session/preview';
-import {seedShowToolTab} from '@renderer/features/tools/state/showToolTab';
+import {seedShowToolTab} from '@renderer/features/tools/showToolTab';
 import {
   createColumnWidthStore,
   loadUiState,

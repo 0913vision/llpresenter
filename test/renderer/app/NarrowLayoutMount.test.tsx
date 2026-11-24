@@ -9,7 +9,7 @@ import {useLive} from '@renderer/session/live';
 import type {LiveCommand} from '@core/schema/liveCommand';
 import {sampleService} from '@fixtures/renderer/session/sampleService';
 import {applyService} from '@renderer/session/show';
-import {useShowToolTab} from '@renderer/features/tools/state/showToolTab';
+import {useShowToolTab} from '@renderer/features/tools/showToolTab';
 import {App} from '@renderer/app/App';
 import {ControlSession} from '@renderer/app/controlSession';
 import {mockPanelTabWidths} from '@fixtures/renderer/ui/responsiveTabTesting';

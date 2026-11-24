@@ -4,9 +4,9 @@ import {emptyLiveState} from '@core/schema/live';
 import {createAudioPlaylistId, createMediaId} from '@core/schema/ids';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {mockPanelTabWidths} from '@fixtures/renderer/ui/responsiveTabTesting';
-import {AudioShortcuts} from '@renderer/features/tools/AudioShortcuts';
+import {AudioShortcuts} from '@renderer/features/tools/audio/AudioShortcuts';
 import {ShowToolsPanel} from '@renderer/features/tools/ShowToolsPanel';
-import {useShowToolTab} from '@renderer/features/tools/state/showToolTab';
+import {useShowToolTab} from '@renderer/features/tools/showToolTab';
 import {useLive} from '@renderer/session/live';
 import {commandBindingStore} from '@renderer/ui/keys/commandBindings';
 
