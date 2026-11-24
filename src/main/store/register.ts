@@ -4,7 +4,10 @@ import {
   type AppProblem,
 } from '@core/schema/app/appProblem';
 import type {EditResult} from '@core/schema/services/contentEdit';
-import type {SettingsEdit} from '@core/schema/app/settingsDocuments';
+import type {
+  LabelRename,
+  SettingsEdit,
+} from '@core/schema/app/settingsDocuments';
 import type {SettingsReader} from '@core/schema/app/settingsReader';
 import {app, shell} from 'electron';
 import {IpcHost} from '../base/ipcHost';
@@ -134,25 +137,8 @@ export function registerStore({
   const stores = openStores({context, appConfig, log, launch, saveFailures});
   const {loading, settings, media, opened} = stores;
   const mediaChannels = registerMediaChannels(media, log);
-  const settingsChannels = registerSettingsChannels(
-    settings,
-    log,
-    async edit => {
-      const [readyContent, readySettings] = await Promise.all([
-        opened,
-        settings,
-      ]);
-      if (readyContent === null || readySettings === null) {
-        return {
-          ok: false,
-          error: {
-            reason: 'not-found',
-            message: 'The label list is unavailable',
-          },
-        };
-      }
-      return readyContent.content.renameLabel(readySettings, edit);
-    },
+  const settingsChannels = registerSettingsChannels(settings, log, edit =>
+    renameLabelOnceRead(stores, edit),
   );
   const stopSkippedFiles = startSkippedFileProblems({
     skipped: skippedFiles,
@@ -202,15 +188,7 @@ export function registerStore({
     content: contentOf(opened),
     songs: opened.then(ready => ready?.songs ?? null),
     settings,
-    applySettingsEdit: async edit => {
-      const store = await settings;
-      return store === null
-        ? {
-            ok: false,
-            error: {reason: 'not-found', message: 'Settings are unavailable'},
-          }
-        : store.apply(edit);
-    },
+    applySettingsEdit: edit => applySettingsEditOnceRead(settings, edit),
     media,
     mediaBackend: mediaChannels.port,
     readSettings: settingsAccess.readSettings,
@@ -245,6 +223,38 @@ export function registerStore({
     findMediaFile: mediaLibrary.findFile,
     mediaRoots: mediaLibrary.roots,
   };
+}
+
+/**
+ * Renames a label in the label list and in every song that uses it, once the
+ * settings and the songs are read; refused when either could not be read.
+ */
+async function renameLabelOnceRead(
+  {opened, settings}: OpenedStores,
+  edit: LabelRename,
+): Promise<EditResult> {
+  const [readyContent, readySettings] = await Promise.all([opened, settings]);
+  if (readyContent === null || readySettings === null) {
+    return {
+      ok: false,
+      error: {reason: 'not-found', message: 'The label list is unavailable'},
+    };
+  }
+  return readyContent.content.renameLabel(readySettings, edit);
+}
+
+/** Applies a settings edit once the settings are read; refused when they could not be. */
+async function applySettingsEditOnceRead(
+  settings: Promise<SettingsStore | null>,
+  edit: SettingsEdit,
+): Promise<EditResult> {
+  const store = await settings;
+  return store === null
+    ? {
+        ok: false,
+        error: {reason: 'not-found', message: 'Settings are unavailable'},
+      }
+    : store.apply(edit);
 }
 
 /** The stores the app reads at launch; each is null when it could not be read. */
