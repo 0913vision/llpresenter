@@ -1,5 +1,5 @@
 import {useSyncExternalStore} from 'react';
-import {commandBindingStore} from '@renderer/ui/commandBindings';
+import {commandBindingStore} from '@renderer/ui/keys/commandBindings';
 
 /** Reports whether a command prefix has any assigned, nonempty bindings. */
 export function useBoundCommands(): (prefix: string) => boolean {

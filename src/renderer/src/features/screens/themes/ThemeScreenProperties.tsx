@@ -7,9 +7,9 @@ import {
   PropertyGroup,
   PropertyRow,
   PropertyValue,
-} from '@renderer/ui/PropertyRow';
-import {SegmentedControl} from '@renderer/ui/SegmentedControl';
-import {withParticle} from '@renderer/ui/korean';
+} from '@renderer/ui/panels/PropertyRow';
+import {SegmentedControl} from '@renderer/ui/choices/SegmentedControl';
+import {withParticle} from '@renderer/ui/text/korean';
 import {ColorProperty} from '../ColorProperty';
 import type {ThemeModel} from './useThemeEditor';
 

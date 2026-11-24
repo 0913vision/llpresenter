@@ -3,7 +3,7 @@ import {changeSlides, withBackground} from '@core/slides';
 import {hasMediaDrag, readMediaDrag} from '@renderer/features/media/mediaDrag';
 import {canAddMedia, mediaItem} from '@renderer/platform/media';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
-import {warningNotice} from '@renderer/ui/notices';
+import {warningNotice} from '@renderer/ui/popups/notices';
 import {selectionOf} from './deckSelection';
 import type {SlideDeck} from './slideDeck';
 import type {Report} from '@renderer/session/serviceEdit';

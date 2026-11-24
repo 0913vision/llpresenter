@@ -1,5 +1,5 @@
 import {useLayoutEffect, useRef} from 'react';
-import {type Notice, warningNotice} from '@renderer/ui/notices';
+import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import type {NamedDocument} from '../../platform/useSettingsDocument';
 import {ScreenEditor, type EditProblemReporter} from './screenEditor';
 import type {ScreenChange} from '@core/screens';

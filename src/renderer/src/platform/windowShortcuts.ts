@@ -1,7 +1,7 @@
 import {
   useCommandShortcuts,
   type WindowShortcut,
-} from '@renderer/ui/commandDispatcher';
+} from '@renderer/ui/keys/commandDispatcher';
 import {isColumnDragActive} from './drag';
 
 export type {WindowShortcut};

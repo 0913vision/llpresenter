@@ -1,5 +1,5 @@
 import type {JSX} from 'react';
-import {Button} from '@renderer/ui/Button';
+import {Button} from '@renderer/ui/buttons/Button';
 import type {OwnText} from './useOwnText';
 
 /** Opens a value that fills itself for editing, or puts its default back. */

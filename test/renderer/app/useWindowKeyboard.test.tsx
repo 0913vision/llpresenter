@@ -1,7 +1,7 @@
 import {cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {useRef, type JSX} from 'react';
-import {modalStack} from '@renderer/ui/modalStack';
+import {modalStack} from '@renderer/ui/popups/modalStack';
 import {
   useCloseKeys,
   useInitialListFocus,

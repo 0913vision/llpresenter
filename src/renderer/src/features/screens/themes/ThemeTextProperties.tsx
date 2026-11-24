@@ -9,9 +9,9 @@ import {
   type ThemeGroupedText,
   type ThemeTextStyle,
 } from '@core/schema/theme';
-import {PropertyGroup, PropertyRow} from '@renderer/ui/PropertyRow';
-import {SegmentedControl} from '@renderer/ui/SegmentedControl';
-import {SelectMenu} from '@renderer/ui/SelectMenu';
+import {PropertyGroup, PropertyRow} from '@renderer/ui/panels/PropertyRow';
+import {SegmentedControl} from '@renderer/ui/choices/SegmentedControl';
+import {SelectMenu} from '@renderer/ui/choices/SelectMenu';
 import {FontPicker} from '../fonts/FontPicker';
 import {missingFontReason, weightChoices} from '../fonts/fontAvailability';
 import {useFontCatalog} from '../fonts/useFontCatalog';

@@ -1,9 +1,9 @@
 import {NAME_LIMIT} from '@core/schema/primitives';
-import {nameReason} from '@renderer/ui/nameReason';
+import {nameReason} from '@renderer/ui/fields/nameReason';
 import {useState, type JSX} from 'react';
-import {RenameDialog} from '@renderer/ui/RenameDialog';
+import {RenameDialog} from '@renderer/ui/popups/RenameDialog';
 import {Dialog, TextField} from '@renderer/ui';
-import type {Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {isKnownMacroAction} from '@core/schema/macros';
 import {draftMacroAction} from '@core/macros';
 import {MacroActionDialog} from './MacroActionDialog';

@@ -1,12 +1,12 @@
 import {NOT_IN_THIS_WINDOW} from '@renderer/platform/problemReasons';
-import {shortcutText, commandBindingStore} from '@renderer/ui/commandBindings';
+import {shortcutText, commandBindingStore} from '@renderer/ui/keys/commandBindings';
 import {commandBindings, matchesBinding} from '@core/shortcuts';
 import {
   menuAvailability,
   type MenuEntry,
   type MenuItem,
-} from '@renderer/ui/menuModel';
-import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
+} from '@renderer/ui/menus/menuModel';
+import {laterRow, menuSeparator} from '@renderer/ui/menus/menuRows';
 import {useShowToolTab} from '@renderer/features/tools/state/showToolTab';
 import {useMacroPalette} from '@renderer/features/tools/state/macroPalette';
 import {

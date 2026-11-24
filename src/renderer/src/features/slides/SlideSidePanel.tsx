@@ -5,8 +5,8 @@ import {
   PanelBody,
   PanelHeader,
   PanelTitle,
-} from '@renderer/ui/Panel';
-import {SegmentedControl} from '@renderer/ui/SegmentedControl';
+} from '@renderer/ui/panels/Panel';
+import {SegmentedControl} from '@renderer/ui/choices/SegmentedControl';
 import type {PreviewScreen} from './SlidePreview';
 import styles from './SlideSidePanel.module.css';
 

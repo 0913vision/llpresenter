@@ -5,7 +5,7 @@ import {ScreenPreview} from '@renderer/features/presentation/ScreenPreview';
 import {OutputMirror} from '@renderer/features/presentation/OutputMirror';
 import {useLive} from '@renderer/session/live';
 import {Button} from '@renderer/ui';
-import type {Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {
   previewCaption,
   signalText,
@@ -16,7 +16,7 @@ import {useMonitors} from './useMonitors';
 import {useSettingsDocument} from '../../platform/useSettingsDocument';
 import styles from './OutputPreview.module.css';
 import {fitAspect} from '@core/canvas';
-import {useElementSize} from '@renderer/ui/useElementSize';
+import {useElementSize} from '@renderer/ui/panels/useElementSize';
 import {THEME_CANVAS} from '@core/schema/theme';
 import {pictureSizeForScreen} from '@core/screens';
 import {useScreenSize} from '@renderer/pictures/screenSizes';

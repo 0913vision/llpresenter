@@ -1,7 +1,7 @@
 import {useScreenList} from '@renderer/platform/useScreenList';
 import {useMemo} from 'react';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
-import type {Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {buildMacroTargets} from './macroTargets';
 import {useMediaDocument} from './useMediaDocument';
 

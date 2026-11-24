@@ -2,7 +2,7 @@ import {act, fireEvent, render, screen, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {describe, expect, it, vi} from 'vitest';
-import {Dialog} from '@renderer/ui/Dialog';
+import {Dialog} from '@renderer/ui/popups/Dialog';
 import {
   checkAll,
   treeRows,

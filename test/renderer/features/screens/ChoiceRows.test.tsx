@@ -9,8 +9,8 @@ import {
 } from '@testing-library/react';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import userEvent from '@testing-library/user-event';
-import type {GroupRename} from '@renderer/ui/ListRow';
-import type {MenuAnchor} from '@renderer/ui/Menu';
+import type {GroupRename} from '@renderer/ui/lists/ListRow';
+import type {MenuAnchor} from '@renderer/ui/menus/Menu';
 import {ChoiceRows} from '@renderer/features/screens/ChoiceRows';
 import type {Choice} from '@renderer/features/screens/choices';
 

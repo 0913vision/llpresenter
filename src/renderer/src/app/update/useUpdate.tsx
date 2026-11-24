@@ -5,10 +5,10 @@ import type {
   UpdateSnapshot,
   UpdateStatus,
 } from '@core/schema/update';
-import {Dialog} from '@renderer/ui/Dialog';
-import {Progress} from '@renderer/ui/StatusMarks';
+import {Dialog} from '@renderer/ui/popups/Dialog';
+import {Progress} from '@renderer/ui/tiles/StatusMarks';
 import styles from './UpdateProgress.module.css';
-import {noticeTime, type Notice} from '@renderer/ui/notices';
+import {noticeTime, type Notice} from '@renderer/ui/popups/notices';
 import {useOutputs} from '@renderer/session/live';
 
 export const UPDATE_NOTICE_KEY = 'app:update';

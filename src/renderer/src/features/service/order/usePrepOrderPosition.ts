@@ -1,5 +1,5 @@
 import {useLayoutEffect, useRef, type RefObject} from 'react';
-import {scrollParent} from '@renderer/ui/scrollParent';
+import {scrollParent} from '@renderer/ui/lists/scrollParent';
 
 /** Restores 준비's selected order row before the workspace is painted. */
 export function usePrepOrderPosition(

@@ -12,8 +12,8 @@ import {
 import type {ItemOverlayId} from '@core/schema/ids';
 import {resizedSpan, type OverlaySpan} from '@core/overlays';
 import {editorTask} from '@renderer/platform/editorTask';
-import {isComposing} from '@renderer/ui/ime';
-import {hasModifier} from '@renderer/ui/modifierKeys';
+import {isComposing} from '@renderer/ui/fields/ime';
+import {hasModifier} from '@renderer/ui/keys/modifierKeys';
 import {OverlayPopover} from './OverlayPopover';
 import type {OverlayControl} from './useOverlayControl';
 import styles from './ItemOverlays.module.css';

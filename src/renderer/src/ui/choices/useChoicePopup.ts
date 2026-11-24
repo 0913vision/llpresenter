@@ -1,0 +1,148 @@
+import {
+  useEffect,
+  useEffectEvent,
+  useLayoutEffect,
+  useRef,
+  type KeyboardEvent,
+  type RefObject,
+} from 'react';
+import {isComposing} from '@renderer/ui/fields/ime';
+import {hasModifier} from '@renderer/ui/keys/modifierKeys';
+import {placeFloating} from '@renderer/ui/popups/floating';
+import {usePopupPointing} from './usePopupPointing';
+import {maxPopoverHeight, placeBelow} from '../popups/placement';
+import {viewportSize} from '@renderer/ui/popups/placement';
+
+interface PopupOptions {
+  readonly anchor: HTMLElement;
+  readonly onClose: (restoreFocus: boolean) => void;
+  readonly onEscape: () => void;
+  readonly activeId?: string | undefined;
+  readonly closeWithinLayers?: boolean | undefined;
+}
+
+/** Initializes focus and releases every outside/viewport listener on close. */
+export function useChoicePopup({
+  anchor,
+  onClose,
+  onEscape,
+  activeId,
+  closeWithinLayers = false,
+}: PopupOptions): {
+  readonly surface: RefObject<HTMLDivElement | null>;
+  readonly onKeyDown: (event: KeyboardEvent<HTMLDivElement>) => void;
+} {
+  const surface = useRef<HTMLDivElement>(null);
+  usePopupPointing(surface, activeId);
+  const close = useEffectEvent(onClose);
+  useLayoutEffect(() => {
+    const element = surface.current;
+    if (element === null || element.hidden) return;
+    element.style.maxHeight = `${maxPopoverHeight(viewportSize())}px`;
+    placeFloating(element, size =>
+      placeBelow(anchor.getBoundingClientRect(), size, viewportSize()),
+    );
+  });
+  useLayoutEffect(() => {
+    (
+      surface.current?.querySelector<HTMLElement>(
+        '[aria-checked="true"]:not(:disabled):not([aria-disabled="true"])',
+      ) ??
+      surface.current?.querySelector<HTMLElement>(
+        '[data-choice]:not(:disabled):not([aria-disabled="true"])',
+      )
+    )?.focus();
+  }, []);
+  useEffect(() => {
+    const controller = new AbortController();
+    const {signal} = controller;
+    window.addEventListener('resize', () => close(false), {signal});
+    document.addEventListener(
+      'pointerdown',
+      event => {
+        const target = event.target;
+        if (
+          !(target instanceof Element) ||
+          surface.current?.contains(target) ||
+          (!closeWithinLayers &&
+            target.closest(
+              '[data-llp-layer="popover"], [data-llp-layer="dialog"]',
+            ) !== null) ||
+          anchor.contains(target)
+        ) {
+          return;
+        }
+        close(false);
+      },
+      {signal},
+    );
+    document.addEventListener(
+      'scroll',
+      event => {
+        // NOTE(0913vision): Other panels scroll when selecting the row. Only
+        // scrolling the anchor's ancestors changes this popup's position.
+        if (event.target instanceof Node && event.target.contains(anchor)) {
+          close(false);
+        }
+      },
+      {signal, capture: true},
+    );
+    return () => controller.abort();
+  }, [anchor, closeWithinLayers]);
+  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
+    if (isComposing(event)) return;
+    if (event.key === 'Escape' && !hasModifier(event)) {
+      event.preventDefault();
+      event.stopPropagation();
+      onEscape();
+      return;
+    }
+    if (
+      !(event.target instanceof HTMLElement) ||
+      !event.target.matches('[data-choice]')
+    ) {
+      return;
+    }
+    const items = [
+      ...(surface.current?.querySelectorAll<HTMLElement>(
+        '[data-choice]:not(:disabled):not([aria-disabled="true"])',
+      ) ?? []),
+    ];
+    const index = items.indexOf(event.target);
+    const target =
+      event.key === 'ArrowDown'
+        ? (index + 1) % items.length
+        : event.key === 'ArrowUp'
+          ? (index - 1 + items.length) % items.length
+          : event.key === 'Home'
+            ? 0
+            : event.key === 'End'
+              ? items.length - 1
+              : undefined;
+    if (target !== undefined && !hasModifier(event)) {
+      event.preventDefault();
+      items[target]?.focus();
+      return;
+    }
+    if (
+      event.key.length === 1 &&
+      event.key !== ' ' &&
+      !event.ctrlKey &&
+      !event.altKey &&
+      !event.metaKey
+    ) {
+      const prefix = event.key.toLocaleLowerCase();
+      for (let offset = 1; offset <= items.length; offset++) {
+        const candidate = items[(index + offset) % items.length];
+        if (
+          candidate?.textContent.trim().toLocaleLowerCase().startsWith(prefix)
+        ) {
+          event.preventDefault();
+          candidate.focus();
+          return;
+        }
+      }
+    }
+  };
+  return {surface, onKeyDown};
+}

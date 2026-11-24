@@ -1,5 +1,5 @@
 import {useLive} from '@renderer/session/live';
-import type {Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {useThemeSurfaces} from './ThemeCanvas';
 import type {ThemeLeaveGuard} from './themeLeaveGuard';
 import {ThemeProperties} from './ThemeProperties';

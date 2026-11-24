@@ -1,4 +1,4 @@
-import {menuAvailability} from '@renderer/ui/menuModel';
+import {menuAvailability} from '@renderer/ui/menus/menuModel';
 import {MISSING_MEDIA_TIP} from '@renderer/platform/problemReasons';
 
 /** Availability of adding a media file to the service order. */

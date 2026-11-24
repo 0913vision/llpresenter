@@ -1,9 +1,9 @@
 import {useState, type JSX} from 'react';
 import {slidePurposes, type ThemeFile} from '@core/schema/theme';
-import {IconButton} from '@renderer/ui/IconButton';
-import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
-import {Panel, PanelActions, PanelHeader, PanelTitle} from '@renderer/ui/Panel';
-import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
+import {IconButton} from '@renderer/ui/buttons/IconButton';
+import {Menu, type MenuAnchor} from '@renderer/ui/menus/Menu';
+import {Panel, PanelActions, PanelHeader, PanelTitle} from '@renderer/ui/panels/Panel';
+import {useMenuHandoff} from '@renderer/ui/menus/useMenuHandoff';
 import {ChoiceRows} from '../ChoiceRows';
 import {purposeNames} from './themeNames';
 import {ThemeMenu} from './ThemeMenu';

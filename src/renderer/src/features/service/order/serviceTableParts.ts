@@ -1,6 +1,6 @@
 import type {ReactNode} from 'react';
 import type {ItemRow, ServiceRow} from '@core/presentation';
-import type {MenuEntry} from '@renderer/ui/menuModel';
+import type {MenuEntry} from '@renderer/ui/menus/menuModel';
 
 /** What the 예배 순서 list adds to its rows to draw them as a table. */
 export interface ServiceTableParts {

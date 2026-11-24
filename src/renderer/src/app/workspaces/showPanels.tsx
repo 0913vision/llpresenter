@@ -21,8 +21,8 @@ import {
   type NamedDocument,
 } from '@renderer/platform/useSettingsDocument';
 import {isBibleSource, tilesForView} from '@renderer/session/showLibrary';
-import type {Notice} from '@renderer/ui/notices';
-import type {SizeClass} from '@renderer/ui/sizeClass';
+import type {Notice} from '@renderer/ui/popups/notices';
+import type {SizeClass} from '@renderer/ui/panels/sizeClass';
 import {
   logPanelProblem,
   type PanelParts,

@@ -14,7 +14,7 @@ import {PreferencesHarness} from '@fixtures/renderer/features/preferences/Prefer
 import {LabelsPage} from '@renderer/features/labels/LabelsPage';
 import {LabelManagerDialog} from '@renderer/features/labels/LabelManagerDialog';
 import {LabelCatalog} from '@renderer/features/labels/labelCatalog';
-import type {DialogProps} from '@renderer/ui/Dialog';
+import type {DialogProps} from '@renderer/ui/popups/Dialog';
 import {PreferencesWindow} from '@renderer/app/PreferencesWindow';
 import {ControlSession} from '@renderer/app/controlSession';
 import type {EditResult} from '@core/schema/contentEdit';
@@ -96,8 +96,8 @@ it('waits to reveal requested labels until the editor catalog has loaded them', 
 
 // NOTE(0913vision): These two catalogs represent separate windows, so their
 // modal shells must not hide each other's document in this jsdom test.
-vi.mock('@renderer/ui/Dialog', async importOriginal => ({
-  ...(await importOriginal<typeof import('@renderer/ui/Dialog')>()),
+vi.mock('@renderer/ui/popups/Dialog', async importOriginal => ({
+  ...(await importOriginal<typeof import('@renderer/ui/popups/Dialog')>()),
   Dialog: ({title, children, footerStart, primary}: DialogProps) => (
     <section role="dialog" aria-label={title}>
       {children}

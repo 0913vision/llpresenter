@@ -1,4 +1,4 @@
-import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
+import {menuAvailability, type MenuEntry} from '@renderer/ui/menus/menuModel';
 
 /**
  * The menu of a slide tile in 진행: 출력, and 준비에서 열기 when the slide can

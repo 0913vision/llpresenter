@@ -2,7 +2,7 @@ import {act, fireEvent, render, screen} from '@testing-library/react';
 import {expect, it} from 'vitest';
 import {ControlSession} from '@renderer/app/controlSession';
 import {NoticeHistoryButton} from '@renderer/app/shell/NoticeHistory';
-import type {Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/popups/notices';
 
 const lost: Notice = {
   key: 'screen:stage',

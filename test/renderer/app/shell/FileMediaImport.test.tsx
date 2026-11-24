@@ -7,7 +7,7 @@ import {
   REPORTED_FAILURES_LIMIT,
   useFileMediaImport,
 } from '@renderer/app/shell/useFileMediaImport';
-import type {Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {WorkspaceNavigation} from '@renderer/platform/WorkspaceNavigation';
 import {MediaViewProvider} from '@renderer/features/media/MediaViewProvider';
 

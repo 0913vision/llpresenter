@@ -16,7 +16,7 @@ import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {emptyLiveState} from '@core/schema/live';
 import {useLive} from '@renderer/session/live';
-import type {Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {QuickPanel} from '@renderer/features/quick/QuickPanel';
 import {
   deferred,

@@ -5,7 +5,7 @@ import type {
   RecoveryRowKind,
   RecoverySummary,
 } from '@core/schema/recovery';
-import {noticeTime, type Notice} from '@renderer/ui/notices';
+import {noticeTime, type Notice} from '@renderer/ui/popups/notices';
 
 type Offer = NonNullable<RecoverySummary>;
 

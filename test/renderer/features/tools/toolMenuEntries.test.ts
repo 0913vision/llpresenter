@@ -1,5 +1,5 @@
 import {expect, it} from 'vitest';
-import {menuItems} from '@renderer/ui/menuModel';
+import {menuItems} from '@renderer/ui/menus/menuModel';
 import {
   messageMenuEntries,
   namedToolMenuEntries,

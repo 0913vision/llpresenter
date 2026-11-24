@@ -5,7 +5,7 @@ import type {ServiceItem} from '@core/schema/service';
 import type {Report} from '@renderer/session/serviceEdit';
 import {useOrderFull} from '@renderer/session/orderReasons';
 import {useShow} from '@renderer/session/show';
-import {warningNotice} from '@renderer/ui/notices';
+import {warningNotice} from '@renderer/ui/popups/notices';
 import {BibleQuickAdd} from './BibleQuickAdd';
 import {insertNewItem, rowAfterSelected} from '@renderer/session/insertNewItem';
 import {newPaletteItem} from './newItems';

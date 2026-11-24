@@ -1,7 +1,7 @@
-import {focusHistorySurface} from '@renderer/ui/focusHistorySurface';
+import {focusHistorySurface} from '@renderer/ui/lists/focusHistorySurface';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {limitReason} from '@core/common/limitReason';
-import {openMenuFromKey, pointerMenuAnchor} from '@renderer/ui/contextMenu';
+import {openMenuFromKey, pointerMenuAnchor} from '@renderer/ui/menus/contextMenu';
 import {
   useCallback,
   useMemo,
@@ -25,7 +25,7 @@ import {
   type ScreenRow,
 } from '@core/screens';
 import {sendLive, useOutputs} from '@renderer/session/live';
-import type {Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {MAX_TARGET_SCREENS} from '@core/schema/overlayState';
 import {useScreenCreation} from './useScreenCreation';
 import {ScreenGroupActions} from './ScreenGroupActions';
@@ -34,15 +34,15 @@ import {useOutputStatuses} from './useOutputStatuses';
 import {useSettingsDocument} from '../../platform/useSettingsDocument';
 import {SCREEN_DRAG_MIME} from './screenDrag';
 import styles from './ScreenList.module.css';
-import {useDragClickGuard} from '@renderer/ui/useDragClickGuard';
-import type {GroupRename} from '@renderer/ui/ListRow';
-import type {MenuAnchor} from '@renderer/ui/Menu';
+import {useDragClickGuard} from '@renderer/ui/lists/useDragClickGuard';
+import type {GroupRename} from '@renderer/ui/lists/ListRow';
+import type {MenuAnchor} from '@renderer/ui/menus/Menu';
 import {useScreenRowActions} from './useScreenRowActions';
 import {useScreenListWindow} from './useScreenListWindow';
 import {useMonitors} from './useMonitors';
 import {settingsDeleteHistory} from '@renderer/platform/settingsDeleteHistory';
 import {useUndoKeys} from '@renderer/platform/useUndoKeys';
-import {useReflow} from '@renderer/ui/useReflow';
+import {useReflow} from '@renderer/ui/panels/useReflow';
 
 const LIST_LABEL = '화면';
 const LOAD_TITLE = '화면';

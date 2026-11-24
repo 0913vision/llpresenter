@@ -3,10 +3,10 @@ import type {ShowTile} from '@core/schema/showService';
 import {boxesOf} from '@core/slides';
 import {themeOf} from '@core/theme';
 import {useThemes} from '@renderer/platform/themes';
-import {Button} from '@renderer/ui/Button';
-import {Menu} from '@renderer/ui/Menu';
-import {menuButtonProps} from '@renderer/ui/menuButton';
-import type {MenuEntry} from '@renderer/ui/menuModel';
+import {Button} from '@renderer/ui/buttons/Button';
+import {Menu} from '@renderer/ui/menus/Menu';
+import {menuButtonProps} from '@renderer/ui/menus/menuButton';
+import type {MenuEntry} from '@renderer/ui/menus/menuModel';
 import {shownColumns, toggleColumn, useSlideColumns} from './slideColumns';
 
 /** Chooses which texts of the slides have a column in the list. */

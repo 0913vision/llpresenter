@@ -5,7 +5,7 @@ import {createMessageTemplateId} from '@core/schema/ids';
 import type {EditResult} from '@core/schema/contentEdit';
 import {MAX_MESSAGE_CHARACTERS} from '@core/overlays';
 import {NAME_LIMIT} from '@core/schema/primitives';
-import {nameReason} from '@renderer/ui/nameReason';
+import {nameReason} from '@renderer/ui/fields/nameReason';
 import {
   editableSettings,
   unchangedSettings,

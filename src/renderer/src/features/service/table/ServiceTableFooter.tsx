@@ -1,7 +1,7 @@
 import {useState, type JSX} from 'react';
-import {Button} from '@renderer/ui/Button';
-import {Menu} from '@renderer/ui/Menu';
-import type {Notice} from '@renderer/ui/notices';
+import {Button} from '@renderer/ui/buttons/Button';
+import {Menu} from '@renderer/ui/menus/Menu';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {useQuickAdd} from '../items/useQuickAdd';
 import styles from './ServiceTable.module.css';
 

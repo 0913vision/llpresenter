@@ -9,7 +9,7 @@ import {
   defaultColumns,
   type ColumnWidths,
   type SizeClass,
-} from '../../ui/sizeClass';
+} from '../../ui/panels/sizeClass';
 
 // NOTE(0913vision): After a resize fits the widths mid-drag, the pointer
 // movement counts from `widthsAtLastFit`. `pointerMoved` stays true when the

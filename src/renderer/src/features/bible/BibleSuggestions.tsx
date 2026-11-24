@@ -8,11 +8,11 @@ import {
   type RefObject,
 } from 'react';
 import type {TranslationId} from '@core/schema/ids';
-import {placeFloating} from '@renderer/ui/floating';
-import {Popover} from '@renderer/ui/Popover';
-import {modalStack} from '@renderer/ui/modalStack';
-import {placeBelow, viewportSize} from '@renderer/ui/placement';
-import {TruncatedText} from '@renderer/ui/TruncatedText';
+import {placeFloating} from '@renderer/ui/popups/floating';
+import {Popover} from '@renderer/ui/popups/Popover';
+import {modalStack} from '@renderer/ui/popups/modalStack';
+import {placeBelow, viewportSize} from '@renderer/ui/popups/placement';
+import {TruncatedText} from '@renderer/ui/text/TruncatedText';
 import styles from './BibleReferenceField.module.css';
 
 export interface BibleSuggestion {

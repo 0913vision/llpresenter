@@ -1,8 +1,8 @@
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
-import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
+import {windowCommandLabels} from '@renderer/ui/keys/windowCommandLabels';
 import type {LibrarySong} from '@core/schema/contentDocuments';
-import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
-import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
+import {menuAvailability, type MenuEntry} from '@renderer/ui/menus/menuModel';
+import {laterRow, menuSeparator} from '@renderer/ui/menus/menuRows';
 
 /** Why a song can't be copied now, for its menu row and for Ctrl D. */
 export function songCopyReason(

@@ -1,7 +1,7 @@
 import {useRef, useState, type JSX} from 'react';
 import {Menu, ToolbarButton} from '@renderer/ui';
-import {openOnArrowDown} from '@renderer/ui/menuButton';
-import type {Notice} from '@renderer/ui/notices';
+import {openOnArrowDown} from '@renderer/ui/menus/menuButton';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {useThemes} from '@renderer/platform/themes';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useLive} from '@renderer/session/live';

@@ -1,6 +1,6 @@
 import {act, cleanup, renderHook} from '@testing-library/react';
 import {afterEach, expect, it} from 'vitest';
-import {commandBindingStore} from '@renderer/ui/commandBindings';
+import {commandBindingStore} from '@renderer/ui/keys/commandBindings';
 import {useBoundCommands} from '@renderer/platform/useBoundCommands';
 
 afterEach(() => {

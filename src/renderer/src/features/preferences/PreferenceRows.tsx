@@ -1,15 +1,15 @@
 import type {JSX} from 'react';
-import {NumberField} from '@renderer/ui/NumberField';
-import {Button} from '@renderer/ui/Button';
-import {PropertyRow, PropertyValue} from '@renderer/ui/PropertyRow';
+import {NumberField} from '@renderer/ui/fields/NumberField';
+import {Button} from '@renderer/ui/buttons/Button';
+import {PropertyRow, PropertyValue} from '@renderer/ui/panels/PropertyRow';
 import styles from './PreferenceRows.module.css';
-import {TextField} from '@renderer/ui/TextField';
-import {SelectMenu, type SelectOption} from '@renderer/ui/SelectMenu';
-import {Checkbox} from '@renderer/ui/Checkbox';
+import {TextField} from '@renderer/ui/fields/TextField';
+import {SelectMenu, type SelectOption} from '@renderer/ui/choices/SelectMenu';
+import {Checkbox} from '@renderer/ui/choices/Checkbox';
 import {
   SegmentedControl,
   type SegmentOption,
-} from '@renderer/ui/SegmentedControl';
+} from '@renderer/ui/choices/SegmentedControl';
 
 interface RowProps {
   readonly label: string;

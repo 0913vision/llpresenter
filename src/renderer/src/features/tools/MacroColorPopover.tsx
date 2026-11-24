@@ -1,11 +1,11 @@
 import {useEffect, useRef, type JSX} from 'react';
 import type {PaletteColor} from '@core/labels';
-import {MacroColorPicker} from '@renderer/ui/LabelColorPicker';
-import {useChoicePopup} from '@renderer/ui/useChoicePopup';
-import {Popover} from '@renderer/ui/Popover';
-import menuStyles from '@renderer/ui/Menu.module.css';
+import {MacroColorPicker} from '@renderer/ui/labels/LabelColorPicker';
+import {useChoicePopup} from '@renderer/ui/choices/useChoicePopup';
+import {Popover} from '@renderer/ui/popups/Popover';
+import menuStyles from '@renderer/ui/menus/Menu.module.css';
 import styles from './MacroPanel.module.css';
-import {returnFocus} from '@renderer/ui/returnFocus';
+import {returnFocus} from '@renderer/ui/keys/returnFocus';
 
 export function MacroColorPopover({
   anchor,

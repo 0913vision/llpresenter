@@ -1,10 +1,10 @@
 import {useLayoutEffect, useRef, type JSX, type KeyboardEvent} from 'react';
-import {listKeyTarget, useRowRange} from '@renderer/ui/useRowRange';
+import {listKeyTarget, useRowRange} from '@renderer/ui/lists/useRowRange';
 import type {Timer} from '@core/schema/timers';
 import type {LlpApi} from '@contracts/ipc/api';
 import {TimerRow} from './TimerRow';
-import type {Notice} from '@renderer/ui/notices';
-import {useReflow} from '@renderer/ui/useReflow';
+import type {Notice} from '@renderer/ui/popups/notices';
+import {useReflow} from '@renderer/ui/panels/useReflow';
 import styles from './TimerTab.module.css';
 
 const INITIAL_ROWS = 4;

@@ -1,7 +1,7 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import {duplicateAfter} from '@core/common/duplicateAfter';
 import {NAME_LIMIT} from '@core/schema/primitives';
-import {nameReason} from '@renderer/ui/nameReason';
+import {nameReason} from '@renderer/ui/fields/nameReason';
 import type {EditResult} from '@core/schema/contentEdit';
 import {
   MACRO_FILE_LIMITS,

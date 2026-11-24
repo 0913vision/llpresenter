@@ -2,13 +2,13 @@ import {
   NOT_IN_THIS_WINDOW,
   NEWER_FILE_REASON,
 } from '@renderer/platform/problemReasons';
-import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
+import {useMenuHandoff} from '@renderer/ui/menus/useMenuHandoff';
 import {useState} from 'react';
-import {deleteSelection} from '@renderer/ui/deleteSelection';
-import type {MenuAnchor} from '@renderer/ui/Menu';
+import {deleteSelection} from '@renderer/ui/lists/deleteSelection';
+import type {MenuAnchor} from '@renderer/ui/menus/Menu';
 import {sendLive, useOutputs} from '@renderer/session/live';
-import type {GroupRename} from '@renderer/ui/ListRow';
-import {type Notice, warningNotice} from '@renderer/ui/notices';
+import type {GroupRename} from '@renderer/ui/lists/ListRow';
+import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import {useScreensSelection} from './selection';
 import type {NamedDocument} from '../../platform/useSettingsDocument';
 import {useScreenEditor} from './useScreenEditor';

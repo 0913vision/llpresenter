@@ -8,14 +8,14 @@ import type {Report} from '@renderer/session/serviceEdit';
 import {songUsage} from '@renderer/features/songs/library/songUsage';
 import {useSongDraft} from '@renderer/features/songs/songDraft';
 import {useShow} from '@renderer/session/show';
-import {Button} from '@renderer/ui/Button';
+import {Button} from '@renderer/ui/buttons/Button';
 import {
   Properties,
   PropertyGroup,
   PropertyRow,
   PropertyValue,
-} from '@renderer/ui/PropertyRow';
-import {Tooltip} from '@renderer/ui/Tooltip';
+} from '@renderer/ui/panels/PropertyRow';
+import {Tooltip} from '@renderer/ui/popups/Tooltip';
 import {LiturgyVersion} from '../editor/ItemTools';
 import {useServiceSongMenu} from '../order/useServiceSongMenu';
 import styles from './DetailsInfo.module.css';

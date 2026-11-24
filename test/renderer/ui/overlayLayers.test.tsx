@@ -2,9 +2,9 @@ import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {afterEach, beforeAll, describe, expect, it, vi} from 'vitest';
-import {Dialog} from '@renderer/ui/Dialog';
-import {Menu} from '@renderer/ui/Menu';
-import type {MenuEntry} from '@renderer/ui/menuModel';
+import {Dialog} from '@renderer/ui/popups/Dialog';
+import {Menu} from '@renderer/ui/menus/Menu';
+import type {MenuEntry} from '@renderer/ui/menus/menuModel';
 import {
   hoverForTooltip,
   resetTooltips,

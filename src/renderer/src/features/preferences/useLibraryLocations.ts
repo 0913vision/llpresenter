@@ -6,7 +6,7 @@ import type {
   LibraryLocationField,
   LocationsView,
 } from '@core/schema/libraryLocations';
-import {type Notice, warningNotice} from '@renderer/ui/notices';
+import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 
 const FOLDER_REFUSALS: Readonly<
   Record<Exclude<ChooseLocationFailure, 'canceled'>, string>

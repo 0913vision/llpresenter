@@ -3,7 +3,7 @@ import type {AudioPlaylistId} from '@core/schema/ids';
 import type {EditResult} from '@core/schema/contentEdit';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {withinLookupTimeout} from '@renderer/session/showOutput';
-import type {Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {useToolEditing} from './useToolEditing';
 
 const ATTEMPTS = 2;

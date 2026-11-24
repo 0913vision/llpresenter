@@ -6,9 +6,9 @@ import {
   useState,
   type KeyboardEvent,
 } from 'react';
-import {isComposing} from '@renderer/ui/ime';
-import {hasModifier} from '@renderer/ui/modifierKeys';
-import {useChoicePopup} from '@renderer/ui/useChoicePopup';
+import {isComposing} from '@renderer/ui/fields/ime';
+import {hasModifier} from '@renderer/ui/keys/modifierKeys';
+import {useChoicePopup} from '@renderer/ui/choices/useChoicePopup';
 import {filterFamilies, type FontChoice} from './fontChoices';
 
 export const FONT_PICKER_VISIBLE_ROWS = 8;

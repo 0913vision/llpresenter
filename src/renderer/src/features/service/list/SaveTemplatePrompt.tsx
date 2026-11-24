@@ -1,5 +1,5 @@
 import type {JSX} from 'react';
-import {AlertDialog} from '@renderer/ui/AlertDialog';
+import {AlertDialog} from '@renderer/ui/popups/AlertDialog';
 import type {TemplateConflict} from './useSaveTemplate';
 
 /** Asks what to do when a 템플릿 with the open service's name already exists. */

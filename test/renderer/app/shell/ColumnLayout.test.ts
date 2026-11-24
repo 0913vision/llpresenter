@@ -9,7 +9,7 @@ import {
   defaultColumns,
   type ColumnWidths,
   type SizeClass,
-} from '@renderer/ui/sizeClass';
+} from '@renderer/ui/panels/sizeClass';
 
 interface Harness {
   readonly layout: ColumnLayout;

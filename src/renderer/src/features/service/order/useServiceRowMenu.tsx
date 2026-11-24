@@ -1,5 +1,5 @@
-import {warningNotice} from '@renderer/ui/notices';
-import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
+import {warningNotice} from '@renderer/ui/popups/notices';
+import {useMenuHandoff} from '@renderer/ui/menus/useMenuHandoff';
 import {useState} from 'react';
 import type {ServiceEntry} from '@core/schema/contentDocuments';
 import {useShow} from '@renderer/session/show';
@@ -12,9 +12,9 @@ import {useSourceActions} from '@renderer/features/service/list/useSourceActions
 import {useSaveTemplate} from '@renderer/features/service/list/useSaveTemplate';
 import {SaveTemplatePrompt} from '@renderer/features/service/list/SaveTemplatePrompt';
 import {SaveTemplateDialog} from '@renderer/features/service/list/SaveTemplateDialog';
-import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
-import type {GroupRename} from '@renderer/ui/ListRow';
-import type {Notice} from '@renderer/ui/notices';
+import {Menu, type MenuAnchor} from '@renderer/ui/menus/Menu';
+import type {GroupRename} from '@renderer/ui/lists/ListRow';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {serviceRowMenuEntries} from './serviceRowMenu';
 import {useAlive} from '@renderer/ui/useAlive';
 

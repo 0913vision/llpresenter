@@ -14,7 +14,7 @@ import {projectedLiveCursor, tilesForView} from '@renderer/session/showLibrary';
 import type {ShowView} from '@renderer/session/showStore';
 import {thumbnailWidth} from '@renderer/ui';
 import {firstSlideWindowSize} from './useSlideWindow';
-import {useGridMeasure} from '@renderer/ui/useGridMeasure';
+import {useGridMeasure} from '@renderer/ui/lists/useGridMeasure';
 import {useSlideTransitionProgress} from './useSlideTransitionProgress';
 import {revealSlideItem} from '@renderer/session/visibleSlideItem';
 import {liveReturn} from './liveReturn';
@@ -22,7 +22,7 @@ import type {SlideGridProps} from './SlideGrid';
 import {ShowSlideEntry} from './showPanelNavigation';
 import styles from './SlideGrid.module.css';
 import {tileReflowIds} from './tileReflowIds';
-import {useReflow} from '@renderer/ui/useReflow';
+import {useReflow} from '@renderer/ui/panels/useReflow';
 import {useContinuousViewport} from './useContinuousViewport';
 import {ShowTileMenu, ShowTiles, type TileMenu} from './ShowTiles';
 

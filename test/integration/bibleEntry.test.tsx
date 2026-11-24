@@ -12,7 +12,7 @@ import {defaultPreferences} from '@core/schema/preferences';
 import {BIBLE_BOOKS} from '@core/bible/bibleBooks';
 import {BibleLookupSession} from '@main/bible/lookup';
 import {BiblePassageDialog} from '@renderer/features/bible/BiblePassageDialog';
-import {commandBindingStore} from '@renderer/ui/commandBindings';
+import {commandBindingStore} from '@renderer/ui/keys/commandBindings';
 import {fullTranslationText} from '@fixtures/core/bible/testFiles';
 import {lookupRequest} from '@fixtures/core/bibleLookups';
 import {formLookupReply} from '@fixtures/core/bibleReplies';

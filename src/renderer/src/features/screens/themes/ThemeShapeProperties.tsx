@@ -5,10 +5,10 @@ import {
   type ThemeFill,
   type ThemeShape,
 } from '@core/schema/theme';
-import {Button} from '@renderer/ui/Button';
-import {IconButton} from '@renderer/ui/IconButton';
-import {PropertyGroup, PropertyRow} from '@renderer/ui/PropertyRow';
-import {SegmentedControl} from '@renderer/ui/SegmentedControl';
+import {Button} from '@renderer/ui/buttons/Button';
+import {IconButton} from '@renderer/ui/buttons/IconButton';
+import {PropertyGroup, PropertyRow} from '@renderer/ui/panels/PropertyRow';
+import {SegmentedControl} from '@renderer/ui/choices/SegmentedControl';
 import {ColorProperty} from '../ColorProperty';
 import {ThemeCheck, ThemeNumber} from './ThemePropertyFields';
 import type {ThemeModel} from './useThemeEditor';

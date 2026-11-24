@@ -16,7 +16,7 @@ import {
 import type {EditResult} from '@core/schema/contentEdit';
 import type {QuickTimerEdit} from '@core/schema/quickTimerEdit';
 import {NAME_LIMIT} from '@core/schema/primitives';
-import {nameReason} from '@renderer/ui/nameReason';
+import {nameReason} from '@renderer/ui/fields/nameReason';
 import {MAX_TIMER_DEFINITIONS} from '@core/schema/timers';
 
 export {MAX_QUICK_ITEMS} from '@core/schema/quick';

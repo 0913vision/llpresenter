@@ -34,8 +34,8 @@ import {
   PrepItemNavigation,
   WorkspaceNavigation,
 } from '@renderer/platform/WorkspaceNavigation';
-import {watchInputModality} from '@renderer/ui/inputModality';
-import {NotificationStack} from '@renderer/ui/Notification';
+import {watchInputModality} from '@renderer/ui/keys/inputModality';
+import {NotificationStack} from '@renderer/ui/popups/Notification';
 import {Toolbar} from '@renderer/app/shell/Toolbar';
 import {useSizeClass} from '@renderer/app/shell/useSizeClass';
 import {useMediaStripVisibility} from '@renderer/app/shell/useMediaStripVisibility';
@@ -55,7 +55,7 @@ import {useProblemNotices} from './notifications/useProblemNotices';
 import styles from './App.module.css';
 import {useLaunchReady} from './useLaunchReady';
 import {UPDATE_NOTICE_KEY, useUpdate} from './update/useUpdate';
-import {addNotice} from '@renderer/ui/notices';
+import {addNotice} from '@renderer/ui/popups/notices';
 import {NoticeHistoryButton, useRememberNotice} from './shell/NoticeHistory';
 import {BiblePassages} from '@renderer/features/bible/BiblePassages';
 import {ServicePictures} from './ServicePictures';

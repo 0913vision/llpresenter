@@ -1,7 +1,7 @@
 import type {RefObject} from 'react';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
-import type {Notice} from '@renderer/ui/notices';
-import {isInTextEntry} from '@renderer/ui/textEntry';
+import type {Notice} from '@renderer/ui/popups/notices';
+import {isInTextEntry} from '@renderer/ui/fields/textEntry';
 import {logUndoProblem, undoReason, undoTimeline} from './undoTimeline';
 
 /**

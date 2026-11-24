@@ -1,7 +1,7 @@
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import type {ServiceEntry} from '@core/schema/contentDocuments';
-import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
-import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
+import {menuAvailability, type MenuEntry} from '@renderer/ui/menus/menuModel';
+import {laterRow, menuSeparator} from '@renderer/ui/menus/menuRows';
 
 export function serviceRowMenuEntries({
   entry,

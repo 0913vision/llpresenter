@@ -5,7 +5,7 @@ import {
   type PreferencesFile,
 } from '@core/schema/preferences';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
-import type {Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {useQueuedWrites} from './useQueuedWrites';
 
 const TITLE = '환경설정';

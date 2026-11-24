@@ -6,8 +6,8 @@ import {
   MacroRow,
   MacroTile,
   type MacroSchedule,
-} from '../ui/MacroTile';
-import {Panel, PanelBody, PanelHeader, PanelTabs} from '../ui/Panel';
+} from '../ui/tiles/MacroTile';
+import {Panel, PanelBody, PanelHeader, PanelTabs} from '../ui/panels/Panel';
 import {ignore, Section, SpecGroup, SpecItem, type SpecPin} from './Spec';
 
 const GRID_PANEL_WIDTH = 480;

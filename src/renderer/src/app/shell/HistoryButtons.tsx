@@ -1,11 +1,11 @@
 import {useEffect, useState, type JSX} from 'react';
-import {IconButton} from '@renderer/ui/IconButton';
+import {IconButton} from '@renderer/ui/buttons/IconButton';
 import {
   probeCommand,
   runCommandAt,
   subscribeHistoryCommands,
-} from '@renderer/ui/commandDispatcher';
-import {isInTextEntry} from '@renderer/ui/textEntry';
+} from '@renderer/ui/keys/commandDispatcher';
+import {isInTextEntry} from '@renderer/ui/fields/textEntry';
 import styles from './HistoryButtons.module.css';
 
 /** Chromium exposes native text history availability through this editing API. */

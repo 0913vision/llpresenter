@@ -2,7 +2,7 @@ import {useState, type JSX} from 'react';
 import type {MediaId} from '@core/schema/ids';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {ThemeImageChoice} from './ThemeImageChoice';
-import {Dialog} from '@renderer/ui/Dialog';
+import {Dialog} from '@renderer/ui/popups/Dialog';
 import type {ThemeModel} from './useThemeEditor';
 import styles from './Themes.module.css';
 

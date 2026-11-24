@@ -5,7 +5,7 @@ import {
   UNASSIGNED_TARGET,
   targetByMethod,
 } from '@core/screens';
-import type {PreviewTarget} from '@renderer/ui/PreviewFrame';
+import type {PreviewTarget} from '@renderer/ui/previews/PreviewFrame';
 
 export interface ScreenSummary {
   readonly id: string;

@@ -1,9 +1,9 @@
 import type {KeyboardEvent, RefObject} from 'react';
 import type {Slide} from '@core/schema/slide';
-import {takeMenuKey} from '@renderer/ui/contextMenu';
-import {isComposing} from '@renderer/ui/ime';
-import type {MenuAnchor} from '@renderer/ui/Menu';
-import {isInTextEntry} from '@renderer/ui/textEntry';
+import {takeMenuKey} from '@renderer/ui/menus/contextMenu';
+import {isComposing} from '@renderer/ui/fields/ime';
+import type {MenuAnchor} from '@renderer/ui/menus/Menu';
+import {isInTextEntry} from '@renderer/ui/fields/textEntry';
 import {selectInDeck, type useDeckSelection} from './deckSelection';
 import type {SlideDeck} from './slideDeck';
 import {slideIdAt, slideMove, slideRow} from './slideKeys';

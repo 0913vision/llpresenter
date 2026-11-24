@@ -27,7 +27,7 @@ import {seedSampleService} from '@fixtures/renderer/session/sampleService';
 import {openBiblePassage} from '@renderer/features/bible/actions';
 import {BibleQuickField} from '@renderer/features/quick/BibleQuickField';
 import {BiblePanel} from '@renderer/features/presentation/BiblePanel';
-import {commandBindingStore} from '@renderer/ui/commandBindings';
+import {commandBindingStore} from '@renderer/ui/keys/commandBindings';
 import {useLive} from '@renderer/session/live';
 import {
   openItem,

@@ -1,5 +1,5 @@
 import {useLayoutEffect, useRef, type DragEvent, type JSX} from 'react';
-import {useReflow} from '@renderer/ui/useReflow';
+import {useReflow} from '@renderer/ui/panels/useReflow';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import type {
   MacroActionKind,
@@ -8,11 +8,11 @@ import type {
 } from '@core/schema/macros';
 import {MACRO_ACTION_MIME, readMacroActionDrag} from './macroPaletteCatalog';
 import {MacroGrid, MacroList, MacroRow, MacroTile} from '@renderer/ui';
-import type {Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {MacroCollectionPicker} from './MacroCollectionPicker';
-import type {MenuAnchor} from '@renderer/ui/Menu';
-import {PanelFooter} from '@renderer/ui/Panel';
-import {ViewModeSwitch} from '@renderer/ui/ViewModeSwitch';
+import type {MenuAnchor} from '@renderer/ui/menus/Menu';
+import {PanelFooter} from '@renderer/ui/panels/Panel';
+import {ViewModeSwitch} from '@renderer/ui/choices/ViewModeSwitch';
 import styles from './MacroView.module.css';
 
 export type MacroViewMode = 'grid' | 'list';

@@ -1,17 +1,17 @@
-import {deleteSelection} from '@renderer/ui/deleteSelection';
-import {selectionLabel} from '@renderer/ui/selectionDrag';
+import {deleteSelection} from '@renderer/ui/lists/deleteSelection';
+import {selectionLabel} from '@renderer/ui/lists/selectionDrag';
 import {useEffect, useLayoutEffect, useRef, useState, type JSX} from 'react';
 import type {ElementFrame} from '@core/canvas';
 import {restackElements, type StackingStep, drawnFrame} from '@core/theme';
 import {SlidePicture} from '@renderer/pictures/SlidePicture';
-import {CanvasEditor} from '@renderer/ui/CanvasEditor';
-import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
-import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
+import {CanvasEditor} from '@renderer/ui/canvas/CanvasEditor';
+import {Menu, type MenuAnchor} from '@renderer/ui/menus/Menu';
+import {menuAvailability, type MenuEntry} from '@renderer/ui/menus/menuModel';
 import {
   contextMenuAnchor,
   takeMenuKey,
   type ContextMenuEvent,
-} from '@renderer/ui/contextMenu';
+} from '@renderer/ui/menus/contextMenu';
 import {
   ThemeElements,
   droppedThemeKind,
@@ -26,7 +26,7 @@ import {useThemeClipboard, type ThemeEditorEvents} from './useThemeClipboard';
 import {themeCanvasBounds, type ThemeModel} from './useThemeEditor';
 import {framesMoved} from './useThemeElements';
 import styles from './Themes.module.css';
-import {fixedKeyText} from '@renderer/ui/fixedKeys';
+import {fixedKeyText} from '@renderer/ui/keys/fixedKeys';
 
 export function useThemeSurfaces(
   model: ThemeModel,

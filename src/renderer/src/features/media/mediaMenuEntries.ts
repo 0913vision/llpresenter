@@ -1,13 +1,13 @@
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import type {MediaId} from '@core/schema/ids';
 import type {MediaItem} from '@core/schema/mediaList';
-import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
-import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
+import {menuAvailability, type MenuEntry} from '@renderer/ui/menus/menuModel';
+import {laterRow, menuSeparator} from '@renderer/ui/menus/menuRows';
 import {
   choicePairs,
   MEDIA_END_OPTIONS,
   PICTURE_FIT_OPTIONS,
-} from '@renderer/ui/mediaChoices';
+} from '@renderer/ui/choices/mediaChoices';
 import type {MediaEntry} from './mediaEntries';
 import {mediaAddAvailability} from '@renderer/platform/mediaAddAvailability';
 import {shownProps, type MediaProps} from './mediaProps';

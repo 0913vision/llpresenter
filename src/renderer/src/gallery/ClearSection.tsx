@@ -1,7 +1,7 @@
 import type {JSX} from 'react';
 import type {ClearTarget} from '@core/schema/live';
 import {clearButtons} from '@core/live';
-import {ClearButton, ClearGroup, ClearRow} from '../ui/ClearButton';
+import {ClearButton, ClearGroup, ClearRow} from '../ui/buttons/ClearButton';
 import {ignore, Section, SpecGroup, SpecItem, type SpecPin} from './Spec';
 
 const ROW_WIDTH = 480;

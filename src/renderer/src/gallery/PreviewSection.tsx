@@ -1,7 +1,7 @@
 import {useState, type JSX} from 'react';
 import warmLight from '../../../../design/system/upload/Media/warm-light.jpg';
-import {Panel, PanelBody, PanelHeader, PanelTabs} from '../ui/Panel';
-import {PreviewFrame, type PreviewScreen} from '../ui/PreviewFrame';
+import {Panel, PanelBody, PanelHeader, PanelTabs} from '../ui/panels/Panel';
+import {PreviewFrame, type PreviewScreen} from '../ui/previews/PreviewFrame';
 import {ignore, Section, SpecGroup, SpecItem, type SpecPin} from './Spec';
 import styles from './PreviewSection.module.css';
 

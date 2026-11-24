@@ -1,6 +1,6 @@
 import type {ThemeId} from '@core/schema/ids';
 import {sendLive} from '@renderer/session/live';
-import {type Notice, warningNotice} from '@renderer/ui/notices';
+import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 
 /** Sends a theme choice without treating the request as live confirmation. */
 export function sendThemeChange(

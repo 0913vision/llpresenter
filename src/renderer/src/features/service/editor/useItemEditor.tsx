@@ -14,9 +14,9 @@ import {
 import {runEdit, type Report} from '@renderer/session/serviceEdit';
 import {renameItem} from '@renderer/session/serviceOrderEdits';
 import {useShow} from '@renderer/session/show';
-import {Button} from '@renderer/ui/Button';
-import {isComposing} from '@renderer/ui/ime';
-import {RenameText} from '@renderer/ui/RenameText';
+import {Button} from '@renderer/ui/buttons/Button';
+import {isComposing} from '@renderer/ui/fields/ime';
+import {RenameText} from '@renderer/ui/fields/RenameText';
 import {OverlayClips} from '../overlays/OverlayClip';
 import {useItemOverlays} from '../overlays/useItemOverlays';
 import {useOverlayControl} from '../overlays/useOverlayControl';

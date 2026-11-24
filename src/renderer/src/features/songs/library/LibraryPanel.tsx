@@ -2,11 +2,11 @@ import {useEffect, useEffectEvent, useRef, useState, type JSX} from 'react';
 import type {SongId} from '@core/schema/ids';
 import {contentDeleteHistory} from '@renderer/platform/contentDeleteHistory';
 import {useUndoKeys} from '@renderer/platform/useUndoKeys';
-import {contextMenuAnchor} from '@renderer/ui/contextMenu';
-import {useReflow} from '@renderer/ui/useReflow';
-import {IconButton} from '@renderer/ui/IconButton';
-import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
-import type {Notice} from '@renderer/ui/notices';
+import {contextMenuAnchor} from '@renderer/ui/menus/contextMenu';
+import {useReflow} from '@renderer/ui/panels/useReflow';
+import {IconButton} from '@renderer/ui/buttons/IconButton';
+import {Menu, type MenuAnchor} from '@renderer/ui/menus/Menu';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {
   Panel,
   PanelActions,
@@ -15,13 +15,13 @@ import {
   PanelFooter,
   PanelTabs,
   PanelTools,
-} from '@renderer/ui/Panel';
-import {TextField} from '@renderer/ui/TextField';
-import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
-import {RenameDialog} from '@renderer/ui/RenameDialog';
+} from '@renderer/ui/panels/Panel';
+import {TextField} from '@renderer/ui/fields/TextField';
+import {useMenuHandoff} from '@renderer/ui/menus/useMenuHandoff';
+import {RenameDialog} from '@renderer/ui/popups/RenameDialog';
 import {SONG_TITLE_LIMIT} from '@core/songs';
 import {songTitleReason} from './songTitleReason';
-import {EmptyState} from '@renderer/ui/EmptyState';
+import {EmptyState} from '@renderer/ui/lists/EmptyState';
 import {LibraryList} from './LibraryList';
 import {useLibrary, type LibraryApi, type LibrarySelection} from './useLibrary';
 import styles from './LibraryPanel.module.css';

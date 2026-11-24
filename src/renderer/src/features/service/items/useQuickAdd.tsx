@@ -2,7 +2,7 @@ import {useState, type JSX} from 'react';
 import type {Report} from '@renderer/session/serviceEdit';
 import {useMedia} from '@renderer/platform/media';
 import {useOrderAddReason} from '@renderer/session/orderReasons';
-import type {MenuEntry} from '@renderer/ui/menuModel';
+import type {MenuEntry} from '@renderer/ui/menus/menuModel';
 import {
   insertLibrarySong,
   insertNewItem,

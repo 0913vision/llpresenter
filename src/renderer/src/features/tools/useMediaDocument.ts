@@ -1,6 +1,6 @@
 import {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {MediaDocument} from '@core/schema/mediaEdit';
-import {type Notice, warningNotice} from '@renderer/ui/notices';
+import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import {subscribeMediaDocument} from '@renderer/features/media/subscribeMediaDocument';
 
 /** Which tab reads the media, and how it tells that the read failed. */

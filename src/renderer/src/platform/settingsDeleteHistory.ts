@@ -1,5 +1,5 @@
 import type {LlpApi} from '@contracts/ipc/api';
-import type {Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {undoFailure, undoTimeline, type UndoOwner} from './undoTimeline';
 import type {SettingsName} from '@core/schema/settingsDocuments';
 

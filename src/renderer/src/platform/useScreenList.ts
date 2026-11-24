@@ -1,6 +1,6 @@
 import {useMemo} from 'react';
 import {inScreenOrder, type Screen} from '@core/schema/screens';
-import type {Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {useSettingsDocument} from './useSettingsDocument';
 
 /**

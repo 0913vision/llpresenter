@@ -2,8 +2,8 @@ import {useState, type JSX} from 'react';
 import {withLabel} from '@core/slides';
 import {LabelMenu} from '@renderer/features/labels/LabelMenu';
 import {useLabelCatalog} from '@renderer/features/labels/labels';
-import {PropertyControl} from '@renderer/ui/PropertyRow';
-import {Select} from '@renderer/ui/Select';
+import {PropertyControl} from '@renderer/ui/panels/PropertyRow';
+import {Select} from '@renderer/ui/choices/Select';
 import {changeSelected, type ChosenSlides} from './changeSelected';
 
 /** The label of the selected slides. */

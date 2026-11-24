@@ -1,4 +1,4 @@
-import {CommandScope} from '@renderer/ui/commandDispatcher';
+import {CommandScope} from '@renderer/ui/keys/commandDispatcher';
 import type {SongId} from '@core/schema/ids';
 import {Suspense, useEffect, useState, type JSX} from 'react';
 import {MediaBin} from '@renderer/features/media/MediaBin';
@@ -8,7 +8,7 @@ import {
   useHasMediaView,
 } from '@renderer/features/media/MediaViewProvider';
 import {classNames} from '@renderer/ui/classNames';
-import type {Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {usePrepPanels, type PrepBinding} from '../workspaces/prepPanels';
 import {useUndoReveal} from './useUndoReveal';
 import type {ThemeLeaveGuard} from '@renderer/features/screens/themes/themeLeaveGuard';
@@ -17,14 +17,14 @@ import {ShowShortcuts, useShowPanels} from '../workspaces/showPanels';
 import {ColumnGap} from './ColumnGap';
 import {SidebarCollapseButton, useSidebarToggle} from './SidebarToggle';
 import type {ColumnWidthStore} from './columnWidthStore';
-import type {SizeClass} from '../../ui/sizeClass';
+import type {SizeClass} from '../../ui/panels/sizeClass';
 import type {Workspace as WorkspaceId} from './Toolbar';
 import {useColumnLayout} from './useColumnLayout';
 import type {SidebarCollapse} from './useSidebarCollapse';
 import {logPanelProblem, type WorkspacePanels} from './WorkspacePanel';
 import {WorkspaceColumns} from './WorkspaceColumns';
-import {ResizeGap} from '@renderer/ui/ResizeGap';
-import {useRowLayout} from '@renderer/ui/useRowLayout';
+import {ResizeGap} from '@renderer/ui/panels/ResizeGap';
+import {useRowLayout} from '@renderer/ui/lists/useRowLayout';
 import styles from './Workspace.module.css';
 import {
   ShowSlideEntry,

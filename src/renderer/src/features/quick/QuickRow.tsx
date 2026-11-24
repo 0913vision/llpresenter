@@ -9,7 +9,7 @@ import {
   type QuickItemKind,
 } from '@core/schema/quick';
 import {ListActionRow} from '@renderer/ui';
-import type {Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {TimerValue} from '../tools/TimerValue';
 import {quickItemOn, quickItemUnavailable} from './quickActions';
 import {QuickRowEditor} from './QuickEditing';

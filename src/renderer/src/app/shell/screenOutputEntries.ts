@@ -1,6 +1,6 @@
 import {sendLive} from '@renderer/session/live';
-import {outputTooltip} from '@renderer/ui/OutputToggle';
-import type {MenuEntry} from '@renderer/ui/menuModel';
+import {outputTooltip} from '@renderer/ui/buttons/OutputToggle';
+import type {MenuEntry} from '@renderer/ui/menus/menuModel';
 import type {ScreenSummary} from '../../platform/screens';
 
 /** The same saved-screen toggles in the output menu and toolbar overflow. */

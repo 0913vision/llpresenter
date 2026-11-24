@@ -1,7 +1,7 @@
 import type {JSX} from 'react';
 import type {Slide} from '@core/schema/slide';
-import {Button} from '@renderer/ui/Button';
-import {PropertyControl} from '@renderer/ui/PropertyRow';
+import {Button} from '@renderer/ui/buttons/Button';
+import {PropertyControl} from '@renderer/ui/panels/PropertyRow';
 import type {SlideDeck} from '../slideDeck';
 import styles from './SlideInspector.module.css';
 

@@ -1,7 +1,7 @@
 import {render, screen} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
-import {SlideThumbnail, ThumbnailGrid} from '@renderer/ui/SlideThumbnail';
-import type {TileListPosition} from '@renderer/ui/TileList';
+import {SlideThumbnail, ThumbnailGrid} from '@renderer/ui/tiles/SlideThumbnail';
+import type {TileListPosition} from '@renderer/ui/lists/TileList';
 
 function Window(props: TileListPosition) {
   return (

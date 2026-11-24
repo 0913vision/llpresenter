@@ -1,4 +1,4 @@
-import type {Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/popups/notices';
 import type {OpenServiceResult} from './openService';
 import {serviceEditNotice} from './serviceProblem';
 

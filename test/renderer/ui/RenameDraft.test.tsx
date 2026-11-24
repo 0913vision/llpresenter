@@ -1,9 +1,9 @@
 import {fireEvent, render, screen, waitFor} from '@testing-library/react';
 import {useState} from 'react';
 import {expect, it, vi} from 'vitest';
-import {NameField} from '@renderer/ui/ListRow';
-import type {RenameContract} from '@renderer/ui/useRenameDraft';
-import {RenameDialog} from '@renderer/ui/RenameDialog';
+import {NameField} from '@renderer/ui/lists/ListRow';
+import type {RenameContract} from '@renderer/ui/fields/useRenameDraft';
+import {RenameDialog} from '@renderer/ui/popups/RenameDialog';
 
 function Harness({save}: {readonly save: RenameContract['onCommit']}) {
   const [open, setOpen] = useState(true);

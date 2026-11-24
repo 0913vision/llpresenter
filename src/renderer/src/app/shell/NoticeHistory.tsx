@@ -8,12 +8,12 @@ import {
   type JSX,
   type RefObject,
 } from 'react';
-import {Button} from '@renderer/ui/Button';
+import {Button} from '@renderer/ui/buttons/Button';
 import {Icon} from '@renderer/ui/Icon';
-import {IconButton} from '@renderer/ui/IconButton';
-import {NoticeMeta} from '@renderer/ui/Notification';
-import {Popover} from '@renderer/ui/Popover';
-import type {Notice, NoticeRecord} from '@renderer/ui/notices';
+import {IconButton} from '@renderer/ui/buttons/IconButton';
+import {NoticeMeta} from '@renderer/ui/popups/Notification';
+import {Popover} from '@renderer/ui/popups/Popover';
+import type {Notice, NoticeRecord} from '@renderer/ui/popups/notices';
 import type {ControlSession} from '../controlSession';
 import styles from './NoticeHistory.module.css';
 

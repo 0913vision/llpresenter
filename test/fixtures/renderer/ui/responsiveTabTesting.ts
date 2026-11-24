@@ -1,6 +1,6 @@
 import {act} from '@testing-library/react';
 import {vi} from 'vitest';
-import styles from '@renderer/ui/Panel.module.css';
+import styles from '@renderer/ui/panels/Panel.module.css';
 
 export function mockPanelTabWidths(initialWidth: number) {
   let width = initialWidth;

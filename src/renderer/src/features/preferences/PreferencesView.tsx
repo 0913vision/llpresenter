@@ -10,8 +10,8 @@ import {
 import type {PreferencesRequest} from '@contracts/ipc/window';
 import {LoadReadiness, LoadReadinessContext} from '@renderer/ui/loadReadiness';
 import {ListBox, ListRow} from '@renderer/ui';
-import {Properties} from '@renderer/ui/PropertyRow';
-import type {Notice} from '@renderer/ui/notices';
+import {Properties} from '@renderer/ui/panels/PropertyRow';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {
   AboutPage,
   GeneralPage,

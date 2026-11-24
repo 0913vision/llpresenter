@@ -1,7 +1,7 @@
 import type {JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import {type VerseInput, planSlides} from '@core/bible';
-import {Dialog} from '@renderer/ui/Dialog';
+import {Dialog} from '@renderer/ui/popups/Dialog';
 import {verseKey} from './BibleRefinements';
 import {SplitReview} from './SplitReview';
 import {confirmBibleCuts} from './saveBibleCuts';

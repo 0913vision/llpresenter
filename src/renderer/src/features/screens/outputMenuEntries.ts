@@ -1,14 +1,14 @@
 import {NOT_IN_THIS_WINDOW} from '@renderer/platform/problemReasons';
-import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
-import {shortcutText} from '@renderer/ui/commandBindings';
+import {windowCommandLabels} from '@renderer/ui/keys/windowCommandLabels';
+import {shortcutText} from '@renderer/ui/keys/commandBindings';
 import type {ThemeFile} from '@core/schema/theme';
 import {
   outputGroup,
   itemStopEntry,
 } from '@renderer/features/presentation/outputControlEntries';
-import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
-import {menuSeparator} from '@renderer/ui/menuRows';
-import type {Notice} from '@renderer/ui/notices';
+import {menuAvailability, type MenuEntry} from '@renderer/ui/menus/menuModel';
+import {menuSeparator} from '@renderer/ui/menus/menuRows';
+import type {Notice} from '@renderer/ui/popups/notices';
 import type {ScreenSummary} from '@renderer/platform/screens';
 import {sendThemeChange} from './themeActions';
 import {liveThemeName, themeMenuEntries} from './themeMenuEntries';

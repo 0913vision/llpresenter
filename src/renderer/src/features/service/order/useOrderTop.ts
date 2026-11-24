@@ -1,5 +1,5 @@
 import {useLayoutEffect, useRef, type RefObject} from 'react';
-import {scrollParent} from '@renderer/ui/scrollParent';
+import {scrollParent} from '@renderer/ui/lists/scrollParent';
 
 /** Goes to the top of the list when another service opens. */
 export function useOrderTop(

@@ -1,8 +1,8 @@
 import type {JSX} from 'react';
 import type {KeyBinding} from '@core/schema/shortcuts';
 import {shortcutNames} from '@core/shortcuts';
-import {KeyCombo, KeyList} from '@renderer/ui/KeyCap';
-import {ShortcutField} from '@renderer/ui/ShortcutField';
+import {KeyCombo, KeyList} from '@renderer/ui/keys/KeyCap';
+import {ShortcutField} from '@renderer/ui/keys/ShortcutField';
 import type {ShortcutRow} from './shortcutsModel';
 import styles from './ShortcutsPage.module.css';
 

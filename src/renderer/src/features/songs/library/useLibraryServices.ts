@@ -4,7 +4,7 @@ import {insertSelectedSong} from '@renderer/session/insertSelectedSong';
 import {useShow} from '@renderer/session/show';
 import {useOrderAddReason} from '@renderer/session/orderReasons';
 import {orderFailureTitle} from '@renderer/session/serviceProblem';
-import {type Notice, warningNotice} from '@renderer/ui/notices';
+import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import type {LibraryApi} from './useLibrary';
 
 export function useLibraryServices(

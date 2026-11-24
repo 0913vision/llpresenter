@@ -12,7 +12,7 @@ import {
   insertItems,
   ORDER_FULL_REASON,
 } from '@renderer/session/serviceOrderEdits';
-import {type Notice, warningNotice} from '@renderer/ui/notices';
+import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import type {useServiceOrderEditing} from '@renderer/session/useServiceOrderEditing';
 
 const EMPTY_CLIPBOARD = '복사한 예배 순서 항목이 없습니다.';

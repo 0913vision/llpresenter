@@ -8,7 +8,7 @@ import {AudioShortcuts} from '@renderer/features/tools/AudioShortcuts';
 import {ShowToolsPanel} from '@renderer/features/tools/ShowToolsPanel';
 import {useShowToolTab} from '@renderer/features/tools/state/showToolTab';
 import {useLive} from '@renderer/session/live';
-import {commandBindingStore} from '@renderer/ui/commandBindings';
+import {commandBindingStore} from '@renderer/ui/keys/commandBindings';
 
 afterEach(() => {
   cleanup();

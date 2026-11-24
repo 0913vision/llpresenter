@@ -3,7 +3,7 @@ import {duplicateAfter} from '@core/common/duplicateAfter';
 import type {EditResult} from '@core/schema/contentEdit';
 import {NAME_LIMIT} from '@core/schema/primitives';
 import {serializeProps, type Prop, type PropsFile} from '@core/schema/props';
-import {nameReason} from '@renderer/ui/nameReason';
+import {nameReason} from '@renderer/ui/fields/nameReason';
 import {
   editableSettings,
   unchangedSettings,

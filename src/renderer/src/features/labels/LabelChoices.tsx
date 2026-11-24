@@ -1,11 +1,11 @@
-import {labelInk} from '@renderer/ui/labelInk';
+import {labelInk} from '@renderer/ui/labels/labelInk';
 import type {JSX} from 'react';
 import {Icon} from '@renderer/ui/Icon';
 import {classNames} from '@renderer/ui/classNames';
-import {menuItemRole, type MenuEntry} from '@renderer/ui/menuModel';
-import {Tooltip} from '@renderer/ui/Tooltip';
-import {useButtonPress} from '@renderer/ui/press';
-import menuStyles from '@renderer/ui/Menu.module.css';
+import {menuItemRole, type MenuEntry} from '@renderer/ui/menus/menuModel';
+import {Tooltip} from '@renderer/ui/popups/Tooltip';
+import {useButtonPress} from '@renderer/ui/buttons/press';
+import menuStyles from '@renderer/ui/menus/Menu.module.css';
 import styles from './LabelMenu.module.css';
 
 export function LabelChoices({

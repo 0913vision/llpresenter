@@ -11,7 +11,7 @@ import {
   type JSX,
   type ReactNode,
 } from 'react';
-import type {Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {LoadReadinessContext} from '@renderer/ui/loadReadiness';
 import type {MediaImportProgress} from '@core/schema/mediaEdit';
 import {WorkspaceNavigation} from '@renderer/platform/WorkspaceNavigation';

@@ -5,7 +5,7 @@ import {MenuBar} from '@renderer/app/shell/MenuBar';
 import {useMenuBarNavigation} from '@renderer/app/shell/menuBarNavigation';
 import {useEffect, type JSX} from 'react';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {Dialog} from '@renderer/ui/Dialog';
+import {Dialog} from '@renderer/ui/popups/Dialog';
 
 const NAMES = [
   '파일',

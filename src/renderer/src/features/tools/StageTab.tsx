@@ -3,7 +3,7 @@ import type {JSX} from 'react';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {sendLive, useLive} from '@renderer/session/live';
 import {Properties, PropertyGroup, PropertyRow, SelectMenu} from '@renderer/ui';
-import type {Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {StageMessage} from './StageMessage';
 import styles from './StageTab.module.css';
 

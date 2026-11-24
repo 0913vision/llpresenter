@@ -1,5 +1,5 @@
 import {useLayoutEffect} from 'react';
-import type {Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {installPassageSplitter} from './passageSplitter';
 import {usePassageSplitter} from './usePassageSplitter';
 

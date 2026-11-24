@@ -1,6 +1,6 @@
 import {launchTaskName} from '@core/app';
 import type {AppProblemOf} from '@core/schema/appProblem';
-import type {Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/popups/notices';
 
 /** One card stands for every data file skipped so far. */
 export const SKIPPED_FILES_KEY = 'file-skipped';

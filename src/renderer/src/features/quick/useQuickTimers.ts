@@ -9,7 +9,7 @@ import {
   type NamedDocument,
 } from '@renderer/platform/useSettingsDocument';
 import {useLive} from '@renderer/session/live';
-import type {Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/popups/notices';
 
 export function useQuickTimers(
   quick: NamedDocument<'quick'> | null,

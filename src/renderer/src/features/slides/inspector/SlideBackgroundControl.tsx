@@ -17,7 +17,7 @@ import {
 import {pictureMedia, useMedia} from '@renderer/platform/media';
 import {lentPreviewUrl} from '@renderer/rendering/previewMedia';
 import {backgroundPaint} from '@renderer/rendering/themeBackground';
-import {Select} from '@renderer/ui/Select';
+import {Select} from '@renderer/ui/choices/Select';
 
 const FILL = 'fill:';
 const THEME_LABEL = '테마 배경';

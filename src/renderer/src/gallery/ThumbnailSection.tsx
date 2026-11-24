@@ -7,13 +7,13 @@ import {
   PanelFooter,
   PanelHeader,
   PanelTitle,
-} from '../ui/Panel';
-import {Slider} from '../ui/Slider';
+} from '../ui/panels/Panel';
+import {Slider} from '../ui/choices/Slider';
 import {
   SlideThumbnail,
   ThumbnailGrid,
   type SlideThumbnailProps,
-} from '../ui/SlideThumbnail';
+} from '../ui/tiles/SlideThumbnail';
 import {ignore, Section, SpecGroup, SpecItem, type SpecPin} from './Spec';
 
 const STATE_WIDTH = 200;

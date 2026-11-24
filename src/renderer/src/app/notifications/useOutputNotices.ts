@@ -7,7 +7,7 @@ import {
   keepOutputWarning,
   useOutputWarnings,
 } from '@renderer/platform/outputWarnings';
-import {noticeTime, type Notice} from '@renderer/ui/notices';
+import {noticeTime, type Notice} from '@renderer/ui/popups/notices';
 import {
   outputNoticeChanges,
   type NoticeChange,

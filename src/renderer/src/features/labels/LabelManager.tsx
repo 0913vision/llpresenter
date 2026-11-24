@@ -1,4 +1,4 @@
-import {focusHistorySurface} from '@renderer/ui/focusHistorySurface';
+import {focusHistorySurface} from '@renderer/ui/lists/focusHistorySurface';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {
   useEffect,
@@ -10,12 +10,12 @@ import {
   type KeyboardEvent,
   type Ref,
 } from 'react';
-import {Button} from '@renderer/ui/Button';
+import {Button} from '@renderer/ui/buttons/Button';
 import type {Label} from '@core/schema/labels';
-import {Dialog} from '@renderer/ui/Dialog';
-import {IconButton} from '@renderer/ui/IconButton';
+import {Dialog} from '@renderer/ui/popups/Dialog';
+import {IconButton} from '@renderer/ui/buttons/IconButton';
 import {Icon} from '@renderer/ui/Icon';
-import {LabelColorControl} from '@renderer/ui/LabelColorPopover';
+import {LabelColorControl} from '@renderer/ui/labels/LabelColorPopover';
 import {settingsDeleteHistory} from '@renderer/platform/settingsDeleteHistory';
 import {useUndoKeys} from '@renderer/platform/useUndoKeys';
 import {
@@ -23,9 +23,9 @@ import {
   undoReason,
   undoTimeline,
 } from '@renderer/platform/undoTimeline';
-import {deleteSelection} from '@renderer/ui/deleteSelection';
-import {useReflow} from '@renderer/ui/useReflow';
-import {historyKey} from '@renderer/ui/historyKey';
+import {deleteSelection} from '@renderer/ui/lists/deleteSelection';
+import {useReflow} from '@renderer/ui/panels/useReflow';
+import {historyKey} from '@renderer/ui/lists/historyKey';
 import {LabelNameField} from './LabelNameField';
 import {useLabelRows} from './useLabelRows';
 import {useLabelReorder} from './useLabelReorder';

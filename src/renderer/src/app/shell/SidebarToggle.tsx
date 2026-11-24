@@ -1,6 +1,6 @@
 import {useCallback, useEffect, useRef, type JSX} from 'react';
-import {IconButton} from '@renderer/ui/IconButton';
-import {returnFocus} from '@renderer/ui/returnFocus';
+import {IconButton} from '@renderer/ui/buttons/IconButton';
+import {returnFocus} from '@renderer/ui/keys/returnFocus';
 import type {SidebarCollapse} from './useSidebarCollapse';
 import styles from './SidebarToggle.module.css';
 

@@ -6,11 +6,11 @@ import {
   useState,
   type KeyboardEvent,
 } from 'react';
-import {isComposingKey} from '@renderer/ui/ime';
-import {hasModifier} from '@renderer/ui/modifierKeys';
-import {rovingTarget, type RovingMove} from '@renderer/ui/roving';
-import {modalStack} from '@renderer/ui/modalStack';
-import {SHORTCUT_RECORDING_SELECTOR} from '@renderer/ui/shortcutRecording';
+import {isComposingKey} from '@renderer/ui/fields/ime';
+import {hasModifier} from '@renderer/ui/keys/modifierKeys';
+import {rovingTarget, type RovingMove} from '@renderer/ui/lists/roving';
+import {modalStack} from '@renderer/ui/popups/modalStack';
+import {SHORTCUT_RECORDING_SELECTOR} from '@renderer/ui/keys/shortcutRecording';
 
 const KEY_MOVES: Readonly<Record<string, RovingMove>> = {
   ArrowRight: 'next',

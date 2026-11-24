@@ -5,7 +5,7 @@ import type {
   SettingsDocument,
   SettingsName,
 } from '@core/schema/settingsDocuments';
-import {noticeTime, type Notice} from '@renderer/ui/notices';
+import {noticeTime, type Notice} from '@renderer/ui/popups/notices';
 
 /** One settings document, narrowed by its file name. */
 export type NamedDocument<TName extends SettingsName> = Extract<

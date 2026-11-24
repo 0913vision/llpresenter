@@ -1,5 +1,5 @@
 import {Fragment, useState, type JSX, type ReactNode} from 'react';
-import {IconButton} from '../ui/IconButton';
+import {IconButton} from '../ui/buttons/IconButton';
 import {
   ListActionRow,
   ListBox,
@@ -7,7 +7,7 @@ import {
   ListGroup,
   ListInsertLine,
   ListRow,
-} from '../ui/ListRow';
+} from '../ui/lists/ListRow';
 import {
   Panel,
   PanelActions,
@@ -15,8 +15,8 @@ import {
   PanelHeader,
   PanelTabs,
   PanelTools,
-} from '../ui/Panel';
-import {TextField} from '../ui/TextField';
+} from '../ui/panels/Panel';
+import {TextField} from '../ui/fields/TextField';
 import {
   ignore,
   Section,

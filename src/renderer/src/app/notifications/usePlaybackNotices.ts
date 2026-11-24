@@ -8,7 +8,7 @@ import {
   dropOutputWarning,
   keepOutputWarning,
 } from '@renderer/platform/outputWarnings';
-import {noticeTime, type Notice} from '@renderer/ui/notices';
+import {noticeTime, type Notice} from '@renderer/ui/popups/notices';
 import type {NoticeTarget} from './useOutputNotices';
 
 /** Keeps current playback failures in the same cards and output menu as monitor failures. */

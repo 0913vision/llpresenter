@@ -1,13 +1,13 @@
 import {Fragment, useRef, useState} from 'react';
-import {PreviewSizingContext} from '@renderer/ui/PreviewSizingContext';
+import {PreviewSizingContext} from '@renderer/ui/previews/PreviewSizingContext';
 import type {PanelRowId} from '@core/schema/panelRows';
-import {ResizeGap} from '@renderer/ui/ResizeGap';
-import {useRowLayout} from '@renderer/ui/useRowLayout';
+import {ResizeGap} from '@renderer/ui/panels/ResizeGap';
+import {useRowLayout} from '@renderer/ui/lists/useRowLayout';
 import {
   clampPreviewRatio,
   DEFAULT_PREVIEW_RATIO,
-} from '@renderer/ui/previewRatio';
-import type {SizeClass} from '@renderer/ui/sizeClass';
+} from '@renderer/ui/previews/previewRatio';
+import type {SizeClass} from '@renderer/ui/panels/sizeClass';
 import type {ColumnWidthStore} from './columnWidthStore';
 import {Panel, type WorkspacePanels} from './WorkspacePanel';
 import type {Workspace} from './Toolbar';

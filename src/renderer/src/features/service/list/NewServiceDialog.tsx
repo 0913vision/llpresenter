@@ -1,9 +1,9 @@
 import {type JSX} from 'react';
-import {Button} from '@renderer/ui/Button';
-import {Dialog, DialogField} from '@renderer/ui/Dialog';
-import {DateSelect} from '@renderer/ui/DateSelect';
-import type {Notice} from '@renderer/ui/notices';
-import {TextField} from '@renderer/ui/TextField';
+import {Button} from '@renderer/ui/buttons/Button';
+import {Dialog, DialogField} from '@renderer/ui/popups/Dialog';
+import {DateSelect} from '@renderer/ui/fields/DateSelect';
+import type {Notice} from '@renderer/ui/popups/notices';
+import {TextField} from '@renderer/ui/fields/TextField';
 import {SourceList} from './SourceList';
 import {SourceTree} from './SourceTree';
 import {useSourceActions} from './useSourceActions';

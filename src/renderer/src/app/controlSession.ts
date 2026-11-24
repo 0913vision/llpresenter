@@ -11,7 +11,7 @@ import {
   removeNotice,
   type Notice,
   type NoticeRecord,
-} from '@renderer/ui/notices';
+} from '@renderer/ui/popups/notices';
 import {CloseFlush} from './closeFlush';
 
 // NOTE(0913vision): Commit-mode fields save on blur, so a close blurs the

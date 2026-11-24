@@ -14,7 +14,7 @@ import {
   rowRange,
   scrollIntoBand,
   useFocusOption,
-} from '@renderer/ui/useRowRange';
+} from '@renderer/ui/lists/useRowRange';
 
 const INITIAL_ROWS = 12;
 const OVERSCAN = 4;

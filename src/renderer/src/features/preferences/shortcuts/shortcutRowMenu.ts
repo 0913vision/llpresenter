@@ -1,4 +1,4 @@
-import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
+import {menuAvailability, type MenuEntry} from '@renderer/ui/menus/menuModel';
 import type {ShortcutCommand} from '@core/shortcuts';
 import type {ShortcutRow} from './shortcutsModel';
 

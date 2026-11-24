@@ -10,7 +10,7 @@ import {MONITOR_SCREEN_ID_MAX, type MonitorList} from '@core/schema/monitors';
 import {Button} from '@renderer/ui';
 import {classNames} from '@renderer/ui/classNames';
 import {sendLive} from '@renderer/session/live';
-import {type Notice, warningNotice} from '@renderer/ui/notices';
+import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import {
   displayLayout,
   type DisplayLayoutModel,
@@ -22,7 +22,7 @@ import {
   useScreensSelection,
   type ScreensSelection,
 } from './selection';
-import {useElementSize} from '@renderer/ui/useElementSize';
+import {useElementSize} from '@renderer/ui/panels/useElementSize';
 import {useMonitors} from './useMonitors';
 import {useSettingsDocument} from '../../platform/useSettingsDocument';
 import {useScreenEditor} from './useScreenEditor';

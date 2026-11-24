@@ -1,6 +1,6 @@
 import type {HTMLAttributes} from 'react';
 import {parseElements, pasteElements, serializeElements} from '@core/theme';
-import {isInTextEntry} from '@renderer/ui/textEntry';
+import {isInTextEntry} from '@renderer/ui/fields/textEntry';
 import type {ThemeModel} from './useThemeEditor';
 
 export type ThemeEditorEvents = Pick<

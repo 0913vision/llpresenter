@@ -1,0 +1,384 @@
+import {
+  createContext,
+  useContext,
+  useId,
+  useState,
+  type JSX,
+  type KeyboardEvent,
+  type ReactNode,
+} from 'react';
+import {classNames} from '../classNames';
+import {Icon} from '../Icon';
+import {Menu} from '../menus/Menu';
+import type {MenuAvailability} from '../menus/menuModel';
+import {menuButtonProps} from '../menus/menuButton';
+import {useButtonPress} from '../buttons/press';
+import {useRovingSelection} from '../lists/roving';
+import {useTabButton} from '../buttons/tabButton';
+import {TruncatedText} from '../text/TruncatedText';
+import styles from './Panel.module.css';
+
+const SWITCH_CHEVRON_SIZE = 12;
+
+const PanelIdBase = createContext<string>('panel');
+
+function tabId(base: string, value: string): string {
+  return `${base}-tab-${value}`;
+}
+
+/** A row or column of panels with the 4px `bg-app` gap between them. */
+export function Panels({
+  direction = 'row',
+  windowEdges = false,
+  className,
+  children,
+}: {
+  readonly direction?: 'row' | 'column' | undefined;
+  /** Adds the 4px gap at the left and right window edges. */
+  readonly windowEdges?: boolean | undefined;
+  readonly className?: string | undefined;
+  readonly children: ReactNode;
+}): JSX.Element {
+  return (
+    <div
+      className={classNames(
+        styles.panels,
+        direction === 'column' && styles.column,
+        windowEdges && styles.window,
+        className,
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
+/** The basic surface: a header, a scrolling body, and an optional footer. */
+export function Panel({
+  label,
+  dataPanel,
+  className,
+  children,
+}: {
+  /** The panel name, such as 예배 순서. */
+  readonly label: string;
+  readonly dataPanel?: string | undefined;
+  readonly className?: string | undefined;
+  readonly children: ReactNode;
+}): JSX.Element {
+  const base = useId();
+  return (
+    <PanelIdBase value={base}>
+      <section
+        aria-label={label}
+        data-panel={dataPanel}
+        className={classNames(styles.panel, className)}
+      >
+        {children}
+      </section>
+    </PanelIdBase>
+  );
+}
+
+/** The 34px header row. */
+export function PanelHeader({
+  children,
+}: {
+  readonly children: ReactNode;
+}): JSX.Element {
+  return <div className={styles.header}>{children}</div>;
+}
+
+export type PanelTab<T extends string> = MenuAvailability & {
+  readonly value: T;
+  readonly label: string;
+};
+
+interface PanelTabButtonProps<T extends string> {
+  readonly tab: PanelTab<T>;
+  readonly selected: boolean;
+  readonly tabIndex: 0 | -1;
+  readonly elementRef: (element: HTMLElement | null) => void;
+  readonly onSelect: () => void;
+  readonly onKeyDown: (event: KeyboardEvent) => void;
+}
+
+export function PanelTabContent({
+  label,
+}: {
+  readonly label: string;
+}): JSX.Element {
+  return <>{label}</>;
+}
+
+export function PanelMoreContent({
+  label,
+}: {
+  readonly label: string;
+}): JSX.Element {
+  return (
+    <>
+      {label}
+      <Icon
+        name="down"
+        size={SWITCH_CHEVRON_SIZE}
+        className={styles.moreChevron}
+      />
+    </>
+  );
+}
+
+function PanelTabButton<T extends string>({
+  tab,
+  selected,
+  tabIndex,
+  elementRef,
+  onSelect,
+  onKeyDown,
+}: PanelTabButtonProps<T>): JSX.Element {
+  const base = useContext(PanelIdBase);
+  const {props, tooltip} = useTabButton({
+    title: tab.title,
+    disabled: tab.disabled === true,
+    selected,
+    onSelect,
+    onKeyDown,
+  });
+  return (
+    <>
+      <button
+        {...props}
+        ref={elementRef}
+        id={tabId(base, tab.value)}
+        tabIndex={tabIndex}
+        className={styles.tab}
+      >
+        <PanelTabContent label={tab.label} />
+      </button>
+      {tooltip}
+    </>
+  );
+}
+
+/** Tabs that don't fit the header, behind one menu button. */
+export interface PanelTabsMore<T extends string> {
+  /** The button name, such as 더 보기. */
+  readonly label: string;
+  readonly tabs: ReadonlyArray<PanelTab<T>>;
+}
+
+export interface PanelTabsProps<T extends string> {
+  readonly tabs: ReadonlyArray<PanelTab<T>>;
+  readonly value: T;
+  readonly onChange: (value: T) => void;
+  /**
+   * The rest of the tabs at the right end of the header, as in the narrow
+   * 진행 도구 panel. The button shows as the selected tab while one of its
+   * tabs is.
+   */
+  readonly more?: PanelTabsMore<T> | undefined;
+}
+
+function PanelMoreTabs<T extends string>({
+  more,
+  value,
+  onChange,
+}: {
+  readonly more: PanelTabsMore<T>;
+  readonly value: T;
+  readonly onChange: (value: T) => void;
+}): JSX.Element {
+  const base = useContext(PanelIdBase);
+  const [button, setButton] = useState<HTMLButtonElement | null>(null);
+  const [expanded, setExpanded] = useState(false);
+  const current = more.tabs.find(tab => tab.value === value);
+  const active = current !== undefined;
+  const menuProps = menuButtonProps({expanded, onExpandedChange: setExpanded});
+  const press = useButtonPress({
+    disabled: false,
+    onPress: menuProps.onClick,
+    onKeyDown: menuProps.onKeyDown,
+  });
+  return (
+    <>
+      <button
+        ref={setButton}
+        type="button"
+        {...menuProps}
+        {...press}
+        data-active={active || undefined}
+        className={styles.more}
+      >
+        <PanelMoreContent label={more.label} />
+      </button>
+      {current === undefined ? null : (
+        <span id={tabId(base, current.value)} hidden>
+          {current.label}
+        </span>
+      )}
+      {expanded && button !== null ? (
+        <Menu
+          label={more.label}
+          anchor={{kind: 'element', element: button}}
+          onClose={() => setExpanded(false)}
+          entries={more.tabs.map(tab => ({
+            ...tab,
+            kind: 'item',
+            id: tab.value,
+            label: tab.label,
+            check: 'radio',
+            checked: tab.value === value,
+            onSelect: () => onChange(tab.value),
+          }))}
+        />
+      ) : null}
+    </>
+  );
+}
+
+/**
+ * The tabs of a panel header. Left and Right select a tab at once, and Tab
+ * stops only on the selected tab.
+ */
+export function PanelTabs<T extends string>({
+  tabs,
+  value,
+  onChange,
+  more,
+}: PanelTabsProps<T>): JSX.Element {
+  const roving = useRovingSelection({
+    items: tabs,
+    value,
+    onChange,
+    disabled: false,
+  });
+  const select = (tab: PanelTab<T>): void => {
+    if (tab.disabled === true || tab.value === value) return;
+    onChange(tab.value);
+  };
+  return (
+    <>
+      <div role="tablist" className={styles.tabs}>
+        {tabs.map((tab, index) => (
+          <PanelTabButton
+            key={tab.value}
+            tab={tab}
+            selected={tab.value === value}
+            tabIndex={roving.tabIndexOf(index)}
+            elementRef={roving.refOf(index)}
+            onSelect={() => select(tab)}
+            onKeyDown={event => roving.onKeyDown(index, event)}
+          />
+        ))}
+      </div>
+      {more === undefined || more.tabs.length === 0 ? null : (
+        <PanelMoreTabs more={more} value={value} onChange={onChange} />
+      )}
+    </>
+  );
+}
+
+/** Context after a title, such as a live position or reference availability. */
+export function PanelMeta({
+  children,
+}: {
+  readonly children: ReactNode;
+}): JSX.Element {
+  return <span className={styles.meta}>{children}</span>;
+}
+
+/** A song title with optional context, such as 만복의 근원 하나님 2 / 9. */
+export function PanelTitle({
+  title,
+  meta,
+  children,
+}: {
+  readonly title: string;
+  readonly meta?: string | undefined;
+  /** Marks right after the title, such as a warning icon. */
+  readonly children?: ReactNode;
+}): JSX.Element {
+  return (
+    <div className={styles.title}>
+      <TruncatedText text={title} className={styles.titleText} />
+      {children}
+      {meta === undefined ? null : <PanelMeta>{meta}</PanelMeta>}
+    </div>
+  );
+}
+
+/** The sm controls at the right end of the header. */
+export function PanelActions({
+  children,
+}: {
+  readonly children: ReactNode;
+}): JSX.Element {
+  return <div className={styles.actions}>{children}</div>;
+}
+
+/** The row under the header with one search or Bible verse field. */
+export function PanelTools({
+  children,
+}: {
+  readonly children: ReactNode;
+}): JSX.Element {
+  return <div className={styles.tools}>{children}</div>;
+}
+
+/** A body with 14px padding, a list body, or a body with no padding. */
+/** `fixed` does not scroll; what is in it does. */
+export type PanelBodyVariant =
+  'padded' | 'list' | 'properties' | 'flush' | 'fixed';
+
+const bodyClass = {
+  padded: undefined,
+  list: styles.list,
+  properties: styles.properties,
+  flush: styles.flush,
+  fixed: styles.fixed,
+} as const satisfies Record<PanelBodyVariant, string | undefined>;
+
+/** The scrolling body. With `tab`, it is the tab panel of that tab. */
+export function PanelBody({
+  variant = 'padded',
+  tab,
+  className,
+  children,
+}: {
+  readonly variant?: PanelBodyVariant | undefined;
+  /** The value of the selected tab that this body shows. */
+  readonly tab?: string | undefined;
+  readonly className?: string | undefined;
+  readonly children: ReactNode;
+}): JSX.Element {
+  const base = useContext(PanelIdBase);
+  return (
+    <div
+      role={tab === undefined ? undefined : 'tabpanel'}
+      aria-labelledby={tab === undefined ? undefined : tabId(base, tab)}
+      className={classNames(styles.body, bodyClass[variant], className)}
+    >
+      {children}
+    </div>
+  );
+}
+
+/** The 32px footer row: counts on the left, controls such as a slider at the end. */
+export function PanelFooter({
+  count,
+  end,
+  children,
+}: {
+  /** The item count, including zero, without repeating the panel name. */
+  readonly count?: number | undefined;
+  readonly end?: ReactNode;
+  readonly children?: ReactNode;
+}): JSX.Element {
+  return (
+    <footer className={styles.footer}>
+      {count === undefined ? null : <span>{count}개</span>}
+      {children}
+      {end === undefined ? null : <div className={styles.footerEnd}>{end}</div>}
+    </footer>
+  );
+}

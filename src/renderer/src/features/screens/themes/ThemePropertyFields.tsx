@@ -1,12 +1,12 @@
 import {useEffect, useRef, useState, type JSX} from 'react';
-import {Checkbox} from '@renderer/ui/Checkbox';
+import {Checkbox} from '@renderer/ui/choices/Checkbox';
 import type {PictureFit} from '@core/schema/picturePlace';
-import {NumberField} from '@renderer/ui/NumberField';
-import {PICTURE_FIT_OPTIONS} from '@renderer/ui/mediaChoices';
-import {PropertyRow} from '@renderer/ui/PropertyRow';
-import {SelectMenu} from '@renderer/ui/SelectMenu';
-import {TextArea} from '@renderer/ui/TextArea';
-import {isComposing} from '@renderer/ui/ime';
+import {NumberField} from '@renderer/ui/fields/NumberField';
+import {PICTURE_FIT_OPTIONS} from '@renderer/ui/choices/mediaChoices';
+import {PropertyRow} from '@renderer/ui/panels/PropertyRow';
+import {SelectMenu} from '@renderer/ui/choices/SelectMenu';
+import {TextArea} from '@renderer/ui/fields/TextArea';
+import {isComposing} from '@renderer/ui/fields/ime';
 
 /** A text that changes the picture while it is typed, as one undo step. */
 export function ThemeTextArea({

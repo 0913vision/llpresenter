@@ -1,7 +1,7 @@
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import type {LibrarySong} from '@core/schema/contentDocuments';
 import type {LibrarySearchResult} from '@core/schema/librarySearch';
-import type {NoticeAction} from '@renderer/ui/notices';
+import type {NoticeAction} from '@renderer/ui/popups/notices';
 import {libraryRows, searchAllPages} from './librarySearch';
 import type {LibraryApi} from './useLibrary';
 

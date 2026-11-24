@@ -1,7 +1,7 @@
 import {useState, type JSX} from 'react';
 import {passageBook, type VerseDirection} from '@core/bible';
 import type {BibleSource} from '@renderer/session/bibleSource';
-import {Button} from '@renderer/ui/Button';
+import {Button} from '@renderer/ui/buttons/Button';
 import {lookupAdjacentPassage} from './lookupAdjacentPassage';
 import {usePassageSwap} from './usePassageSwap';
 

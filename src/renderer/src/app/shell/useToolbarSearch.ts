@@ -4,7 +4,7 @@ import type {LibrarySearchMatch} from '@core/schema/librarySearch';
 import {useShow} from '@renderer/session/show';
 import {openLibrarySong} from '@renderer/session/showLibrary';
 import {withinLookupTimeout} from '@renderer/session/showOutput';
-import {type Notice, warningNotice} from '@renderer/ui/notices';
+import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 
 export const TOOLBAR_SEARCH_LIMIT = 20;
 

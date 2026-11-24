@@ -1,6 +1,6 @@
 import type {FontCatalog, FontFamily} from '@core/schema/fontCatalog';
-import type {SelectOption} from '@renderer/ui/SelectMenu';
-import {menuAvailability} from '@renderer/ui/menuModel';
+import type {SelectOption} from '@renderer/ui/choices/SelectMenu';
+import {menuAvailability} from '@renderer/ui/menus/menuModel';
 import type {FontCatalogState} from './useFontCatalog';
 
 const BUNDLED_WEIGHTS = [100, 200, 300, 400, 500, 600, 700, 800, 900];

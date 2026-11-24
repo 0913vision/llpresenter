@@ -4,7 +4,7 @@ import {afterEach, describe, expect, it, vi} from 'vitest';
 import type {UpdateSnapshot} from '@core/schema/update';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {useUpdate} from '@renderer/app/update/useUpdate';
-import {NotificationStack} from '@renderer/ui/Notification';
+import {NotificationStack} from '@renderer/ui/popups/Notification';
 import {useLive} from '@renderer/session/live';
 
 afterEach(() => {

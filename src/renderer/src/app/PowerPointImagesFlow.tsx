@@ -7,7 +7,7 @@ import {slideMaking} from '@renderer/platform/themes';
 import type {OpenServiceResult} from '@renderer/session/openService';
 import {insertItems} from '@renderer/session/serviceOrderEdits';
 import {useShow} from '@renderer/session/show';
-import {noticeTime, type Notice} from '@renderer/ui/notices';
+import {noticeTime, type Notice} from '@renderer/ui/popups/notices';
 
 /** One item with a slide for each picture. */
 function imagesItem(fileName: string, media: readonly MediaId[]): ServiceItem {

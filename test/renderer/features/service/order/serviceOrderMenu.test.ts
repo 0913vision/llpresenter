@@ -1,6 +1,6 @@
 import {expect, it, vi} from 'vitest';
 import {ORDER_FULL_REASON} from '@renderer/session/serviceOrderEdits';
-import {menuItems} from '@renderer/ui/menuModel';
+import {menuItems} from '@renderer/ui/menus/menuModel';
 import {
   serviceOrderMenuEntries,
   type ServiceOrderMenuInput,

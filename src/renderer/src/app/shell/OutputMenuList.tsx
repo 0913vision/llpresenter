@@ -1,13 +1,13 @@
 import {parseScreenId} from '@core/schema/ids';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
-import {useMenuShortcuts} from '@renderer/ui/useMenuShortcuts';
+import {useMenuShortcuts} from '@renderer/ui/menus/useMenuShortcuts';
 import {sendThemeChange} from '@renderer/features/screens/themeActions';
 import {themesLike} from '@renderer/features/screens/themeMenuEntries';
 import {sendLive, useLive, useOutputs} from '@renderer/session/live';
 import type {JSX} from 'react';
 import {useThemes} from '@renderer/platform/themes';
-import {Menu} from '@renderer/ui/Menu';
-import type {Notice} from '@renderer/ui/notices';
+import {Menu} from '@renderer/ui/menus/Menu';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {useScreenSummaries} from '../../platform/ScreenSummaries';
 import {outputMenuEntries} from './outputMenuEntries';
 import type {WarningScreen} from './MenuBar';

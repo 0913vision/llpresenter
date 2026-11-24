@@ -18,7 +18,7 @@ import {applyService, useShow} from '@renderer/session/show';
 import {sampleService} from '@fixtures/renderer/session/sampleService';
 import {ServiceOrderHeader} from '@renderer/features/service/order/ServiceOrderHeader';
 import {serviceRowMenuEntries} from '@renderer/features/service/order/serviceRowMenu';
-import {menuItems} from '@renderer/ui/menuModel';
+import {menuItems} from '@renderer/ui/menus/menuModel';
 
 const pastName = pastDocument.service.name;
 

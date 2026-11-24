@@ -3,9 +3,9 @@ import type {SongDocument, Revision} from '@core/schema/contentDocuments';
 import {isItemOfKind, type ServiceItemOf} from '@core/schema/service';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {useShow} from '@renderer/session/show';
-import {type Notice, warningNotice} from '@renderer/ui/notices';
-import {AlertDialog} from '@renderer/ui/AlertDialog';
-import {usageMeta} from '@renderer/ui/usageText';
+import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
+import {AlertDialog} from '@renderer/ui/popups/AlertDialog';
+import {usageMeta} from '@renderer/ui/text/usageText';
 import {createServiceId} from '@core/schema/ids';
 import type {LlpApi} from '@contracts/ipc/api';
 

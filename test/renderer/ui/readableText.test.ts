@@ -1,7 +1,7 @@
 import {readFileSync} from 'node:fs';
 import {describe, expect, it} from 'vitest';
 import {paletteHex} from '@core/labels/colors';
-import {labelInk} from '@renderer/ui/labelInk';
+import {labelInk} from '@renderer/ui/labels/labelInk';
 
 const read = (path: string): string => readFileSync(path, 'utf8');
 const TOKEN_CSS_PATHS = [

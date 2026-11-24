@@ -11,15 +11,15 @@ import {
   splitOf,
   stackOf,
 } from '@core/theme';
-import {GeometryField} from '@renderer/ui/GeometryField';
+import {GeometryField} from '@renderer/ui/canvas/GeometryField';
 import {
   Properties,
   PropertyColumns,
   PropertyGroup,
   PropertyRow,
-} from '@renderer/ui/PropertyRow';
-import {SegmentedControl} from '@renderer/ui/SegmentedControl';
-import {SelectMenu} from '@renderer/ui/SelectMenu';
+} from '@renderer/ui/panels/PropertyRow';
+import {SegmentedControl} from '@renderer/ui/choices/SegmentedControl';
+import {SelectMenu} from '@renderer/ui/choices/SelectMenu';
 import {ColorProperty} from '../ColorProperty';
 import {ThemeImageChoice} from './ThemeImageChoice';
 import {

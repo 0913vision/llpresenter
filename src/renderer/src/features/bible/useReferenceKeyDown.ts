@@ -1,6 +1,6 @@
 import type {KeyboardEvent, RefObject} from 'react';
 import type {ReferencePart} from '@core/bible';
-import {isComposing} from '@renderer/ui/ime';
+import {isComposing} from '@renderer/ui/fields/ime';
 import type {BibleSuggestion} from './BibleSuggestions';
 import {focusPart, referenceKey} from './referenceForm';
 import type {ReferenceEdits} from './useReferenceEdits';

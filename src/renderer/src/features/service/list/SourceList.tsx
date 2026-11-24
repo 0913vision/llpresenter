@@ -6,14 +6,14 @@ import {
   type ReactNode,
 } from 'react';
 import type {ServiceEntry, TemplateEntry} from '@core/schema/contentDocuments';
-import {Button} from '@renderer/ui/Button';
-import {ListBox, ListGroup, ListRow} from '@renderer/ui/ListRow';
+import {Button} from '@renderer/ui/buttons/Button';
+import {ListBox, ListGroup, ListRow} from '@renderer/ui/lists/ListRow';
 import {dateLabel} from './serviceDates';
 import type {SourceRow} from './useSourceActions';
 import {EMPTY_SOURCE, sourceKey, type ServiceSource} from './useServiceSources';
 import styles from './ServiceDialogs.module.css';
-import {takeMenuKey, type ContextMenuEvent} from '@renderer/ui/contextMenu';
-import {useReflow} from '@renderer/ui/useReflow';
+import {takeMenuKey, type ContextMenuEvent} from '@renderer/ui/menus/contextMenu';
+import {useReflow} from '@renderer/ui/panels/useReflow';
 import {serviceDay} from '@core/services';
 
 const names = new Intl.Collator('ko', {numeric: true});

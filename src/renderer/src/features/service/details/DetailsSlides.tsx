@@ -6,12 +6,12 @@ import {
   type ReactNode,
 } from 'react';
 import type {LabelColor} from '@core/labels';
-import {SlideThumbnail, ThumbnailGrid} from '@renderer/ui/SlideThumbnail';
+import {SlideThumbnail, ThumbnailGrid} from '@renderer/ui/tiles/SlideThumbnail';
 import {detailsGridGeometry} from './detailsGridGeometry';
 import styles from './DetailsSlides.module.css';
-import {scrollParent} from '@renderer/ui/scrollParent';
-import {useReflow} from '@renderer/ui/useReflow';
-import {gridRange, scrollIntoBand} from '@renderer/ui/useRowRange';
+import {scrollParent} from '@renderer/ui/lists/scrollParent';
+import {useReflow} from '@renderer/ui/panels/useReflow';
+import {gridRange, scrollIntoBand} from '@renderer/ui/lists/useRowRange';
 
 const COLUMNS = 2;
 const INITIAL_COUNT = 8;

@@ -7,9 +7,9 @@ import {
   type MouseEvent,
 } from 'react';
 import type {ServiceItemId} from '@core/schema/ids';
-import {Checkbox, nextCheckState, type CheckState} from '@renderer/ui/Checkbox';
+import {Checkbox, nextCheckState, type CheckState} from '@renderer/ui/choices/Checkbox';
 import {classNames} from '@renderer/ui/classNames';
-import {DialogBox} from '@renderer/ui/Dialog';
+import {DialogBox} from '@renderer/ui/popups/Dialog';
 import {Icon} from '@renderer/ui/Icon';
 import {
   allState,

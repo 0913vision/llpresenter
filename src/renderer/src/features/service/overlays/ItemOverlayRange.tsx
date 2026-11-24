@@ -2,8 +2,8 @@ import {useState, type JSX} from 'react';
 import type {PlacedOverlay} from '@core/schema/itemOverlays';
 import {overlayRangesOverlap} from '@core/overlays';
 import {editorTask} from '@renderer/platform/editorTask';
-import {NumberField} from '@renderer/ui/NumberField';
-import {PropertyRow} from '@renderer/ui/PropertyRow';
+import {NumberField} from '@renderer/ui/fields/NumberField';
+import {PropertyRow} from '@renderer/ui/panels/PropertyRow';
 import type {OverlayEditing} from './overlayEditing';
 import styles from './ItemOverlays.module.css';
 export function ItemOverlayRange({

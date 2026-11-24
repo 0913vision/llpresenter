@@ -7,10 +7,10 @@ import {
   SONG_TITLE_LIMIT,
 } from '@core/songs';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
-import {AlertDialog} from '@renderer/ui/AlertDialog';
-import {countedMeta} from '@renderer/ui/countedMeta';
-import {RenameDialog} from '@renderer/ui/RenameDialog';
-import {usageMeta} from '@renderer/ui/usageText';
+import {AlertDialog} from '@renderer/ui/popups/AlertDialog';
+import {countedMeta} from '@renderer/ui/text/countedMeta';
+import {RenameDialog} from '@renderer/ui/popups/RenameDialog';
+import {usageMeta} from '@renderer/ui/text/usageText';
 import {
   ask,
   closeSongDraft,

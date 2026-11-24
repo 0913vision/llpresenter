@@ -1,7 +1,7 @@
 import {useEffect, useEffectEvent, useState} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import {APP_PROBLEM_LIMITS, type AppProblem} from '@core/schema/appProblem';
-import {noticeTime, warningNotice} from '@renderer/ui/notices';
+import {noticeTime, warningNotice} from '@renderer/ui/popups/notices';
 import type {NoticeTarget} from './useOutputNotices';
 import {
   WAITING_SAVES_KEY,

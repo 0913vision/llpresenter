@@ -15,7 +15,7 @@ import {
 } from '@renderer/platform/problemReasons';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {NOT_HERE} from '@renderer/app/shell/editMenuEntries';
-import {NOT_YET} from '@renderer/ui/menuRows';
+import {NOT_YET} from '@renderer/ui/menus/menuRows';
 import {
   hoverForTooltip,
   resetTooltips,

@@ -2,7 +2,7 @@ import {useEffect, useMemo, useState} from 'react';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {useThemes} from '@renderer/platform/themes';
 import {createFontMeasure} from '@renderer/rendering/theme/splitMeasure';
-import type {Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {PassageSplitter} from './passageSplitter';
 
 /** A splitter that follows the themes, fonts and remembered cuts. */

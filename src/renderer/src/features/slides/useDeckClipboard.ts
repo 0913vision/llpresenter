@@ -1,5 +1,5 @@
 import type {ClipboardEvent} from 'react';
-import {isInTextEntry} from '@renderer/ui/textEntry';
+import {isInTextEntry} from '@renderer/ui/fields/textEntry';
 import {
   addReason,
   copySelected,

@@ -1,13 +1,13 @@
 import {useState, type JSX} from 'react';
-import type {SizeClass} from '@renderer/ui/sizeClass';
+import type {SizeClass} from '@renderer/ui/panels/sizeClass';
 import {useShowToolTab} from '@renderer/features/tools/state/showToolTab';
-import {Panel, PanelBody, PanelHeader} from '@renderer/ui/Panel';
-import {ResponsivePanelTabs} from '@renderer/ui/ResponsivePanelTabs';
+import {Panel, PanelBody, PanelHeader} from '@renderer/ui/panels/Panel';
+import {ResponsivePanelTabs} from '@renderer/ui/panels/ResponsivePanelTabs';
 import {
   PanelActionScope,
   PanelActionTarget,
-} from '@renderer/ui/PanelActionSlot';
-import type {Notice} from '@renderer/ui/notices';
+} from '@renderer/ui/panels/PanelActionSlot';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {SHOW_TOOLS, showTool} from './showTools';
 import {AudioTab} from './AudioTab';
 import {StageTab} from './StageTab';

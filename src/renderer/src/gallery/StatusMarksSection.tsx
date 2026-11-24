@@ -1,14 +1,14 @@
 import type {JSX} from 'react';
 import dawnSky from '../../../../design/system/upload/Media/dawn-sky.jpg';
-import {MediaGrid, MediaTile} from '../ui/MediaTile';
-import {OutputToggle} from '../ui/OutputToggle';
+import {MediaGrid, MediaTile} from '../ui/tiles/MediaTile';
+import {OutputToggle} from '../ui/buttons/OutputToggle';
 import {
   CountBadge,
   LiveBadge,
   Progress,
   StatusDot,
   type DotTone,
-} from '../ui/StatusMarks';
+} from '../ui/tiles/StatusMarks';
 import {ignore, Section, SpecGroup, SpecItem} from './Spec';
 import styles from './StatusMarksSection.module.css';
 

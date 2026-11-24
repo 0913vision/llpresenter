@@ -1,7 +1,7 @@
 import {expect, it, vi} from 'vitest';
 import {libraryFixture} from '@fixtures/renderer/features/songs/library/libraryFixture';
 import {libraryMenuEntries} from '@renderer/features/songs/library/libraryMenuEntries';
-import {menuItems} from '@renderer/ui/menuModel';
+import {menuItems} from '@renderer/ui/menus/menuModel';
 
 it('retains specific reasons ahead of busy state and explains busy commands', () => {
   const song = libraryFixture().list()[0];

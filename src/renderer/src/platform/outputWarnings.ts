@@ -1,5 +1,5 @@
 import {create} from 'zustand';
-import type {Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/popups/notices';
 
 /** An unresolved output warning and the screen it belongs to. */
 export interface OutputWarning {

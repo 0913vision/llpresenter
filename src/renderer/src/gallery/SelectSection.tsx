@@ -1,7 +1,7 @@
 import type {JSX} from 'react';
-import {Select, type SelectProps} from '../ui/Select';
+import {Select, type SelectProps} from '../ui/choices/Select';
 import {Icon} from '../ui/Icon';
-import {Tooltip} from '../ui/Tooltip';
+import {Tooltip} from '../ui/popups/Tooltip';
 import {Section, SpecGroup, SpecItem, Stateful} from './Spec';
 import warmLight from '../../../../design/system/upload/Media/warm-light.jpg';
 import styles from './SelectSection.module.css';

@@ -6,8 +6,8 @@ import {
   OVERSCAN_ROWS,
   VirtualMediaGrid,
 } from '@renderer/features/media/VirtualMediaGrid';
-import {MediaTile} from '@renderer/ui/MediaTile';
-import {defaultThumbnailColumns} from '@renderer/ui/sizeClass';
+import {MediaTile} from '@renderer/ui/tiles/MediaTile';
+import {defaultThumbnailColumns} from '@renderer/ui/panels/sizeClass';
 
 const COUNT = 1000;
 const COLUMNS = defaultThumbnailColumns.normal;

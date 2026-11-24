@@ -10,8 +10,8 @@ import {
 } from '@core/schema/itemOverlays';
 import {newOverlaySpan, overlayAt} from '@core/overlays';
 import {editorTask} from '@renderer/platform/editorTask';
-import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
-import {deleteSelection} from '@renderer/ui/deleteSelection';
+import {menuAvailability, type MenuEntry} from '@renderer/ui/menus/menuModel';
+import {deleteSelection} from '@renderer/ui/lists/deleteSelection';
 import {ItemOverlayContent} from './ItemOverlayContent';
 import type {OverlayEditing} from './overlayEditing';
 

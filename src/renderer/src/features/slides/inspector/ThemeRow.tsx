@@ -5,9 +5,9 @@ import {themeOfSlide} from '@core/theme';
 import {useThemes} from '@renderer/platform/themes';
 import {WorkspaceNavigation} from '@renderer/platform/WorkspaceNavigation';
 import {openTheme} from '@renderer/session/themeRequests';
-import {Button} from '@renderer/ui/Button';
-import {PropertyControl} from '@renderer/ui/PropertyRow';
-import {SelectMenu} from '@renderer/ui/SelectMenu';
+import {Button} from '@renderer/ui/buttons/Button';
+import {PropertyControl} from '@renderer/ui/panels/PropertyRow';
+import {SelectMenu} from '@renderer/ui/choices/SelectMenu';
 import {changeSelected, type ChosenSlides} from './changeSelected';
 import styles from './SlideInspector.module.css';
 

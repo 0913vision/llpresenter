@@ -5,7 +5,7 @@ import type {
   TextImportPreviewResult,
   TextImportSource,
 } from '@core/schema/textImport';
-import {type Notice, warningNotice} from '@renderer/ui/notices';
+import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import {createLatestRunner} from '../../../platform/latestRunner';
 
 export function useImportPreview({

@@ -1,7 +1,7 @@
 import type {JSX} from 'react';
 import {ListGroup, ListInsertLine} from '@renderer/ui';
-import type {GroupRename} from '@renderer/ui/ListRow';
-import type {Workspace} from '@renderer/ui/workspace';
+import type {GroupRename} from '@renderer/ui/lists/ListRow';
+import type {Workspace} from '@renderer/ui/lists/workspace';
 import {ItemRows, type RowContext} from './ItemRows';
 import type {RowGroup} from './orderRows';
 

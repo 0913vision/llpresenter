@@ -2,9 +2,9 @@ import type {JSX} from 'react';
 import {HYMNAL_NAMES} from '@core/hymns';
 import {HYMN_COUNTS, type Hymn, type Hymnal} from '@core/schema/hymn';
 import {withHymn} from '@core/slides';
-import {NumberField} from '@renderer/ui/NumberField';
-import {PropertyGroup, PropertyRow} from '@renderer/ui/PropertyRow';
-import {SegmentedControl} from '@renderer/ui/SegmentedControl';
+import {NumberField} from '@renderer/ui/fields/NumberField';
+import {PropertyGroup, PropertyRow} from '@renderer/ui/panels/PropertyRow';
+import {SegmentedControl} from '@renderer/ui/choices/SegmentedControl';
 import {changeSelected, type ChosenSlides} from './changeSelected';
 
 const HYMNALS: ReadonlyArray<{readonly value: Hymnal; readonly label: string}> =

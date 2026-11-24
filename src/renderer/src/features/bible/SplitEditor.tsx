@@ -5,8 +5,8 @@ import {
   type SplitLayout,
   hintCharFromEvent,
 } from '@core/bible';
-import {Dialog} from '@renderer/ui/Dialog';
-import {Spinner} from '@renderer/ui/Spinner';
+import {Dialog} from '@renderer/ui/popups/Dialog';
+import {Spinner} from '@renderer/ui/tiles/Spinner';
 import type {ThemeFile} from '@core/schema/theme';
 import {SplitSlidePicture} from './SplitSlidePicture';
 import {RESULTS_PER_ROW, useSplitDraft} from './useSplitDraft';

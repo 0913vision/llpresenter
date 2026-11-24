@@ -1,8 +1,8 @@
 import {useState, type JSX} from 'react';
-import {IconButton} from '@renderer/ui/IconButton';
-import {Menu} from '@renderer/ui/Menu';
-import {menuButtonProps} from '@renderer/ui/menuButton';
-import type {Notice} from '@renderer/ui/notices';
+import {IconButton} from '@renderer/ui/buttons/IconButton';
+import {Menu} from '@renderer/ui/menus/Menu';
+import {menuButtonProps} from '@renderer/ui/menus/menuButton';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {useQuickAdd} from './useQuickAdd';
 
 /** Adds items after the selected row of the 예배 순서. */

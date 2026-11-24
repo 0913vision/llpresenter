@@ -2,7 +2,7 @@ import {useEffect} from 'react';
 import {
   dispatchShortcut,
   type WindowShortcut,
-} from '@renderer/ui/commandDispatcher';
+} from '@renderer/ui/keys/commandDispatcher';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {isColumnDragActive} from '@renderer/platform/drag';
 import {CLICK_FOCUS_SELECTOR} from '@renderer/ui';
@@ -21,7 +21,7 @@ import {outputAdjacentBibleVerse} from '../bible/verseShortcuts';
 import {clearLayer} from '@renderer/session/clear';
 import {canReturnFromQuickPassage} from '@renderer/session/quickReturn';
 import {useNumberJumpKeys} from './numberJump';
-import {returnFocus} from '@renderer/ui/returnFocus';
+import {returnFocus} from '@renderer/ui/keys/returnFocus';
 
 const commands: readonly WindowShortcut[] = [
   {

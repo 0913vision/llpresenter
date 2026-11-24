@@ -13,8 +13,8 @@ import {
   menuAvailability,
   type MenuEntry,
   type MenuItem,
-} from '@renderer/ui/menuModel';
-import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
+} from '@renderer/ui/menus/menuModel';
+import {laterRow, menuSeparator} from '@renderer/ui/menus/menuRows';
 import {macroActionChoices} from './macroActionChoices';
 import {MACRO_ACTIONS} from './macroActionCatalog';
 import type {MacroTargetChoice} from './macroTargets';

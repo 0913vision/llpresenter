@@ -6,12 +6,12 @@ import {
   importHeaderKey,
   matchingImportLabel,
 } from '@core/songs';
-import {Dialog} from '@renderer/ui/Dialog';
+import {Dialog} from '@renderer/ui/popups/Dialog';
 import {Icon} from '@renderer/ui/Icon';
-import {LabelSwatch} from '@renderer/ui/LabelChip';
-import {Menu} from '@renderer/ui/Menu';
-import {isComposing} from '@renderer/ui/ime';
-import {hasModifier} from '@renderer/ui/modifierKeys';
+import {LabelSwatch} from '@renderer/ui/labels/LabelChip';
+import {Menu} from '@renderer/ui/menus/Menu';
+import {isComposing} from '@renderer/ui/fields/ime';
+import {hasModifier} from '@renderer/ui/keys/modifierKeys';
 import {labelMenuEntries} from '@renderer/features/labels/labelMenuEntries';
 import {useImportLabelWindow} from './useImportLabelWindow';
 import styles from './ImportLabelMappingDialog.module.css';

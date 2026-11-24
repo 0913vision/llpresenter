@@ -1,4 +1,4 @@
-import {isComposingKey} from '@renderer/ui/ime';
+import {isComposingKey} from '@renderer/ui/fields/ime';
 
 const MODIFIER_CODES: ReadonlySet<string> = new Set([
   'ShiftLeft',

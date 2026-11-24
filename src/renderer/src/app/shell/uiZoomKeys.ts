@@ -2,7 +2,7 @@ import type {UiZoomCommand} from '@core/schema/uiZoom';
 import {
   dispatchShortcut,
   type WindowShortcut,
-} from '@renderer/ui/commandDispatcher';
+} from '@renderer/ui/keys/commandDispatcher';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 
 const commands: readonly WindowShortcut[] = (

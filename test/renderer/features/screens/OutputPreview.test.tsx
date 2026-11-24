@@ -21,7 +21,7 @@ vi.mock('@renderer/features/presentation/OutputMirror', () => ({
   ),
 }));
 
-vi.mock('@renderer/ui/useElementSize', () => ({
+vi.mock('@renderer/ui/panels/useElementSize', () => ({
   useElementSize: () => [vi.fn(), {width: 600, height: 600}],
 }));
 

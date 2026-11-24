@@ -1,4 +1,4 @@
-import {useReflow} from '@renderer/ui/useReflow';
+import {useReflow} from '@renderer/ui/panels/useReflow';
 import {useMemo, useState, type JSX} from 'react';
 import type {QuickItem} from '@core/schema/quick';
 import {
@@ -16,8 +16,8 @@ import {
   PanelTitle,
   PanelTools,
   PanelActions,
-} from '@renderer/ui/Panel';
-import type {Notice} from '@renderer/ui/notices';
+} from '@renderer/ui/panels/Panel';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {BibleQuickField} from './BibleQuickField';
 import {useQuickRunner} from './useQuickRunner';
 import styles from './QuickPanel.module.css';

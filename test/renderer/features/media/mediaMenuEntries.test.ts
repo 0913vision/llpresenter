@@ -1,6 +1,6 @@
 import {expect, it, vi} from 'vitest';
-import type {MenuEntry} from '@renderer/ui/menuModel';
-import {contextMenuEntries} from '@renderer/ui/contextMenuEntries';
+import type {MenuEntry} from '@renderer/ui/menus/menuModel';
+import {contextMenuEntries} from '@renderer/ui/menus/contextMenuEntries';
 import {mediaItem} from '@fixtures/renderer/features/media/mediaTesting';
 import {
   mediaTileMenuEntries,

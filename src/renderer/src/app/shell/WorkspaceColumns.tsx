@@ -1,6 +1,6 @@
 import {Fragment, type JSX} from 'react';
 import {classNames} from '@renderer/ui/classNames';
-import type {SizeClass} from '../../ui/sizeClass';
+import type {SizeClass} from '../../ui/panels/sizeClass';
 import {ColumnGap, type ColumnDrag} from './ColumnGap';
 import type {ColumnWidthStore} from './columnWidthStore';
 import {PanelColumn} from './PanelColumn';

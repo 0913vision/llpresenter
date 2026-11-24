@@ -6,7 +6,7 @@ import {
   type JSX,
   type ReactNode,
 } from 'react';
-import type {Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {summarizeScreens, type ScreenSummary} from './screens';
 import type {MonitorList} from '@core/schema/monitors';
 

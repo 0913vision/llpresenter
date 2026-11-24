@@ -1,7 +1,7 @@
 import {useState, type JSX} from 'react';
-import {IconButton} from '@renderer/ui/IconButton';
-import {Menu} from '@renderer/ui/Menu';
-import type {MenuEntry} from '@renderer/ui/menuModel';
+import {IconButton} from '@renderer/ui/buttons/IconButton';
+import {Menu} from '@renderer/ui/menus/Menu';
+import type {MenuEntry} from '@renderer/ui/menus/menuModel';
 
 /** The text a value puts in: `{제목}`, or `{(제목)}` in brackets. */
 function valueText(value: string, bracketed: boolean): string {

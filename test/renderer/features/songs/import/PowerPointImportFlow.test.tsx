@@ -24,7 +24,7 @@ import {SongDraftDialogs} from '@renderer/features/songs/SongDraftDialogs';
 import {useSongEditor} from '@renderer/features/songs/SongEditor';
 import {useThemes} from '@renderer/platform/themes';
 import {usePrepTarget} from '@renderer/session/prepTarget';
-import type {Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {themes, themeScreens} from '@fixtures/core/themeOutput';
 import {editorFixture} from '@fixtures/renderer/features/songs/editorFixture';

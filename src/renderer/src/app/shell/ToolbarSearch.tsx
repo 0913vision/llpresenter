@@ -1,6 +1,6 @@
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
-import {useShortcutText} from '@renderer/ui/commandBindings';
-import {ariaShortcut, useTooltip} from '@renderer/ui/Tooltip';
+import {useShortcutText} from '@renderer/ui/keys/commandBindings';
+import {ariaShortcut, useTooltip} from '@renderer/ui/popups/Tooltip';
 import {
   useEffect,
   useEffectEvent,
@@ -14,10 +14,10 @@ import {
 import type {SongId} from '@core/schema/ids';
 import type {LibrarySearchMatch} from '@core/schema/librarySearch';
 import {Icon, TextField} from '@renderer/ui';
-import {isComposing} from '@renderer/ui/ime';
-import {hasModifier} from '@renderer/ui/modifierKeys';
-import type {Notice} from '@renderer/ui/notices';
-import {TruncatedText} from '@renderer/ui/TruncatedText';
+import {isComposing} from '@renderer/ui/fields/ime';
+import {hasModifier} from '@renderer/ui/keys/modifierKeys';
+import type {Notice} from '@renderer/ui/popups/notices';
+import {TruncatedText} from '@renderer/ui/text/TruncatedText';
 import {useToolbarSearch} from './useToolbarSearch';
 import styles from './ToolbarSearch.module.css';
 import {useOrderAddReason} from '@renderer/session/orderReasons';

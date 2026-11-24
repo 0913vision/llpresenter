@@ -16,8 +16,8 @@ import {applyService} from '@renderer/session/show';
 import {App} from '@renderer/app/App';
 import {useClearKeys} from '@renderer/features/presentation/clearKeys';
 import * as clearState from '@renderer/session/clear';
-import {Dialog} from '@renderer/ui/Dialog';
-import {TextField} from '@renderer/ui/TextField';
+import {Dialog} from '@renderer/ui/popups/Dialog';
+import {TextField} from '@renderer/ui/fields/TextField';
 import {ControlSession} from '@renderer/app/controlSession';
 
 vi.mock('@renderer/rendering/outputRenderer', () => ({

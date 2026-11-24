@@ -1,7 +1,7 @@
 import type {JSX} from 'react';
-import {IconButton} from '../ui/IconButton';
-import {ListBox, ListRow} from '../ui/ListRow';
-import {Panel, PanelActions, PanelHeader, PanelTabs} from '../ui/Panel';
+import {IconButton} from '../ui/buttons/IconButton';
+import {ListBox, ListRow} from '../ui/lists/ListRow';
+import {Panel, PanelActions, PanelHeader, PanelTabs} from '../ui/panels/Panel';
 import styles from './IconButtonSection.module.css';
 import {ignore, Section, SpecGroup, SpecItem, Stateful} from './Spec';
 

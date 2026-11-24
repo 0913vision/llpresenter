@@ -4,8 +4,8 @@ import {
   NOTHING_TO_UNDO,
 } from '@renderer/platform/problemReasons';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
-import {deleteSelection} from '@renderer/ui/deleteSelection';
-import {isInTextEntry} from '@renderer/ui/textEntry';
+import {deleteSelection} from '@renderer/ui/lists/deleteSelection';
+import {isInTextEntry} from '@renderer/ui/fields/textEntry';
 import {
   addReason,
   copyReason,
@@ -19,7 +19,7 @@ import {
 import {selectInDeck} from './deckSelection';
 import {clipboardText} from './slideClipboard';
 import type {SlideDeck} from './slideDeck';
-import {FIXED_KEYS} from '@renderer/ui/fixedKeys';
+import {FIXED_KEYS} from '@renderer/ui/keys/fixedKeys';
 
 type History = 'undo' | 'redo';
 

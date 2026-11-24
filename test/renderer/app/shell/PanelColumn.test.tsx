@@ -3,10 +3,10 @@ import {cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import {PanelColumn} from '@renderer/app/shell/PanelColumn';
 import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
-import {PreviewSizingContext} from '@renderer/ui/PreviewSizingContext';
+import {PreviewSizingContext} from '@renderer/ui/previews/PreviewSizingContext';
 
 const layout = vi.hoisted(() => ({reset: vi.fn()}));
-vi.mock('@renderer/ui/useRowLayout', () => ({
+vi.mock('@renderer/ui/lists/useRowLayout', () => ({
   useRowLayout: () => ({
     begin: vi.fn(),
     canResize: () => true,

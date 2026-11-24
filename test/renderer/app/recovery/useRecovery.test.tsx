@@ -5,7 +5,7 @@ import type {RecoveryResult, RecoverySummary} from '@core/schema/recovery';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {sampleOffer} from '@fixtures/renderer/app/recovery/testing';
 import {useRecovery} from '@renderer/app/recovery/useRecovery';
-import type {Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/popups/notices';
 
 const restored: RecoveryResult = {ok: true, value: null};
 

@@ -10,11 +10,11 @@ import {
   type RefObject,
 } from 'react';
 import {MediaGrid} from '@renderer/ui';
-import {isComposing} from '@renderer/ui/ime';
-import type {MenuAnchor} from '@renderer/ui/Menu';
+import {isComposing} from '@renderer/ui/fields/ime';
+import type {MenuAnchor} from '@renderer/ui/menus/Menu';
 import styles from './MediaView.module.css';
 import {mediaGridLayout} from './mediaGridLayout';
-import {useReflow} from '@renderer/ui/useReflow';
+import {useReflow} from '@renderer/ui/panels/useReflow';
 
 /** The rows mounted beyond the visible ones, above and below. */
 export const OVERSCAN_ROWS = 1;

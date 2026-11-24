@@ -2,7 +2,7 @@ import type {JSX} from 'react';
 import type {ShowTile} from '@core/schema/showService';
 import type {ThemeFile} from '@core/schema/theme';
 import {boxesOf, fillsItself, NEXT_BOX, showsHymn} from '@core/slides';
-import {PropertyGroup} from '@renderer/ui/PropertyRow';
+import {PropertyGroup} from '@renderer/ui/panels/PropertyRow';
 import {SlideTextField} from '../SlideTextField';
 import type {ChosenSlides} from './changeSelected';
 import {HideNextRow} from './HideNextRow';

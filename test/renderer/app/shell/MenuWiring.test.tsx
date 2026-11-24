@@ -12,7 +12,7 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {MenuBar} from '@renderer/app/shell/MenuBar';
 import {fullScreenRow, useFullScreen} from '@renderer/app/shell/viewToggles';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {NOT_YET} from '@renderer/ui/menuRows';
+import {NOT_YET} from '@renderer/ui/menus/menuRows';
 import {
   hoverForTooltip,
   resetTooltips,

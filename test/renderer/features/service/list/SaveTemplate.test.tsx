@@ -23,7 +23,7 @@ import {createServiceId, createTemplateId} from '@core/schema/ids';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {applyService} from '@renderer/session/show';
 import {sampleService} from '@fixtures/renderer/session/sampleService';
-import type {Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {useServiceActions} from '@renderer/features/service/list/useServiceActions';
 import {librarySongs, templateDocument} from '@fixtures/core/serviceList';
 

@@ -3,8 +3,8 @@ export {
   AlertListRow,
   type AlertAction,
   type AlertDialogProps,
-} from './AlertDialog';
-export {Button, type ButtonProps, type ButtonVariant} from './Button';
+} from './popups/AlertDialog';
+export {Button, type ButtonProps, type ButtonVariant} from './buttons/Button';
 export {
   CheckRow,
   Checkbox,
@@ -12,13 +12,13 @@ export {
   type CheckRowVariant,
   type CheckState,
   type CheckboxProps,
-} from './Checkbox';
-export {ClearButton, ClearRow, type ClearButtonProps} from './ClearButton';
+} from './choices/Checkbox';
+export {ClearButton, ClearRow, type ClearButtonProps} from './buttons/ClearButton';
 export {
   CLICK_FOCUS_ATTRIBUTE,
   CLICK_FOCUS_SELECTOR,
   clickFocusProps,
-} from './clickFocus';
+} from './lists/clickFocus';
 export {
   Dialog,
   DialogBox,
@@ -27,9 +27,9 @@ export {
   type DialogBoxProps,
   type DialogProps,
   type DialogSize,
-} from './Dialog';
+} from './popups/Dialog';
 export {Icon, type IconProps, type IconSize} from './Icon';
-export {IconButton, type IconButtonProps} from './IconButton';
+export {IconButton, type IconButtonProps} from './buttons/IconButton';
 export {
   KeyCombo,
   KeyList,
@@ -38,16 +38,16 @@ export {
   formatShortcut,
   type KeyComboProps,
   type KeyComboState,
-} from './KeyCap';
-export {LabelSwatch, LabelTag, type LabelTagProps} from './LabelChip';
+} from './keys/KeyCap';
+export {LabelSwatch, LabelTag, type LabelTagProps} from './labels/LabelChip';
 export {
   LabelColorPicker,
   MacroColorPicker,
   labelColorNames,
   type LabelColorPickerProps,
   type MacroColorPickerProps,
-} from './LabelColorPicker';
-export {labelInk, type LabelInkStyle} from './labelInk';
+} from './labels/LabelColorPicker';
+export {labelInk, type LabelInkStyle} from './labels/labelInk';
 export {
   ListActionRow,
   ListBox,
@@ -58,7 +58,7 @@ export {
   type ListActionRowProps,
   type ListBoxProps,
   type ListRowProps,
-} from './ListRow';
+} from './lists/ListRow';
 export {
   MacroGrid,
   MacroList,
@@ -72,7 +72,7 @@ export {
   type MacroProps,
   type MacroRowProps,
   type MacroSchedule,
-} from './MacroTile';
+} from './tiles/MacroTile';
 export {
   MediaGrid,
   MediaTile,
@@ -80,28 +80,28 @@ export {
   type MediaGridProps,
   type MediaListProps,
   type MediaTileProps,
-} from './MediaTile';
+} from './tiles/MediaTile';
 export {
   Menu,
   type MenuAnchor,
   type MenuCloseReason,
   type MenuProps,
   type MenuSearch,
-} from './Menu';
+} from './menus/Menu';
 export {
   menuButtonProps,
   openOnArrowDown,
   type MenuButtonProps,
   type MenuButtonState,
-} from './menuButton';
+} from './menus/menuButton';
 export type {
   MenuCheckKind,
   MenuEntry,
   MenuGroupLabel,
   MenuItem,
   MenuSeparator,
-} from './menuModel';
-export {MissingFileMark, missingFileText} from './MissingFile';
+} from './menus/menuModel';
+export {MissingFileMark, missingFileText} from './tiles/MissingFile';
 export {
   addNotice,
   removeNotice,
@@ -110,19 +110,19 @@ export {
   type Notice,
   type NoticeAction,
   type NoticeKind,
-} from './notices';
+} from './popups/notices';
 export {
   NOTICE_LIFETIME_MS,
   NotificationCard,
   NotificationStack,
   type NotificationStackProps,
-} from './Notification';
-export {NumberField, type NumberFieldProps} from './NumberField';
+} from './popups/Notification';
+export {NumberField, type NumberFieldProps} from './fields/NumberField';
 export {
   OutputToggle,
   type OutputState,
   type OutputToggleProps,
-} from './OutputToggle';
+} from './buttons/OutputToggle';
 export {
   Panel,
   PanelActions,
@@ -136,7 +136,7 @@ export {
   type PanelBodyVariant,
   type PanelTab,
   type PanelTabsProps,
-} from './Panel';
+} from './panels/Panel';
 export {
   PreviewFrame,
   previewReason,
@@ -145,7 +145,7 @@ export {
   type PreviewScreen,
   type PreviewStatus,
   type PreviewTarget,
-} from './PreviewFrame';
+} from './previews/PreviewFrame';
 export {
   Properties,
   PropertyColumns,
@@ -155,32 +155,32 @@ export {
   type PropertiesPlacement,
   type PropertyRowProps,
   type PropertyValueProps,
-} from './PropertyRow';
+} from './panels/PropertyRow';
 export {
   SegmentedControl,
   type SegmentOption,
   type SegmentedControlProps,
   type SegmentedKind,
-} from './SegmentedControl';
+} from './choices/SegmentedControl';
 export {
   Select,
   type SelectLead,
   type SelectPopup,
   type SelectProps,
-} from './Select';
+} from './choices/Select';
 export {
   SelectMenu,
   type SelectAction,
   type SelectMenuProps,
   type SelectOption,
-} from './SelectMenu';
+} from './choices/SelectMenu';
 export {
   SHORTCUT_RECORDING_ATTRIBUTE,
   SHORTCUT_RECORDING_SELECTOR,
   shortcutRecordingProps,
-} from './shortcutRecording';
-export {ShortcutField, type ShortcutFieldProps} from './ShortcutField';
-export {shortcutNames} from './shortcutKeys';
+} from './keys/shortcutRecording';
+export {ShortcutField, type ShortcutFieldProps} from './keys/ShortcutField';
+export {shortcutNames} from './keys/shortcutKeys';
 export {
   SlideThumbnail,
   ThumbnailGrid,
@@ -190,17 +190,17 @@ export {
   type SlideThumbnailProps,
   type ThumbnailGridBaseProps,
   type ThumbnailGridProps,
-} from './SlideThumbnail';
+} from './tiles/SlideThumbnail';
 export {
   Slider,
   type SliderProps,
   type SliderSurface,
   type SliderWidth,
-} from './Slider';
+} from './choices/Slider';
 export {
   ThumbnailSizeControl,
   type ThumbnailSizeControlProps,
-} from './ThumbnailSizeControl';
+} from './choices/ThumbnailSizeControl';
 export {
   DEFAULT_THUMBNAIL_SCALE_PERCENT,
   MAX_THUMBNAIL_SCALE_PERCENT,
@@ -211,7 +211,7 @@ export {
   commitThumbnailScale,
   thumbnailWidth,
   type ThumbnailGeometry,
-} from './thumbnailSize';
+} from './choices/thumbnailSize';
 export {
   CountBadge,
   LiveBadge,
@@ -221,7 +221,7 @@ export {
   type ProgressProps,
   type ProgressVariant,
   type StatusDotProps,
-} from './StatusMarks';
+} from './tiles/StatusMarks';
 export {
   TileList,
   gridMoves,
@@ -235,39 +235,39 @@ export {
   type TileListProps,
   type TileMoves,
   type TileSpaceKey,
-} from './TileList';
-export {TextArea, type TextAreaProps} from './TextArea';
+} from './lists/TileList';
+export {TextArea, type TextAreaProps} from './fields/TextArea';
 export {
   TextField,
   type TextFieldProps,
   type TextFieldVariant,
-} from './TextField';
-export {ToolbarButton, type ToolbarButtonProps} from './ToolbarButton';
+} from './fields/TextField';
+export {ToolbarButton, type ToolbarButtonProps} from './buttons/ToolbarButton';
 export {
   ToolbarTabs,
   type ToolbarTab,
   type ToolbarTabsProps,
-} from './ToolbarTabs';
+} from './buttons/ToolbarTabs';
 export {
   Tooltip,
   useTooltip,
   type TooltipContent,
   type TooltipProps,
-} from './Tooltip';
-export {TruncatedText} from './TruncatedText';
+} from './popups/Tooltip';
+export {TruncatedText} from './text/TruncatedText';
 export {
   Calendar,
   type CalendarProps,
   type CalendarCloseReason,
-} from './Calendar';
-export {DateSelect, type DateSelectProps} from './DateSelect';
+} from './fields/Calendar';
+export {DateSelect, type DateSelectProps} from './fields/DateSelect';
 export {
   CanvasEditor,
   type CanvasActions,
   type CanvasDocument,
   type CanvasElement,
   type CanvasEditorProps,
-} from './CanvasEditor';
-export {CanvasFrameBar} from './CanvasFrameBar';
+} from './canvas/CanvasEditor';
+export {CanvasFrameBar} from './canvas/CanvasFrameBar';
 export type {ControlSize, GroupName} from './types';
-export type {Workspace} from './workspace';
+export type {Workspace} from './lists/workspace';

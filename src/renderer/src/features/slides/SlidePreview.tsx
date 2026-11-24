@@ -6,7 +6,7 @@ import type {ShowTile} from '@core/schema/showService';
 import {KIND_NAMES, SCREEN_KIND_ORDER} from '@core/screens';
 import {themeOfTile, useThemes} from '@renderer/platform/themes';
 import {TilePicture} from '@renderer/pictures/TilePicture';
-import {SlideThumbnailBand} from '@renderer/ui/SlideThumbnail';
+import {SlideThumbnailBand} from '@renderer/ui/tiles/SlideThumbnail';
 import styles from './SlidePreview.module.css';
 
 /** The screen a panel shows its slides on, and the others it can show. */

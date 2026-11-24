@@ -1,7 +1,7 @@
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {undoReason, undoTimeline} from '@renderer/platform/undoTimeline';
-import type {Notice} from '@renderer/ui/notices';
-import {isTextField} from '@renderer/ui/commandDispatcher';
+import type {Notice} from '@renderer/ui/popups/notices';
+import {isTextField} from '@renderer/ui/keys/commandDispatcher';
 
 /**
  * 실행 취소 and 다시 실행 of the workspace: wherever the focus is, outside a

@@ -1,9 +1,9 @@
 import {useLayoutEffect, useRef, type JSX, type ReactNode} from 'react';
-import {ResizeGap} from '@renderer/ui/ResizeGap';
-import {useRowLayout, type RowSizeStore} from '@renderer/ui/useRowLayout';
-import type {SizeClass} from '@renderer/ui/sizeClass';
-import type {Notice} from '@renderer/ui/notices';
-import {Button} from '@renderer/ui/Button';
+import {ResizeGap} from '@renderer/ui/panels/ResizeGap';
+import {useRowLayout, type RowSizeStore} from '@renderer/ui/lists/useRowLayout';
+import type {SizeClass} from '@renderer/ui/panels/sizeClass';
+import type {Notice} from '@renderer/ui/popups/notices';
+import {Button} from '@renderer/ui/buttons/Button';
 import {Icon} from '@renderer/ui/Icon';
 import {AudioListsPanel, MediaListsPanel} from './MediaListPanels';
 import {MediaPropertiesPanel} from './MediaPropertiesPanel';

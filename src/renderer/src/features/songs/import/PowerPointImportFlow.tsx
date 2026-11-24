@@ -1,6 +1,6 @@
 import {useEffect} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
-import type {Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {importPowerPointSong} from './powerPointSong';
 
 /** Reads a presentation and opens the song it is in the editor, unsaved. */

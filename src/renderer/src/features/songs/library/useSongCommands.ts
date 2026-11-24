@@ -2,9 +2,9 @@ import type {RefObject} from 'react';
 import type {LibrarySong} from '@core/schema/contentDocuments';
 import type {contentDeleteHistory} from '@renderer/platform/contentDeleteHistory';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
-import {deleteSelection} from '@renderer/ui/deleteSelection';
-import {focusHistorySurface} from '@renderer/ui/focusHistorySurface';
-import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
+import {deleteSelection} from '@renderer/ui/lists/deleteSelection';
+import {focusHistorySurface} from '@renderer/ui/lists/focusHistorySurface';
+import {useMenuHandoff} from '@renderer/ui/menus/useMenuHandoff';
 import {songCopyReason} from './libraryMenuEntries';
 import type {Library} from './useLibrary';
 

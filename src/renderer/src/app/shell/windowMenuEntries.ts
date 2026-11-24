@@ -1,7 +1,7 @@
-import {shortcutText} from '@renderer/ui/commandBindings';
-import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
-import type {MenuEntry} from '@renderer/ui/menuModel';
-import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
+import {shortcutText} from '@renderer/ui/keys/commandBindings';
+import {windowCommandLabels} from '@renderer/ui/keys/windowCommandLabels';
+import type {MenuEntry} from '@renderer/ui/menus/menuModel';
+import {laterRow, menuSeparator} from '@renderer/ui/menus/menuRows';
 
 /** The 창 menu (spec 11): the title bar buttons and 환경설정. */
 export function windowMenuEntries(): readonly MenuEntry[] {

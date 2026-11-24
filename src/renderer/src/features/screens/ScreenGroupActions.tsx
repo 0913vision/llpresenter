@@ -1,10 +1,10 @@
 import {useState, type JSX} from 'react';
 import type {Screen} from '@core/schema/screens';
 import type {MonitorInfo, MonitorList} from '@core/schema/monitors';
-import {IconButton} from '@renderer/ui/IconButton';
-import {Menu} from '@renderer/ui/Menu';
-import {menuButtonProps} from '@renderer/ui/menuButton';
-import {hasModifier} from '@renderer/ui/modifierKeys';
+import {IconButton} from '@renderer/ui/buttons/IconButton';
+import {Menu} from '@renderer/ui/menus/Menu';
+import {menuButtonProps} from '@renderer/ui/menus/menuButton';
+import {hasModifier} from '@renderer/ui/keys/modifierKeys';
 import type {NewScreen} from './addScreen';
 import {screenAddMenuEntries} from './screenMenuEntries';
 import styles from './ScreenList.module.css';

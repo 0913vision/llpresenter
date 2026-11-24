@@ -1,8 +1,8 @@
 import {useEffect, type RefObject} from 'react';
 import type {ServiceRow} from '@core/presentation';
-import {isInTextEntry} from '@renderer/ui/textEntry';
-import {useReflow} from '@renderer/ui/useReflow';
-import type {Workspace} from '@renderer/ui/workspace';
+import {isInTextEntry} from '@renderer/ui/fields/textEntry';
+import {useReflow} from '@renderer/ui/panels/useReflow';
+import type {Workspace} from '@renderer/ui/lists/workspace';
 import {useOrderFollow} from './useOrderFollow';
 import {useOrderResizeFocus} from './useOrderResizeFocus';
 import {useOrderTop} from './useOrderTop';

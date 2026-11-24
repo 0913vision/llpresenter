@@ -1,5 +1,5 @@
 import {Icon} from '@renderer/ui/Icon';
-import {KeyCombo} from '@renderer/ui/KeyCap';
+import {KeyCombo} from '@renderer/ui/keys/KeyCap';
 import {
   useEffectEvent,
   useLayoutEffect,
@@ -16,8 +16,8 @@ import {
   matchesBinding,
   shortcutNames,
 } from '@core/shortcuts';
-import {commandBindingStore} from '@renderer/ui/commandBindings';
-import {isInputMethodKey} from '@renderer/ui/commandDispatcher';
+import {commandBindingStore} from '@renderer/ui/keys/commandBindings';
+import {isInputMethodKey} from '@renderer/ui/keys/commandDispatcher';
 import styles from './RecentPassages.module.css';
 
 /** Shared recent-passage list. The caller owns lookup and the next step. */

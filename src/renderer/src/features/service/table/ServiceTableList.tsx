@@ -2,7 +2,7 @@ import {useMemo, type ComponentProps, type JSX} from 'react';
 import type {ServiceItem} from '@core/schema/service';
 import {useOpenService} from '@renderer/session/openService';
 import {useShow} from '@renderer/session/show';
-import type {Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {ServiceOrderList} from '../order/ServiceOrderList';
 import type {ServiceTableParts} from '../order/serviceTableParts';
 import {ServiceTableCells} from './ServiceTableCells';

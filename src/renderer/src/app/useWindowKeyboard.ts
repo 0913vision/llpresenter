@@ -1,7 +1,7 @@
 import {useEffect, type RefObject} from 'react';
-import {SHORTCUT_RECORDING_SELECTOR} from '@renderer/ui/shortcutRecording';
-import {isComposingKey} from '@renderer/ui/ime';
-import {modalStack} from '@renderer/ui/modalStack';
+import {SHORTCUT_RECORDING_SELECTOR} from '@renderer/ui/keys/shortcutRecording';
+import {isComposingKey} from '@renderer/ui/fields/ime';
+import {modalStack} from '@renderer/ui/popups/modalStack';
 
 const LIST_ENTRY = '[role="listbox"] [role="option"]';
 

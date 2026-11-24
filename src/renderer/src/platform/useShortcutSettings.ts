@@ -1,6 +1,6 @@
 import {useEffect} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
-import {commandBindingStore} from '@renderer/ui/commandBindings';
+import {commandBindingStore} from '@renderer/ui/keys/commandBindings';
 
 /** Follows shortcut overrides without letting an older initial read win a push. */
 export function useShortcutSettings(api: LlpApi | undefined): void {

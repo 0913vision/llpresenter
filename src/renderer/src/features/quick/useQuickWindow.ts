@@ -8,8 +8,8 @@ import {
 } from 'react';
 import {flushSync} from 'react-dom';
 import type {QuickItem} from '@core/schema/quick';
-import {isComposing} from '@renderer/ui/ime';
-import {listKeyTarget, rowRange} from '@renderer/ui/useRowRange';
+import {isComposing} from '@renderer/ui/fields/ime';
+import {listKeyTarget, rowRange} from '@renderer/ui/lists/useRowRange';
 
 const FALLBACK_ROW = 30;
 const INITIAL_ROWS = 10;

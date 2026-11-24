@@ -1,0 +1,438 @@
+import {
+  memo,
+  useContext,
+  useId,
+  useSyncExternalStore,
+  type JSX,
+  type KeyboardEvent,
+  type ReactNode,
+} from 'react';
+import {classNames} from '../classNames';
+import {Icon} from '../Icon';
+import {hasModifier} from '../keys/modifierKeys';
+import {pressHandler, useButtonPress} from '../buttons/press';
+import {LiveBadge} from '../tiles/StatusMarks';
+import {titleTooltip, useTooltip, withTooltipProps} from '../popups/Tooltip';
+import {TextField} from '../fields/TextField';
+import {useRenameDraft, type RenameContract} from '../fields/useRenameDraft';
+import {TruncatedText} from '../text/TruncatedText';
+import {ListBoxContext, workspaceActivationKeys, isRowKey} from './ListBox';
+import styles from './ListRow.module.css';
+
+export {ListBox, type ListBoxProps} from './ListBox';
+
+const ROW_ICON_SIZE = 16;
+const WARN_ICON_SIZE = 14;
+const ADD_ICON_SIZE = 12;
+const MODIFIED_LABEL = '저장하지 않은 변경';
+export type GroupRename = RenameContract;
+
+export interface ListRowProps {
+  /** The DOM id of this option when a combobox points to it. */
+  readonly optionId?: string | undefined;
+  readonly selected?: boolean | undefined;
+  /** The value the list reports when this row is selected. */
+  readonly value: string;
+  readonly title: string;
+  /** Accessible name when the visible title alone cannot name the row. */
+  readonly accessibleName?: string | undefined;
+  readonly className?: string | undefined;
+  /** A number before the icon, such as an item's place in the 예배 순서. */
+  readonly lead?: number | undefined;
+  /** A 16px type icon, such as `song`. */
+  readonly icon?: string | undefined;
+  /** Extra information at the right end, such as 슬라이드 9개 or 5:00. */
+  readonly meta?: string | undefined;
+  /** The second line of a two-line item, such as a date and a count. */
+  readonly sub?: readonly ReactNode[] | undefined;
+  /** On the screens now: a LIVE badge replaces the extra information. */
+  readonly live?: boolean | undefined;
+  /** A row above the current output item when past-row dimming is enabled. */
+  readonly done?: boolean | undefined;
+  /** The reason for a problem, such as 미디어 파일 없음; draws a warning icon. */
+  readonly warning?: string | undefined;
+  /** The item has edits that aren't saved yet; a dot follows its name. */
+  readonly modified?: boolean | undefined;
+  readonly disabled?: boolean | undefined;
+  /** Tooltip text for the row, such as the reason it is disabled. */
+  readonly reason?: string | undefined;
+  /** The columns of a table row, between the name and the end. */
+  readonly cells?: ReactNode;
+  /** A control at the end of the row; its clicks don't select the row. */
+  readonly end?: ReactNode;
+  /**
+   * With it, the name is a field that saves on Enter or leaving it and cancels
+   * on Esc, as a group's name does.
+   */
+  readonly rename?: GroupRename | undefined;
+}
+
+function rowState(
+  live: boolean,
+  done: boolean,
+  warning: boolean,
+): string | undefined {
+  const states = [live && 'live', done && 'done', warning && 'warning'].filter(
+    state => typeof state === 'string',
+  );
+  return states.length === 0 ? undefined : states.join(' ');
+}
+
+function WarningMark({reason}: {readonly reason: string}): JSX.Element {
+  const {targetProps, tooltip} = useTooltip({text: reason});
+  return (
+    <span
+      {...targetProps}
+      className={styles.warn}
+      aria-label={reason}
+      role="img"
+    >
+      <Icon name="warning" size={WARN_ICON_SIZE} />
+      {tooltip}
+    </span>
+  );
+}
+
+/**
+ * The small dot that marks a changed value. `label` is its tooltip, which
+ * defaults to the row's "저장하지 않은 변경"; `spacer` pushes the rest of a
+ * row to the end, which a mark beside a control doesn't want.
+ */
+export function ModifiedMark({
+  label = MODIFIED_LABEL,
+  spacer = true,
+}: {
+  readonly label?: string;
+  readonly spacer?: boolean;
+}): JSX.Element {
+  const {targetProps, tooltip} = useTooltip({text: label});
+  return (
+    <>
+      <span
+        {...targetProps}
+        className={styles.modified}
+        aria-label={label}
+        role="img"
+      >
+        {tooltip}
+      </span>
+      {spacer ? <span className={styles.spacer} aria-hidden="true" /> : null}
+    </>
+  );
+}
+
+function RowEnd({children}: {readonly children: ReactNode}): JSX.Element {
+  return (
+    <span
+      className={styles.end}
+      onClick={event => event.stopPropagation()}
+      onKeyDown={event => {
+        if (isRowKey(event.key) && !hasModifier(event)) event.stopPropagation();
+      }}
+    >
+      {children}
+    </span>
+  );
+}
+
+function RowContent({
+  props,
+  titleId,
+}: {
+  readonly props: ListRowProps;
+  readonly titleId: string;
+}): JSX.Element {
+  const {
+    lead,
+    icon,
+    title,
+    meta,
+    sub,
+    live = false,
+    warning,
+    cells,
+    end,
+    rename,
+  } = props;
+  const titleClass = classNames(
+    styles.title,
+    props.modified === true && styles.beforeMark,
+  );
+  const titleText =
+    rename === undefined ? (
+      <TruncatedText id={titleId} text={title} className={titleClass} />
+    ) : (
+      <NameField id={titleId} label={title} rename={rename} />
+    );
+  const name = (
+    <>
+      {sub === undefined ? (
+        titleText
+      ) : (
+        <span className={styles.lines}>
+          {titleText}
+          <span className={styles.sub}>
+            {sub.map((part, index) => (
+              <span key={index}>{part}</span>
+            ))}
+          </span>
+        </span>
+      )}
+      {props.modified === true && rename === undefined ? (
+        <ModifiedMark />
+      ) : null}
+      {warning === undefined ? null : <WarningMark reason={warning} />}
+      {live ? <LiveBadge /> : null}
+    </>
+  );
+  return (
+    <>
+      {lead === undefined ? null : <span className={styles.lead}>{lead}</span>}
+      {icon === undefined ? null : (
+        <Icon name={icon} size={ROW_ICON_SIZE} className={styles.icon} />
+      )}
+      {cells === undefined ? (
+        name
+      ) : (
+        <>
+          <span className={styles.name}>{name}</span>
+          <span className={styles.cells}>{cells}</span>
+        </>
+      )}
+      {live || meta === undefined ? null : (
+        <span className={styles.meta}>{meta}</span>
+      )}
+      {end === undefined ? null : <RowEnd>{end}</RowEnd>}
+    </>
+  );
+}
+
+/**
+ * One row of a `ListBox`: a 30px row, or a 52px two-line item with `sub`.
+ * A click or Space selects it.
+ */
+export const ListRow = memo((props: ListRowProps): JSX.Element => {
+  const {
+    value,
+    sub,
+    live = false,
+    done = false,
+    warning,
+    disabled = false,
+  } = props;
+  const {selection, onSelect, workspace} = useContext(ListBoxContext);
+  const isSelected = useSyncExternalStore(
+    selection.subscribe,
+    () => props.selected ?? selection.get() === value,
+  );
+  const titleId = useId();
+  const {targetProps, tooltip} = useTooltip(titleTooltip(props.reason));
+  const select = (): void => onSelect(value);
+  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
+    if (disabled || hasModifier(event)) return;
+    if (!workspaceActivationKeys[workspace].has(event.key)) return;
+    event.preventDefault();
+    select();
+  };
+  return (
+    <div
+      {...targetProps}
+      role="option"
+      id={props.optionId}
+      aria-selected={isSelected}
+      aria-labelledby={props.accessibleName === undefined ? titleId : undefined}
+      aria-label={props.accessibleName}
+      aria-disabled={disabled ? true : undefined}
+      data-value={value}
+      data-state={rowState(live, done, warning !== undefined)}
+      className={classNames(
+        styles.row,
+        sub !== undefined && styles.double,
+        props.className,
+      )}
+      onClick={pressHandler(disabled, select)}
+      onKeyDown={onKeyDown}
+    >
+      <RowContent props={props} titleId={titleId} />
+      {tooltip}
+    </div>
+  );
+});
+
+export interface ListActionRowProps {
+  readonly tabIndex?: number | undefined;
+  readonly title: string;
+  readonly icon?: string | undefined;
+  readonly meta?: ReactNode;
+  /** For an item that turns on and off, such as a logo screen. */
+  readonly pressed?: boolean | undefined;
+  readonly onPress: () => void;
+  readonly disabled?: boolean | undefined;
+  /** Tooltip text, such as the reason the row is disabled. */
+  readonly reason?: string | undefined;
+}
+
+/**
+ * A row that runs at once on a click, as in 빠른 실행. An item that turns on
+ * and off reports it with `aria-pressed` and a `live` bar on the left.
+ */
+export function ListActionRow({
+  tabIndex,
+  title,
+  icon,
+  meta,
+  pressed,
+  onPress,
+  disabled = false,
+  reason,
+}: ListActionRowProps): JSX.Element {
+  const {targetProps, tooltip} = useTooltip(titleTooltip(reason));
+  const {onBlur: pressBlur, ...press} = useButtonPress<HTMLButtonElement>({
+    disabled,
+    onPress,
+  });
+  return (
+    <>
+      <button
+        tabIndex={tabIndex}
+        {...withTooltipProps({onBlur: pressBlur}, targetProps)}
+        type="button"
+        aria-pressed={pressed}
+        aria-disabled={disabled ? true : undefined}
+        className={styles.row}
+        {...press}
+      >
+        {icon === undefined ? null : (
+          <Icon name={icon} size={ROW_ICON_SIZE} className={styles.icon} />
+        )}
+        <TruncatedText text={title} className={styles.title} />
+        {meta === undefined ? null : (
+          <span className={styles.meta}>{meta}</span>
+        )}
+      </button>
+      {tooltip}
+    </>
+  );
+}
+
+export function NameField({
+  id,
+  label,
+  rename,
+}: {
+  readonly id?: string | undefined;
+  readonly label: string;
+  readonly rename: GroupRename;
+}): JSX.Element {
+  const draft = useRenameDraft(label, rename);
+  return (
+    <TextField
+      {...draft.field}
+      id={id}
+      aria-label={`${label} 이름`}
+      className={styles.groupField}
+      size="sm"
+      autoFocus
+      onFocus={event => event.currentTarget.select()}
+    />
+  );
+}
+
+/**
+ * A named group of rows. With `value`, its header joins the list selection,
+ * including for an empty section. `rename` edits the name in place.
+ */
+export function ListGroup({
+  done = false,
+  label,
+  value,
+  selected,
+  rename,
+  actions,
+  children,
+}: {
+  readonly label: string;
+  readonly done?: boolean | undefined;
+  readonly value?: string | undefined;
+  readonly selected?: boolean | undefined;
+  readonly rename?: GroupRename | undefined;
+  readonly actions?: ReactNode;
+  readonly children: ReactNode;
+}): JSX.Element {
+  const labelId = useId();
+  const heading =
+    value !== undefined ? (
+      <ListRow
+        value={value}
+        done={done}
+        selected={selected}
+        title={label}
+        rename={rename}
+        className={classNames(styles.group, styles.groupRow)}
+      />
+    ) : rename === undefined ? (
+      label
+    ) : (
+      <NameField label={label} rename={rename} />
+    );
+  return (
+    <div role="group" aria-labelledby={labelId} className={styles.groupRows}>
+      <div
+        id={actions === undefined ? labelId : undefined}
+        data-state={value === undefined && done ? 'done' : undefined}
+        className={classNames(
+          value === undefined && styles.group,
+          value !== undefined &&
+            actions !== undefined &&
+            styles.groupWithActions,
+        )}
+      >
+        {actions === undefined ? (
+          heading
+        ) : (
+          <>
+            <span id={labelId} className={styles.groupLabel}>
+              {heading}
+            </span>
+            {actions}
+          </>
+        )}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+/**
+ * The drop position between two rows while dragging. Set
+ * `--list-insert-cut` to the surface color where it isn't `bg-panel`.
+ */
+export function ListInsertLine(): JSX.Element {
+  return <div className={styles.insert} aria-hidden="true" />;
+}
+
+/** The row that follows the pointer while dragging from the library. */
+export function ListDragGhost({
+  icon,
+  title,
+  adding = false,
+}: {
+  readonly icon?: string | undefined;
+  readonly title: string;
+  /** Over a place where it can be dropped: adds the plus circle. */
+  readonly adding?: boolean | undefined;
+}): JSX.Element {
+  return (
+    <div className={classNames(styles.row, styles.ghost)} aria-hidden="true">
+      {icon === undefined ? null : (
+        <Icon name={icon} size={ROW_ICON_SIZE} className={styles.icon} />
+      )}
+      <span className={styles.title}>{title}</span>
+      {adding ? (
+        <span className={styles.add}>
+          <Icon name="plus" size={ADD_ICON_SIZE} />
+        </span>
+      ) : null}
+    </div>
+  );
+}

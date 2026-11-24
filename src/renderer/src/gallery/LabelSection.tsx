@@ -1,4 +1,4 @@
-import {LabelSwatch, LabelTag} from '../ui/LabelChip';
+import {LabelSwatch, LabelTag} from '../ui/labels/LabelChip';
 import type {JSX} from 'react';
 import {
   paletteColors,
@@ -6,7 +6,7 @@ import {
   type LabelColor,
   type PaletteColor,
 } from '@core/labels';
-import {LabelColorPicker, MacroColorPicker} from '../ui/LabelColorPicker';
+import {LabelColorPicker, MacroColorPicker} from '../ui/labels/LabelColorPicker';
 import styles from './LabelSection.module.css';
 import {ignore, Section, SpecGroup, SpecItem, Stateful} from './Spec';
 

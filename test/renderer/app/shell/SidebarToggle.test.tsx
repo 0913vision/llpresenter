@@ -6,7 +6,7 @@ import type {LlpApi} from '@contracts/ipc/api';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import type {UiState} from '@core/schema/uiState';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
-import type {SizeClass} from '@renderer/ui/sizeClass';
+import type {SizeClass} from '@renderer/ui/panels/sizeClass';
 import {renderWithScreenSummaries as render} from '@fixtures/renderer/platform/screenSummaries';
 import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
 import {useSidebarCollapse} from '@renderer/app/shell/useSidebarCollapse';

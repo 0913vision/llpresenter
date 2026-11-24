@@ -3,7 +3,7 @@ import {installMockClock, type MockClock} from '@fixtures/mockClock';
 import {
   TOOLTIP_DELAY_MS,
   tooltipController,
-} from '@renderer/ui/tooltipController';
+} from '@renderer/ui/popups/tooltipController';
 
 /** Closes any tooltip that a test left showing. */
 export function resetTooltips(): void {

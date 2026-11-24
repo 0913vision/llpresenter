@@ -9,7 +9,7 @@ import {ColumnLayout} from './ColumnLayout';
 import type {ColumnDrag} from './ColumnGap';
 import type {RightColumn} from './columns';
 import type {ColumnWidthStore} from './columnWidthStore';
-import type {ColumnWidths, SizeClass} from '../../ui/sizeClass';
+import type {ColumnWidths, SizeClass} from '../../ui/panels/sizeClass';
 
 const LEFT_VARIABLE = '--ll-col-left';
 const RIGHT_VARIABLE = '--ll-col-right';

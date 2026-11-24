@@ -15,7 +15,7 @@ import {
   takeThemeRequest,
   useThemeRequest,
 } from '@renderer/session/themeRequests';
-import type {Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {sampleDrawing} from './themeDrawing';
 import type {ThemeLeaveGuard} from './themeLeaveGuard';
 import {useThemeElements} from './useThemeElements';

@@ -1,6 +1,6 @@
 import {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {MediaId} from '@core/schema/ids';
-import {type Notice, warningNotice} from '@renderer/ui/notices';
+import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 
 export function useAudioMissing(
   onProblem: ((notice: Notice) => void) | undefined,

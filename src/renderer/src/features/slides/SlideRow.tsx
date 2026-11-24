@@ -14,10 +14,10 @@ import {classNames} from '@renderer/ui/classNames';
 import {
   isLayoutResizeActive,
   onLayoutResizeEnd,
-} from '@renderer/ui/layoutResize';
-import {SlideThumbnailBand} from '@renderer/ui/SlideThumbnail';
-import {SlideTransitionMark} from '@renderer/ui/SlideTransitionMark';
-import {isInTextEntry} from '@renderer/ui/textEntry';
+} from '@renderer/ui/panels/layoutResize';
+import {SlideThumbnailBand} from '@renderer/ui/tiles/SlideThumbnail';
+import {SlideTransitionMark} from '@renderer/ui/tiles/SlideTransitionMark';
+import {isInTextEntry} from '@renderer/ui/fields/textEntry';
 import {selectInDeck} from './deckSelection';
 import {EditorSlideNumber} from './EditorSlideNumber';
 import type {SlideDeck} from './slideDeck';

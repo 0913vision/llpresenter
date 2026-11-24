@@ -3,7 +3,7 @@ import type {
   MediaImportProgress,
   MediaImportRequest,
 } from '@core/schema/mediaEdit';
-import {type Notice, noticeTime, warningNotice} from '@renderer/ui/notices';
+import {type Notice, noticeTime, warningNotice} from '@renderer/ui/popups/notices';
 
 export function mediaImportFailureNotice(
   progress: MediaImportProgress,

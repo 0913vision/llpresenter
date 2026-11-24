@@ -2,9 +2,9 @@ import {useState, type JSX} from 'react';
 import {resolveAudioSink, type AudioDevice} from '@core/media';
 import {DEFAULT_AUDIO_DEVICE} from '@core/schema/preferences';
 import {Icon} from '@renderer/ui/Icon';
-import {PropertyRow} from '@renderer/ui/PropertyRow';
-import {SelectMenu, type SelectOption} from '@renderer/ui/SelectMenu';
-import {Tooltip} from '@renderer/ui/Tooltip';
+import {PropertyRow} from '@renderer/ui/panels/PropertyRow';
+import {SelectMenu, type SelectOption} from '@renderer/ui/choices/SelectMenu';
+import {Tooltip} from '@renderer/ui/popups/Tooltip';
 import styles from './DeviceRow.module.css';
 
 const WARNING_ICON_SIZE = 14;

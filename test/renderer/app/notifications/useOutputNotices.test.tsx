@@ -12,7 +12,7 @@ import {
   type NoticeTarget,
 } from '@renderer/app/notifications/useOutputNotices';
 import {useOutputWarnings} from '@renderer/platform/outputWarnings';
-import type {Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {STAGE_SCREEN} from '@fixtures/core/screenIds';
 
 vi.mock('@renderer/app/notifications/outputNotices', async importOriginal => ({

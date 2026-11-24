@@ -9,7 +9,7 @@ import {
   type ContinuousRow,
   workspaceShortcuts,
 } from '@renderer/app/shell/workspaceCommands';
-import {menuItems} from '@renderer/ui/menuModel';
+import {menuItems} from '@renderer/ui/menus/menuModel';
 import {fullScreenRow} from '@renderer/app/shell/viewToggles';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 

@@ -1,10 +1,10 @@
 import {useSyncExternalStore, type JSX} from 'react';
 import {audioTracks, audioPlayCommand} from '@core/media';
 import {commandBindings, shortcutCommands} from '@core/shortcuts';
-import {commandBindingStore} from '@renderer/ui/commandBindings';
+import {commandBindingStore} from '@renderer/ui/keys/commandBindings';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useLive} from '@renderer/session/live';
-import type {Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {useMediaDocument} from './useMediaDocument';
 import {useAudioMissing} from './useAudioMissing';
 import {useAudioSelection} from './state/audioSelection';

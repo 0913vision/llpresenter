@@ -1,6 +1,6 @@
 import {afterEach, expect, it} from 'vitest';
 import {STAGE_ID} from '@fixtures/core/screenDocuments';
-import {menuItems} from '@renderer/ui/menuModel';
+import {menuItems} from '@renderer/ui/menus/menuModel';
 import {outputMenuFixture as fixture} from '@fixtures/renderer/platform/outputMenu';
 import {outputMenuEntries} from '@renderer/app/shell/outputMenuEntries';
 

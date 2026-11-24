@@ -1,16 +1,16 @@
 import type {JSX} from 'react';
-import {IconButton} from '../ui/IconButton';
-import {Panel, PanelBody} from '../ui/Panel';
+import {IconButton} from '../ui/buttons/IconButton';
+import {Panel, PanelBody} from '../ui/panels/Panel';
 import {
   Properties,
   PropertyGroup,
   PropertyRow,
   PropertyValue,
-} from '../ui/PropertyRow';
-import {SegmentedControl} from '../ui/SegmentedControl';
-import {SelectMenu} from '../ui/SelectMenu';
-import {Checkbox} from '../ui/Checkbox';
-import {TextArea} from '../ui/TextArea';
+} from '../ui/panels/PropertyRow';
+import {SegmentedControl} from '../ui/choices/SegmentedControl';
+import {SelectMenu} from '../ui/choices/SelectMenu';
+import {Checkbox} from '../ui/choices/Checkbox';
+import {TextArea} from '../ui/fields/TextArea';
 import {Section, SpecGroup, SpecItem, Stateful} from './Spec';
 
 const PANEL_WIDTH = 480;

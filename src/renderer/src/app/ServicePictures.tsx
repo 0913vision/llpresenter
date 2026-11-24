@@ -7,7 +7,7 @@ import type {Themes} from '@core/schema/themes';
 import {useMedia} from '@renderer/platform/media';
 import {useThemes} from '@renderer/platform/themes';
 import {useShow} from '@renderer/session/show';
-import {keepThumbnails} from '@renderer/ui/keptThumbnails';
+import {keepThumbnails} from '@renderer/ui/tiles/keptThumbnails';
 import {
   LoadReadinessContext,
   type LoadReadiness,

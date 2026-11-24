@@ -17,7 +17,7 @@ import {
 } from '@core/songs';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {slideMaking} from '@renderer/platform/themes';
-import {noticeTime, type Notice} from '@renderer/ui/notices';
+import {noticeTime, type Notice} from '@renderer/ui/popups/notices';
 
 const HISTORY_LIMIT = 100;
 const TYPING_PAUSE_MS = 1500;

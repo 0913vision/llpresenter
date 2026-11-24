@@ -18,9 +18,9 @@ import {
 } from '@core/slides';
 import {slideMaking} from '@renderer/platform/themes';
 import {classNames} from '@renderer/ui/classNames';
-import {isComposing} from '@renderer/ui/ime';
-import {hasModifier} from '@renderer/ui/modifierKeys';
-import field from '@renderer/ui/TextField.module.css';
+import {isComposing} from '@renderer/ui/fields/ime';
+import {hasModifier} from '@renderer/ui/keys/modifierKeys';
+import field from '@renderer/ui/fields/TextField.module.css';
 import {
   clearTextFocus,
   focusSlides,

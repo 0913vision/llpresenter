@@ -8,23 +8,23 @@ import {
   type AddableKind,
 } from '@core/theme';
 import {isUnchangedSelectionMove} from '@core/common/selectionOrder';
-import {selectionDragImage} from '@renderer/ui/selectionDrag';
-import {Button} from '@renderer/ui/Button';
-import {IconButton} from '@renderer/ui/IconButton';
-import {ListBox, ListRow} from '@renderer/ui/ListRow';
+import {selectionDragImage} from '@renderer/ui/lists/selectionDrag';
+import {Button} from '@renderer/ui/buttons/Button';
+import {IconButton} from '@renderer/ui/buttons/IconButton';
+import {ListBox, ListRow} from '@renderer/ui/lists/ListRow';
 import {
   Panel,
   PanelHeader,
   PanelTitle,
   PanelBody,
   PanelFooter,
-} from '@renderer/ui/Panel';
-import {contextMenuAnchor, takeMenuKey} from '@renderer/ui/contextMenu';
-import type {MenuAnchor} from '@renderer/ui/Menu';
+} from '@renderer/ui/panels/Panel';
+import {contextMenuAnchor, takeMenuKey} from '@renderer/ui/menus/contextMenu';
+import type {MenuAnchor} from '@renderer/ui/menus/Menu';
 import type {ThemeModel} from './useThemeEditor';
 import {addableNames, elementName} from './themeNames';
 import styles from './Themes.module.css';
-import {useReflow} from '@renderer/ui/useReflow';
+import {useReflow} from '@renderer/ui/panels/useReflow';
 
 const ALREADY_THERE = '이 화면에 이미 있습니다.';
 export const THEME_TILE_DRAG = 'application/x-llp-theme-kind';

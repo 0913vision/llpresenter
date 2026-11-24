@@ -1,6 +1,6 @@
 import {afterEach, expect, it, vi} from 'vitest';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {menuItems} from '@renderer/ui/menuModel';
+import {menuItems} from '@renderer/ui/menus/menuModel';
 import {outputMenuFixture} from '@fixtures/renderer/platform/outputMenu';
 import {
   screenOutputSections,

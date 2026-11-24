@@ -1,5 +1,5 @@
 import {beforeEach, expect, it} from 'vitest';
-import type {Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {
   dropOutputWarning,
   keepOutputWarning,

@@ -2,7 +2,7 @@ import {useEffect, useRef, useState, type JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {TextImportDraft, TextImportSource} from '@core/schema/textImport';
 import {defaultPreferences, type Preferences} from '@core/schema/preferences';
-import {type Notice, warningNotice} from '@renderer/ui/notices';
+import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import {useLabels} from '@renderer/features/labels/labels';
 import {openInPrep} from '@renderer/session/prepTarget';
 import {openImportedSong, requestLeaveSong, useSongDraft} from '../songDraft';

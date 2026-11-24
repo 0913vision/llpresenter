@@ -2,22 +2,22 @@ import {
   contextMenuAnchor,
   isContextMenuKey,
   pointerMenuAnchor,
-} from '@renderer/ui/contextMenu';
+} from '@renderer/ui/menus/contextMenu';
 import {useState, type JSX, type MouseEvent} from 'react';
 import {SONG_IMPORT_LIMITS} from '@core/schema/songImport';
-import {AlertDialog} from '../ui/AlertDialog';
-import {Button} from '../ui/Button';
-import {CheckRow, Checkbox} from '../ui/Checkbox';
-import {Dialog, DialogBox, DialogField} from '../ui/Dialog';
-import {IconButton} from '../ui/IconButton';
-import {ListBox, ListGroup, ListRow} from '../ui/ListRow';
-import {Menu, type MenuAnchor} from '../ui/Menu';
-import {menuButtonProps} from '../ui/menuButton';
-import type {MenuEntry} from '../ui/menuModel';
-import {SelectMenu} from '../ui/SelectMenu';
-import {SegmentedControl} from '../ui/SegmentedControl';
-import {TextField} from '../ui/TextField';
-import {Tooltip} from '../ui/Tooltip';
+import {AlertDialog} from '../ui/popups/AlertDialog';
+import {Button} from '../ui/buttons/Button';
+import {CheckRow, Checkbox} from '../ui/choices/Checkbox';
+import {Dialog, DialogBox, DialogField} from '../ui/popups/Dialog';
+import {IconButton} from '../ui/buttons/IconButton';
+import {ListBox, ListGroup, ListRow} from '../ui/lists/ListRow';
+import {Menu, type MenuAnchor} from '../ui/menus/Menu';
+import {menuButtonProps} from '../ui/menus/menuButton';
+import type {MenuEntry} from '../ui/menus/menuModel';
+import {SelectMenu} from '../ui/choices/SelectMenu';
+import {SegmentedControl} from '../ui/choices/SegmentedControl';
+import {TextField} from '../ui/fields/TextField';
+import {Tooltip} from '../ui/popups/Tooltip';
 import {ignore, Section, SpecGroup, SpecItem, Stateful} from './Spec';
 
 const fileMenu: readonly MenuEntry[] = [

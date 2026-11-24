@@ -13,7 +13,7 @@ import type {
   BibleLookupReply,
 } from '@core/schema/bibleLookup';
 import {BibleReferenceForm} from '@renderer/features/bible/BibleReferenceForm';
-import {Dialog} from '@renderer/ui/Dialog';
+import {Dialog} from '@renderer/ui/popups/Dialog';
 import {formLookupReply} from '@fixtures/core/bibleReplies';
 import {lookupRequest} from '@fixtures/core/bibleLookups';
 import {BIBLE_BOOKS} from '@core/bible/bibleBooks';

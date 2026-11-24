@@ -1,6 +1,6 @@
 import type {JSX} from 'react';
-import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
-import type {Notice} from '@renderer/ui/notices';
+import {Menu, type MenuAnchor} from '@renderer/ui/menus/Menu';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {
   macroMenuEntries,
   type MacroMenuHandlers,

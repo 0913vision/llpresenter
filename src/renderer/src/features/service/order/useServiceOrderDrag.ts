@@ -5,14 +5,14 @@ import {
   isUnchangedSelectionMove,
   orderedSelection,
 } from '@core/common/selectionOrder';
-import {selectionDragImage} from '@renderer/ui/selectionDrag';
+import {selectionDragImage} from '@renderer/ui/lists/selectionDrag';
 import {useEffect, useRef, useState, type DragEvent} from 'react';
 import {readSongDragData, SONG_DRAG_MIME} from '@core/schema/songDrag';
 import type {ServiceRow} from '@core/presentation';
 import {quickAddBefore, sectionBoundaryIndex} from '@core/services';
 import {useShow} from '@renderer/session/showStore';
-import {beforeRowMidpoint} from '@renderer/ui/rowDrag';
-import {useDragClickGuard} from '@renderer/ui/useDragClickGuard';
+import {beforeRowMidpoint} from '@renderer/ui/lists/rowDrag';
+import {useDragClickGuard} from '@renderer/ui/lists/useDragClickGuard';
 
 interface DragOptions {
   readonly enabled: boolean;

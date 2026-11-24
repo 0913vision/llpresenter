@@ -5,8 +5,8 @@ import {
   requestMediaImport,
 } from '@renderer/features/media/mediaImport';
 import type {MediaImportProgress} from '@core/schema/mediaEdit';
-import {menuAvailability, type MenuItem} from '@renderer/ui/menuModel';
-import type {Notice} from '@renderer/ui/notices';
+import {menuAvailability, type MenuItem} from '@renderer/ui/menus/menuModel';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {useMediaImportCompletion} from '@renderer/features/media/MediaViewProvider';
 
 /**

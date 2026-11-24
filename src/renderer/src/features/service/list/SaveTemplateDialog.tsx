@@ -1,7 +1,7 @@
-import {EMPTY_NAME_REASON} from '@renderer/ui/nameReason';
+import {EMPTY_NAME_REASON} from '@renderer/ui/fields/nameReason';
 import {useState, type JSX} from 'react';
-import {Dialog, DialogField} from '@renderer/ui/Dialog';
-import {TextField} from '@renderer/ui/TextField';
+import {Dialog, DialogField} from '@renderer/ui/popups/Dialog';
+import {TextField} from '@renderer/ui/fields/TextField';
 
 export function SaveTemplateDialog({
   name,

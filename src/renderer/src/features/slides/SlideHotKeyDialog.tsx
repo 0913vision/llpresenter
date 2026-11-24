@@ -1,8 +1,8 @@
 import {useRef, useState, type JSX, type KeyboardEvent} from 'react';
-import {Dialog} from '@renderer/ui/Dialog';
-import {KeyCombo} from '@renderer/ui/KeyCap';
-import {TextField} from '@renderer/ui/TextField';
-import {shortcutRecordingProps} from '@renderer/ui/shortcutRecording';
+import {Dialog} from '@renderer/ui/popups/Dialog';
+import {KeyCombo} from '@renderer/ui/keys/KeyCap';
+import {TextField} from '@renderer/ui/fields/TextField';
+import {shortcutRecordingProps} from '@renderer/ui/keys/shortcutRecording';
 import {slideHotKeyPress, SLIDE_HOT_KEY_REASON} from './slideHotKeyPress';
 
 /** A slide of the list that uses a key already. */

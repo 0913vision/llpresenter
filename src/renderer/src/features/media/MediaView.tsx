@@ -1,10 +1,10 @@
-import {EmptyState} from '@renderer/ui/EmptyState';
+import {EmptyState} from '@renderer/ui/lists/EmptyState';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useMemo, type JSX} from 'react';
 import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import {mediaLoops} from '@core/media';
 import {type MediaItem, MEDIA_LIMITS} from '@core/schema/mediaList';
-import {RenameDialog} from '@renderer/ui/RenameDialog';
+import {RenameDialog} from '@renderer/ui/popups/RenameDialog';
 import {useLive} from '@renderer/session/live';
 import {
   Button,
@@ -17,9 +17,9 @@ import {
   PanelTabs,
   Slider,
 } from '@renderer/ui';
-import {Menu} from '@renderer/ui/Menu';
-import {ViewModeSwitch} from '@renderer/ui/ViewModeSwitch';
-import type {Notice} from '@renderer/ui/notices';
+import {Menu} from '@renderer/ui/menus/Menu';
+import {ViewModeSwitch} from '@renderer/ui/choices/ViewModeSwitch';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {
   UNNAMED_PLAYLIST,
   durationText,

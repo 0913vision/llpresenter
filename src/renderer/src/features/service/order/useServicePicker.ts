@@ -2,7 +2,7 @@ import {useEffect, useMemo, useRef, useState} from 'react';
 import type {ServiceEntry} from '@core/schema/contentDocuments';
 import {applyService, useShow} from '@renderer/session/show';
 import {useServiceSwitchGuard} from '../useServiceSwitchGuard';
-import {noticeTime, type Notice} from '@renderer/ui/notices';
+import {noticeTime, type Notice} from '@renderer/ui/popups/notices';
 import {serviceDay} from '@core/services';
 
 const names = new Intl.Collator('ko', {numeric: true});

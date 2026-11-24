@@ -14,8 +14,8 @@ import {
   usePreview,
 } from '@renderer/session/preview';
 import {useScreenSummaries} from '@renderer/platform/ScreenSummaries';
-import type {PreviewScreen} from '@renderer/ui/PreviewFrame';
-import {PreviewPanel as SharedPreviewPanel} from '@renderer/ui/PreviewPanel';
+import type {PreviewScreen} from '@renderer/ui/previews/PreviewFrame';
+import {PreviewPanel as SharedPreviewPanel} from '@renderer/ui/previews/PreviewPanel';
 import {OutputMirror} from './OutputMirror';
 import {ScreenPreview} from './ScreenPreview';
 import {KeptFramesContext, useKeptScreenFrames} from './keptScreenFrames';

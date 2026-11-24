@@ -3,7 +3,7 @@ import {
   calendarFieldLabel,
   localCalendarDate,
   parseCalendarDate,
-} from '@renderer/ui/calendarDates';
+} from '@renderer/ui/fields/calendarDates';
 
 /** A local date as YYYY-MM-DD. */
 export function localDate(date: Date): string {

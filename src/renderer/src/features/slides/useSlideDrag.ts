@@ -1,7 +1,7 @@
 import {useEffect, useRef, type DragEvent, type RefObject} from 'react';
 import {isUnchangedSelectionMove} from '@core/common/selectionOrder';
-import {selectionDragImage} from '@renderer/ui/selectionDrag';
-import {isInTextEntry} from '@renderer/ui/textEntry';
+import {selectionDragImage} from '@renderer/ui/lists/selectionDrag';
+import {isInTextEntry} from '@renderer/ui/fields/textEntry';
 import {moveSelected} from './deckCommands';
 import {selectInDeck, selectionOf} from './deckSelection';
 import {slideDropPosition} from './gridInsertionPosition';

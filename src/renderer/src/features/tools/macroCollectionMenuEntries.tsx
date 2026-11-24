@@ -1,7 +1,7 @@
-import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
+import {menuAvailability, type MenuEntry} from '@renderer/ui/menus/menuModel';
 import type {JSX} from 'react';
-import {Menu, type MenuProps} from '@renderer/ui/Menu';
-import {menuSeparator} from '@renderer/ui/menuRows';
+import {Menu, type MenuProps} from '@renderer/ui/menus/Menu';
+import {menuSeparator} from '@renderer/ui/menus/menuRows';
 
 interface CollectionMenuActions {
   readonly reason: string | undefined;

@@ -2,7 +2,7 @@ import {useRef} from 'react';
 import {parseScreenId, type ScreenId} from '@core/schema/ids';
 import type {Screen} from '@core/schema/screens';
 import type {MonitorInfo} from '@core/schema/monitors';
-import {type Notice, warningNotice} from '@renderer/ui/notices';
+import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import type {NewScreen} from './addScreen';
 import {useScreensSelection} from './selection';
 import type {NamedDocument} from '../../platform/useSettingsDocument';

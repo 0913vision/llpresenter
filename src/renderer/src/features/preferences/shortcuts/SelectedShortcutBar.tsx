@@ -1,6 +1,6 @@
 import type {JSX} from 'react';
-import {Button} from '@renderer/ui/Button';
-import {KeyCombo, KeyList} from '@renderer/ui/KeyCap';
+import {Button} from '@renderer/ui/buttons/Button';
+import {KeyCombo, KeyList} from '@renderer/ui/keys/KeyCap';
 import {keysOf} from './CommandRow';
 import {CLEAR_BUTTON_LABEL, RESET_LABEL} from './shortcutRowMenu';
 import type {ShortcutCommand} from '@core/shortcuts';

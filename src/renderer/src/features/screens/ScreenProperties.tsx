@@ -37,9 +37,9 @@ import {
   SelectMenu,
   TextField,
 } from '@renderer/ui';
-import {type Notice, warningNotice} from '@renderer/ui/notices';
-import {isComposing} from '@renderer/ui/ime';
-import {hasModifier} from '@renderer/ui/modifierKeys';
+import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
+import {isComposing} from '@renderer/ui/fields/ime';
+import {hasModifier} from '@renderer/ui/keys/modifierKeys';
 import {monitorPixelSize, sizeText, targetSize} from './displaySizes';
 import {MessageStyleRow} from './MessageStyleRow';
 import {useScreenView, useScreensSelection} from './selection';

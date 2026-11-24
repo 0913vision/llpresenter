@@ -16,7 +16,7 @@ import {
 import {useLive} from '@renderer/session/live';
 import {commitShownItem, useShownItemId} from '@renderer/session/shownItem';
 import {thumbnailWidth} from '@renderer/ui';
-import {useGridMeasure} from '@renderer/ui/useGridMeasure';
+import {useGridMeasure} from '@renderer/ui/lists/useGridMeasure';
 import styles from './SlideGrid.module.css';
 import {useSlideWindow} from './useSlideWindow';
 import {ShowTileMenu, ShowTiles, type TileMenu} from './ShowTiles';
@@ -24,7 +24,7 @@ import {ShowSlideEntry} from './showPanelNavigation';
 import {serviceSlideOffset} from './serviceSlideNumbers';
 import {useSlideTransitionProgress} from './useSlideTransitionProgress';
 import {tileReflowIds} from './tileReflowIds';
-import {useReflow} from '@renderer/ui/useReflow';
+import {useReflow} from '@renderer/ui/panels/useReflow';
 
 const GRID_SELECTOR = '[role="listbox"]';
 

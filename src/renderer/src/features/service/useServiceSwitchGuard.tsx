@@ -1,8 +1,8 @@
 import {useState} from 'react';
 import {isAnyOutputOn, hasAnyLayer, type LiveState} from '@core/schema/live';
 import {useLive} from '@renderer/session/live';
-import {AlertDialog} from '@renderer/ui/AlertDialog';
-import {objectParticle} from '@renderer/ui/korean';
+import {AlertDialog} from '@renderer/ui/popups/AlertDialog';
+import {objectParticle} from '@renderer/ui/text/korean';
 
 export function serviceChangeNeedsConfirmation(
   state: LiveState | null,

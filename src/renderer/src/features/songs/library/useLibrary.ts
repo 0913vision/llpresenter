@@ -7,7 +7,7 @@ import {
   warningNotice,
   type Notice,
   type NoticeAction,
-} from '@renderer/ui/notices';
+} from '@renderer/ui/popups/notices';
 import {useLibrarySearch} from './useLibrarySearch';
 import {
   createSong,

@@ -2,8 +2,8 @@ import {useRef, useSyncExternalStore, type KeyboardEvent} from 'react';
 import {commandBindings, editsText, matchesBinding} from '@core/shortcuts';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {beginOutputRequest} from '@renderer/session/showOutput';
-import {commandBindingStore} from '@renderer/ui/commandBindings';
-import {isInputMethodKey} from '@renderer/ui/commandDispatcher';
+import {commandBindingStore} from '@renderer/ui/keys/commandBindings';
+import {isInputMethodKey} from '@renderer/ui/keys/commandDispatcher';
 
 /**
  * The passage finder of quick run, the dialog that 성경 구절 찾기 (Ctrl B)

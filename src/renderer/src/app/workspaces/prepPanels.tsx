@@ -26,8 +26,8 @@ import {
 import {openItem, useShow} from '@renderer/session/show';
 import {isLibrarySource, openLibrarySong} from '@renderer/session/showLibrary';
 import {serviceItem} from '@renderer/session/openService';
-import {type Notice, warningNotice} from '@renderer/ui/notices';
-import type {SizeClass} from '@renderer/ui/sizeClass';
+import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
+import type {SizeClass} from '@renderer/ui/panels/sizeClass';
 import {
   logPanelProblem,
   type PanelParts,

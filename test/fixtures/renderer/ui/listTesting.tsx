@@ -1,9 +1,9 @@
 import {screen} from '@testing-library/react';
 import {useState, type JSX} from 'react';
-import {IconButton} from '@renderer/ui/IconButton';
-import {ListBox} from '@renderer/ui/ListBox';
-import {ListGroup, ListRow} from '@renderer/ui/ListRow';
-import type {Workspace} from '@renderer/ui/workspace';
+import {IconButton} from '@renderer/ui/buttons/IconButton';
+import {ListBox} from '@renderer/ui/lists/ListBox';
+import {ListGroup, ListRow} from '@renderer/ui/lists/ListRow';
+import type {Workspace} from '@renderer/ui/lists/workspace';
 
 /** The existing selectable service-order fixture shared by list and row tests. */
 export function ServiceOrder({

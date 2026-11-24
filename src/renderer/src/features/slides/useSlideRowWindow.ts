@@ -2,9 +2,9 @@ import {useLayoutEffect, useMemo, useState, type RefObject} from 'react';
 import {
   isLayoutResizeActive,
   onLayoutResizeEnd,
-} from '@renderer/ui/layoutResize';
-import {defaultThumbnailColumns} from '@renderer/ui/sizeClass';
-import {thumbnailWidth} from '@renderer/ui/thumbnailSize';
+} from '@renderer/ui/panels/layoutResize';
+import {defaultThumbnailColumns} from '@renderer/ui/panels/sizeClass';
+import {thumbnailWidth} from '@renderer/ui/choices/thumbnailSize';
 
 export type SlideSurfaceMode = 'list' | 'grid';
 

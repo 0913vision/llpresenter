@@ -10,7 +10,7 @@ import {
   useOverlayControl,
   type OverlayControl,
 } from '@renderer/features/service/overlays/useOverlayControl';
-import {menuItems} from '@renderer/ui/menuModel';
+import {menuItems} from '@renderer/ui/menus/menuModel';
 import {
   THEME_MAIN,
   THEME_STAGE,

@@ -3,9 +3,9 @@ import {
   PrepItemNavigation,
   WorkspaceNavigation,
 } from '@renderer/platform/WorkspaceNavigation';
-import {Dialog} from '@renderer/ui/Dialog';
+import {Dialog} from '@renderer/ui/popups/Dialog';
 import {openItem} from '@renderer/session/show';
-import type {Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {SourceList} from './SourceList';
 import {SourceTree} from './SourceTree';
 import {useSourceActions} from './useSourceActions';

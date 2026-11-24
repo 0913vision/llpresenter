@@ -1,6 +1,6 @@
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {expect, it, vi} from 'vitest';
-import {hasSubmenu, menuItems} from '@renderer/ui/menuModel';
+import {hasSubmenu, menuItems} from '@renderer/ui/menus/menuModel';
 import {macroActionEntries} from '@renderer/features/tools/macroActionMenuEntries';
 import type {MacroMenuHandlers} from '@renderer/features/tools/macroMenuEntries';
 import {mockHandlers} from '@fixtures/renderer/features/tools/macroMenuTesting';

@@ -3,8 +3,8 @@ import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import type {BibleSource} from '@renderer/session/bibleSource';
 import {insertItemInSection} from '@renderer/session/serviceOrderEdits';
 import {useShow} from '@renderer/session/show';
-import {Button} from '@renderer/ui/Button';
-import {type Notice, warningNotice} from '@renderer/ui/notices';
+import {Button} from '@renderer/ui/buttons/Button';
+import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import {rememberBiblePassage} from '../../../session/recentWriter';
 import {newBibleItem} from './passageItems';
 

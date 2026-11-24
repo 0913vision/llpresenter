@@ -1,4 +1,4 @@
-import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
+import {windowCommandLabels} from '@renderer/ui/keys/windowCommandLabels';
 import {shortcutCommands} from '@core/shortcuts/registry';
 import {
   fireEvent,

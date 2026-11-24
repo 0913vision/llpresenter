@@ -1,5 +1,5 @@
 import {useRef} from 'react';
-import type {Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {
   saveMacroCollectionEdit,
   type MacroCollectionEdit,

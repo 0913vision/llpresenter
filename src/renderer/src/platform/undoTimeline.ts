@@ -1,5 +1,5 @@
 import {useSyncExternalStore} from 'react';
-import {noticeTime, type Notice} from '@renderer/ui/notices';
+import {noticeTime, type Notice} from '@renderer/ui/popups/notices';
 import {NOTHING_TO_REDO, NOTHING_TO_UNDO} from './problemReasons';
 
 /** Where a step that ran back or forward shows, so the window can bring it up. */

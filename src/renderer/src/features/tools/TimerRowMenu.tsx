@@ -1,13 +1,13 @@
-import {RenameDialog} from '@renderer/ui/RenameDialog';
-import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
-import {openMenuFromKey, pointerMenuAnchor} from '@renderer/ui/contextMenu';
+import {RenameDialog} from '@renderer/ui/popups/RenameDialog';
+import {useMenuHandoff} from '@renderer/ui/menus/useMenuHandoff';
+import {openMenuFromKey, pointerMenuAnchor} from '@renderer/ui/menus/contextMenu';
 import {useRef, useState, type JSX, type ReactNode} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {Timer} from '@core/schema/timers';
 import {NAME_LIMIT} from '@core/schema/primitives';
 import {Menu} from '@renderer/ui';
-import type {MenuAnchor} from '@renderer/ui/Menu';
-import type {Notice} from '@renderer/ui/notices';
+import type {MenuAnchor} from '@renderer/ui/menus/Menu';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {createTimerId} from '@core/schema/ids';
 import {duplicateTimer, renameTimer} from './timerEdits';
 import {useDuplicateShortcut} from './useDuplicateShortcut';

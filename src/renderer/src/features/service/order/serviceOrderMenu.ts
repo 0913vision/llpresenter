@@ -4,17 +4,17 @@ import {
   orderEditReason,
 } from '@renderer/session/orderReasons';
 import {ORDER_FULL_REASON} from '@renderer/session/serviceOrderEdits';
-import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
+import {windowCommandLabels} from '@renderer/ui/keys/windowCommandLabels';
 import {
   menuAvailability,
   type MenuEntry,
   type MenuItem,
-} from '@renderer/ui/menuModel';
-import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
-import {selectionLabel} from '@renderer/ui/selectionDrag';
-import type {Workspace} from '@renderer/ui/workspace';
+} from '@renderer/ui/menus/menuModel';
+import {laterRow, menuSeparator} from '@renderer/ui/menus/menuRows';
+import {selectionLabel} from '@renderer/ui/lists/selectionDrag';
+import type {Workspace} from '@renderer/ui/lists/workspace';
 import type {ServiceRow} from '@core/presentation';
-import {fixedKeyText} from '@renderer/ui/fixedKeys';
+import {fixedKeyText} from '@renderer/ui/keys/fixedKeys';
 
 /** What the 예배 순서 item menu can ask the list to do. */
 export interface ServiceOrderMenuInput {

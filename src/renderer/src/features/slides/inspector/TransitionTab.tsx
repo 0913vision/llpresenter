@@ -4,14 +4,14 @@ import {
   type SlideTransition,
 } from '@core/schema/slideTransition';
 import {withTransition} from '@core/slides';
-import {TextField} from '@renderer/ui/TextField';
-import {PropertyGroup, PropertyRow} from '@renderer/ui/PropertyRow';
+import {TextField} from '@renderer/ui/fields/TextField';
+import {PropertyGroup, PropertyRow} from '@renderer/ui/panels/PropertyRow';
 import {
   INITIAL_SLIDE_EFFECT,
   sameSlideTransition,
   SLIDE_DIRECTIONS,
   SLIDE_EFFECTS,
-} from '@renderer/ui/slideTransitionChoices';
+} from '@renderer/ui/choices/slideTransitionChoices';
 import {focusSlides} from '../deckSelection';
 import {ApplyToAll} from './ApplyToAll';
 import {changeSelected, type ChosenSlides} from './changeSelected';

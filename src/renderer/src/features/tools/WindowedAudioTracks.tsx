@@ -1,5 +1,5 @@
 import {useLayoutEffect, useRef, type JSX, type KeyboardEvent} from 'react';
-import {listKeyTarget, useRowRange} from '@renderer/ui/useRowRange';
+import {listKeyTarget, useRowRange} from '@renderer/ui/lists/useRowRange';
 import type {LlpApi} from '@contracts/ipc/api';
 import {AudioTrackRow} from './AudioTrackRow';
 import type {AudioTrack} from '@core/media';

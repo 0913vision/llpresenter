@@ -5,7 +5,7 @@ import {HistoryButtons} from '@renderer/app/shell/HistoryButtons';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {editMenuEntries} from '@renderer/app/shell/editMenuEntries';
-import {menuItems} from '@renderer/ui/menuModel';
+import {menuItems} from '@renderer/ui/menus/menuModel';
 
 it('uses the focused editor history and follows its availability', async () => {
   function Editor() {

@@ -26,7 +26,7 @@ import {
   PropertyRow,
   TextField,
 } from '@renderer/ui';
-import type {Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/popups/notices';
 import styles from './MessageTab.module.css';
 import {MessageEditing} from './MessageEditing';
 import {ActiveMessages} from './ActiveMessages';

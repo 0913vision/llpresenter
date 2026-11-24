@@ -6,12 +6,12 @@ import {
   type JSX,
 } from 'react';
 import {classNames} from '@renderer/ui/classNames';
-import {Popover} from '@renderer/ui/Popover';
-import menuStyles from '@renderer/ui/Menu.module.css';
+import {Popover} from '@renderer/ui/popups/Popover';
+import menuStyles from '@renderer/ui/menus/Menu.module.css';
 import {LabelChoices} from './LabelChoices';
 import {LabelManagerDialog} from './LabelManagerDialog';
 import {labelMenuEntries} from './labelMenuEntries';
-import {useChoicePopup} from '@renderer/ui/useChoicePopup';
+import {useChoicePopup} from '@renderer/ui/choices/useChoicePopup';
 import type {LabelCatalog} from './labelCatalog';
 import styles from './LabelMenu.module.css';
 

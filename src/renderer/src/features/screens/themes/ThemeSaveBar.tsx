@@ -1,5 +1,5 @@
 import type {JSX} from 'react';
-import {Button} from '@renderer/ui/Button';
+import {Button} from '@renderer/ui/buttons/Button';
 import type {ThemeModel} from './useThemeEditor';
 import styles from './Themes.module.css';
 

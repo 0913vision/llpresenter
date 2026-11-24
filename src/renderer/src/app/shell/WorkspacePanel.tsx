@@ -1,7 +1,7 @@
 import type {JSX, ReactNode} from 'react';
 import type {PanelRowId} from '@core/schema/panelRows';
 import {classNames} from '@renderer/ui/classNames';
-import type {Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/popups/notices';
 import styles from './Workspace.module.css';
 
 /** What a panel shows, by part. A workspace fills only the parts it needs. */

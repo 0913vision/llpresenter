@@ -1,5 +1,5 @@
 import {useRef, useState} from 'react';
-import {type Notice, noticeTime, warningNotice} from '@renderer/ui/notices';
+import {type Notice, noticeTime, warningNotice} from '@renderer/ui/popups/notices';
 import type {OpenServiceResult} from './openService';
 import {orderFailureTitle} from './serviceProblem';
 import {useAlive} from '@renderer/ui/useAlive';

@@ -5,7 +5,7 @@ import {
   type FocusEvent,
   type KeyboardEvent,
 } from 'react';
-import {isComposing} from '@renderer/ui/ime';
+import {isComposing} from '@renderer/ui/fields/ime';
 
 const INITIAL_ROWS = 8;
 const OVERSCAN_ROWS = 2;

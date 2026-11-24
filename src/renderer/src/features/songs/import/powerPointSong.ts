@@ -6,7 +6,7 @@ import {importedSongTitle} from '@core/slides';
 import {powerpointBrightBackgrounds, powerpointSlides} from '@core/songs';
 import {lendPreviewImage} from '@renderer/rendering/previewMedia';
 import {openInPrep} from '@renderer/session/prepTarget';
-import {noticeTime, type Notice} from '@renderer/ui/notices';
+import {noticeTime, type Notice} from '@renderer/ui/popups/notices';
 import {
   finishImportedPictures,
   openImportedSong,

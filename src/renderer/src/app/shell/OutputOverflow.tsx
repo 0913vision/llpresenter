@@ -1,6 +1,6 @@
 import {useState, type JSX} from 'react';
 import {Menu, ToolbarButton} from '@renderer/ui';
-import {menuButtonProps} from '@renderer/ui/menuButton';
+import {menuButtonProps} from '@renderer/ui/menus/menuButton';
 import type {ScreenSummary} from '../../platform/screens';
 import {screenOutputEntries} from './screenOutputEntries';
 

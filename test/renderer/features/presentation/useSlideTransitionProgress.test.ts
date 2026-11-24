@@ -4,7 +4,7 @@ import {afterEach, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/schema/live';
 import {useLive} from '@renderer/session/live';
 import {useSlideTransitionProgress} from '@renderer/features/presentation/useSlideTransitionProgress';
-import {progressStyle} from '@renderer/ui/transitionProgress';
+import {progressStyle} from '@renderer/ui/tiles/transitionProgress';
 
 afterEach(() => {
   vi.useRealTimers();

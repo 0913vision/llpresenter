@@ -4,7 +4,7 @@ import type {LlpApi} from '@contracts/ipc/api';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useBoundCommands} from '@renderer/platform/useBoundCommands';
-import type {Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/popups/notices';
 
 import {quickRunner, quickItemUnavailable} from './quickActions';
 

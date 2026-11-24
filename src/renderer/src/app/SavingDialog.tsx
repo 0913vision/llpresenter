@@ -1,5 +1,5 @@
 import {useSyncExternalStore, type JSX} from 'react';
-import {AlertDialog, type AlertAction} from '@renderer/ui/AlertDialog';
+import {AlertDialog, type AlertAction} from '@renderer/ui/popups/AlertDialog';
 import type {CloseFlush, CloseFlushView} from './closeFlush';
 
 const TITLES: Readonly<Record<Exclude<CloseFlushView, 'hidden'>, string>> = {

@@ -13,7 +13,7 @@ import {editorFixture} from '@fixtures/renderer/features/songs/editorFixture';
 import {hoverForTooltip} from '@fixtures/renderer/ui/tooltipTesting';
 import {LabelCatalog} from '@renderer/features/labels/labelCatalog';
 import {LabelMenu} from '@renderer/features/labels/LabelMenu';
-import {useCommandShortcuts} from '@renderer/ui/commandDispatcher';
+import {useCommandShortcuts} from '@renderer/ui/keys/commandDispatcher';
 
 const chosen: Array<string | undefined> = [];
 

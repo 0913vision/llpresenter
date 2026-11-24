@@ -17,7 +17,7 @@ import {renderWithScreenSummaries as render} from '@fixtures/renderer/platform/s
 import {ScreenSummariesContext} from '@renderer/platform/ScreenSummaries';
 import type {ScreenSummary} from '@renderer/platform/screens';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
-import {commandBindingStore} from '@renderer/ui/commandBindings';
+import {commandBindingStore} from '@renderer/ui/keys/commandBindings';
 
 interface Instance {
   readonly parent: HTMLElement;

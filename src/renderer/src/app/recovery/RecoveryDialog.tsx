@@ -1,7 +1,7 @@
 import {useState, type JSX} from 'react';
 import type {RecoveryRowKind, RecoverySummary} from '@core/schema/recovery';
-import {AlertDialog} from '@renderer/ui/AlertDialog';
-import {CheckRow} from '@renderer/ui/Checkbox';
+import {AlertDialog} from '@renderer/ui/popups/AlertDialog';
+import {CheckRow} from '@renderer/ui/choices/Checkbox';
 import {recoveryRows, recoveryTime} from './recoveryView';
 
 const NOTHING_CHECKED_TIP = '복구할 항목을 골라야 합니다.';

@@ -1,6 +1,6 @@
 import type {Label} from '@core/schema/labels';
-import type {MenuEntry} from '@renderer/ui/menuModel';
-import {menuSeparator} from '@renderer/ui/menuRows';
+import type {MenuEntry} from '@renderer/ui/menus/menuModel';
+import {menuSeparator} from '@renderer/ui/menus/menuRows';
 
 export function labelMenuEntries({
   labels,

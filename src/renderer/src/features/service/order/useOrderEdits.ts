@@ -11,8 +11,8 @@ import {
 } from '@renderer/session/serviceOrderEdits';
 import {useShow} from '@renderer/session/show';
 import type {useServiceOrderEditing} from '@renderer/session/useServiceOrderEditing';
-import {deleteSelection} from '@renderer/ui/deleteSelection';
-import type {Workspace} from '@renderer/ui/workspace';
+import {deleteSelection} from '@renderer/ui/lists/deleteSelection';
+import type {Workspace} from '@renderer/ui/lists/workspace';
 import {canMoveItems, movableItems} from './orderRows';
 import {useMovedRowFocus} from './useMovedRowFocus';
 import {useOrderEditFocus} from './useOrderEditFocus';

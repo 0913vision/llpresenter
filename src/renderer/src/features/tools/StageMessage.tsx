@@ -3,7 +3,7 @@ import {useState, type JSX} from 'react';
 import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
 import {sendLive, useLive} from '@renderer/session/live';
 import {Button, LiveBadge, PropertyGroup, TextField} from '@renderer/ui';
-import {isComposing} from '@renderer/ui/ime';
+import {isComposing} from '@renderer/ui/fields/ime';
 import {hideStageMessage} from './toolCommands';
 import styles from './StageTab.module.css';
 

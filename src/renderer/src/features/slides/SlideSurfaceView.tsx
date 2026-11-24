@@ -3,12 +3,12 @@ import type {JSX} from 'react';
 import type {UiState} from '@core/schema/uiState';
 import type {UiApi} from '@contracts/ipc/ui';
 import type {SlideSurfaceMode} from './useSlideRowWindow';
-import {ViewModeSwitch} from '@renderer/ui/ViewModeSwitch';
-import {ThumbnailSizeControl} from '@renderer/ui/ThumbnailSizeControl';
+import {ViewModeSwitch} from '@renderer/ui/choices/ViewModeSwitch';
+import {ThumbnailSizeControl} from '@renderer/ui/choices/ThumbnailSizeControl';
 import {
   clampThumbnailScale,
   commitThumbnailScale,
-} from '@renderer/ui/thumbnailSize';
+} from '@renderer/ui/choices/thumbnailSize';
 import styles from './SlideSurfaceView.module.css';
 
 interface View {

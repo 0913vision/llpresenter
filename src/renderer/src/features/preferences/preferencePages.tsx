@@ -3,7 +3,7 @@ import {LoadReadinessContext} from '@renderer/ui/loadReadiness';
 import {
   MEDIA_END_OPTIONS,
   PICTURE_FIT_OPTIONS,
-} from '@renderer/ui/mediaChoices';
+} from '@renderer/ui/choices/mediaChoices';
 import type {PreferencePageId} from '@core/schema/preferencePages';
 import {CLEAR_FADE_LIMIT_MS, DEFAULT_CLEAR_FADE} from '@core/schema/clearFade';
 import {clearName} from '@core/live';
@@ -13,7 +13,7 @@ import {
   PropertyGroup,
   PropertyRow,
   PropertyValue,
-} from '@renderer/ui/PropertyRow';
+} from '@renderer/ui/panels/PropertyRow';
 import {
   AUDIO_LIMITS,
   PREFERENCE_LIMITS,
@@ -23,12 +23,12 @@ import {
   SLIDE_TRANSITION_LIMITS,
   type SlideTransition,
 } from '@core/schema/slideTransition';
-import {SelectMenu} from '@renderer/ui/SelectMenu';
-import {NumberField} from '@renderer/ui/NumberField';
+import {SelectMenu} from '@renderer/ui/choices/SelectMenu';
+import {NumberField} from '@renderer/ui/fields/NumberField';
 import {
   SLIDE_DIRECTIONS,
   SLIDE_EFFECTS,
-} from '@renderer/ui/slideTransitionChoices';
+} from '@renderer/ui/choices/slideTransitionChoices';
 import type {PreferenceEdits} from './usePreferenceEdits';
 import {
   ActionRow,

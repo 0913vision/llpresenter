@@ -1,8 +1,8 @@
 import {create} from 'zustand';
 import {useEffect} from 'react';
 import {outputNext, outputTile, useShow} from '@renderer/session/show';
-import {isInTextEntry} from '@renderer/ui/textEntry';
-import {modalStack} from '@renderer/ui/modalStack';
+import {isInTextEntry} from '@renderer/ui/fields/textEntry';
+import {modalStack} from '@renderer/ui/popups/modalStack';
 import {focusSlideGrid} from './focusSlideGrid';
 import {serviceSlideAt} from './serviceSlideNumbers';
 import {isColumnDragActive} from '@renderer/platform/drag';

@@ -6,8 +6,8 @@ import {useScreenSummaries} from '../../platform/ScreenSummaries';
 import {OutputOverflow} from './OutputOverflow';
 import {ThemeMenu} from './ThemeMenu';
 import {ToolbarSearch} from './ToolbarSearch';
-import type {Notice} from '@renderer/ui/notices';
-import type {SizeClass} from '../../ui/sizeClass';
+import type {Notice} from '@renderer/ui/popups/notices';
+import type {SizeClass} from '../../ui/panels/sizeClass';
 import styles from './Toolbar.module.css';
 
 import type {Workspace} from '@renderer/platform/WorkspaceNavigation';

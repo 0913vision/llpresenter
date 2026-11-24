@@ -5,7 +5,7 @@ import type {Screen} from '@core/schema/screens';
 import {resolveMessageStyle} from '@core/screens';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {PropertyRow, SelectMenu} from '@renderer/ui';
-import type {Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/popups/notices';
 
 const LABEL = '메시지 스타일';
 const LOAD_TITLE = '메시지 스타일을 불러오지 못했습니다.';

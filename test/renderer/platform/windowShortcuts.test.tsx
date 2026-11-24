@@ -1,9 +1,9 @@
 import {act, cleanup, fireEvent, renderHook} from '@testing-library/react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {setColumnDragActive} from '@renderer/platform/drag';
-import {modalStack} from '@renderer/ui/modalStack';
+import {modalStack} from '@renderer/ui/popups/modalStack';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
-import {commandBindingStore} from '@renderer/ui/commandBindings';
+import {commandBindingStore} from '@renderer/ui/keys/commandBindings';
 
 function press(
   options: KeyboardEventInit = {},

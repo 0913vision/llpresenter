@@ -13,7 +13,7 @@ import {
   ClearButton,
   ClearGroup,
   ClearRow as Row,
-} from '@renderer/ui/ClearButton';
+} from '@renderer/ui/buttons/ClearButton';
 
 function StandbyButton(): JSX.Element {
   const hasItem = useLive(

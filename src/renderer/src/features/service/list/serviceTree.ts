@@ -1,4 +1,4 @@
-import type {CheckState} from '@renderer/ui/Checkbox';
+import type {CheckState} from '@renderer/ui/choices/Checkbox';
 import type {ServiceItemId} from '@core/schema/ids';
 import {iconByKind} from '../order/serviceItemIcons';
 import {

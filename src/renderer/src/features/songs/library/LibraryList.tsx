@@ -4,14 +4,14 @@ import {
   useFocusOption,
   useRowRange,
   useShowSelected,
-} from '@renderer/ui/useRowRange';
+} from '@renderer/ui/lists/useRowRange';
 import type {SongId} from '@core/schema/ids';
 import {SONG_DRAG_MIME, serializeSongDragPayload} from '@core/schema/songDrag';
-import {ListBox, ListRow} from '@renderer/ui/ListRow';
-import {takeMenuKey, type ContextMenuEvent} from '@renderer/ui/contextMenu';
+import {ListBox, ListRow} from '@renderer/ui/lists/ListRow';
+import {takeMenuKey, type ContextMenuEvent} from '@renderer/ui/menus/contextMenu';
 import type {LibraryRow} from './useLibrary';
 import styles from './LibraryPanel.module.css';
-import {useDragClickGuard} from '@renderer/ui/useDragClickGuard';
+import {useDragClickGuard} from '@renderer/ui/lists/useDragClickGuard';
 
 const OVERSCAN = 4;
 const INITIAL_ROWS = 12;

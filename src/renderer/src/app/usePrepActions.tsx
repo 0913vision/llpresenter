@@ -13,7 +13,7 @@ import {openDeckAt} from '@renderer/features/slides/deckSelection';
 import {openInPrep, usePrepTarget} from '@renderer/session/prepTarget';
 import {useShow} from '@renderer/session/show';
 import {isLibrarySource} from '@renderer/session/showLibrary';
-import {warningNotice} from '@renderer/ui/notices';
+import {warningNotice} from '@renderer/ui/popups/notices';
 import type {ControlSession} from './controlSession';
 import {PowerPointImagesFlow} from './PowerPointImagesFlow';
 import {editItemInPrep, type PrepBinding} from './workspaces/prepPanels';

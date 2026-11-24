@@ -1,9 +1,9 @@
 import {useState, type JSX} from 'react';
 import type {KeyBinding} from '@core/schema/shortcuts';
-import {Button} from '../ui/Button';
-import {KeyCombo, KeyList, KeyText} from '../ui/KeyCap';
-import {ShortcutField} from '../ui/ShortcutField';
-import {shortcutNames} from '../ui/shortcutKeys';
+import {Button} from '../ui/buttons/Button';
+import {KeyCombo, KeyList, KeyText} from '../ui/keys/KeyCap';
+import {ShortcutField} from '../ui/keys/ShortcutField';
+import {shortcutNames} from '../ui/keys/shortcutKeys';
 import {Section, SpecGroup, SpecItem} from './Spec';
 
 export function KeyCapSection(): JSX.Element {

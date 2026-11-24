@@ -19,7 +19,7 @@ import {
   isOutputRequestCurrent,
   withinLookupTimeout,
 } from '@renderer/session/showOutput';
-import {type Notice, warningNotice} from '@renderer/ui/notices';
+import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import {openBiblePassage, showBiblePassage} from '../bible/actions';
 
 export function quickItemUnavailable(item: QuickItem): string | undefined {

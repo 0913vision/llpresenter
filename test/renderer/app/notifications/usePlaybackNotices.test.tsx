@@ -4,7 +4,7 @@ import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import type {PlaybackProblems} from '@core/schema/playbackProblems';
 import {usePlaybackNotices} from '@renderer/app/notifications/usePlaybackNotices';
 import {useOutputWarnings} from '@renderer/platform/outputWarnings';
-import type {Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/popups/notices';
 
 beforeEach(() => useOutputWarnings.setState({warnings: new Map()}));
 

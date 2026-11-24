@@ -1,22 +1,22 @@
 import {Fragment, useState, type JSX, type KeyboardEvent} from 'react';
 import type {MediaItem} from '@core/schema/mediaList';
-import {NumberField} from '@renderer/ui/NumberField';
-import {Panel, PanelBody, PanelHeader, PanelTabs} from '@renderer/ui/Panel';
+import {NumberField} from '@renderer/ui/fields/NumberField';
+import {Panel, PanelBody, PanelHeader, PanelTabs} from '@renderer/ui/panels/Panel';
 import {
   Properties,
   PropertyGroup,
   PropertyRow,
   PropertyValue,
-} from '@renderer/ui/PropertyRow';
+} from '@renderer/ui/panels/PropertyRow';
 import type {PicturePlace} from '@core/schema/picturePlace';
-import {MEDIA_END_OPTIONS} from '@renderer/ui/mediaChoices';
-import {PicturePlaceRows} from '@renderer/ui/PicturePlace';
-import {SegmentedControl} from '@renderer/ui/SegmentedControl';
-import {Slider} from '@renderer/ui/Slider';
-import {Checkbox} from '@renderer/ui/Checkbox';
-import {TextField} from '@renderer/ui/TextField';
-import {isComposing} from '@renderer/ui/ime';
-import {hasModifier} from '@renderer/ui/modifierKeys';
+import {MEDIA_END_OPTIONS} from '@renderer/ui/choices/mediaChoices';
+import {PicturePlaceRows} from '@renderer/ui/choices/PicturePlace';
+import {SegmentedControl} from '@renderer/ui/choices/SegmentedControl';
+import {Slider} from '@renderer/ui/choices/Slider';
+import {Checkbox} from '@renderer/ui/choices/Checkbox';
+import {TextField} from '@renderer/ui/fields/TextField';
+import {isComposing} from '@renderer/ui/fields/ime';
+import {hasModifier} from '@renderer/ui/keys/modifierKeys';
 import {durationText, sizeText} from './mediaEntries';
 import {MediaPreviewPlayer} from './MediaPreviewPlayer';
 import {

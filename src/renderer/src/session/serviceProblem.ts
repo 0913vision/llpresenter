@@ -1,5 +1,5 @@
 import type {Result} from '@core/common/result';
-import {noticeTime, type Notice} from '@renderer/ui/notices';
+import {noticeTime, type Notice} from '@renderer/ui/popups/notices';
 
 interface Refusal {
   readonly reason: string;

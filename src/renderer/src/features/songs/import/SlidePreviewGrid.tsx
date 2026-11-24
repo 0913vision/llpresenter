@@ -7,7 +7,7 @@ import {
 } from 'react';
 import type {ShowTile} from '@core/schema/showService';
 import {TilePicture, tileProps} from '@renderer/pictures/TilePicture';
-import {SlideThumbnail} from '@renderer/ui/SlideThumbnail';
+import {SlideThumbnail} from '@renderer/ui/tiles/SlideThumbnail';
 import styles from './SlidePreviewGrid.module.css';
 
 const COLUMNS = 3;

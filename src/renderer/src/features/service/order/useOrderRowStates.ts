@@ -4,8 +4,8 @@ import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {useShow} from '@renderer/session/show';
 import {useShownItemId} from '@renderer/session/shownItem';
 import {useVisibleSlideItem} from '@renderer/session/visibleSlideItem';
-import type {Notice} from '@renderer/ui/notices';
-import type {Workspace} from '@renderer/ui/workspace';
+import type {Notice} from '@renderer/ui/popups/notices';
+import type {Workspace} from '@renderer/ui/lists/workspace';
 import {itemNumbers} from './orderRows';
 import {useLiveItemId} from './useLiveItemId';
 

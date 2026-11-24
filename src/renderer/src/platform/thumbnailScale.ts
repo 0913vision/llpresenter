@@ -2,7 +2,7 @@ import {create} from 'zustand';
 import {sizeClasses} from '@core/schema/appConfig';
 import type {UiState} from '@core/schema/uiState';
 import type {UiApi} from '@contracts/ipc/ui';
-import type {SizeClass} from '@renderer/ui/sizeClass';
+import type {SizeClass} from '@renderer/ui/panels/sizeClass';
 import {
   clampThumbnailScale,
   commitThumbnailScale,

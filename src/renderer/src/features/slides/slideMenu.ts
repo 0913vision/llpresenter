@@ -1,5 +1,5 @@
-import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
-import {selectionLabel} from '@renderer/ui/selectionDrag';
+import {menuAvailability, type MenuEntry} from '@renderer/ui/menus/menuModel';
+import {selectionLabel} from '@renderer/ui/lists/selectionDrag';
 import {
   addReason,
   addSlide,
@@ -11,7 +11,7 @@ import {
 } from './deckCommands';
 import type {SlideDeck} from './slideDeck';
 import type {SlideCommands} from './useSlideCommands';
-import {fixedKeyText} from '@renderer/ui/fixedKeys';
+import {fixedKeyText} from '@renderer/ui/keys/fixedKeys';
 
 /** The menu of a slide or of the ground between slides. */
 export function slideMenuEntries({

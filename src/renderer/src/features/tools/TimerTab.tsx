@@ -1,4 +1,4 @@
-import {PanelAction} from '@renderer/ui/PanelActionSlot';
+import {PanelAction} from '@renderer/ui/panels/PanelActionSlot';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {limitReason} from '@core/common/limitReason';
 import {useRef, useState, type JSX} from 'react';
@@ -6,13 +6,13 @@ import {createTimerId} from '@core/schema/ids';
 import {MAX_TIMER_DEFINITIONS} from '@core/schema/timers';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {IconButton} from '@renderer/ui';
-import {deleteSelection} from '@renderer/ui/deleteSelection';
-import type {Notice} from '@renderer/ui/notices';
+import {deleteSelection} from '@renderer/ui/lists/deleteSelection';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {TimerDialog} from './TimerDialog';
 import {deleteTimer, saveNewTimer, type NewTimer} from './timerEdits';
 import {useToolEditing} from './useToolEditing';
 import {useUndoKeys} from '@renderer/platform/useUndoKeys';
-import {focusHistorySurface} from '@renderer/ui/focusHistorySurface';
+import {focusHistorySurface} from '@renderer/ui/lists/focusHistorySurface';
 import {WindowedTimers} from './WindowedTimers';
 import styles from './TimerTab.module.css';
 

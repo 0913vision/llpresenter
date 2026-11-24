@@ -3,7 +3,7 @@ import type {LlpApi} from '@contracts/ipc/api';
 import {isKnownQuickItem, type QuickItem} from '@core/schema/quick';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useShow} from '@renderer/session/show';
-import type {Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {quickItemUnavailable, quickRunner} from './quickActions';
 
 /**

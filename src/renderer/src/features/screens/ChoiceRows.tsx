@@ -1,6 +1,6 @@
 import {isUnchangedSelectionMove} from '@core/common/selectionOrder';
-import {useReflow} from '@renderer/ui/useReflow';
-import {openMenuFromKey, pointerMenuAnchor} from '@renderer/ui/contextMenu';
+import {useReflow} from '@renderer/ui/panels/useReflow';
+import {openMenuFromKey, pointerMenuAnchor} from '@renderer/ui/menus/contextMenu';
 import {
   useRef,
   useState,
@@ -14,10 +14,10 @@ import {
   useFocusOption,
   useRowRange,
   useShowSelected,
-} from '@renderer/ui/useRowRange';
+} from '@renderer/ui/lists/useRowRange';
 import type {Choice} from './choices';
-import {ListBox, ListRow, type GroupRename} from '@renderer/ui/ListRow';
-import type {MenuAnchor} from '@renderer/ui/Menu';
+import {ListBox, ListRow, type GroupRename} from '@renderer/ui/lists/ListRow';
+import type {MenuAnchor} from '@renderer/ui/menus/Menu';
 import styles from './ChoiceRows.module.css';
 
 const INITIAL_ROWS = 12;

@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react';
-import type {MenuItem} from '@renderer/ui/menuModel';
+import type {MenuItem} from '@renderer/ui/menus/menuModel';
 
 /**
  * Whether the control window is full screen now: read once, then followed as

@@ -1,7 +1,7 @@
 import {useState} from 'react';
 import type {ServiceRow} from '@core/presentation';
-import type {MenuAnchor} from '@renderer/ui/Menu';
-import type {Notice} from '@renderer/ui/notices';
+import type {MenuAnchor} from '@renderer/ui/menus/Menu';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {rowsOfMenu} from './orderRows';
 import type {useServiceItemSelection} from './useServiceItemSelection';
 import {useServiceSongMenu} from './useServiceSongMenu';

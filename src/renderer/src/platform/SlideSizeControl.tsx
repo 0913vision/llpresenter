@@ -1,7 +1,7 @@
 import type {JSX} from 'react';
-import {ThumbnailSizeControl} from '@renderer/ui/ThumbnailSizeControl';
-import type {SizeClass} from '@renderer/ui/sizeClass';
-import type {Workspace} from '@renderer/ui/workspace';
+import {ThumbnailSizeControl} from '@renderer/ui/choices/ThumbnailSizeControl';
+import type {SizeClass} from '@renderer/ui/panels/sizeClass';
+import type {Workspace} from '@renderer/ui/lists/workspace';
 import {
   saveThumbnailScale,
   showThumbnailScale,

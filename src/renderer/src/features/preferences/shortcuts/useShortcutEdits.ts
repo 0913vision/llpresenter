@@ -3,7 +3,7 @@ import {useMemo} from 'react';
 import type {KeyBinding} from '@core/schema/shortcuts';
 import type {ShortcutCommand} from '@core/shortcuts';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
-import type {Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {NEWER_FILE_REASON} from '../usePreferenceEdits';
 import {useQueuedWrites} from '../useQueuedWrites';
 import {

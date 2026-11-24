@@ -2,8 +2,8 @@ import {NOT_IN_THIS_WINDOW} from '@renderer/platform/problemReasons';
 import type {ThemeId} from '@core/schema/ids';
 import type {ThemeFile} from '@core/schema/theme';
 import type {Themes} from '@core/schema/themes';
-import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
-import {menuSeparator} from '@renderer/ui/menuRows';
+import {menuAvailability, type MenuEntry} from '@renderer/ui/menus/menuModel';
+import {menuSeparator} from '@renderer/ui/menus/menuRows';
 
 /** The name of the theme on output. */
 export function liveThemeName(theme: ThemeFile | undefined): string {

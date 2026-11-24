@@ -2,7 +2,7 @@ import {render, renderHook, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {describe, expect, it, vi} from 'vitest';
 import {useShowKeys} from '@renderer/features/presentation/shortcuts';
-import {CheckRow} from '@renderer/ui/Checkbox';
+import {CheckRow} from '@renderer/ui/choices/Checkbox';
 
 describe.each([['CheckRow', 'checkbox', CheckRow]] as const)(
   '진행 label clicks on a %s',

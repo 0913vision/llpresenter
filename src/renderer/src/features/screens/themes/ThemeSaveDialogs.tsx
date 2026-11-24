@@ -1,13 +1,13 @@
 import type {JSX} from 'react';
 import {THEME_FILE_LIMITS} from '@core/schema/theme';
 import {copiedThemeName} from '@core/theme';
-import {AlertDialog} from '@renderer/ui/AlertDialog';
+import {AlertDialog} from '@renderer/ui/popups/AlertDialog';
 import {
   USAGE_LOADING,
   USAGE_UNAVAILABLE,
   usageMeta as usageLine,
-} from '@renderer/ui/usageText';
-import {RenameDialog} from '@renderer/ui/RenameDialog';
+} from '@renderer/ui/text/usageText';
+import {RenameDialog} from '@renderer/ui/popups/RenameDialog';
 import {themeProblems} from './themeNames';
 import type {ThemeModel} from './useThemeEditor';
 import {useThemeUsage, type ThemeUsage} from './useThemeUsage';

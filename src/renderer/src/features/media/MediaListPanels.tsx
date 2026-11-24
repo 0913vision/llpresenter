@@ -1,25 +1,25 @@
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
-import {deleteSelection} from '@renderer/ui/deleteSelection';
-import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
+import {deleteSelection} from '@renderer/ui/lists/deleteSelection';
+import {useMenuHandoff} from '@renderer/ui/menus/useMenuHandoff';
 import {useRef, useState, type JSX} from 'react';
-import {useReflow} from '@renderer/ui/useReflow';
-import {focusHistorySurface} from '@renderer/ui/focusHistorySurface';
-import {IconButton} from '@renderer/ui/IconButton';
+import {useReflow} from '@renderer/ui/panels/useReflow';
+import {focusHistorySurface} from '@renderer/ui/lists/focusHistorySurface';
+import {IconButton} from '@renderer/ui/buttons/IconButton';
 import {
   ListBox,
   ListGroup,
   ListRow,
   type GroupRename,
-} from '@renderer/ui/ListRow';
-import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
+} from '@renderer/ui/lists/ListRow';
+import {Menu, type MenuAnchor} from '@renderer/ui/menus/Menu';
 import {
   Panel,
   PanelActions,
   PanelBody,
   PanelHeader,
   PanelTabs,
-} from '@renderer/ui/Panel';
+} from '@renderer/ui/panels/Panel';
 import {
   UNNAMED_PLAYLIST,
   chosenPlaylist,
@@ -33,7 +33,7 @@ import {
   isContextMenuKey,
   takeMenuKey,
   type ContextMenuEvent,
-} from '@renderer/ui/contextMenu';
+} from '@renderer/ui/menus/contextMenu';
 
 const ALL = 'all';
 

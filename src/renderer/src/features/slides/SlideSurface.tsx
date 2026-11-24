@@ -10,13 +10,13 @@ import type {Slide} from '@core/schema/slide';
 import {changeSlides, withLabel} from '@core/slides';
 import {LabelMenu} from '@renderer/features/labels/LabelMenu';
 import {useLabelCatalog} from '@renderer/features/labels/labels';
-import {contextMenuAnchor} from '@renderer/ui/contextMenu';
-import {Menu} from '@renderer/ui/Menu';
-import type {MenuEntry} from '@renderer/ui/menuModel';
-import {isInTextEntry} from '@renderer/ui/textEntry';
-import {useDragClickGuard} from '@renderer/ui/useDragClickGuard';
-import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
-import {useReflow} from '@renderer/ui/useReflow';
+import {contextMenuAnchor} from '@renderer/ui/menus/contextMenu';
+import {Menu} from '@renderer/ui/menus/Menu';
+import type {MenuEntry} from '@renderer/ui/menus/menuModel';
+import {isInTextEntry} from '@renderer/ui/fields/textEntry';
+import {useDragClickGuard} from '@renderer/ui/lists/useDragClickGuard';
+import {useMenuHandoff} from '@renderer/ui/menus/useMenuHandoff';
+import {useReflow} from '@renderer/ui/panels/useReflow';
 import {
   focusedSlide,
   selectInDeck,

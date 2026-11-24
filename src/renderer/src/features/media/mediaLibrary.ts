@@ -13,7 +13,7 @@ import type {
 import type {MediaStamps, MissingMedia} from '@core/schema/mediaFiles';
 import {MEDIA_DELETE_HISTORY_LIMIT, MEDIA_LIMITS} from '@core/schema/mediaList';
 import {updateActiveCopies, type CopyJob} from './mediaCopyJobs';
-import {type Notice, warningNotice} from '@renderer/ui/notices';
+import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import {chosenPlaylist, type ChosenPlaylist} from './mediaEntries';
 import type {PicturePlace} from '@core/schema/picturePlace';
 import {withPlace, type MediaProps} from './mediaProps';

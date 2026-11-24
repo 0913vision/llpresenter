@@ -1,11 +1,11 @@
-import {warningNotice} from '@renderer/ui/notices';
+import {warningNotice} from '@renderer/ui/popups/notices';
 import {useRef, useState} from 'react';
 import {useShow} from '@renderer/session/show';
-import {Menu} from '@renderer/ui/Menu';
-import type {Notice} from '@renderer/ui/notices';
-import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
+import {Menu} from '@renderer/ui/menus/Menu';
+import type {Notice} from '@renderer/ui/popups/notices';
+import {menuAvailability, type MenuEntry} from '@renderer/ui/menus/menuModel';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
-import {RenameDialog} from '@renderer/ui/RenameDialog';
+import {RenameDialog} from '@renderer/ui/popups/RenameDialog';
 import {renameService} from '@renderer/features/service/list/serviceEdits';
 import {useServiceActions} from '@renderer/features/service/list/useServiceActions';
 import {useServicePicker} from './useServicePicker';

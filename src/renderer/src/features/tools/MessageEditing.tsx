@@ -1,17 +1,17 @@
-import {nameReason} from '@renderer/ui/nameReason';
+import {nameReason} from '@renderer/ui/fields/nameReason';
 import {NAME_LIMIT} from '@core/schema/primitives';
-import {RenameDialog} from '@renderer/ui/RenameDialog';
-import {PanelAction} from '@renderer/ui/PanelActionSlot';
+import {RenameDialog} from '@renderer/ui/popups/RenameDialog';
+import {PanelAction} from '@renderer/ui/panels/PanelActionSlot';
 import {limitReason} from '@core/common/limitReason';
 import {
   contextMenuTarget,
   isContextMenuKey,
   pointerMenuAnchor,
   takeMenuKey,
-} from '@renderer/ui/contextMenu';
+} from '@renderer/ui/menus/contextMenu';
 import {useRef, useState, type JSX, type ReactNode} from 'react';
-import {deleteSelection} from '@renderer/ui/deleteSelection';
-import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
+import {deleteSelection} from '@renderer/ui/lists/deleteSelection';
+import {useMenuHandoff} from '@renderer/ui/menus/useMenuHandoff';
 import {createMessageTemplateId} from '@core/schema/ids';
 import type {Screen} from '@core/schema/screens';
 import type {MessageTemplate} from '@core/schema/messages';
@@ -27,13 +27,13 @@ import {
   TextArea,
   TextField,
 } from '@renderer/ui';
-import type {MenuAnchor} from '@renderer/ui/Menu';
-import type {Notice} from '@renderer/ui/notices';
+import type {MenuAnchor} from '@renderer/ui/menus/Menu';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {useDuplicateShortcut} from './useDuplicateShortcut';
 import {useToolEditing} from './useToolEditing';
 import {useUndoKeys} from '@renderer/platform/useUndoKeys';
-import {focusHistorySurface} from '@renderer/ui/focusHistorySurface';
-import {useReflow} from '@renderer/ui/useReflow';
+import {focusHistorySurface} from '@renderer/ui/lists/focusHistorySurface';
+import {useReflow} from '@renderer/ui/panels/useReflow';
 import {
   MAX_MESSAGE_TEMPLATES,
   messageTextReason,

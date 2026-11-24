@@ -11,9 +11,9 @@ import {runEdit, type Report} from '@renderer/session/serviceEdit';
 import {slideMaking} from '@renderer/platform/themes';
 import {editItem} from '@renderer/session/openService';
 import {useShow} from '@renderer/session/show';
-import {Button} from '@renderer/ui/Button';
-import {warningNotice} from '@renderer/ui/notices';
-import {SelectMenu} from '@renderer/ui/SelectMenu';
+import {Button} from '@renderer/ui/buttons/Button';
+import {warningNotice} from '@renderer/ui/popups/notices';
+import {SelectMenu} from '@renderer/ui/choices/SelectMenu';
 import {useServiceSongMenu} from '../order/useServiceSongMenu';
 
 /** Saves the slides of a song item as the song of the library. */

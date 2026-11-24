@@ -20,7 +20,7 @@ import type {SlideDeck} from '../slides/slideDeck';
 import type {Report} from '@renderer/session/serviceEdit';
 import {slideMaking} from '@renderer/platform/themes';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
-import {warningNotice} from '@renderer/ui/notices';
+import {warningNotice} from '@renderer/ui/popups/notices';
 import {confirmBibleCuts} from './saveBibleCuts';
 import {passageSplitter, type BibleSplit} from './passageSplitter';
 import {usePassageText} from './passageText';

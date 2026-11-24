@@ -1,6 +1,6 @@
 import type {JSX, KeyboardEvent} from 'react';
-import {isComposing} from '@renderer/ui/ime';
-import {TextField} from '@renderer/ui/TextField';
+import {isComposing} from '@renderer/ui/fields/ime';
+import {TextField} from '@renderer/ui/fields/TextField';
 import styles from './BibleReferenceField.module.css';
 
 /** Moves to the field after this one in the dialog, as Tab would. */

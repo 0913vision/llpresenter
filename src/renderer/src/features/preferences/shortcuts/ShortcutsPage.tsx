@@ -6,14 +6,14 @@ import {
   type JSX,
   type KeyboardEvent,
 } from 'react';
-import {AlertDialog} from '@renderer/ui/AlertDialog';
-import {Button} from '@renderer/ui/Button';
-import {EmptyState} from '@renderer/ui/EmptyState';
-import {contextMenuAnchor, takeMenuKey} from '@renderer/ui/contextMenu';
-import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
-import {SegmentedControl} from '@renderer/ui/SegmentedControl';
-import {TextField} from '@renderer/ui/TextField';
-import type {Notice} from '@renderer/ui/notices';
+import {AlertDialog} from '@renderer/ui/popups/AlertDialog';
+import {Button} from '@renderer/ui/buttons/Button';
+import {EmptyState} from '@renderer/ui/lists/EmptyState';
+import {contextMenuAnchor, takeMenuKey} from '@renderer/ui/menus/contextMenu';
+import {Menu, type MenuAnchor} from '@renderer/ui/menus/Menu';
+import {SegmentedControl} from '@renderer/ui/choices/SegmentedControl';
+import {TextField} from '@renderer/ui/fields/TextField';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {
   buildRows,
   emptyRowsText,

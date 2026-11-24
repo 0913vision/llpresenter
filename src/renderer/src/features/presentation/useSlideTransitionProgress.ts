@@ -1,7 +1,7 @@
 import {useEffect, useMemo, useState} from 'react';
 import {useLive} from '@renderer/session/live';
 import {slideTransitionFor} from '@core/output';
-import type {TransitionProgress} from '@renderer/ui/transitionProgress';
+import type {TransitionProgress} from '@renderer/ui/tiles/transitionProgress';
 
 /** Follows the actual live slide transition using main's wall clock start. */
 export function useSlideTransitionProgress(): TransitionProgress | undefined {

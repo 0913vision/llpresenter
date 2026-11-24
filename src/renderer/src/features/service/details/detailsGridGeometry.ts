@@ -1,4 +1,4 @@
-import {clampThumbnailScale} from '@renderer/ui/thumbnailSize';
+import {clampThumbnailScale} from '@renderer/ui/choices/thumbnailSize';
 
 const DEFAULT_TILE_WIDTH = 208;
 

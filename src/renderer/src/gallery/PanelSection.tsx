@@ -1,8 +1,8 @@
 import type {JSX} from 'react';
-import {Button} from '../ui/Button';
-import {IconButton} from '../ui/IconButton';
+import {Button} from '../ui/buttons/Button';
+import {IconButton} from '../ui/buttons/IconButton';
 import {Icon} from '../ui/Icon';
-import {Tooltip} from '../ui/Tooltip';
+import {Tooltip} from '../ui/popups/Tooltip';
 import {classNames} from '../ui/classNames';
 import styles from './PanelSection.module.css';
 import {
@@ -15,9 +15,9 @@ import {
   PanelTabs,
   PanelTitle,
   type PanelTab,
-} from '../ui/Panel';
-import {SelectMenu} from '../ui/SelectMenu';
-import {Slider} from '../ui/Slider';
+} from '../ui/panels/Panel';
+import {SelectMenu} from '../ui/choices/SelectMenu';
+import {Slider} from '../ui/choices/Slider';
 import {
   ignore,
   Section,

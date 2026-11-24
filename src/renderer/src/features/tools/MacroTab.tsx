@@ -1,6 +1,6 @@
 import type {JSX} from 'react';
 import {useLive} from '@renderer/session/live';
-import type {Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {MacroPanel} from './MacroPanel';
 
 export function MacroTab({

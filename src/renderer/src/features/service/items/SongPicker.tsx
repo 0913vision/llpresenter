@@ -9,13 +9,13 @@ import {
 import type {LibrarySong} from '@core/schema/contentDocuments';
 import type {SongId} from '@core/schema/ids';
 import {LIBRARY_SEARCH_LIMITS} from '@core/schema/librarySearch';
-import {Dialog} from '@renderer/ui/Dialog';
-import {ListBox, ListRow} from '@renderer/ui/ListRow';
-import {TextField} from '@renderer/ui/TextField';
-import {isComposing} from '@renderer/ui/ime';
-import {hasModifier} from '@renderer/ui/modifierKeys';
+import {Dialog} from '@renderer/ui/popups/Dialog';
+import {ListBox, ListRow} from '@renderer/ui/lists/ListRow';
+import {TextField} from '@renderer/ui/fields/TextField';
+import {isComposing} from '@renderer/ui/fields/ime';
+import {hasModifier} from '@renderer/ui/keys/modifierKeys';
 import styles from './SongPicker.module.css';
-import {useReflow} from '@renderer/ui/useReflow';
+import {useReflow} from '@renderer/ui/panels/useReflow';
 
 /** Chooses an existing library song for a service order. */
 export function SongPicker({

@@ -1,26 +1,26 @@
-import {warningNotice} from '@renderer/ui/notices';
+import {warningNotice} from '@renderer/ui/popups/notices';
 import {undoReason, undoTimeline} from '@renderer/platform/undoTimeline';
-import {focusHistorySurface} from '@renderer/ui/focusHistorySurface';
+import {focusHistorySurface} from '@renderer/ui/lists/focusHistorySurface';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
-import {menuAvailability} from '@renderer/ui/menuModel';
+import {menuAvailability} from '@renderer/ui/menus/menuModel';
 import {useRef, useState, type KeyboardEvent, type ReactNode} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {ServiceEntry} from '@core/schema/contentDocuments';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {useShow} from '@renderer/session/show';
 import {contentDeleteHistory} from '@renderer/platform/contentDeleteHistory';
-import {deleteSelection} from '@renderer/ui/deleteSelection';
-import {historyKey} from '@renderer/ui/historyKey';
-import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
-import type {Notice} from '@renderer/ui/notices';
-import {RenameDialog} from '@renderer/ui/RenameDialog';
-import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
+import {deleteSelection} from '@renderer/ui/lists/deleteSelection';
+import {historyKey} from '@renderer/ui/lists/historyKey';
+import {Menu, type MenuAnchor} from '@renderer/ui/menus/Menu';
+import type {Notice} from '@renderer/ui/popups/notices';
+import {RenameDialog} from '@renderer/ui/popups/RenameDialog';
+import {useMenuHandoff} from '@renderer/ui/menus/useMenuHandoff';
 import {editApplied, renameService, settle} from './serviceEdits';
 import type {ServiceSource} from './useServiceSources';
 import {
   contextMenuAnchor,
   type ContextMenuEvent,
-} from '../../../ui/contextMenu';
+} from '../../../ui/menus/contextMenu';
 import {useAlive} from '@renderer/ui/useAlive';
 
 type NamedSource = Exclude<ServiceSource, {readonly kind: 'empty'}>;

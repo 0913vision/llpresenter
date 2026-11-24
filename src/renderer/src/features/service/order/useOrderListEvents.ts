@@ -3,11 +3,11 @@ import {
   contextMenuAnchor,
   pointerMenuAnchor,
   takeMenuKey,
-} from '@renderer/ui/contextMenu';
-import type {MenuAnchor} from '@renderer/ui/Menu';
-import {hasModifier} from '@renderer/ui/modifierKeys';
-import {isInTextEntry} from '@renderer/ui/textEntry';
-import type {Workspace} from '@renderer/ui/workspace';
+} from '@renderer/ui/menus/contextMenu';
+import type {MenuAnchor} from '@renderer/ui/menus/Menu';
+import {hasModifier} from '@renderer/ui/keys/modifierKeys';
+import {isInTextEntry} from '@renderer/ui/fields/textEntry';
+import type {Workspace} from '@renderer/ui/lists/workspace';
 import {serviceOrderRowId} from './useServiceOrderDrag';
 import type {useServiceItemSelection} from './useServiceItemSelection';
 

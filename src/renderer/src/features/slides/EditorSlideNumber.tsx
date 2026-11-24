@@ -1,5 +1,5 @@
 import type {JSX} from 'react';
-import {Checkbox} from '@renderer/ui/Checkbox';
+import {Checkbox} from '@renderer/ui/choices/Checkbox';
 import styles from './EditorSlidePlate.module.css';
 
 /** A list-only selection control over the slide picture. */

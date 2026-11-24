@@ -1,10 +1,10 @@
 import {useState, type JSX} from 'react';
 import type {SavedTitle} from '@core/schema/themes';
 import {useThemes} from '@renderer/platform/themes';
-import {Dialog, DialogField} from '@renderer/ui/Dialog';
-import {TextField} from '@renderer/ui/TextField';
-import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
-import {contextMenuAnchor, openMenuFromKey} from '@renderer/ui/contextMenu';
+import {Dialog, DialogField} from '@renderer/ui/popups/Dialog';
+import {TextField} from '@renderer/ui/fields/TextField';
+import {Menu, type MenuAnchor} from '@renderer/ui/menus/Menu';
+import {contextMenuAnchor, openMenuFromKey} from '@renderer/ui/menus/contextMenu';
 import {editorTask} from '@renderer/platform/editorTask';
 import {ELEMENT_DRAG_MIME, ownTitleKey} from './newItems';
 import styles from './PrepPalette.module.css';

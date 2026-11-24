@@ -1,7 +1,7 @@
 import {limitReason} from '@core/common/limitReason';
 import {toggleTimer, resetTimer} from './toolCommands';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
-import {timerCommandLabels} from '@renderer/ui/timerCommandLabels';
+import {timerCommandLabels} from '@renderer/ui/keys/timerCommandLabels';
 import {memo, type JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {Timer} from '@core/schema/timers';
@@ -10,7 +10,7 @@ import {useLive} from '@renderer/session/live';
 import {Button, Icon, TruncatedText} from '@renderer/ui';
 import {TimerValue} from './TimerValue';
 import {TimerRowMenu} from './TimerRowMenu';
-import type {Notice} from '@renderer/ui/notices';
+import type {Notice} from '@renderer/ui/popups/notices';
 import styles from './TimerTab.module.css';
 
 /** A countdown's length as the 분 and 초 fields of its dialog: 30초, 1분, 2분 30초. */

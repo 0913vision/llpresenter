@@ -1,7 +1,7 @@
 import {useState, type JSX} from 'react';
-import {Button} from '../ui/Button';
-import {TextField} from '../ui/TextField';
-import {CountBadge, LiveBadge} from '../ui/StatusMarks';
+import {Button} from '../ui/buttons/Button';
+import {TextField} from '../ui/fields/TextField';
+import {CountBadge, LiveBadge} from '../ui/tiles/StatusMarks';
 import {Section, SpecGroup, SpecItem} from './Spec';
 
 const specimens = [

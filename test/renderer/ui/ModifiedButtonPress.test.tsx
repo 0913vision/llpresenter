@@ -2,13 +2,13 @@ import {fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type {SubmitEvent} from 'react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import {Button} from '@renderer/ui/Button';
-import {ClearButton} from '@renderer/ui/ClearButton';
-import {IconButton} from '@renderer/ui/IconButton';
-import {ListActionRow} from '@renderer/ui/ListRow';
-import {OutputToggle} from '@renderer/ui/OutputToggle';
-import {Select} from '@renderer/ui/Select';
-import {ToolbarButton} from '@renderer/ui/ToolbarButton';
+import {Button} from '@renderer/ui/buttons/Button';
+import {ClearButton} from '@renderer/ui/buttons/ClearButton';
+import {IconButton} from '@renderer/ui/buttons/IconButton';
+import {ListActionRow} from '@renderer/ui/lists/ListRow';
+import {OutputToggle} from '@renderer/ui/buttons/OutputToggle';
+import {Select} from '@renderer/ui/choices/Select';
+import {ToolbarButton} from '@renderer/ui/buttons/ToolbarButton';
 import {
   hoverForTooltip,
   resetTooltips,

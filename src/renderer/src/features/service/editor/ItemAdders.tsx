@@ -16,8 +16,8 @@ import type {SlideDeck} from '@renderer/features/slides/slideDeck';
 import type {Report} from '@renderer/session/serviceEdit';
 import {mediaItem, pictureMedia, useMedia} from '@renderer/platform/media';
 import {slideMaking, useThemes} from '@renderer/platform/themes';
-import {Button} from '@renderer/ui/Button';
-import {warningNotice} from '@renderer/ui/notices';
+import {Button} from '@renderer/ui/buttons/Button';
+import {warningNotice} from '@renderer/ui/popups/notices';
 import {BibleQuickAdd} from '../items/BibleQuickAdd';
 import type {PassageDefaults} from '../items/passageItems';
 

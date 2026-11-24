@@ -1,7 +1,7 @@
 import {useEffect, useEffectEvent, type RefObject} from 'react';
-import {isComposingKey} from '@renderer/ui/ime';
-import {modalStack} from '@renderer/ui/modalStack';
-import {isInTextEntry} from '@renderer/ui/textEntry';
+import {isComposingKey} from '@renderer/ui/fields/ime';
+import {modalStack} from '@renderer/ui/popups/modalStack';
+import {isInTextEntry} from '@renderer/ui/fields/textEntry';
 
 const MENU = '[data-llp-layer="popover"] [role="menu"]';
 

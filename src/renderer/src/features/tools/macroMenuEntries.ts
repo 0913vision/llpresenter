@@ -4,12 +4,12 @@ import {
   menuAvailability,
   type MenuEntry,
   type MenuItem,
-} from '@renderer/ui/menuModel';
+} from '@renderer/ui/menus/menuModel';
 import {
   laterClipboardRows,
   laterRow,
   menuSeparator,
-} from '@renderer/ui/menuRows';
+} from '@renderer/ui/menus/menuRows';
 import {
   lockedReason,
   macroActionEntries,

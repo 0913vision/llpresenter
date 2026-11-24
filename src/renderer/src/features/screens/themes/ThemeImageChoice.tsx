@@ -3,7 +3,7 @@ import {parseMediaId, type MediaId} from '@core/schema/ids';
 import {THEME_BACKGROUNDS, THEME_DECORATIONS} from '@core/theme';
 import {MediaPicker} from '@renderer/features/media/MediaPicker';
 import {useMedia} from '@renderer/platform/media';
-import {Select} from '@renderer/ui/Select';
+import {Select} from '@renderer/ui/choices/Select';
 
 const BACKGROUNDS = {
   label: '기본 배경',

@@ -1,6 +1,6 @@
 import {useSyncExternalStore, type JSX} from 'react';
 import {useShallow} from 'zustand/react/shallow';
-import {defaultThumbnailColumns, type SizeClass} from '@renderer/ui/sizeClass';
+import {defaultThumbnailColumns, type SizeClass} from '@renderer/ui/panels/sizeClass';
 import {useShow} from '@renderer/session/show';
 import {
   isLibrarySource,
@@ -11,8 +11,8 @@ import {
 import {useThumbnailScale} from '@renderer/platform/thumbnailScale';
 import {SlideSizeControl} from '@renderer/platform/SlideSizeControl';
 import {Button, Icon, PanelTitle} from '@renderer/ui';
-import {GridFooter} from '@renderer/ui/GridFooter';
-import {useTooltip} from '@renderer/ui/Tooltip';
+import {GridFooter} from '@renderer/ui/lists/GridFooter';
+import {useTooltip} from '@renderer/ui/popups/Tooltip';
 import {SlideGrid} from './SlideGrid';
 import {ContinuousSlideGrid} from './ContinuousSlideGrid';
 import {liveReturn} from './liveReturn';

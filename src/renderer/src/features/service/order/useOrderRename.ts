@@ -5,8 +5,8 @@ import {SONG_NAME_MAX_LENGTH} from '@core/schema/song';
 import {useHeaderRename} from '@renderer/session/headerRename';
 import type {OpenServiceResult} from '@renderer/session/openService';
 import {renameItem as renameOrderItem} from '@renderer/session/serviceOrderEdits';
-import type {GroupRename} from '@renderer/ui/ListRow';
-import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
+import type {GroupRename} from '@renderer/ui/lists/ListRow';
+import {useMenuHandoff} from '@renderer/ui/menus/useMenuHandoff';
 import {isNamed} from './orderRows';
 
 /**

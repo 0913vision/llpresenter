@@ -2,8 +2,8 @@ import {fireEvent, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {afterEach, beforeAll} from 'vitest';
-import {Menu, type MenuCloseReason, type MenuSearch} from '@renderer/ui/Menu';
-import type {MenuEntry} from '@renderer/ui/menuModel';
+import {Menu, type MenuCloseReason, type MenuSearch} from '@renderer/ui/menus/Menu';
+import type {MenuEntry} from '@renderer/ui/menus/menuModel';
 import {resetTooltips} from '@fixtures/renderer/ui/tooltipTesting';
 
 /** Installs the existing menu scroll and tooltip cleanup hooks. */

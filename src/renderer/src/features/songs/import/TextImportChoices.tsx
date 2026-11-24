@@ -2,8 +2,8 @@ import type {Dispatch, JSX, SetStateAction} from 'react';
 import type {Preferences} from '@core/schema/preferences';
 import type {TextImportOptions} from '@core/schema/textImport';
 import {Checkbox, NumberField, TextField} from '@renderer/ui';
-import {DialogField} from '@renderer/ui/Dialog';
-import {SelectMenu} from '@renderer/ui/SelectMenu';
+import {DialogField} from '@renderer/ui/popups/Dialog';
+import {SelectMenu} from '@renderer/ui/choices/SelectMenu';
 import {TEXT_ENCODINGS} from './textEncodings';
 
 const MAX_UNITS = 1000;

@@ -1,5 +1,5 @@
 import type {JSX} from 'react';
-import {ResizeGap} from '@renderer/ui/ResizeGap';
+import {ResizeGap} from '@renderer/ui/panels/ResizeGap';
 import type {DragSession} from './ColumnLayout';
 import type {DraggableColumn} from './columns';
 

@@ -8,7 +8,7 @@ import {MISSING_MEDIA_TIP} from '@renderer/platform/problemReasons';
 import type {Screen} from '@core/schema/screens';
 import {useLive} from '@renderer/session/live';
 import {MediaTile, TileList, gridMoves} from '@renderer/ui';
-import type {MenuAnchor} from '@renderer/ui/Menu';
+import type {MenuAnchor} from '@renderer/ui/menus/Menu';
 import styles from './PropGrid.module.css';
 
 export function PropGrid({

@@ -1,6 +1,6 @@
 import {clearLayer, toggleItem, undoClear} from '@renderer/session/clear';
 import {clearButtons} from '@core/live';
-import type {WindowShortcut} from '@renderer/ui/commandDispatcher';
+import type {WindowShortcut} from '@renderer/ui/keys/commandDispatcher';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 
 const commands: readonly WindowShortcut[] = [

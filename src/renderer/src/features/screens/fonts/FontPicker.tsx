@@ -2,10 +2,10 @@ import {useMemo, useRef, useState, type JSX} from 'react';
 import {FONT_CATALOG_LIMITS} from '@core/schema/fontCatalog';
 import {Icon} from '@renderer/ui/Icon';
 import {classNames} from '@renderer/ui/classNames';
-import {Popover} from '@renderer/ui/Popover';
-import {MenuSearchField} from '@renderer/ui/MenuParts';
-import {Select} from '@renderer/ui/Select';
-import menu from '@renderer/ui/Menu.module.css';
+import {Popover} from '@renderer/ui/popups/Popover';
+import {MenuSearchField} from '@renderer/ui/menus/MenuParts';
+import {Select} from '@renderer/ui/choices/Select';
+import menu from '@renderer/ui/menus/Menu.module.css';
 import {familyChoices, type FontChoice} from './fontChoices';
 import {
   FONT_PICKER_VISIBLE_ROWS,

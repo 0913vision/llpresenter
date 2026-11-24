@@ -2,7 +2,7 @@ import {createServiceItemId, type MediaId} from '@core/schema/ids';
 import type {Report} from '@renderer/session/serviceEdit';
 import {canAddMedia, mediaItem} from '@renderer/platform/media';
 import {MISSING_MEDIA_TIP} from '@renderer/platform/problemReasons';
-import {warningNotice} from '@renderer/ui/notices';
+import {warningNotice} from '@renderer/ui/popups/notices';
 import {insertNewItem} from '@renderer/session/insertNewItem';
 import {newMediaItem} from '@renderer/features/media/newMediaItem';
 

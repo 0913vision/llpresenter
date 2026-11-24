@@ -1,9 +1,9 @@
 import {useState, type ReactNode} from 'react';
 import type {Report} from '@renderer/session/serviceEdit';
-import {Panel, PanelHeader, PanelTabs, PanelBody} from '@renderer/ui/Panel';
+import {Panel, PanelHeader, PanelTabs, PanelBody} from '@renderer/ui/panels/Panel';
 import {Icon} from '@renderer/ui/Icon';
-import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
-import {contextMenuAnchor, openMenuFromKey} from '@renderer/ui/contextMenu';
+import {Menu, type MenuAnchor} from '@renderer/ui/menus/Menu';
+import {contextMenuAnchor, openMenuFromKey} from '@renderer/ui/menus/contextMenu';
 import {
   ELEMENT_DRAG_MIME,
   PREP_PALETTE_LABEL,

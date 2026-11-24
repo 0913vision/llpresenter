@@ -1,8 +1,8 @@
 import {createContext, useRef, type KeyboardEvent, type RefObject} from 'react';
-import {useCommandShortcuts} from '@renderer/ui/commandDispatcher';
-import {isComposing} from '@renderer/ui/ime';
-import {modalStack} from '@renderer/ui/modalStack';
-import {tabbableElements} from '@renderer/ui/useModal';
+import {useCommandShortcuts} from '@renderer/ui/keys/commandDispatcher';
+import {isComposing} from '@renderer/ui/fields/ime';
+import {modalStack} from '@renderer/ui/popups/modalStack';
+import {tabbableElements} from '@renderer/ui/popups/useModal';
 
 const panels = [
   ['order', '예배 순서'],
