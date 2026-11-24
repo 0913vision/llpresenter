@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import {create} from 'zustand';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {MediaId} from '@core/schema/common/ids';
@@ -63,11 +64,7 @@ export function startMediaSync(api: Feeds | undefined): () => void {
   const problem = (message: string) => (error: unknown) => {
     if (stopped) return;
     useMedia.setState({failed: true});
-    api.log.write({
-      level: 'error',
-      message,
-      detail: error instanceof Error ? error.message : String(error),
-    });
+    logFailure(api, message, error);
   };
   const stops = [
     api.media.subscribe(accept),

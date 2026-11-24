@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import {
   useEffect,
   useMemo,
@@ -108,11 +109,7 @@ export function useToolEditing<Edit>({
       }
       return isActive() && (result.ok || completion === 'applied');
     } catch (cause) {
-      api.log.write({
-        level: 'error',
-        message: area.log,
-        detail: cause instanceof Error ? cause.message : String(cause),
-      });
+      logFailure(api, area.log, cause);
       report('edit');
       return false;
     } finally {

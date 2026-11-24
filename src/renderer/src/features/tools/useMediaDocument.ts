@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {MediaDocument} from '@core/schema/media/mediaEdit';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
@@ -37,11 +38,7 @@ export function useMediaDocument(
     if (!api) return undefined;
     const {key, log, title} = READERS[reader];
     return subscribeMediaDocument(api.media, setDocument, (cause: unknown) => {
-      api.log.write({
-        level: 'error',
-        message: log,
-        detail: cause instanceof Error ? cause.message : String(cause),
-      });
+      logFailure(api, log, cause);
       report.current?.(warningNotice(key, title));
     });
   }, [reader]);

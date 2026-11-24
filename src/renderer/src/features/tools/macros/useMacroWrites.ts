@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import {useRef} from 'react';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {
@@ -59,12 +60,7 @@ export function useMacroWrites(
       saved => {
         if (saved && at === turn.current) after?.();
       },
-      (cause: unknown) =>
-        window.llp?.log.write({
-          level: 'error',
-          message: failure,
-          detail: String(cause),
-        }),
+      (cause: unknown) => logFailure(window.llp, failure, cause),
     );
   };
   return {

@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import {useEffect, useRef, useState} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {BibleLookupPassage} from '@core/schema/bible/bibleLookup';
@@ -123,11 +124,7 @@ export function usePassageSwap(source: BibleSource): {
       return 'opened';
     } catch (cause) {
       if (current()) {
-        api.log.write({
-          level: 'error',
-          message: failure.log,
-          detail: String(cause),
-        });
+        logFailure(api, failure.log, cause);
         setProblem(failure.problem);
         failure.report?.(failure.problem);
       }

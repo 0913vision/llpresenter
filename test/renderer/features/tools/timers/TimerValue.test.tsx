@@ -154,15 +154,16 @@ describe('timer values and their shared clock', () => {
 
   it('logs a failed clock read and keeps the monotonic fallback working', async () => {
     const f = fixture();
+    const failure = new Error('Invented clock failure');
     f.clock.mockImplementation(() => {
-      throw new Error('Invented clock failure');
+      throw failure;
     });
     render(<TimerValue api={f.api} timer={f.timer} run={f.run} />);
     await act(async () => undefined);
     expect(f.write).toHaveBeenCalledWith(
       expect.objectContaining({
         level: 'error',
-        detail: 'Invented clock failure',
+        detail: failure.stack,
       }),
     );
     elapsed = 3100;

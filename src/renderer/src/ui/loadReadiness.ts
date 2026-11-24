@@ -1,3 +1,4 @@
+import {rendererErrorEntry} from '@core/schema/app/ipcPayloads';
 import {createContext, useEffect, useSyncExternalStore} from 'react';
 
 /** What a view waits for: data, or a picture. */
@@ -62,11 +63,9 @@ export function usePaintedReadiness(
       if (!stopped && readiness.getSnapshot() === 0) onReady();
     };
     document.fonts.ready.then(draw, (error: unknown) => {
-      window.llp?.log.write({
-        level: 'error',
-        message: 'Could not prepare settings fonts',
-        detail: error instanceof Error ? error.message : String(error),
-      });
+      window.llp?.log.write(
+        rendererErrorEntry('Could not prepare settings fonts', error),
+      );
       draw();
     });
     return () => {

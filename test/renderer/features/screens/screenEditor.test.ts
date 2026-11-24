@@ -522,9 +522,10 @@ describe('ScreenEditor', () => {
   it('logs and reports a save that throws, then goes on', async () => {
     const write = vi.fn();
     const report = vi.fn();
+    const failure = new Error('no answer');
     const edit = vi
       .fn()
-      .mockRejectedValueOnce(new Error('no answer'))
+      .mockRejectedValueOnce(failure)
       .mockResolvedValueOnce(saved(2));
     const editor = new ScreenEditor(
       mockLlpApi({settings: {edit}, log: {write}}),
@@ -536,7 +537,7 @@ describe('ScreenEditor', () => {
     await editor.change(MAIN_ID, {name: '두 번째 화면'});
 
     expect(write).toHaveBeenCalledWith(
-      expect.objectContaining({level: 'error', detail: 'no answer'}),
+      expect.objectContaining({level: 'error', detail: failure.stack}),
     );
     expect(report).toHaveBeenCalledWith('화면 설정 저장 실패');
     expect(edit).toHaveBeenCalledTimes(2);

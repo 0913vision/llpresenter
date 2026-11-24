@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import {useSyncExternalStore} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {TimerNow} from '@core/timers';
@@ -30,12 +31,7 @@ class TimerClock {
     if (this.interval === null) {
       this.clock ??= new MainTimerClock(
         async () => this.api.live.clock(),
-        (message, cause) =>
-          this.api.log.write({
-            level: 'error',
-            message,
-            detail: cause instanceof Error ? cause.message : String(cause),
-          }),
+        (message, cause) => logFailure(this.api, message, cause),
         {
           read: this.api.live.wallClock,
           subscribe: this.api.live.subscribeWallClock,

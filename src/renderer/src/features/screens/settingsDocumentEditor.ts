@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {
   SettingsDocument,
@@ -111,11 +112,7 @@ export class SettingsDocumentEditor<T extends SettingsDocument> {
       this.options.report(result.error.message);
       return result.error.reason === 'write-failed' && completion === 'applied';
     } catch (cause) {
-      this.api.log.write({
-        level: 'error',
-        message: this.options.logMessage,
-        detail: cause instanceof Error ? cause.message : String(cause),
-      });
+      logFailure(this.api, this.options.logMessage, cause);
       this.options.report(this.options.failureTitle);
       return false;
     }
