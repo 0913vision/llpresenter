@@ -118,13 +118,6 @@ export function BiblePage({
             checked={preferences.bible.defaults.verseNumbers}
             onChange={verseNumbers => changeDefaults({verseNumbers})}
           />
-          <CheckboxRow
-            label="역본 이름"
-            disabled={lockedReason !== undefined}
-            title={lockedReason}
-            checked={preferences.bible.defaults.translationName}
-            onChange={translationName => changeDefaults({translationName})}
-          />
         </PropertyGroup>
       )}
     </>

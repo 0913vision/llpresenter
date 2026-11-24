@@ -1,25 +1,33 @@
+import {showsTranslationName} from '@core/bible';
 import type {BibleLookupPassage} from '@core/schema/bible/bibleLookup';
+import type {Translation} from '@core/schema/bible/bible';
 import type {BiblePassage} from '@core/schema/bible/biblePassage';
+import type {TranslationId} from '@core/schema/common/ids';
 import type {ServiceItemOf} from '@core/schema/services/service';
 import {bibleItem, sermonItem} from '@core/slides';
 import {makePassageSlides} from '@renderer/features/bible/makePassageSlides';
 import {slideMaking} from '@renderer/platform/documents/themes';
 
-/** How the slides of a new passage are made, from 환경설정. */
-export type PassageDefaults = Pick<
-  BiblePassage,
-  'verseNumbers' | 'translationName'
->;
+/**
+ * How a new passage starts: its 절 번호 from 환경설정, and the 기본 역본, whose
+ * name it hides while every other translation shows its name.
+ */
+export interface PassageDefaults extends Pick<BiblePassage, 'verseNumbers'> {
+  readonly translation: TranslationId;
+  /** The translations of 환경설정 \> 성경, which tell the 기본 역본. */
+  readonly translations: readonly Translation[];
+}
 
-function settingsOf(
+/** The settings a new passage starts with, from the defaults. */
+export function passageSettingsOf(
   passage: BibleLookupPassage,
-  {verseNumbers, translationName}: PassageDefaults,
+  {verseNumbers, translations}: PassageDefaults,
 ): BiblePassage {
   return {
     translation: passage.translation,
     ref: passage.ref,
     verseNumbers,
-    translationName,
+    translationName: showsTranslationName(passage.translation, translations),
   };
 }
 
@@ -30,7 +38,7 @@ export async function newBibleItem(
 ): Promise<ServiceItemOf<'bible'> | null> {
   const api = window.llp;
   if (api === undefined) return null;
-  const settings = settingsOf(passage, defaults);
+  const settings = passageSettingsOf(passage, defaults);
   const slides = await makePassageSlides(api, passage, {settings});
   return slides === null ? null : bibleItem(settings, slides);
 }
@@ -43,7 +51,7 @@ export async function newSermonItem(
 ): Promise<ServiceItemOf<'sermon'> | null> {
   const api = window.llp;
   if (api === undefined) return null;
-  const settings = settingsOf(passage, defaults);
+  const settings = passageSettingsOf(passage, defaults);
   const slides = await makePassageSlides(api, passage, {settings});
   return slides === null
     ? null

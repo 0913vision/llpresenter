@@ -206,7 +206,6 @@ export const preferencesSchema = jsonObject({
       defaults: v.exactOptional(
         jsonObject({
           verseNumbers: optionalBoolean,
-          translationName: optionalBoolean,
         }),
       ),
       splitEditorAutoOpen: optionalBoolean,
@@ -294,7 +293,6 @@ export const defaultPreferences: Preferences = {
   bible: {
     defaults: {
       verseNumbers: true,
-      translationName: false,
     },
     splitEditorAutoOpen: true,
   },

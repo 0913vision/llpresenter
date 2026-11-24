@@ -23,7 +23,7 @@ import {slideMaking, useThemes} from '@renderer/platform/documents/themes';
 import {Button} from '@renderer/ui/buttons/Button';
 import {warningNotice} from '@renderer/ui/popups/notices';
 import {BibleQuickAdd} from '../items/BibleQuickAdd';
-import type {PassageDefaults} from '../items/passageItems';
+import {passageSettingsOf, type PassageDefaults} from '../items/passageItems';
 
 function addTitle(deck: SlideDeck): void {
   const name = deck.source.title;
@@ -55,7 +55,7 @@ async function addPassage(
   const api = window.llp;
   if (api === undefined) return;
   const slides = await makePassageSlides(api, passage, {
-    settings: defaults,
+    settings: passageSettingsOf(passage, defaults),
     ownAddress: true,
   });
   if (slides !== null) addSlides(deck, slides);

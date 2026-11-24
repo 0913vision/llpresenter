@@ -1090,9 +1090,11 @@ integration use this contract, with a distinct cancellable ID per lookup.
     without spaces, following copible, including book names such as 요한일서.
     Book names follow the translation's language (02), including `John` and
     `1 John` for KJV. An address typed on a 슬라이드 replaces it there.
+  - A new passage, in 진행 or 준비, starts with 역본 이름 on unless its
+    translation is the 기본 역본 of 환경설정 > 성경; the 기본 역본 starts with
+    it off (user decision, November 24). The checkbox still changes one passage.
   - Turning on 역본 이름 appends the translation's `shortName` in parentheses:
-    `요한복음 3:16~18 (개역한글)`. The default is off, set in 환경설정 > 성경 >
-    새 구절.
+    `요한복음 3:16~18 (개역한글)`.
 - Bible 슬라이드 grid: each 슬라이드 shows its verse numbers and text, and the
   band shows the Korean short book name and reference (`합3:17`, `합3:17-18`). A
   verse split across slides adds its part number (`합3:17 (1)`, `합3:17 (2)`) in

@@ -1,28 +1,26 @@
 import {useEffect, useState} from 'react';
 import {type TranslationId, LIVE_BIBLE_ID} from '@core/schema/common/ids';
 import type {Preferences} from '@core/schema/app/preferences';
+import type {Translation} from '@core/schema/bible/bible';
+import {defaultTranslationOf} from '@core/bible';
 import type {PassageDefaults} from './passageItems';
 
-/** The translation and the passage settings a new Bible item starts with. */
-export interface BibleDefaults extends PassageDefaults {
-  readonly translation: TranslationId;
-}
-
 /** The translation and the settings a new passage starts with. */
-export function useBibleDefaults(): BibleDefaults | null {
-  const [defaults, setDefaults] = useState<BibleDefaults | null>(null);
+export function useBibleDefaults(): PassageDefaults | null {
+  const [defaults, setDefaults] = useState<PassageDefaults | null>(null);
   useEffect(() => {
     const api = window.llp;
     if (api === undefined) return undefined;
     let current = true;
     let translation: TranslationId | undefined;
+    let translations: readonly Translation[] = [];
     let preferences: Preferences | undefined;
     const publish = (): void => {
       if (!current || translation === undefined || preferences === undefined) {
         return;
       }
-      const {verseNumbers, translationName} = preferences.bible.defaults;
-      setDefaults({translation, verseNumbers, translationName});
+      const {verseNumbers} = preferences.bible.defaults;
+      setDefaults({translation, translations, verseNumbers});
     };
     const stop = api.preferences.subscribe(value => {
       preferences = value;
@@ -32,11 +30,8 @@ export function useBibleDefaults(): BibleDefaults | null {
       console.error('Could not read the Bible defaults', error);
     api.settings.get({name: 'bible'}).then(bible => {
       if (bible.name !== 'bible') return;
-      translation =
-        (
-          bible.value.translations.find(item => item.default) ??
-          bible.value.translations[0]
-        )?.id ?? LIVE_BIBLE_ID;
+      translations = bible.value.translations;
+      translation = defaultTranslationOf(translations) ?? LIVE_BIBLE_ID;
       publish();
     }, failed);
     api.preferences.get().then(value => {

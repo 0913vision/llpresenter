@@ -8,7 +8,13 @@ import type {BibleLookupReply} from '@core/schema/bible/bibleLookup';
 
 vi.mock('@renderer/features/service/items/useBibleDefaults', async () => {
   const {lookupRequest} = await import('@fixtures/core/bibleLookups');
-  return {useBibleDefaults: () => ({translation: lookupRequest().translation})};
+  return {
+    useBibleDefaults: () => ({
+      translation: lookupRequest().translation,
+      translations: [],
+      verseNumbers: true,
+    }),
+  };
 });
 
 it('closes from the populated title with Escape and preserves IME composition', () => {

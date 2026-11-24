@@ -500,7 +500,6 @@ describe('성경 새 구절 defaults', () => {
       split: 'fit',
       reference: 'last',
       verseNumbers: true,
-      translationName: false,
       future: 1,
     });
   });

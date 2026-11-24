@@ -4,8 +4,8 @@ import type {BibleDisplay} from '@renderer/session/show/bibleSource';
 import type {Preferences} from '@core/schema/app/preferences';
 
 /**
- * Follows the Bible defaults for a new passage without
- * replacing a push with a stale startup read.
+ * Follows the 절 번호 a new passage starts with, without replacing a push with a
+ * stale startup read. Its translation name follows the passage's translation.
  */
 export function useBibleDisplayDefaults(
   api: LlpApi['preferences'] | undefined,
@@ -20,13 +20,12 @@ export function useBibleDisplayDefaults(
     let pushed = false;
     const receive = (preferences: Preferences): void => {
       if (!active) return;
-      const {verseNumbers, translationName} = preferences.bible.defaults;
+      const {verseNumbers} = preferences.bible.defaults;
       setValue(previous =>
         previous?.owner === api &&
-        previous.display.verseNumbers === verseNumbers &&
-        previous.display.translationName === translationName
+        previous.display.verseNumbers === verseNumbers
           ? previous
-          : {owner: api, display: {verseNumbers, translationName}},
+          : {owner: api, display: {verseNumbers}},
       );
     };
     const stop = api.subscribe(preferences => {

@@ -1,4 +1,9 @@
-import {withLiveBible, QUICK_BIBLE_TRANSITION} from '@core/bible';
+import {
+  defaultTranslationOf,
+  QUICK_BIBLE_TRANSITION,
+  showsTranslationName,
+  withLiveBible,
+} from '@core/bible';
 import type {RecentPassage} from '@core/schema/bible/bible';
 import type {BibleLookupPassage} from '@core/schema/bible/bibleLookup';
 import {useEffect, useLayoutEffect, useRef, useState, type JSX} from 'react';
@@ -90,7 +95,9 @@ function useFieldSession() {
  * Cuts a passage typed whole into slides while the window is idle, as soon as
  * its lookup is back, so Enter only has to put it out.
  */
-function usePrepareAhead(display: BibleDisplay | null) {
+function usePrepareAhead(
+  displayFor: (passage: BibleLookupPassage) => BibleDisplay | null,
+) {
   const pending = useRef<number | null>(null);
   useEffect(
     () => () => {
@@ -101,6 +108,7 @@ function usePrepareAhead(display: BibleDisplay | null) {
   return (passage: BibleLookupPassage): void => {
     if (pending.current !== null) cancelIdleCallback(pending.current);
     pending.current = null;
+    const display = displayFor(passage);
     if (display === null) return;
     const options = {...display, transition: QUICK_BIBLE_TRANSITION};
     pending.current = requestIdleCallback(
@@ -135,9 +143,18 @@ export function BibleQuickField({
     ? withLiveBible(document.value.translations)
     : [];
   const currentTranslation =
+    display === null ? undefined : defaultTranslationOf(translations);
+  /** How a new passage shows: the 절 번호 of 환경설정, and its translation name unless it is the 기본 역본. */
+  const displayFor = (passage: BibleLookupPassage): BibleDisplay | null =>
     display === null
-      ? undefined
-      : (translations.find(item => item.default) ?? translations[0])?.id;
+      ? null
+      : {
+          ...display,
+          translationName: showsTranslationName(
+            passage.translation,
+            translations,
+          ),
+        };
   const [finderOpen, setFinderOpen] = useState(false);
   const gridFocus = useGridFocusAfterShow(finderOpen);
   const finder = usePassageFinder({
@@ -146,7 +163,7 @@ export function BibleQuickField({
     onClose: gridFocus.cancel,
   });
   const field = useFieldSession();
-  const prepareAhead = usePrepareAhead(display);
+  const prepareAhead = usePrepareAhead(displayFor);
 
   /** The operator starts something new: earlier output requests give way. */
   const intent = (): void => {
@@ -160,7 +177,8 @@ export function BibleQuickField({
    * out as it is cut there, starting at the verse the operator asked for.
    */
   const show = (passage: BibleLookupPassage, reusePreview = true): void => {
-    if (display === null) return;
+    const own = displayFor(passage);
+    if (own === null) return;
     const view = useShow.getState();
     const prepared = bibleSourceFor(view, view.openItemId);
     const expanded =
@@ -177,7 +195,7 @@ export function BibleQuickField({
     if (prepared !== null) selectTile(firstVerseOf(prepared, passage));
     showBiblePassage(
       expanded ? prepared.passage : passage,
-      quickDisplay(expanded || samePassage ? prepared : display),
+      quickDisplay(expanded || samePassage ? prepared : own),
     );
     setFinderOpen(false);
     finishQuickPassage();
@@ -234,9 +252,15 @@ export function BibleQuickField({
       translation={currentTranslation}
       recents={[]}
       onIntent={intent}
-      onEdit={equivalent => followQuickEdit(equivalent, display)}
+      onEdit={equivalent =>
+        followQuickEdit(
+          equivalent,
+          equivalent === null ? null : displayFor(equivalent),
+        )
+      }
       onPreview={passage => {
-        if (display !== null) openBiblePassage(passage, quickDisplay(display));
+        const shown = displayFor(passage);
+        if (shown !== null) openBiblePassage(passage, quickDisplay(shown));
       }}
       onShow={passage => show(passage)}
     />

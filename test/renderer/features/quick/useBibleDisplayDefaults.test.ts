@@ -14,7 +14,6 @@ function preferences(verseNumbers: boolean): Preferences {
       defaults: {
         ...defaultPreferences.bible.defaults,
         verseNumbers,
-        translationName: !verseNumbers,
       },
     },
   };
@@ -58,13 +57,11 @@ describe('Bible verse-number defaults', () => {
     const view = renderHook(() => useBibleDisplayDefaults(fixture.api));
     expect(view.result.current).toBeNull();
     act(() => fixture.emit(false));
-    expect(view.result.current?.verseNumbers).toBe(false);
-    expect(view.result.current?.translationName).toBe(true);
+    expect(view.result.current).toEqual({verseNumbers: false});
     await act(async () => fixture.finish(true));
     expect(view.result.current?.verseNumbers).toBe(false);
     act(() => fixture.emit(true));
-    expect(view.result.current?.verseNumbers).toBe(true);
-    expect(view.result.current?.translationName).toBe(false);
+    expect(view.result.current).toEqual({verseNumbers: true});
     view.unmount();
     expect(fixture.stop).toHaveBeenCalledOnce();
   });

@@ -15,6 +15,7 @@ export {BIBLE_VERSE_COUNTS} from './bibleVerseCounts';
 export {displayReference} from './displayReference';
 export {withLiveBible} from './liveTranslation';
 export {QUICK_BIBLE_TRANSITION} from './quickTransition';
+export {defaultTranslationOf, showsTranslationName} from './translationName';
 export {
   type ReferenceProblem,
   type ResolvedPassage,
