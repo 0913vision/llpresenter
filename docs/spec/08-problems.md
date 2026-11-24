@@ -329,10 +329,10 @@ session over it. A second answer is refused while a restore is in progress.
 | Part    | Content                                                                                                            |
 | ------- | ------------------------------------------------------------------------------------------------------------------ |
 | Icon    | History icon                                                                                                       |
-| Title   | "출력 내용을 복구할까요?" (restore the output?)                                                                    |
+| Title   | "끊긴 곳부터 이어서 할까요?" (go on from where it stopped?)                                                        |
 | Detail  | "앱이 갑자기 꺼졌습니다 10월 25일 오전 11:26" (the app closed suddenly, with the time of the last recovery record) |
-| Group   | "복구할 항목" (items to restore), with three check rows, all checked by default                                    |
-| Buttons | 새로 시작 (start fresh) and 복구 (restore, primary). There is no cancel button.                                    |
+| Group   | "이어서 할 항목" (items to go on with), with three check rows, all checked by default                              |
+| Buttons | 새로 시작 (start fresh) and 이어서 하기 (go on, primary). There is no cancel button.                               |
 
 | Row                                        | Value example                       | Restores                                                                                     |
 | ------------------------------------------ | ----------------------------------- | -------------------------------------------------------------------------------------------- |
@@ -342,22 +342,25 @@ session over it. A second answer is refused while a restore is in progress.
 
 - Hide a row that has nothing to restore (proposal). If the record has nothing
   at all to restore, don't show the dialog, and launch normally (proposal).
-- With every row unchecked, 복구 is unavailable.
-- Enter is 복구. Esc is 새로 시작. The dialog has no close button, and clicking
-  outside it doesn't close it.
+- With every row unchecked, 이어서 하기 is unavailable.
+- Enter is 이어서 하기. Esc is 새로 시작. The dialog has no close button, and
+  clicking outside it doesn't close it.
 - F1 to F6 still work while the dialog is open.
 - Timers and audio aren't restored (proposal; see 02).
 
 ### After the answer
 
-- 복구: apply the checked rows in this order: outputs on, the live 슬라이드 and
-  its background, then the items that were showing. Don't run startup 매크로
-  (proposal).
+- 이어서 하기: apply the checked rows in this order: outputs on, the live
+  슬라이드 and its background, then the items that were showing. Don't run
+  startup 매크로 (proposal).
 - 새로 시작: start with an empty output state. Apply 켤 때 화면 출력 as on a
   normal launch, and run startup 매크로 (proposal).
 - Then delete the old recovery record and create a new `session.lock`.
 - If the item of the last 슬라이드 no longer exists, hide the 마지막 슬라이드
   row (proposal).
+
+Wording: user decision, November 25 (the earlier title 출력 내용을 복구할까요?
+was unclear).
 
 Source: `Recovery`, `AlertDialog` README, `Checkbox` README, `Main` decision
 "복구는 출력 상태만", product log versions 61 and 62.

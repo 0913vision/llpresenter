@@ -479,14 +479,14 @@ export function OverlaySection(): JSX.Element {
             render={close => (
               <AlertDialog
                 icon="history"
-                title="출력 내용을 복구할까요?"
+                title="끊긴 곳부터 이어서 할까요?"
                 meta={['앱이 갑자기 꺼졌습니다.', '10월 25일 오전 11:26']}
                 actions={[
                   {label: '새로 시작', escape: true, onSelect: close},
-                  {label: '복구', primary: true, onSelect: close},
+                  {label: '이어서 하기', primary: true, onSelect: close},
                 ]}
                 list={{
-                  label: '복구할 항목',
+                  label: '이어서 할 항목',
                   children: (
                     <>
                       <CheckRow

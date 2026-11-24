@@ -50,7 +50,7 @@ function setup(offers: ReadonlyArray<RecoverySummary | Error>) {
 }
 
 const dialog = () =>
-  screen.queryByRole('alertdialog', {name: '출력 내용을 복구할까요?'});
+  screen.queryByRole('alertdialog', {name: '끊긴 곳부터 이어서 할까요?'});
 
 it('keeps the dialog and checked rows available to retry a failed durable restore', async () => {
   const offer = sampleOffer();
@@ -59,11 +59,11 @@ it('keeps the dialog and checked rows available to retry a failed durable restor
     ok: false,
     error: {reason: 'apply-failed', message: 'Invented failed durable write'},
   });
-  await screen.findByRole('alertdialog', {name: '출력 내용을 복구할까요?'});
+  await screen.findByRole('alertdialog', {name: '끊긴 곳부터 이어서 할까요?'});
   await userEvent.click(
     screen.getByRole('checkbox', {name: /마지막 슬라이드/}),
   );
-  await userEvent.click(screen.getByRole('button', {name: '복구'}));
+  await userEvent.click(screen.getByRole('button', {name: '이어서 하기'}));
 
   await waitFor(() => expect(summary).toHaveBeenCalledTimes(2));
   expect(dialog()).not.toBeNull();
@@ -74,10 +74,12 @@ it('keeps the dialog and checked rows available to retry a failed durable restor
   ).toBe('false');
   await waitFor(() =>
     expect(
-      screen.getByRole('button', {name: '복구'}).getAttribute('aria-disabled'),
+      screen
+        .getByRole('button', {name: '이어서 하기'})
+        .getAttribute('aria-disabled'),
     ).not.toBe('true'),
   );
-  await userEvent.click(screen.getByRole('button', {name: '복구'}));
+  await userEvent.click(screen.getByRole('button', {name: '이어서 하기'}));
   await waitFor(() => expect(dialog()).toBeNull());
   expect(apply).toHaveBeenCalledTimes(2);
   expect(apply.mock.calls.map(([answer]) => answer)).toEqual([
@@ -99,7 +101,7 @@ afterEach(async () => {
 
 it('lets F1 clear the screens while the dialog is open', async () => {
   const {send} = setup([sampleOffer()]);
-  await screen.findByRole('alertdialog', {name: '출력 내용을 복구할까요?'});
+  await screen.findByRole('alertdialog', {name: '끊긴 곳부터 이어서 할까요?'});
   const empty = emptyLiveState();
   useLive.setState({
     state: {

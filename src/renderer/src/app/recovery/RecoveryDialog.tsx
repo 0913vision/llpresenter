@@ -4,11 +4,11 @@ import {AlertDialog} from '@renderer/ui/popups/AlertDialog';
 import {CheckRow} from '@renderer/ui/choices/Checkbox';
 import {recoveryRows, recoveryTime} from './recoveryView';
 
-const NOTHING_CHECKED_TIP = '복구할 항목을 골라야 합니다.';
+const NOTHING_CHECKED_TIP = '이어서 할 항목을 골라야 합니다.';
 
 /**
  * The 출력 상태 복구 dialog (spec 08): the rows main offers, all checked at
- * first. Enter is 복구 and Esc is 새로 시작; with no row checked, 복구 is
+ * first. Enter is 이어서 하기 and Esc is 새로 시작; with no row checked, 이어서 하기 is
  * unavailable. Both buttons wait while an answer is on its way.
  */
 export function RecoveryDialog({
@@ -40,7 +40,7 @@ export function RecoveryDialog({
   return (
     <AlertDialog
       icon="history"
-      title="출력 내용을 복구할까요?"
+      title="끊긴 곳부터 이어서 할까요?"
       meta={['앱이 갑자기 꺼졌습니다.', recoveryTime(summary.savedAt)]}
       actions={[
         {
@@ -50,7 +50,7 @@ export function RecoveryDialog({
           onSelect: onStartFresh,
         },
         {
-          label: '복구',
+          label: '이어서 하기',
           primary: true,
           disabled: busy || checked.length === 0,
           title: checked.length === 0 ? NOTHING_CHECKED_TIP : undefined,
@@ -58,7 +58,7 @@ export function RecoveryDialog({
         },
       ]}
       list={{
-        label: '복구할 항목',
+        label: '이어서 할 항목',
         children: rows.map(row => (
           <CheckRow
             key={row.kind}
