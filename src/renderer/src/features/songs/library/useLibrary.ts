@@ -150,18 +150,7 @@ export function useLibrary(
       if (isActive()) accept(entries);
     });
     const stopSongs = api.songs.subscribe(searchAgain);
-    const version = ++pending.list;
-    api.songs.list().then(
-      entries => {
-        if (isActive() && version === pending.list) accept(entries);
-      },
-      () => {
-        if (isActive() && version === pending.list) {
-          setLoading(false);
-          report('load', loadAction(reload));
-        }
-      },
-    );
+    reload();
     return () => {
       alive.current = false;
       pending.list++;
@@ -169,21 +158,33 @@ export function useLibrary(
       stopList();
       stopSongs();
     };
-  }, [api, accept, report, isActive, reload, searchAgain]);
+  }, [api, accept, isActive, reload, searchAgain]);
+
+  /**
+   * Reads song `songId` and hands it to the editor, unless another open or
+   * the end of the panel came first.
+   */
+  const openDocument = async (
+    songId: SongId,
+    version: number,
+    selection: Omit<LibrarySelection, 'document'>,
+  ): Promise<void> => {
+    const document = await api.songs.get(songId);
+    if (!isActive() || version !== requests.current.open) return;
+    if (document === null) {
+      report('missing');
+      return;
+    }
+    setSelected(document.song.id);
+    onOpenSong({document, ...selection});
+  };
 
   const open = async (songId: SongId, position?: number): Promise<void> => {
     const version = ++requests.current.open;
     opening.current = songId;
     setSelected(songId);
     try {
-      const document = await api.songs.get(songId);
-      if (!isActive() || version !== requests.current.open) return;
-      if (document === null) {
-        report('missing');
-        return;
-      }
-      onOpenSong({
-        document,
+      await openDocument(songId, version, {
         focusTitle: false,
         ...(position === undefined ? {} : {position}),
       });
@@ -245,15 +246,7 @@ export function useLibrary(
       const version = ++requests.current.open;
       opening.current = null;
       const id = await createSong(commands);
-      if (id === null) return;
-      const document = await api.songs.get(id);
-      if (!isActive() || version !== requests.current.open) return;
-      if (document === null) {
-        report('missing');
-        return;
-      }
-      setSelected(document.song.id);
-      onOpenSong({document, focusTitle: true});
+      if (id !== null) await openDocument(id, version, {focusTitle: true});
     });
 
   const duplicate = async (id: SongId): Promise<void> => {
