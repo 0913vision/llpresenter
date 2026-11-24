@@ -514,7 +514,10 @@ page shares the row controls, save and rename behavior, immediate deletion and
 - Where: Toolbar theme button (ThemeMenu), showing the confirmed live name.
 - Opens: Click 테마 바꾸기 or press its assigned command.
 - Purpose: Pick the live theme until the next item starts or an outside-service
-  slide goes out (12). A settings edit does not confirm a live selection.
+  slide goes out (12). A settings edit does not confirm a live selection. The
+  picked theme changes the text and the theme's own look only: a slide's own
+  background stays, so the operator picks a theme that suits it (user decision,
+  November 24).
 
 | Group | Row         | Does                                          | Status |
 | ----- | ----------- | --------------------------------------------- | ------ |
