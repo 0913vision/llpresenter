@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {LiveState} from '@core/schema/live/live';
 import {QUICK_BIBLE_TRANSITION} from '@core/bible';
@@ -140,11 +141,7 @@ export function quickRunner(api: LlpApi, onProblem: (notice: Notice) => void) {
         }
       }
     } catch (cause) {
-      api.log.write({
-        level: 'error',
-        message: 'Could not run the quick item',
-        detail: cause instanceof Error ? cause.message : String(cause),
-      });
+      logFailure(api, 'Could not run the quick item', cause);
       if (current()) {
         onProblem(warningNotice('quick:run', '항목 실행 실패', [item.name]));
       }

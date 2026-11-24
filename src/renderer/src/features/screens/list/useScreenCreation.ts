@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import {useRef} from 'react';
 import {parseScreenId, type ScreenId} from '@core/schema/common/ids';
 import type {Screen} from '@core/schema/screens/screens';
@@ -23,11 +24,7 @@ export function useScreenCreation(
   const mounted = useAlive();
   const latest = useRef<string | null>(null);
   const report = (cause: unknown): void => {
-    window.llp?.log.write({
-      level: 'error',
-      message: 'Could not create a screen',
-      detail: cause instanceof Error ? cause.message : String(cause),
-    });
+    logFailure(window.llp, 'Could not create a screen', cause);
     onProblem?.(warningNotice('screens:add', '화면 추가 실패'));
   };
   return (

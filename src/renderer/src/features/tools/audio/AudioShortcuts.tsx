@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import {useSyncExternalStore, type JSX} from 'react';
 import {audioTracks, audioPlayCommand} from '@core/media';
 import {commandBindings, shortcutCommands} from '@core/shortcuts';
@@ -86,11 +87,7 @@ function BoundAudioShortcuts({
         void editing
           .run({id: selected.id, loop: !selected.loop})
           .catch((error: unknown) =>
-            api?.log.write({
-              level: 'error',
-              message: 'Could not toggle audio repeat',
-              detail: String(error),
-            }),
+            logFailure(api, 'Could not toggle audio repeat', error),
           );
       },
     },

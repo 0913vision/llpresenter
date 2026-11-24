@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import type {ThemeId} from '@core/schema/common/ids';
 import {sendLive} from '@renderer/session/live';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
@@ -10,11 +11,7 @@ export function sendThemeChange(
   try {
     sendLive({type: 'theme.set', themeId});
   } catch (cause) {
-    window.llp?.log.write({
-      level: 'error',
-      message: 'Could not send the theme change command',
-      detail: cause instanceof Error ? cause.message : String(cause),
-    });
+    logFailure(window.llp, 'Could not send the theme change command', cause);
     onProblem(warningNotice('theme:send', '테마 변경 실패'));
   }
 }

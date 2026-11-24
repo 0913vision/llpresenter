@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import {
   NOT_IN_THIS_WINDOW,
   NEWER_FILE_REASON,
@@ -42,11 +43,7 @@ export function useScreenRowActions(
   const report = (title: string): void =>
     onProblem?.(warningNotice('screens:row', title));
   const failed = (cause: unknown): void => {
-    window.llp?.log.write({
-      level: 'error',
-      message: 'Could not edit a screen row',
-      detail: String(cause),
-    });
+    logFailure(window.llp, 'Could not edit a screen row', cause);
     report('화면 설정 저장 실패');
   };
   const handoff = useMenuHandoff<{kind: 'rename' | 'delete'; id: string}>(
@@ -127,11 +124,11 @@ export function useScreenRowActions(
                     on: outputs[target.id] !== true,
                   });
                 } catch (cause) {
-                  window.llp?.log.write({
-                    level: 'error',
-                    message: 'Could not toggle a screen output',
-                    detail: String(cause),
-                  });
+                  logFailure(
+                    window.llp,
+                    'Could not toggle a screen output',
+                    cause,
+                  );
                   report('화면 출력 변경 실패');
                 }
               },

@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import {create} from 'zustand';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {Result} from '@core/common/result';
@@ -238,11 +239,7 @@ class OpenServiceEditor {
   }
 
   private fail(error: unknown): void {
-    this.api.log.write({
-      level: 'error',
-      message: 'Could not save an edit of the open service',
-      detail: error instanceof Error ? error.message : String(error),
-    });
+    logFailure(this.api, 'Could not save an edit of the open service', error);
     const failed: OpenServiceResult = {
       ok: false,
       error: {

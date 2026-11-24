@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import {useRef, useState} from 'react';
 import {
   type Notice,
@@ -43,11 +44,7 @@ export function useServiceOrderEditing(onProblem: (notice: Notice) => void) {
       }
       return result.ok;
     } catch (cause) {
-      api.log.write({
-        level: 'error',
-        message: 'Could not edit the service order',
-        detail: cause instanceof Error ? cause.message : String(cause),
-      });
+      logFailure(api, 'Could not edit the service order', cause);
       onProblem(warningNotice('service-order:request', '예배 변경 실패'));
       return false;
     } finally {

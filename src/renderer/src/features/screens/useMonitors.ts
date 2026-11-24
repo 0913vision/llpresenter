@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import {useContext, useEffect, useState} from 'react';
 import {LoadReadinessContext} from '@renderer/ui/loadReadiness';
 import type {MonitorList} from '@core/schema/screens/monitors';
@@ -34,11 +35,7 @@ export function useMonitors(): MonitorList {
       },
       (cause: unknown) => {
         ready?.();
-        api.log.write({
-          level: 'error',
-          message: 'Could not read the monitors',
-          detail: cause instanceof Error ? cause.message : String(cause),
-        });
+        logFailure(api, 'Could not read the monitors', cause);
       },
     );
     return () => {

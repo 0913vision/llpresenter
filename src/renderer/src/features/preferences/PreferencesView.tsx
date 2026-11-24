@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import {
   useEffect,
   useRef,
@@ -138,11 +139,7 @@ function PreferencesContent({
     };
     const fontsReady = preferencesFontsReady();
     fontsReady.then(draw, (error: unknown) => {
-      window.llp?.log.write({
-        level: 'error',
-        message: 'Could not prepare preferences fonts',
-        detail: error instanceof Error ? error.message : String(error),
-      });
+      logFailure(window.llp, 'Could not prepare preferences fonts', error);
       draw();
     });
     return () => {

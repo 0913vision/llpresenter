@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import {NAME_LIMIT} from '@core/schema/common/primitives';
 import {displayReference} from '@core/bible';
 import {RenameDialog} from '@renderer/ui/popups/RenameDialog';
@@ -113,11 +114,7 @@ function QuickAddMenu({
         if (active) setCurrent({view, choice});
       },
       (cause: unknown) => {
-        api.log.write({
-          level: 'error',
-          message: 'Could not read the quick add source',
-          detail: String(cause),
-        });
+        logFailure(api, 'Could not read the quick add source', cause);
         if (active) {
           onProblem(warningNotice('quick:source', '항목 불러오기 실패'));
         }

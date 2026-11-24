@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import {useEffect} from 'react';
 import {
   dispatchShortcut,
@@ -42,11 +43,7 @@ const commands: readonly WindowShortcut[] = [
     id: direction === 'next' ? 'bible.nextVerse' : 'bible.previousVerse',
     run: () => {
       outputAdjacentBibleVerse(direction).catch((cause: unknown) =>
-        window.llp?.log.write({
-          level: 'error',
-          message: 'Could not handle the Bible verse key',
-          detail: String(cause),
-        }),
+        logFailure(window.llp, 'Could not handle the Bible verse key', cause),
       );
     },
   })),

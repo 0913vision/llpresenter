@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import {useEffect, useMemo, useRef, useState} from 'react';
 import type {ServiceEntry} from '@core/schema/services/contentDocuments';
 import {applyService} from '@renderer/session/show/show';
@@ -76,11 +77,7 @@ export function useServicePicker(onProblem: (notice: Notice) => void) {
         }
       },
       (cause: unknown) => {
-        api.log.write({
-          level: 'error',
-          message: 'Could not load the service list',
-          detail: cause instanceof Error ? cause.message : String(cause),
-        });
+        logFailure(api, 'Could not load the service list', cause);
         if (active && !pushed) {
           setReady(true);
           onProblem(problemNotice('load'));
@@ -136,11 +133,7 @@ export function useServicePicker(onProblem: (notice: Notice) => void) {
         applyService(next);
       }
     } catch (cause) {
-      api.log.write({
-        level: 'error',
-        message: 'Could not open the service',
-        detail: cause instanceof Error ? cause.message : String(cause),
-      });
+      logFailure(api, 'Could not open the service', cause);
       if (alive.current) report('open');
     } finally {
       pending.current = false;

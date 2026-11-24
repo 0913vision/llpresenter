@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import {optionValueAt} from '@renderer/ui/lists/optionValue';
 import {nameReason} from '@renderer/ui/fields/nameReason';
 import {NAME_LIMIT} from '@core/schema/common/primitives';
@@ -230,11 +231,7 @@ export function MessageEditing({
         if (edit.kind === 'duplicate') onSelect(edit.copyId);
       },
       (cause: unknown) =>
-        window.llp?.log.write({
-          level: 'error',
-          message: 'Message edit callback failed',
-          detail: String(cause),
-        }),
+        logFailure(window.llp, 'Message edit callback failed', cause),
     );
   };
   const duplicate = (item: MessageTemplate): void =>

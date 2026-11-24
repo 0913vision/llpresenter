@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import {SCREEN_NAME_PROBLEMS} from '../screenEditor';
 import {
   THEME_CANVAS,
@@ -572,11 +573,7 @@ export function ScreenProperties({
             onProblem?.(warningNotice('screens:rename', title));
           })
           .catch((cause: unknown) => {
-            window.llp?.log.write({
-              level: 'error',
-              message: 'Could not rename the screen',
-              detail: String(cause),
-            });
+            logFailure(window.llp, 'Could not rename the screen', cause);
             onProblem?.(warningNotice('screens:rename', '화면 설정 저장 실패'));
           });
       }}

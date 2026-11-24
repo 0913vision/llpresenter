@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import {useLayoutEffect, useRef, useState} from 'react';
 import type {Themes} from '@core/schema/screens/themes';
 import type {ThemeListResult} from '@core/theme';
@@ -22,11 +23,7 @@ export function useThemeWrites(
     reportRef.current?.(warningNotice('screens:themes', title));
 
   const reportError = (error: unknown): void => {
-    api?.log.write({
-      level: 'error',
-      message: 'Could not edit a theme',
-      detail: error instanceof Error ? error.message : String(error),
-    });
+    logFailure(api, 'Could not edit a theme', error);
     report('테마 변경 실패');
   };
 

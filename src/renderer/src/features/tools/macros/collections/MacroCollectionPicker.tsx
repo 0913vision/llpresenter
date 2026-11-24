@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import {NAME_LIMIT} from '@core/schema/common/primitives';
 import {useMenuHandoff} from '@renderer/ui/menus/useMenuHandoff';
 import {Fragment, useLayoutEffect, useState, type JSX} from 'react';
@@ -136,11 +137,7 @@ function CollectionPopover({
         if (saved) after?.();
       },
       (cause: unknown) => {
-        window.llp?.log.write({
-          level: 'error',
-          message: 'Macro collection callback failed',
-          detail: String(cause),
-        });
+        logFailure(window.llp, 'Macro collection callback failed', cause);
       },
     );
   };

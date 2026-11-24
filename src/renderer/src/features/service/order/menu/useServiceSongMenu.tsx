@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import {useEffect, useRef, useState} from 'react';
 import type {
   SongDocument,
@@ -96,11 +97,7 @@ export function useServiceSongMenu(
     };
     read().catch((cause: unknown) => {
       if (!current()) return;
-      api.log.write({
-        level: 'error',
-        message: 'Could not read the service item menu song',
-        detail: String(cause),
-      });
+      logFailure(api, 'Could not read the service item menu song', cause);
       setFailure({target, revision});
     });
     return () => {

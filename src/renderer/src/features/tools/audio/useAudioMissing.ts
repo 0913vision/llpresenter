@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {MediaId} from '@core/schema/common/ids';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
@@ -28,11 +29,7 @@ export function useAudioMissing(
       },
       (cause: unknown) => {
         if (!active || pushed) return;
-        api.log.write({
-          level: 'error',
-          message: 'Could not check audio files',
-          detail: cause instanceof Error ? cause.message : String(cause),
-        });
+        logFailure(api, 'Could not check audio files', cause);
         report.current?.(
           warningNotice('audio:missing', '오디오 파일 상태 확인 실패'),
         );

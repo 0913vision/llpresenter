@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import {create} from 'zustand';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {
@@ -267,11 +268,7 @@ async function send(edit: ContentEdit): Promise<EditResult | null> {
   try {
     return await api.content.edit(edit);
   } catch (error) {
-    api.log.write({
-      level: 'error',
-      message: 'Could not save a song',
-      detail: error instanceof Error ? error.message : String(error),
-    });
+    logFailure(api, 'Could not save a song', error);
     return null;
   }
 }

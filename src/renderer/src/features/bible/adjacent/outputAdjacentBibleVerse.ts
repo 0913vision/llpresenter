@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import type {VerseDirection} from '@core/bible';
 import type {BiblePassage} from '@core/schema/bible/biblePassage';
 import type {BibleLookupPassage} from '@core/schema/bible/bibleLookup';
@@ -127,11 +128,7 @@ export async function outputAdjacentBibleVerse(
     });
   } catch (cause) {
     if (current()) {
-      api.log.write({
-        level: 'error',
-        message: 'Could not output an adjacent Bible verse',
-        detail: String(cause),
-      });
+      logFailure(api, 'Could not output an adjacent Bible verse', cause);
     }
   }
 }

@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import {useEffect, useState} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {
@@ -61,19 +62,6 @@ function followServices(
 /** A source as a list value, such as `template:<id>`. */
 export function sourceKey(source: ServiceSource): string {
   return source.kind === 'empty' ? 'empty' : `${source.kind}:${source.id}`;
-}
-
-/** Writes a failed read or edit of the service dialogs to the log. */
-export function logFailure(
-  api: Pick<LlpApi, 'log'>,
-  message: string,
-  cause: unknown,
-): void {
-  api.log.write({
-    level: 'error',
-    message,
-    detail: cause instanceof Error ? cause.message : String(cause),
-  });
 }
 
 async function readSource(

@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import {
   Activity,
   useCallback,
@@ -81,11 +82,7 @@ export function SettingsWindow({
       if (request.preparing) reopening = true;
       next = request;
       run().catch((error: unknown) =>
-        window.llp?.log.write({
-          level: 'error',
-          message: 'Could not change the settings view',
-          detail: error instanceof Error ? error.message : String(error),
-        }),
+        logFailure(window.llp, 'Could not change the settings view', error),
       );
     };
     start.current ??= api.settingsRequest();
@@ -95,11 +92,7 @@ export function SettingsWindow({
         if (alive && !pushed) accept(request);
       },
       (error: unknown) =>
-        window.llp?.log.write({
-          level: 'error',
-          message: 'Could not read the settings view',
-          detail: error instanceof Error ? error.message : String(error),
-        }),
+        logFailure(window.llp, 'Could not read the settings view', error),
     );
     const stop = api.onSettingsRequest(request => {
       pushed = true;

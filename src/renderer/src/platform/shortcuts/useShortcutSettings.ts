@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import {useEffect} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import {commandBindingStore} from '@renderer/ui/keys/commandBindings';
@@ -25,11 +26,7 @@ export function useShortcutSettings(api: LlpApi | undefined): void {
       .then(accept)
       .catch((error: unknown) => {
         if (active) {
-          api.log.write({
-            level: 'error',
-            message: 'Could not load shortcut settings',
-            detail: String(error),
-          });
+          logFailure(api, 'Could not load shortcut settings', error);
         }
       });
     return () => {

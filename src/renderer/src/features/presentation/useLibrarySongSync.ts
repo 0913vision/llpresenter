@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import {useEffect, useEffectEvent} from 'react';
 import {refreshLibrarySong} from '@renderer/session/show/showLibrary';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
@@ -18,11 +19,7 @@ export function useLibrarySongSync(onProblem: (notice: Notice) => void): void {
         const song = await api.library.showSong({songId});
         if (active && request === version) refreshLibrarySong(songId, song);
       } catch (cause) {
-        api.log.write({
-          level: 'error',
-          message: 'Could not refresh the open library song',
-          detail: cause instanceof Error ? cause.message : String(cause),
-        });
+        logFailure(api, 'Could not refresh the open library song', cause);
         if (active && request === version) {
           report(warningNotice('library-song:refresh', '곡 불러오기 실패'));
         }

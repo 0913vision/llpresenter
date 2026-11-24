@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import {useEffect, useState} from 'react';
 import type {ThemeId} from '@core/schema/common/ids';
 import {hasSlides, type ServiceItem} from '@core/schema/services/service';
@@ -27,11 +28,7 @@ export function useThemeUsage(
       .then(usage => setCounted({theme, usage}))
       .catch((error: unknown) => {
         if (controller.signal.aborted) return;
-        api.log.write({
-          level: 'error',
-          message: 'Could not count the items that use a theme',
-          detail: error instanceof Error ? error.message : String(error),
-        });
+        logFailure(api, 'Could not count the items that use a theme', error);
         setCounted({theme, usage: 'failed'});
       });
     return () => {

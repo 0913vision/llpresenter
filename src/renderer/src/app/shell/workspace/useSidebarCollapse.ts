@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import {useCallback, useState} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {UiState} from '@core/schema/app/uiState';
@@ -33,11 +34,7 @@ export function useSidebarCollapse(
           leftCollapsed: collapsed,
         });
       } catch (cause) {
-        api?.log.write({
-          level: 'error',
-          message: 'Could not save the sidebar state',
-          detail: cause instanceof Error ? cause.message : String(cause),
-        });
+        logFailure(api, 'Could not save the sidebar state', cause);
       }
     },
     [api],

@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {Result} from '@core/common/result';
 import {createServiceItemId, type ServiceId} from '@core/schema/common/ids';
@@ -78,11 +79,7 @@ export class ServiceItemClipboard {
       for (const listener of this.listeners) listener();
       return {ok: true, value: true};
     } catch (error) {
-      this.api.log.write({
-        level: 'error',
-        message: 'Could not copy service items',
-        detail: error instanceof Error ? error.message : String(error),
-      });
+      logFailure(this.api, 'Could not copy service items', error);
       return {ok: false, error: 'failed'};
     }
   }

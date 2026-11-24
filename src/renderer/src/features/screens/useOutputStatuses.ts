@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import {useContext, useEffect, useState} from 'react';
 import {LoadReadinessContext} from '@renderer/ui/loadReadiness';
 import type {OutputStatuses} from '@core/schema/live/outputStatus';
@@ -30,11 +31,7 @@ export function useOutputStatuses(): OutputStatuses {
       },
       (cause: unknown) => {
         ready?.();
-        api.log.write({
-          level: 'error',
-          message: 'Could not read the output statuses',
-          detail: cause instanceof Error ? cause.message : String(cause),
-        });
+        logFailure(api, 'Could not read the output statuses', cause);
       },
     );
     return () => {

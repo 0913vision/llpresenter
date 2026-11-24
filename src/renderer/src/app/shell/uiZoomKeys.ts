@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import type {UiZoomCommand} from '@core/schema/app/uiZoom';
 import type {WindowShortcut} from '@renderer/ui/keys/commandDispatcher';
 import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
@@ -10,13 +11,11 @@ const commands: readonly WindowShortcut[] = (
     const api = window.llp;
     if (api === undefined) return;
     const command: UiZoomCommand = {type};
-    api.ui.changeZoom(command).catch((error: unknown) =>
-      api.log.write({
-        level: 'error',
-        message: 'could not change UI zoom',
-        detail: error instanceof Error ? error.message : String(error),
-      }),
-    );
+    api.ui
+      .changeZoom(command)
+      .catch((error: unknown) =>
+        logFailure(api, 'could not change UI zoom', error),
+      );
   },
 }));
 

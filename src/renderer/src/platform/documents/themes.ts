@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import {create} from 'zustand';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {ShowTile} from '@core/schema/services/showService';
@@ -66,13 +67,11 @@ export function startThemesSync(api: Feeds | undefined): () => void {
   };
   const unsubscribe = api.settings.subscribe(accept);
   for (const name of ['themes', 'screens', 'preferences'] as const) {
-    api.settings.get({name}).then(accept, (error: unknown) =>
-      api.log.write({
-        level: 'error',
-        message: 'Could not read what slides are drawn with',
-        detail: error instanceof Error ? error.message : String(error),
-      }),
-    );
+    api.settings
+      .get({name})
+      .then(accept, (error: unknown) =>
+        logFailure(api, 'Could not read what slides are drawn with', error),
+      );
   }
   return () => {
     stopped = true;

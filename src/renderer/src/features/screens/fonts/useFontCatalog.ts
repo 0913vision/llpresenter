@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import {useEffect, useState} from 'react';
 import type {
   FontCatalog,
@@ -38,11 +39,7 @@ export function useFontCatalog(): FontCatalogState {
         if (!pushed) receive(value);
       },
       (cause: unknown) => {
-        api.log.write({
-          level: 'error',
-          message: 'Could not load the font choices',
-          detail: cause instanceof Error ? cause.message : String(cause),
-        });
+        logFailure(api, 'Could not load the font choices', cause);
         if (active && !pushed) setState({status: 'failed'});
       },
     );

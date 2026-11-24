@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import {useEffect, useMemo} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import {isKnownQuickItem, type QuickItem} from '@core/schema/tools/quick';
@@ -51,13 +52,11 @@ export function useQuickRunner({
         quickItemUnavailable(item) === undefined &&
         timerReason(item) === undefined,
       run: () => {
-        runner?.run(item).catch((error: unknown) =>
-          api?.log.write({
-            level: 'error',
-            message: 'Could not run quick shortcut',
-            detail: String(error),
-          }),
-        );
+        runner
+          ?.run(item)
+          .catch((error: unknown) =>
+            logFailure(api, 'Could not run quick shortcut', error),
+          );
       },
     })),
   );

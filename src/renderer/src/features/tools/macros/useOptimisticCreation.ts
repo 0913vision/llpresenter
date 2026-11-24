@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import {useState} from 'react';
 
 /**
@@ -28,11 +29,7 @@ export function useOptimisticCreation<T extends {readonly id: string}>(
       },
       (cause: unknown) => {
         rollback();
-        window.llp?.log.write({
-          level: 'error',
-          message: 'Could not finish optimistic creation',
-          detail: String(cause),
-        });
+        logFailure(window.llp, 'Could not finish optimistic creation', cause);
       },
     );
   };

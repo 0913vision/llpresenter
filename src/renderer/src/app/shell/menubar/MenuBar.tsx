@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import {HistoryButtons} from './HistoryButtons';
 import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
 import {useMenuShortcuts} from '@renderer/ui/menus/useMenuShortcuts';
@@ -279,13 +280,11 @@ function HelpMenu({control}: {readonly control: MenuControl}): JSX.Element {
   ]);
   const [about, setAbout] = useState<AppInfo | null>(null);
   const showAbout = (): void => {
-    window.llp?.window.appInfo().then(setAbout, (error: unknown) =>
-      window.llp?.log.write({
-        level: 'error',
-        message: 'Could not read the app version',
-        detail: error instanceof Error ? error.message : String(error),
-      }),
-    );
+    window.llp?.window
+      .appInfo()
+      .then(setAbout, (error: unknown) =>
+        logFailure(window.llp, 'Could not read the app version', error),
+      );
   };
   return (
     <>

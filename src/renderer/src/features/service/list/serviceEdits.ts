@@ -9,7 +9,7 @@ import {
 } from '@core/schema/common/ids';
 import {parsePayload} from '@core/schema/common/payload';
 import {renameHistory} from '@renderer/platform/undo/renameHistory';
-import {logFailure} from './useServiceSources';
+import {logFailure} from '@renderer/platform/logFailure';
 
 /**
  * Whether an edit took effect. A failed save still did: main keeps the edit

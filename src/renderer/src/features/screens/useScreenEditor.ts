@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import {useLayoutEffect, useRef} from 'react';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import {ScreenEditor, type EditProblemReporter} from './screenEditor';
@@ -65,11 +66,7 @@ export function useScreenEditor(
   const run = (action: (current: ScreenEditor) => Promise<void>): void => {
     if (editor.current === null) return;
     action(editor.current).catch((cause: unknown) => {
-      window.llp?.log.write({
-        level: 'error',
-        message: 'Could not save the screens',
-        detail: cause instanceof Error ? cause.message : String(cause),
-      });
+      logFailure(window.llp, 'Could not save the screens', cause);
     });
   };
   return {

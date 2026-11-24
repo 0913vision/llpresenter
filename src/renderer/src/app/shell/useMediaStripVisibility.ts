@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import {useCallback, useState} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 
@@ -13,11 +14,7 @@ export function useMediaStripVisibility(
       try {
         api?.ui.setRememberedView({mediaStrip: visible});
       } catch (cause) {
-        api?.log.write({
-          level: 'error',
-          message: 'Could not save media strip visibility',
-          detail: cause instanceof Error ? cause.message : String(cause),
-        });
+        logFailure(api, 'Could not save media strip visibility', cause);
       }
     },
     [api],

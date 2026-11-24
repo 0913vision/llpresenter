@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import {NAME_LIMIT} from '@core/schema/common/primitives';
 import {RenameDialog} from '@renderer/ui/popups/RenameDialog';
 import {useScreenList} from '@renderer/platform/screens/useScreenList';
@@ -104,11 +105,7 @@ export function PropTab({
         if (saved) setEditor(null);
       },
       (cause: unknown) =>
-        window.llp?.log.write({
-          level: 'error',
-          message: 'Prop edit callback failed',
-          detail: String(cause),
-        }),
+        logFailure(window.llp, 'Prop edit callback failed', cause),
     );
   };
   const renameAfterMenu = useMenuHandoff<Prop>(menu !== null, setRenaming);
