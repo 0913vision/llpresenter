@@ -1,8 +1,5 @@
 import type {SizeClass} from '@core/schema/app/appConfig';
 
-/** Window size classes, in CSS pixels after Windows display scaling. */
-export type {SizeClass};
-
 const NORMAL_MIN_WIDTH = 1600;
 const WIDE_MIN_WIDTH = 2400;
 

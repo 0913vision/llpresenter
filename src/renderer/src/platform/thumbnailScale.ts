@@ -1,8 +1,7 @@
 import {create} from 'zustand';
-import {sizeClasses} from '@core/schema/app/appConfig';
+import {sizeClasses, type SizeClass} from '@core/schema/app/appConfig';
 import type {UiState} from '@core/schema/app/uiState';
 import type {UiApi} from '@contracts/ipc/ui';
-import type {SizeClass} from '@renderer/ui/panels/sizeClass';
 import {
   clampThumbnailScale,
   commitThumbnailScale,

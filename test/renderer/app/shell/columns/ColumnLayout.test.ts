@@ -11,11 +11,8 @@ import {
   createMemoryColumnWidthStore,
   type ColumnWidthStore,
 } from '@renderer/app/shell/columns/columnWidthStore';
-import {
-  defaultColumns,
-  type ColumnWidths,
-  type SizeClass,
-} from '@renderer/ui/panels/sizeClass';
+import {defaultColumns, type ColumnWidths} from '@renderer/ui/panels/sizeClass';
+import {type SizeClass} from '@core/schema/app/appConfig';
 
 interface Harness {
   readonly layout: ColumnLayout;

@@ -22,7 +22,6 @@ import {
   PrepPage,
   StoragePage,
   preferencePages,
-  type PreferencePageId,
 } from './preferencePages';
 import {useLibraryLocations} from './useLibraryLocations';
 import {BiblePage} from './BiblePage';
@@ -35,6 +34,7 @@ import {LabelsPage} from '../labels/LabelsPage';
 import type {LabelCatalog} from '../labels/labelCatalog';
 import type {LabelManagerHandle} from '../labels/LabelManager';
 import {ListBox} from '@renderer/ui/lists/ListBox';
+import {type PreferencePageId} from '@core/schema/app/preferencePages';
 
 const NAV_LABEL = '환경설정 항목';
 const FIRST_PAGE: PreferencePageId = 'general';

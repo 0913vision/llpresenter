@@ -9,7 +9,6 @@ import type {Notice} from '@renderer/ui/popups/notices';
 import {useQueuedWrites} from './useQueuedWrites';
 
 const TITLE = '환경설정';
-export {NEWER_FILE_REASON};
 const SAVE_FAILURE: Notice = {
   key: 'preferences:save',
   kind: 'warning',

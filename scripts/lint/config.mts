@@ -102,6 +102,12 @@ const BANNED_FORWARDING = [
     message:
       'Import the name from the file that declares it; only index.ts re-exports.',
   },
+  {
+    selector:
+      'ExportNamedDeclaration[source=null][declaration=null][specifiers.length>0]',
+    message:
+      'Export a name where it is declared; an export list passes imported names on.',
+  },
 ];
 
 // NOTE(0913vision): electron-vite 6 bundles electron.vite.config.ts into a

@@ -16,7 +16,6 @@ import {outputSlideOf} from '@renderer/session/show/show';
 import {Button} from '@renderer/ui/buttons/Button';
 import {GridFooter} from '@renderer/ui/lists/GridFooter';
 import {warningNotice} from '@renderer/ui/popups/notices';
-import type {SizeClass} from '@renderer/ui/panels/sizeClass';
 import {Spinner} from '@renderer/ui/tiles/Spinner';
 import {ThumbnailSizeControl} from '@renderer/ui/choices/ThumbnailSizeControl';
 import {sectionItemCount} from './sectionItemCount';
@@ -29,6 +28,7 @@ import {
 } from '../../slides/SlidePreview';
 import {SlideSidePanel} from '../../slides/SlideSidePanel';
 import styles from './DetailsPanel.module.css';
+import type {SizeClass} from '@core/schema/app/appConfig';
 
 /**
  * What the 세부정보 panel describes: an item of the service, or a song of the

@@ -30,7 +30,6 @@ import {
 } from '@renderer/session/show/showLibrary';
 import {serviceItem} from '@renderer/session/service/openService';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
-import type {SizeClass} from '@renderer/ui/panels/sizeClass';
 import {
   logPanelProblem,
   type PanelParts,
@@ -38,6 +37,7 @@ import {
 } from '../shell/workspace/WorkspacePanel';
 import {SERVICE_ORDER, serviceOrderParts} from './serviceOrderPanel';
 import {useShow} from '@renderer/session/show/showStore';
+import type {SizeClass} from '@core/schema/app/appConfig';
 
 const COLUMNS = [['라이브러리'], [SERVICE_ORDER], ['세부정보']] as const;
 const ITEM_COLUMNS = [[SERVICE_ORDER], ['편집'], ['슬라이드 속성']] as const;

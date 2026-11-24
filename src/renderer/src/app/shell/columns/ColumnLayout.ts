@@ -5,11 +5,8 @@ import {
   type RightColumn,
 } from './columns';
 import type {ColumnWidthStore} from './columnWidthStore';
-import {
-  defaultColumns,
-  type ColumnWidths,
-  type SizeClass,
-} from '@renderer/ui/panels/sizeClass';
+import {defaultColumns, type ColumnWidths} from '@renderer/ui/panels/sizeClass';
+import {type SizeClass} from '@core/schema/app/appConfig';
 
 // NOTE(0913vision): After a resize fits the widths mid-drag, the pointer
 // movement counts from `widthsAtLastFit`. `pointerMoved` stays true when the

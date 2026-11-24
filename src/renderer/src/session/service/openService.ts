@@ -4,7 +4,6 @@ import type {Result} from '@core/common/result';
 import {sameJson} from '@core/common/sameJson';
 import type {ServiceDocument} from '@core/schema/services/contentDocuments';
 import type {EditFailure} from '@core/schema/services/contentEdit';
-import type {ServiceItemId} from '@core/schema/common/ids';
 import {
   hasSlides,
   type Service,
@@ -450,5 +449,3 @@ export function startOpenServiceSync(): () => void {
     for (const stop of stops) stop();
   };
 }
-
-export type {ServiceItemId};

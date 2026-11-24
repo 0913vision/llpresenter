@@ -18,7 +18,6 @@ import {ShowToolsPanel} from '@renderer/features/tools/ShowToolsPanel';
 import {useSettingsDocument} from '@renderer/platform/documents/useSettingsDocument';
 import {isBibleSource, tilesForView} from '@renderer/session/show/showLibrary';
 import type {Notice} from '@renderer/ui/popups/notices';
-import type {SizeClass} from '@renderer/ui/panels/sizeClass';
 import {
   logPanelProblem,
   type PanelParts,
@@ -27,6 +26,7 @@ import {
 import {SERVICE_ORDER, serviceOrderParts} from './serviceOrderPanel';
 import {useShow} from '@renderer/session/show/showStore';
 import {type NamedDocument} from '@core/schema/app/settingsDocuments';
+import type {SizeClass} from '@core/schema/app/appConfig';
 
 const SHOW_COLUMNS = [
   [SERVICE_ORDER, '빠른 실행'],

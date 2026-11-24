@@ -66,8 +66,6 @@ export const preferencePages = [
   icon: string;
 }>;
 
-export type {PreferencePageId};
-
 const ZOOM_OPTIONS = Array.from(
   {length: (UI_ZOOM.max - UI_ZOOM.min) / UI_ZOOM.step + 1},
   (_, index) => {

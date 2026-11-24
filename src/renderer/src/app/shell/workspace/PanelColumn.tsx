@@ -7,11 +7,11 @@ import {
   clampPreviewRatio,
   DEFAULT_PREVIEW_RATIO,
 } from '@renderer/ui/previews/previewRatio';
-import type {SizeClass} from '@renderer/ui/panels/sizeClass';
 import type {ColumnWidthStore} from '../columns/columnWidthStore';
 import {Panel, type WorkspacePanels} from './WorkspacePanel';
 import styles from './Workspace.module.css';
 import type {Workspace} from '@renderer/platform/WorkspaceNavigation';
+import type {SizeClass} from '@core/schema/app/appConfig';
 
 function rowId(
   workspace: Workspace,

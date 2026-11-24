@@ -1,9 +1,6 @@
 import {useSyncExternalStore, type JSX} from 'react';
 import {useShallow} from 'zustand/react/shallow';
-import {
-  defaultThumbnailColumns,
-  type SizeClass,
-} from '@renderer/ui/panels/sizeClass';
+import {defaultThumbnailColumns} from '@renderer/ui/panels/sizeClass';
 import {
   isLibrarySource,
   projectedLiveCursor,
@@ -27,6 +24,7 @@ import {useVisibleSlideItem} from '@renderer/session/show/visibleSlideItem';
 import {useShownItemId} from '@renderer/session/show/shownItem';
 import {useLive} from '@renderer/session/live';
 import {useShow} from '@renderer/session/show/showStore';
+import {type SizeClass} from '@core/schema/app/appConfig';
 
 const PROBLEM_ICON_SIZE = 14;
 

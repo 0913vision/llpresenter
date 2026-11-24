@@ -15,7 +15,8 @@ import {settingsCodecs, type SettingsValue} from './settingsCodecs';
 import {settingsDefaults} from './settingsDefaults';
 import {readSettingsFile, settingsLocation} from './settingsFile';
 import {DEFAULT_VERSE_LABEL} from './defaults';
-import {arrangeThemes, parseThemeList, readThemes} from './themeFiles';
+import {parseThemeList} from '@core/schema/screens/themes';
+import {arrangeThemes, readThemes} from './themeFiles';
 
 /** A settings file that could not be read, and why. */
 export interface SettingsProblem {

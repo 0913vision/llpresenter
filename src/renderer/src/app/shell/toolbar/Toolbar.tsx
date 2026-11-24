@@ -8,10 +8,10 @@ import {OutputOverflow} from './OutputOverflow';
 import {ThemeMenu} from './ThemeMenu';
 import {ToolbarSearch} from './ToolbarSearch';
 import type {Notice} from '@renderer/ui/popups/notices';
-import type {SizeClass} from '@renderer/ui/panels/sizeClass';
 import styles from './Toolbar.module.css';
 
 import type {Workspace} from '@renderer/platform/WorkspaceNavigation';
+import type {SizeClass} from '@core/schema/app/appConfig';
 
 const workspaceTabs: ReadonlyArray<ToolbarTab<Workspace>> = [
   {value: 'show', icon: 'slides', label: '진행'},

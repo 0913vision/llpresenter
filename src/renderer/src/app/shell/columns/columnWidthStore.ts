@@ -2,11 +2,8 @@ import type {LayoutChange, UiState} from '@core/schema/app/uiState';
 import {PANEL_ROW_LIMITS, type PanelRows} from '@core/schema/app/panelRows';
 import {clamp} from '@core/common/range';
 import {COLUMN_RANGES} from './columns';
-import {
-  defaultColumns,
-  type ColumnWidths,
-  type SizeClass,
-} from '@renderer/ui/panels/sizeClass';
+import {defaultColumns, type ColumnWidths} from '@renderer/ui/panels/sizeClass';
+import {type SizeClass} from '@core/schema/app/appConfig';
 
 /** Remembers the column widths that the operator set, per size class. */
 export interface ColumnWidthStore {

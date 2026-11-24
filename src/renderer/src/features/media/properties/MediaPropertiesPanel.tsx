@@ -36,8 +36,6 @@ import {
 import {useMediaView} from '../MediaViewProvider';
 import styles from './MediaPropertiesPanel.module.css';
 
-export {MIN_SPEED, MAX_SPEED};
-
 const SPEED_STEP = 0.05;
 const SPEED_LARGE_STEP = 0.5;
 const MAX_VOLUME = 100;

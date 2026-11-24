@@ -1,7 +1,7 @@
 import type {BibleFile, Translation} from '@core/schema/bible/bible';
 import {useSettingsDocument} from '@renderer/platform/documents/useSettingsDocument';
 import type {Notice} from '@renderer/ui/popups/notices';
-import {NEWER_FILE_REASON} from './usePreferenceEdits';
+import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useQueuedWrites} from './useQueuedWrites';
 
 const TITLE = '성경';

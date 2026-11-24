@@ -1,7 +1,6 @@
 import {useLayoutEffect, useRef, type JSX, type ReactNode} from 'react';
 import {ResizeGap} from '@renderer/ui/panels/ResizeGap';
 import {useRowLayout, type RowSizeStore} from '@renderer/ui/lists/useRowLayout';
-import type {SizeClass} from '@renderer/ui/panels/sizeClass';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {Button} from '@renderer/ui/buttons/Button';
 import {Icon} from '@renderer/ui/Icon';
@@ -11,6 +10,7 @@ import {MediaView} from './tiles/MediaView';
 import {useMediaView} from './MediaViewProvider';
 import {chosenPlaylist, mediaEntries, UNNAMED_PLAYLIST} from './mediaEntries';
 import styles from './MediaBin.module.css';
+import type {SizeClass} from '@core/schema/app/appConfig';
 const noRowStore: RowSizeStore = {};
 
 /** The shared bottom media bin, without replacing the workspace's editor. */

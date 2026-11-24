@@ -1,6 +1,5 @@
 import {Fragment, type JSX} from 'react';
 import {classNames} from '@renderer/ui/classNames';
-import type {SizeClass} from '@renderer/ui/panels/sizeClass';
 import {ColumnGap, type ColumnDrag} from '../columns/ColumnGap';
 import type {ColumnWidthStore} from '../columns/columnWidthStore';
 import {PanelColumn} from './PanelColumn';
@@ -8,6 +7,7 @@ import {CollapsedSidebar, type SidebarToggle} from './SidebarToggle';
 import type {WorkspacePanels} from './WorkspacePanel';
 import styles from './Workspace.module.css';
 import type {Workspace as WorkspaceId} from '@renderer/platform/WorkspaceNavigation';
+import type {SizeClass} from '@core/schema/app/appConfig';
 
 /**
  * The columns of one workspace with the gaps that resize them. A folded left

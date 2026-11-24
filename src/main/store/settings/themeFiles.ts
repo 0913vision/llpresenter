@@ -7,11 +7,7 @@ import {
   serializeTheme,
   type ThemeFile,
 } from '@core/schema/screens/theme';
-import {
-  parseThemeList,
-  serializeThemeList,
-  type Themes,
-} from '@core/schema/screens/themes';
+import {serializeThemeList, type Themes} from '@core/schema/screens/themes';
 import {BUILT_IN_THEMES, builtInTheme} from '@core/theme';
 import {loadFolder} from '../files/library';
 import type {SaveRequest} from '../files/saver';
@@ -137,5 +133,3 @@ export const DEFAULT_THEMES: Themes = {
   titles: [],
   themes: BUILT_IN_THEMES,
 };
-
-export {parseThemeList};

@@ -1,7 +1,6 @@
 import type {Notice} from '@renderer/ui/popups/notices';
 import type {JSX} from 'react';
 import {useShownItemId} from '@renderer/session/show/shownItem';
-import type {SizeClass} from '@renderer/ui/panels/sizeClass';
 import {bibleSourceFor} from '@renderer/session/show/showLibrary';
 import {
   Panel,
@@ -17,6 +16,7 @@ import {BibleAdjacentButtons} from '../bible/adjacent/BibleAdjacentButtons';
 import {BibleDisplayControls} from './BibleDisplayControls';
 import styles from './BiblePanel.module.css';
 import {useShow} from '@renderer/session/show/showStore';
+import type {SizeClass} from '@core/schema/app/appConfig';
 
 /**
  * The 성경 panel of the 진행 workspace for the Bible item that is shown; null when
