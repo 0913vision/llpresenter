@@ -34,7 +34,11 @@ import {
   viewMenuEntries,
   type ContinuousRow,
 } from './viewMenuEntries';
-import {usePreferenceEdits} from '@renderer/features/preferences/usePreferenceEdits';
+import {
+  usePreferenceEdits,
+  type PreferenceEdits,
+} from '@renderer/features/preferences/usePreferenceEdits';
+import type {Preferences, PreferencesFile} from '@core/schema/app/preferences';
 import {fullScreenRow, useFullScreen} from './viewToggles';
 import {focusMenu} from '@renderer/ui/menus/useMenuNavigation';
 import type {Workspace} from '@renderer/platform/WorkspaceNavigation';
@@ -351,6 +355,24 @@ function logProblem(notice: Notice): void {
  * The 30px menu bar, which doubles as the window title bar. The center shows
  * the name of the open service.
  */
+/**
+ * A 진행 menu check row that shows one 진행 preference and flips it, while
+ * the preferences can be read and changed.
+ */
+function showPreferenceRow(
+  preferences: PreferenceEdits,
+  isOn: (show: Preferences['show']) => boolean,
+  flip: (show: PreferencesFile['show']) => NonNullable<PreferencesFile['show']>,
+): ContinuousRow {
+  const read = preferences.preferences;
+  return {
+    on: read !== null && isOn(read.show),
+    reason: read === null ? NOT_YET_READ : preferences.lockedReason,
+    toggle: () =>
+      preferences.change(stored => ({...stored, show: flip(stored.show)})),
+  };
+}
+
 export function MenuBar({
   title,
   warnings = noWarnings,
@@ -377,34 +399,19 @@ export function MenuBar({
   const [active, setActive] = useState<ActiveMenu | null>(null);
   const outsideFocus = useOutsideFocus();
   const preferences = usePreferenceEdits(onProblem);
-  const continuousRow: ContinuousRow = {
-    on: preferences.preferences?.show.atLastSlide === 'nextItem',
-    reason:
-      preferences.preferences === null
-        ? NOT_YET_READ
-        : preferences.lockedReason,
-    toggle: () =>
-      preferences.change(stored => ({
-        ...stored,
-        show: {
-          ...stored.show,
-          atLastSlide:
-            stored.show?.atLastSlide === 'nextItem' ? 'stop' : 'nextItem',
-        },
-      })),
-  };
-  const continuousGridRow: ContinuousRow = {
-    on: preferences.preferences?.show.continuousGrid === true,
-    reason:
-      preferences.preferences === null
-        ? NOT_YET_READ
-        : preferences.lockedReason,
-    toggle: () =>
-      preferences.change(stored => ({
-        ...stored,
-        show: {...stored.show, continuousGrid: !stored.show?.continuousGrid},
-      })),
-  };
+  const continuousRow = showPreferenceRow(
+    preferences,
+    show => show.atLastSlide === 'nextItem',
+    show => ({
+      ...show,
+      atLastSlide: show?.atLastSlide === 'nextItem' ? 'stop' : 'nextItem',
+    }),
+  );
+  const continuousGridRow = showPreferenceRow(
+    preferences,
+    show => show.continuousGrid,
+    show => ({...show, continuousGrid: !show?.continuousGrid}),
+  );
   const fullScreen = useFullScreen();
   const {status: clipboard, check: checkClipboard} =
     useClipboardAvailability(clipboardAvailable);
