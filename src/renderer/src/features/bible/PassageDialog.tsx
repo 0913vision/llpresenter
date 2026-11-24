@@ -30,6 +30,21 @@ function hasTypedReference(surface: HTMLElement | null): boolean {
   ).some(field => field.value !== '');
 }
 
+/** Whether the open book list under the 책 field takes this key. */
+function bookListTakes(event: KeyboardEvent<HTMLElement>): boolean {
+  return (
+    event.target instanceof HTMLInputElement &&
+    event.target.dataset.referencePart === 'book' &&
+    event.target.getAttribute('aria-expanded') === 'true' &&
+    ['ArrowDown', 'ArrowUp', 'Enter', 'Tab'].includes(event.key)
+  );
+}
+
+function consume(event: KeyboardEvent<HTMLElement>): void {
+  event.preventDefault();
+  event.stopPropagation();
+}
+
 /** The shared passage finder used by Show and preparation. */
 export function PassageDialog({
   api,
@@ -109,72 +124,57 @@ export function PassageDialog({
     setResetKey(value => value + 1);
     onPick(recent);
   };
+  /** Esc with a typed reference empties the fields and starts over. */
+  const startOver = (): void => {
+    intentVersion.current += 1;
+    submissionVersion.current += 1;
+    setHighlight(-1);
+    onIntent?.();
+    setResetKey(value => value + 1);
+  };
+  /** The arrows walk the recent passages while the 책 field keeps focus. */
+  const moveHighlight = (by: 1 | -1): void => {
+    surface.current
+      ?.querySelector<HTMLInputElement>('[data-reference-part="book"]')
+      ?.focus();
+    setHighlight(value =>
+      Math.max(0, Math.min(entries.length - 1, value + by)),
+    );
+  };
   const capture = (event: KeyboardEvent<HTMLElement>): void => {
     onKeyDownCapture?.(event);
+    const modified = event.altKey || event.ctrlKey || event.metaKey;
     if (
       event.defaultPrevented ||
       isComposingKey(event.nativeEvent) ||
-      event.altKey ||
-      event.ctrlKey ||
-      event.metaKey
+      modified
     ) {
       return;
     }
     if (preparation && event.key === 'Escape') {
-      event.preventDefault();
-      event.stopPropagation();
+      consume(event);
       close();
       return;
     }
-    if (event.target instanceof HTMLTextAreaElement) return;
-    if (
-      event.target instanceof HTMLInputElement &&
-      event.target.dataset.referencePart === 'book' &&
-      event.target.getAttribute('aria-expanded') === 'true' &&
-      ['ArrowDown', 'ArrowUp', 'Enter', 'Tab'].includes(event.key)
-    ) {
+    if (event.target instanceof HTMLTextAreaElement || bookListTakes(event)) {
       return;
     }
+    const typed = hasTypedReference(surface.current);
+    const highlighted = highlight >= 0 ? entries[highlight] : undefined;
     if (event.key === 'Escape') {
-      event.preventDefault();
-      event.stopPropagation();
-      if (hasTypedReference(surface.current)) {
-        intentVersion.current += 1;
-        submissionVersion.current += 1;
-        setHighlight(-1);
-        onIntent?.();
-        setResetKey(value => value + 1);
-      } else onClose();
-      return;
+      consume(event);
+      if (typed) startOver();
+      else onClose();
+    } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      if (entries.length === 0) return;
+      consume(event);
+      moveHighlight(event.key === 'ArrowDown' ? 1 : -1);
+    } else if (event.key === 'Enter' && !typed && highlighted !== undefined) {
+      consume(event);
+      pickRecent(highlighted);
+    } else if (highlight >= 0 && event.key.length === 1) {
+      setHighlight(-1);
     }
-    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-      if (!entries.length) return;
-      event.preventDefault();
-      event.stopPropagation();
-      surface.current
-        ?.querySelector<HTMLInputElement>('[data-reference-part="book"]')
-        ?.focus();
-      setHighlight(value =>
-        Math.max(
-          0,
-          Math.min(
-            entries.length - 1,
-            value + (event.key === 'ArrowDown' ? 1 : -1),
-          ),
-        ),
-      );
-    } else if (
-      event.key === 'Enter' &&
-      highlight >= 0 &&
-      !hasTypedReference(surface.current)
-    ) {
-      const recent = entries[highlight];
-      if (recent) {
-        event.preventDefault();
-        event.stopPropagation();
-        pickRecent(recent);
-      }
-    } else if (highlight >= 0 && event.key.length === 1) setHighlight(-1);
   };
   return createPortal(
     <div className={styles.scrim} onMouseDown={keepFocusInModal}>
