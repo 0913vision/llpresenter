@@ -1,5 +1,7 @@
-import {useEffect, useRef, type JSX} from 'react';
+import {useCallback, useEffect, useRef, type JSX} from 'react';
 import {IconButton} from '@renderer/ui/IconButton';
+import {returnFocus} from '@renderer/ui/returnFocus';
+import type {SidebarCollapse} from './useSidebarCollapse';
 import styles from './SidebarToggle.module.css';
 
 interface ToggleProps {
@@ -55,4 +57,48 @@ export function CollapsedSidebar({
       />
     </div>
   );
+}
+
+/** Folds and unfolds the left column, handing the keyboard focus between its two buttons. */
+export interface SidebarToggle {
+  readonly claimFocus: () => boolean;
+  readonly collapsible: boolean;
+  readonly collapsed: boolean;
+  readonly toggle: (
+    collapsed: boolean,
+    button: HTMLButtonElement,
+    keyboard: boolean,
+  ) => void;
+}
+
+// NOTE(0913vision): The button that replaces a pressed sidebar button takes
+// the keyboard focus only when the pressed one had it (a key press, not a
+// click in 진행); otherwise the focus falls to the body, where the 진행 keys
+// work.
+export function useSidebarToggle(
+  sidebar: SidebarCollapse | undefined,
+): SidebarToggle {
+  const pendingFocus = useRef(false);
+  const claimFocus = useCallback((): boolean => {
+    const pending = pendingFocus.current;
+    pendingFocus.current = false;
+    return pending;
+  }, []);
+  const setCollapsed = sidebar?.setCollapsed;
+  const toggle = (
+    collapsed: boolean,
+    button: HTMLButtonElement,
+    keyboard: boolean,
+  ): void => {
+    const focused = document.activeElement === button;
+    pendingFocus.current = keyboard && focused;
+    if (!keyboard && focused) returnFocus(null);
+    setCollapsed?.(collapsed);
+  };
+  return {
+    claimFocus,
+    collapsible: setCollapsed !== undefined,
+    collapsed: setCollapsed !== undefined && sidebar?.collapsed === true,
+    toggle,
+  };
 }

@@ -1,14 +1,6 @@
 import {CommandScope} from '@renderer/ui/commandDispatcher';
 import type {SongId} from '@core/schema/ids';
-import {
-  Fragment,
-  Suspense,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  type JSX,
-} from 'react';
+import {Suspense, useEffect, useState, type JSX} from 'react';
 import {MediaBin} from '@renderer/features/media/MediaBin';
 import type {MediaApi} from '@renderer/features/media/mediaLibrary';
 import {
@@ -23,14 +15,14 @@ import type {ThemeLeaveGuard} from '@renderer/features/screens/themes/themeLeave
 import {useScreensPanels} from '../workspaces/screensPanels';
 import {ShowShortcuts, useShowPanels} from '../workspaces/showPanels';
 import {ColumnGap} from './ColumnGap';
-import {CollapsedSidebar, SidebarCollapseButton} from './SidebarToggle';
+import {SidebarCollapseButton, useSidebarToggle} from './SidebarToggle';
 import type {ColumnWidthStore} from './columnWidthStore';
 import type {SizeClass} from '../../ui/sizeClass';
 import type {Workspace as WorkspaceId} from './Toolbar';
 import {useColumnLayout} from './useColumnLayout';
 import type {SidebarCollapse} from './useSidebarCollapse';
 import {logPanelProblem, type WorkspacePanels} from './WorkspacePanel';
-import {PanelColumn} from './PanelColumn';
+import {WorkspaceColumns} from './WorkspaceColumns';
 import {ResizeGap} from '@renderer/ui/ResizeGap';
 import {useRowLayout} from '@renderer/ui/useRowLayout';
 import styles from './Workspace.module.css';
@@ -40,42 +32,11 @@ import {
 } from '@renderer/features/presentation/showPanelNavigation';
 import type {PrepTarget} from '@renderer/session/prepTarget';
 import {ShownItemProvider} from '@renderer/session/shownItem';
-import {returnFocus} from '@renderer/ui/returnFocus';
 import {undoTimeline} from '@renderer/platform/undoTimeline';
 import {NO_UNDO_IN_SHOW} from '@renderer/platform/problemReasons';
 import {useWorkspaceServiceHistory} from './useWorkspaceServiceHistory';
 
 const ignoreProblem = (): void => undefined;
-
-// NOTE(0913vision): The button that replaces a pressed sidebar button takes
-// the keyboard focus only when the pressed one had it (a key press, not a
-// click in 진행); otherwise the focus falls to the body, where the 진행 keys
-// work.
-function useSidebarToggle(sidebar: SidebarCollapse | undefined) {
-  const pendingFocus = useRef(false);
-  const claimFocus = useCallback((): boolean => {
-    const pending = pendingFocus.current;
-    pendingFocus.current = false;
-    return pending;
-  }, []);
-  const setCollapsed = sidebar?.setCollapsed;
-  const toggle = (
-    collapsed: boolean,
-    button: HTMLButtonElement,
-    keyboard: boolean,
-  ): void => {
-    const focused = document.activeElement === button;
-    pendingFocus.current = keyboard && focused;
-    if (!keyboard && focused) returnFocus(null);
-    setCollapsed?.(collapsed);
-  };
-  return {
-    claimFocus,
-    collapsible: setCollapsed !== undefined,
-    collapsed: setCollapsed !== undefined && sidebar?.collapsed === true,
-    toggle,
-  };
-}
 
 /**
  * The three-column frame shared by all workspaces. Each workspace's panels
@@ -175,63 +136,22 @@ export function Workspace({
     enabled: mediaOpen && api !== undefined,
     fill: 'first',
   });
-  const panelColumns = (
-    workspace: WorkspaceId,
-    {columns, partsOf}: WorkspacePanels,
-    collapsed: boolean,
-  ): JSX.Element[] =>
-    columns.map((titles, column) => (
-      <Fragment key={column}>
-        {column === 1 && collapsed ? <div aria-hidden="true" /> : null}
-        {column > 0 && !(column === 1 && collapsed) ? (
-          <ColumnGap
-            column={
-              column === 1
-                ? 'left'
-                : workspace === 'prep'
-                  ? 'prepRight'
-                  : 'right'
-            }
-            drag={drag}
-          />
-        ) : null}
-        {column === 0 && collapsed ? (
-          <div className={styles.column} data-panel="예배 순서">
-            <CollapsedSidebar
-              claimFocus={toggle.claimFocus}
-              onPress={(button, keyboard) =>
-                toggle.toggle(false, button, keyboard)
-              }
-            />
-          </div>
-        ) : (
-          <PanelColumn
-            workspace={workspace}
-            titles={titles}
-            partsOf={partsOf}
-            store={store}
-            sizeClass={sizeClass}
-            draft={columns[1]?.[0] === '편집'}
-            warningHeight={column === columns.length - 1 ? warningHeight : 0}
-          />
-        )}
-      </Fragment>
-    ));
   const columnFrame = (
     workspace: WorkspaceId,
     panels: WorkspacePanels,
-    {
-      collapsed,
-      visible,
-    }: {readonly collapsed: boolean; readonly visible: boolean},
+    {collapsed = false, visible = true} = {},
   ): JSX.Element => (
-    <div
-      data-size={sizeClass}
-      inert={!visible}
-      className={classNames(styles.columns, collapsed && styles.leftCollapsed)}
-    >
-      {panelColumns(workspace, panels, collapsed)}
-    </div>
+    <WorkspaceColumns
+      workspace={workspace}
+      panels={panels}
+      collapsed={collapsed}
+      visible={visible}
+      sizeClass={sizeClass}
+      store={store}
+      drag={drag}
+      toggle={toggle}
+      warningHeight={warningHeight}
+    />
   );
   // TODO(0913vision): Let the shrink rule ignore the hidden left width while
   // the left column is collapsed; it still counts the saved width now.
@@ -288,16 +208,13 @@ export function Workspace({
             }
           >
             <CommandScope value={visibleId === 'prep' ? 'visible' : 'hidden'}>
-              {columnFrame('prep', prepPanels, {
-                collapsed: false,
-                visible: visibleId === 'prep',
-              })}
+              {columnFrame('prep', prepPanels, {visible: visibleId === 'prep'})}
             </CommandScope>
           </ShownItemProvider>
         </div>
         {visibleId === 'screens' ? (
           <div className={styles.frameSlot}>
-            {columnFrame('screens', screens, {collapsed: false, visible: true})}
+            {columnFrame('screens', screens)}
           </div>
         ) : null}
       </div>
