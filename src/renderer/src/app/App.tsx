@@ -1,22 +1,18 @@
 import {useAudioOutputs} from '@renderer/features/preferences/useAudioOutputs';
 import {ShownItemProvider} from '@renderer/session/shownItem';
 import {NumberJumpOverlay} from '@renderer/features/presentation/DraftOverlay';
-import {ThemeLeaveGuard} from '@renderer/features/screens/themes/themeLeaveGuard';
 import {useMonitors} from '@renderer/features/screens/useMonitors';
 import {AudioShortcuts} from '@renderer/features/tools/AudioShortcuts';
 import {MediaViewProvider} from '@renderer/features/media/MediaViewProvider';
 import {ToolObjectShortcuts} from '@renderer/features/tools/ToolObjectShortcuts';
 import {QuickObjectShortcuts} from '@renderer/features/quick/QuickObjectShortcuts';
 import {Labels} from '@renderer/features/labels/labels';
-import {requestLeaveSong} from '@renderer/features/songs/songDraft';
-import {closePrepEditor, usePrepTarget} from '@renderer/session/prepTarget';
 import {usePrepActions} from './usePrepActions';
+import {useWorkspaceSwitch} from './useWorkspaceSwitch';
 import {
   useCallback,
-  useDeferredValue,
   useEffect,
   useMemo,
-  useRef,
   useState,
   useSyncExternalStore,
   type JSX,
@@ -34,17 +30,13 @@ import {
   warningScreens,
 } from '@renderer/platform/outputWarnings';
 import {useShow} from '@renderer/session/show';
-import {WorkspaceSelections} from '@renderer/session/workspaceSelections';
 import {
   PrepItemNavigation,
   WorkspaceNavigation,
 } from '@renderer/platform/WorkspaceNavigation';
 import {watchInputModality} from '@renderer/ui/inputModality';
 import {NotificationStack} from '@renderer/ui/Notification';
-import {
-  Toolbar,
-  type Workspace as WorkspaceId,
-} from '@renderer/app/shell/Toolbar';
+import {Toolbar} from '@renderer/app/shell/Toolbar';
 import {useSizeClass} from '@renderer/app/shell/useSizeClass';
 import {useMediaStripVisibility} from '@renderer/app/shell/useMediaStripVisibility';
 import {useSidebarCollapse} from '@renderer/app/shell/useSidebarCollapse';
@@ -101,6 +93,22 @@ function AppContent(
   );
 }
 
+/**
+ * What the status bar says about saving: that the files are being saved as
+ * the window closes, or that a save failed.
+ */
+function useSaveState(
+  session: ControlSession,
+): 'saving' | 'failed' | undefined {
+  const saveFailed = useProblemNotices(session.api, session);
+  const closeView = useSyncExternalStore(
+    session.closeFlush?.subscribe ?? noSubscription,
+    session.closeFlush?.getSnapshot ?? (() => 'hidden' as const),
+  );
+  if (closeView === 'saving') return 'saving';
+  return saveFailed || closeView === 'failed' ? 'failed' : undefined;
+}
+
 function ControlApp({
   columnWidthStore,
   session,
@@ -115,17 +123,14 @@ function ControlApp({
   const warningMap = useOutputWarnings(state => state.warnings);
   const warnings = useMemo(() => warningScreens(warningMap), [warningMap]);
   useAudioOutputs();
-  const [workspace, setWorkspace] = useState<WorkspaceId>('show');
-  const requestedItem = useShow(view => view.openItemId);
-  const prepTarget = usePrepTarget(view => view.target);
-  const requestedFrame = useMemo(
-    () => ({workspace, item: requestedItem, prep: prepTarget}),
-    [workspace, requestedItem, prepTarget],
-  );
-  const shownFrame = useDeferredValue(requestedFrame);
+  const {
+    workspace,
+    shownFrame,
+    savedPrepItem,
+    themeLeave,
+    switchTo: onWorkspace,
+  } = useWorkspaceSwitch();
   const shownWorkspace = shownFrame.workspace;
-  const [savedPrepItem, setSavedPrepItem] = useState<string | null>(null);
-  const [workspaceSelections] = useState(() => new WorkspaceSelections());
   const [focusSearch, setFocusSearch] = useState(false);
   const searchFocused = useCallback(() => setFocusSearch(false), []);
   const notices = useSyncExternalStore(session.subscribe, session.getNotices);
@@ -133,41 +138,12 @@ function ControlApp({
   const update = useUpdate(session.api?.update, resumeAfterUpdate);
   useRememberNotice(session, update.notice);
   const [warningHeight, setWarningHeight] = useState(0);
-  const [themeLeave] = useState(() => new ThemeLeaveGuard());
-  const onWorkspace = (next: WorkspaceId): void => {
-    const go = (): void => {
-      if (shownWorkspace === 'prep' && next !== 'prep') {
-        setSavedPrepItem(shownFrame.item);
-      }
-      workspaceSelections.activate(next);
-      setWorkspace(next);
-    };
-    if (
-      workspace === 'prep' &&
-      next !== 'prep' &&
-      prepTarget?.kind === 'song'
-    ) {
-      requestLeaveSong(() => {
-        closePrepEditor();
-        go();
-      });
-    } else if (workspace === 'screens' && next !== 'screens') {
-      themeLeave.leave(go);
-    } else go();
-  };
   const onMedia = (): void => {
     if (workspace === 'screens') onWorkspace('show');
     mediaStrip.setVisible(workspace === 'screens' || !mediaStrip.visible);
   };
   const textImport = session.api?.textImport;
   const prepActions = usePrepActions(session);
-  const prepRequest = usePrepTarget(view => view.request);
-  const answered = useRef(prepRequest);
-  useEffect(() => {
-    if (answered.current === prepRequest) return;
-    answered.current = prepRequest;
-    if (workspace !== 'prep') onWorkspace('prep');
-  });
   useShortcutSettings(session.api);
   useWindowShortcuts([
     ...workspaceShortcuts({
@@ -196,17 +172,7 @@ function ControlApp({
   useOutputNotices(session.api, session);
   usePlaybackNotices(session.api, session);
   useLaunchReady(session.api, readiness);
-  const saveFailed = useProblemNotices(session.api, session);
-  const closeView = useSyncExternalStore(
-    session.closeFlush?.subscribe ?? noSubscription,
-    session.closeFlush?.getSnapshot ?? (() => 'hidden' as const),
-  );
-  const saveState =
-    closeView === 'saving'
-      ? 'saving'
-      : saveFailed || closeView === 'failed'
-        ? 'failed'
-        : undefined;
+  const saveState = useSaveState(session);
   const content = (
     <div className={styles.app} data-size={sizeClass}>
       <BiblePassages />
