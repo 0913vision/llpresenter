@@ -1,5 +1,5 @@
 import type {Result} from '@core/common/result';
-import {noticeTime, type Notice} from '@renderer/ui/popups/notices';
+import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 
 interface Refusal {
   readonly reason: string;
@@ -16,14 +16,10 @@ export function serviceEditNotice(
   result: Result<unknown, Refusal>,
 ): Notice | null {
   if (result.ok) return null;
-  return {
-    key: `slides:${result.error.reason}`,
-    kind: 'warning',
-    icon: 'warning',
-    title:
-      result.error.reason === 'write-failed'
-        ? '예배 저장 실패'
-        : orderFailureTitle(result.error, '슬라이드 변경 실패'),
-    time: noticeTime(),
-  };
+  return warningNotice(
+    `slides:${result.error.reason}`,
+    result.error.reason === 'write-failed'
+      ? '예배 저장 실패'
+      : orderFailureTitle(result.error, '슬라이드 변경 실패'),
+  );
 }
