@@ -13,7 +13,8 @@ import {
   TextArea,
   TextField,
 } from '@renderer/ui';
-import {propReason, PROP_NAME_LIMIT} from './propEdits';
+import {NAME_LIMIT} from '@core/schema/primitives';
+import {propReason} from './propEdits';
 import {ScreenTargetsRow} from './ScreenTargetsRow';
 
 const DEFAULT_STYLE = {
@@ -105,7 +106,7 @@ export function PropDialog({
               block
               value={name}
               onChange={setName}
-              maxLength={PROP_NAME_LIMIT}
+              maxLength={NAME_LIMIT}
               readOnly={locked}
             />
           )}

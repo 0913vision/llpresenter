@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import type {ReadonlyKnown} from './fileFormat';
 import {timerIdSchema} from './ids';
-import {TIMER_NAME_LIMIT} from './quickTimerEdit';
+import {NAME_LIMIT} from './primitives';
 
 export const timerRenameSchema = v.object({
   type: v.literal('timer.rename'),
@@ -11,7 +11,7 @@ export const timerRenameSchema = v.object({
     v.string(),
     v.trim(),
     v.nonEmpty(),
-    v.maxLength(TIMER_NAME_LIMIT),
+    v.maxLength(NAME_LIMIT),
   ),
 });
 

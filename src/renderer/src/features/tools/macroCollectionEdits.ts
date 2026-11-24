@@ -1,5 +1,7 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import {duplicateAfter} from '@core/common/duplicateAfter';
+import {NAME_LIMIT} from '@core/schema/primitives';
+import {nameReason} from '@renderer/ui/nameReason';
 import type {EditResult} from '@core/schema/contentEdit';
 import {
   MACRO_FILE_LIMITS,
@@ -43,7 +45,7 @@ function apply(file: MacrosFile, edit: MacroCollectionEdit): MacrosFile {
       ...file,
       collections: duplicateAfter(file.collections, edit, {
         limit: MACRO_FILE_LIMITS.collections,
-        maxName: 256,
+        maxName: NAME_LIMIT,
       }),
     };
     if (!serializeMacros(next, 'macros').ok) {
@@ -91,7 +93,9 @@ function apply(file: MacrosFile, edit: MacroCollectionEdit): MacrosFile {
     throw new Error('Collection no longer exists');
   }
   const name = (edit.kind === 'add' ? edit.collection.name : edit.name).trim();
-  if (!name || name.length > 256) throw new Error('Invalid collection name');
+  if (nameReason(name, NAME_LIMIT) !== undefined) {
+    throw new Error('Invalid collection name');
+  }
   if (edit.kind === 'rename' && existing?.name === name) return file;
   const item =
     edit.kind === 'add'

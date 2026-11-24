@@ -184,3 +184,9 @@ export function isJsonObject(input: unknown): boolean {
   const prototype: unknown = Object.getPrototypeOf(input);
   return prototype === Object.prototype || prototype === null;
 }
+
+/**
+ * The longest name a person gives anything the app lists: media, 타이머,
+ * 메시지, 그래픽, 매크로 and 빠른 실행.
+ */
+export const NAME_LIMIT = 256;

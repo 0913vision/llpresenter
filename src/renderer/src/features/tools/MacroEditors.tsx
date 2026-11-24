@@ -1,3 +1,5 @@
+import {NAME_LIMIT} from '@core/schema/primitives';
+import {nameReason} from '@renderer/ui/nameReason';
 import {useState, type JSX} from 'react';
 import {RenameDialog} from '@renderer/ui/RenameDialog';
 import {Dialog, TextField} from '@renderer/ui';
@@ -20,6 +22,7 @@ function CollectionDialog({
   readonly save: (name: string) => void;
 }): JSX.Element {
   const [name, setName] = useState('');
+  const problem = nameReason(name, NAME_LIMIT);
   return (
     <Dialog
       title="새 모음"
@@ -27,7 +30,8 @@ function CollectionDialog({
       onCancel={close}
       primary={{
         label: '추가',
-        disabled: locked || !name.trim() || name.trim().length > 256,
+        disabled: locked || problem !== undefined,
+        title: problem,
         onSelect: () => save(name.trim()),
       }}
     >
@@ -35,7 +39,7 @@ function CollectionDialog({
         aria-label={'이름'}
         autoFocus
         block
-        maxLength={256}
+        maxLength={NAME_LIMIT}
         readOnly={locked}
         value={name}
         onChange={setName}
@@ -154,11 +158,9 @@ export function MacroEditors({
           name={editor.item.name}
           title="매크로 이름 바꾸기"
           locked={locked}
-          maxLength={256}
           rename={{
+            maxLength: NAME_LIMIT,
             onClose: close,
-            validate: name =>
-              name.length > 256 ? '이름이 너무 깁니다.' : undefined,
             onCommit: rename,
           }}
         />

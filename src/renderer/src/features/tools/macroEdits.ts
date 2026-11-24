@@ -1,5 +1,6 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import {copyName} from '@core/common/copyName';
+import {NAME_LIMIT} from '@core/schema/primitives';
 import type {EditResult} from '@core/schema/contentEdit';
 import {
   MACRO_FILE_LIMITS,
@@ -53,8 +54,6 @@ export type MacroEdit =
       readonly to: MacroCollection['id'];
     };
 
-const MACRO_NAME_LIMIT = 256;
-
 function duplicate(
   file: MacrosFile,
   id: Macro['id'],
@@ -70,7 +69,7 @@ function duplicate(
   const name = copyName(
     source.name,
     file.macros.map(item => item.name),
-    {maxLength: MACRO_NAME_LIMIT},
+    {maxLength: NAME_LIMIT},
   );
   const collections = file.collections.map(group => {
     const position = group.macroIds.indexOf(id);

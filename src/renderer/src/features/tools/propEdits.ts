@@ -1,7 +1,9 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import {duplicateAfter} from '@core/common/duplicateAfter';
 import type {EditResult} from '@core/schema/contentEdit';
+import {NAME_LIMIT} from '@core/schema/primitives';
 import {serializeProps, type Prop, type PropsFile} from '@core/schema/props';
+import {nameReason} from '@renderer/ui/nameReason';
 import {
   editableSettings,
   unchangedSettings,
@@ -9,9 +11,6 @@ import {
 } from '@renderer/session/settingsWrites';
 
 export const MAX_PROPS = 500;
-/** The longest name of a 그래픽. */
-export const PROP_NAME_LIMIT = 256;
-const MAX_NAME = 256;
 const MAX_TEXT = 4000;
 
 export type PropEdit =
@@ -25,8 +24,8 @@ export type PropEdit =
   | {readonly kind: 'delete'; readonly id: Prop['id']};
 
 export function propReason(prop: Prop): string | undefined {
-  if (!prop.name.trim()) return '이름을 적어야 저장할 수 있습니다.';
-  if (prop.name.trim().length > MAX_NAME) return '이름이 너무 깁니다.';
+  const named = nameReason(prop.name, NAME_LIMIT);
+  if (named !== undefined) return named;
   if (prop.targets.length === 0) return '화면을 골라야 저장할 수 있습니다.';
   if (prop.content.kind === 'text') {
     if (!prop.content.text.trim()) return '내용을 적어야 저장할 수 있습니다.';
@@ -41,7 +40,7 @@ function apply(file: PropsFile, edit: PropEdit): PropsFile {
       ...file,
       props: duplicateAfter(file.props, edit, {
         limit: MAX_PROPS,
-        maxName: MAX_NAME,
+        maxName: NAME_LIMIT,
       }),
     };
     if (!serializeProps(next, 'props').ok) throw new Error('Invalid prop');

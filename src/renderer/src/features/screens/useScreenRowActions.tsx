@@ -12,15 +12,9 @@ import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {useScreensSelection} from './selection';
 import type {NamedDocument} from '../../platform/useSettingsDocument';
 import {useScreenEditor} from './useScreenEditor';
-import type {ScreenRenameProblem} from './screenEditor';
+import {SCREEN_NAME_PROBLEMS} from './screenEditor';
 import {lastOfKind, nameProblem} from '@core/screens';
 import {ScreenContextMenu} from './screenMenuEntries';
-
-const PROBLEMS: Readonly<Record<ScreenRenameProblem, string>> = {
-  empty: '이름을 적어야 저장할 수 있습니다.',
-  taken: '같은 이름의 화면이 있습니다.',
-  missing: '화면을 찾을 수 없음',
-};
 
 /** Exposes row rename and confirmed removal through the same screen settings queue. */
 export function useScreenRowActions(
@@ -95,11 +89,13 @@ export function useScreenRowActions(
               document?.value.screens ?? [],
               id,
             );
-            return problem === undefined ? undefined : PROBLEMS[problem];
+            return problem === undefined
+              ? undefined
+              : SCREEN_NAME_PROBLEMS[problem];
           },
           onCommit: async name => {
             const result = await editor.rename(id, name);
-            if (!result.ok) report(PROBLEMS[result.error]);
+            if (!result.ok) report(SCREEN_NAME_PROBLEMS[result.error]);
             return result.ok && result.value;
           },
           onClose: () => setRenaming(null),

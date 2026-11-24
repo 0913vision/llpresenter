@@ -9,7 +9,6 @@ export function RenameDialog({
   title,
   label = '이름',
   locked = false,
-  maxLength,
   rename,
   subtitle,
 }: {
@@ -17,7 +16,6 @@ export function RenameDialog({
   readonly title: string;
   readonly label?: string;
   readonly locked?: boolean;
-  readonly maxLength?: number;
   readonly subtitle?: string;
   readonly rename: RenameContract;
 }): JSX.Element {
@@ -40,7 +38,6 @@ export function RenameDialog({
         aria-label={label}
         autoFocus
         block
-        maxLength={maxLength}
         onFocus={event => event.currentTarget.select()}
       />
     </Dialog>

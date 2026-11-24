@@ -61,10 +61,7 @@ export function useOrderRename({
     itemRename: (row: ServiceRow): GroupRename | undefined =>
       isNamed(row)
         ? {
-            validate: value =>
-              value.trim().length > SONG_NAME_MAX_LENGTH
-                ? '이름이 너무 깁니다.'
-                : undefined,
+            maxLength: SONG_NAME_MAX_LENGTH,
             onCommit: name =>
               save(() => renameOrderItem(createServiceItemId(row.id), name)),
             onClose: stop,

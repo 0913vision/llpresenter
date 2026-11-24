@@ -273,8 +273,8 @@ export function LibraryPanel({
           title="곡 이름 바꾸기"
           label="곡 제목"
           name={renamed.title}
-          maxLength={SONG_TITLE_LIMIT}
           rename={{
+            maxLength: SONG_TITLE_LIMIT,
             validate: value =>
               songTitleReason(value, renamed.id, library.songs),
             onClose: () => setRenaming(null),

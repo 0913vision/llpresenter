@@ -1,3 +1,4 @@
+import {SCREEN_NAME_PROBLEMS} from './screenEditor';
 import {THEME_CANVAS} from '@core/schema/screens';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useMemo, useState, type JSX} from 'react';
@@ -56,10 +57,6 @@ const CANVAS_SIZE = `${THEME_CANVAS.width} × ${THEME_CANVAS.height}`;
 const LOAD_TITLE = '화면';
 const noScreens: readonly Screen[] = [];
 const READ_ONLY_REASON = NEWER_FILE_REASON;
-const NAME_PROBLEMS = {
-  empty: '이름을 적어야 저장할 수 있습니다.',
-  taken: '같은 이름의 화면이 있습니다.',
-} as const;
 
 const KIND_OPTIONS = SCREEN_KIND_ORDER.map(value => ({
   value,
@@ -232,7 +229,7 @@ function NameRow({
           }}
           invalid={problem !== undefined}
           invalidReason={
-            problem === undefined ? undefined : NAME_PROBLEMS[problem]
+            problem === undefined ? undefined : SCREEN_NAME_PROBLEMS[problem]
           }
         />
       )}
@@ -569,7 +566,7 @@ export function ScreenProperties({
             const title =
               result.error === 'missing'
                 ? '화면을 찾을 수 없음'
-                : NAME_PROBLEMS[result.error];
+                : SCREEN_NAME_PROBLEMS[result.error];
             onProblem?.({
               key: 'screens:rename',
               kind: 'warning',

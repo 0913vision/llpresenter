@@ -4,6 +4,8 @@ import type {MessageTemplate, MessagesFile} from '@core/schema/messages';
 import {createMessageTemplateId} from '@core/schema/ids';
 import type {EditResult} from '@core/schema/contentEdit';
 import {MAX_MESSAGE_CHARACTERS} from '@core/overlays';
+import {NAME_LIMIT} from '@core/schema/primitives';
+import {nameReason} from '@renderer/ui/nameReason';
 import {
   editableSettings,
   unchangedSettings,
@@ -11,7 +13,6 @@ import {
 } from '@renderer/session/settingsWrites';
 
 export const MAX_MESSAGE_TEMPLATES = 500;
-export const MESSAGE_NAME_LIMIT = 256;
 export type MessageFields = Pick<MessageTemplate, 'name' | 'text'> &
   Partial<Pick<MessageTemplate, 'icon' | 'targets' | 'duration'>>;
 export type MessageEdit =
@@ -28,11 +29,6 @@ export type MessageEdit =
     }
   | {readonly kind: 'delete'; readonly id: MessageTemplate['id']};
 
-export function messageNameReason(name: string): string | undefined {
-  if (name.trim() === '') return '이름을 적어야 저장할 수 있습니다.';
-  if (name.trim().length > MESSAGE_NAME_LIMIT) return '이름이 너무 깁니다.';
-  return undefined;
-}
 export function messageTextReason(text: string): string | undefined {
   if (text.trim() === '') return '문구를 적어야 저장할 수 있습니다.';
   if (text.length > MAX_MESSAGE_CHARACTERS) return '문구가 너무 깁니다.';
@@ -58,12 +54,15 @@ function applyEdit(file: MessagesFile, edit: MessageEdit): MessagesFile {
       ...file,
       templates: duplicateAfter(file.templates, edit, {
         limit: MAX_MESSAGE_TEMPLATES,
-        maxName: MESSAGE_NAME_LIMIT,
+        maxName: NAME_LIMIT,
       }),
     };
   }
   const fields = edit.kind === 'add' ? edit.item : edit.fields;
-  if (messageNameReason(fields.name) || messageTextReason(fields.text)) {
+  if (
+    nameReason(fields.name, NAME_LIMIT) !== undefined ||
+    messageTextReason(fields.text) !== undefined
+  ) {
     throw new Error('Invalid message template');
   }
   if (edit.kind === 'add') {

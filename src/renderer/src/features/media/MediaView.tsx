@@ -311,12 +311,7 @@ function MediaRenameDialog({
       label="미디어 이름"
       name={item.name}
       rename={{
-        validate: name =>
-          name.trim() === ''
-            ? '이름을 적어야 저장할 수 있습니다.'
-            : name.trim().length > MEDIA_LIMITS.name
-              ? '이름이 너무 깁니다.'
-              : undefined,
+        maxLength: MEDIA_LIMITS.name,
         onClose,
         onCommit,
       }}

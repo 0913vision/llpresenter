@@ -1,3 +1,5 @@
+import {nameReason} from '@renderer/ui/nameReason';
+import {NAME_LIMIT} from '@core/schema/primitives';
 import {RenameDialog} from '@renderer/ui/RenameDialog';
 import {PanelAction} from '@renderer/ui/PanelActionSlot';
 import {limitReason} from '@core/common/limitReason';
@@ -33,8 +35,6 @@ import {focusHistorySurface} from '@renderer/ui/focusHistorySurface';
 import {useReflow} from '@renderer/ui/useReflow';
 import {
   MAX_MESSAGE_TEMPLATES,
-  MESSAGE_NAME_LIMIT,
-  messageNameReason,
   messageTextReason,
   newMessageTemplate,
   saveMessageEdit,
@@ -77,11 +77,11 @@ function TemplateDialog({
   const [duration, setDuration] = useState<number | null>(
     editor.kind === 'edit' ? (editor.item.duration ?? null) : null,
   );
-  const nameReason = messageNameReason(name);
+  const nameProblem = nameReason(name, NAME_LIMIT);
   const textReason = messageTextReason(text);
   // NOTE(0913vision): A blank field is not marked; 추가 stays off and says
   // why, as in the other 추가 dialogs.
-  const nameShown = name.trim() === '' ? undefined : nameReason;
+  const nameShown = name.trim() === '' ? undefined : nameProblem;
   const textShown = text.trim() === '' ? undefined : textReason;
   return (
     <Dialog
@@ -91,8 +91,8 @@ function TemplateDialog({
       primary={{
         label: editor.kind === 'add' ? '추가' : '저장',
         disabled:
-          locked || nameReason !== undefined || textReason !== undefined,
-        title: nameReason ?? textReason,
+          locked || nameProblem !== undefined || textReason !== undefined,
+        title: nameProblem ?? textReason,
         onSelect: () => onSave({name, text, icon, targets, duration}),
       }}
     >
@@ -104,7 +104,7 @@ function TemplateDialog({
               block
               value={name}
               onChange={setName}
-              maxLength={MESSAGE_NAME_LIMIT}
+              maxLength={NAME_LIMIT}
               readOnly={locked}
               invalid={nameShown !== undefined}
               invalidReason={nameShown}
@@ -330,10 +330,8 @@ export function MessageEditing({
           name={renaming.name}
           title="메시지 이름 바꾸기"
           locked={locked}
-          maxLength={MESSAGE_NAME_LIMIT}
           rename={{
-            validate: name =>
-              name.trim() === '' ? undefined : messageNameReason(name),
+            maxLength: NAME_LIMIT,
             onCommit: name =>
               run({
                 kind: 'update',

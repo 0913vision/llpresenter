@@ -1,3 +1,4 @@
+import {NAME_LIMIT} from '@core/schema/primitives';
 import {displayReference} from '@core/bible';
 import {RenameDialog} from '@renderer/ui/RenameDialog';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
@@ -18,13 +19,7 @@ import type {MenuAnchor} from '@renderer/ui/Menu';
 import {openOnArrowDown} from '@renderer/ui/menuButton';
 import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
-import {
-  newQuickItem,
-  QUICK_NAME_LIMIT,
-  quickNameReason,
-  type QuickChoice,
-  type QuickEdit,
-} from './quickEdits';
+import {newQuickItem, type QuickChoice, type QuickEdit} from './quickEdits';
 import {useTimerEditDialog} from '../tools/useTimerEditDialog';
 import {QuickTimerDialog} from './QuickTimerDialog';
 import {quickItemMenuEntries, toolMenuReason} from '../tools/toolMenuEntries';
@@ -398,9 +393,8 @@ export function QuickRowEditor({
           title="빠른 실행 이름 바꾸기"
           name={item.name}
           locked={locked}
-          maxLength={QUICK_NAME_LIMIT}
           rename={{
-            validate: quickNameReason,
+            maxLength: NAME_LIMIT,
             onClose: () => setRenaming(false),
             onCommit: name =>
               save({kind: 'rename', id: item.id, name}, 'saved'),

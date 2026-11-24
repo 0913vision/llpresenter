@@ -1,3 +1,4 @@
+import {NAME_LIMIT} from '@core/schema/primitives';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {Fragment, useLayoutEffect, useState, type JSX} from 'react';
 import {limitReason} from '@core/common/limitReason';
@@ -202,10 +203,7 @@ function CollectionPopover({
                         renaming !== item?.id
                           ? undefined
                           : {
-                              validate: name =>
-                                name.length > 256
-                                  ? '이름이 너무 깁니다.'
-                                  : undefined,
+                              maxLength: NAME_LIMIT,
                               onCommit: name =>
                                 run(
                                   {kind: 'rename', id: item.id, name},

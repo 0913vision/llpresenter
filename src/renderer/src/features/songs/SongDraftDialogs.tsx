@@ -122,8 +122,8 @@ export function SongDraftDialogs(): JSX.Element | null {
           title="다른 이름으로 저장"
           label="곡 제목"
           name={suggestedCopyTitle()}
-          maxLength={SONG_TITLE_LIMIT}
           rename={{
+            maxLength: SONG_TITLE_LIMIT,
             commitsUnchanged: true,
             validate: name =>
               taken.has(normalizeSongTitle(name))

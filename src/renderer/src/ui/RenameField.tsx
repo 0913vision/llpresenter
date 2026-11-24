@@ -8,13 +8,11 @@ export function RenameField({
   label,
   rename,
   locked = false,
-  maxLength,
 }: {
   readonly name: string;
   readonly label: string;
   readonly rename: RenameContract;
   readonly locked?: boolean;
-  readonly maxLength?: number;
 }): JSX.Element {
   const draft = useRenameDraft(name, rename, locked);
   return (
@@ -22,7 +20,6 @@ export function RenameField({
       {...draft.field}
       aria-label={label}
       autoFocus
-      maxLength={maxLength}
       onFocus={event => event.currentTarget.select()}
       onClick={event => event.stopPropagation()}
     />

@@ -2,8 +2,12 @@ import {useRef, useState, type KeyboardEvent, type FocusEvent} from 'react';
 import {isComposing} from './ime';
 import {hasModifier} from './modifierKeys';
 import {useAlive} from '@renderer/ui/useAlive';
+import {nameReason} from './nameReason';
 
 export interface RenameContract {
+  /** The longest name; the field stops there and a longer one is refused. */
+  readonly maxLength?: number | undefined;
+  /** A rule of its own, such as a name that is taken, before the shared one. */
   readonly validate?: ((value: string) => string | undefined) | undefined;
   readonly onCommit: (name: string) => boolean | Promise<boolean>;
   readonly onClose: () => void;
@@ -50,8 +54,7 @@ export function useRenameDraft(
     !needsPersistence &&
     contract.commitsUnchanged !== true;
   const validation =
-    contract.validate?.(name) ??
-    (name === '' ? '이름을 적어야 저장할 수 있습니다.' : undefined);
+    contract.validate?.(name) ?? nameReason(name, contract.maxLength);
   const problem = validation ?? failure;
   const close = (): void => {
     const focus = keyboardFocus.current;
@@ -134,6 +137,7 @@ export function useRenameDraft(
     problem,
     field: {
       value,
+      maxLength: contract.maxLength,
       onChange: (next: string): void => {
         if (locked || pending.current) return;
         setValue(next);

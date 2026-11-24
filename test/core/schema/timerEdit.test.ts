@@ -1,6 +1,6 @@
 import {expect, it} from 'vitest';
 import {parseSettingsEdit} from '@core/schema/settingsDocuments';
-import {TIMER_NAME_LIMIT} from '@core/schema/quickTimerEdit';
+import {NAME_LIMIT} from '@core/schema/primitives';
 
 const edit = {
   type: 'timer.rename',
@@ -14,7 +14,7 @@ it('accepts a bounded targeted rename and normalizes its name', () => {
     parseSettingsEdit({...edit, timerName: ' 설교 ', future: true}),
   ).toEqual({ok: true, value: edit});
   expect(
-    parseSettingsEdit({...edit, timerName: '가'.repeat(TIMER_NAME_LIMIT)}).ok,
+    parseSettingsEdit({...edit, timerName: '가'.repeat(NAME_LIMIT)}).ok,
   ).toBe(true);
 });
 
@@ -26,7 +26,7 @@ it.each([
   {...edit, timerName: '  '},
   {...edit, timerName: null},
   {...edit, timerName: 1},
-  {...edit, timerName: '가'.repeat(TIMER_NAME_LIMIT + 1)},
+  {...edit, timerName: '가'.repeat(NAME_LIMIT + 1)},
 ])('rejects malformed rename: %j', value => {
   expect(parseSettingsEdit(value).ok).toBe(false);
 });

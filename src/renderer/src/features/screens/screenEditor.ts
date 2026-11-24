@@ -3,6 +3,7 @@ import type {Result} from '@core/common/result';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import type {MonitorInfo, MonitorList} from '@core/schema/monitors';
 import type {Screen} from '@core/schema/screens';
+import {EMPTY_NAME_REASON} from '@renderer/ui/nameReason';
 import {assignScreenMonitor} from './assignScreenMonitor';
 import {
   changeScreen,
@@ -23,6 +24,15 @@ interface AssignmentSnapshot {
 export type EditProblemReporter = (reason: string) => void;
 
 export type ScreenRenameProblem = NameProblem | 'missing';
+
+/** What a screen's name field says for each problem. */
+export const SCREEN_NAME_PROBLEMS: Readonly<
+  Record<ScreenRenameProblem, string>
+> = {
+  empty: EMPTY_NAME_REASON,
+  taken: '같은 이름의 화면이 있습니다.',
+  missing: '화면을 찾을 수 없음',
+};
 
 /**
  * Saves changes to `screens.json` one at a time. Each save starts from the

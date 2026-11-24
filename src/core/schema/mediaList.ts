@@ -25,6 +25,7 @@ import {
   positiveInteger,
   positiveNumber,
   seconds,
+  NAME_LIMIT,
 } from './primitives';
 
 interface Range {
@@ -38,8 +39,8 @@ export const MEDIA_LIMITS = {
   playlists: 1_000,
   playlistItems: 10_000,
   importBatch: 200,
-  /** A name in the list; as long as the timer names, and a file name fits. */
-  name: 256,
+  /** A name in the list. */
+  name: NAME_LIMIT,
 } as const;
 
 export const mediaName = v.pipe(v.string(), v.maxLength(MEDIA_LIMITS.name));

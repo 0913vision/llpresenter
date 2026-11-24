@@ -5,7 +5,7 @@ import {LIVE_STATE_BYTE_BUDGET} from '@core/schema/liveLimits';
 import {serializeRecoveryRecord} from '@core/schema/recoveryRecord';
 import {createTimerId, type TimerId} from '@core/schema/ids';
 import {MAX_LIVE_TIMERS, type TimerRuns} from '@core/schema/timerState';
-import {TIMER_NAME_LIMIT} from '@core/schema/quickTimerEdit';
+import {NAME_LIMIT} from '@core/schema/primitives';
 import {liveStateBytes, fitsLiveStateByteBudget} from '@main/live/stateBudget';
 
 describe('live state byte counting', () => {
@@ -133,7 +133,7 @@ describe('live state byte counting', () => {
         completed: true,
         timer: {
           id,
-          name: '가'.repeat(TIMER_NAME_LIMIT),
+          name: '가'.repeat(NAME_LIMIT),
           kind: 'countdownTo',
           time: '23:59',
           date: '2999-12-31',

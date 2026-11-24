@@ -1,3 +1,4 @@
+import {EMPTY_NAME_REASON} from '@renderer/ui/nameReason';
 import {useState, type JSX} from 'react';
 import {Dialog, DialogField} from '@renderer/ui/Dialog';
 import {TextField} from '@renderer/ui/TextField';
@@ -24,7 +25,7 @@ export function SaveTemplateDialog({
         label: '저장',
         onSelect: () => onSave(trimmed),
         disabled: busy || trimmed === '',
-        title: trimmed === '' ? '이름을 적어야 저장할 수 있습니다.' : undefined,
+        title: trimmed === '' ? EMPTY_NAME_REASON : undefined,
       }}
     >
       <DialogField label="이름">

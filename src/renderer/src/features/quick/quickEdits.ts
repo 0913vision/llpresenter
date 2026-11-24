@@ -14,14 +14,12 @@ import {
   unchangedSettings,
 } from '@renderer/session/settingsWrites';
 import type {EditResult} from '@core/schema/contentEdit';
-import {
-  TIMER_NAME_LIMIT,
-  type QuickTimerEdit,
-} from '@core/schema/quickTimerEdit';
+import type {QuickTimerEdit} from '@core/schema/quickTimerEdit';
+import {NAME_LIMIT} from '@core/schema/primitives';
+import {nameReason} from '@renderer/ui/nameReason';
 import {MAX_TIMER_DEFINITIONS} from '@core/schema/timers';
 
 export {MAX_QUICK_ITEMS} from '@core/schema/quick';
-export const QUICK_NAME_LIMIT = 256;
 const SAVE_ATTEMPTS = 2;
 
 export type QuickChoice = {
@@ -62,12 +60,6 @@ export function newQuickItem(choice: QuickChoice): KnownQuickItem {
   return {...choice, id: createQuickItemId(crypto.randomUUID())};
 }
 
-export function quickNameReason(name: string): string | undefined {
-  if (name.trim() === '') return '이름을 적어야 저장할 수 있습니다.';
-  if (name.trim().length > QUICK_NAME_LIMIT) return '이름이 너무 깁니다.';
-  return undefined;
-}
-
 function applyEdit(
   items: readonly QuickItem[],
   edit: Exclude<QuickEdit, {kind: 'timer-add'}>,
@@ -78,12 +70,12 @@ function applyEdit(
       if (items.length >= MAX_QUICK_ITEMS) {
         throw new Error('The quick list is full');
       }
-      if (quickNameReason(edit.item.name)) {
+      if (nameReason(edit.item.name, NAME_LIMIT) !== undefined) {
         throw new Error('Invalid quick item name');
       }
       return [...items, {...edit.item, name: edit.item.name.trim()}];
     case 'rename':
-      if (quickNameReason(edit.name)) {
+      if (nameReason(edit.name, NAME_LIMIT) !== undefined) {
         throw new Error('Invalid quick item name');
       }
       return items.map(item =>
@@ -108,7 +100,7 @@ function applyEdit(
     case 'duplicate':
       return duplicateAfter(items, edit, {
         limit: MAX_QUICK_ITEMS,
-        maxName: QUICK_NAME_LIMIT,
+        maxName: NAME_LIMIT,
       });
     case 'move': {
       const source = items.find(item => item.id === edit.id);
@@ -169,7 +161,7 @@ async function duplicateQuickTimer({
   const copied = duplicateAfter(
     timers.value.timers,
     {id: source.ref, copyId: timerCopyId},
-    {limit: MAX_TIMER_DEFINITIONS, maxName: TIMER_NAME_LIMIT},
+    {limit: MAX_TIMER_DEFINITIONS, maxName: NAME_LIMIT},
   );
   const timerName = copied.find(timer => timer.id === timerCopyId)?.name;
   if (timerName === undefined) throw new Error('The timer copy is missing');
@@ -257,7 +249,7 @@ async function sendQuickEdit(
   if (edit.kind === 'rename') {
     const item = document.value.items.find(item => item.id === edit.id);
     if (item && isKnownQuickItem(item) && item.kind === 'timer') {
-      if (quickNameReason(edit.name)) {
+      if (nameReason(edit.name, NAME_LIMIT) !== undefined) {
         throw new Error('Invalid quick item name');
       }
       return api.settings.edit({

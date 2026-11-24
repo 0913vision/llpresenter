@@ -4,7 +4,7 @@ import {openMenuFromKey, pointerMenuAnchor} from '@renderer/ui/contextMenu';
 import {useRef, useState, type JSX, type ReactNode} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {Timer} from '@core/schema/timers';
-import {TIMER_NAME_LIMIT} from '@core/schema/quickTimerEdit';
+import {NAME_LIMIT} from '@core/schema/primitives';
 import {Menu} from '@renderer/ui';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
@@ -32,12 +32,10 @@ function TimerNameDialog({
       name={timer.name}
       title="타이머 이름 바꾸기"
       locked={locked}
-      maxLength={TIMER_NAME_LIMIT}
       rename={{
+        maxLength: NAME_LIMIT,
         onCommit: save,
         onClose: onClose,
-        validate: name =>
-          name.length > TIMER_NAME_LIMIT ? '이름이 너무 깁니다.' : undefined,
       }}
     />
   );

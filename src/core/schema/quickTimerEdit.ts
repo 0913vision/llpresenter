@@ -1,9 +1,9 @@
 import * as v from 'valibot';
 import {quickItemIdSchema, timerIdSchema} from './ids';
 import type {ReadonlyKnown} from './fileFormat';
+import {NAME_LIMIT} from './primitives';
 import {MAX_TIMER_SECONDS} from './timers';
 
-export const TIMER_NAME_LIMIT = 256;
 export {MAX_TIMER_SECONDS, MAX_TIMER_DEFINITIONS} from './timers';
 
 export const quickTimerCreateSchema = v.pipe(
@@ -34,7 +34,7 @@ export const quickTimerRenameSchema = v.object({
     v.string(),
     v.trim(),
     v.nonEmpty(),
-    v.maxLength(TIMER_NAME_LIMIT),
+    v.maxLength(NAME_LIMIT),
   ),
 });
 

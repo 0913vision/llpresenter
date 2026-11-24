@@ -1,6 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {parseSettingsEdit} from '@core/schema/settingsDocuments';
-import {MAX_TIMER_SECONDS, TIMER_NAME_LIMIT} from '@core/schema/quickTimerEdit';
+import {NAME_LIMIT} from '@core/schema/primitives';
+import {MAX_TIMER_SECONDS} from '@core/schema/quickTimerEdit';
 
 const quickItemId = '00000000-0000-4000-8000-000000000001';
 const timerId = '00000000-0000-4000-8000-000000000002';
@@ -71,7 +72,7 @@ describe('quick timer edit boundary', () => {
     });
   });
 
-  it.each(['', '  ', '가'.repeat(TIMER_NAME_LIMIT + 1), null, 5])(
+  it.each(['', '  ', '가'.repeat(NAME_LIMIT + 1), null, 5])(
     'rejects invalid timer name %s',
     timerName => {
       expect(

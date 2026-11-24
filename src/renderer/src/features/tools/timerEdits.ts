@@ -4,7 +4,7 @@ import type {TimerId} from '@core/schema/ids';
 import type {EditResult} from '@core/schema/contentEdit';
 import type {TimerDelete} from '@core/schema/timerDeletion';
 import type {TimerRename} from '@core/schema/timerEdit';
-import {TIMER_NAME_LIMIT} from '@core/schema/quickTimerEdit';
+import {NAME_LIMIT} from '@core/schema/primitives';
 import {MAX_TIMER_DEFINITIONS} from '@core/schema/timers';
 import {
   nextTimerName,
@@ -66,7 +66,7 @@ export function duplicateTimer(
     const document = await editableSettings(api, 'timers');
     const timers = duplicateAfter(document.value.timers, copy, {
       limit: MAX_TIMER_DEFINITIONS,
-      maxName: TIMER_NAME_LIMIT,
+      maxName: NAME_LIMIT,
     });
     return timers === document.value.timers
       ? unchangedSettings(document)

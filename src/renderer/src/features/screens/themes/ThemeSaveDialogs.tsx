@@ -34,8 +34,8 @@ export function ThemeSaveDialogs({
         title="다른 이름으로 저장"
         label="테마 이름"
         name={copiedThemeName(list, theme.name)}
-        maxLength={THEME_FILE_LIMITS.name}
         rename={{
+          maxLength: THEME_FILE_LIMITS.name,
           commitsUnchanged: true,
           validate: name => (taken.has(name) ? themeProblems.taken : undefined),
           onCommit: async name => {

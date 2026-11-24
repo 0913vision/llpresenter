@@ -104,7 +104,6 @@ export function MacroCollectionRow({
       ) : (
         <RenameField
           label="모음 이름"
-          maxLength={256}
           name={name}
           locked={locked}
           rename={rename}

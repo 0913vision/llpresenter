@@ -1,3 +1,4 @@
+import {NAME_LIMIT} from '@core/schema/primitives';
 import {RenameDialog} from '@renderer/ui/RenameDialog';
 import {useScreenList} from '@renderer/platform/useScreenList';
 import {PanelAction} from '@renderer/ui/PanelActionSlot';
@@ -13,12 +14,7 @@ import type {MenuAnchor} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
 import {PropDialog} from './PropDialog';
 import {PropGrid} from './PropGrid';
-import {
-  MAX_PROPS,
-  savePropEdit,
-  type PropEdit,
-  PROP_NAME_LIMIT,
-} from './propEdits';
+import {MAX_PROPS, savePropEdit, type PropEdit} from './propEdits';
 import {useMediaDocument} from './useMediaDocument';
 import {focusedOptionIndex, useDuplicateShortcut} from './useDuplicateShortcut';
 import {useToolEditing} from './useToolEditing';
@@ -174,12 +170,8 @@ export function PropTab({
           name={renaming.name}
           title="그래픽 이름 바꾸기"
           locked={locked}
-          maxLength={PROP_NAME_LIMIT}
           rename={{
-            validate: name =>
-              name.trim().length > PROP_NAME_LIMIT
-                ? '이름이 너무 깁니다.'
-                : undefined,
+            maxLength: NAME_LIMIT,
             onCommit: name =>
               run({kind: 'update', prop: {...renaming, name: name.trim()}}),
             onClose: () => setRenaming(null),
