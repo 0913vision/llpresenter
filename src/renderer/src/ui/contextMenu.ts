@@ -69,10 +69,46 @@ export function isContextMenuKey(event: KeyboardEvent): boolean {
   );
 }
 
+/** The `button` of a contextmenu event that the keyboard sent. */
+const KEYBOARD_BUTTON = -1;
+
+/**
+ * Drops the contextmenu event that Chromium sends when the Menu key is let
+ * go. A menu opened on the key's press keeps its focus; without this, the
+ * late event would open the menu again behind it.
+ */
+export function dropKeyContextMenu(): void {
+  window.addEventListener(
+    'contextmenu',
+    event => {
+      if (event.button !== KEYBOARD_BUTTON) return;
+      event.preventDefault();
+      event.stopPropagation();
+    },
+    {capture: true, once: true},
+  );
+}
+
+/**
+ * Takes a press of the Menu key or Shift F10 for a menu that opens now: the
+ * press stops here, so no menu above opens too, and the contextmenu the key
+ * sends when it is let go is dropped, so the menu opens once and keeps its
+ * focus. Every list opens its menu from the keyboard through this.
+ *
+ * @returns Whether the press was the menu key.
+ */
+export function takeMenuKey(event: KeyboardEvent): boolean {
+  if (!isContextMenuKey(event)) return false;
+  event.preventDefault();
+  event.stopPropagation();
+  dropKeyContextMenu();
+  return true;
+}
+
 /**
  * Opens a row's menu from the Menu key or Shift F10, below the row that has
  * focus. A key typed in a field, during composition, or with another modifier
- * is left alone. The press stops here, so no menu above this row opens too.
+ * is left alone.
  *
  * @returns Whether the press opened the menu.
  */
@@ -80,9 +116,7 @@ export function openMenuFromKey(
   event: KeyboardEvent<HTMLElement>,
   open: (anchor: MenuAnchor) => void,
 ): boolean {
-  if (!isContextMenuKey(event)) return false;
-  event.preventDefault();
-  event.stopPropagation();
+  if (!takeMenuKey(event)) return false;
   open({
     kind: 'element',
     target: contextMenuTarget(event),

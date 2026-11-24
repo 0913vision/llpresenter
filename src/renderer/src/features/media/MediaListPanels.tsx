@@ -31,8 +31,9 @@ import {playlistMenuEntries} from './mediaMenuEntries';
 import {
   contextMenuAnchor,
   isContextMenuKey,
+  takeMenuKey,
   type ContextMenuEvent,
-} from '../../ui/contextMenu';
+} from '@renderer/ui/contextMenu';
 
 const ALL = 'all';
 
@@ -114,8 +115,12 @@ function usePlaylistEditing(kind: 'media' | 'audio') {
         : null;
     const key = row?.getAttribute('data-value') ?? '';
     if (row === null || !key.startsWith(`${kind}:`)) return;
-    event.preventDefault();
-    event.stopPropagation();
+    if ('clientX' in event) {
+      event.preventDefault();
+      event.stopPropagation();
+    } else {
+      takeMenuKey(event);
+    }
     choose(choiceOf(key));
     setMenu({id: key.slice(kind.length + 1), anchor: contextMenuAnchor(event)});
   };

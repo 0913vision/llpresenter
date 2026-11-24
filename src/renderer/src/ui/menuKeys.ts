@@ -1,7 +1,7 @@
 import type {KeyboardEvent} from 'react';
 import {isComposing} from './ime';
 import {hasModifier} from './modifierKeys';
-import {isContextMenuKey} from './contextMenu';
+import {dropKeyContextMenu, isContextMenuKey} from './contextMenu';
 import {
   movePointer,
   hasSubmenu,
@@ -129,6 +129,7 @@ export function openItemMenu(
       ? element
       : event.target;
   if (!isContextMenuKey({...event, target})) return false;
+  dropKeyContextMenu();
   item.onMenu({kind: 'element', element, target: element});
   return true;
 }

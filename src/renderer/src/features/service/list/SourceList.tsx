@@ -12,7 +12,7 @@ import {dateLabel} from './serviceDates';
 import type {SourceRow} from './useSourceActions';
 import {EMPTY_SOURCE, sourceKey, type ServiceSource} from './useServiceSources';
 import styles from './ServiceDialogs.module.css';
-import {isContextMenuKey, type ContextMenuEvent} from '../../../ui/contextMenu';
+import {takeMenuKey, type ContextMenuEvent} from '@renderer/ui/contextMenu';
 import {useReflow} from '@renderer/ui/useReflow';
 import {serviceDay} from '@core/services';
 
@@ -53,10 +53,7 @@ function withMenu(
       key={sourceKey(row.source)}
       onContextMenu={event => onRowMenu(event, row)}
       onKeyDown={event => {
-        if (!isContextMenuKey(event)) return;
-        event.preventDefault();
-        event.stopPropagation();
-        onRowMenu(event, row);
+        if (takeMenuKey(event)) onRowMenu(event, row);
       }}
     >
       {children}

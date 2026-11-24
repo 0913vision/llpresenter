@@ -1,8 +1,8 @@
 import type {KeyboardEvent, MouseEvent} from 'react';
 import {
   contextMenuAnchor,
-  isContextMenuKey,
   pointerMenuAnchor,
+  takeMenuKey,
 } from '@renderer/ui/contextMenu';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import {hasModifier} from '@renderer/ui/modifierKeys';
@@ -75,11 +75,8 @@ export function useOrderListEvents({
       if (event.key === 'Enter' && !hasModifier(event)) {
         openOrderEditor(serviceOrderRowId(event.target));
       }
-      if (isContextMenuKey(event) && workspace === 'prep') {
-        const id = serviceOrderRowId(event.target);
-        if (id === null) return;
-        event.preventDefault();
-        event.stopPropagation();
+      const id = serviceOrderRowId(event.target);
+      if (workspace === 'prep' && id !== null && takeMenuKey(event)) {
         openMenu(id, event.currentTarget, targets => ({
           ...contextMenuAnchor(event),
           targets,

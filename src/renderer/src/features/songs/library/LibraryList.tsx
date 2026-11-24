@@ -8,7 +8,7 @@ import {
 import type {SongId} from '@core/schema/ids';
 import {SONG_DRAG_MIME, serializeSongDragPayload} from '@core/schema/songDrag';
 import {ListBox, ListRow} from '@renderer/ui/ListRow';
-import {isContextMenuKey, type ContextMenuEvent} from '../../../ui/contextMenu';
+import {takeMenuKey, type ContextMenuEvent} from '@renderer/ui/contextMenu';
 import type {LibraryRow} from './useLibrary';
 import styles from './LibraryPanel.module.css';
 import {useDragClickGuard} from '@renderer/ui/useDragClickGuard';
@@ -101,10 +101,7 @@ export function LibraryList({
                 onOpen(song.id);
                 return;
               }
-              if (!isContextMenuKey(event)) return;
-              event.preventDefault();
-              event.stopPropagation();
-              onContextMenu(event, song.id);
+              if (takeMenuKey(event)) onContextMenu(event, song.id);
             }}
             onDragStart={event => {
               const result = serializeSongDragPayload({

@@ -8,6 +8,7 @@ import {
   isContextMenuKey,
   markMenuTarget,
   openMenuFromKey,
+  takeMenuKey,
 } from '@renderer/ui/contextMenu';
 
 function Harness() {
@@ -268,5 +269,28 @@ describe('openMenuFromKey', () => {
 
     expect(open).not.toHaveBeenCalled();
     expect(outer).toHaveBeenCalled();
+  });
+});
+
+describe('takeMenuKey', () => {
+  it('drops the contextmenu that the Menu key sends when it is let go', () => {
+    const later = vi.fn();
+    render(
+      <div
+        role="option"
+        aria-selected="false"
+        tabIndex={0}
+        onKeyDown={event => takeMenuKey(event)}
+        onContextMenu={later}
+      >
+        행
+      </div>,
+    );
+    const row = screen.getByRole('option');
+    fireEvent.keyDown(row, {key: 'ContextMenu'});
+    fireEvent.contextMenu(row, {button: -1});
+    expect(later).not.toHaveBeenCalled();
+    fireEvent.contextMenu(row, {button: 2});
+    expect(later).toHaveBeenCalledOnce();
   });
 });

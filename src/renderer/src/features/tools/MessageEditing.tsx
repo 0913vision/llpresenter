@@ -7,6 +7,7 @@ import {
   contextMenuTarget,
   isContextMenuKey,
   pointerMenuAnchor,
+  takeMenuKey,
 } from '@renderer/ui/contextMenu';
 import {useRef, useState, type JSX, type ReactNode} from 'react';
 import {deleteSelection} from '@renderer/ui/deleteSelection';
@@ -297,8 +298,7 @@ export function MessageEditing({
                   : event.currentTarget,
             })
           ) {
-            event.preventDefault();
-            event.stopPropagation();
+            takeMenuKey(event);
           }
         }}
       >

@@ -2,7 +2,7 @@ import {useEffect, useMemo, useRef, useState, type JSX} from 'react';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
 import {Button} from '@renderer/ui/Button';
 import {EmptyState} from '@renderer/ui/EmptyState';
-import {contextMenuAnchor, isContextMenuKey} from '@renderer/ui/contextMenu';
+import {contextMenuAnchor, takeMenuKey} from '@renderer/ui/contextMenu';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import {SegmentedControl} from '@renderer/ui/SegmentedControl';
 import {TextField} from '@renderer/ui/TextField';
@@ -155,11 +155,8 @@ export function ShortcutsPage({
           );
         }}
         onKeyDownCapture={event => {
-          if (!isContextMenuKey(event)) return;
           const row = commandRowOf(event.target);
-          if (row === null) return;
-          event.preventDefault();
-          event.stopPropagation();
+          if (row === null || !takeMenuKey(event)) return;
           openMenu(row.id, rowAnchor(row.element));
         }}
         onKeyDown={event => {

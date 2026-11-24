@@ -2,6 +2,7 @@ import {
   contextMenuTarget,
   isContextMenuKey,
   pointerMenuAnchor,
+  takeMenuKey,
 } from '@renderer/ui/contextMenu';
 import {
   useEffect,
@@ -278,7 +279,7 @@ export function TileList(props: TileListProps): JSX.Element {
     const tile = tileOf(event.target);
     const index = indexOf(event.currentTarget, tile);
     if (tile === null || index < 0 || props.onMenu === undefined) return;
-    event.preventDefault();
+    if (!takeMenuKey(event)) return;
     props.onMenu(index, {
       kind: 'element',
       target: contextMenuTarget(event),

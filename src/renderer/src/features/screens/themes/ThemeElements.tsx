@@ -19,7 +19,7 @@ import {
   PanelBody,
   PanelFooter,
 } from '@renderer/ui/Panel';
-import {contextMenuAnchor, isContextMenuKey} from '@renderer/ui/contextMenu';
+import {contextMenuAnchor, takeMenuKey} from '@renderer/ui/contextMenu';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import type {ThemeModel} from './useThemeEditor';
 import {addableNames, elementName} from './themeNames';
@@ -264,8 +264,7 @@ export function ThemeElements({
                   onMenu(element.id, contextMenuAnchor(event));
                 }}
                 onKeyDown={event => {
-                  if (isContextMenuKey(event)) {
-                    event.preventDefault();
+                  if (takeMenuKey(event)) {
                     onMenu(element.id, contextMenuAnchor(event));
                   }
                 }}

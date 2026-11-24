@@ -9,7 +9,7 @@ import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
 import {
   contextMenuAnchor,
-  isContextMenuKey,
+  takeMenuKey,
   type ContextMenuEvent,
 } from '@renderer/ui/contextMenu';
 import {
@@ -230,7 +230,7 @@ function ThemeCanvas({
       {...editorEvents}
       onContextMenu={openContext}
       onKeyDown={event => {
-        if (isContextMenuKey(event)) openContext(event);
+        if (takeMenuKey(event)) openContext(event);
       }}
       onDragOver={event => {
         if (

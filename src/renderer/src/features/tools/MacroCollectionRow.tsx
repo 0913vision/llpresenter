@@ -1,8 +1,8 @@
 import type {DragEvent, JSX} from 'react';
 import {
   contextMenuTarget,
-  isContextMenuKey,
   pointerMenuAnchor,
+  takeMenuKey,
 } from '@renderer/ui/contextMenu';
 import {MenuCheck} from '@renderer/ui/MenuParts';
 import {classNames} from '@renderer/ui/classNames';
@@ -83,8 +83,7 @@ export function MacroCollectionRow({
         } else if (direction !== undefined) {
           event.preventDefault();
           onStep(direction);
-        } else if (isContextMenuKey(event)) {
-          event.preventDefault();
+        } else if (takeMenuKey(event)) {
           onMenu({
             kind: 'element',
             target: contextMenuTarget(event),
