@@ -347,7 +347,7 @@ describe('BibleQuickField', () => {
   it.each([
     {code: 'KeyB', key: 'b', ctrlKey: true},
     {code: 'F8', key: 'F8', ctrlKey: false},
-  ])('closes the finder from its focused field with its binding', async key => {
+  ])('keeps the finder open and selects 책 on its binding again', async key => {
     if (key.code === 'F8') {
       commandBindingStore.set({'bible.focus': [{code: 'F8', mods: []}]});
     }
@@ -357,9 +357,12 @@ describe('BibleQuickField', () => {
     fireEvent.keyDown(document.body, key);
     const dialog = screen.getByRole('dialog');
     const field = await book();
-    expect(document.activeElement).toBe(field);
+    fireEvent.change(field, {target: {value: 'abc'}});
+    field.setSelectionRange(3, 3);
     fireEvent.keyDown(field, key);
-    expect(dialog.isConnected).toBe(false);
+    expect(dialog.isConnected).toBe(true);
+    expect(document.activeElement).toBe(field);
+    expect([field.selectionStart, field.selectionEnd]).toEqual([0, 3]);
   });
 
   it('leaves text editing keys to the field even when bound to the finder', async () => {

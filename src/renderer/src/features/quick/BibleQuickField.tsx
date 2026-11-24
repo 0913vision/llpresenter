@@ -223,7 +223,7 @@ export function BibleQuickField({
           pick(recent).catch((error: unknown) => console.error(error));
         }}
         onIntent={intent}
-        onKeyDownCapture={finder.closeOnOwnKey}
+        onKeyDownCapture={finder.focusOnOwnKey}
       />
     );
   }

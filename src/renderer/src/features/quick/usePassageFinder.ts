@@ -7,8 +7,9 @@ import {isInputMethodKey} from '@renderer/ui/keys/commandDispatcher';
 
 /**
  * The passage finder of quick run, the dialog that 성경 구절 찾기 (Ctrl B)
- * opens. The key that opens it closes it again, like Esc, also from inside
- * while typing. A closed finder cancels what it was opening.
+ * opens. Pressed again while it is open, the key puts the focus back in 책 with
+ * its text selected, so typing never falls through to 진행; Esc closes it.
+ * A closed finder cancels what it was opening.
  */
 export function usePassageFinder({
   open,
@@ -36,13 +37,12 @@ export function usePassageFinder({
     {
       id: 'bible.focus',
       run: () => {
-        if (open) close();
-        else setOpen(true);
+        if (!open) setOpen(true);
       },
     },
   ]);
-  /** Closes the finder on its own key, which the dialog would keep. */
-  const closeOnOwnKey = (event: KeyboardEvent): void => {
+  /** Takes the finder's own key inside it: back to 책, text selected. */
+  const focusOnOwnKey = (event: KeyboardEvent<HTMLElement>): void => {
     const own =
       !isInputMethodKey(event.nativeEvent) &&
       !editsText(event.nativeEvent) &&
@@ -52,11 +52,15 @@ export function usePassageFinder({
     if (!own) return;
     event.preventDefault();
     event.stopPropagation();
-    if (!event.repeat) close();
+    const book = event.currentTarget.querySelector<HTMLInputElement>(
+      '[data-reference-part="book"]',
+    );
+    book?.focus();
+    book?.select();
   };
   return {
     close,
-    closeOnOwnKey,
+    focusOnOwnKey,
     /** Which finder a request belongs to, to drop a late answer. */
     generation: (): number => generation.current,
   };

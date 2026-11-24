@@ -923,6 +923,9 @@ name. Chapter and verse bounds always use the built-in GAE number table.
   move the highlight, Enter or Tab accepts the highlighted book and focuses
   chapter. In the Ctrl+B dialog Escape clears the fields, and a second Escape
   closes the empty dialog; preparation Escape closes the dialog immediately.
+  Ctrl B pressed again while the dialog is open never closes it: it puts the
+  focus back in 책 with its text selected, so typing can't fall through to the
+  진행 keys. An unmatched book shows the error ring in the dialog too.
 - Once a quick passage is resolved, it goes live while the slide grid prepares
   its pictures independently.
 - While a quick Bible passage is live, Escape outside text fields and open menus
