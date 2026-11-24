@@ -201,36 +201,16 @@ export class PowerPointImagesJob {
       return Promise.resolve('file');
     }
     const numbers = decorationSlides ?? [];
-    if (
-      (decorationSlides !== undefined && numbers.length === 0) ||
-      numbers.length > MAX_DECORATION_BATCH ||
-      new Set(numbers).size !== numbers.length ||
-      numbers.some(
-        number =>
-          !Number.isSafeInteger(number) ||
-          number < 1 ||
-          number > POWERPOINT_IMPORT_LIMITS.slides,
-      )
-    ) {
+    if (!decorationBatchValid(decorationSlides)) {
       return Promise.resolve('file');
     }
     if (this.child) return Promise.resolve('unresponsive');
     this.cancelled = false;
     this.directory = directory;
     return new Promise(resolve => {
-      const encoded = Buffer.from(POWERPOINT_IMAGE_SCRIPT, 'utf16le').toString(
-        'base64',
-      );
       const child = spawn(
         'powershell.exe',
-        [
-          '-NoProfile',
-          '-NonInteractive',
-          '-ExecutionPolicy',
-          'Bypass',
-          '-EncodedCommand',
-          encoded,
-        ],
+        encodedScriptArguments(POWERPOINT_IMAGE_SCRIPT),
         {
           windowsHide: true,
           env: {
@@ -255,20 +235,9 @@ export class PowerPointImagesJob {
         if (cleanupStarted || settled) return;
         cleanupStarted = true;
         if (killWait !== null) clearTimeout(killWait);
-        const code = Buffer.from(
-          POWERPOINT_IMAGE_CLEANUP_SCRIPT,
-          'utf16le',
-        ).toString('base64');
         const helper = spawn(
           'powershell.exe',
-          [
-            '-NoProfile',
-            '-NonInteractive',
-            '-ExecutionPolicy',
-            'Bypass',
-            '-EncodedCommand',
-            code,
-          ],
+          encodedScriptArguments(POWERPOINT_IMAGE_CLEANUP_SCRIPT),
           {
             windowsHide: true,
             env: {
@@ -324,11 +293,10 @@ export class PowerPointImagesJob {
         const lines = output.split(/\r?\n/);
         output = lines.pop() ?? '';
         for (const line of lines) {
-          if (line === 'FAILURE unavailable') failure = 'unavailable';
-          else if (line === 'FAILURE unresponsive') failure = 'unresponsive';
-          const match = /^PROGRESS (\d+) (\d+) (\d+)$/.exec(line);
-          if (match) {
-            progress(Number(match[1]), Number(match[2]), Number(match[3]));
+          const read = scriptLine(line);
+          if (read?.kind === 'failure') failure = read.failure;
+          if (read?.kind === 'progress') {
+            progress(read.done, read.total, read.number);
           }
         }
       });
@@ -341,4 +309,66 @@ export class PowerPointImagesJob {
       });
     });
   }
+}
+
+/**
+ * The PowerShell arguments that run a script given as UTF-16 Base64, so no
+ * value ever reaches the command line; the script reads them from its
+ * environment.
+ */
+function encodedScriptArguments(script: string): string[] {
+  return [
+    '-NoProfile',
+    '-NonInteractive',
+    '-ExecutionPolicy',
+    'Bypass',
+    '-EncodedCommand',
+    Buffer.from(script, 'utf16le').toString('base64'),
+  ];
+}
+
+/**
+ * Whether the slides asked for as decorations make a batch the script takes:
+ * none asked, or up to the batch size of distinct slide numbers in range.
+ */
+function decorationBatchValid(numbers: readonly number[] | undefined): boolean {
+  if (numbers === undefined) return true;
+  return (
+    numbers.length > 0 &&
+    numbers.length <= MAX_DECORATION_BATCH &&
+    new Set(numbers).size === numbers.length &&
+    numbers.every(
+      number =>
+        Number.isSafeInteger(number) &&
+        number >= 1 &&
+        number <= POWERPOINT_IMPORT_LIMITS.slides,
+    )
+  );
+}
+
+/** What one line the export script prints says, or null for any other line. */
+function scriptLine(line: string):
+  | {readonly kind: 'failure'; readonly failure: PowerPointImagesResult}
+  | {
+      readonly kind: 'progress';
+      readonly done: number;
+      readonly total: number;
+      readonly number: number;
+    }
+  | null {
+  if (line === 'FAILURE unavailable') {
+    return {kind: 'failure', failure: 'unavailable'};
+  }
+  if (line === 'FAILURE unresponsive') {
+    return {kind: 'failure', failure: 'unresponsive'};
+  }
+  const match = /^PROGRESS (\d+) (\d+) (\d+)$/.exec(line);
+  return match
+    ? {
+        kind: 'progress',
+        done: Number(match[1]),
+        total: Number(match[2]),
+        number: Number(match[3]),
+      }
+    : null;
 }
