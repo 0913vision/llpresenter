@@ -219,8 +219,9 @@ fails when:
   doesn't, and
 - a fit has fewer than two windows to compare, which can't be judged.
 
-A median frame rate under 58 fps is a warning. Bad record lines are dropped and
-listed.
+A median frame rate under 58 fps is a warning, and so is a record in which no
+output measured a frame rate (an output measures only while something moves on
+it). Bad record lines are dropped and listed.
 
 ## `session-context.ts`
 
