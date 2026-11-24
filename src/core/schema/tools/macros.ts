@@ -34,6 +34,10 @@ import {
   positiveInteger,
 } from '../common/primitives';
 
+/**
+ * Bounds of `macros.json`: 매크로, collections, actions of one 매크로, 매크로 of one
+ * collection, and the values and the targets of one message action.
+ */
 export const MACRO_FILE_LIMITS = {
   macros: 1000,
   collections: 200,
@@ -57,6 +61,7 @@ export const macroActionKinds = [
   'theme',
 ] as const;
 
+/** One of the action kinds in `macroActionKinds`. */
 export type MacroActionKind = (typeof macroActionKinds)[number];
 
 const clearLayerKindSchema = jsonObject({
@@ -165,6 +170,10 @@ const collectionSchema = jsonObject({
   ),
 });
 
+/**
+ * `macros.json` as its file holds it: the 매크로, and the collections that group
+ * them.
+ */
 export const macrosSchema = jsonObject({
   format: v.literal('llsettings.macros'),
   schemaVersion: positiveInteger,
@@ -194,6 +203,7 @@ export type MacrosFile = ReadonlyKnown<v.InferOutput<typeof macrosSchema>>;
  */
 export type Macro = MacrosFile['macros'][number];
 
+/** A named group of 매크로, listed by their ids. */
 export type MacroCollection = MacrosFile['collections'][number];
 
 /**
@@ -205,10 +215,12 @@ export type MacroCollection = MacrosFile['collections'][number];
  */
 export type MacroAction = Macro['actions'][number];
 
+/** An action of a kind this version knows. */
 export type KnownMacroAction = ReadonlyKnown<
   v.InferOutput<(typeof actionSchemas)[MacroActionKind]>
 >;
 
+/** Whether this version knows the kind of the action, so it can run it. */
 export function isKnownMacroAction(
   action: MacroAction,
 ): action is KnownMacroAction {
@@ -220,6 +232,7 @@ export function parseKnownMacroAction(value: unknown) {
   return checkPart(knownActionSchema, value);
 }
 
+/** Reads the text of `macros.json`. `file` names it in errors. */
 export function parseMacros(
   text: string,
   file: string,
@@ -227,6 +240,7 @@ export function parseMacros(
   return parseFile(macrosFormat, text, file);
 }
 
+/** Writes the 매크로 as the text of `macros.json`. `file` names it in errors. */
 export function serializeMacros(
   macros: MacrosFile,
   file: string,

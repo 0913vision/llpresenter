@@ -25,6 +25,7 @@ import {
   positiveInteger,
 } from '../common/primitives';
 
+/** The most items `quick.json` holds. */
 export const MAX_QUICK_ITEMS = 500;
 
 /** The 빠른 실행 item kinds. */
@@ -36,6 +37,7 @@ export const quickItemKinds = [
   'macro',
 ] as const;
 
+/** One of the item kinds in `quickItemKinds`. */
 export type QuickItemKind = (typeof quickItemKinds)[number];
 
 const itemFields = {id: quickItemIdSchema, name: v.string()};
@@ -68,6 +70,7 @@ const itemSchemas = {
   }),
 };
 
+/** `quick.json` as its file holds it: the 빠른 실행 items in display order. */
 export const quickSchema = jsonObject({
   format: v.literal('llsettings.quick'),
   schemaVersion: positiveInteger,
@@ -95,14 +98,17 @@ export type QuickFile = ReadonlyKnown<v.InferOutput<typeof quickSchema>>;
  */
 export type QuickItem = QuickFile['items'][number];
 
+/** An item of a kind this version knows. */
 export type KnownQuickItem = ReadonlyKnown<
   v.InferOutput<(typeof itemSchemas)[QuickItemKind]>
 >;
 
+/** Whether this version knows the kind of the item, so it can run it. */
 export function isKnownQuickItem(item: QuickItem): item is KnownQuickItem {
   return isKnownKind(quickItemKinds, item.kind);
 }
 
+/** Reads the text of `quick.json`. `file` names it in errors. */
 export function parseQuick(
   text: string,
   file: string,
@@ -110,6 +116,10 @@ export function parseQuick(
   return parseFile(quickFormat, text, file);
 }
 
+/**
+ * Writes the items as the text of `quick.json`, leaving out items of kinds this
+ * version does not know. `file` names it in errors.
+ */
 export function serializeQuick(
   quick: QuickFile,
   file: string,

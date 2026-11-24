@@ -18,6 +18,7 @@ const labelSchema = jsonObject({
   color: labelColorSchema,
 });
 
+/** `labels.json` as its file holds it; no two 이름표 share a name. */
 export const labelsSchema = jsonObject({
   format: v.literal('llsettings.labels'),
   schemaVersion: positiveInteger,
@@ -41,8 +42,10 @@ const labelsFormat: FileFormat<typeof labelsSchema> = {
 /** `labels.json`: the 이름표 list, in the order of the 이름표 menu. */
 export type LabelsFile = ReadonlyKnown<v.InferOutput<typeof labelsSchema>>;
 
+/** One 이름표: its name and its color. */
 export type Label = LabelsFile['labels'][number];
 
+/** Reads the text of `labels.json`. `file` names it in errors. */
 export function parseLabels(
   text: string,
   file: string,
@@ -50,6 +53,7 @@ export function parseLabels(
   return parseFile(labelsFormat, text, file);
 }
 
+/** Writes the 이름표 as the text of `labels.json`. `file` names it in errors. */
 export function serializeLabels(
   labels: LabelsFile,
   file: string,

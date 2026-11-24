@@ -20,10 +20,15 @@ const completionSchema = payloadObject({
 });
 const healthSchema = payloadObject({status: v.string()});
 
+/**
+ * Checks an answer of the local AI server's completion call: its text, and for
+ * each token the probabilities of the candidates.
+ */
 export function parseLlmCompletion(value: unknown) {
   return parsePayload(completionSchema, value);
 }
 
+/** Checks the local AI server's health answer. */
 export function parseLlmHealth(value: unknown) {
   return parsePayload(healthSchema, value);
 }

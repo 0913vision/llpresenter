@@ -7,6 +7,7 @@ import {
   type PayloadError,
 } from '../common/payload';
 
+/** The MIME type that carries a song id while a library song is dragged. */
 export const SONG_DRAG_MIME = 'application/x-llp-song';
 
 const songDragPayloadSchema = payloadObject({
@@ -22,6 +23,7 @@ export type SongDragPayload = Readonly<
   v.InferOutput<typeof songDragPayloadSchema>
 >;
 
+/** Checks the payload of a song drag. */
 export function parseSongDragPayload(value: unknown) {
   return parsePayload(songDragPayloadSchema, value);
 }
@@ -39,6 +41,7 @@ export function readSongDragData(
   return parseSongDragPayload(value);
 }
 
+/** Turns a song drag payload into the JSON text for `DataTransfer`. */
 export function serializeSongDragPayload(
   value: SongDragPayload,
 ): Result<string, PayloadError> {

@@ -27,6 +27,7 @@ export const editRefusalReasons = [
   'saves-full',
 ] as const;
 
+/** One of the reasons in `editRefusalReasons`. */
 export type EditRefusalReason = (typeof editRefusalReasons)[number];
 
 const importSourceSchema = v.variant('kind', [
@@ -172,6 +173,10 @@ export type EditSuccess = v.InferOutput<typeof editSuccessSchema>;
  */
 export type EditFailure = v.InferOutput<typeof editFailureSchema>;
 
+/**
+ * The answer to a `content:edit` request: {@link EditSuccess}, or {@link
+ * EditFailure}.
+ */
 export type EditResult = Result<EditSuccess, EditFailure>;
 
 /**

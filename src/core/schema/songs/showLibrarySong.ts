@@ -16,6 +16,7 @@ const songSchema = payloadObject({
   problem: v.exactOptional(v.literal('newer-version')),
 });
 
+/** A request to project the library song with this id in 진행. */
 export type ShowLibrarySongRequest = Readonly<
   v.InferOutput<typeof requestSchema>
 >;
@@ -23,14 +24,23 @@ export type ShowLibrarySongRequest = Readonly<
 /** A library song projected for 진행 without a service item. */
 export type ShowLibrarySong = ReadonlyKnown<v.InferOutput<typeof songSchema>>;
 
+/** Checks a request to project a library song. */
 export function parseShowLibrarySongRequest(value: unknown) {
   return parsePayload(requestSchema, value);
 }
 
+/**
+ * Checks the answer to a request to project a library song: the song, or `null`
+ * when it is gone.
+ */
 export function parseShowLibrarySong(value: unknown) {
   return parsePayload(v.nullable(songSchema), value);
 }
 
+/**
+ * Checks the answer like {@link parseShowLibrarySong}, and refuses one that
+ * names a song other than the one asked for.
+ */
 export function parseShowLibrarySongReply(songId: SongId, value: unknown) {
   const parsed = parseShowLibrarySong(value);
   return parsed.ok && parsed.value !== null && parsed.value.songId !== songId

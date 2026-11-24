@@ -57,6 +57,7 @@ const messageStyleSchema = jsonObject({
   background: v.exactOptional(jsonObject({color: hexColor, opacity: percent})),
 });
 
+/** `messages.json` as its file holds it: the 메시지, and their styles. */
 export const messagesSchema = jsonObject({
   format: v.literal('llsettings.messages'),
   schemaVersion: positiveInteger,
@@ -90,6 +91,7 @@ export type MessagesFile = ReadonlyKnown<v.InferOutput<typeof messagesSchema>>;
  */
 export type MessageTemplate = MessagesFile['templates'][number];
 
+/** Reads the text of `messages.json`. `file` names it in errors. */
 export function parseMessages(
   text: string,
   file: string,
@@ -97,6 +99,7 @@ export function parseMessages(
   return parseFile(messagesFormat, text, file);
 }
 
+/** Writes the 메시지 as the text of `messages.json`. `file` names it in errors. */
 export function serializeMessages(
   messages: MessagesFile,
   file: string,

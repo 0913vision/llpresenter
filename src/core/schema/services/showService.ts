@@ -42,6 +42,10 @@ const showRowSchema = v.pipe(
   ]),
 );
 
+/**
+ * One slide as 진행 shows it: the slide, its `auto` values, and the `labelColor`
+ * of its 이름표.
+ */
 export const showTileSchema = payloadObject({
   slide: slideSchema,
   auto: autoValuesSchema,

@@ -37,6 +37,10 @@ const recentPassageSchema = jsonObject({
   translation: translationIdSchema,
 });
 
+/**
+ * `bible.json` as its file holds it: the installed translations, and the recent
+ * passages.
+ */
 export const bibleSchema = jsonObject({
   format: v.literal('llsettings.bible'),
   schemaVersion: positiveInteger,
@@ -58,10 +62,16 @@ const bibleFormat: FileFormat<typeof bibleSchema> = {
  */
 export type BibleFile = ReadonlyKnown<v.InferOutput<typeof bibleSchema>>;
 
+/**
+ * One installed translation: its id, name, language, the `.llbible` file name
+ * in the bible folder, and whether it is the default.
+ */
 export type Translation = BibleFile['translations'][number];
 
+/** One recent passage: its reference text and the id of its translation. */
 export type RecentPassage = BibleFile['recents'][number];
 
+/** Reads the text of `bible.json`. `file` names it in errors. */
 export function parseBible(
   text: string,
   file: string,
@@ -69,6 +79,10 @@ export function parseBible(
   return parseFile(bibleFormat, text, file);
 }
 
+/**
+ * Writes the Bible settings as the text of `bible.json`. `file` names it in
+ * errors.
+ */
 export function serializeBible(
   bible: BibleFile,
   file: string,

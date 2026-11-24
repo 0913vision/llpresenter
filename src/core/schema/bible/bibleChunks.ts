@@ -8,8 +8,13 @@ import {
   positiveInteger,
 } from '../common/primitives';
 
+/**
+ * The most bytes of a `.llbible` header's JSON, not counting its length prefix.
+ */
 export const BIBLE_HEADER_MAX_BYTES = 1_048_576;
+/** The most bytes of one chapter block, with its final LF. */
 export const BIBLE_CHAPTER_MAX_BYTES = 1_048_576;
+/** The size of the length prefix that starts a `.llbible` file. */
 export const BIBLE_HEADER_PREFIX_BYTES = 4;
 const BIBLE_BOOK_CHAPTER_LIMIT = 150;
 
@@ -41,9 +46,17 @@ const headerSchema = jsonObject({
   ),
 });
 
+/**
+ * The JSON header of a `.llbible` file: the metadata of the translation, and
+ * for each book where its chapters lie in the body.
+ */
 export type BibleChunkHeader = ReadonlyKnown<
   v.InferOutput<typeof headerSchema>
 >;
+/**
+ * Where one chapter block lies: `offset` bytes from the start of the body,
+ * `bytes` long, with `verses` verses.
+ */
 export type BibleChapterOffset = ReadonlyKnown<
   v.InferOutput<typeof chapterSchema>
 >;

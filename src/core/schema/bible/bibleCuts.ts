@@ -14,6 +14,10 @@ import {
   timestamp,
 } from '../common/primitives';
 
+/**
+ * Bounds of `bibleCuts.json`: the most translations, the most entries in all,
+ * and the most cuts of one entry.
+ */
 export const BIBLE_CUTS_LIMITS = {
   translations: 200,
   entries: 40_000,
@@ -24,6 +28,11 @@ const cutSchema = v.pipe(
   positiveInteger,
   v.maxValue(BIBLE_LOOKUP_LIMITS.verseText),
 );
+/**
+ * The confirmed cut of one verse: the `hash` of its text when it was confirmed,
+ * the `cuts` (sorted and unique), the `unit` of the cuts, and when it was
+ * confirmed.
+ */
 export const bibleCutEntrySchema = jsonObject({
   hash: v.pipe(v.string(), v.regex(/^[0-9a-f]{8}$/)),
   unit: v.exactOptional(v.literal('character')),
@@ -38,6 +47,7 @@ export const bibleCutEntrySchema = jsonObject({
   confirmedAt: timestamp,
 });
 
+/** A `book:chapter:verse` key such as `43:3:16`, within the lookup limits. */
 export const verseKeySchema = v.pipe(
   v.string(),
   v.check(key => {
@@ -51,6 +61,10 @@ export const verseKeySchema = v.pipe(
   }, 'Expected a book:chapter:verse key'),
 );
 
+/**
+ * `bibleCuts.json` as its file holds it: the entries by translation id, then by
+ * verse key.
+ */
 export const bibleCutsSchema = jsonObject({
   format: v.literal('llsettings.bibleCuts'),
   schemaVersion: positiveInteger,
@@ -77,10 +91,18 @@ export const bibleCutsSchema = jsonObject({
   ),
 });
 
+/**
+ * The confirmed cut of one verse, as {@link bibleCutEntrySchema} defines it.
+ */
 export type BibleCutEntry = ReadonlyKnown<
   v.InferOutput<typeof bibleCutEntrySchema>
 >;
+/** The `cuts` and their `unit` of an entry, without its hash and time. */
 export type BibleCutSelection = Pick<BibleCutEntry, 'cuts' | 'unit'>;
+/**
+ * `bibleCuts.json`: the confirmed verse cuts (`docs/spec/02-data.md`,
+ * "Confirmed Bible cuts").
+ */
 export type BibleCutsFile = ReadonlyKnown<
   v.InferOutput<typeof bibleCutsSchema>
 >;
@@ -90,10 +112,15 @@ const format: FileFormat<typeof bibleCutsSchema> = {
   migrations: [],
 };
 
+/** Reads the text of `bibleCuts.json`. `file` names it in errors. */
 export function parseBibleCuts(text: string, file: string) {
   return parseFile(format, text, file);
 }
 
+/**
+ * Writes the confirmed cuts as the text of `bibleCuts.json`. `file` names it in
+ * errors.
+ */
 export function serializeBibleCuts(data: BibleCutsFile, file: string) {
   return serializeFile(format, data, file);
 }

@@ -11,10 +11,12 @@ import {parseShowService, type ShowService} from './showService';
 
 const serviceOpenSchema = payloadObject({serviceId: serviceIdSchema});
 
+/** A request to open the 예배 순서 with this id in 진행. */
 export type ServiceOpenRequest = Readonly<
   v.InferOutput<typeof serviceOpenSchema>
 >;
 
+/** Checks a request to open a 예배 순서. */
 export function parseServiceOpenRequest(value: unknown) {
   return checkPart(serviceOpenSchema, value);
 }
@@ -25,6 +27,7 @@ export function parseServiceOpenRequest(value: unknown) {
  */
 export const serviceOpenRefusals = ['missing', 'busy', 'failed'] as const;
 
+/** One of the reasons in `serviceOpenRefusals`. */
 export type ServiceOpenRefusal = (typeof serviceOpenRefusals)[number];
 
 /** The service that opened, or why it did not. */

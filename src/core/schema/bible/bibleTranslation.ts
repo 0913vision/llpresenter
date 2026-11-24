@@ -32,6 +32,10 @@ const bookSchema = jsonObject({
   ),
 });
 
+/**
+ * The fields that a `.llbible` file and its header share: id, names, language,
+ * and where the text came from.
+ */
 export const bibleTranslationMetadata = {
   id: v.pipe(
     translationIdSchema,
@@ -85,6 +89,10 @@ export type BibleTranslationFile = ReadonlyKnown<
   v.InferOutput<typeof bibleTranslationSchema>
 >;
 
+/**
+ * Reads the whole-file JSON form of a translation (schema version 1), which the
+ * build-time converter takes. `file` names it in errors.
+ */
 export function parseBibleTranslation(
   text: string,
   file: string,

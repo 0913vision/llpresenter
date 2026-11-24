@@ -4,6 +4,10 @@ import type {ReadonlyKnown} from '../common/fileFormat';
 import {parsePayload, payloadObject} from '../common/payload';
 import {nonBlankText, nonNegativeInteger} from '../common/primitives';
 
+/**
+ * Bounds of a verse comparison by the local AI: the longest lookup id in
+ * characters, the most candidates, and the most comparisons waiting.
+ */
 export const BIBLE_AI_LIMITS = {
   lookupId: 128,
   candidates: 3,
@@ -46,21 +50,34 @@ const stateSchema = v.pipe(
   ),
 );
 
+/**
+ * A question to the local AI where to cut a verse: `remaining` is the end of
+ * `fullText` that is still to be cut, and each candidate is a possible first
+ * part of it. The AI chooses one.
+ */
 export type BibleAiRequest = ReadonlyKnown<v.InferOutput<typeof requestSchema>>;
+/**
+ * Whether the local AI server runs: its `status`, `available` (true only when
+ * `ready`), and the `reason` for the status as a text.
+ */
 export type BibleAiState = Readonly<v.InferOutput<typeof stateSchema>>;
 
+/** Checks a verse comparison request. */
 export function parseBibleAiRequest(value: unknown) {
   return parsePayload(requestSchema, value);
 }
 
+/** Checks a request to cancel the comparisons of a lookup. */
 export function parseBibleAiCancel(value: unknown) {
   return parsePayload(cancelSchema, value);
 }
 
+/** Checks the state of the local AI server. */
 export function parseBibleAiState(value: unknown) {
   return parsePayload(stateSchema, value);
 }
 
+/** Checks the answer to `request`: the index of the chosen candidate. */
 export function parseBibleAiIndex(value: unknown, request: BibleAiRequest) {
   return parsePayload(
     v.pipe(nonNegativeInteger, v.maxValue(request.candidates.length - 1)),
@@ -68,6 +85,9 @@ export function parseBibleAiIndex(value: unknown, request: BibleAiRequest) {
   );
 }
 
+/**
+ * Checks the answer to a cancel request: whether a comparison was cancelled.
+ */
 export function parseBibleAiCancelled(value: unknown) {
   return parsePayload(v.boolean(), value);
 }

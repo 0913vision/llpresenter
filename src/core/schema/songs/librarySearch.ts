@@ -4,6 +4,10 @@ import {parsePayload, payloadObject, plainObject} from '../common/payload';
 import {songIdSchema} from '../common/ids';
 import {nonNegativeInteger, positiveInteger} from '../common/primitives';
 
+/**
+ * The 라이브러리 search's `limit`: 50 when absent, at most 200, which is also the
+ * most matches in a result.
+ */
 export const LIBRARY_SEARCH_LIMITS = {default: 50, max: 200} as const;
 
 const librarySearchRequestSchema = payloadObject({
@@ -51,6 +55,9 @@ type NormalizedSearchRequest = Readonly<
   v.InferOutput<typeof librarySearchRequestSchema>
 >;
 
+/**
+ * A 라이브러리 search: the `query`, an optional `offset`, and an optional `limit`.
+ */
 export type LibrarySearchRequest = Omit<NormalizedSearchRequest, 'limit'> &
   Partial<Pick<NormalizedSearchRequest, 'limit'>>;
 
@@ -64,10 +71,12 @@ export type LibrarySearchResult = ReadonlyKnown<
   v.InferOutput<typeof librarySearchResultSchema>
 >;
 
+/** Checks a 라이브러리 search request. */
 export function parseLibrarySearchRequest(value: unknown) {
   return parsePayload(librarySearchRequestSchema, value);
 }
 
+/** Checks a 라이브러리 search result: no song appears twice. */
 export function parseLibrarySearchResult(value: unknown) {
   return parsePayload(librarySearchResultSchema, value);
 }

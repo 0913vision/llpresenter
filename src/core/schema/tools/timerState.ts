@@ -62,6 +62,7 @@ export const timerRunsSchema = v.pipe(
  */
 export type TimerRun = ReadonlyKnown<v.InferOutput<typeof timerRunSchema>>;
 
+/** The runs of the started 타이머, by 타이머 id. */
 export type TimerRuns = ReadonlyKnown<v.InferOutput<typeof timerRunsSchema>>;
 
 /** Checks a reading of main's 타이머 clock. Never throws. */

@@ -17,6 +17,9 @@ import {
 } from '../common/primitives';
 import {lyricTextEntries} from '../slides/textStyle';
 
+/**
+ * What a 소품 shows: an image from the media store, or a text with its own style.
+ */
 export const propContentSchema = v.variant('kind', [
   v.looseObject({kind: v.literal('image'), media: mediaIdSchema}),
   v.looseObject({
@@ -33,6 +36,7 @@ const propSchema = jsonObject({
   targets: v.array(screenIdSchema),
 });
 
+/** `props.json` as its file holds it: the 소품. */
 export const propsSchema = jsonObject({
   format: v.literal('llsettings.props'),
   schemaVersion: positiveInteger,
@@ -56,6 +60,7 @@ export type PropsFile = ReadonlyKnown<v.InferOutput<typeof propsSchema>>;
  */
 export type Prop = PropsFile['props'][number];
 
+/** Reads the text of `props.json`. `file` names it in errors. */
 export function parseProps(
   text: string,
   file: string,
@@ -63,6 +68,7 @@ export function parseProps(
   return parseFile(propsFormat, text, file);
 }
 
+/** Writes the 소품 as the text of `props.json`. `file` names it in errors. */
 export function serializeProps(
   props: PropsFile,
   file: string,

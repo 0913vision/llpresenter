@@ -18,8 +18,13 @@ import {songSchema} from '../songs/song';
  */
 export const revisionSchema = v.pipe(positiveInteger, v.flavor('Revision'));
 
+/** A document's revision number; see {@link revisionSchema}. */
 export type Revision = v.InferOutput<typeof revisionSchema>;
 
+/**
+ * Whether a window may change a document: `readOnly` when a newer app version
+ * wrote its file.
+ */
 export const accessSchema = v.picklist(['editable', 'readOnly']);
 
 const songDocumentSchema = payloadObject({
@@ -124,10 +129,12 @@ export type SongDocument = ReadonlyKnown<
   v.InferOutput<typeof songDocumentSchema>
 >;
 
+/** A 예배 순서 as a window edits it, like {@link SongDocument}. */
 export type ServiceDocument = ReadonlyKnown<
   v.InferOutput<typeof serviceDocumentSchema>
 >;
 
+/** A 템플릿 as a window edits it, like {@link SongDocument}. */
 export type TemplateDocument = ReadonlyKnown<
   v.InferOutput<typeof templateDocumentSchema>
 >;
@@ -160,10 +167,18 @@ export type TemplateEntry = ReadonlyKnown<
  */
 export type SongChange = ReadonlyKnown<v.InferOutput<typeof songChangeSchema>>;
 
+/**
+ * A 예배 순서 that changed, with its new revision, or `null` when it was deleted;
+ * see {@link SongChange}.
+ */
 export type ServiceChange = ReadonlyKnown<
   v.InferOutput<typeof serviceChangeSchema>
 >;
 
+/**
+ * A 템플릿 that changed, with its new revision, or `null` when it was deleted; see
+ * {@link SongChange}.
+ */
 export type TemplateChange = ReadonlyKnown<
   v.InferOutput<typeof templateChangeSchema>
 >;

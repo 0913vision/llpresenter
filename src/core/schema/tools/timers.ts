@@ -20,11 +20,17 @@ import {
   timeOfDay,
 } from '../common/primitives';
 
+/**
+ * The most seconds a 타이머 can hold, so that its milliseconds stay a safe
+ * integer.
+ */
 export const MAX_TIMER_SECONDS = Math.floor(Number.MAX_SAFE_INTEGER / 1000);
+/** The most 타이머 `timers.json` holds. */
 export const MAX_TIMER_DEFINITIONS = 500;
 
 const timerFields = {id: timerIdSchema, name: v.string()};
 
+/** A 타이머 by its `kind`: `countdownTo`, `countdown`, `elapsed`, or `clock`. */
 export const timerSchema = v.variant('kind', [
   v.looseObject({
     ...timerFields,
@@ -47,6 +53,7 @@ export const timerSchema = v.variant('kind', [
   v.looseObject({...timerFields, kind: v.literal('clock')}),
 ]);
 
+/** `timers.json` as its file holds it: the 타이머. */
 export const timersSchema = jsonObject({
   format: v.literal('llsettings.timers'),
   schemaVersion: positiveInteger,
@@ -71,6 +78,7 @@ export type TimersFile = ReadonlyKnown<v.InferOutput<typeof timersSchema>>;
  */
 export type Timer = TimersFile['timers'][number];
 
+/** Reads the text of `timers.json`. `file` names it in errors. */
 export function parseTimers(
   text: string,
   file: string,
@@ -78,6 +86,7 @@ export function parseTimers(
   return parseFile(timersFormat, text, file);
 }
 
+/** Writes the 타이머 as the text of `timers.json`. `file` names it in errors. */
 export function serializeTimers(
   timers: TimersFile,
   file: string,

@@ -4,6 +4,11 @@ import {LIVE_BIBLE_ID, translationIdSchema} from '../common/ids';
 import {parsePayload, payloadObject, plainObject} from '../common/payload';
 import {nonBlankText, positiveInteger} from '../common/primitives';
 
+/**
+ * Bounds of a Bible lookup and its answer: input and id lengths in characters,
+ * books, chapters of a book, suggestions, verses, the characters of a verse,
+ * and the lookups waiting.
+ */
 export const BIBLE_LOOKUP_LIMITS = {
   input: 256,
   translationId: 256,
@@ -27,6 +32,11 @@ const requestSchema = payloadObject({
   translation: translationId,
   input: referenceText,
 });
+/**
+ * A passage a lookup found: the translation, the reference as typed and as
+ * shown, an optional translation label, and its verses with their chapter and
+ * verse numbers.
+ */
 export const bibleLookupPassageSchema = payloadObject({
   translation: translationId,
   ref: referenceText,
@@ -104,12 +114,20 @@ const replySchema = payloadObject({
   ),
 });
 
+/** A lookup of the reference text `input` in one translation. */
 export type BibleLookupRequest = Readonly<v.InferOutput<typeof requestSchema>>;
+/**
+ * The answer to a lookup: the `input` and translation it answers, the passage
+ * or the problem in `result`, and suggestions and chapter bounds that help to
+ * complete the input.
+ */
 export type BibleLookupReply = ReadonlyKnown<v.InferOutput<typeof replySchema>>;
+/** A passage that a lookup found. */
 export type BibleLookupPassage = ReadonlyKnown<
   v.InferOutput<typeof bibleLookupPassageSchema>
 >;
 
+/** Checks a Bible lookup request. */
 export function parseBibleLookupRequest(value: unknown) {
   return parsePayload(requestSchema, value);
 }

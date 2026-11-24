@@ -1,3 +1,8 @@
+/**
+ * Bounds of a text import: bytes and characters of the text, lines, units,
+ * units per slide, slides, the longest label name, and the characters of a
+ * saved draft.
+ */
 export const TEXT_IMPORT_LIMITS = {
   bytes: 4 * 1024 * 1024,
   characters: 1_000_000,

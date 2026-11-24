@@ -93,14 +93,24 @@ const backgroundsResult = v.nullable(
     v.maxLength(POWERPOINT_PICTURE_LIMITS.count),
   ),
 );
+/**
+ * The slides of the PowerPoint file read last, by position, whose backgrounds
+ * main saves as picture files; at most 200.
+ */
 export type PowerPointBackgroundsRequest = v.InferOutput<
   typeof backgroundsRequest
 >;
+/**
+ * The picture file of each background asked for, or `null` when they could not
+ * be made.
+ */
 export type PowerPointBackgroundsResult = v.InferOutput<
   typeof backgroundsResult
 >;
+/** Checks a request for slide backgrounds. */
 export const parsePowerPointBackgroundsRequest = (value: unknown) =>
   checkPart(backgroundsRequest, value);
+/** Checks the answer to a request for slide backgrounds. */
 export const parsePowerPointBackgroundsResult = (value: unknown) =>
   checkPart(backgroundsResult, value);
 const releaseRequest = payloadObject({
@@ -137,14 +147,25 @@ const ownedImagesResult = v.variant('ok', [
   }),
   v.object({ok: v.literal(false), message: v.string()}),
 ]);
+/**
+ * The temporary picture files to move into the media store. A `title` marks
+ * them as backgrounds of the song of that name; without it they become slides
+ * of their own.
+ */
 export type PowerPointOwnedImagesRequest = v.InferOutput<
   typeof ownedImagesRequest
 >;
+/**
+ * The media ids of the stored pictures in the order of the request, or why they
+ * were not stored.
+ */
 export type PowerPointOwnedImagesResult = v.InferOutput<
   typeof ownedImagesResult
 >;
+/** Checks a request to store picture files. */
 export const parsePowerPointOwnedImagesRequest = (value: unknown) =>
   checkPart(ownedImagesRequest, value);
+/** Checks the answer to a request to store picture files. */
 export const parsePowerPointOwnedImagesResult = (value: unknown) =>
   checkPart(ownedImagesResult, value);
 const imageExportResult = v.variant('ok', [
@@ -169,31 +190,67 @@ function positiveSlideNumber() {
   return v.pipe(v.number(), v.integer(), v.minValue(1));
 }
 
+/**
+ * The slides drawn as pictures, with the PowerPoint file's name and one picture
+ * file and slide number per slide, or `null` when it was cancelled; or why it
+ * failed.
+ */
 export type PowerPointImageExportResult = v.InferOutput<
   typeof imageExportResult
 >;
+/**
+ * How far drawing the slides as pictures has come: `done` of `total`, with the
+ * background just exported when there is one.
+ */
 export type PowerPointImageExportProgress = v.InferOutput<
   typeof imageExportProgress
 >;
+/** Checks the answer of drawing the slides as pictures. */
 export const parsePowerPointImageExportResult = (value: unknown) =>
   checkPart(imageExportResult, value);
+/** Checks a progress report of drawing the slides as pictures. */
 export const parsePowerPointImageExportProgress = (value: unknown) =>
   checkPart(imageExportProgress, value);
 const reading = payloadObject({
   fileName: v.pipe(v.string(), v.maxLength(260)),
 });
+/** The file name of the PowerPoint file that was chosen and is being read. */
 export type PowerPointReading = v.InferOutput<typeof reading>;
+/** Checks a notice that a PowerPoint file is being read. */
 export const parsePowerPointReading = (value: unknown) =>
   checkPart(reading, value);
+/**
+ * A picture file as encoded bytes (JPEG or PNG) for a preview, or `null` when
+ * it is gone.
+ */
 export type PowerPointPreviewImage = v.InferOutput<typeof encodedImage> | null;
+/** Checks a preview picture. */
 export const parsePowerPointPreviewImage = (value: unknown) =>
   checkPart(v.nullable(encodedImage), value);
+/**
+ * The text and backgrounds of a PowerPoint file that was read, `null` when the
+ * file dialog was cancelled, or why reading failed.
+ */
 export type PowerPointReadResult = v.InferOutput<typeof result>;
+/**
+ * A PowerPoint file read: its name, whether it is widescreen, and the texts of
+ * its slides by shape.
+ */
 export type PowerPointSource = v.InferOutput<typeof source>;
+/**
+ * A temporary picture file, by its path, that a window names to read or to give
+ * up.
+ */
 export type PowerPointReleaseRequest = v.InferOutput<typeof releaseRequest>;
+/** Checks the answer of reading a PowerPoint file. */
 export const parsePowerPointReadResult = (value: unknown) =>
   checkPart(result, value);
+/** Checks a request that names a temporary picture file. */
 export const parsePowerPointReleaseRequest = (value: unknown) =>
   checkPart(releaseRequest, value);
+/**
+ * Checks a yes or no answer about a PowerPoint call, such as whether a picture
+ * file was released.
+ */
 export const parsePowerPointReleaseResult = (value: unknown) =>
   checkPart(v.boolean(), value);

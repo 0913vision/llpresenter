@@ -4,6 +4,10 @@ import type {ReadonlyKnown} from '../common/fileFormat';
 import {NAME_LIMIT} from '../common/primitives';
 import {MAX_TIMER_SECONDS} from './timers';
 
+/**
+ * An edit that adds a countdown 타이머 of `duration` seconds and the 빠른 실행 item
+ * that starts it, both at once; the two ids must differ.
+ */
 export const quickTimerCreateSchema = v.pipe(
   v.object({
     type: v.literal('quick.timer.create'),
@@ -24,6 +28,7 @@ export const quickTimerCreateSchema = v.pipe(
   ),
 );
 
+/** An edit that gives the 타이머 of a 빠른 실행 item a new name. */
 export const quickTimerRenameSchema = v.object({
   type: v.literal('quick.timer.rename'),
   name: v.literal('quick'),
@@ -36,6 +41,7 @@ export const quickTimerRenameSchema = v.object({
   ),
 });
 
+/** An edit of a 타이머 through its 빠른 실행 item: creating one, or renaming it. */
 export type QuickTimerEdit = ReadonlyKnown<
   v.InferOutput<typeof quickTimerCreateSchema | typeof quickTimerRenameSchema>
 >;

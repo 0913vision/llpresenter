@@ -8,6 +8,7 @@ export const timerDeleteSchema = v.object({
   timerId: timerIdSchema,
 });
 
+/** An edit that deletes a 타이머 by its id. */
 export type TimerDelete = ReadonlyKnown<
   v.InferOutput<typeof timerDeleteSchema>
 >;

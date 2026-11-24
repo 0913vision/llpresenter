@@ -42,6 +42,7 @@ export const serviceItemKinds = [
   'media',
 ] as const;
 
+/** One of the item kinds in `serviceItemKinds`. */
 export type ServiceItemKind = (typeof serviceItemKinds)[number];
 
 const itemFields = {id: serviceItemIdSchema, name: v.string()};
@@ -153,6 +154,7 @@ export type Template = ReadonlyKnown<v.InferOutput<typeof templateSchema>>;
  */
 export type ServiceItem = Service['order'][number];
 
+/** Reads the text of a 예배 순서 file. `file` names it in errors. */
 export function parseService(
   text: string,
   file: string,
@@ -160,6 +162,7 @@ export function parseService(
   return parseFile(serviceFormat, text, file);
 }
 
+/** Writes a 예배 순서 as the text of its file. `file` names it in errors. */
 export function serializeService(
   service: Service,
   file: string,
@@ -167,6 +170,7 @@ export function serializeService(
   return serializeFile(serviceFormat, service, file);
 }
 
+/** Reads the text of a 템플릿 file. `file` names it in errors. */
 export function parseTemplate(
   text: string,
   file: string,
@@ -174,6 +178,7 @@ export function parseTemplate(
   return parseFile(templateFormat, text, file);
 }
 
+/** Writes a 템플릿 as the text of its file. `file` names it in errors. */
 export function serializeTemplate(
   template: Template,
   file: string,

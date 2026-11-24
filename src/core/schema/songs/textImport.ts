@@ -112,15 +112,21 @@ export type TextImportReadRequest = Readonly<
 export type TextImportSource = Readonly<
   v.InferOutput<typeof textImportSourceSchema>
 >;
+/**
+ * How the text is split into slides: the split rule, its symbol, the units per
+ * slide, the labels, and what the first line is.
+ */
 export type TextImportOptions = Readonly<
   v.InferOutput<typeof textImportOptionsSchema>
 >;
+/** The text read, with the options to split it by. */
 export type TextImportPreviewRequest = ReadonlyKnown<
   v.InferOutput<typeof previewRequestSchema>
 >;
 
 /** An unsaved draft has no song id, and its title may still be empty. */
 export type TextImportDraft = ReadonlyKnown<v.InferOutput<typeof draftSchema>>;
+/** Why a text import failed (`reason`), with a message. */
 export type TextImportFailure = Readonly<v.InferOutput<typeof failureSchema>>;
 
 /** A null success is a cancelled file dialog, not a failure or an empty draft. */
@@ -128,6 +134,7 @@ export type TextImportReadResult = Result<
   TextImportSource | null,
   TextImportFailure
 >;
+/** The draft that the options make of the text, or why it cannot be made. */
 export type TextImportPreviewResult = Result<
   TextImportDraft,
   TextImportFailure
@@ -144,22 +151,27 @@ export function refuseInvalidTextImport({field, message}: PayloadError): {
   };
 }
 
+/** Checks a request to read text from a file or the clipboard. */
 export function parseTextImportReadRequest(value: unknown) {
   return checkPart(readRequestSchema, value);
 }
 
+/** Checks whether the clipboard holds text to import. */
 export function parseTextImportClipboardAvailable(value: unknown) {
   return checkPart(v.boolean(), value);
 }
 
+/** Checks a request to preview a text split. */
 export function parseTextImportPreviewRequest(value: unknown) {
   return checkPart(previewRequestSchema, value);
 }
 
+/** Checks the answer to a request to read text. */
 export function parseTextImportReadResult(value: unknown) {
   return checkPart(readResultSchema, value);
 }
 
+/** Checks the answer to a request to preview a text split. */
 export function parseTextImportPreviewResult(value: unknown) {
   return checkPart(previewResultSchema, value);
 }

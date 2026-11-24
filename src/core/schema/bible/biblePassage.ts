@@ -13,6 +13,10 @@ export const biblePassageSchema = jsonObject({
   transition: v.exactOptional(slideTransitionSchema),
 });
 
+/**
+ * The passage of a Bible or sermon item, or of a 빠른 실행 item, as a file stores
+ * it.
+ */
 export type BiblePassage = ReadonlyKnown<
   v.InferOutput<typeof biblePassageSchema>
 >;

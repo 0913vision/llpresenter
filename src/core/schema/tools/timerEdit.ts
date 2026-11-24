@@ -15,6 +15,7 @@ export const timerRenameSchema = v.object({
   ),
 });
 
+/** An edit that gives a 타이머 a new name. */
 export type TimerRename = ReadonlyKnown<
   v.InferOutput<typeof timerRenameSchema>
 >;

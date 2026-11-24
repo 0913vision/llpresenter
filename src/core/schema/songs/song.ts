@@ -17,9 +17,14 @@ import {
 } from '../common/primitives';
 import {slidesSchema} from '../slides/slide';
 
+/** The longest song title, in characters. */
 export const SONG_NAME_MAX_LENGTH = 512;
+/** The version of the song file this app writes. */
 export const SONG_SCHEMA_VERSION = 1;
 
+/**
+ * A song as its file holds it (`Songs/<id>.llsong`); it has at least one slide.
+ */
 export const songSchema = jsonObject({
   format: v.literal('llsong'),
   schemaVersion: positiveInteger,
@@ -35,8 +40,10 @@ const songFormat: FileFormat<typeof songSchema> = {
   migrations: [],
 };
 
+/** A song file (`.llsong`). See `docs/spec/02-data.md`. */
 export type Song = ReadonlyKnown<v.InferOutput<typeof songSchema>>;
 
+/** Reads the text of a song file. `file` names it in errors. */
 export function parseSong(
   text: string,
   file: string,
@@ -44,6 +51,7 @@ export function parseSong(
   return parseFile(songFormat, text, file);
 }
 
+/** Writes a song as the text of its file. `file` names it in errors. */
 export function serializeSong(
   song: Song,
   file: string,

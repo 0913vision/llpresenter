@@ -13,6 +13,10 @@ import {
   positiveInteger,
 } from '../common/primitives';
 
+/**
+ * Bounds of the overlays of one item: how many, how many screens one overlay
+ * names, and the longest name in characters.
+ */
 export const ITEM_OVERLAY_LIMITS = {
   overlays: 100,
   screens: 100,
@@ -51,6 +55,10 @@ export const itemOverlaySchema = jsonObject({
   to: slideIdSchema,
 });
 
+/**
+ * The `overlays` list of a 예배 순서 item: unique ids, within
+ * `ITEM_OVERLAY_LIMITS`.
+ */
 export const itemOverlaysSchema = v.pipe(
   listWithUniqueIds(itemOverlaySchema),
   v.maxLength(ITEM_OVERLAY_LIMITS.overlays),
@@ -63,9 +71,17 @@ export const placedOverlaySchema = jsonObject({
   to: positiveInteger,
 });
 
+/**
+ * An overlay as the service file stores it, from the slide id `from` to the
+ * slide id `to`.
+ */
 export type ItemOverlay = ReadonlyKnown<
   v.InferOutput<typeof itemOverlaySchema>
 >;
+/**
+ * An overlay with `from` and `to` as 1-based slide positions instead of slide
+ * ids.
+ */
 export type PlacedOverlay = ReadonlyKnown<
   v.InferOutput<typeof placedOverlaySchema>
 >;
