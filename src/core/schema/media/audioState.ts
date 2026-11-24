@@ -5,6 +5,10 @@ import {epochMillisecondsSchema} from '../live/overlayState';
 import {payloadObject} from '../common/payload';
 import {nonNegativeInteger, seconds} from '../common/primitives';
 
+/**
+ * Where audio playback stands: the source, the version of its track list, the
+ * position, and since when it plays.
+ */
 export const audioPlaybackSchema = payloadObject({
   source: audioSourceSchema,
   trackVersion: v.pipe(nonNegativeInteger, v.maxValue(Number.MAX_SAFE_INTEGER)),

@@ -25,6 +25,7 @@ const fields = {
   view: v.exactOptional(v.picklist(['grid', 'list'])),
 };
 
+/** How the 미디어 browser was left: its number of columns and grid or list view. */
 export const mediaBrowserSchema = jsonObject(fields);
 
 /** A change of some of the fields; other fields are dropped. */

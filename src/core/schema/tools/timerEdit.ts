@@ -3,6 +3,7 @@ import type {ReadonlyKnown} from '../common/fileFormat';
 import {timerIdSchema} from '../common/ids';
 import {NAME_LIMIT} from '../common/primitives';
 
+/** The schema of {@link TimerRename}: the new name is trimmed and capped. */
 export const timerRenameSchema = v.object({
   type: v.literal('timer.rename'),
   name: v.literal('timers'),

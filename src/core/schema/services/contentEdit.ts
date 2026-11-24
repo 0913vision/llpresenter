@@ -116,11 +116,16 @@ const contentEditSchema = v.pipe(
   ]),
 );
 
+/** A saved edit: the id it changed and the revision it wrote. */
 export const editSuccessSchema = payloadObject({
   id: v.pipe(v.string(), v.nonEmpty()),
   revision: v.nullable(revisionSchema),
 });
 
+/**
+ * Why an edit failed: refused before writing, or written only in part, with what
+ * was applied and the files left unchanged.
+ */
 export const editFailureSchema = v.variant('reason', [
   v.object({reason: v.picklist(editRefusalReasons), message: v.string()}),
   v.object({

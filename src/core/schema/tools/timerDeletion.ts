@@ -2,6 +2,7 @@ import * as v from 'valibot';
 import type {ReadonlyKnown} from '../common/fileFormat';
 import {timerIdSchema} from '../common/ids';
 
+/** The schema of {@link TimerDelete}. */
 export const timerDeleteSchema = v.object({
   type: v.literal('timer.delete'),
   name: v.literal('timers'),
