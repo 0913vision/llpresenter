@@ -1,11 +1,6 @@
-import {displayReference, parseReference} from '@core/bible';
 import {useReflow} from '@renderer/ui/useReflow';
 import {useMemo, useState, type JSX} from 'react';
-import {
-  isKnownQuickItem,
-  type QuickItem,
-  type QuickItemKind,
-} from '@core/schema/quick';
+import type {QuickItem} from '@core/schema/quick';
 import {
   useSettingsDocument,
   type NamedDocument,
@@ -13,7 +8,7 @@ import {
 import {useLive} from '@renderer/session/live';
 import {useShow} from '@renderer/session/show';
 import {bibleSourceFor} from '@renderer/session/showLibrary';
-import {ListActionRow, ListInsertLine} from '@renderer/ui';
+import {ListInsertLine} from '@renderer/ui';
 import {
   Panel,
   PanelBody,
@@ -24,50 +19,20 @@ import {
 } from '@renderer/ui/Panel';
 import type {Notice} from '@renderer/ui/notices';
 import {BibleQuickField} from './BibleQuickField';
-import {quickItemOn, quickItemUnavailable} from './quickActions';
 import {useQuickRunner} from './useQuickRunner';
 import styles from './QuickPanel.module.css';
-import {
-  duplicateQuickItem,
-  QuickAdd,
-  quickCopyReason,
-  QuickRowEditor,
-} from './QuickEditing';
+import {duplicateQuickItem, QuickAdd, quickCopyReason} from './QuickEditing';
+import {QuickRow, type QuickRowContext} from './QuickRow';
 import {useDuplicateShortcut} from '../tools/useDuplicateShortcut';
 import {MAX_TIMER_DEFINITIONS} from '@core/schema/timers';
 import {MAX_QUICK_ITEMS, type QuickEdit} from './quickEdits';
 import {useQuickEditing} from './useQuickEditing';
-import {useRowMoveKeys} from '@renderer/ui/reorder';
-import {useQuickDrag} from './useQuickDrag';
+import {useQuickReorder} from './useQuickReorder';
 import {useQuickTimers} from './useQuickTimers';
 import {useQuickHistory} from './useQuickHistory';
 import {useQuickWindow} from './useQuickWindow';
-import {TimerValue} from '../tools/TimerValue';
 
-const icons: Readonly<Record<QuickItemKind, string>> = {
-  song: 'song',
-  bible: 'book',
-  prop: 'prop',
-  timer: 'timer',
-  macro: 'macro',
-};
 const EMPTY_ITEMS: readonly QuickItem[] = [];
-
-function quickLabel(item: QuickItem): string {
-  if (!isKnownQuickItem(item) || item.kind !== 'bible') return item.name;
-  const name = parseReference(item.name);
-  const reference = parseReference(item.ref.ref);
-  if (!name.ok || !reference.ok) return item.name;
-  const a = name.value;
-  const b = reference.value;
-  return a.book.id === b.book.id &&
-    a.chapter === b.chapter &&
-    a.verse === b.verse &&
-    a.endChapter === b.endChapter &&
-    a.endVerse === b.endVerse
-    ? displayReference(item.name)
-    : item.name;
-}
 
 export function QuickPanel({
   selectionVersion,
@@ -127,34 +92,13 @@ export function QuickPanel({
     attribute: 'data-quick-id',
     scope: 'quick',
   });
-  const moveItem = (id: string, before: string | null): void => {
-    const source = document?.value.items.find(item => item.id === id);
-    const target = document?.value.items.find(item => item.id === before);
-    if (!source || (before !== null && !target)) return;
-    runNewEdit({kind: 'move', id: source.id, before: target?.id ?? null}).catch(
-      (cause: unknown) =>
-        console.error('Quick reorder callback failed:', cause),
-    );
-  };
-  const drag = useQuickDrag({
-    enabled: !locked,
+  const drag = useQuickReorder({
+    list: windowed.list,
+    items,
+    ids,
     revision: document?.revision ?? null,
-    ids,
-    listRef: windowed.list,
-    onMove: moveItem,
-  });
-  useRowMoveKeys({
-    owns: event =>
-      event.target instanceof Node &&
-      windowed.list.current?.contains(event.target) === true,
-    rowId: target =>
-      target instanceof Element
-        ? (target.closest<HTMLElement>('[data-quick-id]')?.dataset['quickId'] ??
-          null)
-        : null,
-    ids,
-    enabled: !locked,
-    onMove: moveItem,
+    locked,
+    save: runNewEdit,
   });
   const live = useLive(view => view.state);
   const livePassage = useShow(view => {
@@ -171,6 +115,28 @@ export function QuickPanel({
     document,
   });
   if (api === undefined) return null;
+  const rowContext: QuickRowContext = {
+    api,
+    live,
+    timers,
+    locked,
+    full,
+    timersFull,
+    save: runNewEdit,
+    onProblem,
+    run: item => {
+      setActivationVersion(value => value + 1);
+      runner
+        ?.run(item)
+        .catch((cause: unknown) =>
+          console.error('Quick item callback failed:', cause),
+        );
+    },
+    remove: item => history.remove(item),
+    pin: windowed.pin,
+    insertBefore: drag.before,
+    tabStop: windowed.tabStop,
+  };
   return (
     <Panel label="빠른 실행" className={styles.panel}>
       <PanelHeader>
@@ -209,69 +175,15 @@ export function QuickPanel({
           onKeyDown={windowed.onKeyDown}
           onFocusCapture={windowed.onFocusCapture}
         >
-          {windowed.shown.map(({item, index}) => {
-            const known = isKnownQuickItem(item);
-            const reason = quickItemUnavailable(item) ?? timers.reason(item);
-            const available = known && reason === undefined;
-            const timer =
-              known && item.kind === 'timer'
-                ? timers.definitions.get(item.ref)
-                : undefined;
-            const activate = (): void => {
-              if (available) {
-                setActivationVersion(value => value + 1);
-                runner
-                  ?.run(item)
-                  .catch((cause: unknown) =>
-                    console.error('Quick item callback failed:', cause),
-                  );
-              }
-            };
-            return (
-              <div
-                key={item.id}
-                className={styles.slot}
-                style={{top: index * windowed.rowHeight}}
-              >
-                <QuickRowEditor
-                  api={api}
-                  item={item}
-                  timer={timer}
-                  activate={activate}
-                  activateReason={reason}
-                  onProblem={onProblem}
-                  locked={locked}
-                  full={full}
-                  timersFull={timersFull}
-                  save={runNewEdit}
-                  onDelete={() => history.remove(item)}
-                  onPinChange={windowed.pin}
-                  insertBefore={drag.before === item.id}
-                >
-                  <ListActionRow
-                    tabIndex={item.id === windowed.tabStop ? 0 : -1}
-                    title={quickLabel(item)}
-                    meta={
-                      timer ? (
-                        <TimerValue
-                          api={api}
-                          timer={timer}
-                          run={available ? live?.timers?.[timer.id] : undefined}
-                        />
-                      ) : undefined
-                    }
-                    icon={known ? icons[item.kind] : 'warning'}
-                    pressed={
-                      known && available ? quickItemOn(item, live) : undefined
-                    }
-                    disabled={!available}
-                    reason={reason}
-                    onPress={activate}
-                  />
-                </QuickRowEditor>
-              </div>
-            );
-          })}
+          {windowed.shown.map(({item, index}) => (
+            <div
+              key={item.id}
+              className={styles.slot}
+              style={{top: index * windowed.rowHeight}}
+            >
+              <QuickRow item={item} context={rowContext} />
+            </div>
+          ))}
           {drag.before === null ? (
             <div
               className={styles.slot}
