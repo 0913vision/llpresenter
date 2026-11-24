@@ -3,7 +3,7 @@ import {
   undoReason,
   undoTimeline,
   type UndoOwner,
-} from '../../../../src/renderer/src/platform/undo/undoTimeline';
+} from '@renderer/platform/undo/undoTimeline';
 
 function owner(name: string, log: string[], works = true): UndoOwner {
   return {
