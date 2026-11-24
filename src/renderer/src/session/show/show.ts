@@ -1,3 +1,4 @@
+import {followLatest} from '@core/common/followLatest';
 import type {SingleLiveCommand} from '@core/schema/live/liveCommand';
 import type {SlideLayer} from '@core/schema/live/live';
 import {QUICK_BIBLE_TRANSITION} from '@core/bible';
@@ -441,8 +442,6 @@ export function applyService(service: ShowService | null): void {
 export function startServiceSync(): () => void {
   const api = window.llp;
   if (api === undefined) return () => undefined;
-  let stopped = false;
-  let pushed = false;
   const liveSlide = (): SlideLayer | null =>
     useLive.getState().state?.layers.slide ?? null;
   const stops = [
@@ -467,23 +466,17 @@ export function startServiceSync(): () => void {
       refreshLiveSlide();
     }),
     useThemes.subscribe(refreshLiveSlide),
-    api.service.subscribe(service => {
-      if (stopped) return;
-      pushed = true;
-      applyService(service);
-    }),
-  ];
-  api.service.get().then(
-    service => {
-      if (stopped || pushed) return;
-      applyService(service);
-    },
     // NOTE(0913vision): The preload logs a failed or malformed read before it
     // rejects, so the view just stays as it is.
-    () => undefined,
-  );
+    followLatest(
+      {
+        read: () => api.service.get(),
+        subscribe: listener => api.service.subscribe(listener),
+      },
+      {apply: applyService},
+    ),
+  ];
   return () => {
-    stopped = true;
     for (const stop of stops) stop();
   };
 }
