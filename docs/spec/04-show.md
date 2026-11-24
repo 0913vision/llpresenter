@@ -451,6 +451,9 @@ each preview follows ProPresenter's rule: it shows what goes out.
 - A clear removes its layer from the previews at the same moment as from the
   outputs, at once (03). The other layers stay. For example, after 가사 (F2) the
   청중 화면 preview shows the background without the lyrics.
+- After any clear (가사, 모두, or 검은 화면), → and ← go on from the slide that
+  was on output before the clear: → shows the slide after it, not the item's
+  first slide. Opening another item first makes → start that item.
 - When every layer of a screen is clear, its preview shows the empty picture:
   black (`output-black`) for the 청중 화면 and the 무대 화면, and green for the
   방송 화면. The 무대 화면 keeps the elements that no clear touches: the clock,

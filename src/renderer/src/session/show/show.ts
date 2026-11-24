@@ -26,7 +26,7 @@ import {
   forgetQuickPassage,
   quickReturnCursor,
 } from './quickReturn';
-import {liveCursor, tilesOf} from './showCursor';
+import {liveCursor, tilesOf, clearedCursor} from './showCursor';
 import {
   bibleSourceFor,
   isBibleSource,
@@ -62,14 +62,14 @@ function sequenceState(): SequenceState {
   const live =
     view.openItemId !== null && index !== null
       ? {itemId: view.openItemId, index}
-      : liveCursor();
+      : (liveCursor() ?? clearedCursor());
   return {tilesOf, live, openItemId: view.openItemId};
 }
 
 /** Resolves a live quick-run library slide to its service-order position. */
 function previousSequenceState(): SequenceState {
   const state = sequenceState();
-  const actual = liveCursor();
+  const actual = liveCursor() ?? clearedCursor();
   const view = useShow.getState();
   if (actual === null) return state;
   if (

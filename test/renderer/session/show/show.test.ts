@@ -219,6 +219,49 @@ describe('next and previous', () => {
     expect(shown()[0]?.position).toBe(0);
   });
 
+  it('goes on from the cleared slide after a clear', () => {
+    openItem('song-morning');
+    goLive('song-morning', 1);
+    const live = useLive.getState().state;
+    if (live === null) throw new Error('No live state');
+    useLive.setState({
+      state: {
+        ...live,
+        layers: {...live.layers, slide: null},
+        item: {
+          id: 'song-morning',
+          kind: 'song',
+          source: 'service',
+          slidePosition: 1,
+          contentCleared: true,
+        },
+      },
+    });
+    outputNext();
+    expect(shown()[0]).toMatchObject({itemId: 'song-morning', position: 2});
+    sent.length = 0;
+    outputPrevious();
+    expect(shown()[0]).toMatchObject({itemId: 'song-morning', position: 0});
+  });
+
+  it('starts another open item from its first slide after a clear', () => {
+    openItem('song-river');
+    const state = emptyLiveState();
+    useLive.setState({
+      state: {
+        ...state,
+        item: {
+          id: 'song-morning',
+          kind: 'song',
+          source: 'service',
+          slidePosition: 1,
+        },
+      },
+    });
+    outputNext();
+    expect(shown()[0]).toMatchObject({itemId: 'song-river', position: 0});
+  });
+
   it('stops after the last slide and keeps the selection', () => {
     openItem('song-morning');
     goLive('song-morning', 3);
