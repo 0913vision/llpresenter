@@ -47,6 +47,33 @@ describe('slideChangeOf', () => {
     });
   });
 
+  it('cuts every screen out of sight when a picture takes the place of the slide', () => {
+    const picture = (state: LiveState, mediaId: string): LiveState => ({
+      ...state,
+      layers: {
+        ...state.layers,
+        media: {mediaId, loop: false, chosen: true, startedAt: 1},
+      },
+    });
+    const taken = picture(live(null), 'picture');
+    for (const kind of ['audience', 'stage', 'broadcast']) {
+      expect(slideChangeOf(live(2), taken, {...audience, kind})).toEqual({
+        kind: 'change',
+        effect: CUT,
+      });
+    }
+    expect(
+      slideChangeOf(live(2), taken, {...audience, revealing: true}),
+    ).toEqual({kind: 'draw', end: true});
+    expect(slideChangeOf(live(2), live(null), audience)).toEqual({
+      kind: 'draw',
+      end: true,
+    });
+    expect(slideChangeOf(picture(live(2), 'picture'), taken, audience)).toEqual(
+      {kind: 'draw', end: true},
+    );
+  });
+
   it('draws 무대 at once, ending what still runs', () => {
     expect(
       slideChangeOf(live(1), live(2), {...audience, kind: 'stage'}),

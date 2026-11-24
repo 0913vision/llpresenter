@@ -22,7 +22,8 @@ export function slideMoved(shown: LiveState | null, next: LiveState): boolean {
  * Decides how an output takes the next live state. Only a screen that is on
  * and no longer waits to be revealed changes out of sight: 청중 through the
  * slide's transition when the slide moved or came back from black, any screen
- * through a cut when the slide moved onto another background.
+ * through a cut when the slide moved onto another background or a picture or
+ * video took the slide's place.
  */
 export function slideChangeOf(
   shown: LiveState | null,
@@ -55,6 +56,17 @@ export function slideChangeOf(
     !sameJson(shown?.themeOutput?.background, next.themeOutput?.background);
   if (stillOn && !screen.revealing && slide !== null && (animates || cuts)) {
     return {kind: 'change', effect: animates ? effect : CUT};
+  }
+  // NOTE(0913vision): A picture or video that takes the slide's place waits out
+  // of sight too, so the lyrics leave in the frame it comes in and no screen
+  // shows a frame without both (user rule: no flash).
+  const replaced =
+    before !== null &&
+    slide === null &&
+    next.layers.media !== null &&
+    next.layers.media.mediaId !== shown?.layers.media?.mediaId;
+  if (stillOn && !screen.revealing && replaced) {
+    return {kind: 'change', effect: CUT};
   }
   const turnedOff = screen.on && next.outputs[screen.id] !== true;
   // NOTE(0913vision): The slide that is coming in, shown again, has lost its

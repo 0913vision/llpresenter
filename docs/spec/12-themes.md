@@ -247,6 +247,10 @@ not preset names or indices, so the rename does not change existing themes.
   transition of a new 슬라이드 per purpose (10).
 - A transition is of two whole pictures: the screen as it is and the screen as
   it will be. The next picture is drawn out of sight and shown when it is ready.
+- A picture or video from the 미디어 panel that takes the 슬라이드's place is
+  drawn out of sight the same way and cuts in when it is ready, so the lyrics
+  leave in the frame it comes in: 무대 never shows black and 청중 never shows
+  the background without its lyrics in between (user rule: no flash).
 - Leaving a 슬라이드 ends a transition that still runs: the one it was going to
   shows whole, and the next transition starts from it. Showing the same 슬라이드
   again ends its transition too.
