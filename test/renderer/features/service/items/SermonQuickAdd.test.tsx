@@ -19,7 +19,7 @@ it('closes from the populated title with Escape and preserves IME composition', 
   });
   const close = vi.fn();
   render(<SermonQuickAdd onClose={close} onInsert={vi.fn()} />);
-  const title = screen.getByRole('textbox', {name: '제목'});
+  const title = screen.getByRole('textbox', {name: '설교 제목'});
   fireEvent.change(title, {target: {value: 'Title'}});
   fireEvent.keyDown(title, {key: 'Escape', isComposing: true, keyCode: 229});
   expect(close).not.toHaveBeenCalled();
@@ -45,7 +45,7 @@ it('ignores a delayed chapter lookup after Escape closes the sermon dialog', asy
       : formLookupReply(request),
   );
   render(<SermonQuickAdd onClose={close} onInsert={insert} />);
-  fireEvent.change(screen.getByRole('textbox', {name: '제목'}), {
+  fireEvent.change(screen.getByRole('textbox', {name: '설교 제목'}), {
     target: {value: 'Title'},
   });
   fireEvent.change(screen.getByRole('combobox', {name: '책'}), {
@@ -78,7 +78,7 @@ it('does not insert a pending recent after the title is cleared', async () => {
   });
   const onInsert = vi.fn();
   render(<SermonQuickAdd onClose={vi.fn()} onInsert={onInsert} />);
-  const title = screen.getByRole('textbox', {name: '제목'});
+  const title = screen.getByRole('textbox', {name: '설교 제목'});
   fireEvent.change(title, {target: {value: 'Title'}});
   const recent = await screen.findByRole('button', {name: /요한복음 3:16/});
   await waitFor(() => expect(fixture.lookup).toHaveBeenCalled());
@@ -116,7 +116,7 @@ it('uses the passage dialog and preserves the sermon title for a recent passage'
   const onInsert = vi.fn();
   render(<SermonQuickAdd onClose={vi.fn()} onInsert={onInsert} />);
   expect(screen.getByRole('dialog', {name: '설교'})).toBeDefined();
-  const title = screen.getByRole('textbox', {name: '제목'});
+  const title = screen.getByRole('textbox', {name: '설교 제목'});
   const recent = await screen.findByRole('button', {
     name: /요한복음 3:16/,
   });
