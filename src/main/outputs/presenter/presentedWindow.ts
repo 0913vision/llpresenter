@@ -27,10 +27,7 @@ import {
   watchPlaybackProblems,
   type PlaybackProblemBoard,
 } from '../health/playbackProblems';
-import {
-  publishPresenterMirror,
-  setPresenterMirror,
-} from '../previews/presenterMirror';
+import {publishNativeMirror, setNativeMirror} from '../previews/nativeMirror';
 
 const PING_SCRIPT = '0';
 const DEFAULT_SIZE: Size = THEME_CANVAS;
@@ -374,21 +371,21 @@ function createPresenterPart(
         if (message.type === 'copied') copied();
         if (message.type === 'shown') {
           stopTimer();
-          if (shown !== null) setPresenterMirror(current.id, mirrorPump);
+          if (shown !== null) setNativeMirror(current.id, mirrorPump);
         }
         if (message.type === 'mirror-frame') {
           if (
             message.frame instanceof Uint8Array &&
             message.frame.length === 640 * 360 * 4
           ) {
-            publishPresenterMirror(current.id, message.frame);
+            publishNativeMirror(current.id, message.frame);
           } else {
             mirrorPump.ack();
           }
         }
         if (message.type === 'mirror-error') {
           log.warn('presenter preview unavailable', message.message);
-          setPresenterMirror(current.id, null);
+          setNativeMirror(current.id, null);
         }
         if (message.type === 'transitioned') {
           log.info('output presenter transition', {
@@ -401,7 +398,7 @@ function createPresenterPart(
     );
     worker.on('exit', code => {
       if (child === worker) {
-        setPresenterMirror(current.id, null);
+        setNativeMirror(current.id, null);
         child = null;
         failWith(`presenter exited ${code}`);
       }
@@ -451,7 +448,7 @@ function createPresenterPart(
     },
     hide: () => {
       shown = null;
-      setPresenterMirror(current.id, null);
+      setNativeMirror(current.id, null);
       stopTimer();
       post({type: 'hide'});
     },
@@ -474,7 +471,7 @@ function createPresenterPart(
     destroy: () => {
       if (closed) return;
       closed = true;
-      setPresenterMirror(current.id, null);
+      setNativeMirror(current.id, null);
       stopTimer();
       releaseProblems?.();
       outstanding?.release();

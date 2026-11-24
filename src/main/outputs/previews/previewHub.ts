@@ -9,10 +9,10 @@ import type {Logger} from '../../base/log';
 import type {LiveStore} from '../../live/store';
 import {createAlphaMirror} from './alphaMirror';
 import {
-  ackPresenterMirror,
-  hasPresenterMirror,
-  subscribePresenterMirror,
-} from './presenterMirror';
+  ackNativeMirror,
+  hasNativeMirror,
+  subscribeNativeMirror,
+} from './nativeMirror';
 import {PreviewFrameFanout} from './previewFrameFanout';
 import type {OutputScreen} from '../screens';
 
@@ -234,7 +234,7 @@ export class PreviewHub {
       waiting: false,
     };
     mirror.upstream = upstream;
-    const unsubscribe = subscribePresenterMirror(
+    const unsubscribe = subscribeNativeMirror(
       screenId,
       upstream.publish,
       available => {
@@ -261,7 +261,7 @@ export class PreviewHub {
     const upstream = this.mirrors.get(screenId)?.upstream;
     if (upstream?.waiting !== true) return;
     upstream.waiting = false;
-    if (upstream.alpha === null) ackPresenterMirror(screenId);
+    if (upstream.alpha === null) ackNativeMirror(screenId);
     else upstream.alpha.ack();
   }
 
@@ -279,7 +279,7 @@ export class PreviewHub {
       this.stopAlpha(upstream);
       return needed;
     }
-    if (needed && upstream.alpha === null && !hasPresenterMirror(screenId)) {
+    if (needed && upstream.alpha === null && !hasNativeMirror(screenId)) {
       upstream.alpha = createAlphaMirror({
         source: () => contentsOf(screenId) ?? null,
         outputActive: () => store.state.outputs[screenId] === true,

@@ -1,6 +1,8 @@
 /**
- * The frame producer of a shown presenter. `enable` turns frames on or off, and
- * `ack` tells it that the last frame was taken.
+ * The frame producer of an output drawn outside Chromium, by the native
+ * presenter or the NDI GPU output, whose frames are mirrored to the output's
+ * preview in the control window. `enable` turns frames on or off, and `ack`
+ * tells it that the last frame was taken.
  */
 export interface Pump {
   enable(enabled: boolean): void;
@@ -8,8 +10,8 @@ export interface Pump {
 }
 
 /** Removes only the producer that owns this registration. */
-export function clearPresenterMirror(screenId: string, pump: Pump): void {
-  if (pumps.get(screenId) === pump) setPresenterMirror(screenId, null);
+export function clearNativeMirror(screenId: string, pump: Pump): void {
+  if (pumps.get(screenId) === pump) setNativeMirror(screenId, null);
 }
 
 type Sink = (frame: Uint8Array | null) => void;
@@ -20,7 +22,7 @@ const sinks = new Map<
 >();
 
 /** The shown presenter's bounded frame producer for one output. */
-export function setPresenterMirror(screenId: string, pump: Pump | null): void {
+export function setNativeMirror(screenId: string, pump: Pump | null): void {
   const previous = pumps.get(screenId);
   if (previous === pump) return;
   if (previous !== undefined) {
@@ -41,7 +43,7 @@ export function setPresenterMirror(screenId: string, pump: Pump | null): void {
 }
 
 /** Only the control window can subscribe; it must acknowledge every frame. */
-export function subscribePresenterMirror(
+export function subscribeNativeMirror(
   screenId: string,
   sink: Sink,
   availability?: (available: boolean) => void,
@@ -62,17 +64,14 @@ export function subscribePresenterMirror(
  * Hands a frame to the control window's subscriber. With no subscriber it
  * acknowledges the frame so the producer goes on.
  */
-export function publishPresenterMirror(
-  screenId: string,
-  frame: Uint8Array,
-): void {
+export function publishNativeMirror(screenId: string, frame: Uint8Array): void {
   const sink = sinks.get(screenId);
   if (sink === undefined) pumps.get(screenId)?.ack();
   else sink.frame(frame);
 }
 
 /** Whether a presenter produces frames for this screen. */
-export function hasPresenterMirror(screenId: string): boolean {
+export function hasNativeMirror(screenId: string): boolean {
   return pumps.has(screenId);
 }
 
@@ -80,6 +79,6 @@ export function hasPresenterMirror(screenId: string): boolean {
  * Tells the producer of this screen that the control window took its last
  * frame.
  */
-export function ackPresenterMirror(screenId: string): void {
+export function ackNativeMirror(screenId: string): void {
   pumps.get(screenId)?.ack();
 }

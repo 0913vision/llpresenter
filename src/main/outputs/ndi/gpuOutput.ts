@@ -15,10 +15,10 @@ import type {OutputScreen} from '../screens';
 import type {BitmapSender} from './output';
 import type {OutputWindowEvents, OutputWindowHandle} from '../outputWindow';
 import {
-  clearPresenterMirror,
-  publishPresenterMirror,
-  setPresenterMirror,
-} from '../previews/presenterMirror';
+  clearNativeMirror,
+  publishNativeMirror,
+  setNativeMirror,
+} from '../previews/nativeMirror';
 import {createNdiWindow, stopSender} from './ndiWindow';
 import {
   TextureQueue,
@@ -290,7 +290,7 @@ function gpuHandle(
     enable: (enabled: boolean): void => postMirror({type: 'mirror', enabled}),
     ack: (): void => postMirror({type: 'mirror-ack'}),
   };
-  const activateMirror = (): void => setPresenterMirror(current.id, mirrorPump);
+  const activateMirror = (): void => setNativeMirror(current.id, mirrorPump);
   let ready = false;
   let seenTexture = false;
   let requireFullFrame = false;
@@ -301,7 +301,7 @@ function gpuHandle(
   let captureTimeout: ReturnType<typeof setTimeout> | null = null;
   let missingSince: number | null = null;
   const clear = (destroyWindow = false): void => {
-    clearPresenterMirror(current.id, mirrorPump);
+    clearNativeMirror(current.id, mirrorPump);
     if (timeout !== null) clearTimeout(timeout);
     if (captureTimeout !== null) clearTimeout(captureTimeout);
     captureTimeout = null;
@@ -486,7 +486,7 @@ function gpuHandle(
             m.frame instanceof Uint8Array &&
             m.frame.length === 640 * 360 * 4
           ) {
-            publishPresenterMirror(current.id, m.frame);
+            publishNativeMirror(current.id, m.frame);
           } else mirrorPump.ack();
         }
         if (m.type === 'pixels' && pixels) {

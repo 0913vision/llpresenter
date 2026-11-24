@@ -1,26 +1,26 @@
 import {describe, expect, it, vi} from 'vitest';
 import {
-  ackPresenterMirror,
-  publishPresenterMirror,
-  setPresenterMirror,
-  subscribePresenterMirror,
-} from '@main/outputs/previews/presenterMirror';
+  ackNativeMirror,
+  publishNativeMirror,
+  setNativeMirror,
+  subscribeNativeMirror,
+} from '@main/outputs/previews/nativeMirror';
 
-describe('presenter mirror feed', () => {
+describe('native mirror feed', () => {
   it('starts only with a subscriber, acknowledges frames, and ends on hide', () => {
     const pump = {enable: vi.fn(), ack: vi.fn()};
     const sink = vi.fn();
-    setPresenterMirror('one', pump);
+    setNativeMirror('one', pump);
     expect(pump.enable).not.toHaveBeenCalled();
-    const unsubscribe = subscribePresenterMirror('one', sink);
+    const unsubscribe = subscribeNativeMirror('one', sink);
     expect(pump.enable).toHaveBeenCalledWith(true);
     const frame = new Uint8Array(640 * 360 * 4);
-    publishPresenterMirror('one', frame);
+    publishNativeMirror('one', frame);
     expect(sink).toHaveBeenCalledWith(frame);
     expect(pump.ack).not.toHaveBeenCalled();
-    ackPresenterMirror('one');
+    ackNativeMirror('one');
     expect(pump.ack).toHaveBeenCalledOnce();
-    setPresenterMirror('one', null);
+    setNativeMirror('one', null);
     expect(pump.enable).toHaveBeenLastCalledWith(false);
     expect(sink).toHaveBeenLastCalledWith(null);
     unsubscribe();
@@ -29,15 +29,15 @@ describe('presenter mirror feed', () => {
   it('starts a presenter created after its subscriber and stops when unsubscribed', () => {
     const pump = {enable: vi.fn(), ack: vi.fn()};
     const availability = vi.fn();
-    const unsubscribe = subscribePresenterMirror('two', vi.fn(), availability);
+    const unsubscribe = subscribeNativeMirror('two', vi.fn(), availability);
     expect(availability).toHaveBeenCalledWith(false);
-    setPresenterMirror('two', pump);
+    setNativeMirror('two', pump);
     expect(availability).toHaveBeenLastCalledWith(true);
     expect(pump.enable).toHaveBeenCalledWith(true);
     unsubscribe();
     expect(pump.enable).toHaveBeenLastCalledWith(false);
-    publishPresenterMirror('two', new Uint8Array(1));
+    publishNativeMirror('two', new Uint8Array(1));
     expect(pump.ack).toHaveBeenCalledOnce();
-    setPresenterMirror('two', null);
+    setNativeMirror('two', null);
   });
 });
