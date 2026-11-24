@@ -7,6 +7,7 @@ import {
   useState,
   useSyncExternalStore,
   type JSX,
+  type KeyboardEvent,
   type Ref,
 } from 'react';
 import {Button} from '@renderer/ui/Button';
@@ -34,6 +35,26 @@ import type {LabelCatalog} from './labelCatalog';
 import styles from './LabelMenu.module.css';
 
 const EMPTY_LABELS: readonly Label[] = [];
+
+/** The name field of the row of a label. */
+function nameFieldOf(
+  body: HTMLElement | null,
+  name: string | null,
+): HTMLInputElement | null {
+  const row = [
+    ...(body?.querySelectorAll<HTMLElement>('[role="group"]') ?? []),
+  ].find(element => element.getAttribute('aria-label') === name);
+  return row?.querySelector('input') ?? null;
+}
+
+/** 닫기 of the dialog the list is in. */
+function dialogPrimaryOf(body: HTMLElement | null): HTMLElement | null {
+  return (
+    body
+      ?.closest('[role="dialog"]')
+      ?.querySelector<HTMLElement>('[data-modal-primary]') ?? null
+  );
+}
 
 export interface LabelManagerHandle {
   readonly settle: () => Promise<boolean>;
@@ -76,26 +97,21 @@ export function LabelManager({
   const addButton = useRef<HTMLButtonElement>(null);
   const actions = useLabelActions(store);
   const {rows, prepareRename} = useLabelRows(labels);
+  // NOTE(0913vision): A new label's name field takes the keyboard once the
+  // catalog has it; with no such row, the add button or 닫기 does.
   useEffect(() => {
     if (focusRequest === null || focused.current === focusRequest || busy) {
       return;
     }
     focused.current = focusRequest;
-    const row = [
-      ...(body.current?.querySelectorAll<HTMLElement>('[role="group"]') ?? []),
-    ].find(element => element.getAttribute('aria-label') === focusRequest.name);
-    const field = row?.querySelector('input');
-    field?.focus();
-    field?.select();
-    if (field === undefined) {
-      if (frame.placement === 'page') {
-        addButton.current?.focus();
-        return;
-      }
-      body.current
-        ?.closest('[role="dialog"]')
-        ?.querySelector<HTMLElement>('[data-modal-primary]')
-        ?.focus();
+    const field = nameFieldOf(body.current, focusRequest.name);
+    if (field !== null) {
+      field.focus();
+      field.select();
+    } else if (frame.placement === 'page') {
+      addButton.current?.focus();
+    } else {
+      dialogPrimaryOf(body.current)?.focus();
     }
   }, [focusRequest, busy, frame.placement]);
   useImperativeHandle(managerRef, () => ({settle: actions.settle}));
@@ -117,6 +133,42 @@ export function LabelManager({
       if (!locked) editorTask(actions.move(name, target));
     },
   });
+  /**
+   * 삭제 of a row: the label goes and can come back with 실행 취소; on the
+   * page, the add button takes the keyboard when no label is left.
+   */
+  const removeAt = async (index: number): Promise<void> => {
+    const name = actions.current()[index]?.name;
+    let removal: Promise<boolean> | undefined;
+    deleteSelection(
+      name === undefined ? 0 : 1,
+      () => !locked && name !== undefined,
+      () => {
+        if (name === undefined) return;
+        focusHistorySurface(body.current);
+        removal = store.updateLabels(
+          actions.current().filter(label => label.name !== name),
+          revision => history.record(revision),
+        );
+      },
+    );
+    const removed = removal !== undefined && (await removal);
+    if (
+      removed &&
+      frame.placement === 'page' &&
+      actions.current().length === 0
+    ) {
+      addButton.current?.focus();
+    }
+  };
+  /** Ctrl Z and Ctrl Y in the list undo and redo the label edits. */
+  const undoOnKey = (event: KeyboardEvent<HTMLDivElement>): void => {
+    const kind = historyKey(event);
+    if (kind === null || undoReason(kind) !== undefined) return;
+    event.preventDefault();
+    event.stopPropagation();
+    editorTask(undoTimeline.replay(kind, logUndoProblem));
+  };
   const add = (
     <Button
       ref={addButton}
@@ -131,17 +183,7 @@ export function LabelManager({
     </Button>
   );
   const content = (
-    <div
-      ref={body}
-      className={styles.settings}
-      onKeyDown={event => {
-        const kind = historyKey(event);
-        if (kind === null || undoReason(kind) !== undefined) return;
-        event.preventDefault();
-        event.stopPropagation();
-        editorTask(undoTimeline.replay(kind, logUndoProblem));
-      }}
-    >
+    <div ref={body} className={styles.settings} onKeyDown={undoOnKey}>
       {rows.map(({label, key}, index) => (
         <div
           key={key}
@@ -189,34 +231,7 @@ export function LabelManager({
             icon="trash"
             label={`${label.name} 삭제`}
             disabled={locked}
-            onClick={() =>
-              editorTask(
-                actions.run(async () => {
-                  const name = actions.current()[index]?.name;
-                  let removal: Promise<boolean> | undefined;
-                  deleteSelection(
-                    name === undefined ? 0 : 1,
-                    () => !locked && name !== undefined,
-                    () => {
-                      if (name === undefined) return;
-                      focusHistorySurface(body.current);
-                      removal = store.updateLabels(
-                        actions.current().filter(label => label.name !== name),
-                        revision => history.record(revision),
-                      );
-                    },
-                  );
-                  if (removal && (await removal)) {
-                    if (
-                      frame.placement === 'page' &&
-                      actions.current().length === 0
-                    ) {
-                      addButton.current?.focus();
-                    }
-                  }
-                }),
-              )
-            }
+            onClick={() => editorTask(actions.run(() => removeAt(index)))}
           />
         </div>
       ))}
