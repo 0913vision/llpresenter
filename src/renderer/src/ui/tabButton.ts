@@ -1,4 +1,4 @@
-import type {KeyboardEvent, ReactNode} from 'react';
+import type {ComponentPropsWithoutRef, KeyboardEvent, ReactNode} from 'react';
 import {useButtonPress} from './press';
 import {titleTooltip, useTooltip} from './Tooltip';
 
@@ -19,13 +19,7 @@ export function useTabButton({
   readonly onSelect: () => void;
   readonly onKeyDown: (event: KeyboardEvent) => void;
 }): {
-  readonly props: ReturnType<typeof useButtonPress<HTMLButtonElement>> &
-    ReturnType<typeof useTooltip>['targetProps'] & {
-      readonly type: 'button';
-      readonly role: 'tab';
-      readonly 'aria-selected': boolean;
-      readonly 'aria-disabled': true | undefined;
-    };
+  readonly props: ComponentPropsWithoutRef<'button'>;
   readonly tooltip: ReactNode;
 } {
   const {targetProps, tooltip} = useTooltip(titleTooltip(title));
