@@ -95,7 +95,8 @@ function setup() {
     showSong,
     send,
     report,
-    mount: () => render(<ToolbarSearch enabled onProblem={report} />),
+    mount: () =>
+      render(<ToolbarSearch enabled addsToOrder onProblem={report} />),
   };
 }
 
@@ -113,7 +114,7 @@ beforeEach(() => {
   });
 });
 
-function setupAdding() {
+function setupAdding(addsToOrder = true) {
   const fixture = itemFixture();
   const song = fixture.second.song;
   const api = {
@@ -166,7 +167,9 @@ function setupAdding() {
   const report = vi.fn();
   const send = vi.spyOn(api.live, 'send');
   const open = vi.spyOn(api.library, 'showSong');
-  render(<ToolbarSearch enabled onProblem={report} />);
+  render(
+    <ToolbarSearch enabled addsToOrder={addsToOrder} onProblem={report} />,
+  );
   return {...fixture, api, report, send, open};
 }
 
@@ -232,6 +235,18 @@ it.each([{readOnly: true}, {serviceId: null}])(
     expect(screen.getByRole('listbox', {name: '곡 검색 결과'})).toBeDefined();
   },
 );
+
+it('only opens a result in 진행, where the 예배 순서 does not change', async () => {
+  const {service, second} = setupAdding(false);
+  const field = screen.getByRole('combobox', {name: '검색'});
+  await userEvent.type(field, '노래');
+  await screen.findByRole('option', {name: new RegExp(second.song.title)});
+  expect(screen.getByText('Enter 키로 열기')).toBeDefined();
+  expect(screen.queryByText(/예배 순서에 추가/u)).toBe(null);
+  await userEvent.keyboard('{ArrowDown}');
+  fireEvent.keyDown(field, {key: 'Enter', code: 'Enter', ctrlKey: true});
+  expect(service().service.order).toHaveLength(5);
+});
 
 it.each([
   {shiftKey: true},
@@ -528,13 +543,18 @@ describe('ToolbarSearch focus requests', () => {
     const {send} = setup();
     const onSearchFocused = vi.fn();
     const view = render(
-      <ToolbarSearch enabled onSearchFocused={onSearchFocused} />,
+      <ToolbarSearch enabled addsToOrder onSearchFocused={onSearchFocused} />,
     );
     const field = screen.getByRole('combobox', {name: '검색'});
     fireEvent.change(field, {target: {value: 'Invented'}});
 
     view.rerender(
-      <ToolbarSearch enabled focusSearch onSearchFocused={onSearchFocused} />,
+      <ToolbarSearch
+        enabled
+        addsToOrder
+        focusSearch
+        onSearchFocused={onSearchFocused}
+      />,
     );
 
     expect(document.activeElement).toBe(field);

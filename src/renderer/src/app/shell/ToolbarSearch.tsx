@@ -1,4 +1,3 @@
-import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useShortcutText} from '@renderer/ui/commandBindings';
 import {ariaShortcut, useTooltip} from '@renderer/ui/Tooltip';
@@ -21,9 +20,7 @@ import type {Notice} from '@renderer/ui/notices';
 import {TruncatedText} from '@renderer/ui/TruncatedText';
 import {useToolbarSearch} from './useToolbarSearch';
 import styles from './ToolbarSearch.module.css';
-import {useShow} from '@renderer/session/show';
-import {useOrderFull} from '@renderer/session/orderFull';
-import {ORDER_FULL_REASON} from '@renderer/session/serviceOrderEdits';
+import {useOrderAddReason} from '@renderer/session/orderFull';
 import {
   insertLibrarySong,
   rowAfterSelected,
@@ -131,29 +128,22 @@ function ResultRow({
 /** A toolbar search field and its bounded list; choosing only opens a source. */
 export function ToolbarSearch({
   enabled,
+  addsToOrder,
   onProblem = logProblem,
   onOpenPrepSong,
   focusSearch = false,
   onSearchFocused,
 }: {
   readonly enabled: boolean;
+  /** 준비 adds a result to the 예배 순서; 진행 only opens it. */
+  readonly addsToOrder: boolean;
   readonly onProblem?: ((notice: Notice) => void) | undefined;
   readonly onOpenPrepSong?: ((songId: SongId) => void) | undefined;
   readonly focusSearch?: boolean | undefined;
   readonly onSearchFocused?: (() => void) | undefined;
 }): JSX.Element {
   const search = useToolbarSearch(enabled, onProblem, onOpenPrepSong);
-  const serviceId = useShow(view => view.serviceId);
-  const readOnly = useShow(view => view.readOnly);
-  const full = useOrderFull();
-  const addReason =
-    serviceId === null
-      ? '열린 예배 없음'
-      : readOnly
-        ? NEWER_FILE_REASON
-        : full
-          ? ORDER_FULL_REASON
-          : undefined;
+  const addReason = useOrderAddReason();
   const addTooltip = useTooltip(addReason ? {text: addReason} : undefined);
   const root = useRef<HTMLDivElement>(null);
   const listId = useId();
@@ -193,6 +183,7 @@ export function ToolbarSearch({
       id: 'search.addToService',
       context: 'search',
       when: event =>
+        addsToOrder &&
         expanded &&
         selected !== undefined &&
         event.target instanceof HTMLInputElement &&
@@ -293,13 +284,15 @@ export function ToolbarSearch({
             ) : null}
             <div className={styles.footer}>
               <span>Enter 키로 열기</span>
-              <span
-                {...addTooltip.targetProps}
-                aria-disabled={addReason !== undefined}
-              >
-                {addShortcut === undefined ? '' : `${addShortcut} `}예배 순서에
-                추가
-              </span>
+              {addsToOrder ? (
+                <span
+                  {...addTooltip.targetProps}
+                  aria-disabled={addReason !== undefined}
+                >
+                  {addShortcut === undefined ? '' : `${addShortcut} `}예배
+                  순서에 추가
+                </span>
+              ) : null}
             </div>
             {addTooltip.tooltip}
           </div>

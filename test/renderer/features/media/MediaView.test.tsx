@@ -163,6 +163,15 @@ describe('media view', () => {
     expect(items.service().service.order).toHaveLength(5);
   });
 
+  it('does not add media to the 예배 순서 from 진행', async () => {
+    setup(undefined, undefined, 'show');
+    fireEvent.contextMenu(await tile('Dawn'));
+    await screen.findByRole('menuitem', {name: '출력'});
+    expect(screen.queryByRole('menuitem', {name: '예배 순서에 추가'})).toBe(
+      null,
+    );
+  });
+
   it.each(['cancel', 'failed', 'complete'] as const)(
     'leaves the current workspace until a panel import completes: %s',
     async outcome => {

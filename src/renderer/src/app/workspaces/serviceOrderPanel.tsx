@@ -59,7 +59,9 @@ export function serviceOrderParts({
     meta: <ReadOnlyMark />,
     actions: (
       <>
-        <ServiceQuickAdd onProblem={onProblem ?? logPanelProblem} />
+        {workspace === 'prep' ? (
+          <ServiceQuickAdd onProblem={onProblem ?? logPanelProblem} />
+        ) : null}
         {actions}
       </>
     ),

@@ -121,14 +121,17 @@ order, no row dims.
 
 ### Editing the 예배 순서 in 진행
 
-- In 진행, items and sections cannot be reordered by dragging, keyboard, or the
-  context menu. Reordering remains available in 준비 (05). The operator can add
-  items with 항목 추가 (proposal: the header has an 항목 추가 button).
-- No board shows the row's right-click menu. Version 1 has "준비에서 열기" (open
-  in 준비) and "삭제" (delete). Delete is immediate for any selection, without a
-  confirmation or notice. 실행 취소 is off in 진행; in 준비, Ctrl Z or 편집 >
-  실행 취소 restores the whole deletion as one step, and never restores cleared
-  output (03, 10).
+- 진행 doesn't change the 예배 순서: it has no 항목 추가 button, no row menu, no
+  dragging, and no keys that delete, paste, duplicate or move rows (Ctrl C still
+  copies). The 예배 순서 changes in 준비 (05). 실행 취소 is off in 진행.
+- What 진행 adds is quick: a song chosen in the toolbar search opens as the 진행
+  source and doesn't go into the 예배 순서 (no Ctrl Enter there); 빠른 실행
+  takes songs and media; the 미디어 panel imports and shows media and makes
+  playlists, and its menu has no 예배 순서에 추가; 메시지, 타이머, 그래픽 and
+  매크로 are made from the 진행 도구 tabs.
+
+The rest of this section is how 준비 edits the 예배 순서.
+
 - The item that is on the screens can't be deleted (삭제 is off with "화면에
   나가는 중입니다.", USER Nov 24); moving it doesn't change the output.
 - Ctrl C and 복사 copy the selected 예배 순서 rows. Shift selects a range (also

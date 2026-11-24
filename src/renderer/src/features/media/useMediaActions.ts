@@ -2,13 +2,10 @@ import {useRef, useState} from 'react';
 import {mediaLoops} from '@core/media';
 import type {MediaId} from '@core/schema/ids';
 import type {MediaItem} from '@core/schema/mediaList';
-import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {mediaItem} from '@renderer/platform/media';
 import {insertNewItem, rowAfterSelected} from '@renderer/session/insertNewItem';
 import {sendMediaOutput} from '@renderer/session/itemOutput';
-import {useOrderFull} from '@renderer/session/orderFull';
-import {ORDER_FULL_REASON} from '@renderer/session/serviceOrderEdits';
-import {useShow} from '@renderer/session/showStore';
+import {useOrderAddReason} from '@renderer/session/orderFull';
 import {deleteSelection} from '@renderer/ui/deleteSelection';
 import {focusHistorySurface} from '@renderer/ui/focusHistorySurface';
 import type {MenuAnchor} from '@renderer/ui/Menu';
@@ -47,17 +44,7 @@ export function useMediaActions({
   readonly onProblem: (notice: Notice) => void;
 }) {
   const {library, view, choice, select: setSelected} = useMediaView();
-  const serviceId = useShow(state => state.serviceId);
-  const serviceReadOnly = useShow(state => state.readOnly);
-  const orderFull = useOrderFull();
-  const addReason =
-    serviceId === null
-      ? '열린 예배 없음'
-      : serviceReadOnly
-        ? NEWER_FILE_REASON
-        : orderFull
-          ? ORDER_FULL_REASON
-          : undefined;
+  const addReason = useOrderAddReason();
   const [menu, setMenu] = useState<OpenMenu | null>(null);
   const menuTarget = useRef<HTMLElement | undefined>(undefined);
   const [renaming, setRenaming] = useState<MediaItem | null>(null);
@@ -157,19 +144,22 @@ export function useMediaActions({
     inPlaylist: playlist !== null,
     audioPlaylist: playlist?.kind === 'audio',
     addReason,
-    addToService: mediaId => {
-      if (
-        addReason !== undefined ||
-        library.getSnapshot().missing.has(mediaId)
-      ) {
-        return;
-      }
-      const media = mediaItem(mediaId);
-      if (media === undefined) return;
-      insertNewItem(newMediaItem(media), rowAfterSelected(), {
-        report: onProblem,
-      });
-    },
+    addToService:
+      workspace === 'show'
+        ? undefined
+        : mediaId => {
+            if (
+              addReason !== undefined ||
+              library.getSnapshot().missing.has(mediaId)
+            ) {
+              return;
+            }
+            const media = mediaItem(mediaId);
+            if (media === undefined) return;
+            insertNewItem(newMediaItem(media), rowAfterSelected(), {
+              report: onProblem,
+            });
+          },
     properties: setSelected,
     cancel: mediaId => {
       library.cancel(mediaId, entryName(entry)).catch((cause: unknown) => {

@@ -70,7 +70,24 @@ describe('service order clipboard commands', () => {
     expect(api.content.edit).not.toHaveBeenCalled();
   });
 
-  it.each(['show', 'prep'] as const)(
+  it('copies in 진행 but does not change its 예배 순서', async () => {
+    const {api, ids} = setup('show');
+    const user = userEvent.setup();
+    const first = screen.getByRole('option', {name: '첫 곡'});
+    await user.click(first);
+    first.focus();
+    await user.keyboard('{Control>}c{/Control}');
+    await waitFor(() =>
+      expect(serviceItemClipboardFor(api).getCount()).toBe(1),
+    );
+    await user.keyboard('{Control>}v{/Control}');
+    await user.keyboard('{Control>}d{/Control}');
+    await user.keyboard('{Delete}');
+    expect(ids()).toEqual([headerId, firstId, lastId]);
+    expect(api.content.edit).not.toHaveBeenCalled();
+  });
+
+  it.each(['prep'] as const)(
     'copies a Shift-selected range and pastes it after the cursor in %s as one undo step',
     async workspace => {
       const {api, ids, send, list} = setup(workspace);

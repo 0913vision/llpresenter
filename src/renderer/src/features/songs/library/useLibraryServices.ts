@@ -1,10 +1,8 @@
-import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useEffect, useRef, useState} from 'react';
 import type {SongId} from '@core/schema/ids';
 import {insertSelectedSong} from '@renderer/session/insertSelectedSong';
 import {useShow} from '@renderer/session/show';
-import {useOrderFull} from '@renderer/session/orderFull';
-import {ORDER_FULL_REASON} from '@renderer/session/serviceOrderEdits';
+import {useOrderAddReason} from '@renderer/session/orderFull';
 import {orderFailureTitle} from '@renderer/session/serviceProblem';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import type {LibraryApi} from './useLibrary';
@@ -13,9 +11,7 @@ export function useLibraryServices(
   api: LibraryApi,
   onProblem: (notice: Notice) => void,
 ) {
-  const serviceId = useShow(view => view.serviceId);
-  const readOnly = useShow(view => view.readOnly);
-  const full = useOrderFull();
+  const addReason = useOrderAddReason();
   const [busy, setBusy] = useState(false);
   const pending = useRef(false);
   const active = useRef(false);
@@ -55,14 +51,6 @@ export function useLibraryServices(
     }
   };
   const disabledReason =
-    serviceId === null
-      ? '열린 예배 없음'
-      : readOnly
-        ? NEWER_FILE_REASON
-        : full
-          ? ORDER_FULL_REASON
-          : busy
-            ? '예배 순서에 추가하는 중'
-            : undefined;
+    addReason ?? (busy ? '예배 순서에 추가하는 중' : undefined);
   return {disabledReason, busy, append};
 }

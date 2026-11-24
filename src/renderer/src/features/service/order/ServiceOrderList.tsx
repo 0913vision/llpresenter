@@ -102,7 +102,13 @@ export function ServiceOrderList({
     workspace === 'prep' && rows.some(row => row.kind === 'media'),
     onProblem,
   );
-  const editable = !readOnly && !editing.busy && window.llp !== undefined;
+  // NOTE(0913vision): 진행 doesn't change the 예배 순서; its rows only choose
+  // what goes out.
+  const editable =
+    workspace === 'prep' &&
+    !readOnly &&
+    !editing.busy &&
+    window.llp !== undefined;
   const full = useOrderFull();
   const [menu, setMenu] = useState<{
     id: string;

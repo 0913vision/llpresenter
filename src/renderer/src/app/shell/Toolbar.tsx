@@ -99,6 +99,7 @@ export function Toolbar({
         focusSearch={focusSearch}
         onSearchFocused={onSearchFocused}
         key={workspace}
+        addsToOrder={workspace === 'prep'}
         enabled={
           workspace === 'show' ||
           (workspace === 'prep' && onOpenPrepSong !== undefined)
