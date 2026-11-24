@@ -125,17 +125,13 @@ export function openBiblePassage(
   const view = useShow.getState();
   const opened = before ?? bibleSourceFor(view, view.openItemId);
   const source = sourceOf(passage, display, opened);
-  const insertion =
-    opened?.insertion?.serviceId === view.serviceId
-      ? opened.insertion
-      : {serviceId: view.serviceId, itemId: view.openItemId};
   const stays =
     opened !== null && (keepsVerse || samePassage(opened.passage, passage));
   beginOutputRequest();
   useShow.setState({
     bibleSources: withBibleSource(
       view,
-      {...source, insertion},
+      source,
       useLive.getState().state?.layers.slide?.itemId ?? null,
     ),
     openItemId: source.id,

@@ -1093,8 +1093,9 @@ integration use this contract, with a distinct cancellable ID per lookup.
   verse split across slides adds its part number (`합3:17 (1)`, `합3:17 (2)`) in
   진행 and 준비. Clicking a tile outputs that 슬라이드 at once. The next and
   previous keys work within the passage.
-- Buttons: 앞 절 추가 (add the previous verse), 뒤 절 추가 (add the next verse),
-  and 예배 순서에 넣기 (add to the 예배 순서).
+- Buttons: 앞 절 추가 (add the previous verse) and 뒤 절 추가 (add the next
+  verse). 진행 never changes the 예배 순서 (user decision, November 24), so the
+  panel has no 예배 순서에 넣기; a passage goes into the 예배 순서 in 준비.
 - Bible passages opened or shown from 빠른 실행 use a 0.7-second wipe to the
   left on every part, including the first slide and split verses. Inserting the
   passage into the service retains that default; existing service items are not
@@ -1123,9 +1124,6 @@ integration use this contract, with a distinct cancellable ID per lookup.
   lookup keeps the last good output.
 - Enter on an entered passage outputs its first verse, also when the same
   passage is live and another verse of it is on the screens (USER Nov 24).
-- 예배 순서에 넣기 inserts a Bible passage item into the selected section or the
-  section containing the selected 예배 순서 item, following 항목 추가's
-  insertion rule (05). An empty section stays as the passage's section row.
 - Enter in any reference field outputs the selected passage. Tab moves between
   fields; selecting a recent passage preserves its stored reference.
 - If the reference isn't valid, the field shows an error ring with the reason in

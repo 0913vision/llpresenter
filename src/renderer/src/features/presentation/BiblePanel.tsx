@@ -15,8 +15,6 @@ import {SlideSizeControl} from '@renderer/platform/SlideSizeControl';
 import {BibleAdjacentButtons} from '../bible/adjacent/BibleAdjacentButtons';
 import {BibleDisplayControls} from './BibleDisplayControls';
 import styles from './BiblePanel.module.css';
-import {BibleInsertButton} from '../service/items/BibleInsertButton';
-import type {Notice} from '@renderer/ui/popups/notices';
 import {useShow} from '@renderer/session/show/showStore';
 
 /**
@@ -25,10 +23,8 @@ import {useShow} from '@renderer/session/show/showStore';
  */
 export function BiblePanel({
   sizeClass,
-  onProblem,
 }: {
   readonly sizeClass: SizeClass;
-  readonly onProblem?: ((notice: Notice) => void) | undefined;
 }): JSX.Element | null {
   const shownItemId = useShownItemId();
   const source = useShow(view => bibleSourceFor(view, shownItemId));
@@ -46,7 +42,6 @@ export function BiblePanel({
       </PanelBody>
       <div className={styles.footer}>
         <GridFooter zoom={<SlideSizeControl sizeClass={sizeClass} />}>
-          <BibleInsertButton source={source} onProblem={onProblem} />
           <BibleAdjacentButtons key={source.id} source={source} />
         </GridFooter>
       </div>

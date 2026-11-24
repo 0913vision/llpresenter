@@ -21,10 +21,6 @@ export interface BibleSource extends BibleDisplay {
   readonly passage: BibleLookupPassage;
   readonly slides: readonly Slide[];
   readonly tiles: readonly SlideTile[];
-  readonly insertion?: {
-    readonly serviceId: string | null;
-    readonly itemId: string | null;
-  };
 }
 
 /** A passage with the slides made for it. */
