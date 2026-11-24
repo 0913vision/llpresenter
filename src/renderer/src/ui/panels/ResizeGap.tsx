@@ -3,6 +3,9 @@ import {isColumnDragActive, setColumnDragActive} from './columnDrag';
 import {beginLayoutResize, endLayoutResize} from './layoutResize';
 import styles from './ResizeGap.module.css';
 
+/**
+ * A drag of a panel border: each move gives the distance from where it began.
+ */
 export interface ResizeSession {
   move(delta: number): void;
   end(): void;

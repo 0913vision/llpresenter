@@ -1,5 +1,9 @@
 import './selectionDrag.css';
 
+/**
+ * The name a drag shows for what it carries: the label alone for one, `3개 곡`
+ * for several.
+ */
 export function selectionLabel(label: string, count: number): string {
   return count > 1 ? `${count}개 ${label}` : label;
 }

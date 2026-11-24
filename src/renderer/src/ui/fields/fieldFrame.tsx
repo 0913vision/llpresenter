@@ -44,6 +44,7 @@ export function FieldFrame({
   );
 }
 
+/** What a field shows for the reason its value is refused. */
 export interface FieldReason {
   /** The value for the field's `aria-describedby`. */
   readonly describedBy: string | undefined;
@@ -53,6 +54,7 @@ export interface FieldReason {
   readonly element: JSX.Element | null;
 }
 
+/** What decides a field's reason: whether it is refused, and why. */
 export interface FieldReasonOptions {
   readonly invalid: boolean;
   readonly reason: string | undefined;

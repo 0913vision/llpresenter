@@ -6,6 +6,10 @@ import {titleTooltip, useTooltip, withTooltipProps} from '../popups/Tooltip';
 import type {ControlSize} from '../types';
 import styles from './Button.module.css';
 
+/**
+ * How strongly a button stands out: the default, the primary action, or text
+ * only.
+ */
 export type ButtonVariant = 'secondary' | 'primary' | 'ghost';
 
 export interface ButtonProps extends Omit<

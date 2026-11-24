@@ -54,11 +54,13 @@ export function rovingTabStop(
   return firstEnabled(enabled, 0, 1) ?? 0;
 }
 
+/** One choice of a roving group, which may be turned off. */
 export interface RovingItem<T> {
   readonly value: T;
   readonly disabled?: boolean | undefined;
 }
 
+/** The choices of a roving group, the chosen one, and what a change calls. */
 export interface RovingSelectionOptions<T> {
   readonly items: ReadonlyArray<RovingItem<T>>;
   readonly value: T;
@@ -67,6 +69,10 @@ export interface RovingSelectionOptions<T> {
   readonly disabled: boolean;
 }
 
+/**
+ * What each choice of a roving group puts on its element: tab stop, ref and
+ * keys.
+ */
 export interface RovingSelection {
   readonly tabIndexOf: (index: number) => 0 | -1;
   readonly refOf: (index: number) => (element: HTMLElement | null) => void;

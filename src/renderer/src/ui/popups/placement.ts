@@ -6,11 +6,13 @@ export interface Box {
   readonly height: number;
 }
 
+/** A width and a height in CSS pixels. */
 export interface Size {
   readonly width: number;
   readonly height: number;
 }
 
+/** A point in CSS pixels from the window's top left. */
 export interface Point {
   readonly x: number;
   readonly y: number;

@@ -89,6 +89,7 @@ export function PanelHeader({
   return <div className={styles.header}>{children}</div>;
 }
 
+/** A tab of a panel header, which may be turned off with a reason. */
 export type PanelTab<T extends string> = MenuAvailability & {
   readonly value: T;
   readonly label: string;
@@ -103,14 +104,7 @@ interface PanelTabButtonProps<T extends string> {
   readonly onKeyDown: (event: KeyboardEvent) => void;
 }
 
-export function PanelTabContent({
-  label,
-}: {
-  readonly label: string;
-}): JSX.Element {
-  return <>{label}</>;
-}
-
+/** The label of a header's 더 보기 tab, with the chevron that says it opens a menu. */
 export function PanelMoreContent({
   label,
 }: {
@@ -153,7 +147,7 @@ function PanelTabButton<T extends string>({
         tabIndex={tabIndex}
         className={styles.tab}
       >
-        <PanelTabContent label={tab.label} />
+        {tab.label}
       </button>
       {tooltip}
     </>

@@ -14,6 +14,7 @@ import {
   type SlideRowMeasurements,
 } from './slideRowMeasurements';
 
+/** The measured row heights of a slide grid, and how a row reports its own. */
 export interface MeasuredRows {
   readonly current: SlideRowMeasurements;
   readonly saveHeight: (id: string, height: number) => void;

@@ -136,6 +136,10 @@ function ColorTrack({
   );
 }
 
+/**
+ * The color area of the 이름표 color picker: a saturation and brightness square
+ * over a hue strip.
+ */
 export function LabelColorArea(props: ColorAreaProps): JSX.Element {
   return (
     <>

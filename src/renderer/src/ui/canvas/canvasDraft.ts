@@ -10,12 +10,17 @@ import {
   type SelectedFrame,
 } from '@core/canvas';
 
+/** A box on the canvas: a text box, a picture, or another element of a theme. */
 export interface CanvasElement {
   readonly id: string;
   readonly name: string;
   readonly frame: ElementFrame;
 }
 
+/**
+ * The canvas an editor works on: its size, its boxes, and the rules for moving
+ * them.
+ */
 export interface CanvasDocument<T extends CanvasElement> {
   readonly width: number;
   readonly height: number;
@@ -57,6 +62,7 @@ export interface CanvasGesture {
   frame: ElementFrame;
 }
 
+/** Whether two frames have the same place and size. */
 export function sameFrame(a: ElementFrame, b: ElementFrame): boolean {
   return a.x === b.x && a.y === b.y && a.w === b.w && a.h === b.h;
 }

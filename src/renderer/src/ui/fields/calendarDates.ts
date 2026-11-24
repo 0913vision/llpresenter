@@ -1,11 +1,14 @@
+/** A day of the calendar, with the month counted from 1. */
 export interface CalendarDate {
   readonly year: number;
   readonly month: number;
   readonly day: number;
 }
 
+/** A month of the calendar. */
 export type CalendarMonth = Pick<CalendarDate, 'year' | 'month'>;
 
+/** One cell of the month grid. */
 export interface CalendarDay {
   readonly date: CalendarDate;
   /** Null for cells beyond the supported years. */
@@ -65,10 +68,12 @@ export function parseCalendarDate(value: string): CalendarDate | null {
     : null;
 }
 
+/** The date as `YYYY-MM-DD`, the form a date field keeps. */
 export function calendarDateValue({year, month, day}: CalendarDate): string {
   return `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
 
+/** The local calendar day of `date`. */
 export function localCalendarDate(date: Date): CalendarDate {
   return {
     year: date.getFullYear(),
@@ -77,18 +82,22 @@ export function localCalendarDate(date: Date): CalendarDate {
   };
 }
 
+/** The weekday of `date`, 0 for Sunday. */
 export function calendarWeekday(date: CalendarDate): number {
   return utc(date).getUTCDay();
 }
 
+/** The date in words with its year, as a tooltip reads it. */
 export function calendarDateLabel(date: CalendarDate): string {
   return `${date.year}년 ${calendarFieldLabel(date)}`;
 }
 
+/** The date in words without its year, as a date field shows it. */
 export function calendarFieldLabel(date: CalendarDate): string {
   return `${date.month}월 ${date.day}일 ${WEEKDAY_NAMES[calendarWeekday(date)] ?? ''}`;
 }
 
+/** The month in words, as the calendar header shows it. */
 export function calendarMonthLabel({year, month}: CalendarMonth): string {
   return `${year}년 ${month}월`;
 }

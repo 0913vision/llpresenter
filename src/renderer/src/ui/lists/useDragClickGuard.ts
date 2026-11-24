@@ -1,5 +1,9 @@
 import {useRef, type DragEvent, type MouseEvent} from 'react';
 
+/**
+ * Stops the click that ends a drag, so dropping a row does not also choose it.
+ * Spread `props` on the draggable element.
+ */
 export function useDragClickGuard() {
   const dragged = useRef(false);
   const capture = (event: MouseEvent): void => {

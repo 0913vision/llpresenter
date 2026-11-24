@@ -12,6 +12,7 @@ export const FIXED_KEYS = {
   selectAll: {code: 'KeyA', mods: ['ctrl']},
 } as const satisfies Readonly<Record<string, KeyBinding>>;
 
+/** The name of a key the app keeps fixed, such as the one for copy. */
 export type FixedKey = keyof typeof FIXED_KEYS;
 
 /** How a fixed key reads at the right end of a menu row, such as Ctrl C. */

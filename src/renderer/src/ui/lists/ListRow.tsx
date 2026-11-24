@@ -314,6 +314,7 @@ export function ListActionRow({
   );
 }
 
+/** The name of a row while it is renamed in place, with the field's rules. */
 export function NameField({
   id,
   label,

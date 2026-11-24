@@ -25,6 +25,7 @@ import {SHORTCUT_RECORDING_SELECTOR} from './shortcutRecording';
 import {isInTextEntry} from '../fields/textEntry';
 import {isColumnDragActive} from '../panels/columnDrag';
 
+/** A command the window's keys can run, and when it takes them. */
 export interface WindowShortcut {
   readonly id: string;
   /** Native editing keys owned by a control, outside the configurable key map. */

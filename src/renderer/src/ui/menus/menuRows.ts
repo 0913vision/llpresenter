@@ -20,6 +20,7 @@ const contextGroups: Readonly<Record<string, MenuItem['contextGroup']>> = {
 /** The tooltip on a row for a ProPresenter feature the app doesn't have yet. */
 export const NOT_YET = '아직 없는 기능';
 
+/** A line between two groups of rows, named by `id`. */
 export function menuSeparator(id: string): MenuSeparator {
   return {kind: 'separator', id};
 }

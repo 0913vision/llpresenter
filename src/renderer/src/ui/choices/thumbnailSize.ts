@@ -1,7 +1,12 @@
+/** The smallest thumbnail size, in percent of the default (spec 13). */
 export const MIN_THUMBNAIL_SCALE_PERCENT = 50;
+/** The largest thumbnail size, in percent of the default (spec 13). */
 export const MAX_THUMBNAIL_SCALE_PERCENT = 200;
+/** The thumbnail size a new window starts with. */
 export const DEFAULT_THUMBNAIL_SCALE_PERCENT = 100;
+/** How much one arrow key changes the thumbnail size, in percent. */
 export const THUMBNAIL_SCALE_STEP = 1;
+/** How much Shift with an arrow key changes the thumbnail size, in percent. */
 export const THUMBNAIL_SCALE_SHIFT_STEP = 10;
 
 /** Keeps a live thumbnail percentage in the spec-13 range, including fractions. */
@@ -21,6 +26,7 @@ export function commitThumbnailScale(value: number): number {
   );
 }
 
+/** What decides the width of a thumbnail tile. */
 export interface ThumbnailGeometry {
   readonly gridWidth: number;
   /** Default columns at 100%, normally 3, 4, or 6 for the size class. */

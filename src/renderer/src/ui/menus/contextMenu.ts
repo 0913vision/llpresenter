@@ -2,11 +2,16 @@ import type {KeyboardEvent, MouseEvent} from 'react';
 import type {MenuAnchor} from '@renderer/ui/menus/Menu';
 import './contextMenu.css';
 
+/** A right click, or the Menu key, on an element that offers a menu. */
 export type ContextMenuEvent =
   MouseEvent<HTMLElement> | KeyboardEvent<HTMLElement>;
 
 const marks = new WeakMap<HTMLElement, number>();
 
+/**
+ * The row, tab or button the menu is for: the element under the event, or the
+ * whole surface when it holds no rows.
+ */
 export function contextMenuTarget(
   event: ContextMenuEvent,
 ): HTMLElement | undefined {
@@ -35,6 +40,10 @@ export function pointerMenuAnchor(event: MouseEvent<HTMLElement>): MenuAnchor {
   };
 }
 
+/**
+ * Marks `target` as the element a menu is open for, until the returned
+ * function runs. Marks from several menus count up and down.
+ */
 export function markMenuTarget(target: HTMLElement): () => void {
   marks.set(target, (marks.get(target) ?? 0) + 1);
   target.setAttribute('data-menu-target', '');
@@ -52,6 +61,10 @@ export function markMenuTarget(target: HTMLElement): () => void {
   };
 }
 
+/**
+ * Whether a key opens the right-click menu: the Menu key or Shift F10, outside
+ * text fields and while no IME composes.
+ */
 export function isContextMenuKey(event: KeyboardEvent): boolean {
   if (
     event.nativeEvent.isComposing ||
@@ -125,6 +138,10 @@ export function openMenuFromKey(
   return true;
 }
 
+/**
+ * Where a menu opens: at the pointer for a right click, beside the focused row
+ * (or the surface) for the Menu key.
+ */
 export function contextMenuAnchor(event: ContextMenuEvent): MenuAnchor {
   const target = contextMenuTarget(event);
   if ('clientX' in event && (event.clientX !== 0 || event.clientY !== 0)) {

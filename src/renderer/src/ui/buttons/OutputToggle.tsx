@@ -26,6 +26,10 @@ export interface OutputToggleProps {
   readonly className?: string | undefined;
 }
 
+/**
+ * What an output toggle tooltip is built from: the screen, where it goes, and
+ * its state.
+ */
 export interface OutputTooltipParts {
   readonly screenName: string;
   readonly target: string;

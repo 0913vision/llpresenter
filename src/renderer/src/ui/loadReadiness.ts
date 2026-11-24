@@ -43,6 +43,7 @@ export class LoadReadiness {
   }
 }
 
+/** The load counter of the window a view reports to; null outside one. */
 export const LoadReadinessContext = createContext<LoadReadiness | null>(null);
 
 /** Reports committed data and fonts without requiring a hidden window to paint. */

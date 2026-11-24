@@ -13,6 +13,7 @@ import styles from './SegmentedControl.module.css';
  */
 export type SegmentedKind = 'radio' | 'tabs' | 'toggle';
 
+/** One segment of a segmented control. */
 export interface SegmentOption<T extends string> {
   readonly value: T;
   /** The visible name, or the accessible name and tooltip of an icon segment. */

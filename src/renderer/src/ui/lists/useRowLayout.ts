@@ -13,6 +13,7 @@ import type {SizeClass} from '@renderer/ui/panels/sizeClass';
 import type {ResizeSession} from '@renderer/ui/panels/ResizeGap';
 import {fitRows} from './rows';
 
+/** Where a panel keeps its row heights, per window size class. */
 export interface RowSizeStore {
   loadRows?(sizeClass: SizeClass): PanelRows | undefined;
   saveRows?(sizeClass: SizeClass, rows: PanelRows): void;
@@ -155,6 +156,11 @@ interface AppliedRows {
   readonly deps: readonly unknown[];
 }
 
+/**
+ * Lays out the rows of a panel column from the heights saved for the window's
+ * size class, and resizes them by dragging the gaps between them. The `fill`
+ * row takes what is left.
+ */
 export function useRowLayout({
   container,
   store,

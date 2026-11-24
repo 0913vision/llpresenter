@@ -6,6 +6,7 @@ import {useTabButton} from './tabButton';
 import {toolbarIconSize} from './toolbarIcons';
 import styles from './ToolbarButton.module.css';
 
+/** One tab of a toolbar tab group: an icon with its name. */
 export interface ToolbarTab<T extends string> {
   readonly value: T;
   readonly icon: string;

@@ -34,6 +34,7 @@ export const PRIMARY_MARK: Readonly<Record<string, string>> = {
   [PRIMARY_ATTRIBUTE]: '',
 };
 
+/** What a modal surface does with Esc, Enter and its first focus. */
 export interface ModalOptions {
   readonly surface: RefObject<HTMLElement | null>;
   /** Esc: what [취소] does. Nothing happens when it is undefined. */

@@ -38,10 +38,14 @@ interface MenuItemContent {
   readonly keepsOpen?: boolean | undefined;
 }
 
+/**
+ * Whether a menu row can run, and the reason its tooltip gives when it can't.
+ */
 export type MenuAvailability =
   | {readonly disabled?: false | undefined; readonly title?: string | undefined}
   | {readonly disabled: boolean; readonly title: string};
 
+/** A menu row that runs a command. */
 export type MenuItem = MenuItemContent & MenuAvailability;
 
 /** Derives unavailable menu state and its tooltip from the same reason. */
@@ -51,17 +55,20 @@ export function menuAvailability(reason: string | undefined): MenuAvailability {
     : {disabled: true, title: reason};
 }
 
+/** A line between two groups of rows. */
 export interface MenuSeparator {
   readonly kind: 'separator';
   readonly id: string;
 }
 
+/** A heading over a group of rows. */
 export interface MenuGroupLabel {
   readonly kind: 'group';
   readonly id: string;
   readonly label: string;
 }
 
+/** One entry of a menu: a row, a line, or a heading. */
 export type MenuEntry = MenuItem | MenuSeparator | MenuGroupLabel;
 
 /** The entries of a menu that the pointer and the arrow keys can reach. */
@@ -83,6 +90,9 @@ export function hasIconColumn(items: readonly MenuItem[]): boolean {
   return items.some(item => item.icon !== undefined);
 }
 
+/**
+ * Whether any row can be checked, which makes the menu keep its check column.
+ */
 export function hasCheckColumn(entries: readonly MenuEntry[]): boolean {
   return menuItems(entries).some(item => item.check !== undefined);
 }

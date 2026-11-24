@@ -29,6 +29,7 @@ import {
 } from './calendarDates';
 import styles from './Calendar.module.css';
 
+/** Why the calendar closed: a day was chosen, Esc, or a press outside. */
 export type CalendarCloseReason = 'choose' | 'escape' | 'outside';
 
 export interface CalendarProps {

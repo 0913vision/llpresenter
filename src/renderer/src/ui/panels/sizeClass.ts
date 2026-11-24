@@ -6,12 +6,14 @@ export type {SizeClass};
 const NORMAL_MIN_WIDTH = 1600;
 const WIDE_MIN_WIDTH = 2400;
 
+/** The size class of a window `width` CSS pixels wide. */
 export function sizeClassFor(width: number): SizeClass {
   if (width >= WIDE_MIN_WIDTH) return 'wide';
   if (width >= NORMAL_MIN_WIDTH) return 'normal';
   return 'narrow';
 }
 
+/** The widths of the side columns, in CSS pixels. */
 export interface ColumnWidths {
   readonly left: number;
   readonly right: number;

@@ -17,6 +17,7 @@ const iconUrls: Readonly<Record<string, string>> = Object.fromEntries(
   ]),
 );
 
+/** The icon sizes the design system draws, in CSS pixels. */
 export type IconSize = 12 | 14 | 16 | 18 | 24 | 28;
 
 /** Whether `icons/` has an icon with this file name. */

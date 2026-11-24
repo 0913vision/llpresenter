@@ -40,6 +40,7 @@ export interface TooltipTargetProps {
   readonly 'aria-keyshortcuts'?: string | undefined;
 }
 
+/** What a tooltip owner spreads on its target, and the tooltip it renders. */
 export interface TooltipHook {
   readonly targetProps: TooltipTargetProps;
   /** The tooltip to render next to the target; `null` while it is hidden. */

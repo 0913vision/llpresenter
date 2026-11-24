@@ -1,12 +1,7 @@
 import {useLayoutEffect, useRef, useState, type JSX} from 'react';
 import {flushSync} from 'react-dom';
 import {fitTabIndices} from '@core/common/fitTabs';
-import {
-  PanelTabs,
-  PanelTabContent,
-  PanelMoreContent,
-  type PanelTab,
-} from './Panel';
+import {PanelTabs, PanelMoreContent, type PanelTab} from './Panel';
 import styles from './Panel.module.css';
 
 interface Measurements {
@@ -16,6 +11,10 @@ interface Measurements {
   readonly gap: number;
 }
 
+/**
+ * Panel header tabs that fit the header's width: the tabs that don't fit move
+ * into a 더 보기 menu.
+ */
 export function ResponsivePanelTabs<T extends string>({
   tabs,
   value,
@@ -101,7 +100,7 @@ export function ResponsivePanelTabs<T extends string>({
         <div ref={tabMeasure} className={styles.tabs}>
           {tabs.map(tab => (
             <span key={tab.value} className={styles.tab}>
-              <PanelTabContent label={tab.label} />
+              {tab.label}
             </span>
           ))}
         </div>

@@ -2,7 +2,9 @@ import {countedMeta} from './countedMeta';
 
 /** The one name of the place a thing is used, in labels and tooltips. */
 export const USAGE_LABEL = '쓰는 곳';
+/** What a 쓰는 곳 line says while the places are being counted. */
 export const USAGE_LOADING = '쓰는 곳 확인 중';
+/** What a 쓰는 곳 line says when the places couldn't be counted. */
 export const USAGE_UNAVAILABLE = '쓰는 곳 확인 실패';
 
 /** The line a delete question shows: `쓰는 곳: 예배 2곳`; nothing at 0. */

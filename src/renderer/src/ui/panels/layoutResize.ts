@@ -1,9 +1,12 @@
-/** Coalesces expensive layout reads until a window or panel resize settles. */
 let panelResizing = false;
 let windowResizing = false;
 let timer: ReturnType<typeof setTimeout> | undefined;
 const listeners = new Set<() => void>();
 
+/**
+ * Whether a window or a panel is being resized now. Views put off expensive
+ * layout reads until the resize settles.
+ */
 export function isLayoutResizeActive(): boolean {
   return panelResizing || windowResizing;
 }
@@ -14,11 +17,13 @@ function release(): void {
   for (const listener of listeners) listener();
 }
 
+/** Starts a panel resize and marks the document while it runs. */
 export function beginLayoutResize(): void {
   panelResizing = true;
   document.documentElement.dataset['layoutResizing'] = '';
 }
 
+/** Ends a panel resize and tells the views that waited, once no resize runs. */
 export function endLayoutResize(): void {
   if (!panelResizing) return;
   panelResizing = false;

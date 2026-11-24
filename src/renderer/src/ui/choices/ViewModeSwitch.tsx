@@ -1,6 +1,7 @@
 import type {JSX} from 'react';
 import {SegmentedControl} from './SegmentedControl';
 
+/** How a list shows its items: as rows, or as a grid of tiles. */
 export type ViewMode = 'list' | 'grid';
 
 const OPTIONS = [

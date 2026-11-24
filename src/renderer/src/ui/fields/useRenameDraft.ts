@@ -4,6 +4,10 @@ import {hasModifier} from '../keys/modifierKeys';
 import {useAlive} from '@renderer/ui/useAlive';
 import {nameReason} from './nameReason';
 
+/**
+ * What a rename in place needs from its owner: the rules for a name, and what
+ * happens on commit and close.
+ */
 export interface RenameContract {
   /** The longest name; the field stops there and a longer one is refused. */
   readonly maxLength?: number | undefined;

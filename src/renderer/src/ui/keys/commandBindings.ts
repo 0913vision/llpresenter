@@ -10,6 +10,10 @@ let bindings: ShortcutsFile['bindings'] = {};
 let conflicts = shortcutConflicts(bindings);
 const listeners = new Set<() => void>();
 
+/**
+ * The operator's shortcut bindings in this window and their conflicts, as a
+ * store React can follow.
+ */
 export const commandBindingStore = {
   get: () => bindings,
   conflicts: () => conflicts,
@@ -24,12 +28,17 @@ export const commandBindingStore = {
   },
 };
 
+/**
+ * The first shortcut of a command in words, as menus and tooltips show it;
+ * `undefined` when it has none.
+ */
 export function shortcutText(id: string | undefined): string | undefined {
   if (id === undefined) return undefined;
   const first = commandBindings(id, bindings)[0];
   return first === undefined ? undefined : shortcutNames(first).join(' ');
 }
 
+/** {@link shortcutText}, read again whenever the bindings change. */
 export function useShortcutText(id: string | undefined): string | undefined {
   useSyncExternalStore(commandBindingStore.subscribe, commandBindingStore.get);
   return shortcutText(id);

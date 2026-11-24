@@ -120,6 +120,7 @@ function DialogBody({
 const FOCUSABLE =
   'a[href], button, input, select, textarea, [tabindex], [contenteditable="true"]';
 
+/** Keeps focus in a modal when a press lands on its scrim or on plain text. */
 export function keepFocusInModal(event: MouseEvent<HTMLDivElement>): void {
   // NOTE(0913vision): A press on the scrim, or on text in the modal, would
   // move focus to the body, out of reach of the modal's Esc and focus trap.

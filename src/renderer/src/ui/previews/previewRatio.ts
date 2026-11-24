@@ -1,3 +1,4 @@
+/** The share of its column the 미리보기 takes until the operator drags it. */
 export const DEFAULT_PREVIEW_RATIO = 0.667;
 
 /** Keeps old and newly saved splits inside the supported range. */

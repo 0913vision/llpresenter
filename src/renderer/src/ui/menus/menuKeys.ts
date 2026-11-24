@@ -115,6 +115,10 @@ export function handleMenuKey(
   }
 }
 
+/**
+ * Opens the right-click menu of the pointed menu row when the Menu key is
+ * pressed on it, and returns whether it took the key.
+ */
 export function openItemMenu(
   event: KeyboardEvent,
   item: MenuItem | undefined,
