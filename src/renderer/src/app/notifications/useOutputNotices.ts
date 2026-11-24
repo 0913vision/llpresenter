@@ -1,7 +1,9 @@
 import {followLatest} from '@core/common/followLatest';
-import {useEffect, useEffectEvent} from 'react';
+import {useEffect, useEffectEvent, useMemo} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {OutputStatuses} from '@core/schema/live/outputStatus';
+import type {NamedDocument} from '@core/schema/app/settingsDocuments';
+import {useApiSettingsDocument} from '@renderer/platform/documents/useSettingsDocument';
 import {STARTER_SCREEN_IDS} from '@core/screens';
 import {
   dropOutputWarning,
@@ -15,13 +17,25 @@ import {
   type ScreenNames,
 } from './outputNotices';
 
-// TODO(0913vision): Name the screens from the screen settings once they reach
-// the control window; until then only the built-in screens get cards.
-const screenNames: ReadonlyMap<string, ScreenNames> = new Map([
+const STARTER_NAMES: ReadonlyMap<string, ScreenNames> = new Map([
   [STARTER_SCREEN_IDS.main, {monitor: '청중 화면', window: '청중 화면'}],
   [STARTER_SCREEN_IDS.stage, {monitor: '무대 화면', window: '무대 화면'}],
   [STARTER_SCREEN_IDS.broadcast, {monitor: '방송 화면', window: '방송 화면'}],
 ]);
+
+/**
+ * The names the cards give the screens: each screen's own name from the screen
+ * settings, so a screen the operator added or renamed gets its cards too; the
+ * starter screens keep their names while the settings are not read yet.
+ */
+export function screenNamesOf(
+  document: NamedDocument<'screens'> | null,
+): ReadonlyMap<string, ScreenNames> {
+  const own = (document?.value.screens ?? []).map(
+    screen => [screen.id, {monitor: screen.name, window: screen.name}] as const,
+  );
+  return new Map([...STARTER_NAMES, ...own]);
+}
 
 /** Where the cards go: the app's one notice list. */
 export interface NoticeTarget {
@@ -61,9 +75,12 @@ function keptAfterActions(
  * counts only when no push came before it.
  */
 export function useOutputNotices(
-  api: Pick<LlpApi, 'output'> | undefined,
+  api: Pick<LlpApi, 'output' | 'settings'> | undefined,
   target: NoticeTarget,
 ): void {
+  const screens = useApiSettingsDocument({api, name: 'screens', title: '화면'});
+  const screenNames = useMemo(() => screenNamesOf(screens), [screens]);
+  const namesNow = useEffectEvent(() => screenNames);
   const report = useEffectEvent(target.report);
   const dismiss = useEffectEvent(target.dismiss);
   const isShowing = useEffectEvent((key: string) =>
@@ -97,7 +114,7 @@ export function useOutputNotices(
       const notice = keptAfterActions(change.notice, report);
       keepOutputWarning({
         screenId: change.screenId,
-        screenName: screenNames.get(change.screenId)?.window ?? change.screenId,
+        screenName: namesNow().get(change.screenId)?.window ?? change.screenId,
         notice,
       });
       if (change.kind === 'show' || isShowing(notice.key)) report(notice);
@@ -107,7 +124,7 @@ export function useOutputNotices(
       const changes = outputNoticeChanges({
         previous,
         next,
-        screens: screenNames,
+        screens: namesNow(),
         actions: {
           findMonitors: () => output.findMonitors(),
           showWindow: screenId => output.showWindow(screenId),
