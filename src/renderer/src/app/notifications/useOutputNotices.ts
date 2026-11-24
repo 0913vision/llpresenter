@@ -1,3 +1,4 @@
+import {followLatest} from '@renderer/platform/followLatest';
 import {useEffect, useEffectEvent} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {OutputStatuses} from '@core/schema/live/outputStatus';
@@ -73,7 +74,6 @@ export function useOutputNotices(
     const {output} = api;
     let previous: OutputStatuses = {};
     let stopped = false;
-    let pushed = false;
     const take = (change: NoticeChange): void => {
       if (change.kind === 'dismiss') {
         dropOutputWarning(change.key);
@@ -118,17 +118,11 @@ export function useOutputNotices(
       previous = next;
       for (const change of changes) take(change);
     };
-    const unsubscribe = output.subscribeStatus(next => {
-      pushed = true;
-      apply(next);
-    });
-    output.getStatus().then(
-      next => {
-        if (!pushed) apply(next);
-      },
-      // NOTE(0913vision): The preload logs a failed or malformed read before
-      // it rejects; the next push brings the status.
-      () => undefined,
+    // NOTE(0913vision): The preload logs a failed or malformed read before it
+    // rejects; the next push brings the status.
+    const unsubscribe = followLatest(
+      {read: output.getStatus, subscribe: output.subscribeStatus},
+      {apply},
     );
     return () => {
       stopped = true;

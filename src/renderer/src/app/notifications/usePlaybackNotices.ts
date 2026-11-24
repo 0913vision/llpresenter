@@ -1,3 +1,4 @@
+import {followLatest} from '@renderer/platform/followLatest';
 import {useEffect, useEffectEvent} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {
@@ -21,7 +22,6 @@ export function usePlaybackNotices(
   useEffect(() => {
     if (api === undefined) return undefined;
     let stopped = false;
-    let pushed = false;
     let previous = new Map<string, string>();
     const receive = (problems: PlaybackProblems): void => {
       if (stopped) return;
@@ -86,15 +86,12 @@ export function usePlaybackNotices(
       }
       previous = next;
     };
-    const stop = api.output.subscribePlaybackProblems(problems => {
-      pushed = true;
-      receive(problems);
-    });
-    api.output.getPlaybackProblems().then(
-      problems => {
-        if (!pushed) receive(problems);
+    const stop = followLatest(
+      {
+        read: api.output.getPlaybackProblems,
+        subscribe: api.output.subscribePlaybackProblems,
       },
-      () => undefined,
+      {apply: receive},
     );
     return () => {
       stopped = true;
