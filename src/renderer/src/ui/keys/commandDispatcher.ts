@@ -22,8 +22,8 @@ import {commandBindingStore} from './commandBindings';
 import {commitDraftBeforeShortcut} from '../fields/commitDraft';
 import {modalStack} from '../popups/modalStack';
 import {SHORTCUT_RECORDING_SELECTOR} from './shortcutRecording';
-import {isInTextEntry} from '../fields/textEntry';
 import {isColumnDragActive} from '../panels/columnDrag';
+import {focusedControlOwnsKey, isInside, isTextField} from './keyOwnership';
 
 /** A command the window's keys can run, and when it takes them. */
 export interface WindowShortcut {
@@ -88,10 +88,6 @@ let pointer: {id: number; x: number; y: number; dragged: boolean} | null = null;
 let takenSpace = false;
 const POINTER_DRAG_THRESHOLD_PX = 4;
 
-function isInside(target: EventTarget | null, selector: string): boolean {
-  return target instanceof Element && target.closest(selector) !== null;
-}
-
 function surfaceOwnsKeys(event: KeyboardEvent): boolean {
   return (
     isColumnDragActive() ||
@@ -105,71 +101,6 @@ function surfaceOwnsKeys(event: KeyboardEvent): boolean {
     ].some(surface => surface.closest('[inert]') === null) ||
     isInside(event.target, '[data-command-dragging="true"]')
   );
-}
-
-function focusedControlOwnsKey(event: KeyboardEvent): boolean {
-  if (
-    isInside(
-      event.target,
-      '[data-command-context="canvas"], [data-command-context="chips"]',
-    )
-  ) {
-    return false;
-  }
-  if (event.ctrlKey || event.altKey || event.shiftKey) return false;
-  if (
-    ['ArrowUp', 'ArrowDown', 'Enter', 'NumpadEnter', 'Home', 'End'].includes(
-      event.code,
-    ) &&
-    isInside(event.target, '[data-show-slide-grid="true"] [role="listbox"]')
-  ) {
-    return false;
-  }
-  if (isInside(event.target, '[role="listbox"]')) {
-    return [
-      'ArrowUp',
-      'ArrowDown',
-      'Home',
-      'End',
-      'Enter',
-      'NumpadEnter',
-    ].includes(event.code);
-  }
-  if (['Space', 'Enter', 'NumpadEnter'].includes(event.code)) {
-    return isInside(
-      event.target,
-      'button, [role="button"], [role="switch"], [role="checkbox"], [role="radio"], [role="tab"], input, select',
-    );
-  }
-  return (
-    event.code.startsWith('Arrow') &&
-    isInside(
-      event.target,
-      '[role="tab"], [role="radio"], [role="slider"], input, select, [data-tile-list]',
-    )
-  );
-}
-
-/** Whether this event belongs to a text-editing control. */
-export function isTextField(event: KeyboardEvent): boolean {
-  if (!isInTextEntry(event.target)) return false;
-  if (
-    event.target instanceof HTMLInputElement &&
-    [
-      'range',
-      'checkbox',
-      'radio',
-      'button',
-      'submit',
-      'reset',
-      'color',
-      'file',
-      'image',
-    ].includes(event.target.type)
-  ) {
-    return false;
-  }
-  return true;
 }
 
 function shortcutFocus(event: KeyboardEvent): ShortcutFocus {
