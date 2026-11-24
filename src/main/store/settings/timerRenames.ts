@@ -1,3 +1,4 @@
+import {editableTimers, timerRefusal} from './editableTimers';
 import type {Result} from '@core/common/result';
 import type {EditFailure, EditSuccess} from '@core/schema/services/contentEdit';
 import {isKnownQuickItem} from '@core/schema/tools/quick';
@@ -13,16 +14,6 @@ interface PreparedRename {
   readonly applied: EditSuccess;
 }
 
-function refuse(
-  reason: 'not-found' | 'read-only' | 'invalid',
-  message: string,
-): Result<PreparedRename, EditFailure> {
-  return {
-    ok: false,
-    error: {reason, message},
-  };
-}
-
 /**
  * Prepares the rename of a timer, with the 빠른 타이머 that uses it, or refuses it.
  */
@@ -30,16 +21,11 @@ export function prepareTimerRename(
   documents: ReadonlyMap<SettingsName, SettingsDocument>,
   edit: TimerRename,
 ): Result<PreparedRename, EditFailure> {
-  const timers = documents.get('timers');
-  const quick = documents.get('quick');
-  if (timers?.name !== 'timers' || quick?.name !== 'quick') {
-    return refuse('not-found', 'Timer settings are unavailable');
-  }
-  if (timers.access !== 'editable') {
-    return refuse('read-only', 'Timer settings cannot be edited');
-  }
+  const editable = editableTimers(documents);
+  if (!editable.ok) return editable;
+  const {timers, quick} = editable.value;
   const timer = timers.value.timers.find(timer => timer.id === edit.timerId);
-  if (!timer) return refuse('not-found', 'The timer is missing');
+  if (!timer) return timerRefusal('not-found', 'The timer is missing');
   const items = quick.value.items.map(row =>
     isKnownQuickItem(row) &&
     row.kind === 'timer' &&
@@ -52,7 +38,7 @@ export function prepareTimerRename(
     (row, index) => row !== quick.value.items[index],
   );
   if (quickChanged && quick.access !== 'editable') {
-    return refuse('read-only', 'Quick timer names cannot be edited');
+    return timerRefusal('read-only', 'Quick timer names cannot be edited');
   }
   const next: SettingsDocument[] = [];
   let revision = timers.revision;
@@ -67,7 +53,7 @@ export function prepareTimerRename(
         ),
       },
     });
-    if (!parsed.ok) return refuse('invalid', 'Invalid renamed timer');
+    if (!parsed.ok) return timerRefusal('invalid', 'Invalid renamed timer');
     next.push(parsed.value);
     revision++;
   }
@@ -77,7 +63,9 @@ export function prepareTimerRename(
       revision: quick.revision + 1,
       value: {...quick.value, items},
     });
-    if (!parsed.ok) return refuse('invalid', 'Invalid renamed quick timers');
+    if (!parsed.ok) {
+      return timerRefusal('invalid', 'Invalid renamed quick timers');
+    }
     next.push(parsed.value);
   }
   return {

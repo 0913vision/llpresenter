@@ -1,3 +1,4 @@
+import {editableTimers, timerRefusal} from './editableTimers';
 import type {Result} from '@core/common/result';
 import type {EditFailure, EditSuccess} from '@core/schema/services/contentEdit';
 import {isKnownQuickItem} from '@core/schema/tools/quick';
@@ -13,16 +14,6 @@ interface PreparedDeletion {
   readonly applied: EditSuccess;
 }
 
-function refuse(
-  reason: 'not-found' | 'read-only' | 'invalid',
-  message: string,
-): Result<PreparedDeletion, EditFailure> {
-  return {
-    ok: false,
-    error: {reason, message},
-  };
-}
-
 /**
  * Prepares the deletion of a timer, with the 빠른 타이머 that uses it, or refuses
  * it.
@@ -31,16 +22,11 @@ export function prepareTimerDeletion(
   documents: ReadonlyMap<SettingsName, SettingsDocument>,
   edit: TimerDelete,
 ): Result<PreparedDeletion, EditFailure> {
-  const timers = documents.get('timers');
-  const quick = documents.get('quick');
-  if (timers?.name !== 'timers' || quick?.name !== 'quick') {
-    return refuse('not-found', 'Timer settings are unavailable');
-  }
-  if (timers.access !== 'editable') {
-    return refuse('read-only', 'Timer settings cannot be edited');
-  }
+  const editable = editableTimers(documents);
+  if (!editable.ok) return editable;
+  const {timers, quick} = editable.value;
   if (!timers.value.timers.some(timer => timer.id === edit.timerId)) {
-    return refuse('not-found', 'The timer is missing');
+    return timerRefusal('not-found', 'The timer is missing');
   }
   const items = quick.value.items.filter(
     row =>
@@ -52,7 +38,7 @@ export function prepareTimerDeletion(
   );
   const quickChanged = items.length !== quick.value.items.length;
   if (quickChanged && quick.access !== 'editable') {
-    return refuse('read-only', 'Linked quick timers cannot be removed');
+    return timerRefusal('read-only', 'Linked quick timers cannot be removed');
   }
   const nextTimers = parseSettingsDocument({
     ...timers,
@@ -62,7 +48,7 @@ export function prepareTimerDeletion(
       timers: timers.value.timers.filter(timer => timer.id !== edit.timerId),
     },
   });
-  if (!nextTimers.ok) return refuse('invalid', 'Invalid timer deletion');
+  if (!nextTimers.ok) return timerRefusal('invalid', 'Invalid timer deletion');
   const next = [nextTimers.value];
   if (quickChanged) {
     const nextQuick = parseSettingsDocument({
@@ -71,7 +57,7 @@ export function prepareTimerDeletion(
       value: {...quick.value, items},
     });
     if (!nextQuick.ok) {
-      return refuse('invalid', 'Invalid linked quick timer deletion');
+      return timerRefusal('invalid', 'Invalid linked quick timer deletion');
     }
     next.push(nextQuick.value);
   }
