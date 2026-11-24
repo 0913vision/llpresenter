@@ -22,7 +22,7 @@ import {selectInDeck} from '../deckSelection';
 import {EditorSlideNumber} from './EditorSlideNumber';
 import type {SlideDeck} from '../slideDeck';
 import {SlideTextField} from '../texts/SlideTextField';
-import plate from '../EditorSlidePlate.module.css';
+import plate from './EditorSlidePlate.module.css';
 import styles from '../SlideEditor.module.css';
 
 interface SlideRowProps {
