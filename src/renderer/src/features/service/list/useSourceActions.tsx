@@ -14,13 +14,13 @@ import {Menu} from '@renderer/ui/menus/Menu';
 import {RenameDialog} from '@renderer/ui/popups/RenameDialog';
 import {useMenuHandoff} from '@renderer/ui/menus/useMenuHandoff';
 import {editApplied, renameService, settle} from './serviceEdits';
-import type {ServiceSource} from './useServiceSources';
 import {
   contextMenuAnchor,
   type ContextMenuEvent,
 } from '../../../ui/menus/contextMenu';
 import {useAlive} from '@renderer/ui/useAlive';
 import {useShow} from '@renderer/session/show/showStore';
+import type {ServiceSource} from './serviceSource';
 
 type NamedSource = Exclude<ServiceSource, {readonly kind: 'empty'}>;
 

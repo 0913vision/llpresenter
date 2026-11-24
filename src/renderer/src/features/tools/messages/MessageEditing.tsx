@@ -16,7 +16,6 @@ import {createMessageTemplateId} from '@core/schema/common/ids';
 import type {Screen} from '@core/schema/screens/screens';
 import type {MessageTemplate} from '@core/schema/tools/messages';
 import {MAX_MESSAGE_CHARACTERS} from '@core/overlays';
-import type {NamedDocument} from '@renderer/platform/documents/useSettingsDocument';
 import {SelectMenu} from '@renderer/ui/choices/SelectMenu';
 import {Dialog} from '@renderer/ui/popups/Dialog';
 import {IconButton} from '@renderer/ui/buttons/IconButton';
@@ -42,6 +41,7 @@ import {messageMenuEntries, toolMenuReason} from '../toolMenuEntries';
 import {ScreenTargetsRow} from '../ScreenTargetsRow';
 import {DisplayTimeRow} from '../DisplayTimeRow';
 import type {MenuAnchor} from '@renderer/ui/menus/menuModel';
+import type {NamedDocument} from '@core/schema/app/settingsDocuments';
 
 type Editor =
   | {readonly kind: 'add'}

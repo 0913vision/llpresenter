@@ -1,11 +1,11 @@
 import {useLayoutEffect, useRef} from 'react';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
-import type {NamedDocument} from '../../platform/documents/useSettingsDocument';
 import {ScreenEditor, type EditProblemReporter} from './screenEditor';
 import type {ScreenChange} from '@core/screens';
 import type {MonitorInfo, MonitorList} from '@core/schema/screens/monitors';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {NewScreen} from './addScreen';
+import type {NamedDocument} from '@core/schema/app/settingsDocuments';
 
 const SAVE_FAILED_TITLE = '화면 설정 저장 실패';
 const sessions = new WeakMap<LlpApi, ReturnType<typeof createSession>>();

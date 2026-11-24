@@ -8,11 +8,11 @@ import {checkAll, selectedIds} from './serviceTree';
 import {
   EMPTY_SOURCE,
   useSourceLists,
-  type ServiceSource,
   type SourceDocument,
 } from './useServiceSources';
 import {useSourcePick} from './useSourcePick';
 import {useAlive} from '@renderer/ui/useAlive';
+import {type ServiceSource} from './serviceSource';
 
 const DEFAULT_NAME = '새 예배';
 type CreateProblem = 'not-made' | 'not-copied' | 'not-opened';

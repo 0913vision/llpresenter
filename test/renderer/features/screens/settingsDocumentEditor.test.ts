@@ -3,8 +3,8 @@ import type {LlpApi} from '@contracts/ipc/api';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {themes as sampleThemes} from '@fixtures/core/themeOutput';
-import type {NamedDocument} from '@renderer/platform/documents/useSettingsDocument';
 import {SettingsDocumentEditor} from '@renderer/features/screens/settingsDocumentEditor';
+import type {NamedDocument} from '@core/schema/app/settingsDocuments';
 
 it('retains applied revisions but requires disk success for rename completion', async () => {
   const initial = settingsDocument('themes', sampleThemes());

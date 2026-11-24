@@ -4,10 +4,10 @@ import {
   listedSource,
   sourceKey,
   useSourceDocument,
-  type ServiceSource,
   type SourceLists,
   type SourcesApi,
 } from './useServiceSources';
+import {type ServiceSource} from './serviceSource';
 
 /**
  * The source a dialog copies items from, its items as tree rows, and the

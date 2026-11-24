@@ -11,7 +11,6 @@ import {
   sourceKey,
   useSourceDocument,
   useSourceLists,
-  type ServiceSource,
 } from '@renderer/features/service/list/useServiceSources';
 import {
   ids,
@@ -22,6 +21,7 @@ import {
   templateEntries,
   titles,
 } from '@fixtures/core/serviceList';
+import {type ServiceSource} from '@renderer/features/service/list/serviceSource';
 
 const template: ServiceSource = {kind: 'template', id: ids.template};
 const past: ServiceSource = {kind: 'service', id: ids.past};

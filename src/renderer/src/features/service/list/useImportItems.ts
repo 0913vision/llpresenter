@@ -3,14 +3,11 @@ import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useMemo, useState} from 'react';
 import {asServiceId, editApplied} from './serviceEdits';
 import {selectedIds, type TreeSelection} from './serviceTree';
-import {
-  logFailure,
-  useSourceLists,
-  type ServiceSource,
-} from './useServiceSources';
+import {logFailure, useSourceLists} from './useServiceSources';
 import {useSourcePick} from './useSourcePick';
 import {useAlive} from '@renderer/ui/useAlive';
 import {useShow} from '@renderer/session/show/showStore';
+import {type ServiceSource} from './serviceSource';
 
 const NOTHING: TreeSelection = new Set();
 const NONE_PICKED = '항목을 골라야 가져올 수 있습니다.';

@@ -1,12 +1,12 @@
 import {useLayoutEffect, useRef, useState} from 'react';
 import type {Themes} from '@core/schema/screens/themes';
 import type {ThemeListResult} from '@core/theme';
-import type {NamedDocument} from '@renderer/platform/documents/useSettingsDocument';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import {THEME_READ_ONLY} from '../themeNames';
 import {ThemesEditor} from './themesEditor';
 import {useThemeDraft} from './useThemeDraft';
 import {useAlive} from '@renderer/ui/useAlive';
+import type {NamedDocument} from '@core/schema/app/settingsDocuments';
 
 /** The saved themes, the draft of one of them, and the writes of both. */
 export function useThemeWrites(

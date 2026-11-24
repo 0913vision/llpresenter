@@ -159,6 +159,12 @@ export type SettingsReadRequest = Readonly<
 export type SettingsDocument = ReadonlyKnown<
   v.InferOutput<typeof settingsDocument>
 >;
+
+/** One settings document, narrowed by its file name. */
+export type NamedDocument<TName extends SettingsName> = Extract<
+  SettingsDocument,
+  {name: TName}
+>;
 export type SettingsEdit = ReadonlyKnown<
   v.InferOutput<typeof settingsEditSchema>
 >;

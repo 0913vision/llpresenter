@@ -4,12 +4,10 @@ import {isKnownQuickItem, type QuickItem} from '@core/schema/tools/quick';
 import type {Timer} from '@core/schema/tools/timers';
 import {MAX_LIVE_TIMERS} from '@core/schema/tools/timerState';
 import type {TimerId} from '@core/schema/common/ids';
-import {
-  useSettingsDocument,
-  type NamedDocument,
-} from '@renderer/platform/documents/useSettingsDocument';
+import {useSettingsDocument} from '@renderer/platform/documents/useSettingsDocument';
 import {useLive} from '@renderer/session/live';
 import type {Notice} from '@renderer/ui/popups/notices';
+import {type NamedDocument} from '@core/schema/app/settingsDocuments';
 
 export function useQuickTimers(
   quick: NamedDocument<'quick'> | null,

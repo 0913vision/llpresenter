@@ -4,14 +4,9 @@ import type {LlpApi} from '@contracts/ipc/api';
 import type {
   SettingsDocument,
   SettingsName,
+  NamedDocument,
 } from '@core/schema/app/settingsDocuments';
 import {noticeTime, type Notice} from '@renderer/ui/popups/notices';
-
-/** One settings document, narrowed by its file name. */
-export type NamedDocument<TName extends SettingsName> = Extract<
-  SettingsDocument,
-  {name: TName}
->;
 
 type SettingsApi = Pick<LlpApi, 'settings'> & Partial<Pick<LlpApi, 'log'>>;
 

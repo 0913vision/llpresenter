@@ -7,11 +7,11 @@ import {
 } from '@core/bible';
 import type {RefObject} from 'react';
 import type {BibleLookupPassage} from '@core/schema/bible/bibleLookup';
-import type {BibleSuggestion} from './BibleSuggestions';
 import {focusPart} from './referenceForm';
 import type {BookSuggestions} from './useBookSuggestions';
 import type {ReferenceEntry} from './useReferenceEntry';
 import type {ReferenceLookups} from './useReferenceLookups';
+import type {BibleSuggestion} from './bibleSuggestion';
 
 /** The changes an operator makes to a reference form, field by field. */
 export function useReferenceEdits({

@@ -15,10 +15,7 @@ import {useVerseSplit} from '@renderer/features/bible/split/useVerseSplit';
 import {useItemDeck} from '@renderer/features/slides/slideDeck';
 import {QuickPanel} from '@renderer/features/quick/QuickPanel';
 import {ShowToolsPanel} from '@renderer/features/tools/ShowToolsPanel';
-import {
-  useSettingsDocument,
-  type NamedDocument,
-} from '@renderer/platform/documents/useSettingsDocument';
+import {useSettingsDocument} from '@renderer/platform/documents/useSettingsDocument';
 import {isBibleSource, tilesForView} from '@renderer/session/show/showLibrary';
 import type {Notice} from '@renderer/ui/popups/notices';
 import type {SizeClass} from '@renderer/ui/panels/sizeClass';
@@ -29,6 +26,7 @@ import {
 } from '../shell/workspace/WorkspacePanel';
 import {SERVICE_ORDER, serviceOrderParts} from './serviceOrderPanel';
 import {useShow} from '@renderer/session/show/showStore';
+import {type NamedDocument} from '@core/schema/app/settingsDocuments';
 
 const SHOW_COLUMNS = [
   [SERVICE_ORDER, '빠른 실행'],

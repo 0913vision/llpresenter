@@ -5,9 +5,9 @@ import type {MonitorInfo} from '@core/schema/screens/monitors';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import type {NewScreen} from '../addScreen';
 import {useScreensSelection} from '../selection';
-import type {NamedDocument} from '../../../platform/documents/useSettingsDocument';
 import {useScreenEditor} from '../useScreenEditor';
 import {useAlive} from '@renderer/ui/useAlive';
+import type {NamedDocument} from '@core/schema/app/settingsDocuments';
 
 /**
  * Creates screens without overriding a newer selection or an unmounted

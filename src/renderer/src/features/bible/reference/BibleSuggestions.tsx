@@ -7,23 +7,13 @@ import {
   type JSX,
   type RefObject,
 } from 'react';
-import type {TranslationId} from '@core/schema/common/ids';
 import {placeFloating} from '@renderer/ui/popups/floating';
 import {Popover} from '@renderer/ui/popups/Popover';
 import {modalStack} from '@renderer/ui/popups/modalStack';
 import {placeBelow, viewportSize} from '@renderer/ui/popups/placement';
 import {TruncatedText} from '@renderer/ui/text/TruncatedText';
 import styles from './BibleReferenceField.module.css';
-
-export interface BibleSuggestion {
-  readonly bookId?: number | undefined;
-  readonly key: string;
-  readonly group: string;
-  readonly input: string;
-  readonly translation: TranslationId | undefined;
-  readonly count?: number | undefined;
-  readonly ref?: string | undefined;
-}
+import type {BibleSuggestion} from './bibleSuggestion';
 
 export function BibleSuggestions({
   id,

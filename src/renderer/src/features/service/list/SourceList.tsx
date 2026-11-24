@@ -13,7 +13,7 @@ import {Button} from '@renderer/ui/buttons/Button';
 import {ListGroup, ListRow} from '@renderer/ui/lists/ListRow';
 import {dateLabel} from './serviceDates';
 import type {SourceRow} from './useSourceActions';
-import {EMPTY_SOURCE, sourceKey, type ServiceSource} from './useServiceSources';
+import {EMPTY_SOURCE, sourceKey} from './useServiceSources';
 import styles from './ServiceDialogs.module.css';
 import {
   takeMenuKey,
@@ -22,6 +22,7 @@ import {
 import {useReflow} from '@renderer/ui/panels/useReflow';
 import {serviceDay} from '@core/services';
 import {ListBox} from '@renderer/ui/lists/ListBox';
+import {type ServiceSource} from './serviceSource';
 
 const names = new Intl.Collator('ko', {numeric: true});
 

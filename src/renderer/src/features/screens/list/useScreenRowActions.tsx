@@ -8,13 +8,13 @@ import {deleteSelection} from '@renderer/ui/lists/deleteSelection';
 import {sendLive, useOutputs} from '@renderer/session/live';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import {useScreensSelection} from '../selection';
-import type {NamedDocument} from '../../../platform/documents/useSettingsDocument';
 import {useScreenEditor} from '../useScreenEditor';
 import {SCREEN_NAME_PROBLEMS} from '../screenEditor';
 import {lastOfKind, nameProblem} from '@core/screens';
 import {ScreenContextMenu} from './screenMenuEntries';
 import type {MenuAnchor} from '@renderer/ui/menus/menuModel';
 import type {RenameContract} from '@renderer/ui/fields/renameContract';
+import type {NamedDocument} from '@core/schema/app/settingsDocuments';
 
 /** Exposes row rename and confirmed removal through the same screen settings queue. */
 export function useScreenRowActions(

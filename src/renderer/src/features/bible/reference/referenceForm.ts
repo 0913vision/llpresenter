@@ -11,7 +11,7 @@ import {
 } from '@core/bible';
 import type {RecentPassage} from '@core/schema/bible/bible';
 import type {TranslationId} from '@core/schema/common/ids';
-import type {BibleSuggestion} from './BibleSuggestions';
+import type {BibleSuggestion} from './bibleSuggestion';
 
 export const NUMBER_PARTS = ['chapter', 'start', 'end'] as const;
 export const REFERENCE_LABELS = {
