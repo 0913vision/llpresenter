@@ -1,7 +1,7 @@
 import {useRef} from 'react';
 import {act, cleanup, render, screen} from '@testing-library/react';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
-import {useGridMeasure} from '@renderer/ui/lists/useGridMeasure';
+import {useGridMeasure} from '@renderer/ui/lists/measure/useGridMeasure';
 
 class SizeObserver implements ResizeObserver {
   static current: SizeObserver | null = null;

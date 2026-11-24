@@ -18,7 +18,7 @@ import {
   useShownItemId,
 } from '@renderer/session/show/shownItem';
 import {thumbnailWidth} from '@renderer/ui/choices/thumbnailSize';
-import {useGridMeasure} from '@renderer/ui/lists/useGridMeasure';
+import {useGridMeasure} from '@renderer/ui/lists/measure/useGridMeasure';
 import styles from './SlideGrid.module.css';
 import {useSlideWindow} from './useSlideWindow';
 import {ShowTileMenu, ShowTiles, type TileMenu} from './ShowTiles';

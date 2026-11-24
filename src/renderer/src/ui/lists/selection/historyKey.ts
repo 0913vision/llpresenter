@@ -1,5 +1,5 @@
 import type {KeyboardEvent} from 'react';
-import {isInTextEntry} from '../fields/textEntry';
+import {isInTextEntry} from '../../fields/textEntry';
 
 /**
  * The step back or forward that a key asks of a list's delete history:

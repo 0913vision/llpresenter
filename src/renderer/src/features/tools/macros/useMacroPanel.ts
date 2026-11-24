@@ -16,9 +16,9 @@ import {useShowToolTab} from '../showToolTab';
 import {useMacroPalette} from './actions/useMacroPalette';
 import type {Notice} from '@renderer/ui/popups/notices';
 import type {MacroViewMode} from './MacroView';
-import {deleteSelection} from '@renderer/ui/lists/deleteSelection';
+import {deleteSelection} from '@renderer/ui/lists/selection/deleteSelection';
 import {useUndoKeys} from '@renderer/platform/undo/useUndoKeys';
-import {focusHistorySurface} from '@renderer/ui/lists/focusHistorySurface';
+import {focusHistorySurface} from '@renderer/ui/lists/selection/focusHistorySurface';
 import {toolMenuReason} from '../toolMenuEntries';
 import {useOptimisticCreation} from './useOptimisticCreation';
 import {

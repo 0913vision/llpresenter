@@ -1,5 +1,5 @@
-import {deleteSelection} from '@renderer/ui/lists/deleteSelection';
-import {selectionLabel} from '@renderer/ui/lists/selectionDrag';
+import {deleteSelection} from '@renderer/ui/lists/selection/deleteSelection';
+import {selectionLabel} from '@renderer/ui/lists/drag/selectionDrag';
 import {useEffect, useLayoutEffect, useRef, useState, type JSX} from 'react';
 import type {ElementFrame} from '@core/canvas';
 import {restackElements, type StackingStep, drawnFrame} from '@core/theme';

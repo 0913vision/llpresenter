@@ -1,5 +1,5 @@
 import {expect, it, vi} from 'vitest';
-import {deleteSelection} from '@renderer/ui/lists/deleteSelection';
+import {deleteSelection} from '@renderer/ui/lists/selection/deleteSelection';
 
 it.each([1, 3])('deletes %i chosen items at once', count => {
   const remove = vi.fn();

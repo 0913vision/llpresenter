@@ -9,9 +9,12 @@ import type {LabelColor} from '@core/labels';
 import {SlideThumbnail, ThumbnailGrid} from '@renderer/ui/tiles/SlideThumbnail';
 import {detailsGridGeometry} from './detailsGridGeometry';
 import styles from './DetailsSlides.module.css';
-import {scrollParent} from '@renderer/ui/lists/scrollParent';
+import {scrollParent} from '@renderer/ui/lists/measure/scrollParent';
 import {useReflow} from '@renderer/ui/panels/useReflow';
-import {gridRange, scrollIntoBand} from '@renderer/ui/lists/useRowRange';
+import {
+  gridRange,
+  scrollIntoBand,
+} from '@renderer/ui/lists/selection/useRowRange';
 
 const COLUMNS = 2;
 const INITIAL_COUNT = 8;

@@ -1,10 +1,10 @@
 import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
-import {deleteSelection} from '@renderer/ui/lists/deleteSelection';
+import {deleteSelection} from '@renderer/ui/lists/selection/deleteSelection';
 import {useMenuHandoff} from '@renderer/ui/menus/useMenuHandoff';
 import {useRef, useState, type JSX} from 'react';
 import {useReflow} from '@renderer/ui/panels/useReflow';
-import {focusHistorySurface} from '@renderer/ui/lists/focusHistorySurface';
+import {focusHistorySurface} from '@renderer/ui/lists/selection/focusHistorySurface';
 import {IconButton} from '@renderer/ui/buttons/IconButton';
 import {ListGroup, ListRow} from '@renderer/ui/lists/ListRow';
 import {Menu} from '@renderer/ui/menus/Menu';

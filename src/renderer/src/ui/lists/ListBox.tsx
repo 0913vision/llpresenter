@@ -10,7 +10,7 @@ import {
   type RefObject,
 } from 'react';
 import {classNames} from '../classNames';
-import {clickFocusProps} from './clickFocus';
+import {clickFocusProps} from './selection/clickFocus';
 import {hasModifier} from '../keys/modifierKeys';
 import type {ListWorkspace} from './workspace';
 import styles from './ListRow.module.css';

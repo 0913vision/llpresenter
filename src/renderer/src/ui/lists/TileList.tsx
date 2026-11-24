@@ -17,7 +17,7 @@ import {
   type ReactNode,
   type RefObject,
 } from 'react';
-import {clickFocusProps} from './clickFocus';
+import {clickFocusProps} from './selection/clickFocus';
 import {hasModifier} from '../keys/modifierKeys';
 import {useButtonPress} from '../buttons/press';
 import type {ListWorkspace} from './workspace';

@@ -22,7 +22,7 @@ import type {SidebarCollapse} from './useSidebarCollapse';
 import {logPanelProblem, type WorkspacePanels} from './WorkspacePanel';
 import {WorkspaceColumns} from './WorkspaceColumns';
 import {ResizeGap} from '@renderer/ui/panels/ResizeGap';
-import {useRowLayout} from '@renderer/ui/lists/useRowLayout';
+import {useRowLayout} from '@renderer/ui/panels/useRowLayout';
 import styles from './Workspace.module.css';
 import {
   ShowSlideEntry,

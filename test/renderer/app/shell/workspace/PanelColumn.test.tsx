@@ -6,7 +6,7 @@ import {createMemoryColumnWidthStore} from '@renderer/app/shell/columns/columnWi
 import {PreviewSizingContext} from '@renderer/ui/previews/PreviewSizingContext';
 
 const layout = vi.hoisted(() => ({reset: vi.fn()}));
-vi.mock('@renderer/ui/lists/useRowLayout', () => ({
+vi.mock('@renderer/ui/panels/useRowLayout', () => ({
   useRowLayout: () => ({
     begin: vi.fn(),
     canResize: () => true,

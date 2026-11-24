@@ -5,7 +5,7 @@ import {
 } from '@renderer/platform/problemReasons';
 import {useMenuHandoff} from '@renderer/ui/menus/useMenuHandoff';
 import {useState} from 'react';
-import {deleteSelection} from '@renderer/ui/lists/deleteSelection';
+import {deleteSelection} from '@renderer/ui/lists/selection/deleteSelection';
 import {sendLive, useOutputs} from '@renderer/session/live';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import {useScreensSelection} from '../selection';

@@ -8,7 +8,7 @@ import {
   type AddableKind,
 } from '@core/theme';
 import {isUnchangedSelectionMove} from '@core/common/selectionOrder';
-import {selectionDragImage} from '@renderer/ui/lists/selectionDrag';
+import {selectionDragImage} from '@renderer/ui/lists/drag/selectionDrag';
 import {Button} from '@renderer/ui/buttons/Button';
 import {IconButton} from '@renderer/ui/buttons/IconButton';
 import {ListRow} from '@renderer/ui/lists/ListRow';

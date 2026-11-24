@@ -4,7 +4,7 @@ import {
   REORDER_THRESHOLD_PX,
   rowMoveDirection,
   stepMove,
-} from '@renderer/ui/lists/reorder';
+} from '@renderer/ui/lists/drag/reorder';
 
 const IDS = ['a', 'b', 'c'] as const;
 

@@ -5,7 +5,7 @@ import {
   optionKeyTarget,
   rowRange,
   scrollIntoBand,
-} from '@renderer/ui/lists/useRowRange';
+} from '@renderer/ui/lists/selection/useRowRange';
 
 const options = {initialRows: 4, overscan: 2};
 

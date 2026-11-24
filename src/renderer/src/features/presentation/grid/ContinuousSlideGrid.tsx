@@ -16,7 +16,7 @@ import {
 import {type ShowView, useShow} from '@renderer/session/show/showStore';
 import {thumbnailWidth} from '@renderer/ui/choices/thumbnailSize';
 import {firstSlideWindowSize} from './useSlideWindow';
-import {useGridMeasure} from '@renderer/ui/lists/useGridMeasure';
+import {useGridMeasure} from '@renderer/ui/lists/measure/useGridMeasure';
 import {useSlideTransitionProgress} from '../useSlideTransitionProgress';
 import {
   onScrollGridToItem,

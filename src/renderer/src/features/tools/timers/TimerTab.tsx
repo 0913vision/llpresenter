@@ -6,13 +6,13 @@ import {createTimerId} from '@core/schema/common/ids';
 import {MAX_TIMER_DEFINITIONS} from '@core/schema/tools/timers';
 import {useSettingsDocument} from '@renderer/platform/documents/useSettingsDocument';
 import {IconButton} from '@renderer/ui/buttons/IconButton';
-import {deleteSelection} from '@renderer/ui/lists/deleteSelection';
+import {deleteSelection} from '@renderer/ui/lists/selection/deleteSelection';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {TimerDialog} from './TimerDialog';
 import {deleteTimer, saveNewTimer, type NewTimer} from './timerEdits';
 import {useToolEditing} from '../useToolEditing';
 import {useUndoKeys} from '@renderer/platform/undo/useUndoKeys';
-import {focusHistorySurface} from '@renderer/ui/lists/focusHistorySurface';
+import {focusHistorySurface} from '@renderer/ui/lists/selection/focusHistorySurface';
 import {WindowedTimers} from './WindowedTimers';
 import styles from './TimerTab.module.css';
 

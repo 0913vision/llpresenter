@@ -1,5 +1,8 @@
 import {useLayoutEffect, useRef, type JSX, type KeyboardEvent} from 'react';
-import {listKeyTarget, useRowRange} from '@renderer/ui/lists/useRowRange';
+import {
+  listKeyTarget,
+  useRowRange,
+} from '@renderer/ui/lists/selection/useRowRange';
 import type {Timer} from '@core/schema/tools/timers';
 import type {LlpApi} from '@contracts/ipc/api';
 import {TimerRow} from './TimerRow';

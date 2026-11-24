@@ -1,7 +1,7 @@
 import {cleanup, fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, onTestFinished, vi} from 'vitest';
-import {CLICK_FOCUS_SELECTOR} from '@renderer/ui/lists/clickFocus';
+import {CLICK_FOCUS_SELECTOR} from '@renderer/ui/lists/selection/clickFocus';
 import {
   ListActionRow,
   ListDragGhost,

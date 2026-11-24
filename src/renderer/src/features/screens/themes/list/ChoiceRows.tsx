@@ -17,7 +17,7 @@ import {
   useFocusOption,
   useRowRange,
   useShowSelected,
-} from '@renderer/ui/lists/useRowRange';
+} from '@renderer/ui/lists/selection/useRowRange';
 import type {Choice} from './choices';
 import {ListRow} from '@renderer/ui/lists/ListRow';
 import styles from './ChoiceRows.module.css';

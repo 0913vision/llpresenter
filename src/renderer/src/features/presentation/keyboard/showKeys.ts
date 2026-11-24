@@ -6,7 +6,7 @@ import {
 } from '@renderer/ui/keys/commandDispatcher';
 import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
 import {isColumnDragActive} from '@renderer/ui/panels/columnDrag';
-import {CLICK_FOCUS_SELECTOR} from '@renderer/ui/lists/clickFocus';
+import {CLICK_FOCUS_SELECTOR} from '@renderer/ui/lists/selection/clickFocus';
 import {
   openNextItem,
   openPreviousItem,

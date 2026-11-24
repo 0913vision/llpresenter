@@ -13,7 +13,7 @@ import {Menu} from '../menus/Menu';
 import type {MenuAvailability} from '../menus/menuModel';
 import {menuButtonProps} from '../menus/menuButton';
 import {useButtonPress} from '../buttons/press';
-import {useRovingSelection} from '../lists/roving';
+import {useRovingSelection} from '../lists/selection/roving';
 import {useTabButton} from '../buttons/tabButton';
 import {TruncatedText} from '../text/TruncatedText';
 import {PanelBoundary} from './PanelBoundary';

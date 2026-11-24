@@ -9,8 +9,8 @@ import {
 } from '@renderer/session/service/insertIntoOrder';
 import {sendMediaOutput} from '@renderer/session/show/itemOutput';
 import {useOrderAddReason} from '@renderer/session/service/orderReasons';
-import {deleteSelection} from '@renderer/ui/lists/deleteSelection';
-import {focusHistorySurface} from '@renderer/ui/lists/focusHistorySurface';
+import {deleteSelection} from '@renderer/ui/lists/selection/deleteSelection';
+import {focusHistorySurface} from '@renderer/ui/lists/selection/focusHistorySurface';
 import type {MenuEntry, MenuAnchor} from '@renderer/ui/menus/menuModel';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import {useMenuHandoff} from '@renderer/ui/menus/useMenuHandoff';

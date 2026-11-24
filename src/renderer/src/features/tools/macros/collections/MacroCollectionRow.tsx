@@ -8,7 +8,7 @@ import {MenuCheck} from '@renderer/ui/menus/MenuParts';
 import {classNames} from '@renderer/ui/classNames';
 import {hasModifier} from '@renderer/ui/keys/modifierKeys';
 import {isComposing} from '@renderer/ui/fields/ime';
-import {rowMoveDirection} from '@renderer/ui/lists/reorder';
+import {rowMoveDirection} from '@renderer/ui/lists/drag/reorder';
 import {RenameField} from '@renderer/ui/fields/RenameField';
 import menuStyles from '@renderer/ui/menus/Menu.module.css';
 import styles from './MacroCollectionPicker.module.css';

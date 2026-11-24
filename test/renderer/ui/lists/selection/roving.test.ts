@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {rovingTabStop, rovingTarget} from '@renderer/ui/lists/roving';
+import {rovingTabStop, rovingTarget} from '@renderer/ui/lists/selection/roving';
 
 describe('rovingTarget', () => {
   const allOn = [true, true, true];

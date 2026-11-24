@@ -3,7 +3,7 @@ import {describe, expect, it} from 'vitest';
 import {
   CLICK_FOCUS_SELECTOR,
   clickFocusProps,
-} from '@renderer/ui/lists/clickFocus';
+} from '@renderer/ui/lists/selection/clickFocus';
 
 function takesClickFocus(element: Element): boolean {
   return element.closest(CLICK_FOCUS_SELECTOR) !== null;

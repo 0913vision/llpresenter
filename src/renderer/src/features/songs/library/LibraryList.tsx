@@ -4,7 +4,7 @@ import {
   useFocusOption,
   useRowRange,
   useShowSelected,
-} from '@renderer/ui/lists/useRowRange';
+} from '@renderer/ui/lists/selection/useRowRange';
 import type {SongId} from '@core/schema/common/ids';
 import {
   SONG_DRAG_MIME,
@@ -16,7 +16,7 @@ import {
   type ContextMenuEvent,
 } from '@renderer/ui/menus/contextMenu';
 import styles from './LibraryPanel.module.css';
-import {useDragClickGuard} from '@renderer/ui/lists/useDragClickGuard';
+import {useDragClickGuard} from '@renderer/ui/lists/drag/useDragClickGuard';
 import type {LibraryRow} from './librarySearch';
 import {ListBox} from '@renderer/ui/lists/ListBox';
 

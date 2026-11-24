@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import {useRowLayout} from '@renderer/ui/lists/useRowLayout';
+import {useRowLayout} from '@renderer/ui/panels/useRowLayout';
 import type {PanelRows} from '@core/schema/app/panelRows';
 
 afterEach(() => {

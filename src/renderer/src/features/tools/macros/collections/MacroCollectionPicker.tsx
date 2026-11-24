@@ -16,7 +16,7 @@ import type {Notice} from '@renderer/ui/popups/notices';
 import {hasModifier} from '@renderer/ui/keys/modifierKeys';
 import {isComposing} from '@renderer/ui/fields/ime';
 import {ListInsertLine} from '@renderer/ui/lists/ListRow';
-import {stepMove} from '@renderer/ui/lists/reorder';
+import {stepMove} from '@renderer/ui/lists/drag/reorder';
 import {useChoicePopup} from '@renderer/ui/choices/useChoicePopup';
 import menuStyles from '@renderer/ui/menus/Menu.module.css';
 import type {MacroCollectionEdit} from './macroCollectionEdits';

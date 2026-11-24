@@ -1,5 +1,5 @@
 import {menuAvailability, type MenuEntry} from '@renderer/ui/menus/menuModel';
-import {selectionLabel} from '@renderer/ui/lists/selectionDrag';
+import {selectionLabel} from '@renderer/ui/lists/drag/selectionDrag';
 import {
   addReason,
   addSlide,

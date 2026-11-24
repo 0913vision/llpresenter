@@ -4,7 +4,7 @@ import {
   type Notice,
 } from '@renderer/ui/popups/notices';
 import {undoReason, undoTimeline} from '@renderer/platform/undo/undoTimeline';
-import {focusHistorySurface} from '@renderer/ui/lists/focusHistorySurface';
+import {focusHistorySurface} from '@renderer/ui/lists/selection/focusHistorySurface';
 import type {MenuAnchor} from '@renderer/ui/menus/menuModel';
 import {sourceMenuEntries} from './sourceMenuEntries';
 import {useRef, useState, type KeyboardEvent, type ReactNode} from 'react';
@@ -12,8 +12,8 @@ import type {LlpApi} from '@contracts/ipc/api';
 import type {ServiceEntry} from '@core/schema/services/contentDocuments';
 import {pendingWritesOf} from '@renderer/platform/documents/pendingWrites';
 import {contentDeleteHistory} from '@renderer/platform/undo/contentDeleteHistory';
-import {deleteSelection} from '@renderer/ui/lists/deleteSelection';
-import {historyKey} from '@renderer/ui/lists/historyKey';
+import {deleteSelection} from '@renderer/ui/lists/selection/deleteSelection';
+import {historyKey} from '@renderer/ui/lists/selection/historyKey';
 import {Menu} from '@renderer/ui/menus/Menu';
 import {RenameDialog} from '@renderer/ui/popups/RenameDialog';
 import {useMenuHandoff} from '@renderer/ui/menus/useMenuHandoff';

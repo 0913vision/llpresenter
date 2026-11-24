@@ -1,5 +1,5 @@
 import {useRef, type KeyboardEvent} from 'react';
-import {hasModifier} from '../keys/modifierKeys';
+import {hasModifier} from '../../keys/modifierKeys';
 
 /** A move within a group where only one item takes the Tab stop. */
 export type RovingMove = 'next' | 'previous' | 'first' | 'last';

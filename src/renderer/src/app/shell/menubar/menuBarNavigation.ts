@@ -8,7 +8,10 @@ import {
 } from 'react';
 import {isComposingKey} from '@renderer/ui/fields/ime';
 import {hasModifier} from '@renderer/ui/keys/modifierKeys';
-import {rovingTarget, type RovingMove} from '@renderer/ui/lists/roving';
+import {
+  rovingTarget,
+  type RovingMove,
+} from '@renderer/ui/lists/selection/roving';
 import {modalStack} from '@renderer/ui/popups/modalStack';
 import {SHORTCUT_RECORDING_SELECTOR} from '@renderer/ui/keys/shortcutRecording';
 

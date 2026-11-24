@@ -11,7 +11,7 @@ import {useSettingsDocument} from '@renderer/platform/documents/useSettingsDocum
 import {IconButton} from '@renderer/ui/buttons/IconButton';
 import {Menu} from '@renderer/ui/menus/Menu';
 import {useMenuHandoff} from '@renderer/ui/menus/useMenuHandoff';
-import {deleteSelection} from '@renderer/ui/lists/deleteSelection';
+import {deleteSelection} from '@renderer/ui/lists/selection/deleteSelection';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {PropDialog} from './PropDialog';
 import {PropGrid} from './PropGrid';
@@ -23,7 +23,7 @@ import {
 } from '../useDuplicateShortcut';
 import {useToolEditing} from '../useToolEditing';
 import {useUndoKeys} from '@renderer/platform/undo/useUndoKeys';
-import {focusHistorySurface} from '@renderer/ui/lists/focusHistorySurface';
+import {focusHistorySurface} from '@renderer/ui/lists/selection/focusHistorySurface';
 import {useReflow} from '@renderer/ui/panels/useReflow';
 import styles from './PropGrid.module.css';
 import {menuAvailability, type MenuAnchor} from '@renderer/ui/menus/menuModel';

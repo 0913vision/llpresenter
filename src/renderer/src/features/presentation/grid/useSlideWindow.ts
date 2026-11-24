@@ -11,7 +11,7 @@ import {
   type RefObject,
 } from 'react';
 import {flushSync} from 'react-dom';
-import {gridRange} from '@renderer/ui/lists/useRowRange';
+import {gridRange} from '@renderer/ui/lists/selection/useRowRange';
 import {watchUserScroll} from './userScroll';
 import {resizeAnchor, type ResizeAnchor} from './slideWindowAnchor';
 

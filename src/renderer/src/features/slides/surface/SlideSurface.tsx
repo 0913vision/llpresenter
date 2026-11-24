@@ -14,7 +14,7 @@ import {contextMenuAnchor} from '@renderer/ui/menus/contextMenu';
 import {Menu} from '@renderer/ui/menus/Menu';
 import type {MenuEntry} from '@renderer/ui/menus/menuModel';
 import {isInTextEntry} from '@renderer/ui/fields/textEntry';
-import {useDragClickGuard} from '@renderer/ui/lists/useDragClickGuard';
+import {useDragClickGuard} from '@renderer/ui/lists/drag/useDragClickGuard';
 import {useMenuHandoff} from '@renderer/ui/menus/useMenuHandoff';
 import {useReflow} from '@renderer/ui/panels/useReflow';
 import {

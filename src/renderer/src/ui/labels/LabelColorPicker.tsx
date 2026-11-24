@@ -8,7 +8,7 @@ import {
 } from '@core/labels';
 import {classNames} from '../classNames';
 import {Icon} from '../Icon';
-import {useRovingSelection} from '../lists/roving';
+import {useRovingSelection} from '../lists/selection/roving';
 import {useButtonPress} from '../buttons/press';
 import {useTooltip} from '../popups/Tooltip';
 import styles from './LabelColorPicker.module.css';

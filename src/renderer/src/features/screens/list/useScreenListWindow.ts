@@ -14,7 +14,7 @@ import {
   rowRange,
   scrollIntoBand,
   useFocusOption,
-} from '@renderer/ui/lists/useRowRange';
+} from '@renderer/ui/lists/selection/useRowRange';
 import {SCREEN_KIND_ORDER} from '@core/schema/screens/screens';
 
 const INITIAL_ROWS = 12;

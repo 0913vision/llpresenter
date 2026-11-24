@@ -7,9 +7,9 @@ import {
   type PointerEvent,
   type RefObject,
 } from 'react';
-import {beforeRowMidpoint} from '@renderer/ui/lists/rowDrag';
-import {REORDER_THRESHOLD_PX} from '@renderer/ui/lists/reorder';
-import {useDragClickGuard} from '@renderer/ui/lists/useDragClickGuard';
+import {beforeRowMidpoint} from '@renderer/ui/lists/drag/rowDrag';
+import {REORDER_THRESHOLD_PX} from '@renderer/ui/lists/drag/reorder';
+import {useDragClickGuard} from '@renderer/ui/lists/drag/useDragClickGuard';
 
 const ROW = '[data-quick-id]';
 

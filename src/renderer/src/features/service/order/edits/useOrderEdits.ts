@@ -10,7 +10,7 @@ import {
   removeItems,
 } from '@renderer/session/service/serviceOrderEdits';
 import type {useServiceOrderEditing} from '@renderer/session/service/useServiceOrderEditing';
-import {deleteSelection} from '@renderer/ui/lists/deleteSelection';
+import {deleteSelection} from '@renderer/ui/lists/selection/deleteSelection';
 import type {ListWorkspace} from '@renderer/ui/lists/workspace';
 import {canMoveItems, movableItems} from '../orderRows';
 import {useMovedRowFocus} from './useMovedRowFocus';

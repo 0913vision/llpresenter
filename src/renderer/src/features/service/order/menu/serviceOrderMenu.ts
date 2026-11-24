@@ -11,7 +11,7 @@ import {
   type MenuItem,
 } from '@renderer/ui/menus/menuModel';
 import {laterRow, menuSeparator} from '@renderer/ui/menus/menuRows';
-import {selectionLabel} from '@renderer/ui/lists/selectionDrag';
+import {selectionLabel} from '@renderer/ui/lists/drag/selectionDrag';
 import type {ListWorkspace} from '@renderer/ui/lists/workspace';
 import type {ServiceRow} from '@core/presentation';
 import {fixedKeyText} from '@renderer/ui/keys/fixedKeys';

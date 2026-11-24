@@ -10,7 +10,7 @@ import {
   type PanelRows,
 } from '@core/schema/app/panelRows';
 import type {ResizeSession} from '@renderer/ui/panels/ResizeGap';
-import {fitRows} from './rows';
+import {fitRows} from './panelRowHeights';
 import type {SizeClass} from '@core/schema/app/appConfig';
 
 /** Where a panel keeps its row heights, per window size class. */

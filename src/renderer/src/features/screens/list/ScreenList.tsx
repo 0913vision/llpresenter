@@ -1,5 +1,5 @@
 import {optionValueAt} from '@renderer/ui/lists/optionValue';
-import {focusHistorySurface} from '@renderer/ui/lists/focusHistorySurface';
+import {focusHistorySurface} from '@renderer/ui/lists/selection/focusHistorySurface';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {limitReason} from '@core/common/limitReason';
 import {
@@ -28,7 +28,7 @@ import {useOutputStatuses} from '../useOutputStatuses';
 import {useSettingsDocument} from '@renderer/platform/documents/useSettingsDocument';
 import {SCREEN_DRAG_MIME} from '../screenDrag';
 import styles from './ScreenList.module.css';
-import {useDragClickGuard} from '@renderer/ui/lists/useDragClickGuard';
+import {useDragClickGuard} from '@renderer/ui/lists/drag/useDragClickGuard';
 import {useScreenRowActions} from './useScreenRowActions';
 import {useScreenListWindow} from './useScreenListWindow';
 import {useMonitors} from '../useMonitors';

@@ -1,7 +1,7 @@
 import type {ComponentPropsWithoutRef, JSX, KeyboardEvent} from 'react';
 import {classNames} from '../classNames';
 import {Icon} from '../Icon';
-import {useRovingSelection} from '../lists/roving';
+import {useRovingSelection} from '../lists/selection/roving';
 import {useButtonPress} from '../buttons/press';
 import {titleTooltip, useTooltip} from '../popups/Tooltip';
 import type {GroupName} from '../types';

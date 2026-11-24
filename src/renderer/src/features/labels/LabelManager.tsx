@@ -1,4 +1,4 @@
-import {focusHistorySurface} from '@renderer/ui/lists/focusHistorySurface';
+import {focusHistorySurface} from '@renderer/ui/lists/selection/focusHistorySurface';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {
   useEffect,
@@ -23,9 +23,9 @@ import {
   undoReason,
   undoTimeline,
 } from '@renderer/platform/undo/undoTimeline';
-import {deleteSelection} from '@renderer/ui/lists/deleteSelection';
+import {deleteSelection} from '@renderer/ui/lists/selection/deleteSelection';
 import {useReflow} from '@renderer/ui/panels/useReflow';
-import {historyKey} from '@renderer/ui/lists/historyKey';
+import {historyKey} from '@renderer/ui/lists/selection/historyKey';
 import {LabelNameField} from './LabelNameField';
 import {useLabelRows} from './useLabelRows';
 import {useLabelReorder} from './useLabelReorder';

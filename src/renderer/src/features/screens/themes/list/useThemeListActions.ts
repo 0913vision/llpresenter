@@ -13,7 +13,7 @@ import {
   type ThemeListEdit,
 } from '@core/theme';
 import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
-import {deleteSelection} from '@renderer/ui/lists/deleteSelection';
+import {deleteSelection} from '@renderer/ui/lists/selection/deleteSelection';
 import {useAlive} from '@renderer/ui/useAlive';
 import {themeProblems} from '../themeNames';
 import type {ThemeModel} from '../useThemeEditor';

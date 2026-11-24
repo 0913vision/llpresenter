@@ -1,7 +1,7 @@
 import type {JSX, KeyboardEvent} from 'react';
 import {classNames} from '../classNames';
 import {Icon} from '../Icon';
-import {useRovingSelection} from '../lists/roving';
+import {useRovingSelection} from '../lists/selection/roving';
 import {useTabButton} from './tabButton';
 import {toolbarIconSize} from './toolbarIcons';
 import styles from './ToolbarButton.module.css';

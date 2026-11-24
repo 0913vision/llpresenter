@@ -1,7 +1,7 @@
 import {commandBindings, matchesBinding} from '@core/shortcuts';
-import {commandBindingStore} from '../keys/commandBindings';
-import {useCommandShortcuts} from '../keys/commandDispatcher';
-import {isInTextEntry} from '../fields/textEntry';
+import {commandBindingStore} from '../../keys/commandBindings';
+import {useCommandShortcuts} from '../../keys/commandDispatcher';
+import {isInTextEntry} from '../../fields/textEntry';
 
 /**
  * How far a pointer travels before a press on a row becomes a drag to reorder.

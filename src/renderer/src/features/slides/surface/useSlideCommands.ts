@@ -4,7 +4,7 @@ import {
   NOTHING_TO_UNDO,
 } from '@renderer/platform/problemReasons';
 import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
-import {deleteSelection} from '@renderer/ui/lists/deleteSelection';
+import {deleteSelection} from '@renderer/ui/lists/selection/deleteSelection';
 import {isInTextEntry} from '@renderer/ui/fields/textEntry';
 import {
   addReason,

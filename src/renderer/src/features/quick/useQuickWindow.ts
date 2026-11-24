@@ -9,7 +9,10 @@ import {
 import {flushSync} from 'react-dom';
 import type {QuickItem} from '@core/schema/tools/quick';
 import {isComposing} from '@renderer/ui/fields/ime';
-import {listKeyTarget, rowRange} from '@renderer/ui/lists/useRowRange';
+import {
+  listKeyTarget,
+  rowRange,
+} from '@renderer/ui/lists/selection/useRowRange';
 
 const FALLBACK_ROW = 30;
 const INITIAL_ROWS = 10;

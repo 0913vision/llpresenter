@@ -8,7 +8,7 @@ import {openItemOnGrid} from '@renderer/session/show/show';
 import {useServiceOrderEditing} from '@renderer/session/service/useServiceOrderEditing';
 import {ListInsertLine} from '@renderer/ui/lists/ListRow';
 import {Menu} from '@renderer/ui/menus/Menu';
-import {clickFocusProps} from '@renderer/ui/lists/clickFocus';
+import {clickFocusProps} from '@renderer/ui/lists/selection/clickFocus';
 import {EmptyState} from '@renderer/ui/lists/EmptyState';
 import type {Notice} from '@renderer/ui/popups/notices';
 import type {ListWorkspace} from '@renderer/ui/lists/workspace';

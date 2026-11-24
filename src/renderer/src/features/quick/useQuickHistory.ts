@@ -1,4 +1,4 @@
-import {focusHistorySurface} from '@renderer/ui/lists/focusHistorySurface';
+import {focusHistorySurface} from '@renderer/ui/lists/selection/focusHistorySurface';
 import {useState, type RefObject} from 'react';
 import type {QuickItem} from '@core/schema/tools/quick';
 import {
@@ -6,7 +6,7 @@ import {
   NOTHING_TO_UNDO,
 } from '@renderer/platform/problemReasons';
 import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
-import {deleteSelection} from '@renderer/ui/lists/deleteSelection';
+import {deleteSelection} from '@renderer/ui/lists/selection/deleteSelection';
 import type {QuickEdit} from './quickEdits';
 
 interface Step {
