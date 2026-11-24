@@ -11,7 +11,7 @@ import {seedSampleService} from '@fixtures/renderer/session/sampleService';
 import {openItem} from '@renderer/session/show/show';
 import {useLive} from '@renderer/session/live';
 import {SlideGrid} from '@renderer/features/presentation/grid/SlideGrid';
-import {NumberJumpOverlay} from '@renderer/features/presentation/keyboard/DraftOverlay';
+import {NumberJumpOverlay} from '@renderer/features/presentation/keyboard/NumberJumpOverlay';
 import {useNumberJumpKeys} from '@renderer/features/presentation/keyboard/numberJump';
 import {useSlideHotKeys} from '@renderer/features/presentation/keyboard/useSlideHotKeys';
 import type {LiveCommand} from '@core/schema/live/liveCommand';

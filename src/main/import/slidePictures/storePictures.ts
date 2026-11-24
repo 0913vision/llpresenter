@@ -8,7 +8,7 @@ import {createMediaId, type MediaId} from '@core/schema/common/ids';
 import type {MediaItem} from '@core/schema/media/mediaList';
 import type {MediaStore} from '../../store/media/mediaStore';
 import {sameImage} from './matchImage';
-import {powerPointImageSize} from './powerpointImage';
+import {pictureSizeOf} from './pictureSize';
 
 const ATTEMPTS = 3;
 
@@ -38,7 +38,7 @@ async function samePicture(
 async function pixelsOf(
   path: string,
 ): Promise<{readonly width: number; readonly height: number}> {
-  const size = powerPointImageSize(await readFile(path));
+  const size = pictureSizeOf(await readFile(path));
   if (size === null) throw new Error('Not a picture that can be shown');
   return size;
 }

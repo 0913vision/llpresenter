@@ -1,6 +1,6 @@
 import {cleanup, render, screen} from '@testing-library/react';
 import {afterEach, expect, it} from 'vitest';
-import {NumberJumpOverlay} from '@renderer/features/presentation/keyboard/DraftOverlay';
+import {NumberJumpOverlay} from '@renderer/features/presentation/keyboard/NumberJumpOverlay';
 import {useNumberJump} from '@renderer/features/presentation/keyboard/numberJump';
 
 afterEach(() => {

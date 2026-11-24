@@ -1,6 +1,6 @@
 import {useAudioOutputs} from '@renderer/features/preferences/useAudioOutputs';
 import {ShownItemProvider} from '@renderer/session/show/shownItem';
-import {NumberJumpOverlay} from '@renderer/features/presentation/keyboard/DraftOverlay';
+import {NumberJumpOverlay} from '@renderer/features/presentation/keyboard/NumberJumpOverlay';
 import {useMonitors} from '@renderer/features/screens/useMonitors';
 import {AudioShortcuts} from '@renderer/features/tools/audio/AudioShortcuts';
 import {MediaViewProvider} from '@renderer/features/media/MediaViewProvider';

@@ -6,8 +6,8 @@ import {
   windowTestOptions,
   type WindowMode,
 } from '../../base/renderers/windowMode';
-import {OUTPUT_BACKGROUND} from '../window/electronWindow';
 import type {NumberSpot, NumberWindow} from './monitorNumbers';
+import {OUTPUT_BACKGROUND} from '../outputWindow';
 
 const ABOVE_OUTPUTS = 'screen-saver';
 

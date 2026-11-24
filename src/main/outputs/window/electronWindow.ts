@@ -21,7 +21,11 @@ import {
   type WindowMode,
 } from '../../base/renderers/windowMode';
 import {CHROMA_KEY_COLOR} from '@core/screens';
-import type {OutputWindowEvents, OutputWindowHandle} from '../outputWindow';
+import {
+  type OutputWindowEvents,
+  type OutputWindowHandle,
+  OUTPUT_BACKGROUND,
+} from '../outputWindow';
 import type {OutputScreen} from '../screens';
 import {OnTopKeeper} from './onTopKeeper';
 import {captureContentWithFrame} from '../placement';
@@ -32,8 +36,6 @@ import {
   type PlaybackProblemBoard,
 } from '../health/playbackProblems';
 
-/** The background color of an output window. */
-export const OUTPUT_BACKGROUND = '#000000';
 // NOTE(0913vision): The design token `chroma` spells the same green in lower
 // case, and a test pins the window color to the token. If the token is ever
 // written in upper case, drop this `toLowerCase()` and that test's token lookup

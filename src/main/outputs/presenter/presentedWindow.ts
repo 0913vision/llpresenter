@@ -17,13 +17,16 @@ import {
   startLoading,
   type PageRequest,
 } from '../../base/renderers/page';
-import type {OutputWindowEvents, OutputWindowHandle} from '../outputWindow';
+import {
+  type OutputWindowEvents,
+  type OutputWindowHandle,
+  OUTPUT_BACKGROUND,
+} from '../outputWindow';
 import type {OutputScreen} from '../screens';
 import {
   watchPlaybackProblems,
   type PlaybackProblemBoard,
 } from '../health/playbackProblems';
-import {OUTPUT_BACKGROUND} from '../window/electronWindow';
 import {
   publishPresenterMirror,
   setPresenterMirror,

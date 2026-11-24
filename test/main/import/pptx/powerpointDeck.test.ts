@@ -2,7 +2,7 @@ import {describe, expect, it} from 'vitest';
 import {
   isPowerPointWidescreen,
   readPowerPoint,
-} from '@main/import/pptx/powerpointRead';
+} from '@main/import/pptx/powerpointDeck';
 import {powerpointSlides} from '@core/songs/powerpointSlides';
 import {isPowerPointFourThree} from '@main/import/powerpoint/powerpointSize';
 

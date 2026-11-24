@@ -17,7 +17,7 @@ function allowed(width: number, height: number): PictureSize | null {
 }
 
 /** The size a picture says it has, unless Chromium could not decode it. */
-export function powerPointImageSize(bytes: Buffer): PictureSize | null {
+export function pictureSizeOf(bytes: Buffer): PictureSize | null {
   if (bytes.length > LIMITS.bytes) return null;
   if (
     bytes.length >= 24 &&

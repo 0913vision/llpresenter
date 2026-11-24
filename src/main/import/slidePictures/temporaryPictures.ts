@@ -6,7 +6,7 @@ import {
   type PowerPointPreviewImage,
 } from '@core/schema/songs/powerpointImport';
 import type {Logger} from '../../base/log';
-import {powerPointImageSize} from './powerpointImage';
+import {pictureSizeOf} from './pictureSize';
 
 const PNG_FIRST_BYTE = 137;
 
@@ -28,7 +28,7 @@ export async function readBoundedPicture(path: string): Promise<Buffer | null> {
     const {size} = await stat(path);
     if (size <= 0 || size > POWERPOINT_PICTURE_LIMITS.bytes) return null;
     const bytes = await readFile(path);
-    return powerPointImageSize(bytes) === null ? null : bytes;
+    return pictureSizeOf(bytes) === null ? null : bytes;
   } catch {
     return null;
   }

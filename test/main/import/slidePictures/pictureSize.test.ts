@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {powerPointImageSize} from '@main/import/slidePictures/powerpointImage';
+import {pictureSizeOf} from '@main/import/slidePictures/pictureSize';
 
 const FULL_HD = {width: 1920, height: 1080};
 
@@ -14,15 +14,15 @@ function png(width: number, height: number): Buffer {
 
 describe('PowerPoint encoded image bounds', () => {
   it('reads PNG and JPEG dimensions without decoding their pixels', () => {
-    expect(powerPointImageSize(png(1920, 1080))).toEqual(FULL_HD);
+    expect(pictureSizeOf(png(1920, 1080))).toEqual(FULL_HD);
     const jpeg = Buffer.from([255, 216, 255, 192, 0, 7, 8, 4, 56, 7, 128]);
-    expect(powerPointImageSize(jpeg)).toEqual(FULL_HD);
+    expect(pictureSizeOf(jpeg)).toEqual(FULL_HD);
   });
   it('rejects oversized, empty, truncated and unsupported image headers', () => {
-    expect(powerPointImageSize(png(16385, 1))).toBeNull();
-    expect(powerPointImageSize(png(16384, 16384))).toBeNull();
-    expect(powerPointImageSize(png(0, 1080))).toBeNull();
-    expect(powerPointImageSize(Buffer.from([255, 216, 255]))).toBeNull();
-    expect(powerPointImageSize(Buffer.from('GIF89a'))).toBeNull();
+    expect(pictureSizeOf(png(16385, 1))).toBeNull();
+    expect(pictureSizeOf(png(16384, 16384))).toBeNull();
+    expect(pictureSizeOf(png(0, 1080))).toBeNull();
+    expect(pictureSizeOf(Buffer.from([255, 216, 255]))).toBeNull();
+    expect(pictureSizeOf(Buffer.from('GIF89a'))).toBeNull();
   });
 });

@@ -12,6 +12,9 @@ import {
 import type {OutputScreen} from './screens';
 import type {WebContents} from 'electron';
 
+/** The background color of an output window. */
+export const OUTPUT_BACKGROUND = '#000000';
+
 /** The Electron window of one output, reduced to what the output needs. */
 export interface OutputWindowHandle {
   /** The page feeding this output, when it exists. */
