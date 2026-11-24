@@ -2,7 +2,7 @@ import type {ReactNode} from 'react';
 import type {SongId} from '@core/schema/common/ids';
 import {ReadOnlyMark} from '@renderer/features/presentation/ReadOnlyMark';
 import {ServiceQuickAdd} from '@renderer/features/service/items/QuickAdd';
-import {ServiceOrderHeader} from '@renderer/features/service/order/ServiceOrderHeader';
+import {ServiceOrderHeader} from '@renderer/features/service/order/picker/ServiceOrderHeader';
 import {ServiceTableList} from '@renderer/features/service/table/ServiceTableList';
 import {ServiceOrderList} from '@renderer/features/service/order/ServiceOrderList';
 import type {Notice} from '@renderer/ui/popups/notices';

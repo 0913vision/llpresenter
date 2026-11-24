@@ -6,7 +6,7 @@ import {mediaAddAvailability} from '@renderer/platform/mediaAddAvailability';
 import type {MenuEntry} from '@renderer/ui/menus/menuModel';
 import {laterRow, menuSeparator} from '@renderer/ui/menus/menuRows';
 import {newMediaItem} from '@renderer/features/media/newMediaItem';
-import {iconByKind} from '../order/serviceItemIcons';
+import {iconByKind} from '../serviceItemIcons';
 import {ORDER_ELEMENTS, PALETTE_TITLES, titleKey} from './newItems';
 import type {InsertOptions} from './usePaletteInsert';
 

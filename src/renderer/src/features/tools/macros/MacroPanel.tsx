@@ -2,10 +2,10 @@ import {useRef, useState, type JSX} from 'react';
 import type {Macro} from '@core/schema/tools/macros';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {MacroView} from './MacroView';
-import {MacroPalette} from './MacroPalette';
-import {MacroMenu} from './MacroMenu';
-import {MacroEditors} from './MacroEditors';
-import {macroDuplicateReason} from './macroMenuEntries';
+import {MacroPalette} from './actions/MacroPalette';
+import {MacroMenu} from './menu/MacroMenu';
+import {MacroEditors} from './editor/MacroEditors';
+import {macroDuplicateReason} from './menu/macroMenuEntries';
 import {useMacroPanel} from './useMacroPanel';
 import styles from './MacroPanel.module.css';
 

@@ -1,6 +1,6 @@
 import type {CheckState} from '@renderer/ui/choices/Checkbox';
 import type {ServiceItemId} from '@core/schema/common/ids';
-import {iconByKind} from '../order/serviceItemIcons';
+import {iconByKind} from '../serviceItemIcons';
 import {
   hasSlides,
   isItemOfKind,

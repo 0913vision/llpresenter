@@ -5,12 +5,12 @@ import type {Notice} from '@renderer/ui/popups/notices';
 import {useThemes} from '@renderer/platform/themes';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useLive} from '@renderer/session/live';
-import {sendThemeChange} from '@renderer/features/screens/themeActions';
+import {sendThemeChange} from '@renderer/features/screens/outputMenu/themeActions';
 import {
   liveThemeName,
   themeMenuEntries,
   themesLike,
-} from '@renderer/features/screens/themeMenuEntries';
+} from '@renderer/features/screens/outputMenu/themeMenuEntries';
 import styles from './Toolbar.module.css';
 
 function logProblem(notice: Notice): void {

@@ -8,12 +8,12 @@ import {
   backgroundName,
   backgroundPicture,
   missingBackgroundTip,
-} from '@renderer/features/media/backgroundChoices';
+} from '@renderer/features/media/picker/backgroundChoices';
 import {
   MediaPicker,
   NONE_LABEL,
   type MediaPickerItem,
-} from '@renderer/features/media/MediaPicker';
+} from '@renderer/features/media/picker/MediaPicker';
 import {pictureMedia, useMedia} from '@renderer/platform/media';
 import {lentPreviewUrl} from '@renderer/rendering/previewMedia';
 import {backgroundPaint} from '@renderer/rendering/themeBackground';

@@ -12,7 +12,7 @@ import {
 } from '@core/schema/app/settingsDocuments';
 import type {EditResult} from '@core/schema/services/contentEdit';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {saveMacroCollectionEdit} from '@renderer/features/tools/macros/macroCollectionEdits';
+import {saveMacroCollectionEdit} from '@renderer/features/tools/macros/collections/macroCollectionEdits';
 import {
   MAX_MESSAGE_TEMPLATES,
   saveMessageEdit,

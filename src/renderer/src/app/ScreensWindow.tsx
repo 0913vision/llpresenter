@@ -1,8 +1,8 @@
 import {useCallback, useEffect, useRef, useState, type JSX} from 'react';
-import {DisplayLayout} from '@renderer/features/screens/DisplayLayout';
-import {OutputPreview} from '@renderer/features/screens/OutputPreview';
-import {ScreenList} from '@renderer/features/screens/ScreenList';
-import {ScreenProperties} from '@renderer/features/screens/ScreenProperties';
+import {DisplayLayout} from '@renderer/features/screens/layout/DisplayLayout';
+import {OutputPreview} from '@renderer/features/screens/preview/OutputPreview';
+import {ScreenList} from '@renderer/features/screens/list/ScreenList';
+import {ScreenProperties} from '@renderer/features/screens/properties/ScreenProperties';
 import {ScreenSummariesProvider} from '@renderer/platform/ScreenSummaries';
 import {IconButton} from '@renderer/ui';
 import {watchInputModality} from '@renderer/ui/keys/inputModality';

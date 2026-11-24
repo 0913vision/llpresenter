@@ -3,7 +3,7 @@ import {useCallback, useEffect, useRef, useState} from 'react';
 import {
   mediaImportFailureNotice,
   requestMediaImport,
-} from '@renderer/features/media/mediaImport';
+} from '@renderer/features/media/import/mediaImport';
 import type {MediaImportProgress} from '@core/schema/media/mediaEdit';
 import {menuAvailability, type MenuItem} from '@renderer/ui/menus/menuModel';
 import type {Notice} from '@renderer/ui/popups/notices';

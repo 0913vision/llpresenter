@@ -10,7 +10,7 @@ import {
 } from '@core/slides';
 import {themeOfSlide} from '@core/theme';
 import {makePassageSlides} from '@renderer/features/bible/makePassageSlides';
-import {MediaPicker} from '@renderer/features/media/MediaPicker';
+import {MediaPicker} from '@renderer/features/media/picker/MediaPicker';
 import {addReason, addSlides} from '@renderer/features/slides/deckCommands';
 import type {SlideDeck} from '@renderer/features/slides/slideDeck';
 import type {Report} from '@renderer/session/serviceEdit';

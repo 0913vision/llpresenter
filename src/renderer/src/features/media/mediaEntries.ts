@@ -5,7 +5,7 @@ import type {
 } from '@core/schema/common/ids';
 import type {MediaDocument} from '@core/schema/media/mediaEdit';
 import type {MediaItem} from '@core/schema/media/mediaList';
-import type {CopyJob} from './mediaCopyJobs';
+import type {CopyJob} from './import/mediaCopyJobs';
 import type {MediaLibraryView} from './mediaLibrary';
 
 /** One tile of the media grid: a media item, or a file still being imported. */

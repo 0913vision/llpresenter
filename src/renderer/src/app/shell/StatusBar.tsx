@@ -2,7 +2,7 @@ import {NDI_DEFAULT_FPS} from '@core/schema/screens/screens';
 import type {JSX, ReactNode} from 'react';
 import {controlConflictReason} from '@core/screens';
 import {useOutputStatuses} from '@renderer/features/screens/useOutputStatuses';
-import {ndiAccelerationLabel} from '@renderer/features/screens/ndiAcceleration';
+import {ndiAccelerationLabel} from '@renderer/features/screens/properties/ndiAcceleration';
 import {useMonitors} from '@renderer/features/screens/useMonitors';
 import {useScreenSummaries} from '../../platform/ScreenSummaries';
 import styles from './StatusBar.module.css';

@@ -6,10 +6,13 @@ import type {
   Macro,
   MacroCollection,
 } from '@core/schema/tools/macros';
-import {MACRO_ACTION_MIME, readMacroActionDrag} from './macroPaletteCatalog';
+import {
+  MACRO_ACTION_MIME,
+  readMacroActionDrag,
+} from './actions/macroPaletteCatalog';
 import {MacroGrid, MacroList, MacroRow, MacroTile} from '@renderer/ui';
 import type {Notice} from '@renderer/ui/popups/notices';
-import {MacroCollectionPicker} from './MacroCollectionPicker';
+import {MacroCollectionPicker} from './collections/MacroCollectionPicker';
 import type {MenuAnchor} from '@renderer/ui/menus/Menu';
 import {PanelFooter} from '@renderer/ui/panels/Panel';
 import {ViewModeSwitch} from '@renderer/ui/choices/ViewModeSwitch';

@@ -1,8 +1,8 @@
 import {parseScreenId} from '@core/schema/common/ids';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useMenuShortcuts} from '@renderer/ui/menus/useMenuShortcuts';
-import {sendThemeChange} from '@renderer/features/screens/themeActions';
-import {themesLike} from '@renderer/features/screens/themeMenuEntries';
+import {sendThemeChange} from '@renderer/features/screens/outputMenu/themeActions';
+import {themesLike} from '@renderer/features/screens/outputMenu/themeMenuEntries';
 import {sendLive, useLive, useOutputs} from '@renderer/session/live';
 import type {JSX} from 'react';
 import {useThemes} from '@renderer/platform/themes';

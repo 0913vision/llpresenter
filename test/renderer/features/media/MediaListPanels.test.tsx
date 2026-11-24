@@ -8,7 +8,7 @@ import {
   AudioListsPanel,
   MediaListsPanel,
 } from '@renderer/features/media/MediaListPanels';
-import {MediaView} from '@renderer/features/media/MediaView';
+import {MediaView} from '@renderer/features/media/tiles/MediaView';
 import {MediaViewProvider} from '@renderer/features/media/MediaViewProvider';
 import {
   audioPlaylistId,

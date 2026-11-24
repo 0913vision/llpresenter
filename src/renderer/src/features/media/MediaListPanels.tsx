@@ -23,7 +23,7 @@ import {
 } from './mediaEntries';
 import {useMediaView} from './MediaViewProvider';
 import styles from './MediaListPanels.module.css';
-import {playlistMenuEntries} from './mediaMenuEntries';
+import {playlistMenuEntries} from './tiles/mediaMenuEntries';
 import {
   contextMenuAnchor,
   isContextMenuKey,

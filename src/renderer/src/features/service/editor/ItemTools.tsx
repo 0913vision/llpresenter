@@ -14,7 +14,7 @@ import {useShow} from '@renderer/session/show';
 import {Button} from '@renderer/ui/buttons/Button';
 import {warningNotice} from '@renderer/ui/popups/notices';
 import {SelectMenu} from '@renderer/ui/choices/SelectMenu';
-import {useServiceSongMenu} from '../order/useServiceSongMenu';
+import {useServiceSongMenu} from '../order/menu/useServiceSongMenu';
 
 /** Saves the slides of a song item as the song of the library. */
 function SongTools({

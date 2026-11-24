@@ -1,4 +1,4 @@
 export {
   liveThemeName,
   themeMenuEntries,
-} from '@renderer/features/screens/themeMenuEntries';
+} from '@renderer/features/screens/outputMenu/themeMenuEntries';

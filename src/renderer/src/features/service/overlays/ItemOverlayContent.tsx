@@ -6,7 +6,7 @@ import {Dialog} from '@renderer/ui/popups/Dialog';
 import {Select} from '@renderer/ui/choices/Select';
 import {TextArea} from '@renderer/ui/fields/TextArea';
 import {SegmentedControl} from '@renderer/ui/choices/SegmentedControl';
-import {MediaPicker} from '@renderer/features/media/MediaPicker';
+import {MediaPicker} from '@renderer/features/media/picker/MediaPicker';
 import {Properties, PropertyRow} from '@renderer/ui/panels/PropertyRow';
 import {editorTask} from '@renderer/platform/editorTask';
 

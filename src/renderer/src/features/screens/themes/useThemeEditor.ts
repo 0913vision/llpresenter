@@ -17,15 +17,18 @@ import {
 } from '@renderer/session/themeRequests';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {sampleDrawing} from './themeDrawing';
-import type {ThemeLeaveGuard} from './themeLeaveGuard';
-import {useThemeElements} from './useThemeElements';
-import {useThemePlacement} from './useThemePlacement';
+import type {ThemeLeaveGuard} from './saving/themeLeaveGuard';
+import {useThemeElements} from './elements/useThemeElements';
+import {useThemePlacement} from './elements/useThemePlacement';
 import {useThemeResources} from './useThemeResources';
-import {useThemeSaveFlow} from './useThemeSaveFlow';
+import {useThemeSaveFlow} from './saving/useThemeSaveFlow';
 import {useThemeSelection} from './useThemeSelection';
-import {useThemeWrites} from './useThemeWrites';
+import {useThemeWrites} from './saving/useThemeWrites';
 
-export {themeCanvasBounds, type ThemeAddPlacement} from './useThemeElements';
+export {
+  themeCanvasBounds,
+  type ThemeAddPlacement,
+} from './elements/useThemeElements';
 
 /** One session of the theme editor, shared by its three panels. */
 export function useThemeEditor(

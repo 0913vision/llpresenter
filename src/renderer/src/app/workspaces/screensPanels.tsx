@@ -1,4 +1,4 @@
-import type {ThemeLeaveGuard} from '@renderer/features/screens/themes/themeLeaveGuard';
+import type {ThemeLeaveGuard} from '@renderer/features/screens/themes/saving/themeLeaveGuard';
 import {useThemePanels} from '@renderer/features/screens/themes/useThemePanels';
 import type {Notice} from '@renderer/ui/popups/notices';
 import type {WorkspacePanels} from '../shell/WorkspacePanel';

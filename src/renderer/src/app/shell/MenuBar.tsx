@@ -8,7 +8,7 @@ import type {AppInfo} from '@contracts/ipc/window';
 import {AlertDialog} from '@renderer/ui/popups/AlertDialog';
 import type {TextImportReadRequest} from '@core/schema/songs/textImport';
 import {useServiceActions} from '@renderer/features/service/list/useServiceActions';
-import {useServicePickerMenu} from '@renderer/features/service/order/useServicePickerMenu';
+import {useServicePickerMenu} from '@renderer/features/service/order/picker/useServicePickerMenu';
 import {Icon, Menu, useTooltip} from '@renderer/ui';
 import type {MenuEntry} from '@renderer/ui/menus/menuModel';
 import {openOnArrowDown} from '@renderer/ui/menus/menuButton';

@@ -1,0 +1,343 @@
+import {Fragment, useState, type JSX, type KeyboardEvent} from 'react';
+import type {MediaItem} from '@core/schema/media/mediaList';
+import {NumberField} from '@renderer/ui/fields/NumberField';
+import {
+  Panel,
+  PanelBody,
+  PanelHeader,
+  PanelTabs,
+} from '@renderer/ui/panels/Panel';
+import {
+  Properties,
+  PropertyGroup,
+  PropertyRow,
+  PropertyValue,
+} from '@renderer/ui/panels/PropertyRow';
+import type {PicturePlace} from '@core/schema/media/picturePlace';
+import {MEDIA_END_OPTIONS} from '@renderer/ui/choices/mediaChoices';
+import {PicturePlaceRows} from '@renderer/ui/choices/PicturePlace';
+import {SegmentedControl} from '@renderer/ui/choices/SegmentedControl';
+import {Slider} from '@renderer/ui/choices/Slider';
+import {Checkbox} from '@renderer/ui/choices/Checkbox';
+import {TextField} from '@renderer/ui/fields/TextField';
+import {isComposing} from '@renderer/ui/fields/ime';
+import {hasModifier} from '@renderer/ui/keys/modifierKeys';
+import {durationText, sizeText} from '../mediaEntries';
+import {MediaPreviewPlayer} from './MediaPreviewPlayer';
+import {
+  MIN_SPEED,
+  MAX_SPEED,
+  parseTime,
+  shownProps,
+  timeText,
+  type MediaProps,
+  type ShownProps,
+} from './mediaProps';
+import {useMediaView} from '../MediaViewProvider';
+import styles from './MediaPropertiesPanel.module.css';
+
+export {MIN_SPEED, MAX_SPEED};
+
+const SPEED_STEP = 0.05;
+const SPEED_LARGE_STEP = 0.5;
+const MAX_VOLUME = 100;
+
+const KIND_NAMES: Readonly<Record<MediaItem['kind'], string>> = {
+  video: '영상',
+  image: '이미지',
+  audio: '오디오',
+};
+
+type Tab = 'props' | 'info';
+
+interface Editing {
+  readonly isAudio: boolean;
+  readonly shown: ShownProps;
+  readonly duration: number | undefined;
+  readonly disabled: boolean;
+  readonly change: (change: MediaProps) => void;
+  readonly place: (place: PicturePlace) => void;
+}
+
+function TimeField({
+  id,
+  label,
+  value,
+  accept,
+  disabled,
+  onCommit,
+}: {
+  readonly id?: string | undefined;
+  readonly label: string;
+  readonly value: number;
+  readonly accept: (seconds: number) => boolean;
+  readonly disabled: boolean;
+  readonly onCommit: (seconds: number) => void;
+}): JSX.Element {
+  const [draft, setDraft] = useState<string | null>(null);
+  const finish = (): void => {
+    if (draft === null) return;
+    const seconds = parseTime(draft);
+    setDraft(null);
+    if (seconds !== null && seconds !== value && accept(seconds)) {
+      onCommit(seconds);
+    }
+  };
+  return (
+    <TextField
+      id={id}
+      aria-label={label}
+      size="md"
+      numeric
+      className={styles.time}
+      value={draft ?? timeText(value)}
+      disabled={disabled}
+      onChange={setDraft}
+      onBlur={finish}
+      onKeyDown={(event: KeyboardEvent<HTMLInputElement>) => {
+        if (isComposing(event) || hasModifier(event)) return;
+        if (event.key === 'Enter') finish();
+        else if (event.key === 'Escape') setDraft(null);
+      }}
+    />
+  );
+}
+
+function PlaybackGroup({shown, duration, disabled, change, isAudio}: Editing) {
+  const stop = shown.stop ?? duration;
+  return (
+    <PropertyGroup title="재생">
+      {!isAudio && (
+        <PropertyRow label="끝나면">
+          {({controlId, labelId}) => (
+            <SegmentedControl
+              id={controlId}
+              labelledBy={labelId}
+              fill
+              disabled={disabled}
+              options={MEDIA_END_OPTIONS}
+              value={shown.end}
+              onChange={end => change({end})}
+            />
+          )}
+        </PropertyRow>
+      )}
+      <PropertyRow label="구간">
+        {({controlId}) => (
+          <span className={styles.range}>
+            <TimeField
+              id={controlId}
+              label="시작"
+              value={shown.start}
+              disabled={disabled}
+              accept={seconds => stop === undefined || seconds < stop}
+              onCommit={seconds => change({in: seconds})}
+            />
+            <TimeField
+              label="끝"
+              value={stop ?? 0}
+              disabled={disabled || stop === undefined}
+              accept={seconds =>
+                seconds > shown.start &&
+                (duration === undefined || seconds <= duration)
+              }
+              onCommit={seconds => change({out: seconds})}
+            />
+          </span>
+        )}
+      </PropertyRow>
+      <PropertyRow label="속도">
+        {({controlId}) => (
+          <NumberField
+            id={controlId}
+            min={MIN_SPEED}
+            max={MAX_SPEED}
+            step={SPEED_STEP}
+            largeStep={SPEED_LARGE_STEP}
+            updateOn="commit"
+            suffix="×"
+            disabled={disabled}
+            value={shown.speed}
+            onChange={speed => change({speed})}
+          />
+        )}
+      </PropertyRow>
+    </PropertyGroup>
+  );
+}
+
+/** How the media meets the screen when the operator shows it by itself. */
+function ScreenGroup({shown, disabled, place}: Editing) {
+  return (
+    <PropertyGroup title="화면">
+      <PicturePlaceRows
+        value={shown.place}
+        disabled={disabled}
+        onChange={place}
+      />
+    </PropertyGroup>
+  );
+}
+
+function SoundGroup({
+  shown,
+  disabled,
+  change,
+  isAudio,
+  workspace,
+}: Editing & {readonly workspace: 'show' | 'prep'}) {
+  const [dragging, setDragging] = useState<number | null>(null);
+  return (
+    <PropertyGroup title="소리">
+      {!isAudio && (
+        <PropertyRow label="소리 켜기">
+          {({controlId}) => (
+            <Checkbox
+              id={controlId}
+              checked={shown.audio}
+              disabled={disabled}
+              onChange={audio => change({audio})}
+            />
+          )}
+        </PropertyRow>
+      )}
+      <PropertyRow label="음량">
+        {() => (
+          <Slider
+            label="음량"
+            workspace={workspace}
+            icon="audio"
+            width="block"
+            min={0}
+            max={MAX_VOLUME}
+            step={1}
+            disabled={disabled || (!isAudio && !shown.audio)}
+            title={isAudio || shown.audio ? undefined : '소리 꺼짐'}
+            value={dragging ?? shown.volume}
+            valueText={`${Math.round(dragging ?? shown.volume)}%`}
+            onChange={setDragging}
+            onCommit={volume => {
+              setDragging(null);
+              change({volume: Math.round(volume)});
+            }}
+          />
+        )}
+      </PropertyRow>
+    </PropertyGroup>
+  );
+}
+
+export function MediaProperties({
+  item,
+  disabled,
+  workspace = 'prep',
+}: {
+  readonly item: MediaItem;
+  readonly disabled: boolean;
+  readonly workspace?: 'show' | 'prep';
+}): JSX.Element {
+  const {library} = useMediaView();
+  const editing: Editing = {
+    isAudio: item.kind === 'audio',
+    shown: shownProps(item),
+    duration: item.duration,
+    disabled,
+    change: change => {
+      library.updateProps(item.id, change).catch((cause: unknown) => {
+        console.error('Changing media properties failed:', cause);
+      });
+    },
+    place: place => {
+      library.place(item.id, place).catch((cause: unknown) => {
+        console.error('Placing media failed:', cause);
+      });
+    },
+  };
+  return (
+    <Properties>
+      {item.kind === 'image' ? null : <PlaybackGroup {...editing} />}
+      {item.kind === 'audio' ? null : <ScreenGroup {...editing} />}
+      {item.kind === 'image' ? null : (
+        <SoundGroup {...editing} workspace={workspace} />
+      )}
+    </Properties>
+  );
+}
+
+function MediaInfo({item}: {readonly item: MediaItem}): JSX.Element {
+  return (
+    <Properties>
+      <PropertyGroup title="파일">
+        <PropertyValue label="종류" value={KIND_NAMES[item.kind]} />
+        {item.width === undefined || item.height === undefined ? null : (
+          <PropertyValue
+            label="해상도"
+            value={`${item.width}×${item.height}`}
+          />
+        )}
+        {item.kind === 'image' ? null : (
+          <PropertyValue
+            label="길이"
+            value={durationText(item.duration) ?? '모름'}
+          />
+        )}
+        <PropertyValue label="크기" value={sizeText(item.size)} />
+        <PropertyValue label="위치" value={item.file} />
+      </PropertyGroup>
+    </Properties>
+  );
+}
+
+/**
+ * The right column of the media view (spec 05, "Properties"): the selected
+ * media's preview player, its playback properties in 속성, which save at
+ * once, and its file in 정보. 전환 and 소리 wait until they are defined (spec
+ * 05's proposal).
+ */
+export function MediaPropertiesPanel({
+  workspace = 'prep',
+}: {
+  readonly workspace?: 'show' | 'prep';
+}): JSX.Element {
+  const {library, view, selected} = useMediaView();
+  const [tab, setTab] = useState<Tab>('props');
+  const item =
+    view.document?.value.items.find(({id}) => id === selected) ?? null;
+  const disabled = view.document?.access !== 'editable';
+  return (
+    <Panel label="미디어 속성" className={styles.panel}>
+      <PanelHeader>
+        <PanelTabs<Tab>
+          tabs={[
+            {value: 'props', label: '미디어 속성'},
+            {value: 'info', label: '정보'},
+          ]}
+          value={tab}
+          onChange={setTab}
+        />
+      </PanelHeader>
+      <PanelBody tab={tab}>
+        {item === null ? (
+          <p className={styles.empty}>선택한 미디어 없음</p>
+        ) : (
+          <Fragment key={item.id}>
+            <MediaPreviewPlayer
+              item={item}
+              missing={view.missing.has(item.id)}
+              onReveal={() => library.reveal(item.id)}
+            />
+            {tab === 'props' ? (
+              <MediaProperties
+                item={item}
+                disabled={disabled}
+                workspace={workspace}
+              />
+            ) : (
+              <MediaInfo item={item} />
+            )}
+          </Fragment>
+        )}
+      </PanelBody>
+    </Panel>
+  );
+}

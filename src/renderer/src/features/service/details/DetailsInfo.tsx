@@ -17,7 +17,7 @@ import {
 } from '@renderer/ui/panels/PropertyRow';
 import {Tooltip} from '@renderer/ui/popups/Tooltip';
 import {LiturgyVersion} from '../editor/ItemTools';
-import {useServiceSongMenu} from '../order/useServiceSongMenu';
+import {useServiceSongMenu} from '../order/menu/useServiceSongMenu';
 import styles from './DetailsInfo.module.css';
 
 function SongSource({

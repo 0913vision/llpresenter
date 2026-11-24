@@ -16,15 +16,18 @@ import {
   ThemeElements,
   droppedThemeKind,
   THEME_TILE_DRAG,
-} from './ThemeElements';
-import {ThemeList} from './ThemeList';
-import {ThemeImageDialog} from './ThemeImageDialog';
-import {ThemeSaveBar} from './ThemeSaveBar';
-import {ThemeSaveDialogs} from './ThemeSaveDialogs';
+} from './elements/ThemeElements';
+import {ThemeList} from './list/ThemeList';
+import {ThemeImageDialog} from './elements/ThemeImageDialog';
+import {ThemeSaveBar} from './saving/ThemeSaveBar';
+import {ThemeSaveDialogs} from './saving/ThemeSaveDialogs';
 import {elementName} from './themeNames';
-import {useThemeClipboard, type ThemeEditorEvents} from './useThemeClipboard';
+import {
+  useThemeClipboard,
+  type ThemeEditorEvents,
+} from './elements/useThemeClipboard';
 import {themeCanvasBounds, type ThemeModel} from './useThemeEditor';
-import {framesMoved} from './useThemeElements';
+import {framesMoved} from './elements/useThemeElements';
 import styles from './Themes.module.css';
 import {fixedKeyText} from '@renderer/ui/keys/fixedKeys';
 

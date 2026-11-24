@@ -11,7 +11,7 @@ import {
   SERVICE_TITLES,
 } from '@core/slides';
 import {slideMaking, useThemes} from '@renderer/platform/themes';
-import {iconByKind} from '../order/serviceItemIcons';
+import {iconByKind} from '../serviceItemIcons';
 
 export const PREP_PALETTE_LABEL = '예배 요소와 곡';
 export const ELEMENT_DRAG_MIME = 'application/x-llp-service-element';

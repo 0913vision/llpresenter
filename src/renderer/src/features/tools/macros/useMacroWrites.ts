@@ -3,7 +3,7 @@ import type {Notice} from '@renderer/ui/popups/notices';
 import {
   saveMacroCollectionEdit,
   type MacroCollectionEdit,
-} from './macroCollectionEdits';
+} from './collections/macroCollectionEdits';
 import {saveMacroEdit, type MacroEdit} from './macroEdits';
 import {useToolEditing} from '../useToolEditing';
 

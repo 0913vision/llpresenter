@@ -3,7 +3,7 @@ import {act, cleanup, renderHook, waitFor} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import type {EditResult} from '@core/schema/services/contentEdit';
 import {useMacroPanel} from '@renderer/features/tools/macros/useMacroPanel';
-import {useMacroPalette} from '@renderer/features/tools/macros/useMacroPalette';
+import {useMacroPalette} from '@renderer/features/tools/macros/actions/useMacroPalette';
 import {deferred} from '@fixtures/renderer/features/tools/quickTesting';
 import {
   firstCollection,

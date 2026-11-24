@@ -11,7 +11,7 @@ import {classNames} from '@renderer/ui/classNames';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {usePrepPanels, type PrepBinding} from '../workspaces/prepPanels';
 import {useUndoReveal} from './useUndoReveal';
-import type {ThemeLeaveGuard} from '@renderer/features/screens/themes/themeLeaveGuard';
+import type {ThemeLeaveGuard} from '@renderer/features/screens/themes/saving/themeLeaveGuard';
 import {useScreensPanels} from '../workspaces/screensPanels';
 import {ShowShortcuts, useShowPanels} from '../workspaces/showPanels';
 import {ColumnGap} from './ColumnGap';

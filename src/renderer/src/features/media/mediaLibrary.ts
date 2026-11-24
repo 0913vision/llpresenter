@@ -15,12 +15,15 @@ import {
   MEDIA_DELETE_HISTORY_LIMIT,
   MEDIA_LIMITS,
 } from '@core/schema/media/mediaList';
-import {updateActiveCopies, type CopyJob} from './mediaCopyJobs';
+import {updateActiveCopies, type CopyJob} from './import/mediaCopyJobs';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import {chosenPlaylist, type ChosenPlaylist} from './mediaEntries';
 import type {PicturePlace} from '@core/schema/media/picturePlace';
-import {withPlace, type MediaProps} from './mediaProps';
-import {mediaImportFailureNotice, requestMediaImport} from './mediaImport';
+import {withPlace, type MediaProps} from './properties/mediaProps';
+import {
+  mediaImportFailureNotice,
+  requestMediaImport,
+} from './import/mediaImport';
 
 /** What the media view uses of the window API. */
 export type MediaApi = Pick<LlpApi, 'media' | 'log'>;
