@@ -11,10 +11,7 @@ export function TilePicture({
 }: TileDrawingOptions & {readonly tile: ShowTile}): JSX.Element {
   const themes = useThemes(view => view.themes);
   const screens = useThemes(view => view.screens);
-  const labels = useThemes(view => view.labels);
-  return (
-    <SlidePicture {...tileDrawing(tile, {themes, screens, labels}, options)} />
-  );
+  return <SlidePicture {...tileDrawing(tile, {themes, screens}, options)} />;
 }
 
 /** What a thumbnail says beside the picture of its slide. */

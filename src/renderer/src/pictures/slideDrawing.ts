@@ -74,8 +74,7 @@ export function tileDrawing(
   {
     themes,
     screens,
-    labels,
-  }: Pick<ThemesView, 'screens' | 'labels'> & {
+  }: Pick<ThemesView, 'screens'> & {
     readonly themes: Themes | null;
   },
   options: TileDrawingOptions = {},
@@ -94,7 +93,6 @@ export function tileDrawing(
       next: options.next ?? null,
       background: tile.slide.background ?? theme.background,
       ...(peers === undefined ? {} : {peers}),
-      labels,
       opaque: false,
       emptyColor: screen.emptyColor ?? '#000000',
     },
