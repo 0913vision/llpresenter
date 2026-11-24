@@ -1,4 +1,4 @@
-import {useLayoutEffect, useRef, type JSX} from 'react';
+import {useLayoutEffect, useRef, type DragEvent, type JSX} from 'react';
 import {useReflow} from '@renderer/ui/useReflow';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import type {
@@ -16,6 +16,18 @@ import {ViewModeSwitch} from '@renderer/ui/ViewModeSwitch';
 import styles from './MacroView.module.css';
 
 export type MacroViewMode = 'grid' | 'list';
+
+/** Whether a drag carries a step from the 동작 palette. */
+function carriesAction(event: DragEvent): boolean {
+  return Array.from(event.dataTransfer.types).includes(MACRO_ACTION_MIME);
+}
+
+/** The tiles or rows of the view, in the order of `shown`. */
+function optionsOf(root: HTMLElement | null): readonly HTMLElement[] {
+  return Array.from(
+    root?.querySelectorAll<HTMLElement>('[role="option"]') ?? [],
+  );
+}
 
 export function MacroView({
   macros,
@@ -67,30 +79,28 @@ export function MacroView({
     ((item: Macro, kind: MacroActionKind) => void) | undefined;
 }): JSX.Element {
   const root = useRef<HTMLDivElement>(null);
-  /** The 매크로 of the tile or row an event happened in. */
-  const macroAt = (target: EventTarget | null): Macro | undefined => {
-    const option =
-      target instanceof Element ? target.closest('[role="option"]') : null;
-    if (option === null || root.current?.contains(option) !== true) {
-      return undefined;
-    }
-    return shown[
-      Array.from(root.current.querySelectorAll('[role="option"]')).indexOf(
-        option,
-      )
-    ];
-  };
   const collection = collections.find(item => item.id === collectionId);
   const members = collection ? new Set(collection.macroIds) : undefined;
   const shown = members ? macros.filter(item => members.has(item.id)) : macros;
+  /** The 매크로 of the tile or row an event happened in. */
+  const macroAt = (target: EventTarget | null): Macro | undefined => {
+    const option =
+      target instanceof Element
+        ? target.closest<HTMLElement>('[role="option"]')
+        : null;
+    if (option === null || root.current?.contains(option) !== true) {
+      return undefined;
+    }
+    return shown[optionsOf(root.current).indexOf(option)];
+  };
+  // NOTE(0913vision): The tiles carry their 매크로's id, so a reflow keeps
+  // each in place.
   useLayoutEffect(() => {
-    root.current
-      ?.querySelectorAll<HTMLElement>('[role="option"]')
-      .forEach((option, index) => {
-        const id = shown[index]?.id;
-        if (id === undefined) option.removeAttribute('data-reflow-id');
-        else option.setAttribute('data-reflow-id', id);
-      });
+    optionsOf(root.current).forEach((option, index) => {
+      const id = shown[index]?.id;
+      if (id === undefined) option.removeAttribute('data-reflow-id');
+      else option.setAttribute('data-reflow-id', id);
+    });
   });
   useReflow(root, {
     ids: shown.map(item => item.id),
@@ -133,11 +143,7 @@ export function MacroView({
     onMenu: (index: number, anchor: MenuAnchor) => {
       const item = shown[index];
       if (item) {
-        onMenu(
-          item,
-          anchor,
-          root.current?.querySelectorAll<HTMLElement>('[role="option"]')[index],
-        );
+        onMenu(item, anchor, optionsOf(root.current)[index]);
       }
     },
   };
@@ -146,22 +152,13 @@ export function MacroView({
       ref={root}
       className={styles.root}
       onDragOver={event => {
-        if (
-          onDropAction &&
-          Array.from(event.dataTransfer.types).includes(MACRO_ACTION_MIME) &&
-          macroAt(event.target)
-        ) {
+        if (onDropAction && carriesAction(event) && macroAt(event.target)) {
           event.preventDefault();
           event.dataTransfer.dropEffect = 'copy';
         }
       }}
       onDrop={event => {
-        if (
-          !onDropAction ||
-          !Array.from(event.dataTransfer.types).includes(MACRO_ACTION_MIME)
-        ) {
-          return;
-        }
+        if (!onDropAction || !carriesAction(event)) return;
         const item = macroAt(event.target);
         const kind = readMacroActionDrag(
           event.dataTransfer.getData(MACRO_ACTION_MIME),
