@@ -64,6 +64,7 @@ import styles from './App.module.css';
 import {useLaunchReady} from './useLaunchReady';
 import {UPDATE_NOTICE_KEY, useUpdate} from './update/useUpdate';
 import {addNotice} from '@renderer/ui/notices';
+import {NoticeHistoryButton, useRememberNotice} from './shell/NoticeHistory';
 import {BiblePassages} from '@renderer/features/bible/BiblePassages';
 import {ServicePictures} from './ServicePictures';
 import {BibleInsertionReview} from '@renderer/features/bible/BibleInsertionReview';
@@ -130,6 +131,7 @@ function ControlApp({
   const notices = useSyncExternalStore(session.subscribe, session.getNotices);
   const resumeAfterUpdate = useCallback(() => session.resume(), [session]);
   const update = useUpdate(session.api?.update, resumeAfterUpdate);
+  useRememberNotice(session, update.notice);
   const [warningHeight, setWarningHeight] = useState(0);
   const [themeLeave] = useState(() => new ThemeLeaveGuard());
   const onWorkspace = (next: WorkspaceId): void => {
@@ -264,7 +266,11 @@ function ControlApp({
           themeLeave={themeLeave}
         />
       </ShownItemProvider>
-      <StatusBar standby={recovery.offer !== null} saveState={saveState} />
+      <StatusBar
+        standby={recovery.offer !== null}
+        saveState={saveState}
+        end={<NoticeHistoryButton session={session} />}
+      />
       {prepActions.surface}
       <RecoveryPrompt recovery={recovery} />
       <NotificationStack

@@ -1,5 +1,5 @@
 import {NDI_DEFAULT_FPS} from '@core/schema/screens';
-import type {JSX} from 'react';
+import type {JSX, ReactNode} from 'react';
 import {controlConflictReason} from '@core/screens';
 import {useOutputStatuses} from '@renderer/features/screens/useOutputStatuses';
 import {ndiAccelerationLabel} from '@renderer/features/screens/ndiAcceleration';
@@ -11,9 +11,12 @@ import styles from './StatusBar.module.css';
 export function StatusBar({
   standby = false,
   saveState,
+  end,
 }: {
   readonly standby?: boolean;
   readonly saveState?: 'saving' | 'failed' | undefined;
+  /** What stays at the right end, such as the 알림 bell. */
+  readonly end?: ReactNode;
 }): JSX.Element {
   const screens = useScreenSummaries();
   const statuses = useOutputStatuses();
@@ -59,6 +62,7 @@ export function StatusBar({
       {messages.map((message, index) => (
         <span key={`${index}:${message}`}>{message}</span>
       ))}
+      {end}
     </footer>
   );
 }

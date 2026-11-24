@@ -1,0 +1,117 @@
+.bell {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+}
+
+.dot {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text);
+  pointer-events: none;
+}
+
+/* NOTE(0913vision): Like VS Code's notification center, the list opens above
+   the status bar at the right edge; the shadow sits on a layer behind it so
+   Windows keeps ClearType text (design README, Radius). */
+.panel {
+  position: fixed;
+  right: var(--panel-gap);
+  bottom: calc(var(--size-statusbar) + var(--panel-gap));
+  z-index: var(--z-popover);
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  width: min(440px, calc(100vw - 2 * var(--panel-gap)));
+  max-height: min(480px, calc(100vh - 160px));
+  border-radius: var(--radius-xl);
+  background: var(--bg-raised);
+  color: var(--text);
+  outline: none;
+}
+
+.panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  box-shadow: var(--shadow-popover);
+  pointer-events: none;
+}
+
+.head {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-4);
+  height: 36px;
+  padding: 0 var(--space-4) 0 var(--space-12);
+  border-bottom: 1px solid var(--line-strong);
+}
+
+.heading {
+  flex: 1;
+  color: var(--text-2);
+  font: var(--type-label);
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+  background: var(--bg-raised);
+  list-style: none;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  column-gap: var(--space-8);
+  align-items: start;
+  padding: var(--space-8) var(--space-12);
+}
+
+.row + .row {
+  border-top: 1px solid var(--line-strong);
+}
+
+.icon {
+  margin-top: var(--space-2);
+  color: var(--text-2);
+}
+
+.row[data-state='warning'] .icon {
+  color: var(--warning);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.title {
+  font: var(--type-label);
+  overflow-wrap: anywhere;
+}
+
+.time {
+  color: var(--text-3);
+  font: var(--type-caption);
+  font-variant-numeric: tabular-nums;
+}
+
+.empty {
+  margin: 0;
+  padding: var(--space-16) var(--space-12);
+  color: var(--text-3);
+  font: var(--type-label);
+}

@@ -63,3 +63,59 @@ export function removeNotice(
 ): readonly Notice[] {
   return notices.filter(notice => notice.key !== key);
 }
+
+/** One line of the 알림 기록: a notice as it last showed. */
+export interface NoticeRecord {
+  /** Tells apart records with the same cause. */
+  readonly id: number;
+  readonly key: string;
+  readonly kind: NoticeKind;
+  readonly icon: string;
+  readonly title: string;
+  readonly time: string;
+  readonly meta?: readonly string[] | undefined;
+  /** Whether its card was closed; a closed record is never rewritten. */
+  readonly closed: boolean;
+}
+
+/** The most records the 알림 기록 keeps; the oldest go first. */
+export const MAX_NOTICE_RECORDS = 100;
+
+/**
+ * Writes a notice into the history, newest first. A notice that updates a card
+ * still open with the same cause and kind, such as a progress count, rewrites
+ * that card's record; anything else, such as a lost monitor found again, adds
+ * a record.
+ */
+export function recordNotice(
+  records: readonly NoticeRecord[],
+  notice: Notice,
+  id: number,
+): readonly NoticeRecord[] {
+  const last = records.find(record => record.key === notice.key);
+  const rewrites = last?.closed === false && last.kind === notice.kind;
+  const record: NoticeRecord = {
+    id,
+    key: notice.key,
+    kind: notice.kind,
+    icon: notice.icon,
+    title: notice.title,
+    time: notice.time,
+    meta: notice.meta,
+    closed: false,
+  };
+  const rest = rewrites ? records.filter(old => old !== last) : records;
+  return [record, ...rest].slice(0, MAX_NOTICE_RECORDS);
+}
+
+/** Marks the newest record of that cause as closed, once its card closes. */
+export function closeRecord(
+  records: readonly NoticeRecord[],
+  key: string,
+): readonly NoticeRecord[] {
+  const last = records.find(record => record.key === key);
+  if (last === undefined || last.closed) return records;
+  return records.map(record =>
+    record === last ? {...record, closed: true} : record,
+  );
+}

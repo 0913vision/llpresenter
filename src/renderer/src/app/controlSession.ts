@@ -4,7 +4,14 @@ import {
   pendingWritesOf,
   type DraftOutcome,
 } from '@renderer/platform/pendingWrites';
-import {addNotice, removeNotice, type Notice} from '@renderer/ui/notices';
+import {
+  addNotice,
+  closeRecord,
+  recordNotice,
+  removeNotice,
+  type Notice,
+  type NoticeRecord,
+} from '@renderer/ui/notices';
 import {CloseFlush} from './closeFlush';
 
 // NOTE(0913vision): Commit-mode fields save on blur, so a close blurs the
@@ -14,9 +21,19 @@ function commitFocusedField(): void {
   if (focused instanceof HTMLElement) focused.blur();
 }
 
+/** The 알림 기록: its records, newest first, and whether one came since it was last opened. */
+export interface NoticeHistory {
+  readonly records: readonly NoticeRecord[];
+  readonly unseen: boolean;
+}
+
+const EMPTY_HISTORY: NoticeHistory = {records: [], unseen: false};
+
 /** What a window owns for as long as it is open: its notices and its labels. */
 export class ControlSession {
   private notices: readonly Notice[] = [];
+  private history = EMPTY_HISTORY;
+  private nextRecord = 1;
   private readonly listeners = new Set<() => void>();
   private closing = false;
   private generation = 0;
@@ -54,10 +71,33 @@ export class ControlSession {
         },
       })),
     });
+    this.write(notice);
     this.publish();
   };
   readonly dismiss = (key: string): void => {
     this.notices = removeNotice(this.notices, key);
+    this.history = {
+      ...this.history,
+      records: closeRecord(this.history.records, key),
+    };
+    this.publish();
+  };
+
+  readonly getHistory = (): NoticeHistory => this.history;
+  /** Writes a notice shown outside the stack, such as the update notice. */
+  readonly remember = (notice: Notice): void => {
+    if (this.closing) return;
+    this.write(notice);
+    this.publish();
+  };
+  /** The 알림 기록 was opened: nothing in it is new any more. */
+  readonly seeHistory = (): void => {
+    if (!this.history.unseen) return;
+    this.history = {...this.history, unseen: false};
+    this.publish();
+  };
+  readonly clearHistory = (): void => {
+    this.history = EMPTY_HISTORY;
     this.publish();
   };
 
@@ -75,7 +115,15 @@ export class ControlSession {
     this.closing = true;
     this.labels?.dispose();
     this.notices = [];
+    this.history = EMPTY_HISTORY;
     this.listeners.clear();
+  }
+
+  private write(notice: Notice): void {
+    this.history = {
+      records: recordNotice(this.history.records, notice, this.nextRecord++),
+      unseen: true,
+    };
   }
 
   private settleDrafts(api: LlpApi): Promise<DraftOutcome> | undefined {

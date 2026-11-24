@@ -387,6 +387,21 @@ Source: `Recovery`, `AlertDialog` README, `Checkbox` README, `Main` decision
 - Cards never take focus, never make a sound, and don't close with Esc. They
   show above dialogs, and their buttons work while a dialog is open.
 
+### 알림 기록
+
+- A bell at the right end of the status bar opens the 알림 기록 above it at the
+  right edge, like the notification center of VS Code: every notice of the
+  control window since it opened, newest first, each as one row with its icon,
+  title, detail line and time, divided by thin lines, with no cards. A warning
+  has only its icon in amber. The list keeps the newest 100 and empties when the
+  app quits.
+- A notice that updates a card still open with the same cause and kind, such as
+  a progress count, rewrites that card's row; any other notice, such as a lost
+  monitor found again, adds a row.
+- The bell shows a dot, and its name is "새 알림", while a notice came that the
+  list has not shown yet. "모두 지우기" empties the list. Esc, a click outside
+  it, or the bell closes it.
+
 ### Writing
 
 - The title is a noun phrase without a period, for example "무대 모니터 연결

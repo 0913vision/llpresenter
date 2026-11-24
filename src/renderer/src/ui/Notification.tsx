@@ -65,7 +65,12 @@ function useLifetime(notice: Notice, held: boolean, close: () => void): void {
   }, [notice, held]);
 }
 
-function Meta({values}: {readonly values: readonly string[]}): JSX.Element {
+/** A notice's state values, such as 모니터 3 → 창으로 표시 중. */
+export function NoticeMeta({
+  values,
+}: {
+  readonly values: readonly string[];
+}): JSX.Element {
   return (
     <span className={styles.meta}>
       {values.map((value, index) => (
@@ -119,7 +124,9 @@ export function NotificationCard({
             </span>
             <span className={styles.time}>{notice.time}</span>
           </div>
-          {notice.meta === undefined ? null : <Meta values={notice.meta} />}
+          {notice.meta === undefined ? null : (
+            <NoticeMeta values={notice.meta} />
+          )}
         </div>
         {notice.actions === undefined ? null : (
           <div className={styles.actions}>
