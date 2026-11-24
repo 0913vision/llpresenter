@@ -2,8 +2,6 @@ import {limitReason} from '@core/common/limitReason';
 import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
 import {useMenuHandoff} from '@renderer/ui/menus/useMenuHandoff';
 import {useContext, useRef, useState, type RefObject} from 'react';
-import {parseMacroCollectionId, parseMacroId} from '@core/schema/common/ids';
-import {freeName} from '@core/common/freeName';
 import {
   MACRO_FILE_LIMITS,
   type MacroActionKind,
@@ -23,6 +21,12 @@ import {useUndoKeys} from '@renderer/platform/undo/useUndoKeys';
 import {focusHistorySurface} from '@renderer/ui/lists/focusHistorySurface';
 import {toolMenuReason} from '../toolMenuEntries';
 import {useOptimisticCreation} from './useOptimisticCreation';
+import {
+  newCollection,
+  newMacro,
+  withCreatingMacros,
+  type CreatingMacro,
+} from './newMacros';
 import type {MacroMenuHandlers} from './menu/macroMenuEntries';
 import {macroMenuHandlers, type MacroEditor} from './menu/macroMenuHandlers';
 import {useMacroEditor} from './editor/useMacroEditor';
@@ -87,25 +91,17 @@ export function useMacroPanel({
   const layout = useMacroLayout();
   const {collection, mode} = layout;
   const [selected, setSelected] = useState<Macro['id']>();
-  const macroCreation = useOptimisticCreation<
-    Macro & {readonly collection?: MacroCollection['id'] | undefined}
-  >(document?.value.macros ?? []);
+  const macroCreation = useOptimisticCreation<CreatingMacro>(
+    document?.value.macros ?? [],
+  );
   const collectionCreation = useOptimisticCreation(
     document?.value.collections ?? [],
   );
   const macros = macroCreation.items;
-  const collections = collectionCreation.items.map(group => ({
-    ...group,
-    macroIds: [
-      ...group.macroIds,
-      ...macroCreation.pending
-        .filter(
-          item =>
-            item.collection === group.id && !group.macroIds.includes(item.id),
-        )
-        .map(item => item.id),
-    ],
-  }));
+  const collections = withCreatingMacros(
+    collectionCreation.items,
+    macroCreation.pending,
+  );
   const [menu, setMenu] = useState<{
     item: Macro;
     anchor: MenuAnchor;
@@ -136,15 +132,11 @@ export function useMacroPanel({
   };
   const create = (): void => {
     if (locked) return;
-    const parsed = parseMacroId(crypto.randomUUID());
-    if (!parsed.ok) return;
-    const item: Macro = {
-      id: parsed.value,
-      name: freeName('새 매크로', new Set(macros.map(item => item.name))),
-      icon: 'macro',
-      color: 'teal',
-      actions: [],
-    };
+    const item = newMacro(
+      crypto.randomUUID(),
+      new Set(macros.map(macro => macro.name)),
+    );
+    if (item === null) return;
     writes.moved();
     setSelected(item.id);
     macroCreation.create(
@@ -158,13 +150,11 @@ export function useMacroPanel({
     ...macros.map(item => ({id: `macro.${item.id}`, run: () => start(item)})),
   ]);
   const createCollection = (): void => {
-    const parsed = parseMacroCollectionId(crypto.randomUUID());
-    if (locked || !parsed.ok) return;
-    const item: MacroCollection = {
-      id: parsed.value,
-      name: freeName('새 모음', new Set(collections.map(item => item.name))),
-      macroIds: [],
-    };
+    const item = newCollection(
+      crypto.randomUUID(),
+      new Set(collections.map(group => group.name)),
+    );
+    if (locked || item === null) return;
     const saved = writes.runCollection({kind: 'add', collection: item});
     layout.showUnsaved(item.id, writes.heldUntouched(saved));
     collectionCreation.create(item, saved, () =>
