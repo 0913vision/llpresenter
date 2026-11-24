@@ -2,7 +2,7 @@ import {describe, expect, it} from 'vitest';
 import {genesisPassage} from '@fixtures/core/passage';
 import {defaultSlideTransitions} from '@core/schema/app/preferences';
 import type {Slide} from '@core/schema/slides/slide';
-import {passageSlides} from '@core/slides/passageSlides';
+import {passageSlides, withVerseSlideIds} from '@core/slides/passageSlides';
 
 const making = {themes: null, transitions: defaultSlideTransitions};
 const FIRST = '태초에 하나님이 천지를 창조하시니라';
@@ -93,5 +93,41 @@ describe('passageSlides', () => {
       '창세기 1:1-2 (개역한글)',
       '창세기 1:1-2 (개역한글)',
     ]);
+  });
+});
+
+describe('withVerseSlideIds', () => {
+  const cutAt = (text: string) =>
+    text === FIRST ? text.split(' 천지를 ') : [text];
+
+  it('keeps the id and transition of each verse part when the numbers change', () => {
+    const before = passageSlides(making, {passage: TWO, settings, cut: cutAt});
+    const fade = {kind: 'dissolve', sec: 0.4} as const;
+    const marked = before.map((slide, index) =>
+      index === 2 ? {...slide, transition: fade} : slide,
+    );
+    const after = withVerseSlideIds(
+      marked,
+      passageSlides(making, {
+        passage: TWO,
+        settings: {...settings, verseNumbers: false},
+        cut: cutAt,
+      }),
+    );
+    expect(after.map(slide => slide.id)).toEqual(marked.map(slide => slide.id));
+    expect(texts(after)).toEqual(['태초에 하나님이', '창조하시니라', SECOND]);
+    expect(after[2]?.transition).toEqual(fade);
+  });
+
+  it('gives a verse part that is new its own id', () => {
+    const before = passageSlides(making, {passage: TWO, settings, cut: whole});
+    const after = withVerseSlideIds(
+      before,
+      passageSlides(making, {passage: TWO, settings, cut: cutAt}),
+    );
+    expect(after[0]?.id).toBe(before[0]?.id);
+    expect(after[1]?.id).not.toBe(before[0]?.id);
+    expect(after[1]?.id).not.toBe(before[1]?.id);
+    expect(after[2]?.id).toBe(before[1]?.id);
   });
 });

@@ -1,5 +1,6 @@
 import type {BibleLookupPassage} from '@core/schema/bible/bibleLookup';
 import type {Slide} from '@core/schema/slides/slide';
+import {withVerseSlideIds} from '@core/slides';
 import {
   bibleSource,
   type BibleDisplay,
@@ -140,6 +141,41 @@ export function openBiblePassage(
       : 0,
   });
   return source;
+}
+
+/**
+ * Shows the open passage with other 절 번호 or 역본 이름 as the same item. Each
+ * verse keeps the slides it had, so a verse on output changes at once, without
+ * a transition, the way an edited lyric does.
+ */
+export function restyleBiblePassage(
+  source: BibleSource,
+  display: BibleDisplay,
+): BibleSource {
+  const view = useShow.getState();
+  const settings = {
+    verseNumbers: display.verseNumbers,
+    translationName: display.translationName ?? false,
+  };
+  const recut = slidesOfPassage(
+    source.passage,
+    measurePassage(source.passage, settings, []),
+    {settings},
+  );
+  const restyled = bibleSource(source.id, source.passage, {
+    ...display,
+    slides: withVerseSlideIds(source.slides, recut),
+  });
+  useShow.setState({
+    bibleSources: withBibleSource(
+      view,
+      restyled,
+      useLive.getState().state?.layers.slide?.itemId ?? null,
+    ),
+    openItemId: restyled.id,
+    selectedTile: tileOf(restyled, source.tiles[view.selectedTile]?.slide),
+  });
+  return restyled;
 }
 
 /** Outputs the selected slide of a passage like any other slide. */

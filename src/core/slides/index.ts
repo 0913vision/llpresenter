@@ -55,6 +55,7 @@ export {
   verseKey,
   verseSlides,
   versesOfPassage,
+  withVerseSlideIds,
 } from './passageSlides';
 export {
   type SlideListSelection,

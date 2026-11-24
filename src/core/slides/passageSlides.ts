@@ -95,6 +95,37 @@ export function passageSlides(
   );
 }
 
+/**
+ * The slides of a passage cut again, which keep the ids and transitions of the
+ * slides each verse had before, part by part. A verse part that is on output
+ * then stays the same slide and only changes what it shows; a part that is new
+ * keeps its own id.
+ */
+export function withVerseSlideIds(
+  before: readonly Slide[],
+  after: readonly Slide[],
+): readonly Slide[] {
+  const parts = new Map<string, Slide[]>();
+  for (const slide of before) {
+    if (slide.verse === undefined) continue;
+    const key = verseKey(slide.verse);
+    parts.set(key, [...(parts.get(key) ?? []), slide]);
+  }
+  const used = new Map<string, number>();
+  return after.map(slide => {
+    if (slide.verse === undefined) return slide;
+    const key = verseKey(slide.verse);
+    const index = used.get(key) ?? 0;
+    used.set(key, index + 1);
+    const earlier = parts.get(key)?.[index];
+    if (earlier === undefined) return slide;
+    const {transition: _own, ...rest} = slide;
+    return earlier.transition === undefined
+      ? {...rest, id: earlier.id}
+      : {...rest, id: earlier.id, transition: earlier.transition};
+  });
+}
+
 function oneRow(text: string): string {
   return text.replace(/\s+/gu, ' ').trim();
 }

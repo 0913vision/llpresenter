@@ -4,7 +4,7 @@ import type {TranslationId} from '@core/schema/common/ids';
 import {useSettingsDocument} from '@renderer/platform/documents/useSettingsDocument';
 import {CheckRow} from '@renderer/ui/choices/Checkbox';
 import {SelectMenu} from '@renderer/ui/choices/SelectMenu';
-import {openBiblePassage} from '../bible/passageActions';
+import {restyleBiblePassage} from '../bible/passageActions';
 import {displayOf, usePassageSwap} from '../bible/adjacent/usePassageSwap';
 import type {BibleSource} from '@renderer/session/show/bibleSource';
 import styles from './BiblePanel.module.css';
@@ -84,10 +84,7 @@ export function BibleDisplayControls({
         checked={source.verseNumbers}
         disabled={!api || busy}
         onChange={verseNumbers => {
-          openBiblePassage(source.passage, {
-            ...displayOf(source),
-            verseNumbers,
-          });
+          restyleBiblePassage(source, {...displayOf(source), verseNumbers});
         }}
       />
       <CheckRow
@@ -95,10 +92,7 @@ export function BibleDisplayControls({
         checked={source.translationName ?? false}
         disabled={!api || busy}
         onChange={translationName => {
-          openBiblePassage(source.passage, {
-            ...displayOf(source),
-            translationName,
-          });
+          restyleBiblePassage(source, {...displayOf(source), translationName});
         }}
       />
     </div>

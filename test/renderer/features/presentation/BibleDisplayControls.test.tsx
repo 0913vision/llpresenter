@@ -10,16 +10,19 @@ import {
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/schema/live/live';
 import type {BibleLookupReply} from '@core/schema/bible/bibleLookup';
-import {openItem, outputTile, selectTile} from '@renderer/session/show/show';
+import {
+  openItem,
+  outputSlideOf,
+  outputTile,
+  selectTile,
+  startServiceSync,
+} from '@renderer/session/show/show';
 import {useLive} from '@renderer/session/live';
 import {bibleSourceFor} from '@renderer/session/show/showLibrary';
 import {beginOutputRequest} from '@renderer/session/show/showOutput';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
 import {BiblePanel} from '@renderer/features/presentation/BiblePanel';
-import {
-  openBiblePassage,
-  showBiblePassage,
-} from '@renderer/features/bible/passageActions';
+import {openBiblePassage} from '@renderer/features/bible/passageActions';
 import {
   bibleDocument,
   panelApi,
@@ -106,7 +109,7 @@ describe('Bible preview display controls', () => {
     expect(currentSource().tiles[1]?.slide.texts['주소']).toBe(
       '요한복음 3:16-18 (개역한글)',
     );
-    expect(currentSource().id).not.toBe(original.id);
+    expect(currentSource().id).toBe(original.id);
     expect(useShow.getState().selectedTile).toBe(1);
     fireEvent.click(screen.getByRole('checkbox', {name: '절 번호'}));
     expect(currentSource().tiles[1]?.slide.texts['주소']).toBe(
@@ -126,25 +129,38 @@ describe('Bible preview display controls', () => {
     expect(currentSource().tiles[1]?.slide.texts['주소']).toBeUndefined();
   });
 
-  it('toggles numbering without output, settings writes or losing selection and live text', async () => {
+  it('changes the verse on output at once when its numbering changes, as the same slide', async () => {
     const fixture = await setup();
+    const stop = startServiceSync();
     const original = currentSource();
-    showBiblePassage(original.passage, original);
+    const verse = original.tiles[1]?.slide;
+    const slide = outputSlideOf({itemId: original.id, index: 1});
+    if (verse === undefined || slide === null) throw Error('Missing verse');
+    const state = emptyLiveState();
+    act(() => {
+      useLive.setState({state: {...state, layers: {...state.layers, slide}}});
+    });
     fixture.send.mockClear();
     fireEvent.click(screen.getByRole('checkbox', {name: '절 번호'}));
-    expect(currentSource().verseNumbers).toBe(false);
-    expect(currentSource().tiles[1]?.slide.texts['본문']).toBe(
-      'Invented verse 17',
-    );
+    expect(currentSource()).toMatchObject({
+      id: original.id,
+      verseNumbers: false,
+    });
+    expect(currentSource().tiles[1]?.slide).toMatchObject({
+      id: verse.id,
+      texts: {본문: 'Invented verse 17'},
+    });
     expect(useShow.getState().selectedTile).toBe(1);
-    expect(bibleSourceFor(useShow.getState(), original.id)).toBe(original);
-    expect(fixture.send).not.toHaveBeenCalled();
+    expect(lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0])).toMatchObject({
+      type: 'slide.update',
+      slide: {slideId: verse.id, texts: {본문: 'Invented verse 17'}},
+    });
     expect(fixture.edit).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('checkbox', {name: '절 번호'}));
-    expect(currentSource().verseNumbers).toBe(true);
     expect(currentSource().tiles[1]?.slide.texts['본문']).toBe(
       '17 Invented verse 17',
     );
+    stop();
   });
 
   it('changes only the preview translation, keeping numbering and the selected verse', async () => {
