@@ -5,11 +5,13 @@ import {
   pickerChoices,
 } from '@renderer/features/media/picker/mediaPickerChoices';
 
-const image = (id: string, name: string) => ({
-  id,
-  name,
-  kind: 'image' as const,
-});
+function image(id: string, name: string) {
+  return {
+    id,
+    name,
+    kind: 'image' as const,
+  };
+}
 const specials = {
   allowNone: true,
   defaultChoice: {label: '테마 배경', detail: '테마가 정한 배경'},

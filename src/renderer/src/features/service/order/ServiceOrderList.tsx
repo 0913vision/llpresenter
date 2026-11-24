@@ -33,7 +33,9 @@ import styles from './ServiceOrderList.module.css';
 import {useShow} from '@renderer/session/show/showStore';
 import {ListBox} from '@renderer/ui/lists/ListBox';
 
-const closeNothing = (): void => undefined;
+function closeNothing(): void {
+  return undefined;
+}
 
 function logProblem(notice: Notice): void {
   console.error('Service order edit failed:', notice.key);

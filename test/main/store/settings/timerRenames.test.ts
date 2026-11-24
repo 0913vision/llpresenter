@@ -8,8 +8,9 @@ import {
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {prepareTimerRename} from '@main/store/settings/timerRenames';
 
-const id = (n: number) =>
-  `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
+function id(n: number) {
+  return `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
+}
 const rename = {
   type: 'timer.rename',
   name: 'timers',

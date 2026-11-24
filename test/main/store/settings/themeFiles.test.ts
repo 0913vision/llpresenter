@@ -24,12 +24,17 @@ const own: ThemeFile = {
   id: OWN,
   name: '내 가사',
 };
-const withThemes = (themes: readonly ThemeFile[]): Themes => ({
-  ...DEFAULT_THEMES,
-  themes,
-});
-const renamed = (id: ThemeFile['id'], name: string) =>
-  BUILT_IN_THEMES.map(theme => (theme.id === id ? {...theme, name} : theme));
+function withThemes(themes: readonly ThemeFile[]): Themes {
+  return {
+    ...DEFAULT_THEMES,
+    themes,
+  };
+}
+function renamed(id: ThemeFile['id'], name: string) {
+  return BUILT_IN_THEMES.map(theme =>
+    theme.id === id ? {...theme, name} : theme,
+  );
+}
 
 function writes(before: Themes, after: Themes) {
   const result = themeWrites(before, after, folder);
@@ -43,8 +48,12 @@ function writes(before: Themes, after: Themes) {
   };
 }
 
-const file = (id: string) => join(themeFolder(folder), `${id}.lltheme`);
-const list = () => join(folder, 'themes.json');
+function file(id: string) {
+  return join(themeFolder(folder), `${id}.lltheme`);
+}
+function list() {
+  return join(folder, 'themes.json');
+}
 
 beforeEach(async () => {
   folder = await mkdtemp(join(tmpdir(), 'llp-themes-'));

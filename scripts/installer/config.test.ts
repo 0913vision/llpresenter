@@ -3,8 +3,9 @@ import {resolve} from 'node:path';
 import {describe, expect, it} from 'vitest';
 
 const root = resolve(import.meta.dirname, '../..');
-const read = (file: string): string =>
-  readFileSync(resolve(root, file), 'utf8');
+function read(file: string): string {
+  return readFileSync(resolve(root, file), 'utf8');
+}
 
 describe('assisted uninstaller data retention', () => {
   it('rejects the upstream deletion override before the uninstall section', () => {

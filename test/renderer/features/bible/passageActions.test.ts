@@ -22,9 +22,12 @@ async function passage(input: string) {
   return reply.result.value;
 }
 
-const verses = (id: string | null) =>
-  tilesOf(id ?? '').map(tile => tile.slide.verse?.verse);
-const ids = (id: string) => tilesOf(id).map(tile => tile.slide.id);
+function verses(id: string | null) {
+  return tilesOf(id ?? '').map(tile => tile.slide.verse?.verse);
+}
+function ids(id: string) {
+  return tilesOf(id).map(tile => tile.slide.id);
+}
 
 beforeEach(() => {
   seedSampleService();

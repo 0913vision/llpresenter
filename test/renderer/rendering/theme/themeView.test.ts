@@ -40,10 +40,11 @@ function drawing(
   return {...shown, ...more};
 }
 
-const lyrics = (text: string) =>
-  drawing(BUILT_IN_THEME_IDS.lyrics, {
+function lyrics(text: string) {
+  return drawing(BUILT_IN_THEME_IDS.lyrics, {
     content: {texts: {가사: text}, auto: {}},
   });
+}
 
 function setup(options: {readonly transparent?: boolean} = {}) {
   const parent = document.createElement('div');

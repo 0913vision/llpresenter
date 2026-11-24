@@ -339,7 +339,9 @@ function OutputMenu({
 }
 
 const noWarnings: readonly WarningScreen[] = [];
-const ignoreWarning = (): void => undefined;
+function ignoreWarning(): void {
+  return undefined;
+}
 
 function logProblem(notice: Notice): void {
   console.error('Menu bar action failed:', notice.key);

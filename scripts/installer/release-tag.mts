@@ -5,8 +5,9 @@ const tag = process.env.RELEASE_TAG ?? '';
 if (!/^v\d+\.\d+\.\d+$/u.test(tag)) {
   throw new Error('Expected an existing vMAJOR.MINOR.PATCH tag');
 }
-const git = (...args: string[]): string =>
-  execFileSync('git', args, {encoding: 'utf8'}).trim();
+function git(...args: string[]): string {
+  return execFileSync('git', args, {encoding: 'utf8'}).trim();
+}
 const commit = git('rev-parse', '--verify', `refs/tags/${tag}^{commit}`);
 if (commit !== git('rev-parse', 'HEAD')) {
   throw new Error('Checkout does not match the existing tag');

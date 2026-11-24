@@ -30,8 +30,11 @@ export function mediaBinToggle(): HTMLElement {
   );
 }
 
-export const mediaId = (index: number): MediaId =>
-  createMediaId(`00000000-0000-4000-8000-${String(index).padStart(12, '0')}`);
+export function mediaId(index: number): MediaId {
+  return createMediaId(
+    `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`,
+  );
+}
 
 export function mediaItem(
   index: number,
@@ -48,15 +51,17 @@ export function mediaItem(
   };
 }
 
-export const playlistId = (index: number) =>
-  createMediaPlaylistId(
+export function playlistId(index: number) {
+  return createMediaPlaylistId(
     `00000000-0000-4000-8000-${String(900 + index).padStart(12, '0')}`,
   );
+}
 
-export const audioPlaylistId = (index: number) =>
-  createAudioPlaylistId(
+export function audioPlaylistId(index: number) {
+  return createAudioPlaylistId(
     `00000000-0000-4000-8000-${String(950 + index).padStart(12, '0')}`,
   );
+}
 
 export function mediaDocument(
   items: readonly MediaItem[],

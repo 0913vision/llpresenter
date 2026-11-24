@@ -36,25 +36,31 @@ function timer(fields: object): Timer {
   return first;
 }
 
-const after = (ms: number): TimerNow => ({timer: TIMER + ms, wall: WALL + ms});
+function after(ms: number): TimerNow {
+  return {timer: TIMER + ms, wall: WALL + ms};
+}
 
-const running = (counted = 0, day = TODAY): TimerRun => ({
-  state: 'running',
-  since: TIMER,
-  countedMs: counted,
-  day,
-});
-const paused = (
+function running(counted = 0, day = TODAY): TimerRun {
+  return {
+    state: 'running',
+    since: TIMER,
+    countedMs: counted,
+    day,
+  };
+}
+function paused(
   wallAt: number,
   counted: number,
   day = TODAY,
-): Extract<TimerRun, {state: 'paused'}> => ({
-  state: 'paused',
-  at: TIMER,
-  countedMs: counted,
-  day,
-  wallAt,
-});
+): Extract<TimerRun, {state: 'paused'}> {
+  return {
+    state: 'paused',
+    at: TIMER,
+    countedMs: counted,
+    day,
+    wallAt,
+  };
+}
 
 describe('countedMs', () => {
   it('adds the running time to what was counted before', () => {

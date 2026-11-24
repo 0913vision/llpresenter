@@ -6,33 +6,37 @@ import {
   referenceKey,
 } from '@renderer/features/bible/reference/referenceKey';
 
-const key = (
+function key(
   name: string,
   more: Partial<ReferenceKeyEvent> = {},
-): ReferenceKeyEvent => ({
-  key: name,
-  code: name,
-  shift: false,
-  command: false,
-  repeat: false,
-  composing: false,
-  value: '',
-  ...more,
-});
-const state = (more: Partial<ReferenceKeyState> = {}): ReferenceKeyState => ({
-  dialogMode: false,
-  expanded: false,
-  escapes: false,
-  submissionDisabled: false,
-  highlightedBook: false,
-  highlighted: false,
-  pointed: -1,
-  suggestions: 0,
-  fields: EMPTY_REFERENCE,
-  enabled: {start: true, end: true},
-  error: false,
-  ...more,
-});
+): ReferenceKeyEvent {
+  return {
+    key: name,
+    code: name,
+    shift: false,
+    command: false,
+    repeat: false,
+    composing: false,
+    value: '',
+    ...more,
+  };
+}
+function state(more: Partial<ReferenceKeyState> = {}): ReferenceKeyState {
+  return {
+    dialogMode: false,
+    expanded: false,
+    escapes: false,
+    submissionDisabled: false,
+    highlightedBook: false,
+    highlighted: false,
+    pointed: -1,
+    suggestions: 0,
+    fields: EMPTY_REFERENCE,
+    enabled: {start: true, end: true},
+    error: false,
+    ...more,
+  };
+}
 
 describe('a key in the reference form', () => {
   it('moves on to 장 on Enter while the book list is open and 장 is empty', () => {

@@ -12,11 +12,13 @@ import {
 } from '@fixtures/main/displays/testing';
 import {numberMonitors} from '@main/displays/monitor';
 
-const identity = (serial: string, devicePath = serial): MonitorIdentity => ({
-  kind: 'windows',
-  devicePath,
-  edid: {manufacturer: 'DEL', product: '1234', serial},
-});
+function identity(serial: string, devicePath = serial): MonitorIdentity {
+  return {
+    kind: 'windows',
+    devicePath,
+    edid: {manufacturer: 'DEL', product: '1234', serial},
+  };
+}
 const left = {
   ...displayInfo({id: 2, x: 1920, name: 'Twin'}),
   identity: identity('LEFT'),

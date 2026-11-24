@@ -96,7 +96,9 @@ function problem(title: string): void {
   });
 }
 
-const view = () => useSongDraft.getState();
+function view() {
+  return useSongDraft.getState();
+}
 
 function show(
   song: Song,

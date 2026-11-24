@@ -2,10 +2,10 @@ import {expect, it} from 'vitest';
 import {lastBackupText} from '@renderer/features/preferences/lastBackupText';
 
 const now = new Date(2026, 10, 2, 15, 30);
-const at = (month: number, day: number, time: string) => {
+function at(month: number, day: number, time: string) {
   const [hour = 0, minute = 0] = time.split(':').map(Number);
   return new Date(2026, month, day, hour, minute).getTime();
-};
+}
 
 it('writes 없음 when there is no backup', () => {
   expect(lastBackupText(null, now)).toBe('없음');

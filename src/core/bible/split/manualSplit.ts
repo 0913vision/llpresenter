@@ -7,25 +7,29 @@ import {
 import {layoutText, type SplitLayout} from './layout';
 
 /** One space between words; line breaks become spaces. */
-export const normalizeVerse = (text: string): string =>
-  text.trim().replace(/\s+/g, ' ');
+export function normalizeVerse(text: string): string {
+  return text.trim().replace(/\s+/g, ' ');
+}
 /** One space between words, with the line breaks that were typed kept. */
-export const tidyVerse = (text: string): string =>
-  text
+export function tidyVerse(text: string): string {
+  return text
     .trim()
     .replace(/[^\S\n]+/g, ' ')
     .replace(/ ?\n ?/g, '\n');
+}
 /** The words of a verse after normalizing it. */
-export const wordsOf = (text: string): readonly Token[] =>
-  tokenize(normalizeVerse(text));
+export function wordsOf(text: string): readonly Token[] {
+  return tokenize(normalizeVerse(text));
+}
 /** Keeps only whole word gaps inside the verse, without repeats, in order. */
-export const normalizeCuts = (
+export function normalizeCuts(
   cuts: readonly number[],
   wordCount: number,
-): readonly number[] =>
-  [...new Set(cuts)]
+): readonly number[] {
+  return [...new Set(cuts)]
     .filter(j => Number.isInteger(j) && j >= 1 && j < wordCount)
     .sort((a, b) => a - b);
+}
 
 type PlanLayout = SplitLayout & {readonly prefix?: string};
 

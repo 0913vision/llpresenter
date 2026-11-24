@@ -17,10 +17,11 @@ afterEach(() => {
   delete window.llp;
 });
 
-const selectedIds = (): Array<string | null> =>
-  screen
+function selectedIds(): Array<string | null> {
+  return screen
     .getAllByRole('option', {selected: true})
     .map(row => row.getAttribute('data-value'));
+}
 
 describe('service order clipboard commands', () => {
   it('waits for an in-flight copy when paste follows before the source read completes', async () => {

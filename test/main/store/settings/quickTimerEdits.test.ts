@@ -10,15 +10,18 @@ import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {prepareQuickTimerEdit} from '@main/store/settings/quickTimerEdits';
 import {MAX_TIMER_DEFINITIONS} from '@core/schema/tools/timers';
 
-const id = (n: number): string =>
-  `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
-const create = (n = 1) => ({
-  type: 'quick.timer.create',
-  name: 'quick',
-  quickItemId: id(n),
-  timerId: id(n + 100),
-  duration: 90,
-});
+function id(n: number): string {
+  return `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
+}
+function create(n = 1) {
+  return {
+    type: 'quick.timer.create',
+    name: 'quick',
+    quickItemId: id(n),
+    timerId: id(n + 100),
+    duration: 90,
+  };
+}
 const rename = {
   type: 'quick.timer.rename',
   name: 'quick',

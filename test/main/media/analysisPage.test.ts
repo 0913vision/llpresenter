@@ -61,7 +61,9 @@ beforeEach(() => {
   mocks.blockNavigation.mockReset();
 });
 
-const signal = (): AbortSignal => new AbortController().signal;
+function signal(): AbortSignal {
+  return new AbortController().signal;
+}
 
 const JOB = {
   url: 'llp-media://analysis/invented',

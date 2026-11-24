@@ -4,8 +4,9 @@ const originalArgs = process.argv;
 const notes =
   'Install KoPub before the first run: https://www.kopus.org/biz-electronic-font2/';
 const request = vi.fn<typeof fetch>();
-const draft = (body: string | null = null): Response =>
-  Response.json([{tag_name: 'v1.2.3', id: 42, draft: true, body}]);
+function draft(body: string | null = null): Response {
+  return Response.json([{tag_name: 'v1.2.3', id: 42, draft: true, body}]);
+}
 
 beforeEach(() => {
   vi.resetModules();

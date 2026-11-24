@@ -30,7 +30,9 @@ const PRESET: Readonly<Record<string, string>> = {
   gray: '808080',
   silver: 'c0c0c0',
 };
-const clamp = (value: number) => Math.max(0, Math.min(1, value));
+function clamp(value: number) {
+  return Math.max(0, Math.min(1, value));
+}
 
 function hexColor(value: string): PowerPointColor {
   if (!/^[a-f\d]{6}$/i.test(value)) return BLACK;

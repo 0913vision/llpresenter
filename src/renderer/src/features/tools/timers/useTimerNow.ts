@@ -4,7 +4,9 @@ import type {TimerNow} from '@core/timers';
 import {MainTimerClock} from '@renderer/rendering/screen/mainTimerClock';
 
 const TIMER_TICK_MS = 250;
-const noSubscription = () => () => undefined;
+function noSubscription() {
+  return () => undefined;
+}
 
 class TimerClock {
   private clock: MainTimerClock | null = null;

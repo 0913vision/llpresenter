@@ -12,7 +12,9 @@ const LOADING: LabelCatalogState = {
   status: 'loading',
   busy: false,
 };
-const nothing = (): (() => void) => () => undefined;
+function nothing(): () => void {
+  return () => undefined;
+}
 
 /** The label catalog of the window, or null where none is provided. */
 export function useLabelCatalog(): LabelCatalog | null {

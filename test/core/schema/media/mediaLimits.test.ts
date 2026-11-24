@@ -6,8 +6,9 @@ import {
   parseMediaImportResult,
 } from '@core/schema/media/mediaEdit';
 
-const uuid = (index: number) =>
-  `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
+function uuid(index: number) {
+  return `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
+}
 const empty = {
   format: 'llmedia',
   schemaVersion: 1,

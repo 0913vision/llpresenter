@@ -22,12 +22,18 @@ export type TimerConfiguration =
   | {readonly kind: 'clock'};
 
 /** Why a date text is not valid, or undefined when it is. */
-export const timerDateReason = (date: string): string | undefined =>
-  checkPart(calendarDate, date).ok ? undefined : '날짜 형식이 맞지 않습니다.';
+export function timerDateReason(date: string): string | undefined {
+  return checkPart(calendarDate, date).ok
+    ? undefined
+    : '날짜 형식이 맞지 않습니다.';
+}
 
 /** Why a time of day text is not valid, or undefined when it is. */
-export const timerTimeReason = (time: string): string | undefined =>
-  checkPart(timeOfDay, time).ok ? undefined : '시각 형식이 맞지 않습니다.';
+export function timerTimeReason(time: string): string | undefined {
+  return checkPart(timeOfDay, time).ok
+    ? undefined
+    : '시각 형식이 맞지 않습니다.';
+}
 
 /**
  * Whether the settings can be saved: a valid date and time, or a length or

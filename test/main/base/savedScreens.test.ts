@@ -3,8 +3,9 @@ import {LIVE_STATE_LIMITS} from '@core/schema/live/liveLimits';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {savedScreens, switchableScreens} from '@main/base/savedScreens';
 
-const uuid = (n: number) =>
-  `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
+function uuid(n: number) {
+  return `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
+}
 
 function readerOf(screens: readonly object[]) {
   const document = settingsDocument('screens', {screens});

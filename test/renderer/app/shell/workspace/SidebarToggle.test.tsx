@@ -53,9 +53,15 @@ function Harness({
   );
 }
 
-const serviceOrder = () => screen.queryByRole('region', {name: '예배 순서'});
-const collapseButton = () => screen.queryByRole('button', {name: COLLAPSE});
-const expandButton = () => screen.queryByRole('button', {name: EXPAND});
+function serviceOrder() {
+  return screen.queryByRole('region', {name: '예배 순서'});
+}
+function collapseButton() {
+  return screen.queryByRole('button', {name: COLLAPSE});
+}
+function expandButton() {
+  return screen.queryByRole('button', {name: EXPAND});
+}
 
 beforeEach(() => {
   seedSampleService();

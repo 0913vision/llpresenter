@@ -20,8 +20,9 @@ const PASSAGE = {
   translationName: false,
 };
 
-const itemId = (number: number) =>
-  `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`;
+function itemId(number: number) {
+  return `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`;
+}
 
 /** One item of each kind. */
 const ITEMS: readonly object[] = [
@@ -87,7 +88,9 @@ function template(order: readonly object[] = ITEMS) {
   return {...rest, time: '11:00'};
 }
 
-const parse = (data: unknown) => parseService(JSON.stringify(data), FILE);
+function parse(data: unknown) {
+  return parseService(JSON.stringify(data), FILE);
+}
 
 describe('a service file', () => {
   it('reads and writes an item of every kind', () => {

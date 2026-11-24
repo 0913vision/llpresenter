@@ -3,8 +3,9 @@ import {parseMediaList} from '@core/schema/media/mediaList';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {audioTracks} from '@core/media/audioTracks';
 
-const id = (number: number) =>
-  `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`;
+function id(number: number) {
+  return `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`;
+}
 
 it('keeps repeated and missing tracks at their playlist positions', () => {
   const {data} = expectSuccess(

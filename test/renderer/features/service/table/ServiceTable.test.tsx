@@ -14,21 +14,23 @@ import {
 
 const SONG = itemId(2);
 
-const order = (song: object = {}): readonly ServiceItem[] => [
-  {id: itemId(1), kind: 'header', name: '찬양'},
-  {
-    id: SONG,
-    kind: 'song',
-    name: '새 노래',
-    slides: [
-      slideOf(1, 'songTitle', {texts: {제목: '새 노래'}}),
-      lyricsSlide(2, '첫 줄'),
-      lyricsSlide(3, '둘째 줄'),
-    ],
-    ...song,
-  },
-  {id: itemId(3), kind: 'blank', name: '빈 슬라이드', slides: []},
-];
+function order(song: object = {}): readonly ServiceItem[] {
+  return [
+    {id: itemId(1), kind: 'header', name: '찬양'},
+    {
+      id: SONG,
+      kind: 'song',
+      name: '새 노래',
+      slides: [
+        slideOf(1, 'songTitle', {texts: {제목: '새 노래'}}),
+        lyricsSlide(2, '첫 줄'),
+        lyricsSlide(3, '둘째 줄'),
+      ],
+      ...song,
+    },
+    {id: itemId(3), kind: 'blank', name: '빈 슬라이드', slides: []},
+  ];
+}
 
 function setup(song: object = {}, readOnly = false) {
   const service = openServiceFixture(order(song), {readOnly});
@@ -40,7 +42,9 @@ function setup(song: object = {}, readOnly = false) {
   };
 }
 
-const row = (name: RegExp) => screen.getByRole('option', {name});
+function row(name: RegExp) {
+  return screen.getByRole('option', {name});
+}
 
 beforeEach(() => {
   HTMLElement.prototype.scrollIntoView = vi.fn();

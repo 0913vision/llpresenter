@@ -83,18 +83,20 @@ vi.mock('@main/outputs/monitors/numberWindow', () => ({
 export const STAGE_SCREEN = '00000000-0000-4000-8000-0000000000e3';
 export const projector = displayInfo({id: 2, x: 1920});
 export const stage = displayInfo({id: 3, x: 3840});
-export const savedDisplay = ({
+export function savedDisplay({
   id,
   name,
   bounds,
   scaleFactor,
-}: typeof projector) => ({
-  id,
-  name,
-  bounds,
-  scaleFactor,
-  number: id,
-});
+}: typeof projector) {
+  return {
+    id,
+    name,
+    bounds,
+    scaleFactor,
+    number: id,
+  };
+}
 export const main = {
   id: MAIN,
   name: 'Main',

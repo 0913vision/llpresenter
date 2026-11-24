@@ -2,8 +2,9 @@ import {expect, it} from 'vitest';
 import * as v from 'valibot';
 import {itemOverlaySchema} from '@core/schema/services/itemOverlays';
 
-const uuid = (n: number) =>
-  `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
+function uuid(n: number) {
+  return `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
+}
 const overlay = {
   id: uuid(1),
   name: 'Example',

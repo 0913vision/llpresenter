@@ -25,8 +25,9 @@ import {duplicateTimer} from '@renderer/features/tools/timers/timerEdits';
 import {MAX_TIMER_DEFINITIONS} from '@core/schema/tools/timers';
 import {MACRO_FILE_LIMITS} from '@core/schema/tools/macros';
 
-const uuid = (kind: number, n: number): string =>
-  `${String(kind).padStart(8, '0')}-0000-4000-8000-${String(n).padStart(12, '0')}`;
+function uuid(kind: number, n: number): string {
+  return `${String(kind).padStart(8, '0')}-0000-4000-8000-${String(n).padStart(12, '0')}`;
+}
 function collectionId(n: number) {
   const parsed = parseMacroCollectionId(uuid(6, n));
   if (!parsed.ok) throw new Error('Invalid collection id');

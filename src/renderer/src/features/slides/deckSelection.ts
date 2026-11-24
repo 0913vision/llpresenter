@@ -40,8 +40,9 @@ interface Deck {
   readonly slides: readonly Slide[];
 }
 
-const idsOf = (deck: Deck): readonly SlideId[] =>
-  deck.slides.map(slide => slide.id);
+function idsOf(deck: Deck): readonly SlideId[] {
+  return deck.slides.map(slide => slide.id);
+}
 
 /** The selection of a deck: its first slide until something is selected. */
 function selectionIn(deck: Deck, view: View): DeckSelection {

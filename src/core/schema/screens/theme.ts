@@ -68,8 +68,9 @@ export const slidePurposes = [
 /** One of `slidePurposes`. */
 export type SlidePurpose = (typeof slidePurposes)[number];
 
-const range = (min: number, max: number) =>
-  v.pipe(v.number(), v.finite(), v.minValue(min), v.maxValue(max));
+function range(min: number, max: number) {
+  return v.pipe(v.number(), v.finite(), v.minValue(min), v.maxValue(max));
+}
 
 const frameSchema = jsonObject({
   x: finiteNumber,

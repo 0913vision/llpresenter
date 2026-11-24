@@ -3,7 +3,9 @@ import {describe, expect, it} from 'vitest';
 import {paletteHex} from '@core/labels/colors';
 import {labelInk} from '@renderer/ui/labels/labelInk';
 
-const read = (path: string): string => readFileSync(path, 'utf8');
+function read(path: string): string {
+  return readFileSync(path, 'utf8');
+}
 const TOKEN_CSS_PATHS = [
   'src/renderer/src/styles/tokens.css',
   'design/system/project/tokens.css',

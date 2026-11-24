@@ -14,13 +14,17 @@ import {
 import type {SlideMaking} from './make';
 import {serviceTitle} from './titles';
 
-const itemId = (): ServiceItemId => createServiceItemId(crypto.randomUUID());
+function itemId(): ServiceItemId {
+  return createServiceItemId(crypto.randomUUID());
+}
 
-const header = (name: string): ServiceItem => ({
-  id: itemId(),
-  kind: 'header',
-  name,
-});
+function header(name: string): ServiceItem {
+  return {
+    id: itemId(),
+    kind: 'header',
+    name,
+  };
+}
 
 /** The order of a Sunday service of the church, ready to be filled in. */
 export function sundayTemplate(): Template {

@@ -10,12 +10,14 @@ import {SLIDE_LIMITS} from '@core/schema/slides/slide';
 import {lyricsSlide} from '@fixtures/core/slides';
 
 const SONG = createSongId('10000000-0000-4000-8000-000000000001');
-const tile = (number = 1) => ({
-  slide: lyricsSlide(number, 'Invented lyric'),
-  auto: {이름표: '1절'},
-  caption: '1절',
-  labelColor: '#5FB8C2',
-});
+function tile(number = 1) {
+  return {
+    slide: lyricsSlide(number, 'Invented lyric'),
+    auto: {이름표: '1절'},
+    caption: '1절',
+    labelColor: '#5FB8C2',
+  };
+}
 
 function service(more: object = {}) {
   return {

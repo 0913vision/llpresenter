@@ -8,9 +8,12 @@ import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {countServiceItemUses} from '@renderer/features/service/serviceItemUsage';
 
 const macro = '00000000-0000-4000-8000-000000000001';
-const matches = (item: ServiceItem) => 'macro' in item && item.macro === macro;
-const serviceId = (index: number) =>
-  `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
+function matches(item: ServiceItem) {
+  return 'macro' in item && item.macro === macro;
+}
+function serviceId(index: number) {
+  return `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
+}
 function entries(count: number) {
   const parsedEntries = parseServiceEntries(
     Array.from({length: count}, (_, i) => ({

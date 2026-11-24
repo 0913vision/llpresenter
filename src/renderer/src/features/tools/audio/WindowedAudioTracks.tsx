@@ -7,9 +7,12 @@ import styles from './WindowedAudioTracks.module.css';
 
 const INITIAL_ROWS = 12;
 const OVERSCAN = 3;
-const rowHeight = (list: HTMLElement): number =>
-  list.querySelector<HTMLElement>('[data-audio-row]')?.getBoundingClientRect()
-    .height ?? 0;
+function rowHeight(list: HTMLElement): number {
+  return (
+    list.querySelector<HTMLElement>('[data-audio-row]')?.getBoundingClientRect()
+      .height ?? 0
+  );
+}
 
 /** The tracks of an audio playlist, drawing only the rows in view. */
 export function WindowedAudioTracks({

@@ -15,8 +15,9 @@ export const STILL_WATER: MediaLayer = {
   startedAt: Date.now(),
 };
 
-export const urlOf = (mediaId: string): string =>
-  `https://media.test/${mediaId}.mp4`;
+export function urlOf(mediaId: string): string {
+  return `https://media.test/${mediaId}.mp4`;
+}
 
 let playSpy: {mock: {contexts: unknown[]}} | undefined;
 let readyState: number = HTMLMediaElement.HAVE_ENOUGH_DATA;

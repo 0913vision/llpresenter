@@ -71,7 +71,9 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-const noExtra = (): number => 0;
+function noExtra(): number {
+  return 0;
+}
 interface WorkspaceStyle extends CSSProperties {
   readonly '--preview-reserve': string;
 }

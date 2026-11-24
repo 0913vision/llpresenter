@@ -11,15 +11,17 @@ import {
   type MenuAvailability,
 } from '@renderer/ui/menus/menuModel';
 
-const item = (
+function item(
   label: string,
   extra: Partial<Omit<MenuItem, 'disabled' | 'title'>> & MenuAvailability = {},
-): MenuItem => ({
-  kind: 'item',
-  id: label,
-  label,
-  ...extra,
-});
+): MenuItem {
+  return {
+    kind: 'item',
+    id: label,
+    label,
+    ...extra,
+  };
+}
 
 it('requires a tooltip reason for disabled menu rows, including dynamic flags', () => {
   interface Row {

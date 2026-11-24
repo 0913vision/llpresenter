@@ -5,8 +5,9 @@ import type {TextImportDraft} from '@core/schema/songs/textImport';
  * The key that matches an imported header to a label name, ignoring case and
  * outer spaces.
  */
-export const importHeaderKey = (name: string): string =>
-  name.trim().toLowerCase();
+export function importHeaderKey(name: string): string {
+  return name.trim().toLowerCase();
+}
 
 /**
  * The label whose name equals the imported header, or undefined when none does.
@@ -20,8 +21,9 @@ export function matchingImportLabel(
   );
 }
 
-const englishKey = (name: string): string =>
-  importHeaderKey(name).replace(/[\s-]/gu, '');
+function englishKey(name: string): string {
+  return importHeaderKey(name).replace(/[\s-]/gu, '');
+}
 
 const ENGLISH_LABELS: ReadonlyArray<readonly [string, string]> = [
   ['intro', '전주'],

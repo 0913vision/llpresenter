@@ -22,18 +22,21 @@ const media: readonly MediaItem[] = [
   {id: VIDEO, name: '특송 반주', kind: 'video', file: 'invented.mp4', size: 1},
 ];
 
-const overlayId = (number: number) =>
-  createItemOverlayId(
+function overlayId(number: number) {
+  return createItemOverlayId(
     `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`,
   );
-const clip = (number: number, from: number, to: number): PlacedOverlay => ({
-  id: overlayId(number),
-  name: `오버레이 ${number}`,
-  from,
-  to,
-  screens: [THEME_MAIN],
-  content: {text: `글 ${number}`},
-});
+}
+function clip(number: number, from: number, to: number): PlacedOverlay {
+  return {
+    id: overlayId(number),
+    name: `오버레이 ${number}`,
+    from,
+    to,
+    screens: [THEME_MAIN],
+    content: {text: `글 ${number}`},
+  };
+}
 
 /** Six slides in two rows of three, each 100 wide and 60 high. */
 function layOut(): void {
@@ -98,7 +101,9 @@ function setup(
   };
 }
 
-const bars = () => screen.getAllByRole('button', {name: /슬라이드 \d부터/u});
+function bars() {
+  return screen.getAllByRole('button', {name: /슬라이드 \d부터/u});
+}
 
 beforeEach(layOut);
 

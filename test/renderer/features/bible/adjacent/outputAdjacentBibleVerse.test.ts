@@ -37,10 +37,10 @@ function goLive(itemId: string, index: number): void {
   );
 }
 
-const open = () => {
+function open() {
   const view = useShow.getState();
   return bibleSourceFor(view, view.openItemId);
-};
+}
 
 beforeEach(() => {
   seedSampleService();

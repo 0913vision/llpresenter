@@ -15,11 +15,13 @@ function deferred<T>() {
   return {promise, resolve, reject};
 }
 
-const write = (promise: Promise<boolean>) => ({
-  write: () => promise,
-  refused: false,
-  sent: (sent: boolean) => sent,
-});
+function write(promise: Promise<boolean>) {
+  return {
+    write: () => promise,
+    refused: false,
+    sent: (sent: boolean) => sent,
+  };
+}
 
 describe('pending writes', () => {
   it('lets each draft ask in turn before writing stops and ends at a cancel', async () => {

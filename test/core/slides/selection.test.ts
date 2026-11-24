@@ -14,7 +14,9 @@ function actions(...actions: ReadonlyArray<SlideSelectionAction<string>>) {
     emptySlideSelection<string>(),
   );
 }
-const selected = (state: SlideListSelection<string>) => [...state.ids];
+function selected(state: SlideListSelection<string>) {
+  return [...state.ids];
+}
 
 describe('slide list selection', () => {
   it('clicks one slide, toggles independent slides, and remembers the last focus', () => {

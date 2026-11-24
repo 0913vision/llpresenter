@@ -13,8 +13,11 @@ import {themeFor, themeOfSlide} from '@core/theme/themes';
 import {themes} from '@fixtures/core/themeOutput';
 
 const LYRICS = BUILT_IN_THEME_IDS.lyrics;
-const own = (number: number) =>
-  createThemeId(`70000000-0000-4000-8000-${String(number).padStart(12, '0')}`);
+function own(number: number) {
+  return createThemeId(
+    `70000000-0000-4000-8000-${String(number).padStart(12, '0')}`,
+  );
+}
 
 function edited(list: Themes, edit: ThemeListEdit): Themes {
   const result = editThemeList(list, edit);

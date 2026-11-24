@@ -33,11 +33,14 @@ afterEach(() => {
   delete window.llp;
 });
 
-const tabNames = (): readonly string[] =>
-  within(screen.getByRole('tablist'))
+function tabNames(): readonly string[] {
+  return within(screen.getByRole('tablist'))
     .getAllByRole('tab')
     .map(tab => tab.textContent);
-const stageReady = () => waitFor(() => expect(fixture.count()).toBe(2));
+}
+function stageReady() {
+  return waitFor(() => expect(fixture.count()).toBe(2));
+}
 
 it.each([
   ['normal', ['오디오', '무대', '타이머', '메시지'], ['그래픽', '매크로']],

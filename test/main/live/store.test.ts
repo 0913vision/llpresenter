@@ -21,8 +21,9 @@ import {contentSlice} from '@main/live/slices/content';
 import {LiveStore, dispatchBatched, dispatchLogged} from '@main/live/store';
 import {MAIN_SCREEN} from '@fixtures/core/screenIds';
 
-const uuid = (index: number) =>
-  `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
+function uuid(index: number) {
+  return `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
+}
 
 const overflowingOutputs = Object.fromEntries(
   Array.from({length: LIVE_STATE_LIMITS.outputs + 1}, (_, i) => [

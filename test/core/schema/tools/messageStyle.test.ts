@@ -14,8 +14,9 @@ const file = {
   templates: [],
 };
 
-const parse = (value: unknown) =>
-  parseMessages(JSON.stringify(value), 'messages');
+function parse(value: unknown) {
+  return parseMessages(JSON.stringify(value), 'messages');
+}
 
 it('reads a messages file that has no styles', () => {
   const loaded = expectSuccess(parse(file)).data;

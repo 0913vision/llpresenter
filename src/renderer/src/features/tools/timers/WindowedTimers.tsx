@@ -9,9 +9,12 @@ import styles from './TimerTab.module.css';
 
 const INITIAL_ROWS = 4;
 const OVERSCAN = 2;
-const rowHeight = (list: HTMLElement): number =>
-  list.querySelector<HTMLElement>('[data-timer-row]')?.getBoundingClientRect()
-    .height ?? 0;
+function rowHeight(list: HTMLElement): number {
+  return (
+    list.querySelector<HTMLElement>('[data-timer-row]')?.getBoundingClientRect()
+      .height ?? 0
+  );
+}
 
 /** The part of a timer row that takes the focus. */
 function focusTarget(row: HTMLElement): HTMLElement {

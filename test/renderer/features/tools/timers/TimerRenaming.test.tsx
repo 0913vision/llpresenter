@@ -23,13 +23,13 @@ afterEach(() => {
 });
 const id = '00000000-0000-4000-8000-000000000001';
 const timer = {id, name: '기존', kind: 'countdown', duration: 90};
-const setup = (readOnly = false) => {
+function setup(readOnly = false) {
   const f = stageFixture();
   const d = settingsDocument('timers', {timers: [timer]});
   f.documents.set('timers', readOnly ? {...d, access: 'readOnly'} : d);
   return f;
-};
-const open = async () => {
+}
+async function open() {
   const contextTarget = await screen.findByRole('group', {name: '기존'});
   fireEvent.contextMenu(contextTarget, {
     clientX: 50,
@@ -37,7 +37,7 @@ const open = async () => {
   });
   expect(contextTarget.hasAttribute('data-menu-target')).toBe(true);
   fireEvent.click(await screen.findByRole('menuitem', {name: '이름 바꾸기'}));
-};
+}
 
 it('renames by ID, retains an unsaved draft and keeps the current run unchanged', async () => {
   const f = setup();

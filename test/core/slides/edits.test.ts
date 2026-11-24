@@ -12,8 +12,9 @@ import type {Slide} from '@core/schema/slides/slide';
 import {lyricsSlide, slideId} from '@fixtures/core/slides';
 
 const slides = [1, 2, 3, 4].map(number => lyricsSlide(number, `${number}`));
-const lyrics = (list: readonly Slide[]) =>
-  list.map(slide => slide.texts['가사']).join('');
+function lyrics(list: readonly Slide[]) {
+  return list.map(slide => slide.texts['가사']).join('');
+}
 
 describe('slide edits', () => {
   it('moves slides together to a gap of the list', () => {

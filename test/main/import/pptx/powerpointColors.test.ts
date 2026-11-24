@@ -18,7 +18,7 @@ const theme = element(
   '<a:theme><a:clrScheme><a:dk1><a:sysClr lastClr="000000"/></a:dk1><a:lt1><a:srgbClr val="ffffff"/></a:lt1><a:accent1><a:srgbClr val="4472c4"/></a:accent1></a:clrScheme></a:theme>',
 );
 const palette = paletteOf([], theme);
-const hex = (xml: string, colors = palette) => {
+function hex(xml: string, colors = palette) {
   const {r, g, b} = resolveColor(element(xml), colors);
   return [r, g, b]
     .map(channel =>
@@ -27,7 +27,7 @@ const hex = (xml: string, colors = palette) => {
         .padStart(2, '0'),
     )
     .join('');
-};
+}
 
 it.each([
   ['<a:srgbClr val="12AB34"/>', '12ab34'],

@@ -14,8 +14,11 @@ import type {Analysis, AnalysisRequest} from '@main/media/mediaAnalyser';
 import type {BundledPicture} from '@main/store/pictures/bundledPicture';
 import {Thumbnails, type ThumbnailSource} from '@main/media/thumbnails';
 
-const mediaId = (index: number): MediaId =>
-  createMediaId(`00000000-0000-4000-8000-${String(index).padStart(12, '0')}`);
+function mediaId(index: number): MediaId {
+  return createMediaId(
+    `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`,
+  );
+}
 
 const VIDEO = mediaId(1);
 const SONG = mediaId(2);

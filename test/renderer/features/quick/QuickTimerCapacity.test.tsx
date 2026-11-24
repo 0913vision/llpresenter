@@ -26,8 +26,8 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 const target = quickId(104);
-const fullRuns = () =>
-  Object.fromEntries(
+function fullRuns() {
+  return Object.fromEntries(
     Array.from({length: MAX_LIVE_TIMERS}, (_, n) => [
       quickId(n + 1000),
       {
@@ -38,12 +38,14 @@ const fullRuns = () =>
       },
     ]),
   );
-const setRuns = (timers: object) =>
+}
+function setRuns(timers: object) {
   act(() =>
     useLive.setState({
       state: expectSuccess(parseLiveState({...emptyLiveState(), timers})),
     }),
   );
+}
 async function setup() {
   const f = quickFixture();
   const d = quickDocument();

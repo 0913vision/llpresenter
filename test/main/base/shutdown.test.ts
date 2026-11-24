@@ -66,7 +66,9 @@ function deferred(): {promise: Promise<void>; resolve: () => void} {
   return {promise, resolve};
 }
 
-const never = (): Promise<void> => new Promise<void>(() => undefined);
+function never(): Promise<void> {
+  return new Promise<void>(() => undefined);
+}
 const saved = {savePending: (): Promise<boolean> => Promise.resolve(true)};
 
 describe('ShutdownCoordinator', () => {

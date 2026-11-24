@@ -10,7 +10,9 @@ import {useShow} from '@renderer/session/show/showStore';
 
 /** The digits typed so far for a slide number, empty when none. */
 export const useNumberJump = create<{value: string}>(() => ({value: ''}));
-const clear = (): void => useNumberJump.setState({value: ''});
+function clear(): void {
+  useNumberJump.setState({value: ''});
+}
 
 function textEntry(target: EventTarget | null): boolean {
   if (

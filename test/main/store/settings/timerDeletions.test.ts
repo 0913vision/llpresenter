@@ -9,8 +9,9 @@ import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {createTimerId} from '@core/schema/common/ids';
 import {prepareTimerDeletion} from '@main/store/settings/timerDeletions';
 
-const id = (n: number) =>
-  `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
+function id(n: number) {
+  return `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
+}
 const TARGET = createTimerId(id(1));
 const KEEP = createTimerId(id(2));
 const deletion = {type: 'timer.delete', name: 'timers', timerId: TARGET};

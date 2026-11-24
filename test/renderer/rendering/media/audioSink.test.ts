@@ -37,7 +37,9 @@ function sinkable() {
   return {element, setSinkId};
 }
 
-const settle = () => new Promise<void>(resolve => setTimeout(resolve, 0));
+function settle() {
+  return new Promise<void>(resolve => setTimeout(resolve, 0));
+}
 
 describe('applySink', () => {
   it('leaves a new element on the Windows default without a call', () => {

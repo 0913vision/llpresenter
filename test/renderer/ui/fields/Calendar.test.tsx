@@ -51,11 +51,15 @@ function Field({
   );
 }
 
-const opener = (): HTMLElement => screen.getByRole('button', {name: '날짜'});
-const popup = (): HTMLElement =>
-  screen.getByRole('dialog', {name: '날짜 선택'});
-const activeLabel = (): string | null =>
-  document.activeElement?.getAttribute('aria-label') ?? null;
+function opener(): HTMLElement {
+  return screen.getByRole('button', {name: '날짜'});
+}
+function popup(): HTMLElement {
+  return screen.getByRole('dialog', {name: '날짜 선택'});
+}
+function activeLabel(): string | null {
+  return document.activeElement?.getAttribute('aria-label') ?? null;
+}
 
 describe('calendar date field', () => {
   it('works out today itself across midnight and keeps the chosen date', async () => {

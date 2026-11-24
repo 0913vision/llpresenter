@@ -18,12 +18,16 @@ import {
 } from '@renderer/features/songs/songDraftModel';
 import {song} from '@fixtures/core/songs/blockFixtures';
 
-const titled = (base: Song, title: string): Song => ({...base, title});
-const fileOf = (value: Song): SongDocument => ({
-  song: value,
-  revision: 1,
-  access: 'editable',
-});
+function titled(base: Song, title: string): Song {
+  return {...base, title};
+}
+function fileOf(value: Song): SongDocument {
+  return {
+    song: value,
+    revision: 1,
+    access: 'editable',
+  };
+}
 const other: LibrarySong = {
   id: createSongId('0b5f7a36-2c41-4d7e-9a8b-1c2d3e4f5a6b'),
   title: '다른 곡',

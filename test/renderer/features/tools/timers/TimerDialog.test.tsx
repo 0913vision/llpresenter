@@ -13,20 +13,21 @@ afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
 });
-const change = (label: string, value: string) =>
-  fireEvent.change(screen.getByRole('textbox', {name: label}), {
+function change(label: string, value: string) {
+  return fireEvent.change(screen.getByRole('textbox', {name: label}), {
     target: {value},
   });
-const choose = (name: string) => {
+}
+function choose(name: string) {
   fireEvent.click(screen.getByRole('button', {name: '타이머 종류'}));
   fireEvent.click(screen.getByRole('menuitemradio', {name}));
-};
-const setup = (locked = false) => {
+}
+function setup(locked = false) {
   const save = vi.fn().mockResolvedValue(true);
   const close = vi.fn();
   render(<TimerDialog locked={locked} onSave={save} onClose={close} />);
   return {save, close};
-};
+}
 
 it('requires a positive countdown and saves its overrun choice', async () => {
   const f = setup();

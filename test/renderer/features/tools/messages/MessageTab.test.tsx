@@ -49,13 +49,15 @@ function messageFixture(templates: readonly object[] = [first, second]) {
   };
 }
 
-const sendButton = (): HTMLElement =>
-  screen.getByRole('button', {name: '보내기'});
-const preview = (): HTMLElement =>
-  screen.getByRole('status', {name: '메시지 미리보기'});
-const fill = (name: string, value: string): void => {
+function sendButton(): HTMLElement {
+  return screen.getByRole('button', {name: '보내기'});
+}
+function preview(): HTMLElement {
+  return screen.getByRole('status', {name: '메시지 미리보기'});
+}
+function fill(name: string, value: string): void {
   fireEvent.change(screen.getByRole('textbox', {name}), {target: {value}});
-};
+}
 async function ready(): Promise<void> {
   await screen.findByRole('button', {name: '청중 화면'});
   await screen.findByRole('option', {name: '차량 이동'});

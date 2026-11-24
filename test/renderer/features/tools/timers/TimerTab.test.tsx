@@ -21,11 +21,11 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 const id = '00000000-0000-4000-8000-000000000001';
-const fixture = (timers: readonly object[]) => {
+function fixture(timers: readonly object[]) {
   const f = stageFixture();
   f.documents.set('timers', settingsDocument('timers', {timers}));
   return f;
-};
+}
 const countdown = {id, name: '설교', kind: 'countdown', duration: 30};
 
 it('starts, pauses and resets one timer without commanding another', async () => {

@@ -4,14 +4,18 @@ import {parseSong, serializeSong} from '@core/schema/songs/song';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {lyricsSlide, slideOf} from '@fixtures/core/slides';
 
-const song = (slides: readonly object[] = [lyricsSlide(1, 'Invented')]) => ({
-  format: 'llsong',
-  schemaVersion: 1,
-  id: '00000000-0000-4000-8000-000000000100',
-  title: 'Invented song',
-  slides,
-});
-const parse = (data: unknown) => parseSong(JSON.stringify(data), 'song.llsong');
+function song(slides: readonly object[] = [lyricsSlide(1, 'Invented')]) {
+  return {
+    format: 'llsong',
+    schemaVersion: 1,
+    id: '00000000-0000-4000-8000-000000000100',
+    title: 'Invented song',
+    slides,
+  };
+}
+function parse(data: unknown) {
+  return parseSong(JSON.stringify(data), 'song.llsong');
+}
 
 function roundTrip(data: unknown): unknown {
   const {data: read} = expectSuccess(parse(data));

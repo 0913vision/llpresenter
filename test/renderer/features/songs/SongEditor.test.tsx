@@ -50,17 +50,20 @@ async function setup() {
   return fixture;
 }
 
-const draft = () => {
+function draft() {
   const {draft: open} = useSongDraft.getState();
   if (open === null) throw new Error('No song is open');
   return open;
-};
-const title = () =>
-  screen.getByRole<HTMLInputElement>('textbox', {name: '곡 제목'});
-const texts = () =>
-  draft().song.slides.map(slide => Object.values(slide.texts).join('/'));
-const cutShort = () =>
+}
+function title() {
+  return screen.getByRole<HTMLInputElement>('textbox', {name: '곡 제목'});
+}
+function texts() {
+  return draft().song.slides.map(slide => Object.values(slide.texts).join('/'));
+}
+function cutShort() {
   editSong(song => ({...song, slides: song.slides.slice(0, 1)}));
+}
 
 beforeEach(() => {
   useThemes.setState({themes: themes(), screens: themeScreens});

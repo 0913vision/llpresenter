@@ -13,8 +13,9 @@ import {settingsCodecs} from '@main/store/settings/settingsCodecs';
 import {SettingsStore} from '@main/store/settings/settingsStore';
 import {readMacroCatalog, type MacroCatalog} from '@main/macros/catalog';
 
-export const uuid = (number: number): string =>
-  `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`;
+export function uuid(number: number): string {
+  return `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`;
+}
 export const IDS = {
   main: uuid(1),
   stage: uuid(3),

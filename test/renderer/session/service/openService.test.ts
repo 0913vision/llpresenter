@@ -15,22 +15,25 @@ import {
   openServiceFixture,
 } from '@fixtures/renderer/session/openServiceFixture';
 
-const song = (number: number, text = '가사'): ServiceItem => ({
-  id: itemId(number),
-  kind: 'song',
-  name: `곡 ${number}`,
-  slides: [lyricsSlide(number, text)],
-});
+function song(number: number, text = '가사'): ServiceItem {
+  return {
+    id: itemId(number),
+    kind: 'song',
+    name: `곡 ${number}`,
+    slides: [lyricsSlide(number, text)],
+  };
+}
 
-const shown = () =>
-  useOpenService
+function shown() {
+  return useOpenService
     .getState()
     .service?.order.map(item => ('slides' in item ? item.slides : []))
     .flat()
     .map(slide => slide.texts['가사']);
+}
 
-const type = (number: number, text: string, key?: string) =>
-  editItemSlides(
+function type(number: number, text: string, key?: string) {
+  return editItemSlides(
     itemId(number),
     slides =>
       changeSlides(slides, new Set([slideId(number)]), slide =>
@@ -38,6 +41,7 @@ const type = (number: number, text: string, key?: string) =>
       ),
     key === undefined ? {} : {key},
   );
+}
 
 it('shows an edit at once and sends it', async () => {
   const service = openServiceFixture([song(1), song(2)]);

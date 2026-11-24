@@ -6,20 +6,22 @@ import {DEFAULT_THEMES} from './themeFiles';
 import {DEFAULT_LABELS} from './defaults';
 
 const {main: MAIN, broadcast: CAPTIONS, stage: STAGE} = STARTER_SCREEN_IDS;
-const screen = (
+function screen(
   id: string,
   name: string,
   {kind, method}: Pick<Screen, 'kind' | 'method'>,
-) => ({
-  id,
-  name,
-  kind,
-  method,
-  onDisconnect: 'window',
-  alwaysOnTop: false,
-  edgeMargin: 0,
-  offset: {x: 0, y: 0},
-});
+) {
+  return {
+    id,
+    name,
+    kind,
+    method,
+    onDisconnect: 'window',
+    alwaysOnTop: false,
+    edgeMargin: 0,
+    offset: {x: 0, y: 0},
+  };
+}
 /** Spec 02 starter files share IDs for their screen, style and layout references. */
 export const settingsDefaults: Readonly<Record<SettingsName, object>> = {
   themes: DEFAULT_THEMES,

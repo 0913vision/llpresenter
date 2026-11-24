@@ -34,22 +34,29 @@ const NO_TITLES: ReadonlyMap<string, string> = new Map();
 const NO_TEMPLATES: readonly TemplateEntry[] = [];
 const NO_SERVICES: readonly ServiceEntry[] = [];
 
-const readTemplates = (api: SourcesApi): Promise<readonly TemplateEntry[]> =>
-  api.templates.list();
-const readServices = (api: SourcesApi): Promise<readonly ServiceEntry[]> =>
-  api.services.list();
-const readSongTitles = async (
+function readTemplates(api: SourcesApi): Promise<readonly TemplateEntry[]> {
+  return api.templates.list();
+}
+function readServices(api: SourcesApi): Promise<readonly ServiceEntry[]> {
+  return api.services.list();
+}
+async function readSongTitles(
   api: SourcesApi,
-): Promise<ReadonlyMap<string, string>> =>
-  new Map((await api.songs.list()).map(song => [song.id, song.title]));
-const followTemplates = (
+): Promise<ReadonlyMap<string, string>> {
+  return new Map((await api.songs.list()).map(song => [song.id, song.title]));
+}
+function followTemplates(
   api: SourcesApi,
   listener: (entries: readonly TemplateEntry[]) => void,
-): Unsubscribe => api.templates.subscribeList(listener);
-const followServices = (
+): Unsubscribe {
+  return api.templates.subscribeList(listener);
+}
+function followServices(
   api: SourcesApi,
   listener: (entries: readonly ServiceEntry[]) => void,
-): Unsubscribe => api.services.subscribeList(listener);
+): Unsubscribe {
+  return api.services.subscribeList(listener);
+}
 
 /** A source as a list value, such as `template:<id>`. */
 export function sourceKey(source: ServiceSource): string {

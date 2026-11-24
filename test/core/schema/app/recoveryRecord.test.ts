@@ -19,8 +19,9 @@ import {
 } from '@fixtures/core/schema/testHelpers';
 
 const FILE = 'recovery/live.json';
-const uuid = (number: number) =>
-  `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`;
+function uuid(number: number) {
+  return `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`;
+}
 const savedAt = '2026-10-26T06:00:00+09:00';
 const now = Date.parse(savedAt);
 const codec = {parse: parseRecoveryRecord, serialize: serializeRecoveryRecord};

@@ -2,8 +2,9 @@ import {useRef, type JSX, type KeyboardEvent, type PointerEvent} from 'react';
 import type {HsvColor} from '@core/labels';
 import styles from './LabelColorPopover.module.css';
 
-const clamp = (value: number, max = 100): number =>
-  Math.max(0, Math.min(max, value));
+function clamp(value: number, max = 100): number {
+  return Math.max(0, Math.min(max, value));
+}
 
 /** Pointer and keyboard controls share one preview and release boundary. */
 interface ColorAreaProps {

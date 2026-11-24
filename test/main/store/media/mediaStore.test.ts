@@ -27,8 +27,9 @@ vi.mock('@main/store/media/mediaEdits', async importOriginal => {
   return {...actual, editMediaList: vi.fn(actual.editMediaList)};
 });
 
-const uuid = (index: number) =>
-  `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
+function uuid(index: number) {
+  return `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
+}
 const VIDEO = createMediaId(uuid(1));
 const AUDIO = createMediaId(uuid(2));
 const IMAGE = createMediaId(uuid(3));

@@ -6,10 +6,13 @@ import {TextField} from '@renderer/ui/fields/TextField';
 const SECONDS_PER_MINUTE = 60;
 const SECONDS_MAX = SECONDS_PER_MINUTE - 1;
 const MAX_MINUTES = Math.floor(MAX_TIMER_SECONDS / SECONDS_PER_MINUTE);
-const wholeNumber = (text: string, max: number): boolean =>
-  /^\d+$/u.test(text) &&
-  Number.isSafeInteger(Number(text)) &&
-  Number(text) <= max;
+function wholeNumber(text: string, max: number): boolean {
+  return (
+    /^\d+$/u.test(text) &&
+    Number.isSafeInteger(Number(text)) &&
+    Number(text) <= max
+  );
+}
 
 /**
  * Reads the minutes and seconds fields as a duration in seconds, or the reason

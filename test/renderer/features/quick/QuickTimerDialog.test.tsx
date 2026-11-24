@@ -18,8 +18,11 @@ afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
 });
-const fill = (name: string, value: string) =>
-  fireEvent.change(screen.getByRole('textbox', {name}), {target: {value}});
+function fill(name: string, value: string) {
+  return fireEvent.change(screen.getByRole('textbox', {name}), {
+    target: {value},
+  });
+}
 
 it('requires a positive whole duration and focuses minutes with inline errors', () => {
   const save = vi.fn<(edit: QuickEdit) => Promise<boolean>>();

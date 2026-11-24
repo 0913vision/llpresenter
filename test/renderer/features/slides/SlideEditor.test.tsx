@@ -24,11 +24,13 @@ beforeEach(() => {
   });
 });
 
-const song = () => [
-  slideOf(1, 'songTitle', {texts: {제목: '새 노래'}}),
-  lyricsSlide(2, '새 아침을 노래해요\n함께 걸어요'),
-  lyricsSlide(3, '빛을 따라가요'),
-];
+function song() {
+  return [
+    slideOf(1, 'songTitle', {texts: {제목: '새 노래'}}),
+    lyricsSlide(2, '새 아침을 노래해요\n함께 걸어요'),
+    lyricsSlide(3, '빛을 따라가요'),
+  ];
+}
 
 function surface(): HTMLElement {
   const found = document.querySelector<HTMLElement>('[data-slide-surface]');
@@ -58,10 +60,11 @@ async function openTab(name: string): Promise<void> {
   await userEvent.click(inspector().getByRole('tab', {name}));
 }
 
-const selected = () =>
-  [...document.querySelectorAll('[data-song-slide][aria-selected="true"]')].map(
-    node => Number(node.getAttribute('data-slide-index')),
-  );
+function selected() {
+  return [
+    ...document.querySelectorAll('[data-song-slide][aria-selected="true"]'),
+  ].map(node => Number(node.getAttribute('data-slide-index')));
+}
 
 function caretAt(input: HTMLTextAreaElement, at: number): void {
   act(() => {

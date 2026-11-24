@@ -144,13 +144,15 @@ const CLASS_PENALTY = {
   forward: PENALTY_FORWARD,
 };
 
-const syllables = (word: string) => Array.from(word.replace(/[^가-힣]+$/, ''));
+function syllables(word: string) {
+  return Array.from(word.replace(/[^가-힣]+$/, ''));
+}
 
 /**
  * Tells how the word ends: a sentence, a clause, a particle, a word that leans
  * forward, or something else.
  */
-export const classifyEnding = (word: string): keyof typeof CLASS_PENALTY => {
+export function classifyEnding(word: string): keyof typeof CLASS_PENALTY {
   if (SENTENCE_END_RE.test(word)) return 'final';
   if (FORWARD_RE.test(word)) return 'forward';
   if (PARTICLE_TAIL_RE.test(word)) return 'particle';
@@ -170,10 +172,10 @@ export const classifyEnding = (word: string): keyof typeof CLASS_PENALTY => {
   if (CLAUSE_LAST.has(last)) return 'clause';
   if (PARTICLE_LAST.has(last)) return 'particle';
   return 'other';
-};
+}
 
 /** Splits text into words at whitespace and keeps their offsets. */
-export const tokenize = (text: string): Token[] => {
+export function tokenize(text: string): Token[] {
   const tokens = [];
   const re = /\S+/g;
   let m = re.exec(text);
@@ -182,9 +184,9 @@ export const tokenize = (text: string): Token[] => {
     m = re.exec(text);
   }
   return tokens;
-};
+}
 
-const isParallel = (left: string, right: string) => {
+function isParallel(left: string, right: string) {
   const a = syllables(left);
   const b = syllables(right);
   return (
@@ -193,13 +195,13 @@ const isParallel = (left: string, right: string) => {
     a[a.length - 1] === b[b.length - 1] &&
     a[a.length - 2] === b[b.length - 2]
   );
-};
+}
 
 /**
  * How bad it is to cut between two words, from 0 to PENALTY_MAX; lower is a
  * better place.
  */
-export const boundaryPenalty = (left: string, right: string) => {
+export function boundaryPenalty(left: string, right: string) {
   let cls = classifyEnding(left);
   if (cls === 'final' && QUOTATIVE_NEXT_RE.test(right)) cls = 'clause';
   if (cls === 'particle' && isParallel(left, right)) cls = 'clause';
@@ -214,13 +216,13 @@ export const boundaryPenalty = (left: string, right: string) => {
     penalty += 25;
   }
   return Math.min(penalty, PENALTY_MAX);
-};
+}
 
 /** The Korean name of the kind of cut place a penalty stands for. */
-export const penaltyLabel = (p: number) => {
+export function penaltyLabel(p: number) {
   if (p <= PENALTY_SENTENCE + 4) return '문장끝';
   if (p <= PENALTY_CLAUSE + 6) return '절경계';
   if (p <= PENALTY_WORD + 5) return '어절';
   if (p <= PENALTY_PARTICLE + 5) return '조사뒤';
   return '약함';
-};
+}

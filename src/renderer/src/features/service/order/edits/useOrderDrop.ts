@@ -10,8 +10,9 @@ import {dropMediaInOrder} from './dropMediaInOrder';
 import type {useServiceItemSelection} from '../useServiceItemSelection';
 import {useServiceOrderDrag} from './useServiceOrderDrag';
 
-const itemIdOrEnd = (id: string | null) =>
-  id === null ? null : createServiceItemId(id);
+function itemIdOrEnd(id: string | null) {
+  return id === null ? null : createServiceItemId(id);
+}
 
 /**
  * What can be dragged onto the 예배 순서: its own rows, which move in 준비,

@@ -13,13 +13,15 @@ interface PreparedRename {
   readonly applied: EditSuccess;
 }
 
-const refuse = (
+function refuse(
   reason: 'not-found' | 'read-only' | 'invalid',
   message: string,
-): Result<PreparedRename, EditFailure> => ({
-  ok: false,
-  error: {reason, message},
-});
+): Result<PreparedRename, EditFailure> {
+  return {
+    ok: false,
+    error: {reason, message},
+  };
+}
 
 /**
  * Prepares the rename of a timer, with the 빠른 타이머 that uses it, or refuses it.

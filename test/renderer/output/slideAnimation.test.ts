@@ -38,10 +38,11 @@ function setup() {
   return {parent, old, next, view: new SlideAnimation()};
 }
 
-const shiftOf = (frame: Keyframe | undefined): number =>
-  Number.parseFloat(
+function shiftOf(frame: Keyframe | undefined): number {
+  return Number.parseFloat(
     String(frame?.['transform']).replace(/^translate[XY]\(/u, ''),
   );
+}
 
 it('shows a slide without a transition at once', () => {
   const {view, old, next} = setup();

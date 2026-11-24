@@ -47,7 +47,9 @@ function setup(width: number, height: number, uiState: UiState = {}) {
 
 const COLLAPSE = '사이드바 접기';
 const EXPAND = '사이드바 펼치기';
-const expandButton = () => screen.queryByRole('button', {name: EXPAND});
+function expandButton() {
+  return screen.queryByRole('button', {name: EXPAND});
+}
 
 function sentTypes(
   calls: ReadonlyArray<readonly [LiveCommand]>,

@@ -5,8 +5,9 @@ import {parseLiveState} from '@core/schema/live/liveState';
 import {LIVE_STATE_LIMITS} from '@core/schema/live/liveLimits';
 import {parseRecoveryRecord} from '@core/schema/app/recoveryRecord';
 
-const uuid = (index: number) =>
-  `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
+function uuid(index: number) {
+  return `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
+}
 function state(layers: object = {}, fields: object = {}) {
   const empty = emptyLiveState();
   return {...empty, ...fields, layers: {...empty.layers, ...layers}};

@@ -9,20 +9,24 @@ export interface CutState {
 }
 
 /** A state that shows the automatic cuts and has no user cuts. */
-export const initialCutState = (auto: readonly number[]): CutState => ({
-  auto: [...auto],
-  user: [],
-  dismissed: false,
-});
+export function initialCutState(auto: readonly number[]): CutState {
+  return {
+    auto: [...auto],
+    user: [],
+    dismissed: false,
+  };
+}
 /**
  * The cut places in effect: the user's, else none when dismissed, else the
  * automatic ones.
  */
-export const effectiveCuts = (state: CutState): readonly number[] =>
-  state.user.length > 0 ? state.user : state.dismissed ? [] : state.auto;
+export function effectiveCuts(state: CutState): readonly number[] {
+  return state.user.length > 0 ? state.user : state.dismissed ? [] : state.auto;
+}
 /** Whether the automatic cuts are the ones in effect. */
-export const isShowingAuto = (state: CutState): boolean =>
-  state.user.length === 0 && !state.dismissed && state.auto.length > 0;
+export function isShowingAuto(state: CutState): boolean {
+  return state.user.length === 0 && !state.dismissed && state.auto.length > 0;
+}
 
 /**
  * Adds or removes a cut at word gap `j`. Removing an automatic cut turns the
@@ -58,11 +62,13 @@ export interface EditHistory {
 }
 
 /** An empty history that starts at the automatic cuts. */
-export const initialEditHistory = (auto: readonly number[]): EditHistory => ({
-  past: [],
-  present: initialCutState(auto),
-  future: [],
-});
+export function initialEditHistory(auto: readonly number[]): EditHistory {
+  return {
+    past: [],
+    present: initialCutState(auto),
+    future: [],
+  };
+}
 /** Toggles word gap `j` and records the step for undo; clears redo. */
 export function pressGap(history: EditHistory, j: number): EditHistory {
   return {

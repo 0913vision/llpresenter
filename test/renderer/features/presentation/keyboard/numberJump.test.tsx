@@ -44,11 +44,12 @@ afterEach(() => {
   cleanup();
   delete window.llp;
 });
-const key = (value: string) =>
-  fireEvent.keyDown(window, {
+function key(value: string) {
+  return fireEvent.keyDown(window, {
     key: value,
     code: /^\d$/u.test(value) ? `Digit${value}` : value,
   });
+}
 
 it('numbers tiles across items and jumps to the same slide as a click', async () => {
   render(<Harness />);

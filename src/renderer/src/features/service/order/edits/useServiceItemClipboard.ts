@@ -17,8 +17,12 @@ import {useShow} from '@renderer/session/show/showStore';
 
 const EMPTY_CLIPBOARD = '복사한 예배 순서 항목이 없습니다.';
 const NO_ITEMS = '선택한 항목이 없습니다.';
-const noop = (): void => undefined;
-const emptyCount = (): number => 0;
+function noop(): void {
+  return undefined;
+}
+function emptyCount(): number {
+  return 0;
+}
 
 /** Connects the item clipboard to the same save/history path as other row edits. */
 export function useServiceItemClipboard({

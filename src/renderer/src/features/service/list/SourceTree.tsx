@@ -47,7 +47,9 @@ const moves: Readonly<
 
 // NOTE(0913vision): The box only draws the state; a click reaches the row,
 // which toggles.
-const drawOnly = (): undefined => undefined;
+function drawOnly(): undefined {
+  return undefined;
+}
 
 function hasModifier(event: KeyboardEvent): boolean {
   return event.ctrlKey || event.altKey || event.metaKey || event.shiftKey;

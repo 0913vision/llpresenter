@@ -12,8 +12,9 @@ import {saveQuickEdit} from '@renderer/features/quick/quickEdits';
 import {quickCopyReason} from '@renderer/features/quick/QuickEditing';
 import {quickItem} from '@fixtures/renderer/features/tools/quickTesting';
 
-const uuid = (kind: number, n: number): string =>
-  `${String(kind).padStart(8, '0')}-0000-4000-8000-${String(n).padStart(12, '0')}`;
+function uuid(kind: number, n: number): string {
+  return `${String(kind).padStart(8, '0')}-0000-4000-8000-${String(n).padStart(12, '0')}`;
+}
 
 function documentOf(
   name: SettingsDocument['name'],
@@ -30,11 +31,13 @@ function documentOf(
   return parsed.value;
 }
 
-const quickFile = (items: readonly object[]) => ({
-  format: 'llsettings.quick',
-  schemaVersion: 1,
-  items,
-});
+function quickFile(items: readonly object[]) {
+  return {
+    format: 'llsettings.quick',
+    schemaVersion: 1,
+    items,
+  };
+}
 
 function apiFor(quick: object, timers?: object) {
   const documents = {

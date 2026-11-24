@@ -6,8 +6,9 @@ import {lyricsSlide, slideId, slideOf, verseOf} from '@fixtures/core/slides';
 
 const making = {themes: null, transitions: defaultSlideTransitions};
 const VERSE = verseOf(1);
-const lyrics = (slides: readonly Slide[] | undefined) =>
-  slides?.map(slide => slide.texts['가사'] ?? '');
+function lyrics(slides: readonly Slide[] | undefined) {
+  return slides?.map(slide => slide.texts['가사'] ?? '');
+}
 
 describe('splitSlide', () => {
   const slides = [lyricsSlide(1, '첫 줄\n둘째 줄'), lyricsSlide(2, '끝')];

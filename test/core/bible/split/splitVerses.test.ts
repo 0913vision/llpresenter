@@ -17,12 +17,13 @@ const reference = {
   verse: 16,
 };
 const verse = {reference, text: MOCK_LONG_VERSE};
-const empty = () =>
-  v.parse(bibleCutsSchema, {
+function empty() {
+  return v.parse(bibleCutsSchema, {
     format: 'llsettings.bibleCuts',
     schemaVersion: 1,
     entries: {},
   });
+}
 const confirmedAt = '2026-11-05T00:00:00.000Z';
 
 describe('copible verse parts and saved cuts', () => {

@@ -29,7 +29,7 @@ const timers = [
   {id, name: '점검', kind: 'countdown', duration: 60},
   {id: other, name: '시계', kind: 'clock'},
 ];
-const setup = (readOnly = false) => {
+function setup(readOnly = false) {
   const f = stageFixture();
   const d = settingsDocument('timers', {timers});
   f.documents.set('timers', readOnly ? {...d, access: 'readOnly'} : d);
@@ -44,25 +44,26 @@ const setup = (readOnly = false) => {
     });
   });
   return f;
-};
-const written = (f: ReturnType<typeof setup>) => {
+}
+function written(f: ReturnType<typeof setup>) {
   const edit = f.edit.mock.calls[0]?.[0];
   if (edit?.type !== 'settings.update' || edit.name !== 'timers') {
     throw new Error('No timer update was written');
   }
   return edit.value.timers;
-};
-const change = (label: string, value: string) =>
-  fireEvent.change(screen.getByRole('textbox', {name: label}), {
+}
+function change(label: string, value: string) {
+  return fireEvent.change(screen.getByRole('textbox', {name: label}), {
     target: {value},
   });
-const openEdit = async (name = '점검') => {
+}
+async function openEdit(name = '점검') {
   fireEvent.contextMenu(await screen.findByRole('group', {name}), {
     clientX: 50,
     clientY: 50,
   });
   fireEvent.click(await screen.findByRole('menuitem', {name: '수정…'}));
-};
+}
 
 it('puts 수정… above 이름 바꾸기 and opens the timer with its saved values', async () => {
   setup();
@@ -164,21 +165,23 @@ it('disables 수정… when the list is read-only', async () => {
   expect(screen.queryByRole('dialog')).toBeNull();
 });
 
-const quickRow = (api: LlpApi, timer: Timer | undefined) => (
-  <QuickRowEditor
-    api={api}
-    onProblem={vi.fn()}
-    full={false}
-    timersFull={false}
-    item={quickItem('timer')}
-    timer={timer}
-    locked={false}
-    save={vi.fn(async () => true)}
-    onDelete={vi.fn()}
-  >
-    <button>항목</button>
-  </QuickRowEditor>
-);
+function quickRow(api: LlpApi, timer: Timer | undefined) {
+  return (
+    <QuickRowEditor
+      api={api}
+      onProblem={vi.fn()}
+      full={false}
+      timersFull={false}
+      item={quickItem('timer')}
+      timer={timer}
+      locked={false}
+      save={vi.fn(async () => true)}
+      onDelete={vi.fn()}
+    >
+      <button>항목</button>
+    </QuickRowEditor>
+  );
+}
 
 it('opens the timer a 빠른 실행 row refers to and saves it under the same id', async () => {
   const f = setup();

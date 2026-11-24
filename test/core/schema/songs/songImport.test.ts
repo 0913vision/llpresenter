@@ -9,8 +9,9 @@ const draft = {
   slides: [lyricsSlide(1, ['Invented line'], {label: 'New label'})],
 };
 const request = {type: 'song.import', draft, target: {kind: 'new'}};
-const slidesOf = (count: number) =>
-  Array.from({length: count}, (_, index) => lyricsSlide(index + 1, []));
+function slidesOf(count: number) {
+  return Array.from({length: count}, (_, index) => lyricsSlide(index + 1, []));
+}
 
 describe('song.import contract', () => {
   it.each([{kind: 'new'}, {kind: 'overwrite', songId: id, baseRevision: 1}])(

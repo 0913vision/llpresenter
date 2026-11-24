@@ -46,13 +46,18 @@ function archive(parts: Record<string, string>): Buffer {
   return Buffer.concat([...local, ...central, end]);
 }
 const ns = 'xmlns:p="urn:p" xmlns:a="urn:a" xmlns:r="urn:r"';
-const rels = (items: string) => `<Relationships>${items}</Relationships>`;
-const rel = (id: string, target: string, type = 'image') =>
-  `<Relationship Id="${id}" Target="${target}" Type="urn:rel/${type}"/>`;
-const shape = (text: string, ph = '') =>
-  `<p:sp><p:nvSpPr><p:nvPr>${ph}</p:nvPr></p:nvSpPr><p:txBody><a:p><a:r><a:t>${text}</a:t></a:r></a:p></p:txBody></p:sp>`;
-const slide = (content: string, extra = '', attrs = '') =>
-  `<p:sld ${ns} ${attrs}><p:cSld>${extra}<p:spTree>${content}</p:spTree></p:cSld></p:sld>`;
+function rels(items: string) {
+  return `<Relationships>${items}</Relationships>`;
+}
+function rel(id: string, target: string, type = 'image') {
+  return `<Relationship Id="${id}" Target="${target}" Type="urn:rel/${type}"/>`;
+}
+function shape(text: string, ph = '') {
+  return `<p:sp><p:nvSpPr><p:nvPr>${ph}</p:nvPr></p:nvSpPr><p:txBody><a:p><a:r><a:t>${text}</a:t></a:r></a:p></p:txBody></p:sp>`;
+}
+function slide(content: string, extra = '', attrs = '') {
+  return `<p:sld ${ns} ${attrs}><p:cSld>${extra}<p:spTree>${content}</p:spTree></p:cSld></p:sld>`;
+}
 
 describe('PowerPoint XML reader', () => {
   it('reads titles, grouped body, breaks, blanks, hidden slides and inherited backgrounds', () => {

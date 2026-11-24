@@ -24,10 +24,17 @@ import type {MacroCommandPort, ScreenSettingsPort} from '@main/live/slice';
 import {MissingLiveTargetError} from '@main/live/commandErrors';
 import {MAIN_SCREEN, STAGE_SCREEN} from '@fixtures/core/screenIds';
 
-const uuid = (index: number) =>
-  `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
-const registry = () =>
-  new SliceRegistry([batchSlice, outputsSlice, contentSlice, propsSlice]);
+function uuid(index: number) {
+  return `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
+}
+function registry() {
+  return new SliceRegistry([
+    batchSlice,
+    outputsSlice,
+    contentSlice,
+    propsSlice,
+  ]);
+}
 function screenSettingsPort(
   requireSaved: ScreenSettingsPort['requireSaved'] = () => undefined,
 ) {

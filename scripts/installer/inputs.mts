@@ -3,8 +3,9 @@ import {appendFileSync} from 'node:fs';
 
 const base = process.argv[2];
 if (!base) throw new Error('Expected the comparison base');
-const git = (...args: string[]): string =>
-  execFileSync('git', args, {encoding: 'utf8'}).trim();
+function git(...args: string[]): string {
+  return execFileSync('git', args, {encoding: 'utf8'}).trim();
+}
 const paths = git('diff', '--name-only', base, 'HEAD').split('\n');
 const direct =
   /^(?:electron-builder\.|build\/|scripts\/installer\/|\.github\/workflows\/release\.yml$|src\/(?:main\/update\/|contracts\/ipc\/update\.ts$|preload\/update\.ts$|core\/schema\/update\.ts$|renderer\/src\/app\/update\/))/u;

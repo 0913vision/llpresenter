@@ -4,14 +4,18 @@ import {defaultTranslationOf, showsTranslationName} from '@core/bible';
 import type {Translation} from '@core/schema/bible/bible';
 import {LIVE_BIBLE_ID, translationIdSchema} from '@core/schema/common/ids';
 
-const id = (value: string) => v.parse(translationIdSchema, value);
-const translation = (value: string, isDefault = false): Translation => ({
-  id: id(value),
-  name: value,
-  lang: 'ko',
-  file: `${value}.llbible`,
-  default: isDefault,
-});
+function id(value: string) {
+  return v.parse(translationIdSchema, value);
+}
+function translation(value: string, isDefault = false): Translation {
+  return {
+    id: id(value),
+    name: value,
+    lang: 'ko',
+    file: `${value}.llbible`,
+    default: isDefault,
+  };
+}
 
 describe('the 기본 역본', () => {
   it('is the translation marked 기본, else the first one, else none', () => {

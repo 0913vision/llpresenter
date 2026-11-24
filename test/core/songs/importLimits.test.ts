@@ -5,10 +5,11 @@ import {importLimitReason} from '@core/songs/importLimits';
 import {sampleSong} from '@fixtures/core/songs/blockFixtures';
 import {lyricsSlide} from '@fixtures/core/slides';
 
-const songOf = (count: number, text = '') =>
-  sampleSong(
+function songOf(count: number, text = '') {
+  return sampleSong(
     Array.from({length: count}, (_, index) => lyricsSlide(index + 1, text)),
   );
+}
 
 describe('importLimitReason', () => {
   it('accepts the exact number of characters and refuses one more', () => {

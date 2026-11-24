@@ -21,16 +21,17 @@ const passage = genesisPassage([
 const layout = mockSplitLayout(10, 2);
 const making = {themes: themes(), transitions: defaultSlideTransitions};
 
-const verse = (number: number) => {
+function verse(number: number) {
   const found = versesOfPassage(passage)[number - 1];
   if (found === undefined) throw new Error('No verse');
   return found;
-};
-const part = (number: number, verseNumber: number, text: string) =>
-  slideOf(number, 'scripture', {
+}
+function part(number: number, verseNumber: number, text: string) {
+  return slideOf(number, 'scripture', {
     texts: {본문: text},
     verse: verseOf(verseNumber),
   });
+}
 
 it('cuts only the verses that do not fit, between words', () => {
   const split = splitPassage(passage, {layout, verseNumbers: true});

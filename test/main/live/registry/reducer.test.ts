@@ -16,11 +16,13 @@ const LATER = NOW + 30_000;
 const RANDOM_COMMAND_COUNT = 5000;
 const RANDOM_SEED = 20261024;
 
-const slide = (position: number): SlideLayer => ({
-  itemId: 'item-1',
-  position,
-  ...shownText(['만복의 근원 하나님', '온 백성 찬송 드리고'], position + 1),
-});
+function slide(position: number): SlideLayer {
+  return {
+    itemId: 'item-1',
+    position,
+    ...shownText(['만복의 근원 하나님', '온 백성 찬송 드리고'], position + 1),
+  };
+}
 
 const NEW_CONTENT: readonly LiveCommand[] = [
   {type: 'slide.show', slide: slide(5)},
@@ -28,10 +30,12 @@ const NEW_CONTENT: readonly LiveCommand[] = [
   {type: 'message.show', message: {messageId: 'parking', text: '차량 이동'}},
 ];
 
-const run = (
+function run(
   commands: readonly LiveCommand[],
   start: LiveHistory = initialHistory(emptyLiveState()),
-): LiveHistory => commands.reduce(applyCommand, start);
+): LiveHistory {
+  return commands.reduce(applyCommand, start);
+}
 
 function applyCommand(history: LiveHistory, command: LiveCommand): LiveHistory {
   return applyAt(history, command, NOW);

@@ -24,14 +24,17 @@ export type LabelColorPreview = v.InferOutput<typeof previewSchema>;
 export type LabelColorPreviewRequest = v.InferOutput<typeof requestSchema>;
 
 /** Checks a shown color, or `null` when it was taken back. */
-export const parseLabelColorPreview = (value: unknown) =>
-  parsePayload(v.nullable(previewSchema), value);
+export function parseLabelColorPreview(value: unknown) {
+  return parsePayload(v.nullable(previewSchema), value);
+}
 /** Checks a request to try out a 이름표 color. */
-export const parseLabelColorPreviewRequest = (value: unknown) =>
-  parsePayload(requestSchema, value);
+export function parseLabelColorPreviewRequest(value: unknown) {
+  return parsePayload(requestSchema, value);
+}
 /**
  * Checks the answer to a request to try out a 이름표 color: whether it was
  * accepted.
  */
-export const parseLabelColorPreviewReply = (value: unknown) =>
-  parsePayload(v.boolean(), value);
+export function parseLabelColorPreviewReply(value: unknown) {
+  return parsePayload(v.boolean(), value);
+}

@@ -39,10 +39,12 @@ function setup(results: readonly EditResult[] = []) {
   return {editor, edits, report, write};
 }
 
-const saved = (revision: number): EditResult => ({
-  ok: true,
-  value: {id: 'screens', revision},
-});
+function saved(revision: number): EditResult {
+  return {
+    ok: true,
+    value: {id: 'screens', revision},
+  };
+}
 
 describe('ScreenEditor', () => {
   it('keeps a newer assignment when a new screen uses a stale monitor feed', async () => {

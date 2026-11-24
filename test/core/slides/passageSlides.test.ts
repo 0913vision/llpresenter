@@ -13,9 +13,12 @@ const TWO = genesisPassage([
 ]);
 const ONE = genesisPassage([[1, FIRST]]);
 const settings = {verseNumbers: true, translationName: false};
-const whole = (text: string) => [text];
-const texts = (slides: readonly Slide[]) =>
-  slides.map(slide => slide.texts['본문']);
+function whole(text: string) {
+  return [text];
+}
+function texts(slides: readonly Slide[]) {
+  return slides.map(slide => slide.texts['본문']);
+}
 
 describe('passageSlides', () => {
   it('numbers each verse and marks the slides that go on', () => {

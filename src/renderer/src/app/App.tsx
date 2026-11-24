@@ -62,7 +62,9 @@ import {BibleInsertionReview} from '@renderer/features/bible/split/BibleInsertio
 import {LoadReadiness, LoadReadinessContext} from '@renderer/ui/loadReadiness';
 import {useShow} from '@renderer/session/show/showStore';
 
-const noSubscription = (): (() => void) => () => undefined;
+function noSubscription(): () => void {
+  return () => undefined;
+}
 
 interface AppProps {
   readonly columnWidthStore: ColumnWidthStore;

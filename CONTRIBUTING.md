@@ -66,6 +66,15 @@ the font guidance only if it is missing.
   [Google Markdown style guide](https://google.github.io/styleguide/docguide/style.html).
 - TypeScript:
   [Google TypeScript style guide](https://google.github.io/styleguide/tsguide.html).
+  `scripts/lint/config.mts` checks what can be checked: named exports only, no
+  `#private`, no `public`, `function` declarations for named top-level
+  functions, naming by kind (UpperCamelCase types and components, lowerCamelCase
+  values, CONSTANT_CASE for constants, no `I` prefix), `===`, array type style,
+  interfaces for object types, `Number()` and `String()` for conversions, no
+  wrapper objects, `export type` for type re-exports. Two project exceptions:
+  file names are camelCase, and PascalCase for React component files; a `switch`
+  over a union has no `default`, so the exhaustiveness check names a missing
+  case.
 - React and JSX:
   [Airbnb React/JSX style guide](https://github.com/airbnb/javascript/tree/master/react),
   because Google has none. Wherever Google has no guide, follow another large

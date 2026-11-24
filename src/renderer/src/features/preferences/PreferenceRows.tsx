@@ -144,7 +144,10 @@ export function CountRow({
   );
 }
 
-const NO_CHANGE = (): void => undefined;
+/** Changes nothing, for a row that can't change. */
+function noChange(): void {
+  // NOTE(0913vision): The row is read-only; its control still needs a handler.
+}
 
 /** A read-only folder path with a folder icon and 바꾸기. */
 export function PathRow({
@@ -168,7 +171,7 @@ export function PathRow({
             icon="folder"
             value={path}
             title={title}
-            onChange={NO_CHANGE}
+            onChange={noChange}
           />
           <Button size="md" disabled={disabled} onClick={onChange}>
             바꾸기

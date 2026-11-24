@@ -13,8 +13,11 @@ import {createMediaId, type MediaId} from '@core/schema/common/ids';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {ThumbnailCache} from '@main/media/thumbnailCache';
 
-const mediaId = (index: number): MediaId =>
-  createMediaId(`00000000-0000-4000-8000-${String(index).padStart(12, '0')}`);
+function mediaId(index: number): MediaId {
+  return createMediaId(
+    `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`,
+  );
+}
 
 const JPEG = Uint8Array.from([0xff, 0xd8, 0xff, 0xd9]);
 

@@ -32,7 +32,9 @@ function Fixture() {
   );
 }
 
-const visible = () => screen.getAllByRole('tab').map(tab => tab.textContent);
+function visible() {
+  return screen.getAllByRole('tab').map(tab => tab.textContent);
+}
 
 it('fits tabs on resize and promotes the selected overflow tab to the last slot', async () => {
   const widths = mockPanelTabWidths(1000);

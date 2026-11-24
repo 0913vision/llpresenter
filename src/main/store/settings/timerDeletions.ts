@@ -13,13 +13,15 @@ interface PreparedDeletion {
   readonly applied: EditSuccess;
 }
 
-const refuse = (
+function refuse(
   reason: 'not-found' | 'read-only' | 'invalid',
   message: string,
-): Result<PreparedDeletion, EditFailure> => ({
-  ok: false,
-  error: {reason, message},
-});
+): Result<PreparedDeletion, EditFailure> {
+  return {
+    ok: false,
+    error: {reason, message},
+  };
+}
 
 /**
  * Prepares the deletion of a timer, with the 빠른 타이머 that uses it, or refuses

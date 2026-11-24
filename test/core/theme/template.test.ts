@@ -1,10 +1,9 @@
 import {expect, it} from 'vitest';
 import {fillTemplates} from '@core/theme';
 
-const values =
-  (known: Record<string, string>) =>
-  (token: string): string | undefined =>
-    known[token];
+function values(known: Record<string, string>) {
+  return (token: string): string | undefined => known[token];
+}
 const hymn = '다음 곡: {제목} {(찬송가)} {(이름표)}';
 
 it('puts a value in brackets only when it was put in with them', () => {

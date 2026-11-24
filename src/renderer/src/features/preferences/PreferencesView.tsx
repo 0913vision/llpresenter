@@ -38,7 +38,9 @@ import {ListBox} from '@renderer/ui/lists/ListBox';
 
 const NAV_LABEL = '환경설정 항목';
 const FIRST_PAGE: PreferencePageId = 'general';
-const noSubscribe = () => () => undefined;
+function noSubscribe() {
+  return () => undefined;
+}
 function preferencesFontsReady(): Promise<unknown> {
   try {
     return document.fonts.ready;

@@ -11,8 +11,9 @@ import type {
 } from '@core/schema/app/settingsDocuments';
 import {defaultPreferences} from '@core/schema/app/preferences';
 
-export const overlayUuid = (id: number): string =>
-  `00000000-0000-4000-8000-${String(id).padStart(12, '0')}`;
+export function overlayUuid(id: number): string {
+  return `00000000-0000-4000-8000-${String(id).padStart(12, '0')}`;
+}
 export const MAIN = fixtureScreenId(1);
 export const CAPTIONS = fixtureScreenId(2);
 export const STAGE = fixtureScreenId(3);

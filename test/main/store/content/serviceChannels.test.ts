@@ -103,10 +103,15 @@ function setup() {
   };
 }
 
-const open = (serviceId: unknown) =>
-  ipc.invoke(serviceEndpoints.open, {serviceId});
-const opened = (id: string) => ({ok: true, value: shown(id)});
-const refused = (reason: string) => ({ok: false, error: {reason}});
+function open(serviceId: unknown) {
+  return ipc.invoke(serviceEndpoints.open, {serviceId});
+}
+function opened(id: string) {
+  return {ok: true, value: shown(id)};
+}
+function refused(reason: string) {
+  return {ok: false, error: {reason}};
+}
 
 describe('service open channels', () => {
   it('opens the chosen service, remembers it, and answers with the refreshed projection', async () => {

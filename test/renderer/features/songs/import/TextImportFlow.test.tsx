@@ -28,10 +28,12 @@ import {editorFixture} from '@fixtures/renderer/features/songs/editorFixture';
 
 let stop = (): void => undefined;
 
-const text = (value: string): TextImportReadResult => ({
-  ok: true,
-  value: {source: 'file', fileName: 'Invented.txt', text: value},
-});
+function text(value: string): TextImportReadResult {
+  return {
+    ok: true,
+    value: {source: 'file', fileName: 'Invented.txt', text: value},
+  };
+}
 
 function setup(read: LlpApi['textImport']['read']) {
   const fixture = editorFixture();
@@ -61,7 +63,9 @@ function setup(read: LlpApi['textImport']['read']) {
   return {show, onDone, onProblem};
 }
 
-const draft = () => useSongDraft.getState().draft;
+function draft() {
+  return useSongDraft.getState().draft;
+}
 
 beforeEach(() => {
   HTMLElement.prototype.scrollIntoView = vi.fn();

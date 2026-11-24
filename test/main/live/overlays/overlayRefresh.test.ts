@@ -25,11 +25,13 @@ function layers(fields: object) {
   return stateWith({layers: {...emptyLiveState().layers, ...fields}});
 }
 
-const textProp = (propId: string) => ({
-  propId,
-  content: {kind: 'text', text: 'Fixture prop', style: TEXT_STYLE},
-  targets: [MAIN],
-});
+function textProp(propId: string) {
+  return {
+    propId,
+    content: {kind: 'text', text: 'Fixture prop', style: TEXT_STYLE},
+    targets: [MAIN],
+  };
+}
 
 describe('overlayRefreshCommands', () => {
   it('sets each active 그래픽 on while it is still saved and off once it is gone', () => {

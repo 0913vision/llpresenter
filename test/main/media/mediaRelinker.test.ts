@@ -16,8 +16,11 @@ import type {MediaItemsCommit} from '@main/store/media/mediaStore';
 import type {MediaKind} from '@main/media/mediaKinds';
 import {MediaRelinker, type RelinkStore} from '@main/media/mediaRelinker';
 
-const mediaId = (index: number): MediaId =>
-  createMediaId(`00000000-0000-4000-8000-${String(index).padStart(12, '0')}`);
+function mediaId(index: number): MediaId {
+  return createMediaId(
+    `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`,
+  );
+}
 
 function mediaDocument(items: readonly object[], revision = 4): MediaDocument {
   return expectSuccess(

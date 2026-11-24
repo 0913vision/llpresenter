@@ -12,8 +12,9 @@ import {emptyLiveState} from '@core/schema/live/live';
 import {parseLiveState} from '@core/schema/live/liveState';
 import {panelApi} from '@fixtures/contracts/ipc/bibleApi';
 
-export const quickId = (value: number): string =>
-  `00000000-0000-4000-8000-${String(value).padStart(12, '0')}`;
+export function quickId(value: number): string {
+  return `00000000-0000-4000-8000-${String(value).padStart(12, '0')}`;
+}
 
 export function deferred<T>() {
   let resolve: (value: T) => void = () => undefined;

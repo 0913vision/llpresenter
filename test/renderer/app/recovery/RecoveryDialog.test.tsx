@@ -20,7 +20,9 @@ function setup(busy = false) {
   return {onRestore, onStartFresh, view};
 }
 
-const restoreButton = () => screen.getByRole('button', {name: '이어서 하기'});
+function restoreButton() {
+  return screen.getByRole('button', {name: '이어서 하기'});
+}
 
 it('asks with the time of the record and every offered row checked', () => {
   setup();

@@ -108,11 +108,13 @@ export type PowerPointBackgroundsResult = v.InferOutput<
   typeof backgroundsResult
 >;
 /** Checks a request for slide backgrounds. */
-export const parsePowerPointBackgroundsRequest = (value: unknown) =>
-  checkPart(backgroundsRequest, value);
+export function parsePowerPointBackgroundsRequest(value: unknown) {
+  return checkPart(backgroundsRequest, value);
+}
 /** Checks the answer to a request for slide backgrounds. */
-export const parsePowerPointBackgroundsResult = (value: unknown) =>
-  checkPart(backgroundsResult, value);
+export function parsePowerPointBackgroundsResult(value: unknown) {
+  return checkPart(backgroundsResult, value);
+}
 const releaseRequest = payloadObject({
   path: v.pipe(v.string(), v.minLength(1)),
 });
@@ -163,11 +165,13 @@ export type PowerPointOwnedImagesResult = v.InferOutput<
   typeof ownedImagesResult
 >;
 /** Checks a request to store picture files. */
-export const parsePowerPointOwnedImagesRequest = (value: unknown) =>
-  checkPart(ownedImagesRequest, value);
+export function parsePowerPointOwnedImagesRequest(value: unknown) {
+  return checkPart(ownedImagesRequest, value);
+}
 /** Checks the answer to a request to store picture files. */
-export const parsePowerPointOwnedImagesResult = (value: unknown) =>
-  checkPart(ownedImagesResult, value);
+export function parsePowerPointOwnedImagesResult(value: unknown) {
+  return checkPart(ownedImagesResult, value);
+}
 const imageExportResult = v.variant('ok', [
   v.object({
     ok: v.literal(true),
@@ -206,27 +210,31 @@ export type PowerPointImageExportProgress = v.InferOutput<
   typeof imageExportProgress
 >;
 /** Checks the answer of drawing the slides as pictures. */
-export const parsePowerPointImageExportResult = (value: unknown) =>
-  checkPart(imageExportResult, value);
+export function parsePowerPointImageExportResult(value: unknown) {
+  return checkPart(imageExportResult, value);
+}
 /** Checks a progress report of drawing the slides as pictures. */
-export const parsePowerPointImageExportProgress = (value: unknown) =>
-  checkPart(imageExportProgress, value);
+export function parsePowerPointImageExportProgress(value: unknown) {
+  return checkPart(imageExportProgress, value);
+}
 const reading = payloadObject({
   fileName: v.pipe(v.string(), v.maxLength(260)),
 });
 /** The file name of the PowerPoint file that was chosen and is being read. */
 export type PowerPointReading = v.InferOutput<typeof reading>;
 /** Checks a notice that a PowerPoint file is being read. */
-export const parsePowerPointReading = (value: unknown) =>
-  checkPart(reading, value);
+export function parsePowerPointReading(value: unknown) {
+  return checkPart(reading, value);
+}
 /**
  * A picture file as encoded bytes (JPEG or PNG) for a preview, or `null` when
  * it is gone.
  */
 export type PowerPointPreviewImage = v.InferOutput<typeof encodedImage> | null;
 /** Checks a preview picture. */
-export const parsePowerPointPreviewImage = (value: unknown) =>
-  checkPart(v.nullable(encodedImage), value);
+export function parsePowerPointPreviewImage(value: unknown) {
+  return checkPart(v.nullable(encodedImage), value);
+}
 /**
  * The text and backgrounds of a PowerPoint file that was read, `null` when the
  * file dialog was cancelled, or why reading failed.
@@ -243,14 +251,17 @@ export type PowerPointSource = v.InferOutput<typeof source>;
  */
 export type PowerPointReleaseRequest = v.InferOutput<typeof releaseRequest>;
 /** Checks the answer of reading a PowerPoint file. */
-export const parsePowerPointReadResult = (value: unknown) =>
-  checkPart(result, value);
+export function parsePowerPointReadResult(value: unknown) {
+  return checkPart(result, value);
+}
 /** Checks a request that names a temporary picture file. */
-export const parsePowerPointReleaseRequest = (value: unknown) =>
-  checkPart(releaseRequest, value);
+export function parsePowerPointReleaseRequest(value: unknown) {
+  return checkPart(releaseRequest, value);
+}
 /**
  * Checks a yes or no answer about a PowerPoint call, such as whether a picture
  * file was released.
  */
-export const parsePowerPointReleaseResult = (value: unknown) =>
-  checkPart(v.boolean(), value);
+export function parsePowerPointReleaseResult(value: unknown) {
+  return checkPart(v.boolean(), value);
+}

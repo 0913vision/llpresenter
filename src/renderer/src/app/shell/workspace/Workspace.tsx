@@ -36,7 +36,9 @@ import {NO_UNDO_IN_SHOW} from '@renderer/platform/problemReasons';
 import {useWorkspaceServiceHistory} from './useWorkspaceServiceHistory';
 import type {Workspace as WorkspaceId} from '@renderer/platform/WorkspaceNavigation';
 
-const ignoreProblem = (): void => undefined;
+function ignoreProblem(): void {
+  return undefined;
+}
 
 /**
  * The three-column frame shared by all workspaces. Each workspace's panels

@@ -9,21 +9,26 @@ import {
 } from '@core/schema/live/overlayState';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 
-const uuid = (index: number) =>
-  `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
-const message = (index = 1) => ({
-  messageId: uuid(index),
-  text: 'Invented message',
-  targets: 'all',
-  excludedTargets: [],
-  startedAt: 1000,
-  expiresAt: null,
-});
-const prop = (index = 1) => ({
-  propId: uuid(index),
-  content: {kind: 'image', media: uuid(2)},
-  targets: [],
-});
+function uuid(index: number) {
+  return `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
+}
+function message(index = 1) {
+  return {
+    messageId: uuid(index),
+    text: 'Invented message',
+    targets: 'all',
+    excludedTargets: [],
+    startedAt: 1000,
+    expiresAt: null,
+  };
+}
+function prop(index = 1) {
+  return {
+    propId: uuid(index),
+    content: {kind: 'image', media: uuid(2)},
+    targets: [],
+  };
+}
 
 describe('public overlay parse helpers', () => {
   it('returns normalized values for valid and empty active lists', () => {

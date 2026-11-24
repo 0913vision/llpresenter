@@ -1,21 +1,24 @@
 import {describe, expect, it} from 'vitest';
 import {MACRO_FILE_LIMITS, parseMacros} from '@core/schema/tools/macros';
 
-const uuid = (number: number): string =>
-  `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`;
-const macro = (number: number, actions: readonly object[] = []) => ({
-  id: uuid(number),
-  name: 'Test',
-  icon: 'play',
-  color: 'teal',
-  actions,
-});
-const file = (
-  macros: readonly object[],
-  collections: readonly object[] = [],
-) => ({format: 'llsettings.macros', schemaVersion: 1, macros, collections});
-const parse = (value: object) =>
-  parseMacros(JSON.stringify(value), 'macros.json');
+function uuid(number: number): string {
+  return `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`;
+}
+function macro(number: number, actions: readonly object[] = []) {
+  return {
+    id: uuid(number),
+    name: 'Test',
+    icon: 'play',
+    color: 'teal',
+    actions,
+  };
+}
+function file(macros: readonly object[], collections: readonly object[] = []) {
+  return {format: 'llsettings.macros', schemaVersion: 1, macros, collections};
+}
+function parse(value: object) {
+  return parseMacros(JSON.stringify(value), 'macros.json');
+}
 
 describe('macro file limits', () => {
   it('accepts the macro and action caps and refuses an extra entry', () => {

@@ -5,8 +5,9 @@ import {LIVE_STATE_LIMITS} from '@core/schema/live/liveLimits';
 import {parseLiveState} from '@core/schema/live/liveState';
 import {MAIN_SCREEN, STAGE_SCREEN} from '@fixtures/core/screenIds';
 
-const screenUuid = (id: number): string =>
-  `00000000-0000-4000-8000-${String(id).padStart(12, '0')}`;
+function screenUuid(id: number): string {
+  return `00000000-0000-4000-8000-${String(id).padStart(12, '0')}`;
+}
 
 function busyState(): LiveState {
   return {

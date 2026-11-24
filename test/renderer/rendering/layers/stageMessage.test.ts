@@ -4,11 +4,13 @@ import {stageInfoLayer} from '@renderer/rendering/layers/stageInfo';
 import {stageMessageLayer} from '@renderer/rendering/layers/stageMessage';
 import {THEME_MAIN, THEME_STAGE} from '@fixtures/core/themeOutput';
 
-const frame = (kind: 'stage' | 'audience', stageMessage?: string) => ({
-  screen: {id: kind === 'stage' ? THEME_STAGE : THEME_MAIN, name: 'S', kind},
-  item: null,
-  ...(stageMessage === undefined ? {} : {stageMessage}),
-});
+function frame(kind: 'stage' | 'audience', stageMessage?: string) {
+  return {
+    screen: {id: kind === 'stage' ? THEME_STAGE : THEME_MAIN, name: 'S', kind},
+    item: null,
+    ...(stageMessage === undefined ? {} : {stageMessage}),
+  };
+}
 
 let width = 100;
 const cancel = vi.fn();

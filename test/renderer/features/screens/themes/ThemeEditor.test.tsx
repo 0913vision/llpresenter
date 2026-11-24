@@ -86,15 +86,25 @@ function themeRow(id: ThemeFile['id']): HTMLElement {
   if (row === null) throw new Error(`No theme ${id}`);
   return row;
 }
-const elementRow = (name: string | RegExp) =>
-  within(screen.getByRole('listbox', {name: '요소'})).getByRole('option', {
-    name,
-  });
-const elementRows = () =>
-  within(screen.getByRole('listbox', {name: '요소'})).getAllByRole('option');
-const properties = () =>
-  within(screen.getByRole('region', {name: '테마 속성'}));
-const save = () => screen.getByRole('button', {name: '저장'});
+function elementRow(name: string | RegExp) {
+  return within(screen.getByRole('listbox', {name: '요소'})).getByRole(
+    'option',
+    {
+      name,
+    },
+  );
+}
+function elementRows() {
+  return within(screen.getByRole('listbox', {name: '요소'})).getAllByRole(
+    'option',
+  );
+}
+function properties() {
+  return within(screen.getByRole('region', {name: '테마 속성'}));
+}
+function save() {
+  return screen.getByRole('button', {name: '저장'});
+}
 
 async function openTab(user: User, name: '요소' | '화면' | '테마') {
   await user.click(properties().getByRole('tab', {name}));

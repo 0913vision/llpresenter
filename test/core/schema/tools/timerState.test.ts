@@ -6,8 +6,9 @@ import {
   parseTimerClockReading,
 } from '@core/schema/tools/timerState';
 
-const uuid = (index: number) =>
-  `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
+function uuid(index: number) {
+  return `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
+}
 const SINCE = 1_000_000;
 const PAUSED = {
   state: 'paused',

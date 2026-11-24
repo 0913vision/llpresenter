@@ -19,8 +19,9 @@ function titleScreen(): OwnThemeScreen {
   return screen;
 }
 
-const ids = (screen: OwnThemeScreen) =>
-  screen.elements.map(element => element.id);
+function ids(screen: OwnThemeScreen) {
+  return screen.elements.map(element => element.id);
+}
 
 describe('the elements of a screen', () => {
   it('leave their stack when they are removed', () => {

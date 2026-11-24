@@ -6,10 +6,10 @@ import {
   parseUiState,
 } from '@core/schema/app/uiState';
 
-const parseMediaBrowserChange = (mediaBrowser: unknown) => {
+function parseMediaBrowserChange(mediaBrowser: unknown) {
   const result = parseRememberedViewChange({mediaBrowser});
   return result.ok ? {ok: true, value: result.value.mediaBrowser} : result;
-};
+}
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 
 describe('media browser UI boundaries', () => {

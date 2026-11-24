@@ -36,8 +36,9 @@ import {
   type MediaImporterOptions,
 } from '@main/media/mediaImporter';
 
-const uuid = (index: number) =>
-  `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
+function uuid(index: number) {
+  return `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
+}
 
 const PLAYLIST = {kind: 'media', id: createMediaPlaylistId(uuid(900))} as const;
 
@@ -106,7 +107,9 @@ async function setup(options: Partial<MediaImporterOptions> = {}) {
   };
 }
 
-const signal = () => new AbortController().signal;
+function signal() {
+  return new AbortController().signal;
+}
 
 const ENDED = new Set(['complete', 'failed', 'cancelled']);
 

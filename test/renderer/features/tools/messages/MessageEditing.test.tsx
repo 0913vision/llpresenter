@@ -81,11 +81,12 @@ function setup() {
   });
   return {...fixture, api, item, current: () => document, problem: vi.fn()};
 }
-const button = (name: string): HTMLElement =>
-  screen.getByRole('button', {name});
-const fill = (name: string, value: string): void => {
+function button(name: string): HTMLElement {
+  return screen.getByRole('button', {name});
+}
+function fill(name: string, value: string): void {
   fireEvent.change(screen.getByRole('textbox', {name}), {target: {value}});
-};
+}
 async function openRow(action: string): Promise<void> {
   const contextTarget = await screen.findByRole('option', {name: '차량 이동'});
   fireEvent.contextMenu(contextTarget);

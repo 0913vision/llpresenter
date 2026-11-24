@@ -10,20 +10,24 @@ import {ClearFades} from '@renderer/rendering/clearFades';
 import {shownText} from '@fixtures/core/liveSlide';
 
 const slide = {itemId: 'item', position: 0, ...shownText('가사')};
-const layer = (kind: 'slide' | 'media'): ClearEffect => ({
-  target: {kind: 'layer', layer: kind},
-  since: 1000,
-  durationMs: 500,
-});
+function layer(kind: 'slide' | 'media'): ClearEffect {
+  return {
+    target: {kind: 'layer', layer: kind},
+    since: 1000,
+    durationMs: 500,
+  };
+}
 const A = createPropId('00000000-0000-4000-8000-000000000001');
 const B = createPropId('00000000-0000-4000-8000-000000000002');
 const C = createPropId('00000000-0000-4000-8000-000000000003');
-const prop = (propId: PropId): ClearEffect => ({
-  target: {kind: 'prop', propId},
-  since: 1000,
-  durationMs: 500,
-});
-const props = (...ids: readonly PropId[]): LiveLayers => {
+function prop(propId: PropId): ClearEffect {
+  return {
+    target: {kind: 'prop', propId},
+    since: 1000,
+    durationMs: 500,
+  };
+}
+function props(...ids: readonly PropId[]): LiveLayers {
   const items = ids.map(propId => ({
     propId,
     content: {
@@ -37,7 +41,7 @@ const props = (...ids: readonly PropId[]): LiveLayers => {
     ...emptyLayers(),
     prop: first === undefined ? null : {propId: first.propId, items},
   };
-};
+}
 
 it('keeps a cleared slide while it fades, and then not', () => {
   const fades = new ClearFades();

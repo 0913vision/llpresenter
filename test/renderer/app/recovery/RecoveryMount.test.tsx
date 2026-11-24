@@ -49,8 +49,11 @@ function setup(offers: ReadonlyArray<RecoverySummary | Error>) {
   return {summary, apply, startFresh, send};
 }
 
-const dialog = () =>
-  screen.queryByRole('alertdialog', {name: '끊긴 곳부터 이어서 할까요?'});
+function dialog() {
+  return screen.queryByRole('alertdialog', {
+    name: '끊긴 곳부터 이어서 할까요?',
+  });
+}
 
 it('keeps the dialog and checked rows available to retry a failed durable restore', async () => {
   const offer = sampleOffer();

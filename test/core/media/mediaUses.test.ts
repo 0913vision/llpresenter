@@ -10,8 +10,9 @@ import {themes as sampleThemes} from '@fixtures/core/themeOutput';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {IMAGES, overlaySettings} from '@fixtures/core/overlays';
 
-const uuid = (index: number): string =>
-  `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
+function uuid(index: number): string {
+  return `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
+}
 const target = IMAGES[0];
 const other = IMAGES[1];
 if (target === undefined || other === undefined) throw new Error('No ids');

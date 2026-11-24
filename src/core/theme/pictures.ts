@@ -6,8 +6,11 @@ export interface ThemePicture {
   readonly name: string;
 }
 
-const id = (number: number) =>
-  createMediaId(`00000000-0000-4000-8000-${String(number).padStart(12, '0')}`);
+function id(number: number) {
+  return createMediaId(
+    `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`,
+  );
+}
 
 /** The media ids of the pictures that come with the app. */
 export const APP_PICTURE_IDS = {

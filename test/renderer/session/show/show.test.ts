@@ -36,18 +36,21 @@ import {tilesOf} from '@renderer/session/show/showCursor';
 const sent: LiveCommand[] = [];
 let stop = (): void => undefined;
 
-const commands = () =>
-  sent.flatMap(command =>
+function commands() {
+  return sent.flatMap(command =>
     command.type === 'live.batch' ? command.commands : [command],
   );
-const shown = () =>
-  commands().flatMap(command =>
+}
+function shown() {
+  return commands().flatMap(command =>
     command.type === 'slide.show' ? [command.slide] : [],
   );
-const updates = () =>
-  commands().flatMap(command =>
+}
+function updates() {
+  return commands().flatMap(command =>
     command.type === 'slide.update' ? [command.slide] : [],
   );
+}
 
 /** Puts a slide on output, as main answers a command. */
 function goLive(itemId: string, index: number): SlideLayer {

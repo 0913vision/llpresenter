@@ -9,8 +9,9 @@ import {MEDIA_LIMITS} from '@core/schema/media/mediaList';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {editMediaList, type MediaListEdit} from '@main/store/media/mediaEdits';
 
-const uuid = (index: number) =>
-  `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
+function uuid(index: number) {
+  return `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
+}
 const VIDEO = createMediaId(uuid(1));
 const AUDIO = createMediaId(uuid(2));
 const GONE = createMediaId(uuid(9));

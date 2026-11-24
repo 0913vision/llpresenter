@@ -30,7 +30,9 @@ import {themes, themeScreens} from '@fixtures/core/themeOutput';
 import {editorFixture} from '@fixtures/renderer/features/songs/editorFixture';
 
 const PICTURE = createMediaId('10000000-0000-4000-8000-000000000001');
-const key = (letter: string) => letter.repeat(64);
+function key(letter: string) {
+  return letter.repeat(64);
+}
 let stop = (): void => undefined;
 
 type Text = readonly [role: 'title' | 'body', ...string[]];
@@ -140,18 +142,25 @@ function setup({
   };
 }
 
-const view = () => useSongDraft.getState();
-const draft = () => {
+function view() {
+  return useSongDraft.getState();
+}
+function draft() {
   const {draft: open} = view();
   if (open === null) throw new Error('No song is open');
   return open.song;
-};
-const opened = () => waitFor(() => expect(view().draft).not.toBeNull());
-const filled = () => waitFor(() => expect(view().pictures?.busy).toBe(false));
-const backgrounds = () =>
-  draft().slides.map(slide =>
+}
+function opened() {
+  return waitFor(() => expect(view().draft).not.toBeNull());
+}
+function filled() {
+  return waitFor(() => expect(view().pictures?.busy).toBe(false));
+}
+function backgrounds() {
+  return draft().slides.map(slide =>
     slide.background?.kind === 'media' ? slide.background.media : null,
   );
+}
 
 beforeEach(() => {
   useThemes.setState({themes: themes(), screens: themeScreens});

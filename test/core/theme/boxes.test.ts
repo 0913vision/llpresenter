@@ -11,8 +11,12 @@ import {BUILT_IN_THEME_IDS} from '@core/theme/builtIn/ids';
 import {builtIn} from '@fixtures/core/themeOutput';
 
 const title = builtIn(BUILT_IN_THEME_IDS.title);
-const names = (theme: ThemeFile) => theme.boxes.map(box => box.name);
-const drawn = (theme: ThemeFile) => JSON.stringify(theme.screens);
+function names(theme: ThemeFile) {
+  return theme.boxes.map(box => box.name);
+}
+function drawn(theme: ThemeFile) {
+  return JSON.stringify(theme.screens);
+}
 
 describe('the boxes of a theme', () => {
   it('are added under a free name up to the cap', () => {

@@ -15,8 +15,9 @@ import type {BibleSplit} from '../passageSplitter';
  * The key that names one verse of a translation in the refinement cache and in
  * the progress sets.
  */
-export const verseKey = (reference: VerseInput['reference']): string =>
-  `${reference.translation}:${reference.book}:${reference.chapter}:${reference.verse}`;
+export function verseKey(reference: VerseInput['reference']): string {
+  return `${reference.translation}:${reference.book}:${reference.chapter}:${reference.verse}`;
+}
 
 const CACHE_LIMIT = 256;
 

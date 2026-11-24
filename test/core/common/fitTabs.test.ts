@@ -1,8 +1,9 @@
 import {expect, it} from 'vitest';
 import {fitTabIndices} from '@core/common/fitTabs';
 
-const fit = (available: number, selected = 0, widths = [50, 50, 50, 50]) =>
-  fitTabIndices({widths, available, selected, more: 40, gap: 10});
+function fit(available: number, selected = 0, widths = [50, 50, 50, 50]) {
+  return fitTabIndices({widths, available, selected, more: 40, gap: 10});
+}
 
 it('shows every tab at the exact boundary without reserving overflow space', () => {
   expect(fit(230)).toEqual([0, 1, 2, 3]);

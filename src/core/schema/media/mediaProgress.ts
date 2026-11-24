@@ -33,5 +33,6 @@ export type MediaProgress = Readonly<
  * Checks a progress reading that arrived over IPC; null means no video is
  * playing.
  */
-export const parseMediaProgress = (value: unknown) =>
-  parsePayload(mediaProgressSchema, value);
+export function parseMediaProgress(value: unknown) {
+  return parsePayload(mediaProgressSchema, value);
+}

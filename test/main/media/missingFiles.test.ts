@@ -13,8 +13,11 @@ import {
   type MissingFilesSource,
 } from '@main/media/missingFiles';
 
-const mediaId = (index: number): MediaId =>
-  createMediaId(`00000000-0000-4000-8000-${String(index).padStart(12, '0')}`);
+function mediaId(index: number): MediaId {
+  return createMediaId(
+    `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`,
+  );
+}
 
 function mediaDocument(ids: readonly MediaId[]): MediaDocument {
   return expectSuccess(

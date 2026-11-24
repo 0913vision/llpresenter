@@ -61,8 +61,9 @@ export interface ReferenceKeyState {
   readonly error: boolean;
 }
 
-const forward = (event: ReferenceKeyEvent): boolean =>
-  event.key === 'Enter' || (event.key === 'Tab' && !event.shift);
+function forward(event: ReferenceKeyEvent): boolean {
+  return event.key === 'Enter' || (event.key === 'Tab' && !event.shift);
+}
 
 /** Decides what a key does in a field of the reference form. */
 export function referenceKey(

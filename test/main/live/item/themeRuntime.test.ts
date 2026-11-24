@@ -27,14 +27,16 @@ const ITEM = createServiceItemId('00000000-0000-4000-8000-000000000201');
 const GONE = createThemeId('00000000-0000-4000-8000-000000000999');
 const PICTURE = createMediaId('00000000-0000-4000-8000-000000000601');
 
-const overlay = (from: number, to: number) => ({
-  id: createItemOverlayId('00000000-0000-4000-8000-000000000301'),
-  name: 'Invented overlay',
-  from,
-  to,
-  screens: [THEME_MAIN],
-  content: {text: 'Invented text'},
-});
+function overlay(from: number, to: number) {
+  return {
+    id: createItemOverlayId('00000000-0000-4000-8000-000000000301'),
+    name: 'Invented overlay',
+    from,
+    to,
+    screens: [THEME_MAIN],
+    content: {text: 'Invented text'},
+  };
+}
 
 function setup(
   overlays?: LiveItem['overlays'],

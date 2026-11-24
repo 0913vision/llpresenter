@@ -18,8 +18,9 @@ const file = {
   schemaVersion: 1,
   entries: {krv: {'43:3:16': entry}},
 };
-const accepts = (entries: object) =>
-  v.safeParse(bibleCutsSchema, {...file, entries}).success;
+function accepts(entries: object) {
+  return v.safeParse(bibleCutsSchema, {...file, entries}).success;
+}
 
 describe('saved Bible cut settings', () => {
   it('round-trips translations and nested extensions using the settings file conventions', () => {

@@ -21,7 +21,9 @@ export const LITURGY_NAMES: Readonly<Record<LiturgyKind, string>> = {
   prayer: '주기도문',
 };
 
-const newId = () => createServiceItemId(crypto.randomUUID());
+function newId() {
+  return createServiceItemId(crypto.randomUUID());
+}
 
 /** A song of the library, with slides of its own in this service. */
 export function songItem(song: Song): ServiceItemOf<'song'> {

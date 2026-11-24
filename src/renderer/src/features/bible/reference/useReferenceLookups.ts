@@ -11,7 +11,9 @@ import {LIVE_BOUNDS, fullReferenceCandidate} from './referenceForm';
 import {useBibleLookup} from './useBibleLookup';
 import type {ReferenceEntry} from './useReferenceEntry';
 
-const ignorePreview = (): void => undefined;
+function ignorePreview(): void {
+  return undefined;
+}
 
 /**
  * What the entry reads as: the book it names, the bounds of that book, the

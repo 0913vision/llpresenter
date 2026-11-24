@@ -68,6 +68,14 @@ const BANNED_SYNTAX = [
     selector: 'TSEnumDeclaration[const=true]',
     message: 'Use a plain enum or a string literal union (Google style).',
   },
+  {
+    selector: [
+      'Program > VariableDeclaration[kind="const"] > VariableDeclarator[id.typeAnnotation=undefined] > ArrowFunctionExpression',
+      'Program > ExportNamedDeclaration > VariableDeclaration[kind="const"] > VariableDeclarator[id.typeAnnotation=undefined] > ArrowFunctionExpression',
+    ].join(', '),
+    message:
+      'Declare a named top-level function with `function` (Google style); an arrow fits a callback or a typed constant.',
+  },
 ];
 
 const BANNED_DEFAULT_EXPORTS = [
@@ -151,6 +159,14 @@ export const lintConfig = defineConfig(
       'prefer-template': 'error',
       // NOTE(0913vision): CONTRIBUTING.md prefers `Object.hasOwn`.
       'prefer-object-has-own': 'error',
+      // NOTE(0913vision): The Google style guide converts with `Number()` and
+      // `String()`, never with unary `+` or `'' +`, and bans the wrapper
+      // objects, the `Object` constructor, `arguments` and `apply`.
+      'no-implicit-coercion': ['error', {boolean: false}],
+      'no-new-wrappers': 'error',
+      'no-object-constructor': 'error',
+      'prefer-rest-params': 'error',
+      'prefer-spread': 'error',
       // NOTE(0913vision): The Google style guide requires braces unless the
       // whole statement fits on one line.
       curly: ['error', 'multi-line'],
@@ -271,6 +287,59 @@ export const lintConfig = defineConfig(
       // NOTE(0913vision): The Google style guide uses interfaces for object
       // types.
       '@typescript-eslint/consistent-type-definitions': ['error', 'interface'],
+      // NOTE(0913vision): The Google style guide never writes `public`, re-exports
+      // types with `export type`, and names by kind: UpperCamelCase for types
+      // and components, lowerCamelCase for values, CONSTANT_CASE allowed for
+      // constants, no `I` prefix and no trailing underscore. Names taken from
+      // another API (destructured parameters, object keys) keep that API's.
+      '@typescript-eslint/explicit-member-accessibility': [
+        'error',
+        {accessibility: 'no-public'},
+      ],
+      '@typescript-eslint/consistent-type-exports': 'error',
+      '@typescript-eslint/naming-convention': [
+        'error',
+        {
+          selector: 'default',
+          format: ['camelCase'],
+          leadingUnderscore: 'allow',
+          trailingUnderscore: 'forbid',
+        },
+        {
+          selector: 'variable',
+          format: ['camelCase', 'UPPER_CASE', 'PascalCase'],
+          leadingUnderscore: 'allow',
+        },
+        {selector: 'function', format: ['camelCase', 'PascalCase']},
+        {selector: 'typeLike', format: ['PascalCase']},
+        {
+          selector: 'interface',
+          format: ['PascalCase'],
+          custom: {regex: '^I[A-Z]', match: false},
+        },
+        {selector: 'enumMember', format: ['UPPER_CASE', 'PascalCase']},
+        {
+          selector: 'parameter',
+          format: ['camelCase', 'PascalCase'],
+          leadingUnderscore: 'allow',
+        },
+        {selector: 'parameter', modifiers: ['destructured'], format: null},
+        {selector: 'typeMethod', format: ['camelCase', 'PascalCase']},
+        {
+          selector: 'classProperty',
+          modifiers: ['static', 'readonly'],
+          format: ['camelCase', 'UPPER_CASE'],
+        },
+        {
+          selector: [
+            'objectLiteralProperty',
+            'objectLiteralMethod',
+            'typeProperty',
+            'import',
+          ],
+          format: null,
+        },
+      ],
       // NOTE(0913vision): CONTRIBUTING.md requires TSDoc, not JSDoc, so the syntax
       // must parse as TSDoc.
       'tsdoc/syntax': 'error',

@@ -32,9 +32,13 @@ export const ORDER_FULL_REASON = limitReason(
   SERVICE_LIMITS.items,
 );
 
-const isHeader = (item: ServiceItem): boolean => item.kind === 'header';
+function isHeader(item: ServiceItem): boolean {
+  return item.kind === 'header';
+}
 
-const newItemId = (): ServiceItemId => createServiceItemId(crypto.randomUUID());
+function newItemId(): ServiceItemId {
+  return createServiceItemId(crypto.randomUUID());
+}
 
 function refuse(
   reason: 'invalid' | 'not-found',

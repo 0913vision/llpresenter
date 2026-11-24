@@ -4,8 +4,9 @@ import {PreviewScreenPicker} from '@renderer/ui/previews/PreviewScreenPicker';
 
 afterEach(cleanup);
 
-const named = (names: readonly string[]) =>
-  names.map((name, index) => ({id: `s${index}`, name}));
+function named(names: readonly string[]) {
+  return names.map((name, index) => ({id: `s${index}`, name}));
+}
 
 describe('PreviewScreenPicker', () => {
   it('shows three short names as segments', () => {

@@ -17,8 +17,11 @@ export function isBundledFont(name: string): boolean {
   return BUNDLED_NAMES.includes(normalizeFontName(name));
 }
 
-const namesOf = (family: FontFamily): readonly string[] =>
-  [family.family, family.label, ...family.aliases].map(normalizeFontName);
+function namesOf(family: FontFamily): readonly string[] {
+  return [family.family, family.label, ...family.aliases].map(
+    normalizeFontName,
+  );
+}
 
 /** Matches localized names and aliases without rewriting the saved family. */
 export function installedFamily(

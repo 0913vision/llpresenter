@@ -60,7 +60,9 @@ async function editorSetup(fixture = editorFixture()) {
   return {...fixture, user: userEvent.setup()};
 }
 
-const lyrics = () => screen.getByRole('textbox', {name: '가사'});
+function lyrics() {
+  return screen.getByRole('textbox', {name: '가사'});
+}
 
 async function openMenu(user: Awaited<ReturnType<typeof editorSetup>>['user']) {
   await user.click(screen.getByRole('button', {name: '1절 1'}));

@@ -12,8 +12,12 @@ import type {SettingsName} from '@core/schema/app/settingsDocuments';
 import {settingsDeleteHistory} from '@renderer/platform/undo/settingsDeleteHistory';
 
 const emptyHistory = {undo: 0, redo: 0, busy: false};
-const noSubscribe = (): (() => void) => () => undefined;
-const noHistory = () => emptyHistory;
+function noSubscribe(): () => void {
+  return () => undefined;
+}
+function noHistory() {
+  return emptyHistory;
+}
 
 /**
  * Runs the saves of a tool's settings document and tells the operator with

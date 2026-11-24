@@ -31,10 +31,13 @@ vi.mock('electron', () => ({
   ipcMain: ipc.ipcMain,
 }));
 
-const uuid = (index: number) =>
-  `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
+function uuid(index: number) {
+  return `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
+}
 
-const macroId = (index: number) => expectSuccess(parseMacroId(uuid(index)));
+function macroId(index: number) {
+  return expectSuccess(parseMacroId(uuid(index)));
+}
 
 const overflowingMacroSlice = defineSlice({
   commands: ['macro.run'],

@@ -10,10 +10,14 @@ import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {lyricsSlide} from '@fixtures/core/slides';
 import {themesDocument} from '@fixtures/core/themeOutput';
 
-const media = (number: number) =>
-  createMediaId(`00000000-0000-4000-8000-${String(number).padStart(12, '0')}`);
-const slide = (number: number, id: MediaId): Slide =>
-  lyricsSlide(number, '가사', {background: {kind: 'media', media: id}});
+function media(number: number) {
+  return createMediaId(
+    `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`,
+  );
+}
+function slide(number: number, id: MediaId): Slide {
+  return lyricsSlide(number, '가사', {background: {kind: 'media', media: id}});
+}
 
 const loads: string[] = [];
 const finishes: Array<() => void> = [];
@@ -87,7 +91,9 @@ async function finishAll(): Promise<void> {
   }
 }
 
-const own = () => loads.filter(id => /^\d$/u.test(id));
+function own() {
+  return loads.filter(id => /^\d$/u.test(id));
+}
 
 it('loads the pictures of the service one after another, the next ones first', async () => {
   const preloader = await setup({

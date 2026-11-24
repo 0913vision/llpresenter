@@ -10,7 +10,9 @@ import {ServiceTableHeader} from './ServiceTableHeader';
 import styles from './ServiceTable.module.css';
 import {useShow} from '@renderer/session/show/showStore';
 
-const noProblem = (): void => undefined;
+function noProblem(): void {
+  return undefined;
+}
 
 /** The 예배 순서 of 준비 as a table: one row per item with its 슬라이드 count. */
 export function ServiceTableList(

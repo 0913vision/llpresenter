@@ -8,8 +8,9 @@ import {
 } from '@fixtures/core/screenIds';
 
 /** An invented UUID v4 for fixture ids. */
-export const uuid = (index: number) =>
-  `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
+export function uuid(index: number) {
+  return `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
+}
 
 /** A service state: a two-line slide, a background, a message, three outputs. */
 export function typicalState(): LiveState {
