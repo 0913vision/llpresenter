@@ -4,8 +4,8 @@ import type {
   Revision,
 } from '@core/schema/services/contentDocuments';
 import {isItemOfKind, type ServiceItemOf} from '@core/schema/services/service';
-import {pendingWritesOf} from '@renderer/platform/pendingWrites';
-import {useShow} from '@renderer/session/show';
+import {pendingWritesOf} from '@renderer/platform/documents/pendingWrites';
+import {useShow} from '@renderer/session/show/show';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import {AlertDialog} from '@renderer/ui/popups/AlertDialog';
 import {usageMeta} from '@renderer/ui/text/usageText';

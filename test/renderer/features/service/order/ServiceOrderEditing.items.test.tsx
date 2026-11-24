@@ -1,7 +1,7 @@
 import {act, fireEvent, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {describe, expect, it, vi} from 'vitest';
-import {useShow} from '@renderer/session/show';
+import {useShow} from '@renderer/session/show/show';
 import {
   headerId,
   firstId,

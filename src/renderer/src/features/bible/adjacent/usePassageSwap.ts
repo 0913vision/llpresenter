@@ -1,14 +1,17 @@
 import {useEffect, useRef, useState} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {BibleLookupPassage} from '@core/schema/bible/bibleLookup';
-import type {BibleDisplay, BibleSource} from '@renderer/session/bibleSource';
+import type {
+  BibleDisplay,
+  BibleSource,
+} from '@renderer/session/show/bibleSource';
 import {useLive} from '@renderer/session/live';
-import {useShow} from '@renderer/session/show';
-import {bibleSourceFor} from '@renderer/session/showLibrary';
+import {useShow} from '@renderer/session/show/show';
+import {bibleSourceFor} from '@renderer/session/show/showLibrary';
 import {
   beginOutputRequest,
   isOutputRequestCurrent,
-} from '@renderer/session/showOutput';
+} from '@renderer/session/show/showOutput';
 import {openBiblePassage} from '../actions';
 
 /** How the passage of `source` shows now. */

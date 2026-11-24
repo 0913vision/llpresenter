@@ -5,7 +5,7 @@ import type {MonitorInfo} from '@core/schema/screens/monitors';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import type {NewScreen} from '../addScreen';
 import {useScreensSelection} from '../selection';
-import type {NamedDocument} from '../../../platform/useSettingsDocument';
+import type {NamedDocument} from '../../../platform/documents/useSettingsDocument';
 import {useScreenEditor} from '../useScreenEditor';
 import {useAlive} from '@renderer/ui/useAlive';
 

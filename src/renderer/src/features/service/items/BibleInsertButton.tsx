@@ -1,8 +1,8 @@
 import {useState, type JSX} from 'react';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
-import type {BibleSource} from '@renderer/session/bibleSource';
-import {insertItemInSection} from '@renderer/session/serviceOrderEdits';
-import {useShow} from '@renderer/session/show';
+import type {BibleSource} from '@renderer/session/show/bibleSource';
+import {insertItemInSection} from '@renderer/session/service/serviceOrderEdits';
+import {useShow} from '@renderer/session/show/show';
 import {Button} from '@renderer/ui/buttons/Button';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import {rememberBiblePassage} from '../../../session/recentWriter';

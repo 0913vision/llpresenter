@@ -18,9 +18,9 @@ import {
   templateTokens,
 } from '@core/theme';
 import {mediaObjectFit} from '@core/media';
-import {BackgroundLayerView, type RenderMode} from '../backgroundLayer';
-import type {PreviewMediaSource} from '../previewMedia';
-import {backgroundPaint} from '../themeBackground';
+import {BackgroundLayerView, type RenderMode} from '../media/backgroundLayer';
+import type {PreviewMediaSource} from '../media/previewMedia';
+import {backgroundPaint} from './themeBackground';
 import {measuredText} from './measureRows';
 import {placeTexts} from './placement';
 import {isText, type ShownText, type ThemeDrawing} from './shownTexts';

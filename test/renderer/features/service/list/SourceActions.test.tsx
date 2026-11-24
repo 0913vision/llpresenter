@@ -28,8 +28,8 @@ import type {
 import type {ContentEdit, EditResult} from '@core/schema/services/contentEdit';
 import {createTemplateId} from '@core/schema/common/ids';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {pendingWritesOf} from '@renderer/platform/pendingWrites';
-import {applyService} from '@renderer/session/show';
+import {pendingWritesOf} from '@renderer/platform/documents/pendingWrites';
+import {applyService} from '@renderer/session/show/show';
 import {sampleService} from '@fixtures/renderer/session/sampleService';
 import {NewServiceDialog} from '@renderer/features/service/list/NewServiceDialog';
 import {

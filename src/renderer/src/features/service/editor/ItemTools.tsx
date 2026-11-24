@@ -7,10 +7,10 @@ import {BiblePassageDialog} from '@renderer/features/bible/finder/BiblePassageDi
 import {makePassageSlides} from '@renderer/features/bible/makePassageSlides';
 import {useVerseSplit} from '@renderer/features/bible/split/useVerseSplit';
 import {type SlideDeck} from '@renderer/features/slides/slideDeck';
-import {runEdit, type Report} from '@renderer/session/serviceEdit';
-import {slideMaking} from '@renderer/platform/themes';
-import {editItem} from '@renderer/session/openService';
-import {useShow} from '@renderer/session/show';
+import {runEdit, type Report} from '@renderer/session/service/serviceEdit';
+import {slideMaking} from '@renderer/platform/documents/themes';
+import {editItem} from '@renderer/session/service/openService';
+import {useShow} from '@renderer/session/show/show';
 import {Button} from '@renderer/ui/buttons/Button';
 import {warningNotice} from '@renderer/ui/popups/notices';
 import {SelectMenu} from '@renderer/ui/choices/SelectMenu';

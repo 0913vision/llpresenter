@@ -8,8 +8,8 @@ import {
   isGradientPreset,
   type GradientBackground,
 } from '@core/theme';
-import {backgroundPaint} from '@renderer/rendering/themeBackground';
-import {sampleGradient} from '@renderer/rendering/sampleGradient';
+import {backgroundPaint} from '@renderer/rendering/theme/themeBackground';
+import {sampleGradient} from '@renderer/rendering/theme/sampleGradient';
 import {IconButton, NumberField, PropertyRow} from '@renderer/ui';
 import {ColorProperty} from '../../ColorProperty';
 import {ThemeNumber} from './ThemePropertyFields';

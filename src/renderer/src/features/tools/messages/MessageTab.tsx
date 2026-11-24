@@ -1,5 +1,5 @@
-import {useScreenList} from '@renderer/platform/useScreenList';
-import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
+import {useScreenList} from '@renderer/platform/screens/useScreenList';
+import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
 import {
   memo,
   useState,
@@ -16,7 +16,7 @@ import {
   prepareMessage,
   type DraftTargets,
 } from '@core/overlays';
-import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
+import {useSettingsDocument} from '@renderer/platform/documents/useSettingsDocument';
 import {sendLive} from '@renderer/session/live';
 import {
   Button,

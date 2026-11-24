@@ -1,5 +1,5 @@
 import type {LayerDefinition} from '../layer';
-import {TestPatternView} from '../testPattern';
+import {TestPatternView} from './testPatternView';
 
 export const testPatternLayer: LayerDefinition = {
   kind: 'test-pattern',

@@ -1,7 +1,7 @@
 import {cleanup, render} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import type {WindowShortcut} from '@renderer/platform/windowShortcuts';
+import type {WindowShortcut} from '@renderer/platform/shortcuts/windowShortcuts';
 import {QuickObjectShortcuts} from '@renderer/features/quick/QuickObjectShortcuts';
 
 const mock = vi.hoisted(() => ({
@@ -12,13 +12,13 @@ const mock = vi.hoisted(() => ({
   cancel: vi.fn(),
   unavailable: vi.fn<(item: {kind: string}) => string | undefined>(),
 }));
-vi.mock('@renderer/platform/useBoundCommands', () => ({
+vi.mock('@renderer/platform/shortcuts/useBoundCommands', () => ({
   useBoundCommands: () => () => mock.bound,
 }));
-vi.mock('@renderer/platform/useSettingsDocument', () => ({
+vi.mock('@renderer/platform/documents/useSettingsDocument', () => ({
   useSettingsDocument: mock.load,
 }));
-vi.mock('@renderer/platform/windowShortcuts', () => ({
+vi.mock('@renderer/platform/shortcuts/windowShortcuts', () => ({
   useWindowShortcuts: mock.register,
 }));
 vi.mock('@renderer/features/quick/quickActions', () => ({

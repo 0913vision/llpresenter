@@ -15,10 +15,10 @@ import {
   outputTile,
   selectTile,
   useShow,
-} from '@renderer/session/show';
+} from '@renderer/session/show/show';
 import {useLive} from '@renderer/session/live';
-import {bibleSourceFor} from '@renderer/session/showLibrary';
-import {beginOutputRequest} from '@renderer/session/showOutput';
+import {bibleSourceFor} from '@renderer/session/show/showLibrary';
+import {beginOutputRequest} from '@renderer/session/show/showOutput';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
 import {BibleAdjacentButtons} from '@renderer/features/bible/adjacent/BibleAdjacentButtons';
 import {openBiblePassage} from '@renderer/features/bible/actions';

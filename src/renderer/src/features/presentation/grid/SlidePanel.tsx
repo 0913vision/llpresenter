@@ -4,13 +4,13 @@ import {
   defaultThumbnailColumns,
   type SizeClass,
 } from '@renderer/ui/panels/sizeClass';
-import {useShow} from '@renderer/session/show';
+import {useShow} from '@renderer/session/show/show';
 import {
   isLibrarySource,
   projectedLiveCursor,
   tilesForView,
   useLiveTileIndex,
-} from '@renderer/session/showLibrary';
+} from '@renderer/session/show/showLibrary';
 import {useThumbnailScale} from '@renderer/platform/thumbnailScale';
 import {SlideSizeControl} from '@renderer/platform/SlideSizeControl';
 import {Button, Icon, PanelTitle} from '@renderer/ui';
@@ -19,11 +19,11 @@ import {useTooltip} from '@renderer/ui/popups/Tooltip';
 import {SlideGrid} from './SlideGrid';
 import {ContinuousSlideGrid} from './ContinuousSlideGrid';
 import {liveReturn} from './liveReturn';
-import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
+import {useSettingsDocument} from '@renderer/platform/documents/useSettingsDocument';
 import {READ_ONLY_TIP} from '../../../platform/problemReasons';
 import styles from './SlidePanel.module.css';
-import {useVisibleSlideItem} from '@renderer/session/visibleSlideItem';
-import {useShownItemId} from '@renderer/session/shownItem';
+import {useVisibleSlideItem} from '@renderer/session/show/visibleSlideItem';
+import {useShownItemId} from '@renderer/session/show/shownItem';
 import {useLive} from '@renderer/session/live';
 
 const PROBLEM_ICON_SIZE = 14;

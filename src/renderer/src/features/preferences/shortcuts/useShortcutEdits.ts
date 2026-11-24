@@ -1,8 +1,8 @@
-import {useScreenList} from '@renderer/platform/useScreenList';
+import {useScreenList} from '@renderer/platform/screens/useScreenList';
 import {useMemo} from 'react';
 import type {KeyBinding} from '@core/schema/app/shortcuts';
 import type {ShortcutCommand} from '@core/shortcuts';
-import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
+import {useSettingsDocument} from '@renderer/platform/documents/useSettingsDocument';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {NEWER_FILE_REASON} from '../usePreferenceEdits';
 import {useQueuedWrites} from '../useQueuedWrites';

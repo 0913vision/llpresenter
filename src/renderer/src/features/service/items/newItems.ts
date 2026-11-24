@@ -10,7 +10,7 @@ import {
   type LiturgyTranslation,
   SERVICE_TITLES,
 } from '@core/slides';
-import {slideMaking, useThemes} from '@renderer/platform/themes';
+import {slideMaking, useThemes} from '@renderer/platform/documents/themes';
 import {iconByKind} from '../serviceItemIcons';
 
 export const PREP_PALETTE_LABEL = '예배 요소와 곡';

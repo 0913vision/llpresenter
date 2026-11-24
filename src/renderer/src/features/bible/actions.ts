@@ -4,11 +4,14 @@ import {
   bibleSource,
   type BibleDisplay,
   type BibleSource,
-} from '@renderer/session/bibleSource';
+} from '@renderer/session/show/bibleSource';
 import {useLive} from '@renderer/session/live';
-import {outputTile, useShow} from '@renderer/session/show';
-import {beginOutputRequest} from '@renderer/session/showOutput';
-import {bibleSourceFor, withBibleSource} from '@renderer/session/showLibrary';
+import {outputTile, useShow} from '@renderer/session/show/show';
+import {beginOutputRequest} from '@renderer/session/show/showOutput';
+import {
+  bibleSourceFor,
+  withBibleSource,
+} from '@renderer/session/show/showLibrary';
 import {measurePassage, slidesOfPassage} from './makePassageSlides';
 
 function samePassage(

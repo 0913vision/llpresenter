@@ -15,7 +15,7 @@ import type {Themes} from '@core/schema/screens/themes';
 import {BUILT_IN_THEME_IDS} from '@core/theme/builtIn/ids';
 import {ThemeLeaveGuard} from '@renderer/features/screens/themes/saving/themeLeaveGuard';
 import {useThemePanels} from '@renderer/features/screens/themes/useThemePanels';
-import {useThemes} from '@renderer/platform/themes';
+import {useThemes} from '@renderer/platform/documents/themes';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {themes, themeScreens} from '@fixtures/core/themeOutput';

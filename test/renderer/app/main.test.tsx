@@ -10,8 +10,8 @@ const root = vi.hoisted(() => ({render: vi.fn(), unmount: vi.fn()}));
 const stops = vi.hoisted(() => ({live: vi.fn(), service: vi.fn()}));
 vi.mock('react-dom/client', () => ({createRoot: () => root}));
 vi.mock('@renderer/session/live', () => ({startLiveSync: () => stops.live}));
-vi.mock('@renderer/session/show', async importOriginal => ({
-  ...(await importOriginal<typeof import('@renderer/session/show')>()),
+vi.mock('@renderer/session/show/show', async importOriginal => ({
+  ...(await importOriginal<typeof import('@renderer/session/show/show')>()),
   startServiceSync: () => stops.service,
 }));
 
@@ -90,7 +90,7 @@ it('flushes focused property drafts and queued writes in the settings renderer b
       await import('@renderer/app/main');
     });
     const {pendingWritesOf: writesOf} =
-      await import('@renderer/platform/pendingWrites');
+      await import('@renderer/platform/documents/pendingWrites');
     input.addEventListener('blur', () => {
       submitted = writesOf(api).run({
         write: () => pending,

@@ -1,6 +1,6 @@
 import type {TileCursor} from '@core/presentation';
-import {tilesForView} from '@renderer/session/showLibrary';
-import type {ShowView} from '@renderer/session/showStore';
+import {tilesForView} from '@renderer/session/show/showLibrary';
+import type {ShowView} from '@renderer/session/show/showStore';
 
 /** A service number counts exactly the tiles in service order, including cards. */
 export function serviceSlideOffset(

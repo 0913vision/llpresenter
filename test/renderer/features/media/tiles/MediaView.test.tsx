@@ -1,4 +1,4 @@
-import {startOpenServiceSync} from '@renderer/session/openService';
+import {startOpenServiceSync} from '@renderer/session/service/openService';
 import {MEDIA_LIMITS} from '@core/schema/media/mediaList';
 import {WorkspaceNavigation} from '@renderer/platform/WorkspaceNavigation';
 import {
@@ -37,7 +37,7 @@ import type {
   MediaDocument,
   MediaImportResult,
 } from '@core/schema/media/mediaEdit';
-import {useShow} from '@renderer/session/showStore';
+import {useShow} from '@renderer/session/show/showStore';
 import * as mediaMenus from '@renderer/features/media/tiles/mediaMenuEntries';
 import {
   itemFixture,

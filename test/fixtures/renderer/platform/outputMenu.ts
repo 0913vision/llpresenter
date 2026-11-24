@@ -2,7 +2,7 @@ import {vi} from 'vitest';
 import {BUILT_IN_THEMES} from '@core/theme/builtIn';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {screensDocument, STAGE_ID} from '@fixtures/core/screenDocuments';
-import {summarizeScreens} from '@renderer/platform/screens';
+import {summarizeScreens} from '@renderer/platform/screens/screens';
 
 export function outputMenuFixture() {
   const screens = screensDocument();

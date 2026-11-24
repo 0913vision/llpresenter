@@ -1,6 +1,6 @@
 import type {ItemKind, ItemRow, SlideTile} from '@core/presentation';
 import {themeOfSlide} from '@core/theme';
-import {useThemes} from '@renderer/platform/themes';
+import {useThemes} from '@renderer/platform/documents/themes';
 
 /** Icons shared by the order table and its insertable item palette. */
 export const iconByKind: Readonly<Record<ItemKind, string>> = {

@@ -9,7 +9,7 @@ import {
 } from '@fixtures/renderer/features/songs/library/libraryFixture';
 import {LibraryPanel} from '@renderer/features/songs/library/LibraryPanel';
 import {pastDocument} from '@fixtures/core/serviceList';
-import {applyService} from '@renderer/session/show';
+import {applyService} from '@renderer/session/show/show';
 import {sampleService} from '@fixtures/renderer/session/sampleService';
 import {setup} from '@fixtures/renderer/features/songs/library/libraryPanelFixtures';
 

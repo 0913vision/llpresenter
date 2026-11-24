@@ -12,7 +12,7 @@ vi.mock('@renderer/features/screens/useMonitors', () => ({
 vi.mock('@renderer/features/screens/useOutputStatuses', () => ({
   useOutputStatuses: () => fixture.statuses,
 }));
-vi.mock('@renderer/platform/ScreenSummaries', () => ({
+vi.mock('@renderer/platform/screens/ScreenSummaries', () => ({
   useScreenSummaries: () => [
     {id: 'stage', statusLabel: '무대 화면'},
     {id: 'stream', statusLabel: '방송 자막'},

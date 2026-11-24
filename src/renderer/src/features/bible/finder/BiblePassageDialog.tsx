@@ -10,7 +10,7 @@ import type {BibleLookupApi} from '@contracts/ipc/bible';
 import type {BibleLookupPassage} from '@core/schema/bible/bibleLookup';
 import type {RecentPassage} from '@core/schema/bible/bible';
 import type {TranslationId} from '@core/schema/common/ids';
-import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
+import {useSettingsDocument} from '@renderer/platform/documents/useSettingsDocument';
 import {PassageDialog} from './PassageDialog';
 
 /** Resolves selected recent passages before handing them to the add flow. */

@@ -4,7 +4,7 @@ import {cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {ShowService} from '@core/schema/services/showService';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {applyService, useShow} from '@renderer/session/show';
+import {applyService, useShow} from '@renderer/session/show/show';
 import {ServiceOrderList} from '@renderer/features/service/order/ServiceOrderList';
 
 const SERVICE_ID = '30000000-0000-4000-8000-000000000001';

@@ -1,6 +1,6 @@
 import {warningNotice} from '@renderer/ui/popups/notices';
 import {useRef, useState} from 'react';
-import {useShow} from '@renderer/session/show';
+import {useShow} from '@renderer/session/show/show';
 import {Menu} from '@renderer/ui/menus/Menu';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {menuAvailability, type MenuEntry} from '@renderer/ui/menus/menuModel';
@@ -10,7 +10,7 @@ import {renameService} from '@renderer/features/service/list/serviceEdits';
 import {useServiceActions} from '@renderer/features/service/list/useServiceActions';
 import {useServicePicker} from './useServicePicker';
 import {useServiceRowMenu} from './useServiceRowMenu';
-import {useUndoKeys} from '@renderer/platform/useUndoKeys';
+import {useUndoKeys} from '@renderer/platform/undo/useUndoKeys';
 
 const PICKER_WIDTH = 300;
 

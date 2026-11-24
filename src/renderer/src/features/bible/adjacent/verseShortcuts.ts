@@ -2,22 +2,22 @@ import type {VerseDirection} from '@core/bible';
 import type {BiblePassage} from '@core/schema/bible/biblePassage';
 import type {BibleLookupPassage} from '@core/schema/bible/bibleLookup';
 import {useLive} from '@renderer/session/live';
-import {outputTile, useShow} from '@renderer/session/show';
+import {outputTile, useShow} from '@renderer/session/show/show';
 import {
   bibleSourceFor,
   liveTileIndex,
   tilesForView,
-} from '@renderer/session/showLibrary';
-import type {ShowView} from '@renderer/session/showStore';
+} from '@renderer/session/show/showLibrary';
+import type {ShowView} from '@renderer/session/show/showStore';
 import {
   bibleSource,
   type BibleDisplay,
   type BibleSource,
-} from '@renderer/session/bibleSource';
+} from '@renderer/session/show/bibleSource';
 import {
   beginOutputRequest,
   isOutputRequestCurrent,
-} from '@renderer/session/showOutput';
+} from '@renderer/session/show/showOutput';
 import {openBiblePassage} from '../actions';
 import {lookupAdjacentPassage} from './lookupAdjacentPassage';
 import {passageText} from '../passageText';

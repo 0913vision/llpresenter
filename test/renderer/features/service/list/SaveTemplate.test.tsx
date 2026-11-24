@@ -21,7 +21,7 @@ import type {ContentEdit, EditResult} from '@core/schema/services/contentEdit';
 import type {TemplateEntry} from '@core/schema/services/contentDocuments';
 import {createServiceId, createTemplateId} from '@core/schema/common/ids';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {applyService} from '@renderer/session/show';
+import {applyService} from '@renderer/session/show/show';
 import {sampleService} from '@fixtures/renderer/session/sampleService';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {useServiceActions} from '@renderer/features/service/list/useServiceActions';

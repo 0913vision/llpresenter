@@ -4,7 +4,7 @@ import {
   APP_FLUSH_LIMITS,
   type AppFlushRequest,
 } from '@core/schema/app/appFlush';
-import type {DraftOutcome} from '@renderer/platform/pendingWrites';
+import type {DraftOutcome} from '@renderer/platform/documents/pendingWrites';
 
 /**
  * How long a close flush may run before the 저장 중 dialog shows, so a normal

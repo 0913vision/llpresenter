@@ -6,8 +6,8 @@ import {
   showBiblePassage,
 } from '@renderer/features/bible/actions';
 import {useLive} from '@renderer/session/live';
-import {selectTile, tilesOf, useShow} from '@renderer/session/show';
-import {bibleSourceFor} from '@renderer/session/showLibrary';
+import {selectTile, tilesOf, useShow} from '@renderer/session/show/show';
+import {bibleSourceFor} from '@renderer/session/show/showLibrary';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
 import {panelApi} from '@fixtures/contracts/ipc/bibleApi';
 import {lookupRequest} from '@fixtures/core/bibleLookups';

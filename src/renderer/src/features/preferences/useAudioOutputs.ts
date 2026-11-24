@@ -1,6 +1,6 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
 import type {AudioDevice} from '@core/media';
-import {deviceApi, listAudioOutputs} from '@renderer/rendering/audioSink';
+import {deviceApi, listAudioOutputs} from '@renderer/rendering/media/audioSink';
 
 let lastKnownOutputs: readonly AudioDevice[] = [];
 

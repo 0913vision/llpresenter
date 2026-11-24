@@ -1,6 +1,6 @@
 import type {JSX} from 'react';
 import type {SlideTile} from '@core/presentation';
-import {outputTile} from '@renderer/session/show';
+import {outputTile} from '@renderer/session/show/show';
 import {SlideThumbnail, ThumbnailGrid} from '@renderer/ui';
 import {Menu, type MenuAnchor} from '@renderer/ui/menus/Menu';
 import type {TransitionProgress} from '@renderer/ui/tiles/transitionProgress';

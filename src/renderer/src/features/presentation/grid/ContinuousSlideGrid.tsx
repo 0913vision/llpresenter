@@ -9,14 +9,17 @@ import {
 } from 'react';
 import type {ServiceRow, SlideTile} from '@core/presentation';
 import {useLive} from '@renderer/session/live';
-import {useShow} from '@renderer/session/show';
-import {projectedLiveCursor, tilesForView} from '@renderer/session/showLibrary';
-import type {ShowView} from '@renderer/session/showStore';
+import {useShow} from '@renderer/session/show/show';
+import {
+  projectedLiveCursor,
+  tilesForView,
+} from '@renderer/session/show/showLibrary';
+import type {ShowView} from '@renderer/session/show/showStore';
 import {thumbnailWidth} from '@renderer/ui';
 import {firstSlideWindowSize} from './useSlideWindow';
 import {useGridMeasure} from '@renderer/ui/lists/useGridMeasure';
 import {useSlideTransitionProgress} from '../useSlideTransitionProgress';
-import {revealSlideItem} from '@renderer/session/visibleSlideItem';
+import {revealSlideItem} from '@renderer/session/show/visibleSlideItem';
 import {liveReturn} from './liveReturn';
 import type {SlideGridProps} from './SlideGrid';
 import {ShowSlideEntry} from '../keyboard/showPanelNavigation';

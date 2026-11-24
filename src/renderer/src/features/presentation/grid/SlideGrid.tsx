@@ -7,14 +7,17 @@ import {
   useState,
   type JSX,
 } from 'react';
-import {useShow} from '@renderer/session/show';
+import {useShow} from '@renderer/session/show/show';
 import {
   isBibleSource,
   liveTileIndex,
   shownTilesFor,
-} from '@renderer/session/showLibrary';
+} from '@renderer/session/show/showLibrary';
 import {useLive} from '@renderer/session/live';
-import {commitShownItem, useShownItemId} from '@renderer/session/shownItem';
+import {
+  commitShownItem,
+  useShownItemId,
+} from '@renderer/session/show/shownItem';
 import {thumbnailWidth} from '@renderer/ui';
 import {useGridMeasure} from '@renderer/ui/lists/useGridMeasure';
 import styles from './SlideGrid.module.css';

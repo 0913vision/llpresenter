@@ -4,7 +4,7 @@ import {beforeEach, describe, expect, it, vi} from 'vitest';
 import type {ServiceItem} from '@core/schema/services/service';
 import {DetailsPanel} from '@renderer/features/service/details/DetailsPanel';
 import {ServiceTableList} from '@renderer/features/service/table/ServiceTableList';
-import {useThemes} from '@renderer/platform/themes';
+import {useThemes} from '@renderer/platform/documents/themes';
 import {lyricsSlide, slideOf} from '@fixtures/core/slides';
 import {themes, themeScreens} from '@fixtures/core/themeOutput';
 import {

@@ -3,20 +3,23 @@ import type {RecentPassage} from '@core/schema/bible/bible';
 import type {BibleLookupPassage} from '@core/schema/bible/bibleLookup';
 import {useEffect, useLayoutEffect, useRef, useState, type JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
-import {useApiSettingsDocument} from '@renderer/platform/useSettingsDocument';
-import type {BibleDisplay} from '@renderer/session/bibleSource';
+import {useApiSettingsDocument} from '@renderer/platform/documents/useSettingsDocument';
+import type {BibleDisplay} from '@renderer/session/show/bibleSource';
 import {useLive} from '@renderer/session/live';
 import {
   beginQuickPassage,
   finishQuickPassage,
-} from '@renderer/session/quickReturn';
-import {selectTile, useShow} from '@renderer/session/show';
-import {bibleSourceFor, isBibleSource} from '@renderer/session/showLibrary';
-import {useCommittedShownItem} from '@renderer/session/shownItem';
+} from '@renderer/session/show/quickReturn';
+import {selectTile, useShow} from '@renderer/session/show/show';
+import {
+  bibleSourceFor,
+  isBibleSource,
+} from '@renderer/session/show/showLibrary';
+import {useCommittedShownItem} from '@renderer/session/show/shownItem';
 import {
   beginOutputRequest,
   isOutputRequestCurrent,
-} from '@renderer/session/showOutput';
+} from '@renderer/session/show/showOutput';
 import {useAlive} from '@renderer/ui/useAlive';
 import {
   openBiblePassage,

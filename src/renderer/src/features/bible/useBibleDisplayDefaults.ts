@@ -1,6 +1,6 @@
 import {useEffect, useState} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
-import type {BibleDisplay} from '@renderer/session/bibleSource';
+import type {BibleDisplay} from '@renderer/session/show/bibleSource';
 import type {Preferences} from '@core/schema/app/preferences';
 
 /**

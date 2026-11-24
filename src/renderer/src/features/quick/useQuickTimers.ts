@@ -7,7 +7,7 @@ import type {TimerId} from '@core/schema/common/ids';
 import {
   useSettingsDocument,
   type NamedDocument,
-} from '@renderer/platform/useSettingsDocument';
+} from '@renderer/platform/documents/useSettingsDocument';
 import {useLive} from '@renderer/session/live';
 import type {Notice} from '@renderer/ui/popups/notices';
 

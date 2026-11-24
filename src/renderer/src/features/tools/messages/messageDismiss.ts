@@ -1,6 +1,6 @@
 import {messageIdSchema} from '@core/schema/common/ids';
 import {parsePayload} from '@core/schema/common/payload';
-import {clearLayer} from '@renderer/session/clear';
+import {clearLayer} from '@renderer/session/show/clear';
 import {sendLive, useLive} from '@renderer/session/live';
 
 /** Clears one message through the existing clear history, including legacy layers. */

@@ -18,8 +18,8 @@ import {
   normalizeSongTitle,
   SONG_TITLE_LIMIT,
 } from '@core/songs';
-import {pendingWritesOf} from '@renderer/platform/pendingWrites';
-import {slideMaking} from '@renderer/platform/themes';
+import {pendingWritesOf} from '@renderer/platform/documents/pendingWrites';
+import {slideMaking} from '@renderer/platform/documents/themes';
 import {noticeTime, type Notice} from '@renderer/ui/popups/notices';
 
 const HISTORY_LIMIT = 100;

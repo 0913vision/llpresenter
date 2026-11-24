@@ -10,7 +10,7 @@ import type {
   RenderFrame,
   RenderScreen,
 } from './layer';
-import {renderLayers} from './layers';
+import {renderLayers} from './layers/renderLayers';
 import {scaleFor} from '@core/overlays';
 import {PICTURE_TRANSFORM, pictureTransform} from './pictureCorrection';
 

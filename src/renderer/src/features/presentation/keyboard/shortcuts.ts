@@ -3,7 +3,7 @@ import {
   dispatchShortcut,
   type WindowShortcut,
 } from '@renderer/ui/keys/commandDispatcher';
-import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
+import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
 import {isColumnDragActive} from '@renderer/ui/panels/columnDrag';
 import {CLICK_FOCUS_SELECTOR} from '@renderer/ui';
 import {
@@ -14,12 +14,12 @@ import {
   outputPrevious,
   returnFromQuickPassage,
   revealLiveItem,
-} from '@renderer/session/show';
+} from '@renderer/session/show/show';
 import {useAtLastSlide} from './useAtLastSlide';
 import {useSlideHotKeys} from './useSlideHotKeys';
 import {outputAdjacentBibleVerse} from '../../bible/adjacent/verseShortcuts';
-import {clearLayer} from '@renderer/session/clear';
-import {canReturnFromQuickPassage} from '@renderer/session/quickReturn';
+import {clearLayer} from '@renderer/session/show/clear';
+import {canReturnFromQuickPassage} from '@renderer/session/show/quickReturn';
 import {useNumberJumpKeys} from './numberJump';
 import {returnFocus} from '@renderer/ui/keys/returnFocus';
 

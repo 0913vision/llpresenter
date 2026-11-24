@@ -3,7 +3,7 @@ import {
   NOTHING_TO_REDO,
   NOTHING_TO_UNDO,
 } from '@renderer/platform/problemReasons';
-import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
+import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
 import {addSlide} from '../deckCommands';
 import {focusText} from '../deckSelection';
 import {splitAtCaret} from './deckTexts';

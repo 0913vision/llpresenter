@@ -5,12 +5,12 @@ import {ownScreenOf, withScreen, themeScreenOf} from '@core/theme';
 import {
   pendingWritesOf,
   type DraftOutcome,
-} from '@renderer/platform/pendingWrites';
+} from '@renderer/platform/documents/pendingWrites';
 import {
   NOTHING_TO_REDO,
   NOTHING_TO_UNDO,
 } from '@renderer/platform/problemReasons';
-import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
+import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
 import {
   takeThemeRequest,
   useThemeRequest,

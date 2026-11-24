@@ -1,6 +1,6 @@
-import {useScreenList} from '@renderer/platform/useScreenList';
+import {useScreenList} from '@renderer/platform/screens/useScreenList';
 import {useState} from 'react';
-import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
+import {useSettingsDocument} from '@renderer/platform/documents/useSettingsDocument';
 import type {Notice} from '@renderer/ui/popups/notices';
 
 /** The themes and screens the editor works on, once they have loaded. */

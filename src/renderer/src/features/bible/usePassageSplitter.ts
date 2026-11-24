@@ -1,6 +1,6 @@
 import {useEffect, useMemo, useState} from 'react';
-import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
-import {useThemes} from '@renderer/platform/themes';
+import {useSettingsDocument} from '@renderer/platform/documents/useSettingsDocument';
+import {useThemes} from '@renderer/platform/documents/themes';
 import {createFontMeasure} from '@renderer/rendering/theme/splitMeasure';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {PassageSplitter} from './passageSplitter';

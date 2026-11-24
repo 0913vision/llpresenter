@@ -28,7 +28,7 @@ import {SONG_IMPORT_LIMITS} from '@core/schema/songs/songImport';
 import {limitReason} from '@core/common/limitReason';
 import {hoverForTooltip} from '@fixtures/renderer/ui/tooltipTesting';
 import * as labelMenus from '@renderer/features/labels/labelMenuEntries';
-import {useThemes} from '@renderer/platform/themes';
+import {useThemes} from '@renderer/platform/documents/themes';
 import {themes, themeScreens} from '@fixtures/core/themeOutput';
 
 const source: TextImportSource = {

@@ -7,7 +7,7 @@ import {
   useCanUndo,
   useClearRestores,
   useSomethingToClear,
-} from '@renderer/session/clear';
+} from '@renderer/session/show/clear';
 import {useLive} from '@renderer/session/live';
 import {
   ClearButton,

@@ -10,8 +10,8 @@ import {
   type SlideDeck,
 } from '@renderer/features/slides/slideDeck';
 import {seedSlideSurfaceView} from '@renderer/features/slides/rows/SlideSurfaceView';
-import {useThemes} from '@renderer/platform/themes';
-import type {Report} from '@renderer/session/serviceEdit';
+import {useThemes} from '@renderer/platform/documents/themes';
+import type {Report} from '@renderer/session/service/serviceEdit';
 import {themes, themeScreens} from '@fixtures/core/themeOutput';
 
 const NO_COLORS = new Map();

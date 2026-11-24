@@ -1,7 +1,7 @@
 import {emptyLiveState} from '@core/schema/live/live';
 import {renderHook} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import * as clearState from '@renderer/session/clear';
+import * as clearState from '@renderer/session/show/clear';
 import {useClearKeys} from '@renderer/features/presentation/keyboard/clearKeys';
 import {commandBindingStore} from '@renderer/ui/keys/commandBindings';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';

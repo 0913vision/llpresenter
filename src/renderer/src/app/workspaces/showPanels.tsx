@@ -1,5 +1,5 @@
 import {useState, type ReactNode} from 'react';
-import {useShownItemId} from '@renderer/session/shownItem';
+import {useShownItemId} from '@renderer/session/show/shownItem';
 import type {SongId} from '@core/schema/common/ids';
 import {BiblePanel} from '@renderer/features/presentation/BiblePanel';
 import {ClearRow} from '@renderer/features/presentation/ClearRow';
@@ -15,19 +15,19 @@ import {useVerseSplit} from '@renderer/features/bible/split/useVerseSplit';
 import {useItemDeck} from '@renderer/features/slides/slideDeck';
 import {QuickPanel} from '@renderer/features/quick/QuickPanel';
 import {ShowToolsPanel} from '@renderer/features/tools/ShowToolsPanel';
-import {useShow} from '@renderer/session/show';
+import {useShow} from '@renderer/session/show/show';
 import {
   useSettingsDocument,
   type NamedDocument,
-} from '@renderer/platform/useSettingsDocument';
-import {isBibleSource, tilesForView} from '@renderer/session/showLibrary';
+} from '@renderer/platform/documents/useSettingsDocument';
+import {isBibleSource, tilesForView} from '@renderer/session/show/showLibrary';
 import type {Notice} from '@renderer/ui/popups/notices';
 import type {SizeClass} from '@renderer/ui/panels/sizeClass';
 import {
   logPanelProblem,
   type PanelParts,
   type WorkspacePanels,
-} from '../shell/WorkspacePanel';
+} from '../shell/workspace/WorkspacePanel';
 import {SERVICE_ORDER, serviceOrderParts} from './serviceOrderPanel';
 
 const SHOW_COLUMNS = [

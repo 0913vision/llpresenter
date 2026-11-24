@@ -1,10 +1,13 @@
 import {useMemo} from 'react';
 import {placedOverlays, storedOverlays} from '@core/live';
 import {hasSlides, type SlidesItem} from '@core/schema/services/service';
-import {useMedia} from '@renderer/platform/media';
-import {useThemes} from '@renderer/platform/themes';
+import {useMedia} from '@renderer/platform/documents/media';
+import {useThemes} from '@renderer/platform/documents/themes';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
-import {editItem, type OpenServiceResult} from '@renderer/session/openService';
+import {
+  editItem,
+  type OpenServiceResult,
+} from '@renderer/session/service/openService';
 import type {OverlayEditing} from './overlayEditing';
 
 async function saved(edit: Promise<OpenServiceResult>): Promise<boolean> {

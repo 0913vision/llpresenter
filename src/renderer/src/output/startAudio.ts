@@ -1,17 +1,17 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import {RENDERER_LOG_LIMITS} from '@core/schema/app/ipcPayloads';
-import {AudioPlayer} from '../rendering/audioPlayer';
-import {MainTimerClock} from '../rendering/mainTimerClock';
+import {AudioPlayer} from '../rendering/media/audioPlayer';
+import {MainTimerClock} from '../rendering/screen/mainTimerClock';
 import {followLiveState} from './liveFeed';
 import {BackgroundAudio} from './backgroundAudio';
-import {followAudioOutput} from '../rendering/audioSink';
-import {followSettingsDocument} from '../rendering/settingsFeed';
+import {followAudioOutput} from '../rendering/media/audioSink';
+import {followSettingsDocument} from '../rendering/screen/settingsFeed';
 import {audioTimes} from '@core/media';
 import {withPreferenceDefaults} from '@core/schema/app/preferences';
 import {
   followPlaybackProblems,
   setPlaybackProblem,
-} from '../rendering/playbackProblem';
+} from '../rendering/media/playbackProblem';
 
 /** Runs audio only in main's dedicated hidden window, muted unless explicitly allowed. */
 export function startAudio({

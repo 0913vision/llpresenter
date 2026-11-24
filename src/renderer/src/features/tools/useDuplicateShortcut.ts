@@ -1,4 +1,4 @@
-import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
+import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
 
 /**
  * Ctrl D and the 편집 menu's 복제 for a list: `itemAt` names the entry under the focus

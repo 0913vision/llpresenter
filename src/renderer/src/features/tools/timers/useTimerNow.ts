@@ -1,7 +1,7 @@
 import {useSyncExternalStore} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {TimerNow} from '@core/timers';
-import {MainTimerClock} from '@renderer/rendering/mainTimerClock';
+import {MainTimerClock} from '@renderer/rendering/screen/mainTimerClock';
 
 const TIMER_TICK_MS = 250;
 const noSubscription = () => () => undefined;

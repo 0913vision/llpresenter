@@ -17,7 +17,7 @@ import {
 } from '@renderer/features/songs/songDraft';
 import {SongDraftDialogs} from '@renderer/features/songs/SongDraftDialogs';
 import {useSongEditor} from '@renderer/features/songs/SongEditor';
-import {useThemes} from '@renderer/platform/themes';
+import {useThemes} from '@renderer/platform/documents/themes';
 import {themes, themeScreens} from '@fixtures/core/themeOutput';
 import {
   editorFixture,

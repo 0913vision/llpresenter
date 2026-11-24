@@ -1,6 +1,6 @@
 import {limitReason} from '@core/common/limitReason';
 import {toggleTimer, resetTimer} from '../toolCommands';
-import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
+import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
 import {timerCommandLabels} from '@renderer/ui/keys/timerCommandLabels';
 import {memo, type JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';

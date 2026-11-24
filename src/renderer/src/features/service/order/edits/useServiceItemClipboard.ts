@@ -4,16 +4,16 @@ import {SERVICE_LIMITS} from '@core/schema/services/service';
 import {
   NO_SERVICE_REASON,
   orderEditReason,
-} from '@renderer/session/orderReasons';
-import {useShow} from '@renderer/session/show';
-import {revealAddedItem} from '@renderer/session/selectAddedItem';
-import {serviceItemClipboardFor} from '@renderer/session/serviceItemClipboard';
+} from '@renderer/session/service/orderReasons';
+import {useShow} from '@renderer/session/show/show';
+import {revealAddedItem} from '@renderer/session/service/selectAddedItem';
+import {serviceItemClipboardFor} from '@renderer/session/service/serviceItemClipboard';
 import {
   insertItems,
   ORDER_FULL_REASON,
-} from '@renderer/session/serviceOrderEdits';
+} from '@renderer/session/service/serviceOrderEdits';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
-import type {useServiceOrderEditing} from '@renderer/session/useServiceOrderEditing';
+import type {useServiceOrderEditing} from '@renderer/session/service/useServiceOrderEditing';
 
 const EMPTY_CLIPBOARD = '복사한 예배 순서 항목이 없습니다.';
 const NO_ITEMS = '선택한 항목이 없습니다.';

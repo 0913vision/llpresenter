@@ -4,8 +4,8 @@ import {
   type RenderOptions,
   type RenderResult,
 } from '@testing-library/react';
-import {ScreenSummariesContext} from '@renderer/platform/ScreenSummaries';
-import type {ScreenSummary} from '@renderer/platform/screens';
+import {ScreenSummariesContext} from '@renderer/platform/screens/ScreenSummaries';
+import type {ScreenSummary} from '@renderer/platform/screens/screens';
 import {
   BROADCAST_SCREEN,
   MAIN_SCREEN,

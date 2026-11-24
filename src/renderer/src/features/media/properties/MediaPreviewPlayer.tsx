@@ -5,7 +5,10 @@ import {Icon} from '@renderer/ui/Icon';
 import {IconButton} from '@renderer/ui/buttons/IconButton';
 import {MissingFileMark} from '@renderer/ui/tiles/MissingFile';
 import {TruncatedText} from '@renderer/ui/text/TruncatedText';
-import {applySink, followAudioOutput} from '@renderer/rendering/audioSink';
+import {
+  applySink,
+  followAudioOutput,
+} from '@renderer/rendering/media/audioSink';
 import {durationText} from '../mediaEntries';
 import {DEFAULT_SPEED, MIN_SPEED, MAX_SPEED, shownProps} from './mediaProps';
 import styles from './MediaPreviewPlayer.module.css';

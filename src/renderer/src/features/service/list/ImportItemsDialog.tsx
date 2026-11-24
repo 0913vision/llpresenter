@@ -4,7 +4,7 @@ import {
   WorkspaceNavigation,
 } from '@renderer/platform/WorkspaceNavigation';
 import {Dialog} from '@renderer/ui/popups/Dialog';
-import {openItem} from '@renderer/session/show';
+import {openItem} from '@renderer/session/show/show';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {SourceList} from './SourceList';
 import {SourceTree} from './SourceTree';

@@ -1,6 +1,6 @@
 import {create} from 'zustand';
 import {useEffect} from 'react';
-import {outputNext, outputTile, useShow} from '@renderer/session/show';
+import {outputNext, outputTile, useShow} from '@renderer/session/show/show';
 import {isInTextEntry} from '@renderer/ui/fields/textEntry';
 import {modalStack} from '@renderer/ui/popups/modalStack';
 import {focusSlideGrid} from '../focusSlideGrid';

@@ -4,7 +4,7 @@ import {setColumnDragActive} from '@renderer/ui/panels/columnDrag';
 import {useSlideHotKeys} from '@renderer/features/presentation/keyboard/useSlideHotKeys';
 
 const dispatch = vi.hoisted(() => ({keys: new Set<string>(), output: vi.fn()}));
-vi.mock('@renderer/session/show', () => ({
+vi.mock('@renderer/session/show/show', () => ({
   hasSlideHotKey: (code: string) => dispatch.keys.has(code),
   outputHotKey: dispatch.output,
 }));

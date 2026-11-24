@@ -1,6 +1,6 @@
 import {useCallback, useEffect, useLayoutEffect, useRef} from 'react';
 import type {EditResult} from '@core/schema/services/contentEdit';
-import {pendingWritesOf} from '@renderer/platform/pendingWrites';
+import {pendingWritesOf} from '@renderer/platform/documents/pendingWrites';
 import {type Notice, noticeTime} from '@renderer/ui/popups/notices';
 
 /** A settings document as a window follows it. */

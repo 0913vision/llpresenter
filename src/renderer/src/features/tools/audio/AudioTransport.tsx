@@ -1,5 +1,5 @@
 import {audioPlayCommand} from '@core/media';
-import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
+import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
 import type {JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {AudioLayer} from '@core/schema/live/live';

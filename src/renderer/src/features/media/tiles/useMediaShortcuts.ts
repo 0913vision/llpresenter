@@ -1,7 +1,7 @@
 import type {MediaId} from '@core/schema/common/ids';
 import type {MediaItem} from '@core/schema/media/mediaList';
-import {useUndoKeys} from '@renderer/platform/useUndoKeys';
-import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
+import {useUndoKeys} from '@renderer/platform/undo/useUndoKeys';
+import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
 
 /** The media view, found from the place a key was pressed. */
 const VIEW = 'section[aria-label="미디어 보기"]';

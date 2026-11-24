@@ -11,7 +11,7 @@ import {
   type PreferencesViewHandle,
 } from '@renderer/features/preferences/PreferencesView';
 import type {PreferencePageId} from '@core/schema/app/preferencePages';
-import {useShortcutSettings} from '@renderer/platform/useShortcutSettings';
+import {useShortcutSettings} from '@renderer/platform/shortcuts/useShortcutSettings';
 import type {PreferencesRequest} from '@contracts/ipc/window';
 import {IconButton} from '@renderer/ui';
 import {watchInputModality} from '@renderer/ui/keys/inputModality';

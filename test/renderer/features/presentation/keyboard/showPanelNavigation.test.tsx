@@ -14,7 +14,7 @@ import {
   openItem,
   selectTile,
   tilesOf,
-} from '@renderer/session/show';
+} from '@renderer/session/show/show';
 import {useLive} from '@renderer/session/live';
 import {emptyLiveState} from '@core/schema/live/live';
 import {commandBindingStore} from '@renderer/ui/keys/commandBindings';

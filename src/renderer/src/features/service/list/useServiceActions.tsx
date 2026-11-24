@@ -1,6 +1,6 @@
 import {NOT_IN_THIS_WINDOW} from '@renderer/platform/problemReasons';
 import {useState, type ReactNode} from 'react';
-import {useShow} from '@renderer/session/show';
+import {useShow} from '@renderer/session/show/show';
 import {menuAvailability, type MenuItem} from '@renderer/ui/menus/menuModel';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {ImportItemsDialog} from './ImportItemsDialog';

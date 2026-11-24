@@ -3,7 +3,7 @@ import {LabelCatalog} from '@renderer/features/labels/labelCatalog';
 import {
   pendingWritesOf,
   type DraftOutcome,
-} from '@renderer/platform/pendingWrites';
+} from '@renderer/platform/documents/pendingWrites';
 import {
   addNotice,
   closeRecord,

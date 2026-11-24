@@ -3,7 +3,7 @@ import {DisplayLayout} from '@renderer/features/screens/layout/DisplayLayout';
 import {OutputPreview} from '@renderer/features/screens/preview/OutputPreview';
 import {ScreenList} from '@renderer/features/screens/list/ScreenList';
 import {ScreenProperties} from '@renderer/features/screens/properties/ScreenProperties';
-import {ScreenSummariesProvider} from '@renderer/platform/ScreenSummaries';
+import {ScreenSummariesProvider} from '@renderer/platform/screens/ScreenSummaries';
 import {IconButton} from '@renderer/ui';
 import {watchInputModality} from '@renderer/ui/keys/inputModality';
 import {NotificationStack} from '@renderer/ui/popups/Notification';
@@ -12,7 +12,7 @@ import {
   removeNotice,
   type Notice,
 } from '@renderer/ui/popups/notices';
-import {Panel} from './shell/WorkspacePanel';
+import {Panel} from './shell/workspace/WorkspacePanel';
 import styles from './ScreensWindow.module.css';
 import type {CloseFlush} from './closeFlush';
 import {SavingDialog} from './SavingDialog';
@@ -20,7 +20,7 @@ import {useClearKeys} from '@renderer/features/presentation/keyboard/clearKeys';
 import {useLiveStateShortcuts} from '@renderer/features/tools/useLiveStateShortcuts';
 import {useUiZoomKeys} from './shell/uiZoomKeys';
 import {useInitialListFocus, useCloseKeys} from './useWindowKeyboard';
-import {useShortcutSettings} from '@renderer/platform/useShortcutSettings';
+import {useShortcutSettings} from '@renderer/platform/shortcuts/useShortcutSettings';
 import {
   LoadReadiness,
   LoadReadinessContext,

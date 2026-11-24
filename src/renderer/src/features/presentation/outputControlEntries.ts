@@ -1,7 +1,7 @@
-import type {ScreenSummary} from '@renderer/platform/screens';
+import type {ScreenSummary} from '@renderer/platform/screens/screens';
 import {MAX_LIVE_BATCH_COMMANDS} from '@core/schema/live/liveCommand';
 import {sendLive} from '@renderer/session/live';
-import {stopItem} from '@renderer/session/clear';
+import {stopItem} from '@renderer/session/show/clear';
 import {menuAvailability, type MenuItem} from '@renderer/ui/menus/menuModel';
 
 /** Toggles the whole group from its any-on state in capped live batches. */

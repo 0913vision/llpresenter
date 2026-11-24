@@ -2,7 +2,7 @@ import {useState} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import {copyName} from '@core/common/copyName';
 import type {ServiceId, TemplateId} from '@core/schema/common/ids';
-import {useShow} from '@renderer/session/show';
+import {useShow} from '@renderer/session/show/show';
 import {
   type Notice,
   noticeTime,

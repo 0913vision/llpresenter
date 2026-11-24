@@ -4,7 +4,7 @@ import {MediaView} from '@renderer/features/media/tiles/MediaView';
 import {MediaProperties} from '@renderer/features/media/properties/MediaPropertiesPanel';
 import {MediaViewProvider} from '@renderer/features/media/MediaViewProvider';
 import {handleShowKey} from '@renderer/features/presentation/keyboard/shortcuts';
-import * as showState from '@renderer/session/show';
+import * as showState from '@renderer/session/show/show';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
 import {
   mediaDocument,

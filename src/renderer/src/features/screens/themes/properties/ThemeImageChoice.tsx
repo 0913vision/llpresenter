@@ -2,7 +2,7 @@ import {useMemo, useState, type JSX} from 'react';
 import {parseMediaId, type MediaId} from '@core/schema/common/ids';
 import {THEME_BACKGROUNDS, THEME_DECORATIONS} from '@core/theme';
 import {MediaPicker} from '@renderer/features/media/picker/MediaPicker';
-import {useMedia} from '@renderer/platform/media';
+import {useMedia} from '@renderer/platform/documents/media';
 import {Select} from '@renderer/ui/choices/Select';
 
 const BACKGROUNDS = {

@@ -14,9 +14,9 @@ import {
   NONE_LABEL,
   type MediaPickerItem,
 } from '@renderer/features/media/picker/MediaPicker';
-import {pictureMedia, useMedia} from '@renderer/platform/media';
-import {lentPreviewUrl} from '@renderer/rendering/previewMedia';
-import {backgroundPaint} from '@renderer/rendering/themeBackground';
+import {pictureMedia, useMedia} from '@renderer/platform/documents/media';
+import {lentPreviewUrl} from '@renderer/rendering/media/previewMedia';
+import {backgroundPaint} from '@renderer/rendering/theme/themeBackground';
 import {Select} from '@renderer/ui/choices/Select';
 
 const FILL = 'fill:';

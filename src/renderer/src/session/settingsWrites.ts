@@ -5,8 +5,8 @@ import type {
   SettingsEdit,
   SettingsName,
 } from '@core/schema/app/settingsDocuments';
-import {pendingWritesOf} from '@renderer/platform/pendingWrites';
-import {withinLookupTimeout} from './showOutput';
+import {pendingWritesOf} from '@renderer/platform/documents/pendingWrites';
+import {withinLookupTimeout} from './show/showOutput';
 
 /** How many times in all an edit is planned and sent while other writes come first. */
 const ATTEMPTS = 2;

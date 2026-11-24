@@ -2,10 +2,13 @@ import {useRef, useState} from 'react';
 import {mediaLoops} from '@core/media';
 import type {MediaId} from '@core/schema/common/ids';
 import type {MediaItem} from '@core/schema/media/mediaList';
-import {mediaItem} from '@renderer/platform/media';
-import {insertNewItem, rowAfterSelected} from '@renderer/session/insertNewItem';
-import {sendMediaOutput} from '@renderer/session/itemOutput';
-import {useOrderAddReason} from '@renderer/session/orderReasons';
+import {mediaItem} from '@renderer/platform/documents/media';
+import {
+  insertNewItem,
+  rowAfterSelected,
+} from '@renderer/session/service/insertNewItem';
+import {sendMediaOutput} from '@renderer/session/show/itemOutput';
+import {useOrderAddReason} from '@renderer/session/service/orderReasons';
 import {deleteSelection} from '@renderer/ui/lists/deleteSelection';
 import {focusHistorySurface} from '@renderer/ui/lists/focusHistorySurface';
 import type {MenuAnchor} from '@renderer/ui/menus/Menu';

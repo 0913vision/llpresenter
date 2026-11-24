@@ -21,7 +21,7 @@ import {
   useSongDraft,
 } from '@renderer/features/songs/songDraft';
 import {SongDraftDialogs} from '@renderer/features/songs/SongDraftDialogs';
-import {useThemes} from '@renderer/platform/themes';
+import {useThemes} from '@renderer/platform/documents/themes';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {themes, themeScreens} from '@fixtures/core/themeOutput';
 import {editorFixture} from '@fixtures/renderer/features/songs/editorFixture';

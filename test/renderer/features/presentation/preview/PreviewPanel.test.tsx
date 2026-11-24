@@ -13,13 +13,17 @@ import {
 } from '@core/schema/live/live';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {useLive} from '@renderer/session/live';
-import {seedPreview, showLarge, usePreview} from '@renderer/session/preview';
-import {useShow} from '@renderer/session/show';
+import {
+  seedPreview,
+  showLarge,
+  usePreview,
+} from '@renderer/session/show/preview';
+import {useShow} from '@renderer/session/show/show';
 import {PreviewPanel} from '@renderer/features/presentation/preview/PreviewPanel';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
 import {renderWithScreenSummaries as render} from '@fixtures/renderer/platform/screenSummaries';
-import {ScreenSummariesContext} from '@renderer/platform/ScreenSummaries';
-import type {ScreenSummary} from '@renderer/platform/screens';
+import {ScreenSummariesContext} from '@renderer/platform/screens/ScreenSummaries';
+import type {ScreenSummary} from '@renderer/platform/screens/screens';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
 import {commandBindingStore} from '@renderer/ui/keys/commandBindings';
 
@@ -40,7 +44,7 @@ const instances = vi.hoisted(() => {
   return {list};
 });
 
-vi.mock('@renderer/rendering/screenFrames', () => ({
+vi.mock('@renderer/rendering/screen/screenFrames', () => ({
   ScreenFrames: class {
     frame(state: unknown) {
       return state === null ? undefined : {};

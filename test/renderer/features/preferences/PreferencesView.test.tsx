@@ -21,12 +21,12 @@ import {
   type PreferencesFile,
 } from '@core/schema/app/preferences';
 import {translationIdSchema} from '@core/schema/common/ids';
-import {pendingWritesOf} from '@renderer/platform/pendingWrites';
+import {pendingWritesOf} from '@renderer/platform/documents/pendingWrites';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {MISSING_DEVICE_REASON} from '@renderer/features/preferences/DeviceRow';
 import {PreferencesHarness} from '@fixtures/renderer/features/preferences/PreferencesHarness';
 import {PreferencesView} from '@renderer/features/preferences/PreferencesView';
-import {MenuBar} from '@renderer/app/shell/MenuBar';
+import {MenuBar} from '@renderer/app/shell/menubar/MenuBar';
 import {renderWithScreenSummaries} from '@fixtures/renderer/platform/screenSummaries';
 
 const UNKNOWN_FIELDS = {unknownField: 'kept'};

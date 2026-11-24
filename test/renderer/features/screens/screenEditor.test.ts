@@ -2,7 +2,7 @@ import {describe, expect, it, vi} from 'vitest';
 import type {SettingsEdit} from '@core/schema/app/settingsDocuments';
 import type {EditResult} from '@core/schema/services/contentEdit';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {pendingWritesOf} from '@renderer/platform/pendingWrites';
+import {pendingWritesOf} from '@renderer/platform/documents/pendingWrites';
 import {ScreenEditor} from '@renderer/features/screens/screenEditor';
 import {
   CAPTIONS_ID,

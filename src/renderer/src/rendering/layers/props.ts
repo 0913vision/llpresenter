@@ -1,10 +1,10 @@
 import {MAX_ACTIVE_PROPS} from '@core/schema/live/overlayState';
 import {classes} from '../classes';
 import type {LayerDefinition} from '../layer';
-import {OverlayImageView} from '../overlayImage';
+import {OverlayImageView} from './overlayImage';
 import type {TimerNow} from '@core/timers';
 import type {TextStyle} from '@core/overlays';
-import {OverlayTextView} from '../overlayText';
+import {OverlayTextView} from './overlayText';
 import {
   fillTimerTokens,
   hasTickingToken,

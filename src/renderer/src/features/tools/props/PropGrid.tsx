@@ -1,5 +1,5 @@
 import {toggleProp} from '../toolCommands';
-import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
+import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
 import {useState, type JSX} from 'react';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import type {MediaItem} from '@core/schema/media/mediaList';

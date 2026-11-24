@@ -1,6 +1,6 @@
 import {act, render, screen} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it} from 'vitest';
-import {applyService} from '@renderer/session/show';
+import {applyService} from '@renderer/session/show/show';
 import {resetTooltips} from '@fixtures/renderer/ui/tooltipTesting';
 import {ServiceOrderHeader} from '@renderer/features/service/order/picker/ServiceOrderHeader';
 import {

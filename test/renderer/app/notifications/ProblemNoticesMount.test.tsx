@@ -3,9 +3,9 @@ import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/schema/live/live';
 import {type AppProblem} from '@core/schema/app/appProblem';
 import {editorFixture} from '@fixtures/renderer/features/songs/editorFixture';
-import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
+import {createMemoryColumnWidthStore} from '@renderer/app/shell/columns/columnWidthStore';
 import {useLive} from '@renderer/session/live';
-import {applyService} from '@renderer/session/show';
+import {applyService} from '@renderer/session/show/show';
 import {App} from '@renderer/app/App';
 import {ControlSession} from '@renderer/app/controlSession';
 

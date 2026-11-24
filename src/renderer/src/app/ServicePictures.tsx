@@ -4,9 +4,9 @@ import type {MediaItem} from '@core/schema/media/mediaList';
 import type {ShowTile} from '@core/schema/services/showService';
 import type {SlideBackground} from '@core/schema/screens/theme';
 import type {Themes} from '@core/schema/screens/themes';
-import {useMedia} from '@renderer/platform/media';
-import {useThemes} from '@renderer/platform/themes';
-import {useShow} from '@renderer/session/show';
+import {useMedia} from '@renderer/platform/documents/media';
+import {useThemes} from '@renderer/platform/documents/themes';
+import {useShow} from '@renderer/session/show/show';
 import {keepThumbnails} from '@renderer/ui/tiles/keptThumbnails';
 import {
   LoadReadinessContext,

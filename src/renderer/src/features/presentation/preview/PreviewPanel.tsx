@@ -12,8 +12,8 @@ import {
   setPreviewVisible,
   showLarge,
   usePreview,
-} from '@renderer/session/preview';
-import {useScreenSummaries} from '@renderer/platform/ScreenSummaries';
+} from '@renderer/session/show/preview';
+import {useScreenSummaries} from '@renderer/platform/screens/ScreenSummaries';
 import type {PreviewScreen} from '@renderer/ui/previews/PreviewFrame';
 import {PreviewPanel as SharedPreviewPanel} from '@renderer/ui/previews/PreviewPanel';
 import {OutputMirror} from './OutputMirror';
@@ -22,7 +22,7 @@ import {KeptFramesContext, useKeptScreenFrames} from './keptScreenFrames';
 import {useSlideTransitionProgress} from '../useSlideTransitionProgress';
 import {MISSING_STILL_BACKGROUND_TIP} from '@renderer/platform/problemReasons';
 import {LiveMediaProgress} from './LiveMediaProgress';
-import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
+import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
 
 /** 청중, 무대, or 방송, while one screen has the kind. */
 function shortNameOf(

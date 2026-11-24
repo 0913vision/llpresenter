@@ -2,8 +2,8 @@ import {warningNotice} from '@renderer/ui/popups/notices';
 import {useMenuHandoff} from '@renderer/ui/menus/useMenuHandoff';
 import {useState} from 'react';
 import type {ServiceEntry} from '@core/schema/services/contentDocuments';
-import {useShow} from '@renderer/session/show';
-import {pendingWritesOf} from '@renderer/platform/pendingWrites';
+import {useShow} from '@renderer/session/show/show';
+import {pendingWritesOf} from '@renderer/platform/documents/pendingWrites';
 import {
   duplicateService,
   renameService,

@@ -1,4 +1,7 @@
-import {undoTimeline, type UndoOwner} from '@renderer/platform/undoTimeline';
+import {
+  undoTimeline,
+  type UndoOwner,
+} from '@renderer/platform/undo/undoTimeline';
 import type {LlpApi} from '@contracts/ipc/api';
 import {
   noteThumbnailItems,

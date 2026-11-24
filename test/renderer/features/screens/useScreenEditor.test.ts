@@ -5,7 +5,7 @@ import type {SettingsEdit} from '@core/schema/app/settingsDocuments';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {useScreenEditor} from '@renderer/features/screens/useScreenEditor';
 import {useMonitors} from '@renderer/features/screens/useMonitors';
-import type {NamedDocument} from '@renderer/platform/useSettingsDocument';
+import type {NamedDocument} from '@renderer/platform/documents/useSettingsDocument';
 import {
   MAIN_ID,
   STAGE_ID,

@@ -9,7 +9,7 @@ import type {
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {classes} from '@renderer/rendering/classes';
 import {startOutput} from '@renderer/output/startOutput';
-import {ScreenFrames} from '@renderer/rendering/screenFrames';
+import {ScreenFrames} from '@renderer/rendering/screen/screenFrames';
 import {OutputRenderer} from '@renderer/rendering/outputRenderer';
 import {SlideAnimation} from '@renderer/output/slideAnimation';
 import {MAIN, overlaySettings} from '@fixtures/core/overlays';

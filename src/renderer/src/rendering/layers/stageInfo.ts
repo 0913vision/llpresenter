@@ -1,6 +1,6 @@
 import type {ScreenId} from '@core/schema/common/ids';
 import type {LayerDefinition, RenderFrame} from '../layer';
-import {stageClockText} from '../stageClock';
+import {stageClockText} from './stageClock';
 import {fillTimerTokens} from '../timerTokens';
 
 const TICK_MS = 250;

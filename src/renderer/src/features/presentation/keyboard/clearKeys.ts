@@ -1,7 +1,7 @@
-import {clearLayer, toggleItem, undoClear} from '@renderer/session/clear';
+import {clearLayer, toggleItem, undoClear} from '@renderer/session/show/clear';
 import {clearButtons} from '@core/live';
 import type {WindowShortcut} from '@renderer/ui/keys/commandDispatcher';
-import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
+import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
 
 const commands: readonly WindowShortcut[] = [
   {id: 'item.stop', run: toggleItem},

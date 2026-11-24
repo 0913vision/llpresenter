@@ -11,8 +11,8 @@ import {
 } from '@renderer/features/songs/songDraft';
 import {openDeckAt} from '@renderer/features/slides/deckSelection';
 import {openInPrep, usePrepTarget} from '@renderer/session/prepTarget';
-import {useShow} from '@renderer/session/show';
-import {isLibrarySource} from '@renderer/session/showLibrary';
+import {useShow} from '@renderer/session/show/show';
+import {isLibrarySource} from '@renderer/session/show/showLibrary';
 import {warningNotice} from '@renderer/ui/popups/notices';
 import type {ControlSession} from './controlSession';
 import {PowerPointImagesFlow} from './PowerPointImagesFlow';

@@ -14,7 +14,7 @@ import type {TemplateDocument} from '@core/schema/services/contentDocuments';
 import type {ContentEdit, EditResult} from '@core/schema/services/contentEdit';
 import type {ServiceOpenRequest} from '@core/schema/services/serviceOpen';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {applyService, useShow} from '@renderer/session/show';
+import {applyService, useShow} from '@renderer/session/show/show';
 import {useLive} from '@renderer/session/live';
 import {emptyLiveState} from '@core/schema/live/live';
 import {sampleService} from '@fixtures/renderer/session/sampleService';

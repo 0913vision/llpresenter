@@ -1,7 +1,7 @@
 import {act, renderHook} from '@testing-library/react';
 import {beforeEach, expect, it, vi} from 'vitest';
 import {libraryFixture} from '@fixtures/renderer/features/songs/library/libraryFixture';
-import {applyService, useShow} from '@renderer/session/show';
+import {applyService, useShow} from '@renderer/session/show/show';
 import {sampleService} from '@fixtures/renderer/session/sampleService';
 import {useLibrary} from '@renderer/features/songs/library/useLibrary';
 import {useLibraryServices} from '@renderer/features/songs/library/useLibraryServices';

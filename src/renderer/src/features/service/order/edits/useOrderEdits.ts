@@ -1,16 +1,16 @@
-import {liveItemReason} from '@renderer/session/liveGuard';
+import {liveItemReason} from '@renderer/session/service/liveGuard';
 import type {RefObject} from 'react';
 import {orderedSelection} from '@core/common/selectionOrder';
 import {createServiceItemId} from '@core/schema/common/ids';
 import type {ServiceRow} from '@core/presentation';
-import type {OpenServiceResult} from '@renderer/session/openService';
+import type {OpenServiceResult} from '@renderer/session/service/openService';
 import {
   duplicateItems as duplicateOrderItems,
   moveItemsStep,
   removeItems,
-} from '@renderer/session/serviceOrderEdits';
-import {useShow} from '@renderer/session/show';
-import type {useServiceOrderEditing} from '@renderer/session/useServiceOrderEditing';
+} from '@renderer/session/service/serviceOrderEdits';
+import {useShow} from '@renderer/session/show/show';
+import type {useServiceOrderEditing} from '@renderer/session/service/useServiceOrderEditing';
 import {deleteSelection} from '@renderer/ui/lists/deleteSelection';
 import type {Workspace} from '@renderer/ui/lists/workspace';
 import {canMoveItems, movableItems} from '../orderRows';

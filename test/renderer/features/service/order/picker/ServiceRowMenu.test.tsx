@@ -14,7 +14,7 @@ import type {ServiceEntry} from '@core/schema/services/contentDocuments';
 import {createServiceId} from '@core/schema/common/ids';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {ids, pastDocument} from '@fixtures/core/serviceList';
-import {applyService, useShow} from '@renderer/session/show';
+import {applyService, useShow} from '@renderer/session/show/show';
 import {sampleService} from '@fixtures/renderer/session/sampleService';
 import {ServiceOrderHeader} from '@renderer/features/service/order/picker/ServiceOrderHeader';
 import {serviceRowMenuEntries} from '@renderer/features/service/order/picker/serviceRowMenu';

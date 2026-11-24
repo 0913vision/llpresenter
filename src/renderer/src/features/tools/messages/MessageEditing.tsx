@@ -16,7 +16,7 @@ import {createMessageTemplateId} from '@core/schema/common/ids';
 import type {Screen} from '@core/schema/screens/screens';
 import type {MessageTemplate} from '@core/schema/tools/messages';
 import {MAX_MESSAGE_CHARACTERS} from '@core/overlays';
-import type {NamedDocument} from '@renderer/platform/useSettingsDocument';
+import type {NamedDocument} from '@renderer/platform/documents/useSettingsDocument';
 import {
   SelectMenu,
   Dialog,
@@ -31,7 +31,7 @@ import type {MenuAnchor} from '@renderer/ui/menus/Menu';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {useDuplicateShortcut} from '../useDuplicateShortcut';
 import {useToolEditing} from '../useToolEditing';
-import {useUndoKeys} from '@renderer/platform/useUndoKeys';
+import {useUndoKeys} from '@renderer/platform/undo/useUndoKeys';
 import {focusHistorySurface} from '@renderer/ui/lists/focusHistorySurface';
 import {useReflow} from '@renderer/ui/panels/useReflow';
 import {

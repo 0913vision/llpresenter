@@ -1,11 +1,11 @@
-import {liveItemReason} from '@renderer/session/liveGuard';
+import {liveItemReason} from '@renderer/session/service/liveGuard';
 import type {RefObject} from 'react';
 import type {ServiceRow} from '@core/presentation';
-import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
-import {undoReason, undoTimeline} from '@renderer/platform/undoTimeline';
+import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
+import {undoReason, undoTimeline} from '@renderer/platform/undo/undoTimeline';
 import type {Notice} from '@renderer/ui/popups/notices';
-import {orderEditReason} from '@renderer/session/orderReasons';
-import {ORDER_FULL_REASON} from '@renderer/session/serviceOrderEdits';
+import {orderEditReason} from '@renderer/session/service/orderReasons';
+import {ORDER_FULL_REASON} from '@renderer/session/service/serviceOrderEdits';
 import {isInTextEntry} from '@renderer/ui/fields/textEntry';
 import type {Workspace} from '@renderer/ui/lists/workspace';
 import type {ChosenRows, useOrderEdits} from './useOrderEdits';

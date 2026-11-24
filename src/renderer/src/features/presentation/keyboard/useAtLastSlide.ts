@@ -1,7 +1,7 @@
 import {useLayoutEffect} from 'react';
 import {withPreferenceDefaults} from '@core/schema/app/preferences';
-import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
-import {setAtLastSlide} from '@renderer/session/show';
+import {useSettingsDocument} from '@renderer/platform/documents/useSettingsDocument';
+import {setAtLastSlide} from '@renderer/session/show/show';
 
 /**
  * Follows 환경설정's choice of what next does on the last 장 and hands it to

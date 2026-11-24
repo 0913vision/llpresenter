@@ -2,26 +2,26 @@ import '@renderer/styles/base.css';
 import {StrictMode, type ComponentType} from 'react';
 import {createRoot, type Root} from 'react-dom/client';
 import {startLiveSync} from '@renderer/session/live';
-import {startOpenServiceSync} from '@renderer/session/openService';
-import {startServiceSync} from '@renderer/session/show';
+import {startOpenServiceSync} from '@renderer/session/service/openService';
+import {startServiceSync} from '@renderer/session/show/show';
 import {seedSlideColumns} from '@renderer/features/slides/rows/slideColumns';
 import {seedSlideSurfaceView} from '@renderer/features/slides/rows/SlideSurfaceView';
 import {
   renameDraftLabel,
   startSongDraftSync,
 } from '@renderer/features/songs/songDraft';
-import {startMediaSync} from '@renderer/platform/media';
-import {startThemesSync} from '@renderer/platform/themes';
+import {startMediaSync} from '@renderer/platform/documents/media';
+import {startThemesSync} from '@renderer/platform/documents/themes';
 import {
   seedThumbnailScale,
   detailsScale,
 } from '@renderer/platform/thumbnailScale';
-import {seedPreview} from '@renderer/session/preview';
+import {seedPreview} from '@renderer/session/show/preview';
 import {seedShowToolTab} from '@renderer/features/tools/showToolTab';
 import {
   createColumnWidthStore,
   loadUiState,
-} from '@renderer/app/shell/loadColumnWidthStore';
+} from '@renderer/app/shell/columns/loadColumnWidthStore';
 import {App} from './App';
 import {ControlSession} from './controlSession';
 

@@ -15,7 +15,7 @@ import {TextField} from '@renderer/ui';
 import {Dialog} from '@renderer/ui/popups/Dialog';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {useLabelColors} from '@renderer/features/labels/labels';
-import {slideMaking, useThemes} from '@renderer/platform/themes';
+import {slideMaking, useThemes} from '@renderer/platform/documents/themes';
 import {newSongSlides, songSlides, songTiles} from '@core/slides';
 import {SlidePreviewGrid} from './SlidePreviewGrid';
 import {

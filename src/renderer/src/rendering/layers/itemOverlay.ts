@@ -1,7 +1,7 @@
 import {liveOverlay} from '@core/live';
-import {BackgroundLayerView} from '../backgroundLayer';
+import {BackgroundLayerView} from '../media/backgroundLayer';
 import type {LayerDefinition} from '../layer';
-import {OverlayTextView} from '../overlayText';
+import {OverlayTextView} from './overlayText';
 
 /** The 오버레이 of the live item on the slides it lies over. */
 export const itemOverlayLayer: LayerDefinition = {

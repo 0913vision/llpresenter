@@ -1,6 +1,6 @@
 import {cleanup, render} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
-import type {WindowShortcut} from '@renderer/platform/windowShortcuts';
+import type {WindowShortcut} from '@renderer/platform/shortcuts/windowShortcuts';
 import {sendLive} from '@renderer/session/live';
 import {
   toggleProp,
@@ -14,13 +14,13 @@ const mock = vi.hoisted(() => ({
   load: vi.fn<(name: string | null, ...rest: unknown[]) => object | null>(),
   register: vi.fn<(commands: readonly WindowShortcut[]) => void>(),
 }));
-vi.mock('@renderer/platform/useBoundCommands', () => ({
+vi.mock('@renderer/platform/shortcuts/useBoundCommands', () => ({
   useBoundCommands: () => () => mock.bound,
 }));
-vi.mock('@renderer/platform/useSettingsDocument', () => ({
+vi.mock('@renderer/platform/documents/useSettingsDocument', () => ({
   useSettingsDocument: mock.load,
 }));
-vi.mock('@renderer/platform/windowShortcuts', () => ({
+vi.mock('@renderer/platform/shortcuts/windowShortcuts', () => ({
   useWindowShortcuts: mock.register,
 }));
 vi.mock('@renderer/session/live', () => ({sendLive: vi.fn()}));

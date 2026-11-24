@@ -11,7 +11,7 @@ import type {Themes} from '@core/schema/screens/themes';
 import {peersOf} from '@core/presentation';
 import {tileContent} from '@core/slides';
 import {themeOfSlide} from '@core/theme';
-import type {ThemesView} from '@renderer/platform/themes';
+import type {ThemesView} from '@renderer/platform/documents/themes';
 import type {RenderScreen} from '@renderer/rendering/layer';
 import {drawingOn} from '@renderer/rendering/theme/drawing';
 import type {ThemeDrawing} from '@renderer/rendering/theme/themeView';

@@ -1,8 +1,8 @@
 import type {JSX} from 'react';
-import {useShownItemId} from '@renderer/session/shownItem';
+import {useShownItemId} from '@renderer/session/show/shownItem';
 import type {SizeClass} from '@renderer/ui/panels/sizeClass';
-import {useShow} from '@renderer/session/show';
-import {bibleSourceFor} from '@renderer/session/showLibrary';
+import {useShow} from '@renderer/session/show/show';
+import {bibleSourceFor} from '@renderer/session/show/showLibrary';
 import {
   Panel,
   PanelBody,

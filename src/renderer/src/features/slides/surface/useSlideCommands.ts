@@ -3,7 +3,7 @@ import {
   NOTHING_TO_REDO,
   NOTHING_TO_UNDO,
 } from '@renderer/platform/problemReasons';
-import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
+import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
 import {deleteSelection} from '@renderer/ui/lists/deleteSelection';
 import {isInTextEntry} from '@renderer/ui/fields/textEntry';
 import {

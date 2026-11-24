@@ -1,7 +1,7 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import type {MediaId} from '@core/schema/common/ids';
 import type {PowerPointSource} from '@core/schema/songs/powerpointImport';
-import {lendPreviewImage} from '@renderer/rendering/previewMedia';
+import {lendPreviewImage} from '@renderer/rendering/media/previewMedia';
 
 /** Most pictures of one request to the main process. */
 const BATCH_SIZE = 200;

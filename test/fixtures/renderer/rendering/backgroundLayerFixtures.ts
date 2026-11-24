@@ -3,7 +3,7 @@ import type {MediaLayer} from '@core/schema/live/live';
 import {
   BackgroundLayerView,
   type RenderMode,
-} from '@renderer/rendering/backgroundLayer';
+} from '@renderer/rendering/media/backgroundLayer';
 import {classes} from '@renderer/rendering/classes';
 
 export const WARM_LIGHT: MediaLayer = {

@@ -6,7 +6,7 @@ import {
   MAX_TIMER_SECONDS,
 } from '@core/schema/tools/timers';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {pendingWritesOf} from '@renderer/platform/pendingWrites';
+import {pendingWritesOf} from '@renderer/platform/documents/pendingWrites';
 import {deferred} from '@fixtures/renderer/features/tools/quickTesting';
 import {
   deleteTimer,

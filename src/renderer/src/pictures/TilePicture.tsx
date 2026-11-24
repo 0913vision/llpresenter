@@ -1,6 +1,6 @@
 import {type JSX} from 'react';
 import type {ShowTile} from '@core/schema/services/showService';
-import {useThemes} from '@renderer/platform/themes';
+import {useThemes} from '@renderer/platform/documents/themes';
 import {tileDrawing, type TileDrawingOptions} from './slideDrawing';
 import {SlidePicture} from './SlidePicture';
 

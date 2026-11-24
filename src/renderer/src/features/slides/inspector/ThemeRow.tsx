@@ -2,7 +2,7 @@ import {useContext, type JSX} from 'react';
 import type {ThemeId} from '@core/schema/common/ids';
 import {withTheme} from '@core/slides';
 import {themeOfSlide} from '@core/theme';
-import {useThemes} from '@renderer/platform/themes';
+import {useThemes} from '@renderer/platform/documents/themes';
 import {WorkspaceNavigation} from '@renderer/platform/WorkspaceNavigation';
 import {openTheme} from '@renderer/session/themeRequests';
 import {Button} from '@renderer/ui/buttons/Button';

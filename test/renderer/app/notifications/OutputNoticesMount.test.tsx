@@ -3,10 +3,10 @@ import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/schema/live/live';
 import type {OutputStatuses} from '@core/schema/live/outputStatus';
 import {editorFixture} from '@fixtures/renderer/features/songs/editorFixture';
-import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
+import {createMemoryColumnWidthStore} from '@renderer/app/shell/columns/columnWidthStore';
 import {useLive} from '@renderer/session/live';
-import {useOutputWarnings} from '@renderer/platform/outputWarnings';
-import {applyService} from '@renderer/session/show';
+import {useOutputWarnings} from '@renderer/platform/screens/outputWarnings';
+import {applyService} from '@renderer/session/show/show';
 import {App} from '@renderer/app/App';
 import {ControlSession} from '@renderer/app/controlSession';
 

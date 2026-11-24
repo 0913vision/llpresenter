@@ -1,13 +1,13 @@
 import {useState, type JSX} from 'react';
-import type {Report} from '@renderer/session/serviceEdit';
-import {useMedia} from '@renderer/platform/media';
-import {useOrderAddReason} from '@renderer/session/orderReasons';
+import type {Report} from '@renderer/session/service/serviceEdit';
+import {useMedia} from '@renderer/platform/documents/media';
+import {useOrderAddReason} from '@renderer/session/service/orderReasons';
 import type {MenuEntry} from '@renderer/ui/menus/menuModel';
 import {
   insertLibrarySong,
   insertNewItem,
   rowAfterSelected,
-} from '@renderer/session/insertNewItem';
+} from '@renderer/session/service/insertNewItem';
 import {quickAddEntries} from './quickAddEntries';
 import {SongPicker} from './SongPicker';
 import {usePaletteInsert} from './usePaletteInsert';

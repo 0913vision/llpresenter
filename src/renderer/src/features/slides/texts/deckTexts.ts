@@ -9,7 +9,7 @@ import {
 } from '@core/slides';
 import type {ShowTile} from '@core/schema/services/showService';
 import type {ThemeFile} from '@core/schema/screens/theme';
-import {slideMaking} from '@renderer/platform/themes';
+import {slideMaking} from '@renderer/platform/documents/themes';
 import {focusText} from '../deckSelection';
 import type {SlideDeck} from '../slideDeck';
 

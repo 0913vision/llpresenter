@@ -1,4 +1,4 @@
-import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
+import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {deleteSelection} from '@renderer/ui/lists/deleteSelection';
 import {useMenuHandoff} from '@renderer/ui/menus/useMenuHandoff';

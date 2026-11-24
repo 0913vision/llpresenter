@@ -1,8 +1,8 @@
 import {MAX_ACTIVE_MESSAGES} from '@core/schema/live/overlayState';
 import {MESSAGE_BAND} from '@core/screens';
 import type {LayerDefinition} from '../layer';
-import {MessageBandView} from '../messageBand';
-import {OverlayTextView} from '../overlayText';
+import {MessageBandView} from './messageBand';
+import {OverlayTextView} from './overlayText';
 
 export const messageLayer: LayerDefinition = {
   kind: 'message',

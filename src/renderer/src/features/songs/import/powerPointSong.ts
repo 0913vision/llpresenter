@@ -4,7 +4,7 @@ import type {PowerPointSource} from '@core/schema/songs/powerpointImport';
 import type {TextImportDraft} from '@core/schema/songs/textImport';
 import {importedSongTitle} from '@core/slides';
 import {powerpointBrightBackgrounds, powerpointSlides} from '@core/songs';
-import {lendPreviewImage} from '@renderer/rendering/previewMedia';
+import {lendPreviewImage} from '@renderer/rendering/media/previewMedia';
 import {openInPrep} from '@renderer/session/prepTarget';
 import {noticeTime, type Notice} from '@renderer/ui/popups/notices';
 import {

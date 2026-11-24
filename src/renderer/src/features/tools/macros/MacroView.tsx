@@ -1,6 +1,6 @@
 import {useLayoutEffect, useRef, type DragEvent, type JSX} from 'react';
 import {useReflow} from '@renderer/ui/panels/useReflow';
-import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
+import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
 import type {
   MacroActionKind,
   Macro,

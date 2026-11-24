@@ -1,0 +1,437 @@
+import {MAIN_SCREEN} from '@fixtures/core/screenIds';
+import {cleanup, fireEvent, screen} from '@testing-library/react';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
+import {isColumnDragActive} from '@renderer/ui/panels/columnDrag';
+import * as showState from '@renderer/session/show/show';
+import {seedSampleService} from '@fixtures/renderer/session/sampleService';
+import {createMemoryColumnWidthStore} from '@renderer/app/shell/columns/columnWidthStore';
+import {Workspace} from '@renderer/app/shell/workspace/Workspace';
+import * as screensPanels from '@renderer/app/workspaces/screensPanels';
+import {renderWithScreenSummaries as render} from '@fixtures/renderer/platform/screenSummaries';
+import {mediaFixture} from '@fixtures/renderer/features/media/mediaTesting';
+
+vi.mock('@renderer/rendering/outputRenderer', () => ({
+  OutputRenderer: class {
+    ready = () => true;
+    revealIncomplete = () => undefined;
+    render = vi.fn();
+    dispose = vi.fn();
+  },
+}));
+
+vi.mock('@renderer/features/media/MediaBin', async () => {
+  const {createElement} = await import('react');
+  return {
+    MediaBin: ({
+      workspace,
+      open,
+    }: {
+      readonly workspace: string;
+      readonly open?: boolean | undefined;
+    }) =>
+      createElement('section', {
+        'aria-label': '미디어 보관함',
+        'data-workspace': workspace,
+        'data-open': String(open),
+      }),
+  };
+});
+
+const POINTER_ID = 1;
+
+function setWindowWidth(width: number): void {
+  Object.defineProperty(window, 'innerWidth', {
+    configurable: true,
+    value: width,
+  });
+}
+
+function gridOf(container: HTMLElement): HTMLElement {
+  const grid = container.querySelector('main');
+  if (!grid) throw new Error('The workspace grid is missing');
+  return grid;
+}
+
+function gapOf(container: HTMLElement, column: 'left' | 'right'): HTMLElement {
+  const gap = container.querySelector<HTMLElement>(`[data-gap="${column}"]`);
+  if (!gap) throw new Error(`The ${column} gap is missing`);
+  return gap;
+}
+
+function widthsOf(grid: HTMLElement): {left: string; right: string} {
+  return {
+    left: grid.style.getPropertyValue('--ll-col-left'),
+    right: grid.style.getPropertyValue('--ll-col-right'),
+  };
+}
+
+function dragGap(gap: HTMLElement, fromX: number, toX: number): void {
+  fireEvent.pointerDown(gap, {
+    pointerId: POINTER_ID,
+    button: 0,
+    clientX: fromX,
+  });
+  fireEvent.pointerMove(gap, {pointerId: POINTER_ID, clientX: toX});
+  fireEvent.pointerUp(gap, {pointerId: POINTER_ID, clientX: toX});
+}
+
+beforeEach(() => {
+  seedSampleService();
+  setWindowWidth(1920);
+  HTMLElement.prototype.setPointerCapture = vi.fn();
+});
+
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+});
+
+describe('Workspace theme loading', () => {
+  it('keeps the previous workspace until theme panels are ready and honors a canceled switch', () => {
+    let ready = false;
+    vi.spyOn(screensPanels, 'useScreensPanels').mockImplementation(() => ({
+      ready,
+      columns: [['테마']],
+      partsOf: () => ({}),
+    }));
+    const store = createMemoryColumnWidthStore();
+    const view = render(
+      <Workspace id="prep" sizeClass="normal" store={store} />,
+    );
+    const workspace = (id: 'show' | 'prep' | 'screens') =>
+      view.rerender(<Workspace id={id} sizeClass="normal" store={store} />);
+    workspace('screens');
+    expect(gridOf(view.container).dataset['workspaceLayout']).toBe('prep');
+    workspace('show');
+    ready = true;
+    workspace('show');
+    expect(gridOf(view.container).dataset['workspaceLayout']).toBe('show');
+    ready = false;
+    workspace('screens');
+    expect(gridOf(view.container).dataset['workspaceLayout']).toBe('show');
+    ready = true;
+    workspace('screens');
+    expect(gridOf(view.container).dataset['workspaceLayout']).toBe('screens');
+  });
+});
+
+describe('Workspace column gaps', () => {
+  it('resizes the left column by dragging its gap and captures the pointer', () => {
+    const {container} = render(
+      <Workspace
+        id="show"
+        sizeClass="normal"
+        store={createMemoryColumnWidthStore()}
+      />,
+    );
+    const gap = gapOf(container, 'left');
+    dragGap(gap, 300, 340);
+    expect(gap.setPointerCapture).toHaveBeenCalledWith(POINTER_ID);
+    expect(widthsOf(gridOf(container))).toEqual({
+      left: '320px',
+      right: '480px',
+    });
+  });
+
+  it('ignores moves before a press and presses of other buttons', () => {
+    const {container} = render(
+      <Workspace
+        id="show"
+        sizeClass="normal"
+        store={createMemoryColumnWidthStore()}
+      />,
+    );
+    const gap = gapOf(container, 'left');
+    fireEvent.pointerMove(gap, {pointerId: POINTER_ID, clientX: 500});
+    fireEvent.pointerDown(gap, {
+      pointerId: POINTER_ID,
+      button: 2,
+      clientX: 300,
+    });
+    fireEvent.pointerMove(gap, {pointerId: POINTER_ID, clientX: 500});
+    expect(widthsOf(gridOf(container))).toEqual({
+      left: '280px',
+      right: '480px',
+    });
+  });
+
+  it('stops dragging when the pointer capture is lost', () => {
+    const {container} = render(
+      <Workspace
+        id="show"
+        sizeClass="normal"
+        store={createMemoryColumnWidthStore()}
+      />,
+    );
+    const gap = gapOf(container, 'left');
+    fireEvent.pointerDown(gap, {
+      pointerId: POINTER_ID,
+      button: 0,
+      clientX: 300,
+    });
+    fireEvent.pointerMove(gap, {pointerId: POINTER_ID, clientX: 320});
+    fireEvent.lostPointerCapture(gap, {pointerId: POINTER_ID});
+    fireEvent.pointerMove(gap, {pointerId: POINTER_ID, clientX: 400});
+    expect(widthsOf(gridOf(container))).toEqual({
+      left: '300px',
+      right: '480px',
+    });
+  });
+
+  it('keeps the widths when the workspace changes', () => {
+    const store = createMemoryColumnWidthStore();
+    const {container, rerender} = render(
+      <Workspace id="show" sizeClass="normal" store={store} />,
+    );
+    dragGap(gapOf(container, 'left'), 300, 340);
+    rerender(<Workspace id="prep" sizeClass="normal" store={store} />);
+    expect(widthsOf(gridOf(container))).toEqual({
+      left: '320px',
+      right: '480px',
+    });
+  });
+
+  it('shrinks the columns on screen when the window narrows', () => {
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation(callback => {
+      callback(0);
+      return 0;
+    });
+    const store = createMemoryColumnWidthStore();
+    const {container} = render(
+      <Workspace id="show" sizeClass="normal" store={store} />,
+    );
+    dragGap(gapOf(container, 'right'), 1400, 1160);
+    dragGap(gapOf(container, 'left'), 300, 420);
+    expect(widthsOf(gridOf(container)).right).toBe('720px');
+
+    setWindowWidth(1600);
+    fireEvent(window, new Event('resize'));
+    expect(widthsOf(gridOf(container))).toEqual({
+      left: '400px',
+      right: '624px',
+    });
+    expect(store.load('normal')).toEqual({
+      left: 400,
+      right: 720,
+      prepRight: 320,
+    });
+  });
+
+  it('lets only one pointer drag across both gaps', () => {
+    const {container} = render(
+      <Workspace
+        id="show"
+        sizeClass="normal"
+        store={createMemoryColumnWidthStore()}
+      />,
+    );
+    const left = gapOf(container, 'left');
+    const right = gapOf(container, 'right');
+    fireEvent.pointerDown(left, {pointerId: 1, button: 0, clientX: 300});
+    fireEvent.pointerDown(right, {pointerId: 2, button: 0, clientX: 1400});
+    fireEvent.pointerMove(right, {pointerId: 2, clientX: 1300});
+    fireEvent.pointerMove(left, {pointerId: 1, clientX: 340});
+    fireEvent.pointerUp(right, {pointerId: 2, clientX: 1300});
+    fireEvent.pointerMove(left, {pointerId: 1, clientX: 360});
+    expect(left.setPointerCapture).toHaveBeenCalledTimes(1);
+    expect(widthsOf(gridOf(container))).toEqual({
+      left: '340px',
+      right: '480px',
+    });
+  });
+
+  it('ignores a second pointer on the gap that is being dragged', () => {
+    const {container} = render(
+      <Workspace
+        id="show"
+        sizeClass="normal"
+        store={createMemoryColumnWidthStore()}
+      />,
+    );
+    const gap = gapOf(container, 'left');
+    fireEvent.pointerDown(gap, {pointerId: 1, button: 0, clientX: 300});
+    fireEvent.pointerDown(gap, {pointerId: 2, button: 0, clientX: 500});
+    fireEvent.pointerMove(gap, {pointerId: 2, clientX: 600});
+    fireEvent.pointerUp(gap, {pointerId: 2, clientX: 600});
+    fireEvent.pointerMove(gap, {pointerId: 1, clientX: 320});
+    expect(gap.setPointerCapture).toHaveBeenCalledTimes(1);
+    expect(widthsOf(gridOf(container))).toEqual({
+      left: '300px',
+      right: '480px',
+    });
+  });
+
+  it('marks a column drag as active from the press to the release', () => {
+    const {container} = render(
+      <Workspace
+        id="show"
+        sizeClass="normal"
+        store={createMemoryColumnWidthStore()}
+      />,
+    );
+    const gap = gapOf(container, 'left');
+    expect(isColumnDragActive()).toBe(false);
+    fireEvent.pointerDown(gap, {pointerId: 1, button: 0, clientX: 300});
+    expect(isColumnDragActive()).toBe(true);
+    fireEvent.pointerUp(gap, {pointerId: 1, clientX: 300});
+    expect(isColumnDragActive()).toBe(false);
+  });
+
+  it('ends the active drag mark when the workspace unmounts in the middle of a drag', () => {
+    const {container, unmount} = render(
+      <Workspace
+        id="show"
+        sizeClass="normal"
+        store={createMemoryColumnWidthStore()}
+      />,
+    );
+    fireEvent.pointerDown(gapOf(container, 'left'), {
+      pointerId: 1,
+      button: 0,
+      clientX: 300,
+    });
+    expect(isColumnDragActive()).toBe(true);
+    unmount();
+    expect(isColumnDragActive()).toBe(false);
+  });
+
+  it('keeps the live keys working after the 슬라이드 size slider is used with the mouse', () => {
+    const next = vi
+      .spyOn(showState, 'outputNext')
+      .mockImplementation(() => undefined);
+    showState.openItem('song-morning');
+    const {container} = render(
+      <Workspace
+        id="show"
+        sizeClass="normal"
+        store={createMemoryColumnWidthStore()}
+      />,
+    );
+    const tile = container.querySelector<HTMLElement>(
+      '[role="option"][tabindex="0"]',
+    );
+    if (!tile) throw new Error('The selected tile is missing');
+    tile.focus();
+    const slider = screen.getByRole('slider', {name: '슬라이드 크기'});
+
+    fireEvent.pointerDown(slider, {pointerId: 1, button: 0});
+    slider.focus();
+    fireEvent.change(slider, {target: {value: '150'}});
+    fireEvent.pointerUp(slider, {pointerId: 1});
+
+    expect(document.activeElement).toBe(tile);
+    fireEvent.keyDown(document.activeElement ?? document.body, {
+      code: 'Space',
+      key: ' ',
+    });
+    expect(next).toHaveBeenCalledTimes(1);
+  });
+
+  it('blurs the slider after the mouse when nothing had focus, and Tab can still reach it', () => {
+    const next = vi
+      .spyOn(showState, 'outputNext')
+      .mockImplementation(() => undefined);
+    render(
+      <Workspace
+        id="show"
+        sizeClass="normal"
+        store={createMemoryColumnWidthStore()}
+      />,
+    );
+    const slider = screen.getByRole('slider', {name: '슬라이드 크기'});
+    fireEvent.pointerDown(slider, {pointerId: 1, button: 0});
+    slider.focus();
+    fireEvent.pointerUp(slider, {pointerId: 1});
+    expect(document.activeElement).not.toBe(slider);
+    fireEvent.keyDown(document.body, {code: 'Space', key: ' '});
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(slider.tabIndex).toBe(0);
+  });
+
+  it('shows the preview panel in the 진행 workspace and nowhere else', () => {
+    const show = render(
+      <Workspace
+        id="show"
+        sizeClass="normal"
+        store={createMemoryColumnWidthStore()}
+      />,
+    );
+    expect(
+      show.container.querySelector(`[data-screen="${MAIN_SCREEN}"]`),
+    ).not.toBeNull();
+    show.unmount();
+    const prep = render(
+      <Workspace
+        id="prep"
+        sizeClass="normal"
+        store={createMemoryColumnWidthStore()}
+      />,
+    );
+    const retained = prep.container.querySelector(
+      `[data-screen="${MAIN_SCREEN}"]`,
+    );
+    expect(retained?.closest('[inert]')).not.toBeNull();
+  });
+
+  it('removes the resize listener when it unmounts', () => {
+    const remove = vi.spyOn(window, 'removeEventListener');
+    const {unmount} = render(
+      <Workspace
+        id="show"
+        sizeClass="normal"
+        store={createMemoryColumnWidthStore()}
+      />,
+    );
+    unmount();
+    expect(remove).toHaveBeenCalledWith('resize', expect.any(Function));
+  });
+});
+
+describe('Workspace media bin', () => {
+  it('keeps one bottom bin across 진행 and 준비, and none in 화면', () => {
+    const media = mediaFixture().api;
+    const store = createMemoryColumnWidthStore();
+    const view = render(
+      <Workspace id="show" sizeClass="normal" store={store} mediaApi={media} />,
+    );
+    const bin = screen.getByRole('region', {name: '미디어 보관함'});
+
+    view.rerender(
+      <Workspace id="prep" sizeClass="normal" store={store} mediaApi={media} />,
+    );
+    expect(screen.getByRole('region', {name: '미디어 보관함'})).toBe(bin);
+    expect(bin.dataset['workspace']).toBe('prep');
+    view.rerender(
+      <Workspace
+        id="screens"
+        sizeClass="normal"
+        store={store}
+        mediaApi={media}
+      />,
+    );
+
+    expect(screen.queryByRole('region', {name: '미디어 보관함'})).toBeNull();
+  });
+
+  it('opens and closes the bin with its visibility', () => {
+    const media = mediaFixture().api;
+    const store = createMemoryColumnWidthStore();
+    const view = render(
+      <Workspace
+        id="prep"
+        sizeClass="normal"
+        store={store}
+        mediaApi={media}
+        mediaVisible={false}
+      />,
+    );
+    const bin = screen.getByRole('region', {name: '미디어 보관함'});
+    expect(bin.dataset['open']).toBe('false');
+
+    view.rerender(
+      <Workspace id="prep" sizeClass="normal" store={store} mediaApi={media} />,
+    );
+
+    expect(bin.dataset['open']).toBe('true');
+  });
+});

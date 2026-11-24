@@ -1,13 +1,13 @@
 import {withLiveBible} from '@core/bible';
 import {useState, type JSX} from 'react';
 import type {TranslationId} from '@core/schema/common/ids';
-import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
-import {withinLookupTimeout} from '@renderer/session/showOutput';
+import {useSettingsDocument} from '@renderer/platform/documents/useSettingsDocument';
+import {withinLookupTimeout} from '@renderer/session/show/showOutput';
 import {CheckRow} from '@renderer/ui/choices/Checkbox';
 import {SelectMenu} from '@renderer/ui/choices/SelectMenu';
 import {openBiblePassage} from '../bible/actions';
 import {displayOf, usePassageSwap} from '../bible/adjacent/usePassageSwap';
-import type {BibleSource} from '@renderer/session/bibleSource';
+import type {BibleSource} from '@renderer/session/show/bibleSource';
 import styles from './BiblePanel.module.css';
 
 /** Changes how the passage that is open shows, without changing defaults. */

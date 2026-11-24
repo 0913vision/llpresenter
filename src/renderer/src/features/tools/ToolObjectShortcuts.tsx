@@ -1,7 +1,7 @@
 import type {LlpApi} from '@contracts/ipc/api';
-import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
-import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
-import {useBoundCommands} from '@renderer/platform/useBoundCommands';
+import {useSettingsDocument} from '@renderer/platform/documents/useSettingsDocument';
+import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
+import {useBoundCommands} from '@renderer/platform/shortcuts/useBoundCommands';
 import type {Notice} from '@renderer/ui/popups/notices';
 
 import {sendLive} from '@renderer/session/live';

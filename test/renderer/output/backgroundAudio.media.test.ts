@@ -9,12 +9,12 @@ import type {MediaDocument} from '@core/schema/media/mediaEdit';
 import {createMediaId} from '@core/schema/common/ids';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {BackgroundAudio} from '@renderer/output/backgroundAudio';
-import {BackgroundLayerView} from '@renderer/rendering/backgroundLayer';
+import {BackgroundLayerView} from '@renderer/rendering/media/backgroundLayer';
 import {backgroundAudible, overlayAudio} from '@core/live/overlays';
 
 const layer = vi.hoisted(() => ({show: vi.fn()}));
 
-vi.mock('@renderer/rendering/backgroundLayer', () => ({
+vi.mock('@renderer/rendering/media/backgroundLayer', () => ({
   BackgroundLayerView: vi.fn(
     class {
       show = layer.show;

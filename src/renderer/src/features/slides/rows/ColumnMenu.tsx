@@ -2,7 +2,7 @@ import {useState, type JSX} from 'react';
 import type {ShowTile} from '@core/schema/services/showService';
 import {boxesOf} from '@core/slides';
 import {themeOf} from '@core/theme';
-import {useThemes} from '@renderer/platform/themes';
+import {useThemes} from '@renderer/platform/documents/themes';
 import {Button} from '@renderer/ui/buttons/Button';
 import {Menu} from '@renderer/ui/menus/Menu';
 import {menuButtonProps} from '@renderer/ui/menus/menuButton';

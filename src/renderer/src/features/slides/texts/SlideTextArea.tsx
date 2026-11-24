@@ -16,7 +16,7 @@ import {
   joinSlide,
   pasteSlideText,
 } from '@core/slides';
-import {slideMaking} from '@renderer/platform/themes';
+import {slideMaking} from '@renderer/platform/documents/themes';
 import {classNames} from '@renderer/ui/classNames';
 import {isComposing} from '@renderer/ui/fields/ime';
 import {hasModifier} from '@renderer/ui/keys/modifierKeys';

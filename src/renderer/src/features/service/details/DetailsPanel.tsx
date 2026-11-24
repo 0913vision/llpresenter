@@ -5,11 +5,14 @@ import {hasSlides, isItemOfKind} from '@core/schema/services/service';
 import type {ShowLibrarySong} from '@core/schema/songs/showLibrarySong';
 import {itemTiles} from '@core/slides';
 import {useLabelColors} from '@renderer/features/labels/labels';
-import type {Report} from '@renderer/session/serviceEdit';
+import type {Report} from '@renderer/session/service/serviceEdit';
 import {detailsScale} from '@renderer/platform/thumbnailScale';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
-import {useOpenService, useServiceItem} from '@renderer/session/openService';
-import {outputSlideOf} from '@renderer/session/show';
+import {
+  useOpenService,
+  useServiceItem,
+} from '@renderer/session/service/openService';
+import {outputSlideOf} from '@renderer/session/show/show';
 import {Button} from '@renderer/ui/buttons/Button';
 import {GridFooter} from '@renderer/ui/lists/GridFooter';
 import {warningNotice} from '@renderer/ui/popups/notices';

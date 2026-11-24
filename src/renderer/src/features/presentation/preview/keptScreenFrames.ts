@@ -1,6 +1,6 @@
 import {createContext, useEffect, useState} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
-import {ScreenFrames} from '@renderer/rendering/screenFrames';
+import {ScreenFrames} from '@renderer/rendering/screen/screenFrames';
 
 type ErrorReport = (message: string, error: unknown) => void;
 

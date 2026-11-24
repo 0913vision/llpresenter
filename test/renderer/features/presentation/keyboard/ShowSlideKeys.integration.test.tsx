@@ -1,6 +1,6 @@
 import {act, cleanup, render} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
-import * as showState from '@renderer/session/show';
+import * as showState from '@renderer/session/show/show';
 import {useShowKeys} from '@renderer/features/presentation/keyboard/shortcuts';
 
 function Host() {

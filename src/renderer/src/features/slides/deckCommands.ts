@@ -1,4 +1,4 @@
-import {liveSlideReason} from '@renderer/session/liveGuard';
+import {liveSlideReason} from '@renderer/session/service/liveGuard';
 import type {SlideId} from '@core/schema/common/ids';
 import {SLIDE_LIMITS, type Slide} from '@core/schema/slides/slide';
 import {
@@ -10,7 +10,7 @@ import {
   slideAfter,
   slidesOfText,
 } from '@core/slides';
-import {slideMaking} from '@renderer/platform/themes';
+import {slideMaking} from '@renderer/platform/documents/themes';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {
   selectAdded,

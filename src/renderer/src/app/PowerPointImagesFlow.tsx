@@ -3,10 +3,10 @@ import type {LlpApi} from '@contracts/ipc/api';
 import {createServiceItemId, type MediaId} from '@core/schema/common/ids';
 import type {ServiceItem} from '@core/schema/services/service';
 import {blankItem, pictureSlide} from '@core/slides';
-import {slideMaking} from '@renderer/platform/themes';
-import type {OpenServiceResult} from '@renderer/session/openService';
-import {insertItems} from '@renderer/session/serviceOrderEdits';
-import {useShow} from '@renderer/session/show';
+import {slideMaking} from '@renderer/platform/documents/themes';
+import type {OpenServiceResult} from '@renderer/session/service/openService';
+import {insertItems} from '@renderer/session/service/serviceOrderEdits';
+import {useShow} from '@renderer/session/show/show';
 import {noticeTime, type Notice} from '@renderer/ui/popups/notices';
 
 /** One item with a slide for each picture. */

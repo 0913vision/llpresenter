@@ -18,7 +18,7 @@ import type {
 import type {ContentEdit, EditResult} from '@core/schema/services/contentEdit';
 import {createServiceId, createTemplateId} from '@core/schema/common/ids';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {applyService, openItem, useShow} from '@renderer/session/show';
+import {applyService, openItem, useShow} from '@renderer/session/show/show';
 import {sampleService} from '@fixtures/renderer/session/sampleService';
 import {
   hoverForTooltip,

@@ -7,7 +7,7 @@ import {resetTooltips} from '@fixtures/renderer/ui/tooltipTesting';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {libraryFixture} from '@fixtures/renderer/features/songs/library/libraryFixture';
 import {LibraryPanel} from '@renderer/features/songs/library/LibraryPanel';
-import {applyService} from '@renderer/session/show';
+import {applyService} from '@renderer/session/show/show';
 
 export class FixedObserver implements ResizeObserver {
   static readonly instances: FixedObserver[] = [];

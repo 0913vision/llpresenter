@@ -19,7 +19,7 @@ import {
 } from '@renderer/features/bible/passageSplitter';
 import {useItemEditor} from '@renderer/features/service/editor/useItemEditor';
 import {seedSlideSurfaceView} from '@renderer/features/slides/rows/SlideSurfaceView';
-import {useThemes} from '@renderer/platform/themes';
+import {useThemes} from '@renderer/platform/documents/themes';
 import {formLookupReply} from '@fixtures/core/bibleReplies';
 import {lyricsSlide, slideOf} from '@fixtures/core/slides';
 import {themes, themeScreens} from '@fixtures/core/themeOutput';

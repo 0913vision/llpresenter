@@ -1,7 +1,7 @@
 import {useRef, useSyncExternalStore, type KeyboardEvent} from 'react';
 import {commandBindings, editsText, matchesBinding} from '@core/shortcuts';
-import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
-import {beginOutputRequest} from '@renderer/session/showOutput';
+import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
+import {beginOutputRequest} from '@renderer/session/show/showOutput';
 import {commandBindingStore} from '@renderer/ui/keys/commandBindings';
 import {isInputMethodKey} from '@renderer/ui/keys/commandDispatcher';
 

@@ -1,11 +1,11 @@
 import {useRef, useMemo, type JSX} from 'react';
 import {createServiceItemId, type SongId} from '@core/schema/common/ids';
 import {useServiceActions} from '@renderer/features/service/list/useServiceActions';
-import {useOrderFull} from '@renderer/session/orderReasons';
+import {useOrderFull} from '@renderer/session/service/orderReasons';
 import {openInPrep} from '@renderer/session/prepTarget';
-import {renameItem} from '@renderer/session/serviceOrderEdits';
-import {openItem, useShow} from '@renderer/session/show';
-import {useServiceOrderEditing} from '@renderer/session/useServiceOrderEditing';
+import {renameItem} from '@renderer/session/service/serviceOrderEdits';
+import {openItem, useShow} from '@renderer/session/show/show';
+import {useServiceOrderEditing} from '@renderer/session/service/useServiceOrderEditing';
 import {ListBox, ListInsertLine, Menu} from '@renderer/ui';
 import {clickFocusProps} from '@renderer/ui/lists/clickFocus';
 import {EmptyState} from '@renderer/ui/lists/EmptyState';

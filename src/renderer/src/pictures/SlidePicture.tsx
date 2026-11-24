@@ -7,7 +7,7 @@ import {
 } from 'react';
 import {sameJson} from '@core/common/sameJson';
 import {THEME_CANVAS} from '@core/schema/screens/theme';
-import {backgroundColorOf} from '@renderer/rendering/themeBackground';
+import {backgroundColorOf} from '@renderer/rendering/theme/themeBackground';
 import {SlideStill} from '@renderer/rendering/slideStill';
 import type {ThemeDrawing} from '@renderer/rendering/theme/themeView';
 import {classNames} from '@renderer/ui/classNames';

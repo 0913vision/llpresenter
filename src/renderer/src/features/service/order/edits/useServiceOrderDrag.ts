@@ -10,7 +10,7 @@ import {useEffect, useRef, useState, type DragEvent} from 'react';
 import {readSongDragData, SONG_DRAG_MIME} from '@core/schema/songs/songDrag';
 import type {ServiceRow} from '@core/presentation';
 import {quickAddBefore, sectionBoundaryIndex} from '@core/services';
-import {useShow} from '@renderer/session/showStore';
+import {useShow} from '@renderer/session/show/showStore';
 import {beforeRowMidpoint} from '@renderer/ui/lists/rowDrag';
 import {useDragClickGuard} from '@renderer/ui/lists/useDragClickGuard';
 

@@ -1,0 +1,196 @@
+import {useEffect, useEffectEvent, useRef, useState} from 'react';
+import type {SongId} from '@core/schema/common/ids';
+import type {LibrarySearchMatch} from '@core/schema/songs/librarySearch';
+import {useShow} from '@renderer/session/show/show';
+import {openLibrarySong} from '@renderer/session/show/showLibrary';
+import {withinLookupTimeout} from '@renderer/session/show/showOutput';
+import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
+
+export const TOOLBAR_SEARCH_LIMIT = 20;
+
+interface SearchReply {
+  readonly query: string;
+  readonly matches: readonly LibrarySearchMatch[];
+  readonly failed: boolean;
+  readonly loading: boolean;
+}
+
+const noMatches: readonly LibrarySearchMatch[] = [];
+const noReply: SearchReply = {
+  query: '',
+  matches: noMatches,
+  failed: false,
+  loading: false,
+};
+
+function problem(title: string, name?: string): Notice {
+  return warningNotice('toolbar-search', title, name ? [name] : undefined);
+}
+
+function logFailure(message: string, cause: unknown): void {
+  window.llp?.log.write({
+    level: 'error',
+    message,
+    detail: cause instanceof Error ? cause.message : String(cause),
+  });
+}
+
+// NOTE(0913vision): The query includes text that is still composing. The
+// Windows Korean IME keeps each syllable in a composition, and the last one
+// stays open while the operator pauses, so waiting for confirmation would show
+// no list for a Korean query.
+/** Searches for the field's query, again whenever a song changes. */
+function useSearchReply({
+  enabled,
+  query,
+  onProblem,
+}: {
+  readonly enabled: boolean;
+  readonly query: string;
+  readonly onProblem: (notice: Notice) => void;
+}): {reply: SearchReply; invalidate: () => void} {
+  const [reply, setReply] = useState(noReply);
+  const report = useEffectEvent(onProblem);
+
+  useEffect(() => {
+    const api = window.llp;
+    const term = query.trim();
+    if (!enabled || !term || !api) return undefined;
+    let active = true;
+    let version = 0;
+    const search = async (): Promise<void> => {
+      const request = ++version;
+      const isCurrent = (): boolean => active && request === version;
+      try {
+        const found = await api.library.search({
+          query: term,
+          limit: TOOLBAR_SEARCH_LIMIT,
+        });
+        if (!isCurrent() || found.query !== term) return;
+        setReply({
+          query,
+          matches: found.matches.slice(0, TOOLBAR_SEARCH_LIMIT),
+          failed: false,
+          loading: false,
+        });
+      } catch (cause) {
+        logFailure('Could not search the toolbar library', cause);
+        if (!isCurrent()) return;
+        setReply({query, matches: noMatches, failed: true, loading: false});
+        report(problem('검색 실패'));
+      }
+    };
+    const refresh = (): void => {
+      if (!active) return;
+      setReply({query, matches: noMatches, failed: false, loading: true});
+      search().catch((cause: unknown) =>
+        console.error('Toolbar search callback failed:', cause),
+      );
+    };
+    const stop = api.songs.subscribe(refresh);
+    refresh();
+    return () => {
+      active = false;
+      version++;
+      stop();
+    };
+  }, [enabled, query]);
+  return {reply, invalidate: () => setReply(noReply)};
+}
+
+/**
+ * Opens a chosen result as the library source. A later choice, a new query,
+ * a change of the open item or slide, or unmounting drops a pending read, and
+ * a read that takes longer than the lookup timeout fails.
+ */
+function useResultChooser(
+  enabled: boolean,
+  onProblem: (notice: Notice) => void,
+): {
+  readonly choose: (match: LibrarySearchMatch) => Promise<void>;
+  readonly supersede: () => void;
+} {
+  const alive = useRef(false);
+  const selection = useRef({version: 0});
+
+  useEffect(() => {
+    alive.current = enabled;
+    const pending = selection.current;
+    const stop = useShow.subscribe((next, previous) => {
+      if (
+        next.openItemId !== previous.openItemId ||
+        next.selectedTile !== previous.selectedTile
+      ) {
+        pending.version++;
+      }
+    });
+    return () => {
+      alive.current = false;
+      pending.version++;
+      stop();
+    };
+  }, [enabled]);
+
+  const choose = async (match: LibrarySearchMatch): Promise<void> => {
+    const api = window.llp;
+    if (!enabled || !api) return;
+    const request = ++selection.current.version;
+    const isCurrent = (): boolean =>
+      alive.current && request === selection.current.version;
+    try {
+      const song = await withinLookupTimeout(() =>
+        api.library.showSong({songId: match.songId}),
+      );
+      if (!isCurrent()) return;
+      if (song === null) {
+        onProblem(problem('곡을 찾을 수 없습니다.', match.title));
+      } else {
+        openLibrarySong(song);
+      }
+    } catch (cause) {
+      logFailure('Could not open the toolbar library result', cause);
+      if (isCurrent()) onProblem(problem('곡 불러오기 실패', match.title));
+    }
+  };
+  const supersede = (): void => {
+    selection.current.version++;
+  };
+  return {choose, supersede};
+}
+
+/**
+ * Bounded search and source reads; late replies cannot replace a later choice.
+ * With `onOpenPrepSong`, a chosen result goes to 준비's library instead of
+ * opening as the 진행 source.
+ */
+export function useToolbarSearch(
+  enabled: boolean,
+  onProblem: (notice: Notice) => void,
+  onOpenPrepSong?: (songId: SongId) => void,
+) {
+  const [query, setQuery] = useState('');
+  const {reply, invalidate} = useSearchReply({enabled, query, onProblem});
+  const {choose: openSource, supersede} = useResultChooser(enabled, onProblem);
+  const choose = async (match: LibrarySearchMatch): Promise<void> => {
+    if (!enabled) return;
+    if (onOpenPrepSong === undefined) {
+      await openSource(match);
+      return;
+    }
+    supersede();
+    onOpenPrepSong(match.songId);
+  };
+  const answered = reply.query === query;
+  return {
+    query,
+    setQuery: (value: string): void => {
+      supersede();
+      if (value !== query) invalidate();
+      setQuery(value);
+    },
+    matches: answered ? reply.matches : noMatches,
+    loading: query.trim() !== '' && (!answered || reply.loading),
+    failed: answered && reply.failed,
+    choose,
+  };
+}

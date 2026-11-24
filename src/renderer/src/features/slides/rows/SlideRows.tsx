@@ -14,7 +14,7 @@ import {changeSlides, withLabel} from '@core/slides';
 import {themeOfSlide} from '@core/theme';
 import {LabelMenu} from '@renderer/features/labels/LabelMenu';
 import {useLabelCatalog} from '@renderer/features/labels/labels';
-import {useThemes} from '@renderer/platform/themes';
+import {useThemes} from '@renderer/platform/documents/themes';
 import {useMeasuredRows} from '@renderer/ui/lists/useMeasuredRows';
 import {
   selectInDeck,

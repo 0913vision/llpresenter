@@ -8,11 +8,11 @@ import {OUTPUT_REVEAL_DEADLINE_MS} from '@core/output';
 import type {SlideTransition} from '@core/schema/slides/slideTransition';
 import {slideChangeOf, slideMoved} from './slideChange';
 import type {LiveState} from '@core/schema/live/live';
-import {ScreenFrames} from '../rendering/screenFrames';
+import {ScreenFrames} from '../rendering/screen/screenFrames';
 import {startFrameRateMeter, type FrameRateMeter} from './frameRateMeter';
 import {followLiveState} from './liveFeed';
-import {followPlaybackProblems} from '../rendering/playbackProblem';
-import {previewMediaOf} from '../rendering/previewMedia';
+import {followPlaybackProblems} from '../rendering/media/playbackProblem';
+import {previewMediaOf} from '../rendering/media/previewMedia';
 
 /** What an output window runs on. */
 export interface OutputContext {

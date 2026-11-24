@@ -1,4 +1,4 @@
-import {undoTimeline} from '@renderer/platform/undoTimeline';
+import {undoTimeline} from '@renderer/platform/undo/undoTimeline';
 import {
   createContext,
   use,

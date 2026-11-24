@@ -1,8 +1,11 @@
 import {QUICK_BIBLE_TRANSITION} from '@core/bible';
 import type {BibleLookupPassage} from '@core/schema/bible/bibleLookup';
-import type {BibleDisplay, BibleSource} from '@renderer/session/bibleSource';
-import {bibleSourceFor} from '@renderer/session/showLibrary';
-import {useShow} from '@renderer/session/show';
+import type {
+  BibleDisplay,
+  BibleSource,
+} from '@renderer/session/show/bibleSource';
+import {bibleSourceFor} from '@renderer/session/show/showLibrary';
+import {useShow} from '@renderer/session/show/show';
 import {openBiblePassage} from '../bible/actions';
 
 /** How quick run opens a passage: at once, with its own transition. */

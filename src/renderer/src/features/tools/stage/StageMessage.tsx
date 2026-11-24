@@ -1,4 +1,4 @@
-import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
+import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
 import {useState, type JSX} from 'react';
 import {LIVE_STATE_LIMITS} from '@core/schema/live/liveLimits';
 import {sendLive, useLive} from '@renderer/session/live';

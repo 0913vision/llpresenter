@@ -1,6 +1,6 @@
 import {cleanup, render, screen} from '@testing-library/react';
 import {afterEach, describe, expect, it} from 'vitest';
-import {applyService} from '@renderer/session/show';
+import {applyService} from '@renderer/session/show/show';
 import {ReadOnlyMark} from '@renderer/features/presentation/ReadOnlyMark';
 import {sampleService} from '@fixtures/renderer/session/sampleService';
 

@@ -9,16 +9,16 @@ import {
 import {
   beginQuickPassage,
   finishQuickPassage,
-} from '@renderer/session/quickReturn';
+} from '@renderer/session/show/quickReturn';
 import {sendLive, useLive} from '@renderer/session/live';
-import {sendSlideOutput} from '@renderer/session/itemOutput';
-import {outputSlideOf, selectTile, useShow} from '@renderer/session/show';
-import {openLibrarySong} from '@renderer/session/showLibrary';
+import {sendSlideOutput} from '@renderer/session/show/itemOutput';
+import {outputSlideOf, selectTile, useShow} from '@renderer/session/show/show';
+import {openLibrarySong} from '@renderer/session/show/showLibrary';
 import {
   beginOutputRequest,
   isOutputRequestCurrent,
   withinLookupTimeout,
-} from '@renderer/session/showOutput';
+} from '@renderer/session/show/showOutput';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import {openBiblePassage, showBiblePassage} from '../bible/actions';
 

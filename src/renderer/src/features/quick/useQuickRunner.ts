@@ -1,8 +1,8 @@
 import {useEffect, useMemo} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import {isKnownQuickItem, type QuickItem} from '@core/schema/tools/quick';
-import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
-import {useShow} from '@renderer/session/show';
+import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
+import {useShow} from '@renderer/session/show/show';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {quickItemUnavailable, quickRunner} from './quickActions';
 

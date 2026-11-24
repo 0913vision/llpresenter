@@ -1,6 +1,6 @@
 import type {JSX} from 'react';
 import {Icon} from '@renderer/ui/Icon';
-import {useShow} from '@renderer/session/show';
+import {useShow} from '@renderer/session/show/show';
 import {READ_ONLY_TIP} from '../../platform/problemReasons';
 import styles from './ReadOnlyMark.module.css';
 

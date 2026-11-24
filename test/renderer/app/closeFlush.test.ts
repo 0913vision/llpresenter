@@ -7,7 +7,7 @@ import {
 import {createAppFlushRequestId} from '@core/schema/common/ids';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {CloseFlush, SAVING_DIALOG_DELAY_MS} from '@renderer/app/closeFlush';
-import type {DraftOutcome} from '@renderer/platform/pendingWrites';
+import type {DraftOutcome} from '@renderer/platform/documents/pendingWrites';
 
 const requestId = createAppFlushRequestId(
   'b52f1d63-8f20-4b3c-9d4e-5f6071829304',

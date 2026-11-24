@@ -1,0 +1,105 @@
+import {lyricsSlide, slideOf} from '@fixtures/core/slides';
+import {createMediaId} from '@core/schema/common/ids';
+import {afterEach, beforeEach, describe, expect, it} from 'vitest';
+import type {LiveCommand} from '@core/schema/live/liveCommand';
+import {emptyLiveState} from '@core/schema/live/live';
+import type {ShowService} from '@core/schema/services/showService';
+import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
+import {useLive} from '@renderer/session/live';
+import {applyService, outputTile, useShow} from '@renderer/session/show/show';
+const SONG = '1f1a2b4c-5d6e-4f70-8a91-b2c3d4e5f601';
+const PLAIN_SONG = '2f1a2b4c-5d6e-4f70-8a91-b2c3d4e5f602';
+const COUNTDOWN = createMediaId('4f1a2b4c-5d6e-4f70-8a91-b2c3d4e5f608');
+const MEDIA_ITEM = '3f1a2b4c-5d6e-4f70-8a91-b2c3d4e5f607';
+const lyric = {
+  slide: lyricsSlide(8, ['가사']),
+  auto: {},
+  caption: null,
+  labelColor: 'none',
+} as const;
+const service: ShowService = {
+  revision: 1,
+  id: 'service',
+  name: '예배',
+  readOnly: false,
+  rows: [
+    {
+      kind: 'song',
+      id: SONG,
+      title: '배경 있는 곡',
+    },
+    {kind: 'song', id: PLAIN_SONG, title: '배경 없는 곡'},
+    {kind: 'media', id: MEDIA_ITEM, title: '카운트다운'},
+  ],
+  tiles: {
+    [SONG]: [lyric],
+    [PLAIN_SONG]: [lyric],
+    [MEDIA_ITEM]: [
+      {
+        slide: slideOf(9, 'media', {
+          background: {kind: 'media', media: COUNTDOWN},
+        }),
+        auto: {},
+        caption: '카운트다운',
+        labelColor: 'none',
+      },
+    ],
+  },
+};
+const sent: LiveCommand[] = [];
+
+function types(): string[] {
+  return sent
+    .flatMap(command =>
+      command.type === 'live.batch' ? command.commands : [command],
+    )
+    .map(command => command.type);
+}
+
+beforeEach(() => {
+  sent.length = 0;
+  window.llp = mockLlpApi({
+    live: {
+      get: async () => emptyLiveState(),
+      send: command => sent.push(command),
+      subscribe: () => () => undefined,
+    },
+    service: {
+      get: () => new Promise<ShowService>(() => undefined),
+      subscribe: () => () => undefined,
+    },
+  });
+  useLive.setState({state: null, lastStartedItemId: null, commandVersion: 0});
+  applyService(null);
+  applyService(service);
+});
+
+afterEach(() => {
+  delete window.llp;
+});
+
+describe('outputting the tile of a media item', () => {
+  it('shows a media item by its slide, as any other', () => {
+    outputTile({itemId: MEDIA_ITEM, index: 0});
+    expect(types()).toEqual(['item.start', 'slide.show']);
+    expect(useShow.getState()).toMatchObject({
+      openItemId: MEDIA_ITEM,
+      selectedTile: 0,
+    });
+  });
+
+  it('starts a song again when it comes back after a media item', () => {
+    outputTile({itemId: PLAIN_SONG, index: 0});
+    outputTile({itemId: MEDIA_ITEM, index: 0});
+    outputTile({itemId: PLAIN_SONG, index: 0});
+    expect(
+      sent
+        .flatMap(command =>
+          command.type === 'live.batch' ? command.commands : [command],
+        )
+        .flatMap(command =>
+          command.type === 'item.start' ? [command.itemId] : [],
+        ),
+    ).toEqual([PLAIN_SONG, MEDIA_ITEM, PLAIN_SONG]);
+  });
+});

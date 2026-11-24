@@ -22,7 +22,7 @@ import {
 } from '@renderer/features/songs/songDraft';
 import {SongDraftDialogs} from '@renderer/features/songs/SongDraftDialogs';
 import {useSongEditor} from '@renderer/features/songs/SongEditor';
-import {useThemes} from '@renderer/platform/themes';
+import {useThemes} from '@renderer/platform/documents/themes';
 import {usePrepTarget} from '@renderer/session/prepTarget';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';

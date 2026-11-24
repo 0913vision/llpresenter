@@ -3,7 +3,7 @@
 import {afterEach, beforeEach, vi} from 'vitest';
 import {setColumnDragActive} from '@renderer/ui/panels/columnDrag';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
-import * as showState from '@renderer/session/show';
+import * as showState from '@renderer/session/show/show';
 import * as bibleKeys from '@renderer/features/bible/adjacent/verseShortcuts';
 import {
   handleShowKey,

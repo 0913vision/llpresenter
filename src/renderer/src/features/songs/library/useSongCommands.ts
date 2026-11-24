@@ -1,7 +1,7 @@
 import type {RefObject} from 'react';
 import type {LibrarySong} from '@core/schema/services/contentDocuments';
-import type {contentDeleteHistory} from '@renderer/platform/contentDeleteHistory';
-import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
+import type {contentDeleteHistory} from '@renderer/platform/undo/contentDeleteHistory';
+import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
 import {deleteSelection} from '@renderer/ui/lists/deleteSelection';
 import {focusHistorySurface} from '@renderer/ui/lists/focusHistorySurface';
 import {useMenuHandoff} from '@renderer/ui/menus/useMenuHandoff';

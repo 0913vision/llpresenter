@@ -1,5 +1,5 @@
 import {useState, type ReactNode} from 'react';
-import type {Report} from '@renderer/session/serviceEdit';
+import type {Report} from '@renderer/session/service/serviceEdit';
 import {
   Panel,
   PanelHeader,

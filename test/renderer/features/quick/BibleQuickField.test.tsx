@@ -2,7 +2,7 @@ import {
   beginQuickPassage,
   finishQuickPassage,
   canReturnFromQuickPassage,
-} from '@renderer/session/quickReturn';
+} from '@renderer/session/show/quickReturn';
 import {SlideGrid} from '@renderer/features/presentation/grid/SlideGrid';
 import {handleShowKey} from '@renderer/features/presentation/keyboard/shortcuts';
 import {lastLiveCommand} from '@fixtures/renderer/session/liveCommands';
@@ -34,12 +34,12 @@ import {
   outputSlideOf,
   returnFromQuickPassage,
   useShow,
-} from '@renderer/session/show';
-import {bibleSourceFor} from '@renderer/session/showLibrary';
+} from '@renderer/session/show/show';
+import {bibleSourceFor} from '@renderer/session/show/showLibrary';
 import {
   beginOutputRequest,
   isOutputRequestCurrent,
-} from '@renderer/session/showOutput';
+} from '@renderer/session/show/showOutput';
 
 async function passage(input: string) {
   const reply = await formLookupReply(lookupRequest(input));

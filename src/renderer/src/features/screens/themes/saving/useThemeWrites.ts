@@ -1,7 +1,7 @@
 import {useLayoutEffect, useRef, useState} from 'react';
 import type {Themes} from '@core/schema/screens/themes';
 import type {ThemeListResult} from '@core/theme';
-import type {NamedDocument} from '@renderer/platform/useSettingsDocument';
+import type {NamedDocument} from '@renderer/platform/documents/useSettingsDocument';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import {THEME_READ_ONLY} from '../themeNames';
 import {ThemesEditor} from './themesEditor';

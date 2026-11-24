@@ -1,4 +1,7 @@
-import {undoTimeline, useUndoTimeline} from '@renderer/platform/undoTimeline';
+import {
+  undoTimeline,
+  useUndoTimeline,
+} from '@renderer/platform/undo/undoTimeline';
 import {useMemo} from 'react';
 import type {LabelColor} from '@core/labels';
 import {hasSlides, type SlidesItem} from '@core/schema/services/service';
@@ -9,8 +12,8 @@ import {
   editItemSlides,
   useOpenService,
   useServiceItem,
-} from '@renderer/session/openService';
-import {runEdit, type Report} from '@renderer/session/serviceEdit';
+} from '@renderer/session/service/openService';
+import {runEdit, type Report} from '@renderer/session/service/serviceEdit';
 
 export type SlidesChange = (slides: readonly Slide[]) => readonly Slide[];
 

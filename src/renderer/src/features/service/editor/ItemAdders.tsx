@@ -13,9 +13,13 @@ import {makePassageSlides} from '@renderer/features/bible/makePassageSlides';
 import {MediaPicker} from '@renderer/features/media/picker/MediaPicker';
 import {addReason, addSlides} from '@renderer/features/slides/deckCommands';
 import type {SlideDeck} from '@renderer/features/slides/slideDeck';
-import type {Report} from '@renderer/session/serviceEdit';
-import {mediaItem, pictureMedia, useMedia} from '@renderer/platform/media';
-import {slideMaking, useThemes} from '@renderer/platform/themes';
+import type {Report} from '@renderer/session/service/serviceEdit';
+import {
+  mediaItem,
+  pictureMedia,
+  useMedia,
+} from '@renderer/platform/documents/media';
+import {slideMaking, useThemes} from '@renderer/platform/documents/themes';
 import {Button} from '@renderer/ui/buttons/Button';
 import {warningNotice} from '@renderer/ui/popups/notices';
 import {BibleQuickAdd} from '../items/BibleQuickAdd';

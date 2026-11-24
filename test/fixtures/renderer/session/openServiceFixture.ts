@@ -8,8 +8,8 @@ import type {ContentEdit, EditResult} from '@core/schema/services/contentEdit';
 import {createServiceId, createServiceItemId} from '@core/schema/common/ids';
 import {hasSlides, type ServiceItem} from '@core/schema/services/service';
 import {itemTiles, itemTitle} from '@core/slides/tiles';
-import {applyService} from '@renderer/session/show';
-import {startOpenServiceSync} from '@renderer/session/openService';
+import {applyService} from '@renderer/session/show/show';
+import {startOpenServiceSync} from '@renderer/session/service/openService';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 
 export const SERVICE = createServiceId('00000000-0000-4000-8000-000000000001');

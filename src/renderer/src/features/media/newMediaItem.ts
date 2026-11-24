@@ -1,7 +1,7 @@
 import type {MediaItem} from '@core/schema/media/mediaList';
 import type {ServiceItem} from '@core/schema/services/service';
 import {mediaItem} from '@core/slides';
-import {slideMaking} from '@renderer/platform/themes';
+import {slideMaking} from '@renderer/platform/documents/themes';
 import {mediaName} from './mediaEntries';
 
 /** A file of the media list as an item. */

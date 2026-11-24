@@ -1,7 +1,7 @@
 import type {JSX} from 'react';
 import type {RowProblem, ServiceRow} from '@core/presentation';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
-import {useShow} from '@renderer/session/show';
+import {useShow} from '@renderer/session/show/show';
 import {ListInsertLine, ListRow} from '@renderer/ui';
 import type {RenameContract} from '@renderer/ui/fields/useRenameDraft';
 import type {Workspace} from '@renderer/ui/lists/workspace';

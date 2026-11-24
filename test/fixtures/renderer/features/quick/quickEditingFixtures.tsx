@@ -12,7 +12,7 @@ import type {LlpApi} from '@contracts/ipc/api';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {parseSettingsDocument} from '@core/schema/app/settingsDocuments';
 import {resetTooltips} from '@fixtures/renderer/ui/tooltipTesting';
-import {useShow} from '@renderer/session/show';
+import {useShow} from '@renderer/session/show/show';
 import {useLive} from '@renderer/session/live';
 import {QuickPanel} from '@renderer/features/quick/QuickPanel';
 import {

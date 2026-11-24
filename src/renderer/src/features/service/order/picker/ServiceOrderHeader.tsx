@@ -1,5 +1,5 @@
 import type {JSX} from 'react';
-import {useShow} from '@renderer/session/show';
+import {useShow} from '@renderer/session/show/show';
 import {Icon} from '@renderer/ui/Icon';
 import {TruncatedText} from '@renderer/ui/text/TruncatedText';
 import type {Notice} from '@renderer/ui/popups/notices';

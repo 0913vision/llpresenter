@@ -6,7 +6,10 @@ import {ServiceOrderHeader} from '@renderer/features/service/order/picker/Servic
 import {ServiceTableList} from '@renderer/features/service/table/ServiceTableList';
 import {ServiceOrderList} from '@renderer/features/service/order/ServiceOrderList';
 import type {Notice} from '@renderer/ui/popups/notices';
-import {logPanelProblem, type PanelParts} from '../shell/WorkspacePanel';
+import {
+  logPanelProblem,
+  type PanelParts,
+} from '../shell/workspace/WorkspacePanel';
 
 /** The title of the 예배 순서 panel, which 진행 and 준비 share. */
 export const SERVICE_ORDER = '예배 순서';

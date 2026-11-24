@@ -1,5 +1,5 @@
 import {useAudioOutputs} from '@renderer/features/preferences/useAudioOutputs';
-import {ShownItemProvider} from '@renderer/session/shownItem';
+import {ShownItemProvider} from '@renderer/session/show/shownItem';
 import {NumberJumpOverlay} from '@renderer/features/presentation/keyboard/DraftOverlay';
 import {useMonitors} from '@renderer/features/screens/useMonitors';
 import {AudioShortcuts} from '@renderer/features/tools/audio/AudioShortcuts';
@@ -18,33 +18,33 @@ import {
   type JSX,
 } from 'react';
 import type {UiState} from '@core/schema/app/uiState';
-import type {ColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
+import type {ColumnWidthStore} from '@renderer/app/shell/columns/columnWidthStore';
 import {useClearKeys} from '@renderer/features/presentation/keyboard/clearKeys';
 import {useLiveStateShortcuts} from '@renderer/features/tools/useLiveStateShortcuts';
-import {MenuBar} from '@renderer/app/shell/MenuBar';
-import {ScreenSummariesProvider} from '@renderer/platform/ScreenSummaries';
+import {MenuBar} from '@renderer/app/shell/menubar/MenuBar';
+import {ScreenSummariesProvider} from '@renderer/platform/screens/ScreenSummaries';
 import {StatusBar} from '@renderer/app/shell/StatusBar';
 import {
   outputWarningCards,
   useOutputWarnings,
   warningScreens,
-} from '@renderer/platform/outputWarnings';
-import {useShow} from '@renderer/session/show';
+} from '@renderer/platform/screens/outputWarnings';
+import {useShow} from '@renderer/session/show/show';
 import {
   PrepItemNavigation,
   WorkspaceNavigation,
 } from '@renderer/platform/WorkspaceNavigation';
 import {watchInputModality} from '@renderer/ui/keys/inputModality';
 import {NotificationStack} from '@renderer/ui/popups/Notification';
-import {Toolbar} from '@renderer/app/shell/Toolbar';
+import {Toolbar} from '@renderer/app/shell/toolbar/Toolbar';
 import {useSizeClass} from '@renderer/app/shell/useSizeClass';
 import {useMediaStripVisibility} from '@renderer/app/shell/useMediaStripVisibility';
-import {useSidebarCollapse} from '@renderer/app/shell/useSidebarCollapse';
+import {useSidebarCollapse} from '@renderer/app/shell/workspace/useSidebarCollapse';
 import {useUiZoomKeys} from '@renderer/app/shell/uiZoomKeys';
-import {useShortcutSettings} from '@renderer/platform/useShortcutSettings';
-import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
-import {workspaceShortcuts} from '@renderer/app/shell/workspaceCommands';
-import {Workspace} from '@renderer/app/shell/Workspace';
+import {useShortcutSettings} from '@renderer/platform/shortcuts/useShortcutSettings';
+import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
+import {workspaceShortcuts} from '@renderer/app/shell/menubar/workspaceCommands';
+import {Workspace} from '@renderer/app/shell/workspace/Workspace';
 import type {ControlSession} from './controlSession';
 import {RecoveryPrompt} from './recovery/RecoveryPrompt';
 import {useRecovery} from './recovery/useRecovery';

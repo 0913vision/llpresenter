@@ -10,7 +10,7 @@ import {sendLive, useOutputs} from '@renderer/session/live';
 import type {RenameContract} from '@renderer/ui/fields/useRenameDraft';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import {useScreensSelection} from '../selection';
-import type {NamedDocument} from '../../../platform/useSettingsDocument';
+import type {NamedDocument} from '../../../platform/documents/useSettingsDocument';
 import {useScreenEditor} from '../useScreenEditor';
 import {SCREEN_NAME_PROBLEMS} from '../screenEditor';
 import {lastOfKind, nameProblem} from '@core/screens';

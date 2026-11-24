@@ -23,16 +23,19 @@ import {
   openInPrep,
   type PrepTarget,
 } from '@renderer/session/prepTarget';
-import {openItem, useShow} from '@renderer/session/show';
-import {isLibrarySource, openLibrarySong} from '@renderer/session/showLibrary';
-import {serviceItem} from '@renderer/session/openService';
+import {openItem, useShow} from '@renderer/session/show/show';
+import {
+  isLibrarySource,
+  openLibrarySong,
+} from '@renderer/session/show/showLibrary';
+import {serviceItem} from '@renderer/session/service/openService';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import type {SizeClass} from '@renderer/ui/panels/sizeClass';
 import {
   logPanelProblem,
   type PanelParts,
   type WorkspacePanels,
-} from '../shell/WorkspacePanel';
+} from '../shell/workspace/WorkspacePanel';
 import {SERVICE_ORDER, serviceOrderParts} from './serviceOrderPanel';
 
 const COLUMNS = [['라이브러리'], [SERVICE_ORDER], ['세부정보']] as const;

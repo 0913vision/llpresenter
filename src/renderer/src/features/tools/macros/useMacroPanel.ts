@@ -1,5 +1,5 @@
 import {limitReason} from '@core/common/limitReason';
-import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
+import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
 import {useMenuHandoff} from '@renderer/ui/menus/useMenuHandoff';
 import {useContext, useRef, useState, type RefObject} from 'react';
 import {parseMacroCollectionId, parseMacroId} from '@core/schema/common/ids';
@@ -11,7 +11,7 @@ import {
   type MacroCollection,
   type KnownMacroAction,
 } from '@core/schema/tools/macros';
-import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
+import {useSettingsDocument} from '@renderer/platform/documents/useSettingsDocument';
 import {sendLive} from '@renderer/session/live';
 import {WorkspaceNavigation} from '@renderer/platform/WorkspaceNavigation';
 import {useShowToolTab} from '../showToolTab';
@@ -20,7 +20,7 @@ import type {MenuAnchor} from '@renderer/ui/menus/Menu';
 import type {Notice} from '@renderer/ui/popups/notices';
 import type {MacroViewMode} from './MacroView';
 import {deleteSelection} from '@renderer/ui/lists/deleteSelection';
-import {useUndoKeys} from '@renderer/platform/useUndoKeys';
+import {useUndoKeys} from '@renderer/platform/undo/useUndoKeys';
 import {focusHistorySurface} from '@renderer/ui/lists/focusHistorySurface';
 import {toolMenuReason} from '../toolMenuEntries';
 import {useOptimisticCreation} from './useOptimisticCreation';

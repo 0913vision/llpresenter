@@ -19,8 +19,8 @@ import {
 } from '@core/schema/common/ids';
 import {SONG_DRAG_MIME} from '@core/schema/songs/songDrag';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {applyService} from '@renderer/session/show';
-import {startOpenServiceSync} from '@renderer/session/openService';
+import {applyService} from '@renderer/session/show/show';
+import {startOpenServiceSync} from '@renderer/session/service/openService';
 import {useLive} from '@renderer/session/live';
 import {ServiceOrderList} from '@renderer/features/service/order/ServiceOrderList';
 

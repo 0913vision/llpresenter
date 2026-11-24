@@ -2,8 +2,8 @@ import {NOT_IN_THIS_WINDOW} from '@renderer/platform/problemReasons';
 import {
   ORDER_LOCKED_REASON,
   orderEditReason,
-} from '@renderer/session/orderReasons';
-import {ORDER_FULL_REASON} from '@renderer/session/serviceOrderEdits';
+} from '@renderer/session/service/orderReasons';
+import {ORDER_FULL_REASON} from '@renderer/session/service/serviceOrderEdits';
 import {windowCommandLabels} from '@renderer/ui/keys/windowCommandLabels';
 import {
   menuAvailability,

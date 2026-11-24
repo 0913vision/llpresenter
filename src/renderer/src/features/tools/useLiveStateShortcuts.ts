@@ -1,4 +1,4 @@
-import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
+import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
 import {hideStageMessage} from './toolCommands';
 
 /** Keeps live-state actions available after their editing panels unmount. */

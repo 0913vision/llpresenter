@@ -1,7 +1,7 @@
 import {useEffect, useEffectEvent, useRef, useState, type JSX} from 'react';
 import type {SongId} from '@core/schema/common/ids';
-import {contentDeleteHistory} from '@renderer/platform/contentDeleteHistory';
-import {useUndoKeys} from '@renderer/platform/useUndoKeys';
+import {contentDeleteHistory} from '@renderer/platform/undo/contentDeleteHistory';
+import {useUndoKeys} from '@renderer/platform/undo/useUndoKeys';
 import {contextMenuAnchor} from '@renderer/ui/menus/contextMenu';
 import {useReflow} from '@renderer/ui/panels/useReflow';
 import {IconButton} from '@renderer/ui/buttons/IconButton';

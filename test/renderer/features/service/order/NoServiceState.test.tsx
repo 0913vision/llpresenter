@@ -15,7 +15,7 @@ import {
 } from '@fixtures/core/serviceList';
 import {sampleService} from '@fixtures/renderer/session/sampleService';
 import {ServiceOrderList} from '@renderer/features/service/order/ServiceOrderList';
-import {applyService, useShow} from '@renderer/session/show';
+import {applyService, useShow} from '@renderer/session/show/show';
 import type {ServiceOpenResult} from '@core/schema/services/serviceOpen';
 
 const REFUSED: EditResult = {

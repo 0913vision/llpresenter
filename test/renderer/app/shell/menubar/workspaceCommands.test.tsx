@@ -1,0 +1,252 @@
+import {act, cleanup, renderHook} from '@testing-library/react';
+import {afterEach, describe, expect, it, vi} from 'vitest';
+import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
+import {useShowToolTab} from '@renderer/features/tools/showToolTab';
+import {useMacroPalette} from '@renderer/features/tools/macros/actions/useMacroPalette';
+import {
+  workspaceMenu,
+  showMenu,
+  type ContinuousRow,
+  workspaceShortcuts,
+} from '@renderer/app/shell/menubar/workspaceCommands';
+import {menuItems} from '@renderer/ui/menus/menuModel';
+import {fullScreenRow} from '@renderer/app/shell/menubar/viewToggles';
+import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
+
+afterEach(() => {
+  cleanup();
+  delete window.llp;
+  useMacroPalette.getState().close();
+});
+
+describe('workspace defaults from S1', () => {
+  it('keeps Ctrl S in the inline song editor instead of switching to 진행', () => {
+    const onWorkspace = vi.fn();
+    const save = vi.fn();
+    renderHook(() =>
+      useWindowShortcuts([
+        ...workspaceShortcuts({
+          onWorkspace,
+          onMedia: vi.fn(),
+          imported: false,
+          editingSong: true,
+        }),
+        {id: 'songWindow.save', context: 'song', run: save},
+      ]),
+    );
+    act(() => {
+      window.dispatchEvent(
+        new KeyboardEvent('keydown', {
+          code: 'KeyS',
+          ctrlKey: true,
+          cancelable: true,
+        }),
+      );
+    });
+    expect(save).toHaveBeenCalledOnce();
+    expect(onWorkspace).not.toHaveBeenCalled();
+  });
+  it('opens screen settings with Ctrl Alt 1 without changing workspace', () => {
+    const openScreens = vi.fn();
+    window.llp = mockLlpApi({window: {openScreens}});
+    const onWorkspace = vi.fn();
+    renderHook(() =>
+      useWindowShortcuts(
+        workspaceShortcuts({onWorkspace, onMedia: vi.fn(), imported: false}),
+      ),
+    );
+    act(() => {
+      window.dispatchEvent(
+        new KeyboardEvent('keydown', {
+          code: 'Digit1',
+          ctrlKey: true,
+          altKey: true,
+          cancelable: true,
+        }),
+      );
+    });
+    expect(openScreens).toHaveBeenCalledOnce();
+    expect(onWorkspace).not.toHaveBeenCalled();
+  });
+  it.each([
+    {code: 'KeyS', workspace: 'show'},
+    {code: 'KeyR', workspace: 'prep'},
+  ])('routes $code to $workspace', ({code, workspace}) => {
+    const onWorkspace = vi.fn();
+    renderHook(() =>
+      useWindowShortcuts(
+        workspaceShortcuts({onWorkspace, onMedia: vi.fn(), imported: false}),
+      ),
+    );
+    act(() => {
+      window.dispatchEvent(
+        new KeyboardEvent('keydown', {
+          code,
+          ctrlKey: true,
+          cancelable: true,
+        }),
+      );
+    });
+    expect(onWorkspace).toHaveBeenCalledExactlyOnceWith(workspace);
+  });
+
+  it('leaves Ctrl E for the selected Bible verse editor', () => {
+    const onWorkspace = vi.fn();
+    renderHook(() =>
+      useWindowShortcuts(
+        workspaceShortcuts({onWorkspace, onMedia: vi.fn(), imported: false}),
+      ),
+    );
+    const edit = new KeyboardEvent('keydown', {
+      code: 'KeyE',
+      ctrlKey: true,
+      cancelable: true,
+    });
+    act(() => {
+      window.dispatchEvent(edit);
+    });
+    expect(onWorkspace).not.toHaveBeenCalled();
+    expect(edit.defaultPrevented).toBe(false);
+  });
+
+  it('leaves Ctrl S to an imported editor and plain paste to text fields', () => {
+    const onWorkspace = vi.fn();
+    const onMedia = vi.fn();
+    renderHook(() =>
+      useWindowShortcuts(
+        workspaceShortcuts({onWorkspace, onMedia, imported: true}),
+      ),
+    );
+    const save = new KeyboardEvent('keydown', {
+      code: 'KeyS',
+      ctrlKey: true,
+      cancelable: true,
+    });
+    act(() => {
+      window.dispatchEvent(save);
+    });
+    expect(save.defaultPrevented).toBe(false);
+    const input = document.createElement('input');
+    document.body.append(input);
+    const paste = new KeyboardEvent('keydown', {
+      code: 'KeyV',
+      ctrlKey: true,
+      shiftKey: true,
+      bubbles: true,
+      cancelable: true,
+    });
+    act(() => {
+      input.dispatchEvent(paste);
+    });
+    input.remove();
+    expect(paste.defaultPrevented).toBe(false);
+    expect(onWorkspace).not.toHaveBeenCalled();
+    expect(onMedia).not.toHaveBeenCalled();
+    act(() => {
+      window.dispatchEvent(
+        new KeyboardEvent('keydown', {
+          code: 'KeyV',
+          ctrlKey: true,
+          shiftKey: true,
+          cancelable: true,
+        }),
+      );
+    });
+    expect(onMedia).toHaveBeenCalledOnce();
+  });
+});
+
+const CONTINUOUS_OFF = {on: false, reason: undefined, toggle: () => undefined};
+const idleFullScreen = fullScreenRow(false);
+
+describe('workspaceMenu', () => {
+  it('shows 이어서 진행 as a check that follows the choice and flips it', () => {
+    const toggle = vi.fn();
+    const find = (continuous: ContinuousRow) =>
+      menuItems(showMenu(continuous, CONTINUOUS_OFF)).find(
+        row => row.id === 'continuous',
+      );
+    expect(find({on: false, reason: undefined, toggle})).toMatchObject({
+      check: 'checkbox',
+      checked: false,
+      disabled: false,
+    });
+    const on = find({on: true, reason: undefined, toggle});
+    expect(on).toMatchObject({check: 'checkbox', checked: true});
+    on?.onSelect?.();
+    expect(toggle).toHaveBeenCalledOnce();
+    expect(
+      find({on: false, reason: '새 버전의 파일이라 바꿀 수 없습니다.', toggle}),
+    ).toMatchObject({
+      disabled: true,
+      title: '새 버전의 파일이라 바꿀 수 없습니다.',
+    });
+  });
+
+  it('exposes a separate continuous grid check', () => {
+    const toggle = vi.fn();
+    const rows = menuItems(
+      showMenu(CONTINUOUS_OFF, {on: true, reason: undefined, toggle}),
+    );
+    const grid = rows.find(row => row.id === 'continuous-grid');
+    expect(grid).toMatchObject({check: 'checkbox', checked: true});
+    expect(rows.find(row => row.id === 'continuous')).toMatchObject({
+      checked: false,
+    });
+    grid?.onSelect?.();
+    expect(toggle).toHaveBeenCalledOnce();
+  });
+
+  it('explains unavailable workspace and media handlers', () => {
+    const rows = menuItems(
+      workspaceMenu({
+        onWorkspace: undefined,
+        onMedia: undefined,
+        fullScreen: idleFullScreen,
+      }),
+    );
+    for (const id of [
+      'workspace.show',
+      'workspace.prep',
+      'tool.timer',
+      'palette',
+    ]) {
+      expect(rows.find(row => row.id === id)).toMatchObject({
+        disabled: true,
+        title: '이 창에서는 쓸 수 없음',
+      });
+    }
+    expect(rows.find(row => row.id === 'workspace.media')).toMatchObject({
+      disabled: true,
+      title: '이 창에서는 쓸 수 없음',
+    });
+  });
+
+  it('opens a 진행 도구 tab in 진행', () => {
+    const onWorkspace = vi.fn();
+    const entries = workspaceMenu({
+      onWorkspace,
+      onMedia: () => undefined,
+      fullScreen: idleFullScreen,
+    });
+    const timer = entries.find(entry => entry.id === 'tool.timer');
+    if (timer?.kind !== 'item') throw new Error('Missing timer row');
+    timer.onSelect?.();
+    expect(useShowToolTab.getState().tool).toBe('timer');
+    expect(onWorkspace).toHaveBeenCalledWith('show');
+  });
+
+  it('opens the existing palette in the macro tool', () => {
+    const onWorkspace = vi.fn();
+    const item = workspaceMenu({
+      onWorkspace,
+      onMedia: undefined,
+      fullScreen: idleFullScreen,
+    }).find(entry => entry.id === 'palette');
+    if (item?.kind !== 'item') throw new Error('Missing palette row');
+    item.onSelect?.();
+    expect(useMacroPalette.getState().open).toBe(true);
+    expect(useShowToolTab.getState().tool).toBe('macro');
+    expect(onWorkspace).toHaveBeenCalledExactlyOnceWith('show');
+  });
+});

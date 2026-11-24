@@ -7,7 +7,7 @@ import type {ShowService} from '@core/schema/services/showService';
 import type {ServiceOpenRequest} from '@core/schema/services/serviceOpen';
 import {emptyLiveState} from '@core/schema/live/live';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {applyService, useShow} from '@renderer/session/show';
+import {applyService, useShow} from '@renderer/session/show/show';
 import {useLive} from '@renderer/session/live';
 import {ServiceOrderHeader} from '@renderer/features/service/order/picker/ServiceOrderHeader';
 import type {ServiceOpenResult} from '@core/schema/services/serviceOpen';

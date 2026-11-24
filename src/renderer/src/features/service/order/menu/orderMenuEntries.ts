@@ -1,4 +1,4 @@
-import {liveItemReason} from '@renderer/session/liveGuard';
+import {liveItemReason} from '@renderer/session/service/liveGuard';
 import type {ServiceRow} from '@core/presentation';
 import {orderedSelection} from '@core/common/selectionOrder';
 import type {SongId} from '@core/schema/common/ids';

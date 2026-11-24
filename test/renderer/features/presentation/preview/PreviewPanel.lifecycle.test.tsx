@@ -9,7 +9,7 @@ import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {emptyLiveState} from '@core/schema/live/live';
 import {renderWithScreenSummaries as render} from '@fixtures/renderer/platform/screenSummaries';
 import {PreviewPanel} from '@renderer/features/presentation/preview/PreviewPanel';
-import {usePreview} from '@renderer/session/preview';
+import {usePreview} from '@renderer/session/show/preview';
 import {useLive} from '@renderer/session/live';
 
 const stop = vi.fn();

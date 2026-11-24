@@ -1,7 +1,7 @@
 import type {ThemeLeaveGuard} from '@renderer/features/screens/themes/saving/themeLeaveGuard';
 import {useThemePanels} from '@renderer/features/screens/themes/useThemePanels';
 import type {Notice} from '@renderer/ui/popups/notices';
-import type {WorkspacePanels} from '../shell/WorkspacePanel';
+import type {WorkspacePanels} from '../shell/workspace/WorkspacePanel';
 
 const COLUMNS = [['테마'], ['테마 편집'], ['테마 속성']] as const;
 

@@ -7,8 +7,8 @@ import {
   hoverForTooltip,
   resetTooltips,
 } from '@fixtures/renderer/ui/tooltipTesting';
-import {useShow} from '@renderer/session/show';
-import {pendingWritesOf} from '@renderer/platform/pendingWrites';
+import {useShow} from '@renderer/session/show/show';
+import {pendingWritesOf} from '@renderer/platform/documents/pendingWrites';
 import {QuickRowEditor} from '@renderer/features/quick/QuickEditing';
 import {renderedToolMenuRows} from '@fixtures/renderer/features/tools/toolMenuTesting';
 import {saveQuickEdit} from '@renderer/features/quick/quickEdits';

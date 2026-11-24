@@ -17,9 +17,9 @@ import {
   useDeckSelection,
 } from '../../slides/deckSelection';
 import type {SlideDeck} from '../../slides/slideDeck';
-import type {Report} from '@renderer/session/serviceEdit';
-import {slideMaking} from '@renderer/platform/themes';
-import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
+import type {Report} from '@renderer/session/service/serviceEdit';
+import {slideMaking} from '@renderer/platform/documents/themes';
+import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
 import {warningNotice} from '@renderer/ui/popups/notices';
 import {confirmBibleCuts} from './saveBibleCuts';
 import {passageSplitter, type BibleSplit} from '../passageSplitter';

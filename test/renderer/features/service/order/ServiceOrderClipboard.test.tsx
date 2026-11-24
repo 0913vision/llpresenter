@@ -1,9 +1,9 @@
 import {act, fireEvent, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import {openItem, useShow} from '@renderer/session/show';
+import {openItem, useShow} from '@renderer/session/show/show';
 import type {ServiceDocument} from '@core/schema/services/contentDocuments';
-import {serviceItemClipboardFor} from '@renderer/session/serviceItemClipboard';
+import {serviceItemClipboardFor} from '@renderer/session/service/serviceItemClipboard';
 import {
   firstId,
   lastId,

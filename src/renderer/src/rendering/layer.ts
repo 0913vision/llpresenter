@@ -1,6 +1,6 @@
 import type {LayerKind, LiveLayers} from '@core/schema/live/live';
 import type {ClearEffect} from '@core/schema/live/clearFade';
-import type {RenderMode} from './backgroundLayer';
+import type {RenderMode} from './media/backgroundLayer';
 import type {TextStyle} from '@core/overlays';
 import type {RenderTimers} from './timerTokens';
 import type {ScreenId, TimerId} from '@core/schema/common/ids';
@@ -8,7 +8,7 @@ import type {Screen} from '@core/schema/screens/screens';
 import type {LiveItem, LiveThemeOutput} from '@core/schema/live/liveTheme';
 import type {FontCatalog} from '@core/schema/screens/fontCatalog';
 import type {MessageBand} from '@core/screens';
-import type {PreviewMediaSource} from './previewMedia';
+import type {PreviewMediaSource} from './media/previewMedia';
 
 /** 가장자리 여백 and 위치 미세 조정 of a screen (docs/spec/03-output.md). */
 export interface PictureCorrection {

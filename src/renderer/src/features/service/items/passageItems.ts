@@ -3,7 +3,7 @@ import type {BiblePassage} from '@core/schema/bible/biblePassage';
 import type {ServiceItemOf} from '@core/schema/services/service';
 import {bibleItem, sermonItem} from '@core/slides';
 import {makePassageSlides} from '@renderer/features/bible/makePassageSlides';
-import {slideMaking} from '@renderer/platform/themes';
+import {slideMaking} from '@renderer/platform/documents/themes';
 
 /** How the slides of a new passage are made, from 환경설정. */
 export type PassageDefaults = Pick<

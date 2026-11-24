@@ -10,7 +10,7 @@ import {
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import type {EditResult} from '@core/schema/services/contentEdit';
 import {CAPTIONS_ID} from '@fixtures/core/screenDocuments';
-import {pendingWritesOf} from '@renderer/platform/pendingWrites';
+import {pendingWritesOf} from '@renderer/platform/documents/pendingWrites';
 import {deferred} from '@fixtures/renderer/features/tools/quickTesting';
 import {stageFixture} from '@fixtures/renderer/features/tools/stageTesting';
 import {MessageTab} from '@renderer/features/tools/messages/MessageTab';

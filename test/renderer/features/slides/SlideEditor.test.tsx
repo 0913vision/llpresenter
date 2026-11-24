@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {BUILT_IN_THEME_IDS, SONG_THEME_IDS} from '@core/theme/builtIn/ids';
 import {MEDIA_DRAG_MIME} from '@renderer/features/media/mediaDrag';
-import {useMedia} from '@renderer/platform/media';
+import {useMedia} from '@renderer/platform/documents/media';
 import {fixtureMedia, itemMedia} from '@fixtures/core/mediaList';
 import {lyricsSlide, slideId, slideOf, verseOf} from '@fixtures/core/slides';
 import {renderEditor, textsOf} from '@fixtures/renderer/features/slides/editor';

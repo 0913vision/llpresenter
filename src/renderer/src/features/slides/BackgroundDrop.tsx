@@ -1,12 +1,12 @@
 import {useEffect, useRef, type DragEvent, type ReactNode} from 'react';
 import {changeSlides, withBackground} from '@core/slides';
 import {hasMediaDrag, readMediaDrag} from '@renderer/features/media/mediaDrag';
-import {canAddMedia, mediaItem} from '@renderer/platform/media';
+import {canAddMedia, mediaItem} from '@renderer/platform/documents/media';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {warningNotice} from '@renderer/ui/popups/notices';
 import {selectionOf} from './deckSelection';
 import type {SlideDeck} from './slideDeck';
-import type {Report} from '@renderer/session/serviceEdit';
+import type {Report} from '@renderer/session/service/serviceEdit';
 import styles from './SlideEditor.module.css';
 
 const TARGET = '[data-song-slide], [data-background-picture]';

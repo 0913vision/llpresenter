@@ -6,7 +6,7 @@ import type {
   SettingsDocument,
   SettingsEdit,
 } from '@core/schema/app/settingsDocuments';
-import {pendingWritesOf} from '@renderer/platform/pendingWrites';
+import {pendingWritesOf} from '@renderer/platform/documents/pendingWrites';
 import {noticeTime, type Notice} from '@renderer/ui/popups/notices';
 
 type LabelApi = Pick<LlpApi, 'settings' | 'content'>;

@@ -3,11 +3,11 @@ import {displayReference, withLiveBible} from '@core/bible';
 import type {BiblePassage} from '@core/schema/bible/biblePassage';
 import type {SongId} from '@core/schema/common/ids';
 import {isItemOfKind, type SlidesItem} from '@core/schema/services/service';
-import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
-import type {Report} from '@renderer/session/serviceEdit';
+import {useSettingsDocument} from '@renderer/platform/documents/useSettingsDocument';
+import type {Report} from '@renderer/session/service/serviceEdit';
 import {songUsage} from '@renderer/features/songs/library/songUsage';
 import {useSongDraft} from '@renderer/features/songs/songDraft';
-import {useShow} from '@renderer/session/show';
+import {useShow} from '@renderer/session/show/show';
 import {Button} from '@renderer/ui/buttons/Button';
 import {
   Properties,

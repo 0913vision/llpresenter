@@ -2,7 +2,7 @@ import {useSyncExternalStore, type JSX} from 'react';
 import {audioTracks, audioPlayCommand} from '@core/media';
 import {commandBindings, shortcutCommands} from '@core/shortcuts';
 import {commandBindingStore} from '@renderer/ui/keys/commandBindings';
-import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
+import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
 import {useLive} from '@renderer/session/live';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {useMediaDocument} from '../useMediaDocument';

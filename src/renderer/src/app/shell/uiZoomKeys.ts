@@ -3,7 +3,7 @@ import {
   dispatchShortcut,
   type WindowShortcut,
 } from '@renderer/ui/keys/commandDispatcher';
-import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
+import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
 
 const commands: readonly WindowShortcut[] = (
   ['ui.zoomIn', 'ui.zoomOut', 'ui.zoomReset'] as const

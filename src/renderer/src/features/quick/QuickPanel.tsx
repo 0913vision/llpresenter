@@ -4,10 +4,10 @@ import type {QuickItem} from '@core/schema/tools/quick';
 import {
   useSettingsDocument,
   type NamedDocument,
-} from '@renderer/platform/useSettingsDocument';
+} from '@renderer/platform/documents/useSettingsDocument';
 import {useLive} from '@renderer/session/live';
-import {useShow} from '@renderer/session/show';
-import {bibleSourceFor} from '@renderer/session/showLibrary';
+import {useShow} from '@renderer/session/show/show';
+import {bibleSourceFor} from '@renderer/session/show/showLibrary';
 import {ListInsertLine} from '@renderer/ui';
 import {
   Panel,

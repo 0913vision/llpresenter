@@ -1,9 +1,9 @@
 import {useEffect, useRef, useState} from 'react';
 import type {SongId} from '@core/schema/common/ids';
-import {insertSelectedSong} from '@renderer/session/insertSelectedSong';
-import {useShow} from '@renderer/session/show';
-import {useOrderAddReason} from '@renderer/session/orderReasons';
-import {orderFailureTitle} from '@renderer/session/serviceProblem';
+import {insertSelectedSong} from '@renderer/session/service/insertSelectedSong';
+import {useShow} from '@renderer/session/show/show';
+import {useOrderAddReason} from '@renderer/session/service/orderReasons';
+import {orderFailureTitle} from '@renderer/session/service/serviceProblem';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import type {LibraryApi} from './useLibrary';
 

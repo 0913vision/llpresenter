@@ -5,7 +5,7 @@ import type {LiveCommand} from '@core/schema/live/liveCommand';
 import {emptyLiveState} from '@core/schema/live/live';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {useLive} from '@renderer/session/live';
-import {applyService, openItem, useShow} from '@renderer/session/show';
+import {applyService, openItem, useShow} from '@renderer/session/show/show';
 import {
   sampleService,
   seedSampleService,

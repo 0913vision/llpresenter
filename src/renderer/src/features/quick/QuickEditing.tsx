@@ -13,10 +13,13 @@ import type {LlpApi} from '@contracts/ipc/api';
 import {MAX_QUICK_ITEMS, type QuickItem} from '@core/schema/tools/quick';
 import {MAX_TIMER_DEFINITIONS, type Timer} from '@core/schema/tools/timers';
 import {isItemOfKind} from '@core/schema/services/service';
-import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
-import {useShow} from '@renderer/session/show';
-import {bibleSourceFor, isLibrarySource} from '@renderer/session/showLibrary';
-import {withinLookupTimeout} from '@renderer/session/showOutput';
+import {useSettingsDocument} from '@renderer/platform/documents/useSettingsDocument';
+import {useShow} from '@renderer/session/show/show';
+import {
+  bibleSourceFor,
+  isLibrarySource,
+} from '@renderer/session/show/showLibrary';
+import {withinLookupTimeout} from '@renderer/session/show/showOutput';
 import {IconButton, Menu, ListInsertLine} from '@renderer/ui';
 import type {MenuAnchor} from '@renderer/ui/menus/Menu';
 import {openOnArrowDown} from '@renderer/ui/menus/menuButton';

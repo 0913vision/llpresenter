@@ -1,6 +1,6 @@
 import {useEffect, useEffectEvent} from 'react';
-import {useShow} from '@renderer/session/show';
-import {refreshLibrarySong} from '@renderer/session/showLibrary';
+import {useShow} from '@renderer/session/show/show';
+import {refreshLibrarySong} from '@renderer/session/show/showLibrary';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 
 /** Refreshes the single retained library projection and releases all feeds. */

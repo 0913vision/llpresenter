@@ -18,7 +18,7 @@ import {
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {ShortcutsPage} from '@renderer/features/preferences/shortcuts/ShortcutsPage';
-import {pendingWritesOf} from '@renderer/platform/pendingWrites';
+import {pendingWritesOf} from '@renderer/platform/documents/pendingWrites';
 
 const edit = vi.fn<(request: SettingsEdit) => Promise<EditResult>>();
 const onProblem = vi.fn();

@@ -1,6 +1,6 @@
 import {useState, type JSX} from 'react';
 import type {SavedTitle} from '@core/schema/screens/themes';
-import {useThemes} from '@renderer/platform/themes';
+import {useThemes} from '@renderer/platform/documents/themes';
 import {Dialog, DialogField} from '@renderer/ui/popups/Dialog';
 import {TextField} from '@renderer/ui/fields/TextField';
 import {Menu, type MenuAnchor} from '@renderer/ui/menus/Menu';

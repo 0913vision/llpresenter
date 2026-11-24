@@ -16,13 +16,13 @@ import {Dialog} from '@renderer/ui/popups/Dialog';
 import {IconButton} from '@renderer/ui/buttons/IconButton';
 import {Icon} from '@renderer/ui/Icon';
 import {LabelColorControl} from '@renderer/ui/labels/LabelColorPopover';
-import {settingsDeleteHistory} from '@renderer/platform/settingsDeleteHistory';
-import {useUndoKeys} from '@renderer/platform/useUndoKeys';
+import {settingsDeleteHistory} from '@renderer/platform/undo/settingsDeleteHistory';
+import {useUndoKeys} from '@renderer/platform/undo/useUndoKeys';
 import {
   logUndoProblem,
   undoReason,
   undoTimeline,
-} from '@renderer/platform/undoTimeline';
+} from '@renderer/platform/undo/undoTimeline';
 import {deleteSelection} from '@renderer/ui/lists/deleteSelection';
 import {useReflow} from '@renderer/ui/panels/useReflow';
 import {historyKey} from '@renderer/ui/lists/historyKey';
