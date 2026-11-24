@@ -1,5 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
-import {updatePreload} from '../../src/preload/update';
+import {updateApi} from '@contracts/ipc/update';
 import {createIpcPort, type IpcRendererPort} from '../../src/preload/port';
 
 describe('update preload', () => {
@@ -18,7 +18,7 @@ describe('update preload', () => {
       removeListener: (channel: string) => listeners.delete(channel),
     } satisfies IpcRendererPort;
     const log = vi.fn();
-    const api = updatePreload(createIpcPort(ipc, log));
+    const api = updateApi(createIpcPort(ipc, log));
     const snapshot = {
       revision: 1,
       status: {kind: 'idle'},

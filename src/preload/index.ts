@@ -2,9 +2,9 @@ import {contextBridge, ipcRenderer, webFrame, webUtils} from 'electron';
 import {llpApi} from '@contracts/ipc/api';
 import {outputEndpoints} from '@contracts/ipc/output';
 import {badValueLog, createIpcPort} from './port';
+import {bibleApi} from '@contracts/ipc/bible';
+import {updateApi} from '@contracts/ipc/update';
 import {windowPlatform} from './platform';
-import {biblePreload} from './bible';
-import {updatePreload} from './update';
 
 const log = badValueLog(ipcRenderer, outputEndpoints.log.channel);
 const port = createIpcPort(ipcRenderer, log);
@@ -25,7 +25,7 @@ if (
 contextBridge.exposeInMainWorld(
   'llp',
   llpApi(port, windowPlatform({webFrame, webUtils}, log), {
-    bible: biblePreload(port),
-    update: updatePreload(port),
+    bible: bibleApi(port),
+    update: updateApi(port),
   }),
 );

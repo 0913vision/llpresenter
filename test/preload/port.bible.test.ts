@@ -1,6 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
-import {bibleEndpoints} from '@contracts/ipc/bible';
-import {biblePreload} from '../../src/preload/bible';
+import {bibleApi, bibleEndpoints} from '@contracts/ipc/bible';
 import {createIpcPort, type IpcRendererPort} from '../../src/preload/port';
 
 describe('Bible AI preload contract', () => {
@@ -20,7 +19,7 @@ describe('Bible AI preload contract', () => {
       removeListener: (channel: string) => listeners.delete(channel),
     } satisfies IpcRendererPort;
     const log = vi.fn();
-    const api = biblePreload(createIpcPort(ipc, log));
+    const api = bibleApi(createIpcPort(ipc, log));
     const request = {
       lookupId: 'lookup-1',
       fullText: 'one two',
