@@ -25,6 +25,15 @@ function showOn(
   grid.style.setProperty(PREP_RIGHT_VARIABLE, `${prepRight}px`);
 }
 
+/** The width of 진행's collapsed left column: its strip, a panel header wide. */
+function collapsedStrip(grid: HTMLElement): number {
+  return (
+    parseFloat(
+      getComputedStyle(grid).getPropertyValue('--size-panel-header'),
+    ) || 0
+  );
+}
+
 function watchWindowResize(layout: ColumnLayout): () => void {
   let frame = 0;
   const onResize = (): void => {
@@ -43,13 +52,19 @@ function watchWindowResize(layout: ColumnLayout): () => void {
 /**
  * Writes the column widths to the grid as CSS variables, so that dragging does
  * not re-render the panels. Returns the grid ref and the drag callbacks for the
- * gaps.
+ * gaps. `leftCollapsed`: 진행's left column is collapsed to its strip.
  */
-export function useColumnLayout(
-  sizeClass: SizeClass,
-  store: ColumnWidthStore,
-  right: RightColumn,
-): {
+export function useColumnLayout({
+  sizeClass,
+  store,
+  right,
+  leftCollapsed = false,
+}: {
+  readonly sizeClass: SizeClass;
+  readonly store: ColumnWidthStore;
+  readonly right: RightColumn;
+  readonly leftCollapsed?: boolean | undefined;
+}): {
   readonly gridRef: RefObject<HTMLElement | null>;
   readonly drag: ColumnDrag;
 } {
@@ -85,6 +100,13 @@ export function useColumnLayout(
   useLayoutEffect(() => {
     layoutRef.current?.setRight(right);
   }, [store, right]);
+
+  useLayoutEffect(() => {
+    const grid = gridRef.current;
+    layoutRef.current?.setLeftCollapsed(
+      leftCollapsed && grid !== null ? collapsedStrip(grid) : undefined,
+    );
+  }, [store, leftCollapsed]);
 
   const drag = useMemo<ColumnDrag>(
     () => ({

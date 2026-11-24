@@ -80,7 +80,13 @@ export function Workspace({
   readonly themeLeave?: ThemeLeaveGuard | undefined;
 }): JSX.Element {
   const right = id === 'prep' ? 'prepRight' : 'right';
-  const {gridRef, drag} = useColumnLayout(sizeClass, store, right);
+  const toggle = useSidebarToggle(sidebar);
+  const {gridRef, drag} = useColumnLayout({
+    sizeClass,
+    store,
+    right,
+    leftCollapsed: toggle.collapsed,
+  });
   const screens = useScreensPanels({
     active: id === 'screens',
     onProblem,
@@ -104,7 +110,6 @@ export function Workspace({
   // shows, so going back to 진행 shows its panels in the next frame instead of
   // building them again.
   const navigation = useShowPanelNavigation(gridRef, showVisible);
-  const toggle = useSidebarToggle(sidebar);
   const show = useShowPanels({
     active: true,
     sizeClass,
@@ -155,8 +160,6 @@ export function Workspace({
       warningHeight={warningHeight}
     />
   );
-  // TODO(0913vision): Let the shrink rule ignore the hidden left width while
-  // the left column is collapsed; it still counts the saved width now.
   const frame = (
     <main
       ref={gridRef}

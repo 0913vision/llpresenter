@@ -46,6 +46,7 @@ export class ColumnLayout {
   private shown: ColumnWidths;
   private drag: Drag | null = null;
   private right: RightColumn = 'right';
+  private collapsedLeft: number | undefined;
 
   constructor(private readonly options: ColumnLayoutOptions) {
     this.sizeClass = options.sizeClass;
@@ -68,6 +69,16 @@ export class ColumnLayout {
   }
 
   /**
+   * Says whether 진행's left column is collapsed, as the strip `width` wide,
+   * and fits the widths again.
+   */
+  setLeftCollapsed(width: number | undefined): void {
+    if (width === this.collapsedLeft) return;
+    this.collapsedLeft = width;
+    this.refit();
+  }
+
+  /**
    * Shows the saved widths again for the current window width. During a drag
    * it fits the widths on screen at once, and the drag goes on from there.
    */
@@ -77,7 +88,7 @@ export class ColumnLayout {
       this.refitDrag(this.drag, windowWidth);
       return;
     }
-    this.display(fitToWindow(this.saved, windowWidth));
+    this.display(fitToWindow(this.saved, windowWidth, this.collapsedLeft));
   }
 
   /**
@@ -119,7 +130,7 @@ export class ColumnLayout {
   }
 
   private refitDrag(drag: Drag, windowWidth: number): void {
-    const fitted = fitToWindow(this.shown, windowWidth);
+    const fitted = fitToWindow(this.shown, windowWidth, this.collapsedLeft);
     if (
       fitted.left === this.shown.left &&
       fitted.right === this.shown.right &&
@@ -143,6 +154,7 @@ export class ColumnLayout {
         delta: delta - drag.movementAtLastFit,
         windowWidth: this.options.windowWidth(),
         right: this.right,
+        collapsedLeft: this.collapsedLeft,
       }),
     );
   }

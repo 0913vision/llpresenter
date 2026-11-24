@@ -233,3 +233,37 @@ describe('the right column of 준비', () => {
     expect(dragColumn({...drag, right: 'right'}).left).toBe(200);
   });
 });
+
+describe('a collapsed left column of 진행', () => {
+  const STRIP = 34;
+  const saved = {left: 400, right: 720, prepRight: 320};
+  const windowWidth = 400 + 720 + CENTER_MIN_WIDTH + FIXED_GAPS_WIDTH - 200;
+
+  it('lets the right column of 진행 keep its width where the open left column would shrink it, and 준비 keeps its left width', () => {
+    expect(fitToWindow(saved, windowWidth).right).toBe(520);
+
+    expect(fitToWindow(saved, windowWidth, STRIP)).toEqual({
+      left: 400,
+      right: 720,
+      prepRight: 320,
+    });
+  });
+
+  it('lets the right column of 진행 be dragged into the room the left column left', () => {
+    const narrow = 1200;
+    const drag = (collapsedLeft?: number) =>
+      dragColumn({
+        column: 'right',
+        start: {left: 400, right: 400, prepRight: 320},
+        delta: -300,
+        windowWidth: narrow,
+        right: 'right',
+        collapsedLeft,
+      }).right;
+
+    expect(drag()).toBe(320);
+    expect(drag(STRIP)).toBe(
+      narrow - FIXED_GAPS_WIDTH - CENTER_MIN_WIDTH - STRIP,
+    );
+  });
+});
