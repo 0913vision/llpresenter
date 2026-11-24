@@ -1,3 +1,4 @@
+import {followLatest} from '@core/common/followLatest';
 import {optionValueAt} from '@renderer/ui/lists/optionValue';
 import {
   useEffect,
@@ -38,22 +39,16 @@ export function SongPicker({
   useEffect(() => {
     const api = window.llp;
     if (api === undefined) return undefined;
-    let active = true;
-    let pushed = false;
-    const stop = api.songs.subscribeList(next => {
-      pushed = true;
-      if (active) setSongs(next);
-    });
-    api.songs.list().then(
-      next => {
-        if (active && !pushed) setSongs(next);
+    return followLatest(
+      {
+        read: () => api.songs.list(),
+        subscribe: listener => api.songs.subscribeList(listener),
       },
-      (error: unknown) => console.error('Could not read song list', error),
+      {
+        apply: setSongs,
+        failed: error => console.error('Could not read song list', error),
+      },
     );
-    return () => {
-      active = false;
-      stop();
-    };
   }, []);
   useEffect(() => {
     const api = window.llp;

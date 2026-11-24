@@ -1,3 +1,4 @@
+import {followLatest} from '@core/common/followLatest';
 import {logFailure} from '@renderer/platform/logFailure';
 import {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {MediaId} from '@core/schema/common/ids';
@@ -17,28 +18,19 @@ export function useAudioMissing(
   useEffect(() => {
     const api = window.llp;
     if (!api) return undefined;
-    let active = true;
-    let pushed = false;
-    const stop = api.media.subscribeMissing(ids => {
-      pushed = true;
-      if (active) setMissing(new Set(ids));
-    });
-    api.media.missing().then(
-      ids => {
-        if (active && !pushed) setMissing(new Set(ids));
-      },
-      (cause: unknown) => {
-        if (!active || pushed) return;
-        logFailure(api, 'Could not check audio files', cause);
-        report.current?.(
-          warningNotice('audio:missing', '오디오 파일 상태 확인 실패'),
-        );
+    return followLatest(
+      {read: api.media.missing, subscribe: api.media.subscribeMissing},
+      {
+        apply: ids => setMissing(new Set(ids)),
+        failed: (cause, pushed) => {
+          if (pushed) return;
+          logFailure(api, 'Could not check audio files', cause);
+          report.current?.(
+            warningNotice('audio:missing', '오디오 파일 상태 확인 실패'),
+          );
+        },
       },
     );
-    return () => {
-      active = false;
-      stop();
-    };
   }, []);
   return missing;
 }
