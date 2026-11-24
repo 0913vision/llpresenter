@@ -1,12 +1,11 @@
 import {logFailure} from '@renderer/platform/logFailure';
 import {optionValueAt} from '@renderer/ui/lists/optionValue';
-import {nameReason} from '@renderer/ui/fields/nameReason';
 import {NAME_LIMIT} from '@core/schema/common/primitives';
 import {RenameDialog} from '@renderer/ui/popups/RenameDialog';
 import {PanelAction} from '@renderer/ui/panels/PanelActionSlot';
 import {limitReason} from '@core/common/limitReason';
 import {
-  contextMenuTarget,
+  keyMenuAnchor,
   isContextMenuKey,
   pointerMenuAnchor,
   takeMenuKey,
@@ -17,14 +16,8 @@ import {useMenuHandoff} from '@renderer/ui/menus/useMenuHandoff';
 import {createMessageTemplateId} from '@core/schema/common/ids';
 import type {Screen} from '@core/schema/screens/screens';
 import type {MessageTemplate} from '@core/schema/tools/messages';
-import {MAX_MESSAGE_CHARACTERS} from '@core/overlays';
-import {SelectMenu} from '@renderer/ui/choices/SelectMenu';
-import {Dialog} from '@renderer/ui/popups/Dialog';
 import {IconButton} from '@renderer/ui/buttons/IconButton';
 import {Menu} from '@renderer/ui/menus/Menu';
-import {Properties, PropertyRow} from '@renderer/ui/panels/PropertyRow';
-import {TextArea} from '@renderer/ui/fields/TextArea';
-import {TextField} from '@renderer/ui/fields/TextField';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {useDuplicateShortcut} from '../useDuplicateShortcut';
 import {useToolEditing} from '../useToolEditing';
@@ -33,127 +26,17 @@ import {focusHistorySurface} from '@renderer/ui/lists/selection/focusHistorySurf
 import {useReflow} from '@renderer/ui/panels/useReflow';
 import {
   MAX_MESSAGE_TEMPLATES,
-  messageTextReason,
   newMessageTemplate,
   saveMessageEdit,
-  type MessageFields,
   type MessageEdit,
 } from './messageEdits';
 import {messageMenuEntries, toolMenuReason} from '../toolMenuEntries';
-import {ScreenTargetsRow} from '../ScreenTargetsRow';
-import {DisplayTimeRow} from '../DisplayTimeRow';
+import {
+  MessageTemplateDialog,
+  type MessageEditor,
+} from './MessageTemplateDialog';
 import type {MenuAnchor} from '@renderer/ui/menus/menuModel';
 import type {NamedDocument} from '@core/schema/app/settingsDocuments';
-
-type Editor =
-  | {readonly kind: 'add'}
-  | {readonly kind: 'edit'; readonly item: MessageTemplate};
-
-function TemplateDialog({
-  editor,
-  screens,
-  locked,
-  onCancel,
-  onSave,
-}: {
-  readonly editor: Editor;
-  readonly screens: readonly Screen[];
-  readonly locked: boolean;
-  readonly onCancel: () => void;
-  readonly onSave: (fields: MessageFields) => void;
-}): JSX.Element {
-  const [name, setName] = useState(
-    editor.kind === 'add' ? '' : editor.item.name,
-  );
-  const [text, setText] = useState(
-    editor.kind === 'add' ? '' : editor.item.text,
-  );
-  const [icon, setIcon] = useState<MessageTemplate['icon']>(
-    editor.kind === 'edit' ? editor.item.icon : 'msg',
-  );
-  const [targets, setTargets] = useState<
-    NonNullable<MessageTemplate['targets']>
-  >(editor.kind === 'edit' ? (editor.item.targets ?? 'all') : 'all');
-  const [duration, setDuration] = useState<number | null>(
-    editor.kind === 'edit' ? (editor.item.duration ?? null) : null,
-  );
-  const nameProblem = nameReason(name, NAME_LIMIT);
-  const textReason = messageTextReason(text);
-  // NOTE(0913vision): A blank field is not marked; 추가 stays off and says
-  // why, as in the other 추가 dialogs.
-  const nameShown = name.trim() === '' ? undefined : nameProblem;
-  const textShown = text.trim() === '' ? undefined : textReason;
-  return (
-    <Dialog
-      title={editor.kind === 'add' ? '메시지 추가' : '메시지 수정'}
-      size="s"
-      onCancel={onCancel}
-      primary={{
-        label: editor.kind === 'add' ? '추가' : '저장',
-        disabled:
-          locked || nameProblem !== undefined || textReason !== undefined,
-        title: nameProblem ?? textReason,
-        onSelect: () => onSave({name, text, icon, targets, duration}),
-      }}
-    >
-      <Properties placement="window">
-        <PropertyRow label="이름">
-          {({controlId}) => (
-            <TextField
-              id={controlId}
-              block
-              value={name}
-              onChange={setName}
-              maxLength={NAME_LIMIT}
-              readOnly={locked}
-              invalid={nameShown !== undefined}
-              invalidReason={nameShown}
-            />
-          )}
-        </PropertyRow>
-        <PropertyRow label="문구" alignTop>
-          {({controlId}) => (
-            <TextArea
-              id={controlId}
-              value={text}
-              onChange={setText}
-              maxLength={MAX_MESSAGE_CHARACTERS}
-              readOnly={locked}
-              invalid={textShown !== undefined}
-              invalidReason={textShown}
-            />
-          )}
-        </PropertyRow>
-        <PropertyRow label="아이콘">
-          {({controlId}) => (
-            <SelectMenu
-              id={controlId}
-              value={icon}
-              disabled={locked}
-              options={[
-                {value: 'msg', label: '메시지'},
-                {value: 'user', label: '사람'},
-              ]}
-              onChange={setIcon}
-            />
-          )}
-        </PropertyRow>
-        <ScreenTargetsRow
-          screens={screens}
-          targets={targets}
-          locked={locked}
-          onChange={setTargets}
-        />
-        <DisplayTimeRow
-          duration={duration}
-          saved={editor.kind === 'edit' ? (editor.item.duration ?? null) : null}
-          locked={locked}
-          onChange={setDuration}
-        />
-      </Properties>
-    </Dialog>
-  );
-}
 
 /**
  * The editing of the 메시지 templates: their context menu, the add and edit
@@ -176,7 +59,7 @@ export function MessageEditing({
     anchor: MenuAnchor;
     item: MessageTemplate;
   } | null>(null);
-  const [editor, setEditor] = useState<Editor | null>(null);
+  const [editor, setEditor] = useState<MessageEditor | null>(null);
   const [renaming, setRenaming] = useState<MessageTemplate | null>(null);
   const renameAfterMenu = useMenuHandoff<MessageTemplate>(
     menu !== null,
@@ -281,14 +164,15 @@ export function MessageEditing({
         onKeyDown={event => {
           if (
             isContextMenuKey(event) &&
-            openMenu(event.target, {
-              kind: 'element',
-              target: contextMenuTarget(event),
-              element:
+            openMenu(
+              event.target,
+              keyMenuAnchor(
+                event,
                 event.target instanceof HTMLElement
                   ? event.target
                   : event.currentTarget,
-            })
+              ),
+            )
           ) {
             takeMenuKey(event);
           }
@@ -333,7 +217,7 @@ export function MessageEditing({
         />
       ) : null}
       {editor ? (
-        <TemplateDialog
+        <MessageTemplateDialog
           editor={editor}
           screens={screens}
           locked={locked}
