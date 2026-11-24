@@ -72,6 +72,13 @@ interface PlaylistChange {
   readonly items?: readonly MediaId[];
 }
 
+/** The playlist as a media edit names it: its kind and id. */
+function playlistRef(playlist: ChosenPlaylist) {
+  return playlist.kind === 'media'
+    ? ({kind: 'media', id: playlist.id} as const)
+    : ({kind: 'audio', id: playlist.id} as const);
+}
+
 function playlistUpdate(
   {value}: MediaDocument,
   playlist: ChosenPlaylist,
@@ -273,13 +280,10 @@ export class MediaLibrary {
     const result = await this.api.media
       .edit({type: 'media.playlist.create', kind})
       .catch(rejected);
-    if (result.ok) return result.value?.id ?? null;
-    if (result.error.reason === 'write-failed') return result.error.applied.id;
-    this.refused('Creating a playlist was refused', result.error.message);
-    this.onProblem(
-      warningNotice('media-view:playlist', '재생목록 만들기 실패'),
-    );
-    return null;
+    return this.createdId(result, {
+      log: 'Creating a playlist was refused',
+      notice: warningNotice('media-view:playlist', '재생목록 만들기 실패'),
+    });
   }
 
   /**
@@ -292,11 +296,10 @@ export class MediaLibrary {
     const result = await this.api.media
       .edit({type: 'media.duplicate', mediaId})
       .catch(rejected);
-    if (result.ok) return result.value?.id ?? null;
-    if (result.error.reason === 'write-failed') return result.error.applied.id;
-    this.refused('Copying the media was refused', result.error.message);
-    this.onProblem(warningNotice('media-view:duplicate', '미디어 복제 실패'));
-    return null;
+    return this.createdId(result, {
+      log: 'Copying the media was refused',
+      notice: warningNotice('media-view:duplicate', '미디어 복제 실패'),
+    });
   }
 
   /**
@@ -308,19 +311,16 @@ export class MediaLibrary {
     const result = await this.api.media
       .edit({
         type: 'media.playlist.duplicate',
-        playlist:
-          playlist.kind === 'media'
-            ? {kind: 'media', id: playlist.id}
-            : {kind: 'audio', id: playlist.id},
+        playlist: playlistRef(playlist),
       })
       .catch(rejected);
-    if (result.ok) return result.value?.id ?? null;
-    if (result.error.reason === 'write-failed') return result.error.applied.id;
-    this.refused('Copying the playlist was refused', result.error.message);
-    this.onProblem(
-      warningNotice('media-view:playlist-duplicate', '재생목록 복제 실패'),
-    );
-    return null;
+    return this.createdId(result, {
+      log: 'Copying the playlist was refused',
+      notice: warningNotice(
+        'media-view:playlist-duplicate',
+        '재생목록 복제 실패',
+      ),
+    });
   }
 
   /**
@@ -516,10 +516,7 @@ export class MediaLibrary {
     const result = await this.api.media
       .edit({
         type: 'media.playlist.delete',
-        playlist:
-          playlist.kind === 'media'
-            ? {kind: 'media', id: playlist.id}
-            : {kind: 'audio', id: playlist.id},
+        playlist: playlistRef(playlist),
       })
       .catch(rejected);
     this.deletes.end();
@@ -646,6 +643,21 @@ export class MediaLibrary {
     } finally {
       this.relinking = false;
     }
+  }
+
+  /**
+   * The id a create or copy made, also when its file was not written; null
+   * when it was refused, which is logged and reported.
+   */
+  private createdId(
+    result: MediaEditOutcome,
+    refusal: {readonly log: string; readonly notice: Notice},
+  ): string | null {
+    if (result.ok) return result.value?.id ?? null;
+    if (result.error.reason === 'write-failed') return result.error.applied.id;
+    this.refused(refusal.log, result.error.message);
+    this.onProblem(refusal.notice);
+    return null;
   }
 
   private refused(message: string, detail: string): void {
