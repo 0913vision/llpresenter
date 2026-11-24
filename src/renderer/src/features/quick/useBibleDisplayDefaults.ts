@@ -1,3 +1,4 @@
+import {followLatest} from '@renderer/platform/followLatest';
 import {useEffect, useState} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {BibleDisplay} from '@renderer/session/show/bibleSource';
@@ -16,10 +17,7 @@ export function useBibleDisplayDefaults(
   } | null>(null);
   useEffect(() => {
     if (api === undefined) return undefined;
-    let active = true;
-    let pushed = false;
     const receive = (preferences: Preferences): void => {
-      if (!active) return;
       const {verseNumbers} = preferences.bible.defaults;
       setValue(previous =>
         previous?.owner === api &&
@@ -28,24 +26,17 @@ export function useBibleDisplayDefaults(
           : {owner: api, display: {verseNumbers}},
       );
     };
-    const stop = api.subscribe(preferences => {
-      pushed = true;
-      receive(preferences);
-    });
-    void api.get().then(
-      preferences => {
-        if (!pushed) receive(preferences);
-      },
-      (error: unknown) => {
-        if (active && !pushed) {
-          console.error('Could not read Bible display preferences', error);
-        }
+    return followLatest(
+      {read: api.get, subscribe: api.subscribe},
+      {
+        apply: receive,
+        failed: (error, pushed) => {
+          if (!pushed) {
+            console.error('Could not read Bible display preferences', error);
+          }
+        },
       },
     );
-    return () => {
-      active = false;
-      stop();
-    };
   }, [api]);
   return value !== null && value.owner === api ? value.display : null;
 }

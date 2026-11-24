@@ -1,3 +1,4 @@
+import {followLatest} from '@renderer/platform/followLatest';
 import {useEffect, useState, type JSX} from 'react';
 import type {MediaProgress} from '@core/schema/media/mediaProgress';
 import {useLive} from '@renderer/session/live';
@@ -35,29 +36,15 @@ export function LiveMediaProgress(): JSX.Element | null {
   useEffect(() => {
     const api = window.llp?.live;
     if (api === undefined || mediaId === undefined || !outputsOn) return;
-    let active = true;
-    let pushed = false;
-    const accept = (value: MediaProgress | null): void => {
-      if (active) {
-        setReading(current =>
-          sameShownSecond(current, value) ? current : value,
-        );
-      }
-    };
-    const stop = api.subscribeMediaProgress(value => {
-      pushed = true;
-      accept(value);
-    });
-    api.mediaProgress().then(
-      value => {
-        if (!pushed) accept(value);
+    return followLatest<MediaProgress | null>(
+      {read: api.mediaProgress, subscribe: api.subscribeMediaProgress},
+      {
+        apply: value =>
+          setReading(current =>
+            sameShownSecond(current, value) ? current : value,
+          ),
       },
-      () => undefined,
     );
-    return () => {
-      active = false;
-      stop();
-    };
   }, [mediaId, startedAt, outputsOn]);
   if (
     !outputsOn ||

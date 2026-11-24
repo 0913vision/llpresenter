@@ -1,3 +1,4 @@
+import {followLatest} from '@renderer/platform/followLatest';
 import {PanelFailureContext} from '@renderer/ui/panels/PanelBoundary';
 import {logPanelFailure} from './panelFailures';
 import {logFailure} from '@renderer/platform/logFailure';
@@ -88,18 +89,15 @@ export function SettingsWindow({
       );
     };
     start.current ??= api.settingsRequest();
-    let pushed = false;
-    start.current.then(
-      request => {
-        if (alive && !pushed) accept(request);
+    const first = start.current;
+    const stop = followLatest(
+      {read: () => first, subscribe: api.onSettingsRequest},
+      {
+        apply: accept,
+        failed: error =>
+          logFailure(window.llp, 'Could not read the settings view', error),
       },
-      (error: unknown) =>
-        logFailure(window.llp, 'Could not read the settings view', error),
     );
-    const stop = api.onSettingsRequest(request => {
-      pushed = true;
-      accept(request);
-    });
     return () => {
       alive = false;
       next = null;
