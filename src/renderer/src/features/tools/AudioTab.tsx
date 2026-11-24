@@ -3,14 +3,12 @@ import {useMemo, type JSX} from 'react';
 import {useLive} from '@renderer/session/live';
 import {CheckRow, SelectMenu} from '@renderer/ui';
 import type {Notice} from '@renderer/ui/notices';
-import type {AudioPlaylistId} from '@core/schema/ids';
 import type {MediaItem} from '@core/schema/mediaList';
 import {audioTracks} from '@core/media';
-import {setAudioLoop} from './audioLoop';
+import {useAudioLoopEditing} from './audioLoop';
 import {AudioTransport} from './AudioTransport';
 import {useMediaDocument} from './useMediaDocument';
 import {useAudioMissing} from './useAudioMissing';
-import {useToolEditing} from './useToolEditing';
 import {WindowedAudioTracks} from './WindowedAudioTracks';
 import styles from './AudioTab.module.css';
 
@@ -30,19 +28,7 @@ export function AudioTab({
     playlists.find(playlist => playlist.id === chosen) ?? playlists[0];
   const audio = useLive(view => view.state?.layers.audio ?? null);
   const volume = useLive(view => view.state?.audioVolume ?? 100);
-  const editing = useToolEditing({
-    api,
-    onProblem,
-    write: (
-      api,
-      edit: {readonly id: AudioPlaylistId; readonly loop: boolean},
-    ) => setAudioLoop(api, edit.id, edit.loop),
-    area: {
-      key: 'audio-loop',
-      label: '반복',
-      log: 'Could not update audio repeat',
-    },
-  });
+  const editing = useAudioLoopEditing(api, onProblem);
   const items = document?.value.items ?? NO_ITEMS;
   const tracks = useMemo(
     () =>

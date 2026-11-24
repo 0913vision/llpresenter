@@ -3,8 +3,30 @@ import type {AudioPlaylistId} from '@core/schema/ids';
 import type {EditResult} from '@core/schema/contentEdit';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {withinLookupTimeout} from '@renderer/session/showOutput';
+import type {Notice} from '@renderer/ui/notices';
+import {useToolEditing} from './useToolEditing';
 
 const ATTEMPTS = 2;
+
+/** 반복 of an audio playlist, as the 오디오 tab and its shortcut change it. */
+export function useAudioLoopEditing(
+  api: LlpApi | undefined,
+  onProblem: ((notice: Notice) => void) | undefined,
+) {
+  return useToolEditing({
+    api,
+    onProblem,
+    write: (
+      writer,
+      edit: {readonly id: AudioPlaylistId; readonly loop: boolean},
+    ) => setAudioLoop(writer, edit.id, edit.loop),
+    area: {
+      key: 'audio-loop',
+      label: '반복',
+      log: 'Could not update audio repeat',
+    },
+  });
+}
 
 export async function setAudioLoop(
   api: LlpApi,

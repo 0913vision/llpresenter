@@ -8,8 +8,7 @@ import type {Notice} from '@renderer/ui/notices';
 import {useMediaDocument} from './useMediaDocument';
 import {useAudioMissing} from './useAudioMissing';
 import {useAudioSelection} from './state/audioSelection';
-import {useToolEditing} from './useToolEditing';
-import {setAudioLoop} from './audioLoop';
+import {useAudioLoopEditing} from './audioLoop';
 
 /** Loads audio command state while a default or assigned audio key is active. */
 export function AudioShortcuts({
@@ -40,22 +39,7 @@ function BoundAudioShortcuts({
   const chosen = useAudioSelection(view => view.chosen);
   const playlists = document?.value.audioPlaylists ?? [];
   const selected = playlists.find(item => item.id === chosen) ?? playlists[0];
-  const editing = useToolEditing({
-    api,
-    onProblem,
-    write: (
-      api,
-      edit: {
-        readonly id: NonNullable<typeof selected>['id'];
-        readonly loop: boolean;
-      },
-    ) => setAudioLoop(api, edit.id, edit.loop),
-    area: {
-      key: 'audio-loop',
-      label: '반복',
-      log: 'Could not update audio repeat',
-    },
-  });
+  const editing = useAudioLoopEditing(api, onProblem);
   useWindowShortcuts([
     {
       id: 'audio.playPause',
