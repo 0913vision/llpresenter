@@ -1,3 +1,4 @@
+import {rendererErrorEntry} from '@core/schema/app/ipcPayloads';
 import {useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {LoadReadinessContext} from '@renderer/ui/loadReadiness';
 import type {LlpApi} from '@contracts/ipc/api';
@@ -119,11 +120,9 @@ export function useApiSettingsDocument<TName extends SettingsName>({
     const unfollow = follow(api, name);
     const fail = (cause: unknown): void => {
       ready?.();
-      api.log?.write({
-        level: 'error',
-        message: `Could not load ${name} settings`,
-        detail: cause instanceof Error ? cause.message : String(cause),
-      });
+      api.log?.write(
+        rendererErrorEntry(`Could not load ${name} settings`, cause),
+      );
       if (!active || revision >= 0) return;
       report.current?.({
         key: `screens:load:${name}`,

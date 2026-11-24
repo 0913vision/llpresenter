@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import {useContext, useLayoutEffect, useRef, type JSX} from 'react';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {emptyLayers} from '@core/schema/live/live';
@@ -12,8 +13,7 @@ import styles from './ScreenPreview.module.css';
 const noLayers = emptyLayers();
 
 function reportDrawingError(message: string, error: unknown): void {
-  const detail = error instanceof Error ? (error.stack ?? error.message) : '';
-  window.llp?.log.write({level: 'error', message, detail});
+  logFailure(window.llp, message, error);
 }
 
 /**

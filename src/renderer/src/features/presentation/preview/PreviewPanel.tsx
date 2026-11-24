@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import type {JSX} from 'react';
 import {parseScreenId} from '@core/schema/common/ids';
 import type {Screen} from '@core/schema/screens/screens';
@@ -36,8 +37,7 @@ function shortNameOf(
 const NO_STILL_SCREENS: ReadonlySet<string> = new Set();
 
 function reportFramesError(message: string, error: unknown): void {
-  const detail = error instanceof Error ? (error.stack ?? error.message) : '';
-  window.llp?.log.write({level: 'error', message, detail});
+  logFailure(window.llp, message, error);
 }
 
 function renderScreen(screen: PreviewScreen<string>): JSX.Element {

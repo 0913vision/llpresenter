@@ -1,5 +1,5 @@
 import type {LlpApi} from '@contracts/ipc/api';
-import {RENDERER_LOG_LIMITS} from '@core/schema/app/ipcPayloads';
+import {rendererErrorEntry} from '@core/schema/app/ipcPayloads';
 import {AudioPlayer} from '@renderer/rendering/media/audioPlayer';
 import {MainTimerClock} from '@renderer/rendering/screen/mainTimerClock';
 import {followLiveState} from './liveFeed';
@@ -28,11 +28,7 @@ export function startAudio({
     api.output.reportPlaybackProblems,
   );
   const report = (message: string, error: unknown): void => {
-    api.log.write({
-      level: 'error',
-      message,
-      detail: String(error).slice(0, RENDERER_LOG_LIMITS.detail),
-    });
+    api.log.write(rendererErrorEntry(message, error));
   };
   const reading = Promise.resolve().then(() => api.live.clock());
   const clock = new MainTimerClock(() => reading, report);
