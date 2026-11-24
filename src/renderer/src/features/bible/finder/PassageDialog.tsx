@@ -45,6 +45,64 @@ function consume(event: KeyboardEvent<HTMLElement>): void {
   event.stopPropagation();
 }
 
+/**
+ * The foot of the dialog: in 준비, 취소 and the action; in 진행, the keys
+ * that act (Enter) and move to the next field (Tab).
+ */
+function PassageDialogFooter({
+  name,
+  action,
+  preparation,
+  disabled,
+  ready,
+  submitCandidate,
+  onCancel,
+  onSubmit,
+}: {
+  readonly name: string;
+  readonly action: string;
+  readonly preparation: boolean;
+  readonly disabled: boolean;
+  /** A whole passage is looked up and can be acted on. */
+  readonly ready: boolean;
+  /** The typed reference can be acted on once it is looked up. */
+  readonly submitCandidate: boolean;
+  readonly onCancel: () => void;
+  readonly onSubmit: () => void;
+}): JSX.Element {
+  return (
+    <footer className={styles.footer}>
+      <span className={styles.title}>
+        <Icon name="book" size={16} />
+        {name}
+      </span>
+      {preparation ? (
+        <>
+          <Button onClick={onCancel}>{'취소'}</Button>
+          <Button
+            variant="primary"
+            disabled={disabled || (!ready && !submitCandidate)}
+            onClick={onSubmit}
+          >
+            {action}
+          </Button>
+        </>
+      ) : (
+        <>
+          <span aria-disabled={disabled || !ready}>
+            {action}
+            <KeyCombo keys={['Enter']} />
+          </span>
+          <span className={styles.next}>
+            {'다음 칸'}
+            <KeyCombo keys={['Tab']} />
+          </span>
+        </>
+      )}
+    </footer>
+  );
+}
+
 /** The shared passage finder used by Show and preparation. */
 export function PassageDialog({
   api,
@@ -94,9 +152,19 @@ export function PassageDialog({
   const [ready, setReady] = useState<BibleLookupPassage | null>(null);
   const [submitCandidate, setSubmitCandidate] = useState(false);
   const [resetKey, setResetKey] = useState(0);
-  const close = (): void => {
+  /** A lookup or submit still on its way is for a passage no longer asked. */
+  const dropPending = (): void => {
     intentVersion.current += 1;
     submissionVersion.current += 1;
+  };
+  /** Empties the fields and the highlight, as for a new passage. */
+  const restart = (): void => {
+    dropPending();
+    setHighlight(-1);
+    setResetKey(value => value + 1);
+  };
+  const close = (): void => {
+    dropPending();
     onClose();
   };
   const keys = useModal({
@@ -118,19 +186,13 @@ export function PassageDialog({
     translations.find(item => item.id === effective)?.name ?? effective;
   const pickRecent = (recent: RecentPassage): void => {
     if (disabled) return;
-    submissionVersion.current += 1;
-    intentVersion.current += 1;
-    setHighlight(-1);
-    setResetKey(value => value + 1);
+    restart();
     onPick(recent);
   };
   /** Esc with a typed reference empties the fields and starts over. */
   const startOver = (): void => {
-    intentVersion.current += 1;
-    submissionVersion.current += 1;
-    setHighlight(-1);
+    restart();
     onIntent?.();
-    setResetKey(value => value + 1);
   };
   /** The arrows walk the recent passages while the 책 field keeps focus. */
   const moveHighlight = (by: 1 | -1): void => {
@@ -228,38 +290,19 @@ export function PassageDialog({
           onPick={pickRecent}
           highlight={highlight}
         />
-        <footer className={styles.footer}>
-          <span className={styles.title}>
-            <Icon name="book" size={16} />
-            {name}
-          </span>
-          {preparation ? (
-            <>
-              <Button onClick={close}>{'취소'}</Button>
-              <Button
-                variant="primary"
-                disabled={disabled || (ready === null && !submitCandidate)}
-                onClick={() => {
-                  onSubmitIntent?.();
-                  form.current?.submit();
-                }}
-              >
-                {action}
-              </Button>
-            </>
-          ) : (
-            <>
-              <span aria-disabled={disabled || ready === null}>
-                {action}
-                <KeyCombo keys={['Enter']} />
-              </span>
-              <span className={styles.next}>
-                {'다음 칸'}
-                <KeyCombo keys={['Tab']} />
-              </span>
-            </>
-          )}
-        </footer>
+        <PassageDialogFooter
+          name={name}
+          action={action}
+          preparation={preparation}
+          disabled={disabled}
+          ready={ready !== null}
+          submitCandidate={submitCandidate}
+          onCancel={close}
+          onSubmit={() => {
+            onSubmitIntent?.();
+            form.current?.submit();
+          }}
+        />
       </section>
     </div>,
     layerContainer('dialog'),
