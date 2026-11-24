@@ -11,14 +11,11 @@ import {logWindowResponsiveness} from '../base/renderers/responsiveness';
 import {registerControlClose, type ControlClose} from './controlClose';
 import {
   createPreferencesWindow,
-  preferencesBounds,
   type SettingsWindowFrameOptions,
 } from './settingsWindowFrame';
-import {
-  applyScreensBounds,
-  rememberScreensWindow,
-  type ScreensWindowConfig,
-} from './screens';
+import type {ScreensWindowConfig} from './screens';
+import {SettingsGeometry} from './settingsGeometry';
+import {SettingsWarmup, type SettingsTarget} from './settingsWarmup';
 
 /**
  * What the 환경설정 window uses: its frame options, and optionally the parts of
@@ -48,9 +45,7 @@ export interface SettingsWindowRegistration {
   readonly replaceControl: (control: BrowserWindow) => void;
 }
 
-type Target = Pick<SettingsRequest, 'view' | 'page'>;
-const PREFERENCES: Target = {view: 'preferences', page: 'general'};
-const WARMUP_DELAY_MS = 1000;
+const PREFERENCES: SettingsTarget = {view: 'preferences', page: 'general'};
 
 /** Owns one native settings window and warms its views in the same renderer. */
 export function registerSettingsWindow(
@@ -68,11 +63,9 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
   private wanted = false;
   private rendered = false;
   private presented: SettingsRequest | null = null;
-  private applyingGeometry = false;
-  private geometryView: SettingsRequest['view'] | null = null;
+  private readonly geometry: SettingsGeometry;
   private opener: BrowserWindow | null = null;
-  private warmup: ReturnType<typeof setTimeout> | undefined;
-  private warmTargets: Target[] = [];
+  private readonly warmup = new SettingsWarmup();
   private preferencesPage: PreferencePageId = 'general';
   private request: SettingsRequest = {
     ...PREFERENCES,
@@ -86,6 +79,7 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
     this.control = options.control;
     this.preferencesPage = options.config?.preferencesPage ?? 'general';
     this.ipc = new IpcHost(options.log);
+    this.geometry = new SettingsGeometry(options);
     this.listen();
     options.control.once('closed', this.controlClosed);
     options.control.webContents.once('did-finish-load', this.scheduleWarmup);
@@ -148,7 +142,7 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
     );
   }
 
-  private open(target: Target, force = false): void {
+  private open(target: SettingsTarget, force = false): void {
     if (this.disposed || this.stopping) return;
     if (!this.wanted) {
       this.opener =
@@ -157,7 +151,7 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
           : null;
     }
     this.wanted = true;
-    this.warmTargets = [];
+    this.warmup.stop();
     if (
       !force &&
       this.win !== null &&
@@ -189,7 +183,7 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
     }
   }
 
-  private select(target: Target, preparing: boolean): void {
+  private select(target: SettingsTarget, preparing: boolean): void {
     this.request = {...target, requestId: this.nextId(), preparing};
     this.rendered = false;
     this.presented = null;
@@ -209,15 +203,15 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
       return;
     }
     if (this.win !== null && !this.win.isDestroyed()) return;
-    clearTimeout(this.warmup);
+    this.warmup.cancel();
     this.rendered = false;
-    this.geometryView = null;
+    this.geometry.forget();
     if (!this.wanted && this.options.screens !== undefined) {
-      this.warmTargets = [
+      this.warmup.plan([
         {view: 'screens', page: 'general'},
         {view: 'preferences', page: 'shortcuts'},
         PREFERENCES,
-      ];
+      ]);
     }
     const win = createPreferencesWindow(this.options);
     logWindowResponsiveness(win, 'settings', this.options.log);
@@ -266,43 +260,16 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
     // NOTE(0913vision): Resizing a hidden native view can start GPU raster work.
     // Warm the data at the prepared size; apply the requested frame on open.
     if (request.preparing) return true;
-    if (this.geometryView === request.view) return true;
-    this.remember();
-    if (this.options.mode === 'normal') {
-      win.setOpacity(0);
-      if (this.geometryView !== null || win.isVisible()) win.hide();
-    }
-    this.applyingGeometry = true;
-    this.geometryView = request.view;
-    try {
-      if (request.view === 'screens' && this.options.screens !== undefined) {
-        applyScreensBounds(win, this.options.screens.config, this.options.mode);
-      } else {
-        const bounds = preferencesBounds(
-          this.control,
-          this.options.config?.preferencesWindow,
-        );
-        if (this.options.mode === 'normal' && win.isMaximized()) {
-          win.unmaximize();
-        }
-        win.setResizable(true);
-        win.setMaximizable(false);
-        win.setMinimumSize(
-          Math.min(bounds.width, 1040),
-          Math.min(bounds.height, 800),
-        );
-        win.setBounds(bounds);
-      }
-      win.setTitle(request.view === 'screens' ? '화면 설정' : '환경설정');
-      win.webContents.setBackgroundThrottling(false);
-    } finally {
-      this.applyingGeometry = false;
-    }
+    if (this.geometry.view === request.view) return true;
+    this.geometry.apply(win, request.view, {
+      control: this.control,
+      wanted: this.wanted,
+    });
     return true;
   }
 
   private async painted(): Promise<void> {
-    if (!this.request.preparing && this.geometryView !== this.request.view) {
+    if (!this.request.preparing && this.geometry.view !== this.request.view) {
       return;
     }
     this.rendered = true;
@@ -314,7 +281,7 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
       await this.reveal();
       return;
     }
-    const next = this.warmTargets.shift();
+    const next = this.warmup.next();
     if (next !== undefined) {
       this.select(next, true);
       this.pushRequest();
@@ -323,7 +290,7 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
 
   private reject(): void {
     this.select(
-      {view: this.geometryView ?? 'preferences', page: this.preferencesPage},
+      {view: this.geometry.view ?? 'preferences', page: this.preferencesPage},
       false,
     );
     this.pushRequest();
@@ -390,36 +357,13 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
   }
 
   private readonly remember = (): void => {
-    if (
-      this.applyingGeometry ||
-      !this.wanted ||
-      this.win === null ||
-      (this.geometryView !== 'screens' && this.geometryView !== 'preferences')
-    ) {
-      return;
-    }
-    if (this.geometryView === 'screens' && this.options.screens !== undefined) {
-      rememberScreensWindow(
-        this.win,
-        this.options.screens.config,
-        this.options.mode,
-      );
-    } else if (
-      this.geometryView === 'preferences' &&
-      this.options.mode === 'normal' &&
-      !this.win.isDestroyed()
-    ) {
-      this.options.config?.setPreferencesWindow({
-        ...this.win.getNormalBounds(),
-        maximized: false,
-      });
-    }
+    if (this.win !== null) this.geometry.remember(this.win, this.wanted);
   };
 
   private readonly hide = (): void => {
     if (this.win === null || this.win.isDestroyed()) return;
     this.remember();
-    this.geometryView = null;
+    this.geometry.forget();
     this.win.hide();
     if (this.win.isDestroyed()) return;
     this.win.contentView.setVisible(false);
@@ -442,7 +386,7 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
       this.opener?.focus();
     }
     this.wanted = false;
-    this.warmTargets = [];
+    this.warmup.stop();
     this.select({view: 'preferences', page: this.preferencesPage}, true);
     this.pushRequest();
     this.closing?.resume();
@@ -461,14 +405,11 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
   };
 
   private readonly scheduleWarmup = (): void => {
-    clearTimeout(this.warmup);
+    this.warmup.cancel();
     if (this.disposed || this.stopping || this.control.isDestroyed()) {
       return;
     }
-    this.warmup = setTimeout(() => {
-      this.warmup = undefined;
-      this.prepare();
-    }, WARMUP_DELAY_MS);
+    this.warmup.schedule(() => this.prepare());
   };
 
   readonly close = async (requireSaved = false): Promise<boolean> => {
@@ -486,7 +427,7 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
 
   private readonly controlClosed = (): void => {
     this.stopping = true;
-    clearTimeout(this.warmup);
+    this.warmup.cancel();
     this.close().catch((error: unknown) =>
       this.options.log.error('could not close the settings window', error),
     );
@@ -495,7 +436,7 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
   readonly dispose = async (): Promise<void> => {
     if (this.disposed) return;
     this.stopping = true;
-    clearTimeout(this.warmup);
+    this.warmup.cancel();
     if (!(await this.close())) {
       this.stopping = false;
       return;
