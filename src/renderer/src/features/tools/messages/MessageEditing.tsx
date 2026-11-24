@@ -203,10 +203,17 @@ export function MessageEditing({
   const locked =
     document?.access !== 'editable' || window.llp === undefined || busy;
   const full = (document?.value.templates.length ?? 0) >= MAX_MESSAGE_TEMPLATES;
-  const openMenu = (target: EventTarget, anchor: MenuAnchor): boolean => {
-    if (!(target instanceof Element)) return false;
+  const fullReason = full
+    ? limitReason('메시지', MAX_MESSAGE_TEMPLATES)
+    : undefined;
+  /** The template of the list row an event happened in. */
+  const templateAt = (target: EventTarget): MessageTemplate | undefined => {
+    if (!(target instanceof Element)) return undefined;
     const id = target.closest<HTMLElement>('[role="option"]')?.dataset['value'];
-    const item = document?.value.templates.find(item => item.id === id);
+    return document?.value.templates.find(item => item.id === id);
+  };
+  const openMenu = (target: EventTarget, anchor: MenuAnchor): boolean => {
+    const item = templateAt(target);
     if (item === undefined) return false;
     onSelect(item.id);
     setMenu({anchor, item});
@@ -249,22 +256,10 @@ export function MessageEditing({
       );
     },
   );
-  const duplicateReason = locked
-    ? toolMenuReason(locked, busy)
-    : full
-      ? limitReason('메시지', MAX_MESSAGE_TEMPLATES)
-      : undefined;
   useDuplicateShortcut({
-    itemAt: event => {
-      const id =
-        event.target instanceof Element
-          ? event.target.closest<HTMLElement>('[role="option"]')?.dataset[
-              'value'
-            ]
-          : undefined;
-      return document?.value.templates.find(item => item.id === id);
-    },
-    reason: duplicateReason,
+    itemAt: event =>
+      event.target === null ? undefined : templateAt(event.target),
+    reason: locked ? toolMenuReason(locked, busy) : fullReason,
     run: duplicate,
   });
   return (
@@ -274,9 +269,7 @@ export function MessageEditing({
           icon="plus"
           label="메시지 추가"
           disabled={locked || full}
-          title={
-            full ? limitReason('메시지', MAX_MESSAGE_TEMPLATES) : undefined
-          }
+          title={fullReason}
           onClick={() => setEditor({kind: 'add'})}
         />
       </PanelAction>
@@ -316,9 +309,7 @@ export function MessageEditing({
             edit: () => setEditor({kind: 'edit', item: menu.item}),
             rename: () => renameAfterMenu(menu.item),
             duplicate: () => duplicate(menu.item),
-            duplicateReason: full
-              ? limitReason('메시지', MAX_MESSAGE_TEMPLATES)
-              : undefined,
+            duplicateReason: fullReason,
             remove: () => {
               deleteAfterMenu(menu.item);
               setMenu(null);
