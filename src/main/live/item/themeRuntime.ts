@@ -1,6 +1,6 @@
 import type {SettingsReader} from '@core/schema/app/settingsReader';
 import type {LiveCommand} from '@core/schema/live/liveCommand';
-import type {LiveState} from '@core/schema/live/live';
+import type {LiveState, MediaChoice, SlideLayer} from '@core/schema/live/live';
 import type {
   LiveItem,
   LiveThemeMode,
@@ -105,157 +105,105 @@ export class ThemeRuntime {
 
   reduce({before, after, command, context}: ThemeReduction): LiveHistory {
     if (!affectsTheme(command)) return after;
-    let item = after.state.item ?? null;
-    let mode = after.state.themeMode;
+    const step = this.step(command, {
+      before,
+      after,
+      now: context.now,
+      item: after.state.item ?? null,
+      mode: after.state.themeMode,
+    });
+    return step === null
+      ? after
+      : this.publish(step.after, step.item, step.mode);
+  }
+
+  /** What a theme command makes of the live item; null leaves it all as is. */
+  private step(command: ThemeCommand, current: ItemStep): ItemStep | null {
     switch (command.type) {
       case 'item.start':
-        after = resetClearToggles(after);
-        item = this.options.item(command.itemId) ?? item;
-        if (item !== null) item = {...item, startedAt: context.now};
-        mode = undefined;
-        break;
-      case 'slide.show': {
-        const {slide} = command;
-        if (item?.id !== slide.itemId || item.source === 'external') {
-          item = this.options.item(slide.itemId) ?? {
-            id: slide.itemId,
-            kind: slide.kind ?? 'blank',
-            source: 'external',
-            ...(slide.title === undefined ? {} : {title: slide.title}),
-          };
-          mode = undefined;
-        } else {
-          item = withPlayback(this.options.item(item.id) ?? item, item);
-        }
-        item = {
-          ...item,
-          startedAt: item.startedAt ?? context.now,
-          slidePosition: slide.position,
-        };
-        const previous = before.state.item;
-        const active = overlayOn(item);
-        if (
-          active !== undefined &&
-          (previous?.id !== item.id || overlayOn(previous)?.id !== active.id)
-        ) {
-          item = {...item, overlayStartedAt: context.now};
-        }
-        break;
-      }
-      case 'slide.update': {
-        const {slide} = command;
-        if (item?.id !== slide.itemId) break;
-        item = {
-          ...item,
-          slidePosition: slide.position,
-          ...(item.source === 'service' || slide.title === undefined
-            ? {}
-            : {title: slide.title}),
-        };
-        break;
-      }
+        return this.startItem(command.itemId, current);
+      case 'slide.show':
+        return this.showSlide(command.slide, current);
+      case 'slide.update':
+        return updateSlide(command.slide, current);
       case 'media.show':
-        if (after.state.layers.slide === null) {
-          item = {
-            id: command.media.mediaId,
-            kind: 'media',
-            source: 'external',
-            startedAt: context.now,
-            ...(command.media.title === undefined
-              ? {}
-              : {title: command.media.title}),
-          };
-          mode = undefined;
-        } else if (item?.contentCleared) {
-          item = {...item, contentCleared: false};
-        }
-        break;
+        return showMedia(command.media, current);
       case 'theme.set':
-        mode = {kind: 'manual', id: command.themeId};
-        break;
+        return {...current, mode: {kind: 'manual', id: command.themeId}};
       case 'themes.refresh':
         this.refresh();
-        if (item !== null) {
-          const cleared = item.contentCleared;
-          item = withPlayback(this.options.item(item.id) ?? item, item);
-          if (cleared) item = {...item, contentCleared: true};
-        }
-        break;
+        return this.refreshItem(current);
       case 'layer.clear':
       case 'layer.clear.toggle':
-        if (command.target === 'all' && item !== null) {
-          const restored =
-            command.type === 'layer.clear.toggle'
-              ? before.clearSnapshots?.all
-              : undefined;
-          if (restored?.item != null && item.contentCleared) {
-            item = resumed(restored.item, context.now - restored.clearedAt);
-            mode = restored.themeMode;
-            break;
-          }
-          if (restored !== undefined || item.contentCleared) break;
-          const undo = {
-            ...(after === before || after.undo === null
-              ? {layers: before.state.layers, clearedAt: context.now}
-              : after.undo),
-            item,
-            ...(mode === undefined ? {} : {themeMode: mode}),
-          };
-          after = {
-            ...after,
-            undo,
-            state: {...after.state, canUndo: true},
-          };
-          if (command.type === 'layer.clear.toggle') {
-            after = {
-              ...after,
-              clearSnapshots: {...after.clearSnapshots, all: undo},
-            };
-          }
-          item = {...item, contentCleared: true};
-        }
-        break;
+        return command.target === 'all'
+          ? clearAll(command.type === 'layer.clear.toggle', current)
+          : current;
       case 'clear.undo':
-        if (before.undo?.item !== undefined) {
-          item = resumed(before.undo.item, context.now - before.undo.clearedAt);
-          mode = before.undo.themeMode;
-        }
-        break;
-      case 'item.restore': {
-        const saved = before.stoppedItem;
-        if (saved == null || after === before) return after;
-        item = resumed(saved.item ?? null, context.now - saved.clearedAt);
-        mode = saved.themeMode;
-        break;
-      }
-      case 'item.stop': {
-        if (item === null) return after;
-        const undo: UndoEntry = {
-          layers: after.state.layers,
-          clearedAt: context.now,
-          item,
-          itemOnly: true,
-          ...(mode === undefined ? {} : {themeMode: mode}),
-        };
-        after = {
-          ...after,
-          undo,
-          stoppedItem: undo,
-          state: {
-            ...after.state,
-            canUndo: true,
-            canRestoreItem: true,
-            layers: {...after.state.layers, slide: null, media: null},
-          },
-        };
-        item = null;
-        mode = undefined;
-        break;
-      }
-      default:
-        return after;
+        return undoClear(current);
+      case 'item.restore':
+        return restoreItem(current);
+      case 'item.stop':
+        return stopItem(current);
     }
-    return this.publish(after, item, mode);
+  }
+
+  /** A new item starts: clear toggles reset, its clock starts, its own theme. */
+  private startItem(itemId: string, current: ItemStep): ItemStep {
+    const item = this.options.item(itemId) ?? current.item;
+    return {
+      ...current,
+      after: resetClearToggles(current.after),
+      item: item === null ? null : {...item, startedAt: current.now},
+      mode: undefined,
+    };
+  }
+
+  /**
+   * A slide comes on: another item takes its own theme, the same item keeps
+   * its clock and takes its saved edits; an overlay that starts with this
+   * slide starts its clock.
+   */
+  private showSlide(slide: SlideLayer, current: ItemStep): ItemStep {
+    const {before, now} = current;
+    let {item, mode} = current;
+    if (item?.id !== slide.itemId || item.source === 'external') {
+      item = this.options.item(slide.itemId) ?? {
+        id: slide.itemId,
+        kind: slide.kind ?? 'blank',
+        source: 'external',
+        ...(slide.title === undefined ? {} : {title: slide.title}),
+      };
+      mode = undefined;
+    } else {
+      item = withPlayback(this.options.item(item.id) ?? item, item);
+    }
+    item = {
+      ...item,
+      startedAt: item.startedAt ?? now,
+      slidePosition: slide.position,
+    };
+    const previous = before.state.item;
+    const active = overlayOn(item);
+    if (
+      active !== undefined &&
+      (previous?.id !== item.id || overlayOn(previous)?.id !== active.id)
+    ) {
+      item = {...item, overlayStartedAt: now};
+    }
+    return {...current, item, mode};
+  }
+
+  /** The themes changed: the item takes its saved edits and keeps a clear. */
+  private refreshItem(current: ItemStep): ItemStep {
+    const {item} = current;
+    if (item === null) return current;
+    const refreshed = withPlayback(this.options.item(item.id) ?? item, item);
+    return {
+      ...current,
+      item: item.contentCleared
+        ? {...refreshed, contentCleared: true}
+        : refreshed,
+    };
   }
 
   /** The theme of the live slide, or 대기 화면 when nothing is on. */
@@ -357,6 +305,140 @@ function isOwnMedia(
 }
 
 /** The item with the time it was cleared for taken out of its overlay's. */
+/** What a theme command works on and makes: the history, the item, the mode. */
+interface ItemStep {
+  readonly before: LiveHistory;
+  readonly after: LiveHistory;
+  readonly now: number;
+  readonly item: LiveItem | null;
+  readonly mode: LiveThemeMode | undefined;
+}
+
+/** The live slide changed in place: its position, and its title when outside. */
+function updateSlide(slide: SlideLayer, current: ItemStep): ItemStep {
+  const {item} = current;
+  if (item?.id !== slide.itemId) return current;
+  return {
+    ...current,
+    item: {
+      ...item,
+      slidePosition: slide.position,
+      ...(item.source === 'service' || slide.title === undefined
+        ? {}
+        : {title: slide.title}),
+    },
+  };
+}
+
+/**
+ * Media comes on: without a slide it is the live item itself; over a slide it
+ * ends a clear of the slide's item.
+ */
+function showMedia(media: MediaChoice, current: ItemStep): ItemStep {
+  const {after, item, now} = current;
+  if (after.state.layers.slide === null) {
+    return {
+      ...current,
+      item: {
+        id: media.mediaId,
+        kind: 'media',
+        source: 'external',
+        startedAt: now,
+        ...(media.title === undefined ? {} : {title: media.title}),
+      },
+      mode: undefined,
+    };
+  }
+  return item?.contentCleared
+    ? {...current, item: {...item, contentCleared: false}}
+    : current;
+}
+
+/**
+ * Clear all clears the item and keeps an undo of it; as a toggle, a second
+ * press brings back what the first cleared.
+ */
+function clearAll(toggle: boolean, current: ItemStep): ItemStep {
+  const {before, item, mode, now} = current;
+  if (item === null) return current;
+  const restored = toggle ? before.clearSnapshots?.all : undefined;
+  if (restored?.item != null && item.contentCleared) {
+    return {
+      ...current,
+      item: resumed(restored.item, now - restored.clearedAt),
+      mode: restored.themeMode,
+    };
+  }
+  if (restored !== undefined || item.contentCleared) return current;
+  let {after} = current;
+  const undo = {
+    ...(after === before || after.undo === null
+      ? {layers: before.state.layers, clearedAt: now}
+      : after.undo),
+    item,
+    ...(mode === undefined ? {} : {themeMode: mode}),
+  };
+  after = {...after, undo, state: {...after.state, canUndo: true}};
+  if (toggle) {
+    after = {...after, clearSnapshots: {...after.clearSnapshots, all: undo}};
+  }
+  return {...current, after, item: {...item, contentCleared: true}};
+}
+
+/** Brings back the item and theme mode that the last clear took away. */
+function undoClear(current: ItemStep): ItemStep {
+  const {undo} = current.before;
+  if (undo?.item === undefined) return current;
+  return {
+    ...current,
+    item: resumed(undo.item, current.now - undo.clearedAt),
+    mode: undo.themeMode,
+  };
+}
+
+/** Brings back the item that stopping took off; null when there is none. */
+function restoreItem(current: ItemStep): ItemStep | null {
+  const saved = current.before.stoppedItem;
+  if (saved == null || current.after === current.before) return null;
+  return {
+    ...current,
+    item: resumed(saved.item ?? null, current.now - saved.clearedAt),
+    mode: saved.themeMode,
+  };
+}
+
+/**
+ * Stops the item: takes the slide and media off with it and keeps all of it
+ * to restore; null when no item is live.
+ */
+function stopItem(current: ItemStep): ItemStep | null {
+  const {after, item, mode, now} = current;
+  if (item === null) return null;
+  const undo: UndoEntry = {
+    layers: after.state.layers,
+    clearedAt: now,
+    item,
+    itemOnly: true,
+    ...(mode === undefined ? {} : {themeMode: mode}),
+  };
+  return {
+    ...current,
+    after: {
+      ...after,
+      undo,
+      stoppedItem: undo,
+      state: {
+        ...after.state,
+        canUndo: true,
+        canRestoreItem: true,
+        layers: {...after.state.layers, slide: null, media: null},
+      },
+    },
+    item: null,
+    mode: undefined,
+  };
+}
+
 function resumed(item: LiveItem | null, elapsed: number): LiveItem | null {
   return item?.overlayStartedAt === undefined
     ? item
