@@ -8,7 +8,7 @@ import type {PassageDefaults} from './passageItems';
 import {useBibleDefaults} from './useBibleDefaults';
 import styles from './SermonQuickAdd.module.css';
 
-const ICON_SIZE = 20;
+const ICON_SIZE = 18;
 
 /** Asks for the title of a sermon and its passage. */
 export function SermonQuickAdd({
