@@ -119,6 +119,17 @@ export function takeMenuKey(event: KeyboardEvent): boolean {
 }
 
 /**
+ * Where a menu the Menu key or Shift F10 opens goes: below `element`, with the
+ * row or surface the key was pressed on marked as its target.
+ */
+export function keyMenuAnchor(
+  event: KeyboardEvent<HTMLElement>,
+  element: HTMLElement,
+): MenuAnchor {
+  return {kind: 'element', target: contextMenuTarget(event), element};
+}
+
+/**
  * Opens a row's menu from the Menu key or Shift F10, below the row that has
  * focus. A key typed in a field, during composition, or with another modifier
  * is left alone.
@@ -130,11 +141,7 @@ export function openMenuFromKey(
   open: (anchor: MenuAnchor) => void,
 ): boolean {
   if (!takeMenuKey(event)) return false;
-  open({
-    kind: 'element',
-    target: contextMenuTarget(event),
-    element: event.currentTarget,
-  });
+  open(keyMenuAnchor(event, event.currentTarget));
   return true;
 }
 

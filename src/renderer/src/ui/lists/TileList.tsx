@@ -1,5 +1,5 @@
 import {
-  contextMenuTarget,
+  keyMenuAnchor,
   isContextMenuKey,
   pointerMenuAnchor,
   takeMenuKey,
@@ -280,11 +280,7 @@ export function TileList(props: TileListProps): JSX.Element {
     const index = indexOf(event.currentTarget, tile);
     if (tile === null || index < 0 || props.onMenu === undefined) return;
     if (!takeMenuKey(event)) return;
-    props.onMenu(index, {
-      kind: 'element',
-      target: contextMenuTarget(event),
-      element: tile,
-    });
+    props.onMenu(index, keyMenuAnchor(event, tile));
   };
   const moveTo = (list: HTMLElement, target: number): void => {
     if (props.arrowsMove === 'selection') props.onSelect(target);

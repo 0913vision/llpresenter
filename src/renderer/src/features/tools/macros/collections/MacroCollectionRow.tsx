@@ -1,6 +1,6 @@
 import type {DragEvent, JSX} from 'react';
 import {
-  contextMenuTarget,
+  keyMenuAnchor,
   pointerMenuAnchor,
   takeMenuKey,
 } from '@renderer/ui/menus/contextMenu';
@@ -84,11 +84,7 @@ export function MacroCollectionRow({
           event.preventDefault();
           onStep(direction);
         } else if (takeMenuKey(event)) {
-          onMenu({
-            kind: 'element',
-            target: contextMenuTarget(event),
-            element: event.currentTarget,
-          });
+          onMenu(keyMenuAnchor(event, event.currentTarget));
         } else if (
           !hasModifier(event) &&
           (event.key === 'Enter' || event.key === ' ')
