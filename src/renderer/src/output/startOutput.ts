@@ -3,10 +3,10 @@ import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {RENDERER_LOG_LIMITS} from '@core/schema/ipcPayloads';
 import {OutputRenderer} from '../rendering/outputRenderer';
 import {MediaPreloader} from './mediaPreloader';
-import {CUT, SlideSwitch} from './slideSwitch';
-import {sameJson} from '@core/common/sameJson';
-import {OUTPUT_REVEAL_DEADLINE_MS, slideTransitionFor} from '@core/output';
+import {SlideSwitch} from './slideSwitch';
+import {OUTPUT_REVEAL_DEADLINE_MS} from '@core/output';
 import type {SlideTransition} from '@core/schema/slideTransition';
+import {slideChangeOf, slideMoved} from './slideChange';
 import type {LiveState} from '@core/schema/live';
 import {ScreenFrames} from '../rendering/screenFrames';
 import {startFrameRateMeter, type FrameRateMeter} from './frameRateMeter';
@@ -144,15 +144,23 @@ export function startOutput({
   let readyInFlight = false;
   let readyTimer: ReturnType<typeof setTimeout> | null = null;
   const enabled = (): boolean => latest?.outputs[screenId] === true;
+  /** The screen waits again to be revealed, as when it was just turned on. */
+  const restartReveal = (): void => {
+    enableEpoch += 1;
+    revealPending = true;
+    lastAttempt = -Infinity;
+    lastReady = false;
+  };
+  /** Forgets the frames seen so far, so readiness waits for a new paint. */
+  const forgetFrames = (): void => {
+    seenFrame = '';
+    paintedFrame = '';
+  };
   const draw = (): void => {
     if (latest === null) return;
     if (!enabled()) {
-      enableEpoch += 1;
-      revealPending = true;
-      seenFrame = '';
-      paintedFrame = '';
-      lastAttempt = -Infinity;
-      lastReady = false;
+      restartReveal();
+      forgetFrames();
     }
     hasFrame = false;
     try {
@@ -268,12 +276,8 @@ export function startOutput({
     }, READY_POLL_MS);
   };
   const resized = (): void => {
-    enableEpoch += 1;
-    revealPending = true;
-    seenFrame = '';
-    paintedFrame = '';
-    lastAttempt = -Infinity;
-    lastReady = false;
+    restartReveal();
+    forgetFrames();
     if (!enabled()) draw();
     watchReadiness();
     meter?.refresh();
@@ -299,12 +303,7 @@ export function startOutput({
   const applyState = (state: LiveState): void => {
     const wasEnabled = enabled();
     latest = state;
-    if (wasEnabled !== enabled()) {
-      enableEpoch += 1;
-      revealPending = true;
-      lastAttempt = -Infinity;
-      lastReady = false;
-    }
+    if (wasEnabled !== enabled()) restartReveal();
     const content = drawnContent(state);
     if (content !== drawnState || wasEnabled !== enabled()) {
       drawnState = content;
@@ -316,47 +315,24 @@ export function startOutput({
   const stopFollowing = followLiveState(
     api.live,
     state => {
-      const shown = latest?.layers.slide ?? null;
       const slide = state.layers.slide;
-      const moved =
-        shown?.itemId !== slide?.itemId || shown?.slideId !== slide?.slideId;
-      const covered =
-        latest?.blackScreen !== true && state.blackScreen === true;
-      const uncovered =
-        latest?.blackScreen === true && state.blackScreen !== true;
-      if (moved && slide !== null) {
+      if (slideMoved(latest, state) && slide !== null) {
         preloader?.request({itemId: slide.itemId, index: slide.position});
       }
-      const effect = slideTransitionFor(slide);
-      const on = state.outputs[screenId] === true && enabled();
-      const animates =
-        frames.screenKind() === 'audience' &&
-        effect.kind !== 'none' &&
-        slide?.transitionStartedAt !== undefined &&
-        (moved || uncovered);
-      // NOTE(0913vision): A cut to another background also waits out of sight,
-      // so the texts and what is behind them change in one frame.
-      const cuts =
-        moved &&
-        !sameJson(
-          latest?.themeOutput?.background,
-          state.themeOutput?.background,
-        );
-      if (on && !revealPending && slide !== null && (animates || cuts)) {
-        slides.change(animates ? effect : CUT, {
+      const change = slideChangeOf(latest, state, {
+        id: screenId,
+        kind: frames.screenKind(),
+        on: enabled(),
+        revealing: revealPending,
+      });
+      if (change.kind === 'change') {
+        slides.change(change.effect, {
           draw: () => applyState(state),
           complete,
         });
         return;
       }
-      const turnedOff = enabled() && state.outputs[screenId] !== true;
-      // NOTE(0913vision): The slide that is coming in, shown again, has lost
-      // its transition: it is shown whole at once.
-      const again =
-        !moved &&
-        shown?.transitionStartedAt !== undefined &&
-        slide?.transitionStartedAt === undefined;
-      if (moved || covered || uncovered || turnedOff || again) slides.end();
+      if (change.end) slides.end();
       applyState(state);
     },
     report,
