@@ -125,6 +125,17 @@ describe('service picker', () => {
     expect(stopList).toHaveBeenCalledOnce();
   });
 
+  it('opens the rename dialog for the open service from 이름 바꾸기', async () => {
+    const {user} = setup();
+    await openMenu(user);
+    await user.click(screen.getByRole('menuitem', {name: '이름 바꾸기…'}));
+    const dialog = await screen.findByRole('dialog', {
+      name: '예배 이름 바꾸기',
+    });
+    expect(screen.queryByRole('menu')).toBeNull();
+    expect(dialog.querySelector('input')?.value).toBe('주일 예배');
+  });
+
   it('opens a service through the merged contract without sending output commands', async () => {
     const {api, user, live, send} = setup();
     await openMenu(user);

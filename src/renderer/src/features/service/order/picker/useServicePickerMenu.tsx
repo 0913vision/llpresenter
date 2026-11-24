@@ -10,6 +10,7 @@ import {useServicePicker} from './useServicePicker';
 import {useServiceRowMenu} from './useServiceRowMenu';
 import {useUndoKeys} from '@renderer/platform/undo/useUndoKeys';
 import {useShow} from '@renderer/session/show/showStore';
+import type {ServiceEntry} from '@core/schema/services/contentDocuments';
 
 const PICKER_WIDTH = 300;
 
@@ -23,7 +24,12 @@ export function useServicePickerMenu(onProblem: (notice: Notice) => void) {
   const rows = useServiceRowMenu(onProblem, picker.close, picker.select);
   const currentId = useShow(view => view.serviceId);
   const api = window.llp;
-  const [renaming, setRenaming] = useState(false);
+  // NOTE(0913vision): Closing the picker empties its list, so the service to
+  // rename is kept from the moment 이름 바꾸기 is chosen.
+  const [renaming, setRenaming] = useState<Pick<
+    ServiceEntry,
+    'id' | 'name'
+  > | null>(null);
   const current = picker.entries.find(entry => entry.id === currentId);
   const openAt = (element: HTMLElement): void => {
     anchorRef.current = element;
@@ -78,8 +84,10 @@ export function useServicePickerMenu(onProblem: (notice: Notice) => void) {
                     : NEWER_FILE_REASON,
               ),
               onSelect: () => {
+                if (current !== undefined) {
+                  setRenaming({id: current.id, name: current.name});
+                }
                 picker.close();
-                setRenaming(true);
               },
             },
           ]}
@@ -88,20 +96,20 @@ export function useServicePickerMenu(onProblem: (notice: Notice) => void) {
       {picker.guardDialog}
       {actions.dialogs}
       {rows.overlays}
-      {renaming && current !== undefined && api !== undefined ? (
+      {renaming !== null && api !== undefined ? (
         <RenameDialog
-          name={current.name}
+          name={renaming.name}
           title="예배 이름 바꾸기"
           rename={{
             onCommit: async name => {
-              const done = await renameService(api, current.id, name);
-              if (done) setRenaming(false);
+              const done = await renameService(api, renaming.id, name);
+              if (done) setRenaming(null);
               else {
                 onProblem(warningNotice('service:rename', '이름 바꾸기 실패'));
               }
               return done;
             },
-            onClose: () => setRenaming(false),
+            onClose: () => setRenaming(null),
           }}
         />
       ) : null}
