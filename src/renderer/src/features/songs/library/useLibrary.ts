@@ -3,7 +3,11 @@ import type {LlpApi} from '@contracts/ipc/api';
 import type {LibrarySong, SongDocument} from '@core/schema/contentDocuments';
 import type {EditResult} from '@core/schema/contentEdit';
 import type {SongId} from '@core/schema/ids';
-import {noticeTime, type Notice, type NoticeAction} from '@renderer/ui/notices';
+import {
+  warningNotice,
+  type Notice,
+  type NoticeAction,
+} from '@renderer/ui/notices';
 import {useLibrarySearch} from './useLibrarySearch';
 import {
   createSong,
@@ -67,14 +71,10 @@ export function useLibrary(
     (cause: keyof typeof problemTitles, action?: NoticeAction) => {
       // NOTE(0913vision): The handler belongs to the app, not to this panel, so
       // a failure that ends after the panel is gone still gets its card.
-      problemHandler.current({
-        key: `library:${cause}`,
-        kind: 'warning',
-        icon: 'warning',
-        title: problemTitles[cause],
-        time: noticeTime(),
-        ...(action === undefined ? {} : {actions: [action]}),
-      });
+      const notice = warningNotice(`library:${cause}`, problemTitles[cause]);
+      problemHandler.current(
+        action === undefined ? notice : {...notice, actions: [action]},
+      );
     },
     [],
   );
