@@ -7,10 +7,10 @@
 
 .dot {
   position: absolute;
-  top: 5px;
-  right: 5px;
-  width: 6px;
-  height: 6px;
+  top: var(--space-4);
+  right: var(--space-4);
+  width: var(--size-status-dot);
+  height: var(--size-status-dot);
   border-radius: 50%;
   background: var(--text);
   pointer-events: none;
@@ -27,8 +27,12 @@
   isolation: isolate;
   display: flex;
   flex-direction: column;
-  width: min(440px, calc(100vw - 2 * var(--panel-gap)));
-  max-height: min(480px, calc(100vh - 160px));
+  width: var(--col-right);
+  max-width: calc(100vw - 2 * var(--panel-gap));
+  max-height: calc(
+    100vh - var(--size-menubar) - var(--size-toolbar) - var(--size-statusbar) -
+      2 * var(--panel-gap)
+  );
   border-radius: var(--radius-xl);
   background: var(--bg-raised);
   color: var(--text);
@@ -50,8 +54,7 @@
   flex: none;
   align-items: center;
   gap: var(--space-4);
-  height: 36px;
-  padding: 0 var(--space-4) 0 var(--space-12);
+  padding: var(--space-4) var(--space-4) var(--space-4) var(--space-12);
   border-bottom: 1px solid var(--line-strong);
 }
 
