@@ -1,3 +1,4 @@
+import {optionValueAt} from '@renderer/ui/lists/optionValue';
 import {focusHistorySurface} from '@renderer/ui/lists/focusHistorySurface';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {limitReason} from '@core/common/limitReason';
@@ -175,10 +176,7 @@ export function ScreenList({
       ref={listRoot}
       onKeyDownCapture={windowed.navigate}
       onFocusCapture={event => {
-        const option = event.target.closest<HTMLElement>(
-          '[role="option"][data-value]',
-        );
-        setFocusedId(option?.dataset['value'] ?? null);
+        setFocusedId(optionValueAt(event.target) ?? null);
       }}
       onBlurCapture={event => {
         if (

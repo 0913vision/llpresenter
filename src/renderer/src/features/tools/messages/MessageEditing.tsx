@@ -1,3 +1,4 @@
+import {optionValueAt} from '@renderer/ui/lists/optionValue';
 import {nameReason} from '@renderer/ui/fields/nameReason';
 import {NAME_LIMIT} from '@core/schema/common/primitives';
 import {RenameDialog} from '@renderer/ui/popups/RenameDialog';
@@ -207,9 +208,10 @@ export function MessageEditing({
     ? limitReason('메시지', MAX_MESSAGE_TEMPLATES)
     : undefined;
   /** The template of the list row an event happened in. */
-  const templateAt = (target: EventTarget): MessageTemplate | undefined => {
-    if (!(target instanceof Element)) return undefined;
-    const id = target.closest<HTMLElement>('[role="option"]')?.dataset['value'];
+  const templateAt = (
+    target: EventTarget | null,
+  ): MessageTemplate | undefined => {
+    const id = optionValueAt(target);
     return document?.value.templates.find(item => item.id === id);
   };
   const openMenu = (target: EventTarget, anchor: MenuAnchor): boolean => {
@@ -257,8 +259,7 @@ export function MessageEditing({
     },
   );
   useDuplicateShortcut({
-    itemAt: event =>
-      event.target === null ? undefined : templateAt(event.target),
+    itemAt: event => templateAt(event.target),
     reason: locked ? toolMenuReason(locked, busy) : fullReason,
     run: duplicate,
   });

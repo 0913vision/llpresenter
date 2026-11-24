@@ -1,3 +1,4 @@
+import {optionValueAt} from '@renderer/ui/lists/optionValue';
 import {
   useCallback,
   useLayoutEffect,
@@ -105,11 +106,7 @@ export function optionKeyTarget(
   ) {
     return undefined;
   }
-  const option =
-    event.target instanceof Element
-      ? event.target.closest<HTMLElement>('[role="option"][data-value]')
-      : null;
-  const focused = ids.indexOf(option?.dataset['value'] ?? '');
+  const focused = ids.indexOf(optionValueAt(event.target) ?? '');
   const current = focused >= 0 ? focused : ids.indexOf(selected ?? '');
   const index = listKeyTarget(event.key, current, ids.length);
   const id = index === undefined ? undefined : ids[index];

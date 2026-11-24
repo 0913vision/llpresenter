@@ -1,3 +1,4 @@
+import {optionValueAt} from '@renderer/ui/lists/optionValue';
 import {
   useEffect,
   useId,
@@ -123,11 +124,8 @@ export function SongPicker({
     setSelected(shown[index]?.id);
   };
   const optionSong = (target: EventTarget | null): SongId | undefined => {
-    const option =
-      target instanceof Element
-        ? target.closest<HTMLElement>('[role="option"]')
-        : null;
-    return shown.find(song => song.id === option?.dataset['value'])?.id;
+    const id = optionValueAt(target);
+    return shown.find(song => song.id === id)?.id;
   };
   return (
     <Dialog
