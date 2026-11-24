@@ -47,6 +47,56 @@ function rowAnchor(row: HTMLElement): MenuAnchor {
   return {kind: 'element', element: row, target: row};
 }
 
+/** Focuses the row of command `id` in the list, when it shows. */
+function focusCommandRow(list: HTMLElement | null, id: string | null): void {
+  if (id === null) return;
+  list?.querySelector<HTMLElement>(`[data-command="${id}"]`)?.focus();
+}
+
+/** The 명령 찾기 field and the 보기 choice of all, changed or clashing keys. */
+function ShortcutSearchBar({
+  query,
+  onQuery,
+  filter,
+  onFilter,
+  counts,
+}: {
+  readonly query: string;
+  readonly onQuery: (query: string) => void;
+  readonly filter: ShortcutFilter;
+  readonly onFilter: (filter: ShortcutFilter) => void;
+  readonly counts: ReturnType<typeof shortcutCounts>;
+}): JSX.Element {
+  return (
+    <div className={styles.search}>
+      <TextField
+        aria-label="명령 찾기"
+        placeholder="명령, 키"
+        icon="search"
+        clearable
+        block
+        value={query}
+        onChange={onQuery}
+      />
+      <SegmentedControl
+        label="보기"
+        options={[
+          {value: 'all', label: '전체'},
+          {value: 'changed', label: '바꿈', count: counts.changed},
+          {
+            value: 'conflict',
+            label: '겹침',
+            count: counts.conflict,
+            warning: true,
+          },
+        ]}
+        value={filter}
+        onChange={onFilter}
+      />
+    </div>
+  );
+}
+
 // TODO(0913vision): Virtualize the rows if the objects can grow without a cap.
 /** 단축키: every command with its keys, and the editing of one. */
 export function ShortcutsPage({
@@ -74,13 +124,12 @@ export function ShortcutsPage({
   const emptyText = emptyRowsText(query, filter);
   const selected = rows.find(row => row.command.id === selectedId);
   const locked = edits.lockedReason !== undefined;
+  // NOTE(0913vision): After a key is recorded or the editing is cancelled,
+  // the focus goes back to the selected row, unless it went somewhere else.
   useEffect(() => {
     if (editingId !== null) return;
-    const active = list.current?.ownerDocument.activeElement;
-    if (active === document.body) {
-      list.current
-        ?.querySelector<HTMLElement>(`[data-command="${selectedId}"]`)
-        ?.focus();
+    if (list.current?.ownerDocument.activeElement === document.body) {
+      focusCommandRow(list.current, selectedId);
     }
   }, [editingId, selectedId]);
   const menuRow = rows.find(row => row.command.id === menu?.id);
@@ -93,9 +142,7 @@ export function ShortcutsPage({
     const next = shown[Math.max(0, Math.min(shown.length - 1, at + step))];
     if (next === undefined) return;
     setSelectedId(next.command.id);
-    list.current
-      ?.querySelector<HTMLElement>(`[data-command="${next.command.id}"]`)
-      ?.focus();
+    focusCommandRow(list.current, next.command.id);
   };
   /** The arrows on the list or a row move the selection a row. */
   const walkRows = (event: KeyboardEvent<HTMLDivElement>): void => {
@@ -120,36 +167,13 @@ export function ShortcutsPage({
           모두 기본값으로
         </Button>
       </header>
-      <div className={styles.search}>
-        <TextField
-          aria-label="명령 찾기"
-          placeholder="명령, 키"
-          icon="search"
-          clearable
-          block
-          value={query}
-          onChange={setQuery}
-        />
-        <SegmentedControl
-          label="보기"
-          options={[
-            {value: 'all', label: '전체'},
-            {
-              value: 'changed',
-              label: '바꿈',
-              count: counts.changed,
-            },
-            {
-              value: 'conflict',
-              label: '겹침',
-              count: counts.conflict,
-              warning: true,
-            },
-          ]}
-          value={filter}
-          onChange={setFilter}
-        />
-      </div>
+      <ShortcutSearchBar
+        query={query}
+        onQuery={setQuery}
+        filter={filter}
+        onFilter={setFilter}
+        counts={counts}
+      />
       <div className={styles.columns} aria-hidden="true">
         <span>{LIST_LABEL}</span>
         <span className={styles.keyColumn}>단축키</span>
