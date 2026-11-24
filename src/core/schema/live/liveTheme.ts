@@ -14,6 +14,7 @@ import {
 import {slideBackgroundSchema, themeFileSchema} from '../screens/theme';
 import type {ReadonlyKnown} from '../common/fileFormat';
 
+/** The kinds of item that can be on output. */
 export const liveItemKinds = [
   'song',
   'bible',
@@ -23,6 +24,7 @@ export const liveItemKinds = [
   'blank',
   'media',
 ] as const;
+/** One of `liveItemKinds`. */
 export type LiveItemKind = (typeof liveItemKinds)[number];
 
 /** The item on output, as it is saved now, with the times it gathered. */
@@ -43,6 +45,7 @@ export const liveItemSchema = payloadObject({
   overlayStartedAt: v.exactOptional(v.pipe(v.number(), v.finite())),
 });
 
+/** How the theme on output was chosen: by hand, with the theme's id. */
 export const liveThemeModeSchema = v.object({
   kind: v.literal('manual'),
   id: themeIdSchema,
@@ -61,10 +64,19 @@ export const liveThemeOutputSchema = payloadObject({
   ),
 });
 
+/**
+ * The item on output: its id, its kind, whether it is from the 예배 순서 or from
+ * outside it, its title and overlays, its slide position, and when it started.
+ */
 export type LiveItem = ReadonlyKnown<v.InferOutput<typeof liveItemSchema>>;
+/** How the theme on output was chosen. */
 export type LiveThemeMode = ReadonlyKnown<
   v.InferOutput<typeof liveThemeModeSchema>
 >;
+/**
+ * The theme on output with its background and revision, the id of the theme it
+ * could not find, and the empty color of each screen.
+ */
 export type LiveThemeOutput = ReadonlyKnown<
   v.InferOutput<typeof liveThemeOutputSchema>
 >;

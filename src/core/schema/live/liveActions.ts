@@ -15,6 +15,10 @@ import {plainObject} from '../common/payload';
 import {nonNegativeInteger, percent} from '../common/primitives';
 import {liveNonBlankTextSchema} from './liveLimits';
 
+/**
+ * What the audio layer plays: one media item, or a position in an audio
+ * playlist.
+ */
 export const audioSourceSchema = v.pipe(
   plainObject,
   v.variant('kind', [
@@ -27,6 +31,10 @@ export const audioSourceSchema = v.pipe(
   ]),
 );
 
+/**
+ * What the audio layer plays: one media item, or the track at `position` of an
+ * audio playlist.
+ */
 export type AudioSource = ReadonlyKnown<
   v.InferOutput<typeof audioSourceSchema>
 >;
@@ -87,6 +95,7 @@ export const liveActionOptions = [
 /** A live action for a content layer, 테마, stage, audio, macro, or item. */
 export type LiveAction = ReadonlyKnown<v.InferOutput<typeof liveActionSchema>>;
 
+/** Accepts one of `liveActionOptions`. */
 export const liveActionSchema = v.pipe(
   plainObject,
   v.variant('type', liveActionOptions),

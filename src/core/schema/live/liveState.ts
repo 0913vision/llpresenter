@@ -57,6 +57,7 @@ const mediaChoiceEntries = {
   chosen: v.exactOptional(v.literal(true)),
 };
 
+/** The value of each auto token of a slide, as a text. */
 export const autoValuesSchema = payloadObject(
   v.entriesFromList(
     Object.values(AUTO_TOKENS),
@@ -125,6 +126,11 @@ export const layerSchemas = {
   }),
 } satisfies Record<LayerKind, v.GenericSchema>;
 
+/**
+ * The live output state as windows receive it: the item, theme, layers, which
+ * outputs are on, the clear and undo state, the timers, and the test patterns.
+ * Every list and text in it is bounded.
+ */
 export const liveStateSchema = payloadObject({
   waitingForControl: v.exactOptional(v.literal(true)),
   item: v.exactOptional(v.nullable(liveItemSchema)),

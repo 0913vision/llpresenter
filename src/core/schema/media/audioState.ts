@@ -18,6 +18,10 @@ export type AudioPlayback = ReadonlyKnown<
   v.InferOutput<typeof audioPlaybackSchema>
 >;
 
+/**
+ * Where the track is now, in seconds: its saved position plus the time since
+ * `since` at `speed`, or the saved position alone while it is held.
+ */
 export function audioPositionSeconds(
   playback: AudioPlayback,
   now: number,

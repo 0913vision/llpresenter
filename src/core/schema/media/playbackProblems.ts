@@ -3,11 +3,19 @@ import {parsePayload, payloadObject} from '../common/payload';
 import {outputRendererStates} from '../live/outputStatus';
 import {MAX_TARGET_SCREENS} from '../live/overlayState';
 
+/**
+ * Bounds for a playback problem list: one entry for each target screen and the
+ * preview, and the longest source id and name in characters.
+ */
 export const PLAYBACK_PROBLEM_LIMITS = {
   sources: MAX_TARGET_SCREENS + 1,
   name: 200,
   id: 200,
 };
+/**
+ * The kinds of problem a screen can report: playback, a missing or failed
+ * device, and a missing font, theme or media.
+ */
 export const playbackProblemKinds = [
   'playback',
   'device-missing',
@@ -16,6 +24,7 @@ export const playbackProblemKinds = [
   'theme-missing',
   'media-missing',
 ] as const;
+/** One of `playbackProblemKinds`. */
 export type PlaybackProblemKind = (typeof playbackProblemKinds)[number];
 
 const kinds = v.pipe(
@@ -46,6 +55,10 @@ const problems = v.pipe(
   ),
 );
 
+/**
+ * The current problems of every source that has any: its id, its name, its
+ * problem kinds, and the state of its renderer.
+ */
 export type PlaybackProblems = ReadonlyArray<v.InferOutput<typeof problem>>;
 
 /** A renderer reports only its own current problems; main supplies its identity. */
@@ -53,10 +66,12 @@ export function parsePlaybackProblemReport(value: unknown) {
   return parsePayload(kinds, value);
 }
 
+/** Checks a problem list that arrived over IPC. */
 export function parsePlaybackProblems(value: unknown) {
   return parsePayload(problems, value);
 }
 
+/** Checks the source a window asks to retry. */
 export function parsePlaybackRetry(value: unknown) {
   return parsePayload(payloadObject({source}), value);
 }

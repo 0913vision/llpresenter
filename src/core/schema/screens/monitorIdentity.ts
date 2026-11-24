@@ -3,7 +3,9 @@ import type {ReadonlyKnown} from '../common/fileFormat';
 import {payloadObject} from '../common/payload';
 import {jsonObject} from '../common/primitives';
 
+/** The longest monitor device path in characters. */
 export const MONITOR_DEVICE_PATH_MAX = 512;
+/** The longest monitor serial in characters. */
 export const MONITOR_SERIAL_MAX = 64;
 const placeholders = new Set([
   'UNKNOWN',
@@ -43,14 +45,24 @@ const entries = {
   ),
 };
 
+/**
+ * A monitor's identity as `screens.json` keeps it: its Windows device path
+ * and, when the monitor reports a meaningful serial, its EDID. Unknown fields
+ * stay.
+ */
 export const monitorIdentitySchema = jsonObject({
   ...entries,
   edid: v.exactOptional(jsonObject(edidEntries)),
 });
+/** A monitor's identity as it arrives over IPC; unknown fields are dropped. */
 export const monitorIdentityPayloadSchema = payloadObject({
   ...entries,
   edid: v.exactOptional(payloadObject(edidEntries)),
 });
+/**
+ * The EDID of a monitor: its manufacturer code, its product code, and its
+ * serial.
+ */
 export const monitorEdidSchema = payloadObject(edidEntries);
 
 /** Windows connection identity, strengthened by EDID when a meaningful serial exists. */

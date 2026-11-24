@@ -20,6 +20,7 @@ export const analysisFailureReasons = [
   'unsupported',
 ] as const;
 
+/** One of `analysisFailureReasons`: why a file could not be read. */
 export type AnalysisFailureReason = (typeof analysisFailureReasons)[number];
 
 /**

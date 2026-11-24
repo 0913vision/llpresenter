@@ -46,6 +46,7 @@ export const NDI_DEFAULT_HARDWARE_ACCELERATION = true;
 
 /** Supported NDI frame rates and the default for existing screens. */
 export const NDI_FRAME_RATES = [29.97, 30, 59.94, 60] as const;
+/** The frame rate of an NDI screen that has none saved. */
 export const NDI_DEFAULT_FPS = 30;
 
 /** Maximum NDI source-name length in characters. */
@@ -63,13 +64,13 @@ const ndiSchema = jsonObject({
   group: v.exactOptional(v.string()),
 });
 
-/** The kinds of screens in the order every list shows them: 청중, 무대, 방송. */
 /**
  * The canvas every screen is drawn on: themes, overlays and messages are laid
  * out on it, and a capture window and an NDI picture have its size, one to one.
  */
 export const THEME_CANVAS = {width: 1920, height: 1080} as const;
 
+/** The kinds of screens in the order every list shows them: 청중, 무대, 방송. */
 export const SCREEN_KIND_ORDER = ['audience', 'stage', 'broadcast'] as const;
 
 /** Screens in the order of their kinds, keeping the saved order in a kind. */
@@ -82,6 +83,11 @@ export function inScreenOrder<
   );
 }
 
+/**
+ * One output screen of `screens.json`: its name, kind, how it shows (full
+ * screen, window, capture or NDI), the monitor it uses, and its picture
+ * settings.
+ */
 export const screenSchema = jsonObject({
   id: screenIdSchema,
   name: v.string(),
@@ -99,6 +105,10 @@ export const screenSchema = jsonObject({
   ndi: v.exactOptional(ndiSchema),
 });
 
+/**
+ * The contents of `screens.json`: the output screens in list order, each id
+ * once.
+ */
 export const screensSchema = jsonObject({
   format: v.literal('llsettings.screens'),
   schemaVersion: positiveInteger,
@@ -124,6 +134,7 @@ export type ScreensFile = ReadonlyKnown<v.InferOutput<typeof screensSchema>>;
  */
 export type Screen = ScreensFile['screens'][number];
 
+/** Reads the text of `screens.json`; `file` names the file in errors. */
 export function parseScreens(
   text: string,
   file: string,
@@ -131,6 +142,10 @@ export function parseScreens(
   return parseFile(screensFormat, text, file);
 }
 
+/**
+ * Writes the screens as the text of `screens.json`; `file` names the file in
+ * errors.
+ */
 export function serializeScreens(
   screens: ScreensFile,
   file: string,

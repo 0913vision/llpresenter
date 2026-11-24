@@ -24,8 +24,10 @@ export const layerKinds = [
   'message',
 ] as const;
 
+/** One of `layerKinds`. */
 export type LayerKind = (typeof layerKinds)[number];
 
+/** What a clear applies to: one layer kind, or `all` for every layer. */
 export type ClearTarget = LayerKind | 'all';
 
 /** A background media choice. It refers to the media library by id only. */
@@ -80,23 +82,39 @@ export interface SlideLayer {
   readonly reverseTransition?: SlideTransition | null;
 }
 
+/**
+ * The props on output: the prop id and every active prop with its content and
+ * target screens.
+ */
 export interface PropLayer {
   readonly propId: string;
   readonly items?: readonly ActiveProp[];
 }
 
+/**
+ * The audio on output: its media id, how it plays, and where its track is on
+ * the main clock.
+ */
 export interface AudioLayer {
   readonly properties?: OutputMediaProperties;
   readonly mediaId: string;
   readonly playback?: AudioPlayback;
 }
 
+/**
+ * The messages on output: the message id and text, and every active message
+ * with its routing and lifetime.
+ */
 export interface MessageLayer {
   readonly messageId: string;
   readonly text: string;
   readonly items?: readonly ActiveMessage[];
 }
 
+/**
+ * The five layers on output, by `layerKinds`; null for a layer with nothing on
+ * it.
+ */
 export interface LiveLayers {
   readonly media: MediaLayer | null;
   readonly slide: SlideLayer | null;
@@ -141,6 +159,7 @@ export interface LiveState {
   readonly stageTimerId?: TimerId;
 }
 
+/** Layers with nothing on any of them. */
 export function emptyLayers(): LiveLayers {
   return {
     media: null,
@@ -151,6 +170,10 @@ export function emptyLayers(): LiveLayers {
   };
 }
 
+/**
+ * The state before anything is shown: version 0, empty layers, every output
+ * off, and nothing to undo.
+ */
 export function emptyLiveState(): LiveState {
   return {version: 0, layers: emptyLayers(), outputs: {}, canUndo: false};
 }
@@ -160,6 +183,7 @@ export function isAnyOutputOn({outputs}: LiveState): boolean {
   return Object.values(outputs).some(on => on);
 }
 
+/** Whether any layer has content. */
 export function hasAnyLayer(layers: LiveLayers): boolean {
   return layerKinds.some(kind => layers[kind] !== null);
 }

@@ -155,8 +155,17 @@ const mediaImportResultSchema = replySchema(
   ),
 );
 
+/** The media list with its revision, as the media calls send and receive it. */
 export type MediaDocument = ReadonlyKnown<v.InferOutput<typeof mediaDocument>>;
+/**
+ * A change to the media list that a window asks main for: playlists, media
+ * properties, duplicates, relink, delete and its undo, or an import cancel.
+ */
 export type MediaEdit = ReadonlyKnown<v.InferOutput<typeof mediaEditSchema>>;
+/**
+ * A request to import files, from the file dialog or from 1 to 200 given
+ * paths, into a playlist or, with null, only into the library.
+ */
 export type MediaImportRequest = ReadonlyKnown<
   v.InferOutput<typeof importRequestSchema>
 >;
@@ -183,6 +192,7 @@ export function refuseInvalidMediaEdit({message}: PayloadError) {
   return {ok: false, error: {reason: 'invalid', message}} as const;
 }
 
+/** Checks a media document that arrived over IPC. */
 export function parseMediaDocument(value: unknown) {
   return checkPart(mediaDocument, value);
 }
@@ -196,22 +206,27 @@ export function mergeMediaDocument(current: MediaDocument, value: unknown) {
   });
 }
 
+/** Checks a media edit that arrived over IPC. */
 export function parseMediaEdit(value: unknown) {
   return checkPart(mediaEditSchema, value);
 }
 
+/** Checks an import request that arrived over IPC. */
 export function parseMediaImportRequest(value: unknown) {
   return checkPart(importRequestSchema, value);
 }
 
+/** Checks the progress of one import job that arrived over IPC. */
 export function parseMediaImportProgress(value: unknown) {
   return checkPart(importProgressSchema, value);
 }
 
+/** Checks the answer to a media edit that arrived over IPC. */
 export function parseMediaEditResult(value: unknown) {
   return checkPart(mediaEditResultSchema, value);
 }
 
+/** Checks the answer to an import request that arrived over IPC. */
 export function parseMediaImportResult(value: unknown) {
   return checkPart(mediaImportResultSchema, value);
 }

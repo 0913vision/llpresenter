@@ -7,6 +7,10 @@ import {
 } from '../common/payload';
 import {nonBlankText} from '../common/primitives';
 
+/**
+ * Bounds for the installed font list: families, aliases for each, weights for
+ * each, and the longest name in characters.
+ */
 export const FONT_CATALOG_LIMITS = {
   families: 2048,
   aliases: 16,
@@ -48,6 +52,7 @@ const catalog = v.pipe(
 
 /** Installed family names, localized labels, aliases, and OpenType weights. */
 export type FontFamily = Readonly<v.InferOutput<typeof family>>;
+/** The fonts installed on this PC. */
 export type FontCatalog = readonly FontFamily[];
 
 /** Validates native font metadata and the fonts:get reply, dropping unknown fields. */
@@ -65,6 +70,7 @@ export interface FontCatalogSnapshot {
   readonly verified: boolean;
 }
 
+/** Checks a font list with its `verified` flag that arrived over IPC. */
 export function parseFontCatalogSnapshot(
   value: unknown,
 ): Result<FontCatalogSnapshot, PayloadError> {

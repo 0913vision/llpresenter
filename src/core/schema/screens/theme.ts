@@ -30,6 +30,11 @@ import {pictureAreaSchema, pictureFitSchema} from '../media/picturePlace';
 import {SCREEN_KIND_ORDER} from './screens';
 import {textOutlineSchema, textShadowSchema} from '../slides/textEffects';
 
+/**
+ * Bounds for a theme file: name length, counts of text boxes, elements,
+ * splits, templates, rows and gradient stops, the length of a template, and
+ * the ranges of font size, weight, line height and tracking.
+ */
 export const THEME_FILE_LIMITS = {
   name: 80,
   boxes: 12,
@@ -60,6 +65,7 @@ export const slidePurposes = [
   'picture',
   'media',
 ] as const;
+/** One of `slidePurposes`. */
 export type SlidePurpose = (typeof slidePurposes)[number];
 
 const range = (min: number, max: number) =>
@@ -186,6 +192,10 @@ const textElementEntries = {
   wrap: v.exactOptional(v.picklist(['normal', 'balance'])),
 };
 
+/**
+ * One element of a theme screen: a text, the text of the next slide, a
+ * picture, the background, or a shape. Unknown fields stay.
+ */
 export const themeElementSchema = v.pipe(
   jsonObject({}),
   v.variant('kind', [
@@ -294,8 +304,13 @@ const ownScreenSchema = v.looseObject({
   ),
 });
 
+/** One of `SCREEN_KIND_ORDER`: 청중, 무대 or 방송. */
 export type ScreenKind = (typeof SCREEN_KIND_ORDER)[number];
 
+/**
+ * How a theme draws one screen: with elements of its own, the same as another
+ * kind of screen, or empty.
+ */
 export const themeScreenSchema = v.pipe(
   jsonObject({}),
   v.variant('mode', [
@@ -332,6 +347,11 @@ export const slideBackgroundSchema = v.pipe(
   ]),
 );
 
+/**
+ * A theme file, `themes/<id>.json`: its name and purpose, its named text
+ * boxes, its background, how it draws each kind of screen, and the screens
+ * that differ from the first of their kind.
+ */
 export const themeFileSchema = v.pipe(
   jsonObject({
     format: v.literal('lltheme'),
@@ -362,25 +382,49 @@ export const themeFileSchema = v.pipe(
   ),
 );
 
+/** One element of a theme screen. */
 export type ThemeElement = ReadonlyKnown<
   v.InferOutput<typeof themeElementSchema>
 >;
+/** How a theme draws one screen. */
 export type ThemeScreen = ReadonlyKnown<
   v.InferOutput<typeof themeScreenSchema>
 >;
+/** A theme screen with elements of its own. */
 export type OwnThemeScreen = Extract<ThemeScreen, {readonly mode: 'own'}>;
+/** A theme, `themes/<id>.json`. */
 export type ThemeFile = ReadonlyKnown<v.InferOutput<typeof themeFileSchema>>;
+/**
+ * A named text box of a theme: the text a slide with the theme has room for.
+ */
 export type ThemeBox = ThemeFile['boxes'][number];
+/** The kind of a theme element: text, next, picture, background or shape. */
 export type ThemeElementKind = ThemeElement['kind'];
+/** A text element of a theme screen. */
 export type ThemeTextElement = Extract<ThemeElement, {readonly kind: 'text'}>;
+/** An element that shows the text of the next slide. */
 export type ThemeNextElement = Extract<ThemeElement, {readonly kind: 'next'}>;
+/** A shape element: a filled box, which may stand around or beside texts. */
 export type ThemeShape = Extract<ThemeElement, {readonly kind: 'shape'}>;
+/** The fill of a shape: one color with its opacity, or a gradient. */
 export type ThemeFill = ThemeShape['fill'];
+/** A text or next element, which a stack or a split places. */
 export type ThemeGroupedText = ThemeTextElement | ThemeNextElement;
+/** Texts placed one under another. */
 export type ThemeStack = NonNullable<OwnThemeScreen['stacks']>[number];
+/** The text of a slide over the text of the next one. */
 export type ThemeSplit = NonNullable<OwnThemeScreen['splits']>[number];
+/**
+ * The look of a text element: font, weight, size, color, spacing, alignment,
+ * and its shadow and outline.
+ */
 export type ThemeTextStyle = ThemeTextElement['style'];
+/** The place of an element on the canvas: `x`, `y`, `w` and `h`. */
 export type ThemeFrame = ThemeElement['frame'];
+/**
+ * What a slide or a theme shows behind its texts: nothing, a color, a
+ * gradient, or a media item.
+ */
 export type SlideBackground = ReadonlyKnown<
   v.InferOutput<typeof slideBackgroundSchema>
 >;
@@ -396,6 +440,7 @@ export function themeOfFile(value: unknown): ThemeFile {
   return v.parse(themeFileSchema, value);
 }
 
+/** Reads the text of a theme file; `file` names the file in errors. */
 export function parseTheme(
   text: string,
   file: string,
@@ -403,6 +448,7 @@ export function parseTheme(
   return parseFile(format, text, file);
 }
 
+/** Writes a theme as the text of its file; `file` names the file in errors. */
 export function serializeTheme(
   theme: ThemeFile,
   file: string,

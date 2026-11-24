@@ -15,6 +15,10 @@ const journalSchema = payloadObject({
   file: fileName,
 });
 
+/**
+ * The journal of a media copy that has not finished: the reserved media id and
+ * the plain file name being copied, under `.imports` in the media folder.
+ */
 export type MediaImportJournal = v.InferOutput<typeof journalSchema>;
 
 /** Checks the bounded, local filenames of an unfinished media copy. */

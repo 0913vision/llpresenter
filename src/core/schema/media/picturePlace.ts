@@ -6,7 +6,9 @@ import {finiteNumber, jsonObject, positiveNumber} from '../common/primitives';
  * and cuts what is over, 맞추기 shows all of it, 늘리기 stretches it.
  */
 export const pictureFits = ['fill', 'fit', 'stretch'] as const;
+/** Accepts one of `pictureFits`. */
 export const pictureFitSchema = v.picklist(pictureFits);
+/** One of `pictureFits`: 채우기 is `fill`, 맞추기 is `fit`, 늘리기 is `stretch`. */
 export type PictureFit = (typeof pictureFits)[number];
 
 /** Where a picture is and how large, in shares of the screen. */
@@ -15,6 +17,10 @@ export const pictureAreaSchema = jsonObject({
   y: finiteNumber,
   scale: positiveNumber,
 });
+/**
+ * Where a picture is and how large, in shares of the screen: `x` and `y` for
+ * its place and `scale` for its size, where 1 is the whole screen.
+ */
 export type PictureArea = Readonly<v.InferOutput<typeof pictureAreaSchema>>;
 
 /**

@@ -55,6 +55,10 @@ const snapshotSchema = payloadObject({
   ),
 });
 
+/**
+ * A monitor as Windows reports it: its bounds in pixels and, when it can be
+ * told apart, its identity.
+ */
 export interface NativeMonitorIdentity {
   readonly bounds: Readonly<{
     x: number;

@@ -14,6 +14,10 @@ import {
 } from '../common/primitives';
 import {slideBackgroundSchema, slidePurposes, themeFileSchema} from './theme';
 
+/**
+ * Bounds for the theme list: how many themes and saved titles, and the longest
+ * title in characters.
+ */
 export const THEMES_LIMITS = {themes: 200, titles: 200, title: 128} as const;
 
 /** A 타이틀 the operator keeps for inserting. */
@@ -54,10 +58,22 @@ export const themesSchema = jsonObject({
   ),
 });
 
+/**
+ * A 타이틀 the operator keeps for inserting: its name, its English name, and its
+ * background.
+ */
 export type SavedTitle = ReadonlyKnown<v.InferOutput<typeof savedTitleSchema>>;
+/**
+ * `themes.json`: the order of the themes, the default theme of each slide
+ * purpose, and the saved titles.
+ */
 export type ThemeListFile = ReadonlyKnown<
   v.InferOutput<typeof themeListSchema>
 >;
+/**
+ * Every theme in order, with the default theme of each slide purpose and the
+ * saved titles.
+ */
 export type Themes = ReadonlyKnown<v.InferOutput<typeof themesSchema>>;
 
 const listFormat: FileFormat<typeof themeListSchema> = {
@@ -66,10 +82,15 @@ const listFormat: FileFormat<typeof themeListSchema> = {
   migrations: [],
 };
 
+/** Reads the text of `themes.json`; `file` names the file in errors. */
 export function parseThemeList(text: string, file: string) {
   return parseFile(listFormat, text, file);
 }
 
+/**
+ * Writes the theme list as the text of `themes.json`; `file` names the file in
+ * errors.
+ */
 export function serializeThemeList(value: ThemeListFile, file: string) {
   return serializeFile(listFormat, value, file);
 }

@@ -61,10 +61,13 @@ export interface LiveBatch {
   readonly commands: readonly SingleLiveCommand[];
 }
 
+/** One live command, or a batch of them that main applies as one change. */
 export type LiveCommand = SingleLiveCommand | LiveBatch;
 
+/** The `type` of any live command. */
 export type LiveCommandType = LiveCommand['type'];
 
+/** The most commands one batch can carry. */
 export const MAX_LIVE_BATCH_COMMANDS = 256;
 
 const singleCommandOptions = [

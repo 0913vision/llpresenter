@@ -11,15 +11,23 @@ import {propContentSchema} from '../tools/props';
 import type {Result} from '@core/common/result';
 import {LIVE_STATE_LIMITS, liveNonBlankTextSchema} from './liveLimits';
 
+/** The most messages on output at once. */
 export const MAX_ACTIVE_MESSAGES = 200;
+/** The most props on output at once. */
 export const MAX_ACTIVE_PROPS = 64;
+/** The most screens one message or prop can name. */
 export const MAX_TARGET_SCREENS = 200;
 
+/**
+ * A time in milliseconds since the epoch on the main process clock; never
+ * negative.
+ */
 export const epochMillisecondsSchema = v.pipe(
   nonNegativeNumber,
   v.maxValue(Number.MAX_SAFE_INTEGER),
 );
 
+/** A list of screen ids without repeats, at most `MAX_TARGET_SCREENS`. */
 export const overlayScreenIdsSchema = v.pipe(
   v.array(screenIdSchema),
   v.maxLength(MAX_TARGET_SCREENS),
@@ -29,11 +37,17 @@ export const overlayScreenIdsSchema = v.pipe(
   ),
 );
 
+/** The screens a message goes to: `all`, or one or more screen ids. */
 export const messageTargetsSchema = v.union([
   v.literal('all'),
   v.pipe(overlayScreenIdsSchema, v.minLength(1)),
 ]);
 
+/**
+ * A message on output: its id and text, its target screens, the screens left
+ * out of them, when it started, and when it expires, null for never. It cannot
+ * expire before it starts, and the screens left out must be among its targets.
+ */
 export const activeMessageSchema = v.pipe(
   payloadObject({
     messageId: messageIdSchema,
@@ -62,6 +76,7 @@ export const activeMessageSchema = v.pipe(
   ),
 );
 
+/** A prop on output: its id, its content, and its target screens. */
 export const activePropSchema = payloadObject({
   propId: propIdSchema,
   content: v.pipe(
@@ -76,6 +91,9 @@ export const activePropSchema = payloadObject({
   targets: overlayScreenIdsSchema,
 });
 
+/**
+ * The messages on output, at most `MAX_ACTIVE_MESSAGES`, each message id once.
+ */
 export const activeMessagesSchema = v.pipe(
   v.array(activeMessageSchema),
   v.maxLength(MAX_ACTIVE_MESSAGES),
@@ -84,6 +102,7 @@ export const activeMessagesSchema = v.pipe(
     'Another active message already has this id',
   ),
 );
+/** The props on output, at most `MAX_ACTIVE_PROPS`, each prop id once. */
 export const activePropsSchema = v.pipe(
   v.array(activePropSchema),
   v.maxLength(MAX_ACTIVE_PROPS),
@@ -93,6 +112,7 @@ export const activePropsSchema = v.pipe(
   ),
 );
 
+/** A request that a message ends at a time on the main clock. */
 export const messageExpirySchema = v.object({
   type: v.literal('message.expire'),
   messageId: messageIdSchema,
@@ -103,12 +123,14 @@ export const messageExpirySchema = v.object({
 export type ActiveMessage = ReadonlyKnown<
   v.InferOutput<typeof activeMessageSchema>
 >;
+/** One prop on output with its content and target screens. */
 export type ActiveProp = ReadonlyKnown<v.InferOutput<typeof activePropSchema>>;
 /** A deadline-bearing expiry request for one active message. */
 export type MessageExpiry = ReadonlyKnown<
   v.InferOutput<typeof messageExpirySchema>
 >;
 
+/** Checks the messages on output that arrived over IPC. */
 export function parseActiveMessages(
   value: unknown,
 ): Result<readonly ActiveMessage[], PayloadError> {

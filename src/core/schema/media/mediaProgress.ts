@@ -21,8 +21,17 @@ const mediaProgressSchema = v.nullable(
   ),
 );
 
+/**
+ * Where the background video on output is: its media id, when it started on
+ * the main clock, its position, and its duration in seconds, null while
+ * unknown.
+ */
 export type MediaProgress = Readonly<
   NonNullable<v.InferOutput<typeof mediaProgressSchema>>
 >;
+/**
+ * Checks a progress reading that arrived over IPC; null means no video is
+ * playing.
+ */
 export const parseMediaProgress = (value: unknown) =>
   parsePayload(mediaProgressSchema, value);

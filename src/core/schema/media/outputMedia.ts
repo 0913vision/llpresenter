@@ -4,6 +4,11 @@ import {payloadObject} from '../common/payload';
 import {pictureAreaSchema, pictureFitSchema} from './picturePlace';
 import {percent, seconds} from '../common/primitives';
 
+/**
+ * The playback properties of one media item for an output window, with every
+ * default filled in: speed from 0.25 to 4, the picture fit, the volume as a
+ * percent, and whether the sound plays.
+ */
 export const outputMediaPropertiesSchema = payloadObject({
   in: v.exactOptional(seconds),
   out: v.exactOptional(seconds),
@@ -14,6 +19,7 @@ export const outputMediaPropertiesSchema = payloadObject({
   audio: v.boolean(),
 });
 
+/** The playback properties of a media item as an output window plays it. */
 export type OutputMediaProperties = Readonly<
   v.InferOutput<typeof outputMediaPropertiesSchema>
 >;

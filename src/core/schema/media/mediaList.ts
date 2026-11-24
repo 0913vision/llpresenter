@@ -43,8 +43,18 @@ export const MEDIA_LIMITS = {
   name: NAME_LIMIT,
 } as const;
 
+/**
+ * The name of a media item or a playlist, at most `MEDIA_LIMITS.name`
+ * characters.
+ */
 export const mediaName = v.pipe(v.string(), v.maxLength(MEDIA_LIMITS.name));
 
+/**
+ * The playback properties of a media item: what happens at its end (loop or
+ * stop), the in and out points and the speed, the picture fit and area,
+ * whether the sound plays, and its volume. An absent property means its
+ * default, and the in point must come before the out point.
+ */
 export const mediaPropsSchema = v.pipe(
   jsonObject({
     end: v.exactOptional(v.picklist(['loop', 'stop'])),
@@ -96,6 +106,7 @@ const mediaItemSchema = v.pipe(
   ),
 );
 
+/** A playlist of video and image items, by media id, in play order. */
 export const playlistSchema = jsonObject({
   id: mediaPlaylistIdSchema,
   name: mediaName,
@@ -105,6 +116,10 @@ export const playlistSchema = jsonObject({
   ),
 });
 
+/**
+ * A playlist of audio items, by media id, in play order, with whether it
+ * starts over at its end.
+ */
 export const audioPlaylistSchema = jsonObject({
   id: audioPlaylistIdSchema,
   name: mediaName,
@@ -115,6 +130,10 @@ export const audioPlaylistSchema = jsonObject({
   loop: v.boolean(),
 });
 
+/**
+ * The contents of `media.json`: every media item and both kinds of playlists,
+ * each list with unique ids and within `MEDIA_LIMITS`.
+ */
 export const mediaListSchema = jsonObject({
   format: v.literal('llmedia'),
   schemaVersion: positiveInteger,
@@ -151,12 +170,16 @@ export type MediaList = ReadonlyKnown<v.InferOutput<typeof mediaListSchema>>;
  * it, and absolute otherwise. An absent property means its default.
  */
 export type MediaItem = MediaList['items'][number];
+/** How many deletions of media items can be undone in a session. */
 export const MEDIA_DELETE_HISTORY_LIMIT = 100;
 
+/** A playlist of video and image items in `media.json`. */
 export type MediaPlaylist = MediaList['playlists'][number];
 
+/** A playlist of audio items in `media.json`. */
 export type AudioPlaylist = MediaList['audioPlaylists'][number];
 
+/** Reads the text of `media.json`; `file` names the file in errors. */
 export function parseMediaList(
   text: string,
   file: string,
@@ -164,6 +187,10 @@ export function parseMediaList(
   return parseFile(mediaListFormat, text, file);
 }
 
+/**
+ * Writes the media list as the text of `media.json`; `file` names the file in
+ * errors.
+ */
 export function serializeMediaList(
   mediaList: MediaList,
   file: string,
