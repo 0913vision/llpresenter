@@ -90,6 +90,13 @@ describe('formatReport', () => {
     expect(report).toMatch(/Soak test failed\.$/);
   });
 
+  it('warns when no output measured a frame rate', () => {
+    const report = formatReport({...passingVerdict, fps: []}, []);
+    expect(report).toContain(
+      'Warning: no output measured a frame rate (an output measures only while something moves on it).',
+    );
+  });
+
   it('lists the first dropped lines and counts the rest', () => {
     const problems = Array.from({length: 12}, (_, index) => ({
       line: index + 1,

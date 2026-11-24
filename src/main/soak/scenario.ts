@@ -3,6 +3,7 @@ import {
   createSlideId,
   audioPlaylistIdSchema,
   mediaIdSchema,
+  createMediaId,
   type AudioPlaylistId,
   createScreenId,
 } from '@core/schema/common/ids';
@@ -37,10 +38,27 @@ export interface SoakScenario {
  * The scenario's 장 at a position: an invented two-line 장 with a rotating
  * 이름표, so no lyrics are copied.
  */
-export function scenarioSlide(position: number): SlideLayer {
+/**
+ * The 장 at `position`: two lines of lyrics on the looping background clip
+ * `mediaId`, as a song with a video background shows them, or on the theme's
+ * background without one.
+ */
+export function scenarioSlide(
+  position: number,
+  mediaId: string | null = null,
+): SlideLayer {
   const number = position + 1;
   const label = SLIDE_LABELS[position % SLIDE_LABELS.length];
   return {
+    ...(mediaId === null
+      ? {}
+      : {
+          background: {
+            kind: 'media',
+            media: createMediaId(mediaId),
+            loop: true,
+          },
+        }),
     itemId: SCENARIO_ITEM_ID,
     slideId: createSlideId(
       `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`,
@@ -67,19 +85,14 @@ function send(scenario: SoakScenario, command: LiveCommand): void {
 }
 
 /**
- * Plays the soak test scenario: the looping background, the 청중 화면 on, and
- * the next 장 every {@link SLIDE_INTERVAL_MS}, around {@link SLIDE_COUNT} 장.
+ * Plays the soak test scenario: the 청중 화면 on, and the next 장 every
+ * {@link SLIDE_INTERVAL_MS}, around {@link SLIDE_COUNT} 장, each on the looping
+ * background clip.
  * A command that throws is logged, and the scenario goes on.
  *
  * @returns a function that stops the 장 changes
  */
 export function startSoakScenario(scenario: SoakScenario): () => void {
-  if (scenario.mediaId !== null) {
-    send(scenario, {
-      type: 'media.show',
-      media: {mediaId: scenario.mediaId, loop: true},
-    });
-  }
   if (scenario.audioPlaylistId != null) {
     send(scenario, {
       type: 'audio.play',
@@ -100,7 +113,12 @@ export function startSoakScenario(scenario: SoakScenario): () => void {
     });
   }
   let position = 0;
-  send(scenario, {type: 'slide.show', slide: scenarioSlide(position)});
+  const show = (): void =>
+    send(scenario, {
+      type: 'slide.show',
+      slide: scenarioSlide(position, scenario.mediaId),
+    });
+  show();
   const message = () =>
     send(scenario, {
       type: 'message.send',
@@ -111,7 +129,7 @@ export function startSoakScenario(scenario: SoakScenario): () => void {
   if (!ndiProductTest) message();
   const changer = setInterval(() => {
     position = (position + 1) % SLIDE_COUNT;
-    send(scenario, {type: 'slide.show', slide: scenarioSlide(position)});
+    show();
     if (!ndiProductTest) message();
   }, SLIDE_INTERVAL_MS);
   scenario.log.info('soak scenario started', {mediaId: scenario.mediaId});

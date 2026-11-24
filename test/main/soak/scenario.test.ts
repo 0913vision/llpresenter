@@ -3,7 +3,9 @@ import {
   type LiveCommand,
   parseLiveCommand,
 } from '@core/schema/live/liveCommand';
-import {createAudioPlaylistId} from '@core/schema/common/ids';
+import {createAudioPlaylistId, createMediaId} from '@core/schema/common/ids';
+import type {MediaList} from '@core/schema/media/mediaList';
+import {LiveStore} from '@main/live/store';
 import {installMockClock} from '@fixtures/mockClock';
 import type {Logger} from '@main/base/log';
 import {
@@ -34,11 +36,58 @@ function shownPositions(commands: readonly LiveCommand[]): number[] {
   );
 }
 
+function clipLibrary(): MediaList {
+  return {
+    format: 'llmedia',
+    schemaVersion: 1,
+    items: [
+      {
+        id: createMediaId(MEDIA_ID),
+        name: 'clip',
+        kind: 'video',
+        file: 'soak-loop.webm',
+        size: 1,
+        duration: 10,
+        props: {end: 'loop', fit: 'fill'},
+      },
+    ],
+    playlists: [],
+    audioPlaylists: [],
+  };
+}
+
 describe('scenarioSlide', () => {
   it('builds 장 that pass the live command check', () => {
     for (let position = 0; position < SLIDE_COUNT; position += 1) {
-      const command = {type: 'slide.show', slide: scenarioSlide(position)};
-      expect(parseLiveCommand(command).ok).toBe(true);
+      for (const mediaId of [null, MEDIA_ID]) {
+        const command = {
+          type: 'slide.show',
+          slide: scenarioSlide(position, mediaId),
+        };
+        expect(parseLiveCommand(command).ok).toBe(true);
+      }
+    }
+  });
+
+  // NOTE(0913vision): A 장 without a background of its own takes down a clip
+  // shown before it, so the clip must come with every 장 for the soak to keep
+  // a video playing behind the lyrics (the church's soak of a218dd683 ran
+  // without it and so measured no frame rate).
+  it('keeps the looping clip playing behind every 장', () => {
+    let now = 1_000;
+    const store = new LiveStore(undefined, () => now);
+    store.connectAudioMedia(clipLibrary);
+    for (let position = 0; position < SLIDE_COUNT; position += 1) {
+      now += SLIDE_INTERVAL_MS;
+      store.dispatch({
+        type: 'slide.show',
+        slide: scenarioSlide(position, MEDIA_ID),
+      });
+      expect(store.state.layers.media).toMatchObject({
+        mediaId: MEDIA_ID,
+        loop: true,
+        startedAt: 1_000 + SLIDE_INTERVAL_MS,
+      });
     }
   });
 });
@@ -67,7 +116,7 @@ describe('startSoakScenario', () => {
     await clock.advance(SLIDE_INTERVAL_MS);
     expect(commands).toHaveLength(count);
   });
-  it('starts the looping background, the 청중 화면, and the first 장', () => {
+  it('starts the 청중 화면 and the first 장 on the looping background', () => {
     installMockClock();
     const commands: LiveCommand[] = [];
     const stop = startSoakScenario({
@@ -76,9 +125,8 @@ describe('startSoakScenario', () => {
       log: mockLog(),
     });
     expect(commands).toEqual([
-      {type: 'media.show', media: {mediaId: MEDIA_ID, loop: true}},
       {type: 'output.set', screenId: MAIN_SCREEN, on: true},
-      {type: 'slide.show', slide: scenarioSlide(0)},
+      {type: 'slide.show', slide: scenarioSlide(0, MEDIA_ID)},
       {
         type: 'message.send',
         text: '시험 메시지 1',
@@ -113,7 +161,14 @@ describe('startSoakScenario', () => {
       mediaId: null,
       log: mockLog(),
     });
-    expect(commands.some(command => command.type === 'media.show')).toBe(false);
+    expect(
+      commands.some(
+        command =>
+          command.type === 'media.show' ||
+          (command.type === 'slide.show' &&
+            command.slide.background !== undefined),
+      ),
+    ).toBe(false);
     stop();
   });
 
@@ -204,8 +259,8 @@ describe('registerSoakScenario', () => {
       LLP_SOAK_MEDIA_ID: MEDIA_ID,
     });
     expect(dispatch).toHaveBeenCalledWith({
-      type: 'media.show',
-      media: {mediaId: MEDIA_ID, loop: true},
+      type: 'slide.show',
+      slide: scenarioSlide(0, MEDIA_ID),
     });
     stop();
   });

@@ -54,10 +54,14 @@ export function formatReport(
     ...verdict.relaunches.map(
       r => `Relaunched: ${r.name} came back ${r.count} times.`,
     ),
-    ...verdict.fps.map(
-      f =>
-        `${f.belowTarget ? 'Warning: ' : ''}fps ${f.screen}: median ${f.medianFps.toFixed(1)}, lowest ${f.lowestFps.toFixed(1)}`,
-    ),
+    ...(verdict.fps.length === 0
+      ? [
+          'Warning: no output measured a frame rate (an output measures only while something moves on it).',
+        ]
+      : verdict.fps.map(
+          f =>
+            `${f.belowTarget ? 'Warning: ' : ''}fps ${f.screen}: median ${f.medianFps.toFixed(1)}, lowest ${f.lowestFps.toFixed(1)}`,
+        )),
     ...problemLines(problems),
     verdict.passed ? 'Soak test passed.' : 'Soak test failed.',
   ];

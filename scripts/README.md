@@ -163,8 +163,10 @@ The runner then starts Electron with these environment variables. In the app,
 output's frame rate every 10 seconds, appends one line per sample, and quits
 after `LLP_SOAK_EXIT_MS`, once every queued line is written. It names renderers
 by their page: `index.html` is `control`, and `output.html?screen=<id>` is
-`output:<id>`. `registerSoakScenario` plays the test scenario: the looping
-background, the 본 화면 on, and the next of 12 invented 장 every 5 seconds.
+`output:<id>`. `registerSoakScenario` plays the test scenario: the 본 화면 on,
+and the next of 12 invented 장 every 5 seconds, each with the looping clip as
+its background, as a song with a video background has. (A clip shown on its own
+would go down at the first 장, which has no background of its own.)
 
 | Variable            | Meaning                                                                                                                                                 |
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
