@@ -5,8 +5,8 @@ import {
 } from '@renderer/ui/popups/notices';
 import {undoReason, undoTimeline} from '@renderer/platform/undo/undoTimeline';
 import {focusHistorySurface} from '@renderer/ui/lists/focusHistorySurface';
-import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
-import {menuAvailability, type MenuAnchor} from '@renderer/ui/menus/menuModel';
+import type {MenuAnchor} from '@renderer/ui/menus/menuModel';
+import {sourceMenuEntries} from './sourceMenuEntries';
 import {useRef, useState, type KeyboardEvent, type ReactNode} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {ServiceEntry} from '@core/schema/services/contentDocuments';
@@ -45,7 +45,6 @@ type SourceActionsApi = Pick<
   'content' | 'services' | 'templates' | 'log'
 >;
 
-const OPEN_SERVICE = '열린 예배는 삭제할 수 없습니다.';
 const problemTitles = {
   rename: '이름 바꾸기 실패',
   delete: '삭제 실패',
@@ -212,8 +211,6 @@ export function useSourceActions({
       );
   };
   const deleteAfterMenu = useMenuHandoff<SourceRow>(menu !== null, remove);
-  const readOnlyReason =
-    menu?.row.access === 'readOnly' ? NEWER_FILE_REASON : undefined;
 
   const overlays = (
     <>
@@ -223,32 +220,18 @@ export function useSourceActions({
           label={`${menu.row.name} ${kindName(menu.row.source)}`}
           anchor={menu.anchor}
           onClose={() => setMenu(null)}
-          entries={[
-            {
-              kind: 'item',
-              id: 'rename',
-              label: '이름 바꾸기',
-              ...menuAvailability(readOnlyReason),
-              onSelect: () => {
-                setMenu(null);
-                renameAfterMenu(menu.row);
-              },
+          entries={sourceMenuEntries({
+            readOnly: menu.row.access === 'readOnly',
+            open: isOpen(menu.row),
+            onRename: () => {
+              setMenu(null);
+              renameAfterMenu(menu.row);
             },
-            {
-              kind: 'item',
-              id: 'delete',
-              contextGroup: 'delete',
-              label: '삭제',
-              danger: true,
-              ...menuAvailability(
-                readOnlyReason ?? (isOpen(menu.row) ? OPEN_SERVICE : undefined),
-              ),
-              onSelect: () => {
-                setMenu(null);
-                deleteAfterMenu(menu.row);
-              },
+            onDelete: () => {
+              setMenu(null);
+              deleteAfterMenu(menu.row);
             },
-          ]}
+          })}
         />
       )}
       {dialog?.kind === 'rename' ? (
