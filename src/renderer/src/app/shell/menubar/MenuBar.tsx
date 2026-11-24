@@ -25,7 +25,7 @@ import {
   type MenuBarNavigation,
 } from './menuBarNavigation';
 import {useOutsideFocus} from './outsideFocus';
-import {helpMenuEntries, windowMenuEntries} from './windowMenuEntries';
+import {windowMenuEntries} from './windowMenuEntries';
 import {useFileMediaImport} from './useFileMediaImport';
 import styles from './MenuBar.module.css';
 import {useClipboardAvailability} from './useClipboardAvailability';
@@ -34,6 +34,7 @@ import {usePreferenceEdits} from '@renderer/features/preferences/usePreferenceEd
 import {fullScreenRow, useFullScreen} from './viewToggles';
 import {focusMenu} from '@renderer/ui/menus/useMenuNavigation';
 import type {Workspace} from '@renderer/platform/WorkspaceNavigation';
+import {helpMenuEntries} from './helpMenuEntries';
 
 const EDIT_MENU = '편집';
 const WINDOW_MENU = '창';
