@@ -1,6 +1,6 @@
 import {isUnchangedSelectionMove} from '@core/common/selectionOrder';
 import {useReflow} from '@renderer/ui/useReflow';
-import {contextMenuTarget, openMenuFromKey} from '@renderer/ui/contextMenu';
+import {openMenuFromKey, pointerMenuAnchor} from '@renderer/ui/contextMenu';
 import {
   useRef,
   useState,
@@ -195,11 +195,7 @@ export function ChoiceRows<T extends Choice>({
             onContextMenu={event => {
               if (onMenu === undefined) return;
               event.preventDefault();
-              onMenu(choice, {
-                kind: 'point',
-                target: contextMenuTarget(event),
-                point: {x: event.clientX, y: event.clientY},
-              });
+              onMenu(choice, pointerMenuAnchor(event));
             }}
             onKeyDown={event => {
               if (onMenu !== undefined) {

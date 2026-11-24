@@ -1,7 +1,7 @@
 import {
   contextMenuAnchor,
-  contextMenuTarget,
   isContextMenuKey,
+  pointerMenuAnchor,
 } from '@renderer/ui/contextMenu';
 import {useState, type JSX, type MouseEvent} from 'react';
 import {SONG_IMPORT_LIMITS} from '@core/schema/songImport';
@@ -145,11 +145,7 @@ function ContextArea(): JSX.Element {
   const [anchor, setAnchor] = useState<MenuAnchor | null>(null);
   const openAt = (event: MouseEvent<HTMLDivElement>): void => {
     event.preventDefault();
-    setAnchor({
-      kind: 'point',
-      target: contextMenuTarget(event),
-      point: {x: event.clientX, y: event.clientY},
-    });
+    setAnchor(pointerMenuAnchor(event));
   };
   return (
     <>

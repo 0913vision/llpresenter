@@ -1,7 +1,11 @@
 import {RenameDialog} from '@renderer/ui/RenameDialog';
 import {PanelAction} from '@renderer/ui/PanelActionSlot';
 import {limitReason} from '@core/common/limitReason';
-import {contextMenuTarget, isContextMenuKey} from '@renderer/ui/contextMenu';
+import {
+  contextMenuTarget,
+  isContextMenuKey,
+  pointerMenuAnchor,
+} from '@renderer/ui/contextMenu';
 import {useRef, useState, type JSX, type ReactNode} from 'react';
 import {deleteSelection} from '@renderer/ui/deleteSelection';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
@@ -277,13 +281,7 @@ export function MessageEditing({
       <div
         ref={root}
         onContextMenu={event => {
-          if (
-            openMenu(event.target, {
-              kind: 'point',
-              target: contextMenuTarget(event),
-              point: {x: event.clientX, y: event.clientY},
-            })
-          ) {
+          if (openMenu(event.target, pointerMenuAnchor(event))) {
             event.preventDefault();
           }
         }}

@@ -1,6 +1,6 @@
 import {RenameDialog} from '@renderer/ui/RenameDialog';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
-import {contextMenuTarget, openMenuFromKey} from '@renderer/ui/contextMenu';
+import {openMenuFromKey, pointerMenuAnchor} from '@renderer/ui/contextMenu';
 import {useRef, useState, type JSX, type ReactNode} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {Timer} from '@core/schema/timers';
@@ -128,11 +128,7 @@ export function TimerRowMenu({
       onContextMenu={event => {
         event.preventDefault();
         event.stopPropagation();
-        setMenu({
-          kind: 'point',
-          target: contextMenuTarget(event),
-          point: {x: event.clientX, y: event.clientY},
-        });
+        setMenu(pointerMenuAnchor(event));
       }}
       onKeyDown={event => {
         openMenuFromKey(event, setMenu);

@@ -1,5 +1,9 @@
 import type {DragEvent, JSX} from 'react';
-import {contextMenuTarget, isContextMenuKey} from '@renderer/ui/contextMenu';
+import {
+  contextMenuTarget,
+  isContextMenuKey,
+  pointerMenuAnchor,
+} from '@renderer/ui/contextMenu';
 import {MenuCheck} from '@renderer/ui/MenuParts';
 import {classNames} from '@renderer/ui/classNames';
 import type {MenuAnchor} from '@renderer/ui/Menu';
@@ -60,11 +64,7 @@ export function MacroCollectionRow({
       onContextMenu={event => {
         event.preventDefault();
         event.currentTarget.focus();
-        onMenu({
-          kind: 'point',
-          target: contextMenuTarget(event),
-          point: {x: event.clientX, y: event.clientY},
-        });
+        onMenu(pointerMenuAnchor(event));
       }}
       onKeyDown={event => {
         if (event.target !== event.currentTarget || isComposing(event)) {

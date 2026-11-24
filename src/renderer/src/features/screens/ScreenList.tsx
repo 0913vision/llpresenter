@@ -1,7 +1,7 @@
 import {focusHistorySurface} from '@renderer/ui/focusHistorySurface';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {limitReason} from '@core/common/limitReason';
-import {contextMenuTarget, openMenuFromKey} from '@renderer/ui/contextMenu';
+import {openMenuFromKey, pointerMenuAnchor} from '@renderer/ui/contextMenu';
 import {
   useCallback,
   useMemo,
@@ -65,11 +65,7 @@ function RowView({
       draggable={canDrag && rename === undefined}
       onContextMenu={event => {
         event.preventDefault();
-        onMenu(row.id, {
-          kind: 'point',
-          target: contextMenuTarget(event),
-          point: {x: event.clientX, y: event.clientY},
-        });
+        onMenu(row.id, pointerMenuAnchor(event));
       }}
       onKeyDown={event => {
         openMenuFromKey(event, anchor => onMenu(row.id, anchor));

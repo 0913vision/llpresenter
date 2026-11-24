@@ -1,7 +1,7 @@
 import {displayReference} from '@core/bible';
 import {RenameDialog} from '@renderer/ui/RenameDialog';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
-import {contextMenuTarget, openMenuFromKey} from '@renderer/ui/contextMenu';
+import {openMenuFromKey, pointerMenuAnchor} from '@renderer/ui/contextMenu';
 import {useEffect, useState, type JSX, type ReactNode} from 'react';
 import {limitReason} from '@core/common/limitReason';
 import {createQuickItemId, createTimerId} from '@core/schema/ids';
@@ -345,11 +345,7 @@ export function QuickRowEditor({
       data-quick-id={item.id}
       onContextMenu={event => {
         event.preventDefault();
-        setMenu({
-          kind: 'point',
-          target: contextMenuTarget(event),
-          point: {x: event.clientX, y: event.clientY},
-        });
+        setMenu(pointerMenuAnchor(event));
       }}
       onKeyDown={event => {
         openMenuFromKey(event, setMenu);

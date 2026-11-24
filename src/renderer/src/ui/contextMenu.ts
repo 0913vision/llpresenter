@@ -26,6 +26,15 @@ export function contextMenuTarget(
     : event.currentTarget;
 }
 
+/** Opens a menu at the pointer of a right click, marking the row under it. */
+export function pointerMenuAnchor(event: MouseEvent<HTMLElement>): MenuAnchor {
+  return {
+    kind: 'point',
+    target: contextMenuTarget(event),
+    point: {x: event.clientX, y: event.clientY},
+  };
+}
+
 export function markMenuTarget(target: HTMLElement): () => void {
   marks.set(target, (marks.get(target) ?? 0) + 1);
   target.setAttribute('data-menu-target', '');

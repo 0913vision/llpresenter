@@ -1,6 +1,6 @@
 import {labelInk} from '@renderer/ui/labelInk';
 import {useShortcutText} from './commandBindings';
-import {contextMenuTarget} from '@renderer/ui/contextMenu';
+import {pointerMenuAnchor} from '@renderer/ui/contextMenu';
 import {useRef, type JSX} from 'react';
 import {Icon} from './Icon';
 import {
@@ -125,11 +125,7 @@ export function MenuItemRow({
         if (item.onMenu === undefined || item.rename !== undefined) return;
         event.preventDefault();
         event.stopPropagation();
-        item.onMenu({
-          kind: 'point',
-          target: contextMenuTarget(event),
-          point: {x: event.clientX, y: event.clientY},
-        });
+        item.onMenu(pointerMenuAnchor(event));
       }}
     >
       {item.checked === true ? <MenuCheck /> : null}

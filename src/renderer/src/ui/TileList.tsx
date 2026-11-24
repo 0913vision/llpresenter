@@ -1,4 +1,8 @@
-import {contextMenuTarget, isContextMenuKey} from '@renderer/ui/contextMenu';
+import {
+  contextMenuTarget,
+  isContextMenuKey,
+  pointerMenuAnchor,
+} from '@renderer/ui/contextMenu';
 import {
   useEffect,
   useLayoutEffect,
@@ -268,11 +272,7 @@ export function TileList(props: TileListProps): JSX.Element {
     const index = indexOf(event.currentTarget, tileOf(event.target));
     if (index < 0 || props.onMenu === undefined) return;
     event.preventDefault();
-    props.onMenu(index, {
-      kind: 'point',
-      target: contextMenuTarget(event),
-      point: {x: event.clientX, y: event.clientY},
-    });
+    props.onMenu(index, pointerMenuAnchor(event));
   };
   const openMenuFromKey = (event: KeyboardEvent<HTMLDivElement>): void => {
     const tile = tileOf(event.target);
