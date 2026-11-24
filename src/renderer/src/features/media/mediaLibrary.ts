@@ -1,3 +1,4 @@
+import {followLatest} from '@renderer/platform/followLatest';
 import {
   undoTimeline,
   type UndoOwner,
@@ -147,8 +148,6 @@ export class MediaLibrary {
     onInitialReady?: () => void,
   ): () => void {
     let following = true;
-    let missingPushed = false;
-    let stampsPushed = false;
     const waiting = new Set(['document', 'missing', 'stamps']);
     const ready = (part: string): void => {
       if (waiting.delete(part) && waiting.size === 0) onInitialReady?.();
@@ -165,20 +164,26 @@ export class MediaLibrary {
       media.subscribeImports(progress => {
         if (following) this.follow(progress);
       }),
-      media.subscribeMissing(missing => {
-        missingPushed = true;
-        if (following) {
-          this.setMissing(missing);
-          ready('missing');
-        }
-      }),
-      media.subscribeStamps(stamps => {
-        stampsPushed = true;
-        if (following) {
-          this.setStamps(stamps);
-          ready('stamps');
-        }
-      }),
+      followLatest(
+        {read: media.missing, subscribe: media.subscribeMissing},
+        {
+          apply: missing => {
+            this.setMissing(missing);
+            ready('missing');
+          },
+          failed: () => ready('missing'),
+        },
+      ),
+      followLatest(
+        {read: media.stamps, subscribe: media.subscribeStamps},
+        {
+          apply: stamps => {
+            this.setStamps(stamps);
+            ready('stamps');
+          },
+          failed: () => ready('stamps'),
+        },
+      ),
     ];
     media.get().then(
       document => {
@@ -194,26 +199,6 @@ export class MediaLibrary {
           );
           ready('document');
         }
-      },
-    );
-    // NOTE(0913vision): A push is newer than the first reply, which can
-    // arrive after it.
-    media.missing().then(
-      missing => {
-        if (following && !missingPushed) this.setMissing(missing);
-        if (following) ready('missing');
-      },
-      () => {
-        if (following) ready('missing');
-      },
-    );
-    media.stamps().then(
-      stamps => {
-        if (following && !stampsPushed) this.setStamps(stamps);
-        if (following) ready('stamps');
-      },
-      () => {
-        if (following) ready('stamps');
       },
     );
     return () => {
