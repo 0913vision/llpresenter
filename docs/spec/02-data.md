@@ -120,12 +120,15 @@ song, service, and template.
 | `updatedAt`               | Optional timestamp           | Last update.                                 |
 
 A song has a title slide or at least one other slide. A version 1 file is read
-as version 2 and written as version 2 when it is saved: its first title slide (a
-slide with a 제목 and no 가사, or a hymn title) becomes `titleSlide` without its
-이름표, a title slide at the very end is dropped, and every other slide stays
-where it is. Every way a song is saved (곡 가져오기, 새 곡, 저장, 다른 이름으로
-저장, 라이브러리에 저장) keeps it the same way. The editor shows the title slide
-first among the others.
+as version 2 and written as version 2 when it is saved. Its title slide is the
+one that opens the song before its first lyrics: the first slide with a 제목 and
+no 가사, or a hymn title; else the first slide with no text and its own
+background, as a hymn's picture from PowerPoint is; else a first slide whose
+가사 is only the song's title. It becomes `titleSlide` without its 이름표, a
+title slide at the very end is dropped, and every other slide stays where it is,
+so a title inside a medley stays a slide of the song. Every way a song is saved
+(곡 가져오기, 새 곡, 저장, 다른 이름으로 저장, 라이브러리에 저장) keeps it the
+same way. The editor shows the title slide first among the others.
 
 A song goes into the 예배 순서 with its title first, 이름표 전주, then its other
 slides, then, unless 환경설정 준비 > 끝 제목 is off, its title again, 이름표
