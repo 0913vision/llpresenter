@@ -165,7 +165,7 @@ export function useLibrary(
    * the end of the panel came first.
    */
   const openDocument = async (
-    songId: SongId,
+    songId: string,
     version: number,
     selection: Omit<LibrarySelection, 'document'>,
   ): Promise<void> => {
