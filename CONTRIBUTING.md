@@ -160,6 +160,19 @@ full bar is "Quality bar" in `docs/TECH.md`.
   Preserve unknown fields.
 - An exception in the output path (output windows, live state handling) must
   never stop the output. Log it and keep the last good state.
+- Use the shared module for these jobs instead of writing them again:
+  - A value the main process keeps and pushes (a list, a status): follow it with
+    `followLatest` (`src/core/common/followLatest.ts`), which drops a first read
+    that answers after a newer push.
+  - A failure in a window: `logFailure` (`src/renderer/src/platform`), or, in
+    the `ui`, `rendering`, and `output` layers, `rendererErrorEntry`
+    (`src/core/schema/app/ipcPayloads.ts`), which cuts the line to the lengths
+    the main process takes.
+  - The row an event happened in: `optionValueAt`
+    (`src/renderer/src/ui/lists/optionValue.ts`).
+  - A part of the control window that may fail to draw: it sits in a `Panel`,
+    whose `PanelBoundary` keeps the failure inside it; a part outside the panels
+    gets its own `PanelBoundary`.
 - Every new behavior and every bug fix comes with unit tests. Reviews of changes
   without tests are not approved.
 - Release everything you register: event listeners, timers, IPC listeners,
