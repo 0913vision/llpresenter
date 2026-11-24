@@ -14,7 +14,7 @@ import type {MenuAvailability} from './menuModel';
 import {menuButtonProps} from './menuButton';
 import {useButtonPress} from './press';
 import {useRovingSelection} from './roving';
-import {titleTooltip, useTooltip} from './Tooltip';
+import {useTabButton} from './tabButton';
 import {TruncatedText} from './TruncatedText';
 import styles from './Panel.module.css';
 
@@ -137,24 +137,19 @@ function PanelTabButton<T extends string>({
   onKeyDown,
 }: PanelTabButtonProps<T>): JSX.Element {
   const base = useContext(PanelIdBase);
-  const {targetProps, tooltip} = useTooltip(titleTooltip(tab.title));
-  const press = useButtonPress<HTMLButtonElement>({
+  const {props, tooltip} = useTabButton({
+    title: tab.title,
     disabled: tab.disabled === true,
-    onPress: onSelect,
+    selected,
+    onSelect,
     onKeyDown,
-    onBlur: targetProps.onBlur,
   });
   return (
     <>
       <button
-        {...targetProps}
-        {...press}
+        {...props}
         ref={elementRef}
         id={tabId(base, tab.value)}
-        type="button"
-        role="tab"
-        aria-selected={selected}
-        aria-disabled={tab.disabled === true ? true : undefined}
         tabIndex={tabIndex}
         className={styles.tab}
       >

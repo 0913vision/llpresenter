@@ -2,9 +2,8 @@ import type {JSX, KeyboardEvent} from 'react';
 import {classNames} from './classNames';
 import {Icon} from './Icon';
 import {useRovingSelection} from './roving';
-import {useButtonPress} from './press';
+import {useTabButton} from './tabButton';
 import {toolbarIconSize} from './toolbarIcons';
-import {titleTooltip, useTooltip} from './Tooltip';
 import styles from './ToolbarButton.module.css';
 
 export interface ToolbarTab<T extends string> {
@@ -48,26 +47,21 @@ function TabButton<T extends string>({
   onKeyDown,
   keepPointerFocus,
 }: TabButtonProps<T>): JSX.Element {
-  const {targetProps, tooltip} = useTooltip(titleTooltip(tab.title));
-  const press = useButtonPress<HTMLButtonElement>({
+  const {props, tooltip} = useTabButton({
+    title: tab.title,
     disabled: tab.disabled === true,
-    onPress: onSelect,
+    selected,
+    onSelect,
     onKeyDown,
-    onBlur: targetProps.onBlur,
   });
   return (
     <>
       <button
-        {...targetProps}
-        {...press}
+        {...props}
         onMouseDown={event => {
           if (keepPointerFocus && event.button === 0) event.preventDefault();
         }}
         ref={elementRef}
-        type="button"
-        role="tab"
-        aria-selected={selected}
-        aria-disabled={tab.disabled === true ? true : undefined}
         tabIndex={tabIndex}
         className={classNames(
           styles.button,
