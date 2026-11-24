@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import {bibleLookupPassageSchema} from '@core/schema/bibleLookup';
+import {bibleLookupPassageSchema} from '@core/schema/bible/bibleLookup';
 
 /** A passage of the first chapter of Genesis, from verses with texts. */
 export function genesisPassage(

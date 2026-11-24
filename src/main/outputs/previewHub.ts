@@ -1,6 +1,9 @@
 import {BrowserWindow, type WebContents} from 'electron';
 import {outputEndpoints} from '@contracts/ipc/output';
-import type {PreviewControl, PreviewFrame} from '@core/schema/previewMirror';
+import type {
+  PreviewControl,
+  PreviewFrame,
+} from '@core/schema/live/previewMirror';
 import {pushToWindow} from '../base/ipcHost';
 import type {Logger} from '../base/log';
 import type {LiveStore} from '../live/store';

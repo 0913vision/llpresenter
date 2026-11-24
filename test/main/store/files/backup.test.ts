@@ -10,7 +10,10 @@ import {
   runBackup,
   type BackupsOptions,
 } from '@main/store/files/backup';
-import {resolveLocations, type DataLocations} from '@main/store/locations/locations';
+import {
+  resolveLocations,
+  type DataLocations,
+} from '@main/store/locations/locations';
 import {writeJson} from '@fixtures/main/store/testFiles';
 
 const NOW = new Date(2026, 9, 25, 7, 58, 0);

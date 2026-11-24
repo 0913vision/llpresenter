@@ -1,5 +1,5 @@
 import {useState, type JSX} from 'react';
-import type {KeyBinding} from '@core/schema/shortcuts';
+import type {KeyBinding} from '@core/schema/app/shortcuts';
 import {Button} from '../ui/buttons/Button';
 import {KeyCombo, KeyList, KeyText} from '../ui/keys/KeyCap';
 import {ShortcutField} from '../ui/keys/ShortcutField';

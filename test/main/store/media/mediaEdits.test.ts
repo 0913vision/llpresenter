@@ -3,9 +3,9 @@ import {
   createAudioPlaylistId,
   createMediaId,
   createMediaPlaylistId,
-} from '@core/schema/ids';
-import {parseMediaDocument} from '@core/schema/mediaEdit';
-import {MEDIA_LIMITS} from '@core/schema/mediaList';
+} from '@core/schema/common/ids';
+import {parseMediaDocument} from '@core/schema/media/mediaEdit';
+import {MEDIA_LIMITS} from '@core/schema/media/mediaList';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {editMediaList, type MediaListEdit} from '@main/store/media/mediaEdits';
 

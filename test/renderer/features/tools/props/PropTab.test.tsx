@@ -7,11 +7,11 @@ import {
   waitFor,
 } from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
-import {parseMediaDocument} from '@core/schema/mediaEdit';
+import {parseMediaDocument} from '@core/schema/media/mediaEdit';
 import {PropTab} from '@renderer/features/tools/props/PropTab';
 import {stageFixture} from '@fixtures/renderer/features/tools/stageTesting';
 import {deferred} from '@fixtures/renderer/features/tools/quickTesting';
-import type {EditResult} from '@core/schema/contentEdit';
+import type {EditResult} from '@core/schema/services/contentEdit';
 
 const id = '00000000-0000-4000-8000-000000000001';
 const image = '00000000-0000-4000-8000-000000000002';

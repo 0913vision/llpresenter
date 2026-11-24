@@ -11,7 +11,7 @@ import {
   LAUNCH_TASK_IDS,
   type LaunchTaskId,
   type LaunchTimes,
-} from '@core/schema/launch';
+} from '@core/schema/app/launch';
 import type {LaunchTracker} from '../base/launchTracker';
 import type {Logger} from '../base/log';
 import type {AppConfigFile} from '../store/locations/appConfigFile';

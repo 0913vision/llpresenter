@@ -1,5 +1,5 @@
 import type {LlpApi} from '@contracts/ipc/api';
-import type {MediaDocument} from '@core/schema/mediaEdit';
+import type {MediaDocument} from '@core/schema/media/mediaEdit';
 
 /**
  * Subscribes before reading and accepts only strictly newer media revisions.

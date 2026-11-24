@@ -6,7 +6,7 @@ import {
   setup,
   STAGE_SCREEN,
 } from '@fixtures/main/outputs/startFixtures';
-import type {SettingsReader} from '@core/schema/settingsReader';
+import type {SettingsReader} from '@core/schema/app/settingsReader';
 import {outputEndpoints} from '@contracts/ipc/output';
 import {MAIN, CAPTIONS} from '@fixtures/core/overlays';
 import {describe, expect, it} from 'vitest';

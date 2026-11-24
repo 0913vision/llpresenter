@@ -1,6 +1,6 @@
 import {act, fireEvent, screen, waitFor} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
-import {createServiceItemId} from '@core/schema/ids';
+import {createServiceItemId} from '@core/schema/common/ids';
 import {useHeaderRename} from '@renderer/session/headerRename';
 import {
   headerId,

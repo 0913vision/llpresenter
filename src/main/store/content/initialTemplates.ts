@@ -1,7 +1,7 @@
 import {mkdir, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
-import type {FileError} from '@core/schema/fileFormat';
-import {serializeTemplate} from '@core/schema/service';
+import type {FileError} from '@core/schema/common/fileFormat';
+import {serializeTemplate} from '@core/schema/services/service';
 import {sundayTemplate} from '@core/slides';
 import type {DataLocations} from '../locations/locations';
 

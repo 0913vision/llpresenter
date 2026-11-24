@@ -1,9 +1,9 @@
-import type {ClearFade} from '@core/schema/clearFade';
+import type {ClearFade} from '@core/schema/live/clearFade';
 import {
   parseKnownMacroAction,
   type KnownMacroAction,
   type MacroActionKind,
-} from '@core/schema/macros';
+} from '@core/schema/tools/macros';
 
 export interface MacroActionDraft {
   readonly kind: MacroActionKind;

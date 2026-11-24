@@ -1,11 +1,15 @@
 import {shownText} from '@fixtures/core/liveSlide';
-import type {SettingsReader} from '@core/schema/settingsReader';
+import type {SettingsReader} from '@core/schema/app/settingsReader';
 import {readFile, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';
-import {emptyLiveState, type LiveState} from '@core/schema/live';
-import {createMediaId, createMessageId, type ServiceId} from '@core/schema/ids';
-import {RECOVERY_RECORD_LIMITS} from '@core/schema/recoveryRecord';
+import {emptyLiveState, type LiveState} from '@core/schema/live/live';
+import {
+  createMediaId,
+  createMessageId,
+  type ServiceId,
+} from '@core/schema/common/ids';
+import {RECOVERY_RECORD_LIMITS} from '@core/schema/app/recoveryRecord';
 import {makeTempDir} from '@fixtures/tempDir';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {SliceRegistry} from '@main/live/sliceRegistry';

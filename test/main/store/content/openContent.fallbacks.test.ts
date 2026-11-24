@@ -4,7 +4,7 @@ import {makeTempDir} from '@fixtures/tempDir';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {openAppConfig} from '@main/store/locations/appConfigFile';
 import {loadStore} from '@main/store/locations/fileStore';
-import {defaultPreferences} from '@core/schema/preferences';
+import {defaultPreferences} from '@core/schema/app/preferences';
 import {openContent} from '@main/store/content/openContent';
 import {SettingsStore} from '@main/store/settings/settingsStore';
 

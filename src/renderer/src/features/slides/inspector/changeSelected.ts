@@ -1,4 +1,4 @@
-import type {Slide} from '@core/schema/slide';
+import type {Slide} from '@core/schema/slides/slide';
 import {changeSlides} from '@core/slides';
 import {selectionOf} from '../deckSelection';
 import type {SlideDeck} from '../slideDeck';

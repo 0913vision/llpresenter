@@ -4,14 +4,17 @@ import {BrowserWindow} from 'electron';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {makeTempDir} from '@fixtures/tempDir';
 import {mediaEndpoints} from '@contracts/ipc/media';
-import {createMediaId, type MediaId} from '@core/schema/ids';
+import {createMediaId, type MediaId} from '@core/schema/common/ids';
 import {
   parseMediaDocument,
   parseMediaImportProgress,
   type MediaImportProgress,
-} from '@core/schema/mediaEdit';
+} from '@core/schema/media/mediaEdit';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
-import {defaultPreferences, type Preferences} from '@core/schema/preferences';
+import {
+  defaultPreferences,
+  type Preferences,
+} from '@core/schema/app/preferences';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {EMPTY_MEDIA_LIST} from '@main/store/settings/defaults';
 import type {UiStateFields} from '@main/store/locations/appConfigFile';

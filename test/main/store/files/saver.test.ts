@@ -3,7 +3,10 @@ import {join} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';
 import {makeTempDir} from '@fixtures/tempDir';
 import type {WriteProblem} from '@main/base/atomicWrite';
-import {RecoveryCopies, type RecoveryTarget} from '@main/store/files/recoveryCopies';
+import {
+  RecoveryCopies,
+  type RecoveryTarget,
+} from '@main/store/files/recoveryCopies';
 import {Saver, type SaverOptions} from '@main/store/files/saver';
 
 type CopyResult = Awaited<ReturnType<SaverOptions['copies']['keepPrevious']>>;

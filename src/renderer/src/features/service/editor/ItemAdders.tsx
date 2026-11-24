@@ -1,7 +1,7 @@
 import {useState, type JSX} from 'react';
-import {parseMediaId} from '@core/schema/ids';
-import type {BibleLookupPassage} from '@core/schema/bibleLookup';
-import type {SlidesItem} from '@core/schema/service';
+import {parseMediaId} from '@core/schema/common/ids';
+import type {BibleLookupPassage} from '@core/schema/bible/bibleLookup';
+import type {SlidesItem} from '@core/schema/services/service';
 import {
   pictureSlide,
   makeSlide,

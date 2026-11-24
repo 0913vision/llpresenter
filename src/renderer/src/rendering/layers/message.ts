@@ -1,4 +1,4 @@
-import {MAX_ACTIVE_MESSAGES} from '@core/schema/overlayState';
+import {MAX_ACTIVE_MESSAGES} from '@core/schema/live/overlayState';
 import {MESSAGE_BAND} from '@core/screens';
 import type {LayerDefinition} from '../layer';
 import {MessageBandView} from '../messageBand';

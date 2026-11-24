@@ -10,7 +10,7 @@ import {
 import {afterEach, beforeEach, expect, vi} from 'vitest';
 import type {LlpApi} from '@contracts/ipc/api';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {parseSettingsDocument} from '@core/schema/settingsDocuments';
+import {parseSettingsDocument} from '@core/schema/app/settingsDocuments';
 import {resetTooltips} from '@fixtures/renderer/ui/tooltipTesting';
 import {useShow} from '@renderer/session/show';
 import {useLive} from '@renderer/session/live';

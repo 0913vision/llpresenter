@@ -1,5 +1,5 @@
-import {AUTO_TOKENS} from '@core/schema/slideContent';
-import type {ThemeTextElement} from '@core/schema/theme';
+import {AUTO_TOKENS} from '@core/schema/slides/slideContent';
+import type {ThemeTextElement} from '@core/schema/screens/theme';
 import {templateTokens} from './template';
 
 const LABELS: ReadonlySet<string> = new Set([

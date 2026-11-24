@@ -5,7 +5,7 @@ import {
   type RecoveryApply,
   type RecoveryResult,
   type RecoverySummary,
-} from '@core/schema/recovery';
+} from '@core/schema/app/recovery';
 import {query, request, type IpcPort} from './endpoint';
 
 /** The calls that restore the live output after a crash. */

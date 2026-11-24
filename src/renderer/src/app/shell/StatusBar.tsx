@@ -1,4 +1,4 @@
-import {NDI_DEFAULT_FPS} from '@core/schema/screens';
+import {NDI_DEFAULT_FPS} from '@core/schema/screens/screens';
 import type {JSX, ReactNode} from 'react';
 import {controlConflictReason} from '@core/screens';
 import {useOutputStatuses} from '@renderer/features/screens/useOutputStatuses';

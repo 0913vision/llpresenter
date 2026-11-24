@@ -1,6 +1,6 @@
 import {useMemo} from 'react';
 import {placedOverlays, storedOverlays} from '@core/live';
-import {hasSlides, type SlidesItem} from '@core/schema/service';
+import {hasSlides, type SlidesItem} from '@core/schema/services/service';
 import {useMedia} from '@renderer/platform/media';
 import {useThemes} from '@renderer/platform/themes';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';

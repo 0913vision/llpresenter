@@ -1,5 +1,5 @@
 import {useRef, useState, type JSX} from 'react';
-import type {Macro} from '@core/schema/macros';
+import type {Macro} from '@core/schema/tools/macros';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {MacroView} from './MacroView';
 import {MacroPalette} from './MacroPalette';

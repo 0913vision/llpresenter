@@ -9,8 +9,8 @@ import {
   type ReferenceFields,
   type ReferencePart,
 } from '@core/bible';
-import type {RecentPassage} from '@core/schema/bible';
-import type {TranslationId} from '@core/schema/ids';
+import type {RecentPassage} from '@core/schema/bible/bible';
+import type {TranslationId} from '@core/schema/common/ids';
 import type {BibleSuggestion} from './BibleSuggestions';
 
 export const NUMBER_PARTS = ['chapter', 'start', 'end'] as const;

@@ -1,5 +1,5 @@
-import type {Timer} from '@core/schema/timers';
-import type {TimerRuns} from '@core/schema/timerState';
+import type {Timer} from '@core/schema/tools/timers';
+import type {TimerRuns} from '@core/schema/tools/timerState';
 import {isTimerTicking, timerText, type TimerNow} from '@core/timers';
 
 /** The 타이머 definitions, live runs, and clocks that 소품 text reads its tokens from. */

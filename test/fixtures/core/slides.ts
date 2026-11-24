@@ -1,7 +1,7 @@
 import * as v from 'valibot';
-import {createSlideId, translationIdSchema} from '@core/schema/ids';
-import type {Slide, VerseReference} from '@core/schema/slide';
-import type {SlidePurpose} from '@core/schema/theme';
+import {createSlideId, translationIdSchema} from '@core/schema/common/ids';
+import type {Slide, VerseReference} from '@core/schema/slides/slide';
+import type {SlidePurpose} from '@core/schema/screens/theme';
 import {BUILT_IN_THEME_IDS} from '@core/theme/builtIn/ids';
 
 /** The id of the sample slide of a number. */

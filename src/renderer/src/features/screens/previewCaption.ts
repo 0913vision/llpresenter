@@ -1,5 +1,5 @@
-import type {MonitorInfo, MonitorList} from '@core/schema/monitors';
-import type {Screen} from '@core/schema/screens';
+import type {MonitorInfo, MonitorList} from '@core/schema/screens/monitors';
+import type {Screen} from '@core/schema/screens/screens';
 import {monitorPixelSize, sizeText, targetSize} from './displaySizes';
 import {
   monitorAssignment,

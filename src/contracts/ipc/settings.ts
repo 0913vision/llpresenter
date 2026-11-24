@@ -2,11 +2,11 @@ import {
   parseEditResult,
   refuseInvalidEdit,
   type EditResult,
-} from '@core/schema/contentEdit';
+} from '@core/schema/services/contentEdit';
 import {
   parsePreferencesValue,
   type Preferences,
-} from '@core/schema/preferences';
+} from '@core/schema/app/preferences';
 import {
   parseSettingsDocument,
   parseSettingsEdit,
@@ -15,7 +15,7 @@ import {
   type SettingsDocument,
   type SettingsEdit,
   type SettingsReadRequest,
-} from '@core/schema/settingsDocuments';
+} from '@core/schema/app/settingsDocuments';
 import {push, query, request, type IpcPort} from './endpoint';
 import {
   parseLabelColorPreview,
@@ -23,7 +23,7 @@ import {
   parseLabelColorPreviewReply,
   type LabelColorPreview,
   type LabelColorPreviewRequest,
-} from '@core/schema/labelColorPreview';
+} from '@core/schema/services/labelColorPreview';
 
 /** The calls that read and edit the preferences and the settings files. */
 export const settingsEndpoints = {

@@ -16,9 +16,9 @@ import {
 } from '@testing-library/react';
 import * as v from 'valibot';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {translationIdSchema} from '@core/schema/ids';
-import type {BibleLookupReply} from '@core/schema/bibleLookup';
-import {emptyLiveState} from '@core/schema/live';
+import {translationIdSchema} from '@core/schema/common/ids';
+import type {BibleLookupReply} from '@core/schema/bible/bibleLookup';
+import {emptyLiveState} from '@core/schema/live/live';
 import {bibleDocument, panelApi} from '@fixtures/contracts/ipc/bibleApi';
 import {lookupReply, lookupRequest} from '@fixtures/core/bibleLookups';
 import {formLookupReply} from '@fixtures/core/bibleReplies';

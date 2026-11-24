@@ -1,4 +1,4 @@
-import type {ThemeTextStyle} from '@core/schema/theme';
+import type {ThemeTextStyle} from '@core/schema/screens/theme';
 import {CONT_MARKER, contSizeOf} from '@core/bible';
 import {fontFamilyFor} from '../fontFamily';
 import styles from './theme.module.css';

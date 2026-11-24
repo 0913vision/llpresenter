@@ -1,5 +1,5 @@
 import type {JSX} from 'react';
-import type {SlideBackground} from '@core/schema/theme';
+import type {SlideBackground} from '@core/schema/screens/theme';
 import {createGradient, GRADIENT_PRESETS, APP_PICTURE_IDS} from '@core/theme';
 import {PropertyRow, SelectMenu} from '@renderer/ui';
 import {ColorProperty} from '../ColorProperty';

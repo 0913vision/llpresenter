@@ -1,6 +1,6 @@
 import {useEffect, useEffectEvent, useState} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
-import {APP_PROBLEM_LIMITS, type AppProblem} from '@core/schema/appProblem';
+import {APP_PROBLEM_LIMITS, type AppProblem} from '@core/schema/app/appProblem';
 import {noticeTime, warningNotice} from '@renderer/ui/popups/notices';
 import type {NoticeTarget} from './useOutputNotices';
 import {

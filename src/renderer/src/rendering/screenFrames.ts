@@ -1,13 +1,16 @@
 import type {LlpApi} from '@contracts/ipc/api';
-import type {LiveState} from '@core/schema/live';
-import type {MessageStyle} from '@core/schema/messages';
+import type {LiveState} from '@core/schema/live/live';
+import type {MessageStyle} from '@core/schema/tools/messages';
 import {
   isKeyBackground,
   messageBandFor,
   resolveMessageStyle,
 } from '@core/screens';
-import type {Timer} from '@core/schema/timers';
-import type {FontCatalog, FontCatalogSnapshot} from '@core/schema/fontCatalog';
+import type {Timer} from '@core/schema/tools/timers';
+import type {
+  FontCatalog,
+  FontCatalogSnapshot,
+} from '@core/schema/screens/fontCatalog';
 import type {RenderFrame, RenderScreen} from './layer';
 import {MainTimerClock} from './mainTimerClock';
 import {resolveRenderScreen} from './screenIdentity';

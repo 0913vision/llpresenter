@@ -9,9 +9,9 @@ import {
 import userEvent from '@testing-library/user-event';
 import type {JSX} from 'react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import type {SettingsDocument} from '@core/schema/settingsDocuments';
-import type {ThemeFile} from '@core/schema/theme';
-import type {Themes} from '@core/schema/themes';
+import type {SettingsDocument} from '@core/schema/app/settingsDocuments';
+import type {ThemeFile} from '@core/schema/screens/theme';
+import type {Themes} from '@core/schema/screens/themes';
 import {BUILT_IN_THEME_IDS} from '@core/theme/builtIn/ids';
 import {ThemeLeaveGuard} from '@renderer/features/screens/themes/themeLeaveGuard';
 import {useThemePanels} from '@renderer/features/screens/themes/useThemePanels';

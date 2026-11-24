@@ -1,7 +1,7 @@
 import {passageBook} from '@core/bible';
-import type {BibleLookupPassage} from '@core/schema/bibleLookup';
-import type {BiblePassage} from '@core/schema/biblePassage';
-import type {Slide, VerseReference} from '@core/schema/slide';
+import type {BibleLookupPassage} from '@core/schema/bible/bibleLookup';
+import type {BiblePassage} from '@core/schema/bible/biblePassage';
+import type {Slide, VerseReference} from '@core/schema/slides/slide';
 import {copySlide, makeSlide, transitionFor, type SlideMaking} from './make';
 import {withHideNext} from './nextText';
 

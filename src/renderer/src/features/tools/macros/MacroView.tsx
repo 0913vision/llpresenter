@@ -5,7 +5,7 @@ import type {
   MacroActionKind,
   Macro,
   MacroCollection,
-} from '@core/schema/macros';
+} from '@core/schema/tools/macros';
 import {MACRO_ACTION_MIME, readMacroActionDrag} from './macroPaletteCatalog';
 import {MacroGrid, MacroList, MacroRow, MacroTile} from '@renderer/ui';
 import type {Notice} from '@renderer/ui/popups/notices';

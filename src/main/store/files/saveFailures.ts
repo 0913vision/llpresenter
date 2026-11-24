@@ -2,7 +2,7 @@ import {
   saveFailedProblem,
   type AppProblem,
   type AppProblemOf,
-} from '@core/schema/appProblem';
+} from '@core/schema/app/appProblem';
 import type {Logger} from '../../base/log';
 
 /** How long waiting files wait before main writes them again by itself. */

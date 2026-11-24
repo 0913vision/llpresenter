@@ -1,6 +1,6 @@
 import {randomUUID} from 'node:crypto';
-import {createServiceItemId, type ServiceItemId} from '@core/schema/ids';
-import {isItemOfKind, type ServiceItem} from '@core/schema/service';
+import {createServiceItemId, type ServiceItemId} from '@core/schema/common/ids';
+import {isItemOfKind, type ServiceItem} from '@core/schema/services/service';
 
 export {normalizeSongTitle} from '@core/songs';
 

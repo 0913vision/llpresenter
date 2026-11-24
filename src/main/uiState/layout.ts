@@ -1,5 +1,5 @@
-import type {AppLayout} from '@core/schema/appConfig';
-import type {LayoutChange} from '@core/schema/uiState';
+import type {AppLayout} from '@core/schema/app/appConfig';
+import type {LayoutChange} from '@core/schema/app/uiState';
 
 /**
  * The layout with a change merged into its size class. A change sets only the

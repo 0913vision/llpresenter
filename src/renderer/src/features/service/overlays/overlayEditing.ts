@@ -1,6 +1,6 @@
-import type {PlacedOverlay} from '@core/schema/itemOverlays';
-import type {MediaItem} from '@core/schema/mediaList';
-import type {Screen} from '@core/schema/screens';
+import type {PlacedOverlay} from '@core/schema/services/itemOverlays';
+import type {MediaItem} from '@core/schema/media/mediaList';
+import type {Screen} from '@core/schema/screens/screens';
 
 /** What the 오버레이 clips need from the item they sit under. */
 export interface OverlayEditing {

@@ -1,7 +1,7 @@
 import type {
   OutputScreenStatus,
   OutputStatuses,
-} from '@core/schema/outputStatus';
+} from '@core/schema/live/outputStatus';
 import type {Notice, NoticeAction} from '@renderer/ui/popups/notices';
 
 /** How the cards name one screen, such as 무대 and 무대 화면. */

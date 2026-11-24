@@ -1,7 +1,7 @@
 import {useState, type JSX} from 'react';
-import type {MediaItem} from '@core/schema/mediaList';
-import type {PlacedOverlay} from '@core/schema/itemOverlays';
-import {parseMediaId, type MediaId} from '@core/schema/ids';
+import type {MediaItem} from '@core/schema/media/mediaList';
+import type {PlacedOverlay} from '@core/schema/services/itemOverlays';
+import {parseMediaId, type MediaId} from '@core/schema/common/ids';
 import {Dialog} from '@renderer/ui/popups/Dialog';
 import {Select} from '@renderer/ui/choices/Select';
 import {TextArea} from '@renderer/ui/fields/TextArea';

@@ -13,13 +13,13 @@ import type {
   BackUpNowResult,
   ChooseLocationResult,
   LocationsView,
-} from '@core/schema/libraryLocations';
+} from '@core/schema/app/libraryLocations';
 import {
   parseSettingsDocument,
   type SettingsDocument,
-} from '@core/schema/settingsDocuments';
+} from '@core/schema/app/settingsDocuments';
 import {themes as sampleThemes} from '@fixtures/core/themeOutput';
-import {defaultPreferences} from '@core/schema/preferences';
+import {defaultPreferences} from '@core/schema/app/preferences';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {
   hoverForTooltip,

@@ -5,8 +5,11 @@ import {
   type DragEvent,
   type JSX,
 } from 'react';
-import type {Screen} from '@core/schema/screens';
-import {MONITOR_SCREEN_ID_MAX, type MonitorList} from '@core/schema/monitors';
+import type {Screen} from '@core/schema/screens/screens';
+import {
+  MONITOR_SCREEN_ID_MAX,
+  type MonitorList,
+} from '@core/schema/screens/monitors';
 import {Button} from '@renderer/ui';
 import {classNames} from '@renderer/ui/classNames';
 import {sendLive} from '@renderer/session/live';

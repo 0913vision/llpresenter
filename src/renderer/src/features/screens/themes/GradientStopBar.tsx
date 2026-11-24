@@ -1,5 +1,5 @@
 import {useEffect, useLayoutEffect, useRef, type JSX} from 'react';
-import {THEME_FILE_LIMITS} from '@core/schema/theme';
+import {THEME_FILE_LIMITS} from '@core/schema/screens/theme';
 import {limitReason} from '@core/common/limitReason';
 import {moveGradientStop, type GradientBackground} from '@core/theme';
 import {backgroundPaint} from '@renderer/rendering/themeBackground';

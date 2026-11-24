@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {createServiceItemId} from '@core/schema/ids';
+import {createServiceItemId} from '@core/schema/common/ids';
 import {
   SONG,
   SUNDAY,

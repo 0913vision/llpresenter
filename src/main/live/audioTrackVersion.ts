@@ -1,4 +1,4 @@
-import type {AudioLayer, LiveState} from '@core/schema/live';
+import type {AudioLayer, LiveState} from '@core/schema/live/live';
 
 /** Allocates independently of the state version, which a batch compresses. */
 export function nextAudioTrackVersion(

@@ -1,16 +1,16 @@
 import {useMemo, useState, type JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
-import type {LibrarySong} from '@core/schema/contentDocuments';
-import {createSongId} from '@core/schema/ids';
-import {SONG_SCHEMA_VERSION, type Song} from '@core/schema/song';
-import type {Label} from '@core/schema/labels';
-import type {Preferences} from '@core/schema/preferences';
-import {SONG_IMPORT_LIMITS} from '@core/schema/songImport';
+import type {LibrarySong} from '@core/schema/services/contentDocuments';
+import {createSongId} from '@core/schema/common/ids';
+import {SONG_SCHEMA_VERSION, type Song} from '@core/schema/songs/song';
+import type {Label} from '@core/schema/services/labels';
+import type {Preferences} from '@core/schema/app/preferences';
+import {SONG_IMPORT_LIMITS} from '@core/schema/songs/songImport';
 import type {
   TextImportDraft,
   TextImportOptions,
   TextImportSource,
-} from '@core/schema/textImport';
+} from '@core/schema/songs/textImport';
 import {TextField} from '@renderer/ui';
 import {Dialog} from '@renderer/ui/popups/Dialog';
 import type {Notice} from '@renderer/ui/popups/notices';

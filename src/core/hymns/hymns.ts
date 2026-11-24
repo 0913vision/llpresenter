@@ -1,4 +1,4 @@
-import type {Hymn, Hymnal} from '@core/schema/hymn';
+import type {Hymn, Hymnal} from '@core/schema/songs/hymn';
 import newHymnal from './newHymnal.json';
 import unifiedHymnal from './unifiedHymnal.json';
 

@@ -1,8 +1,8 @@
 import {mkdir, readFile, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';
-import {createMediaId} from '@core/schema/ids';
-import {parseMediaImportJournal} from '@core/schema/mediaImportJournal';
+import {createMediaId} from '@core/schema/common/ids';
+import {parseMediaImportJournal} from '@core/schema/media/mediaImportJournal';
 import {makeTempDir} from '@fixtures/tempDir';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {EMPTY_MEDIA_LIST} from '@main/store/settings/defaults';

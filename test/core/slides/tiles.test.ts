@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {slideTiles} from '@core/slides/tiles';
-import type {Slide} from '@core/schema/slide';
-import {AUTO_TOKENS} from '@core/schema/slideContent';
+import type {Slide} from '@core/schema/slides/slide';
+import {AUTO_TOKENS} from '@core/schema/slides/slideContent';
 import {lyricsSlide, slideOf, verseOf} from '@fixtures/core/slides';
 
 describe('slideTiles', () => {

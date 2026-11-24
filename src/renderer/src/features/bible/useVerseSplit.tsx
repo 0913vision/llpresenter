@@ -8,9 +8,9 @@ import {
   verseSlides,
   versesOfPassage,
 } from '@core/slides';
-import type {BiblePassage} from '@core/schema/biblePassage';
-import type {SlideId} from '@core/schema/ids';
-import type {VerseReference} from '@core/schema/slide';
+import type {BiblePassage} from '@core/schema/bible/biblePassage';
+import type {SlideId} from '@core/schema/common/ids';
+import type {VerseReference} from '@core/schema/slides/slide';
 import {
   selectAdded,
   focusedSlide,

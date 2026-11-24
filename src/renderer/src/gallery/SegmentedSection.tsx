@@ -8,7 +8,10 @@ import {
   PanelTabs,
 } from '../ui/panels/Panel';
 import {PropertyRow, Properties} from '../ui/panels/PropertyRow';
-import {SegmentedControl, type SegmentOption} from '../ui/choices/SegmentedControl';
+import {
+  SegmentedControl,
+  type SegmentOption,
+} from '../ui/choices/SegmentedControl';
 import styles from './SegmentedSection.module.css';
 import {
   ignore,

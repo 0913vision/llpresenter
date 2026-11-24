@@ -1,6 +1,6 @@
-import type {AudioSource} from '@core/schema/liveActions';
-import {audioPositionSeconds} from '@core/schema/audioState';
-import {outputMediaProperties} from '@core/schema/outputMedia';
+import type {AudioSource} from '@core/schema/live/liveActions';
+import {audioPositionSeconds} from '@core/schema/media/audioState';
+import {outputMediaProperties} from '@core/schema/media/outputMedia';
 import {MissingLiveTargetError} from '../commandErrors';
 import {setLayer, updateLayer, type LiveHistory} from '../history';
 import {defineSlice, type SliceContext} from '../slice';

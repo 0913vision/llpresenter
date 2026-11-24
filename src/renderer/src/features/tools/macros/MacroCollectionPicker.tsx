@@ -1,9 +1,12 @@
-import {NAME_LIMIT} from '@core/schema/primitives';
+import {NAME_LIMIT} from '@core/schema/common/primitives';
 import {useMenuHandoff} from '@renderer/ui/menus/useMenuHandoff';
 import {Fragment, useLayoutEffect, useState, type JSX} from 'react';
 import {limitReason} from '@core/common/limitReason';
-import {parseMacroCollectionId} from '@core/schema/ids';
-import {MACRO_FILE_LIMITS, type MacroCollection} from '@core/schema/macros';
+import {parseMacroCollectionId} from '@core/schema/common/ids';
+import {
+  MACRO_FILE_LIMITS,
+  type MacroCollection,
+} from '@core/schema/tools/macros';
 import {Icon, Select} from '@renderer/ui';
 import {classNames} from '@renderer/ui/classNames';
 import {Popover} from '@renderer/ui/popups/Popover';

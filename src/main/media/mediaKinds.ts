@@ -1,6 +1,6 @@
 import {extname} from 'node:path';
 import type {FileFilter} from 'electron';
-import type {MediaItem} from '@core/schema/mediaList';
+import type {MediaItem} from '@core/schema/media/mediaList';
 
 export type MediaKind = MediaItem['kind'];
 

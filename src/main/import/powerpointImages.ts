@@ -1,8 +1,8 @@
-import {THEME_CANVAS} from '@core/schema/screens';
+import {THEME_CANVAS} from '@core/schema/screens/screens';
 import {spawn, type ChildProcess} from 'node:child_process';
 import {writeFileSync} from 'node:fs';
 import {join} from 'node:path';
-import {POWERPOINT_IMPORT_LIMITS} from '@core/schema/textImportLimits';
+import {POWERPOINT_IMPORT_LIMITS} from '@core/schema/songs/textImportLimits';
 
 /** Kept as a literal so paths are passed in the environment, never interpolated. */
 // NOTE(0913vision): Slides export at the canvas size; the script names it

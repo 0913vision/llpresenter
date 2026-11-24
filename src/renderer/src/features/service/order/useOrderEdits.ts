@@ -1,7 +1,7 @@
 import {liveItemReason} from '@renderer/session/liveGuard';
 import type {RefObject} from 'react';
 import {orderedSelection} from '@core/common/selectionOrder';
-import {createServiceItemId} from '@core/schema/ids';
+import {createServiceItemId} from '@core/schema/common/ids';
 import type {ServiceRow} from '@core/presentation';
 import type {OpenServiceResult} from '@renderer/session/openService';
 import {

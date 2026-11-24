@@ -1,8 +1,12 @@
-import type {ThemeId} from '@core/schema/ids';
-import type {Slide} from '@core/schema/slide';
-import type {Screen} from '@core/schema/screens';
-import type {OwnThemeScreen, SlidePurpose, ThemeFile} from '@core/schema/theme';
-import type {Themes} from '@core/schema/themes';
+import type {ThemeId} from '@core/schema/common/ids';
+import type {Slide} from '@core/schema/slides/slide';
+import type {Screen} from '@core/schema/screens/screens';
+import type {
+  OwnThemeScreen,
+  SlidePurpose,
+  ThemeFile,
+} from '@core/schema/screens/theme';
+import type {Themes} from '@core/schema/screens/themes';
 import {BUILT_IN_THEMES} from './builtIn';
 import {BUILT_IN_THEME_IDS} from './builtIn/ids';
 import {sameJson} from '@core/common/sameJson';

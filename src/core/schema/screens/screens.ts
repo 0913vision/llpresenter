@@ -1,0 +1,139 @@
+import * as v from 'valibot';
+import {monitorIdentitySchema} from './monitorIdentity';
+import type {Result} from '@core/common/result';
+import {
+  parseFile,
+  serializeFile,
+  type FileError,
+  type FileFormat,
+  type LoadedFile,
+  type ReadonlyKnown,
+} from '../common/fileFormat';
+import {messageStyleIdSchema, screenIdSchema} from '../common/ids';
+import type {MigrationStep} from '../common/migration';
+import {
+  jsonObject,
+  hexColor,
+  listWithUniqueIds,
+  percent,
+  pixelCount,
+  pixelPosition,
+  pixelSize,
+  positiveInteger,
+  positiveNumber,
+  wholePixelPosition,
+} from '../common/primitives';
+
+const displaySchema = jsonObject({
+  identity: v.exactOptional(monitorIdentitySchema),
+  id: v.pipe(v.number(), v.integer()),
+  name: v.string(),
+  number: positiveInteger,
+  bounds: jsonObject({
+    x: wholePixelPosition,
+    y: wholePixelPosition,
+    width: pixelCount,
+    height: pixelCount,
+  }),
+  scaleFactor: positiveNumber,
+});
+
+/** Default name advertised by the broadcast sender. */
+export const NDI_DEFAULT_SOURCE_NAME = 'LOVELIGHT 방송 화면';
+
+/** Default for an NDI screen without a stored acceleration preference. */
+export const NDI_DEFAULT_HARDWARE_ACCELERATION = true;
+
+/** Supported NDI frame rates and the default for existing screens. */
+export const NDI_FRAME_RATES = [29.97, 30, 59.94, 60] as const;
+export const NDI_DEFAULT_FPS = 30;
+
+/** Maximum NDI source-name length in characters. */
+export const NDI_SOURCE_NAME_MAX = 64;
+
+const ndiSchema = jsonObject({
+  sourceName: v.exactOptional(
+    v.pipe(v.string(), v.maxLength(NDI_SOURCE_NAME_MAX)),
+  ),
+  resolution: v.exactOptional(pixelSize),
+  fps: v.exactOptional(v.picklist(NDI_FRAME_RATES)),
+  alpha: v.exactOptional(v.boolean()),
+  hardwareAcceleration: v.exactOptional(v.boolean()),
+  networkInterface: v.exactOptional(v.string()),
+  group: v.exactOptional(v.string()),
+});
+
+/** The kinds of screens in the order every list shows them: 청중, 무대, 방송. */
+/**
+ * The canvas every screen is drawn on: themes, overlays and messages are laid
+ * out on it, and a capture window and an NDI picture have its size, one to one.
+ */
+export const THEME_CANVAS = {width: 1920, height: 1080} as const;
+
+export const SCREEN_KIND_ORDER = ['audience', 'stage', 'broadcast'] as const;
+
+/** Screens in the order of their kinds, keeping the saved order in a kind. */
+export function inScreenOrder<
+  T extends {readonly kind: (typeof SCREEN_KIND_ORDER)[number]},
+>(screens: readonly T[]): readonly T[] {
+  return screens.toSorted(
+    (a, b) =>
+      SCREEN_KIND_ORDER.indexOf(a.kind) - SCREEN_KIND_ORDER.indexOf(b.kind),
+  );
+}
+
+export const screenSchema = jsonObject({
+  id: screenIdSchema,
+  name: v.string(),
+  kind: v.picklist(SCREEN_KIND_ORDER),
+  messageStyleId: v.exactOptional(messageStyleIdSchema),
+  method: v.picklist(['fullscreen', 'window', 'capture', 'ndi']),
+  emptyColor: v.exactOptional(hexColor),
+  display: v.exactOptional(displaySchema),
+  resolution: v.exactOptional(pixelSize),
+  onDisconnect: v.exactOptional(v.picklist(['window', 'off'])),
+  alwaysOnTop: v.exactOptional(v.boolean()),
+  edgeMargin: v.exactOptional(percent),
+  offset: v.exactOptional(jsonObject({x: pixelPosition, y: pixelPosition})),
+  previewBackground: v.exactOptional(v.picklist(['green', 'black', 'checker'])),
+  ndi: v.exactOptional(ndiSchema),
+});
+
+export const screensSchema = jsonObject({
+  format: v.literal('llsettings.screens'),
+  schemaVersion: positiveInteger,
+  screens: listWithUniqueIds(screenSchema),
+});
+
+const screensMigrations: readonly MigrationStep[] = [];
+
+const screensFormat: FileFormat<typeof screensSchema> = {
+  format: 'llsettings.screens',
+  schema: screensSchema,
+  migrations: screensMigrations,
+};
+
+/** `screens.json`: the output screens in list order. */
+export type ScreensFile = ReadonlyKnown<v.InferOutput<typeof screensSchema>>;
+
+/**
+ * One output screen. An absent optional field means its default: 창으로
+ * 바꾸기 for `onDisconnect`, off for `alwaysOnTop`, no edge margin or offset,
+ * a green preview background, and 1920 x 1080 for a capture window. A full
+ * screen without `display` is unassigned.
+ */
+export type Screen = ScreensFile['screens'][number];
+
+export function parseScreens(
+  text: string,
+  file: string,
+): Result<LoadedFile<ScreensFile>, FileError> {
+  return parseFile(screensFormat, text, file);
+}
+
+export function serializeScreens(
+  screens: ScreensFile,
+  file: string,
+): Result<string, FileError> {
+  return serializeFile(screensFormat, screens, file);
+}

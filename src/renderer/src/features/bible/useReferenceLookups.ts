@@ -6,7 +6,7 @@ import {
   selectedBook,
 } from '@core/bible';
 import type {BibleLookupApi} from '@contracts/ipc/bible';
-import type {BibleLookupPassage} from '@core/schema/bibleLookup';
+import type {BibleLookupPassage} from '@core/schema/bible/bibleLookup';
 import {LIVE_BOUNDS, fullReferenceCandidate} from './referenceForm';
 import {useBibleLookup} from './useBibleLookup';
 import type {ReferenceEntry} from './useReferenceEntry';

@@ -6,8 +6,8 @@ import type {
   Unsubscribe,
 } from '@contracts/ipc/endpoint';
 import type {Result} from '@core/common/result';
-import {RENDERER_LOG_LIMITS} from '@core/schema/ipcPayloads';
-import type {PayloadError} from '@core/schema/payload';
+import {RENDERER_LOG_LIMITS} from '@core/schema/app/ipcPayloads';
+import type {PayloadError} from '@core/schema/common/payload';
 
 /** The part of Electron's `ipcRenderer` that the port uses. */
 export interface IpcRendererPort {

@@ -1,8 +1,8 @@
 import {describe, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@core/schema/live';
-import {createScreenId} from '@core/schema/ids';
-import type {SettingsReader} from '@core/schema/settingsReader';
-import {RECOVERY_RECORD_LIMITS} from '@core/schema/recoveryRecord';
+import {emptyLiveState} from '@core/schema/live/live';
+import {createScreenId} from '@core/schema/common/ids';
+import type {SettingsReader} from '@core/schema/app/settingsReader';
+import {RECOVERY_RECORD_LIMITS} from '@core/schema/app/recoveryRecord';
 import {overlaySettings} from '@fixtures/core/overlays';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {

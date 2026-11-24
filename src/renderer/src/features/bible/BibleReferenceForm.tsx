@@ -11,12 +11,12 @@ import {
   type RefObject,
 } from 'react';
 import type {BibleLookupApi} from '@contracts/ipc/bible';
-import type {RecentPassage} from '@core/schema/bible';
+import type {RecentPassage} from '@core/schema/bible/bible';
 import {
   BIBLE_LOOKUP_LIMITS,
   type BibleLookupPassage,
-} from '@core/schema/bibleLookup';
-import type {TranslationId} from '@core/schema/ids';
+} from '@core/schema/bible/bibleLookup';
+import type {TranslationId} from '@core/schema/common/ids';
 import {TextField} from '@renderer/ui';
 import {BibleSuggestions} from './BibleSuggestions';
 import {useReferenceEdits} from './useReferenceEdits';

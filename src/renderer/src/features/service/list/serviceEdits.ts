@@ -1,12 +1,12 @@
 import type {LlpApi} from '@contracts/ipc/api';
-import type {EditResult} from '@core/schema/contentEdit';
+import type {EditResult} from '@core/schema/services/contentEdit';
 import {copyName} from '@core/common/copyName';
 import {
   createServiceItemId,
   serviceIdSchema,
   type ServiceId,
-} from '@core/schema/ids';
-import {parsePayload} from '@core/schema/payload';
+} from '@core/schema/common/ids';
+import {parsePayload} from '@core/schema/common/payload';
 import {logFailure} from './useServiceSources';
 
 /**

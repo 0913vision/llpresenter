@@ -4,7 +4,7 @@ import {join} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {makeTempDir} from '@fixtures/tempDir';
 import {readTextImport, type TextImportInputs} from '@main/import/read';
-import {TEXT_IMPORT_LIMITS} from '@core/schema/textImportLimits';
+import {TEXT_IMPORT_LIMITS} from '@core/schema/songs/textImportLimits';
 
 function inputs(
   path: string | null,

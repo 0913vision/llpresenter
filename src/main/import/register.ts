@@ -5,8 +5,8 @@ import type {
   TextImportPreviewResult,
   TextImportReadRequest,
   TextImportReadResult,
-} from '@core/schema/textImport';
-import {TEXT_IMPORT_LIMITS} from '@core/schema/textImportLimits';
+} from '@core/schema/songs/textImport';
+import {TEXT_IMPORT_LIMITS} from '@core/schema/songs/textImportLimits';
 import {convertTextImport} from '@core/songs';
 import {IpcHost} from '../base/ipcHost';
 import type {Logger} from '../base/log';

@@ -13,7 +13,7 @@ import {
 } from 'react';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {LoadReadinessContext} from '@renderer/ui/loadReadiness';
-import type {MediaImportProgress} from '@core/schema/mediaEdit';
+import type {MediaImportProgress} from '@core/schema/media/mediaEdit';
 import {WorkspaceNavigation} from '@renderer/platform/WorkspaceNavigation';
 import {ALL_MEDIA, chosenPlaylist, type MediaListChoice} from './mediaEntries';
 import {

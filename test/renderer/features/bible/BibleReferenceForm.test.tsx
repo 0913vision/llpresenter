@@ -11,7 +11,7 @@ import {beforeEach, describe, expect, it, vi} from 'vitest';
 import type {
   BibleLookupPassage,
   BibleLookupReply,
-} from '@core/schema/bibleLookup';
+} from '@core/schema/bible/bibleLookup';
 import {BibleReferenceForm} from '@renderer/features/bible/BibleReferenceForm';
 import {Dialog} from '@renderer/ui/popups/Dialog';
 import {formLookupReply} from '@fixtures/core/bibleReplies';

@@ -1,6 +1,6 @@
 import {expect, it} from 'vitest';
-import {defaultSlideTransitions} from '@core/schema/preferences';
-import type {ServiceItemOf} from '@core/schema/service';
+import {defaultSlideTransitions} from '@core/schema/app/preferences';
+import type {ServiceItemOf} from '@core/schema/services/service';
 import {withText} from '@core/slides/edits';
 import {
   SERMON_TITLE_BOX,

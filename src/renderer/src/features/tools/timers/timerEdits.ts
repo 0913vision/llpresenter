@@ -1,11 +1,11 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import {duplicateAfter} from '@core/common/duplicateAfter';
-import type {TimerId} from '@core/schema/ids';
-import type {EditResult} from '@core/schema/contentEdit';
-import type {TimerDelete} from '@core/schema/timerDeletion';
-import type {TimerRename} from '@core/schema/timerEdit';
-import {NAME_LIMIT} from '@core/schema/primitives';
-import {MAX_TIMER_DEFINITIONS} from '@core/schema/timers';
+import type {TimerId} from '@core/schema/common/ids';
+import type {EditResult} from '@core/schema/services/contentEdit';
+import type {TimerDelete} from '@core/schema/tools/timerDeletion';
+import type {TimerRename} from '@core/schema/tools/timerEdit';
+import {NAME_LIMIT} from '@core/schema/common/primitives';
+import {MAX_TIMER_DEFINITIONS} from '@core/schema/tools/timers';
 import {
   nextTimerName,
   type TimerEditDraft,

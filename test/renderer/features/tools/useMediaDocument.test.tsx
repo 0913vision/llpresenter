@@ -1,6 +1,9 @@
 import {act, cleanup, renderHook, waitFor} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
-import {parseMediaDocument, type MediaDocument} from '@core/schema/mediaEdit';
+import {
+  parseMediaDocument,
+  type MediaDocument,
+} from '@core/schema/media/mediaEdit';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {deferred} from '@fixtures/renderer/features/tools/quickTesting';
 import {useMediaDocument} from '@renderer/features/tools/useMediaDocument';

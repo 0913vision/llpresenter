@@ -1,5 +1,5 @@
 import type {ScreenSummary} from '@renderer/platform/screens';
-import {MAX_LIVE_BATCH_COMMANDS} from '@core/schema/liveCommand';
+import {MAX_LIVE_BATCH_COMMANDS} from '@core/schema/live/liveCommand';
 import {sendLive} from '@renderer/session/live';
 import {stopItem} from '@renderer/session/clear';
 import {menuAvailability, type MenuItem} from '@renderer/ui/menus/menuModel';

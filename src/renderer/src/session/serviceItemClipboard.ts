@@ -1,7 +1,7 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import type {Result} from '@core/common/result';
-import {createServiceItemId, type ServiceId} from '@core/schema/ids';
-import {SERVICE_LIMITS, type ServiceItem} from '@core/schema/service';
+import {createServiceItemId, type ServiceId} from '@core/schema/common/ids';
+import {SERVICE_LIMITS, type ServiceItem} from '@core/schema/services/service';
 
 const CLIPBOARD_BYTES = 16 * 1024 * 1024;
 type ClipboardApi = Pick<LlpApi, 'services' | 'log'>;

@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
-import type {OutputStatuses} from '@core/schema/outputStatus';
+import type {OutputStatuses} from '@core/schema/live/outputStatus';
 import {screenGroups} from '@core/screens/screenRows';
-import type {MonitorList} from '@core/schema/monitors';
+import type {MonitorList} from '@core/schema/screens/monitors';
 import {
   CAPTIONS_ID,
   MAIN_ID,

@@ -1,7 +1,7 @@
 import {settingsDocument} from '@fixtures/core/settingsDocument';
-import type {SettingsReader} from '@core/schema/settingsReader';
+import type {SettingsReader} from '@core/schema/app/settingsReader';
 import {describe, expect, it, vi} from 'vitest';
-import {MAX_TARGET_SCREENS} from '@core/schema/overlayState';
+import {MAX_TARGET_SCREENS} from '@core/schema/live/overlayState';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {MissingLiveTargetError} from '@main/live/commandErrors';
 import {MAIN, STAGE, overlaySettings} from '@fixtures/core/overlays';

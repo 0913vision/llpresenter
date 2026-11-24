@@ -1,10 +1,10 @@
-import {layerKinds, type LiveState} from '@core/schema/live';
+import {layerKinds, type LiveState} from '@core/schema/live/live';
 import {
   MAX_CLEAR_EFFECTS,
   type ClearEffect,
   type ClearFade,
-} from '@core/schema/clearFade';
-import type {PropId} from '@core/schema/ids';
+} from '@core/schema/live/clearFade';
+import type {PropId} from '@core/schema/common/ids';
 import type {LiveHistory} from './history';
 
 function isCleared(state: LiveState, target: ClearEffect['target']): boolean {

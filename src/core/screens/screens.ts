@@ -5,7 +5,7 @@ export const STARTER_SCREEN_IDS = {
   stage: '00000000-0000-4000-8000-000000000003',
 } as const;
 
-export {SCREEN_KIND_ORDER} from '@core/schema/screens';
+export {SCREEN_KIND_ORDER} from '@core/schema/screens/screens';
 
 export const KIND_NAMES = {
   audience: '청중',

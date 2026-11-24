@@ -1,6 +1,6 @@
 import {useEffect, useRef, useState, type JSX} from 'react';
 import {Checkbox} from '@renderer/ui/choices/Checkbox';
-import type {PictureFit} from '@core/schema/picturePlace';
+import type {PictureFit} from '@core/schema/media/picturePlace';
 import {NumberField} from '@renderer/ui/fields/NumberField';
 import {PICTURE_FIT_OPTIONS} from '@renderer/ui/choices/mediaChoices';
 import {PropertyRow} from '@renderer/ui/panels/PropertyRow';

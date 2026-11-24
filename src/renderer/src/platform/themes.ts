@@ -1,15 +1,15 @@
 import {create} from 'zustand';
 import type {LlpApi} from '@contracts/ipc/api';
-import type {ShowTile} from '@core/schema/showService';
+import type {ShowTile} from '@core/schema/services/showService';
 import {
   defaultSlideTransitions,
   withPreferenceDefaults,
   type SlideTransitionDefaults,
-} from '@core/schema/preferences';
-import type {Screen} from '@core/schema/screens';
-import type {SettingsName} from '@core/schema/settingsDocuments';
-import type {ThemeFile} from '@core/schema/theme';
-import type {Themes} from '@core/schema/themes';
+} from '@core/schema/app/preferences';
+import type {Screen} from '@core/schema/screens/screens';
+import type {SettingsName} from '@core/schema/app/settingsDocuments';
+import type {ThemeFile} from '@core/schema/screens/theme';
+import type {Themes} from '@core/schema/screens/themes';
 import type {SlideMaking} from '@core/slides';
 import {themeOfSlide} from '@core/theme';
 

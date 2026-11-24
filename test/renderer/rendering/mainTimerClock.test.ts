@@ -1,9 +1,9 @@
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import type {WallClockSample} from '@core/schema/wallClock';
+import type {WallClockSample} from '@core/schema/app/wallClock';
 import {stageClockText} from '@renderer/rendering/stageClock';
 import {MainTimerClock} from '@renderer/rendering/mainTimerClock';
 import {timerText} from '@core/timers/timerClock';
-import {createTimerId} from '@core/schema/ids';
+import {createTimerId} from '@core/schema/common/ids';
 
 afterEach(() => {
   vi.restoreAllMocks();

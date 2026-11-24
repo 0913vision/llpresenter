@@ -1,9 +1,9 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import {defaultPreferences} from '@core/schema/preferences';
+import {defaultPreferences} from '@core/schema/app/preferences';
 import type {
   SettingsDocument,
   SettingsEdit,
-} from '@core/schema/settingsDocuments';
+} from '@core/schema/app/settingsDocuments';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {
   loginItemsAllowed,

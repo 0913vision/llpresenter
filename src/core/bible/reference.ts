@@ -1,8 +1,8 @@
 import {displayReference} from './displayReference';
 import type {Result} from '@core/common/result';
-import {BIBLE_LOOKUP_LIMITS} from '@core/schema/bibleLookup';
-import type {BibleChunkHeader} from '@core/schema/bibleChunks';
-import type {TranslationId} from '@core/schema/ids';
+import {BIBLE_LOOKUP_LIMITS} from '@core/schema/bible/bibleLookup';
+import type {BibleChunkHeader} from '@core/schema/bible/bibleChunks';
+import type {TranslationId} from '@core/schema/common/ids';
 import type {BibleBook} from './bibleBooks';
 import {matchBooks} from './bibleMatching';
 

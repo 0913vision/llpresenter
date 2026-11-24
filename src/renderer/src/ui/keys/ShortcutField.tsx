@@ -1,5 +1,5 @@
 import {useRef, useState, type JSX, type KeyboardEvent} from 'react';
-import type {KeyBinding} from '@core/schema/shortcuts';
+import type {KeyBinding} from '@core/schema/app/shortcuts';
 import {PhysicalModifiers} from '@core/shortcuts';
 import {classNames} from '../classNames';
 import {shortcutPress} from './shortcutKeys';

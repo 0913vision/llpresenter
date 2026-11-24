@@ -1,5 +1,5 @@
 import type {RefObject} from 'react';
-import type {LibrarySong} from '@core/schema/contentDocuments';
+import type {LibrarySong} from '@core/schema/services/contentDocuments';
 import type {contentDeleteHistory} from '@renderer/platform/contentDeleteHistory';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {deleteSelection} from '@renderer/ui/lists/deleteSelection';

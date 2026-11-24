@@ -1,7 +1,10 @@
 import {act, renderHook, waitFor} from '@testing-library/react';
 import type {ReactNode} from 'react';
 import {describe, expect, it, vi} from 'vitest';
-import type {MediaDocument, MediaImportProgress} from '@core/schema/mediaEdit';
+import type {
+  MediaDocument,
+  MediaImportProgress,
+} from '@core/schema/media/mediaEdit';
 import {WorkspaceNavigation} from '@renderer/platform/WorkspaceNavigation';
 import {
   audioPlaylistId,

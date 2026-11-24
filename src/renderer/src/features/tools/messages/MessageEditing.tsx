@@ -1,5 +1,5 @@
 import {nameReason} from '@renderer/ui/fields/nameReason';
-import {NAME_LIMIT} from '@core/schema/primitives';
+import {NAME_LIMIT} from '@core/schema/common/primitives';
 import {RenameDialog} from '@renderer/ui/popups/RenameDialog';
 import {PanelAction} from '@renderer/ui/panels/PanelActionSlot';
 import {limitReason} from '@core/common/limitReason';
@@ -12,9 +12,9 @@ import {
 import {useRef, useState, type JSX, type ReactNode} from 'react';
 import {deleteSelection} from '@renderer/ui/lists/deleteSelection';
 import {useMenuHandoff} from '@renderer/ui/menus/useMenuHandoff';
-import {createMessageTemplateId} from '@core/schema/ids';
-import type {Screen} from '@core/schema/screens';
-import type {MessageTemplate} from '@core/schema/messages';
+import {createMessageTemplateId} from '@core/schema/common/ids';
+import type {Screen} from '@core/schema/screens/screens';
+import type {MessageTemplate} from '@core/schema/tools/messages';
 import {MAX_MESSAGE_CHARACTERS} from '@core/overlays';
 import type {NamedDocument} from '@renderer/platform/useSettingsDocument';
 import {

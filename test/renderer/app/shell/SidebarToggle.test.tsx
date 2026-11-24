@@ -4,7 +4,7 @@ import type {JSX} from 'react';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import type {LlpApi} from '@contracts/ipc/api';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import type {UiState} from '@core/schema/uiState';
+import type {UiState} from '@core/schema/app/uiState';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
 import type {SizeClass} from '@renderer/ui/panels/sizeClass';
 import {renderWithScreenSummaries as render} from '@fixtures/renderer/platform/screenSummaries';

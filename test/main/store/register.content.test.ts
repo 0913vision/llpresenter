@@ -10,9 +10,9 @@ import {
 import {contentEndpoints} from '@contracts/ipc/content';
 import {liveEndpoints} from '@contracts/ipc/live';
 import {serviceEndpoints} from '@contracts/ipc/service';
-import {parseEditResult} from '@core/schema/contentEdit';
-import {parseSong} from '@core/schema/song';
-import {parseShowService} from '@core/schema/showService';
+import {parseEditResult} from '@core/schema/services/contentEdit';
+import {parseSong} from '@core/schema/songs/song';
+import {parseShowService} from '@core/schema/services/showService';
 import {readFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';

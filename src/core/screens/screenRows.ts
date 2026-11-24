@@ -1,6 +1,6 @@
-import type {OutputStatuses} from '@core/schema/outputStatus';
-import type {Screen} from '@core/schema/screens';
-import type {MonitorList} from '@core/schema/monitors';
+import type {OutputStatuses} from '@core/schema/live/outputStatus';
+import type {Screen} from '@core/schema/screens/screens';
+import type {MonitorList} from '@core/schema/screens/monitors';
 import {monitorAssignment} from './monitorAssignment';
 
 /** A screen row's health dot: none while the output is off. */

@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {LiveStore} from '@main/live/store';
-import {emptyLiveState} from '@core/schema/live';
-import {parseLiveState} from '@core/schema/liveState';
+import {emptyLiveState} from '@core/schema/live/live';
+import {parseLiveState} from '@core/schema/live/liveState';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 
 const uuid = (index: number) =>

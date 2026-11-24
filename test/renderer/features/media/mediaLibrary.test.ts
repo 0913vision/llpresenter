@@ -1,8 +1,8 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import type {MediaId} from '@core/schema/ids';
+import type {MediaId} from '@core/schema/common/ids';
 import type {Notice} from '@renderer/ui/popups/notices';
-import {MEDIA_LIMITS} from '@core/schema/mediaList';
-import type {MediaImportRequest} from '@core/schema/mediaEdit';
+import {MEDIA_LIMITS} from '@core/schema/media/mediaList';
+import type {MediaImportRequest} from '@core/schema/media/mediaEdit';
 import {
   audioPlaylistId,
   mediaDocument,

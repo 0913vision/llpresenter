@@ -1,7 +1,7 @@
 import {EventEmitter} from 'node:events';
 import {beforeEach, expect, onTestFinished, vi} from 'vitest';
-import type {LiveCommand} from '@core/schema/liveCommand';
-import type {LiveState} from '@core/schema/live';
+import type {LiveCommand} from '@core/schema/live/liveCommand';
+import type {LiveState} from '@core/schema/live/live';
 import {makeTempDir} from '@fixtures/tempDir';
 import type {LiveStore} from '@main/live/store';
 import type {MediaBackendRegistration} from '@main/media/register';

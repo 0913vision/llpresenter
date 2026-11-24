@@ -1,7 +1,7 @@
-import {createScreenId, type ThemeId} from '@core/schema/ids';
-import type {LiveThemeOutput} from '@core/schema/liveTheme';
-import type {Screen} from '@core/schema/screens';
-import type {Themes} from '@core/schema/themes';
+import {createScreenId, type ThemeId} from '@core/schema/common/ids';
+import type {LiveThemeOutput} from '@core/schema/live/liveTheme';
+import type {Screen} from '@core/schema/screens/screens';
+import type {Themes} from '@core/schema/screens/themes';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
 import {BUILT_IN_THEMES} from '@core/theme/builtIn';
 import {BUILT_IN_THEME_IDS} from '@core/theme/builtIn/ids';

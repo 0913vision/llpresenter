@@ -1,7 +1,7 @@
 import {useRef, useState} from 'react';
 import {mediaLoops} from '@core/media';
-import type {MediaId} from '@core/schema/ids';
-import type {MediaItem} from '@core/schema/mediaList';
+import type {MediaId} from '@core/schema/common/ids';
+import type {MediaItem} from '@core/schema/media/mediaList';
 import {mediaItem} from '@renderer/platform/media';
 import {insertNewItem, rowAfterSelected} from '@renderer/session/insertNewItem';
 import {sendMediaOutput} from '@renderer/session/itemOutput';

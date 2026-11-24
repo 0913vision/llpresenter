@@ -3,12 +3,12 @@ import userEvent from '@testing-library/user-event';
 import type {JSX} from 'react';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import type {LlpApi} from '@contracts/ipc/api';
-import {createMediaId, createSlideId} from '@core/schema/ids';
+import {createMediaId, createSlideId} from '@core/schema/common/ids';
 import type {
   PowerPointImageExportProgress,
   PowerPointReading,
   PowerPointSource,
-} from '@core/schema/powerpointImport';
+} from '@core/schema/songs/powerpointImport';
 import {BUILT_IN_THEME_IDS, SONG_THEME_IDS} from '@core/theme/builtIn/ids';
 import {PowerPointImportFlow} from '@renderer/features/songs/import/PowerPointImportFlow';
 import {

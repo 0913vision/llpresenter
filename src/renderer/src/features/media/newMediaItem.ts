@@ -1,5 +1,5 @@
-import type {MediaItem} from '@core/schema/mediaList';
-import type {ServiceItem} from '@core/schema/service';
+import type {MediaItem} from '@core/schema/media/mediaList';
+import type {ServiceItem} from '@core/schema/services/service';
 import {mediaItem} from '@core/slides';
 import {slideMaking} from '@renderer/platform/themes';
 import {mediaName} from './mediaEntries';

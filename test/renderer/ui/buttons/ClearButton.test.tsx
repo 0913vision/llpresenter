@@ -3,7 +3,11 @@ import userEvent from '@testing-library/user-event';
 import type {JSX} from 'react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {clearButtons} from '@core/live';
-import {ClearButton, ClearGroup, ClearRow} from '@renderer/ui/buttons/ClearButton';
+import {
+  ClearButton,
+  ClearGroup,
+  ClearRow,
+} from '@renderer/ui/buttons/ClearButton';
 import {
   hoverForTooltip,
   resetTooltips,

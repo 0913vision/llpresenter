@@ -11,7 +11,7 @@ import {
 import {contentEndpoints} from '@contracts/ipc/content';
 import {libraryEndpoints} from '@contracts/ipc/library';
 import {liveEndpoints} from '@contracts/ipc/live';
-import {createMediaId} from '@core/schema/ids';
+import {createMediaId} from '@core/schema/common/ids';
 import {readFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';

@@ -9,9 +9,9 @@ import {
 } from '@testing-library/react';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import userEvent from '@testing-library/user-event';
-import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
-import type {ServiceEntry} from '@core/schema/contentDocuments';
-import {createServiceId} from '@core/schema/ids';
+import type {ContentEdit, EditResult} from '@core/schema/services/contentEdit';
+import type {ServiceEntry} from '@core/schema/services/contentDocuments';
+import {createServiceId} from '@core/schema/common/ids';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {ids, pastDocument} from '@fixtures/core/serviceList';
 import {applyService, useShow} from '@renderer/session/show';

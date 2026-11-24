@@ -1,5 +1,5 @@
 import {useEffect, useRef, useState, type JSX} from 'react';
-import {isLyricTextColor} from '@core/schema/textStyle';
+import {isLyricTextColor} from '@core/schema/slides/textStyle';
 import {Dialog, Properties, PropertyRow, Slider} from '@renderer/ui';
 import {StringProperty} from './StringProperty';
 import styles from './ColorProperty.module.css';

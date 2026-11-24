@@ -1,10 +1,10 @@
-import type {TimerId} from '@core/schema/ids';
-import type {Timer} from '@core/schema/timers';
+import type {TimerId} from '@core/schema/common/ids';
+import type {Timer} from '@core/schema/tools/timers';
 import {
   parseSettingsEdit,
   type SettingsDocument,
   type SettingsEdit,
-} from '@core/schema/settingsDocuments';
+} from '@core/schema/app/settingsDocuments';
 import {validTimerConfiguration, type TimerEditDraft} from '@core/timers';
 
 type TimerDocument = Extract<SettingsDocument, {name: 'timers'}>;

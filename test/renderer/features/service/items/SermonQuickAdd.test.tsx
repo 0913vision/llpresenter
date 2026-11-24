@@ -4,7 +4,7 @@ import {SermonQuickAdd} from '@renderer/features/service/items/SermonQuickAdd';
 import {panelApi} from '@fixtures/contracts/ipc/bibleApi';
 import {lookupRequest} from '@fixtures/core/bibleLookups';
 import {formLookupReply} from '@fixtures/core/bibleReplies';
-import type {BibleLookupReply} from '@core/schema/bibleLookup';
+import type {BibleLookupReply} from '@core/schema/bible/bibleLookup';
 
 vi.mock('@renderer/features/service/items/useBibleDefaults', async () => {
   const {lookupRequest} = await import('@fixtures/core/bibleLookups');

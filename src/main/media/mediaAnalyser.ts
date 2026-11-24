@@ -1,12 +1,12 @@
 import type {PixelSize} from '@core/common/pixelSize';
-import {MEDIA_LIMITS} from '@core/schema/mediaList';
+import {MEDIA_LIMITS} from '@core/schema/media/mediaList';
 import {
   THUMBNAIL_DATA_URL_PREFIX,
   parseAnalysisReply,
   type AnalysisFailureReason,
   type AnalysisJob,
   type AnalysisReply,
-} from '@core/schema/mediaAnalysis';
+} from '@core/schema/media/mediaAnalysis';
 import type {Logger} from '../base/log';
 import type {AnalysisFiles} from './analysisFiles';
 import type {MediaKind} from './mediaKinds';

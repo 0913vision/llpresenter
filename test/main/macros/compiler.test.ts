@@ -1,7 +1,7 @@
 import {describe, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@core/schema/live';
-import {macroActionKinds} from '@core/schema/macros';
-import {parseLiveState} from '@core/schema/liveState';
+import {emptyLiveState} from '@core/schema/live/live';
+import {macroActionKinds} from '@core/schema/tools/macros';
+import {parseLiveState} from '@core/schema/live/liveState';
 import {compileMacro, MACRO_EXECUTION_LIMITS} from '@main/macros/compiler';
 import {
   defineMacroAction,

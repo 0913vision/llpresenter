@@ -1,5 +1,5 @@
 import {beforeEach, vi} from 'vitest';
-import type {MediaLayer} from '@core/schema/live';
+import type {MediaLayer} from '@core/schema/live/live';
 import {
   BackgroundLayerView,
   type RenderMode,

@@ -2,7 +2,7 @@ import {basename} from 'node:path';
 import {expect, it, vi} from 'vitest';
 import {loadFolder} from '@main/store/files/library';
 import {loadFile} from '@main/store/files/readFiles';
-import type {LoadedFile} from '@core/schema/fileFormat';
+import type {LoadedFile} from '@core/schema/common/fileFormat';
 
 const names = Array.from(
   {length: 17},

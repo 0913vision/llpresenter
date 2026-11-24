@@ -1,7 +1,7 @@
 import {act, cleanup, renderHook, waitFor} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
-import type {EditResult} from '@core/schema/contentEdit';
-import type {SettingsEdit} from '@core/schema/settingsDocuments';
+import type {EditResult} from '@core/schema/services/contentEdit';
+import type {SettingsEdit} from '@core/schema/app/settingsDocuments';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {useScreenEditor} from '@renderer/features/screens/useScreenEditor';
 import {useMonitors} from '@renderer/features/screens/useMonitors';

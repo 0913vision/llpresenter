@@ -1,6 +1,6 @@
 import type {WebContents} from 'electron';
 import {settingsEndpoints} from '@contracts/ipc/settings';
-import type {LabelColorPreviewRequest} from '@core/schema/labelColorPreview';
+import type {LabelColorPreviewRequest} from '@core/schema/services/labelColorPreview';
 import type {IpcHost} from '../../base/ipcHost';
 import type {SettingsStore} from './settingsStore';
 

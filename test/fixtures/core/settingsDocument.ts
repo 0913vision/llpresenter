@@ -2,7 +2,7 @@ import {
   parseSettingsDocument,
   type SettingsDocument,
   type SettingsName,
-} from '@core/schema/settingsDocuments';
+} from '@core/schema/app/settingsDocuments';
 
 /** A valid settings document of the named file, with the given fields. */
 export function settingsDocument(

@@ -1,5 +1,5 @@
 import {QUICK_BIBLE_TRANSITION} from '@core/bible';
-import type {BibleLookupPassage} from '@core/schema/bibleLookup';
+import type {BibleLookupPassage} from '@core/schema/bible/bibleLookup';
 import type {BibleDisplay, BibleSource} from '@renderer/session/bibleSource';
 import {bibleSourceFor} from '@renderer/session/showLibrary';
 import {useShow} from '@renderer/session/show';

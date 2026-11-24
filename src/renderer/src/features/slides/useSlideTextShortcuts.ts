@@ -1,4 +1,4 @@
-import type {SlideId} from '@core/schema/ids';
+import type {SlideId} from '@core/schema/common/ids';
 import {
   NOTHING_TO_REDO,
   NOTHING_TO_UNDO,

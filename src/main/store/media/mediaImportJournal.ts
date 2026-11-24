@@ -11,8 +11,8 @@ import {basename, join, resolve} from 'node:path';
 import {
   parseMediaImportJournal,
   type MediaImportJournal,
-} from '@core/schema/mediaImportJournal';
-import type {MediaList} from '@core/schema/mediaList';
+} from '@core/schema/media/mediaImportJournal';
+import type {MediaList} from '@core/schema/media/mediaList';
 import type {Logger} from '../../base/log';
 import {writeFileAtomically} from '../../base/atomicWrite';
 import {isMissingFile} from '../../base/fsErrors';

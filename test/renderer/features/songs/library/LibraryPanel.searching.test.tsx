@@ -3,7 +3,7 @@ import {describe, expect, it, vi} from 'vitest';
 import {
   type LibrarySearchResult,
   LIBRARY_SEARCH_LIMITS,
-} from '@core/schema/librarySearch';
+} from '@core/schema/songs/librarySearch';
 import {
   fixtureSong,
   libraryFixture,

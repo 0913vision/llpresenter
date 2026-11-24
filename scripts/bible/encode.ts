@@ -1,4 +1,4 @@
-import {parseBibleTranslation} from '../../src/core/schema/bibleTranslation';
+import {parseBibleTranslation} from '../../src/core/schema/bible/bibleTranslation';
 import {
   BIBLE_CHAPTER_MAX_BYTES,
   BIBLE_HEADER_PREFIX_BYTES,

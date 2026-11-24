@@ -4,10 +4,13 @@ import {
   MEDIA_END_OPTIONS,
   PICTURE_FIT_OPTIONS,
 } from '@renderer/ui/choices/mediaChoices';
-import type {PreferencePageId} from '@core/schema/preferencePages';
-import {CLEAR_FADE_LIMIT_MS, DEFAULT_CLEAR_FADE} from '@core/schema/clearFade';
+import type {PreferencePageId} from '@core/schema/app/preferencePages';
+import {
+  CLEAR_FADE_LIMIT_MS,
+  DEFAULT_CLEAR_FADE,
+} from '@core/schema/live/clearFade';
 import {clearName} from '@core/live';
-import {UI_ZOOM} from '@core/schema/uiZoom';
+import {UI_ZOOM} from '@core/schema/app/uiZoom';
 import {lastBackupText} from './lastBackupText';
 import {
   PropertyGroup,
@@ -18,11 +21,11 @@ import {
   AUDIO_LIMITS,
   PREFERENCE_LIMITS,
   type TransitionDefaultKind,
-} from '@core/schema/preferences';
+} from '@core/schema/app/preferences';
 import {
   SLIDE_TRANSITION_LIMITS,
   type SlideTransition,
-} from '@core/schema/slideTransition';
+} from '@core/schema/slides/slideTransition';
 import {SelectMenu} from '@renderer/ui/choices/SelectMenu';
 import {NumberField} from '@renderer/ui/fields/NumberField';
 import {

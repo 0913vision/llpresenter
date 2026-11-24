@@ -1,6 +1,6 @@
-import {emptyLiveState} from '@core/schema/live';
+import {emptyLiveState} from '@core/schema/live/live';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import {parseMediaDocument} from '@core/schema/mediaEdit';
+import {parseMediaDocument} from '@core/schema/media/mediaEdit';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {connectMediaPlayback} from '@main/live/mediaPlayback';
 import type {LiveStore} from '@main/live/store';

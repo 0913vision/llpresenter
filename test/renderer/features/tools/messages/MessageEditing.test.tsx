@@ -8,7 +8,7 @@ import {
   waitFor,
 } from '@testing-library/react';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
-import type {EditResult} from '@core/schema/contentEdit';
+import type {EditResult} from '@core/schema/services/contentEdit';
 import {CAPTIONS_ID} from '@fixtures/core/screenDocuments';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {deferred} from '@fixtures/renderer/features/tools/quickTesting';

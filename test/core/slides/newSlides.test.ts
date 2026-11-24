@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {defaultSlideTransitions} from '@core/schema/preferences';
+import {defaultSlideTransitions} from '@core/schema/app/preferences';
 import {slideAfter, slidesOfText} from '@core/slides/newSlides';
 import {BUILT_IN_THEME_IDS} from '@core/theme/builtIn/ids';
 import {lyricsSlide, slideOf} from '@fixtures/core/slides';

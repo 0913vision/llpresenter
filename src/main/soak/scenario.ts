@@ -1,14 +1,14 @@
-import type {LiveCommand} from '@core/schema/liveCommand';
+import type {LiveCommand} from '@core/schema/live/liveCommand';
 import {
   createSlideId,
   audioPlaylistIdSchema,
   mediaIdSchema,
   type AudioPlaylistId,
   createScreenId,
-} from '@core/schema/ids';
+} from '@core/schema/common/ids';
 import {BUILT_IN_THEME_IDS} from '@core/theme';
-import type {SlideLayer} from '@core/schema/live';
-import {parsePayload} from '@core/schema/payload';
+import type {SlideLayer} from '@core/schema/live/live';
+import {parsePayload} from '@core/schema/common/payload';
 import type {Logger} from '../base/log';
 import {MAIN_SCREEN_ID} from '../outputs/defaultScreens';
 import {STARTER_SCREEN_IDS} from '@core/screens';

@@ -1,15 +1,15 @@
 import {PartCounter, type OnProgress} from '../../base/launchTracker';
 import {serviceDay} from '@core/services';
 import type {Result} from '@core/common/result';
-import type {FileError, LoadedFile} from '@core/schema/fileFormat';
-import {parseMediaList} from '@core/schema/mediaList';
+import type {FileError, LoadedFile} from '@core/schema/common/fileFormat';
+import {parseMediaList} from '@core/schema/media/mediaList';
 import {
   parseService,
   parseTemplate,
   type Service,
   type Template,
-} from '@core/schema/service';
-import {parseSong, type Song} from '@core/schema/song';
+} from '@core/schema/services/service';
+import {parseSong, type Song} from '@core/schema/songs/song';
 import type {AppConfigFile} from './appConfigFile';
 import {EMPTY_MEDIA_LIST} from '../settings/defaults';
 import {listFiles, loadFiles, type StoredFile} from '../files/library';

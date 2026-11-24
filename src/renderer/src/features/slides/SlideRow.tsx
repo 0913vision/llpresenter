@@ -6,9 +6,9 @@ import {
   type JSX,
 } from 'react';
 import {flushSync} from 'react-dom';
-import type {SlideId} from '@core/schema/ids';
-import type {ShowTile} from '@core/schema/showService';
-import type {ThemeFile} from '@core/schema/theme';
+import type {SlideId} from '@core/schema/common/ids';
+import type {ShowTile} from '@core/schema/services/showService';
+import type {ThemeFile} from '@core/schema/screens/theme';
 import {TilePicture} from '@renderer/pictures/TilePicture';
 import {classNames} from '@renderer/ui/classNames';
 import {

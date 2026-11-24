@@ -1,5 +1,5 @@
 import {create} from 'zustand';
-import type {ThemeId} from '@core/schema/ids';
+import type {ThemeId} from '@core/schema/common/ids';
 
 /** The theme that the 테마 workspace opens next. */
 export const useThemeRequest = create<{readonly theme: ThemeId | null}>(() => ({

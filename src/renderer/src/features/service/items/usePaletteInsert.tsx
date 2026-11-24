@@ -1,7 +1,7 @@
 import {useState, type JSX} from 'react';
 import type {LiturgyTranslation} from '@core/slides';
-import {createServiceItemId, type ServiceItemId} from '@core/schema/ids';
-import type {ServiceItem} from '@core/schema/service';
+import {createServiceItemId, type ServiceItemId} from '@core/schema/common/ids';
+import type {ServiceItem} from '@core/schema/services/service';
 import type {Report} from '@renderer/session/serviceEdit';
 import {useOrderFull} from '@renderer/session/orderReasons';
 import {useShow} from '@renderer/session/show';

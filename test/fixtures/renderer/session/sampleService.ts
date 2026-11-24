@@ -1,5 +1,5 @@
 import type {LabelColor} from '@core/labels/colors';
-import type {ShowService} from '@core/schema/showService';
+import type {ShowService} from '@core/schema/services/showService';
 import {applyService} from '@renderer/session/show';
 import {lyricsSlide} from '@fixtures/core/slides';
 import type {ItemId, ServiceRow, SlideTile} from '@core/presentation/model';

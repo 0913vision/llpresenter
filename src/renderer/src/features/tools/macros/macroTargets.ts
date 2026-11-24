@@ -1,6 +1,6 @@
-import type {ClearTarget} from '@core/schema/live';
+import type {ClearTarget} from '@core/schema/live/live';
 import {messageBlankNames} from '@core/overlays';
-import type {MacroActionKind} from '@core/schema/macros';
+import type {MacroActionKind} from '@core/schema/tools/macros';
 import {clearName} from '@core/live';
 
 export interface MacroTargetChoice {

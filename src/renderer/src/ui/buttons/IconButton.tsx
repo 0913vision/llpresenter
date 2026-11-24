@@ -8,7 +8,11 @@ import {classNames} from '../classNames';
 import {Icon} from '../Icon';
 import {hasModifier} from '../keys/modifierKeys';
 import {useButtonPress} from './press';
-import {useTooltip, withTooltipProps, type TooltipContent} from '../popups/Tooltip';
+import {
+  useTooltip,
+  withTooltipProps,
+  type TooltipContent,
+} from '../popups/Tooltip';
 import type {ControlSize} from '../types';
 import styles from './IconButton.module.css';
 

@@ -1,6 +1,6 @@
 import {useEffect, useEffectEvent} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
-import type {OutputStatuses} from '@core/schema/outputStatus';
+import type {OutputStatuses} from '@core/schema/live/outputStatus';
 import {STARTER_SCREEN_IDS} from '@core/screens';
 import {
   dropOutputWarning,

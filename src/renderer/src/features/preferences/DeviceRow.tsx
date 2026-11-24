@@ -1,6 +1,6 @@
 import {useState, type JSX} from 'react';
 import {resolveAudioSink, type AudioDevice} from '@core/media';
-import {DEFAULT_AUDIO_DEVICE} from '@core/schema/preferences';
+import {DEFAULT_AUDIO_DEVICE} from '@core/schema/app/preferences';
 import {Icon} from '@renderer/ui/Icon';
 import {PropertyRow} from '@renderer/ui/panels/PropertyRow';
 import {SelectMenu, type SelectOption} from '@renderer/ui/choices/SelectMenu';

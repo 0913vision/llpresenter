@@ -1,5 +1,5 @@
 import {useState, type JSX} from 'react';
-import type {Translation} from '@core/schema/bible';
+import type {Translation} from '@core/schema/bible/bible';
 import {IconButton} from '@renderer/ui/buttons/IconButton';
 import {Icon} from '@renderer/ui/Icon';
 import {Menu} from '@renderer/ui/menus/Menu';
@@ -7,7 +7,7 @@ import {menuAvailability} from '@renderer/ui/menus/menuModel';
 import {PropertyGroup} from '@renderer/ui/panels/PropertyRow';
 import type {BibleEdits} from './useBibleEdits';
 import type {PreferenceEdits} from './usePreferenceEdits';
-import type {PreferencesFile} from '@core/schema/preferences';
+import type {PreferencesFile} from '@core/schema/app/preferences';
 import {CheckboxRow} from './PreferenceRows';
 import styles from './BiblePage.module.css';
 

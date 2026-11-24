@@ -17,20 +17,20 @@ import {
   type TemplateChange,
   type TemplateDocument,
   type TemplateEntry,
-} from '@core/schema/contentDocuments';
+} from '@core/schema/services/contentDocuments';
 import {
   parseContentEdit,
   parseEditResult,
   refuseInvalidEdit,
   type ContentEdit,
   type EditResult,
-} from '@core/schema/contentEdit';
-import {checkPart} from '@core/schema/fileFormat';
+} from '@core/schema/services/contentEdit';
+import {checkPart} from '@core/schema/common/fileFormat';
 import {
   serviceIdSchema,
   songIdSchema,
   templateIdSchema,
-} from '@core/schema/ids';
+} from '@core/schema/common/ids';
 import {
   request,
   type IpcPort,

@@ -1,4 +1,4 @@
-import {parseBibleTranslation} from '@core/schema/bibleTranslation';
+import {parseBibleTranslation} from '@core/schema/bible/bibleTranslation';
 import {BIBLE_BOOKS} from '@core/bible/bibleBooks';
 import type {BiblePassageSource} from '@core/bible/reference';
 

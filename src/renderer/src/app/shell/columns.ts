@@ -1,4 +1,4 @@
-import {COLUMN_LIMITS} from '@core/schema/uiState';
+import {COLUMN_LIMITS} from '@core/schema/app/uiState';
 import type {ColumnWidths} from '../../ui/panels/sizeClass';
 
 /** The right column of 준비 has a width of its own. */

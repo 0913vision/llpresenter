@@ -1,4 +1,7 @@
-import {macroActionKinds, type MacroActionKind} from '@core/schema/macros';
+import {
+  macroActionKinds,
+  type MacroActionKind,
+} from '@core/schema/tools/macros';
 import {MACRO_PALETTE_GROUPS} from '@renderer/platform/macroActionDescriptor';
 import {MACRO_ACTIONS} from './macroActionCatalog';
 

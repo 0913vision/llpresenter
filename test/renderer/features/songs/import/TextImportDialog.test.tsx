@@ -10,21 +10,21 @@ import {
 import userEvent from '@testing-library/user-event';
 import {beforeEach, describe, expect, it, onTestFinished, vi} from 'vitest';
 import type {LlpApi} from '@contracts/ipc/api';
-import {createSongId} from '@core/schema/ids';
-import {defaultPreferences} from '@core/schema/preferences';
+import {createSongId} from '@core/schema/common/ids';
+import {defaultPreferences} from '@core/schema/app/preferences';
 import {
   parseTextImportPreviewRequest,
   type TextImportDraft,
   type TextImportOptions,
   type TextImportPreviewResult,
   type TextImportSource,
-} from '@core/schema/textImport';
+} from '@core/schema/songs/textImport';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {convertTextImport} from '@core/songs/textImport';
 import {DUPLICATE_TITLE_REASON} from '@core/songs/songTitle';
 import {TextImportDialog} from '@renderer/features/songs/import/TextImportDialog';
 import {useImportPreview} from '@renderer/features/songs/import/useImportPreview';
-import {SONG_IMPORT_LIMITS} from '@core/schema/songImport';
+import {SONG_IMPORT_LIMITS} from '@core/schema/songs/songImport';
 import {limitReason} from '@core/common/limitReason';
 import {hoverForTooltip} from '@fixtures/renderer/ui/tooltipTesting';
 import * as labelMenus from '@renderer/features/labels/labelMenuEntries';

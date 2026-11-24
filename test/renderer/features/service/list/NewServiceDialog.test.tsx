@@ -9,14 +9,14 @@ import {
   it,
   vi,
 } from 'vitest';
-import type {LiveCommand} from '@core/schema/liveCommand';
-import type {TemplateDocument} from '@core/schema/contentDocuments';
-import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
-import type {ServiceOpenRequest} from '@core/schema/serviceOpen';
+import type {LiveCommand} from '@core/schema/live/liveCommand';
+import type {TemplateDocument} from '@core/schema/services/contentDocuments';
+import type {ContentEdit, EditResult} from '@core/schema/services/contentEdit';
+import type {ServiceOpenRequest} from '@core/schema/services/serviceOpen';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {applyService, useShow} from '@renderer/session/show';
 import {useLive} from '@renderer/session/live';
-import {emptyLiveState} from '@core/schema/live';
+import {emptyLiveState} from '@core/schema/live/live';
 import {sampleService} from '@fixtures/renderer/session/sampleService';
 import {
   hoverForTooltip,
@@ -32,7 +32,7 @@ import {
   templateEntries,
   titles,
 } from '@fixtures/core/serviceList';
-import type {ServiceOpenResult} from '@core/schema/serviceOpen';
+import type {ServiceOpenResult} from '@core/schema/services/serviceOpen';
 
 const REFUSED: EditResult = {
   ok: false,

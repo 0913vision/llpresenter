@@ -7,8 +7,8 @@ import type {
   BibleLookupPassage,
   BibleLookupRequest,
   BibleLookupReply,
-} from '@core/schema/bibleLookup';
-import {defaultPreferences} from '@core/schema/preferences';
+} from '@core/schema/bible/bibleLookup';
+import {defaultPreferences} from '@core/schema/app/preferences';
 import {BIBLE_BOOKS} from '@core/bible/bibleBooks';
 import {BibleLookupSession} from '@main/bible/lookup';
 import {BiblePassageDialog} from '@renderer/features/bible/BiblePassageDialog';

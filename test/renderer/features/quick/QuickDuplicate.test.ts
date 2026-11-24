@@ -1,12 +1,12 @@
 import {describe, expect, it, vi} from 'vitest';
-import type {EditResult} from '@core/schema/contentEdit';
-import {createQuickItemId, createTimerId} from '@core/schema/ids';
+import type {EditResult} from '@core/schema/services/contentEdit';
+import {createQuickItemId, createTimerId} from '@core/schema/common/ids';
 import {
   parseSettingsDocument,
   type SettingsDocument,
   type SettingsEdit,
-} from '@core/schema/settingsDocuments';
-import {MAX_QUICK_ITEMS} from '@core/schema/quick';
+} from '@core/schema/app/settingsDocuments';
+import {MAX_QUICK_ITEMS} from '@core/schema/tools/quick';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {saveQuickEdit} from '@renderer/features/quick/quickEdits';
 import {quickCopyReason} from '@renderer/features/quick/QuickEditing';

@@ -1,7 +1,7 @@
 import {describe, expect, it, vi} from 'vitest';
 import {UpdateController} from '@main/update/controller';
 import type {UpdaterPort} from '@main/update/port';
-import type {UpdateAction, UpdateSnapshot} from '@core/schema/update';
+import type {UpdateAction, UpdateSnapshot} from '@core/schema/app/update';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 
 function setup() {

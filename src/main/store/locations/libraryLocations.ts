@@ -5,10 +5,15 @@ import type {
   ChooseLocationResult,
   LibraryLocationField,
   LocationsView,
-} from '@core/schema/libraryLocations';
-import type {Preferences} from '@core/schema/preferences';
+} from '@core/schema/app/libraryLocations';
+import type {Preferences} from '@core/schema/app/preferences';
 import type {Logger} from '../../base/log';
-import {backupGate, Backups, lastBackupTime, type BackupGate} from '../files/backup';
+import {
+  backupGate,
+  Backups,
+  lastBackupTime,
+  type BackupGate,
+} from '../files/backup';
 import {
   isInside,
   resolveLocations,

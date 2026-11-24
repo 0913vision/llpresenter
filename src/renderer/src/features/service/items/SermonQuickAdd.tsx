@@ -1,6 +1,6 @@
 import {useState, type JSX} from 'react';
-import type {BibleLookupPassage} from '@core/schema/bibleLookup';
-import {SLIDE_LIMITS} from '@core/schema/slide';
+import type {BibleLookupPassage} from '@core/schema/bible/bibleLookup';
+import {SLIDE_LIMITS} from '@core/schema/slides/slide';
 import {BiblePassageDialog} from '@renderer/features/bible/BiblePassageDialog';
 import {PassageHeaderField} from '@renderer/features/bible/PassageHeaderField';
 import type {PassageDefaults} from './passageItems';

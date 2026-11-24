@@ -1,11 +1,11 @@
 import {dirname, isAbsolute, resolve} from 'node:path';
 import {stat} from 'node:fs/promises';
-import type {MediaChoice} from '@core/schema/live';
+import type {MediaChoice} from '@core/schema/live/live';
 import {mediaLoops} from '@core/media';
 import type {Result} from '@core/common/result';
-import type {FileError} from '@core/schema/fileFormat';
+import type {FileError} from '@core/schema/common/fileFormat';
 import type {BundledPicture} from '../pictures/bundledPicture';
-import type {MediaItem} from '@core/schema/mediaList';
+import type {MediaItem} from '@core/schema/media/mediaList';
 import {isInside} from '../locations/locations';
 import {realPathInside} from '../../base/insideRoots';
 

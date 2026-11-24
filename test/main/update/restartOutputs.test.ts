@@ -1,10 +1,10 @@
 import {writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';
-import {createScreenId} from '@core/schema/ids';
-import {emptyLiveState} from '@core/schema/live';
-import type {SettingsReader} from '@core/schema/settingsReader';
-import {defaultPreferences} from '@core/schema/preferences';
+import {createScreenId} from '@core/schema/common/ids';
+import {emptyLiveState} from '@core/schema/live/live';
+import type {SettingsReader} from '@core/schema/app/settingsReader';
+import {defaultPreferences} from '@core/schema/app/preferences';
 import {makeTempDir} from '@fixtures/tempDir';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {dispatchBatched} from '@main/live/store';

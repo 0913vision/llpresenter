@@ -1,7 +1,7 @@
-import type {SingleLiveCommand} from '@core/schema/liveCommand';
-import type {LiveState} from '@core/schema/live';
-import type {SettingsDocument} from '@core/schema/settingsDocuments';
-import {createTimerId} from '@core/schema/ids';
+import type {SingleLiveCommand} from '@core/schema/live/liveCommand';
+import type {LiveState} from '@core/schema/live/live';
+import type {SettingsDocument} from '@core/schema/app/settingsDocuments';
+import {createTimerId} from '@core/schema/common/ids';
 
 /** Updates active overlay snapshots when their saved configuration changes. */
 export function overlayRefreshCommands(

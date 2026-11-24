@@ -4,7 +4,7 @@ import {themes} from '@fixtures/core/themeOutput';
 import type {
   SettingsDocument,
   SettingsName,
-} from '@core/schema/settingsDocuments';
+} from '@core/schema/app/settingsDocuments';
 import {deletedObjectShortcuts} from '@core/shortcuts/deletion';
 
 const ID = '44000000-0000-4000-8000-000000000001';

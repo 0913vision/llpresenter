@@ -4,7 +4,7 @@ import {
   parseSettingsEdit,
   type SettingsDocument,
   type SettingsName,
-} from '@core/schema/settingsDocuments';
+} from '@core/schema/app/settingsDocuments';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {prepareTimerRename} from '@main/store/settings/timerRenames';
 

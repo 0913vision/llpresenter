@@ -1,6 +1,6 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {installMockClock} from '@fixtures/mockClock';
-import type {AppProblem} from '@core/schema/appProblem';
+import type {AppProblem} from '@core/schema/app/appProblem';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {
   MAX_TRACKED_COPY_FAILURES,

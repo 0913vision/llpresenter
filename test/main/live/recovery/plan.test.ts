@@ -1,7 +1,7 @@
 import {shownText} from '@fixtures/core/liveSlide';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {describe, expect, it} from 'vitest';
-import {createMediaId, createMessageId} from '@core/schema/ids';
+import {createMediaId, createMessageId} from '@core/schema/common/ids';
 import {
   CAPTIONS,
   MAIN,

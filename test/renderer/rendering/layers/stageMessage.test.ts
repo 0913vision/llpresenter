@@ -1,5 +1,5 @@
 import {beforeEach, expect, it, vi} from 'vitest';
-import {emptyLayers} from '@core/schema/live';
+import {emptyLayers} from '@core/schema/live/live';
 import {stageInfoLayer} from '@renderer/rendering/layers/stageInfo';
 import {stageMessageLayer} from '@renderer/rendering/layers/stageMessage';
 import {THEME_MAIN, THEME_STAGE} from '@fixtures/core/themeOutput';

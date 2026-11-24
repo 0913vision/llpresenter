@@ -1,9 +1,9 @@
 import {act, cleanup, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import type {AppFlushRequest} from '@core/schema/appFlush';
-import {createAppFlushRequestId} from '@core/schema/ids';
-import type {SettingsEdit} from '@core/schema/settingsDocuments';
+import type {AppFlushRequest} from '@core/schema/app/appFlush';
+import {createAppFlushRequestId} from '@core/schema/common/ids';
+import type {SettingsEdit} from '@core/schema/app/settingsDocuments';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {ControlSession} from '@renderer/app/controlSession';
 import {ScreenProperties} from '@renderer/features/screens/ScreenProperties';

@@ -1,0 +1,145 @@
+import * as v from 'valibot';
+import type {Result} from '@core/common/result';
+import {
+  parseFile,
+  serializeFile,
+  type FileError,
+  type FileFormat,
+  type LoadedFile,
+  type ReadonlyKnown,
+} from '../common/fileFormat';
+import {
+  macroCollectionIdSchema,
+  screenIdSchema,
+  serviceIdSchema,
+} from '../common/ids';
+import type {MigrationStep} from '../common/migration';
+import {UI_ZOOM, uiZoomPercentSchema} from './uiZoom';
+import {mediaBrowserSchema} from '../media/mediaBrowser';
+import {panelRowsSchema} from './panelRows';
+import {launchTimesSchema} from './launch';
+import {PREFERENCE_PAGE_IDS} from './preferencePages';
+import {slideColumnsSchema} from '../slides/slideColumns';
+import {
+  jsonObject,
+  nonNegativeNumber,
+  positiveInteger,
+  timestamp,
+} from '../common/primitives';
+
+const columnLayoutSchema = jsonObject({
+  rows: v.exactOptional(panelRowsSchema),
+  leftCollapsed: v.exactOptional(v.boolean()),
+  left: v.exactOptional(nonNegativeNumber),
+  right: v.exactOptional(nonNegativeNumber),
+  prepRight: v.exactOptional(nonNegativeNumber),
+  thumbnailScalePercent: v.exactOptional(positiveInteger),
+  detailsSlideScalePercent: v.exactOptional(positiveInteger),
+  editorSlideView: v.exactOptional(v.picklist(['list', 'grid'])),
+  editorSlideScalePercent: v.exactOptional(positiveInteger),
+});
+
+const sizeClassLayout = v.exactOptional(columnLayoutSchema);
+
+const windowPlacementEntries = {
+  x: v.pipe(
+    v.number(),
+    v.integer(),
+    v.minValue(-1_000_000),
+    v.maxValue(1_000_000),
+  ),
+  y: v.pipe(
+    v.number(),
+    v.integer(),
+    v.minValue(-1_000_000),
+    v.maxValue(1_000_000),
+  ),
+  width: v.pipe(positiveInteger, v.maxValue(32_768)),
+  height: v.pipe(positiveInteger, v.maxValue(32_768)),
+  maximized: v.boolean(),
+};
+
+const windowPlacementSchema = jsonObject(windowPlacementEntries);
+
+/** The window size classes of the design system `Layout`. */
+export const sizeClasses = ['narrow', 'normal', 'wide'] as const;
+
+/** The column layouts of the size classes, as `app.json` and `ui:get` hold them. */
+export const appLayoutSchema = jsonObject({
+  narrow: sizeClassLayout,
+  normal: sizeClassLayout,
+  wide: sizeClassLayout,
+});
+
+const appConfigSchema = jsonObject({
+  format: v.literal('llapp'),
+  schemaVersion: positiveInteger,
+  dataRoot: v.exactOptional(v.string()),
+  songsPath: v.exactOptional(v.string()),
+  mediaPath: v.exactOptional(v.string()),
+  backupPath: v.exactOptional(v.string()),
+  lastServiceId: v.exactOptional(serviceIdSchema),
+  uiZoomPercent: v.exactOptional(
+    v.fallback(uiZoomPercentSchema, UI_ZOOM.defaultPercent),
+  ),
+  layout: v.exactOptional(appLayoutSchema),
+  screensWindow: v.exactOptional(windowPlacementSchema),
+  preferencesWindow: v.exactOptional(windowPlacementSchema),
+  preferencesPage: v.exactOptional(v.picklist(PREFERENCE_PAGE_IDS)),
+  previewBig: v.exactOptional(screenIdSchema),
+  previewBigVisible: v.exactOptional(v.boolean()),
+  macroView: v.exactOptional(v.picklist(['grid', 'list'])),
+  macroCollection: v.exactOptional(macroCollectionIdSchema),
+  showToolTab: v.exactOptional(
+    v.picklist(['audio', 'stage', 'timer', 'message', 'prop', 'macro']),
+  ),
+  slideColumns: v.exactOptional(slideColumnsSchema),
+  mediaStrip: v.exactOptional(v.boolean()),
+  mediaBrowser: v.exactOptional(mediaBrowserSchema),
+  mediaImportFolder: v.exactOptional(v.string()),
+  mediaRelinkFolder: v.exactOptional(v.string()),
+  textImportFolder: v.exactOptional(v.string()),
+  powerpointImportFolder: v.exactOptional(v.string()),
+  lastBackupAt: v.exactOptional(timestamp),
+  launchTimes: v.exactOptional(v.fallback(launchTimesSchema, {})),
+});
+
+const appConfigMigrations: readonly MigrationStep[] = [];
+
+const appConfigFormat: FileFormat<typeof appConfigSchema> = {
+  format: 'llapp',
+  schema: appConfigSchema,
+  migrations: appConfigMigrations,
+};
+
+/**
+ * `app.json` in the app data folder: the data locations, which the app needs
+ * before it reads any data, and the window state. Empty paths mean the default
+ * folders.
+ */
+export type AppConfig = ReadonlyKnown<v.InferOutput<typeof appConfigSchema>>;
+
+export type AppLayout = NonNullable<AppConfig['layout']>;
+
+export type SizeClass = (typeof sizeClasses)[number];
+
+/**
+ * The sidebar state, column widths (px), and thumbnail scale (%) saved for one
+ * size class. An absent value means the class default. The
+ * shell clamps the values to their ranges when reading them.
+ */
+export type ColumnLayout = NonNullable<AppLayout[SizeClass]>;
+
+export function parseAppConfig(
+  text: string,
+  file: string,
+): Result<LoadedFile<AppConfig>, FileError> {
+  return parseFile(appConfigFormat, text, file);
+}
+
+export function serializeAppConfig(
+  config: AppConfig,
+  file: string,
+): Result<string, FileError> {
+  return serializeFile(appConfigFormat, config, file);
+}

@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
-import {parseLiveState} from '@core/schema/liveState';
-import {parseTimers} from '@core/schema/timers';
-import {emptyLiveState} from '@core/schema/live';
+import {parseLiveState} from '@core/schema/live/liveState';
+import {parseTimers} from '@core/schema/tools/timers';
+import {emptyLiveState} from '@core/schema/live/live';
 import {overlayUuid} from '@fixtures/core/overlays';
 import {
   fillTimerTokens,

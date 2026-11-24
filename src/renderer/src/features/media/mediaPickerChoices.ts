@@ -1,4 +1,4 @@
-import type {MediaItem} from '@core/schema/mediaList';
+import type {MediaItem} from '@core/schema/media/mediaList';
 import {mediaName} from './mediaEntries';
 
 export const NONE_LABEL = '없음';

@@ -7,12 +7,12 @@ import {
   createServiceItemId,
   type ServiceItemId,
   type SongId,
-} from '@core/schema/ids';
+} from '@core/schema/common/ids';
 import {
   SERVICE_LIMITS,
   type Service,
   type ServiceItem,
-} from '@core/schema/service';
+} from '@core/schema/services/service';
 import {sectionInsertIndex, sectionBoundaryIndex} from '@core/services';
 import {songItem} from '@core/slides';
 import {

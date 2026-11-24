@@ -2,9 +2,9 @@ import {
   createServiceItemId,
   createTemplateId,
   type ServiceItemId,
-} from '@core/schema/ids';
-import {defaultSlideTransitions} from '@core/schema/preferences';
-import type {ServiceItem, Template} from '@core/schema/service';
+} from '@core/schema/common/ids';
+import {defaultSlideTransitions} from '@core/schema/app/preferences';
+import type {ServiceItem, Template} from '@core/schema/services/service';
 import {
   openedLiturgy,
   openedNotices,

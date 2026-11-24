@@ -1,7 +1,10 @@
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
-import type {LibrarySong, SongDocument} from '@core/schema/contentDocuments';
-import {readSongDragData, SONG_DRAG_MIME} from '@core/schema/songDrag';
+import type {
+  LibrarySong,
+  SongDocument,
+} from '@core/schema/services/contentDocuments';
+import {readSongDragData, SONG_DRAG_MIME} from '@core/schema/songs/songDrag';
 import {
   fixtureSong,
   libraryFixture,

@@ -6,9 +6,9 @@ import {
   type JSX,
   type KeyboardEvent,
 } from 'react';
-import type {LibrarySong} from '@core/schema/contentDocuments';
-import type {SongId} from '@core/schema/ids';
-import {LIBRARY_SEARCH_LIMITS} from '@core/schema/librarySearch';
+import type {LibrarySong} from '@core/schema/services/contentDocuments';
+import type {SongId} from '@core/schema/common/ids';
+import {LIBRARY_SEARCH_LIMITS} from '@core/schema/songs/librarySearch';
 import {Dialog} from '@renderer/ui/popups/Dialog';
 import {ListBox, ListRow} from '@renderer/ui/lists/ListRow';
 import {TextField} from '@renderer/ui/fields/TextField';

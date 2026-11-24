@@ -1,8 +1,8 @@
-import type {Hymn} from '@core/schema/hymn';
-import type {SlideId, ThemeId} from '@core/schema/ids';
-import type {Slide, VerseReference} from '@core/schema/slide';
-import type {SlideBackground} from '@core/schema/theme';
-import type {SlideTransition} from '@core/schema/slideTransition';
+import type {Hymn} from '@core/schema/songs/hymn';
+import type {SlideId, ThemeId} from '@core/schema/common/ids';
+import type {Slide, VerseReference} from '@core/schema/slides/slide';
+import type {SlideBackground} from '@core/schema/screens/theme';
+import type {SlideTransition} from '@core/schema/slides/slideTransition';
 import {copySlide} from './make';
 import {verseKey} from './passageSlides';
 

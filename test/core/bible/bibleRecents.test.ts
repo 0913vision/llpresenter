@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {parseBibleLookupRequest} from '@core/schema/bibleLookup';
+import {parseBibleLookupRequest} from '@core/schema/bible/bibleLookup';
 import {
   RECENT_PASSAGE_LIMIT,
   recentPassages,

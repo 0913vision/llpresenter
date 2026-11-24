@@ -1,6 +1,6 @@
 import {limitReason} from '@core/common/limitReason';
-import type {Song} from '@core/schema/song';
-import {SONG_IMPORT_LIMITS} from '@core/schema/songImport';
+import type {Song} from '@core/schema/songs/song';
+import {SONG_IMPORT_LIMITS} from '@core/schema/songs/songImport';
 
 /**
  * Why an imported song cannot be saved yet, or `undefined` when it fits the

@@ -15,8 +15,8 @@ import {QuickRowEditor} from '@renderer/features/quick/QuickEditing';
 import {quickItem} from '@fixtures/renderer/features/tools/quickTesting';
 import {renderedToolMenuRows} from '@fixtures/renderer/features/tools/toolMenuTesting';
 import type {LlpApi} from '@contracts/ipc/api';
-import {createTimerId} from '@core/schema/ids';
-import type {Timer} from '@core/schema/timers';
+import {createTimerId} from '@core/schema/common/ids';
+import type {Timer} from '@core/schema/tools/timers';
 
 afterEach(() => {
   cleanup();

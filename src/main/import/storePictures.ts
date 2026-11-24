@@ -1,11 +1,11 @@
-import {THEME_CANVAS} from '@core/schema/screens';
+import {THEME_CANVAS} from '@core/schema/screens/screens';
 import {randomUUID} from 'node:crypto';
 import {constants} from 'node:fs';
 import {copyFile, readFile, rm, stat} from 'node:fs/promises';
 import {extname, join} from 'node:path';
 import {powerpointBackgroundName} from '@core/media';
-import {createMediaId, type MediaId} from '@core/schema/ids';
-import type {MediaItem} from '@core/schema/mediaList';
+import {createMediaId, type MediaId} from '@core/schema/common/ids';
+import type {MediaItem} from '@core/schema/media/mediaList';
 import type {MediaStore} from '../store/media/mediaStore';
 import {sameImage} from './matchImage';
 import {powerPointImageSize} from './powerpointImage';

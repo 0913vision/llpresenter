@@ -1,5 +1,5 @@
 import {expect, it} from 'vitest';
-import {parseTimers} from '@core/schema/timers';
+import {parseTimers} from '@core/schema/tools/timers';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {timerEditDraft} from '@core/timers/timerEditDraft';
 

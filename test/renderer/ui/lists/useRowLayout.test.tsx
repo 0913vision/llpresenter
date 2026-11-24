@@ -1,7 +1,7 @@
 import {act, renderHook} from '@testing-library/react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {useRowLayout} from '@renderer/ui/lists/useRowLayout';
-import type {PanelRows} from '@core/schema/panelRows';
+import type {PanelRows} from '@core/schema/app/panelRows';
 
 afterEach(() => {
   document.body.replaceChildren();

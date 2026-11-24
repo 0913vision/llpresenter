@@ -17,9 +17,9 @@ import {
   it,
   vi,
 } from 'vitest';
-import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
-import type {TemplateEntry} from '@core/schema/contentDocuments';
-import {createServiceId, createTemplateId} from '@core/schema/ids';
+import type {ContentEdit, EditResult} from '@core/schema/services/contentEdit';
+import type {TemplateEntry} from '@core/schema/services/contentDocuments';
+import {createServiceId, createTemplateId} from '@core/schema/common/ids';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {applyService} from '@renderer/session/show';
 import {sampleService} from '@fixtures/renderer/session/sampleService';

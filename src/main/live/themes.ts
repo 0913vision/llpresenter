@@ -1,9 +1,9 @@
 import {placedOverlays} from '@core/live';
-import type {LiveItem} from '@core/schema/liveTheme';
-import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
-import {hasSlides} from '@core/schema/service';
-import {songIdSchema} from '@core/schema/ids';
-import {parsePayload} from '@core/schema/payload';
+import type {LiveItem} from '@core/schema/live/liveTheme';
+import {LIVE_STATE_LIMITS} from '@core/schema/live/liveLimits';
+import {hasSlides} from '@core/schema/services/service';
+import {songIdSchema} from '@core/schema/common/ids';
+import {parsePayload} from '@core/schema/common/payload';
 import {itemTitle} from '@core/slides';
 import type {DataStore} from '../store/register';
 import type {Logger} from '../base/log';

@@ -1,9 +1,9 @@
 import type {Result} from '@core/common/result';
-import type {PayloadError} from '@core/schema/payload';
+import type {PayloadError} from '@core/schema/common/payload';
 import {
   PREFERENCE_PAGE_IDS,
   type PreferencePageId,
-} from '@core/schema/preferencePages';
+} from '@core/schema/app/preferencePages';
 import {message, push, query, request, signal, type IpcPort} from './endpoint';
 
 export type WindowAction =

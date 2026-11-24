@@ -1,10 +1,10 @@
 import {expect, it} from 'vitest';
-import {createTimerId} from '@core/schema/ids';
+import {createTimerId} from '@core/schema/common/ids';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {
   mergeSettingsDocument,
   parseSettingsDocument,
-} from '@core/schema/settingsDocuments';
+} from '@core/schema/app/settingsDocuments';
 import {prepareTimerEdit} from '@renderer/features/tools/timers/timerEditPlan';
 
 const first = createTimerId('00000000-0000-4000-8000-000000000001');

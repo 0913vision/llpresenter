@@ -1,9 +1,9 @@
 import {use, useEffect} from 'react';
 import {mediaUrl, thumbnailUrl} from '@contracts/ipc/mediaUrls';
-import type {MediaItem} from '@core/schema/mediaList';
-import type {ShowTile} from '@core/schema/showService';
-import type {SlideBackground} from '@core/schema/theme';
-import type {Themes} from '@core/schema/themes';
+import type {MediaItem} from '@core/schema/media/mediaList';
+import type {ShowTile} from '@core/schema/services/showService';
+import type {SlideBackground} from '@core/schema/screens/theme';
+import type {Themes} from '@core/schema/screens/themes';
 import {useMedia} from '@renderer/platform/media';
 import {useThemes} from '@renderer/platform/themes';
 import {useShow} from '@renderer/session/show';

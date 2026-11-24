@@ -6,7 +6,7 @@ import {
   createMediaId,
   createMediaPlaylistId,
   type MediaId,
-} from '@core/schema/ids';
+} from '@core/schema/common/ids';
 import type {
   MediaDocument,
   MediaEdit,
@@ -14,13 +14,13 @@ import type {
   MediaImportProgress,
   MediaImportRequest,
   MediaImportResult,
-} from '@core/schema/mediaEdit';
-import type {MissingMedia} from '@core/schema/mediaFiles';
+} from '@core/schema/media/mediaEdit';
+import type {MissingMedia} from '@core/schema/media/mediaFiles';
 import type {
   AudioPlaylist,
   MediaItem,
   MediaPlaylist,
-} from '@core/schema/mediaList';
+} from '@core/schema/media/mediaList';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 
 export function mediaBinToggle(): HTMLElement {

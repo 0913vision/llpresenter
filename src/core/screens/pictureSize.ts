@@ -1,4 +1,4 @@
-import {THEME_CANVAS, type Screen} from '@core/schema/screens';
+import {THEME_CANVAS, type Screen} from '@core/schema/screens/screens';
 
 /** The saved size that determines this screen's output aspect ratio. */
 export function pictureSizeForScreen(

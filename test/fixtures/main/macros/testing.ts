@@ -1,12 +1,12 @@
 import {onTestFinished} from 'vitest';
-import {parseMediaList} from '@core/schema/mediaList';
+import {parseMediaList} from '@core/schema/media/mediaList';
 import {
   parseSettingsDocument,
   settingsNames,
   type SettingsDocument,
   type SettingsName,
-} from '@core/schema/settingsDocuments';
-import type {Macro} from '@core/schema/macros';
+} from '@core/schema/app/settingsDocuments';
+import type {Macro} from '@core/schema/tools/macros';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {settingsDefaults} from '@main/store/settings/settingsDefaults';
 import {settingsCodecs} from '@main/store/settings/settingsCodecs';

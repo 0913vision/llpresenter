@@ -5,7 +5,11 @@ import {afterEach, describe, expect, it, vi} from 'vitest';
 import {installMockClock} from '@fixtures/mockClock';
 import {Button} from '@renderer/ui/buttons/Button';
 import {IconButton} from '@renderer/ui/buttons/IconButton';
-import {Tooltip, ariaShortcut, withTooltipProps} from '@renderer/ui/popups/Tooltip';
+import {
+  Tooltip,
+  ariaShortcut,
+  withTooltipProps,
+} from '@renderer/ui/popups/Tooltip';
 import {
   TOOLTIP_DELAY_MS,
   TOOLTIP_GRACE_MS,

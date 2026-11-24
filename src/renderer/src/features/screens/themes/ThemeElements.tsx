@@ -1,6 +1,6 @@
 import {limitReason} from '@core/common/limitReason';
 import {useEffect, useRef, type DragEvent, type JSX} from 'react';
-import {THEME_FILE_LIMITS} from '@core/schema/theme';
+import {THEME_FILE_LIMITS} from '@core/schema/screens/theme';
 import {
   addableKinds,
   canAddElement,

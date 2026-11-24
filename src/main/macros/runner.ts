@@ -1,6 +1,6 @@
-import type {SettingsReader} from '@core/schema/settingsReader';
-import type {MacroId} from '@core/schema/ids';
-import type {MediaList} from '@core/schema/mediaList';
+import type {SettingsReader} from '@core/schema/app/settingsReader';
+import type {MacroId} from '@core/schema/common/ids';
+import type {MediaList} from '@core/schema/media/mediaList';
 import type {LiveHistory} from '../live/history';
 import type {CommandOf, MacroCommandPort, SliceContext} from '../live/slice';
 import type {Logger} from '../base/log';

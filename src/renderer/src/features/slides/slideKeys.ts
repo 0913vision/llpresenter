@@ -1,5 +1,5 @@
-import type {SlideId} from '@core/schema/ids';
-import type {Slide} from '@core/schema/slide';
+import type {SlideId} from '@core/schema/common/ids';
+import type {Slide} from '@core/schema/slides/slide';
 import type {SlideSelectionAction} from '@core/slides';
 import type {DeckSelection} from './deckSelection';
 

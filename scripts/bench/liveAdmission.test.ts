@@ -2,8 +2,8 @@ import {performance} from 'node:perf_hooks';
 import {writeFileSync} from 'node:fs';
 import {cpus} from 'node:os';
 import {describe, expect, it} from 'vitest';
-import type {LiveCommand} from '@core/schema/liveCommand';
-import {parseLiveState} from '../../src/core/schema/liveState';
+import type {LiveCommand} from '@core/schema/live/liveCommand';
+import {parseLiveState} from '../../src/core/schema/live/liveState';
 import {LiveStore} from '../../src/main/live/store';
 import {
   SliceRegistry,

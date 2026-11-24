@@ -1,6 +1,6 @@
 import {useLayoutEffect, useRef, useSyncExternalStore} from 'react';
-import {createServiceId, createServiceItemId} from '@core/schema/ids';
-import {SERVICE_LIMITS} from '@core/schema/service';
+import {createServiceId, createServiceItemId} from '@core/schema/common/ids';
+import {SERVICE_LIMITS} from '@core/schema/services/service';
 import {
   NO_SERVICE_REASON,
   orderEditReason,

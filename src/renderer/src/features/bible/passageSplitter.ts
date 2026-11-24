@@ -1,9 +1,9 @@
-import type {BibleLookupPassage} from '@core/schema/bibleLookup';
-import type {BibleCutsFile} from '@core/schema/bibleCuts';
-import type {ThemeId} from '@core/schema/ids';
-import type {Slide} from '@core/schema/slide';
-import type {ThemeFile} from '@core/schema/theme';
-import type {Themes} from '@core/schema/themes';
+import type {BibleLookupPassage} from '@core/schema/bible/bibleLookup';
+import type {BibleCutsFile} from '@core/schema/bible/bibleCuts';
+import type {ThemeId} from '@core/schema/common/ids';
+import type {Slide} from '@core/schema/slides/slide';
+import type {ThemeFile} from '@core/schema/screens/theme';
+import type {Themes} from '@core/schema/screens/themes';
 import {splitPassage, type PassageSplit} from '@core/slides';
 import {themeFor, themeOf} from '@core/theme';
 import {

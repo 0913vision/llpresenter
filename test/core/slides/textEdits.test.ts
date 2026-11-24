@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
-import {defaultSlideTransitions} from '@core/schema/preferences';
-import type {Slide} from '@core/schema/slide';
+import {defaultSlideTransitions} from '@core/schema/app/preferences';
+import type {Slide} from '@core/schema/slides/slide';
 import {joinSlide, pasteSlideText, splitSlide} from '@core/slides/textEdits';
 import {lyricsSlide, slideId, slideOf, verseOf} from '@fixtures/core/slides';
 

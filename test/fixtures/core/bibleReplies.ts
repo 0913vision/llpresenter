@@ -2,7 +2,7 @@ import {selectedBook} from '@core/bible/referenceFields';
 import type {
   BibleLookupRequest,
   BibleLookupReply,
-} from '@core/schema/bibleLookup';
+} from '@core/schema/bible/bibleLookup';
 import {resolvePassage} from '@core/bible/reference';
 import {passageSource, translationFile} from '@fixtures/core/bible/testFiles';
 

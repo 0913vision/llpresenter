@@ -1,4 +1,4 @@
-import type {Slide} from '@core/schema/slide';
+import type {Slide} from '@core/schema/slides/slide';
 
 /** Whether a slide shows nothing of the next slide on 무대: its own choice. */
 export function hidesNext(slide: Pick<Slide, 'hideNext'> | undefined): boolean {

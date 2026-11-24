@@ -1,5 +1,5 @@
 import {useCallback, useEffect, useLayoutEffect, useRef} from 'react';
-import type {EditResult} from '@core/schema/contentEdit';
+import type {EditResult} from '@core/schema/services/contentEdit';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {type Notice, noticeTime} from '@renderer/ui/popups/notices';
 

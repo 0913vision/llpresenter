@@ -7,7 +7,7 @@ import {
   planSlides,
   planSlidesAtOffsets,
 } from '@core/bible';
-import type {BibleCutSelection} from '@core/schema/bibleCuts';
+import type {BibleCutSelection} from '@core/schema/bible/bibleCuts';
 import type {BibleSplit} from './passageSplitter';
 import {verseKey} from './BibleRefinements';
 import {SplitEditor} from './SplitEditor';

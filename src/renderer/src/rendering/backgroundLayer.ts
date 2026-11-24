@@ -1,5 +1,5 @@
-import type {MediaLayer} from '@core/schema/live';
-import type {OutputMediaProperties} from '@core/schema/outputMedia';
+import type {MediaLayer} from '@core/schema/live/live';
+import type {OutputMediaProperties} from '@core/schema/media/outputMedia';
 import {loadBackgroundImage} from './backgroundImage';
 import {classes} from './classes';
 import {applySink} from './audioSink';

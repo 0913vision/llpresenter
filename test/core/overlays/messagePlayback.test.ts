@@ -1,5 +1,5 @@
 import {expect, it} from 'vitest';
-import {createMessageId} from '@core/schema/ids';
+import {createMessageId} from '@core/schema/common/ids';
 import {liveMessages, messageTimeLeft} from '@core/overlays/messagePlayback';
 
 it('keeps indefinite messages and drops a timed message at its deadline', () => {

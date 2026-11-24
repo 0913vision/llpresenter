@@ -1,8 +1,8 @@
 import {describe, expect, it, vi} from 'vitest';
-import type {SettingsReader} from '@core/schema/settingsReader';
-import {defaultPreferences} from '@core/schema/preferences';
-import type {Screen} from '@core/schema/screens';
-import {createScreenId} from '@core/schema/ids';
+import type {SettingsReader} from '@core/schema/app/settingsReader';
+import {defaultPreferences} from '@core/schema/app/preferences';
+import type {Screen} from '@core/schema/screens/screens';
+import {createScreenId} from '@core/schema/common/ids';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {dispatchBatched, type LiveStore} from '@main/live/store';
 import {launchOutputCommands, showOutputsOnLaunch} from '@main/outputs/launch';

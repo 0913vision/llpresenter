@@ -1,8 +1,8 @@
 import {resolve} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {mediaEndpoints} from '@contracts/ipc/media';
-import {parseMediaDocument} from '@core/schema/mediaEdit';
-import {createMediaId} from '@core/schema/ids';
+import {parseMediaDocument} from '@core/schema/media/mediaEdit';
+import {createMediaId} from '@core/schema/common/ids';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {MediaStore} from '@main/store/media/mediaStore';

@@ -1,15 +1,15 @@
-import type {EditFailure, EditSuccess} from '@core/schema/contentEdit';
+import type {EditFailure, EditSuccess} from '@core/schema/services/contentEdit';
 import {nextTimerName} from '@core/timers';
 import type {Result} from '@core/common/result';
-import {isKnownQuickItem, MAX_QUICK_ITEMS} from '@core/schema/quick';
+import {isKnownQuickItem, MAX_QUICK_ITEMS} from '@core/schema/tools/quick';
 import {
   MAX_TIMER_DEFINITIONS,
   type QuickTimerEdit,
-} from '@core/schema/quickTimerEdit';
+} from '@core/schema/tools/quickTimerEdit';
 import {
   parseSettingsDocument,
   type SettingsDocument,
-} from '@core/schema/settingsDocuments';
+} from '@core/schema/app/settingsDocuments';
 
 type QuickDocument = Extract<SettingsDocument, {name: 'quick'}>;
 type TimerDocument = Extract<SettingsDocument, {name: 'timers'}>;

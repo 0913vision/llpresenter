@@ -5,13 +5,13 @@ import {
   findBibleBooks,
   matchBooks,
 } from '@core/bible';
-import type {SettingsReader} from '@core/schema/settingsReader';
+import type {SettingsReader} from '@core/schema/app/settingsReader';
 import {
   BIBLE_LOOKUP_LIMITS,
   parseBibleLookupReply,
   type BibleLookupReply,
   type BibleLookupRequest,
-} from '@core/schema/bibleLookup';
+} from '@core/schema/bible/bibleLookup';
 import type {Logger} from '../base/log';
 import {BibleLibrary, loadBibleLibrary} from './library';
 

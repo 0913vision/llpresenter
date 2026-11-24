@@ -7,7 +7,7 @@ import {
   type JSX,
 } from 'react';
 import type {SettingsRequest, PreferencesRequest} from '@contracts/ipc/window';
-import type {PreferencePageId} from '@core/schema/preferencePages';
+import type {PreferencePageId} from '@core/schema/app/preferencePages';
 import type {PreferencesViewHandle} from '@renderer/features/preferences/PreferencesView';
 import type {ControlSession} from './controlSession';
 import {PreferencesWindow} from './PreferencesWindow';

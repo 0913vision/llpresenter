@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {powerpointBackgroundName} from '@core/media/powerpointBackground';
-import {MEDIA_LIMITS} from '@core/schema/mediaList';
+import {MEDIA_LIMITS} from '@core/schema/media/mediaList';
 
 describe('PowerPoint background names', () => {
   it('uses the song name and skips names already in the media list', () => {

@@ -10,14 +10,14 @@ import {
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@core/schema/live';
-import type {MonitorList} from '@core/schema/monitors';
+import {emptyLiveState} from '@core/schema/live/live';
+import type {MonitorList} from '@core/schema/screens/monitors';
 import {wideMonitorArrangement} from '@fixtures/renderer/features/screens/monitorArrangement';
 import type {
   SettingsDocument,
   SettingsEdit,
-} from '@core/schema/settingsDocuments';
-import type {EditResult} from '@core/schema/contentEdit';
+} from '@core/schema/app/settingsDocuments';
+import type {EditResult} from '@core/schema/services/contentEdit';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {useLive} from '@renderer/session/live';
 import {

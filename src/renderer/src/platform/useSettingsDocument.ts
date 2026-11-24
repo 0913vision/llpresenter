@@ -4,7 +4,7 @@ import type {LlpApi} from '@contracts/ipc/api';
 import type {
   SettingsDocument,
   SettingsName,
-} from '@core/schema/settingsDocuments';
+} from '@core/schema/app/settingsDocuments';
 import {noticeTime, type Notice} from '@renderer/ui/popups/notices';
 
 /** One settings document, narrowed by its file name. */

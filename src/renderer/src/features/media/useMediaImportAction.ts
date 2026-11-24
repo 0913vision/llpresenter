@@ -1,6 +1,6 @@
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useRef, useState} from 'react';
-import type {MediaDocument} from '@core/schema/mediaEdit';
+import type {MediaDocument} from '@core/schema/media/mediaEdit';
 import {useAlive} from '@renderer/ui/useAlive';
 
 /** Shares loading/read-only checks and the synchronous double-click guard. */

@@ -4,7 +4,7 @@ import type {
   TextImportOptions,
   TextImportPreviewResult,
   TextImportSource,
-} from '@core/schema/textImport';
+} from '@core/schema/songs/textImport';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import {createLatestRunner} from '../../../platform/latestRunner';
 

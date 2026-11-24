@@ -1,4 +1,4 @@
-import type {BibleAiState} from '@core/schema/bibleAi';
+import type {BibleAiState} from '@core/schema/bible/bibleAi';
 import type {LlpApi} from '@contracts/ipc/api';
 import {
   type VerseInput,

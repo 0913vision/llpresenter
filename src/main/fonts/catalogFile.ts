@@ -1,6 +1,9 @@
 import {readFile, stat} from 'node:fs/promises';
 import {isRecord} from '@core/common/guards';
-import {parseFontCatalog, type FontCatalog} from '@core/schema/fontCatalog';
+import {
+  parseFontCatalog,
+  type FontCatalog,
+} from '@core/schema/screens/fontCatalog';
 import {writeFileAtomically} from '../base/atomicWrite';
 import {isMissingFile} from '../base/fsErrors';
 

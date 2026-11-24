@@ -1,12 +1,12 @@
 import {shownText} from '@fixtures/core/liveSlide';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {describe, expect, it, vi} from 'vitest';
-import {createTimerId} from '@core/schema/ids';
+import {createTimerId} from '@core/schema/common/ids';
 import {
   type SingleLiveCommand,
   parseLiveCommand,
-} from '@core/schema/liveCommand';
-import {MAX_LIVE_TIMERS} from '@core/schema/timerState';
+} from '@core/schema/live/liveCommand';
+import {MAX_LIVE_TIMERS} from '@core/schema/tools/timerState';
 import {localDay, timerText} from '@core/timers/timerClock';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {dispatchLogged, LiveStore} from '@main/live/store';

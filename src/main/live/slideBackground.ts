@@ -1,7 +1,7 @@
-import type {MediaChoice, SlideLayer} from '@core/schema/live';
+import type {MediaChoice, SlideLayer} from '@core/schema/live/live';
 import {mediaLoops} from '@core/media';
-import type {ThemeId} from '@core/schema/ids';
-import type {SlideBackground} from '@core/schema/theme';
+import type {ThemeId} from '@core/schema/common/ids';
+import type {SlideBackground} from '@core/schema/screens/theme';
 import {setLayer, type LiveHistory} from './history';
 import type {SliceContext} from './slice';
 

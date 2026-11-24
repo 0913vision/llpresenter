@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import type {OwnThemeScreen} from '@core/schema/theme';
+import type {OwnThemeScreen} from '@core/schema/screens/theme';
 import {BUILT_IN_THEME_IDS} from '@core/theme/builtIn/ids';
 import {
   canAddElement,

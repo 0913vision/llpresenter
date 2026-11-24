@@ -1,8 +1,8 @@
 import {spawn, type ChildProcess} from 'node:child_process';
 import {existsSync} from 'node:fs';
 import {dirname, join} from 'node:path';
-import type {BibleAiState} from '@core/schema/bibleAi';
-import {parseLlmHealth} from '@core/schema/llmResponse';
+import type {BibleAiState} from '@core/schema/bible/bibleAi';
+import {parseLlmHealth} from '@core/schema/bible/llmResponse';
 import {fetchJson} from './http';
 
 export const MODEL_NAME = 'Qwen3-4B-Instruct-2507-Q4_K_M.gguf';

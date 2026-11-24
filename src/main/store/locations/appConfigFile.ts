@@ -1,10 +1,10 @@
-import {serializeAppConfig, type AppConfig} from '@core/schema/appConfig';
-import type {FileError} from '@core/schema/fileFormat';
-import type {ServiceId} from '@core/schema/ids';
-import {UI_ZOOM} from '@core/schema/uiZoom';
-import type {LaunchTimes} from '@core/schema/launch';
-import type {LibraryLocationField} from '@core/schema/libraryLocations';
-import type {PreferencePageId} from '@core/schema/preferencePages';
+import {serializeAppConfig, type AppConfig} from '@core/schema/app/appConfig';
+import type {FileError} from '@core/schema/common/fileFormat';
+import type {ServiceId} from '@core/schema/common/ids';
+import {UI_ZOOM} from '@core/schema/app/uiZoom';
+import type {LaunchTimes} from '@core/schema/app/launch';
+import type {LibraryLocationField} from '@core/schema/app/libraryLocations';
+import type {PreferencePageId} from '@core/schema/app/preferencePages';
 import type {Logger} from '../../base/log';
 import {writeFileAtomically} from '../../base/atomicWrite';
 import {Autosave} from '../files/autosave';

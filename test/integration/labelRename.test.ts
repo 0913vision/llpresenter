@@ -4,9 +4,9 @@ import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {
   parseSettingsDocument,
   type LabelRename,
-} from '@core/schema/settingsDocuments';
-import {parseSong} from '@core/schema/song';
-import {createSongId} from '@core/schema/ids';
+} from '@core/schema/app/settingsDocuments';
+import {parseSong} from '@core/schema/songs/song';
+import {createSongId} from '@core/schema/common/ids';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {

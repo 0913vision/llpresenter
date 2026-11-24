@@ -1,4 +1,4 @@
-import {themeOfFile, type ThemeFile} from '@core/schema/theme';
+import {themeOfFile, type ThemeFile} from '@core/schema/screens/theme';
 import blank from './blank.json';
 import creed from './creed.json';
 import hymnTitle from './hymn-title.json';

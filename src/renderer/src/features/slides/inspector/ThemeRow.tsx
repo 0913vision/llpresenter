@@ -1,5 +1,5 @@
 import {useContext, type JSX} from 'react';
-import type {ThemeId} from '@core/schema/ids';
+import type {ThemeId} from '@core/schema/common/ids';
 import {withTheme} from '@core/slides';
 import {themeOfSlide} from '@core/theme';
 import {useThemes} from '@renderer/platform/themes';

@@ -4,7 +4,7 @@ import type {
   ServiceEntry,
   TemplateDocument,
   TemplateEntry,
-} from '@core/schema/contentDocuments';
+} from '@core/schema/services/contentDocuments';
 import {
   createMediaId,
   createServiceId,
@@ -14,9 +14,9 @@ import {
   translationIdSchema,
   type ServiceItemId,
   type SongId,
-} from '@core/schema/ids';
-import {parsePayload} from '@core/schema/payload';
-import type {ServiceItem, ServiceItemOf} from '@core/schema/service';
+} from '@core/schema/common/ids';
+import {parsePayload} from '@core/schema/common/payload';
+import type {ServiceItem, ServiceItemOf} from '@core/schema/services/service';
 import type {Result} from '@core/common/result';
 
 function sample<T>(result: Result<T, unknown>): T {

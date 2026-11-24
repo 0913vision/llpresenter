@@ -3,11 +3,11 @@ import {
   pictureSizeForScreen,
   STARTER_SCREEN_IDS,
 } from '@core/screens';
-import {createScreenId} from '@core/schema/ids';
-import type {Screen} from '@core/schema/screens';
-import type {ShowTile} from '@core/schema/showService';
-import type {ThemeFile} from '@core/schema/theme';
-import type {Themes} from '@core/schema/themes';
+import {createScreenId} from '@core/schema/common/ids';
+import type {Screen} from '@core/schema/screens/screens';
+import type {ShowTile} from '@core/schema/services/showService';
+import type {ThemeFile} from '@core/schema/screens/theme';
+import type {Themes} from '@core/schema/screens/themes';
 import {peersOf} from '@core/presentation';
 import {tileContent} from '@core/slides';
 import {themeOfSlide} from '@core/theme';

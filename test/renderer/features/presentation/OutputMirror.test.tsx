@@ -2,7 +2,7 @@ import {act, cleanup, render, waitFor} from '@testing-library/react';
 import {afterEach, describe, expect, it, onTestFinished, vi} from 'vitest';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {OutputMirror} from '@renderer/features/presentation/OutputMirror';
-import type {PreviewFrame} from '@core/schema/previewMirror';
+import type {PreviewFrame} from '@core/schema/live/previewMirror';
 
 const canvasContext = Object.getOwnPropertyDescriptor(
   HTMLCanvasElement.prototype,

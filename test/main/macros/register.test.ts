@@ -1,6 +1,6 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import type {MediaList} from '@core/schema/mediaList';
-import type {SettingsReader} from '@core/schema/settingsReader';
+import type {MediaList} from '@core/schema/media/mediaList';
+import type {SettingsReader} from '@core/schema/app/settingsReader';
 import type {LiveStore} from '@main/live/store';
 import {registerMacros} from '@main/macros/register';
 import type {MacroRunnerOptions} from '@main/macros/runner';

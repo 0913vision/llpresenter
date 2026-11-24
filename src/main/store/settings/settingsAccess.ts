@@ -1,11 +1,11 @@
 import type {
   SettingsListener,
   SettingsReader,
-} from '@core/schema/settingsReader';
+} from '@core/schema/app/settingsReader';
 import type {
   SettingsDocument,
   SettingsName,
-} from '@core/schema/settingsDocuments';
+} from '@core/schema/app/settingsDocuments';
 import type {Logger} from '../../base/log';
 
 /** Main-only settings reads and change subscriptions. */

@@ -1,9 +1,9 @@
 import {useMemo} from 'react';
 import {limitReason} from '@core/common/limitReason';
-import {isKnownQuickItem, type QuickItem} from '@core/schema/quick';
-import type {Timer} from '@core/schema/timers';
-import {MAX_LIVE_TIMERS} from '@core/schema/timerState';
-import type {TimerId} from '@core/schema/ids';
+import {isKnownQuickItem, type QuickItem} from '@core/schema/tools/quick';
+import type {Timer} from '@core/schema/tools/timers';
+import {MAX_LIVE_TIMERS} from '@core/schema/tools/timerState';
+import type {TimerId} from '@core/schema/common/ids';
 import {
   useSettingsDocument,
   type NamedDocument,

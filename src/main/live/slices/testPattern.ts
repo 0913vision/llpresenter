@@ -1,4 +1,4 @@
-import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
+import {LIVE_STATE_LIMITS} from '@core/schema/live/liveLimits';
 import {resetClearToggles} from '../history';
 import {MissingLiveTargetError} from '../commandErrors';
 import {defineSlice} from '../slice';

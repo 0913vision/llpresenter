@@ -2,17 +2,17 @@ import type {
   LibrarySong,
   ServiceEntry,
   TemplateEntry,
-} from '@core/schema/contentDocuments';
-import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
-import {serializeSong, type Song} from '@core/schema/song';
-import {type ServiceId} from '@core/schema/ids';
+} from '@core/schema/services/contentDocuments';
+import type {ContentEdit, EditResult} from '@core/schema/services/contentEdit';
+import {serializeSong, type Song} from '@core/schema/songs/song';
+import {type ServiceId} from '@core/schema/common/ids';
 import {
   serializeService,
   serializeTemplate,
   type Service,
   type Template,
-} from '@core/schema/service';
-import type {LabelRename} from '@core/schema/settingsDocuments';
+} from '@core/schema/services/service';
+import type {LabelRename} from '@core/schema/app/settingsDocuments';
 import {randomUUID} from 'node:crypto';
 import {normalizeSongTitle} from '@core/songs';
 import {dirname, extname, join} from 'node:path';

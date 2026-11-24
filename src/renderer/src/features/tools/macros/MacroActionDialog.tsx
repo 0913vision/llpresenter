@@ -1,5 +1,8 @@
 import {useState, type JSX} from 'react';
-import type {KnownMacroAction, MacroActionKind} from '@core/schema/macros';
+import type {
+  KnownMacroAction,
+  MacroActionKind,
+} from '@core/schema/tools/macros';
 import {
   Dialog,
   Properties,

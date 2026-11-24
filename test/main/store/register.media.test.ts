@@ -7,8 +7,8 @@ import {
 } from '@fixtures/main/store/registerFixtures';
 import {mediaEndpoints} from '@contracts/ipc/media';
 import {settingsEndpoints} from '@contracts/ipc/settings';
-import {createMediaId} from '@core/schema/ids';
-import {parseMediaDocument} from '@core/schema/mediaEdit';
+import {createMediaId} from '@core/schema/common/ids';
+import {parseMediaDocument} from '@core/schema/media/mediaEdit';
 import {readFile, readdir} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';

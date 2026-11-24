@@ -1,6 +1,6 @@
 import {cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
-import {createMediaId} from '@core/schema/ids';
+import {createMediaId} from '@core/schema/common/ids';
 import {MediaPicker} from '@renderer/features/media/MediaPicker';
 
 afterEach(() => {

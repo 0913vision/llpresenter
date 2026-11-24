@@ -1,6 +1,6 @@
 import {afterEach, beforeEach, expect, it, vi, type MockInstance} from 'vitest';
 import {OUTPUT_REVEAL_DEADLINE_MS} from '@core/output/revealDeadline';
-import type {SlideTransition} from '@core/schema/slideTransition';
+import type {SlideTransition} from '@core/schema/slides/slideTransition';
 import {CUT, SlideSwitch} from '@renderer/output/slideSwitch';
 import {OutputRenderer} from '@renderer/rendering/outputRenderer';
 

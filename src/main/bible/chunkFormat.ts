@@ -1,7 +1,7 @@
 import {
   parseBibleChunkHeader as parseHeader,
   type BibleChunkHeader,
-} from '@core/schema/bibleChunks';
+} from '@core/schema/bible/bibleChunks';
 import {BIBLE_BOOKS} from '@core/bible';
 
 export {
@@ -10,7 +10,7 @@ export {
   BIBLE_HEADER_PREFIX_BYTES,
   parseBibleChapter,
   type BibleChunkHeader,
-} from '@core/schema/bibleChunks';
+} from '@core/schema/bible/bibleChunks';
 
 /** Adds canonical chapter-count checks to the shared container validation. */
 export function parseBibleChunkHeader(

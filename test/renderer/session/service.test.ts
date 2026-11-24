@@ -1,6 +1,6 @@
 import {lyricsSlide} from '@fixtures/core/slides';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import type {ShowService} from '@core/schema/showService';
+import type {ShowService} from '@core/schema/services/showService';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {
   applyService,

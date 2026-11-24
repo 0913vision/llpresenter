@@ -1,20 +1,20 @@
 import {
   type LiveCommand,
   parseLiveCommandRequest,
-} from '@core/schema/liveCommand';
+} from '@core/schema/live/liveCommand';
 import type {Result} from '@core/common/result';
-import type {LiveState} from '@core/schema/live';
-import {parseLiveState, parseLiveVersion} from '@core/schema/liveState';
-import type {PayloadError} from '@core/schema/payload';
-import {parseTimerClockReading} from '@core/schema/timerState';
+import type {LiveState} from '@core/schema/live/live';
+import {parseLiveState, parseLiveVersion} from '@core/schema/live/liveState';
+import type {PayloadError} from '@core/schema/common/payload';
+import {parseTimerClockReading} from '@core/schema/tools/timerState';
 import {
   parseWallClockSample,
   type WallClockSample,
-} from '@core/schema/wallClock';
+} from '@core/schema/app/wallClock';
 import {
   parseMediaProgress,
   type MediaProgress,
-} from '@core/schema/mediaProgress';
+} from '@core/schema/media/mediaProgress';
 import {
   message,
   partialMessage,

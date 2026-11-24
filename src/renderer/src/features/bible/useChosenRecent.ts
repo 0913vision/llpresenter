@@ -1,6 +1,6 @@
 import {useState} from 'react';
-import type {RecentPassage} from '@core/schema/bible';
-import type {TranslationId} from '@core/schema/ids';
+import type {RecentPassage} from '@core/schema/bible/bible';
+import type {TranslationId} from '@core/schema/common/ids';
 
 /**
  * A whole passage chosen in the 성경 구절 fields at once, such as a recent

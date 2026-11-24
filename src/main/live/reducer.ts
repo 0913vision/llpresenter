@@ -1,4 +1,4 @@
-import type {LiveCommand} from '@core/schema/liveCommand';
+import type {LiveCommand} from '@core/schema/live/liveCommand';
 import type {LiveHistory} from './history';
 import {liveSlices} from './slices';
 

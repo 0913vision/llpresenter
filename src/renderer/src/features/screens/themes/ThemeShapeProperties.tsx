@@ -4,7 +4,7 @@ import {
   THEME_FILE_LIMITS,
   type ThemeFill,
   type ThemeShape,
-} from '@core/schema/theme';
+} from '@core/schema/screens/theme';
 import {Button} from '@renderer/ui/buttons/Button';
 import {IconButton} from '@renderer/ui/buttons/IconButton';
 import {PropertyGroup, PropertyRow} from '@renderer/ui/panels/PropertyRow';

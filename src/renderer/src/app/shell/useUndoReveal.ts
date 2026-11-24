@@ -1,5 +1,5 @@
 import {useEffect, useEffectEvent} from 'react';
-import {createSongId, type SongId} from '@core/schema/ids';
+import {createSongId, type SongId} from '@core/schema/common/ids';
 import {undoTimeline, type UndoPlace} from '@renderer/platform/undoTimeline';
 import {serviceItem} from '@renderer/session/openService';
 import {openItem} from '@renderer/session/show';

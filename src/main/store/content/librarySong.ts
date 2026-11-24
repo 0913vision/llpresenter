@@ -1,12 +1,12 @@
 import {libraryEndpoints} from '@contracts/ipc/library';
-import type {FileAccess} from '@core/schema/fileFormat';
-import type {SongId} from '@core/schema/ids';
-import type {Label} from '@core/schema/labels';
+import type {FileAccess} from '@core/schema/common/fileFormat';
+import type {SongId} from '@core/schema/common/ids';
+import type {Label} from '@core/schema/services/labels';
 import {
   parseShowLibrarySongReply,
   type ShowLibrarySong,
-} from '@core/schema/showLibrarySong';
-import type {Song} from '@core/schema/song';
+} from '@core/schema/songs/showLibrarySong';
+import type {Song} from '@core/schema/songs/song';
 import {songTiles} from '@core/slides';
 import {IpcHost} from '../../base/ipcHost';
 import type {Logger} from '../../base/log';

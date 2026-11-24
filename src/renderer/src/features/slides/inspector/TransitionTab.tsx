@@ -2,7 +2,7 @@ import {useState, type JSX} from 'react';
 import {
   SLIDE_TRANSITION_LIMITS,
   type SlideTransition,
-} from '@core/schema/slideTransition';
+} from '@core/schema/slides/slideTransition';
 import {withTransition} from '@core/slides';
 import {TextField} from '@renderer/ui/fields/TextField';
 import {PropertyGroup, PropertyRow} from '@renderer/ui/panels/PropertyRow';

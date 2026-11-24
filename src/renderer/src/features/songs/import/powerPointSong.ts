@@ -1,7 +1,7 @@
 import type {LlpApi} from '@contracts/ipc/api';
-import type {MediaId} from '@core/schema/ids';
-import type {PowerPointSource} from '@core/schema/powerpointImport';
-import type {TextImportDraft} from '@core/schema/textImport';
+import type {MediaId} from '@core/schema/common/ids';
+import type {PowerPointSource} from '@core/schema/songs/powerpointImport';
+import type {TextImportDraft} from '@core/schema/songs/textImport';
 import {importedSongTitle} from '@core/slides';
 import {powerpointBrightBackgrounds, powerpointSlides} from '@core/songs';
 import {lendPreviewImage} from '@renderer/rendering/previewMedia';

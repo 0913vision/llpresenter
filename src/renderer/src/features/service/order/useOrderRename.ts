@@ -1,7 +1,7 @@
 import {useState} from 'react';
 import type {ServiceRow} from '@core/presentation';
-import {createServiceItemId} from '@core/schema/ids';
-import {SONG_NAME_MAX_LENGTH} from '@core/schema/song';
+import {createServiceItemId} from '@core/schema/common/ids';
+import {SONG_NAME_MAX_LENGTH} from '@core/schema/songs/song';
 import {useHeaderRename} from '@renderer/session/headerRename';
 import type {OpenServiceResult} from '@renderer/session/openService';
 import {renameItem as renameOrderItem} from '@renderer/session/serviceOrderEdits';

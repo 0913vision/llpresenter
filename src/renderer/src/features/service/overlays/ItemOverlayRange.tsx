@@ -1,5 +1,5 @@
 import {useState, type JSX} from 'react';
-import type {PlacedOverlay} from '@core/schema/itemOverlays';
+import type {PlacedOverlay} from '@core/schema/services/itemOverlays';
 import {overlayRangesOverlap} from '@core/overlays';
 import {editorTask} from '@renderer/platform/editorTask';
 import {NumberField} from '@renderer/ui/fields/NumberField';

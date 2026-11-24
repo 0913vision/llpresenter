@@ -1,6 +1,6 @@
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {describe, expect, it, vi} from 'vitest';
-import type {SettingsDocument} from '@core/schema/settingsDocuments';
+import type {SettingsDocument} from '@core/schema/app/settingsDocuments';
 import {overlaySettings} from '@fixtures/core/overlays';
 import {followSettingsDocument} from '@renderer/rendering/settingsFeed';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';

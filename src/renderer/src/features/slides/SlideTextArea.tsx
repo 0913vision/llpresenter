@@ -5,9 +5,9 @@ import {
   type JSX,
   type KeyboardEvent,
 } from 'react';
-import {SLIDE_LIMITS} from '@core/schema/slide';
-import type {ShowTile} from '@core/schema/showService';
-import type {ThemeFile} from '@core/schema/theme';
+import {SLIDE_LIMITS} from '@core/schema/slides/slide';
+import type {ShowTile} from '@core/schema/services/showService';
+import type {ThemeFile} from '@core/schema/screens/theme';
 import {
   filledText,
   ownText,

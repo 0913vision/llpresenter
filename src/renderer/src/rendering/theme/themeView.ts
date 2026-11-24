@@ -5,13 +5,13 @@ import {
   type ThemeFrame,
   type ThemeShape,
   THEME_CANVAS,
-} from '@core/schema/theme';
-import type {MediaLayer} from '@core/schema/live';
+} from '@core/schema/screens/theme';
+import type {MediaLayer} from '@core/schema/live/live';
 import type {
   PictureArea,
   PictureFit,
   PicturePlace,
-} from '@core/schema/picturePlace';
+} from '@core/schema/media/picturePlace';
 import {
   type ShapePlacement,
   type ThemePlacement,

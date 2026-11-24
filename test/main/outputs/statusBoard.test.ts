@@ -2,7 +2,7 @@ import {describe, expect, it, vi} from 'vitest';
 import type {FrameRate} from '@main/outputs/frameRates';
 import type {ScreenOutputState} from '@main/outputs/manager';
 import {OutputStatusBoard} from '@main/outputs/statusBoard';
-import {parseOutputStatuses} from '@core/schema/outputStatus';
+import {parseOutputStatuses} from '@core/schema/live/outputStatus';
 
 function setUp() {
   const states = new Map<string, ScreenOutputState>([

@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
-import {type Timer, parseTimers} from '@core/schema/timers';
-import type {TimerRun} from '@core/schema/timerState';
+import {type Timer, parseTimers} from '@core/schema/tools/timers';
+import type {TimerRun} from '@core/schema/tools/timerState';
 import {
   countedMs,
   isTimerTicking,

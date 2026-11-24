@@ -1,14 +1,14 @@
-import type {SettingsReader} from '@core/schema/settingsReader';
-import type {LiveCommand} from '@core/schema/liveCommand';
-import type {LiveState} from '@core/schema/live';
+import type {SettingsReader} from '@core/schema/app/settingsReader';
+import type {LiveCommand} from '@core/schema/live/liveCommand';
+import type {LiveState} from '@core/schema/live/live';
 import type {
   LiveItem,
   LiveThemeMode,
   LiveThemeOutput,
-} from '@core/schema/liveTheme';
-import type {Screen} from '@core/schema/screens';
-import type {SlideBackground} from '@core/schema/theme';
-import type {Themes} from '@core/schema/themes';
+} from '@core/schema/live/liveTheme';
+import type {Screen} from '@core/schema/screens/screens';
+import type {SlideBackground} from '@core/schema/screens/theme';
+import type {Themes} from '@core/schema/screens/themes';
 import {emptyScreenColor} from '@core/screens';
 import {themeFor, themeOf, themeOfSlide, type ThemedSlide} from '@core/theme';
 import {resetClearToggles, type LiveHistory, type UndoEntry} from './history';

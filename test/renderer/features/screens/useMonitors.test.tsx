@@ -1,6 +1,6 @@
 import {act, cleanup, renderHook, waitFor} from '@testing-library/react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import type {MonitorList} from '@core/schema/monitors';
+import type {MonitorList} from '@core/schema/screens/monitors';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {useMonitors} from '@renderer/features/screens/useMonitors';
 import {

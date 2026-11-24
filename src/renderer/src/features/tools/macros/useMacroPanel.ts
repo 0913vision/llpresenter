@@ -2,7 +2,7 @@ import {limitReason} from '@core/common/limitReason';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useMenuHandoff} from '@renderer/ui/menus/useMenuHandoff';
 import {useContext, useRef, useState, type RefObject} from 'react';
-import {parseMacroCollectionId, parseMacroId} from '@core/schema/ids';
+import {parseMacroCollectionId, parseMacroId} from '@core/schema/common/ids';
 import {freeName} from '@core/common/freeName';
 import {
   MACRO_FILE_LIMITS,
@@ -10,7 +10,7 @@ import {
   type Macro,
   type MacroCollection,
   type KnownMacroAction,
-} from '@core/schema/macros';
+} from '@core/schema/tools/macros';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {sendLive} from '@renderer/session/live';
 import {WorkspaceNavigation} from '@renderer/platform/WorkspaceNavigation';

@@ -1,6 +1,6 @@
 import {expect, it} from 'vitest';
 import {slideTransitionFor} from '@core/output/transitions';
-import {serviceItemIdSchema} from '@core/schema/ids';
+import {serviceItemIdSchema} from '@core/schema/common/ids';
 import * as v from 'valibot';
 
 const itemId = v.parse(

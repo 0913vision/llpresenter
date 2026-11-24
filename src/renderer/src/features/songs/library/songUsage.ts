@@ -1,5 +1,5 @@
-import type {LibrarySong} from '@core/schema/contentDocuments';
-import type {SongId} from '@core/schema/ids';
+import type {LibrarySong} from '@core/schema/services/contentDocuments';
+import type {SongId} from '@core/schema/common/ids';
 import {USAGE_LOADING, USAGE_UNAVAILABLE} from '@renderer/ui/text/usageText';
 
 /** Formats usage from the editor's existing live library feed. */

@@ -3,13 +3,13 @@ import {applySettingsDeletionDelta} from './settingsDeletionDelta';
 import type {
   SettingsListener,
   SettingsReader,
-} from '@core/schema/settingsReader';
+} from '@core/schema/app/settingsReader';
 import {join} from 'node:path';
 import type {
   EditRefusalReason,
   EditResult,
   EditSuccess,
-} from '@core/schema/contentEdit';
+} from '@core/schema/services/contentEdit';
 import {
   mergeSettingsDocument,
   parseSettingsDocument,
@@ -17,12 +17,12 @@ import {
   type SettingsDocument,
   type SettingsEdit,
   type SettingsName,
-} from '@core/schema/settingsDocuments';
+} from '@core/schema/app/settingsDocuments';
 import {
   defaultPreferences,
   withPreferenceDefaults,
   type Preferences,
-} from '@core/schema/preferences';
+} from '@core/schema/app/preferences';
 import type {OnProgress} from '../../base/launchTracker';
 import type {Logger} from '../../base/log';
 import type {DocumentFiles, PersistedFile} from '../content/contentPersistence';

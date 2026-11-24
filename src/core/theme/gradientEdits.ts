@@ -1,4 +1,4 @@
-import {THEME_FILE_LIMITS} from '@core/schema/theme';
+import {THEME_FILE_LIMITS} from '@core/schema/screens/theme';
 import type {GradientBackground} from './gradientPresets';
 
 /** Starts every new gradient in the chosen perceptual mixing space. */

@@ -5,9 +5,9 @@ import type {
   TextImportFailure,
   TextImportReadRequest,
   TextImportReadResult,
-} from '@core/schema/textImport';
+} from '@core/schema/songs/textImport';
 import {decodeTextImport} from './decode';
-import {TEXT_IMPORT_LIMITS} from '@core/schema/textImportLimits';
+import {TEXT_IMPORT_LIMITS} from '@core/schema/songs/textImportLimits';
 
 const READ_CHUNK_BYTES = 64 * 1024;
 

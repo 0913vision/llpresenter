@@ -1,9 +1,13 @@
-import {emptyLayers, emptyLiveState, type LiveLayers} from '@core/schema/live';
+import {
+  emptyLayers,
+  emptyLiveState,
+  type LiveLayers,
+} from '@core/schema/live/live';
 import {shownText} from '@fixtures/core/liveSlide';
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import type {LiveCommand} from '@core/schema/liveCommand';
+import type {LiveCommand} from '@core/schema/live/liveCommand';
 import type {LlpApi} from '@contracts/ipc/api';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {useLive} from '@renderer/session/live';

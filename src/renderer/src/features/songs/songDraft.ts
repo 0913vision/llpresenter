@@ -1,11 +1,14 @@
 import {create} from 'zustand';
 import type {LlpApi} from '@contracts/ipc/api';
 import {sameJson} from '@core/common/sameJson';
-import type {LibrarySong, SongDocument} from '@core/schema/contentDocuments';
-import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
-import {createSongId, type MediaId, type SongId} from '@core/schema/ids';
-import {SONG_SCHEMA_VERSION, type Song} from '@core/schema/song';
-import type {TextImportDraft} from '@core/schema/textImport';
+import type {
+  LibrarySong,
+  SongDocument,
+} from '@core/schema/services/contentDocuments';
+import type {ContentEdit, EditResult} from '@core/schema/services/contentEdit';
+import {createSongId, type MediaId, type SongId} from '@core/schema/common/ids';
+import {SONG_SCHEMA_VERSION, type Song} from '@core/schema/songs/song';
+import type {TextImportDraft} from '@core/schema/songs/textImport';
 import {newSongSlides, songSlides, withSongTitle} from '@core/slides';
 import {
   importLimitReason,

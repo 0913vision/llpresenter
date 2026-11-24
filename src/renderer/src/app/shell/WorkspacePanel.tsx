@@ -1,5 +1,5 @@
 import type {JSX, ReactNode} from 'react';
-import type {PanelRowId} from '@core/schema/panelRows';
+import type {PanelRowId} from '@core/schema/app/panelRows';
 import {classNames} from '@renderer/ui/classNames';
 import type {Notice} from '@renderer/ui/popups/notices';
 import styles from './Workspace.module.css';

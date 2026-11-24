@@ -1,6 +1,6 @@
 import {contentEndpoints, type DocumentEndpoints} from '@contracts/ipc/content';
 import type {PushEndpoint} from '@contracts/ipc/endpoint';
-import type {EditResult} from '@core/schema/contentEdit';
+import type {EditResult} from '@core/schema/services/contentEdit';
 import {IpcHost, pushToWindows} from '../../base/ipcHost';
 import type {Logger} from '../../base/log';
 import type {ContentEvents, ContentStore} from './contentStore';

@@ -1,20 +1,20 @@
 import {BIBLE_BOOKS, displayReference} from '@core/bible';
 import {hymnAt, hymnLabel, hymnTitle} from '@core/hymns';
 import {NO_LABEL_COLOR, type LabelColor} from '@core/labels';
-import type {Hymn} from '@core/schema/hymn';
-import type {ShowTile} from '@core/schema/showService';
+import type {Hymn} from '@core/schema/songs/hymn';
+import type {ShowTile} from '@core/schema/services/showService';
 import {
   hasSlides,
   type ServiceItem,
   type SlidesItem,
-} from '@core/schema/service';
-import type {Slide} from '@core/schema/slide';
+} from '@core/schema/services/service';
+import type {Slide} from '@core/schema/slides/slide';
 import {
   type SlideContent,
   AUTO_TOKENS,
   type AutoValues,
-} from '@core/schema/slideContent';
-import type {Song} from '@core/schema/song';
+} from '@core/schema/slides/slideContent';
+import type {Song} from '@core/schema/songs/song';
 import {verseKey} from './passageSlides';
 
 /** What an item says about its slides beside the slides themselves. */

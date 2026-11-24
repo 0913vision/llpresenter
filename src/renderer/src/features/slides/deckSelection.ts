@@ -1,7 +1,7 @@
 import {useMemo} from 'react';
 import {create} from 'zustand';
-import type {SlideId} from '@core/schema/ids';
-import type {Slide} from '@core/schema/slide';
+import type {SlideId} from '@core/schema/common/ids';
+import type {Slide} from '@core/schema/slides/slide';
 import {
   emptySlideSelection,
   selectSlideList,

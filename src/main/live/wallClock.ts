@@ -1,4 +1,4 @@
-import type {WallClockSample} from '@core/schema/wallClock';
+import type {WallClockSample} from '@core/schema/app/wallClock';
 import {systemNow} from '../base/systemTime';
 import {monotonicNow} from './clock';
 

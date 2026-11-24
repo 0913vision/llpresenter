@@ -5,12 +5,12 @@ import {
   type RememberedViewChange,
   type LayoutChange,
   type UiState,
-} from '@core/schema/uiState';
+} from '@core/schema/app/uiState';
 import {
   parseUiZoomCommand,
   parseUiZoomPercent,
   type UiZoomCommand,
-} from '@core/schema/uiZoom';
+} from '@core/schema/app/uiZoom';
 import {
   message,
   push,

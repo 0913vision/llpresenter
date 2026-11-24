@@ -1,6 +1,6 @@
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import {parseLiveCommand} from '@core/schema/liveCommand';
+import {parseLiveCommand} from '@core/schema/live/liveCommand';
 import type {SkippedLiveCommand} from '@main/live/sliceRegistry';
 import {LiveStore} from '@main/live/store';
 import {

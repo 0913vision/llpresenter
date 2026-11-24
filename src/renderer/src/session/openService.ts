@@ -2,16 +2,16 @@ import {create} from 'zustand';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {Result} from '@core/common/result';
 import {sameJson} from '@core/common/sameJson';
-import type {ServiceDocument} from '@core/schema/contentDocuments';
-import type {EditFailure} from '@core/schema/contentEdit';
-import type {ServiceItemId} from '@core/schema/ids';
+import type {ServiceDocument} from '@core/schema/services/contentDocuments';
+import type {EditFailure} from '@core/schema/services/contentEdit';
+import type {ServiceItemId} from '@core/schema/common/ids';
 import {
   hasSlides,
   type Service,
   type ServiceItem,
   type SlidesItem,
-} from '@core/schema/service';
-import type {Slide} from '@core/schema/slide';
+} from '@core/schema/services/service';
+import type {Slide} from '@core/schema/slides/slide';
 import {withOneSermonTitle} from '@core/slides';
 import {pendingWritesOf} from '../platform/pendingWrites';
 import {useShow} from './showStore';

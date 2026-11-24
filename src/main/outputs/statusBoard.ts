@@ -1,7 +1,7 @@
 import type {
   OutputScreenStatus,
   OutputStatuses,
-} from '@core/schema/outputStatus';
+} from '@core/schema/live/outputStatus';
 import type {FrameRate} from './frameRates';
 import type {ScreenOutputState} from './manager';
 

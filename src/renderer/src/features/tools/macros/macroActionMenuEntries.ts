@@ -6,7 +6,7 @@ import {
   type MacroAction,
   type MacroActionKind,
   type KnownMacroAction,
-} from '@core/schema/macros';
+} from '@core/schema/tools/macros';
 import type {MacroActionDraft} from '@core/macros';
 import type {MacroActionDescriptor} from '@renderer/platform/macroActionDescriptor';
 import {

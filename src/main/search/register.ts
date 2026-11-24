@@ -1,6 +1,6 @@
 import {libraryEndpoints} from '@contracts/ipc/library';
-import type {SongChange} from '@core/schema/contentDocuments';
-import type {Song} from '@core/schema/song';
+import type {SongChange} from '@core/schema/services/contentDocuments';
+import type {Song} from '@core/schema/songs/song';
 import {IpcHost} from '../base/ipcHost';
 import type {Logger} from '../base/log';
 import {buildSongSearchIndex, type SongSearchIndex} from './songIndex';

@@ -3,14 +3,14 @@ import {
   parseLibrarySearchResult,
   type LibrarySearchRequest,
   type LibrarySearchResult,
-} from '@core/schema/librarySearch';
+} from '@core/schema/songs/librarySearch';
 import {
   parseShowLibrarySongReply,
   parseShowLibrarySongRequest,
   type ShowLibrarySong,
   type ShowLibrarySongRequest,
-} from '@core/schema/showLibrarySong';
-import type {SongId} from '@core/schema/ids';
+} from '@core/schema/songs/showLibrarySong';
+import type {SongId} from '@core/schema/common/ids';
 import {message, request, type IpcPort} from './endpoint';
 
 /** The calls that search the 라이브러리 and show its songs. */

@@ -1,12 +1,12 @@
 import {cleanup, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@core/schema/live';
-import type {UiState} from '@core/schema/uiState';
+import {emptyLiveState} from '@core/schema/live/live';
+import type {UiState} from '@core/schema/app/uiState';
 import {editorFixture} from '@fixtures/renderer/features/songs/editorFixture';
 import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
 import {useLive} from '@renderer/session/live';
-import type {LiveCommand} from '@core/schema/liveCommand';
+import type {LiveCommand} from '@core/schema/live/liveCommand';
 import {sampleService} from '@fixtures/renderer/session/sampleService';
 import {applyService} from '@renderer/session/show';
 import {useShowToolTab} from '@renderer/features/tools/showToolTab';

@@ -1,4 +1,4 @@
-import {THEME_CANVAS} from '@core/schema/screens';
+import {THEME_CANVAS} from '@core/schema/screens/screens';
 import {
   BrowserWindow,
   screen as displays,
@@ -8,7 +8,7 @@ import {
   type WebContents,
 } from 'electron';
 import {join} from 'node:path';
-import type {SlideTransition} from '@core/schema/slideTransition';
+import type {SlideTransition} from '@core/schema/slides/slideTransition';
 import {sameRect, type Rect, type Size} from '../displays/rect';
 import type {Logger} from '../base/log';
 import {

@@ -1,5 +1,5 @@
 import {useId, type JSX} from 'react';
-import type {ShowTile} from '@core/schema/showService';
+import type {ShowTile} from '@core/schema/services/showService';
 import {hidesNext, withHideNext} from '@core/slides';
 import {Checkbox} from '@renderer/ui/choices/Checkbox';
 import {changeSelected, type ChosenSlides} from './changeSelected';

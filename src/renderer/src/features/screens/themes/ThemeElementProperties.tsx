@@ -3,7 +3,7 @@ import {
   THEME_FILE_LIMITS,
   type ThemeElement,
   type ThemeGroupedText,
-} from '@core/schema/theme';
+} from '@core/schema/screens/theme';
 import {
   themeValues,
   changeSplit,

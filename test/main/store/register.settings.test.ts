@@ -8,12 +8,12 @@ import {
 } from '@fixtures/main/store/registerFixtures';
 import {contentEndpoints} from '@contracts/ipc/content';
 import {settingsEndpoints} from '@contracts/ipc/settings';
-import {parseEditResult} from '@core/schema/contentEdit';
+import {parseEditResult} from '@core/schema/services/contentEdit';
 import {
   parseSettingsDocument,
   settingsNames,
   type SettingsDocument,
-} from '@core/schema/settingsDocuments';
+} from '@core/schema/app/settingsDocuments';
 import {readdir, readFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';

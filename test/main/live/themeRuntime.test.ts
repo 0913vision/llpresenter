@@ -1,17 +1,21 @@
 import {expect, it, vi} from 'vitest';
-import type {LiveCommand} from '@core/schema/liveCommand';
-import {emptyLayers, emptyLiveState, type LiveLayers} from '@core/schema/live';
+import type {LiveCommand} from '@core/schema/live/liveCommand';
+import {
+  emptyLayers,
+  emptyLiveState,
+  type LiveLayers,
+} from '@core/schema/live/live';
 import {liveOverlay} from '@core/live/overlays';
 import {
   createItemOverlayId,
   createMediaId,
   createServiceItemId,
   createThemeId,
-} from '@core/schema/ids';
-import type {LiveItem} from '@core/schema/liveTheme';
-import {defaultPreferences} from '@core/schema/preferences';
-import type {SettingsReader} from '@core/schema/settingsReader';
-import type {Themes} from '@core/schema/themes';
+} from '@core/schema/common/ids';
+import type {LiveItem} from '@core/schema/live/liveTheme';
+import {defaultPreferences} from '@core/schema/app/preferences';
+import type {SettingsReader} from '@core/schema/app/settingsReader';
+import type {Themes} from '@core/schema/screens/themes';
 import {BUILT_IN_THEME_IDS} from '@core/theme/builtIn/ids';
 import {LiveStore} from '@main/live/store';
 import {ThemeRuntime} from '@main/live/themeRuntime';

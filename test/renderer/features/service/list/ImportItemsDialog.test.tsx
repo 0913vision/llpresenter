@@ -9,14 +9,14 @@ import {
   it,
   vi,
 } from 'vitest';
-import type {LiveCommand} from '@core/schema/liveCommand';
+import type {LiveCommand} from '@core/schema/live/liveCommand';
 import type {
   ServiceEntry,
   TemplateDocument,
   TemplateEntry,
-} from '@core/schema/contentDocuments';
-import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
-import {createServiceId, createTemplateId} from '@core/schema/ids';
+} from '@core/schema/services/contentDocuments';
+import type {ContentEdit, EditResult} from '@core/schema/services/contentEdit';
+import {createServiceId, createTemplateId} from '@core/schema/common/ids';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {applyService, openItem, useShow} from '@renderer/session/show';
 import {sampleService} from '@fixtures/renderer/session/sampleService';

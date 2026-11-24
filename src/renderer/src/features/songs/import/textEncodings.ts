@@ -1,4 +1,4 @@
-import type {Preferences} from '@core/schema/preferences';
+import type {Preferences} from '@core/schema/app/preferences';
 
 export type TextEncoding = Preferences['import']['txt']['encoding'];
 

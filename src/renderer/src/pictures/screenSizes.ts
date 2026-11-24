@@ -1,5 +1,5 @@
 import {useSyncExternalStore} from 'react';
-import type {OutputStatuses} from '@core/schema/outputStatus';
+import type {OutputStatuses} from '@core/schema/live/outputStatus';
 
 export interface ScreenSize {
   readonly width: number;

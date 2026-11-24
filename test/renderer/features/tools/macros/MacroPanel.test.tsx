@@ -10,7 +10,7 @@ import {
 } from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import {deferred} from '@fixtures/renderer/features/tools/quickTesting';
-import type {EditResult} from '@core/schema/contentEdit';
+import type {EditResult} from '@core/schema/services/contentEdit';
 import {MacroPanel} from '@renderer/features/tools/macros/MacroPanel';
 import {useMacroPalette} from '@renderer/features/tools/macros/useMacroPalette';
 

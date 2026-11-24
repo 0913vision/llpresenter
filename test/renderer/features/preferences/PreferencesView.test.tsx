@@ -11,16 +11,16 @@ import {
 import userEvent from '@testing-library/user-event';
 import {Activity} from 'react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import type {EditResult} from '@core/schema/contentEdit';
+import type {EditResult} from '@core/schema/services/contentEdit';
 import type {
   SettingsDocument,
   SettingsEdit,
-} from '@core/schema/settingsDocuments';
+} from '@core/schema/app/settingsDocuments';
 import {
   defaultPreferences,
   type PreferencesFile,
-} from '@core/schema/preferences';
-import {translationIdSchema} from '@core/schema/ids';
+} from '@core/schema/app/preferences';
+import {translationIdSchema} from '@core/schema/common/ids';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {MISSING_DEVICE_REASON} from '@renderer/features/preferences/DeviceRow';

@@ -1,6 +1,6 @@
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
-import type {MediaId} from '@core/schema/ids';
-import type {MediaItem} from '@core/schema/mediaList';
+import type {MediaId} from '@core/schema/common/ids';
+import type {MediaItem} from '@core/schema/media/mediaList';
 import {menuAvailability, type MenuEntry} from '@renderer/ui/menus/menuModel';
 import {laterRow, menuSeparator} from '@renderer/ui/menus/menuRows';
 import {

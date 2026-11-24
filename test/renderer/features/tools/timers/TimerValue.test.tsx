@@ -1,11 +1,11 @@
-import type {WallClockSample} from '@core/schema/wallClock';
+import type {WallClockSample} from '@core/schema/app/wallClock';
 import type {LlpApi} from '@contracts/ipc/api';
 import {act, cleanup, render, screen} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {emptyLiveState} from '@core/schema/live';
-import {parseLiveState} from '@core/schema/liveState';
-import {parseSettingsDocument} from '@core/schema/settingsDocuments';
+import {emptyLiveState} from '@core/schema/live/live';
+import {parseLiveState} from '@core/schema/live/liveState';
+import {parseSettingsDocument} from '@core/schema/app/settingsDocuments';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {TimerValue} from '@renderer/features/tools/timers/TimerValue';
 

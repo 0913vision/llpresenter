@@ -1,7 +1,7 @@
 import {useEffect, useState} from 'react';
 import {LIVE_BIBLE_ID} from '@core/bible';
-import type {TranslationId} from '@core/schema/ids';
-import type {Preferences} from '@core/schema/preferences';
+import type {TranslationId} from '@core/schema/common/ids';
+import type {Preferences} from '@core/schema/app/preferences';
 import type {PassageDefaults} from './passageItems';
 
 export interface BibleDefaults extends PassageDefaults {

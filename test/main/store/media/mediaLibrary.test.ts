@@ -2,8 +2,8 @@ import {join, resolve} from 'node:path';
 import {mkdir, rm, symlink, writeFile} from 'node:fs/promises';
 import * as v from 'valibot';
 import {describe, expect, it} from 'vitest';
-import {mediaIdSchema, type MediaId} from '@core/schema/ids';
-import type {MediaItem} from '@core/schema/mediaList';
+import {mediaIdSchema, type MediaId} from '@core/schema/common/ids';
+import type {MediaItem} from '@core/schema/media/mediaList';
 import {
   buildMediaLibrary,
   LoadingMediaLibrary,

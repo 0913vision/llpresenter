@@ -6,7 +6,7 @@ import {useEffect, useState, type JSX} from 'react';
 import type {WindowAction} from '@contracts/ipc/api';
 import type {AppInfo} from '@contracts/ipc/window';
 import {AlertDialog} from '@renderer/ui/popups/AlertDialog';
-import type {TextImportReadRequest} from '@core/schema/textImport';
+import type {TextImportReadRequest} from '@core/schema/songs/textImport';
 import {useServiceActions} from '@renderer/features/service/list/useServiceActions';
 import {useServicePickerMenu} from '@renderer/features/service/order/useServicePickerMenu';
 import {Icon, Menu, useTooltip} from '@renderer/ui';

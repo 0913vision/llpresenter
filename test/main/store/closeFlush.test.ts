@@ -4,10 +4,13 @@ import {join} from 'node:path';
 import {expect, it, onTestFinished, vi} from 'vitest';
 import {appEndpoints} from '@contracts/ipc/app';
 import {contentEndpoints} from '@contracts/ipc/content';
-import {parseServiceDocument} from '@core/schema/contentDocuments';
-import {isItemOfKind, parseService} from '@core/schema/service';
-import {APP_FLUSH_LIMITS, parseAppFlushRequest} from '@core/schema/appFlush';
-import {parseAppConfig} from '@core/schema/appConfig';
+import {parseServiceDocument} from '@core/schema/services/contentDocuments';
+import {isItemOfKind, parseService} from '@core/schema/services/service';
+import {
+  APP_FLUSH_LIMITS,
+  parseAppFlushRequest,
+} from '@core/schema/app/appFlush';
+import {parseAppConfig} from '@core/schema/app/appConfig';
 import {installMockClock} from '@fixtures/mockClock';
 import {makeTempDir} from '@fixtures/tempDir';
 import {recordingLogger} from '@fixtures/main/displays/testing';

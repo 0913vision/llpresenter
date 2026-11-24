@@ -5,14 +5,14 @@ import {
   type ElementFrame,
   type FrameFieldChange,
 } from '@core/canvas';
-import type {MediaId} from '@core/schema/ids';
-import type {Screen} from '@core/schema/screens';
+import type {MediaId} from '@core/schema/common/ids';
+import type {Screen} from '@core/schema/screens/screens';
 import {
   THEME_CANVAS,
   type OwnThemeScreen,
   type ThemeElement,
   type ThemeFile,
-} from '@core/schema/theme';
+} from '@core/schema/screens/theme';
 import {
   addBox,
   changeElement,

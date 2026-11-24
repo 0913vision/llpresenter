@@ -17,10 +17,10 @@ import {LabelCatalog} from '@renderer/features/labels/labelCatalog';
 import type {DialogProps} from '@renderer/ui/popups/Dialog';
 import {PreferencesWindow} from '@renderer/app/PreferencesWindow';
 import {ControlSession} from '@renderer/app/controlSession';
-import type {EditResult} from '@core/schema/contentEdit';
-import type {PreferencePageId} from '@core/schema/preferencePages';
-import {defaultPreferences} from '@core/schema/preferences';
-import type {SettingsDocument} from '@core/schema/settingsDocuments';
+import type {EditResult} from '@core/schema/services/contentEdit';
+import type {PreferencePageId} from '@core/schema/app/preferencePages';
+import {defaultPreferences} from '@core/schema/app/preferences';
+import type {SettingsDocument} from '@core/schema/app/settingsDocuments';
 
 it('waits to reveal requested labels until the editor catalog has loaded them', async () => {
   const originalFonts = Object.getOwnPropertyDescriptor(document, 'fonts');

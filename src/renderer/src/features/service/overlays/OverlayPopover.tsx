@@ -1,6 +1,6 @@
 import {MEDIA_END_OPTIONS} from '@renderer/ui/choices/mediaChoices';
 import {useEffect, useRef, type JSX, type RefCallback} from 'react';
-import type {PlacedOverlay} from '@core/schema/itemOverlays';
+import type {PlacedOverlay} from '@core/schema/services/itemOverlays';
 import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import {editorTask} from '@renderer/platform/editorTask';
 import {Button} from '@renderer/ui/buttons/Button';

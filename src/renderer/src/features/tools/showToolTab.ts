@@ -1,6 +1,6 @@
 import {create} from 'zustand';
 import type {ShowTool} from '@renderer/features/tools/showTools';
-import type {UiState} from '@core/schema/uiState';
+import type {UiState} from '@core/schema/app/uiState';
 
 interface ShowToolTab {
   readonly tool: ShowTool;

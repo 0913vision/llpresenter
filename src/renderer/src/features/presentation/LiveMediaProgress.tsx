@@ -1,5 +1,5 @@
 import {useEffect, useState, type JSX} from 'react';
-import type {MediaProgress} from '@core/schema/mediaProgress';
+import type {MediaProgress} from '@core/schema/media/mediaProgress';
 import {useLive} from '@renderer/session/live';
 import {durationText} from '@renderer/features/media/mediaEntries';
 import styles from './LiveMediaProgress.module.css';

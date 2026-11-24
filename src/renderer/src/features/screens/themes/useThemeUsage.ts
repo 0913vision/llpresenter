@@ -1,6 +1,6 @@
 import {useEffect, useState} from 'react';
-import type {ThemeId} from '@core/schema/ids';
-import {hasSlides, type ServiceItem} from '@core/schema/service';
+import type {ThemeId} from '@core/schema/common/ids';
+import {hasSlides, type ServiceItem} from '@core/schema/services/service';
 import {countServiceItemUses} from '@renderer/features/service/serviceItemUsage';
 
 /** The number of items with slides of a theme, or why it isn't known. */

@@ -1,9 +1,9 @@
 import {expect, it, vi} from 'vitest';
-import type {ServiceItem} from '@core/schema/service';
+import type {ServiceItem} from '@core/schema/services/service';
 import {
   parseServiceDocument,
   parseServiceEntries,
-} from '@core/schema/contentDocuments';
+} from '@core/schema/services/contentDocuments';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {countServiceItemUses} from '@renderer/features/service/serviceItemUsage';
 

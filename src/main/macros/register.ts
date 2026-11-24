@@ -1,6 +1,6 @@
 import {setImmediate} from 'node:timers/promises';
-import type {MediaList} from '@core/schema/mediaList';
-import type {SettingsReader} from '@core/schema/settingsReader';
+import type {MediaList} from '@core/schema/media/mediaList';
+import type {SettingsReader} from '@core/schema/app/settingsReader';
 import {dispatchLogged, type LiveStore} from '../live/store';
 import type {Logger} from '../base/log';
 import {MacroRunner} from './runner';

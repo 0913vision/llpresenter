@@ -1,5 +1,5 @@
 import type {JSX} from 'react';
-import type {SlideTransition} from '@core/schema/slideTransition';
+import type {SlideTransition} from '@core/schema/slides/slideTransition';
 import styles from './TransitionTab.module.css';
 
 /** A small picture of what a transition does. */

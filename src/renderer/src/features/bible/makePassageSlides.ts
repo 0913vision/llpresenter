@@ -6,9 +6,9 @@ import {
   type CutVerse,
 } from '@core/slides';
 import {versesToReview} from '@core/bible';
-import type {BiblePassage} from '@core/schema/biblePassage';
-import type {BibleLookupPassage} from '@core/schema/bibleLookup';
-import type {Slide} from '@core/schema/slide';
+import type {BiblePassage} from '@core/schema/bible/biblePassage';
+import type {BibleLookupPassage} from '@core/schema/bible/bibleLookup';
+import type {Slide} from '@core/schema/slides/slide';
 import type {LlpApi} from '@contracts/ipc/api';
 import {slideMaking} from '@renderer/platform/themes';
 import {

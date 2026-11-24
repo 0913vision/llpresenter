@@ -1,11 +1,11 @@
 import type {LlpApi} from '@contracts/ipc/api';
-import type {LiveState} from '@core/schema/live';
+import type {LiveState} from '@core/schema/live/live';
 import {QUICK_BIBLE_TRANSITION} from '@core/bible';
 import {
   isKnownQuickItem,
   type KnownQuickItem,
   type QuickItem,
-} from '@core/schema/quick';
+} from '@core/schema/tools/quick';
 import {
   beginQuickPassage,
   finishQuickPassage,

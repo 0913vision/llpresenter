@@ -6,7 +6,7 @@ import {
   type MediaEditResult,
   type MediaImportRequest,
   type MediaImportResult,
-} from '@core/schema/mediaEdit';
+} from '@core/schema/media/mediaEdit';
 import {IpcHost} from '../../base/ipcHost';
 import type {Logger} from '../../base/log';
 import {

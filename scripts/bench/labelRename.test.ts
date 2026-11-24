@@ -4,8 +4,8 @@ import {expect, it} from 'vitest';
 import {
   parseSettingsDocument,
   type LabelRename,
-} from '../../src/core/schema/settingsDocuments';
-import {parseSong} from '../../src/core/schema/song';
+} from '../../src/core/schema/app/settingsDocuments';
+import {parseSong} from '../../src/core/schema/songs/song';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {makeTempDir} from '../../test/fixtures/tempDir';
 import {recordingLogger} from '@fixtures/main/displays/testing';

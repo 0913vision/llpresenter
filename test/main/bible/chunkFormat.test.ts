@@ -1,19 +1,19 @@
 import {describe, expect, it, vi} from 'vitest';
-import {parseBibleChunkHeader as parseContainer} from '@core/schema/bibleChunks';
+import {parseBibleChunkHeader as parseContainer} from '@core/schema/bible/bibleChunks';
 import {parseBibleChunkHeader} from '@main/bible/chunkFormat';
 import {
   chunkedTranslationFile,
   translationFile,
 } from '@fixtures/core/bible/testFiles';
 
-vi.mock('@core/schema/bibleChunks', async importOriginal => ({
-  ...(await importOriginal<typeof import('@core/schema/bibleChunks')>()),
+vi.mock('@core/schema/bible/bibleChunks', async importOriginal => ({
+  ...(await importOriginal<typeof import('@core/schema/bible/bibleChunks')>()),
   parseBibleChunkHeader: vi.fn(),
 }));
 
-const actual = await vi.importActual<typeof import('@core/schema/bibleChunks')>(
-  '@core/schema/bibleChunks',
-);
+const actual = await vi.importActual<
+  typeof import('@core/schema/bible/bibleChunks')
+>('@core/schema/bible/bibleChunks');
 
 /** A container header for John and Philemon with every chapter. */
 function canonicalHeader() {

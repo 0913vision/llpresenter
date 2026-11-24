@@ -1,7 +1,11 @@
 import {expect, it} from 'vitest';
-import {emptyLayers, type LiveLayers} from '@core/schema/live';
-import type {ClearEffect} from '@core/schema/clearFade';
-import {createMediaId, createPropId, type PropId} from '@core/schema/ids';
+import {emptyLayers, type LiveLayers} from '@core/schema/live/live';
+import type {ClearEffect} from '@core/schema/live/clearFade';
+import {
+  createMediaId,
+  createPropId,
+  type PropId,
+} from '@core/schema/common/ids';
 import {ClearFades} from '@renderer/rendering/clearFades';
 import {shownText} from '@fixtures/core/liveSlide';
 

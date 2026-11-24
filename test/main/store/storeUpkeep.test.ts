@@ -1,6 +1,6 @@
 import {resolve} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';
-import type {FileError} from '@core/schema/fileFormat';
+import type {FileError} from '@core/schema/common/fileFormat';
 import type {BackupOutcome, BackupsOptions} from '@main/store/files/backup';
 import {resolveLocations} from '@main/store/locations/locations';
 import {settingsLocation} from '@main/store/settings/settingsFile';

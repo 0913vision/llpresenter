@@ -3,7 +3,7 @@ import {
   withPreferenceDefaults,
   type Preferences,
   type PreferencesFile,
-} from '@core/schema/preferences';
+} from '@core/schema/app/preferences';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {useQueuedWrites} from './useQueuedWrites';

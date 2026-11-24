@@ -1,5 +1,5 @@
 import {startOpenServiceSync} from '@renderer/session/openService';
-import {MEDIA_LIMITS} from '@core/schema/mediaList';
+import {MEDIA_LIMITS} from '@core/schema/media/mediaList';
 import {WorkspaceNavigation} from '@renderer/platform/WorkspaceNavigation';
 import {
   act,
@@ -33,7 +33,10 @@ import {
   useMediaView,
 } from '@renderer/features/media/MediaViewProvider';
 import type {MediaListChoice} from '@renderer/features/media/mediaEntries';
-import type {MediaDocument, MediaImportResult} from '@core/schema/mediaEdit';
+import type {
+  MediaDocument,
+  MediaImportResult,
+} from '@core/schema/media/mediaEdit';
 import {useShow} from '@renderer/session/showStore';
 import * as mediaMenus from '@renderer/features/media/mediaMenuEntries';
 import {

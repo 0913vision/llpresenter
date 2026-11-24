@@ -1,5 +1,5 @@
 import {afterEach, expect, it, vi} from 'vitest';
-import {emptyLiveState, type LiveState} from '@core/schema/live';
+import {emptyLiveState, type LiveState} from '@core/schema/live/live';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {startLiveSync, useLive} from '@renderer/session/live';
 

@@ -1,5 +1,5 @@
 import {uiEndpoints} from '@contracts/ipc/ui';
-import {UI_ZOOM, type UiZoomCommand} from '@core/schema/uiZoom';
+import {UI_ZOOM, type UiZoomCommand} from '@core/schema/app/uiZoom';
 import {IpcHost, type Caller} from '../../base/ipcHost';
 import type {Logger} from '../../base/log';
 import type {AppConfigFile} from '../locations/appConfigFile';

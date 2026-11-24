@@ -1,7 +1,7 @@
 import {act, cleanup, render} from '@testing-library/react';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@core/schema/live';
-import type {OutputStatuses} from '@core/schema/outputStatus';
+import {emptyLiveState} from '@core/schema/live/live';
+import type {OutputStatuses} from '@core/schema/live/outputStatus';
 import {editorFixture} from '@fixtures/renderer/features/songs/editorFixture';
 import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
 import {useLive} from '@renderer/session/live';

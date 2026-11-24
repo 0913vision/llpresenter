@@ -1,10 +1,10 @@
-import {NDI_DEFAULT_FPS} from '@core/schema/screens';
-import type {SettingsReader} from '@core/schema/settingsReader';
-import type {SettingsEdit} from '@core/schema/settingsDocuments';
-import type {EditResult} from '@core/schema/contentEdit';
+import {NDI_DEFAULT_FPS} from '@core/schema/screens/screens';
+import type {SettingsReader} from '@core/schema/app/settingsReader';
+import type {SettingsEdit} from '@core/schema/app/settingsDocuments';
+import type {EditResult} from '@core/schema/services/contentEdit';
 import type {BrowserWindow} from 'electron';
 import {outputEndpoints} from '@contracts/ipc/output';
-import {MONITOR_LIST_MAX} from '@core/schema/monitors';
+import {MONITOR_LIST_MAX} from '@core/schema/screens/monitors';
 import {createElectronDisplaySource} from '../displays/electronSource';
 import {toMonitorList} from '../displays/monitorList';
 import {DisplayRegistry} from '../displays/registry';

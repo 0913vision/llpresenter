@@ -1,7 +1,7 @@
-import type {SettingsReader} from '@core/schema/settingsReader';
-import {MAX_TARGET_SCREENS} from '@core/schema/overlayState';
-import type {Screen} from '@core/schema/screens';
-import type {ScreenId} from '@core/schema/ids';
+import type {SettingsReader} from '@core/schema/app/settingsReader';
+import {MAX_TARGET_SCREENS} from '@core/schema/live/overlayState';
+import type {Screen} from '@core/schema/screens/screens';
+import type {ScreenId} from '@core/schema/common/ids';
 import type {Logger} from '../base/log';
 import {MissingLiveTargetError} from '../live/commandErrors';
 import type {ScreenSettingsPort} from '../live/slice';

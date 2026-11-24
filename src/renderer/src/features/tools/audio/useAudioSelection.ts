@@ -1,5 +1,5 @@
 import {create} from 'zustand';
-import type {AudioPlaylistId} from '@core/schema/ids';
+import type {AudioPlaylistId} from '@core/schema/common/ids';
 
 export const useAudioSelection = create<{
   chosen: AudioPlaylistId | undefined;

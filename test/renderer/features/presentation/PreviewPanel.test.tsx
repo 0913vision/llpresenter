@@ -6,7 +6,11 @@ import {
 } from '@fixtures/core/screenIds';
 import {act, cleanup, fireEvent, screen} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {emptyLayers, emptyLiveState, type LiveLayers} from '@core/schema/live';
+import {
+  emptyLayers,
+  emptyLiveState,
+  type LiveLayers,
+} from '@core/schema/live/live';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {useLive} from '@renderer/session/live';
 import {seedPreview, showLarge, usePreview} from '@renderer/session/preview';

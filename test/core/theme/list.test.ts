@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
-import {createThemeId} from '@core/schema/ids';
-import {THEMES_LIMITS, type Themes} from '@core/schema/themes';
+import {createThemeId} from '@core/schema/common/ids';
+import {THEMES_LIMITS, type Themes} from '@core/schema/screens/themes';
 import {BUILT_IN_THEME_IDS} from '@core/theme/builtIn/ids';
 import {
   copiedThemeName,

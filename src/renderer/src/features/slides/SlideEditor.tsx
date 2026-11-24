@@ -1,7 +1,7 @@
 import {useRef, useState, type JSX, type ReactNode} from 'react';
 import type {UiApi} from '@contracts/ipc/ui';
-import type {ShowTile} from '@core/schema/showService';
-import type {Slide} from '@core/schema/slide';
+import type {ShowTile} from '@core/schema/services/showService';
+import type {Slide} from '@core/schema/slides/slide';
 import {assignHotKey} from '@core/slides';
 import {Button} from '@renderer/ui/buttons/Button';
 import {GridFooter} from '@renderer/ui/lists/GridFooter';

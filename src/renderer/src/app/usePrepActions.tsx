@@ -1,5 +1,5 @@
 import {useCallback, useState, type JSX} from 'react';
-import type {SongId} from '@core/schema/ids';
+import type {SongId} from '@core/schema/common/ids';
 import {PowerPointImportFlow} from '@renderer/features/songs/import/PowerPointImportFlow';
 import {TextImportFlow} from '@renderer/features/songs/import/TextImportFlow';
 import {SongDraftDialogs} from '@renderer/features/songs/SongDraftDialogs';

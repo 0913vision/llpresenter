@@ -1,5 +1,5 @@
 import type {JSX} from 'react';
-import type {RecentPassage} from '@core/schema/bible';
+import type {RecentPassage} from '@core/schema/bible/bible';
 import {
   BibleReferenceForm,
   type BibleReferenceFormProps,

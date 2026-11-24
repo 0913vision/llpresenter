@@ -1,6 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@core/schema/live';
-import {parseRecoveryRecord} from '@core/schema/recoveryRecord';
+import {emptyLiveState} from '@core/schema/live/live';
+import {parseRecoveryRecord} from '@core/schema/app/recoveryRecord';
 import {MAIN_SCREEN} from '@fixtures/core/screenIds';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {LiveStore} from '@main/live/store';

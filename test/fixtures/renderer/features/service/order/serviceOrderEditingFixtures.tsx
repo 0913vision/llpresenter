@@ -5,19 +5,19 @@ import {lyricsSlide} from '@fixtures/core/slides';
 // module.
 import {render, screen} from '@testing-library/react';
 import {beforeEach, onTestFinished, vi} from 'vitest';
-import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
+import type {ContentEdit, EditResult} from '@core/schema/services/contentEdit';
 import type {
   ServiceChange,
   ServiceDocument,
-} from '@core/schema/contentDocuments';
-import {isItemOfKind, type ServiceItem} from '@core/schema/service';
+} from '@core/schema/services/contentDocuments';
+import {isItemOfKind, type ServiceItem} from '@core/schema/services/service';
 import {
   createServiceId,
   createServiceItemId,
   createSongId,
   type ServiceItemId,
-} from '@core/schema/ids';
-import {SONG_DRAG_MIME} from '@core/schema/songDrag';
+} from '@core/schema/common/ids';
+import {SONG_DRAG_MIME} from '@core/schema/songs/songDrag';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {applyService} from '@renderer/session/show';
 import {startOpenServiceSync} from '@renderer/session/openService';

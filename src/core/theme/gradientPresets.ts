@@ -1,4 +1,4 @@
-import type {SlideBackground} from '@core/schema/theme';
+import type {SlideBackground} from '@core/schema/screens/theme';
 
 export type GradientBackground = Extract<
   SlideBackground,

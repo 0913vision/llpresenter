@@ -7,7 +7,7 @@ import {
   type FocusEvent,
 } from 'react';
 import {flushSync} from 'react-dom';
-import type {QuickItem} from '@core/schema/quick';
+import type {QuickItem} from '@core/schema/tools/quick';
 import {isComposing} from '@renderer/ui/fields/ime';
 import {listKeyTarget, rowRange} from '@renderer/ui/lists/useRowRange';
 

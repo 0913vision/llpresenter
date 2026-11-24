@@ -2,7 +2,7 @@ import {describe, expect, it, vi} from 'vitest';
 import type {
   OutputScreenStatus,
   OutputStatuses,
-} from '@core/schema/outputStatus';
+} from '@core/schema/live/outputStatus';
 import {
   outputNoticeChanges,
   type NoticeChange,

@@ -4,9 +4,9 @@ import {
   APP_PROBLEM_LIMITS,
   macroDroppedProblem,
   type AppProblem,
-} from '@core/schema/appProblem';
-import {parseMacroId} from '@core/schema/ids';
-import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
+} from '@core/schema/app/appProblem';
+import {parseMacroId} from '@core/schema/common/ids';
+import {LIVE_STATE_LIMITS} from '@core/schema/live/liveLimits';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {defineSlice} from '@main/live/slice';

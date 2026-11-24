@@ -1,5 +1,5 @@
-import type {LayoutChange, UiState} from '@core/schema/uiState';
-import {PANEL_ROW_LIMITS, type PanelRows} from '@core/schema/panelRows';
+import type {LayoutChange, UiState} from '@core/schema/app/uiState';
+import {PANEL_ROW_LIMITS, type PanelRows} from '@core/schema/app/panelRows';
 import {clamp, COLUMN_RANGES} from './columns';
 import {
   defaultColumns,

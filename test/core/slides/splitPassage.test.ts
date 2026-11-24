@@ -10,7 +10,7 @@ import {mockSplitLayout} from '@fixtures/core/bibleSplit';
 import {genesisPassage} from '@fixtures/core/passage';
 import {slideOf, verseOf} from '@fixtures/core/slides';
 import {themes} from '@fixtures/core/themeOutput';
-import {defaultSlideTransitions} from '@core/schema/preferences';
+import {defaultSlideTransitions} from '@core/schema/app/preferences';
 
 const LONG =
   '가나다라 마바사아 자차카타 파하가나 다라마바 사아자차 카타파하 가나다라';

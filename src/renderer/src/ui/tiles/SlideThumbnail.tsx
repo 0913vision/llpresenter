@@ -129,7 +129,7 @@ export interface SlideThumbnailProps {
   /** Editor selection surrounds the picture and number band with a quiet plate. */
   readonly selectionStyle?: 'ring' | 'plate';
   readonly transition?:
-    import('@core/schema/slideTransition').SlideTransition | undefined;
+    import('@core/schema/slides/slideTransition').SlideTransition | undefined;
   readonly canvas?: ReactNode;
   /** The 슬라이드 number in the band, from 1. */
   readonly number: number;

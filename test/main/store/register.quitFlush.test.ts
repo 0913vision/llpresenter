@@ -7,8 +7,8 @@ import {
 } from '@fixtures/main/store/registerFixtures';
 import {appEndpoints} from '@contracts/ipc/app';
 import {contentEndpoints} from '@contracts/ipc/content';
-import {parseEditResult} from '@core/schema/contentEdit';
-import {parseSong} from '@core/schema/song';
+import {parseEditResult} from '@core/schema/services/contentEdit';
+import {parseSong} from '@core/schema/songs/song';
 import {readFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';

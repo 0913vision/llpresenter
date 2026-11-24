@@ -1,17 +1,17 @@
 import {realpath, rm, stat} from 'node:fs/promises';
 import {basename, extname, join, relative} from 'node:path';
-import type {MediaId} from '@core/schema/ids';
+import type {MediaId} from '@core/schema/common/ids';
 import type {
   MediaDocument,
   MediaEditResult,
   MediaImportProgress,
   MediaImportRequest,
   MediaImportResult,
-} from '@core/schema/mediaEdit';
-import type {AnalysisFailureReason} from '@core/schema/mediaAnalysis';
+} from '@core/schema/media/mediaEdit';
+import type {AnalysisFailureReason} from '@core/schema/media/mediaAnalysis';
 import {importedProps, type MediaDefaults} from '@core/media';
-import {MEDIA_LIMITS, type MediaItem} from '@core/schema/mediaList';
-import {defaultPreferences} from '@core/schema/preferences';
+import {MEDIA_LIMITS, type MediaItem} from '@core/schema/media/mediaList';
+import {defaultPreferences} from '@core/schema/app/preferences';
 import type {Logger} from '../base/log';
 import {mediaRefusal, type PlaylistRef} from '../store/media/mediaEdits';
 import type {MediaItemsCommit} from '../store/media/mediaStore';

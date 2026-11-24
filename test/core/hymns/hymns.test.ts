@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {hymnAt, hymnLabel, hymnTitle, isTitleOf} from '@core/hymns';
-import {HYMN_COUNTS} from '@core/schema/hymn';
+import {HYMN_COUNTS} from '@core/schema/songs/hymn';
 
 function read(row: string) {
   const named = hymnAt(row);

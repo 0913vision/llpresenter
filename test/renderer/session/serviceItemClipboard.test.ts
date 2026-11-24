@@ -3,13 +3,13 @@ import {describe, expect, it, vi} from 'vitest';
 import {
   parseServiceDocument,
   type ServiceDocument,
-} from '@core/schema/contentDocuments';
+} from '@core/schema/services/contentDocuments';
 import {isRecord} from '@core/common/guards';
 import {
   createServiceId,
   createServiceItemId,
   createSongId,
-} from '@core/schema/ids';
+} from '@core/schema/common/ids';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {
   ServiceItemClipboard,

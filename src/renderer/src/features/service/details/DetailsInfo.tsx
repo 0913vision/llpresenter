@@ -1,8 +1,8 @@
 import {useMemo, type JSX} from 'react';
 import {displayReference, withLiveBible} from '@core/bible';
-import type {BiblePassage} from '@core/schema/biblePassage';
-import type {SongId} from '@core/schema/ids';
-import {isItemOfKind, type SlidesItem} from '@core/schema/service';
+import type {BiblePassage} from '@core/schema/bible/biblePassage';
+import type {SongId} from '@core/schema/common/ids';
+import {isItemOfKind, type SlidesItem} from '@core/schema/services/service';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import type {Report} from '@renderer/session/serviceEdit';
 import {songUsage} from '@renderer/features/songs/library/songUsage';

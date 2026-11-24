@@ -1,5 +1,5 @@
 import {useEffect, useLayoutEffect, useRef, useState} from 'react';
-import type {ThemeElement} from '@core/schema/theme';
+import type {ThemeElement} from '@core/schema/screens/theme';
 import {useAlive} from '@renderer/ui/useAlive';
 
 export type ThemeTab = 'element' | 'screen' | 'theme';

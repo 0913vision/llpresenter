@@ -1,6 +1,6 @@
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useState, type JSX} from 'react';
-import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
+import {LIVE_STATE_LIMITS} from '@core/schema/live/liveLimits';
 import {sendLive, useLive} from '@renderer/session/live';
 import {Button, LiveBadge, PropertyGroup, TextField} from '@renderer/ui';
 import {isComposing} from '@renderer/ui/fields/ime';

@@ -13,7 +13,10 @@ import {
 } from './menuModel';
 import {ariaShortcut, titleTooltip, useTooltip} from '../popups/Tooltip';
 import styles from './Menu.module.css';
-import {useInputCompletion, type InputCompletion} from '../fields/useInputCompletion';
+import {
+  useInputCompletion,
+  type InputCompletion,
+} from '../fields/useInputCompletion';
 import {useFieldReason} from '../fields/fieldFrame';
 import {NameField} from '../lists/ListRow';
 

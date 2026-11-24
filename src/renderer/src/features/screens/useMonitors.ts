@@ -1,6 +1,6 @@
 import {useContext, useEffect, useState} from 'react';
 import {LoadReadinessContext} from '@renderer/ui/loadReadiness';
-import type {MonitorList} from '@core/schema/monitors';
+import type {MonitorList} from '@core/schema/screens/monitors';
 import {adoptScreenMonitors} from './useScreenEditor';
 
 const noMonitors: MonitorList = [];

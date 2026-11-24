@@ -1,6 +1,6 @@
 import {useState, type ReactNode} from 'react';
 import {useShownItemId} from '@renderer/session/shownItem';
-import type {SongId} from '@core/schema/ids';
+import type {SongId} from '@core/schema/common/ids';
 import {BiblePanel} from '@renderer/features/presentation/BiblePanel';
 import {ClearRow} from '@renderer/features/presentation/ClearRow';
 import {PreviewPanel} from '@renderer/features/presentation/PreviewPanel';

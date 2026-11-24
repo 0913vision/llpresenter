@@ -2,8 +2,8 @@ import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {
   parseServiceDocument,
   parseServiceEntries,
-} from '@core/schema/contentDocuments';
-import {parseMediaDocument} from '@core/schema/mediaEdit';
+} from '@core/schema/services/contentDocuments';
+import {parseMediaDocument} from '@core/schema/media/mediaEdit';
 import {stageFixture} from '@fixtures/renderer/features/tools/stageTesting';
 import type {MacroPanelModel} from '@renderer/features/tools/macros/useMacroPanel';
 

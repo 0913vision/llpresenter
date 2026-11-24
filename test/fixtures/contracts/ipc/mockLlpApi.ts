@@ -1,14 +1,14 @@
 import type {DocumentApi, LlpApi} from '@contracts/ipc/api';
-import type {EditResult} from '@core/schema/contentEdit';
-import {emptyLiveState} from '@core/schema/live';
-import {UI_ZOOM, UI_ZOOM_FACTOR} from '@core/schema/uiZoom';
-import {defaultPreferences} from '@core/schema/preferences';
-import type {MediaDocument} from '@core/schema/mediaEdit';
+import type {EditResult} from '@core/schema/services/contentEdit';
+import {emptyLiveState} from '@core/schema/live/live';
+import {UI_ZOOM, UI_ZOOM_FACTOR} from '@core/schema/app/uiZoom';
+import {defaultPreferences} from '@core/schema/app/preferences';
+import type {MediaDocument} from '@core/schema/media/mediaEdit';
 import {
   parseSettingsDocument,
   type SettingsDocument,
   type SettingsName,
-} from '@core/schema/settingsDocuments';
+} from '@core/schema/app/settingsDocuments';
 
 const EMPTY_SHOW_SETTINGS = new Map<SettingsName, SettingsDocument>();
 for (const [name, value] of [

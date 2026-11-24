@@ -1,4 +1,4 @@
-import type {Screen} from '@core/schema/screens';
+import type {Screen} from '@core/schema/screens/screens';
 
 /**
  * The green a 캡처용 창 screen keys out by default.

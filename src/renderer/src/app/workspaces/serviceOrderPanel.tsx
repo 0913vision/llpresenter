@@ -1,5 +1,5 @@
 import type {ReactNode} from 'react';
-import type {SongId} from '@core/schema/ids';
+import type {SongId} from '@core/schema/common/ids';
 import {ReadOnlyMark} from '@renderer/features/presentation/ReadOnlyMark';
 import {ServiceQuickAdd} from '@renderer/features/service/items/QuickAdd';
 import {ServiceOrderHeader} from '@renderer/features/service/order/ServiceOrderHeader';

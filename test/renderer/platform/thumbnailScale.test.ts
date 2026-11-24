@@ -1,6 +1,6 @@
 import {renderHook} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import type {LayoutChange} from '@core/schema/uiState';
+import type {LayoutChange} from '@core/schema/app/uiState';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {
   createThumbnailScaleStore,

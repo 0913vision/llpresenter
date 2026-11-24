@@ -1,8 +1,11 @@
 import {describe, expect, it} from 'vitest';
 import {countMediaUses, type MediaUseSources} from '@core/media/mediaUses';
-import {createMediaId} from '@core/schema/ids';
-import {parseMediaDocument} from '@core/schema/mediaEdit';
-import {parseMediaUses, parseMediaUsesRequest} from '@core/schema/mediaUses';
+import {createMediaId} from '@core/schema/common/ids';
+import {parseMediaDocument} from '@core/schema/media/mediaEdit';
+import {
+  parseMediaUses,
+  parseMediaUsesRequest,
+} from '@core/schema/media/mediaUses';
 import {themes as sampleThemes} from '@fixtures/core/themeOutput';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {IMAGES, overlaySettings} from '@fixtures/core/overlays';

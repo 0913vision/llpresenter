@@ -1,8 +1,8 @@
 import {useEffect, useMemo, useState, type JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
-import type {ServiceItemId, SongId} from '@core/schema/ids';
-import {hasSlides, isItemOfKind} from '@core/schema/service';
-import type {ShowLibrarySong} from '@core/schema/showLibrarySong';
+import type {ServiceItemId, SongId} from '@core/schema/common/ids';
+import {hasSlides, isItemOfKind} from '@core/schema/services/service';
+import type {ShowLibrarySong} from '@core/schema/songs/showLibrarySong';
 import {itemTiles} from '@core/slides';
 import {useLabelColors} from '@renderer/features/labels/labels';
 import type {Report} from '@renderer/session/serviceEdit';

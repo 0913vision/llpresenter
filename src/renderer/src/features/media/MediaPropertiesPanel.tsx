@@ -1,14 +1,19 @@
 import {Fragment, useState, type JSX, type KeyboardEvent} from 'react';
-import type {MediaItem} from '@core/schema/mediaList';
+import type {MediaItem} from '@core/schema/media/mediaList';
 import {NumberField} from '@renderer/ui/fields/NumberField';
-import {Panel, PanelBody, PanelHeader, PanelTabs} from '@renderer/ui/panels/Panel';
+import {
+  Panel,
+  PanelBody,
+  PanelHeader,
+  PanelTabs,
+} from '@renderer/ui/panels/Panel';
 import {
   Properties,
   PropertyGroup,
   PropertyRow,
   PropertyValue,
 } from '@renderer/ui/panels/PropertyRow';
-import type {PicturePlace} from '@core/schema/picturePlace';
+import type {PicturePlace} from '@core/schema/media/picturePlace';
 import {MEDIA_END_OPTIONS} from '@renderer/ui/choices/mediaChoices';
 import {PicturePlaceRows} from '@renderer/ui/choices/PicturePlace';
 import {SegmentedControl} from '@renderer/ui/choices/SegmentedControl';

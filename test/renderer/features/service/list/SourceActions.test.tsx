@@ -24,9 +24,9 @@ import type {
   ServiceEntry,
   TemplateDocument,
   TemplateEntry,
-} from '@core/schema/contentDocuments';
-import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
-import {createTemplateId} from '@core/schema/ids';
+} from '@core/schema/services/contentDocuments';
+import type {ContentEdit, EditResult} from '@core/schema/services/contentEdit';
+import {createTemplateId} from '@core/schema/common/ids';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {applyService} from '@renderer/session/show';

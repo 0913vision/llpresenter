@@ -1,11 +1,11 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import {mediaUrl, thumbnailUrl} from '@contracts/ipc/mediaUrls';
-import type {MediaLayer} from '@core/schema/live';
-import {createMediaId, type MediaId} from '@core/schema/ids';
+import type {MediaLayer} from '@core/schema/live/live';
+import {createMediaId, type MediaId} from '@core/schema/common/ids';
 import {APP_PICTURE_IDS} from '@core/theme';
-import type {MediaDocument} from '@core/schema/mediaEdit';
-import type {MediaItem} from '@core/schema/mediaList';
-import type {MediaProgress} from '@core/schema/mediaProgress';
+import type {MediaDocument} from '@core/schema/media/mediaEdit';
+import type {MediaItem} from '@core/schema/media/mediaList';
+import type {MediaProgress} from '@core/schema/media/mediaProgress';
 
 const APP_PICTURES: ReadonlySet<string> = new Set(
   Object.values(APP_PICTURE_IDS),

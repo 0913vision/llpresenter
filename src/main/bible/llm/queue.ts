@@ -1,4 +1,4 @@
-import {BIBLE_AI_LIMITS, type BibleAiRequest} from '@core/schema/bibleAi';
+import {BIBLE_AI_LIMITS, type BibleAiRequest} from '@core/schema/bible/bibleAi';
 
 interface Job {
   readonly owner: number;

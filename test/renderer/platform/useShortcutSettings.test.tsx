@@ -9,7 +9,7 @@ import {
 import {afterEach, expect, it, vi} from 'vitest';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
-import type {SettingsDocument} from '@core/schema/settingsDocuments';
+import type {SettingsDocument} from '@core/schema/app/settingsDocuments';
 import {commandBindingStore} from '@renderer/ui/keys/commandBindings';
 import {MenuItemRow} from '@renderer/ui/menus/MenuParts';
 import {useTooltip} from '@renderer/ui/popups/Tooltip';

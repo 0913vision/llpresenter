@@ -1,8 +1,8 @@
 import {handleShowKey} from '@renderer/features/presentation/shortcuts';
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import type {LiveCommand} from '@core/schema/liveCommand';
-import {emptyLiveState} from '@core/schema/live';
+import type {LiveCommand} from '@core/schema/live/liveCommand';
+import {emptyLiveState} from '@core/schema/live/live';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {useLive} from '@renderer/session/live';
 import {applyService, openItem, useShow} from '@renderer/session/show';

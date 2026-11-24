@@ -8,7 +8,7 @@ import {registerPowerPointImport} from '@main/import/registerPowerPoint';
 import {makeTempDir} from '@fixtures/tempDir';
 import {registerTextImport} from '@main/import/register';
 import {TEST_IMPORT_FILE_VARIABLE} from '@main/import/testImportFile';
-import {TEXT_IMPORT_LIMITS} from '@core/schema/textImportLimits';
+import {TEXT_IMPORT_LIMITS} from '@core/schema/songs/textImportLimits';
 import {convertTextImport} from '@core/songs/textImport';
 import {readTextImport} from '@main/import/read';
 

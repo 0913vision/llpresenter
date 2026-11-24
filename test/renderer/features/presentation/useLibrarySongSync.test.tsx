@@ -1,8 +1,8 @@
 import {lyricsSlide} from '@fixtures/core/slides';
 import {act, renderHook, waitFor} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {createSongId} from '@core/schema/ids';
-import type {ShowLibrarySong} from '@core/schema/showLibrarySong';
+import {createSongId} from '@core/schema/common/ids';
+import type {ShowLibrarySong} from '@core/schema/songs/showLibrarySong';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {sampleService} from '@fixtures/renderer/session/sampleService';
 import {useLibrarySongSync} from '@renderer/features/presentation/useLibrarySongSync';

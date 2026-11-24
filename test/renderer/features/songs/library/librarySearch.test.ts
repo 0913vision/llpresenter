@@ -7,7 +7,7 @@ import {
 import {
   LIBRARY_SEARCH_LIMITS,
   type LibrarySearchResult,
-} from '@core/schema/librarySearch';
+} from '@core/schema/songs/librarySearch';
 
 const songs = libraryFixture().list().slice(0, 3);
 

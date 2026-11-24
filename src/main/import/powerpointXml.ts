@@ -1,6 +1,6 @@
 import {posix} from 'node:path';
 import {DOMParser} from '@xmldom/xmldom';
-import {POWERPOINT_IMPORT_LIMITS} from '@core/schema/textImportLimits';
+import {POWERPOINT_IMPORT_LIMITS} from '@core/schema/songs/textImportLimits';
 import type {PowerPointZip} from './powerpointZip';
 
 export function children(node: Node): Element[] {

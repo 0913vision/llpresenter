@@ -1,6 +1,6 @@
 import {useState, type JSX} from 'react';
-import type {Screen} from '@core/schema/screens';
-import type {MonitorInfo, MonitorList} from '@core/schema/monitors';
+import type {Screen} from '@core/schema/screens/screens';
+import type {MonitorInfo, MonitorList} from '@core/schema/screens/monitors';
 import {IconButton} from '@renderer/ui/buttons/IconButton';
 import {Menu} from '@renderer/ui/menus/Menu';
 import {menuButtonProps} from '@renderer/ui/menus/menuButton';

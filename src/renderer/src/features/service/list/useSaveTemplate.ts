@@ -1,9 +1,13 @@
 import {useState} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import {copyName} from '@core/common/copyName';
-import type {ServiceId, TemplateId} from '@core/schema/ids';
+import type {ServiceId, TemplateId} from '@core/schema/common/ids';
 import {useShow} from '@renderer/session/show';
-import {type Notice, noticeTime, warningNotice} from '@renderer/ui/popups/notices';
+import {
+  type Notice,
+  noticeTime,
+  warningNotice,
+} from '@renderer/ui/popups/notices';
 import {appliedId, asServiceId, editApplied, settle} from './serviceEdits';
 import {useAlive} from '@renderer/ui/useAlive';
 

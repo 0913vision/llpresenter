@@ -9,14 +9,17 @@ import {
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {DEFAULT_MESSAGE_STYLE, type MessageStyle} from '@core/schema/messages';
-import {createMessageStyleId} from '@core/schema/ids';
-import type {MonitorList} from '@core/schema/monitors';
-import type {EditResult} from '@core/schema/contentEdit';
+import {
+  DEFAULT_MESSAGE_STYLE,
+  type MessageStyle,
+} from '@core/schema/tools/messages';
+import {createMessageStyleId} from '@core/schema/common/ids';
+import type {MonitorList} from '@core/schema/screens/monitors';
+import type {EditResult} from '@core/schema/services/contentEdit';
 import type {
   SettingsDocument,
   SettingsEdit,
-} from '@core/schema/settingsDocuments';
+} from '@core/schema/app/settingsDocuments';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {ScreenProperties} from '@renderer/features/screens/ScreenProperties';
 import {useScreensSelection} from '@renderer/features/screens/selection';

@@ -1,8 +1,11 @@
 import {appEndpoints} from '@contracts/ipc/app';
-import {backupFailedProblem, type AppProblem} from '@core/schema/appProblem';
-import type {EditResult} from '@core/schema/contentEdit';
-import type {SettingsEdit} from '@core/schema/settingsDocuments';
-import type {SettingsReader} from '@core/schema/settingsReader';
+import {
+  backupFailedProblem,
+  type AppProblem,
+} from '@core/schema/app/appProblem';
+import type {EditResult} from '@core/schema/services/contentEdit';
+import type {SettingsEdit} from '@core/schema/app/settingsDocuments';
+import type {SettingsReader} from '@core/schema/app/settingsReader';
 import {app, shell} from 'electron';
 import {IpcHost} from '../base/ipcHost';
 import {
@@ -30,17 +33,27 @@ import {LoadingMediaLibrary} from './media/mediaLibrary';
 import {openMediaStore} from './media/mediaLoader';
 import {SUNDAY_PICTURES} from './pictures/bundledPictures';
 import type {MediaStore} from './media/mediaStore';
-import {openContent, type OpenedContent, type SongFeed} from './content/openContent';
+import {
+  openContent,
+  type OpenedContent,
+  type SongFeed,
+} from './content/openContent';
 import {SaveFailures} from './files/saveFailures';
 import {registerSaveProblems} from './files/saveProblems';
 import {backupGate} from './files/backup';
 import {registerServiceChannels} from './content/serviceChannels';
-import {createSettingsAccess, type SettingsAccess} from './settings/settingsAccess';
+import {
+  createSettingsAccess,
+  type SettingsAccess,
+} from './settings/settingsAccess';
 import {registerSettingsChannels} from './settings/settingsChannels';
-import {openSettingsStore, type SettingsProblemListener} from './settings/settingsStore';
+import {
+  openSettingsStore,
+  type SettingsProblemListener,
+} from './settings/settingsStore';
 import {SkippedFiles, startSkippedFileProblems} from './files/skippedFiles';
 import {contentProblems, logLoadedStore, upkeepAtLaunch} from './storeUpkeep';
-import {defaultPreferences} from '@core/schema/preferences';
+import {defaultPreferences} from '@core/schema/app/preferences';
 
 export interface StoreRegistration {
   readonly log: Logger;

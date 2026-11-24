@@ -1,5 +1,5 @@
-import type {SettingsReader} from '@core/schema/settingsReader';
-import type {SingleLiveCommand} from '@core/schema/liveCommand';
+import type {SettingsReader} from '@core/schema/app/settingsReader';
+import type {SingleLiveCommand} from '@core/schema/live/liveCommand';
 import type {Logger} from '../base/log';
 import {dispatchBatched} from '../live/store';
 import {switchableScreens} from '../base/savedScreens';

@@ -1,6 +1,6 @@
 import {useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import type {ScreenId, ThemeId} from '@core/schema/ids';
-import type {ThemeFile, ThemeScreen} from '@core/schema/theme';
+import type {ScreenId, ThemeId} from '@core/schema/common/ids';
+import type {ThemeFile, ThemeScreen} from '@core/schema/screens/theme';
 import {ownScreenOf, withScreen, themeScreenOf} from '@core/theme';
 import {
   pendingWritesOf,

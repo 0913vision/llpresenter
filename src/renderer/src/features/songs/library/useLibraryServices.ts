@@ -1,5 +1,5 @@
 import {useEffect, useRef, useState} from 'react';
-import type {SongId} from '@core/schema/ids';
+import type {SongId} from '@core/schema/common/ids';
 import {insertSelectedSong} from '@renderer/session/insertSelectedSong';
 import {useShow} from '@renderer/session/show';
 import {useOrderAddReason} from '@renderer/session/orderReasons';

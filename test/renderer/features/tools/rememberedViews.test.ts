@@ -1,5 +1,5 @@
 import {afterEach, expect, it, vi} from 'vitest';
-import {createScreenId} from '@core/schema/ids';
+import {createScreenId} from '@core/schema/common/ids';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {seedPreview, showLarge, usePreview} from '@renderer/session/preview';
 import {

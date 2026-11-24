@@ -1,7 +1,7 @@
 import {createHash} from 'node:crypto';
 import {open, writeFile} from 'node:fs/promises';
 import {parentPort, workerData} from 'node:worker_threads';
-import {POWERPOINT_IMPORT_LIMITS} from '@core/schema/textImportLimits';
+import {POWERPOINT_IMPORT_LIMITS} from '@core/schema/songs/textImportLimits';
 import {readPowerPoint, readPowerPointSize} from './powerpointRead';
 import {PowerPointZip} from './powerpointZip';
 import type {PowerPointJob} from './powerpointJob';

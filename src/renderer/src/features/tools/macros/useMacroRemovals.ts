@@ -1,4 +1,4 @@
-import type {Macro} from '@core/schema/macros';
+import type {Macro} from '@core/schema/tools/macros';
 import {deleteSelection} from '@renderer/ui/lists/deleteSelection';
 import {useMenuHandoff} from '@renderer/ui/menus/useMenuHandoff';
 import type {MacroEdit} from './macroEdits';

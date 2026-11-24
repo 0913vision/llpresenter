@@ -9,7 +9,7 @@ import {
 } from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {useShowToolTab} from '@renderer/features/tools/showToolTab';
-import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
+import {LIVE_STATE_LIMITS} from '@core/schema/live/liveLimits';
 import {StageTab} from '@renderer/features/tools/stage/StageTab';
 import {
   stageFixture,

@@ -1,18 +1,21 @@
 import {randomUUID} from 'node:crypto';
 import type {Result} from '@core/common/result';
-import type {EditFailure, EditRefusalReason} from '@core/schema/contentEdit';
+import type {
+  EditFailure,
+  EditRefusalReason,
+} from '@core/schema/services/contentEdit';
 import {duplicateAfter} from '@core/common/duplicateAfter';
 import {
   createAudioPlaylistId,
   createMediaId,
   createMediaPlaylistId,
-} from '@core/schema/ids';
-import type {MediaEdit} from '@core/schema/mediaEdit';
+} from '@core/schema/common/ids';
+import type {MediaEdit} from '@core/schema/media/mediaEdit';
 import {
   MEDIA_LIMITS,
   type MediaList,
   type MediaItem,
-} from '@core/schema/mediaList';
+} from '@core/schema/media/mediaList';
 
 export type MediaListEdit = Exclude<
   MediaEdit,
@@ -25,7 +28,7 @@ export type MediaListEdit = Exclude<
   }
 >;
 export type PlaylistRef = NonNullable<
-  import('@core/schema/mediaEdit').MediaImportRequest['playlist']
+  import('@core/schema/media/mediaEdit').MediaImportRequest['playlist']
 >;
 
 export interface MediaChange {

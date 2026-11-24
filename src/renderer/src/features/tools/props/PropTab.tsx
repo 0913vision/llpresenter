@@ -1,11 +1,11 @@
-import {NAME_LIMIT} from '@core/schema/primitives';
+import {NAME_LIMIT} from '@core/schema/common/primitives';
 import {RenameDialog} from '@renderer/ui/popups/RenameDialog';
 import {useScreenList} from '@renderer/platform/useScreenList';
 import {PanelAction} from '@renderer/ui/panels/PanelActionSlot';
 import {useLayoutEffect, useRef, useState, type JSX} from 'react';
 import {limitReason} from '@core/common/limitReason';
-import {createPropId} from '@core/schema/ids';
-import type {Prop} from '@core/schema/props';
+import {createPropId} from '@core/schema/common/ids';
+import type {Prop} from '@core/schema/tools/props';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {IconButton, Menu} from '@renderer/ui';
 import {useMenuHandoff} from '@renderer/ui/menus/useMenuHandoff';
@@ -16,7 +16,10 @@ import {PropDialog} from './PropDialog';
 import {PropGrid} from './PropGrid';
 import {MAX_PROPS, savePropEdit, type PropEdit} from './propEdits';
 import {useMediaDocument} from '../useMediaDocument';
-import {focusedOptionIndex, useDuplicateShortcut} from '../useDuplicateShortcut';
+import {
+  focusedOptionIndex,
+  useDuplicateShortcut,
+} from '../useDuplicateShortcut';
 import {useToolEditing} from '../useToolEditing';
 import {useUndoKeys} from '@renderer/platform/useUndoKeys';
 import {focusHistorySurface} from '@renderer/ui/lists/focusHistorySurface';

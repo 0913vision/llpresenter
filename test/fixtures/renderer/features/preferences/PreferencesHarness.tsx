@@ -7,7 +7,7 @@ import {
   type JSX,
 } from 'react';
 import type {PreferencesRequest} from '@contracts/ipc/window';
-import type {PreferencePageId} from '@core/schema/preferencePages';
+import type {PreferencePageId} from '@core/schema/app/preferencePages';
 import {
   PreferencesView,
   type PreferencesViewHandle,

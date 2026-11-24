@@ -1,5 +1,5 @@
 import type {JSX} from 'react';
-import {THEME_FILE_LIMITS} from '@core/schema/theme';
+import {THEME_FILE_LIMITS} from '@core/schema/screens/theme';
 import {copiedThemeName} from '@core/theme';
 import {AlertDialog} from '@renderer/ui/popups/AlertDialog';
 import {

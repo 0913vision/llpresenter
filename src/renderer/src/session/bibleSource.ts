@@ -1,7 +1,7 @@
-import type {BibleLookupPassage} from '@core/schema/bibleLookup';
-import type {TranslationId} from '@core/schema/ids';
-import type {Slide} from '@core/schema/slide';
-import type {SlideTransition} from '@core/schema/slideTransition';
+import type {BibleLookupPassage} from '@core/schema/bible/bibleLookup';
+import type {TranslationId} from '@core/schema/common/ids';
+import type {Slide} from '@core/schema/slides/slide';
+import type {SlideTransition} from '@core/schema/slides/slideTransition';
 import type {SlideTile} from '@core/presentation';
 import {slideTiles} from '@core/slides';
 

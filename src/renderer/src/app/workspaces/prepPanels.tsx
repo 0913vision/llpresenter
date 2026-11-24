@@ -1,6 +1,6 @@
 import {useLayoutEffect, useRef, useState, type ReactNode} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
-import {parseServiceItemId, type SongId} from '@core/schema/ids';
+import {parseServiceItemId, type SongId} from '@core/schema/common/ids';
 import {
   DetailsPanel,
   type DetailsTarget,

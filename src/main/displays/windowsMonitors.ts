@@ -3,7 +3,7 @@ import {win32} from 'node:path';
 import {
   parseWindowsMonitors,
   type NativeMonitorIdentity,
-} from '@core/schema/windowsMonitors';
+} from '@core/schema/screens/windowsMonitors';
 import {WINDOWS_MONITOR_QUERY} from './windowsMonitorQuery';
 
 const QUERY_TIMEOUT_MS = 5_000;

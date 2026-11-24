@@ -1,7 +1,7 @@
 import {act, render, screen} from '@testing-library/react';
 import {expect, it, vi} from 'vitest';
-import type {AppFlushRequest} from '@core/schema/appFlush';
-import {createAppFlushRequestId} from '@core/schema/ids';
+import type {AppFlushRequest} from '@core/schema/app/appFlush';
+import {createAppFlushRequestId} from '@core/schema/common/ids';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {
   hoverForTooltip,

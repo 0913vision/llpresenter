@@ -1,5 +1,5 @@
 import {useRef, useState} from 'react';
-import type {ThemeId} from '@core/schema/ids';
+import type {ThemeId} from '@core/schema/common/ids';
 
 type SaveDialog =
   | {readonly kind: 'overwrite'}

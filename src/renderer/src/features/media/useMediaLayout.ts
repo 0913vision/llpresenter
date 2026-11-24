@@ -1,5 +1,5 @@
 import {useEffect, useRef, useState} from 'react';
-import {MEDIA_BROWSER} from '@core/schema/mediaBrowser';
+import {MEDIA_BROWSER} from '@core/schema/media/mediaBrowser';
 
 /** The fewest and most grid columns the size slider sets. */
 export const MIN_MEDIA_COLUMNS = MEDIA_BROWSER.minColumns;

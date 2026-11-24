@@ -1,5 +1,5 @@
 import type {JSX} from 'react';
-import type {ThemeFile} from '@core/schema/theme';
+import type {ThemeFile} from '@core/schema/screens/theme';
 import {builtInTheme, isEditedTheme} from '@core/theme';
 import {Menu, type MenuAnchor} from '@renderer/ui/menus/Menu';
 import {menuAvailability, type MenuEntry} from '@renderer/ui/menus/menuModel';

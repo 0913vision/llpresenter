@@ -1,4 +1,4 @@
-import type {SlideLayer} from '@core/schema/live';
+import type {SlideLayer} from '@core/schema/live/live';
 import {sameJson} from '@core/common/sameJson';
 import {setLayer, withLayers} from '../history';
 import {defineSlice} from '../slice';

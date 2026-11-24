@@ -8,8 +8,8 @@ import {
 } from '@testing-library/react';
 import type {JSX} from 'react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import type {BibleLookupReply} from '@core/schema/bibleLookup';
-import {emptyLiveState} from '@core/schema/live';
+import type {BibleLookupReply} from '@core/schema/bible/bibleLookup';
+import {emptyLiveState} from '@core/schema/live/live';
 import {
   openItem,
   outputTile,

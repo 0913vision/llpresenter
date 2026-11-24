@@ -7,7 +7,7 @@ import {
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, expect, it, vi} from 'vitest';
-import {macroActionKinds} from '@core/schema/macros';
+import {macroActionKinds} from '@core/schema/tools/macros';
 import {MacroPalette} from '@renderer/features/tools/macros/MacroPalette';
 import {
   MACRO_ACTION_MIME,

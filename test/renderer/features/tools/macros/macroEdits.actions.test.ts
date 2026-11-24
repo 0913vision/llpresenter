@@ -1,6 +1,6 @@
 import {expect, it, vi} from 'vitest';
-import {parseSettingsDocument} from '@core/schema/settingsDocuments';
-import {isKnownMacroAction} from '@core/schema/macros';
+import {parseSettingsDocument} from '@core/schema/app/settingsDocuments';
+import {isKnownMacroAction} from '@core/schema/tools/macros';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {saveMacroEdit} from '@renderer/features/tools/macros/macroEdits';
 

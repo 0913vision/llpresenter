@@ -1,27 +1,27 @@
 import type {Result} from '@core/common/result';
-import * as bible from '@core/schema/bible';
-import * as bibleCuts from '@core/schema/bibleCuts';
-import * as labels from '@core/schema/labels';
-import * as macros from '@core/schema/macros';
-import * as messages from '@core/schema/messages';
-import * as preferences from '@core/schema/preferences';
-import * as props from '@core/schema/props';
-import * as quick from '@core/schema/quick';
-import * as screens from '@core/schema/screens';
-import * as shortcuts from '@core/schema/shortcuts';
-import * as timers from '@core/schema/timers';
+import * as bible from '@core/schema/bible/bible';
+import * as bibleCuts from '@core/schema/bible/bibleCuts';
+import * as labels from '@core/schema/services/labels';
+import * as macros from '@core/schema/tools/macros';
+import * as messages from '@core/schema/tools/messages';
+import * as preferences from '@core/schema/app/preferences';
+import * as props from '@core/schema/tools/props';
+import * as quick from '@core/schema/tools/quick';
+import * as screens from '@core/schema/screens/screens';
+import * as shortcuts from '@core/schema/app/shortcuts';
+import * as timers from '@core/schema/tools/timers';
 import type {
   SettingsDocument,
   SettingsName,
-} from '@core/schema/settingsDocuments';
+} from '@core/schema/app/settingsDocuments';
 import type {ParseFile} from '../files/readFiles';
 import {
   parseFile,
   type FileError,
   type FileFormat,
   type LoadedFile,
-} from '@core/schema/fileFormat';
-import {themesSchema, type Themes} from '@core/schema/themes';
+} from '@core/schema/common/fileFormat';
+import {themesSchema, type Themes} from '@core/schema/screens/themes';
 
 const themesFormat: FileFormat<typeof themesSchema> = {
   format: 'llsettings.themes',

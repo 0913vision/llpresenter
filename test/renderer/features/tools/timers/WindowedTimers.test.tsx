@@ -7,7 +7,7 @@ import {
   within,
 } from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
-import {parseTimers} from '@core/schema/timers';
+import {parseTimers} from '@core/schema/tools/timers';
 import {stageFixture} from '@fixtures/renderer/features/tools/stageTesting';
 import {WindowedTimers} from '@renderer/features/tools/timers/WindowedTimers';
 

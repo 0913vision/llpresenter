@@ -1,5 +1,5 @@
 import {expect, it, vi} from 'vitest';
-import type {MediaDocument} from '@core/schema/mediaEdit';
+import type {MediaDocument} from '@core/schema/media/mediaEdit';
 import {mediaDocument} from '@fixtures/renderer/features/media/mediaTesting';
 import {subscribeMediaDocument} from '@renderer/features/media/subscribeMediaDocument';
 

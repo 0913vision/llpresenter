@@ -1,8 +1,8 @@
 import {shownText} from '@fixtures/core/liveSlide';
 import {describe, expect, it} from 'vitest';
-import type {} from '@core/schema/live';
+import type {} from '@core/schema/live/live';
 import {LiveStore} from '@main/live/store';
-import type {MediaList} from '@core/schema/mediaList';
+import type {MediaList} from '@core/schema/media/mediaList';
 import {IMAGES, IMAGE_PROP, overlaySettings} from '@fixtures/core/overlays';
 
 function library(present: readonly number[]): MediaList {

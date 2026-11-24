@@ -2,7 +2,7 @@ import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {
   MAX_ANALYSIS_MESSAGE_LENGTH,
   type AnalysisJob,
-} from '@core/schema/mediaAnalysis';
+} from '@core/schema/media/mediaAnalysis';
 import {
   THUMBNAIL_FRAME_SECONDS,
   analyseMedia,

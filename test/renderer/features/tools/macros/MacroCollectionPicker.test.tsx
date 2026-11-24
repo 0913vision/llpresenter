@@ -13,7 +13,7 @@ import {resetTooltips} from '@fixtures/renderer/ui/tooltipTesting';
 import {stageFixture} from '@fixtures/renderer/features/tools/stageTesting';
 import {MacroPanel} from '@renderer/features/tools/macros/MacroPanel';
 import {deferred} from '@fixtures/renderer/features/tools/quickTesting';
-import type {EditResult} from '@core/schema/contentEdit';
+import type {EditResult} from '@core/schema/services/contentEdit';
 
 const first = {
   id: '00000000-0000-4000-8000-000000000002',

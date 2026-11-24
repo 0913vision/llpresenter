@@ -1,11 +1,11 @@
-import type {AudioLayer, LiveState} from '@core/schema/live';
+import type {AudioLayer, LiveState} from '@core/schema/live/live';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
-import {audioPositionSeconds} from '@core/schema/audioState';
+import {audioPositionSeconds} from '@core/schema/media/audioState';
 import {fadeAudio} from './audioFade';
 import {applySink} from './audioSink';
 import {setPlaybackProblem} from './playbackProblem';
 import {DEFAULT_AUDIO_TIMES, type AudioTimes} from '@core/media';
-import type {ClearEffect} from '@core/schema/clearFade';
+import type {ClearEffect} from '@core/schema/live/clearFade';
 
 interface AudioPlayerOptions {
   readonly now: () => number;

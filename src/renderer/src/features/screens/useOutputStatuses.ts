@@ -1,6 +1,6 @@
 import {useContext, useEffect, useState} from 'react';
 import {LoadReadinessContext} from '@renderer/ui/loadReadiness';
-import type {OutputStatuses} from '@core/schema/outputStatus';
+import type {OutputStatuses} from '@core/schema/live/outputStatus';
 
 const noStatuses: OutputStatuses = {};
 

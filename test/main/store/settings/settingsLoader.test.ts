@@ -2,8 +2,8 @@ import {mkdir, readFile, writeFile} from 'node:fs/promises';
 import {join, resolve} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {isRecord} from '@core/common/guards';
-import type {FileError} from '@core/schema/fileFormat';
-import {parseSettingsDocument} from '@core/schema/settingsDocuments';
+import type {FileError} from '@core/schema/common/fileFormat';
+import {parseSettingsDocument} from '@core/schema/app/settingsDocuments';
 import {makeTempDir} from '@fixtures/tempDir';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {openAppConfig} from '@main/store/locations/appConfigFile';
@@ -22,9 +22,9 @@ import {openSettingsStore} from '@main/store/settings/settingsStore';
 import type {Saver} from '@main/store/files/saver';
 import {writeJson} from '@fixtures/main/store/testFiles';
 
-vi.mock('@core/schema/settingsDocuments', async importOriginal => {
+vi.mock('@core/schema/app/settingsDocuments', async importOriginal => {
   const actual =
-    await importOriginal<typeof import('@core/schema/settingsDocuments')>();
+    await importOriginal<typeof import('@core/schema/app/settingsDocuments')>();
   return {
     ...actual,
     parseSettingsDocument: vi.fn(actual.parseSettingsDocument),
@@ -81,8 +81,8 @@ async function withParseFailure<T>(
   run: () => Promise<T>,
 ): Promise<T> {
   const actual = await vi.importActual<
-    typeof import('@core/schema/settingsDocuments')
-  >('@core/schema/settingsDocuments');
+    typeof import('@core/schema/app/settingsDocuments')
+  >('@core/schema/app/settingsDocuments');
   vi.mocked(parseSettingsDocument).mockImplementation(value =>
     failing(value)
       ? {

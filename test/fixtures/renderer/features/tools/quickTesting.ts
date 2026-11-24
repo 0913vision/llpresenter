@@ -1,15 +1,15 @@
 import {lyricsSlide} from '@fixtures/core/slides';
 import {vi} from 'vitest';
 import type {LlpApi} from '@contracts/ipc/api';
-import {isKnownQuickItem, type QuickItemKind} from '@core/schema/quick';
+import {isKnownQuickItem, type QuickItemKind} from '@core/schema/tools/quick';
 import {
   parseSettingsDocument,
   type SettingsDocument,
-} from '@core/schema/settingsDocuments';
-import {parseShowLibrarySong} from '@core/schema/showLibrarySong';
+} from '@core/schema/app/settingsDocuments';
+import {parseShowLibrarySong} from '@core/schema/songs/showLibrarySong';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {emptyLiveState} from '@core/schema/live';
-import {parseLiveState} from '@core/schema/liveState';
+import {emptyLiveState} from '@core/schema/live/live';
+import {parseLiveState} from '@core/schema/live/liveState';
 import {panelApi} from '@fixtures/contracts/ipc/bibleApi';
 
 export const quickId = (value: number): string =>

@@ -1,7 +1,7 @@
 import {NOT_IN_THIS_WINDOW} from '@renderer/platform/problemReasons';
 import {windowCommandLabels} from '@renderer/ui/keys/windowCommandLabels';
 import {shortcutText} from '@renderer/ui/keys/commandBindings';
-import type {ThemeFile} from '@core/schema/theme';
+import type {ThemeFile} from '@core/schema/screens/theme';
 import {
   outputGroup,
   itemStopEntry,

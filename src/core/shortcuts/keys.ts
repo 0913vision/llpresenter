@@ -1,4 +1,8 @@
-import {isKeyCode, keyModifiers, type KeyBinding} from '@core/schema/shortcuts';
+import {
+  isKeyCode,
+  keyModifiers,
+  type KeyBinding,
+} from '@core/schema/app/shortcuts';
 import type {PhysicalKeyPress} from './matching';
 
 const keyNames: Readonly<Record<string, string>> = {

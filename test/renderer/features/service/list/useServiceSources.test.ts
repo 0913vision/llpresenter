@@ -3,8 +3,8 @@ import {describe, expect, it, vi} from 'vitest';
 import type {
   TemplateDocument,
   TemplateEntry,
-} from '@core/schema/contentDocuments';
-import {createTemplateId} from '@core/schema/ids';
+} from '@core/schema/services/contentDocuments';
+import {createTemplateId} from '@core/schema/common/ids';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {
   EMPTY_SOURCE,

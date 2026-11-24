@@ -1,4 +1,4 @@
-import {createScreenId} from '@core/schema/ids';
+import {createScreenId} from '@core/schema/common/ids';
 import {STARTER_SCREEN_IDS} from '@core/screens';
 import {findControlMonitor, type Monitor} from '../displays/monitor';
 import type {Rect} from '../displays/rect';

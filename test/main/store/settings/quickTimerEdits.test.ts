@@ -4,9 +4,9 @@ import {
   parseSettingsEdit,
   type SettingsDocument,
   type SettingsName,
-} from '@core/schema/settingsDocuments';
-import {MAX_TIMER_DEFINITIONS} from '@core/schema/quickTimerEdit';
-import {MAX_QUICK_ITEMS} from '@core/schema/quick';
+} from '@core/schema/app/settingsDocuments';
+import {MAX_TIMER_DEFINITIONS} from '@core/schema/tools/quickTimerEdit';
+import {MAX_QUICK_ITEMS} from '@core/schema/tools/quick';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {prepareQuickTimerEdit} from '@main/store/settings/quickTimerEdits';
 

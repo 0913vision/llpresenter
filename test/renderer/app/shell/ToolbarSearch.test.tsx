@@ -18,13 +18,13 @@ import {
   vi,
   onTestFinished,
 } from 'vitest';
-import {emptyLiveState} from '@core/schema/live';
-import {createSongId} from '@core/schema/ids';
+import {emptyLiveState} from '@core/schema/live/live';
+import {createSongId} from '@core/schema/common/ids';
 import type {
   LibrarySearchMatch,
   LibrarySearchResult,
-} from '@core/schema/librarySearch';
-import type {ShowLibrarySong} from '@core/schema/showLibrarySong';
+} from '@core/schema/songs/librarySearch';
+import type {ShowLibrarySong} from '@core/schema/songs/showLibrarySong';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {themes as sampleThemes} from '@fixtures/core/themeOutput';

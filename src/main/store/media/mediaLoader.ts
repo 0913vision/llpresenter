@@ -1,14 +1,17 @@
-import {defaultPreferences} from '@core/schema/preferences';
+import {defaultPreferences} from '@core/schema/app/preferences';
 import type {BundledPicture} from '../pictures/bundledPicture';
-import type {SettingsReader} from '@core/schema/settingsReader';
+import type {SettingsReader} from '@core/schema/app/settingsReader';
 import {basename} from 'node:path';
-import type {FileAccess, LoadedFile} from '@core/schema/fileFormat';
-import {parseMediaDocument, type MediaDocument} from '@core/schema/mediaEdit';
+import type {FileAccess, LoadedFile} from '@core/schema/common/fileFormat';
+import {
+  parseMediaDocument,
+  type MediaDocument,
+} from '@core/schema/media/mediaEdit';
 import {
   parseMediaList,
   serializeMediaList,
   type MediaList,
-} from '@core/schema/mediaList';
+} from '@core/schema/media/mediaList';
 import type {Logger} from '../../base/log';
 import {EMPTY_MEDIA_LIST} from '../settings/defaults';
 import {documentFiles} from '../files/documentFiles';

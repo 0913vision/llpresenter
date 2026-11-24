@@ -1,13 +1,13 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {EventEmitter} from 'node:events';
 import {settingsEndpoints} from '@contracts/ipc/settings';
-import type {EditResult} from '@core/schema/contentEdit';
-import {defaultPreferences} from '@core/schema/preferences';
+import type {EditResult} from '@core/schema/services/contentEdit';
+import {defaultPreferences} from '@core/schema/app/preferences';
 import {
   parseSettingsDocument,
   type SettingsDocument,
-} from '@core/schema/settingsDocuments';
-import type {SettingsListener} from '@core/schema/settingsReader';
+} from '@core/schema/app/settingsDocuments';
+import type {SettingsListener} from '@core/schema/app/settingsReader';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {registerSettingsChannels} from '@main/store/settings/settingsChannels';

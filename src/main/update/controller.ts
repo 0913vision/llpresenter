@@ -2,7 +2,7 @@ import type {
   UpdateAction,
   UpdateSnapshot,
   UpdateStatus,
-} from '@core/schema/update';
+} from '@core/schema/app/update';
 import type {Logger} from '../base/log';
 import type {UpdaterPort} from './port';
 

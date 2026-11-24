@@ -2,7 +2,7 @@ import {exactBibleBook} from './bibleMatching';
 import type {
   BibleLookupPassage,
   BibleLookupReply,
-} from '@core/schema/bibleLookup';
+} from '@core/schema/bible/bibleLookup';
 
 export type VerseDirection = 'previous' | 'next';
 

@@ -10,7 +10,7 @@ import {
   register,
 } from '@fixtures/main/store/registerFixtures';
 import {settingsEndpoints} from '@contracts/ipc/settings';
-import type {AppProblem} from '@core/schema/appProblem';
+import type {AppProblem} from '@core/schema/app/appProblem';
 import {readdir, rm, symlink} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';

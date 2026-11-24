@@ -1,11 +1,11 @@
 import type {LlpApi} from '@contracts/ipc/api';
-import type {Label} from '@core/schema/labels';
+import type {Label} from '@core/schema/services/labels';
 import type {LabelColor} from '@core/labels';
-import type {LabelColorPreview} from '@core/schema/labelColorPreview';
+import type {LabelColorPreview} from '@core/schema/services/labelColorPreview';
 import type {
   SettingsDocument,
   SettingsEdit,
-} from '@core/schema/settingsDocuments';
+} from '@core/schema/app/settingsDocuments';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {noticeTime, type Notice} from '@renderer/ui/popups/notices';
 

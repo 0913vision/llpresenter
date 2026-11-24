@@ -1,5 +1,5 @@
-import type {Label} from '@core/schema/labels';
-import type {TextImportDraft} from '@core/schema/textImport';
+import type {Label} from '@core/schema/services/labels';
+import type {TextImportDraft} from '@core/schema/songs/textImport';
 
 export const importHeaderKey = (name: string): string =>
   name.trim().toLowerCase();

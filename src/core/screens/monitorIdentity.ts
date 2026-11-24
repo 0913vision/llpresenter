@@ -1,4 +1,4 @@
-import type {MonitorIdentity} from '@core/schema/monitorIdentity';
+import type {MonitorIdentity} from '@core/schema/screens/monitorIdentity';
 
 export function monitorSerialKey(
   identity: MonitorIdentity | undefined,

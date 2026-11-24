@@ -1,8 +1,8 @@
 import {act, cleanup, render, screen, waitFor} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {emptyLiveState} from '@core/schema/live';
-import type {MediaProgress} from '@core/schema/mediaProgress';
+import {emptyLiveState} from '@core/schema/live/live';
+import type {MediaProgress} from '@core/schema/media/mediaProgress';
 import {useLive} from '@renderer/session/live';
 import {TestScreenSummaries} from '@fixtures/renderer/platform/screenSummaries';
 import {PreviewPanel} from '@renderer/features/presentation/PreviewPanel';

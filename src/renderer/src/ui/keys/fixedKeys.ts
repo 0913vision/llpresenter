@@ -1,4 +1,4 @@
-import type {KeyBinding} from '@core/schema/shortcuts';
+import type {KeyBinding} from '@core/schema/app/shortcuts';
 import {shortcutNames} from '@core/shortcuts';
 
 /**

@@ -1,6 +1,6 @@
-import type {BibleCutsFile} from '@core/schema/bibleCuts';
-import type {BibleLookupPassage} from '@core/schema/bibleLookup';
-import type {Slide, VerseReference} from '@core/schema/slide';
+import type {BibleCutsFile} from '@core/schema/bible/bibleCuts';
+import type {BibleLookupPassage} from '@core/schema/bible/bibleLookup';
+import type {Slide, VerseReference} from '@core/schema/slides/slide';
 import {versesOfPassage, verseKey, type CutVerse} from './passageSlides';
 import {
   CONT_MARKER,

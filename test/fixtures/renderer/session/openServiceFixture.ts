@@ -3,10 +3,10 @@ import type {LlpApi} from '@contracts/ipc/api';
 import type {
   ServiceChange,
   ServiceDocument,
-} from '@core/schema/contentDocuments';
-import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
-import {createServiceId, createServiceItemId} from '@core/schema/ids';
-import {hasSlides, type ServiceItem} from '@core/schema/service';
+} from '@core/schema/services/contentDocuments';
+import type {ContentEdit, EditResult} from '@core/schema/services/contentEdit';
+import {createServiceId, createServiceItemId} from '@core/schema/common/ids';
+import {hasSlides, type ServiceItem} from '@core/schema/services/service';
 import {itemTiles, itemTitle} from '@core/slides/tiles';
 import {applyService} from '@renderer/session/show';
 import {startOpenServiceSync} from '@renderer/session/openService';

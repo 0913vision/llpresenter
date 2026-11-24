@@ -1,8 +1,11 @@
-import type {ItemOverlay, PlacedOverlay} from '@core/schema/itemOverlays';
-import type {LiveItem} from '@core/schema/liveTheme';
-import type {Slide} from '@core/schema/slide';
+import type {
+  ItemOverlay,
+  PlacedOverlay,
+} from '@core/schema/services/itemOverlays';
+import type {LiveItem} from '@core/schema/live/liveTheme';
+import type {Slide} from '@core/schema/slides/slide';
 import {normalizeOverlayRanges} from '@core/overlays';
-import type {LiveState, MediaLayer} from '@core/schema/live';
+import type {LiveState, MediaLayer} from '@core/schema/live/live';
 
 /** The overlays of an item at the positions of their slides. */
 export function placedOverlays(

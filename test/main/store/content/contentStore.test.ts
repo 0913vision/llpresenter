@@ -1,5 +1,5 @@
-import {serviceIdSchema, serviceItemIdSchema} from '@core/schema/ids';
-import {parseService} from '@core/schema/service';
+import {serviceIdSchema, serviceItemIdSchema} from '@core/schema/common/ids';
+import {parseService} from '@core/schema/services/service';
 import {testId} from '@fixtures/core/schema/testHelpers';
 import {join} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';

@@ -1,9 +1,9 @@
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {libraryEndpoints} from '@contracts/ipc/library';
-import type {SongChange} from '@core/schema/contentDocuments';
-import {createSongId} from '@core/schema/ids';
-import {LIBRARY_SEARCH_LIMITS} from '@core/schema/librarySearch';
-import type {Song} from '@core/schema/song';
+import type {SongChange} from '@core/schema/services/contentDocuments';
+import {createSongId} from '@core/schema/common/ids';
+import {LIBRARY_SEARCH_LIMITS} from '@core/schema/songs/librarySearch';
+import type {Song} from '@core/schema/songs/song';
 import {lyricsSlide} from '@fixtures/core/slides';
 import type {Logger} from '@main/base/log';
 import {registerLibrarySearch, type SongSource} from '@main/search/register';

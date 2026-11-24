@@ -2,8 +2,8 @@ import {describe, expect, it} from 'vitest';
 import {templateOrder, ids} from '@fixtures/core/serviceList';
 import {lyricsSlide, slideId} from '@fixtures/core/slides';
 import {changedPlace} from '@core/services/changedPlace';
-import type {ServiceItem} from '@core/schema/service';
-import type {Slide} from '@core/schema/slide';
+import type {ServiceItem} from '@core/schema/services/service';
+import type {Slide} from '@core/schema/slides/slide';
 
 function withSlides(
   order: readonly ServiceItem[],

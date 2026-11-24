@@ -8,7 +8,7 @@ import {
   isPanelRowId,
   type PanelRowId,
   type PanelRows,
-} from '@core/schema/panelRows';
+} from '@core/schema/app/panelRows';
 import type {SizeClass} from '@renderer/ui/panels/sizeClass';
 import type {ResizeSession} from '@renderer/ui/panels/ResizeGap';
 import {fitRows} from './rows';

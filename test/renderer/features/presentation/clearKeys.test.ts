@@ -1,4 +1,4 @@
-import {emptyLiveState} from '@core/schema/live';
+import {emptyLiveState} from '@core/schema/live/live';
 import {renderHook} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import * as clearState from '@renderer/session/clear';

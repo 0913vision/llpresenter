@@ -1,10 +1,10 @@
 import type {LlpApi} from '@contracts/ipc/api';
-import type {EditResult} from '@core/schema/contentEdit';
+import type {EditResult} from '@core/schema/services/contentEdit';
 import type {
   SettingsDocument,
   SettingsEdit,
   SettingsName,
-} from '@core/schema/settingsDocuments';
+} from '@core/schema/app/settingsDocuments';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {withinLookupTimeout} from './showOutput';
 

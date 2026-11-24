@@ -1,6 +1,6 @@
 import {expect, it} from 'vitest';
-import {createMessageStyleId} from '@core/schema/ids';
-import {DEFAULT_MESSAGE_STYLE} from '@core/schema/messages';
+import {createMessageStyleId} from '@core/schema/common/ids';
+import {DEFAULT_MESSAGE_STYLE} from '@core/schema/tools/messages';
 import {
   MESSAGE_BAND,
   messageBandFor,

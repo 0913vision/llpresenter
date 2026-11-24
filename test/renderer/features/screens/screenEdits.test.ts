@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {createMessageStyleId, createScreenId} from '@core/schema/ids';
+import {createMessageStyleId, createScreenId} from '@core/schema/common/ids';
 import {
   alwaysOnTopOf,
   changeScreen,

@@ -1,9 +1,9 @@
 import {afterEach, expect, it, vi} from 'vitest';
-import {emptyLiveState, type LiveState} from '@core/schema/live';
-import {createMessageId, createMediaId} from '@core/schema/ids';
-import {parseLiveCommand} from '@core/schema/liveCommand';
-import {parseLiveState} from '@core/schema/liveState';
-import {MAX_ACTIVE_MESSAGES} from '@core/schema/overlayState';
+import {emptyLiveState, type LiveState} from '@core/schema/live/live';
+import {createMessageId, createMediaId} from '@core/schema/common/ids';
+import {parseLiveCommand} from '@core/schema/live/liveCommand';
+import {parseLiveState} from '@core/schema/live/liveState';
+import {MAX_ACTIVE_MESSAGES} from '@core/schema/live/overlayState';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {LiveStore} from '@main/live/store';
 import {messageLayer} from '@main/live/messageState';

@@ -1,7 +1,7 @@
 import {render, screen, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import type {ServiceItem} from '@core/schema/service';
+import type {ServiceItem} from '@core/schema/services/service';
 import {DetailsPanel} from '@renderer/features/service/details/DetailsPanel';
 import {ServiceTableList} from '@renderer/features/service/table/ServiceTableList';
 import {useThemes} from '@renderer/platform/themes';

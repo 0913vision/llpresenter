@@ -1,13 +1,17 @@
 import {join} from 'node:path';
 import type {Result} from '@core/common/result';
 import {sameJson} from '@core/common/sameJson';
-import type {FileError} from '@core/schema/fileFormat';
-import {parseTheme, serializeTheme, type ThemeFile} from '@core/schema/theme';
+import type {FileError} from '@core/schema/common/fileFormat';
+import {
+  parseTheme,
+  serializeTheme,
+  type ThemeFile,
+} from '@core/schema/screens/theme';
 import {
   parseThemeList,
   serializeThemeList,
   type Themes,
-} from '@core/schema/themes';
+} from '@core/schema/screens/themes';
 import {BUILT_IN_THEMES, builtInTheme} from '@core/theme';
 import {loadFolder} from '../files/library';
 import type {SaveRequest} from '../files/saver';

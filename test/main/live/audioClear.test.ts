@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
-import {emptyLiveState} from '@core/schema/live';
-import {parseLiveState} from '@core/schema/liveState';
+import {emptyLiveState} from '@core/schema/live/live';
+import {parseLiveState} from '@core/schema/live/liveState';
 import {LiveStore} from '@main/live/store';
 
 function setup(

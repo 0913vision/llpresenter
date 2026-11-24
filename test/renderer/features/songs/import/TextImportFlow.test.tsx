@@ -9,7 +9,7 @@ import {
 import {StrictMode} from 'react';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import type {LlpApi} from '@contracts/ipc/api';
-import type {TextImportReadResult} from '@core/schema/textImport';
+import type {TextImportReadResult} from '@core/schema/songs/textImport';
 import {convertTextImport} from '@core/songs/textImport';
 import {BUILT_IN_THEME_IDS} from '@core/theme/builtIn/ids';
 import {TextImportFlow} from '@renderer/features/songs/import/TextImportFlow';

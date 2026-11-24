@@ -4,7 +4,7 @@ import {
   pointerMenuAnchor,
 } from '@renderer/ui/menus/contextMenu';
 import {useState, type JSX, type MouseEvent} from 'react';
-import {SONG_IMPORT_LIMITS} from '@core/schema/songImport';
+import {SONG_IMPORT_LIMITS} from '@core/schema/songs/songImport';
 import {AlertDialog} from '../ui/popups/AlertDialog';
 import {Button} from '../ui/buttons/Button';
 import {CheckRow, Checkbox} from '../ui/choices/Checkbox';

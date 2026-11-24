@@ -1,5 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
-import {UI_ZOOM_FACTOR} from '@core/schema/uiZoom';
+import {UI_ZOOM_FACTOR} from '@core/schema/app/uiZoom';
 import {windowPlatform, type PlatformModules} from '../../src/preload/platform';
 
 function platformWith(modules: {

@@ -1,4 +1,4 @@
-import type {MonitorInfo} from '@core/schema/monitors';
+import type {MonitorInfo} from '@core/schema/screens/monitors';
 import {MAIN_ID} from '@fixtures/core/screenDocuments';
 
 export const projector: MonitorInfo = {

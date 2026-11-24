@@ -1,11 +1,11 @@
 import {Buffer} from 'node:buffer';
 import {describe, expect, it} from 'vitest';
-import {emptyLiveState} from '@core/schema/live';
-import {LIVE_STATE_BYTE_BUDGET} from '@core/schema/liveLimits';
-import {serializeRecoveryRecord} from '@core/schema/recoveryRecord';
-import {createTimerId, type TimerId} from '@core/schema/ids';
-import {MAX_LIVE_TIMERS, type TimerRuns} from '@core/schema/timerState';
-import {NAME_LIMIT} from '@core/schema/primitives';
+import {emptyLiveState} from '@core/schema/live/live';
+import {LIVE_STATE_BYTE_BUDGET} from '@core/schema/live/liveLimits';
+import {serializeRecoveryRecord} from '@core/schema/app/recoveryRecord';
+import {createTimerId, type TimerId} from '@core/schema/common/ids';
+import {MAX_LIVE_TIMERS, type TimerRuns} from '@core/schema/tools/timerState';
+import {NAME_LIMIT} from '@core/schema/common/primitives';
 import {liveStateBytes, fitsLiveStateByteBudget} from '@main/live/stateBudget';
 
 describe('live state byte counting', () => {

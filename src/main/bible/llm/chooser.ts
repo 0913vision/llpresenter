@@ -1,4 +1,4 @@
-import {parseLlmCompletion} from '@core/schema/llmResponse';
+import {parseLlmCompletion} from '@core/schema/bible/llmResponse';
 import {DEFAULT_ENDPOINT, fetchJson} from './http';
 
 const SYSTEM_PROMPT = `당신은 한국어 성경 한 절을 예배용 슬라이드 두 장에 나눠 담습니다.

@@ -1,9 +1,9 @@
 import {lyricsSlide, slideOf} from '@fixtures/core/slides';
-import {createMediaId} from '@core/schema/ids';
+import {createMediaId} from '@core/schema/common/ids';
 import {afterEach, beforeEach, describe, expect, it} from 'vitest';
-import type {LiveCommand} from '@core/schema/liveCommand';
-import {emptyLiveState} from '@core/schema/live';
-import type {ShowService} from '@core/schema/showService';
+import type {LiveCommand} from '@core/schema/live/liveCommand';
+import {emptyLiveState} from '@core/schema/live/live';
+import type {ShowService} from '@core/schema/services/showService';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {useLive} from '@renderer/session/live';
 import {applyService, outputTile, useShow} from '@renderer/session/show';

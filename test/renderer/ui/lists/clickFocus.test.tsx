@@ -1,6 +1,9 @@
 import {render, screen} from '@testing-library/react';
 import {describe, expect, it} from 'vitest';
-import {CLICK_FOCUS_SELECTOR, clickFocusProps} from '@renderer/ui/lists/clickFocus';
+import {
+  CLICK_FOCUS_SELECTOR,
+  clickFocusProps,
+} from '@renderer/ui/lists/clickFocus';
 
 function takesClickFocus(element: Element): boolean {
   return element.closest(CLICK_FOCUS_SELECTOR) !== null;

@@ -2,7 +2,7 @@ import {
   LAUNCH_TASK_IDS,
   type LaunchTaskId,
   type LaunchTimes,
-} from '@core/schema/launch';
+} from '@core/schema/app/launch';
 
 interface LaunchTask {
   /** What the launch window says while it runs. */

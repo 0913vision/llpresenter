@@ -3,11 +3,11 @@ import {
   createItemOverlayId,
   type ItemOverlayId,
   type MediaId,
-} from '@core/schema/ids';
+} from '@core/schema/common/ids';
 import {
   ITEM_OVERLAY_LIMITS,
   type PlacedOverlay,
-} from '@core/schema/itemOverlays';
+} from '@core/schema/services/itemOverlays';
 import {newOverlaySpan, overlayAt} from '@core/overlays';
 import {editorTask} from '@renderer/platform/editorTask';
 import {menuAvailability, type MenuEntry} from '@renderer/ui/menus/menuModel';

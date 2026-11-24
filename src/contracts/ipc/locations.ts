@@ -10,7 +10,7 @@ import {
   type ChooseLocationRequest,
   type ChooseLocationResult,
   type LocationsView,
-} from '@core/schema/libraryLocations';
+} from '@core/schema/app/libraryLocations';
 import {push, query, request, type IpcPort} from './endpoint';
 
 /** The calls behind the 라이브러리 위치 and 백업 rows of 환경설정. */

@@ -6,7 +6,9 @@ import type {PreviewScreen} from '@renderer/ui/previews/PreviewFrame';
 import {PreviewSizingContext} from '@renderer/ui/previews/PreviewSizingContext';
 import {clampPreviewRatio} from '@renderer/ui/previews/previewRatio';
 
-vi.mock('@renderer/ui/previews/usePreviewRoom', () => ({usePreviewRoom: vi.fn()}));
+vi.mock('@renderer/ui/previews/usePreviewRoom', () => ({
+  usePreviewRoom: vi.fn(),
+}));
 
 const screens: ReadonlyArray<PreviewScreen<string>> = [
   {id: 'audience', name: '청중 화면', shortName: '청중', status: {kind: 'on'}},

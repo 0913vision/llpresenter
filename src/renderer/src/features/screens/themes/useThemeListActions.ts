@@ -1,8 +1,8 @@
 import {useEffect, useRef} from 'react';
 import {limitReason} from '@core/common/limitReason';
-import {createThemeId, type ThemeId} from '@core/schema/ids';
-import type {SlidePurpose, ThemeFile} from '@core/schema/theme';
-import {THEMES_LIMITS} from '@core/schema/themes';
+import {createThemeId, type ThemeId} from '@core/schema/common/ids';
+import type {SlidePurpose, ThemeFile} from '@core/schema/screens/theme';
+import {THEMES_LIMITS} from '@core/schema/screens/themes';
 import {
   builtInTheme,
   copiedThemeName,

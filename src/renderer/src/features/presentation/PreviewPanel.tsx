@@ -1,6 +1,6 @@
 import type {JSX} from 'react';
-import {parseScreenId} from '@core/schema/ids';
-import type {Screen} from '@core/schema/screens';
+import {parseScreenId} from '@core/schema/common/ids';
+import type {Screen} from '@core/schema/screens/screens';
 import {KIND_NAMES} from '@core/screens';
 import {themeScreenOf} from '@core/theme';
 import {useLive, useOutputs} from '@renderer/session/live';

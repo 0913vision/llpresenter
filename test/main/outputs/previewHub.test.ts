@@ -1,7 +1,7 @@
 import {BrowserWindow} from 'electron';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {outputEndpoints} from '@contracts/ipc/output';
-import {emptyLiveState} from '@core/schema/live';
+import {emptyLiveState} from '@core/schema/live/live';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {CAPTIONS, MAIN} from '@fixtures/core/overlays';
 import {PreviewHub} from '@main/outputs/previewHub';

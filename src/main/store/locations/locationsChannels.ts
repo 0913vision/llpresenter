@@ -8,7 +8,7 @@ import {locationsEndpoints} from '@contracts/ipc/locations';
 import {
   defaultPreferences,
   withPreferenceDefaults,
-} from '@core/schema/preferences';
+} from '@core/schema/app/preferences';
 import {IpcHost, pushToWindows} from '../../base/ipcHost';
 import type {Logger} from '../../base/log';
 import {

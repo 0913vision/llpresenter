@@ -1,7 +1,7 @@
 import type {WindowPlatform} from '@contracts/ipc/endpoint';
 import type {Result} from '@core/common/result';
-import type {PayloadError} from '@core/schema/payload';
-import {parseUiZoomFactor, UI_ZOOM_FACTOR} from '@core/schema/uiZoom';
+import type {PayloadError} from '@core/schema/common/payload';
+import {parseUiZoomFactor, UI_ZOOM_FACTOR} from '@core/schema/app/uiZoom';
 import type {BadValueLog} from './port';
 
 /** The parts of Electron's renderer modules that the platform reads. */

@@ -1,5 +1,5 @@
-import {isItemOfKind, type ServiceItem} from '@core/schema/service';
-import type {ServiceItemId} from '@core/schema/ids';
+import {isItemOfKind, type ServiceItem} from '@core/schema/services/service';
+import type {ServiceItemId} from '@core/schema/common/ids';
 
 /** Counts items following a section header up to the next header. */
 export function sectionItemCount(

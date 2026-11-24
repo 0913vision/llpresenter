@@ -4,7 +4,7 @@ import {
   type SplitLayout,
   type SplitSpec,
 } from '@core/bible';
-import type {ThemeFile, ThemeTextElement} from '@core/schema/theme';
+import type {ThemeFile, ThemeTextElement} from '@core/schema/screens/theme';
 import {templateTokens} from '@core/theme';
 import {fontFamilyFor} from '../fontFamily';
 

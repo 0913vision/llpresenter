@@ -1,6 +1,6 @@
 import {focusHistorySurface} from '@renderer/ui/lists/focusHistorySurface';
 import {useState, type RefObject} from 'react';
-import type {QuickItem} from '@core/schema/quick';
+import type {QuickItem} from '@core/schema/tools/quick';
 import {
   NOTHING_TO_REDO,
   NOTHING_TO_UNDO,

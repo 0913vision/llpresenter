@@ -1,5 +1,5 @@
 import {describe, expect, it, vi, afterEach} from 'vitest';
-import type {MonitorIdentity} from '@core/schema/monitorIdentity';
+import type {MonitorIdentity} from '@core/schema/screens/monitorIdentity';
 import {assignMonitors, type DisplayRequest} from '@main/displays/assign';
 import {
   IdentityDisplaySource,

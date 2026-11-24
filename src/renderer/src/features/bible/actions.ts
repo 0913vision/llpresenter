@@ -1,5 +1,5 @@
-import type {BibleLookupPassage} from '@core/schema/bibleLookup';
-import type {Slide} from '@core/schema/slide';
+import type {BibleLookupPassage} from '@core/schema/bible/bibleLookup';
+import type {Slide} from '@core/schema/slides/slide';
 import {
   bibleSource,
   type BibleDisplay,

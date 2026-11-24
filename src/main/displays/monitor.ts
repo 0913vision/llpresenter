@@ -1,5 +1,5 @@
 import {intersectionArea, sameRect, type Rect} from './rect';
-import type {MonitorIdentity} from '@core/schema/monitorIdentity';
+import type {MonitorIdentity} from '@core/schema/screens/monitorIdentity';
 import {sameMonitorIdentity} from '@core/screens';
 
 /** A monitor as the operating system reports it. */

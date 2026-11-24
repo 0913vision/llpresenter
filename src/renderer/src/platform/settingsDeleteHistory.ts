@@ -1,7 +1,7 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {undoFailure, undoTimeline, type UndoOwner} from './undoTimeline';
-import type {SettingsName} from '@core/schema/settingsDocuments';
+import type {SettingsName} from '@core/schema/app/settingsDocuments';
 
 interface State {
   readonly undo: number;

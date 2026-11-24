@@ -2,14 +2,14 @@ import {settingsDocument} from '@fixtures/core/settingsDocument';
 import type {
   SettingsListener,
   SettingsReader,
-} from '@core/schema/settingsReader';
-import {createMediaId} from '@core/schema/ids';
-import {parseLiveCommand} from '@core/schema/liveCommand';
+} from '@core/schema/app/settingsReader';
+import {createMediaId} from '@core/schema/common/ids';
+import {parseLiveCommand} from '@core/schema/live/liveCommand';
 import type {
   SettingsDocument,
   SettingsName,
-} from '@core/schema/settingsDocuments';
-import {defaultPreferences} from '@core/schema/preferences';
+} from '@core/schema/app/settingsDocuments';
+import {defaultPreferences} from '@core/schema/app/preferences';
 
 export const overlayUuid = (id: number): string =>
   `00000000-0000-4000-8000-${String(id).padStart(12, '0')}`;

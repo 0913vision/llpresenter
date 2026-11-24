@@ -1,6 +1,6 @@
-import type {Preferences} from '@core/schema/preferences';
-import type {FileError} from '@core/schema/fileFormat';
-import {settingsNames} from '@core/schema/settingsDocuments';
+import type {Preferences} from '@core/schema/app/preferences';
+import type {FileError} from '@core/schema/common/fileFormat';
+import {settingsNames} from '@core/schema/app/settingsDocuments';
 import type {Logger} from '../base/log';
 import {Backups, type BackupOutcome} from './files/backup';
 import {type LoadedStore} from './locations/fileStore';

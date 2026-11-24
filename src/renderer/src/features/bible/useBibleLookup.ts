@@ -1,10 +1,10 @@
 import {useEffect, useEffectEvent, useRef, useState} from 'react';
 import type {BibleLookupApi} from '@contracts/ipc/bible';
-import type {TranslationId} from '@core/schema/ids';
+import type {TranslationId} from '@core/schema/common/ids';
 import type {
   BibleLookupPassage,
   BibleLookupReply,
-} from '@core/schema/bibleLookup';
+} from '@core/schema/bible/bibleLookup';
 import {LatestLookup} from './LatestLookup';
 
 export function useBibleLookup({

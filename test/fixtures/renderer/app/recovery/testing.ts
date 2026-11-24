@@ -1,7 +1,7 @@
 import {
   parseRecoverySummary,
   type RecoverySummary,
-} from '@core/schema/recovery';
+} from '@core/schema/app/recovery';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 
 type Summary = NonNullable<RecoverySummary>;

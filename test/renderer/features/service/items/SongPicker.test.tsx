@@ -1,7 +1,7 @@
 import {cleanup, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
-import {createSongId} from '@core/schema/ids';
+import {createSongId} from '@core/schema/common/ids';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {SongPicker} from '@renderer/features/service/items/SongPicker';
 

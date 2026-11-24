@@ -2,7 +2,7 @@ import {settingsDocument} from '@fixtures/core/settingsDocument';
 import type {JSX} from 'react';
 import {act, cleanup, render, screen} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
-import type {SettingsDocument} from '@core/schema/settingsDocuments';
+import type {SettingsDocument} from '@core/schema/app/settingsDocuments';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {
   MAIN_ID,
@@ -14,7 +14,7 @@ import {
   useScreenSummaries,
 } from '@renderer/platform/ScreenSummaries';
 import {summarizeScreens} from '@renderer/platform/screens';
-import {inScreenOrder} from '@core/schema/screens';
+import {inScreenOrder} from '@core/schema/screens/screens';
 import {projector} from '@fixtures/renderer/features/screens/monitors';
 
 function Labels(): JSX.Element {

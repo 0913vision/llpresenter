@@ -1,4 +1,4 @@
-import type {MacroActionKind} from '@core/schema/macros';
+import type {MacroActionKind} from '@core/schema/tools/macros';
 
 /** The palette groups, in the order the 동작 팔레트 shows them. */
 export const MACRO_PALETTE_GROUPS = [

@@ -4,12 +4,12 @@ import type {
   RecoveryFailure,
   RecoveryResult,
   RecoverySummary,
-} from '@core/schema/recovery';
+} from '@core/schema/app/recovery';
 import {
   parseRecoveryRecord,
   RECOVERY_RECORD_LIMITS,
   type RecoveryRecord,
-} from '@core/schema/recoveryRecord';
+} from '@core/schema/app/recoveryRecord';
 import type {Logger} from '../../base/log';
 import {isMissingFile} from '../../base/fsErrors';
 import {dispatchBatchedCommitted} from '../store';

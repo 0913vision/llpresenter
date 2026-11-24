@@ -1,7 +1,7 @@
-import type {TextImportDraft} from '@core/schema/textImport';
-import type {Hymn} from '@core/schema/hymn';
-import type {Slide} from '@core/schema/slide';
-import type {SlideBackground} from '@core/schema/theme';
+import type {TextImportDraft} from '@core/schema/songs/textImport';
+import type {Hymn} from '@core/schema/songs/hymn';
+import type {Slide} from '@core/schema/slides/slide';
+import type {SlideBackground} from '@core/schema/screens/theme';
 import {SONG_THEME_IDS} from '@core/theme';
 import {hymnAt, hymnLabel, hymnTitle, isTitleOf} from '@core/hymns';
 import {makeSlide, type SlideMaking} from './make';

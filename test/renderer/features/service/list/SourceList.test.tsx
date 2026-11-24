@@ -1,8 +1,8 @@
 import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {describe, expect, it, vi} from 'vitest';
-import type {ServiceEntry} from '@core/schema/contentDocuments';
-import {createServiceId} from '@core/schema/ids';
+import type {ServiceEntry} from '@core/schema/services/contentDocuments';
+import {createServiceId} from '@core/schema/common/ids';
 import {SourceList} from '@renderer/features/service/list/SourceList';
 import {ids, serviceEntries, templateEntries} from '@fixtures/core/serviceList';
 

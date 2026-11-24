@@ -1,6 +1,9 @@
 import {act, cleanup, renderHook, waitFor} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
-import type {FontCatalog, FontCatalogSnapshot} from '@core/schema/fontCatalog';
+import type {
+  FontCatalog,
+  FontCatalogSnapshot,
+} from '@core/schema/screens/fontCatalog';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {fontFamilyFixture} from '@fixtures/core/fontCatalog';
 import {

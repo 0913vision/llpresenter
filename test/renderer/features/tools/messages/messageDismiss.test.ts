@@ -1,7 +1,7 @@
 import {afterEach, expect, it, vi} from 'vitest';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {emptyLiveState} from '@core/schema/live';
-import {createMessageId} from '@core/schema/ids';
+import {emptyLiveState} from '@core/schema/live/live';
+import {createMessageId} from '@core/schema/common/ids';
 import {useLive} from '@renderer/session/live';
 import {dismissMessage} from '@renderer/features/tools/messages/messageDismiss';
 

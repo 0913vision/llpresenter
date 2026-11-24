@@ -1,6 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@core/schema/live';
-import {parseMacroId} from '@core/schema/ids';
+import {emptyLiveState} from '@core/schema/live/live';
+import {parseMacroId} from '@core/schema/common/ids';
 import {MissingLiveTargetError} from '@main/live/commandErrors';
 import type {LiveHistory} from '@main/live/history';
 import type {SliceContext} from '@main/live/slice';

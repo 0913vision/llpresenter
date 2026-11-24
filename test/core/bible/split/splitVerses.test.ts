@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import * as v from 'valibot';
-import {bibleCutsSchema, BIBLE_CUTS_LIMITS} from '@core/schema/bibleCuts';
-import {translationIdSchema} from '@core/schema/ids';
+import {bibleCutsSchema, BIBLE_CUTS_LIMITS} from '@core/schema/bible/bibleCuts';
+import {translationIdSchema} from '@core/schema/common/ids';
 import {entryFor, saveCuts, textHash} from '@core/bible/split/splitCache';
 import {
   cutsOfVerse,

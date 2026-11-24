@@ -1,5 +1,5 @@
-import type {MonitorInfo} from '@core/schema/monitors';
-import type {Screen} from '@core/schema/screens';
+import type {MonitorInfo} from '@core/schema/screens/monitors';
+import type {Screen} from '@core/schema/screens/screens';
 import {sameMonitorIdentity, monitorSerialKey} from '@core/screens';
 
 export interface MonitorAssignmentInput {

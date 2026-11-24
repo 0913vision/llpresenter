@@ -1,6 +1,9 @@
 import {isUnchangedSelectionMove} from '@core/common/selectionOrder';
 import {useReflow} from '@renderer/ui/panels/useReflow';
-import {openMenuFromKey, pointerMenuAnchor} from '@renderer/ui/menus/contextMenu';
+import {
+  openMenuFromKey,
+  pointerMenuAnchor,
+} from '@renderer/ui/menus/contextMenu';
 import {
   useRef,
   useState,

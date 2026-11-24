@@ -1,4 +1,4 @@
-import type {SlideTransition} from '@core/schema/slideTransition';
+import type {SlideTransition} from '@core/schema/slides/slideTransition';
 
 type Direction = NonNullable<SlideTransition['dir']>;
 

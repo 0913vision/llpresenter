@@ -1,7 +1,7 @@
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@core/schema/live';
-import {createAudioPlaylistId, createMediaId} from '@core/schema/ids';
+import {emptyLiveState} from '@core/schema/live/live';
+import {createAudioPlaylistId, createMediaId} from '@core/schema/common/ids';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {mockPanelTabWidths} from '@fixtures/renderer/ui/responsiveTabTesting';
 import {AudioShortcuts} from '@renderer/features/tools/audio/AudioShortcuts';

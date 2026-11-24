@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {SONG_THEME_IDS} from '@core/theme';
 import {importedSongTitle, songSlides} from '@core/slides/songSlides';
-import {defaultSlideTransitions} from '@core/schema/preferences';
+import {defaultSlideTransitions} from '@core/schema/app/preferences';
 
 const making = {themes: null, transitions: defaultSlideTransitions};
 

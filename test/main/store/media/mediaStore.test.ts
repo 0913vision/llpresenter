@@ -4,13 +4,13 @@ import {
   createMediaId,
   createMediaPlaylistId,
   createAudioPlaylistId,
-} from '@core/schema/ids';
+} from '@core/schema/common/ids';
 import {
   parseMediaDocument,
   type MediaEdit,
   type MediaEditResult,
-} from '@core/schema/mediaEdit';
-import {MEDIA_LIMITS} from '@core/schema/mediaList';
+} from '@core/schema/media/mediaEdit';
+import {MEDIA_LIMITS} from '@core/schema/media/mediaList';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import type {DocumentFiles} from '@main/store/content/contentPersistence';

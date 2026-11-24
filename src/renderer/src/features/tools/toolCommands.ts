@@ -1,6 +1,6 @@
-import {type PropId} from '@core/schema/ids';
-import type {Timer} from '@core/schema/timers';
-import {MAX_LIVE_TIMERS} from '@core/schema/timerState';
+import {type PropId} from '@core/schema/common/ids';
+import type {Timer} from '@core/schema/tools/timers';
+import {MAX_LIVE_TIMERS} from '@core/schema/tools/timerState';
 import {sendLive, useLive} from '@renderer/session/live';
 
 export function hideStageMessage(): void {

@@ -5,7 +5,7 @@ import {
   type AnalysisFailureReason,
   type AnalysisJob,
   type AnalysisReply,
-} from '@core/schema/mediaAnalysis';
+} from '@core/schema/media/mediaAnalysis';
 
 /** Where a video's thumbnail is taken, or half way through a shorter video. */
 export const THUMBNAIL_FRAME_SECONDS = 1;

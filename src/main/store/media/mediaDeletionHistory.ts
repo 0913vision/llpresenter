@@ -4,11 +4,11 @@ import type {
   MediaList,
   MediaPlaylist,
   AudioPlaylist,
-} from '@core/schema/mediaList';
-import type {MediaEdit} from '@core/schema/mediaEdit';
+} from '@core/schema/media/mediaList';
+import type {MediaEdit} from '@core/schema/media/mediaEdit';
 import {editMediaList, mediaRefusal, type MediaChange} from './mediaEdits';
 import type {Result} from '@core/common/result';
-import type {EditFailure} from '@core/schema/contentEdit';
+import type {EditFailure} from '@core/schema/services/contentEdit';
 
 interface Occurrence {
   readonly next: string | null;

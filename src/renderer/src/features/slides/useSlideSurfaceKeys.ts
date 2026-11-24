@@ -1,5 +1,5 @@
 import type {KeyboardEvent, RefObject} from 'react';
-import type {Slide} from '@core/schema/slide';
+import type {Slide} from '@core/schema/slides/slide';
 import {takeMenuKey} from '@renderer/ui/menus/contextMenu';
 import {isComposing} from '@renderer/ui/fields/ime';
 import type {MenuAnchor} from '@renderer/ui/menus/Menu';

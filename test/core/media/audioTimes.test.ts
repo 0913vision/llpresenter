@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {audioTimes, DEFAULT_AUDIO_TIMES} from '@core/media/audioTimes';
-import {defaultPreferences} from '@core/schema/preferences';
+import {defaultPreferences} from '@core/schema/app/preferences';
 
 describe('audioTimes', () => {
   it('starts at 0.5 s for a change and 3 s for a fade out', () => {

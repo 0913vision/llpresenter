@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {limitReason} from '@core/common/limitReason';
-import {SONG_IMPORT_LIMITS} from '@core/schema/songImport';
+import {SONG_IMPORT_LIMITS} from '@core/schema/songs/songImport';
 import {importLimitReason} from '@core/songs/importLimits';
 import {sampleSong} from '@fixtures/core/songs/blockFixtures';
 import {lyricsSlide} from '@fixtures/core/slides';

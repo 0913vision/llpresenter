@@ -1,8 +1,12 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import {duplicateAfter} from '@core/common/duplicateAfter';
-import type {EditResult} from '@core/schema/contentEdit';
-import {NAME_LIMIT} from '@core/schema/primitives';
-import {serializeProps, type Prop, type PropsFile} from '@core/schema/props';
+import type {EditResult} from '@core/schema/services/contentEdit';
+import {NAME_LIMIT} from '@core/schema/common/primitives';
+import {
+  serializeProps,
+  type Prop,
+  type PropsFile,
+} from '@core/schema/tools/props';
 import {nameReason} from '@renderer/ui/fields/nameReason';
 import {
   editableSettings,

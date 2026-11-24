@@ -1,7 +1,7 @@
 import {DEFAULT_LABELS} from '../settings/defaults';
-import type {SongChange} from '@core/schema/contentDocuments';
-import {defaultPreferences} from '@core/schema/preferences';
-import type {Song} from '@core/schema/song';
+import type {SongChange} from '@core/schema/services/contentDocuments';
+import {defaultPreferences} from '@core/schema/app/preferences';
+import type {Song} from '@core/schema/songs/song';
 import {serviceEndpoints} from '@contracts/ipc/service';
 import {pushToWindows} from '../../base/ipcHost';
 import type {Logger} from '../../base/log';

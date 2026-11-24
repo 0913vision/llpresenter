@@ -12,7 +12,7 @@ import {
   resetTooltips,
 } from '@fixtures/renderer/ui/tooltipTesting';
 import {mediaUrl, thumbnailUrl} from '@contracts/ipc/mediaUrls';
-import type {MediaItem} from '@core/schema/mediaList';
+import type {MediaItem} from '@core/schema/media/mediaList';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {MediaPreviewPlayer} from '@renderer/features/media/MediaPreviewPlayer';
 import {

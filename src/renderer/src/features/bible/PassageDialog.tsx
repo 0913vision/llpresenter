@@ -7,9 +7,9 @@ import {
 } from 'react';
 import {createPortal} from 'react-dom';
 import type {BibleLookupApi} from '@contracts/ipc/bible';
-import type {RecentPassage, Translation} from '@core/schema/bible';
-import type {BibleLookupPassage} from '@core/schema/bibleLookup';
-import type {TranslationId} from '@core/schema/ids';
+import type {RecentPassage, Translation} from '@core/schema/bible/bible';
+import type {BibleLookupPassage} from '@core/schema/bible/bibleLookup';
+import type {TranslationId} from '@core/schema/common/ids';
 import {recentPassages} from '@core/bible';
 import {isComposingKey} from '@renderer/ui/fields/ime';
 import {Icon} from '@renderer/ui/Icon';

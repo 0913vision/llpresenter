@@ -2,7 +2,7 @@ import {
   NDI_DEFAULT_HARDWARE_ACCELERATION,
   NDI_DEFAULT_FPS,
   NDI_DEFAULT_SOURCE_NAME,
-} from '@core/schema/screens';
+} from '@core/schema/screens/screens';
 import {
   utilityProcess,
   type UtilityProcess,
@@ -17,7 +17,7 @@ import {unionDirty} from './rect';
 import {createGpuOutput} from './gpuOutput';
 import {createNdiWindow, stopSender} from './ndiWindow';
 import {NDI_FRAME_WIDTH, NDI_FRAME_HEIGHT} from './textureQueue';
-import type {OutputScreenStatus} from '@core/schema/outputStatus';
+import type {OutputScreenStatus} from '@core/schema/live/outputStatus';
 
 export const NDI_SEND_TIMEOUT_MS = 5000;
 export const NDI_STOP_TIMEOUT_MS = 2000;

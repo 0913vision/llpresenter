@@ -4,18 +4,21 @@ import {
   noteThumbnailItems,
   noteThumbnailStamps,
 } from '@contracts/ipc/thumbnailRevisions';
-import type {MediaId} from '@core/schema/ids';
+import type {MediaId} from '@core/schema/common/ids';
 import type {
   MediaDocument,
   MediaImportProgress,
   MediaImportRequest,
-} from '@core/schema/mediaEdit';
-import type {MediaStamps, MissingMedia} from '@core/schema/mediaFiles';
-import {MEDIA_DELETE_HISTORY_LIMIT, MEDIA_LIMITS} from '@core/schema/mediaList';
+} from '@core/schema/media/mediaEdit';
+import type {MediaStamps, MissingMedia} from '@core/schema/media/mediaFiles';
+import {
+  MEDIA_DELETE_HISTORY_LIMIT,
+  MEDIA_LIMITS,
+} from '@core/schema/media/mediaList';
 import {updateActiveCopies, type CopyJob} from './mediaCopyJobs';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import {chosenPlaylist, type ChosenPlaylist} from './mediaEntries';
-import type {PicturePlace} from '@core/schema/picturePlace';
+import type {PicturePlace} from '@core/schema/media/picturePlace';
 import {withPlace, type MediaProps} from './mediaProps';
 import {mediaImportFailureNotice, requestMediaImport} from './mediaImport';
 

@@ -1,6 +1,6 @@
 import {useRef, type JSX} from 'react';
 import {limitReason} from '@core/common/limitReason';
-import {THEME_FILE_LIMITS} from '@core/schema/theme';
+import {THEME_FILE_LIMITS} from '@core/schema/screens/theme';
 import {Button} from '@renderer/ui/buttons/Button';
 import {IconButton} from '@renderer/ui/buttons/IconButton';
 import {PropertyRow} from '@renderer/ui/panels/PropertyRow';

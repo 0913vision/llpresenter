@@ -3,7 +3,7 @@ import {
   parseFontCatalogSnapshot,
   type FontCatalog,
   type FontCatalogSnapshot,
-} from '@core/schema/fontCatalog';
+} from '@core/schema/screens/fontCatalog';
 import {
   parseFrameRateReport,
   parseOutputHealthReport,
@@ -16,8 +16,11 @@ import {
   type FrameReadyReport,
   type PresenterTransition,
   type RendererLogEntry,
-} from '@core/schema/ipcPayloads';
-import {parseMonitorList, type MonitorList} from '@core/schema/monitors';
+} from '@core/schema/app/ipcPayloads';
+import {
+  parseMonitorList,
+  type MonitorList,
+} from '@core/schema/screens/monitors';
 import {
   parseOutputRetryRequest,
   parseOutputShowWindowRequest,
@@ -25,7 +28,7 @@ import {
   type OutputRetryRequest,
   type OutputShowWindowRequest,
   type OutputStatuses,
-} from '@core/schema/outputStatus';
+} from '@core/schema/live/outputStatus';
 import {message, push, query, request, signal, type IpcPort} from './endpoint';
 import {
   parsePlaybackProblemReport,
@@ -33,7 +36,7 @@ import {
   parsePlaybackRetry,
   type PlaybackProblemKind,
   type PlaybackProblems,
-} from '@core/schema/playbackProblems';
+} from '@core/schema/media/playbackProblems';
 import {
   parsePreviewRequest,
   parsePreviewSource,
@@ -43,7 +46,7 @@ import {
   type PreviewControl,
   type PreviewFrame,
   type PreviewRelay,
-} from '@core/schema/previewMirror';
+} from '@core/schema/live/previewMirror';
 
 /** The calls about output windows, monitors, fonts, and the log. */
 export const outputEndpoints = {

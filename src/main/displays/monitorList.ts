@@ -2,7 +2,7 @@ import {
   MONITOR_SCREEN_IDS_MAX,
   type MonitorInfo,
   type MonitorList,
-} from '@core/schema/monitors';
+} from '@core/schema/screens/monitors';
 import {findControlMonitor, type Monitor} from './monitor';
 import type {Rect} from './rect';
 

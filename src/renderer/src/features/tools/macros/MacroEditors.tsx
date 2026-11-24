@@ -1,10 +1,10 @@
-import {NAME_LIMIT} from '@core/schema/primitives';
+import {NAME_LIMIT} from '@core/schema/common/primitives';
 import {nameReason} from '@renderer/ui/fields/nameReason';
 import {useState, type JSX} from 'react';
 import {RenameDialog} from '@renderer/ui/popups/RenameDialog';
 import {Dialog, TextField} from '@renderer/ui';
 import type {Notice} from '@renderer/ui/popups/notices';
-import {isKnownMacroAction} from '@core/schema/macros';
+import {isKnownMacroAction} from '@core/schema/tools/macros';
 import {draftMacroAction} from '@core/macros';
 import {MacroActionDialog} from './MacroActionDialog';
 import {useMacroTargets} from './useMacroTargets';
@@ -60,7 +60,7 @@ function ActionDialog({
   readonly onProblem: ((notice: Notice) => void) | undefined;
   readonly close: () => void;
   readonly save: (
-    action: import('@core/schema/macros').KnownMacroAction,
+    action: import('@core/schema/tools/macros').KnownMacroAction,
   ) => void;
 }): JSX.Element {
   const targets = useMacroTargets(onProblem);

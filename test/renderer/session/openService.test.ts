@@ -1,5 +1,5 @@
 import {expect, it, vi} from 'vitest';
-import type {ServiceItem} from '@core/schema/service';
+import type {ServiceItem} from '@core/schema/services/service';
 import {changeSlides, withText} from '@core/slides/edits';
 import {
   editItem,

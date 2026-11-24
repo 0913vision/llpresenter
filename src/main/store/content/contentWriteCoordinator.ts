@@ -2,9 +2,9 @@ import type {
   EditRefusalReason,
   EditResult,
   EditSuccess,
-} from '@core/schema/contentEdit';
-import type {Song} from '@core/schema/song';
-import type {Service, Template} from '@core/schema/service';
+} from '@core/schema/services/contentEdit';
+import type {Song} from '@core/schema/songs/song';
+import type {Service, Template} from '@core/schema/services/service';
 import {basename} from 'node:path';
 import type {Logger} from '../../base/log';
 import {Autosave} from '../files/autosave';

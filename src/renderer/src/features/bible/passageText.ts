@@ -1,6 +1,6 @@
 import {useEffect, useState} from 'react';
-import type {BiblePassage} from '@core/schema/biblePassage';
-import type {BibleLookupPassage} from '@core/schema/bibleLookup';
+import type {BiblePassage} from '@core/schema/bible/biblePassage';
+import type {BibleLookupPassage} from '@core/schema/bible/bibleLookup';
 
 type Reference = Pick<BiblePassage, 'translation' | 'ref'>;
 

@@ -1,7 +1,10 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {installMockClock} from '@fixtures/mockClock';
-import {APP_FLUSH_LIMITS, type AppFlushRequest} from '@core/schema/appFlush';
-import {createAppFlushRequestId} from '@core/schema/ids';
+import {
+  APP_FLUSH_LIMITS,
+  type AppFlushRequest,
+} from '@core/schema/app/appFlush';
+import {createAppFlushRequestId} from '@core/schema/common/ids';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {CloseFlush, SAVING_DIALOG_DELAY_MS} from '@renderer/app/closeFlush';
 import type {DraftOutcome} from '@renderer/platform/pendingWrites';

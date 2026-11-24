@@ -6,7 +6,7 @@ import {
   learnedTimes,
   type LaunchBarTask,
 } from '@core/app';
-import {LAUNCH_TASK_IDS} from '@core/schema/launch';
+import {LAUNCH_TASK_IDS} from '@core/schema/app/launch';
 
 function task(
   endsAt: number,

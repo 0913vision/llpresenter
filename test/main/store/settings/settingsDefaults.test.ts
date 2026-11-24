@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {parseSettingsDocument} from '@core/schema/settingsDocuments';
+import {parseSettingsDocument} from '@core/schema/app/settingsDocuments';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
 import {settingsDefaults} from '@main/store/settings/settingsDefaults';
 import {DEFAULT_LABELS} from '@main/store/settings/defaults';

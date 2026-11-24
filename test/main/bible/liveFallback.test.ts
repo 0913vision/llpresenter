@@ -3,9 +3,9 @@ import {writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {BIBLE_BOOKS} from '@core/bible/bibleBooks';
 import {LIVE_BIBLE_ID} from '@core/bible/liveTranslation';
-import {parseBibleLookupRequest} from '@core/schema/bibleLookup';
-import {defaultPreferences} from '@core/schema/preferences';
-import {parseSettingsDocument} from '@core/schema/settingsDocuments';
+import {parseBibleLookupRequest} from '@core/schema/bible/bibleLookup';
+import {defaultPreferences} from '@core/schema/app/preferences';
+import {parseSettingsDocument} from '@core/schema/app/settingsDocuments';
 import {BibleLookupSession} from '@main/bible/lookup';
 import {makeTempDir} from '@fixtures/tempDir';
 import {

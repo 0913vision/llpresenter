@@ -1,6 +1,9 @@
 import {useSyncExternalStore, type JSX} from 'react';
 import {useShallow} from 'zustand/react/shallow';
-import {defaultThumbnailColumns, type SizeClass} from '@renderer/ui/panels/sizeClass';
+import {
+  defaultThumbnailColumns,
+  type SizeClass,
+} from '@renderer/ui/panels/sizeClass';
 import {useShow} from '@renderer/session/show';
 import {
   isLibrarySource,

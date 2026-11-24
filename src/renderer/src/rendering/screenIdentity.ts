@@ -1,5 +1,5 @@
 import type {LlpApi} from '@contracts/ipc/api';
-import type {Screen} from '@core/schema/screens';
+import type {Screen} from '@core/schema/screens/screens';
 import type {PictureCorrection, RenderScreen} from './layer';
 import {emptyScreenColor, pictureSizeForScreen} from '@core/screens';
 import {followSettingsDocument} from './settingsFeed';

@@ -1,6 +1,6 @@
 import {createContext, use, useMemo, useSyncExternalStore} from 'react';
 import type {LabelColor} from '@core/labels';
-import type {Label} from '@core/schema/labels';
+import type {Label} from '@core/schema/services/labels';
 import type {LabelCatalog, LabelCatalogState} from './labelCatalog';
 
 /** The 이름표 of this window; none in a window without the app's data. */

@@ -1,5 +1,5 @@
 import {sameJson} from '@core/common/sameJson';
-import type {Service} from '@core/schema/service';
+import type {Service} from '@core/schema/services/service';
 
 type Order = Service['order'];
 

@@ -1,9 +1,9 @@
-import type {AppLayout} from '@core/schema/appConfig';
+import type {AppLayout} from '@core/schema/app/appConfig';
 import type {
   LayoutChange,
   RememberedViewChange,
   UiState,
-} from '@core/schema/uiState';
+} from '@core/schema/app/uiState';
 import type {UiStateFields} from '../store/locations/appConfigFile';
 import {withLayoutChange} from './layout';
 

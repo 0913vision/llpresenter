@@ -1,4 +1,4 @@
-import {NDI_DEFAULT_FPS} from '@core/schema/screens';
+import {NDI_DEFAULT_FPS} from '@core/schema/screens/screens';
 import {BrowserWindow, type UtilityProcess} from 'electron';
 import type {Logger} from '../../base/log';
 import {blockNavigation, preloadPath, startLoading} from '../../base/page';

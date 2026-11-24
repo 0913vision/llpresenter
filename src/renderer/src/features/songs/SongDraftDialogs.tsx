@@ -1,6 +1,6 @@
 import type {JSX} from 'react';
-import type {SongDocument} from '@core/schema/contentDocuments';
-import {SONG_IMPORT_LIMITS} from '@core/schema/songImport';
+import type {SongDocument} from '@core/schema/services/contentDocuments';
+import {SONG_IMPORT_LIMITS} from '@core/schema/songs/songImport';
 import {
   DUPLICATE_TITLE_REASON,
   normalizeSongTitle,

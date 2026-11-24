@@ -1,16 +1,16 @@
 import {join} from 'node:path';
-import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
+import type {ContentEdit, EditResult} from '@core/schema/services/contentEdit';
 import {
   createServiceId,
   createTemplateId,
   type ServiceId,
   type TemplateId,
-} from '@core/schema/ids';
+} from '@core/schema/common/ids';
 import {
   SERVICE_LIMITS,
   type Service,
   type Template,
-} from '@core/schema/service';
+} from '@core/schema/services/service';
 import {limitReason} from '@core/common/limitReason';
 import {copiedItems, pickedItems} from './contentEdits';
 import {transferSongItem} from './songItemCommands';

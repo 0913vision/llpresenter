@@ -4,7 +4,7 @@ import {
   type LiveBatch,
   type LiveCommand,
   parseLiveCommand,
-} from '@core/schema/liveCommand';
+} from '@core/schema/live/liveCommand';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {dispatchLogged, LiveStore} from '@main/live/store';
 import {defineSlice} from '@main/live/slice';

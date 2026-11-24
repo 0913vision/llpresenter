@@ -8,13 +8,13 @@ import {
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import type {EditResult} from '@core/schema/contentEdit';
-import type {ShortcutsFile} from '@core/schema/shortcuts';
+import type {EditResult} from '@core/schema/services/contentEdit';
+import type {ShortcutsFile} from '@core/schema/app/shortcuts';
 import {emptySettingsDocument} from '@fixtures/core/settingsDocument';
 import {
   parseSettingsDocument,
   type SettingsEdit,
-} from '@core/schema/settingsDocuments';
+} from '@core/schema/app/settingsDocuments';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {ShortcutsPage} from '@renderer/features/preferences/shortcuts/ShortcutsPage';

@@ -1,4 +1,4 @@
-import {parseMediaId, type MediaId} from '@core/schema/ids';
+import {parseMediaId, type MediaId} from '@core/schema/common/ids';
 
 /** Native drag format shared by media tiles and the slides that take a dropped media file. */
 export const MEDIA_DRAG_MIME = 'application/x-llp-media';

@@ -2,7 +2,7 @@ import type {LlpApi} from '@contracts/ipc/api';
 import type {
   SettingsDocument,
   SettingsName,
-} from '@core/schema/settingsDocuments';
+} from '@core/schema/app/settingsDocuments';
 
 interface SettingsFeedOptions<TValue> {
   readonly settings: LlpApi['settings'];

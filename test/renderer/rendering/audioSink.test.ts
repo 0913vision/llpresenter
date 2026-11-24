@@ -1,5 +1,5 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import type {SettingsDocument} from '@core/schema/settingsDocuments';
+import type {SettingsDocument} from '@core/schema/app/settingsDocuments';
 import {
   applySink,
   followAudioOutput,

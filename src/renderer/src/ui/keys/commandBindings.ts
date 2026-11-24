@@ -1,5 +1,5 @@
 import {useSyncExternalStore} from 'react';
-import type {ShortcutsFile} from '@core/schema/shortcuts';
+import type {ShortcutsFile} from '@core/schema/app/shortcuts';
 import {
   commandBindings,
   shortcutConflicts,

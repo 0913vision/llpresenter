@@ -3,7 +3,7 @@ import {afterEach, expect, it, vi} from 'vitest';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {useLaunchReady} from '@renderer/app/useLaunchReady';
 import {LoadReadiness} from '@renderer/ui/loadReadiness';
-import type {Preparation} from '@core/schema/launch';
+import type {Preparation} from '@core/schema/app/launch';
 
 afterEach(() => {
   vi.useRealTimers();

@@ -1,6 +1,6 @@
 import {useContext, useLayoutEffect, useRef, type JSX} from 'react';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
-import {emptyLayers} from '@core/schema/live';
+import {emptyLayers} from '@core/schema/live/live';
 import {OutputRenderer} from '@renderer/rendering/outputRenderer';
 import {previewMediaOf} from '@renderer/rendering/previewMedia';
 import {ScreenFrames} from '@renderer/rendering/screenFrames';

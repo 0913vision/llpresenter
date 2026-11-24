@@ -1,15 +1,15 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import {duplicateAfter} from '@core/common/duplicateAfter';
-import {NAME_LIMIT} from '@core/schema/primitives';
+import {NAME_LIMIT} from '@core/schema/common/primitives';
 import {nameReason} from '@renderer/ui/fields/nameReason';
-import type {EditResult} from '@core/schema/contentEdit';
+import type {EditResult} from '@core/schema/services/contentEdit';
 import {
   MACRO_FILE_LIMITS,
   serializeMacros,
   type Macro,
   type MacroCollection,
   type MacrosFile,
-} from '@core/schema/macros';
+} from '@core/schema/tools/macros';
 import {
   editableSettings,
   unchangedSettings,

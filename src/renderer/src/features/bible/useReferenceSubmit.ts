@@ -3,7 +3,7 @@ import {referenceFieldsState, type ReferencePart} from '@core/bible';
 import type {
   BibleLookupPassage,
   BibleLookupReply,
-} from '@core/schema/bibleLookup';
+} from '@core/schema/bible/bibleLookup';
 import {
   focusPart,
   fullReferenceCandidate,

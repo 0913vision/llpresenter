@@ -1,11 +1,11 @@
 import {prepareMacroAction, type MacroActionDraft} from '@core/macros';
-import {parseMacroId} from '@core/schema/ids';
+import {parseMacroId} from '@core/schema/common/ids';
 import type {
   KnownMacroAction,
   Macro,
   MacroActionKind,
   MacroCollection,
-} from '@core/schema/macros';
+} from '@core/schema/tools/macros';
 import type {MacroEdit} from './macroEdits';
 import type {MacroMenuHandlers} from './macroMenuEntries';
 import type {ShowTool} from '../showTools';

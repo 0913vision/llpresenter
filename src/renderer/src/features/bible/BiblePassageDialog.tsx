@@ -7,9 +7,9 @@ import {
   type ReactNode,
 } from 'react';
 import type {BibleLookupApi} from '@contracts/ipc/bible';
-import type {BibleLookupPassage} from '@core/schema/bibleLookup';
-import type {RecentPassage} from '@core/schema/bible';
-import type {TranslationId} from '@core/schema/ids';
+import type {BibleLookupPassage} from '@core/schema/bible/bibleLookup';
+import type {RecentPassage} from '@core/schema/bible/bible';
+import type {TranslationId} from '@core/schema/common/ids';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {PassageDialog} from './PassageDialog';
 

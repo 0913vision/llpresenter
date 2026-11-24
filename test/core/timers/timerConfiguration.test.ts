@@ -1,5 +1,5 @@
 import {expect, it} from 'vitest';
-import {MAX_TIMER_SECONDS} from '@core/schema/timers';
+import {MAX_TIMER_SECONDS} from '@core/schema/tools/timers';
 import {
   localDateText,
   timerDateReason,

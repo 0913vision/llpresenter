@@ -7,9 +7,9 @@ import {
   type MediaLayer,
   type MessageLayer,
   type AudioLayer,
-} from '@core/schema/live';
-import {audioPositionSeconds} from '@core/schema/audioState';
-import type {MessageId} from '@core/schema/ids';
+} from '@core/schema/live/live';
+import {audioPositionSeconds} from '@core/schema/media/audioState';
+import type {MessageId} from '@core/schema/common/ids';
 import {clearOverlay} from '../clearOverlay';
 import {withClearEffects} from '../clearEffects';
 import {nextAudioTrackVersion} from '../audioTrackVersion';

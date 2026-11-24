@@ -1,16 +1,16 @@
 import {act, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import type {ServiceEntry} from '@core/schema/contentDocuments';
-import {createServiceId} from '@core/schema/ids';
-import type {ShowService} from '@core/schema/showService';
-import type {ServiceOpenRequest} from '@core/schema/serviceOpen';
-import {emptyLiveState} from '@core/schema/live';
+import type {ServiceEntry} from '@core/schema/services/contentDocuments';
+import {createServiceId} from '@core/schema/common/ids';
+import type {ShowService} from '@core/schema/services/showService';
+import type {ServiceOpenRequest} from '@core/schema/services/serviceOpen';
+import {emptyLiveState} from '@core/schema/live/live';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {applyService, useShow} from '@renderer/session/show';
 import {useLive} from '@renderer/session/live';
 import {ServiceOrderHeader} from '@renderer/features/service/order/ServiceOrderHeader';
-import type {ServiceOpenResult} from '@core/schema/serviceOpen';
+import type {ServiceOpenResult} from '@core/schema/services/serviceOpen';
 
 const first = createServiceId('00000000-0000-4000-8000-000000000001');
 const second = createServiceId('00000000-0000-4000-8000-000000000002');

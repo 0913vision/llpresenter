@@ -1,5 +1,5 @@
 import type {RefObject} from 'react';
-import type {QuickItem} from '@core/schema/quick';
+import type {QuickItem} from '@core/schema/tools/quick';
 import {useRowMoveKeys} from '@renderer/ui/lists/reorder';
 import type {QuickEdit} from './quickEdits';
 import {useQuickDrag} from './useQuickDrag';

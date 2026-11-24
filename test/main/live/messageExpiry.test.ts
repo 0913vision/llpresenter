@@ -1,8 +1,8 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {emptyLiveState, type LiveState} from '@core/schema/live';
+import {emptyLiveState, type LiveState} from '@core/schema/live/live';
 import {MAX_OVERLAY_TIMER_MS} from '@core/overlays/timing';
-import {parseLiveState} from '@core/schema/liveState';
-import type {MessageExpiry} from '@core/schema/overlayState';
+import {parseLiveState} from '@core/schema/live/liveState';
+import type {MessageExpiry} from '@core/schema/live/overlayState';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {MAIN, overlayUuid} from '@fixtures/core/overlays';
 import {followMessageExpiry} from '@main/live/messageExpiry';

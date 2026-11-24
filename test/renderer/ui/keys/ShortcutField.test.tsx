@@ -2,7 +2,7 @@ import {act, fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState} from 'react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import type {KeyBinding} from '@core/schema/shortcuts';
+import type {KeyBinding} from '@core/schema/app/shortcuts';
 import {ShortcutField} from '@renderer/ui/keys/ShortcutField';
 import {Dialog} from '@renderer/ui/popups/Dialog';
 import {SHORTCUT_RECORDING_SELECTOR} from '@renderer/ui/keys/shortcutRecording';

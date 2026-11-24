@@ -6,7 +6,10 @@ import {
   type LabelColor,
   type PaletteColor,
 } from '@core/labels';
-import {LabelColorPicker, MacroColorPicker} from '../ui/labels/LabelColorPicker';
+import {
+  LabelColorPicker,
+  MacroColorPicker,
+} from '../ui/labels/LabelColorPicker';
 import styles from './LabelSection.module.css';
 import {ignore, Section, SpecGroup, SpecItem, Stateful} from './Spec';
 

@@ -1,8 +1,8 @@
 import {shownText} from '@fixtures/core/liveSlide';
-import type {LiveCommand} from '@core/schema/liveCommand';
+import type {LiveCommand} from '@core/schema/live/liveCommand';
 import {describe, expect, it, vi} from 'vitest';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {emptyLiveState} from '@core/schema/live';
+import {emptyLiveState} from '@core/schema/live/live';
 import {useLive} from '@renderer/session/live';
 import {setColumnDragActive} from '@renderer/platform/drag';
 import * as showState from '@renderer/session/show';

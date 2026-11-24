@@ -2,8 +2,8 @@ import {
   serviceIdSchema,
   serviceItemIdSchema,
   templateIdSchema,
-} from '@core/schema/ids';
-import {SERVICE_LIMITS} from '@core/schema/service';
+} from '@core/schema/common/ids';
+import {SERVICE_LIMITS} from '@core/schema/services/service';
 import {testId} from '@fixtures/core/schema/testHelpers';
 import {describe, expect, it} from 'vitest';
 import {

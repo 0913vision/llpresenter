@@ -1,5 +1,5 @@
 import {useLayoutEffect, useRef, useState} from 'react';
-import type {Themes} from '@core/schema/themes';
+import type {Themes} from '@core/schema/screens/themes';
 import type {ThemeListResult} from '@core/theme';
 import type {NamedDocument} from '@renderer/platform/useSettingsDocument';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';

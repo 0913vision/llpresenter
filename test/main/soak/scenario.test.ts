@@ -1,6 +1,9 @@
 import {describe, expect, it, vi} from 'vitest';
-import {type LiveCommand, parseLiveCommand} from '@core/schema/liveCommand';
-import {createAudioPlaylistId} from '@core/schema/ids';
+import {
+  type LiveCommand,
+  parseLiveCommand,
+} from '@core/schema/live/liveCommand';
+import {createAudioPlaylistId} from '@core/schema/common/ids';
 import {installMockClock} from '@fixtures/mockClock';
 import type {Logger} from '@main/base/log';
 import {

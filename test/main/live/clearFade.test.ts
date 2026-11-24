@@ -1,8 +1,8 @@
 import {shownText} from '@fixtures/core/liveSlide';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {expect, it, vi} from 'vitest';
-import {emptyLiveState, layerKinds} from '@core/schema/live';
-import {defaultPreferences} from '@core/schema/preferences';
+import {emptyLiveState, layerKinds} from '@core/schema/live/live';
+import {defaultPreferences} from '@core/schema/app/preferences';
 import {LiveStore} from '@main/live/store';
 import {
   PROP,
@@ -12,7 +12,7 @@ import {
   MAIN,
   TEXT_STYLE,
 } from '@fixtures/core/overlays';
-import {MAX_CLEAR_EFFECTS} from '@core/schema/clearFade';
+import {MAX_CLEAR_EFFECTS} from '@core/schema/live/clearFade';
 
 const slide = {
   itemId: 'fade-check',

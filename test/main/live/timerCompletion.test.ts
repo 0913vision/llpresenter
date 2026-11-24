@@ -1,9 +1,9 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import type {SingleLiveCommand} from '@core/schema/liveCommand';
-import {emptyLiveState, type LiveState} from '@core/schema/live';
-import {createTimerId} from '@core/schema/ids';
-import {parseLiveState} from '@core/schema/liveState';
-import type {SettingsReader} from '@core/schema/settingsReader';
+import type {SingleLiveCommand} from '@core/schema/live/liveCommand';
+import {emptyLiveState, type LiveState} from '@core/schema/live/live';
+import {createTimerId} from '@core/schema/common/ids';
+import {parseLiveState} from '@core/schema/live/liveState';
+import type {SettingsReader} from '@core/schema/app/settingsReader';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {overlayUuid} from '@fixtures/core/overlays';

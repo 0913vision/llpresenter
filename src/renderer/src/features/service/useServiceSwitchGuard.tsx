@@ -1,5 +1,9 @@
 import {useState} from 'react';
-import {isAnyOutputOn, hasAnyLayer, type LiveState} from '@core/schema/live';
+import {
+  isAnyOutputOn,
+  hasAnyLayer,
+  type LiveState,
+} from '@core/schema/live/live';
 import {useLive} from '@renderer/session/live';
 import {AlertDialog} from '@renderer/ui/popups/AlertDialog';
 import {objectParticle} from '@renderer/ui/text/korean';

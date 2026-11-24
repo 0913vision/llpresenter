@@ -1,8 +1,8 @@
 import {render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeAll, beforeEach, expect, it, vi} from 'vitest';
-import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
-import type {ServiceOpenRequest} from '@core/schema/serviceOpen';
+import type {ContentEdit, EditResult} from '@core/schema/services/contentEdit';
+import type {ServiceOpenRequest} from '@core/schema/services/serviceOpen';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {
   ids,
@@ -16,7 +16,7 @@ import {
 import {sampleService} from '@fixtures/renderer/session/sampleService';
 import {ServiceOrderList} from '@renderer/features/service/order/ServiceOrderList';
 import {applyService, useShow} from '@renderer/session/show';
-import type {ServiceOpenResult} from '@core/schema/serviceOpen';
+import type {ServiceOpenResult} from '@core/schema/services/serviceOpen';
 
 const REFUSED: EditResult = {
   ok: false,

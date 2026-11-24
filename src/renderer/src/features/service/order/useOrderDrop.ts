@@ -1,5 +1,5 @@
 import type {ServiceRow} from '@core/presentation';
-import {createServiceItemId} from '@core/schema/ids';
+import {createServiceItemId} from '@core/schema/common/ids';
 import {insertLibrarySong} from '@renderer/session/insertNewItem';
 import {moveItems} from '@renderer/session/serviceOrderEdits';
 import type {useServiceOrderEditing} from '@renderer/session/useServiceOrderEditing';

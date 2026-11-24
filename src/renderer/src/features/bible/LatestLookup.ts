@@ -2,7 +2,7 @@ import type {BibleLookupApi} from '@contracts/ipc/bible';
 import type {
   BibleLookupReply,
   BibleLookupRequest,
-} from '@core/schema/bibleLookup';
+} from '@core/schema/bible/bibleLookup';
 
 /** Keeps one read in flight and replaces waiting input with the newest request. */
 export class LatestLookup {

@@ -1,4 +1,4 @@
-import type {PreferencesFile} from '@core/schema/preferences';
+import type {PreferencesFile} from '@core/schema/app/preferences';
 
 /** An audio output device as the browser lists it. */
 export interface AudioDevice {

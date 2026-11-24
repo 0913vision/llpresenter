@@ -1,6 +1,6 @@
-import {THEME_CANVAS} from '@core/schema/screens';
-import type {MonitorInfo} from '@core/schema/monitors';
-import type {Screen} from '@core/schema/screens';
+import {THEME_CANVAS} from '@core/schema/screens/screens';
+import type {MonitorInfo} from '@core/schema/screens/monitors';
+import type {Screen} from '@core/schema/screens/screens';
 
 /** A size in pixels. */
 export interface PixelSize {

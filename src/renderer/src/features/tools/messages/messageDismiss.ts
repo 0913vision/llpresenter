@@ -1,5 +1,5 @@
-import {messageIdSchema} from '@core/schema/ids';
-import {parsePayload} from '@core/schema/payload';
+import {messageIdSchema} from '@core/schema/common/ids';
+import {parsePayload} from '@core/schema/common/payload';
 import {clearLayer} from '@renderer/session/clear';
 import {sendLive, useLive} from '@renderer/session/live';
 

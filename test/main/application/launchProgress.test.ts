@@ -1,5 +1,5 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import type {LaunchTimes} from '@core/schema/launch';
+import type {LaunchTimes} from '@core/schema/app/launch';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {LaunchProgress} from '@main/application/launchProgress';
 

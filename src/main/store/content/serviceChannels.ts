@@ -3,7 +3,7 @@ import type {
   ServiceOpenRefusal,
   ServiceOpenRequest,
   ServiceOpenResult,
-} from '@core/schema/serviceOpen';
+} from '@core/schema/services/serviceOpen';
 import {IpcHost} from '../../base/ipcHost';
 import type {Logger} from '../../base/log';
 import type {AppConfigFile} from '../locations/appConfigFile';

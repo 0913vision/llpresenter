@@ -3,7 +3,7 @@ import type {LlpApi} from '@contracts/ipc/api';
 import type {
   PlaybackProblems,
   PlaybackProblemKind,
-} from '@core/schema/playbackProblems';
+} from '@core/schema/media/playbackProblems';
 import {
   dropOutputWarning,
   keepOutputWarning,

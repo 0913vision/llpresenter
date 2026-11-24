@@ -1,8 +1,8 @@
 import {SCREEN_NAME_PROBLEMS} from './screenEditor';
-import {THEME_CANVAS} from '@core/schema/screens';
+import {THEME_CANVAS} from '@core/schema/screens/screens';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useMemo, useState, type JSX} from 'react';
-import type {MonitorInfo, MonitorList} from '@core/schema/monitors';
+import type {MonitorInfo, MonitorList} from '@core/schema/screens/monitors';
 import {
   NDI_DEFAULT_HARDWARE_ACCELERATION,
   NDI_DEFAULT_FPS,
@@ -10,7 +10,7 @@ import {
   NDI_DEFAULT_SOURCE_NAME,
   NDI_SOURCE_NAME_MAX,
   type Screen,
-} from '@core/schema/screens';
+} from '@core/schema/screens/screens';
 import {
   emptyScreenColor,
   KIND_NAMES,

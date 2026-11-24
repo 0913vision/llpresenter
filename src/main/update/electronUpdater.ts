@@ -1,6 +1,6 @@
 import type {AppUpdater} from 'electron-updater';
 import {app, autoUpdater as electronAutoUpdater} from 'electron';
-import {parseUpdateVersion} from '@core/schema/update';
+import {parseUpdateVersion} from '@core/schema/app/update';
 import type {Logger} from '../base/log';
 import type {UpdaterPort} from './port';
 

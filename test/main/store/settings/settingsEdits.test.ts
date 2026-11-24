@@ -4,7 +4,7 @@ import {
   parseSettingsDocument,
   parseSettingsEdit,
   type SettingsDocument,
-} from '@core/schema/settingsDocuments';
+} from '@core/schema/app/settingsDocuments';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import type {DocumentFiles} from '@main/store/content/contentPersistence';
 import {SettingsStore} from '@main/store/settings/settingsStore';

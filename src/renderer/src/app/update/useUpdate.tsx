@@ -4,7 +4,7 @@ import type {
   UpdateAction,
   UpdateSnapshot,
   UpdateStatus,
-} from '@core/schema/update';
+} from '@core/schema/app/update';
 import {Dialog} from '@renderer/ui/popups/Dialog';
 import {Progress} from '@renderer/ui/tiles/StatusMarks';
 import styles from './UpdateProgress.module.css';

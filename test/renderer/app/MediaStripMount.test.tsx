@@ -9,10 +9,10 @@ import {
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@core/schema/live';
-import type {UiState} from '@core/schema/uiState';
-import type {MediaImportProgress} from '@core/schema/mediaEdit';
-import {createMediaId} from '@core/schema/ids';
+import {emptyLiveState} from '@core/schema/live/live';
+import type {UiState} from '@core/schema/app/uiState';
+import type {MediaImportProgress} from '@core/schema/media/mediaEdit';
+import {createMediaId} from '@core/schema/common/ids';
 import {editorFixture} from '@fixtures/renderer/features/songs/editorFixture';
 import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
 import {useLive} from '@renderer/session/live';

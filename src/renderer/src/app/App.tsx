@@ -17,7 +17,7 @@ import {
   useSyncExternalStore,
   type JSX,
 } from 'react';
-import type {UiState} from '@core/schema/uiState';
+import type {UiState} from '@core/schema/app/uiState';
 import type {ColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
 import {useClearKeys} from '@renderer/features/presentation/clearKeys';
 import {useLiveStateShortcuts} from '@renderer/features/tools/useLiveStateShortcuts';

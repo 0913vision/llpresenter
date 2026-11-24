@@ -1,6 +1,6 @@
 import {useState, type JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
-import type {Timer} from '@core/schema/timers';
+import type {Timer} from '@core/schema/tools/timers';
 import {useMenuHandoff} from '@renderer/ui/menus/useMenuHandoff';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {TimerEditDialog} from './TimerEditDialog';

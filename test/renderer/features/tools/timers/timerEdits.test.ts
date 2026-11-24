@@ -1,7 +1,10 @@
 import {describe, expect, it, vi} from 'vitest';
-import {parseSettingsDocument} from '@core/schema/settingsDocuments';
-import {createTimerId} from '@core/schema/ids';
-import {MAX_TIMER_DEFINITIONS, MAX_TIMER_SECONDS} from '@core/schema/timers';
+import {parseSettingsDocument} from '@core/schema/app/settingsDocuments';
+import {createTimerId} from '@core/schema/common/ids';
+import {
+  MAX_TIMER_DEFINITIONS,
+  MAX_TIMER_SECONDS,
+} from '@core/schema/tools/timers';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {deferred} from '@fixtures/renderer/features/tools/quickTesting';
@@ -11,7 +14,7 @@ import {
   saveNewCountdown,
   saveNewTimer,
 } from '@renderer/features/tools/timers/timerEdits';
-import type {EditResult} from '@core/schema/contentEdit';
+import type {EditResult} from '@core/schema/services/contentEdit';
 import type {TimerConfiguration} from '@core/timers/timerConfiguration';
 
 const id = createTimerId('00000000-0000-4000-8000-000000000001');

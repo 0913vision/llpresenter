@@ -1,5 +1,5 @@
-import type {AudioLayer} from '@core/schema/live';
-import type {AudioPlaylist} from '@core/schema/mediaList';
+import type {AudioLayer} from '@core/schema/live/live';
+import type {AudioPlaylist} from '@core/schema/media/mediaList';
 
 /** Resolves the same pause, resume, or playlist start for buttons and bindings. */
 export function audioPlayCommand({

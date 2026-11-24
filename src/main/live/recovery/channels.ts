@@ -1,5 +1,5 @@
 import {recoveryEndpoints} from '@contracts/ipc/recovery';
-import type {RecoveryResult} from '@core/schema/recovery';
+import type {RecoveryResult} from '@core/schema/app/recovery';
 import {IpcHost} from '../../base/ipcHost';
 import type {Logger} from '../../base/log';
 import type {RecoveryPort} from './controller';

@@ -1,12 +1,16 @@
 import {join} from 'node:path';
-import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
-import {checkPart} from '@core/schema/fileFormat';
-import {preserveUnknownFields} from '@core/schema/preserveUnknown';
-import {createSongId, type SongId} from '@core/schema/ids';
-import {songSchema, SONG_SCHEMA_VERSION, type Song} from '@core/schema/song';
+import type {ContentEdit, EditResult} from '@core/schema/services/contentEdit';
+import {checkPart} from '@core/schema/common/fileFormat';
+import {preserveUnknownFields} from '@core/schema/common/preserveUnknown';
+import {createSongId, type SongId} from '@core/schema/common/ids';
+import {
+  songSchema,
+  SONG_SCHEMA_VERSION,
+  type Song,
+} from '@core/schema/songs/song';
 import {freeName} from '@core/common/freeName';
 import {normalizeSongTitle} from './contentEdits';
-import {defaultSlideTransitions} from '@core/schema/preferences';
+import {defaultSlideTransitions} from '@core/schema/app/preferences';
 import {newSongSlides} from '@core/slides';
 import type {ContentCommandContext, ContentHandlers} from './contentCommands';
 

@@ -1,8 +1,8 @@
 import type {JSX} from 'react';
-import {createSlideId} from '@core/schema/ids';
-import type {ShowTile} from '@core/schema/showService';
-import type {ThemeFile} from '@core/schema/theme';
-import {AUTO_TOKENS} from '@core/schema/slideContent';
+import {createSlideId} from '@core/schema/common/ids';
+import type {ShowTile} from '@core/schema/services/showService';
+import type {ThemeFile} from '@core/schema/screens/theme';
+import {AUTO_TOKENS} from '@core/schema/slides/slideContent';
 import {TilePicture} from '@renderer/pictures/TilePicture';
 import styles from './SplitEditor.module.css';
 

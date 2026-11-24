@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
-import {parseMediaDocument} from '@core/schema/mediaEdit';
-import {createMediaId} from '@core/schema/ids';
+import {parseMediaDocument} from '@core/schema/media/mediaEdit';
+import {createMediaId} from '@core/schema/common/ids';
 import {LiveStore} from '@main/live/store';
 
 const VIDEO = createMediaId('00000000-0000-4000-8000-000000000001');

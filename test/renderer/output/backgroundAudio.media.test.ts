@@ -3,10 +3,10 @@ import {
   emptyLiveState,
   type MediaLayer,
   type LiveState,
-} from '@core/schema/live';
+} from '@core/schema/live/live';
 import {beforeEach, expect, it, vi} from 'vitest';
-import type {MediaDocument} from '@core/schema/mediaEdit';
-import {createMediaId} from '@core/schema/ids';
+import type {MediaDocument} from '@core/schema/media/mediaEdit';
+import {createMediaId} from '@core/schema/common/ids';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {BackgroundAudio} from '@renderer/output/backgroundAudio';
 import {BackgroundLayerView} from '@renderer/rendering/backgroundLayer';

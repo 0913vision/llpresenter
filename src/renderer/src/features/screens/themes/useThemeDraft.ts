@@ -1,10 +1,10 @@
 import {useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {Result} from '@core/common/result';
 import {sameJson} from '@core/common/sameJson';
-import {checkPart} from '@core/schema/fileFormat';
-import {createThemeId, type ThemeId} from '@core/schema/ids';
-import {themeFileSchema, type ThemeFile} from '@core/schema/theme';
-import type {Themes} from '@core/schema/themes';
+import {checkPart} from '@core/schema/common/fileFormat';
+import {createThemeId, type ThemeId} from '@core/schema/common/ids';
+import {themeFileSchema, type ThemeFile} from '@core/schema/screens/theme';
+import type {Themes} from '@core/schema/screens/themes';
 import {
   editThemeList,
   type ThemeListProblem,

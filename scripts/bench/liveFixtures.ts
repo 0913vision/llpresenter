@@ -1,6 +1,6 @@
 import {shownText} from '@fixtures/core/liveSlide';
-import {emptyLiveState, type LiveState} from '@core/schema/live';
-import {parseLiveState} from '../../src/core/schema/liveState';
+import {emptyLiveState, type LiveState} from '@core/schema/live/live';
+import {parseLiveState} from '../../src/core/schema/live/liveState';
 import {
   BROADCAST_SCREEN,
   MAIN_SCREEN,

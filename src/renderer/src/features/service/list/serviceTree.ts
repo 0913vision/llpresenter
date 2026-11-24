@@ -1,12 +1,12 @@
 import type {CheckState} from '@renderer/ui/choices/Checkbox';
-import type {ServiceItemId} from '@core/schema/ids';
+import type {ServiceItemId} from '@core/schema/common/ids';
 import {iconByKind} from '../order/serviceItemIcons';
 import {
   hasSlides,
   isItemOfKind,
   type ServiceItem,
   type SlidesItem,
-} from '@core/schema/service';
+} from '@core/schema/services/service';
 import {itemTitle} from '@core/slides';
 
 /** One row of the 예배 순서 tree in the service dialogs. */

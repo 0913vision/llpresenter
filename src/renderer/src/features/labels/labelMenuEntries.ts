@@ -1,4 +1,4 @@
-import type {Label} from '@core/schema/labels';
+import type {Label} from '@core/schema/services/labels';
 import type {MenuEntry} from '@renderer/ui/menus/menuModel';
 import {menuSeparator} from '@renderer/ui/menus/menuRows';
 

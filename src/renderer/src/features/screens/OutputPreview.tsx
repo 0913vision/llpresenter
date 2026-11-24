@@ -1,5 +1,5 @@
 import {useMemo, type JSX} from 'react';
-import type {Screen} from '@core/schema/screens';
+import type {Screen} from '@core/schema/screens/screens';
 import {showTestPattern} from './showTestPattern';
 import {ScreenPreview} from '@renderer/features/presentation/ScreenPreview';
 import {OutputMirror} from '@renderer/features/presentation/OutputMirror';
@@ -17,7 +17,7 @@ import {useSettingsDocument} from '../../platform/useSettingsDocument';
 import styles from './OutputPreview.module.css';
 import {fitAspect} from '@core/canvas';
 import {useElementSize} from '@renderer/ui/panels/useElementSize';
-import {THEME_CANVAS} from '@core/schema/theme';
+import {THEME_CANVAS} from '@core/schema/screens/theme';
 import {pictureSizeForScreen} from '@core/screens';
 import {useScreenSize} from '@renderer/pictures/screenSizes';
 

@@ -1,5 +1,5 @@
 import {useEffect, useLayoutEffect, useRef, useState} from 'react';
-import type {MediaDocument} from '@core/schema/mediaEdit';
+import type {MediaDocument} from '@core/schema/media/mediaEdit';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import {subscribeMediaDocument} from '@renderer/features/media/subscribeMediaDocument';
 

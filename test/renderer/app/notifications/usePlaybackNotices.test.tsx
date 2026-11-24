@@ -1,7 +1,7 @@
 import {act, renderHook} from '@testing-library/react';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import type {PlaybackProblems} from '@core/schema/playbackProblems';
+import type {PlaybackProblems} from '@core/schema/media/playbackProblems';
 import {usePlaybackNotices} from '@renderer/app/notifications/usePlaybackNotices';
 import {useOutputWarnings} from '@renderer/platform/outputWarnings';
 import type {Notice} from '@renderer/ui/popups/notices';

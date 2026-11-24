@@ -1,4 +1,4 @@
-import type {SlideTransition} from '@core/schema/slideTransition';
+import type {SlideTransition} from '@core/schema/slides/slideTransition';
 
 export const SLIDE_EFFECTS = [
   ['none', '없음'],

@@ -5,10 +5,16 @@ import {
   useRowRange,
   useShowSelected,
 } from '@renderer/ui/lists/useRowRange';
-import type {SongId} from '@core/schema/ids';
-import {SONG_DRAG_MIME, serializeSongDragPayload} from '@core/schema/songDrag';
+import type {SongId} from '@core/schema/common/ids';
+import {
+  SONG_DRAG_MIME,
+  serializeSongDragPayload,
+} from '@core/schema/songs/songDrag';
 import {ListBox, ListRow} from '@renderer/ui/lists/ListRow';
-import {takeMenuKey, type ContextMenuEvent} from '@renderer/ui/menus/contextMenu';
+import {
+  takeMenuKey,
+  type ContextMenuEvent,
+} from '@renderer/ui/menus/contextMenu';
 import type {LibraryRow} from './useLibrary';
 import styles from './LibraryPanel.module.css';
 import {useDragClickGuard} from '@renderer/ui/lists/useDragClickGuard';

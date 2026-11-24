@@ -4,8 +4,8 @@ import {
   type MenuItem,
 } from '@renderer/ui/menus/menuModel';
 import type {JSX} from 'react';
-import type {MonitorInfo, MonitorList} from '@core/schema/monitors';
-import type {Screen} from '@core/schema/screens';
+import type {MonitorInfo, MonitorList} from '@core/schema/screens/monitors';
+import type {Screen} from '@core/schema/screens/screens';
 import {Menu, type MenuProps} from '@renderer/ui/menus/Menu';
 import type {NewScreen} from './addScreen';
 import {monitorPixelSize, sizeText} from './displaySizes';

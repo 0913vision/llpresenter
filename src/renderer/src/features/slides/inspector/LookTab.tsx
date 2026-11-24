@@ -1,7 +1,7 @@
 import {useState, type JSX, type ReactNode} from 'react';
 import {sameJson} from '@core/common/sameJson';
-import {isPlaced} from '@core/schema/picturePlace';
-import type {SlideBackground} from '@core/schema/theme';
+import {isPlaced} from '@core/schema/media/picturePlace';
+import type {SlideBackground} from '@core/schema/screens/theme';
 import {withBackground} from '@core/slides';
 import {PicturePlaceRows} from '@renderer/ui/choices/PicturePlace';
 import {PropertyControl, PropertyGroup} from '@renderer/ui/panels/PropertyRow';

@@ -2,13 +2,13 @@ import {copyName} from '@core/common/copyName';
 import {freeName} from '@core/common/freeName';
 import {moveSelection} from '@core/common/selectionOrder';
 import type {Result} from '@core/common/result';
-import type {ThemeId} from '@core/schema/ids';
+import type {ThemeId} from '@core/schema/common/ids';
 import {
   THEME_FILE_LIMITS,
   type SlidePurpose,
   type ThemeFile,
-} from '@core/schema/theme';
-import {THEMES_LIMITS, type Themes} from '@core/schema/themes';
+} from '@core/schema/screens/theme';
+import {THEMES_LIMITS, type Themes} from '@core/schema/screens/themes';
 import {builtInTheme, themeFor} from './themes';
 
 const NEW_THEME_NAME = '새 테마';

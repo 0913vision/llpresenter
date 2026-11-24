@@ -1,5 +1,5 @@
 import {useEffect, useRef, useState} from 'react';
-import type {MacroCollection} from '@core/schema/macros';
+import type {MacroCollection} from '@core/schema/tools/macros';
 import type {MacroViewMode} from './MacroView';
 
 type CollectionId = MacroCollection['id'];

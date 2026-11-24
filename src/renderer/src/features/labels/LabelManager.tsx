@@ -11,7 +11,7 @@ import {
   type Ref,
 } from 'react';
 import {Button} from '@renderer/ui/buttons/Button';
-import type {Label} from '@core/schema/labels';
+import type {Label} from '@core/schema/services/labels';
 import {Dialog} from '@renderer/ui/popups/Dialog';
 import {IconButton} from '@renderer/ui/buttons/IconButton';
 import {Icon} from '@renderer/ui/Icon';

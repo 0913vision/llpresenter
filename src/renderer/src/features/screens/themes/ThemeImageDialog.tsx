@@ -1,5 +1,5 @@
 import {useState, type JSX} from 'react';
-import type {MediaId} from '@core/schema/ids';
+import type {MediaId} from '@core/schema/common/ids';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {ThemeImageChoice} from './ThemeImageChoice';
 import {Dialog} from '@renderer/ui/popups/Dialog';

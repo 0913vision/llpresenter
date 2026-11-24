@@ -1,10 +1,10 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import type {TileCursor} from '@core/presentation';
-import type {MediaDocument} from '@core/schema/mediaEdit';
-import type {ShowService, ShowTile} from '@core/schema/showService';
-import type {ThemeFile} from '@core/schema/theme';
-import type {Themes} from '@core/schema/themes';
+import type {MediaDocument} from '@core/schema/media/mediaEdit';
+import type {ShowService, ShowTile} from '@core/schema/services/showService';
+import type {ThemeFile} from '@core/schema/screens/theme';
+import type {Themes} from '@core/schema/screens/themes';
 import {themeOfSlide} from '@core/theme';
 
 const LOAD_DEADLINE_MS = 2000;

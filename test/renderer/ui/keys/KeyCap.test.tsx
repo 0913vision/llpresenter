@@ -1,6 +1,11 @@
 import {render, screen} from '@testing-library/react';
 import {afterEach, describe, expect, it} from 'vitest';
-import {KeyCombo, KeyList, KeyText, conflictText} from '@renderer/ui/keys/KeyCap';
+import {
+  KeyCombo,
+  KeyList,
+  KeyText,
+  conflictText,
+} from '@renderer/ui/keys/KeyCap';
 import {
   hoverForTooltip,
   resetTooltips,

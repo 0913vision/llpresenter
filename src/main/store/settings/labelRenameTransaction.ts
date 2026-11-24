@@ -1,10 +1,10 @@
-import {hasSlides, type ServiceItem} from '@core/schema/service';
-import {SLIDE_LIMITS, type Slide} from '@core/schema/slide';
-import type {EditResult} from '@core/schema/contentEdit';
+import {hasSlides, type ServiceItem} from '@core/schema/services/service';
+import {SLIDE_LIMITS, type Slide} from '@core/schema/slides/slide';
+import type {EditResult} from '@core/schema/services/contentEdit';
 import {
   parseSettingsEdit,
   type LabelRename,
-} from '@core/schema/settingsDocuments';
+} from '@core/schema/app/settingsDocuments';
 import type {SettingsStore} from './settingsStore';
 import type {ContentCommandContext} from '../content/contentCommands';
 

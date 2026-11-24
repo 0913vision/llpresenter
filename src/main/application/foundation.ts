@@ -1,6 +1,6 @@
 import {app, type BrowserWindow} from 'electron';
 import {join} from 'node:path';
-import {isAnyOutputOn} from '@core/schema/live';
+import {isAnyOutputOn} from '@core/schema/live/live';
 import type {createLogger} from '../base/log';
 import {registerProblemFeed} from '../base/problemFeed';
 import type {ShutdownCoordinator} from '../base/shutdown';

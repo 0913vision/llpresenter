@@ -1,4 +1,4 @@
-import type {ScreenId} from '@core/schema/ids';
+import type {ScreenId} from '@core/schema/common/ids';
 import {sendLive} from '@renderer/session/live';
 
 /** Shows the pattern on the chosen screen and enables its output. */

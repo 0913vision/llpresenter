@@ -1,5 +1,5 @@
 import type {TimerNow} from '@core/timers';
-import type {WallClockSample} from '@core/schema/wallClock';
+import type {WallClockSample} from '@core/schema/app/wallClock';
 
 /**
  * Main's monotonic 타이머 clock as one window reads it: this window's own

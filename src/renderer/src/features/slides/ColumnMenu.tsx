@@ -1,5 +1,5 @@
 import {useState, type JSX} from 'react';
-import type {ShowTile} from '@core/schema/showService';
+import type {ShowTile} from '@core/schema/services/showService';
 import {boxesOf} from '@core/slides';
 import {themeOf} from '@core/theme';
 import {useThemes} from '@renderer/platform/themes';

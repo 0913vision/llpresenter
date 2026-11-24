@@ -1,5 +1,5 @@
 import type {JSX} from 'react';
-import type {SlideTransition} from '@core/schema/slideTransition';
+import type {SlideTransition} from '@core/schema/slides/slideTransition';
 import styles from './SlideTransitionMark.module.css';
 
 /** A corner mark for a slide with a visible transition effect. */

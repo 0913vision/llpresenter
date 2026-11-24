@@ -1,7 +1,7 @@
 import {contentEndpoints} from '@contracts/ipc/content';
 import {serviceEndpoints} from '@contracts/ipc/service';
-import type {AppProblem} from '@core/schema/appProblem';
-import {parseSongDocument} from '@core/schema/contentDocuments';
+import type {AppProblem} from '@core/schema/app/appProblem';
+import {parseSongDocument} from '@core/schema/services/contentDocuments';
 import {join} from 'node:path';
 import {afterEach, beforeEach, vi} from 'vitest';
 import {makeTempDir} from '@fixtures/tempDir';

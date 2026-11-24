@@ -4,12 +4,12 @@ import {
   parseAppSavePendingResult,
   type AppFlushDone,
   type AppFlushRequest,
-} from '@core/schema/appFlush';
+} from '@core/schema/app/appFlush';
 import {
   parseAppProblem,
   parseAppProblems,
   type AppProblem,
-} from '@core/schema/appProblem';
+} from '@core/schema/app/appProblem';
 import {message, push, query, signal, type IpcPort} from './endpoint';
 
 /** The calls that close the app safely and report its problems. */

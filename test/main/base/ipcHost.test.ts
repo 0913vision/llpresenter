@@ -8,7 +8,7 @@ import {
   signal,
 } from '@contracts/ipc/endpoint';
 import type {Result} from '@core/common/result';
-import type {PayloadError} from '@core/schema/payload';
+import type {PayloadError} from '@core/schema/common/payload';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {IpcHost, type Caller} from '@main/base/ipcHost';
 

@@ -1,5 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@core/schema/live';
+import {emptyLiveState} from '@core/schema/live/live';
 import {LiveStore} from '@main/live/store';
 import {FIXTURE_LOADED_SCREEN, MAIN_SCREEN} from '@fixtures/core/screenIds';
 

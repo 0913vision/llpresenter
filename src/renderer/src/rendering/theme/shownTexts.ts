@@ -5,15 +5,15 @@ import type {
   ThemeFile,
   ThemeNextElement,
   ThemeTextElement,
-} from '@core/schema/theme';
-import type {MediaLayer} from '@core/schema/live';
+} from '@core/schema/screens/theme';
+import type {MediaLayer} from '@core/schema/live/live';
 import {
   contentValues,
   fillTemplates,
   isLabelText,
   templateTokens,
 } from '@core/theme';
-import type {SlideContent} from '@core/schema/slideContent';
+import type {SlideContent} from '@core/schema/slides/slideContent';
 import type {RowsText} from './textRows';
 
 /** Everything that one screen shows of one slide. */

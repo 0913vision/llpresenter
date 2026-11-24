@@ -1,4 +1,4 @@
-import type {LaunchTaskId} from '@core/schema/launch';
+import type {LaunchTaskId} from '@core/schema/app/launch';
 
 /** Follows the tasks of the launch. */
 export interface LaunchTracker {

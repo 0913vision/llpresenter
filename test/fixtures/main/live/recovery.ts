@@ -1,13 +1,13 @@
 import {isRecord} from '@core/common/guards';
 import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
-import {emptyLiveState} from '@core/schema/live';
-import {createServiceId, createServiceItemId} from '@core/schema/ids';
+import {emptyLiveState} from '@core/schema/live/live';
+import {createServiceId, createServiceItemId} from '@core/schema/common/ids';
 import {
   parseRecoveryRecord,
   type RecoveryRecord,
-} from '@core/schema/recoveryRecord';
-import {parseService} from '@core/schema/service';
-import {parseSong} from '@core/schema/song';
+} from '@core/schema/app/recoveryRecord';
+import {parseService} from '@core/schema/services/service';
+import {parseSong} from '@core/schema/songs/song';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import type {RecoveryContent} from '@main/live/recovery/plan';
 import {

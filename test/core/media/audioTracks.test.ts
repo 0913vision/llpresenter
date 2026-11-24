@@ -1,5 +1,5 @@
 import {expect, it} from 'vitest';
-import {parseMediaList} from '@core/schema/mediaList';
+import {parseMediaList} from '@core/schema/media/mediaList';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {audioTracks} from '@core/media/audioTracks';
 

@@ -1,4 +1,7 @@
-import {useCommandShortcuts, type WindowShortcut} from '../keys/commandDispatcher';
+import {
+  useCommandShortcuts,
+  type WindowShortcut,
+} from '../keys/commandDispatcher';
 import type {MenuEntry} from './menuModel';
 
 function handlers(entries: readonly MenuEntry[]): readonly WindowShortcut[] {

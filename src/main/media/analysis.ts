@@ -1,4 +1,4 @@
-import type {MediaId} from '@core/schema/ids';
+import type {MediaId} from '@core/schema/common/ids';
 import type {Logger} from '../base/log';
 import {AnalysisFiles} from './analysisFiles';
 import {openAnalysisPage} from './analysisPage';

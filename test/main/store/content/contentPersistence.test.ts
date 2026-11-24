@@ -5,7 +5,10 @@ import {
   type DocumentFiles,
 } from '@main/store/content/contentPersistence';
 import type {WriteResult} from '@main/store/files/fileWriter';
-import {MAX_WAITING_SAVES, type WaitingSave} from '@main/store/files/saveFailures';
+import {
+  MAX_WAITING_SAVES,
+  type WaitingSave,
+} from '@main/store/files/saveFailures';
 
 const FILE = 'D:\\data\\songs\\a.llsong';
 const failed: WriteResult = {ok: false, error: {file: FILE, message: 'Full'}};

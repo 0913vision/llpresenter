@@ -1,4 +1,4 @@
-import type {FontCatalog, FontFamily} from '@core/schema/fontCatalog';
+import type {FontCatalog, FontFamily} from '@core/schema/screens/fontCatalog';
 import type {SelectOption} from '@renderer/ui/choices/SelectMenu';
 import {menuAvailability} from '@renderer/ui/menus/menuModel';
 import type {FontCatalogState} from './useFontCatalog';

@@ -1,4 +1,4 @@
-import type {MonitorIdentity} from '@core/schema/monitorIdentity';
+import type {MonitorIdentity} from '@core/schema/screens/monitorIdentity';
 import type {Logger} from '../base/log';
 import {numberMonitors, sameMonitors, type DisplayInfo} from './monitor';
 import {
@@ -7,7 +7,7 @@ import {
   type DisplaySource,
 } from './registry';
 import {sameRect, type Rect} from './rect';
-import type {NativeMonitorIdentity} from '@core/schema/windowsMonitors';
+import type {NativeMonitorIdentity} from '@core/schema/screens/windowsMonitors';
 import {MonitorQueryError} from './windowsMonitors';
 
 interface IdentitySourceOptions {

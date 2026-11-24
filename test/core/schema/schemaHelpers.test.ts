@@ -1,12 +1,12 @@
 import {describe, expect, it} from 'vitest';
-import {parseServiceItemId, type ServiceItemId} from '@core/schema/ids';
-import {isKeyCode} from '@core/schema/shortcuts';
+import {parseServiceItemId, type ServiceItemId} from '@core/schema/common/ids';
+import {isKeyCode} from '@core/schema/app/shortcuts';
 import {
   parseActiveMessages,
   parseActiveProps,
   MAX_ACTIVE_MESSAGES,
   MAX_ACTIVE_PROPS,
-} from '@core/schema/overlayState';
+} from '@core/schema/live/overlayState';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 
 const uuid = (index: number) =>

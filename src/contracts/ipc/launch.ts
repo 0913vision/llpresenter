@@ -1,4 +1,4 @@
-import {parsePreparation, type Preparation} from '@core/schema/launch';
+import {parsePreparation, type Preparation} from '@core/schema/app/launch';
 import {message, signal, type IpcPort} from './endpoint';
 
 /** The calls that tell main how far the control window has prepared. */

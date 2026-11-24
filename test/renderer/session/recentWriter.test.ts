@@ -1,5 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
-import type {SettingsDocument} from '@core/schema/settingsDocuments';
+import type {SettingsDocument} from '@core/schema/app/settingsDocuments';
 import {recentWriter} from '@renderer/session/recentWriter';
 import {
   bibleDocument,

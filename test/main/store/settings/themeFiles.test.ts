@@ -2,9 +2,9 @@ import {mkdir, mkdtemp, rm, writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {afterEach, beforeEach, expect, it} from 'vitest';
-import {createThemeId} from '@core/schema/ids';
-import type {ThemeFile} from '@core/schema/theme';
-import type {Themes} from '@core/schema/themes';
+import {createThemeId} from '@core/schema/common/ids';
+import type {ThemeFile} from '@core/schema/screens/theme';
+import type {Themes} from '@core/schema/screens/themes';
 import {BUILT_IN_THEMES} from '@core/theme/builtIn';
 import {BUILT_IN_THEME_IDS} from '@core/theme/builtIn/ids';
 import {

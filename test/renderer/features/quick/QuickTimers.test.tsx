@@ -7,14 +7,14 @@ import {
 } from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LlpApi} from '@contracts/ipc/api';
-import type {EditResult} from '@core/schema/contentEdit';
+import type {EditResult} from '@core/schema/services/contentEdit';
 import {
   parseSettingsDocument,
   type SettingsDocument,
-} from '@core/schema/settingsDocuments';
+} from '@core/schema/app/settingsDocuments';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {emptyLiveState} from '@core/schema/live';
+import {emptyLiveState} from '@core/schema/live/live';
 import {useLive} from '@renderer/session/live';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {QuickPanel} from '@renderer/features/quick/QuickPanel';

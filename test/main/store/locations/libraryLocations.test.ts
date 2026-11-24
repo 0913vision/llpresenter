@@ -4,8 +4,8 @@ import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import type {
   LibraryLocationField,
   LocationsView,
-} from '@core/schema/libraryLocations';
-import {defaultPreferences} from '@core/schema/preferences';
+} from '@core/schema/app/libraryLocations';
+import {defaultPreferences} from '@core/schema/app/preferences';
 import type {Logger} from '@main/base/log';
 import {BackupGate, backupFolderName} from '@main/store/files/backup';
 import {
@@ -13,7 +13,10 @@ import {
   type FolderChooser,
   type LocationsConfig,
 } from '@main/store/locations/libraryLocations';
-import {resolveLocations, type LocationFields} from '@main/store/locations/locations';
+import {
+  resolveLocations,
+  type LocationFields,
+} from '@main/store/locations/locations';
 import {makeTempDir} from '@fixtures/tempDir';
 
 const NOW = new Date(2026, 10, 2, 7, 58, 0);

@@ -1,6 +1,11 @@
 import type {JSX} from 'react';
 import {SlidePicture} from '@renderer/pictures/SlidePicture';
-import {Panel, PanelBody, PanelHeader, PanelTabs} from '@renderer/ui/panels/Panel';
+import {
+  Panel,
+  PanelBody,
+  PanelHeader,
+  PanelTabs,
+} from '@renderer/ui/panels/Panel';
 import {ThemeElementProperties} from './ThemeElementProperties';
 import {ThemeFileProperties} from './ThemeFileProperties';
 import {ThemeScreenProperties} from './ThemeScreenProperties';

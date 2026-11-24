@@ -1,9 +1,17 @@
 import type {LabelColor} from '@core/labels';
-import type {LoadedFile} from '@core/schema/fileFormat';
-import type {Label} from '@core/schema/labels';
-import {hasSlides, type Service, type ServiceItem} from '@core/schema/service';
-import type {ShowRow, ShowService, ShowTile} from '@core/schema/showService';
-import type {Song} from '@core/schema/song';
+import type {LoadedFile} from '@core/schema/common/fileFormat';
+import type {Label} from '@core/schema/services/labels';
+import {
+  hasSlides,
+  type Service,
+  type ServiceItem,
+} from '@core/schema/services/service';
+import type {
+  ShowRow,
+  ShowService,
+  ShowTile,
+} from '@core/schema/services/showService';
+import type {Song} from '@core/schema/songs/song';
 import {itemTiles, itemTitle} from '@core/slides';
 
 /** A document's content and whether a newer app version wrote it. */

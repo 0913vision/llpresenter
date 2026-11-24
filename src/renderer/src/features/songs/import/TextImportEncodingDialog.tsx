@@ -1,5 +1,5 @@
 import {useState, type JSX} from 'react';
-import type {Preferences} from '@core/schema/preferences';
+import type {Preferences} from '@core/schema/app/preferences';
 import {Dialog, DialogField} from '@renderer/ui/popups/Dialog';
 import {SelectMenu} from '@renderer/ui/choices/SelectMenu';
 import {TEXT_ENCODINGS, type TextEncoding} from './textEncodings';

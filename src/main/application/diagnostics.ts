@@ -3,7 +3,7 @@ import {homedir} from 'node:os';
 import {join} from 'node:path';
 import {app, screen} from 'electron';
 import {errorLinesOf, formatDiagnostics, type DiagnosticsInfo} from '@core/app';
-import type {SettingsDocument} from '@core/schema/settingsDocuments';
+import type {SettingsDocument} from '@core/schema/app/settingsDocuments';
 import type {Logger} from '../base/log';
 
 /** How much of the end of the log is read for the last errors. */

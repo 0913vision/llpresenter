@@ -1,7 +1,7 @@
 import {describe, expect, it, vi} from 'vitest';
 import {confirmBibleCuts} from '@renderer/features/bible/saveBibleCuts';
 import {entryFor, knownCutsFor} from '@core/bible/split/splitCache';
-import {parseBibleCuts, serializeBibleCuts} from '@core/schema/bibleCuts';
+import {parseBibleCuts, serializeBibleCuts} from '@core/schema/bible/bibleCuts';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {lookupRequest} from '@fixtures/core/bibleLookups';
 import type {LlpApi} from '@contracts/ipc/api';

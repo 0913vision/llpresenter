@@ -1,8 +1,8 @@
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
-import {parseServiceDocument} from '@core/schema/contentDocuments';
+import {parseServiceDocument} from '@core/schema/services/contentDocuments';
 import {cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import type {ShowService} from '@core/schema/showService';
+import type {ShowService} from '@core/schema/services/showService';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {applyService, useShow} from '@renderer/session/show';
 import {ServiceOrderList} from '@renderer/features/service/order/ServiceOrderList';

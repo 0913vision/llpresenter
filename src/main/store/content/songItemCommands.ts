@@ -1,7 +1,7 @@
-import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
-import {checkPart} from '@core/schema/fileFormat';
-import {songSchema} from '@core/schema/song';
-import {isItemOfKind} from '@core/schema/service';
+import type {ContentEdit, EditResult} from '@core/schema/services/contentEdit';
+import {checkPart} from '@core/schema/common/fileFormat';
+import {songSchema} from '@core/schema/songs/song';
+import {isItemOfKind} from '@core/schema/services/service';
 import type {ContentCommandContext} from './contentCommands';
 
 type SongItemEdit = Extract<ContentEdit, {type: `service.song.${string}`}>;

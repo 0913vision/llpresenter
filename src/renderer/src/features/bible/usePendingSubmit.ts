@@ -1,7 +1,7 @@
 import {useEffect, useEffectEvent, useRef} from 'react';
 import type {ReferencePart} from '@core/bible';
-import type {BibleLookupReply} from '@core/schema/bibleLookup';
-import type {TranslationId} from '@core/schema/ids';
+import type {BibleLookupReply} from '@core/schema/bible/bibleLookup';
+import type {TranslationId} from '@core/schema/common/ids';
 
 /** A passage asked for before its lookup came back. */
 export interface PendingSubmit {

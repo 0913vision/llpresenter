@@ -1,4 +1,4 @@
-import {createServiceItemId, type MediaId} from '@core/schema/ids';
+import {createServiceItemId, type MediaId} from '@core/schema/common/ids';
 import type {Report} from '@renderer/session/serviceEdit';
 import {canAddMedia, mediaItem} from '@renderer/platform/media';
 import {MISSING_MEDIA_TIP} from '@renderer/platform/problemReasons';

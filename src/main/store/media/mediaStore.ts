@@ -1,19 +1,19 @@
 import type {BundledPicture} from '../pictures/bundledPicture';
-import type {MediaChoice} from '@core/schema/live';
-import type {EditRefusalReason} from '@core/schema/contentEdit';
-import type {FileError} from '@core/schema/fileFormat';
+import type {MediaChoice} from '@core/schema/live/live';
+import type {EditRefusalReason} from '@core/schema/services/contentEdit';
+import type {FileError} from '@core/schema/common/fileFormat';
 import {
   mergeMediaDocument,
   type MediaDocument,
   type MediaEdit,
   type MediaEditResult,
-} from '@core/schema/mediaEdit';
+} from '@core/schema/media/mediaEdit';
 import {
   MEDIA_LIMITS,
   MEDIA_DELETE_HISTORY_LIMIT,
   serializeMediaList,
   type MediaItem,
-} from '@core/schema/mediaList';
+} from '@core/schema/media/mediaList';
 import type {Logger} from '../../base/log';
 import type {DocumentFiles} from '../content/contentPersistence';
 import {

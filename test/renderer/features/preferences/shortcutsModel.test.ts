@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import type {KeyBinding} from '@core/schema/shortcuts';
+import type {KeyBinding} from '@core/schema/app/shortcuts';
 import {shortcutCommand} from '@core/shortcuts/bindings';
 import {shortcutCommands} from '@core/shortcuts/registry';
 import {

@@ -3,7 +3,7 @@ import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import type {NamedDocument} from '../../platform/useSettingsDocument';
 import {ScreenEditor, type EditProblemReporter} from './screenEditor';
 import type {ScreenChange} from '@core/screens';
-import type {MonitorInfo, MonitorList} from '@core/schema/monitors';
+import type {MonitorInfo, MonitorList} from '@core/schema/screens/monitors';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {NewScreen} from './addScreen';
 

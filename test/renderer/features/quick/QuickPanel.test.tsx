@@ -12,8 +12,8 @@ import {
   within,
 } from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import type {BibleLookupReply} from '@core/schema/bibleLookup';
-import {emptyLiveState} from '@core/schema/live';
+import type {BibleLookupReply} from '@core/schema/bible/bibleLookup';
+import {emptyLiveState} from '@core/schema/live/live';
 import {useLive} from '@renderer/session/live';
 import {openItem, useShow} from '@renderer/session/show';
 import {bibleSourceFor} from '@renderer/session/showLibrary';

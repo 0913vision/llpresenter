@@ -1,7 +1,7 @@
 import {describe, expect, it, vi} from 'vitest';
-import {emptyLayers, type SlideLayer} from '@core/schema/live';
-import {createMediaId, type ThemeId} from '@core/schema/ids';
-import type {OwnThemeScreen} from '@core/schema/theme';
+import {emptyLayers, type SlideLayer} from '@core/schema/live/live';
+import {createMediaId, type ThemeId} from '@core/schema/common/ids';
+import type {OwnThemeScreen} from '@core/schema/screens/theme';
 import {BUILT_IN_THEME_IDS} from '@core/theme/builtIn/ids';
 import {drawingOn, liveDrawing} from '@renderer/rendering/theme/drawing';
 import {shownTexts} from '@renderer/rendering/theme/shownTexts';

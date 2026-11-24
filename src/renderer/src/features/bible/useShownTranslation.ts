@@ -1,6 +1,6 @@
 import {useEffect, useState, type RefObject} from 'react';
 import type {BibleLookupApi} from '@contracts/ipc/bible';
-import type {TranslationId} from '@core/schema/ids';
+import type {TranslationId} from '@core/schema/common/ids';
 
 /**
  * The translation the passage finder names: the one a lookup in `translation`

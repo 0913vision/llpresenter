@@ -1,4 +1,4 @@
-import type {MediaLayer} from '@core/schema/live';
+import type {MediaLayer} from '@core/schema/live/live';
 import {mediaObjectFit} from '@core/media';
 import type {BackgroundLayerOptions} from './backgroundLayer';
 import {classes} from './classes';

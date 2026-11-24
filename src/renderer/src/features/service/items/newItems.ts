@@ -1,5 +1,5 @@
-import {createServiceItemId} from '@core/schema/ids';
-import type {ServiceItem} from '@core/schema/service';
+import {createServiceItemId} from '@core/schema/common/ids';
+import type {ServiceItem} from '@core/schema/services/service';
 import {
   blankItem,
   openedLiturgy,

@@ -1,11 +1,11 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import type {Screen} from '@core/schema/screens';
+import type {Screen} from '@core/schema/screens/screens';
 import type {
   SettingsDocument,
   SettingsEdit,
-} from '@core/schema/settingsDocuments';
-import type {SettingsReader} from '@core/schema/settingsReader';
-import {defaultPreferences} from '@core/schema/preferences';
+} from '@core/schema/app/settingsDocuments';
+import type {SettingsReader} from '@core/schema/app/settingsReader';
+import {defaultPreferences} from '@core/schema/app/preferences';
 import {
   MAIN_SCREEN,
   STAGE_SCREEN,

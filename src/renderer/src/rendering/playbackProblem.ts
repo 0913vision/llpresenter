@@ -1,4 +1,4 @@
-import type {PlaybackProblemKind} from '@core/schema/playbackProblems';
+import type {PlaybackProblemKind} from '@core/schema/media/playbackProblems';
 
 const EVENT = 'llp-playback-problem';
 

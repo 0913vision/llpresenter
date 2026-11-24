@@ -1,7 +1,7 @@
 import {mkdir, writeFile} from 'node:fs/promises';
 import {join, resolve} from 'node:path';
 import {expect, it} from 'vitest';
-import {parseBibleTranslation} from '../../src/core/schema/bibleTranslation';
+import {parseBibleTranslation} from '../../src/core/schema/bible/bibleTranslation';
 import {BIBLE_BOOKS} from '../../src/core/bible/bibleBooks';
 import {
   FULL_TRANSLATION_VERSES,

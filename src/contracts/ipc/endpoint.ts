@@ -1,5 +1,5 @@
 import type {Result} from '@core/common/result';
-import type {PayloadError} from '@core/schema/payload';
+import type {PayloadError} from '@core/schema/common/payload';
 
 /** Checks a value that crossed the process boundary. */
 export type Parse<T> = (value: unknown) => Result<T, PayloadError>;

@@ -1,5 +1,5 @@
 import {useEffect, useMemo} from 'react';
-import {isKnownQuickItem} from '@core/schema/quick';
+import {isKnownQuickItem} from '@core/schema/tools/quick';
 import type {LlpApi} from '@contracts/ipc/api';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';

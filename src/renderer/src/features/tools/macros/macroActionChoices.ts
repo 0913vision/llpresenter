@@ -1,5 +1,8 @@
 import {timerCommandLabels} from '@renderer/ui/keys/timerCommandLabels';
-import type {MacroActionKind, KnownMacroAction} from '@core/schema/macros';
+import type {
+  MacroActionKind,
+  KnownMacroAction,
+} from '@core/schema/tools/macros';
 import type {MenuEntry, MenuItem} from '@renderer/ui/menus/menuModel';
 import {menuSeparator} from '@renderer/ui/menus/menuRows';
 import {draftMacroAction, type MacroActionDraft} from '@core/macros';

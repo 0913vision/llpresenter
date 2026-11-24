@@ -4,7 +4,7 @@ import {
   PLAYBACK_PROBLEM_LIMITS,
   type PlaybackProblemKind,
   type PlaybackProblems,
-} from '@core/schema/playbackProblems';
+} from '@core/schema/media/playbackProblems';
 import {IpcHost} from '../base/ipcHost';
 import type {Logger} from '../base/log';
 import type {RendererState} from '../base/rendererRecovery';

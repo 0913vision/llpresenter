@@ -1,6 +1,6 @@
 import type {LlpApi} from '@contracts/ipc/api';
-import type {AudioPlaylistId} from '@core/schema/ids';
-import type {EditResult} from '@core/schema/contentEdit';
+import type {AudioPlaylistId} from '@core/schema/common/ids';
+import type {EditResult} from '@core/schema/services/contentEdit';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {withinLookupTimeout} from '@renderer/session/showOutput';
 import type {Notice} from '@renderer/ui/popups/notices';

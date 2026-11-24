@@ -1,4 +1,4 @@
-import type {KeyBinding, KeyModifier} from '@core/schema/shortcuts';
+import type {KeyBinding, KeyModifier} from '@core/schema/app/shortcuts';
 
 export type CommandContext =
   | 'control'

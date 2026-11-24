@@ -1,4 +1,4 @@
-import {POWERPOINT_PICTURE_LIMITS as LIMITS} from '@core/schema/powerpointImport';
+import {POWERPOINT_PICTURE_LIMITS as LIMITS} from '@core/schema/songs/powerpointImport';
 
 export interface PictureSize {
   readonly width: number;

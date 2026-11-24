@@ -4,10 +4,10 @@ import {
   type SongChange,
   type SongDocument,
   parseSongDocument,
-} from '@core/schema/contentDocuments';
-import {createServiceId, createSongId} from '@core/schema/ids';
-import {LIBRARY_SEARCH_LIMITS} from '@core/schema/librarySearch';
-import type {EditResult} from '@core/schema/contentEdit';
+} from '@core/schema/services/contentDocuments';
+import {createServiceId, createSongId} from '@core/schema/common/ids';
+import {LIBRARY_SEARCH_LIMITS} from '@core/schema/songs/librarySearch';
+import type {EditResult} from '@core/schema/services/contentEdit';
 import type {LibraryApi} from '@renderer/features/songs/library/useLibrary';
 
 export function fixtureSong(number: number, title: string): SongDocument {

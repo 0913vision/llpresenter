@@ -1,14 +1,14 @@
 import {BIBLE_VERSE_COUNTS} from '@core/bible/bibleVerseCounts';
-import type {SettingsReader} from '@core/schema/settingsReader';
+import type {SettingsReader} from '@core/schema/app/settingsReader';
 import {unlink, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {
   parseBibleLookupRequest,
   BIBLE_LOOKUP_LIMITS,
-} from '@core/schema/bibleLookup';
-import {parseSettingsDocument} from '@core/schema/settingsDocuments';
-import {defaultPreferences} from '@core/schema/preferences';
+} from '@core/schema/bible/bibleLookup';
+import {parseSettingsDocument} from '@core/schema/app/settingsDocuments';
+import {defaultPreferences} from '@core/schema/app/preferences';
 import {makeTempDir} from '@fixtures/tempDir';
 import {BibleLookupSession} from '@main/bible/lookup';
 import * as library from '@main/bible/library';

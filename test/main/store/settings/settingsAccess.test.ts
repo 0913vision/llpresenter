@@ -2,11 +2,11 @@ import {describe, expect, it, vi} from 'vitest';
 import type {
   SettingsListener,
   SettingsReader,
-} from '@core/schema/settingsReader';
+} from '@core/schema/app/settingsReader';
 import {
   parseSettingsDocument,
   type SettingsDocument,
-} from '@core/schema/settingsDocuments';
+} from '@core/schema/app/settingsDocuments';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {createSettingsAccess} from '@main/store/settings/settingsAccess';

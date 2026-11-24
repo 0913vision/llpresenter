@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
-import {emptyLiveState} from '@core/schema/live';
-import {createTimerId} from '@core/schema/ids';
-import {parseLiveState} from '@core/schema/liveState';
+import {emptyLiveState} from '@core/schema/live/live';
+import {createTimerId} from '@core/schema/common/ids';
+import {parseLiveState} from '@core/schema/live/liveState';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {

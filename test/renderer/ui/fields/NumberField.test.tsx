@@ -2,7 +2,10 @@ import {act, fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {describe, expect, it, vi} from 'vitest';
-import {NumberField, type NumberFieldProps} from '@renderer/ui/fields/NumberField';
+import {
+  NumberField,
+  type NumberFieldProps,
+} from '@renderer/ui/fields/NumberField';
 import {commitDraftBeforeShortcut} from '@renderer/ui/fields/commitDraft';
 
 function Copies({

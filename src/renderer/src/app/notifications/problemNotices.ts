@@ -1,5 +1,5 @@
 import {launchTaskName} from '@core/app';
-import type {AppProblemOf} from '@core/schema/appProblem';
+import type {AppProblemOf} from '@core/schema/app/appProblem';
 import type {Notice} from '@renderer/ui/popups/notices';
 
 /** One card stands for every data file skipped so far. */

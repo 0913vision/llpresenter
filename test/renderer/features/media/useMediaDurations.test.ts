@@ -3,13 +3,13 @@ import {afterEach, describe, expect, it, vi} from 'vitest';
 import type {
   ServiceChange,
   ServiceDocument,
-} from '@core/schema/contentDocuments';
-import type {MediaDocument} from '@core/schema/mediaEdit';
+} from '@core/schema/services/contentDocuments';
+import type {MediaDocument} from '@core/schema/media/mediaEdit';
 import {
   createMediaId,
   createServiceId,
   createServiceItemId,
-} from '@core/schema/ids';
+} from '@core/schema/common/ids';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {useMediaDurations} from '@renderer/features/media/useMediaDurations';
 

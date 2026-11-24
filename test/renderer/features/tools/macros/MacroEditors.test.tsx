@@ -56,9 +56,9 @@ it('restores and saves macro view and collection', async () => {
   mockMacroPanel();
   const api = window.llp;
   if (api === undefined) throw new Error('Missing API');
-  const collection = (await import('@core/schema/ids')).parseMacroCollectionId(
-    group.id,
-  );
+  const collection = (
+    await import('@core/schema/common/ids')
+  ).parseMacroCollectionId(group.id);
   if (!collection.ok) throw new Error('Invalid collection');
   vi.spyOn(api.ui, 'get').mockResolvedValue({
     macroView: 'list',

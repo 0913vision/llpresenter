@@ -1,4 +1,4 @@
-import type {KeyBinding, ShortcutsFile} from '@core/schema/shortcuts';
+import type {KeyBinding, ShortcutsFile} from '@core/schema/app/shortcuts';
 import {shortcutCommands, type ShortcutCommand} from './registry';
 
 const commandsById = new Map(

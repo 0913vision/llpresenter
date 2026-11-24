@@ -1,5 +1,5 @@
-import {createThemeId} from '@core/schema/ids';
-import type {SlidePurpose} from '@core/schema/theme';
+import {createThemeId} from '@core/schema/common/ids';
+import type {SlidePurpose} from '@core/schema/screens/theme';
 
 function id(number: number) {
   return createThemeId(

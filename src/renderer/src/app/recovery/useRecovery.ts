@@ -4,7 +4,7 @@ import type {
   RecoveryResult,
   RecoveryRowKind,
   RecoverySummary,
-} from '@core/schema/recovery';
+} from '@core/schema/app/recovery';
 import {noticeTime, type Notice} from '@renderer/ui/popups/notices';
 
 type Offer = NonNullable<RecoverySummary>;

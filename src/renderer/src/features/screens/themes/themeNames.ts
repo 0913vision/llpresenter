@@ -7,7 +7,7 @@ import type {
   SlidePurpose,
   ThemeElement,
   ThemeElementKind,
-} from '@core/schema/theme';
+} from '@core/schema/screens/theme';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 
 /** What the slides a theme is for are called. */

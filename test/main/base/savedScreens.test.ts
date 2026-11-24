@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
+import {LIVE_STATE_LIMITS} from '@core/schema/live/liveLimits';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {savedScreens, switchableScreens} from '@main/base/savedScreens';
 

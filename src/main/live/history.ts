@@ -4,10 +4,10 @@ import {
   type LiveLayers,
   type LiveState,
   type ClearTarget,
-} from '@core/schema/live';
-import type {MessageId} from '@core/schema/ids';
+} from '@core/schema/live/live';
+import type {MessageId} from '@core/schema/common/ids';
 import {retainClearEffects} from './clearEffects';
-import type {LiveItem, LiveThemeMode} from '@core/schema/liveTheme';
+import type {LiveItem, LiveThemeMode} from '@core/schema/live/liveTheme';
 
 /** What the last clear took down, and when, so it can be undone. */
 export interface UndoEntry {

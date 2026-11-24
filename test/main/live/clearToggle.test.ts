@@ -1,6 +1,10 @@
 import {shownText} from '@fixtures/core/liveSlide';
 import {expect, it} from 'vitest';
-import {type ClearTarget, emptyLiveState, layerKinds} from '@core/schema/live';
+import {
+  type ClearTarget,
+  emptyLiveState,
+  layerKinds,
+} from '@core/schema/live/live';
 import {LiveStore} from '@main/live/store';
 
 const slide = {itemId: 'fixture', position: 0, ...shownText(['Current'])};

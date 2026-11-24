@@ -2,7 +2,7 @@ import type {Result} from '@core/common/result';
 import type {
   TextImportFailure,
   TextImportReadRequest,
-} from '@core/schema/textImport';
+} from '@core/schema/songs/textImport';
 import {decode as decodeLegacy} from 'iconv-lite';
 
 type Encoding = TextImportReadRequest['encoding'];

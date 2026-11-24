@@ -7,7 +7,11 @@ import {ScreenSummariesProvider} from '@renderer/platform/ScreenSummaries';
 import {IconButton} from '@renderer/ui';
 import {watchInputModality} from '@renderer/ui/keys/inputModality';
 import {NotificationStack} from '@renderer/ui/popups/Notification';
-import {addNotice, removeNotice, type Notice} from '@renderer/ui/popups/notices';
+import {
+  addNotice,
+  removeNotice,
+  type Notice,
+} from '@renderer/ui/popups/notices';
 import {Panel} from './shell/WorkspacePanel';
 import styles from './ScreensWindow.module.css';
 import type {CloseFlush} from './closeFlush';

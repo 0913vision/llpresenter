@@ -1,6 +1,6 @@
 import {useState} from 'react';
 import type {ReferencePart} from '@core/bible';
-import type {TranslationId} from '@core/schema/ids';
+import type {TranslationId} from '@core/schema/common/ids';
 import {fieldsOfReference} from './referenceForm';
 import {useChosenRecent} from './useChosenRecent';
 

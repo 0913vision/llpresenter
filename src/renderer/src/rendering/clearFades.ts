@@ -1,6 +1,10 @@
-import {layerKinds, type LayerKind, type LiveLayers} from '@core/schema/live';
-import type {ClearEffect} from '@core/schema/clearFade';
-import {MAX_ACTIVE_PROPS} from '@core/schema/overlayState';
+import {
+  layerKinds,
+  type LayerKind,
+  type LiveLayers,
+} from '@core/schema/live/live';
+import type {ClearEffect} from '@core/schema/live/clearFade';
+import {MAX_ACTIVE_PROPS} from '@core/schema/live/overlayState';
 
 type LayerOpacity = Partial<Record<LayerKind, number>>;
 type PropItem = NonNullable<LiveLayers['prop']>['items'];

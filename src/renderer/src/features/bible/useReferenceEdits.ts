@@ -6,7 +6,7 @@ import {
   type ReferencePart,
 } from '@core/bible';
 import type {RefObject} from 'react';
-import type {BibleLookupPassage} from '@core/schema/bibleLookup';
+import type {BibleLookupPassage} from '@core/schema/bible/bibleLookup';
 import type {BibleSuggestion} from './BibleSuggestions';
 import {focusPart} from './referenceForm';
 import type {BookSuggestions} from './useBookSuggestions';

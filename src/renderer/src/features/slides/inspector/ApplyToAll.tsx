@@ -1,5 +1,5 @@
 import type {JSX} from 'react';
-import type {Slide} from '@core/schema/slide';
+import type {Slide} from '@core/schema/slides/slide';
 import {Button} from '@renderer/ui/buttons/Button';
 import {PropertyControl} from '@renderer/ui/panels/PropertyRow';
 import type {SlideDeck} from '../slideDeck';

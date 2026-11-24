@@ -1,5 +1,5 @@
 import {expect, it, vi} from 'vitest';
-import {parseMediaDocument} from '@core/schema/mediaEdit';
+import {parseMediaDocument} from '@core/schema/media/mediaEdit';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {deferred} from '@fixtures/renderer/features/tools/quickTesting';

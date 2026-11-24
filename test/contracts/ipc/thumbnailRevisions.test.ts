@@ -6,7 +6,7 @@ import {
   thumbnailSrc,
 } from '@contracts/ipc/thumbnailRevisions';
 import {thumbnailRevision} from '@core/media/thumbnailRevision';
-import {createMediaId} from '@core/schema/ids';
+import {createMediaId} from '@core/schema/common/ids';
 
 describe('thumbnailSrc', () => {
   const id = createMediaId('00000000-0000-4000-8000-000000000003');

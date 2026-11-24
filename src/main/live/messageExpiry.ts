@@ -1,4 +1,4 @@
-import type {MessageExpiry} from '@core/schema/overlayState';
+import type {MessageExpiry} from '@core/schema/live/overlayState';
 import type {LiveStore} from './store';
 import {MAX_OVERLAY_TIMER_MS} from '@core/overlays';
 

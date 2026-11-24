@@ -1,8 +1,8 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {emptyLiveState, type LiveLayers} from '@core/schema/live';
-import {parseLiveState} from '@core/schema/liveState';
-import {parseTimers, type Timer} from '@core/schema/timers';
-import type {TimerRuns} from '@core/schema/timerState';
+import {emptyLiveState, type LiveLayers} from '@core/schema/live/live';
+import {parseLiveState} from '@core/schema/live/liveState';
+import {parseTimers, type Timer} from '@core/schema/tools/timers';
+import type {TimerRuns} from '@core/schema/tools/timerState';
 import type {TimerNow} from '@core/timers/timerClock';
 import {MAIN, overlayUuid, PROP, TEXT_STYLE} from '@fixtures/core/overlays';
 import {OutputRenderer} from '@renderer/rendering/outputRenderer';

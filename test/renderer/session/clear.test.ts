@@ -1,6 +1,6 @@
 import {afterEach, beforeEach, describe, expect, it} from 'vitest';
-import type {LiveCommand} from '@core/schema/liveCommand';
-import {emptyLayers, emptyLiveState} from '@core/schema/live';
+import type {LiveCommand} from '@core/schema/live/liveCommand';
+import {emptyLayers, emptyLiveState} from '@core/schema/live/live';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {clearLayer, undoClear} from '@renderer/session/clear';
 import {useLive} from '@renderer/session/live';

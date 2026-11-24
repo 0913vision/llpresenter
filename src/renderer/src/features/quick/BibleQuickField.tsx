@@ -1,6 +1,6 @@
 import {withLiveBible, QUICK_BIBLE_TRANSITION} from '@core/bible';
-import type {RecentPassage} from '@core/schema/bible';
-import type {BibleLookupPassage} from '@core/schema/bibleLookup';
+import type {RecentPassage} from '@core/schema/bible/bible';
+import type {BibleLookupPassage} from '@core/schema/bible/bibleLookup';
 import {useEffect, useLayoutEffect, useRef, useState, type JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import {useApiSettingsDocument} from '@renderer/platform/useSettingsDocument';

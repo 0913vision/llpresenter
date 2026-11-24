@@ -1,10 +1,10 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import {duplicateAfter} from '@core/common/duplicateAfter';
-import type {MessageTemplate, MessagesFile} from '@core/schema/messages';
-import {createMessageTemplateId} from '@core/schema/ids';
-import type {EditResult} from '@core/schema/contentEdit';
+import type {MessageTemplate, MessagesFile} from '@core/schema/tools/messages';
+import {createMessageTemplateId} from '@core/schema/common/ids';
+import type {EditResult} from '@core/schema/services/contentEdit';
 import {MAX_MESSAGE_CHARACTERS} from '@core/overlays';
-import {NAME_LIMIT} from '@core/schema/primitives';
+import {NAME_LIMIT} from '@core/schema/common/primitives';
 import {nameReason} from '@renderer/ui/fields/nameReason';
 import {
   editableSettings,

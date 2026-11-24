@@ -1,6 +1,6 @@
-import type {MediaId} from '@core/schema/ids';
-import type {MediaImportProgress} from '@core/schema/mediaEdit';
-import {MEDIA_LIMITS} from '@core/schema/mediaList';
+import type {MediaId} from '@core/schema/common/ids';
+import type {MediaImportProgress} from '@core/schema/media/mediaEdit';
+import {MEDIA_LIMITS} from '@core/schema/media/mediaList';
 
 export type CopyJob = Extract<
   MediaImportProgress,

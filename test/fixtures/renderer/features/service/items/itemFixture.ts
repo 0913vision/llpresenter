@@ -2,10 +2,10 @@ import {
   parseServiceDocument,
   type ServiceChange,
   type ServiceDocument,
-} from '@core/schema/contentDocuments';
-import type {EditResult} from '@core/schema/contentEdit';
-import {createServiceId, createServiceItemId} from '@core/schema/ids';
-import {parseSettingsDocument} from '@core/schema/settingsDocuments';
+} from '@core/schema/services/contentDocuments';
+import type {EditResult} from '@core/schema/services/contentEdit';
+import {createServiceId, createServiceItemId} from '@core/schema/common/ids';
+import {parseSettingsDocument} from '@core/schema/app/settingsDocuments';
 import {itemMedia} from '@fixtures/core/mediaList';
 import {editorFixture} from '@fixtures/renderer/features/songs/editorFixture';
 

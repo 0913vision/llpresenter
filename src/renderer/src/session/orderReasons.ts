@@ -1,4 +1,4 @@
-import {SERVICE_LIMITS} from '@core/schema/service';
+import {SERVICE_LIMITS} from '@core/schema/services/service';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {ORDER_FULL_REASON} from './serviceOrderEdits';
 import {useShow} from './show';

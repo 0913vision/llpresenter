@@ -1,10 +1,10 @@
 import type {LlpApi} from '@contracts/ipc/api';
-import type {LiveState, MediaLayer} from '@core/schema/live';
+import type {LiveState, MediaLayer} from '@core/schema/live/live';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {BackgroundLayerView} from '../rendering/backgroundLayer';
 import {fadeAudio} from '../rendering/audioFade';
 import {backgroundAudible, overlayAudio} from '@core/live';
-import type {MediaDocument} from '@core/schema/mediaEdit';
+import type {MediaDocument} from '@core/schema/media/mediaEdit';
 
 /** Plays media-item and overlay sound once, independently of screen windows. */
 export class BackgroundAudio {

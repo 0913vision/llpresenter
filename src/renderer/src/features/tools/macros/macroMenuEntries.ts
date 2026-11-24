@@ -1,5 +1,8 @@
 import {limitReason} from '@core/common/limitReason';
-import {MACRO_FILE_LIMITS, type MacroCollection} from '@core/schema/macros';
+import {
+  MACRO_FILE_LIMITS,
+  type MacroCollection,
+} from '@core/schema/tools/macros';
 import {
   menuAvailability,
   type MenuEntry,

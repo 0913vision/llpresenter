@@ -28,7 +28,7 @@ ruleTester.run('module-entry', rule, {
     {
       name: 'a file of an open folder',
       filename: at('src/core/songs/a.ts'),
-      code: "import {t} from '@core/schema/theme';",
+      code: "import {t} from '@core/schema/screens/theme';",
     },
     {
       name: 'a file of the own module by a relative path',

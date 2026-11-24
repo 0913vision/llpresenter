@@ -1,8 +1,11 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
-import type {LibrarySong, SongDocument} from '@core/schema/contentDocuments';
-import type {EditResult} from '@core/schema/contentEdit';
-import type {SongId} from '@core/schema/ids';
+import type {
+  LibrarySong,
+  SongDocument,
+} from '@core/schema/services/contentDocuments';
+import type {EditResult} from '@core/schema/services/contentEdit';
+import type {SongId} from '@core/schema/common/ids';
 import {
   warningNotice,
   type Notice,

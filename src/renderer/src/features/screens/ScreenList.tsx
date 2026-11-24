@@ -1,7 +1,10 @@
 import {focusHistorySurface} from '@renderer/ui/lists/focusHistorySurface';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {limitReason} from '@core/common/limitReason';
-import {openMenuFromKey, pointerMenuAnchor} from '@renderer/ui/menus/contextMenu';
+import {
+  openMenuFromKey,
+  pointerMenuAnchor,
+} from '@renderer/ui/menus/contextMenu';
 import {
   useCallback,
   useMemo,
@@ -17,7 +20,7 @@ import {
   ListRow,
   StatusDot,
 } from '@renderer/ui';
-import type {Screen} from '@core/schema/screens';
+import type {Screen} from '@core/schema/screens/screens';
 import {
   KIND_NAMES,
   SCREEN_KIND_ORDER,
@@ -26,7 +29,7 @@ import {
 } from '@core/screens';
 import {sendLive, useOutputs} from '@renderer/session/live';
 import type {Notice} from '@renderer/ui/popups/notices';
-import {MAX_TARGET_SCREENS} from '@core/schema/overlayState';
+import {MAX_TARGET_SCREENS} from '@core/schema/live/overlayState';
 import {useScreenCreation} from './useScreenCreation';
 import {ScreenGroupActions} from './ScreenGroupActions';
 import {selectedScreenIn, useScreensSelection} from './selection';

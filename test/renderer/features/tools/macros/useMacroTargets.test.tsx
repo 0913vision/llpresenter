@@ -1,7 +1,10 @@
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {act, cleanup, renderHook, waitFor} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
-import {parseMediaDocument, type MediaDocument} from '@core/schema/mediaEdit';
+import {
+  parseMediaDocument,
+  type MediaDocument,
+} from '@core/schema/media/mediaEdit';
 import {stageFixture} from '@fixtures/renderer/features/tools/stageTesting';
 import {useMacroTargets} from '@renderer/features/tools/macros/useMacroTargets';
 

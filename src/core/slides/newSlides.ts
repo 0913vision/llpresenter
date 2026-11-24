@@ -1,6 +1,6 @@
-import type {SlidesItem} from '@core/schema/service';
-import type {Slide} from '@core/schema/slide';
-import type {SlidePurpose} from '@core/schema/theme';
+import type {SlidesItem} from '@core/schema/services/service';
+import type {Slide} from '@core/schema/slides/slide';
+import type {SlidePurpose} from '@core/schema/screens/theme';
 import {themeOf, themeOfSlide} from '@core/theme';
 import {makeSlide, type SlideMaking} from './make';
 

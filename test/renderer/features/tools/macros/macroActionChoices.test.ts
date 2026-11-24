@@ -1,5 +1,5 @@
 import {expect, it, vi} from 'vitest';
-import type {MacroActionKind} from '@core/schema/macros';
+import type {MacroActionKind} from '@core/schema/tools/macros';
 import {menuItems} from '@renderer/ui/menus/menuModel';
 import {macroActionChoices} from '@renderer/features/tools/macros/macroActionChoices';
 import {

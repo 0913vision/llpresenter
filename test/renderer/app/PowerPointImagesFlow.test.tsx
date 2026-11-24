@@ -1,7 +1,7 @@
 import {act, render, waitFor} from '@testing-library/react';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import {createMediaId} from '@core/schema/ids';
-import type {PowerPointImageExportResult} from '@core/schema/powerpointImport';
+import {createMediaId} from '@core/schema/common/ids';
+import type {PowerPointImageExportResult} from '@core/schema/songs/powerpointImport';
 import {pastDocument} from '@fixtures/core/serviceList';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {PowerPointImagesFlow} from '@renderer/app/PowerPointImagesFlow';

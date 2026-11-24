@@ -4,7 +4,7 @@ import {
   type PictureArea,
   type PictureFit,
   type PicturePlace,
-} from '@core/schema/picturePlace';
+} from '@core/schema/media/picturePlace';
 import {PICTURE_FIT_OPTIONS} from './mediaChoices';
 import {NumberField} from '../fields/NumberField';
 import {PropertyRow} from '../panels/PropertyRow';

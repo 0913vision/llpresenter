@@ -1,6 +1,6 @@
 import {NOT_YET, laterRow, menuSeparator} from '@renderer/ui/menus/menuRows';
 import {shortcutText} from '@renderer/ui/keys/commandBindings';
-import type {TextImportReadRequest} from '@core/schema/textImport';
+import type {TextImportReadRequest} from '@core/schema/songs/textImport';
 import type {ServiceActionEntries} from '@renderer/features/service/list/useServiceActions';
 import {
   menuAvailability,

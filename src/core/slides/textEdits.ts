@@ -1,5 +1,5 @@
-import type {SlideId} from '@core/schema/ids';
-import {SLIDE_LIMITS, type Slide} from '@core/schema/slide';
+import type {SlideId} from '@core/schema/common/ids';
+import {SLIDE_LIMITS, type Slide} from '@core/schema/slides/slide';
 import {themeOfSlide} from '@core/theme';
 import {sameVerse} from './edits';
 import {copySlide, transitionFor, type SlideMaking} from './make';

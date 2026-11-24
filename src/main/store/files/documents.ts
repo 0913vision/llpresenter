@@ -1,5 +1,5 @@
-import type {Revision} from '@core/schema/contentDocuments';
-import type {FileAccess} from '@core/schema/fileFormat';
+import type {Revision} from '@core/schema/services/contentDocuments';
+import type {FileAccess} from '@core/schema/common/fileFormat';
 import type {StoredFile} from './library';
 
 const FIRST_REVISION = 1;

@@ -46,7 +46,7 @@ import type {
   TemplateChange,
   TemplateDocument,
   TemplateEntry,
-} from '@core/schema/contentDocuments';
+} from '@core/schema/services/contentDocuments';
 
 export type {DocumentApi} from './content';
 export type {Unsubscribe} from './endpoint';

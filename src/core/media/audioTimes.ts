@@ -1,4 +1,7 @@
-import {defaultPreferences, type Preferences} from '@core/schema/preferences';
+import {
+  defaultPreferences,
+  type Preferences,
+} from '@core/schema/app/preferences';
 
 /** How long audio takes to change and to fade out, in milliseconds; 0 is a cut. */
 export interface AudioTimes {

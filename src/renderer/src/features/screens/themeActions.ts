@@ -1,4 +1,4 @@
-import type {ThemeId} from '@core/schema/ids';
+import type {ThemeId} from '@core/schema/common/ids';
 import {sendLive} from '@renderer/session/live';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 

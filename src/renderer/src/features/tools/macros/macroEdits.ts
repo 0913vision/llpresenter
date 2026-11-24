@@ -1,14 +1,14 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import {copyName} from '@core/common/copyName';
-import {NAME_LIMIT} from '@core/schema/primitives';
-import type {EditResult} from '@core/schema/contentEdit';
+import {NAME_LIMIT} from '@core/schema/common/primitives';
+import type {EditResult} from '@core/schema/services/contentEdit';
 import {
   MACRO_FILE_LIMITS,
   serializeMacros,
   type Macro,
   type MacroCollection,
   type MacrosFile,
-} from '@core/schema/macros';
+} from '@core/schema/tools/macros';
 import {editMacroActions, type MacroActionEdit} from '@core/macros';
 import {
   editableSettings,

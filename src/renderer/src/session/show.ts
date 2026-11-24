@@ -1,5 +1,5 @@
-import type {SingleLiveCommand} from '@core/schema/liveCommand';
-import type {SlideLayer} from '@core/schema/live';
+import type {SingleLiveCommand} from '@core/schema/live/liveCommand';
+import type {SlideLayer} from '@core/schema/live/live';
 import {QUICK_BIBLE_TRANSITION} from '@core/bible';
 import {
   type ItemId,
@@ -12,9 +12,9 @@ import {
   slideLayerOf,
 } from '@core/presentation';
 import {hidesNext} from '@core/slides';
-import {parseServiceItemId} from '@core/schema/ids';
-import type {Preferences} from '@core/schema/preferences';
-import type {ShowService} from '@core/schema/showService';
+import {parseServiceItemId} from '@core/schema/common/ids';
+import type {Preferences} from '@core/schema/app/preferences';
+import type {ShowService} from '@core/schema/services/showService';
 import {rememberBiblePassage} from '@renderer/session/recentWriter';
 import {themeOfTile, useThemes} from '@renderer/platform/themes';
 import {sendSlideOutput} from './itemOutput';

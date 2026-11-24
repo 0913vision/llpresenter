@@ -6,7 +6,7 @@ import {
   within,
 } from '@testing-library/react';
 import {beforeEach, describe, expect, it, onTestFinished, vi} from 'vitest';
-import type {MediaDocument} from '@core/schema/mediaEdit';
+import type {MediaDocument} from '@core/schema/media/mediaEdit';
 import {MediaPropertiesPanel} from '@renderer/features/media/MediaPropertiesPanel';
 import {MediaView} from '@renderer/features/media/MediaView';
 import {MediaViewProvider} from '@renderer/features/media/MediaViewProvider';

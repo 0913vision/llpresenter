@@ -6,7 +6,7 @@ import {
   fileSkippedProblem,
   saveFailedProblem,
   type AppProblem,
-} from '@core/schema/appProblem';
+} from '@core/schema/app/appProblem';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {
   WAITING_SAVES_KEY,

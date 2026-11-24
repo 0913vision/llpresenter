@@ -1,11 +1,11 @@
 import {mediaEndpoints} from '@contracts/ipc/media';
 import type {Result} from '@core/common/result';
-import type {MediaId} from '@core/schema/ids';
+import type {MediaId} from '@core/schema/common/ids';
 import {
   parseMediaImportProgress,
   type MediaImportRequest,
-} from '@core/schema/mediaEdit';
-import type {PayloadError} from '@core/schema/payload';
+} from '@core/schema/media/mediaEdit';
+import type {PayloadError} from '@core/schema/common/payload';
 import type {IpcHost} from '../../base/ipcHost';
 import type {Logger} from '../../base/log';
 import {mediaRefusal} from './mediaEdits';

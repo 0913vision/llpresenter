@@ -1,6 +1,6 @@
 import {useState} from 'react';
-import {parseMacroCollectionId} from '@core/schema/ids';
-import type {KnownMacroAction, Macro} from '@core/schema/macros';
+import {parseMacroCollectionId} from '@core/schema/common/ids';
+import type {KnownMacroAction, Macro} from '@core/schema/tools/macros';
 import type {MacroCollectionEdit} from './macroCollectionEdits';
 import type {MacroEdit} from './macroEdits';
 import type {MacroEditor} from './macroMenuHandlers';

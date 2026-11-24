@@ -1,6 +1,6 @@
-import type {ActiveMessage, MessageLayer} from '@core/schema/live';
-import {parseActiveMessages} from '@core/schema/overlayState';
-import type {ScreenId} from '@core/schema/ids';
+import type {ActiveMessage, MessageLayer} from '@core/schema/live/live';
+import {parseActiveMessages} from '@core/schema/live/overlayState';
+import type {ScreenId} from '@core/schema/common/ids';
 import {MissingLiveTargetError} from '../commandErrors';
 import {setLayer, withLayers, type LiveHistory} from '../history';
 import {messageLayer} from '../messageState';

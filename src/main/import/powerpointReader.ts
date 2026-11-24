@@ -4,7 +4,7 @@ import {
   parsePowerPointReadResult,
   type PowerPointReadResult,
   type PowerPointSource,
-} from '@core/schema/powerpointImport';
+} from '@core/schema/songs/powerpointImport';
 import type {Logger} from '../base/log';
 import {
   convertLegacyPowerPoint,

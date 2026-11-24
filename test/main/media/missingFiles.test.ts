@@ -1,7 +1,10 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import {createMediaId, type MediaId} from '@core/schema/ids';
-import {parseMediaDocument, type MediaDocument} from '@core/schema/mediaEdit';
-import type {MediaStamps, MissingMedia} from '@core/schema/mediaFiles';
+import {createMediaId, type MediaId} from '@core/schema/common/ids';
+import {
+  parseMediaDocument,
+  type MediaDocument,
+} from '@core/schema/media/mediaEdit';
+import type {MediaStamps, MissingMedia} from '@core/schema/media/mediaFiles';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {EMPTY_MEDIA_LIST} from '@main/store/settings/defaults';
 import {

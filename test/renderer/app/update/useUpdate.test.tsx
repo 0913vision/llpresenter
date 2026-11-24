@@ -1,7 +1,7 @@
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import type {UpdateSnapshot} from '@core/schema/update';
+import type {UpdateSnapshot} from '@core/schema/app/update';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {useUpdate} from '@renderer/app/update/useUpdate';
 import {NotificationStack} from '@renderer/ui/popups/Notification';

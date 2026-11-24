@@ -10,7 +10,7 @@ import {contentEndpoints} from '@contracts/ipc/content';
 import {liveEndpoints} from '@contracts/ipc/live';
 import {serviceEndpoints} from '@contracts/ipc/service';
 import {settingsEndpoints} from '@contracts/ipc/settings';
-import {parseServiceDocument} from '@core/schema/contentDocuments';
+import {parseServiceDocument} from '@core/schema/services/contentDocuments';
 import {readFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';

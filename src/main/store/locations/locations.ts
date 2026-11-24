@@ -10,8 +10,8 @@ import {
 } from 'node:path';
 import {isRecord} from '@core/common/guards';
 import type {Result} from '@core/common/result';
-import {parseAppConfig, type AppConfig} from '@core/schema/appConfig';
-import type {FileError} from '@core/schema/fileFormat';
+import {parseAppConfig, type AppConfig} from '@core/schema/app/appConfig';
+import type {FileError} from '@core/schema/common/fileFormat';
 import {isMissingFile} from '../../base/fsErrors';
 
 /** The name of the data folder in Documents, and in the development folder. */

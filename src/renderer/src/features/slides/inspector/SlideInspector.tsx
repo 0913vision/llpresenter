@@ -1,5 +1,5 @@
 import type {JSX, KeyboardEvent} from 'react';
-import type {ShowTile} from '@core/schema/showService';
+import type {ShowTile} from '@core/schema/services/showService';
 import {hidesNext} from '@core/slides';
 import {themeOfSlide} from '@core/theme';
 import {useThemes} from '@renderer/platform/themes';

@@ -1,5 +1,5 @@
 import type {DragEvent} from 'react';
-import {MEDIA_LIMITS} from '@core/schema/mediaList';
+import {MEDIA_LIMITS} from '@core/schema/media/mediaList';
 
 /** Files dropped from the desktop onto the media view are imported. */
 export function useMediaFileDrop({

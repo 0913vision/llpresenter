@@ -1,6 +1,6 @@
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {windowCommandLabels} from '@renderer/ui/keys/windowCommandLabels';
-import type {LibrarySong} from '@core/schema/contentDocuments';
+import type {LibrarySong} from '@core/schema/services/contentDocuments';
 import {menuAvailability, type MenuEntry} from '@renderer/ui/menus/menuModel';
 import {laterRow, menuSeparator} from '@renderer/ui/menus/menuRows';
 

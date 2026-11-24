@@ -1,4 +1,4 @@
-import {parseUpdateAction, parseUpdateSnapshot} from '@core/schema/update';
+import {parseUpdateAction, parseUpdateSnapshot} from '@core/schema/app/update';
 import {message, push, query, signal, type IpcPort} from './endpoint';
 
 /** Update commands are accepted only from the control window's main frame. */

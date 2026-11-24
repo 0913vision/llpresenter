@@ -7,8 +7,8 @@ import {
   useSyncExternalStore,
   type JSX,
 } from 'react';
-import type {RecentPassage, Translation} from '@core/schema/bible';
-import type {TranslationId} from '@core/schema/ids';
+import type {RecentPassage, Translation} from '@core/schema/bible/bible';
+import type {TranslationId} from '@core/schema/common/ids';
 import {recentPassages, displayReference} from '@core/bible';
 import {
   commandBindings,

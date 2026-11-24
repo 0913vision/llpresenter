@@ -1,15 +1,18 @@
-import {NAME_LIMIT} from '@core/schema/primitives';
+import {NAME_LIMIT} from '@core/schema/common/primitives';
 import {displayReference} from '@core/bible';
 import {RenameDialog} from '@renderer/ui/popups/RenameDialog';
 import {useMenuHandoff} from '@renderer/ui/menus/useMenuHandoff';
-import {openMenuFromKey, pointerMenuAnchor} from '@renderer/ui/menus/contextMenu';
+import {
+  openMenuFromKey,
+  pointerMenuAnchor,
+} from '@renderer/ui/menus/contextMenu';
 import {useEffect, useState, type JSX, type ReactNode} from 'react';
 import {limitReason} from '@core/common/limitReason';
-import {createQuickItemId, createTimerId} from '@core/schema/ids';
+import {createQuickItemId, createTimerId} from '@core/schema/common/ids';
 import type {LlpApi} from '@contracts/ipc/api';
-import {MAX_QUICK_ITEMS, type QuickItem} from '@core/schema/quick';
-import {MAX_TIMER_DEFINITIONS, type Timer} from '@core/schema/timers';
-import {isItemOfKind} from '@core/schema/service';
+import {MAX_QUICK_ITEMS, type QuickItem} from '@core/schema/tools/quick';
+import {MAX_TIMER_DEFINITIONS, type Timer} from '@core/schema/tools/timers';
+import {isItemOfKind} from '@core/schema/services/service';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {useShow} from '@renderer/session/show';
 import {bibleSourceFor, isLibrarySource} from '@renderer/session/showLibrary';

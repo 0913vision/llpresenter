@@ -3,8 +3,8 @@ import {
   type BibleCutEntry,
   type BibleCutSelection,
   type BibleCutsFile,
-} from '@core/schema/bibleCuts';
-import type {VerseReference} from '@core/schema/slide';
+} from '@core/schema/bible/bibleCuts';
+import type {VerseReference} from '@core/schema/slides/slide';
 import {normalizeVerse} from './manualSplit';
 
 export function cacheKey(reference: VerseReference): string {

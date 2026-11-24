@@ -1,11 +1,11 @@
 import {beforeEach, describe, expect, it, onTestFinished, vi} from 'vitest';
 import type {LlpApi} from '@contracts/ipc/api';
-import {emptyLiveState, type LiveState} from '@core/schema/live';
+import {emptyLiveState, type LiveState} from '@core/schema/live/live';
 import type {
   FrameRateReport,
   FrameReadyReport,
   RendererLogEntry,
-} from '@core/schema/ipcPayloads';
+} from '@core/schema/app/ipcPayloads';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {classes} from '@renderer/rendering/classes';
 import {startOutput} from '@renderer/output/startOutput';
@@ -13,9 +13,9 @@ import {ScreenFrames} from '@renderer/rendering/screenFrames';
 import {OutputRenderer} from '@renderer/rendering/outputRenderer';
 import {SlideAnimation} from '@renderer/output/slideAnimation';
 import {MAIN, overlaySettings} from '@fixtures/core/overlays';
-import {parseLiveState} from '@core/schema/liveState';
+import {parseLiveState} from '@core/schema/live/liveState';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
-import type {SettingsDocument} from '@core/schema/settingsDocuments';
+import type {SettingsDocument} from '@core/schema/app/settingsDocuments';
 
 import {shownText} from '@fixtures/core/liveSlide';
 import {slideId} from '@fixtures/core/slides';

@@ -1,9 +1,9 @@
 import type {LlpApi} from '@contracts/ipc/api';
-import type {LibrarySong} from '@core/schema/contentDocuments';
+import type {LibrarySong} from '@core/schema/services/contentDocuments';
 import {
   LIBRARY_SEARCH_LIMITS,
   type LibrarySearchResult,
-} from '@core/schema/librarySearch';
+} from '@core/schema/songs/librarySearch';
 
 /** One row of the library list: a song, and the lyric line a search found. */
 export interface LibraryRow {

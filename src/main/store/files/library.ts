@@ -1,6 +1,6 @@
 import {extname, join} from 'node:path';
 import type {Result} from '@core/common/result';
-import type {FileError, LoadedFile} from '@core/schema/fileFormat';
+import type {FileError, LoadedFile} from '@core/schema/common/fileFormat';
 import type {PartCounter} from '../../base/launchTracker';
 import {listFolder, loadFile, type ParseFile} from './readFiles';
 

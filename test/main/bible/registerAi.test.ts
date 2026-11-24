@@ -1,6 +1,6 @@
 import {EventEmitter} from 'node:events';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import type {BibleAiState} from '@core/schema/bibleAi';
+import type {BibleAiState} from '@core/schema/bible/bibleAi';
 import {bibleEndpoints} from '@contracts/ipc/bible';
 import {registerBibleAi} from '@main/bible/registerAi';
 

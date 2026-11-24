@@ -8,8 +8,8 @@ import {
 } from '@fixtures/main/outputs/startFixtures';
 import {describe, expect, it, vi} from 'vitest';
 import {outputEndpoints} from '@contracts/ipc/output';
-import {parseMonitorList} from '@core/schema/monitors';
-import {parseLiveCommand} from '@core/schema/liveCommand';
+import {parseMonitorList} from '@core/schema/screens/monitors';
+import {parseLiveCommand} from '@core/schema/live/liveCommand';
 import {displayInfo} from '@fixtures/main/displays/testing';
 import {CAPTIONS, MAIN} from '@fixtures/core/overlays';
 import {openNumberWindow} from '@main/outputs/numberWindow';

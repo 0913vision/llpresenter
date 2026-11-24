@@ -1,19 +1,19 @@
 import {describe, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@core/schema/live';
-import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
-import {parseMacroId} from '@core/schema/ids';
+import {emptyLiveState} from '@core/schema/live/live';
+import {LIVE_STATE_LIMITS} from '@core/schema/live/liveLimits';
+import {parseMacroId} from '@core/schema/common/ids';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {
   MAX_LIVE_BATCH_COMMANDS,
   parseLiveCommand,
-} from '@core/schema/liveCommand';
+} from '@core/schema/live/liveCommand';
 import {
   defineSlice,
   type MacroCommandPort,
   type ScreenSettingsPort,
 } from '@main/live/slice';
-import type {SettingsReader} from '@core/schema/settingsReader';
+import type {SettingsReader} from '@core/schema/app/settingsReader';
 import {SliceRegistry} from '@main/live/sliceRegistry';
 import {batchSlice} from '@main/live/slices/batch';
 import {clearSlice} from '@main/live/slices/clear';

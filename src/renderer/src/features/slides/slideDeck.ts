@@ -1,9 +1,9 @@
 import {undoTimeline, useUndoTimeline} from '@renderer/platform/undoTimeline';
 import {useMemo} from 'react';
 import type {LabelColor} from '@core/labels';
-import {hasSlides, type SlidesItem} from '@core/schema/service';
-import type {ShowTile} from '@core/schema/showService';
-import type {Slide} from '@core/schema/slide';
+import {hasSlides, type SlidesItem} from '@core/schema/services/service';
+import type {ShowTile} from '@core/schema/services/showService';
+import type {Slide} from '@core/schema/slides/slide';
 import {slideSourceOf, slideTiles, type SlideSource} from '@core/slides';
 import {
   editItemSlides,

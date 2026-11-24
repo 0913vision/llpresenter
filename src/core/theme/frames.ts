@@ -6,7 +6,7 @@ import type {
   ThemeShape,
   ThemeSplit,
   ThemeStack,
-} from '@core/schema/theme';
+} from '@core/schema/screens/theme';
 import {changeElement} from './elements';
 import type {ThemePlacement} from './layout';
 

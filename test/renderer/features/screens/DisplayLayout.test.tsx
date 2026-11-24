@@ -9,9 +9,9 @@ import {
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import type {LiveCommand} from '@core/schema/liveCommand';
-import type {MonitorList} from '@core/schema/monitors';
-import type {SettingsDocument} from '@core/schema/settingsDocuments';
+import type {LiveCommand} from '@core/schema/live/liveCommand';
+import type {MonitorList} from '@core/schema/screens/monitors';
+import type {SettingsDocument} from '@core/schema/app/settingsDocuments';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {DisplayLayout} from '@renderer/features/screens/DisplayLayout';
 import {ScreenList} from '@renderer/features/screens/ScreenList';

@@ -1,5 +1,5 @@
 import {create} from 'zustand';
-import type {Screen} from '@core/schema/screens';
+import type {Screen} from '@core/schema/screens/screens';
 
 export interface ScreensSelection {
   /** `null` until the operator picks a screen; the list then shows its first screen. */

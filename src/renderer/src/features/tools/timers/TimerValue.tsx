@@ -1,7 +1,7 @@
 import type {JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
-import type {Timer} from '@core/schema/timers';
-import type {TimerRun} from '@core/schema/timerState';
+import type {Timer} from '@core/schema/tools/timers';
+import type {TimerRun} from '@core/schema/tools/timerState';
 import {isTimerTicking, timerText} from '@core/timers';
 import {useTimerNow} from './useTimerNow';
 

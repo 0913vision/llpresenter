@@ -1,6 +1,6 @@
 import {app} from 'electron';
 import {launchEndpoints} from '@contracts/ipc/launch';
-import {VIEW_TASK_IDS} from '@core/schema/launch';
+import {VIEW_TASK_IDS} from '@core/schema/app/launch';
 import {IpcHost, type Caller} from '../base/ipcHost';
 import {registerFonts} from '../fonts/register';
 import {registerTextImport} from '../import/register';

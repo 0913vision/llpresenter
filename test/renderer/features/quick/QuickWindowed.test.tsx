@@ -8,7 +8,7 @@ import {
   within,
 } from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
-import {parseSettingsDocument} from '@core/schema/settingsDocuments';
+import {parseSettingsDocument} from '@core/schema/app/settingsDocuments';
 import {QuickPanel} from '@renderer/features/quick/QuickPanel';
 import {
   quickFixture,

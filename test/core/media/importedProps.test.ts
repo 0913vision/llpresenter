@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {importedProps} from '@core/media/importedProps';
-import {defaultPreferences} from '@core/schema/preferences';
+import {defaultPreferences} from '@core/schema/app/preferences';
 
 const DEFAULTS = defaultPreferences.media.defaults;
 

@@ -6,7 +6,7 @@ import {ContinuousSlideGrid} from '@renderer/features/presentation/ContinuousSli
 import {applyService, openItem, useShow} from '@renderer/session/show';
 import {useLive} from '@renderer/session/live';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {emptyLiveState} from '@core/schema/live';
+import {emptyLiveState} from '@core/schema/live/live';
 import {liveReturn} from '@renderer/features/presentation/liveReturn';
 import {SlidePanelMeta} from '@renderer/features/presentation/SlidePanel';
 

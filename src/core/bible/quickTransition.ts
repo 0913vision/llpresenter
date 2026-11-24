@@ -1,4 +1,4 @@
-import type {SlideTransition} from '@core/schema/slideTransition';
+import type {SlideTransition} from '@core/schema/slides/slideTransition';
 
 /** The transition assigned to passages opened from quick run. */
 export const QUICK_BIBLE_TRANSITION: SlideTransition = {

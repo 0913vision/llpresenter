@@ -2,9 +2,9 @@ import {act, fireEvent, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {beforeEach, expect, it, vi} from 'vitest';
-import {createItemOverlayId, createMediaId} from '@core/schema/ids';
-import type {PlacedOverlay} from '@core/schema/itemOverlays';
-import type {MediaItem} from '@core/schema/mediaList';
+import {createItemOverlayId, createMediaId} from '@core/schema/common/ids';
+import type {PlacedOverlay} from '@core/schema/services/itemOverlays';
+import type {MediaItem} from '@core/schema/media/mediaList';
 import {OverlayClips} from '@renderer/features/service/overlays/OverlayClip';
 import {
   useOverlayControl,

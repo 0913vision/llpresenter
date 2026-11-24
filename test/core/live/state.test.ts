@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {emptyLiveState, isAnyOutputOn} from '@core/schema/live';
+import {emptyLiveState, isAnyOutputOn} from '@core/schema/live/live';
 import {MAIN_SCREEN, STAGE_SCREEN} from '@fixtures/core/screenIds';
 
 describe('isAnyOutputOn', () => {

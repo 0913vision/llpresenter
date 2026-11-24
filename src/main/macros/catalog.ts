@@ -1,11 +1,11 @@
-import type {SettingsReader} from '@core/schema/settingsReader';
-import type {MacrosFile} from '@core/schema/macros';
-import type {MediaList} from '@core/schema/mediaList';
-import type {MessagesFile} from '@core/schema/messages';
-import type {PropsFile} from '@core/schema/props';
-import type {ScreensFile} from '@core/schema/screens';
-import type {TimersFile} from '@core/schema/timers';
-import type {Themes} from '@core/schema/themes';
+import type {SettingsReader} from '@core/schema/app/settingsReader';
+import type {MacrosFile} from '@core/schema/tools/macros';
+import type {MediaList} from '@core/schema/media/mediaList';
+import type {MessagesFile} from '@core/schema/tools/messages';
+import type {PropsFile} from '@core/schema/tools/props';
+import type {ScreensFile} from '@core/schema/screens/screens';
+import type {TimersFile} from '@core/schema/tools/timers';
+import type {Themes} from '@core/schema/screens/themes';
 
 export interface MacroCatalog {
   readonly themes: Themes;

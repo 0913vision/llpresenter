@@ -6,7 +6,7 @@ import {
   within,
 } from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
-import {parseSettingsDocument} from '@core/schema/settingsDocuments';
+import {parseSettingsDocument} from '@core/schema/app/settingsDocuments';
 import {MacroView} from '@renderer/features/tools/macros/MacroView';
 
 const parsed = parseSettingsDocument({

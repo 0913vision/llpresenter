@@ -2,9 +2,9 @@ import {describe, expect, it} from 'vitest';
 import type {
   TextImportOptions,
   TextImportPreviewRequest,
-} from '@core/schema/textImport';
+} from '@core/schema/songs/textImport';
 import {convertTextImport, textImportHeaders} from '@core/songs/textImport';
-import {TEXT_IMPORT_LIMITS} from '@core/schema/textImportLimits';
+import {TEXT_IMPORT_LIMITS} from '@core/schema/songs/textImportLimits';
 
 const defaults: TextImportOptions = {
   split: 'lineBreak',

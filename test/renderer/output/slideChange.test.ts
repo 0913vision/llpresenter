@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {emptyLiveState, type LiveState} from '@core/schema/live';
+import {emptyLiveState, type LiveState} from '@core/schema/live/live';
 import {shownText} from '@fixtures/core/liveSlide';
 import {themeOutput} from '@fixtures/core/themeOutput';
 import {slideChangeOf, slideMoved} from '@renderer/output/slideChange';

@@ -1,8 +1,8 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import type {Result} from '@core/common/result';
-import type {SettingsDocument} from '@core/schema/settingsDocuments';
-import type {MonitorInfo, MonitorList} from '@core/schema/monitors';
-import type {Screen} from '@core/schema/screens';
+import type {SettingsDocument} from '@core/schema/app/settingsDocuments';
+import type {MonitorInfo, MonitorList} from '@core/schema/screens/monitors';
+import type {Screen} from '@core/schema/screens/screens';
 import {EMPTY_NAME_REASON} from '@renderer/ui/fields/nameReason';
 import {assignScreenMonitor} from './assignScreenMonitor';
 import {

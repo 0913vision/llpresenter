@@ -7,8 +7,8 @@ import {
   splitSlide,
   type TextEdit,
 } from '@core/slides';
-import type {ShowTile} from '@core/schema/showService';
-import type {ThemeFile} from '@core/schema/theme';
+import type {ShowTile} from '@core/schema/services/showService';
+import type {ThemeFile} from '@core/schema/screens/theme';
 import {slideMaking} from '@renderer/platform/themes';
 import {focusText} from './deckSelection';
 import type {SlideDeck} from './slideDeck';

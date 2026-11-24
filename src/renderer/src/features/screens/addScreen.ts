@@ -1,9 +1,9 @@
-import {THEME_CANVAS} from '@core/schema/screens';
+import {THEME_CANVAS} from '@core/schema/screens/screens';
 import {limitReason} from '@core/common/limitReason';
-import type {ScreenId} from '@core/schema/ids';
-import type {Screen} from '@core/schema/screens';
-import {MAX_TARGET_SCREENS} from '@core/schema/overlayState';
-import type {MonitorInfo} from '@core/schema/monitors';
+import type {ScreenId} from '@core/schema/common/ids';
+import type {Screen} from '@core/schema/screens/screens';
+import {MAX_TARGET_SCREENS} from '@core/schema/live/overlayState';
+import type {MonitorInfo} from '@core/schema/screens/monitors';
 import {defaultScreenName} from '@core/screens';
 import {assignScreenMonitor} from './assignScreenMonitor';
 

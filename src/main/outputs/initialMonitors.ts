@@ -1,7 +1,7 @@
-import type {EditResult} from '@core/schema/contentEdit';
-import type {Screen, ScreensFile} from '@core/schema/screens';
-import type {SettingsEdit} from '@core/schema/settingsDocuments';
-import type {SettingsReader} from '@core/schema/settingsReader';
+import type {EditResult} from '@core/schema/services/contentEdit';
+import type {Screen, ScreensFile} from '@core/schema/screens/screens';
+import type {SettingsEdit} from '@core/schema/app/settingsDocuments';
+import type {SettingsReader} from '@core/schema/app/settingsReader';
 import {findControlMonitor, type Monitor} from '../displays/monitor';
 import type {Rect} from '../displays/rect';
 import type {Logger} from '../base/log';

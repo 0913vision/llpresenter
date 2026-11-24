@@ -1,8 +1,8 @@
 import {create} from 'zustand';
 import type {LlpApi} from '@contracts/ipc/api';
-import type {MediaId} from '@core/schema/ids';
-import type {MediaDocument} from '@core/schema/mediaEdit';
-import type {MediaItem} from '@core/schema/mediaList';
+import type {MediaId} from '@core/schema/common/ids';
+import type {MediaDocument} from '@core/schema/media/mediaEdit';
+import type {MediaItem} from '@core/schema/media/mediaList';
 
 /** The media list, as every part of this window offers it. */
 export interface MediaView {

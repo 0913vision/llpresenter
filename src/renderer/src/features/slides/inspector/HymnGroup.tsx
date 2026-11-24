@@ -1,6 +1,6 @@
 import type {JSX} from 'react';
 import {HYMNAL_NAMES} from '@core/hymns';
-import {HYMN_COUNTS, type Hymn, type Hymnal} from '@core/schema/hymn';
+import {HYMN_COUNTS, type Hymn, type Hymnal} from '@core/schema/songs/hymn';
 import {withHymn} from '@core/slides';
 import {NumberField} from '@renderer/ui/fields/NumberField';
 import {PropertyGroup, PropertyRow} from '@renderer/ui/panels/PropertyRow';

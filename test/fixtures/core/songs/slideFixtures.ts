@@ -1,4 +1,4 @@
-import {createSlideId} from '@core/schema/ids';
+import {createSlideId} from '@core/schema/common/ids';
 
 export function fixtureSlideId(number: number) {
   return createSlideId(

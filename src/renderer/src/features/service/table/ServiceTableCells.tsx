@@ -1,6 +1,6 @@
 import type {JSX} from 'react';
 import type {ItemRow} from '@core/presentation';
-import {hasSlides, type ServiceItem} from '@core/schema/service';
+import {hasSlides, type ServiceItem} from '@core/schema/services/service';
 import {classNames} from '@renderer/ui/classNames';
 import styles from './ServiceTable.module.css';
 

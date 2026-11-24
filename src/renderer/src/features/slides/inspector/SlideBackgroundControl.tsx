@@ -1,8 +1,8 @@
 import {useMemo, useState, type JSX} from 'react';
 import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import {sameJson} from '@core/common/sameJson';
-import {parseMediaId} from '@core/schema/ids';
-import type {SlideBackground} from '@core/schema/theme';
+import {parseMediaId} from '@core/schema/common/ids';
+import type {SlideBackground} from '@core/schema/screens/theme';
 import {GRADIENT_PRESETS, THEME_BACKGROUNDS} from '@core/theme';
 import {
   backgroundName,

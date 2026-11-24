@@ -10,7 +10,7 @@ import {
   PreferencesView,
   type PreferencesViewHandle,
 } from '@renderer/features/preferences/PreferencesView';
-import type {PreferencePageId} from '@core/schema/preferencePages';
+import type {PreferencePageId} from '@core/schema/app/preferencePages';
 import {useShortcutSettings} from '@renderer/platform/useShortcutSettings';
 import type {PreferencesRequest} from '@contracts/ipc/window';
 import {IconButton} from '@renderer/ui';

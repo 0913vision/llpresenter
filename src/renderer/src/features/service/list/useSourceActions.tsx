@@ -5,7 +5,7 @@ import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {menuAvailability} from '@renderer/ui/menus/menuModel';
 import {useRef, useState, type KeyboardEvent, type ReactNode} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
-import type {ServiceEntry} from '@core/schema/contentDocuments';
+import type {ServiceEntry} from '@core/schema/services/contentDocuments';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {useShow} from '@renderer/session/show';
 import {contentDeleteHistory} from '@renderer/platform/contentDeleteHistory';

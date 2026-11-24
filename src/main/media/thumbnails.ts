@@ -1,9 +1,9 @@
 import type {BundledPicture} from '../store/pictures/bundledPicture';
 import {stat} from 'node:fs/promises';
 import {relative} from 'node:path';
-import {parseMediaId, type MediaId} from '@core/schema/ids';
-import type {MediaDocument} from '@core/schema/mediaEdit';
-import {MEDIA_LIMITS} from '@core/schema/mediaList';
+import {parseMediaId, type MediaId} from '@core/schema/common/ids';
+import type {MediaDocument} from '@core/schema/media/mediaEdit';
+import {MEDIA_LIMITS} from '@core/schema/media/mediaList';
 import type {Logger} from '../base/log';
 import type {Analysis, AnalysisRequest} from './mediaAnalyser';
 import type {ThumbnailCache} from './thumbnailCache';

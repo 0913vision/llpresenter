@@ -1,5 +1,5 @@
 import {useLayoutEffect} from 'react';
-import {withPreferenceDefaults} from '@core/schema/preferences';
+import {withPreferenceDefaults} from '@core/schema/app/preferences';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {setAtLastSlide} from '@renderer/session/show';
 

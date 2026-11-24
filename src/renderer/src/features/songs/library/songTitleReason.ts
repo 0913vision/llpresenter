@@ -1,5 +1,5 @@
-import type {LibrarySong} from '@core/schema/contentDocuments';
-import type {SongId} from '@core/schema/ids';
+import type {LibrarySong} from '@core/schema/services/contentDocuments';
+import type {SongId} from '@core/schema/common/ids';
 import {
   DUPLICATE_TITLE_REASON,
   EMPTY_TITLE_REASON,

@@ -1,12 +1,12 @@
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {parseLiveCommand} from '@core/schema/liveCommand';
+import {parseLiveCommand} from '@core/schema/live/liveCommand';
 import {
   parseActiveMessages,
   parseActiveProps,
   MAX_ACTIVE_PROPS,
   MAX_TARGET_SCREENS,
-} from '@core/schema/overlayState';
+} from '@core/schema/live/overlayState';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {MAX_OVERLAY_TIMER_MS} from '@core/overlays/timing';
 import {startOverlays} from '@main/live/overlays';

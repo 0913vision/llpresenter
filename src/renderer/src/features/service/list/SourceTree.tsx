@@ -6,8 +6,12 @@ import {
   type KeyboardEvent,
   type MouseEvent,
 } from 'react';
-import type {ServiceItemId} from '@core/schema/ids';
-import {Checkbox, nextCheckState, type CheckState} from '@renderer/ui/choices/Checkbox';
+import type {ServiceItemId} from '@core/schema/common/ids';
+import {
+  Checkbox,
+  nextCheckState,
+  type CheckState,
+} from '@renderer/ui/choices/Checkbox';
 import {classNames} from '@renderer/ui/classNames';
 import {DialogBox} from '@renderer/ui/popups/Dialog';
 import {Icon} from '@renderer/ui/Icon';

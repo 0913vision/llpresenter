@@ -2,7 +2,7 @@ import {watchWindowMinimized} from './windowMinimized';
 import {BrowserWindow, screen} from 'electron';
 import type {UiZoomRegistration} from '../store/settings/uiZoom';
 import type {Logger} from '../base/log';
-import type {AppConfig} from '@core/schema/appConfig';
+import type {AppConfig} from '@core/schema/app/appConfig';
 import {blockNavigation, loadPage, preloadPath} from '../base/page';
 import {reloadAfterCrash} from './crashReload';
 import {appIconPath} from '../base/appIcon';

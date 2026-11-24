@@ -1,6 +1,6 @@
-import {createScreenId} from '@core/schema/ids';
+import {createScreenId} from '@core/schema/common/ids';
 import {showTestPattern} from '@renderer/features/screens/showTestPattern';
-import type {ThemeFile} from '@core/schema/theme';
+import type {ThemeFile} from '@core/schema/screens/theme';
 import {screenOutputSections} from '@renderer/features/screens/outputMenuEntries';
 import type {MenuEntry} from '@renderer/ui/menus/menuModel';
 import {menuSeparator} from '@renderer/ui/menus/menuRows';

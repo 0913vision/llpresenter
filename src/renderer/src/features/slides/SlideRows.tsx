@@ -7,9 +7,9 @@ import {
   type JSX,
   type ReactNode,
 } from 'react';
-import type {SlideId} from '@core/schema/ids';
-import type {ShowTile} from '@core/schema/showService';
-import type {ThemeFile} from '@core/schema/theme';
+import type {SlideId} from '@core/schema/common/ids';
+import type {ShowTile} from '@core/schema/services/showService';
+import type {ThemeFile} from '@core/schema/screens/theme';
 import {changeSlides, withLabel} from '@core/slides';
 import {themeOfSlide} from '@core/theme';
 import {LabelMenu} from '@renderer/features/labels/LabelMenu';

@@ -7,17 +7,17 @@ import type {
   SongDocument,
   TemplateChange,
   TemplateEntry,
-} from '@core/schema/contentDocuments';
+} from '@core/schema/services/contentDocuments';
 import type {
   ContentEdit,
   EditRefusalReason,
   EditResult,
   EditSuccess,
-} from '@core/schema/contentEdit';
-import type {FileError} from '@core/schema/fileFormat';
-import type {Song} from '@core/schema/song';
-import type {ServiceId, SongId, TemplateId} from '@core/schema/ids';
-import type {Service, Template} from '@core/schema/service';
+} from '@core/schema/services/contentEdit';
+import type {FileError} from '@core/schema/common/fileFormat';
+import type {Song} from '@core/schema/songs/song';
+import type {ServiceId, SongId, TemplateId} from '@core/schema/common/ids';
+import type {Service, Template} from '@core/schema/services/service';
 import type {DocumentCollection, StoredDocument} from '../files/documents';
 import type {WriteResult} from '../files/fileWriter';
 import type {DataLocations} from '../locations/locations';

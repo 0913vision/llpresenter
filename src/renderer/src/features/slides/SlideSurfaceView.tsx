@@ -1,6 +1,6 @@
 import {create} from 'zustand';
 import type {JSX} from 'react';
-import type {UiState} from '@core/schema/uiState';
+import type {UiState} from '@core/schema/app/uiState';
 import type {UiApi} from '@contracts/ipc/ui';
 import type {SlideSurfaceMode} from './useSlideRowWindow';
 import {ViewModeSwitch} from '@renderer/ui/choices/ViewModeSwitch';

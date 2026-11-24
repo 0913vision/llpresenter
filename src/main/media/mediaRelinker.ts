@@ -1,8 +1,11 @@
 import {stat} from 'node:fs/promises';
 import {basename, dirname, join, relative} from 'node:path';
-import type {MediaId} from '@core/schema/ids';
-import type {MediaDocument, MediaEditResult} from '@core/schema/mediaEdit';
-import {MEDIA_LIMITS} from '@core/schema/mediaList';
+import type {MediaId} from '@core/schema/common/ids';
+import type {
+  MediaDocument,
+  MediaEditResult,
+} from '@core/schema/media/mediaEdit';
+import {MEDIA_LIMITS} from '@core/schema/media/mediaList';
 import type {Logger} from '../base/log';
 import {mediaRefusal} from '../store/media/mediaEdits';
 import type {MediaItemsCommit} from '../store/media/mediaStore';

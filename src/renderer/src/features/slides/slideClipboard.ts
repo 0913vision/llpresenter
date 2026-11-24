@@ -1,4 +1,4 @@
-import type {Slide} from '@core/schema/slide';
+import type {Slide} from '@core/schema/slides/slide';
 import {slidesText} from '@core/slides';
 import {readSlideText, writeSlideText} from './systemSlideClipboard';
 

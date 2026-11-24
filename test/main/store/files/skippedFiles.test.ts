@@ -1,5 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
-import {APP_PROBLEM_LIMITS, type AppProblem} from '@core/schema/appProblem';
+import {APP_PROBLEM_LIMITS, type AppProblem} from '@core/schema/app/appProblem';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {
   SkippedFiles,

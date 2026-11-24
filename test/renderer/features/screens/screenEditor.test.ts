@@ -1,6 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
-import type {SettingsEdit} from '@core/schema/settingsDocuments';
-import type {EditResult} from '@core/schema/contentEdit';
+import type {SettingsEdit} from '@core/schema/app/settingsDocuments';
+import type {EditResult} from '@core/schema/services/contentEdit';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {ScreenEditor} from '@renderer/features/screens/screenEditor';
@@ -11,7 +11,7 @@ import {
   STAGE_ID,
 } from '@fixtures/core/screenDocuments';
 import {projector} from '@fixtures/renderer/features/screens/monitors';
-import {parseScreenId} from '@core/schema/ids';
+import {parseScreenId} from '@core/schema/common/ids';
 
 function screensAt(revision: number) {
   const document = screensDocument(revision);

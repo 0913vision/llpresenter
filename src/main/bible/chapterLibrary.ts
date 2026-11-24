@@ -2,8 +2,8 @@ import {LIVE_BIBLE_ID} from '@core/bible';
 import {fetchLiveChapter} from './liveChapter';
 import {readLiveChapter, writeLiveChapter} from './liveChapterDisk';
 import {basename, extname, join} from 'node:path';
-import type {Translation} from '@core/schema/bible';
-import type {FileError} from '@core/schema/fileFormat';
+import type {Translation} from '@core/schema/bible/bible';
+import type {FileError} from '@core/schema/common/fileFormat';
 import {BibleChapterCache} from './chapterCache';
 import {
   readBibleChapter,

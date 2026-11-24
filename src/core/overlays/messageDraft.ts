@@ -1,6 +1,6 @@
-import type {MessageTemplate} from '@core/schema/messages';
-import type {Screen} from '@core/schema/screens';
-import {MAX_TARGET_SCREENS} from '@core/schema/overlayState';
+import type {MessageTemplate} from '@core/schema/tools/messages';
+import type {Screen} from '@core/schema/screens/screens';
+import {MAX_TARGET_SCREENS} from '@core/schema/live/overlayState';
 import {
   fillMessageText,
   messageBlankNames,

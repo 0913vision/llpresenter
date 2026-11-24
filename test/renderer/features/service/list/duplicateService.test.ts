@@ -1,7 +1,7 @@
 import {expect, it, vi} from 'vitest';
-import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
+import type {ContentEdit, EditResult} from '@core/schema/services/contentEdit';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {createServiceId} from '@core/schema/ids';
+import {createServiceId} from '@core/schema/common/ids';
 import {ids, pastDocument} from '@fixtures/core/serviceList';
 import {duplicateService} from '@renderer/features/service/list/serviceEdits';
 

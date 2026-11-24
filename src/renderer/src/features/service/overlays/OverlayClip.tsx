@@ -9,7 +9,7 @@ import {
   type KeyboardEvent,
   type PointerEvent,
 } from 'react';
-import type {ItemOverlayId} from '@core/schema/ids';
+import type {ItemOverlayId} from '@core/schema/common/ids';
 import {resizedSpan, type OverlaySpan} from '@core/overlays';
 import {editorTask} from '@renderer/platform/editorTask';
 import {isComposing} from '@renderer/ui/fields/ime';

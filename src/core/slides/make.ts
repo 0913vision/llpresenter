@@ -1,9 +1,9 @@
-import type {SlideTransitionDefaults} from '@core/schema/preferences';
-import {createSlideId} from '@core/schema/ids';
-import type {Slide} from '@core/schema/slide';
-import type {SlideTransition} from '@core/schema/slideTransition';
-import type {SlidePurpose} from '@core/schema/theme';
-import type {Themes} from '@core/schema/themes';
+import type {SlideTransitionDefaults} from '@core/schema/app/preferences';
+import {createSlideId} from '@core/schema/common/ids';
+import type {Slide} from '@core/schema/slides/slide';
+import type {SlideTransition} from '@core/schema/slides/slideTransition';
+import type {SlidePurpose} from '@core/schema/screens/theme';
+import type {Themes} from '@core/schema/screens/themes';
 import {themeFor} from '@core/theme';
 
 /** What every new slide is made with: the themes and the transitions. */

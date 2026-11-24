@@ -1,4 +1,4 @@
-import {createScreenId, type ScreenId} from '@core/schema/ids';
+import {createScreenId, type ScreenId} from '@core/schema/common/ids';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
 
 /** The starter 청중 화면 as a screen id, the only key of its output. */

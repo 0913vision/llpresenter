@@ -1,5 +1,5 @@
 import {CommandScope} from '@renderer/ui/keys/commandDispatcher';
-import type {SongId} from '@core/schema/ids';
+import type {SongId} from '@core/schema/common/ids';
 import {Suspense, useEffect, useState, type JSX} from 'react';
 import {MediaBin} from '@renderer/features/media/MediaBin';
 import type {MediaApi} from '@renderer/features/media/mediaLibrary';

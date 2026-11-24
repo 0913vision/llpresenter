@@ -1,4 +1,4 @@
-import {THEME_CANVAS} from '@core/schema/screens';
+import {THEME_CANVAS} from '@core/schema/screens/screens';
 import type {Rectangle} from 'electron';
 import {unionDirty} from './rect';
 

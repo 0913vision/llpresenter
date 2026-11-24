@@ -6,7 +6,7 @@ import {
   type PowerPointBackgroundsResult,
   type PowerPointImageExportProgress,
   type PowerPointImageExportResult,
-} from '@core/schema/powerpointImport';
+} from '@core/schema/songs/powerpointImport';
 import type {Logger} from '../base/log';
 import {
   convertLegacyPowerPoint,

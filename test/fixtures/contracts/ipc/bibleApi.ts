@@ -1,11 +1,11 @@
 import {vi} from 'vitest';
 import type {LlpApi} from '@contracts/ipc/api';
-import type {LiveCommand} from '@core/schema/liveCommand';
+import type {LiveCommand} from '@core/schema/live/liveCommand';
 import {
   parseSettingsDocument,
   type SettingsDocument,
-} from '@core/schema/settingsDocuments';
-import type {BibleLookupPassage} from '@core/schema/bibleLookup';
+} from '@core/schema/app/settingsDocuments';
+import type {BibleLookupPassage} from '@core/schema/bible/bibleLookup';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {lookupRequest} from '@fixtures/core/bibleLookups';
 import {formLookupReply} from '@fixtures/core/bibleReplies';

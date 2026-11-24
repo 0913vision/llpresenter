@@ -5,7 +5,7 @@ import {
   macroMenuEntries,
   type MacroMenuInput,
 } from '@renderer/features/tools/macros/macroMenuEntries';
-import {MACRO_FILE_LIMITS} from '@core/schema/macros';
+import {MACRO_FILE_LIMITS} from '@core/schema/tools/macros';
 import {mockHandlers} from '@fixtures/renderer/features/tools/macroMenuTesting';
 
 it('explains macro locks, collection membership, caps, and unavailable action choices', () => {

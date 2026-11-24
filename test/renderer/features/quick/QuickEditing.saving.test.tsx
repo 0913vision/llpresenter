@@ -8,10 +8,10 @@ import {
   waitFor,
 } from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
-import type {EditResult} from '@core/schema/contentEdit';
-import {parseServiceDocument} from '@core/schema/contentDocuments';
-import {macroIdSchema, createQuickItemId} from '@core/schema/ids';
-import {isKnownQuickItem} from '@core/schema/quick';
+import type {EditResult} from '@core/schema/services/contentEdit';
+import {parseServiceDocument} from '@core/schema/services/contentDocuments';
+import {macroIdSchema, createQuickItemId} from '@core/schema/common/ids';
+import {isKnownQuickItem} from '@core/schema/tools/quick';
 import {useShow} from '@renderer/session/show';
 import {useLive} from '@renderer/session/live';
 import {openLibrarySong} from '@renderer/session/showLibrary';

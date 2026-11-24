@@ -21,7 +21,7 @@ import {
   parsePowerPointOwnedImagesResult,
   type PowerPointOwnedImagesRequest,
   type PowerPointOwnedImagesResult,
-} from '@core/schema/powerpointImport';
+} from '@core/schema/songs/powerpointImport';
 export const powerpointEndpoints = {
   storeImages: request<
     PowerPointOwnedImagesRequest,

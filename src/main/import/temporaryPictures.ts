@@ -4,7 +4,7 @@ import {dirname, join} from 'node:path';
 import {
   POWERPOINT_PICTURE_LIMITS,
   type PowerPointPreviewImage,
-} from '@core/schema/powerpointImport';
+} from '@core/schema/songs/powerpointImport';
 import type {Logger} from '../base/log';
 import {powerPointImageSize} from './powerpointImage';
 

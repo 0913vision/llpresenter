@@ -1,5 +1,5 @@
 import {settingsDocument} from '@fixtures/core/settingsDocument';
-import type {SettingsReader} from '@core/schema/settingsReader';
+import type {SettingsReader} from '@core/schema/app/settingsReader';
 import {BrowserWindow} from 'electron';
 import {beforeEach, onTestFinished, vi} from 'vitest';
 import {outputEndpoints} from '@contracts/ipc/output';

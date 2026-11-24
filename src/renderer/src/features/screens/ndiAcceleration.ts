@@ -1,4 +1,4 @@
-import type {OutputScreenStatus} from '@core/schema/outputStatus';
+import type {OutputScreenStatus} from '@core/schema/live/outputStatus';
 
 export function ndiAccelerationLabel(
   status: OutputScreenStatus | undefined,

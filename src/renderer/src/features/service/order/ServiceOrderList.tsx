@@ -1,5 +1,5 @@
 import {useRef, useMemo, type JSX} from 'react';
-import {createServiceItemId, type SongId} from '@core/schema/ids';
+import {createServiceItemId, type SongId} from '@core/schema/common/ids';
 import {useServiceActions} from '@renderer/features/service/list/useServiceActions';
 import {useOrderFull} from '@renderer/session/orderReasons';
 import {openInPrep} from '@renderer/session/prepTarget';

@@ -4,7 +4,7 @@ import type {
   DroppedValue,
   FileError,
   LoadedFile,
-} from '@core/schema/fileFormat';
+} from '@core/schema/common/fileFormat';
 import type {DataLocations} from '../locations/locations';
 import {listFolder, loadFile, type ParseFile} from '../files/readFiles';
 

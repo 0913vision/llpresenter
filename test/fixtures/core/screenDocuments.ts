@@ -1,5 +1,5 @@
 import {settingsDocument} from '@fixtures/core/settingsDocument';
-import type {SettingsDocument} from '@core/schema/settingsDocuments';
+import type {SettingsDocument} from '@core/schema/app/settingsDocuments';
 
 export const MAIN_ID = '00000000-0000-4000-8000-000000000001';
 export const CAPTIONS_ID = '00000000-0000-4000-8000-000000000002';

@@ -1,7 +1,7 @@
 import {readdir, readFile, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {expect, it, onTestFinished, vi} from 'vitest';
-import {parseSong} from '../../src/core/schema/song';
+import {parseSong} from '../../src/core/schema/songs/song';
 import {makeTempDir} from '@fixtures/tempDir';
 import {offscreenApp} from './electron-app';
 

@@ -5,8 +5,8 @@ import type {
   SongDocument,
   TemplateDocument,
   TemplateEntry,
-} from '@core/schema/contentDocuments';
-import type {ServiceId, SongId, TemplateId} from '@core/schema/ids';
+} from '@core/schema/services/contentDocuments';
+import type {ServiceId, SongId, TemplateId} from '@core/schema/common/ids';
 import type {ContentCommandContext, ContentEvents} from './contentCommands';
 
 /**

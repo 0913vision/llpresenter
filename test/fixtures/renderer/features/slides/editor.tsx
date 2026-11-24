@@ -1,6 +1,6 @@
 import {render} from '@testing-library/react';
 import {useMemo, useState, type JSX} from 'react';
-import type {Slide} from '@core/schema/slide';
+import type {Slide} from '@core/schema/slides/slide';
 import type {SlideSource} from '@core/slides/tiles';
 import {BackgroundDrop} from '@renderer/features/slides/BackgroundDrop';
 import {SlideEditor} from '@renderer/features/slides/SlideEditor';

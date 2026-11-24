@@ -5,7 +5,7 @@ import {
   rememberScreensWindow,
   screensBounds,
 } from '@main/windows/screens';
-import type {AppConfig} from '@core/schema/appConfig';
+import type {AppConfig} from '@core/schema/app/appConfig';
 
 const mocks = vi.hoisted(() => ({
   area: {x: 0, y: 0, width: 1920, height: 1080},

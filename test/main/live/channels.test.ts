@@ -2,7 +2,7 @@ import {shownText} from '@fixtures/core/liveSlide';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {liveEndpoints} from '@contracts/ipc/live';
 import {registerLiveChannels} from '@main/live/channels';
-import {emptyLiveState, type LiveState} from '@core/schema/live';
+import {emptyLiveState, type LiveState} from '@core/schema/live/live';
 import type {LiveStore} from '@main/live/store';
 import type {Logger} from '@main/base/log';
 import {MAIN_SCREEN, STAGE_SCREEN} from '@fixtures/core/screenIds';

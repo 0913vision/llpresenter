@@ -1,5 +1,5 @@
-import {THEME_CANVAS} from '@core/schema/screens';
-import type {TextOutline, TextShadow} from '@core/schema/textEffects';
+import {THEME_CANVAS} from '@core/schema/screens/screens';
+import type {TextOutline, TextShadow} from '@core/schema/slides/textEffects';
 
 /**
  * How a text layer draws its text: the lyrics of a 장, a 테마 text element, a

@@ -1,8 +1,8 @@
 import {shownText} from '@fixtures/core/liveSlide';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {describe, expect, it, vi} from 'vitest';
-import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
-import {parseLiveCommand} from '@core/schema/liveCommand';
+import {LIVE_STATE_LIMITS} from '@core/schema/live/liveLimits';
+import {parseLiveCommand} from '@core/schema/live/liveCommand';
 import {LiveStore} from '@main/live/store';
 import {
   CAPTIONS,

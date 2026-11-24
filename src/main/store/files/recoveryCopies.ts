@@ -1,7 +1,7 @@
 import {copyFile, mkdir, readdir, rm} from 'node:fs/promises';
 import {join} from 'node:path';
 import type {Result} from '@core/common/result';
-import {PREFERENCE_LIMITS} from '@core/schema/preferences';
+import {PREFERENCE_LIMITS} from '@core/schema/app/preferences';
 import type {WriteProblem} from '../../base/atomicWrite';
 import {isMissingFile} from '../../base/fsErrors';
 

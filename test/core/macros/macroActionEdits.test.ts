@@ -3,8 +3,8 @@ import {
   mergeSettingsDocument,
   parseSettingsDocument,
   parseSettingsEdit,
-} from '@core/schema/settingsDocuments';
-import {isKnownMacroAction, MACRO_FILE_LIMITS} from '@core/schema/macros';
+} from '@core/schema/app/settingsDocuments';
+import {isKnownMacroAction, MACRO_FILE_LIMITS} from '@core/schema/tools/macros';
 import {editMacroActions} from '@core/macros/macroActionEdits';
 
 const id = '00000000-0000-4000-8000-000000000001';

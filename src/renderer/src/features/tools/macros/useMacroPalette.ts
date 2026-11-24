@@ -1,5 +1,5 @@
 import {create} from 'zustand';
-import type {Macro} from '@core/schema/macros';
+import type {Macro} from '@core/schema/tools/macros';
 
 /** The existing action palette, opened by View or for one macro. */
 export const useMacroPalette = create<{

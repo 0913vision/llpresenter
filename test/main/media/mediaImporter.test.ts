@@ -1,4 +1,4 @@
-import {MEDIA_LIMITS, type MediaItem} from '@core/schema/mediaList';
+import {MEDIA_LIMITS, type MediaItem} from '@core/schema/media/mediaList';
 import {getEventListeners} from 'node:events';
 import {
   mkdir,
@@ -15,12 +15,12 @@ import {
   createMediaId,
   createMediaPlaylistId,
   type MediaId,
-} from '@core/schema/ids';
+} from '@core/schema/common/ids';
 import {
   parseMediaDocument,
   type MediaEditResult,
   type MediaImportProgress,
-} from '@core/schema/mediaEdit';
+} from '@core/schema/media/mediaEdit';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import type {MediaDefaults} from '@core/media/importedProps';
 import {recordingLogger} from '@fixtures/main/displays/testing';

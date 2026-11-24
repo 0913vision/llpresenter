@@ -1,8 +1,11 @@
 import {describe, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@core/schema/live';
+import {emptyLiveState} from '@core/schema/live/live';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {createAppFlushRequestId, createServiceId} from '@core/schema/ids';
-import {parseSettingsDocument} from '@core/schema/settingsDocuments';
+import {
+  createAppFlushRequestId,
+  createServiceId,
+} from '@core/schema/common/ids';
+import {parseSettingsDocument} from '@core/schema/app/settingsDocuments';
 import {MAIN_SCREEN} from '@fixtures/core/screenIds';
 
 describe('mockLlpApi', () => {

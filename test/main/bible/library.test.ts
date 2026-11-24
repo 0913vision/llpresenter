@@ -1,8 +1,8 @@
 import {readFile, unlink, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';
-import type {Translation} from '@core/schema/bible';
-import type {FileError} from '@core/schema/fileFormat';
+import type {Translation} from '@core/schema/bible/bible';
+import type {FileError} from '@core/schema/common/fileFormat';
 import {makeTempDir} from '@fixtures/tempDir';
 import * as chapterFile from '@main/bible/chapterFile';
 import {loadBibleLibrary} from '@main/bible/library';

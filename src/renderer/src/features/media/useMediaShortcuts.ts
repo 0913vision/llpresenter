@@ -1,5 +1,5 @@
-import type {MediaId} from '@core/schema/ids';
-import type {MediaItem} from '@core/schema/mediaList';
+import type {MediaId} from '@core/schema/common/ids';
+import type {MediaItem} from '@core/schema/media/mediaList';
 import {useUndoKeys} from '@renderer/platform/useUndoKeys';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 

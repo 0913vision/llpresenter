@@ -1,6 +1,6 @@
 import type {JSX} from 'react';
-import type {ShowTile} from '@core/schema/showService';
-import type {ThemeFile} from '@core/schema/theme';
+import type {ShowTile} from '@core/schema/services/showService';
+import type {ThemeFile} from '@core/schema/screens/theme';
 import {boxesOf, fillsItself, NEXT_BOX, showsHymn} from '@core/slides';
 import {PropertyGroup} from '@renderer/ui/panels/PropertyRow';
 import {SlideTextField} from '../SlideTextField';

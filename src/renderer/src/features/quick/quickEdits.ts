@@ -1,25 +1,25 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import {duplicateAfter} from '@core/common/duplicateAfter';
-import {createQuickItemId, type TimerId} from '@core/schema/ids';
+import {createQuickItemId, type TimerId} from '@core/schema/common/ids';
 import {
   type KnownQuickItem,
   type QuickItem,
   type QuickItemKind,
   isKnownQuickItem,
   MAX_QUICK_ITEMS,
-} from '@core/schema/quick';
+} from '@core/schema/tools/quick';
 import {
   editableSettings,
   gatedSettingsWrite,
   unchangedSettings,
 } from '@renderer/session/settingsWrites';
-import type {EditResult} from '@core/schema/contentEdit';
-import type {QuickTimerEdit} from '@core/schema/quickTimerEdit';
-import {NAME_LIMIT} from '@core/schema/primitives';
+import type {EditResult} from '@core/schema/services/contentEdit';
+import type {QuickTimerEdit} from '@core/schema/tools/quickTimerEdit';
+import {NAME_LIMIT} from '@core/schema/common/primitives';
 import {nameReason} from '@renderer/ui/fields/nameReason';
-import {MAX_TIMER_DEFINITIONS} from '@core/schema/timers';
+import {MAX_TIMER_DEFINITIONS} from '@core/schema/tools/timers';
 
-export {MAX_QUICK_ITEMS} from '@core/schema/quick';
+export {MAX_QUICK_ITEMS} from '@core/schema/tools/quick';
 const SAVE_ATTEMPTS = 2;
 
 export type QuickChoice = {

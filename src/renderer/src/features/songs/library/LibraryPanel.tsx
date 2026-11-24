@@ -1,5 +1,5 @@
 import {useEffect, useEffectEvent, useRef, useState, type JSX} from 'react';
-import type {SongId} from '@core/schema/ids';
+import type {SongId} from '@core/schema/common/ids';
 import {contentDeleteHistory} from '@renderer/platform/contentDeleteHistory';
 import {useUndoKeys} from '@renderer/platform/useUndoKeys';
 import {contextMenuAnchor} from '@renderer/ui/menus/contextMenu';

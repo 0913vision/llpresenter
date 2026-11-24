@@ -1,4 +1,4 @@
-import type {LayerKind, LiveLayers} from '@core/schema/live';
+import type {LayerKind, LiveLayers} from '@core/schema/live/live';
 import {liveDrawing} from './theme/drawing';
 import {ThemeView} from './theme/themeView';
 import {classes} from './classes';

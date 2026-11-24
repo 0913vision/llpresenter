@@ -1,5 +1,5 @@
 import {useMemo, type ComponentProps, type JSX} from 'react';
-import type {ServiceItem} from '@core/schema/service';
+import type {ServiceItem} from '@core/schema/services/service';
 import {useOpenService} from '@renderer/session/openService';
 import {useShow} from '@renderer/session/show';
 import type {Notice} from '@renderer/ui/popups/notices';

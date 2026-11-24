@@ -6,9 +6,9 @@ import {
   type ThemeBox,
   type ThemeFile,
   type ThemeScreen,
-} from '@core/schema/theme';
+} from '@core/schema/screens/theme';
 import {BUILT_IN_THEME_IDS} from './builtIn/ids';
-import {AUTO_TOKENS} from '@core/schema/slideContent';
+import {AUTO_TOKENS} from '@core/schema/slides/slideContent';
 import {removeElements} from './elements';
 import {templateTokens} from './template';
 import {builtInTheme} from './themes';

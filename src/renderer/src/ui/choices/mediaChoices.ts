@@ -1,4 +1,4 @@
-import type {PictureFit} from '@core/schema/picturePlace';
+import type {PictureFit} from '@core/schema/media/picturePlace';
 
 /** The names of the fits, in the order every menu of them has. */
 export const PICTURE_FIT_OPTIONS = [

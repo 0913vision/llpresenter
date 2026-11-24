@@ -8,7 +8,7 @@ import {
   withNext,
   withText,
 } from '@core/slides/edits';
-import type {Slide} from '@core/schema/slide';
+import type {Slide} from '@core/schema/slides/slide';
 import {lyricsSlide, slideId} from '@fixtures/core/slides';
 
 const slides = [1, 2, 3, 4].map(number => lyricsSlide(number, `${number}`));

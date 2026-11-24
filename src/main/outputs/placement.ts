@@ -1,4 +1,4 @@
-import {THEME_CANVAS} from '@core/schema/screens';
+import {THEME_CANVAS} from '@core/schema/screens/screens';
 import type {Monitor} from '../displays/monitor';
 import {centeredRect, type Rect, type Size} from '../displays/rect';
 import type {OutputScreen} from './screens';

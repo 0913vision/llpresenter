@@ -1,6 +1,6 @@
 import {act, fireEvent, screen, waitFor} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
-import {createQuickItemId} from '@core/schema/ids';
+import {createQuickItemId} from '@core/schema/common/ids';
 import {useLive} from '@renderer/session/live';
 import {saveQuickEdit} from '@renderer/features/quick/quickEdits';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';

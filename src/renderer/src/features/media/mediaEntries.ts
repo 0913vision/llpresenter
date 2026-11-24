@@ -1,6 +1,10 @@
-import type {AudioPlaylistId, MediaId, MediaPlaylistId} from '@core/schema/ids';
-import type {MediaDocument} from '@core/schema/mediaEdit';
-import type {MediaItem} from '@core/schema/mediaList';
+import type {
+  AudioPlaylistId,
+  MediaId,
+  MediaPlaylistId,
+} from '@core/schema/common/ids';
+import type {MediaDocument} from '@core/schema/media/mediaEdit';
+import type {MediaItem} from '@core/schema/media/mediaList';
 import type {CopyJob} from './mediaCopyJobs';
 import type {MediaLibraryView} from './mediaLibrary';
 

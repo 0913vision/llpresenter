@@ -1,4 +1,4 @@
-import {MAX_ACTIVE_PROPS} from '@core/schema/overlayState';
+import {MAX_ACTIVE_PROPS} from '@core/schema/live/overlayState';
 import {classes} from '../classes';
 import type {LayerDefinition} from '../layer';
 import {OverlayImageView} from '../overlayImage';

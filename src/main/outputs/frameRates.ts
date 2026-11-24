@@ -1,4 +1,4 @@
-import type {FrameRateReport} from '@core/schema/ipcPayloads';
+import type {FrameRateReport} from '@core/schema/app/ipcPayloads';
 import type {Logger} from '../base/log';
 
 /** The frame rate output windows aim for (docs/spec/03-output.md). */

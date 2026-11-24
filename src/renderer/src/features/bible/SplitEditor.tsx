@@ -7,7 +7,7 @@ import {
 } from '@core/bible';
 import {Dialog} from '@renderer/ui/popups/Dialog';
 import {Spinner} from '@renderer/ui/tiles/Spinner';
-import type {ThemeFile} from '@core/schema/theme';
+import type {ThemeFile} from '@core/schema/screens/theme';
 import {SplitSlidePicture} from './SplitSlidePicture';
 import {RESULTS_PER_ROW, useSplitDraft} from './useSplitDraft';
 import {useSplitSave} from './useSplitSave';

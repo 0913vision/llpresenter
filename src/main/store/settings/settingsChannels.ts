@@ -1,7 +1,7 @@
 import {settingsEndpoints} from '@contracts/ipc/settings';
-import type {EditResult} from '@core/schema/contentEdit';
-import {defaultPreferences} from '@core/schema/preferences';
-import type {LabelRename} from '@core/schema/settingsDocuments';
+import type {EditResult} from '@core/schema/services/contentEdit';
+import {defaultPreferences} from '@core/schema/app/preferences';
+import type {LabelRename} from '@core/schema/app/settingsDocuments';
 import {IpcHost} from '../../base/ipcHost';
 import type {Logger} from '../../base/log';
 import {LabelColorPreviews} from './labelColorPreviews';

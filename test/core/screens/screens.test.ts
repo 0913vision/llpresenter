@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {parseScreenId} from '@core/schema/ids';
+import {parseScreenId} from '@core/schema/common/ids';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
 
 describe('STARTER_SCREEN_IDS', () => {

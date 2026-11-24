@@ -17,7 +17,7 @@ import {
   type CommandContext,
   type CommandPriority,
 } from '@core/shortcuts';
-import type {KeyBinding} from '@core/schema/shortcuts';
+import type {KeyBinding} from '@core/schema/app/shortcuts';
 import {commandBindingStore} from './commandBindings';
 import {commitDraftBeforeShortcut} from '../fields/commitDraft';
 import {modalStack} from '../popups/modalStack';

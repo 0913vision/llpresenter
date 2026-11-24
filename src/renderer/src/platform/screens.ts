@@ -1,5 +1,5 @@
-import {NDI_DEFAULT_FPS, type Screen} from '@core/schema/screens';
-import type {MonitorList} from '@core/schema/monitors';
+import {NDI_DEFAULT_FPS, type Screen} from '@core/schema/screens/screens';
+import type {MonitorList} from '@core/schema/screens/monitors';
 import {
   monitorAssignment,
   UNASSIGNED_TARGET,

@@ -1,6 +1,6 @@
 import {withSongTitle} from '@core/slides';
-import type {EditResult} from '@core/schema/contentEdit';
-import type {SongId} from '@core/schema/ids';
+import type {EditResult} from '@core/schema/services/contentEdit';
+import type {SongId} from '@core/schema/common/ids';
 import {copyTitle, normalizeSongTitle} from '@core/songs';
 import type {LibraryApi} from './useLibrary';
 

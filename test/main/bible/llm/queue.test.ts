@@ -1,5 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
-import {BIBLE_AI_LIMITS, type BibleAiRequest} from '@core/schema/bibleAi';
+import {BIBLE_AI_LIMITS, type BibleAiRequest} from '@core/schema/bible/bibleAi';
 import {ChooserQueue} from '@main/bible/llm/queue';
 import {createChooser} from '@main/bible/llm/chooser';
 import {startMockLlm} from '@fixtures/main/llmHttp';

@@ -5,7 +5,7 @@ import type {
   ChooseLocationFailure,
   LibraryLocationField,
   LocationsView,
-} from '@core/schema/libraryLocations';
+} from '@core/schema/app/libraryLocations';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 
 const FOLDER_REFUSALS: Readonly<

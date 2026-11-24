@@ -9,7 +9,7 @@ import {
 import {join} from 'node:path';
 import {randomUUID} from 'node:crypto';
 import {BIBLE_VERSE_COUNTS} from '@core/bible';
-import {BIBLE_LOOKUP_LIMITS} from '@core/schema/bibleLookup';
+import {BIBLE_LOOKUP_LIMITS} from '@core/schema/bible/bibleLookup';
 
 const MAX_BYTES = 8_388_608;
 

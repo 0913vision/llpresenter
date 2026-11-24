@@ -1,6 +1,6 @@
 import {useScreenList} from '@renderer/platform/useScreenList';
 import {useMemo} from 'react';
-import type {KeyBinding} from '@core/schema/shortcuts';
+import type {KeyBinding} from '@core/schema/app/shortcuts';
 import type {ShortcutCommand} from '@core/shortcuts';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import type {Notice} from '@renderer/ui/popups/notices';

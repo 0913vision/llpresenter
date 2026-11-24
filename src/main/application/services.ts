@@ -1,6 +1,6 @@
 import {app, type BrowserWindow} from 'electron';
 import {join} from 'node:path';
-import {isAnyOutputOn} from '@core/schema/live';
+import {isAnyOutputOn} from '@core/schema/live/live';
 import {registerWindowLog} from '../base/windowLog';
 import {registerBible} from '../bible/register';
 import {registerBibleAi} from '../bible/registerAi';

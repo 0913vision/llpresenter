@@ -1,4 +1,4 @@
-import {THEME_CANVAS} from '@core/schema/screens';
+import {THEME_CANVAS} from '@core/schema/screens/screens';
 import {useEffect, useRef, type JSX} from 'react';
 import {pictureBounds} from '@core/screens';
 import {MirrorFeed, PREVIEW_HEIGHT, PREVIEW_WIDTH} from './mirrorFeed';

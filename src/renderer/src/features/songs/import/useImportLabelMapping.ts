@@ -1,5 +1,5 @@
 import {useCallback, useMemo, useState} from 'react';
-import type {Label} from '@core/schema/labels';
+import type {Label} from '@core/schema/services/labels';
 import {
   importHeaderKey,
   matchingImportLabel,

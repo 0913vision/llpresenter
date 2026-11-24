@@ -1,7 +1,7 @@
 import {create} from 'zustand';
 import {STARTER_SCREEN_IDS} from '@core/screens';
-import {parseScreenId} from '@core/schema/ids';
-import type {UiState} from '@core/schema/uiState';
+import {parseScreenId} from '@core/schema/common/ids';
+import type {UiState} from '@core/schema/app/uiState';
 
 // NOTE(0913vision): The screen whose preview is large at the start. The other
 // screens are small tiles.

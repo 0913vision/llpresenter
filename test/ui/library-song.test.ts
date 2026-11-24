@@ -3,7 +3,7 @@ import {mkdir, readdir, readFile, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import type {Page} from 'playwright-core';
 import {expect, it} from 'vitest';
-import {parseSong} from '@core/schema/song';
+import {parseSong} from '@core/schema/songs/song';
 import {offscreenApp} from './electron-app';
 
 const FIRST = '33000000-0000-4000-8000-000000000001';

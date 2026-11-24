@@ -1,6 +1,6 @@
 import {act, fireEvent, screen, waitFor} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
-import type {SongDocument} from '@core/schema/contentDocuments';
+import type {SongDocument} from '@core/schema/services/contentDocuments';
 import {setup} from '@fixtures/renderer/features/songs/library/libraryPanelFixtures';
 import {
   LibraryPanel,

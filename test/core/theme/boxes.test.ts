@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {THEME_FILE_LIMITS, type ThemeFile} from '@core/schema/theme';
+import {THEME_FILE_LIMITS, type ThemeFile} from '@core/schema/screens/theme';
 import {
   addBox,
   boxNameProblem,

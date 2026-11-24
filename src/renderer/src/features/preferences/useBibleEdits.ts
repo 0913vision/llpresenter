@@ -1,4 +1,4 @@
-import type {BibleFile, Translation} from '@core/schema/bible';
+import type {BibleFile, Translation} from '@core/schema/bible/bible';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {NEWER_FILE_REASON} from './usePreferenceEdits';

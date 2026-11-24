@@ -14,7 +14,7 @@ import {stageFixture} from '@fixtures/renderer/features/tools/stageTesting';
 import {TimerTab} from '@renderer/features/tools/timers/TimerTab';
 import {renderedToolMenuRows} from '@fixtures/renderer/features/tools/toolMenuTesting';
 import {deferred} from '@fixtures/renderer/features/tools/quickTesting';
-import type {EditResult} from '@core/schema/contentEdit';
+import type {EditResult} from '@core/schema/services/contentEdit';
 
 afterEach(() => {
   cleanup();

@@ -1,4 +1,4 @@
-import type {ScreenId} from '@core/schema/ids';
+import type {ScreenId} from '@core/schema/common/ids';
 import type {LayerDefinition, RenderFrame} from '../layer';
 import {stageClockText} from '../stageClock';
 import {fillTimerTokens} from '../timerTokens';

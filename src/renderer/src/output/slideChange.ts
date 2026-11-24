@@ -1,7 +1,7 @@
 import {sameJson} from '@core/common/sameJson';
 import {slideTransitionFor} from '@core/output';
-import type {LiveState} from '@core/schema/live';
-import type {SlideTransition} from '@core/schema/slideTransition';
+import type {LiveState} from '@core/schema/live/live';
+import type {SlideTransition} from '@core/schema/slides/slideTransition';
 import {CUT} from './slideSwitch';
 
 /** How a new live state reaches one output. */

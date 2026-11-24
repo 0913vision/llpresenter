@@ -1,5 +1,5 @@
 import type {LlpApi} from '@contracts/ipc/api';
-import {RENDERER_LOG_LIMITS} from '@core/schema/ipcPayloads';
+import {RENDERER_LOG_LIMITS} from '@core/schema/app/ipcPayloads';
 import {AudioPlayer} from '../rendering/audioPlayer';
 import {MainTimerClock} from '../rendering/mainTimerClock';
 import {followLiveState} from './liveFeed';
@@ -7,7 +7,7 @@ import {BackgroundAudio} from './backgroundAudio';
 import {followAudioOutput} from '../rendering/audioSink';
 import {followSettingsDocument} from '../rendering/settingsFeed';
 import {audioTimes} from '@core/media';
-import {withPreferenceDefaults} from '@core/schema/preferences';
+import {withPreferenceDefaults} from '@core/schema/app/preferences';
 import {
   followPlaybackProblems,
   setPlaybackProblem,

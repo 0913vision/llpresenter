@@ -1,5 +1,5 @@
-import type {Slide} from '@core/schema/slide';
-import {parseSong, type Song} from '@core/schema/song';
+import type {Slide} from '@core/schema/slides/slide';
+import {parseSong, type Song} from '@core/schema/songs/song';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {lyricsSlide} from '../slides';
 

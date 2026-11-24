@@ -2,7 +2,7 @@ import {cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {libraryFixture} from '@fixtures/renderer/features/songs/library/libraryFixture';
 import {LibraryList} from '@renderer/features/songs/library/LibraryList';
-import {createSongId} from '@core/schema/ids';
+import {createSongId} from '@core/schema/common/ids';
 
 beforeEach(() => {
   document.documentElement.style.setProperty('--size-row', '28px');

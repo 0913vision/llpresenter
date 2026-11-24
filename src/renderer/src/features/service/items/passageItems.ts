@@ -1,6 +1,6 @@
-import type {BibleLookupPassage} from '@core/schema/bibleLookup';
-import type {BiblePassage} from '@core/schema/biblePassage';
-import type {ServiceItemOf} from '@core/schema/service';
+import type {BibleLookupPassage} from '@core/schema/bible/bibleLookup';
+import type {BiblePassage} from '@core/schema/bible/biblePassage';
+import type {ServiceItemOf} from '@core/schema/services/service';
 import {bibleItem, sermonItem} from '@core/slides';
 import {makePassageSlides} from '@renderer/features/bible/makePassageSlides';
 import {slideMaking} from '@renderer/platform/themes';

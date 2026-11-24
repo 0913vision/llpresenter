@@ -1,5 +1,5 @@
-import type {Label} from '@core/schema/labels';
-import type {ShowService} from '@core/schema/showService';
+import type {Label} from '@core/schema/services/labels';
+import type {ShowService} from '@core/schema/services/showService';
 import type {ContentStore} from './contentStore';
 import {buildShowService} from './showService';
 

@@ -2,7 +2,7 @@ import {
   parseFontCatalog,
   type FontCatalog,
   type FontCatalogSnapshot,
-} from '@core/schema/fontCatalog';
+} from '@core/schema/screens/fontCatalog';
 import type {Logger} from '../base/log';
 import type {SavedFontCatalog} from './catalogFile';
 

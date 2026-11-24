@@ -1,6 +1,6 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import type {Result} from '@core/common/result';
-import type {Themes} from '@core/schema/themes';
+import type {Themes} from '@core/schema/screens/themes';
 import type {ThemeListProblem, ThemeListResult} from '@core/theme';
 import type {NamedDocument} from '@renderer/platform/useSettingsDocument';
 import {SettingsDocumentEditor} from '../settingsDocumentEditor';

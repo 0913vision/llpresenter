@@ -1,4 +1,4 @@
-import {parseScreenId} from '@core/schema/ids';
+import {parseScreenId} from '@core/schema/common/ids';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useMenuShortcuts} from '@renderer/ui/menus/useMenuShortcuts';
 import {sendThemeChange} from '@renderer/features/screens/themeActions';

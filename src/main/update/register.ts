@@ -1,5 +1,5 @@
 import {updateEndpoints} from '@contracts/ipc/update';
-import {isAnyOutputOn} from '@core/schema/live';
+import {isAnyOutputOn} from '@core/schema/live/live';
 import type {LiveStore} from '../live/store';
 import {IpcHost, pushToWindow, type Caller} from '../base/ipcHost';
 import type {Logger} from '../base/log';

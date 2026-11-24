@@ -1,6 +1,6 @@
 import {liveCommands} from '@fixtures/renderer/session/liveCommands';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@core/schema/live';
+import {emptyLiveState} from '@core/schema/live/live';
 import {useLive} from '@renderer/session/live';
 import {openItem, selectTile, useShow} from '@renderer/session/show';
 import {openBiblePassage} from '@renderer/features/bible/actions';

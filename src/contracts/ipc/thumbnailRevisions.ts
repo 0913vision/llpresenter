@@ -1,5 +1,5 @@
 import {thumbnailRevision} from '@core/media';
-import type {MediaItem} from '@core/schema/mediaList';
+import type {MediaItem} from '@core/schema/media/mediaList';
 import {thumbnailUrl} from './mediaUrls';
 
 // NOTE(0913vision): Every picture that draws a thumbnail knows only the media

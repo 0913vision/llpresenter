@@ -3,8 +3,8 @@ import {act, waitFor} from '@testing-library/react';
 import {expect, it, vi} from 'vitest';
 import {editorFixture} from '@fixtures/renderer/features/songs/editorFixture';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {createAppFlushRequestId} from '@core/schema/ids';
-import type {AppFlushRequest} from '@core/schema/appFlush';
+import {createAppFlushRequestId} from '@core/schema/common/ids';
+import type {AppFlushRequest} from '@core/schema/app/appFlush';
 
 const root = vi.hoisted(() => ({render: vi.fn(), unmount: vi.fn()}));
 const stops = vi.hoisted(() => ({live: vi.fn(), service: vi.fn()}));

@@ -5,11 +5,11 @@ import {
   APP_FLUSH_LIMITS,
   type AppFlushDone,
   type AppFlushRequest,
-} from '@core/schema/appFlush';
+} from '@core/schema/app/appFlush';
 import {
   createAppFlushRequestId,
   type AppFlushRequestId,
-} from '@core/schema/ids';
+} from '@core/schema/common/ids';
 import {IpcHost, pushToWindow, type Caller} from '../base/ipcHost';
 import type {Logger} from '../base/log';
 

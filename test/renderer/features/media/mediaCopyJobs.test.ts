@@ -1,6 +1,6 @@
 import {expect, it} from 'vitest';
-import {createMediaId} from '@core/schema/ids';
-import {MEDIA_LIMITS} from '@core/schema/mediaList';
+import {createMediaId} from '@core/schema/common/ids';
+import {MEDIA_LIMITS} from '@core/schema/media/mediaList';
 import {
   updateActiveCopies,
   type CopyJob,

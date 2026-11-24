@@ -6,7 +6,7 @@ import type {
   ThemeSplit,
   ThemeStack,
   ThemeTextElement,
-} from '@core/schema/theme';
+} from '@core/schema/screens/theme';
 
 export interface TextMetrics {
   readonly height: number;

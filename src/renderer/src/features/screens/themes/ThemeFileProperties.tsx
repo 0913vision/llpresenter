@@ -5,7 +5,7 @@ import {
   slidePurposes,
   type ThemeBox,
   type ThemeFile,
-} from '@core/schema/theme';
+} from '@core/schema/screens/theme';
 import {
   addBox,
   appBoxes,
@@ -16,7 +16,7 @@ import {
   themeValues,
   builtInTheme,
 } from '@core/theme';
-import {AUTO_TOKENS} from '@core/schema/slideContent';
+import {AUTO_TOKENS} from '@core/schema/slides/slideContent';
 import {Button} from '@renderer/ui/buttons/Button';
 import {IconButton} from '@renderer/ui/buttons/IconButton';
 import {

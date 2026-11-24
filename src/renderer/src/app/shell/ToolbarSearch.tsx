@@ -11,8 +11,8 @@ import {
   type KeyboardEvent,
   type RefObject,
 } from 'react';
-import type {SongId} from '@core/schema/ids';
-import type {LibrarySearchMatch} from '@core/schema/librarySearch';
+import type {SongId} from '@core/schema/common/ids';
+import type {LibrarySearchMatch} from '@core/schema/songs/librarySearch';
 import {Icon, TextField} from '@renderer/ui';
 import {isComposing} from '@renderer/ui/fields/ime';
 import {hasModifier} from '@renderer/ui/keys/modifierKeys';

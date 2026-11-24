@@ -1,12 +1,12 @@
 import {shownText} from '@fixtures/core/liveSlide';
 import {describe, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@core/schema/live';
+import {emptyLiveState} from '@core/schema/live/live';
 import {initialHistory, type LiveHistory} from '@main/live/reducer';
 import {defineSlice} from '@main/live/slice';
 import {registryOf, SliceRegistry} from '@main/live/sliceRegistry';
 import {batchSlice} from '@main/live/slices/batch';
 import {MAIN_SCREEN} from '@fixtures/core/screenIds';
-import type {SingleLiveCommand} from '@core/schema/liveCommand';
+import type {SingleLiveCommand} from '@core/schema/live/liveCommand';
 
 const fixtureSlice = defineSlice({
   commands: ['clear.undo'],

@@ -8,10 +8,10 @@ import {
 import userEvent from '@testing-library/user-event';
 import type {JSX} from 'react';
 import {beforeEach, expect, it, onTestFinished, vi} from 'vitest';
-import {translationIdSchema} from '@core/schema/ids';
-import type {ServiceItem} from '@core/schema/service';
+import {translationIdSchema} from '@core/schema/common/ids';
+import type {ServiceItem} from '@core/schema/services/service';
 import {liturgyItem, withOpeningTitle} from '@core/slides/items';
-import {defaultSlideTransitions} from '@core/schema/preferences';
+import {defaultSlideTransitions} from '@core/schema/app/preferences';
 import {BUILT_IN_THEME_IDS} from '@core/theme/builtIn/ids';
 import {
   installPassageSplitter,

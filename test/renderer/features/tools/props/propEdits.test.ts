@@ -1,9 +1,12 @@
 import {expect, it, vi} from 'vitest';
-import {parseSettingsDocument} from '@core/schema/settingsDocuments';
+import {parseSettingsDocument} from '@core/schema/app/settingsDocuments';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {deferred} from '@fixtures/renderer/features/tools/quickTesting';
-import {propReason, savePropEdit} from '@renderer/features/tools/props/propEdits';
+import {
+  propReason,
+  savePropEdit,
+} from '@renderer/features/tools/props/propEdits';
 
 const rawProp = {
   id: '00000000-0000-4000-8000-000000000001',

@@ -1,9 +1,9 @@
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import type {LlpApi} from '@contracts/ipc/api';
-import {createMediaId, type MediaId} from '@core/schema/ids';
-import type {MediaDocument} from '@core/schema/mediaEdit';
-import type {ShowService} from '@core/schema/showService';
-import type {Slide} from '@core/schema/slide';
+import {createMediaId, type MediaId} from '@core/schema/common/ids';
+import type {MediaDocument} from '@core/schema/media/mediaEdit';
+import type {ShowService} from '@core/schema/services/showService';
+import type {Slide} from '@core/schema/slides/slide';
 import {slideTiles} from '@core/slides/tiles';
 import {MediaPreloader} from '@renderer/output/mediaPreloader';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';

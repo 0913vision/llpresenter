@@ -1,6 +1,6 @@
 import type {JSX, ReactNode} from 'react';
 import type {UiApi} from '@contracts/ipc/ui';
-import type {SlidesItem} from '@core/schema/service';
+import type {SlidesItem} from '@core/schema/services/service';
 import {useLabelColors} from '@renderer/features/labels/labels';
 import {BackgroundDrop} from '@renderer/features/slides/BackgroundDrop';
 import {SlideEditor} from '@renderer/features/slides/SlideEditor';

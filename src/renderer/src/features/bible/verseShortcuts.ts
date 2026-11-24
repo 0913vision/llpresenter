@@ -1,6 +1,6 @@
 import type {VerseDirection} from '@core/bible';
-import type {BiblePassage} from '@core/schema/biblePassage';
-import type {BibleLookupPassage} from '@core/schema/bibleLookup';
+import type {BiblePassage} from '@core/schema/bible/biblePassage';
+import type {BibleLookupPassage} from '@core/schema/bible/bibleLookup';
 import {useLive} from '@renderer/session/live';
 import {outputTile, useShow} from '@renderer/session/show';
 import {

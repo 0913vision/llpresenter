@@ -2,8 +2,8 @@ import {
   createServiceItemId,
   type ServiceItemId,
   type SongId,
-} from '@core/schema/ids';
-import {hasSlides, type ServiceItem} from '@core/schema/service';
+} from '@core/schema/common/ids';
+import {hasSlides, type ServiceItem} from '@core/schema/services/service';
 import {quickAddBefore} from '@core/services';
 import {useHeaderRename} from './headerRename';
 import {insertItem, insertSong} from './serviceOrderEdits';

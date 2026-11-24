@@ -1,16 +1,16 @@
-import type {SettingsReader} from '@core/schema/settingsReader';
+import type {SettingsReader} from '@core/schema/app/settingsReader';
 import type {
   LiveCommand,
   LiveCommandType,
   SingleLiveCommand,
-} from '@core/schema/liveCommand';
-import type {LiveLayers, LiveState} from '@core/schema/live';
+} from '@core/schema/live/liveCommand';
+import type {LiveLayers, LiveState} from '@core/schema/live/live';
 import type {LiveHistory} from './history';
-import type {MacroId, MessageId, ScreenId} from '@core/schema/ids';
-import type {SlideBackground} from '@core/schema/theme';
+import type {MacroId, MessageId, ScreenId} from '@core/schema/common/ids';
+import type {SlideBackground} from '@core/schema/screens/theme';
 import type {ThemedSlide} from '@core/theme';
-import type {PayloadError} from '@core/schema/payload';
-import type {MediaList} from '@core/schema/mediaList';
+import type {PayloadError} from '@core/schema/common/payload';
+import type {MediaList} from '@core/schema/media/mediaList';
 
 export interface MacroCommandPort {
   run(

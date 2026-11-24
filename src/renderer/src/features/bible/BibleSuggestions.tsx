@@ -7,7 +7,7 @@ import {
   type JSX,
   type RefObject,
 } from 'react';
-import type {TranslationId} from '@core/schema/ids';
+import type {TranslationId} from '@core/schema/common/ids';
 import {placeFloating} from '@renderer/ui/popups/floating';
 import {Popover} from '@renderer/ui/popups/Popover';
 import {modalStack} from '@renderer/ui/popups/modalStack';

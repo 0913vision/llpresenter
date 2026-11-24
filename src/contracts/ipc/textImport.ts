@@ -9,7 +9,7 @@ import {
   type TextImportPreviewResult,
   type TextImportReadRequest,
   type TextImportReadResult,
-} from '@core/schema/textImport';
+} from '@core/schema/songs/textImport';
 import {query, request, type IpcPort} from './endpoint';
 
 /** The calls that read text into a new song. */

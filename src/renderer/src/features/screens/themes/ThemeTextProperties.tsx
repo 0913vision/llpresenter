@@ -3,12 +3,12 @@ import {
   TEXT_EFFECT_LIMITS,
   type TextOutline,
   type TextShadow,
-} from '@core/schema/textEffects';
+} from '@core/schema/slides/textEffects';
 import {
   THEME_FILE_LIMITS,
   type ThemeGroupedText,
   type ThemeTextStyle,
-} from '@core/schema/theme';
+} from '@core/schema/screens/theme';
 import {PropertyGroup, PropertyRow} from '@renderer/ui/panels/PropertyRow';
 import {SegmentedControl} from '@renderer/ui/choices/SegmentedControl';
 import {SelectMenu} from '@renderer/ui/choices/SelectMenu';

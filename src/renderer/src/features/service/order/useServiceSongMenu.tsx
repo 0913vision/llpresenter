@@ -1,12 +1,15 @@
 import {useEffect, useRef, useState} from 'react';
-import type {SongDocument, Revision} from '@core/schema/contentDocuments';
-import {isItemOfKind, type ServiceItemOf} from '@core/schema/service';
+import type {
+  SongDocument,
+  Revision,
+} from '@core/schema/services/contentDocuments';
+import {isItemOfKind, type ServiceItemOf} from '@core/schema/services/service';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {useShow} from '@renderer/session/show';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import {AlertDialog} from '@renderer/ui/popups/AlertDialog';
 import {usageMeta} from '@renderer/ui/text/usageText';
-import {createServiceId} from '@core/schema/ids';
+import {createServiceId} from '@core/schema/common/ids';
 import type {LlpApi} from '@contracts/ipc/api';
 
 interface SongMenuTarget {

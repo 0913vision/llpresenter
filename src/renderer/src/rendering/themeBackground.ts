@@ -1,4 +1,4 @@
-import type {SlideBackground} from '@core/schema/theme';
+import type {SlideBackground} from '@core/schema/screens/theme';
 import type {GradientBackground} from '@core/theme';
 
 const NOISE_SIZE = 64;

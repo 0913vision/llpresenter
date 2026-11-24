@@ -2,8 +2,11 @@ import {stat, utimes, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {makeTempDir} from '@fixtures/tempDir';
-import {createMediaId, type MediaId} from '@core/schema/ids';
-import {parseMediaDocument, type MediaDocument} from '@core/schema/mediaEdit';
+import {createMediaId, type MediaId} from '@core/schema/common/ids';
+import {
+  parseMediaDocument,
+  type MediaDocument,
+} from '@core/schema/media/mediaEdit';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {EMPTY_MEDIA_LIST} from '@main/store/settings/defaults';

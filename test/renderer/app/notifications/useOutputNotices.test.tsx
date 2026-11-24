@@ -1,7 +1,7 @@
 import {act, renderHook, waitFor} from '@testing-library/react';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LlpApi} from '@contracts/ipc/api';
-import type {OutputStatuses} from '@core/schema/outputStatus';
+import type {OutputStatuses} from '@core/schema/live/outputStatus';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {
   outputNoticeChanges,

@@ -1,6 +1,6 @@
-import {THEME_CANVAS} from '@core/schema/screens';
+import {THEME_CANVAS} from '@core/schema/screens/screens';
 import {DEFAULT_TEXT_STYLE, TEXT_EFFECTS, type TextStyle} from '@core/overlays';
-import type {ThemeTextStyle} from '@core/schema/theme';
+import type {ThemeTextStyle} from '@core/schema/screens/theme';
 import {measuredText} from './theme/measureRows';
 import {sizeRows, writeRows, type RowsText} from './theme/textRows';
 

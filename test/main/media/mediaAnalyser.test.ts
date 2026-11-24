@@ -5,7 +5,7 @@ import type {PixelSize} from '@core/common/pixelSize';
 import {
   THUMBNAIL_DATA_URL_PREFIX,
   type AnalysisJob,
-} from '@core/schema/mediaAnalysis';
+} from '@core/schema/media/mediaAnalysis';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {AnalysisFiles} from '@main/media/analysisFiles';
 import {

@@ -1,6 +1,6 @@
 import {liveSlideReason} from '@renderer/session/liveGuard';
-import type {SlideId} from '@core/schema/ids';
-import {SLIDE_LIMITS, type Slide} from '@core/schema/slide';
+import type {SlideId} from '@core/schema/common/ids';
+import {SLIDE_LIMITS, type Slide} from '@core/schema/slides/slide';
 import {
   insertSlides,
   moveSlides,

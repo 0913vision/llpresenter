@@ -1,7 +1,7 @@
 import {act, renderHook, waitFor} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
 import type {LlpApi} from '@contracts/ipc/api';
-import type {RecoveryResult, RecoverySummary} from '@core/schema/recovery';
+import type {RecoveryResult, RecoverySummary} from '@core/schema/app/recovery';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {sampleOffer} from '@fixtures/renderer/app/recovery/testing';
 import {useRecovery} from '@renderer/app/recovery/useRecovery';

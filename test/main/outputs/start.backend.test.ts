@@ -4,7 +4,7 @@ import {
   loaded,
   mocks,
 } from '@fixtures/main/outputs/startFixtures';
-import type {SettingsReader} from '@core/schema/settingsReader';
+import type {SettingsReader} from '@core/schema/app/settingsReader';
 import {describe, expect, it, vi} from 'vitest';
 import {outputEndpoints} from '@contracts/ipc/output';
 import {LiveStore} from '@main/live/store';

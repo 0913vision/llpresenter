@@ -1,6 +1,6 @@
 import {useRef} from 'react';
 import {freeName} from '@core/common/freeName';
-import type {Label} from '@core/schema/labels';
+import type {Label} from '@core/schema/services/labels';
 import type {LabelCatalog} from './labelCatalog';
 
 const NEW_LABEL_NAME = '새 이름표';

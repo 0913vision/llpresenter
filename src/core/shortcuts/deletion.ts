@@ -1,7 +1,7 @@
 import type {
   SettingsDocument,
   SettingsName,
-} from '@core/schema/settingsDocuments';
+} from '@core/schema/app/settingsDocuments';
 
 function objectCommands(document: SettingsDocument): readonly string[] {
   switch (document.name) {

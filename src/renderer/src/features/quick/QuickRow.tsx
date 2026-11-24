@@ -1,13 +1,13 @@
 import type {JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import {displayReference, parseReference} from '@core/bible';
-import type {LiveState} from '@core/schema/live';
+import type {LiveState} from '@core/schema/live/live';
 import {
   isKnownQuickItem,
   type KnownQuickItem,
   type QuickItem,
   type QuickItemKind,
-} from '@core/schema/quick';
+} from '@core/schema/tools/quick';
 import {ListActionRow} from '@renderer/ui';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {TimerValue} from '../tools/timers/TimerValue';

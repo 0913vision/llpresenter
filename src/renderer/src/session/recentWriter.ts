@@ -1,6 +1,6 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import {rememberPassage} from '@core/bible';
-import type {RecentPassage} from '@core/schema/bible';
+import type {RecentPassage} from '@core/schema/bible/bible';
 
 const SAVE_ATTEMPTS = 2;
 let owner: LlpApi['settings'] | undefined;

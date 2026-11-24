@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {genesisPassage} from '@fixtures/core/passage';
-import {defaultSlideTransitions} from '@core/schema/preferences';
-import type {Slide} from '@core/schema/slide';
+import {defaultSlideTransitions} from '@core/schema/app/preferences';
+import type {Slide} from '@core/schema/slides/slide';
 import {passageSlides} from '@core/slides/passageSlides';
 
 const making = {themes: null, transitions: defaultSlideTransitions};

@@ -8,8 +8,8 @@ import {
   waitFor,
 } from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {emptyLiveState} from '@core/schema/live';
-import type {BibleLookupReply} from '@core/schema/bibleLookup';
+import {emptyLiveState} from '@core/schema/live/live';
+import type {BibleLookupReply} from '@core/schema/bible/bibleLookup';
 import {
   openItem,
   outputTile,

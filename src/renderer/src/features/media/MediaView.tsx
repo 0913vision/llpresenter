@@ -3,7 +3,7 @@ import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useMemo, type JSX} from 'react';
 import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import {mediaLoops} from '@core/media';
-import {type MediaItem, MEDIA_LIMITS} from '@core/schema/mediaList';
+import {type MediaItem, MEDIA_LIMITS} from '@core/schema/media/mediaList';
 import {RenameDialog} from '@renderer/ui/popups/RenameDialog';
 import {useLive} from '@renderer/session/live';
 import {

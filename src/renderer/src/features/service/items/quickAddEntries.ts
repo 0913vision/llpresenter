@@ -1,6 +1,6 @@
-import type {MediaId} from '@core/schema/ids';
-import type {MediaItem} from '@core/schema/mediaList';
-import type {ServiceItem} from '@core/schema/service';
+import type {MediaId} from '@core/schema/common/ids';
+import type {MediaItem} from '@core/schema/media/mediaList';
+import type {ServiceItem} from '@core/schema/services/service';
 import {mediaName} from '@renderer/features/media/mediaEntries';
 import {mediaAddAvailability} from '@renderer/platform/mediaAddAvailability';
 import type {MenuEntry} from '@renderer/ui/menus/menuModel';

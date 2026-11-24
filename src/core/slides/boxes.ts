@@ -1,7 +1,7 @@
-import type {ShowTile} from '@core/schema/showService';
-import type {Slide} from '@core/schema/slide';
-import {AUTO_TOKENS} from '@core/schema/slideContent';
-import type {ThemeFile} from '@core/schema/theme';
+import type {ShowTile} from '@core/schema/services/showService';
+import type {Slide} from '@core/schema/slides/slide';
+import {AUTO_TOKENS} from '@core/schema/slides/slideContent';
+import type {ThemeFile} from '@core/schema/screens/theme';
 import {contentValues, nextPhraseOf} from '@core/theme';
 import {hymnAt, isTitleOf} from '@core/hymns';
 import {withHymn, withNext, withText} from './edits';

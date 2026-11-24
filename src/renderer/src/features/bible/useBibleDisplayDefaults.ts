@@ -1,7 +1,7 @@
 import {useEffect, useState} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {BibleDisplay} from '@renderer/session/bibleSource';
-import type {Preferences} from '@core/schema/preferences';
+import type {Preferences} from '@core/schema/app/preferences';
 
 /**
  * Follows the Bible defaults for a new passage without

@@ -1,6 +1,6 @@
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {parseLiveCommand} from '@core/schema/liveCommand';
+import {parseLiveCommand} from '@core/schema/live/liveCommand';
 import {timerText} from '@core/timers/timerClock';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {startOverlays} from '@main/live/overlays';

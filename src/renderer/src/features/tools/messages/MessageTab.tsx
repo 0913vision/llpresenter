@@ -7,8 +7,8 @@ import {
   type SetStateAction,
   type JSX,
 } from 'react';
-import type {MessageTemplate} from '@core/schema/messages';
-import type {Screen} from '@core/schema/screens';
+import type {MessageTemplate} from '@core/schema/tools/messages';
+import type {Screen} from '@core/schema/screens/screens';
 import {
   messageBlankNames,
   MAX_MESSAGE_CHARACTERS,

@@ -1,4 +1,4 @@
-import type {MediaId} from '@core/schema/ids';
+import type {MediaId} from '@core/schema/common/ids';
 import {
   parseMediaDocument,
   parseMediaEdit,
@@ -13,13 +13,13 @@ import {
   type MediaImportProgress,
   type MediaImportRequest,
   type MediaImportResult,
-} from '@core/schema/mediaEdit';
+} from '@core/schema/media/mediaEdit';
 import {
   parseMediaUses,
   parseMediaUsesRequest,
   type MediaUses,
   type MediaUsesRequest,
-} from '@core/schema/mediaUses';
+} from '@core/schema/media/mediaUses';
 import {
   parseMediaCheckRequest,
   parseMediaRevealRequest,
@@ -27,7 +27,7 @@ import {
   parseMissingMedia,
   type MediaStamps,
   type MissingMedia,
-} from '@core/schema/mediaFiles';
+} from '@core/schema/media/mediaFiles';
 import {
   message,
   push,

@@ -1,5 +1,5 @@
 import {appEndpoints} from '@contracts/ipc/app';
-import {APP_PROBLEM_LIMITS, type AppProblem} from '@core/schema/appProblem';
+import {APP_PROBLEM_LIMITS, type AppProblem} from '@core/schema/app/appProblem';
 import {IpcHost} from './ipcHost';
 import type {Logger} from './log';
 

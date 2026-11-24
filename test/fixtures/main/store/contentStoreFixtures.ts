@@ -1,15 +1,15 @@
 import {lyricsSlide} from '@fixtures/core/slides';
 import type {Result} from '@core/common/result';
-import type {ContentEdit} from '@core/schema/contentEdit';
-import type {FileError, LoadedFile} from '@core/schema/fileFormat';
-import {parseSong} from '@core/schema/song';
+import type {ContentEdit} from '@core/schema/services/contentEdit';
+import type {FileError, LoadedFile} from '@core/schema/common/fileFormat';
+import {parseSong} from '@core/schema/songs/song';
 import {
   serviceIdSchema,
   songIdSchema,
   templateIdSchema,
-} from '@core/schema/ids';
-import {parseService, parseTemplate} from '@core/schema/service';
-import {parseSettingsDocument} from '@core/schema/settingsDocuments';
+} from '@core/schema/common/ids';
+import {parseService, parseTemplate} from '@core/schema/services/service';
+import {parseSettingsDocument} from '@core/schema/app/settingsDocuments';
 import {testId} from '@fixtures/core/schema/testHelpers';
 import {join, resolve} from 'node:path';
 import {onTestFinished, vi} from 'vitest';

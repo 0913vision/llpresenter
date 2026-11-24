@@ -1,8 +1,8 @@
-import {createPropId} from '@core/schema/ids';
+import {createPropId} from '@core/schema/common/ids';
 import {describe, expect, it, vi} from 'vitest';
-import type {SingleLiveCommand} from '@core/schema/liveCommand';
-import {emptyLiveState} from '@core/schema/live';
-import type {SettingsReader} from '@core/schema/settingsReader';
+import type {SingleLiveCommand} from '@core/schema/live/liveCommand';
+import {emptyLiveState} from '@core/schema/live/live';
+import type {SettingsReader} from '@core/schema/app/settingsReader';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {overlaySettings} from '@fixtures/core/overlays';
 import {recordingLogger} from '@fixtures/main/displays/testing';

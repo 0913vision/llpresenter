@@ -1,12 +1,12 @@
 import type {Result} from '@core/common/result';
-import type {EditFailure, EditSuccess} from '@core/schema/contentEdit';
-import {isKnownQuickItem} from '@core/schema/quick';
+import type {EditFailure, EditSuccess} from '@core/schema/services/contentEdit';
+import {isKnownQuickItem} from '@core/schema/tools/quick';
 import {
   parseSettingsDocument,
   type SettingsDocument,
   type SettingsName,
-} from '@core/schema/settingsDocuments';
-import type {TimerDelete} from '@core/schema/timerDeletion';
+} from '@core/schema/app/settingsDocuments';
+import type {TimerDelete} from '@core/schema/tools/timerDeletion';
 
 interface PreparedDeletion {
   readonly documents: readonly SettingsDocument[];

@@ -1,5 +1,5 @@
-import type {Slide} from '@core/schema/slide';
-import type {SlideBackground} from '@core/schema/theme';
+import type {Slide} from '@core/schema/slides/slide';
+import type {SlideBackground} from '@core/schema/screens/theme';
 import {gradientNamed} from '@core/theme';
 import {makeSlide, type SlideMaking} from './make';
 

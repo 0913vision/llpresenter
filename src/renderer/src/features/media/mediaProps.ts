@@ -1,5 +1,5 @@
-import type {MediaItem} from '@core/schema/mediaList';
-import type {PicturePlace} from '@core/schema/picturePlace';
+import type {MediaItem} from '@core/schema/media/mediaList';
+import type {PicturePlace} from '@core/schema/media/picturePlace';
 
 /** A media item's playback properties as stored. */
 export type MediaProps = NonNullable<MediaItem['props']>;

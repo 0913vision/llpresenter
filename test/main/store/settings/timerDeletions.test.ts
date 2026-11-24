@@ -4,9 +4,9 @@ import {
   parseSettingsEdit,
   type SettingsDocument,
   type SettingsName,
-} from '@core/schema/settingsDocuments';
+} from '@core/schema/app/settingsDocuments';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
-import {createTimerId} from '@core/schema/ids';
+import {createTimerId} from '@core/schema/common/ids';
 import {prepareTimerDeletion} from '@main/store/settings/timerDeletions';
 
 const id = (n: number) =>

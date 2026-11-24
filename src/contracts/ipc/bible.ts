@@ -3,7 +3,7 @@ import {
   parseBibleLookupRequest,
   type BibleLookupReply,
   type BibleLookupRequest,
-} from '@core/schema/bibleLookup';
+} from '@core/schema/bible/bibleLookup';
 import {
   parseBibleAiRequest,
   parseBibleAiCancel,
@@ -11,7 +11,7 @@ import {
   parseBibleAiIndex,
   parseBibleAiState,
   type BibleAiRequest,
-} from '@core/schema/bibleAi';
+} from '@core/schema/bible/bibleAi';
 import {push, query, request, type IpcPort} from './endpoint';
 
 /** The Bible calls between windows and main. */

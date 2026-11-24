@@ -1,5 +1,5 @@
-import {createMediaId} from '@core/schema/ids';
-import {parseMediaDocument} from '@core/schema/mediaEdit';
+import {createMediaId} from '@core/schema/common/ids';
+import {parseMediaDocument} from '@core/schema/media/mediaEdit';
 
 /** Three invented media ids: two pictures and an audio file. */
 export const fixtureMedia = {

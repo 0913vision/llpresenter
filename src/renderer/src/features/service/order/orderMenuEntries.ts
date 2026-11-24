@@ -1,7 +1,7 @@
 import {liveItemReason} from '@renderer/session/liveGuard';
 import type {ServiceRow} from '@core/presentation';
 import {orderedSelection} from '@core/common/selectionOrder';
-import type {SongId} from '@core/schema/ids';
+import type {SongId} from '@core/schema/common/ids';
 import {editorTask} from '@renderer/platform/editorTask';
 import type {MenuAnchor} from '@renderer/ui/menus/Menu';
 import type {MenuEntry} from '@renderer/ui/menus/menuModel';

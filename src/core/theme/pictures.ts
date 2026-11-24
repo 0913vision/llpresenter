@@ -1,4 +1,4 @@
-import {createMediaId, type MediaId} from '@core/schema/ids';
+import {createMediaId, type MediaId} from '@core/schema/common/ids';
 
 /** A picture that comes with the app. */
 export interface ThemePicture {

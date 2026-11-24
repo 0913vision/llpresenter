@@ -11,7 +11,7 @@ import {
 import {afterEach, expect, it, vi} from 'vitest';
 import {stageFixture} from '@fixtures/renderer/features/tools/stageTesting';
 import {TimerTab} from '@renderer/features/tools/timers/TimerTab';
-import {MAX_LIVE_TIMERS} from '@core/schema/timerState';
+import {MAX_LIVE_TIMERS} from '@core/schema/tools/timerState';
 import {resetTooltips} from '@fixtures/renderer/ui/tooltipTesting';
 
 afterEach(() => {

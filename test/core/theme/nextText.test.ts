@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {BUILT_IN_THEMES} from '@core/theme/builtIn';
 import {nextTextOf} from '@core/theme/content';
-import type {SlideContent} from '@core/schema/slideContent';
+import type {SlideContent} from '@core/schema/slides/slideContent';
 
 function next(name: string, content: Partial<SlideContent>): string | null {
   const theme = BUILT_IN_THEMES.find(entry => entry.name === name);

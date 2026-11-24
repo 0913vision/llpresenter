@@ -7,9 +7,13 @@ import {
   type SongDocument,
   type TemplateDocument,
   type TemplateEntry,
-} from '@core/schema/contentDocuments';
-import {isItemOfKind, type Service, type Template} from '@core/schema/service';
-import type {Song} from '@core/schema/song';
+} from '@core/schema/services/contentDocuments';
+import {
+  isItemOfKind,
+  type Service,
+  type Template,
+} from '@core/schema/services/service';
+import type {Song} from '@core/schema/songs/song';
 import type {StoredDocument} from '../files/documents';
 
 const TITLES = new Intl.Collator('ko', {numeric: true});

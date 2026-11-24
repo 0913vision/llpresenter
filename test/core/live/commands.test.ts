@@ -4,7 +4,7 @@ import {interruptsSongOutput} from '@core/live/interruptsSongOutput';
 import {
   type SingleLiveCommand,
   parseLiveCommand,
-} from '@core/schema/liveCommand';
+} from '@core/schema/live/liveCommand';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {MAIN_SCREEN} from '@fixtures/core/screenIds';
 

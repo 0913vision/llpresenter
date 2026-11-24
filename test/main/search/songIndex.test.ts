@@ -1,12 +1,12 @@
 import {lyricsSlide} from '@fixtures/core/slides';
 import {setImmediate} from 'node:timers/promises';
 import {describe, expect, it} from 'vitest';
-import {createSongId} from '@core/schema/ids';
+import {createSongId} from '@core/schema/common/ids';
 import {
   LIBRARY_SEARCH_LIMITS,
   parseLibrarySearchResult,
-} from '@core/schema/librarySearch';
-import type {Song} from '@core/schema/song';
+} from '@core/schema/songs/librarySearch';
+import type {Song} from '@core/schema/songs/song';
 import {buildSongSearchIndex} from '@main/search/songIndex';
 
 function song(

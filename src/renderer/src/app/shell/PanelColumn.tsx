@@ -1,6 +1,6 @@
 import {Fragment, useRef, useState} from 'react';
 import {PreviewSizingContext} from '@renderer/ui/previews/PreviewSizingContext';
-import type {PanelRowId} from '@core/schema/panelRows';
+import type {PanelRowId} from '@core/schema/app/panelRows';
 import {ResizeGap} from '@renderer/ui/panels/ResizeGap';
 import {useRowLayout} from '@renderer/ui/lists/useRowLayout';
 import {

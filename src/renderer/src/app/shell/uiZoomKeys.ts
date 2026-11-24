@@ -1,4 +1,4 @@
-import type {UiZoomCommand} from '@core/schema/uiZoom';
+import type {UiZoomCommand} from '@core/schema/app/uiZoom';
 import {
   dispatchShortcut,
   type WindowShortcut,

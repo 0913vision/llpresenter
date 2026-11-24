@@ -3,8 +3,8 @@ import {
   emptyLiveState,
   type LiveState,
   type MediaLayer,
-} from '@core/schema/live';
-import type {MediaProgress} from '@core/schema/mediaProgress';
+} from '@core/schema/live/live';
+import type {MediaProgress} from '@core/schema/media/mediaProgress';
 import {installMockClock} from '@fixtures/mockClock';
 import {startMediaProgress} from '@main/live/mediaProgress';
 import type {LiveStore} from '@main/live/store';

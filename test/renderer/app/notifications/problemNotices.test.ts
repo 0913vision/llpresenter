@@ -1,7 +1,7 @@
 import {expect, it, vi} from 'vitest';
-import {parseMacroId} from '@core/schema/ids';
+import {parseMacroId} from '@core/schema/common/ids';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
-import {saveFailedProblem} from '@core/schema/appProblem';
+import {saveFailedProblem} from '@core/schema/app/appProblem';
 import {
   backupFailedCard,
   controlReloadedCard,

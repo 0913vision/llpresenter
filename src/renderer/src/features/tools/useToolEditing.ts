@@ -6,9 +6,9 @@ import {
   useSyncExternalStore,
 } from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
-import type {EditResult} from '@core/schema/contentEdit';
+import type {EditResult} from '@core/schema/services/contentEdit';
 import {noticeTime, type Notice} from '@renderer/ui/popups/notices';
-import type {SettingsName} from '@core/schema/settingsDocuments';
+import type {SettingsName} from '@core/schema/app/settingsDocuments';
 import {settingsDeleteHistory} from '@renderer/platform/settingsDeleteHistory';
 
 const emptyHistory = {undo: 0, redo: 0, busy: false};

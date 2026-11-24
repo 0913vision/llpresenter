@@ -1,4 +1,4 @@
-import type {MonitorInfo, MonitorList} from '@core/schema/monitors';
+import type {MonitorInfo, MonitorList} from '@core/schema/screens/monitors';
 
 /**
  * The monitor each full screen output uses, as main placed it. The panel shows

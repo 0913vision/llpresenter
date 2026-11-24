@@ -2,7 +2,7 @@ import {powerpointEndpoints} from '@contracts/ipc/powerpoint';
 import type {
   PowerPointOwnedImagesRequest,
   PowerPointOwnedImagesResult,
-} from '@core/schema/powerpointImport';
+} from '@core/schema/songs/powerpointImport';
 import {IpcHost, pushToWindow, type Caller} from '../base/ipcHost';
 import type {Logger} from '../base/log';
 import {PowerPointExports, type ExportListener} from './powerpointExports';

@@ -1,4 +1,7 @@
-import type {KnownMacroAction, MacroActionKind} from '@core/schema/macros';
+import type {
+  KnownMacroAction,
+  MacroActionKind,
+} from '@core/schema/tools/macros';
 import type {ActionContext, ActionResolution, MacroActionOf} from './types';
 
 interface ActionDefinition<TKind extends MacroActionKind> {

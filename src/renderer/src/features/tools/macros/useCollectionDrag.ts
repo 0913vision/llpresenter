@@ -1,6 +1,6 @@
 import {useRef, useState, type DragEvent} from 'react';
 import {isUnchangedSelectionMove} from '@core/common/selectionOrder';
-import type {MacroCollection} from '@core/schema/macros';
+import type {MacroCollection} from '@core/schema/tools/macros';
 import type {CollectionRowDrag} from './MacroCollectionRow';
 
 const DRAG_MIME = 'application/x-llpresenter-macro-collection';

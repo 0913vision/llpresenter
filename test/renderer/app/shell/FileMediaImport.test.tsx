@@ -1,7 +1,7 @@
 import {act, cleanup, renderHook, waitFor} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
-import type {MediaImportProgress} from '@core/schema/mediaEdit';
-import {createMediaId} from '@core/schema/ids';
+import type {MediaImportProgress} from '@core/schema/media/mediaEdit';
+import {createMediaId} from '@core/schema/common/ids';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {
   REPORTED_FAILURES_LIMIT,

@@ -1,10 +1,10 @@
-import type {SettingsReader} from '@core/schema/settingsReader';
+import type {SettingsReader} from '@core/schema/app/settingsReader';
 import {randomUUID} from 'node:crypto';
 import {dialog, shell, type BrowserWindow} from 'electron';
 import {mediaEndpoints} from '@contracts/ipc/media';
-import {createMediaId} from '@core/schema/ids';
-import {defaultPreferences} from '@core/schema/preferences';
-import type {MediaImportProgress} from '@core/schema/mediaEdit';
+import {createMediaId} from '@core/schema/common/ids';
+import {defaultPreferences} from '@core/schema/app/preferences';
+import type {MediaImportProgress} from '@core/schema/media/mediaEdit';
 import {IpcHost} from '../base/ipcHost';
 import type {Logger} from '../base/log';
 import type {MediaBackendPort} from '../store/media/mediaBackend';

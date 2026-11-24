@@ -1,6 +1,6 @@
 import {sameVerse} from '@core/slides';
-import type {SlideLayer} from '@core/schema/live';
-import type {ShowLibrarySong} from '@core/schema/showLibrarySong';
+import type {SlideLayer} from '@core/schema/live/live';
+import type {ShowLibrarySong} from '@core/schema/songs/showLibrarySong';
 import type {ItemId, SlideTile, TileCursor} from '@core/presentation';
 import type {BibleSource} from './bibleSource';
 import {useLive} from './live';

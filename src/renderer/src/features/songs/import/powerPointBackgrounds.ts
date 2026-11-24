@@ -1,6 +1,6 @@
 import type {LlpApi} from '@contracts/ipc/api';
-import type {MediaId} from '@core/schema/ids';
-import type {PowerPointSource} from '@core/schema/powerpointImport';
+import type {MediaId} from '@core/schema/common/ids';
+import type {PowerPointSource} from '@core/schema/songs/powerpointImport';
 import {lendPreviewImage} from '@renderer/rendering/previewMedia';
 
 /** Most pictures of one request to the main process. */

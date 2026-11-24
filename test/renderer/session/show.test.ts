@@ -1,8 +1,8 @@
 import {afterEach, beforeEach, describe, expect, it} from 'vitest';
-import type {LiveCommand} from '@core/schema/liveCommand';
-import {emptyLiveState, type SlideLayer} from '@core/schema/live';
-import type {ShowService} from '@core/schema/showService';
-import type {Slide} from '@core/schema/slide';
+import type {LiveCommand} from '@core/schema/live/liveCommand';
+import {emptyLiveState, type SlideLayer} from '@core/schema/live/live';
+import type {ShowService} from '@core/schema/services/showService';
+import type {Slide} from '@core/schema/slides/slide';
 import {slideTiles} from '@core/slides/tiles';
 import {useThemes} from '@renderer/platform/themes';
 import {useLive} from '@renderer/session/live';

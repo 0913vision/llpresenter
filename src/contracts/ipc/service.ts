@@ -3,8 +3,11 @@ import {
   parseServiceOpenRequest,
   type ServiceOpenRequest,
   type ServiceOpenResult,
-} from '@core/schema/serviceOpen';
-import {parseShowService, type ShowService} from '@core/schema/showService';
+} from '@core/schema/services/serviceOpen';
+import {
+  parseShowService,
+  type ShowService,
+} from '@core/schema/services/showService';
 import {push, query, request, type IpcPort} from './endpoint';
 
 /** The calls about the open 예배 순서 as 진행 shows it. */

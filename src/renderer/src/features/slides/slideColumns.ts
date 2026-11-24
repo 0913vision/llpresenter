@@ -1,7 +1,7 @@
 import {create} from 'zustand';
-import type {SlideColumns} from '@core/schema/slideColumns';
-import type {ThemeFile} from '@core/schema/theme';
-import type {UiState} from '@core/schema/uiState';
+import type {SlideColumns} from '@core/schema/slides/slideColumns';
+import type {ThemeFile} from '@core/schema/screens/theme';
+import type {UiState} from '@core/schema/app/uiState';
 import {boxesOf, fillsItself} from '@core/slides';
 
 const useColumns = create<{readonly columns: SlideColumns}>(() => ({

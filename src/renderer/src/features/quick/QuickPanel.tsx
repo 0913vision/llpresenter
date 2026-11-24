@@ -1,6 +1,6 @@
 import {useReflow} from '@renderer/ui/panels/useReflow';
 import {useMemo, useState, type JSX} from 'react';
-import type {QuickItem} from '@core/schema/quick';
+import type {QuickItem} from '@core/schema/tools/quick';
 import {
   useSettingsDocument,
   type NamedDocument,
@@ -24,7 +24,7 @@ import styles from './QuickPanel.module.css';
 import {duplicateQuickItem, QuickAdd, quickCopyReason} from './QuickEditing';
 import {QuickRow, type QuickRowContext} from './QuickRow';
 import {useDuplicateShortcut} from '../tools/useDuplicateShortcut';
-import {MAX_TIMER_DEFINITIONS} from '@core/schema/timers';
+import {MAX_TIMER_DEFINITIONS} from '@core/schema/tools/timers';
 import {MAX_QUICK_ITEMS, type QuickEdit} from './quickEdits';
 import {useQuickEditing} from './useQuickEditing';
 import {useQuickReorder} from './useQuickReorder';

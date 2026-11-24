@@ -1,5 +1,5 @@
-import type {TimerId} from '@core/schema/ids';
-import {MAX_LIVE_TIMERS, type TimerRun} from '@core/schema/timerState';
+import type {TimerId} from '@core/schema/common/ids';
+import {MAX_LIVE_TIMERS, type TimerRun} from '@core/schema/tools/timerState';
 import {
   countedMs,
   countdownRemainingMs,

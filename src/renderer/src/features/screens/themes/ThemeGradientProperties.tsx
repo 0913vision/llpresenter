@@ -1,5 +1,5 @@
 import {useState, type JSX} from 'react';
-import {THEME_FILE_LIMITS} from '@core/schema/theme';
+import {THEME_FILE_LIMITS} from '@core/schema/screens/theme';
 import {
   addGradientStop,
   moveGradientStop,

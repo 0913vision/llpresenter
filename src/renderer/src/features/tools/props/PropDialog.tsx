@@ -1,9 +1,9 @@
 import {useState, type JSX} from 'react';
-import {createPropId} from '@core/schema/ids';
-import type {MediaItem} from '@core/schema/mediaList';
-import type {Prop} from '@core/schema/props';
-import {isLyricTextColor} from '@core/schema/textStyle';
-import type {Screen} from '@core/schema/screens';
+import {createPropId} from '@core/schema/common/ids';
+import type {MediaItem} from '@core/schema/media/mediaList';
+import type {Prop} from '@core/schema/tools/props';
+import {isLyricTextColor} from '@core/schema/slides/textStyle';
+import type {Screen} from '@core/schema/screens/screens';
 import {
   Dialog,
   Properties,
@@ -13,7 +13,7 @@ import {
   TextArea,
   TextField,
 } from '@renderer/ui';
-import {NAME_LIMIT} from '@core/schema/primitives';
+import {NAME_LIMIT} from '@core/schema/common/primitives';
 import {propReason} from './propEdits';
 import {ScreenTargetsRow} from '../ScreenTargetsRow';
 

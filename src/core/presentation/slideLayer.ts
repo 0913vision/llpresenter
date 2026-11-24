@@ -1,6 +1,6 @@
-import type {SlideLayer, SlidePeer} from '@core/schema/live';
-import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
-import type {ThemeFile} from '@core/schema/theme';
+import type {SlideLayer, SlidePeer} from '@core/schema/live/live';
+import {LIVE_STATE_LIMITS} from '@core/schema/live/liveLimits';
+import type {ThemeFile} from '@core/schema/screens/theme';
 import {nextTextOf} from '@core/theme';
 import {hidesNext, tileContent} from '@core/slides';
 import type {SlideTile, TileCursor} from './model';

@@ -1,4 +1,7 @@
-import {NDI_DEFAULT_SOURCE_NAME, NDI_DEFAULT_FPS} from '@core/schema/screens';
+import {
+  NDI_DEFAULT_SOURCE_NAME,
+  NDI_DEFAULT_FPS,
+} from '@core/schema/screens/screens';
 import {
   app,
   utilityProcess,
@@ -6,7 +9,7 @@ import {
   type OffscreenSharedTexture,
 } from 'electron';
 import {join} from 'node:path';
-import type {OutputScreenStatus} from '@core/schema/outputStatus';
+import type {OutputScreenStatus} from '@core/schema/live/outputStatus';
 import type {Logger} from '../../base/log';
 import type {OutputScreen} from '../screens';
 import type {BitmapSender} from './output';

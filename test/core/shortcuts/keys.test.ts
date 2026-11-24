@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {serializeShortcuts} from '@core/schema/shortcuts';
+import {serializeShortcuts} from '@core/schema/app/shortcuts';
 import {shortcutNames, shortcutPress} from '@core/shortcuts/keys';
 import type {PhysicalKeyPress} from '@core/shortcuts/matching';
 

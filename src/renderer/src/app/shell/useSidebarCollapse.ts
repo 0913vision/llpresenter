@@ -1,6 +1,6 @@
 import {useCallback, useState} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
-import type {UiState} from '@core/schema/uiState';
+import type {UiState} from '@core/schema/app/uiState';
 import type {SizeClass} from '../../ui/panels/sizeClass';
 
 // NOTE(0913vision): Spec 04 and spec 10 add 사이드바 접기 to narrow windows

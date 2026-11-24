@@ -6,7 +6,7 @@ import {
   STAGE_SCREEN,
 } from '@fixtures/core/screenIds';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {emptyLiveState} from '@core/schema/live';
+import {emptyLiveState} from '@core/schema/live/live';
 import {renderWithScreenSummaries as render} from '@fixtures/renderer/platform/screenSummaries';
 import {PreviewPanel} from '@renderer/features/presentation/PreviewPanel';
 import {usePreview} from '@renderer/session/preview';

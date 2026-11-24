@@ -1,4 +1,4 @@
-import type {MacroActionKind} from '@core/schema/macros';
+import type {MacroActionKind} from '@core/schema/tools/macros';
 import type {MacroActionDescriptor} from '@renderer/platform/macroActionDescriptor';
 import {MEDIA_MACRO_ACTIONS} from '@renderer/features/media/macroActions';
 import {SCREEN_MACRO_ACTIONS} from '@renderer/features/screens/macroActions';

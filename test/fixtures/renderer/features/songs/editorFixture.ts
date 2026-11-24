@@ -1,22 +1,22 @@
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {createSongId} from '@core/schema/ids';
+import {createSongId} from '@core/schema/common/ids';
 import {
   parseSongDocument,
   type SongChange,
   type LibrarySong,
   type SongDocument,
-} from '@core/schema/contentDocuments';
+} from '@core/schema/services/contentDocuments';
 import {
   parseSettingsDocument,
   type SettingsDocument,
   type SettingsEdit,
-} from '@core/schema/settingsDocuments';
-import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
+} from '@core/schema/app/settingsDocuments';
+import type {ContentEdit, EditResult} from '@core/schema/services/contentEdit';
 import {lyricsSlide} from '@fixtures/core/slides';
 import {screensDocument} from '@fixtures/core/screenDocuments';
 import {themesDocument} from '@fixtures/core/themeOutput';
-import type {LabelColorPreview} from '@core/schema/labelColorPreview';
-import {defaultPreferences} from '@core/schema/preferences';
+import type {LabelColorPreview} from '@core/schema/services/labelColorPreview';
+import {defaultPreferences} from '@core/schema/app/preferences';
 
 /** An invented song. */
 export function editorSong(

@@ -5,7 +5,7 @@ import {
   type CSSProperties,
   type JSX,
 } from 'react';
-import type {ShowTile} from '@core/schema/showService';
+import type {ShowTile} from '@core/schema/services/showService';
 import {TilePicture, tileProps} from '@renderer/pictures/TilePicture';
 import {SlideThumbnail} from '@renderer/ui/tiles/SlideThumbnail';
 import styles from './SlidePreviewGrid.module.css';

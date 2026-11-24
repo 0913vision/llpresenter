@@ -1,7 +1,7 @@
 import {NOT_IN_THIS_WINDOW} from '@renderer/platform/problemReasons';
-import type {ThemeId} from '@core/schema/ids';
-import type {ThemeFile} from '@core/schema/theme';
-import type {Themes} from '@core/schema/themes';
+import type {ThemeId} from '@core/schema/common/ids';
+import type {ThemeFile} from '@core/schema/screens/theme';
+import type {Themes} from '@core/schema/screens/themes';
 import {menuAvailability, type MenuEntry} from '@renderer/ui/menus/menuModel';
 import {menuSeparator} from '@renderer/ui/menus/menuRows';
 

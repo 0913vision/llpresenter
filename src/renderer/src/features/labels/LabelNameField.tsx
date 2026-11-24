@@ -1,6 +1,6 @@
 import {useEffect, useRef, useState, type JSX} from 'react';
 import {useRenameDraft} from '@renderer/ui/fields/useRenameDraft';
-import type {Label} from '@core/schema/labels';
+import type {Label} from '@core/schema/services/labels';
 import {TextField} from '@renderer/ui/fields/TextField';
 import {isComposing} from '@renderer/ui/fields/ime';
 import {hasModifier} from '@renderer/ui/keys/modifierKeys';

@@ -1,6 +1,6 @@
 import {withLiveBible} from '@core/bible';
 import {useState, type JSX} from 'react';
-import type {TranslationId} from '@core/schema/ids';
+import type {TranslationId} from '@core/schema/common/ids';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {withinLookupTimeout} from '@renderer/session/showOutput';
 import {CheckRow} from '@renderer/ui/choices/Checkbox';

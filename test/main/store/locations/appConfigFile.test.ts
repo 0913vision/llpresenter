@@ -6,7 +6,7 @@ import {
   createScreenId,
   macroCollectionIdSchema,
   serviceIdSchema,
-} from '@core/schema/ids';
+} from '@core/schema/common/ids';
 import {testId} from '@fixtures/core/schema/testHelpers';
 import {makeTempDir} from '@fixtures/tempDir';
 import type {Logger} from '@main/base/log';
