@@ -1,48 +1,33 @@
-import {useShownItemId} from '@renderer/session/shownItem';
-import {dropMediaInOrder} from './dropMediaInOrder';
-import {insertLibrarySong} from '@renderer/session/insertNewItem';
-import {usePaletteInsert} from '../items/usePaletteInsert';
-import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
-import {useReflow} from '@renderer/ui/useReflow';
-import {useOrderFull} from '@renderer/session/orderReasons';
-import {
-  moveItems as moveOrderItems,
-  renameItem as renameOrderItem,
-} from '@renderer/session/serviceOrderEdits';
-import {openInPrep} from '@renderer/session/prepTarget';
-import {EmptyState} from '@renderer/ui/EmptyState';
-import {NoServiceState} from './NoServiceState';
-import {useServiceActions} from '@renderer/features/service/list/useServiceActions';
-import {useEffect, useMemo, useRef, useState, type JSX} from 'react';
+import {useRef, useMemo, type JSX} from 'react';
 import {createServiceItemId, type SongId} from '@core/schema/ids';
-import {useOrderEdits} from './useOrderEdits';
-import {useOrderRename} from './useOrderRename';
-import {useOrderListEvents} from './useOrderListEvents';
-import {orderMenuEntries} from './orderMenuEntries';
-import {useOrderShortcuts} from './useOrderShortcuts';
-import {useOrderResizeFocus} from './useOrderResizeFocus';
-import {useOrderFollow} from './useOrderFollow';
-import {useOrderTop} from './useOrderTop';
-import {usePrepOrderPosition} from './usePrepOrderPosition';
-import {isInTextEntry} from '@renderer/ui/textEntry';
-import {clickFocusProps} from '@renderer/ui/clickFocus';
+import {useServiceActions} from '@renderer/features/service/list/useServiceActions';
+import {useOrderFull} from '@renderer/session/orderReasons';
+import {openInPrep} from '@renderer/session/prepTarget';
+import {renameItem} from '@renderer/session/serviceOrderEdits';
 import {openItem, useShow} from '@renderer/session/show';
-import {useVisibleSlideItem} from '@renderer/session/visibleSlideItem';
+import {useServiceOrderEditing} from '@renderer/session/useServiceOrderEditing';
 import {ListBox, ListInsertLine, Menu} from '@renderer/ui';
-import type {MenuAnchor} from '@renderer/ui/Menu';
+import {clickFocusProps} from '@renderer/ui/clickFocus';
+import {EmptyState} from '@renderer/ui/EmptyState';
 import type {Notice} from '@renderer/ui/notices';
 import type {Workspace} from '@renderer/ui/workspace';
-import {useServiceOrderEditing} from '@renderer/session/useServiceOrderEditing';
-import {useServiceItemSelection} from './useServiceItemSelection';
-import {useServiceItemClipboard} from './useServiceItemClipboard';
-import type {ServiceTableParts} from './serviceTableParts';
-import {useServiceSongMenu} from './useServiceSongMenu';
-import {useServiceOrderDrag} from './useServiceOrderDrag';
 import {useMediaDurations} from '../../media/useMediaDurations';
 import {ItemRows, type RowContext} from './ItemRows';
+import {NoServiceState} from './NoServiceState';
+import {orderMenuEntries} from './orderMenuEntries';
+import {groupRows} from './orderRows';
 import {OrderSection} from './OrderSection';
-import {groupRows, itemNumbers, rowsOfMenu} from './orderRows';
-import {useLiveItemId} from './useLiveItemId';
+import type {ServiceTableParts} from './serviceTableParts';
+import {useOrderDrop} from './useOrderDrop';
+import {useOrderEdits} from './useOrderEdits';
+import {useOrderListEvents} from './useOrderListEvents';
+import {useOrderMenu} from './useOrderMenu';
+import {useOrderRename} from './useOrderRename';
+import {useOrderRowStates} from './useOrderRowStates';
+import {useOrderScroll} from './useOrderScroll';
+import {useOrderShortcuts} from './useOrderShortcuts';
+import {useServiceItemClipboard} from './useServiceItemClipboard';
+import {useServiceItemSelection} from './useServiceItemSelection';
 import styles from './ServiceOrderList.module.css';
 
 const closeNothing = (): void => undefined;
@@ -73,25 +58,19 @@ export function ServiceOrderList({
   readonly onOpenItem?: (() => void) | undefined;
   readonly onShowInLibrary?: ((songId: SongId) => void) | undefined;
 }): JSX.Element {
-  const rows = useShow(view => view.rows);
-  const numbers = useMemo(() => itemNumbers(rows), [rows]);
-  const openItemId = useShownItemId();
-  const liveItemId = useLiveItemId();
-  const preferences = useSettingsDocument('preferences', '환경설정', onProblem);
-  const dimPastItems = preferences?.value.show?.dimPastItems === true;
-  const visibleSlideItem = useVisibleSlideItem();
-  const gridItemId =
-    workspace === 'show' && preferences?.value.show?.continuousGrid === true
-      ? visibleSlideItem
-      : openItemId;
-  const done = useMemo(() => {
-    const current = dimPastItems
-      ? rows.findIndex(row => row.id === liveItemId)
-      : -1;
-    return new Set(rows.slice(0, Math.max(0, current)).map(row => row.id));
-  }, [rows, liveItemId, dimPastItems]);
+  const {rows, numbers, openItemId, liveItemId, pointedItemId, done} =
+    useOrderRowStates(workspace, onProblem);
   const serviceId = useShow(view => view.serviceId);
   const readOnly = useShow(view => view.readOnly);
+  const listRef = useRef<HTMLDivElement>(null);
+  useOrderScroll(listRef, {
+    rows,
+    serviceId,
+    workspace,
+    liveItemId,
+    openItemId,
+  });
+
   // NOTE(0913vision): The list owns the 새 예배 dialog, not the empty state,
   // because opening the new service replaces the empty state before the
   // dialog has reported a failed copy.
@@ -110,38 +89,19 @@ export function ServiceOrderList({
     !editing.busy &&
     window.llp !== undefined;
   const full = useOrderFull();
-  const [menu, setMenu] = useState<{
-    id: string;
-    serviceId: string | null;
-    anchor: MenuAnchor;
-  } | null>(null);
-  const menuRow = rows.find(row => row.id === menu?.id);
-  const songMenu = useServiceSongMenu(
-    menu?.serviceId === serviceId && menuRow?.kind === 'song' ? menu : null,
-    onProblem,
-  );
-  const listRef = useRef<HTMLDivElement>(null);
-  useReflow(listRef, {
-    ids: rows.map(row => row.id),
-    selector: '[role="option"][data-value]',
-    attribute: 'data-value',
-    scope: serviceId,
-  });
-  const followId = rows.some(row => row.id === liveItemId)
-    ? liveItemId
-    : openItemId;
-  useOrderTop(listRef, serviceId);
-  useOrderFollow(listRef, {
-    target: followId,
-    liveItemId,
-    enabled: workspace === 'show',
-  });
-  usePrepOrderPosition(listRef, {
-    target: openItemId,
-    enabled: workspace === 'prep',
-    rows,
-  });
-  useOrderResizeFocus(listRef);
+  const besidePalette = table !== undefined && !navigator;
+
+  /** Opens a chosen item: beside the editor in 준비, on the grid otherwise. */
+  const chooseItem = (itemId: string): void => {
+    if (navigator) {
+      const kind = rows.find(row => row.id === itemId)?.kind;
+      if (kind !== undefined && kind !== 'header') onNavigate?.(itemId);
+      return;
+    }
+    onOpenItem?.();
+    openItem(itemId);
+    window.dispatchEvent(new CustomEvent('show-grid-item', {detail: itemId}));
+  };
   const selectableIds = useMemo(
     () =>
       rows
@@ -151,49 +111,18 @@ export function ServiceOrderList({
   );
   const selection = useServiceItemSelection({
     serviceId,
-    cursor: gridItemId,
+    cursor: pointedItemId,
     ids: selectableIds,
-    onSelect: itemId => {
-      if (navigator) {
-        const kind = rows.find(row => row.id === itemId)?.kind;
-        if (kind !== undefined && kind !== 'header') onNavigate?.(itemId);
-      } else {
-        onOpenItem?.();
-        openItem(itemId);
-        window.dispatchEvent(
-          new CustomEvent('show-grid-item', {detail: itemId}),
-        );
-      }
-    },
+    onSelect: chooseItem,
   });
-  const palette = usePaletteInsert(onProblem);
-  const {insertBefore, dragProps} = useServiceOrderDrag({
-    enabled: editable,
-    allowReorder: workspace === 'prep',
+  const drop = useOrderDrop({
     rows,
-    selected: selection.selected,
-    select: id => selection.replace([id], id),
-    onMove: (ids, before) =>
-      editing.run(() =>
-        moveOrderItems(
-          ids.map(createServiceItemId),
-          before === null ? null : createServiceItemId(before),
-        ),
-      ),
-    onElement:
-      table === undefined || navigator
-        ? undefined
-        : (key, before) => palette.insert(key, {before}),
-    onMedia:
-      table === undefined || navigator
-        ? undefined
-        : (media, before) => dropMediaInOrder(media, before, onProblem),
-    onCopy: (songId, before) =>
-      insertLibrarySong(
-        songId,
-        before === null ? null : createServiceItemId(before),
-        onProblem,
-      ),
+    workspace,
+    editable,
+    takesNewItems: besidePalette,
+    selection,
+    editing,
+    onProblem,
   });
   const clipboard = useServiceItemClipboard({
     serviceId,
@@ -207,25 +136,14 @@ export function ServiceOrderList({
       if (last !== undefined) selection.replace(ids, last);
     },
   });
+  const menu = useOrderMenu({rows, serviceId, selection, onProblem});
   const rename = useOrderRename({
     rows,
     serviceId,
     editable,
-    menuOpen: menu !== null,
+    menuOpen: menu.menu !== null,
     save: editing.save,
   });
-
-  useEffect(() => {
-    const list = listRef.current;
-    if (!list?.contains(document.activeElement)) return;
-    // NOTE(0913vision): A cell that edits as text keeps its focus when the
-    // click that opened it selects the row.
-    if (isInTextEntry(document.activeElement)) return;
-    list
-      .querySelector<HTMLElement>('[tabindex="0"]')
-      ?.focus({preventScroll: true});
-  }, [openItemId]);
-
   const edits = useOrderEdits({
     list: listRef,
     rows,
@@ -241,7 +159,7 @@ export function ServiceOrderList({
     rows,
     cursor: openItemId,
     workspace,
-    palette: table !== undefined && !navigator,
+    palette: besidePalette,
     editable,
     full,
     selection,
@@ -250,6 +168,7 @@ export function ServiceOrderList({
     report: onProblem,
   });
 
+  /** Opens an item of 준비 in its editor; false where nothing opens. */
   const openOrderEditor = (id: string | null): boolean => {
     if (workspace !== 'prep' || id === null || serviceId === null) return false;
     const kind = rows.find(row => row.id === id)?.kind;
@@ -259,35 +178,22 @@ export function ServiceOrderList({
     openInPrep({kind: 'item', itemId: id});
     return true;
   };
-
-  /** Opens the item menu on a row, choosing the row when it is not chosen. */
-  const openMenu = (
-    id: string,
-    list: Element,
-    anchor: (targets: readonly HTMLElement[]) => MenuAnchor,
-  ): void => {
-    if (!selection.selected.has(id)) selection.replace([id], id);
-    setMenu({
-      id,
-      serviceId,
-      anchor: anchor(rowsOfMenu(list, id, selection.selected)),
-    });
-  };
   const listEvents = useOrderListEvents({
     navigator,
     workspace,
     selection,
-    clickCapture: dragProps.onClickCapture,
-    openMenu,
+    clickCapture: drop.dragProps.onClickCapture,
+    openMenu: menu.open,
     openOrderEditor,
   });
+
   const rowContext: RowContext = {
     navigator,
     selected: selection.selected,
     liveItemId,
     done,
     editable,
-    insertBefore,
+    insertBefore: drop.insertBefore,
     workspace,
     durations,
     table,
@@ -302,7 +208,7 @@ export function ServiceOrderList({
       tabIndex={-1}
       className={styles.list}
       aria-busy={editing.busy}
-      {...dragProps}
+      {...drop.dragProps}
       {...listEvents}
     >
       {table?.header}
@@ -310,7 +216,7 @@ export function ServiceOrderList({
         multiple
         workspace={workspace}
         label="예배 순서"
-        selected={gridItemId ?? undefined}
+        selected={pointedItemId ?? undefined}
         onSelect={selection.select}
       >
         {groupRows(rows).map(group =>
@@ -325,14 +231,14 @@ export function ServiceOrderList({
               workspace={workspace}
               editable={editable}
               className={table?.sectionClass}
-              insertLine={insertBefore === group.id}
+              insertLine={drop.insertBefore === group.id}
               done={done.has(group.id)}
               selected={selection.selected.has(group.id)}
               renaming={rename.renaming === group.id}
               onRename={() => rename.start(group.id)}
               onCommitName={name =>
                 editing.save(() =>
-                  renameOrderItem(createServiceItemId(group.id), name),
+                  renameItem(createServiceItemId(group.id), name),
                 )
               }
               onCloseRename={rename.stop}
@@ -348,17 +254,17 @@ export function ServiceOrderList({
           onNewService={() => serviceActions.entries.newService.onSelect?.()}
         />
       ) : null}
-      {insertBefore === null ? <ListInsertLine /> : null}
+      {drop.insertBefore === null ? <ListInsertLine /> : null}
       {table?.footer}
-      {palette.dialog}
+      {drop.dialog}
       {serviceActions.dialogs}
-      {menu?.serviceId === serviceId ? (
+      {menu.menu === null ? null : (
         <Menu
           context
           label="예배 순서 항목 메뉴"
-          anchor={menu.anchor}
-          onClose={() => setMenu(null)}
-          entries={orderMenuEntries(menu, {
+          anchor={menu.menu.anchor}
+          onClose={() => menu.setMenu(null)}
+          entries={orderMenuEntries(menu.menu, {
             rows,
             workspace,
             editable,
@@ -367,17 +273,17 @@ export function ServiceOrderList({
             edits,
             selection,
             clipboard,
-            songMenu,
+            songMenu: menu.songMenu,
             table,
             openOrderEditor,
             renameAfterMenu: rename.afterMenu,
             onOpenPrep,
             onShowInLibrary,
-            setMenu,
+            setMenu: menu.setMenu,
           })}
         />
-      ) : null}
-      {songMenu.dialog}
+      )}
+      {menu.songMenu.dialog}
     </div>
   );
 }
