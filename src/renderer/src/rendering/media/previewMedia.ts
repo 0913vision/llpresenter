@@ -1,3 +1,4 @@
+import {followLatest} from '@core/common/followLatest';
 import type {LlpApi} from '@contracts/ipc/api';
 import {mediaUrl, thumbnailUrl} from '@contracts/ipc/mediaUrls';
 import type {MediaLayer} from '@core/schema/live/live';
@@ -84,16 +85,14 @@ class PreviewMediaLibrary implements PreviewMediaSource {
   private followProgress(): void {
     if (this.following) return;
     this.following = true;
-    let pushed = false;
-    this.api.live.subscribeMediaProgress(reading => {
-      pushed = true;
-      this.progress = reading;
-    });
-    this.api.live.mediaProgress().then(
-      reading => {
-        if (!pushed) this.progress = reading;
+    const {live} = this.api;
+    followLatest(
+      {read: live.mediaProgress, subscribe: live.subscribeMediaProgress},
+      {
+        apply: reading => {
+          this.progress = reading;
+        },
       },
-      () => undefined,
     );
   }
 

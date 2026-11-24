@@ -1,3 +1,4 @@
+import {followLatest} from '@core/common/followLatest';
 import type {TimerNow} from '@core/timers';
 import type {WallClockSample} from '@core/schema/app/wallClock';
 
@@ -56,23 +57,15 @@ export class MainTimerClock {
       return;
     }
     const generation = ++this.generation;
-    let pushed = false;
-    const accept = (value: WallClockSample): void => {
-      if (this.disposed || generation !== this.generation) return;
-      this.timeZone = value.timeZone;
-      this.wallBase = {wall: value.wall, at: performance.now()};
-      wall.onChange();
-    };
-    this.stopWall = wall.subscribe(value => {
-      pushed = true;
-      accept(value);
-    });
-    wall.read().then(
-      value => {
-        if (!pushed) accept(value);
+    this.stopWall = followLatest<WallClockSample>(wall, {
+      apply: value => {
+        if (this.disposed || generation !== this.generation) return;
+        this.timeZone = value.timeZone;
+        this.wallBase = {wall: value.wall, at: performance.now()};
+        wall.onChange();
       },
-      (error: unknown) => this.onError('could not read the wall clock', error),
-    );
+      failed: error => this.onError('could not read the wall clock', error),
+    });
   }
   suspend(): void {
     this.generation++;
