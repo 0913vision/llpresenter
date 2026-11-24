@@ -43,6 +43,7 @@ export const audioDeviceSchema = jsonObject({
   label: v.pipe(v.string(), v.maxLength(AUDIO_DEVICE_LIMIT)),
 });
 
+/** The kinds of slide that have their own default transition in 환경설정. */
 export const transitionDefaultKinds = [
   'songTitle',
   'song',
@@ -54,10 +55,13 @@ export const transitionDefaultKinds = [
   'prayer',
   'bible',
 ] as const;
+/** One kind of slide that has a default transition. */
 export type TransitionDefaultKind = (typeof transitionDefaultKinds)[number];
+/** The default transition of every slide kind. */
 export type SlideTransitionDefaults = Readonly<
   Record<TransitionDefaultKind, SlideTransition>
 >;
+/** The default transitions that ship with the app. */
 export const defaultSlideTransitions: SlideTransitionDefaults = {
   songTitle: {kind: 'wipe', dir: 'left', sec: 4},
   song: {kind: 'none', sec: 1},
@@ -106,15 +110,35 @@ const groupRanges = {
 /** What the next-슬라이드 key does on the last 슬라이드 of an item. */
 export const atLastSlideSchema = v.picklist(['stop', 'nextItem']);
 
+/**
+ * Where a text file import starts a new slide: at a blank line, at every line
+ * break, or at a symbol line.
+ */
 export const textImportSplitSchema = v.picklist([
   'blankLine',
   'lineBreak',
   'symbol',
 ]);
+/**
+ * Whether a text file import takes a bracketed line as the 이름표 of the slide
+ * (`bracketLine`) or not (`off`).
+ */
 export const textImportLabelsSchema = v.picklist(['bracketLine', 'off']);
+/**
+ * Whether the first line of an imported text file is the song title or the
+ * first lyrics line.
+ */
 export const textImportFirstLineSchema = v.picklist(['title', 'lyrics']);
+/**
+ * The character encoding of an imported text file: detected from the file or
+ * fixed.
+ */
 export const textImportEncodingSchema = v.picklist(['auto', 'utf-8', 'cp949']);
 
+/**
+ * The content of `preferences.json`. Every field is optional, and a missing one
+ * has the default of `defaultPreferences`.
+ */
 export const preferencesSchema = jsonObject({
   format: v.literal(PREFERENCES_FORMAT),
   schemaVersion: positiveInteger,
@@ -333,6 +357,10 @@ export function parsePreferencesValue(
     : parsed;
 }
 
+/**
+ * Reads the text of `preferences.json`; `file` names it in errors. A count
+ * outside its range is dropped and listed in `dropped`.
+ */
 export function parsePreferences(
   text: string,
   file: string,
@@ -340,6 +368,7 @@ export function parsePreferences(
   return parseFile(preferencesFormat, text, file);
 }
 
+/** Writes `preferences.json` as text; `file` names it in errors. */
 export function serializePreferences(
   preferences: PreferencesFile,
   file: string,

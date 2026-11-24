@@ -52,6 +52,7 @@ const schemas = {
   shortcuts: shortcutsSchema,
 };
 
+/** The settings files the control window reads and edits, by name. */
 export const settingsNames = [
   'screens',
   'themes',
@@ -153,9 +154,11 @@ const settingsEditSchema = v.pipe(
 
 /** File names without paths. Media uses its own commands and read boundary. */
 export type SettingsName = (typeof settingsNames)[number];
+/** A request to read one settings file. */
 export type SettingsReadRequest = Readonly<
   v.InferOutput<typeof settingsReadRequestSchema>
 >;
+/** One settings file with its name, content, access, and revision. */
 export type SettingsDocument = ReadonlyKnown<
   v.InferOutput<typeof settingsDocument>
 >;
@@ -165,17 +168,21 @@ export type NamedDocument<TName extends SettingsName> = Extract<
   SettingsDocument,
   {name: TName}
 >;
+/** One edit of a settings file, checked against the revision it was made on. */
 export type SettingsEdit = ReadonlyKnown<
   v.InferOutput<typeof settingsEditSchema>
 >;
+/** The edit that renames a 이름표 in `labels`. */
 export type LabelRename = ReadonlyKnown<
   v.InferOutput<typeof labelRenameSchema>
 >;
 
+/** Checks a request to read a settings file. */
 export function parseSettingsReadRequest(value: unknown) {
   return checkPart(settingsReadRequestSchema, value);
 }
 
+/** Checks a settings document received from main. */
 export function parseSettingsDocument(value: unknown) {
   return checkPart(settingsDocument, value);
 }
@@ -195,6 +202,7 @@ export function parseSettingsReply(
   return parsed;
 }
 
+/** Checks a settings edit received from a window. */
 export function parseSettingsEdit(value: unknown) {
   return checkPart(settingsEditSchema, value);
 }

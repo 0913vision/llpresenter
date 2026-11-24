@@ -13,4 +13,5 @@ export const PREFERENCE_PAGE_IDS = [
   'about',
 ] as const;
 
+/** One page of the 환경설정 window. */
 export type PreferencePageId = (typeof PREFERENCE_PAGE_IDS)[number];

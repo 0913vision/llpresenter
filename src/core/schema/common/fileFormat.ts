@@ -15,6 +15,9 @@ import {escapeKeys, restoreKeyPath, restoreKeys} from './safeKeys';
 export type FileErrorKind =
   'read' | 'json' | 'format' | 'invalid' | 'newer' | 'migration';
 
+/**
+ * A failed read or write of a file: its kind, the file, and the failing field.
+ */
 export interface FileError {
   readonly kind: FileErrorKind;
   readonly file: string;
@@ -37,6 +40,10 @@ export interface DroppedValue {
   readonly message: string;
 }
 
+/**
+ * A loaded file: its data, whether it is editable, and the parts that were
+ * dropped.
+ */
 export interface LoadedFile<T> {
   readonly data: T;
   readonly access: FileAccess;
@@ -78,6 +85,10 @@ type IsUnknownField<T, Key extends keyof T> = string extends Key
     : false
   : false;
 
+/**
+ * What parsing and writing one kind of file needs: its format name, schema,
+ * migrations, and an optional step that drops broken parts.
+ */
 export interface FileFormat<TSchema extends v.GenericSchema> {
   /** The value of the `format` field. */
   readonly format: string;

@@ -14,6 +14,7 @@ import {
 } from '../common/primitives';
 
 const MAX_RECOVERY_SCREENS = 200;
+/** The kinds of row the 출력 상태 복구 dialog offers. */
 export const recoveryRowKinds = ['outputs', 'slide', 'showing'] as const;
 
 const outputRowSchema = v.object({
@@ -123,22 +124,28 @@ export type RecoverySummary = ReadonlyKnown<
   v.InferOutput<typeof summarySchema>
 >;
 
+/** One kind of row of the 출력 상태 복구 dialog. */
 export type RecoveryRowKind = (typeof recoveryRowKinds)[number];
 
 /** The selected restore rows and the timestamp of the offered record. */
 export type RecoveryApply = ReadonlyKnown<v.InferOutput<typeof applySchema>>;
 
+/** Why a restore failed, with a message for the dialog. */
 export type RecoveryFailure = Readonly<v.InferOutput<typeof failureSchema>>;
+/** The answer to a restore request: nothing on success, else the failure. */
 export type RecoveryResult = Result<null, RecoveryFailure>;
 
+/** Checks the summary of the crash state that the dialog offers. */
 export function parseRecoverySummary(value: unknown) {
   return parsePayload(summarySchema, value);
 }
 
+/** Checks the rows the user chose to restore. */
 export function parseRecoveryApply(value: unknown) {
   return parsePayload(applySchema, value);
 }
 
+/** Checks the answer to a restore request. */
 export function parseRecoveryResult(value: unknown) {
   return parsePayload(resultSchema, value);
 }

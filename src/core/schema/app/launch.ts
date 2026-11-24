@@ -20,8 +20,10 @@ export const LAUNCH_TASK_IDS = [
   'drawing',
 ] as const;
 
+/** The ids of the tasks the app does before its window shows. */
 export const launchTaskIdSchema = v.picklist(LAUNCH_TASK_IDS);
 
+/** One task the app does before its window shows. */
 export type LaunchTaskId = (typeof LAUNCH_TASK_IDS)[number];
 
 const taskTime = v.exactOptional(positiveInteger);
@@ -41,6 +43,10 @@ export const launchTimesSchema = jsonObject({
   drawing: taskTime,
 });
 
+/**
+ * When each launch task usually ended, in ms after the launch began. A task
+ * that has no time yet is absent.
+ */
 export type LaunchTimes = Readonly<Partial<Record<LaunchTaskId, number>>>;
 
 const MAX_PARTS = 100_000;
@@ -65,6 +71,7 @@ const preparationSchema = v.pipe(
 /** How far the control window is with a task of its own. */
 export type Preparation = Readonly<v.InferOutput<typeof preparationSchema>>;
 
+/** Checks a report on the control window's own preparation. */
 export function parsePreparation(value: unknown) {
   return parsePayload(preparationSchema, value);
 }

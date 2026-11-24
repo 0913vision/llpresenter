@@ -2,6 +2,7 @@ import * as v from 'valibot';
 import type {Result} from '@core/common/result';
 import {parsePayload, plainObject, type PayloadError} from '../common/payload';
 
+/** The UI zoom range in percent, its step, and its default. */
 export const UI_ZOOM = {
   min: 100,
   max: 200,
@@ -10,6 +11,7 @@ export const UI_ZOOM = {
 } as const;
 
 const PERCENT_PER_FACTOR = 100;
+/** The same range as a browser zoom factor, where 1 is 100 percent. */
 export const UI_ZOOM_FACTOR = {
   min: UI_ZOOM.min / PERCENT_PER_FACTOR,
   max: UI_ZOOM.max / PERCENT_PER_FACTOR,
@@ -28,6 +30,7 @@ export function parseUiZoomFactor(value: unknown) {
   return parsePayload(uiZoomFactorSchema, value);
 }
 
+/** A zoom in percent: a whole number of the range, at a 10-point step. */
 export const uiZoomPercentSchema = v.pipe(
   v.number(),
   v.integer(),
@@ -47,6 +50,7 @@ const uiZoomCommandSchema = v.pipe(
   ]),
 );
 
+/** A zoom request: step in, step out, reset, or set a percentage. */
 export type UiZoomCommand = Readonly<v.InferOutput<typeof uiZoomCommandSchema>>;
 
 /** Checks a zoom reply strictly; stored app.json values have their own fallback. */
@@ -56,6 +60,7 @@ export function parseUiZoomPercent(
   return parsePayload(uiZoomPercentSchema, value);
 }
 
+/** Checks a zoom request. */
 export function parseUiZoomCommand(
   value: unknown,
 ): Result<UiZoomCommand, PayloadError> {

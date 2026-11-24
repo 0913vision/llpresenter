@@ -14,6 +14,7 @@ export const TEXT_EFFECT_LIMITS = {
   shadowAngle: 360,
 } as const;
 
+/** The outline of a text: on or off, its width in px, and its color. */
 export const textOutlineSchema = jsonObject({
   on: v.boolean(),
   width: v.pipe(
@@ -24,6 +25,10 @@ export const textOutlineSchema = jsonObject({
   color: hexColor,
 });
 
+/**
+ * The shadow of a text: on or off, blur and distance in px, angle in degrees,
+ * opacity in percent, and color.
+ */
 export const textShadowSchema = jsonObject({
   on: v.boolean(),
   blur: v.pipe(nonNegativeNumber, v.maxValue(TEXT_EFFECT_LIMITS.shadowBlur)),
@@ -36,5 +41,7 @@ export const textShadowSchema = jsonObject({
   color: hexColor,
 });
 
+/** The outline of a text. */
 export type TextOutline = v.InferOutput<typeof textOutlineSchema>;
+/** The shadow of a text. */
 export type TextShadow = v.InferOutput<typeof textShadowSchema>;

@@ -119,8 +119,13 @@ const appConfigFormat: FileFormat<typeof appConfigSchema> = {
  */
 export type AppConfig = ReadonlyKnown<v.InferOutput<typeof appConfigSchema>>;
 
+/**
+ * The column layouts of all three size classes, the `layout` field of
+ * `app.json`.
+ */
 export type AppLayout = NonNullable<AppConfig['layout']>;
 
+/** One window size class of the design system: narrow, normal, or wide. */
 export type SizeClass = (typeof sizeClasses)[number];
 
 /**
@@ -130,6 +135,7 @@ export type SizeClass = (typeof sizeClasses)[number];
  */
 export type ColumnLayout = NonNullable<AppLayout[SizeClass]>;
 
+/** Reads the text of `app.json`; `file` names it in errors. */
 export function parseAppConfig(
   text: string,
   file: string,
@@ -137,6 +143,7 @@ export function parseAppConfig(
   return parseFile(appConfigFormat, text, file);
 }
 
+/** Writes `app.json` as text; `file` names it in errors. */
 export function serializeAppConfig(
   config: AppConfig,
   file: string,

@@ -15,6 +15,10 @@ import {slideBackgroundSchema, THEME_FILE_LIMITS} from '../screens/theme';
 import {slideHotKeySchema} from './slideHotKey';
 import {slideTransitionSchema} from './slideTransition';
 
+/**
+ * The most slides a list holds, the most characters of a slide text, and the
+ * most characters of a 이름표.
+ */
 export const SLIDE_LIMITS = {
   slides: 10_000,
   text: LIVE_STATE_LIMITS.textCharacters,
@@ -73,6 +77,10 @@ export const slideSchema = jsonObject({
   continued: v.exactOptional(v.literal(true)),
 });
 
+/**
+ * The slides of a song, a service item, or a message: ids are unique, no hot
+ * key is used twice, and there are at most `SLIDE_LIMITS.slides`.
+ */
 export const slidesSchema = v.pipe(
   listWithUniqueIds(slideSchema),
   v.maxLength(SLIDE_LIMITS.slides),
@@ -82,8 +90,11 @@ export const slidesSchema = v.pipe(
   }, 'Another slide already uses this hot key'),
 );
 
+/** One slide as it is stored in the `slides` list of its file. */
 export type Slide = ReadonlyKnown<v.InferOutput<typeof slideSchema>>;
+/** The texts of a slide by the name of their text box. */
 export type SlideTexts = Slide['texts'];
+/** The Bible verse a slide text was taken from. */
 export type VerseReference = ReadonlyKnown<
   v.InferOutput<typeof bibleVerseReferenceSchema>
 >;

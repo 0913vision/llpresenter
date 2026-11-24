@@ -21,6 +21,7 @@ export type AppFlushRequest = Readonly<v.InferOutput<typeof requestSchema>>;
 /** An identified control-window result, matching the editor's boolean flush outcome. */
 export type AppFlushDone = Readonly<v.InferOutput<typeof doneSchema>>;
 
+/** Checks main's request to submit pending edits before closing. */
 export function parseAppFlushRequest(value: unknown) {
   return parsePayload(requestSchema, value);
 }
@@ -30,6 +31,10 @@ export function parseAppSavePendingResult(value: unknown) {
   return parsePayload(v.boolean(), value);
 }
 
+/**
+ * Checks the control window's answer to a flush request, whose `result` is true
+ * when every edit was submitted.
+ */
 export function parseAppFlushDone(value: unknown) {
   return parsePayload(doneSchema, value);
 }

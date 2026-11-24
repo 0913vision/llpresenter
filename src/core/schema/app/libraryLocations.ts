@@ -13,15 +13,18 @@ export const libraryLocationFields = [
   'backupPath',
 ] as const;
 
+/** The `app.json` field of one folder that 환경설정 can change. */
 export type LibraryLocationField = (typeof libraryLocationFields)[number];
 
 const fieldSchema = v.picklist(libraryLocationFields);
 const chooseRequestSchema = payloadObject({field: fieldSchema});
 
+/** The request to choose a new folder for one location field. */
 export type ChooseLocationRequest = Readonly<
   v.InferOutput<typeof chooseRequestSchema>
 >;
 
+/** Checks a request to choose a folder. */
 export function parseChooseLocationRequest(
   value: unknown,
 ): Result<ChooseLocationRequest, PayloadError> {
@@ -47,12 +50,17 @@ const locationsViewSchema = payloadObject({
 /** What the 라이브러리 page of 환경설정 shows about the folders. */
 export type LocationsView = Readonly<v.InferOutput<typeof locationsViewSchema>>;
 
+/** Checks what the 라이브러리 page shows about the folders. */
 export function parseLocationsView(
   value: unknown,
 ): Result<LocationsView, PayloadError> {
   return parsePayload(locationsViewSchema, value);
 }
 
+/**
+ * The reasons a chosen folder is refused. `canceled` means the user closed the
+ * folder dialog.
+ */
 export const chooseLocationFailures = [
   'canceled',
   'not-writable',
@@ -61,6 +69,7 @@ export const chooseLocationFailures = [
   'settings-locked',
 ] as const;
 
+/** One reason a chosen folder is refused. */
 export type ChooseLocationFailure = (typeof chooseLocationFailures)[number];
 
 const chooseResultSchema = v.variant('ok', [
@@ -81,6 +90,7 @@ export type ChooseLocationResult = Result<
   {readonly reason: ChooseLocationFailure; readonly detail?: string}
 >;
 
+/** Checks the answer to a folder choice and rebuilds it as a `Result`. */
 export function parseChooseLocationResult(
   value: unknown,
 ): Result<ChooseLocationResult, PayloadError> {
@@ -109,8 +119,13 @@ export function parseBackUpNowRequest(
   return parsePayload(v.null(), value);
 }
 
+/**
+ * The reasons 지금 백업 makes no backup: one is already running, an output is on,
+ * or it failed.
+ */
 export const backUpNowFailures = ['running', 'output-on', 'failed'] as const;
 
+/** One reason 지금 백업 makes no backup. */
 export type BackUpNowFailure = (typeof backUpNowFailures)[number];
 
 const backUpNowResultSchema = v.variant('ok', [
@@ -124,6 +139,7 @@ const backUpNowResultSchema = v.variant('ok', [
 /** Whether 지금 백업 made a backup, or why it did not. */
 export type BackUpNowResult = Result<void, {readonly reason: BackUpNowFailure}>;
 
+/** Checks the answer to 지금 백업 and rebuilds it as a `Result`. */
 export function parseBackUpNowResult(
   value: unknown,
 ): Result<BackUpNowResult, PayloadError> {

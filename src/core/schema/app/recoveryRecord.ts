@@ -14,6 +14,7 @@ import {liveStateSchema} from '../live/liveState';
 import {LIVE_STATE_LIMITS} from '../live/liveLimits';
 import {jsonObject, positiveInteger, timestamp} from '../common/primitives';
 
+/** The size limit of the recovery record, the same as the live state has. */
 export const RECOVERY_RECORD_LIMITS = LIVE_STATE_LIMITS;
 
 function retainUnknownFields(source: unknown, target: unknown): void {
@@ -94,6 +95,7 @@ function fitsBytes(text: string): boolean {
   );
 }
 
+/** Reads the text of `live.json`. A text over the byte limit is refused. */
 export function parseRecoveryRecord(
   text: string,
   file = 'live.json',
@@ -103,6 +105,7 @@ export function parseRecoveryRecord(
     : oversized(file);
 }
 
+/** Writes `live.json` as text. A record over the byte limit is refused. */
 export function serializeRecoveryRecord(
   record: RecoveryRecord,
   file = 'live.json',

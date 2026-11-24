@@ -9,14 +9,19 @@ const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
 const PERCENT_MAX = 100;
 const DUPLICATE_ID_MESSAGE = 'Another item already has this id';
 
+/** A whole number of 1 or more. */
 export const positiveInteger = v.pipe(v.number(), v.integer(), v.minValue(1));
 
+/** A finite number of 0 or more. */
 export const nonNegativeNumber = v.pipe(v.number(), v.finite(), v.minValue(0));
 
+/** A finite number above 0. */
 export const positiveNumber = v.pipe(v.number(), v.finite(), v.gtValue(0));
 
+/** Any finite number. */
 export const finiteNumber = v.pipe(v.number(), v.finite());
 
+/** A whole number of 0 or more. */
 export const nonNegativeInteger = v.pipe(
   v.number(),
   v.integer(),
@@ -64,16 +69,19 @@ export type Percent = v.InferOutput<typeof percent>;
 /** Pixels, kept apart from other units like {@link Seconds}. */
 export type Pixels = v.InferOutput<typeof pixelLength>;
 
+/** A color as `#RRGGBB`. */
 export const hexColor = v.pipe(
   v.string(),
   v.regex(HEX_COLOR, 'Expected a color as #RRGGBB'),
 );
 
+/** A width and a height in whole px, both above 0. */
 export const pixelSize = jsonObject({
   width: pixelCount,
   height: pixelCount,
 });
 
+/** Text with at least one character that is not whitespace. */
 export const nonBlankText = v.pipe(
   v.string(),
   v.check(text => text.trim().length > 0, 'Expected text that is not blank'),
@@ -89,11 +97,13 @@ export const localDateTime = v.pipe(
   v.check(isCalendarDate, 'Expected a date that exists in the calendar'),
 );
 
+/** A time of day as `HH:mm`, from 00:00 to 23:59. */
 export const timeOfDay = v.pipe(
   v.string(),
   v.regex(TIME_OF_DAY, 'Expected a time as HH:mm'),
 );
 
+/** A date as `YYYY-MM-DD` that exists in the calendar. */
 export const calendarDate = v.pipe(
   v.string(),
   v.isoDate('Expected a date as YYYY-MM-DD'),

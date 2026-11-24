@@ -71,14 +71,29 @@ const restart = payloadObject({
   ),
 });
 
+/**
+ * Where the update stands: its kind, with the version, the download percent, or
+ * the failure when the kind has them.
+ */
 export type UpdateStatus = Readonly<v.InferOutput<typeof status>>;
+/**
+ * The update status with its revision and the flags the window needs: `visible`
+ * for whether the notice shows, `outputsOn` for whether an output is on, and
+ * `busy` while a step runs.
+ */
 export type UpdateSnapshot = Readonly<v.InferOutput<typeof snapshot>>;
+/**
+ * A button the user pressed, tied to the revision of the snapshot it was
+ * pressed on.
+ */
 export type UpdateAction = Readonly<v.InferOutput<typeof action>>;
 
+/** Checks an update snapshot. */
 export function parseUpdateSnapshot(value: unknown) {
   return parsePayload(snapshot, value);
 }
 
+/** Checks an update action. */
 export function parseUpdateAction(value: unknown) {
   return parsePayload(action, value);
 }
@@ -88,6 +103,7 @@ export function parseUpdateVersion(value: unknown) {
   return parsePayload(version, value);
 }
 
+/** Checks the version and the screens that main restarts with. */
 export function parseUpdateRestart(value: unknown) {
   return parsePayload(restart, value);
 }

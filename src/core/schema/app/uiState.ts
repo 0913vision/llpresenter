@@ -92,9 +92,14 @@ const rememberedViewChangeSchema = v.pipe(
     'Expected a remembered view change',
   ),
 );
+/**
+ * A change to the remembered view fields of `app.json`. It has at least one
+ * field.
+ */
 export type RememberedViewChange = Readonly<
   v.InferOutput<typeof rememberedViewChangeSchema>
 >;
+/** Checks a remembered view change. */
 export function parseRememberedViewChange(value: unknown) {
   return parsePayload(rememberedViewChangeSchema, value);
 }
@@ -128,12 +133,14 @@ export function parseUiState(value: unknown): Result<UiState, PayloadError> {
  */
 export type LayoutChange = Readonly<v.InferOutput<typeof layoutChangeSchema>>;
 
+/** Checks a layout change. */
 export function parseLayoutChange(
   value: unknown,
 ): Result<LayoutChange, PayloadError> {
   return parsePayload(layoutChangeSchema, value);
 }
 
+/** Whether the value is a valid layout change. */
 export function isLayoutChange(value: unknown): value is LayoutChange {
   return parseLayoutChange(value).ok;
 }

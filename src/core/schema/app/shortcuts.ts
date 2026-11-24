@@ -75,6 +75,7 @@ const RESERVED_KEYS: readonly ReservedKey[] = [
 /** The modifiers of a key binding, in the order they are stored. */
 export const keyModifiers = ['ctrl', 'alt', 'shift'] as const;
 
+/** One modifier key of a binding. */
 export type KeyModifier = (typeof keyModifiers)[number];
 
 /** A `KeyboardEvent.code`: the physical key, whatever the layout or IME. */
@@ -109,7 +110,9 @@ const keyBindingSchema = v.pipe(
   ),
 );
 
+/** The most key bindings one command may have. */
 export const MAX_COMMAND_BINDINGS = 16;
+/** The most commands `shortcuts.json` may hold. */
 export const MAX_SHORTCUT_COMMANDS = 20_000;
 const commandIdSchema = v.pipe(nonBlankText, v.maxLength(200));
 const bindingListSchema = v.pipe(
@@ -117,6 +120,7 @@ const bindingListSchema = v.pipe(
   v.maxLength(MAX_COMMAND_BINDINGS),
 );
 
+/** The content of `shortcuts.json`: the key bindings by command id. */
 export const shortcutsSchema = jsonObject({
   format: v.literal('llsettings.shortcuts'),
   schemaVersion: positiveInteger,
@@ -165,6 +169,7 @@ export function parseShortcuts(
   return parseFile(shortcutsFormat, text, file);
 }
 
+/** Writes `shortcuts.json` as text; `file` names it in errors. */
 export function serializeShortcuts(
   shortcuts: ShortcutsFile,
   file: string,

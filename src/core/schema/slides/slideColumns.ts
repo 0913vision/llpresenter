@@ -17,6 +17,9 @@ export const slideColumnsSchema = v.pipe(
   v.maxEntries(500),
 );
 
+/**
+ * The slide editor columns switched on or off, by theme id and then box name.
+ */
 export type SlideColumns = ReadonlyKnown<
   v.InferOutput<typeof slideColumnsSchema>
 >;

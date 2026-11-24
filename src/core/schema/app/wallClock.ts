@@ -11,7 +11,12 @@ const schema = payloadObject({
   monotonic: v.pipe(v.number(), v.finite()),
   timeZone: v.pipe(v.string(), v.nonEmpty(), v.maxLength(128)),
 });
+/**
+ * A reading of the wall clock and the monotonic clock in ms, taken together,
+ * with the time zone name.
+ */
 export type WallClockSample = v.InferOutput<typeof schema>;
+/** Checks a clock sample. */
 export function parseWallClockSample(
   value: unknown,
 ): Result<WallClockSample, PayloadError> {

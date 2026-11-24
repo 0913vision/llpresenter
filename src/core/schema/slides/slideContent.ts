@@ -13,6 +13,10 @@ export const AUTO_TOKENS = {
   item: '항목 이름',
 } as const;
 
+/**
+ * The values of the automatic tokens, by token name. A token without a value is
+ * absent.
+ */
 export type AutoValues = Readonly<
   Partial<Record<(typeof AUTO_TOKENS)[keyof typeof AUTO_TOKENS], string>>
 >;
