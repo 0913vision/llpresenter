@@ -282,6 +282,18 @@ export function referenceKey(
     ) {
       return {kind: 'full-reference', submit: event.key === 'Enter'};
     }
+    // NOTE(0913vision): While the book list is open, Enter picks the book and
+    // moves on to 장, as Tab does; it shows a passage only once 장 has a
+    // value (user decision, November 21).
+    if (
+      event.key === 'Enter' &&
+      !event.repeat &&
+      state.expanded &&
+      book.trim() !== '' &&
+      chapter === ''
+    ) {
+      return {kind: 'advance-book'};
+    }
     if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
       return {
         kind: 'point',

@@ -37,6 +37,24 @@ const state = (more: Partial<ReferenceKeyState> = {}): ReferenceKeyState => ({
 });
 
 describe('a key in the reference form', () => {
+  it('moves on to 장 on Enter while the book list is open and 장 is empty', () => {
+    const fields = {...EMPTY_REFERENCE, book: '시편'};
+    expect(
+      referenceKey(
+        'book',
+        key('Enter', {value: '시편'}),
+        state({expanded: true, suggestions: 1, fields}),
+      ),
+    ).toEqual({kind: 'advance-book'});
+    expect(
+      referenceKey(
+        'book',
+        key('Enter', {value: '시편'}),
+        state({expanded: false, fields}),
+      ),
+    ).toEqual({kind: 'submit'});
+  });
+
   it('holds Tab while Korean composes in the book field', () => {
     expect(
       referenceKey(

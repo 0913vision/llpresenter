@@ -921,11 +921,13 @@ name. Chapter and verse bounds always use the built-in GAE number table.
   lookup. IME composition Enter cannot output. Stored references and recent
   passages retain the full grammar in 02. When book suggestions are open, arrows
   move the highlight, Enter or Tab accepts the highlighted book and focuses
-  chapter. In the Ctrl+B dialog Escape clears the fields, and a second Escape
-  closes the empty dialog; preparation Escape closes the dialog immediately.
-  Ctrl B pressed again while the dialog is open never closes it: it puts the
-  focus back in 책 with its text selected, so typing can't fall through to the
-  진행 keys. An unmatched book shows the error ring in the dialog too.
+  chapter; with nothing highlighted and 장 empty, Enter completes the typed book
+  as Tab does and focuses 장 (user decision, November 21). In the Ctrl+B dialog
+  Escape clears the fields, and a second Escape closes the empty dialog;
+  preparation Escape closes the dialog immediately. Ctrl B pressed again while
+  the dialog is open never closes it: it puts the focus back in 책 with its text
+  selected, so typing can't fall through to the 진행 keys. An unmatched book
+  shows the error ring in the dialog too.
 - Once a quick passage is resolved, it goes live while the slide grid prepares
   its pictures independently.
 - While a quick Bible passage is live, Escape outside text fields and open menus
