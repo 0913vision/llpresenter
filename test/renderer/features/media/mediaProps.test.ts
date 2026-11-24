@@ -17,6 +17,7 @@ describe('media properties', () => {
       stop: 30,
       speed: DEFAULT_SPEED,
       fit: DEFAULT_FIT,
+      place: {},
       audio: false,
       volume: DEFAULT_VOLUME,
     });
@@ -34,6 +35,7 @@ describe('media properties', () => {
             out: 20,
             speed: 1.5,
             fit: 'fit',
+            area: {x: 0.1, y: 0, scale: 2},
             audio: true,
             volume: 40,
           },
@@ -45,6 +47,7 @@ describe('media properties', () => {
       stop: 20,
       speed: 1.5,
       fit: 'fit',
+      place: {fit: 'fit', area: {x: 0.1, y: 0, scale: 2}},
       audio: true,
       volume: 40,
     });
