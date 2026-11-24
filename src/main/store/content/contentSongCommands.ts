@@ -67,7 +67,7 @@ class SongContentCommands {
         schemaVersion: SONG_SCHEMA_VERSION,
         id,
         title,
-        ...songPartsOf(draft.slides),
+        ...songPartsOf(draft.slides, title),
         updatedAt: this.context.now(),
       }),
     );
@@ -103,6 +103,7 @@ class SongContentCommands {
       title,
       ...songPartsOf(
         newSongSlides(slideMakingOf(this.context.settings), title),
+        title,
       ),
     };
     const file = join(this.context.locations.songs, `${id}${SONG_EXTENSION}`);

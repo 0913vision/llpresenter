@@ -1,8 +1,10 @@
 import {isRecord, type UnknownRecord} from '@core/common/guards';
 import type {Slide} from '../slides/slide';
 
-/** The texts and hymn a slide needs to be read as a title slide. */
-type TitleLike = Pick<Slide, 'texts' | 'hymn'>;
+/** What a slide needs to be read as a song's title slide. */
+type TitleLike = Pick<Slide, 'texts' | 'hymn'> & {
+  readonly background?: unknown;
+};
 
 /**
  * Whether a slide shows a song's title: a hymn title, or a 제목 text without
@@ -15,6 +17,39 @@ export function isTitleSlide(slide: TitleLike): boolean {
   return title !== '' && lyrics === '';
 }
 
+function lyricsOf(slide: TitleLike): string {
+  return slide.texts['가사']?.trim() ?? '';
+}
+
+function hasNoText(slide: TitleLike): boolean {
+  return Object.values(slide.texts).every(text => text.trim() === '');
+}
+
+function sameText(text: string, title: string): boolean {
+  const normal = (value: string) => value.trim().replace(/\s+/gu, ' ');
+  return normal(title) !== '' && normal(text) === normal(title);
+}
+
+/**
+ * Where the song's own title slide is among its slides, or -1. Only the
+ * slides before the first lyrics count, so a title inside a medley stays a
+ * slide of the song. Among those: the first title slide; else the first slide
+ * with no text and its own background, as a hymn's picture of its title from
+ * PowerPoint is; else a first slide whose lyrics are only the song's title.
+ */
+function titleIndex(slides: readonly TitleLike[], title: string): number {
+  const lyrics = slides.findIndex(slide => lyricsOf(slide) !== '');
+  const leading = lyrics === -1 ? slides : slides.slice(0, lyrics);
+  const titled = leading.findIndex(isTitleSlide);
+  if (titled !== -1) return titled;
+  const picture = leading.findIndex(
+    slide => hasNoText(slide) && slide.background !== undefined,
+  );
+  if (picture !== -1) return picture;
+  const first = slides[0];
+  return first !== undefined && sameText(lyricsOf(first), title) ? 0 : -1;
+}
+
 /** A song's own title slide, apart from its other slides. */
 export interface SongParts<TSlide extends {readonly label?: string}> {
   readonly titleSlide: Omit<TSlide, 'label'> | undefined;
@@ -22,16 +57,17 @@ export interface SongParts<TSlide extends {readonly label?: string}> {
 }
 
 /**
- * Splits the slides of a song into its title slide and the rest (USER Nov 25,
- * `team/song-title-design.md`): the first title slide is the song's title,
- * without its label, because the 예배 순서 gives the titles their 이름표; a
- * title slide at the very end goes, because the 예배 순서 adds the closing
- * title; every other slide stays where it is.
+ * Splits the slides of the song `title` into its title slide and the rest
+ * (USER Nov 25, `team/song-title-design.md`): the slide that opens the song
+ * with its title is the song's title, without its label, because the 예배
+ * 순서 gives the titles their 이름표; a title slide at the very end goes,
+ * because the 예배 순서 adds the closing title; every other slide stays where
+ * it is.
  */
 export function splitSongTitle<
   TSlide extends TitleLike & {readonly label?: string},
->(slides: readonly TSlide[]): SongParts<TSlide> {
-  const first = slides.findIndex(isTitleSlide);
+>(slides: readonly TSlide[], title: string): SongParts<TSlide> {
+  const first = titleIndex(slides, title);
   const found = slides[first];
   if (found === undefined) return {titleSlide: undefined, slides};
   const {label: _label, ...titleSlide} = found;
@@ -47,6 +83,7 @@ export function splitSongTitle<
 interface RawSlide {
   readonly texts: Readonly<Record<string, string>>;
   readonly hymn?: NonNullable<Slide['hymn']>;
+  readonly background?: unknown;
   readonly label?: string;
 }
 
@@ -64,7 +101,8 @@ function isRawSlide(value: unknown): value is RawSlide {
 export function songFileWithTitleSlide(file: UnknownRecord): UnknownRecord {
   const slides = file['slides'];
   if (!Array.isArray(slides) || !slides.every(isRawSlide)) return file;
-  const parts = splitSongTitle(slides);
+  const title = typeof file['title'] === 'string' ? file['title'] : '';
+  const parts = splitSongTitle(slides, title);
   return {
     ...file,
     ...(parts.titleSlide === undefined ? {} : {titleSlide: parts.titleSlide}),

@@ -83,23 +83,24 @@ export function songSlidesOf(
 
 /**
  * The song with these slides, read title first, kept as its file keeps them:
- * the first title slide is the song's title, without its 이름표, and a title
- * at the very end goes, because the 예배 순서 adds the closing title
- * (`team/song-title-design.md`).
+ * the slide that opens it with its title is the song's title, without its
+ * 이름표, and a title at the very end goes, because the 예배 순서 adds the
+ * closing title (`team/song-title-design.md`, {@link splitSongTitle}).
  */
 export function withSongSlides(song: Song, slides: readonly Slide[]): Song {
   const {titleSlide: _old, ...rest} = song;
-  return {...rest, ...songPartsOf(slides)};
+  return {...rest, ...songPartsOf(slides, song.title)};
 }
 
 /**
- * The title slide and the other slides a song file keeps for slides read title
- * first, as {@link withSongSlides} splits them.
+ * The title slide and the other slides a song file keeps for the slides of
+ * the song `title` read title first, as {@link withSongSlides} splits them.
  */
 export function songPartsOf(
   slides: readonly Slide[],
+  title: string,
 ): Pick<Song, 'titleSlide' | 'slides'> {
-  const parts = splitSongTitle(slides);
+  const parts = splitSongTitle(slides, title);
   return {
     ...(parts.titleSlide === undefined ? {} : {titleSlide: parts.titleSlide}),
     slides: parts.slides,
