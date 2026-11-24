@@ -3,7 +3,7 @@ import type {
   MediaImportProgress,
   MediaImportRequest,
 } from '@core/schema/mediaEdit';
-import {noticeTime, type Notice} from '@renderer/ui/notices';
+import {type Notice, noticeTime, warningNotice} from '@renderer/ui/notices';
 
 export function mediaImportFailureNotice(
   progress: MediaImportProgress,
@@ -43,12 +43,6 @@ export async function requestMediaImport({
     message: 'Media import was refused',
     detail: result.error.message,
   });
-  onProblem({
-    key: 'media-view:import',
-    kind: 'warning',
-    icon: 'warning',
-    title: '미디어 가져오기 실패',
-    time: noticeTime(),
-  });
+  onProblem(warningNotice('media-view:import', '미디어 가져오기 실패'));
   return null;
 }

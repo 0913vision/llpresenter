@@ -1,3 +1,4 @@
+import {warningNotice} from '@renderer/ui/notices';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {useState} from 'react';
 import type {ServiceEntry} from '@core/schema/contentDocuments';
@@ -6,7 +7,6 @@ import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {
   duplicateService,
   renameService,
-  warningNotice,
 } from '@renderer/features/service/list/serviceEdits';
 import {useSourceActions} from '@renderer/features/service/list/useSourceActions';
 import {useSaveTemplate} from '@renderer/features/service/list/useSaveTemplate';

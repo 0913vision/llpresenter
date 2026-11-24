@@ -13,7 +13,7 @@ import type {
 import type {MediaStamps, MissingMedia} from '@core/schema/mediaFiles';
 import {MEDIA_DELETE_HISTORY_LIMIT, MEDIA_LIMITS} from '@core/schema/mediaList';
 import {updateActiveCopies, type CopyJob} from './mediaCopyJobs';
-import {noticeTime, type Notice} from '@renderer/ui/notices';
+import {type Notice, warningNotice} from '@renderer/ui/notices';
 import {chosenPlaylist, type ChosenPlaylist} from './mediaEntries';
 import type {PicturePlace} from '@core/schema/picturePlace';
 import {withPlace, type MediaProps} from './mediaProps';
@@ -80,17 +80,6 @@ function playlistUpdate(
   return found === undefined
     ? null
     : ({kind: 'audio', value: {...found, ...change}} as const);
-}
-
-function warning(key: string, title: string, meta?: readonly string[]): Notice {
-  return {
-    key,
-    kind: 'warning',
-    icon: 'warning',
-    title,
-    time: noticeTime(),
-    meta,
-  };
 }
 
 /**
@@ -188,7 +177,9 @@ export class MediaLibrary {
       },
       () => {
         if (following) {
-          this.onProblem(warning('media-view:load', '미디어 불러오기 실패'));
+          this.onProblem(
+            warningNotice('media-view:load', '미디어 불러오기 실패'),
+          );
           ready('document');
         }
       },
@@ -238,7 +229,9 @@ export class MediaLibrary {
       .map(file => this.api.media.pathForFile(file))
       .filter(path => path !== '');
     if (paths.length === 0) {
-      this.onProblem(warning('media-view:import', '미디어 가져오기 실패'));
+      this.onProblem(
+        warningNotice('media-view:import', '미디어 가져오기 실패'),
+      );
       return null;
     }
     return this.importSource({kind: 'files', paths}, playlist);
@@ -279,7 +272,9 @@ export class MediaLibrary {
     if (result.ok) return result.value?.id ?? null;
     if (result.error.reason === 'write-failed') return result.error.applied.id;
     this.refused('Creating a playlist was refused', result.error.message);
-    this.onProblem(warning('media-view:playlist', '재생목록 만들기 실패'));
+    this.onProblem(
+      warningNotice('media-view:playlist', '재생목록 만들기 실패'),
+    );
     return null;
   }
 
@@ -296,7 +291,7 @@ export class MediaLibrary {
     if (result.ok) return result.value?.id ?? null;
     if (result.error.reason === 'write-failed') return result.error.applied.id;
     this.refused('Copying the media was refused', result.error.message);
-    this.onProblem(warning('media-view:duplicate', '미디어 복제 실패'));
+    this.onProblem(warningNotice('media-view:duplicate', '미디어 복제 실패'));
     return null;
   }
 
@@ -319,7 +314,7 @@ export class MediaLibrary {
     if (result.error.reason === 'write-failed') return result.error.applied.id;
     this.refused('Copying the playlist was refused', result.error.message);
     this.onProblem(
-      warning('media-view:playlist-duplicate', '재생목록 복제 실패'),
+      warningNotice('media-view:playlist-duplicate', '재생목록 복제 실패'),
     );
     return null;
   }
@@ -355,7 +350,7 @@ export class MediaLibrary {
       return true;
     }
     this.onProblem(
-      warning('media-view:playlist-name', '재생목록 이름 바꾸기 실패', [
+      warningNotice('media-view:playlist-name', '재생목록 이름 바꾸기 실패', [
         playlist.name,
       ]),
     );
@@ -378,7 +373,9 @@ export class MediaLibrary {
       return;
     }
     this.onProblem(
-      warning(`media-view:leave:${mediaId}`, '재생목록에서 빼기 실패', [name]),
+      warningNotice(`media-view:leave:${mediaId}`, '재생목록에서 빼기 실패', [
+        name,
+      ]),
     );
   }
 
@@ -412,7 +409,7 @@ export class MediaLibrary {
     }
     this.refused('Deleting media was refused', result.error.message);
     this.onProblem(
-      warning(`media-view:delete:${mediaId}`, '미디어 삭제 실패', [name]),
+      warningNotice(`media-view:delete:${mediaId}`, '미디어 삭제 실패', [name]),
     );
     return false;
   }
@@ -449,7 +446,7 @@ export class MediaLibrary {
     this.forgetHistory();
     this.update({});
     this.refused('Changing media history was refused', result.error.message);
-    this.onProblem(warning('media-view:history', '미디어 변경 실패'));
+    this.onProblem(warningNotice('media-view:history', '미디어 변경 실패'));
     return false;
   }
 
@@ -555,7 +552,7 @@ export class MediaLibrary {
     }
     this.refused('Deleting a playlist was refused', result.error.message);
     this.onProblem(
-      warning('media-view:playlist-delete', '재생목록 삭제 실패', [
+      warningNotice('media-view:playlist-delete', '재생목록 삭제 실패', [
         playlist.name,
       ]),
     );
@@ -593,7 +590,7 @@ export class MediaLibrary {
     if (result.ok || result.error.reason === 'write-failed') return;
     this.refused('Changing media properties was refused', result.error.message);
     this.onProblem(
-      warning(`media-view:props:${mediaId}`, '미디어 속성 저장 실패', [
+      warningNotice(`media-view:props:${mediaId}`, '미디어 속성 저장 실패', [
         item.name,
       ]),
     );
@@ -629,7 +626,7 @@ export class MediaLibrary {
     if (result.ok || result.error.reason === 'write-failed') return true;
     this.refused('Renaming media was refused', result.error.message);
     this.onProblem(
-      warning(`media-view:rename:${mediaId}`, '미디어 이름 바꾸기 실패', [
+      warningNotice(`media-view:rename:${mediaId}`, '미디어 이름 바꾸기 실패', [
         item.name,
       ]),
     );
@@ -649,7 +646,7 @@ export class MediaLibrary {
     if (result.ok || result.error.reason === 'not-found') return;
     this.refused('Stopping a media copy was refused', result.error.message);
     this.onProblem(
-      warning(`media-view:cancel:${mediaId}`, '복사 멈추기 실패', [name]),
+      warningNotice(`media-view:cancel:${mediaId}`, '복사 멈추기 실패', [name]),
     );
   }
 
@@ -667,7 +664,7 @@ export class MediaLibrary {
       if (result.ok || result.error.reason === 'write-failed') return;
       this.refused('Relinking media was refused', result.error.message);
       this.onProblem(
-        warning(`media-view:relink:${mediaId}`, '다시 연결 실패', [name]),
+        warningNotice(`media-view:relink:${mediaId}`, '다시 연결 실패', [name]),
       );
     } finally {
       this.relinking = false;

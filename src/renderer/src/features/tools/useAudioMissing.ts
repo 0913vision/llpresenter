@@ -1,6 +1,6 @@
 import {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {MediaId} from '@core/schema/ids';
-import {noticeTime, type Notice} from '@renderer/ui/notices';
+import {type Notice, warningNotice} from '@renderer/ui/notices';
 
 export function useAudioMissing(
   onProblem: ((notice: Notice) => void) | undefined,
@@ -30,13 +30,9 @@ export function useAudioMissing(
           message: 'Could not check audio files',
           detail: cause instanceof Error ? cause.message : String(cause),
         });
-        report.current?.({
-          key: 'audio:missing',
-          kind: 'warning',
-          icon: 'warning',
-          title: '오디오 파일 상태 확인 실패',
-          time: noticeTime(),
-        });
+        report.current?.(
+          warningNotice('audio:missing', '오디오 파일 상태 확인 실패'),
+        );
       },
     );
     return () => {

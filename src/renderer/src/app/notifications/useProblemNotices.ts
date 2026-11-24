@@ -1,7 +1,7 @@
 import {useEffect, useEffectEvent, useState} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import {APP_PROBLEM_LIMITS, type AppProblem} from '@core/schema/appProblem';
-import {noticeTime} from '@renderer/ui/notices';
+import {noticeTime, warningNotice} from '@renderer/ui/notices';
 import type {NoticeTarget} from './useOutputNotices';
 import {
   WAITING_SAVES_KEY,
@@ -51,48 +51,41 @@ export function useProblemNotices(
       if (stopped) return;
       switch (problem.kind) {
         case 'ndi-runtime-missing':
-          show({
-            key: 'ndi-runtime-missing',
-            kind: 'warning',
-            icon: 'warning',
-            time: noticeTime(),
-            title: 'NDI Runtime을 찾을 수 없습니다.',
-            meta: ['캡처용 창을 사용할 수 있습니다.'],
-          });
+          show(
+            warningNotice(
+              'ndi-runtime-missing',
+              'NDI Runtime을 찾을 수 없습니다.',
+              ['캡처용 창을 사용할 수 있습니다.'],
+            ),
+          );
           return;
         case 'ndi-gpu-fallback':
-          show({
-            key: 'ndi-gpu-fallback',
-            kind: 'warning',
-            icon: 'warning',
-            time: noticeTime(),
-            title: '하드웨어 가속을 쓸 수 없어 일반 방식으로 보냅니다.',
-          });
+          show(
+            warningNotice(
+              'ndi-gpu-fallback',
+              '하드웨어 가속을 쓸 수 없어 일반 방식으로 보냅니다.',
+            ),
+          );
           return;
         case 'ndi-failed':
-          show({
-            key: 'ndi-failed',
-            kind: 'warning',
-            icon: 'warning',
-            time: noticeTime(),
-            title: 'NDI 출력 실패',
-            meta: ['캡처용 창으로 표시 중'],
-          });
+          show(
+            warningNotice('ndi-failed', 'NDI 출력 실패', [
+              '캡처용 창으로 표시 중',
+            ]),
+          );
           return;
         case 'protection-write': {
           const key = problemGroup(problem);
           if (!problem.failed) close(key);
           else {
-            show({
-              key,
-              kind: 'warning',
-              icon: 'warning',
-              time: noticeTime(),
-              title:
+            show(
+              warningNotice(
+                key,
                 problem.target === 'record'
                   ? '진행 복구 기록 저장 실패'
                   : '이전 판 저장 실패',
-            });
+              ),
+            );
           }
           return;
         }

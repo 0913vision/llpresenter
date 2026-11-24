@@ -2,7 +2,7 @@ import {useRef} from 'react';
 import {parseScreenId, type ScreenId} from '@core/schema/ids';
 import type {Screen} from '@core/schema/screens';
 import type {MonitorInfo} from '@core/schema/monitors';
-import {noticeTime, type Notice} from '@renderer/ui/notices';
+import {type Notice, warningNotice} from '@renderer/ui/notices';
 import type {NewScreen} from './addScreen';
 import {useScreensSelection} from './selection';
 import type {NamedDocument} from '../../platform/useSettingsDocument';
@@ -28,13 +28,7 @@ export function useScreenCreation(
       message: 'Could not create a screen',
       detail: cause instanceof Error ? cause.message : String(cause),
     });
-    onProblem?.({
-      key: 'screens:add',
-      kind: 'warning',
-      icon: 'warning',
-      title: '화면 추가 실패',
-      time: noticeTime(),
-    });
+    onProblem?.(warningNotice('screens:add', '화면 추가 실패'));
   };
   return (
     kind: Screen['kind'],

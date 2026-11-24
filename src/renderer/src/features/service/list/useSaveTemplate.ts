@@ -3,14 +3,8 @@ import type {LlpApi} from '@contracts/ipc/api';
 import {copyName} from '@core/common/copyName';
 import type {ServiceId, TemplateId} from '@core/schema/ids';
 import {useShow} from '@renderer/session/show';
-import {noticeTime, type Notice} from '@renderer/ui/notices';
-import {
-  appliedId,
-  asServiceId,
-  editApplied,
-  settle,
-  warningNotice,
-} from './serviceEdits';
+import {type Notice, noticeTime, warningNotice} from '@renderer/ui/notices';
+import {appliedId, asServiceId, editApplied, settle} from './serviceEdits';
 import {useAlive} from '@renderer/ui/useAlive';
 
 type SaveTemplateApi = Pick<LlpApi, 'content' | 'templates' | 'log'>;

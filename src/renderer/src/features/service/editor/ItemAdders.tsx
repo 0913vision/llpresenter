@@ -17,7 +17,7 @@ import type {Report} from '@renderer/session/serviceEdit';
 import {mediaItem, pictureMedia, useMedia} from '@renderer/platform/media';
 import {slideMaking, useThemes} from '@renderer/platform/themes';
 import {Button} from '@renderer/ui/Button';
-import {noticeTime} from '@renderer/ui/notices';
+import {warningNotice} from '@renderer/ui/notices';
 import {BibleQuickAdd} from '../items/BibleQuickAdd';
 import type {PassageDefaults} from '../items/passageItems';
 
@@ -137,13 +137,7 @@ export function ItemAdders({
           onInsert={(value, defaults) => {
             addPassage(deck, value, defaults).catch((error: unknown) => {
               console.error('Could not add a passage', error);
-              report({
-                key: 'slides:passage',
-                kind: 'warning',
-                icon: 'warning',
-                title: '성경 구절 추가 실패',
-                time: noticeTime(),
-              });
+              report(warningNotice('slides:passage', '성경 구절 추가 실패'));
             });
           }}
           onClose={() => setPassage(false)}

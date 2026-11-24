@@ -3,7 +3,7 @@ import {changeSlides, withBackground} from '@core/slides';
 import {hasMediaDrag, readMediaDrag} from '@renderer/features/media/mediaDrag';
 import {canAddMedia, mediaItem} from '@renderer/platform/media';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
-import {noticeTime} from '@renderer/ui/notices';
+import {warningNotice} from '@renderer/ui/notices';
 import {selectionOf} from './deckSelection';
 import type {SlideDeck} from './slideDeck';
 import type {Report} from '@renderer/session/serviceEdit';
@@ -38,13 +38,7 @@ export function BackgroundDrop({
       ? event.target.closest<HTMLElement>(TARGET)
       : null;
   const problem = (title: string): void =>
-    report({
-      key: 'slides:background-drop',
-      kind: 'warning',
-      icon: 'warning',
-      title,
-      time: noticeTime(),
-    });
+    report(warningNotice('slides:background-drop', title));
   const drop = (event: DragEvent<HTMLDivElement>): void => {
     if (!hasMediaDrag(event.dataTransfer)) return;
     const element = target(event);

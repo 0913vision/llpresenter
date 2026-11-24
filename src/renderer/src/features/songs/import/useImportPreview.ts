@@ -5,7 +5,7 @@ import type {
   TextImportPreviewResult,
   TextImportSource,
 } from '@core/schema/textImport';
-import {noticeTime, type Notice} from '@renderer/ui/notices';
+import {type Notice, warningNotice} from '@renderer/ui/notices';
 import {createLatestRunner} from '../../../platform/latestRunner';
 
 export function useImportPreview({
@@ -31,13 +31,7 @@ export function useImportPreview({
     let active = true;
     const isActive = (): boolean => active;
     const report = (): void =>
-      onProblem({
-        key: 'text-import:preview',
-        kind: 'warning',
-        icon: 'warning',
-        title: '가져오기 미리보기 실패',
-        time: noticeTime(),
-      });
+      onProblem(warningNotice('text-import:preview', '가져오기 미리보기 실패'));
     runner.submit(async () => {
       if (!isActive()) return;
       try {

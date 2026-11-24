@@ -26,7 +26,7 @@ import {
 import {openItem, useShow} from '@renderer/session/show';
 import {isLibrarySource, openLibrarySong} from '@renderer/session/showLibrary';
 import {serviceItem} from '@renderer/session/openService';
-import {noticeTime, type Notice} from '@renderer/ui/notices';
+import {type Notice, warningNotice} from '@renderer/ui/notices';
 import type {SizeClass} from '@renderer/ui/sizeClass';
 import {
   logPanelProblem,
@@ -83,14 +83,7 @@ function Library({
           openLibrarySong(song);
         }
       },
-      () =>
-        report({
-          key: 'details:library',
-          kind: 'warning',
-          icon: 'warning',
-          title: '곡 불러오기 실패',
-          time: noticeTime(),
-        }),
+      () => report(warningNotice('details:library', '곡 불러오기 실패')),
     );
   };
   return (

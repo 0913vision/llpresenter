@@ -2,7 +2,7 @@ import {useEffect, useRef, useState, type JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {TextImportDraft, TextImportSource} from '@core/schema/textImport';
 import {defaultPreferences, type Preferences} from '@core/schema/preferences';
-import {noticeTime, type Notice} from '@renderer/ui/notices';
+import {type Notice, warningNotice} from '@renderer/ui/notices';
 import {useLabels} from '@renderer/features/labels/labels';
 import {openInPrep} from '@renderer/session/prepTarget';
 import {openImportedSong, requestLeaveSong, useSongDraft} from '../songDraft';
@@ -69,13 +69,7 @@ export function TextImportFlow({
     [],
   );
   const readFailed = (): void =>
-    onProblem({
-      key: 'text-import:read',
-      kind: 'warning',
-      icon: 'warning',
-      title: '텍스트 가져오기 실패',
-      time: noticeTime(),
-    });
+    onProblem(warningNotice('text-import:read', '텍스트 가져오기 실패'));
   const encode = (encoding: TextEncoding): void => {
     const ticket = ++latestRead.current;
     const isLatest = (): boolean => latestRead.current === ticket;
@@ -107,13 +101,7 @@ export function TextImportFlow({
     let active = true;
     const isActive = (): boolean => active;
     const failed = (): void => {
-      onProblem({
-        key: 'text-import:read',
-        kind: 'warning',
-        icon: 'warning',
-        title: '텍스트 가져오기 실패',
-        time: noticeTime(),
-      });
+      onProblem(warningNotice('text-import:read', '텍스트 가져오기 실패'));
       onDone();
     };
     pending.current ??= read(api, source);

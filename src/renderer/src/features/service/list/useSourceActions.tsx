@@ -1,3 +1,4 @@
+import {warningNotice} from '@renderer/ui/notices';
 import {undoReason, undoTimeline} from '@renderer/platform/undoTimeline';
 import {focusHistorySurface} from '@renderer/ui/focusHistorySurface';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
@@ -14,12 +15,7 @@ import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
 import {RenameDialog} from '@renderer/ui/RenameDialog';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
-import {
-  editApplied,
-  renameService,
-  settle,
-  warningNotice,
-} from './serviceEdits';
+import {editApplied, renameService, settle} from './serviceEdits';
 import type {ServiceSource} from './useServiceSources';
 import {
   contextMenuAnchor,

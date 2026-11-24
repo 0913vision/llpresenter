@@ -19,7 +19,7 @@ import {
   isOutputRequestCurrent,
   withinLookupTimeout,
 } from '@renderer/session/showOutput';
-import {noticeTime, type Notice} from '@renderer/ui/notices';
+import {type Notice, warningNotice} from '@renderer/ui/notices';
 import {openBiblePassage, showBiblePassage} from '../bible/actions';
 
 export function quickItemUnavailable(item: QuickItem): string | undefined {
@@ -140,14 +140,7 @@ export function quickRunner(api: LlpApi, onProblem: (notice: Notice) => void) {
         detail: cause instanceof Error ? cause.message : String(cause),
       });
       if (current()) {
-        onProblem({
-          key: 'quick:run',
-          kind: 'warning',
-          icon: 'warning',
-          title: '항목 실행 실패',
-          meta: [item.name],
-          time: noticeTime(),
-        });
+        onProblem(warningNotice('quick:run', '항목 실행 실패', [item.name]));
       }
     }
   };

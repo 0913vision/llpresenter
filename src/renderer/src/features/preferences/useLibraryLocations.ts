@@ -6,7 +6,7 @@ import type {
   LibraryLocationField,
   LocationsView,
 } from '@core/schema/libraryLocations';
-import {noticeTime, type Notice} from '@renderer/ui/notices';
+import {type Notice, warningNotice} from '@renderer/ui/notices';
 
 const FOLDER_REFUSALS: Readonly<
   Record<Exclude<ChooseLocationFailure, 'canceled'>, string>
@@ -18,10 +18,6 @@ const FOLDER_REFUSALS: Readonly<
 };
 const BACKUP_FAILED = '백업하지 못함';
 const BACKUP_OUTPUT_ON = '출력 중에는 백업 안 함';
-
-function warning(key: string, title: string): Notice {
-  return {key, kind: 'warning', icon: 'warning', title, time: noticeTime()};
-}
 
 export interface LibraryLocationsState {
   /** The folders and backup state; null until the first read. */
@@ -83,12 +79,12 @@ export function useLibraryLocations(
         if (result.error.reason === 'canceled') return;
         const title = FOLDER_REFUSALS[result.error.reason];
         setRefusals(current => ({...current, [field]: title}));
-        report.current(warning(`preferences:folder:${field}`, title));
+        report.current(warningNotice(`preferences:folder:${field}`, title));
       })
       .catch((error: unknown) => {
         console.error('Could not change the folder', error);
         report.current(
-          warning(
+          warningNotice(
             `preferences:folder:${field}`,
             FOLDER_REFUSALS['not-writable'],
           ),
@@ -107,11 +103,11 @@ export function useLibraryLocations(
           result.error.reason === 'output-on'
             ? BACKUP_OUTPUT_ON
             : BACKUP_FAILED;
-        report.current(warning('preferences:backup', title));
+        report.current(warningNotice('preferences:backup', title));
       })
       .catch((error: unknown) => {
         console.error('Could not back up', error);
-        report.current(warning('preferences:backup', BACKUP_FAILED));
+        report.current(warningNotice('preferences:backup', BACKUP_FAILED));
       });
   }, []);
   return {view, refusals, choose, backUpNow};

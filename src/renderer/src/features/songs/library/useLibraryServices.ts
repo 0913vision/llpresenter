@@ -4,7 +4,7 @@ import {insertSelectedSong} from '@renderer/session/insertSelectedSong';
 import {useShow} from '@renderer/session/show';
 import {useOrderAddReason} from '@renderer/session/orderFull';
 import {orderFailureTitle} from '@renderer/session/serviceProblem';
-import {noticeTime, type Notice} from '@renderer/ui/notices';
+import {type Notice, warningNotice} from '@renderer/ui/notices';
 import type {LibraryApi} from './useLibrary';
 
 export function useLibraryServices(
@@ -34,16 +34,14 @@ export function useLibraryServices(
     try {
       const result = await insertSelectedSong(api, song);
       if (!result.ok) {
-        onProblem({
-          key: 'library:append',
-          kind: 'warning',
-          icon: 'warning',
-          title:
+        onProblem(
+          warningNotice(
+            'library:append',
             result.error.reason === 'write-failed'
               ? '예배 저장 실패'
               : orderFailureTitle(result.error, '예배 순서에 추가 실패'),
-          time: noticeTime(),
-        });
+          ),
+        );
       }
     } finally {
       pending.current = false;

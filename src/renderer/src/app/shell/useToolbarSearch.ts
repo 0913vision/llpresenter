@@ -4,7 +4,7 @@ import type {LibrarySearchMatch} from '@core/schema/librarySearch';
 import {useShow} from '@renderer/session/show';
 import {openLibrarySong} from '@renderer/session/showLibrary';
 import {withinLookupTimeout} from '@renderer/session/showOutput';
-import {noticeTime, type Notice} from '@renderer/ui/notices';
+import {type Notice, warningNotice} from '@renderer/ui/notices';
 
 export const TOOLBAR_SEARCH_LIMIT = 20;
 
@@ -24,14 +24,7 @@ const noReply: SearchReply = {
 };
 
 function problem(title: string, name?: string): Notice {
-  return {
-    key: 'toolbar-search',
-    kind: 'warning',
-    icon: 'warning',
-    title,
-    meta: name ? [name] : undefined,
-    time: noticeTime(),
-  };
+  return warningNotice('toolbar-search', title, name ? [name] : undefined);
 }
 
 function logFailure(message: string, cause: unknown): void {

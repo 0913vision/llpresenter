@@ -7,7 +7,6 @@ import {
   type ServiceId,
 } from '@core/schema/ids';
 import {parsePayload} from '@core/schema/payload';
-import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {logFailure} from './useServiceSources';
 
 /**
@@ -31,11 +30,6 @@ export function asServiceId(id: string | null): ServiceId | null {
   if (id === null) return null;
   const parsed = parsePayload(serviceIdSchema, id);
   return parsed.ok ? parsed.value : null;
-}
-
-/** A warning card from the service dialogs, such as 새 예배 만들기 실패. */
-export function warningNotice(key: string, title: string): Notice {
-  return {key, kind: 'warning', icon: 'warning', title, time: noticeTime()};
 }
 
 /**

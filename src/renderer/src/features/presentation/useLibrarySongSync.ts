@@ -1,7 +1,7 @@
 import {useEffect, useEffectEvent} from 'react';
 import {useShow} from '@renderer/session/show';
 import {refreshLibrarySong} from '@renderer/session/showLibrary';
-import {noticeTime, type Notice} from '@renderer/ui/notices';
+import {type Notice, warningNotice} from '@renderer/ui/notices';
 
 /** Refreshes the single retained library projection and releases all feeds. */
 export function useLibrarySongSync(onProblem: (notice: Notice) => void): void {
@@ -24,13 +24,7 @@ export function useLibrarySongSync(onProblem: (notice: Notice) => void): void {
           detail: cause instanceof Error ? cause.message : String(cause),
         });
         if (active && request === version) {
-          report({
-            key: 'library-song:refresh',
-            kind: 'warning',
-            icon: 'warning',
-            title: '곡 불러오기 실패',
-            time: noticeTime(),
-          });
+          report(warningNotice('library-song:refresh', '곡 불러오기 실패'));
         }
       }
     };

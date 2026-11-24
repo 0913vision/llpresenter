@@ -8,7 +8,7 @@ import {deleteSelection} from '@renderer/ui/deleteSelection';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import {sendLive, useOutputs} from '@renderer/session/live';
 import type {GroupRename} from '@renderer/ui/ListRow';
-import {noticeTime, type Notice} from '@renderer/ui/notices';
+import {type Notice, warningNotice} from '@renderer/ui/notices';
 import {useScreensSelection} from './selection';
 import type {NamedDocument} from '../../platform/useSettingsDocument';
 import {useScreenEditor} from './useScreenEditor';
@@ -40,13 +40,7 @@ export function useScreenRowActions(
         : undefined;
   const target = document?.value.screens.find(screen => screen.id === menu?.id);
   const report = (title: string): void =>
-    onProblem?.({
-      key: 'screens:row',
-      kind: 'warning',
-      icon: 'warning',
-      title,
-      time: noticeTime(),
-    });
+    onProblem?.(warningNotice('screens:row', title));
   const failed = (cause: unknown): void => {
     window.llp?.log.write({
       level: 'error',

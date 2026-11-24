@@ -2,7 +2,7 @@ import {createServiceItemId, type MediaId} from '@core/schema/ids';
 import type {Report} from '@renderer/session/serviceEdit';
 import {canAddMedia, mediaItem} from '@renderer/platform/media';
 import {MISSING_MEDIA_TIP} from '@renderer/platform/problemReasons';
-import {noticeTime} from '@renderer/ui/notices';
+import {warningNotice} from '@renderer/ui/notices';
 import {insertNewItem} from '@renderer/session/insertNewItem';
 import {newMediaItem} from '@renderer/features/media/newMediaItem';
 
@@ -14,13 +14,7 @@ export function dropMediaInOrder(
 ): void {
   const media = mediaItem(id);
   if (media === undefined || !canAddMedia(id)) {
-    report({
-      key: 'service-order:media-drop',
-      kind: 'warning',
-      icon: 'warning',
-      title: MISSING_MEDIA_TIP,
-      time: noticeTime(),
-    });
+    report(warningNotice('service-order:media-drop', MISSING_MEDIA_TIP));
     return;
   }
   insertNewItem(

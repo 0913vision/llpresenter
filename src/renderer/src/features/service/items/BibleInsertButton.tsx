@@ -4,7 +4,7 @@ import type {BibleSource} from '@renderer/session/bibleSource';
 import {insertItemInSection} from '@renderer/session/serviceOrderEdits';
 import {useShow} from '@renderer/session/show';
 import {Button} from '@renderer/ui/Button';
-import {noticeTime, type Notice} from '@renderer/ui/notices';
+import {type Notice, warningNotice} from '@renderer/ui/notices';
 import {rememberBiblePassage} from '../../../session/recentWriter';
 import {newBibleItem} from './passageItems';
 
@@ -56,13 +56,7 @@ export function BibleInsertButton({
     insert()
       .catch((error: unknown) => {
         console.error('Could not add the passage', error);
-        onProblem({
-          key: 'bible:insert',
-          kind: 'warning',
-          icon: 'warning',
-          title: '예배 변경 실패',
-          time: noticeTime(),
-        });
+        onProblem(warningNotice('bible:insert', '예배 변경 실패'));
       })
       .finally(() => setBusy(false));
   };

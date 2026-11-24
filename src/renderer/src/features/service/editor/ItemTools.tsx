@@ -12,7 +12,7 @@ import {slideMaking} from '@renderer/platform/themes';
 import {editItem} from '@renderer/session/openService';
 import {useShow} from '@renderer/session/show';
 import {Button} from '@renderer/ui/Button';
-import {noticeTime} from '@renderer/ui/notices';
+import {warningNotice} from '@renderer/ui/notices';
 import {SelectMenu} from '@renderer/ui/SelectMenu';
 import {useServiceSongMenu} from '../order/useServiceSongMenu';
 
@@ -91,13 +91,7 @@ function PassageTools({
     setChoosing(false);
     changePassage(item, passage, report).catch((error: unknown) => {
       console.error('Could not change a passage', error);
-      report({
-        key: 'bible-passage',
-        kind: 'warning',
-        icon: 'warning',
-        title: '성경 구절 변경 실패',
-        time: noticeTime(),
-      });
+      report(warningNotice('bible-passage', '성경 구절 변경 실패'));
     });
   };
   return (

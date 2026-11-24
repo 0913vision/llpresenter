@@ -1,6 +1,6 @@
 import type {ThemeId} from '@core/schema/ids';
 import {sendLive} from '@renderer/session/live';
-import {noticeTime, type Notice} from '@renderer/ui/notices';
+import {type Notice, warningNotice} from '@renderer/ui/notices';
 
 /** Sends a theme choice without treating the request as live confirmation. */
 export function sendThemeChange(
@@ -15,12 +15,6 @@ export function sendThemeChange(
       message: 'Could not send the theme change command',
       detail: cause instanceof Error ? cause.message : String(cause),
     });
-    onProblem({
-      key: 'theme:send',
-      kind: 'warning',
-      icon: 'warning',
-      title: '테마 변경 실패',
-      time: noticeTime(),
-    });
+    onProblem(warningNotice('theme:send', '테마 변경 실패'));
   }
 }

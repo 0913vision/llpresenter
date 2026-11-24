@@ -10,7 +10,7 @@ import {deleteSelection} from '@renderer/ui/deleteSelection';
 import {focusHistorySurface} from '@renderer/ui/focusHistorySurface';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import type {MenuEntry} from '@renderer/ui/menuModel';
-import {noticeTime, type Notice} from '@renderer/ui/notices';
+import {type Notice, warningNotice} from '@renderer/ui/notices';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {chosenPlaylist, mediaName, type MediaEntry} from './mediaEntries';
 import {mediaTileMenuEntries, type MediaTileActions} from './mediaMenuEntries';
@@ -111,13 +111,7 @@ export function useMediaActions({
       });
     } catch (cause: unknown) {
       console.error('Media output failed:', cause);
-      onProblem({
-        key: 'media-view:output',
-        kind: 'warning',
-        icon: 'warning',
-        title: '미디어 내보내기 실패',
-        time: noticeTime(),
-      });
+      onProblem(warningNotice('media-view:output', '미디어 내보내기 실패'));
     }
   };
   const activate = (at: number): void => {

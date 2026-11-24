@@ -2,7 +2,7 @@ import {useLayoutEffect, useRef, useState} from 'react';
 import type {Themes} from '@core/schema/themes';
 import type {ThemeListResult} from '@core/theme';
 import type {NamedDocument} from '@renderer/platform/useSettingsDocument';
-import {noticeTime, type Notice} from '@renderer/ui/notices';
+import {type Notice, warningNotice} from '@renderer/ui/notices';
 import {THEME_READ_ONLY} from './themeNames';
 import {ThemesEditor} from './themesEditor';
 import {useThemeDraft} from './useThemeDraft';
@@ -19,13 +19,7 @@ export function useThemeWrites(
   const api = window.llp;
 
   const report = (title: string): void =>
-    reportRef.current?.({
-      key: 'screens:themes',
-      kind: 'warning',
-      icon: 'warning',
-      title,
-      time: noticeTime(),
-    });
+    reportRef.current?.(warningNotice('screens:themes', title));
 
   const reportError = (error: unknown): void => {
     api?.log.write({
@@ -44,14 +38,7 @@ export function useThemeWrites(
       value => {
         if (mounted.current) setSaved(value);
       },
-      title =>
-        reportRef.current?.({
-          key: 'screens:themes:save',
-          kind: 'warning',
-          icon: 'warning',
-          title,
-          time: noticeTime(),
-        }),
+      title => reportRef.current?.(warningNotice('screens:themes:save', title)),
     );
     editor.current = current;
     return () => {

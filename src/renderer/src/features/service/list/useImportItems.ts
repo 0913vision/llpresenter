@@ -1,8 +1,9 @@
+import {warningNotice} from '@renderer/ui/notices';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useMemo, useState} from 'react';
 import {useShow} from '@renderer/session/show';
 import type {Notice} from '@renderer/ui/notices';
-import {asServiceId, editApplied, warningNotice} from './serviceEdits';
+import {asServiceId, editApplied} from './serviceEdits';
 import {selectedIds, type TreeSelection} from './serviceTree';
 import {
   logFailure,

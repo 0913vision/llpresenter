@@ -2,7 +2,7 @@ import {useEffect, useState} from 'react';
 import type {ServiceDocument} from '@core/schema/contentDocuments';
 import type {MediaDocument} from '@core/schema/mediaEdit';
 import {isItemOfKind} from '@core/schema/service';
-import {noticeTime, type Notice} from '@renderer/ui/notices';
+import {type Notice, warningNotice} from '@renderer/ui/notices';
 
 const MINUTE_SECONDS = 60;
 const noDurations: Readonly<Record<string, string>> = {};
@@ -69,13 +69,9 @@ export function useMediaDurations(
     });
     const report = (): void => {
       if (alive) {
-        onProblem({
-          key: 'service-order:details',
-          kind: 'warning',
-          icon: 'warning',
-          title: '예배 정보 불러오기 실패',
-          time: noticeTime(),
-        });
+        onProblem(
+          warningNotice('service-order:details', '예배 정보 불러오기 실패'),
+        );
       }
     };
     api.services.get(serviceId).then(

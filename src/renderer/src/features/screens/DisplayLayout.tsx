@@ -10,7 +10,7 @@ import {MONITOR_SCREEN_ID_MAX, type MonitorList} from '@core/schema/monitors';
 import {Button} from '@renderer/ui';
 import {classNames} from '@renderer/ui/classNames';
 import {sendLive} from '@renderer/session/live';
-import {noticeTime, type Notice} from '@renderer/ui/notices';
+import {type Notice, warningNotice} from '@renderer/ui/notices';
 import {
   displayLayout,
   type DisplayLayoutModel,
@@ -220,13 +220,12 @@ export function DisplayLayout({
                     screens.find(screen => screen.id === screenId)?.method ===
                     'ndi'
                   ) {
-                    onProblem?.({
-                      key: 'screens:ndi-monitor',
-                      kind: 'warning',
-                      icon: 'warning',
-                      title: 'NDI 화면에는 모니터를 지정할 수 없습니다.',
-                      time: noticeTime(),
-                    });
+                    onProblem?.(
+                      warningNotice(
+                        'screens:ndi-monitor',
+                        'NDI 화면에는 모니터를 지정할 수 없습니다.',
+                      ),
+                    );
                     return;
                   }
                   select(screenId);

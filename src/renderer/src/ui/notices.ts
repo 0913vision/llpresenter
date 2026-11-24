@@ -37,6 +37,25 @@ export function noticeTime(now: Date = new Date()): string {
   return now.toTimeString().slice(0, NOTICE_TIME_LENGTH);
 }
 
+/**
+ * A warning card made now, such as 예배 저장 실패 with the names it is about:
+ * every part of the app reports a failure with this.
+ */
+export function warningNotice(
+  key: string,
+  title: string,
+  meta?: readonly string[],
+): Notice {
+  return {
+    key,
+    kind: 'warning',
+    icon: 'warning',
+    title,
+    time: noticeTime(),
+    ...(meta === undefined ? {} : {meta}),
+  };
+}
+
 function oldestToDrop(notices: readonly Notice[]): number {
   const oldestInfo = notices.findLastIndex(notice => notice.kind === 'info');
   return oldestInfo >= 0 ? oldestInfo : notices.length - 1;

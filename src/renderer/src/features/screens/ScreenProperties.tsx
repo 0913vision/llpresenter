@@ -37,7 +37,7 @@ import {
   SelectMenu,
   TextField,
 } from '@renderer/ui';
-import {noticeTime, type Notice} from '@renderer/ui/notices';
+import {type Notice, warningNotice} from '@renderer/ui/notices';
 import {isComposing} from '@renderer/ui/ime';
 import {hasModifier} from '@renderer/ui/modifierKeys';
 import {monitorPixelSize, sizeText, targetSize} from './displaySizes';
@@ -444,13 +444,12 @@ function PropertyRows({
               value={screen.kind}
               onChange={kind => {
                 if (kind !== screen.kind && lastOfKind(screens, screen)) {
-                  onProblem?.({
-                    key: 'screens:kind',
-                    kind: 'warning',
-                    icon: 'warning',
-                    title: '마지막 화면의 종류는 바꿀 수 없습니다.',
-                    time: noticeTime(),
-                  });
+                  onProblem?.(
+                    warningNotice(
+                      'screens:kind',
+                      '마지막 화면의 종류는 바꿀 수 없습니다.',
+                    ),
+                  );
                   return;
                 }
                 change({kind});
@@ -567,13 +566,7 @@ export function ScreenProperties({
               result.error === 'missing'
                 ? '화면을 찾을 수 없음'
                 : SCREEN_NAME_PROBLEMS[result.error];
-            onProblem?.({
-              key: 'screens:rename',
-              kind: 'warning',
-              icon: 'warning',
-              title,
-              time: noticeTime(),
-            });
+            onProblem?.(warningNotice('screens:rename', title));
           })
           .catch((cause: unknown) => {
             window.llp?.log.write({
@@ -581,13 +574,7 @@ export function ScreenProperties({
               message: 'Could not rename the screen',
               detail: String(cause),
             });
-            onProblem?.({
-              key: 'screens:rename',
-              kind: 'warning',
-              icon: 'warning',
-              title: '화면 설정 저장 실패',
-              time: noticeTime(),
-            });
+            onProblem?.(warningNotice('screens:rename', '화면 설정 저장 실패'));
           });
       }}
       assign={target => {

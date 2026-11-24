@@ -5,7 +5,7 @@ import type {ServiceItem} from '@core/schema/service';
 import type {Report} from '@renderer/session/serviceEdit';
 import {useOrderFull} from '@renderer/session/orderFull';
 import {useShow} from '@renderer/session/show';
-import {noticeTime} from '@renderer/ui/notices';
+import {warningNotice} from '@renderer/ui/notices';
 import {BibleQuickAdd} from './BibleQuickAdd';
 import {insertNewItem, rowAfterSelected} from '@renderer/session/insertNewItem';
 import {newPaletteItem} from './newItems';
@@ -67,13 +67,7 @@ export function usePaletteInsert(report: Report): {
       },
       (error: unknown) => {
         console.error('Could not make a passage item', error);
-        report({
-          key: 'service-order:passage',
-          kind: 'warning',
-          icon: 'warning',
-          title: '성경 구절 추가 실패',
-          time: noticeTime(),
-        });
+        report(warningNotice('service-order:passage', '성경 구절 추가 실패'));
       },
     );
   };

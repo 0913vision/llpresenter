@@ -1,6 +1,6 @@
 import {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {MediaDocument} from '@core/schema/mediaEdit';
-import {noticeTime, type Notice} from '@renderer/ui/notices';
+import {type Notice, warningNotice} from '@renderer/ui/notices';
 import {subscribeMediaDocument} from '@renderer/features/media/subscribeMediaDocument';
 
 /** Which tab reads the media, and how it tells that the read failed. */
@@ -42,13 +42,7 @@ export function useMediaDocument(
         message: log,
         detail: cause instanceof Error ? cause.message : String(cause),
       });
-      report.current?.({
-        key,
-        kind: 'warning',
-        icon: 'warning',
-        title,
-        time: noticeTime(),
-      });
+      report.current?.(warningNotice(key, title));
     });
   }, [reader]);
   return document;

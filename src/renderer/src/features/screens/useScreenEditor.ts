@@ -1,5 +1,5 @@
 import {useLayoutEffect, useRef} from 'react';
-import {noticeTime, type Notice} from '@renderer/ui/notices';
+import {type Notice, warningNotice} from '@renderer/ui/notices';
 import type {NamedDocument} from '../../platform/useSettingsDocument';
 import {ScreenEditor, type EditProblemReporter} from './screenEditor';
 import type {ScreenChange} from '@core/screens';
@@ -51,13 +51,7 @@ export function useScreenEditor(
     if (api === undefined) return undefined;
     const session = sessionFor(api);
     const reportProblem: EditProblemReporter = () =>
-      onProblem?.({
-        key: 'screens:save',
-        kind: 'warning',
-        icon: 'warning',
-        title: SAVE_FAILED_TITLE,
-        time: noticeTime(),
-      });
+      onProblem?.(warningNotice('screens:save', SAVE_FAILED_TITLE));
     if (onProblem !== undefined) session.reporters.add(reportProblem);
     editor.current = session.editor;
     return () => {

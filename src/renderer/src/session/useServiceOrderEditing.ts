@@ -1,5 +1,5 @@
 import {useRef, useState} from 'react';
-import {noticeTime, type Notice} from '@renderer/ui/notices';
+import {type Notice, noticeTime, warningNotice} from '@renderer/ui/notices';
 import type {OpenServiceResult} from './openService';
 import {orderFailureTitle} from './serviceProblem';
 import {useAlive} from '@renderer/ui/useAlive';
@@ -44,13 +44,7 @@ export function useServiceOrderEditing(onProblem: (notice: Notice) => void) {
         message: 'Could not edit the service order',
         detail: cause instanceof Error ? cause.message : String(cause),
       });
-      onProblem({
-        key: 'service-order:request',
-        kind: 'warning',
-        icon: 'warning',
-        title: '예배 변경 실패',
-        time: noticeTime(),
-      });
+      onProblem(warningNotice('service-order:request', '예배 변경 실패'));
       return false;
     } finally {
       pending.current = false;

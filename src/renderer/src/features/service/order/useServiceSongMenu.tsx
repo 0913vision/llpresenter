@@ -3,7 +3,7 @@ import type {SongDocument, Revision} from '@core/schema/contentDocuments';
 import {isItemOfKind, type ServiceItemOf} from '@core/schema/service';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {useShow} from '@renderer/session/show';
-import {noticeTime, type Notice} from '@renderer/ui/notices';
+import {type Notice, warningNotice} from '@renderer/ui/notices';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
 import {usageMeta} from '@renderer/ui/usageText';
 import {createServiceId} from '@core/schema/ids';
@@ -138,13 +138,9 @@ export function useServiceSongMenu(
             songRevision: captured.document.revision,
           });
           if (!result.ok) {
-            onProblem({
-              key: 'song-transfer',
-              kind: 'warning',
-              icon: 'warning',
-              title: '곡 저장 또는 불러오기 실패',
-              time: noticeTime(),
-            });
+            onProblem(
+              warningNotice('song-transfer', '곡 저장 또는 불러오기 실패'),
+            );
           } else setQuestion(null);
           return result.ok || result.error.reason === 'write-failed';
         },

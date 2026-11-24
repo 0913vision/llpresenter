@@ -18,7 +18,7 @@ import {IconButton, Menu, ListInsertLine} from '@renderer/ui';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import {openOnArrowDown} from '@renderer/ui/menuButton';
 import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
-import {noticeTime, type Notice} from '@renderer/ui/notices';
+import {type Notice, warningNotice} from '@renderer/ui/notices';
 import {newQuickItem, type QuickChoice, type QuickEdit} from './quickEdits';
 import {useTimerEditDialog} from '../tools/useTimerEditDialog';
 import {QuickTimerDialog} from './QuickTimerDialog';
@@ -108,13 +108,7 @@ function QuickAddMenu({
           detail: String(cause),
         });
         if (active) {
-          onProblem({
-            key: 'quick:source',
-            kind: 'warning',
-            icon: 'warning',
-            title: '항목 불러오기 실패',
-            time: noticeTime(),
-          });
+          onProblem(warningNotice('quick:source', '항목 불러오기 실패'));
         }
       },
     );

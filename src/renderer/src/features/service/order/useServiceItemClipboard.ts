@@ -8,7 +8,7 @@ import {
   insertItems,
   ORDER_FULL_REASON,
 } from '@renderer/session/serviceOrderEdits';
-import {noticeTime, type Notice} from '@renderer/ui/notices';
+import {type Notice, warningNotice} from '@renderer/ui/notices';
 import type {useServiceOrderEditing} from '@renderer/session/useServiceOrderEditing';
 
 const EMPTY_CLIPBOARD = '복사한 예배 순서 항목이 없습니다.';
@@ -92,16 +92,14 @@ export function useServiceItemClipboard({
     if (clipboard === undefined || serviceId === null || ids.size === 0) return;
     const result = await clipboard.copy(createServiceId(serviceId), ids);
     if (!result.ok) {
-      onProblem({
-        key: 'service-order:copy',
-        kind: 'warning',
-        icon: 'warning',
-        title:
+      onProblem(
+        warningNotice(
+          'service-order:copy',
           result.error === 'full'
             ? '복사할 항목이 너무 큽니다.'
             : '항목 복사 실패',
-        time: noticeTime(),
-      });
+        ),
+      );
     }
   };
   const paste = async (afterId: string | null): Promise<void> => {

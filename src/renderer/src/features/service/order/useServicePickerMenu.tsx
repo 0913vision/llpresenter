@@ -1,3 +1,4 @@
+import {warningNotice} from '@renderer/ui/notices';
 import {useRef, useState} from 'react';
 import {useShow} from '@renderer/session/show';
 import {Menu} from '@renderer/ui/Menu';
@@ -5,10 +6,7 @@ import type {Notice} from '@renderer/ui/notices';
 import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {RenameDialog} from '@renderer/ui/RenameDialog';
-import {
-  renameService,
-  warningNotice,
-} from '@renderer/features/service/list/serviceEdits';
+import {renameService} from '@renderer/features/service/list/serviceEdits';
 import {useServiceActions} from '@renderer/features/service/list/useServiceActions';
 import {useServicePicker} from './useServicePicker';
 import {useServiceRowMenu} from './useServiceRowMenu';

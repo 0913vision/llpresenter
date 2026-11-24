@@ -20,7 +20,7 @@ import type {SlideDeck} from '../slides/slideDeck';
 import type {Report} from '@renderer/session/serviceEdit';
 import {slideMaking} from '@renderer/platform/themes';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
-import {noticeTime} from '@renderer/ui/notices';
+import {warningNotice} from '@renderer/ui/notices';
 import {confirmBibleCuts} from './saveBibleCuts';
 import {passageSplitter, type BibleSplit} from './passageSplitter';
 import {usePassageText} from './passageText';
@@ -107,13 +107,7 @@ export function useVerseSplit(
       theme: slide?.theme,
     });
     if (split == null) {
-      report({
-        key: 'bible-split',
-        kind: 'warning',
-        icon: 'warning',
-        title: '성경 구절 나누기 실패',
-        time: noticeTime(),
-      });
+      report(warningNotice('bible-split', '성경 구절 나누기 실패'));
       return;
     }
     setCut({split, reference: verse});

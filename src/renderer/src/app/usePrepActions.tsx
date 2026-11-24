@@ -13,7 +13,7 @@ import {openDeckAt} from '@renderer/features/slides/deckSelection';
 import {openInPrep, usePrepTarget} from '@renderer/session/prepTarget';
 import {useShow} from '@renderer/session/show';
 import {isLibrarySource} from '@renderer/session/showLibrary';
-import {noticeTime} from '@renderer/ui/notices';
+import {warningNotice} from '@renderer/ui/notices';
 import type {ControlSession} from './controlSession';
 import {PowerPointImagesFlow} from './PowerPointImagesFlow';
 import {editItemInPrep, type PrepBinding} from './workspaces/prepPanels';
@@ -44,13 +44,7 @@ export function usePrepActions(session: ControlSession): PrepActions {
   const draft = useSongDraft(view => view.draft);
   const songOpen = usePrepTarget(view => view.target?.kind === 'song');
   const failed = (): void =>
-    report({
-      key: 'prep:song-open',
-      kind: 'warning',
-      icon: 'warning',
-      title: '곡 열기 실패',
-      time: noticeTime(),
-    });
+    report(warningNotice('prep:song-open', '곡 열기 실패'));
   const openSong = (songId: SongId, position = 0): void =>
     requestLeaveSong(() => {
       api?.songs.get(songId).then(document => {
