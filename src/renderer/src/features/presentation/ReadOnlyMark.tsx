@@ -1,6 +1,6 @@
 import type {JSX} from 'react';
 import {Icon} from '@renderer/ui/Icon';
-import {READ_ONLY_TIP} from '../../platform/problemReasons';
+import {NEWER_FILE_REASON} from '../../platform/problemReasons';
 import styles from './ReadOnlyMark.module.css';
 import {useShow} from '@renderer/session/show/showStore';
 
@@ -12,8 +12,8 @@ export function ReadOnlyMark(): JSX.Element | null {
     <span
       className={styles.mark}
       role="img"
-      aria-label={READ_ONLY_TIP}
-      title={READ_ONLY_TIP}
+      aria-label={NEWER_FILE_REASON}
+      title={NEWER_FILE_REASON}
     >
       <Icon name="warning" size={16} />
     </span>

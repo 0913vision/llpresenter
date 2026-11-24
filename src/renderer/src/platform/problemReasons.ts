@@ -1,7 +1,5 @@
 /** Why a file from a newer version cannot be changed, said the same everywhere. */
 export const NEWER_FILE_REASON = '새 버전의 파일이라 바꿀 수 없습니다.';
-/** The tooltip on what a newer version's file keeps from being changed. */
-export const READ_ONLY_TIP = NEWER_FILE_REASON;
 /** Why a still picture shows where a background video should play. */
 export const MISSING_STILL_BACKGROUND_TIP =
   '배경 영상 파일을 찾을 수 없어 정지 화면으로 표시 중';

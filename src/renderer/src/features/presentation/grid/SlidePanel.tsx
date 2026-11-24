@@ -21,7 +21,7 @@ import {SlideGrid} from './SlideGrid';
 import {ContinuousSlideGrid} from './ContinuousSlideGrid';
 import {liveReturn} from './liveReturn';
 import {useSettingsDocument} from '@renderer/platform/documents/useSettingsDocument';
-import {READ_ONLY_TIP} from '../../../platform/problemReasons';
+import {NEWER_FILE_REASON} from '../../../platform/problemReasons';
 import styles from './SlidePanel.module.css';
 import {useVisibleSlideItem} from '@renderer/session/show/visibleSlideItem';
 import {useShownItemId} from '@renderer/session/show/shownItem';
@@ -79,7 +79,7 @@ export function SlidePanelMeta(): JSX.Element | null {
   const source = useShow(view =>
     isLibrarySource(view, openItemId) ? view.librarySong : null,
   );
-  const reason = source?.readOnly ? READ_ONLY_TIP : undefined;
+  const reason = source?.readOnly ? NEWER_FILE_REASON : undefined;
   const {targetProps, tooltip} = useTooltip(
     reason ? {text: reason} : undefined,
   );
