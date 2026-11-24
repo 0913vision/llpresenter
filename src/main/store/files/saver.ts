@@ -11,6 +11,10 @@ export interface SaveRequest {
   readonly text: string;
 }
 
+/**
+ * What the saver uses: the recovery copies, where copy problems go, an optional
+ * hook for the result of a copy, and optionally the text writer.
+ */
 export interface SaverOptions {
   readonly copies: Pick<RecoveryCopies, 'keepPrevious'>;
   readonly reportCopyProblem: (problem: WriteProblem) => void;

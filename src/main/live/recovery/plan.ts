@@ -16,6 +16,7 @@ import type {ActiveMessage} from '@core/schema/live/overlayState';
 
 const MILLISECONDS_PER_SECOND = 1000;
 
+/** One row of the recovery summary that the recovery dialog shows. */
 export type RecoveryRow = NonNullable<RecoverySummary>['rows'][number];
 
 /** One row of the recovery dialog and the commands that restore it. */

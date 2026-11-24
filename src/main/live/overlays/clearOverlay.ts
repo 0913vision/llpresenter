@@ -20,6 +20,11 @@ function withoutProp(layer: PropLayer | null, id: string): PropLayer | null {
   return items.length === layer.items.length ? layer : propLayer(items);
 }
 
+/**
+ * Clears one message, one prop, or the 무대 message, and keeps what it cleared
+ * for undo. It returns the same history when the target is not shown. `now` is
+ * the time of the clear.
+ */
 export function clearOverlay(
   history: LiveHistory,
   target: OverlayClear['target'],

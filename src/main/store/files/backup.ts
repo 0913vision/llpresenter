@@ -24,6 +24,10 @@ export interface BackupDone {
   readonly problems: readonly WriteProblem[];
 }
 
+/**
+ * Why a backup did not run: automatic backup is off, an output is on, one is
+ * done today, or one is running.
+ */
 export type BackupSkipReason =
   'auto-off' | 'output-on' | 'done-today' | 'running';
 
@@ -38,6 +42,10 @@ interface BackupFolders {
   readonly partial: readonly string[];
 }
 
+/**
+ * One backup: the data folders, how many backups to keep, the time, and the
+ * development folder that nothing may leave.
+ */
 export interface BackupRun {
   readonly locations: DataLocations;
   /** How many backups to keep, 보관; clamped to 1 to 365. */
@@ -47,6 +55,11 @@ export interface BackupRun {
   readonly developmentFolder: string | null;
 }
 
+/**
+ * What the backups use: the data folders, the development folder, the backup
+ * preferences, whether any output is on, and optionally the clock and the gate
+ * shared by all backups.
+ */
 export interface BackupsOptions {
   readonly locations: DataLocations;
   /** The `LLP_USER_DATA` folder that nothing copied may lead out of, or `null`. */

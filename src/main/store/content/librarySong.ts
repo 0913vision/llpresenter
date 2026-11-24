@@ -11,17 +11,26 @@ import {songTiles} from '@core/slides';
 import {IpcHost} from '../../base/ipcHost';
 import type {Logger} from '../../base/log';
 
+/** A song of the library with its revision and file access. */
 export interface LibrarySongDocument {
   readonly song: Song;
   readonly revision: number;
   readonly access: FileAccess;
 }
 
+/**
+ * What a library song is shown from: the lookup of a song by id, and the
+ * labels.
+ */
 export interface LibrarySongSources {
   readonly song: (id: SongId) => LibrarySongDocument | null;
   readonly labels: readonly Label[];
 }
 
+/**
+ * The shown form of a library song, or `null` when the id is not in the
+ * library.
+ */
 export function showLibrarySong(
   {song: songOf, labels}: LibrarySongSources,
   songId: SongId,

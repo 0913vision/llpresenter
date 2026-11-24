@@ -21,6 +21,7 @@ export interface UndoEntry {
   readonly stageMessage?: string;
 }
 
+/** The live state with the one level of undo kept beside it. */
 export interface LiveHistory {
   readonly state: LiveState;
   /**
@@ -33,6 +34,11 @@ export interface LiveHistory {
   readonly stoppedItem?: UndoEntry | null;
 }
 
+/**
+ * The history a launch starts with: the restored state without its last 매크로,
+ * with the clear toggles, clear effects and item restore reset, and nothing to
+ * undo.
+ */
 export function initialHistory(state: LiveState): LiveHistory {
   const {lastMacroId: _lastMacroId, ...restored} = state;
   const sessionState = state.lastMacroId === undefined ? state : restored;

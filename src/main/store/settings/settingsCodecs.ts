@@ -38,6 +38,7 @@ function parseThemes(
   return parseFile(themesFormat, text, file);
 }
 
+/** The value of any settings document. */
 export type SettingsValue = SettingsDocument['value'];
 function codec<T extends SettingsValue>(
   format: T['format'],

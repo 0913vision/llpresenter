@@ -9,6 +9,10 @@ function command(value: SingleLiveCommand): ActionResolution {
   return {kind: 'commands', commands: [value]};
 }
 
+/**
+ * The target an action names, or a throw of a missing target error that names
+ * its kind and id.
+ */
 export function requireMacroTarget<T>(
   target: T | undefined,
   kind: string,
@@ -26,6 +30,7 @@ function screenExists(context: ActionContext, id: string): void {
   );
 }
 
+/** The handlers of every kind of action that a 매크로 can hold. */
 export const macroActionHandlers = [
   defineMacroAction({
     kind: 'theme',
@@ -194,4 +199,5 @@ export const macroActionHandlers = [
   }),
 ];
 
+/** The registry of {@link macroActionHandlers}. */
 export const macroActions = new MacroActionRegistry(macroActionHandlers);

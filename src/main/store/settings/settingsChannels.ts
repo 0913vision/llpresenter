@@ -18,6 +18,9 @@ type ChannelStore = Pick<
   | 'dispose'
 >;
 
+/**
+ * The settings channels after registering. `subscribe` hears settings problems.
+ */
 export interface SettingsChannels {
   readonly subscribe: (listener: SettingsProblemListener) => () => void;
   /** Stops answering, and waits until the store has saved what it took. */

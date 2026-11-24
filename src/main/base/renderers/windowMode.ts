@@ -41,6 +41,10 @@ export function windowModeFrom(
     : 'normal';
 }
 
+/**
+ * The extra window options of a window mode: none for `normal`, and a hidden
+ * window outside the taskbar that paints to a shared texture for `offscreen`.
+ */
 export function windowTestOptions(mode: WindowMode): WindowTestOptions {
   switch (mode) {
     case 'normal':

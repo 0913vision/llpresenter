@@ -1,6 +1,11 @@
 import {join} from 'node:path';
 import {Worker} from 'node:worker_threads';
 
+/**
+ * One bounded operation of the archive worker: read the slides, read the slide
+ * size, or write the listed pictures. A `pictures` job fails when the file no
+ * longer has the `digest` (SHA-256) it had at preview.
+ */
 export type PowerPointJob =
   | {readonly kind: 'read'; readonly path: string}
   | {readonly kind: 'size'; readonly path: string}

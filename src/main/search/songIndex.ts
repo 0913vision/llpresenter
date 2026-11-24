@@ -9,6 +9,9 @@ import {
 import type {Song} from '@core/schema/songs/song';
 import {isInitialQuery, normalizeSearch, searchInitials} from '@core/search';
 
+/**
+ * How many songs the index builds before it lets other main process work run.
+ */
 export const INDEX_CHUNK_SIZE = 25;
 
 const TITLES = new Intl.Collator('ko', {numeric: true});

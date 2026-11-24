@@ -30,6 +30,10 @@ export interface ReadDeck {
   readonly pictures: ReadonlyArray<string | undefined>;
 }
 
+/**
+ * What the PowerPoint reader uses from outside: the file chooser, the archive
+ * jobs, the slide image converter, the turn queue, and the log.
+ */
 export interface PowerPointReaderOptions {
   /** Asks for a file; `null` when the operator chose none. */
   readonly choose: () => Promise<string | null>;

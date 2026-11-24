@@ -26,11 +26,14 @@ import type {
 import {initialHistory, type LiveHistory} from './history';
 import {liveSlices} from './registry/slices';
 
+/** Hears each new live state. */
 export type LiveListener = (state: LiveState) => void;
+/** Hears the commands that a dispatch admitted. */
 export type LiveCommandListener = (
   commands: readonly SingleLiveCommand[],
 ) => void;
 
+/** Hears a problem that the live store reports. */
 export type ProblemListener = (problem: AppProblem) => void;
 
 const MAX_WAITING_COMMANDS = 32;

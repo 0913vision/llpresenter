@@ -15,6 +15,10 @@ export interface OutputKeySource {
   ): unknown;
 }
 
+/**
+ * The parts of the control window that key forwarding uses: whether it is
+ * destroyed, and its page's script runner.
+ */
 export type OutputKeyControl = Pick<BrowserWindow, 'isDestroyed'> & {
   readonly webContents: Pick<WebContents, 'isDestroyed' | 'executeJavaScript'>;
 };

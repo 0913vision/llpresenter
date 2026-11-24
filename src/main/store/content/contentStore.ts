@@ -53,6 +53,10 @@ import type {StoredFile} from '../files/library';
 import type {DataLocations} from '../locations/locations';
 import type {SettingsStore} from '../settings/settingsStore';
 
+/**
+ * What the content store starts from: the settings store, the data folders, the
+ * songs, 예배 순서 and templates read at launch, and the writer of their files.
+ */
 export interface ContentStoreOptions {
   readonly settings?: SettingsStore | null;
   readonly locations: DataLocations;

@@ -40,6 +40,10 @@ function content(node: Node, clean = false): string {
     : '';
 }
 
+/**
+ * The verse texts of one chapter, in order, read from the HTML of the live
+ * Bible site, or `null` when the page holds no chapter.
+ */
 export function parseLiveChapter(html: string): readonly string[] | null {
   const container = findElement(
     parse(html),
@@ -76,6 +80,11 @@ export function parseLiveChapter(html: string): readonly string[] | null {
   return verses;
 }
 
+/**
+ * Downloads one chapter from the Korean Bible Society site and returns its
+ * verse texts. It is `null` for a book or chapter that does not exist, a failed
+ * or slow request (10 seconds), or a page that cannot be read.
+ */
 export async function fetchLiveChapter(
   book: number,
   chapter: number,

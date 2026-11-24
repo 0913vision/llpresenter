@@ -3,20 +3,27 @@ import {DOMParser} from '@xmldom/xmldom';
 import {POWERPOINT_IMPORT_LIMITS} from '@core/schema/songs/textImportLimits';
 import type {PowerPointZip} from './powerpointZip';
 
+/** The element children of a node, without text and comments. */
 export function children(node: Node): Element[] {
   return Array.from(node.childNodes).filter(
     (child): child is Element => child.nodeType === 1,
   );
 }
+/** The element children of a node with this local name. */
 export function named(node: Node, name: string): Element[] {
   return children(node).filter(child => child.localName === name);
 }
+/** Every descendant element with this local name, in document order. */
 export function descendants(node: Node, name: string): Element[] {
   return children(node).flatMap(child => [
     ...(child.localName === name ? [child] : []),
     ...descendants(child, name),
   ]);
 }
+/**
+ * Parses a part of the archive as XML. It throws when the part is missing or
+ * too large, or declares a DOCTYPE.
+ */
 export function xml(zip: PowerPointZip, name: string): Document {
   const bytes = zip.read(name);
   if (bytes === undefined || bytes.length > POWERPOINT_IMPORT_LIMITS.xmlBytes) {
@@ -30,10 +37,15 @@ export function xml(zip: PowerPointZip, name: string): Document {
     },
   }).parseFromString(content, 'application/xml');
 }
+/** Where a relationship points, as a path inside the archive, and its type. */
 export interface PowerPointRelationship {
   readonly target: string;
   readonly type: string;
 }
+/**
+ * The relationships of a part by id, with each target as a path inside the
+ * archive. External links are left out.
+ */
 export function relationships(
   zip: PowerPointZip,
   part: string,
@@ -63,6 +75,10 @@ export function relationships(
       }),
   );
 }
+/**
+ * A numeric attribute, or the fallback when it is missing, empty or not a
+ * finite number.
+ */
 export function numberAttribute(
   node: Element | undefined,
   name: string,

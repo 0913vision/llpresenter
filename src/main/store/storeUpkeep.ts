@@ -26,11 +26,6 @@ type LoggedStore = Pick<
 
 // NOTE(0913vision): Leftover temporary files go before the backup, so a backup
 // never copies them.
-/**
- * Removes stale temporary files before the launch backup, retaining output-on
- * protection. The caller awaits completion during shutdown; this function does
- * not register a recurring job.
- */
 /** Where upkeep writes its log, and who hears that the launch backup failed. */
 export interface UpkeepReport {
   readonly log: Logger;
@@ -39,6 +34,11 @@ export interface UpkeepReport {
   readonly onBackupFailed?: ((folder: string) => void) | undefined;
 }
 
+/**
+ * Removes stale temporary files before the launch backup, retaining output-on
+ * protection. The caller awaits completion during shutdown; this function does
+ * not register a recurring job.
+ */
 export async function upkeepAtLaunch(
   loading: Promise<UpkeepStore | null>,
   isAnyOutputOn: () => boolean,

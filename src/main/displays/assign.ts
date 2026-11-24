@@ -28,13 +28,26 @@ export interface AssignmentInput {
   readonly previous: ReadonlyMap<string, number>;
 }
 
+/**
+ * The rule that matched a screen to a monitor. A hardware `identity` match
+ * comes first; the others are tried in the order saved id, previous id, name
+ * and size, exact rectangle.
+ */
 export type MatchRule =
   'identity' | 'saved id' | 'previous id' | 'name and size' | 'exact rectangle';
+/**
+ * Why a screen got no monitor: none fits, several fit, the one that fits
+ * belongs to another screen, or the saved hardware identity differs.
+ */
 export type UnmatchedReason =
   | 'no candidate'
   | 'ambiguous'
   | 'taken by another screen'
   | 'identity mismatch';
+/**
+ * How the assignment of one screen came out: the rule and the monitor it
+ * matched, or the reason it got none.
+ */
 export type MatchDiagnostic =
   {rule: MatchRule; monitorId: number} | {reason: UnmatchedReason};
 

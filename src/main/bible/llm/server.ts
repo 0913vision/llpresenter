@@ -5,6 +5,10 @@ import type {BibleAiState} from '@core/schema/bible/bibleAi';
 import {parseLlmHealth} from '@core/schema/bible/llmResponse';
 import {fetchJson} from './http';
 
+/**
+ * The file name of the language model, in the `models` folder of the local
+ * server.
+ */
 export const MODEL_NAME = 'Qwen3-4B-Instruct-2507-Q4_K_M.gguf';
 const HEALTH_TIMEOUT_MS = 180_000;
 const HEALTH_INTERVAL_MS = 500;

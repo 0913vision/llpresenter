@@ -7,6 +7,7 @@ import {setLayer, updateLayer} from '../history';
 import {propLayer} from '../overlays/propLayer';
 import {defineSlice} from '../slice';
 
+/** The slice of the `prop.set` command. */
 export const propsSlice = defineSlice({
   commands: ['prop.set'],
   initial: {},

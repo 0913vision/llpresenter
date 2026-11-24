@@ -1,8 +1,20 @@
 import {LIVE_BIBLE_ID} from '@core/schema/common/ids';
 
+/**
+ * The most installed chapters the cache keeps. The one read longest ago goes
+ * first; live chapters are not counted.
+ */
 export const BIBLE_CHAPTER_CACHE_LIMIT = 32;
+/**
+ * The most bytes of installed chapter text the cache keeps (8 MiB), counted by
+ * the `bytes` of each entry.
+ */
 export const BIBLE_CHAPTER_CACHE_MAX_BYTES = 8_388_608;
 
+/**
+ * The verse texts of one chapter of a translation, with the bytes they count
+ * against the cache budget.
+ */
 export interface CachedBibleChapter {
   readonly translation: string;
   readonly book: number;

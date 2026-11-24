@@ -26,6 +26,10 @@ export interface MediaLibrary {
   readonly roots: readonly string[];
 }
 
+/**
+ * What the media library is built from: the items, the media folder, the list
+ * file, and optionally the bundled pictures.
+ */
 export interface MediaLibrarySources {
   readonly items: readonly MediaItem[];
   readonly mediaFolder: string;
@@ -34,6 +38,7 @@ export interface MediaLibrarySources {
   readonly pictures?: readonly BundledPicture[] | undefined;
 }
 
+/** The media library, and the items it refused. */
 export interface MediaLibraryRead {
   readonly library: MediaLibrary;
   /** Items whose file the library refused. */

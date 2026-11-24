@@ -77,6 +77,7 @@ export function templateEntries(
     .sort((a, b) => TITLES.compare(a.name, b.name));
 }
 
+/** The song with its revision and file access, as the windows read it. */
 export function songDocument({
   data,
   revision,
@@ -85,6 +86,7 @@ export function songDocument({
   return {song: data, revision, access};
 }
 
+/** The 예배 순서 with its revision and file access, as the windows read it. */
 export function serviceDocument({
   data,
   revision,
@@ -93,6 +95,7 @@ export function serviceDocument({
   return {service: data, revision, access};
 }
 
+/** The template with its revision and file access, as the windows read it. */
 export function templateDocument({
   data,
   revision,

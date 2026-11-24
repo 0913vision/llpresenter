@@ -46,6 +46,10 @@ interface Upstream {
   waiting: boolean;
 }
 
+/**
+ * What the preview hub uses: the control window, the live store, the output
+ * screens, the page that draws each output, and the log.
+ */
 export interface PreviewHubContext {
   readonly control: BrowserWindow;
   readonly store: Pick<LiveStore, 'state'>;

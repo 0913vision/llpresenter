@@ -55,6 +55,11 @@ import {SkippedFiles, startSkippedFileProblems} from './files/skippedFiles';
 import {contentProblems, logLoadedStore, upkeepAtLaunch} from './storeUpkeep';
 import {defaultPreferences} from '@core/schema/app/preferences';
 
+/**
+ * What the data store registers with: the log, the app config, the problem
+ * feed, whether any output is on, and optional hooks for launch and service
+ * changes.
+ */
 export interface StoreRegistration {
   readonly log: Logger;
   readonly launchIdle?: Promise<boolean>;

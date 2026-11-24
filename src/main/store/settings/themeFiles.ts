@@ -68,6 +68,7 @@ function isKept(theme: ThemeFile): boolean {
   return own === undefined || !sameJson(own, theme);
 }
 
+/** The theme files to write and the theme files to remove. */
 export interface ThemeWrites {
   readonly saves: readonly SaveRequest[];
   readonly removals: ReadonlyArray<SaveRequest['target']>;

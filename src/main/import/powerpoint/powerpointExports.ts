@@ -31,6 +31,11 @@ export interface ExportListener {
   readonly report: (progress: PowerPointImageExportProgress) => void;
 }
 
+/**
+ * What the PowerPoint slide export uses from outside: the file chooser, the
+ * archive jobs, the slide image jobs, the turn queue, the temporary pictures,
+ * and the log.
+ */
 export interface PowerPointExportsOptions {
   /** Asks for a file; `null` when the operator chose none. */
   readonly choose: () => Promise<string | null>;

@@ -17,6 +17,10 @@ import {itemTiles, itemTitle} from '@core/slides';
 /** A document's content and whether a newer app version wrote it. */
 type Shown<T> = Pick<LoadedFile<T>, 'data' | 'access'>;
 
+/**
+ * What the shown form of a 예배 순서 is built from: the service, the songs, the
+ * labels, the revision, and the check of a media item.
+ */
 export interface ShowServiceSources {
   readonly service: Shown<Service>;
   /** The song library, by song id. */

@@ -1,6 +1,11 @@
 import {defineSlice} from '../slice';
 import {showBackground} from '../media/mediaLayer';
 
+/**
+ * The slice of the `theme.set`, `themes.refresh`, `item.start` and `item.stop`
+ * commands, which keep the slide background and theme in step with the shown
+ * slide.
+ */
 export const themesSlice = defineSlice({
   commands: ['theme.set', 'themes.refresh', 'item.start', 'item.stop'],
   initial: {},

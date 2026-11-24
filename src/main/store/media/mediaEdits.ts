@@ -17,6 +17,10 @@ import {
   type MediaItem,
 } from '@core/schema/media/mediaList';
 
+/**
+ * An edit that changes only the media list: every media edit except relinking,
+ * cancelling an import, and undo or redo of a delete.
+ */
 export type MediaListEdit = Exclude<
   MediaEdit,
   {
@@ -27,10 +31,14 @@ export type MediaListEdit = Exclude<
       | 'media.redoDelete';
   }
 >;
+/** A reference to one playlist: its kind (media or audio) and its id. */
 export type PlaylistRef = NonNullable<
   import('@core/schema/media/mediaEdit').MediaImportRequest['playlist']
 >;
 
+/**
+ * The media list after an edit, and the id of what the edit made or changed.
+ */
 export interface MediaChange {
   readonly value: MediaList;
   readonly id: string;
@@ -46,10 +54,15 @@ function changed(
   return {ok: true, value: {id, value}};
 }
 
+/** A refused edit with its reason and message. */
 export function mediaRefusal(reason: EditRefusalReason, message: string) {
   return {ok: false, error: {reason, message}} as const;
 }
 
+/**
+ * Whether every id is an item of the list, and an item of the audio kind for an
+ * audio playlist.
+ */
 export function playlistItemsValid(
   value: MediaList,
   playlist: PlaylistRef,
@@ -66,6 +79,7 @@ export function playlistItemsValid(
   });
 }
 
+/** Whether the list has the playlist. */
 export function hasPlaylist(value: MediaList, playlist: PlaylistRef): boolean {
   const list =
     playlist.kind === 'media' ? value.playlists : value.audioPlaylists;

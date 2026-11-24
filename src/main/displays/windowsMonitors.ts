@@ -9,6 +9,7 @@ import {WINDOWS_MONITOR_QUERY} from './windowsMonitorQuery';
 const QUERY_TIMEOUT_MS = 5_000;
 const MAX_REPLY_BYTES = 256 * 1024;
 
+/** How the Windows monitor query can fail. */
 export type MonitorQueryFailure =
   | 'timeout'
   | 'PowerShell error'
@@ -16,6 +17,10 @@ export type MonitorQueryFailure =
   | 'invalid result'
   | 'Windows directory unavailable';
 
+/**
+ * Thrown when the Windows monitor query fails; `reason` says how and `cause`
+ * holds the original error.
+ */
 export class MonitorQueryError extends Error {
   constructor(
     readonly reason: MonitorQueryFailure,

@@ -7,6 +7,10 @@ import type {ScreensFile} from '@core/schema/screens/screens';
 import type {TimersFile} from '@core/schema/tools/timers';
 import type {Themes} from '@core/schema/screens/themes';
 
+/**
+ * What a 매크로 compiles against: the themes, macros, media, messages, props and
+ * screens that exist now.
+ */
 export interface MacroCatalog {
   readonly themes: Themes;
   readonly macros: MacrosFile;
@@ -17,6 +21,7 @@ export interface MacroCatalog {
   readonly timers: TimersFile;
 }
 
+/** Reads the catalog from the settings and the current media list. */
 export function readMacroCatalog(
   settings: SettingsReader,
   media: MediaList,

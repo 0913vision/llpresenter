@@ -41,8 +41,13 @@ import {prepareQuickTimerEdit} from './quickTimerEdits';
 import {prepareTimerDeletion} from './timerDeletions';
 import {prepareTimerRename} from './timerRenames';
 
+/** Hears a problem of a settings file. */
 export type SettingsProblemListener = (problem: SettingsProblem) => void;
 
+/**
+ * What the settings store starts from: the documents read at launch, the
+ * problems found, the log, and optionally where and how it saves.
+ */
 export interface SettingsStoreOptions {
   readonly documents: ReadonlyMap<SettingsName, SettingsDocument>;
   readonly problems: readonly SettingsProblem[];

@@ -1,5 +1,6 @@
 import {defineSlice} from '../slice';
 
+/** The slice of the `macro.run` command. */
 export const macrosSlice = defineSlice({
   commands: ['macro.run'],
   initial: {},

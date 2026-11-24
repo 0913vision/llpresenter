@@ -41,11 +41,16 @@ export interface SaveFailureSink {
   remind(): void;
 }
 
+/**
+ * What the save failures use: the log, and optionally how long to wait between
+ * retries, in milliseconds.
+ */
 export interface SaveFailuresOptions {
   readonly log: Logger;
   readonly retryIntervalMs?: number;
 }
 
+/** Hears the problem card of the files that could not be written. */
 export type SaveProblemListener = (problem: AppProblem) => void;
 
 function firstOf<T>(values: Iterable<T>): T | undefined {

@@ -17,6 +17,7 @@ import {readSettingsFile, settingsLocation} from './settingsFile';
 import {DEFAULT_VERSE_LABEL} from './defaults';
 import {arrangeThemes, parseThemeList, readThemes} from './themeFiles';
 
+/** A settings file that could not be read, and why. */
 export interface SettingsProblem {
   readonly file: string;
   readonly error: FileError;

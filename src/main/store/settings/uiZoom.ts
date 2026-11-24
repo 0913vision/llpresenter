@@ -6,6 +6,7 @@ import type {AppConfigFile} from '../locations/appConfigFile';
 
 const PERCENT_PER_FACTOR = 100;
 
+/** The parts of a control window's page that UI zoom uses. */
 export interface ZoomControl {
   readonly id: number;
   isDestroyed(): boolean;
@@ -18,6 +19,7 @@ export interface ZoomControl {
   ): unknown;
 }
 
+/** The UI zoom after registering. `dispose` removes it. */
 export interface UiZoomRegistration {
   /** Only control windows attach here, before their page begins loading. */
   attachControl(contents: ZoomControl): void;

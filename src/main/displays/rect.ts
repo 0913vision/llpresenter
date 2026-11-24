@@ -6,17 +6,22 @@ export interface Rect {
   readonly height: number;
 }
 
+/** A width and a height, in the unit of the {@link Rect} it is used with. */
 export interface Size {
   readonly width: number;
   readonly height: number;
 }
 
+/** Whether two rectangles have the same position and size. */
 export function sameRect(a: Rect, b: Rect): boolean {
   return (
     a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height
   );
 }
 
+/**
+ * The area where two rectangles overlap; 0 when they only touch or are apart.
+ */
 export function intersectionArea(a: Rect, b: Rect): number {
   const width = Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x);
   const height = Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y);

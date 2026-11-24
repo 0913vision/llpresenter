@@ -1,5 +1,9 @@
 import {children, descendants, named, numberAttribute} from './powerpointXml';
 
+/**
+ * A resolved color. The red, green and blue channels and the alpha run from 0
+ * to 1.
+ */
 export interface PowerPointColor {
   readonly r: number;
   readonly g: number;
@@ -7,6 +11,10 @@ export interface PowerPointColor {
   readonly alpha: number;
 }
 
+/**
+ * The theme colors of a deck by name, and the mapping from the color names that
+ * slides use (such as `bg1`) to them.
+ */
 export interface PowerPointPalette {
   readonly colors: ReadonlyMap<string, Element>;
   readonly mapping: ReadonlyMap<string, string>;
@@ -124,6 +132,11 @@ function baseColor(
       return BLACK;
   }
 }
+/**
+ * Resolves a color element to its channels. It follows theme colors and applies
+ * the element's transforms (alpha, luminance, shade, tint). An unknown or
+ * circular color is black.
+ */
 export function resolveColor(
   node: Element,
   palette: PowerPointPalette,

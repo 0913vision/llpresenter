@@ -29,6 +29,10 @@ interface RegisterOptions {
   readonly cancelRestart: () => Promise<void>;
 }
 
+/**
+ * Whether the app may check for updates: only a packaged build on Windows
+ * outside test mode.
+ */
 export function updatesAllowed(options: {
   readonly packaged: boolean;
   readonly platform: string;

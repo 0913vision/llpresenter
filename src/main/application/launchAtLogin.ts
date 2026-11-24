@@ -24,6 +24,10 @@ export function loginItemsAllowed(
   return isPackaged && platform === 'win32';
 }
 
+/**
+ * What the launch-at-login sync uses from outside: the settings, the settings
+ * writer, the OS login items, whether this run may change them, and the log.
+ */
 export interface LaunchAtLoginOptions {
   readonly settings: Promise<SettingsReader | null>;
   /** Applies a whole-file settings edit (`DataStore.applySettingsEdit`). */

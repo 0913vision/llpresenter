@@ -1,5 +1,6 @@
 import {POWERPOINT_PICTURE_LIMITS as LIMITS} from '@core/schema/songs/powerpointImport';
 
+/** The width and height of a picture, in pixels. */
 export interface PictureSize {
   readonly width: number;
   readonly height: number;

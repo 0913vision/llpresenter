@@ -20,6 +20,11 @@ interface Membership {
   readonly playlistId: string;
   readonly occurrences: readonly Occurrence[];
 }
+/**
+ * What a deletion removed, kept so undo and redo can put it back: a media item
+ * with its places in the playlists, or a media or audio playlist with its
+ * position.
+ */
 export type MediaDeletion =
   | {
       readonly kind: 'item';
@@ -68,6 +73,10 @@ function captureOccurrences(
   return occurrences.reverse();
 }
 
+/**
+ * Records what a delete edit would remove, or returns `undefined` when its
+ * target is missing.
+ */
 export function captureMediaDeletion(
   value: MediaList,
   edit: DeleteEdit,
@@ -134,6 +143,10 @@ function insertBefore<T extends {readonly id: string}>(
   return [...rows.slice(0, at), row, ...rows.slice(at)];
 }
 
+/**
+ * Puts a deletion back into the list. It is refused as stale when the list no
+ * longer fits the record.
+ */
 export function undoMediaDeletion(
   current: MediaList,
   step: MediaDeletion,
@@ -215,6 +228,10 @@ export function undoMediaDeletion(
   };
 }
 
+/**
+ * Deletes again what an undo restored. It is refused as stale when the list
+ * changed since.
+ */
 export function redoMediaDeletion(
   current: MediaList,
   step: MediaDeletion,
@@ -238,6 +255,7 @@ export function redoMediaDeletion(
   return editMediaList(current, deletionEdit(step));
 }
 
+/** The delete edit that a deletion record stands for. */
 export function deletionEdit(step: MediaDeletion): DeleteEdit {
   return step.kind === 'item'
     ? {type: 'media.delete', mediaId: step.item.id}

@@ -17,6 +17,7 @@ type Pending =
   | {readonly kind: 'write'; readonly request: SaveRequest}
   | {readonly kind: 'remove'; readonly target: RecoveryTarget};
 
+/** A file that was written, and how the write ended. */
 export interface PersistedFile {
   readonly file: string;
   readonly result: WriteResult;

@@ -10,6 +10,11 @@ import type {LiveStore} from '../store';
 
 const RECHECK_MS = 250;
 
+/**
+ * Watches the running countdown timers that stop at zero and sends
+ * `timer.pause` for each one that reaches it, rechecking every 250 ms while one
+ * runs. `refresh` rechecks now; `dispose` stops watching.
+ */
 export function followTimerCompletion(options: {
   readonly store: Pick<LiveStore, 'state' | 'subscribe'>;
   readonly settings: SettingsReader;

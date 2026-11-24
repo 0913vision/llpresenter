@@ -7,6 +7,10 @@ import {
   type BibleChunkHeader,
 } from '@core/schema/bible/bibleChunks';
 
+/**
+ * The part of a file handle that reads at a given position, so tests can
+ * replace it.
+ */
 export interface BiblePositionedReader {
   read(options: {
     readonly buffer: Buffer;

@@ -16,6 +16,10 @@ import {pickerFolder, rememberPickerFile} from '../../uiState/pickerFolder';
 import {readTextImport, type TextImportInputs} from './read';
 import {TEST_IMPORT_FILE_VARIABLE} from '../testImportFile';
 
+/**
+ * What text import registers with: the control window, the window mode, the
+ * log, and optionally the UI state fields.
+ */
 export interface TextImportRegistration {
   readonly control: BrowserWindow;
   readonly windowMode: WindowMode;

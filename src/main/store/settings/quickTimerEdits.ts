@@ -173,6 +173,10 @@ function renameTimer(
   );
 }
 
+/**
+ * Checks an edit of a 빠른 타이머 against the quick and timers documents and
+ * prepares the new documents, or refuses it.
+ */
 export function prepareQuickTimerEdit(
   documents: ReadonlyMap<string, SettingsDocument>,
   edit: QuickTimerEdit,

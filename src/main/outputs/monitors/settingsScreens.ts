@@ -7,6 +7,11 @@ import {MissingLiveTargetError} from '../../live/commandErrors';
 import type {ScreenSettingsPort} from '../../live/slice';
 import type {OutputScreen, ScreenSource} from '../screens';
 
+/**
+ * The output screens as the settings define them. `ready` is true once the
+ * settings are read, `subscribe` hears changes, `failNdi` marks the NDI output
+ * of a screen as failed, and `dispose` stops following the settings.
+ */
 export interface SettingsScreens extends ScreenSource, ScreenSettingsPort {
   readonly ready: boolean;
   subscribe(listener: () => void): () => void;

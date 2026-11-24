@@ -10,6 +10,7 @@ export const LOW_FPS_SHARE = 0.1;
 /** How long a rate must stay low, or back at the target, before its status changes. */
 export const FPS_SETTLE_MS = 2000;
 
+/** Whether a screen's frame rate is `low` or `normal`. */
 export type FrameRateStatus = 'normal' | 'low';
 
 /** One screen's last reported frame rate. */

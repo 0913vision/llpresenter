@@ -5,6 +5,10 @@ import {buildShowService} from './showService';
 
 const FIRST_REVISION = 1;
 
+/**
+ * What the feed of the open 예배 순서 reads: the opened service id, the labels, the
+ * content store, and whether a media item exists.
+ */
 export interface OpenServiceSources {
   /** The 예배 순서 that 진행 opened, or `null` for none. */
   readonly serviceId: string | null;

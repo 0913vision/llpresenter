@@ -54,6 +54,10 @@ export interface OutputWindowHandle {
   destroy(): void;
 }
 
+/**
+ * What an output window tells its owner: its renderer is gone, the operator
+ * asked to close it, or its size changed.
+ */
 export interface OutputWindowEvents {
   readonly onRendererGone: (details: RendererGoneDetails) => void;
   /** The operator clicked the close button of a window-mode output. */
@@ -61,6 +65,7 @@ export interface OutputWindowEvents {
   readonly onSizeChanged?: () => void;
 }
 
+/** Makes the window handle of an output screen. */
 export type CreateOutputWindowHandle = (
   screen: OutputScreen,
   events: OutputWindowEvents,

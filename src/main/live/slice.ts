@@ -12,6 +12,7 @@ import type {ThemedSlide} from '@core/theme';
 import type {PayloadError} from '@core/schema/common/payload';
 import type {MediaList} from '@core/schema/media/mediaList';
 
+/** What a slice calls to run a `macro.run` command. */
 export interface MacroCommandPort {
   run(
     history: LiveHistory,
@@ -45,6 +46,10 @@ export interface MonitorNumbersPort {
   identify(): void;
 }
 
+/**
+ * What the theme output receives to reduce: the history before and after the
+ * command, the command, and the slice context.
+ */
 export interface ThemeReduction {
   readonly before: LiveHistory;
   readonly after: LiveHistory;
@@ -52,6 +57,10 @@ export interface ThemeReduction {
   readonly context: SliceContext;
 }
 
+/**
+ * What the slices use from outside: the command hook, the theme output, the
+ * audio media list, and the other ports of the live store.
+ */
 export interface SliceInputs {
   /** Receives admitted commands and macro children before state publication. */
   readonly onCommand?: (command: SingleLiveCommand) => void;
@@ -154,6 +163,7 @@ export function defineSlice<T extends LiveCommandType>(
   };
 }
 
+/** Whether a value was made by `defineSlice`. */
 export function isLiveSlice(value: unknown): value is LiveSlice {
   return typeof value === 'object' && value !== null && SLICE in value;
 }

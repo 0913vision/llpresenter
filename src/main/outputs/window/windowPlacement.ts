@@ -1,7 +1,15 @@
 import {sameRect, type Rect} from '../../displays/rect';
 import type {Logger} from '../../base/log';
 
+/**
+ * How long to wait for a window to leave full screen before it is placed
+ * anyway, in milliseconds.
+ */
 export const FULLSCREEN_EXIT_DEADLINE_MS = 500;
+/**
+ * How long after a placement the bounds are checked once more and corrected, in
+ * milliseconds.
+ */
 export const BOUNDS_RECHECK_MS = 100;
 
 type PlacementEvent = 'leave-full-screen' | 'move' | 'resize';

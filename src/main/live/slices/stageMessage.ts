@@ -1,6 +1,10 @@
 import {defineSlice} from '../slice';
 import {resetClearToggles} from '../history';
 
+/**
+ * The slice of the `stage.message.set` command, which shows or clears the 무대
+ * message.
+ */
 export const stageMessageSlice = defineSlice({
   commands: ['stage.message.set'],
   initial: {},

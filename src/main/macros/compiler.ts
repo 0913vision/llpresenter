@@ -20,6 +20,10 @@ import type {
   MacroProblem,
 } from './types';
 
+/**
+ * The bounds of one 매크로 run: the depth of nested macros, the number of actions
+ * and of problems, and the length of a problem message.
+ */
 export const MACRO_EXECUTION_LIMITS = {
   depth: 4,
   actions: MAX_LIVE_BATCH_COMMANDS,

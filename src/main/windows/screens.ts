@@ -2,6 +2,7 @@ import {screen, type BrowserWindow} from 'electron';
 import type {AppConfigFile} from '../store/locations/appConfigFile';
 import type {WindowMode} from '../base/renderers/windowMode';
 
+/** The part of `app.json` that remembers the 화면 window's bounds. */
 export type ScreensWindowConfig = Pick<
   AppConfigFile,
   'screensWindow' | 'setScreensWindow'
@@ -62,6 +63,10 @@ export function rememberScreensWindow(
   });
 }
 
+/**
+ * Puts the 화면 window at its saved bounds with its minimum size, and maximizes
+ * it when it was saved maximized.
+ */
 export function applyScreensBounds(
   win: BrowserWindow,
   config: ScreensWindowConfig,

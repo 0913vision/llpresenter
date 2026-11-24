@@ -6,7 +6,12 @@ import {writeFileAtomically} from '../../base/files/atomicWrite';
 import {isMissingFile} from '../../base/files/fsErrors';
 import {removeStaleTempFiles} from '../../base/files/staleTempFiles';
 
+/**
+ * The marker file in the recovery folder while the app runs. One left behind
+ * means the last run ended without a clean exit.
+ */
 export const SESSION_LOCK_FILE = 'session.lock';
+/** The file in the recovery folder that holds the recorded live state. */
 export const RECOVERY_RECORD_FILE = 'live.json';
 
 const QUITTING_SUFFIX = '\nquitting';
@@ -15,6 +20,10 @@ const MAX_MARKER_BYTES = 64;
 /** What the previous launch was doing when it left its marker behind. */
 type LeftMarker = 'running' | 'quitting' | 'unknown';
 
+/**
+ * The marker of the running session. `crashed` is true when the previous launch
+ * left its marker behind.
+ */
 export interface RecoverySession {
   readonly crashed: boolean;
   /** Records that quitting started, so the next launch logs an unfinished quit apart from a crash. */

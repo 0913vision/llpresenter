@@ -12,10 +12,20 @@ import {
   type WindowMode,
 } from '../base/renderers/windowMode';
 
+/**
+ * The width of the 환경설정 window, in pixels. A saved window is never narrower.
+ */
 export const PREFERENCES_WIDTH = 1040;
+/**
+ * The height of the 환경설정 window, in pixels. A saved window is never shorter.
+ */
 export const PREFERENCES_HEIGHT = 800;
 const PAGE = {name: 'index', query: {window: 'settings'}} as const;
 
+/**
+ * What the 환경설정 window frame uses: its control window, UI zoom, the window
+ * mode, and the log.
+ */
 export interface SettingsWindowFrameOptions {
   readonly control: BrowserWindow;
   readonly zoom: Pick<UiZoomRegistration, 'attachControl'>;

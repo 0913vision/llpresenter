@@ -22,6 +22,9 @@ export interface PowerPointDeckSlide extends PowerPointSlide {
   readonly picture?: string;
 }
 
+/**
+ * A read deck: its slides, whether its size is 16:9, and its width and height.
+ */
 export interface PowerPointDeck {
   readonly slides: readonly PowerPointDeckSlide[];
   readonly widescreen: boolean;
@@ -97,6 +100,7 @@ function shapes(tree: Element): PowerPointShape[] {
   });
 }
 
+/** Whether a slide size is 16:9, within 1 percent. */
 export function isPowerPointWidescreen(width: number, height: number): boolean {
   return Math.abs(width * 9 - height * 16) * 100 <= height * 16;
 }

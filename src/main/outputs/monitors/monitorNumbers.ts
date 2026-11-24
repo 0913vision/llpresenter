@@ -28,12 +28,17 @@ export interface NumberSpot {
   readonly details?: Identification;
 }
 
+/**
+ * An output whose monitor number is shown: its screen, where its window is
+ * placed, and the size of its content.
+ */
 export interface IdentifiedOutput {
   readonly screen: OutputScreen;
   readonly placement: ShownPlacement;
   readonly contentSize: Size;
 }
 
+/** A monitor number window on a monitor. `close` removes it. */
 export interface NumberWindow {
   close(): void;
 }

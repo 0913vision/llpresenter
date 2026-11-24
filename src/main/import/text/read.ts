@@ -11,6 +11,10 @@ import {TEXT_IMPORT_LIMITS} from '@core/schema/songs/textImportLimits';
 
 const READ_CHUNK_BYTES = 64 * 1024;
 
+/**
+ * Where text import gets its text: the path of the chosen file (`null` when
+ * none), and the clipboard text.
+ */
 export interface TextImportInputs {
   readonly chooseFile: () => Promise<string | null>;
   readonly readClipboard: () => Promise<string>;

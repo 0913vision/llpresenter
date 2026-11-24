@@ -60,6 +60,10 @@ function sameMonitor(a: Monitor, b: Monitor): boolean {
   );
 }
 
+/**
+ * Whether two monitor lists have the same monitors, in the same order, with
+ * equal fields.
+ */
 export function sameMonitors(
   a: readonly Monitor[],
   b: readonly Monitor[],

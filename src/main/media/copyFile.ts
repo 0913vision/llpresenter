@@ -11,6 +11,10 @@ export const MAX_NAME_TRIES = 1000;
 
 const WHOLE = 100;
 
+/**
+ * One file copy: the source, the target, the signal that cancels it, the
+ * percent callback, and an optional temporary path to copy through.
+ */
 export interface CopyOptions {
   readonly from: string;
   readonly to: string;

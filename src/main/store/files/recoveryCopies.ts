@@ -18,6 +18,10 @@ export interface RecoveryTarget {
   readonly id: string;
 }
 
+/**
+ * What the recovery copies use: the `.recovery` folder, how many copies to keep
+ * per file, and optionally the clock.
+ */
 export interface RecoveryCopiesOptions {
   /** The `.recovery` folder of the data folder. */
   readonly folder: string;

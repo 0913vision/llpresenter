@@ -9,8 +9,13 @@ import {compileMacro} from './compiler';
 import {requireMacroTarget} from './actions';
 import type {ActionContext, MacroPlan} from './types';
 
+/** The most problems of one run that the log lists. */
 export const MAX_LOGGED_MACRO_PROBLEMS = 5;
 
+/**
+ * What the 매크로 runner uses: the settings, the current media list, which
+ * commands the live store supports, and the log.
+ */
 export interface MacroRunnerOptions {
   readonly settings: SettingsReader;
   readonly media: () => MediaList;

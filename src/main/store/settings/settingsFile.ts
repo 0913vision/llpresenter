@@ -33,6 +33,7 @@ interface RecoveryCopy<T> {
   readonly loaded: LoadedFile<T>;
 }
 
+/** The file name of a settings area: the area and `.json`. */
 export function settingsFileName(area: string): string {
   return `${area}${SETTINGS_FILE_EXTENSION}`;
 }

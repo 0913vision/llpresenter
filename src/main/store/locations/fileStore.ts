@@ -39,6 +39,7 @@ export type AppConfigView = Pick<
   'file' | 'locationFields' | 'lastServiceId'
 >;
 
+/** The default folders plus the view of `app.json`. */
 export interface StoreContext extends LocationContext {
   readonly appConfig: AppConfigView;
 }

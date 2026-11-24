@@ -4,11 +4,14 @@ import {writeFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {POWERPOINT_IMPORT_LIMITS} from '@core/schema/songs/textImportLimits';
 
-/** Kept as a literal so paths are passed in the environment, never interpolated. */
 // NOTE(0913vision): Slides export at the canvas size; the script names it
 // through W and H.
 const {width: W, height: H} = THEME_CANVAS;
 
+/**
+ * The PowerShell script that exports the visible slides as pictures. It is a
+ * literal so paths are passed in the environment, never interpolated.
+ */
 export const POWERPOINT_IMAGE_SCRIPT = String.raw`
 $ErrorActionPreference = 'Stop'
 $powerpoint = $null
@@ -158,6 +161,10 @@ try {
 const TIMEOUT_MS = 120_000;
 const MAX_DECORATION_BATCH = 200;
 
+/**
+ * How a slide image export ended: finished, cancelled, PowerPoint is not
+ * usable, PowerPoint stopped answering or took too long, or a file problem.
+ */
 export type PowerPointImagesResult =
   'ok' | 'cancelled' | 'unavailable' | 'unresponsive' | 'file';
 

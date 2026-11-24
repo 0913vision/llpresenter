@@ -14,6 +14,10 @@ import {LIVE_BIBLE_ID} from '@core/schema/common/ids';
 const BOOK_PREFIX = /^(요한\s*[1-3]\s*서|(?:[1-3]\s*)?[\p{L}\p{M}\s]+)(.*)$/u;
 const WARNED_FILE_LIMIT = 128;
 
+/**
+ * What the Bible lookup uses: the Bible folder, the settings, the log, and the
+ * optional shared chapter cache.
+ */
 export interface BibleLookupOptions {
   readonly folder: string;
   readonly settings: Promise<SettingsReader | null>;

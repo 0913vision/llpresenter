@@ -16,6 +16,10 @@ import {
   type SliceInputs,
 } from '../slice';
 
+/**
+ * A command a dispatch dropped, with its type and why: no slice handles it, or
+ * its overlay is invalid.
+ */
 export type SkippedLiveCommand =
   | {readonly type: LiveCommand['type']; readonly reason: 'unhandled'}
   | {
@@ -41,6 +45,10 @@ export type SkippedLiveCommand =
       readonly macros: readonly RanMacro[];
     };
 
+/**
+ * What running commands through the slices produced: the new history, and the
+ * commands that were skipped.
+ */
 export interface LiveReduction {
   readonly history: LiveHistory;
   readonly skipped: readonly SkippedLiveCommand[];

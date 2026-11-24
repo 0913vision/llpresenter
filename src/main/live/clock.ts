@@ -12,6 +12,10 @@ export function monotonicNow(): number {
   return performance.timeOrigin + performance.now();
 }
 
+/**
+ * The real clocks: `Date.now` for the wall clock and {@link monotonicNow} for
+ * the 타이머 clock.
+ */
 export const SYSTEM_CLOCK: LiveClock = {
   wall: () => Date.now(),
   timer: () => monotonicNow(),

@@ -1,6 +1,7 @@
 import type {Result} from '@core/common/result';
 import type {WriteProblem} from '../../base/files/atomicWrite';
 
+/** How a file write ended: nothing on success, or the write problem. */
 export type WriteResult = Result<void, WriteProblem>;
 
 /** Writes a job, such as a text, to a file and reports how it went. */

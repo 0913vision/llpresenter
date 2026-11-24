@@ -4,6 +4,7 @@ import type {Logger} from '../base/log';
 import type {UiStateFields} from '../store/locations/appConfigFile';
 import {UiStateStore} from './uiStateStore';
 
+/** The UI state channels after registering. */
 export interface UiStateRegistration {
   /** Removes the channels. */
   dispose(): void;

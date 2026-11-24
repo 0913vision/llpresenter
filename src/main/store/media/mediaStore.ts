@@ -37,6 +37,10 @@ import {isInside} from '../locations/locations';
 import {buildMediaLibrary, type MediaLibrary} from './mediaLibrary';
 import {SettingsPersistence} from '../settings/settingsPersistence';
 
+/**
+ * What the media store starts from: the media document, its file, the media
+ * folder, the document files, the log, and optionally the save delay.
+ */
 export interface MediaStoreOptions {
   readonly document: MediaDocument;
   readonly file: string;
@@ -49,6 +53,7 @@ export interface MediaStoreOptions {
   readonly discard?: ((file: string) => Promise<void>) | undefined;
 }
 
+/** Hears the media document after each change. */
 export type MediaListener = (document: MediaDocument) => void;
 
 /** Main-side commits from P6a, validated again before they can enter the list. */

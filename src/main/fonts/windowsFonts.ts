@@ -6,6 +6,10 @@ import {
   type FontCatalog,
 } from '@core/schema/screens/fontCatalog';
 
+/**
+ * How long the Windows font query may run before it is stopped, in
+ * milliseconds.
+ */
 export const FONT_QUERY_TIMEOUT_MS = 10_000;
 const MAX_REPLY_BYTES = 2 * 1024 * 1024;
 

@@ -6,6 +6,10 @@ import {
   type Monitor,
 } from './monitor';
 
+/**
+ * What a display event reports: the monitor list changed, or the monitor with
+ * this id was removed.
+ */
 export type DisplayChange =
   {readonly kind: 'changed'} | {readonly kind: 'removed'; readonly id: number};
 
@@ -20,7 +24,9 @@ export interface DisplaySource {
   watch(listener: (change: DisplayChange) => void): () => void;
 }
 
+/** Hears the monitor list after a change has settled. */
 export type MonitorListener = (monitors: readonly Monitor[]) => void;
+/** Hears the id of a monitor that was removed. */
 export type MonitorRemovedListener = (monitorId: number) => void;
 
 /**

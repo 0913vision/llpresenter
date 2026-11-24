@@ -1,3 +1,7 @@
+/**
+ * The frame producer of a shown presenter. `enable` turns frames on or off, and
+ * `ack` tells it that the last frame was taken.
+ */
 export interface Pump {
   enable(enabled: boolean): void;
   ack(): void;
@@ -54,6 +58,10 @@ export function subscribePresenterMirror(
   };
 }
 
+/**
+ * Hands a frame to the control window's subscriber. With no subscriber it
+ * acknowledges the frame so the producer goes on.
+ */
 export function publishPresenterMirror(
   screenId: string,
   frame: Uint8Array,
@@ -63,10 +71,15 @@ export function publishPresenterMirror(
   else sink.frame(frame);
 }
 
+/** Whether a presenter produces frames for this screen. */
 export function hasPresenterMirror(screenId: string): boolean {
   return pumps.has(screenId);
 }
 
+/**
+ * Tells the producer of this screen that the control window took its last
+ * frame.
+ */
 export function ackPresenterMirror(screenId: string): void {
   pumps.get(screenId)?.ack();
 }

@@ -112,6 +112,7 @@ function expire(
   return withLayers(history, {...history.state.layers, message}, undo);
 }
 
+/** The slice of the `message.send` and `message.expire` commands. */
 export const messagesSlice = defineSlice({
   commands: ['message.send', 'message.expire'],
   initial: {},

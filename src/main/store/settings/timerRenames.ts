@@ -21,6 +21,9 @@ const refuse = (
   error: {reason, message},
 });
 
+/**
+ * Prepares the rename of a timer, with the 빠른 타이머 that uses it, or refuses it.
+ */
 export function prepareTimerRename(
   documents: ReadonlyMap<SettingsName, SettingsDocument>,
   edit: TimerRename,

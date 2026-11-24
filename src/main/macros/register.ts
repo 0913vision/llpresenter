@@ -6,6 +6,11 @@ import type {Logger} from '../base/log';
 import {MacroRunner} from './runner';
 import type {MacroPlan} from './types';
 
+/**
+ * The 매크로 runtime after registering. `ready` resolves once it is connected,
+ * `lastRun` is the plan of the latest run (`null` before one), `startFresh`
+ * runs the 매크로 that run on startup, and `dispose` disconnects it.
+ */
 export interface MacroRegistration {
   readonly ready: Promise<void>;
   readonly lastRun: MacroPlan | null;

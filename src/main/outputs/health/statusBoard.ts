@@ -14,6 +14,7 @@ export interface StatusSources {
   ) => {readonly width: number; readonly height: number} | undefined;
 }
 
+/** Hears the statuses of all outputs after a change. */
 export type StatusListener = (statuses: OutputStatuses) => void;
 
 function sameStatus(a: OutputScreenStatus, b: OutputScreenStatus): boolean {

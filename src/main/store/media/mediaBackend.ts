@@ -25,6 +25,7 @@ export interface MediaBackendPort {
   connect(backend: MediaBackend): MediaBackendConnection;
 }
 
+/** A connection to the media backend. `disconnect` ends it. */
 export interface MediaBackendConnection {
   /** Sends the progress of a copy to the windows once it passes its check. */
   report(progress: unknown): boolean;
@@ -50,6 +51,10 @@ interface ConnectedBackend {
 
 type Refusal = ReturnType<typeof mediaRefusal>;
 
+/**
+ * How many calls of the media backend may wait at once. One more is refused as
+ * too many.
+ */
 export const MAX_MEDIA_BACKEND_REQUESTS = 16;
 
 /** The media list can not be read, or the app closes. */

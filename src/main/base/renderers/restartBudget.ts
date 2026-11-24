@@ -1,6 +1,7 @@
 /** Crashes within {@link CRASH_PERIOD_MS} after which restarts stop (docs/spec/08-problems.md, proposal). */
 export const CRASH_LIMIT = 3;
 
+/** How long a crash counts toward {@link CRASH_LIMIT}, in milliseconds. */
 export const CRASH_PERIOD_MS = 60_000;
 
 /** Counts one output window's recent crashes and decides whether it restarts again. */

@@ -1,3 +1,4 @@
+/** The address of the local language model server. */
 export const DEFAULT_ENDPOINT = 'http://127.0.0.1:8080';
 
 /** The timeout covers both the response headers and the JSON body. */

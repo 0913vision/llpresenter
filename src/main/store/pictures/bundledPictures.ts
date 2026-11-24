@@ -22,6 +22,10 @@ const files = new Map([
   [APP_PICTURE_IDS.titleRules, sectionRules],
 ]);
 
+/**
+ * The pictures that come with the app: the theme backgrounds and decorations,
+ * each with its bundled file.
+ */
 export const SUNDAY_PICTURES: readonly BundledPicture[] = [
   ...THEME_BACKGROUNDS,
   ...THEME_DECORATIONS,

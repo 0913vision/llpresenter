@@ -2,6 +2,7 @@ import {extname} from 'node:path';
 import type {FileFilter} from 'electron';
 import type {MediaItem} from '@core/schema/media/mediaList';
 
+/** The kind of a media item: `video`, `image` or `audio`. */
 export type MediaKind = MediaItem['kind'];
 
 /**

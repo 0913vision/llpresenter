@@ -32,6 +32,7 @@ import {
   type PlaybackProblemBoard,
 } from '../health/playbackProblems';
 
+/** The background color of an output window. */
 export const OUTPUT_BACKGROUND = '#000000';
 // NOTE(0913vision): The design token `chroma` spells the same green in lower
 // case, and a test pins the window color to the token. If the token is ever

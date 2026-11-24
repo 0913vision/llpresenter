@@ -6,6 +6,10 @@ const DEFAULT_MAX_BYTES = 5 * 1024 * 1024;
 const DEFAULT_KEEP = 3;
 const DEFAULT_MAX_PENDING_LINES = 1000;
 
+/**
+ * A log that writes one line per call to its file; `detail` is an optional
+ * value written with the message.
+ */
 export interface Logger {
   info(message: string, detail?: unknown): void;
   warn(message: string, detail?: unknown): void;
@@ -16,6 +20,10 @@ export interface Logger {
   flush(): Promise<void>;
 }
 
+/**
+ * How a logger writes its file: its name, when the file rotates, how many
+ * rotated files stay, and how many lines may wait for the disk.
+ */
 export interface LoggerOptions {
   readonly name?: string;
   /** The size at which the file rotates before the next line. */

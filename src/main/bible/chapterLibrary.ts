@@ -11,6 +11,10 @@ import {
 } from './chapterFile';
 import {LIVE_BIBLE_ID} from '@core/schema/common/ids';
 
+/**
+ * What the chapter library reads: the Bible folder, the installed translations,
+ * the optional shared chapter cache, and where file problems go.
+ */
 export interface BibleChapterLibraryOptions {
   readonly folder: string;
   readonly cache?: BibleChapterCache;

@@ -52,6 +52,10 @@ export function presentTransition(
   transitionTargets.get(screenId)?.(effect);
 }
 
+/**
+ * What a presented window uses: the log, the optional playback problem board,
+ * and the maker of the ordinary output window.
+ */
 export interface PresentedWindowOptions {
   readonly log: Logger;
   readonly playbackProblems?: PlaybackProblemBoard;

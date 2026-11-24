@@ -1,5 +1,6 @@
 import {defineSlice} from '../slice';
 
+/** The slice of the `screen.settings.apply` command. */
 export const screenSettingsSlice = defineSlice({
   commands: ['screen.settings.apply'],
   initial: {},

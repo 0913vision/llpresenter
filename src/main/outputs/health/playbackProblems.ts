@@ -102,6 +102,10 @@ export function watchPlaybackProblems(
   };
 }
 
+/**
+ * Registers the playback problem channels and returns the board that holds the
+ * problems. `stop` removes the channels.
+ */
 export function registerPlaybackProblems({
   log,
   enabled,

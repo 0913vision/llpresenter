@@ -5,6 +5,10 @@ import {monotonicNow} from './clock';
 /** How far the wall clock may move from the last published sample before windows hear of it. */
 const DRIFT_MS = 500;
 
+/**
+ * One reading of the wall clock, the monotonic clock and the time zone, taken
+ * together.
+ */
 export function wallClockSample(): WallClockSample {
   return {
     wall: systemNow(),

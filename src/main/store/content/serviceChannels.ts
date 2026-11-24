@@ -10,11 +10,19 @@ import type {AppConfigFile} from '../locations/appConfigFile';
 import type {ContentStore} from './contentStore';
 import type {OpenServiceFeed} from './openServiceFeed';
 
+/**
+ * What a switch of the open 예배 순서 uses: the content store to open it in, and
+ * the feed that publishes it.
+ */
 export interface ServiceSession {
   readonly content: Pick<ContentStore, 'openService'>;
   readonly feed: Pick<OpenServiceFeed, 'current' | 'refresh'>;
 }
 
+/**
+ * How many switches of the open 예배 순서 may wait at once. One more is refused as
+ * busy.
+ */
 export const MAX_PENDING_SERVICE_SWITCHES = 16;
 
 function refused(reason: ServiceOpenRefusal): ServiceOpenResult {

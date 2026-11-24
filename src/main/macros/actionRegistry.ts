@@ -12,6 +12,10 @@ interface ActionDefinition<TKind extends MacroActionKind> {
   ) => ActionResolution;
 }
 
+/**
+ * Turns one kind of 매크로 action into live commands or a nested 매크로. `compile`
+ * returns `null` for an action of another kind.
+ */
 export interface MacroActionHandler {
   readonly kind: MacroActionKind;
   compile(
@@ -20,6 +24,7 @@ export interface MacroActionHandler {
   ): ActionResolution | null;
 }
 
+/** Makes the handler of one action kind from its `compile` definition. */
 export function defineMacroAction<TKind extends MacroActionKind>(
   definition: ActionDefinition<TKind>,
 ): MacroActionHandler {

@@ -21,6 +21,10 @@ const refuse = (
   error: {reason, message},
 });
 
+/**
+ * Prepares the deletion of a timer, with the 빠른 타이머 that uses it, or refuses
+ * it.
+ */
 export function prepareTimerDeletion(
   documents: ReadonlyMap<SettingsName, SettingsDocument>,
   edit: TimerDelete,

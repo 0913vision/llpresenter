@@ -12,6 +12,10 @@ import {powerPointImageSize} from './powerpointImage';
 
 const ATTEMPTS = 3;
 
+/**
+ * The parts of the media store that picture import uses: finding an item, its
+ * file, the media folder, and adding an item.
+ */
 export type PictureStore = Pick<
   MediaStore,
   'get' | 'fileOf' | 'folder' | 'add'

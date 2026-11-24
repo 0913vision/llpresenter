@@ -30,6 +30,10 @@ interface TaskRecord {
   readonly failed?: boolean;
 }
 
+/**
+ * What the launch progress uses from outside: the splash window, the opener of
+ * the launch bar, the config that remembers launch times, and the log.
+ */
 export interface LaunchProgressOptions {
   readonly splash: Pick<BrowserWindow, 'isDestroyed' | 'close'>;
   /** Opens the bar of the launch window. */

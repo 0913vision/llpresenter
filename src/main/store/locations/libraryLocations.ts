@@ -31,6 +31,10 @@ export interface LocationsConfig {
   setLibraryLocation(field: LibraryLocationField, folder: string): void;
 }
 
+/**
+ * What the library locations use: the `app.json` fields, the folders in use,
+ * the default folders, the backup preferences, and whether any output is on.
+ */
 export interface LibraryLocationsOptions {
   readonly config: LocationsConfig;
   /** The folders in use since launch; a change of 곡 or 미디어 waits for the next one. */

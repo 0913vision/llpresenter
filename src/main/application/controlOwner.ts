@@ -27,6 +27,10 @@ export interface ControlPlacement {
   readonly bounds?: Rectangle | undefined;
 }
 
+/**
+ * What the owner of the control window uses from outside: the window mode,
+ * launch progress, UI zoom, and the problem feed.
+ */
 export interface ControlOwnerOptions {
   readonly windowMode: WindowMode;
   readonly launch: LaunchProgress;

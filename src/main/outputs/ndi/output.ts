@@ -19,7 +19,15 @@ import {createNdiWindow, stopSender} from './ndiWindow';
 import {NDI_FRAME_WIDTH, NDI_FRAME_HEIGHT} from './textureQueue';
 import type {OutputScreenStatus} from '@core/schema/live/outputStatus';
 
+/**
+ * How long the NDI sender may take to answer a frame, or to send its heartbeat,
+ * before it counts as failed, in milliseconds.
+ */
 export const NDI_SEND_TIMEOUT_MS = 5000;
+/**
+ * How long a stopping NDI sender gets to exit before it is ended, in
+ * milliseconds.
+ */
 export const NDI_STOP_TIMEOUT_MS = 2000;
 
 /** Retains the original sender while accepting frames from a GPU capture. */

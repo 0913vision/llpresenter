@@ -48,6 +48,7 @@ export const locationFields = [
   'backupPath',
 ] as const;
 
+/** One of the `app.json` fields that move a data folder. */
 export type LocationField = (typeof locationFields)[number];
 
 /** Absolute folders, or an empty string for the default folder. */
@@ -84,6 +85,7 @@ const dataLocationNames = [
   'backups',
 ] as const satisfies ReadonlyArray<keyof DataLocations>;
 
+/** Where the data folders default to. */
 export interface LocationContext {
   /** The user's Documents folder. */
   readonly documents: string;
@@ -95,6 +97,10 @@ export interface LocationContext {
   readonly developmentFolder: string | null;
 }
 
+/**
+ * The data folders after the `app.json` fields were applied, and the fields
+ * that were not used.
+ */
 export interface ResolvedLocations {
   readonly locations: DataLocations;
   /** Fields that were set but not used: not absolute, or outside the development folder. */

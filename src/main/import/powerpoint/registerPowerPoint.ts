@@ -18,6 +18,10 @@ import {
 } from '../slidePictures/storePictures';
 import {TemporaryPictures} from '../slidePictures/temporaryPictures';
 
+/**
+ * What the PowerPoint import registers with: the file chooser options, the
+ * media store where pictures go (or `null` while there is none), and the log.
+ */
 export interface PowerPointImportRegistration extends FileChooserOptions {
   readonly media?: Promise<PictureStore | null>;
   readonly log: Logger;

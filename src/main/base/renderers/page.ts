@@ -11,6 +11,7 @@ export interface PageRequest {
   readonly query?: Readonly<Record<string, string>>;
 }
 
+/** The built preload script that every window loads. */
 export const preloadPath = join(__dirname, '../preload/index.js');
 
 function searchOf(query: Readonly<Record<string, string>>): string {

@@ -4,6 +4,10 @@ import {withLayers} from '../history';
 import {defineSlice} from '../slice';
 import {backgroundElapsedSeconds} from '@core/media';
 
+/**
+ * The slice of the `media.properties.refresh` command, which updates the media
+ * and audio layers from the media list.
+ */
 export const mediaPropertiesSlice = defineSlice({
   commands: ['media.properties.refresh'],
   initial: {},

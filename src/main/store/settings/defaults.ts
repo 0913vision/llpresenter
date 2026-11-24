@@ -7,6 +7,7 @@ import type {MediaList} from '@core/schema/media/mediaList';
  */
 export const DEFAULT_VERSE_LABEL: Label = {name: '절', color: '#5FB8C2'};
 
+/** The 이름표 that a data folder without a labels file starts with. */
 export const DEFAULT_LABELS: readonly Label[] = [
   {name: '전주', color: '#7D8FD6'},
   DEFAULT_VERSE_LABEL,

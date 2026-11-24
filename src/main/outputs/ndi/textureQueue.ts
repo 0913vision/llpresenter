@@ -2,10 +2,16 @@ import {THEME_CANVAS} from '@core/schema/screens/screens';
 import type {Rectangle} from 'electron';
 import {unionDirty} from './rect';
 
+/** The width of an NDI frame, in pixels: the width of the theme canvas. */
 export const NDI_FRAME_WIDTH: number = THEME_CANVAS.width;
+/** The height of an NDI frame, in pixels: the height of the theme canvas. */
 export const NDI_FRAME_HEIGHT: number = THEME_CANVAS.height;
 const MAX_PENDING_TEXTURES = 2;
 
+/**
+ * A painted frame: its shared texture, which is released after use, and the
+ * part that changed.
+ */
 export interface TextureFrame {
   readonly texture: {release: () => void};
   readonly dirty: Rectangle;

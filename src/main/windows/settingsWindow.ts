@@ -20,6 +20,10 @@ import {
   type ScreensWindowConfig,
 } from './screens';
 
+/**
+ * What the 환경설정 window uses: its frame options, and optionally the parts of
+ * `app.json` that remember its bounds and page, and the 화면 window config.
+ */
 export interface SettingsWindowOptions extends SettingsWindowFrameOptions {
   readonly config?: Pick<
     AppConfigFile,
@@ -33,6 +37,11 @@ export interface SettingsWindowOptions extends SettingsWindowFrameOptions {
   };
 }
 
+/**
+ * The 환경설정 window after registering. `close` asks it to close and resolves
+ * whether it did (`requireSaved` refuses while a change is unsaved), `dispose`
+ * removes it, and `replaceControl` points it at a new control window.
+ */
 export interface SettingsWindowRegistration {
   readonly close: (requireSaved?: boolean) => Promise<boolean>;
   readonly dispose: () => Promise<void>;

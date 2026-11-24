@@ -34,6 +34,10 @@ export type ShownPlacement = Exclude<Placement, {kind: 'off'}>;
  * 16:9 quarter of a 1920 x 1080 monitor (proposal).
  */
 export const OUTPUT_WINDOW_SIZE: Size = {width: 960, height: 540};
+/**
+ * The size of a capture window for a screen that has no resolution of its own:
+ * the theme canvas.
+ */
 export const CAPTURE_WINDOW_SIZE: Size = THEME_CANVAS;
 
 /** Fits a size proportionally in an area without enlarging it. */

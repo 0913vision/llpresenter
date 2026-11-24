@@ -5,6 +5,10 @@ import type {RecoveryCopies} from './recoveryCopies';
 import type {SaveFailureSink} from './saveFailures';
 import type {Saver} from './saver';
 
+/**
+ * What the document files use: the saver, the recovery copies, the log, and
+ * optionally the sink of failed writes.
+ */
 export interface DocumentFilesOptions {
   readonly saver: Saver;
   readonly copies: Pick<RecoveryCopies, 'keepBeforeDelete'>;

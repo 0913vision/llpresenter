@@ -45,6 +45,10 @@ export interface UiStateFields {
   change(fields: UiFields): void;
 }
 
+/**
+ * What `app.json` is read with: its path, the log, and optionally the text
+ * writer and how long to wait before a change is written.
+ */
 export interface AppConfigOptions {
   readonly file: string;
   readonly log: Logger;
