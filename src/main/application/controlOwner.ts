@@ -6,6 +6,7 @@ import {
 } from 'electron';
 import type {Logger} from '../base/log';
 import type {ProblemFeed} from '../base/problemFeed';
+import {logConsoleErrors} from '../base/renderers/consoleErrors';
 import type {WindowMode} from '../base/renderers/windowMode';
 import type {LaunchIdle} from '../store/launchIdle';
 import type {UiZoomRegistration} from '../store/settings/uiZoom';
@@ -124,6 +125,11 @@ export class ControlOwner {
       if (this.isCurrent(win)) app.quit();
     });
     this.closing = registerControlClose({control: win, log});
+    const stopConsole = logConsoleErrors(win.webContents, {
+      window: 'control window',
+      log,
+    });
+    win.once('closed', stopConsole);
     this.stopReloadNotice = announceReloadAfterCrash(win.webContents, () =>
       problems.report({kind: 'control-reloaded'}),
     );

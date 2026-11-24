@@ -6,6 +6,7 @@ import type {AppConfig} from '@core/schema/app/appConfig';
 import {blockNavigation, loadPage, preloadPath} from '../base/renderers/page';
 import {reloadAfterCrash} from './crashReload';
 import {appIconPath} from '../base/renderers/appIcon';
+import {logConsoleErrors} from '../base/renderers/consoleErrors';
 import {
   discardTestFrames,
   windowTestOptions,
@@ -106,6 +107,11 @@ export function createPreferencesWindow({
   zoom.attachControl(created.webContents);
   blockNavigation(created);
   reloadAfterCrash({win: created, page: PAGE, label: 'settings', log});
+  const stopConsole = logConsoleErrors(created.webContents, {
+    window: 'settings window',
+    log,
+  });
+  created.once('closed', stopConsole);
   loadPage(created, PAGE, log);
   return created;
 }
