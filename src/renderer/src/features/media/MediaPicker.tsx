@@ -1,16 +1,8 @@
-import {
-  useId,
-  useLayoutEffect,
-  useRef,
-  useState,
-  type JSX,
-  type KeyboardEvent,
-} from 'react';
+import {useId, useState, type JSX, type KeyboardEvent} from 'react';
 import {
   choiceLabel,
   isChosenChoice,
   pickerChoices,
-  pickerRowTop,
   searchName,
   type MediaPickerItem,
   type PickerChoice,
@@ -25,10 +17,8 @@ import {modalStack} from '@renderer/ui/modalStack';
 import {MenuSearchField} from '@renderer/ui/MenuParts';
 import menu from '@renderer/ui/Menu.module.css';
 import {useChoicePopup} from '@renderer/ui/useChoicePopup';
+import {usePickerViewport, VISIBLE_ROWS} from './usePickerViewport';
 import styles from './MediaPicker.module.css';
-
-const VISIBLE_ROWS = 8;
-const OVERSCAN = 2;
 export {NONE_LABEL, type MediaPickerItem} from './mediaPickerChoices';
 
 function targetFor(
@@ -158,16 +148,8 @@ export function MediaPicker({
       : Math.max(0, Math.min(specialCount, choices.length - 1)),
   );
   const active = Math.max(0, Math.min(activeIndex, choices.length - 1));
-  const [top, setTop] = useState(0);
-  const [row, setRow] = useState(0);
-  const [gap, setGap] = useState(0);
-  const rowTop = (index: number): number =>
-    pickerRowTop(index, {row, gap, specialCount, groups});
-  const separator = useRef<HTMLDivElement>(null);
   const separated =
     defaultChoice !== undefined && choices.length > specialCount;
-  const viewport = useRef<HTMLDivElement>(null);
-  const initialized = useRef(false);
   const id = useId();
   const {surface} = useChoicePopup({
     anchor,
@@ -175,45 +157,29 @@ export function MediaPicker({
     onEscape: () => onClose(true),
     activeId: `${id}-${active}`,
   });
-  useLayoutEffect(() => {
-    const element = viewport.current;
-    if (element === null) return;
-    const height =
-      Number.parseFloat(
-        getComputedStyle(element).getPropertyValue('--size-row-menu'),
-      ) || 0;
-    if (height !== row) setRow(height);
-    const divider = separator.current;
-    const style = divider === null ? null : getComputedStyle(divider);
-    const nextGap =
-      divider === null || style === null
-        ? 0
-        : divider.getBoundingClientRect().height +
-          (Number.parseFloat(style.marginTop) || 0) +
-          (Number.parseFloat(style.marginBottom) || 0);
-    if (nextGap !== gap) setGap(nextGap);
-    if (row > 0 && height === row && !initialized.current) {
-      initialized.current = true;
-      surface.current?.querySelector('input')?.focus();
-      element.scrollTop =
-        active === 0
-          ? 0
-          : pickerRowTop(active, {row, gap: nextGap, specialCount, groups});
-      setTop(element.scrollTop);
-    }
-  }, [active, row, surface, separated, gap, groups, specialCount]);
+  const {
+    viewport,
+    separator,
+    row,
+    gap,
+    rowTop,
+    reveal,
+    toTop,
+    onScroll,
+    start,
+    end,
+    shows,
+  } = usePickerViewport({
+    surface,
+    active,
+    count: choices.length,
+    specialCount,
+    groups,
+    separated,
+  });
   const point = (index: number): void => {
     setActive(index);
-    const element = viewport.current;
-    if (element === null) return;
-    const height = element.clientHeight || row * VISIBLE_ROWS;
-    const y = rowTop(index);
-    if (index === 0) element.scrollTop = 0;
-    else if (y < element.scrollTop) element.scrollTop = y;
-    else if (y + row > element.scrollTop + height) {
-      element.scrollTop = y + row - height;
-    }
-    setTop(element.scrollTop);
+    reveal(index);
   };
   const choose = (index: number): void => {
     if (choices.length === 0) return;
@@ -228,8 +194,7 @@ export function MediaPicker({
   const filter = (value: string): void => {
     onQueryChange(value);
     setActive(hasDefault && pick(value).found ? specialCount : 0);
-    if (viewport.current !== null) viewport.current.scrollTop = 0;
-    setTop(0);
+    toTop();
   };
   const keyDown = (event: KeyboardEvent): void => {
     if (isComposing(event) || hasModifier(event)) return;
@@ -245,23 +210,7 @@ export function MediaPicker({
     event.preventDefault();
     event.stopPropagation();
   };
-  const start = Math.max(
-    specialCount,
-    Math.floor(row > 0 ? Math.max(0, top - gap) / row : 0) -
-      groups.length -
-      OVERSCAN,
-  );
-  const visible = choices.slice(
-    start,
-    start + VISIBLE_ROWS + OVERSCAN * 2 - specialCount,
-  );
-  const activeId =
-    (active < specialCount &&
-      active * row >= top &&
-      active * row < top + row * VISIBLE_ROWS) ||
-    (active >= start && active < start + visible.length)
-      ? `${id}-${active}`
-      : undefined;
+  const activeId = shows(active) ? `${id}-${active}` : undefined;
   const option = (index: number): JSX.Element => {
     const item = choices[index];
     return (
@@ -308,7 +257,7 @@ export function MediaPicker({
             aria-label={label}
             className={styles.viewport}
             style={{maxHeight: `calc(var(--size-row-menu) * ${VISIBLE_ROWS})`}}
-            onScroll={event => setTop(event.currentTarget.scrollTop)}
+            onScroll={event => onScroll(event.currentTarget.scrollTop)}
           >
             <div
               style={{
@@ -338,7 +287,9 @@ export function MediaPicker({
                   style={{top: specialCount * row}}
                 />
               ) : null}
-              {visible.map((_item, offset) => option(start + offset))}
+              {Array.from({length: Math.max(0, end - start)}, (_, offset) =>
+                option(start + offset),
+              )}
             </div>
           </div>
         </div>
