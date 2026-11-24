@@ -1,3 +1,4 @@
+import {followLatest} from '@renderer/platform/followLatest';
 import {logFailure} from '@renderer/platform/logFailure';
 import {useContext, useEffect, useState} from 'react';
 import {LoadReadinessContext} from '@renderer/ui/loadReadiness';
@@ -17,29 +18,21 @@ export function useMonitors(): MonitorList {
     const api = window.llp;
     if (api === undefined) return undefined;
     const ready = readiness?.begin();
-    let active = true;
-    let pushed = false;
-    const accept = (next: MonitorList): void => {
-      adoptScreenMonitors(api, next);
-      setMonitors(next);
-      ready?.();
-    };
-    const stop = api.monitors.subscribe(next => {
-      if (!active) return;
-      pushed = true;
-      accept(next);
-    });
-    api.monitors.get().then(
-      next => {
-        if (active && !pushed) accept(next);
-      },
-      (cause: unknown) => {
-        ready?.();
-        logFailure(api, 'Could not read the monitors', cause);
+    const stop = followLatest(
+      {read: api.monitors.get, subscribe: api.monitors.subscribe},
+      {
+        apply: next => {
+          adoptScreenMonitors(api, next);
+          setMonitors(next);
+          ready?.();
+        },
+        failed: cause => {
+          ready?.();
+          logFailure(api, 'Could not read the monitors', cause);
+        },
       },
     );
     return () => {
-      active = false;
       ready?.();
       stop();
     };

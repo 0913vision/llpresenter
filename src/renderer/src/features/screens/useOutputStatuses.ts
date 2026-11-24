@@ -1,3 +1,4 @@
+import {followLatest} from '@renderer/platform/followLatest';
 import {logFailure} from '@renderer/platform/logFailure';
 import {useContext, useEffect, useState} from 'react';
 import {LoadReadinessContext} from '@renderer/ui/loadReadiness';
@@ -16,26 +17,20 @@ export function useOutputStatuses(): OutputStatuses {
     const api = window.llp;
     if (api === undefined) return undefined;
     const ready = readiness?.begin();
-    let active = true;
-    let pushed = false;
-    const stop = api.output.subscribeStatus(next => {
-      if (!active) return;
-      pushed = true;
-      setStatuses(next);
-      ready?.();
-    });
-    api.output.getStatus().then(
-      next => {
-        if (active && !pushed) setStatuses(next);
-        ready?.();
-      },
-      (cause: unknown) => {
-        ready?.();
-        logFailure(api, 'Could not read the output statuses', cause);
+    const stop = followLatest(
+      {read: api.output.getStatus, subscribe: api.output.subscribeStatus},
+      {
+        apply: next => {
+          setStatuses(next);
+          ready?.();
+        },
+        failed: cause => {
+          ready?.();
+          logFailure(api, 'Could not read the output statuses', cause);
+        },
       },
     );
     return () => {
-      active = false;
       ready?.();
       stop();
     };

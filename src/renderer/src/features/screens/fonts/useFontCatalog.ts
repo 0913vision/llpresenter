@@ -1,3 +1,4 @@
+import {followLatest} from '@renderer/platform/followLatest';
 import {logFailure} from '@renderer/platform/logFailure';
 import {useEffect, useState} from 'react';
 import type {
@@ -25,28 +26,16 @@ export function useFontCatalog(): FontCatalogState {
   useEffect(() => {
     const api = window.llp;
     if (api === undefined) return undefined;
-    let active = true;
-    let pushed = false;
-    const receive = (value: FontCatalogSnapshot): void => {
-      if (active) setState({status: 'ready', ...value});
-    };
-    const stop = api.fonts.subscribe(value => {
-      pushed = true;
-      receive(value);
-    });
-    api.fonts.snapshot().then(
-      value => {
-        if (!pushed) receive(value);
-      },
-      (cause: unknown) => {
-        logFailure(api, 'Could not load the font choices', cause);
-        if (active && !pushed) setState({status: 'failed'});
+    return followLatest<FontCatalogSnapshot>(
+      {read: api.fonts.snapshot, subscribe: api.fonts.subscribe},
+      {
+        apply: value => setState({status: 'ready', ...value}),
+        failed: (cause, pushed) => {
+          logFailure(api, 'Could not load the font choices', cause);
+          if (!pushed) setState({status: 'failed'});
+        },
       },
     );
-    return () => {
-      active = false;
-      stop();
-    };
   }, []);
   return state;
 }
