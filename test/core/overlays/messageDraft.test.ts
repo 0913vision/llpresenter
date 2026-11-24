@@ -1,7 +1,18 @@
 import {settingsDocument} from '@fixtures/core/settingsDocument';
-import {expect, it} from 'vitest';
+import {describe, expect, it} from 'vitest';
 import {messageBlankNames} from '@core/overlays/messageText';
-import {prepareMessage} from '@core/overlays/messageDraft';
+import {
+  currentMessageTargets,
+  prepareMessage,
+  toggleMessageScreen,
+} from '@core/overlays/messageDraft';
+import {createScreenId} from '@core/schema/common/ids';
+import {
+  CAPTIONS_ID,
+  MAIN_ID,
+  STAGE_ID,
+  screensDocument,
+} from '@fixtures/core/screenDocuments';
 
 const document = settingsDocument('messages', {
   templates: [
@@ -41,4 +52,36 @@ it('blocks empty targets and the live command cap while accepting the boundary',
   expect(
     prepareMessage({...draft, targets: [], screenCount: 3}).reason,
   ).toBeDefined();
+});
+
+function screens() {
+  const document = screensDocument();
+  if (document.name !== 'screens') throw new Error('Expected screens');
+  return document.value.screens;
+}
+
+describe('toggleMessageScreen', () => {
+  const main = createScreenId(MAIN_ID);
+  const stage = createScreenId(STAGE_ID);
+
+  it('leaves only the screen chosen when the message went to every screen', () => {
+    expect(toggleMessageScreen('all', stage)).toEqual([stage]);
+  });
+
+  it('adds a screen not chosen yet and removes one that was', () => {
+    expect(toggleMessageScreen([main], stage)).toEqual([main, stage]);
+    expect(toggleMessageScreen([main, stage], main)).toEqual([stage]);
+  });
+});
+
+describe('currentMessageTargets', () => {
+  it('drops repeats and screens that are gone, and keeps every screen as it is', () => {
+    const gone = createScreenId('00000000-0000-4000-8000-000000000099');
+    const captions = createScreenId(CAPTIONS_ID);
+
+    expect(
+      currentMessageTargets([captions, gone, captions], screens()),
+    ).toEqual([captions]);
+    expect(currentMessageTargets('all', screens())).toBe('all');
+  });
 });
