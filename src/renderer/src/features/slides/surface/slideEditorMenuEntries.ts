@@ -14,7 +14,7 @@ import type {SlideCommands} from './useSlideCommands';
 import {fixedKeyText} from '@renderer/ui/keys/fixedKeys';
 
 /** The menu of a slide or of the ground between slides. */
-export function slideMenuEntries({
+export function slideEditorMenuEntries({
   deck,
   count,
   addAt,

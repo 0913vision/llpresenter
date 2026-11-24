@@ -5,7 +5,7 @@ import {SlideThumbnail, ThumbnailGrid} from '@renderer/ui';
 import {Menu, type MenuAnchor} from '@renderer/ui/menus/Menu';
 import type {TransitionProgress} from '@renderer/ui/tiles/transitionProgress';
 import {TilePicture, tileProps} from '@renderer/pictures/TilePicture';
-import {slideMenuEntries} from './slideMenuEntries';
+import {showSlideMenuEntries} from './showSlideMenuEntries';
 import {tileReflowIds} from './tileReflowIds';
 
 /** The tile a 슬라이드 menu was opened on. */
@@ -101,7 +101,7 @@ export function ShowTileMenu({
       context
       label="슬라이드"
       anchor={menu.anchor}
-      entries={slideMenuEntries({
+      entries={showSlideMenuEntries({
         output: () => outputTile({itemId: menu.itemId, index: menu.index}),
         edit:
           onOpenPrep === undefined

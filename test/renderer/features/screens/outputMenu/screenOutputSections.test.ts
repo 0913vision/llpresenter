@@ -5,7 +5,7 @@ import {outputMenuFixture} from '@fixtures/renderer/platform/outputMenu';
 import {
   screenOutputSections,
   type ScreenOutputInput,
-} from '@renderer/features/screens/outputMenu/outputMenuEntries';
+} from '@renderer/features/screens/outputMenu/screenOutputSections';
 
 function fixture() {
   const {input, send, onWorkspace} = outputMenuFixture();

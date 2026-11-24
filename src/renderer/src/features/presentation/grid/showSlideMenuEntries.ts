@@ -4,7 +4,7 @@ import {menuAvailability, type MenuEntry} from '@renderer/ui/menus/menuModel';
  * The menu of a slide tile in 진행: 출력, and 준비에서 열기 when the slide can
  * be edited there. 진행 sends slides out; they are edited in 준비.
  */
-export function slideMenuEntries({
+export function showSlideMenuEntries({
   output,
   edit,
 }: {

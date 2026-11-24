@@ -26,7 +26,7 @@ import {
 import {emptySlideGap} from '../gridInsertionPosition';
 import type {SlideDeck} from '../slideDeck';
 import {slideIdAt, slideRow} from './slideKeys';
-import {slideMenuEntries} from './slideMenu';
+import {slideEditorMenuEntries} from './slideEditorMenuEntries';
 import {useDeckClipboard} from './useDeckClipboard';
 import {useSlideCommands} from './useSlideCommands';
 import {useSlideDrag} from './useSlideDrag';
@@ -198,7 +198,7 @@ export function SlideSurface({
           context
           label="슬라이드"
           anchor={menu.menu.anchor}
-          entries={slideMenuEntries({
+          entries={slideEditorMenuEntries({
             deck,
             count,
             addAt: menu.menu.addAt,

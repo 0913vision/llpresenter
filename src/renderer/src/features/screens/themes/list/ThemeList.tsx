@@ -11,7 +11,7 @@ import {
 import {useMenuHandoff} from '@renderer/ui/menus/useMenuHandoff';
 import {ChoiceRows} from './ChoiceRows';
 import {purposeNames} from '../themeNames';
-import {ThemeMenu} from './ThemeMenu';
+import {ThemeRowMenu} from './ThemeRowMenu';
 import type {ThemeModel} from '../useThemeEditor';
 import {useThemeListActions} from './useThemeListActions';
 import styles from '../Themes.module.css';
@@ -125,7 +125,7 @@ export function ThemeList({
         />
       </Panel>
       {menu === null ? null : (
-        <ThemeMenu
+        <ThemeRowMenu
           theme={menu.theme}
           anchor={menu.anchor}
           actions={{

@@ -6,7 +6,7 @@ import {menuAvailability, type MenuEntry} from '@renderer/ui/menus/menuModel';
 import {themeProblems} from '../themeNames';
 
 /** What the theme menu does on its theme. */
-export interface ThemeMenuActions {
+export interface ThemeRowMenuActions {
   /** The theme is the default of its purpose. */
   readonly isDefault: boolean;
   /** Why the themes can't be changed now, if they can't. */
@@ -24,9 +24,9 @@ export interface ThemeMenuActions {
  * The menu of a theme in the theme list: 기본으로 지정, 복제, 이름 바꾸기,
  * 처음으로 되돌리기 for an edited built-in theme, and 삭제 for an own one.
  */
-export function themeMenuEntries(
+export function themeRowMenuEntries(
   theme: ThemeFile,
-  actions: ThemeMenuActions,
+  actions: ThemeRowMenuActions,
 ): readonly MenuEntry[] {
   const available = menuAvailability(actions.reason);
   return [
@@ -84,7 +84,7 @@ export function themeMenuEntries(
 }
 
 /** The menu of a theme in the theme list, at `anchor`. */
-export function ThemeMenu({
+export function ThemeRowMenu({
   theme,
   anchor,
   actions,
@@ -92,7 +92,7 @@ export function ThemeMenu({
 }: {
   readonly theme: ThemeFile;
   readonly anchor: MenuAnchor;
-  readonly actions: ThemeMenuActions;
+  readonly actions: ThemeRowMenuActions;
   readonly onClose: () => void;
 }): JSX.Element {
   return (
@@ -100,7 +100,7 @@ export function ThemeMenu({
       context
       label="테마"
       anchor={anchor}
-      entries={themeMenuEntries(theme, actions)}
+      entries={themeRowMenuEntries(theme, actions)}
       onClose={onClose}
     />
   );
