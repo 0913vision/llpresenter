@@ -5,7 +5,7 @@ import {
   discardTestFrames,
   windowTestOptions,
   type WindowMode,
-} from '../../base/renderers/testWindows';
+} from '../../base/renderers/windowMode';
 import {OUTPUT_BACKGROUND} from '../window/electronWindow';
 import type {NumberSpot, NumberWindow} from './monitorNumbers';
 

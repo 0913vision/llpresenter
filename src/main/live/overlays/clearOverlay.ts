@@ -1,8 +1,8 @@
 import type {MessageLayer, PropLayer} from '@core/schema/live/live';
 import type {OverlayClear} from '@core/schema/live/overlayClear';
 import {withLayers, type LiveHistory} from '../history';
-import {messageLayer} from './messageState';
-import {propLayer} from './propState';
+import {messageLayer} from './messageLayer';
+import {propLayer} from './propLayer';
 
 function withoutMessage(
   layer: MessageLayer | null,

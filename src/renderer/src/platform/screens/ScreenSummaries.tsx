@@ -7,7 +7,7 @@ import {
   type ReactNode,
 } from 'react';
 import type {Notice} from '@renderer/ui/popups/notices';
-import {summarizeScreens, type ScreenSummary} from './screens';
+import {summarizeScreens, type ScreenSummary} from './screenSummary';
 import type {MonitorList} from '@core/schema/screens/monitors';
 
 const noScreens: readonly ScreenSummary[] = [];

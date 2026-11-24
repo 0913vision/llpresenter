@@ -12,7 +12,7 @@ import type {Rect} from '../displays/rect';
 import {IpcHost} from '../base/ipcHost';
 import type {LiveStore} from '../live/store';
 import type {Logger} from '../base/log';
-import type {WindowMode} from '../base/renderers/testWindows';
+import type {WindowMode} from '../base/renderers/windowMode';
 import {createSettingsScreenSource} from './monitors/settingsScreens';
 import {createDefaultScreenSource} from './monitors/defaultScreens';
 import {createElectronWakeLock} from './electronWakeLock';

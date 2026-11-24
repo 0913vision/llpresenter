@@ -12,7 +12,7 @@ import {
 import {Toolbar} from '@renderer/app/shell/toolbar/Toolbar';
 import {renderWithScreenSummaries as render} from '@fixtures/renderer/platform/screenSummaries';
 import {ScreenSummariesContext} from '@renderer/platform/screens/ScreenSummaries';
-import type {ScreenSummary} from '@renderer/platform/screens/screens';
+import type {ScreenSummary} from '@renderer/platform/screens/screenSummary';
 import {MAIN_SCREEN, STAGE_SCREEN} from '@fixtures/core/screenIds';
 
 function installApi(send: (command: LiveCommand) => void): void {

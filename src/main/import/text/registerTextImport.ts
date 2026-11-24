@@ -10,7 +10,7 @@ import {TEXT_IMPORT_LIMITS} from '@core/schema/songs/textImportLimits';
 import {convertTextImport} from '@core/songs';
 import {IpcHost} from '../../base/ipcHost';
 import type {Logger} from '../../base/log';
-import type {WindowMode} from '../../base/renderers/testWindows';
+import type {WindowMode} from '../../base/renderers/windowMode';
 import type {UiStateFields} from '../../store/locations/appConfigFile';
 import {pickerFolder, rememberPickerFile} from '../../uiState/pickerFolder';
 import {readTextImport, type TextImportInputs} from './read';

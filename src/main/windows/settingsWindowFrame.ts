@@ -10,7 +10,7 @@ import {
   discardTestFrames,
   windowTestOptions,
   type WindowMode,
-} from '../base/renderers/testWindows';
+} from '../base/renderers/windowMode';
 
 export const PREFERENCES_WIDTH = 1040;
 export const PREFERENCES_HEIGHT = 800;

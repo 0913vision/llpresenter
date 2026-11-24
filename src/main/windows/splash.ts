@@ -1,6 +1,6 @@
 import {BrowserWindow} from 'electron';
 import type {LaunchTaskId} from '@core/schema/app/launch';
-import type {WindowMode} from '../base/renderers/testWindows';
+import type {WindowMode} from '../base/renderers/windowMode';
 import {splashHtml} from './splashPage';
 
 /** What the launch window shows of the launch. */

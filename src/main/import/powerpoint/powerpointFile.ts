@@ -2,7 +2,7 @@ import {dialog, type BrowserWindow} from 'electron';
 import {constants as fsConstants} from 'node:fs';
 import {copyFile, rm, stat} from 'node:fs/promises';
 import {extname, join} from 'node:path';
-import type {WindowMode} from '../../base/renderers/testWindows';
+import type {WindowMode} from '../../base/renderers/windowMode';
 import type {UiStateFields} from '../../store/locations/appConfigFile';
 import {pickerFolder, rememberPickerFile} from '../../uiState/pickerFolder';
 import type {

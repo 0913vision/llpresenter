@@ -3,7 +3,7 @@
 import {beforeEach, expect, onTestFinished, vi} from 'vitest';
 import type {Rect} from '@main/displays/rect';
 import type {Logger} from '@main/base/log';
-import type {WindowMode} from '@main/base/renderers/testWindows';
+import type {WindowMode} from '@main/base/renderers/windowMode';
 import {createElectronOutputWindow} from '@main/outputs/window/electronWindow';
 import type {OutputWindowHandle} from '@main/outputs/outputWindow';
 import type {OutputScreen} from '@main/outputs/screens';

@@ -16,7 +16,7 @@ import {bibleSourceFor} from '@renderer/session/show/showLibrary';
 import {beginOutputRequest} from '@renderer/session/show/showOutput';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
 import {BibleAdjacentButtons} from '@renderer/features/bible/adjacent/BibleAdjacentButtons';
-import {openBiblePassage} from '@renderer/features/bible/actions';
+import {openBiblePassage} from '@renderer/features/bible/passageActions';
 import {panelApi} from '@fixtures/contracts/ipc/bibleApi';
 import {lookupRequest} from '@fixtures/core/bibleLookups';
 import {formLookupReply} from '@fixtures/core/bibleReplies';

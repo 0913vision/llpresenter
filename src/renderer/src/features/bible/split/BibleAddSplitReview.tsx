@@ -4,7 +4,7 @@ import {type VerseInput, planSlides} from '@core/bible';
 import {Dialog} from '@renderer/ui/popups/Dialog';
 import {verseKey} from './BibleRefinements';
 import {SplitReview} from './SplitReview';
-import {confirmBibleCuts} from './saveBibleCuts';
+import {confirmBibleCuts} from './confirmBibleCuts';
 import type {BibleSplit} from '../passageSplitter';
 import {useBibleRefinement} from './useBibleRefinement';
 

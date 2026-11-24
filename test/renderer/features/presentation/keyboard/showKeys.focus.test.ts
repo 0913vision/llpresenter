@@ -6,7 +6,7 @@ import {
   handleShowFocusIn,
   handleShowMouseDown,
   useShowKeys,
-} from '@renderer/features/presentation/keyboard/shortcuts';
+} from '@renderer/features/presentation/keyboard/showKeys';
 import {appendTo} from '@fixtures/renderer/features/presentation/shortcutsFixtures';
 
 describe('click focus', () => {

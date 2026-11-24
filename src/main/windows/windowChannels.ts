@@ -5,7 +5,7 @@ import type {Logger} from '../base/log';
 import {
   allowsWindowAction,
   type WindowMode,
-} from '../base/renderers/testWindows';
+} from '../base/renderers/windowMode';
 
 /** What the 도움말 menu needs from the app. */
 export interface AppFacts {

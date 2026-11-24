@@ -9,7 +9,7 @@ import {
   SlidePanelMeta,
   SlidePanelFooter,
 } from '@renderer/features/presentation/grid/SlidePanel';
-import {useShowKeys} from '@renderer/features/presentation/keyboard/shortcuts';
+import {useShowKeys} from '@renderer/features/presentation/keyboard/showKeys';
 import {useLibrarySongSync} from '@renderer/features/presentation/useLibrarySongSync';
 import {useVerseSplit} from '@renderer/features/bible/split/useVerseSplit';
 import {useItemDeck} from '@renderer/features/slides/slideDeck';

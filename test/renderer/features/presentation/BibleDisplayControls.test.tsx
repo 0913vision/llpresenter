@@ -19,7 +19,7 @@ import {BiblePanel} from '@renderer/features/presentation/BiblePanel';
 import {
   openBiblePassage,
   showBiblePassage,
-} from '@renderer/features/bible/actions';
+} from '@renderer/features/bible/passageActions';
 import {
   bibleDocument,
   panelApi,

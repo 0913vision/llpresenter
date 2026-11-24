@@ -21,7 +21,7 @@ import type {Report} from '@renderer/session/service/serviceEdit';
 import {slideMaking} from '@renderer/platform/documents/themes';
 import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
 import {warningNotice} from '@renderer/ui/popups/notices';
-import {confirmBibleCuts} from './saveBibleCuts';
+import {confirmBibleCuts} from './confirmBibleCuts';
 import {passageSplitter, type BibleSplit} from '../passageSplitter';
 import {usePassageText} from '../passageText';
 import {SplitReview} from './SplitReview';

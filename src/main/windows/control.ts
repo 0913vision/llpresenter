@@ -17,7 +17,7 @@ import {
   discardTestFrames,
   windowTestOptions,
   type WindowMode,
-} from '../base/renderers/testWindows';
+} from '../base/renderers/windowMode';
 import {reloadAfterCrash} from './crashReload';
 import {watchWindowMinimized} from './windowMinimized';
 

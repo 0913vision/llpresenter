@@ -25,7 +25,7 @@ import {
   openBiblePassage,
   preparePassage,
   showBiblePassage,
-} from '../bible/actions';
+} from '../bible/passageActions';
 import {BibleReferenceField} from '../bible/reference/BibleReferenceField';
 import {PassageDialog} from '../bible/finder/PassageDialog';
 import {useBibleDisplayDefaults} from '../bible/useBibleDisplayDefaults';

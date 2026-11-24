@@ -6,8 +6,8 @@ import {parseLiveState} from '@core/schema/live/liveState';
 import {MAX_ACTIVE_MESSAGES} from '@core/schema/live/overlayState';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {LiveStore} from '@main/live/store';
-import {messageLayer} from '@main/live/overlays/messageState';
-import {propLayer} from '@main/live/overlays/propState';
+import {messageLayer} from '@main/live/overlays/messageLayer';
+import {propLayer} from '@main/live/overlays/propLayer';
 import {startOverlays} from '@main/live/overlays/overlays';
 import {
   MAIN,

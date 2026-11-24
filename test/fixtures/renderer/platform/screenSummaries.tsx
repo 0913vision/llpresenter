@@ -5,7 +5,7 @@ import {
   type RenderResult,
 } from '@testing-library/react';
 import {ScreenSummariesContext} from '@renderer/platform/screens/ScreenSummaries';
-import type {ScreenSummary} from '@renderer/platform/screens/screens';
+import type {ScreenSummary} from '@renderer/platform/screens/screenSummary';
 import {
   BROADCAST_SCREEN,
   MAIN_SCREEN,

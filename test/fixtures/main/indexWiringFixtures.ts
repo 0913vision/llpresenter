@@ -262,7 +262,7 @@ vi.mock('@main/live/overlays/overlays', () => ({
     return mocks.overlaysStop;
   },
 }));
-vi.mock('@main/live/item/themes', () => ({
+vi.mock('@main/live/item/themeOutput', () => ({
   registerThemeOutput: (context: unknown) => {
     mocks.themeOutputContexts.push(context);
     return mocks.themeOutputStop;
@@ -283,7 +283,7 @@ vi.mock('@main/media/register', () => ({
 vi.mock('@main/store/content/revealSong', () => ({
   registerSongReveal: () => () => undefined,
 }));
-vi.mock('@main/import/text/register', () => ({
+vi.mock('@main/import/text/registerTextImport', () => ({
   registerTextImport: (context: unknown) => {
     mocks.textImportContexts.push(context);
     return mocks.textImportStop;

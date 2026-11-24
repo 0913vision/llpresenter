@@ -3,7 +3,7 @@ import {launchEndpoints} from '@contracts/ipc/launch';
 import {VIEW_TASK_IDS} from '@core/schema/app/launch';
 import {IpcHost, type Caller} from '../base/ipcHost';
 import {registerFonts} from '../fonts/register';
-import {registerTextImport} from '../import/text/register';
+import {registerTextImport} from '../import/text/registerTextImport';
 import {registerPowerPointImport} from '../import/powerpoint/registerPowerPoint';
 import {registerMediaBackend} from '../media/register';
 import {registerSongReveal} from '../store/content/revealSong';

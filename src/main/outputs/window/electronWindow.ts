@@ -19,7 +19,7 @@ import {
   discardTestFrames,
   windowTestOptions,
   type WindowMode,
-} from '../../base/renderers/testWindows';
+} from '../../base/renderers/windowMode';
 import {CHROMA_KEY_COLOR} from '@core/screens';
 import type {OutputWindowEvents, OutputWindowHandle} from '../outputWindow';
 import type {OutputScreen} from '../screens';

@@ -4,7 +4,7 @@ import {
   canReturnFromQuickPassage,
 } from '@renderer/session/show/quickReturn';
 import {SlideGrid} from '@renderer/features/presentation/grid/SlideGrid';
-import {handleShowKey} from '@renderer/features/presentation/keyboard/shortcuts';
+import {handleShowKey} from '@renderer/features/presentation/keyboard/showKeys';
 import {lastLiveCommand} from '@fixtures/renderer/session/liveCommands';
 import {
   act,
@@ -24,7 +24,7 @@ import {lookupReply, lookupRequest} from '@fixtures/core/bibleLookups';
 import {formLookupReply} from '@fixtures/core/bibleReplies';
 import {shownText} from '@fixtures/core/liveSlide';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
-import {openBiblePassage} from '@renderer/features/bible/actions';
+import {openBiblePassage} from '@renderer/features/bible/passageActions';
 import {BibleQuickField} from '@renderer/features/quick/BibleQuickField';
 import {BiblePanel} from '@renderer/features/presentation/BiblePanel';
 import {commandBindingStore} from '@renderer/ui/keys/commandBindings';

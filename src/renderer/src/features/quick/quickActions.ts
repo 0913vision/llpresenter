@@ -20,7 +20,7 @@ import {
   withinLookupTimeout,
 } from '@renderer/session/show/showOutput';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
-import {openBiblePassage, showBiblePassage} from '../bible/actions';
+import {openBiblePassage, showBiblePassage} from '../bible/passageActions';
 import {useShow} from '@renderer/session/show/showStore';
 
 export function quickItemUnavailable(item: QuickItem): string | undefined {

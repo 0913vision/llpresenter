@@ -1,7 +1,7 @@
 import type {BrowserWindow} from 'electron';
 import type {Logger} from '../base/log';
 import type {ProblemFeed} from '../base/problemFeed';
-import type {WindowMode} from '../base/renderers/testWindows';
+import type {WindowMode} from '../base/renderers/windowMode';
 import {createElectronOutputWindow} from './window/electronWindow';
 import {createNdiOutput} from './ndi/output';
 import type {OutputWindowEvents, OutputWindowHandle} from './outputWindow';

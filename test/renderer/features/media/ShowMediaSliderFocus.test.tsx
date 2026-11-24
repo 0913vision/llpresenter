@@ -3,7 +3,7 @@ import {afterEach, expect, it, vi} from 'vitest';
 import {MediaView} from '@renderer/features/media/tiles/MediaView';
 import {MediaProperties} from '@renderer/features/media/properties/MediaPropertiesPanel';
 import {MediaViewProvider} from '@renderer/features/media/MediaViewProvider';
-import {handleShowKey} from '@renderer/features/presentation/keyboard/shortcuts';
+import {handleShowKey} from '@renderer/features/presentation/keyboard/showKeys';
 import * as showState from '@renderer/session/show/show';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
 import {

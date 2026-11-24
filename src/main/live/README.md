@@ -1,8 +1,9 @@
 # Live slice registry
 
 The main process discovers the modules in `slices/*.ts` with an eager Vite glob
-in `slices.ts`. Test files and the separate fixture folder are excluded. A new
-slice is a new module; no command list or central reducer switch changes.
+in `registry/slices.ts`. Test files and the separate fixture folder are
+excluded. A new slice is a new module; no command list or central reducer switch
+changes.
 
 Export a `defineSlice({commands, initial, reduce})` value. `commands` names the
 shared command types owned by the module. `reduce` receives only those variants
@@ -44,10 +45,12 @@ notes through `context.ranMacro` (a skipped child's notes are dropped).
 store then reports each 매크로 to the windows as an `app:problem` of kind
 `macro-dropped`, for the 매크로 적용 실패 card.
 
-IPC validation remains in `ipc.ts`. All application dispatch goes through
-`dispatchLogged`, which logs an unsupported type as `unhandled live command` and
-rejects it before dispatch. The pure registry and direct store dispatch also
-leave an unsupported command's history, state, version, and undo intact.
+A command that comes over IPC is checked by its contract in
+`src/contracts/ipc/live.ts`, which `channels.ts` serves. All application
+dispatch goes through `dispatchLogged`, which logs an unsupported type as
+`unhandled live command` and rejects it before dispatch. The pure registry and
+direct store dispatch also leave an unsupported command's history, state,
+version, and undo intact.
 
 `registryExtension.test.ts` substitutes only the discovery entry point with a
 fixed fixture glob. The fixture `test/fixtures/main/live/slices/probe.ts`

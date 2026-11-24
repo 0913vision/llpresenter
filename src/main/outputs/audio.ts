@@ -11,7 +11,7 @@ import {
   preloadPath,
   type PageRequest,
 } from '../base/renderers/page';
-import type {WindowMode} from '../base/renderers/testWindows';
+import type {WindowMode} from '../base/renderers/windowMode';
 import {
   watchPlaybackProblems,
   type PlaybackProblemBoard,

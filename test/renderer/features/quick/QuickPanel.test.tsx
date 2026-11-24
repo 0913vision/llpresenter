@@ -17,7 +17,7 @@ import {emptyLiveState} from '@core/schema/live/live';
 import {useLive} from '@renderer/session/live';
 import {openItem} from '@renderer/session/show/show';
 import {bibleSourceFor} from '@renderer/session/show/showLibrary';
-import {openBiblePassage} from '@renderer/features/bible/actions';
+import {openBiblePassage} from '@renderer/features/bible/passageActions';
 import {shownText} from '@fixtures/core/liveSlide';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
 import {lookupReply, lookupRequest} from '@fixtures/core/bibleLookups';

@@ -1,4 +1,4 @@
-import {handleShowKey} from '@renderer/features/presentation/keyboard/shortcuts';
+import {handleShowKey} from '@renderer/features/presentation/keyboard/showKeys';
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@core/schema/live/liveCommand';

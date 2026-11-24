@@ -5,7 +5,7 @@ import {emptyLiveState} from '@core/schema/live/live';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
 import {BiblePanel} from '@renderer/features/presentation/BiblePanel';
 import {panelApi, panelPassage} from '@fixtures/contracts/ipc/bibleApi';
-import {openBiblePassage} from '@renderer/features/bible/actions';
+import {openBiblePassage} from '@renderer/features/bible/passageActions';
 import {resetTooltips} from '@fixtures/renderer/ui/tooltipTesting';
 import {useShow} from '@renderer/session/show/showStore';
 

@@ -11,7 +11,7 @@ import type {MediaBackendPort} from '../store/media/mediaBackend';
 import type {UiStateFields} from '../store/locations/appConfigFile';
 import {realPathInside} from '../base/files/insideRoots';
 import {pickerFolder, rememberPickerFile} from '../uiState/pickerFolder';
-import type {WindowMode} from '../base/renderers/testWindows';
+import type {WindowMode} from '../base/renderers/windowMode';
 import type {MediaAnalysis} from './analysis';
 import {MediaImporter, type ImportStore} from './mediaImporter';
 import {mediaDialogFilters, type MediaKind} from './mediaKinds';

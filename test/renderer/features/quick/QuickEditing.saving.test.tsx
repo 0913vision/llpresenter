@@ -15,7 +15,7 @@ import {isKnownQuickItem} from '@core/schema/tools/quick';
 import {useLive} from '@renderer/session/live';
 import {openLibrarySong} from '@renderer/session/show/showLibrary';
 import {pendingWritesOf} from '@renderer/platform/documents/pendingWrites';
-import {openBiblePassage} from '@renderer/features/bible/actions';
+import {openBiblePassage} from '@renderer/features/bible/passageActions';
 import {panelPassage} from '@fixtures/contracts/ipc/bibleApi';
 import {
   MAX_QUICK_ITEMS,

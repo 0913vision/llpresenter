@@ -1,4 +1,4 @@
-import type {ScreenSummary} from '@renderer/platform/screens/screens';
+import type {ScreenSummary} from '@renderer/platform/screens/screenSummary';
 import {MAX_LIVE_BATCH_COMMANDS} from '@core/schema/live/liveCommand';
 import {sendLive} from '@renderer/session/live';
 import {stopItem} from '@renderer/session/show/clear';

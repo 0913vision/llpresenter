@@ -6,7 +6,7 @@ import {
 } from 'electron';
 import type {Logger} from '../base/log';
 import type {ProblemFeed} from '../base/problemFeed';
-import type {WindowMode} from '../base/renderers/testWindows';
+import type {WindowMode} from '../base/renderers/windowMode';
 import type {LaunchIdle} from '../store/launchIdle';
 import type {UiZoomRegistration} from '../store/settings/uiZoom';
 import {createControlWindow} from '../windows/control';

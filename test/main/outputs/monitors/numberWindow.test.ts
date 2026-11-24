@@ -5,7 +5,7 @@ import {openNumberWindow} from '@main/outputs/monitors/numberWindow';
 import {
   discardTestFrames,
   windowTestOptions,
-} from '@main/base/renderers/testWindows';
+} from '@main/base/renderers/windowMode';
 
 const electron = await vi.hoisted(async () => {
   const {EventEmitter} = await import('node:events');
@@ -33,10 +33,8 @@ const electron = await vi.hoisted(async () => {
 });
 
 vi.mock('electron', () => ({BrowserWindow: electron.MockBrowserWindow}));
-vi.mock('@main/base/renderers/testWindows', async importOriginal => ({
-  ...(await importOriginal<
-    typeof import('@main/base/renderers/testWindows')
-  >()),
+vi.mock('@main/base/renderers/windowMode', async importOriginal => ({
+  ...(await importOriginal<typeof import('@main/base/renderers/windowMode')>()),
   windowTestOptions: vi.fn(() => ({})),
   discardTestFrames: vi.fn(),
 }));

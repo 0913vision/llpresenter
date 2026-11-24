@@ -1,5 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
-import {confirmBibleCuts} from '@renderer/features/bible/split/saveBibleCuts';
+import {confirmBibleCuts} from '@renderer/features/bible/split/confirmBibleCuts';
 import {entryFor, knownCutsFor} from '@core/bible/split/splitCache';
 import {parseBibleCuts, serializeBibleCuts} from '@core/schema/bible/bibleCuts';
 import {settingsDocument} from '@fixtures/core/settingsDocument';

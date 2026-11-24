@@ -9,7 +9,7 @@ import {
 import {menuAvailability, type MenuEntry} from '@renderer/ui/menus/menuModel';
 import {menuSeparator} from '@renderer/ui/menus/menuRows';
 import type {Notice} from '@renderer/ui/popups/notices';
-import type {ScreenSummary} from '@renderer/platform/screens/screens';
+import type {ScreenSummary} from '@renderer/platform/screens/screenSummary';
 import {sendThemeChange} from './themeActions';
 import {liveThemeName, themeMenuEntries} from './themeMenuEntries';
 

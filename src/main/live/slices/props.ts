@@ -2,7 +2,7 @@ import {parseActiveProps} from '@core/schema/live/overlayState';
 import type {ActiveProp} from '@core/schema/live/live';
 import {MissingLiveTargetError} from '../commandErrors';
 import {setLayer, updateLayer} from '../history';
-import {propLayer} from '../overlays/propState';
+import {propLayer} from '../overlays/propLayer';
 import {defineSlice} from '../slice';
 
 export const propsSlice = defineSlice({

@@ -6,8 +6,8 @@ import {emptyLiveState} from '@core/schema/live/live';
 import {useLive} from '@renderer/session/live';
 import {setColumnDragActive} from '@renderer/ui/panels/columnDrag';
 import * as showState from '@renderer/session/show/show';
-import * as bibleKeys from '@renderer/features/bible/adjacent/verseShortcuts';
-import {handleShowKey} from '@renderer/features/presentation/keyboard/shortcuts';
+import * as bibleKeys from '@renderer/features/bible/adjacent/outputAdjacentBibleVerse';
+import {handleShowKey} from '@renderer/features/presentation/keyboard/showKeys';
 import {
   keyEvent,
   press,

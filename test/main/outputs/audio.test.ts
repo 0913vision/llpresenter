@@ -8,7 +8,7 @@ import type {MediaStore} from '@main/store/media/mediaStore';
 import {registerAudioOutput} from '@main/outputs/audio';
 import {audioMutedByDefault} from '@main/base/renderers/audioPolicy';
 import {loadPage, startLoading} from '@main/base/renderers/page';
-import type {WindowMode} from '@main/base/renderers/testWindows';
+import type {WindowMode} from '@main/base/renderers/windowMode';
 import type {
   RecoveryOptions,
   RendererState,

@@ -13,7 +13,7 @@ import {
   ScreenSummariesProvider,
   useScreenSummaries,
 } from '@renderer/platform/screens/ScreenSummaries';
-import {summarizeScreens} from '@renderer/platform/screens/screens';
+import {summarizeScreens} from '@renderer/platform/screens/screenSummary';
 import {inScreenOrder} from '@core/schema/screens/screens';
 import {projector} from '@fixtures/renderer/features/screens/monitors';
 

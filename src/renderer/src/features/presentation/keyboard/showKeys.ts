@@ -17,7 +17,7 @@ import {
 } from '@renderer/session/show/show';
 import {useAtLastSlide} from './useAtLastSlide';
 import {useSlideHotKeys} from './useSlideHotKeys';
-import {outputAdjacentBibleVerse} from '../../bible/adjacent/verseShortcuts';
+import {outputAdjacentBibleVerse} from '../../bible/adjacent/outputAdjacentBibleVerse';
 import {clearLayer} from '@renderer/session/show/clear';
 import {canReturnFromQuickPassage} from '@renderer/session/show/quickReturn';
 import {useNumberJumpKeys} from './numberJump';

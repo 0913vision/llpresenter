@@ -6,7 +6,7 @@ import {
   discardTestFrames,
   windowModeFrom,
   windowTestOptions,
-} from '@main/base/renderers/testWindows';
+} from '@main/base/renderers/windowMode';
 
 describe('windowModeFrom', () => {
   it('permits the explicit packaged smoke only on a GitHub runner', () => {

@@ -4,7 +4,7 @@ import {isAnyOutputOn} from '@core/schema/live/live';
 import type {createLogger} from '../base/log';
 import {registerProblemFeed} from '../base/problemFeed';
 import type {ShutdownCoordinator} from '../base/shutdown';
-import type {WindowMode} from '../base/renderers/testWindows';
+import type {WindowMode} from '../base/renderers/windowMode';
 import {openRecoverySession} from '../live/recovery/session';
 import {serviceStandby} from '../live/item/serviceStandby';
 import {LiveStore} from '../live/store';

@@ -2,7 +2,7 @@ import {cleanup, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import * as showState from '@renderer/session/show/show';
-import {useShowKeys} from '@renderer/features/presentation/keyboard/shortcuts';
+import {useShowKeys} from '@renderer/features/presentation/keyboard/showKeys';
 
 function Host({onPress}: {readonly onPress: () => void}) {
   useShowKeys();

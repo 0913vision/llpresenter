@@ -18,7 +18,7 @@ import {
   beginOutputRequest,
   isOutputRequestCurrent,
 } from '@renderer/session/show/showOutput';
-import {openBiblePassage} from '../actions';
+import {openBiblePassage} from '../passageActions';
 import {lookupAdjacentPassage} from './lookupAdjacentPassage';
 import {passageText} from '../passageText';
 import {useShow} from '@renderer/session/show/showStore';

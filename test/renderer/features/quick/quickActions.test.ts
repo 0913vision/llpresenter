@@ -3,7 +3,7 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/schema/live/live';
 import {useLive} from '@renderer/session/live';
 import {openItem, selectTile} from '@renderer/session/show/show';
-import {openBiblePassage} from '@renderer/features/bible/actions';
+import {openBiblePassage} from '@renderer/features/bible/passageActions';
 import {panelPassage} from '@fixtures/contracts/ipc/bibleApi';
 import {lookupRequest} from '@fixtures/core/bibleLookups';
 import {

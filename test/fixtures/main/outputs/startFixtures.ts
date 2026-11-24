@@ -11,7 +11,7 @@ import {
 import {LiveStore} from '@main/live/store';
 import {startOverlays} from '@main/live/overlays/overlays';
 import {MAIN, overlaySettings} from '@fixtures/core/overlays';
-import type {WindowMode} from '@main/base/renderers/testWindows';
+import type {WindowMode} from '@main/base/renderers/windowMode';
 import {mockWindows, type MockWindows} from '@fixtures/main/outputs/testing';
 import {startOutputs} from '@main/outputs/start';
 

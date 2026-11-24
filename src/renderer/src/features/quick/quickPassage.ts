@@ -5,7 +5,7 @@ import type {
   BibleSource,
 } from '@renderer/session/show/bibleSource';
 import {bibleSourceFor} from '@renderer/session/show/showLibrary';
-import {openBiblePassage} from '../bible/actions';
+import {openBiblePassage} from '../bible/passageActions';
 import {useShow} from '@renderer/session/show/showStore';
 
 /** How quick run opens a passage: at once, with its own transition. */

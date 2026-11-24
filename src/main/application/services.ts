@@ -8,7 +8,7 @@ import {diagnosticsText} from './diagnostics';
 import {loginItemsAllowed, registerLaunchAtLogin} from './launchAtLogin';
 import {registerLiveChannels} from '../live/channels';
 import {startOverlays} from '../live/overlays/overlays';
-import {registerThemeOutput} from '../live/item/themes';
+import {registerThemeOutput} from '../live/item/themeOutput';
 import {startMediaAnalysis} from '../media/analysis';
 import {registerLibrarySearch} from '../search/register';
 import {registerLibraryLocations} from '../store/locations/locationsChannels';

@@ -4,7 +4,7 @@ import {QUICK_BIBLE_TRANSITION} from '@core/bible/quickTransition';
 import {
   openBiblePassage,
   showBiblePassage,
-} from '@renderer/features/bible/actions';
+} from '@renderer/features/bible/passageActions';
 import {useLive} from '@renderer/session/live';
 import {selectTile} from '@renderer/session/show/show';
 import {bibleSourceFor} from '@renderer/session/show/showLibrary';

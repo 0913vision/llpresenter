@@ -6,7 +6,7 @@ import {
   applyUserDataOverride,
   defaultUserDataPath,
 } from './base/files/userData';
-import {windowModeFrom} from './base/renderers/testWindows';
+import {windowModeFrom} from './base/renderers/windowMode';
 import {createSplash} from './windows/splash';
 
 const BAD_ENVIRONMENT_EXIT_CODE = 1;

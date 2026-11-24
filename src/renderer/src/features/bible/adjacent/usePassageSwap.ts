@@ -11,7 +11,7 @@ import {
   beginOutputRequest,
   isOutputRequestCurrent,
 } from '@renderer/session/show/showOutput';
-import {openBiblePassage} from '../actions';
+import {openBiblePassage} from '../passageActions';
 import {useShow} from '@renderer/session/show/showStore';
 
 /** How the passage of `source` shows now. */

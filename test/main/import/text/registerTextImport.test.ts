@@ -6,7 +6,7 @@ import {textImportEndpoints} from '@contracts/ipc/textImport';
 import {powerpointEndpoints} from '@contracts/ipc/powerpoint';
 import {registerPowerPointImport} from '@main/import/powerpoint/registerPowerPoint';
 import {makeTempDir} from '@fixtures/tempDir';
-import {registerTextImport} from '@main/import/text/register';
+import {registerTextImport} from '@main/import/text/registerTextImport';
 import {TEST_IMPORT_FILE_VARIABLE} from '@main/import/testImportFile';
 import {TEXT_IMPORT_LIMITS} from '@core/schema/songs/textImportLimits';
 import {convertTextImport} from '@core/songs/textImport';
