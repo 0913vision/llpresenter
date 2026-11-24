@@ -31,6 +31,7 @@ import {useServiceItemClipboard} from './edits/useServiceItemClipboard';
 import {useServiceItemSelection} from './useServiceItemSelection';
 import styles from './ServiceOrderList.module.css';
 import {useShow} from '@renderer/session/show/showStore';
+import {scrollGridToItem} from '@renderer/session/show/visibleSlideItem';
 import {ListBox} from '@renderer/ui/lists/ListBox';
 
 function closeNothing(): void {
@@ -105,7 +106,7 @@ export function ServiceOrderList({
     }
     onOpenItem?.();
     openItem(itemId);
-    window.dispatchEvent(new CustomEvent('show-grid-item', {detail: itemId}));
+    scrollGridToItem(itemId);
   };
   const selectableIds = useMemo(
     () =>

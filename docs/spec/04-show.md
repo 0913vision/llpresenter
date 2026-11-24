@@ -331,13 +331,15 @@ slides have a band without a count. The panel header shows the live item's name
 and its position within that item; when no slide is live it shows the item at
 the top of the view. Slide numbers remain service-wide. Selecting an order item
 smoothly scrolls to its band; the order selection follows the band at the top.
-Clicking a tile outputs it. When off, the grid shows only the open item. The
-grid stays where the operator scrolled; it moves only when the live tile leaves
-the view, or when a key moves the live tile down past the lower part of the
-view, including across items. A click on a tile never moves it. While the
-continuous grid shows, the footer has 현 위치로, which smoothly brings the live
-tile back to the reading line; it is off while the live tile is in view. This
-choice does not change the last-slide action.
+다음 항목 and 이전 항목 (Ctrl ↓, Ctrl ↑) go from the item at the top, or the one
+being scrolled to, and scroll to the next or previous item the same way
+(November 25 church check). Clicking a tile outputs it. When off, the grid shows
+only the open item. The grid stays where the operator scrolled; it moves only
+when the live tile leaves the view, or when a key moves the live tile down past
+the lower part of the view, including across items. A click on a tile never
+moves it. While the continuous grid shows, the footer has 현 위치로, which
+smoothly brings the live tile back to the reading line; it is off while the live
+tile is in view. This choice does not change the last-slide action.
 
 ### Editing a song that is on output
 

@@ -18,7 +18,10 @@ import {thumbnailWidth} from '@renderer/ui/choices/thumbnailSize';
 import {firstSlideWindowSize} from './useSlideWindow';
 import {useGridMeasure} from '@renderer/ui/lists/useGridMeasure';
 import {useSlideTransitionProgress} from '../useSlideTransitionProgress';
-import {revealSlideItem} from '@renderer/session/show/visibleSlideItem';
+import {
+  onScrollGridToItem,
+  revealSlideItem,
+} from '@renderer/session/show/visibleSlideItem';
 import {liveReturn} from './liveReturn';
 import type {SlideGridProps} from './SlideGrid';
 import {ShowSlideEntry} from '../keyboard/showPanelNavigation';
@@ -263,21 +266,19 @@ export function ContinuousSlideGrid({
       entryRef.current = null;
     };
   }, [entryRef]);
-  useEffect(() => {
-    const select = (event: Event): void => {
-      const section = sections.find(
-        value => event instanceof CustomEvent && value.row.id === event.detail,
-      );
-      if (!section) return;
-      scrolling.pause();
-      keeper.current?.parentElement?.scrollTo({
-        top: section.top,
-        behavior: 'smooth',
-      });
-    };
-    window.addEventListener('show-grid-item', select);
-    return () => window.removeEventListener('show-grid-item', select);
-  }, [sections, scrolling]);
+  useEffect(
+    () =>
+      onScrollGridToItem(itemId => {
+        const section = sections.find(value => value.row.id === itemId);
+        if (!section) return;
+        scrolling.pause();
+        keeper.current?.parentElement?.scrollTo({
+          top: section.top,
+          behavior: 'smooth',
+        });
+      }),
+    [sections, scrolling],
+  );
   useEffect(() => {
     const index = Math.max(
       0,

@@ -1,3 +1,7 @@
+import {
+  onScrollGridToItem,
+  revealSlideItem,
+} from '@renderer/session/show/visibleSlideItem';
 import {afterEach, beforeEach, describe, expect, it} from 'vitest';
 import type {LiveCommand} from '@core/schema/live/liveCommand';
 import {emptyLiveState, type SlideLayer} from '@core/schema/live/live';
@@ -206,6 +210,20 @@ describe('outputting a slide', () => {
       ['song-river', 2],
       ['song-river', 0],
     ]);
+  });
+});
+
+describe('다음 항목 and 이전 항목', () => {
+  it('go on from the item a continuous grid scrolled to, and scroll to the item they open', () => {
+    const asked: string[] = [];
+    const stop = onScrollGridToItem(itemId => asked.push(itemId));
+    openItem('song-morning');
+    revealSlideItem('song-river');
+    openNextItem();
+    expect(useShow.getState().openItemId).toBe('psalm-23');
+    expect(asked).toEqual(['psalm-23']);
+    revealSlideItem(null);
+    stop();
   });
 });
 

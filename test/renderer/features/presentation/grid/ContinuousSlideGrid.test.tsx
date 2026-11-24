@@ -1,3 +1,4 @@
+import {scrollGridToItem} from '@renderer/session/show/visibleSlideItem';
 import {lyricsSlide} from '@fixtures/core/slides';
 import {shownText} from '@fixtures/core/liveSlide';
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
@@ -110,7 +111,7 @@ it('windows ordered item bands, scrolls to a requested item, and outputs its til
   expect(screen.getByText('Second')).toBeTruthy();
   expect(screen.getAllByRole('option')).toHaveLength(2);
   act(() => {
-    window.dispatchEvent(new CustomEvent('show-grid-item', {detail: 'two'}));
+    scrollGridToItem('two');
   });
   expect(viewport.scrollTo).toHaveBeenCalled();
   const second = screen.getAllByRole('option')[1];

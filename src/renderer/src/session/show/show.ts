@@ -41,6 +41,7 @@ import {
 } from './showLibrary';
 import {beginOutputRequest} from './showOutput';
 import {noService, useShow, type ShowView} from './showStore';
+import {scrollGridToItem, scrolledSlideItem} from './visibleSlideItem';
 
 type AtLastSlide = Preferences['show']['atLastSlide'];
 
@@ -316,15 +317,20 @@ export function outputHotKey(code: string): boolean {
   return true;
 }
 
+// NOTE(0913vision): A continuous grid shows every item; the one it scrolled
+// to is where the operator is, and the item that opens is scrolled to as a
+// click on its 예배 순서 row does.
 function openAdjacentItem(direction: 'next' | 'previous'): void {
   const {rows, openItemId} = useShow.getState();
   const target = adjacentItem({
     rows,
     tilesOf,
-    current: openItemId,
+    current: scrolledSlideItem() ?? openItemId,
     direction,
   });
-  if (target !== null) openItem(target);
+  if (target === null) return;
+  openItem(target);
+  scrollGridToItem(target);
 }
 
 /** 다음 항목: opens the next item that can output, without outputting. */
