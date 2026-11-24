@@ -39,7 +39,7 @@ function useScrollToChange(plan: ReturnType<typeof planSlides>) {
   return {
     previews,
     /** Notes the gap that the next drawn slides changed. */
-    changedAt: (gap: number): void => {
+    changedAt: (gap: number | undefined): void => {
       changed.current = gap;
     },
   };
@@ -61,7 +61,7 @@ export function useSplitDraft({
   readonly layout: SplitLayout;
   readonly prefix: string;
   /** The slides already planned for the cuts the editor starts with. */
-  readonly preparedPlan: ReturnType<typeof planSlides> | undefined;
+  readonly preparedPlan?: ReturnType<typeof planSlides> | undefined;
 }) {
   const [history, setHistory] = useState(() => initialEditHistory(cuts));
   const [typed, setTyped] = useState('');
