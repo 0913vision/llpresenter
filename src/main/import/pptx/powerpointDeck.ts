@@ -1,3 +1,4 @@
+import {isPowerPointWidescreen} from './powerpointSize';
 import {
   POWERPOINT_IMPORT_LIMITS,
   TEXT_IMPORT_LIMITS,
@@ -98,11 +99,6 @@ function shapes(tree: Element): PowerPointShape[] {
       },
     ];
   });
-}
-
-/** Whether a slide size is 16:9, within 1 percent. */
-export function isPowerPointWidescreen(width: number, height: number): boolean {
-  return Math.abs(width * 9 - height * 16) * 100 <= height * 16;
 }
 
 function slideSize(zip: PowerPointZip) {

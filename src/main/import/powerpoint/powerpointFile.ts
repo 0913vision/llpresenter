@@ -9,7 +9,7 @@ import type {
   PowerPointImagesJob,
   PowerPointImagesResult,
 } from './powerpointImages';
-import {isPowerPointFourThree} from './powerpointSize';
+import {isPowerPointFourThree} from '../pptx/powerpointSize';
 import {TEST_IMPORT_FILE_VARIABLE} from '../testImportFile';
 
 const EXTENSIONS = ['pptx', 'pptm', 'ppt'];
