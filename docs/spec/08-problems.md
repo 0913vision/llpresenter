@@ -85,14 +85,14 @@ continues, and a successful query clears the line.
 | Part    | Content                                                      |
 | ------- | ------------------------------------------------------------ |
 | Icon    | Plug icon, amber                                             |
-| Title   | "무대 모니터 연결 끊김" (stage monitor disconnected)         |
+| Title   | "무대 화면 모니터 연결 끊김" (stage monitor disconnected)    |
 | Time    | "11:24"                                                      |
 | Detail  | "모니터 3 → 창으로 표시 중" (monitor 3, showing in a window) |
 | Actions | 모니터 다시 찾기 (find monitor again), 창 보기 (show window) |
 
 4. When the monitor comes back, the output returns to full screen on it, and the
-   card turns into the information notification "무대 모니터 다시 연결됨" (stage
-   monitor reconnected), which closes after 6 seconds.
+   card turns into the information notification "무대 화면 모니터 다시 연결됨"
+   (stage monitor reconnected), which closes after 6 seconds.
 
 Source: `Problems`, `Notification` README, `ToolbarButton` README.
 

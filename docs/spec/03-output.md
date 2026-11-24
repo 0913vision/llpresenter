@@ -617,9 +617,11 @@ topology events before re-reading the monitor list.
 2. That screen's toolbar button shows the monitor missing state (amber dot and
    icon). The status bar shows "무대 화면 창으로 표시 중" (stage screen showing
    in a window). The screen's frame in the preview gets an amber outline.
-3. Show the warning notification "무대 모니터 연결 끊김" (stage monitor
-   disconnected). Its detail line reads "모니터 3 → 창으로 표시 중", and its
-   actions are 모니터 다시 찾기 (find monitor again) and 창 보기 (show window).
+3. Show the warning notification "무대 화면 모니터 연결 끊김" (stage monitor
+   disconnected), named with the screen's own name, for every screen, also one
+   the operator added or renamed. Its detail line reads "모니터 3 → 창으로 표시
+   중", and its actions are 모니터 다시 찾기 (find monitor again) and 창 보기
+   (show window).
    - 모니터 다시 찾기: read the monitor list again at once, and match the saved
      monitor again.
    - 창 보기: bring the fallback window to the front.
@@ -631,13 +633,13 @@ When the same monitor connects again and the output is still on, move the output
 window back to full screen on that monitor. If the screen's 항상 위 setting is
 on, restore always on top so the output is above the control window; otherwise
 keep always on top off. Return the toolbar and status bar to normal, and turn
-the warning notification into the information notification "무대 모니터 다시
-연결됨" (stage monitor reconnected). It closes after 6 seconds.
+the warning notification into the information notification "무대 화면 모니터
+다시 연결됨" (stage monitor reconnected). It closes after 6 seconds.
 
 If disconnect handling turned the output off (`onDisconnect: off`), reconnection
 keeps it off until the operator turns it on. Replace the existing disconnect
-warning with “무대 모니터 다시 연결됨” (using the screen's name), with “출력
-꺼짐” in the detail, for 6 seconds. Do not show, focus or raise the output
+warning with “무대 화면 모니터 다시 연결됨” (using the screen's name), with
+“출력 꺼짐” in the detail, for 6 seconds. Do not show, focus or raise the output
 window. An output turned off manually during fallback also stays off; an output
 already off before disconnect produces no new notification on reconnection.
 
