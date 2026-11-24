@@ -7,6 +7,7 @@ import {
   parseRendererLogEntry,
   parseFrameReadyReport,
   parseFrameReadyReply,
+  rendererErrorEntry,
 } from '@core/schema/app/ipcPayloads';
 import {MAIN_SCREEN} from '@fixtures/core/screenIds';
 
@@ -100,6 +101,35 @@ describe('parseRendererLogEntry', () => {
     });
 
     expect(result.ok ? undefined : result.error.field).toBe(field);
+  });
+});
+
+describe('rendererErrorEntry', () => {
+  it('logs an error with its stack', () => {
+    const error = new Error('disk full');
+
+    expect(rendererErrorEntry('could not save', error)).toEqual({
+      level: 'error',
+      message: 'could not save',
+      detail: error.stack,
+    });
+  });
+
+  it('logs anything else thrown as text', () => {
+    expect(rendererErrorEntry('could not read', 'offline').detail).toBe(
+      'offline',
+    );
+  });
+
+  it('cuts a long message and stack to what main takes, so the line is kept', () => {
+    const error = new Error('x');
+    error.stack = 's'.repeat(9000);
+
+    const entry = rendererErrorEntry('m'.repeat(900), error);
+
+    expect(entry.message).toHaveLength(500);
+    expect(entry.detail).toHaveLength(4000);
+    expect(isRendererLogEntry(entry)).toBe(true);
   });
 });
 

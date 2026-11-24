@@ -24,6 +24,7 @@ import {
 } from '@renderer/app/shell/columns/loadColumnWidthStore';
 import {App} from './App';
 import {ControlSession} from './controlSession';
+import {logUncaughtErrors} from './uncaughtErrors';
 
 const root = document.getElementById('root');
 
@@ -57,6 +58,7 @@ async function startWindowPage(
   stopLive: () => void,
 ): Promise<void> {
   const pageSession = new ControlSession(window.llp);
+  const stopLogging = logUncaughtErrors(window.llp, `${page.title} window`);
   document.title = page.title;
   const pageRoot = createRoot(container);
   const lifecycle = {stopped: false};
@@ -67,6 +69,7 @@ async function startWindowPage(
       pageRoot.unmount();
       stopLive();
       pageSession.dispose();
+      stopLogging();
     },
     {once: true},
   );
@@ -80,10 +83,14 @@ async function startWindowPage(
 }
 
 async function start(container: HTMLElement): Promise<void> {
+  const page = windowPageOf(window.location.search);
+  const stopLogging =
+    page === undefined
+      ? logUncaughtErrors(window.llp, 'control window')
+      : () => undefined;
   const stopLive = startLiveSync();
   const stopThemes = startThemesSync(window.llp);
   const stopMedia = startMediaSync(window.llp);
-  const page = windowPageOf(window.location.search);
   if (page !== undefined) {
     await startWindowPage(container, page, () => {
       stopLive();
@@ -111,6 +118,7 @@ async function start(container: HTMLElement): Promise<void> {
       stopSong();
       stopLabels?.();
       session.dispose();
+      stopLogging();
     },
     {once: true},
   );

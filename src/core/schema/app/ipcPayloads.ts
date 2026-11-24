@@ -119,6 +119,26 @@ export type FrameRateReport = Readonly<
   v.InferOutput<typeof frameRateReportSchema>
 >;
 
+/**
+ * The log line of a failure in a window: `message`, and the error's stack, or
+ * what anything else thrown says, as the detail. Both are cut to the lengths
+ * main takes, so a long stack is shortened instead of losing the whole line.
+ */
+export function rendererErrorEntry(
+  message: string,
+  error: unknown,
+): RendererLogEntry {
+  const detail =
+    error instanceof Error
+      ? (error.stack ?? `${error.name}: ${error.message}`)
+      : String(error);
+  return {
+    level: 'error',
+    message: message.slice(0, RENDERER_LOG_LIMITS.message),
+    detail: detail.slice(0, RENDERER_LOG_LIMITS.detail),
+  };
+}
+
 /** Checks a log line sent by a window. */
 export function parseRendererLogEntry(
   value: unknown,

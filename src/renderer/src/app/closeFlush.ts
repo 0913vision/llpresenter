@@ -1,3 +1,4 @@
+import {rendererErrorEntry} from '@core/schema/app/ipcPayloads';
 import {closeStepAfter} from '@core/app';
 import type {LlpApi} from '@contracts/ipc/api';
 import {
@@ -157,10 +158,6 @@ export class CloseFlush {
   }
 
   private logError(message: string, error: unknown): void {
-    this.options.api.log.write({
-      level: 'error',
-      message,
-      detail: error instanceof Error ? (error.stack ?? error.message) : '',
-    });
+    this.options.api.log.write(rendererErrorEntry(message, error));
   }
 }

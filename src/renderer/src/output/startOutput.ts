@@ -1,6 +1,6 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
-import {RENDERER_LOG_LIMITS} from '@core/schema/app/ipcPayloads';
+import {rendererErrorEntry} from '@core/schema/app/ipcPayloads';
 import {OutputRenderer} from '@renderer/rendering/outputRenderer';
 import {MediaPreloader} from './mediaPreloader';
 import {SlideSwitch} from './slideSwitch';
@@ -61,14 +61,6 @@ function drawnContent(state: LiveState): string {
   ]);
 }
 
-function describeError(error: unknown): string {
-  const text =
-    error instanceof Error
-      ? (error.stack ?? `${error.name}: ${error.message}`)
-      : String(error);
-  return text.slice(0, RENDERER_LOG_LIMITS.detail);
-}
-
 function catchUncaughtErrors(report: ErrorReport): () => void {
   const onError = (event: ErrorEvent): void => {
     report('uncaught error in an output window', event.error ?? event.message);
@@ -103,11 +95,7 @@ export function startOutput({
     api.output.reportPlaybackProblems,
   );
   const report: ErrorReport = (message, error) => {
-    api.log.write({
-      level: 'error',
-      message: message.slice(0, RENDERER_LOG_LIMITS.message),
-      detail: describeError(error),
-    });
+    api.log.write(rendererErrorEntry(message, error));
   };
   const stopCatching = catchUncaughtErrors(report);
   const slides = new SlideSwitch({

@@ -1,3 +1,4 @@
+import {rendererErrorEntry} from '@core/schema/app/ipcPayloads';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {LayoutChange, UiState} from '@core/schema/app/uiState';
 import {
@@ -16,11 +17,7 @@ export async function loadUiState(api: LlpApi | undefined): Promise<UiState> {
   try {
     return await api.ui.get();
   } catch (error) {
-    api.log.write({
-      level: 'error',
-      message: 'could not read the UI state',
-      detail: error instanceof Error ? (error.stack ?? error.message) : '',
-    });
+    api.log.write(rendererErrorEntry('could not read the UI state', error));
     return {};
   }
 }
