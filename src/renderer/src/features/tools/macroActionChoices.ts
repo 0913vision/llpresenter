@@ -5,7 +5,8 @@ import {menuSeparator} from '@renderer/ui/menuRows';
 import {draftMacroAction, type MacroActionDraft} from '@core/macros';
 import type {MacroTargetChoice} from './macroTargets';
 
-const operations = {
+/** What a 매크로 step can do to its target, with the names it shows. */
+export const MACRO_OPERATIONS = {
   prop: [
     {value: 'on', label: '켜기'},
     {value: 'off', label: '끄기'},
@@ -16,7 +17,14 @@ const operations = {
     {value: 'pause', label: timerCommandLabels.pause},
     {value: 'reset', label: timerCommandLabels.reset},
   ],
+  audio: [
+    {value: 'play', label: '재생'},
+    {value: 'fadeOut', label: '페이드 아웃'},
+    {value: 'stop', label: '정지'},
+  ],
 } as const;
+
+const [, FADE_OUT, STOP] = MACRO_OPERATIONS.audio;
 
 interface ActionChoicesInput {
   readonly kind: MacroActionKind;
@@ -61,7 +69,7 @@ export function macroActionChoices({
       checked: initial?.target === target.id,
       onSelect: undefined,
       loadSubmenu: () =>
-        operations[kind].map(operation =>
+        MACRO_OPERATIONS[kind].map(operation =>
           choice(operation.label, {...draft, operation: operation.value}),
         ),
     };
@@ -70,8 +78,8 @@ export function macroActionChoices({
     return [
       ...rows,
       ...(rows.length > 0 ? [menuSeparator('audio-operations')] : []),
-      choice('페이드 아웃', {kind, operation: 'fadeOut'}),
-      choice('정지', {kind, operation: 'stop'}),
+      choice(FADE_OUT.label, {kind, operation: FADE_OUT.value}),
+      choice(STOP.label, {kind, operation: STOP.value}),
     ];
   }
   return rows;

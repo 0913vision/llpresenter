@@ -1,4 +1,3 @@
-import {timerCommandLabels} from '@renderer/ui/timerCommandLabels';
 import {useState, type JSX} from 'react';
 import type {KnownMacroAction, MacroActionKind} from '@core/schema/macros';
 import {
@@ -10,6 +9,7 @@ import {
 } from '@renderer/ui';
 import {prepareMacroAction, type MacroActionDraft} from '@core/macros';
 import {fillMessageText, MAX_MESSAGE_CHARACTERS} from '@core/overlays';
+import {MACRO_OPERATIONS} from './macroActionChoices';
 import {ScreenTargetsRow} from './ScreenTargetsRow';
 import {DisplayTimeRow} from './DisplayTimeRow';
 
@@ -28,23 +28,7 @@ const modes: Partial<
   Readonly<
     Record<MacroActionKind, ReadonlyArray<{value: string; label: string}>>
   >
-> = {
-  prop: [
-    {value: 'on', label: '켜기'},
-    {value: 'off', label: '끄기'},
-    {value: 'toggle', label: '바꾸기'},
-  ],
-  timer: [
-    {value: 'start', label: timerCommandLabels.start},
-    {value: 'pause', label: timerCommandLabels.pause},
-    {value: 'reset', label: timerCommandLabels.reset},
-  ],
-  audio: [
-    {value: 'play', label: '재생'},
-    {value: 'fadeOut', label: '페이드 아웃'},
-    {value: 'stop', label: '정지'},
-  ],
-};
+> = MACRO_OPERATIONS;
 const defaultMode: Partial<Readonly<Record<MacroActionKind, string>>> = {
   prop: 'on',
   timer: 'start',
