@@ -9,6 +9,7 @@ import {
 import {isComposing} from '@renderer/ui/fields/ime';
 import {hasModifier} from '@renderer/ui/keys/modifierKeys';
 import {placeFloating} from '@renderer/ui/popups/floating';
+import {isInPopoverOrDialog} from '@renderer/ui/popups/layers';
 import {usePopupPointing} from './usePopupPointing';
 import {maxPopoverHeight, placeBelow} from '../popups/placement';
 import {viewportSize} from '@renderer/ui/popups/placement';
@@ -64,10 +65,7 @@ export function useChoicePopup({
         if (
           !(target instanceof Element) ||
           surface.current?.contains(target) ||
-          (!closeWithinLayers &&
-            target.closest(
-              '[data-llp-layer="popover"], [data-llp-layer="dialog"]',
-            ) !== null) ||
+          (!closeWithinLayers && isInPopoverOrDialog(target)) ||
           anchor.contains(target)
         ) {
           return;

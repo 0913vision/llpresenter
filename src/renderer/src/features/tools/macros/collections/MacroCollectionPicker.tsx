@@ -12,6 +12,7 @@ import {Icon} from '@renderer/ui/Icon';
 import {Select} from '@renderer/ui/choices/Select';
 import {classNames} from '@renderer/ui/classNames';
 import {Popover} from '@renderer/ui/popups/Popover';
+import {isInPopoverOrDialog} from '@renderer/ui/popups/layers';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {hasModifier} from '@renderer/ui/keys/modifierKeys';
 import {isComposing} from '@renderer/ui/fields/ime';
@@ -141,6 +142,18 @@ function CollectionPopover({
       },
     );
   };
+  /** Moves a collection one place up or down (Alt arrow keys). */
+  const step = (item: MacroCollection, direction: 'up' | 'down'): void => {
+    if (locked) return;
+    const move = stepMove(
+      collections.map(entry => entry.id),
+      item.id,
+      direction,
+    );
+    if (move !== undefined) {
+      save({kind: 'move', id: item.id, before: move.before ?? undefined});
+    }
+  };
   const drag = useCollectionDrag({
     collections,
     locked,
@@ -169,9 +182,7 @@ function CollectionPopover({
               if (
                 event.relatedTarget instanceof Element &&
                 !anchor.contains(event.relatedTarget) &&
-                event.relatedTarget.closest(
-                  '[data-llp-layer="popover"], [data-llp-layer="dialog"]',
-                ) === null
+                !isInPopoverOrDialog(event.relatedTarget)
               ) {
                 onClose(false);
               }
@@ -219,21 +230,7 @@ function CollectionPopover({
                         item === undefined ? undefined : () => duplicate(item)
                       }
                       onStep={direction => {
-                        const step =
-                          item === undefined || locked
-                            ? undefined
-                            : stepMove(
-                                collections.map(entry => entry.id),
-                                item.id,
-                                direction,
-                              );
-                        if (item !== undefined && step !== undefined) {
-                          save({
-                            kind: 'move',
-                            id: item.id,
-                            before: step.before ?? undefined,
-                          });
-                        }
+                        if (item !== undefined) step(item, direction);
                       }}
                     />
                   </Fragment>
@@ -297,9 +294,7 @@ export function MacroCollectionPicker(props: CollectionProps): JSX.Element {
         onBlur={event => {
           if (
             event.relatedTarget instanceof Element &&
-            !event.relatedTarget.closest(
-              '[data-llp-layer="popover"], [data-llp-layer="dialog"]',
-            )
+            !isInPopoverOrDialog(event.relatedTarget)
           ) {
             setAnchor(null);
           }

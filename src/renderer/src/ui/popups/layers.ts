@@ -32,6 +32,18 @@ export function layerContainer(name: LayerName): HTMLElement {
   return container;
 }
 
+/**
+ * Whether an element is inside a popover or a dialog: a popup above another
+ * popup or a dialog it opened, which a click or focus there leaves open.
+ */
+export function isInPopoverOrDialog(element: Element): boolean {
+  return (
+    element.closest(
+      `[${LAYER_ATTRIBUTE}="popover"], [${LAYER_ATTRIBUTE}="dialog"]`,
+    ) !== null
+  );
+}
+
 /** Whether an element is one of the floating layer containers. */
 export function isLayerContainer(element: Element): boolean {
   return element.hasAttribute(LAYER_ATTRIBUTE);
