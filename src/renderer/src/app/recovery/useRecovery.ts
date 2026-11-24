@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import {useEffect, useEffectEvent, useState} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {
@@ -22,18 +23,6 @@ const FAILED_NOTICE: Omit<Notice, 'time'> = {
   icon: 'history',
   title: '복구 실패',
 };
-
-function logFailure(
-  api: Pick<LlpApi, 'log'>,
-  message: string,
-  cause: unknown,
-): void {
-  api.log.write({
-    level: 'error',
-    message,
-    detail: cause instanceof Error ? cause.message : String(cause),
-  });
-}
 
 /**
  * The crash offer and its answer. Main holds the outputs off and the startup

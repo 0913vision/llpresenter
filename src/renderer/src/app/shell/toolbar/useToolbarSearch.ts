@@ -1,3 +1,4 @@
+import {logFailure} from '@renderer/platform/logFailure';
 import {useEffect, useEffectEvent, useRef, useState} from 'react';
 import type {SongId} from '@core/schema/common/ids';
 import type {LibrarySearchMatch} from '@core/schema/songs/librarySearch';
@@ -26,14 +27,6 @@ const noReply: SearchReply = {
 
 function problem(title: string, name?: string): Notice {
   return warningNotice('toolbar-search', title, name ? [name] : undefined);
-}
-
-function logFailure(message: string, cause: unknown): void {
-  window.llp?.log.write({
-    level: 'error',
-    message,
-    detail: cause instanceof Error ? cause.message : String(cause),
-  });
 }
 
 // NOTE(0913vision): The query includes text that is still composing. The
@@ -75,7 +68,7 @@ function useSearchReply({
           loading: false,
         });
       } catch (cause) {
-        logFailure('Could not search the toolbar library', cause);
+        logFailure(window.llp, 'Could not search the toolbar library', cause);
         if (!isCurrent()) return;
         setReply({query, matches: noMatches, failed: true, loading: false});
         report(problem('검색 실패'));
@@ -149,7 +142,11 @@ function useResultChooser(
         openLibrarySong(song);
       }
     } catch (cause) {
-      logFailure('Could not open the toolbar library result', cause);
+      logFailure(
+        window.llp,
+        'Could not open the toolbar library result',
+        cause,
+      );
       if (isCurrent()) onProblem(problem('곡 불러오기 실패', match.title));
     }
   };
