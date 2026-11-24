@@ -17,6 +17,7 @@ import {randomUUID} from 'node:crypto';
 import {normalizeSongTitle} from '@core/songs';
 import {dirname, extname, join} from 'node:path';
 import type {Logger} from '../../base/log';
+import {fileExists} from '../../base/files/fileExists';
 import {
   createContentAnnouncements,
   type ContentAnnouncements,
@@ -373,9 +374,16 @@ export class ContentStore {
             );
           }
         }
-        const file = deleteFailed
-          ? saved.file
-          : join(dirname(saved.file), `${randomUUID()}${extname(saved.file)}`);
+        // NOTE(0913vision): A deleted file goes to the 휴지통, so its own name is
+        // free again. It comes back under that name, and a copy restored from
+        // the 휴지통 later meets it instead of making a second document.
+        const file =
+          deleteFailed || !(await fileExists(saved.file))
+            ? saved.file
+            : join(
+                dirname(saved.file),
+                `${randomUUID()}${extname(saved.file)}`,
+              );
         const full = this.writes.savesFull([file]);
         if (full) return full;
         saved = documents.restore(saved, file);

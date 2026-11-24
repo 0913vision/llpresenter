@@ -1,4 +1,5 @@
-import {access, rm} from 'node:fs/promises';
+import {rm} from 'node:fs/promises';
+import {fileExists} from '../../base/files/fileExists';
 import type {Logger} from '../../base/log';
 import type {DocumentFiles} from '../content/contentPersistence';
 import type {RecoveryCopies} from './recoveryCopies';
@@ -20,15 +21,6 @@ export interface DocumentFilesOptions {
    * absent. The app sends it to the Windows 휴지통 (user decision, November 24).
    */
   readonly discard?: ((file: string) => Promise<void>) | undefined;
-}
-
-async function exists(file: string): Promise<boolean> {
-  try {
-    await access(file);
-    return true;
-  } catch {
-    return false;
-  }
 }
 
 /**
@@ -58,7 +50,7 @@ export function documentFiles({
       }
       try {
         if (discard === undefined) await rm(target.file, {force: true});
-        else if (await exists(target.file)) await discard(target.file);
+        else if (await fileExists(target.file)) await discard(target.file);
         return {ok: true, value: undefined};
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error);

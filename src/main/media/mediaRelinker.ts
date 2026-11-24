@@ -9,9 +9,9 @@ import {MEDIA_LIMITS} from '@core/schema/media/mediaList';
 import type {Logger} from '../base/log';
 import {mediaRefusal} from '../store/media/mediaEdits';
 import type {MediaItemsCommit} from '../store/media/mediaStore';
-import {fileExists} from './missingFiles';
 import type {MediaKind} from './mediaKinds';
 import {storedPath} from './storedPath';
+import {fileExists} from '../base/files/fileExists';
 
 /** What relinking uses of the media store. */
 export interface RelinkStore {

@@ -3,7 +3,7 @@ import {join} from 'node:path';
 import {parseMediaId, type MediaId} from '@core/schema/common/ids';
 import type {Logger} from '../base/log';
 import {writeFileAtomically} from '../base/files/atomicWrite';
-import {fileExists} from './missingFiles';
+import {fileExists} from '../base/files/fileExists';
 
 /** How many thumbnails the cache keeps; the least recently used go first. */
 export const MAX_CACHED_THUMBNAILS = 2_000;

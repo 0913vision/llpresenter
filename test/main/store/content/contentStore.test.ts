@@ -73,6 +73,19 @@ describe('ContentStore persistence and notifications', () => {
     expect(store.song(SONG)?.song.title).toBe('Changed');
   });
 
+  it('brings a deleted document back under its own file name, which the 휴지통 left free', async () => {
+    const {store, files} = setUp();
+    expect((await store.apply({type: 'song.delete', songId: SONG})).ok).toBe(
+      true,
+    );
+    const [removed] = files.removed;
+    expect(
+      (await store.apply({type: 'content.undoDelete', area: 'song', id: SONG}))
+        .ok,
+    ).toBe(true);
+    expect(files.written.at(-1)).toBe(removed);
+  });
+
   it('never undoes a different window’s newer deletion', async () => {
     const {store} = setUp();
     const made = await store.apply({type: 'song.create'});

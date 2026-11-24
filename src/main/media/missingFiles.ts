@@ -1,4 +1,5 @@
 import {stat} from 'node:fs/promises';
+import {fileExists} from '../base/files/fileExists';
 import type {MediaId} from '@core/schema/common/ids';
 import type {MediaDocument} from '@core/schema/media/mediaEdit';
 import type {MediaStamps, MissingMedia} from '@core/schema/media/mediaFiles';
@@ -18,15 +19,6 @@ export interface MissingFilesSource {
   /** The item's absolute file, or null when its path is refused. */
   fileOf(mediaId: string): string | null;
   subscribe(listener: (document: MediaDocument) => void): () => void;
-}
-
-/** Whether a path is a file that can be read. Never throws. */
-export async function fileExists(file: string): Promise<boolean> {
-  try {
-    return (await stat(file)).isFile();
-  } catch {
-    return false;
-  }
 }
 
 /**
