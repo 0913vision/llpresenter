@@ -50,6 +50,7 @@ import {registerSettingsChannels} from './settings/settingsChannels';
 import {
   openSettingsStore,
   type SettingsProblemListener,
+  type SettingsStore,
 } from './settings/settingsStore';
 import {SkippedFiles, startSkippedFileProblems} from './files/skippedFiles';
 import {contentProblems, logLoadedStore, upkeepAtLaunch} from './storeUpkeep';
@@ -126,66 +127,13 @@ export function registerStore({
   launch = NO_LAUNCH,
 }: StoreRegistration): DataStore {
   const ipc = new IpcHost(log);
-  const loading = launch.track(
-    'files',
-    readStore(
-      () => ({...context(), appConfig}),
-      log,
-      (done, total) => launch.advance('files', done, total),
-    ),
-  );
   const saveFailures = new SaveFailures({log});
   const removeSaveProblems = registerSaveProblems(saveFailures, problems, log);
   const skippedFiles = new SkippedFiles(log);
   const removeSkippedFiles = problems.addStanding(() => skippedFiles.list());
-  const settings = launch.track(
-    'settings',
-    loading
-      .then(store =>
-        store === null
-          ? null
-          : openSettingsStore(store, log, {
-              failures: saveFailures,
-              onProgress: (done, total) =>
-                launch.advance('settings', done, total),
-            }),
-      )
-      .catch((error: unknown) => {
-        log.error('could not open app-wide settings', error);
-        return null;
-      }),
-  );
-  const media = launch.track(
-    'media',
-    loading
-      .then(async store => {
-        if (store === null) return null;
-        const readySettings = await settings;
-        const opened = await openMediaStore(store, {
-          pictures: SUNDAY_PICTURES,
-          discard: file => shell.trashItem(file),
-          settings: readySettings,
-          log,
-          failures: saveFailures,
-        });
-        readySettings?.addProblems(opened.problems);
-        return opened.store;
-      })
-      .catch((error: unknown) => {
-        log.error('could not open the media list', error);
-        return null;
-      }),
-  );
+  const stores = openStores({context, appConfig, log, launch, saveFailures});
+  const {loading, settings, media, opened} = stores;
   const mediaChannels = registerMediaChannels(media, log);
-  const opened = launch.track(
-    'content',
-    openContent(loading, log, {
-      settings,
-      media,
-      failures: saveFailures,
-      discard: file => shell.trashItem(file),
-    }),
-  );
   const settingsChannels = registerSettingsChannels(
     settings,
     log,
@@ -231,15 +179,7 @@ export function registerStore({
     opened.then(ready => ready?.library ?? null),
     log,
   );
-  let backupProblem: AppProblem | null = null;
-  const stopBackupCompletion = backupGate.subscribeCompleted(() => {
-    if (backupProblem === null) return;
-    backupProblem = null;
-    problems.push({kind: 'backup-recovered'});
-  });
-  const removeBackupProblem = problems.addStanding(() =>
-    backupProblem === null ? [] : [backupProblem],
-  );
+  const backupCard = trackBackupProblem(problems);
   const upkeepStore = Promise.all([loading, settings]).then(([store, ready]) =>
     store === null
       ? null
@@ -248,32 +188,14 @@ export function registerStore({
   const upkeep = upkeepAtLaunch(upkeepStore, isAnyOutputOn, {
     log,
     ...(launchIdle === undefined ? {} : {launchIdle}),
-    onBackupFailed: folder => {
-      backupProblem = backupFailedProblem(folder);
-      problems.push(backupProblem);
-    },
+    onBackupFailed: backupCard.failed,
   });
   const mediaLibrary = new LoadingMediaLibrary(
     media.then(store => (store === null ? null : {media: store})),
     SUNDAY_PICTURES,
   );
-  const savePending = async (): Promise<boolean> => {
-    try {
-      const [ready, readySettings, readyMedia] = await Promise.all([
-        opened,
-        settings,
-        media,
-      ]);
-      await ready?.content.flush();
-      await readySettings?.flush();
-      await readyMedia?.flush();
-      const configSaved = await appConfig.savePending();
-      return configSaved && saveFailures.problems().length === 0;
-    } catch (error: unknown) {
-      log.error('could not save pending edits before closing', error);
-      return false;
-    }
-  };
+  const savePending = (): Promise<boolean> =>
+    savePendingEdits(stores, {appConfig, saveFailures, log});
   ipc.query(appEndpoints.savePending, savePending);
   return {
     savePending,
@@ -315,8 +237,7 @@ export function registerStore({
         ready?.content.dispose();
         stopSkippedFiles();
         removeSkippedFiles();
-        removeBackupProblem();
-        stopBackupCompletion();
+        backupCard.dispose();
         removeSaveProblems();
         saveFailures.dispose();
       }
@@ -324,6 +245,153 @@ export function registerStore({
     findMediaFile: mediaLibrary.findFile,
     mediaRoots: mediaLibrary.roots,
   };
+}
+
+/** The stores the app reads at launch; each is null when it could not be read. */
+interface OpenedStores {
+  readonly loading: Promise<LoadedStore | null>;
+  readonly settings: Promise<SettingsStore | null>;
+  readonly media: Promise<MediaStore | null>;
+  readonly opened: Promise<OpenedContent | null>;
+}
+
+/**
+ * Reads the data folder, then the settings, the media list, and the songs and
+ * 예배, each after what it needs, following each read on the launch tracker.
+ * A store that can't be read is logged and is null.
+ */
+function openStores({
+  context,
+  appConfig,
+  log,
+  launch,
+  saveFailures,
+}: {
+  readonly context: () => LocationContext;
+  readonly appConfig: StoreRegistration['appConfig'];
+  readonly log: Logger;
+  readonly launch: LaunchTracker;
+  readonly saveFailures: SaveFailures;
+}): OpenedStores {
+  const discard = (file: string): Promise<void> => shell.trashItem(file);
+  const loading = launch.track(
+    'files',
+    readStore(
+      () => ({...context(), appConfig}),
+      log,
+      (done, total) => launch.advance('files', done, total),
+    ),
+  );
+  const settings = launch.track(
+    'settings',
+    loading
+      .then(store =>
+        store === null
+          ? null
+          : openSettingsStore(store, log, {
+              failures: saveFailures,
+              onProgress: (done, total) =>
+                launch.advance('settings', done, total),
+            }),
+      )
+      .catch((error: unknown) => {
+        log.error('could not open app-wide settings', error);
+        return null;
+      }),
+  );
+  const media = launch.track(
+    'media',
+    loading
+      .then(async store => {
+        if (store === null) return null;
+        const readySettings = await settings;
+        const opened = await openMediaStore(store, {
+          pictures: SUNDAY_PICTURES,
+          discard,
+          settings: readySettings,
+          log,
+          failures: saveFailures,
+        });
+        readySettings?.addProblems(opened.problems);
+        return opened.store;
+      })
+      .catch((error: unknown) => {
+        log.error('could not open the media list', error);
+        return null;
+      }),
+  );
+  const opened = launch.track(
+    'content',
+    openContent(loading, log, {
+      settings,
+      media,
+      failures: saveFailures,
+      discard,
+    }),
+  );
+  return {loading, settings, media, opened};
+}
+
+/**
+ * The 백업 실패 card: shown when the launch backup fails, and followed by
+ * 백업 복구됨 once a later backup completes.
+ */
+function trackBackupProblem(problems: ProblemFeed): {
+  readonly failed: (folder: string) => void;
+  readonly dispose: () => void;
+} {
+  let problem: AppProblem | null = null;
+  const stopCompletion = backupGate.subscribeCompleted(() => {
+    if (problem === null) return;
+    problem = null;
+    problems.push({kind: 'backup-recovered'});
+  });
+  const removeStanding = problems.addStanding(() =>
+    problem === null ? [] : [problem],
+  );
+  return {
+    failed: folder => {
+      problem = backupFailedProblem(folder);
+      problems.push(problem);
+    },
+    dispose: () => {
+      removeStanding();
+      stopCompletion();
+    },
+  };
+}
+
+/**
+ * Saves every edit that waits, in the songs and 예배, the settings, the media
+ * list and `app.json`, without closing any store. False when a write failed.
+ */
+async function savePendingEdits(
+  {opened, settings, media}: OpenedStores,
+  {
+    appConfig,
+    saveFailures,
+    log,
+  }: {
+    readonly appConfig: StoreRegistration['appConfig'];
+    readonly saveFailures: SaveFailures;
+    readonly log: Logger;
+  },
+): Promise<boolean> {
+  try {
+    const [ready, readySettings, readyMedia] = await Promise.all([
+      opened,
+      settings,
+      media,
+    ]);
+    await ready?.content.flush();
+    await readySettings?.flush();
+    await readyMedia?.flush();
+    const configSaved = await appConfig.savePending();
+    return configSaved && saveFailures.problems().length === 0;
+  } catch (error: unknown) {
+    log.error('could not save pending edits before closing', error);
+    return false;
+  }
 }
 
 /** Documents, and the `LLP_USER_DATA` folder if set. */
