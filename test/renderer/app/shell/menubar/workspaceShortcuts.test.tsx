@@ -1,16 +1,8 @@
 import {act, cleanup, renderHook} from '@testing-library/react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
-import {useShowToolTab} from '@renderer/features/tools/showToolTab';
 import {useMacroPalette} from '@renderer/features/tools/macros/actions/useMacroPalette';
-import {
-  workspaceMenu,
-  showMenu,
-  type ContinuousRow,
-  workspaceShortcuts,
-} from '@renderer/app/shell/menubar/workspaceCommands';
-import {menuItems} from '@renderer/ui/menus/menuModel';
-import {fullScreenRow} from '@renderer/app/shell/menubar/viewToggles';
+import {workspaceShortcuts} from '@renderer/app/shell/menubar/workspaceShortcuts';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 
 afterEach(() => {
@@ -153,100 +145,5 @@ describe('workspace defaults from S1', () => {
       );
     });
     expect(onMedia).toHaveBeenCalledOnce();
-  });
-});
-
-const CONTINUOUS_OFF = {on: false, reason: undefined, toggle: () => undefined};
-const idleFullScreen = fullScreenRow(false);
-
-describe('workspaceMenu', () => {
-  it('shows 이어서 진행 as a check that follows the choice and flips it', () => {
-    const toggle = vi.fn();
-    const find = (continuous: ContinuousRow) =>
-      menuItems(showMenu(continuous, CONTINUOUS_OFF)).find(
-        row => row.id === 'continuous',
-      );
-    expect(find({on: false, reason: undefined, toggle})).toMatchObject({
-      check: 'checkbox',
-      checked: false,
-      disabled: false,
-    });
-    const on = find({on: true, reason: undefined, toggle});
-    expect(on).toMatchObject({check: 'checkbox', checked: true});
-    on?.onSelect?.();
-    expect(toggle).toHaveBeenCalledOnce();
-    expect(
-      find({on: false, reason: '새 버전의 파일이라 바꿀 수 없습니다.', toggle}),
-    ).toMatchObject({
-      disabled: true,
-      title: '새 버전의 파일이라 바꿀 수 없습니다.',
-    });
-  });
-
-  it('exposes a separate continuous grid check', () => {
-    const toggle = vi.fn();
-    const rows = menuItems(
-      showMenu(CONTINUOUS_OFF, {on: true, reason: undefined, toggle}),
-    );
-    const grid = rows.find(row => row.id === 'continuous-grid');
-    expect(grid).toMatchObject({check: 'checkbox', checked: true});
-    expect(rows.find(row => row.id === 'continuous')).toMatchObject({
-      checked: false,
-    });
-    grid?.onSelect?.();
-    expect(toggle).toHaveBeenCalledOnce();
-  });
-
-  it('explains unavailable workspace and media handlers', () => {
-    const rows = menuItems(
-      workspaceMenu({
-        onWorkspace: undefined,
-        onMedia: undefined,
-        fullScreen: idleFullScreen,
-      }),
-    );
-    for (const id of [
-      'workspace.show',
-      'workspace.prep',
-      'tool.timer',
-      'palette',
-    ]) {
-      expect(rows.find(row => row.id === id)).toMatchObject({
-        disabled: true,
-        title: '이 창에서는 쓸 수 없음',
-      });
-    }
-    expect(rows.find(row => row.id === 'workspace.media')).toMatchObject({
-      disabled: true,
-      title: '이 창에서는 쓸 수 없음',
-    });
-  });
-
-  it('opens a 진행 도구 tab in 진행', () => {
-    const onWorkspace = vi.fn();
-    const entries = workspaceMenu({
-      onWorkspace,
-      onMedia: () => undefined,
-      fullScreen: idleFullScreen,
-    });
-    const timer = entries.find(entry => entry.id === 'tool.timer');
-    if (timer?.kind !== 'item') throw new Error('Missing timer row');
-    timer.onSelect?.();
-    expect(useShowToolTab.getState().tool).toBe('timer');
-    expect(onWorkspace).toHaveBeenCalledWith('show');
-  });
-
-  it('opens the existing palette in the macro tool', () => {
-    const onWorkspace = vi.fn();
-    const item = workspaceMenu({
-      onWorkspace,
-      onMedia: undefined,
-      fullScreen: idleFullScreen,
-    }).find(entry => entry.id === 'palette');
-    if (item?.kind !== 'item') throw new Error('Missing palette row');
-    item.onSelect?.();
-    expect(useMacroPalette.getState().open).toBe(true);
-    expect(useShowToolTab.getState().tool).toBe('macro');
-    expect(onWorkspace).toHaveBeenCalledExactlyOnceWith('show');
   });
 });

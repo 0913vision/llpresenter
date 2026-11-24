@@ -42,7 +42,7 @@ import {useSidebarCollapse} from '@renderer/app/shell/workspace/useSidebarCollap
 import {useUiZoomKeys} from '@renderer/app/shell/uiZoomKeys';
 import {useShortcutSettings} from '@renderer/platform/shortcuts/useShortcutSettings';
 import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
-import {workspaceShortcuts} from '@renderer/app/shell/menubar/workspaceCommands';
+import {workspaceShortcuts} from '@renderer/app/shell/menubar/workspaceShortcuts';
 import {Workspace} from '@renderer/app/shell/workspace/Workspace';
 import type {ControlSession} from './controlSession';
 import {RecoveryPrompt} from './recovery/RecoveryPrompt';

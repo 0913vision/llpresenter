@@ -29,7 +29,11 @@ import {windowMenuEntries} from './windowMenuEntries';
 import {useFileMediaImport} from './useFileMediaImport';
 import styles from './MenuBar.module.css';
 import {useClipboardAvailability} from './useClipboardAvailability';
-import {workspaceMenu, showMenu, type ContinuousRow} from './workspaceCommands';
+import {
+  showViewMenuEntries,
+  viewMenuEntries,
+  type ContinuousRow,
+} from './viewMenuEntries';
 import {usePreferenceEdits} from '@renderer/features/preferences/usePreferenceEdits';
 import {fullScreenRow, useFullScreen} from './viewToggles';
 import {focusMenu} from '@renderer/ui/menus/useMenuNavigation';
@@ -493,7 +497,7 @@ export function MenuBar({
           label={VIEW_MENU}
           control={controlFor(VIEW_MENU)}
           entries={() =>
-            workspaceMenu({
+            viewMenuEntries({
               onWorkspace,
               onMedia,
               fullScreen: fullScreenRow(fullScreen),
@@ -503,7 +507,7 @@ export function MenuBar({
         <EntryMenu
           label={SHOW_MENU}
           control={controlFor(SHOW_MENU)}
-          entries={() => showMenu(continuousRow, continuousGridRow)}
+          entries={() => showViewMenuEntries(continuousRow, continuousGridRow)}
         />
         <OutputMenu
           warnings={warnings}
