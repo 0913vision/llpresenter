@@ -1,11 +1,8 @@
-import {focusHistorySurface} from '@renderer/ui/focusHistorySurface';
 import {useEffect, useEffectEvent, useRef, useState, type JSX} from 'react';
-import type {LibrarySong} from '@core/schema/contentDocuments';
-import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import type {SongId} from '@core/schema/ids';
 import {contentDeleteHistory} from '@renderer/platform/contentDeleteHistory';
 import {useUndoKeys} from '@renderer/platform/useUndoKeys';
-import {deleteSelection} from '@renderer/ui/deleteSelection';
+import {contextMenuAnchor} from '@renderer/ui/contextMenu';
 import {useReflow} from '@renderer/ui/useReflow';
 import {IconButton} from '@renderer/ui/IconButton';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
@@ -28,9 +25,9 @@ import {EmptyState} from '@renderer/ui/EmptyState';
 import {LibraryList} from './LibraryList';
 import {useLibrary, type LibraryApi, type LibrarySelection} from './useLibrary';
 import styles from './LibraryPanel.module.css';
-import {libraryMenuEntries, songCopyReason} from './libraryMenuEntries';
+import {libraryMenuEntries} from './libraryMenuEntries';
 import {useLibraryServices} from './useLibraryServices';
-import {contextMenuAnchor} from '../../../ui/contextMenu';
+import {useSongDelete, useSongDuplicateKey} from './useSongCommands';
 
 /** A one-shot host request, acknowledged after dispatch so remount cannot replay it. */
 export type LibrarySelectionRequest =
@@ -71,6 +68,10 @@ export function LibraryPanel({
 }: LibraryPanelProps): JSX.Element {
   const library = useLibrary(api, onOpenSong, onProblem);
   const serviceMenu = useLibraryServices(api, onProblem);
+  const createSong = (): void => {
+    if (onNewSong) onNewSong();
+    else library.create().catch(() => library.report('create'));
+  };
   const open = (id: SongId, position?: number): void => {
     const proceed = (): void => {
       library.open(id, position).catch(() => library.report('open'));
@@ -83,8 +84,7 @@ export function LibraryPanel({
       if (request.kind === 'clear') {
         library.clearSelection();
       } else if (request.kind === 'create') {
-        if (onNewSong) onNewSong();
-        else library.create().catch(() => library.report('create'));
+        createSong();
       } else {
         library.setQuery('');
         open(request.songId, request.position);
@@ -110,64 +110,14 @@ export function LibraryPanel({
     attribute: 'data-value',
     scope: 'library',
   });
-  const deleteAfterMenu = useMenuHandoff<LibrarySong>(menu !== null, song => {
-    deleteSelection(
-      1,
-      () =>
-        !library.busy &&
-        song.access === 'editable' &&
-        library.songs.some(row => row.id === song.id),
-      () => {
-        focusHistorySurface(
-          listArea.current?.querySelector<HTMLElement>('[role="listbox"]') ??
-            null,
-        );
-        library
-          .remove(song.id)
-          .then(removed => {
-            if (removed) history.record('song', song.id);
-          })
-          .catch(() => library.report('delete'));
-      },
-    );
+  const deleteAfterMenu = useSongDelete({
+    list: listArea,
+    library,
+    history,
+    menuOpen: menu !== null,
   });
-  useWindowShortcuts([
-    {
-      id: 'edit.duplicate',
-      when: event => copyTarget(event) !== undefined,
-      unavailable: () => {
-        const song = copyTarget();
-        return song === undefined
-          ? undefined
-          : songCopyReason(song, library.busy || serviceMenu.busy);
-      },
-      run: event => {
-        const song = copyTarget(event);
-        if (
-          song !== undefined &&
-          songCopyReason(song, library.busy || serviceMenu.busy) === undefined
-        ) {
-          library.duplicate(song.id).catch(() => library.report('create'));
-        }
-      },
-    },
-  ]);
+  useSongDuplicateKey({list: listArea, library, serviceBusy: serviceMenu.busy});
   const menuSong = library.songs.find(song => song.id === menu?.id);
-  /** The song under the focus, or the selected song for a key-less ask. */
-  const copyTarget = (event?: KeyboardEvent): LibrarySong | undefined => {
-    const place =
-      event?.target instanceof Element
-        ? event.target.closest<HTMLElement>('[data-value]')
-        : null;
-    if (place !== null) {
-      return listArea.current?.contains(place) === true
-        ? library.songs.find(song => song.id === place.dataset['value'])
-        : undefined;
-    }
-    return event === undefined
-      ? library.songs.find(song => song.id === library.selected)
-      : undefined;
-  };
   return (
     <>
       <Panel label="라이브러리" className={styles.panel}>
@@ -182,10 +132,7 @@ export function LibraryPanel({
               icon="plus"
               label="새 곡"
               disabled={library.busy || library.loading}
-              onClick={() => {
-                if (onNewSong) onNewSong();
-                else library.create().catch(() => library.report('create'));
-              }}
+              onClick={createSong}
             />
           </PanelActions>
         </PanelHeader>

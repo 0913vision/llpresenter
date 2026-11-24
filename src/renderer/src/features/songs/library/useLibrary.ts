@@ -296,3 +296,5 @@ export function useLibrary(
     rename,
   };
 }
+
+export type Library = ReturnType<typeof useLibrary>;
