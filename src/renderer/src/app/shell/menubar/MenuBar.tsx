@@ -352,10 +352,6 @@ function logProblem(notice: Notice): void {
 }
 
 /**
- * The 30px menu bar, which doubles as the window title bar. The center shows
- * the name of the open service.
- */
-/**
  * A 진행 menu check row that shows one 진행 preference and flips it, while
  * the preferences can be read and changed.
  */
@@ -373,6 +369,10 @@ function showPreferenceRow(
   };
 }
 
+/**
+ * The 30px menu bar, which doubles as the window title bar. The center shows
+ * the name of the open service.
+ */
 export function MenuBar({
   title,
   warnings = noWarnings,

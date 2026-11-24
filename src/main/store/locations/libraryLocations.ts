@@ -209,6 +209,9 @@ export class LibraryLocations {
   // ends on an older one, such as a backup still running after it ended.
   private publish(): Promise<void> {
     const view = this.view();
+    // NOTE(0913vision): A failed read is reported when its turn comes; until
+    // then it must not count as an unhandled rejection.
+    view.catch(() => undefined);
     this.publishing = this.publishing.then(async () => {
       try {
         this.options.onChange(await view);
