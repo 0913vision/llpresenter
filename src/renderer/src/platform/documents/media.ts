@@ -13,6 +13,7 @@ export interface MediaView {
   readonly failed: boolean;
 }
 
+/** This window's copy of the media list, with the files that are missing. */
 export const useMedia = create<MediaView>(() => ({
   document: null,
   items: [],
@@ -33,6 +34,7 @@ export function canAddMedia(id: MediaId): boolean {
   return missing !== null && !missing.has(id);
 }
 
+/** The media item with this id, if the list still holds it. */
 export function mediaItem(id: MediaId): MediaItem | undefined {
   return useMedia.getState().items.find(item => item.id === id);
 }

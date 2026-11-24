@@ -42,6 +42,7 @@ export function beginQuickPassage(): void {
   quickId = null;
 }
 
+/** Notes that the open item is a quick passage the operator may leave again. */
 export function finishQuickPassage(): void {
   quickId = useShow.getState().openItemId;
 }
@@ -71,6 +72,7 @@ export function quickReturnCursor(): TileCursor | null {
     : null;
 }
 
+/** Whether there is a place to go back to after the quick passage. */
 export function canReturnFromQuickPassage(): boolean {
   return quickReturnCursor() !== null;
 }

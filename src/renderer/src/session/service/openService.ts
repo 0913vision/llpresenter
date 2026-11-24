@@ -46,6 +46,7 @@ export interface OpenServiceView {
   readonly future: readonly Step[];
 }
 
+/** The 예배 순서 open in this window, with its undo and redo steps. */
 export const useOpenService = create<OpenServiceView>(() => ({
   service: null,
   readOnly: false,
@@ -57,6 +58,7 @@ interface LocalFailure {
   readonly reason: 'busy' | 'request-failed' | 'full';
   readonly message: string;
 }
+/** Whether an edit of the open 예배 순서 was saved, or why it was refused. */
 export type OpenServiceResult = Result<boolean, EditFailure | LocalFailure>;
 
 /** Changes the order, or says why it can't. */
@@ -70,6 +72,7 @@ interface Waiting {
   readonly done: Array<(result: OpenServiceResult) => void>;
 }
 
+/** How an edit of the open 예배 순서 joins the undo history. */
 export interface EditOptions {
   /** Edits with the same key right after another count as one. */
   readonly key?: string | undefined;
@@ -362,10 +365,12 @@ function replay(direction: 'undo' | 'redo'): Promise<OpenServiceResult> {
   });
 }
 
+/** Takes back the last edit of the open 예배 순서. */
 export function undoService(): Promise<OpenServiceResult> {
   return replay('undo');
 }
 
+/** Makes the last undone edit of the open 예배 순서 again. */
 export function redoService(): Promise<OpenServiceResult> {
   return replay('redo');
 }
@@ -401,6 +406,7 @@ export function useServiceItem(itemId: string | null): ServiceItem | undefined {
   );
 }
 
+/** The item of the open 예배 순서 with this id, if it is still there. */
 export function serviceItem(itemId: string): ServiceItem | undefined {
   return useOpenService
     .getState()

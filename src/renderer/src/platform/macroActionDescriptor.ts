@@ -9,6 +9,7 @@ export const MACRO_PALETTE_GROUPS = [
   '진행',
 ] as const;
 
+/** A group of the 매크로 action palette. */
 export type MacroPaletteGroup = (typeof MACRO_PALETTE_GROUPS)[number];
 
 /**

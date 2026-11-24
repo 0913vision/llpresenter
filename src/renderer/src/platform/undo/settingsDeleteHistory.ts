@@ -67,6 +67,10 @@ const stores = new WeakMap<
   LlpApi['settings'],
   Map<SettingsName, DeleteHistory>
 >();
+/**
+ * The undo history of deletes in one settings file, made once per app
+ * connection and file.
+ */
 export function settingsDeleteHistory(
   api: Pick<LlpApi, 'settings'>,
   area: SettingsName,

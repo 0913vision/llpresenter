@@ -56,11 +56,16 @@ export function createThumbnailScaleStore(field: ScaleField) {
 }
 
 const showGridScale = createThumbnailScaleStore('thumbnailScalePercent');
+/** The 진행 slide grid's thumbnail size, in percent. */
 export const useThumbnailScale = showGridScale.use;
+/** Shows a thumbnail size while the operator drags, without saving it. */
 export const showThumbnailScale = showGridScale.show;
+/** Saves the thumbnail size the operator settled on. */
 export const saveThumbnailScale = showGridScale.save;
+/** Starts the thumbnail size from what the last session remembered. */
 export const seedThumbnailScale = showGridScale.seed;
 
+/** The thumbnail size of the 세부정보 panel's slides, kept apart from the 진행 grid's. */
 export const detailsScale = createThumbnailScaleStore(
   'detailsSlideScalePercent',
 );

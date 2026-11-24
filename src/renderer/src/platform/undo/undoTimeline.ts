@@ -26,6 +26,9 @@ export interface UndoOwner {
   readonly place?: (() => UndoPlace | undefined) | undefined;
 }
 
+/**
+ * How many steps the window can undo and redo, and whether one is running now.
+ */
 export interface UndoTimelineState {
   readonly undo: number;
   readonly redo: number;

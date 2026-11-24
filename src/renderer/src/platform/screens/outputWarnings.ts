@@ -22,12 +22,14 @@ export const useOutputWarnings = create<OutputWarnings>(() => ({
   warnings: new Map(),
 }));
 
+/** Keeps an output warning for the 출력 menu until it is dropped. */
 export function keepOutputWarning(warning: OutputWarning): void {
   useOutputWarnings.setState(({warnings}) => ({
     warnings: new Map(warnings).set(warning.notice.key, warning),
   }));
 }
 
+/** Drops the output warning with this notice key. */
 export function dropOutputWarning(key: string): void {
   const {warnings} = useOutputWarnings.getState();
   if (!warnings.has(key)) return;

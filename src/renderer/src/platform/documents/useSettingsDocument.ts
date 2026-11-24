@@ -77,6 +77,10 @@ export function useSettingsDocument<TName extends SettingsName>(
   return useApiSettingsDocument({api: window.llp, name, title, onProblem});
 }
 
+/**
+ * {@link useSettingsDocument} on a given app connection, so tests and other
+ * windows can pass their own.
+ */
 export function useApiSettingsDocument<TName extends SettingsName>({
   api,
   name,

@@ -40,6 +40,7 @@ export function useShownItemId(): string | null {
 let committed: string | null = null;
 const listeners = new Set<() => void>();
 
+/** The item the 진행 grid showed after the last commit. */
 export function getCommittedShownItem(): string | null {
   return committed;
 }

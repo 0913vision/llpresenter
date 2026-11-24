@@ -20,6 +20,7 @@ export interface ThemesView {
   readonly transitions: SlideTransitionDefaults;
 }
 
+/** This window's copy of the themes and the screens they draw on. */
 export const useThemes = create<ThemesView>(() => ({
   themes: null,
   screens: [],

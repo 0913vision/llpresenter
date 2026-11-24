@@ -9,6 +9,10 @@ export function beginOutputRequest(): number {
   return ++outputRequest;
 }
 
+/**
+ * Whether an output request is still the newest and nothing changed the live
+ * state since.
+ */
 export function isOutputRequestCurrent(
   request: number,
   commandVersion: number,

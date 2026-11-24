@@ -199,6 +199,10 @@ export function returnFromQuickPassage(): void {
   outputTile(cursor);
 }
 
+/**
+ * Sets what the next step does at the last slide of an item, and redraws the
+ * live slide.
+ */
 export function setAtLastSlide(value: AtLastSlide): void {
   atLastSlide = value;
   refreshLiveSlide();
@@ -261,6 +265,10 @@ export function outputNext(): void {
   if (open) openItem(cursor.itemId);
 }
 
+/**
+ * Puts the slide before the live one on output. At an item's first slide it
+ * goes to the previous item's last slide when the step crosses items.
+ */
 export function outputPrevious(): void {
   const cursor = previousTileAtFirst(
     previousSequenceState(),

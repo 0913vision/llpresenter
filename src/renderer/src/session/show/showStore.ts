@@ -3,6 +3,10 @@ import type {ShowLibrarySong} from '@core/schema/songs/showLibrarySong';
 import type {BibleSource} from './bibleSource';
 import type {ItemId, ServiceRow, SlideTile} from '@core/presentation';
 
+/**
+ * What 진행 shows: the open 예배 순서, its tiles, and the passages and song opened
+ * by themselves.
+ */
 export interface ShowView {
   /** The passages opened by themselves, the last one first. */
   readonly bibleSources: readonly BibleSource[];
@@ -19,6 +23,7 @@ export interface ShowView {
   readonly selectedTile: number;
 }
 
+/** The parts of the 진행 view while no 예배 순서 is open. */
 export const noService = {
   revision: null,
   serviceId: null,
@@ -28,6 +33,7 @@ export const noService = {
   tiles: {},
 } as const satisfies Partial<ShowView>;
 
+/** The 진행 view of this window. */
 export const useShow = create<ShowView>(() => ({
   ...noService,
   serviceEpoch: 0,

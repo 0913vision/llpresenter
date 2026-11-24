@@ -11,6 +11,9 @@ interface PrepTargetView {
   readonly request: number;
 }
 
+/**
+ * The editor 준비 is asked to open next, with a count that changes on every ask.
+ */
 export const usePrepTarget = create<PrepTargetView>(() => ({
   target: null,
   request: 0,

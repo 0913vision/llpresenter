@@ -16,6 +16,7 @@ interface LiveView {
 }
 
 const noOutputs: Readonly<Record<string, boolean>> = {};
+/** This window's copy of the live state, as the main process last sent it. */
 export const useLive = create<LiveView>(() => ({
   state: null,
   lastStartedItemId: null,
@@ -57,6 +58,10 @@ export function startLiveSync(): () => void {
   };
 }
 
+/**
+ * Sends a live command to the main process and notes, at once, the item it
+ * starts.
+ */
 export function sendLive(command: LiveCommand): void {
   const commands = command.type === 'live.batch' ? command.commands : [command];
   window.llp?.live.send(command);

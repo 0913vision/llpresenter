@@ -11,6 +11,7 @@ const noTiles: readonly SlideTile[] = [];
 /** The open passage, the live one, and the one before them. */
 const MAX_BIBLE_SOURCES = 3;
 
+/** The passage opened by itself (not from the 예배 순서) with this item id. */
 export function bibleSourceFor(
   view: ShowView,
   itemId: ItemId | null,
@@ -18,6 +19,7 @@ export function bibleSourceFor(
   return view.bibleSources.find(source => source.id === itemId) ?? null;
 }
 
+/** Whether the item id names a passage opened by itself. */
 export function isBibleSource(view: ShowView, itemId: ItemId | null): boolean {
   return bibleSourceFor(view, itemId) !== null;
 }
@@ -95,6 +97,7 @@ export function isLibrarySource(
   );
 }
 
+/** The slide tiles of an item, of the library song or of the 예배 순서. */
 export function tilesForView(
   view: ShowView,
   itemId: ItemId,

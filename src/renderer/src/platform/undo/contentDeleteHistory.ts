@@ -75,6 +75,10 @@ class ContentDeleteHistory implements UndoOwner {
   }
 }
 const histories = new WeakMap<LlpApi['content'], ContentDeleteHistory>();
+/**
+ * The undo history of deleted songs and 예배 for one app connection, made once
+ * and shared.
+ */
 export function contentDeleteHistory(
   content: LlpApi['content'],
 ): ContentDeleteHistory {

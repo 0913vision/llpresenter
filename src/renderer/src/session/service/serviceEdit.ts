@@ -2,6 +2,7 @@ import type {Notice} from '@renderer/ui/popups/notices';
 import type {OpenServiceResult} from './openService';
 import {serviceEditNotice} from './serviceProblem';
 
+/** Shows a notice, such as the reason an edit was refused. */
 export type Report = (notice: Notice) => void;
 
 function reportEdit(result: OpenServiceResult, report: Report): void {

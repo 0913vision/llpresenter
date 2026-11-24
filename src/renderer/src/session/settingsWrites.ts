@@ -1,6 +1,7 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import type {EditResult} from '@core/schema/services/contentEdit';
 import type {
+  NamedDocument,
   SettingsDocument,
   SettingsEdit,
   SettingsName,
@@ -11,15 +12,10 @@ import {withinLookupTimeout} from './show/showOutput';
 /** How many times in all an edit is planned and sent while other writes come first. */
 const ATTEMPTS = 2;
 
-export type SettingsDocumentOf<N extends SettingsName> = Extract<
-  SettingsDocument,
-  {name: N}
->;
-
 function isSettings<N extends SettingsName>(
   document: SettingsDocument,
   name: N,
-): document is SettingsDocumentOf<N> {
+): document is NamedDocument<N> {
   return document.name === name;
 }
 
@@ -27,7 +23,7 @@ function isSettings<N extends SettingsName>(
 export async function readSettings<N extends SettingsName>(
   api: Pick<LlpApi, 'settings'>,
   name: N,
-): Promise<SettingsDocumentOf<N>> {
+): Promise<NamedDocument<N>> {
   const document = await withinLookupTimeout(() => api.settings.get({name}));
   if (!isSettings(document, name)) {
     throw new Error(`The reply is not the ${name} settings`);
@@ -39,7 +35,7 @@ export async function readSettings<N extends SettingsName>(
 export async function editableSettings<N extends SettingsName>(
   api: Pick<LlpApi, 'settings'>,
   name: N,
-): Promise<SettingsDocumentOf<N>> {
+): Promise<NamedDocument<N>> {
   const document = await readSettings(api, name);
   if (document.access !== 'editable') {
     throw new Error(`The ${name} settings cannot be edited`);

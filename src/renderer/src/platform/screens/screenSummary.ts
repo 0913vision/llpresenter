@@ -7,6 +7,7 @@ import {
 } from '@core/screens';
 import type {PreviewTarget} from '@renderer/ui/previews/PreviewFrame';
 
+/** A saved screen as the toolbar, the status bar and the 미리보기 name it. */
 export interface ScreenSummary {
   readonly id: string;
   readonly icon: string;

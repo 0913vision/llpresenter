@@ -3,6 +3,7 @@ export interface LatestRunner {
   readonly submit: (task: () => Promise<void>) => void;
 }
 
+/** Makes a {@link LatestRunner}. */
 export function createLatestRunner(): LatestRunner {
   let running = false;
   let waiting: (() => Promise<void>) | null = null;

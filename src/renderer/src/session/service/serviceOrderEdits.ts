@@ -86,6 +86,7 @@ function edit(
   return editOpenService(within(change), options);
 }
 
+/** Removes items from the open 예배 순서; refused when one is already gone. */
 export function removeItems(
   itemIds: readonly ServiceItemId[],
 ): Promise<OpenServiceResult> {
@@ -98,6 +99,7 @@ export function removeItems(
   });
 }
 
+/** Moves items in front of `beforeId`, or to the end when it is null. */
 export function moveItems(
   itemIds: readonly ServiceItemId[],
   beforeId: ServiceItemId | null,
