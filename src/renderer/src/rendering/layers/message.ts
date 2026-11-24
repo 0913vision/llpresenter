@@ -4,6 +4,7 @@ import type {LayerDefinition} from '../layer';
 import {MessageBandView} from './messageBand';
 import {OverlayTextView} from './overlayText';
 
+/** The 메시지 layer. */
 export const messageLayer: LayerDefinition = {
   kind: 'message',
   fades: 'message',

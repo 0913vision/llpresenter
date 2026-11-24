@@ -6,6 +6,7 @@ import {withinLookupTimeout} from '@renderer/session/show/showOutput';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import {useShow} from '@renderer/session/show/showStore';
 
+/** The most matches the toolbar search shows at once. */
 export const TOOLBAR_SEARCH_LIMIT = 20;
 
 interface SearchReply {

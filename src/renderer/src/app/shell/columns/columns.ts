@@ -5,16 +5,19 @@ import type {ColumnWidths} from '../../../ui/panels/sizeClass';
 /** The right column of 준비 has a width of its own. */
 export type RightColumn = 'right' | 'prepRight';
 
+/** A side column whose width the operator can drag. */
 export type DraggableColumn = 'left' | RightColumn;
 
 /** Column width ranges and the smallest center width, in CSS pixels. */
 export const COLUMN_RANGES: Readonly<Record<DraggableColumn, NumberRange>> =
   COLUMN_LIMITS;
+/** The narrowest the center column may get, in CSS pixels. */
 export const CENTER_MIN_WIDTH = 560;
 
 // NOTE(0913vision): Must match the `--panel-gap` design token.
 const PANEL_GAP = 4;
 const GAPS_ACROSS_COLUMNS = 4;
+/** The width of the gaps between the columns, in CSS pixels. */
 export const FIXED_GAPS_WIDTH = PANEL_GAP * GAPS_ACROSS_COLUMNS;
 
 /** Width left for the center column, which takes all the remaining width. */
@@ -54,6 +57,7 @@ export function fitToWindow(
   return {left, right, prepRight: beside('prepRight', left)};
 }
 
+/** A drag of a column border: which column, from what widths, and how far. */
 export interface DragInput {
   readonly column: DraggableColumn;
   /** Widths on screen when the drag started. */

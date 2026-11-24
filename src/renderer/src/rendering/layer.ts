@@ -18,6 +18,10 @@ export interface PictureCorrection {
   readonly offset: {readonly x: number; readonly y: number};
 }
 
+/**
+ * The screen a picture is drawn for: its kind, its output method and its
+ * picture settings.
+ */
 export interface RenderScreen {
   readonly id: ScreenId;
   /** The saved screen name; absent for a picture of no saved screen. */
@@ -32,6 +36,7 @@ export interface RenderScreen {
   readonly correction?: PictureCorrection;
 }
 
+/** Everything one frame of a screen draws besides the live layers. */
 export interface RenderFrame {
   readonly stageTimerId?: TimerId;
   readonly theme?: LiveThemeOutput;
@@ -79,6 +84,10 @@ export interface RenderLayer {
   dispose(): void;
 }
 
+/**
+ * A layer over the slide: its kind, the clear it fades with, and how its view
+ * is made.
+ */
 export interface LayerDefinition {
   readonly kind: string;
   /** The live layer whose clear fade dims this layer; absent never dims it. */

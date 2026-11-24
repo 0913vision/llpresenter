@@ -3,6 +3,10 @@ import type {OutputRenderer} from '../rendering/outputRenderer';
 import {SlideAnimation} from './slideAnimation';
 import {waitForReady} from './waitForReady';
 
+/**
+ * A change with no visible transition, for a slide that moves onto another
+ * background: its texts and the background change in one frame.
+ */
 export const CUT: SlideTransition = {kind: 'none', sec: 0.1};
 
 interface SlideSwitchOptions {

@@ -200,6 +200,7 @@ export function workspaceMenu({
   ];
 }
 
+/** The rows of the 보기 menu that belong to 진행. */
 export function showMenu(
   continuous: ContinuousRow,
   continuousGrid: ContinuousRow,

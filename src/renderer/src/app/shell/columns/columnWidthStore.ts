@@ -16,6 +16,7 @@ export interface ColumnWidthStore {
   saveRows?(sizeClass: SizeClass, rows: PanelRows): void;
 }
 
+/** A column width store that keeps the widths in memory only. */
 export function createMemoryColumnWidthStore(): ColumnWidthStore {
   const saved = new Map<SizeClass, ColumnWidths>();
   const rows = new Map<SizeClass, PanelRows>();

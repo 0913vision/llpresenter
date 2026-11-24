@@ -47,6 +47,7 @@ function textImportRow(
   };
 }
 
+/** The rows of the 파일 menu. */
 export function fileMenuEntries(input: FileMenuInput): readonly MenuEntry[] {
   const {service, media} = input;
   return [

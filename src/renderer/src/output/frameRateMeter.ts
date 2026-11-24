@@ -13,6 +13,7 @@ export interface FrameRateMeterOptions {
   readonly cancelFrame?: (handle: number) => void;
 }
 
+/** Counts the frames an output draws and reports them once a second. */
 export interface FrameRateMeter {
   readonly refresh: () => void;
   readonly stop: () => void;

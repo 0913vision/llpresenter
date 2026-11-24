@@ -1,6 +1,7 @@
 import {useSyncExternalStore} from 'react';
 import type {OutputStatuses} from '@core/schema/live/outputStatus';
 
+/** The size of an output screen, in pixels. */
 export interface ScreenSize {
   readonly width: number;
   readonly height: number;

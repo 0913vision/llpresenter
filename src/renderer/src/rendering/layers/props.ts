@@ -32,6 +32,7 @@ interface PropView {
   ticking: boolean;
 }
 
+/** The 그래픽 layer. */
 export const propsLayer: LayerDefinition = {
   kind: 'prop',
   fades: 'prop',

@@ -70,6 +70,7 @@ interface AppProps {
   readonly uiState?: UiState | undefined;
 }
 
+/** The control window: the menu bar, the toolbar, and 진행, 준비 and 화면 설정. */
 export function App(props: AppProps): JSX.Element {
   const [readiness] = useState(() => new LoadReadiness());
   return (

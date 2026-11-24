@@ -1,8 +1,5 @@
 import type {UiZoomCommand} from '@core/schema/app/uiZoom';
-import {
-  dispatchShortcut,
-  type WindowShortcut,
-} from '@renderer/ui/keys/commandDispatcher';
+import type {WindowShortcut} from '@renderer/ui/keys/commandDispatcher';
 import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
 
 const commands: readonly WindowShortcut[] = (
@@ -23,9 +20,7 @@ const commands: readonly WindowShortcut[] = (
   },
 }));
 
-export function handleUiZoomKey(event: KeyboardEvent): void {
-  dispatchShortcut(event, commands, 'capture');
-}
+/** Lets the zoom commands zoom this window, whatever keys they are bound to. */
 export function useUiZoomKeys(): void {
   useWindowShortcuts(commands);
 }

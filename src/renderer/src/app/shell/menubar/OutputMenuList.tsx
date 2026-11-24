@@ -13,6 +13,7 @@ import {outputMenuEntries} from './outputMenuEntries';
 import type {WarningScreen} from './MenuBar';
 import type {Workspace} from '../../../platform/WorkspaceNavigation';
 
+/** The 출력 menu, opened from the menu bar. */
 export function OutputMenuList({
   anchor,
   returnTo,

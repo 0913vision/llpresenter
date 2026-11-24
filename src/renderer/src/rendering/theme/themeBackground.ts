@@ -10,6 +10,7 @@ const NOISE = `url("${NOISE_SOURCE}")`;
 // NOTE(0913vision): The grain texture loads once as the app starts, so the
 // first gradient drawn shows in its first frame instead of a frame of its
 // plain color.
+/** The grain texture laid over gradients. */
 export const loadedNoise =
   typeof Image === 'undefined'
     ? undefined

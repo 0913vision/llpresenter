@@ -1,6 +1,10 @@
 import {useRef, useState} from 'react';
 import {useAlive} from '@renderer/ui/useAlive';
 
+/**
+ * Whether the clipboard holds something to paste, checked again each time
+ * `check` runs; 'checking' until it knows.
+ */
 export function useClipboardAvailability(
   read: (() => Promise<boolean>) | undefined,
 ) {

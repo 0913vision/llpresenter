@@ -28,6 +28,10 @@ export interface BackgroundLayerOptions {
 export const MIN_SEEK_SECONDS = 0.5;
 
 const UNSUPPORTED_SOURCE = 4;
+/**
+ * How long a new video may take to show its first frame before it is shown
+ * anyway.
+ */
 export const VIDEO_FRAME_DEADLINE_MS = 250;
 
 /** How long a finished handover retains the previous player's resources. */

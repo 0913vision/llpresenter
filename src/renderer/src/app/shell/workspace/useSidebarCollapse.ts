@@ -7,6 +7,7 @@ import type {SizeClass} from '../../../ui/panels/sizeClass';
 // only, so only the narrow class's `leftCollapsed` is read and written.
 const COLLAPSIBLE_SIZE_CLASS: SizeClass = 'narrow';
 
+/** Whether the left column of a narrow window is folded, and how to fold it. */
 export interface SidebarCollapse {
   /** Whether the left column is collapsed now; never outside a narrow window. */
   readonly collapsed: boolean;

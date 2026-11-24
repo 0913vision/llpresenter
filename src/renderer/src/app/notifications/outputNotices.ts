@@ -59,10 +59,12 @@ const SHOWING_IN_WINDOW = '창으로 표시 중';
 const OUTPUT_OFF = '출력 꺼짐';
 const SHOWING_EMPTY = '빈 화면으로 표시 중';
 
+/** The notice key of a screen's missing monitor. */
 export function monitorNoticeKey(screenId: string): string {
   return `screen:${screenId}`;
 }
 
+/** The notice key of a screen's output window problem. */
 export function windowNoticeKey(screenId: string): string {
   return `output-window:${screenId}`;
 }

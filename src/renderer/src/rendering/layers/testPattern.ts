@@ -1,6 +1,7 @@
 import type {LayerDefinition} from '../layer';
 import {TestPatternView} from './testPatternView';
 
+/** The test pattern layer, over everything but the 무대 message. */
 export const testPatternLayer: LayerDefinition = {
   kind: 'test-pattern',
   create: (parent, {mode}) => {

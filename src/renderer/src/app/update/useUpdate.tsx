@@ -11,6 +11,7 @@ import styles from './UpdateProgress.module.css';
 import {noticeTime, type Notice} from '@renderer/ui/popups/notices';
 import {useOutputs} from '@renderer/session/live';
 
+/** The notice key of the update notice. */
 export const UPDATE_NOTICE_KEY = 'app:update';
 
 function titleOf(status: UpdateStatus): string {

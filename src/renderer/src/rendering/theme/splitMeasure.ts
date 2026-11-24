@@ -10,11 +10,13 @@ import {fontFamilyFor} from '../fontFamily';
 
 type TextWidth = (text: string, size: number) => number;
 
+/** Measures the width of a text in a font, as a canvas does. */
 export interface FontMeasure {
   font: string;
   measureText(text: string): {readonly width: number};
 }
 
+/** A canvas that measures texts; null where the page has no 2D canvas. */
 export function createFontMeasure(): FontMeasure | null {
   return document.createElement('canvas').getContext('2d');
 }

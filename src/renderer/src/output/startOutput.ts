@@ -25,6 +25,10 @@ export interface OutputContext {
 }
 
 type ErrorReport = (message: string, error: unknown) => void;
+/**
+ * How long an output waits before it tells main again that a frame is not
+ * ready.
+ */
 export const READY_RECHECK_MS = 100;
 
 /** How often an output that waits to be revealed checks its frame. */

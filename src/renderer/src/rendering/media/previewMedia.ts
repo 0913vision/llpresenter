@@ -49,6 +49,7 @@ export function lentPreviewUrl(id: string): string | undefined {
   return temporaryImages.get(id)?.url;
 }
 
+/** Where a preview finds the address of a media file. */
 export interface PreviewMediaSource {
   /** The picture's address, when this window already knows it. */
   readonly peek: (mediaId: string) => string | undefined;

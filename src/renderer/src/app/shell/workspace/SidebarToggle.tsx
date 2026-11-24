@@ -75,6 +75,10 @@ export interface SidebarToggle {
 // the keyboard focus only when the pressed one had it (a key press, not a
 // click in 진행); otherwise the focus falls to the body, where the 진행 keys
 // work.
+/**
+ * Folds and unfolds the left column, and puts the focus where the operator's
+ * keys still work.
+ */
 export function useSidebarToggle(
   sidebar: SidebarCollapse | undefined,
 ): SidebarToggle {

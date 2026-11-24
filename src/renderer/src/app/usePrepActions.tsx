@@ -18,6 +18,7 @@ import {PowerPointImagesFlow} from './PowerPointImagesFlow';
 import {editItemInPrep, type PrepBinding} from './workspaces/prepPanels';
 import {useShow} from '@renderer/session/show/showStore';
 
+/** Where 준비 imports songs from. */
 export type ImportSource =
   'file' | 'clipboard' | 'powerpoint' | 'powerpoint-images';
 

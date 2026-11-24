@@ -36,6 +36,7 @@ export interface ThemeDrawing {
   readonly standby?: boolean | undefined;
 }
 
+/** A theme element that shows text: a text box, or the 다음 가사 box. */
 export type TextElement = ThemeTextElement | ThemeNextElement;
 
 /** A text that shows, before it is placed. */
@@ -44,6 +45,7 @@ export interface ShownText {
   readonly rows: RowsText;
 }
 
+/** Whether a theme element shows text. */
 export function isText(element: ThemeElement): element is TextElement {
   return element.kind === 'text' || element.kind === 'next';
 }

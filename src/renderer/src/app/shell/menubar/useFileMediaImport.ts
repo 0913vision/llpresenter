@@ -16,6 +16,7 @@ import {useMediaImportCompletion} from '@renderer/features/media/MediaViewProvid
  */
 export const REPORTED_FAILURES_LIMIT = 64;
 
+/** The 미디어 가져오기 row of the 파일 menu, which reports failed files as notices. */
 export function useFileMediaImport(
   onProblem: (notice: Notice) => void,
 ): MenuItem {

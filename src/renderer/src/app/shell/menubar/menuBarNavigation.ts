@@ -19,6 +19,7 @@ const KEY_MOVES: Readonly<Record<string, RovingMove>> = {
   End: 'last',
 };
 
+/** How the menu bar moves between its menus with the keys and the pointer. */
 export interface MenuBarNavigation<Name extends string> {
   /** Props that make a menu button one stop of the bar. */
   readonly stopProps: (name: Name) => {

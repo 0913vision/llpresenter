@@ -1,7 +1,7 @@
 import {act, cleanup, renderHook} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {handleUiZoomKey, useUiZoomKeys} from '@renderer/app/shell/uiZoomKeys';
+import {useUiZoomKeys} from '@renderer/app/shell/uiZoomKeys';
 
 const changeZoom = vi.fn(() => Promise.resolve(100));
 const log = vi.fn();
@@ -136,7 +136,7 @@ describe('UI zoom keys', () => {
       cancelable: true,
     });
     event.preventDefault();
-    handleUiZoomKey(event);
+    window.dispatchEvent(event);
     unmount();
     expect(press('Equal').defaultPrevented).toBe(false);
     expect(changeZoom).not.toHaveBeenCalled();
