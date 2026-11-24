@@ -1,6 +1,10 @@
 import {useLayoutEffect, useRef, useSyncExternalStore} from 'react';
 import {createServiceId, createServiceItemId} from '@core/schema/ids';
 import {SERVICE_LIMITS} from '@core/schema/service';
+import {
+  NO_SERVICE_REASON,
+  orderEditReason,
+} from '@renderer/session/orderReasons';
 import {useShow} from '@renderer/session/show';
 import {revealAddedItem} from '@renderer/session/selectAddedItem';
 import {serviceItemClipboardFor} from '@renderer/session/serviceItemClipboard';
@@ -45,16 +49,16 @@ export function useServiceItemClipboard({
     api === undefined || serviceId === null || selected.size === 0
       ? NO_ITEMS
       : undefined;
+  const pasteProblem =
+    count === 0
+      ? EMPTY_CLIPBOARD
+      : itemCount + count > SERVICE_LIMITS.items
+        ? ORDER_FULL_REASON
+        : undefined;
   const pasteReason =
     serviceId === null
-      ? '열린 예배가 없습니다.'
-      : !editable
-        ? '예배 순서 편집 불가'
-        : count === 0
-          ? EMPTY_CLIPBOARD
-          : itemCount + count > SERVICE_LIMITS.items
-            ? ORDER_FULL_REASON
-            : undefined;
+      ? NO_SERVICE_REASON
+      : orderEditReason(editable, pasteProblem);
   const pending = useRef<{
     serviceId: string;
     cursor: string | null;

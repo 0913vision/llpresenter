@@ -6,6 +6,20 @@ import {useShow} from './show';
 /** What an add to the 예배 순서 says when no service is open. */
 export const NO_SERVICE_REASON = '열린 예배 없음';
 
+/** What a command that changes the 예배 순서 says where it may not. */
+export const ORDER_LOCKED_REASON = '예배 순서 편집 불가';
+
+/**
+ * Why a command can't change the 예배 순서: where it may change, the command's
+ * own reason, if any; elsewhere, that the 예배 순서 can't be edited.
+ */
+export function orderEditReason(
+  editable: boolean,
+  own?: string,
+): string | undefined {
+  return editable ? own : ORDER_LOCKED_REASON;
+}
+
 /** Whether the open 예배 순서 has reached its item limit. */
 export function useOrderFull(): boolean {
   return useShow(view => view.rows.length >= SERVICE_LIMITS.items);

@@ -3,7 +3,11 @@ import type {MediaId} from '@core/schema/ids';
 import type {MediaItem} from '@core/schema/mediaList';
 import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
 import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
-import {PICTURE_FIT_OPTIONS} from '@renderer/ui/PicturePlace';
+import {
+  choicePairs,
+  MEDIA_END_OPTIONS,
+  PICTURE_FIT_OPTIONS,
+} from '@renderer/ui/mediaChoices';
 import type {MediaEntry} from './mediaEntries';
 import {mediaAddAvailability} from '@renderer/platform/mediaAddAvailability';
 import {shownProps, type MediaProps} from './mediaProps';
@@ -120,7 +124,7 @@ function fitRow(item: MediaItem, actions: MediaTileActions): MenuEntry {
     id: 'scaling',
     label: '맞춤',
     current: shownProps(item).fit,
-    choices: PICTURE_FIT_OPTIONS.map(({value, label}) => [value, label]),
+    choices: choicePairs(PICTURE_FIT_OPTIONS),
     change: fit => ({fit}),
   });
 }
@@ -131,10 +135,7 @@ function endRow(item: MediaItem, actions: MediaTileActions): MenuEntry {
     id: 'end',
     label: '끝나면',
     current: shownProps(item).end,
-    choices: [
-      ['loop', '반복'],
-      ['stop', '정지'],
-    ],
+    choices: choicePairs(MEDIA_END_OPTIONS),
     change: end => ({end}),
     reason: item.kind === 'image' ? NO_PLAYBACK_REASON : undefined,
   });

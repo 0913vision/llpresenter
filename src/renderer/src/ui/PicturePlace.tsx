@@ -5,19 +5,10 @@ import {
   type PictureFit,
   type PicturePlace,
 } from '@core/schema/picturePlace';
+import {PICTURE_FIT_OPTIONS} from './mediaChoices';
 import {NumberField} from './NumberField';
 import {PropertyRow} from './PropertyRow';
 import {SelectMenu} from './SelectMenu';
-
-/** The names of the fits, in the order every menu of them has. */
-export const PICTURE_FIT_OPTIONS = [
-  {value: 'fill', label: '채우기'},
-  {value: 'fit', label: '맞추기'},
-  {value: 'stretch', label: '늘리기'},
-] as const satisfies ReadonlyArray<{
-  readonly value: PictureFit;
-  readonly label: string;
-}>;
 
 const PERCENT = 100;
 const SCALE = {min: 10, max: 400};

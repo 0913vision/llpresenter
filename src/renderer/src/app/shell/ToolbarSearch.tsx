@@ -20,7 +20,7 @@ import type {Notice} from '@renderer/ui/notices';
 import {TruncatedText} from '@renderer/ui/TruncatedText';
 import {useToolbarSearch} from './useToolbarSearch';
 import styles from './ToolbarSearch.module.css';
-import {useOrderAddReason} from '@renderer/session/orderFull';
+import {useOrderAddReason} from '@renderer/session/orderReasons';
 import {
   insertLibrarySong,
   rowAfterSelected,

@@ -1,3 +1,4 @@
+import {MEDIA_END_OPTIONS} from '@renderer/ui/mediaChoices';
 import {useEffect, useRef, type JSX, type RefCallback} from 'react';
 import type {PlacedOverlay} from '@core/schema/itemOverlays';
 import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
@@ -168,10 +169,7 @@ export function OverlayPopover({
                   <SegmentedControl
                     id={controlId}
                     labelledBy={labelId}
-                    options={[
-                      {value: 'loop', label: '반복'},
-                      {value: 'stop', label: '정지'},
-                    ]}
+                    options={MEDIA_END_OPTIONS}
                     value={mediaContent.loop ? 'loop' : 'stop'}
                     disabled={reason !== undefined}
                     title={reason}

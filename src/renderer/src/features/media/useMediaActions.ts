@@ -5,7 +5,7 @@ import type {MediaItem} from '@core/schema/mediaList';
 import {mediaItem} from '@renderer/platform/media';
 import {insertNewItem, rowAfterSelected} from '@renderer/session/insertNewItem';
 import {sendMediaOutput} from '@renderer/session/itemOutput';
-import {useOrderAddReason} from '@renderer/session/orderFull';
+import {useOrderAddReason} from '@renderer/session/orderReasons';
 import {deleteSelection} from '@renderer/ui/deleteSelection';
 import {focusHistorySurface} from '@renderer/ui/focusHistorySurface';
 import type {MenuAnchor} from '@renderer/ui/Menu';

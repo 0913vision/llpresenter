@@ -4,6 +4,7 @@ import type {ServiceRow} from '@core/presentation';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {undoReason, undoTimeline} from '@renderer/platform/undoTimeline';
 import type {Notice} from '@renderer/ui/notices';
+import {orderEditReason} from '@renderer/session/orderReasons';
 import {ORDER_FULL_REASON} from '@renderer/session/serviceOrderEdits';
 import {isInTextEntry} from '@renderer/ui/textEntry';
 import type {Workspace} from '@renderer/ui/workspace';
@@ -141,11 +142,7 @@ export function useOrderShortcuts({
       context: 'service',
       when: event => cursor !== null && inRows(event),
       unavailable: () =>
-        editable
-          ? full
-            ? ORDER_FULL_REASON
-            : undefined
-          : '예배 순서 편집 불가',
+        orderEditReason(editable, full ? ORDER_FULL_REASON : undefined),
       run: () => {
         if (!full) duplicate(targets());
       },

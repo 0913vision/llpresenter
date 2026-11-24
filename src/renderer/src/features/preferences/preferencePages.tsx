@@ -1,6 +1,9 @@
 import {useContext, useEffect, useState, type JSX} from 'react';
 import {LoadReadinessContext} from '@renderer/ui/loadReadiness';
-import {PICTURE_FIT_OPTIONS} from '@renderer/ui/PicturePlace';
+import {
+  MEDIA_END_OPTIONS,
+  PICTURE_FIT_OPTIONS,
+} from '@renderer/ui/mediaChoices';
 import type {PreferencePageId} from '@core/schema/preferencePages';
 import {CLEAR_FADE_LIMIT_MS, DEFAULT_CLEAR_FADE} from '@core/schema/clearFade';
 import {clearName} from '@core/live';
@@ -420,11 +423,6 @@ export function StoragePage({
   );
 }
 
-const END_OPTIONS = [
-  {value: 'loop', label: '반복'},
-  {value: 'stop', label: '정지'},
-] as const;
-
 /** 미디어: 새 미디어, 소리. */
 export function MediaPage({
   edits,
@@ -460,7 +458,7 @@ export function MediaPage({
           label="영상 끝나면"
           disabled={disabled}
           title={lockedReason}
-          options={END_OPTIONS}
+          options={MEDIA_END_OPTIONS}
           value={defaults.end}
           onChange={end => setDefaults({end})}
         />

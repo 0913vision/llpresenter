@@ -1,4 +1,8 @@
 import {NOT_IN_THIS_WINDOW} from '@renderer/platform/problemReasons';
+import {
+  ORDER_LOCKED_REASON,
+  orderEditReason,
+} from '@renderer/session/orderReasons';
 import {ORDER_FULL_REASON} from '@renderer/session/serviceOrderEdits';
 import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
 import {
@@ -50,6 +54,13 @@ export interface ServiceOrderMenuInput {
   };
 }
 
+/** Why a library command of a song item can't run. */
+function songReason(song: ServiceOrderMenuInput['song']): string | undefined {
+  return (
+    song?.reason ?? (song?.locked === true ? ORDER_LOCKED_REASON : undefined)
+  );
+}
+
 function songEditRows({
   editSong,
   song,
@@ -83,10 +94,7 @@ function openRows(input: ServiceOrderMenuInput): readonly MenuEntry[] {
         id: 'save-to-library',
         contextGroup: 'library',
         label: '라이브러리에 저장…',
-        ...menuAvailability(
-          input.song?.reason ??
-            (input.song?.locked ? '예배 순서 편집 불가' : undefined),
-        ),
+        ...menuAvailability(songReason(input.song)),
         onSelect: input.song?.save,
       },
       {
@@ -94,10 +102,7 @@ function openRows(input: ServiceOrderMenuInput): readonly MenuEntry[] {
         id: 'reload-from-library',
         contextGroup: 'library',
         label: '라이브러리에서 다시 불러오기',
-        ...menuAvailability(
-          input.song?.reason ??
-            (input.song?.locked ? '예배 순서 편집 불가' : undefined),
-        ),
+        ...menuAvailability(songReason(input.song)),
         onSelect: input.song?.reload,
       },
       ...songEditRows(input),
@@ -143,9 +148,7 @@ function renameRow(input: ServiceOrderMenuInput): readonly MenuItem[] {
           kind: 'item',
           id: 'rename',
           label: '이름 바꾸기',
-          ...menuAvailability(
-            input.editable ? undefined : '예배 순서 편집 불가',
-          ),
+          ...menuAvailability(orderEditReason(input.editable)),
           onSelect: input.rename,
         },
       ]
@@ -217,11 +220,10 @@ export function serviceOrderMenuEntries(
       label: '복제',
       command: 'edit.duplicate',
       ...menuAvailability(
-        input.editable
-          ? input.full
-            ? ORDER_FULL_REASON
-            : undefined
-          : '예배 순서 편집 불가',
+        orderEditReason(
+          input.editable,
+          input.full ? ORDER_FULL_REASON : undefined,
+        ),
       ),
       onSelect: input.duplicate,
     },
@@ -235,9 +237,10 @@ export function serviceOrderMenuEntries(
             label: '위로 옮기기',
             command: 'list.moveUp',
             ...menuAvailability(
-              input.editable && input.moveUp !== undefined
-                ? input.moveUpReason
-                : '예배 순서 편집 불가',
+              orderEditReason(
+                input.editable && input.moveUp !== undefined,
+                input.moveUpReason,
+              ),
             ),
             onSelect: input.moveUp,
           },
@@ -248,9 +251,10 @@ export function serviceOrderMenuEntries(
             label: '아래로 옮기기',
             command: 'list.moveDown',
             ...menuAvailability(
-              input.editable && input.moveDown !== undefined
-                ? input.moveDownReason
-                : '예배 순서 편집 불가',
+              orderEditReason(
+                input.editable && input.moveDown !== undefined,
+                input.moveDownReason,
+              ),
             ),
             onSelect: input.moveDown,
           },
@@ -263,9 +267,7 @@ export function serviceOrderMenuEntries(
       command: 'edit.delete',
       label: '삭제',
       danger: true,
-      ...menuAvailability(
-        input.editable ? input.removeReason : '예배 순서 편집 불가',
-      ),
+      ...menuAvailability(orderEditReason(input.editable, input.removeReason)),
       onSelect: input.remove,
     },
     ...exportRows(input),

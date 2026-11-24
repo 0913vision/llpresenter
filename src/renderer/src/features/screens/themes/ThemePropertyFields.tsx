@@ -2,7 +2,7 @@ import {useEffect, useRef, useState, type JSX} from 'react';
 import {Checkbox} from '@renderer/ui/Checkbox';
 import type {PictureFit} from '@core/schema/picturePlace';
 import {NumberField} from '@renderer/ui/NumberField';
-import {PICTURE_FIT_OPTIONS} from '@renderer/ui/PicturePlace';
+import {PICTURE_FIT_OPTIONS} from '@renderer/ui/mediaChoices';
 import {PropertyRow} from '@renderer/ui/PropertyRow';
 import {SelectMenu} from '@renderer/ui/SelectMenu';
 import {TextArea} from '@renderer/ui/TextArea';

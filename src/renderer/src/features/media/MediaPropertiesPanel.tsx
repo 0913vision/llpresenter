@@ -9,6 +9,7 @@ import {
   PropertyValue,
 } from '@renderer/ui/PropertyRow';
 import type {PicturePlace} from '@core/schema/picturePlace';
+import {MEDIA_END_OPTIONS} from '@renderer/ui/mediaChoices';
 import {PicturePlaceRows} from '@renderer/ui/PicturePlace';
 import {SegmentedControl} from '@renderer/ui/SegmentedControl';
 import {Slider} from '@renderer/ui/Slider';
@@ -109,10 +110,7 @@ function PlaybackGroup({shown, duration, disabled, change, isAudio}: Editing) {
               labelledBy={labelId}
               fill
               disabled={disabled}
-              options={[
-                {value: 'loop', label: '반복'},
-                {value: 'stop', label: '정지'},
-              ]}
+              options={MEDIA_END_OPTIONS}
               value={shown.end}
               onChange={end => change({end})}
             />

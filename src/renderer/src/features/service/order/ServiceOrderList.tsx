@@ -4,7 +4,7 @@ import {insertLibrarySong} from '@renderer/session/insertNewItem';
 import {usePaletteInsert} from '../items/usePaletteInsert';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {useReflow} from '@renderer/ui/useReflow';
-import {useOrderFull} from '@renderer/session/orderFull';
+import {useOrderFull} from '@renderer/session/orderReasons';
 import {
   moveItems as moveOrderItems,
   renameItem as renameOrderItem,
