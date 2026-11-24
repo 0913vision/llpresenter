@@ -30,12 +30,11 @@ import {
   ask,
   editSong,
   editSongTitle,
-  isUnsaved,
   replaySong,
   requestSave,
-  songTitleProblem,
   useSongDraft,
 } from './songDraft';
+import {isUnsaved, songTitleProblem} from './songDraftModel';
 
 /** The slides of the library song that is open. */
 export function useSongDeck(): SlideDeck | null {

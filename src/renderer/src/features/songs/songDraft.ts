@@ -1,6 +1,5 @@
 import {create} from 'zustand';
 import type {LlpApi} from '@contracts/ipc/api';
-import {sameJson} from '@core/common/sameJson';
 import type {
   LibrarySong,
   SongDocument,
@@ -11,39 +10,25 @@ import {SONG_SCHEMA_VERSION, type Song} from '@core/schema/songs/song';
 import type {TextImportDraft} from '@core/schema/songs/textImport';
 import {newSongSlides, songSlides, withSongTitle} from '@core/slides';
 import {
-  importLimitReason,
   copyTitle,
   DUPLICATE_TITLE_REASON,
-  EMPTY_TITLE_REASON,
   normalizeSongTitle,
-  SONG_TITLE_LIMIT,
 } from '@core/songs';
 import {pendingWritesOf} from '@renderer/platform/documents/pendingWrites';
 import {slideMaking} from '@renderer/platform/documents/themes';
 import {noticeTime, type Notice} from '@renderer/ui/popups/notices';
+import {
+  amendedDraft,
+  editedDraft,
+  freshDraft,
+  isUnsaved,
+  replayedDraft,
+  songTitleProblem,
+  type SongDraft,
+} from './songDraftModel';
 
-const HISTORY_LIMIT = 100;
-const TYPING_PAUSE_MS = 1500;
 const NEW_SONG_TITLE = '새 곡';
 const IMPORTED_TITLE = '가져온 곡';
-
-interface Step {
-  readonly before: Song;
-  readonly after: Song;
-  readonly key?: string | undefined;
-  readonly time: number;
-}
-
-/** A song of the library that is being edited, until it is saved. */
-export interface SongDraft {
-  readonly song: Song;
-  /** What its file has; none for a song that was never saved. */
-  readonly document: SongDocument | null;
-  /** It was read from a file or the clipboard, and is lost unless it is saved. */
-  readonly imported: boolean;
-  readonly past: readonly Step[];
-  readonly future: readonly Step[];
-}
 
 /** Pictures that an imported song shows before they are files of the list. */
 export interface ImportPictures {
@@ -120,35 +105,10 @@ function show(
 ): void {
   view().pictures?.source.release();
   useSongDraft.setState({
-    draft: {song, document, imported, past: [], future: []},
+    draft: freshDraft(song, document, imported),
     pictures: null,
     question: null,
   });
-}
-
-/** Whether a draft has changes its file does not have. */
-export function isUnsaved(draft: SongDraft): boolean {
-  return draft.document === null || !sameJson(draft.song, draft.document.song);
-}
-
-/** Why a draft can't have its title. */
-export function songTitleProblem(
-  draft: SongDraft,
-  library: readonly LibrarySong[],
-): string | undefined {
-  const title = normalizeSongTitle(draft.song.title);
-  if (title === '') return EMPTY_TITLE_REASON;
-  if (draft.document === null) {
-    return title.length > SONG_TITLE_LIMIT
-      ? '곡 제목이 너무 깁니다.'
-      : importLimitReason(draft.song);
-  }
-  return library.some(
-    entry =>
-      entry.id !== draft.song.id && normalizeSongTitle(entry.title) === title,
-  )
-    ? DUPLICATE_TITLE_REASON
-    : undefined;
 }
 
 /** Opens a song of the library to be edited. */
@@ -216,19 +176,7 @@ export function closeSongDraft(): void {
 function amend(change: (song: Song) => Song): void {
   const {draft} = view();
   if (draft === null) return;
-  const amended = (step: Step): Step => ({
-    ...step,
-    before: change(step.before),
-    after: change(step.after),
-  });
-  useSongDraft.setState({
-    draft: {
-      ...draft,
-      song: change(draft.song),
-      past: draft.past.map(amended),
-      future: draft.future.map(amended),
-    },
-  });
+  useSongDraft.setState({draft: amendedDraft(draft, change)});
 }
 
 /** Null takes the picture away. */
@@ -285,27 +233,8 @@ export function editSong(change: (song: Song) => Song, key?: string): void {
   if (draft === null || draft.document?.access === 'readOnly') return;
   const after = change(draft.song);
   if (after === draft.song) return;
-  const last = draft.past.at(-1);
-  const time = Date.now();
-  const goesOn =
-    key !== undefined &&
-    last?.key === key &&
-    time - last.time < TYPING_PAUSE_MS;
-  const step: Step = {
-    before: goesOn ? last.before : draft.song,
-    after,
-    key,
-    time,
-  };
   useSongDraft.setState({
-    draft: {
-      ...draft,
-      song: after,
-      past: [...(goesOn ? draft.past.slice(0, -1) : draft.past), step].slice(
-        -HISTORY_LIMIT,
-      ),
-      future: [],
-    },
+    draft: editedDraft(draft, after, {key, time: Date.now()}),
   });
 }
 
@@ -327,24 +256,8 @@ export function editSongTitle(title: string): void {
  */
 export function replaySong(kind: 'undo' | 'redo'): void {
   const {draft} = view();
-  const step = (kind === 'undo' ? draft?.past : draft?.future)?.at(-1);
-  if (draft === null || step === undefined) return;
-  useSongDraft.setState({
-    draft:
-      kind === 'undo'
-        ? {
-            ...draft,
-            song: step.before,
-            past: draft.past.slice(0, -1),
-            future: [...draft.future, step],
-          }
-        : {
-            ...draft,
-            song: step.after,
-            past: [...draft.past, step],
-            future: draft.future.slice(0, -1),
-          },
-  });
+  const replayed = draft === null ? null : replayedDraft(draft, kind);
+  if (replayed !== null) useSongDraft.setState({draft: replayed});
 }
 
 async function send(edit: ContentEdit): Promise<EditResult | null> {
