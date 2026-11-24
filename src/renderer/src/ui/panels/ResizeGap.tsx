@@ -1,5 +1,5 @@
 import {useEffect, useRef, type PointerEvent} from 'react';
-import {isCommandDragActive, setCommandDragActive} from '../keys/commandDrag';
+import {isColumnDragActive, setColumnDragActive} from './columnDrag';
 import {beginLayoutResize, endLayoutResize} from './layoutResize';
 import styles from './ResizeGap.module.css';
 
@@ -35,7 +35,7 @@ export function ResizeGap({
       try {
         current.session.end();
       } finally {
-        setCommandDragActive(false);
+        setColumnDragActive(false);
         endLayoutResize();
       }
     },
@@ -47,7 +47,7 @@ export function ResizeGap({
     const current = active.current;
     if (current?.pointerId !== event.pointerId) return;
     active.current = null;
-    setCommandDragActive(false);
+    setColumnDragActive(false);
     try {
       current.session.end();
     } finally {
@@ -68,7 +68,7 @@ export function ResizeGap({
           disabled ||
           event.button !== 0 ||
           active.current ||
-          isCommandDragActive()
+          isColumnDragActive()
         ) {
           return;
         }
@@ -76,7 +76,7 @@ export function ResizeGap({
         if (!session) return;
         event.preventDefault();
         event.currentTarget.setPointerCapture(event.pointerId);
-        setCommandDragActive(true);
+        setColumnDragActive(true);
         beginLayoutResize();
         active.current = {
           session,

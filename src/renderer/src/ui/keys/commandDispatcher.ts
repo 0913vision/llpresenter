@@ -23,7 +23,7 @@ import {commitDraftBeforeShortcut} from '../fields/commitDraft';
 import {modalStack} from '../popups/modalStack';
 import {SHORTCUT_RECORDING_SELECTOR} from './shortcutRecording';
 import {isInTextEntry} from '../fields/textEntry';
-import {isCommandDragActive} from './commandDrag';
+import {isColumnDragActive} from '../panels/columnDrag';
 
 export interface WindowShortcut {
   readonly id: string;
@@ -93,7 +93,7 @@ function isInside(target: EventTarget | null, selector: string): boolean {
 
 function surfaceOwnsKeys(event: KeyboardEvent): boolean {
   return (
-    isCommandDragActive() ||
+    isColumnDragActive() ||
     dragging ||
     pointer?.dragged === true ||
     modalStack.isOpen ||

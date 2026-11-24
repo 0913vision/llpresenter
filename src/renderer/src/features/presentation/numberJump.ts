@@ -5,7 +5,7 @@ import {isInTextEntry} from '@renderer/ui/fields/textEntry';
 import {modalStack} from '@renderer/ui/popups/modalStack';
 import {focusSlideGrid} from './focusSlideGrid';
 import {serviceSlideAt} from './serviceSlideNumbers';
-import {isColumnDragActive} from '@renderer/platform/drag';
+import {isColumnDragActive} from '@renderer/ui/panels/columnDrag';
 
 export const useNumberJump = create<{value: string}>(() => ({value: ''}));
 const clear = (): void => useNumberJump.setState({value: ''});

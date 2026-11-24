@@ -4,7 +4,7 @@ import {describe, expect, it, vi} from 'vitest';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {emptyLiveState} from '@core/schema/live/live';
 import {useLive} from '@renderer/session/live';
-import {setColumnDragActive} from '@renderer/platform/drag';
+import {setColumnDragActive} from '@renderer/ui/panels/columnDrag';
 import * as showState from '@renderer/session/show';
 import * as bibleKeys from '@renderer/features/bible/verseShortcuts';
 import {handleShowKey} from '@renderer/features/presentation/shortcuts';

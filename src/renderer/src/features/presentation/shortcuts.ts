@@ -4,7 +4,7 @@ import {
   type WindowShortcut,
 } from '@renderer/ui/keys/commandDispatcher';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
-import {isColumnDragActive} from '@renderer/platform/drag';
+import {isColumnDragActive} from '@renderer/ui/panels/columnDrag';
 import {CLICK_FOCUS_SELECTOR} from '@renderer/ui';
 import {
   openNextItem,

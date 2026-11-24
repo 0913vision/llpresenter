@@ -1,6 +1,6 @@
 import {act, cleanup, fireEvent, renderHook} from '@testing-library/react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import {setColumnDragActive} from '@renderer/platform/drag';
+import {setColumnDragActive} from '@renderer/ui/panels/columnDrag';
 import {modalStack} from '@renderer/ui/popups/modalStack';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {commandBindingStore} from '@renderer/ui/keys/commandBindings';

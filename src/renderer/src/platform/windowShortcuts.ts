@@ -2,7 +2,7 @@ import {
   useCommandShortcuts,
   type WindowShortcut,
 } from '@renderer/ui/keys/commandDispatcher';
-import {isColumnDragActive} from './drag';
+import {isColumnDragActive} from '@renderer/ui/panels/columnDrag';
 
 export type {WindowShortcut};
 

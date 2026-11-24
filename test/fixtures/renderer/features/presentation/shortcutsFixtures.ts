@@ -1,7 +1,7 @@
 // NOTE(0913vision): The hooks below apply to each test file that imports this
 // module.
 import {afterEach, beforeEach, vi} from 'vitest';
-import {setColumnDragActive} from '@renderer/platform/drag';
+import {setColumnDragActive} from '@renderer/ui/panels/columnDrag';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
 import * as showState from '@renderer/session/show';
 import * as bibleKeys from '@renderer/features/bible/verseShortcuts';

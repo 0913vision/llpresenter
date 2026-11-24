@@ -4,11 +4,11 @@ import {fireEvent, render} from '@testing-library/react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {ResizeGap} from '@renderer/ui/panels/ResizeGap';
 import {
-  isCommandDragActive,
-  setCommandDragActive,
-} from '@renderer/ui/keys/commandDrag';
+  isColumnDragActive,
+  setColumnDragActive,
+} from '@renderer/ui/panels/columnDrag';
 
-afterEach(() => setCommandDragActive(false));
+afterEach(() => setColumnDragActive(false));
 
 describe('ResizeGap', () => {
   it('ends an unmounted column handle session so another handle can begin', () => {
@@ -32,7 +32,7 @@ describe('ResizeGap', () => {
     expect(isLayoutResizeActive()).toBe(false);
     expect(end).toHaveBeenCalledOnce();
     expect(dragging).toBe(false);
-    expect(isCommandDragActive()).toBe(false);
+    expect(isColumnDragActive()).toBe(false);
     const second = render(
       <ResizeGap axis="column" name="left" begin={begin} />,
     );
@@ -60,10 +60,10 @@ describe('ResizeGap', () => {
     expect(session.move).not.toHaveBeenCalled();
     fireEvent.pointerMove(gap, {pointerId: 1, clientX: 800, clientY: 240});
     expect(session.move).toHaveBeenCalledWith(40);
-    expect(isCommandDragActive()).toBe(true);
+    expect(isColumnDragActive()).toBe(true);
     fireEvent.lostPointerCapture(gap, {pointerId: 1});
     expect(session.end).toHaveBeenCalledOnce();
-    expect(isCommandDragActive()).toBe(false);
+    expect(isColumnDragActive()).toBe(false);
     expect(isLayoutResizeActive()).toBe(false);
     unmount();
   });
@@ -78,7 +78,7 @@ describe('ResizeGap', () => {
     fireEvent.pointerDown(gap, {button: 0, pointerId: 1});
     expect(begin).not.toHaveBeenCalled();
     rerender(<ResizeGap axis="row" name="rows" begin={begin} />);
-    setCommandDragActive(true);
+    setColumnDragActive(true);
     fireEvent.pointerDown(gap, {button: 0, pointerId: 1});
     expect(begin).not.toHaveBeenCalled();
   });

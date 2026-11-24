@@ -1,6 +1,6 @@
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
-import {setColumnDragActive} from '@renderer/platform/drag';
+import {setColumnDragActive} from '@renderer/ui/panels/columnDrag';
 import {useSlideHotKeys} from '@renderer/features/presentation/useSlideHotKeys';
 
 const dispatch = vi.hoisted(() => ({keys: new Set<string>(), output: vi.fn()}));

@@ -1,7 +1,7 @@
 import {MAIN_SCREEN} from '@fixtures/core/screenIds';
 import {cleanup, fireEvent, screen} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {isColumnDragActive} from '@renderer/platform/drag';
+import {isColumnDragActive} from '@renderer/ui/panels/columnDrag';
 import * as showState from '@renderer/session/show';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
 import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
