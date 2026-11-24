@@ -43,6 +43,18 @@ describe('undo timeline', () => {
     expect(undoReason('undo')).toBe('되돌릴 편집이 없습니다.');
   });
 
+  it('drops the latest step of a history that ran it back on its own', async () => {
+    const log: string[] = [];
+    const service = made('service', log);
+    const deletes = made('deletes', log);
+    undoTimeline.record(deletes);
+    undoTimeline.record(service);
+    undoTimeline.drop(deletes);
+    await undoTimeline.replay('undo', report);
+    await undoTimeline.replay('undo', report);
+    expect(log).toEqual(['service:undo']);
+  });
+
   it('redoes in the opposite order and a new step drops what could be redone', async () => {
     const log: string[] = [];
     const service = made('service', log);

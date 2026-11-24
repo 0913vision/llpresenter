@@ -51,6 +51,36 @@ describe('documentFiles', () => {
     ).toEqual(['first content', 'last content']);
   });
 
+  it('hands a deleted file to the discard, such as the 휴지통, and skips a file that is gone', async () => {
+    const folder = await makeTempDir();
+    const target = {
+      file: join(folder, 'service.llservice'),
+      kind: 'service',
+      id: 's-1',
+    };
+    const copies = new RecoveryCopies({
+      folder: join(folder, 'recovery'),
+      keep: () => 10,
+      now: () => 0,
+    });
+    const saver = new Saver({copies, reportCopyProblem: vi.fn()});
+    const discarded: string[] = [];
+    const files = documentFiles({
+      saver,
+      copies,
+      log: mockLog(),
+      discard: file => {
+        discarded.push(file);
+        return rm(file);
+      },
+    });
+    await writeFile(target.file, 'service');
+    expect(await files.remove(target)).toEqual({ok: true, value: undefined});
+    expect(discarded).toEqual([target.file]);
+    expect(await files.remove(target)).toEqual({ok: true, value: undefined});
+    expect(discarded).toEqual([target.file]);
+  });
+
   it('waits for an in-flight save before copying and deleting', async () => {
     const folder = await makeTempDir();
     const target = {

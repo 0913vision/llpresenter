@@ -39,6 +39,32 @@ class ContentDeleteHistory implements UndoOwner {
     this.publish(false);
     undoTimeline.record(this);
   }
+  /**
+   * Brings back one deleted song, 예배 or 템플릿 wherever it is in the history,
+   * as the 되돌리기 of its notice does; false when it is no longer there or
+   * main refused.
+   */
+  readonly restore = async (area: Area, id: string): Promise<boolean> => {
+    const index = this.undo.findIndex(
+      entry => entry.area === area && entry.id === id,
+    );
+    if (this.state.busy || index < 0) return false;
+    this.publish(true);
+    try {
+      const result = await this.content.edit({
+        type: 'content.undoDelete',
+        area,
+        id,
+      });
+      if (!result.ok && result.error.reason !== 'write-failed') return false;
+      this.undo.splice(index, 1);
+      undoTimeline.drop(this);
+      return true;
+    } finally {
+      this.publish(false);
+    }
+  };
+
   private restored: Entry | undefined;
   readonly replay = async (
     kind: 'undo' | 'redo',

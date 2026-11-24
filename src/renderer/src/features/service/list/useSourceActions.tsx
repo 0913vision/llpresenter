@@ -1,4 +1,8 @@
-import {warningNotice, type Notice} from '@renderer/ui/popups/notices';
+import {
+  noticeTime,
+  warningNotice,
+  type Notice,
+} from '@renderer/ui/popups/notices';
 import {undoReason, undoTimeline} from '@renderer/platform/undo/undoTimeline';
 import {focusHistorySurface} from '@renderer/ui/lists/focusHistorySurface';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
@@ -85,6 +89,28 @@ async function deleteSource(
 }
 
 /**
+ * The notice of a deleted 예배 or 템플릿: its file went to the Windows 휴지통,
+ * and 되돌리기 brings it back (user decision, November 24).
+ */
+function deletedNotice(
+  row: SourceRow,
+  restore: (row: SourceRow) => void,
+): Notice {
+  return {
+    key: `source-actions:deleted:${row.source.id}`,
+    kind: 'info',
+    icon: 'trash',
+    title:
+      row.source.kind === 'template'
+        ? '템플릿을 휴지통으로 보냄'
+        : '예배를 휴지통으로 보냄',
+    time: noticeTime(),
+    meta: [row.name],
+    actions: [{icon: 'undo', label: '되돌리기', onSelect: () => restore(row)}],
+  };
+}
+
+/**
  * The right-click menu of the 템플릿 and 예배 순서 rows in the service dialogs:
  * 이름 바꾸기 and 삭제, with their dialogs. The open 예배 순서 can't be deleted.
  * `overlays` renders the menu and the dialog that is open.
@@ -164,13 +190,36 @@ export function useSourceActions({
         focusHistorySurface(root.current);
         run('delete', async next => {
           const done = await deleteSource(next, row.source);
-          if (done) history?.record(row.source.kind, row.source.id);
+          if (done) {
+            history?.record(row.source.kind, row.source.id);
+            onProblem(deletedNotice(row, restore));
+          }
           return done;
         }).catch((cause: unknown) =>
           console.error('Could not finish deleting a service source:', cause),
         );
       },
     );
+  };
+  /** The 되돌리기 of a deleted row's notice: brings that row back. */
+  const restore = (row: SourceRow): void => {
+    if (history === null) return;
+    history
+      .restore(row.source.kind, row.source.id)
+      .then(done => {
+        if (!done) {
+          onProblem(
+            warningNotice(
+              `source-actions:restore:${row.source.id}`,
+              '되돌리기 실패',
+              [row.name],
+            ),
+          );
+        }
+      })
+      .catch((cause: unknown) =>
+        console.error('Could not bring back a deleted service source:', cause),
+      );
   };
   const deleteAfterMenu = useMenuHandoff<SourceRow>(menu !== null, remove);
   const readOnlyReason =

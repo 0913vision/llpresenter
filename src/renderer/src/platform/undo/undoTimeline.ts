@@ -64,6 +64,17 @@ class UndoTimeline {
     this.publish(this.state.busy);
   }
 
+  /**
+   * Takes away the latest step of an owner that the owner ran back on its own,
+   * such as from the 되돌리기 of a notice.
+   */
+  drop(owner: UndoOwner): void {
+    const index = this.undo.lastIndexOf(owner);
+    if (index < 0) return;
+    this.undo = [...this.undo.slice(0, index), ...this.undo.slice(index + 1)];
+    this.publish(this.state.busy);
+  }
+
   /** Hears where each step that ran shows, to bring it into view. */
   readonly onPlace = (listener: (place: UndoPlace) => void): (() => void) => {
     this.placeListeners.add(listener);

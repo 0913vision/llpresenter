@@ -1,4 +1,4 @@
-import {rm} from 'node:fs/promises';
+import {access, rm} from 'node:fs/promises';
 import type {Logger} from '../../base/log';
 import type {DocumentFiles} from '../content/contentPersistence';
 import type {RecoveryCopies} from './recoveryCopies';
@@ -15,12 +15,27 @@ export interface DocumentFilesOptions {
   readonly log: Logger;
   /** Hears the files that couldn't be written, for 저장할 수 없음. */
   readonly failures?: SaveFailureSink | undefined;
+  /**
+   * Takes the file of a deleted document away; it is erased when this is
+   * absent. The app sends it to the Windows 휴지통 (user decision, November 24).
+   */
+  readonly discard?: ((file: string) => Promise<void>) | undefined;
+}
+
+async function exists(file: string): Promise<boolean> {
+  try {
+    await access(file);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /**
  * Saves documents through the saver, which keeps a recovery copy and writes
  * atomically, and deletes them after keeping a last recovery copy, so a
- * deleted song can still be found in `.recovery`. A failed copy keeps the
+ * deleted song can still be found in `.recovery`, and in the 휴지통 when the
+ * file is discarded there. A failed copy keeps the
  * original and returns a failure for retry. Never throws.
  */
 export function documentFiles({
@@ -28,6 +43,7 @@ export function documentFiles({
   copies,
   log,
   failures,
+  discard,
 }: DocumentFilesOptions): DocumentFiles {
   return {
     failures,
@@ -41,7 +57,8 @@ export function documentFiles({
         return copied;
       }
       try {
-        await rm(target.file, {force: true});
+        if (discard === undefined) await rm(target.file, {force: true});
+        else if (await exists(target.file)) await discard(target.file);
         return {ok: true, value: undefined};
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error);

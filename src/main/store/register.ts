@@ -179,7 +179,12 @@ export function registerStore({
   const mediaChannels = registerMediaChannels(media, log);
   const opened = launch.track(
     'content',
-    openContent(loading, log, {settings, media, failures: saveFailures}),
+    openContent(loading, log, {
+      settings,
+      media,
+      failures: saveFailures,
+      discard: file => shell.trashItem(file),
+    }),
   );
   const settingsChannels = registerSettingsChannels(
     settings,

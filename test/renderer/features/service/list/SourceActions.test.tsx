@@ -28,6 +28,7 @@ import type {
 import type {ContentEdit, EditResult} from '@core/schema/services/contentEdit';
 import {createTemplateId} from '@core/schema/common/ids';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {pendingWritesOf} from '@renderer/platform/documents/pendingWrites';
 import {applyService} from '@renderer/session/show/show';
 import {sampleService} from '@fixtures/renderer/session/sampleService';
@@ -98,7 +99,7 @@ function setup(
       },
     },
   });
-  const onProblem = vi.fn();
+  const onProblem = vi.fn<(notice: Notice) => void>();
   render(<NewServiceDialog onClose={() => undefined} onProblem={onProblem} />);
   return {
     api: window.llp,
@@ -295,6 +296,33 @@ describe('the service source menu', () => {
         'value',
         '새 예배',
       ),
+    );
+  });
+
+  it('tells that a deleted 템플릿 went to the 휴지통, and its 되돌리기 brings back that one', async () => {
+    const {edits, onProblem} = setup(() => ({
+      ok: true,
+      value: {id: ids.template, revision: null},
+    }));
+    await openMenu(/^주일 예배/);
+    await userEvent.click(screen.getByRole('menuitem', {name: '삭제'}));
+    await waitFor(() =>
+      expect(onProblem).toHaveBeenCalledWith(
+        expect.objectContaining({
+          kind: 'info',
+          title: '템플릿을 휴지통으로 보냄',
+          meta: [expect.stringMatching(/^주일 예배/)],
+        }),
+      ),
+    );
+    const notice = onProblem.mock.calls.at(-1)?.[0];
+    act(() => notice?.actions?.[0]?.onSelect());
+    await waitFor(() =>
+      expect(edits).toContainEqual({
+        type: 'content.undoDelete',
+        area: 'template',
+        id: ids.template,
+      }),
     );
   });
 

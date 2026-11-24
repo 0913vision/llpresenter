@@ -579,10 +579,13 @@ The service list opens from the service name in the 예배 순서 header in both
   document and uses its current revision, so a concurrent change refuses the
   rename and keeps the newer document intact. A refusal keeps the rename dialog
   and reports 이름을 바꿀 수 없음.
-- 삭제 acts immediately without a confirmation or notice. The open service can't
-  be deleted: the menu item is unavailable with the tooltip 열린 예배는 삭제할
-  수 없습니다, and main also refuses the delete. A refused delete reports 삭제할
-  수 없음.
+- 삭제 acts immediately without a confirmation. The file goes to the Windows
+  휴지통, and a notice 예배를 휴지통으로 보냄 (템플릿을 휴지통으로 보냄) with
+  its name offers 되돌리기, which brings that one back (user decision, November
+  24). Deleted songs, 예배 and 템플릿 all go to the 휴지통 this way. The open
+  service can't be deleted: the menu item is unavailable with the tooltip 열린
+  예배는 삭제할 수 없습니다, and main also refuses the delete. A refused delete
+  reports 삭제할 수 없음.
 - Both prompts wait for their operation's result before dismissal. A rename's
   document read and write both take part in the window's close flush, so the
   window can't close before an already-started rename reaches main; closing also
