@@ -1,4 +1,11 @@
-import {useEffect, useMemo, useRef, useState, type JSX} from 'react';
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type JSX,
+  type KeyboardEvent,
+} from 'react';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
 import {Button} from '@renderer/ui/Button';
 import {EmptyState} from '@renderer/ui/EmptyState';
@@ -89,6 +96,16 @@ export function ShortcutsPage({
       ?.querySelector<HTMLElement>(`[data-command="${next.command.id}"]`)
       ?.focus();
   };
+  /** The arrows on the list or a row move the selection a row. */
+  const walkRows = (event: KeyboardEvent<HTMLDivElement>): void => {
+    const onRow =
+      event.target instanceof HTMLElement &&
+      event.target.dataset['command'] !== undefined;
+    if (event.target !== event.currentTarget && !onRow) return;
+    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+    event.preventDefault();
+    moveSelection(event.key === 'ArrowDown' ? 1 : -1);
+  };
   return (
     <div className={styles.page}>
       <header className={styles.header}>
@@ -141,38 +158,18 @@ export function ShortcutsPage({
         role="listbox"
         aria-label={LIST_LABEL}
         className={styles.list}
-        // NOTE(0913vision): A contextmenu event with the pointer at (0, 0) comes
-        // from the Menu key, since the title bar and the page list sit there.
         onContextMenu={event => {
           const row = commandRowOf(event.target);
           if (row === null) return;
           event.preventDefault();
-          openMenu(
-            row.id,
-            event.clientX === 0 && event.clientY === 0
-              ? rowAnchor(row.element)
-              : contextMenuAnchor(event),
-          );
+          openMenu(row.id, contextMenuAnchor(event));
         }}
         onKeyDownCapture={event => {
           const row = commandRowOf(event.target);
           if (row === null || !takeMenuKey(event)) return;
           openMenu(row.id, rowAnchor(row.element));
         }}
-        onKeyDown={event => {
-          if (event.target !== event.currentTarget) {
-            if (
-              !(event.target instanceof HTMLElement) ||
-              event.target.dataset['command'] === undefined
-            ) {
-              return;
-            }
-          }
-          if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-            event.preventDefault();
-            moveSelection(event.key === 'ArrowDown' ? 1 : -1);
-          }
-        }}
+        onKeyDown={walkRows}
       >
         {groups.length === 0 && emptyText !== undefined ? (
           <EmptyState text={emptyText} />
