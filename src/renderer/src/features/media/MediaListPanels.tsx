@@ -22,7 +22,6 @@ import {
 } from './mediaEntries';
 import {useMediaView} from './MediaViewProvider';
 import styles from './MediaListPanels.module.css';
-import {playlistMenuEntries} from './tiles/mediaMenuEntries';
 import {
   contextMenuAnchor,
   isContextMenuKey,
@@ -32,6 +31,7 @@ import {
 import {type MenuAnchor} from '@renderer/ui/menus/menuModel';
 import type {RenameContract} from '@renderer/ui/fields/renameContract';
 import {ListBox} from '@renderer/ui/lists/ListBox';
+import {playlistMenuEntries} from './playlistMenuEntries';
 
 const ALL = 'all';
 

@@ -4,9 +4,9 @@ import {contextMenuEntries} from '@renderer/ui/menus/contextMenuEntries';
 import {mediaItem} from '@fixtures/renderer/features/media/mediaTesting';
 import {
   mediaTileMenuEntries,
-  playlistMenuEntries,
   type MediaTileActions,
 } from '@renderer/features/media/tiles/mediaMenuEntries';
+import {playlistMenuEntries} from '@renderer/features/media/playlistMenuEntries';
 
 function actions(overrides: Partial<MediaTileActions> = {}): MediaTileActions {
   return {
