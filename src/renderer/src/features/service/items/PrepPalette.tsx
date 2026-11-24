@@ -21,6 +21,8 @@ import {
 } from './newItems';
 import {usePaletteInsert} from './usePaletteInsert';
 import {OwnTitles} from './OwnTitles';
+import {classNames} from '@renderer/ui/classNames';
+import {ROW_POINTER_CLASS} from '@renderer/ui/lists/rowPointer';
 import styles from './PrepPalette.module.css';
 import {type MenuAnchor} from '@renderer/ui/menus/menuModel';
 
@@ -49,7 +51,7 @@ export function PrepPalette({
     <button
       type="button"
       key={id}
-      className={icon ? styles.row : styles.chip}
+      className={classNames(icon ? styles.row : styles.chip, ROW_POINTER_CLASS)}
       title={label}
       disabled={palette.disabled}
       draggable={!palette.disabled}

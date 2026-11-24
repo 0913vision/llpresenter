@@ -4,6 +4,8 @@ import {Icon} from '@renderer/ui/Icon';
 import {TruncatedText} from '@renderer/ui/text/TruncatedText';
 import {durationText} from '@renderer/features/media/mediaEntries';
 import type {AudioTrack} from '@core/media';
+import {classNames} from '@renderer/ui/classNames';
+import {ROW_POINTER_CLASS} from '@renderer/ui/lists/rowPointer';
 import styles from './AudioTrackRow.module.css';
 
 /** One track of an audio playlist. */
@@ -19,7 +21,7 @@ export function AudioTrackRow({
   return (
     <button
       type="button"
-      className={styles.row}
+      className={classNames(styles.row, ROW_POINTER_CLASS)}
       disabled={track.missing}
       title={track.missing ? '오디오 파일을 찾을 수 없습니다.' : undefined}
       onClick={() => api.live.send({type: 'audio.play', source: track.source})}

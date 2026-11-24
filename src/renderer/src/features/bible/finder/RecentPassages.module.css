@@ -21,9 +21,6 @@
   text-align: left;
   cursor: pointer;
 }
-.recent:hover {
-  background: var(--bg-raised);
-}
 .ref {
   flex: none;
   white-space: nowrap;

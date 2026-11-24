@@ -18,6 +18,8 @@ import {
 } from '@core/shortcuts';
 import {commandBindingStore} from '@renderer/ui/keys/commandBindings';
 import {isInputMethodKey} from '@renderer/ui/keys/commandDispatcher';
+import {classNames} from '@renderer/ui/classNames';
+import {ROW_POINTER_CLASS} from '@renderer/ui/lists/rowPointer';
 import styles from './RecentPassages.module.css';
 
 /** Shared recent-passage list. The caller owns lookup and the next step. */
@@ -138,7 +140,7 @@ export function RecentPassages({
               {recent ? (
                 <button
                   type="button"
-                  className={styles.recent}
+                  className={classNames(styles.recent, ROW_POINTER_CLASS)}
                   data-highlighted={scope === 'dialog' && highlight === index}
                   disabled={disabled}
                   onClick={() => onPick(recent)}

@@ -25,6 +25,7 @@ import {
   type TreeRow,
   type TreeSelection,
 } from './serviceTree';
+import {ROW_POINTER_CLASS} from '@renderer/ui/lists/rowPointer';
 import styles from './ServiceDialogs.module.css';
 
 const TREE_ITEM = '[role="treeitem"]';
@@ -84,6 +85,7 @@ function TreeItem({
       tabIndex={focusable ? 0 : -1}
       className={classNames(
         styles.item,
+        ROW_POINTER_CLASS,
         row.header && styles.header,
         row.headerId !== undefined && styles.child,
       )}

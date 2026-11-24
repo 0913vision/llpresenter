@@ -12,9 +12,6 @@
   text-align: left;
   cursor: pointer;
 }
-.row:hover:not(:disabled) {
-  background: var(--bg-raised);
-}
 .row:focus-visible {
   outline: var(--space-2) solid var(--accent);
   outline-offset: calc(-1 * var(--space-2));

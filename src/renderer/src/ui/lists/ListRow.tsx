@@ -18,6 +18,7 @@ import {useRenameDraft} from '../fields/useRenameDraft';
 import {TruncatedText} from '../text/TruncatedText';
 import {ListBoxContext, workspaceActivationKeys, isRowKey} from './ListBox';
 import styles from './ListRow.module.css';
+import {ROW_POINTER_CLASS} from './rowPointer';
 import {type RenameContract} from '../fields/renameContract';
 
 const ROW_ICON_SIZE = 16;
@@ -245,6 +246,7 @@ export const ListRow = memo((props: ListRowProps): JSX.Element => {
       data-state={rowState(live, done, warning !== undefined)}
       className={classNames(
         styles.row,
+        ROW_POINTER_CLASS,
         sub !== undefined && styles.double,
         props.className,
       )}
@@ -297,7 +299,7 @@ export function ListActionRow({
         type="button"
         aria-pressed={pressed}
         aria-disabled={disabled ? true : undefined}
-        className={styles.row}
+        className={classNames(styles.row, ROW_POINTER_CLASS)}
         {...press}
       >
         {icon === undefined ? null : (

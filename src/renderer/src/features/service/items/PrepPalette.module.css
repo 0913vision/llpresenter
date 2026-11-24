@@ -26,10 +26,6 @@
   text-align: left;
   cursor: grab;
 }
-.row:hover,
-.chip:hover {
-  background: var(--bg-raised);
-}
 .row:disabled,
 .chip:disabled {
   color: var(--text-off);

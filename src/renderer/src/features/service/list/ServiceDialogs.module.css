@@ -9,17 +9,6 @@
   font: var(--type-body);
 }
 
-/* NOTE(0913vision): Only the pointer's look fades; a state change shows at
-   once. */
-.item:hover,
-.item:active {
-  transition: background-color var(--motion-hover);
-}
-
-.item:hover {
-  background: var(--bg-raised);
-}
-
 .item:focus-visible {
   outline-offset: calc(-1 * var(--space-2));
 }
