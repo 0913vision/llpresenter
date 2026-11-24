@@ -91,8 +91,11 @@ export function readSoakSettings(env: NodeJS.ProcessEnv): SoakSettingsResult {
 }
 
 /**
- * Names a renderer by the page it shows: `control` for `index.html`, and
- * `output:<screen>` for `output.html?screen=<screen>`.
+ * Names a renderer by the page it shows: `control` for `index.html`, the
+ * window's own name for another window of that page (`settings` for the
+ * settings window), and `output:<screen>` for `output.html?screen=<screen>`.
+ * Two windows never share a name, so a window kept warm beside the control
+ * window isn't read as a relaunch.
  *
  * @returns the name, or `null` for a page the record doesn't track
  */
@@ -100,7 +103,10 @@ export function pageProcessName(url: string): string | null {
   if (!URL.canParse(url)) return null;
   const parsed = new URL(url);
   const page = parsed.pathname.split('/').at(-1);
-  if (page === 'index.html') return 'control';
+  if (page === 'index.html') {
+    const window = parsed.searchParams.get('window');
+    return window === null || window === '' ? 'control' : window;
+  }
   if (page !== 'output.html') return null;
   if (parsed.searchParams.has('audio')) return 'audio';
   const screen = parsed.searchParams.get('screen');

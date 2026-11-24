@@ -92,6 +92,8 @@ describe('pageProcessName', () => {
   it.each([
     ['https://example.test/index.html', 'control'],
     ['file:///C:/data/index.html', 'control'],
+    ['file:///C:/data/index.html?window=settings', 'settings'],
+    ['file:///C:/data/index.html?window=', 'control'],
     ['https://example.test/output.html?screen=main', 'output:main'],
     ['file:///C:/data/output.html?screen=stage', 'output:stage'],
     ['file:///C:/data/output.html?audio=muted', 'audio'],
