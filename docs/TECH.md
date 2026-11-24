@@ -237,6 +237,8 @@ A pull request is approved only when it meets everything below
 
 ### Preventing runtime errors
 
+- Compile for ES2025, which Electron's Chromium and Node run, so the newer
+  built-ins (Set methods, `Object.groupBy`, iterator helpers) are available.
 - On top of TypeScript strict mode, turn on `noUncheckedIndexedAccess` and
   `exactOptionalPropertyTypes` (phase 1).
 - Don't use `any`, type assertions that bypass checks, or `!`. Lint blocks them.
