@@ -6,8 +6,8 @@ import type {SettingsReader} from '@core/schema/app/settingsReader';
 import {dispatchBatched} from '../live/store';
 import type {Logger} from '../base/log';
 import {switchableScreens} from '../base/savedScreens';
-import {writeFileAtomically} from '../base/atomicWrite';
-import {isMissingFile} from '../base/fsErrors';
+import {writeFileAtomically} from '../base/files/atomicWrite';
+import {isMissingFile} from '../base/files/fsErrors';
 
 const FILE = 'update-restart.json';
 const MAX_BYTES = 4096;

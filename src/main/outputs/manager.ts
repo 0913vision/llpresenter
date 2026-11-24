@@ -10,7 +10,7 @@ import type {MonitorRemovedListener} from '../displays/registry';
 import type {LiveStore} from '../live/store';
 import type {Logger} from '../base/log';
 import {OutputWindow, type CreateOutputWindowHandle} from './outputWindow';
-import type {RendererState} from '../base/rendererRecovery';
+import type {RendererState} from '../base/renderers/rendererRecovery';
 import {
   planPlacement,
   fitAspectBounds,
@@ -19,7 +19,7 @@ import {
   type Placement,
 } from './placement';
 import type {OutputScreen, ScreenSource} from './screens';
-import type {IdentifiedOutput} from './monitorNumbers';
+import type {IdentifiedOutput} from './monitors/monitorNumbers';
 import type {FrameReadyReport} from '@core/schema/app/ipcPayloads';
 
 /** The connected monitors, kept current. */

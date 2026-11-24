@@ -1,5 +1,5 @@
 import type {ShutdownStep} from '../base/shutdown';
-import type {registerPlaybackProblems} from '../outputs/playbackProblems';
+import type {registerPlaybackProblems} from '../outputs/health/playbackProblems';
 import type {ControlFeatures} from './controlFeatures';
 import type {ControlOwner} from './controlOwner';
 import type {Foundation} from './foundation';

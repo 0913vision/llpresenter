@@ -9,7 +9,7 @@ import {parseLiveState} from '@core/schema/live/liveState';
 import {parseRecoveryRecord} from '@core/schema/app/recoveryRecord';
 import {makeTempDir} from '@fixtures/tempDir';
 import {recordingLogger} from '@fixtures/main/displays/testing';
-import type {WriteProblem} from '@main/base/atomicWrite';
+import type {WriteProblem} from '@main/base/files/atomicWrite';
 import {
   openServiceIdOf,
   RECORD_INTERVAL_MS,

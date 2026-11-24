@@ -3,7 +3,10 @@ import {emptyLiveState} from '@core/schema/live/live';
 import {LiveStore} from '@main/live/store';
 import {FIXTURE_LOADED_SCREEN, MAIN_SCREEN} from '@fixtures/core/screenIds';
 
-vi.mock('@main/live/slices', () => import('@fixtures/main/live/slices'));
+vi.mock(
+  '@main/live/registry/slices',
+  () => import('@fixtures/main/live/slices'),
+);
 
 describe('slice module discovery', () => {
   it('initializes and runs a new fixture slice through the real store without a registration entry', () => {

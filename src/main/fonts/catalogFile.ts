@@ -4,8 +4,8 @@ import {
   parseFontCatalog,
   type FontCatalog,
 } from '@core/schema/screens/fontCatalog';
-import {writeFileAtomically} from '../base/atomicWrite';
-import {isMissingFile} from '../base/fsErrors';
+import {writeFileAtomically} from '../base/files/atomicWrite';
+import {isMissingFile} from '../base/files/fsErrors';
 
 const MAX_CACHE_BYTES = 2 * 1024 * 1024;
 const STAMP = /^[a-f0-9]{64}$/;

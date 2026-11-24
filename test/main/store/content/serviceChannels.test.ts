@@ -5,10 +5,10 @@ import {createServiceId, type ServiceId} from '@core/schema/common/ids';
 import type {ShowService} from '@core/schema/services/showService';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {LiveStore} from '@main/live/store';
-import {ThemeRuntime} from '@main/live/themeRuntime';
+import {ThemeRuntime} from '@main/live/item/themeRuntime';
 import {themes as sampleThemes, themeScreens} from '@fixtures/core/themeOutput';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
-import {serviceStandby} from '@main/live/serviceStandby';
+import {serviceStandby} from '@main/live/item/serviceStandby';
 import {
   registerServiceChannels,
   MAX_PENDING_SERVICE_SWITCHES,

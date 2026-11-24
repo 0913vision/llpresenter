@@ -18,7 +18,7 @@ import {
   clearPresenterMirror,
   publishPresenterMirror,
   setPresenterMirror,
-} from '../presenterMirror';
+} from '../previews/presenterMirror';
 import {createNdiWindow, stopSender} from './ndiWindow';
 import {
   TextureQueue,

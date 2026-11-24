@@ -24,7 +24,7 @@ vi.mock('electron', () => ({
   ipcMain: ipc.ipcMain,
   BrowserWindow: {getAllWindows: () => [...windows]},
 }));
-vi.mock('@main/live/mediaProgress', () => ({
+vi.mock('@main/live/media/mediaProgress', () => ({
   startMediaProgress: vi.fn(() => () => undefined),
 }));
 

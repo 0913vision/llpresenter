@@ -10,7 +10,7 @@ import {LIVE_STATE_LIMITS} from '@core/schema/live/liveLimits';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {defineSlice} from '@main/live/slice';
-import {SliceRegistry} from '@main/live/sliceRegistry';
+import {SliceRegistry} from '@main/live/registry/sliceRegistry';
 import {LiveStore} from '@main/live/store';
 import {MAX_UNREAD_PROBLEMS, registerProblemFeed} from '@main/base/problemFeed';
 

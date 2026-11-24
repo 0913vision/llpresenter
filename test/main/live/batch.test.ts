@@ -8,7 +8,7 @@ import {
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {dispatchLogged, LiveStore} from '@main/live/store';
 import {defineSlice} from '@main/live/slice';
-import {SliceRegistry} from '@main/live/sliceRegistry';
+import {SliceRegistry} from '@main/live/registry/sliceRegistry';
 import {batchSlice} from '@main/live/slices/batch';
 import {outputsSlice} from '@main/live/slices/outputs';
 import {MissingLiveTargetError} from '@main/live/commandErrors';

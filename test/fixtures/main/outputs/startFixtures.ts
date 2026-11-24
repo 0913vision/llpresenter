@@ -9,9 +9,9 @@ import {
   recordingLogger,
 } from '@fixtures/main/displays/testing';
 import {LiveStore} from '@main/live/store';
-import {startOverlays} from '@main/live/overlays';
+import {startOverlays} from '@main/live/overlays/overlays';
 import {MAIN, overlaySettings} from '@fixtures/core/overlays';
-import type {WindowMode} from '@main/base/testWindows';
+import type {WindowMode} from '@main/base/renderers/testWindows';
 import {mockWindows, type MockWindows} from '@fixtures/main/outputs/testing';
 import {startOutputs} from '@main/outputs/start';
 
@@ -71,13 +71,13 @@ vi.mock('@main/displays/electronSource', () => ({
     return mocks.displays;
   },
 }));
-vi.mock('@main/outputs/electronWindow', () => ({
+vi.mock('@main/outputs/window/electronWindow', () => ({
   createElectronOutputWindow: (...args: Parameters<MockWindows['create']>) => {
     if (mocks.windows === null) throw new Error('Missing windows');
     return mocks.windows.create(...args);
   },
 }));
-vi.mock('@main/outputs/numberWindow', () => ({
+vi.mock('@main/outputs/monitors/numberWindow', () => ({
   openNumberWindow: vi.fn(() => ({close: mocks.closeNumber})),
 }));
 export const STAGE_SCREEN = '00000000-0000-4000-8000-0000000000e3';

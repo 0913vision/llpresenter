@@ -8,7 +8,7 @@ import {RecoveryRecordWriter} from '../../../src/main/live/recovery/recordWriter
 import {MediaImporter} from '../../../src/main/media/mediaImporter';
 import {MediaStore} from '../../../src/main/store/media/mediaStore';
 import {EMPTY_MEDIA_LIST} from '../../../src/main/store/settings/defaults';
-import {writeFileAtomically} from '@main/base/atomicWrite';
+import {writeFileAtomically} from '@main/base/files/atomicWrite';
 import {openRecoverySession} from '../../../src/main/live/recovery/session';
 import {recordingLogger} from './displays/testing';
 

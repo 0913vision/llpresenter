@@ -3,7 +3,10 @@ import type {Result} from '@core/common/result';
 import type {ServiceId} from '@core/schema/common/ids';
 import {serializeRecoveryRecord} from '@core/schema/app/recoveryRecord';
 import type {Logger} from '../../base/log';
-import {writeFileAtomically, type WriteProblem} from '../../base/atomicWrite';
+import {
+  writeFileAtomically,
+  type WriteProblem,
+} from '../../base/files/atomicWrite';
 import type {LiveStore} from '../store';
 
 /** Ordinary edits are throttled; output switches bypass this interval. */

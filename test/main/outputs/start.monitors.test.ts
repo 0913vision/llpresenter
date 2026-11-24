@@ -12,7 +12,7 @@ import {parseMonitorList} from '@core/schema/screens/monitors';
 import {parseLiveCommand} from '@core/schema/live/liveCommand';
 import {displayInfo} from '@fixtures/main/displays/testing';
 import {CAPTIONS, MAIN} from '@fixtures/core/overlays';
-import {openNumberWindow} from '@main/outputs/numberWindow';
+import {openNumberWindow} from '@main/outputs/monitors/numberWindow';
 import {MAIN_SCREEN} from '@fixtures/core/screenIds';
 import {installMockClock} from '@fixtures/mockClock';
 

@@ -1,11 +1,11 @@
 import {mkdir, readFile, rm, stat, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';
-import {removeStaleTempFiles} from '@main/base/staleTempFiles';
+import {removeStaleTempFiles} from '@main/base/files/staleTempFiles';
 
-vi.mock('@main/base/staleTempFiles', async importOriginal => {
+vi.mock('@main/base/files/staleTempFiles', async importOriginal => {
   const actual =
-    await importOriginal<typeof import('@main/base/staleTempFiles')>();
+    await importOriginal<typeof import('@main/base/files/staleTempFiles')>();
   return {...actual, removeStaleTempFiles: vi.fn(actual.removeStaleTempFiles)};
 });
 import {makeTempDir} from '@fixtures/tempDir';

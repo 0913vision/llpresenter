@@ -1,6 +1,6 @@
 import {readFile, stat} from 'node:fs/promises';
 import {resolve} from 'node:path';
-import {writeFileAtomically} from '@main/base/atomicWrite';
+import {writeFileAtomically} from '@main/base/files/atomicWrite';
 import {encodeChunkedBible} from './encode';
 
 function comparablePath(file: string): string {

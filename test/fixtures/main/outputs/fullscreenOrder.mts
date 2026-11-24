@@ -8,12 +8,12 @@ import {watchPixelFixture} from '../windows/pixelFixtureLifecycle.mts';
 import {
   ON_TOP_CHECK_MS,
   OnTopKeeper,
-} from '../../../../src/main/outputs/onTopKeeper';
+} from '../../../../src/main/outputs/window/onTopKeeper';
 import {
   BOUNDS_RECHECK_MS,
   FULLSCREEN_EXIT_DEADLINE_MS,
   WindowPlacement,
-} from '../../../../src/main/outputs/windowPlacement';
+} from '../../../../src/main/outputs/window/windowPlacement';
 
 const NATIVE_SETTLE_MS = 100;
 const EXIT_WAIT_MS =

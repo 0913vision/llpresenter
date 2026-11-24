@@ -1,0 +1,177 @@
+import {describe, expect, it, vi} from 'vitest';
+import type {FrameRate} from '@main/outputs/health/frameRates';
+import type {ScreenOutputState} from '@main/outputs/manager';
+import {OutputStatusBoard} from '@main/outputs/health/statusBoard';
+import {parseOutputStatuses} from '@core/schema/live/outputStatus';
+
+function setUp() {
+  const states = new Map<string, ScreenOutputState>([
+    ['main', {placement: 'fullscreen', renderer: 'running'}],
+  ]);
+  const rates = new Map<string, FrameRate>([
+    ['main', {fps: 59.9, status: 'normal'}],
+  ]);
+  const sizes = new Map<string, {width: number; height: number}>();
+  const board = new OutputStatusBoard({
+    screenStates: () => states,
+    frameRate: screenId => rates.get(screenId) ?? null,
+    contentSize: screenId => sizes.get(screenId),
+  });
+  const listener = vi.fn();
+  board.subscribe(listener);
+  return {board, states, rates, sizes, listener};
+}
+
+describe('OutputStatusBoard', () => {
+  it('publishes changed actual output content sizes', () => {
+    const {board, sizes, listener} = setUp();
+    sizes.set('main', {width: 1280, height: 720});
+    board.refresh();
+    expect(parseOutputStatuses(board.snapshot()).ok).toBe(true);
+    expect(listener.mock.lastCall?.[0]).toMatchObject({
+      main: {contentSize: {width: 1280, height: 720}},
+    });
+    sizes.set('main', {width: 1024, height: 768});
+    board.refresh();
+    board.refresh();
+    expect(listener).toHaveBeenCalledTimes(2);
+    expect(listener.mock.lastCall?.[0]).toMatchObject({
+      main: {contentSize: {width: 1024, height: 768}},
+    });
+  });
+  it('publishes actual NDI acceleration changes and their reason', () => {
+    const {board, states, listener} = setUp();
+    states.set('main', {placement: 'ndi', renderer: 'running'});
+    board.setNdiAcceleration('main', {ndiAcceleration: 'hardware'});
+    expect(board.snapshot()['main']).toMatchObject({
+      ndiAcceleration: 'hardware',
+    });
+    board.setNdiAcceleration('main', {
+      ndiAcceleration: 'bitmap',
+      ndiAccelerationReason: 'no-texture',
+    });
+    expect(board.snapshot()['main']).toMatchObject({
+      ndiAcceleration: 'bitmap',
+      ndiAccelerationReason: 'no-texture',
+    });
+    expect(listener).toHaveBeenCalledTimes(2);
+  });
+  it('publishes availability changes while placement stays off', () => {
+    const {board, states} = setUp();
+    const listener = vi.fn();
+    board.subscribe(listener);
+    states.set('main', {
+      placement: 'off',
+      renderer: 'running',
+      monitorAvailable: false,
+    });
+    board.refresh();
+    states.set('main', {
+      placement: 'off',
+      renderer: 'running',
+      monitorAvailable: true,
+    });
+    board.refresh();
+    board.refresh();
+    expect(listener).toHaveBeenCalledTimes(2);
+    expect(board.snapshot()['main']).toMatchObject({
+      placement: 'off',
+      monitorAvailable: true,
+    });
+  });
+  it('publishes and clears a control conflict independently of window placement', () => {
+    const {board, states, listener} = setUp();
+    states.set('main', {
+      placement: 'controlConflict',
+      renderer: 'running',
+      monitor: 2,
+    });
+    board.refresh();
+    expect(board.snapshot()['main']).toMatchObject({
+      placement: 'window',
+      controlConflict: true,
+      monitor: 2,
+    });
+    states.set('main', {placement: 'window', renderer: 'running', monitor: 2});
+    board.refresh();
+    expect(listener).toHaveBeenCalledTimes(2);
+    expect(board.snapshot()['main']).not.toHaveProperty('controlConflict');
+  });
+  it('builds each screen from its placement, renderer state, and frame rate', () => {
+    const {board} = setUp();
+    expect(board.snapshot()).toEqual({
+      main: {
+        placement: 'fullscreen',
+        renderer: 'running',
+        fps: 59.9,
+        fpsLow: false,
+      },
+    });
+  });
+
+  it('gives no frame rate for an output that is off', () => {
+    const {board, states} = setUp();
+    states.set('main', {placement: 'off', renderer: 'running'});
+    expect(board.snapshot()['main']).toMatchObject({fps: null, fpsLow: false});
+  });
+
+  it('announces a change once and stays quiet while nothing changes', () => {
+    const {board, states, listener} = setUp();
+    board.refresh();
+    board.refresh();
+    expect(listener).toHaveBeenCalledTimes(1);
+    states.set('main', {placement: 'fullscreen', renderer: 'limited'});
+    board.refresh();
+    expect(listener).toHaveBeenCalledTimes(2);
+    expect(listener.mock.lastCall?.[0]).toMatchObject({
+      main: {renderer: 'limited'},
+    });
+  });
+
+  it('passes the monitor number on and announces a change of it', () => {
+    const {board, states, listener} = setUp();
+    states.set('main', {
+      placement: 'fullscreen',
+      renderer: 'running',
+      monitor: 2,
+    });
+    board.refresh();
+    expect(listener.mock.lastCall?.[0]).toMatchObject({main: {monitor: 2}});
+    states.set('main', {
+      placement: 'monitorMissing',
+      renderer: 'running',
+      monitor: 3,
+    });
+    board.refresh();
+    expect(listener).toHaveBeenCalledTimes(2);
+    expect(listener.mock.lastCall?.[0]).toMatchObject({
+      main: {placement: 'monitorMissing', monitor: 3},
+    });
+    expect(board.snapshot()['main']).toHaveProperty('monitor', 3);
+  });
+
+  it('leaves the monitor out for a screen that never had one', () => {
+    const {board} = setUp();
+    expect(board.snapshot()['main']).not.toHaveProperty('monitor');
+  });
+
+  it('announces a low frame rate', () => {
+    const {board, rates, listener} = setUp();
+    board.refresh();
+    rates.set('main', {fps: 41, status: 'low'});
+    board.refresh();
+    expect(listener.mock.lastCall?.[0]).toMatchObject({
+      main: {fps: 41, fpsLow: true},
+    });
+  });
+
+  it('stops announcing to a listener that left', () => {
+    const {board, listener} = setUp();
+    const other = vi.fn();
+    const unsubscribe = board.subscribe(other);
+    unsubscribe();
+    board.refresh();
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect(other).not.toHaveBeenCalled();
+  });
+});

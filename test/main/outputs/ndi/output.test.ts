@@ -52,7 +52,7 @@ vi.mock('electron', () => ({
   BrowserWindow: mocks.Window,
   utilityProcess: {fork: mocks.fork},
 }));
-vi.mock('@main/base/page', () => ({
+vi.mock('@main/base/renderers/page', () => ({
   blockNavigation: vi.fn(),
   preloadPath: 'preload.js',
   startLoading: vi.fn(async () => undefined),

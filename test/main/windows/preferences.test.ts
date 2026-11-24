@@ -2,7 +2,7 @@ import {BrowserWindow} from 'electron';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {windowEndpoints} from '@contracts/ipc/window';
 import {recordingLogger} from '@fixtures/main/displays/testing';
-import {loadPage} from '@main/base/page';
+import {loadPage} from '@main/base/renderers/page';
 import {registerSettingsWindow} from '@main/windows/settingsWindow';
 import {
   preferencesBounds,
@@ -108,7 +108,7 @@ vi.mock('@main/windows/controlClose', () => ({
     return handshake;
   },
 }));
-vi.mock('@main/base/page', () => ({
+vi.mock('@main/base/renderers/page', () => ({
   preloadPath: 'preload.js',
   loadPage: vi.fn(),
   blockNavigation: vi.fn(),

@@ -14,7 +14,7 @@ import {
   type ScreenSettingsPort,
 } from '@main/live/slice';
 import type {SettingsReader} from '@core/schema/app/settingsReader';
-import {SliceRegistry} from '@main/live/sliceRegistry';
+import {SliceRegistry} from '@main/live/registry/sliceRegistry';
 import {batchSlice} from '@main/live/slices/batch';
 import {clearSlice} from '@main/live/slices/clear';
 import {contentSlice} from '@main/live/slices/content';

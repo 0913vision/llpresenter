@@ -23,7 +23,7 @@ export default defineConfig({
       rolldownOptions: {
         input: {
           index: resolve('src/main/index.ts'),
-          powerpointWorker: resolve('src/main/import/powerpointWorker.ts'),
+          powerpointWorker: resolve('src/main/import/pptx/powerpointWorker.ts'),
         },
         output: {
           entryFileNames: '[name].js',
@@ -61,7 +61,7 @@ export default defineConfig({
             'transitionClock.cjs',
           ]) {
             copyFileSync(
-              resolve('src/main/presenter', file),
+              resolve('src/main/outputs/presenter', file),
               resolve(presenter, file),
             );
           }

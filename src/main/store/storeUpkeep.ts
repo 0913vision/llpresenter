@@ -6,7 +6,7 @@ import {Backups, type BackupOutcome} from './files/backup';
 import {type LoadedStore} from './locations/fileStore';
 import {dataFileFolders} from './locations/locations';
 import {settingsLocation} from './settings/settingsFile';
-import {removeStaleTempFiles} from '../base/staleTempFiles';
+import {removeStaleTempFiles} from '../base/files/staleTempFiles';
 
 const MAX_LOGGED_PROBLEMS = 50;
 

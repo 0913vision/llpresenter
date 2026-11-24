@@ -7,7 +7,7 @@ import {dispatchLogged} from '../live/store';
 import {registerMacros} from '../macros/register';
 import {registerAudioOutput} from '../outputs/audio';
 import {showOutputsOnLaunch} from '../outputs/launch';
-import type {registerPlaybackProblems} from '../outputs/playbackProblems';
+import type {registerPlaybackProblems} from '../outputs/health/playbackProblems';
 import {
   deferSoakScenario,
   registerSoakRecorder,

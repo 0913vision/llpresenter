@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {audioMutedByDefault} from '@main/base/audioPolicy';
+import {audioMutedByDefault} from '@main/base/renderers/audioPolicy';
 
 describe('audioMutedByDefault', () => {
   it.each([

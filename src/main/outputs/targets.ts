@@ -1,14 +1,14 @@
 import type {BrowserWindow} from 'electron';
 import type {Logger} from '../base/log';
 import type {ProblemFeed} from '../base/problemFeed';
-import type {WindowMode} from '../base/testWindows';
-import {createElectronOutputWindow} from './electronWindow';
+import type {WindowMode} from '../base/renderers/testWindows';
+import {createElectronOutputWindow} from './window/electronWindow';
 import {createNdiOutput} from './ndi/output';
 import type {OutputWindowEvents, OutputWindowHandle} from './outputWindow';
-import type {PlaybackProblemBoard} from './playbackProblems';
-import {createPresentedOutputWindow} from './presentedWindow';
+import type {PlaybackProblemBoard} from './health/playbackProblems';
+import {createPresentedOutputWindow} from './presenter/presentedWindow';
 import type {OutputScreen} from './screens';
-import type {OutputStatusBoard} from './statusBoard';
+import type {OutputStatusBoard} from './health/statusBoard';
 
 interface TargetContext {
   readonly control: BrowserWindow;

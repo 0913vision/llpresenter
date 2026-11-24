@@ -8,7 +8,7 @@ import {
   thumbnailRevisionFromUrl,
 } from '@contracts/ipc/mediaUrls';
 import type {Logger} from '../base/log';
-import {realPathInside} from '../base/insideRoots';
+import {realPathInside} from '../base/files/insideRoots';
 
 const MEDIA_TYPES: Readonly<Record<string, string>> = {
   '.mp4': 'video/mp4',

@@ -1,5 +1,5 @@
 import {defineSlice} from '../slice';
-import {showBackground} from '../slideBackground';
+import {showBackground} from '../media/slideBackground';
 
 export const themesSlice = defineSlice({
   commands: ['theme.set', 'themes.refresh', 'item.start', 'item.stop'],

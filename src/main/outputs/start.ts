@@ -12,24 +12,24 @@ import type {Rect} from '../displays/rect';
 import {IpcHost} from '../base/ipcHost';
 import type {LiveStore} from '../live/store';
 import type {Logger} from '../base/log';
-import type {WindowMode} from '../base/testWindows';
-import {createSettingsScreenSource} from './settingsScreens';
-import {createDefaultScreenSource} from './defaultScreens';
+import type {WindowMode} from '../base/renderers/testWindows';
+import {createSettingsScreenSource} from './monitors/settingsScreens';
+import {createDefaultScreenSource} from './monitors/defaultScreens';
 import {createElectronWakeLock} from './electronWakeLock';
-import {presentTransition} from './presentedWindow';
-import {FrameRateTracker, type ScreenFrameRate} from './frameRates';
+import {presentTransition} from './presenter/presentedWindow';
+import {FrameRateTracker, type ScreenFrameRate} from './health/frameRates';
 import {OutputManager, type PreparedScreens} from './manager';
-import {MonitorNumbers} from './monitorNumbers';
-import {openNumberWindow} from './numberWindow';
-import {OutputStatusBoard} from './statusBoard';
+import {MonitorNumbers} from './monitors/monitorNumbers';
+import {openNumberWindow} from './monitors/numberWindow';
+import {OutputStatusBoard} from './health/statusBoard';
 import {WakeKeeper, keepAwakeWhileOutputsOn} from './wakeLock';
-import {assignInitialMonitors} from './initialMonitors';
+import {assignInitialMonitors} from './monitors/initialMonitors';
 import {findControlMonitor} from '../displays/monitor';
-import {watchControlMonitor} from './controlMonitor';
-import type {PlaybackProblemBoard} from './playbackProblems';
+import {watchControlMonitor} from './monitors/controlMonitor';
+import type {PlaybackProblemBoard} from './health/playbackProblems';
 import type {ProblemFeed} from '../base/problemFeed';
 import {outputTargets} from './targets';
-import {PreviewHub} from './previewHub';
+import {PreviewHub} from './previews/previewHub';
 
 /** What the output windows hang on. */
 export interface OutputContext {

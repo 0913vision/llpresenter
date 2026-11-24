@@ -1,21 +1,21 @@
 import {app, BrowserWindow} from 'electron';
 import type {Logger} from '../base/log';
 import type {MediaStore} from '../store/media/mediaStore';
-import {connectMediaPlayback} from '../live/mediaPlayback';
-import {RendererRecovery} from '../base/rendererRecovery';
-import {audioMutedByDefault} from '../base/audioPolicy';
+import {connectMediaPlayback} from '../live/media/mediaPlayback';
+import {RendererRecovery} from '../base/renderers/rendererRecovery';
+import {audioMutedByDefault} from '../base/renderers/audioPolicy';
 import {
   blockNavigation,
   loadPage,
   startLoading,
   preloadPath,
   type PageRequest,
-} from '../base/page';
-import type {WindowMode} from '../base/testWindows';
+} from '../base/renderers/page';
+import type {WindowMode} from '../base/renderers/testWindows';
 import {
   watchPlaybackProblems,
   type PlaybackProblemBoard,
-} from './playbackProblems';
+} from './health/playbackProblems';
 
 interface AudioOutputOptions {
   readonly playbackProblems?: Pick<

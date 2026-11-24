@@ -1,6 +1,6 @@
 import {app} from 'electron';
 import {startOutputs} from '../outputs/start';
-import type {registerPlaybackProblems} from '../outputs/playbackProblems';
+import type {registerPlaybackProblems} from '../outputs/health/playbackProblems';
 import {controlRecoveryPlacement} from '../windows/controlRecovery';
 import {GraphicsRecovery} from '../windows/graphicsRecovery';
 import type {ControlOwner} from './controlOwner';

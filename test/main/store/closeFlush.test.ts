@@ -15,7 +15,7 @@ import {installMockClock} from '@fixtures/mockClock';
 import {makeTempDir} from '@fixtures/tempDir';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {registerControlClose} from '@main/windows/controlClose';
-import * as atomicWrite from '@main/base/atomicWrite';
+import * as atomicWrite from '@main/base/files/atomicWrite';
 import {openAppConfig} from '@main/store/locations/appConfigFile';
 import type {WriteResult} from '@main/store/files/fileWriter';
 import {DATA_FOLDER_NAME} from '@main/store/locations/locations';

@@ -3,8 +3,8 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {parseLiveCommand} from '@core/schema/live/liveCommand';
 import {timerText} from '@core/timers/timerClock';
 import {recordingLogger} from '@fixtures/main/displays/testing';
-import {startOverlays} from '@main/live/overlays';
-import {followTimerCompletion} from '@main/live/timerCompletion';
+import {startOverlays} from '@main/live/overlays/overlays';
+import {followTimerCompletion} from '@main/live/overlays/timerCompletion';
 import {LiveStore} from '@main/live/store';
 import {overlaySettings, overlayUuid} from '@fixtures/core/overlays';
 

@@ -18,7 +18,7 @@ import type {MediaItemsCommit} from '../store/media/mediaStore';
 import {copyWithProgress, freePath, type CopyOptions} from './copyFile';
 import type {Analysis, AnalysisRequest, MediaFacts} from './mediaAnalyser';
 import {mediaKindOf, type MediaKind} from './mediaKinds';
-import {realPathInside} from '../base/insideRoots';
+import {realPathInside} from '../base/files/insideRoots';
 import {storedPath} from './storedPath';
 import {
   beginMediaImport,

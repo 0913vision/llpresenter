@@ -14,8 +14,8 @@ import {
 } from '@core/schema/media/mediaImportJournal';
 import type {MediaList} from '@core/schema/media/mediaList';
 import type {Logger} from '../../base/log';
-import {writeFileAtomically} from '../../base/atomicWrite';
-import {isMissingFile} from '../../base/fsErrors';
+import {writeFileAtomically} from '../../base/files/atomicWrite';
+import {isMissingFile} from '../../base/files/fsErrors';
 
 const JOURNAL_FOLDER = '.imports';
 const MAX_JOURNAL_BYTES = 4096;

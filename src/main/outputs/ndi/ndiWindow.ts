@@ -1,7 +1,11 @@
 import {NDI_DEFAULT_FPS} from '@core/schema/screens/screens';
 import {BrowserWindow, type UtilityProcess} from 'electron';
 import type {Logger} from '../../base/log';
-import {blockNavigation, preloadPath, startLoading} from '../../base/page';
+import {
+  blockNavigation,
+  preloadPath,
+  startLoading,
+} from '../../base/renderers/page';
 import type {OutputScreen} from '../screens';
 import type {OutputWindowEvents} from '../outputWindow';
 import {NDI_FRAME_HEIGHT, NDI_FRAME_WIDTH} from './textureQueue';

@@ -2,7 +2,7 @@ import type {SlideLayer} from '@core/schema/live/live';
 import {sameJson} from '@core/common/sameJson';
 import {setLayer, withLayers} from '../history';
 import {defineSlice} from '../slice';
-import {showBackground, showMedia} from '../slideBackground';
+import {showBackground, showMedia} from '../media/slideBackground';
 
 /** Puts content on a layer: a slide, a background, or a message. */
 export const contentSlice = defineSlice({

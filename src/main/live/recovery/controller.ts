@@ -11,7 +11,7 @@ import {
   type RecoveryRecord,
 } from '@core/schema/app/recoveryRecord';
 import type {Logger} from '../../base/log';
-import {isMissingFile} from '../../base/fsErrors';
+import {isMissingFile} from '../../base/files/fsErrors';
 import {dispatchBatchedCommitted} from '../store';
 import {
   planRecovery,

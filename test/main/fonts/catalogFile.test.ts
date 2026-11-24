@@ -4,7 +4,9 @@ import {readCatalogFile, writeCatalogFile} from '@main/fonts/catalogFile';
 
 const disk = vi.hoisted(() => ({read: vi.fn(), stat: vi.fn(), write: vi.fn()}));
 vi.mock('node:fs/promises', () => ({readFile: disk.read, stat: disk.stat}));
-vi.mock('@main/base/atomicWrite', () => ({writeFileAtomically: disk.write}));
+vi.mock('@main/base/files/atomicWrite', () => ({
+  writeFileAtomically: disk.write,
+}));
 const saved = {stamp: 'a'.repeat(64), families: [fontFamilyFixture()]};
 beforeEach(() => {
   vi.clearAllMocks();

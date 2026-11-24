@@ -9,7 +9,7 @@ import {
 } from '@core/schema/live/overlayState';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {MAX_OVERLAY_TIMER_MS} from '@core/overlays/timing';
-import {startOverlays} from '@main/live/overlays';
+import {startOverlays} from '@main/live/overlays/overlays';
 import {dispatchLogged, LiveStore} from '@main/live/store';
 import {
   CAPTIONS,

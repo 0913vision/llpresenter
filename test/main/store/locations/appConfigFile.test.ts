@@ -1,7 +1,7 @@
 import {mkdir, readFile, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import {writeFileAtomically} from '@main/base/atomicWrite';
+import {writeFileAtomically} from '@main/base/files/atomicWrite';
 import {
   createScreenId,
   macroCollectionIdSchema,

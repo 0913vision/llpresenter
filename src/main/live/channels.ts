@@ -1,7 +1,7 @@
 import {liveEndpoints} from '@contracts/ipc/live';
 import {IpcHost} from '../base/ipcHost';
 import type {Logger} from '../base/log';
-import {startMediaProgress} from './mediaProgress';
+import {startMediaProgress} from './media/mediaProgress';
 import {dispatchLogged, type LiveStore} from './store';
 import {startWallClockWatcher, wallClockSample} from './wallClock';
 

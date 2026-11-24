@@ -4,12 +4,12 @@ import {sameRect, type Rect, type Size} from '../displays/rect';
 import type {FrameReadyReport} from '@core/schema/app/ipcPayloads';
 import type {Logger} from '../base/log';
 import type {ShownPlacement} from './placement';
-import {ANSWER_LIMIT_MS, FRAME_SILENCE_MS, HangWatch} from './hangWatch';
+import {ANSWER_LIMIT_MS, FRAME_SILENCE_MS, HangWatch} from './health/hangWatch';
 import {
   RendererRecovery,
   type RendererGoneDetails,
   type RendererState,
-} from '../base/rendererRecovery';
+} from '../base/renderers/rendererRecovery';
 import type {OutputScreen} from './screens';
 import type {WebContents} from 'electron';
 

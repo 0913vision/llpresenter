@@ -12,7 +12,7 @@ import {
 import {RECOVERY_RECORD_LIMITS} from '@core/schema/app/recoveryRecord';
 import {makeTempDir} from '@fixtures/tempDir';
 import {recordingLogger} from '@fixtures/main/displays/testing';
-import {SliceRegistry} from '@main/live/sliceRegistry';
+import {SliceRegistry} from '@main/live/registry/sliceRegistry';
 import {LiveStore} from '@main/live/store';
 import {
   CAPTIONS,

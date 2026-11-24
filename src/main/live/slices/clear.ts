@@ -10,9 +10,9 @@ import {
 } from '@core/schema/live/live';
 import {audioPositionSeconds} from '@core/schema/media/audioState';
 import type {MessageId} from '@core/schema/common/ids';
-import {clearOverlay} from '../clearOverlay';
+import {clearOverlay} from '../overlays/clearOverlay';
 import {withClearEffects} from '../clearEffects';
-import {nextAudioTrackVersion} from '../audioTrackVersion';
+import {nextAudioTrackVersion} from '../media/audioTrackVersion';
 import {
   withLayers,
   withClearSnapshots,

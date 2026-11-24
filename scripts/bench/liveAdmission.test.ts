@@ -8,7 +8,7 @@ import {LiveStore} from '../../src/main/live/store';
 import {
   SliceRegistry,
   type SkippedLiveCommand,
-} from '../../src/main/live/sliceRegistry';
+} from '../../src/main/live/registry/sliceRegistry';
 import {batchSlice} from '../../src/main/live/slices/batch';
 import {outputsSlice} from '../../src/main/live/slices/outputs';
 import {heavyState, typicalState, uuid} from './liveFixtures';

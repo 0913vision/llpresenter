@@ -3,8 +3,8 @@
 import {beforeEach, expect, onTestFinished, vi} from 'vitest';
 import type {Rect} from '@main/displays/rect';
 import type {Logger} from '@main/base/log';
-import type {WindowMode} from '@main/base/testWindows';
-import {createElectronOutputWindow} from '@main/outputs/electronWindow';
+import type {WindowMode} from '@main/base/renderers/testWindows';
+import {createElectronOutputWindow} from '@main/outputs/window/electronWindow';
 import type {OutputWindowHandle} from '@main/outputs/outputWindow';
 import type {OutputScreen} from '@main/outputs/screens';
 
@@ -72,7 +72,7 @@ vi.mock('electron', () => ({
   BrowserWindow: electron.MockBrowserWindow,
   screen: {getDisplayMatching: electron.getDisplayMatching},
 }));
-vi.mock('@main/base/page', () => ({
+vi.mock('@main/base/renderers/page', () => ({
   preloadPath: 'preload.js',
   loadPage: vi.fn(),
   startLoading: vi.fn(() => Promise.resolve()),

@@ -4,7 +4,7 @@ import {outputMediaProperties} from '@core/schema/media/outputMedia';
 import {MissingLiveTargetError} from '../commandErrors';
 import {setLayer, updateLayer, type LiveHistory} from '../history';
 import {defineSlice, type SliceContext} from '../slice';
-import {nextAudioTrackVersion} from '../audioTrackVersion';
+import {nextAudioTrackVersion} from '../media/audioTrackVersion';
 
 function play(
   history: LiveHistory,

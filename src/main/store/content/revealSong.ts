@@ -2,7 +2,7 @@ import {shell} from 'electron';
 import {libraryEndpoints} from '@contracts/ipc/library';
 import {IpcHost} from '../../base/ipcHost';
 import type {Logger} from '../../base/log';
-import type {WindowMode} from '../../base/testWindows';
+import type {WindowMode} from '../../base/renderers/testWindows';
 
 /**
  * Shows a 라이브러리 song's file in the file manager when a window asks by id.

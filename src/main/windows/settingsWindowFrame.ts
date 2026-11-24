@@ -3,14 +3,14 @@ import {BrowserWindow, screen} from 'electron';
 import type {UiZoomRegistration} from '../store/settings/uiZoom';
 import type {Logger} from '../base/log';
 import type {AppConfig} from '@core/schema/app/appConfig';
-import {blockNavigation, loadPage, preloadPath} from '../base/page';
+import {blockNavigation, loadPage, preloadPath} from '../base/renderers/page';
 import {reloadAfterCrash} from './crashReload';
-import {appIconPath} from '../base/appIcon';
+import {appIconPath} from '../base/renderers/appIcon';
 import {
   discardTestFrames,
   windowTestOptions,
   type WindowMode,
-} from '../base/testWindows';
+} from '../base/renderers/testWindows';
 
 export const PREFERENCES_WIDTH = 1040;
 export const PREFERENCES_HEIGHT = 800;

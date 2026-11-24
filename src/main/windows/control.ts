@@ -4,20 +4,20 @@ import {launchEndpoints} from '@contracts/ipc/launch';
 import {IpcHost, pushToWindow} from '../base/ipcHost';
 import type {Logger} from '../base/log';
 import type {UiZoomRegistration} from '../store/settings/uiZoom';
-import {audioMutedByDefault} from '../base/audioPolicy';
-import {appIconPath} from '../base/appIcon';
-import {logWindowResponsiveness} from '../base/responsiveness';
+import {audioMutedByDefault} from '../base/renderers/audioPolicy';
+import {appIconPath} from '../base/renderers/appIcon';
+import {logWindowResponsiveness} from '../base/renderers/responsiveness';
 import {
   blockNavigation,
   loadPage,
   preloadPath,
   type PageRequest,
-} from '../base/page';
+} from '../base/renderers/page';
 import {
   discardTestFrames,
   windowTestOptions,
   type WindowMode,
-} from '../base/testWindows';
+} from '../base/renderers/testWindows';
 import {reloadAfterCrash} from './crashReload';
 import {watchWindowMinimized} from './windowMinimized';
 

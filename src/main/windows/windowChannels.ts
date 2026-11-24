@@ -2,7 +2,10 @@ import {BrowserWindow, shell} from 'electron';
 import {windowEndpoints, type WindowAction} from '@contracts/ipc/window';
 import {IpcHost} from '../base/ipcHost';
 import type {Logger} from '../base/log';
-import {allowsWindowAction, type WindowMode} from '../base/testWindows';
+import {
+  allowsWindowAction,
+  type WindowMode,
+} from '../base/renderers/testWindows';
 
 /** What the 도움말 menu needs from the app. */
 export interface AppFacts {

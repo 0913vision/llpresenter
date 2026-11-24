@@ -3,7 +3,7 @@ import {parseActiveMessages} from '@core/schema/live/overlayState';
 import type {ScreenId} from '@core/schema/common/ids';
 import {MissingLiveTargetError} from '../commandErrors';
 import {setLayer, withLayers, type LiveHistory} from '../history';
-import {messageLayer} from '../messageState';
+import {messageLayer} from '../overlays/messageState';
 import {defineSlice, type CommandOf, type SliceContext} from '../slice';
 
 function targetsFor(

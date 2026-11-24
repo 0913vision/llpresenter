@@ -2,15 +2,18 @@ import {emptyLiveState} from '@core/schema/live/live';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {parseMediaDocument} from '@core/schema/media/mediaEdit';
 import {recordingLogger} from '@fixtures/main/displays/testing';
-import {connectMediaPlayback} from '@main/live/mediaPlayback';
+import {connectMediaPlayback} from '@main/live/media/mediaPlayback';
 import type {LiveStore} from '@main/live/store';
 import type {MediaStore} from '@main/store/media/mediaStore';
 import {registerAudioOutput} from '@main/outputs/audio';
-import {audioMutedByDefault} from '@main/base/audioPolicy';
-import {loadPage, startLoading} from '@main/base/page';
-import type {WindowMode} from '@main/base/testWindows';
-import type {RecoveryOptions, RendererState} from '@main/base/rendererRecovery';
-import {watchPlaybackProblems} from '@main/outputs/playbackProblems';
+import {audioMutedByDefault} from '@main/base/renderers/audioPolicy';
+import {loadPage, startLoading} from '@main/base/renderers/page';
+import type {WindowMode} from '@main/base/renderers/testWindows';
+import type {
+  RecoveryOptions,
+  RendererState,
+} from '@main/base/renderers/rendererRecovery';
+import {watchPlaybackProblems} from '@main/outputs/health/playbackProblems';
 
 const mocks = await vi.hoisted(async () => {
   const {EventEmitter} = await import('node:events');
@@ -52,22 +55,22 @@ const mocks = await vi.hoisted(async () => {
   return {Window, Recovery, windows, recoveries, app: {isPackaged: false}};
 });
 vi.mock('electron', () => ({app: mocks.app, BrowserWindow: mocks.Window}));
-vi.mock('@main/base/page', () => ({
+vi.mock('@main/base/renderers/page', () => ({
   loadPage: vi.fn(),
   startLoading: vi.fn(() => Promise.resolve()),
   blockNavigation: vi.fn(),
   preloadPath: 'preload.js',
 }));
-vi.mock('@main/base/audioPolicy', () => ({
+vi.mock('@main/base/renderers/audioPolicy', () => ({
   audioMutedByDefault: vi.fn(() => true),
 }));
-vi.mock('@main/live/mediaPlayback', () => ({
+vi.mock('@main/live/media/mediaPlayback', () => ({
   connectMediaPlayback: vi.fn(() => vi.fn()),
 }));
-vi.mock('@main/base/rendererRecovery', () => ({
+vi.mock('@main/base/renderers/rendererRecovery', () => ({
   RendererRecovery: mocks.Recovery,
 }));
-vi.mock('@main/outputs/playbackProblems', () => ({
+vi.mock('@main/outputs/health/playbackProblems', () => ({
   watchPlaybackProblems: vi.fn(() => vi.fn()),
 }));
 

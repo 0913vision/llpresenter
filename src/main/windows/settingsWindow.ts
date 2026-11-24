@@ -7,7 +7,7 @@ import {
 import type {PreferencePageId} from '@core/schema/app/preferencePages';
 import type {AppConfigFile} from '../store/locations/appConfigFile';
 import {IpcHost, pushToWindow} from '../base/ipcHost';
-import {logWindowResponsiveness} from '../base/responsiveness';
+import {logWindowResponsiveness} from '../base/renderers/responsiveness';
 import {registerControlClose, type ControlClose} from './controlClose';
 import {
   createPreferencesWindow,

@@ -6,7 +6,7 @@ import type {LaunchTimes} from '@core/schema/app/launch';
 import type {LibraryLocationField} from '@core/schema/app/libraryLocations';
 import type {PreferencePageId} from '@core/schema/app/preferencePages';
 import type {Logger} from '../../base/log';
-import {writeFileAtomically} from '../../base/atomicWrite';
+import {writeFileAtomically} from '../../base/files/atomicWrite';
 import {Autosave} from '../files/autosave';
 import {FileWriter, type WriteFile} from '../files/fileWriter';
 import {readLocationFields, type LocationFields} from './locations';

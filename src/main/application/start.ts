@@ -1,8 +1,8 @@
 import {app, type BrowserWindow, type Details} from 'electron';
 import {ShutdownCoordinator} from '../base/shutdown';
 import type {Logger} from '../base/log';
-import type {WindowMode} from '../base/testWindows';
-import {registerPlaybackProblems} from '../outputs/playbackProblems';
+import type {WindowMode} from '../base/renderers/testWindows';
+import {registerPlaybackProblems} from '../outputs/health/playbackProblems';
 import {prepareSoakGarbageCollection} from '../soak';
 import {registerGpuTestHook} from '../windows/gpuTestHook';
 import {startControlFeatures} from './controlFeatures';

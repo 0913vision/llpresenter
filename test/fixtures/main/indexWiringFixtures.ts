@@ -256,13 +256,13 @@ vi.mock('@main/outputs/audio', () => ({
     return mocks.audioStop;
   },
 }));
-vi.mock('@main/live/overlays', () => ({
+vi.mock('@main/live/overlays/overlays', () => ({
   startOverlays: (context: unknown) => {
     mocks.overlayContexts.push(context);
     return mocks.overlaysStop;
   },
 }));
-vi.mock('@main/live/themes', () => ({
+vi.mock('@main/live/item/themes', () => ({
   registerThemeOutput: (context: unknown) => {
     mocks.themeOutputContexts.push(context);
     return mocks.themeOutputStop;
@@ -283,13 +283,13 @@ vi.mock('@main/media/register', () => ({
 vi.mock('@main/store/content/revealSong', () => ({
   registerSongReveal: () => () => undefined,
 }));
-vi.mock('@main/import/register', () => ({
+vi.mock('@main/import/text/register', () => ({
   registerTextImport: (context: unknown) => {
     mocks.textImportContexts.push(context);
     return mocks.textImportStop;
   },
 }));
-vi.mock('@main/import/registerPowerPoint', () => ({
+vi.mock('@main/import/powerpoint/registerPowerPoint', () => ({
   registerPowerPointImport: (context: unknown) => {
     mocks.powerpointImportContexts.push(context);
     return mocks.powerpointImportStop;
@@ -378,7 +378,7 @@ vi.mock('@main/outputs/start', () => ({
     return {stop: mocks.outputsStop, frameRates: mocks.frameRates};
   },
 }));
-vi.mock('@main/outputs/playbackProblems', () => ({
+vi.mock('@main/outputs/health/playbackProblems', () => ({
   registerPlaybackProblems: () => ({
     board: mocks.playbackProblems,
     stop: mocks.playbackProblemsStop,
