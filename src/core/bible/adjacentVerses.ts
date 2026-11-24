@@ -4,8 +4,13 @@ import type {
   BibleLookupReply,
 } from '@core/schema/bible/bibleLookup';
 
+/** Which neighbor of a passage endpoint to move to. */
 export type VerseDirection = 'previous' | 'next';
 
+/**
+ * The book a lookup passage belongs to, or undefined when its ref does not
+ * start with a known book name.
+ */
 export function passageBook(passage: Pick<BibleLookupPassage, 'ref'>) {
   return exactBibleBook(passage.ref.split(' ')[0] ?? '');
 }

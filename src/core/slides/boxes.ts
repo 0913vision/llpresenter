@@ -37,6 +37,10 @@ export function ownText(slide: Slide, box: string): string {
   return (box === NEXT_BOX ? slide.next : slide.texts[box]) ?? '';
 }
 
+/**
+ * The slide with its own text in a box; the next-line box is stored apart from
+ * the others.
+ */
 export function withOwnText(slide: Slide, box: string, text: string): Slide {
   return box === NEXT_BOX ? withNext(slide, text) : withText(slide, box, text);
 }

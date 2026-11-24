@@ -1,3 +1,4 @@
+/** The text of each liturgy in each wording, one string per slide. */
 export const LITURGY_SLIDES = {
   creed: {
     new: [

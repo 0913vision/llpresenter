@@ -37,4 +37,5 @@ export function recoveryApi(port: IpcPort) {
   };
 }
 
+/** The crash recovery part of `window.llp` as the renderer sees it. */
 export type RecoveryApi = ReturnType<typeof recoveryApi>;

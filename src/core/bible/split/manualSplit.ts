@@ -6,6 +6,7 @@ import {
 } from './boundary';
 import {layoutText, type SplitLayout} from './layout';
 
+/** One space between words; line breaks become spaces. */
 export const normalizeVerse = (text: string): string =>
   text.trim().replace(/\s+/g, ' ');
 /** One space between words, with the line breaks that were typed kept. */
@@ -14,8 +15,10 @@ export const tidyVerse = (text: string): string =>
     .trim()
     .replace(/[^\S\n]+/g, ' ')
     .replace(/ ?\n ?/g, '\n');
+/** The words of a verse after normalizing it. */
 export const wordsOf = (text: string): readonly Token[] =>
   tokenize(normalizeVerse(text));
+/** Keeps only whole word gaps inside the verse, without repeats, in order. */
 export const normalizeCuts = (
   cuts: readonly number[],
   wordCount: number,
@@ -176,6 +179,7 @@ export function offsetsFromChunks(
   return at === text.length ? offsets : undefined;
 }
 
+/** The word gaps where a cut costs at most a clause penalty. */
 export function goodBoundaries(words: readonly Token[]): readonly number[] {
   return words.flatMap((word, j) => {
     const previous = words[j - 1];
@@ -186,6 +190,7 @@ export function goodBoundaries(words: readonly Token[]): readonly number[] {
   });
 }
 
+/** The word gaps between consecutive chunks. */
 export function cutsFromChunks(
   chunks: ReadonlyArray<{readonly text: string}>,
 ): readonly number[] {

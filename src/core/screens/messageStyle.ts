@@ -34,6 +34,7 @@ export const MESSAGE_BAND: MessageBand = {
   background: MESSAGE_BAND_BACKGROUND,
 };
 
+/** The look of the 메시지 band: text style, line limit, padding and background. */
 export interface MessageBand {
   readonly font: string;
   readonly size: number;

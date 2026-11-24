@@ -46,6 +46,11 @@ export function bibleApi(port: IpcPort) {
   };
 }
 
+/** The Bible part of `window.llp` as the renderer sees it. */
 export type BibleApi = ReturnType<typeof bibleApi>;
 
+/**
+ * The one call of the Bible part that looks up a passage, for code that needs
+ * nothing else.
+ */
 export type BibleLookupApi = Pick<BibleApi, 'lookup'>;

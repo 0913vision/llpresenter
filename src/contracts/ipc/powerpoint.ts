@@ -22,6 +22,10 @@ import {
   type PowerPointOwnedImagesRequest,
   type PowerPointOwnedImagesResult,
 } from '@core/schema/songs/powerpointImport';
+/**
+ * The PowerPoint import endpoints: the channel names and how each request and
+ * reply is checked.
+ */
 export const powerpointEndpoints = {
   storeImages: request<
     PowerPointOwnedImagesRequest,
@@ -81,6 +85,7 @@ export const powerpointEndpoints = {
     },
   ),
 };
+/** The PowerPoint import part of `window.llp`. */
 export function powerpointApi(port: IpcPort) {
   return {
     storeImages: port.request(powerpointEndpoints.storeImages),
@@ -96,4 +101,5 @@ export function powerpointApi(port: IpcPort) {
     release: port.request(powerpointEndpoints.release),
   };
 }
+/** The PowerPoint import part of `window.llp` as the renderer sees it. */
 export type PowerPointApi = ReturnType<typeof powerpointApi>;

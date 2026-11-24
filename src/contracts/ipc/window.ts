@@ -6,9 +6,11 @@ import {
 } from '@core/schema/app/preferencePages';
 import {message, push, query, request, signal, type IpcPort} from './endpoint';
 
+/** A title bar action on the calling window. */
 export type WindowAction =
   'minimize' | 'toggle-maximize' | 'toggle-full-screen' | 'close';
 
+/** Every title bar action; a request is checked against this list. */
 export const windowActions: readonly WindowAction[] = [
   'minimize',
   'toggle-maximize',
@@ -26,9 +28,11 @@ export function parseWindowAction(
     : {ok: true, value: action};
 }
 
+/** An editing action that main runs on the focused text field. */
 export type TextEditAction =
   'undo' | 'redo' | 'cut' | 'copy' | 'paste' | 'selectAll';
 
+/** Every text editing action; a request is checked against this list. */
 export const textEditActions: readonly TextEditAction[] = [
   'undo',
   'redo',
@@ -65,12 +69,21 @@ function parsePreferencePageOrLast(
   return value === null ? {ok: true, value: null} : parsePreferencePage(value);
 }
 
+/** The largest request number, 2^31-1; numbering starts again after it. */
 export const PREFERENCES_REQUEST_LIMIT = 2_147_483_647;
+/**
+ * Selects a 환경설정 page. `requestId` ties the rendered page to the request that
+ * chose it.
+ */
 export interface PreferencesRequest {
   readonly requestId: number;
   readonly page: PreferencePageId;
 }
 
+/**
+ * A request to the one settings window: the 환경설정 page, whether it shows 환경설정 or
+ * 화면, and whether the view is still preparing.
+ */
 export interface SettingsRequest extends PreferencesRequest {
   readonly view: 'preferences' | 'screens';
   readonly preparing: boolean;
@@ -147,10 +160,10 @@ export function parseAppInfo(value: unknown): Result<AppInfo, PayloadError> {
   return {ok: false, error: {field: '', message: 'Expected the app info'}};
 }
 
-/** Checks the diagnostics text main collects. */
 /** The most characters of the diagnostics text; the text main builds is far smaller. */
 export const DIAGNOSTICS_TEXT_LIMIT = 20_000;
 
+/** Checks the diagnostics text main collects. */
 export function parseDiagnosticsText(
   value: unknown,
 ): Result<string, PayloadError> {
@@ -252,4 +265,5 @@ export function windowApi(port: IpcPort) {
   };
 }
 
+/** The title bar part of `window.llp` as the renderer sees it. */
 export type WindowApi = ReturnType<typeof windowApi>;

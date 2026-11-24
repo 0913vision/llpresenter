@@ -59,6 +59,10 @@ export function shortcutNames(binding: KeyBinding): readonly string[] {
   return [...mods.map(mod => modifierNames[mod]), name];
 }
 
+/**
+ * What the key recorder makes of one key press: a modifier alone, cancel,
+ * remove, Tab, a rejected key with its reason, or a binding to record.
+ */
 export type ShortcutPress =
   | {readonly kind: 'modifier'}
   | {readonly kind: 'cancel'}

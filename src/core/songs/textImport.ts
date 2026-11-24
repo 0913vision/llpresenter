@@ -50,6 +50,10 @@ function normalizeLines(text: string): string[] | null {
   return lines;
 }
 
+/**
+ * A header found in imported text, and the first lyric line under its first
+ * use.
+ */
 export interface ImportHeader {
   readonly name: string;
   readonly firstLine: string;

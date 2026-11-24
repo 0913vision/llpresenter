@@ -10,11 +10,13 @@ export const paletteColors = [
   'gray',
 ] as const;
 
+/** The name of one color of the fixed palette. */
 export type PaletteColor = (typeof paletteColors)[number];
 
 /** An 이름표 color stored as six hexadecimal channels, or no color. */
 export type LabelColor = `#${string}` | 'none';
 
+/** The 이름표 color of each palette name. */
 export const paletteHex: Readonly<Record<PaletteColor, LabelColor>> = {
   teal: '#5FB8C2',
   green: '#8FBF7A',
@@ -37,4 +39,5 @@ export function isLabelColor(value: unknown): value is LabelColor {
 /** A macro tile color. Tiles always have a color, so there is no `none`. */
 export type MacroColor = PaletteColor;
 
+/** The value of an 이름표 that has no color. */
 export const NO_LABEL_COLOR = 'none' satisfies LabelColor;

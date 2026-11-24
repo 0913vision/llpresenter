@@ -7,10 +7,16 @@ import {
   type TileCursor,
 } from './model';
 
+/** Gives the tiles of an item in output order; empty when the item has none. */
 export type TilesOf = (itemId: ItemId) => readonly SlideTile[];
 
+/** Which way to move from the live item to another item. */
 export type ItemDirection = 'next' | 'previous';
 
+/**
+ * What the next-장 and previous-장 keys need: the tiles of every item, the live
+ * tile and the open item.
+ */
 export interface SequenceState {
   readonly tilesOf: TilesOf;
   /** The tile on output, or null when no 장 is live. */

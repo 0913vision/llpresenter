@@ -93,5 +93,7 @@ export function settingsApi(port: IpcPort) {
   };
 }
 
+/** The preferences part of `window.llp` as the renderer sees it. */
 export type PreferencesApi = ReturnType<typeof preferencesApi>;
+/** The settings files part of `window.llp` as the renderer sees it. */
 export type SettingsApi = ReturnType<typeof settingsApi>;

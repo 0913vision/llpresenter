@@ -122,4 +122,5 @@ export function mediaApi(port: IpcPort, platform: WindowPlatform) {
   };
 }
 
+/** The media part of `window.llp` as the renderer sees it. */
 export type MediaApi = ReturnType<typeof mediaApi>;

@@ -1,3 +1,4 @@
+/** A word of a verse with its start and end offsets in the text. */
 export interface Token {
   readonly text: string;
   readonly start: number;
@@ -122,11 +123,17 @@ const DETERMINERS = new Set([
   '우리의',
 ]);
 
+/** Penalty for cutting after a sentence ending; the lowest. */
 export const PENALTY_SENTENCE = 0;
+/** Penalty for cutting after a clause ending. */
 export const PENALTY_CLAUSE = 14;
+/** Penalty for cutting between two plain words. */
 export const PENALTY_WORD = 45;
+/** Penalty for cutting right after a particle. */
 export const PENALTY_PARTICLE = 80;
+/** Penalty for cutting after a word that leans on the next one. */
 export const PENALTY_FORWARD = 95;
+/** The highest penalty a cut can get. */
 export const PENALTY_MAX = 100;
 
 const CLASS_PENALTY = {
@@ -139,6 +146,10 @@ const CLASS_PENALTY = {
 
 const syllables = (word: string) => Array.from(word.replace(/[^가-힣]+$/, ''));
 
+/**
+ * Tells how the word ends: a sentence, a clause, a particle, a word that leans
+ * forward, or something else.
+ */
 export const classifyEnding = (word: string): keyof typeof CLASS_PENALTY => {
   if (SENTENCE_END_RE.test(word)) return 'final';
   if (FORWARD_RE.test(word)) return 'forward';
@@ -161,6 +172,7 @@ export const classifyEnding = (word: string): keyof typeof CLASS_PENALTY => {
   return 'other';
 };
 
+/** Splits text into words at whitespace and keeps their offsets. */
 export const tokenize = (text: string): Token[] => {
   const tokens = [];
   const re = /\S+/g;
@@ -183,6 +195,10 @@ const isParallel = (left: string, right: string) => {
   );
 };
 
+/**
+ * How bad it is to cut between two words, from 0 to PENALTY_MAX; lower is a
+ * better place.
+ */
 export const boundaryPenalty = (left: string, right: string) => {
   let cls = classifyEnding(left);
   if (cls === 'final' && QUOTATIVE_NEXT_RE.test(right)) cls = 'clause';
@@ -200,6 +216,7 @@ export const boundaryPenalty = (left: string, right: string) => {
   return Math.min(penalty, PENALTY_MAX);
 };
 
+/** The Korean name of the kind of cut place a penalty stands for. */
 export const penaltyLabel = (p: number) => {
   if (p <= PENALTY_SENTENCE + 4) return '문장끝';
   if (p <= PENALTY_CLAUSE + 6) return '절경계';

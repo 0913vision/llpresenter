@@ -1,6 +1,7 @@
 import {exactBibleBook, findBibleBooks} from './bibleMatching';
 import type {BibleLookupReply} from '@core/schema/bible/bibleLookup';
 
+/** The four boxes of the reference field, as typed. */
 export interface ReferenceFields {
   readonly book: string;
   readonly chapter: string;
@@ -8,8 +9,10 @@ export interface ReferenceFields {
   readonly end: string;
 }
 
+/** The name of one box of the reference field. */
 export type ReferencePart = keyof ReferenceFields;
 
+/** The reference field with every box empty. */
 export const EMPTY_REFERENCE: ReferenceFields = {
   book: '',
   chapter: '',
@@ -17,6 +20,7 @@ export const EMPTY_REFERENCE: ReferenceFields = {
   end: '',
 };
 
+/** The book the typed text names: an exact match, or the only candidate. */
 export function selectedBook(input: string) {
   const candidates = findBibleBooks(input);
   return (
@@ -119,6 +123,10 @@ export function reconcileReferenceFields(
   return fields;
 }
 
+/**
+ * Sets one box and clears the boxes that no longer fit. Pasting `3:16-18` or
+ * `16-18` fills the chapter and verse boxes at once.
+ */
 export function changeReferenceField(
   fields: ReferenceFields,
   part: ReferencePart,

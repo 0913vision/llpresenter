@@ -5,6 +5,10 @@ const commandsById = new Map(
   shortcutCommands.map(command => [command.id, command]),
 );
 
+/**
+ * The command with this id, including a per-object command such as one for a
+ * theme or macro; undefined for an unknown id.
+ */
 export function shortcutCommand(id: string): ShortcutCommand | undefined {
   return commandsById.get(id) ?? objectShortcutCommand(id);
 }
@@ -44,16 +48,21 @@ export function objectShortcutCommand(
   };
 }
 
+/** Two commands that are bound to the same key. */
 export interface ShortcutConflict {
   readonly first: string;
   readonly second: string;
   readonly binding: KeyBinding;
 }
 
+/** A text key for a binding, such as `ctrl+shift+KeyA`, to compare bindings. */
 export function bindingKey(binding: KeyBinding): string {
   return [...binding.mods, binding.code].join('+');
 }
 
+/**
+ * The keys of a command: the user's own when set, else its defaults, else none.
+ */
 export function commandBindings(
   id: string,
   overrides: ShortcutsFile['bindings'],

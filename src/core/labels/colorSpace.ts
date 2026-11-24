@@ -1,11 +1,16 @@
 import type {LabelColor} from './colors';
 
+/**
+ * A color as hue in degrees (0 to 360), and saturation and brightness in
+ * percent (0 to 100).
+ */
 export interface HsvColor {
   readonly hue: number;
   readonly saturation: number;
   readonly brightness: number;
 }
 
+/** Reads a label color as HSV; `none` reads as red. */
 export function colorToHsv(color: LabelColor): HsvColor {
   const hex = color === 'none' ? '#FF0000' : color;
   const red = parseInt(hex.slice(1, 3), 16) / 255;
@@ -29,6 +34,7 @@ export function colorToHsv(color: LabelColor): HsvColor {
   };
 }
 
+/** Writes an HSV color as an uppercase `#RRGGBB` label color. */
 export function hsvToColor({
   hue,
   saturation,

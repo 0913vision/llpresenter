@@ -6,6 +6,9 @@ import {monitorAssignment} from './monitorAssignment';
 /** A screen row's health dot: none while the output is off. */
 export type ScreenHealth = 'ok' | 'warning' | 'none';
 
+/**
+ * One row of the 화면 list: its name, icon, where it shows and its health dot.
+ */
 export interface ScreenRow {
   readonly id: string;
   readonly name: string;
@@ -16,6 +19,7 @@ export interface ScreenRow {
   readonly problem?: string | undefined;
 }
 
+/** The rows of the 화면 list for 청중, 방송 and 무대. */
 export interface ScreenGroups {
   readonly audience: readonly ScreenRow[];
   readonly broadcast: readonly ScreenRow[];
@@ -26,7 +30,12 @@ type ScreenStatus = OutputStatuses[string];
 
 const MONITOR_ICON = 'monitor';
 const CAPTURE_ICON = 'capture';
+/** What a row shows as its destination when a full-screen 화면 has no monitor. */
 export const UNASSIGNED_TARGET = '모니터 미지정';
+/**
+ * What a row shows as its destination for each output method that needs no
+ * monitor.
+ */
 export const targetByMethod = {
   window: '창',
   capture: '캡처용 창',
@@ -94,6 +103,11 @@ interface ScreenGroupsInput {
   readonly monitors: MonitorList;
 }
 
+/**
+ * The warning shown when a 화면 meant for full screen shows in a window because
+ * the control window is on that monitor. `number` is the monitor number, when
+ * known.
+ */
 export function controlConflictReason(number: number | undefined): string {
   return `${number === undefined ? '모니터' : `모니터 ${number}`}에 컨트롤 창이 있어 창으로 표시 중`;
 }

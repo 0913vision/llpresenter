@@ -5,6 +5,10 @@ import {
   type MacroActionKind,
 } from '@core/schema/tools/macros';
 
+/**
+ * The fields of the macro action form while it is edited; `kind` decides which
+ * of the others count.
+ */
 export interface MacroActionDraft {
   readonly kind: MacroActionKind;
   readonly target?: string | undefined;
@@ -16,6 +20,10 @@ export interface MacroActionDraft {
   readonly transition?: ClearFade | undefined;
 }
 
+/**
+ * Turns the form into a checked action, or undefined when the fields do not
+ * make a valid one.
+ */
 export function prepareMacroAction(
   draft: MacroActionDraft,
 ): KnownMacroAction | undefined {
@@ -95,6 +103,7 @@ export function prepareMacroAction(
   return parsed.ok ? parsed.value : undefined;
 }
 
+/** Turns a saved action back into the fields of the form. */
 export function draftMacroAction(action: KnownMacroAction): MacroActionDraft {
   switch (action.kind) {
     case 'theme':

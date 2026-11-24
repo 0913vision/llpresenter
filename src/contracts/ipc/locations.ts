@@ -50,4 +50,5 @@ export function locationsApi(port: IpcPort) {
   };
 }
 
+/** The 위치 and 백업 part of `window.llp` as the renderer sees it. */
 export type LocationsApi = ReturnType<typeof locationsApi>;

@@ -66,4 +66,5 @@ export function uiApi(port: IpcPort, platform: WindowPlatform) {
   };
 }
 
+/** The UI state part of `window.llp` as the renderer sees it. */
 export type UiApi = ReturnType<typeof uiApi>;

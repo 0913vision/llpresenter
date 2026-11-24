@@ -7,6 +7,10 @@ import {
 import {snapToGrid} from './gridSnap';
 
 type Axis = 'x' | 'y';
+/**
+ * The guide lines to draw: a vertical line at `x` and a horizontal line at `y`,
+ * each absent when nothing snaps.
+ */
 export interface GuideLines {
   readonly x?: number;
   readonly y?: number;

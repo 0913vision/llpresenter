@@ -1,9 +1,16 @@
 import type {Label} from '@core/schema/services/labels';
 import type {TextImportDraft} from '@core/schema/songs/textImport';
 
+/**
+ * The key that matches an imported header to a label name, ignoring case and
+ * outer spaces.
+ */
 export const importHeaderKey = (name: string): string =>
   name.trim().toLowerCase();
 
+/**
+ * The label whose name equals the imported header, or undefined when none does.
+ */
 export function matchingImportLabel(
   name: string,
   labels: readonly Label[],

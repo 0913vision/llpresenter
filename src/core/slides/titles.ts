@@ -40,6 +40,10 @@ export function serviceTitle(name: string): TitleCard {
   return title;
 }
 
+/**
+ * A title slide with the card's name and, when it has one, its English name and
+ * background.
+ */
 export function titleSlide(making: SlideMaking, title: TitleCard): Slide {
   return makeSlide(making, 'title', {
     texts: {

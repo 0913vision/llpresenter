@@ -10,9 +10,12 @@ import {copySlide, makeSlide, type SlideMaking} from './make';
 import {withHideNext} from './nextText';
 import {serviceTitle, titleSlide, type TitleCard} from './titles';
 
+/** The liturgies the app has: the creed and the Lord's Prayer. */
 export type LiturgyKind = ServiceItemOf<'liturgy'>['liturgy'];
+/** Which wording of a liturgy is used. */
 export type LiturgyTranslation = ServiceItemOf<'liturgy'>['translation'];
 
+/** The Korean name of each liturgy. */
 export const LITURGY_NAMES: Readonly<Record<LiturgyKind, string>> = {
   creed: '사도신경',
   prayer: '주기도문',
@@ -34,6 +37,7 @@ export function songItem(song: Song): ServiceItemOf<'song'> {
   };
 }
 
+/** A new 빈 슬라이드 item with one blank slide. */
 export function blankItem(making: SlideMaking): ServiceItemOf<'blank'> {
   return {
     id: newId(),
@@ -43,6 +47,7 @@ export function blankItem(making: SlideMaking): ServiceItemOf<'blank'> {
   };
 }
 
+/** A new 광고 item with one notice slide. */
 export function noticeItem(making: SlideMaking): ServiceItemOf<'notice'> {
   return {
     id: newId(),
@@ -52,6 +57,7 @@ export function noticeItem(making: SlideMaking): ServiceItemOf<'notice'> {
   };
 }
 
+/** A new item named after a title card, with one slide of that title. */
 export function titleItem(
   making: SlideMaking,
   title: TitleCard,
@@ -64,6 +70,7 @@ export function titleItem(
   };
 }
 
+/** A new 예배 준비 item with one slide. */
 export function preparationItem(making: SlideMaking): ServiceItemOf<'blank'> {
   return {
     id: newId(),
@@ -73,6 +80,7 @@ export function preparationItem(making: SlideMaking): ServiceItemOf<'blank'> {
   };
 }
 
+/** A new 대기 화면 item with one slide. */
 export function standbyItem(making: SlideMaking): ServiceItemOf<'blank'> {
   return {
     id: newId(),
@@ -82,6 +90,7 @@ export function standbyItem(making: SlideMaking): ServiceItemOf<'blank'> {
   };
 }
 
+/** The slides of a liturgy in one wording, one per text of LITURGY_SLIDES. */
 export function liturgySlides(
   making: SlideMaking,
   liturgy: LiturgyKind,
@@ -95,6 +104,7 @@ export function liturgySlides(
   );
 }
 
+/** A new item for a liturgy in one wording. */
 export function liturgyItem(
   making: SlideMaking,
   liturgy: LiturgyKind,
@@ -127,6 +137,7 @@ export function withLiturgyTranslation(
   };
 }
 
+/** A new item for a Bible passage with its slides, named by its reference. */
 export function bibleItem(
   passage: BiblePassage,
   slides: readonly Slide[],
@@ -197,6 +208,10 @@ export function withOneSermonTitle(
   );
 }
 
+/**
+ * A new item for a media file. A sound has no slide; any other media gets one
+ * slide with it as the background.
+ */
 export function mediaItem(
   making: SlideMaking,
   media: MediaId,

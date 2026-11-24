@@ -17,4 +17,5 @@ export function launchApi(port: IpcPort) {
   };
 }
 
+/** The launch part of `window.llp` as the renderer sees it. */
 export type LaunchApi = ReturnType<typeof launchApi>;

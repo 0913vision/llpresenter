@@ -1,3 +1,7 @@
+/**
+ * Which tabs fit in one row, leaving room for the overflow button `more` wide.
+ * The selected tab always stays visible. All are shown when they fit.
+ */
 export function fitTabIndices({
   widths,
   available,

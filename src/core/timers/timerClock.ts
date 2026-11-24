@@ -6,6 +6,7 @@ const SECONDS_PER_MINUTE = 60;
 const SECONDS_PER_HOUR = 3600;
 const TIME_PART_WIDTH = 2;
 
+/** A 타이머 that counts down, to a length or to a time of day. */
 export type CountdownTimer = Extract<
   Timer,
   {kind: 'countdown' | 'countdownTo'}
@@ -20,6 +21,10 @@ export function heldTimer(timer: Timer, run: TimerRun | undefined): Timer {
   return run?.timer ?? timer;
 }
 
+/**
+ * Whether the timer counts down and stops at zero instead of running on past
+ * it.
+ */
 export function stopsAtZero(timer: Timer): timer is CountdownTimer {
   return (
     (timer.kind === 'countdown' || timer.kind === 'countdownTo') &&
@@ -27,6 +32,7 @@ export function stopsAtZero(timer: Timer): timer is CountdownTimer {
   );
 }
 
+/** The milliseconds left on a countdown; below zero once it has passed zero. */
 export function countdownRemainingMs(
   timer: CountdownTimer,
   run: TimerRun | undefined,
@@ -115,6 +121,10 @@ function wallReading(run: TimerRun | undefined, now: TimerNow): number {
   return run?.state === 'paused' ? run.wallAt : now.wall;
 }
 
+/**
+ * The wall clock time, in epoch ms, that a count-down-to timer ends at: its
+ * time of day on its date, or on the day of the run.
+ */
 export function timerTargetTime(
   timer: Extract<Timer, {kind: 'countdownTo'}>,
   run: TimerRun | undefined,

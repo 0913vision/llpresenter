@@ -4,6 +4,10 @@ import {
   type MacroAction,
 } from '@core/schema/tools/macros';
 
+/**
+ * One change to the action list of a macro. Every change except `append`
+ * carries the list the user saw as `expected`.
+ */
 export type MacroActionEdit =
   | {readonly kind: 'append'; readonly action: KnownMacroAction}
   | {readonly kind: 'removeAll'; readonly expected: readonly MacroAction[]}
@@ -25,6 +29,10 @@ export type MacroActionEdit =
       readonly expected: readonly MacroAction[];
     };
 
+/**
+ * Applies the change and returns the new list. Throws when the list is full,
+ * differs from `expected`, or a position does not exist.
+ */
 export function editMacroActions(
   current: readonly MacroAction[],
   edit: MacroActionEdit,

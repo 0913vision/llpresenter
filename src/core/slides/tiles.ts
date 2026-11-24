@@ -164,6 +164,7 @@ export function slideSourceOf(item: SlidesItem): SlideSource {
   };
 }
 
+/** The 장 tiles of an item, in slide order. */
 export function itemTiles(
   item: SlidesItem,
   colors?: ReadonlyMap<string, LabelColor>,
@@ -171,6 +172,7 @@ export function itemTiles(
   return slideTiles(item.slides, slideSourceOf(item), colors);
 }
 
+/** The 장 tiles of a song of the library, in slide order. */
 export function songTiles(
   song: Pick<Song, 'title' | 'slides'>,
   colors?: ReadonlyMap<string, LabelColor>,

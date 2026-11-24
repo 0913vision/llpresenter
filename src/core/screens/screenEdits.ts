@@ -18,6 +18,10 @@ export const CAPTURE_RESOLUTIONS = [
   {width: 3840, height: 2160},
 ] as const;
 
+/**
+ * A partial change to a screen. `offset` changes only the fields it names, and
+ * a `null` message style returns the screen to 기본.
+ */
 export type ScreenChange = Partial<
   Omit<Screen, 'id' | 'offset' | 'messageStyleId'>
 > & {

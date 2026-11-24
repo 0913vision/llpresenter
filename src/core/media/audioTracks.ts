@@ -1,6 +1,10 @@
 import type {AudioSource} from '@core/schema/live/liveActions';
 import type {AudioPlaylist, MediaItem} from '@core/schema/media/mediaList';
 
+/**
+ * One row of an audio playlist: its place, its media item, whether it is
+ * playing, and the source it plays from.
+ */
 export interface AudioTrack {
   readonly position: number;
   readonly item: MediaItem | undefined;
@@ -9,6 +13,10 @@ export interface AudioTrack {
   readonly missing: boolean;
 }
 
+/**
+ * The rows of a playlist. A row whose audio item is gone has no `item` and is
+ * marked missing.
+ */
 export function audioTracks(
   playlist: AudioPlaylist,
   items: readonly MediaItem[],

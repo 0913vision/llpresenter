@@ -16,6 +16,10 @@ export function reverseSlideTransition(
   return {...effect, dir: opposite[effect.dir ?? 'left']};
 }
 
+/**
+ * The effect that brings the slide in: its `reverseTransition` turned around
+ * when it has one, else its own `transition`, else a cut.
+ */
 export function slideTransitionFor(
   slide: Pick<SlideLayer, 'itemId' | 'transition' | 'reverseTransition'> | null,
 ): SlideTransition {

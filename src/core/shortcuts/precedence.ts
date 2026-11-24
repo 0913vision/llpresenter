@@ -1,6 +1,10 @@
 import {type PhysicalKeyPress, editsText} from './matching';
 import type {CommandPriority} from './registry';
 
+/**
+ * Where the keyboard focus is when a key is pressed, which decides whether a
+ * shortcut may run.
+ */
 export type ShortcutFocus =
   'recording' | 'surface' | 'text' | 'control' | 'global';
 

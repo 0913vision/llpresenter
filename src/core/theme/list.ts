@@ -13,8 +13,14 @@ import {builtInTheme, themeFor} from './themes';
 
 const NEW_THEME_NAME = '새 테마';
 
+/**
+ * Why a theme list edit was refused: the theme is missing, its name is blank or
+ * too long, its name is taken, the list is full, or a built-in theme cannot be
+ * deleted.
+ */
 export type ThemeListProblem = 'missing' | 'name' | 'taken' | 'full' | 'own';
 
+/** One change to the theme list. */
 export type ThemeListEdit =
   | {readonly kind: 'add'; readonly theme: ThemeFile; readonly after: ThemeId}
   | {readonly kind: 'replace'; readonly theme: ThemeFile}
@@ -28,6 +34,7 @@ export type ThemeListEdit =
   | {readonly kind: 'restore'; readonly id: ThemeId}
   | {readonly kind: 'delete'; readonly id: ThemeId};
 
+/** The theme list after an edit, or the reason it was refused. */
 export type ThemeListResult = Result<Themes, ThemeListProblem>;
 
 type ThemeList = Pick<Themes, 'themes' | 'defaults'>;

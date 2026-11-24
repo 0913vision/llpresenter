@@ -1,6 +1,7 @@
 import type {RecentPassage} from '@core/schema/bible/bible';
 import {parseReference} from './reference';
 
+/** How many recently opened passages are kept. */
 export const RECENT_PASSAGE_LIMIT = 10;
 
 function passageKey(item: RecentPassage): string {

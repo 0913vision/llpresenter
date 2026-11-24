@@ -13,6 +13,10 @@ export type ClearCommandId =
   | 'clear.audio'
   | 'clear.message';
 
+/**
+ * One button of the 지우기 row: its command, what it clears, its label and its
+ * icon.
+ */
 export interface ClearButtonSpec {
   readonly command: ClearCommandId;
   readonly target: ClearTarget;

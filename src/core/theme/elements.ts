@@ -23,6 +23,7 @@ export const addableKinds = [
   'shape',
   'background',
 ] as const;
+/** The kinds of element that can be added to a theme screen. */
 export type AddableKind = (typeof addableKinds)[number];
 
 /** There is at most one of these on a screen. */
@@ -201,6 +202,10 @@ export function moveElements(
   };
 }
 
+/**
+ * How far elements move in the stack: to the very front or back, or by one
+ * place.
+ */
 export type StackingStep = 'front' | 'forward' | 'backward' | 'back';
 
 /** Brings elements to the front or the back together, or by one place. */
@@ -240,10 +245,15 @@ export function restackElements(
 
 const CLIPBOARD_LIMIT = 1_000_000;
 
+/** The elements as clipboard text. */
 export function serializeElements(elements: readonly ThemeElement[]): string {
   return JSON.stringify({format: 'llp.theme-elements', elements});
 }
 
+/**
+ * The elements in clipboard text, or null when the text is not theme elements
+ * or is too long.
+ */
 export function parseElements(text: string): readonly ThemeElement[] | null {
   if (text.length > CLIPBOARD_LIMIT) return null;
   try {

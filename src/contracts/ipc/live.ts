@@ -94,4 +94,5 @@ export function liveApi(port: IpcPort) {
   };
 }
 
+/** The live output part of `window.llp` as the renderer sees it. */
 export type LiveApi = ReturnType<typeof liveApi>;

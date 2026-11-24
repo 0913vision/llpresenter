@@ -1,5 +1,6 @@
 import type {KeyBinding, KeyModifier} from '@core/schema/app/shortcuts';
 
+/** A place of the app where a command is offered. */
 export type CommandContext =
   | 'control'
   | 'show'
@@ -12,8 +13,17 @@ export type CommandContext =
   | 'chips'
   | 'canvas'
   | 'search';
+/**
+ * How a command ranks against typing: `clear` and `zoom` commands keep running
+ * where `normal` ones yield to a focused control or text field.
+ */
 export type CommandPriority = 'clear' | 'zoom' | 'normal';
 
+/**
+ * A command that a key can run: its id, name, group, where it is offered,
+ * default keys, priority, whether a held key repeats it, and whether it acts on
+ * the output.
+ */
 export interface ShortcutCommand {
   readonly id: string;
   readonly name: string;

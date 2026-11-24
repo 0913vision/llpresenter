@@ -1,5 +1,9 @@
 import type {MessageLayer} from '@core/schema/live/live';
 
+/**
+ * One message on screen. `expiresAt` is an epoch time in ms, or null when it
+ * stays until cleared.
+ */
 export interface MessagePlaybackItem {
   readonly messageId: string;
   readonly text: string;
@@ -18,6 +22,7 @@ export function liveMessages(
   );
 }
 
+/** The time left as `m:ss`, or undefined when the message never expires. */
 export function messageTimeLeft(
   expiresAt: number | null,
   now: number,

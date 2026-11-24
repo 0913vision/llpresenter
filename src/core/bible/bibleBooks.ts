@@ -1,3 +1,7 @@
+/**
+ * One of the 66 books, with its Korean and English names, testament and chapter
+ * count.
+ */
 export interface BibleBook {
   readonly id: number;
   readonly korean: string;
@@ -87,6 +91,7 @@ const rows = [
   [66, '요한계시록', '계', 'Revelation', 'rev', 'new', 22],
 ] satisfies readonly BookRow[];
 
+/** All 66 books in canonical order; `id` is the 1-based position. */
 export const BIBLE_BOOKS: readonly BibleBook[] = rows.map(
   ([id, korean, koreanShort, english, englishShort, testament, chapters]) => ({
     id,

@@ -1,19 +1,33 @@
+/**
+ * The cut places of one verse: the automatic ones, the ones the user set, and
+ * whether the user removed the automatic ones.
+ */
 export interface CutState {
   readonly auto: readonly number[];
   readonly user: readonly number[];
   readonly dismissed: boolean;
 }
 
+/** A state that shows the automatic cuts and has no user cuts. */
 export const initialCutState = (auto: readonly number[]): CutState => ({
   auto: [...auto],
   user: [],
   dismissed: false,
 });
+/**
+ * The cut places in effect: the user's, else none when dismissed, else the
+ * automatic ones.
+ */
 export const effectiveCuts = (state: CutState): readonly number[] =>
   state.user.length > 0 ? state.user : state.dismissed ? [] : state.auto;
+/** Whether the automatic cuts are the ones in effect. */
 export const isShowingAuto = (state: CutState): boolean =>
   state.user.length === 0 && !state.dismissed && state.auto.length > 0;
 
+/**
+ * Adds or removes a cut at word gap `j`. Removing an automatic cut turns the
+ * others into user cuts.
+ */
 export function toggleCutState(state: CutState, j: number): CutState {
   if (isShowingAuto(state) && state.auto.includes(j)) {
     return {
@@ -36,17 +50,20 @@ interface EditStep {
 /** Retains recent undo steps without limiting how many gaps can be edited. */
 export const EDIT_HISTORY_LIMIT = 2_048;
 
+/** The undo and redo steps of cut editing around the present state. */
 export interface EditHistory {
   readonly past: readonly EditStep[];
   readonly present: CutState;
   readonly future: readonly EditStep[];
 }
 
+/** An empty history that starts at the automatic cuts. */
 export const initialEditHistory = (auto: readonly number[]): EditHistory => ({
   past: [],
   present: initialCutState(auto),
   future: [],
 });
+/** Toggles word gap `j` and records the step for undo; clears redo. */
 export function pressGap(history: EditHistory, j: number): EditHistory {
   return {
     past: [
@@ -62,6 +79,7 @@ export function pressGap(history: EditHistory, j: number): EditHistory {
   };
 }
 
+/** Takes back the last step; returns the same history when there is none. */
 export function undoEdit(history: EditHistory): EditHistory {
   const step = history.past.at(-1);
   if (step === undefined) return history;
@@ -78,6 +96,10 @@ export function undoEdit(history: EditHistory): EditHistory {
   };
 }
 
+/**
+ * Applies the step that was taken back; returns the same history when there is
+ * none.
+ */
 export function redoEdit(history: EditHistory): EditHistory {
   const step = history.future[0];
   return step === undefined
@@ -113,8 +135,13 @@ export function changedGap(
     : (userGap ?? effectiveGap);
 }
 
+/** The keys that label word gaps for keyboard cutting, home row first. */
 export const HINT_ALPHABET = 'asdfghjklqwertyuiopzxcvbnm1234567890';
 
+/**
+ * One key label per gap: single keys first, then two-key pairs when there are
+ * more gaps than keys.
+ */
 export function hintLabels(count: number): readonly string[] {
   const letters = Array.from(HINT_ALPHABET);
   if (count <= letters.length) return letters.slice(0, count);
@@ -128,6 +155,10 @@ export function hintLabels(count: number): readonly string[] {
   return out;
 }
 
+/**
+ * The letter or digit key of a keyboard event as a lowercase character, or null
+ * for any other key.
+ */
 export function hintCharFromEvent(event: {
   readonly code: string;
 }): string | null {

@@ -8,6 +8,7 @@ import type {
   ThemeTextElement,
 } from '@core/schema/screens/theme';
 
+/** The measured width and height of a text. */
 export interface TextMetrics {
   readonly height: number;
   readonly width: number;
@@ -25,6 +26,10 @@ export interface MeasuredText {
   };
 }
 
+/**
+ * Where a text goes on the slide, in canvas pixels, and the font size it is set
+ * at.
+ */
 export interface TextPlacement {
   readonly x: number;
   readonly y: number;
@@ -35,6 +40,7 @@ export interface TextPlacement {
   readonly keepRows: boolean;
 }
 
+/** Where a shape goes on the slide, in canvas pixels. */
 export interface ShapePlacement {
   readonly x: number;
   readonly y: number;
@@ -42,6 +48,7 @@ export interface ShapePlacement {
   readonly h: number;
 }
 
+/** The placement of every text and shape of a slide, by element id. */
 export interface ThemePlacement {
   readonly texts: ReadonlyMap<string, TextPlacement>;
   readonly shapes: ReadonlyMap<string, ShapePlacement>;

@@ -1,5 +1,6 @@
 import type {SlideBackground} from '@core/schema/screens/theme';
 
+/** A slide background that is a gradient. */
 export type GradientBackground = Extract<
   SlideBackground,
   {readonly kind: 'gradient'}

@@ -1,3 +1,4 @@
+/** The eight handles around a selected box. */
 export const resizeHandles = [
   'nw',
   'n',
@@ -8,7 +9,9 @@ export const resizeHandles = [
   'sw',
   'w',
 ] as const;
+/** The name of one resize handle. */
 export type ResizeHandle = (typeof resizeHandles)[number];
+/** The position and size of a box on the slide canvas, in canvas pixels. */
 export interface ElementFrame {
   readonly x: number;
   readonly y: number;
@@ -16,12 +19,18 @@ export interface ElementFrame {
   readonly h: number;
   readonly [key: string]: unknown;
 }
+/** One of the four numbers of a frame. */
 export type FrameField = 'x' | 'y' | 'w' | 'h';
+/**
+ * A new value for one frame number; `keepRatio` scales the others to keep the
+ * aspect ratio.
+ */
 export interface FrameFieldChange {
   readonly field: FrameField;
   readonly value: number;
   readonly keepRatio?: boolean;
 }
+/** The smallest width or height a box can be resized to, in canvas pixels. */
 export const MIN_SIZE = 20;
 
 /** Applies a canvas-pixel gesture without flipping a handle past its opposite edge. */

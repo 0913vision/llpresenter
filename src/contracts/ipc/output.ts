@@ -215,7 +215,11 @@ export function logApi(port: IpcPort) {
   };
 }
 
+/** The output window part of `window.llp` as the renderer sees it. */
 export type OutputApi = ReturnType<typeof outputApi>;
+/** The monitors part of `window.llp` as the renderer sees it. */
 export type MonitorsApi = ReturnType<typeof monitorsApi>;
+/** The fonts part of `window.llp` as the renderer sees it. */
 export type FontsApi = ReturnType<typeof fontsApi>;
+/** The log part of `window.llp` as the renderer sees it. */
 export type LogApi = ReturnType<typeof logApi>;

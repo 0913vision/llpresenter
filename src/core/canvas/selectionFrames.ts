@@ -1,5 +1,6 @@
 import type {ElementFrame} from './frameEdit';
 
+/** The frame of one selected box and its id. */
 export interface SelectedFrame {
   readonly id: string;
   readonly frame: ElementFrame;

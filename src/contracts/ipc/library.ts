@@ -45,4 +45,5 @@ export function libraryApi(port: IpcPort) {
   };
 }
 
+/** The 라이브러리 part of `window.llp` as the renderer sees it. */
 export type LibraryApi = ReturnType<typeof libraryApi>;

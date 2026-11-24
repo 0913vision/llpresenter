@@ -64,10 +64,12 @@ const TASKS: Readonly<Record<LaunchTaskId, LaunchTask>> = {
 
 const TASK_TIME_RANGE = {min: 20, max: 15_000};
 
+/** What the launch window says while the task runs. */
 export function launchTaskLabel(task: LaunchTaskId): string {
   return TASKS[task].label;
 }
 
+/** What the task prepares, as a problem card names it. */
 export function launchTaskName(task: LaunchTaskId): string {
   return TASKS[task].name;
 }

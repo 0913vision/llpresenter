@@ -1,7 +1,12 @@
+/** A place in a slide list: a slide, or the gap before the slide at `index`. */
 export type SlideListPoint<Id extends string> =
   | {readonly kind: 'slide'; readonly id: Id}
   | {readonly kind: 'gap'; readonly index: number};
 
+/**
+ * The selected slides of a list, with the anchor and focus of a range and the
+ * caret when a gap is selected.
+ */
 export interface SlideListSelection<Id extends string> {
   readonly ids: ReadonlySet<Id>;
   readonly anchor: SlideListPoint<Id> | null;
@@ -9,6 +14,7 @@ export interface SlideListSelection<Id extends string> {
   readonly caret: number | null;
 }
 
+/** A mouse or key action that changes the selection of a slide list. */
 export type SlideSelectionAction<Id extends string> =
   | {
       readonly type: 'click';
@@ -21,6 +27,7 @@ export type SlideSelectionAction<Id extends string> =
   | {readonly type: 'all'}
   | {readonly type: 'clear'};
 
+/** A selection with no slide and no gap. */
 export function emptySlideSelection<
   Id extends string,
 >(): SlideListSelection<Id> {

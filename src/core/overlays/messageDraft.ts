@@ -7,8 +7,13 @@ import {
   MAX_MESSAGE_CHARACTERS,
 } from './messageText';
 
+/** The screens a message is sent to: every screen, or a list of screen ids. */
 export type DraftTargets = Exclude<MessageTemplate['targets'], undefined>;
 
+/**
+ * Adds or removes one screen. Starting from every screen, it leaves only that
+ * screen.
+ */
 export function toggleMessageScreen(
   targets: DraftTargets,
   id: Screen['id'],
@@ -19,6 +24,10 @@ export function toggleMessageScreen(
     : [...targets, id];
 }
 
+/**
+ * The targets without repeats and without screens that no longer exist; every
+ * screen stays as it is.
+ */
 export function currentMessageTargets(
   targets: DraftTargets,
   screens: readonly Screen[],
@@ -28,6 +37,10 @@ export function currentMessageTargets(
   return [...new Set(targets)].filter(id => ids.has(id));
 }
 
+/**
+ * Checks a message and fills its blanks. `reason` is the Korean reason it
+ * cannot be sent, or undefined when it can.
+ */
 export function prepareMessage({
   template,
   values,

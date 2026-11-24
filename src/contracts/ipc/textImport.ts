@@ -48,4 +48,5 @@ export function textImportApi(port: IpcPort) {
   };
 }
 
+/** The text import part of `window.llp` as the renderer sees it. */
 export type TextImportApi = ReturnType<typeof textImportApi>;

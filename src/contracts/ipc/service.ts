@@ -42,4 +42,5 @@ export function serviceApi(port: IpcPort) {
   };
 }
 
+/** The open 예배 순서 part of `window.llp` as the renderer sees it. */
 export type ServiceApi = ReturnType<typeof serviceApi>;

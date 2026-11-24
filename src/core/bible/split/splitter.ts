@@ -8,16 +8,30 @@ import {
   type SplitLayout,
 } from './layout';
 
+/** How strongly an unfilled slide adds to the cost of a split. */
 export const FILL_WEIGHT = 90;
+/**
+ * How much worse than the best cut penalty a candidate may be and still be
+ * offered.
+ */
 export const ACCEPTABLE_PENALTY_GAP = 25;
+/**
+ * How much more than the cheapest split a split may cost and still count as
+ * optimal.
+ */
 export const COST_TOLERANCE = 25;
+/** The most cut candidates offered at one step. */
 export const MAX_CANDIDATES = 3;
+/** Work caps for one verse: words, search table cells and text measurements. */
 export const SPLIT_LIMITS = {
   tokens: 1_297,
   tableCells: 1_000_000,
   measurements: 100_000,
 } as const;
 
+/**
+ * One slide of a split verse, with its lines, fill and how its end was chosen.
+ */
 export interface SplitChunk {
   readonly index: number;
   readonly text: string;
@@ -31,6 +45,10 @@ export interface SplitChunk {
   readonly chosenBy: 'fit' | 'forced' | 'rules' | 'llm';
 }
 
+/**
+ * A place where the next slide could end, with its penalty, fill and total
+ * cost.
+ */
 export interface SplitCandidate {
   readonly tokenIndex: number;
   readonly text: string;
@@ -40,6 +58,9 @@ export interface SplitCandidate {
   readonly totalCost: number;
 }
 
+/**
+ * The slides a verse is split into and the fewest slides that could hold it.
+ */
 export interface SplitResult {
   readonly chunks: readonly SplitChunk[];
   readonly nSlides: number;
@@ -247,6 +268,7 @@ class SplitSearch {
   }
 }
 
+/** Picks which candidate ends the next slide and gives its index. */
 export type BoundaryChooser = (
   fullText: string,
   remaining: string,

@@ -1,5 +1,9 @@
 import type {ImportSlide} from '@core/schema/songs/textImport';
 
+/**
+ * A text shape of an imported PowerPoint slide: its role and lines, and which
+ * line is the main one.
+ */
 export interface PowerPointShape {
   readonly role: 'title' | 'body' | 'free';
   readonly lines: readonly string[];
@@ -7,6 +11,10 @@ export interface PowerPointShape {
   readonly main?: number;
 }
 
+/**
+ * An imported PowerPoint slide: its number, text shapes, background and text
+ * color.
+ */
 export interface PowerPointSlide {
   readonly number: number;
   readonly shapes: readonly PowerPointShape[];

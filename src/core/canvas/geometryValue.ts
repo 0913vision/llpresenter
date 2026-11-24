@@ -9,10 +9,15 @@ export function roundGeometryValue(value: number): number {
   return rounded === 0 ? 0 : rounded / PIXEL_DIVISIONS;
 }
 
+/** A geometry number as text, rounded to tenths. */
 export function formatGeometryValue(value: number): string {
   return String(roundGeometryValue(value));
 }
 
+/**
+ * The frame with every number rounded to tenths; the same object when nothing
+ * changes.
+ */
 export function roundGeometryFrame(frame: ElementFrame): ElementFrame {
   const x = roundGeometryValue(frame.x);
   const y = roundGeometryValue(frame.y);

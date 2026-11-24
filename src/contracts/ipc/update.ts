@@ -9,6 +9,7 @@ export const updateEndpoints = {
   changed: push('update:changed', parseUpdateSnapshot),
 };
 
+/** The update part of `window.llp`. */
 export function updateApi(port: IpcPort) {
   return {
     get: port.query(updateEndpoints.get),
@@ -18,4 +19,5 @@ export function updateApi(port: IpcPort) {
   };
 }
 
+/** The update part of `window.llp` as the renderer sees it. */
 export type UpdateApi = ReturnType<typeof updateApi>;

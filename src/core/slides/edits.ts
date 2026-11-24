@@ -36,6 +36,10 @@ export function withNext(slide: Slide, text: string): Slide {
   return text === '' ? kept : {...kept, next: text};
 }
 
+/**
+ * The slide with this label text, or without one when it is blank. The same
+ * slide when nothing changes.
+ */
 export function withLabel(slide: Slide, label: string | undefined): Slide {
   const value = label?.trim() ?? '';
   if ((slide.label ?? '') === value) return slide;
@@ -43,6 +47,7 @@ export function withLabel(slide: Slide, label: string | undefined): Slide {
   return value === '' ? kept : {...kept, label: value};
 }
 
+/** The slide with this theme. */
 export function withTheme(slide: Slide, theme: ThemeId): Slide {
   return slide.theme === theme ? slide : {...slide, theme};
 }
@@ -56,10 +61,12 @@ export function withBackground(
   return background === undefined ? kept : {...kept, background};
 }
 
+/** The slide with this hymn. */
 export function withHymn(slide: Slide, hymn: Hymn): Slide {
   return {...slide, hymn};
 }
 
+/** The slide with its own transition, or without one when undefined. */
 export function withTransition(
   slide: Slide,
   transition: SlideTransition | undefined,
@@ -68,6 +75,7 @@ export function withTransition(
   return transition === undefined ? kept : {...kept, transition};
 }
 
+/** The slides with `added` put in before position `at`. */
 export function insertSlides(
   slides: readonly Slide[],
   at: number,
@@ -86,6 +94,7 @@ export function pasteSlides(
   return {slides: insertSlides(slides, at, added), added};
 }
 
+/** The slides without those with the given ids. */
 export function removeSlides(
   slides: readonly Slide[],
   ids: Ids,
@@ -135,10 +144,12 @@ export function replacePassage(
   return insertSlides(kept, at, passage);
 }
 
+/** Whether the slide shows this verse. */
 export function isOfVerse(slide: Slide, verse: VerseReference): boolean {
   return slide.verse !== undefined && sameVerse(slide.verse, verse);
 }
 
+/** Whether two references are the same verse of the same translation. */
 export function sameVerse(a: VerseReference, b: VerseReference): boolean {
   return a.translation === b.translation && verseKey(a) === verseKey(b);
 }

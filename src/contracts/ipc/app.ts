@@ -83,5 +83,7 @@ export function problemsApi(port: IpcPort) {
   };
 }
 
+/** The closing part of `window.llp` as the renderer sees it. */
 export type AppApi = ReturnType<typeof appApi>;
+/** The problems part of `window.llp` as the renderer sees it. */
 export type ProblemsApi = ReturnType<typeof problemsApi>;

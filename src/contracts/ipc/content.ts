@@ -178,4 +178,5 @@ export function contentApi(port: IpcPort) {
   };
 }
 
+/** The content editing part of `window.llp` as the renderer sees it. */
 export type ContentApi = ReturnType<typeof contentApi>;

@@ -1,5 +1,9 @@
 import type {MonitorIdentity} from '@core/schema/screens/monitorIdentity';
 
+/**
+ * A key for the monitor's manufacturer, product and serial number from its
+ * EDID, or undefined when it has none.
+ */
 export function monitorSerialKey(
   identity: MonitorIdentity | undefined,
 ): string | undefined {
@@ -13,6 +17,10 @@ export function monitorSerialKey(
       ]);
 }
 
+/**
+ * Whether two identities are the same monitor: the same device path, ignoring
+ * case, and the same serial key.
+ */
 export function sameMonitorIdentity(
   a: MonitorIdentity | undefined,
   b: MonitorIdentity | undefined,

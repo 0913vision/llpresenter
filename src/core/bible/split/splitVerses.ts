@@ -5,11 +5,16 @@ import {cutsFromChunks, planSlides, planSlidesAtOffsets} from './manualSplit';
 import {knownCutEntryFor, textHash} from './splitCache';
 import {splitVerse} from './splitter';
 
+/** A verse and its text to split. */
 export interface VerseInput {
   readonly reference: VerseReference;
   readonly text: string;
 }
 
+/**
+ * One slide of a split verse; `manual` is true when its cuts came from the
+ * user.
+ */
 export interface VersePart extends VerseInput {
   readonly display: string;
   readonly continued: boolean;
@@ -37,6 +42,10 @@ function partsOfPlan(
   }));
 }
 
+/**
+ * Splits a verse into slides: the confirmed or saved cuts when the text is
+ * unchanged, else the automatic split.
+ */
 export function splitVerseParts(
   verse: VerseInput,
   layout: SplitLayout,
@@ -112,6 +121,7 @@ export function splitVerseParts(
   ];
 }
 
+/** The cuts that produced the parts of one verse. */
 export function cutsOfVerse(
   parts: readonly VersePart[],
   reference: VerseReference,
@@ -130,6 +140,10 @@ function sameVerse(left: VerseReference, right: VerseReference): boolean {
   );
 }
 
+/**
+ * The verses that were split automatically into more than one slide and still
+ * need a look.
+ */
 export function versesToReview(
   parts: readonly VersePart[],
 ): readonly VerseReference[] {

@@ -64,6 +64,7 @@ const SHIFTED: Readonly<Record<string, string>> = {
   O: 'ㅒ',
   P: 'ㅖ',
 };
+/** The most book suggestions the reference field offers at once. */
 export const BOOK_SUGGESTION_LIMIT = 8;
 
 const COPIBLE_CODES: Readonly<Record<number, string>> = {
@@ -337,6 +338,10 @@ function rank(entry: (typeof names)[number], query: Query): number {
   return 9;
 }
 
+/**
+ * The book whose full or short name equals the input, or undefined when none
+ * does.
+ */
 export function exactBibleBook(input: string): BibleBook | undefined {
   const query = queryOf(input);
   if (query.plain === '') return undefined;

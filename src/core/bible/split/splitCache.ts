@@ -7,6 +7,7 @@ import {
 import type {VerseReference} from '@core/schema/slides/slide';
 import {normalizeVerse} from './manualSplit';
 
+/** The key of a verse in a translation's cut entries. */
 export function cacheKey(reference: VerseReference): string {
   return `${reference.book}:${reference.chapter}:${reference.verse}`;
 }
@@ -22,6 +23,10 @@ export function textHash(text: string): string {
   return (hash >>> 0).toString(16).padStart(8, '0');
 }
 
+/**
+ * A cut entry for the verse text, stamped with the text hash and the
+ * confirmation time.
+ */
 export function entryFor(
   text: string,
   cuts: readonly number[] | BibleCutSelection,
@@ -31,6 +36,10 @@ export function entryFor(
   return {hash: textHash(text), ...choice, cuts: [...choice.cuts], confirmedAt};
 }
 
+/**
+ * The saved cuts of a verse, or undefined when none are saved or the text
+ * changed since.
+ */
 export function knownCutsFor(
   file: BibleCutsFile,
   reference: VerseReference,
@@ -39,6 +48,10 @@ export function knownCutsFor(
   return knownCutEntryFor(file, reference, text)?.cuts;
 }
 
+/**
+ * The saved cut entry of a verse, or undefined when none is saved or the text
+ * changed since.
+ */
 export function knownCutEntryFor(
   file: BibleCutsFile,
   reference: VerseReference,

@@ -1,5 +1,9 @@
 import {keyModifiers, type KeyBinding} from '@core/schema/app/shortcuts';
 
+/**
+ * The parts of a keyboard event that shortcuts read. The key is the physical
+ * `code`, not the typed character.
+ */
 export interface PhysicalKeyPress {
   readonly code: string;
   readonly ctrlKey: boolean;
@@ -11,6 +15,10 @@ export interface PhysicalKeyPress {
   readonly getModifierState: (key: string) => boolean;
 }
 
+/**
+ * Whether the key press is exactly this binding. A press with the Windows key
+ * or AltGr never matches.
+ */
 export function matchesBinding(
   event: PhysicalKeyPress,
   binding: KeyBinding,

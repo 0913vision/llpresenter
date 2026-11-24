@@ -6,6 +6,7 @@ import type {TranslationId} from '@core/schema/common/ids';
 import type {BibleBook} from './bibleBooks';
 import {matchBooks} from './bibleMatching';
 
+/** Why a typed reference could not be read. */
 export type ReferenceErrorCode =
   | 'syntax'
   | 'unknownBook'
@@ -17,12 +18,19 @@ export type ReferenceErrorCode =
   | 'omitted'
   | 'translation';
 
+/**
+ * A reference that could not be read, with a message and, for an unclear book,
+ * the books it might mean.
+ */
 export interface ReferenceProblem {
   readonly code: ReferenceErrorCode;
   readonly message: string;
   readonly suggestions?: readonly BibleBook[];
 }
 
+/**
+ * A typed reference read into its parts; a null verse means the whole chapter.
+ */
 export interface ParsedReference {
   readonly book: BibleBook;
   readonly chapter: number;
@@ -31,12 +39,14 @@ export interface ParsedReference {
   readonly endVerse: number | null;
 }
 
+/** One verse of a resolved passage. */
 export interface PassageVerse {
   readonly chapter: number;
   readonly verse: number;
   readonly text: string;
 }
 
+/** A reference with its verse text read from one translation. */
 export interface ResolvedPassage {
   readonly translation: TranslationId;
   readonly ref: string;
@@ -45,6 +55,10 @@ export interface ResolvedPassage {
   readonly verses: readonly PassageVerse[];
 }
 
+/**
+ * A translation file that gives the verse lines of one chapter, or null when
+ * the chapter is missing.
+ */
 export interface BiblePassageSource extends Pick<
   BibleChunkHeader,
   'id' | 'language' | 'books'
