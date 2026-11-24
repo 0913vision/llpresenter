@@ -22,6 +22,11 @@ export interface Notice {
   readonly time: string;
   /** Keeps an in-progress notice available until it is replaced or dismissed. */
   readonly persistent?: boolean | undefined;
+  /**
+   * A warning about one action that failed, which closes by itself like an
+   * information card, only later; a warning about a lasting problem stays.
+   */
+  readonly passing?: boolean | undefined;
   /** The current state, such as 모니터 3 → 창으로 표시 중, one value per entry. */
   readonly meta?: readonly string[] | undefined;
   readonly actions?: readonly NoticeAction[] | undefined;
@@ -52,6 +57,7 @@ export function warningNotice(
     icon: 'warning',
     title,
     time: noticeTime(),
+    passing: true,
     ...(meta === undefined ? {} : {meta}),
   };
 }

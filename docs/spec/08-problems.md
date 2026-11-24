@@ -375,8 +375,12 @@ Source: `Recovery`, `AlertDialog` README, `Checkbox` README, `Main` decision
 - A new card about the same cause (the same screen or monitor) replaces the old
   card instead of stacking. For example, "disconnected" turns into
   "reconnected".
-- A warning card has an amber icon and an amber bar at its left edge. It stays
-  until the problem is fixed or the operator closes it.
+- A warning card has an amber icon and an amber bar at its left edge. A warning
+  about a lasting problem (a monitor, saves that wait, a backup) stays until the
+  problem is fixed or the operator closes it. A warning about one action that
+  failed, such as 역본 불러오기 실패 or 이름 바꾸기 실패, closes after 12
+  seconds like an information card, so it never keeps covering a control such as
+  the song editor's 저장; the 알림 기록 keeps it (November 25 church check).
 - An information card closes after 6 seconds. The timer pauses while the pointer
   or focus is on the card, and starts over when they leave.
 - While a warning card shows, the right column moves down by the card height, so

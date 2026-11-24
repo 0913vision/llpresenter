@@ -21,6 +21,9 @@ import styles from './Notification.module.css';
 /** How long an information card shows once nothing holds it. */
 export const NOTICE_LIFETIME_MS = 6000;
 
+/** How long the warning about one failed action shows, in milliseconds. */
+export const PASSING_WARNING_LIFETIME_MS = 12_000;
+
 const CARD_ICON_SIZE = 18;
 const META_ARROW_SIZE = 12;
 const CLOSE_LABEL = '알림 닫기';
@@ -55,14 +58,28 @@ function useHeld(): {
 }
 
 // NOTE(0913vision): The timer follows the notice object, so a notice that
-// replaces a card with the same cause gets its full six seconds again.
+// replaces a card with the same cause gets its full time again.
 function useLifetime(notice: Notice, held: boolean, close: () => void): void {
   const expire = useEffectEvent(close);
   useEffect(() => {
-    if (notice.kind !== 'info' || notice.persistent || held) return undefined;
-    const timer = setTimeout(expire, NOTICE_LIFETIME_MS);
+    const lifetime = lifetimeOf(notice);
+    if (lifetime === null || held) return undefined;
+    const timer = setTimeout(expire, lifetime);
     return () => clearTimeout(timer);
   }, [notice, held]);
+}
+
+/**
+ * How long a card shows before it closes by itself, or null when it stays: an
+ * information card shows six seconds, the warning about one failed action
+ * twelve, and a warning about a lasting problem stays until it is solved or
+ * closed (user rule after the November 25 church check: a failed lookup must
+ * not keep covering the song editor's 저장).
+ */
+function lifetimeOf(notice: Notice): number | null {
+  if (notice.persistent) return null;
+  if (notice.kind === 'info') return NOTICE_LIFETIME_MS;
+  return notice.passing ? PASSING_WARNING_LIFETIME_MS : null;
 }
 
 /** A notice's state values, such as 모니터 3 → 창으로 표시 중. */

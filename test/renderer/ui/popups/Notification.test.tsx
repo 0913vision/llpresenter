@@ -9,8 +9,13 @@ import {
   NOTICE_LIFETIME_MS,
   NotificationCard,
   NotificationStack,
+  PASSING_WARNING_LIFETIME_MS,
 } from '@renderer/ui/popups/Notification';
-import {removeNotice, type Notice} from '@renderer/ui/popups/notices';
+import {
+  removeNotice,
+  warningNotice,
+  type Notice,
+} from '@renderer/ui/popups/notices';
 import {letTimePass, resetTooltips} from '@fixtures/renderer/ui/tooltipTesting';
 
 afterEach(resetTooltips);
@@ -103,6 +108,21 @@ describe('NotificationCard', () => {
     expect(onClose.mock.calls).toEqual([['screen:main']]);
     await letTimePass(clock, NOTICE_LIFETIME_MS * 10);
     expect(onClose).toHaveBeenCalledOnce();
+  });
+
+  it('closes the warning about one failed action after twelve seconds', async () => {
+    const clock = installMockClock();
+    const onClose = vi.fn<(key: string) => void>();
+    render(
+      <NotificationCard
+        notice={warningNotice('bible-panel:translation', '역본 불러오기 실패')}
+        onClose={onClose}
+      />,
+    );
+    await letTimePass(clock, PASSING_WARNING_LIFETIME_MS - 1);
+    expect(onClose).not.toHaveBeenCalled();
+    await letTimePass(clock, 1);
+    expect(onClose.mock.calls).toEqual([['bible-panel:translation']]);
   });
 
   it('keeps persistent information available until replaced', async () => {
