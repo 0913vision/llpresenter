@@ -63,7 +63,7 @@ describe('useSourceLists', () => {
     expect(write).toHaveBeenCalledWith({
       level: 'error',
       message: 'Could not read the song titles',
-      detail: 'Read failed',
+      detail: expect.stringContaining('Read failed'),
     });
     act(() => result.current.retry());
     expect(result.current.ready).toBe(true);

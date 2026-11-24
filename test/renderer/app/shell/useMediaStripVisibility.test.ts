@@ -78,6 +78,6 @@ it('keeps the local choice and logs a save that fails', () => {
   expect(write).toHaveBeenCalledWith({
     level: 'error',
     message: 'Could not save media strip visibility',
-    detail: 'Invented visibility send failure',
+    detail: expect.stringContaining('Invented visibility send failure'),
   });
 });

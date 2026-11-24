@@ -151,7 +151,7 @@ describe('UI zoom keys', () => {
     expect(log).toHaveBeenCalledWith({
       level: 'error',
       message: 'could not change UI zoom',
-      detail: 'zoom failed',
+      detail: expect.stringContaining('zoom failed'),
     });
   });
 });

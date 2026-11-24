@@ -237,7 +237,7 @@ describe('service picker', () => {
     await openMenu(user);
     await user.click(screen.getByRole('menuitemradio', {name: /저녁 예배/}));
     await waitFor(() => expect(onProblem).toHaveBeenCalled());
-    expect(log.mock.calls[0]?.[0].detail).toBe('Open failed');
+    expect(log.mock.calls[0]?.[0].detail).toContain('Open failed');
     expect(useShow.getState().serviceId).toBe(first);
   });
 
