@@ -4,7 +4,7 @@ import {
   type OwnThemeScreen,
   type SlidePurpose,
   type ThemeBox,
-  type ThemeElement,
+  type ThemeTextElement,
   type ThemeFile,
   type ThemeScreen,
 } from '@core/schema/screens/theme';
@@ -15,6 +15,9 @@ import {templateTokens} from './template';
 import {builtInTheme} from './themes';
 
 const NEW_BOX_NAME = '글 상자';
+
+/** Changes one template; undefined leaves it out. */
+type TemplateChange = (template: string) => string | undefined;
 
 /** The boxes that the app itself puts texts in, for a purpose. */
 export function appBoxes(purpose: SlidePurpose): ReadonlySet<string> {
@@ -74,29 +77,34 @@ function mapScreens(
   };
 }
 
-/** Each template of a theme after a change; undefined leaves one out. */
-function mapTemplates(
-  theme: ThemeFile,
-  change: (template: string) => string | undefined,
-): ThemeFile {
-  /** A part that holds templates, with each of them changed. */
-  const changed = <Part extends {readonly content: readonly string[]}>(
-    part: Part,
-  ): Part => ({
-    ...part,
-    content: part.content.flatMap(template => change(template) ?? []),
-  });
-  const element = (each: ThemeElement): ThemeElement =>
-    each.kind !== 'text'
-      ? each
-      : {
-          ...changed(each),
-          ...(each.empty && {empty: changed(each.empty)}),
-        };
-  return mapScreens({...theme, next: changed(theme.next)}, screen => ({
+/** Each template of a theme after a change. */
+function mapTemplates(theme: ThemeFile, change: TemplateChange): ThemeFile {
+  const next = withTemplates(theme.next, change);
+  return mapScreens({...theme, next}, screen => ({
     ...screen,
-    elements: screen.elements.map(element),
+    elements: screen.elements.map(element =>
+      element.kind === 'text' ? textWithTemplates(element, change) : element,
+    ),
   }));
+}
+
+/** A text box with its templates changed, and those it shows when empty. */
+function textWithTemplates(
+  element: ThemeTextElement,
+  change: TemplateChange,
+): ThemeTextElement {
+  const changed = withTemplates(element, change);
+  if (element.empty === undefined) return changed;
+  return {...changed, empty: withTemplates(element.empty, change)};
+}
+
+/** A part of a theme that holds templates, with each of them changed. */
+function withTemplates<Part extends {readonly content: readonly string[]}>(
+  part: Part,
+  change: TemplateChange,
+): Part {
+  const content = part.content.flatMap(template => change(template) ?? []);
+  return {...part, content};
 }
 
 /** Adds a box to a theme, with a name of its own. */
