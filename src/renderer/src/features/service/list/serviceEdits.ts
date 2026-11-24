@@ -5,8 +5,10 @@ import {
   createServiceItemId,
   serviceIdSchema,
   type ServiceId,
+  type TemplateId,
 } from '@core/schema/common/ids';
 import {parsePayload} from '@core/schema/common/payload';
+import {renameHistory} from '@renderer/platform/undo/renameHistory';
 import {logFailure} from './useServiceSources';
 
 /**
@@ -55,6 +57,52 @@ export async function renameService(
   serviceId: ServiceId,
   name: string,
 ): Promise<boolean> {
+  const before = await serviceName(api, serviceId);
+  const rename = (next: string): Promise<boolean> =>
+    writeServiceName(api, serviceId, next);
+  const done = await rename(name);
+  if (done && before !== null) {
+    renameHistory.record({before, after: name, rename});
+  }
+  return done;
+}
+
+/** Renames a 템플릿 as one step of 실행 취소. */
+export async function renameTemplate(
+  api: Pick<LlpApi, 'templates' | 'content' | 'log'>,
+  templateId: TemplateId,
+  name: string,
+): Promise<boolean> {
+  const document = await settle(api, 'Could not read a 템플릿', () =>
+    api.templates.get(templateId),
+  );
+  const rename = (next: string): Promise<boolean> =>
+    writeTemplateName(api, templateId, next);
+  const done = await rename(name);
+  if (done && document) {
+    renameHistory.record({before: document.template.name, after: name, rename});
+  }
+  return done;
+}
+
+async function serviceName(
+  api: Pick<LlpApi, 'services' | 'log'>,
+  serviceId: ServiceId,
+): Promise<string | null> {
+  const document = await settle(api, 'Could not read a service', () =>
+    api.services.get(serviceId),
+  );
+  return document ? document.service.name : null;
+}
+
+// NOTE(0913vision): A rename sends the whole document with the revision it
+// was read at, as every `*.update` does; main refuses it as stale when the
+// document changed in between.
+async function writeServiceName(
+  api: Pick<LlpApi, 'services' | 'content' | 'log'>,
+  serviceId: ServiceId,
+  name: string,
+): Promise<boolean> {
   const document = await settle(api, 'Could not read a service', () =>
     api.services.get(serviceId),
   );
@@ -63,6 +111,25 @@ export async function renameService(
     api.content.edit({
       type: 'service.update',
       service: {...document.service, name},
+      baseRevision: document.revision,
+    }),
+  );
+  return result?.ok === true;
+}
+
+async function writeTemplateName(
+  api: Pick<LlpApi, 'templates' | 'content' | 'log'>,
+  templateId: TemplateId,
+  name: string,
+): Promise<boolean> {
+  const document = await settle(api, 'Could not read a 템플릿', () =>
+    api.templates.get(templateId),
+  );
+  if (!document) return false;
+  const result = await settle(api, 'Could not rename a 템플릿', () =>
+    api.content.edit({
+      type: 'template.update',
+      template: {...document.template, name},
       baseRevision: document.revision,
     }),
   );

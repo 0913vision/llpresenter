@@ -1209,7 +1209,9 @@ keys are changed are in 10, "Shortcut system".
 | A key set for a 테마, 그래픽, 매크로, or 타이머  | That object's command                                                    | No default keys; follows ProPresenter's Key Mappings for 그래픽 and 매크로 (S2, S3)      |
 
 In 준비, Ctrl Z from the 곡 tab, like everywhere, runs back the latest step of
-the window.
+the window. Renaming a 예배, a 템플릿 or a playlist is a step too: Ctrl Z gives
+the name before, Ctrl Shift Z or Ctrl Y the new one again (user decision,
+November 24).
 
 Stage and broadcast next-slide elements follow the live slide and its item, not
 the item or slide being browsed in Show or Prep. Continuous navigation may

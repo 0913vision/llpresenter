@@ -1,3 +1,5 @@
+import {renameHistory} from '@renderer/platform/undo/renameHistory';
+import {undoTimeline} from '@renderer/platform/undo/undoTimeline';
 import {
   act,
   fireEvent,
@@ -252,6 +254,12 @@ describe('the service source menu', () => {
       service: {...pastDocument.service, name: '추수감사 예배'},
       baseRevision: pastDocument.revision,
     });
+    await act(() => undoTimeline.replay('undo', () => undefined));
+    expect(edits.at(-1)).toMatchObject({
+      type: 'service.update',
+      service: {name: pastDocument.service.name},
+    });
+    renameHistory.forget();
   });
 
   it('reports a refused rename and keeps the rename dialog', async () => {

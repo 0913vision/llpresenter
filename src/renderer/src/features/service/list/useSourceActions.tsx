@@ -17,7 +17,12 @@ import {historyKey} from '@renderer/ui/lists/historyKey';
 import {Menu} from '@renderer/ui/menus/Menu';
 import {RenameDialog} from '@renderer/ui/popups/RenameDialog';
 import {useMenuHandoff} from '@renderer/ui/menus/useMenuHandoff';
-import {editApplied, renameService, settle} from './serviceEdits';
+import {
+  editApplied,
+  renameService,
+  renameTemplate,
+  settle,
+} from './serviceEdits';
 import {
   contextMenuAnchor,
   type ContextMenuEvent,
@@ -50,28 +55,13 @@ function kindName(source: NamedSource): string {
   return source.kind === 'template' ? '템플릿' : '예배';
 }
 
-// NOTE(0913vision): A rename sends the whole document with the revision it
-// was read at, as every `*.update` does; main refuses it as stale when the
-// document changed in between.
-async function renameSource(
+function renameSource(
   api: SourceActionsApi,
   {source, name}: Pick<SourceRow, 'source' | 'name'>,
 ): Promise<boolean> {
-  if (source.kind === 'template') {
-    const document = await settle(api, 'Could not read a 템플릿', () =>
-      api.templates.get(source.id),
-    );
-    if (document === undefined || document === null) return false;
-    const result = await settle(api, 'Could not rename a 템플릿', () =>
-      api.content.edit({
-        type: 'template.update',
-        template: {...document.template, name},
-        baseRevision: document.revision,
-      }),
-    );
-    return result?.ok === true;
-  }
-  return renameService(api, source.id, name);
+  return source.kind === 'template'
+    ? renameTemplate(api, source.id, name)
+    : renameService(api, source.id, name);
 }
 
 async function deleteSource(

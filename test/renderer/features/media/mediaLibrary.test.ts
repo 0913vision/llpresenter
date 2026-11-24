@@ -1,3 +1,5 @@
+import {renameHistory} from '@renderer/platform/undo/renameHistory';
+import {undoTimeline} from '@renderer/platform/undo/undoTimeline';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import type {MediaId} from '@core/schema/common/ids';
 import type {Notice} from '@renderer/ui/popups/notices';
@@ -96,6 +98,37 @@ describe('media library for the media view', () => {
     );
     expect(await library.renamePlaylist(playlist, 'New')).toBe(true);
     expect(edit).toHaveBeenCalledTimes(3);
+  });
+  it('runs a playlist rename back with 실행 취소 and forward with 다시 실행', async () => {
+    const list = (name: string, revision: number) =>
+      mediaDocument([], revision, {
+        playlists: [{id: playlistId(1), name, items: []}],
+      });
+    const {library, edit, pushDocument} = setup(mediaFixture(list('Old', 1)));
+    await vi.waitFor(() =>
+      expect(library.getSnapshot().document).not.toBeNull(),
+    );
+    const playlist = {
+      kind: 'media' as const,
+      id: playlistId(1),
+      name: 'Old',
+      items: [],
+    };
+    edit.mockResolvedValue({ok: true, value: {id: playlist.id, revision: 2}});
+    expect(await library.renamePlaylist(playlist, 'New')).toBe(true);
+    pushDocument(list('New', 2));
+    const lastName = (): string | undefined => {
+      const change = edit.mock.lastCall?.[0];
+      return change?.type === 'media.playlist.update'
+        ? change.playlist.value.name
+        : undefined;
+    };
+    await undoTimeline.replay('undo', () => undefined);
+    expect(lastName()).toBe('Old');
+    pushDocument(list('Old', 3));
+    await undoTimeline.replay('redo', () => undefined);
+    expect(lastName()).toBe('New');
+    renameHistory.forget();
   });
   it.each(['media', 'audio'] as const)(
     'imports dropped files into a %s playlist with its copy progress',

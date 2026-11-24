@@ -18,6 +18,7 @@ import {MEDIA_LIMITS} from '@core/schema/media/mediaList';
 import {updateActiveCopies, type CopyJob} from './import/mediaCopyJobs';
 import {MediaDeleteHistory, type HistoryStep} from './mediaDeleteHistory';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
+import {renameHistory} from '@renderer/platform/undo/renameHistory';
 import {chosenPlaylist, type ChosenPlaylist} from './mediaEntries';
 import type {PicturePlace} from '@core/schema/media/picturePlace';
 import {withPlace, type MediaProps} from './properties/mediaProps';
@@ -324,10 +325,38 @@ export class MediaLibrary {
   }
 
   /**
-   * 이름 바꾸기 of a playlist, at the list's current revision. A blank or
-   * unchanged name changes nothing.
+   * 이름 바꾸기 of a playlist, at the list's current revision, as one step of
+   * 실행 취소. A blank or unchanged name changes nothing.
    */
   async renamePlaylist(
+    playlist: ChosenPlaylist,
+    name: string,
+  ): Promise<boolean> {
+    const before = chosenPlaylist(this.view.document, playlist)?.name;
+    const trimmed = name.trim();
+    if (
+      before === undefined ||
+      trimmed === '' ||
+      trimmed.length > MEDIA_LIMITS.name
+    ) {
+      return false;
+    }
+    const rename = (next: string): Promise<boolean> =>
+      this.writePlaylistName(playlist, next);
+    if (await rename(trimmed)) {
+      renameHistory.record({before, after: trimmed, rename});
+      return true;
+    }
+    this.onProblem(
+      warningNotice('media-view:playlist-name', '재생목록 이름 바꾸기 실패', [
+        playlist.name,
+      ]),
+    );
+    return false;
+  }
+
+  /** Gives a playlist a name at the list's current revision, as one write. */
+  private async writePlaylistName(
     playlist: ChosenPlaylist,
     name: string,
   ): Promise<boolean> {
@@ -345,20 +374,10 @@ export class MediaLibrary {
     if (trimmed === current.name && this.unsavedRenameRevision === null) {
       return true;
     }
-    if (
-      await this.updatePlaylist(document, playlist, {
-        change: {name: trimmed},
-        completion: 'saved',
-      })
-    ) {
-      return true;
-    }
-    this.onProblem(
-      warningNotice('media-view:playlist-name', '재생목록 이름 바꾸기 실패', [
-        playlist.name,
-      ]),
-    );
-    return false;
+    return this.updatePlaylist(document, playlist, {
+      change: {name: trimmed},
+      completion: 'saved',
+    });
   }
 
   /** 재생목록에서 빼기: the media leaves the playlist and stays in 모든 미디어. */
