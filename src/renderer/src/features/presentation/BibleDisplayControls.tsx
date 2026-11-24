@@ -1,38 +1,14 @@
 import {withLiveBible} from '@core/bible';
-import {useEffect, useRef, useState, type JSX} from 'react';
+import {useState, type JSX} from 'react';
 import type {TranslationId} from '@core/schema/ids';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
-import {useShow} from '@renderer/session/show';
-import {useLive} from '@renderer/session/live';
-import {bibleSourceFor} from '@renderer/session/showLibrary';
-import {
-  beginOutputRequest,
-  isOutputRequestCurrent,
-  withinLookupTimeout,
-} from '@renderer/session/showOutput';
+import {withinLookupTimeout} from '@renderer/session/showOutput';
 import {CheckRow} from '@renderer/ui/Checkbox';
 import {SelectMenu} from '@renderer/ui/SelectMenu';
 import {openBiblePassage} from '../bible/actions';
-import type {BibleDisplay, BibleSource} from '@renderer/session/bibleSource';
+import {displayOf, usePassageSwap} from '../bible/usePassageSwap';
+import type {BibleSource} from '@renderer/session/bibleSource';
 import styles from './BiblePanel.module.css';
-
-function displayOf({
-  verseNumbers,
-  translationName,
-  transition,
-  review,
-  enteredRef,
-  enteredTranslation,
-}: BibleSource): BibleDisplay {
-  return {
-    verseNumbers,
-    translationName,
-    transition,
-    review,
-    enteredRef,
-    enteredTranslation,
-  };
-}
 
 /** Changes how the passage that is open shows, without changing defaults. */
 export function BibleDisplayControls({
@@ -45,72 +21,25 @@ export function BibleDisplayControls({
   const document = useSettingsDocument('bible', '성경', () =>
     setReadFailed(true),
   );
-  const lifetime = useRef({active: true});
-  const locked = useRef(false);
-  const [busy, setBusy] = useState(false);
-  const [problem, setProblem] = useState<string>();
-  useEffect(() => {
-    const owner = lifetime.current;
-    owner.active = true;
-    return () => {
-      owner.active = false;
-    };
-  }, []);
+  const {busy, problem, swap} = usePassageSwap(source);
   const translations = withLiveBible(document?.value.translations ?? []);
   const changeTranslation = async (
     translation: TranslationId,
   ): Promise<void> => {
-    if (!api || locked.current || translation === source.passage.translation) {
-      return;
-    }
-    locked.current = true;
-    setBusy(true);
-    setProblem(undefined);
-    const owner = lifetime.current;
-    const request = beginOutputRequest();
-    const commandVersion = useLive.getState().commandVersion;
-    const initial = useShow.getState();
-    const current = (): boolean => {
-      const view = useShow.getState();
-      return (
-        owner.active &&
-        bibleSourceFor(view, view.openItemId) === source &&
-        view.selectedTile === initial.selectedTile &&
-        isOutputRequestCurrent(request, commandVersion)
-      );
-    };
-    try {
-      const reply = await withinLookupTimeout(() =>
-        api.bible.lookup({translation, input: source.passage.ref}),
-      );
-      if (!current()) return;
-      if (!reply.result.ok) throw Error(reply.result.error.message);
-      const passage = reply.result.value;
-      openBiblePassage(
-        passage,
-        {
-          ...displayOf(source),
-          enteredRef: source.enteredRef ?? source.passage.ref,
-          enteredTranslation:
-            source.enteredTranslation ?? source.passage.translation,
-        },
-        {keepsVerse: true},
-      );
-    } catch (cause) {
-      if (current()) {
-        api.log.write({
-          level: 'error',
-          message: 'Could not change the Bible preview translation',
-          detail: String(cause),
-        });
-        setProblem('역본 불러오기 실패');
-      }
-    } finally {
-      if (owner.active) {
-        locked.current = false;
-        setBusy(false);
-      }
-    }
+    if (translation === source.passage.translation) return;
+    await swap(
+      async llp => {
+        const reply = await withinLookupTimeout(() =>
+          llp.bible.lookup({translation, input: source.passage.ref}),
+        );
+        if (!reply.result.ok) throw Error(reply.result.error.message);
+        return reply.result.value;
+      },
+      {
+        log: 'Could not change the Bible preview translation',
+        problem: '역본 불러오기 실패',
+      },
+    );
   };
   const reason = !api
     ? '구절을 불러올 수 없습니다.'
