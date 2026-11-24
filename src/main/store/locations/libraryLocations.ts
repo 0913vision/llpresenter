@@ -60,6 +60,8 @@ export type FolderChooser = (current: string) => Promise<string | null>;
  */
 export class LibraryLocations {
   private readonly gate: BackupGate;
+  /** The last publication, so each one goes out after the one before it. */
+  private publishing: Promise<void> = Promise.resolve();
 
   constructor(private readonly options: LibraryLocationsOptions) {
     this.gate = options.gate ?? backupGate;
@@ -79,9 +81,15 @@ export class LibraryLocations {
     });
   }
 
+  /**
+   * The folders as they are when asked: whether a backup runs is read at once,
+   * before the last backup time is read from disk, so a short backup still
+   * shows.
+   */
   async view(): Promise<LocationsView> {
     const {inUse} = this.options;
     const now = this.resolved();
+    const backingUp = this.gate.running;
     const lastBackup = await lastBackupTime(now.backups);
     if (!lastBackup.ok) {
       this.options.log.warn('could not read the last backup', lastBackup.error);
@@ -92,7 +100,7 @@ export class LibraryLocations {
       media: {path: now.media, pending: now.media !== inUse.media},
       backup: {path: now.backups, pending: false},
       lastBackup: time === null ? null : time.getTime(),
-      backingUp: this.gate.running,
+      backingUp,
     };
   }
 
@@ -196,12 +204,19 @@ export class LibraryLocations {
         : now.backups;
   }
 
-  private async publish(): Promise<void> {
-    try {
-      this.options.onChange(await this.view());
-    } catch (error: unknown) {
-      this.options.log.warn('could not publish the folders', error);
-    }
+  // NOTE(0913vision): Each view reads the disk, and a later read can finish
+  // first; the views go out in the order they were asked for, so the page never
+  // ends on an older one, such as a backup still running after it ended.
+  private publish(): Promise<void> {
+    const view = this.view();
+    this.publishing = this.publishing.then(async () => {
+      try {
+        this.options.onChange(await view);
+      } catch (error: unknown) {
+        this.options.log.warn('could not publish the folders', error);
+      }
+    });
+    return this.publishing;
   }
 }
 
