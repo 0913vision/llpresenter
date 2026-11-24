@@ -1,3 +1,4 @@
+import {followLatest} from '@core/common/followLatest';
 import {logFailure} from '@renderer/platform/logFailure';
 import {create} from 'zustand';
 import type {LlpApi} from '@contracts/ipc/api';
@@ -50,7 +51,6 @@ type Feeds = Pick<LlpApi, 'media' | 'log'>;
 export function startMediaSync(api: Feeds | undefined): () => void {
   if (api === undefined) return () => undefined;
   let stopped = false;
-  let missingPushed = false;
   const accept = (document: MediaDocument): void => {
     const known = useMedia.getState().document;
     if (stopped || (known !== null && known.revision > document.revision)) {
@@ -68,15 +68,15 @@ export function startMediaSync(api: Feeds | undefined): () => void {
   };
   const stops = [
     api.media.subscribe(accept),
-    api.media.subscribeMissing(missing => {
-      missingPushed = true;
-      acceptMissing([...missing]);
-    }),
+    followLatest(
+      {read: api.media.missing, subscribe: api.media.subscribeMissing},
+      {
+        apply: missing => acceptMissing([...missing]),
+        failed: problem('Could not read the missing media'),
+      },
+    ),
   ];
   api.media.get().then(accept, problem('Could not read the media list'));
-  api.media.missing().then(missing => {
-    if (!missingPushed) acceptMissing([...missing]);
-  }, problem('Could not read the missing media'));
   return () => {
     stopped = true;
     for (const stop of stops) stop();

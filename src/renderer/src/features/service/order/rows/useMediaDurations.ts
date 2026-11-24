@@ -1,3 +1,4 @@
+import {followLatest} from '@core/common/followLatest';
 import {useEffect, useState} from 'react';
 import type {ServiceDocument} from '@core/schema/services/contentDocuments';
 import type {MediaDocument} from '@core/schema/media/mediaEdit';
@@ -42,56 +43,47 @@ export function useMediaDurations(
     let alive = true;
     let service: ServiceDocument | null = null;
     let media: MediaDocument | null = null;
-    let servicePushed = false;
-    let mediaPushed = false;
     const update = (): void => {
       if (alive) setView({serviceId, durations: durationsOf(service, media)});
     };
-    const stopService = api.services.subscribe(change => {
-      if (!alive || change.serviceId !== serviceId) return;
-      servicePushed = true;
-      if (
-        change.document !== null &&
-        service !== null &&
-        change.document.revision < service.revision
-      ) {
-        return;
-      }
-      service = change.document;
-      update();
-    });
-    const stopMedia = api.media.subscribe(next => {
-      if (!alive) return;
-      mediaPushed = true;
-      if (media !== null && next.revision < media.revision) return;
-      media = next;
-      update();
-    });
-    const report = (): void => {
-      if (alive) {
+    const report = (_cause: unknown, pushed: boolean): void => {
+      if (alive && !pushed) {
         onProblem(
           warningNotice('service-order:details', '예배 정보 불러오기 실패'),
         );
       }
     };
-    api.services.get(serviceId).then(
-      next => {
-        if (!alive || servicePushed) return;
-        service = next?.service.id === serviceId ? next : null;
-        update();
+    const stopService = followLatest<ServiceDocument | null>(
+      {
+        read: () =>
+          api.services
+            .get(serviceId)
+            .then(next => (next?.service.id === serviceId ? next : null)),
+        subscribe: listener =>
+          api.services.subscribe(change => {
+            if (change.serviceId === serviceId) listener(change.document);
+          }),
       },
-      () => {
-        if (!servicePushed) report();
+      {
+        apply: next => {
+          if (next !== null && service !== null) {
+            if (next.revision < service.revision) return;
+          }
+          service = next;
+          update();
+        },
+        failed: report,
       },
     );
-    api.media.get().then(
-      next => {
-        if (!alive || mediaPushed) return;
-        media = next;
-        update();
-      },
-      () => {
-        if (!mediaPushed) report();
+    const stopMedia = followLatest<MediaDocument>(
+      {read: () => api.media.get(), subscribe: api.media.subscribe},
+      {
+        apply: next => {
+          if (media !== null && next.revision < media.revision) return;
+          media = next;
+          update();
+        },
+        failed: report,
       },
     );
     return () => {
