@@ -1,4 +1,5 @@
 import {COLUMN_LIMITS} from '@core/schema/app/uiState';
+import {clamp, type NumberRange} from '@core/common/range';
 import type {ColumnWidths} from '../../../ui/panels/sizeClass';
 
 /** The right column of 준비 has a width of its own. */
@@ -6,13 +7,8 @@ export type RightColumn = 'right' | 'prepRight';
 
 export type DraggableColumn = 'left' | RightColumn;
 
-export interface WidthRange {
-  readonly min: number;
-  readonly max: number;
-}
-
 /** Column width ranges and the smallest center width, in CSS pixels. */
-export const COLUMN_RANGES: Readonly<Record<DraggableColumn, WidthRange>> =
+export const COLUMN_RANGES: Readonly<Record<DraggableColumn, NumberRange>> =
   COLUMN_LIMITS;
 export const CENTER_MIN_WIDTH = 560;
 
@@ -20,10 +16,6 @@ export const CENTER_MIN_WIDTH = 560;
 const PANEL_GAP = 4;
 const GAPS_ACROSS_COLUMNS = 4;
 export const FIXED_GAPS_WIDTH = PANEL_GAP * GAPS_ACROSS_COLUMNS;
-
-export function clamp(value: number, {min, max}: WidthRange): number {
-  return Math.min(Math.max(value, min), max);
-}
 
 /** Width left for the center column, which takes all the remaining width. */
 export function centerWidth(

@@ -3,27 +3,12 @@ import {
   CENTER_MIN_WIDTH,
   FIXED_GAPS_WIDTH,
   centerWidth,
-  clamp,
   dragColumn,
   fitToWindow,
 } from '@renderer/app/shell/columns/columns';
 
 const MIN_WINDOW_WIDTH = 1280;
 const WIDE_WINDOW_WIDTH = 2560;
-
-describe('clamp', () => {
-  const range = {min: 200, max: 400};
-
-  it('keeps values on the range boundaries', () => {
-    expect(clamp(200, range)).toBe(200);
-    expect(clamp(400, range)).toBe(400);
-  });
-
-  it('pulls values outside the range to the nearest boundary', () => {
-    expect(clamp(199, range)).toBe(200);
-    expect(clamp(401, range)).toBe(400);
-  });
-});
 
 describe('centerWidth', () => {
   it('subtracts the columns and the four gaps from the window', () => {

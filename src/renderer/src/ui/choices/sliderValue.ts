@@ -1,4 +1,5 @@
-import {clampNumber, stepNumber} from '../fields/numberText';
+import {clamp} from '@core/common/range';
+import {stepNumber} from '../fields/numberText';
 
 /** A slider's range and the size of one step. */
 export interface SliderScale {
@@ -13,7 +14,7 @@ const PERCENT = 100;
 /** How far along the track a value sits, from 0 to 100. */
 export function sliderPercent(value: number, {min, max}: SliderScale): number {
   if (max <= min) return 0;
-  return ((clampNumber(value, {min, max}) - min) / (max - min)) * PERCENT;
+  return ((clamp(value, {min, max}) - min) / (max - min)) * PERCENT;
 }
 
 function pageSteps({min, max, step}: SliderScale): number {

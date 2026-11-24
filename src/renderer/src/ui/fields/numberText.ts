@@ -1,8 +1,4 @@
-/** The range a number field accepts. */
-export interface NumberRange {
-  readonly min: number;
-  readonly max: number;
-}
+import {clamp, type NumberRange} from '@core/common/range';
 
 const DECIMAL_TEXT = /^-?(?:\d+(?:\.\d*)?|\.\d+)$/;
 const MAX_FIXED_DIGITS = 100;
@@ -23,11 +19,6 @@ export function parseNumberText(
   if (!DECIMAL_TEXT.test(bare)) return undefined;
   const value = Number(bare);
   return Number.isFinite(value) ? value : undefined;
-}
-
-/** Snaps a value to the nearest value in the range. */
-export function clampNumber(value: number, {min, max}: NumberRange): number {
-  return Math.min(max, Math.max(min, value));
 }
 
 function decimalPlaces(value: number): number {
@@ -64,7 +55,7 @@ export function stepNumber(
 ): number {
   const places = Math.max(decimalPlaces(value), decimalPlaces(step));
   const moved = Number((value + step * steps).toFixed(places));
-  return clampNumber(moved, range);
+  return clamp(moved, range);
 }
 
 /** Pads to step precision without rounding away digits from the value. */

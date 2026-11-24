@@ -7,6 +7,7 @@ import {
   type JSX,
   type KeyboardEvent,
 } from 'react';
+import {clamp, type NumberRange} from '@core/common/range';
 import {flushSync} from 'react-dom';
 import {classNames} from '../classNames';
 import {onShortcutCommit} from './commitDraft';
@@ -14,12 +15,10 @@ import {FieldFrame, useFieldReason} from './fieldFrame';
 import {isComposing} from './ime';
 import {hasModifier} from '../keys/modifierKeys';
 import {
-  clampNumber,
   formatNumberText,
   parseNumberText,
   roundNumberToStep,
   stepNumber,
-  type NumberRange,
 } from './numberText';
 import styles from './TextField.module.css';
 
@@ -122,7 +121,7 @@ export function NumberField({
     if (
       updateOn === 'change' &&
       typed !== undefined &&
-      clampNumber(typed, range) === typed
+      clamp(typed, range) === typed
     ) {
       report(typed);
     }
@@ -132,7 +131,7 @@ export function NumberField({
     if (draft === null) return;
     const typed = parseNumberText(draft, suffix);
     if (typed !== undefined) {
-      report(clampNumber(snap(typed), range));
+      report(clamp(snap(typed), range));
     }
     setDraft(null);
   };
