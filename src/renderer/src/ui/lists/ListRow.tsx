@@ -25,7 +25,6 @@ const ROW_ICON_SIZE = 16;
 const WARN_ICON_SIZE = 14;
 const ADD_ICON_SIZE = 12;
 const MODIFIED_LABEL = '저장하지 않은 변경';
-export type GroupRename = RenameContract;
 
 export interface ListRowProps {
   /** The DOM id of this option when a combobox points to it. */
@@ -64,7 +63,7 @@ export interface ListRowProps {
    * With it, the name is a field that saves on Enter or leaving it and cancels
    * on Esc, as a group's name does.
    */
-  readonly rename?: GroupRename | undefined;
+  readonly rename?: RenameContract | undefined;
 }
 
 function rowState(
@@ -322,7 +321,7 @@ export function NameField({
 }: {
   readonly id?: string | undefined;
   readonly label: string;
-  readonly rename: GroupRename;
+  readonly rename: RenameContract;
 }): JSX.Element {
   const draft = useRenameDraft(label, rename);
   return (
@@ -355,7 +354,7 @@ export function ListGroup({
   readonly done?: boolean | undefined;
   readonly value?: string | undefined;
   readonly selected?: boolean | undefined;
-  readonly rename?: GroupRename | undefined;
+  readonly rename?: RenameContract | undefined;
   readonly actions?: ReactNode;
   readonly children: ReactNode;
 }): JSX.Element {

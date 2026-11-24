@@ -3,7 +3,7 @@ import type {RowProblem, ServiceRow} from '@core/presentation';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useShow} from '@renderer/session/show';
 import {ListInsertLine, ListRow} from '@renderer/ui';
-import type {GroupRename} from '@renderer/ui/lists/ListRow';
+import type {RenameContract} from '@renderer/ui/fields/useRenameDraft';
 import type {Workspace} from '@renderer/ui/lists/workspace';
 import {serviceRowIcon} from './serviceItemIcons';
 import {serviceRowLabel} from './serviceRowLabel';
@@ -31,7 +31,7 @@ export interface RowContext {
   /** The place of each item among all items, shown in the table. */
   readonly numbers: ReadonlyMap<string, number>;
   readonly renaming: string | null;
-  readonly rename: (row: ServiceRow) => GroupRename | undefined;
+  readonly rename: (row: ServiceRow) => RenameContract | undefined;
 }
 
 /** The items of one group of the list. */

@@ -19,7 +19,8 @@ import {
   useShowSelected,
 } from '@renderer/ui/lists/useRowRange';
 import type {Choice} from './choices';
-import {ListBox, ListRow, type GroupRename} from '@renderer/ui/lists/ListRow';
+import {ListBox, ListRow} from '@renderer/ui/lists/ListRow';
+import type {RenameContract} from '@renderer/ui/fields/useRenameDraft';
 import type {MenuAnchor} from '@renderer/ui/menus/Menu';
 import styles from './ChoiceRows.module.css';
 
@@ -69,7 +70,7 @@ export function ChoiceRows<T extends Choice>({
   readonly label: string;
   readonly renaming: {
     readonly id: string;
-    readonly handlers: GroupRename;
+    readonly handlers: RenameContract;
   } | null;
   readonly onSelect: (id: string) => void;
   readonly onMenu?: (choice: T, anchor: MenuAnchor) => void;

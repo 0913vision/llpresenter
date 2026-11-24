@@ -38,7 +38,7 @@ import {useSettingsDocument} from '../../platform/useSettingsDocument';
 import {SCREEN_DRAG_MIME} from './screenDrag';
 import styles from './ScreenList.module.css';
 import {useDragClickGuard} from '@renderer/ui/lists/useDragClickGuard';
-import type {GroupRename} from '@renderer/ui/lists/ListRow';
+import type {RenameContract} from '@renderer/ui/fields/useRenameDraft';
 import type {MenuAnchor} from '@renderer/ui/menus/Menu';
 import {useScreenRowActions} from './useScreenRowActions';
 import {useScreenListWindow} from './useScreenListWindow';
@@ -59,7 +59,7 @@ function RowView({
 }: {
   readonly row: ScreenRow;
   readonly canDrag: boolean;
-  readonly rename: GroupRename | undefined;
+  readonly rename: RenameContract | undefined;
   readonly onMenu: (id: string, anchor: MenuAnchor) => void;
 }): JSX.Element {
   const ghost = useRef<HTMLDivElement>(null);

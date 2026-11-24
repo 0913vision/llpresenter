@@ -6,12 +6,8 @@ import {useRef, useState, type JSX} from 'react';
 import {useReflow} from '@renderer/ui/panels/useReflow';
 import {focusHistorySurface} from '@renderer/ui/lists/focusHistorySurface';
 import {IconButton} from '@renderer/ui/buttons/IconButton';
-import {
-  ListBox,
-  ListGroup,
-  ListRow,
-  type GroupRename,
-} from '@renderer/ui/lists/ListRow';
+import {ListBox, ListGroup, ListRow} from '@renderer/ui/lists/ListRow';
+import type {RenameContract} from '@renderer/ui/fields/useRenameDraft';
 import {Menu, type MenuAnchor} from '@renderer/ui/menus/Menu';
 import {
   Panel,
@@ -95,7 +91,7 @@ function usePlaylistEditing(kind: 'media' | 'audio') {
     id: string;
     target: HTMLElement | undefined;
   }>(menu !== null, ({id, target}) => remove(id, target));
-  const renameOf = (id: string): GroupRename | undefined =>
+  const renameOf = (id: string): RenameContract | undefined =>
     renaming === id
       ? {
           onCommit: name => {

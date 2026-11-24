@@ -5,7 +5,7 @@ import {SONG_NAME_MAX_LENGTH} from '@core/schema/songs/song';
 import {useHeaderRename} from '@renderer/session/headerRename';
 import type {OpenServiceResult} from '@renderer/session/openService';
 import {renameItem as renameOrderItem} from '@renderer/session/serviceOrderEdits';
-import type {GroupRename} from '@renderer/ui/lists/ListRow';
+import type {RenameContract} from '@renderer/ui/fields/useRenameDraft';
 import {useMenuHandoff} from '@renderer/ui/menus/useMenuHandoff';
 import {isNamed} from './orderRows';
 
@@ -58,7 +58,7 @@ export function useOrderRename({
     stop,
     afterMenu,
     /** How an item row's name field checks and saves, or none for a row without a name. */
-    itemRename: (row: ServiceRow): GroupRename | undefined =>
+    itemRename: (row: ServiceRow): RenameContract | undefined =>
       isNamed(row)
         ? {
             maxLength: SONG_NAME_MAX_LENGTH,

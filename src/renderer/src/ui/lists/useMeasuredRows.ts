@@ -12,7 +12,7 @@ import {
 import {
   reconcileSlideRowMeasurements,
   type SlideRowMeasurements,
-} from '../tiles/slideRowMeasurements';
+} from './slideRowMeasurements';
 
 export interface MeasuredRows {
   readonly current: SlideRowMeasurements;

@@ -1,6 +1,6 @@
 import type {JSX} from 'react';
 import {ListGroup, ListInsertLine} from '@renderer/ui';
-import type {GroupRename} from '@renderer/ui/lists/ListRow';
+import type {RenameContract} from '@renderer/ui/fields/useRenameDraft';
 import type {Workspace} from '@renderer/ui/lists/workspace';
 import {ItemRows, type RowContext} from './ItemRows';
 import type {RowGroup} from './orderRows';
@@ -37,7 +37,7 @@ export function OrderSection({
   readonly selected: boolean;
   readonly renaming: boolean;
   readonly onRename: () => void;
-  readonly onCommitName: GroupRename['onCommit'];
+  readonly onCommitName: RenameContract['onCommit'];
   readonly onCloseRename: () => void;
 }): JSX.Element {
   const prep = workspace === 'prep';

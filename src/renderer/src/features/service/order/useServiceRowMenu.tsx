@@ -13,7 +13,7 @@ import {useSaveTemplate} from '@renderer/features/service/list/useSaveTemplate';
 import {SaveTemplatePrompt} from '@renderer/features/service/list/SaveTemplatePrompt';
 import {SaveTemplateDialog} from '@renderer/features/service/list/SaveTemplateDialog';
 import {Menu, type MenuAnchor} from '@renderer/ui/menus/Menu';
-import type {GroupRename} from '@renderer/ui/lists/ListRow';
+import type {RenameContract} from '@renderer/ui/fields/useRenameDraft';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {serviceRowMenuEntries} from './serviceRowMenu';
 import {useAlive} from '@renderer/ui/useAlive';
@@ -84,7 +84,7 @@ export function useServiceRowMenu(
         setBusy(false);
       });
   };
-  const renameFor = (entry: ServiceEntry): GroupRename | undefined =>
+  const renameFor = (entry: ServiceEntry): RenameContract | undefined =>
     renaming?.id !== entry.id
       ? undefined
       : {

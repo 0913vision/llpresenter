@@ -1,5 +1,5 @@
 import type {ReactNode} from 'react';
-import type {GroupRename} from '../lists/ListRow';
+import type {RenameContract} from '../fields/useRenameDraft';
 import type {MenuAnchor} from './Menu';
 import type {LabelColor} from '@core/labels';
 
@@ -33,7 +33,7 @@ interface MenuItemContent {
   readonly loadSubmenu?: (() => readonly MenuEntry[]) | undefined;
   readonly onSelect?: (() => void) | undefined;
   readonly onMenu?: ((anchor: MenuAnchor) => void) | undefined;
-  readonly rename?: GroupRename | undefined;
+  readonly rename?: RenameContract | undefined;
   /** Keeps the menu open after the item runs, as a mode switch does. */
   readonly keepsOpen?: boolean | undefined;
 }
