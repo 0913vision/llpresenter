@@ -4,7 +4,7 @@ import {useServiceActions} from '@renderer/features/service/list/useServiceActio
 import {useOrderFull} from '@renderer/session/service/orderReasons';
 import {openInPrep} from '@renderer/session/prepTarget';
 import {renameItem} from '@renderer/session/service/serviceOrderEdits';
-import {openItem} from '@renderer/session/show/show';
+import {openItemOnGrid} from '@renderer/session/show/show';
 import {useServiceOrderEditing} from '@renderer/session/service/useServiceOrderEditing';
 import {ListInsertLine} from '@renderer/ui/lists/ListRow';
 import {Menu} from '@renderer/ui/menus/Menu';
@@ -31,7 +31,6 @@ import {useServiceItemClipboard} from './edits/useServiceItemClipboard';
 import {useServiceItemSelection} from './useServiceItemSelection';
 import styles from './ServiceOrderList.module.css';
 import {useShow} from '@renderer/session/show/showStore';
-import {scrollGridToItem} from '@renderer/session/show/visibleSlideItem';
 import {ListBox} from '@renderer/ui/lists/ListBox';
 
 function closeNothing(): void {
@@ -105,8 +104,7 @@ export function ServiceOrderList({
       return;
     }
     onOpenItem?.();
-    openItem(itemId);
-    scrollGridToItem(itemId);
+    openItemOnGrid(itemId);
   };
   const selectableIds = useMemo(
     () =>

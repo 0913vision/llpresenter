@@ -95,6 +95,15 @@ export function openItem(itemId: ItemId): void {
   useShow.setState({openItemId: itemId, selectedTile: 0});
 }
 
+/**
+ * Opens an item as the 예배 순서 and 다음 항목 do: in the 슬라이드 panel, and a
+ * continuous grid scrolls to it.
+ */
+export function openItemOnGrid(itemId: ItemId): void {
+  openItem(itemId);
+  scrollGridToItem(itemId);
+}
+
 /** Selects a tile of the open item without outputting it. */
 export function selectTile(index: number): void {
   useShow.setState({selectedTile: index});
@@ -328,9 +337,7 @@ function openAdjacentItem(direction: 'next' | 'previous'): void {
     current: scrolledSlideItem() ?? openItemId,
     direction,
   });
-  if (target === null) return;
-  openItem(target);
-  scrollGridToItem(target);
+  if (target !== null) openItemOnGrid(target);
 }
 
 /** 다음 항목: opens the next item that can output, without outputting. */
