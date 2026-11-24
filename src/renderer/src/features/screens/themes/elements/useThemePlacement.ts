@@ -1,7 +1,7 @@
 import {useMemo, useSyncExternalStore} from 'react';
 import type {ThemePlacement} from '@core/theme';
 import {placeTexts} from '@renderer/rendering/theme/placement';
-import type {ThemeDrawing} from '@renderer/rendering/theme/themeView';
+import type {ThemeDrawing} from '@renderer/rendering/theme/shownTexts';
 
 let fontsRevision = 0;
 

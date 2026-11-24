@@ -4,7 +4,7 @@ import {isKeyBackground} from '@core/screens';
 import type {SlideContent} from '@core/schema/slides/slideContent';
 import {themeScreenOf} from '@core/theme';
 import type {RenderFrame, RenderScreen} from '../layer';
-import type {ThemeDrawing} from './themeView';
+import type {ThemeDrawing} from './shownTexts';
 
 /** What a live slide says. */
 export function layerContent(slide: SlideLayer): SlideContent {

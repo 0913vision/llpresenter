@@ -2,7 +2,6 @@ import {moveSelection} from '@core/common/selectionOrder';
 import {checkPart} from '@core/schema/common/fileFormat';
 import {createThemeElementId, type MediaId} from '@core/schema/common/ids';
 import {
-  THEME_CANVAS,
   THEME_FILE_LIMITS,
   themeClipboardSchema,
   themeElementSchema,
@@ -13,6 +12,7 @@ import {
   type ThemeStack,
   type ThemeTextStyle,
 } from '@core/schema/screens/theme';
+import {THEME_CANVAS} from '@core/schema/screens/screens';
 
 /** What can be added to a screen; a box is a text with a box of its own. */
 export const addableKinds = [

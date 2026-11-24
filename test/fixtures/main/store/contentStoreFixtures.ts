@@ -16,9 +16,7 @@ import {onTestFinished, vi} from 'vitest';
 import type {Logger} from '@main/base/log';
 import {
   ContentStore,
-  type ContentEvents,
   type ContentStoreOptions,
-  type DocumentFiles,
 } from '@main/store/content/contentStore';
 import type {StoredFile} from '@main/store/files/library';
 import {resolveLocations} from '@main/store/locations/locations';
@@ -34,6 +32,8 @@ import {
   service,
   SUNDAY_ID,
 } from '@fixtures/main/store/testFiles';
+import {type ContentEvents} from '@main/store/content/contentCommands';
+import {type DocumentFiles} from '@main/store/content/contentPersistence';
 
 /** A neutral fixture value; declaring it does not read or write files. */
 export const ROOT = resolve('/data');

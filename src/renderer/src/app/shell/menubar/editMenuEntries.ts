@@ -10,8 +10,8 @@ import {
 } from '@renderer/ui/menus/menuModel';
 import {laterRow, menuSeparator} from '@renderer/ui/menus/menuRows';
 import {isInTextEntry} from '@renderer/ui/fields/textEntry';
-import type {TextEditAction} from '@contracts/ipc/api';
 import {fixedKeyText} from '@renderer/ui/keys/fixedKeys';
+import type {TextEditAction} from '@contracts/ipc/window';
 
 /** Why a text editing row is off when no text field had focus. */
 export const TEXT_FIELD_ONLY = '글자 입력란에서만 쓸 수 있습니다.';

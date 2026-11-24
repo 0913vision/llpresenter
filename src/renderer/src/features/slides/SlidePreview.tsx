@@ -3,11 +3,12 @@ import {nextTextOfTile} from '@core/presentation';
 import {hidesNext} from '@core/slides';
 import type {ScreenId} from '@core/schema/common/ids';
 import type {ShowTile} from '@core/schema/services/showService';
-import {KIND_NAMES, SCREEN_KIND_ORDER} from '@core/screens';
+import {KIND_NAMES} from '@core/screens';
 import {themeOfTile, useThemes} from '@renderer/platform/documents/themes';
 import {TilePicture} from '@renderer/pictures/TilePicture';
 import {SlideThumbnailBand} from '@renderer/ui/tiles/SlideThumbnail';
 import styles from './SlidePreview.module.css';
+import {SCREEN_KIND_ORDER} from '@core/schema/screens/screens';
 
 /** The screen a panel shows its slides on, and the others it can show. */
 export function usePreviewScreen() {

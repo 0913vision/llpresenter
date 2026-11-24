@@ -12,7 +12,9 @@ import {
 } from '@renderer/session/show/showLibrary';
 import {useThumbnailScale} from '@renderer/platform/thumbnailScale';
 import {SlideSizeControl} from '@renderer/platform/SlideSizeControl';
-import {Button, Icon, PanelTitle} from '@renderer/ui';
+import {Button} from '@renderer/ui/buttons/Button';
+import {Icon} from '@renderer/ui/Icon';
+import {PanelTitle} from '@renderer/ui/panels/Panel';
 import {GridFooter} from '@renderer/ui/lists/GridFooter';
 import {useTooltip} from '@renderer/ui/popups/Tooltip';
 import {SlideGrid} from './SlideGrid';

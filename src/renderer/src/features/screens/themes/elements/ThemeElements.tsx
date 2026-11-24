@@ -11,7 +11,7 @@ import {isUnchangedSelectionMove} from '@core/common/selectionOrder';
 import {selectionDragImage} from '@renderer/ui/lists/selectionDrag';
 import {Button} from '@renderer/ui/buttons/Button';
 import {IconButton} from '@renderer/ui/buttons/IconButton';
-import {ListBox, ListRow} from '@renderer/ui/lists/ListRow';
+import {ListRow} from '@renderer/ui/lists/ListRow';
 import {
   Panel,
   PanelHeader,
@@ -20,11 +20,12 @@ import {
   PanelFooter,
 } from '@renderer/ui/panels/Panel';
 import {contextMenuAnchor, takeMenuKey} from '@renderer/ui/menus/contextMenu';
-import type {MenuAnchor} from '@renderer/ui/menus/Menu';
 import type {ThemeModel} from '../useThemeEditor';
 import {addableNames, elementName} from '../themeNames';
 import styles from '../Themes.module.css';
 import {useReflow} from '@renderer/ui/panels/useReflow';
+import type {MenuAnchor} from '@renderer/ui/menus/menuModel';
+import {ListBox} from '@renderer/ui/lists/ListBox';
 
 const ALREADY_THERE = '이 화면에 이미 있습니다.';
 export const THEME_TILE_DRAG = 'application/x-llp-theme-kind';

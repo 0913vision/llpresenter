@@ -1,7 +1,9 @@
 import type {Dispatch, JSX, SetStateAction} from 'react';
 import type {Preferences} from '@core/schema/app/preferences';
 import type {TextImportOptions} from '@core/schema/songs/textImport';
-import {Checkbox, NumberField, TextField} from '@renderer/ui';
+import {Checkbox} from '@renderer/ui/choices/Checkbox';
+import {NumberField} from '@renderer/ui/fields/NumberField';
+import {TextField} from '@renderer/ui/fields/TextField';
 import {DialogField} from '@renderer/ui/popups/Dialog';
 import {SelectMenu} from '@renderer/ui/choices/SelectMenu';
 import {TEXT_ENCODINGS} from './textEncodings';

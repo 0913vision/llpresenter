@@ -1,6 +1,5 @@
 import type {Translation} from '@core/schema/bible/bible';
 import {LIVE_BIBLE_ID} from '@core/schema/common/ids';
-export {LIVE_BIBLE_ID} from '@core/schema/common/ids';
 
 export const LIVE_BIBLE: Translation = {
   id: LIVE_BIBLE_ID,

@@ -2,7 +2,8 @@ import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import {ListBox, ListRow} from '@renderer/ui/lists/ListRow';
+import {ListRow} from '@renderer/ui/lists/ListRow';
+import {ListBox} from '@renderer/ui/lists/ListBox';
 
 const iconRenders = vi.hoisted((): string[] => []);
 

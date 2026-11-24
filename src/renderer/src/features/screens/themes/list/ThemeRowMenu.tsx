@@ -1,8 +1,12 @@
 import type {JSX} from 'react';
 import type {ThemeFile} from '@core/schema/screens/theme';
 import {builtInTheme, isEditedTheme} from '@core/theme';
-import {Menu, type MenuAnchor} from '@renderer/ui/menus/Menu';
-import {menuAvailability, type MenuEntry} from '@renderer/ui/menus/menuModel';
+import {Menu} from '@renderer/ui/menus/Menu';
+import {
+  menuAvailability,
+  type MenuEntry,
+  type MenuAnchor,
+} from '@renderer/ui/menus/menuModel';
 import {themeProblems} from '../themeNames';
 
 /** What the theme menu does on its theme. */

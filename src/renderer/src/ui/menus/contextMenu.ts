@@ -1,6 +1,6 @@
 import type {KeyboardEvent, MouseEvent} from 'react';
-import type {MenuAnchor} from '@renderer/ui/menus/Menu';
 import './contextMenu.css';
+import type {MenuAnchor} from '@renderer/ui/menus/menuModel';
 
 /** A right click, or the Menu key, on an element that offers a menu. */
 export type ContextMenuEvent =

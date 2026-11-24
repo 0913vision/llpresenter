@@ -9,15 +9,15 @@ import {
   backgroundPicture,
   missingBackgroundTip,
 } from '@renderer/features/media/picker/backgroundChoices';
-import {
-  MediaPicker,
-  NONE_LABEL,
-  type MediaPickerItem,
-} from '@renderer/features/media/picker/MediaPicker';
+import {MediaPicker} from '@renderer/features/media/picker/MediaPicker';
 import {pictureMedia, useMedia} from '@renderer/platform/documents/media';
 import {lentPreviewUrl} from '@renderer/rendering/media/previewMedia';
 import {backgroundPaint} from '@renderer/rendering/theme/themeBackground';
 import {Select} from '@renderer/ui/choices/Select';
+import {
+  NONE_LABEL,
+  type MediaPickerItem,
+} from '@renderer/features/media/picker/mediaPickerChoices';
 
 const FILL = 'fill:';
 const THEME_LABEL = '테마 배경';

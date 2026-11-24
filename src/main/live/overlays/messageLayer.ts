@@ -1,4 +1,5 @@
-import type {ActiveMessage, MessageLayer} from '@core/schema/live/live';
+import type {MessageLayer} from '@core/schema/live/live';
+import type {ActiveMessage} from '@core/schema/live/overlayState';
 
 export function messageLayer(
   items: readonly ActiveMessage[],

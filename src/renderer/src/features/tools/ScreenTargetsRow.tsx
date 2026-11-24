@@ -1,5 +1,6 @@
 import type {JSX} from 'react';
-import {Button, PropertyRow} from '@renderer/ui';
+import {Button} from '@renderer/ui/buttons/Button';
+import {PropertyRow} from '@renderer/ui/panels/PropertyRow';
 import styles from './ScreenTargetsRow.module.css';
 
 /** The screens a message or graphic goes to: every screen, or the ones named. */

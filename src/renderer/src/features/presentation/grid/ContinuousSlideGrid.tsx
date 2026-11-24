@@ -13,8 +13,8 @@ import {
   projectedLiveCursor,
   tilesForView,
 } from '@renderer/session/show/showLibrary';
-import type {ShowView} from '@renderer/session/show/showStore';
-import {thumbnailWidth} from '@renderer/ui';
+import {type ShowView, useShow} from '@renderer/session/show/showStore';
+import {thumbnailWidth} from '@renderer/ui/choices/thumbnailSize';
 import {firstSlideWindowSize} from './useSlideWindow';
 import {useGridMeasure} from '@renderer/ui/lists/useGridMeasure';
 import {useSlideTransitionProgress} from '../useSlideTransitionProgress';
@@ -27,7 +27,6 @@ import {tileReflowIds} from './tileReflowIds';
 import {useReflow} from '@renderer/ui/panels/useReflow';
 import {useContinuousViewport} from './useContinuousViewport';
 import {ShowTileMenu, ShowTiles, type TileMenu} from './ShowTiles';
-import {useShow} from '@renderer/session/show/showStore';
 
 const BAND = 30;
 const HEADING = 37;

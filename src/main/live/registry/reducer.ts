@@ -2,9 +2,6 @@ import type {LiveCommand} from '@core/schema/live/liveCommand';
 import type {LiveHistory} from '../history';
 import {liveSlices} from './slices';
 
-export {initialHistory, type LiveHistory, type UndoEntry} from '../history';
-export {liveSlices} from './slices';
-
 /**
  * Applies one command. This is a pure function, so it is tested without
  * Electron.

@@ -1,5 +1,5 @@
 import type {JSX} from 'react';
-import {Menu, type MenuAnchor} from '@renderer/ui/menus/Menu';
+import {Menu} from '@renderer/ui/menus/Menu';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {
   macroMenuEntries,
@@ -7,6 +7,7 @@ import {
   type MacroMenuInput,
 } from './macroMenuEntries';
 import {useMacroTargets} from '../actions/useMacroTargets';
+import {type MenuAnchor} from '@renderer/ui/menus/menuModel';
 
 /**
  * The 매크로 right-click menu. It loads the action targets so that each

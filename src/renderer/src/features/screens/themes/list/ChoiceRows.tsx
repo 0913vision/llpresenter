@@ -19,10 +19,11 @@ import {
   useShowSelected,
 } from '@renderer/ui/lists/useRowRange';
 import type {Choice} from './choices';
-import {ListBox, ListRow} from '@renderer/ui/lists/ListRow';
-import type {RenameContract} from '@renderer/ui/fields/useRenameDraft';
-import type {MenuAnchor} from '@renderer/ui/menus/Menu';
+import {ListRow} from '@renderer/ui/lists/ListRow';
 import styles from './ChoiceRows.module.css';
+import type {MenuAnchor} from '@renderer/ui/menus/menuModel';
+import type {RenameContract} from '@renderer/ui/fields/renameContract';
+import {ListBox} from '@renderer/ui/lists/ListBox';
 
 const INITIAL_ROWS = 12;
 const OVERSCAN = 4;

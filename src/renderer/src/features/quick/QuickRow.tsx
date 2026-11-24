@@ -8,7 +8,7 @@ import {
   type QuickItem,
   type QuickItemKind,
 } from '@core/schema/tools/quick';
-import {ListActionRow} from '@renderer/ui';
+import {ListActionRow} from '@renderer/ui/lists/ListRow';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {TimerValue} from '../tools/timers/TimerValue';
 import {quickItemOn, quickItemUnavailable} from './quickActions';

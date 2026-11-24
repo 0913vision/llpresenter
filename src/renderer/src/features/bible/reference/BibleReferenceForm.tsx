@@ -1,4 +1,4 @@
-import {LIVE_BIBLE_ID, type ReferencePart} from '@core/bible';
+import {type ReferencePart} from '@core/bible';
 import {
   useEffect,
   useId,
@@ -16,8 +16,8 @@ import {
   BIBLE_LOOKUP_LIMITS,
   type BibleLookupPassage,
 } from '@core/schema/bible/bibleLookup';
-import type {TranslationId} from '@core/schema/common/ids';
-import {TextField} from '@renderer/ui';
+import {type TranslationId, LIVE_BIBLE_ID} from '@core/schema/common/ids';
+import {TextField} from '@renderer/ui/fields/TextField';
 import {BibleSuggestions} from './BibleSuggestions';
 import {useReferenceEdits} from './useReferenceEdits';
 import {

@@ -18,10 +18,10 @@ import {
   type RefObject,
 } from 'react';
 import {clickFocusProps} from './clickFocus';
-import type {MenuAnchor} from '../menus/Menu';
 import {hasModifier} from '../keys/modifierKeys';
 import {useButtonPress} from '../buttons/press';
 import type {Workspace} from './workspace';
+import type {MenuAnchor} from '../menus/menuModel';
 
 const TILE = '[role="option"]';
 const SPACE = ' ';

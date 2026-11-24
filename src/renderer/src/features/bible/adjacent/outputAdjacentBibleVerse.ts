@@ -8,7 +8,7 @@ import {
   liveTileIndex,
   tilesForView,
 } from '@renderer/session/show/showLibrary';
-import type {ShowView} from '@renderer/session/show/showStore';
+import {type ShowView, useShow} from '@renderer/session/show/showStore';
 import {
   bibleSource,
   type BibleDisplay,
@@ -21,7 +21,6 @@ import {
 import {openBiblePassage} from '../passageActions';
 import {lookupAdjacentPassage} from './lookupAdjacentPassage';
 import {passageText} from '../passageText';
-import {useShow} from '@renderer/session/show/showStore';
 
 /** The passage an item shows, as if it had been opened by itself. */
 async function openedPassage(

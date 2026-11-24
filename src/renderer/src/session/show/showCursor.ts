@@ -1,5 +1,4 @@
-import type {SlideTile, TileCursor} from '@core/presentation';
-import type {ItemId} from '@core/presentation';
+import type {SlideTile, TileCursor, ItemId} from '@core/presentation';
 import {useLive} from '../live';
 import {projectedLiveCursor, tilesForView} from './showLibrary';
 import {useShow} from './showStore';

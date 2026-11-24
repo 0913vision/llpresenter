@@ -1,7 +1,16 @@
 import type {ReactNode} from 'react';
-import type {RenameContract} from '../fields/useRenameDraft';
-import type {MenuAnchor} from './Menu';
+import type {Point} from '../popups/placement';
 import type {LabelColor} from '@core/labels';
+import type {RenameContract} from '../fields/renameContract';
+
+/** Where a menu opens: below a button, or at the pointer (right-click). */
+export type MenuAnchor = (
+  | {readonly kind: 'element'; readonly element: HTMLElement}
+  | {readonly kind: 'point'; readonly point: Point}
+) & {
+  readonly target?: HTMLElement | undefined;
+  readonly targets?: readonly HTMLElement[] | undefined;
+};
 
 /** How an item that can be on reports it: one of several, or on and off. */
 export type MenuCheckKind = 'radio' | 'checkbox';

@@ -16,7 +16,6 @@ import type {MediaList} from '@core/schema/media/mediaList';
 import {backgroundProgress} from '@core/media';
 import type {MediaProgress} from '@core/schema/media/mediaProgress';
 import {SYSTEM_CLOCK, type LiveClock} from './clock';
-import {initialHistory, liveSlices, type LiveHistory} from './registry/reducer';
 import type {SliceRegistry, SkippedLiveCommand} from './registry/sliceRegistry';
 import type {
   MacroCommandPort,
@@ -24,6 +23,8 @@ import type {
   ScreenSettingsPort,
   SliceInputs,
 } from './slice';
+import {initialHistory, type LiveHistory} from './history';
+import {liveSlices} from './registry/slices';
 
 export type LiveListener = (state: LiveState) => void;
 export type LiveCommandListener = (

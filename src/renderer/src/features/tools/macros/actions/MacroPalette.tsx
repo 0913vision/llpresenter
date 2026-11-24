@@ -1,6 +1,8 @@
 import {useState, type JSX} from 'react';
 import type {MacroActionKind} from '@core/schema/tools/macros';
-import {Button, IconButton, TextField} from '@renderer/ui';
+import {Button} from '@renderer/ui/buttons/Button';
+import {IconButton} from '@renderer/ui/buttons/IconButton';
+import {TextField} from '@renderer/ui/fields/TextField';
 import {MACRO_ACTION_MIME, searchMacroPalette} from './macroPaletteCatalog';
 import styles from './MacroPalette.module.css';
 

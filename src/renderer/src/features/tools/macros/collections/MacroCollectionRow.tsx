@@ -6,14 +6,14 @@ import {
 } from '@renderer/ui/menus/contextMenu';
 import {MenuCheck} from '@renderer/ui/menus/MenuParts';
 import {classNames} from '@renderer/ui/classNames';
-import type {MenuAnchor} from '@renderer/ui/menus/Menu';
 import {hasModifier} from '@renderer/ui/keys/modifierKeys';
 import {isComposing} from '@renderer/ui/fields/ime';
 import {rowMoveDirection} from '@renderer/ui/lists/reorder';
 import {RenameField} from '@renderer/ui/fields/RenameField';
-import type {RenameContract} from '@renderer/ui/fields/useRenameDraft';
 import menuStyles from '@renderer/ui/menus/Menu.module.css';
 import styles from './MacroCollectionPicker.module.css';
+import type {MenuAnchor} from '@renderer/ui/menus/menuModel';
+import type {RenameContract} from '@renderer/ui/fields/renameContract';
 
 /** What a row does with the drag of another 모음 over it. */
 export interface CollectionRowDrag {

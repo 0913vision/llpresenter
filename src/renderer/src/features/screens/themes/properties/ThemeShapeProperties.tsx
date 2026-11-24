@@ -1,6 +1,5 @@
 import type {JSX} from 'react';
 import {
-  THEME_CANVAS,
   THEME_FILE_LIMITS,
   type ThemeFill,
   type ThemeShape,
@@ -13,6 +12,7 @@ import {ColorProperty} from '../../ColorProperty';
 import {ThemeCheck, ThemeNumber} from './ThemePropertyFields';
 import type {ThemeModel} from '../useThemeEditor';
 import styles from '../Themes.module.css';
+import {THEME_CANVAS} from '@core/schema/screens/screens';
 
 const MAX_RADIUS = 540;
 const MAX_BORDER = 60;

@@ -1,7 +1,8 @@
 import {useAudioSelection} from './useAudioSelection';
 import {useMemo, type JSX} from 'react';
 import {useLive} from '@renderer/session/live';
-import {CheckRow, SelectMenu} from '@renderer/ui';
+import {CheckRow} from '@renderer/ui/choices/Checkbox';
+import {SelectMenu} from '@renderer/ui/choices/SelectMenu';
 import type {Notice} from '@renderer/ui/popups/notices';
 import type {MediaItem} from '@core/schema/media/mediaList';
 import {audioTracks} from '@core/media';

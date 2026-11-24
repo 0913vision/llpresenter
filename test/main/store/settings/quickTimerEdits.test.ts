@@ -5,10 +5,10 @@ import {
   type SettingsDocument,
   type SettingsName,
 } from '@core/schema/app/settingsDocuments';
-import {MAX_TIMER_DEFINITIONS} from '@core/schema/tools/quickTimerEdit';
 import {MAX_QUICK_ITEMS} from '@core/schema/tools/quick';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {prepareQuickTimerEdit} from '@main/store/settings/quickTimerEdits';
+import {MAX_TIMER_DEFINITIONS} from '@core/schema/tools/timers';
 
 const id = (n: number): string =>
   `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;

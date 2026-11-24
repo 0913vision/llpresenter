@@ -1,10 +1,8 @@
 import {describe, expect, it} from 'vitest';
-import {
-  BIBLE_HEADER_MAX_BYTES,
-  parseBibleChunkHeader,
-} from '../../src/main/bible/chunkFormat';
+import {parseBibleChunkHeader} from '../../src/main/bible/chunkFormat';
 import {translationFile} from '@fixtures/core/bible/testFiles';
 import {encodeChunkedBible} from './encode';
+import {BIBLE_HEADER_MAX_BYTES} from '../../src/core/schema/bible/bibleChunks';
 
 function encode(value: unknown) {
   return encodeChunkedBible(

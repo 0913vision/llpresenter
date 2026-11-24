@@ -52,9 +52,6 @@ import {prepareLabelRename} from '../settings/labelRenameTransaction';
 import type {StoredFile} from '../files/library';
 import type {DataLocations} from '../locations/locations';
 import type {SettingsStore} from '../settings/settingsStore';
-export type {ContentEvents} from './contentCommands';
-
-export type {DocumentFiles} from './contentPersistence';
 
 export interface ContentStoreOptions {
   readonly settings?: SettingsStore | null;

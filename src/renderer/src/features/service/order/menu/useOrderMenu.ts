@@ -1,10 +1,10 @@
 import {useState} from 'react';
 import type {ServiceRow} from '@core/presentation';
-import type {MenuAnchor} from '@renderer/ui/menus/Menu';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {rowsOfMenu} from '../orderRows';
 import type {useServiceItemSelection} from '../useServiceItemSelection';
 import {useServiceSongMenu} from './useServiceSongMenu';
+import type {MenuAnchor} from '@renderer/ui/menus/menuModel';
 
 interface OpenOrderMenu {
   readonly id: string;

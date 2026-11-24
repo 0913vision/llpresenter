@@ -13,7 +13,7 @@ export {
 export {recentPassages, rememberPassage} from './bibleRecents';
 export {BIBLE_VERSE_COUNTS} from './bibleVerseCounts';
 export {displayReference} from './displayReference';
-export {LIVE_BIBLE_ID, withLiveBible} from './liveTranslation';
+export {withLiveBible} from './liveTranslation';
 export {QUICK_BIBLE_TRANSITION} from './quickTransition';
 export {
   type ReferenceProblem,

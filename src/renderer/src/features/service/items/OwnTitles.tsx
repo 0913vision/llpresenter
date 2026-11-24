@@ -3,7 +3,7 @@ import type {SavedTitle} from '@core/schema/screens/themes';
 import {useThemes} from '@renderer/platform/documents/themes';
 import {Dialog, DialogField} from '@renderer/ui/popups/Dialog';
 import {TextField} from '@renderer/ui/fields/TextField';
-import {Menu, type MenuAnchor} from '@renderer/ui/menus/Menu';
+import {Menu} from '@renderer/ui/menus/Menu';
 import {
   contextMenuAnchor,
   openMenuFromKey,
@@ -11,6 +11,7 @@ import {
 import {editorTask} from '@renderer/platform/editorTask';
 import {ELEMENT_DRAG_MIME, ownTitleKey} from './newItems';
 import styles from './PrepPalette.module.css';
+import {type MenuAnchor} from '@renderer/ui/menus/menuModel';
 
 const NO_TITLES: readonly SavedTitle[] = [];
 

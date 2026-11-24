@@ -2,7 +2,7 @@ import {fireEvent, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState} from 'react';
 import {describe, expect, it, vi} from 'vitest';
-import {Menu, type MenuAnchor} from '@renderer/ui/menus/Menu';
+import {Menu} from '@renderer/ui/menus/Menu';
 import {
   contextMenuAnchor,
   isContextMenuKey,
@@ -10,6 +10,7 @@ import {
   openMenuFromKey,
   takeMenuKey,
 } from '@renderer/ui/menus/contextMenu';
+import {type MenuAnchor} from '@renderer/ui/menus/menuModel';
 
 function Harness() {
   const [anchor, setAnchor] = useState<MenuAnchor | null>(null);

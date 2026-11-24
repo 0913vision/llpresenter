@@ -7,7 +7,7 @@ import {
   PanelBody,
 } from '@renderer/ui/panels/Panel';
 import {Icon} from '@renderer/ui/Icon';
-import {Menu, type MenuAnchor} from '@renderer/ui/menus/Menu';
+import {Menu} from '@renderer/ui/menus/Menu';
 import {
   contextMenuAnchor,
   openMenuFromKey,
@@ -22,6 +22,7 @@ import {
 import {usePaletteInsert} from './usePaletteInsert';
 import {OwnTitles} from './OwnTitles';
 import styles from './PrepPalette.module.css';
+import {type MenuAnchor} from '@renderer/ui/menus/menuModel';
 
 export function PrepPalette({
   library,

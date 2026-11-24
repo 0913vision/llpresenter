@@ -1,7 +1,6 @@
 import {
   BIBLE_BOOKS,
   BIBLE_VERSE_COUNTS,
-  LIVE_BIBLE_ID,
   parseReference,
   resolvePassage,
   type ReferenceProblem,
@@ -16,6 +15,7 @@ import {
   type BibleChapterLibrary,
   type BibleChapterLibraryOptions,
 } from './chapterLibrary';
+import {LIVE_BIBLE_ID} from '@core/schema/common/ids';
 
 /** Resolves passages from an indexed catalog without loading whole files. */
 export class BibleLibrary {

@@ -1,8 +1,9 @@
 import type {SingleLiveCommand} from '@core/schema/live/liveCommand';
-import type {LiveState, ActiveProp} from '@core/schema/live/live';
+import type {LiveState} from '@core/schema/live/live';
 import type {Macro, KnownMacroAction} from '@core/schema/tools/macros';
 import type {MacroId} from '@core/schema/common/ids';
 import type {MacroCatalog} from './catalog';
+import type {ActiveProp} from '@core/schema/live/overlayState';
 
 export type MacroProblemReason =
   | 'missing-target'

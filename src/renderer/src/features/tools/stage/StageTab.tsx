@@ -2,7 +2,12 @@ import {useScreenList} from '@renderer/platform/screens/useScreenList';
 import type {JSX} from 'react';
 import {useSettingsDocument} from '@renderer/platform/documents/useSettingsDocument';
 import {sendLive, useLive} from '@renderer/session/live';
-import {Properties, PropertyGroup, PropertyRow, SelectMenu} from '@renderer/ui';
+import {
+  Properties,
+  PropertyGroup,
+  PropertyRow,
+} from '@renderer/ui/panels/PropertyRow';
+import {SelectMenu} from '@renderer/ui/choices/SelectMenu';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {StageMessage} from './StageMessage';
 import styles from './StageTab.module.css';

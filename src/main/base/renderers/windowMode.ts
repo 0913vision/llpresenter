@@ -1,5 +1,5 @@
 import type {WebContentsPaintEventParams} from 'electron';
-import type {WindowAction} from '@contracts/ipc/api';
+import type {WindowAction} from '@contracts/ipc/window';
 
 /**
  * How the app's windows open. `offscreen` is for UI tests and soak runs: every

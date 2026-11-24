@@ -9,13 +9,13 @@ import {
 } from '@testing-library/react';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import type {ElementFrame} from '@core/canvas/frameEdit';
+import {CanvasEditor} from '@renderer/ui/canvas/CanvasEditor';
+import {mockCanvasViewport} from '@fixtures/renderer/ui/canvasTesting';
 import {
-  CanvasEditor,
-  type CanvasActions,
   type CanvasDocument,
   type CanvasElement,
-} from '@renderer/ui/canvas/CanvasEditor';
-import {mockCanvasViewport} from '@fixtures/renderer/ui/canvasTesting';
+} from '@renderer/ui/canvas/canvasDraft';
+import {type CanvasActions} from '@renderer/ui/canvas/useCanvasGesture';
 
 beforeEach(mockCanvasViewport);
 afterEach(() => {

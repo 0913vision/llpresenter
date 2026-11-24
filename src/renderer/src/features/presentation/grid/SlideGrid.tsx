@@ -17,7 +17,7 @@ import {
   commitShownItem,
   useShownItemId,
 } from '@renderer/session/show/shownItem';
-import {thumbnailWidth} from '@renderer/ui';
+import {thumbnailWidth} from '@renderer/ui/choices/thumbnailSize';
 import {useGridMeasure} from '@renderer/ui/lists/useGridMeasure';
 import styles from './SlideGrid.module.css';
 import {useSlideWindow} from './useSlideWindow';

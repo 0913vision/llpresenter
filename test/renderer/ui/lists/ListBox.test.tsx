@@ -3,9 +3,10 @@ import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {afterEach, describe, expect, it, onTestFinished, vi} from 'vitest';
 import {IconButton} from '@renderer/ui/buttons/IconButton';
-import {ListBox, ListGroup, ListRow} from '@renderer/ui/lists/ListRow';
+import {ListGroup, ListRow} from '@renderer/ui/lists/ListRow';
 import {resetTooltips} from '@fixtures/renderer/ui/tooltipTesting';
 import {ServiceOrder, selectedTitle} from '@fixtures/renderer/ui/listTesting';
+import {ListBox} from '@renderer/ui/lists/ListBox';
 
 afterEach(resetTooltips);
 

@@ -4,8 +4,6 @@ import type {ReadonlyKnown} from '../common/fileFormat';
 import {NAME_LIMIT} from '../common/primitives';
 import {MAX_TIMER_SECONDS} from './timers';
 
-export {MAX_TIMER_SECONDS, MAX_TIMER_DEFINITIONS} from './timers';
-
 export const quickTimerCreateSchema = v.pipe(
   v.object({
     type: v.literal('quick.timer.create'),

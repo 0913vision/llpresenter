@@ -13,9 +13,10 @@ import {useLabels} from '@renderer/features/labels/labels';
 import {openInPrep} from '@renderer/session/prepTarget';
 import {openImportedSong, requestLeaveSong, useSongDraft} from '../songDraft';
 import {usePreferenceEdits} from '../../preferences/usePreferenceEdits';
-import {TextImportDialog, type TextImportChoice} from './TextImportDialog';
+import {TextImportDialog} from './TextImportDialog';
 import {TextImportEncodingDialog} from './TextImportEncodingDialog';
 import type {TextEncoding} from './textEncodings';
+import {type TextImportChoice} from './TextImportChoices';
 
 function defaultsOf(
   retry: {readonly defaults: Preferences['import']['txt']} | null,

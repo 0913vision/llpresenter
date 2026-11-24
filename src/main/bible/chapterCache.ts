@@ -1,4 +1,4 @@
-import {LIVE_BIBLE_ID} from '@core/bible';
+import {LIVE_BIBLE_ID} from '@core/schema/common/ids';
 
 export const BIBLE_CHAPTER_CACHE_LIMIT = 32;
 export const BIBLE_CHAPTER_CACHE_MAX_BYTES = 8_388_608;

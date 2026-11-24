@@ -2,7 +2,6 @@ import {afterEach, expect, it, vi} from 'vitest';
 import {writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {BIBLE_BOOKS} from '@core/bible/bibleBooks';
-import {LIVE_BIBLE_ID} from '@core/bible/liveTranslation';
 import {parseBibleLookupRequest} from '@core/schema/bible/bibleLookup';
 import {defaultPreferences} from '@core/schema/app/preferences';
 import {parseSettingsDocument} from '@core/schema/app/settingsDocuments';
@@ -12,6 +11,7 @@ import {
   chunkedTranslationFile,
   translationFile,
 } from '@fixtures/core/bible/testFiles';
+import {LIVE_BIBLE_ID} from '@core/schema/common/ids';
 
 const log = {
   info: vi.fn(),

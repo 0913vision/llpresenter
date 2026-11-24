@@ -1,12 +1,12 @@
 import {EventEmitter} from 'node:events';
 import {describe, expect, it, vi} from 'vitest';
-import type {WindowAction} from '@contracts/ipc/api';
 import {
   allowsWindowAction,
   discardTestFrames,
   windowModeFrom,
   windowTestOptions,
 } from '@main/base/renderers/windowMode';
+import type {WindowAction} from '@contracts/ipc/window';
 
 describe('windowModeFrom', () => {
   it('permits the explicit packaged smoke only on a GitHub runner', () => {

@@ -1,10 +1,10 @@
 import {parseBibleTranslation} from '../../src/core/schema/bible/bibleTranslation';
+import {parseBibleChunkHeader} from '../../src/main/bible/chunkFormat';
 import {
   BIBLE_CHAPTER_MAX_BYTES,
   BIBLE_HEADER_PREFIX_BYTES,
   parseBibleChapter,
-  parseBibleChunkHeader,
-} from '../../src/main/bible/chunkFormat';
+} from '../../src/core/schema/bible/bibleChunks';
 
 /** Converts validated legacy JSON to a framed v2 container without editing text. */
 export function encodeChunkedBible(input: Uint8Array, file: string): Buffer {

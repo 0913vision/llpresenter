@@ -1,4 +1,5 @@
-import type {ActiveProp, PropLayer} from '@core/schema/live/live';
+import type {PropLayer} from '@core/schema/live/live';
+import type {ActiveProp} from '@core/schema/live/overlayState';
 
 export function propLayer(items: readonly ActiveProp[]): PropLayer | null {
   const first = items[0];

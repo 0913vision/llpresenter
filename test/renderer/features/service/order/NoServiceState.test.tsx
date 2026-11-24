@@ -2,7 +2,10 @@ import {render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeAll, beforeEach, expect, it, vi} from 'vitest';
 import type {ContentEdit, EditResult} from '@core/schema/services/contentEdit';
-import type {ServiceOpenRequest} from '@core/schema/services/serviceOpen';
+import type {
+  ServiceOpenRequest,
+  ServiceOpenResult,
+} from '@core/schema/services/serviceOpen';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {
   ids,
@@ -16,7 +19,6 @@ import {
 import {sampleService} from '@fixtures/renderer/session/sampleService';
 import {ServiceOrderList} from '@renderer/features/service/order/ServiceOrderList';
 import {applyService} from '@renderer/session/show/show';
-import type {ServiceOpenResult} from '@core/schema/services/serviceOpen';
 import {useShow} from '@renderer/session/show/showStore';
 
 const REFUSED: EditResult = {

@@ -8,12 +8,12 @@ import {
   readBibleChapterFile,
   type BiblePositionedReader,
 } from '@main/bible/chapterFile';
-import {BIBLE_HEADER_MAX_BYTES} from '@main/bible/chunkFormat';
 import {
   chunkedTranslationFile,
   frameBibleChunks,
   translationFile,
 } from '@fixtures/core/bible/testFiles';
+import {BIBLE_HEADER_MAX_BYTES} from '@core/schema/bible/bibleChunks';
 
 vi.mock('node:fs/promises', async importOriginal => {
   const original = await importOriginal<typeof fs>();

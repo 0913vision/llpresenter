@@ -7,9 +7,10 @@ import type {Prop} from '@core/schema/tools/props';
 import {MISSING_MEDIA_TIP} from '@renderer/platform/problemReasons';
 import type {Screen} from '@core/schema/screens/screens';
 import {useLive} from '@renderer/session/live';
-import {MediaTile, TileList, gridMoves} from '@renderer/ui';
-import type {MenuAnchor} from '@renderer/ui/menus/Menu';
+import {MediaTile} from '@renderer/ui/tiles/MediaTile';
+import {TileList, gridMoves} from '@renderer/ui/lists/TileList';
 import styles from './PropGrid.module.css';
+import type {MenuAnchor} from '@renderer/ui/menus/menuModel';
 
 export function PropGrid({
   props,

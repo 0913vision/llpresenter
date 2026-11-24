@@ -9,12 +9,12 @@ import {
   type ReactNode,
   type RefObject,
 } from 'react';
-import {MediaGrid} from '@renderer/ui';
+import {MediaGrid} from '@renderer/ui/tiles/MediaTile';
 import {isComposing} from '@renderer/ui/fields/ime';
-import type {MenuAnchor} from '@renderer/ui/menus/Menu';
 import styles from './MediaView.module.css';
 import {mediaGridLayout} from './mediaGridLayout';
 import {useReflow} from '@renderer/ui/panels/useReflow';
+import type {MenuAnchor} from '@renderer/ui/menus/menuModel';
 
 /** The rows mounted beyond the visible ones, above and below. */
 export const OVERSCAN_ROWS = 1;

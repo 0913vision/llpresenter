@@ -6,17 +6,17 @@ import {mediaLoops} from '@core/media';
 import {type MediaItem, MEDIA_LIMITS} from '@core/schema/media/mediaList';
 import {RenameDialog} from '@renderer/ui/popups/RenameDialog';
 import {useLive} from '@renderer/session/live';
+import {Button} from '@renderer/ui/buttons/Button';
+import {MediaTile} from '@renderer/ui/tiles/MediaTile';
 import {
-  Button,
-  MediaTile,
   Panel,
   PanelActions,
   PanelBody,
   PanelFooter,
   PanelHeader,
   PanelTabs,
-  Slider,
-} from '@renderer/ui';
+} from '@renderer/ui/panels/Panel';
+import {Slider} from '@renderer/ui/choices/Slider';
 import {Menu} from '@renderer/ui/menus/Menu';
 import {ViewModeSwitch} from '@renderer/ui/choices/ViewModeSwitch';
 import type {Notice} from '@renderer/ui/popups/notices';
@@ -44,8 +44,6 @@ import {useMediaShortcuts} from './useMediaShortcuts';
 import type {MediaLibrary} from '../mediaLibrary';
 import styles from './MediaView.module.css';
 import {entryName, useMediaActions} from './useMediaActions';
-
-export {DEFAULT_MEDIA_COLUMNS} from './useMediaLayout';
 
 export interface MediaViewProps {
   readonly workspace?: 'show' | 'prep';

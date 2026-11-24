@@ -3,7 +3,8 @@ import type {PushEndpoint} from '@contracts/ipc/endpoint';
 import type {EditResult} from '@core/schema/services/contentEdit';
 import {IpcHost, pushToWindows} from '../../base/ipcHost';
 import type {Logger} from '../../base/log';
-import type {ContentEvents, ContentStore} from './contentStore';
+import type {ContentStore} from './contentStore';
+import type {ContentEvents} from './contentCommands';
 
 /** The parts of the content store that the channels read and edit. */
 type ChannelStore = Pick<

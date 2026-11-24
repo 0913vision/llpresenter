@@ -1,7 +1,7 @@
 import {useState, type RefObject} from 'react';
-import type {MenuAnchor} from '@renderer/ui/menus/Menu';
 import {selectInDeck, selectionOf} from '../deckSelection';
 import type {SlideDeck} from '../slideDeck';
+import type {MenuAnchor} from '@renderer/ui/menus/menuModel';
 
 interface OpenSlideMenu {
   readonly anchor: MenuAnchor;

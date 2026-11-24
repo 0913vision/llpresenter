@@ -1,14 +1,14 @@
 import type {JSX} from 'react';
 import type {RowProblem, ServiceRow} from '@core/presentation';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
-import {ListInsertLine, ListRow} from '@renderer/ui';
-import type {RenameContract} from '@renderer/ui/fields/useRenameDraft';
+import {ListInsertLine, ListRow} from '@renderer/ui/lists/ListRow';
 import type {Workspace} from '@renderer/ui/lists/workspace';
 import {serviceRowIcon} from '../../serviceItemIcons';
 import {serviceRowLabel} from './serviceRowLabel';
 import type {ServiceTableParts} from '../serviceTableParts';
 import styles from '../ServiceOrderList.module.css';
 import {useShow} from '@renderer/session/show/showStore';
+import type {RenameContract} from '@renderer/ui/fields/renameContract';
 
 const problemTips: Readonly<Record<RowProblem, string>> = {
   'missing-song': '곡 파일을 찾을 수 없습니다.',

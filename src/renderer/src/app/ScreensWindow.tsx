@@ -4,7 +4,7 @@ import {OutputPreview} from '@renderer/features/screens/preview/OutputPreview';
 import {ScreenList} from '@renderer/features/screens/list/ScreenList';
 import {ScreenProperties} from '@renderer/features/screens/properties/ScreenProperties';
 import {ScreenSummariesProvider} from '@renderer/platform/screens/ScreenSummaries';
-import {IconButton} from '@renderer/ui';
+import {IconButton} from '@renderer/ui/buttons/IconButton';
 import {watchInputModality} from '@renderer/ui/keys/inputModality';
 import {NotificationStack} from '@renderer/ui/popups/Notification';
 import {

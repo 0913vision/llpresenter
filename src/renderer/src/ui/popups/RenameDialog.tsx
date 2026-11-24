@@ -1,7 +1,8 @@
 import type {JSX} from 'react';
 import {Dialog} from './Dialog';
 import {TextField} from '../fields/TextField';
-import {useRenameDraft, type RenameContract} from '../fields/useRenameDraft';
+import {useRenameDraft} from '../fields/useRenameDraft';
+import {type RenameContract} from '../fields/renameContract';
 
 /** Presents the shared rename lifecycle with feature-owned validation and saving. */
 export function RenameDialog({

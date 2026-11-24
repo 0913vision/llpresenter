@@ -1,9 +1,10 @@
 import type {JSX} from 'react';
 import {IconButton} from '../ui/buttons/IconButton';
-import {ListBox, ListRow} from '../ui/lists/ListRow';
+import {ListRow} from '../ui/lists/ListRow';
 import {Panel, PanelActions, PanelHeader, PanelTabs} from '../ui/panels/Panel';
 import styles from './IconButtonSection.module.css';
 import {ignore, Section, SpecGroup, SpecItem, Stateful} from './Spec';
+import {ListBox} from '../ui/lists/ListBox';
 
 const LEFT_COLUMN_WIDTH = 280;
 const TOOLS_PANEL_WIDTH = 220;

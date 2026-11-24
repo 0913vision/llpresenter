@@ -23,10 +23,10 @@ import {
   settingsLocation,
   type SettingsLocation,
 } from '../settings/settingsFile';
-import type {SettingsProblem} from '../settings/settingsStore';
 import {MediaStore} from './mediaStore';
 import {recoverMediaImports} from './mediaImportJournal';
 import type {SaveFailureSink} from '../files/saveFailures';
+import type {SettingsProblem} from '../settings/settingsLoader';
 
 /** What the media list opens with besides the loaded data. */
 export interface MediaStoreContext {

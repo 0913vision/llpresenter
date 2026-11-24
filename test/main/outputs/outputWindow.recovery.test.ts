@@ -2,11 +2,9 @@ import {describe, expect, it, vi} from 'vitest';
 import {installMockClock} from '@fixtures/mockClock';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {mockWindows, fullScreenScreen} from '@fixtures/main/outputs/testing';
-import {
-  OutputWindow,
-  OUTPUT_REVEAL_DEADLINE_MS,
-} from '@main/outputs/outputWindow';
+import {OutputWindow} from '@main/outputs/outputWindow';
 import type {ShownPlacement} from '@main/outputs/placement';
+import {OUTPUT_REVEAL_DEADLINE_MS} from '@core/output';
 
 const mocks = vi.hoisted(() => {
   class Recovery {

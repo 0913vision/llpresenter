@@ -1,7 +1,8 @@
 import type {JSX} from 'react';
 import type {MonitorInfo, MonitorList} from '@core/schema/screens/monitors';
 import type {Screen} from '@core/schema/screens/screens';
-import {PropertyRow, SelectMenu} from '@renderer/ui';
+import {PropertyRow} from '@renderer/ui/panels/PropertyRow';
+import {SelectMenu} from '@renderer/ui/choices/SelectMenu';
 
 /** The saved full screen device; the control monitor is never offered. */
 export function ScreenDeviceRow({

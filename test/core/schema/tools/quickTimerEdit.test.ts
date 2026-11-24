@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {parseSettingsEdit} from '@core/schema/app/settingsDocuments';
 import {NAME_LIMIT} from '@core/schema/common/primitives';
-import {MAX_TIMER_SECONDS} from '@core/schema/tools/quickTimerEdit';
+import {MAX_TIMER_SECONDS} from '@core/schema/tools/timers';
 
 const quickItemId = '00000000-0000-4000-8000-000000000001';
 const timerId = '00000000-0000-4000-8000-000000000002';

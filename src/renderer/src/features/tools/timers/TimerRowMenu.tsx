@@ -8,8 +8,7 @@ import {useRef, useState, type JSX, type ReactNode} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {Timer} from '@core/schema/tools/timers';
 import {NAME_LIMIT} from '@core/schema/common/primitives';
-import {Menu} from '@renderer/ui';
-import type {MenuAnchor} from '@renderer/ui/menus/Menu';
+import {Menu} from '@renderer/ui/menus/Menu';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {createTimerId} from '@core/schema/common/ids';
 import {duplicateTimer, renameTimer} from './timerEdits';
@@ -18,6 +17,7 @@ import {useTimerEditDialog} from './useTimerEditDialog';
 import {useToolEditing} from '../useToolEditing';
 import styles from './TimerTab.module.css';
 import {namedToolMenuEntries, toolMenuReason} from '../toolMenuEntries';
+import type {MenuAnchor} from '@renderer/ui/menus/menuModel';
 
 function TimerNameDialog({
   timer,

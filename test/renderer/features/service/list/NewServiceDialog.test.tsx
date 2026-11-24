@@ -12,7 +12,10 @@ import {
 import type {LiveCommand} from '@core/schema/live/liveCommand';
 import type {TemplateDocument} from '@core/schema/services/contentDocuments';
 import type {ContentEdit, EditResult} from '@core/schema/services/contentEdit';
-import type {ServiceOpenRequest} from '@core/schema/services/serviceOpen';
+import type {
+  ServiceOpenRequest,
+  ServiceOpenResult,
+} from '@core/schema/services/serviceOpen';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {applyService} from '@renderer/session/show/show';
 import {useLive} from '@renderer/session/live';
@@ -32,7 +35,6 @@ import {
   templateEntries,
   titles,
 } from '@fixtures/core/serviceList';
-import type {ServiceOpenResult} from '@core/schema/services/serviceOpen';
 import {useShow} from '@renderer/session/show/showStore';
 
 const REFUSED: EditResult = {

@@ -30,8 +30,6 @@ export interface LibrarySelection {
   readonly position?: number | undefined;
 }
 
-export type {LibraryRow} from './librarySearch';
-
 const titles = new Intl.Collator('ko', {numeric: true});
 const problemTitles = {
   load: '라이브러리 불러오기 실패',

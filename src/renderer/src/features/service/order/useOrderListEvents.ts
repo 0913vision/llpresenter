@@ -4,12 +4,12 @@ import {
   pointerMenuAnchor,
   takeMenuKey,
 } from '@renderer/ui/menus/contextMenu';
-import type {MenuAnchor} from '@renderer/ui/menus/Menu';
 import {hasModifier} from '@renderer/ui/keys/modifierKeys';
 import {isInTextEntry} from '@renderer/ui/fields/textEntry';
 import type {Workspace} from '@renderer/ui/lists/workspace';
 import {serviceOrderRowId} from './edits/useServiceOrderDrag';
 import type {useServiceItemSelection} from './useServiceItemSelection';
+import type {MenuAnchor} from '@renderer/ui/menus/menuModel';
 
 /**
  * The pointer and key handling of the whole 예배 순서 list: a click picks

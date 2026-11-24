@@ -1,7 +1,7 @@
 import {useState, type JSX} from 'react';
 import {slidePurposes, type ThemeFile} from '@core/schema/screens/theme';
 import {IconButton} from '@renderer/ui/buttons/IconButton';
-import {Menu, type MenuAnchor} from '@renderer/ui/menus/Menu';
+import {Menu} from '@renderer/ui/menus/Menu';
 import {
   Panel,
   PanelActions,
@@ -15,6 +15,7 @@ import {ThemeRowMenu} from './ThemeRowMenu';
 import type {ThemeModel} from '../useThemeEditor';
 import {useThemeListActions} from './useThemeListActions';
 import styles from '../Themes.module.css';
+import {type MenuAnchor} from '@renderer/ui/menus/menuModel';
 
 /** 기본 on the default theme of its purpose, else the purpose a renamed theme is for. */
 function ThemeTag({

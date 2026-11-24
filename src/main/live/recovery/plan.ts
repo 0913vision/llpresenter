@@ -1,6 +1,6 @@
 import type {SettingsReader} from '@core/schema/app/settingsReader';
 import type {SingleLiveCommand} from '@core/schema/live/liveCommand';
-import type {ActiveMessage, LiveState} from '@core/schema/live/live';
+import type {LiveState} from '@core/schema/live/live';
 import type {ScreenId, ServiceId} from '@core/schema/common/ids';
 import type {RecoverySummary} from '@core/schema/app/recovery';
 import type {RecoveryRecord} from '@core/schema/app/recoveryRecord';
@@ -12,6 +12,7 @@ import {
 } from '@core/schema/services/service';
 import {itemTitle} from '@core/slides';
 import {savedScreens, switchableScreens} from '../../base/savedScreens';
+import type {ActiveMessage} from '@core/schema/live/overlayState';
 
 const MILLISECONDS_PER_SECOND = 1000;
 

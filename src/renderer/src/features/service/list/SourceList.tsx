@@ -10,7 +10,7 @@ import type {
   TemplateEntry,
 } from '@core/schema/services/contentDocuments';
 import {Button} from '@renderer/ui/buttons/Button';
-import {ListBox, ListGroup, ListRow} from '@renderer/ui/lists/ListRow';
+import {ListGroup, ListRow} from '@renderer/ui/lists/ListRow';
 import {dateLabel} from './serviceDates';
 import type {SourceRow} from './useSourceActions';
 import {EMPTY_SOURCE, sourceKey, type ServiceSource} from './useServiceSources';
@@ -21,6 +21,7 @@ import {
 } from '@renderer/ui/menus/contextMenu';
 import {useReflow} from '@renderer/ui/panels/useReflow';
 import {serviceDay} from '@core/services';
+import {ListBox} from '@renderer/ui/lists/ListBox';
 
 const names = new Intl.Collator('ko', {numeric: true});
 

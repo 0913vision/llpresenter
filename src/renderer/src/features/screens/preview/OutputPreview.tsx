@@ -1,10 +1,10 @@
 import {useMemo, type JSX} from 'react';
-import type {Screen} from '@core/schema/screens/screens';
+import {type Screen, THEME_CANVAS} from '@core/schema/screens/screens';
 import {showTestPattern} from './showTestPattern';
 import {ScreenPreview} from '@renderer/features/presentation/preview/ScreenPreview';
 import {OutputMirror} from '@renderer/features/presentation/preview/OutputMirror';
 import {useLive} from '@renderer/session/live';
-import {Button} from '@renderer/ui';
+import {Button} from '@renderer/ui/buttons/Button';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {
   previewCaption,
@@ -17,7 +17,6 @@ import {useSettingsDocument} from '../../../platform/documents/useSettingsDocume
 import styles from './OutputPreview.module.css';
 import {fitAspect} from '@core/canvas';
 import {useElementSize} from '@renderer/ui/panels/useElementSize';
-import {THEME_CANVAS} from '@core/schema/screens/theme';
 import {pictureSizeForScreen} from '@core/screens';
 import {useScreenSize} from '@renderer/pictures/screenSizes';
 

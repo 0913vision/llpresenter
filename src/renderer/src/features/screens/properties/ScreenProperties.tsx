@@ -1,20 +1,20 @@
 import {SCREEN_NAME_PROBLEMS} from '../screenEditor';
-import {THEME_CANVAS} from '@core/schema/screens/screens';
-import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
-import {useMemo, useState, type JSX} from 'react';
-import type {MonitorInfo, MonitorList} from '@core/schema/screens/monitors';
 import {
+  THEME_CANVAS,
   NDI_DEFAULT_HARDWARE_ACCELERATION,
   NDI_DEFAULT_FPS,
   NDI_FRAME_RATES,
   NDI_DEFAULT_SOURCE_NAME,
   NDI_SOURCE_NAME_MAX,
   type Screen,
+  SCREEN_KIND_ORDER,
 } from '@core/schema/screens/screens';
+import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
+import {useMemo, useState, type JSX} from 'react';
+import type {MonitorInfo, MonitorList} from '@core/schema/screens/monitors';
 import {
   emptyScreenColor,
   KIND_NAMES,
-  SCREEN_KIND_ORDER,
   monitorAssignment,
   CAPTURE_RESOLUTIONS,
   EDGE_MARGIN_MAX,
@@ -26,17 +26,17 @@ import {
   type ScreenChange,
 } from '@core/screens';
 import {ColorProperty} from '../ColorProperty';
+import {Checkbox} from '@renderer/ui/choices/Checkbox';
+import {NumberField} from '@renderer/ui/fields/NumberField';
 import {
-  Checkbox,
-  NumberField,
   Properties,
   PropertyGroup,
   PropertyRow,
   PropertyValue,
-  SegmentedControl,
-  SelectMenu,
-  TextField,
-} from '@renderer/ui';
+} from '@renderer/ui/panels/PropertyRow';
+import {SegmentedControl} from '@renderer/ui/choices/SegmentedControl';
+import {SelectMenu} from '@renderer/ui/choices/SelectMenu';
+import {TextField} from '@renderer/ui/fields/TextField';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import {isComposing} from '@renderer/ui/fields/ime';
 import {hasModifier} from '@renderer/ui/keys/modifierKeys';

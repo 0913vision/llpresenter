@@ -13,7 +13,7 @@ import {
 import type {PreferencePageId} from '@core/schema/app/preferencePages';
 import {useShortcutSettings} from '@renderer/platform/shortcuts/useShortcutSettings';
 import type {PreferencesRequest} from '@contracts/ipc/window';
-import {IconButton} from '@renderer/ui';
+import {IconButton} from '@renderer/ui/buttons/IconButton';
 import {watchInputModality} from '@renderer/ui/keys/inputModality';
 import {NotificationStack} from '@renderer/ui/popups/Notification';
 import type {Notice} from '@renderer/ui/popups/notices';

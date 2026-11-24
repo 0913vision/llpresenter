@@ -11,7 +11,7 @@ import type {
   TextImportOptions,
   TextImportSource,
 } from '@core/schema/songs/textImport';
-import {TextField} from '@renderer/ui';
+import {TextField} from '@renderer/ui/fields/TextField';
 import {Dialog} from '@renderer/ui/popups/Dialog';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {useLabelColors} from '@renderer/features/labels/labels';
@@ -29,8 +29,6 @@ import {useImportLabelMapping} from './useImportLabelMapping';
 import {useImportPreview} from './useImportPreview';
 import {TextImportChoices, type TextImportChoice} from './TextImportChoices';
 import styles from './TextImportDialog.module.css';
-
-export type {TextImportChoice} from './TextImportChoices';
 
 /** The song a draft becomes, with the title slide the editor adds. */
 function songOf(draft: TextImportDraft, title: string): Song {

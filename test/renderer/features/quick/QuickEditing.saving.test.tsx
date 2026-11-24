@@ -11,17 +11,13 @@ import {describe, expect, it, vi} from 'vitest';
 import type {EditResult} from '@core/schema/services/contentEdit';
 import {parseServiceDocument} from '@core/schema/services/contentDocuments';
 import {macroIdSchema, createQuickItemId} from '@core/schema/common/ids';
-import {isKnownQuickItem} from '@core/schema/tools/quick';
+import {isKnownQuickItem, MAX_QUICK_ITEMS} from '@core/schema/tools/quick';
 import {useLive} from '@renderer/session/live';
 import {openLibrarySong} from '@renderer/session/show/showLibrary';
 import {pendingWritesOf} from '@renderer/platform/documents/pendingWrites';
 import {openBiblePassage} from '@renderer/features/bible/passageActions';
 import {panelPassage} from '@fixtures/contracts/ipc/bibleApi';
-import {
-  MAX_QUICK_ITEMS,
-  newQuickItem,
-  saveQuickEdit,
-} from '@renderer/features/quick/quickEdits';
+import {newQuickItem, saveQuickEdit} from '@renderer/features/quick/quickEdits';
 import {useQuickEditing} from '@renderer/features/quick/useQuickEditing';
 import {quickRunner} from '@renderer/features/quick/quickActions';
 import {

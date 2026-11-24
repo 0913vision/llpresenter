@@ -13,20 +13,10 @@ import {
   type JSX,
   type ReactNode,
 } from 'react';
-import {
-  ListBox,
-  ListDragGhost,
-  ListGroup,
-  ListRow,
-  StatusDot,
-} from '@renderer/ui';
-import type {Screen} from '@core/schema/screens/screens';
-import {
-  KIND_NAMES,
-  SCREEN_KIND_ORDER,
-  screenGroups,
-  type ScreenRow,
-} from '@core/screens';
+import {ListDragGhost, ListGroup, ListRow} from '@renderer/ui/lists/ListRow';
+import {StatusDot} from '@renderer/ui/tiles/StatusMarks';
+import {type Screen, SCREEN_KIND_ORDER} from '@core/schema/screens/screens';
+import {KIND_NAMES, screenGroups, type ScreenRow} from '@core/screens';
 import {sendLive, useOutputs} from '@renderer/session/live';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {MAX_TARGET_SCREENS} from '@core/schema/live/overlayState';
@@ -38,14 +28,15 @@ import {useSettingsDocument} from '../../../platform/documents/useSettingsDocume
 import {SCREEN_DRAG_MIME} from '../screenDrag';
 import styles from './ScreenList.module.css';
 import {useDragClickGuard} from '@renderer/ui/lists/useDragClickGuard';
-import type {RenameContract} from '@renderer/ui/fields/useRenameDraft';
-import type {MenuAnchor} from '@renderer/ui/menus/Menu';
 import {useScreenRowActions} from './useScreenRowActions';
 import {useScreenListWindow} from './useScreenListWindow';
 import {useMonitors} from '../useMonitors';
 import {settingsDeleteHistory} from '@renderer/platform/undo/settingsDeleteHistory';
 import {useUndoKeys} from '@renderer/platform/undo/useUndoKeys';
 import {useReflow} from '@renderer/ui/panels/useReflow';
+import type {MenuAnchor} from '@renderer/ui/menus/menuModel';
+import type {RenameContract} from '@renderer/ui/fields/renameContract';
+import {ListBox} from '@renderer/ui/lists/ListBox';
 
 const LIST_LABEL = '화면';
 const LOAD_TITLE = '화면';

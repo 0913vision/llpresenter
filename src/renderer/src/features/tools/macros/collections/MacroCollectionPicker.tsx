@@ -7,10 +7,10 @@ import {
   MACRO_FILE_LIMITS,
   type MacroCollection,
 } from '@core/schema/tools/macros';
-import {Icon, Select} from '@renderer/ui';
+import {Icon} from '@renderer/ui/Icon';
+import {Select} from '@renderer/ui/choices/Select';
 import {classNames} from '@renderer/ui/classNames';
 import {Popover} from '@renderer/ui/popups/Popover';
-import type {MenuAnchor} from '@renderer/ui/menus/Menu';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {hasModifier} from '@renderer/ui/keys/modifierKeys';
 import {isComposing} from '@renderer/ui/fields/ime';
@@ -24,6 +24,7 @@ import {MacroCollectionMenu} from './macroCollectionMenuEntries';
 import {MacroCollectionRow} from './MacroCollectionRow';
 import {useCollectionDrag} from './useCollectionDrag';
 import styles from './MacroCollectionPicker.module.css';
+import type {MenuAnchor} from '@renderer/ui/menus/menuModel';
 
 const ALL = 'all';
 interface CollectionProps {

@@ -9,7 +9,7 @@ import {
 } from 'react';
 import type {PreferencesRequest} from '@contracts/ipc/window';
 import {LoadReadiness, LoadReadinessContext} from '@renderer/ui/loadReadiness';
-import {ListBox, ListRow} from '@renderer/ui';
+import {ListRow} from '@renderer/ui/lists/ListRow';
 import {Properties} from '@renderer/ui/panels/PropertyRow';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {
@@ -34,6 +34,7 @@ import styles from './PreferencesView.module.css';
 import {LabelsPage} from '../labels/LabelsPage';
 import type {LabelCatalog} from '../labels/labelCatalog';
 import type {LabelManagerHandle} from '../labels/LabelManager';
+import {ListBox} from '@renderer/ui/lists/ListBox';
 
 const NAV_LABEL = '환경설정 항목';
 const FIRST_PAGE: PreferencePageId = 'general';

@@ -19,7 +19,6 @@ import {NAME_LIMIT} from '@core/schema/common/primitives';
 import {nameReason} from '@renderer/ui/fields/nameReason';
 import {MAX_TIMER_DEFINITIONS} from '@core/schema/tools/timers';
 
-export {MAX_QUICK_ITEMS} from '@core/schema/tools/quick';
 const SAVE_ATTEMPTS = 2;
 
 export type QuickChoice = {

@@ -2,11 +2,11 @@ import type {KeyboardEvent, RefObject} from 'react';
 import type {Slide} from '@core/schema/slides/slide';
 import {takeMenuKey} from '@renderer/ui/menus/contextMenu';
 import {isComposing} from '@renderer/ui/fields/ime';
-import type {MenuAnchor} from '@renderer/ui/menus/Menu';
 import {isInTextEntry} from '@renderer/ui/fields/textEntry';
 import {selectInDeck, type useDeckSelection} from '../deckSelection';
 import type {SlideDeck} from '../slideDeck';
 import {slideIdAt, slideMove, slideRow} from './slideKeys';
+import type {MenuAnchor} from '@renderer/ui/menus/menuModel';
 
 type SurfaceKey = KeyboardEvent<HTMLDivElement>;
 

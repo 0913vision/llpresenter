@@ -1,12 +1,13 @@
 import type {JSX} from 'react';
 import type {SlideTile} from '@core/presentation';
 import {outputTile} from '@renderer/session/show/show';
-import {SlideThumbnail, ThumbnailGrid} from '@renderer/ui';
-import {Menu, type MenuAnchor} from '@renderer/ui/menus/Menu';
+import {SlideThumbnail, ThumbnailGrid} from '@renderer/ui/tiles/SlideThumbnail';
+import {Menu} from '@renderer/ui/menus/Menu';
 import type {TransitionProgress} from '@renderer/ui/tiles/transitionProgress';
 import {TilePicture, tileProps} from '@renderer/pictures/TilePicture';
 import {showSlideMenuEntries} from './showSlideMenuEntries';
 import {tileReflowIds} from './tileReflowIds';
+import {type MenuAnchor} from '@renderer/ui/menus/menuModel';
 
 /** The tile a 슬라이드 menu was opened on. */
 export interface TileMenu {

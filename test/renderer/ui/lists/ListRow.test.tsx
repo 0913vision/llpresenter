@@ -4,7 +4,6 @@ import {afterEach, describe, expect, it, onTestFinished, vi} from 'vitest';
 import {CLICK_FOCUS_SELECTOR} from '@renderer/ui/lists/clickFocus';
 import {
   ListActionRow,
-  ListBox,
   ListDragGhost,
   ListGroup,
   ListRow,
@@ -19,6 +18,7 @@ import {
   recordWindowKeys,
 } from '@fixtures/renderer/ui/windowKeysTesting';
 import {ServiceOrder, selectedTitle} from '@fixtures/renderer/ui/listTesting';
+import {ListBox} from '@renderer/ui/lists/ListBox';
 
 afterEach(resetTooltips);
 

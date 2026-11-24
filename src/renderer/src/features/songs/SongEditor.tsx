@@ -16,7 +16,7 @@ import {Button} from '@renderer/ui/buttons/Button';
 import {Icon} from '@renderer/ui/Icon';
 import {isComposing} from '@renderer/ui/fields/ime';
 import {menuAvailability} from '@renderer/ui/menus/menuModel';
-import {Progress} from '@renderer/ui';
+import {Progress} from '@renderer/ui/tiles/StatusMarks';
 import {TextField} from '@renderer/ui/fields/TextField';
 import {Tooltip} from '@renderer/ui/popups/Tooltip';
 import {BackgroundDrop} from '../slides/BackgroundDrop';

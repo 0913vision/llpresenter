@@ -10,29 +10,12 @@ import {Popover} from '../popups/Popover';
 import type {MenuCloseReason} from './menuKeys';
 import {modalStack} from '../popups/modalStack';
 import {markMenuTarget, passContextMenu} from './contextMenu';
-import {menuItems, type MenuEntry} from './menuModel';
+import {menuItems, type MenuEntry, type MenuAnchor} from './menuModel';
 import type {MenuSearch} from './MenuParts';
 import {MenuSurface, type MenuSurfaceProps} from './MenuSurface';
-import {
-  placeAtPoint,
-  placeBelow,
-  type Point,
-  viewportSize,
-} from '../popups/placement';
+import {placeAtPoint, placeBelow, viewportSize} from '../popups/placement';
 import styles from './Menu.module.css';
 import {contextMenuEntries} from './contextMenuEntries';
-
-export type {MenuCloseReason} from './menuKeys';
-export type {MenuSearch} from './MenuParts';
-
-/** Where a menu opens: below a button, or at the pointer (right-click). */
-export type MenuAnchor = (
-  | {readonly kind: 'element'; readonly element: HTMLElement}
-  | {readonly kind: 'point'; readonly point: Point}
-) & {
-  readonly target?: HTMLElement | undefined;
-  readonly targets?: readonly HTMLElement[] | undefined;
-};
 
 export interface MenuProps {
   readonly context?: boolean;

@@ -32,7 +32,8 @@ import {ThemeShapeProperties} from './ThemeShapeProperties';
 import {ThemeTemplates} from './ThemeTemplates';
 import {ThemeFitProperties, ThemeTextProperties} from './ThemeTextProperties';
 import {elementName} from '../themeNames';
-import {themeCanvasBounds, type ThemeModel} from '../useThemeEditor';
+import {type ThemeModel} from '../useThemeEditor';
+import {themeCanvasBounds} from '../elements/useThemeElements';
 
 const FRAME_FIELDS = ['x', 'y', 'w', 'h'] as const;
 const FREE = '';

@@ -1,5 +1,6 @@
 import type {JSX} from 'react';
-import {PropertyRow, SelectMenu} from '@renderer/ui';
+import {PropertyRow} from '@renderer/ui/panels/PropertyRow';
+import {SelectMenu} from '@renderer/ui/choices/SelectMenu';
 
 const SECONDS = [30, 60, 120];
 

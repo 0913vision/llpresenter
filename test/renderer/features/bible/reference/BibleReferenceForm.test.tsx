@@ -17,7 +17,7 @@ import {Dialog} from '@renderer/ui/popups/Dialog';
 import {formLookupReply} from '@fixtures/core/bibleReplies';
 import {lookupRequest} from '@fixtures/core/bibleLookups';
 import {BIBLE_BOOKS} from '@core/bible/bibleBooks';
-import {LIVE_BIBLE_ID} from '@core/bible/liveTranslation';
+import {LIVE_BIBLE_ID} from '@core/schema/common/ids';
 
 beforeEach(() => {
   HTMLElement.prototype.scrollIntoView = vi.fn();

@@ -17,17 +17,13 @@ import type {Screen} from '@core/schema/screens/screens';
 import type {MessageTemplate} from '@core/schema/tools/messages';
 import {MAX_MESSAGE_CHARACTERS} from '@core/overlays';
 import type {NamedDocument} from '@renderer/platform/documents/useSettingsDocument';
-import {
-  SelectMenu,
-  Dialog,
-  IconButton,
-  Menu,
-  Properties,
-  PropertyRow,
-  TextArea,
-  TextField,
-} from '@renderer/ui';
-import type {MenuAnchor} from '@renderer/ui/menus/Menu';
+import {SelectMenu} from '@renderer/ui/choices/SelectMenu';
+import {Dialog} from '@renderer/ui/popups/Dialog';
+import {IconButton} from '@renderer/ui/buttons/IconButton';
+import {Menu} from '@renderer/ui/menus/Menu';
+import {Properties, PropertyRow} from '@renderer/ui/panels/PropertyRow';
+import {TextArea} from '@renderer/ui/fields/TextArea';
+import {TextField} from '@renderer/ui/fields/TextField';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {useDuplicateShortcut} from '../useDuplicateShortcut';
 import {useToolEditing} from '../useToolEditing';
@@ -45,6 +41,7 @@ import {
 import {messageMenuEntries, toolMenuReason} from '../toolMenuEntries';
 import {ScreenTargetsRow} from '../ScreenTargetsRow';
 import {DisplayTimeRow} from '../DisplayTimeRow';
+import type {MenuAnchor} from '@renderer/ui/menus/menuModel';
 
 type Editor =
   | {readonly kind: 'add'}

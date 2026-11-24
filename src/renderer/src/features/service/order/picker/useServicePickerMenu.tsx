@@ -1,7 +1,6 @@
-import {warningNotice} from '@renderer/ui/popups/notices';
+import {warningNotice, type Notice} from '@renderer/ui/popups/notices';
 import {useRef, useState} from 'react';
 import {Menu} from '@renderer/ui/menus/Menu';
-import type {Notice} from '@renderer/ui/popups/notices';
 import {menuAvailability, type MenuEntry} from '@renderer/ui/menus/menuModel';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {RenameDialog} from '@renderer/ui/popups/RenameDialog';

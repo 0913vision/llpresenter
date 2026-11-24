@@ -13,11 +13,11 @@ import {
   scheduleText,
   type MacroSchedule,
 } from '@renderer/ui/tiles/MacroTile';
-import type {MenuAnchor} from '@renderer/ui/menus/Menu';
 import {
   hoverForTooltip,
   resetTooltips,
 } from '@fixtures/renderer/ui/tooltipTesting';
+import type {MenuAnchor} from '@renderer/ui/menus/menuModel';
 
 afterEach(resetTooltips);
 

@@ -13,7 +13,8 @@ import {
 } from 'react';
 import type {SongId} from '@core/schema/common/ids';
 import type {LibrarySearchMatch} from '@core/schema/songs/librarySearch';
-import {Icon, TextField} from '@renderer/ui';
+import {Icon} from '@renderer/ui/Icon';
+import {TextField} from '@renderer/ui/fields/TextField';
 import {isComposing} from '@renderer/ui/fields/ime';
 import {hasModifier} from '@renderer/ui/keys/modifierKeys';
 import type {Notice} from '@renderer/ui/popups/notices';

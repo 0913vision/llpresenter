@@ -14,7 +14,6 @@ import type {
   LiveThemeMode,
   LiveThemeOutput,
 } from './liveTheme';
-export type {ActiveMessage, ActiveProp} from './overlayState';
 
 /** Layer kinds from bottom to top. */
 export const layerKinds = [

@@ -5,8 +5,12 @@ import type {ElementFrame} from '@core/canvas';
 import {restackElements, type StackingStep, drawnFrame} from '@core/theme';
 import {SlidePicture} from '@renderer/pictures/SlidePicture';
 import {CanvasEditor} from '@renderer/ui/canvas/CanvasEditor';
-import {Menu, type MenuAnchor} from '@renderer/ui/menus/Menu';
-import {menuAvailability, type MenuEntry} from '@renderer/ui/menus/menuModel';
+import {Menu} from '@renderer/ui/menus/Menu';
+import {
+  menuAvailability,
+  type MenuEntry,
+  type MenuAnchor,
+} from '@renderer/ui/menus/menuModel';
 import {
   contextMenuAnchor,
   takeMenuKey,
@@ -26,8 +30,8 @@ import {
   useThemeClipboard,
   type ThemeEditorEvents,
 } from './elements/useThemeClipboard';
-import {themeCanvasBounds, type ThemeModel} from './useThemeEditor';
-import {framesMoved} from './elements/useThemeElements';
+import {type ThemeModel} from './useThemeEditor';
+import {framesMoved, themeCanvasBounds} from './elements/useThemeElements';
 import styles from './Themes.module.css';
 import {fixedKeyText} from '@renderer/ui/keys/fixedKeys';
 

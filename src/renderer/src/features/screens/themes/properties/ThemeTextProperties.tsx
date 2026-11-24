@@ -22,7 +22,8 @@ import {
   ThemeNumber,
   ThemeOptionalNumber,
 } from './ThemePropertyFields';
-import {themeCanvasBounds, type ThemeModel} from '../useThemeEditor';
+import {type ThemeModel} from '../useThemeEditor';
+import {themeCanvasBounds} from '../elements/useThemeElements';
 
 const NO_OUTLINE: TextOutline = {on: false, width: 2, color: '#000000'};
 const NO_SHADOW: TextShadow = {

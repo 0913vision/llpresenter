@@ -1,7 +1,8 @@
 import type {JSX} from 'react';
 import type {SongId} from '@core/schema/common/ids';
 import {sendLive, useOutputs} from '@renderer/session/live';
-import {OutputToggle, ToolbarTabs, type ToolbarTab} from '@renderer/ui';
+import {OutputToggle} from '@renderer/ui/buttons/OutputToggle';
+import {ToolbarTabs, type ToolbarTab} from '@renderer/ui/buttons/ToolbarTabs';
 import {useScreenSummaries} from '../../../platform/screens/ScreenSummaries';
 import {OutputOverflow} from './OutputOverflow';
 import {ThemeMenu} from './ThemeMenu';

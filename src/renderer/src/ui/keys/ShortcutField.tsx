@@ -1,8 +1,7 @@
 import {useRef, useState, type JSX, type KeyboardEvent} from 'react';
 import type {KeyBinding} from '@core/schema/app/shortcuts';
-import {PhysicalModifiers} from '@core/shortcuts';
+import {PhysicalModifiers, shortcutPress} from '@core/shortcuts';
 import {classNames} from '../classNames';
-import {shortcutPress} from './shortcutKeys';
 import {shortcutRecordingProps} from './shortcutRecording';
 import {TextField, type TextFieldProps} from '../fields/TextField';
 import styles from './ShortcutField.module.css';

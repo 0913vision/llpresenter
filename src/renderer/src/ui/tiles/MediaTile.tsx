@@ -10,12 +10,12 @@ import {
 } from 'react';
 import {classNames} from '../classNames';
 import {Icon} from '../Icon';
-import type {MenuAnchor} from '../menus/Menu';
 import {MissingFileMark, missingFileText} from './MissingFile';
 import {Progress, progressPercent} from './StatusMarks';
 import {gridMoves, TileList, type TileListPosition} from '../lists/TileList';
 import {titleTooltip, useTooltip} from '../popups/Tooltip';
 import styles from './MediaTile.module.css';
+import type {MenuAnchor} from '../menus/menuModel';
 
 const LOOP_ICON_SIZE = 12;
 

@@ -1,4 +1,10 @@
-import {MIN_SIZE, resizeHandles, type ResizeHandle} from '@core/canvas';
+import {
+  MIN_SIZE,
+  resizeHandles,
+  type ResizeHandle,
+  fitAspect,
+  type ElementFrame,
+} from '@core/canvas';
 import {useCommandShortcuts} from '../keys/commandDispatcher';
 import {
   useRef,
@@ -16,12 +22,8 @@ import {
   type CanvasDocument,
   type CanvasElement,
 } from './canvasDraft';
-import {fitAspect, type ElementFrame} from '@core/canvas';
 import {useCanvasGesture, type CanvasActions} from './useCanvasGesture';
 import styles from './CanvasEditor.module.css';
-
-export type {CanvasDocument, CanvasElement} from './canvasDraft';
-export type {CanvasActions} from './useCanvasGesture';
 
 export interface CanvasEditorProps<T extends CanvasElement> {
   readonly value: CanvasDocument<T>;

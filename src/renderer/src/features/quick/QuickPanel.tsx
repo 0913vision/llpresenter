@@ -1,13 +1,13 @@
 import {useReflow} from '@renderer/ui/panels/useReflow';
 import {useMemo, useState, type JSX} from 'react';
-import type {QuickItem} from '@core/schema/tools/quick';
+import {type QuickItem, MAX_QUICK_ITEMS} from '@core/schema/tools/quick';
 import {
   useSettingsDocument,
   type NamedDocument,
 } from '@renderer/platform/documents/useSettingsDocument';
 import {useLive} from '@renderer/session/live';
 import {bibleSourceFor} from '@renderer/session/show/showLibrary';
-import {ListInsertLine} from '@renderer/ui';
+import {ListInsertLine} from '@renderer/ui/lists/ListRow';
 import {
   Panel,
   PanelBody,
@@ -24,7 +24,7 @@ import {duplicateQuickItem, QuickAdd, quickCopyReason} from './QuickEditing';
 import {QuickRow, type QuickRowContext} from './QuickRow';
 import {useDuplicateShortcut} from '../tools/useDuplicateShortcut';
 import {MAX_TIMER_DEFINITIONS} from '@core/schema/tools/timers';
-import {MAX_QUICK_ITEMS, type QuickEdit} from './quickEdits';
+import {type QuickEdit} from './quickEdits';
 import {useQuickEditing} from './useQuickEditing';
 import {useQuickReorder} from './useQuickReorder';
 import {useQuickTimers} from './useQuickTimers';

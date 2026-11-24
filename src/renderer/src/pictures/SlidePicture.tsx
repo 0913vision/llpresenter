@@ -6,14 +6,14 @@ import {
   type JSX,
 } from 'react';
 import {sameJson} from '@core/common/sameJson';
-import {THEME_CANVAS} from '@core/schema/screens/theme';
 import {backgroundColorOf} from '@renderer/rendering/theme/themeBackground';
 import {SlideStill} from '@renderer/rendering/slideStill';
-import type {ThemeDrawing} from '@renderer/rendering/theme/themeView';
 import {classNames} from '@renderer/ui/classNames';
 import type {SlideDrawing} from './slideDrawing';
 import {useScreenSize} from './screenSizes';
 import styles from './SlidePicture.module.css';
+import {THEME_CANVAS} from '@core/schema/screens/screens';
+import type {ThemeDrawing} from '@renderer/rendering/theme/shownTexts';
 
 interface SlidePictureProps extends SlideDrawing {
   readonly className?: string | undefined;

@@ -48,15 +48,6 @@ import type {
   TemplateEntry,
 } from '@core/schema/services/contentDocuments';
 
-export type {DocumentApi} from './content';
-export type {Unsubscribe} from './endpoint';
-export {
-  textEditActions,
-  windowActions,
-  type TextEditAction,
-  type WindowAction,
-} from './window';
-
 /**
  * The API that the preload script exposes to windows as `window.llp`. Each
  * part is declared with its calls in its own file in this folder.

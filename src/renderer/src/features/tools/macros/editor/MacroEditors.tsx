@@ -2,7 +2,8 @@ import {NAME_LIMIT} from '@core/schema/common/primitives';
 import {nameReason} from '@renderer/ui/fields/nameReason';
 import {useState, type JSX} from 'react';
 import {RenameDialog} from '@renderer/ui/popups/RenameDialog';
-import {Dialog, TextField} from '@renderer/ui';
+import {Dialog} from '@renderer/ui/popups/Dialog';
+import {TextField} from '@renderer/ui/fields/TextField';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {isKnownMacroAction} from '@core/schema/tools/macros';
 import {draftMacroAction} from '@core/macros';
@@ -10,7 +11,8 @@ import {MacroActionDialog} from './MacroActionDialog';
 import {useMacroTargets} from '../actions/useMacroTargets';
 import {MacroIconDialog} from './MacroIconDialog';
 import {MacroColorPopover} from './MacroColorPopover';
-import type {MacroEditor, MacroPanelModel} from '../useMacroPanel';
+import type {MacroPanelModel} from '../useMacroPanel';
+import type {MacroEditor} from '../menu/macroMenuHandlers';
 
 function CollectionDialog({
   locked,

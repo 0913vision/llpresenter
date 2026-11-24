@@ -3,8 +3,8 @@ import type {KeyBinding} from '@core/schema/app/shortcuts';
 import {Button} from '../ui/buttons/Button';
 import {KeyCombo, KeyList, KeyText} from '../ui/keys/KeyCap';
 import {ShortcutField} from '../ui/keys/ShortcutField';
-import {shortcutNames} from '../ui/keys/shortcutKeys';
 import {Section, SpecGroup, SpecItem} from './Spec';
+import {shortcutNames} from '@core/shortcuts';
 
 export function KeyCapSection(): JSX.Element {
   const [recording, setRecording] = useState(false);

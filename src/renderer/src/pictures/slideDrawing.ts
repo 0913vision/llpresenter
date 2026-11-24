@@ -14,7 +14,7 @@ import {themeOfSlide} from '@core/theme';
 import type {ThemesView} from '@renderer/platform/documents/themes';
 import type {RenderScreen} from '@renderer/rendering/layer';
 import {drawingOn} from '@renderer/rendering/theme/drawing';
-import type {ThemeDrawing} from '@renderer/rendering/theme/themeView';
+import type {ThemeDrawing} from '@renderer/rendering/theme/shownTexts';
 
 type ScreenRole = Screen['kind'];
 

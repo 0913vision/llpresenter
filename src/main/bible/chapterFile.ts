@@ -1,11 +1,11 @@
 import {lstat, open} from 'node:fs/promises';
+import {parseBibleChunkHeader} from './chunkFormat';
 import {
   BIBLE_HEADER_MAX_BYTES,
   BIBLE_HEADER_PREFIX_BYTES,
   parseBibleChapter,
-  parseBibleChunkHeader,
   type BibleChunkHeader,
-} from './chunkFormat';
+} from '@core/schema/bible/bibleChunks';
 
 export interface BiblePositionedReader {
   read(options: {

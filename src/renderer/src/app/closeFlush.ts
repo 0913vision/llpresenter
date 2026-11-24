@@ -1,10 +1,11 @@
 import {closeStepAfter} from '@core/app';
-import type {LlpApi, Unsubscribe} from '@contracts/ipc/api';
+import type {LlpApi} from '@contracts/ipc/api';
 import {
   APP_FLUSH_LIMITS,
   type AppFlushRequest,
 } from '@core/schema/app/appFlush';
 import type {DraftOutcome} from '@renderer/platform/documents/pendingWrites';
+import type {Unsubscribe} from '@contracts/ipc/endpoint';
 
 /**
  * How long a close flush may run before the 저장 중 dialog shows, so a normal

@@ -4,7 +4,8 @@ import type {MessageStyleId} from '@core/schema/common/ids';
 import type {Screen} from '@core/schema/screens/screens';
 import {resolveMessageStyle} from '@core/screens';
 import {useSettingsDocument} from '@renderer/platform/documents/useSettingsDocument';
-import {PropertyRow, SelectMenu} from '@renderer/ui';
+import {PropertyRow} from '@renderer/ui/panels/PropertyRow';
+import {SelectMenu} from '@renderer/ui/choices/SelectMenu';
 import type {Notice} from '@renderer/ui/popups/notices';
 
 const LABEL = '메시지 스타일';

@@ -6,12 +6,9 @@ import {
   layerKinds,
   type SlideLayer,
 } from '@core/schema/live/live';
-import {
-  applyCommand as applyAt,
-  initialHistory,
-  type LiveHistory,
-} from '@main/live/registry/reducer';
+import {applyCommand as applyAt} from '@main/live/registry/reducer';
 import {MAIN_SCREEN, STAGE_SCREEN} from '@fixtures/core/screenIds';
+import {initialHistory, type LiveHistory} from '@main/live/history';
 
 const NOW = Date.parse('2026-10-25T10:00:00Z');
 const LATER = NOW + 30_000;

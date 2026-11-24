@@ -1,7 +1,7 @@
 import {renderHook} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {describe, expect, it, vi} from 'vitest';
-import {CLICK_FOCUS_ATTRIBUTE} from '@renderer/ui';
+import {CLICK_FOCUS_ATTRIBUTE} from '@renderer/ui/lists/clickFocus';
 import {
   handleShowFocusIn,
   handleShowMouseDown,

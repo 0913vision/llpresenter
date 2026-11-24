@@ -5,7 +5,7 @@ import {useRef, useState, type JSX} from 'react';
 import {createTimerId} from '@core/schema/common/ids';
 import {MAX_TIMER_DEFINITIONS} from '@core/schema/tools/timers';
 import {useSettingsDocument} from '@renderer/platform/documents/useSettingsDocument';
-import {IconButton} from '@renderer/ui';
+import {IconButton} from '@renderer/ui/buttons/IconButton';
 import {deleteSelection} from '@renderer/ui/lists/deleteSelection';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {TimerDialog} from './TimerDialog';

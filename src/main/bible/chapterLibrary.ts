@@ -1,4 +1,3 @@
-import {LIVE_BIBLE_ID} from '@core/bible';
 import {fetchLiveChapter} from './liveChapter';
 import {readLiveChapter, writeLiveChapter} from './liveChapterDisk';
 import {basename, extname, join} from 'node:path';
@@ -10,6 +9,7 @@ import {
   readBibleChapterFile,
   type BibleChapterFile,
 } from './chapterFile';
+import {LIVE_BIBLE_ID} from '@core/schema/common/ids';
 
 export interface BibleChapterLibraryOptions {
   readonly folder: string;

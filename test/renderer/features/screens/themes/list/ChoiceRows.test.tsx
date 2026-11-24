@@ -9,10 +9,10 @@ import {
 } from '@testing-library/react';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import userEvent from '@testing-library/user-event';
-import type {RenameContract} from '@renderer/ui/fields/useRenameDraft';
-import type {MenuAnchor} from '@renderer/ui/menus/Menu';
 import {ChoiceRows} from '@renderer/features/screens/themes/list/ChoiceRows';
 import type {Choice} from '@renderer/features/screens/themes/list/choices';
+import type {MenuAnchor} from '@renderer/ui/menus/menuModel';
+import type {RenameContract} from '@renderer/ui/fields/renameContract';
 
 const observers = new Set<ResizeObserver>();
 beforeEach(() => {

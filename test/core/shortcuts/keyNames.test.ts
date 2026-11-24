@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {serializeShortcuts} from '@core/schema/app/shortcuts';
-import {shortcutNames, shortcutPress} from '@renderer/ui/keys/shortcutKeys';
+import {shortcutNames, shortcutPress} from '@core/shortcuts';
 
 describe('shortcut keys', () => {
   it('stores only schema-valid combinations across supported key families', () => {
@@ -34,14 +34,16 @@ describe('shortcut keys', () => {
     ];
     for (const code of codes) {
       for (let flags = 0; flags < 8; flags++) {
-        const press = shortcutPress(
-          new KeyboardEvent('keydown', {
-            code,
-            ctrlKey: (flags & 1) !== 0,
-            altKey: (flags & 2) !== 0,
-            shiftKey: (flags & 4) !== 0,
-          }),
-        );
+        const press = shortcutPress({
+          code,
+          ctrlKey: (flags & 1) !== 0,
+          altKey: (flags & 2) !== 0,
+          shiftKey: (flags & 4) !== 0,
+          metaKey: false,
+          isComposing: false,
+          repeat: false,
+          getModifierState: () => false,
+        });
         if (press.kind !== 'record') continue;
         expect(
           serializeShortcuts(

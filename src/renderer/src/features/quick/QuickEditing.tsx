@@ -19,10 +19,15 @@ import {
   isLibrarySource,
 } from '@renderer/session/show/showLibrary';
 import {withinLookupTimeout} from '@renderer/session/show/showOutput';
-import {IconButton, Menu, ListInsertLine} from '@renderer/ui';
-import type {MenuAnchor} from '@renderer/ui/menus/Menu';
+import {IconButton} from '@renderer/ui/buttons/IconButton';
+import {Menu} from '@renderer/ui/menus/Menu';
+import {ListInsertLine} from '@renderer/ui/lists/ListRow';
 import {openOnArrowDown} from '@renderer/ui/menus/menuButton';
-import {menuAvailability, type MenuEntry} from '@renderer/ui/menus/menuModel';
+import {
+  menuAvailability,
+  type MenuEntry,
+  type MenuAnchor,
+} from '@renderer/ui/menus/menuModel';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import {newQuickItem, type QuickChoice, type QuickEdit} from './quickEdits';
 import {useTimerEditDialog} from '../tools/timers/useTimerEditDialog';

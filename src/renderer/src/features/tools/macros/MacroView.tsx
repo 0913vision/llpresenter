@@ -10,13 +10,18 @@ import {
   MACRO_ACTION_MIME,
   readMacroActionDrag,
 } from './actions/macroPaletteCatalog';
-import {MacroGrid, MacroList, MacroRow, MacroTile} from '@renderer/ui';
+import {
+  MacroGrid,
+  MacroList,
+  MacroRow,
+  MacroTile,
+} from '@renderer/ui/tiles/MacroTile';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {MacroCollectionPicker} from './collections/MacroCollectionPicker';
-import type {MenuAnchor} from '@renderer/ui/menus/Menu';
 import {PanelFooter} from '@renderer/ui/panels/Panel';
 import {ViewModeSwitch} from '@renderer/ui/choices/ViewModeSwitch';
 import styles from './MacroView.module.css';
+import type {MenuAnchor} from '@renderer/ui/menus/menuModel';
 
 export type MacroViewMode = 'grid' | 'list';
 

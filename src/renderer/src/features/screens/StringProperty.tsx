@@ -1,5 +1,6 @@
 import {useState, type JSX, type ReactNode} from 'react';
-import {PropertyRow, TextField} from '@renderer/ui';
+import {PropertyRow} from '@renderer/ui/panels/PropertyRow';
+import {TextField} from '@renderer/ui/fields/TextField';
 import {isComposing} from '@renderer/ui/fields/ime';
 
 /** Buffers a string until blur or Enter; Escape and invalid values keep the saved value. */

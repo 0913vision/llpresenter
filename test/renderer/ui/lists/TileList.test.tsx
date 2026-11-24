@@ -3,13 +3,13 @@ import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {describe, expect, it, vi} from 'vitest';
 import {CLICK_FOCUS_SELECTOR} from '@renderer/ui/lists/clickFocus';
-import type {MenuAnchor} from '@renderer/ui/menus/Menu';
 import {
   gridMoves,
   stripMoves,
   TileList,
   type TileListProps,
 } from '@renderer/ui/lists/TileList';
+import type {MenuAnchor} from '@renderer/ui/menus/menuModel';
 
 const NAMES = ['따뜻한 빛', '새벽 하늘', '별빛', '푸른 빛'];
 const BUSY = 2;

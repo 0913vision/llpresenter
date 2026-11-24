@@ -24,10 +24,7 @@ import {
   playlistId,
   audioPlaylistId,
 } from '@fixtures/renderer/features/media/mediaTesting';
-import {
-  DEFAULT_MEDIA_COLUMNS,
-  MediaView,
-} from '@renderer/features/media/tiles/MediaView';
+import {MediaView} from '@renderer/features/media/tiles/MediaView';
 import {
   MediaViewProvider,
   useMediaView,
@@ -48,6 +45,7 @@ import {
   INITIAL_ROWS,
   OVERSCAN_ROWS,
 } from '@renderer/features/media/tiles/VirtualMediaGrid';
+import {DEFAULT_MEDIA_COLUMNS} from '@renderer/features/media/tiles/useMediaLayout';
 
 function ChoiceButton({choice}: {readonly choice: MediaListChoice}) {
   const {choose} = useMediaView();

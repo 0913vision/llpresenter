@@ -1,5 +1,6 @@
 import {useState, type JSX} from 'react';
-import {Dialog, Properties} from '@renderer/ui';
+import {Dialog} from '@renderer/ui/popups/Dialog';
+import {Properties} from '@renderer/ui/panels/PropertyRow';
 import {parseTimerDuration, TimerDurationFields} from './TimerDurationFields';
 import {TimerOverrunField} from './TimerOverrunField';
 

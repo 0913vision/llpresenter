@@ -41,7 +41,6 @@ import {prepareQuickTimerEdit} from './quickTimerEdits';
 import {prepareTimerDeletion} from './timerDeletions';
 import {prepareTimerRename} from './timerRenames';
 
-export type {SettingsProblem} from './settingsLoader';
 export type SettingsProblemListener = (problem: SettingsProblem) => void;
 
 export interface SettingsStoreOptions {

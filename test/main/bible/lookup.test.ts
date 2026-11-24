@@ -14,7 +14,7 @@ import {BibleLookupSession} from '@main/bible/lookup';
 import * as library from '@main/bible/library';
 import * as chapterFile from '@main/bible/chapterFile';
 import {chunkedTranslationFile} from '@fixtures/core/bible/testFiles';
-import {LIVE_BIBLE_ID} from '@core/bible/liveTranslation';
+import {LIVE_BIBLE_ID} from '@core/schema/common/ids';
 
 const log = {
   info: vi.fn(),

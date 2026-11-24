@@ -7,7 +7,7 @@ import {
   clampThumbnailScale,
   commitThumbnailScale,
   DEFAULT_THUMBNAIL_SCALE_PERCENT,
-} from '@renderer/ui';
+} from '@renderer/ui/choices/thumbnailSize';
 
 type ScaleBySizeClass = Readonly<Partial<Record<SizeClass, number>>>;
 type ScaleField = 'thumbnailScalePercent' | 'detailsSlideScalePercent';

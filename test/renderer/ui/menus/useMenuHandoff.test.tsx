@@ -1,9 +1,10 @@
 import {fireEvent, render, screen, waitFor} from '@testing-library/react';
 import {useState} from 'react';
 import {expect, it, vi} from 'vitest';
-import {Menu, type MenuAnchor} from '@renderer/ui/menus/Menu';
+import {Menu} from '@renderer/ui/menus/Menu';
 import {NameField} from '@renderer/ui/lists/ListRow';
 import {useMenuHandoff} from '@renderer/ui/menus/useMenuHandoff';
+import {type MenuAnchor} from '@renderer/ui/menus/menuModel';
 
 it('mounts the rename field after menu cleanup without committing its first blur', async () => {
   const save = vi.fn();

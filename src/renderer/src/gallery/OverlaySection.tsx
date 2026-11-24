@@ -10,15 +10,16 @@ import {Button} from '../ui/buttons/Button';
 import {CheckRow, Checkbox} from '../ui/choices/Checkbox';
 import {Dialog, DialogBox, DialogField} from '../ui/popups/Dialog';
 import {IconButton} from '../ui/buttons/IconButton';
-import {ListBox, ListGroup, ListRow} from '../ui/lists/ListRow';
-import {Menu, type MenuAnchor} from '../ui/menus/Menu';
+import {ListGroup, ListRow} from '../ui/lists/ListRow';
+import {Menu} from '../ui/menus/Menu';
 import {menuButtonProps} from '../ui/menus/menuButton';
-import type {MenuEntry} from '../ui/menus/menuModel';
+import {type MenuEntry, type MenuAnchor} from '../ui/menus/menuModel';
 import {SelectMenu} from '../ui/choices/SelectMenu';
 import {SegmentedControl} from '../ui/choices/SegmentedControl';
 import {TextField} from '../ui/fields/TextField';
 import {Tooltip} from '../ui/popups/Tooltip';
 import {ignore, Section, SpecGroup, SpecItem, Stateful} from './Spec';
+import {ListBox} from '../ui/lists/ListBox';
 
 const fileMenu: readonly MenuEntry[] = [
   {kind: 'item', id: 'new', label: '새 예배', meta: 'Ctrl N'},

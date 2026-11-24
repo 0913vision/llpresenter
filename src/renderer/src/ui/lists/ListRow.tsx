@@ -14,12 +14,11 @@ import {pressHandler, useButtonPress} from '../buttons/press';
 import {LiveBadge} from '../tiles/StatusMarks';
 import {titleTooltip, useTooltip, withTooltipProps} from '../popups/Tooltip';
 import {TextField} from '../fields/TextField';
-import {useRenameDraft, type RenameContract} from '../fields/useRenameDraft';
+import {useRenameDraft} from '../fields/useRenameDraft';
 import {TruncatedText} from '../text/TruncatedText';
 import {ListBoxContext, workspaceActivationKeys, isRowKey} from './ListBox';
 import styles from './ListRow.module.css';
-
-export {ListBox, type ListBoxProps} from './ListBox';
+import {type RenameContract} from '../fields/renameContract';
 
 const ROW_ICON_SIZE = 16;
 const WARN_ICON_SIZE = 14;

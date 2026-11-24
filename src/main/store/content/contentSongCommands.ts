@@ -9,10 +9,10 @@ import {
   type Song,
 } from '@core/schema/songs/song';
 import {freeName} from '@core/common/freeName';
-import {normalizeSongTitle} from './contentEdits';
 import {defaultSlideTransitions} from '@core/schema/app/preferences';
 import {newSongSlides} from '@core/slides';
 import type {ContentCommandContext, ContentHandlers} from './contentCommands';
+import {normalizeSongTitle} from '@core/songs';
 
 const NEW_SONG_TITLE = '새 곡';
 const SONG_EXTENSION = '.llsong';

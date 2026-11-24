@@ -16,7 +16,6 @@ import {sendLive} from '@renderer/session/live';
 import {WorkspaceNavigation} from '@renderer/platform/WorkspaceNavigation';
 import {useShowToolTab} from '../showToolTab';
 import {useMacroPalette} from './actions/useMacroPalette';
-import type {MenuAnchor} from '@renderer/ui/menus/Menu';
 import type {Notice} from '@renderer/ui/popups/notices';
 import type {MacroViewMode} from './MacroView';
 import {deleteSelection} from '@renderer/ui/lists/deleteSelection';
@@ -30,8 +29,7 @@ import {useMacroEditor} from './editor/useMacroEditor';
 import {useMacroRemovals} from './useMacroRemovals';
 import {useMacroLayout} from './useMacroLayout';
 import {useMacroWrites} from './useMacroWrites';
-
-export type {MacroEditor} from './menu/macroMenuHandlers';
+import type {MenuAnchor} from '@renderer/ui/menus/menuModel';
 
 /** Owns panel snapshots and revision-guarded writes without delaying optimistic creates. */
 export interface MacroPanelModel {

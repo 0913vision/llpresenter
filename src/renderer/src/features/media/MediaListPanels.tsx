@@ -6,9 +6,8 @@ import {useRef, useState, type JSX} from 'react';
 import {useReflow} from '@renderer/ui/panels/useReflow';
 import {focusHistorySurface} from '@renderer/ui/lists/focusHistorySurface';
 import {IconButton} from '@renderer/ui/buttons/IconButton';
-import {ListBox, ListGroup, ListRow} from '@renderer/ui/lists/ListRow';
-import type {RenameContract} from '@renderer/ui/fields/useRenameDraft';
-import {Menu, type MenuAnchor} from '@renderer/ui/menus/Menu';
+import {ListGroup, ListRow} from '@renderer/ui/lists/ListRow';
+import {Menu} from '@renderer/ui/menus/Menu';
 import {
   Panel,
   PanelActions,
@@ -30,6 +29,9 @@ import {
   takeMenuKey,
   type ContextMenuEvent,
 } from '@renderer/ui/menus/contextMenu';
+import {type MenuAnchor} from '@renderer/ui/menus/menuModel';
+import type {RenameContract} from '@renderer/ui/fields/renameContract';
+import {ListBox} from '@renderer/ui/lists/ListBox';
 
 const ALL = 'all';
 

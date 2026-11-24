@@ -7,7 +7,7 @@ import {
   type KeyboardEvent,
   type RefObject,
 } from 'react';
-import {type ScreenRow, SCREEN_KIND_ORDER} from '@core/screens';
+import {type ScreenRow} from '@core/screens';
 import {
   designRowHeight,
   optionKeyTarget,
@@ -15,6 +15,7 @@ import {
   scrollIntoBand,
   useFocusOption,
 } from '@renderer/ui/lists/useRowRange';
+import {SCREEN_KIND_ORDER} from '@core/schema/screens/screens';
 
 const INITIAL_ROWS = 12;
 const OVERSCAN = 4;

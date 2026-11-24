@@ -4,7 +4,7 @@ import {
   BIBLE_CHAPTER_CACHE_MAX_BYTES,
   BibleChapterCache,
 } from '@main/bible/chapterCache';
-import {BIBLE_CHAPTER_MAX_BYTES} from '@main/bible/chunkFormat';
+import {BIBLE_CHAPTER_MAX_BYTES} from '@core/schema/bible/bibleChunks';
 
 function entry(chapter: number, translation = 'sample', bytes = 32) {
   return {

@@ -6,7 +6,8 @@ import {openInPrep} from '@renderer/session/prepTarget';
 import {renameItem} from '@renderer/session/service/serviceOrderEdits';
 import {openItem} from '@renderer/session/show/show';
 import {useServiceOrderEditing} from '@renderer/session/service/useServiceOrderEditing';
-import {ListBox, ListInsertLine, Menu} from '@renderer/ui';
+import {ListInsertLine} from '@renderer/ui/lists/ListRow';
+import {Menu} from '@renderer/ui/menus/Menu';
 import {clickFocusProps} from '@renderer/ui/lists/clickFocus';
 import {EmptyState} from '@renderer/ui/lists/EmptyState';
 import type {Notice} from '@renderer/ui/popups/notices';
@@ -30,6 +31,7 @@ import {useServiceItemClipboard} from './edits/useServiceItemClipboard';
 import {useServiceItemSelection} from './useServiceItemSelection';
 import styles from './ServiceOrderList.module.css';
 import {useShow} from '@renderer/session/show/showStore';
+import {ListBox} from '@renderer/ui/lists/ListBox';
 
 const closeNothing = (): void => undefined;
 

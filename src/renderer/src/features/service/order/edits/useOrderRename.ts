@@ -5,9 +5,9 @@ import {SONG_NAME_MAX_LENGTH} from '@core/schema/songs/song';
 import {useHeaderRename} from '@renderer/session/service/headerRename';
 import type {OpenServiceResult} from '@renderer/session/service/openService';
 import {renameItem as renameOrderItem} from '@renderer/session/service/serviceOrderEdits';
-import type {RenameContract} from '@renderer/ui/fields/useRenameDraft';
 import {useMenuHandoff} from '@renderer/ui/menus/useMenuHandoff';
 import {isNamed} from '../orderRows';
+import type {RenameContract} from '@renderer/ui/fields/renameContract';
 
 /**
  * The row of the 예배 순서 whose name is being typed in place: chosen from

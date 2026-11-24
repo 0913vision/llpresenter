@@ -5,7 +5,7 @@ import {useUndoKeys} from '@renderer/platform/undo/useUndoKeys';
 import {contextMenuAnchor} from '@renderer/ui/menus/contextMenu';
 import {useReflow} from '@renderer/ui/panels/useReflow';
 import {IconButton} from '@renderer/ui/buttons/IconButton';
-import {Menu, type MenuAnchor} from '@renderer/ui/menus/Menu';
+import {Menu} from '@renderer/ui/menus/Menu';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {
   Panel,
@@ -28,6 +28,7 @@ import styles from './LibraryPanel.module.css';
 import {libraryMenuEntries} from './libraryMenuEntries';
 import {useLibraryServices} from './useLibraryServices';
 import {useSongDelete, useSongDuplicateKey} from './useSongCommands';
+import {type MenuAnchor} from '@renderer/ui/menus/menuModel';
 
 /** A one-shot host request, acknowledged after dispatch so remount cannot replay it. */
 export type LibrarySelectionRequest =

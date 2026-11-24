@@ -32,4 +32,4 @@ export {
   screenGroups,
   targetByMethod,
 } from './screenRows';
-export {KIND_NAMES, SCREEN_KIND_ORDER, STARTER_SCREEN_IDS} from './screens';
+export {KIND_NAMES, STARTER_SCREEN_IDS} from './screens';

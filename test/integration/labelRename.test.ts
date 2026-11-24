@@ -9,11 +9,7 @@ import {parseSong} from '@core/schema/songs/song';
 import {createSongId} from '@core/schema/common/ids';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {recordingLogger} from '@fixtures/main/displays/testing';
-import {
-  ContentStore,
-  type ContentEvents,
-  type DocumentFiles,
-} from '@main/store/content/contentStore';
+import {ContentStore} from '@main/store/content/contentStore';
 import {resolveLocations} from '@main/store/locations/locations';
 import {SettingsStore} from '@main/store/settings/settingsStore';
 import {itemId} from '@fixtures/main/store/testFiles';
@@ -23,6 +19,8 @@ import {
   SUNDAY,
   TEMPLATE,
 } from '@fixtures/main/store/contentStoreFixtures';
+import {type ContentEvents} from '@main/store/content/contentCommands';
+import {type DocumentFiles} from '@main/store/content/contentPersistence';
 
 const {locations} = resolveLocations(
   {},

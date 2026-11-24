@@ -19,7 +19,6 @@ import menu from '@renderer/ui/menus/Menu.module.css';
 import {useChoicePopup} from '@renderer/ui/choices/useChoicePopup';
 import {usePickerViewport, VISIBLE_ROWS} from './usePickerViewport';
 import styles from './MediaPicker.module.css';
-export {NONE_LABEL, type MediaPickerItem} from './mediaPickerChoices';
 
 function targetFor(
   key: string,

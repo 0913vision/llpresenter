@@ -11,7 +11,7 @@ import {
 import {BibleChapterLibrary} from '../../../src/main/bible/chapterLibrary';
 import {BibleChapterCache} from '../../../src/main/bible/chapterCache';
 import {BibleLibrary} from '../../../src/main/bible/library';
-import {LIVE_BIBLE_ID} from '../../../src/core/bible/liveTranslation';
+import {LIVE_BIBLE_ID} from '../../../src/core/schema/common/ids';
 
 const html =
   '<div id="tdBible1"><f><span><b class="number">1</b>alpha<font class="name">beta</font>gamma<div>heading</div><font size="2">footnote</font>&amp;delta</span><span><b class="number">3</b>last</span></f></div>';

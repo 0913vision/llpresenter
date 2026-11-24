@@ -4,15 +4,12 @@ import type {MediaItem} from '@core/schema/media/mediaList';
 import type {Prop} from '@core/schema/tools/props';
 import {isLyricTextColor} from '@core/schema/slides/textStyle';
 import type {Screen} from '@core/schema/screens/screens';
-import {
-  Dialog,
-  Properties,
-  NumberField,
-  PropertyRow,
-  SelectMenu,
-  TextArea,
-  TextField,
-} from '@renderer/ui';
+import {Dialog} from '@renderer/ui/popups/Dialog';
+import {Properties, PropertyRow} from '@renderer/ui/panels/PropertyRow';
+import {NumberField} from '@renderer/ui/fields/NumberField';
+import {SelectMenu} from '@renderer/ui/choices/SelectMenu';
+import {TextArea} from '@renderer/ui/fields/TextArea';
+import {TextField} from '@renderer/ui/fields/TextField';
 import {NAME_LIMIT} from '@core/schema/common/primitives';
 import {propReason} from './propEdits';
 import {ScreenTargetsRow} from '../ScreenTargetsRow';

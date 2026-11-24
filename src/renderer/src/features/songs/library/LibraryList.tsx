@@ -10,14 +10,15 @@ import {
   SONG_DRAG_MIME,
   serializeSongDragPayload,
 } from '@core/schema/songs/songDrag';
-import {ListBox, ListRow} from '@renderer/ui/lists/ListRow';
+import {ListRow} from '@renderer/ui/lists/ListRow';
 import {
   takeMenuKey,
   type ContextMenuEvent,
 } from '@renderer/ui/menus/contextMenu';
-import type {LibraryRow} from './useLibrary';
 import styles from './LibraryPanel.module.css';
 import {useDragClickGuard} from '@renderer/ui/lists/useDragClickGuard';
+import type {LibraryRow} from './librarySearch';
+import {ListBox} from '@renderer/ui/lists/ListBox';
 
 const OVERSCAN = 4;
 const INITIAL_ROWS = 12;

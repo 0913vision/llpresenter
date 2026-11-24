@@ -1,6 +1,7 @@
 import type {JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
-import {Icon, TruncatedText} from '@renderer/ui';
+import {Icon} from '@renderer/ui/Icon';
+import {TruncatedText} from '@renderer/ui/text/TruncatedText';
 import {durationText} from '@renderer/features/media/mediaEntries';
 import type {AudioTrack} from '@core/media';
 import styles from './AudioTrackRow.module.css';

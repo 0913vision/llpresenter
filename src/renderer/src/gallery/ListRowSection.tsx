@@ -2,7 +2,6 @@ import {Fragment, useState, type JSX, type ReactNode} from 'react';
 import {IconButton} from '../ui/buttons/IconButton';
 import {
   ListActionRow,
-  ListBox,
   ListDragGhost,
   ListGroup,
   ListInsertLine,
@@ -25,6 +24,7 @@ import {
   Stateful,
   type SpecPin,
 } from './Spec';
+import {ListBox} from '../ui/lists/ListBox';
 
 const PANEL_WIDTH = 280;
 const LIST_PANEL_WIDTH = 296;

@@ -4,7 +4,6 @@ import {
   type ThemeFill,
   type ThemeFrame,
   type ThemeShape,
-  THEME_CANVAS,
 } from '@core/schema/screens/theme';
 import type {MediaLayer} from '@core/schema/live/live';
 import type {
@@ -26,8 +25,7 @@ import {placeTexts} from './placement';
 import {isText, type ShownText, type ThemeDrawing} from './shownTexts';
 import {sizeRows, writeRows} from './textRows';
 import styles from './theme.module.css';
-
-export type {ThemeDrawing} from './shownTexts';
+import {THEME_CANVAS} from '@core/schema/screens/screens';
 
 export interface ThemeViewOptions {
   readonly mediaUrl: (mediaId: string) => string;

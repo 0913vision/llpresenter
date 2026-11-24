@@ -10,7 +10,9 @@ import {
 } from '@core/theme';
 import {backgroundPaint} from '@renderer/rendering/theme/themeBackground';
 import {sampleGradient} from '@renderer/rendering/theme/sampleGradient';
-import {IconButton, NumberField, PropertyRow} from '@renderer/ui';
+import {IconButton} from '@renderer/ui/buttons/IconButton';
+import {NumberField} from '@renderer/ui/fields/NumberField';
+import {PropertyRow} from '@renderer/ui/panels/PropertyRow';
 import {ColorProperty} from '../../ColorProperty';
 import {ThemeNumber} from './ThemePropertyFields';
 import {GradientStopBar} from './GradientStopBar';

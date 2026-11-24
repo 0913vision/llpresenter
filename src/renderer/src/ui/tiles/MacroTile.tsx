@@ -3,11 +3,11 @@ import type {MacroColor} from '@core/labels';
 import type {LabelInkStyle} from '../labels/labelInk';
 import {classNames} from '../classNames';
 import {hasIcon, Icon} from '../Icon';
-import type {MenuAnchor} from '../menus/Menu';
 import {gridMoves, rowMoves, TileList} from '../lists/TileList';
 import {titleTooltip, useTooltip, withTooltipProps} from '../popups/Tooltip';
 import {useButtonPress} from '../buttons/press';
 import styles from './MacroTile.module.css';
+import type {MenuAnchor} from '../menus/menuModel';
 
 const TILE_ICON_SIZE = 28;
 const ROW_ICON_SIZE = 14;

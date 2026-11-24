@@ -1,9 +1,5 @@
 import {resolve} from 'node:path';
-import {
-  ContentStore,
-  type ContentEvents,
-  type DocumentFiles,
-} from '@main/store/content/contentStore';
+import {ContentStore} from '@main/store/content/contentStore';
 import {resolveLocations} from '@main/store/locations/locations';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {SettingsStore} from '@main/store/settings/settingsStore';
@@ -12,6 +8,8 @@ import type {
   LibrarySong,
   SongChange,
 } from '@core/schema/services/contentDocuments';
+import {type ContentEvents} from '@main/store/content/contentCommands';
+import {type DocumentFiles} from '@main/store/content/contentPersistence';
 
 /** A real content store with in-memory files and a window-like event feed. */
 export function contentFixture() {

@@ -1,5 +1,6 @@
 import type {JSX} from 'react';
-import {PropertyRow, SegmentedControl} from '@renderer/ui';
+import {PropertyRow} from '@renderer/ui/panels/PropertyRow';
+import {SegmentedControl} from '@renderer/ui/choices/SegmentedControl';
 
 export function TimerOverrunField({
   value,

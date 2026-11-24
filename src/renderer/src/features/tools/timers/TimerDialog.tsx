@@ -1,11 +1,8 @@
 import {useRef, useState, type JSX} from 'react';
-import {
-  Dialog,
-  Properties,
-  PropertyRow,
-  SelectMenu,
-  TextField,
-} from '@renderer/ui';
+import {Dialog} from '@renderer/ui/popups/Dialog';
+import {Properties, PropertyRow} from '@renderer/ui/panels/PropertyRow';
+import {SelectMenu} from '@renderer/ui/choices/SelectMenu';
+import {TextField} from '@renderer/ui/fields/TextField';
 import {parseTimerDuration, TimerDurationFields} from './TimerDurationFields';
 import {TimerOverrunField} from './TimerOverrunField';
 import {

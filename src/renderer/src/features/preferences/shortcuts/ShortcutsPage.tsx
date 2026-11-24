@@ -10,7 +10,7 @@ import {AlertDialog} from '@renderer/ui/popups/AlertDialog';
 import {Button} from '@renderer/ui/buttons/Button';
 import {EmptyState} from '@renderer/ui/lists/EmptyState';
 import {contextMenuAnchor, takeMenuKey} from '@renderer/ui/menus/contextMenu';
-import {Menu, type MenuAnchor} from '@renderer/ui/menus/Menu';
+import {Menu} from '@renderer/ui/menus/Menu';
 import {SegmentedControl} from '@renderer/ui/choices/SegmentedControl';
 import {TextField} from '@renderer/ui/fields/TextField';
 import type {Notice} from '@renderer/ui/popups/notices';
@@ -27,6 +27,7 @@ import {CommandRow} from './CommandRow';
 import {SelectedShortcutBar} from './SelectedShortcutBar';
 import {shortcutRowMenuEntries} from './shortcutRowMenu';
 import styles from './ShortcutsPage.module.css';
+import {type MenuAnchor} from '@renderer/ui/menus/menuModel';
 
 const LIST_LABEL = '명령';
 

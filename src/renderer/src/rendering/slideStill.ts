@@ -1,6 +1,7 @@
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {previewMediaOf} from './media/previewMedia';
-import {ThemeView, type ThemeDrawing} from './theme/themeView';
+import {ThemeView} from './theme/themeView';
+import {type ThemeDrawing} from './theme/shownTexts';
 
 const open = new Set<SlideStill>();
 let following = false;

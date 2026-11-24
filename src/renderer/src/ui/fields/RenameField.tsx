@@ -1,6 +1,7 @@
 import type {JSX} from 'react';
 import {TextField} from './TextField';
-import {useRenameDraft, type RenameContract} from './useRenameDraft';
+import {useRenameDraft} from './useRenameDraft';
+import {type RenameContract} from './renameContract';
 
 /** Edits a name in place with the shared save and cancellation contract. */
 export function RenameField({

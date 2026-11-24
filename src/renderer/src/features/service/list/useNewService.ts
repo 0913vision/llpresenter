@@ -1,8 +1,7 @@
-import {warningNotice} from '@renderer/ui/popups/notices';
+import {warningNotice, type Notice} from '@renderer/ui/popups/notices';
 import {useMemo, useState} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import {applyService} from '@renderer/session/show/show';
-import type {Notice} from '@renderer/ui/popups/notices';
 import {localDate} from './serviceDates';
 import {appliedId, asServiceId, editApplied, settle} from './serviceEdits';
 import {checkAll, selectedIds} from './serviceTree';

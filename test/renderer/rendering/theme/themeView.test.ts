@@ -4,11 +4,11 @@ import {createMediaId, type ThemeId} from '@core/schema/common/ids';
 import type {OwnThemeScreen} from '@core/schema/screens/theme';
 import {BUILT_IN_THEME_IDS} from '@core/theme/builtIn/ids';
 import {drawingOn, liveDrawing} from '@renderer/rendering/theme/drawing';
-import {shownTexts} from '@renderer/rendering/theme/shownTexts';
 import {
-  ThemeView,
+  shownTexts,
   type ThemeDrawing,
-} from '@renderer/rendering/theme/themeView';
+} from '@renderer/rendering/theme/shownTexts';
+import {ThemeView} from '@renderer/rendering/theme/themeView';
 import {shownText} from '@fixtures/core/liveSlide';
 import {
   builtIn,

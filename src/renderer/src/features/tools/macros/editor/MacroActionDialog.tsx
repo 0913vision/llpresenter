@@ -3,13 +3,10 @@ import type {
   KnownMacroAction,
   MacroActionKind,
 } from '@core/schema/tools/macros';
-import {
-  Dialog,
-  Properties,
-  PropertyRow,
-  SelectMenu,
-  TextField,
-} from '@renderer/ui';
+import {Dialog} from '@renderer/ui/popups/Dialog';
+import {Properties, PropertyRow} from '@renderer/ui/panels/PropertyRow';
+import {SelectMenu} from '@renderer/ui/choices/SelectMenu';
+import {TextField} from '@renderer/ui/fields/TextField';
 import {prepareMacroAction, type MacroActionDraft} from '@core/macros';
 import {fillMessageText, MAX_MESSAGE_CHARACTERS} from '@core/overlays';
 import {MACRO_OPERATIONS} from '../actions/macroActionChoices';

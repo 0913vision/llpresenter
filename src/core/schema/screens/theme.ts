@@ -30,8 +30,6 @@ import {pictureAreaSchema, pictureFitSchema} from '../media/picturePlace';
 import {SCREEN_KIND_ORDER} from './screens';
 import {textOutlineSchema, textShadowSchema} from '../slides/textEffects';
 
-export {THEME_CANVAS} from './screens';
-
 export const THEME_FILE_LIMITS = {
   name: 80,
   boxes: 12,

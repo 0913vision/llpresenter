@@ -1,7 +1,8 @@
 import {useEffect, useState, type JSX} from 'react';
 import {liveMessages, messageTimeLeft} from '@core/overlays';
 import {useLive} from '@renderer/session/live';
-import {IconButton, TruncatedText} from '@renderer/ui';
+import {IconButton} from '@renderer/ui/buttons/IconButton';
+import {TruncatedText} from '@renderer/ui/text/TruncatedText';
 import {dismissMessage} from './messageDismiss';
 import styles from './MessageTab.module.css';
 

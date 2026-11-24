@@ -1,10 +1,6 @@
 import {createScreenId} from '@core/schema/common/ids';
-import type {Screen} from '@core/schema/screens/screens';
-import {
-  type OwnThemeScreen,
-  type ThemeFile,
-  THEME_CANVAS,
-} from '@core/schema/screens/theme';
+import {type Screen, THEME_CANVAS} from '@core/schema/screens/screens';
+import {type OwnThemeScreen, type ThemeFile} from '@core/schema/screens/theme';
 import {nextPhraseOf, sampleContent} from '@core/theme';
 import {
   pictureScreen,

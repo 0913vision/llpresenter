@@ -1,5 +1,6 @@
 import {useRef, useState, type JSX, type KeyboardEvent} from 'react';
-import {Dialog, IconButton} from '@renderer/ui';
+import {Dialog} from '@renderer/ui/popups/Dialog';
+import {IconButton} from '@renderer/ui/buttons/IconButton';
 import styles from './MacroIconDialog.module.css';
 
 const names = Object.keys(import.meta.glob('../../../../ui/icons/*.svg'))

@@ -18,20 +18,17 @@ import {
 } from '@core/overlays';
 import {useSettingsDocument} from '@renderer/platform/documents/useSettingsDocument';
 import {sendLive} from '@renderer/session/live';
-import {
-  Button,
-  ListBox,
-  ListRow,
-  Properties,
-  PropertyRow,
-  TextField,
-} from '@renderer/ui';
+import {Button} from '@renderer/ui/buttons/Button';
+import {ListRow} from '@renderer/ui/lists/ListRow';
+import {Properties, PropertyRow} from '@renderer/ui/panels/PropertyRow';
+import {TextField} from '@renderer/ui/fields/TextField';
 import type {Notice} from '@renderer/ui/popups/notices';
 import styles from './MessageTab.module.css';
 import {MessageEditing} from './MessageEditing';
 import {ActiveMessages} from './ActiveMessages';
 import {ScreenTargetsRow} from '../ScreenTargetsRow';
 import {DisplayTimeRow} from '../DisplayTimeRow';
+import {ListBox} from '@renderer/ui/lists/ListBox';
 
 function Sentence({text}: {readonly text: string}): JSX.Element {
   const names = messageBlankNames(text);

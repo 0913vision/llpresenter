@@ -25,11 +25,6 @@ import {useThemeSaveFlow} from './saving/useThemeSaveFlow';
 import {useThemeSelection} from './useThemeSelection';
 import {useThemeWrites} from './saving/useThemeWrites';
 
-export {
-  themeCanvasBounds,
-  type ThemeAddPlacement,
-} from './elements/useThemeElements';
-
 /** One session of the theme editor, shared by its three panels. */
 export function useThemeEditor(
   active: boolean,

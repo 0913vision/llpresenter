@@ -10,7 +10,7 @@ import {
   MONITOR_SCREEN_ID_MAX,
   type MonitorList,
 } from '@core/schema/screens/monitors';
-import {Button} from '@renderer/ui';
+import {Button} from '@renderer/ui/buttons/Button';
 import {classNames} from '@renderer/ui/classNames';
 import {sendLive} from '@renderer/session/live';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';

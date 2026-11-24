@@ -1,9 +1,9 @@
 import type {JSX} from 'react';
-import {ListGroup, ListInsertLine} from '@renderer/ui';
-import type {RenameContract} from '@renderer/ui/fields/useRenameDraft';
+import {ListGroup, ListInsertLine} from '@renderer/ui/lists/ListRow';
 import type {Workspace} from '@renderer/ui/lists/workspace';
 import {ItemRows, type RowContext} from './ItemRows';
 import type {RowGroup} from '../orderRows';
+import type {RenameContract} from '@renderer/ui/fields/renameContract';
 
 /**
  * A 구역 of the 예배 순서 and its items. In 준비 it is picked, dragged and

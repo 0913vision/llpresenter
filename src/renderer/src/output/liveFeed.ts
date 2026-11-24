@@ -1,5 +1,6 @@
-import type {LlpApi, Unsubscribe} from '@contracts/ipc/api';
+import type {LlpApi} from '@contracts/ipc/api';
 import type {LiveState} from '@core/schema/live/live';
+import type {Unsubscribe} from '@contracts/ipc/endpoint';
 
 /**
  * Follows the live state that the main process sends, starting with the
