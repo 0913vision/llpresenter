@@ -4,7 +4,7 @@ import {
   DRAW_LIMIT_MS,
   PageLoad,
   type LoadFailure,
-} from '@main/base/renderers/pageLoad';
+} from '@main/outputs/health/pageLoad';
 
 const LOAD_ERROR = new Error('ERR_FAILED');
 

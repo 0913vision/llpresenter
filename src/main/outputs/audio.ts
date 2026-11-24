@@ -2,7 +2,7 @@ import {app, BrowserWindow} from 'electron';
 import type {Logger} from '../base/log';
 import type {MediaStore} from '../store/media/mediaStore';
 import {connectMediaPlayback} from '../live/media/mediaPlayback';
-import {RendererRecovery} from '../base/renderers/rendererRecovery';
+import {RendererRecovery} from './health/rendererRecovery';
 import {audioMutedByDefault} from '../base/renderers/audioPolicy';
 import {
   blockNavigation,

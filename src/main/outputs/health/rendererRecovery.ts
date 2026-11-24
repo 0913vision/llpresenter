@@ -1,6 +1,6 @@
-import type {Logger} from '../log';
+import type {Logger} from '../../base/log';
 import {DRAW_LIMIT_MS, PageLoad, type LoadFailure} from './pageLoad';
-import {CRASH_LIMIT, RestartBudget} from './restartBudget';
+import {CRASH_LIMIT, RestartBudget} from '../../base/renderers/restartBudget';
 
 /**
  * What an output window's renderer shows: the live picture, the empty picture

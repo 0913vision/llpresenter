@@ -10,7 +10,7 @@ import type {MonitorRemovedListener} from '../displays/registry';
 import type {LiveStore} from '../live/store';
 import type {Logger} from '../base/log';
 import {OutputWindow, type CreateOutputWindowHandle} from './outputWindow';
-import type {RendererState} from '../base/renderers/rendererRecovery';
+import type {RendererState} from './health/rendererRecovery';
 import {
   planPlacement,
   fitAspectBounds,

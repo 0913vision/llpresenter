@@ -1,13 +1,13 @@
 import {describe, expect, it, vi} from 'vitest';
 import {installMockClock, type MockClock} from '@fixtures/mockClock';
 import {recordingLogger} from '@fixtures/main/displays/testing';
-import {DRAW_LIMIT_MS} from '@main/base/renderers/pageLoad';
+import {DRAW_LIMIT_MS} from '@main/outputs/health/pageLoad';
 import {
   COOLDOWN_STEPS_MS,
   RELAUNCH_DELAY_MS,
   RendererRecovery,
   SURVIVAL_MS,
-} from '@main/base/renderers/rendererRecovery';
+} from '@main/outputs/health/rendererRecovery';
 import {CRASH_LIMIT} from '@main/base/renderers/restartBudget';
 
 const CRASH = {reason: 'crashed', exitCode: -1073741819};

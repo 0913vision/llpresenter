@@ -37,9 +37,9 @@ const mocks = vi.hoisted(() => {
   return {Recovery, Watch, recoveries, watches};
 });
 
-vi.mock('@main/base/renderers/rendererRecovery', async importOriginal => ({
+vi.mock('@main/outputs/health/rendererRecovery', async importOriginal => ({
   ...(await importOriginal<
-    typeof import('@main/base/renderers/rendererRecovery')
+    typeof import('@main/outputs/health/rendererRecovery')
   >()),
   RendererRecovery: mocks.Recovery,
 }));

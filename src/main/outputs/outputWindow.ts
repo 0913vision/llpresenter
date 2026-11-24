@@ -8,7 +8,7 @@ import {
   RendererRecovery,
   type RendererGoneDetails,
   type RendererState,
-} from '../base/renderers/rendererRecovery';
+} from './health/rendererRecovery';
 import type {OutputScreen} from './screens';
 import type {WebContents} from 'electron';
 

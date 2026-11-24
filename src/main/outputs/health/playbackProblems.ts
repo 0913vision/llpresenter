@@ -7,7 +7,7 @@ import {
 } from '@core/schema/media/playbackProblems';
 import {IpcHost} from '../../base/ipcHost';
 import type {Logger} from '../../base/log';
-import type {RendererState} from '../../base/renderers/rendererRecovery';
+import type {RendererState} from './rendererRecovery';
 
 interface Source {
   readonly source: string;

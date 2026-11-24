@@ -12,7 +12,7 @@ import type {WindowMode} from '@main/base/renderers/windowMode';
 import type {
   RecoveryOptions,
   RendererState,
-} from '@main/base/renderers/rendererRecovery';
+} from '@main/outputs/health/rendererRecovery';
 import {watchPlaybackProblems} from '@main/outputs/health/playbackProblems';
 
 const mocks = await vi.hoisted(async () => {
@@ -67,7 +67,7 @@ vi.mock('@main/base/renderers/audioPolicy', () => ({
 vi.mock('@main/live/media/mediaPlayback', () => ({
   connectMediaPlayback: vi.fn(() => vi.fn()),
 }));
-vi.mock('@main/base/renderers/rendererRecovery', () => ({
+vi.mock('@main/outputs/health/rendererRecovery', () => ({
   RendererRecovery: mocks.Recovery,
 }));
 vi.mock('@main/outputs/health/playbackProblems', () => ({

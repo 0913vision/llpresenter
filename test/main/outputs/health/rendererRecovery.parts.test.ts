@@ -1,11 +1,11 @@
 import {describe, expect, it, vi} from 'vitest';
 import {installMockClock} from '@fixtures/mockClock';
 import {recordingLogger} from '@fixtures/main/displays/testing';
-import type {LoadFailure} from '@main/base/renderers/pageLoad';
+import type {LoadFailure} from '@main/outputs/health/pageLoad';
 import {
   RELAUNCH_DELAY_MS,
   RendererRecovery,
-} from '@main/base/renderers/rendererRecovery';
+} from '@main/outputs/health/rendererRecovery';
 
 const mocks = vi.hoisted(() => {
   class Load {
@@ -29,8 +29,8 @@ const mocks = vi.hoisted(() => {
   return {Load, loads, budget};
 });
 
-vi.mock('@main/base/renderers/pageLoad', async importOriginal => ({
-  ...(await importOriginal<typeof import('@main/base/renderers/pageLoad')>()),
+vi.mock('@main/outputs/health/pageLoad', async importOriginal => ({
+  ...(await importOriginal<typeof import('@main/outputs/health/pageLoad')>()),
   PageLoad: mocks.Load,
 }));
 vi.mock('@main/base/renderers/restartBudget', async importOriginal => ({
