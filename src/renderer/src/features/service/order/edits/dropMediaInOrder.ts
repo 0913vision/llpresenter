@@ -3,7 +3,7 @@ import type {Report} from '@renderer/session/service/serviceEdit';
 import {canAddMedia, mediaItem} from '@renderer/platform/documents/media';
 import {MISSING_MEDIA_TIP} from '@renderer/platform/problemReasons';
 import {warningNotice} from '@renderer/ui/popups/notices';
-import {insertNewItem} from '@renderer/session/service/insertNewItem';
+import {insertNewItem} from '@renderer/session/service/insertIntoOrder';
 import {newMediaItem} from '@renderer/features/media/newMediaItem';
 
 /** Puts a media file that was dropped on the 예배 순서 in it. */

@@ -1,6 +1,6 @@
 import type {ServiceRow} from '@core/presentation';
 import {createServiceItemId} from '@core/schema/common/ids';
-import {insertLibrarySong} from '@renderer/session/service/insertNewItem';
+import {insertLibrarySong} from '@renderer/session/service/insertIntoOrder';
 import {moveItems} from '@renderer/session/service/serviceOrderEdits';
 import type {useServiceOrderEditing} from '@renderer/session/service/useServiceOrderEditing';
 import type {Notice} from '@renderer/ui/popups/notices';

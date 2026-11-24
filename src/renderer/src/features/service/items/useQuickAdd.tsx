@@ -7,7 +7,7 @@ import {
   insertLibrarySong,
   insertNewItem,
   rowAfterSelected,
-} from '@renderer/session/service/insertNewItem';
+} from '@renderer/session/service/insertIntoOrder';
 import {quickAddEntries} from './quickAddEntries';
 import {SongPicker} from './SongPicker';
 import {usePaletteInsert} from './usePaletteInsert';

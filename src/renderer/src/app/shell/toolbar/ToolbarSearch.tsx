@@ -25,7 +25,7 @@ import {useOrderAddReason} from '@renderer/session/service/orderReasons';
 import {
   insertLibrarySong,
   rowAfterSelected,
-} from '@renderer/session/service/insertNewItem';
+} from '@renderer/session/service/insertIntoOrder';
 
 const SONG_ICON_SIZE = 16;
 const NO_RESULT = -1;

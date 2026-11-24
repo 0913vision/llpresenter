@@ -9,7 +9,7 @@ import {BibleQuickAdd} from './BibleQuickAdd';
 import {
   insertNewItem,
   rowAfterSelected,
-} from '@renderer/session/service/insertNewItem';
+} from '@renderer/session/service/insertIntoOrder';
 import {newPaletteItem} from './newItems';
 import {newBibleItem, newSermonItem} from './passageItems';
 import {SermonQuickAdd} from './SermonQuickAdd';

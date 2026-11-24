@@ -6,7 +6,7 @@ import {mediaItem} from '@renderer/platform/documents/media';
 import {
   insertNewItem,
   rowAfterSelected,
-} from '@renderer/session/service/insertNewItem';
+} from '@renderer/session/service/insertIntoOrder';
 import {sendMediaOutput} from '@renderer/session/show/itemOutput';
 import {useOrderAddReason} from '@renderer/session/service/orderReasons';
 import {deleteSelection} from '@renderer/ui/lists/deleteSelection';

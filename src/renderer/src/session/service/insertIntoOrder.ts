@@ -5,11 +5,13 @@ import {
 } from '@core/schema/common/ids';
 import {hasSlides, type ServiceItem} from '@core/schema/services/service';
 import {quickAddBefore} from '@core/services';
+import type {LlpApi} from '@contracts/ipc/api';
 import {useHeaderRename} from './headerRename';
 import {insertItem, insertSong} from './serviceOrderEdits';
 import {openInPrep} from '../prepTarget';
 import {rememberBiblePassage} from '../recentWriter';
 import {runEdit, type Report} from './serviceEdit';
+import type {OpenServiceResult} from './openService';
 import {useShow} from '../show/showStore';
 import {orderSelectionId} from '../show/orderSelection';
 
@@ -55,4 +57,15 @@ export function insertLibrarySong(
 ): void {
   const api = window.llp;
   if (api !== undefined) runEdit(insertSong(api, songId, before), report);
+}
+
+/**
+ * Puts a library song after the 예배 순서 row chosen last, and answers with the
+ * result for a caller that shows it.
+ */
+export function insertSelectedSong(
+  api: Pick<LlpApi, 'songs'>,
+  songId: SongId,
+): Promise<OpenServiceResult> {
+  return insertSong(api, songId, rowAfterSelected());
 }
