@@ -6,7 +6,7 @@ import {createMediaId} from '@core/schema/ids';
 import {parseMediaDocument} from '@core/schema/mediaEdit';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {recordingLogger} from '@fixtures/main/displays/testing';
-import {EMPTY_MEDIA_LIST} from '@main/store/defaults';
+import {EMPTY_MEDIA_LIST} from '@main/store/settings/defaults';
 import {startMediaAnalysis} from '@main/media/analysis';
 import type {ThumbnailSource} from '@main/media/thumbnails';
 

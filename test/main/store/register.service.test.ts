@@ -15,7 +15,7 @@ import {readFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';
 import * as atomicWrite from '@main/base/atomicWrite';
-import {DATA_FOLDER_NAME} from '@main/store/locations';
+import {DATA_FOLDER_NAME} from '@main/store/locations/locations';
 import {itemId, writeJson} from '@fixtures/main/store/testFiles';
 
 describe('registerStore', () => {

@@ -8,7 +8,7 @@ import type {Logger} from '../base/log';
 import type {ProblemFeed} from '../base/problemFeed';
 import type {WindowMode} from '../base/testWindows';
 import type {LaunchIdle} from '../store/launchIdle';
-import type {UiZoomRegistration} from '../store/uiZoom';
+import type {UiZoomRegistration} from '../store/settings/uiZoom';
 import {createControlWindow} from '../windows/control';
 import {registerControlClose, type ControlClose} from '../windows/controlClose';
 import {ControlHeartbeat} from '../windows/controlHeartbeat';

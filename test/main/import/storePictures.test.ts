@@ -3,7 +3,7 @@ import {readdir, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';
 import type {MediaItem} from '@core/schema/mediaList';
-import type {MediaItemsCommit} from '@main/store/mediaStore';
+import type {MediaItemsCommit} from '@main/store/media/mediaStore';
 import {
   storeBackgrounds,
   storeSlidePictures,

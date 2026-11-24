@@ -1,7 +1,7 @@
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {uiEndpoints} from '@contracts/ipc/ui';
 import {recordingLogger} from '@fixtures/main/displays/testing';
-import type {UiFields, UiStateFields} from '@main/store/appConfigFile';
+import type {UiFields, UiStateFields} from '@main/store/locations/appConfigFile';
 
 const ipc = await vi.hoisted(async () =>
   (await import('@fixtures/main/base/mockIpcMain')).mockIpcMain(),

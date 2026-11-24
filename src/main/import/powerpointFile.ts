@@ -3,7 +3,7 @@ import {constants as fsConstants} from 'node:fs';
 import {copyFile, rm, stat} from 'node:fs/promises';
 import {extname, join} from 'node:path';
 import type {WindowMode} from '../base/testWindows';
-import type {UiStateFields} from '../store/appConfigFile';
+import type {UiStateFields} from '../store/locations/appConfigFile';
 import {pickerFolder, rememberPickerFile} from '../uiState/pickerFolder';
 import type {
   PowerPointImagesJob,

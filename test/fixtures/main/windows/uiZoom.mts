@@ -7,11 +7,11 @@ import type {Logger} from '@main/base/log';
 import {
   openAppConfig,
   type AppConfigFile,
-} from '../../../../src/main/store/appConfigFile';
+} from '../../../../src/main/store/locations/appConfigFile';
 import {
   registerUiZoom,
   type UiZoomRegistration,
-} from '../../../../src/main/store/uiZoom';
+} from '../../../../src/main/store/settings/uiZoom';
 import {createControlWindow} from '../../../../src/main/windows/control';
 
 const STARTUP_DEADLINE_MS = 120_000;

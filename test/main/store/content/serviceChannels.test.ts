@@ -1,0 +1,238 @@
+import {describe, expect, it, onTestFinished, vi} from 'vitest';
+import {serviceEndpoints} from '@contracts/ipc/service';
+import type {EditResult} from '@core/schema/contentEdit';
+import {createServiceId, type ServiceId} from '@core/schema/ids';
+import type {ShowService} from '@core/schema/showService';
+import {recordingLogger} from '@fixtures/main/displays/testing';
+import {LiveStore} from '@main/live/store';
+import {ThemeRuntime} from '@main/live/themeRuntime';
+import {themes as sampleThemes, themeScreens} from '@fixtures/core/themeOutput';
+import {settingsDocument} from '@fixtures/core/settingsDocument';
+import {serviceStandby} from '@main/live/serviceStandby';
+import {
+  registerServiceChannels,
+  MAX_PENDING_SERVICE_SWITCHES,
+  type ServiceSession,
+} from '@main/store/content/serviceChannels';
+
+const ipc = await vi.hoisted(async () =>
+  (await import('@fixtures/main/base/mockIpcMain')).mockIpcMain(),
+);
+vi.mock('electron', () => ({ipcMain: ipc.ipcMain}));
+const FIRST = createServiceId('00000000-0000-4000-8000-000000000001');
+const SECOND = createServiceId('00000000-0000-4000-8000-000000000002');
+
+function shown(id: string): ShowService {
+  return {
+    revision: 1,
+    id,
+    name: `Invented service ${id}`,
+    readOnly: false,
+    rows: [],
+    tiles: {},
+  };
+}
+
+function setup() {
+  const log = recordingLogger();
+  let openId: string = FIRST;
+  const opened = (id: ServiceId): EditResult => ({
+    ok: true,
+    value: {id, revision: 1},
+  });
+  const openService = vi.fn<ServiceSession['content']['openService']>(
+    async id => {
+      openId = id;
+      return opened(id);
+    },
+  );
+  const feed = {
+    current: vi.fn(() => shown(openId)),
+    refresh: vi.fn(() => Promise.resolve()),
+  };
+  const config = {
+    setLastServiceId: vi.fn<(id: ServiceId) => void>(),
+    flush: vi.fn(() => Promise.resolve()),
+  };
+  const live = new LiveStore();
+  const themes = sampleThemes();
+  live.connectThemes(
+    new ThemeRuntime({
+      settings: {
+        get: name => {
+          if (name === 'themes') return settingsDocument('themes', themes);
+          if (name === 'screens') {
+            return settingsDocument('screens', {screens: themeScreens});
+          }
+          throw Error(`Unexpected settings ${name}`);
+        },
+      },
+      item: id => ({id, kind: 'song', source: 'service', title: 'Live song'}),
+      onError: vi.fn(),
+    }),
+  );
+  const onServiceChanged = vi.fn(() => serviceStandby(live));
+  const channels = registerServiceChannels(
+    Promise.resolve({content: {openService}, feed}),
+    config,
+    {log, onServiceChanged},
+  );
+  onTestFinished(() => channels.dispose());
+  /** Holds the next switch until the returned function is called. */
+  const holdNext = () => {
+    let release: () => void = () => undefined;
+    openService.mockImplementationOnce(async id => {
+      await new Promise<void>(resolve => {
+        release = resolve;
+      });
+      openId = id;
+      return opened(id);
+    });
+    return () => release();
+  };
+  return {
+    openService,
+    feed,
+    config,
+    channels,
+    log,
+    holdNext,
+    onServiceChanged,
+    live,
+    themes,
+  };
+}
+
+const open = (serviceId: unknown) =>
+  ipc.invoke(serviceEndpoints.open, {serviceId});
+const opened = (id: string) => ({ok: true, value: shown(id)});
+const refused = (reason: string) => ({ok: false, error: {reason}});
+
+describe('service open channels', () => {
+  it('opens the chosen service, remembers it, and answers with the refreshed projection', async () => {
+    const {openService, feed, config} = setup();
+
+    expect(await open(SECOND)).toEqual(opened(SECOND));
+    expect(openService).toHaveBeenCalledExactlyOnceWith(
+      SECOND,
+      expect.any(Function),
+    );
+    expect(config.setLastServiceId).toHaveBeenCalledExactlyOnceWith(SECOND);
+    expect(config.flush).toHaveBeenCalledOnce();
+    expect(feed.refresh).toHaveBeenCalled();
+  });
+
+  it('enters standby only after a different service opens successfully', async () => {
+    const {onServiceChanged, openService} = setup();
+    expect(await open(FIRST)).toEqual(opened(FIRST));
+    expect(onServiceChanged).not.toHaveBeenCalled();
+    openService.mockResolvedValueOnce({
+      ok: false,
+      error: {reason: 'not-found', message: 'Missing'},
+    });
+    expect(await open(SECOND)).toEqual(refused('missing'));
+    expect(onServiceChanged).not.toHaveBeenCalled();
+    expect(await open(SECOND)).toEqual(opened(SECOND));
+    expect(onServiceChanged).toHaveBeenCalledOnce();
+  });
+
+  it('reports remembering failures while returning the service that opened', async () => {
+    const {config, log} = setup();
+    config.flush.mockRejectedValueOnce(new Error('Config unavailable'));
+
+    expect(await open(SECOND)).toEqual(opened(SECOND));
+    expect(log.messages('error')).toContain(
+      'could not remember the open service',
+    );
+  });
+
+  it('caps queued switches and keeps reads available while the first one is held', async () => {
+    const {openService, config, log, holdNext} = setup();
+    const release = holdNext();
+    try {
+      const pending = Array.from({length: MAX_PENDING_SERVICE_SWITCHES}, () =>
+        open(SECOND),
+      );
+      await vi.waitFor(() => expect(openService).toHaveBeenCalledOnce());
+      expect(await open(SECOND)).toEqual(refused('busy'));
+      expect(log.messages('warn')).toContain(
+        'too many pending service switches',
+      );
+      expect(await ipc.invoke(serviceEndpoints.get)).toEqual(shown(FIRST));
+      release();
+      await Promise.all(pending);
+      expect(config.setLastServiceId).toHaveBeenCalledTimes(
+        MAX_PENDING_SERVICE_SWITCHES,
+      );
+    } finally {
+      release();
+    }
+  });
+
+  it('keeps the current service on a refused switch and on a malformed request', async () => {
+    const {openService, config, log} = setup();
+    openService.mockResolvedValueOnce({
+      ok: false,
+      error: {reason: 'not-found', message: 'No service has this id'},
+    });
+
+    expect(await open(SECOND)).toEqual(refused('missing'));
+    expect(await open('bad')).toEqual(refused('failed'));
+    expect(openService).toHaveBeenCalledOnce();
+    expect(config.setLastServiceId).not.toHaveBeenCalled();
+    expect(log.messages('warn')).toEqual([
+      'could not open a service',
+      'refused a malformed service:open request',
+    ]);
+  });
+
+  it('serializes whole switches so simultaneous callers receive their own chosen service', async () => {
+    const {openService, config, holdNext} = setup();
+    const release = holdNext();
+    try {
+      const first = open(SECOND);
+      const second = open(FIRST);
+      await vi.waitFor(() => expect(openService).toHaveBeenCalledOnce());
+      release();
+      expect(await first).toEqual(opened(SECOND));
+      expect(await second).toEqual(opened(FIRST));
+      expect(config.setLastServiceId.mock.calls.map(([id]) => id)).toEqual([
+        SECOND,
+        FIRST,
+      ]);
+    } finally {
+      release();
+    }
+  });
+
+  it('finishes an accepted switch on close and refuses late loading requests', async () => {
+    const {openService, config, channels, holdNext} = setup();
+    const release = holdNext();
+    try {
+      const opening = open(SECOND);
+      await vi.waitFor(() => expect(openService).toHaveBeenCalledOnce());
+      const closing = channels.dispose();
+      expect(ipc.open()).toBe(0);
+      release();
+      expect(await opening).toEqual(opened(SECOND));
+      await closing;
+      expect(config.setLastServiceId).toHaveBeenCalledWith(SECOND);
+    } finally {
+      release();
+    }
+    let finish: (session: ServiceSession | null) => void = () => undefined;
+    const late = registerServiceChannels(
+      new Promise<ServiceSession | null>(resolve => {
+        finish = resolve;
+      }),
+      config,
+      {log: recordingLogger()},
+    );
+    const reading = ipc.invoke(serviceEndpoints.get);
+    const opening = open(SECOND);
+    await late.dispose();
+    finish(null);
+    expect(await reading).toBeNull();
+    expect(await opening).toEqual(refused('failed'));
+  });
+});

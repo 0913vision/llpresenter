@@ -3,7 +3,7 @@ import {join} from 'node:path';
 import {expect, it, vi} from 'vitest';
 import {makeTempDir} from '@fixtures/tempDir';
 import {recordingLogger} from '@fixtures/main/displays/testing';
-import {openAppConfig} from '@main/store/appConfigFile';
+import {openAppConfig} from '@main/store/locations/appConfigFile';
 import {pickerFolder, rememberPickerFile} from '@main/uiState/pickerFolder';
 
 vi.mock('electron', () => ({app: {getPath: () => 'documents-fallback'}}));

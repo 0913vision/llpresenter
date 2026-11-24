@@ -19,13 +19,13 @@ import {
   type ContentEvents,
   type ContentStoreOptions,
   type DocumentFiles,
-} from '@main/store/contentStore';
-import type {StoredFile} from '@main/store/library';
-import {resolveLocations} from '@main/store/locations';
-import type {RecoveryTarget} from '@main/store/recoveryCopies';
-import {type WaitingSave} from '@main/store/saveFailures';
-import type {SaveRequest} from '@main/store/saver';
-import {SettingsStore} from '@main/store/settingsStore';
+} from '@main/store/content/contentStore';
+import type {StoredFile} from '@main/store/files/library';
+import {resolveLocations} from '@main/store/locations/locations';
+import type {RecoveryTarget} from '@main/store/files/recoveryCopies';
+import {type WaitingSave} from '@main/store/files/saveFailures';
+import type {SaveRequest} from '@main/store/files/saver';
+import {SettingsStore} from '@main/store/settings/settingsStore';
 import {
   EVENING_ID,
   HYMN_ONE_ID,

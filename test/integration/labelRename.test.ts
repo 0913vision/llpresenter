@@ -13,9 +13,9 @@ import {
   ContentStore,
   type ContentEvents,
   type DocumentFiles,
-} from '@main/store/contentStore';
-import {resolveLocations} from '@main/store/locations';
-import {SettingsStore} from '@main/store/settingsStore';
+} from '@main/store/content/contentStore';
+import {resolveLocations} from '@main/store/locations/locations';
+import {SettingsStore} from '@main/store/settings/settingsStore';
 import {itemId} from '@fixtures/main/store/testFiles';
 import {
   serviceFile,

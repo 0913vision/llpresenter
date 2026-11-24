@@ -12,33 +12,33 @@ import {
 } from '../base/launchTracker';
 import type {Logger} from '../base/log';
 import type {ProblemFeed} from '../base/problemFeed';
-import type {AppConfigFile} from './appConfigFile';
-import {registerContentChannels} from './contentChannels';
-import {ContentStore} from './contentStore';
+import type {AppConfigFile} from './locations/appConfigFile';
+import {registerContentChannels} from './content/contentChannels';
+import {ContentStore} from './content/contentStore';
 import {
   loadStore,
   type AppConfigView,
   type LoadedStore,
   type StoreContext,
-} from './fileStore';
-import {registerLibrarySong} from './librarySong';
-import {type LocationContext} from './locations';
-import type {MediaBackendPort} from './mediaBackend';
-import {registerMediaChannels} from './mediaChannels';
-import {registerMediaUses} from './mediaUses';
-import {LoadingMediaLibrary} from './mediaLibrary';
-import {openMediaStore} from './mediaLoader';
-import {SUNDAY_PICTURES} from './bundledPictures';
-import type {MediaStore} from './mediaStore';
-import {openContent, type OpenedContent, type SongFeed} from './openContent';
-import {SaveFailures} from './saveFailures';
-import {registerSaveProblems} from './saveProblems';
-import {backupGate} from './backup';
-import {registerServiceChannels} from './serviceChannels';
-import {createSettingsAccess, type SettingsAccess} from './settingsAccess';
-import {registerSettingsChannels} from './settingsChannels';
-import {openSettingsStore, type SettingsProblemListener} from './settingsStore';
-import {SkippedFiles, startSkippedFileProblems} from './skippedFiles';
+} from './locations/fileStore';
+import {registerLibrarySong} from './content/librarySong';
+import {type LocationContext} from './locations/locations';
+import type {MediaBackendPort} from './media/mediaBackend';
+import {registerMediaChannels} from './media/mediaChannels';
+import {registerMediaUses} from './media/mediaUses';
+import {LoadingMediaLibrary} from './media/mediaLibrary';
+import {openMediaStore} from './media/mediaLoader';
+import {SUNDAY_PICTURES} from './pictures/bundledPictures';
+import type {MediaStore} from './media/mediaStore';
+import {openContent, type OpenedContent, type SongFeed} from './content/openContent';
+import {SaveFailures} from './files/saveFailures';
+import {registerSaveProblems} from './files/saveProblems';
+import {backupGate} from './files/backup';
+import {registerServiceChannels} from './content/serviceChannels';
+import {createSettingsAccess, type SettingsAccess} from './settings/settingsAccess';
+import {registerSettingsChannels} from './settings/settingsChannels';
+import {openSettingsStore, type SettingsProblemListener} from './settings/settingsStore';
+import {SkippedFiles, startSkippedFileProblems} from './files/skippedFiles';
 import {contentProblems, logLoadedStore, upkeepAtLaunch} from './storeUpkeep';
 import {defaultPreferences} from '@core/schema/preferences';
 

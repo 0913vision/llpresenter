@@ -14,7 +14,7 @@ import {
 } from '@core/schema/launch';
 import type {LaunchTracker} from '../base/launchTracker';
 import type {Logger} from '../base/log';
-import type {AppConfigFile} from '../store/appConfigFile';
+import type {AppConfigFile} from '../store/locations/appConfigFile';
 import type {LaunchBar, LaunchPlan} from '../windows/splash';
 
 /** A task is slow when it takes this much more than expected. */

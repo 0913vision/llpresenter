@@ -4,7 +4,7 @@ import type {
   RememberedViewChange,
   UiState,
 } from '@core/schema/uiState';
-import type {UiStateFields} from '../store/appConfigFile';
+import type {UiStateFields} from '../store/locations/appConfigFile';
 import {withLayoutChange} from './layout';
 
 /**

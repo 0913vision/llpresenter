@@ -280,7 +280,7 @@ vi.mock('@main/media/register', () => ({
     return mocks.mediaBackendStop;
   },
 }));
-vi.mock('@main/store/revealSong', () => ({
+vi.mock('@main/store/content/revealSong', () => ({
   registerSongReveal: () => () => undefined,
 }));
 vi.mock('@main/import/register', () => ({
@@ -305,10 +305,10 @@ vi.mock('@main/application/launchAtLogin', () => ({
   loginItemsAllowed: () => false,
   registerLaunchAtLogin: vi.fn(() => () => undefined),
 }));
-vi.mock('@main/store/locationsChannels', () => ({
+vi.mock('@main/store/locations/locationsChannels', () => ({
   registerLibraryLocations: vi.fn(() => () => undefined),
 }));
-vi.mock('@main/store/uiZoom', () => ({
+vi.mock('@main/store/settings/uiZoom', () => ({
   registerUiZoom: vi.fn(() => {
     mocks.order.push('UI zoom');
     return mocks.zoom;
@@ -336,7 +336,7 @@ vi.mock('@main/soak', () => ({
     return mocks.scenarioStop;
   },
 }));
-vi.mock('@main/store/appConfigFile', () => ({
+vi.mock('@main/store/locations/appConfigFile', () => ({
   openAppConfig: vi.fn(() => {
     mocks.order.push('app.json');
     return mocks.appConfigGate.promise.then(() => mocks.appConfig);

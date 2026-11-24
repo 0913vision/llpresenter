@@ -7,7 +7,7 @@ import {parseMediaList} from '@core/schema/mediaList';
 import {parseRecoveryRecord} from '@core/schema/recoveryRecord';
 import {makeTempDir} from '@fixtures/tempDir';
 import {recordingLogger} from '@fixtures/main/displays/testing';
-import {recoverMediaImports} from '@main/store/mediaImportJournal';
+import {recoverMediaImports} from '@main/store/media/mediaImportJournal';
 import {openRecoverySession} from '@main/live/recovery/session';
 import {RecoveryController} from '@main/live/recovery/controller';
 import {LiveStore} from '@main/live/store';

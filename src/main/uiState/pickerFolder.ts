@@ -1,7 +1,7 @@
 import {app} from 'electron';
 import {stat} from 'node:fs/promises';
 import {dirname, isAbsolute} from 'node:path';
-import type {UiStateFields} from '../store/appConfigFile';
+import type {UiStateFields} from '../store/locations/appConfigFile';
 
 type PickerFolder =
   | 'mediaImportFolder'

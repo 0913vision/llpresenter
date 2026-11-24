@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import type {AppLayout} from '@core/schema/appConfig';
-import type {UiFields, UiStateFields} from '@main/store/appConfigFile';
+import type {UiFields, UiStateFields} from '@main/store/locations/appConfigFile';
 import {UiStateStore} from '@main/uiState/uiStateStore';
 import {createScreenId, macroCollectionIdSchema} from '@core/schema/ids';
 import {testId} from '@fixtures/core/schema/testHelpers';

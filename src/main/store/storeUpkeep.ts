@@ -2,10 +2,10 @@ import type {Preferences} from '@core/schema/preferences';
 import type {FileError} from '@core/schema/fileFormat';
 import {settingsNames} from '@core/schema/settingsDocuments';
 import type {Logger} from '../base/log';
-import {Backups, type BackupOutcome} from './backup';
-import {type LoadedStore} from './fileStore';
-import {dataFileFolders} from './locations';
-import {settingsLocation} from './settingsFile';
+import {Backups, type BackupOutcome} from './files/backup';
+import {type LoadedStore} from './locations/fileStore';
+import {dataFileFolders} from './locations/locations';
+import {settingsLocation} from './settings/settingsFile';
 import {removeStaleTempFiles} from '../base/staleTempFiles';
 
 const MAX_LOGGED_PROBLEMS = 50;

@@ -1,6 +1,6 @@
 import {app, BrowserWindow} from 'electron';
 import type {Logger} from '../base/log';
-import type {MediaStore} from '../store/mediaStore';
+import type {MediaStore} from '../store/media/mediaStore';
 import {connectMediaPlayback} from '../live/mediaPlayback';
 import {RendererRecovery} from '../base/rendererRecovery';
 import {audioMutedByDefault} from '../base/audioPolicy';

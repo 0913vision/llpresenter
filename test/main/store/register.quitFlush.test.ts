@@ -13,7 +13,7 @@ import {readFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';
 import {installMockClock} from '@fixtures/mockClock';
-import {DATA_FOLDER_NAME} from '@main/store/locations';
+import {DATA_FOLDER_NAME} from '@main/store/locations/locations';
 import {HYMN_ONE_ID, hymnOne, writeJson} from '@fixtures/main/store/testFiles';
 
 const NEW_TITLE = '방금 저장한 제목';

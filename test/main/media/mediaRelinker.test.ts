@@ -11,8 +11,8 @@ import {
 import {MEDIA_LIMITS, type MediaItem} from '@core/schema/mediaList';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {recordingLogger} from '@fixtures/main/displays/testing';
-import {EMPTY_MEDIA_LIST} from '@main/store/defaults';
-import type {MediaItemsCommit} from '@main/store/mediaStore';
+import {EMPTY_MEDIA_LIST} from '@main/store/settings/defaults';
+import type {MediaItemsCommit} from '@main/store/media/mediaStore';
 import type {MediaKind} from '@main/media/mediaKinds';
 import {MediaRelinker, type RelinkStore} from '@main/media/mediaRelinker';
 

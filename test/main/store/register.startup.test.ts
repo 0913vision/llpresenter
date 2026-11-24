@@ -15,8 +15,8 @@ import {readdir, rm, symlink} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {makeTempDir} from '@fixtures/tempDir';
-import {openAppConfig} from '@main/store/appConfigFile';
-import {DATA_FOLDER_NAME} from '@main/store/locations';
+import {openAppConfig} from '@main/store/locations/appConfigFile';
+import {DATA_FOLDER_NAME} from '@main/store/locations/locations';
 import {electronLocationContext, registerStore} from '@main/store/register';
 import {writeJson} from '@fixtures/main/store/testFiles';
 

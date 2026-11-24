@@ -6,10 +6,10 @@ import {join} from 'node:path';
 import {afterEach, beforeEach, vi} from 'vitest';
 import {makeTempDir} from '@fixtures/tempDir';
 import type {Logger} from '@main/base/log';
-import {openAppConfig} from '@main/store/appConfigFile';
+import {openAppConfig} from '@main/store/locations/appConfigFile';
 import {registerStore, type DataStore} from '@main/store/register';
 
-vi.mock('@main/store/bundledPictures', () => ({SUNDAY_PICTURES: []}));
+vi.mock('@main/store/pictures/bundledPictures', () => ({SUNDAY_PICTURES: []}));
 
 /** A mock IPC handler signature without an Electron connection. */
 export type Handler = (event: unknown, value: unknown) => unknown;

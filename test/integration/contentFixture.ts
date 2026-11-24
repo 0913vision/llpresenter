@@ -3,10 +3,10 @@ import {
   ContentStore,
   type ContentEvents,
   type DocumentFiles,
-} from '@main/store/contentStore';
-import {resolveLocations} from '@main/store/locations';
+} from '@main/store/content/contentStore';
+import {resolveLocations} from '@main/store/locations/locations';
 import {recordingLogger} from '@fixtures/main/displays/testing';
-import {SettingsStore} from '@main/store/settingsStore';
+import {SettingsStore} from '@main/store/settings/settingsStore';
 import {parseSettingsDocument} from '@core/schema/settingsDocuments';
 import type {LibrarySong, SongChange} from '@core/schema/contentDocuments';
 

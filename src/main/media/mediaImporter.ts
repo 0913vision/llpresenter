@@ -13,8 +13,8 @@ import {importedProps, type MediaDefaults} from '@core/media';
 import {MEDIA_LIMITS, type MediaItem} from '@core/schema/mediaList';
 import {defaultPreferences} from '@core/schema/preferences';
 import type {Logger} from '../base/log';
-import {mediaRefusal, type PlaylistRef} from '../store/mediaEdits';
-import type {MediaItemsCommit} from '../store/mediaStore';
+import {mediaRefusal, type PlaylistRef} from '../store/media/mediaEdits';
+import type {MediaItemsCommit} from '../store/media/mediaStore';
 import {copyWithProgress, freePath, type CopyOptions} from './copyFile';
 import type {Analysis, AnalysisRequest, MediaFacts} from './mediaAnalyser';
 import {mediaKindOf, type MediaKind} from './mediaKinds';
@@ -24,7 +24,7 @@ import {
   beginMediaImport,
   finishMediaImport,
   importTemporary,
-} from '../store/mediaImportJournal';
+} from '../store/media/mediaImportJournal';
 
 /** The most import jobs that wait or run at once. */
 export const MAX_IMPORT_JOBS = MEDIA_LIMITS.importBatch;

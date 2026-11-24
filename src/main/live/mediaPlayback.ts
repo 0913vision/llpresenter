@@ -1,4 +1,4 @@
-import type {MediaStore} from '../store/mediaStore';
+import type {MediaStore} from '../store/media/mediaStore';
 import type {Logger} from '../base/log';
 import {dispatchLogged, type LiveStore} from './store';
 

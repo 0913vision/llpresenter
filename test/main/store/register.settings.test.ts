@@ -17,7 +17,7 @@ import {
 import {readdir, readFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';
-import {DATA_FOLDER_NAME} from '@main/store/locations';
+import {DATA_FOLDER_NAME} from '@main/store/locations/locations';
 import {
   HYMN_ONE_ID,
   hymnOne,

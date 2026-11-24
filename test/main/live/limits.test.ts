@@ -1,5 +1,5 @@
 import {emptyLiveState, type LiveState} from '@core/schema/live';
-import {settingsDefaults} from '@main/store/settingsDefaults';
+import {settingsDefaults} from '@main/store/settings/settingsDefaults';
 import {describe, expect, it, vi} from 'vitest';
 import {parseLiveCommand} from '@core/schema/liveCommand';
 import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';

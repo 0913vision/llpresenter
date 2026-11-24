@@ -6,9 +6,9 @@ import {createMediaId, type MediaId} from '@core/schema/ids';
 import {parseMediaDocument, type MediaDocument} from '@core/schema/mediaEdit';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {recordingLogger} from '@fixtures/main/displays/testing';
-import {EMPTY_MEDIA_LIST} from '@main/store/defaults';
+import {EMPTY_MEDIA_LIST} from '@main/store/settings/defaults';
 import type {Analysis, AnalysisRequest} from '@main/media/mediaAnalyser';
-import type {BundledPicture} from '@main/store/bundledPicture';
+import type {BundledPicture} from '@main/store/pictures/bundledPicture';
 import {Thumbnails, type ThumbnailSource} from '@main/media/thumbnails';
 
 const mediaId = (index: number): MediaId =>

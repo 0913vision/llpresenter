@@ -1,9 +1,9 @@
 import {resolve} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';
 import type {FileError} from '@core/schema/fileFormat';
-import type {BackupOutcome, BackupsOptions} from '@main/store/backup';
-import {resolveLocations} from '@main/store/locations';
-import {settingsLocation} from '@main/store/settingsFile';
+import type {BackupOutcome, BackupsOptions} from '@main/store/files/backup';
+import {resolveLocations} from '@main/store/locations/locations';
+import {settingsLocation} from '@main/store/settings/settingsFile';
 import {removeStaleTempFiles} from '@main/base/staleTempFiles';
 import {logLoadedStore, upkeepAtLaunch} from '@main/store/storeUpkeep';
 import {recordingLogger} from '@fixtures/main/displays/testing';
@@ -21,7 +21,7 @@ const backups = vi.hoisted(() => {
   return state;
 });
 
-vi.mock('@main/store/backup', () => ({
+vi.mock('@main/store/files/backup', () => ({
   Backups: class {
     constructor(options: BackupsOptions) {
       backups.options.push(options);

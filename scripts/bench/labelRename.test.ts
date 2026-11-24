@@ -9,12 +9,12 @@ import {parseSong} from '../../src/core/schema/song';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {makeTempDir} from '../../test/fixtures/tempDir';
 import {recordingLogger} from '@fixtures/main/displays/testing';
-import {ContentStore} from '../../src/main/store/contentStore';
-import {documentFiles} from '../../src/main/store/documentFiles';
-import {resolveLocations} from '../../src/main/store/locations';
-import {RecoveryCopies} from '../../src/main/store/recoveryCopies';
-import {Saver} from '../../src/main/store/saver';
-import {SettingsStore} from '../../src/main/store/settingsStore';
+import {ContentStore} from '../../src/main/store/content/contentStore';
+import {documentFiles} from '../../src/main/store/files/documentFiles';
+import {resolveLocations} from '../../src/main/store/locations/locations';
+import {RecoveryCopies} from '../../src/main/store/files/recoveryCopies';
+import {Saver} from '../../src/main/store/files/saver';
+import {SettingsStore} from '../../src/main/store/settings/settingsStore';
 import {itemId} from '@fixtures/main/store/testFiles';
 
 const SONG_COUNT = 1_000;

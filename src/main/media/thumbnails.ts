@@ -1,4 +1,4 @@
-import type {BundledPicture} from '../store/bundledPicture';
+import type {BundledPicture} from '../store/pictures/bundledPicture';
 import {stat} from 'node:fs/promises';
 import {relative} from 'node:path';
 import {parseMediaId, type MediaId} from '@core/schema/ids';

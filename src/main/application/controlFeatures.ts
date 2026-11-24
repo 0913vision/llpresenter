@@ -6,7 +6,7 @@ import {registerFonts} from '../fonts/register';
 import {registerTextImport} from '../import/register';
 import {registerPowerPointImport} from '../import/registerPowerPoint';
 import {registerMediaBackend} from '../media/register';
-import {registerSongReveal} from '../store/revealSong';
+import {registerSongReveal} from '../store/content/revealSong';
 import {recoveryMarkerRemoved} from '../update/recovery';
 import {registerUpdates, updatesAllowed} from '../update/register';
 import {

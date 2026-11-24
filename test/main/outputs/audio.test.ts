@@ -4,7 +4,7 @@ import {parseMediaDocument} from '@core/schema/mediaEdit';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {connectMediaPlayback} from '@main/live/mediaPlayback';
 import type {LiveStore} from '@main/live/store';
-import type {MediaStore} from '@main/store/mediaStore';
+import type {MediaStore} from '@main/store/media/mediaStore';
 import {registerAudioOutput} from '@main/outputs/audio';
 import {audioMutedByDefault} from '@main/base/audioPolicy';
 import {loadPage, startLoading} from '@main/base/page';

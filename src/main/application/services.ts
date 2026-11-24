@@ -11,7 +11,7 @@ import {startOverlays} from '../live/overlays';
 import {registerThemeOutput} from '../live/themes';
 import {startMediaAnalysis} from '../media/analysis';
 import {registerLibrarySearch} from '../search/register';
-import {registerLibraryLocations} from '../store/locationsChannels';
+import {registerLibraryLocations} from '../store/locations/locationsChannels';
 import {serveMedia} from '../windows/mediaProtocol';
 import {registerWindowChannels} from '../windows/windowChannels';
 import type {Foundation} from './foundation';

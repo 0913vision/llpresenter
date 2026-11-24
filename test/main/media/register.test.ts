@@ -13,13 +13,13 @@ import {
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {defaultPreferences, type Preferences} from '@core/schema/preferences';
 import {recordingLogger} from '@fixtures/main/displays/testing';
-import {EMPTY_MEDIA_LIST} from '@main/store/defaults';
-import type {UiStateFields} from '@main/store/appConfigFile';
+import {EMPTY_MEDIA_LIST} from '@main/store/settings/defaults';
+import type {UiStateFields} from '@main/store/locations/appConfigFile';
 import type {
   MediaBackend,
   MediaBackendConnection,
   MediaBackendPort,
-} from '@main/store/mediaBackend';
+} from '@main/store/media/mediaBackend';
 import type {Analysis, AnalysisRequest} from '@main/media/mediaAnalyser';
 import type {MediaImporterOptions} from '@main/media/mediaImporter';
 

@@ -11,7 +11,7 @@ import {convertTextImport} from '@core/songs';
 import {IpcHost} from '../base/ipcHost';
 import type {Logger} from '../base/log';
 import type {WindowMode} from '../base/testWindows';
-import type {UiStateFields} from '../store/appConfigFile';
+import type {UiStateFields} from '../store/locations/appConfigFile';
 import {pickerFolder, rememberPickerFile} from '../uiState/pickerFolder';
 import {readTextImport, type TextImportInputs} from './read';
 import {TEST_IMPORT_FILE_VARIABLE} from './testImportFile';

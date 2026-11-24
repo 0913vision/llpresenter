@@ -1,7 +1,7 @@
 import {uiEndpoints} from '@contracts/ipc/ui';
 import {IpcHost} from '../base/ipcHost';
 import type {Logger} from '../base/log';
-import type {UiStateFields} from '../store/appConfigFile';
+import type {UiStateFields} from '../store/locations/appConfigFile';
 import {UiStateStore} from './uiStateStore';
 
 export interface UiStateRegistration {

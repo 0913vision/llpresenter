@@ -10,7 +10,7 @@ import {
   registerLaunchAtLogin,
   type LoginItems,
 } from '@main/application/launchAtLogin';
-import {SettingsStore} from '@main/store/settingsStore';
+import {SettingsStore} from '@main/store/settings/settingsStore';
 
 function preferencesDocument(launchAtLogin?: boolean): SettingsDocument {
   return {

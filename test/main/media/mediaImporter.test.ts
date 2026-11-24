@@ -24,8 +24,8 @@ import {
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import type {MediaDefaults} from '@core/media/importedProps';
 import {recordingLogger} from '@fixtures/main/displays/testing';
-import {EMPTY_MEDIA_LIST} from '@main/store/defaults';
-import type {MediaItemsCommit} from '@main/store/mediaStore';
+import {EMPTY_MEDIA_LIST} from '@main/store/settings/defaults';
+import type {MediaItemsCommit} from '@main/store/media/mediaStore';
 import type {CopyOptions} from '@main/media/copyFile';
 import type {Analysis, AnalysisRequest} from '@main/media/mediaAnalyser';
 import {

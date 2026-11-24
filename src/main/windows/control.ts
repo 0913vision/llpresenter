@@ -3,7 +3,7 @@ import {windowEndpoints} from '@contracts/ipc/window';
 import {launchEndpoints} from '@contracts/ipc/launch';
 import {IpcHost, pushToWindow} from '../base/ipcHost';
 import type {Logger} from '../base/log';
-import type {UiZoomRegistration} from '../store/uiZoom';
+import type {UiZoomRegistration} from '../store/settings/uiZoom';
 import {audioMutedByDefault} from '../base/audioPolicy';
 import {appIconPath} from '../base/appIcon';
 import {logWindowResponsiveness} from '../base/responsiveness';

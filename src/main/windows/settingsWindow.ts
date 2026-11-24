@@ -5,7 +5,7 @@ import {
   type SettingsRequest,
 } from '@contracts/ipc/window';
 import type {PreferencePageId} from '@core/schema/preferencePages';
-import type {AppConfigFile} from '../store/appConfigFile';
+import type {AppConfigFile} from '../store/locations/appConfigFile';
 import {IpcHost, pushToWindow} from '../base/ipcHost';
 import {logWindowResponsiveness} from '../base/responsiveness';
 import {registerControlClose, type ControlClose} from './controlClose';

@@ -8,9 +8,9 @@ import {
 } from '@core/schema/settingsDocuments';
 import type {Macro} from '@core/schema/macros';
 import {recordingLogger} from '@fixtures/main/displays/testing';
-import {settingsDefaults} from '@main/store/settingsDefaults';
-import {settingsCodecs} from '@main/store/settingsCodecs';
-import {SettingsStore} from '@main/store/settingsStore';
+import {settingsDefaults} from '@main/store/settings/settingsDefaults';
+import {settingsCodecs} from '@main/store/settings/settingsCodecs';
+import {SettingsStore} from '@main/store/settings/settingsStore';
 import {readMacroCatalog, type MacroCatalog} from '@main/macros/catalog';
 
 export const uuid = (number: number): string =>

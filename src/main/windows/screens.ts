@@ -1,5 +1,5 @@
 import {screen, type BrowserWindow} from 'electron';
-import type {AppConfigFile} from '../store/appConfigFile';
+import type {AppConfigFile} from '../store/locations/appConfigFile';
 import type {WindowMode} from '../base/testWindows';
 
 export type ScreensWindowConfig = Pick<

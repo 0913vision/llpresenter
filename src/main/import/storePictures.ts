@@ -6,7 +6,7 @@ import {extname, join} from 'node:path';
 import {powerpointBackgroundName} from '@core/media';
 import {createMediaId, type MediaId} from '@core/schema/ids';
 import type {MediaItem} from '@core/schema/mediaList';
-import type {MediaStore} from '../store/mediaStore';
+import type {MediaStore} from '../store/media/mediaStore';
 import {sameImage} from './matchImage';
 import {powerPointImageSize} from './powerpointImage';
 
