@@ -55,6 +55,10 @@ function rejected(error: unknown): {
   return {ok: false, error: {reason: 'invalid', message}};
 }
 
+/** What a media edit answers, or the refusal a failed call is read as. */
+type MediaEditOutcome =
+  Awaited<ReturnType<LlpApi['media']['edit']>> | ReturnType<typeof rejected>;
+
 interface PlaylistChange {
   readonly name?: string;
   readonly items?: readonly MediaId[];
@@ -391,12 +395,9 @@ export class MediaLibrary {
       .catch(rejected);
     this.historyPending = false;
     if (result.ok || result.error.reason === 'write-failed') {
-      const revision = result.ok
-        ? result.value?.revision
-        : 'applied' in result.error
-          ? result.error.applied.revision
-          : null;
-      if (revision != null && (this.view.document?.revision ?? 0) <= revision) {
+      const revision = this.writtenRevision(result);
+      if (revision === null) this.forgetHistory();
+      else {
         this.historyRevision = revision;
         this.undoCount = Math.min(
           this.undoCount + 1,
@@ -404,11 +405,6 @@ export class MediaLibrary {
         );
         this.redoCount = 0;
         undoTimeline.record(this.history);
-      } else {
-        this.undoCount = 0;
-        this.redoCount = 0;
-        this.historyRevision = null;
-        undoTimeline.forget(this.history);
       }
       this.update({});
       return true;
@@ -439,32 +435,43 @@ export class MediaLibrary {
     this.historyPending = false;
     this.restored = kind === 'undo' && result.ok ? result.value?.id : undefined;
     if (result.ok || result.error.reason === 'write-failed') {
-      const revision = result.ok
-        ? result.value?.revision
-        : 'applied' in result.error
-          ? result.error.applied.revision
-          : null;
-      if (revision != null && (this.view.document?.revision ?? 0) <= revision) {
+      const revision = this.writtenRevision(result);
+      if (revision === null) this.forgetHistory();
+      else {
         this.historyRevision = revision;
         this.undoCount += kind === 'undo' ? -1 : 1;
         this.redoCount += kind === 'undo' ? 1 : -1;
-      } else {
-        this.undoCount = 0;
-        this.redoCount = 0;
-        this.historyRevision = null;
-        undoTimeline.forget(this.history);
       }
       this.update({});
       return true;
     }
-    this.undoCount = 0;
-    this.redoCount = 0;
-    this.historyRevision = null;
-    undoTimeline.forget(this.history);
+    this.forgetHistory();
     this.update({});
     this.refused('Changing media history was refused', result.error.message);
     this.onProblem(warning('media-view:history', '미디어 변경 실패'));
     return false;
+  }
+
+  /**
+   * The revision a delete, undo or redo wrote, or null when the list moved on
+   * past it, so its steps no longer apply.
+   */
+  private writtenRevision(result: MediaEditOutcome): number | null {
+    const revision = result.ok
+      ? result.value?.revision
+      : 'applied' in result.error
+        ? result.error.applied.revision
+        : null;
+    return revision != null && (this.view.document?.revision ?? 0) <= revision
+      ? revision
+      : null;
+  }
+
+  private forgetHistory(): void {
+    this.undoCount = 0;
+    this.redoCount = 0;
+    this.historyRevision = null;
+    undoTimeline.forget(this.history);
   }
 
   private async updatePlaylist(
@@ -531,12 +538,9 @@ export class MediaLibrary {
       .catch(rejected);
     this.historyPending = false;
     if (result.ok || result.error.reason === 'write-failed') {
-      const revision = result.ok
-        ? result.value?.revision
-        : 'applied' in result.error
-          ? result.error.applied.revision
-          : null;
-      if (revision != null && (this.view.document?.revision ?? 0) <= revision) {
+      const revision = this.writtenRevision(result);
+      if (revision === null) this.forgetHistory();
+      else {
         this.historyRevision = revision;
         this.undoCount = Math.min(
           this.undoCount + 1,
@@ -544,11 +548,6 @@ export class MediaLibrary {
         );
         this.redoCount = 0;
         undoTimeline.record(this.history);
-      } else {
-        this.undoCount = 0;
-        this.redoCount = 0;
-        this.historyRevision = null;
-        undoTimeline.forget(this.history);
       }
       this.update({});
       return true;
