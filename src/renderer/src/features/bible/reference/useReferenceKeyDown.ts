@@ -1,7 +1,7 @@
 import type {KeyboardEvent, RefObject} from 'react';
 import type {ReferencePart} from '@core/bible';
 import {isComposing} from '@renderer/ui/fields/ime';
-import {focusPart, referenceKey} from './referenceForm';
+import {focusPart} from './referenceForm';
 import type {ReferenceEdits} from './useReferenceEdits';
 import {runReferenceKey} from './referenceKeyActions';
 import type {BookSuggestions} from './useBookSuggestions';
@@ -9,6 +9,7 @@ import type {ReferenceEntry} from './useReferenceEntry';
 import type {ReferenceLookups} from './useReferenceLookups';
 import type {ReferenceSubmit} from './useReferenceSubmit';
 import type {BibleSuggestion} from './bibleSuggestion';
+import {referenceKey} from './referenceKey';
 
 /** Focuses the 책 field of a form. */
 export function focusBook(root: HTMLElement | null): void {

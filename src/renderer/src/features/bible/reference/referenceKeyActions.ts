@@ -1,6 +1,6 @@
 import type {KeyboardEvent} from 'react';
 import type {ReferencePart} from '@core/bible';
-import type {ReferenceKey} from './referenceForm';
+import type {ReferenceKey} from './referenceKey';
 
 /** What the 성경 구절 fields do for each key action `referenceKey` decides. */
 export interface ReferenceKeyHandlers {
