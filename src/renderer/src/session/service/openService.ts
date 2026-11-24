@@ -13,14 +13,14 @@ import {
 } from '@core/schema/services/service';
 import type {Slide} from '@core/schema/slides/slide';
 import {withOneSermonTitle} from '@core/slides';
-import {pendingWritesOf} from '../../platform/documents/pendingWrites';
+import {pendingWritesOf} from '@renderer/platform/documents/pendingWrites';
 import {useShow} from '../show/showStore';
 import {serviceEditNotice} from './serviceProblem';
 import {
   undoTimeline,
   type UndoOwner,
   type UndoPlace,
-} from '../../platform/undo/undoTimeline';
+} from '@renderer/platform/undo/undoTimeline';
 import {changedPlace} from '@core/services';
 
 type Order = Service['order'];

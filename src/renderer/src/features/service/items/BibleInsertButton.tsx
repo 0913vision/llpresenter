@@ -4,7 +4,7 @@ import type {BibleSource} from '@renderer/session/show/bibleSource';
 import {insertItemInSection} from '@renderer/session/service/serviceOrderEdits';
 import {Button} from '@renderer/ui/buttons/Button';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
-import {rememberBiblePassage} from '../../../session/recentWriter';
+import {rememberBiblePassage} from '@renderer/session/recentWriter';
 import {newBibleItem} from './passageItems';
 import {useShow} from '@renderer/session/show/showStore';
 

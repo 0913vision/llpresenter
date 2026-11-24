@@ -11,7 +11,7 @@ import type {SizeClass} from '@renderer/ui/panels/sizeClass';
 import type {ColumnWidthStore} from '../columns/columnWidthStore';
 import {Panel, type WorkspacePanels} from './WorkspacePanel';
 import styles from './Workspace.module.css';
-import type {Workspace} from '../../../platform/WorkspaceNavigation';
+import type {Workspace} from '@renderer/platform/WorkspaceNavigation';
 
 function rowId(
   workspace: Workspace,

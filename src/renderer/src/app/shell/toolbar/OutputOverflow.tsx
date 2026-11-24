@@ -2,7 +2,7 @@ import {useState, type JSX} from 'react';
 import {Menu} from '@renderer/ui/menus/Menu';
 import {ToolbarButton} from '@renderer/ui/buttons/ToolbarButton';
 import {menuButtonProps} from '@renderer/ui/menus/menuButton';
-import type {ScreenSummary} from '../../../platform/screens/screenSummary';
+import type {ScreenSummary} from '@renderer/platform/screens/screenSummary';
 import {screenOutputEntries} from './screenOutputEntries';
 
 /** Keeps every additional saved output reachable without growing the toolbar. */

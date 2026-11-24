@@ -8,10 +8,10 @@ import type {JSX} from 'react';
 import {useThemes} from '@renderer/platform/documents/themes';
 import {Menu} from '@renderer/ui/menus/Menu';
 import type {Notice} from '@renderer/ui/popups/notices';
-import {useScreenSummaries} from '../../../platform/screens/ScreenSummaries';
+import {useScreenSummaries} from '@renderer/platform/screens/ScreenSummaries';
 import {outputMenuEntries} from './outputMenuEntries';
 import type {WarningScreen} from './MenuBar';
-import type {Workspace} from '../../../platform/WorkspaceNavigation';
+import type {Workspace} from '@renderer/platform/WorkspaceNavigation';
 
 /** The 출력 menu, opened from the menu bar. */
 export function OutputMenuList({

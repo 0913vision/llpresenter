@@ -21,7 +21,7 @@ import {SlideGrid} from './SlideGrid';
 import {ContinuousSlideGrid} from './ContinuousSlideGrid';
 import {liveReturn} from './liveReturn';
 import {useSettingsDocument} from '@renderer/platform/documents/useSettingsDocument';
-import {NEWER_FILE_REASON} from '../../../platform/problemReasons';
+import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import styles from './SlidePanel.module.css';
 import {useVisibleSlideItem} from '@renderer/session/show/visibleSlideItem';
 import {useShownItemId} from '@renderer/session/show/shownItem';

@@ -5,21 +5,21 @@ import {
 } from '@renderer/ui/menus/contextMenu';
 import {useState, type JSX, type MouseEvent} from 'react';
 import {SONG_IMPORT_LIMITS} from '@core/schema/songs/songImport';
-import {AlertDialog} from '../ui/popups/AlertDialog';
-import {Button} from '../ui/buttons/Button';
-import {CheckRow, Checkbox} from '../ui/choices/Checkbox';
-import {Dialog, DialogBox, DialogField} from '../ui/popups/Dialog';
-import {IconButton} from '../ui/buttons/IconButton';
-import {ListGroup, ListRow} from '../ui/lists/ListRow';
-import {Menu} from '../ui/menus/Menu';
-import {menuButtonProps} from '../ui/menus/menuButton';
-import {type MenuEntry, type MenuAnchor} from '../ui/menus/menuModel';
-import {SelectMenu} from '../ui/choices/SelectMenu';
-import {SegmentedControl} from '../ui/choices/SegmentedControl';
-import {TextField} from '../ui/fields/TextField';
-import {Tooltip} from '../ui/popups/Tooltip';
+import {AlertDialog} from '@renderer/ui/popups/AlertDialog';
+import {Button} from '@renderer/ui/buttons/Button';
+import {CheckRow, Checkbox} from '@renderer/ui/choices/Checkbox';
+import {Dialog, DialogBox, DialogField} from '@renderer/ui/popups/Dialog';
+import {IconButton} from '@renderer/ui/buttons/IconButton';
+import {ListGroup, ListRow} from '@renderer/ui/lists/ListRow';
+import {Menu} from '@renderer/ui/menus/Menu';
+import {menuButtonProps} from '@renderer/ui/menus/menuButton';
+import {type MenuEntry, type MenuAnchor} from '@renderer/ui/menus/menuModel';
+import {SelectMenu} from '@renderer/ui/choices/SelectMenu';
+import {SegmentedControl} from '@renderer/ui/choices/SegmentedControl';
+import {TextField} from '@renderer/ui/fields/TextField';
+import {Tooltip} from '@renderer/ui/popups/Tooltip';
 import {ignore, Section, SpecGroup, SpecItem, Stateful} from './Spec';
-import {ListBox} from '../ui/lists/ListBox';
+import {ListBox} from '@renderer/ui/lists/ListBox';
 
 const fileMenu: readonly MenuEntry[] = [
   {kind: 'item', id: 'new', label: '새 예배', meta: 'Ctrl N'},

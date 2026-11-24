@@ -1,12 +1,12 @@
 import {Fragment, useState, type JSX, type ReactNode} from 'react';
-import {IconButton} from '../ui/buttons/IconButton';
+import {IconButton} from '@renderer/ui/buttons/IconButton';
 import {
   ListActionRow,
   ListDragGhost,
   ListGroup,
   ListInsertLine,
   ListRow,
-} from '../ui/lists/ListRow';
+} from '@renderer/ui/lists/ListRow';
 import {
   Panel,
   PanelActions,
@@ -14,8 +14,8 @@ import {
   PanelHeader,
   PanelTabs,
   PanelTools,
-} from '../ui/panels/Panel';
-import {TextField} from '../ui/fields/TextField';
+} from '@renderer/ui/panels/Panel';
+import {TextField} from '@renderer/ui/fields/TextField';
 import {
   ignore,
   Section,
@@ -24,7 +24,7 @@ import {
   Stateful,
   type SpecPin,
 } from './Spec';
-import {ListBox} from '../ui/lists/ListBox';
+import {ListBox} from '@renderer/ui/lists/ListBox';
 
 const PANEL_WIDTH = 280;
 const LIST_PANEL_WIDTH = 296;

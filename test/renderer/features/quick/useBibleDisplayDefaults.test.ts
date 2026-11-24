@@ -4,7 +4,7 @@ import {
   defaultPreferences,
   type Preferences,
 } from '@core/schema/app/preferences';
-import {useBibleDisplayDefaults} from '@renderer/features/bible/useBibleDisplayDefaults';
+import {useBibleDisplayDefaults} from '@renderer/features/quick/useBibleDisplayDefaults';
 
 function preferences(verseNumbers: boolean): Preferences {
   return {

@@ -33,7 +33,7 @@ import {workspaceMenu, showMenu, type ContinuousRow} from './workspaceCommands';
 import {usePreferenceEdits} from '@renderer/features/preferences/usePreferenceEdits';
 import {fullScreenRow, useFullScreen} from './viewToggles';
 import {focusMenu} from '@renderer/ui/menus/useMenuNavigation';
-import type {Workspace} from '../../../platform/WorkspaceNavigation';
+import type {Workspace} from '@renderer/platform/WorkspaceNavigation';
 
 const EDIT_MENU = '편집';
 const WINDOW_MENU = '창';

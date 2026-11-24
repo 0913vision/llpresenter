@@ -3,15 +3,19 @@ import blueRays from '../../../../design/system/upload/Media/blue-rays.jpg';
 import dawnSky from '../../../../design/system/upload/Media/dawn-sky.jpg';
 import starlight from '../../../../design/system/upload/Media/starlight.jpg';
 import warmLight from '../../../../design/system/upload/Media/warm-light.jpg';
-import {MediaGrid, MediaTile, type MediaTileProps} from '../ui/tiles/MediaTile';
+import {
+  MediaGrid,
+  MediaTile,
+  type MediaTileProps,
+} from '@renderer/ui/tiles/MediaTile';
 import {
   Panel,
   PanelBody,
   PanelFooter,
   PanelHeader,
   PanelTitle,
-} from '../ui/panels/Panel';
-import {Slider} from '../ui/choices/Slider';
+} from '@renderer/ui/panels/Panel';
+import {Slider} from '@renderer/ui/choices/Slider';
 import {ignore, Section, SpecGroup, SpecItem, type SpecPin} from './Spec';
 
 const STATE_WIDTH = 200;

@@ -24,7 +24,7 @@ import {useScreenCreation} from './useScreenCreation';
 import {ScreenGroupActions} from './ScreenGroupActions';
 import {selectedScreenIn, useScreensSelection} from '../selection';
 import {useOutputStatuses} from '../useOutputStatuses';
-import {useSettingsDocument} from '../../../platform/documents/useSettingsDocument';
+import {useSettingsDocument} from '@renderer/platform/documents/useSettingsDocument';
 import {SCREEN_DRAG_MIME} from '../screenDrag';
 import styles from './ScreenList.module.css';
 import {useDragClickGuard} from '@renderer/ui/lists/useDragClickGuard';

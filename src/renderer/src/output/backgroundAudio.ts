@@ -1,8 +1,8 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import type {LiveState, MediaLayer} from '@core/schema/live/live';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
-import {BackgroundLayerView} from '../rendering/media/backgroundLayer';
-import {fadeAudio} from '../rendering/media/audioFade';
+import {BackgroundLayerView} from '@renderer/rendering/media/backgroundLayer';
+import {fadeAudio} from '@renderer/rendering/media/audioFade';
 import {backgroundAudible, overlayAudio} from '@core/live';
 import type {MediaDocument} from '@core/schema/media/mediaEdit';
 

@@ -1,6 +1,11 @@
 import type {JSX} from 'react';
-import {Button, type ButtonProps} from '../ui/buttons/Button';
-import {Panel, PanelActions, PanelHeader, PanelTitle} from '../ui/panels/Panel';
+import {Button, type ButtonProps} from '@renderer/ui/buttons/Button';
+import {
+  Panel,
+  PanelActions,
+  PanelHeader,
+  PanelTitle,
+} from '@renderer/ui/panels/Panel';
 import styles from './ButtonSection.module.css';
 import {Section, SpecGroup, SpecItem, type SpecPin} from './Spec';
 

@@ -4,7 +4,7 @@ import {
   Checkbox,
   type CheckRowProps,
   type CheckState,
-} from '../ui/choices/Checkbox';
+} from '@renderer/ui/choices/Checkbox';
 import {Section, SpecGroup, SpecItem, Stateful} from './Spec';
 
 const LIST_WIDTH = 440;

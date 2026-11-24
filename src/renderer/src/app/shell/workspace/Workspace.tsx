@@ -17,7 +17,7 @@ import {ShowShortcuts, useShowPanels} from '../../workspaces/showPanels';
 import {ColumnGap} from '../columns/ColumnGap';
 import {SidebarCollapseButton, useSidebarToggle} from './SidebarToggle';
 import type {ColumnWidthStore} from '../columns/columnWidthStore';
-import type {SizeClass} from '../../../ui/panels/sizeClass';
+import type {SizeClass} from '@renderer/ui/panels/sizeClass';
 import {useColumnLayout} from '../columns/useColumnLayout';
 import type {SidebarCollapse} from './useSidebarCollapse';
 import {logPanelProblem, type WorkspacePanels} from './WorkspacePanel';
@@ -34,7 +34,7 @@ import {ShownItemProvider} from '@renderer/session/show/shownItem';
 import {undoTimeline} from '@renderer/platform/undo/undoTimeline';
 import {NO_UNDO_IN_SHOW} from '@renderer/platform/problemReasons';
 import {useWorkspaceServiceHistory} from './useWorkspaceServiceHistory';
-import type {Workspace as WorkspaceId} from '../../../platform/WorkspaceNavigation';
+import type {Workspace as WorkspaceId} from '@renderer/platform/WorkspaceNavigation';
 
 const ignoreProblem = (): void => undefined;
 

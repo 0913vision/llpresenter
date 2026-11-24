@@ -1,17 +1,17 @@
 import type {JSX} from 'react';
-import {IconButton} from '../ui/buttons/IconButton';
+import {IconButton} from '@renderer/ui/buttons/IconButton';
 import {
   Panel,
   PanelActions,
   PanelBody,
   PanelHeader,
   PanelTabs,
-} from '../ui/panels/Panel';
-import {PropertyRow, Properties} from '../ui/panels/PropertyRow';
+} from '@renderer/ui/panels/Panel';
+import {PropertyRow, Properties} from '@renderer/ui/panels/PropertyRow';
 import {
   SegmentedControl,
   type SegmentOption,
-} from '../ui/choices/SegmentedControl';
+} from '@renderer/ui/choices/SegmentedControl';
 import styles from './SegmentedSection.module.css';
 import {
   ignore,

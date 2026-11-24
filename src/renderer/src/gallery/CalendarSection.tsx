@@ -1,5 +1,5 @@
 import {useState, type JSX} from 'react';
-import {DateSelect} from '../ui/fields/DateSelect';
+import {DateSelect} from '@renderer/ui/fields/DateSelect';
 import {ignore, Section, SpecGroup, SpecItem} from './Spec';
 
 export function CalendarSection(): JSX.Element {

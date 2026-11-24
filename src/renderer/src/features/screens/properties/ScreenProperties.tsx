@@ -47,7 +47,7 @@ import {useMonitors} from '../useMonitors';
 import {useOutputStatuses} from '../useOutputStatuses';
 import {ndiAccelerationLabel, ndiAccelerationReason} from './ndiAcceleration';
 import {useScreenEditor} from '../useScreenEditor';
-import {useSettingsDocument} from '../../../platform/documents/useSettingsDocument';
+import {useSettingsDocument} from '@renderer/platform/documents/useSettingsDocument';
 import {ScreenDeviceRow} from './ScreenDeviceRow';
 import styles from './ScreenProperties.module.css';
 

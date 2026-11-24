@@ -28,7 +28,7 @@ import {
 } from '../bible/passageActions';
 import {BibleReferenceField} from '../bible/reference/BibleReferenceField';
 import {PassageDialog} from '../bible/finder/PassageDialog';
-import {useBibleDisplayDefaults} from '../bible/useBibleDisplayDefaults';
+import {useBibleDisplayDefaults} from './useBibleDisplayDefaults';
 import {focusSlideGrid} from '../presentation/focusSlideGrid';
 import {firstVerseOf, followQuickEdit, quickDisplay} from './quickPassage';
 import {usePassageFinder} from './usePassageFinder';

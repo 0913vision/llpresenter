@@ -1,7 +1,7 @@
 import type {JSX} from 'react';
-import {NumberField} from '../ui/fields/NumberField';
-import {TextArea} from '../ui/fields/TextArea';
-import {TextField, type TextFieldProps} from '../ui/fields/TextField';
+import {NumberField} from '@renderer/ui/fields/NumberField';
+import {TextArea} from '@renderer/ui/fields/TextArea';
+import {TextField, type TextFieldProps} from '@renderer/ui/fields/TextField';
 import {Section, SpecGroup, SpecItem, Stateful} from './Spec';
 
 const DUPLICATE_TITLE = '라이브러리에 같은 제목의 곡이 있습니다.';

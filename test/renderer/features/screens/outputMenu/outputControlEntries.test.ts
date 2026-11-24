@@ -6,7 +6,7 @@ import {MAIN_ID, CAPTIONS_ID, STAGE_ID} from '@fixtures/core/screenDocuments';
 import {
   outputGroup,
   itemStopEntry,
-} from '@renderer/features/presentation/outputControlEntries';
+} from '@renderer/features/screens/outputMenu/outputControlEntries';
 
 afterEach(() => {
   delete window.llp;

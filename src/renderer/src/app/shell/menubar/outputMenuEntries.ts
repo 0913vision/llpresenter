@@ -5,9 +5,9 @@ import {screenOutputSections} from '@renderer/features/screens/outputMenu/screen
 import type {MenuEntry} from '@renderer/ui/menus/menuModel';
 import {menuSeparator} from '@renderer/ui/menus/menuRows';
 import type {Notice} from '@renderer/ui/popups/notices';
-import type {ScreenSummary} from '../../../platform/screens/screenSummary';
+import type {ScreenSummary} from '@renderer/platform/screens/screenSummary';
 import type {WarningScreen} from './MenuBar';
-import type {Workspace} from '../../../platform/WorkspaceNavigation';
+import type {Workspace} from '@renderer/platform/WorkspaceNavigation';
 
 interface OutputMenuInput {
   readonly screens: readonly ScreenSummary[];

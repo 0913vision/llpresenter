@@ -1,6 +1,6 @@
 import {COLUMN_LIMITS} from '@core/schema/app/uiState';
 import {clamp, type NumberRange} from '@core/common/range';
-import type {ColumnWidths} from '../../../ui/panels/sizeClass';
+import type {ColumnWidths} from '@renderer/ui/panels/sizeClass';
 
 /** The right column of 준비 has a width of its own. */
 export type RightColumn = 'right' | 'prepRight';

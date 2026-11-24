@@ -1,7 +1,10 @@
 import type {JSX} from 'react';
-import {OutputToggle, type OutputState} from '../ui/buttons/OutputToggle';
-import {ToolbarButton} from '../ui/buttons/ToolbarButton';
-import {ToolbarTabs, type ToolbarTab} from '../ui/buttons/ToolbarTabs';
+import {
+  OutputToggle,
+  type OutputState,
+} from '@renderer/ui/buttons/OutputToggle';
+import {ToolbarButton} from '@renderer/ui/buttons/ToolbarButton';
+import {ToolbarTabs, type ToolbarTab} from '@renderer/ui/buttons/ToolbarTabs';
 import {
   ignore,
   Section,

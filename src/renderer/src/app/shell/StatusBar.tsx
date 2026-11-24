@@ -4,7 +4,7 @@ import {controlConflictReason} from '@core/screens';
 import {useOutputStatuses} from '@renderer/features/screens/useOutputStatuses';
 import {ndiAccelerationLabel} from '@renderer/features/screens/properties/ndiAcceleration';
 import {useMonitors} from '@renderer/features/screens/useMonitors';
-import {useScreenSummaries} from '../../platform/screens/ScreenSummaries';
+import {useScreenSummaries} from '@renderer/platform/screens/ScreenSummaries';
 import styles from './StatusBar.module.css';
 
 /** The fixed-height status bar shows only conditions requiring attention. */

@@ -5,7 +5,7 @@ import type {ThemeFile} from '@core/schema/screens/theme';
 import {
   outputGroup,
   itemStopEntry,
-} from '@renderer/features/presentation/outputControlEntries';
+} from '@renderer/features/screens/outputMenu/outputControlEntries';
 import {menuAvailability, type MenuEntry} from '@renderer/ui/menus/menuModel';
 import {menuSeparator} from '@renderer/ui/menus/menuRows';
 import type {Notice} from '@renderer/ui/popups/notices';

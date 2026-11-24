@@ -6,7 +6,7 @@ import type {
   TextImportSource,
 } from '@core/schema/songs/textImport';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
-import {createLatestRunner} from '../../../platform/latestRunner';
+import {createLatestRunner} from '@renderer/platform/latestRunner';
 
 /**
  * Asks for the preview of an import for `source` and `options` and keeps only

@@ -13,7 +13,7 @@ import {
 } from './previewCaption';
 import {useScreenView} from '../selection';
 import {useMonitors} from '../useMonitors';
-import {useSettingsDocument} from '../../../platform/documents/useSettingsDocument';
+import {useSettingsDocument} from '@renderer/platform/documents/useSettingsDocument';
 import styles from './OutputPreview.module.css';
 import {fitAspect} from '@core/canvas';
 import {useElementSize} from '@renderer/ui/panels/useElementSize';

@@ -6,7 +6,7 @@ import {
   defaultColumns,
   type ColumnWidths,
   type SizeClass,
-} from '../../../ui/panels/sizeClass';
+} from '@renderer/ui/panels/sizeClass';
 
 /** Remembers the column widths that the operator set, per size class. */
 export interface ColumnWidthStore {

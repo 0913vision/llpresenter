@@ -188,6 +188,10 @@ grows:
   What several families share stays at the folder root.
 - A name is imported from the file that declares it, in one statement per
   module. Only a module's `index.ts` passes names on, and lint checks both.
+- Inside one top folder (`ui/`, `session/`, a `core` module), imports are
+  relative. Another top folder is named by its alias (`@renderer/ui/...`,
+  `@core/...`). The main process names its own modules by relative paths, since
+  it builds without the `@main` alias that only tests use.
 - A data shape that several files use (an interface or type that is not a
   component's props or a hook's result) lives in a data file, not inside a
   component or hook: `menuModel.ts` holds the menu shapes, `renameContract.ts`

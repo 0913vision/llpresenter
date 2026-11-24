@@ -1,18 +1,18 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {RENDERER_LOG_LIMITS} from '@core/schema/app/ipcPayloads';
-import {OutputRenderer} from '../rendering/outputRenderer';
+import {OutputRenderer} from '@renderer/rendering/outputRenderer';
 import {MediaPreloader} from './mediaPreloader';
 import {SlideSwitch} from './slideSwitch';
 import {OUTPUT_REVEAL_DEADLINE_MS} from '@core/output';
 import type {SlideTransition} from '@core/schema/slides/slideTransition';
 import {slideChangeOf, slideMoved} from './slideChange';
 import type {LiveState} from '@core/schema/live/live';
-import {ScreenFrames} from '../rendering/screen/screenFrames';
+import {ScreenFrames} from '@renderer/rendering/screen/screenFrames';
 import {startFrameRateMeter, type FrameRateMeter} from './frameRateMeter';
 import {followLiveState} from './liveFeed';
-import {followPlaybackProblems} from '../rendering/media/playbackProblem';
-import {previewMediaOf} from '../rendering/media/previewMedia';
+import {followPlaybackProblems} from '@renderer/rendering/media/playbackProblem';
+import {previewMediaOf} from '@renderer/rendering/media/previewMedia';
 
 /** What an output window runs on. */
 export interface OutputContext {

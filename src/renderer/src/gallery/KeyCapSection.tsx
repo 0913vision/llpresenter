@@ -1,8 +1,8 @@
 import {useState, type JSX} from 'react';
 import type {KeyBinding} from '@core/schema/app/shortcuts';
-import {Button} from '../ui/buttons/Button';
-import {KeyCombo, KeyList, KeyText} from '../ui/keys/KeyCap';
-import {ShortcutField} from '../ui/keys/ShortcutField';
+import {Button} from '@renderer/ui/buttons/Button';
+import {KeyCombo, KeyList, KeyText} from '@renderer/ui/keys/KeyCap';
+import {ShortcutField} from '@renderer/ui/keys/ShortcutField';
 import {Section, SpecGroup, SpecItem} from './Spec';
 import {shortcutNames} from '@core/shortcuts';
 

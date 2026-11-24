@@ -1,5 +1,5 @@
 import {useState, type CSSProperties, type JSX, type ReactNode} from 'react';
-import {classNames} from '../ui/classNames';
+import {classNames} from '@renderer/ui/classNames';
 import styles from './Gallery.module.css';
 
 /** The surface a group of specimens sits on, as on the preview cards. */

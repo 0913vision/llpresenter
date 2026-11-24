@@ -1,12 +1,15 @@
 import {useState, type JSX} from 'react';
-import {Button} from '../ui/buttons/Button';
-import {NotificationCard, NotificationStack} from '../ui/popups/Notification';
+import {Button} from '@renderer/ui/buttons/Button';
+import {
+  NotificationCard,
+  NotificationStack,
+} from '@renderer/ui/popups/Notification';
 import {
   addNotice,
   removeNotice,
   type Notice,
   type NoticeAction,
-} from '../ui/popups/notices';
+} from '@renderer/ui/popups/notices';
 import {ignore, Section, SpecGroup, SpecItem} from './Spec';
 
 const REGULAR_WIDTH = 480;

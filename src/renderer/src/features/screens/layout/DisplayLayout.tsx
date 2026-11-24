@@ -27,7 +27,7 @@ import {
 } from '../selection';
 import {useElementSize} from '@renderer/ui/panels/useElementSize';
 import {useMonitors} from '../useMonitors';
-import {useSettingsDocument} from '../../../platform/documents/useSettingsDocument';
+import {useSettingsDocument} from '@renderer/platform/documents/useSettingsDocument';
 import {useScreenEditor} from '../useScreenEditor';
 import {SCREEN_DRAG_MIME} from '../screenDrag';
 import styles from './DisplayLayout.module.css';

@@ -1,5 +1,5 @@
 import type {SlideTransition} from '@core/schema/slides/slideTransition';
-import type {OutputRenderer} from '../rendering/outputRenderer';
+import type {OutputRenderer} from '@renderer/rendering/outputRenderer';
 import {SlideAnimation} from './slideAnimation';
 import {waitForReady} from './waitForReady';
 

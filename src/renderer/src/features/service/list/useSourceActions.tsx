@@ -17,7 +17,7 @@ import {editApplied, renameService, settle} from './serviceEdits';
 import {
   contextMenuAnchor,
   type ContextMenuEvent,
-} from '../../../ui/menus/contextMenu';
+} from '@renderer/ui/menus/contextMenu';
 import {useAlive} from '@renderer/ui/useAlive';
 import {useShow} from '@renderer/session/show/showStore';
 import type {ServiceSource} from './serviceSource';

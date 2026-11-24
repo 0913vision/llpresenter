@@ -3,12 +3,12 @@ import type {SongId} from '@core/schema/common/ids';
 import {sendLive, useOutputs} from '@renderer/session/live';
 import {OutputToggle} from '@renderer/ui/buttons/OutputToggle';
 import {ToolbarTabs, type ToolbarTab} from '@renderer/ui/buttons/ToolbarTabs';
-import {useScreenSummaries} from '../../../platform/screens/ScreenSummaries';
+import {useScreenSummaries} from '@renderer/platform/screens/ScreenSummaries';
 import {OutputOverflow} from './OutputOverflow';
 import {ThemeMenu} from './ThemeMenu';
 import {ToolbarSearch} from './ToolbarSearch';
 import type {Notice} from '@renderer/ui/popups/notices';
-import type {SizeClass} from '../../../ui/panels/sizeClass';
+import type {SizeClass} from '@renderer/ui/panels/sizeClass';
 import styles from './Toolbar.module.css';
 
 import type {Workspace} from '@renderer/platform/WorkspaceNavigation';

@@ -1,12 +1,12 @@
 import type {JSX} from 'react';
-import {Slider, type SliderProps} from '../ui/choices/Slider';
-import {TextField} from '../ui/fields/TextField';
-import {ThumbnailSizeControl} from '../ui/choices/ThumbnailSizeControl';
-import {SlideThumbnail, ThumbnailGrid} from '../ui/tiles/SlideThumbnail';
+import {Slider, type SliderProps} from '@renderer/ui/choices/Slider';
+import {TextField} from '@renderer/ui/fields/TextField';
+import {ThumbnailSizeControl} from '@renderer/ui/choices/ThumbnailSizeControl';
+import {SlideThumbnail, ThumbnailGrid} from '@renderer/ui/tiles/SlideThumbnail';
 import {
   DEFAULT_THUMBNAIL_SCALE_PERCENT,
   thumbnailWidth,
-} from '../ui/choices/thumbnailSize';
+} from '@renderer/ui/choices/thumbnailSize';
 import {ignore, Section, SpecGroup, SpecItem, Stateful} from './Spec';
 import styles from './SliderSection.module.css';
 
