@@ -66,12 +66,32 @@ const ACCEPTED_CODE = [
   ],
   [
     'valid TSDoc',
-    '/**\n * Greets someone.\n *\n * @param name - who to greet\n * @returns the greeting\n */\nexport const greet = (name: string): string => `Hello, ${name}`;',
+    '/**\n * Greets someone.\n *\n * @param name - who to greet\n * @returns the greeting\n */\nexport function greet(name: string): string {\n  return `Hello, ${name}`;\n}',
   ],
 ] as const;
 
 const BANNED_CODE = [
   ['a byte order mark', '\uFEFFexport const value = 1;', 'unicode-bom'],
+  [
+    'a named top-level arrow function',
+    'export const twice = (n: number): number => n * 2;',
+    'no-restricted-syntax',
+  ],
+  [
+    'a public modifier',
+    'export class Box {\n  public size = 1;\n}',
+    '@typescript-eslint/explicit-member-accessibility',
+  ],
+  [
+    'an I prefix on an interface',
+    'export interface IBox {\n  readonly size: number;\n}',
+    '@typescript-eslint/naming-convention',
+  ],
+  [
+    'a unary plus conversion',
+    'export function size(text: string): number {\n  return +text;\n}',
+    'no-implicit-coercion',
+  ],
   [
     'any',
     'export const f = (v: any): number => 1;',
