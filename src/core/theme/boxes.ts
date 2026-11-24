@@ -4,6 +4,7 @@ import {
   type OwnThemeScreen,
   type SlidePurpose,
   type ThemeBox,
+  type ThemeElement,
   type ThemeFile,
   type ThemeScreen,
 } from '@core/schema/screens/theme';
@@ -78,37 +79,24 @@ function mapTemplates(
   theme: ThemeFile,
   change: (template: string) => string | undefined,
 ): ThemeFile {
-  const all = (templates: readonly string[]): string[] =>
-    templates.flatMap(template => change(template) ?? []);
-  const {next} = theme;
-  return mapScreens(
-    {
-      ...theme,
-      next: {
-        ...next,
-        content: all(next.content),
-      },
-    },
-    screen => ({
-      ...screen,
-      elements: screen.elements.map(element =>
-        element.kind === 'text'
-          ? {
-              ...element,
-              content: all(element.content),
-              ...(element.empty === undefined
-                ? {}
-                : {
-                    empty: {
-                      ...element.empty,
-                      content: all(element.empty.content),
-                    },
-                  }),
-            }
-          : element,
-      ),
-    }),
-  );
+  /** A part that holds templates, with each of them changed. */
+  const changed = <Part extends {readonly content: readonly string[]}>(
+    part: Part,
+  ): Part => ({
+    ...part,
+    content: part.content.flatMap(template => change(template) ?? []),
+  });
+  const element = (each: ThemeElement): ThemeElement =>
+    each.kind !== 'text'
+      ? each
+      : {
+          ...changed(each),
+          ...(each.empty && {empty: changed(each.empty)}),
+        };
+  return mapScreens({...theme, next: changed(theme.next)}, screen => ({
+    ...screen,
+    elements: screen.elements.map(element),
+  }));
 }
 
 /** Adds a box to a theme, with a name of its own. */
