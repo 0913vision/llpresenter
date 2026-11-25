@@ -75,43 +75,7 @@ export class AudioPlayer {
         fade: 1,
       };
     });
-    for (const track of this.tracks) {
-      this.listen(track, 'canplay', () => this.ready(track));
-      this.listen(track, 'error', () => {
-        if (track.layer !== null) {
-          track.attempted = true;
-          setPlaybackProblem(track.element, 'playback', true);
-          this.report(new Error(`Audio failed: ${track.layer.mediaId}`));
-        }
-      });
-      const finish = (): void => {
-        const playback = track.layer?.playback;
-        if (
-          track !== this.active ||
-          playback === undefined ||
-          playback.since === null ||
-          playback.trackVersion !== this.wanted?.playback?.trackVersion ||
-          this.endedVersion === playback.trackVersion
-        ) {
-          return;
-        }
-        this.endedVersion = playback.trackVersion;
-        if (this.manualFade !== null) this.finishManualFade(this.manualFade);
-        else this.options.onNext(playback.trackVersion);
-      };
-      this.listen(track, 'ended', finish);
-      this.listen(track, 'timeupdate', () => {
-        const end = track.layer?.properties?.out;
-        if (
-          end !== undefined &&
-          track.element.currentTime >= end &&
-          track === this.active
-        ) {
-          track.element.pause();
-          finish();
-        }
-      });
-    }
+    for (const track of this.tracks) this.listenTo(track);
   }
 
   /**
@@ -134,6 +98,11 @@ export class AudioPlayer {
     this.times = times;
   }
 
+  /**
+   * Follows the audio layer of the live state: a fade in progress, a pause, a
+   * track that goes, the same track moved or paused, or a new track that
+   * loads in the spare player and crossfades in once it can play.
+   */
   show(state: LiveState): void {
     if (this.disposed) return;
     this.attempt(() => {
@@ -141,63 +110,18 @@ export class AudioPlayer {
       this.wanted = layer;
       this.volume = (state.audioVolume ?? 100) / 100;
       if (this.followFade(layer)) return;
-      const fallback = this.active;
-      if (
-        layer?.playback?.since === null &&
-        fallback !== null &&
-        fallback.layer?.playback?.trackVersion !== layer.playback.trackVersion
-      ) {
-        this.attempt(() => fallback.element.pause());
-      }
-      for (const track of this.tracks) {
-        this.applyProperties(track);
-        if (
-          track.layer !== null &&
-          track !== this.active &&
-          track !== this.crossfading?.leaving &&
-          track.layer.playback?.trackVersion !== layer?.playback?.trackVersion
-        ) {
-          this.attempt(() => this.unload(track));
-        }
-      }
-      if (layer?.playback === undefined) {
-        if (this.active !== null && !this.clearing) {
-          const effect = state.clearEffects?.find(
-            item =>
-              item.target.kind === 'layer' && item.target.layer === 'audio',
-          );
-          this.clearAudio(effect);
-        }
+      this.pauseReplacedTrack(layer);
+      this.releaseOtherTracks(layer);
+      const playback = layer?.playback;
+      if (layer === null || playback === undefined) {
+        this.clearStopped(state);
         return;
       }
-      const playback = layer.playback;
       const existing = this.tracks.find(
         track => track.layer?.playback?.trackVersion === playback.trackVersion,
       );
-      if (existing !== undefined) {
-        const previous = existing.layer?.playback;
-        existing.layer = layer;
-        this.applyProperties(existing);
-        if (
-          previous?.since !== playback.since ||
-          previous.positionSeconds !== playback.positionSeconds
-        ) {
-          existing.generation += 1;
-          existing.attempted = false;
-          if (playback.since === null) existing.element.pause();
-          this.synchronize(existing);
-        }
-        return;
-      }
-      this.finishCrossfade();
-      const spare = this.tracks.find(track => track !== this.active);
-      if (spare === undefined) return;
-      this.unload(spare);
-      spare.layer = layer;
-      this.applyProperties(spare);
-      applySink(spare.element, this.sinkId, this.options.onError);
-      spare.element.src = mediaUrl(layer.mediaId);
-      spare.element.load();
+      if (existing !== undefined) this.follow(existing, layer);
+      else this.load(layer);
     });
   }
 
@@ -214,6 +138,116 @@ export class AudioPlayer {
       track.element.remove();
     }
     this.reported.clear();
+  }
+
+  /** A paused new track holds the old one still until it plays. */
+  private pauseReplacedTrack(layer: AudioLayer | null): void {
+    const fallback = this.active;
+    if (
+      layer?.playback?.since === null &&
+      fallback !== null &&
+      fallback.layer?.playback?.trackVersion !== layer.playback.trackVersion
+    ) {
+      this.attempt(() => fallback.element.pause());
+    }
+  }
+
+  /** Unloads every player that holds neither this track nor a fading one. */
+  private releaseOtherTracks(layer: AudioLayer | null): void {
+    for (const track of this.tracks) {
+      this.applyProperties(track);
+      if (
+        track.layer !== null &&
+        track !== this.active &&
+        track !== this.crossfading?.leaving &&
+        track.layer.playback?.trackVersion !== layer?.playback?.trackVersion
+      ) {
+        this.attempt(() => this.unload(track));
+      }
+    }
+  }
+
+  /** No track plays: the playing one clears, with the 지우기 effect if any. */
+  private clearStopped(state: LiveState): void {
+    if (this.active === null || this.clearing) return;
+    const effect = state.clearEffects?.find(
+      item => item.target.kind === 'layer' && item.target.layer === 'audio',
+    );
+    this.clearAudio(effect);
+  }
+
+  /** The same track: a new place or a pause or play moves it there. */
+  private follow(track: Track, layer: AudioLayer): void {
+    const previous = track.layer?.playback;
+    const playback = layer.playback;
+    track.layer = layer;
+    this.applyProperties(track);
+    if (
+      playback === undefined ||
+      (previous?.since === playback.since &&
+        previous.positionSeconds === playback.positionSeconds)
+    ) {
+      return;
+    }
+    track.generation += 1;
+    track.attempted = false;
+    if (playback.since === null) track.element.pause();
+    this.synchronize(track);
+  }
+
+  /** A new track loads in the spare player. */
+  private load(layer: AudioLayer): void {
+    this.finishCrossfade();
+    const spare = this.tracks.find(track => track !== this.active);
+    if (spare === undefined) return;
+    this.unload(spare);
+    spare.layer = layer;
+    this.applyProperties(spare);
+    applySink(spare.element, this.sinkId, this.options.onError);
+    spare.element.src = mediaUrl(layer.mediaId);
+    spare.element.load();
+  }
+
+  /** What a player does when it can play, fails, ends or reaches its 끝. */
+  private listenTo(track: Track): void {
+    this.listen(track, 'canplay', () => this.ready(track));
+    this.listen(track, 'error', () => {
+      if (track.layer !== null) {
+        track.attempted = true;
+        setPlaybackProblem(track.element, 'playback', true);
+        this.report(new Error(`Audio failed: ${track.layer.mediaId}`));
+      }
+    });
+    const finish = (): void => this.finished(track);
+    this.listen(track, 'ended', finish);
+    this.listen(track, 'timeupdate', () => {
+      const end = track.layer?.properties?.out;
+      if (
+        end !== undefined &&
+        track.element.currentTime >= end &&
+        track === this.active
+      ) {
+        track.element.pause();
+        finish();
+      }
+    });
+  }
+
+  /** The playing track ended: the next one is asked for, or a fade ends. */
+  private finished(track: Track): void {
+    const playback = track.layer?.playback;
+    if (
+      track !== this.active ||
+      playback === undefined ||
+      playback.since === null ||
+      playback.trackVersion !== this.wanted?.playback?.trackVersion ||
+      this.endedVersion === playback.trackVersion
+    ) {
+      return;
+    }
+    this.endedVersion = playback.trackVersion;
+    if (this.manualFade !== null) this.finishManualFade(this.manualFade);
+    else this.options.onNext(playback.trackVersion);
   }
 
   private clearAudio(effect: ClearEffect | undefined): void {
