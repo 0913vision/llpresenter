@@ -1,6 +1,9 @@
 import {isRecord, type UnknownRecord} from '@core/common/guards';
 import type {Slide} from '../slides/slide';
 
+/** The 이름표 of the two titles a song gets in the 예배 순서. */
+export const SONG_TITLE_LABELS = {opening: '전주', closing: '후주'} as const;
+
 /** What a slide needs to be read as a song's title slide. */
 type TitleLike = Pick<Slide, 'texts' | 'hymn'> & {
   readonly background?: unknown;
@@ -35,7 +38,8 @@ function sameTexts(one: TitleLike, other: TitleLike): boolean {
   );
 }
 
-function sameText(text: string, title: string): boolean {
+/** Whether a text is only the song title, spaces aside. */
+export function isTitleText(text: string, title: string): boolean {
   const normal = (value: string) => value.trim().replace(/\s+/gu, ' ');
   return normal(title) !== '' && normal(text) === normal(title);
 }
@@ -57,7 +61,7 @@ function titleIndex(slides: readonly TitleLike[], title: string): number {
   );
   if (picture !== -1) return picture;
   const first = slides[0];
-  return first !== undefined && sameText(lyricsOf(first), title) ? 0 : -1;
+  return first !== undefined && isTitleText(lyricsOf(first), title) ? 0 : -1;
 }
 
 /** A song's own title slide, apart from its other slides. */
@@ -71,8 +75,9 @@ export interface SongParts<TSlide extends {readonly label?: string}> {
  * (USER Nov 25, `team/song-title-design.md`): the slide that opens the song
  * with its title is the song's title, without its label, because the 예배
  * 순서 gives the titles their 이름표; a last slide that shows that same title
- * again goes, because the 예배 순서 adds the closing title; every other slide
- * stays where it is, another title at the end too.
+ * again, as a title slide or as a 후주 copy, goes, because the 예배 순서 adds
+ * the closing title; every other slide stays where it is, another title at the
+ * end and a last lyric that sings the title too.
  */
 export function splitSongTitle<
   TSlide extends TitleLike & {readonly label?: string},
@@ -86,7 +91,7 @@ export function splitSongTitle<
   const dropsClosing =
     last > first &&
     closing !== undefined &&
-    isTitleSlide(closing) &&
+    (isTitleSlide(closing) || closing.label === SONG_TITLE_LABELS.closing) &&
     sameTexts(closing, found);
   const rest = slides.filter(
     (_slide, index) => index !== first && !(dropsClosing && index === last),

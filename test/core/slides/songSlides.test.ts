@@ -1,6 +1,11 @@
 import {describe, expect, it} from 'vitest';
 import {SONG_THEME_IDS} from '@core/theme';
-import {importedSongTitle, songSlides} from '@core/slides/songSlides';
+import {
+  importedSongTitle,
+  songSlides,
+  withSongTitle,
+} from '@core/slides/songSlides';
+import {lyricsSlide, slideOf} from '@fixtures/core/slides';
 import {defaultSlideTransitions} from '@core/schema/app/preferences';
 
 const making = {themes: null, transitions: defaultSlideTransitions};
@@ -65,4 +70,25 @@ it('names a song after its title slide', () => {
   expect(name(['빛의', '길'], 2)).toBe('빛의 길');
   expect(name(['슬픈 마음', '새찬송가 91장'])).toBe('새찬송가 91장 슬픈 마음');
   expect(name(['통일찬송가 6장'])).toBe('통일찬송가 6장 찬양 성부 성자 성령');
+});
+
+describe('withSongTitle', () => {
+  it('renames the 제목 that shows the old title', () => {
+    const slides = [
+      slideOf(1, 'songTitle', {texts: {제목: '빛의 길'}}),
+      lyricsSlide(2, '첫 줄'),
+    ];
+    expect(withSongTitle(slides, '빛의 길', '빛의 길 (2)')[0]?.texts).toEqual({
+      제목: '빛의 길 (2)',
+    });
+  });
+
+  it('renames a first slide whose 가사 is only the title, and leaves lyrics alone otherwise', () => {
+    const sung = [lyricsSlide(1, '빛의 길'), lyricsSlide(2, '첫 줄')];
+    expect(
+      withSongTitle(sung, '빛의 길', '빛의 길 (2)').map(s => s.texts),
+    ).toEqual([{가사: '빛의 길 (2)'}, {가사: '첫 줄'}]);
+    const lyrics = [lyricsSlide(1, '첫 줄'), lyricsSlide(2, '빛의 길')];
+    expect(withSongTitle(lyrics, '빛의 길', '새 제목')).toBe(lyrics);
+  });
 });

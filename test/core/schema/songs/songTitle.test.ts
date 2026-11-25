@@ -47,6 +47,36 @@ describe('splitSongTitle', () => {
     });
   });
 
+  it('drops the 후주 copy of a picture title and of a title in 가사 when an item is saved back, and keeps a last lyric that sings the title', () => {
+    const picture = slideOf(1, 'lyrics', {
+      texts: {},
+      background: {kind: 'color', color: '#112233'},
+    });
+    const verse = lyricsSlide(2, '첫 줄');
+    const pictureClosing = {
+      ...picture,
+      id: slideOf(3, 'lyrics').id,
+      label: '후주',
+    };
+    expect(
+      splitSongTitle(
+        [{...picture, label: '전주'}, verse, pictureClosing],
+        '찬송',
+      ).slides,
+    ).toEqual([verse]);
+
+    const sung = lyricsSlide(1, '빛의 길');
+    const sungClosing = {...lyricsSlide(3, '빛의 길'), label: '후주'};
+    expect(
+      splitSongTitle([sung, verse, sungClosing], '빛의 길').slides,
+    ).toEqual([verse]);
+    const refrain = lyricsSlide(3, '빛의 길');
+    expect(splitSongTitle([sung, verse, refrain], '빛의 길').slides).toEqual([
+      verse,
+      refrain,
+    ]);
+  });
+
   it('keeps a title in the middle where it is', () => {
     const middle = slideOf(3, 'songTitle', {texts: {제목: '다른 곡'}});
     const slides = [lyricsSlide(2, '첫 줄'), middle, lyricsSlide(4, '끝 줄')];

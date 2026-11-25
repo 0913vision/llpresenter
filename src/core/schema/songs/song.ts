@@ -42,7 +42,29 @@ export const songSchema = v.pipe(
     song => song.titleSlide !== undefined || song.slides.length > 0,
     'Expected a title slide or another slide',
   ),
+  v.check(
+    song => song.titleSlide === undefined || !sharesKeys(song),
+    'The title slide shares its id or hot key with another slide',
+  ),
 );
+
+/** Whether the title slide has the id or the hot key of another slide. */
+function sharesKeys({
+  titleSlide,
+  slides,
+}: {
+  readonly titleSlide?: {readonly id: string; readonly hotKey?: string};
+  readonly slides: ReadonlyArray<{
+    readonly id: string;
+    readonly hotKey?: string;
+  }>;
+}): boolean {
+  return slides.some(
+    slide =>
+      slide.id === titleSlide?.id ||
+      (titleSlide?.hotKey !== undefined && slide.hotKey === titleSlide.hotKey),
+  );
+}
 
 const songFormat: FileFormat<typeof songSchema> = {
   format: 'llsong',

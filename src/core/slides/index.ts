@@ -40,7 +40,6 @@ export {
   SERMON_TITLE_BOX,
   sermonItem,
   CLOSING_TITLE_NEXT,
-  SONG_TITLE_LABELS,
   songItem,
   songItemSlides,
   type SongItemOptions,
@@ -98,3 +97,4 @@ export {
   tileContent,
 } from './tiles';
 export {SERVICE_TITLES, titleSlide} from './titles';
+export {SONG_TITLE_LABELS} from '@core/schema/songs/songTitle';

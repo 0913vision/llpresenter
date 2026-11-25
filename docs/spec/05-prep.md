@@ -277,8 +277,8 @@ A library song opens in the same editor ("The editor of an item"). What differs:
   unsaved changes asks 저장, 저장 안 함, or 취소. An imported song is unsaved
   until 저장 adds it to the library.
 - A new song begins with a 찬양 제목 슬라이드 and one of 찬양 가사. Renaming the
-  song renames the title on the 슬라이드 that shows it. The menu of a 슬라이드
-  has 제목 슬라이드 추가.
+  song renames the title on the 슬라이드 that shows it, also a first 슬라이드
+  whose 가사 is only the title. The menu of a 슬라이드 has 제목 슬라이드 추가.
 
 ### 이름표 menu
 

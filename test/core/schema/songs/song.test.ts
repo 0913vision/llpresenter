@@ -74,6 +74,22 @@ describe('a song file', () => {
     expect(data.slides).toEqual([lyricsSlide(1, '첫 줄')]);
   });
 
+  it('refuses a title slide with the id or the hot key of another slide', () => {
+    const title = slideOf(1, 'songTitle', {texts: {제목: '빛의 길'}});
+    expect(
+      parse({...song([lyricsSlide(1, '첫 줄')]), titleSlide: title}).ok,
+    ).toBe(false);
+    expect(
+      parse({
+        ...song([lyricsSlide(2, '첫 줄', {hotKey: 'KeyA'})]),
+        titleSlide: {...title, hotKey: 'KeyA'},
+      }).ok,
+    ).toBe(false);
+    expect(
+      parse({...song([lyricsSlide(2, '첫 줄')]), titleSlide: title}).ok,
+    ).toBe(true);
+  });
+
   it('refuses a song with neither a title slide nor another slide', () => {
     expect(parse(song([])).ok).toBe(false);
   });

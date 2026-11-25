@@ -1,6 +1,7 @@
 import type {JSX} from 'react';
 import type {SongDocument} from '@core/schema/services/contentDocuments';
 import {SONG_IMPORT_LIMITS} from '@core/schema/songs/songImport';
+import {songSlidesOf} from '@core/schema/songs/song';
 import {
   DUPLICATE_TITLE_REASON,
   normalizeSongTitle,
@@ -55,7 +56,8 @@ function TakenDialog({
   );
   const close = (): void => ask(null);
   const readOnly = document.access === 'readOnly';
-  const {updatedAt, slides} = document.song;
+  const {updatedAt} = document.song;
+  const slides = songSlidesOf(document.song);
   return (
     <AlertDialog
       icon="song"

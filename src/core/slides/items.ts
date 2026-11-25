@@ -4,6 +4,7 @@ import type {BiblePassage} from '@core/schema/bible/biblePassage';
 import type {ServiceItemOf, SlidesItem} from '@core/schema/services/service';
 import type {Slide} from '@core/schema/slides/slide';
 import type {Song} from '@core/schema/songs/song';
+import {SONG_TITLE_LABELS} from '@core/schema/songs/songTitle';
 import {withText} from './edits';
 import {LITURGY_SLIDES} from './liturgySlides';
 import {copySlide, makeSlide, transitionFor, type SlideMaking} from './make';
@@ -24,9 +25,6 @@ export const LITURGY_NAMES: Readonly<Record<LiturgyKind, string>> = {
 function newId() {
   return createServiceItemId(crypto.randomUUID());
 }
-
-/** The 이름표 of the two titles a song gets in the 예배 순서. */
-export const SONG_TITLE_LABELS = {opening: '전주', closing: '후주'} as const;
 
 /**
  * What the slide before a song's closing title shows on 무대, set as the

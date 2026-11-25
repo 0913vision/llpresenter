@@ -161,6 +161,40 @@ describe('songs kept with their title apart', () => {
     });
   });
 
+  it('saves a hymn that opens with a picture back without its 후주 copy', async () => {
+    const picture = slideOf(20, 'lyrics', {
+      texts: {},
+      background: {kind: 'color', color: '#112233'},
+    });
+    const {store} = setUp([
+      serviceFile(SUNDAY_ID, [
+        {
+          id: first,
+          kind: 'song',
+          name: '곡',
+          song: HYMN_ONE_ID,
+          slides: [
+            {...picture, label: '전주'},
+            verse,
+            {
+              ...picture,
+              id: slideOf(21, 'lyrics').id,
+              label: '후주',
+              next: '(후주)',
+            },
+          ],
+        },
+      ]),
+    ]);
+
+    expect((await store.apply(command)).ok).toBe(true);
+
+    expect(store.song(SONG)?.song).toMatchObject({
+      titleSlide: picture,
+      slides: [verse],
+    });
+  });
+
   it('imports a song the same way', async () => {
     const {store} = setUp([]);
 

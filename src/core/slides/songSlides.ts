@@ -1,6 +1,7 @@
 import type {TextImportDraft} from '@core/schema/songs/textImport';
 import type {Hymn} from '@core/schema/songs/hymn';
 import type {Slide} from '@core/schema/slides/slide';
+import {isTitleText} from '@core/schema/songs/songTitle';
 import type {SlideBackground} from '@core/schema/screens/theme';
 import {SONG_THEME_IDS} from '@core/theme';
 import {hymnAt, hymnLabel, hymnTitle, isTitleOf} from '@core/hymns';
@@ -107,11 +108,19 @@ export function withSongTitle(
   const shown = slides.findIndex(
     slide => slide.texts['제목']?.trim() === from.trim(),
   );
-  return shown < 0
-    ? slides
-    : slides.map((slide, index) =>
-        index === shown ? {...slide, texts: {...slide.texts, 제목: to}} : slide,
-      );
+  if (shown >= 0) {
+    return slides.map((slide, index) =>
+      index === shown ? {...slide, texts: {...slide.texts, 제목: to}} : slide,
+    );
+  }
+  // NOTE(0913vision): A song can show its title as the only 가사 of its first
+  // slide (PowerPoint songs); that slide is its title too and follows it.
+  const [first, ...rest] = slides;
+  return first !== undefined &&
+    first.texts['제목'] === undefined &&
+    isTitleText(first.texts['가사'] ?? '', from)
+    ? [{...first, texts: {...first.texts, 가사: to}}, ...rest]
+    : slides;
 }
 
 /** The slides a new song starts with. */
