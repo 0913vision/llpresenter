@@ -345,3 +345,30 @@ describe('ColumnLayout', () => {
     expect(shown.at(-1)).toEqual({left: 280, right: 490, prepRight: 320});
   });
 });
+
+describe('a collapsed left column', () => {
+  it('fits 진행 again when the left column collapses and opens, and saves nothing', () => {
+    const store = createMemoryColumnWidthStore();
+    const saved = {left: 400, right: 720, prepRight: 320};
+    store.save('narrow', saved);
+    const harness = createHarness('narrow', 1300, store);
+    const open = harness.shown.at(-1);
+
+    harness.layout.setLeftCollapsed(34);
+    const collapsed = harness.shown.at(-1);
+    harness.layout.setLeftCollapsed(undefined);
+
+    expect(collapsed?.right).toBeGreaterThan(open?.right ?? Infinity);
+    expect(collapsed?.prepRight).toBe(open?.prepRight);
+    expect(harness.shown.at(-1)).toEqual(open);
+    expect(store.load('narrow')).toEqual(saved);
+  });
+
+  it('does not fit again when nothing changed', () => {
+    const harness = createHarness('normal', 1920);
+    harness.layout.setLeftCollapsed(34);
+    const count = harness.shown.length;
+    harness.layout.setLeftCollapsed(34);
+    expect(harness.shown).toHaveLength(count);
+  });
+});
