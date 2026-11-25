@@ -104,6 +104,7 @@ const mocks = vi.hoisted(() => {
         removeListener: vi.fn(),
       },
       protocol: {registerSchemesAsPrivileged: vi.fn()},
+      screen: {on: vi.fn(), removeListener: vi.fn()},
       app: {
         setPath: vi.fn(),
         getPath: vi.fn<(name: string) => string>(),
