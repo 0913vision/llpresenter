@@ -31,10 +31,7 @@ import {
 import type {PrepTarget} from '@renderer/session/prepTarget';
 import {ShownItemProvider} from '@renderer/session/show/shownItem';
 import {undoTimeline} from '@renderer/platform/undo/undoTimeline';
-import {
-  songUndoHistory,
-  useSongDraft,
-} from '@renderer/features/songs/songDraft';
+import {workspaceTabOf} from '@renderer/app/useWorkspaceTabs';
 import {NO_UNDO_IN_SHOW} from '@renderer/platform/problemReasons';
 import {useWorkspaceServiceHistory} from './useWorkspaceServiceHistory';
 import type {Workspace as WorkspaceId} from '@renderer/platform/WorkspaceNavigation';
@@ -110,15 +107,12 @@ export function Workspace({
   useEffect(() => {
     undoTimeline.block(showVisible ? NO_UNDO_IN_SHOW : undefined);
   }, [showVisible]);
-  // NOTE(0913vision): While the song editor shows, 실행 취소 is the song's
-  // alone, cut off from the 예배 순서 as in a modal window (USER Nov 25).
-  const songShown =
-    useSongDraft(view => view.draft !== null) &&
-    visibleId === 'prep' &&
-    prepTarget?.kind === 'song';
+  // NOTE(0913vision): Each tab runs back only its own steps (USER Nov 25):
+  // 라이브러리 is 준비 with a song open.
+  const undoTab = workspaceTabOf(visibleId, prepTarget?.kind === 'song');
   useEffect(() => {
-    undoTimeline.isolate(songShown ? songUndoHistory : undefined);
-  }, [songShown]);
+    undoTimeline.showTab(undoTab);
+  }, [undoTab]);
   // NOTE(0913vision): 진행 stays built, hidden, while another workspace
   // shows, so going back to 진행 shows its panels in the next frame instead of
   // building them again.

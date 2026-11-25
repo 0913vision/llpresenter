@@ -25,6 +25,7 @@ function made(name: string, log: string[], works = true): UndoOwner {
 afterEach(() => {
   for (const each of owners.splice(0)) undoTimeline.forget(each);
   undoTimeline.block(undefined);
+  undoTimeline.showTab('prep');
   report.mockReset();
 });
 
@@ -111,5 +112,61 @@ describe('undo timeline', () => {
     undoTimeline.block(undefined);
     expect(await undoTimeline.replay('undo', report)).toBe(true);
     expect(log).toEqual(['service:undo']);
+  });
+});
+
+describe('one history per tab', () => {
+  it('runs back only the steps made in the tab on screen, and counts only those', async () => {
+    const log: string[] = [];
+    const service = made('service', log);
+    const song = made('song', log);
+    undoTimeline.showTab('prep');
+    undoTimeline.record(service);
+    undoTimeline.showTab('library');
+    undoTimeline.record(song);
+    undoTimeline.record(song);
+    expect(undoTimeline.get().undo).toBe(2);
+
+    await undoTimeline.replay('undo', report);
+    undoTimeline.showTab('prep');
+    expect(undoTimeline.get()).toMatchObject({undo: 1, redo: 0});
+    await undoTimeline.replay('undo', report);
+    await undoTimeline.replay('undo', report);
+
+    expect(log).toEqual(['song:undo', 'service:undo']);
+    undoTimeline.showTab('library');
+    expect(undoTimeline.get()).toMatchObject({undo: 1, redo: 1});
+  });
+
+  it('drops the steps a history made in another tab once it makes one here', async () => {
+    const log: string[] = [];
+    const renames = made('renames', log);
+    undoTimeline.showTab('library');
+    undoTimeline.record(renames);
+    undoTimeline.showTab('prep');
+    undoTimeline.record(renames);
+
+    undoTimeline.showTab('library');
+    expect(undoTimeline.get().undo).toBe(0);
+    undoTimeline.showTab('prep');
+    await undoTimeline.replay('undo', report);
+    expect(log).toEqual(['renames:undo']);
+  });
+
+  it('lets a new step drop what its own tab could redo and keep the other tabs', async () => {
+    const log: string[] = [];
+    const service = made('service', log);
+    const song = made('song', log);
+    undoTimeline.showTab('prep');
+    undoTimeline.record(service);
+    await undoTimeline.replay('undo', report);
+    undoTimeline.showTab('library');
+    undoTimeline.record(song);
+    await undoTimeline.replay('undo', report);
+    undoTimeline.record(song);
+
+    expect(undoTimeline.get().redo).toBe(0);
+    undoTimeline.showTab('prep');
+    expect(undoTimeline.get().redo).toBe(1);
   });
 });

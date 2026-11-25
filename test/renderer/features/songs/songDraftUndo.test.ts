@@ -5,7 +5,6 @@ import {SONG_SCHEMA_VERSION} from '@core/schema/songs/song';
 import {
   closeSongDraft,
   openSongDraftWithItem,
-  songUndoHistory,
   useSongDraft,
 } from '@renderer/features/songs/songDraft';
 import {undoTimeline} from '@renderer/platform/undo/undoTimeline';
@@ -26,7 +25,7 @@ const document: SongDocument = {
 const service = {replay: vi.fn(() => Promise.resolve(true))};
 
 afterEach(() => {
-  undoTimeline.isolate(undefined);
+  undoTimeline.showTab('prep');
   closeSongDraft();
   undoTimeline.forget(service);
   service.replay.mockClear();
@@ -36,11 +35,12 @@ function slides() {
   return useSongDraft.getState().draft?.song.slides;
 }
 
-it('runs back only the song while its editor shows, and the 예배 순서 again once it is gone', async () => {
+it('runs back the song in the 라이브러리 tab and the 예배 순서 in 준비, each its own', async () => {
+  undoTimeline.showTab('prep');
   undoTimeline.record(service);
+  undoTimeline.showTab('library');
   const itemLyrics = [lyricsSlide(12, '항목 가사')];
   openSongDraftWithItem(document, itemLyrics);
-  undoTimeline.isolate(songUndoHistory);
   expect(undoTimeline.get().undo).toBe(1);
 
   await undoTimeline.replay('undo', vi.fn());
@@ -51,9 +51,19 @@ it('runs back only the song while its editor shows, and the 예배 순서 again 
   await undoTimeline.replay('redo', vi.fn());
   expect(slides()).toEqual(itemLyrics);
 
-  undoTimeline.isolate(undefined);
-  closeSongDraft();
+  undoTimeline.showTab('prep');
   expect(undoTimeline.get().undo).toBe(1);
   await undoTimeline.replay('undo', vi.fn());
   expect(service.replay).toHaveBeenCalledOnce();
+  expect(slides()).toEqual(itemLyrics);
+});
+
+it('forgets the song steps once the song is closed', () => {
+  undoTimeline.showTab('library');
+  openSongDraftWithItem(document, [lyricsSlide(12, '항목 가사')]);
+  expect(undoTimeline.get().undo).toBe(1);
+
+  closeSongDraft();
+
+  expect(undoTimeline.get().undo).toBe(0);
 });

@@ -5,7 +5,7 @@ import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
 import {deleteSelection} from '@renderer/ui/lists/selection/deleteSelection';
 import {focusHistorySurface} from '@renderer/ui/lists/selection/focusHistorySurface';
 import {useMenuHandoff} from '@renderer/ui/menus/useMenuHandoff';
-import {songCopyReason} from './libraryMenuEntries';
+import {songChangeReason} from './libraryMenuEntries';
 import type {Library} from './useLibrary';
 
 /**
@@ -16,11 +16,14 @@ export function useSongDuplicateKey({
   list,
   library,
   serviceBusy,
+  editReason,
 }: {
   readonly list: RefObject<HTMLDivElement | null>;
   readonly library: Library;
   /** Whether a song is being added to the 예배 순서. */
   readonly serviceBusy: boolean;
+  /** Why the library can't be changed here, such as in 준비. */
+  readonly editReason?: string | undefined;
 }): void {
   const target = (event?: KeyboardEvent): LibrarySong | undefined => {
     const place =
@@ -37,7 +40,7 @@ export function useSongDuplicateKey({
       : undefined;
   };
   const reason = (song: LibrarySong): string | undefined =>
-    songCopyReason(song, library.busy || serviceBusy);
+    songChangeReason(song, library.busy || serviceBusy, editReason);
   useWindowShortcuts([
     {
       id: 'edit.duplicate',

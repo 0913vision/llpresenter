@@ -126,7 +126,7 @@ export function useSourceActions({
   } | null>(null);
   const [busy, setBusy] = useState(false);
   const root = useRef<HTMLElement>(null);
-  const history = api ? contentDeleteHistory(api.content) : null;
+  const history = api ? contentDeleteHistory(api.content, 'services') : null;
   const renameAfterMenu = useMenuHandoff<SourceRow>(menu !== null, row =>
     setDialog({kind: 'rename', row}),
   );

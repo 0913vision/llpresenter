@@ -27,13 +27,16 @@ export interface UndoOwner {
 }
 
 /**
- * A history that takes every 실행 취소 of the window while it is open, cut off
- * from the timeline as a modal window would be: the song editor (USER Nov 25:
- * "이게 끊겨야한다").
+ * The toolbar tab a step was made in. 실행 취소 runs back only the steps of
+ * the tab on screen, each tab with its own history (USER Nov 25: "실행취소는
+ * 이제 각 탭별로 별도적용되어야하는거아님?").
  */
-export interface IsolatedHistory extends UndoOwner {
-  /** How many steps it can run back and forward now. */
-  readonly steps: () => {readonly undo: number; readonly redo: number};
+export type UndoTab = 'show' | 'prep' | 'library' | 'screens';
+
+/** A step of the timeline: whose it is, and the tab it was made in. */
+interface Entry {
+  readonly owner: UndoOwner;
+  readonly tab: UndoTab;
 }
 
 /**
@@ -48,15 +51,20 @@ export interface UndoTimelineState {
 const LIMIT = 200;
 
 /**
- * The order of every undoable step in this window. Each history keeps its own
- * steps; this keeps which one came last, so 실행 취소 runs back the latest step
- * wherever it was made, as PowerPoint does.
+ * The order of the undoable steps of each tab of this window. Each history
+ * keeps its own steps; this keeps which one came last in the tab on screen,
+ * so 실행 취소 runs back the latest step made there, as PowerPoint does in one
+ * document.
+ *
+ * A history runs back only its own latest step. Its steps stay in one tab:
+ * a step it makes in another tab drops the ones it made before elsewhere,
+ * which could no longer run in their order.
  */
 class UndoTimeline {
-  private undo: UndoOwner[] = [];
-  private redo: UndoOwner[] = [];
+  private undo: Entry[] = [];
+  private redo: Entry[] = [];
+  private tab: UndoTab = 'prep';
   private blockedBy: string | undefined;
-  private isolated: IsolatedHistory | undefined;
   private state: UndoTimelineState = {undo: 0, redo: 0, busy: false};
   private readonly listeners = new Set<() => void>();
   private readonly placeListeners = new Set<(place: UndoPlace) => void>();
@@ -68,10 +76,26 @@ class UndoTimeline {
     return () => this.listeners.delete(listener);
   };
 
-  /** A new step of an owner: it comes last, and nothing can be redone. */
+  /** The tab on screen, whose steps 실행 취소 and 다시 실행 run. */
+  showTab(tab: UndoTab): void {
+    if (this.tab === tab) return;
+    this.tab = tab;
+    this.publish(this.state.busy);
+  }
+
+  /**
+   * A new step of an owner in the tab on screen: it comes last there, and
+   * nothing of that tab or that owner can be redone.
+   */
   record(owner: UndoOwner): void {
-    this.undo = [...this.undo, owner].slice(-LIMIT);
-    this.redo = [];
+    const {tab} = this;
+    this.undo = [
+      ...this.undo.filter(entry => entry.owner !== owner || entry.tab === tab),
+      {owner, tab},
+    ].slice(-LIMIT);
+    this.redo = this.redo.filter(
+      entry => entry.owner !== owner && entry.tab !== tab,
+    );
     this.publish(this.state.busy);
   }
 
@@ -80,7 +104,7 @@ class UndoTimeline {
    * such as from the 되돌리기 of a notice.
    */
   drop(owner: UndoOwner): void {
-    const index = this.undo.lastIndexOf(owner);
+    const index = this.undo.findLastIndex(entry => entry.owner === owner);
     if (index < 0) return;
     this.undo = [...this.undo.slice(0, index), ...this.undo.slice(index + 1)];
     this.publish(this.state.busy);
@@ -104,57 +128,39 @@ class UndoTimeline {
     return this.blockedBy;
   }
 
-  /**
-   * Gives every 실행 취소 and 다시 실행 to `history` while it is open, or back
-   * to the timeline with undefined. The timeline's steps wait meanwhile.
-   */
-  isolate(history: IsolatedHistory | undefined): void {
-    if (this.isolated === history) return;
-    this.isolated = history;
-    this.publish(this.state.busy);
-  }
-
-  /** The isolated history's steps changed. */
-  changed(): void {
-    this.publish(this.state.busy);
-  }
-
   /** Drops the steps of an owner whose history is gone, such as a closed service. */
   forget(owner: UndoOwner): void {
-    this.undo = this.undo.filter(entry => entry !== owner);
-    this.redo = this.redo.filter(entry => entry !== owner);
+    this.undo = this.undo.filter(entry => entry.owner !== owner);
+    this.redo = this.redo.filter(entry => entry.owner !== owner);
     this.publish(this.state.busy);
   }
 
-  /**
-   * Runs back, or forward again, the latest step of any history; only the
-   * isolated history's while one is open.
-   */
+  /** Runs back, or forward again, the latest step of the tab on screen. */
   async replay(
     kind: 'undo' | 'redo',
     report: (notice: Notice) => void,
   ): Promise<boolean> {
-    if (this.isolated !== undefined) {
-      if (this.blockedBy !== undefined || this.state.busy) return false;
-      return this.isolated.replay(kind, report);
-    }
-    const owner = (kind === 'undo' ? this.undo : this.redo).at(-1);
+    const from = kind === 'undo' ? this.undo : this.redo;
+    const index = from.findLastIndex(entry => entry.tab === this.tab);
+    const entry = from[index];
     if (
       this.blockedBy !== undefined ||
       this.state.busy ||
-      owner === undefined
+      entry === undefined
     ) {
       return false;
     }
-    if (kind === 'undo') this.undo = this.undo.slice(0, -1);
-    else this.redo = this.redo.slice(0, -1);
+    const rest = from.filter((_, at) => at !== index);
+    if (kind === 'undo') this.undo = rest;
+    else this.redo = rest;
     this.publish(true);
+    const {owner} = entry;
     let done = false;
     try {
       done = await owner.replay(kind, report);
     } finally {
-      if (done && kind === 'undo') this.redo = [...this.redo, owner];
-      if (done && kind === 'redo') this.undo = [...this.undo, owner];
+      if (done && kind === 'undo') this.redo = [...this.redo, entry];
+      if (done && kind === 'redo') this.undo = [...this.undo, entry];
       this.publish(false);
     }
     const place = done ? owner.place?.() : undefined;
@@ -165,11 +171,12 @@ class UndoTimeline {
   }
 
   private publish(busy: boolean): void {
-    const steps = this.isolated?.steps() ?? {
-      undo: this.undo.length,
-      redo: this.redo.length,
+    const here = (entry: Entry): boolean => entry.tab === this.tab;
+    this.state = {
+      undo: this.undo.filter(here).length,
+      redo: this.redo.filter(here).length,
+      busy,
     };
-    this.state = {undo: steps.undo, redo: steps.redo, busy};
     for (const listener of this.listeners) listener();
   }
 }

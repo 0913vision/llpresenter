@@ -100,18 +100,34 @@ class ContentDeleteHistory implements UndoOwner {
     }
   }
 }
-const histories = new WeakMap<LlpApi['content'], ContentDeleteHistory>();
 /**
- * The undo history of deleted songs and 예배 for one app connection, made once
- * and shared.
+ * Whose deletions a history keeps: the library's songs, deleted in the
+ * 라이브러리 tab, or the 예배 and 템플릿 of the service list. Each is its own
+ * history, as each tab runs back only its own steps (USER Nov 25).
+ */
+export type ContentDeleteGroup = 'songs' | 'services';
+
+const histories = new WeakMap<
+  LlpApi['content'],
+  Map<ContentDeleteGroup, ContentDeleteHistory>
+>();
+/**
+ * The undo history of deleted songs, or of deleted 예배 and 템플릿, for one app
+ * connection, made once and shared.
  */
 export function contentDeleteHistory(
   content: LlpApi['content'],
+  group: ContentDeleteGroup,
 ): ContentDeleteHistory {
-  let history = histories.get(content);
+  let groups = histories.get(content);
+  if (!groups) {
+    groups = new Map();
+    histories.set(content, groups);
+  }
+  let history = groups.get(group);
   if (!history) {
     history = new ContentDeleteHistory(content);
-    histories.set(content, history);
+    groups.set(group, history);
   }
   return history;
 }

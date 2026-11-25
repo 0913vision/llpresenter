@@ -127,3 +127,31 @@ it('runs 이름 바꾸기 and 탐색기에서 보기 as commands, and protects a
     title: '새 버전의 파일이라 바꿀 수 없습니다.',
   });
 });
+
+it('keeps 복제, 이름 바꾸기 and 삭제 off where the library is not changed, and still adds and opens', () => {
+  const song = libraryFixture().list()[0];
+  if (!song) throw new Error('Missing fixture');
+  const rows = menuItems(
+    libraryMenuEntries({
+      song,
+      appendDisabledReason: undefined,
+      busy: false,
+      append: vi.fn(),
+      open: vi.fn(),
+      duplicate: vi.fn(),
+      remove: vi.fn(),
+      rename: vi.fn(),
+      reveal: vi.fn(),
+      editReason: '라이브러리 탭에서만 바꿀 수 있습니다.',
+    }),
+  );
+  for (const id of ['duplicate', 'rename', 'delete']) {
+    expect(rows.find(row => row.id === id)).toMatchObject({
+      disabled: true,
+      title: '라이브러리 탭에서만 바꿀 수 있습니다.',
+    });
+  }
+  for (const id of ['add-to', 'lyrics', 'reveal']) {
+    expect(rows.find(row => row.id === id)?.disabled).toBeFalsy();
+  }
+});

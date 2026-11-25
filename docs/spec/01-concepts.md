@@ -374,19 +374,24 @@ All three workspaces use the same three-column frame (left, center, right). The
 - All three workspaces share the current service. The 예배 순서 panels in 진행
   and 준비 show the same 예배 순서.
 - F1 to F6 work in every workspace, even with a dialog open (10, focus
-  precedence). Ctrl Z only undoes edits. Clear undo has no default key and its
-  optional button is hidden by default (proposal; 03, 10; M2 check 1 rows 7 and
-  8). The `ClearButton` README needs the same scope and button update.
+  precedence). Ctrl Z only undoes edits, and each toolbar tab has its own 실행
+  취소 (user decision, November 25): a step runs back only in the tab where it
+  was made. 진행 has none; 준비 holds the 예배 순서, its items, the media bin,
+  예배 and 템플릿 renames and deletes; 라이브러리 the open song and the library
+  list; 테마 its theme editor's own history. Clear undo has no default key and
+  its optional button is hidden by default (proposal; 03, 10; M2 check 1 rows 7
+  and 8). The `ClearButton` README needs the same scope and button update.
 - The app always opens in the 진행 workspace (proposal).
 - 라이브러리 (user decision, November 25): the fourth toolbar tab is where
   library songs are edited, in 준비's song layout (라이브러리 list, song editor,
-  슬라이드 속성). The tab is on while a song is open; its 실행 취소 is the
-  song's own and never reaches the 예배 순서. Choosing 라이브러리 opens the song
-  left open, else the song edited last, else the first library song, else a new
-  song. Choosing 준비 leaves the song as closing it does (asks about unsaved
-  changes) and shows the 예배 순서. The song editor has no back button; the tabs
-  move between them. A separate song window was turned down: it would block
-  running slides during a service.
+  슬라이드 속성). The tab is on while a song is open. Library songs are renamed,
+  copied and deleted only here; in 준비 the 곡 list adds songs to the 예배 순서
+  and those rows say "라이브러리 탭에서만 바꿀 수 있습니다." Choosing 라이브러리
+  opens the song left open, else the song edited last, else the first library
+  song, else a new song. Choosing 준비 leaves the song as closing it does (asks
+  about unsaved changes) and shows the 예배 순서. The song editor has no back
+  button; the tabs move between them. A separate song window was turned down: it
+  would block running slides during a service.
 
 Source: `Main` decision "작업 공간 세 개", design system README (window sizes
 and layout), `ClearButton` README, `Dialog` README, product log (2026-10-24

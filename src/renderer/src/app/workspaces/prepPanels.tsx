@@ -30,6 +30,7 @@ import {
   openLibrarySong,
 } from '@renderer/session/show/showLibrary';
 import {serviceItem} from '@renderer/session/service/openService';
+import {LIBRARY_TAB_ONLY} from '@renderer/platform/problemReasons';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import {
   logPanelProblem,
@@ -101,6 +102,9 @@ function Library({
         <LibraryPanel
           api={prep.api}
           navigating={navigating}
+          // NOTE(0913vision): The library shows beside the song editor only in
+          // the 라이브러리 tab; in 준비 it adds songs to the 예배 순서.
+          editReason={navigating ? undefined : LIBRARY_TAB_ONLY}
           selectionRequest={prep.selectionRequest}
           onSelectionHandled={prep.onSelectionHandled}
           onProblem={report}

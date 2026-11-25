@@ -16,5 +16,11 @@ export const MISSING_MEDIA_TIP = '미디어 파일을 찾을 수 없습니다.';
 /** 진행 sends what is on the screens; edits are run back in 준비. */
 export const NO_UNDO_IN_SHOW = '진행에서는 실행 취소를 쓰지 않습니다.';
 
+/**
+ * Why a library song can't be renamed, copied or deleted in 준비: the library
+ * is changed in its own tab, so each tab's 실행 취소 stays its own (USER Nov 25).
+ */
+export const LIBRARY_TAB_ONLY = '라이브러리 탭에서만 바꿀 수 있습니다.';
+
 /** What is on the screens is not deleted under them. */
 export const ON_SCREEN_REASON = '화면에 나가는 중입니다.';

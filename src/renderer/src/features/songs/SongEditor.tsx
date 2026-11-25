@@ -11,7 +11,10 @@ import {useLabelColors} from '@renderer/features/labels/labels';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {slideMaking} from '@renderer/platform/documents/themes';
 import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
-import {undoTimeline} from '@renderer/platform/undo/undoTimeline';
+import {
+  undoTimeline,
+  useUndoTimeline,
+} from '@renderer/platform/undo/undoTimeline';
 import type {Report} from '@renderer/session/service/serviceEdit';
 import {Button} from '@renderer/ui/buttons/Button';
 import {Icon} from '@renderer/ui/Icon';
@@ -39,6 +42,7 @@ import {isUnsaved, songTitleProblem} from './songDraftModel';
 /** The slides of the library song that is open. */
 export function useSongDeck(report: Report): SlideDeck | null {
   const draft = useSongDraft(view => view.draft);
+  const steps = useUndoTimeline();
   return useMemo(() => {
     if (draft === null) return null;
     return {
@@ -47,23 +51,23 @@ export function useSongDeck(report: Report): SlideDeck | null {
       source: {kind: 'song', title: draft.song.title},
       slides: draft.song.slides,
       readOnly: draft.document?.access === 'readOnly',
-      canUndo: draft.past.length > 0,
-      canRedo: draft.future.length > 0,
+      canUndo: steps.undo > 0 && !steps.busy,
+      canRedo: steps.redo > 0 && !steps.busy,
       edit: (change, key) =>
         editSong(song => {
           const slides = change(song.slides);
           return slides === song.slides ? song : {...song, slides};
         }, key),
-      // NOTE(0913vision): Through the window's 실행 취소, which gives every
-      // step to the song while its editor shows, the same as the menu, the
-      // title bar button and the keys elsewhere.
+      // NOTE(0913vision): Through the 라이브러리 tab's 실행 취소, which holds
+      // the song's steps and the library list's, the same as the menu, the
+      // title bar button and the keys.
       replay: kind => {
         undoTimeline.replay(kind, report).catch((error: unknown) => {
           console.error('Could not undo', error);
         });
       },
     };
-  }, [draft, report]);
+  }, [draft, report, steps]);
 }
 
 const PICTURES_REASON = '배경을 가져오는 중입니다.';

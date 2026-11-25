@@ -1,7 +1,7 @@
 import {logFailure} from '@renderer/platform/logFailure';
 import {
   undoTimeline,
-  type IsolatedHistory,
+  type UndoOwner,
 } from '@renderer/platform/undo/undoTimeline';
 import {create} from 'zustand';
 import type {LlpApi} from '@contracts/ipc/api';
@@ -112,19 +112,22 @@ function view() {
 }
 
 /**
- * The open song's 실행 취소 history, cut off from the window's timeline while
- * the song editor shows (USER Nov 25: "이게 끊겨야한다"). Its steps go with
- * the draft: a song opened, saved or closed starts anew.
+ * The open song's steps, as a history of the window's 실행 취소. They are
+ * made in the 라이브러리 tab, so they run back only there (USER Nov 25). Its
+ * steps go with the draft: a song opened, saved anew or closed starts anew.
  */
-export const songUndoHistory: IsolatedHistory = {
+export const songUndoHistory: UndoOwner = {
   replay: kind => Promise.resolve(replaySong(kind)),
-  steps: () => {
-    const {draft} = view();
-    return {undo: draft?.past.length ?? 0, redo: draft?.future.length ?? 0};
-  },
 };
 useSongDraft.subscribe((state, before) => {
-  if (state.draft !== before.draft) undoTimeline.changed();
+  const draft = state.draft;
+  const prior = before.draft;
+  if (draft === prior) return;
+  const fresh =
+    draft?.song.id !== prior?.song.id ||
+    draft === null ||
+    (draft.past.length === 0 && draft.future.length === 0);
+  if (fresh) undoTimeline.forget(songUndoHistory);
 });
 
 function show(
@@ -281,9 +284,14 @@ export function editSong(change: (song: Song) => Song, key?: string): void {
   if (draft === null || draft.document?.access === 'readOnly') return;
   const after = change(draft.song);
   if (after === draft.song) return;
-  useSongDraft.setState({
-    draft: editedDraft(draft, after, {key, time: Date.now()}),
-  });
+  const next = editedDraft(draft, after, {key, time: Date.now()});
+  useSongDraft.setState({draft: next});
+  // NOTE(0913vision): Typing that goes on in one field stays one step, so
+  // only a step of its own is a new step of the window's 실행 취소.
+  const goesOn =
+    next.past.length === draft.past.length &&
+    next.past.at(-1)?.before === draft.past.at(-1)?.before;
+  if (!goesOn) undoTimeline.record(songUndoHistory);
 }
 
 /** Renames the song, and the title slide that shows its name. */

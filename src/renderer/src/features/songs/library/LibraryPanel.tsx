@@ -43,6 +43,11 @@ export type LibrarySelectionRequest =
 export interface LibraryPanelProps {
   readonly api: LibraryApi;
   readonly navigating?: boolean | undefined;
+  /**
+   * Why the songs can't be renamed, copied or deleted here: the library is
+   * changed only in the 라이브러리 tab (USER Nov 25).
+   */
+  readonly editReason?: string | undefined;
   /** Opens the editor; after creation the host focuses its title field. */
   readonly onOpenSong: (selection: LibrarySelection) => void;
   readonly onSelectSong?: ((songId: SongId) => void) | undefined;
@@ -59,6 +64,7 @@ export interface LibraryPanelProps {
 export function LibraryPanel({
   api,
   navigating = false,
+  editReason,
   onOpenSong,
   onSelectSong,
   onNewSong,
@@ -103,7 +109,7 @@ export function LibraryPanel({
   const renameAfterMenu = useMenuHandoff(menu !== null, setRenaming);
   const renamed = library.songs.find(song => song.id === renaming);
   const listArea = useRef<HTMLDivElement>(null);
-  const history = contentDeleteHistory(api.content);
+  const history = contentDeleteHistory(api.content, 'songs');
   useUndoKeys(listArea);
   useReflow(listArea, {
     ids: library.visible.map(row => row.song.id),
@@ -117,7 +123,12 @@ export function LibraryPanel({
     history,
     menuOpen: menu !== null,
   });
-  useSongDuplicateKey({list: listArea, library, serviceBusy: serviceMenu.busy});
+  useSongDuplicateKey({
+    list: listArea,
+    library,
+    serviceBusy: serviceMenu.busy,
+    editReason,
+  });
   const menuSong = library.songs.find(song => song.id === menu?.id);
   return (
     <>
@@ -213,6 +224,7 @@ export function LibraryPanel({
             remove: () => deleteAfterMenu(menuSong),
             rename: () => renameAfterMenu(menuSong.id),
             reveal: () => api.library.revealSong(menuSong.id),
+            editReason,
           })}
         />
       ) : null}
