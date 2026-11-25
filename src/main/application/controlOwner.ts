@@ -13,6 +13,11 @@ import type {UiZoomRegistration} from '../store/settings/uiZoom';
 import {createControlWindow} from '../windows/control';
 import {registerControlClose, type ControlClose} from '../windows/controlClose';
 import {ControlHeartbeat} from '../windows/controlHeartbeat';
+import {
+  LATE_DISPLAY_CHANGE_MS,
+  stallNeedsRecovery,
+  watchDisplayChanges,
+} from '../windows/displayStall';
 import {announceReloadAfterCrash} from '../windows/reloadNotice';
 import {showStartupError} from '../windows/startupError';
 import type {LaunchProgress} from './launchProgress';
@@ -166,8 +171,41 @@ export class ControlOwner {
   }
 
   private watchHeartbeat(win: BrowserWindow): void {
-    const {windowMode, onHang} = this.options;
+    const {windowMode, onHang, log} = this.options;
     let scriptAnswered = false;
+    const displays = watchDisplayChanges();
+    let settling: ReturnType<typeof setTimeout> | undefined;
+    /**
+     * A window that draws nothing while its script answers waits a moment for
+     * a display change that Windows reports late, then starts its graphics
+     * again only when the displays did not just change.
+     */
+    const stalled = (answered: boolean): void => {
+      if (!answered) {
+        onHang(false);
+        return;
+      }
+      settling = setTimeout(() => {
+        settling = undefined;
+        if (win.isDestroyed()) return;
+        const lastDisplayChange = displays.last();
+        if (
+          stallNeedsRecovery({
+            scriptAnswered: true,
+            lastDisplayChange,
+            now: Date.now(),
+          })
+        ) {
+          onHang(true);
+          return;
+        }
+        log.warn('control window drew nothing while the displays changed', {
+          sinceChangeMs: Date.now() - (lastDisplayChange ?? 0),
+        });
+        heartbeat.stop();
+        heartbeat.start();
+      }, LATE_DISPLAY_CHANGE_MS);
+    };
     const heartbeat = new ControlHeartbeat(
       () => {
         scriptAnswered = false;
@@ -180,10 +218,14 @@ export class ControlOwner {
           ? Promise.all([answer, win.webContents.capturePage(ONE_PIXEL)])
           : answer;
       },
-      () => onHang(scriptAnswered),
+      () => stalled(scriptAnswered),
     );
     win.webContents.on('did-start-loading', () => heartbeat.stop());
     win.webContents.on('did-finish-load', () => heartbeat.start());
-    win.once('closed', () => heartbeat.stop());
+    win.once('closed', () => {
+      heartbeat.stop();
+      if (settling !== undefined) clearTimeout(settling);
+      displays.stop();
+    });
   }
 }
