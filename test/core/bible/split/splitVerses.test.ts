@@ -79,3 +79,20 @@ describe('copible verse parts and saved cuts', () => {
     );
   });
 });
+
+it('keeps why a verse could not be laid out, as one plain slide', () => {
+  const broken = {
+    ...mockSplitLayout(),
+    measure: () => {
+      throw new Error('font not loaded');
+    },
+  };
+  const [part, ...rest] = splitVerseParts(verse, broken);
+  expect(rest).toEqual([]);
+  expect(part).toMatchObject({
+    part: 1,
+    partCount: 1,
+    problem: 'measurement',
+    problemDetail: 'font not loaded',
+  });
+});

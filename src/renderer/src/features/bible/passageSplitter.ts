@@ -54,9 +54,16 @@ export class PassageSplitter {
       ...(slides === undefined ? {} : {slides}),
       verseNumbers,
     });
-    return split.parts.some(part => part.problem !== undefined)
-      ? null
-      : {...split, theme, address: passage.displayRef};
+    const failed = split.parts.find(part => part.problem !== undefined);
+    if (failed !== undefined) {
+      console.error('Could not lay out a verse of a passage', {
+        reference: failed.reference,
+        problem: failed.problem,
+        detail: failed.problemDetail,
+      });
+      return null;
+    }
+    return {...split, theme, address: passage.displayRef};
   }
 }
 

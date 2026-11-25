@@ -23,6 +23,8 @@ export interface VersePart extends VerseInput {
   readonly partCount: number;
   readonly manual: boolean;
   readonly problem?: 'measurement';
+  /** What went wrong when the verse could not be laid out. */
+  readonly problemDetail?: string;
 }
 
 function partsOfPlan(
@@ -96,7 +98,7 @@ export function splitVerseParts(
         manual: false,
       }));
     }
-  } catch {
+  } catch (error) {
     return [
       {
         ...verse,
@@ -106,6 +108,7 @@ export function splitVerseParts(
         partCount: 1,
         manual: false,
         problem: 'measurement' as const,
+        problemDetail: error instanceof Error ? error.message : String(error),
       },
     ];
   }
