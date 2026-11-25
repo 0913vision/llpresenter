@@ -1,5 +1,5 @@
 import {logFailure} from '@renderer/platform/logFailure';
-import {SCREEN_NAME_PROBLEMS} from '../screenEditor';
+import {SCREEN_NAME_PROBLEMS, SCREEN_SAVE_FAILED} from '../screenEditor';
 import {type Screen, SCREEN_KIND_ORDER} from '@core/schema/screens/screens';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useMemo, type JSX} from 'react';
@@ -223,7 +223,7 @@ export function ScreenProperties({
           })
           .catch((cause: unknown) => {
             logFailure(window.llp, 'Could not rename the screen', cause);
-            onProblem?.(warningNotice('screens:rename', '화면 설정 저장 실패'));
+            onProblem?.(warningNotice('screens:rename', SCREEN_SAVE_FAILED));
           });
       }}
       assign={target => {

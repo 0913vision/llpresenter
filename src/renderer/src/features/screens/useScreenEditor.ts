@@ -1,14 +1,17 @@
 import {logFailure} from '@renderer/platform/logFailure';
 import {useLayoutEffect, useRef} from 'react';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
-import {ScreenEditor, type EditProblemReporter} from './screenEditor';
+import {
+  SCREEN_SAVE_FAILED,
+  ScreenEditor,
+  type EditProblemReporter,
+} from './screenEditor';
 import type {ScreenChange} from '@core/screens';
 import type {MonitorInfo, MonitorList} from '@core/schema/screens/monitors';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {NewScreen} from './addScreen';
 import type {NamedDocument} from '@core/schema/app/settingsDocuments';
 
-const SAVE_FAILED_TITLE = '화면 설정 저장 실패';
 const sessions = new WeakMap<LlpApi, ReturnType<typeof createSession>>();
 
 function createSession(api: LlpApi) {
@@ -52,7 +55,7 @@ export function useScreenEditor(
     if (api === undefined) return undefined;
     const session = sessionFor(api);
     const reportProblem: EditProblemReporter = () =>
-      onProblem?.(warningNotice('screens:save', SAVE_FAILED_TITLE));
+      onProblem?.(warningNotice('screens:save', SCREEN_SAVE_FAILED));
     if (onProblem !== undefined) session.reporters.add(reportProblem);
     editor.current = session.editor;
     return () => {

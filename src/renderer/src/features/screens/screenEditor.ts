@@ -15,6 +15,9 @@ import {
 import {SettingsDocumentEditor} from './settingsDocumentEditor';
 import {addScreen, type NewScreen} from './addScreen';
 
+/** The title of the card of a screen settings change that could not be saved. */
+export const SCREEN_SAVE_FAILED = '화면 설정 저장 실패';
+
 type ScreensDocument = Extract<SettingsDocument, {name: 'screens'}>;
 interface AssignmentSnapshot {
   screens: readonly Screen[] | null;
@@ -62,7 +65,7 @@ export class ScreenEditor {
         baseRevision: base.revision,
       }),
       report,
-      failureTitle: '화면 설정 저장 실패',
+      failureTitle: SCREEN_SAVE_FAILED,
       logMessage: 'Could not save the screens',
     });
   }

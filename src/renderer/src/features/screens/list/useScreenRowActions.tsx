@@ -10,7 +10,7 @@ import {sendLive, useOutputs} from '@renderer/session/live';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import {useScreensSelection} from '../selection';
 import {useScreenEditor} from '../useScreenEditor';
-import {SCREEN_NAME_PROBLEMS} from '../screenEditor';
+import {SCREEN_NAME_PROBLEMS, SCREEN_SAVE_FAILED} from '../screenEditor';
 import {lastOfKind, nameProblem} from '@core/screens';
 import {ScreenContextMenu} from './screenMenuEntries';
 import type {MenuAnchor} from '@renderer/ui/menus/menuModel';
@@ -44,7 +44,7 @@ export function useScreenRowActions(
     onProblem?.(warningNotice('screens:row', title));
   const failed = (cause: unknown): void => {
     logFailure(window.llp, 'Could not edit a screen row', cause);
-    report('화면 설정 저장 실패');
+    report(SCREEN_SAVE_FAILED);
   };
   const handoff = useMenuHandoff<{kind: 'rename' | 'delete'; id: string}>(
     menu !== null,
