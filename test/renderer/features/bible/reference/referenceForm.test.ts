@@ -24,7 +24,7 @@ describe('the hint in an empty number field', () => {
     expect(numberPlaceholder('chapter', base)).toBe('1~21');
     expect(numberPlaceholder('end', {...base, start: '16'})).toBe('16~36');
     expect(numberPlaceholder('start', {...base, lastVerse: undefined})).toBe(
-      '불러오는 중...',
+      '불러오는 중',
     );
   });
 
