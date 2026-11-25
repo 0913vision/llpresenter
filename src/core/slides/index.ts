@@ -5,6 +5,7 @@ export {
   fillsItself,
   ownText,
   showsHymn,
+  takesManyRows,
   withOwnText,
   withTypedText,
 } from './boxes';
@@ -82,12 +83,6 @@ export {
   slidesOfVerse,
   splitPassage,
 } from './splitPassage';
-export {
-  type TextEdit,
-  joinSlide,
-  pasteSlideText,
-  splitSlide,
-} from './textEdits';
 export {
   type SlideSource,
   itemTiles,

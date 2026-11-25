@@ -23,6 +23,18 @@ export function fillsItself(theme: ThemeFile, box: string): boolean {
   );
 }
 
+/**
+ * Whether a box takes several lines, so Enter breaks the line in it: a box of
+ * the theme set to 여러 줄, and 미리 보여줄 내용, whose filled text is the
+ * next slide's lines.
+ */
+export function takesManyRows(theme: ThemeFile, box: string): boolean {
+  return (
+    box === NEXT_BOX ||
+    theme.boxes.find(entry => entry.name === box)?.rows === 'many'
+  );
+}
+
 const HYMN_VALUES = [AUTO_TOKENS.hymnNumber, AUTO_TOKENS.hymnTitle];
 
 /** Whether a theme writes the hymn that its slides are the titles of. */

@@ -735,7 +735,6 @@ decision; no equivalent generic ProPresenter panel command is claimed.
 | 예배를 템플릿으로 저장              | `service.saveAsTemplate`                      | None                                      | None                        | Decided, no ProPresenter source found (05)                                                                                                                                                                                                                                                                 | All                                                     | 1     |
 | 실행 취소                           | `edit.undo`                                   | Ctrl Z                                    | Undo, Ctrl Z                | Decided, follows ProPresenter for edit undo only. Runs back the latest step of the window; off in 진행 (USER Nov 24, "진행에서 실행취소가 먹는건 이상한데"). Never restores a clear. Also steps back through the unsaved edits of the 테마 workspace (12).                                                 | Editable lists, 준비 edits, text fields, 테마 workspace | 1     |
 | 다시 실행                           | `edit.redo`                                   | Ctrl Y, Ctrl Shift Z                      | Redo, Ctrl Y                | Decided, follows ProPresenter for Ctrl Y. Ctrl Shift Z added because many Windows editors accept it.                                                                                                                                                                                                       | Editable lists, 준비 edits, text fields                 | 1     |
-| 슬라이드 나누기                     | `editor.splitSlide`                           | Ctrl Enter                                | None                        | Decided, no ProPresenter source found; follows EasyWorship (S9). Splits the block at the cursor. Enter on an empty line still splits (05).                                                                                                                                                                 | Song editor                                             | 1     |
 | 새 슬라이드                         | `editor.newSlide`                             | Ctrl Shift N                              | New Slide, Ctrl Shift N     | Decided, follows ProPresenter. Inserts an empty block after the current block.                                                                                                                                                                                                                             | Song editor                                             | 1     |
 | 이름표 메뉴                         | `editor.labelMenu`                            | None                                      | None                        | Decided, no ProPresenter source found. Opens the 이름표 menu of the current block.                                                                                                                                                                                                                         | Song editor                                             | 1     |
 | 위로 옮기기, 아래로 옮기기          | `list.moveUp`, `list.moveDown`                | Alt ↑, Alt ↓                              | None                        | The keyboard alternative of dragging a row in the 준비 예배 순서, the 빠른 실행 list, and the 매크로 모음 list; the 이름표 chips keep Alt ←, Alt →. In 준비, selected items move one row across section boundaries as one undo step. A 구역 row moves by drag only. 진행's 예배 순서 cannot be reordered.  |
@@ -882,7 +881,6 @@ same place. Native window and field keys are identified separately.
 | Ctrl B                                      | 성경 구절 찾기                                               | 진행                                                           |
 | Ctrl N                                      | 새 곡                                                        | All                                                            |
 | Ctrl Shift N                                | 새 슬라이드                                                  | Song editor                                                    |
-| Ctrl Enter                                  | 슬라이드 나누기                                              | Song editor                                                    |
 | Ctrl Shift I                                | 텍스트 파일 가져오기                                         | All                                                            |
 | Ctrl D                                      | 복제                                                         | Where 복제 exists                                              |
 | Delete                                      | 삭제                                                         | Lists, chip strip, 테마 editor                                 |
@@ -1579,9 +1577,11 @@ otherwise after the last selected slide. Ctrl D duplicates, Delete removes, and
 Ctrl Z/Y undo/redo each operation as one step. The 편집 and row menus use the
 same focused handlers. Native text fields and IME keep their own keys.
 
-In lyrics, Enter inserts a line, Ctrl Enter splits, and Backspace at the
-beginning merges into the preceding slide. Plain-text blank lines split into
-slides. Typing groups until the cursor leaves or one second passes. Ctrl G opens
+In lyrics, Enter inserts a line. No key and no paste changes the slides
+themselves (USER Nov 25: nothing implicit, PowerPoint-like): Backspace at the
+beginning never merges into the slide before, the arrows never leave the slide's
+text, a pasted text with blank lines stays in its field, and Ctrl Enter does not
+split. Typing groups until the cursor leaves or one second passes. Ctrl G opens
 the shared 이름표 picker for the current slide selection.
 
 While a song editor is open, its 저장 binding takes precedence over a matching
