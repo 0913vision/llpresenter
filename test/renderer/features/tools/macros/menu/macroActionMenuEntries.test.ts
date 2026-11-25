@@ -1,7 +1,11 @@
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {expect, it, vi} from 'vitest';
 import {hasSubmenu, menuItems} from '@renderer/ui/menus/menuModel';
-import {macroActionEntries} from '@renderer/features/tools/macros/menu/macroActionMenuEntries';
+import {
+  macroActionEntries,
+  macroActionName,
+} from '@renderer/features/tools/macros/menu/macroActionMenuEntries';
+import {MACRO_ACTIONS} from '@renderer/features/tools/macros/actions/macroActionCatalog';
 import type {MacroMenuHandlers} from '@renderer/features/tools/macros/menu/macroMenuEntries';
 import {mockHandlers} from '@fixtures/renderer/features/tools/macroMenuTesting';
 
@@ -136,4 +140,43 @@ it('defers large target lists until the chosen action or kind opens', () => {
   const media = menuItems(add?.submenu ?? []).find(row => row.id === 'media');
   expect(menuItems(media?.loadSubmenu?.() ?? [])).toHaveLength(10_000);
   expect(namesRead).toBeLessThan(21_000);
+});
+
+it('names an action by its target, its audio operation, or its kind', () => {
+  const theme = '00000000-0000-4000-8000-000000000001';
+  const doc = settingsDocument('macros', {
+    macros: [
+      {
+        id: '00000000-0000-4000-8000-000000000020',
+        name: '예배 시작',
+        color: 'teal',
+        icon: 'macro',
+        actions: [
+          {kind: 'theme', theme},
+          {kind: 'clearLayer', layer: 'slide'},
+          {kind: 'audio', operation: 'stop'},
+          {kind: 'audio', operation: 'fadeOut'},
+          {kind: 'camera', input: 2},
+        ],
+      },
+    ],
+    collections: [],
+  });
+  if (doc.name !== 'macros') throw new Error('Invalid fixture');
+  const actions = doc.value.macros[0]?.actions ?? [];
+  const targets = {
+    theme: [{id: theme, name: '찬양'}],
+    clearLayer: [{id: 'slide', name: '슬라이드'}],
+  };
+
+  expect(actions.map(action => macroActionName(action, targets))).toEqual([
+    '찬양',
+    '슬라이드 지우기',
+    '오디오 정지',
+    '오디오 페이드 아웃',
+    '알 수 없는 동작',
+  ]);
+  const [first] = actions;
+  if (first === undefined) throw new Error('Missing action');
+  expect(macroActionName(first, undefined)).toBe(MACRO_ACTIONS.theme.label);
 });
