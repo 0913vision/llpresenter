@@ -85,32 +85,34 @@ function isEffect(node: Element): boolean {
   return node.localName !== 'extLst';
 }
 
-/** The picture a slide is, when nothing else is behind its texts. */
-export function plainPicture(
-  {slide, layout, master}: PowerPointSlideParts,
+/** The picture of the first background among the slide, its layout and its master. */
+function backgroundPicture({
+  slide,
+  layout,
+  master,
+}: PowerPointSlideParts): string | undefined {
+  const background = [slide, layout, master]
+    .flatMap(part =>
+      part === undefined
+        ? []
+        : descendants(part.root, 'bg').map(node => ({part, node})),
+    )
+    .at(0);
+  if (background === undefined) return undefined;
+  const fill = descendants(background.node, 'blipFill')[0];
+  return fill && pictureIn(background.part, fill);
+}
+
+/**
+ * The picture of a slide's one picture shape when it covers the whole slide
+ * as it is: not turned, flipped, cropped to a shape or given effects.
+ */
+function fullSlidePicture(
+  picture: Element,
+  slide: PowerPointPart,
   size: {readonly width: number; readonly height: number},
 ): string | undefined {
-  if (drawsShapes(layout) || drawsShapes(master)) return undefined;
-  const tree = descendants(slide.root, 'spTree')[0];
-  const shapes = (tree ? children(tree) : []).filter(
-    shape => DRAWN.has(shape.localName) && !isText(shape),
-  );
-  const [only, more] = shapes;
-  if (more !== undefined) return undefined;
-  if (only === undefined) {
-    const background = [slide, layout, master]
-      .flatMap(part =>
-        part === undefined
-          ? []
-          : descendants(part.root, 'bg').map(node => ({part, node})),
-      )
-      .at(0);
-    if (background === undefined) return undefined;
-    const fill = descendants(background.node, 'blipFill')[0];
-    return fill && pictureIn(background.part, fill);
-  }
-  if (only.localName !== 'pic') return undefined;
-  const transform = descendants(only, 'xfrm')[0];
+  const transform = descendants(picture, 'xfrm')[0];
   const off = transform && named(transform, 'off')[0];
   const extent = transform && named(transform, 'ext')[0];
   const near = (value: number, wanted: number, whole: number): boolean =>
@@ -121,13 +123,32 @@ export function plainPicture(
     near(numberAttribute(off, 'y'), 0, size.height) &&
     near(numberAttribute(extent, 'cx'), size.width, size.width) &&
     near(numberAttribute(extent, 'cy'), size.height, size.height);
-  const geometry = descendants(only, 'prstGeom')[0]?.getAttribute('prst');
+  const geometry = descendants(picture, 'prstGeom')[0]?.getAttribute('prst');
   const plain =
     (geometry === undefined || geometry === null || geometry === 'rect') &&
-    descendants(only, 'effectLst').length === 0 &&
-    descendants(only, 'flipH').length === 0 &&
+    descendants(picture, 'effectLst').length === 0 &&
+    descendants(picture, 'flipH').length === 0 &&
     transform?.getAttribute('flipH') !== '1' &&
     transform?.getAttribute('flipV') !== '1';
-  const fill = named(only, 'blipFill')[0];
+  const fill = named(picture, 'blipFill')[0];
   return fills && plain && fill ? pictureIn(slide, fill) : undefined;
+}
+
+/** The picture a slide is, when nothing else is behind its texts. */
+export function plainPicture(
+  parts: PowerPointSlideParts,
+  size: {readonly width: number; readonly height: number},
+): string | undefined {
+  const {slide, layout, master} = parts;
+  if (drawsShapes(layout) || drawsShapes(master)) return undefined;
+  const tree = descendants(slide.root, 'spTree')[0];
+  const shapes = (tree ? children(tree) : []).filter(
+    shape => DRAWN.has(shape.localName) && !isText(shape),
+  );
+  const [only, more] = shapes;
+  if (more !== undefined) return undefined;
+  if (only === undefined) return backgroundPicture(parts);
+  return only.localName === 'pic'
+    ? fullSlidePicture(only, slide, size)
+    : undefined;
 }
