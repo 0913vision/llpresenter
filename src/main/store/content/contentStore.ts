@@ -90,6 +90,21 @@ interface DeleteStack {
 }
 
 /**
+ * Where an undone deletion writes its file back. A deleted file goes to the
+ * 휴지통, so its own name is free again and it comes back under that name;
+ * a copy restored from the 휴지통 later meets it instead of making a second
+ * document. When a file has that name again, it comes back under a new one.
+ */
+async function restoredFile(
+  file: string,
+  deleteFailed: boolean,
+): Promise<string> {
+  return deleteFailed || !(await fileExists(file))
+    ? file
+    : join(dirname(file), `${randomUUID()}${extname(file)}`);
+}
+
+/**
  * The songs, 예배 순서, and 템플릿 in the main process, and the edits windows ask
  * for. A whole-document update applies over the stored file, so unknown
  * fields survive, and is saved half a second after the last change. An edit
@@ -333,6 +348,19 @@ export class ContentStore {
     return undefined;
   }
 
+  /** Whether a restored song's title is free: no song has it, as titles compare. */
+  private songTitleFree(title: unknown): boolean {
+    return (
+      typeof title === 'string' &&
+      !this.songs
+        .all()
+        .some(
+          song =>
+            normalizeSongTitle(song.data.title) === normalizeSongTitle(title),
+        )
+    );
+  }
+
   private deletionStep<T extends {readonly id: string}>({
     area,
     documents,
@@ -356,34 +384,16 @@ export class ContentStore {
         if (documents.get(id)) {
           return refuse('stale', 'The deleted document already exists');
         }
-        if (area === 'song') {
-          const title: unknown = Reflect.get(saved.data, 'title');
-          if (
-            typeof title !== 'string' ||
-            this.songs
-              .all()
-              .some(
-                song =>
-                  normalizeSongTitle(song.data.title) ===
-                  normalizeSongTitle(title),
-              )
-          ) {
-            return refuse(
-              'duplicate-title',
-              'Another song already has this title',
-            );
-          }
+        if (
+          area === 'song' &&
+          !this.songTitleFree(Reflect.get(saved.data, 'title'))
+        ) {
+          return refuse(
+            'duplicate-title',
+            'Another song already has this title',
+          );
         }
-        // NOTE(0913vision): A deleted file goes to the 휴지통, so its own name is
-        // free again. It comes back under that name, and a copy restored from
-        // the 휴지통 later meets it instead of making a second document.
-        const file =
-          deleteFailed || !(await fileExists(saved.file))
-            ? saved.file
-            : join(
-                dirname(saved.file),
-                `${randomUUID()}${extname(saved.file)}`,
-              );
+        const file = await restoredFile(saved.file, deleteFailed);
         const full = this.writes.savesFull([file]);
         if (full) return full;
         saved = documents.restore(saved, file);
