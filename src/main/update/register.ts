@@ -6,6 +6,7 @@ import type {Logger} from '../base/log';
 import type {ShutdownCoordinator} from '../base/shutdown';
 import {UpdateController} from './controller';
 import {createUpdater} from './electronUpdater';
+import {contentsForLog} from '../base/renderers/pageUrl';
 
 interface RegisterOptions {
   readonly control: {
@@ -101,7 +102,10 @@ export function registerUpdates(options: RegisterOptions): () => void {
   });
   ipc.signal(updateEndpoints.check, caller => {
     if (!isControl(caller)) {
-      log.warn('Refused an update check of another window');
+      log.warn(
+        'Refused an update check of another window',
+        contentsForLog(caller.contents),
+      );
       return;
     }
     controller
@@ -112,7 +116,12 @@ export function registerUpdates(options: RegisterOptions): () => void {
   });
   ipc.message(updateEndpoints.act, (action, caller) => {
     if (isControl(caller)) controller.act(action);
-    else log.warn('Refused an update action of another window');
+    else {
+      log.warn(
+        'Refused an update action of another window',
+        contentsForLog(caller.contents),
+      );
+    }
   });
   const unsubscribe = store.subscribe(() => controller.outputsChanged());
   options.ready

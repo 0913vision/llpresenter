@@ -12,6 +12,7 @@ import {
 } from '@core/schema/common/ids';
 import {IpcHost, pushToWindow, type Caller} from '../base/ipcHost';
 import type {Logger} from '../base/log';
+import {contentsForLog} from '../base/renderers/pageUrl';
 
 type CloseListener = (event: {preventDefault(): void}) => void;
 
@@ -150,7 +151,10 @@ class ControlCloseHandshake implements ControlClose {
     const pending = this.pending;
     if (pending === null || !this.fromControl(caller)) return;
     if (requestId !== pending.requestId) {
-      this.options.log.warn('ignored a reply to another flush request');
+      this.options.log.warn('ignored a reply to another flush request', {
+        requestId,
+        pending: pending.requestId,
+      });
       return;
     }
     pending.settle(result ? 'flushed' : 'refused');
@@ -179,7 +183,10 @@ class ControlCloseHandshake implements ControlClose {
 
   private fromControl({contents}: Caller): boolean {
     if (contents.id === this.controlId) return true;
-    this.options.log.warn('ignored a close message of another window');
+    this.options.log.warn(
+      'ignored a close message of another window',
+      contentsForLog(contents),
+    );
     return false;
   }
 
@@ -218,6 +225,10 @@ class ControlCloseHandshake implements ControlClose {
     this.timer = setTimeout(() => {
       this.options.log.warn(
         'the control window did not answer the flush request in time',
+        {
+          requestId: pending.requestId,
+          waitedMs: this.options.timeoutMs ?? APP_FLUSH_LIMITS.timeoutMs,
+        },
       );
       pending.settle('no-reply');
     }, this.options.timeoutMs ?? APP_FLUSH_LIMITS.timeoutMs);

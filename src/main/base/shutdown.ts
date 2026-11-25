@@ -152,6 +152,7 @@ export class ShutdownCoordinator {
       if (saved === true) return true;
       this.options.log.error(
         'Update installation cancelled because pending edits were not saved',
+        {saved: saved === false ? 'refused' : 'timed out'},
       );
       return false;
     } catch (error) {

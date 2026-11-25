@@ -192,7 +192,7 @@ async function serveAnalysisFile(
 ): Promise<Response> {
   const path = analysisFile?.(token) ?? null;
   if (path === null) {
-    log.warn('no file for an analysis token');
+    log.warn('no file for an analysis token', {token});
     return new Response(null, {status: HTTP_NOT_FOUND});
   }
   try {

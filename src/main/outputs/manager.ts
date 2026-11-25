@@ -441,7 +441,11 @@ export class OutputManager {
     );
     const controlMonitor = findControlMonitor(monitors, controlBounds());
     if (controlMonitor === null) {
-      log.warn('no monitor to place the output windows on');
+      log.warn('no monitor to place the output windows on', {
+        monitors: displays.monitors.length,
+        settling: this.unsettledRemovals.size,
+        controlBounds: controlBounds(),
+      });
       return null;
     }
     const input = {

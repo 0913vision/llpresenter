@@ -139,7 +139,7 @@ async function removeMarker({file, token}: Marker, log: Logger): Promise<void> {
   if (token === null) return;
   try {
     if (!(await ownsMarker(file, token))) {
-      log.warn('recovery session marker changed; keeping it');
+      log.warn('recovery session marker changed; keeping it', {file});
       return;
     }
     await rm(file, {force: true});

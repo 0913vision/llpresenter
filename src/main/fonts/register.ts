@@ -7,6 +7,7 @@ import {FontCatalogCache} from './fontCatalog';
 import {readCatalogFile, writeCatalogFile} from './catalogFile';
 import {readWindowsFontStamp} from './windowsFontStamp';
 import {readWindowsFonts} from './windowsFonts';
+import {contentsForLog} from '../base/renderers/pageUrl';
 
 interface FontReader {
   readonly mainFrame: object;
@@ -59,7 +60,10 @@ export function registerFonts(
     ) {
       return;
     }
-    log.warn('Refused an invalid font catalog request');
+    log.warn('Refused an invalid font catalog request', {
+      ...contentsForLog(contents),
+      isMainFrame,
+    });
     throw new Error('Invalid font catalog request');
   };
   ipc.query(outputEndpoints.fonts, caller => {

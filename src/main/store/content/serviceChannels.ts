@@ -53,7 +53,10 @@ class ServiceSwitches {
   ): Promise<ServiceOpenResult> {
     const {log} = this.options;
     if (this.pending >= MAX_PENDING_SERVICE_SWITCHES) {
-      log.warn('too many pending service switches');
+      log.warn('too many pending service switches', {
+        pending: this.pending,
+        limit: MAX_PENDING_SERVICE_SWITCHES,
+      });
       return refused('busy');
     }
     this.pending++;
