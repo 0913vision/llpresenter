@@ -129,6 +129,130 @@ export function isInputMethodKey(event: KeyboardEvent): boolean {
   );
 }
 
+/**
+ * The workspace on screen (show, prep or screens), read from the layout so a
+ * key and a menu row see the same one; none before the layout draws.
+ */
+export function currentWorkspace(): string | null | undefined {
+  return document
+    .querySelector('[data-workspace-layout]')
+    ?.getAttribute('data-workspace-layout');
+}
+
+/**
+ * Whether a handler's command works in the workspace on screen: commands of
+ * the whole window, of that workspace, or of the handler's own part.
+ */
+export function fitsWorkspace(
+  handler: WindowShortcut,
+  workspace: string | null | undefined,
+): boolean {
+  const spec = shortcutCommand(handler.id);
+  return (
+    workspace === undefined ||
+    workspace === null ||
+    spec === undefined ||
+    spec.contexts.some(
+      context =>
+        context === 'control' ||
+        context === workspace ||
+        context === handler.context,
+    )
+  );
+}
+
+/** A presenter's Shift F5 does nothing in 진행, so it can't clear the sound. */
+function isShowShiftF5(
+  event: KeyboardEvent,
+  workspace: string | null | undefined,
+): boolean {
+  return (
+    workspace === 'show' &&
+    event.code === 'F5' &&
+    event.shiftKey &&
+    !event.ctrlKey &&
+    !event.altKey &&
+    !event.metaKey
+  );
+}
+
+/** Whether the key is still being composed by an input method. */
+function composingKey(event: KeyboardEvent): boolean {
+  return composing || event.isComposing || event.key === 'Process';
+}
+
+/** The slide a 슬라이드 command opens by its key, or null for other commands. */
+function slideCodeOf(id: string): string | null {
+  return id.startsWith('slide.') ? id.slice('slide.'.length) : null;
+}
+
+/** One key press, as every handler is asked about it. */
+interface Press {
+  readonly event: KeyboardEvent;
+  readonly tier: CommandPriority;
+  readonly focus: ShortcutFocus;
+  readonly workspace: string | null | undefined;
+  readonly overrides: ReturnType<typeof commandBindingStore.get>;
+  readonly conflicts: ReturnType<typeof commandBindingStore.conflicts>;
+}
+
+/** Whether the key is one of the handler's keys, as the user set them. */
+function pressesHandlerKey(handler: WindowShortcut, press: Press): boolean {
+  const {event} = press;
+  const slideCode = slideCodeOf(handler.id);
+  if (slideCode !== null) return sourceSlideCode(event) === slideCode;
+  const bindings =
+    handler.fixedBindings ?? commandBindings(handler.id, press.overrides);
+  return bindings.some(binding => matchesBinding(event, binding));
+}
+
+/** Whether another command had this key first, and keeps it. */
+function keptByEarlierCommand(handler: WindowShortcut, press: Press): boolean {
+  return press.conflicts.some(
+    conflict =>
+      conflict.second === handler.id &&
+      matchesBinding(press.event, conflict.binding),
+  );
+}
+
+/**
+ * What a key press does with one handler: runs it, takes the key without
+ * running it, or passes it to the next handler.
+ */
+function pressAction(
+  handler: WindowShortcut,
+  press: Press,
+): 'run' | 'consume' | 'pass' {
+  const {event} = press;
+  const spec = shortcutCommand(handler.id);
+  if (
+    !fitsWorkspace(handler, press.workspace) ||
+    ('llpOutput' in event &&
+      event.llpOutput === true &&
+      spec?.output !== true &&
+      slideCodeOf(handler.id) === null) ||
+    (spec?.priority ?? 'normal') !== press.tier ||
+    !pressesHandlerKey(handler, press) ||
+    handler.when?.(event) === false ||
+    keptByEarlierCommand(handler, press)
+  ) {
+    return 'pass';
+  }
+  return commandPressAction({
+    event,
+    priority: press.tier,
+    focus: press.focus,
+    composing: composingKey(event),
+    repeat: spec?.repeat ?? false,
+    textHistoryOwner:
+      (handler.context === 'song' || handler.context === 'screens') &&
+      (handler.id === 'edit.undo' || handler.id === 'edit.redo'),
+    textAllowed: handler.id !== 'clear.undo',
+    live: spec?.output ?? true,
+    workspace: press.workspace,
+  });
+}
+
 /** Dispatches registered commands after the focus owner has taken its keys. */
 export function dispatchShortcut(
   event: KeyboardEvent,
@@ -142,88 +266,31 @@ export function dispatchShortcut(
   ) {
     return;
   }
-  const overrides = commandBindingStore.get();
-  const conflicts = commandBindingStore.conflicts();
-  const workspace = document
-    .querySelector('[data-workspace-layout]')
-    ?.getAttribute('data-workspace-layout');
-  if (
-    workspace === 'show' &&
-    event.code === 'F5' &&
-    event.shiftKey &&
-    !event.ctrlKey &&
-    !event.altKey &&
-    !event.metaKey
-  ) {
+  const workspace = currentWorkspace();
+  if (isShowShiftF5(event, workspace)) {
     event.preventDefault();
     return;
   }
-  const focus = shortcutFocus(event);
-  const priorities: readonly CommandPriority[] =
+  const tiers: readonly CommandPriority[] =
     priority === 'capture' ? ['clear', 'zoom'] : ['normal'];
-  for (const tier of priorities) {
+  const pressed: Omit<Press, 'tier'> = {
+    event,
+    focus: shortcutFocus(event),
+    workspace,
+    overrides: commandBindingStore.get(),
+    conflicts: commandBindingStore.conflicts(),
+  };
+  for (const tier of tiers) {
     for (const handler of inFocusOrder(handlers)) {
-      const spec = shortcutCommand(handler.id);
-      if (
-        workspace !== undefined &&
-        workspace !== null &&
-        spec !== undefined &&
-        !spec.contexts.some(
-          context =>
-            context === 'control' ||
-            context === workspace ||
-            context === handler.context,
-        )
-      ) {
-        continue;
-      }
-      if (
-        'llpOutput' in event &&
-        event.llpOutput === true &&
-        spec?.output !== true &&
-        !handler.id.startsWith('slide.')
-      ) {
-        continue;
-      }
-      const slideCode = handler.id.startsWith('slide.')
-        ? handler.id.slice('slide.'.length)
-        : null;
-      if ((spec?.priority ?? 'normal') !== tier) continue;
-      const matched =
-        slideCode === null
-          ? (
-              handler.fixedBindings ?? commandBindings(handler.id, overrides)
-            ).find(binding => matchesBinding(event, binding))
-          : sourceSlideCode(event) === slideCode
-            ? {code: event.code, mods: []}
-            : undefined;
-      if (matched === undefined) continue;
-      if (handler.when?.(event) === false) continue;
-      if (
-        conflicts.some(
-          conflict =>
-            conflict.second === handler.id &&
-            matchesBinding(event, conflict.binding),
-        )
-      ) {
-        continue;
-      }
-      const ime = composing || event.isComposing || event.key === 'Process';
-      const action = commandPressAction({
-        event,
-        priority: tier,
-        focus,
-        composing: ime,
-        repeat: spec?.repeat ?? false,
-        textHistoryOwner:
-          (handler.context === 'song' || handler.context === 'screens') &&
-          (handler.id === 'edit.undo' || handler.id === 'edit.redo'),
-        textAllowed: handler.id !== 'clear.undo',
-        live: spec?.output ?? true,
-        workspace,
-      });
+      const action = pressAction(handler, {...pressed, tier});
       if (action === 'pass') continue;
-      executeShortcut({event, handler, tier, action, composing: ime});
+      executeShortcut({
+        event,
+        handler,
+        tier,
+        action,
+        composing: composingKey(event),
+      });
       return;
     }
   }
