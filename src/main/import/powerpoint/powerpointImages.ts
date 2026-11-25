@@ -1,8 +1,12 @@
 import {THEME_CANVAS} from '@core/schema/screens/screens';
-import {spawn, type ChildProcess} from 'node:child_process';
-import {writeFileSync} from 'node:fs';
-import {join} from 'node:path';
 import {POWERPOINT_IMPORT_LIMITS} from '@core/schema/songs/textImportLimits';
+import {
+  endLeftPowerPoint,
+  windowsPowerPointProcesses,
+  type PowerPointProcesses,
+  type StartedPowerPointStore,
+} from './powerpointProcess';
+import {PowerPointRun, type PowerPointImagesResult} from './powerpointRun';
 
 // NOTE(0913vision): Slides export at the canvas size; the script names it
 // through W and H.
@@ -42,7 +46,10 @@ try {
     try { $powerpoint = New-Object -ComObject PowerPoint.Application }
     catch { [Console]::Out.WriteLine('FAILURE unresponsive'); throw }
     $created = $true
-    [IO.File]::WriteAllText((Join-Path $env:LLP_PPT_DIRECTORY 'created'), '1')
+    # No PowerPoint ran before, so the one that runs now is this script's own.
+    foreach ($process in @(Get-Process POWERPNT -ErrorAction SilentlyContinue)) {
+      [Console]::Out.WriteLine(('STARTED {0}' -f $process.Id))
+    }
   }
   $security = $powerpoint.AutomationSecurity
   $alerts = $powerpoint.DisplayAlerts
@@ -130,7 +137,11 @@ try {
 }
 `;
 
-/** Runs only after a forced kill; marker files limit cleanup to this job. */
+/**
+ * Runs only after a run that used the operator's PowerPoint was ended: closes
+ * the run's presentation and puts the settings back; marker files limit it
+ * to that run.
+ */
 export const POWERPOINT_IMAGE_CLEANUP_SCRIPT = String.raw`
 $ErrorActionPreference = 'Stop'
 try { $powerpoint = [Runtime.InteropServices.Marshal]::GetActiveObject('PowerPoint.Application') }
@@ -152,43 +163,60 @@ try {
       try { $powerpoint.AutomationSecurity = [int]$values[0] }
       finally { $powerpoint.DisplayAlerts = [int]$values[1] }
     }
-  } finally {
-    if ((Test-Path (Join-Path $env:LLP_PPT_DIRECTORY 'created')) -and $powerpoint.Presentations.Count -eq 0) { $powerpoint.Quit() }
-  }
+  } finally {}
 }
 `;
 
-const TIMEOUT_MS = 120_000;
 const MAX_DECORATION_BATCH = 200;
 
-/**
- * How a slide image export ended: finished, cancelled, PowerPoint is not
- * usable, PowerPoint stopped answering or took too long, or a file problem.
- */
-export type PowerPointImagesResult =
-  'ok' | 'cancelled' | 'unavailable' | 'unresponsive' | 'file';
+/** A store that keeps the started PowerPoint only while the app runs. */
+function memoryStartedPowerPoint(): StartedPowerPointStore {
+  let pid: number | null = null;
+  return {
+    read: () => pid,
+    write: next => {
+      pid = next;
+    },
+  };
+}
 
-/** Runs PowerPoint invisibly and reports completed visible slides. */
+/** What a job looks at processes with, and where it keeps the one it started. */
+export interface PowerPointImagesJobOptions {
+  readonly processes?: PowerPointProcesses;
+  readonly started?: StartedPowerPointStore;
+}
+
+/**
+ * Runs PowerPoint invisibly, one run at a time, and reports completed visible
+ * slides. Each run owns what it makes and frees it on every path; a
+ * PowerPoint an earlier run left behind is ended before the next one.
+ */
 export class PowerPointImagesJob {
-  private child: ChildProcess | null = null;
+  private current: PowerPointRun | null = null;
+  private busy = false;
   private cancelled = false;
-  private directory: string | null = null;
-  private cancelTimer: ReturnType<typeof setTimeout> | null = null;
-  private forceStop: (() => void) | null = null;
+  private readonly processes: PowerPointProcesses;
+  private readonly started: StartedPowerPointStore;
+
+  constructor({
+    processes = windowsPowerPointProcesses,
+    started = memoryStartedPowerPoint(),
+  }: PowerPointImagesJobOptions = {}) {
+    this.processes = processes;
+    this.started = started;
+  }
 
   cancel(): void {
     this.cancelled = true;
-    if (this.directory !== null) {
-      try {
-        writeFileSync(join(this.directory, 'cancel'), '');
-        this.cancelTimer ??= setTimeout(() => this.forceStop?.(), 5000);
-      } catch {
-        this.forceStop?.();
-      }
-    }
+    this.current?.cancel();
   }
 
-  run(
+  /** Whether the run was cancelled; that can happen while it waits. */
+  private wasCancelled(): boolean {
+    return this.cancelled;
+  }
+
+  async run(
     path: string,
     directory: string,
     progress: ((done: number, total: number, number: number) => void) & {
@@ -197,134 +225,35 @@ export class PowerPointImagesJob {
     },
   ): Promise<PowerPointImagesResult> {
     const {decorationSlides, convert} = progress;
-    if (convert && decorationSlides !== undefined) {
-      return Promise.resolve('file');
-    }
-    const numbers = decorationSlides ?? [];
-    if (!decorationBatchValid(decorationSlides)) {
-      return Promise.resolve('file');
-    }
-    if (this.child) return Promise.resolve('unresponsive');
+    if (convert && decorationSlides !== undefined) return 'file';
+    if (!decorationBatchValid(decorationSlides)) return 'file';
+    if (this.busy) return 'unresponsive';
+    this.busy = true;
     this.cancelled = false;
-    this.directory = directory;
-    return new Promise(resolve => {
-      const child = spawn(
-        'powershell.exe',
-        encodedScriptArguments(POWERPOINT_IMAGE_SCRIPT),
-        {
-          windowsHide: true,
-          env: {
-            ...process.env,
-            LLP_PPT_SOURCE: path,
-            LLP_PPT_DIRECTORY: directory,
-            LLP_PPT_DECORATION_SLIDE: numbers.join(','),
-            LLP_PPT_CONVERT: convert ? '1' : '',
-          },
-          stdio: ['ignore', 'pipe', 'ignore'],
+    try {
+      await endLeftPowerPoint(this.started, this.processes);
+      if (this.wasCancelled()) return 'cancelled';
+      await using run = new PowerPointRun({
+        script: POWERPOINT_IMAGE_SCRIPT,
+        cleanupScript: POWERPOINT_IMAGE_CLEANUP_SCRIPT,
+        directory,
+        env: {
+          LLP_PPT_SOURCE: path,
+          LLP_PPT_DIRECTORY: directory,
+          LLP_PPT_DECORATION_SLIDE: (decorationSlides ?? []).join(','),
+          LLP_PPT_CONVERT: convert ? '1' : '',
         },
-      );
-      this.child = child;
-      let output = '';
-      let settled = false;
-      let forced = false;
-      let timedOut = false;
-      let failure: PowerPointImagesResult = 'file';
-      let cleanupStarted = false;
-      let killWait: ReturnType<typeof setTimeout> | null = null;
-      const cleanup = (): void => {
-        if (cleanupStarted || settled) return;
-        cleanupStarted = true;
-        if (killWait !== null) clearTimeout(killWait);
-        const helper = spawn(
-          'powershell.exe',
-          encodedScriptArguments(POWERPOINT_IMAGE_CLEANUP_SCRIPT),
-          {
-            windowsHide: true,
-            env: {
-              ...process.env,
-              LLP_PPT_SOURCE: path,
-              LLP_PPT_DIRECTORY: directory,
-            },
-            stdio: ['ignore', 'ignore', 'ignore'],
-          },
-        );
-        const limit = setTimeout(() => {
-          helper.kill();
-          finish('unresponsive');
-        }, 5000);
-        const complete = (): void => {
-          clearTimeout(limit);
-          finish('unresponsive');
-        };
-        helper.once('error', complete);
-        helper.once('close', complete);
-      };
-      this.forceStop = () => {
-        if (forced || settled) return;
-        forced = true;
-        child.kill();
-        killWait = setTimeout(cleanup, 1000);
-      };
-      const cleanupTimer = setTimeout(() => {
-        timedOut = true;
-        this.cancel();
-      }, TIMEOUT_MS - 5000);
-      const timer = setTimeout(() => {
-        this.forceStop?.();
-      }, TIMEOUT_MS);
-      const finish = (result: PowerPointImagesResult): void => {
-        if (settled) return;
-        settled = true;
-        clearTimeout(cleanupTimer);
-        clearTimeout(timer);
-        if (killWait !== null) clearTimeout(killWait);
-        if (this.cancelTimer !== null) clearTimeout(this.cancelTimer);
-        this.cancelTimer = null;
-        this.forceStop = null;
-        if (this.child === child) this.child = null;
-        this.directory = null;
-        resolve(
-          timedOut ? 'unresponsive' : this.cancelled ? 'cancelled' : result,
-        );
-      };
-      child.stdout.setEncoding('utf8');
-      child.stdout.on('data', (chunk: string) => {
-        output += chunk;
-        const lines = output.split(/\r?\n/);
-        output = lines.pop() ?? '';
-        for (const line of lines) {
-          const read = scriptLine(line);
-          if (read?.kind === 'failure') failure = read.failure;
-          if (read?.kind === 'progress') {
-            progress(read.done, read.total, read.number);
-          }
-        }
+        progress,
+        processes: this.processes,
+        started: this.started,
       });
-      child.once('error', () => {
-        if (!forced) finish('unresponsive');
-      });
-      child.once('close', code => {
-        if (forced) cleanup();
-        else finish(code === 0 ? 'ok' : failure);
-      });
-    });
+      this.current = run;
+      return await run.result;
+    } finally {
+      this.current = null;
+      this.busy = false;
+    }
   }
-}
-
-/**
- * The PowerShell arguments that run a script given as UTF-16 Base64, so no
- * value ever reaches the command line; the script reads them from its
- * environment.
- */
-function encodedScriptArguments(script: string): string[] {
-  return [
-    '-NoProfile',
-    '-NonInteractive',
-    '-ExecutionPolicy',
-    'Bypass',
-    '-EncodedCommand',
-    Buffer.from(script, 'utf16le').toString('base64'),
-  ];
 }
 
 /**
@@ -344,31 +273,4 @@ function decorationBatchValid(numbers: readonly number[] | undefined): boolean {
         number <= POWERPOINT_IMPORT_LIMITS.slides,
     )
   );
-}
-
-/** What one line the export script prints says, or null for any other line. */
-function scriptLine(line: string):
-  | {readonly kind: 'failure'; readonly failure: PowerPointImagesResult}
-  | {
-      readonly kind: 'progress';
-      readonly done: number;
-      readonly total: number;
-      readonly number: number;
-    }
-  | null {
-  if (line === 'FAILURE unavailable') {
-    return {kind: 'failure', failure: 'unavailable'};
-  }
-  if (line === 'FAILURE unresponsive') {
-    return {kind: 'failure', failure: 'unresponsive'};
-  }
-  const match = /^PROGRESS (\d+) (\d+) (\d+)$/.exec(line);
-  return match
-    ? {
-        kind: 'progress',
-        done: Number(match[1]),
-        total: Number(match[2]),
-        number: Number(match[3]),
-      }
-    : null;
 }

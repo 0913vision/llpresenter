@@ -1,4 +1,5 @@
 import {app} from 'electron';
+import {join} from 'node:path';
 import {launchEndpoints} from '@contracts/ipc/launch';
 import {VIEW_TASK_IDS} from '@core/schema/app/launch';
 import {IpcHost, type Caller} from '../base/ipcHost';
@@ -145,6 +146,7 @@ export function startControlFeatures(
     windowMode,
     log,
     media: data.media,
+    startedFile: join(app.getPath('userData'), 'powerpoint-started.txt'),
   });
   return {
     settingsWindow,

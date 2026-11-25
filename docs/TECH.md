@@ -272,6 +272,14 @@ A pull request is approved only when it meets everything below
 - Release everything you register: event subscriptions, timers, IPC listeners,
   `URL.createObjectURL` results, video and audio elements, windows, and utility
   processes.
+- Something that holds outside resources (a child process, a process it started,
+  a temporary folder, a turn) is one object that owns them all and frees them in
+  `[Symbol.asyncDispose]`, which runs once however often it is called. Callers
+  hold it with `await using`, so every path frees it: success, cancel, timeout,
+  and a throw. A process the app started is remembered by its id until it is
+  gone, so one left behind is ended on the next use, also after the app
+  restarts; one the operator may be using (it shows a window) is never ended
+  without asking (USER Nov 25: "일원화를 하고 RAII로제대로하며 leaking없이").
 - Output windows reuse a fixed number of video elements (one for the current
   background and one for the next background). When a video is done, clear its
   source (remove `src`, then call `load()`) to give back decoder memory.

@@ -5,10 +5,8 @@ import {extname, join} from 'node:path';
 import type {WindowMode} from '../../base/renderers/windowMode';
 import type {UiStateFields} from '../../store/locations/appConfigFile';
 import {pickerFolder, rememberPickerFile} from '../../uiState/pickerFolder';
-import type {
-  PowerPointImagesJob,
-  PowerPointImagesResult,
-} from './powerpointImages';
+import type {PowerPointImagesJob} from './powerpointImages';
+import type {PowerPointImagesResult} from './powerpointRun';
 import {isPowerPointFourThree} from '../pptx/powerpointSize';
 import {TEST_IMPORT_FILE_VARIABLE} from '../testImportFile';
 

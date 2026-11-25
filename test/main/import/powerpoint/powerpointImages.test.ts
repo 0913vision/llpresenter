@@ -30,6 +30,19 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
+/**
+ * The child spawned `index`-th, once the job has looked for a PowerPoint an
+ * earlier run left behind and started its script.
+ */
+async function spawned(index: number) {
+  for (let turn = 0; turn < 50 && mocks.children[index] === undefined; turn++) {
+    await Promise.resolve();
+  }
+  const child = mocks.children[index];
+  if (!child) throw new Error(`Missing child ${index}`);
+  return child;
+}
+
 describe('PowerPoint image export', () => {
   it('opens a copied legacy presentation read-only and saves Open XML in the work directory', async () => {
     const job = new PowerPointImagesJob();
@@ -38,6 +51,7 @@ describe('PowerPoint image export', () => {
       'temp',
       Object.assign(vi.fn(), {convert: true as const}),
     );
+    const child = await spawned(0);
     const call: readonly unknown[] | undefined = mocks.spawn.mock.calls[0];
     expect(call?.[2]).toMatchObject({
       env: {
@@ -52,8 +66,6 @@ describe('PowerPoint image export', () => {
     expect(POWERPOINT_IMAGE_SCRIPT).toContain(
       '$readOnly = if ($decorations) { 0 } else { -1 }',
     );
-    const child = mocks.children[0];
-    if (!child) throw new Error('Missing child');
     child.emit('close', 0);
     expect(await result).toBe('ok');
   });
@@ -82,8 +94,7 @@ describe('PowerPoint image export', () => {
     const job = new PowerPointImagesJob();
     const progress = vi.fn();
     const result = job.run('deck.pptm', 'temp', progress);
-    const child = mocks.children[0];
-    if (!child) throw new Error('Missing child');
+    const child = await spawned(0);
     expect(mocks.spawn).toHaveBeenCalledWith(
       'powershell.exe',
       expect.arrayContaining([
@@ -103,12 +114,11 @@ describe('PowerPoint image export', () => {
     const job = new PowerPointImagesJob();
     const progress = Object.assign(vi.fn(), {decorationSlide: 4});
     const result = job.run('temporary.pptx', 'temp', progress);
+    const child = await spawned(0);
     expect(mocks.spawn).toHaveBeenCalledOnce();
     expect(POWERPOINT_IMAGE_SCRIPT).toContain('$env:LLP_PPT_DECORATION_SLIDE');
     expect(POWERPOINT_IMAGE_SCRIPT).toContain('Remove-SlideText $slide.Shapes');
     expect(POWERPOINT_IMAGE_SCRIPT).not.toContain('$presentation.Save(');
-    const child = mocks.children[0];
-    if (!child) throw new Error('Missing child');
     child.emit('close', 0);
     expect(await result).toBe('ok');
   });
@@ -116,12 +126,11 @@ describe('PowerPoint image export', () => {
     const job = new PowerPointImagesJob();
     const progress = Object.assign(vi.fn(), {decorationSlides: [2, 8, 11]});
     const result = job.run('temporary.pptx', 'temp', progress);
+    const child = await spawned(0);
     const call: readonly unknown[] | undefined = mocks.spawn.mock.calls[0];
     expect(call?.[2]).toMatchObject({
       env: {LLP_PPT_DECORATION_SLIDE: '2,8,11'},
     });
-    const child = mocks.children[0];
-    if (!child) throw new Error('Missing child');
     child.stdout.emit('data', 'PROGRESS 2 3 8\n');
     expect(progress).toHaveBeenCalledWith(2, 3, 8);
     child.emit('close', 0);
@@ -145,8 +154,7 @@ describe('PowerPoint image export', () => {
     async (line, expected) => {
       const job = new PowerPointImagesJob();
       const result = job.run('temporary.pptx', 'temp', () => undefined);
-      const child = mocks.children[0];
-      if (!child) throw new Error('Missing child');
+      const child = await spawned(0);
       child.stdout.emit('data', line);
       child.emit('close', 1);
       expect(await result).toBe(expected);
@@ -156,29 +164,23 @@ describe('PowerPoint image export', () => {
     vi.useFakeTimers();
     const job = new PowerPointImagesJob();
     const cancelled = job.run('deck.pptx', 'temp', () => undefined);
-    const first = mocks.children[0];
-    if (!first) throw new Error('Missing child');
+    const first = await spawned(0);
     job.cancel();
     expect(mocks.writeFileSync).toHaveBeenCalledOnce();
     first.emit('close', 0);
     expect(await cancelled).toBe('cancelled');
     const timed = job.run('deck.pptx', 'temp', () => undefined);
-    const second = mocks.children[1];
-    if (!second) throw new Error('Missing child');
+    const second = await spawned(1);
     vi.advanceTimersByTime(120_000);
     expect(second.kill).toHaveBeenCalledOnce();
     second.emit('close', 1);
-    const helper = mocks.children[2];
-    if (!helper) throw new Error('Missing cleanup helper');
+    const helper = await spawned(2);
     expect(mocks.spawn).toHaveBeenCalledTimes(3);
     expect(POWERPOINT_IMAGE_CLEANUP_SCRIPT).toContain(
       "Join-Path $env:LLP_PPT_DIRECTORY 'opening'",
     );
     expect(POWERPOINT_IMAGE_CLEANUP_SCRIPT).toContain(
       '$presentation.FullName, $env:LLP_PPT_SOURCE',
-    );
-    expect(POWERPOINT_IMAGE_CLEANUP_SCRIPT).toContain(
-      "Join-Path $env:LLP_PPT_DIRECTORY 'created'",
     );
     helper.emit('close', 0);
     expect(await timed).toBe('unresponsive');

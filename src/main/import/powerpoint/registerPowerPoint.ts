@@ -7,7 +7,11 @@ import {IpcHost, pushToWindow, type Caller} from '../../base/ipcHost';
 import type {Logger} from '../../base/log';
 import {PowerPointExports, type ExportListener} from './powerpointExports';
 import {choosePowerPointFile, type FileChooserOptions} from './powerpointFile';
-import {PowerPointImagesJob} from './powerpointImages';
+import {
+  PowerPointImagesJob,
+  type PowerPointImagesJobOptions,
+} from './powerpointImages';
+import {fileStartedPowerPoint} from './powerpointProcess';
 import {PowerPointJobs} from '../pptx/powerpointJob';
 import {PowerPointReader} from './powerpointReader';
 import {PowerPointTurns} from './powerpointTurns';
@@ -25,6 +29,21 @@ import {TemporaryPictures} from '../slidePictures/temporaryPictures';
 export interface PowerPointImportRegistration extends FileChooserOptions {
   readonly media?: Promise<PictureStore | null>;
   readonly log: Logger;
+  /**
+   * The file that keeps the PowerPoint this app started, so one left behind
+   * is ended even after the app starts again. Without it, only while the app
+   * runs.
+   */
+  readonly startedFile?: string;
+}
+
+/** The jobs' processes and the PowerPoint they started, shared by every job. */
+function imagesJobOptions({
+  startedFile,
+}: PowerPointImportRegistration): PowerPointImagesJobOptions {
+  return startedFile === undefined
+    ? {}
+    : {started: fileStartedPowerPoint(startedFile)};
 }
 
 const NOT_STORED: PowerPointOwnedImagesResult = {
@@ -61,7 +80,7 @@ export function registerPowerPointImport(
     Partial<Pick<PowerPointJobs, 'cancel'>> = new PowerPointJobs(),
   images: Pick<PowerPointImagesJob, 'run' | 'cancel'> & {
     readonly converter?: Pick<PowerPointImagesJob, 'run' | 'cancel'>;
-  } = new PowerPointImagesJob(),
+  } = new PowerPointImagesJob(imagesJobOptions(context)),
 ): () => void {
   const {log} = context;
   const ipc = new IpcHost(log);
@@ -70,7 +89,8 @@ export function registerPowerPointImport(
     choose: () => choosePowerPointFile(context),
     jobs,
     images,
-    converter: images.converter ?? new PowerPointImagesJob(),
+    converter:
+      images.converter ?? new PowerPointImagesJob(imagesJobOptions(context)),
     turns: new PowerPointTurns(),
     pictures,
     log,
