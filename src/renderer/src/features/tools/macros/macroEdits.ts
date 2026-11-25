@@ -124,91 +124,145 @@ function move(
 }
 
 function apply(file: MacrosFile, edit: MacroEdit): MacrosFile {
-  if (edit.kind === 'duplicate') return duplicate(file, edit.id, edit.copyId);
-  if (edit.kind === 'move') return move(file, edit);
-  if (edit.kind === 'delete') {
-    return {
-      ...file,
-      macros: file.macros.filter(item => item.id !== edit.id),
-      collections: file.collections.map(group => ({
-        ...group,
-        macroIds: group.macroIds.filter(id => id !== edit.id),
-      })),
-    };
+  switch (edit.kind) {
+    case 'duplicate':
+      return duplicate(file, edit.id, edit.copyId);
+    case 'move':
+      return move(file, edit);
+    case 'delete':
+      return deleteMacro(file, edit.id);
+    case 'add':
+      return addMacro(file, edit.item, edit.collection);
+    case 'membership':
+      return setMembership(file, edit);
+    case 'update':
+      return changeMacro(file, edit.id, macro => ({...macro, ...edit.changes}));
+    case 'action':
+      return changeMacro(file, edit.id, macro => ({
+        ...macro,
+        actions: editMacroActions(macro.actions, edit.action),
+      }));
   }
-  const id = edit.kind === 'add' ? edit.item.id : edit.id;
-  const existing = file.macros.find(item => item.id === id);
-  if (edit.kind === 'add' && existing) return file;
-  if (edit.kind === 'add' && file.macros.length >= MACRO_FILE_LIMITS.macros) {
+}
+
+/** Takes a 매크로 out of the list and out of every collection. */
+function deleteMacro(file: MacrosFile, id: Macro['id']): MacrosFile {
+  return {
+    ...file,
+    macros: file.macros.filter(item => item.id !== id),
+    collections: file.collections.map(group => ({
+      ...group,
+      macroIds: group.macroIds.filter(member => member !== id),
+    })),
+  };
+}
+
+/**
+ * Adds a 매크로 at the end of the list, and of collection `collectionId` when
+ * one is given. A 매크로 whose id is there already was added before.
+ */
+function addMacro(
+  file: MacrosFile,
+  macro: Macro,
+  collectionId: MacroCollection['id'] | undefined,
+): MacrosFile {
+  if (file.macros.some(item => item.id === macro.id)) return file;
+  if (file.macros.length >= MACRO_FILE_LIMITS.macros) {
     throw new Error('Macro list is full');
   }
-  if (edit.kind !== 'add' && !existing) {
-    throw new Error('Macro no longer exists');
-  }
-  const collectionId =
-    edit.kind === 'add'
-      ? edit.collection
-      : edit.kind === 'membership'
-        ? edit.collection
-        : undefined;
+  return checked({
+    ...file,
+    collections:
+      collectionId === undefined
+        ? file.collections
+        : withMember(file, {
+            collection: collectionId,
+            id: macro.id,
+            member: true,
+          }),
+    macros: [...file.macros, named(macro)],
+  });
+}
+
+/** Puts a 매크로 in a collection or takes it out; nothing when it is so already. */
+function setMembership(
+  file: MacrosFile,
+  edit: Extract<MacroEdit, {kind: 'membership'}>,
+): MacrosFile {
+  existingMacro(file, edit.id);
+  const collections = withMember(file, edit);
+  return collections === file.collections ? file : {...file, collections};
+}
+
+/** Changes a 매크로 of the list in its place. */
+function changeMacro(
+  file: MacrosFile,
+  id: Macro['id'],
+  change: (macro: Macro) => Macro,
+): MacrosFile {
+  const changed = named(change(existingMacro(file, id)));
+  return checked({
+    ...file,
+    macros: file.macros.map(item => (item.id === id ? changed : item)),
+  });
+}
+
+function existingMacro(file: MacrosFile, id: Macro['id']): Macro {
+  const macro = file.macros.find(item => item.id === id);
+  if (!macro) throw new Error('Macro no longer exists');
+  return macro;
+}
+
+/**
+ * The collections once 매크로 `id` is in `collection` or, when not `member`,
+ * out of it; the same list when that is so already.
+ */
+function withMember(
+  file: MacrosFile,
+  {
+    collection: collectionId,
+    id,
+    member,
+  }: {
+    readonly collection: MacroCollection['id'];
+    readonly id: Macro['id'];
+    readonly member: boolean;
+  },
+): MacrosFile['collections'] {
   const collection = file.collections.find(group => group.id === collectionId);
-  if (collectionId && !collection) {
-    throw new Error('Collection no longer exists');
-  }
+  if (!collection) throw new Error('Collection no longer exists');
+  if (collection.macroIds.includes(id) === member) return file.collections;
   if (
-    edit.kind === 'membership' &&
-    collection?.macroIds.includes(id) === edit.member
-  ) {
-    return file;
-  }
-  const member =
-    edit.kind === 'add' || (edit.kind === 'membership' && edit.member);
-  if (
-    collection &&
     member &&
-    !collection.macroIds.includes(id) &&
     collection.macroIds.length >= MACRO_FILE_LIMITS.collectionItems
   ) {
     throw new Error('Collection is full');
   }
-  const collections = collection
-    ? file.collections.map(group =>
-        group.id !== collection.id
-          ? group
-          : {
-              ...group,
-              macroIds: member
-                ? group.macroIds.includes(id)
-                  ? group.macroIds
-                  : [...group.macroIds, id]
-                : group.macroIds.filter(value => value !== id),
-            },
-      )
-    : file.collections;
-  if (edit.kind === 'membership') return {...file, collections};
-  const item =
-    edit.kind === 'add'
-      ? edit.item
-      : edit.kind === 'action'
-        ? existing && {
-            ...existing,
-            actions: editMacroActions(existing.actions, edit.action),
-          }
-        : existing && {...existing, ...edit.changes};
-  if (!item?.name.trim() || item.name.trim().length > 256) {
+  return file.collections.map(group =>
+    group.id !== collectionId
+      ? group
+      : {
+          ...group,
+          macroIds: member
+            ? [...group.macroIds, id]
+            : group.macroIds.filter(value => value !== id),
+        },
+  );
+}
+
+/** A 매크로 with its name trimmed; a blank or too long name is refused. */
+function named(macro: Macro): Macro {
+  const name = macro.name.trim();
+  if (name === '' || name.length > NAME_LIMIT) {
     throw new Error('Invalid macro name');
   }
-  const nextItem = {...item, name: item.name.trim()};
-  const next = {
-    ...file,
-    collections,
-    macros:
-      edit.kind === 'add'
-        ? [...file.macros, nextItem]
-        : file.macros.map(value => (value.id === id ? nextItem : value)),
-  };
-  if (!serializeMacros(next, 'macros').ok) throw new Error('Invalid macro');
-  return next;
+  return {...macro, name};
+}
+
+/** The macros file, once it is one the file format takes. */
+function checked(file: MacrosFile): MacrosFile {
+  if (!serializeMacros(file, 'macros').ok) throw new Error('Invalid macro');
+  return file;
 }
 
 /** Saves a change of the macros in the macros file. */

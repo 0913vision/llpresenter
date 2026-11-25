@@ -8,6 +8,7 @@ import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {pendingWritesOf} from '@renderer/platform/documents/pendingWrites';
 import {deferred} from '@fixtures/renderer/features/tools/quickTesting';
 import {saveMacroEdit} from '@renderer/features/tools/macros/macroEdits';
+import {MACRO_FILE_LIMITS} from '@core/schema/tools/macros';
 
 const raw = {
   id: '00000000-0000-4000-8000-000000000001',
@@ -260,4 +261,71 @@ it('duplicates the latest source after a stale revision and treats a repeated ID
     {kind: 'duplicate', id: item.id, copyId},
   );
   expect(retry).not.toHaveBeenCalled();
+});
+
+it('refuses a change to a 매크로 or a collection that is gone, and one past the limits', async () => {
+  const second = {...group, id: '00000000-0000-4000-8000-000000000009'};
+  const secondId = document([], [second]).value.collections[0]?.id;
+  if (secondId === undefined) throw new Error('Missing collection');
+  const saved = vi
+    .fn()
+    .mockResolvedValue({ok: true, value: {id: 'macros', revision: 2}});
+  const at = (doc: ReturnType<typeof document>) =>
+    mockLlpApi({settings: {get: async () => doc, edit: saved}});
+  const empty = at(document());
+  await expect(
+    saveMacroEdit(empty, {kind: 'update', id: item.id, changes: {icon: 'x'}}),
+  ).rejects.toThrow('Macro no longer exists');
+  await expect(
+    saveMacroEdit(empty, {
+      kind: 'membership',
+      id: item.id,
+      collection: collection.id,
+      member: true,
+    }),
+  ).rejects.toThrow('Macro no longer exists');
+  await expect(
+    saveMacroEdit(at(document([raw], [])), {
+      kind: 'membership',
+      id: item.id,
+      collection: collection.id,
+      member: true,
+    }),
+  ).rejects.toThrow('Collection no longer exists');
+  const fullGroup = {
+    ...group,
+    macroIds: Array.from(
+      {length: MACRO_FILE_LIMITS.collectionItems},
+      (_, index) =>
+        `00000000-0000-4000-8000-${String(100 + index).padStart(12, '0')}`,
+    ),
+  };
+  await expect(
+    saveMacroEdit(at(document([raw], [fullGroup])), {
+      kind: 'membership',
+      id: item.id,
+      collection: collection.id,
+      member: true,
+    }),
+  ).rejects.toThrow('Collection is full');
+  expect(saved).not.toHaveBeenCalled();
+
+  await saveMacroEdit(
+    at(document([raw], [{...group, macroIds: [item.id]}, second])),
+    {
+      kind: 'move',
+      id: item.id,
+      from: collection.id,
+      to: secondId,
+    },
+  );
+  const written: unknown = saved.mock.lastCall?.[0];
+  expect(written).toMatchObject({
+    value: {
+      collections: [
+        {...group, macroIds: []},
+        {...second, macroIds: [item.id]},
+      ],
+    },
+  });
 });
