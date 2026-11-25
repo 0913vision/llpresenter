@@ -1,5 +1,9 @@
-import {execFile} from 'node:child_process';
-import {win32} from 'node:path';
+import {
+  currentWindows,
+  runPowerShell,
+  windowsPowerShell,
+  type WindowsEnvironment,
+} from '../base/windowsPowerShell';
 
 const STAMP_TIMEOUT_MS = 15_000;
 const MAX_REPLY_BYTES = 1024;
@@ -50,44 +54,22 @@ try { [BitConverter]::ToString($sha.ComputeHash($bytes)).Replace('-', '').ToLowe
 /** Fingerprints font folders/files and per-machine/per-user font registry values. */
 export async function readWindowsFontStamp(
   signal: AbortSignal,
-  environment = {
-    platform: process.platform,
-    root: process.env['SystemRoot'],
-  },
+  environment: WindowsEnvironment = currentWindows(),
 ): Promise<string> {
-  const {root} = environment;
-  if (
-    environment.platform !== 'win32' ||
-    root === undefined ||
-    !win32.isAbsolute(root)
-  ) {
-    throw Error('Windows font stamp is unavailable');
+  const program = windowsPowerShell(environment);
+  if (program === null) throw Error('Windows font stamp is unavailable');
+  const stamp = await runPowerShell(program, QUERY, {
+    signal,
+    timeoutMs: STAMP_TIMEOUT_MS,
+    maxBytes: MAX_REPLY_BYTES,
+  }).then(
+    printed => printed.trim(),
+    (cause: unknown) => {
+      throw Error('Could not fingerprint installed fonts', {cause});
+    },
+  );
+  if (!/^[a-f0-9]{64}$/.test(stamp)) {
+    throw Error('Could not fingerprint installed fonts');
   }
-  return new Promise((resolve, reject) => {
-    execFile(
-      win32.join(
-        root,
-        'System32',
-        'WindowsPowerShell',
-        'v1.0',
-        'powershell.exe',
-      ),
-      ['-NoProfile', '-NonInteractive', '-Command', QUERY],
-      {
-        windowsHide: true,
-        encoding: 'utf8',
-        timeout: STAMP_TIMEOUT_MS,
-        maxBuffer: MAX_REPLY_BYTES,
-        signal,
-      },
-      (error, stdout) => {
-        const stamp = stdout.trim();
-        if (error !== null || !/^[a-f0-9]{64}$/.test(stamp)) {
-          reject(
-            Error('Could not fingerprint installed fonts', {cause: error}),
-          );
-        } else resolve(stamp);
-      },
-    );
-  });
+  return stamp;
 }

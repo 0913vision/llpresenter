@@ -1,5 +1,9 @@
-import {execFile} from 'node:child_process';
-import {win32} from 'node:path';
+import {
+  currentWindows,
+  runPowerShell,
+  windowsPowerShell,
+  type WindowsEnvironment,
+} from '../base/windowsPowerShell';
 import {
   FONT_CATALOG_LIMITS,
   parseFontCatalog,
@@ -36,43 +40,18 @@ ConvertTo-Json -InputObject $catalog -Depth 4 -Compress
 /** Reads Windows font metadata in a hidden, bounded, cancellable child process. */
 export async function readWindowsFonts(
   signal: AbortSignal,
-  environment = {
-    platform: process.platform,
-    root: process.env['SystemRoot'],
-  },
+  environment: WindowsEnvironment = currentWindows(),
 ): Promise<FontCatalog> {
-  const {root} = environment;
-  if (
-    environment.platform !== 'win32' ||
-    root === undefined ||
-    !win32.isAbsolute(root)
-  ) {
+  const program = windowsPowerShell(environment);
+  if (program === null) {
     throw new Error('Windows font enumeration is unavailable');
   }
-  const program = win32.join(
-    root,
-    'System32',
-    'WindowsPowerShell',
-    'v1.0',
-    'powershell.exe',
-  );
-  const text = await new Promise<string>((resolve, reject) => {
-    execFile(
-      program,
-      ['-NoProfile', '-NonInteractive', '-Command', QUERY],
-      {
-        encoding: 'utf8',
-        windowsHide: true,
-        timeout: FONT_QUERY_TIMEOUT_MS,
-        maxBuffer: MAX_REPLY_BYTES,
-        signal,
-      },
-      (error, stdout) => {
-        if (error !== null) {
-          reject(new Error('Windows font query failed', {cause: error}));
-        } else resolve(stdout);
-      },
-    );
+  const text = await runPowerShell(program, QUERY, {
+    signal,
+    timeoutMs: FONT_QUERY_TIMEOUT_MS,
+    maxBytes: MAX_REPLY_BYTES,
+  }).catch((cause: unknown) => {
+    throw new Error('Windows font query failed', {cause});
   });
   const value: unknown = JSON.parse(text);
   const parsed = parseFontCatalog(value);
