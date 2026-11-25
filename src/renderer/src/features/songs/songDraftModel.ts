@@ -6,10 +6,11 @@ import type {
 import {songSlidesOf, type Song} from '@core/schema/songs/song';
 import {
   importLimitReason,
-  DUPLICATE_TITLE_REASON,
   EMPTY_TITLE_REASON,
+  LONG_TITLE_REASON,
   normalizeSongTitle,
   SONG_TITLE_LIMIT,
+  songTitleReason,
 } from '@core/songs';
 
 /** How many steps 실행 취소 can go back in a draft. */
@@ -64,24 +65,23 @@ export function isUnsaved(draft: SongDraft): boolean {
   );
 }
 
-/** Why a draft can't have its title. */
+/**
+ * Why a draft can't have its title: a song of the 라이브러리 by the title rule;
+ * a new import also within what an import may hold, since its title is asked
+ * against the 라이브러리 when it is saved.
+ */
 export function songTitleProblem(
   draft: SongDraft,
   library: readonly LibrarySong[],
 ): string | undefined {
+  if (draft.document !== null) {
+    return songTitleReason(draft.song.title, draft.song.id, library);
+  }
   const title = normalizeSongTitle(draft.song.title);
   if (title === '') return EMPTY_TITLE_REASON;
-  if (draft.document === null) {
-    return title.length > SONG_TITLE_LIMIT
-      ? '곡 제목이 너무 깁니다.'
-      : importLimitReason(draft.song);
-  }
-  return library.some(
-    entry =>
-      entry.id !== draft.song.id && normalizeSongTitle(entry.title) === title,
-  )
-    ? DUPLICATE_TITLE_REASON
-    : undefined;
+  return title.length > SONG_TITLE_LIMIT
+    ? LONG_TITLE_REASON
+    : importLimitReason(draft.song);
 }
 
 /**

@@ -14,9 +14,11 @@ export {
 export {
   DUPLICATE_TITLE_REASON,
   EMPTY_TITLE_REASON,
+  LONG_TITLE_REASON,
   SONG_TITLE_LIMIT,
   copyTitle,
   normalizeSongTitle,
+  songTitleReason,
 } from './songTitle';
 export {
   type ImportHeader,

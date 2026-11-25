@@ -19,8 +19,7 @@ import {
 import {TextField} from '@renderer/ui/fields/TextField';
 import {useMenuHandoff} from '@renderer/ui/menus/useMenuHandoff';
 import {RenameDialog} from '@renderer/ui/popups/RenameDialog';
-import {SONG_TITLE_LIMIT} from '@core/songs';
-import {songTitleReason} from './songTitleReason';
+import {SONG_TITLE_LIMIT, songTitleReason} from '@core/songs';
 import {EmptyState} from '@renderer/ui/lists/EmptyState';
 import {LibraryList} from './LibraryList';
 import {useLibrary, type LibraryApi, type LibrarySelection} from './useLibrary';
