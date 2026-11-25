@@ -1,5 +1,9 @@
-import {shortcutCommand} from '@core/shortcuts';
-import {registeredHandlers, type WindowShortcut} from './commandDispatcher';
+import {
+  currentWorkspace,
+  fitsWorkspace,
+  registeredHandlers,
+  type WindowShortcut,
+} from './commandDispatcher';
 import {isTextField} from './keyOwnership';
 
 /** What a menu row sees of a command at the place that had focus. */
@@ -29,10 +33,7 @@ function handlerAt(
   place: Element | null,
   event: KeyboardEvent,
 ): WindowShortcut | undefined {
-  const workspace = document
-    .querySelector('[data-workspace-layout]')
-    ?.getAttribute('data-workspace-layout');
-  const spec = shortcutCommand(id);
+  const workspace = currentWorkspace();
   // NOTE(0913vision): The menu ignores `owner.blocked()`: it is an effect
   // event, which React forbids calling while a menu renders, and a drag that
   // blocks keys has ended before a menu row can be opened.
@@ -43,15 +44,7 @@ function handlerAt(
       (!((id === 'edit.undo' || id === 'edit.redo') && isTextField(event)) ||
         handler.context === 'song' ||
         handler.context === 'screens') &&
-      (workspace === undefined ||
-        workspace === null ||
-        spec === undefined ||
-        spec.contexts.some(
-          context =>
-            context === 'control' ||
-            context === workspace ||
-            context === handler.context,
-        )) &&
+      fitsWorkspace(handler, workspace) &&
       handler.when?.(event) !== false
     ) {
       return handler;
